@@ -189,6 +189,8 @@ namespace ZombieLand
 	{
 		public static Type type = typeof(Zombie);
 
+		public bool isSniffing = false;
+
 		public override void SpawnSetup(Map map)
 		{
 			base.SpawnSetup(map);

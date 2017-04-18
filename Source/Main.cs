@@ -2,6 +2,7 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -12,6 +13,10 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	static class Main
 	{
+		public static PheromoneGrid phGrid;
+		public static long pheromoneFadeoff = 600L * 10000000;
+		public static IntVec3 centerOfInterest = IntVec3.Invalid;
+
 		static Main()
 		{
 			var harmony = HarmonyInstance.Create("net.pardeike.zombieland");
@@ -44,6 +49,43 @@ namespace ZombieLand
 			}
 		}
 
+		// patch for debugging: show pheromone grid as overlay
+		// 
+		[HarmonyPatch(typeof(SelectionDrawer))]
+		[HarmonyPatch("DrawSelectionOverlays")]
+		static class SelectionDrawer_DrawSelectionOverlays_Patch
+		{
+			static void Prefix()
+			{
+				var now = Stopwatch.GetTimestamp();
+				phGrid.IterateCells((x, z, pheromone) =>
+				{
+					Vector3 pos = new Vector3(x, Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1), z);
+					Matrix4x4 matrix = new Matrix4x4();
+					matrix.SetTRS(pos + new Vector3(0.5f, 0f, 0.5f), Quaternion.identity, new Vector3(1f, 1f, 1f));
+					var diff = now - pheromone.timestamp;
+					if (diff < pheromoneFadeoff)
+					{
+						var a = (pheromoneFadeoff - diff) / (float)pheromoneFadeoff;
+						var material = SolidColorMaterials.SimpleSolidColorMaterial(new Color(1f, 0f, 0f, a));
+						Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+					}
+				});
+			}
+		}
+
+		// initialize the pheromone matrix after the map is loaded
+		//
+		[HarmonyPatch(typeof(Map))]
+		[HarmonyPatch("FinalizeInit")]
+		static class Map_FinalizeInit_Patch
+		{
+			static void Postfix(Map __instance)
+			{
+				phGrid = new PheromoneGrid(__instance);
+			}
+		}
+
 		// patch for repeating calculations
 		//
 		[HarmonyPatch(typeof(TickManager))]
@@ -53,8 +95,33 @@ namespace ZombieLand
 			static int updateCounter = 0;
 			static int updateDelay = GenTicks.SecondsToTicks(2f);
 
+			static Dictionary<string, IntVec3> lastPositions = new Dictionary<string, IntVec3>();
+
 			static void Postfix()
 			{
+				var allPawns = Find.VisibleMap.mapPawns.AllPawnsSpawned
+					.Where(pawn => pawn.GetType() != Zombie.type);
+
+				allPawns.Do(pawn =>
+				{
+					var pos = pawn.Position;
+					var id = pawn.ThingID;
+					if (lastPositions.ContainsKey(id) == false)
+						lastPositions[id] = pos;
+					else
+					{
+						if (pos != lastPositions[id])
+						{
+							var destCell = IntVec3.Invalid;
+							if (pawn.pather != null && pawn.pather.Destination != null)
+								destCell = pawn.pather.Destination.Cell;
+							phGrid.Set(pos, destCell);
+						}
+
+						lastPositions[id] = pos;
+					}
+				});
+
 				if (updateCounter-- > 0) return;
 				updateCounter = updateDelay;
 
@@ -66,13 +133,13 @@ namespace ZombieLand
 					z += building.Position.z * buildingMultiplier;
 					n += buildingMultiplier;
 				});
-				Find.VisibleMap.mapPawns.AllPawnsSpawned.Do(pawn =>
+				allPawns.Do(pawn =>
 				{
 					x += pawn.Position.x;
 					z += pawn.Position.z;
 					n++;
 				});
-				JobDriver_Stumble.center = new IntVec3(x / n, 0, z / n);
+				centerOfInterest = new IntVec3(x / n, 0, z / n);
 			}
 		}
 
@@ -92,6 +159,24 @@ namespace ZombieLand
 						130f / 255f,
 						68f / 255f
 					);
+					return false;
+				}
+				return true;
+			}
+		}
+
+		// patch for variable zombie movement speed
+		//
+		[HarmonyPatch(typeof(StatExtension))]
+		[HarmonyPatch("GetStatValue")]
+		static class StatExtension_GetStatValue_Patch
+		{
+			static bool Prefix(Thing thing, StatDef stat, ref float __result)
+			{
+				var zombie = thing as Zombie;
+				if (zombie != null && stat == StatDefOf.MoveSpeed)
+				{
+					__result = zombie.isSniffing ? 0.8f : 0.2f;
 					return false;
 				}
 				return true;

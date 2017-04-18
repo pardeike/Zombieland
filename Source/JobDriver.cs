@@ -1,6 +1,7 @@
 ﻿using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Verse;
 using Verse.AI;
@@ -14,8 +15,6 @@ namespace ZombieLand
 
 		int slowdownCounter;
 		static int slowdownDelay = GenTicks.SecondsToTicks(1f);
-
-		public static IntVec3 center = IntVec3.Invalid;
 
 		public virtual void InitAction()
 		{
@@ -65,9 +64,39 @@ namespace ZombieLand
 				var rand = random.Next(100);
 				destination = IntVec3.Invalid;
 
+				long now = Stopwatch.GetTimestamp();
+				var zombie = (Zombie)pawn;
+				var basePos = pawn.Position;
+				var shortestDiff = Main.pheromoneFadeoff;
+				var shouldCreatePheromones = false;
+				for (int i = 0; i < 8; i++)
+				{
+					var pos = basePos + GenAdj.AdjacentCells[adjIndex[i]];
+					var diff = now - Main.phGrid.Get(pos).timestamp;
+					if (diff < shortestDiff)
+					{
+						shortestDiff = diff;
+						destination = pos;
+						if (zombie.isSniffing == false)
+							shouldCreatePheromones = true;
+						zombie.isSniffing = true;
+					}
+				}
+				if (shouldCreatePheromones)
+				{
+					var baseTimestamp = now - shortestDiff;
+					for (int j = 0; j < 8; j++)
+					{
+						var pos = basePos + GenAdj.AdjacentCells[adjIndex[j]];
+						var timestamp = baseTimestamp - (int)pos.DistanceToSquared(destination);
+						Main.phGrid.Set(pos, destination, timestamp);
+					}
+				}
+
+				/*
 				if (rand <= 10)
 				{
-					var randomTarget = Find.VisibleMap.mapPawns
+					var randomTarget = pawn.Map.mapPawns
 						.AllPawnsSpawned
 						.Where(p => p.GetType() != Zombie.type && p.Position.x > 0 && p.Position.z > 0)
 						.Where(p => p.Destroyed == false && p.Downed == false && p.Dead == false)
@@ -76,11 +105,12 @@ namespace ZombieLand
 					if (randomTarget != null && HasValidDestination(randomTarget.Position))
 						destination = randomTarget.Position;
 				}
+				*/
 
 				if (destination.IsValid == false && rand <= 50)
 				{
-					int dx = center.x - pawn.Position.x;
-					int dz = center.z - pawn.Position.z;
+					int dx = Main.centerOfInterest.x - pawn.Position.x;
+					int dz = Main.centerOfInterest.z - pawn.Position.z;
 					destination = pawn.Position;
 					if (Math.Abs(dx) > Math.Abs(dz))
 						destination.x += Math.Sign(dx);
@@ -132,7 +162,7 @@ namespace ZombieLand
 		bool HasValidDestination(IntVec3 dest)
 		{
 			if (dest.IsValid == false) return false;
-			if (dest.InBounds(Find.VisibleMap) == false) return false;
+			if (dest.InBounds(pawn.Map) == false) return false;
 			if (GenGrid.Walkable(dest, pawn.Map) == false) return false;
 			return pawn.Map.reachability.CanReach(pawn.Position, dest, PathEndMode.OnCell, TraverseParms.For(TraverseMode.NoPassClosedDoors));
 		}
