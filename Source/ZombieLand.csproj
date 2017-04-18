@@ -1,0 +1,111 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{34AA2AF2-8E82-4C5B-8ABA-9AC53DA7C110}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ZombieLand</RootNamespace>
+    <AssemblyName>ZombieLand</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\Assemblies\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\Assemblies\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony, Version=1.0.9.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Assemblies\0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>D:\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="UnityEngine">
+      <HintPath>D:\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin_Data\Managed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="JobDriver.cs" />
+    <Compile Include="JobGiver.cs" />
+    <Compile Include="Main.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tools.cs" />
+    <Compile Include="Zombie.cs" />
+    <Compile Include="ZombieGenerator.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\Defs\Zombie_Faction.xml">
+      <Link>Zombie_Faction.xml</Link>
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="..\Defs\Zombie_Jobs.xml">
+      <Link>Zombie_Jobs.xml</Link>
+    </Content>
+    <Content Include="..\Defs\Zombie_Kind.xml">
+      <Link>Zombie_Kind.xml</Link>
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="..\Defs\Zombie_Race.xml">
+      <Link>Zombie_Race.xml</Link>
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="..\Defs\Zombie_ThingCategories.xml">
+      <Link>Zombie_ThingCategories.xml</Link>
+    </Content>
+    <Content Include="..\Defs\Zombie_ThinkTree.xml">
+      <Link>Zombie_ThinkTree.xml</Link>
+      <SubType>Designer</SubType>
+    </Content>
+    <Content Include="..\Textures\Things\Pawns\ZombieHead_back.png">
+      <Link>Textures\Things\Pawns\ZombieHead_back.png</Link>
+    </Content>
+    <Content Include="..\Textures\Things\Pawns\ZombieHead_front.png">
+      <Link>Textures\Things\Pawns\ZombieHead_front.png</Link>
+    </Content>
+    <Content Include="..\Textures\Things\Pawns\ZombieHead_side.png">
+      <Link>Textures\Things\Pawns\ZombieHead_side.png</Link>
+    </Content>
+    <Content Include="..\Textures\Things\Pawns\Zombie_back.png">
+      <Link>Textures\Things\Pawns\Zombie_back.png</Link>
+    </Content>
+    <Content Include="..\Textures\Things\Pawns\Zombie_front.png">
+      <Link>Textures\Things\Pawns\Zombie_front.png</Link>
+    </Content>
+    <Content Include="..\Textures\Things\Pawns\Zombie_side.png">
+      <Link>Textures\Things\Pawns\Zombie_side.png</Link>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>"C:\Program Files (x86)\Mono-4\bin\mono.exe" "c:\Program Files (x86)\Mono-4\lib\mono\4.5\pdb2mdb.exe" "$(TargetPath)"
+"C:\Program Files (x86)\Mono-4\bin\mono.exe" "c:\Program Files (x86)\Mono-4\lib\mono\4.5\pdb2mdb.exe" "$(TargetDir)0Harmony.dll"</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

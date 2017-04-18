@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<PawnKindDef class="ZombieLand.PawnKindDef_Zombie">
+		<defName>Zombie</defName>
+		<race>Zombie</race>
+		<combatPower>999999</combatPower>
+		<baseRecruitDifficulty>1.0</baseRecruitDifficulty>
+		<backstoryCategory>Civil</backstoryCategory>
+		<defaultFactionType>Zombies</defaultFactionType>
+		<isFighter>true</isFighter>
+		<itemQuality>Shoddy</itemQuality>
+		<apparelTags>
+			<li>Spacer</li>
+		</apparelTags>
+		<apparelMoney>
+			<min>50</min>
+			<max>500</max>
+		</apparelMoney>
+		<apparelIgnoreSeasons>true</apparelIgnoreSeasons>
+		<apparelAllowHeadwearChance>0.75</apparelAllowHeadwearChance>
+		<backstoryCryptosleepCommonality>0.0</backstoryCryptosleepCommonality>
+		<forceNormalGearQuality>false</forceNormalGearQuality>
+	</PawnKindDef>
+
+</Defs>

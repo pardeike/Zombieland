@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ThingDefs>
+
+	<ThingDef Name="BaseZombie" Abstract="True">
+		<thingClass>ZombieLand.Zombie</thingClass>
+		<category>Pawn</category>
+		<selectable>false</selectable>
+		<tickerType>Normal</tickerType>
+		<altitudeLayer>Pawn</altitudeLayer>
+		<useHitPoints>false</useHitPoints>
+		<hasTooltip>false</hasTooltip>
+		<soundImpactDefault>BulletImpactFlesh</soundImpactDefault>
+		<statBases>
+			<Mass>70</Mass>
+			<PsychicSensitivity>0</PsychicSensitivity>
+			<Flammability>1</Flammability>
+			<ComfyTemperatureMin>-999</ComfyTemperatureMin>
+			<ComfyTemperatureMax>999</ComfyTemperatureMax>
+		</statBases>
+		<inspectorTabs>
+			<li>ITab_Pawn_Health</li>
+			<li>ITab_Pawn_Character</li>
+		</inspectorTabs>
+		<comps>
+			<li>
+				<compClass>CompAttachBase</compClass>
+			</li>
+		</comps>
+		<drawGUIOverlay>false</drawGUIOverlay>
+		<race>
+			<fleshType>Normal</fleshType>
+			<needsRest>false</needsRest>
+			<hasGenders>true</hasGenders>
+			<foodType>Corpse</foodType>
+			<meatColor>(44,58,44)</meatColor>
+			<canBePredatorPrey>true</canBePredatorPrey>
+		</race>
+	</ThingDef>
+
+	<ThingDef Class="ZombieLand.ThingDef_Zombie" ParentName="BaseZombie">
+		<defName>Zombie</defName>
+		<label>Zombie</label>
+		<description>A zombie</description>
+		<statBases>
+			<MoveSpeed>0.1</MoveSpeed>
+			<ArmorRating_Blunt>-0.1</ArmorRating_Blunt>
+			<ArmorRating_Sharp>-0.15</ArmorRating_Sharp>
+			<MeatAmount>0</MeatAmount>
+			<LeatherAmount>0</LeatherAmount>
+		</statBases>
+		<verbs>
+			<li>
+				<verbClass>Verb_MeleeAttack</verbClass>
+				<defaultCooldownTime>1.0</defaultCooldownTime>
+				<meleeDamageBaseAmount>60</meleeDamageBaseAmount>
+				<meleeDamageDef>Bite</meleeDamageDef>
+				<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
+			</li>
+			<li>
+				<verbClass>Verb_MeleeAttack</verbClass>
+				<defaultCooldownTime>1.0</defaultCooldownTime>
+				<meleeDamageBaseAmount>30</meleeDamageBaseAmount>
+				<meleeDamageDef>Scratch</meleeDamageDef>
+				<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
+			</li>
+			<li>
+				<verbClass>Verb_MeleeAttack</verbClass>
+				<defaultCooldownTime>1.0</defaultCooldownTime>
+				<meleeDamageBaseAmount>30</meleeDamageBaseAmount>
+				<meleeDamageDef>Scratch</meleeDamageDef>
+				<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
+			</li>
+		</verbs>
+		<race>
+			<thinkTreeMain>Zombie</thinkTreeMain>
+			<intelligence>Humanlike</intelligence>
+			<makesFootprints>false</makesFootprints>
+			<lifeExpectancy>9999</lifeExpectancy>
+			<baseBodySize>1</baseBodySize>
+			<leatherColor>(34,113,39)</leatherColor>
+			<leatherCommonalityFactor>0</leatherCommonalityFactor>
+			<foodType>CarnivoreAnimalStrict</foodType>
+			<body>Human</body>
+			<nameCategory>HumanStandard</nameCategory>
+			<lifeStageAges>
+				<li>
+					<def>HumanlikeTeenager</def>
+					<minAge>0</minAge>
+					<soundWounded>Pawn_Bear_Injured</soundWounded>
+					<soundDeath>Pawn_Bear_Death</soundDeath>
+					<soundCall>Pawn_Bear_Call</soundCall>
+					<soundAngry>Pawn_Bear_Angry</soundAngry>
+				</li>
+				<li>
+					<def>HumanlikeAdult</def>
+					<minAge>18</minAge>
+					<soundWounded>Pawn_Bear_Injured</soundWounded>
+					<soundDeath>Pawn_Bear_Death</soundDeath>
+					<soundCall>Pawn_Bear_Call</soundCall>
+					<soundAngry>Pawn_Bear_Angry</soundAngry>
+				</li>
+			</lifeStageAges>
+			<soundMeleeHitPawn>Pawn_Melee_BigBash_HitPawn</soundMeleeHitPawn>
+			<soundMeleeHitBuilding>Pawn_Melee_BigBash_HitBuilding</soundMeleeHitBuilding>
+			<soundMeleeMiss>Pawn_Melee_BigBash_Miss</soundMeleeMiss>
+			<hediffGiverSets>
+				<li>OrganicStandard</li>
+			</hediffGiverSets>
+		</race>
+
+	</ThingDef>
+
+</ThingDefs>

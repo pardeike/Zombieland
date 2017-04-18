@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ThinkTrees>
+
+	<ThinkTreeDef>
+		<defName>Zombie</defName>
+		<thinkRoot Class="ThinkNode_Priority">
+			<subNodes>
+
+				<li Class="ZombieLand.JobGiver_Stumble">
+				</li>
+
+				<li Class="JobGiver_IdleError"/>
+
+			</subNodes>
+		</thinkRoot>
+	</ThinkTreeDef>
+
+</ThinkTrees>

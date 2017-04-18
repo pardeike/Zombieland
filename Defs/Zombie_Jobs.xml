@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<JobDefs>
+
+	<JobDef>
+		<defName>Stumble</defName>
+		<driverClass>ZombieLand.JobDriver_Stumble</driverClass>
+		<reportString>stumbling.</reportString>
+	</JobDef>
+
+</JobDefs>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<FactionDefs>
+
+	<FactionDef>
+		<defName>Zombies</defName>
+		<label>Zombies</label>
+		<description>Undead creatures.</description>
+		<pawnsPlural>zombies</pawnsPlural>
+		<requiredCountAtGameStart>1</requiredCountAtGameStart>
+		<fixedName>a zombie</fixedName>
+		<raidCommonality>0</raidCommonality>
+		<humanlikeFaction>true</humanlikeFaction>
+		<hidden>true</hidden>
+		<autoFlee>false</autoFlee>
+		<canUseAvoidGrid>false</canUseAvoidGrid>
+		<techLevel>Animal</techLevel>
+		<homeIconPath>World/WorldObjects/DefaultFactionBase</homeIconPath>
+		<startingGoodwill>
+			<min>-100</min>
+			<max>-100</max>
+		</startingGoodwill>
+		<naturalColonyGoodwill>
+			<min>-100</min>
+			<max>-100</max>
+		</naturalColonyGoodwill>
+		<backstoryCategory>Civil</backstoryCategory>
+		<factionNameMaker>NamerFactionOutlander</factionNameMaker>
+		<hairTags>
+			<li>Rural</li>
+		</hairTags>
+	</FactionDef>
+
+</FactionDefs>
