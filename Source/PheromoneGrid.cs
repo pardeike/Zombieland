@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Verse;
 
@@ -9,22 +8,25 @@ namespace ZombieLand
 	{
 		public static Pheromone empty = new Pheromone();
 
-		public int x;
-		public int z;
+		public IntVec2 vector;
 		public long timestamp;
 
 		public Pheromone()
 		{
-			x = -1;
-			z = -1;
+			vector = IntVec2.Invalid;
 			timestamp = 0;
 		}
 
-		public Pheromone(IntVec3 pos, long timestamp = 0)
+		public Pheromone(long timestamp = 0)
 		{
-			x = pos.x;
-			z = pos.z;
-			this.timestamp = timestamp != 0 ? timestamp : Stopwatch.GetTimestamp();
+			vector = IntVec2.Invalid;
+			this.timestamp = timestamp != 0 ? timestamp : Tools.Ticks();
+		}
+
+		public Pheromone(IntVec2 pos, long timestamp = 0)
+		{
+			vector = pos;
+			this.timestamp = timestamp != 0 ? timestamp : Tools.Ticks();
 		}
 	}
 
@@ -52,12 +54,12 @@ namespace ZombieLand
 				}
 		}
 
-		public Pheromone Get(IntVec3 position)
+		public Pheromone Get(IntVec3 position, bool create = true)
 		{
 			if (position.x < 0 || position.x >= mapSizeX || position.z < 0 || position.z >= mapSizeZ)
 				return Pheromone.empty;
 			var cell = grid[CellToIndex(position)];
-			if (cell == null)
+			if (cell == null && create)
 			{
 				cell = Pheromone.empty;
 				grid[CellToIndex(position)] = cell;
@@ -65,7 +67,17 @@ namespace ZombieLand
 			return cell;
 		}
 
-		public void Set(IntVec3 position, IntVec3 target, long timestamp = 0)
+		public void SetTimestamp(IntVec3 position, long timestamp = 0)
+		{
+			if (position.x < 0 || position.x >= mapSizeX || position.z < 0 || position.z >= mapSizeZ) return;
+			var cell = grid[CellToIndex(position)];
+			if (cell == null)
+				grid[CellToIndex(position)] = new Pheromone(timestamp);
+			else
+				grid[CellToIndex(position)].timestamp = timestamp;
+		}
+
+		public void Set(IntVec3 position, IntVec2 target, long timestamp = 0)
 		{
 			if (position.x < 0 || position.x >= mapSizeX || position.z < 0 || position.z >= mapSizeZ) return;
 			grid[CellToIndex(position)] = new Pheromone(target, timestamp);

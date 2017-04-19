@@ -10,7 +10,7 @@ namespace ZombieLand
 {
 	public class JobDriver_Stumble : JobDriver
 	{
-		IntVec3 destination;
+		IntVec2 destination;
 		static Random random = new Random();
 
 		int slowdownCounter;
@@ -18,7 +18,7 @@ namespace ZombieLand
 
 		public virtual void InitAction()
 		{
-			destination = IntVec3.Invalid;
+			destination = IntVec2.Invalid;
 		}
 
 		public virtual void TickAction()
@@ -51,7 +51,7 @@ namespace ZombieLand
 				return;
 			}
 
-			if (pawn.Downed == false && HasValidDestination(destination) == false)
+			if (pawn.Downed == false && HasValidDestination(destination.ToIntVec3) == false)
 			{
 				var target = CanAttack();
 				if (target != null)
@@ -61,37 +61,48 @@ namespace ZombieLand
 					return;
 				}
 
-				var rand = random.Next(100);
-				destination = IntVec3.Invalid;
+				var nextIndex = random.Next(8);
+				var c = adjIndex[prevIndex];
+				adjIndex[prevIndex] = adjIndex[nextIndex];
+				adjIndex[nextIndex] = c;
+				prevIndex = nextIndex;
 
-				long now = Stopwatch.GetTimestamp();
+				destination = IntVec2.Invalid;
+
+				long now = Tools.Ticks();
 				var zombie = (Zombie)pawn;
 				var basePos = pawn.Position;
 				var shortestDiff = Main.pheromoneFadeoff;
-				var shouldCreatePheromones = false;
 				for (int i = 0; i < 8; i++)
 				{
 					var pos = basePos + GenAdj.AdjacentCells[adjIndex[i]];
-					var diff = now - Main.phGrid.Get(pos).timestamp;
+					var cell = Main.phGrid.Get(pos, false);
+					if (cell == null) continue;
+					if (cell.vector.IsValid)
+					{
+						destination = cell.vector;
+						zombie.isSniffing = false;
+						break;
+					}
+					var diff = now - cell.timestamp;
 					if (diff < shortestDiff)
 					{
 						shortestDiff = diff;
-						destination = pos;
+						destination = pos.ToIntVec2;
 						if (zombie.isSniffing == false)
-							shouldCreatePheromones = true;
+						{
+							var baseTimestamp = now - shortestDiff;
+							for (int j = 0; j < 8; j++)
+							{
+								var pos2 = basePos + GenAdj.AdjacentCells[adjIndex[j]];
+								var timestamp = baseTimestamp - (int)pos2.DistanceToSquared(destination.ToIntVec3);
+								Main.phGrid.Set(pos2, destination, timestamp);
+							}
+						}
 						zombie.isSniffing = true;
 					}
 				}
-				if (shouldCreatePheromones)
-				{
-					var baseTimestamp = now - shortestDiff;
-					for (int j = 0; j < 8; j++)
-					{
-						var pos = basePos + GenAdj.AdjacentCells[adjIndex[j]];
-						var timestamp = baseTimestamp - (int)pos.DistanceToSquared(destination);
-						Main.phGrid.Set(pos, destination, timestamp);
-					}
-				}
+				if (destination.IsValid == false) zombie.isSniffing = false;
 
 				/*
 				if (rand <= 10)
@@ -107,34 +118,35 @@ namespace ZombieLand
 				}
 				*/
 
+				var rand = random.Next(100);
 				if (destination.IsValid == false && rand <= 50)
 				{
 					int dx = Main.centerOfInterest.x - pawn.Position.x;
 					int dz = Main.centerOfInterest.z - pawn.Position.z;
-					destination = pawn.Position;
+					destination = pawn.Position.ToIntVec2;
 					if (Math.Abs(dx) > Math.Abs(dz))
 						destination.x += Math.Sign(dx);
 					else
 						destination.z += Math.Sign(dz);
 
-					if (HasValidDestination(destination) == false)
-						destination = IntVec3.Invalid;
+					if (HasValidDestination(destination.ToIntVec3) == false)
+						destination = IntVec2.Invalid;
 				}
 
 				if (destination.IsValid == false)
 				{
 					var maxDanger = PawnUtility.ResolveMaxDanger(pawn, Danger.Deadly);
-					destination = RCellFinder.RandomWanderDestFor(pawn, pawn.Position, 2f, (Pawn thePawn, IntVec3 thePos) => HasValidDestination(thePos), maxDanger);
+					destination = RCellFinder.RandomWanderDestFor(pawn, pawn.Position, 2f, (Pawn thePawn, IntVec3 thePos) => HasValidDestination(thePos), maxDanger).ToIntVec2;
 				}
 
 				if (destination.IsValid)
-					pawn.pather.StartPath(destination, PathEndMode.OnCell);
+					pawn.pather.StartPath(destination.ToIntVec3, PathEndMode.OnCell);
 			}
 		}
 
 		public override void Notify_PatherArrived()
 		{
-			destination = IntVec3.Invalid;
+			destination = IntVec2.Invalid;
 		}
 
 		static int[] adjIndex = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };

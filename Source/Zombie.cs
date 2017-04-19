@@ -148,7 +148,7 @@ namespace ZombieLand
 	{
 		public Zombie_Need_Mood(Pawn zombie) : base(zombie)
 		{
-			observer = new PawnObserver(zombie);
+			observer = new Zombie_PawnObserver(zombie);
 		}
 	}
 

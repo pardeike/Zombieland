@@ -2,7 +2,6 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -13,8 +12,10 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	static class Main
 	{
+		static bool DEBUGGRID = false;
+
 		public static PheromoneGrid phGrid;
-		public static long pheromoneFadeoff = 600L * 10000000;
+		public static long pheromoneFadeoff = 1000L * GenTicks.SecondsToTicks(30f);
 		public static IntVec3 centerOfInterest = IntVec3.Invalid;
 
 		static Main()
@@ -57,7 +58,8 @@ namespace ZombieLand
 		{
 			static void Prefix()
 			{
-				var now = Stopwatch.GetTimestamp();
+				if (DEBUGGRID == false) return;
+				var now = Tools.Ticks();
 				phGrid.IterateCells((x, z, pheromone) =>
 				{
 					Vector3 pos = new Vector3(x, Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1), z);
@@ -106,20 +108,16 @@ namespace ZombieLand
 				{
 					var pos = pawn.Position;
 					var id = pawn.ThingID;
-					if (lastPositions.ContainsKey(id) == false)
-						lastPositions[id] = pos;
-					else
+					if (lastPositions.ContainsKey(id) == false || pos != lastPositions[id])
 					{
-						if (pos != lastPositions[id])
-						{
-							var destCell = IntVec3.Invalid;
-							if (pawn.pather != null && pawn.pather.Destination != null)
-								destCell = pawn.pather.Destination.Cell;
-							phGrid.Set(pos, destCell);
-						}
-
-						lastPositions[id] = pos;
+						var destCell = IntVec3.Invalid;
+						//if (pawn.pather != null && pawn.pather.Destination != null)
+						//	destCell = pawn.pather.Destination.Cell;
+						var now = Tools.Ticks();
+						Tools.GetCircle(5f).Do(vec => phGrid.SetTimestamp(pos + vec, now - Math.Min(4, (int)vec.LengthHorizontal)));
 					}
+
+					lastPositions[id] = pos;
 				});
 
 				if (updateCounter-- > 0) return;
@@ -250,6 +248,22 @@ namespace ZombieLand
 				var zombieCorpse = (ZombieCorpse)__instance;
 				__result = zombieCorpse.ShouldVanish();
 				return false;
+			}
+		}
+
+		// patch to trigger on gun shots
+		//
+		[HarmonyPatch(typeof(Projectile))]
+		[HarmonyPatch("Launch")]
+		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(Thing) })]
+		static class Projectile_Launch_Patch
+		{
+			static void Prefix(Projectile __instance, Thing launcher, Vector3 origin, LocalTargetInfo targ, Thing equipment)
+			{
+				var now = Tools.Ticks();
+				var pos = origin.ToIntVec3();
+				// TODO: use weapon range instead of 10f
+				Tools.GetCircle(10f).Do(vec => phGrid.SetTimestamp(pos + vec, now - (int)vec.LengthHorizontalSquared));
 			}
 		}
 
