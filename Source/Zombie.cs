@@ -65,6 +65,8 @@ namespace ZombieLand
 		static float maxHeight = 0.4f;
 		static float minScale = 0.05f;
 		static float maxScale = 0.25f;
+		static float burriedOffset = 1.5f;
+		static float emergeDelay = 0.7f;
 
 		void GenerateRubble()
 		{
@@ -91,7 +93,7 @@ namespace ZombieLand
 				r.pX += (r.destX - r.pX) * 0.5f;
 				var dy = r.destY - r.pY;
 				r.pY += dy * 0.5f + Math.Abs(0.5f - dx) / 10f;
-				r.rot = r.rot * 0.95f + (r.destX - r.pX) / 2f;
+				r.rot = r.rot * 0.95f - (r.destX - r.pX) / 2f;
 
 				if (dy < 0.1f)
 				{
@@ -108,7 +110,7 @@ namespace ZombieLand
 			{
 				var scale = minScale + (maxScale - minScale) * r.scale;
 				var x = 0f + r.pX / 2f;
-				var y = -0.5f + Math.Max(0f, r.pY - r.drop) * (maxHeight - scale / 2f) + scale / 2f;
+				var y = -0.5f + Math.Max(0f, r.pY - r.drop) * (maxHeight - scale / 2f) + (scale - maxScale) / 2f;
 				var pos = drawLoc + new Vector3(x, a, y);
 				var rot = Quaternion.Euler(0f, r.rot * 360f, 0f);
 				Tools.DrawScaledMesh(MeshPool.plane10, Main.rubble, pos, rot, scale, scale);
@@ -124,13 +126,14 @@ namespace ZombieLand
 					AnimateRubble();
 				RenderRubble(drawLoc);
 			}
-			else
-			{
-				var pawn = Traverse.Create(renderer).Field("pawn").GetValue<Pawn>();
-				Traverse.Create(renderer)
-					.Method("RenderPawnInternal", args)
-					.GetValue(drawLoc, Quaternion.identity, true, pawn.Rotation, pawn.Rotation, bodyDrawType, false);
-			}
+
+			var progress = rubbleCounter / (float)rubbleAmount;
+			var offset = -burriedOffset + burriedOffset * Math.Max(0f, progress - emergeDelay) / (1f - emergeDelay);
+
+			var pawn = Traverse.Create(renderer).Field("pawn").GetValue<Pawn>();
+			Traverse.Create(renderer)
+				.Method("RenderPawnInternal", args)
+				.GetValue(drawLoc + new Vector3(0f, 0f, offset), Quaternion.identity, true, pawn.Rotation, pawn.Rotation, bodyDrawType, false);
 		}
 	}
 }

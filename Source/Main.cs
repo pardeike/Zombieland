@@ -218,7 +218,7 @@ namespace ZombieLand
 						var cell = CellFinderLoose.RandomCellWith(ZombieSpawnLocator(map), map, 4);
 						if (cell.IsValid)
 						{
-							Log.Error("New Zombie at " + cell.x + "/" + cell.z);
+							Log.Warning("New Zombie at " + cell.x + "/" + cell.z);
 
 							var zombie = ZombieGenerator.GeneratePawn(map);
 							GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Near, null);
