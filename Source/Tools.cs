@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 using Verse;
 
 namespace ZombieLand
@@ -26,6 +27,14 @@ namespace ZombieLand
 					validRegionAt.ListerThings.Add(thing);
 				}
 			}
+		}
+
+		public static void DrawScaledMesh(Mesh mesh, Material mat, Vector3 pos, Quaternion q, float mx, float my, float mz = 1f)
+		{
+			Vector3 s = new Vector3(mx, mz, my);
+			Matrix4x4 matrix = new Matrix4x4();
+			matrix.SetTRS(pos, q, s);
+			Graphics.DrawMesh(mesh, matrix, mat, 0);
 		}
 
 		public static Dictionary<float, HashSet<IntVec3>> circles = null;

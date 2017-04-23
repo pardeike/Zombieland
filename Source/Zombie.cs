@@ -1,204 +1,136 @@
 ﻿using Harmony;
-using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using UnityEngine;
 using Verse;
 
 namespace ZombieLand
 {
-	public class PawnKindDef_Zombie : PawnKindDef { }
-	public class ThingDef_Zombie : ThingDef
+	public class Rubble
 	{
-		public static Type type = typeof(ThingDef_Zombie);
-	}
+		public float destX, destY;
+		public float pX, pY;
+		public float drop, dropSpeed;
 
-	//
+		public float scale;
+		public float rot;
 
-	public class ZombieCorpse : Corpse
-	{
-		int vanishAfter;
-		public static Type type = typeof(ZombieCorpse);
-
-		public override void SpawnSetup(Map map)
+		public static Rubble Create(float progress)
 		{
-			base.SpawnSetup(map);
-			InnerPawn.Rotation = Rot4.Random;
-			vanishAfter = Age + GenTicks.SecondsToTicks(60);
-			ForbidUtility.SetForbidden(this, false, false);
-
-			GetComps<CompRottable>()
-				.Select(comp => comp.props)
-				.OfType<CompProperties_Rottable>()
-				.Cast<CompProperties_Rottable>()
-				.Do(rotcomp =>
-				{
-					rotcomp.daysToRotStart = 1f * GenTicks.SecondsToTicks(10) / 60000f;
-					//rotcomp.rotDestroys = true;
-					rotcomp.daysToDessicated = 1f * GenTicks.SecondsToTicks(30) / 60000f;
-				});
-		}
-
-		public override void Destroy(DestroyMode mode)
-		{
-			if (InnerPawn == null) return;
-
-			InnerPawn.inventory.DestroyAll(DestroyMode.Vanish);
-			if (InnerPawn.apparel != null)
-				InnerPawn.apparel.DestroyAll(DestroyMode.Vanish);
-
-			base.Destroy(mode);
-
-			if (Find.WorldPawns.Contains(InnerPawn))
-				Find.WorldPawns.DiscardIfUnimportant(InnerPawn);
-		}
-
-		public override void DrawExtraSelectionOverlays()
-		{
-		}
-
-		public override void DrawGUIOverlay()
-		{
-		}
-
-		public bool ShouldVanish()
-		{
-			return Age >= this.vanishAfter;
-		}
-	}
-
-	//
-
-	public class Zombie_NeedsTracker : Pawn_NeedsTracker
-	{
-		public Zombie_NeedsTracker(Pawn zombie) : base(zombie)
-		{
-		}
-
-		public new void AddOrRemoveNeedsAsAppropriate() { }
-		public new void NeedsTrackerTick() { }
-		public new List<Need> AllNeeds
-		{
-			get
+			var revProgress = 1f - progress;
+			return new Rubble()
 			{
-				return new List<Need>();
-			}
+				destX = Rand.Range(-revProgress, revProgress),
+				destY = Rand.Range(0, progress),
+				scale = Rand.Range(0f, 0.5f + progress / 2f),
+				pX = 0f,
+				pY = Rand.Range(progress / 2f, progress),
+				drop = 0f,
+				dropSpeed = 0f,
+				rot = Rand.Range(-0.05f, 0.05f)
+			};
 		}
-		public new T TryGetNeed<T>() where T : Need { return null; }
-		public new Need TryGetNeed(NeedDef def) { return null; }
 	}
 
-	public class Zombie_InteractionsTracker : Pawn_InteractionsTracker
+	public enum ZombieState
 	{
-		public Zombie_InteractionsTracker(Pawn zombie) : base(zombie)
-		{
-		}
-
-		public new bool TryInteractWith(Pawn recipient, InteractionDef intDef) { return false; }
-		public new void StartSocialFight(Pawn otherPawn) { }
-		public new float SocialFightChance(InteractionDef interaction, Pawn initiator) { return 0f; }
-		public new void InteractionsTrackerTick() { }
-		public new bool InteractedTooRecentlyToInteract() { return true; }
-		public new bool CheckSocialFightStart(InteractionDef interaction, Pawn initiator) { return false; }
+		Emerging,
+		Wandering,
+		Tracking
 	}
-
-	public class Zombie_RelationsTracker : Pawn_RelationsTracker
-	{
-		public Zombie_RelationsTracker(Pawn zombie) : base(zombie)
-		{
-		}
-
-		public new float CompatibilityWith(Pawn otherPawn) { return 0f; }
-		public new float ConstantPerPawnsPairCompatibilityOffset(int otherPawnID) { return 0f; }
-		public new bool DirectRelationExists(PawnRelationDef def, Pawn otherPawn) { return false; }
-		public new DirectPawnRelation GetDirectRelation(PawnRelationDef def, Pawn otherPawn) { return null; }
-		public new Pawn GetFirstDirectRelationPawn(PawnRelationDef def, Predicate<Pawn> predicate) { return null; }
-		public new float GetFriendDiedThoughtPowerFactor(int opinion) { return 0f; }
-		public new float GetRivalDiedThoughtPowerFactor(int opinion) { return 0f; }
-		public new void Notify_PawnKidnapped() { }
-		internal void Notify_PawnKilled(DamageInfo? dinfo, Map mapBeforeDeath) { }
-		public new void Notify_PawnSold(Pawn playerNegotiator) { }
-		public new void Notify_RescuedBy(Pawn rescuer) { }
-		public new string OpinionExplanation(Pawn other) { return String.Empty; }
-		public new int OpinionOf(Pawn other) { return 0; }
-		public new void RemoveDirectRelation(DirectPawnRelation relation) { }
-		public new void RemoveDirectRelation(PawnRelationDef def, Pawn otherPawn) { }
-		public new float SecondaryRomanceChanceFactor(Pawn otherPawn) { return 0f; }
-		public new void SocialTrackerTick() { }
-		public new bool TryRemoveDirectRelation(PawnRelationDef def, Pawn otherPawn) { return false; }
-		public new bool RelatedToAnyoneOrAnyoneRelatedToMe
-		{
-			get
-			{
-				return false;
-			}
-		}
-	}
-
-	public class Zombie_PawnObserver : PawnObserver
-	{
-		public Zombie_PawnObserver(Pawn zombie) : base(zombie)
-		{
-		}
-
-		public new void ObserverInterval() { }
-	}
-
-	public class Zombie_Need_Mood : Need_Mood
-	{
-		public Zombie_Need_Mood(Pawn zombie) : base(zombie)
-		{
-			observer = new Zombie_PawnObserver(zombie);
-		}
-	}
-
-	/*
-	public class Zombie_PawnUIOverlay : PawnUIOverlay
-	{
-		public Zombie_PawnUIOverlay(Pawn zombie) : base(zombie)
-		{
-		}
-
-		public new void DrawPawnGUIOverlay() { }
-	}
-
-	public class Zombie_PawnRenderer : PawnRenderer
-	{
-		public Zombie_PawnRenderer(Pawn zombie) : base(zombie)
-		{
-		}
-
-		public new void RenderPawnAt(Vector3 drawLoc, RotDrawMode bodyDrawType)
-		{
-		}
-	}
-
-	public class Zombie_DrawTracker : Pawn_DrawTracker
-	{
-		public Zombie_DrawTracker(Pawn zombie) : base(zombie)
-		{
-			renderer = new PawnRenderer(zombie);
-			ui = new Zombie_PawnUIOverlay(zombie);
-		}
-	}
-	*/
-
-	//
 
 	public class Zombie : Pawn
 	{
 		public static Type type = typeof(Zombie);
+		public ZombieState state = ZombieState.Emerging;
 
-		public bool isSniffing = false;
+		long nextRubbleTicks = 0;
+		int rubbleCounter = 0;
+		List<Rubble> rubbles = new List<Rubble>();
 
-		public override void SpawnSetup(Map map)
+		static Type[] args = new Type[]
 		{
-			base.SpawnSetup(map);
-			needs = new Zombie_NeedsTracker(this);
-			needs.mood = new Zombie_Need_Mood(this);
-			interactions = new Zombie_InteractionsTracker(this);
-			relations = new Zombie_RelationsTracker(this);
-			//Traverse.Create(this).Field("drawer").SetValue(new Zombie_DrawTracker(this));
+			typeof(Vector3),
+			typeof(Quaternion),
+			typeof(bool),
+			typeof(Rot4),
+			typeof(Rot4),
+			typeof(RotDrawMode),
+			typeof(bool)
+		};
+
+		static int minDeltaTicks = 20;
+		static int maxDeltaTicks = 8;
+		static int rubbleAmount = 40;
+		static float maxHeight = 0.4f;
+		static float minScale = 0.05f;
+		static float maxScale = 0.25f;
+
+		void GenerateRubble()
+		{
+			var ticks = ageTracker.AgeBiologicalTicks;
+			if (rubbleCounter < rubbleAmount && ticks > nextRubbleTicks)
+			{
+				var idx = Rand.Range(rubbleCounter * 4 / 5, rubbleCounter);
+				rubbles.Insert(idx, Rubble.Create(rubbleCounter / (float)rubbleAmount));
+
+				var deltaTicks = minDeltaTicks + (float)(maxDeltaTicks - minDeltaTicks) / Math.Min(1, rubbleCounter * 2 - rubbleAmount);
+				nextRubbleTicks = ticks + (int)deltaTicks;
+
+				rubbleCounter++;
+				if (rubbleCounter == rubbleAmount)
+					state = ZombieState.Wandering;
+			}
+		}
+
+		void AnimateRubble()
+		{
+			foreach (var r in rubbles)
+			{
+				var dx = Math.Sign(r.pX) / 2f - r.pX;
+				r.pX += (r.destX - r.pX) * 0.5f;
+				var dy = r.destY - r.pY;
+				r.pY += dy * 0.5f + Math.Abs(0.5f - dx) / 10f;
+				r.rot = r.rot * 0.95f + (r.destX - r.pX) / 2f;
+
+				if (dy < 0.1f)
+				{
+					r.dropSpeed += 0.01f;
+					if (r.drop < 0.3f) r.drop += r.dropSpeed;
+				}
+			}
+		}
+
+		void RenderRubble(Vector3 drawLoc)
+		{
+			var a = Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1);
+			foreach (var r in rubbles)
+			{
+				var scale = minScale + (maxScale - minScale) * r.scale;
+				var x = 0f + r.pX / 2f;
+				var y = -0.5f + Math.Max(0f, r.pY - r.drop) * (maxHeight - scale / 2f) + scale / 2f;
+				var pos = drawLoc + new Vector3(x, a, y);
+				var rot = Quaternion.Euler(0f, r.rot * 360f, 0f);
+				Tools.DrawScaledMesh(MeshPool.plane10, Main.rubble, pos, rot, scale, scale);
+			}
+		}
+
+		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
+		{
+			if (state == ZombieState.Emerging)
+			{
+				GenerateRubble();
+				if (rubbles != null)
+					AnimateRubble();
+				RenderRubble(drawLoc);
+			}
+			else
+			{
+				var pawn = Traverse.Create(renderer).Field("pawn").GetValue<Pawn>();
+				Traverse.Create(renderer)
+					.Method("RenderPawnInternal", args)
+					.GetValue(drawLoc, Quaternion.identity, true, pawn.Rotation, pawn.Rotation, bodyDrawType, false);
+			}
 		}
 	}
 }

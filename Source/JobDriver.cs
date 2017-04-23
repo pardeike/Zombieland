@@ -21,19 +21,44 @@ namespace ZombieLand
 			destination = IntVec2.Invalid;
 		}
 
+		int SortByTimestamp(IntVec3 p1, IntVec3 p2)
+		{
+			var c1 = Main.phGrid.Get(p1, false);
+			var t1 = c1 == null ? 0 : c1.timestamp;
+
+			var c2 = Main.phGrid.Get(p2, false);
+			var t2 = c2 == null ? 0 : c2.timestamp;
+
+			return -1 * t1.CompareTo(t2);
+		}
+
+		int SortByZombieCount(IntVec3 p1, IntVec3 p2)
+		{
+			var c1 = Main.phGrid.Get(p1, false);
+			var z1 = c1 == null ? 0 : c1.zombieCount;
+
+			var c2 = Main.phGrid.Get(p2, false);
+			var z2 = c2 == null ? 0 : c2.zombieCount;
+
+			return z1.CompareTo(z2);
+		}
+
 		public virtual void TickAction()
 		{
 			if (slowdownCounter-- > 0) return;
 			slowdownCounter = slowdownDelay;
 
-			if (pawn.Downed)
+			var zombie = (Zombie)pawn;
+			if (zombie.state == ZombieState.Emerging) return;
+
+			if (zombie.Downed)
 			{
-				var injuries = pawn.health.hediffSet.GetHediffs<Hediff_Injury>().ToList();
+				var injuries = zombie.health.hediffSet.GetHediffs<Hediff_Injury>().ToList();
 				foreach (var injury in injuries)
 				{
 					if (injury.Part.def == BodyPartDefOf.Brain)
 					{
-						pawn.health.Kill(new DamageInfo(), injury);
+						zombie.health.Kill(new DamageInfo(), injury);
 						EndJobWith(JobCondition.Incompletable);
 						return;
 					}
@@ -45,21 +70,24 @@ namespace ZombieLand
 				}
 			}
 
-			if (pawn.Dead || pawn.Destroyed)
+			if (zombie.Dead || zombie.Destroyed)
 			{
 				EndJobWith(JobCondition.Incompletable);
 				return;
 			}
 
-			if (pawn.Downed == false && HasValidDestination(destination.ToIntVec3) == false)
+			if (zombie.Downed == false && HasValidDestination(destination.ToIntVec3) == false)
 			{
 				var target = CanAttack();
 				if (target != null)
 				{
 					Job job = new Job(JobDefOf.AttackMelee, target);
-					pawn.jobs.StartJob(job, JobCondition.InterruptOptional, null, true, false, null);
+					zombie.jobs.StartJob(job, JobCondition.InterruptOptional, null, true, false, null);
 					return;
 				}
+
+				destination = IntVec2.Invalid;
+				var basePos = zombie.Position;
 
 				var nextIndex = random.Next(8);
 				var c = adjIndex[prevIndex];
@@ -67,47 +95,44 @@ namespace ZombieLand
 				adjIndex[nextIndex] = c;
 				prevIndex = nextIndex;
 
-				destination = IntVec2.Invalid;
-
-				long now = Tools.Ticks();
-				var zombie = (Zombie)pawn;
-				var basePos = pawn.Position;
-				var shortestDiff = Main.pheromoneFadeoff;
+				var possibleMoves = new List<IntVec3>();
 				for (int i = 0; i < 8; i++)
 				{
 					var pos = basePos + GenAdj.AdjacentCells[adjIndex[i]];
-					var cell = Main.phGrid.Get(pos, false);
-					if (cell == null) continue;
-					if (cell.vector.IsValid)
+					if (HasValidDestination(pos))
+						possibleMoves.Add(pos);
+				}
+				if (possibleMoves.Count > 0)
+				{
+					possibleMoves.Sort((p1, p2) => SortByTimestamp(p1, p2));
+					if (possibleMoves.Count > 3)
+						possibleMoves = possibleMoves.GetRange(0, 3);
+					possibleMoves.Sort((p1, p2) => SortByZombieCount(p1, p2));
+					var nextMove = possibleMoves.First();
+
+					destination = nextMove.ToIntVec2;
+					var cell = Main.phGrid.Get(nextMove, false) ?? Pheromone.empty;
+					if (Tools.Ticks() - cell.timestamp < Main.pheromoneFadeoff)
 					{
-						destination = cell.vector;
-						zombie.isSniffing = false;
-						break;
-					}
-					var diff = now - cell.timestamp;
-					if (diff < shortestDiff)
-					{
-						shortestDiff = diff;
-						destination = pos.ToIntVec2;
-						if (zombie.isSniffing == false)
+						if (zombie.state == ZombieState.Wandering)
 						{
-							var baseTimestamp = now - shortestDiff;
+							var baseTimestamp = cell.timestamp;
 							for (int j = 0; j < 8; j++)
 							{
-								var pos2 = basePos + GenAdj.AdjacentCells[adjIndex[j]];
+								var pos2 = basePos + GenAdj.AdjacentCells[j];
 								var timestamp = baseTimestamp - (int)pos2.DistanceToSquared(destination.ToIntVec3);
 								Main.phGrid.Set(pos2, destination, timestamp);
 							}
 						}
-						zombie.isSniffing = true;
+						zombie.state = ZombieState.Tracking;
 					}
 				}
-				if (destination.IsValid == false) zombie.isSniffing = false;
+				if (destination.IsValid == false) zombie.state = ZombieState.Wandering;
 
 				/*
 				if (rand <= 10)
 				{
-					var randomTarget = pawn.Map.mapPawns
+					var randomTarget = zombie.Map.mapPawns
 						.AllPawnsSpawned
 						.Where(p => p.GetType() != Zombie.type && p.Position.x > 0 && p.Position.z > 0)
 						.Where(p => p.Destroyed == false && p.Downed == false && p.Dead == false)
@@ -121,9 +146,9 @@ namespace ZombieLand
 				var rand = random.Next(100);
 				if (destination.IsValid == false && rand <= 50)
 				{
-					int dx = Main.centerOfInterest.x - pawn.Position.x;
-					int dz = Main.centerOfInterest.z - pawn.Position.z;
-					destination = pawn.Position.ToIntVec2;
+					int dx = Main.centerOfInterest.x - zombie.Position.x;
+					int dz = Main.centerOfInterest.z - zombie.Position.z;
+					destination = zombie.Position.ToIntVec2;
 					if (Math.Abs(dx) > Math.Abs(dz))
 						destination.x += Math.Sign(dx);
 					else
@@ -133,14 +158,17 @@ namespace ZombieLand
 						destination = IntVec2.Invalid;
 				}
 
-				if (destination.IsValid == false)
+				if (destination.IsInvalid)
 				{
-					var maxDanger = PawnUtility.ResolveMaxDanger(pawn, Danger.Deadly);
-					destination = RCellFinder.RandomWanderDestFor(pawn, pawn.Position, 2f, (Pawn thePawn, IntVec3 thePos) => HasValidDestination(thePos), maxDanger).ToIntVec2;
+					var maxDanger = PawnUtility.ResolveMaxDanger(zombie, Danger.Deadly);
+					destination = RCellFinder.RandomWanderDestFor(zombie, zombie.Position, 2f, (Pawn thePawn, IntVec3 thePos) => HasValidDestination(thePos), maxDanger).ToIntVec2;
 				}
 
 				if (destination.IsValid)
-					pawn.pather.StartPath(destination.ToIntVec3, PathEndMode.OnCell);
+				{
+					zombie.pather.StartPath(destination.ToIntVec3, PathEndMode.OnCell);
+					Main.phGrid.ChangeZombieCount(destination.ToIntVec3, 1);
+				}
 			}
 		}
 

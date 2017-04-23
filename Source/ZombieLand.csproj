@@ -53,6 +53,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tools.cs" />
     <Compile Include="Zombie.cs" />
+    <Compile Include="ZombieExtras.cs" />
     <Compile Include="ZombieGenerator.cs" />
   </ItemGroup>
   <ItemGroup>

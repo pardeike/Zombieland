@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
+using System.Text;
 using UnityEngine;
 using Verse;
 
@@ -15,11 +17,17 @@ namespace ZombieLand
 		static bool DEBUGGRID = false;
 
 		public static PheromoneGrid phGrid;
-		public static long pheromoneFadeoff = 1000L * GenTicks.SecondsToTicks(30f);
+		public static int zombieCounter = 0;
+
+		public static long pheromoneFadeoff = 1000L * GenTicks.SecondsToTicks(60f);
 		public static IntVec3 centerOfInterest = IntVec3.Invalid;
+		public static Dictionary<string, IntVec3> lastPositions = new Dictionary<string, IntVec3>();
+
+		public static Material rubble = MaterialPool.MatFrom("Rubble", ShaderDatabase.Cutout);
 
 		static Main()
 		{
+			// HarmonyInstance.DEBUG = true;
 			var harmony = HarmonyInstance.Create("net.pardeike.zombieland");
 			harmony.PatchAll(Assembly.GetExecutingAssembly());
 		}
@@ -76,13 +84,57 @@ namespace ZombieLand
 			}
 		}
 
+		[HarmonyPatch(typeof(EditWindow_DebugInspector))]
+		[HarmonyPatch("CurrentDebugString")]
+		static class EditWindow_DebugInspector_CurrentDebugString_Patch
+		{
+			static FieldInfo writeCellContentsField = AccessTools.Field(typeof(DebugViewSettings), "writeCellContents");
+			static MethodInfo debugGridMethod = AccessTools.Method(typeof(EditWindow_DebugInspector_CurrentDebugString_Patch), "DebugGrid");
+
+			static void DebugGrid(StringBuilder builder)
+			{
+				var cell = phGrid.Get(UI.MouseCell(), false);
+				if (cell != null)
+				{
+					var now = Tools.Ticks();
+					builder.AppendLine("Pheromones ts=" + cell.timestamp + "(" + (now - cell.timestamp) + ") zc=" + cell.zombieCount);
+				}
+				else
+					builder.AppendLine("Pheromones null");
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				bool previousPopInstruction = false;
+				foreach (var instruction in instructions)
+				{
+					if (previousPopInstruction == false && instruction.opcode == OpCodes.Pop)
+					{
+						previousPopInstruction = true;
+						yield return instruction;
+					}
+					else if (previousPopInstruction && instruction.opcode == OpCodes.Ldsfld && instruction.operand == writeCellContentsField)
+					{
+						yield return new CodeInstruction(OpCodes.Ldloc_0);
+						yield return new CodeInstruction(OpCodes.Call, debugGridMethod);
+						yield return instruction;
+					}
+					else
+					{
+						yield return instruction;
+						previousPopInstruction = false;
+					}
+				}
+			}
+		}
+
 		// initialize the pheromone matrix after the map is loaded
 		//
 		[HarmonyPatch(typeof(Map))]
 		[HarmonyPatch("FinalizeInit")]
-		static class Map_FinalizeInit_Patch
+		static class Scribe_FinalizeInit_Patch
 		{
-			static void Postfix(Map __instance)
+			static void Prefix(Map __instance)
 			{
 				phGrid = new PheromoneGrid(__instance);
 			}
@@ -94,15 +146,22 @@ namespace ZombieLand
 		[HarmonyPatch("DoSingleTick")]
 		static class TickManager_DoSingleTick_Patch
 		{
+			static int spawnCounter = 0;
+			static int spawnDelay = GenTicks.SecondsToTicks(5f);
+
 			static int updateCounter = 0;
 			static int updateDelay = GenTicks.SecondsToTicks(2f);
 
-			static Dictionary<string, IntVec3> lastPositions = new Dictionary<string, IntVec3>();
+			static Predicate<IntVec3> ZombieSpawnLocator(Map map)
+			{
+				return cell => GenGrid.Walkable(cell, map);
+			}
 
 			static void Postfix()
 			{
-				var allPawns = Find.VisibleMap.mapPawns.AllPawnsSpawned
-					.Where(pawn => pawn.GetType() != Zombie.type);
+				var allPawns = Find.VisibleMap.mapPawns.AllPawnsSpawned;
+
+				// update last positions
 
 				allPawns.Do(pawn =>
 				{
@@ -110,34 +169,84 @@ namespace ZombieLand
 					var id = pawn.ThingID;
 					if (lastPositions.ContainsKey(id) == false || pos != lastPositions[id])
 					{
-						var destCell = IntVec3.Invalid;
-						//if (pawn.pather != null && pawn.pather.Destination != null)
-						//	destCell = pawn.pather.Destination.Cell;
-						var now = Tools.Ticks();
-						Tools.GetCircle(5f).Do(vec => phGrid.SetTimestamp(pos + vec, now - Math.Min(4, (int)vec.LengthHorizontal)));
+						if (pawn.GetType() == Zombie.type)
+						{
+							if (lastPositions.ContainsKey(id) == false) lastPositions[id] = IntVec3.Invalid;
+							phGrid.ChangeZombieCount(lastPositions[id], -1);
+						}
+						else
+						{
+							var now = Tools.Ticks();
+							Tools.GetCircle(5f).Do(vec => phGrid.SetTimestamp(pos + vec, now - Math.Min(4, (int)vec.LengthHorizontal)));
+						}
 					}
-
 					lastPositions[id] = pos;
 				});
 
-				if (updateCounter-- > 0) return;
-				updateCounter = updateDelay;
+				if (updateCounter-- < 0)
+				{
+					updateCounter = updateDelay;
 
-				int x = 0, z = 0, n = 0;
-				int buildingMultiplier = 3;
-				Find.VisibleMap.listerBuildings.allBuildingsColonist.Do(building =>
+					// update center of interest
+
+					int x = 0, z = 0, n = 0;
+					int buildingMultiplier = 3;
+					Find.VisibleMap.listerBuildings.allBuildingsColonist.Do(building =>
+					{
+						x += building.Position.x * buildingMultiplier;
+						z += building.Position.z * buildingMultiplier;
+						n += buildingMultiplier;
+					});
+					allPawns.Where(pawn => pawn.GetType() != Zombie.type).Do(pawn =>
+					{
+						x += pawn.Position.x;
+						z += pawn.Position.z;
+						n++;
+					});
+					centerOfInterest = new IntVec3(x / n, 0, z / n);
+				}
+
+				if (spawnCounter-- < 0)
 				{
-					x += building.Position.x * buildingMultiplier;
-					z += building.Position.z * buildingMultiplier;
-					n += buildingMultiplier;
-				});
-				allPawns.Do(pawn =>
-				{
-					x += pawn.Position.x;
-					z += pawn.Position.z;
-					n++;
-				});
-				centerOfInterest = new IntVec3(x / n, 0, z / n);
+					spawnCounter = spawnDelay;
+
+					// spawn new zombies
+
+					if (zombieCounter < GetMaxZombieCount())
+					{
+						var map = Find.VisibleMap;
+						var cell = CellFinderLoose.RandomCellWith(ZombieSpawnLocator(map), map, 4);
+						if (cell.IsValid)
+						{
+							Log.Error("New Zombie at " + cell.x + "/" + cell.z);
+
+							var zombie = ZombieGenerator.GeneratePawn(map);
+							GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Near, null);
+							zombieCounter++;
+						}
+					}
+				}
+			}
+
+			public static int GetMaxZombieCount()
+			{
+				return 200 * Find.VisibleMap.mapPawns.ColonistCount;
+			}
+		}
+
+		// patch for rendering zombies
+		//
+		[HarmonyPatch(typeof(PawnRenderer))]
+		[HarmonyPatch("RenderPawnAt")]
+		static class PawnRenderer_RenderPawnAt_Patch
+		{
+			static bool Prefix(PawnRenderer __instance, Vector3 drawLoc, RotDrawMode bodyDrawType)
+			{
+				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
+				if (pawn.GetType() != Zombie.type) return true;
+				var zombie = pawn as Zombie;
+				zombie.Render(__instance, drawLoc, bodyDrawType);
+				return false;
 			}
 		}
 
@@ -150,7 +259,7 @@ namespace ZombieLand
 			static bool Prefix(Pawn_StoryTracker __instance, ref Color __result)
 			{
 				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
-				if (pawn.Faction.def == FactionDef.Named("Zombies"))
+				if (pawn.GetType() == Zombie.type)
 				{
 					__result = new Color(
 						79f / 255f,
@@ -174,7 +283,7 @@ namespace ZombieLand
 				var zombie = thing as Zombie;
 				if (zombie != null && stat == StatDefOf.MoveSpeed)
 				{
-					__result = zombie.isSniffing ? 0.8f : 0.2f;
+					__result = zombie.state == ZombieState.Tracking ? 4f : 0.2f;
 					return false;
 				}
 				return true;
@@ -210,6 +319,30 @@ namespace ZombieLand
 			}
 		}
 
+		[HarmonyPatch(typeof(Pawn_InteractionsTracker))]
+		[HarmonyPatch("TryInteractWith")]
+		static class Pawn_InteractionsTracker_TryInteractWith_Patch
+		{
+			static bool Prefix(Pawn_InteractionsTracker __instance, Pawn recipient)
+			{
+				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
+				if (pawn.GetType() == Zombie.type) return false;
+				if (recipient.GetType() == Zombie.type) return false;
+				return true;
+			}
+		}
+
+		[HarmonyPatch(typeof(Pawn_InteractionsTracker))]
+		[HarmonyPatch("InteractionsTrackerTick")]
+		static class Pawn_InteractionsTracker_InteractionsTrackerTick_Patch
+		{
+			static bool Prefix(Pawn_InteractionsTracker __instance)
+			{
+				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
+				return (pawn.GetType() != Zombie.type);
+			}
+		}
+
 		// patch for a custom zombie corpse class
 		//
 		[HarmonyPatch(typeof(ThingMaker))]
@@ -229,25 +362,97 @@ namespace ZombieLand
 					def.inspectorTabs = new List<Type>();
 					def.passability = Traversability.Standable;
 					def.regionBarrier = false;
-					def.stackLimit = 999;
+					def.stackLimit = 1;
 					def.thingClass = typeof(ZombieCorpse);
 				}
 			}
 		}
 
-		// patch to make zombie corpses vanish faster
+		// patch so that zombie corpses vanish quicker
 		//
 		[HarmonyPatch(typeof(Corpse))]
 		[HarmonyPatch("ShouldVanish", PropertyMethod.Getter)]
-		static class Corpse_get_ShouldVanish_Patch
+		static class Corpse_ShouldVanish_Patch
 		{
-			static Type zombieCorpseClass = typeof(ZombieCorpse);
-			static bool Prefix(object __instance, ref bool __result)
+			static bool Prefix(Corpse __instance, ref bool __result)
 			{
-				if (__instance.GetType() != zombieCorpseClass) return true;
-				var zombieCorpse = (ZombieCorpse)__instance;
-				__result = zombieCorpse.ShouldVanish();
+				var zombieCorpse = __instance as ZombieCorpse;
+				if (zombieCorpse == null) return true;
+
+				__result = __instance.Age >= zombieCorpse.vanishAfter;
 				return false;
+			}
+		}
+
+		// patch to handle targets downed so that we update our grid
+		//
+		[HarmonyPatch(typeof(Pawn_HealthTracker))]
+		[HarmonyPatch("MakeDowned")]
+		static class Pawn_HealthTracker_MakeDowned_Patch
+		{
+			static void Postfix(Pawn_HealthTracker __instance)
+			{
+				if (phGrid == null) return;
+
+				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
+				if (pawn.GetType() == Zombie.type) return;
+				var timestamp = phGrid.Get(pawn.Position).timestamp;
+				Tools.GetCircle(5f).Do(vec =>
+				{
+					var pos = pawn.Position + vec;
+					var cell = phGrid.Get(pos, false);
+					if (cell != null && cell.timestamp <= timestamp && Rand.Bool)
+						phGrid.SetTimestamp(pos, 0);
+				});
+				phGrid.SetTimestamp(pawn.Position, 0);
+			}
+		}
+
+		// patch to clean up our lastLocation directory
+		//
+		[HarmonyPatch(typeof(Pawn))]
+		[HarmonyPatch("DeSpawn")]
+		static class Pawn_DeSpawn_Patch
+		{
+			static void Postfix(Pawn __instance)
+			{
+				if (__instance.Map != Find.VisibleMap) return;
+				var id = __instance.ThingID;
+				if (lastPositions.ContainsKey(id)) lastPositions.Remove(id);
+			}
+		}
+
+		// patch to handle targets deaths so that we update our grid
+		//
+		[HarmonyPatch(typeof(Pawn_HealthTracker))]
+		[HarmonyPatch("Kill")]
+		static class Pawn_HealthTracker_Kill_Patch
+		{
+			static void Postfix(Pawn_HealthTracker __instance)
+			{
+				if (phGrid == null) return;
+
+				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
+				if (pawn.GetType() == Zombie.type)
+				{
+					var dest = pawn.pather == null ? null : pawn.pather.Destination;
+					if (dest != null)
+						phGrid.ChangeZombieCount(dest.Cell, -1);
+					phGrid.ChangeZombieCount(pawn.Position, -1);
+					return;
+				}
+
+				var id = pawn.ThingID;
+				if (pawn.Map != Find.VisibleMap && lastPositions.ContainsKey(id)) lastPositions.Remove(id);
+
+				var timestamp = phGrid.Get(pawn.Position).timestamp;
+				Tools.GetCircle(5f).Do(vec =>
+				{
+					var pos = pawn.Position + vec;
+					var cell = phGrid.Get(pos, false);
+					if (cell != null && cell.timestamp <= timestamp && Rand.Bool)
+						phGrid.SetTimestamp(pos, 0);
+				});
 			}
 		}
 
@@ -260,6 +465,8 @@ namespace ZombieLand
 		{
 			static void Prefix(Projectile __instance, Thing launcher, Vector3 origin, LocalTargetInfo targ, Thing equipment)
 			{
+				if ((launcher is Pawn) == false) return;
+
 				var now = Tools.Ticks();
 				var pos = origin.ToIntVec3();
 				// TODO: use weapon range instead of 10f
