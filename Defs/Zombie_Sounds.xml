@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<DefPackage-SoundDef>
+
+	<SoundDef>
+		<defName>ZombieTracking</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>8</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>tracking</clipFolderPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>30.51151</min>
+					<max>42.93479</max>
+				</volumeRange>
+				<pitchRange>
+					<min>0.7152174</min>
+					<max>0.902391</max>
+				</pitchRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ZombieHit</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>8</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>hit</clipFolderPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>30.51151</min>
+					<max>42.93479</max>
+				</volumeRange>
+				<pitchRange>
+					<min>0.7152174</min>
+					<max>0.902391</max>
+				</pitchRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+</DefPackage-SoundDef>

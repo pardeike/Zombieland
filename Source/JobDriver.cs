@@ -1,10 +1,10 @@
 ﻿using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Verse;
 using Verse.AI;
+using Verse.Sound;
 
 namespace ZombieLand
 {
@@ -81,6 +81,10 @@ namespace ZombieLand
 				var target = CanAttack();
 				if (target != null)
 				{
+					zombie.state = ZombieState.Tracking;
+					var info = SoundInfo.InMap(target);
+					SoundDef.Named("ZombieHit").PlayOneShot(info);
+
 					Job job = new Job(JobDefOf.AttackMelee, target);
 					zombie.jobs.StartJob(job, JobCondition.InterruptOptional, null, true, false, null);
 					return;
@@ -125,9 +129,11 @@ namespace ZombieLand
 							}
 						}
 						zombie.state = ZombieState.Tracking;
+						var info = SoundInfo.InMap(new TargetInfo(basePos, pawn.Map, false));
+						SoundDef.Named("ZombieTracking").PlayOneShot(info);
 					}
 				}
-				if (destination.IsValid == false) zombie.state = ZombieState.Wandering;
+				if (destination.IsInvalid) zombie.state = ZombieState.Wandering;
 
 				/*
 				if (rand <= 10)
@@ -143,8 +149,7 @@ namespace ZombieLand
 				}
 				*/
 
-				var rand = random.Next(100);
-				if (destination.IsValid == false && rand <= 50)
+				if (destination.IsInvalid && random.Next(100) <= 50)
 				{
 					int dx = Main.centerOfInterest.x - zombie.Position.x;
 					int dz = Main.centerOfInterest.z - zombie.Position.z;

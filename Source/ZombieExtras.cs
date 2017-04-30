@@ -45,6 +45,12 @@ namespace ZombieLand
 		public override void DrawGUIOverlay()
 		{
 		}
+
+		public override void ExposeData()
+		{
+			base.ExposeData();
+			Scribe_Values.LookValue(ref vanishAfter, "vanishAfter");
+		}
 	}
 
 	//

@@ -17,9 +17,8 @@ namespace ZombieLand
 		static bool DEBUGGRID = false;
 
 		public static PheromoneGrid phGrid;
-		public static int zombieCounter = 0;
 
-		public static long pheromoneFadeoff = 1000L * GenTicks.SecondsToTicks(60f);
+		public static long pheromoneFadeoff = 1000L * GenTicks.SecondsToTicks(90f);
 		public static IntVec3 centerOfInterest = IntVec3.Invalid;
 		public static Dictionary<string, IntVec3> lastPositions = new Dictionary<string, IntVec3>();
 
@@ -84,6 +83,8 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to add a pheromone info section to the rimworld cell inspector
+		//
 		[HarmonyPatch(typeof(EditWindow_DebugInspector))]
 		[HarmonyPatch("CurrentDebugString")]
 		static class EditWindow_DebugInspector_CurrentDebugString_Patch
@@ -136,7 +137,12 @@ namespace ZombieLand
 		{
 			static void Prefix(Map __instance)
 			{
-				phGrid = new PheromoneGrid(__instance);
+				phGrid = __instance.components.OfType<PheromoneGrid>().FirstOrDefault();
+				if (phGrid == null)
+				{
+					phGrid = new PheromoneGrid(__instance);
+					__instance.components.Add(phGrid);
+				}
 			}
 		}
 
@@ -147,14 +153,19 @@ namespace ZombieLand
 		static class TickManager_DoSingleTick_Patch
 		{
 			static int spawnCounter = 0;
-			static int spawnDelay = GenTicks.SecondsToTicks(5f);
+			static int spawnDelay = GenTicks.SecondsToTicks(10f / Find.Storyteller.difficulty.threatScale);
 
 			static int updateCounter = 0;
 			static int updateDelay = GenTicks.SecondsToTicks(2f);
 
 			static Predicate<IntVec3> ZombieSpawnLocator(Map map)
 			{
-				return cell => GenGrid.Walkable(cell, map);
+				return cell =>
+				{
+					if (GenGrid.Walkable(cell, map) == false) return false;
+					if (map.thingGrid.ThingsListAt(cell).Exists(thing => thing.def.BlockPlanting)) return false;
+					return true;
+				};
 			}
 
 			static void Postfix()
@@ -177,7 +188,8 @@ namespace ZombieLand
 						else
 						{
 							var now = Tools.Ticks();
-							Tools.GetCircle(5f).Do(vec => phGrid.SetTimestamp(pos + vec, now - Math.Min(4, (int)vec.LengthHorizontal)));
+							var radius = pawn.RaceProps.Animal ? 3f : 5f;
+							Tools.GetCircle(radius).Do(vec => phGrid.SetTimestamp(pos + vec, now - Math.Min(4, (int)vec.LengthHorizontal)));
 						}
 					}
 					lastPositions[id] = pos;
@@ -212,17 +224,17 @@ namespace ZombieLand
 
 					// spawn new zombies
 
+					var zombieCounter = allPawns.OfType<Zombie>().Count();
 					if (zombieCounter < GetMaxZombieCount())
 					{
 						var map = Find.VisibleMap;
-						var cell = CellFinderLoose.RandomCellWith(ZombieSpawnLocator(map), map, 4);
+						var cell = CellFinderLoose.RandomCellWith(ZombieSpawnLocator(map), map, 4); // new IntVec3(75, 0, 75);
 						if (cell.IsValid)
 						{
-							Log.Warning("New Zombie at " + cell.x + "/" + cell.z);
+							// Log.Warning("New Zombie at " + cell.x + "/" + cell.z);
 
 							var zombie = ZombieGenerator.GeneratePawn(map);
 							GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Near, null);
-							zombieCounter++;
 						}
 					}
 				}
@@ -230,7 +242,8 @@ namespace ZombieLand
 
 			public static int GetMaxZombieCount()
 			{
-				return 200 * Find.VisibleMap.mapPawns.ColonistCount;
+				var zombiesPerColonist = (int)(200 * Find.Storyteller.difficulty.threatScale);
+				return zombiesPerColonist * Find.VisibleMap.mapPawns.ColonistCount;
 			}
 		}
 
@@ -243,11 +256,24 @@ namespace ZombieLand
 			static bool Prefix(PawnRenderer __instance, Vector3 drawLoc, RotDrawMode bodyDrawType)
 			{
 				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
-				if (pawn.GetType() != Zombie.type) return true;
 				var zombie = pawn as Zombie;
+				if (zombie == null || zombie.state != ZombieState.Emerging) return true;
 				zombie.Render(__instance, drawLoc, bodyDrawType);
 				return false;
 			}
+
+			/*
+			static void Postfix(Vector3 drawLoc)
+			{
+				var m1 = MaterialPool.MatFrom("UI/Overlays/TargetHighlight_Square", ShaderDatabase.Transparent);
+				m1.renderQueue = 3010;
+				Tools.DrawScaledMesh(MeshPool.plane10, m1, drawLoc + new Vector3(0.3f, 1f, 0.5f), Quaternion.Euler(0f, 45f, 0f), 1f, 1f);
+
+				var m2 = SolidColorMaterials.SimpleSolidColorMaterial(new Color(1f, 0f, 1f));
+				m2.renderQueue = 3020;
+				Tools.DrawScaledMesh(MeshPool.plane10, m2, drawLoc + new Vector3(-0.3f, 1f, 0.5f), Quaternion.Euler(0f, 45f, 0f), 1f, 1f);
+			}
+			*/
 		}
 
 		// patch for setting a custom skin color for our zombies
@@ -283,7 +309,7 @@ namespace ZombieLand
 				var zombie = thing as Zombie;
 				if (zombie != null && stat == StatDefOf.MoveSpeed)
 				{
-					__result = zombie.state == ZombieState.Tracking ? 4f : 0.2f;
+					__result = zombie.state == ZombieState.Tracking ? 1f : 0.2f;
 					return false;
 				}
 				return true;
@@ -397,7 +423,8 @@ namespace ZombieLand
 				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
 				if (pawn.GetType() == Zombie.type) return;
 				var timestamp = phGrid.Get(pawn.Position).timestamp;
-				Tools.GetCircle(5f).Do(vec =>
+				var radius = pawn.RaceProps.Animal ? 3f : 5f;
+				Tools.GetCircle(radius).Do(vec =>
 				{
 					var pos = pawn.Position + vec;
 					var cell = phGrid.Get(pos, false);
@@ -446,7 +473,8 @@ namespace ZombieLand
 				if (pawn.Map != Find.VisibleMap && lastPositions.ContainsKey(id)) lastPositions.Remove(id);
 
 				var timestamp = phGrid.Get(pawn.Position).timestamp;
-				Tools.GetCircle(5f).Do(vec =>
+				var radius = pawn.RaceProps.Animal ? 3f : 5f;
+				Tools.GetCircle(radius).Do(vec =>
 				{
 					var pos = pawn.Position + vec;
 					var cell = phGrid.Get(pos, false);
@@ -469,12 +497,12 @@ namespace ZombieLand
 
 				var now = Tools.Ticks();
 				var pos = origin.ToIntVec3();
-				// TODO: use weapon range instead of 10f
-				Tools.GetCircle(10f).Do(vec => phGrid.SetTimestamp(pos + vec, now - (int)vec.LengthHorizontalSquared));
+				var radius = (targ.CenterVector3 - origin).magnitude;
+				Tools.GetCircle(radius).Do(vec => phGrid.SetTimestamp(pos + vec, now - (int)vec.LengthHorizontalSquared));
 			}
 		}
 
-		// temporary patch to create zombies when alt-clicking on map
+		/* temporary patch to create zombies when alt-clicking on map
 		//
 		[HarmonyPatch(typeof(Selector))]
 		[HarmonyPatch("HandleMapClicks")]
@@ -495,6 +523,6 @@ namespace ZombieLand
 				Event.current.Use();
 				return false;
 			}
-		}
+		}*/
 	}
 }

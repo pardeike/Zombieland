@@ -72,30 +72,15 @@
       <Link>Zombie_Race.xml</Link>
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="..\Defs\Zombie_Sounds.xml">
+      <Link>Zombie_Sounds.xml</Link>
+    </Content>
     <Content Include="..\Defs\Zombie_ThingCategories.xml">
       <Link>Zombie_ThingCategories.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_ThinkTree.xml">
       <Link>Zombie_ThinkTree.xml</Link>
       <SubType>Designer</SubType>
-    </Content>
-    <Content Include="..\Textures\Things\Pawns\ZombieHead_back.png">
-      <Link>Textures\Things\Pawns\ZombieHead_back.png</Link>
-    </Content>
-    <Content Include="..\Textures\Things\Pawns\ZombieHead_front.png">
-      <Link>Textures\Things\Pawns\ZombieHead_front.png</Link>
-    </Content>
-    <Content Include="..\Textures\Things\Pawns\ZombieHead_side.png">
-      <Link>Textures\Things\Pawns\ZombieHead_side.png</Link>
-    </Content>
-    <Content Include="..\Textures\Things\Pawns\Zombie_back.png">
-      <Link>Textures\Things\Pawns\Zombie_back.png</Link>
-    </Content>
-    <Content Include="..\Textures\Things\Pawns\Zombie_front.png">
-      <Link>Textures\Things\Pawns\Zombie_front.png</Link>
-    </Content>
-    <Content Include="..\Textures\Things\Pawns\Zombie_side.png">
-      <Link>Textures\Things\Pawns\Zombie_side.png</Link>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

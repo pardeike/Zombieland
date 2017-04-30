@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Linq;
 using Verse;
 
 namespace ZombieLand
 {
-	public class Pheromone
+	public class Pheromone : IExposable
 	{
 		public static Pheromone empty = new Pheromone();
 
@@ -30,20 +31,37 @@ namespace ZombieLand
 			vector = pos;
 			this.timestamp = timestamp != 0 ? timestamp : Tools.Ticks();
 		}
+
+		public void ExposeData()
+		{
+			Scribe_Values.LookValue(ref vector, "vec");
+			Scribe_Values.LookValue(ref timestamp, "tstamp");
+			Scribe_Values.LookValue(ref zombieCount, "zcount");
+		}
 	}
 
-	public class PheromoneGrid
+	public class PheromoneGrid : MapComponent
 	{
-		Pheromone[] grid;
+		List<Pheromone> grid;
 
 		private int mapSizeX;
 		private int mapSizeZ;
 
-		public PheromoneGrid(Map map)
+		public PheromoneGrid(Map map) : base(map)
 		{
 			mapSizeX = map.Size.x;
 			mapSizeZ = map.Size.z;
-			grid = new Pheromone[mapSizeX * mapSizeZ];
+			grid = new Pheromone[mapSizeX * mapSizeZ].ToList();
+		}
+
+		public override void ExposeData()
+		{
+			Scribe_Collections.LookList(ref grid, "pheromones", LookMode.Deep, new object[0]);
+		}
+
+		public int Count()
+		{
+			return grid.Count;
 		}
 
 		public void IterateCells(Action<int, int, Pheromone> callback)

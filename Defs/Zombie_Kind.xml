@@ -4,7 +4,7 @@
 	<PawnKindDef class="ZombieLand.PawnKindDef_Zombie">
 		<defName>Zombie</defName>
 		<race>Zombie</race>
-		<combatPower>999999</combatPower>
+		<combatPower>100</combatPower>
 		<baseRecruitDifficulty>1.0</baseRecruitDifficulty>
 		<backstoryCategory>Civil</backstoryCategory>
 		<defaultFactionType>Zombies</defaultFactionType>

@@ -43,30 +43,32 @@
 		<description>A zombie</description>
 		<statBases>
 			<MoveSpeed>0.1</MoveSpeed>
-			<ArmorRating_Blunt>-0.1</ArmorRating_Blunt>
-			<ArmorRating_Sharp>-0.15</ArmorRating_Sharp>
+			<ArmorRating_Blunt>0.0</ArmorRating_Blunt>
+			<ArmorRating_Sharp>0.0</ArmorRating_Sharp>
+			<ArmorRating_Heat>0.0</ArmorRating_Heat>
+			<ArmorRating_Electric>0.0</ArmorRating_Electric>
 			<MeatAmount>0</MeatAmount>
 			<LeatherAmount>0</LeatherAmount>
 		</statBases>
 		<verbs>
 			<li>
 				<verbClass>Verb_MeleeAttack</verbClass>
-				<defaultCooldownTime>1.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>60</meleeDamageBaseAmount>
+				<defaultCooldownTime>2.0</defaultCooldownTime>
+				<meleeDamageBaseAmount>20</meleeDamageBaseAmount>
 				<meleeDamageDef>Bite</meleeDamageDef>
 				<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
 			</li>
 			<li>
 				<verbClass>Verb_MeleeAttack</verbClass>
 				<defaultCooldownTime>1.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>30</meleeDamageBaseAmount>
+				<meleeDamageBaseAmount>5</meleeDamageBaseAmount>
 				<meleeDamageDef>Scratch</meleeDamageDef>
 				<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
 			</li>
 			<li>
 				<verbClass>Verb_MeleeAttack</verbClass>
 				<defaultCooldownTime>1.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>30</meleeDamageBaseAmount>
+				<meleeDamageBaseAmount>5</meleeDamageBaseAmount>
 				<meleeDamageDef>Scratch</meleeDamageDef>
 				<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
 			</li>
@@ -86,21 +88,21 @@
 				<li>
 					<def>HumanlikeTeenager</def>
 					<minAge>0</minAge>
-					<soundWounded>Pawn_Bear_Injured</soundWounded>
+					<!--<soundWounded>Pawn_Bear_Injured</soundWounded>
 					<soundDeath>Pawn_Bear_Death</soundDeath>
 					<soundCall>Pawn_Bear_Call</soundCall>
-					<soundAngry>Pawn_Bear_Angry</soundAngry>
+					<soundAngry>Pawn_Bear_Angry</soundAngry>-->
 				</li>
 				<li>
 					<def>HumanlikeAdult</def>
 					<minAge>18</minAge>
-					<soundWounded>Pawn_Bear_Injured</soundWounded>
+					<!--<soundWounded>Pawn_Bear_Injured</soundWounded>
 					<soundDeath>Pawn_Bear_Death</soundDeath>
 					<soundCall>Pawn_Bear_Call</soundCall>
-					<soundAngry>Pawn_Bear_Angry</soundAngry>
+					<soundAngry>Pawn_Bear_Angry</soundAngry>-->
 				</li>
 			</lifeStageAges>
-			<soundMeleeHitPawn>Pawn_Melee_BigBash_HitPawn</soundMeleeHitPawn>
+			<soundMeleeHitPawn>ZombieHit</soundMeleeHitPawn>
 			<soundMeleeHitBuilding>Pawn_Melee_BigBash_HitBuilding</soundMeleeHitBuilding>
 			<soundMeleeMiss>Pawn_Melee_BigBash_Miss</soundMeleeMiss>
 			<hediffGiverSets>
