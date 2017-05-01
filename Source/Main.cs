@@ -153,7 +153,8 @@ namespace ZombieLand
 		static class TickManager_DoSingleTick_Patch
 		{
 			static int spawnCounter = 0;
-			static int spawnDelay = GenTicks.SecondsToTicks(10f / Find.Storyteller.difficulty.threatScale);
+			static int spawnDelay = GenTicks.SecondsToTicks(8f / Find.Storyteller.difficulty.threatScale);
+			static bool unlimitedZombies = true;
 
 			static int updateCounter = 0;
 			static int updateDelay = GenTicks.SecondsToTicks(2f);
@@ -224,8 +225,7 @@ namespace ZombieLand
 
 					// spawn new zombies
 
-					var zombieCounter = allPawns.OfType<Zombie>().Count();
-					if (zombieCounter < GetMaxZombieCount())
+					if (unlimitedZombies || allPawns.OfType<Zombie>().Count() < GetMaxZombieCount())
 					{
 						var map = Find.VisibleMap;
 						var cell = CellFinderLoose.RandomCellWith(ZombieSpawnLocator(map), map, 4); // new IntVec3(75, 0, 75);

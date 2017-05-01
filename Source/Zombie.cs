@@ -145,6 +145,8 @@ namespace ZombieLand
 
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
 		{
+			drawLoc.x = (int)(drawLoc.x) + 0.5f;
+
 			GenerateRubble();
 			AnimateRubble();
 			RenderRubble(drawLoc);

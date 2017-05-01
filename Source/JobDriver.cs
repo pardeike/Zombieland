@@ -56,7 +56,7 @@ namespace ZombieLand
 				var injuries = zombie.health.hediffSet.GetHediffs<Hediff_Injury>().ToList();
 				foreach (var injury in injuries)
 				{
-					if (injury.Part.def == BodyPartDefOf.Brain)
+					if (injury.Part.def == BodyPartDefOf.Brain || injury.Part.groups.Contains(BodyPartGroupDefOf.FullHead))
 					{
 						zombie.health.Kill(new DamageInfo(), injury);
 						EndJobWith(JobCondition.Incompletable);
@@ -184,7 +184,7 @@ namespace ZombieLand
 
 		static int[] adjIndex = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
 		static int prevIndex = 0;
-		Pawn CanAttack()
+		Thing CanAttack()
 		{
 			var nextIndex = random.Next(8);
 			var c = adjIndex[prevIndex];
@@ -201,6 +201,13 @@ namespace ZombieLand
 				if (p != null && p.GetType() != Zombie.type && p.Dead == false && p.Downed == false)
 					return p;
 			}
+			for (int i = 0; i < 8; i++)
+			{
+				var pos = basePos + GenAdj.AdjacentCells[adjIndex[i]];
+				var p = grid.ThingAt<Building_Door>(pos);
+				if (p != null)
+					return p;
+			}
 			return null;
 		}
 
@@ -209,7 +216,7 @@ namespace ZombieLand
 			if (dest.IsValid == false) return false;
 			if (dest.InBounds(pawn.Map) == false) return false;
 			if (GenGrid.Walkable(dest, pawn.Map) == false) return false;
-			return pawn.Map.reachability.CanReach(pawn.Position, dest, PathEndMode.OnCell, TraverseParms.For(TraverseMode.NoPassClosedDoors));
+			return pawn.Map.reachability.CanReach(pawn.Position, dest, PathEndMode.OnCell, TraverseParms.For(TraverseMode.PassDoors));
 		}
 
 		public override string GetReport()
