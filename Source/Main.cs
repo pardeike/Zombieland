@@ -460,6 +460,8 @@ namespace ZombieLand
 				if (phGrid == null) return;
 
 				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
+				if (pawn == null) return;
+
 				if (pawn.GetType() == Zombie.type)
 				{
 					var dest = pawn.pather == null ? null : pawn.pather.Destination;
@@ -470,6 +472,8 @@ namespace ZombieLand
 				}
 
 				var id = pawn.ThingID;
+				if (id == null) return;
+
 				if (pawn.Map != Find.VisibleMap && lastPositions.ContainsKey(id)) lastPositions.Remove(id);
 
 				var timestamp = phGrid.Get(pawn.Position).timestamp;
@@ -478,7 +482,7 @@ namespace ZombieLand
 				{
 					var pos = pawn.Position + vec;
 					var cell = phGrid.Get(pos, false);
-					if (cell != null && cell.timestamp <= timestamp && Rand.Bool)
+					if (cell.timestamp <= timestamp && Rand.Bool)
 						phGrid.SetTimestamp(pos, 0);
 				});
 			}
