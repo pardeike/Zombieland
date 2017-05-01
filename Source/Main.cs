@@ -153,13 +153,12 @@ namespace ZombieLand
 		static class TickManager_DoSingleTick_Patch
 		{
 			static int spawnCounter = 0;
-			static int spawnDelay = GenTicks.SecondsToTicks(8f / Find.Storyteller.difficulty.threatScale);
-			static bool unlimitedZombies = true;
+			static bool unlimitedZombies = false;
 
 			static int updateCounter = 0;
 			static int updateDelay = GenTicks.SecondsToTicks(2f);
 
-			static Predicate<IntVec3> ZombieSpawnLocator(Map map)
+			public static Predicate<IntVec3> ZombieSpawnLocator(Map map)
 			{
 				return cell =>
 				{
@@ -221,20 +220,23 @@ namespace ZombieLand
 
 				if (spawnCounter-- < 0)
 				{
-					spawnCounter = spawnDelay;
+					var points = Tools.ColonyPoints();
+					spawnCounter = 30; // GenTicks.SecondsToTicks(4f / Find.Storyteller.difficulty.threatScale);
 
 					// spawn new zombies
 
-					if (unlimitedZombies || allPawns.OfType<Zombie>().Count() < GetMaxZombieCount())
+					var zombieCount = allPawns.OfType<Zombie>().Count();
+					var zombieDestCount = GetMaxZombieCount();
+					if (unlimitedZombies || zombieCount < zombieDestCount)
 					{
 						var map = Find.VisibleMap;
-						var cell = CellFinderLoose.RandomCellWith(ZombieSpawnLocator(map), map, 4); // new IntVec3(75, 0, 75);
+						var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4); // new IntVec3(75, 0, 75);
 						if (cell.IsValid)
 						{
-							// Log.Warning("New Zombie at " + cell.x + "/" + cell.z);
-
 							var zombie = ZombieGenerator.GeneratePawn(map);
 							GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Near, null);
+
+							Log.Warning("New Zombie " + zombie.NameStringShort + " at " + cell.x + "/" + cell.z + " (" + zombieCount + " out of " + zombieDestCount + ")");
 						}
 					}
 				}
@@ -242,7 +244,10 @@ namespace ZombieLand
 
 			public static int GetMaxZombieCount()
 			{
-				var zombiesPerColonist = (int)(200 * Find.Storyteller.difficulty.threatScale);
+				var points = Tools.ColonyPoints();
+				Log.Warning("points " + points);
+
+				var zombiesPerColonist = (int)(100 * Find.Storyteller.difficulty.threatScale);
 				return zombiesPerColonist * Find.VisibleMap.mapPawns.ColonistCount;
 			}
 		}
@@ -423,7 +428,7 @@ namespace ZombieLand
 				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
 				if (pawn.GetType() == Zombie.type) return;
 				var timestamp = phGrid.Get(pawn.Position).timestamp;
-				var radius = pawn.RaceProps.Animal ? 3f : 5f;
+				var radius = pawn.RaceProps.Animal ? 1f : 5f;
 				Tools.GetCircle(radius).Do(vec =>
 				{
 					var pos = pawn.Position + vec;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 
@@ -9,6 +10,23 @@ namespace ZombieLand
 		public static long Ticks()
 		{
 			return 1000L * GenTicks.TicksAbs;
+		}
+
+		public static Predicate<IntVec3> ZombieSpawnLocator(Map map)
+		{
+			return cell =>
+			{
+				if (GenGrid.Walkable(cell, map) == false) return false;
+				if (map.thingGrid.ThingsListAt(cell).Exists(thing => thing.def.BlockPlanting)) return false;
+				return true;
+			};
+		}
+
+		public static float ColonyPoints()
+		{
+			IEnumerable<Pawn> colonists = Find.VisibleMap.mapPawns.FreeColonists;
+			ReadinessUtil.GetColonistArmouryPoints(colonists, null, out float colonistPoints, out float armouryPoints);
+			return colonistPoints + armouryPoints;
 		}
 
 		public static void ReApplyThingToListerThings(IntVec3 cell, Thing thing)

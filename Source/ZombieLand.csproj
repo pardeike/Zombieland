@@ -51,15 +51,20 @@
     <Compile Include="Main.cs" />
     <Compile Include="PheromoneGrid.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReadinessUtil.cs" />
     <Compile Include="Tools.cs" />
     <Compile Include="Zombie.cs" />
     <Compile Include="ZombieExtras.cs" />
     <Compile Include="ZombieGenerator.cs" />
+    <Compile Include="ZombieIncidents.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\Defs\Zombie_Faction.xml">
       <Link>Zombie_Faction.xml</Link>
       <SubType>Designer</SubType>
+    </Content>
+    <Content Include="..\Defs\Zombie_Incidents.xml">
+      <Link>Zombie_Incidents.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_Jobs.xml">
       <Link>Zombie_Jobs.xml</Link>
