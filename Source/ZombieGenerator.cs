@@ -35,21 +35,19 @@ namespace ZombieLand
 
 			PawnComponentsUtility.CreateInitialComponents(pawn);
 
-			//pawn.natives = new Pawn_NativeVerbs(pawn);
-			//pawn.story = new Pawn_StoryTracker(pawn);
-			//pawn.jobs = new Pawn_JobTracker(pawn);
-			//pawn.filth = new Pawn_FilthTracker(pawn);
-			//pawn.apparel = new Pawn_ApparelTracker(pawn);
-			//pawn.meleeVerbs = new Pawn_MeleeVerbs(pawn);
-			//pawn.pather = new Pawn_PathFollower(pawn);
-			//pawn.health = new Pawn_HealthTracker(pawn);
-			//pawn.stances = new Pawn_StanceTracker(pawn);
-			//pawn.caller = new Pawn_CallTracker(pawn);
-			//pawn.ageTracker = new Pawn_AgeTracker(pawn);
-
+			pawn.health = new Zombie_HealthTracker(pawn);
+			pawn.caller = new Zombie_CallTracker(pawn);
+			pawn.apparel = new Zombie_ApparelTracker(pawn);
+			pawn.filth = new Zombie_FilthTracker(pawn);
 			pawn.relations = new Zombie_RelationsTracker(pawn);
 			pawn.interactions = new Zombie_InteractionsTracker(pawn);
 			pawn.needs = new Zombie_NeedsTracker(pawn);
+			pawn.guest = new Zombie_GuestTracker(pawn);
+			pawn.records = new Zombie_RecordsTracker(pawn);
+			pawn.natives = new Zombie_NativeVerbs(pawn);
+			// pawn.drafter = null;
+			// pawn.skills = null;
+			// pawn.equipment = null;
 
 			pawn.ageTracker.AgeBiologicalTicks = ((long)(Rand.Range(0, 0x9c4) * 3600000f)) + Rand.Range(0, 0x36ee80);
 			pawn.ageTracker.AgeChronologicalTicks = pawn.ageTracker.AgeBiologicalTicks;
@@ -66,14 +64,12 @@ namespace ZombieLand
 
 			pawn.story.melanin = 0.01f * Rand.Range(10, 90);
 			pawn.story.crownType = CrownType.Average;
-			string graphicPath = GraphicDatabaseHeadRecords.GetHeadRandom(pawn.gender, pawn.story.SkinColor, pawn.story.crownType).GraphicPath;
 
+			var graphicPath = GraphicDatabaseHeadRecords.GetHeadRandom(pawn.gender, pawn.story.SkinColor, pawn.story.crownType).GraphicPath;
 			Traverse.Create(pawn.story).Field("headGraphicPath").SetValue(graphicPath);
 
 			pawn.story.hairColor = PawnHairColors.RandomHairColor(pawn.story.SkinColor, pawn.ageTracker.AgeBiologicalYears);
-
 			pawn.story.hairDef = PawnHairChooser.RandomHairDefFor(pawn, factionDef);
-
 			pawn.story.bodyType = (pawn.gender != Gender.Female) ? BodyType.Male : BodyType.Female;
 
 			var request = new PawnGenerationRequest(pawn.kindDef);

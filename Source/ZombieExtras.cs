@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
+using Verse.AI;
 
 namespace ZombieLand
 {
@@ -57,9 +58,7 @@ namespace ZombieLand
 
 	public class Zombie_NeedsTracker : Pawn_NeedsTracker
 	{
-		public Zombie_NeedsTracker(Pawn zombie) : base(zombie)
-		{
-		}
+		public Zombie_NeedsTracker(Pawn zombie) : base(zombie) { }
 
 		public new void AddOrRemoveNeedsAsAppropriate() { }
 		public new void NeedsTrackerTick() { }
@@ -76,9 +75,7 @@ namespace ZombieLand
 
 	public class Zombie_InteractionsTracker : Pawn_InteractionsTracker
 	{
-		public Zombie_InteractionsTracker(Pawn zombie) : base(zombie)
-		{
-		}
+		public Zombie_InteractionsTracker(Pawn zombie) : base(zombie) { }
 
 		public new bool TryInteractWith(Pawn recipient, InteractionDef intDef) { return false; }
 		public new void StartSocialFight(Pawn otherPawn) { }
@@ -90,9 +87,7 @@ namespace ZombieLand
 
 	public class Zombie_RelationsTracker : Pawn_RelationsTracker
 	{
-		public Zombie_RelationsTracker(Pawn zombie) : base(zombie)
-		{
-		}
+		public Zombie_RelationsTracker(Pawn zombie) : base(zombie) { }
 
 		public new float CompatibilityWith(Pawn otherPawn) { return 0f; }
 		public new float ConstantPerPawnsPairCompatibilityOffset(int otherPawnID) { return 0f; }
@@ -121,12 +116,79 @@ namespace ZombieLand
 		}
 	}
 
-	/*public class Zombie_PawnObserver : PawnObserver
+	public class Zombie_FilthTracker : Pawn_FilthTracker
 	{
-		public Zombie_PawnObserver(Pawn zombie) : base(zombie)
+		public Zombie_FilthTracker(Pawn zombie) : base(zombie) { }
+
+		public new void GainFilth(ThingDef filthDef) { }
+		public new void GainFilth(ThingDef filthDef, IEnumerable<string> sources) { }
+		public new void Notify_EnteredNewCell() { }
+	}
+
+	public class Zombie_ApparelTracker : Pawn_ApparelTracker
+	{
+		public Zombie_ApparelTracker(Pawn pawn) : base(pawn) { }
+
+		public new void ApparelTrackerTick() { }
+		public new void ApparelTrackerTickRare() { }
+		public new void Notify_LostBodyPart() { }
+		public new void Notify_PawnKilled(DamageInfo? dinfo) { }
+	}
+
+	public class Zombie_CallTracker : Pawn_CallTracker
+	{
+		public Zombie_CallTracker(Pawn pawn) : base(pawn) { }
+
+		public new void CallTrackerTick() { }
+		public new void DoCall() { }
+		public new void Notify_DidMeleeAttack() { }
+		public new void Notify_InAggroMentalState() { }
+		public new void Notify_Released() { }
+	}
+
+	public class Zombie_ImmunityHandler : ImmunityHandler
+	{
+		public Zombie_ImmunityHandler(Pawn pawn) : base(pawn) { }
+
+		public new float DiseaseContractChanceFactor(HediffDef diseaseDef, BodyPartRecord part) { return 0f; }
+		internal void ImmunityHandlerTick() { }
+		public new bool ImmunityRecordExists(HediffDef def) { return true; }
+	}
+
+	public class Zombie_HealthTracker : Pawn_HealthTracker
+	{
+		public Zombie_HealthTracker(Pawn pawn) : base(pawn)
 		{
+			immunity = new Zombie_ImmunityHandler(pawn);
 		}
 
-		public new void ObserverInterval() { }
-	}*/
+		protected new void TryDropBloodFilth() { }
+		public new bool HasHediffsNeedingTend(bool forAlert) { return false; }
+		public new bool HasHediffsNeedingTendByColony(bool forAlert) { return false; }
+		public new void DropBloodFilth() { }
+	}
+
+
+	public class Zombie_GuestTracker : Pawn_GuestTracker
+	{
+		public Zombie_GuestTracker(Pawn pawn) : base(pawn) { }
+
+		public new void GuestTrackerTick() { }
+	}
+
+	public class Zombie_RecordsTracker : Pawn_RecordsTracker
+	{
+		public Zombie_RecordsTracker(Pawn pawn) : base(pawn) { }
+
+		public new void RecordsTick() { }
+		public new void AddTo(RecordDef def, float value) { }
+		public new void Increment(RecordDef def) { }
+	}
+
+	public class Zombie_NativeVerbs : Pawn_NativeVerbs
+	{
+		public Zombie_NativeVerbs(Pawn pawn) : base(pawn) { }
+
+		public new void NativeVerbsTick() { }
+	}
 }

@@ -229,6 +229,21 @@ namespace ZombieLand
 			}
 		}
 
+		// patch headshot to kill zombies right away
+		//
+		[HarmonyPatch(typeof(DamageWorker_AddInjury))]
+		[HarmonyPatch("IsHeadshot")]
+		static class DamageWorker_IsHeadshot_Patch
+		{
+			static void Postfix(Pawn pawn, bool __result)
+			{
+				if (__result == false) return;
+				var zombie = pawn as Zombie;
+				if (zombie != null && zombie.Destroyed == false && zombie.Dead == false)
+					zombie.state = ZombieState.ShouldDie;
+			}
+		}
+
 		// patch for disallowing thoughts on zombies
 		//
 		[HarmonyPatch(typeof(ThoughtHandler))]
@@ -381,6 +396,16 @@ namespace ZombieLand
 				{
 					hediff = null;
 				}
+			}
+		}
+
+		[HarmonyPatch(typeof(ImmunityHandler))]
+		[HarmonyPatch("ImmunityHandlerTick")]
+		static class ImmunityHandler_ImmunityHandlerTick_Patch
+		{
+			static bool Prefix(ImmunityHandler __instance)
+			{
+				return !(__instance.pawn is Zombie);
 			}
 		}
 

@@ -56,6 +56,7 @@ namespace ZombieLand
 
 		public override void ExposeData()
 		{
+			base.ExposeData();
 			Scribe_Collections.LookList(ref grid, "pheromones", LookMode.Deep, new object[0]);
 		}
 

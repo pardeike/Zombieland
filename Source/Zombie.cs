@@ -52,7 +52,8 @@ namespace ZombieLand
 	{
 		Emerging,
 		Wandering,
-		Tracking
+		Tracking,
+		ShouldDie
 	}
 
 	public class Zombie : Pawn
@@ -95,12 +96,11 @@ namespace ZombieLand
 
 		void GenerateRubble()
 		{
-			if (rubbles == null) rubbles = new List<Rubble>();
-
 			var ticks = ageTracker.AgeBiologicalTicks;
 			if (rubbleCounter < rubbleAmount && ticks > nextRubbleTicks)
 			{
 				var idx = Rand.Range(rubbleCounter * 4 / 5, rubbleCounter);
+				if (rubbles == null) rubbles = new List<Rubble>();
 				rubbles.Insert(idx, Rubble.Create(rubbleCounter / (float)rubbleAmount));
 
 				var deltaTicks = minDeltaTicks + (float)(maxDeltaTicks - minDeltaTicks) / Math.Min(1, rubbleCounter * 2 - rubbleAmount);
@@ -114,6 +114,7 @@ namespace ZombieLand
 
 		void AnimateRubble()
 		{
+			if (rubbles == null) rubbles = new List<Rubble>();
 			foreach (var r in rubbles)
 			{
 				var dx = Math.Sign(r.pX) / 2f - r.pX;
@@ -133,6 +134,7 @@ namespace ZombieLand
 		void RenderRubble(Vector3 drawLoc)
 		{
 			var altitude = Altitudes.AltitudeFor(AltitudeLayer.Pawn) + 0.005f;
+			if (rubbles == null) rubbles = new List<Rubble>();
 			foreach (var r in rubbles)
 			{
 				var scale = minScale + (maxScale - minScale) * r.scale;
@@ -144,8 +146,9 @@ namespace ZombieLand
 			}
 		}
 
-		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
+		public override void Tick()
 		{
+			base.Tick();
 			if (rubbleCounter == 0)
 			{
 				if (Main.USE_SOUND)
@@ -155,10 +158,25 @@ namespace ZombieLand
 				}
 			}
 
-			drawLoc.x = (int)(drawLoc.x) + 0.5f;
-
 			GenerateRubble();
 			AnimateRubble();
+		}
+
+		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
+		{
+			/*if (rubbleCounter == 0)
+			{
+				if (Main.USE_SOUND)
+				{
+					var info = SoundInfo.InMap(new TargetInfo(Position, Map));
+					SoundDef.Named("ZombieDigOut").PlayOneShot(info);
+				}
+			}*/
+
+			drawLoc.x = (int)(drawLoc.x) + 0.5f;
+
+			//GenerateRubble();
+			//AnimateRubble();
 			RenderRubble(drawLoc);
 
 			var progress = rubbleCounter / (float)rubbleAmount;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
@@ -50,10 +51,10 @@ namespace ZombieLand
 
 		public static bool IsValidSpawnLocation(IntVec3 cell, Map map)
 		{
-			if (cell.IsValid == false || cell.InBounds(map) == false) return false;
-			if (cell.SupportsStructureType(map, TerrainAffordance.Diggable) == false) return false;
 			if (GenGrid.Walkable(cell, map) == false) return false;
-			// if (map.thingGrid.ThingsListAt(cell).Exists(thing => thing.def.BlockPlanting)) return false;
+			var terrain = map.terrainGrid.TerrainAt(cell);
+			if (terrain != TerrainDefOf.Soil && terrain != TerrainDefOf.Sand) return false;
+			// if (cell.SupportsStructureType(map, TerrainAffordance.Diggable) == false) return false;
 			return true;
 		}
 

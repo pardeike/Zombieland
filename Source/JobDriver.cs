@@ -21,6 +21,12 @@ namespace ZombieLand
 			destination = IntVec2.Invalid;
 		}
 
+		public override void ExposeData()
+		{
+			base.ExposeData();
+			Scribe_Values.LookValue(ref destination, "destination", IntVec2.Invalid);
+		}
+
 		int SortByTimestamp(IntVec3 p1, IntVec3 p2)
 		{
 			var t1 = Main.phGrid.Get(p1, false).timestamp;
@@ -38,7 +44,14 @@ namespace ZombieLand
 
 			if (zombie.Dead || zombie.Destroyed)
 			{
-				EndJobWith(JobCondition.Incompletable);
+				EndJobWith(JobCondition.InterruptForced);
+				return;
+			}
+
+			if (zombie.state == ZombieState.ShouldDie)
+			{
+				EndJobWith(JobCondition.InterruptForced);
+				zombie.health.Kill(null, null);
 				return;
 			}
 
@@ -47,12 +60,6 @@ namespace ZombieLand
 				var injuries = zombie.health.hediffSet.GetHediffs<Hediff_Injury>().ToList();
 				foreach (var injury in injuries)
 				{
-					if (injury.Part.def == BodyPartDefOf.Brain || injury.Part.groups.Contains(BodyPartGroupDefOf.FullHead))
-					{
-						EndJobWith(JobCondition.Incompletable);
-						zombie.health.Kill(null, injury);
-						return;
-					}
 					if (injury.IsOld() == false)
 					{
 						injury.Heal(injury.Severity + 1f);
@@ -67,8 +74,11 @@ namespace ZombieLand
 			//	if (zombie.jobs == null || zombie.jobs.curJob == null)
 			//		destination = IntVec2.Invalid;
 
+			if (destination.x == 0 && destination.z == 0) destination = IntVec2.Invalid;
 			if (HasValidDestination(destination.ToIntVec3)) return;
 
+			// if we are near targets then attack them
+			//
 			var target = CanAttack();
 			if (target != null)
 			{
@@ -86,12 +96,11 @@ namespace ZombieLand
 
 			var basePos = zombie.Position;
 
-			//var nextIndex = random.Next(8);
-			//var c = adjIndex[prevIndex];
-			//adjIndex[prevIndex] = adjIndex[nextIndex];
-			//adjIndex[nextIndex] = c;
-			//prevIndex = nextIndex;
-
+			// calculate possible moves, sort by pheromone value and take top 3
+			// then choose the one with the lowest zombie count
+			// also, emit a circle of timestamps when discovering a pheromone
+			// trace so nearby zombies pick it up too (leads to a chain reaction)
+			//
 			var possibleMoves = new List<IntVec3>();
 			for (int i = 0; i < 8; i++)
 			{
@@ -133,20 +142,8 @@ namespace ZombieLand
 			}
 			if (destination.IsInvalid) zombie.state = ZombieState.Wandering;
 
-			/*
-			if (rand <= 10)
-			{
-				var randomTarget = zombie.Map.mapPawns
-					.AllPawnsSpawned
-					.Where(p => p.GetType() != Zombie.type && p.Position.x > 0 && p.Position.z > 0)
-					.Where(p => p.Destroyed == false && p.Downed == false && p.Dead == false)
-					.RandomElementByWeight(p => p.IsColonistPlayerControlled ? 10f : p.def == ThingDefOf.Human ? 3f : 1f);
-
-				if (randomTarget != null && HasValidDestination(randomTarget.Position))
-					destination = randomTarget.Position;
-			}
-			*/
-
+			// during night, zombies drift towards the colonies center
+			//
 			if (destination.IsInvalid)
 			{
 				var hour = GenLocalDate.HourOfDay(Find.VisibleMap);
@@ -165,12 +162,16 @@ namespace ZombieLand
 				}
 			}
 
+			// still no valid destination? go random adjected cell
+			//
 			if (destination.IsInvalid)
 			{
 				var maxDanger = PawnUtility.ResolveMaxDanger(zombie, Danger.Deadly);
 				destination = RCellFinder.RandomWanderDestFor(zombie, zombie.Position, 2f, (Pawn thePawn, IntVec3 thePos) => HasValidDestination(thePos), maxDanger).ToIntVec2;
 			}
 
+			// if we have a valid destination, go there
+			//
 			if (destination.IsValid)
 			{
 				zombie.pather.StartPath(destination.ToIntVec3, PathEndMode.OnCell);
@@ -180,6 +181,7 @@ namespace ZombieLand
 
 		public override void Notify_PatherArrived()
 		{
+			base.Notify_PatherArrived();
 			destination = IntVec2.Invalid;
 		}
 
@@ -215,8 +217,6 @@ namespace ZombieLand
 		bool HasValidDestination(IntVec3 dest)
 		{
 			if (dest.IsValid == false) return false;
-			if (dest.InBounds(pawn.Map) == false) return false;
-			if (GenGrid.Walkable(dest, pawn.Map) == false) return false;
 			return pawn.Map.reachability.CanReach(pawn.Position, dest, PathEndMode.OnCell, TraverseParms.For(TraverseMode.PassDoors));
 		}
 
@@ -227,11 +227,12 @@ namespace ZombieLand
 
 		protected override IEnumerable<Toil> MakeNewToils()
 		{
-			Toil toil = new Toil();
-			toil.initAction = new Action(InitAction);
-			toil.tickAction = new Action(TickAction);
-			toil.defaultCompleteMode = ToilCompleteMode.Never;
-			yield return toil;
+			yield return new Toil()
+			{
+				initAction = new Action(InitAction),
+				tickAction = new Action(TickAction),
+				defaultCompleteMode = ToilCompleteMode.Never
+			};
 		}
 	}
 }
