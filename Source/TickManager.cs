@@ -50,22 +50,6 @@ namespace ZombieLand
 				Main.lastPositions[id] = pos;
 			});
 
-			// spawn queued zombies
-
-			if (Main.spawnQueue.Count() > 0)
-			{
-				var target = Main.spawnQueue.Dequeue();
-				if (target.Map == Find.VisibleMap && Tools.IsValidSpawnLocation(target))
-				{
-					var measure = new Measure("spawning");
-
-					var zombie = ZombieGenerator.GeneratePawn(target.Map);
-					GenPlace.TryPlaceThing(zombie, target.Cell, target.Map, ThingPlaceMode.Direct, null);
-
-					measure.End();
-				}
-			}
-
 			if (updateCounter-- < 0)
 			{
 				updateCounter = updateDelay;
@@ -92,20 +76,40 @@ namespace ZombieLand
 
 			if (spawnCounter-- < 0)
 			{
-				spawnCounter = (int)GenMath.LerpDouble(0, 1000, 300, 10, Math.Max(100, Math.Min(1000, currentColonyPoints)));
+				spawnCounter = (int)GenMath.LerpDouble(0, 1000, 300, 20, Math.Max(100, Math.Min(1000, currentColonyPoints)));
 
 				// spawn new zombies
 
-				var zombieCount = allPawns.OfType<Zombie>().Count();
-				var zombieDestCount = GetMaxZombieCount();
-				if (unlimitedZombies || zombieCount < zombieDestCount)
+				// spawn queued zombies
+
+				if (Main.spawnQueue.Count() > 0)
 				{
-					var map = Find.VisibleMap;
-					var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4); // new IntVec3(75, 0, 75);
-					if (cell.IsValid)
+					var target = Main.spawnQueue.Dequeue();
+					if (target.Map == Find.VisibleMap && Tools.IsValidSpawnLocation(target))
 					{
-						Main.spawnQueue.Enqueue(new TargetInfo(cell, map));
-						// Log.Warning("New Zombie " + zombie.NameStringShort + " at " + cell.x + "/" + cell.z + " (" + zombieCount + " out of " + zombieDestCount + ")");
+						//var measure = new Measure("spawning");
+
+						var zombie = ZombieGenerator.GeneratePawn(target.Map);
+						GenPlace.TryPlaceThing(zombie, target.Cell, target.Map, ThingPlaceMode.Direct, null);
+
+						//measure.End();
+					}
+				}
+				else
+				{
+					var zombieCount = allPawns.OfType<Zombie>().Count();
+					var zombieDestCount = GetMaxZombieCount();
+					if (unlimitedZombies || zombieCount < zombieDestCount)
+					{
+						var map = Find.VisibleMap;
+						var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4); // new IntVec3(75, 0, 75);
+						if (cell.IsValid)
+						{
+							var zombie = ZombieGenerator.GeneratePawn(map);
+							GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Direct, null);
+
+							// Log.Warning("New Zombie " + zombie.NameStringShort + " at " + cell.x + "/" + cell.z + " (" + zombieCount + " out of " + zombieDestCount + ")");
+						}
 					}
 				}
 			}

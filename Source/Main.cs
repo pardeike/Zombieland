@@ -16,7 +16,7 @@ namespace ZombieLand
 	{
 		public static bool DEBUGGRID = false;
 		public static bool USE_SOUND = false;
-		public static int DEBUG_COLONY_POINTS = 1000;
+		public static int DEBUG_COLONY_POINTS = 0;
 
 		public static PheromoneGrid phGrid;
 

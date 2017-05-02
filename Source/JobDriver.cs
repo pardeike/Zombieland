@@ -96,9 +96,6 @@ namespace ZombieLand
 			}
 			if (possibleMoves.Count > 0)
 			{
-				if (zombie.Position.x == 112 && zombie.Position.z == 113)
-					Log.Warning("!");
-
 				possibleMoves.Sort((p1, p2) => SortByTimestamp(p1, p2));
 				possibleMoves = possibleMoves.Take(3).ToList();
 				possibleMoves = possibleMoves.OrderBy(p => Main.phGrid.Get(p, false).zombieCount).ToList();
