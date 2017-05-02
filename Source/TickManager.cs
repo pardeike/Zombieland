@@ -108,7 +108,7 @@ namespace ZombieLand
 							var zombie = ZombieGenerator.GeneratePawn(map);
 							GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Direct, null);
 
-							// Log.Warning("New Zombie " + zombie.NameStringShort + " at " + cell.x + "/" + cell.z + " (" + zombieCount + " out of " + zombieDestCount + ")");
+							Log.Warning("New Zombie " + zombie.NameStringShort + " at " + cell.x + "/" + cell.z + " (" + zombieCount + " out of " + zombieDestCount + ")");
 						}
 					}
 				}
