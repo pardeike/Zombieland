@@ -18,7 +18,7 @@ namespace ZombieLand
 
 		public static int GetMaxZombieCount()
 		{
-			var baseCount = GenMath.LerpDouble(0, 1000, 40, 400, Math.Min(1000, currentColonyPoints));
+			var baseCount = GenMath.LerpDouble(0, 1000, 80, 200, Math.Min(1000, currentColonyPoints));
 			var zombiesPerColonist = (int)(baseCount * Find.Storyteller.difficulty.threatScale);
 			return zombiesPerColonist * Find.VisibleMap.mapPawns.ColonistCount;
 		}

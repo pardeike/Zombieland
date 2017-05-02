@@ -62,12 +62,12 @@ namespace ZombieLand
 				if (zombie.Downed) return;
 			}
 
-			if (HasValidDestination(destination.ToIntVec3))
-			{
-				if (zombie.jobs == null || zombie.jobs.curJob == null)
-					destination = IntVec2.Invalid;
-				return;
-			};
+			// does not help with the Zs standing still bug
+			//
+			//	if (zombie.jobs == null || zombie.jobs.curJob == null)
+			//		destination = IntVec2.Invalid;
+
+			if (HasValidDestination(destination.ToIntVec3)) return;
 
 			var target = CanAttack();
 			if (target != null)
