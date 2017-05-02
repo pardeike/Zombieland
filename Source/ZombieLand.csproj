@@ -51,9 +51,11 @@
     <Compile Include="Main.cs" />
     <Compile Include="PheromoneGrid.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReadinessUtil.cs" />
+    <Compile Include="ColonyEvaluation.cs" />
+    <Compile Include="TickManager.cs" />
     <Compile Include="Tools.cs" />
     <Compile Include="Zombie.cs" />
+    <Compile Include="ZombieDefOf.cs" />
     <Compile Include="ZombieExtras.cs" />
     <Compile Include="ZombieGenerator.cs" />
     <Compile Include="ZombieIncidents.cs" />

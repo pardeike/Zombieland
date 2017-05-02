@@ -14,13 +14,15 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	static class Main
 	{
-		static bool DEBUGGRID = false;
+		public static bool DEBUGGRID = false;
+		public static bool USE_SOUND = false;
+		public static int DEBUG_COLONY_POINTS = 1000;
 
 		public static PheromoneGrid phGrid;
 
 		public static long pheromoneFadeoff = 1000L * GenTicks.SecondsToTicks(90f);
-		public static IntVec3 centerOfInterest = IntVec3.Invalid;
 		public static Dictionary<string, IntVec3> lastPositions = new Dictionary<string, IntVec3>();
+		public static Queue<TargetInfo> spawnQueue = new Queue<TargetInfo>();
 
 		public static Material rubble = MaterialPool.MatFrom("Rubble", ShaderDatabase.Cutout);
 
@@ -95,13 +97,13 @@ namespace ZombieLand
 			static void DebugGrid(StringBuilder builder)
 			{
 				var cell = phGrid.Get(UI.MouseCell(), false);
-				if (cell != null)
+				if (cell.timestamp > 0)
 				{
 					var now = Tools.Ticks();
 					builder.AppendLine("Pheromones ts=" + cell.timestamp + "(" + (now - cell.timestamp) + ") zc=" + cell.zombieCount);
 				}
 				else
-					builder.AppendLine("Pheromones null");
+					builder.AppendLine("Pheromones empty");
 			}
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -148,107 +150,13 @@ namespace ZombieLand
 
 		// patch for repeating calculations
 		//
-		[HarmonyPatch(typeof(TickManager))]
+		[HarmonyPatch(typeof(Verse.TickManager))]
 		[HarmonyPatch("DoSingleTick")]
 		static class TickManager_DoSingleTick_Patch
 		{
-			static int spawnCounter = 0;
-			static bool unlimitedZombies = false;
-
-			static int updateCounter = 0;
-			static int updateDelay = GenTicks.SecondsToTicks(2f);
-
-			public static Predicate<IntVec3> ZombieSpawnLocator(Map map)
-			{
-				return cell =>
-				{
-					if (GenGrid.Walkable(cell, map) == false) return false;
-					if (map.thingGrid.ThingsListAt(cell).Exists(thing => thing.def.BlockPlanting)) return false;
-					return true;
-				};
-			}
-
 			static void Postfix()
 			{
-				var allPawns = Find.VisibleMap.mapPawns.AllPawnsSpawned;
-
-				// update last positions
-
-				allPawns.Do(pawn =>
-				{
-					var pos = pawn.Position;
-					var id = pawn.ThingID;
-					if (lastPositions.ContainsKey(id) == false || pos != lastPositions[id])
-					{
-						if (pawn.GetType() == Zombie.type)
-						{
-							if (lastPositions.ContainsKey(id) == false) lastPositions[id] = IntVec3.Invalid;
-							phGrid.ChangeZombieCount(lastPositions[id], -1);
-						}
-						else
-						{
-							var now = Tools.Ticks();
-							var radius = pawn.RaceProps.Animal ? 3f : 5f;
-							Tools.GetCircle(radius).Do(vec => phGrid.SetTimestamp(pos + vec, now - Math.Min(4, (int)vec.LengthHorizontal)));
-						}
-					}
-					lastPositions[id] = pos;
-				});
-
-				if (updateCounter-- < 0)
-				{
-					updateCounter = updateDelay;
-
-					// update center of interest
-
-					int x = 0, z = 0, n = 0;
-					int buildingMultiplier = 3;
-					Find.VisibleMap.listerBuildings.allBuildingsColonist.Do(building =>
-					{
-						x += building.Position.x * buildingMultiplier;
-						z += building.Position.z * buildingMultiplier;
-						n += buildingMultiplier;
-					});
-					allPawns.Where(pawn => pawn.GetType() != Zombie.type).Do(pawn =>
-					{
-						x += pawn.Position.x;
-						z += pawn.Position.z;
-						n++;
-					});
-					centerOfInterest = new IntVec3(x / n, 0, z / n);
-				}
-
-				if (spawnCounter-- < 0)
-				{
-					var points = Tools.ColonyPoints();
-					spawnCounter = 30; // GenTicks.SecondsToTicks(4f / Find.Storyteller.difficulty.threatScale);
-
-					// spawn new zombies
-
-					var zombieCount = allPawns.OfType<Zombie>().Count();
-					var zombieDestCount = GetMaxZombieCount();
-					if (unlimitedZombies || zombieCount < zombieDestCount)
-					{
-						var map = Find.VisibleMap;
-						var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4); // new IntVec3(75, 0, 75);
-						if (cell.IsValid)
-						{
-							var zombie = ZombieGenerator.GeneratePawn(map);
-							GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Near, null);
-
-							Log.Warning("New Zombie " + zombie.NameStringShort + " at " + cell.x + "/" + cell.z + " (" + zombieCount + " out of " + zombieDestCount + ")");
-						}
-					}
-				}
-			}
-
-			public static int GetMaxZombieCount()
-			{
-				var points = Tools.ColonyPoints();
-				Log.Warning("points " + points);
-
-				var zombiesPerColonist = (int)(100 * Find.Storyteller.difficulty.threatScale);
-				return zombiesPerColonist * Find.VisibleMap.mapPawns.ColonistCount;
+				TickManager.Tick();
 			}
 		}
 
@@ -433,7 +341,7 @@ namespace ZombieLand
 				{
 					var pos = pawn.Position + vec;
 					var cell = phGrid.Get(pos, false);
-					if (cell != null && cell.timestamp <= timestamp && Rand.Bool)
+					if (cell.timestamp > 0 && cell.timestamp <= timestamp && Rand.Bool)
 						phGrid.SetTimestamp(pos, 0);
 				});
 				phGrid.SetTimestamp(pawn.Position, 0);
@@ -451,6 +359,28 @@ namespace ZombieLand
 				if (__instance.Map != Find.VisibleMap) return;
 				var id = __instance.ThingID;
 				if (lastPositions.ContainsKey(id)) lastPositions.Remove(id);
+			}
+		}
+
+		[HarmonyPatch(typeof(PawnDiedOrDownedThoughtsUtility))]
+		[HarmonyPatch("GetThoughts")]
+		static class PawnDiedOrDownedThoughtsUtility_GetThoughts_Patch
+		{
+			static void Prefix(ref Hediff hediff)
+			{
+				if (hediff == null) return;
+				try
+				{
+					// somehow, 'def' can cause a NPE sometimes
+					// so we catch this and use a null hediff instead
+					//
+					if (hediff.def == null)
+						hediff = null;
+				}
+				catch (Exception)
+				{
+					hediff = null;
+				}
 			}
 		}
 
@@ -487,7 +417,7 @@ namespace ZombieLand
 				{
 					var pos = pawn.Position + vec;
 					var cell = phGrid.Get(pos, false);
-					if (cell.timestamp <= timestamp && Rand.Bool)
+					if (cell.timestamp > 0 && cell.timestamp <= timestamp && Rand.Bool)
 						phGrid.SetTimestamp(pos, 0);
 				});
 			}

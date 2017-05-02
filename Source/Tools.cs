@@ -1,10 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 using Verse;
 
 namespace ZombieLand
 {
+	class Measure
+	{
+		Stopwatch sw;
+		String text;
+		long prevTime = 0;
+		int counter = 0;
+
+		public Measure(String text)
+		{
+			this.text = text;
+			sw = new Stopwatch();
+			sw.Start();
+		}
+
+		public void Checkpoint()
+		{
+			counter++;
+			var ms = sw.ElapsedMilliseconds;
+			var delta = prevTime == 0 ? 0 : (ms - prevTime);
+			Log.Warning("#" + counter + " " + text + " = " + ms + " ms (+" + delta + ")");
+			prevTime = ms;
+		}
+
+		public void End()
+		{
+			sw.Stop();
+			Checkpoint();
+		}
+	}
+
 	class Tools
 	{
 		public static long Ticks()
@@ -12,21 +43,32 @@ namespace ZombieLand
 			return 1000L * GenTicks.TicksAbs;
 		}
 
-		public static Predicate<IntVec3> ZombieSpawnLocator(Map map)
+		public static bool IsValidSpawnLocation(TargetInfo target)
 		{
-			return cell =>
-			{
-				if (GenGrid.Walkable(cell, map) == false) return false;
-				if (map.thingGrid.ThingsListAt(cell).Exists(thing => thing.def.BlockPlanting)) return false;
-				return true;
-			};
+			return IsValidSpawnLocation(target.Cell, target.Map);
 		}
 
-		public static float ColonyPoints()
+		public static bool IsValidSpawnLocation(IntVec3 cell, Map map)
 		{
+			if (cell.IsValid == false || cell.InBounds(map) == false) return false;
+			if (cell.SupportsStructureType(map, TerrainAffordance.Diggable) == false) return false;
+			if (GenGrid.Walkable(cell, map) == false) return false;
+			// if (map.thingGrid.ThingsListAt(cell).Exists(thing => thing.def.BlockPlanting)) return false;
+			return true;
+		}
+
+		public static Predicate<IntVec3> ZombieSpawnLocator(Map map)
+		{
+			return cell => IsValidSpawnLocation(cell, map);
+		}
+
+		public static int ColonyPoints()
+		{
+			if (Main.DEBUG_COLONY_POINTS > 0) return Main.DEBUG_COLONY_POINTS;
+
 			IEnumerable<Pawn> colonists = Find.VisibleMap.mapPawns.FreeColonists;
-			ReadinessUtil.GetColonistArmouryPoints(colonists, null, out float colonistPoints, out float armouryPoints);
-			return colonistPoints + armouryPoints;
+			ColonyEvaluation.GetColonistArmouryPoints(colonists, null, out float colonistPoints, out float armouryPoints);
+			return (int)(colonistPoints + armouryPoints);
 		}
 
 		public static void ReApplyThingToListerThings(IntVec3 cell, Thing thing)

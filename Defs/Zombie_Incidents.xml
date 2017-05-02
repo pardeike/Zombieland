@@ -1,14 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Defs>
 
-  <IncidentDef>
-    <defName>ZombiesRising</defName>
-    <label>unusual zombie activity near your base</label>
-    <targetType>BaseMap</targetType>
-    <workerClass>ZombieLand.ZombiesRising</workerClass>
-    <baseChance>5</baseChance>
-    <minRefireDays>2</minRefireDays>
-    <category>ThreatSmall</category>
-  </IncidentDef>
+	<IncidentDef>
+		<defName>ZombiesRising</defName>
+		<label>unusual zombie activity near your base</label>
+		<targetType>BaseMap</targetType>
+		<workerClass>ZombieLand.ZombiesRising</workerClass>
+		<baseChance>3</baseChance>
+		<!--<category>ThreatSmall</category>-->
+	</IncidentDef>
 
 </Defs>

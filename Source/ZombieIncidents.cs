@@ -33,21 +33,17 @@ namespace ZombieLand
 			if (GenDate.DaysPassed < 7)
 				zombieCount = 20;
 
-			var validator = Tools.ZombieSpawnLocator(map);
-			RCellFinder.TryFindRandomSpotJustOutsideColony(Main.centerOfInterest, map, null, out IntVec3 spot, validator);
-			if (spot.IsValid)
-			{
-				var cellValidator = Tools.ZombieSpawnLocator(map);
-				var spawnLocations = Tools.GetCircle(spawnRadius)
-					.Where(vec => cellValidator(spot + vec))
-					.InRandomOrder();
+			var validator = SpotValidator(map);
+			RCellFinder.TryFindRandomSpotJustOutsideColony(TickManager.centerOfInterest, map, null, out IntVec3 spot, validator);
+			if (spot.IsValid == false) return false;
 
-				spawnLocations.Take(Math.Min(spawnLocations.Count(), zombieCount)).Do(cell =>
-				{
-					var zombie = ZombieGenerator.GeneratePawn(map);
-					GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Direct, null);
-				});
-			}
+			var cellValidator = Tools.ZombieSpawnLocator(map);
+			var spawnLocations = Tools.GetCircle(spawnRadius)
+				.Select(vec => spot + vec)
+				.Where(vec => cellValidator(vec))
+				.InRandomOrder()
+				.Take(zombieCount)
+				.Do(cell => Main.spawnQueue.Enqueue(new TargetInfo(cell, map)));
 
 			var text = "ZombiesRisingNearYourBase".Translate();
 			var location = new GlobalTargetInfo(spot, map);

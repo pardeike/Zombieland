@@ -121,12 +121,12 @@ namespace ZombieLand
 		}
 	}
 
-	public class Zombie_PawnObserver : PawnObserver
+	/*public class Zombie_PawnObserver : PawnObserver
 	{
 		public Zombie_PawnObserver(Pawn zombie) : base(zombie)
 		{
 		}
 
 		public new void ObserverInterval() { }
-	}
+	}*/
 }

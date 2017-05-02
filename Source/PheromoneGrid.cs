@@ -79,10 +79,11 @@ namespace ZombieLand
 			if (position.x < 0 || position.x >= mapSizeX || position.z < 0 || position.z >= mapSizeZ)
 				return Pheromone.empty;
 			var cell = grid[CellToIndex(position)];
-			if (cell == null && create)
+			if (cell == null)
 			{
 				cell = Pheromone.empty;
-				grid[CellToIndex(position)] = cell;
+				if (create)
+					grid[CellToIndex(position)] = cell;
 			}
 			return cell;
 		}

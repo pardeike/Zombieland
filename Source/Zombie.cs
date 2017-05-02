@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace ZombieLand
 {
@@ -145,6 +146,15 @@ namespace ZombieLand
 
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
 		{
+			if (rubbleCounter == 0)
+			{
+				if (Main.USE_SOUND)
+				{
+					var info = SoundInfo.InMap(new TargetInfo(Position, Map));
+					SoundDef.Named("ZombieDigOut").PlayOneShot(info);
+				}
+			}
+
 			drawLoc.x = (int)(drawLoc.x) + 0.5f;
 
 			GenerateRubble();

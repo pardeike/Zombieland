@@ -18,8 +18,8 @@
 			<ComfyTemperatureMax>999</ComfyTemperatureMax>
 		</statBases>
 		<inspectorTabs>
-			<li>ITab_Pawn_Health</li>
-			<li>ITab_Pawn_Character</li>
+			<!--<li>ITab_Pawn_Character</li>
+			<li>ITab_Pawn_Health</li>-->
 		</inspectorTabs>
 		<comps>
 			<li>
