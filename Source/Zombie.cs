@@ -94,13 +94,14 @@ namespace ZombieLand
 		static float zombieLayer = Altitudes.AltitudeFor(AltitudeLayer.Pawn) - 0.005f;
 		static float emergeDelay = 0.8f;
 
-		void GenerateRubble()
+		void HandleRubble()
 		{
+			if (rubbles == null) rubbles = new List<Rubble>();
+
 			var ticks = ageTracker.AgeBiologicalTicks;
 			if (rubbleCounter < rubbleAmount && ticks > nextRubbleTicks)
 			{
 				var idx = Rand.Range(rubbleCounter * 4 / 5, rubbleCounter);
-				if (rubbles == null) rubbles = new List<Rubble>();
 				rubbles.Insert(idx, Rubble.Create(rubbleCounter / (float)rubbleAmount));
 
 				var deltaTicks = minDeltaTicks + (float)(maxDeltaTicks - minDeltaTicks) / Math.Min(1, rubbleCounter * 2 - rubbleAmount);
@@ -110,11 +111,7 @@ namespace ZombieLand
 				if (rubbleCounter == rubbleAmount)
 					state = ZombieState.Wandering;
 			}
-		}
 
-		void AnimateRubble()
-		{
-			if (rubbles == null) rubbles = new List<Rubble>();
 			foreach (var r in rubbles)
 			{
 				var dx = Math.Sign(r.pX) / 2f - r.pX;
@@ -158,8 +155,7 @@ namespace ZombieLand
 				}
 			}
 
-			GenerateRubble();
-			AnimateRubble();
+			HandleRubble();
 		}
 
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
@@ -174,9 +170,6 @@ namespace ZombieLand
 			}*/
 
 			drawLoc.x = (int)(drawLoc.x) + 0.5f;
-
-			//GenerateRubble();
-			//AnimateRubble();
 			RenderRubble(drawLoc);
 
 			var progress = rubbleCounter / (float)rubbleAmount;
