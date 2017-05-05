@@ -35,6 +35,8 @@ namespace ZombieLand
 
 			PawnComponentsUtility.CreateInitialComponents(pawn);
 
+			pawn.pather = new Zombie_PathFollower(pawn);
+
 			pawn.health = new Zombie_HealthTracker(pawn);
 			pawn.caller = new Zombie_CallTracker(pawn);
 			pawn.apparel = new Zombie_ApparelTracker(pawn);

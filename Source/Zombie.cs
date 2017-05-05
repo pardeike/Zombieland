@@ -143,9 +143,28 @@ namespace ZombieLand
 			}
 		}
 
+		public void SelectiveDrawTrackerTick()
+		{
+			if (!Spawned) return;
+			if (Current.ProgramState == ProgramState.Playing && !Find.CameraDriver.CurrentViewRect.ExpandedBy(3).Contains(Position)) return;
+
+			Traverse.Create(Drawer).Field("jitterer").GetValue<JitterHandler>().JitterHandlerTick();
+			Drawer.leaner.LeanerTick();
+			Drawer.rotator.PawnRotatorTick();
+			Drawer.renderer.RendererTick();
+		}
+
+		public void SelectiveTick()
+		{
+			if (pather != null) pather.PatherTick();
+			if (jobs != null) jobs.JobTrackerTick();
+			if (health != null) health.HealthTick();
+			if (Drawer != null) SelectiveDrawTrackerTick();
+		}
+
 		public override void Tick()
 		{
-			base.Tick();
+			if (Spawned) SelectiveTick(); //base.Tick();
 			if (rubbleCounter == 0)
 			{
 				if (Main.USE_SOUND)

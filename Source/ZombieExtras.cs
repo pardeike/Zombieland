@@ -56,6 +56,56 @@ namespace ZombieLand
 
 	//
 
+	public class Zombie_PathFollower : Pawn_PathFollower
+	{
+		static readonly Traverse destination = Traverse.Create(typeof(Pawn_PathFollower)).Field("destination");
+		static readonly Traverse costToMoveIntoCell = Traverse.Create(typeof(Pawn_PathFollower)).Method("CostToMoveIntoCell");
+
+		public Zombie_PathFollower(Pawn zombie) : base(zombie) { }
+
+		public new void PatherTick()
+		{
+			if (nextCellCostLeft > 0f)
+			{
+				nextCellCostLeft -= nextCellCostTotal / 450f;
+			}
+			else
+			{
+				pawn.Position = nextCell;
+
+				// TODO: make clamors work
+				// 
+				// cellsUntilClamor--;
+				// if (cellsUntilClamor <= 0)
+				// {
+				// 	GenClamor.DoClamor(pawn, 7f, ClamorType.Movement);
+				// 	cellsUntilClamor = 12;
+				// }
+
+				if (pawn.BodySize > 0.9f)
+					pawn.Map.snowGrid.AddDepth(pawn.Position, -0.001f);
+
+				if (pawn.Position == destination.GetValue<LocalTargetInfo>().Cell)
+				{
+					pawn.jobs.curDriver.Notify_PatherArrived();
+				}
+				else
+				{
+					if (curPath.NodesLeftCount == 0)
+					{
+						pawn.jobs.curDriver.Notify_PatherArrived();
+						return;
+					}
+				}
+				nextCell = curPath.ConsumeNextNode();
+
+				var num = (float)costToMoveIntoCell.GetValue<int>();
+				nextCellCostTotal = num;
+				nextCellCostLeft = num;
+			}
+		}
+	}
+
 	public class Zombie_NeedsTracker : Pawn_NeedsTracker
 	{
 		public Zombie_NeedsTracker(Pawn zombie) : base(zombie) { }
