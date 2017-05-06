@@ -56,6 +56,13 @@ namespace ZombieLand
 
 	//
 
+	public class Zombie_DrawTracker : Pawn_DrawTracker
+	{
+		public Zombie_DrawTracker(Pawn zombie) : base(zombie) { }
+
+		public new void DrawTrackerTick() { }
+	}
+
 	public class Zombie_PathFollower : Pawn_PathFollower
 	{
 		static readonly Traverse destination = Traverse.Create(typeof(Pawn_PathFollower)).Field("destination");
@@ -104,6 +111,69 @@ namespace ZombieLand
 				nextCellCostLeft = num;
 			}
 		}
+	}
+
+	public class Zombie_StanceTracker : Pawn_StanceTracker
+	{
+		public Zombie_StanceTracker(Pawn zombie) : base(zombie) { }
+
+		public new void StanceTrackerTick() { }
+	}
+
+	public class Zombie_MindState : Pawn_MindState
+	{
+		public Zombie_MindState(Pawn zombie) : base(zombie) { }
+
+		public new void MindStateTick() { }
+	}
+
+	public class Zombie_VerbTracker : VerbTracker
+	{
+		public Zombie_VerbTracker(Pawn zombie) : base(zombie) { }
+
+		public new void VerbsTick() { }
+	}
+
+	public class Zombie_CarryTracker : Pawn_CarryTracker
+	{
+		public Zombie_CarryTracker(Pawn zombie) : base(zombie) { }
+
+		public new void CarryHandsTick() { }
+	}
+
+	public class Zombie_EquipmentTracker : Pawn_EquipmentTracker
+	{
+		public Zombie_EquipmentTracker(Pawn zombie) : base(zombie) { }
+
+		public new void EquipmentTrackerTick() { }
+	}
+
+	public class Zombie_SkillTracker : Pawn_SkillTracker
+	{
+		public Zombie_SkillTracker(Pawn zombie) : base(zombie) { }
+
+		public new void SkillsTick() { }
+	}
+
+	public class Zombie_InventoryTracker : Pawn_InventoryTracker
+	{
+		public Zombie_InventoryTracker(Pawn zombie) : base(zombie) { }
+
+		public new void InventoryTrackerTick() { }
+	}
+
+	public class Zombie_DraftController : Pawn_DraftController
+	{
+		public Zombie_DraftController(Pawn zombie) : base(zombie) { }
+
+		public new void DraftControllerTick() { }
+	}
+
+	public class Zombie_AgeTracker : Pawn_AgeTracker
+	{
+		public Zombie_AgeTracker(Pawn zombie) : base(zombie) { }
+
+		public new void AgeTick() { }
 	}
 
 	public class Zombie_NeedsTracker : Pawn_NeedsTracker

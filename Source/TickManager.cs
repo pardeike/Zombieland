@@ -1,5 +1,8 @@
 ﻿using Harmony;
+using RimWorld;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Verse;
 
@@ -16,6 +19,8 @@ namespace ZombieLand
 		public static int currentColonyPoints = 100;
 		public static IntVec3 centerOfInterest = IntVec3.Invalid;
 
+		public static HashSet<Zombie> allZombies = new HashSet<Zombie>();
+
 		public static int GetMaxZombieCount()
 		{
 			var baseCount = GenMath.LerpDouble(0, 1000, 80, 200, Math.Min(1000, currentColonyPoints));
@@ -23,78 +28,93 @@ namespace ZombieLand
 			return zombiesPerColonist * Find.VisibleMap.mapPawns.ColonistCount;
 		}
 
-		public static void Tick()
+		public static void ZombieTicking(float currentMultiplier)
 		{
-			var allPawns = Find.VisibleMap.mapPawns.AllPawnsSpawned;
+			var maxTickTime = (1f / 30f) / currentMultiplier * Stopwatch.Frequency;
+			var timer = new Stopwatch();
+			timer.Start();
 
-			// update last positions
-
-			allPawns.Do(pawn =>
-			{
-				var pos = pawn.Position;
-				var id = pawn.ThingID;
-				if (Main.lastPositions.ContainsKey(id) == false || pos != Main.lastPositions[id])
+			var zombies = allZombies.ToList();
+			zombies.Sort(
+				delegate (Zombie z1, Zombie z2)
 				{
-					if (pawn.GetType() == Zombie.type)
-					{
-						if (Main.lastPositions.ContainsKey(id) == false) Main.lastPositions[id] = IntVec3.Invalid;
-						Main.phGrid.ChangeZombieCount(Main.lastPositions[id], -1);
-					}
-					else
-					{
-						var now = Tools.Ticks();
-						var radius = pawn.RaceProps.Animal ? 3f : 5f;
-						Tools.GetCircle(radius).Do(vec => Main.phGrid.SetTimestamp(pos + vec, now - Math.Min(4, (int)vec.LengthHorizontal)));
-					}
+					var v1 = Main.phGrid.Get(z1.Position).timestamp;
+					var v2 = Main.phGrid.Get(z2.Position).timestamp;
+					var order = v2.CompareTo(v1);
+					if (order != 0) return order;
+					var d1 = z1.Position.DistanceToSquared(centerOfInterest);
+					var d2 = z2.Position.DistanceToSquared(centerOfInterest);
+					return d1.CompareTo(d2);
 				}
-				Main.lastPositions[id] = pos;
-			});
-
-			if (updateCounter-- < 0)
+			);
+			var counter = 0;
+			foreach (var zombie in zombies)
 			{
-				updateCounter = updateDelay;
+				if (timer.ElapsedTicks > maxTickTime) break;
+				zombie.Tick();
+				counter++;
+			}
+			timer.Stop();
+		}
 
-				// update center of interest
+		public static void UpdateCenterOfInterest()
+		{
+			int x = 0, z = 0, n = 0;
+			int buildingMultiplier = 3;
+			Find.VisibleMap.listerBuildings.allBuildingsColonist.Do(building =>
+			{
+				x += building.Position.x * buildingMultiplier;
+				z += building.Position.z * buildingMultiplier;
+				n += buildingMultiplier;
+			});
+			Find.VisibleMap.mapPawns.SpawnedPawnsInFaction(Faction.OfPlayer).Do(pawn =>
+			{
+				x += pawn.Position.x;
+				z += pawn.Position.z;
+				n++;
+			});
+			centerOfInterest = n == 0 ? Find.VisibleMap.Center : new IntVec3(x / n, 0, z / n);
+		}
 
-				int x = 0, z = 0, n = 0;
-				int buildingMultiplier = 3;
-				Find.VisibleMap.listerBuildings.allBuildingsColonist.Do(building =>
+		public static void SpawnZombies()
+		{
+			// spawn queued zombies
+
+			while (Main.spawnQueue.Count() > 0)
+			{
+				var target = Main.spawnQueue.Dequeue();
+				if (target.Map == Find.VisibleMap && Tools.IsValidSpawnLocation(target))
 				{
-					x += building.Position.x * buildingMultiplier;
-					z += building.Position.z * buildingMultiplier;
-					n += buildingMultiplier;
-				});
-				allPawns.Where(pawn => pawn.GetType() != Zombie.type).Do(pawn =>
-				{
-					x += pawn.Position.x;
-					z += pawn.Position.z;
-					n++;
-				});
-				centerOfInterest = new IntVec3(x / n, 0, z / n);
-				currentColonyPoints = Tools.ColonyPoints();
+					var zombie = ZombieGenerator.GeneratePawn(target.Map);
+					GenPlace.TryPlaceThing(zombie, target.Cell, target.Map, ThingPlaceMode.Direct, null);
+				}
 			}
 
-			if (spawnCounter-- < 0)
+			// spawn new zombies
+
+			var zombieCount = allZombies.Count();
+			var zombieDestCount = GetMaxZombieCount();
+			if (unlimitedZombies || zombieCount < zombieDestCount)
 			{
-				spawnCounter = (int)GenMath.LerpDouble(0, 1000, 300, 20, Math.Max(100, Math.Min(1000, currentColonyPoints)));
-
-				// spawn queued zombies
-
-				if (Main.spawnQueue.Count() > 0)
+				var map = Find.VisibleMap;
+				var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4);
+				if (cell.IsValid)
 				{
-					var target = Main.spawnQueue.Dequeue();
-					if (target.Map == Find.VisibleMap && Tools.IsValidSpawnLocation(target))
-					{
-						var zombie = ZombieGenerator.GeneratePawn(target.Map);
-						GenPlace.TryPlaceThing(zombie, target.Cell, target.Map, ThingPlaceMode.Direct, null);
-					}
+					var zombie = ZombieGenerator.GeneratePawn(map);
+					GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Direct, null);
+
+					// Log.Warning("New Zombie " + zombie.NameStringShort + " at " + cell.x + "/" + cell.z + " (" + zombieCount + " out of " + zombieDestCount + ")");
 				}
+			}
+		}
 
-				// spawn new zombies
-
-				var zombieCount = allPawns.OfType<Zombie>().Count();
+		public static void Tick()
+		{
+			if (Main.SPAWN_ALL_ZOMBIES)
+			{
+				Main.SPAWN_ALL_ZOMBIES = false;
 				var zombieDestCount = GetMaxZombieCount();
-				if (unlimitedZombies || zombieCount < zombieDestCount)
+				while (allZombies.Count() < zombieDestCount)
 				{
 					var map = Find.VisibleMap;
 					var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4); // new IntVec3(75, 0, 75);
@@ -103,9 +123,24 @@ namespace ZombieLand
 						var zombie = ZombieGenerator.GeneratePawn(map);
 						GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Direct, null);
 
-						Log.Warning("New Zombie " + zombie.NameStringShort + " at " + cell.x + "/" + cell.z + " (" + zombieCount + " out of " + zombieDestCount + ")");
+						// Log.Warning("New Zombie " + zombie.NameStringShort + " at " + cell.x + "/" + cell.z);
 					}
 				}
+			}
+
+			if (updateCounter-- < 0)
+			{
+				updateCounter = updateDelay;
+
+				UpdateCenterOfInterest();
+				currentColonyPoints = Tools.ColonyPoints();
+			}
+
+			if (spawnCounter-- < 0)
+			{
+				spawnCounter = (int)GenMath.LerpDouble(0, 1000, 300, 20, Math.Max(100, Math.Min(1000, currentColonyPoints)));
+
+				SpawnZombies();
 			}
 		}
 	}

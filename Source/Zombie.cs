@@ -2,6 +2,8 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -130,14 +132,14 @@ namespace ZombieLand
 
 		void RenderRubble(Vector3 drawLoc)
 		{
-			var altitude = Altitudes.AltitudeFor(AltitudeLayer.Pawn) + 0.005f;
 			if (rubbles == null) rubbles = new List<Rubble>();
 			foreach (var r in rubbles)
 			{
 				var scale = minScale + (maxScale - minScale) * r.scale;
 				var x = 0f + r.pX / 2f;
 				var y = -0.5f + Math.Max(0f, r.pY - r.drop) * (maxHeight - scale / 2f) + (scale - maxScale) / 2f;
-				var pos = drawLoc + new Vector3(x, altitude, y);
+				var pos = drawLoc + new Vector3(x, 0, y);
+				pos.y = Altitudes.AltitudeFor(AltitudeLayer.Pawn + 1);
 				var rot = Quaternion.Euler(0f, r.rot * 360f, 0f);
 				Tools.DrawScaledMesh(MeshPool.plane10, Main.rubble, pos, rot, scale, scale);
 			}
@@ -154,17 +156,31 @@ namespace ZombieLand
 			Drawer.renderer.RendererTick();
 		}
 
-		public void SelectiveTick()
+		/*public void SelectiveTick()
 		{
 			if (pather != null) pather.PatherTick();
 			if (jobs != null) jobs.JobTrackerTick();
 			if (health != null) health.HealthTick();
 			if (Drawer != null) SelectiveDrawTrackerTick();
-		}
+		}*/
+
+		/*static long[] ticks = new long[100];
+		static int tickIndex = 0;
+		public override void TickRare()
+		{
+
+		}*/
 
 		public override void Tick()
 		{
-			if (Spawned) SelectiveTick(); //base.Tick();
+			//var watch = new Stopwatch();
+			//watch.Start();
+
+			base.Tick();
+			if (Drawer != null) SelectiveDrawTrackerTick();
+
+			// if (Spawned) SelectiveTick();
+
 			if (rubbleCounter == 0)
 			{
 				if (Main.USE_SOUND)
@@ -175,6 +191,11 @@ namespace ZombieLand
 			}
 
 			HandleRubble();
+
+			//watch.Stop();
+			//tickIndex = (tickIndex + 1) % 100;
+			//ticks[tickIndex] = watch.ElapsedMilliseconds;
+			//Log.Warning("pawn ticks " + watch.ElapsedMilliseconds + "ms");
 		}
 
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
@@ -189,7 +210,6 @@ namespace ZombieLand
 			}*/
 
 			drawLoc.x = (int)(drawLoc.x) + 0.5f;
-			RenderRubble(drawLoc);
 
 			var progress = rubbleCounter / (float)rubbleAmount;
 			if (progress < emergeDelay) return;
@@ -284,6 +304,8 @@ namespace ZombieLand
 				Graphics.DrawMesh(mesh, pos, Quaternion.identity, mat, 0);
 			});
 			*/
+
+			RenderRubble(drawLoc);
 
 		}
 	}

@@ -36,6 +36,7 @@ namespace ZombieLand
 			PawnComponentsUtility.CreateInitialComponents(pawn);
 
 			pawn.pather = new Zombie_PathFollower(pawn);
+			Traverse.Create(pawn).Field("drawer").SetValue(new Zombie_DrawTracker(pawn));
 
 			pawn.health = new Zombie_HealthTracker(pawn);
 			pawn.caller = new Zombie_CallTracker(pawn);
@@ -47,13 +48,20 @@ namespace ZombieLand
 			pawn.guest = new Zombie_GuestTracker(pawn);
 			pawn.records = new Zombie_RecordsTracker(pawn);
 			pawn.natives = new Zombie_NativeVerbs(pawn);
-			// pawn.drafter = null;
-			// pawn.skills = null;
-			// pawn.equipment = null;
-
-			pawn.ageTracker.AgeBiologicalTicks = ((long)(Rand.Range(0, 0x9c4) * 3600000f)) + Rand.Range(0, 0x36ee80);
-			pawn.ageTracker.AgeChronologicalTicks = pawn.ageTracker.AgeBiologicalTicks;
-			pawn.ageTracker.BirthAbsTicks = GenTicks.TicksAbs - pawn.ageTracker.AgeBiologicalTicks;
+			pawn.stances = new Zombie_StanceTracker(pawn);
+			pawn.verbTracker = new Zombie_VerbTracker(pawn);
+			pawn.mindState = new Zombie_MindState(pawn);
+			pawn.carryTracker = new Zombie_CarryTracker(pawn);
+			pawn.equipment = new Zombie_EquipmentTracker(pawn);
+			pawn.skills = new Zombie_SkillTracker(pawn);
+			pawn.inventory = new Zombie_InventoryTracker(pawn);
+			pawn.drafter = new Zombie_DraftController(pawn);
+			pawn.ageTracker = new Zombie_AgeTracker(pawn)
+			{
+				AgeBiologicalTicks = ((long)(Rand.Range(0, 0x9c4) * 3600000f)) + Rand.Range(0, 0x36ee80),
+				AgeChronologicalTicks = pawn.ageTracker.AgeBiologicalTicks,
+				BirthAbsTicks = GenTicks.TicksAbs - pawn.ageTracker.AgeBiologicalTicks
+			};
 
 			pawn.needs.SetInitialLevels();
 

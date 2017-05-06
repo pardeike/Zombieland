@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -66,14 +67,14 @@ namespace ZombieLand
 						break;
 					}
 				}
+
+				// TODO: check if limbs are missing
+
 				if (zombie.Downed) return;
 			}
 
-			// does not help with the Zs standing still bug
+			// handling invalid destinations
 			//
-			//	if (zombie.jobs == null || zombie.jobs.curJob == null)
-			//		destination = IntVec2.Invalid;
-
 			if (destination.x == 0 && destination.z == 0) destination = IntVec2.Invalid;
 			if (HasValidDestination(destination.ToIntVec3)) return;
 
@@ -123,12 +124,12 @@ namespace ZombieLand
 						if (zombie.state == ZombieState.Wandering)
 						{
 							var baseTimestamp = cell.timestamp;
-							for (int j = 0; j < 8; j++)
+							Tools.GetCircle(1.5f).Do(vec =>
 							{
-								var pos2 = basePos + GenAdj.AdjacentCells[j];
-								var timestamp = baseTimestamp - (int)pos2.DistanceToSquared(destination.ToIntVec3);
-								Main.phGrid.Set(pos2, destination, timestamp);
-							}
+								var pos = basePos + vec;
+								var timestamp = baseTimestamp - (int)pos.DistanceToSquared(destination.ToIntVec3);
+								Main.phGrid.Set(pos, destination, timestamp);
+							});
 						}
 						zombie.state = ZombieState.Tracking;
 						if (Main.USE_SOUND)
@@ -147,7 +148,17 @@ namespace ZombieLand
 			if (destination.IsInvalid)
 			{
 				var hour = GenLocalDate.HourOfDay(Find.VisibleMap);
-				if (hour >= 22 || hour <= 5)
+
+				var moveTowardsCenter = false;
+				if (hour < 12) hour += 24;
+				if (hour >= 18 && hour <= 22)
+					moveTowardsCenter = Rand.RangeInclusive(hour, 22) == 22;
+				else if (hour >= 28 && hour <= 32)
+					moveTowardsCenter = Rand.RangeInclusive(28, hour) == 28;
+				else if (hour > 22 && hour < 28)
+					moveTowardsCenter = true;
+
+				if (moveTowardsCenter)
 				{
 					int dx = TickManager.centerOfInterest.x - zombie.Position.x;
 					int dz = TickManager.centerOfInterest.z - zombie.Position.z;

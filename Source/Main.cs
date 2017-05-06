@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Text;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 
 namespace ZombieLand
 {
@@ -16,13 +17,13 @@ namespace ZombieLand
 	static class Main
 	{
 		public static bool DEBUGGRID = false;
-		public static bool USE_SOUND = false;
+		public static bool USE_SOUND = true;
 		public static int DEBUG_COLONY_POINTS = 0;
+		public static bool SPAWN_ALL_ZOMBIES = false;
 
 		public static PheromoneGrid phGrid;
 
 		public static long pheromoneFadeoff = 1000L * GenTicks.SecondsToTicks(90f);
-		public static Dictionary<string, IntVec3> lastPositions = new Dictionary<string, IntVec3>();
 		public static Queue<TargetInfo> spawnQueue = new Queue<TargetInfo>();
 
 		public static Material rubble = MaterialPool.MatFrom("Rubble", ShaderDatabase.Cutout);
@@ -86,6 +87,31 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to remove the constant danger music because of the constant thread of zombies
+		//
+		class ZombieDangerWatcher : AttackTargetsCache
+		{
+			public ZombieDangerWatcher(Map map) : base(map) { }
+
+			HashSet<IAttackTarget> TargetsHostileToColonyWithoutZombies()
+			{
+				return new HashSet<IAttackTarget>(TargetsHostileToColony.Where(t => (t as Zombie) == null));
+			}
+		}
+		//
+		[HarmonyPatch(typeof(DangerWatcher))]
+		[HarmonyPatch("DangerRating", PropertyMethod.Getter)]
+		static class AttackTargetsCache_get_DangerRating_Patch
+		{
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				return Transpilers.MethodReplacer(instructions,
+					AccessTools.Method(typeof(AttackTargetsCache), "get_TargetsHostileToColony"),
+					AccessTools.Method(typeof(ZombieDangerWatcher), "TargetsHostileToColonyWithoutZombies")
+				);
+			}
+		}
+
 		// patch to add a pheromone info section to the rimworld cell inspector
 		//
 		[HarmonyPatch(typeof(EditWindow_DebugInspector))]
@@ -105,6 +131,8 @@ namespace ZombieLand
 				}
 				else
 					builder.AppendLine("Pheromones empty");
+				builder.AppendLine("Total Zombie Count should be " + TickManager.GetMaxZombieCount());
+				builder.AppendLine("Total Zombie Count is " + TickManager.allZombies.Count());
 			}
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -155,9 +183,64 @@ namespace ZombieLand
 		[HarmonyPatch("DoSingleTick")]
 		static class TickManager_DoSingleTick_Patch
 		{
-			static void Postfix()
+			static void Postfix(Verse.TickManager __instance)
 			{
+				TickManager.ZombieTicking(__instance.TickRateMultiplier);
 				TickManager.Tick();
+			}
+		}
+
+		// patch for detecting if a pawn enters a new cell
+		//
+		[HarmonyPatch(typeof(Thing))]
+		[HarmonyPatch("Position", PropertyMethod.Setter)]
+		static class Thing_Position_Patch
+		{
+			static void Prefix(Thing __instance, IntVec3 value)
+			{
+				if (phGrid == null) return;
+
+				var pawn = __instance as Pawn;
+				if (pawn == null) return;
+
+				var pos = pawn.Position;
+				if (pos.x == value.x && pos.z == value.z) return;
+
+				if (pawn as Zombie != null)
+					phGrid.ChangeZombieCount(pos, -1);
+				else
+				{
+					var now = Tools.Ticks();
+					var radius = pawn.RaceProps.Animal ? 3f : 5f;
+					Tools.GetCircle(radius).Do(vec => phGrid.SetTimestamp(value + vec, now - Math.Min(4, (int)vec.LengthHorizontal)));
+				}
+			}
+		}
+
+		// patch to exclude zombies from ordinary ticking
+		//
+		[HarmonyPatch(typeof(Verse.TickManager))]
+		[HarmonyPatch("RegisterAllTickabilityFor")]
+		static class TickManager_RegisterAllTickabilityFor_Patch
+		{
+			static bool Prefix(Thing t)
+			{
+				var zombie = t as Zombie;
+				if (zombie == null) return true;
+				TickManager.allZombies.Add(zombie);
+				return false;
+			}
+		}
+		[HarmonyPatch(typeof(Verse.TickManager))]
+		[HarmonyPatch("DeRegisterAllTickabilityFor")]
+		static class TickManager_DeRegisterAllTickabilityFor_Patch
+		{
+			static bool Prefix(Thing t)
+			{
+				var zombie = t as Zombie;
+				if (zombie == null) return true;
+				TickManager.allZombies.Remove(zombie);
+				return false;
 			}
 		}
 
@@ -175,19 +258,6 @@ namespace ZombieLand
 				zombie.Render(__instance, drawLoc, bodyDrawType);
 				return false;
 			}
-
-			/*
-			static void Postfix(Vector3 drawLoc)
-			{
-				var m1 = MaterialPool.MatFrom("UI/Overlays/TargetHighlight_Square", ShaderDatabase.Transparent);
-				m1.renderQueue = 3010;
-				Tools.DrawScaledMesh(MeshPool.plane10, m1, drawLoc + new Vector3(0.3f, 1f, 0.5f), Quaternion.Euler(0f, 45f, 0f), 1f, 1f);
-
-				var m2 = SolidColorMaterials.SimpleSolidColorMaterial(new Color(1f, 0f, 1f));
-				m2.renderQueue = 3020;
-				Tools.DrawScaledMesh(MeshPool.plane10, m2, drawLoc + new Vector3(-0.3f, 1f, 0.5f), Quaternion.Euler(0f, 45f, 0f), 1f, 1f);
-			}
-			*/
 		}
 
 		// patch for setting a custom skin color for our zombies
@@ -223,7 +293,7 @@ namespace ZombieLand
 				var zombie = thing as Zombie;
 				if (zombie != null && stat == StatDefOf.MoveSpeed)
 				{
-					__result = zombie.state == ZombieState.Tracking ? 1f : 0.2f;
+					__result = zombie.state == ZombieState.Tracking ? 3f : 0.2f;
 					return false;
 				}
 				return true;
@@ -352,7 +422,7 @@ namespace ZombieLand
 				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
 				if (pawn.GetType() == Zombie.type) return;
 				var timestamp = phGrid.Get(pawn.Position).timestamp;
-				var radius = pawn.RaceProps.Animal ? 1f : 5f;
+				var radius = pawn.RaceProps.Animal ? 3f : 5f;
 				Tools.GetCircle(radius).Do(vec =>
 				{
 					var pos = pawn.Position + vec;
@@ -361,20 +431,6 @@ namespace ZombieLand
 						phGrid.SetTimestamp(pos, 0);
 				});
 				phGrid.SetTimestamp(pawn.Position, 0);
-			}
-		}
-
-		// patch to clean up our lastLocation directory
-		//
-		[HarmonyPatch(typeof(Pawn))]
-		[HarmonyPatch("DeSpawn")]
-		static class Pawn_DeSpawn_Patch
-		{
-			static void Postfix(Pawn __instance)
-			{
-				if (__instance.Map != Find.VisibleMap) return;
-				var id = __instance.ThingID;
-				if (lastPositions.ContainsKey(id)) lastPositions.Remove(id);
 			}
 		}
 
@@ -434,8 +490,6 @@ namespace ZombieLand
 
 				var id = pawn.ThingID;
 				if (id == null) return;
-
-				if (pawn.Map != Find.VisibleMap && lastPositions.ContainsKey(id)) lastPositions.Remove(id);
 
 				var timestamp = phGrid.Get(pawn.Position).timestamp;
 				var radius = pawn.RaceProps.Animal ? 3f : 5f;
