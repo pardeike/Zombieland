@@ -11,34 +11,34 @@ namespace ZombieLand
 {
 	public class JobDriver_Stumble : JobDriver
 	{
-		IntVec2 destination;
-		static Random random = new Random();
-
+		IntVec3 destination;
 		int slowdownCounter;
-		static int slowdownDelay = GenTicks.SecondsToTicks(1f);
 
 		public virtual void InitAction()
 		{
-			destination = IntVec2.Invalid;
+			destination = IntVec3.Invalid;
 		}
 
 		public override void ExposeData()
 		{
 			base.ExposeData();
-			Scribe_Values.LookValue(ref destination, "destination", IntVec2.Invalid);
+			Scribe_Values.LookValue(ref destination, "destination", IntVec3.Invalid);
 		}
 
-		int SortByTimestamp(IntVec3 p1, IntVec3 p2)
+		int SortByTimestamp(PheromoneGrid grid, IntVec3 p1, IntVec3 p2)
 		{
-			var t1 = Main.phGrid.Get(p1, false).timestamp;
-			var t2 = Main.phGrid.Get(p2, false).timestamp;
-			return -1 * t1.CompareTo(t2);
+			return grid.Get(p2, false).timestamp.CompareTo(grid.Get(p1, false).timestamp);
+		}
+
+		int SortByDirection(IntVec3 p1, IntVec3 p2)
+		{
+			return p1.DistanceToSquared(TickManager.centerOfInterest).CompareTo(p2.DistanceToSquared(TickManager.centerOfInterest));
 		}
 
 		public virtual void TickAction()
 		{
 			if (slowdownCounter-- > 0) return;
-			slowdownCounter = slowdownDelay;
+			slowdownCounter = Constants.JOBDRIVER_TICKS_DELAY;
 
 			var zombie = (Zombie)pawn;
 			if (zombie.state == ZombieState.Emerging) return;
@@ -55,6 +55,8 @@ namespace ZombieLand
 				zombie.health.Kill(null, null);
 				return;
 			}
+
+			var map = zombie.Map;
 
 			if (zombie.Downed)
 			{
@@ -75,8 +77,8 @@ namespace ZombieLand
 
 			// handling invalid destinations
 			//
-			if (destination.x == 0 && destination.z == 0) destination = IntVec2.Invalid;
-			if (HasValidDestination(destination.ToIntVec3)) return;
+			if (destination.x == 0 && destination.z == 0) destination = IntVec3.Invalid;
+			if (zombie.HasValidDestination(destination)) return;
 
 			// if we are near targets then attack them
 			//
@@ -84,7 +86,7 @@ namespace ZombieLand
 			if (target != null)
 			{
 				zombie.state = ZombieState.Tracking;
-				if (Main.USE_SOUND)
+				if (Constants.USE_SOUND)
 				{
 					var info = SoundInfo.InMap(target);
 					SoundDef.Named("ZombieHit").PlayOneShot(info);
@@ -102,105 +104,113 @@ namespace ZombieLand
 			// also, emit a circle of timestamps when discovering a pheromone
 			// trace so nearby zombies pick it up too (leads to a chain reaction)
 			//
-			var possibleMoves = new List<IntVec3>();
+			var grid = Tools.GetGrid(zombie.Map);
+			var possibleTrackingMoves = new List<IntVec3>();
+			var currentTicks = Tools.Ticks();
 			for (int i = 0; i < 8; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCells[i];
-				if (HasValidDestination(pos))
-					possibleMoves.Add(pos);
+				if (currentTicks - grid.Get(pos, false).timestamp < Constants.PHEROMONE_FADEOFF && zombie.HasValidDestination(pos))
+					possibleTrackingMoves.Add(pos);
 			}
-			if (possibleMoves.Count > 0)
+			if (possibleTrackingMoves.Count > 0)
 			{
-				possibleMoves.Sort((p1, p2) => SortByTimestamp(p1, p2));
-				possibleMoves = possibleMoves.Take(3).ToList();
-				possibleMoves = possibleMoves.OrderBy(p => Main.phGrid.Get(p, false).zombieCount).ToList();
-				for (int i = 0; i < possibleMoves.Count(); i++)
-				{
-					var nextMove = possibleMoves[i];
-					var cell = Main.phGrid.Get(nextMove, false);
-					if (Tools.Ticks() - cell.timestamp < Main.pheromoneFadeoff)
-					{
-						destination = nextMove.ToIntVec2;
-						if (zombie.state == ZombieState.Wandering)
-						{
-							var baseTimestamp = cell.timestamp;
-							Tools.GetCircle(1.5f).Do(vec =>
-							{
-								var pos = basePos + vec;
-								var timestamp = baseTimestamp - (int)pos.DistanceToSquared(destination.ToIntVec3);
-								Main.phGrid.Set(pos, destination, timestamp);
-							});
-						}
-						zombie.state = ZombieState.Tracking;
-						if (Main.USE_SOUND)
-						{
-							var info = SoundInfo.InMap(new TargetInfo(basePos, pawn.Map, false));
-							SoundDef.Named("ZombieTracking").PlayOneShot(info);
-						}
-						break;
-					}
-				}
-			}
-			if (destination.IsInvalid) zombie.state = ZombieState.Wandering;
+				possibleTrackingMoves.Sort((p1, p2) => SortByTimestamp(grid, p1, p2));
+				possibleTrackingMoves = possibleTrackingMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
+				possibleTrackingMoves = possibleTrackingMoves.OrderBy(p => grid.Get(p, false).zombieCount).ToList();
+				var nextMove = possibleTrackingMoves.First();
 
-			// during night, zombies drift towards the colonies center
-			//
-			if (destination.IsInvalid)
+				destination = nextMove;
+				if (zombie.state == ZombieState.Wandering)
+					Tools.ChainReact(grid, zombie.Map, basePos, nextMove);
+				zombie.state = ZombieState.Tracking;
+			}
+			if (destination.IsValid == false) zombie.state = ZombieState.Wandering;
+
+			if (destination.IsValid == false)
 			{
 				var hour = GenLocalDate.HourOfDay(Find.VisibleMap);
 
+				// check for day/night and dust/dawn
+				//
 				var moveTowardsCenter = false;
 				if (hour < 12) hour += 24;
-				if (hour >= 18 && hour <= 22)
-					moveTowardsCenter = Rand.RangeInclusive(hour, 22) == 22;
-				else if (hour >= 28 && hour <= 32)
-					moveTowardsCenter = Rand.RangeInclusive(28, hour) == 28;
-				else if (hour > 22 && hour < 28)
+				if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
 					moveTowardsCenter = true;
+				else if (hour >= Constants.HOUR_START_OF_DUSK && hour <= Constants.HOUR_START_OF_NIGHT)
+					moveTowardsCenter = Rand.RangeInclusive(hour, Constants.HOUR_START_OF_NIGHT) == Constants.HOUR_START_OF_NIGHT;
+				else if (hour >= Constants.HOUR_END_OF_NIGHT && hour <= Constants.HOUR_START_OF_DAWN)
+					moveTowardsCenter = Rand.RangeInclusive(Constants.HOUR_END_OF_NIGHT, hour) == Constants.HOUR_END_OF_NIGHT;
 
-				if (moveTowardsCenter)
+				var possibleMoves = new List<IntVec3>();
+				for (int i = 0; i < 8; i++)
 				{
-					int dx = TickManager.centerOfInterest.x - zombie.Position.x;
-					int dz = TickManager.centerOfInterest.z - zombie.Position.z;
-					destination = zombie.Position.ToIntVec2;
-					if (Math.Abs(dx) > Math.Abs(dz))
-						destination.x += Math.Sign(dx);
-					else
-						destination.z += Math.Sign(dz);
-
-					if (HasValidDestination(destination.ToIntVec3) == false)
-						destination = IntVec2.Invalid;
+					var pos = basePos + GenAdj.AdjacentCells[i];
+					if (zombie.HasValidDestination(pos))
+						possibleMoves.Add(pos);
 				}
-			}
-
-			// still no valid destination? go random adjected cell
-			//
-			if (destination.IsInvalid)
-			{
-				var maxDanger = PawnUtility.ResolveMaxDanger(zombie, Danger.Deadly);
-				destination = RCellFinder.RandomWanderDestFor(zombie, zombie.Position, 2f, (Pawn thePawn, IntVec3 thePos) => HasValidDestination(thePos), maxDanger).ToIntVec2;
+				if (possibleMoves.Count > 0)
+				{
+					// during night, zombies drift towards the colonies center
+					//
+					if (moveTowardsCenter)
+					{
+						possibleMoves.Sort((p1, p2) => SortByDirection(p1, p2));
+						possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
+						possibleMoves = possibleMoves.OrderBy(p => grid.Get(p, false).zombieCount).ToList();
+						destination = possibleMoves.First();
+					}
+					else
+					{
+						// otherwise they sometimes stand or walk towards a random direction
+						//
+						if (Rand.Chance(Constants.STANDING_STILL_CHANCE))
+						{
+							var n = possibleMoves.Count();
+							destination = possibleMoves[Constants.random.Next(n)];
+						}
+					}
+				}
 			}
 
 			// if we have a valid destination, go there
 			//
 			if (destination.IsValid)
 			{
-				zombie.pather.StartPath(destination.ToIntVec3, PathEndMode.OnCell);
-				Main.phGrid.ChangeZombieCount(destination.ToIntVec3, 1);
+				MoveToCell(destination);
+				Tools.GetGrid(zombie.Map).ChangeZombieCount(destination, 1);
 			}
+		}
+
+		void MoveToCell(LocalTargetInfo dest)
+		{
+			var zombie = (Zombie)pawn;
+			zombie.pather.StartPath(dest, PathEndMode.OnCell);
+
+			/*
+			if (dest.HasThing && dest.ThingDestroyed) return;
+			if (zombie.pather.Destination == dest) return;
+
+			Traverse.Create(zombie.pather).Field("destination").SetValue(dest);
+			zombie.pather.nextCell = zombie.Position;
+
+			if (zombie.pather.curPath != null)
+				zombie.pather.curPath.ReleaseToPool();
+			zombie.pather.curPath = null;
+			*/
 		}
 
 		public override void Notify_PatherArrived()
 		{
 			base.Notify_PatherArrived();
-			destination = IntVec2.Invalid;
+			destination = IntVec3.Invalid;
 		}
 
 		static int[] adjIndex = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
 		static int prevIndex = 0;
 		Thing CanAttack()
 		{
-			var nextIndex = random.Next(8);
+			var nextIndex = Constants.random.Next(8);
 			var c = adjIndex[prevIndex];
 			adjIndex[prevIndex] = adjIndex[nextIndex];
 			adjIndex[nextIndex] = c;
@@ -212,7 +222,7 @@ namespace ZombieLand
 			{
 				var pos = basePos + GenAdj.AdjacentCells[adjIndex[i]];
 				var p = grid.ThingAt<Pawn>(pos);
-				if (p != null && p.GetType() != Zombie.type && p.Dead == false && p.Downed == false)
+				if (p != null && !(p is Zombie) && p.Dead == false && p.Downed == false)
 					return p;
 			}
 			for (int i = 0; i < 8; i++)
@@ -223,12 +233,6 @@ namespace ZombieLand
 					return p;
 			}
 			return null;
-		}
-
-		bool HasValidDestination(IntVec3 dest)
-		{
-			if (dest.IsValid == false) return false;
-			return pawn.Map.reachability.CanReach(pawn.Position, dest, PathEndMode.OnCell, TraverseParms.For(TraverseMode.PassDoors));
 		}
 
 		public override string GetReport()

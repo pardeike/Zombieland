@@ -18,20 +18,24 @@ namespace ZombieLand
 			return cell =>
 			{
 				var count = 0;
-				Tools.GetCircle(spawnRadius).Do(vec =>
-				{
-					if (cellValidator(cell + vec)) count++;
-				});
-				return count >= 6;
+				var minCount = Constants.MIN_ZOMBIE_SPAWN_CELL_COUNT;
+				var vecs = Tools.GetCircle(spawnRadius).ToList();
+				foreach (var vec in vecs)
+					if (cellValidator(cell + vec))
+					{
+						if (++count >= minCount)
+							break;
+					}
+				return count >= minCount;
 			};
 		}
 
 		public override bool TryExecute(IncidentParms parms)
 		{
 			var map = (Map)parms.target;
-			var zombieCount = 40;
-			if (GenDate.DaysPassed < 7)
-				zombieCount = 20;
+			var zombieCount = Constants.NUMBER_OF_ZOMBIES_IN_INCIDENT;
+			if (GenDate.DaysPassed <= 3)
+				zombieCount /= 2;
 
 			var validator = SpotValidator(map);
 			RCellFinder.TryFindRandomSpotJustOutsideColony(TickManager.centerOfInterest, map, null, out IntVec3 spot, validator);

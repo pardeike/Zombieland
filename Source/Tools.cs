@@ -1,9 +1,14 @@
-﻿using RimWorld;
+﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace ZombieLand
 {
@@ -37,11 +42,45 @@ namespace ZombieLand
 		}
 	}
 
-	class Tools
+	static class Tools
 	{
 		public static long Ticks()
 		{
 			return 1000L * GenTicks.TicksAbs;
+		}
+
+		static Dictionary<int, PheromoneGrid> gridCache = new Dictionary<int, PheromoneGrid>();
+		public static PheromoneGrid GetGrid(Map map)
+		{
+			if (gridCache.TryGetValue(map.uniqueID, out PheromoneGrid grid))
+				return grid;
+
+			var comps = map.components;
+			for (int i = 0; i < comps.Count; i++)
+			{
+				grid = comps[i] as PheromoneGrid;
+				if (grid != null)
+				{
+					gridCache[map.uniqueID] = grid;
+					return grid;
+				}
+			}
+			grid = new PheromoneGrid(map);
+			map.components.Add(grid);
+			gridCache[map.uniqueID] = grid;
+			return grid;
+		}
+
+		public static T Boxed<T>(T val, T min, T max) where T : IComparable
+		{
+			if (val.CompareTo(min) < 0) return min;
+			if (val.CompareTo(max) > 0) return max;
+			return val;
+		}
+
+		public static float RadiusForPawn(Pawn pawn)
+		{
+			return pawn.RaceProps.Animal ? Constants.ANIMAL_PHEROMONE_RADIUS : Constants.HUMAN_PHEROMONE_RADIUS;
 		}
 
 		public static bool IsValidSpawnLocation(TargetInfo target)
@@ -53,9 +92,17 @@ namespace ZombieLand
 		{
 			if (GenGrid.Walkable(cell, map) == false) return false;
 			var terrain = map.terrainGrid.TerrainAt(cell);
-			if (terrain != TerrainDefOf.Soil && terrain != TerrainDefOf.Sand) return false;
+			if (terrain != TerrainDefOf.Soil && terrain != TerrainDefOf.Sand && terrain != TerrainDefOf.Gravel) return false;
 			// if (cell.SupportsStructureType(map, TerrainAffordance.Diggable) == false) return false;
 			return true;
+		}
+
+		public static bool HasValidDestination(this Pawn pawn, IntVec3 dest)
+		{
+			if (dest.InBounds(pawn.Map) == false) return false;
+			if (dest.GetEdifice(pawn.Map) is Building_Door) return false;
+			return (pawn.Map.pathGrid.WalkableFast(dest));
+			//return pawn.Map.reachability.CanReach(pawn.Position, dest, PathEndMode.OnCell, TraverseParms.For(TraverseMode.PassDoors));
 		}
 
 		public static Predicate<IntVec3> ZombieSpawnLocator(Map map)
@@ -63,9 +110,30 @@ namespace ZombieLand
 			return cell => IsValidSpawnLocation(cell, map);
 		}
 
+		public static void ChainReact(PheromoneGrid grid, Map map, IntVec3 basePos, IntVec3 nextMove)
+		{
+			var baseTimestamp = grid.Get(nextMove, false).timestamp;
+			for (int i = 0; i < 9; i++)
+			{
+				var pos = basePos + GenAdj.AdjacentCellsAndInside[i];
+				if (pos.x != nextMove.x || pos.z != nextMove.z)
+				{
+					var distance = Math.Abs(nextMove.x - pos.x) + Math.Abs(nextMove.z - pos.z);
+					var timestamp = baseTimestamp - distance * Constants.ZOMBIE_CLOGGING_FACTOR * 2;
+					grid.Set(pos, nextMove.ToIntVec2, timestamp);
+				}
+			}
+
+			if (Constants.USE_SOUND)
+			{
+				var info = SoundInfo.InMap(new TargetInfo(basePos, map, false));
+				SoundDef.Named("ZombieTracking").PlayOneShot(info);
+			}
+		}
+
 		public static int ColonyPoints()
 		{
-			if (Main.DEBUG_COLONY_POINTS > 0) return Main.DEBUG_COLONY_POINTS;
+			if (Constants.DEBUG_COLONY_POINTS > 0) return Constants.DEBUG_COLONY_POINTS;
 
 			IEnumerable<Pawn> colonists = Find.VisibleMap.mapPawns.FreeColonists;
 			ColonyEvaluation.GetColonistArmouryPoints(colonists, null, out float colonistPoints, out float armouryPoints);
@@ -119,6 +187,88 @@ namespace ZombieLand
 				circles[radius] = cells;
 			}
 			return cells;
+		}
+
+		public static List<CodeInstruction> NotZombieInstructions(ILGenerator generator, MethodBase method)
+		{
+			var skipReplacement = generator.DefineLabel();
+			return new List<CodeInstruction>
+			{
+				new CodeInstruction(OpCodes.Ldarg_0),
+				new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(method.DeclaringType, "pawn")),
+				new CodeInstruction(OpCodes.Isinst, typeof(Zombie)),
+				new CodeInstruction(OpCodes.Brfalse, skipReplacement),
+			};
+		}
+
+		public delegate IEnumerable<CodeInstruction> MyTranspiler(ILGenerator generator, IEnumerable<CodeInstruction> instructions);
+		public static MyTranspiler GenerateReplacementCallTranspiler(List<CodeInstruction> condition, MethodBase method, MethodInfo replacement = null)
+		{
+			return (ILGenerator generator, IEnumerable<CodeInstruction> instr) =>
+			{
+				var labels = new List<Label>();
+				foreach (var cond in condition)
+				{
+					if (cond.operand is Label)
+						labels.Add((Label)cond.operand);
+				}
+
+				var instructions = new List<CodeInstruction>();
+				instructions.AddRange(condition);
+
+				if (replacement != null)
+				{
+					var parameterNames = method.GetParameters().Select(info => info.Name).ToList();
+					replacement.GetParameters().Do(info =>
+					{
+						var name = info.Name;
+						var ptype = info.ParameterType;
+
+						if (name == "__instance")
+							instructions.Add(new CodeInstruction(OpCodes.Ldarg_0)); // instance
+						else
+						{
+							var index = parameterNames.IndexOf(name);
+							if (index >= 0)
+								instructions.Add(new CodeInstruction(OpCodes.Ldarg, index + 1)); // parameters
+							else
+							{
+								var field = name.Substring(2, name.Length - 4);
+								var fInfo = AccessTools.Field(method.DeclaringType, name);
+								instructions.Add(new CodeInstruction(OpCodes.Ldarg_0));
+								instructions.Add(new CodeInstruction(OpCodes.Ldflda, fInfo)); // extra fields
+							}
+						}
+					});
+				}
+
+				if (replacement != null)
+					instructions.Add(new CodeInstruction(OpCodes.Call, replacement));
+				instructions.Add(new CodeInstruction(OpCodes.Ret));
+
+				instructions.Add(new CodeInstruction(OpCodes.Nop) { labels = labels });
+				instructions.AddRange(instr);
+
+				return instructions.AsEnumerable();
+			};
+
+			/*
+			 (A)
+			 L_0000: ldarg.0 
+			 L_0001: ldfld class ZombieLand.FOO ZombieLand.AAA::pawn
+			 L_0006: isinst ZombieLand.ZZZ
+			 L_000b: brfalse.s L_001a
+			 (B)
+			 L_000d: ldarg.0 
+			 L_000e: ldarg.0 
+			 L_000f: ldflda class ZombieLand.FOO ZombieLand.AAA::pawn
+			 L_0014: call void ZombieLand.AAAPatch::TestPatched(class ZombieLand.AAA, class ZombieLand.FOO&)
+			 L_0019: ret
+			 (C)
+			 L_001f: nop
+			 (D)
+			 .......
+			*/
 		}
 	}
 }

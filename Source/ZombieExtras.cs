@@ -2,76 +2,68 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using Verse;
 using Verse.AI;
 
 namespace ZombieLand
 {
 	public class PawnKindDef_Zombie : PawnKindDef { }
-	public class ThingDef_Zombie : ThingDef
+	public class ThingDef_Zombie : ThingDef { }
+
+	/*
+	[HarmonyPatch(typeof(Pawn_PathFollower))]
+	[HarmonyPatch("StartPath")]
+	public class Pawn_PathFollower_StartPath_Patch
 	{
-		public static Type type = typeof(ThingDef_Zombie);
-	}
-
-	//
-
-	public class ZombieCorpse : Corpse
-	{
-		public int vanishAfter;
-		public static Type type = typeof(ZombieCorpse);
-
-		public override void SpawnSetup(Map map)
+		static void StartPath(LocalTargetInfo dest, PathEndMode peMode,
+			ref LocalTargetInfo destination, ref Pawn pawn, ref PawnPath curPath, ref Boolean moving)
 		{
-			base.SpawnSetup(map);
-			InnerPawn.Rotation = Rot4.Random;
-			vanishAfter = Age + GenTicks.SecondsToTicks(60);
-			ForbidUtility.SetForbidden(this, false, false);
+			if (dest.HasThing && dest.ThingDestroyed) return;
+			if (destination == dest) return;
 
-			GetComps<CompRottable>()
-				.Select(comp => comp.props)
-				.OfType<CompProperties_Rottable>()
-				.Cast<CompProperties_Rottable>()
-				.Do(rotcomp =>
-				{
-					rotcomp.daysToRotStart = 1f * GenTicks.SecondsToTicks(10) / 60000f;
-					rotcomp.daysToDessicated = 1f * GenTicks.SecondsToTicks(30) / 60000f;
-				});
+			peMode = PathEndMode.OnCell;
+			destination = dest;
+
+			if (!dest.HasThing && (pawn.Map.pawnDestinationManager.DestinationReservedFor(pawn) != dest.Cell))
+				pawn.Map.pawnDestinationManager.UnreserveAllFor(pawn);
+
+			if (curPath != null)
+				curPath.ReleaseToPool();
+			curPath = null;
+			moving = true;
 		}
 
-		public override void DrawExtraSelectionOverlays()
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 		{
-		}
-
-		public override void DrawGUIOverlay()
-		{
-		}
-
-		public override void ExposeData()
-		{
-			base.ExposeData();
-			Scribe_Values.LookValue(ref vanishAfter, "vanishAfter");
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var replacement = AccessTools.Method(MethodBase.GetCurrentMethod().DeclaringType, method.Name);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method, replacement);
+			return transpiler(generator, instructions);
 		}
 	}
 
-	//
-
-	public class Zombie_DrawTracker : Pawn_DrawTracker
+	[HarmonyPatch(typeof(Pawn_PathFollower))]
+	[HarmonyPatch("PatherTick")]
+	public class Pawn_PathFollower_PatherTick_Patch
 	{
-		public Zombie_DrawTracker(Pawn zombie) : base(zombie) { }
-
-		public new void DrawTrackerTick() { }
-	}
-
-	public class Zombie_PathFollower : Pawn_PathFollower
-	{
-		static readonly Traverse destination = Traverse.Create(typeof(Pawn_PathFollower)).Field("destination");
 		static readonly Traverse costToMoveIntoCell = Traverse.Create(typeof(Pawn_PathFollower)).Method("CostToMoveIntoCell");
 
-		public Zombie_PathFollower(Pawn zombie) : base(zombie) { }
-
-		public new void PatherTick()
+		static void PatherTick(ref Pawn pawn, ref float nextCellCostLeft, ref float nextCellCostTotal, ref IntVec3 nextCell,
+			ref LocalTargetInfo destination, ref PawnPath curPath, ref int lastMovedTick, ref IntVec3 lastPathedTargetPosition)
 		{
+			if (curPath == null)
+			{
+				lastPathedTargetPosition = destination.Cell;
+				// curPath = pawn.Map.pathFinder.FindPath(pawn.Position, destination, pawn, PathEndMode.OnCell);
+				curPath = new PawnPath();
+				curPath.AddNode(pawn.Position);
+				curPath.AddNode(destination.Cell);
+				curPath.SetupFound((float)1f);
+			}
+
+			lastMovedTick = Find.TickManager.TicksGame;
 			if (nextCellCostLeft > 0f)
 			{
 				nextCellCostLeft -= nextCellCostTotal / 450f;
@@ -92,18 +84,18 @@ namespace ZombieLand
 				if (pawn.BodySize > 0.9f)
 					pawn.Map.snowGrid.AddDepth(pawn.Position, -0.001f);
 
-				if (pawn.Position == destination.GetValue<LocalTargetInfo>().Cell)
+				if (pawn.Position == destination.Cell)
 				{
 					pawn.jobs.curDriver.Notify_PatherArrived();
+					return;
 				}
-				else
+
+				if (curPath.NodesLeftCount == 1)
 				{
-					if (curPath.NodesLeftCount == 0)
-					{
-						pawn.jobs.curDriver.Notify_PatherArrived();
-						return;
-					}
+					pawn.jobs.curDriver.Notify_PatherArrived();
+					return;
 				}
+
 				nextCell = curPath.ConsumeNextNode();
 
 				var num = (float)costToMoveIntoCell.GetValue<int>();
@@ -111,204 +103,316 @@ namespace ZombieLand
 				nextCellCostLeft = num;
 			}
 		}
+
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var replacement = AccessTools.Method(MethodBase.GetCurrentMethod().DeclaringType, method.Name);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method, replacement);
+			return transpiler(generator, instructions);
+		}
 	}
 
-	public class Zombie_StanceTracker : Pawn_StanceTracker
+	[HarmonyPatch(typeof(Pawn_DrawTracker))]
+	[HarmonyPatch("DrawTrackerTick")]
+	public class Pawn_DrawTracker_DrawTrackerTick_Patch
 	{
-		public Zombie_StanceTracker(Pawn zombie) : base(zombie) { }
+		public void DrawTrackerTick(Pawn pawn, JitterHandler jitterer, PawnRotator rotator, PawnRenderer renderer)
+		{
+			if (pawn.Spawned && ((Current.ProgramState != ProgramState.Playing) || Find.CameraDriver.CurrentViewRect.ExpandedBy(3).Contains(pawn.Position)))
+			{
+				jitterer.JitterHandlerTick();
+				rotator.PawnRotatorTick();
+				renderer.RendererTick();
+			}
+		}
 
-		public new void StanceTrackerTick() { }
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var replacement = AccessTools.Method(MethodBase.GetCurrentMethod().DeclaringType, method.Name);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
 	}
 
-	public class Zombie_MindState : Pawn_MindState
+	[HarmonyPatch(typeof(Pawn_StanceTracker))]
+	[HarmonyPatch("StanceTrackerTick")]
+	public class Pawn_StanceTracker_StanceTrackerTick_Patch
 	{
-		public Zombie_MindState(Pawn zombie) : base(zombie) { }
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
+	}
+	*/
 
-		public new void MindStateTick() { }
+	/*[HarmonyPatch(typeof(Pawn_MindState))]
+	[HarmonyPatch("MindStateTick")]
+	public class Pawn_MindState_MindStateTick_Patch
+	{
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
+	}*/
+
+	[HarmonyPatch(typeof(Pawn_CarryTracker))]
+	[HarmonyPatch("CarryHandsTick")]
+	public class Pawn_CarryTracker_CarryHandsTick_Patch
+	{
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
 	}
 
-	public class Zombie_VerbTracker : VerbTracker
+	[HarmonyPatch(typeof(Pawn_EquipmentTracker))]
+	[HarmonyPatch("EquipmentTrackerTick")]
+	public class Pawn_EquipmentTracker_EquipmentTrackerTick_Patch
 	{
-		public Zombie_VerbTracker(Pawn zombie) : base(zombie) { }
-
-		public new void VerbsTick() { }
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
 	}
 
-	public class Zombie_CarryTracker : Pawn_CarryTracker
+	[HarmonyPatch(typeof(Pawn_SkillTracker))]
+	[HarmonyPatch("SkillsTick")]
+	public class Pawn_SkillTracker_SkillsTick_Patch
 	{
-		public Zombie_CarryTracker(Pawn zombie) : base(zombie) { }
-
-		public new void CarryHandsTick() { }
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
 	}
 
-	public class Zombie_EquipmentTracker : Pawn_EquipmentTracker
+	[HarmonyPatch(typeof(Pawn_InventoryTracker))]
+	[HarmonyPatch("InventoryTrackerTick")]
+	public class Pawn_InventoryTracker_InventoryTrackerTick_Patch
 	{
-		public Zombie_EquipmentTracker(Pawn zombie) : base(zombie) { }
-
-		public new void EquipmentTrackerTick() { }
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
 	}
 
-	public class Zombie_SkillTracker : Pawn_SkillTracker
+	[HarmonyPatch(typeof(Pawn_AgeTracker))]
+	[HarmonyPatch("AgeTick")]
+	public class Pawn_AgeTracker_AgeTick_Patch
 	{
-		public Zombie_SkillTracker(Pawn zombie) : base(zombie) { }
-
-		public new void SkillsTick() { }
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
 	}
 
-	public class Zombie_InventoryTracker : Pawn_InventoryTracker
+	[HarmonyPatch(typeof(Pawn_NeedsTracker))]
+	[HarmonyPatch("AllNeeds", PropertyMethod.Getter)]
+	public class Pawn_NeedsTracker_AllNeeds_Patch
 	{
-		public Zombie_InventoryTracker(Pawn zombie) : base(zombie) { }
-
-		public new void InventoryTrackerTick() { }
-	}
-
-	public class Zombie_DraftController : Pawn_DraftController
-	{
-		public Zombie_DraftController(Pawn zombie) : base(zombie) { }
-
-		public new void DraftControllerTick() { }
-	}
-
-	public class Zombie_AgeTracker : Pawn_AgeTracker
-	{
-		public Zombie_AgeTracker(Pawn zombie) : base(zombie) { }
-
-		public new void AgeTick() { }
-	}
-
-	public class Zombie_NeedsTracker : Pawn_NeedsTracker
-	{
-		public Zombie_NeedsTracker(Pawn zombie) : base(zombie) { }
-
-		public new void AddOrRemoveNeedsAsAppropriate() { }
-		public new void NeedsTrackerTick() { }
-		public new List<Need> AllNeeds
+		static List<Need> AllNeeds
 		{
 			get
 			{
 				return new List<Need>();
 			}
 		}
-		public new T TryGetNeed<T>() where T : Need { return null; }
-		public new Need TryGetNeed(NeedDef def) { return null; }
-	}
 
-	public class Zombie_InteractionsTracker : Pawn_InteractionsTracker
-	{
-		public Zombie_InteractionsTracker(Pawn zombie) : base(zombie) { }
-
-		public new bool TryInteractWith(Pawn recipient, InteractionDef intDef) { return false; }
-		public new void StartSocialFight(Pawn otherPawn) { }
-		public new float SocialFightChance(InteractionDef interaction, Pawn initiator) { return 0f; }
-		public new void InteractionsTrackerTick() { }
-		public new bool InteractedTooRecentlyToInteract() { return true; }
-		public new bool CheckSocialFightStart(InteractionDef interaction, Pawn initiator) { return false; }
-	}
-
-	public class Zombie_RelationsTracker : Pawn_RelationsTracker
-	{
-		public Zombie_RelationsTracker(Pawn zombie) : base(zombie) { }
-
-		public new float CompatibilityWith(Pawn otherPawn) { return 0f; }
-		public new float ConstantPerPawnsPairCompatibilityOffset(int otherPawnID) { return 0f; }
-		public new bool DirectRelationExists(PawnRelationDef def, Pawn otherPawn) { return false; }
-		public new DirectPawnRelation GetDirectRelation(PawnRelationDef def, Pawn otherPawn) { return null; }
-		public new Pawn GetFirstDirectRelationPawn(PawnRelationDef def, Predicate<Pawn> predicate) { return null; }
-		public new float GetFriendDiedThoughtPowerFactor(int opinion) { return 0f; }
-		public new float GetRivalDiedThoughtPowerFactor(int opinion) { return 0f; }
-		public new void Notify_PawnKidnapped() { }
-		internal void Notify_PawnKilled(DamageInfo? dinfo, Map mapBeforeDeath) { }
-		public new void Notify_PawnSold(Pawn playerNegotiator) { }
-		public new void Notify_RescuedBy(Pawn rescuer) { }
-		public new string OpinionExplanation(Pawn other) { return String.Empty; }
-		public new int OpinionOf(Pawn other) { return 0; }
-		public new void RemoveDirectRelation(DirectPawnRelation relation) { }
-		public new void RemoveDirectRelation(PawnRelationDef def, Pawn otherPawn) { }
-		public new float SecondaryRomanceChanceFactor(Pawn otherPawn) { return 0f; }
-		public new void SocialTrackerTick() { }
-		public new bool TryRemoveDirectRelation(PawnRelationDef def, Pawn otherPawn) { return false; }
-		public new bool RelatedToAnyoneOrAnyoneRelatedToMe
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 		{
-			get
-			{
-				return false;
-			}
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var replacement = AccessTools.Method(MethodBase.GetCurrentMethod().DeclaringType, method.Name);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method, replacement);
+			return transpiler(generator, instructions);
 		}
 	}
 
-	public class Zombie_FilthTracker : Pawn_FilthTracker
+	[HarmonyPatch(typeof(Pawn_NeedsTracker))]
+	[HarmonyPatch("NeedsTrackerTick")]
+	public class Pawn_NeedsTracker_NeedsTrackerTick_Patch
 	{
-		public Zombie_FilthTracker(Pawn zombie) : base(zombie) { }
-
-		public new void GainFilth(ThingDef filthDef) { }
-		public new void GainFilth(ThingDef filthDef, IEnumerable<string> sources) { }
-		public new void Notify_EnteredNewCell() { }
-	}
-
-	public class Zombie_ApparelTracker : Pawn_ApparelTracker
-	{
-		public Zombie_ApparelTracker(Pawn pawn) : base(pawn) { }
-
-		public new void ApparelTrackerTick() { }
-		public new void ApparelTrackerTickRare() { }
-		public new void Notify_LostBodyPart() { }
-		public new void Notify_PawnKilled(DamageInfo? dinfo) { }
-	}
-
-	public class Zombie_CallTracker : Pawn_CallTracker
-	{
-		public Zombie_CallTracker(Pawn pawn) : base(pawn) { }
-
-		public new void CallTrackerTick() { }
-		public new void DoCall() { }
-		public new void Notify_DidMeleeAttack() { }
-		public new void Notify_InAggroMentalState() { }
-		public new void Notify_Released() { }
-	}
-
-	public class Zombie_ImmunityHandler : ImmunityHandler
-	{
-		public Zombie_ImmunityHandler(Pawn pawn) : base(pawn) { }
-
-		public new float DiseaseContractChanceFactor(HediffDef diseaseDef, BodyPartRecord part) { return 0f; }
-		internal void ImmunityHandlerTick() { }
-		public new bool ImmunityRecordExists(HediffDef def) { return true; }
-	}
-
-	public class Zombie_HealthTracker : Pawn_HealthTracker
-	{
-		public Zombie_HealthTracker(Pawn pawn) : base(pawn)
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 		{
-			immunity = new Zombie_ImmunityHandler(pawn);
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
 		}
-
-		protected new void TryDropBloodFilth() { }
-		public new bool HasHediffsNeedingTend(bool forAlert) { return false; }
-		public new bool HasHediffsNeedingTendByColony(bool forAlert) { return false; }
-		public new void DropBloodFilth() { }
 	}
 
-
-	public class Zombie_GuestTracker : Pawn_GuestTracker
+	[HarmonyPatch(typeof(Pawn_NeedsTracker))]
+	[HarmonyPatch("AddOrRemoveNeedsAsAppropriate")]
+	public class Pawn_NeedsTracker_AddOrRemoveNeedsAsAppropriate_Patch
 	{
-		public Zombie_GuestTracker(Pawn pawn) : base(pawn) { }
-
-		public new void GuestTrackerTick() { }
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
 	}
 
-	public class Zombie_RecordsTracker : Pawn_RecordsTracker
+	[HarmonyPatch(typeof(Pawn_InteractionsTracker))]
+	[HarmonyPatch("InteractionsTrackerTick")]
+	public class Pawn_InteractionsTracker_InteractionsTrackerTick_Patch
 	{
-		public Zombie_RecordsTracker(Pawn pawn) : base(pawn) { }
+		// public new bool TryInteractWith(Pawn recipient, InteractionDef intDef) { return false; }
+		// public new void StartSocialFight(Pawn otherPawn) { }
+		// public new float SocialFightChance(InteractionDef interaction, Pawn initiator) { return 0f; }
+		// public new bool InteractedTooRecentlyToInteract() { return true; }
+		// public new bool CheckSocialFightStart(InteractionDef interaction, Pawn initiator) { return false; }
 
-		public new void RecordsTick() { }
-		public new void AddTo(RecordDef def, float value) { }
-		public new void Increment(RecordDef def) { }
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
 	}
 
-	public class Zombie_NativeVerbs : Pawn_NativeVerbs
+	[HarmonyPatch(typeof(Pawn_RelationsTracker))]
+	[HarmonyPatch("SocialTrackerTick")]
+	public class Pawn_RelationsTracker_SocialTrackerTick_Patch
 	{
-		public Zombie_NativeVerbs(Pawn pawn) : base(pawn) { }
+		//public new float CompatibilityWith(Pawn otherPawn) { return 0f; }
+		//public new float ConstantPerPawnsPairCompatibilityOffset(int otherPawnID) { return 0f; }
+		//public new bool DirectRelationExists(PawnRelationDef def, Pawn otherPawn) { return false; }
+		//public new DirectPawnRelation GetDirectRelation(PawnRelationDef def, Pawn otherPawn) { return null; }
+		//public new Pawn GetFirstDirectRelationPawn(PawnRelationDef def, Predicate<Pawn> predicate) { return null; }
+		//public new float GetFriendDiedThoughtPowerFactor(int opinion) { return 0f; }
+		//public new float GetRivalDiedThoughtPowerFactor(int opinion) { return 0f; }
+		//public new void Notify_PawnKidnapped() { }
+		//internal void Notify_PawnKilled(DamageInfo? dinfo, Map mapBeforeDeath) { }
+		//public new void Notify_PawnSold(Pawn playerNegotiator) { }
+		//public new void Notify_RescuedBy(Pawn rescuer) { }
+		//public new string OpinionExplanation(Pawn other) { return String.Empty; }
+		//public new int OpinionOf(Pawn other) { return 0; }
+		//public new void RemoveDirectRelation(DirectPawnRelation relation) { }
+		//public new void RemoveDirectRelation(PawnRelationDef def, Pawn otherPawn) { }
+		//public new float SecondaryRomanceChanceFactor(Pawn otherPawn) { return 0f; }
+		//public new bool TryRemoveDirectRelation(PawnRelationDef def, Pawn otherPawn) { return false; }
+		//public new bool RelatedToAnyoneOrAnyoneRelatedToMe
+		//{
+		//	get
+		//	{
+		//		return false;
+		//	}
+		//}
 
-		public new void NativeVerbsTick() { }
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
 	}
+
+	[HarmonyPatch(typeof(Pawn_ApparelTracker))]
+	[HarmonyPatch("ApparelTrackerTick")]
+	public class Pawn_ApparelTracker_ApparelTrackerTick_Patch
+	{
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
+	}
+
+	[HarmonyPatch(typeof(Pawn_CallTracker))]
+	[HarmonyPatch("CallTrackerTick")]
+	public class Pawn_CallTracker_CallTrackerTick_Patch
+	{
+		// public new void DoCall() { }
+		// public new void Notify_DidMeleeAttack() { }
+		// public new void Notify_InAggroMentalState() { }
+		// public new void Notify_Released() { }
+
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
+	}
+
+	[HarmonyPatch(typeof(Pawn_HealthTracker))]
+	[HarmonyPatch("HealthTick")]
+	public class Pawn_HealthTracker_HealthTick_Patch
+	{
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
+	}
+
+	[HarmonyPatch(typeof(ImmunityHandler))]
+	[HarmonyPatch("ImmunityHandlerTick")]
+	public class ImmunityHandler_ImmunityHandlerTick_Patch
+	{
+		// public new float DiseaseContractChanceFactor(HediffDef diseaseDef, BodyPartRecord part) { return 0f; }
+		// public new bool ImmunityRecordExists(HediffDef def) { return true; }
+
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
+	}
+
+	[HarmonyPatch(typeof(Pawn_GuestTracker))]
+	[HarmonyPatch("GuestTrackerTick")]
+	public class Pawn_GuestTracker_GuestTrackerTick_Patch
+	{
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
+	}
+
+	[HarmonyPatch(typeof(Pawn_RecordsTracker))]
+	[HarmonyPatch("RecordsTick")]
+	public class Pawn_RecordsTracker_RecordsTick_Patch
+	{
+		// public new void AddTo(RecordDef def, float value) { }
+		// public new void Increment(RecordDef def) { }
+
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
+	}
+
+	/*[HarmonyPatch(typeof(Pawn_NativeVerbs))]
+	[HarmonyPatch("NativeVerbsTick")]
+	public class Pawn_NativeVerbs_NativeVerbsTick_Patch
+	{
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
+	}*/
 }

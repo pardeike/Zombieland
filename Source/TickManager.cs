@@ -30,31 +30,35 @@ namespace ZombieLand
 
 		public static void ZombieTicking(float currentMultiplier)
 		{
-			var maxTickTime = (1f / 30f) / currentMultiplier * Stopwatch.Frequency;
-			var timer = new Stopwatch();
-			timer.Start();
+			//var maxTickTime = (1f / 30f) / currentMultiplier * Stopwatch.Frequency;
+			//var timer = new Stopwatch();
+			//timer.Start();
 
 			var zombies = allZombies.ToList();
-			zombies.Sort(
+			var aZombie = zombies.FirstOrDefault();
+			if (aZombie == null) return;
+
+			var grid = Tools.GetGrid(aZombie.Map);
+			/*zombies.Sort(
 				delegate (Zombie z1, Zombie z2)
 				{
-					var v1 = Main.phGrid.Get(z1.Position).timestamp;
-					var v2 = Main.phGrid.Get(z2.Position).timestamp;
+					var v1 = grid.Get(z1.Position).timestamp;
+					var v2 = grid.Get(z2.Position).timestamp;
 					var order = v2.CompareTo(v1);
 					if (order != 0) return order;
 					var d1 = z1.Position.DistanceToSquared(centerOfInterest);
 					var d2 = z2.Position.DistanceToSquared(centerOfInterest);
 					return d1.CompareTo(d2);
 				}
-			);
+			);*/
 			var counter = 0;
 			foreach (var zombie in zombies)
 			{
-				if (timer.ElapsedTicks > maxTickTime) break;
+				//if (timer.ElapsedTicks > maxTickTime) break;
 				zombie.Tick();
 				counter++;
 			}
-			timer.Stop();
+			//timer.Stop();
 		}
 
 		public static void UpdateCenterOfInterest()
@@ -110,9 +114,9 @@ namespace ZombieLand
 
 		public static void Tick()
 		{
-			if (Main.SPAWN_ALL_ZOMBIES)
+			if (Constants.SPAWN_ALL_ZOMBIES)
 			{
-				Main.SPAWN_ALL_ZOMBIES = false;
+				Constants.SPAWN_ALL_ZOMBIES = false;
 				var zombieDestCount = GetMaxZombieCount();
 				while (allZombies.Count() < zombieDestCount)
 				{

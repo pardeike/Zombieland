@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -46,47 +47,52 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AAA.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="JobDriver.cs" />
     <Compile Include="JobGiver.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="PheromoneGrid.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ColonyEvaluation.cs" />
+    <Compile Include="Rubble.cs" />
     <Compile Include="TickManager.cs" />
     <Compile Include="Tools.cs" />
     <Compile Include="Zombie.cs" />
+    <Compile Include="ZombieCorpse.cs" />
     <Compile Include="ZombieDefOf.cs" />
     <Compile Include="ZombieExtras.cs" />
     <Compile Include="ZombieGenerator.cs" />
     <Compile Include="ZombieIncidents.cs" />
+    <Compile Include="ZombieState.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\Defs\Zombie_Faction.xml">
-      <Link>Zombie_Faction.xml</Link>
+      <Link>_xml\Zombie_Faction.xml</Link>
       <SubType>Designer</SubType>
     </Content>
     <Content Include="..\Defs\Zombie_Incidents.xml">
-      <Link>Zombie_Incidents.xml</Link>
+      <Link>_xml\Zombie_Incidents.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_Jobs.xml">
-      <Link>Zombie_Jobs.xml</Link>
+      <Link>_xml\Zombie_Jobs.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_Kind.xml">
-      <Link>Zombie_Kind.xml</Link>
+      <Link>_xml\Zombie_Kind.xml</Link>
       <SubType>Designer</SubType>
     </Content>
     <Content Include="..\Defs\Zombie_Race.xml">
-      <Link>Zombie_Race.xml</Link>
+      <Link>_xml\Zombie_Race.xml</Link>
       <SubType>Designer</SubType>
     </Content>
     <Content Include="..\Defs\Zombie_Sounds.xml">
-      <Link>Zombie_Sounds.xml</Link>
+      <Link>_xml\Zombie_Sounds.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_ThingCategories.xml">
-      <Link>Zombie_ThingCategories.xml</Link>
+      <Link>_xml\Zombie_ThingCategories.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_ThinkTree.xml">
-      <Link>Zombie_ThinkTree.xml</Link>
+      <Link>_xml\Zombie_ThinkTree.xml</Link>
       <SubType>Designer</SubType>
     </Content>
   </ItemGroup>
