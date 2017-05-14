@@ -37,17 +37,16 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>D:\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\..\RimWorld1393Win_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="UnityEngine">
-      <HintPath>D:\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>..\..\..\RimWorld1393Win_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AAA.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="JobDriver.cs" />
     <Compile Include="JobGiver.cs" />
@@ -60,11 +59,10 @@
     <Compile Include="Tools.cs" />
     <Compile Include="Zombie.cs" />
     <Compile Include="ZombieCorpse.cs" />
-    <Compile Include="ZombieDefOf.cs" />
+    <Compile Include="ZombieDefs.cs" />
     <Compile Include="ZombieExtras.cs" />
     <Compile Include="ZombieGenerator.cs" />
     <Compile Include="ZombieIncidents.cs" />
-    <Compile Include="ZombieState.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\Defs\Zombie_Faction.xml">
@@ -76,6 +74,7 @@
     </Content>
     <Content Include="..\Defs\Zombie_Jobs.xml">
       <Link>_xml\Zombie_Jobs.xml</Link>
+      <SubType>Designer</SubType>
     </Content>
     <Content Include="..\Defs\Zombie_Kind.xml">
       <Link>_xml\Zombie_Kind.xml</Link>

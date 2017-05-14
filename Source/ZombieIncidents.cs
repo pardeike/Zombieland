@@ -1,6 +1,5 @@
 ﻿using RimWorld;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Verse;
 using Harmony;
@@ -10,8 +9,6 @@ namespace ZombieLand
 {
 	public class ZombiesRising : IncidentWorker
 	{
-		static int spawnRadius = 10;
-
 		public Predicate<IntVec3> SpotValidator(Map map)
 		{
 			var cellValidator = Tools.ZombieSpawnLocator(map);
@@ -19,7 +16,7 @@ namespace ZombieLand
 			{
 				var count = 0;
 				var minCount = Constants.MIN_ZOMBIE_SPAWN_CELL_COUNT;
-				var vecs = Tools.GetCircle(spawnRadius).ToList();
+				var vecs = Tools.GetCircle(Constants.SPAWN_INCIDENT_RADIUS).ToList();
 				foreach (var vec in vecs)
 					if (cellValidator(cell + vec))
 					{
@@ -38,16 +35,23 @@ namespace ZombieLand
 				zombieCount /= 2;
 
 			var validator = SpotValidator(map);
-			RCellFinder.TryFindRandomSpotJustOutsideColony(TickManager.centerOfInterest, map, null, out IntVec3 spot, validator);
+			RCellFinder.TryFindRandomSpotJustOutsideColony(map.TickManager().centerOfInterest, map, null, out IntVec3 spot, validator);
 			if (spot.IsValid == false) return false;
 
 			var cellValidator = Tools.ZombieSpawnLocator(map);
-			var spawnLocations = Tools.GetCircle(spawnRadius)
-				.Select(vec => spot + vec)
-				.Where(vec => cellValidator(vec))
-				.InRandomOrder()
-				.Take(zombieCount)
-				.Do(cell => Main.spawnQueue.Enqueue(new TargetInfo(cell, map)));
+			while (zombieCount > 0)
+			{
+				Tools.GetCircle(Constants.SPAWN_INCIDENT_RADIUS)
+					.Select(vec => spot + vec)
+					.Where(vec => cellValidator(vec))
+					.InRandomOrder()
+					.Take(zombieCount)
+					.Do(cell =>
+					{
+						Main.generator.SpawnZombieAt(map, cell);
+						zombieCount--;
+					});
+			}
 
 			var text = "ZombiesRisingNearYourBase".Translate();
 			var location = new GlobalTargetInfo(spot, map);

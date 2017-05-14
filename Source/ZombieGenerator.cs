@@ -1,24 +1,119 @@
 ﻿using Harmony;
 using RimWorld;
-using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using UnityEngine;
 using Verse;
-using Verse.AI;
 
 namespace ZombieLand
 {
-	public static class ZombieGenerator
+	public class ZombieRequest
 	{
-		static Traverse GiveShuffledBioTo = Traverse.Create(typeof(PawnBioAndNameGenerator)).Method("GiveShuffledBioTo", new Type[] { typeof(Pawn), typeof(FactionDef), typeof(string) });
+		public Map map;
+		public IntVec3 cell;
+		public Zombie zombie;
+	}
 
-		public static Backstory MinimalBackstory()
+	[StaticConstructorOnStartup]
+	public class ZombieGenerator
+	{
+		Semaphore requestsAvailable;
+
+		Queue<ZombieRequest> requestQueue;
+		Dictionary<Map, Queue<ZombieRequest>> resultQueues;
+
+		Thread workerThread;
+
+		public Queue<ZombieRequest> QueueForMap(Map map)
 		{
-			var bs = new Backstory();
-			bs.baseDesc = "Unknown";
-			bs.bodyTypeMale = BodyType.Male;
-			bs.bodyTypeFemale = BodyType.Female;
-			bs.bodyTypeGlobal = BodyType.Undefined;
-			return bs;
+			Queue<ZombieRequest> queue;
+			if (resultQueues.TryGetValue(map, out queue) == false)
+			{
+				queue = new Queue<ZombieRequest>();
+				resultQueues.Add(map, queue);
+			}
+			return queue;
+		}
+
+		public ZombieGenerator()
+		{
+			requestsAvailable = new Semaphore(0, int.MaxValue);
+
+			requestQueue = new Queue<ZombieRequest>();
+			resultQueues = new Dictionary<Map, Queue<ZombieRequest>>();
+
+			workerThread = new Thread(() =>
+			{
+				while (requestsAvailable.WaitOne())
+				{
+					ZombieRequest request;
+					lock (requestQueue)
+						request = requestQueue.Dequeue();
+					if (request != null)
+					{
+						if (request.zombie == null)
+							request.zombie = GeneratePawn(request.map);
+						lock (resultQueues)
+						{
+							var queue = QueueForMap(request.map);
+							queue.Enqueue(request);
+						}
+					}
+				}
+			});
+			workerThread.Start();
+		}
+
+		public int ZombiesQueued(Map map)
+		{
+			lock (requestQueue)
+				lock (resultQueues)
+				{
+					var queue = QueueForMap(map);
+					return requestQueue.Where(q => q.map == map).Count() + queue.Count;
+				}
+		}
+
+		public void SpawnZombieAt(Map map, IntVec3 cell)
+		{
+			lock (requestQueue)
+				requestQueue.Enqueue(new ZombieRequest() { map = map, cell = cell, zombie = null });
+			requestsAvailable.Release();
+		}
+
+		public ZombieRequest TryGetNextGeneratedZombie(Map map)
+		{
+			lock (resultQueues)
+			{
+				var queue = QueueForMap(map);
+				if (queue.Count == 0) return null;
+				return queue.Dequeue();
+			}
+		}
+
+		public void RequeueZombie(ZombieRequest request)
+		{
+			lock (resultQueues)
+			{
+				var queue = QueueForMap(request.map);
+				queue.Enqueue(request);
+			}
+		}
+
+		static Color HairColor()
+		{
+			float num3 = Rand.Value;
+			if (num3 < 0.25f)
+				return new Color(0.2f, 0.2f, 0.2f);
+
+			if (num3 < 0.5f)
+				return new Color(0.31f, 0.28f, 0.26f);
+
+			if (num3 < 0.75f)
+				return new Color(0.25f, 0.2f, 0.15f);
+
+			return new Color(0.3f, 0.2f, 0.1f);
 		}
 
 		public static Zombie GeneratePawn(Map map)
@@ -40,34 +135,45 @@ namespace ZombieLand
 			pawn.ageTracker.BirthAbsTicks = GenTicks.TicksAbs - pawn.ageTracker.AgeBiologicalTicks;
 
 			pawn.needs.SetInitialLevels();
+			pawn.needs.mood = new Need_Mood(pawn);
 
-			pawn.Name = new NameSingle("Zombie"); // PawnBioAndNameGenerator.GeneratePawnName(pawn, NameStyle.Full);
-			pawn.story.childhood = MinimalBackstory();
+			var nameGenerator = pawn.RaceProps.GetNameGenerator(pawn.gender);
+			var name = PawnNameDatabaseSolid.GetListForGender((pawn.gender == Gender.Female) ? GenderPossibility.Female : GenderPossibility.Male).RandomElement();
+			var n1 = name.First.Replace('s', 'z').Replace('S', 'Z');
+			var n2 = name.Last.Replace('s', 'z').Replace('S', 'Z');
+			var n3 = name.Nick.Replace('s', 'z').Replace('S', 'Z');
+			pawn.Name = new NameTriple(n1, n3, n2);
+
+			// faster: use MinimalBackstory()
+			pawn.story.childhood = BackstoryDatabase.allBackstories
+				.Where(kvp => kvp.Value.slot == BackstorySlot.Childhood)
+				.RandomElement().Value;
 			if (pawn.ageTracker.AgeBiologicalYearsFloat >= 20f)
-				pawn.story.adulthood = pawn.story.childhood;
-			// GiveShuffledBioTo.GetValue(pawn, factionDef, null);
-			// PawnBioAndNameGenerator.GiveAppropriateBioAndNameTo(pawn, "Z");
+				pawn.story.adulthood = BackstoryDatabase.allBackstories
+				.Where(kvp => kvp.Value.slot == BackstorySlot.Adulthood)
+				.RandomElement().Value;
 
 			pawn.story.melanin = 0.01f * Rand.Range(10, 90);
 			pawn.story.crownType = CrownType.Average;
 
-			var graphicPath = GraphicDatabaseHeadRecords.GetHeadRandom(pawn.gender, pawn.story.SkinColor, pawn.story.crownType).GraphicPath;
-			Traverse.Create(pawn.story).Field("headGraphicPath").SetValue(graphicPath);
-
-			pawn.story.hairColor = PawnHairColors.RandomHairColor(pawn.story.SkinColor, pawn.ageTracker.AgeBiologicalYears);
+			pawn.story.hairColor = HairColor(); // PawnHairColors.RandomHairColor(pawn.story.SkinColor, pawn.ageTracker.AgeBiologicalYears);
 			pawn.story.hairDef = PawnHairChooser.RandomHairDefFor(pawn, factionDef);
-			pawn.story.bodyType = (pawn.gender != Gender.Female) ? BodyType.Male : BodyType.Female;
+			pawn.story.bodyType = (pawn.gender == Gender.Female) ? BodyType.Female : BodyType.Male;
 
-			var request = new PawnGenerationRequest(pawn.kindDef);
-			PawnApparelGenerator.GenerateStartingApparelFor(pawn, request);
-			pawn.apparel.WornApparel.Do(apparel =>
+			return pawn;
+		}
+
+		public static void FinalizeZombieGeneration(Zombie zombie)
+		{
+			var graphicPath = GraphicDatabaseHeadRecords.GetHeadRandom(zombie.gender, zombie.story.SkinColor, zombie.story.crownType).GraphicPath;
+			Traverse.Create(zombie.story).Field("headGraphicPath").SetValue(graphicPath);
+
+			var request = new PawnGenerationRequest(zombie.kindDef);
+			PawnApparelGenerator.GenerateStartingApparelFor(zombie, request);
+			zombie.apparel.WornApparel.Do(apparel =>
 			{
 				apparel.DrawColor = apparel.DrawColor.SaturationChanged(0.5f);
 			});
-
-			pawn.verbTracker.AllVerbs.Clear();
-
-			return pawn;
 		}
 	}
 }

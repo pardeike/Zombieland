@@ -1,5 +1,4 @@
-﻿using Harmony;
-using RimWorld;
+﻿using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,9 +29,9 @@ namespace ZombieLand
 			return grid.Get(p2, false).timestamp.CompareTo(grid.Get(p1, false).timestamp);
 		}
 
-		int SortByDirection(IntVec3 p1, IntVec3 p2)
+		int SortByDirection(IntVec3 center, IntVec3 p1, IntVec3 p2)
 		{
-			return p1.DistanceToSquared(TickManager.centerOfInterest).CompareTo(p2.DistanceToSquared(TickManager.centerOfInterest));
+			return p1.DistanceToSquared(center).CompareTo(p2.DistanceToSquared(center));
 		}
 
 		public virtual void TickAction()
@@ -42,6 +41,7 @@ namespace ZombieLand
 
 			var zombie = (Zombie)pawn;
 			if (zombie.state == ZombieState.Emerging) return;
+			var map = zombie.Map;
 
 			if (zombie.Dead || zombie.Destroyed)
 			{
@@ -56,8 +56,6 @@ namespace ZombieLand
 				return;
 			}
 
-			var map = zombie.Map;
-
 			if (zombie.Downed)
 			{
 				var injuries = zombie.health.hediffSet.GetHediffs<Hediff_Injury>().ToList();
@@ -69,8 +67,6 @@ namespace ZombieLand
 						break;
 					}
 				}
-
-				// TODO: check if limbs are missing
 
 				if (zombie.Downed) return;
 			}
@@ -92,7 +88,15 @@ namespace ZombieLand
 					SoundDef.Named("ZombieHit").PlayOneShot(info);
 				}
 
-				Job job = new Job(JobDefOf.AttackMelee, target);
+				var job = new Job(JobDefOf.AttackMelee, target)
+				{
+					maxNumMeleeAttacks = 9999999,
+					expiryInterval = 9999999,
+					canBash = true,
+					attackDoorIfTargetLost = true,
+					ignoreForbidden = false,
+				};
+
 				zombie.jobs.StartJob(job, JobCondition.InterruptOptional, null, true, false, null);
 				return;
 			}
@@ -104,7 +108,7 @@ namespace ZombieLand
 			// also, emit a circle of timestamps when discovering a pheromone
 			// trace so nearby zombies pick it up too (leads to a chain reaction)
 			//
-			var grid = Tools.GetGrid(zombie.Map);
+			var grid = zombie.Map.GetGrid();
 			var possibleTrackingMoves = new List<IntVec3>();
 			var currentTicks = Tools.Ticks();
 			for (int i = 0; i < 8; i++)
@@ -122,7 +126,19 @@ namespace ZombieLand
 
 				destination = nextMove;
 				if (zombie.state == ZombieState.Wandering)
+				{
 					Tools.ChainReact(grid, zombie.Map, basePos, nextMove);
+					if (currentTicks - grid.Get(nextMove, false).timestamp < Constants.PHEROMONE_FADEOFF / 4)
+					{
+						Tools.CastThoughtBubble(zombie, Constants.BRRAINZ);
+
+						if (Constants.USE_SOUND)
+						{
+							var info = SoundInfo.InMap(new TargetInfo(basePos, map, false));
+							SoundDef.Named("ZombieTracking").PlayOneShot(info);
+						}
+					}
+				}
 				zombie.state = ZombieState.Tracking;
 			}
 			if (destination.IsValid == false) zombie.state = ZombieState.Wandering;
@@ -134,13 +150,16 @@ namespace ZombieLand
 				// check for day/night and dust/dawn
 				//
 				var moveTowardsCenter = false;
-				if (hour < 12) hour += 24;
-				if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
-					moveTowardsCenter = true;
-				else if (hour >= Constants.HOUR_START_OF_DUSK && hour <= Constants.HOUR_START_OF_NIGHT)
-					moveTowardsCenter = Rand.RangeInclusive(hour, Constants.HOUR_START_OF_NIGHT) == Constants.HOUR_START_OF_NIGHT;
-				else if (hour >= Constants.HOUR_END_OF_NIGHT && hour <= Constants.HOUR_START_OF_DAWN)
-					moveTowardsCenter = Rand.RangeInclusive(Constants.HOUR_END_OF_NIGHT, hour) == Constants.HOUR_END_OF_NIGHT;
+				if (map.areaManager.Home[basePos] == false)
+				{
+					if (hour < 12) hour += 24;
+					if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
+						moveTowardsCenter = true;
+					else if (hour >= Constants.HOUR_START_OF_DUSK && hour <= Constants.HOUR_START_OF_NIGHT)
+						moveTowardsCenter = Rand.RangeInclusive(hour, Constants.HOUR_START_OF_NIGHT) == Constants.HOUR_START_OF_NIGHT;
+					else if (hour >= Constants.HOUR_END_OF_NIGHT && hour <= Constants.HOUR_START_OF_DAWN)
+						moveTowardsCenter = Rand.RangeInclusive(Constants.HOUR_END_OF_NIGHT, hour) == Constants.HOUR_END_OF_NIGHT;
+				}
 
 				var possibleMoves = new List<IntVec3>();
 				for (int i = 0; i < 8; i++)
@@ -155,7 +174,8 @@ namespace ZombieLand
 					//
 					if (moveTowardsCenter)
 					{
-						possibleMoves.Sort((p1, p2) => SortByDirection(p1, p2));
+						var center = map.TickManager().centerOfInterest;
+						possibleMoves.Sort((p1, p2) => SortByDirection(center, p1, p2));
 						possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
 						possibleMoves = possibleMoves.OrderBy(p => grid.Get(p, false).zombieCount).ToList();
 						destination = possibleMoves.First();
@@ -176,28 +196,14 @@ namespace ZombieLand
 			// if we have a valid destination, go there
 			//
 			if (destination.IsValid)
-			{
 				MoveToCell(destination);
-				Tools.GetGrid(zombie.Map).ChangeZombieCount(destination, 1);
-			}
 		}
 
 		void MoveToCell(LocalTargetInfo dest)
 		{
 			var zombie = (Zombie)pawn;
+			zombie.Map.GetGrid().ChangeZombieCount(dest.Cell, 1);
 			zombie.pather.StartPath(dest, PathEndMode.OnCell);
-
-			/*
-			if (dest.HasThing && dest.ThingDestroyed) return;
-			if (zombie.pather.Destination == dest) return;
-
-			Traverse.Create(zombie.pather).Field("destination").SetValue(dest);
-			zombie.pather.nextCell = zombie.Position;
-
-			if (zombie.pather.curPath != null)
-				zombie.pather.curPath.ReleaseToPool();
-			zombie.pather.curPath = null;
-			*/
 		}
 
 		public override void Notify_PatherArrived()

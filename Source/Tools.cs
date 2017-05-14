@@ -3,12 +3,12 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
-using Verse.Sound;
 
 namespace ZombieLand
 {
@@ -31,7 +31,7 @@ namespace ZombieLand
 			counter++;
 			var ms = sw.ElapsedMilliseconds;
 			var delta = prevTime == 0 ? 0 : (ms - prevTime);
-			Log.Warning("#" + counter + " " + text + " = " + ms + " ms (+" + delta + ")");
+			//Log.Warning("#" + counter + " " + text + " = " + ms + " ms (+" + delta + ")");
 			prevTime = ms;
 		}
 
@@ -50,23 +50,17 @@ namespace ZombieLand
 		}
 
 		static Dictionary<int, PheromoneGrid> gridCache = new Dictionary<int, PheromoneGrid>();
-		public static PheromoneGrid GetGrid(Map map)
+		public static PheromoneGrid GetGrid(this Map map)
 		{
 			if (gridCache.TryGetValue(map.uniqueID, out PheromoneGrid grid))
 				return grid;
 
-			var comps = map.components;
-			for (int i = 0; i < comps.Count; i++)
+			grid = map.GetComponent<PheromoneGrid>();
+			if (grid == null)
 			{
-				grid = comps[i] as PheromoneGrid;
-				if (grid != null)
-				{
-					gridCache[map.uniqueID] = grid;
-					return grid;
-				}
+				grid = new PheromoneGrid(map);
+				map.components.Add(grid);
 			}
-			grid = new PheromoneGrid(map);
-			map.components.Add(grid);
 			gridCache[map.uniqueID] = grid;
 			return grid;
 		}
@@ -93,7 +87,6 @@ namespace ZombieLand
 			if (GenGrid.Walkable(cell, map) == false) return false;
 			var terrain = map.terrainGrid.TerrainAt(cell);
 			if (terrain != TerrainDefOf.Soil && terrain != TerrainDefOf.Sand && terrain != TerrainDefOf.Gravel) return false;
-			// if (cell.SupportsStructureType(map, TerrainAffordance.Diggable) == false) return false;
 			return true;
 		}
 
@@ -102,7 +95,6 @@ namespace ZombieLand
 			if (dest.InBounds(pawn.Map) == false) return false;
 			if (dest.GetEdifice(pawn.Map) is Building_Door) return false;
 			return (pawn.Map.pathGrid.WalkableFast(dest));
-			//return pawn.Map.reachability.CanReach(pawn.Position, dest, PathEndMode.OnCell, TraverseParms.For(TraverseMode.PassDoors));
 		}
 
 		public static Predicate<IntVec3> ZombieSpawnLocator(Map map)
@@ -120,14 +112,8 @@ namespace ZombieLand
 				{
 					var distance = Math.Abs(nextMove.x - pos.x) + Math.Abs(nextMove.z - pos.z);
 					var timestamp = baseTimestamp - distance * Constants.ZOMBIE_CLOGGING_FACTOR * 2;
-					grid.Set(pos, nextMove.ToIntVec2, timestamp);
+					grid.SetTimestamp(pos, timestamp);
 				}
-			}
-
-			if (Constants.USE_SOUND)
-			{
-				var info = SoundInfo.InMap(new TargetInfo(basePos, map, false));
-				SoundDef.Named("ZombieTracking").PlayOneShot(info);
 			}
 		}
 
@@ -136,7 +122,7 @@ namespace ZombieLand
 			if (Constants.DEBUG_COLONY_POINTS > 0) return Constants.DEBUG_COLONY_POINTS;
 
 			IEnumerable<Pawn> colonists = Find.VisibleMap.mapPawns.FreeColonists;
-			ColonyEvaluation.GetColonistArmouryPoints(colonists, null, out float colonistPoints, out float armouryPoints);
+			ColonyEvaluation.GetColonistArmouryPoints(colonists, Find.VisibleMap, out float colonistPoints, out float armouryPoints);
 			return (int)(colonistPoints + armouryPoints);
 		}
 
@@ -156,6 +142,28 @@ namespace ZombieLand
 					validRegionAt.ListerThings.Add(thing);
 				}
 			}
+		}
+
+		public static Texture2D LoadPNG(string filePath)
+		{
+			Texture2D textured;
+			if (File.Exists(filePath) == false) return null;
+
+			byte[] data = File.ReadAllBytes(filePath);
+			textured = new Texture2D(2, 2);
+			textured.LoadImage(data);
+			textured.Compress(true);
+			textured.name = Path.GetFileNameWithoutExtension(filePath);
+			return textured;
+		}
+
+		public static void CastThoughtBubble(Pawn pawn, Material material)
+		{
+			var def = ThingDefOf.Mote_Speech;
+			var newThing = (MoteBubble)ThingMaker.MakeThing(def, null);
+			newThing.iconMat = material;
+			newThing.Attach(pawn);
+			GenSpawn.Spawn(newThing, pawn.Position, pawn.Map);
 		}
 
 		public static void DrawScaledMesh(Mesh mesh, Material mat, Vector3 pos, Quaternion q, float mx, float my, float mz = 1f)

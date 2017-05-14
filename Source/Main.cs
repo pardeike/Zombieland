@@ -9,13 +9,14 @@ using System.Text;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Verse.AI.Group;
 
 namespace ZombieLand
 {
 	[StaticConstructorOnStartup]
 	static class Main
 	{
-		public static Queue<TargetInfo> spawnQueue = new Queue<TargetInfo>();
+		public static ZombieGenerator generator = new ZombieGenerator();
 
 		static Main()
 		{
@@ -60,7 +61,7 @@ namespace ZombieLand
 			{
 				if (Constants.DEBUGGRID == false) return;
 				var now = Tools.Ticks();
-				Tools.GetGrid(Find.VisibleMap).IterateCells((x, z, pheromone) =>
+				Find.VisibleMap.GetGrid().IterateCells((x, z, pheromone) =>
 				{
 					Vector3 pos = new Vector3(x, Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1), z);
 					Matrix4x4 matrix = new Matrix4x4();
@@ -112,16 +113,36 @@ namespace ZombieLand
 
 			static void DebugGrid(StringBuilder builder)
 			{
-				var cell = Tools.GetGrid(Find.VisibleMap).Get(UI.MouseCell(), false);
-				if (cell.timestamp > 0)
+				var tickManager = Find.VisibleMap.TickManager();
+				builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
+				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount(false));
+
+				var pos = UI.MouseCell();
+				if (pos.InBounds(Find.VisibleMap) == false) return;
+
+				pos.GetThingList(Find.VisibleMap).OfType<Zombie>().Do(zombie =>
 				{
-					var now = Tools.Ticks();
-					builder.AppendLine("Pheromones ts=" + cell.timestamp + "(" + (now - cell.timestamp) + ") zc=" + cell.zombieCount);
+					var dest = zombie.pather.Destination.Cell;
+					builder.AppendLine("Zombie " + zombie.thingIDNumber + ": state=" + zombie.state + " dest=" + dest.x + "/" + dest.z);
+				});
+
+				for (int i = 0; i < 9; i++)
+				{
+					var loc = pos + GenAdj.AdjacentCellsAndInside[i];
+					var cell = Find.VisibleMap.GetGrid().Get(loc, false);
+					if (cell.timestamp > 0)
+					{
+						var now = Tools.Ticks();
+						var diff = now - cell.timestamp;
+						var realZombieCount = loc.GetThingList(Find.VisibleMap).OfType<Zombie>().Count();
+						builder.AppendLine("Cell " + loc.x + "/" + loc.z + ": "
+							+ cell.zombieCount + " zombies (" + realZombieCount + "), "
+							+ " timestamp " + cell.timestamp
+							+ ", newer than cutoff: " + (diff < Constants.PHEROMONE_FADEOFF ? "yes" : "no") + " (" + diff + ")");
+					}
+					else
+						builder.AppendLine("Cell " + loc.x + "/" + loc.z + ": Pheromone cell is empty");
 				}
-				else
-					builder.AppendLine("Pheromones empty");
-				builder.AppendLine("Total Zombie Count should be " + TickManager.GetMaxZombieCount());
-				builder.AppendLine("Total Zombie Count is " + TickManager.allZombies.Count());
 			}
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -149,19 +170,6 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for repeating calculations
-		//
-		[HarmonyPatch(typeof(Verse.TickManager))]
-		[HarmonyPatch("DoSingleTick")]
-		static class TickManager_DoSingleTick_Patch
-		{
-			static void Postfix(Verse.TickManager __instance)
-			{
-				TickManager.ZombieTicking(__instance.TickRateMultiplier);
-				TickManager.Tick();
-			}
-		}
-
 		// patch for detecting if a pawn enters a new cell
 		//
 		[HarmonyPatch(typeof(Thing))]
@@ -176,13 +184,19 @@ namespace ZombieLand
 				var pos = pawn.Position;
 				if (pos.x == value.x && pos.z == value.z) return;
 
-				var grid = Tools.GetGrid(pawn.Map);
+				var grid = pawn.Map.GetGrid();
 				if (pawn is Zombie)
 				{
 					grid.ChangeZombieCount(pos, -1);
 					var newPos = grid.Get(value);
 					if (newPos.zombieCount > 0)
+					{
 						newPos.timestamp -= newPos.zombieCount * Constants.ZOMBIE_CLOGGING_FACTOR;
+						var currentTicks = Tools.Ticks();
+						var notOlderThan = currentTicks - Constants.PHEROMONE_FADEOFF;
+						if (newPos.timestamp < notOlderThan)
+							newPos.timestamp = notOlderThan;
+					}
 				}
 				else
 				{
@@ -193,29 +207,39 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to exclude zombies from ordinary ticking
+		// patch to add TickManager to new maps
 		//
-		[HarmonyPatch(typeof(Verse.TickManager))]
-		[HarmonyPatch("RegisterAllTickabilityFor")]
-		static class TickManager_RegisterAllTickabilityFor_Patch
+		[HarmonyPatch(typeof(Scenario))]
+		[HarmonyPatch("PostMapGenerate")]
+		static class Scenario_PostMapGenerate_Patch
 		{
-			static bool Prefix(Thing t)
+			static void Postfix(Map map)
 			{
-				var zombie = t as Zombie;
-				if (zombie == null) return true;
-				TickManager.allZombies.Add(zombie);
-				return false;
+				map.TickManager().Initialize();
 			}
 		}
-		[HarmonyPatch(typeof(Verse.TickManager))]
-		[HarmonyPatch("DeRegisterAllTickabilityFor")]
-		static class TickManager_DeRegisterAllTickabilityFor_Patch
+
+		// patch to add TickManager to loading maps
+		//
+		[HarmonyPatch(typeof(Map))]
+		[HarmonyPatch("FinalizeInit")]
+		static class Map_FinalizeLoading_Patch
 		{
-			static bool Prefix(Thing t)
+			static void Postfix(Map __instance)
 			{
-				var zombie = t as Zombie;
+				__instance.TickManager().Initialize();
+			}
+		}
+
+		[HarmonyPatch(typeof(Pawn))]
+		[HarmonyPatch("Downed", PropertyMethod.Getter)]
+		static class Pawn_Downed_Patch
+		{
+			static bool Prefix(Pawn __instance, ref bool __result)
+			{
+				var zombie = __instance as Zombie;
 				if (zombie == null) return true;
-				TickManager.allZombies.Remove(zombie);
+				__result = false;
 				return false;
 			}
 		}
@@ -226,13 +250,37 @@ namespace ZombieLand
 		[HarmonyPatch("RenderPawnAt")]
 		static class PawnRenderer_RenderPawnAt_Patch
 		{
-			static bool Prefix(PawnRenderer __instance, Vector3 drawLoc, RotDrawMode bodyDrawType)
-			{
-				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
+			/*
 				var zombie = pawn as Zombie;
-				if (zombie == null || zombie.state != ZombieState.Emerging) return true;
-				zombie.Render(__instance, drawLoc, bodyDrawType);
-				return false;
+				if (zombie != null && zombie.state == ZombieState.Emerging)
+				{
+					zombie.Render(null, drawLoc, bodyDrawType);
+					return;
+				}
+			*/
+
+			static IEnumerable<CodeInstruction> Transpiler(ILGenerator il, IEnumerable<CodeInstruction> instructions)
+			{
+				var endPrefix = il.DefineLabel();
+				var zombie = il.DeclareLocal(typeof(Zombie));
+				yield return new CodeInstruction(OpCodes.Ldarg_0);
+				yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(PawnRenderer), "pawn"));
+				yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
+				yield return new CodeInstruction(OpCodes.Stloc, zombie);
+				yield return new CodeInstruction(OpCodes.Ldloc, zombie);
+				yield return new CodeInstruction(OpCodes.Brfalse_S, endPrefix);
+				yield return new CodeInstruction(OpCodes.Ldloc, zombie);
+				yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Zombie), "state"));
+				yield return new CodeInstruction(OpCodes.Brtrue_S, endPrefix);
+				yield return new CodeInstruction(OpCodes.Ldloc, zombie);
+				yield return new CodeInstruction(OpCodes.Ldarg_0);
+				yield return new CodeInstruction(OpCodes.Ldarg_1);
+				yield return new CodeInstruction(OpCodes.Ldarg_2);
+				yield return new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(Zombie), "Render"));
+				yield return new CodeInstruction(OpCodes.Ret);
+				yield return new CodeInstruction(OpCodes.Nop) { labels = new List<Label>() { endPrefix } };
+				foreach (var instruction in instructions)
+					yield return instruction;
 			}
 		}
 
@@ -263,7 +311,18 @@ namespace ZombieLand
 			static bool Prefix(Thing thing, StatDef stat, ref float __result)
 			{
 				var zombie = thing as Zombie;
-				if (zombie != null && stat == StatDefOf.MoveSpeed)
+				if (zombie == null) return true;
+
+				if (stat == StatDefOf.MeleeHitChance)
+				{
+					if (zombie.state == ZombieState.Tracking)
+						__result = Constants.ZOMBIE_HIT_CHANCE_TRACKING;
+					else
+						__result = Constants.ZOMBIE_HIT_CHANCE_IDLE;
+					return false;
+				}
+
+				if (stat == StatDefOf.MoveSpeed)
 				{
 					if (zombie.state == ZombieState.Tracking)
 						__result = Constants.ZOMBIE_MOVE_SPEED_TRACKING;
@@ -271,6 +330,7 @@ namespace ZombieLand
 						__result = Constants.ZOMBIE_MOVE_SPEED_IDLE;
 					return false;
 				}
+
 				return true;
 			}
 		}
@@ -395,7 +455,7 @@ namespace ZombieLand
 				if (pawn is Zombie) return;
 				if (pawn.Map == null) return;
 
-				var grid = Tools.GetGrid(pawn.Map);
+				var grid = pawn.Map.GetGrid();
 				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)
 				{
 					var timestamp = grid.Get(pawn.Position).timestamp;
@@ -409,6 +469,48 @@ namespace ZombieLand
 					});
 				}
 				grid.SetTimestamp(pawn.Position, 0);
+			}
+		}
+
+		// patch to handle targets deaths so that we update our grid
+		//
+		[HarmonyPatch(typeof(Pawn_HealthTracker))]
+		[HarmonyPatch("Kill")]
+		static class Pawn_HealthTracker_Kill_Patch
+		{
+			static void Postfix(Pawn_HealthTracker __instance)
+			{
+				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
+				if (pawn == null || pawn.Map == null) return;
+
+				var grid = pawn.Map.GetGrid();
+				if (pawn is Zombie)
+				{
+					if (pawn.pather != null)
+					{
+						var dest = pawn.pather.Destination;
+						if (dest != null && dest != pawn.Position)
+							grid.ChangeZombieCount(dest.Cell, -1);
+					}
+					grid.ChangeZombieCount(pawn.Position, -1);
+					return;
+				}
+
+				var id = pawn.ThingID;
+				if (id == null) return;
+
+				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)
+				{
+					var timestamp = grid.Get(pawn.Position).timestamp;
+					var radius = Tools.RadiusForPawn(pawn) * Constants.KILL_CIRCLE_RADIUS_MULTIPLIER;
+					Tools.GetCircle(radius).Do(vec =>
+					{
+						var pos = pawn.Position + vec;
+						var cell = grid.Get(pos, false);
+						if (cell.timestamp > 0 && cell.timestamp <= timestamp)
+							grid.SetTimestamp(pos, 0);
+					});
+				}
 			}
 		}
 
@@ -442,48 +544,6 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to handle targets deaths so that we update our grid
-		//
-		[HarmonyPatch(typeof(Pawn_HealthTracker))]
-		[HarmonyPatch("Kill")]
-		static class Pawn_HealthTracker_Kill_Patch
-		{
-			static void Postfix(Pawn_HealthTracker __instance)
-			{
-				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
-				if (pawn == null || pawn.Map == null) return;
-
-				var grid = Tools.GetGrid(pawn.Map);
-				if (pawn is Zombie)
-				{
-					if (pawn.pather != null)
-					{
-						var dest = pawn.pather.Destination;
-						if (dest != null)
-							grid.ChangeZombieCount(dest.Cell, -1);
-					}
-					grid.ChangeZombieCount(pawn.Position, -1);
-					return;
-				}
-
-				var id = pawn.ThingID;
-				if (id == null) return;
-
-				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)
-				{
-					var timestamp = grid.Get(pawn.Position).timestamp;
-					var radius = Tools.RadiusForPawn(pawn) * Constants.KILL_CIRCLE_RADIUS_MULTIPLIER;
-					Tools.GetCircle(radius).Do(vec =>
-					{
-						var pos = pawn.Position + vec;
-						var cell = grid.Get(pos, false);
-						if (cell.timestamp > 0 && cell.timestamp <= timestamp)
-							grid.SetTimestamp(pos, 0);
-					});
-				}
-			}
-		}
-
 		// patch to trigger on gun shots
 		//
 		[HarmonyPatch(typeof(Projectile))]
@@ -498,32 +558,9 @@ namespace ZombieLand
 				var now = Tools.Ticks();
 				var pos = origin.ToIntVec3();
 				var radius = Tools.Boxed((targ.CenterVector3 - origin).magnitude, Constants.MIN_WEAPON_RANGE, Constants.MAX_WEAPON_RANGE);
-				var grid = Tools.GetGrid(launcher.Map);
+				var grid = launcher.Map.GetGrid();
 				Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(pos + vec, now - (int)vec.LengthHorizontalSquared));
 			}
 		}
-
-		/* temporary patch to create zombies when alt-clicking on map
-		//
-		[HarmonyPatch(typeof(Selector))]
-		[HarmonyPatch("HandleMapClicks")]
-		static class HandleMapClicks_Patch
-		{
-			static bool Prefix(Selector __instance)
-			{
-				if (Event.current.alt == false) return true;
-				if (Event.current.type != EventType.MouseDown) return true;
-				if (Event.current.button != 0) return true;
-
-				var cell = UI.MouseCell();
-				var map = Find.VisibleMap;
-
-				var zombie = ZombieGenerator.GeneratePawn(map);
-				GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Near, null);
-
-				Event.current.Use();
-				return false;
-			}
-		}*/
 	}
 }

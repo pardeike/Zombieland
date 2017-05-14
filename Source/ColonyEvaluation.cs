@@ -69,10 +69,8 @@ namespace ZombieLand
 			return result;
 		}
 
-		public static void GetColonistArmouryPoints(IEnumerable<Pawn> colonists, IIncidentTarget target, out float colonistPoints, out float armouryPoints)
+		public static void GetColonistArmouryPoints(IEnumerable<Pawn> colonists, Map map, out float colonistPoints, out float armouryPoints)
 		{
-			var map = target as Map;
-
 			float colonistPointTally = 0f;
 			float armouryWealthTally = 0f;
 
@@ -96,8 +94,7 @@ namespace ZombieLand
 				armouryWealthTally += GetDudeArmouryPoints(dude);
 			}
 
-			if (map != null)
-				armouryWealthTally += GetMapArmouryPoints(map);
+			armouryWealthTally += GetMapArmouryPoints(map);
 
 			armouryPoints = armouryWealthTally / 1000f * PointsPer1000ArmouryWealth;
 			colonistPoints = colonistPointTally;

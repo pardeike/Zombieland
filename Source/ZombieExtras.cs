@@ -1,17 +1,13 @@
 ﻿using Harmony;
 using RimWorld;
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using UnityEngine;
 using Verse;
-using Verse.AI;
 
 namespace ZombieLand
 {
-	public class PawnKindDef_Zombie : PawnKindDef { }
-	public class ThingDef_Zombie : ThingDef { }
-
 	/*
 	[HarmonyPatch(typeof(Pawn_PathFollower))]
 	[HarmonyPatch("StartPath")]
@@ -156,6 +152,52 @@ namespace ZombieLand
 		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 		{
 			var conditions = Tools.NotZombieInstructions(generator, method);
+			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
+			return transpiler(generator, instructions);
+		}
+	}*/
+
+	[HarmonyPatch(typeof(PawnCollisionTweenerUtility))]
+	[HarmonyPatch("PawnCollisionPosOffsetFor")]
+	public class Pawn_DrawTracker_DrawTrackerTick_Patch
+	{
+		static bool Prefix(Pawn pawn, ref Vector3 __result)
+		{
+			if (!(pawn is Zombie)) return true;
+			__result = Vector3.zero;
+			return false;
+		}
+	}
+
+
+	/*[HarmonyPatch(typeof(Pawn_DrawTracker))]
+	[HarmonyPatch("DrawTrackerTick")]
+	public class Pawn_DrawTracker_DrawTrackerTick_Patch
+	{
+		public void DrawTrackerTick(
+			Pawn pawn,
+			JitterHandler jitterer,
+			PawnFootprintMaker footprintMaker,
+			PawnBreathMoteMaker breathMoteMaker,
+			PawnLeaner leaner,
+			PawnRotator rotator,
+			PawnRenderer renderer)
+		{
+			if (pawn.Spawned && ((Current.ProgramState != ProgramState.Playing) || Find.CameraDriver.CurrentViewRect.ExpandedBy(3).Contains(pawn.Position)))
+			{
+				jitterer.JitterHandlerTick();
+				footprintMaker.FootprintMakerTick();
+				breathMoteMaker.BreathMoteMakerTick();
+				leaner.LeanerTick();
+				rotator.PawnRotatorTick();
+				renderer.RendererTick();
+			}
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+		{
+			var conditions = Tools.NotZombieInstructions(generator, method);
+			var replacement = AccessTools.Method(MethodBase.GetCurrentMethod().DeclaringType, method.Name);
 			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
 			return transpiler(generator, instructions);
 		}

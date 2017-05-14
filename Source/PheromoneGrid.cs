@@ -9,32 +9,22 @@ namespace ZombieLand
 	{
 		public static Pheromone empty = new Pheromone();
 
-		public IntVec2 vector;
 		public long timestamp;
 		public int zombieCount;
 
 		public Pheromone()
 		{
-			vector = IntVec2.Invalid;
 			timestamp = 0;
 			zombieCount = 0;
 		}
 
 		public Pheromone(long timestamp = 0)
 		{
-			vector = IntVec2.Invalid;
-			this.timestamp = timestamp != 0 ? timestamp : Tools.Ticks();
-		}
-
-		public Pheromone(IntVec2 pos, long timestamp = 0)
-		{
-			vector = pos;
 			this.timestamp = timestamp != 0 ? timestamp : Tools.Ticks();
 		}
 
 		public void ExposeData()
 		{
-			Scribe_Values.LookValue(ref vector, "vec");
 			Scribe_Values.LookValue(ref timestamp, "tstamp");
 			Scribe_Values.LookValue(ref zombieCount, "zcount");
 		}
@@ -105,21 +95,13 @@ namespace ZombieLand
 			var cell = grid[CellToIndex(position)];
 			if (cell == null)
 			{
-				var ph = new Pheromone();
-				ph.zombieCount = Math.Max(0, change);
-				grid[CellToIndex(position)] = ph;
+				grid[CellToIndex(position)] = new Pheromone()
+				{
+					zombieCount = Math.Max(0, change)
+				};
 			}
 			else
-			{
-				cell.zombieCount = Math.Max(0, cell.zombieCount + change);
-				grid[CellToIndex(position)] = cell;
-			}
-		}
-
-		public void Set(IntVec3 position, IntVec2 target, long timestamp = 0)
-		{
-			if (position.x < 0 || position.x >= mapSizeX || position.z < 0 || position.z >= mapSizeZ) return;
-			grid[CellToIndex(position)] = new Pheromone(target, timestamp);
+				grid[CellToIndex(position)].zombieCount = Math.Max(0, cell.zombieCount + change);
 		}
 
 		//
