@@ -47,6 +47,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ColorHSV.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="JobDriver.cs" />
     <Compile Include="JobGiver.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="Rubble.cs" />
     <Compile Include="TickManager.cs" />
     <Compile Include="Tools.cs" />
+    <Compile Include="VariableGraphic.cs" />
     <Compile Include="Zombie.cs" />
     <Compile Include="ZombieCorpse.cs" />
     <Compile Include="ZombieDefs.cs" />

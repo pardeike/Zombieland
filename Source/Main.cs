@@ -244,48 +244,58 @@ namespace ZombieLand
 			}
 		}
 
+		// patch for custom zombie graphic parts
+		//
+		[HarmonyPatch(typeof(PawnGraphicSet))]
+		[HarmonyPatch("ResolveAllGraphics")]
+		static class PawnGraphicSet_ResolveAllGraphics_Patch
+		{
+			static void Postfix(PawnGraphicSet __instance)
+			{
+				var zombie = __instance.pawn as Zombie;
+				if (zombie == null) return;
+
+				var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
+				var bodyColor = Tools.RandomSkinColor();
+				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, bodyColor, Color.white, null);
+				var bodyGraphic = Activator.CreateInstance<VariableGraphic>();
+				bodyGraphic.Init(bodyRequest);
+				__instance.nakedGraphic = bodyGraphic;
+
+				var headPath = zombie.story.HeadGraphicPath;
+				var sep = headPath.LastIndexOf('/');
+				headPath = "Zombie" + headPath.Substring(sep);
+				var headColor = Tools.RandomSkinColor();
+				var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, headColor, Color.white, null);
+				var headGraphic = Activator.CreateInstance<VariableGraphic>();
+				headGraphic.Init(headRequest);
+				__instance.headGraphic = headGraphic;
+			}
+		}
+
 		// patch for rendering zombies
 		//
 		[HarmonyPatch(typeof(PawnRenderer))]
 		[HarmonyPatch("RenderPawnAt")]
 		static class PawnRenderer_RenderPawnAt_Patch
 		{
-			/*
-				var zombie = pawn as Zombie;
-				if (zombie != null && zombie.state == ZombieState.Emerging)
-				{
-					zombie.Render(null, drawLoc, bodyDrawType);
-					return;
-				}
-			*/
-
-			static IEnumerable<CodeInstruction> Transpiler(ILGenerator il, IEnumerable<CodeInstruction> instructions)
+			static bool Prefix(PawnRenderer __instance, Vector3 drawLoc, RotDrawMode bodyDrawType)
 			{
-				var endPrefix = il.DefineLabel();
-				var zombie = il.DeclareLocal(typeof(Zombie));
-				yield return new CodeInstruction(OpCodes.Ldarg_0);
-				yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(PawnRenderer), "pawn"));
-				yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
-				yield return new CodeInstruction(OpCodes.Stloc, zombie);
-				yield return new CodeInstruction(OpCodes.Ldloc, zombie);
-				yield return new CodeInstruction(OpCodes.Brfalse_S, endPrefix);
-				yield return new CodeInstruction(OpCodes.Ldloc, zombie);
-				yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Zombie), "state"));
-				yield return new CodeInstruction(OpCodes.Brtrue_S, endPrefix);
-				yield return new CodeInstruction(OpCodes.Ldloc, zombie);
-				yield return new CodeInstruction(OpCodes.Ldarg_0);
-				yield return new CodeInstruction(OpCodes.Ldarg_1);
-				yield return new CodeInstruction(OpCodes.Ldarg_2);
-				yield return new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(Zombie), "Render"));
-				yield return new CodeInstruction(OpCodes.Ret);
-				yield return new CodeInstruction(OpCodes.Nop) { labels = new List<Label>() { endPrefix } };
-				foreach (var instruction in instructions)
-					yield return instruction;
+				var zombie = __instance.graphics.pawn as Zombie;
+				if (zombie == null) return true;
+
+				if (zombie.state == ZombieState.Emerging)
+				{
+					zombie.Render(__instance, drawLoc, bodyDrawType);
+					return false;
+				}
+
+				return true;
 			}
 		}
 
 		// patch for setting a custom skin color for our zombies
-		//
+		/*
 		[HarmonyPatch(typeof(Pawn_StoryTracker))]
 		[HarmonyPatch("SkinColor", PropertyMethod.Getter)]
 		static class Pawn_StoryTracker_SkinColor_Setter_Patch
@@ -295,12 +305,12 @@ namespace ZombieLand
 				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
 				if (pawn is Zombie)
 				{
-					__result = Constants.ZOMBIE_SKIN_COLOR;
+					__result = Tools.RandomSkinColor();
 					return false;
 				}
 				return true;
 			}
-		}
+		}*/
 
 		// patch for variable zombie movement speed
 		//

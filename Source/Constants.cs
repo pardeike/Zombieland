@@ -65,6 +65,6 @@ namespace ZombieLand
 		public static Material RUBBLE = MaterialPool.MatFrom("Rubble", ShaderDatabase.Cutout);
 		public static Material BRRAINZ = MaterialPool.MatFrom("Brrainz", ShaderDatabase.Cutout);
 		public static System.Random random = new System.Random();
-		public static Color ZOMBIE_SKIN_COLOR = new Color(79f / 255f, 130f / 255f, 68f / 255f);
+		public static ColorHSV ZOMBIE_SKIN_COLOR = new ColorHSV(0.33f, 0.5f, 0.5f);
 	}
 }
