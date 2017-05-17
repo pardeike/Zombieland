@@ -110,6 +110,7 @@ namespace ZombieLand
 		{
 			static FieldInfo writeCellContentsField = AccessTools.Field(typeof(DebugViewSettings), "writeCellContents");
 			static MethodInfo debugGridMethod = AccessTools.Method(typeof(EditWindow_DebugInspector_CurrentDebugString_Patch), "DebugGrid");
+			static Traverse allGraphicsField = Traverse.Create(typeof(GraphicDatabase)).Field("allGraphics");
 
 			static void DebugGrid(StringBuilder builder)
 			{
@@ -117,32 +118,37 @@ namespace ZombieLand
 				builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount(false));
 
+				var allGraphics = allGraphicsField.GetValue<Dictionary<GraphicRequest, Graphic>>();
+				var zombieGraphics = allGraphics.Where(
+				  pair => pair.Key.path.StartsWith("Zombie")).ToList();
+				builder.AppendLine("Total graphics loaded: " + allGraphics.Count + " (" + zombieGraphics.Count + ")");
+
 				var pos = UI.MouseCell();
 				if (pos.InBounds(Find.VisibleMap) == false) return;
 
 				pos.GetThingList(Find.VisibleMap).OfType<Zombie>().Do(zombie =>
 				{
 					var dest = zombie.pather.Destination.Cell;
-					builder.AppendLine("Zombie " + zombie.thingIDNumber + ": state=" + zombie.state + " dest=" + dest.x + "/" + dest.z);
+					builder.AppendLine("Zombie " + zombie.NameStringShort + ": " + zombie.state + " at " + dest.x + "/" + dest.z);
 				});
 
-				for (int i = 0; i < 9; i++)
-				{
-					var loc = pos + GenAdj.AdjacentCellsAndInside[i];
-					var cell = Find.VisibleMap.GetGrid().Get(loc, false);
-					if (cell.timestamp > 0)
+				GenAdj.AdjacentCellsAndInside
+					.Select(cell => pos + cell)
+					.Where(cell => cell.InBounds(Find.VisibleMap))
+					.Do(loc =>
 					{
-						var now = Tools.Ticks();
-						var diff = now - cell.timestamp;
-						var realZombieCount = loc.GetThingList(Find.VisibleMap).OfType<Zombie>().Count();
-						builder.AppendLine("Cell " + loc.x + "/" + loc.z + ": "
-							+ cell.zombieCount + " zombies (" + realZombieCount + "), "
-							+ " timestamp " + cell.timestamp
-							+ ", newer than cutoff: " + (diff < Constants.PHEROMONE_FADEOFF ? "yes" : "no") + " (" + diff + ")");
-					}
-					else
-						builder.AppendLine("Cell " + loc.x + "/" + loc.z + ": Pheromone cell is empty");
-				}
+						var cell = Find.VisibleMap.GetGrid().Get(loc, false);
+						if (cell.timestamp > 0)
+						{
+							var now = Tools.Ticks();
+							var diff = now - cell.timestamp;
+							var realZombieCount = loc.GetThingList(Find.VisibleMap).OfType<Zombie>().Count();
+							builder.AppendLine(loc.x + " " + loc.z + ": " + cell.zombieCount + "z (" + realZombieCount + "z), "
+								+ cell.timestamp + (diff < Constants.PHEROMONE_FADEOFF ? (", +" + diff) : ""));
+						}
+						else
+							builder.AppendLine(loc.x + " " + loc.z + ": empty");
+					});
 			}
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -256,8 +262,7 @@ namespace ZombieLand
 				if (zombie == null) return;
 
 				var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
-				var bodyColor = Tools.RandomSkinColor();
-				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, bodyColor, Color.white, null);
+				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null);
 				var bodyGraphic = Activator.CreateInstance<VariableGraphic>();
 				bodyGraphic.Init(bodyRequest);
 				__instance.nakedGraphic = bodyGraphic;
@@ -265,8 +270,7 @@ namespace ZombieLand
 				var headPath = zombie.story.HeadGraphicPath;
 				var sep = headPath.LastIndexOf('/');
 				headPath = "Zombie" + headPath.Substring(sep);
-				var headColor = Tools.RandomSkinColor();
-				var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, headColor, Color.white, null);
+				var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null);
 				var headGraphic = Activator.CreateInstance<VariableGraphic>();
 				headGraphic.Init(headRequest);
 				__instance.headGraphic = headGraphic;
@@ -294,24 +298,6 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for setting a custom skin color for our zombies
-		/*
-		[HarmonyPatch(typeof(Pawn_StoryTracker))]
-		[HarmonyPatch("SkinColor", PropertyMethod.Getter)]
-		static class Pawn_StoryTracker_SkinColor_Setter_Patch
-		{
-			static bool Prefix(Pawn_StoryTracker __instance, ref Color __result)
-			{
-				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
-				if (pawn is Zombie)
-				{
-					__result = Tools.RandomSkinColor();
-					return false;
-				}
-				return true;
-			}
-		}*/
-
 		// patch for variable zombie movement speed
 		//
 		[HarmonyPatch(typeof(StatExtension))]
@@ -334,14 +320,59 @@ namespace ZombieLand
 
 				if (stat == StatDefOf.MoveSpeed)
 				{
+					float speed;
 					if (zombie.state == ZombieState.Tracking)
-						__result = Constants.ZOMBIE_MOVE_SPEED_TRACKING;
+						speed = Constants.ZOMBIE_MOVE_SPEED_TRACKING;
 					else
-						__result = Constants.ZOMBIE_MOVE_SPEED_IDLE;
+						speed = Constants.ZOMBIE_MOVE_SPEED_IDLE;
+
+					float factor;
+					switch (zombie.story.bodyType)
+					{
+						case BodyType.Thin:
+							factor = 2f;
+							break;
+						case BodyType.Hulk:
+							factor = 0.25f;
+							break;
+						case BodyType.Fat:
+							factor = 0.5f;
+							break;
+						default:
+							factor = 1f;
+							break;
+					}
+
+					__result = speed * factor;
 					return false;
 				}
 
 				return true;
+			}
+		}
+
+		// patch for variable zombie damage factor
+		//
+		[HarmonyPatch(typeof(Verb))]
+		[HarmonyPatch("GetDamageFactorFor")]
+		static class Verb_GetDamageFactorFor_Patch
+		{
+			static void Postfix(Pawn pawn, ref float __result)
+			{
+				var zombie = pawn as Zombie;
+				if (zombie == null) return;
+				switch (zombie.story.bodyType)
+				{
+					case BodyType.Thin:
+						__result *= 0.5f;
+						break;
+					case BodyType.Hulk:
+						__result *= 4f;
+						break;
+					case BodyType.Fat:
+						__result *= 2f;
+						break;
+				}
 			}
 		}
 
@@ -392,12 +423,13 @@ namespace ZombieLand
 		[HarmonyPatch("TryInteractWith")]
 		static class Pawn_InteractionsTracker_TryInteractWith_Patch
 		{
-			static bool Prefix(Pawn_InteractionsTracker __instance, Pawn recipient)
+			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 			{
-				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
-				if (pawn is Zombie) return false;
-				if (recipient is Zombie) return false;
-				return true;
+				var conditions = new List<CodeInstruction>();
+				conditions.AddRange(Tools.NotZombieInstructions(generator, method));
+				conditions.AddRange(Tools.NotZombieInstructions(generator, method, "recipient"));
+				var transpiler = Tools.GenerateReplacementCallTranspiler(conditions);
+				return transpiler(generator, instructions);
 			}
 		}
 
@@ -405,10 +437,11 @@ namespace ZombieLand
 		[HarmonyPatch("InteractionsTrackerTick")]
 		static class Pawn_InteractionsTracker_InteractionsTrackerTick_Patch
 		{
-			static bool Prefix(Pawn_InteractionsTracker __instance)
+			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 			{
-				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
-				return !(pawn is Zombie);
+				var conditions = Tools.NotZombieInstructions(generator, method);
+				var transpiler = Tools.GenerateReplacementCallTranspiler(conditions);
+				return transpiler(generator, instructions);
 			}
 		}
 
@@ -462,8 +495,9 @@ namespace ZombieLand
 			static void Postfix(Pawn_HealthTracker __instance)
 			{
 				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
+
 				if (pawn is Zombie) return;
-				if (pawn.Map == null) return;
+				if (pawn == null || pawn.Map == null) return;
 
 				var grid = pawn.Map.GetGrid();
 				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)

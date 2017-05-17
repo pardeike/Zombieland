@@ -25,6 +25,20 @@ namespace ZombieLand
 			Scribe_Collections.LookList(ref rubbles, "rubbles", LookMode.Deep);
 		}
 
+		public override void DeSpawn()
+		{
+			var grid = Map.GetGrid();
+			if (pather != null)
+			{
+				var dest = pather.Destination;
+				if (dest != null && dest != Position)
+					grid.ChangeZombieCount(dest.Cell, -1);
+			}
+			grid.ChangeZombieCount(Position, -1);
+
+			base.DeSpawn();
+		}
+
 		static Type[] RenderPawnInternalParameterTypes = new Type[]
 		{
 			typeof(Vector3),
@@ -86,12 +100,13 @@ namespace ZombieLand
 				var pos = drawLoc + new Vector3(x, 0, y);
 				pos.y = Altitudes.AltitudeFor(AltitudeLayer.Pawn + 1);
 				var rot = Quaternion.Euler(0f, r.rot * 360f, 0f);
-				Tools.DrawScaledMesh(MeshPool.plane10, Constants.RUBBLE, pos, rot, scale, scale);
+				GraphicToolbox.DrawScaledMesh(MeshPool.plane10, Constants.RUBBLE, pos, rot, scale, scale);
 			}
 		}
 
 		public override void Tick()
 		{
+			// must be empty
 		}
 
 		public void CustomTick()

@@ -15,17 +15,23 @@ namespace ZombieLand
 		static ZombieStains()
 		{
 			stainsHead = new Dictionary<Texture2D, int>();
-			stainsHead.Add(ContentFinder<Texture2D>.Get("Stains/Scratch"), 4);
-			stainsHead.Add(ContentFinder<Texture2D>.Get("Stains/Stain2"), 2);
-			stainsHead.Add(ContentFinder<Texture2D>.Get("Stains/Stain1"), 1);
-			stainsHead.Add(ContentFinder<Texture2D>.Get("Stains/Scar"), 1);
+			stainsHead.Add("Stains/Scratch", 4);
+			stainsHead.Add("Stains/Stain2", 2);
+			stainsHead.Add("Stains/Stain1", 1);
+			stainsHead.Add("Stains/Scar", 1);
 
 			stainsBody = new Dictionary<Texture2D, int>();
-			stainsBody.Add(ContentFinder<Texture2D>.Get("Stains/Ribs2"), 5);
-			stainsBody.Add(ContentFinder<Texture2D>.Get("Stains/Ribs1"), 4);
-			stainsBody.Add(ContentFinder<Texture2D>.Get("Stains/Scratch"), 2);
-			stainsBody.Add(ContentFinder<Texture2D>.Get("Stains/Stain2"), 2);
-			stainsBody.Add(ContentFinder<Texture2D>.Get("Stains/Stain1"), 1);
+			stainsBody.Add("Stains/Ribs2", 5);
+			stainsBody.Add("Stains/Ribs1", 4);
+			stainsBody.Add("Stains/Scratch", 2);
+			stainsBody.Add("Stains/Stain2", 2);
+			stainsBody.Add("Stains/Stain1", 1);
+			stainsBody.Add("Stains/Scar", 1);
+		}
+
+		static void Add(this Dictionary<Texture2D, int> dict, string name, int points)
+		{
+			dict.Add(ContentFinder<Texture2D>.Get(name), points);
 		}
 
 		public static KeyValuePair<Texture2D, int> GetRandom(int remainingPoints, bool isBody)
@@ -35,7 +41,7 @@ namespace ZombieLand
 		}
 	}
 
-	class VariableGraphic : Graphic
+	public class VariableGraphic : Graphic
 	{
 		private Material[] mats = new Material[3];
 		private int hash = 0;
@@ -47,12 +53,28 @@ namespace ZombieLand
 		public override Material MatBack { get { return mats[0]; } }
 		public override bool ShouldDrawRotated { get { return MatSide == MatBack; } }
 
+		public Material GetMaterial(MaterialRequest req)
+		{
+			var material = new Material(req.shader)
+			{
+				name = req.shader.name + "_" + req.mainTex.name,
+				mainTexture = req.mainTex,
+				color = req.color
+			};
+			if (req.maskTex != null)
+			{
+				material.SetTexture(ShaderIDs.MaskTexId, req.maskTex);
+				material.SetColor(ShaderIDs.ColorTwoId, req.colorTwo);
+			}
+			return material;
+		}
+
 		public override void Init(GraphicRequest req)
 		{
 			data = req.graphicData;
 			path = req.path;
-			color = Color.white;
-			colorTwo = Color.white;
+			color = req.color;
+			colorTwo = req.colorTwo;
 			drawSize = req.drawSize;
 
 			hash = Gen.HashCombine(hash, path);
@@ -65,7 +87,7 @@ namespace ZombieLand
 				ContentFinder<Texture2D>.Get(req.path + "_side"),
 				ContentFinder<Texture2D>.Get(req.path + "_front")
 			}
-			.Select(texture => texture.WriteableCopy(req.color))
+			.Select(texture => texture.WriteableCopy(GraphicToolbox.RandomSkinColor()))
 			.Select(texture =>
 			{
 				var points = 6;
@@ -91,7 +113,7 @@ namespace ZombieLand
 					colorTwo = colorTwo,
 					maskTex = null
 				};
-				return MaterialPool.MatFrom(request);
+				return GetMaterial(request); // MaterialPool.MatFrom(request);
 			})
 			.ToArray();
 		}

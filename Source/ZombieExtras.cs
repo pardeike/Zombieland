@@ -1,5 +1,6 @@
 ﻿using Harmony;
 using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -432,12 +433,9 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Pawn_RecordsTracker))]
-	[HarmonyPatch("RecordsTick")]
-	public class Pawn_RecordsTracker_RecordsTick_Patch
+	[HarmonyPatch("AddTo")]
+	public class Pawn_RecordsTracker_AddTo_Patch
 	{
-		// public new void AddTo(RecordDef def, float value) { }
-		// public new void Increment(RecordDef def) { }
-
 		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 		{
 			var conditions = Tools.NotZombieInstructions(generator, method);
@@ -446,9 +444,9 @@ namespace ZombieLand
 		}
 	}
 
-	/*[HarmonyPatch(typeof(Pawn_NativeVerbs))]
-	[HarmonyPatch("NativeVerbsTick")]
-	public class Pawn_NativeVerbs_NativeVerbsTick_Patch
+	[HarmonyPatch(typeof(Pawn_RecordsTracker))]
+	[HarmonyPatch("Increment")]
+	public class Pawn_RecordsTracker_Increment_Patch
 	{
 		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 		{
@@ -456,5 +454,5 @@ namespace ZombieLand
 			var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
 			return transpiler(generator, instructions);
 		}
-	}*/
+	}
 }

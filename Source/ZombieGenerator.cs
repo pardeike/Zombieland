@@ -154,11 +154,24 @@ namespace ZombieLand
 				.RandomElement().Value;
 
 			pawn.story.melanin = 0.01f * Rand.Range(10, 90);
-			pawn.story.crownType = CrownType.Average;
+			pawn.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
 
-			pawn.story.hairColor = HairColor(); // PawnHairColors.RandomHairColor(pawn.story.SkinColor, pawn.ageTracker.AgeBiologicalYears);
+			pawn.story.hairColor = HairColor();
 			pawn.story.hairDef = PawnHairChooser.RandomHairDefFor(pawn, factionDef);
 			pawn.story.bodyType = (pawn.gender == Gender.Female) ? BodyType.Female : BodyType.Male;
+			if (pawn.story.bodyType == BodyType.Male)
+				switch (Rand.Range(1, 6))
+				{
+					case 1:
+						pawn.story.bodyType = BodyType.Thin;
+						break;
+					case 2:
+						pawn.story.bodyType = BodyType.Fat;
+						break;
+					case 3:
+						pawn.story.bodyType = BodyType.Hulk;
+						break;
+				}
 
 			return pawn;
 		}

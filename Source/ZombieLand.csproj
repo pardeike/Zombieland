@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="ColorHSV.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="GraphicToolbox.cs" />
     <Compile Include="JobDriver.cs" />
     <Compile Include="JobGiver.cs" />
     <Compile Include="Main.cs" />
