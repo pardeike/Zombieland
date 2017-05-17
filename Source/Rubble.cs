@@ -31,15 +31,15 @@ namespace ZombieLand
 
 		public void ExposeData()
 		{
-			Scribe_Values.LookValue(ref destX, "destX");
-			Scribe_Values.LookValue(ref destX, "destY");
-			Scribe_Values.LookValue(ref pX, "pX");
-			Scribe_Values.LookValue(ref pY, "pY");
-			Scribe_Values.LookValue(ref drop, "drop");
-			Scribe_Values.LookValue(ref dropSpeed, "dropSpeed");
-			Scribe_Values.LookValue(ref dropSpeed, "dropSpeed");
-			Scribe_Values.LookValue(ref scale, "scale");
-			Scribe_Values.LookValue(ref rot, "rot");
+			Scribe_Values.Look(ref destX, "destX");
+			Scribe_Values.Look(ref destX, "destY");
+			Scribe_Values.Look(ref pX, "pX");
+			Scribe_Values.Look(ref pY, "pY");
+			Scribe_Values.Look(ref drop, "drop");
+			Scribe_Values.Look(ref dropSpeed, "dropSpeed");
+			Scribe_Values.Look(ref dropSpeed, "dropSpeed");
+			Scribe_Values.Look(ref scale, "scale");
+			Scribe_Values.Look(ref rot, "rot");
 		}
 	}
 }

@@ -11,9 +11,9 @@ namespace ZombieLand
 		public int vanishAfter;
 		public static Type type = typeof(ZombieCorpse);
 
-		public override void SpawnSetup(Map map)
+		public override void SpawnSetup(Map map, bool respawningAfterLoad)
 		{
-			base.SpawnSetup(map);
+			base.SpawnSetup(map, respawningAfterLoad);
 			InnerPawn.Rotation = Rot4.Random;
 			vanishAfter = Age + GenTicks.SecondsToTicks(60);
 			ForbidUtility.SetForbidden(this, false, false);
@@ -40,7 +40,7 @@ namespace ZombieLand
 		public override void ExposeData()
 		{
 			base.ExposeData();
-			Scribe_Values.LookValue(ref vanishAfter, "vanishAfter");
+			Scribe_Values.Look(ref vanishAfter, "vanishAfter");
 		}
 	}
 }

@@ -9,16 +9,12 @@ using System.Text;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using Verse.AI.Group;
 
 namespace ZombieLand
 {
-	[StaticConstructorOnStartup]
-	static class Main
+	class ZombielandMod : Mod
 	{
-		public static ZombieGenerator generator = new ZombieGenerator();
-
-		static Main()
+		public ZombielandMod(ModContentPack content) : base(content)
 		{
 			// HarmonyInstance.DEBUG = true;
 			var harmony = HarmonyInstance.Create("net.pardeike.zombieland");
@@ -260,9 +256,13 @@ namespace ZombieLand
 			{
 				var zombie = __instance.pawn as Zombie;
 				if (zombie == null) return;
+				if (Constants.USE_CUSTOM_TEXTURES == false) return;
+
+				// TODO: find correct value, for now we use 0
+				var renderPrecedence = 0;
 
 				var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
-				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null);
+				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
 				var bodyGraphic = Activator.CreateInstance<VariableGraphic>();
 				bodyGraphic.Init(bodyRequest);
 				__instance.nakedGraphic = bodyGraphic;
@@ -270,7 +270,7 @@ namespace ZombieLand
 				var headPath = zombie.story.HeadGraphicPath;
 				var sep = headPath.LastIndexOf('/');
 				headPath = "Zombie" + headPath.Substring(sep);
-				var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null);
+				var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
 				var headGraphic = Activator.CreateInstance<VariableGraphic>();
 				headGraphic.Init(headRequest);
 				__instance.headGraphic = headGraphic;
@@ -281,6 +281,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(PawnRenderer))]
 		[HarmonyPatch("RenderPawnAt")]
+		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(RotDrawMode), typeof(bool) })]
 		static class PawnRenderer_RenderPawnAt_Patch
 		{
 			static bool Prefix(PawnRenderer __instance, Vector3 drawLoc, RotDrawMode bodyDrawType)
@@ -392,13 +393,13 @@ namespace ZombieLand
 
 		// patch for disallowing thoughts on zombies
 		//
-		[HarmonyPatch(typeof(ThoughtHandler))]
+		[HarmonyPatch(typeof(ThoughtUtility))]
 		[HarmonyPatch("CanGetThought")]
-		static class ThoughtHandler_CanGetThought_Patch
+		static class ThoughtUtility_CanGetThought_Patch
 		{
-			static bool Prefix(ThoughtHandler __instance, ThoughtDef def, ref bool __result)
+			static bool Prefix(Pawn pawn, ThoughtDef def, ref bool __result)
 			{
-				if (__instance.pawn is Zombie)
+				if (pawn is Zombie)
 				{
 					__result = false;
 					return false;
@@ -463,7 +464,7 @@ namespace ZombieLand
 					def.hideAtSnowDepth = 0.1f;
 					def.inspectorTabs = new List<Type>();
 					def.passability = Traversability.Standable;
-					def.regionBarrier = false;
+					def.affectsRegions = false;
 					def.stackLimit = 1;
 					def.thingClass = typeof(ZombieCorpse);
 				}
@@ -518,38 +519,37 @@ namespace ZombieLand
 
 		// patch to handle targets deaths so that we update our grid
 		//
-		[HarmonyPatch(typeof(Pawn_HealthTracker))]
+		[HarmonyPatch(typeof(Pawn))]
 		[HarmonyPatch("Kill")]
-		static class Pawn_HealthTracker_Kill_Patch
+		static class Pawn_Kill_Patch
 		{
-			static void Postfix(Pawn_HealthTracker __instance)
+			static void Postfix(Pawn __instance)
 			{
-				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
-				if (pawn == null || pawn.Map == null) return;
+				if (__instance.Map == null) return;
 
-				var grid = pawn.Map.GetGrid();
-				if (pawn is Zombie)
+				var grid = __instance.Map.GetGrid();
+				if (__instance is Zombie)
 				{
-					if (pawn.pather != null)
+					if (__instance.pather != null)
 					{
-						var dest = pawn.pather.Destination;
-						if (dest != null && dest != pawn.Position)
+						var dest = __instance.pather.Destination;
+						if (dest != null && dest != __instance.Position)
 							grid.ChangeZombieCount(dest.Cell, -1);
 					}
-					grid.ChangeZombieCount(pawn.Position, -1);
+					grid.ChangeZombieCount(__instance.Position, -1);
 					return;
 				}
 
-				var id = pawn.ThingID;
+				var id = __instance.ThingID;
 				if (id == null) return;
 
 				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)
 				{
-					var timestamp = grid.Get(pawn.Position).timestamp;
-					var radius = Tools.RadiusForPawn(pawn) * Constants.KILL_CIRCLE_RADIUS_MULTIPLIER;
+					var timestamp = grid.Get(__instance.Position).timestamp;
+					var radius = Tools.RadiusForPawn(__instance) * Constants.KILL_CIRCLE_RADIUS_MULTIPLIER;
 					Tools.GetCircle(radius).Do(vec =>
 					{
-						var pos = pawn.Position + vec;
+						var pos = __instance.Position + vec;
 						var cell = grid.Get(pos, false);
 						if (cell.timestamp > 0 && cell.timestamp <= timestamp)
 							grid.SetTimestamp(pos, 0);
@@ -559,18 +559,9 @@ namespace ZombieLand
 		}
 
 		[HarmonyPatch(typeof(PawnDiedOrDownedThoughtsUtility))]
-		[HarmonyPatch("AppendThoughts_Relations")]
-		static class PawnDiedOrDownedThoughtsUtility_AppendThoughts_Relations_Patch
-		{
-			static bool Prefix(Pawn victim)
-			{
-				return !(victim is Zombie);
-			}
-		}
-
-		[HarmonyPatch(typeof(PawnDiedOrDownedThoughtsUtility))]
-		[HarmonyPatch("AppendThoughts_Humanlike")]
-		static class PawnDiedOrDownedThoughtsUtility_AppendThoughts_Humanlike_Patch
+		[HarmonyPatch("TryGiveThoughts")]
+		[HarmonyPatch(new Type[] { typeof(Pawn), typeof(DamageInfo?), typeof(PawnDiedOrDownedThoughtsKind) })]
+		static class PawnDiedOrDownedThoughtsUtility_TryGiveThoughts_Patch
 		{
 			static bool Prefix(Pawn victim)
 			{

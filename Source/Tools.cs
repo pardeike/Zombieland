@@ -3,6 +3,7 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -41,8 +42,17 @@ namespace ZombieLand
 		}
 	}
 
+	[StaticConstructorOnStartup]
 	static class Tools
 	{
+		public static ZombieGenerator generator = new ZombieGenerator();
+
+		public static string GetModRootDirectory()
+		{
+			var me = LoadedModManager.GetMod<ZombielandMod>();
+			return me.Content.RootDir;
+		}
+
 		public static long Ticks()
 		{
 			return 1000L * GenTicks.TicksAbs;

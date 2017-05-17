@@ -25,8 +25,8 @@ namespace ZombieLand
 
 		public void ExposeData()
 		{
-			Scribe_Values.LookValue(ref timestamp, "tstamp");
-			Scribe_Values.LookValue(ref zombieCount, "zcount");
+			Scribe_Values.Look(ref timestamp, "tstamp");
+			Scribe_Values.Look(ref zombieCount, "zcount");
 		}
 	}
 
@@ -47,7 +47,7 @@ namespace ZombieLand
 		public override void ExposeData()
 		{
 			base.ExposeData();
-			Scribe_Collections.LookList(ref grid, "pheromones", LookMode.Deep, new object[0]);
+			Scribe_Collections.Look(ref grid, "pheromones", LookMode.Deep, new object[0]);
 		}
 
 		public int Count()

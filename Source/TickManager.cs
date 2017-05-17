@@ -48,14 +48,22 @@ namespace ZombieLand
 
 		public void Initialize()
 		{
+			// TODO - can't do that in this thread, need to be on the main thread
+			/*
+			map.mapPawns.AllPawns
+				.OfType<Zombie>()
+				.Select(zombie => zombie.Drawer.renderer.graphics)
+				.Where(graphics => !graphics.AllResolved)
+				.Do(graphics => graphics.ResolveAllGraphics());
+			*/
 		}
 
 		public override void ExposeData()
 		{
 			base.ExposeData();
-			Scribe_Values.LookValue(ref currentColonyPoints, "colonyPoints");
-			Scribe_Values.LookValue(ref centerOfInterest, "centerOfInterest");
-			Scribe_Collections.LookList(ref prioritizedZombies, "prioritizedZombies", LookMode.Reference);
+			Scribe_Values.Look(ref currentColonyPoints, "colonyPoints");
+			Scribe_Values.Look(ref centerOfInterest, "centerOfInterest");
+			Scribe_Collections.Look(ref prioritizedZombies, "prioritizedZombies", LookMode.Reference);
 		}
 
 		public void RecalculateVisibleMap()
@@ -119,7 +127,7 @@ namespace ZombieLand
 
 		public void DequeuAndSpawnZombies()
 		{
-			var result = Main.generator.TryGetNextGeneratedZombie(map);
+			var result = Tools.generator.TryGetNextGeneratedZombie(map);
 			if (result == null) return;
 			if (ZombieCount() >= GetMaxZombieCount(false)) return;
 
@@ -129,7 +137,7 @@ namespace ZombieLand
 			var existingZombies = result.map.thingGrid.ThingsListAtFast(result.cell).OfType<Zombie>();
 			if (existingZombies.Any(zombie => zombie.state == ZombieState.Emerging))
 			{
-				Main.generator.RequeueZombie(result);
+				Tools.generator.RequeueZombie(result);
 				return;
 			}
 
@@ -145,13 +153,13 @@ namespace ZombieLand
 
 		public void IncreaseZombiePopulation()
 		{
-			var zombieCount = ZombieCount() + Main.generator.ZombiesQueued(map);
+			var zombieCount = ZombieCount() + Tools.generator.ZombiesQueued(map);
 			var zombieDestCount = GetMaxZombieCount(true);
 			if (zombieCount < zombieDestCount)
 			{
 				var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4);
 				if (cell.IsValid)
-					Main.generator.SpawnZombieAt(map, cell);
+					Tools.generator.SpawnZombieAt(map, cell);
 			}
 		}
 

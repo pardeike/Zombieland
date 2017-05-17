@@ -8,6 +8,29 @@ namespace ZombieLand
 {
 	static class GraphicToolbox
 	{
+		public static Texture2D LoadTexture(string texturePath)
+		{
+			texturePath = texturePath.Replace('/', Path.DirectorySeparatorChar);
+			var filePath = Tools.GetModRootDirectory() + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar + texturePath + ".png";
+			var texture2D = new Texture2D(2, 2, TextureFormat.ARGB32, true) { wrapMode = TextureWrapMode.Clamp };
+			texture2D.LoadImage(File.ReadAllBytes(filePath));
+			return texture2D;
+		}
+		/*
+		public static Texture2D LoadPNG(string filePath)
+		{
+			Texture2D textured;
+			if (File.Exists(filePath) == false) return null;
+
+			byte[] data = File.ReadAllBytes(filePath);
+			textured = new Texture2D(2, 2);
+			textured.LoadImage(data);
+			textured.Compress(true);
+			textured.name = Path.GetFileNameWithoutExtension(filePath);
+			return textured;
+		}
+		*/
+
 		public static Texture2D WriteableCopy(this Texture2D original, Color color)
 		{
 			var texture = new Texture2D(original.width, original.height, TextureFormat.ARGB32, true) { wrapMode = TextureWrapMode.Clamp };
@@ -19,6 +42,7 @@ namespace ZombieLand
 				pixels[i].b *= color.b;
 			}
 			texture.SetPixels(pixels);
+			texture.Apply(true);
 			return texture;
 		}
 
@@ -109,19 +133,6 @@ namespace ZombieLand
 			var hsvColor = Constants.ZOMBIE_SKIN_COLOR + new ColorHSV(hueDelta, satDelta, britDelta, 0);
 			hsvColor.Normalize();
 			return hsvColor.Color();
-		}
-
-		public static Texture2D LoadPNG(string filePath)
-		{
-			Texture2D textured;
-			if (File.Exists(filePath) == false) return null;
-
-			byte[] data = File.ReadAllBytes(filePath);
-			textured = new Texture2D(2, 2);
-			textured.LoadImage(data);
-			textured.Compress(true);
-			textured.name = Path.GetFileNameWithoutExtension(filePath);
-			return textured;
 		}
 
 		public static void DrawScaledMesh(Mesh mesh, Material mat, Vector3 pos, Quaternion q, float mx, float my, float mz = 1f)

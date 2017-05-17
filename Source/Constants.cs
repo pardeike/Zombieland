@@ -11,7 +11,7 @@ namespace ZombieLand
 		public static bool DEBUGGRID = false;
 		public static bool USE_SOUND = true;
 		public static int DEBUG_COLONY_POINTS = 0;
-		public static bool SPAWN_ALL_ZOMBIES = false;
+		public static bool USE_CUSTOM_TEXTURES = true;
 
 		// timing
 		//

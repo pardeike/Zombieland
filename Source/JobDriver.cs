@@ -21,7 +21,7 @@ namespace ZombieLand
 		public override void ExposeData()
 		{
 			base.ExposeData();
-			Scribe_Values.LookValue(ref destination, "destination", IntVec3.Invalid);
+			Scribe_Values.Look(ref destination, "destination", IntVec3.Invalid);
 		}
 
 		int SortByTimestamp(PheromoneGrid grid, IntVec3 p1, IntVec3 p2)
@@ -52,7 +52,7 @@ namespace ZombieLand
 			if (zombie.state == ZombieState.ShouldDie)
 			{
 				EndJobWith(JobCondition.InterruptForced);
-				zombie.health.Kill(null, null);
+				zombie.Kill(null);
 				return;
 			}
 

@@ -1,5 +1,7 @@
 ﻿using Harmony;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 using Verse;
@@ -16,13 +18,18 @@ namespace ZombieLand
 		{
 			stainsHead = new Dictionary<Texture2D, int>();
 			stainsHead.Add("Stains/Scratch", 4);
+			stainsHead.Add("Stains/Hole", 4);
 			stainsHead.Add("Stains/Stain2", 2);
 			stainsHead.Add("Stains/Stain1", 1);
 			stainsHead.Add("Stains/Scar", 1);
 
 			stainsBody = new Dictionary<Texture2D, int>();
+			stainsHead.Add("Stains/Ribs3", 5);
 			stainsBody.Add("Stains/Ribs2", 5);
+			stainsBody.Add("Stains/Ribs4", 4);
 			stainsBody.Add("Stains/Ribs1", 4);
+			stainsBody.Add("Stains/Chain", 4);
+			stainsHead.Add("Stains/Hole", 3);
 			stainsBody.Add("Stains/Scratch", 2);
 			stainsBody.Add("Stains/Stain2", 2);
 			stainsBody.Add("Stains/Stain1", 1);
@@ -31,7 +38,7 @@ namespace ZombieLand
 
 		static void Add(this Dictionary<Texture2D, int> dict, string name, int points)
 		{
-			dict.Add(ContentFinder<Texture2D>.Get(name), points);
+			dict.Add(GraphicToolbox.LoadTexture(name), points);
 		}
 
 		public static KeyValuePair<Texture2D, int> GetRandom(int remainingPoints, bool isBody)
@@ -63,8 +70,8 @@ namespace ZombieLand
 			};
 			if (req.maskTex != null)
 			{
-				material.SetTexture(ShaderIDs.MaskTexId, req.maskTex);
-				material.SetColor(ShaderIDs.ColorTwoId, req.colorTwo);
+				material.SetTexture(ShaderPropertyIDs.MaskTex, req.maskTex);
+				material.SetColor(ShaderPropertyIDs.ColorTwo, req.colorTwo);
 			}
 			return material;
 		}
@@ -83,9 +90,9 @@ namespace ZombieLand
 
 			mats = new Texture2D[]
 			{
-				ContentFinder<Texture2D>.Get(req.path + "_back"),
-				ContentFinder<Texture2D>.Get(req.path + "_side"),
-				ContentFinder<Texture2D>.Get(req.path + "_front")
+				GraphicToolbox.LoadTexture(req.path + "_back"),
+				GraphicToolbox.LoadTexture(req.path + "_side"),
+				GraphicToolbox.LoadTexture(req.path + "_front")
 			}
 			.Select(texture => texture.WriteableCopy(GraphicToolbox.RandomSkinColor()))
 			.Select(texture =>

@@ -46,7 +46,7 @@ namespace ZombieLand
 			float result = 0f;
 			if (dude.equipment != null)
 			{
-				foreach (Thing equipment in dude.equipment.AllEquipment)
+				foreach (var equipment in dude.equipment.AllEquipmentListForReading)
 				{
 					if (equipment.def.IsRangedWeapon || equipment.def.IsMeleeWeapon)
 					{
@@ -59,7 +59,7 @@ namespace ZombieLand
 			}
 			if (dude.apparel != null)
 			{
-				List<Apparel> wornApparel = dude.apparel.WornApparel;
+				var wornApparel = dude.apparel.WornApparel;
 				for (int j = 0; j < wornApparel.Count; j++)
 				{
 					if (wornApparel[j].def.techLevel >= TechLevel.Industrial)
@@ -78,11 +78,11 @@ namespace ZombieLand
 			{
 				if (dude.story.WorkTagIsDisabled(WorkTags.Violent)) continue; // Non-violent colonists are exempt
 
-				if (dude.health.capacities.GetEfficiency(PawnCapacityDefOf.Moving) < 0.15) continue; // Colonists with extremely poor movement are exempt
+				if (dude.health.capacities.GetLevel(PawnCapacityDefOf.Moving) < 0.15) continue; // Colonists with extremely poor movement are exempt
 
-				float battlescore = 0.5f * dude.health.capacities.GetEfficiency(PawnCapacityDefOf.Consciousness); // Half comes from consciousness
-				battlescore += 0.5f * dude.health.capacities.GetEfficiency(PawnCapacityDefOf.Sight); // Half comes from sight
-				battlescore *= dude.health.capacities.GetEfficiency(PawnCapacityDefOf.Manipulation); // Multiplied by manipulation, should give 1.0 for normal healthy colonist
+				float battlescore = 0.5f * dude.health.capacities.GetLevel(PawnCapacityDefOf.Consciousness); // Half comes from consciousness
+				battlescore += 0.5f * dude.health.capacities.GetLevel(PawnCapacityDefOf.Sight); // Half comes from sight
+				battlescore *= dude.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation); // Multiplied by manipulation, should give 1.0 for normal healthy colonist
 
 				if (battlescore < 0.2f) continue; // This pawn is too useless to be counted
 

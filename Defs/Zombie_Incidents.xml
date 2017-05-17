@@ -4,10 +4,10 @@
 	<IncidentDef>
 		<defName>ZombiesRising</defName>
 		<label>unusual zombie activity near your base</label>
-		<targetType>BaseMap</targetType>
+		<targetType>MapPlayerHome</targetType>
 		<workerClass>ZombieLand.ZombiesRising</workerClass>
 		<baseChance>3</baseChance>
-		<!--<category>ThreatSmall</category>-->
+		<category>ThreatBig</category>
 	</IncidentDef>
 
 </Defs>

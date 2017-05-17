@@ -48,14 +48,14 @@ namespace ZombieLand
 					.Take(zombieCount)
 					.Do(cell =>
 					{
-						Main.generator.SpawnZombieAt(map, cell);
+						Tools.generator.SpawnZombieAt(map, cell);
 						zombieCount--;
 					});
 			}
 
 			var text = "ZombiesRisingNearYourBase".Translate();
 			var location = new GlobalTargetInfo(spot, map);
-			Find.LetterStack.ReceiveLetter("LetterLabelZombiesRisingNearYourBase".Translate(), text, LetterType.BadUrgent, location);
+			Find.LetterStack.ReceiveLetter("LetterLabelZombiesRisingNearYourBase".Translate(), text, LetterDefOf.BadUrgent, location);
 			return true;
 		}
 	}
