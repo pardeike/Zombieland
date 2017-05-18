@@ -11,6 +11,14 @@ namespace ZombieLand
 		public int vanishAfter;
 		public static Type type = typeof(ZombieCorpse);
 
+		public override bool IngestibleNow
+		{
+			get
+			{
+				return false;
+			}
+		}
+
 		public override void SpawnSetup(Map map, bool respawningAfterLoad)
 		{
 			base.SpawnSetup(map, respawningAfterLoad);

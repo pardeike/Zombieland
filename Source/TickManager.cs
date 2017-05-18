@@ -119,15 +119,18 @@ namespace ZombieLand
 
 		public void ZombieTicking(Stopwatch watch)
 		{
-			var maxTickTime = (1f / 90f) / Find.TickManager.TickRateMultiplier * Stopwatch.Frequency;
-			foreach (var zombie in prioritizedZombies)
+			var maxTickTime = (1f / (60f / Constants.FRAME_TIME_FACTOR)) / Find.TickManager.TickRateMultiplier * Stopwatch.Frequency;
+			var zombies = prioritizedZombies.Where(zombie => zombie.Map == map).ToList();
+			var total = zombies.Count;
+			var ticked = 0;
+			foreach (var zombie in zombies)
 			{
-				if (zombie.Map == map)
-				{
-					if (watch.ElapsedTicks > maxTickTime) break;
-					zombie.CustomTick();
-				}
+				zombie.CustomTick();
+				ticked++;
+				if (watch.ElapsedTicks > maxTickTime) break;
 			}
+			ZombielandMod.EditWindow_DebugInspector_CurrentDebugString_Patch.tickedZombies = ticked;
+			ZombielandMod.EditWindow_DebugInspector_CurrentDebugString_Patch.ofTotalZombies = total;
 		}
 
 		public void DequeuAndSpawnZombies()

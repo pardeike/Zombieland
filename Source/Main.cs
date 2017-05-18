@@ -102,11 +102,14 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(EditWindow_DebugInspector))]
 		[HarmonyPatch("CurrentDebugString")]
-		static class EditWindow_DebugInspector_CurrentDebugString_Patch
+		public static class EditWindow_DebugInspector_CurrentDebugString_Patch
 		{
 			static FieldInfo writeCellContentsField = AccessTools.Field(typeof(DebugViewSettings), "writeCellContents");
 			static MethodInfo debugGridMethod = AccessTools.Method(typeof(EditWindow_DebugInspector_CurrentDebugString_Patch), "DebugGrid");
 			static Traverse allGraphicsField = Traverse.Create(typeof(GraphicDatabase)).Field("allGraphics");
+
+			public static int tickedZombies = 0;
+			public static int ofTotalZombies = 0;
 
 			static void DebugGrid(StringBuilder builder)
 			{
@@ -117,6 +120,7 @@ namespace ZombieLand
 				var tickManager = map.TickManager();
 				builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount(false));
+				builder.AppendLine("Ticked zombies: " + tickedZombies + " out of " + ofTotalZombies);
 				if (Constants.DEBUGGRID == false) return;
 
 				var allGraphics = allGraphicsField.GetValue<Dictionary<GraphicRequest, Graphic>>();

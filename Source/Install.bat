@@ -1,7 +1,7 @@
 @ECHO ON
 SETLOCAL
 
-SET FOLDERS_TO_COPY=(About Assemblies Defs Sounds Textures)
+SET FOLDERS_TO_COPY=(About Assemblies Defs Languages Sounds Textures)
 SET SOLUTION_DIR=%~2
 SET TARGET_DIR=D:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\Zombieland\
 
