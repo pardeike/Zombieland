@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,12 +59,22 @@ namespace ZombieLand
 
 			if (zombie.Downed)
 			{
-				var injuries = zombie.health.hediffSet.GetHediffs<Hediff_Injury>().ToList();
+				var missingParts = zombie.health.hediffSet.GetMissingPartsCommonAncestors();
+				var hasLeg = missingParts.Any(part => part.Part.def == BodyPartDefOf.LeftLeg || part.Part.def == BodyPartDefOf.RightLeg);
+				var hasBrain = zombie.health.hediffSet.GetBrain() != null;
+
+				if (!hasLeg || !hasBrain)
+				{
+					zombie.Kill(null);
+					return;
+				}
+
+				var injuries = zombie.health.hediffSet.GetHediffs<Hediff_Injury>();
 				foreach (var injury in injuries)
 				{
 					if (injury.IsOld() == false)
 					{
-						injury.Heal(injury.Severity + 1f);
+						injury.Heal(injury.Severity + 0.5f);
 						break;
 					}
 				}
