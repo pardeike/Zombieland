@@ -115,20 +115,24 @@ namespace ZombieLand
 			if ((Find.TickManager.TicksGame % 250) == 0)
 				TickRare();
 
-			if (base.Spawned)
+			if (!ThingOwnerUtility.ContentsFrozen(base.ParentHolder))
 			{
-				pather.PatherTick();
-				jobs.JobTrackerTick();
-				stances.StanceTrackerTick();
-				verbTracker.VerbsTick();
-				natives.NativeVerbsTick();
-				Drawer.DrawTrackerTick();
+				if (base.Spawned)
+				{
+					if (pather != null) pather.PatherTick();
+					if (jobs != null) jobs.JobTrackerTick();
+					if (stances != null) stances.StanceTrackerTick();
+					if (verbTracker != null) verbTracker.VerbsTick();
+					if (natives != null) natives.NativeVerbsTick();
+					Drawer.DrawTrackerTick();
+				}
+
+				if (health != null)
+					health.HealthTick();
+
+				if (!Dead && mindState != null)
+					mindState.MindStateTick();
 			}
-
-			health.HealthTick();
-
-			if (!Dead)
-				mindState.MindStateTick();
 
 			if (state == ZombieState.Emerging)
 				HandleRubble();

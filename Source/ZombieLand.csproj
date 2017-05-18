@@ -37,12 +37,12 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\RimWorldWin_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\RimWorld\RimWorldWin_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="UnityEngine">
-      <HintPath>..\..\..\RimWorldWin_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\RimWorld\RimWorldWin_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -100,8 +100,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"C:\Program Files (x86)\Mono-4\bin\mono.exe" "c:\Program Files (x86)\Mono-4\lib\mono\4.5\pdb2mdb.exe" "$(TargetPath)"
-"C:\Program Files (x86)\Mono-4\bin\mono.exe" "c:\Program Files (x86)\Mono-4\lib\mono\4.5\pdb2mdb.exe" "$(TargetDir)0Harmony.dll"</PostBuildEvent>
+    <PostBuildEvent>"$(ProjectDir)Install.bat" $(ConfigurationName) "$(SolutionDir)" "$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

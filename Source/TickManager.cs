@@ -50,8 +50,7 @@ namespace ZombieLand
 		{
 			// TODO - can't do that in this thread, need to be on the main thread
 			/*
-			map.mapPawns.AllPawns
-				.OfType<Zombie>()
+			AllZombies()
 				.Select(zombie => zombie.Drawer.renderer.graphics)
 				.Where(graphics => !graphics.AllResolved)
 				.Do(graphics => graphics.ResolveAllGraphics());
@@ -72,21 +71,27 @@ namespace ZombieLand
 
 			int x = 0, z = 0, n = 0;
 			int buildingMultiplier = 3;
-			map.listerBuildings.allBuildingsColonist.Do(building =>
+			if (map.listerBuildings != null && map.listerBuildings.allBuildingsColonist != null)
 			{
-				x += building.Position.x * buildingMultiplier;
-				z += building.Position.z * buildingMultiplier;
-				n += buildingMultiplier;
-			});
-			map.mapPawns.SpawnedPawnsInFaction(Faction.OfPlayer).Do(pawn =>
+				map.listerBuildings.allBuildingsColonist.Do(building =>
+				{
+					x += building.Position.x * buildingMultiplier;
+					z += building.Position.z * buildingMultiplier;
+					n += buildingMultiplier;
+				});
+			}
+			if (map.mapPawns != null)
 			{
-				x += pawn.Position.x;
-				z += pawn.Position.z;
-				n++;
-			});
+				map.mapPawns.SpawnedPawnsInFaction(Faction.OfPlayer).Do(pawn =>
+				{
+					x += pawn.Position.x;
+					z += pawn.Position.z;
+					n++;
+				});
+			}
 			centerOfInterest = n == 0 ? map.Center : new IntVec3(x / n, 0, z / n);
 
-			prioritizedZombies = map.mapPawns.AllPawns.OfType<Zombie>().ToList();
+			prioritizedZombies = AllZombies().ToList();
 			var grid = map.GetGrid();
 			prioritizedZombies.Sort(
 				delegate (Zombie z1, Zombie z2)
@@ -146,9 +151,15 @@ namespace ZombieLand
 			result.map.GetGrid().ChangeZombieCount(result.cell, 1);
 		}
 
+		public IEnumerable<Zombie> AllZombies()
+		{
+			if (map.mapPawns == null || map.mapPawns.AllPawns == null) return new List<Zombie>();
+			return map.mapPawns.AllPawns.OfType<Zombie>();
+		}
+
 		public int ZombieCount()
 		{
-			return map.mapPawns.AllPawns.OfType<Zombie>().Count();
+			return AllZombies().Count();
 		}
 
 		public void IncreaseZombiePopulation()

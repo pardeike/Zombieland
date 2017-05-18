@@ -110,9 +110,14 @@ namespace ZombieLand
 
 			static void DebugGrid(StringBuilder builder)
 			{
-				var tickManager = Find.VisibleMap.TickManager();
+				if (Current.Game == null) return;
+				var map = Find.VisibleMap;
+				if (map == null) return;
+
+				var tickManager = map.TickManager();
 				builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount(false));
+				if (Constants.DEBUGGRID == false) return;
 
 				var allGraphics = allGraphicsField.GetValue<Dictionary<GraphicRequest, Graphic>>();
 				var zombieGraphics = allGraphics.Where(
@@ -120,9 +125,9 @@ namespace ZombieLand
 				builder.AppendLine("Total graphics loaded: " + allGraphics.Count + " (" + zombieGraphics.Count + ")");
 
 				var pos = UI.MouseCell();
-				if (pos.InBounds(Find.VisibleMap) == false) return;
+				if (pos.InBounds(map) == false) return;
 
-				pos.GetThingList(Find.VisibleMap).OfType<Zombie>().Do(zombie =>
+				pos.GetThingList(map).OfType<Zombie>().Do(zombie =>
 				{
 					var dest = zombie.pather.Destination.Cell;
 					builder.AppendLine("Zombie " + zombie.NameStringShort + ": " + zombie.state + " at " + dest.x + "/" + dest.z);
@@ -130,15 +135,15 @@ namespace ZombieLand
 
 				GenAdj.AdjacentCellsAndInside
 					.Select(cell => pos + cell)
-					.Where(cell => cell.InBounds(Find.VisibleMap))
+					.Where(cell => cell.InBounds(map))
 					.Do(loc =>
 					{
-						var cell = Find.VisibleMap.GetGrid().Get(loc, false);
+						var cell = map.GetGrid().Get(loc, false);
 						if (cell.timestamp > 0)
 						{
 							var now = Tools.Ticks();
 							var diff = now - cell.timestamp;
-							var realZombieCount = loc.GetThingList(Find.VisibleMap).OfType<Zombie>().Count();
+							var realZombieCount = loc.GetThingList(map).OfType<Zombie>().Count();
 							builder.AppendLine(loc.x + " " + loc.z + ": " + cell.zombieCount + "z (" + realZombieCount + "z), "
 								+ cell.timestamp + (diff < Constants.PHEROMONE_FADEOFF ? (", +" + diff) : ""));
 						}
@@ -230,6 +235,20 @@ namespace ZombieLand
 			static void Postfix(Map __instance)
 			{
 				__instance.TickManager().Initialize();
+			}
+		}
+
+		// patch to allow spawning Zombies with debug tools
+		//
+		[HarmonyPatch(typeof(PawnGenerator))]
+		[HarmonyPatch("TryGenerateNewNakedPawn")]
+		static class PawnGenerator_TryGenerateNewNakedPawn_Patch
+		{
+			static bool Prefix(ref PawnGenerationRequest request, ref Pawn __result)
+			{
+				if (request.Faction == null || request.Faction.def != ZombieDefOf.Zombies) return true;
+				__result = ZombieGenerator.GeneratePawn();
+				return false;
 			}
 		}
 

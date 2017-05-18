@@ -53,7 +53,7 @@ namespace ZombieLand
 					if (request != null)
 					{
 						if (request.zombie == null)
-							request.zombie = GeneratePawn(request.map);
+							request.zombie = GeneratePawn();
 						lock (resultQueues)
 						{
 							var queue = QueueForMap(request.map);
@@ -116,7 +116,7 @@ namespace ZombieLand
 			return new Color(0.3f, 0.2f, 0.1f);
 		}
 
-		public static Zombie GeneratePawn(Map map)
+		public static Zombie GeneratePawn()
 		{
 			var kindDef = ZombieDefOf.Zombie;
 
