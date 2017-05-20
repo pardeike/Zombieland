@@ -2,6 +2,7 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
@@ -157,6 +158,36 @@ namespace ZombieLand
 			return transpiler(generator, instructions);
 		}
 	}*/
+
+
+	[HarmonyPatch(typeof(ThoughtWorker_ColonistLeftUnburied))]
+	[HarmonyPatch("CurrentStateInternal")]
+	public class ThoughtWorker_ColonistLeftUnburied_CurrentStateInternal_Patch
+	{
+		static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, IEnumerable<CodeInstruction> instructions)
+		{
+			var get_InnerPawn = AccessTools.Method(typeof(Corpse), "get_InnerPawn");
+			CodeInstruction prevInstruction = null;
+			Label label = new Label();
+			foreach (var instruction in instructions)
+			{
+				if (instruction.opcode == OpCodes.Callvirt)
+					if (instruction.operand == get_InnerPawn)
+					{
+						yield return instruction;
+						yield return new CodeInstruction(OpCodes.Brfalse_S, label);
+
+						yield return prevInstruction;
+					}
+
+				if (instruction.opcode == OpCodes.Ble_Un_S)
+					label = (Label)instruction.operand;
+
+				yield return instruction;
+				prevInstruction = instruction;
+			}
+		}
+	}
 
 	[HarmonyPatch(typeof(PawnCollisionTweenerUtility))]
 	[HarmonyPatch("PawnCollisionPosOffsetFor")]

@@ -48,6 +48,10 @@ namespace ZombieLand
 
 		public void Initialize()
 		{
+			var destinations = Traverse.Create(map.pawnDestinationManager).Field("reservedDestinations").GetValue<Dictionary<Faction, Dictionary<Pawn, IntVec3>>>();
+			var zombieFaction = Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies);
+			if (!destinations.ContainsKey(zombieFaction)) map.pawnDestinationManager.RegisterFaction(zombieFaction);
+
 			// TODO - can't do that in this thread, need to be on the main thread
 			/*
 			AllZombies()
@@ -63,6 +67,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref currentColonyPoints, "colonyPoints");
 			Scribe_Values.Look(ref centerOfInterest, "centerOfInterest");
 			Scribe_Collections.Look(ref prioritizedZombies, "prioritizedZombies", LookMode.Reference);
+			prioritizedZombies = prioritizedZombies.Where(zombie => zombie != null).ToList();
 		}
 
 		public void RecalculateVisibleMap()
@@ -109,6 +114,7 @@ namespace ZombieLand
 
 		public int GetMaxZombieCount(bool log)
 		{
+			if (map == null || map.mapPawns == null) return 0;
 			var colonists = map.mapPawns.ColonistCount;
 			var perColonistZombieCount = GenMath.LerpDouble(0f, 4f, 10, 40, (float)Math.Min(4, Math.Sqrt(colonists)));
 			var colonistMultiplier = Math.Sqrt(colonists) * 2;
@@ -157,7 +163,7 @@ namespace ZombieLand
 		public IEnumerable<Zombie> AllZombies()
 		{
 			if (map.mapPawns == null || map.mapPawns.AllPawns == null) return new List<Zombie>();
-			return map.mapPawns.AllPawns.OfType<Zombie>();
+			return map.mapPawns.AllPawns.OfType<Zombie>().Where(zombie => zombie != null);
 		}
 
 		public int ZombieCount()

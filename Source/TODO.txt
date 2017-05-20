@@ -1,0 +1,5 @@
+- Turrets slow down the game when they search for Zombies
+- Turn off graphics and rubble for slow computers
+- Signal if a zombie spawns close to a colonist
+- Related to Exception in Inspector - Zombies do not have a center-of-interest
+- Remove disabled floatmenu choices on corpse and downed zombies

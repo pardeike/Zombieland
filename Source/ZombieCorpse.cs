@@ -24,7 +24,7 @@ namespace ZombieLand
 			base.SpawnSetup(map, respawningAfterLoad);
 			InnerPawn.Rotation = Rot4.Random;
 			vanishAfter = Age + GenTicks.SecondsToTicks(60);
-			ForbidUtility.SetForbidden(this, false, false);
+			this.SetForbidden(false, false);
 
 			GetComps<CompRottable>()
 				.Select(comp => comp.props)

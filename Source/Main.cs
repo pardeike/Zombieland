@@ -181,6 +181,43 @@ namespace ZombieLand
 			}
 		}
 
+		// patch for adding zombie faction to existing games
+		//
+		[HarmonyPatch(typeof(FactionManager))]
+		[HarmonyPatch("ExposeData")]
+		static class FactionManager_AllFactions_Patch
+		{
+			static void Postfix(FactionManager __instance)
+			{
+				var factions = Traverse.Create(__instance).Field("allFactions").GetValue<List<Faction>>();
+				var factionDefs = factions.Select(f => f.def).ToList();
+				if (factionDefs.Contains(ZombieDefOf.Zombies) == false)
+				{
+					var zombies = FactionGenerator.NewGeneratedFaction(ZombieDefOf.Zombies);
+					foreach (var faction in factions)
+					{
+						FactionRelation rel1 = new FactionRelation()
+						{
+							other = faction,
+							goodwill = 0f,
+							hostile = true
+						};
+						Traverse.Create(zombies).Field("relations").GetValue<List<FactionRelation>>().Add(rel1);
+
+						FactionRelation rel2 = new FactionRelation()
+						{
+							other = zombies,
+							goodwill = 0f,
+							hostile = true
+						};
+						Traverse.Create(faction).Field("relations").GetValue<List<FactionRelation>>().Add(rel2);
+
+					}
+					factions.Add(zombies);
+				}
+			}
+		}
+
 		// patch for detecting if a pawn enters a new cell
 		//
 		[HarmonyPatch(typeof(Thing))]
@@ -255,6 +292,39 @@ namespace ZombieLand
 				return false;
 			}
 		}
+
+		[HarmonyPatch(typeof(Reachability))]
+		[HarmonyPatch("CanReach")]
+		[HarmonyPatch(new Type[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseParms) })]
+		static class Reachability_CanReach_Patch
+		{
+			static bool Prefix(LocalTargetInfo dest, ref bool __result)
+			{
+				if (dest.Thing is Zombie || dest.Thing is ZombieCorpse)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+
+		[HarmonyPatch(typeof(ForbidUtility))]
+		[HarmonyPatch("IsForbidden")]
+		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Faction) })]
+		static class ForbidUtility_IsForbidden_Patch
+		{
+			static bool Prefix(Thing t, ref bool __result)
+			{
+				if (t is Zombie || t is ZombieCorpse)
+				{
+					__result = true;
+					return false;
+				}
+				return true;
+			}
+		}
+
 
 		[HarmonyPatch(typeof(Pawn))]
 		[HarmonyPatch("Downed", PropertyMethod.Getter)]
@@ -439,7 +509,7 @@ namespace ZombieLand
 		{
 			static bool Prefix(Thing t)
 			{
-				return (t.GetType() != ZombieCorpse.type);
+				return (t as ZombieCorpse == null);
 			}
 		}
 
