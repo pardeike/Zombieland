@@ -38,7 +38,7 @@ namespace ZombieLand
 		public virtual void TickAction()
 		{
 			if (slowdownCounter-- > 0) return;
-			slowdownCounter = Constants.JOBDRIVER_TICKS_DELAY;
+			slowdownCounter = GenTicks.SecondsToTicks(Constants.JOBDRIVER_TICKS_DELAY);
 
 			var zombie = (Zombie)pawn;
 			if (zombie.state == ZombieState.Emerging) return;
@@ -121,11 +121,12 @@ namespace ZombieLand
 			//
 			var grid = zombie.Map.GetGrid();
 			var possibleTrackingMoves = new List<IntVec3>();
+			var fadeOff = 1000L * GenTicks.SecondsToTicks(Constants.PHEROMONE_FADEOFF);
 			var currentTicks = Tools.Ticks();
 			for (int i = 0; i < 8; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCells[i];
-				if (currentTicks - grid.Get(pos, false).timestamp < Constants.PHEROMONE_FADEOFF && zombie.HasValidDestination(pos))
+				if (currentTicks - grid.Get(pos, false).timestamp < fadeOff && zombie.HasValidDestination(pos))
 					possibleTrackingMoves.Add(pos);
 			}
 			if (possibleTrackingMoves.Count > 0)
@@ -139,7 +140,7 @@ namespace ZombieLand
 				if (zombie.state == ZombieState.Wandering)
 				{
 					Tools.ChainReact(grid, zombie.Map, basePos, nextMove);
-					if (currentTicks - grid.Get(nextMove, false).timestamp < Constants.PHEROMONE_FADEOFF / 4)
+					if (currentTicks - grid.Get(nextMove, false).timestamp < fadeOff / 4)
 					{
 						Tools.CastThoughtBubble(zombie, Constants.BRRAINZ);
 

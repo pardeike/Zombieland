@@ -63,9 +63,10 @@ namespace ZombieLand
 					Matrix4x4 matrix = new Matrix4x4();
 					matrix.SetTRS(pos + new Vector3(0.5f, 0f, 0.5f), Quaternion.identity, new Vector3(1f, 1f, 1f));
 					var diff = now - pheromone.timestamp;
-					if (diff < Constants.PHEROMONE_FADEOFF)
+					var fadeOff = 1000L * GenTicks.SecondsToTicks(Constants.PHEROMONE_FADEOFF);
+					if (diff < fadeOff)
 					{
-						var a = (Constants.PHEROMONE_FADEOFF - diff) / (float)Constants.PHEROMONE_FADEOFF * 0.8f;
+						var a = (fadeOff - diff) / (float)fadeOff * 0.8f;
 						var material = SolidColorMaterials.SimpleSolidColorMaterial(new Color(1f, 0f, 0f, a));
 						Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
 					}
@@ -121,6 +122,7 @@ namespace ZombieLand
 				builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount(false));
 				builder.AppendLine("Ticked zombies: " + tickedZombies + " out of " + ofTotalZombies);
+				builder.AppendLine("Days left before Zombies spawn: " + Math.Max(0, Constants.DAYS_BEFORE_ZOMBIES_SPAWN - GenDate.DaysPassedFloat));
 				if (Constants.DEBUGGRID == false) return;
 
 				var allGraphics = allGraphicsField.GetValue<Dictionary<GraphicRequest, Graphic>>();
@@ -137,6 +139,7 @@ namespace ZombieLand
 					builder.AppendLine("Zombie " + zombie.NameStringShort + ": " + zombie.state + " at " + dest.x + "/" + dest.z);
 				});
 
+				var fadeOff = 1000L * GenTicks.SecondsToTicks(Constants.PHEROMONE_FADEOFF);
 				GenAdj.AdjacentCellsAndInside
 					.Select(cell => pos + cell)
 					.Where(cell => cell.InBounds(map))
@@ -149,7 +152,7 @@ namespace ZombieLand
 							var diff = now - cell.timestamp;
 							var realZombieCount = loc.GetThingList(map).OfType<Zombie>().Count();
 							builder.AppendLine(loc.x + " " + loc.z + ": " + cell.zombieCount + "z (" + realZombieCount + "z), "
-								+ cell.timestamp + (diff < Constants.PHEROMONE_FADEOFF ? (", +" + diff) : ""));
+								+ cell.timestamp + (diff < fadeOff ? (", +" + diff) : ""));
 						}
 						else
 							builder.AppendLine(loc.x + " " + loc.z + ": empty");
@@ -241,7 +244,7 @@ namespace ZombieLand
 					{
 						newPos.timestamp -= newPos.zombieCount * Constants.ZOMBIE_CLOGGING_FACTOR;
 						var currentTicks = Tools.Ticks();
-						var notOlderThan = currentTicks - Constants.PHEROMONE_FADEOFF;
+						var notOlderThan = currentTicks - 1000L * GenTicks.SecondsToTicks(Constants.PHEROMONE_FADEOFF);
 						if (newPos.timestamp < notOlderThan)
 							newPos.timestamp = notOlderThan;
 					}
@@ -293,17 +296,38 @@ namespace ZombieLand
 			}
 		}
 
-		[HarmonyPatch(typeof(Reachability))]
-		[HarmonyPatch("CanReach")]
-		[HarmonyPatch(new Type[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(PathEndMode), typeof(TraverseParms) })]
-		static class Reachability_CanReach_Patch
+		// patch to disallow interacting with zombies or zombiecorpses
+		//
+		[HarmonyPatch(typeof(ReservationManager))]
+		[HarmonyPatch("CanReserve")]
+		static class ReservationManager_CanReserve_Patch
 		{
-			static bool Prefix(LocalTargetInfo dest, ref bool __result)
+			static bool Prefix(LocalTargetInfo target, ref bool __result)
 			{
-				if (dest.Thing is Zombie || dest.Thing is ZombieCorpse)
+				if (target.HasThing)
 				{
-					__result = false;
-					return false;
+					if (target.Thing is Zombie || target.Thing is ZombieCorpse)
+					{
+						__result = false;
+						return false;
+					}
+				}
+				return true;
+			}
+		}
+		[HarmonyPatch(typeof(ReservationManager))]
+		[HarmonyPatch("Reserve")]
+		static class ReservationManager_Reserve_Patch
+		{
+			static bool Prefix(LocalTargetInfo target, ref bool __result)
+			{
+				if (target.HasThing)
+				{
+					if (target.Thing is Zombie || target.Thing is ZombieCorpse)
+					{
+						__result = false;
+						return false;
+					}
 				}
 				return true;
 			}

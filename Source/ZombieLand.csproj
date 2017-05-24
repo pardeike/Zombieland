@@ -49,6 +49,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Alert_DaysUntilSpawning.cs" />
     <Compile Include="ColorHSV.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="GraphicToolbox.cs" />
@@ -70,6 +71,9 @@
     <Compile Include="ZombieIncidents.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\About\Settings.txt">
+      <Link>_xml\Settings.txt</Link>
+    </Content>
     <Content Include="..\Defs\Zombie_Faction.xml">
       <Link>_xml\Zombie_Faction.xml</Link>
       <SubType>Designer</SubType>

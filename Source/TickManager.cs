@@ -173,6 +173,8 @@ namespace ZombieLand
 
 		public void IncreaseZombiePopulation()
 		{
+			if (GenDate.DaysPassedFloat < Constants.DAYS_BEFORE_ZOMBIES_SPAWN) return;
+
 			var zombieCount = ZombieCount() + Tools.generator.ZombiesQueued(map);
 			var zombieDestCount = GetMaxZombieCount(true);
 			if (zombieCount < zombieDestCount)
@@ -190,7 +192,7 @@ namespace ZombieLand
 
 			if (updateCounter-- < 0)
 			{
-				updateCounter = Constants.TICKMANAGER_RECALCULATE_DELAY;
+				updateCounter = GenTicks.SecondsToTicks(Constants.TICKMANAGER_RECALCULATE_DELAY);
 				RecalculateVisibleMap();
 			}
 
