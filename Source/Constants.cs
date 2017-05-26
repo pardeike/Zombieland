@@ -95,8 +95,8 @@ namespace ZombieLand
 		// zombie stats
 		//
 		public static float ZOMBIE_CHAINING_RADIUS = 1.5f;
-		public static float ANIMAL_PHEROMONE_RADIUS = 3f;
-		public static float HUMAN_PHEROMONE_RADIUS = 5f;
+		public static float ANIMAL_PHEROMONE_RADIUS = 2f;
+		public static float HUMAN_PHEROMONE_RADIUS = 4f;
 		public static float ZOMBIE_MOVE_SPEED_IDLE = 0.2f;
 		public static float ZOMBIE_MOVE_SPEED_TRACKING = 1.5f;
 		public static float ZOMBIE_HIT_CHANCE_IDLE = 0.2f;

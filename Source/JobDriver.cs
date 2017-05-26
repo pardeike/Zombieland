@@ -150,6 +150,31 @@ namespace ZombieLand
 
 			if (destination.IsValid == false)
 			{
+				var door = CanSmashDoor();
+				if (door != null)
+				{
+					if (Constants.USE_SOUND)
+					{
+						var info = SoundInfo.InMap(target);
+						SoundDef.Named("ZombieHit").PlayOneShot(info);
+					}
+
+					var job = new Job(JobDefOf.AttackMelee, target)
+					{
+						maxNumMeleeAttacks = 9999999,
+						expiryInterval = 9999999,
+						canBash = true,
+						attackDoorIfTargetLost = true,
+						ignoreForbidden = false,
+					};
+
+					zombie.jobs.StartJob(job, JobCondition.InterruptOptional, null, true, false, null);
+					return;
+				}
+			}
+
+			if (destination.IsValid == false)
+			{
 				var hour = GenLocalDate.HourOfDay(Find.VisibleMap);
 
 				// check for day/night and dust/dawn
@@ -236,6 +261,13 @@ namespace ZombieLand
 				if (p != null && !(p is Zombie) && p.Dead == false && p.Downed == false)
 					return p;
 			}
+			return null;
+		}
+
+		Building_Door CanSmashDoor()
+		{
+			var grid = pawn.Map.thingGrid;
+			var basePos = pawn.Position;
 			for (int i = 0; i < 8; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCells[adjIndex[i]];

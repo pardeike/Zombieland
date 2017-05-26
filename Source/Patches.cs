@@ -396,13 +396,13 @@ namespace ZombieLand
 					switch (zombie.story.bodyType)
 					{
 						case BodyType.Thin:
-							factor = 2f;
+							factor = 0.8f;
 							break;
 						case BodyType.Hulk:
-							factor = 0.25f;
+							factor = 0.1f;
 							break;
 						case BodyType.Fat:
-							factor = 0.5f;
+							factor = 0.2f;
 							break;
 						default:
 							factor = 1f;
@@ -439,6 +439,36 @@ namespace ZombieLand
 						__result *= 2f;
 						break;
 				}
+			}
+		}
+
+		// patch for variable zombie damage factor
+		//
+		[HarmonyPatch(typeof(Pawn_HealthTracker))]
+		[HarmonyPatch("PainShockThreshold", PropertyMethod.Getter)]
+		static class Pawn_HealthTracker_PainShockThreshold_Patch
+		{
+			static float ZombiePainShockThreshold(ref Pawn pawn)
+			{
+				var zombie = pawn as Zombie;
+				switch (zombie.story.bodyType)
+				{
+					case BodyType.Thin:
+						return 0.1f;
+					case BodyType.Hulk:
+						return 0.8f;
+					case BodyType.Fat:
+						return 0.2f;
+				}
+				return 0.8f;
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+			{
+				var conditions = Tools.NotZombieInstructions(generator, method);
+				var replacement = AccessTools.Method(typeof(Pawn_HealthTracker_PainShockThreshold_Patch), "ZombiePainShockThreshold");
+				var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method, replacement);
+				return transpiler(generator, instructions);
 			}
 		}
 

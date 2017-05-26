@@ -48,12 +48,12 @@ HOUR_START_OF_DAWN = 32
 ZOMBIE_CHAINING_RADIUS = 1.5
 
 // This controls the distance within zombies will be aware of animals.
-// Default is 3.0
-ANIMAL_PHEROMONE_RADIUS = 3.0
+// Default is 2.0
+ANIMAL_PHEROMONE_RADIUS = 2.0
 
 // This controls the distance within zombies will be aware of non-animals.
-// Default is 5.0
-HUMAN_PHEROMONE_RADIUS = 5.0
+// Default is 4.0
+HUMAN_PHEROMONE_RADIUS = 4.0
 
 // How fast do zombies move if they are not tracking anything. Default is 0.2
 ZOMBIE_MOVE_SPEED_IDLE = 0.2
