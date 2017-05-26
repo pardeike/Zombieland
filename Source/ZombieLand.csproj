@@ -56,6 +56,7 @@
     <Compile Include="JobDriver.cs" />
     <Compile Include="JobGiver.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="Patches.cs" />
     <Compile Include="PheromoneGrid.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ColonyEvaluation.cs" />
@@ -66,7 +67,6 @@
     <Compile Include="Zombie.cs" />
     <Compile Include="ZombieCorpse.cs" />
     <Compile Include="ZombieDefs.cs" />
-    <Compile Include="ZombieExtras.cs" />
     <Compile Include="ZombieGenerator.cs" />
     <Compile Include="ZombieIncidents.cs" />
   </ItemGroup>

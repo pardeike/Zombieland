@@ -80,9 +80,8 @@ namespace ZombieLand
 		// timing
 		//
 		public static float DAYS_BEFORE_ZOMBIES_SPAWN = 3f;
-		public static float FRAME_TIME_FACTOR = 0.5f;
+		public static float FRAME_TIME_FACTOR = 0.25f;
 		public static float PHEROMONE_FADEOFF = 90f;
-		public static float JOBDRIVER_TICKS_DELAY = 1f;
 		public static float TICKMANAGER_RECALCULATE_DELAY = 2f;
 
 		// zombie spawning

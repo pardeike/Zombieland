@@ -1,5 +1,4 @@
-﻿using Harmony;
-using RimWorld;
+﻿using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +11,8 @@ namespace ZombieLand
 	public class JobDriver_Stumble : JobDriver
 	{
 		IntVec3 destination;
-		int slowdownCounter;
 
-		public virtual void InitAction()
+		void InitAction()
 		{
 			destination = IntVec3.Invalid;
 		}
@@ -35,11 +33,8 @@ namespace ZombieLand
 			return p1.DistanceToSquared(center).CompareTo(p2.DistanceToSquared(center));
 		}
 
-		public virtual void TickAction()
+		void TickAction()
 		{
-			if (slowdownCounter-- > 0) return;
-			slowdownCounter = GenTicks.SecondsToTicks(Constants.JOBDRIVER_TICKS_DELAY);
-
 			var zombie = (Zombie)pawn;
 			if (zombie.state == ZombieState.Emerging) return;
 			var map = zombie.Map;
@@ -59,11 +54,9 @@ namespace ZombieLand
 
 			if (zombie.Downed)
 			{
-				var missingParts = zombie.health.hediffSet.GetMissingPartsCommonAncestors();
-				var hasLeg = missingParts.Any(part => part.Part.def == BodyPartDefOf.LeftLeg || part.Part.def == BodyPartDefOf.RightLeg);
-				var hasBrain = zombie.health.hediffSet.GetBrain() != null;
-
-				if (!hasLeg || !hasBrain)
+				var walkCapacity = PawnCapacityUtility.CalculateCapacityLevel(zombie.health.hediffSet, PawnCapacityDefOf.Moving);
+				var missingBrain = zombie.health.hediffSet.GetBrain() == null;
+				if (walkCapacity < 0.25f || missingBrain)
 				{
 					zombie.Kill(null);
 					return;
@@ -186,8 +179,8 @@ namespace ZombieLand
 					//
 					if (moveTowardsCenter)
 					{
-						var center = map.TickManager().centerOfInterest;
-						possibleMoves.Sort((p1, p2) => SortByDirection(center, p1, p2));
+						var center = zombie.wanderDestination.IsValid ? zombie.wanderDestination : map.Center;
+						possibleMoves.Sort((p1, p2) => SortByDirection(zombie.wanderDestination, p1, p2));
 						possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
 						possibleMoves = possibleMoves.OrderBy(p => grid.Get(p, false).zombieCount).ToList();
 						destination = possibleMoves.First();

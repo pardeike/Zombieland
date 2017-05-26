@@ -22,18 +22,13 @@ DAYS_BEFORE_ZOMBIES_SPAWN = 3.0
 // The maximum time per tick is 1/60 second. If computing zombies takes longer
 // not all zombies will be computed to avoid lag. This factor is multiplied into
 // this calculation to compensate that a tick is also used for everything else
-// in the game. Default is 0.5 which means that zombies get 1/90 of a second.
-FRAME_TIME_FACTOR = 0.5
+// in the game. Default is 0.25 which means that zombies get 1/240 of a second.
+FRAME_TIME_FACTOR = 0.25
 
 // This is the fade-off of the traces every enemy leaves behind in game-seconds.
 // Setting this lower will make zombies chaise you less because they loose track
 // of you. Default is 90.0
 PHEROMONE_FADEOFF = 90.0
-
-// This controls how often zombies "do" something. It is in game-seconds and
-// setting this lower gives zombies higher awareness of their surroundings.
-// Default is 1.0
-JOBDRIVER_TICKS_DELAY = 1.0
 
 // This controls how often the map is analyzed to find the center-of-interest
 // and to sort zombies into a priority list in case we need to restrain cpu

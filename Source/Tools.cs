@@ -111,6 +111,31 @@ namespace ZombieLand
 			return cell => IsValidSpawnLocation(cell, map);
 		}
 
+		public static IntVec3 CenterOfInterest(Map map)
+		{
+			int x = 0, z = 0, n = 0;
+			int buildingMultiplier = 3;
+			if (map.listerBuildings != null && map.listerBuildings.allBuildingsColonist != null)
+			{
+				map.listerBuildings.allBuildingsColonist.Do(building =>
+				{
+					x += building.Position.x * buildingMultiplier;
+					z += building.Position.z * buildingMultiplier;
+					n += buildingMultiplier;
+				});
+			}
+			if (map.mapPawns != null)
+			{
+				map.mapPawns.SpawnedPawnsInFaction(Faction.OfPlayer).Do(pawn =>
+				{
+					x += pawn.Position.x;
+					z += pawn.Position.z;
+					n++;
+				});
+			}
+			return n == 0 ? map.Center : new IntVec3(x / n, 0, z / n);
+		}
+
 		public static void ChainReact(PheromoneGrid grid, Map map, IntVec3 basePos, IntVec3 nextMove)
 		{
 			var baseTimestamp = grid.Get(nextMove, false).timestamp;

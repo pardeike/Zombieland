@@ -35,7 +35,7 @@ namespace ZombieLand
 				zombieCount /= 2;
 
 			var validator = SpotValidator(map);
-			RCellFinder.TryFindRandomSpotJustOutsideColony(map.TickManager().centerOfInterest, map, null, out IntVec3 spot, validator);
+			RCellFinder.TryFindRandomSpotJustOutsideColony(Tools.CenterOfInterest(map), map, null, out IntVec3 spot, validator);
 			if (spot.IsValid == false) return false;
 
 			var cellValidator = Tools.ZombieSpawnLocator(map);

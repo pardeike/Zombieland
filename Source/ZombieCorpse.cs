@@ -8,7 +8,6 @@ namespace ZombieLand
 {
 	public class ZombieCorpse : Corpse
 	{
-		public int vanishAfter;
 		public static Type type = typeof(ZombieCorpse);
 
 		public override bool IngestibleNow
@@ -22,8 +21,8 @@ namespace ZombieLand
 		public override void SpawnSetup(Map map, bool respawningAfterLoad)
 		{
 			base.SpawnSetup(map, respawningAfterLoad);
+
 			InnerPawn.Rotation = Rot4.Random;
-			vanishAfter = Age + GenTicks.SecondsToTicks(60);
 			this.SetForbidden(false, false);
 
 			GetComps<CompRottable>()
@@ -45,10 +44,15 @@ namespace ZombieLand
 		{
 		}
 
-		public override void ExposeData()
+		public override void TickRare()
 		{
-			base.ExposeData();
-			Scribe_Values.Look(ref vanishAfter, "vanishAfter");
+			if (Destroyed == false && Bugged == false)
+			{
+				if (RottableUtility.GetRotStage(this) == RotStage.Dessicated)
+					Destroy(DestroyMode.Vanish);
+			}
+
+			base.TickRare();
 		}
 	}
 }

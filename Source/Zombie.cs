@@ -10,6 +10,7 @@ namespace ZombieLand
 	public class Zombie : Pawn
 	{
 		public ZombieState state = ZombieState.Emerging;
+		public IntVec3 wanderDestination = IntVec3.Invalid;
 
 		int rubbleTicks = 0;
 		int rubbleCounter = 0;
@@ -19,6 +20,7 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 			Scribe_Values.Look(ref state, "zstate");
+			Scribe_Values.Look(ref wanderDestination, "wanderDestination");
 			Scribe_Values.Look(ref rubbleTicks, "rubbleTicks");
 			Scribe_Values.Look(ref rubbleCounter, "rubbleCounter");
 			Scribe_Collections.Look(ref rubbles, "rubbles", LookMode.Deep);
@@ -112,9 +114,6 @@ namespace ZombieLand
 
 		public void CustomTick()
 		{
-			if ((Find.TickManager.TicksGame % 250) == 0)
-				TickRare();
-
 			if (!ThingOwnerUtility.ContentsFrozen(base.ParentHolder))
 			{
 				if (base.Spawned)
@@ -130,8 +129,8 @@ namespace ZombieLand
 				if (health != null)
 					health.HealthTick();
 
-				if (!Dead && mindState != null)
-					mindState.MindStateTick();
+				//if (!Dead && mindState != null)
+				//	mindState.MindStateTick();
 			}
 
 			if (state == ZombieState.Emerging)

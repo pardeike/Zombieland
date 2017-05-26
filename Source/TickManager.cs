@@ -8,25 +8,6 @@ using Verse;
 
 namespace ZombieLand
 {
-	static class MapExtension
-	{
-		static Dictionary<int, TickManager> tickManagerCache = new Dictionary<int, TickManager>();
-		public static TickManager TickManager(this Map map)
-		{
-			if (tickManagerCache.TryGetValue(map.uniqueID, out TickManager tickManager))
-				return tickManager;
-
-			tickManager = map.GetComponent<TickManager>();
-			if (tickManager == null)
-			{
-				tickManager = new TickManager(map);
-				map.components.Add(tickManager);
-			}
-			tickManagerCache[map.uniqueID] = tickManager;
-			return tickManager;
-		}
-	}
-
 	class TickManager : MapComponent
 	{
 		int populationSpawnCounter;
@@ -35,14 +16,12 @@ namespace ZombieLand
 		int updateCounter;
 
 		public int currentColonyPoints;
-		public IntVec3 centerOfInterest;
 
 		public List<Zombie> prioritizedZombies;
 
 		public TickManager(Map map) : base(map)
 		{
 			currentColonyPoints = 100;
-			centerOfInterest = IntVec3.Invalid;
 			prioritizedZombies = new List<Zombie>();
 		}
 
@@ -65,7 +44,6 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 			Scribe_Values.Look(ref currentColonyPoints, "colonyPoints");
-			Scribe_Values.Look(ref centerOfInterest, "centerOfInterest");
 			Scribe_Collections.Look(ref prioritizedZombies, "prioritizedZombies", LookMode.Reference);
 			prioritizedZombies = prioritizedZombies.Where(zombie => zombie != null).ToList();
 		}
@@ -74,29 +52,16 @@ namespace ZombieLand
 		{
 			currentColonyPoints = Tools.ColonyPoints();
 
-			int x = 0, z = 0, n = 0;
-			int buildingMultiplier = 3;
-			if (map.listerBuildings != null && map.listerBuildings.allBuildingsColonist != null)
-			{
-				map.listerBuildings.allBuildingsColonist.Do(building =>
-				{
-					x += building.Position.x * buildingMultiplier;
-					z += building.Position.z * buildingMultiplier;
-					n += buildingMultiplier;
-				});
-			}
-			if (map.mapPawns != null)
-			{
-				map.mapPawns.SpawnedPawnsInFaction(Faction.OfPlayer).Do(pawn =>
-				{
-					x += pawn.Position.x;
-					z += pawn.Position.z;
-					n++;
-				});
-			}
-			centerOfInterest = n == 0 ? map.Center : new IntVec3(x / n, 0, z / n);
-
 			prioritizedZombies = AllZombies().ToList();
+			var home = map.areaManager.Home;
+			if (home.TrueCount > 0)
+				prioritizedZombies.Do(zombie => zombie.wanderDestination = home.ActiveCells.RandomElement());
+			else
+			{
+				var center = Tools.CenterOfInterest(map);
+				prioritizedZombies.Do(zombie => zombie.wanderDestination = center);
+			}
+
 			var grid = map.GetGrid();
 			prioritizedZombies.Sort(
 				delegate (Zombie z1, Zombie z2)
@@ -105,8 +70,8 @@ namespace ZombieLand
 					var v2 = grid.Get(z2.Position).timestamp;
 					var order = v2.CompareTo(v1);
 					if (order != 0) return order;
-					var d1 = z1.Position.DistanceToSquared(centerOfInterest);
-					var d2 = z2.Position.DistanceToSquared(centerOfInterest);
+					var d1 = z1.Position.DistanceToSquared(z1.wanderDestination);
+					var d2 = z2.Position.DistanceToSquared(z2.wanderDestination);
 					return d1.CompareTo(d2);
 				}
 			);
@@ -135,8 +100,8 @@ namespace ZombieLand
 				ticked++;
 				if (watch.ElapsedTicks > maxTickTime) break;
 			}
-			ZombielandMod.EditWindow_DebugInspector_CurrentDebugString_Patch.tickedZombies = ticked;
-			ZombielandMod.EditWindow_DebugInspector_CurrentDebugString_Patch.ofTotalZombies = total;
+			Patches.EditWindow_DebugInspector_CurrentDebugString_Patch.tickedZombies = ticked;
+			Patches.EditWindow_DebugInspector_CurrentDebugString_Patch.ofTotalZombies = total;
 		}
 
 		public void DequeuAndSpawnZombies()
