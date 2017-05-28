@@ -9,6 +9,7 @@ using System.Text;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Verse.AI.Group;
 
 namespace ZombieLand
 {
@@ -43,26 +44,112 @@ namespace ZombieLand
 
 		// patch to remove the constant danger music because of the constant thread of zombies
 		//
-		[HarmonyPatch(typeof(DangerWatcher))]
-		[HarmonyPatch("DangerRating", PropertyMethod.Getter)]
-		static class AttackTargetsCache_get_DangerRating_Patch
+		static Dictionary<Map, HashSet<IAttackTarget>> playerHostilesWithoutZombies = new Dictionary<Map, HashSet<IAttackTarget>>();
+		//
+		[HarmonyPatch(typeof(AttackTargetsCache))]
+		[HarmonyPatch("RegisterTarget")]
+		static class AttackTargetsCache_RegisterTarget_Patch
 		{
-			class ZombieDangerWatcher : AttackTargetsCache
+			static void Add(IAttackTarget target)
 			{
-				public ZombieDangerWatcher(Map map) : base(map) { }
-
-				HashSet<IAttackTarget> TargetsHostileToColonyWithoutZombies()
-				{
-					return new HashSet<IAttackTarget>(TargetsHostileToColony.Where(t => !(t is Zombie)));
-				}
+				var thing = target.Thing;
+				if (thing == null || thing is Zombie) return;
+				if (thing.HostileTo(Faction.OfPlayer) == false) return;
+				var map = thing.Map;
+				if (map == null) return;
+				if (playerHostilesWithoutZombies.ContainsKey(map) == false)
+					playerHostilesWithoutZombies.Add(map, new HashSet<IAttackTarget>());
+				playerHostilesWithoutZombies[map].Add(target);
 			}
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				return Transpilers.MethodReplacer(instructions,
-					AccessTools.Method(typeof(AttackTargetsCache), "get_TargetsHostileToColony"),
-					AccessTools.Method(typeof(ZombieDangerWatcher), "TargetsHostileToColonyWithoutZombies")
-				);
+				var all = instructions.ToList();
+				for (int i = 0; i < all.Count - 1; i++)
+					yield return all[i];
+				var ret = all.Last();
+
+				var method = AccessTools.Method(typeof(AttackTargetsCache_RegisterTarget_Patch), "Add");
+				yield return new CodeInstruction(OpCodes.Ldarg_1) { labels = ret.labels };
+				yield return new CodeInstruction(OpCodes.Call, method);
+				yield return new CodeInstruction(OpCodes.Ret);
+			}
+		}
+		//
+		[HarmonyPatch(typeof(AttackTargetsCache))]
+		[HarmonyPatch("DeregisterTarget")]
+		static class AttackTargetsCache_DeregisterTarget_Patch
+		{
+			static void Remove(IAttackTarget target)
+			{
+				var thing = target.Thing;
+				if (thing == null || thing is Zombie) return;
+				var map = thing.Map;
+				if (map == null) return;
+				if (playerHostilesWithoutZombies.ContainsKey(map))
+					playerHostilesWithoutZombies[map].Remove(target);
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var all = instructions.ToList();
+				for (int i = 0; i < all.Count - 1; i++)
+					yield return all[i];
+				var ret = all.Last();
+
+				var method = AccessTools.Method(typeof(AttackTargetsCache_DeregisterTarget_Patch), "Remove");
+				yield return new CodeInstruction(OpCodes.Ldarg_1) { labels = ret.labels };
+				yield return new CodeInstruction(OpCodes.Call, method);
+				yield return new CodeInstruction(OpCodes.Ret);
+			}
+		}
+		//
+		[HarmonyPatch(typeof(MusicManagerPlay))]
+		[HarmonyPatch("DangerMusicMode", PropertyMethod.Getter)]
+		static class AttackTargetsCache_get_DangerRating_Patch
+		{
+			static int lastUpdateTick = 0;
+			static StoryDanger dangerRatingInt = StoryDanger.None;
+			static bool Prefix(ref bool __result)
+			{
+				if (Find.TickManager.TicksGame > lastUpdateTick + 101)
+				{
+					lastUpdateTick = Find.TickManager.TicksGame;
+
+					var maps = Find.Maps;
+					for (int i = 0; i < maps.Count; i++)
+					{
+						var map = maps[i];
+						if (map.IsPlayerHome)
+						{
+							var hostiles = playerHostilesWithoutZombies.ContainsKey(map)
+								? playerHostilesWithoutZombies[map]
+								: new HashSet<IAttackTarget>();
+
+							int num = hostiles.Count((IAttackTarget x) => !x.ThreatDisabled());
+							if (num == 0)
+								dangerRatingInt = StoryDanger.None;
+							else if (num <= Mathf.CeilToInt((float)map.mapPawns.FreeColonistsSpawnedCount * 0.5f))
+								dangerRatingInt = StoryDanger.Low;
+							else
+							{
+								dangerRatingInt = StoryDanger.Low;
+								var lastColonistHarmedTick = Traverse.Create(map.dangerWatcher).Field("lastColonistHarmedTick").GetValue<int>();
+								if (lastColonistHarmedTick > Find.TickManager.TicksGame - 900)
+									dangerRatingInt = StoryDanger.High;
+								else
+									foreach (Lord current in map.lordManager.lords)
+										if (current.CurLordToil is LordToil_AssaultColony)
+										{
+											dangerRatingInt = StoryDanger.High;
+											break;
+										}
+							}
+						}
+					}
+				}
+				__result = dangerRatingInt == StoryDanger.High;
+				return false;
 			}
 		}
 
@@ -87,6 +174,13 @@ namespace ZombieLand
 
 				var tickManager = map.GetComponent<TickManager>();
 				var center = Tools.CenterOfInterest(map);
+				//var tickString = String.Format("{0:d6} {1:d6} {2:d6}", new object[]
+				//{
+				//	TickManager_DoSingleTick_Patch.min,
+				//	TickManager_DoSingleTick_Patch.average,
+				//	TickManager_DoSingleTick_Patch.max
+				//});
+				//builder.AppendLine("Average tick time: " + tickString);
 				builder.AppendLine("Center of Interest: " + center.x + "/" + center.z);
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount(false));
 				builder.AppendLine("Ticked zombies: " + tickedZombies + " out of " + ofTotalZombies);

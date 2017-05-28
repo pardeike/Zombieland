@@ -82,19 +82,22 @@ namespace ZombieLand
 
 			// if we are near targets then attack them
 			//
-			var target = CanAttack();
-			if (target != null)
+
+			var enemy = CanAttack();
+			if (enemy != null)
 			{
+				destination = enemy.Position;
+
 				zombie.state = ZombieState.Tracking;
 				if (Constants.USE_SOUND)
 				{
-					var info = SoundInfo.InMap(target);
+					var info = SoundInfo.InMap(enemy);
 					SoundDef.Named("ZombieHit").PlayOneShot(info);
 				}
 
-				var job = new Job(JobDefOf.AttackMelee, target)
+				var job = new Job(JobDefOf.AttackMelee, enemy)
 				{
-					maxNumMeleeAttacks = 9999999,
+					maxNumMeleeAttacks = 1,
 					expiryInterval = 9999999,
 					canBash = true,
 					attackDoorIfTargetLost = true,
@@ -153,15 +156,17 @@ namespace ZombieLand
 				var door = CanSmashDoor();
 				if (door != null)
 				{
+					destination = door.Position;
+
 					if (Constants.USE_SOUND)
 					{
-						var info = SoundInfo.InMap(target);
+						var info = SoundInfo.InMap(enemy);
 						SoundDef.Named("ZombieHit").PlayOneShot(info);
 					}
 
-					var job = new Job(JobDefOf.AttackMelee, target)
+					var job = new Job(JobDefOf.AttackMelee, door)
 					{
-						maxNumMeleeAttacks = 9999999,
+						maxNumMeleeAttacks = 1,
 						expiryInterval = 9999999,
 						canBash = true,
 						attackDoorIfTargetLost = true,
@@ -242,23 +247,25 @@ namespace ZombieLand
 			destination = IntVec3.Invalid;
 		}
 
-		static int[] adjIndex = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
-		static int prevIndex = 0;
+		static int[] adjIndex4 = new int[] { 0, 1, 2, 3 };
+		static int prevIndex4 = 0;
+		static int[] adjIndex8 = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
+		static int prevIndex8 = 0;
 		Thing CanAttack()
 		{
 			var nextIndex = Constants.random.Next(8);
-			var c = adjIndex[prevIndex];
-			adjIndex[prevIndex] = adjIndex[nextIndex];
-			adjIndex[nextIndex] = c;
-			prevIndex = nextIndex;
+			var c = adjIndex8[prevIndex8];
+			adjIndex8[prevIndex8] = adjIndex8[nextIndex];
+			adjIndex8[nextIndex] = c;
+			prevIndex8 = nextIndex;
 
 			var grid = pawn.Map.thingGrid;
 			var basePos = pawn.Position;
 			for (int i = 0; i < 8; i++)
 			{
-				var pos = basePos + GenAdj.AdjacentCells[adjIndex[i]];
+				var pos = basePos + GenAdj.AdjacentCells[adjIndex8[i]];
 				var p = grid.ThingAt<Pawn>(pos);
-				if (p != null && !(p is Zombie) && p.Dead == false && p.Downed == false)
+				if (p != null && (p is Zombie) == false && p.Dead == false && p.Downed == false)
 					return p;
 			}
 			return null;
@@ -266,11 +273,17 @@ namespace ZombieLand
 
 		Building_Door CanSmashDoor()
 		{
+			var nextIndex = Constants.random.Next(4);
+			var c = adjIndex4[prevIndex4];
+			adjIndex4[prevIndex4] = adjIndex4[nextIndex];
+			adjIndex4[nextIndex] = c;
+			prevIndex4 = nextIndex;
+
 			var grid = pawn.Map.thingGrid;
 			var basePos = pawn.Position;
-			for (int i = 0; i < 8; i++)
+			for (int i = 0; i < 4; i++)
 			{
-				var pos = basePos + GenAdj.AdjacentCells[adjIndex[i]];
+				var pos = basePos + GenAdj.CardinalDirections[adjIndex4[i]];
 				var p = grid.ThingAt<Building_Door>(pos);
 				if (p != null)
 					return p;

@@ -8,6 +8,37 @@ using Verse;
 
 namespace ZombieLand
 {
+	/*
+	[HarmonyPatch(typeof(Verse.TickManager))]
+	[HarmonyPatch("DoSingleTick")]
+	static class TickManager_DoSingleTick_Patch
+	{
+		public static Stopwatch watch;
+		public static long min;
+		public static long max;
+		public static long average;
+		static readonly int tickTotal = 120;
+		static long[] ticks = new long[tickTotal];
+		static int ticksCounter = 0;
+
+		static void Prefix()
+		{
+			watch = new Stopwatch();
+			watch.Start();
+		}
+
+		static void Postfix()
+		{
+			ticks[ticksCounter] = watch.ElapsedTicks;
+			min = ticks.Min();
+			max = ticks.Max();
+			average = (long)ticks.Average();
+			ticksCounter = (ticksCounter + 1) % tickTotal;
+			watch.Stop();
+		}
+	}
+	*/
+
 	class TickManager : MapComponent
 	{
 		int populationSpawnCounter;
