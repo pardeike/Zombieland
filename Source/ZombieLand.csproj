@@ -36,22 +36,22 @@
       <HintPath>..\Assemblies\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Assembly-CSharp, Version=0.17.6347.39727, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Assembly-CSharp">
       <HintPath>D:\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="UnityEngine">
       <HintPath>D:\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Alert_DaysUntilSpawning.cs" />
-    <Compile Include="ColorHSV.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Dialogs.cs" />
+    <Compile Include="ColorData.cs" />
+    <Compile Include="GraphicsDatabase.cs" />
     <Compile Include="GraphicToolbox.cs" />
     <Compile Include="JobDriver.cs" />
     <Compile Include="JobGiver.cs" />
@@ -69,6 +69,8 @@
     <Compile Include="ZombieDefs.cs" />
     <Compile Include="ZombieGenerator.cs" />
     <Compile Include="ZombieIncidents.cs" />
+    <Compile Include="ZombieSettings.cs" />
+    <Compile Include="ZombieStains.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\About\Settings.txt">
@@ -102,6 +104,24 @@
     <Content Include="..\Defs\Zombie_ThinkTree.xml">
       <Link>_xml\Zombie_ThinkTree.xml</Link>
       <SubType>Designer</SubType>
+    </Content>
+    <Content Include="..\Languages\English\Keyed\Text.xml">
+      <Link>_files\English\Keyed\Text.xml</Link>
+    </Content>
+    <Content Include="..\Languages\English\LanguageInfo.xml">
+      <Link>_files\English\LanguageInfo.xml</Link>
+    </Content>
+    <Content Include="..\Languages\German\Keyed\Text.xml">
+      <Link>_files\German\Keyed\Text.xml</Link>
+    </Content>
+    <Content Include="..\Languages\German\LanguageInfo.xml">
+      <Link>_files\German\LanguageInfo.xml</Link>
+    </Content>
+    <Content Include="..\Languages\Russian\Keyed\Text.xml">
+      <Link>_files\Russian\Keyed\Text.xml</Link>
+    </Content>
+    <Content Include="..\Languages\Russian\LanguageInfo.xml">
+      <Link>_files\Russian\LanguageInfo.xml</Link>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

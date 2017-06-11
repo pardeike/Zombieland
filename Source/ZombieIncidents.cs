@@ -4,6 +4,7 @@ using System.Linq;
 using Verse;
 using Harmony;
 using RimWorld.Planet;
+using Verse.Sound;
 
 namespace ZombieLand
 {
@@ -30,12 +31,31 @@ namespace ZombieLand
 		public override bool TryExecute(IncidentParms parms)
 		{
 			var map = (Map)parms.target;
-			var zombieCount = Constants.NUMBER_OF_ZOMBIES_IN_INCIDENT;
-			if (GenDate.DaysPassed <= 3)
-				zombieCount /= 2;
+			var zombieCount = ZombieSettings.Values.baseNumberOfZombiesinEvent;
+			zombieCount *= map.mapPawns.FreeColonists.Count();
 
-			var validator = SpotValidator(map);
-			RCellFinder.TryFindRandomSpotJustOutsideColony(Tools.CenterOfInterest(map), map, null, out IntVec3 spot, validator);
+			var spotValidator = SpotValidator(map);
+
+			IntVec3 spot = IntVec3.Invalid;
+			string headline = "";
+			string text = "";
+			for (int counter = 1; counter <= 10; counter++)
+			{
+				if (ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap)
+				{
+					RCellFinder.TryFindRandomSpotJustOutsideColony(Tools.CenterOfInterest(map), map, null, out spot, spotValidator);
+					headline = "LetterLabelZombiesRisingNearYourBase".Translate();
+					text = "ZombiesRisingNearYourBase".Translate();
+				}
+				else
+				{
+					RCellFinder.TryFindRandomPawnEntryCell(out spot, map, 0.5f, spotValidator);
+					headline = "LetterLabelZombiesRising".Translate();
+					text = "ZombiesRising".Translate();
+				}
+
+				if (spot.IsValid) break;
+			}
 			if (spot.IsValid == false) return false;
 
 			var cellValidator = Tools.ZombieSpawnLocator(map);
@@ -53,9 +73,10 @@ namespace ZombieLand
 					});
 			}
 
-			var text = "ZombiesRisingNearYourBase".Translate();
 			var location = new GlobalTargetInfo(spot, map);
-			Find.LetterStack.ReceiveLetter("LetterLabelZombiesRisingNearYourBase".Translate(), text, LetterDefOf.BadUrgent, location);
+			Find.LetterStack.ReceiveLetter(headline, text, LetterDefOf.BadUrgent, location);
+
+			SoundDef.Named("ZombiesRising").PlayOneShotOnCamera(null);
 			return true;
 		}
 	}

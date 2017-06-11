@@ -32,8 +32,8 @@ PHEROMONE_FADEOFF = 90.0
 
 // This controls how often the map is analyzed to find the center-of-interest
 // and to sort zombies into a priority list in case we need to restrain cpu
-// time. It is in game-seconds and the default is 2.0
-TICKMANAGER_RECALCULATE_DELAY = 2.0
+// time. It is in game-seconds and the default is 5.0
+TICKMANAGER_RECALCULATE_DELAY = 5.0
 
 // This controls the day/night cycle for zombies
 // The following hours continue after 23h with 24, 25, 26...

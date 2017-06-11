@@ -34,8 +34,8 @@ namespace ZombieLand
 	{
 		List<Pheromone> grid;
 
-		private int mapSizeX;
-		private int mapSizeZ;
+		readonly int mapSizeX;
+		readonly int mapSizeZ;
 
 		public PheromoneGrid(Map map) : base(map)
 		{

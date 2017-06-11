@@ -35,6 +35,10 @@ namespace ZombieLand
 
 		void TickAction()
 		{
+			var fadeOff = Tools.PheromoneFadeoff();
+			var agitatedFadeoff = fadeOff / 4;
+			var checkSmashableFadeoff = agitatedFadeoff / 2;
+
 			var zombie = (Zombie)pawn;
 			if (zombie.state == ZombieState.Emerging) return;
 			var map = zombie.Map;
@@ -52,8 +56,23 @@ namespace ZombieLand
 				return;
 			}
 
+			if (ZombieSettings.Values.zombiesDieVeryEasily)
+			{
+				if (zombie.health.hediffSet.GetHediffs<Hediff_Injury>().Any())
+				{
+					zombie.Kill(null);
+					return;
+				}
+			}
+
 			if (zombie.Downed)
 			{
+				if (ZombieSettings.Values.zombiesDieVeryEasily || ZombieSettings.Values.doubleTapRequired == false)
+				{
+					zombie.Kill(null);
+					return;
+				}
+
 				var walkCapacity = PawnCapacityUtility.CalculateCapacityLevel(zombie.health.hediffSet, PawnCapacityDefOf.Moving);
 				var missingBrain = zombie.health.hediffSet.GetBrain() == null;
 				if (walkCapacity < 0.25f || missingBrain)
@@ -65,6 +84,12 @@ namespace ZombieLand
 				var injuries = zombie.health.hediffSet.GetHediffs<Hediff_Injury>();
 				foreach (var injury in injuries)
 				{
+					if (ZombieSettings.Values.zombiesDieVeryEasily)
+					{
+						zombie.Kill(null);
+						return;
+					}
+
 					if (injury.IsOld() == false)
 					{
 						injury.Heal(injury.Severity + 0.5f);
@@ -82,7 +107,6 @@ namespace ZombieLand
 
 			// if we are near targets then attack them
 			//
-
 			var enemy = CanAttack();
 			if (enemy != null)
 			{
@@ -95,16 +119,7 @@ namespace ZombieLand
 					SoundDef.Named("ZombieHit").PlayOneShot(info);
 				}
 
-				var job = new Job(JobDefOf.AttackMelee, enemy)
-				{
-					maxNumMeleeAttacks = 1,
-					expiryInterval = 9999999,
-					canBash = true,
-					attackDoorIfTargetLost = true,
-					ignoreForbidden = false,
-				};
-
-				zombie.jobs.StartJob(job, JobCondition.InterruptOptional, null, true, false, null);
+				AttackThing(enemy, JobDefOf.AttackMelee);
 				return;
 			}
 
@@ -117,8 +132,8 @@ namespace ZombieLand
 			//
 			var grid = zombie.Map.GetGrid();
 			var possibleTrackingMoves = new List<IntVec3>();
-			var fadeOff = 1000L * GenTicks.SecondsToTicks(Constants.PHEROMONE_FADEOFF);
 			var currentTicks = Tools.Ticks();
+			var timeDelta = long.MaxValue;
 			for (int i = 0; i < 8; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCells[i];
@@ -131,32 +146,29 @@ namespace ZombieLand
 				possibleTrackingMoves = possibleTrackingMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
 				possibleTrackingMoves = possibleTrackingMoves.OrderBy(p => grid.Get(p, false).zombieCount).ToList();
 				var nextMove = possibleTrackingMoves.First();
+				timeDelta = currentTicks - grid.Get(nextMove, false).timestamp;
 
 				destination = nextMove;
 				if (zombie.state == ZombieState.Wandering)
 				{
-					Tools.ChainReact(grid, zombie.Map, basePos, nextMove);
-					if (currentTicks - grid.Get(nextMove, false).timestamp < fadeOff / 4)
-					{
-						Tools.CastThoughtBubble(zombie, Constants.BRRAINZ);
-
-						if (Constants.USE_SOUND)
-						{
-							var info = SoundInfo.InMap(new TargetInfo(basePos, map, false));
-							SoundDef.Named("ZombieTracking").PlayOneShot(info);
-						}
-					}
+					Tools.ChainReact(zombie.Map, basePos, nextMove);
+					if (timeDelta <= agitatedFadeoff)
+						CastBrainzThought();
 				}
 				zombie.state = ZombieState.Tracking;
 			}
 			if (destination.IsValid == false) zombie.state = ZombieState.Wandering;
 
-			if (destination.IsValid == false)
+			bool checkSmashable = timeDelta >= checkSmashableFadeoff;
+			if (ZombieSettings.Values.smashOnlyWhenAgitated)
+				checkSmashable &= zombie.state == ZombieState.Tracking;
+
+			if (destination.IsValid == false || checkSmashable)
 			{
-				var door = CanSmashDoor();
-				if (door != null)
+				var building = CanSmash();
+				if (building != null)
 				{
-					destination = door.Position;
+					destination = building.Position;
 
 					if (Constants.USE_SOUND)
 					{
@@ -164,16 +176,7 @@ namespace ZombieLand
 						SoundDef.Named("ZombieHit").PlayOneShot(info);
 					}
 
-					var job = new Job(JobDefOf.AttackMelee, door)
-					{
-						maxNumMeleeAttacks = 1,
-						expiryInterval = 9999999,
-						canBash = true,
-						attackDoorIfTargetLost = true,
-						ignoreForbidden = false,
-					};
-
-					zombie.jobs.StartJob(job, JobCondition.InterruptOptional, null, true, false, null);
+					AttackThing(building, JobDefOf.AttackStatic);
 					return;
 				}
 			}
@@ -210,7 +213,7 @@ namespace ZombieLand
 					if (moveTowardsCenter)
 					{
 						var center = zombie.wanderDestination.IsValid ? zombie.wanderDestination : map.Center;
-						possibleMoves.Sort((p1, p2) => SortByDirection(zombie.wanderDestination, p1, p2));
+						possibleMoves.Sort((p1, p2) => SortByDirection(center, p1, p2));
 						possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
 						possibleMoves = possibleMoves.OrderBy(p => grid.Get(p, false).zombieCount).ToList();
 						destination = possibleMoves.First();
@@ -241,16 +244,43 @@ namespace ZombieLand
 			zombie.pather.StartPath(dest, PathEndMode.OnCell);
 		}
 
+		void CastBrainzThought()
+		{
+			Tools.CastThoughtBubble(pawn, Constants.BRRAINZ);
+
+			if (Constants.USE_SOUND)
+			{
+				var info = SoundInfo.InMap(new TargetInfo(pawn.Position, pawn.Map, false));
+				SoundDef.Named("ZombieTracking").PlayOneShot(info);
+			}
+		}
+
+		void AttackThing(Thing thing, JobDef def)
+		{
+			var job = new Job(def, thing)
+			{
+				maxNumMeleeAttacks = 1,
+				maxNumStaticAttacks = 1,
+				expiryInterval = 600,
+				canBash = false,
+				attackDoorIfTargetLost = false,
+				ignoreForbidden = false,
+				locomotionUrgency = LocomotionUrgency.Amble
+			};
+
+			pawn.jobs.StartJob(job, JobCondition.Succeeded, null, true, false, null, null);
+		}
+
 		public override void Notify_PatherArrived()
 		{
 			base.Notify_PatherArrived();
 			destination = IntVec3.Invalid;
 		}
 
-		static int[] adjIndex4 = new int[] { 0, 1, 2, 3 };
-		static int prevIndex4 = 0;
-		static int[] adjIndex8 = new int[] { 0, 1, 2, 3, 4, 5, 6, 7 };
-		static int prevIndex8 = 0;
+		static int[] adjIndex4 = { 0, 1, 2, 3 };
+		static int prevIndex4;
+		static int[] adjIndex8 = { 0, 1, 2, 3, 4, 5, 6, 7 };
+		static int prevIndex8;
 		Thing CanAttack()
 		{
 			var nextIndex = Constants.random.Next(8);
@@ -266,28 +296,93 @@ namespace ZombieLand
 				var pos = basePos + GenAdj.AdjacentCells[adjIndex8[i]];
 				var p = grid.ThingAt<Pawn>(pos);
 				if (p != null && (p is Zombie) == false && p.Dead == false && p.Downed == false)
-					return p;
+				{
+					switch (ZombieSettings.Values.attackMode)
+					{
+						case AttackMode.Everything:
+							return p;
+
+						case AttackMode.OnlyHumans:
+							{
+								if (p.RaceProps.Humanlike)
+									return p;
+								if (p.MentalState != null)
+								{
+									var msDef = p.MentalState.def;
+									if (msDef == MentalStateDefOf.Manhunter || msDef == MentalStateDefOf.ManhunterPermanent)
+										return p;
+								}
+								break;
+							}
+						case AttackMode.OnlyColonists:
+							{
+								if (p.IsColonist)
+									return p;
+								if (p.MentalState != null)
+								{
+									var msDef = p.MentalState.def;
+									if (msDef == MentalStateDefOf.Manhunter || msDef == MentalStateDefOf.ManhunterPermanent)
+										return p;
+								}
+								break;
+							}
+					}
+				}
 			}
 			return null;
 		}
 
-		Building_Door CanSmashDoor()
+		Building CanSmash()
 		{
+			if (ZombieSettings.Values.smashMode == SmashMode.Nothing) return null;
+			if (ZombieSettings.Values.smashOnlyWhenAgitated && (pawn as Zombie).state != ZombieState.Tracking) return null;
+
 			var nextIndex = Constants.random.Next(4);
 			var c = adjIndex4[prevIndex4];
 			adjIndex4[prevIndex4] = adjIndex4[nextIndex];
 			adjIndex4[nextIndex] = c;
 			prevIndex4 = nextIndex;
 
-			var grid = pawn.Map.thingGrid;
+			var playerFaction = Faction.OfPlayer;
+			var map = pawn.Map;
+			var grid = map.thingGrid;
 			var basePos = pawn.Position;
-			for (int i = 0; i < 4; i++)
+			var attackColonistsOnly = (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists);
+
+			if (ZombieSettings.Values.smashMode == SmashMode.DoorsOnly)
 			{
-				var pos = basePos + GenAdj.CardinalDirections[adjIndex4[i]];
-				var p = grid.ThingAt<Building_Door>(pos);
-				if (p != null)
-					return p;
+				for (int i = 0; i < 4; i++)
+				{
+					var pos = basePos + GenAdj.CardinalDirections[adjIndex4[i]];
+					if (pos.InBounds(map))
+					{
+						foreach (var thing in grid.ThingsListAtFast(pos))
+						{
+							var door = thing as Building_Door;
+							if (door != null && door.Open == false && (attackColonistsOnly == false || door.Faction == playerFaction))
+								return door;
+						}
+					}
+				}
 			}
+
+			if (ZombieSettings.Values.smashMode == SmashMode.AnyBuilding)
+			{
+				for (int i = 0; i < 4; i++)
+				{
+					var pos = basePos + GenAdj.CardinalDirections[adjIndex4[i]];
+					if (pos.InBounds(map))
+					{
+						foreach (var thing in grid.ThingsListAtFast(pos))
+						{
+							var building = thing as Building;
+							if (building != null && building.def.building.isNaturalRock == false && (attackColonistsOnly == false || building.Faction == playerFaction))
+								return building;
+						}
+					}
+				}
+			}
+
 			return null;
 		}
 

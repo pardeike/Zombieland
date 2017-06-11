@@ -5,6 +5,7 @@
 		<defName>Stumble</defName>
 		<driverClass>ZombieLand.JobDriver_Stumble</driverClass>
 		<reportString>stumbling.</reportString>
+		<suspendable>true</suspendable>
 	</JobDef>
 
 </JobDefs>

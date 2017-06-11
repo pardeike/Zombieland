@@ -1,80 +1,57 @@
-﻿using Harmony;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using Verse;
 
 namespace ZombieLand
 {
-	[StaticConstructorOnStartup]
-	static class ZombieStains
+	public class PreparedMaterial
 	{
-		static Dictionary<Texture2D, int> stainsHead;
-		static Dictionary<Texture2D, int> stainsBody;
+		Material material;
+		MaterialRequest req;
+		ColorData data;
 
-		static ZombieStains()
+		public PreparedMaterial(MaterialRequest req, ColorData data)
 		{
-			stainsHead = new Dictionary<Texture2D, int>();
-			stainsHead.Add("Stains/Scratch", 4);
-			stainsHead.Add("Stains/Hole", 4);
-			stainsHead.Add("Stains/Stain2", 2);
-			stainsHead.Add("Stains/Stain1", 1);
-			stainsHead.Add("Stains/Scar", 1);
-
-			stainsBody = new Dictionary<Texture2D, int>();
-			stainsHead.Add("Stains/Ribs3", 5);
-			stainsBody.Add("Stains/Ribs2", 5);
-			stainsBody.Add("Stains/Ribs4", 4);
-			stainsBody.Add("Stains/Ribs1", 4);
-			stainsBody.Add("Stains/Chain", 4);
-			stainsHead.Add("Stains/Hole", 3);
-			stainsBody.Add("Stains/Scratch", 2);
-			stainsBody.Add("Stains/Stain2", 2);
-			stainsBody.Add("Stains/Stain1", 1);
-			stainsBody.Add("Stains/Scar", 1);
+			this.req = req;
+			this.data = data;
 		}
 
-		static void Add(this Dictionary<Texture2D, int> dict, string name, int points)
+		public Material GetMaterial
 		{
-			dict.Add(GraphicToolbox.LoadTexture(name), points);
-		}
-
-		public static KeyValuePair<Texture2D, int> GetRandom(int remainingPoints, bool isBody)
-		{
-			var stains = isBody ? stainsBody : stainsHead;
-			return stains.Where(st => st.Value <= remainingPoints).RandomElement();
+			get
+			{
+				if (material == null)
+				{
+					var mainTex = data.ToTexture();
+					data = null;
+					material = new Material(req.shader)
+					{
+						name = req.shader.name + "_" + mainTex.name,
+						mainTexture = mainTex,
+						color = req.color
+					};
+					if (req.maskTex != null)
+					{
+						material.SetTexture(ShaderPropertyIDs.MaskTex, req.maskTex);
+						material.SetColor(ShaderPropertyIDs.ColorTwo, req.colorTwo);
+					}
+				}
+				return material;
+			}
 		}
 	}
 
 	public class VariableGraphic : Graphic
 	{
-		private Material[] mats = new Material[3];
-		private int hash = 0;
+		private PreparedMaterial[] mats = new PreparedMaterial[3];
+		private int hash;
 
 		public string GraphicPath { get { return path; } }
-		public override Material MatSingle { get { return mats[2]; } }
-		public override Material MatFront { get { return mats[2]; } }
-		public override Material MatSide { get { return mats[1]; } }
-		public override Material MatBack { get { return mats[0]; } }
+		public override Material MatSingle { get { return mats[2].GetMaterial; } }
+		public override Material MatFront { get { return mats[2].GetMaterial; } }
+		public override Material MatSide { get { return mats[1].GetMaterial; } }
+		public override Material MatBack { get { return mats[0].GetMaterial; } }
 		public override bool ShouldDrawRotated { get { return MatSide == MatBack; } }
-
-		public Material GetMaterial(MaterialRequest req)
-		{
-			var material = new Material(req.shader)
-			{
-				name = req.shader.name + "_" + req.mainTex.name,
-				mainTexture = req.mainTex,
-				color = req.color
-			};
-			if (req.maskTex != null)
-			{
-				material.SetTexture(ShaderPropertyIDs.MaskTex, req.maskTex);
-				material.SetColor(ShaderPropertyIDs.ColorTwo, req.colorTwo);
-			}
-			return material;
-		}
 
 		public override void Init(GraphicRequest req)
 		{
@@ -88,39 +65,34 @@ namespace ZombieLand
 			hash = Gen.HashCombineStruct(hash, color);
 			hash = Gen.HashCombineStruct(hash, colorTwo);
 
-			mats = new Texture2D[]
+			var bodyColor = GraphicToolbox.RandomSkinColorString();
+			mats = new ColorData[]
 			{
-				GraphicToolbox.LoadTexture(req.path + "_back"),
-				GraphicToolbox.LoadTexture(req.path + "_side"),
-				GraphicToolbox.LoadTexture(req.path + "_front")
+				GraphicsDatabase.GetColorData(req.path + "_back", bodyColor, true),
+				GraphicsDatabase.GetColorData(req.path + "_side", bodyColor, true),
+				GraphicsDatabase.GetColorData(req.path + "_front", bodyColor, true)
 			}
-			.Select(texture => texture.WriteableCopy(GraphicToolbox.RandomSkinColor()))
-			.Select(texture =>
+			.Select(data =>
 			{
-				var points = 6;
+				var points = ZombieStains.maxStainPoints;
 				while (points > 0)
 				{
 					var stain = ZombieStains.GetRandom(points, req.path.Contains("Naked"));
-					texture.ApplyStains(stain.Key, Rand.Bool, Rand.Bool);
+					data.ApplyStains(stain.Key, Rand.Bool, Rand.Bool);
 					points -= stain.Value;
 
 					hash = Gen.HashCombine(hash, stain);
 				}
 
-				texture.Apply(true, true);
-				return texture;
-			})
-			.Select(texture =>
-			{
-				MaterialRequest request = new MaterialRequest
+				var request = new MaterialRequest
 				{
-					mainTex = texture,
+					mainTex = null, // will be calculated lazy from 'data'
 					shader = req.shader,
 					color = color,
 					colorTwo = colorTwo,
 					maskTex = null
 				};
-				return GetMaterial(request); // MaterialPool.MatFrom(request);
+				return new PreparedMaterial(request, data);
 			})
 			.ToArray();
 		}

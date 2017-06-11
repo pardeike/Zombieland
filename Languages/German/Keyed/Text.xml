@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<LetterLabelZombiesRising>Zombie Attack</LetterLabelZombiesRising>
+	<ZombiesRising>Eine Gruppe von Zombies greift an</ZombiesRising>
+
+	<LetterLabelZombiesRisingNearYourBase>Zombie Direktangriff</LetterLabelZombiesRisingNearYourBase>
+	<ZombiesRisingNearYourBase>Eine Gruppe von Zombies greift in der Nähe der Basis an</ZombiesRisingNearYourBase>
+
+	<LetterLabelXDaysUntilZombies>{0} {1} bis Zombies kommen</LetterLabelXDaysUntilZombies>
+	<XDaysUntilZombies>Zombies erscheinen überall wo es weiche Erde, Dreck oder Sand auf der Karte gibt. Bedecke den Boden mit Fussboden um das zu verhindern.</XDaysUntilZombies>
+	<ZombieDays>Tag(e)</ZombieDays>
+	<ZombieHours>Stunde(n)</ZombieHours>
+
+	<ZombielandDefaultSettings>Zombieland Standardeinstellungen</ZombielandDefaultSettings>
+	<ZombielandGameSettings>Zombieland Spieleinstellungen</ZombielandGameSettings>
+
+	<WhenDoZombiesSpawn>Wann erscheinen Zombies?</WhenDoZombiesSpawn>
+	<SpawnWhenType_AllTheTime>Jederzeit</SpawnWhenType_AllTheTime>
+	<SpawnWhenType_WhenDark>Während der Nacht</SpawnWhenType_WhenDark>
+	<SpawnWhenType_InEventsOnly>Nur als Angriff</SpawnWhenType_InEventsOnly>
+
+	<HowDoZombiesSpawn>Wie erscheinen Zombies?</HowDoZombiesSpawn>
+	<SpawnHowType_AllOverTheMap>An Stellen mit weichem Boden</SpawnHowType_AllOverTheMap>
+	<SpawnHowType_FromTheEdges>Von den Kanten der Karte</SpawnHowType_FromTheEdges>
+
+	<WhatDoZombiesAttack>Was greifen Zombies an?</WhatDoZombiesAttack>
+	<AttackMode_Everything>Alles</AttackMode_Everything>
+	<AttackMode_OnlyHumans>Nur menschenähnliches</AttackMode_OnlyHumans>
+	<AttackMode_OnlyColonists>Deine Kolonisten und ihre Dinge</AttackMode_OnlyColonists>
+
+	<WhatDoZombiesSmash>Was machen Zombies kaputt?</WhatDoZombiesSmash>
+	<SmashMode_Nothing>Nichts</SmashMode_Nothing>
+	<SmashMode_DoorsOnly>Nur Türen</SmashMode_DoorsOnly>
+	<SmashMode_AnyBuilding>Konstruiertes</SmashMode_AnyBuilding>
+	<SmashOnlyWhenAgitated>Nur wenn sie angeregt sind</SmashOnlyWhenAgitated>
+
+	<NewGameTitle>Neues Spiel</NewGameTitle>
+	<DaysBeforeZombiesCome>Tage before Zombies auftauchen</DaysBeforeZombiesCome>
+
+	<ZombiesOnTheMap>Zombies auf der Karte</ZombiesOnTheMap>
+	<MaximumNumberOfZombies>Nie mehr als</MaximumNumberOfZombies>
+	<Zombies>Zombies</Zombies>
+
+	<ZombieEventTitle>Zombie Angriff</ZombieEventTitle>
+	<ZombiesPerColonistInEvent>Zombies pro Kolonist</ZombiesPerColonistInEvent>
+
+	<ZombieSpeedTitle>Zombie Geschwindigkeit</ZombieSpeedTitle>
+	<MoveSpeedIdle>Wenn wandernt: {0}x</MoveSpeedIdle>
+	<MoveSpeedTracking>Wenn aufgeregt: {0}x</MoveSpeedTracking>
+
+	<ZombieDamageFactorTitle>Zombie Kraft</ZombieDamageFactorTitle>
+	<ZombieDamageFactor>Schadenmultiplikator: {0}x</ZombieDamageFactor>
+
+	<ZombieInstinctTitle>Zombie Sinne</ZombieInstinctTitle>
+	<ZombieInstinct_Dull>Schwach</ZombieInstinct_Dull>
+	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>
+	<ZombieInstinct_Sensitive>Empfindlich</ZombieInstinct_Sensitive>
+
+	<ZombieHealthTitle>Zombie Gesundheit</ZombieHealthTitle>
+	<DoubleTapRequired>Verletzte Zombies muss man 2x töten</DoubleTapRequired>
+	<ZombiesDieVeryEasily>Zombies sind einfach zu töten</ZombiesDieVeryEasily>
+
+	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>
+	<UseCustomTextures>Benutze Spezialtexturen</UseCustomTextures>
+	<ZombiesTriggerDangerMusic>Zombies beeinflussen die Kampfmusik</ZombiesTriggerDangerMusic>
+
+</LanguageData>

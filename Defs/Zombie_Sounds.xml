@@ -13,10 +13,6 @@
 						<clipFolderPath>tracking</clipFolderPath>
 					</li>
 				</grains>
-				<!--<volumeRange>
-					<min>30.51151</min>
-					<max>42.93479</max>
-				</volumeRange>-->
 				<pitchRange>
 					<min>0.8</min>
 					<max>1.2</max>
@@ -37,10 +33,6 @@
 						<clipFolderPath>hit</clipFolderPath>
 					</li>
 				</grains>
-				<!--<volumeRange>
-					<min>30.51151</min>
-					<max>42.93479</max>
-				</volumeRange>-->
 				<pitchRange>
 					<min>0.8</min>
 					<max>1.2</max>
@@ -61,14 +53,34 @@
 						<clipFolderPath>digout</clipFolderPath>
 					</li>
 				</grains>
-				<!--<volumeRange>
-					<min>30.51151</min>
-					<max>42.93479</max>
-				</volumeRange>-->
 				<pitchRange>
 					<min>0.8</min>
 					<max>1.2</max>
 				</pitchRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ZombiesRising</defName>
+		<context>MapOnly</context>
+		<maxSimultaneous>1</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>true</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>zombiesRising</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>100</min>
+					<max>100</max>
+				</volumeRange>
+				<distRange>
+					<min>100</min>
+					<max>100</max>
+				</distRange>
 			</li>
 		</subSounds>
 	</SoundDef>

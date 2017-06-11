@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<LetterLabelZombiesRising>Аттака Зомби</LetterLabelZombiesRising>
+	<ZombiesRising>Группа зомби появилась</ZombiesRising>
+
+	<LetterLabelZombiesRisingNearYourBase>Прямая атака зомби</LetterLabelZombiesRisingNearYourBase>
+	<ZombiesRisingNearYourBase>Группа зомби появилась рядом с вашей базой</ZombiesRisingNearYourBase>
+
+	<LetterLabelXDaysUntilZombies>{0} {1} Дней до прихода зомби-орды</LetterLabelXDaysUntilZombies>
+	<XDaysUntilZombies>Зомби будут появляться по всей карте где есть почва, грязь, песок и гравий. Застройте всё напольными покрытиями, чтобы зомби не могли подкопаться.</XDaysUntilZombies>
+	<ZombieDays>Дней</ZombieDays>
+	<ZombieHours>Час(ов)</ZombieHours>
+
+	<ZombielandDefaultSettings>Zombieland Настройки</ZombielandDefaultSettings>
+	<ZombielandGameSettings>Zombieland Настройки</ZombielandGameSettings>
+
+	<WhenDoZombiesSpawn>Когда зомби будут появляться?</WhenDoZombiesSpawn>
+	<SpawnWhenType_AllTheTime>Всё время</SpawnWhenType_AllTheTime>
+	<SpawnWhenType_WhenDark>Только ночью</SpawnWhenType_WhenDark>
+	<SpawnWhenType_InEventsOnly>В качестве события(происшествия)</SpawnWhenType_InEventsOnly>
+
+	<HowDoZombiesSpawn>Как зомби будут появляться?</HowDoZombiesSpawn>
+	<SpawnHowType_AllOverTheMap>Из земли</SpawnHowType_AllOverTheMap>
+	<SpawnHowType_FromTheEdges>От краёв карты</SpawnHowType_FromTheEdges>
+
+	<WhatDoZombiesAttack>Кого зомби будут атаковать?</WhatDoZombiesAttack>
+	<AttackMode_Everything>Всё что движеться и дышит</AttackMode_Everything>
+	<AttackMode_OnlyHumans>Людей и гумоноидных созданий</AttackMode_OnlyHumans>
+	<AttackMode_OnlyColonists>Только колонистов и их вещи</AttackMode_OnlyColonists>
+
+	<WhatDoZombiesSmash>Что именно зомби будут ломать?</WhatDoZombiesSmash>
+	<SmashMode_Nothing>Ничего</SmashMode_Nothing>
+	<SmashMode_DoorsOnly>Двери</SmashMode_DoorsOnly>
+	<SmashMode_AnyBuilding>Любые конструкции</SmashMode_AnyBuilding>
+	<SmashOnlyWhenAgitated>Ломают только когда спровоцированы чем или кем-либо</SmashOnlyWhenAgitated>
+
+	<NewGameTitle>Новая игра</NewGameTitle>
+	<DaysBeforeZombiesCome>Дней прежде чем зомби прейдут</DaysBeforeZombiesCome>
+
+	<ZombiesOnTheMap>Зомби на карте</ZombiesOnTheMap>
+	<MaximumNumberOfZombies>Небольше чем</MaximumNumberOfZombies>
+	<Zombies>Зомби</Zombies>
+
+	<ZombieEventTitle>Зомби-происшествие</ZombieEventTitle>
+	<ZombiesPerColonistInEvent>Кол-во зомби на одного колониста</ZombiesPerColonistInEvent>
+
+	<ZombieSpeedTitle>Скорость зомби</ZombieSpeedTitle>
+	<MoveSpeedIdle>В спокойном состоянии: {0}x</MoveSpeedIdle>
+	<MoveSpeedTracking>Когда преследуют(спровоцированы): {0}x</MoveSpeedTracking>
+
+	<ZombieDamageFactorTitle>Урон который наносят зомби</ZombieDamageFactorTitle>
+	<ZombieDamageFactor>Множетель урон: {0}x</ZombieDamageFactor>
+
+	<ZombieInstinctTitle>Уровень чувств зомби</ZombieInstinctTitle>
+	<ZombieInstinct_Dull>Тупые</ZombieInstinct_Dull>
+	<ZombieInstinct_Normal>Нормальные</ZombieInstinct_Normal>
+	<ZombieInstinct_Sensitive>Агресивные</ZombieInstinct_Sensitive>
+
+	<ZombieHealthTitle>Стойкость зомби</ZombieHealthTitle>
+	<DoubleTapRequired>Падшим(не убитым) зомби нужен контрольный выстрел</DoubleTapRequired>
+	<ZombiesDieVeryEasily>Легко убить</ZombiesDieVeryEasily>
+
+	<ZombieMiscTitle>Разное</ZombieMiscTitle>
+	<UseCustomTextures>Использовать текстуры дополнения для зомби</UseCustomTextures>
+	<ZombiesTriggerDangerMusic>Проигрывать музыку боя при Зомби-происшествие</ZombiesTriggerDangerMusic>
+
+</LanguageData>

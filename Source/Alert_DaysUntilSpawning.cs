@@ -36,7 +36,7 @@ namespace ZombieLand
 
 		private double Days()
 		{
-			return Math.Round(Constants.DAYS_BEFORE_ZOMBIES_SPAWN - GenDate.DaysPassedFloat, 1);
+			return Math.Round(ZombieSettings.Values.daysBeforeZombiesCome - GenDate.DaysPassedFloat, 1);
 		}
 	}
 }

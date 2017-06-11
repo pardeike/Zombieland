@@ -15,7 +15,7 @@ namespace ZombieLand
 			var settingsPath = Tools.GetModRootDirectory() + Path.DirectorySeparatorChar + "About" + Path.DirectorySeparatorChar + "Settings.txt";
 			File.ReadAllLines(settingsPath)
 				.Select(line => line.Trim())
-				.Where(line => line.StartsWith("/") == false && line.Length > 0)
+				.Where(line => line.StartsWith("/", StringComparison.Ordinal) == false && line.Length > 0)
 				.Select(line =>
 				{
 					var parts = line.Split('=').Select(part => part.Trim()).ToList();
@@ -37,7 +37,8 @@ namespace ZombieLand
 							{
 								case "Boolean":
 									{
-										if (Boolean.TryParse(value, out Boolean result))
+										bool result;
+										if (Boolean.TryParse(value, out result))
 											constant.SetValue(null, result);
 										else
 											Log.Error("Cannot parse boolean '" + value + "' of constant " + field);
@@ -45,7 +46,8 @@ namespace ZombieLand
 									}
 								case "Int32":
 									{
-										if (Int32.TryParse(value, out Int32 result))
+										int result;
+										if (Int32.TryParse(value, out result))
 											constant.SetValue(null, result);
 										else
 											Log.Error("Cannot parse int '" + value + "' of constant " + field);
@@ -53,7 +55,8 @@ namespace ZombieLand
 									}
 								case "Single":
 									{
-										if (Single.TryParse(value, out Single result))
+										float result;
+										if (Single.TryParse(value, out result))
 											constant.SetValue(null, result);
 										else
 											Log.Error("Cannot parse float '" + value + "' of constant " + field);
@@ -72,9 +75,9 @@ namespace ZombieLand
 
 		// general debugging and testing
 		//
-		public static bool DEBUGGRID = false;
+		public static bool DEBUGGRID;
 		public static bool USE_SOUND = true;
-		public static int DEBUG_COLONY_POINTS = 0;
+		public static int DEBUG_COLONY_POINTS;
 		public static bool USE_CUSTOM_TEXTURES = true;
 
 		// timing
@@ -82,7 +85,7 @@ namespace ZombieLand
 		public static float DAYS_BEFORE_ZOMBIES_SPAWN = 3f;
 		public static float FRAME_TIME_FACTOR = 0.25f;
 		public static float PHEROMONE_FADEOFF = 90f;
-		public static float TICKMANAGER_RECALCULATE_DELAY = 2f;
+		public static float TICKMANAGER_RECALCULATE_DELAY = 5f;
 
 		// zombie spawning
 		// the following hours continue after 23h with 24, 25, 26...
@@ -104,7 +107,7 @@ namespace ZombieLand
 		public static int NUMBER_OF_TOP_MOVEMENT_PICKS = 3;
 		public static float STANDING_STILL_CHANCE = 0.6f;
 		public static int ZOMBIE_CLOGGING_FACTOR = 10000;
-		public static float KILL_CIRCLE_RADIUS_MULTIPLIER = 0f;
+		public static float KILL_CIRCLE_RADIUS_MULTIPLIER;
 
 		// rubble
 		//
@@ -130,6 +133,5 @@ namespace ZombieLand
 		public static Material RUBBLE = MaterialPool.MatFrom("Rubble", ShaderDatabase.Cutout);
 		public static Material BRRAINZ = MaterialPool.MatFrom("Brrainz", ShaderDatabase.Cutout);
 		public static System.Random random = new System.Random();
-		public static ColorHSV ZOMBIE_SKIN_COLOR = new ColorHSV(0.33f, 0.5f, 0.5f);
 	}
 }

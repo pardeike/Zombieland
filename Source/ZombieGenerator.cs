@@ -1,5 +1,6 @@
 ﻿using Harmony;
 using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -71,7 +72,7 @@ namespace ZombieLand
 				lock (resultQueues)
 				{
 					var queue = QueueForMap(map);
-					return requestQueue.Where(q => q.map == map).Count() + queue.Count;
+					return requestQueue.Count(q => q.map == map) + queue.Count;
 				}
 		}
 
@@ -120,60 +121,78 @@ namespace ZombieLand
 		{
 			var kindDef = ZombieDefOf.Zombie;
 
-			var pawn = (Zombie)ThingMaker.MakeThing(kindDef.race, null);
+			var zombie = (Zombie)ThingMaker.MakeThing(kindDef.race, null);
 
-			pawn.gender = Rand.Bool ? Gender.Male : Gender.Female;
+			zombie.gender = Rand.Bool ? Gender.Male : Gender.Female;
 			var factionDef = ZombieDefOf.Zombies;
 			var faction = FactionUtility.DefaultFactionFrom(factionDef);
-			pawn.kindDef = kindDef;
-			pawn.SetFactionDirect(faction);
+			zombie.kindDef = kindDef;
+			zombie.SetFactionDirect(faction);
 
-			PawnComponentsUtility.CreateInitialComponents(pawn);
+			PawnComponentsUtility.CreateInitialComponents(zombie);
 
-			pawn.ageTracker.AgeBiologicalTicks = ((long)(Rand.Range(0, 0x9c4) * 3600000f)) + Rand.Range(0, 0x36ee80);
-			pawn.ageTracker.AgeChronologicalTicks = pawn.ageTracker.AgeBiologicalTicks;
-			pawn.ageTracker.BirthAbsTicks = GenTicks.TicksAbs - pawn.ageTracker.AgeBiologicalTicks;
+			zombie.ageTracker.AgeBiologicalTicks = ((long)(Rand.Range(0, 0x9c4 + 1) * 3600000f)) + Rand.Range(0, 0x36ee80);
+			zombie.ageTracker.AgeChronologicalTicks = zombie.ageTracker.AgeBiologicalTicks;
+			zombie.ageTracker.BirthAbsTicks = GenTicks.TicksAbs - zombie.ageTracker.AgeBiologicalTicks;
 
-			pawn.needs.SetInitialLevels();
-			pawn.needs.mood = new Need_Mood(pawn);
+			zombie.needs.SetInitialLevels();
+			zombie.needs.mood = new Need_Mood(zombie);
 
-			var nameGenerator = pawn.RaceProps.GetNameGenerator(pawn.gender);
-			var name = PawnNameDatabaseSolid.GetListForGender((pawn.gender == Gender.Female) ? GenderPossibility.Female : GenderPossibility.Male).RandomElement();
+			var name = PawnNameDatabaseSolid.GetListForGender((zombie.gender == Gender.Female) ? GenderPossibility.Female : GenderPossibility.Male).RandomElement();
 			var n1 = name.First.Replace('s', 'z').Replace('S', 'Z');
 			var n2 = name.Last.Replace('s', 'z').Replace('S', 'Z');
 			var n3 = name.Nick.Replace('s', 'z').Replace('S', 'Z');
-			pawn.Name = new NameTriple(n1, n3, n2);
+			zombie.Name = new NameTriple(n1, n3, n2);
 
 			// faster: use MinimalBackstory()
-			pawn.story.childhood = BackstoryDatabase.allBackstories
+			zombie.story.childhood = BackstoryDatabase.allBackstories
 				.Where(kvp => kvp.Value.slot == BackstorySlot.Childhood)
 				.RandomElement().Value;
-			if (pawn.ageTracker.AgeBiologicalYearsFloat >= 20f)
-				pawn.story.adulthood = BackstoryDatabase.allBackstories
+			if (zombie.ageTracker.AgeBiologicalYearsFloat >= 20f)
+				zombie.story.adulthood = BackstoryDatabase.allBackstories
 				.Where(kvp => kvp.Value.slot == BackstorySlot.Adulthood)
 				.RandomElement().Value;
 
-			pawn.story.melanin = 0.01f * Rand.Range(10, 90);
-			pawn.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
+			zombie.story.melanin = 0.01f * Rand.Range(10, 91);
+			zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
 
-			pawn.story.hairColor = HairColor();
-			pawn.story.hairDef = PawnHairChooser.RandomHairDefFor(pawn, factionDef);
-			pawn.story.bodyType = (pawn.gender == Gender.Female) ? BodyType.Female : BodyType.Male;
-			if (pawn.story.bodyType == BodyType.Male)
+			zombie.story.hairColor = HairColor();
+			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, factionDef);
+			zombie.story.bodyType = (zombie.gender == Gender.Female) ? BodyType.Female : BodyType.Male;
+			if (zombie.story.bodyType == BodyType.Male)
 				switch (Rand.Range(1, 6))
 				{
 					case 1:
-						pawn.story.bodyType = BodyType.Thin;
+						zombie.story.bodyType = BodyType.Thin;
 						break;
 					case 2:
-						pawn.story.bodyType = BodyType.Fat;
+						zombie.story.bodyType = BodyType.Fat;
 						break;
 					case 3:
-						pawn.story.bodyType = BodyType.Hulk;
+						zombie.story.bodyType = BodyType.Hulk;
 						break;
 				}
 
-			return pawn;
+			if (ZombieSettings.Values.useCustomTextures)
+				AssignNewCustomGraphics(zombie);
+
+			return zombie;
+		}
+
+		static string[] headShapes = { "Normal", "Pointy", "Wide" };
+		public static void AssignNewCustomGraphics(Zombie zombie)
+		{
+			var renderPrecedence = 0;
+
+			var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
+			var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
+			zombie.customBodyGraphic = Activator.CreateInstance<VariableGraphic>();
+			zombie.customBodyGraphic.Init(bodyRequest);
+
+			var headPath = "Zombie/" + zombie.gender + "_" + zombie.story.crownType + "_" + headShapes[Rand.Range(0, 3)];
+			var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
+			zombie.customHeadGraphic = Activator.CreateInstance<VariableGraphic>();
+			zombie.customHeadGraphic.Init(headRequest);
 		}
 
 		public static void FinalizeZombieGeneration(Zombie zombie)
@@ -185,7 +204,26 @@ namespace ZombieLand
 			PawnApparelGenerator.GenerateStartingApparelFor(zombie, request);
 			zombie.apparel.WornApparel.Do(apparel =>
 			{
-				apparel.DrawColor = apparel.DrawColor.SaturationChanged(0.5f);
+				Color[] colors =
+				{
+					"442a0a".HexColor(),
+					"615951".HexColor(),
+					"1f4960".HexColor(),
+					"182a64".HexColor(),
+					"73000d".HexColor(),
+					"2c422a".HexColor(),
+					"332341".HexColor()
+				};
+				(colors.Clone() as Color[]).Do(c =>
+				{
+					c.r *= Rand.Range(0.2f, 1f);
+					c.g *= Rand.Range(0.2f, 1f);
+					c.b *= Rand.Range(0.2f, 1f);
+					colors.Add(c);
+				});
+				colors.Add("000000".HexColor());
+
+				apparel.SetColor(colors[Rand.Range(0, colors.Length)]);
 			});
 		}
 	}

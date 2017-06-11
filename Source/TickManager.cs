@@ -61,14 +61,6 @@ namespace ZombieLand
 			var destinations = Traverse.Create(map.pawnDestinationManager).Field("reservedDestinations").GetValue<Dictionary<Faction, Dictionary<Pawn, IntVec3>>>();
 			var zombieFaction = Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies);
 			if (!destinations.ContainsKey(zombieFaction)) map.pawnDestinationManager.RegisterFaction(zombieFaction);
-
-			// TODO - can't do that in this thread, need to be on the main thread
-			/*
-			AllZombies()
-				.Select(zombie => zombie.Drawer.renderer.graphics)
-				.Where(graphics => !graphics.AllResolved)
-				.Do(graphics => graphics.ResolveAllGraphics());
-			*/
 		}
 
 		public override void ExposeData()
@@ -108,7 +100,7 @@ namespace ZombieLand
 			);
 		}
 
-		public int GetMaxZombieCount(bool log)
+		public int GetMaxZombieCount()
 		{
 			if (map == null || map.mapPawns == null) return 0;
 			var colonists = map.mapPawns.ColonistCount;
@@ -116,7 +108,8 @@ namespace ZombieLand
 			var colonistMultiplier = Math.Sqrt(colonists) * 2;
 			var baseStrengthFactor = GenMath.LerpDouble(0, 1000, 1f, 4f, Math.Min(1000, currentColonyPoints));
 			var difficultyMultiplier = Find.Storyteller.difficulty.threatScale;
-			return (int)(perColonistZombieCount * colonistMultiplier * baseStrengthFactor * difficultyMultiplier);
+			var count = (int)(perColonistZombieCount * colonistMultiplier * baseStrengthFactor * difficultyMultiplier);
+			return Math.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
 		}
 
 		public void ZombieTicking(Stopwatch watch)
@@ -139,11 +132,10 @@ namespace ZombieLand
 		{
 			var result = Tools.generator.TryGetNextGeneratedZombie(map);
 			if (result == null) return;
-			if (ZombieCount() >= GetMaxZombieCount(false)) return;
+			if (ZombieCount() >= GetMaxZombieCount()) return;
 
 			if (Tools.IsValidSpawnLocation(result.cell, result.map) == false) return;
 
-			var grid = result.map.GetGrid();
 			var existingZombies = result.map.thingGrid.ThingsListAtFast(result.cell).OfType<Zombie>();
 			if (existingZombies.Any(zombie => zombie.state == ZombieState.Emerging))
 			{
@@ -169,15 +161,34 @@ namespace ZombieLand
 
 		public void IncreaseZombiePopulation()
 		{
-			if (GenDate.DaysPassedFloat < Constants.DAYS_BEFORE_ZOMBIES_SPAWN) return;
+			if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return;
+			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly) return;
 
 			var zombieCount = ZombieCount() + Tools.generator.ZombiesQueued(map);
-			var zombieDestCount = GetMaxZombieCount(true);
+			var zombieDestCount = GetMaxZombieCount();
 			if (zombieCount < zombieDestCount)
 			{
-				var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4);
-				if (cell.IsValid)
-					Tools.generator.SpawnZombieAt(map, cell);
+				switch (ZombieSettings.Values.spawnHowType)
+				{
+					case SpawnHowType.AllOverTheMap:
+						{
+							var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4);
+							if (cell.IsValid) Tools.generator.SpawnZombieAt(map, cell);
+							return;
+						}
+					case SpawnHowType.FromTheEdges:
+						{
+							IntVec3 cell;
+							if (CellFinder.TryFindRandomEdgeCellWith(Tools.ZombieSpawnLocator(map), map, CellFinder.EdgeRoadChance_Neutral, out cell))
+								Tools.generator.SpawnZombieAt(map, cell);
+							return;
+						}
+					default:
+						{
+							Log.Error("Unknown spawn type " + ZombieSettings.Values.spawnHowType);
+							return;
+						}
+				}
 			}
 		}
 
@@ -188,7 +199,7 @@ namespace ZombieLand
 
 			if (updateCounter-- < 0)
 			{
-				updateCounter = GenTicks.SecondsToTicks(Constants.TICKMANAGER_RECALCULATE_DELAY);
+				updateCounter = Constants.TICKMANAGER_RECALCULATE_DELAY.SecondsToTicks();
 				RecalculateVisibleMap();
 			}
 
@@ -200,7 +211,7 @@ namespace ZombieLand
 
 			if (dequeedSpawnCounter-- < 0)
 			{
-				dequeedSpawnCounter = Rand.Range(10, 50);
+				dequeedSpawnCounter = Rand.Range(10, 51);
 				DequeuAndSpawnZombies();
 			}
 

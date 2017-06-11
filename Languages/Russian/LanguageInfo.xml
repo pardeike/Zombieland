@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageInfo>
+	<friendlyNameNative>Русский</friendlyNameNative>
+	<friendlyNameEnglish>Russian / Русский</friendlyNameEnglish>
+	<canBeTiny>true</canBeTiny>
+	<credits>
+		<li Class="CreditRecord_Role">
+			<roleKey>Credit_Translator</roleKey>
+			<creditee>COZ RED GOEZ F🅰🅰ST🅰!!!!</creditee>
+		</li>
+	</credits>
+</LanguageInfo>

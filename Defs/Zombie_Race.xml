@@ -54,8 +54,8 @@
 		<verbs>
 			<li>
 				<verbClass>Verb_MeleeAttack</verbClass>
-				<defaultCooldownTime>2.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>5</meleeDamageBaseAmount>
+				<defaultCooldownTime>4.0</defaultCooldownTime>
+				<meleeDamageBaseAmount>4</meleeDamageBaseAmount>
 				<meleeDamageDef>Bite</meleeDamageDef>
 				<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
 				<surpriseAttack>
@@ -69,8 +69,8 @@
 			</li>
 			<li>
 				<verbClass>Verb_MeleeAttack</verbClass>
-				<defaultCooldownTime>1.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>2</meleeDamageBaseAmount>
+				<defaultCooldownTime>2.0</defaultCooldownTime>
+				<meleeDamageBaseAmount>1</meleeDamageBaseAmount>
 				<meleeDamageDef>Scratch</meleeDamageDef>
 				<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
 				<surpriseAttack>
@@ -84,8 +84,8 @@
 			</li>
 			<li>
 				<verbClass>Verb_MeleeAttack</verbClass>
-				<defaultCooldownTime>1.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>2</meleeDamageBaseAmount>
+				<defaultCooldownTime>2.0</defaultCooldownTime>
+				<meleeDamageBaseAmount>1</meleeDamageBaseAmount>
 				<meleeDamageDef>Scratch</meleeDamageDef>
 				<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
 				<surpriseAttack>
@@ -106,7 +106,7 @@
 			<baseBodySize>1</baseBodySize>
 			<leatherColor>(34,113,39)</leatherColor>
 			<leatherCommonalityFactor>0</leatherCommonalityFactor>
-			<foodType>CarnivoreAnimalStrict</foodType>
+			<foodType>OmnivoreRoughAnimal</foodType>
 			<body>Human</body>
 			<nameCategory>HumanStandard</nameCategory>
 			<lifeStageAges>

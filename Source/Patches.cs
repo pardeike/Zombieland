@@ -15,6 +15,11 @@ namespace ZombieLand
 {
 	class Patches
 	{
+		// used to prevent zombies from being counted as hostiles
+		// both in map exist and for danger music
+		//
+		static Dictionary<Map, HashSet<IAttackTarget>> playerHostilesWithoutZombies = new Dictionary<Map, HashSet<IAttackTarget>>();
+
 		// patch for debugging: show pheromone grid as overlay
 		// 
 		[HarmonyPatch(typeof(SelectionDrawer))]
@@ -25,17 +30,17 @@ namespace ZombieLand
 			{
 				if (Constants.DEBUGGRID == false) return;
 				var now = Tools.Ticks();
+				var fadeOff = Tools.PheromoneFadeoff();
+				Matrix4x4 matrix = new Matrix4x4();
 				Find.VisibleMap.GetGrid().IterateCells((x, z, pheromone) =>
 				{
 					Vector3 pos = new Vector3(x, Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1), z);
-					Matrix4x4 matrix = new Matrix4x4();
 					matrix.SetTRS(pos + new Vector3(0.5f, 0f, 0.5f), Quaternion.identity, new Vector3(1f, 1f, 1f));
 					var diff = now - pheromone.timestamp;
-					var fadeOff = 1000L * GenTicks.SecondsToTicks(Constants.PHEROMONE_FADEOFF);
 					if (diff < fadeOff)
 					{
-						var a = (fadeOff - diff) / (float)fadeOff * 0.8f;
-						var material = SolidColorMaterials.SimpleSolidColorMaterial(new Color(1f, 0f, 0f, a));
+						var a = (double)(fadeOff - diff) * 0.8f / fadeOff;
+						var material = SolidColorMaterials.SimpleSolidColorMaterial(new Color(1f, 0f, 0f, (float)a));
 						Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
 					}
 				});
@@ -43,8 +48,6 @@ namespace ZombieLand
 		}
 
 		// patch to remove the constant danger music because of the constant thread of zombies
-		//
-		static Dictionary<Map, HashSet<IAttackTarget>> playerHostilesWithoutZombies = new Dictionary<Map, HashSet<IAttackTarget>>();
 		//
 		[HarmonyPatch(typeof(AttackTargetsCache))]
 		[HarmonyPatch("RegisterTarget")]
@@ -108,10 +111,12 @@ namespace ZombieLand
 		[HarmonyPatch("DangerMusicMode", PropertyMethod.Getter)]
 		static class AttackTargetsCache_get_DangerRating_Patch
 		{
-			static int lastUpdateTick = 0;
+			static int lastUpdateTick;
 			static StoryDanger dangerRatingInt = StoryDanger.None;
 			static bool Prefix(ref bool __result)
 			{
+				if (ZombieSettings.Values.zombiesTriggerDangerMusic) return true;
+
 				if (Find.TickManager.TicksGame > lastUpdateTick + 101)
 				{
 					lastUpdateTick = Find.TickManager.TicksGame;
@@ -153,18 +158,76 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to remove zombies from hostile count so it does not
+		// alter game logic (for example when a caravan leaves an enemy base)
+		[HarmonyPatch(typeof(GenHostility))]
+		[HarmonyPatch("IsActiveThreat")]
+		static class GenHostility_IsActiveThreat_Patch
+		{
+			static bool Prefix(bool __result, IAttackTarget target)
+			{
+				if (target is Zombie)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+
+		// patch to reduce revenge by animals
+		//
+		[HarmonyPatch(typeof(Pawn_MindState))]
+		[HarmonyPatch("Notify_DamageTaken")]
+		static class Pawn_MindState_Notify_DamageTaken_Patch
+		{
+			static bool ShouldStartManhunting(Pawn instigator)
+			{
+				if (instigator is Zombie)
+					return Rand.Chance(0.15f);
+				return true;
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var method = AccessTools.Method(typeof(Pawn_MindState_Notify_DamageTaken_Patch), "ShouldStartManhunting");
+
+				var instr = instructions.ToList();
+				for (int i = 1; i < instr.Count; i++)
+				{
+					if (instr[i - 1].opcode == OpCodes.Bge_Un)
+					{
+						var jump = new CodeInstruction(OpCodes.Brfalse_S, instr[i - 1].operand);
+
+						if (instr[i].opcode == OpCodes.Ldarg_0)
+						{
+							var ldstr = instr[i + 1];
+							if (ldstr.opcode == OpCodes.Ldstr && (string)ldstr.operand == "AnimalManhunterFromDamage")
+							{
+								instr.Insert(i++, new CodeInstruction(OpCodes.Ldloc_0));
+								instr.Insert(i++, new CodeInstruction(OpCodes.Call, method));
+								instr.Insert(i++, jump);
+								break;
+							}
+						}
+					}
+				}
+				for (int i = 0; i < instr.Count; i++)
+					yield return instr[i];
+			}
+		}
+
 		// patch to add a pheromone info section to the rimworld cell inspector
 		//
 		[HarmonyPatch(typeof(EditWindow_DebugInspector))]
 		[HarmonyPatch("CurrentDebugString")]
 		public static class EditWindow_DebugInspector_CurrentDebugString_Patch
 		{
-			static FieldInfo writeCellContentsField = AccessTools.Field(typeof(DebugViewSettings), "writeCellContents");
-			static MethodInfo debugGridMethod = AccessTools.Method(typeof(EditWindow_DebugInspector_CurrentDebugString_Patch), "DebugGrid");
-			static Traverse allGraphicsField = Traverse.Create(typeof(GraphicDatabase)).Field("allGraphics");
+			static readonly FieldInfo writeCellContentsField = AccessTools.Field(typeof(DebugViewSettings), "writeCellContents");
+			static readonly MethodInfo debugGridMethod = AccessTools.Method(typeof(EditWindow_DebugInspector_CurrentDebugString_Patch), "DebugGrid");
 
-			public static int tickedZombies = 0;
-			public static int ofTotalZombies = 0;
+			public static int tickedZombies;
+			public static int ofTotalZombies;
 
 			static void DebugGrid(StringBuilder builder)
 			{
@@ -182,15 +245,10 @@ namespace ZombieLand
 				//});
 				//builder.AppendLine("Average tick time: " + tickString);
 				builder.AppendLine("Center of Interest: " + center.x + "/" + center.z);
-				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount(false));
+				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount());
 				builder.AppendLine("Ticked zombies: " + tickedZombies + " out of " + ofTotalZombies);
-				builder.AppendLine("Days left before Zombies spawn: " + Math.Max(0, Constants.DAYS_BEFORE_ZOMBIES_SPAWN - GenDate.DaysPassedFloat));
+				builder.AppendLine("Days left before Zombies spawn: " + Math.Max(0, ZombieSettings.Values.daysBeforeZombiesCome - GenDate.DaysPassedFloat));
 				if (Constants.DEBUGGRID == false) return;
-
-				var allGraphics = allGraphicsField.GetValue<Dictionary<GraphicRequest, Graphic>>();
-				var zombieGraphics = allGraphics.Where(
-				  pair => pair.Key.path.StartsWith("Zombie")).ToList();
-				builder.AppendLine("Total graphics loaded: " + allGraphics.Count + " (" + zombieGraphics.Count + ")");
 
 				var pos = UI.MouseCell();
 				if (pos.InBounds(map) == false) return;
@@ -202,7 +260,7 @@ namespace ZombieLand
 					builder.AppendLine("Zombie " + zombie.NameStringShort + ": " + zombie.state + " at " + dest.x + "/" + dest.z + " -> " + wanderTo.x + "/" + wanderTo.z);
 				});
 
-				var fadeOff = 1000L * GenTicks.SecondsToTicks(Constants.PHEROMONE_FADEOFF);
+				var fadeOff = Tools.PheromoneFadeoff();
 				GenAdj.AdjacentCellsAndInside
 					.Select(cell => pos + cell)
 					.Where(cell => cell.InBounds(map))
@@ -290,10 +348,24 @@ namespace ZombieLand
 		[HarmonyPatch("Position", PropertyMethod.Setter)]
 		static class Thing_Position_Patch
 		{
+			static MentalStateDef def1 = MentalStateDefOf.Manhunter;
+			static MentalStateDef def2 = MentalStateDefOf.ManhunterPermanent;
+
 			static void Prefix(Thing __instance, IntVec3 value)
 			{
 				var pawn = __instance as Pawn;
 				if (pawn == null || pawn.Map == null) return;
+
+				// manhunting will always trigger senses
+				//
+				if (pawn.MentalState == null || (pawn.MentalState.def != def1 && pawn.MentalState.def != def2))
+				{
+					if (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans)
+						if (pawn.RaceProps.Humanlike == false) return;
+
+					if (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists)
+						if (pawn.IsColonist == false) return;
+				}
 
 				var pos = pawn.Position;
 				if (pos.x == value.x && pos.z == value.z) return;
@@ -307,7 +379,7 @@ namespace ZombieLand
 					{
 						newPos.timestamp -= newPos.zombieCount * Constants.ZOMBIE_CLOGGING_FACTOR;
 						var currentTicks = Tools.Ticks();
-						var notOlderThan = currentTicks - 1000L * GenTicks.SecondsToTicks(Constants.PHEROMONE_FADEOFF);
+						var notOlderThan = currentTicks - Tools.PheromoneFadeoff();
 						if (newPos.timestamp < notOlderThan)
 							newPos.timestamp = notOlderThan;
 					}
@@ -413,26 +485,16 @@ namespace ZombieLand
 		{
 			static void Postfix(PawnGraphicSet __instance)
 			{
+				if (ZombieSettings.Values.useCustomTextures == false) return;
+
 				var zombie = __instance.pawn as Zombie;
 				if (zombie == null) return;
-				if (Constants.USE_CUSTOM_TEXTURES == false) return;
 
-				// TODO: find correct value, for now we use 0
-				var renderPrecedence = 0;
+				__instance.nakedGraphic = zombie.customBodyGraphic;
+				zombie.customBodyGraphic = null;
 
-				var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
-				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
-				var bodyGraphic = Activator.CreateInstance<VariableGraphic>();
-				bodyGraphic.Init(bodyRequest);
-				__instance.nakedGraphic = bodyGraphic;
-
-				var headPath = zombie.story.HeadGraphicPath;
-				var sep = headPath.LastIndexOf('/');
-				headPath = "Zombie" + headPath.Substring(sep);
-				var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
-				var headGraphic = Activator.CreateInstance<VariableGraphic>();
-				headGraphic.Init(headRequest);
-				__instance.headGraphic = headGraphic;
+				__instance.headGraphic = zombie.customHeadGraphic;
+				zombie.customHeadGraphic = null;
 			}
 		}
 
@@ -482,9 +544,9 @@ namespace ZombieLand
 				{
 					float speed;
 					if (zombie.state == ZombieState.Tracking)
-						speed = Constants.ZOMBIE_MOVE_SPEED_TRACKING;
+						speed = ZombieSettings.Values.moveSpeedTracking;
 					else
-						speed = Constants.ZOMBIE_MOVE_SPEED_IDLE;
+						speed = ZombieSettings.Values.moveSpeedIdle;
 
 					float factor;
 					switch (zombie.story.bodyType)
@@ -521,16 +583,17 @@ namespace ZombieLand
 			{
 				var zombie = pawn as Zombie;
 				if (zombie == null) return;
+				var settings = ZombieSettings.Values.damageFactor;
 				switch (zombie.story.bodyType)
 				{
 					case BodyType.Thin:
-						__result *= 0.5f;
+						__result *= 0.5f * settings;
 						break;
 					case BodyType.Hulk:
-						__result *= 4f;
+						__result *= 4f * settings;
 						break;
 					case BodyType.Fat:
-						__result *= 2f;
+						__result *= 2f * settings;
 						break;
 				}
 			}
@@ -575,7 +638,8 @@ namespace ZombieLand
 			static void Postfix(Pawn pawn, bool __result)
 			{
 				if (__result == false) return;
-				if (pawn is Zombie zombie && zombie.Destroyed == false && zombie.Dead == false)
+				var zombie = pawn as Zombie;
+				if (zombie != null && zombie.Destroyed == false && zombie.Dead == false)
 					zombie.state = ZombieState.ShouldDie;
 			}
 		}
@@ -586,7 +650,7 @@ namespace ZombieLand
 		[HarmonyPatch("CanGetThought")]
 		static class ThoughtUtility_CanGetThought_Patch
 		{
-			static bool Prefix(Pawn pawn, ThoughtDef def, ref bool __result)
+			static bool Prefix(Pawn pawn, ref bool __result)
 			{
 				if (pawn is Zombie)
 				{
@@ -649,9 +713,10 @@ namespace ZombieLand
 				if (def.ingestible.sourceDef is ThingDef_Zombie)
 				{
 					def.selectable = false;
+					def.neverMultiSelect = true;
 					def.drawGUIOverlay = false;
 					def.hasTooltip = false;
-					def.hideAtSnowDepth = 0.1f;
+					def.hideAtSnowDepth = 99f;
 					def.inspectorTabs = new List<Type>();
 					def.passability = Traversability.Standable;
 					def.affectsRegions = false;
@@ -670,7 +735,6 @@ namespace ZombieLand
 			static void Postfix(Pawn_HealthTracker __instance)
 			{
 				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
-
 				if (pawn is Zombie) return;
 				if (pawn == null || pawn.Map == null) return;
 
@@ -679,6 +743,7 @@ namespace ZombieLand
 				{
 					var timestamp = grid.Get(pawn.Position).timestamp;
 					var radius = Tools.RadiusForPawn(pawn) * Constants.KILL_CIRCLE_RADIUS_MULTIPLIER;
+					radius /= ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
 					Tools.GetCircle(radius).Do(vec =>
 					{
 						var pos = pawn.Position + vec;
@@ -701,9 +766,9 @@ namespace ZombieLand
 			{
 				if (pawn.Map == null) return;
 
-				var grid = pawn.Map.GetGrid();
 				if (pawn is Zombie)
 				{
+					var grid = pawn.Map.GetGrid();
 					if (pawn.pather != null)
 					{
 						var dest = pawn.pather.Destination;
@@ -716,8 +781,10 @@ namespace ZombieLand
 
 				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)
 				{
+					var grid = pawn.Map.GetGrid();
 					var timestamp = grid.Get(pawn.Position).timestamp;
 					var radius = Tools.RadiusForPawn(pawn) * Constants.KILL_CIRCLE_RADIUS_MULTIPLIER;
+					radius /= ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
 					Tools.GetCircle(radius).Do(vec =>
 					{
 						var pos = pawn.Position + vec;
@@ -761,15 +828,16 @@ namespace ZombieLand
 		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(Thing) })]
 		static class Projectile_Launch_Patch
 		{
-			static void Prefix(Projectile __instance, Thing launcher, Vector3 origin, LocalTargetInfo targ, Thing equipment)
+			static void Prefix(Thing launcher, Vector3 origin, LocalTargetInfo targ)
 			{
 				if ((launcher is Pawn) == false) return;
 
 				var now = Tools.Ticks();
 				var pos = origin.ToIntVec3();
-				var radius = Tools.Boxed((targ.CenterVector3 - origin).magnitude, Constants.MIN_WEAPON_RANGE, Constants.MAX_WEAPON_RANGE);
+				var magnitude = (targ.CenterVector3 - origin).magnitude * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
+				var radius = Tools.Boxed(magnitude, Constants.MIN_WEAPON_RANGE, Constants.MAX_WEAPON_RANGE);
 				var grid = launcher.Map.GetGrid();
-				Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(pos + vec, now - (int)vec.LengthHorizontalSquared));
+				Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
 			}
 		}
 
@@ -777,7 +845,7 @@ namespace ZombieLand
 		// 
 		[HarmonyPatch(typeof(PawnCollisionTweenerUtility))]
 		[HarmonyPatch("PawnCollisionPosOffsetFor")]
-		public class Pawn_DrawTracker_DrawTrackerTick_Patch
+		static class Pawn_DrawTracker_DrawTrackerTick_Patch
 		{
 			static bool Prefix(Pawn pawn, ref Vector3 __result)
 			{
@@ -791,7 +859,7 @@ namespace ZombieLand
 		// 
 		[HarmonyPatch(typeof(Pawn_NeedsTracker))]
 		[HarmonyPatch("AllNeeds", PropertyMethod.Getter)]
-		public class Pawn_NeedsTracker_AllNeeds_Patch
+		static class Pawn_NeedsTracker_AllNeeds_Patch
 		{
 			static List<Need> AllNeeds
 			{
@@ -811,7 +879,7 @@ namespace ZombieLand
 		}
 		[HarmonyPatch(typeof(Pawn_NeedsTracker))]
 		[HarmonyPatch("AddOrRemoveNeedsAsAppropriate")]
-		public class Pawn_NeedsTracker_AddOrRemoveNeedsAsAppropriate_Patch
+		static class Pawn_NeedsTracker_AddOrRemoveNeedsAsAppropriate_Patch
 		{
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 			{
@@ -825,7 +893,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(Pawn_RecordsTracker))]
 		[HarmonyPatch("AddTo")]
-		public class Pawn_RecordsTracker_AddTo_Patch
+		static class Pawn_RecordsTracker_AddTo_Patch
 		{
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 			{
@@ -836,7 +904,7 @@ namespace ZombieLand
 		}
 		[HarmonyPatch(typeof(Pawn_RecordsTracker))]
 		[HarmonyPatch("Increment")]
-		public class Pawn_RecordsTracker_Increment_Patch
+		static class Pawn_RecordsTracker_Increment_Patch
 		{
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 			{
@@ -846,13 +914,39 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to insert our settings page
+		//
+		[HarmonyPatch(typeof(Scenario))]
+		[HarmonyPatch("GetFirstConfigPage")]
+		static class PageUtility_InitGameStart_Patch
+		{
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var selectLandingSiteConstructor = AccessTools.Constructor(typeof(Page_SelectLandingSite));
+
+				var dialogConstructor = AccessTools.Constructor(typeof(SettingsDialog));
+				var addMethod = AccessTools.Method(typeof(List<Page>), "Add");
+
+				foreach (var instruction in instructions)
+				{
+					if (instruction.operand == selectLandingSiteConstructor)
+					{
+						yield return new CodeInstruction(OpCodes.Newobj, dialogConstructor);
+						yield return new CodeInstruction(OpCodes.Callvirt, addMethod);
+						yield return new CodeInstruction(OpCodes.Ldloc_0);
+					}
+					yield return instruction;
+				}
+			}
+		}
+
 		// patch to avoid null reference exception
 		//
 		[HarmonyPatch(typeof(ThoughtWorker_ColonistLeftUnburied))]
 		[HarmonyPatch("CurrentStateInternal")]
-		public class ThoughtWorker_ColonistLeftUnburied_CurrentStateInternal_Patch
+		static class ThoughtWorker_ColonistLeftUnburied_CurrentStateInternal_Patch
 		{
-			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, IEnumerable<CodeInstruction> instructions)
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
 				var get_InnerPawn = AccessTools.Method(typeof(Corpse), "get_InnerPawn");
 				CodeInstruction prevInstruction = null;

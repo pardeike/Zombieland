@@ -5,12 +5,7 @@
 		<defName>Zombie</defName>
 		<thinkRoot Class="ThinkNode_Priority">
 			<subNodes>
-
-				<li Class="ZombieLand.JobGiver_Stumble">
-				</li>
-
-				<li Class="JobGiver_IdleError"/>
-
+				<li Class="ZombieLand.JobGiver_Stumble"/>
 			</subNodes>
 		</thinkRoot>
 	</ThinkTreeDef>

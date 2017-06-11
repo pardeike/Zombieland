@@ -1,4 +1,5 @@
 ﻿using Harmony;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using Verse;
@@ -9,38 +10,28 @@ namespace ZombieLand
 	{
 		public ZombielandMod(ModContentPack content) : base(content)
 		{
+			GetSettings<ZombieSettingsDefaults>();
+
 			// HarmonyInstance.DEBUG = true;
 			var harmony = HarmonyInstance.Create("net.pardeike.zombieland");
 			harmony.PatchAll(Assembly.GetExecutingAssembly());
 		}
 
-		public override void WriteSettings()
-		{
-			base.WriteSettings();
-		}
-
 		public override void DoSettingsWindowContents(Rect inRect)
 		{
-			Listing_Standard list = new Listing_Standard()
-			{
-				ColumnWidth = inRect.width
-			};
-
-			list.Begin(inRect);
-			list.Gap();
-
-			// list.Label("label");
-			// silderVal = Mathf.RoundToInt(list.Slider(silderVal, 0, 120));
-
-			// list.Gap();
-			// list.CheckboxLabeled("label", ref checkboxVal, "description");
-
-			list.End();
+			var settings = ZombieSettings.GetGameSettings();
+			if (settings != null)
+				settings.DoWindowContents(inRect);
+			else
+				ZombieSettingsDefaults.DoWindowContents(inRect);
 		}
 
 		public override string SettingsCategory()
 		{
-			return "Zombieland";
+			var world = Find.World;
+			if (world != null && world.components != null)
+				return "ZombielandGameSettings".Translate();
+			return "ZombielandDefaultSettings".Translate();
 		}
 	}
 }

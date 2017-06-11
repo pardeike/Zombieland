@@ -12,9 +12,12 @@ namespace ZombieLand
 		public ZombieState state = ZombieState.Emerging;
 		public IntVec3 wanderDestination = IntVec3.Invalid;
 
-		int rubbleTicks = 0;
-		int rubbleCounter = 0;
+		int rubbleTicks;
+		int rubbleCounter;
 		List<Rubble> rubbles = new List<Rubble>();
+
+		public VariableGraphic customHeadGraphic; // not saved
+		public VariableGraphic customBodyGraphic; // not saved
 
 		public override void ExposeData()
 		{
@@ -24,6 +27,9 @@ namespace ZombieLand
 			Scribe_Values.Look(ref rubbleTicks, "rubbleTicks");
 			Scribe_Values.Look(ref rubbleCounter, "rubbleCounter");
 			Scribe_Collections.Look(ref rubbles, "rubbles", LookMode.Deep);
+
+			if (Scribe.mode == LoadSaveMode.PostLoadInit)
+				ZombieGenerator.AssignNewCustomGraphics(this);
 		}
 
 		public override void DeSpawn()
@@ -40,8 +46,7 @@ namespace ZombieLand
 			base.DeSpawn();
 		}
 
-		static Type[] RenderPawnInternalParameterTypes = new Type[]
-		{
+		static readonly Type[] RenderPawnInternalParameterTypes = {
 			typeof(Vector3),
 			typeof(Quaternion),
 			typeof(bool),

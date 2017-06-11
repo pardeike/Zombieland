@@ -15,7 +15,7 @@
 		</apparelTags>
 		<apparelMoney>
 			<min>100</min>
-			<max>200</max>
+			<max>250</max>
 		</apparelMoney>
 		<apparelIgnoreSeasons>true</apparelIgnoreSeasons>
 		<apparelAllowHeadwearChance>0.75</apparelAllowHeadwearChance>

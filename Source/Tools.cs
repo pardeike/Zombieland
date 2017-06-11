@@ -2,8 +2,6 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -12,7 +10,7 @@ using Verse;
 
 namespace ZombieLand
 {
-	class Measure
+	/*class Measure
 	{
 		Stopwatch sw;
 		String text;
@@ -31,7 +29,7 @@ namespace ZombieLand
 			counter++;
 			var ms = sw.ElapsedMilliseconds;
 			var delta = prevTime == 0 ? 0 : (ms - prevTime);
-			//Log.Warning("#" + counter + " " + text + " = " + ms + " ms (+" + delta + ")");
+			Log.Warning("#" + counter + " " + text + " = " + ms + " ms (+" + delta + ")");
 			prevTime = ms;
 		}
 
@@ -40,7 +38,7 @@ namespace ZombieLand
 			sw.Stop();
 			Checkpoint();
 		}
-	}
+	}*/
 
 	[StaticConstructorOnStartup]
 	static class Tools
@@ -58,10 +56,16 @@ namespace ZombieLand
 			return 1000L * GenTicks.TicksAbs;
 		}
 
+		public static int PheromoneFadeoff()
+		{
+			return (int)(Constants.PHEROMONE_FADEOFF.SecondsToTicks() * ZombieSettings.Values.zombieInstinct.HalfToDoubleValue()) * 1000;
+		}
+
 		static Dictionary<int, PheromoneGrid> gridCache = new Dictionary<int, PheromoneGrid>();
 		public static PheromoneGrid GetGrid(this Map map)
 		{
-			if (gridCache.TryGetValue(map.uniqueID, out PheromoneGrid grid))
+			PheromoneGrid grid;
+			if (gridCache.TryGetValue(map.uniqueID, out grid))
 				return grid;
 
 			grid = map.GetComponent<PheromoneGrid>();
@@ -74,6 +78,13 @@ namespace ZombieLand
 			return grid;
 		}
 
+		public static void ColorBlend(ref float original, float color)
+		{
+			original = original + color - 1f;
+			if (original < 0f) original = 0f;
+			if (original > 1f) original = 1f;
+		}
+
 		public static T Boxed<T>(T val, T min, T max) where T : IComparable
 		{
 			if (val.CompareTo(min) < 0) return min;
@@ -83,7 +94,23 @@ namespace ZombieLand
 
 		public static float RadiusForPawn(Pawn pawn)
 		{
-			return pawn.RaceProps.Animal ? Constants.ANIMAL_PHEROMONE_RADIUS : Constants.HUMAN_PHEROMONE_RADIUS;
+			var radius = pawn.RaceProps.Animal ? Constants.ANIMAL_PHEROMONE_RADIUS : Constants.HUMAN_PHEROMONE_RADIUS;
+			return radius * ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
+		}
+
+		public static bool DoesRepellZombies(this Def def)
+		{
+			return def.defName.StartsWith("ZL_REPELL", StringComparison.Ordinal);
+		}
+
+		public static bool DoesAttractZombies(this Def def)
+		{
+			return def.defName.StartsWith("ZL_ATTRACT", StringComparison.Ordinal);
+		}
+
+		public static bool DoesKillZombies(this Def def)
+		{
+			return def.defName.StartsWith("ZL_KILL", StringComparison.Ordinal);
 		}
 
 		public static bool IsValidSpawnLocation(TargetInfo target)
@@ -93,22 +120,44 @@ namespace ZombieLand
 
 		public static bool IsValidSpawnLocation(IntVec3 cell, Map map)
 		{
-			if (GenGrid.Walkable(cell, map) == false) return false;
+			if (cell.Walkable(map) == false) return false;
 			var terrain = map.terrainGrid.TerrainAt(cell);
 			if (terrain != TerrainDefOf.Soil && terrain != TerrainDefOf.Sand && terrain != TerrainDefOf.Gravel) return false;
+			if (terrain.DoesRepellZombies()) return false;
 			return true;
 		}
 
 		public static bool HasValidDestination(this Pawn pawn, IntVec3 dest)
 		{
 			if (dest.InBounds(pawn.Map) == false) return false;
-			if (dest.GetEdifice(pawn.Map) is Building_Door) return false;
-			return (pawn.Map.pathGrid.WalkableFast(dest));
+			var door = dest.GetEdifice(pawn.Map) as Building_Door;
+			if (door != null)
+			{
+				if (door.Open == false)
+					return false;
+			}
+			if (pawn.Map.pathGrid.WalkableFast(dest) == false) return false;
+			return pawn.Map.terrainGrid.TerrainAt(dest).DoesRepellZombies() == false;
 		}
 
 		public static Predicate<IntVec3> ZombieSpawnLocator(Map map)
 		{
-			return cell => IsValidSpawnLocation(cell, map);
+			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.AllTheTime
+				|| ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly)
+			{
+				return cell => IsValidSpawnLocation(cell, map)
+					&& map.reachability.CanReachColony(cell);
+			}
+
+			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.WhenDark)
+			{
+				return cell => IsValidSpawnLocation(cell, map)
+					&& map.glowGrid.PsychGlowAt(cell) == PsychGlow.Dark
+					&& map.reachability.CanReachColony(cell);
+			}
+
+			Log.Error("Unsupported spawn mode " + ZombieSettings.Values.spawnWhenType);
+			return null;
 		}
 
 		public static IntVec3 CenterOfInterest(Map map)
@@ -136,13 +185,14 @@ namespace ZombieLand
 			return n == 0 ? map.Center : new IntVec3(x / n, 0, z / n);
 		}
 
-		public static void ChainReact(PheromoneGrid grid, Map map, IntVec3 basePos, IntVec3 nextMove)
+		public static void ChainReact(Map map, IntVec3 basePos, IntVec3 nextMove)
 		{
+			var grid = map.GetGrid();
 			var baseTimestamp = grid.Get(nextMove, false).timestamp;
 			for (int i = 0; i < 9; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCellsAndInside[i];
-				if (pos.x != nextMove.x || pos.z != nextMove.z)
+				if (pos.x != nextMove.x || pos.z != nextMove.z && pos.InBounds(map))
 				{
 					var distance = Math.Abs(nextMove.x - pos.x) + Math.Abs(nextMove.z - pos.z);
 					var timestamp = baseTimestamp - distance * Constants.ZOMBIE_CLOGGING_FACTOR * 2;
@@ -156,7 +206,9 @@ namespace ZombieLand
 			if (Constants.DEBUG_COLONY_POINTS > 0) return Constants.DEBUG_COLONY_POINTS;
 
 			IEnumerable<Pawn> colonists = Find.VisibleMap.mapPawns.FreeColonists;
-			ColonyEvaluation.GetColonistArmouryPoints(colonists, Find.VisibleMap, out float colonistPoints, out float armouryPoints);
+			float colonistPoints;
+			float armouryPoints;
+			ColonyEvaluation.GetColonistArmouryPoints(colonists, Find.VisibleMap, out colonistPoints, out armouryPoints);
 			return (int)(colonistPoints + armouryPoints);
 		}
 
@@ -187,7 +239,7 @@ namespace ZombieLand
 			GenSpawn.Spawn(newThing, pawn.Position, pawn.Map);
 		}
 
-		public static Dictionary<float, HashSet<IntVec3>> circles = null;
+		public static Dictionary<float, HashSet<IntVec3>> circles;
 		public static IEnumerable<IntVec3> GetCircle(float radius)
 		{
 			if (circles == null) circles = new Dictionary<float, HashSet<IntVec3>>();
@@ -233,7 +285,7 @@ namespace ZombieLand
 					break;
 				}
 			if (parameterIndex == -1)
-				throw new ArgumentException("Cannot find parameter named " + parameterName, nameof(parameterName));
+				throw new ArgumentException("Cannot find parameter named " + parameterName, "parameterName");
 
 			var skipReplacement = generator.DefineLabel();
 			return new List<CodeInstruction>
@@ -276,7 +328,6 @@ namespace ZombieLand
 								instructions.Add(new CodeInstruction(OpCodes.Ldarg, index + 1)); // parameters
 							else
 							{
-								var field = name.Substring(2, name.Length - 4);
 								var fInfo = AccessTools.Field(method.DeclaringType, name);
 								instructions.Add(new CodeInstruction(OpCodes.Ldarg_0));
 								instructions.Add(new CodeInstruction(OpCodes.Ldflda, fInfo)); // extra fields

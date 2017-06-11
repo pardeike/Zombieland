@@ -7,7 +7,7 @@
 		<description>Undead creatures.</description>
 		<pawnsPlural>zombies</pawnsPlural>
 		<requiredCountAtGameStart>1</requiredCountAtGameStart>
-		<fixedName>a zombie</fixedName>
+		<fixedName>Zombies</fixedName>
 		<raidCommonality>0</raidCommonality>
 		<humanlikeFaction>true</humanlikeFaction>
 		<hidden>true</hidden>
