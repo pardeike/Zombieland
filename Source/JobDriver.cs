@@ -376,8 +376,13 @@ namespace ZombieLand
 						foreach (var thing in grid.ThingsListAtFast(pos))
 						{
 							var building = thing as Building;
-							if (building != null && building.def.building.isNaturalRock == false && (attackColonistsOnly == false || building.Faction == playerFaction))
-								return building;
+							if (building != null)
+							{
+								var buildingDef = building.def;
+								var factionCondition = (attackColonistsOnly == false || building.Faction == playerFaction);
+								if (buildingDef.useHitPoints && buildingDef.building.isNaturalRock == false && factionCondition)
+									return building;
+							}
 						}
 					}
 				}

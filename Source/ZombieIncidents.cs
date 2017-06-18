@@ -30,6 +30,8 @@ namespace ZombieLand
 
 		public override bool TryExecute(IncidentParms parms)
 		{
+			if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return false;
+
 			var map = (Map)parms.target;
 			var zombieCount = ZombieSettings.Values.baseNumberOfZombiesinEvent;
 			zombieCount *= map.mapPawns.FreeColonists.Count();
