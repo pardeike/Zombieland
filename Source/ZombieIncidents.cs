@@ -8,15 +8,32 @@ using Verse.Sound;
 
 namespace ZombieLand
 {
+	public class ZombiesRisingSmall : ZombiesRising
+	{
+		public ZombiesRisingSmall() : base()
+		{
+			minCount = Constants.MIN_ZOMBIE_SPAWN_CELL_COUNT / 8 + 1;
+		}
+	}
+
+	public class ZombiesRisingLarge : ZombiesRising
+	{
+		public ZombiesRisingLarge() : base()
+		{
+			minCount = Constants.MIN_ZOMBIE_SPAWN_CELL_COUNT;
+		}
+	}
+
 	public class ZombiesRising : IncidentWorker
 	{
+		internal int minCount;
+
 		public Predicate<IntVec3> SpotValidator(Map map)
 		{
 			var cellValidator = Tools.ZombieSpawnLocator(map);
 			return cell =>
 			{
 				var count = 0;
-				var minCount = Constants.MIN_ZOMBIE_SPAWN_CELL_COUNT;
 				var vecs = Tools.GetCircle(Constants.SPAWN_INCIDENT_RADIUS).ToList();
 				foreach (var vec in vecs)
 					if (cellValidator(cell + vec))
