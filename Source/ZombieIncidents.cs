@@ -8,11 +8,13 @@ using Verse.Sound;
 
 namespace ZombieLand
 {
+	// Constants.MIN_ZOMBIE_SPAWN_CELL_COUNT
+
 	public class ZombiesRisingSmall : ZombiesRising
 	{
 		public ZombiesRisingSmall() : base()
 		{
-			minCount = Constants.MIN_ZOMBIE_SPAWN_CELL_COUNT / 8 + 1;
+			zombieCountFactor = 0.5f;
 		}
 	}
 
@@ -20,13 +22,13 @@ namespace ZombieLand
 	{
 		public ZombiesRisingLarge() : base()
 		{
-			minCount = Constants.MIN_ZOMBIE_SPAWN_CELL_COUNT;
+			zombieCountFactor = 1f;
 		}
 	}
 
 	public class ZombiesRising : IncidentWorker
 	{
-		internal int minCount;
+		internal float zombieCountFactor;
 
 		public Predicate<IntVec3> SpotValidator(Map map)
 		{
@@ -38,10 +40,10 @@ namespace ZombieLand
 				foreach (var vec in vecs)
 					if (cellValidator(cell + vec))
 					{
-						if (++count >= minCount)
+						if (++count >= Constants.MIN_ZOMBIE_SPAWN_CELL_COUNT)
 							break;
 					}
-				return count >= minCount;
+				return count >= Constants.MIN_ZOMBIE_SPAWN_CELL_COUNT;
 			};
 		}
 
@@ -50,8 +52,8 @@ namespace ZombieLand
 			if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return false;
 
 			var map = (Map)parms.target;
-			var zombieCount = ZombieSettings.Values.baseNumberOfZombiesinEvent;
-			zombieCount *= map.mapPawns.FreeColonists.Count();
+			var zombieCount = (int)(zombieCountFactor * ZombieSettings.Values.baseNumberOfZombiesinEvent) + 1;
+			zombieCount *= Math.Max(1, map.mapPawns.FreeColonists.Count());
 
 			var spotValidator = SpotValidator(map);
 

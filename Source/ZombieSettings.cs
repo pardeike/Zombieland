@@ -109,7 +109,7 @@ namespace ZombieLand
 			zombiesDieVeryEasily = false,
 			daysBeforeZombiesCome = 3,
 			maximumNumberOfZombies = 1000,
-			baseNumberOfZombiesinEvent = 30,
+			baseNumberOfZombiesinEvent = 20,
 			moveSpeedIdle = 0.2f,
 			moveSpeedTracking = 1.3f,
 			damageFactor = 1.0f,

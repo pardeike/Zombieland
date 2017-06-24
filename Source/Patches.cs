@@ -444,6 +444,23 @@ namespace ZombieLand
 			}
 		}
 
+		// patch so you cannot strip zombies
+		//
+		[HarmonyPatch(typeof(Pawn))]
+		[HarmonyPatch("AnythingToStrip")]
+		static class Pawn_AnythingToStrip_Patch
+		{
+			static bool Prefix(Pawn __instance, ref bool __result)
+			{
+				if (__instance is Zombie)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+
 		// patch to not show forbidden red cross icon on zombies
 		//
 		[HarmonyPatch(typeof(ForbidUtility))]
@@ -644,6 +661,84 @@ namespace ZombieLand
 			}
 		}
 
+		// patch for disallowing social interaction with zombies
+		//
+		[HarmonyPatch(typeof(RelationsUtility))]
+		[HarmonyPatch("HasAnySocialMemoryWith")]
+		static class RelationsUtility_HasAnySocialMemoryWith_Patch
+		{
+			static bool Prefix(Pawn p, Pawn otherPawn, ref bool __result)
+			{
+				if (p is Zombie || otherPawn is Zombie)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+		[HarmonyPatch(typeof(Pawn_RelationsTracker))]
+		[HarmonyPatch("OpinionOf")]
+		static class Pawn_RelationsTracker_OpinionOf_Patch
+		{
+			static bool Prefix(Pawn other, ref int __result)
+			{
+				if (other is Zombie)
+				{
+					__result = 0;
+					return false;
+				}
+				return true;
+			}
+		}
+		[HarmonyPatch(typeof(RelationsUtility))]
+		[HarmonyPatch("PawnsKnowEachOther")]
+		static class RelationsUtility_PawnsKnowEachOther_Patch
+		{
+			static bool Prefix(Pawn p1, Pawn p2, ref bool __result)
+			{
+				if (p1 is Zombie || p2 is Zombie)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+		[HarmonyPatch(typeof(ThoughtHandler))]
+		[HarmonyPatch("GetSocialThoughts")]
+		[HarmonyPatch(new Type[] { typeof(Pawn), typeof(List<ISocialThought>) })]
+		static class ThoughtHandler_GetSocialThoughts_Patch
+		{
+			static bool Prefix(ThoughtHandler __instance, Pawn otherPawn, List<ISocialThought> outThoughts)
+			{
+				if (otherPawn is Zombie || __instance.pawn is Zombie)
+				{
+					outThoughts.Clear();
+					return false;
+				}
+				return true;
+			}
+		}
+		[HarmonyPatch(typeof(SituationalThoughtHandler))]
+		[HarmonyPatch("AppendSocialThoughts")]
+		static class SituationalThoughtHandler_AppendSocialThoughts_Patch
+		{
+			static bool Prefix(SituationalThoughtHandler __instance, Pawn otherPawn)
+			{
+				return !(otherPawn is Zombie || __instance.pawn is Zombie);
+			}
+		}
+		[HarmonyPatch(typeof(Corpse))]
+		[HarmonyPatch("GiveObservedThought")]
+		static class Corpse_GiveObservedThought_Patch
+		{
+			static bool Prefix(Corpse __instance)
+			{
+				return !(__instance is ZombieCorpse);
+			}
+		}
+
 		// patch for disallowing thoughts on zombies
 		//
 		[HarmonyPatch(typeof(ThoughtUtility))]
@@ -708,7 +803,7 @@ namespace ZombieLand
 		{
 			static void Prefix(ThingDef def)
 			{
-				if (def.IsCorpse == false) return;
+				if (def == null || def.IsCorpse == false) return;
 				if (def.ingestible == null) return;
 				if (def.ingestible.sourceDef is ThingDef_Zombie)
 				{
@@ -826,9 +921,9 @@ namespace ZombieLand
 		[HarmonyPatch(typeof(Projectile))]
 		[HarmonyPatch("Launch")]
 		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(Thing) })]
-		static class Projectile_Launch_Patch
+		public static class Projectile_Launch_Patch
 		{
-			static void Prefix(Thing launcher, Vector3 origin, LocalTargetInfo targ)
+			static void Postfix(Thing launcher, Vector3 origin, LocalTargetInfo targ)
 			{
 				if ((launcher is Pawn) == false) return;
 
@@ -838,6 +933,37 @@ namespace ZombieLand
 				var radius = Tools.Boxed(magnitude, Constants.MIN_WEAPON_RANGE, Constants.MAX_WEAPON_RANGE);
 				var grid = launcher.Map.GetGrid();
 				Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
+			}
+
+			private static float GetDistanceTraveled(float velocity, float angle, float shotHeight)
+			{
+				if (shotHeight < 0.001f)
+					return (Mathf.Pow(velocity, 2f) / 9.8f) * Mathf.Sin(2f * angle);
+				return ((velocity * Mathf.Cos(angle)) / 9.8f) * (velocity * Mathf.Sin(angle) + Mathf.Sqrt(Mathf.Pow(velocity * Mathf.Sin(angle), 2f) + 2f * 9.8f * shotHeight));
+			}
+
+			static void PostfixCombatExtended(Thing launcher, Vector2 origin, float shotAngle, float shotRotation, float shotHeight = 0f, float shotSpeed = -1f, Thing equipment = null)
+			{
+				if ((launcher is Pawn) == false) return;
+
+				var now = Tools.Ticks();
+				var pos = new IntVec3(origin);
+				var delta = GetDistanceTraveled(shotSpeed, shotAngle, shotHeight);
+				var magnitude = delta * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
+				var radius = Tools.Boxed(magnitude, Constants.MIN_WEAPON_RANGE, Constants.MAX_WEAPON_RANGE);
+				var grid = launcher.Map.GetGrid();
+				Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
+			}
+
+			public static void PatchCombatExtended(HarmonyInstance harmony)
+			{
+				var type = AccessTools.TypeByName("CombatExtended.ProjectileCE");
+				if (type == null) return;
+				var originalMethodInfo = AccessTools.Method(type, "Launch", new Type[] { typeof(Thing), typeof(Vector2), typeof(float), typeof(float), typeof(float), typeof(float), typeof(Thing) });
+				if (originalMethodInfo == null) return;
+
+				var postfix = new HarmonyMethod(AccessTools.Method(typeof(Projectile_Launch_Patch), "PostfixCombatExtended"));
+				harmony.Patch(originalMethodInfo, new HarmonyMethod(null), postfix);
 			}
 		}
 

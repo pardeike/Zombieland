@@ -76,6 +76,12 @@
     <Content Include="..\About\Settings.txt">
       <Link>_xml\Settings.txt</Link>
     </Content>
+    <Content Include="..\Defs\CE_Tweak.xml">
+      <Link>_xml\CE_Tweak.xml</Link>
+    </Content>
+    <Content Include="..\Defs\Twinkie_Override.xml">
+      <Link>_xml\Twinkie_Override.xml</Link>
+    </Content>
     <Content Include="..\Defs\Zombie_Faction.xml">
       <Link>_xml\Zombie_Faction.xml</Link>
       <SubType>Designer</SubType>

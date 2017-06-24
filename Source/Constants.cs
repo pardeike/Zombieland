@@ -124,7 +124,7 @@ namespace ZombieLand
 		//
 		public static int SPAWN_INCIDENT_RADIUS = 10;
 		public static int MIN_ZOMBIE_SPAWN_CELL_COUNT = 6;
-		public static int NUMBER_OF_ZOMBIES_IN_INCIDENT = 40;
+		public static int NUMBER_OF_ZOMBIES_IN_INCIDENT = 20;
 
 		// misc
 		//

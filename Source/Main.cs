@@ -1,5 +1,4 @@
 ﻿using Harmony;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using Verse;
@@ -15,6 +14,9 @@ namespace ZombieLand
 			// HarmonyInstance.DEBUG = true;
 			var harmony = HarmonyInstance.Create("net.pardeike.zombieland");
 			harmony.PatchAll(Assembly.GetExecutingAssembly());
+
+			// extra patch for Combat Extended
+			Patches.Projectile_Launch_Patch.PatchCombatExtended(harmony);
 		}
 
 		public override void DoSettingsWindowContents(Rect inRect)
