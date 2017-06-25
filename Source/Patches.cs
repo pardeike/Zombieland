@@ -109,10 +109,12 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(MusicManagerPlay))]
 		[HarmonyPatch("DangerMusicMode", PropertyMethod.Getter)]
-		static class AttackTargetsCache_get_DangerRating_Patch
+		static class MusicManagerPlay_DangerMusicMode_Patch
 		{
 			static int lastUpdateTick;
 			static StoryDanger dangerRatingInt = StoryDanger.None;
+
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(ref bool __result)
 			{
 				if (ZombieSettings.Values.zombiesTriggerDangerMusic) return true;
@@ -164,6 +166,7 @@ namespace ZombieLand
 		[HarmonyPatch("IsActiveThreat")]
 		static class GenHostility_IsActiveThreat_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(bool __result, IAttackTarget target)
 			{
 				if (target is Zombie)
@@ -309,7 +312,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(FactionManager))]
 		[HarmonyPatch("ExposeData")]
-		static class FactionManager_AllFactions_Patch
+		static class FactionManager_ExposeData_Patch
 		{
 			static void Postfix(FactionManager __instance)
 			{
@@ -397,8 +400,9 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(PawnGenerator))]
 		[HarmonyPatch("GenerateNewNakedPawn")]
-		static class PawnGenerator_TryGenerateNewNakedPawn_Patch
+		static class PawnGenerator_GenerateNewNakedPawn_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(ref PawnGenerationRequest request, ref Pawn __result)
 			{
 				if (request.Faction == null || request.Faction.def != ZombieDefOf.Zombies) return true;
@@ -413,6 +417,7 @@ namespace ZombieLand
 		[HarmonyPatch("CanReserve")]
 		static class ReservationManager_CanReserve_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(LocalTargetInfo target, ref bool __result)
 			{
 				if (target.HasThing)
@@ -430,6 +435,7 @@ namespace ZombieLand
 		[HarmonyPatch("Reserve")]
 		static class ReservationManager_Reserve_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(LocalTargetInfo target, ref bool __result)
 			{
 				if (target.HasThing)
@@ -450,6 +456,7 @@ namespace ZombieLand
 		[HarmonyPatch("AnythingToStrip")]
 		static class Pawn_AnythingToStrip_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn __instance, ref bool __result)
 			{
 				if (__instance is Zombie)
@@ -468,6 +475,7 @@ namespace ZombieLand
 		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Faction) })]
 		static class ForbidUtility_IsForbidden_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Thing t, ref bool __result)
 			{
 				if (t is Zombie || t is ZombieCorpse)
@@ -485,6 +493,7 @@ namespace ZombieLand
 		[HarmonyPatch("Downed", PropertyMethod.Getter)]
 		static class Pawn_Downed_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn __instance, ref bool __result)
 			{
 				var zombie = __instance as Zombie;
@@ -522,6 +531,7 @@ namespace ZombieLand
 		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(RotDrawMode), typeof(bool) })]
 		static class PawnRenderer_RenderPawnAt_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(PawnRenderer __instance, Vector3 drawLoc, RotDrawMode bodyDrawType)
 			{
 				var zombie = __instance.graphics.pawn as Zombie;
@@ -543,6 +553,7 @@ namespace ZombieLand
 		[HarmonyPatch("GetStatValue")]
 		static class StatExtension_GetStatValue_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Thing thing, StatDef stat, ref float __result)
 			{
 				var zombie = thing as Zombie;
@@ -622,7 +633,7 @@ namespace ZombieLand
 		[HarmonyPatch("PainShockThreshold", PropertyMethod.Getter)]
 		static class Pawn_HealthTracker_PainShockThreshold_Patch
 		{
-			static float ZombiePainShockThreshold(ref Pawn pawn)
+			static float Replacement(ref Pawn pawn)
 			{
 				var zombie = pawn as Zombie;
 				switch (zombie.story.bodyType)
@@ -640,7 +651,7 @@ namespace ZombieLand
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 			{
 				var conditions = Tools.NotZombieInstructions(generator, method);
-				var replacement = AccessTools.Method(typeof(Pawn_HealthTracker_PainShockThreshold_Patch), "ZombiePainShockThreshold");
+				var replacement = AccessTools.Method(MethodBase.GetCurrentMethod().DeclaringType, "Replacement");
 				var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method, replacement);
 				return transpiler(generator, instructions);
 			}
@@ -650,7 +661,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(DamageWorker_AddInjury))]
 		[HarmonyPatch("IsHeadshot")]
-		static class DamageWorker_IsHeadshot_Patch
+		static class DamageWorker_AddInjury_IsHeadshot_Patch
 		{
 			static void Postfix(Pawn pawn, bool __result)
 			{
@@ -667,6 +678,7 @@ namespace ZombieLand
 		[HarmonyPatch("HasAnySocialMemoryWith")]
 		static class RelationsUtility_HasAnySocialMemoryWith_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn p, Pawn otherPawn, ref bool __result)
 			{
 				if (p is Zombie || otherPawn is Zombie)
@@ -681,20 +693,33 @@ namespace ZombieLand
 		[HarmonyPatch("OpinionOf")]
 		static class Pawn_RelationsTracker_OpinionOf_Patch
 		{
-			static bool Prefix(Pawn other, ref int __result)
+			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 			{
-				if (other is Zombie)
+				var returnZeroLabel = generator.DefineLabel();
+
+				yield return new CodeInstruction(OpCodes.Ldarg_0);
+				yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Pawn_RelationsTracker), "pawn"));
+				yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
+				yield return new CodeInstruction(OpCodes.Brtrue_S, returnZeroLabel);
+				yield return new CodeInstruction(OpCodes.Ldarg_1);
+				yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
+				yield return new CodeInstruction(OpCodes.Brtrue_S, returnZeroLabel);
+
+				foreach (var instruction in instructions)
+					yield return instruction;
+
+				yield return new CodeInstruction(OpCodes.Ldc_I4_0)
 				{
-					__result = 0;
-					return false;
-				}
-				return true;
+					labels = new List<Label> { returnZeroLabel }
+				};
+				yield return new CodeInstruction(OpCodes.Ret);
 			}
 		}
 		[HarmonyPatch(typeof(RelationsUtility))]
 		[HarmonyPatch("PawnsKnowEachOther")]
 		static class RelationsUtility_PawnsKnowEachOther_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn p1, Pawn p2, ref bool __result)
 			{
 				if (p1 is Zombie || p2 is Zombie)
@@ -710,6 +735,7 @@ namespace ZombieLand
 		[HarmonyPatch(new Type[] { typeof(Pawn), typeof(List<ISocialThought>) })]
 		static class ThoughtHandler_GetSocialThoughts_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(ThoughtHandler __instance, Pawn otherPawn, List<ISocialThought> outThoughts)
 			{
 				if (otherPawn is Zombie || __instance.pawn is Zombie)
@@ -724,6 +750,7 @@ namespace ZombieLand
 		[HarmonyPatch("AppendSocialThoughts")]
 		static class SituationalThoughtHandler_AppendSocialThoughts_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(SituationalThoughtHandler __instance, Pawn otherPawn)
 			{
 				return !(otherPawn is Zombie || __instance.pawn is Zombie);
@@ -733,6 +760,7 @@ namespace ZombieLand
 		[HarmonyPatch("GiveObservedThought")]
 		static class Corpse_GiveObservedThought_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Corpse __instance)
 			{
 				return !(__instance is ZombieCorpse);
@@ -745,6 +773,7 @@ namespace ZombieLand
 		[HarmonyPatch("CanGetThought")]
 		static class ThoughtUtility_CanGetThought_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn pawn, ref bool __result)
 			{
 				if (pawn is Zombie)
@@ -762,6 +791,7 @@ namespace ZombieLand
 		[HarmonyPatch("SetForbiddenIfOutsideHomeArea")]
 		static class ForbidUtility_SetForbiddenIfOutsideHomeArea_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Thing t)
 			{
 				return (t as ZombieCorpse == null);
@@ -898,6 +928,7 @@ namespace ZombieLand
 		[HarmonyPatch(new Type[] { typeof(Pawn), typeof(DamageInfo?), typeof(PawnDiedOrDownedThoughtsKind) })]
 		static class PawnDiedOrDownedThoughtsUtility_TryGiveThoughts_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn victim)
 			{
 				return !(victim is Zombie);
@@ -910,6 +941,7 @@ namespace ZombieLand
 		[HarmonyPatch("ImmunityHandlerTick")]
 		static class ImmunityHandler_ImmunityHandlerTick_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(ImmunityHandler __instance)
 			{
 				return !(__instance.pawn is Zombie);
@@ -971,8 +1003,9 @@ namespace ZombieLand
 		// 
 		[HarmonyPatch(typeof(PawnCollisionTweenerUtility))]
 		[HarmonyPatch("PawnCollisionPosOffsetFor")]
-		static class Pawn_DrawTracker_DrawTrackerTick_Patch
+		static class PawnCollisionTweenerUtility_PawnCollisionPosOffsetFor_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn pawn, ref Vector3 __result)
 			{
 				if (!(pawn is Zombie)) return true;
@@ -987,18 +1020,15 @@ namespace ZombieLand
 		[HarmonyPatch("AllNeeds", PropertyMethod.Getter)]
 		static class Pawn_NeedsTracker_AllNeeds_Patch
 		{
-			static List<Need> AllNeeds
+			static List<Need> Replacement()
 			{
-				get
-				{
-					return new List<Need>();
-				}
+				return new List<Need>();
 			}
 
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 			{
 				var conditions = Tools.NotZombieInstructions(generator, method);
-				var replacement = AccessTools.Method(MethodBase.GetCurrentMethod().DeclaringType, method.Name);
+				var replacement = AccessTools.Method(MethodBase.GetCurrentMethod().DeclaringType, "Replacement");
 				var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method, replacement);
 				return transpiler(generator, instructions);
 			}
@@ -1044,7 +1074,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(Scenario))]
 		[HarmonyPatch("GetFirstConfigPage")]
-		static class PageUtility_InitGameStart_Patch
+		static class Scenario_GetFirstConfigPage_Patch
 		{
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
