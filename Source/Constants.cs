@@ -86,6 +86,7 @@ namespace ZombieLand
 		public static float FRAME_TIME_FACTOR = 0.25f;
 		public static float PHEROMONE_FADEOFF = 90f;
 		public static float TICKMANAGER_RECALCULATE_DELAY = 5f;
+		public static int EAT_DELAY_TICKS = 600;
 
 		// zombie spawning
 		// the following hours continue after 23h with 24, 25, 26...
@@ -132,6 +133,7 @@ namespace ZombieLand
 		public static float MAX_WEAPON_RANGE = 30f;
 		public static Material RUBBLE = MaterialPool.MatFrom("Rubble", ShaderDatabase.Cutout);
 		public static Material BRRAINZ = MaterialPool.MatFrom("Brrainz", ShaderDatabase.Cutout);
+		public static Material EATING = MaterialPool.MatFrom("Eating", ShaderDatabase.Cutout);
 		public static System.Random random = new System.Random();
 	}
 }

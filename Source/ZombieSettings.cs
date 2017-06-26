@@ -68,6 +68,8 @@ namespace ZombieLand
 		public ZombieInstinct zombieInstinct;
 		public bool useCustomTextures;
 		public bool zombiesTriggerDangerMusic;
+		public bool zombiesEatDowned;
+		public bool zombiesEatCorpses;
 
 		public object Clone()
 		{
@@ -92,6 +94,8 @@ namespace ZombieLand
 			Scribe_Values.Look(ref zombieInstinct, "zombieInstinct");
 			Scribe_Values.Look(ref useCustomTextures, "useCustomTextures");
 			Scribe_Values.Look(ref zombiesTriggerDangerMusic, "zombiesTriggerDangerMusic");
+			Scribe_Values.Look(ref zombiesEatDowned, "zombiesEatDowned");
+			Scribe_Values.Look(ref zombiesEatCorpses, "zombiesEatCorpses");
 		}
 	}
 
@@ -115,7 +119,9 @@ namespace ZombieLand
 			damageFactor = 1.0f,
 			zombieInstinct = ZombieInstinct.Normal,
 			useCustomTextures = true,
-			zombiesTriggerDangerMusic = false
+			zombiesTriggerDangerMusic = false,
+			zombiesEatDowned = true,
+			zombiesEatCorpses = true
 		};
 
 		public static SettingsGroup Defaults()
@@ -168,6 +174,10 @@ namespace ZombieLand
 			list.Dialog_Label("ZombieHealthTitle");
 			list.Dialog_Checkbox("DoubleTapRequired", ref settings.doubleTapRequired);
 			list.Dialog_Checkbox("ZombiesDieVeryEasily", ref settings.zombiesDieVeryEasily);
+			list.Gap();
+			list.Dialog_Label("ZombieEatingTitle");
+			list.Dialog_Checkbox("ZombiesEatDowned", ref settings.zombiesEatDowned);
+			list.Dialog_Checkbox("ZombiesEatCorpses", ref settings.zombiesEatCorpses, false);
 			list.Gap();
 			list.Dialog_Label("ZombieMiscTitle");
 			list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);

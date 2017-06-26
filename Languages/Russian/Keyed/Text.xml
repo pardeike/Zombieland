@@ -61,6 +61,10 @@
 	<DoubleTapRequired>Падшим(не убитым) зомби нужен контрольный выстрел</DoubleTapRequired>
 	<ZombiesDieVeryEasily>Легко убить</ZombiesDieVeryEasily>
 
+	<ZombieEatingTitle>Zombie Eating</ZombieEatingTitle>
+	<ZombiesEatDowned>Zombies eat downed creatures</ZombiesEatDowned>
+	<ZombiesEatCorpses>Zombies eat corpses</ZombiesEatCorpses>
+
 	<ZombieMiscTitle>Разное</ZombieMiscTitle>
 	<UseCustomTextures>Использовать текстуры дополнения для зомби</UseCustomTextures>
 	<ZombiesTriggerDangerMusic>Проигрывать музыку боя при Зомби-происшествие</ZombiesTriggerDangerMusic>

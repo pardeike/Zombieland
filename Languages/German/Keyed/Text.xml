@@ -61,6 +61,10 @@
 	<DoubleTapRequired>Verletzte Zombies muss man 2x töten</DoubleTapRequired>
 	<ZombiesDieVeryEasily>Zombies sind einfach zu töten</ZombiesDieVeryEasily>
 
+	<ZombieEatingTitle>Zombie Fressen</ZombieEatingTitle>
+	<ZombiesEatDowned>Zombies fressen Verletzte</ZombiesEatDowned>
+	<ZombiesEatCorpses>Zombies fressen Totes</ZombiesEatCorpses>
+
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>
 	<UseCustomTextures>Benutze Spezialtexturen</UseCustomTextures>
 	<ZombiesTriggerDangerMusic>Zombies beeinflussen die Kampfmusik</ZombiesTriggerDangerMusic>

@@ -230,6 +230,11 @@ namespace ZombieLand
 			}
 		}
 
+		public static void DoWithAllZombies(Map map, Action<Zombie> action)
+		{
+			map.GetComponent<TickManager>().AllZombies().Do(action);
+		}
+
 		public static void CastThoughtBubble(Pawn pawn, Material material)
 		{
 			var def = ThingDefOf.Mote_Speech;

@@ -1,7 +1,9 @@
-﻿using RimWorld;
+﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
@@ -12,6 +14,13 @@ namespace ZombieLand
 	{
 		IntVec3 destination;
 
+		Pawn eatTarget;
+		bool eatTargetIsCorpse;
+		bool eatTargetDied;
+		Pawn lastEatTarget;
+
+		int eatDelayTicks;
+
 		void InitAction()
 		{
 			destination = IntVec3.Invalid;
@@ -21,6 +30,10 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 			Scribe_Values.Look(ref destination, "destination", IntVec3.Invalid);
+			Scribe_References.Look(ref eatTarget, "eatTarget");
+			Scribe_Values.Look(ref eatTargetIsCorpse, "eatTargetIsCorpse", false);
+			Scribe_Values.Look(ref eatTargetDied, "eatTargetDied", false);
+			Scribe_References.Look(ref lastEatTarget, "lastEatTarget");
 		}
 
 		int SortByTimestamp(PheromoneGrid grid, IntVec3 p1, IntVec3 p2)
@@ -121,6 +134,110 @@ namespace ZombieLand
 
 				AttackThing(enemy, JobDefOf.AttackMelee);
 				return;
+			}
+
+			// eat a downed or dead pawn
+			//
+			if (eatTarget == null)
+			{
+				eatTarget = CanIngest(out eatTargetIsCorpse);
+				if (eatTarget != null)
+					eatTargetDied = eatTarget.Dead;
+			}
+
+			if (eatTarget != null)
+			{
+				if (eatDelayTicks > 0)
+				{
+					eatDelayTicks--;
+					return;
+				}
+
+				eatDelayTicks = Constants.EAT_DELAY_TICKS;
+				switch (zombie.story.bodyType)
+				{
+					case BodyType.Thin:
+						eatDelayTicks *= 3;
+						break;
+					case BodyType.Hulk:
+						eatDelayTicks /= 4;
+						break;
+					case BodyType.Fat:
+						eatDelayTicks = (int)(eatDelayTicks / 1.5f);
+						break;
+					default:
+						break;
+				}
+
+				if (eatTarget != lastEatTarget)
+				{
+					lastEatTarget = eatTarget;
+					zombie.Drawer.rotator.FaceCell(eatTarget.Position);
+
+					Tools.CastThoughtBubble(pawn, Constants.EATING);
+				}
+				CastEatingSound();
+
+				var bodyPartRecord = FirstEatablePart(eatTarget);
+				if (bodyPartRecord != null)
+				{
+					var hediff_MissingPart = (Hediff_MissingPart)HediffMaker.MakeHediff(HediffDefOf.MissingBodyPart, eatTarget, bodyPartRecord);
+					hediff_MissingPart.lastInjury = HediffDefOf.Bite;
+					hediff_MissingPart.IsFresh = true;
+					eatTarget.health.AddHediff(hediff_MissingPart, null, null);
+
+					if (eatTargetIsCorpse == false && eatTargetDied == false && eatTarget.Dead)
+					{
+						Tools.DoWithAllZombies(map, z =>
+						{
+							if (z.jobs != null)
+							{
+								var driver = z.jobs.curDriver as JobDriver_Stumble;
+								if (driver != null && driver.eatTarget == eatTarget)
+								{
+									driver.eatTargetDied = true;
+									driver.eatTargetIsCorpse = true;
+								}
+							}
+						});
+
+						if (PawnUtility.ShouldSendNotificationAbout(eatTarget) && eatTarget.RaceProps.Humanlike)
+						{
+							Messages.Message("MessageEatenByPredator".Translate(new object[]
+							{
+								eatTarget.LabelShort,
+								zombie.LabelIndefinite()
+							}).CapitalizeFirst(), zombie, MessageSound.Negative);
+						}
+
+						eatTarget.Strip();
+					}
+
+					return;
+				}
+				else
+				{
+					var corpse = map.thingGrid
+						.ThingsListAt(eatTarget.Position)
+						.OfType<Corpse>()
+						.FirstOrDefault(c => c.InnerPawn == eatTarget);
+					if (corpse != null)
+						corpse.Destroy(DestroyMode.Vanish);
+
+					Tools.DoWithAllZombies(map, z =>
+					{
+						if (z.jobs != null)
+						{
+							var driver = z.jobs.curDriver as JobDriver_Stumble;
+							if (driver != null && driver.eatTarget == eatTarget)
+							{
+								driver.eatTarget = null;
+								driver.lastEatTarget = null;
+								driver.eatDelayTicks = 0;
+							}
+						}
+					});
+				}
 			}
 
 			var basePos = zombie.Position;
@@ -244,6 +361,15 @@ namespace ZombieLand
 			zombie.pather.StartPath(dest, PathEndMode.OnCell);
 		}
 
+		void CastEatingSound()
+		{
+			if (Constants.USE_SOUND)
+			{
+				var info = SoundInfo.InMap(new TargetInfo(pawn.Position, pawn.Map, false));
+				SoundDef.Named("ZombieEating").PlayOneShot(info);
+			}
+		}
+
 		void CastBrainzThought()
 		{
 			Tools.CastThoughtBubble(pawn, Constants.BRRAINZ);
@@ -281,7 +407,8 @@ namespace ZombieLand
 		static int prevIndex4;
 		static int[] adjIndex8 = { 0, 1, 2, 3, 4, 5, 6, 7 };
 		static int prevIndex8;
-		Thing CanAttack()
+
+		IEnumerable<T> GetAdjacted<T>() where T : ThingWithComps
 		{
 			var nextIndex = Constants.random.Next(8);
 			var c = adjIndex8[prevIndex8];
@@ -291,41 +418,91 @@ namespace ZombieLand
 
 			var grid = pawn.Map.thingGrid;
 			var basePos = pawn.Position;
+			var result = new List<T>();
 			for (int i = 0; i < 8; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCells[adjIndex8[i]];
-				var p = grid.ThingAt<Pawn>(pos);
-				if (p != null && (p is Zombie) == false && p.Dead == false && p.Downed == false)
+				var enumerator = grid.ThingsAt(pos).GetEnumerator();
+				while (enumerator.MoveNext())
 				{
-					switch (ZombieSettings.Values.attackMode)
-					{
-						case AttackMode.Everything:
-							return p;
+					var t = enumerator.Current as T;
+					if (t != null && (t is Zombie) == false && (t is ZombieCorpse) == false)
+						yield return t;
+				}
+			}
+		}
 
-						case AttackMode.OnlyHumans:
-							{
-								if (p.RaceProps.Humanlike)
-									return p;
-								if (p.MentalState != null)
-								{
-									var msDef = p.MentalState.def;
-									if (msDef == MentalStateDefOf.Manhunter || msDef == MentalStateDefOf.ManhunterPermanent)
-										return p;
-								}
-								break;
-							}
-						case AttackMode.OnlyColonists:
-							{
-								if (p.IsColonist)
-									return p;
-								if (p.MentalState != null)
-								{
-									var msDef = p.MentalState.def;
-									if (msDef == MentalStateDefOf.Manhunter || msDef == MentalStateDefOf.ManhunterPermanent)
-										return p;
-								}
-								break;
-							}
+		Thing CanAttack()
+		{
+			var mode = ZombieSettings.Values.attackMode;
+
+			var enumerator = GetAdjacted<Pawn>().GetEnumerator();
+			while (enumerator.MoveNext())
+			{
+				var p = enumerator.Current;
+				if (p.Dead == false && p.Downed == false)
+				{
+					if (mode == AttackMode.Everything)
+						return p;
+
+					if (p.MentalState != null)
+					{
+						var msDef = p.MentalState.def;
+						if (msDef == MentalStateDefOf.Manhunter || msDef == MentalStateDefOf.ManhunterPermanent)
+							return p;
+					}
+
+					if (mode == AttackMode.OnlyHumans && p.RaceProps.Humanlike)
+						return p;
+
+					if (mode == AttackMode.OnlyColonists && p.IsColonist)
+						return p;
+				}
+			}
+			return null;
+		}
+
+		BodyPartRecord FirstEatablePart(Pawn pawn)
+		{
+			if (pawn == null || pawn.health == null || pawn.health.hediffSet == null) return null;
+			return pawn.health.hediffSet
+						.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined)
+						.Where(new Func<BodyPartRecord, bool>(r => r.depth == BodyPartDepth.Outside))
+						.InRandomOrder()
+						.FirstOrDefault();
+		}
+
+		Pawn CanIngest(out bool isCorpse)
+		{
+			isCorpse = false;
+
+			if (ZombieSettings.Values.zombiesEatDowned || ZombieSettings.Values.zombiesEatCorpses)
+			{
+				var enumerator = GetAdjacted<ThingWithComps>().GetEnumerator();
+				while (enumerator.MoveNext())
+				{
+					var twc = enumerator.Current;
+
+					if (ZombieSettings.Values.zombiesEatDowned)
+					{
+						var p = twc as Pawn;
+						if (p != null && p.RaceProps.IsFlesh
+							&& (p.Dead == true || p.Downed == true && p.Destroyed == false))
+						{
+							isCorpse = false;
+							return p;
+						}
+					}
+
+					if (ZombieSettings.Values.zombiesEatCorpses)
+					{
+						var c = twc as Corpse;
+						if (c != null && c.InnerPawn != null && c.InnerPawn.RaceProps.IsFlesh
+							&& c.Bugged == false && c.Destroyed == false && c.IsDessicated() == false)
+						{
+							isCorpse = true;
+							return c.InnerPawn;
+						}
 					}
 				}
 			}

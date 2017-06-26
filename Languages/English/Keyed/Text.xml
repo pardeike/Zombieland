@@ -61,6 +61,10 @@
 	<DoubleTapRequired>Downed zombies need a double tap</DoubleTapRequired>
 	<ZombiesDieVeryEasily>Zombies are easy to kill</ZombiesDieVeryEasily>
 
+	<ZombieEatingTitle>Zombie Eating</ZombieEatingTitle>
+	<ZombiesEatDowned>Zombies eat downed creatures</ZombiesEatDowned>
+	<ZombiesEatCorpses>Zombies eat corpses</ZombiesEatCorpses>
+
 	<ZombieMiscTitle>Misc Settings</ZombieMiscTitle>
 	<UseCustomTextures>Use custom textures</UseCustomTextures>
 	<ZombiesTriggerDangerMusic>Zombies affect danger music</ZombiesTriggerDangerMusic>
