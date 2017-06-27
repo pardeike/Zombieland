@@ -627,6 +627,23 @@ namespace ZombieLand
 			}
 		}
 
+		// patch for zombies rotting regardless of temperature
+		//
+		[HarmonyPatch(typeof(Thing))]
+		[HarmonyPatch("AmbientTemperature", PropertyMethod.Getter)]
+		static class Thing_AmbientTemperature_Patch
+		{
+			static bool Prefix(Thing __instance, ref float __result)
+			{
+				if (__instance is Zombie || __instance is ZombieCorpse)
+				{
+					__result = 21f; // fake normal conditions
+					return false;
+				}
+				return true;
+			}
+		}
+
 		// patch for variable zombie damage factor
 		//
 		[HarmonyPatch(typeof(Pawn_HealthTracker))]
@@ -957,11 +974,16 @@ namespace ZombieLand
 		{
 			static void Postfix(Thing launcher, Vector3 origin, LocalTargetInfo targ)
 			{
-				if ((launcher is Pawn) == false) return;
+				var pawn = launcher as Pawn;
+				if (pawn == null) return;
+
+				var noiseScale = 1f;
+				if (pawn.equipment.PrimaryEq != null)
+					noiseScale = pawn.equipment.PrimaryEq.PrimaryVerb.verbProps.muzzleFlashScale / Constants.BASE_MUZZLE_FLASH_VALUE;
 
 				var now = Tools.Ticks();
 				var pos = origin.ToIntVec3();
-				var magnitude = (targ.CenterVector3 - origin).magnitude * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
+				var magnitude = (targ.CenterVector3 - origin).magnitude * noiseScale * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
 				var radius = Tools.Boxed(magnitude, Constants.MIN_WEAPON_RANGE, Constants.MAX_WEAPON_RANGE);
 				var grid = launcher.Map.GetGrid();
 				Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
@@ -976,12 +998,17 @@ namespace ZombieLand
 
 			static void PostfixCombatExtended(Thing launcher, Vector2 origin, float shotAngle, float shotRotation, float shotHeight = 0f, float shotSpeed = -1f, Thing equipment = null)
 			{
-				if ((launcher is Pawn) == false) return;
+				var pawn = launcher as Pawn;
+				if (pawn == null) return;
+
+				var noiseScale = 1f;
+				if (pawn.equipment.PrimaryEq != null)
+					noiseScale = pawn.equipment.PrimaryEq.PrimaryVerb.verbProps.muzzleFlashScale / Constants.BASE_MUZZLE_FLASH_VALUE;
 
 				var now = Tools.Ticks();
 				var pos = new IntVec3(origin);
 				var delta = GetDistanceTraveled(shotSpeed, shotAngle, shotHeight);
-				var magnitude = delta * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
+				var magnitude = noiseScale * delta * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
 				var radius = Tools.Boxed(magnitude, Constants.MIN_WEAPON_RANGE, Constants.MAX_WEAPON_RANGE);
 				var grid = launcher.Map.GetGrid();
 				Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(pos + vec, now - vec.LengthHorizontalSquared));

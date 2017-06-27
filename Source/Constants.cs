@@ -108,7 +108,8 @@ namespace ZombieLand
 		public static int NUMBER_OF_TOP_MOVEMENT_PICKS = 3;
 		public static float STANDING_STILL_CHANCE = 0.6f;
 		public static int ZOMBIE_CLOGGING_FACTOR = 10000;
-		public static float KILL_CIRCLE_RADIUS_MULTIPLIER;
+		public static float KILL_CIRCLE_RADIUS_MULTIPLIER = 0f;
+		public static float BASE_MUZZLE_FLASH_VALUE = 9f;
 
 		// rubble
 		//

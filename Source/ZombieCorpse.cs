@@ -46,13 +46,22 @@ namespace ZombieLand
 
 		public override void TickRare()
 		{
+			var comps = AllComps;
+			for (int i = 0; i < comps.Count; i++)
+				comps[i].CompTickRare();
+
 			if (Destroyed == false && Bugged == false)
 			{
 				if (RottableUtility.GetRotStage(this) == RotStage.Dessicated)
+				{
 					Destroy(DestroyMode.Vanish);
+					return;
+				}
 			}
 
-			base.TickRare();
+			comps = InnerPawn.AllComps;
+			for (int i = 0; i < comps.Count; i++)
+				comps[i].CompTickRare();
 		}
 	}
 }

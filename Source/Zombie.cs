@@ -114,7 +114,9 @@ namespace ZombieLand
 
 		public override void Tick()
 		{
-			// must be empty
+			var comps = AllComps;
+			for (int i = 0; i < comps.Count; i++)
+				comps[i].CompTick();
 		}
 
 		public void CustomTick()

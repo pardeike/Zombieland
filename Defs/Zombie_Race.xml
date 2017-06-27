@@ -12,10 +12,15 @@
 		<soundImpactDefault>BulletImpactFlesh</soundImpactDefault>
 		<statBases>
 			<Mass>70</Mass>
-			<PsychicSensitivity>0</PsychicSensitivity>
 			<Flammability>1</Flammability>
 			<ComfyTemperatureMin>-999</ComfyTemperatureMin>
 			<ComfyTemperatureMax>999</ComfyTemperatureMax>
+			<PsychicSensitivity>0</PsychicSensitivity>
+			<ToxicSensitivity>0</ToxicSensitivity>
+			<MeatAmount>0</MeatAmount>
+			<LeatherAmount>0</LeatherAmount>
+			<CarryingCapacity>0</CarryingCapacity>
+			<SocialImpact>0</SocialImpact>
 		</statBases>
 		<inspectorTabs>
 			<!--<li>ITab_Pawn_Character</li>
@@ -43,13 +48,12 @@
 		<description>A zombie</description>
 		<statBases>
 			<MoveSpeed>0.1</MoveSpeed>
-			<ArmorRating_Blunt>0.0</ArmorRating_Blunt>
-			<ArmorRating_Sharp>0.0</ArmorRating_Sharp>
-			<ArmorRating_Heat>0.0</ArmorRating_Heat>
-			<ArmorRating_Electric>0.0</ArmorRating_Electric>
+			<ArmorRating_Blunt>0</ArmorRating_Blunt>
+			<ArmorRating_Sharp>0</ArmorRating_Sharp>
+			<ArmorRating_Heat>0</ArmorRating_Heat>
+			<ArmorRating_Electric>0</ArmorRating_Electric>
 			<MeleeHitChance>0.5</MeleeHitChance>
-			<MeatAmount>0</MeatAmount>
-			<LeatherAmount>0</LeatherAmount>
+			<MeleeDodgeChance>0.1</MeleeDodgeChance>
 		</statBases>
 		<verbs>
 			<li>
