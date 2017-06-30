@@ -70,6 +70,7 @@ namespace ZombieLand
 		public bool zombiesTriggerDangerMusic;
 		public bool zombiesEatDowned;
 		public bool zombiesEatCorpses;
+		public float zombieBiteInfectionChance;
 
 		public object Clone()
 		{
@@ -96,6 +97,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref zombiesTriggerDangerMusic, "zombiesTriggerDangerMusic");
 			Scribe_Values.Look(ref zombiesEatDowned, "zombiesEatDowned");
 			Scribe_Values.Look(ref zombiesEatCorpses, "zombiesEatCorpses");
+			Scribe_Values.Look(ref zombieBiteInfectionChance, "zombieBiteInfectionChance");
 		}
 	}
 
@@ -121,7 +123,8 @@ namespace ZombieLand
 			useCustomTextures = true,
 			zombiesTriggerDangerMusic = false,
 			zombiesEatDowned = true,
-			zombiesEatCorpses = true
+			zombiesEatCorpses = true,
+			zombieBiteInfectionChance = 0.5f
 		};
 
 		public static SettingsGroup Defaults()
@@ -169,6 +172,8 @@ namespace ZombieLand
 			list.NewColumn();
 			list.Gap();
 
+			list.Dialog_Label("ZombieInfections");
+			list.Dialog_FloatSlider("ZombieBiteInfectionChance", "0", ref settings.zombieBiteInfectionChance, 0f, 1f, 100f);
 			list.Dialog_Enum("ZombieInstinctTitle", ref settings.zombieInstinct, false);
 			list.Gap();
 			list.Dialog_Label("ZombieHealthTitle");

@@ -162,6 +162,7 @@ namespace ZombieLand
 
 		// patch to remove zombies from hostile count so it does not
 		// alter game logic (for example when a caravan leaves an enemy base)
+		//
 		[HarmonyPatch(typeof(GenHostility))]
 		[HarmonyPatch("IsActiveThreat")]
 		static class GenHostility_IsActiveThreat_Patch
@@ -240,7 +241,7 @@ namespace ZombieLand
 
 				var tickManager = map.GetComponent<TickManager>();
 				var center = Tools.CenterOfInterest(map);
-				//var tickString = String.Format("{0:d6} {1:d6} {2:d6}", new object[]
+				//var tickString = string.Format("{0:d6} {1:d6} {2:d6}", new object[]
 				//{
 				//	TickManager_DoSingleTick_Patch.min,
 				//	TickManager_DoSingleTick_Patch.average,
@@ -633,6 +634,7 @@ namespace ZombieLand
 		[HarmonyPatch("AmbientTemperature", PropertyMethod.Getter)]
 		static class Thing_AmbientTemperature_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Thing __instance, ref float __result)
 			{
 				if (__instance is Zombie || __instance is ZombieCorpse)
@@ -641,6 +643,59 @@ namespace ZombieLand
 					return false;
 				}
 				return true;
+			}
+		}
+
+		// patch to set zombie bite injuries as non natural healing to avoid
+		// the healing cross mote
+		//
+		[HarmonyPatch(typeof(HediffUtility))]
+		[HarmonyPatch("CanHealNaturally")]
+		static class HediffUtility_CanHealNaturally_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Hediff_Injury hd, ref bool __result)
+			{
+				var zombieBite = hd as Hediff_Injury_ZombieBite;
+				if (zombieBite != null)
+				{
+					var tendDuration = zombieBite.TendDuration;
+					if (tendDuration != null)
+					{
+						var state = tendDuration.GetInfectionState();
+						if (state <= InfectionState.BittenNotVisible || state >= InfectionState.Infecting)
+						{
+							__result = false;
+							return false;
+						}
+					}
+				}
+				return true;
+			}
+		}
+
+		// patch to keep zombie bite injuries even after tending if they have to stay around
+		//
+		[HarmonyPatch(typeof(Hediff))]
+		[HarmonyPatch("ShouldRemove", PropertyMethod.Getter)]
+		static class HediffUtility_CanHealFromTending_Patch
+		{
+			[HarmonyPriority(Priority.Last)]
+			static void Postfix(Hediff __instance, ref bool __result)
+			{
+				if (__result == false) return;
+
+				var zombieBite = __instance as Hediff_Injury_ZombieBite;
+				if (zombieBite != null)
+				{
+					var tendDuration = zombieBite.TendDuration;
+					if (tendDuration != null)
+					{
+						var state = tendDuration.GetInfectionState();
+						if (state <= InfectionState.BittenNotVisible || state >= InfectionState.Infecting)
+							__result = false;
+					}
+				}
 			}
 		}
 
@@ -671,6 +726,21 @@ namespace ZombieLand
 				var replacement = AccessTools.Method(MethodBase.GetCurrentMethod().DeclaringType, "Replacement");
 				var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method, replacement);
 				return transpiler(generator, instructions);
+			}
+		}
+
+		// patch to remove current job of zombie immediately when killed
+		//
+		[HarmonyPatch(typeof(Pawn))]
+		[HarmonyPatch("Kill")]
+		static class Pawn_Kill_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static void Prefix(Pawn __instance)
+			{
+				var zombie = __instance as Zombie;
+				if (zombie == null || zombie.jobs == null || zombie.CurJob == null) return;
+				zombie.jobs.EndCurrentJob(JobCondition.InterruptForced, false);
 			}
 		}
 

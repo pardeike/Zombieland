@@ -8,7 +8,7 @@ namespace ZombieLand
 {
 	static class GraphicToolbox
 	{
-		public static Color HexColor(this String hex)
+		public static Color HexColor(this string hex)
 		{
 			int r = Int32.Parse(hex.Substring(0, 2), NumberStyles.HexNumber);
 			int g = Int32.Parse(hex.Substring(2, 2), NumberStyles.HexNumber);

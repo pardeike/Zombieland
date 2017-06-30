@@ -123,7 +123,7 @@ namespace ZombieLand
 		{
 			if (!ThingOwnerUtility.ContentsFrozen(base.ParentHolder))
 			{
-				if (base.Spawned)
+				if (Spawned)
 				{
 					if (pather != null) pather.PatherTick();
 					if (jobs != null) jobs.JobTrackerTick();

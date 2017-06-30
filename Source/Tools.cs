@@ -17,7 +17,7 @@ namespace ZombieLand
 		long prevTime = 0;
 		int counter = 0;
 
-		public Measure(String text)
+		public Measure(string text)
 		{
 			this.text = text;
 			sw = new Stopwatch();
@@ -199,6 +199,12 @@ namespace ZombieLand
 					grid.SetTimestamp(pos, timestamp);
 				}
 			}
+		}
+
+		public static string ToHourString(this int ticks, bool relativeToAbsoluteGameTime = true)
+		{
+			var t = relativeToAbsoluteGameTime ? ticks - GenTicks.TicksAbs : ticks;
+			return string.Format("{0:0.0}h", Math.Floor(10f * t / GenDate.TicksPerHour) / 10f);
 		}
 
 		public static int ColonyPoints()

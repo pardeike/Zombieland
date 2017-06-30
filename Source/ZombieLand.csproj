@@ -47,12 +47,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Alerts.cs" />
     <Compile Include="Alert_DaysUntilSpawning.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Dialogs.cs" />
     <Compile Include="ColorData.cs" />
     <Compile Include="GraphicsDatabase.cs" />
     <Compile Include="GraphicToolbox.cs" />
+    <Compile Include="HediffComp_Zombie_TendDuration.cs" />
+    <Compile Include="Hediff_Injury_ZombieBite.cs" />
+    <Compile Include="HediffComp_Zombie_Infecter.cs" />
     <Compile Include="JobDriver.cs" />
     <Compile Include="JobGiver.cs" />
     <Compile Include="Main.cs" />
@@ -66,6 +70,7 @@
     <Compile Include="VariableGraphic.cs" />
     <Compile Include="Zombie.cs" />
     <Compile Include="ZombieCorpse.cs" />
+    <Compile Include="ZombieDamageFlasher.cs" />
     <Compile Include="ZombieDefs.cs" />
     <Compile Include="ZombieGenerator.cs" />
     <Compile Include="ZombieIncidents.cs" />
@@ -79,9 +84,15 @@
     <Content Include="..\Defs\Twinkie_Override.xml">
       <Link>_xml\Twinkie_Override.xml</Link>
     </Content>
+    <Content Include="..\Defs\Zombie_Damages.xml">
+      <Link>_xml\Zombie_Damages.xml</Link>
+    </Content>
     <Content Include="..\Defs\Zombie_Faction.xml">
       <Link>_xml\Zombie_Faction.xml</Link>
       <SubType>Designer</SubType>
+    </Content>
+    <Content Include="..\Defs\Zombie_Hediffs.xml">
+      <Link>_xml\Zombie_Hediffs.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_Incidents.xml">
       <Link>_xml\Zombie_Incidents.xml</Link>
@@ -110,6 +121,7 @@
     </Content>
     <Content Include="..\Languages\English\Keyed\Text.xml">
       <Link>_files\English\Keyed\Text.xml</Link>
+      <SubType>Designer</SubType>
     </Content>
     <Content Include="..\Languages\English\LanguageInfo.xml">
       <Link>_files\English\LanguageInfo.xml</Link>

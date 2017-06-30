@@ -137,9 +137,9 @@ namespace ZombieLand
 			list.Gap();
 		}
 
-		public static void Dialog_FloatSlider(this Listing_Standard list, string desc, string format, ref float value, float min, float max)
+		public static void Dialog_FloatSlider(this Listing_Standard list, string desc, string format, ref float value, float min, float max, float multiplier = 1f)
 		{
-			list.Label(desc.Translate(string.Format("{0:" + format + "}", value)));
+			list.Label(desc.Translate(string.Format("{0:" + format + "}", value * multiplier)));
 			value = list.Slider(value, min, max);
 		}
 	}

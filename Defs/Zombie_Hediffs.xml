@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<HediffDefs>
+
+	<HediffDef ParentName="InjuryBase">
+		<defName>ZombieBite</defName>
+		<hediffClass>Zombieland.Hediff_Injury_ZombieBite</hediffClass>
+		<label>zombie bite</label>
+		<comps>
+			<li Class="ZombieLand.HediffCompProperties_Zombie_TendDuration">
+				<labelTendedWell>bandaged</labelTendedWell>
+				<labelTendedWellInner>sutured</labelTendedWellInner>
+				<labelSolidTendedWell>set</labelSolidTendedWell>
+			</li>
+			<li Class="ZombieLand.HediffCompProperties_Zombie_Infecter">
+				<infectionKnownDelayInHours>
+					<min>0.5</min>
+					<max>1</max>
+				</infectionKnownDelayInHours>
+				<infectionStartInHours>
+					<min>1</min>
+					<max>2</max>
+				</infectionStartInHours>
+				<infectionDurationInHours>
+					<min>24</min>
+					<max>48</max>
+				</infectionDurationInHours>
+				<minBedTendQualityToAvoidInfection>0.17</minBedTendQualityToAvoidInfection>
+				<minBedQualityToAvoidInfection>Masterwork</minBedQualityToAvoidInfection>
+				<minTendQualityToAvoidInfection>0.7</minTendQualityToAvoidInfection>
+			</li>
+		</comps>
+		<injuryProps>
+			<painPerSeverity>0.05</painPerSeverity>
+			<averagePainPerSeverityOld>0.025</averagePainPerSeverityOld>
+			<bleedRate>0.05</bleedRate>
+			<canMerge>false</canMerge>
+			<destroyedLabel>Bitten off by a zombie</destroyedLabel>
+			<destroyedOutLabel>Bitten out by a zombie</destroyedOutLabel>
+		</injuryProps>
+	</HediffDef>
+
+</HediffDefs>

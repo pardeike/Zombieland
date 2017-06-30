@@ -60,7 +60,7 @@
 				<verbClass>Verb_MeleeAttack</verbClass>
 				<defaultCooldownTime>4.0</defaultCooldownTime>
 				<meleeDamageBaseAmount>4</meleeDamageBaseAmount>
-				<meleeDamageDef>Bite</meleeDamageDef>
+				<meleeDamageDef>ZombieBite</meleeDamageDef>
 				<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
 				<surpriseAttack>
 					<extraMeleeDamages>

@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<DamageDefs>
+
+	<DamageDef Name="ZombieBite" ParentName="LocalInjuryBase">
+		<defName>ZombieBite</defName>
+		<label>zombie bite</label>
+		<externalViolence>true</externalViolence>
+		<deathMessage>{0} has been bitten to death by a zombie.</deathMessage>
+		<hediff>ZombieBite</hediff>
+		<hediffSolid>Crack</hediffSolid>
+		<harmAllLayersUntilOutside>true</harmAllLayersUntilOutside>
+		<impactSoundType>Slice</impactSoundType>
+		<armorCategory>Sharp</armorCategory>
+	</DamageDef>
+
+</DamageDefs>
