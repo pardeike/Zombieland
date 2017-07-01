@@ -8,9 +8,9 @@
 	<ZombiesRisingNearYourBase>Группа зомби появилась рядом с вашей базой</ZombiesRisingNearYourBase>
 
 	<LetterLabelXDaysUntilZombies>{0} {1} Дней до прихода зомби-орды</LetterLabelXDaysUntilZombies>
-	<XDaysUntilZombies>Зомби будут появляться {0} где есть почва, грязь, песок и гравий. Застройте всё напольными покрытиями, чтобы зомби не могли подкопаться.</XDaysUntilZombies>
-	<XDays_Everywhere>по всей карте</XDays_Everywhere>
-	<XDays_Edges>с краев</XDays_Edges>
+	<XDaysUntilZombies>Зомби будут появляться {0}где есть почва, грязь, песок и гравий. Застройте всё напольными покрытиями, чтобы зомби не могли подкопаться.</XDaysUntilZombies>
+	<XDays_Everywhere>по всей карте </XDays_Everywhere>
+	<XDays_Edges>с краев </XDays_Edges>
 	<ZombieDays>Дней</ZombieDays>
 	<ZombieHours>Час(ов)</ZombieHours>
 

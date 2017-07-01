@@ -207,6 +207,14 @@ namespace ZombieLand
 			return string.Format("{0:0.0}h", Math.Floor(10f * t / GenDate.TicksPerHour) / 10f);
 		}
 
+		static int combatExtendedIsInstalled = 0;
+		public static bool IsCombatExtendedInstalled()
+		{
+			if (combatExtendedIsInstalled == 0)
+				combatExtendedIsInstalled = (AccessTools.TypeByName("CombatExtended.Controller") != null) ? 1 : 2;
+			return combatExtendedIsInstalled == 1;
+		}
+
 		public static int ColonyPoints()
 		{
 			if (Constants.DEBUG_COLONY_POINTS > 0) return Constants.DEBUG_COLONY_POINTS;

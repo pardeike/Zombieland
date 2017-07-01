@@ -8,9 +8,9 @@
 	<ZombiesRisingNearYourBase>Eine Gruppe von Zombies greift in der Nähe der Basis an</ZombiesRisingNearYourBase>
 
 	<LetterLabelXDaysUntilZombies>{0} {1} bis Zombies kommen</LetterLabelXDaysUntilZombies>
-	<XDaysUntilZombies>Zombies erscheinen {0} wo es weiche Erde, Dreck oder Sand auf der Karte gibt. Bedecke den Boden mit Fussboden um das zu verhindern.</XDaysUntilZombies>
-	<XDays_Everywhere>überall</XDays_Everywhere>
-	<XDays_Edges>and den Rändern der Karte</XDays_Edges>
+	<XDaysUntilZombies>Zombies erscheinen {0}wo es weiche Erde, Dreck oder Sand auf der Karte gibt. Bedecke den Boden mit Fussboden um das zu verhindern.</XDaysUntilZombies>
+	<XDays_Everywhere>überall </XDays_Everywhere>
+	<XDays_Edges>and den Rändern der Karte </XDays_Edges>
 	<ZombieDays>Tag(e)</ZombieDays>
 	<ZombieHours>Stunde(n)</ZombieHours>
 

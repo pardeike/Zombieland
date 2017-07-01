@@ -50,8 +50,16 @@ namespace ZombieLand
 		{
 			if (((GenTicks.TicksAbs + randTickOffset) % randTickFrequency) == 0)
 			{
-				jitterOffset.x = Mathf.Clamp(jitterOffset.x + Rand.Range(-0.025f, 0.025f), -0.25f, 0.25f);
-				jitterOffset.z = Mathf.Clamp(jitterOffset.z + Rand.Range(-0.025f, 0.025f), -0.25f, 0.25f);
+				if (zombie.Downed)
+				{
+					jitterOffset.x /= 1.1f;
+					jitterOffset.z /= 1.1f;
+				}
+				else
+				{
+					jitterOffset.x = Mathf.Clamp(jitterOffset.x + Rand.Range(-0.025f, 0.025f), -0.25f, 0.25f);
+					jitterOffset.z = Mathf.Clamp(jitterOffset.z + Rand.Range(-0.025f, 0.025f), -0.25f, 0.25f);
+				}
 				extraOffsetInternal = (extraOffset + 3 * extraOffsetInternal) / 4;
 			}
 		}

@@ -142,8 +142,7 @@ namespace ZombieLand
 		public Alert_DaysUntilSpawning()
 		{
 			defaultLabel = "";
-			var whereKey = ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap ? "XDays_Everywhere" : "XDays_Edges";
-			defaultExplanation = "XDaysUntilZombies".Translate(whereKey.Translate());
+			defaultExplanation = "";
 			defaultPriority = AlertPriority.Medium;
 		}
 
@@ -153,6 +152,12 @@ namespace ZombieLand
 				return "LetterLabelXDaysUntilZombies".Translate(Math.Round(24f * days), "ZombieHours".Translate());
 
 			return "LetterLabelXDaysUntilZombies".Translate(days, "ZombieDays".Translate());
+		}
+
+		public override string GetExplanation()
+		{
+			var whereKey = ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap ? "XDays_Everywhere" : "XDays_Edges";
+			return "XDaysUntilZombies".Translate(whereKey == null ? "" : whereKey.Translate());
 		}
 
 		public override AlertReport GetReport()

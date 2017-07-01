@@ -131,7 +131,10 @@ namespace ZombieLand
 
 					if (injury.IsOld() == false)
 					{
-						injury.Heal(injury.Severity + 0.5f);
+						if (Tools.IsCombatExtendedInstalled())
+							injury.Heal(1f / GenTicks.SecondsToTicks(1f));
+						else
+							injury.Heal(injury.Severity + 0.5f);
 						break;
 					}
 				}
@@ -439,7 +442,6 @@ namespace ZombieLand
 
 			var grid = pawn.Map.thingGrid;
 			var basePos = pawn.Position;
-			var result = new List<T>();
 			for (int i = 0; i < 8; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCells[adjIndex8[i]];
