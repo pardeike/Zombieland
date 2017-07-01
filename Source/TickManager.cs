@@ -144,7 +144,7 @@ namespace ZombieLand
 			}
 
 			ZombieGenerator.FinalizeZombieGeneration(result.zombie);
-			GenPlace.TryPlaceThing(result.zombie, result.cell, result.map, ThingPlaceMode.Direct, null);
+			GenPlace.TryPlaceThing(result.zombie, result.cell, result.map, ThingPlaceMode.Direct);
 			result.map.GetGrid().ChangeZombieCount(result.cell, 1);
 		}
 

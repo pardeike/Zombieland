@@ -423,7 +423,8 @@ namespace ZombieLand
 			{
 				if (target.HasThing)
 				{
-					if (target.Thing is Zombie || target.Thing is ZombieCorpse)
+					var zombie = target.Thing as Zombie;
+					if ((zombie != null && zombie.wasColonist == false) || target.Thing is ZombieCorpse)
 					{
 						__result = false;
 						return false;
@@ -595,6 +596,8 @@ namespace ZombieLand
 					}
 
 					__result = speed * factor;
+					if (zombie.wasColonist)
+						__result *= 2f;
 					return false;
 				}
 
@@ -625,6 +628,8 @@ namespace ZombieLand
 						__result *= 2f * settings;
 						break;
 				}
+				if (zombie.wasColonist)
+					__result *= 10f;
 			}
 		}
 
@@ -699,7 +704,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for variable zombie damage factor
+		// patch for variable zombie shock resistance
 		//
 		[HarmonyPatch(typeof(Pawn_HealthTracker))]
 		[HarmonyPatch("PainShockThreshold", PropertyMethod.Getter)]
@@ -708,6 +713,8 @@ namespace ZombieLand
 			static float Replacement(ref Pawn pawn)
 			{
 				var zombie = pawn as Zombie;
+				if (zombie.wasColonist)
+					return 100f;
 				switch (zombie.story.bodyType)
 				{
 					case BodyType.Thin:
@@ -754,7 +761,7 @@ namespace ZombieLand
 			{
 				if (__result == false) return;
 				var zombie = pawn as Zombie;
-				if (zombie != null && zombie.Destroyed == false && zombie.Dead == false)
+				if (zombie != null && zombie.Destroyed == false && zombie.Dead == false && zombie.wasColonist == false)
 					zombie.state = ZombieState.ShouldDie;
 			}
 		}
@@ -911,6 +918,47 @@ namespace ZombieLand
 				return transpiler(generator, instructions);
 			}
 		}
+
+		// patch to colorize the label of zombies that were colonists
+		//
+		[HarmonyPatch(typeof(PawnNameColorUtility))]
+		[HarmonyPatch("PawnNameColorOf")]
+		static class PawnNameColorUtility_PawnNameColorOf_Patch
+		{
+			static Color zombieLabelColor = new Color(0.7f, 1f, 0.7f);
+
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Pawn pawn, ref Color __result)
+			{
+				var zombie = pawn as Zombie;
+				if (zombie != null && zombie.wasColonist)
+				{
+					__result = zombieLabelColor;
+					return false;
+				}
+				return true;
+			}
+		}
+
+		// allow clicks on zombies that were colonists
+		/*
+		[HarmonyPatch(typeof(ThingSelectionUtility))]
+		[HarmonyPatch("SelectableByMapClick")]
+		static class ThingSelectionUtility_SelectableByMapClick_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Thing t, ref bool __result)
+			{
+				var zombie = t as Zombie;
+				if (zombie != null && zombie.wasColonist)
+				{
+					__result = true;
+					return false;
+				}
+				return true;
+			}
+		}
+		*/
 
 		// patch for a custom zombie corpse class
 		//

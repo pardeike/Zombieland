@@ -48,7 +48,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Alerts.cs" />
-    <Compile Include="Alert_DaysUntilSpawning.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Dialogs.cs" />
     <Compile Include="ColorData.cs" />
@@ -74,6 +73,7 @@
     <Compile Include="ZombieDefs.cs" />
     <Compile Include="ZombieGenerator.cs" />
     <Compile Include="ZombieIncidents.cs" />
+    <Compile Include="ZombieLeaner.cs" />
     <Compile Include="ZombieSettings.cs" />
     <Compile Include="ZombieStains.cs" />
   </ItemGroup>

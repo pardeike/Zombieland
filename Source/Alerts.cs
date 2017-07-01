@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -89,7 +90,7 @@ namespace ZombieLand
 		}
 	}
 
-	// base class
+	// base classes
 
 	public class Alert_ZombieInfectionProgress : Alert
 	{
@@ -131,6 +132,42 @@ namespace ZombieLand
 			if (pawn == null)
 				return false;
 			return AlertReport.CulpritIs(pawn);
+		}
+	}
+
+	public class Alert_DaysUntilSpawning : Alert
+	{
+		double days;
+
+		public Alert_DaysUntilSpawning()
+		{
+			defaultLabel = "";
+			defaultExplanation = "XDaysUntilZombies".Translate();
+			defaultPriority = AlertPriority.Medium;
+		}
+
+		public override string GetLabel()
+		{
+			if (days < 1f)
+				return "LetterLabelXDaysUntilZombies".Translate(Math.Round(24f * days), "ZombieHours".Translate());
+
+			return "LetterLabelXDaysUntilZombies".Translate(days, "ZombieDays".Translate());
+		}
+
+		public override AlertReport GetReport()
+		{
+			days = Days();
+			return (days > 0);
+		}
+
+		public override void AlertActiveUpdate()
+		{
+
+		}
+
+		private double Days()
+		{
+			return Math.Round(ZombieSettings.Values.daysBeforeZombiesCome - GenDate.DaysPassedFloat, 1);
 		}
 	}
 }

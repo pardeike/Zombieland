@@ -85,4 +85,7 @@
 	<HoursBeforeBecomingInfected>{0} hours until becoming infected</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} hours before becoming a zombie</HoursBeforeBecomingAZombie>
 
+	<ColonistBecameAZombieLabel>Colonist turned into zombie</ColonistBecameAZombieLabel>
+	<ColonistBecameAZombieDesc>{0} turned into a powerful zombie.</ColonistBecameAZombieDesc>
+
 </LanguageData>

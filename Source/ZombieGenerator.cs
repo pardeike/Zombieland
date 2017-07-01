@@ -176,6 +176,8 @@ namespace ZombieLand
 			if (ZombieSettings.Values.useCustomTextures)
 				AssignNewCustomGraphics(zombie);
 
+			zombie.Drawer.leaner = new ZombieLeaner(zombie);
+
 			return zombie;
 		}
 

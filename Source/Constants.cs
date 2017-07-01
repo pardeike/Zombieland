@@ -86,7 +86,7 @@ namespace ZombieLand
 		public static float FRAME_TIME_FACTOR = 0.25f;
 		public static float PHEROMONE_FADEOFF = 90f;
 		public static float TICKMANAGER_RECALCULATE_DELAY = 5f;
-		public static int EAT_DELAY_TICKS = 600;
+		public static int EAT_DELAY_TICKS = 1200;
 
 		// zombie spawning
 		// the following hours continue after 23h with 24, 25, 26...

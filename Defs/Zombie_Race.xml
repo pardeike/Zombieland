@@ -22,16 +22,12 @@
 			<CarryingCapacity>0</CarryingCapacity>
 			<SocialImpact>0</SocialImpact>
 		</statBases>
-		<inspectorTabs>
-			<!--<li>ITab_Pawn_Character</li>
-			<li>ITab_Pawn_Health</li>-->
-		</inspectorTabs>
 		<comps>
 			<li>
 				<compClass>CompAttachBase</compClass>
 			</li>
 		</comps>
-		<drawGUIOverlay>false</drawGUIOverlay>
+		<drawGUIOverlay>true</drawGUIOverlay>
 		<race>
 			<fleshType>Normal</fleshType>
 			<needsRest>false</needsRest>

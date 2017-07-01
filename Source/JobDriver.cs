@@ -1,5 +1,4 @@
-﻿using Harmony;
-using RimWorld;
+﻿using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +18,8 @@ namespace ZombieLand
 		bool eatTargetDied;
 		Pawn lastEatTarget;
 
-		int eatDelayTicks;
+		int eatDelay;
+		int eatDelayCounter;
 
 		void InitAction()
 		{
@@ -34,6 +34,32 @@ namespace ZombieLand
 			Scribe_Values.Look(ref eatTargetIsCorpse, "eatTargetIsCorpse", false);
 			Scribe_Values.Look(ref eatTargetDied, "eatTargetDied", false);
 			Scribe_References.Look(ref lastEatTarget, "lastEatTarget");
+			Scribe_Values.Look(ref eatDelayCounter, "eatDelayCounter");
+		}
+
+		int EatDelay
+		{
+			get
+			{
+				if (eatDelay == 0)
+				{
+					eatDelay = Constants.EAT_DELAY_TICKS;
+					var zombie = (Zombie)pawn;
+					switch (zombie.story.bodyType)
+					{
+						case BodyType.Thin:
+							eatDelay *= 3;
+							break;
+						case BodyType.Hulk:
+							eatDelay /= 4;
+							break;
+						case BodyType.Fat:
+							eatDelay = (int)(eatDelay / 1.5f);
+							break;
+					}
+				}
+				return eatDelay;
+			}
 		}
 
 		int SortByTimestamp(PheromoneGrid grid, IntVec3 p1, IntVec3 p2)
@@ -147,36 +173,25 @@ namespace ZombieLand
 
 			if (eatTarget != null)
 			{
-				if (eatDelayTicks > 0)
+				if (eatDelayCounter == 0)
 				{
-					eatDelayTicks--;
+					if (eatTarget != lastEatTarget)
+					{
+						lastEatTarget = eatTarget;
+						zombie.Drawer.rotator.FaceCell(eatTarget.Position);
+						var zombieLeaner = zombie.Drawer.leaner as ZombieLeaner;
+						if (zombieLeaner != null)
+							zombieLeaner.extraOffset = (eatTarget.Position.ToVector3() - zombie.Position.ToVector3()) * 0.5f;
+
+						Tools.CastThoughtBubble(pawn, Constants.EATING);
+					}
+					CastEatingSound();
+				}
+
+				eatDelayCounter++;
+				if (eatDelayCounter <= EatDelay)
 					return;
-				}
-
-				eatDelayTicks = Constants.EAT_DELAY_TICKS;
-				switch (zombie.story.bodyType)
-				{
-					case BodyType.Thin:
-						eatDelayTicks *= 3;
-						break;
-					case BodyType.Hulk:
-						eatDelayTicks /= 4;
-						break;
-					case BodyType.Fat:
-						eatDelayTicks = (int)(eatDelayTicks / 1.5f);
-						break;
-					default:
-						break;
-				}
-
-				if (eatTarget != lastEatTarget)
-				{
-					lastEatTarget = eatTarget;
-					zombie.Drawer.rotator.FaceCell(eatTarget.Position);
-
-					Tools.CastThoughtBubble(pawn, Constants.EATING);
-				}
-				CastEatingSound();
+				eatDelayCounter = 0;
 
 				var bodyPartRecord = FirstEatablePart(eatTarget);
 				if (bodyPartRecord != null)
@@ -233,11 +248,17 @@ namespace ZombieLand
 							{
 								driver.eatTarget = null;
 								driver.lastEatTarget = null;
-								driver.eatDelayTicks = 0;
+								driver.eatDelayCounter = 0;
 							}
 						}
 					});
 				}
+			}
+			else
+			{
+				var zombieLeaner = zombie.Drawer.leaner as ZombieLeaner;
+				if (zombieLeaner != null)
+					zombieLeaner.extraOffset = Vector3.zero;
 			}
 
 			var basePos = zombie.Position;

@@ -13,8 +13,10 @@ namespace ZombieLand
 		public IntVec3 wanderDestination = IntVec3.Invalid;
 
 		int rubbleTicks;
-		int rubbleCounter;
+		public int rubbleCounter;
 		List<Rubble> rubbles = new List<Rubble>();
+
+		public bool wasColonist;
 
 		public VariableGraphic customHeadGraphic; // not saved
 		public VariableGraphic customBodyGraphic; // not saved
@@ -27,9 +29,16 @@ namespace ZombieLand
 			Scribe_Values.Look(ref rubbleTicks, "rubbleTicks");
 			Scribe_Values.Look(ref rubbleCounter, "rubbleCounter");
 			Scribe_Collections.Look(ref rubbles, "rubbles", LookMode.Deep);
+			Scribe_Values.Look(ref wasColonist, "wasColonist");
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
+			{
+				// fix for old zombies not having correct leaner
+				if ((Drawer.leaner is ZombieLeaner) == false)
+					Drawer.leaner = new ZombieLeaner(this);
+
 				ZombieGenerator.AssignNewCustomGraphics(this);
+			}
 		}
 
 		public override void DeSpawn()
@@ -142,6 +151,15 @@ namespace ZombieLand
 
 			if (state == ZombieState.Emerging)
 				HandleRubble();
+		}
+
+		public override void DrawGUIOverlay()
+		{
+			if (wasColonist)
+			{
+				Vector2 pos = GenMapUI.LabelDrawPosFor(this, -0.6f);
+				GenMapUI.DrawPawnLabel(this, pos, 1f, 9999f, null, GameFont.Tiny, true, true);
+			}
 		}
 
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)

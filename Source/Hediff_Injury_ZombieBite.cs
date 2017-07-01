@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Harmony;
+using RimWorld;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 
@@ -49,6 +52,60 @@ namespace ZombieLand
 			return base.CauseDeathNow();
 		}
 
+		public void ConvertToZombie()
+		{
+			var pos = pawn.Position;
+			var map = pawn.Map;
+			var rot = pawn.Rotation;
+
+			var zombie = ZombieGenerator.GeneratePawn();
+
+			zombie.Name = pawn.Name;
+			zombie.gender = pawn.gender;
+
+			var apparelToTransfer = new List<Apparel>();
+			pawn.apparel.WornApparelInDrawOrder.Do(apparel =>
+			{
+				Apparel newApparel;
+				if (pawn.apparel.TryDrop(apparel, out newApparel))
+					apparelToTransfer.Add(newApparel);
+			});
+
+			zombie.ageTracker.AgeBiologicalTicks = pawn.ageTracker.AgeBiologicalTicks;
+			zombie.ageTracker.AgeChronologicalTicks = pawn.ageTracker.AgeChronologicalTicks;
+			zombie.ageTracker.BirthAbsTicks = pawn.ageTracker.BirthAbsTicks;
+
+			zombie.story.childhood = pawn.story.childhood;
+			zombie.story.adulthood = pawn.story.adulthood;
+			zombie.story.melanin = pawn.story.melanin;
+			zombie.story.crownType = pawn.story.crownType;
+			zombie.story.hairDef = pawn.story.hairDef;
+			zombie.story.bodyType = pawn.story.bodyType;
+
+			var zTweener = Traverse.Create(zombie.Drawer.tweener);
+			var pTweener = Traverse.Create(pawn.Drawer.tweener);
+			zTweener.Field("tweenedPos").SetValue(pTweener.Field("tweenedPos").GetValue());
+			zTweener.Field("lastDrawFrame").SetValue(pTweener.Field("lastDrawFrame").GetValue());
+			zTweener.Field("lastTickSpringPos").SetValue(pTweener.Field("lastTickSpringPos").GetValue());
+
+			ZombieGenerator.AssignNewCustomGraphics(zombie);
+			ZombieGenerator.FinalizeZombieGeneration(zombie);
+			GenPlace.TryPlaceThing(zombie, pos, map, ThingPlaceMode.Direct, null);
+			map.GetGrid().ChangeZombieCount(pos, 1);
+
+			pawn.Kill(null);
+			pawn.Corpse.Destroy();
+
+			apparelToTransfer.ForEach(apparel => zombie.apparel.Wear(apparel));
+			zombie.Rotation = rot;
+			zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
+			zombie.state = ZombieState.Wandering;
+			zombie.wasColonist = true;
+
+			string text = "ColonistBecameAZombieDesc".Translate(new object[] { zombie.NameStringShort });
+			Find.LetterStack.ReceiveLetter("ColonistBecameAZombieLabel".Translate(), text, LetterDefOf.BadUrgent, zombie);
+		}
+
 		public override Color LabelColor
 		{
 			get
@@ -68,7 +125,14 @@ namespace ZombieLand
 
 		public override void Tick()
 		{
-			if (TendDuration.IsTended && TendDuration.InfectionStateBetween(InfectionState.BittenHarmless, InfectionState.Infecting))
+			var state = TendDuration.GetInfectionState();
+			if (state == InfectionState.Infected)
+			{
+				ConvertToZombie();
+				return;
+			}
+
+			if (TendDuration.IsTended && (state >= InfectionState.BittenHarmless && state <= InfectionState.Infecting))
 			{
 				if (Severity > 0f)
 					Severity = Math.Max(0f, Severity - 0.001f);
