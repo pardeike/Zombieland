@@ -1,4 +1,4 @@
-﻿using RimWorld;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -112,9 +112,8 @@ namespace ZombieLand
 					return;
 				}
 
-				var walkCapacity = PawnCapacityUtility.CalculateCapacityLevel(zombie.health.hediffSet, PawnCapacityDefOf.Moving);
 				var missingBrain = zombie.health.hediffSet.GetBrain() == null;
-				if (walkCapacity < 0.25f || missingBrain)
+				if (missingBrain)
 				{
 					zombie.Kill(null);
 					return;
@@ -129,11 +128,6 @@ namespace ZombieLand
 						return;
 					}
 
-					if (injury.IsOld() == false)
-					{
-						injury.Heal(injury.Severity + 0.5f);
-						break;
-					}
 				}
 
 				if (zombie.Downed) return;
@@ -439,7 +433,6 @@ namespace ZombieLand
 
 			var grid = pawn.Map.thingGrid;
 			var basePos = pawn.Position;
-			var result = new List<T>();
 			for (int i = 0; i < 8; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCells[adjIndex8[i]];
