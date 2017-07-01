@@ -142,7 +142,8 @@ namespace ZombieLand
 		public Alert_DaysUntilSpawning()
 		{
 			defaultLabel = "";
-			defaultExplanation = "XDaysUntilZombies".Translate();
+			var whereKey = ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap ? "XDays_Everywhere" : "XDays_Edges";
+			defaultExplanation = "XDaysUntilZombies".Translate(whereKey.Translate());
 			defaultPriority = AlertPriority.Medium;
 		}
 

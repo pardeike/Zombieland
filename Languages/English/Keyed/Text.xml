@@ -8,7 +8,9 @@
 	<ZombiesRisingNearYourBase>A group of zombies surfaces near your base</ZombiesRisingNearYourBase>
 
 	<LetterLabelXDaysUntilZombies>{0} {1} until Zombies come</LetterLabelXDaysUntilZombies>
-	<XDaysUntilZombies>Zombies will spawn everywhere on the map where there is soil, dirt, sand or gravel. Build floors to prevent Zombies from spawning.</XDaysUntilZombies>
+	<XDaysUntilZombies>Zombies will spawn {0} where there is soil, dirt, sand or gravel. Build floors to prevent Zombies from spawning.</XDaysUntilZombies>
+	<XDays_Everywhere>everywhere on the map</XDays_Everywhere>
+	<XDays_Edges>at the edges of the map</XDays_Edges>
 	<ZombieDays>day(s)</ZombieDays>
 	<ZombieHours>hour(s)</ZombieHours>
 
