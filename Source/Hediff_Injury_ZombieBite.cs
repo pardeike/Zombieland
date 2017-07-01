@@ -54,9 +54,18 @@ namespace ZombieLand
 
 		public void ConvertToZombie()
 		{
+			if (pawn == null || pawn.Spawned == false || pawn.Dead || pawn.DestroyedOrNull() || pawn.IsColonist == false)
+				return;
+
 			var pos = pawn.Position;
 			var map = pawn.Map;
 			var rot = pawn.Rotation;
+
+			if (map == null)
+			{
+				pawn.Kill(null);
+				return;
+			}
 
 			var zombie = ZombieGenerator.GeneratePawn();
 
@@ -94,7 +103,8 @@ namespace ZombieLand
 			map.GetGrid().ChangeZombieCount(pos, 1);
 
 			pawn.Kill(null);
-			pawn.Corpse.Destroy();
+			if (pawn.Corpse != null && pawn.Corpse.Destroyed == false)
+				pawn.Corpse.Destroy();
 
 			apparelToTransfer.ForEach(apparel => zombie.apparel.Wear(apparel));
 			zombie.Rotation = rot;
@@ -126,6 +136,12 @@ namespace ZombieLand
 		public override void Tick()
 		{
 			var state = TendDuration.GetInfectionState();
+			if (state == InfectionState.None)
+			{
+				base.Tick();
+				return;
+			}
+
 			if (state == InfectionState.Infected)
 			{
 				ConvertToZombie();
@@ -171,12 +187,6 @@ namespace ZombieLand
 				if (InfectionLocked() == false) return base.PainFactor;
 				return this.IsTended() ? 0f : base.SummaryHealthPercentImpact;
 			}
-		}
-
-		public override void Heal(float amount)
-		{
-			if (InfectionLocked() == false)
-				base.Heal(amount);
 		}
 
 		public override bool TryMergeWith(Hediff other)

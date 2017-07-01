@@ -49,7 +49,15 @@ namespace ZombieLand
 
 		public InfectionState GetInfectionState()
 		{
-			if (ZombieInfector == null) return InfectionState.None;
+			if (ZombieInfector == null
+				|| Pawn == null
+				|| Pawn.Map == null
+				|| Pawn.IsColonist == false
+				|| Pawn.Spawned == false
+				|| Pawn.Dead
+				|| Pawn.Destroyed
+				) return InfectionState.None;
+
 			var now = GenTicks.TicksAbs;
 			if (now < ZombieInfector.infectionKnownDelay) return InfectionState.BittenNotVisible;
 			if (ZombieInfector.infectionStartTime == 0) return InfectionState.BittenHarmless;
@@ -131,9 +139,12 @@ namespace ZombieLand
 				if (Pawn.RaceProps.Humanlike == false) return base.CompStateIcon;
 				if (Pawn.RaceProps.IsFlesh == false) return base.CompStateIcon;
 
+				var state = GetInfectionState();
+				if (state == InfectionState.None) return base.CompStateIcon;
+
 				var result = base.CompStateIcon;
 				var color = result.Color;
-				switch (GetInfectionState())
+				switch (state)
 				{
 					case InfectionState.BittenInfectable:
 						color = new Color(1f, 0.5f, 0f); // orange

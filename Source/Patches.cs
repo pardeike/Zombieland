@@ -668,7 +668,7 @@ namespace ZombieLand
 					if (tendDuration != null)
 					{
 						var state = tendDuration.GetInfectionState();
-						if (state <= InfectionState.BittenNotVisible || state >= InfectionState.Infecting)
+						if (state == InfectionState.BittenNotVisible || state >= InfectionState.Infecting)
 						{
 							__result = false;
 							return false;
@@ -697,7 +697,7 @@ namespace ZombieLand
 					if (tendDuration != null)
 					{
 						var state = tendDuration.GetInfectionState();
-						if (state <= InfectionState.BittenNotVisible || state >= InfectionState.Infecting)
+						if (state == InfectionState.BittenNotVisible || state >= InfectionState.Infecting)
 							__result = false;
 					}
 				}

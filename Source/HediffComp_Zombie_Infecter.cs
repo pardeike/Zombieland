@@ -42,6 +42,19 @@ namespace ZombieLand
 
 		public override void CompPostPostAdd(DamageInfo? dinfo)
 		{
+			if (Pawn == null
+				|| Pawn.Map == null
+				|| Pawn.IsColonist == false
+				|| Pawn.Spawned == false
+				|| Pawn.Dead
+				|| Pawn.Destroyed
+				|| Pawn.health == null
+				|| Pawn.health.hediffSet == null
+				|| parent == null
+				|| parent.Part == null
+				|| parent.Part.def == null)
+				return;
+
 			if (parent.Part.def.IsSolid(parent.Part, Pawn.health.hediffSet.hediffs))
 				return;
 			if (Pawn.health.hediffSet.PartOrAnyAncestorHasDirectlyAddedParts(parent.Part))
