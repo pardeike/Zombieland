@@ -14,6 +14,7 @@ namespace ZombieLand
 		public Map map;
 		public IntVec3 cell;
 		public Zombie zombie;
+		public bool isEvent;
 	}
 
 	[StaticConstructorOnStartup]
@@ -76,10 +77,13 @@ namespace ZombieLand
 				}
 		}
 
-		public void SpawnZombieAt(Map map, IntVec3 cell)
+		public void SpawnZombieAt(Map map, IntVec3 cell, bool isEvent)
 		{
 			lock (requestQueue)
-				requestQueue.Enqueue(new ZombieRequest() { map = map, cell = cell, zombie = null });
+			{
+				// Log.Warning("Zombie enqueued at " + cell.x + "," + cell.z);
+				requestQueue.Enqueue(new ZombieRequest() { map = map, cell = cell, isEvent = isEvent, zombie = null });
+			}
 			requestsAvailable.Release();
 		}
 
@@ -89,7 +93,9 @@ namespace ZombieLand
 			{
 				var queue = QueueForMap(map);
 				if (queue.Count == 0) return null;
-				return queue.Dequeue();
+				var result = queue.Dequeue();
+				// Log.Warning("Zombie dequeued at " + result.cell.x + "," + result.cell.z);
+				return result;
 			}
 		}
 

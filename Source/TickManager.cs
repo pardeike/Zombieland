@@ -132,7 +132,7 @@ namespace ZombieLand
 		{
 			var result = Tools.generator.TryGetNextGeneratedZombie(map);
 			if (result == null) return;
-			if (ZombieCount() >= GetMaxZombieCount()) return;
+			if (result.isEvent == false && ZombieCount() >= GetMaxZombieCount()) return;
 
 			if (Tools.IsValidSpawnLocation(result.cell, result.map) == false) return;
 
@@ -173,14 +173,14 @@ namespace ZombieLand
 					case SpawnHowType.AllOverTheMap:
 						{
 							var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4);
-							if (cell.IsValid) Tools.generator.SpawnZombieAt(map, cell);
+							if (cell.IsValid) Tools.generator.SpawnZombieAt(map, cell, false);
 							return;
 						}
 					case SpawnHowType.FromTheEdges:
 						{
 							IntVec3 cell;
 							if (CellFinder.TryFindRandomEdgeCellWith(Tools.ZombieSpawnLocator(map), map, CellFinder.EdgeRoadChance_Neutral, out cell))
-								Tools.generator.SpawnZombieAt(map, cell);
+								Tools.generator.SpawnZombieAt(map, cell, false);
 							return;
 						}
 					default:

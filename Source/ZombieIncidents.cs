@@ -32,7 +32,7 @@ namespace ZombieLand
 
 		public Predicate<IntVec3> SpotValidator(Map map)
 		{
-			var cellValidator = Tools.ZombieSpawnLocator(map);
+			var cellValidator = Tools.ZombieSpawnLocator(map, true);
 			return cell =>
 			{
 				var count = 0;
@@ -79,7 +79,7 @@ namespace ZombieLand
 			}
 			if (spot.IsValid == false) return false;
 
-			var cellValidator = Tools.ZombieSpawnLocator(map);
+			var cellValidator = Tools.ZombieSpawnLocator(map, true);
 			while (zombieCount > 0)
 			{
 				Tools.GetCircle(Constants.SPAWN_INCIDENT_RADIUS)
@@ -89,7 +89,7 @@ namespace ZombieLand
 					.Take(zombieCount)
 					.Do(cell =>
 					{
-						Tools.generator.SpawnZombieAt(map, cell);
+						Tools.generator.SpawnZombieAt(map, cell, true);
 						zombieCount--;
 					});
 			}

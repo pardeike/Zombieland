@@ -140,9 +140,9 @@ namespace ZombieLand
 			return pawn.Map.terrainGrid.TerrainAt(dest).DoesRepellZombies() == false;
 		}
 
-		public static Predicate<IntVec3> ZombieSpawnLocator(Map map)
+		public static Predicate<IntVec3> ZombieSpawnLocator(Map map, bool isEvent = false)
 		{
-			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.AllTheTime
+			if (isEvent || ZombieSettings.Values.spawnWhenType == SpawnWhenType.AllTheTime
 				|| ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly)
 			{
 				return cell => IsValidSpawnLocation(cell, map)
