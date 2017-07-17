@@ -516,7 +516,7 @@ namespace ZombieLand
 			{
 				var zombie = __instance as Zombie;
 				if (zombie == null) return true;
-				__result = !zombie.Spawned || ZombieSettings.Values.doubleTapRequired == false;
+				__result = !zombie.Spawned;
 				return false;
 			}
 		}
@@ -525,7 +525,7 @@ namespace ZombieLand
 		{
 			static bool IncappedTargetCheck(Job curJob, Pawn target)
 			{
-				if (target is Zombie && ZombieSettings.Values.doubleTapRequired) return true;
+				if (target is Zombie) return true;
 				return !curJob.killIncappedTarget;
 			}
 

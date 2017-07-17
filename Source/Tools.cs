@@ -388,7 +388,7 @@ namespace ZombieLand
 
 		static bool DownedReplacement(Pawn pawn)
 		{
-			if (pawn is Zombie && ZombieSettings.Values.doubleTapRequired) return false;
+			if (pawn is Zombie) return false;
 			return pawn.Downed;
 		}
 
