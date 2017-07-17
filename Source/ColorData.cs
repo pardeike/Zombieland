@@ -29,11 +29,11 @@ namespace ZombieLand
 		public Color[] GetRawPixels(int x, int y, int blockWidth, int blockHeight)
 		{
 			var dest = new Color[blockWidth * blockHeight];
-			for (int iy = 0; iy < blockHeight; iy++)
+			for (var iy = 0; iy < blockHeight; iy++)
 			{
 				var destRowStart = iy * blockWidth;
 				var srcRowStart = (iy + y) * width;
-				for (int ix = 0; ix < blockWidth; ix++)
+				for (var ix = 0; ix < blockWidth; ix++)
 					dest[destRowStart + ix] = pixels[srcRowStart + ix + x];
 			}
 			return dest;
@@ -51,11 +51,11 @@ namespace ZombieLand
 			var blockHeight = srcData.height;
 			var srcPixels = srcData.pixels;
 
-			for (int iy = 0; iy < blockHeight; iy++)
+			for (var iy = 0; iy < blockHeight; iy++)
 			{
 				var srcRowStart = iy * blockWidth;
 				var destRowStart = (iy + y) * width;
-				for (int ix = 0; ix < blockWidth; ix++)
+				for (var ix = 0; ix < blockWidth; ix++)
 					pixels[destRowStart + ix + x] = srcPixels[srcRowStart + ix];
 			}
 		}
@@ -69,7 +69,7 @@ namespace ZombieLand
 			var x2 = width;
 			var y2 = height;
 
-			for (int x = 0; x < width; x++)
+			for (var x = 0; x < width; x++)
 			{
 				if (GetRawPixels(x, 0, 1, height).Any(alphaCheck))
 				{
@@ -77,7 +77,7 @@ namespace ZombieLand
 					break;
 				}
 			}
-			for (int x = width - 1; x >= x1; x--)
+			for (var x = width - 1; x >= x1; x--)
 			{
 				if (GetRawPixels(x, 0, 1, height).Any(alphaCheck))
 				{
@@ -85,7 +85,7 @@ namespace ZombieLand
 					break;
 				}
 			}
-			for (int y = 0; y < height; y++)
+			for (var y = 0; y < height; y++)
 			{
 				if (GetRawPixels(0, y, width, 1).Any(alphaCheck))
 				{
@@ -93,7 +93,7 @@ namespace ZombieLand
 					break;
 				}
 			}
-			for (int y = height - 1; y >= y1; y--)
+			for (var y = height - 1; y >= y1; y--)
 			{
 				if (GetRawPixels(0, y, width, 1).Any(alphaCheck))
 				{

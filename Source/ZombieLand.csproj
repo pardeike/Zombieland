@@ -41,6 +41,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Web" />
     <Reference Include="UnityEngine">
       <HintPath>D:\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
@@ -59,6 +60,9 @@
     <Compile Include="JobDriver.cs" />
     <Compile Include="JobGiver.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="_translate\Mono_HTTP_Helpers.cs" />
+    <Compile Include="_translate\Mono_HTTP_HtmlEncoder.cs" />
+    <Compile Include="_translate\Mono_HTTP_HttpUtility.cs" />
     <Compile Include="Patches.cs" />
     <Compile Include="PheromoneGrid.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -66,6 +70,7 @@
     <Compile Include="Rubble.cs" />
     <Compile Include="TickManager.cs" />
     <Compile Include="Tools.cs" />
+    <Compile Include="_translate\GoogleTranslator.cs" />
     <Compile Include="VariableGraphic.cs" />
     <Compile Include="Zombie.cs" />
     <Compile Include="ZombieCorpse.cs" />

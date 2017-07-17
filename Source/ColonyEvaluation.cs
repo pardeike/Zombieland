@@ -12,12 +12,12 @@ namespace ZombieLand
 
 		static float GetMapArmouryPoints(Map map)
 		{
-			float result = 0f;
+			var result = 0f;
 
 			var armourlist = map.listerThings.ThingsInGroup(ThingRequestGroup.Apparel);
-			for (int a = 0; a < armourlist.Count; a++)
+			for (var a = 0; a < armourlist.Count; a++)
 			{
-				Thing thing = armourlist[a];
+				var thing = armourlist[a];
 				if (!thing.Position.Fogged(map))
 				{
 					if (thing.def.techLevel >= TechLevel.Industrial)
@@ -26,9 +26,9 @@ namespace ZombieLand
 			}
 
 			var weaponlist = map.listerThings.ThingsInGroup(ThingRequestGroup.Weapon);
-			for (int w = 0; w < weaponlist.Count; w++)
+			for (var w = 0; w < weaponlist.Count; w++)
 			{
-				Thing thing = weaponlist[w];
+				var thing = weaponlist[w];
 				if (!thing.Position.Fogged(map))
 				{
 					if (thing.def.techLevel >= TechLevel.Industrial)
@@ -43,7 +43,7 @@ namespace ZombieLand
 
 		static float GetDudeArmouryPoints(Pawn dude)
 		{
-			float result = 0f;
+			var result = 0f;
 			if (dude.equipment != null)
 			{
 				foreach (var equipment in dude.equipment.AllEquipmentListForReading)
@@ -60,7 +60,7 @@ namespace ZombieLand
 			if (dude.apparel != null)
 			{
 				var wornApparel = dude.apparel.WornApparel;
-				for (int j = 0; j < wornApparel.Count; j++)
+				for (var j = 0; j < wornApparel.Count; j++)
 				{
 					if (wornApparel[j].def.techLevel >= TechLevel.Industrial)
 						result += wornApparel[j].MarketValue;
@@ -71,16 +71,16 @@ namespace ZombieLand
 
 		public static void GetColonistArmouryPoints(IEnumerable<Pawn> colonists, Map map, out float colonistPoints, out float armouryPoints)
 		{
-			float colonistPointTally = 0f;
-			float armouryWealthTally = 0f;
+			var colonistPointTally = 0f;
+			var armouryWealthTally = 0f;
 
-			foreach (Pawn dude in colonists)
+			foreach (var dude in colonists)
 			{
 				if (dude.story.WorkTagIsDisabled(WorkTags.Violent)) continue; // Non-violent colonists are exempt
 
 				if (dude.health.capacities.GetLevel(PawnCapacityDefOf.Moving) < 0.15) continue; // Colonists with extremely poor movement are exempt
 
-				float battlescore = 0.5f * dude.health.capacities.GetLevel(PawnCapacityDefOf.Consciousness); // Half comes from consciousness
+				var battlescore = 0.5f * dude.health.capacities.GetLevel(PawnCapacityDefOf.Consciousness); // Half comes from consciousness
 				battlescore += 0.5f * dude.health.capacities.GetLevel(PawnCapacityDefOf.Sight); // Half comes from sight
 				battlescore *= dude.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation); // Multiplied by manipulation, should give 1.0 for normal healthy colonist
 

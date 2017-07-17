@@ -124,7 +124,7 @@ namespace ZombieLand
 		public override void Tick()
 		{
 			var comps = AllComps;
-			for (int i = 0; i < comps.Count; i++)
+			for (var i = 0; i < comps.Count; i++)
 				comps[i].CompTick();
 		}
 
@@ -157,7 +157,7 @@ namespace ZombieLand
 		{
 			if (wasColonist)
 			{
-				Vector2 pos = GenMapUI.LabelDrawPosFor(this, -0.6f);
+				var pos = GenMapUI.LabelDrawPosFor(this, -0.6f);
 				GenMapUI.DrawPawnLabel(this, pos, 1f, 9999f, null, GameFont.Tiny, true, true);
 			}
 		}

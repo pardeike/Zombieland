@@ -112,7 +112,7 @@ namespace ZombieLand
 			zombie.state = ZombieState.Wandering;
 			zombie.wasColonist = true;
 
-			string text = "ColonistBecameAZombieDesc".Translate(new object[] { zombie.NameStringShort });
+			var text = "ColonistBecameAZombieDesc".Translate(new object[] { zombie.NameStringShort });
 			Find.LetterStack.ReceiveLetter("ColonistBecameAZombieLabel".Translate(), text, LetterDefOf.BadUrgent, zombie);
 		}
 

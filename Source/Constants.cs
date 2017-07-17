@@ -38,7 +38,7 @@ namespace ZombieLand
 								case "Boolean":
 									{
 										bool result;
-										if (Boolean.TryParse(value, out result))
+										if (bool.TryParse(value, out result))
 											constant.SetValue(null, result);
 										else
 											Log.Error("Cannot parse boolean '" + value + "' of constant " + field);
@@ -47,7 +47,7 @@ namespace ZombieLand
 								case "Int32":
 									{
 										int result;
-										if (Int32.TryParse(value, out result))
+										if (int.TryParse(value, out result))
 											constant.SetValue(null, result);
 										else
 											Log.Error("Cannot parse int '" + value + "' of constant " + field);
@@ -56,7 +56,7 @@ namespace ZombieLand
 								case "Single":
 									{
 										float result;
-										if (Single.TryParse(value, out result))
+										if (float.TryParse(value, out result))
 											constant.SetValue(null, result);
 										else
 											Log.Error("Cannot parse float '" + value + "' of constant " + field);
@@ -77,16 +77,14 @@ namespace ZombieLand
 		//
 		public static bool DEBUGGRID;
 		public static bool USE_SOUND = true;
-		public static int DEBUG_COLONY_POINTS;
-		public static bool USE_CUSTOM_TEXTURES = true;
+		public static int DEBUG_COLONY_POINTS = 0;
 
 		// timing
 		//
-		public static float DAYS_BEFORE_ZOMBIES_SPAWN = 3f;
 		public static float FRAME_TIME_FACTOR = 0.25f;
 		public static float PHEROMONE_FADEOFF = 90f;
 		public static float TICKMANAGER_RECALCULATE_DELAY = 5f;
-		public static int EAT_DELAY_TICKS = 1200;
+		public static int EAT_DELAY_TICKS = 1800;
 
 		// zombie spawning
 		// the following hours continue after 23h with 24, 25, 26...
@@ -98,11 +96,8 @@ namespace ZombieLand
 
 		// zombie stats
 		//
-		public static float ZOMBIE_CHAINING_RADIUS = 1.5f;
 		public static float ANIMAL_PHEROMONE_RADIUS = 2f;
 		public static float HUMAN_PHEROMONE_RADIUS = 4f;
-		public static float ZOMBIE_MOVE_SPEED_IDLE = 0.2f;
-		public static float ZOMBIE_MOVE_SPEED_TRACKING = 1.5f;
 		public static float ZOMBIE_HIT_CHANCE_IDLE = 0.2f;
 		public static float ZOMBIE_HIT_CHANCE_TRACKING = 0.7f;
 		public static int NUMBER_OF_TOP_MOVEMENT_PICKS = 3;

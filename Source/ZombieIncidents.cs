@@ -57,10 +57,10 @@ namespace ZombieLand
 
 			var spotValidator = SpotValidator(map);
 
-			IntVec3 spot = IntVec3.Invalid;
-			string headline = "";
-			string text = "";
-			for (int counter = 1; counter <= 10; counter++)
+			var spot = IntVec3.Invalid;
+			var headline = "";
+			var text = "";
+			for (var counter = 1; counter <= 10; counter++)
 			{
 				if (ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap)
 				{

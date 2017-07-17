@@ -57,8 +57,8 @@ namespace ZombieLand
 
 		public void IterateCells(Action<int, int, Pheromone> callback)
 		{
-			for (int z = 0; z < mapSizeZ; z++)
-				for (int x = 0; x < mapSizeX; x++)
+			for (var z = 0; z < mapSizeZ; z++)
+				for (var x = 0; x < mapSizeX; x++)
 				{
 					var cell = grid[CellToIndex(x, z)];
 					if (cell != null) callback(x, z, cell);

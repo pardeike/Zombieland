@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 using UnityEngine;
 using Verse;
 
@@ -10,9 +8,9 @@ namespace ZombieLand
 	{
 		public static Color HexColor(this string hex)
 		{
-			int r = Int32.Parse(hex.Substring(0, 2), NumberStyles.HexNumber);
-			int g = Int32.Parse(hex.Substring(2, 2), NumberStyles.HexNumber);
-			int b = Int32.Parse(hex.Substring(4, 2), NumberStyles.HexNumber);
+			var r = int.Parse(hex.Substring(0, 2), NumberStyles.HexNumber);
+			var g = int.Parse(hex.Substring(2, 2), NumberStyles.HexNumber);
+			var b = int.Parse(hex.Substring(4, 2), NumberStyles.HexNumber);
 			return new Color(r / 255f, g / 255f, b / 255f);
 		}
 
@@ -32,8 +30,8 @@ namespace ZombieLand
 			var y = (int)(baseRect.y + (baseRect.height - stainHeight) * (py != -1f ? py : Rand.Value));
 			var oPixels = baseData.GetRawPixels(x, y, stainWidth, stainHeight);
 			var pPixels = stainData.pixels;
-			for (int sx = 0; sx < stainWidth; sx++)
-				for (int sy = 0; sy < stainHeight; sy++)
+			for (var sx = 0; sx < stainWidth; sx++)
+				for (var sy = 0; sy < stainHeight; sy++)
 				{
 					var pIdx = (flipH ? (stainWidth - sx - 1) : sx) + (flipV ? (stainHeight - sy - 1) : sy) * stainWidth;
 					var oIdx = sx + sy * stainWidth;
@@ -52,8 +50,8 @@ namespace ZombieLand
 
 		public static void DrawScaledMesh(Mesh mesh, Material mat, Vector3 pos, Quaternion q, float mx, float my, float mz = 1f)
 		{
-			Vector3 s = new Vector3(mx, mz, my);
-			Matrix4x4 matrix = new Matrix4x4();
+			var s = new Vector3(mx, mz, my);
+			var matrix = new Matrix4x4();
 			matrix.SetTRS(pos, q, s);
 			Graphics.DrawMesh(mesh, matrix, mat, 0);
 		}

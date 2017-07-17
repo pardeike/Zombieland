@@ -163,7 +163,7 @@ namespace ZombieLand
 		public static IntVec3 CenterOfInterest(Map map)
 		{
 			int x = 0, z = 0, n = 0;
-			int buildingMultiplier = 3;
+			var buildingMultiplier = 3;
 			if (map.listerBuildings != null && map.listerBuildings.allBuildingsColonist != null)
 			{
 				map.listerBuildings.allBuildingsColonist.Do(building =>
@@ -189,7 +189,7 @@ namespace ZombieLand
 		{
 			var grid = map.GetGrid();
 			var baseTimestamp = grid.Get(nextMove, false).timestamp;
-			for (int i = 0; i < 9; i++)
+			for (var i = 0; i < 9; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCellsAndInside[i];
 				if (pos.x != nextMove.x || pos.z != nextMove.z && pos.InBounds(map))
@@ -219,7 +219,7 @@ namespace ZombieLand
 		{
 			if (Constants.DEBUG_COLONY_POINTS > 0) return Constants.DEBUG_COLONY_POINTS;
 
-			IEnumerable<Pawn> colonists = Find.VisibleMap.mapPawns.FreeColonists;
+			var colonists = Find.VisibleMap.mapPawns.FreeColonists;
 			float colonistPoints;
 			float armouryPoints;
 			ColonyEvaluation.GetColonistArmouryPoints(colonists, Find.VisibleMap, out colonistPoints, out armouryPoints);
@@ -230,8 +230,8 @@ namespace ZombieLand
 		{
 			if ((((cell != IntVec3.Invalid) && (thing != null)) && (thing.Map != null)) && thing.Spawned)
 			{
-				Map map = thing.Map;
-				RegionGrid regionGrid = map.regionGrid;
+				var map = thing.Map;
+				var regionGrid = map.regionGrid;
 				Region validRegionAt = null;
 				if (cell.InBounds(map))
 				{
@@ -262,14 +262,14 @@ namespace ZombieLand
 		public static IEnumerable<IntVec3> GetCircle(float radius)
 		{
 			if (circles == null) circles = new Dictionary<float, HashSet<IntVec3>>();
-			HashSet<IntVec3> cells = circles.ContainsKey(radius) ? circles[radius] : null;
+			var cells = circles.ContainsKey(radius) ? circles[radius] : null;
 			if (cells == null)
 			{
 				cells = new HashSet<IntVec3>();
-				IEnumerator<IntVec3> enumerator = GenRadial.RadialPatternInRadius(radius).GetEnumerator();
+				var enumerator = GenRadial.RadialPatternInRadius(radius).GetEnumerator();
 				while (enumerator.MoveNext())
 				{
-					IntVec3 v = enumerator.Current;
+					var v = enumerator.Current;
 					cells.Add(v);
 					cells.Add(new IntVec3(-v.x, 0, v.z));
 					cells.Add(new IntVec3(-v.x, 0, -v.z));
@@ -297,7 +297,7 @@ namespace ZombieLand
 		{
 			var parameterIndex = -1;
 			var pinfo = method.GetParameters();
-			for (int i = 0; i < pinfo.Length; i++)
+			for (var i = 0; i < pinfo.Length; i++)
 				if (pinfo[i].Name == parameterName)
 				{
 					parameterIndex = i;
@@ -384,6 +384,32 @@ namespace ZombieLand
 			 (D)
 			 .......
 			*/
+		}
+
+		static bool DownedReplacement(Pawn pawn)
+		{
+			if (pawn is Zombie && ZombieSettings.Values.doubleTapRequired) return false;
+			return pawn.Downed;
+		}
+
+		public static IEnumerable<CodeInstruction> DownedReplacer(IEnumerable<CodeInstruction> instructions, int skip = 0)
+		{
+			var m_get_Downed = AccessTools.Method(typeof(Pawn), "get_Downed");
+			var m_replacement = AccessTools.Method(typeof(Tools), "DownedReplacement");
+
+			foreach (var instruction in instructions)
+			{
+				if (instruction.opcode == OpCodes.Callvirt && instruction.operand == m_get_Downed)
+				{
+					skip--;
+					if (skip < 0)
+					{
+						instruction.opcode = OpCodes.Call;
+						instruction.operand = m_replacement;
+					}
+				}
+				yield return instruction;
+			}
 		}
 	}
 }

@@ -120,15 +120,15 @@ namespace ZombieLand
 
 		public override string GetExplanation()
 		{
-			StringBuilder stringBuilder = new StringBuilder();
-			foreach (Pawn pawn in AffectedColonists)
+			var stringBuilder = new StringBuilder();
+			foreach (var pawn in AffectedColonists)
 				stringBuilder.AppendLine("    " + NameDecorator(pawn));
 			return string.Format((label + "Desc").Translate(), stringBuilder.ToString());
 		}
 
 		public override AlertReport GetReport()
 		{
-			Pawn pawn = AffectedColonists.FirstOrDefault<Pawn>();
+			var pawn = AffectedColonists.FirstOrDefault<Pawn>();
 			if (pawn == null)
 				return false;
 			return AlertReport.CulpritIs(pawn);
@@ -149,15 +149,22 @@ namespace ZombieLand
 		public override string GetLabel()
 		{
 			if (days < 1f)
-				return "LetterLabelXDaysUntilZombies".Translate(Math.Round(24f * days), "ZombieHours".Translate());
-
-			return "LetterLabelXDaysUntilZombies".Translate(days, "ZombieDays".Translate());
+			{
+				var val = (int)Math.Round(24f * days);
+				var unit = ("ZombieHour" + (val == 1 ? "" : "s")).Translate();
+				return "LetterLabelXDaysUntilZombies".Translate(val, unit);
+			}
+			else
+			{
+				var val = (float)Math.Round(10f * days) / 10f;
+				var unit = ("ZombieDay" + (val == 1 ? "" : "s")).Translate();
+				return "LetterLabelXDaysUntilZombies".Translate(val, unit);
+			}
 		}
 
 		public override string GetExplanation()
 		{
-			var whereKey = ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap ? "XDays_Everywhere" : "XDays_Edges";
-			return "XDaysUntilZombies".Translate(whereKey == null ? "" : whereKey.Translate());
+			return "XDaysUntilZombies".Translate();
 		}
 
 		public override AlertReport GetReport()

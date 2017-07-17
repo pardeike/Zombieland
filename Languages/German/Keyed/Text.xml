@@ -8,34 +8,34 @@
 	<ZombiesRisingNearYourBase>Eine Gruppe von Zombies greift in der Nähe der Basis an</ZombiesRisingNearYourBase>
 
 	<LetterLabelXDaysUntilZombies>{0} {1} bis Zombies kommen</LetterLabelXDaysUntilZombies>
-	<XDaysUntilZombies>Zombies erscheinen {0}wo es weiche Erde, Dreck oder Sand auf der Karte gibt. Bedecke den Boden mit Fussboden um das zu verhindern.</XDaysUntilZombies>
-	<XDays_Everywhere>überall </XDays_Everywhere>
-	<XDays_Edges>and den Rändern der Karte </XDays_Edges>
-	<ZombieDays>Tag(e)</ZombieDays>
-	<ZombieHours>Stunde(n)</ZombieHours>
+	<XDaysUntilZombies>Zombies erscheinen dort, wo es weichen Erde, Dreck, Sand oder Kies gibt. Der Bau von Fußböden verhindert, dass Zombies an diesen Stellen rauskommen.</XDaysUntilZombies>
+	<ZombieDay>Tag</ZombieDay>
+	<ZombieDays>Tage</ZombieDays>
+	<ZombieHour>Stunde</ZombieHour>
+	<ZombieHours>Stunden</ZombieHours>
 
 	<ZombielandDefaultSettings>Zombieland Standardeinstellungen</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Zombieland Spieleinstellungen</ZombielandGameSettings>
 
 	<WhenDoZombiesSpawn>Wann erscheinen Zombies?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Jederzeit</SpawnWhenType_AllTheTime>
-	<SpawnWhenType_WhenDark>Während der Nacht</SpawnWhenType_WhenDark>
+	<SpawnWhenType_WhenDark>Wo es dunkel ist</SpawnWhenType_WhenDark>
 	<SpawnWhenType_InEventsOnly>Nur als Angriff</SpawnWhenType_InEventsOnly>
 
-	<HowDoZombiesSpawn>Wie erscheinen Zombies?</HowDoZombiesSpawn>
+	<HowDoZombiesSpawn>Woher kommen Zombies?</HowDoZombiesSpawn>
 	<SpawnHowType_AllOverTheMap>An Stellen mit weichem Boden</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>Von den Kanten der Karte</SpawnHowType_FromTheEdges>
 
 	<WhatDoZombiesAttack>Was greifen Zombies an?</WhatDoZombiesAttack>
-	<AttackMode_Everything>Alles</AttackMode_Everything>
-	<AttackMode_OnlyHumans>Nur menschenähnliches</AttackMode_OnlyHumans>
-	<AttackMode_OnlyColonists>Deine Kolonisten und ihre Dinge</AttackMode_OnlyColonists>
+	<AttackMode_Everything>Alle Kreaturen</AttackMode_Everything>
+	<AttackMode_OnlyHumans>Menschenähnliche Kreaturen</AttackMode_OnlyHumans>
+	<AttackMode_OnlyColonists>Nur deine Kolonisten</AttackMode_OnlyColonists>
 
 	<WhatDoZombiesSmash>Was machen Zombies kaputt?</WhatDoZombiesSmash>
 	<SmashMode_Nothing>Nichts</SmashMode_Nothing>
 	<SmashMode_DoorsOnly>Nur Türen</SmashMode_DoorsOnly>
-	<SmashMode_AnyBuilding>Konstruiertes</SmashMode_AnyBuilding>
-	<SmashOnlyWhenAgitated>Nur wenn sie angeregt sind</SmashOnlyWhenAgitated>
+	<SmashMode_AnyBuilding>Alles Gebaute</SmashMode_AnyBuilding>
+	<SmashOnlyWhenAgitated>Nur wenn sie aufgeregt sind</SmashOnlyWhenAgitated>
 
 	<NewGameTitle>Neues Spiel</NewGameTitle>
 	<DaysBeforeZombiesCome>Tage before Zombies auftauchen</DaysBeforeZombiesCome>
@@ -48,27 +48,27 @@
 	<ZombiesPerColonistInEvent>Zombies pro Kolonist</ZombiesPerColonistInEvent>
 
 	<ZombieSpeedTitle>Zombiegeschwindigkeit</ZombieSpeedTitle>
-	<MoveSpeedIdle>Wenn wandernt: {0}x</MoveSpeedIdle>
-	<MoveSpeedTracking>Wenn aufgeregt: {0}x</MoveSpeedTracking>
+	<MoveSpeedIdle>Wenn wandernt</MoveSpeedIdle>
+	<MoveSpeedTracking>Wenn aufgeregt</MoveSpeedTracking>
 
 	<ZombieDamageFactorTitle>Zombiekraft</ZombieDamageFactorTitle>
-	<ZombieDamageFactor>Schadenmultiplikator: {0}x</ZombieDamageFactor>
+	<ZombieDamageFactor>Schadenmultiplikator</ZombieDamageFactor>
 
 	<ZombieInfections>Zombieinfektionen</ZombieInfections>
-	<ZombieBiteInfectionChance>Riskio das ein Biss infiziert: {0}%</ZombieBiteInfectionChance>
+	<ZombieBiteInfectionChance>Risiko das ein Biss infiziert</ZombieBiteInfectionChance>
 
 	<ZombieInstinctTitle>Zombiegespür</ZombieInstinctTitle>
-	<ZombieInstinct_Dull>Schwach</ZombieInstinct_Dull>
+	<ZombieInstinct_Dull>Begrenzt</ZombieInstinct_Dull>
 	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>
 	<ZombieInstinct_Sensitive>Empfindlich</ZombieInstinct_Sensitive>
 
 	<ZombieHealthTitle>Zombiegesundheit</ZombieHealthTitle>
-	<DoubleTapRequired>Verletzte Zombies muss man 2x töten</DoubleTapRequired>
+	<DoubleTapRequired>Bei verletzten Zombies gilt "Doppelt hält besser"</DoubleTapRequired>
 	<ZombiesDieVeryEasily>Zombies sind einfach zu töten</ZombiesDieVeryEasily>
 
-	<ZombieEatingTitle>Zombiefressverhalten</ZombieEatingTitle>
-	<ZombiesEatDowned>Zombies fressen Verletzte</ZombiesEatDowned>
-	<ZombiesEatCorpses>Zombies fressen Totes</ZombiesEatCorpses>
+	<ZombieEatingTitle>Zombies fressen</ZombieEatingTitle>
+	<ZombiesEatDowned>Verletzte</ZombiesEatDowned>
+	<ZombiesEatCorpses>Leichen</ZombiesEatCorpses>
 
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>
 	<UseCustomTextures>Benutze Spezialtexturen</UseCustomTextures>
@@ -77,15 +77,15 @@
 	<ColonistsBittenByZombie>Kolonist wurde von einem Zombie gebissen</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Folgende Kolonisten wurden von einem Zombie gebissen. Noch ist unklar ob sich daraus eine Infektion entwickelt:\n\n{0}\nBeobachten Sie die Wunden um herauszufinden ob eine Infektion stattfinden wird.</ColonistsBittenByZombieDesc>
 
-	<ImminentZombiInfection>Unmittelbara Zombieinfektion</ImminentZombiInfection>
+	<ImminentZombiInfection>Bevorstehende Zombieinfektion</ImminentZombiInfection>
 	<ImminentZombiInfectionDesc>Folgende Kolonisten sind dabei eine Infektion aus einem Zombiebiss zu entwickeln:\n\n{0}\nMan kann sie noch mit optimaler Verarztung unter besten Bedinungen retten. Das benötigt aber einen guten Doktors, ein qualitatives medizinische Bett in einem sterilen Raum mit med. Monitor.</ImminentZombiInfectionDesc>
 
 	<ZombieInfection>Zombieinfektion</ZombieInfection>
 	<ZombieInfectionDesc>Folgende Kolonisten wurden infiziert und werden zu Zombies. Es gibt keine Rettung mehr:\n\n{0}\nWährend die Infektion fortschreitet empfinden sie keine Gedanken, Gefühle, Schmerz und Hunger. Am Ende sterben sie und werden zu Zombies.</ZombieInfectionDesc>
 
 	<NoInfectionRisk>Kein Infectionsrisiko</NoInfectionRisk>
-	<HoursBeforeBecomingInfected>{0} Stunden bis zum Beginn der Infektion</HoursBeforeBecomingInfected>
-	<HoursBeforeBecomingAZombie>{0} Stunden bis zum Zombie werden</HoursBeforeBecomingAZombie>
+	<HoursBeforeBecomingInfected>{0} bis zum Beginn der Infektion</HoursBeforeBecomingInfected>
+	<HoursBeforeBecomingAZombie>{0} bis zum Zombie werden</HoursBeforeBecomingAZombie>
 
 	<ColonistBecameAZombieLabel>Kolonist wurde zum Zombie</ColonistBecameAZombieLabel>
 	<ColonistBecameAZombieDesc>{0} wurde zu einem mächtigen Zombie.</ColonistBecameAZombieDesc>

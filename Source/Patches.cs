@@ -9,7 +9,6 @@ using System.Text;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using Verse.AI.Group;
 
 namespace ZombieLand
 {
@@ -31,10 +30,10 @@ namespace ZombieLand
 				if (Constants.DEBUGGRID == false) return;
 				var now = Tools.Ticks();
 				var fadeOff = Tools.PheromoneFadeoff();
-				Matrix4x4 matrix = new Matrix4x4();
+				var matrix = new Matrix4x4();
 				Find.VisibleMap.GetGrid().IterateCells((x, z, pheromone) =>
 				{
-					Vector3 pos = new Vector3(x, Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1), z);
+					var pos = new Vector3(x, Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1), z);
 					matrix.SetTRS(pos + new Vector3(0.5f, 0f, 0.5f), Quaternion.identity, new Vector3(1f, 1f, 1f));
 					var diff = now - pheromone.timestamp;
 					if (diff < fadeOff)
@@ -68,7 +67,7 @@ namespace ZombieLand
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
 				var all = instructions.ToList();
-				for (int i = 0; i < all.Count - 1; i++)
+				for (var i = 0; i < all.Count - 1; i++)
 					yield return all[i];
 				var ret = all.Last();
 
@@ -96,7 +95,7 @@ namespace ZombieLand
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
 				var all = instructions.ToList();
-				for (int i = 0; i < all.Count - 1; i++)
+				for (var i = 0; i < all.Count - 1; i++)
 					yield return all[i];
 				var ret = all.Last();
 
@@ -124,7 +123,7 @@ namespace ZombieLand
 					lastUpdateTick = Find.TickManager.TicksGame;
 
 					var maps = Find.Maps;
-					for (int i = 0; i < maps.Count; i++)
+					for (var i = 0; i < maps.Count; i++)
 					{
 						var map = maps[i];
 						if (map.IsPlayerHome)
@@ -133,7 +132,7 @@ namespace ZombieLand
 								? playerHostilesWithoutZombies[map]
 								: new HashSet<IAttackTarget>();
 
-							int num = hostiles.Count((IAttackTarget x) => !x.ThreatDisabled());
+							var num = hostiles.Count((IAttackTarget x) => !x.ThreatDisabled());
 							if (num == 0)
 								dangerRatingInt = StoryDanger.None;
 							else if (num <= Mathf.CeilToInt((float)map.mapPawns.FreeColonistsSpawnedCount * 0.5f))
@@ -145,7 +144,7 @@ namespace ZombieLand
 								if (lastColonistHarmedTick > Find.TickManager.TicksGame - 900)
 									dangerRatingInt = StoryDanger.High;
 								else
-									foreach (Lord current in map.lordManager.lords)
+									foreach (var current in map.lordManager.lords)
 										if (current.CurLordToil is LordToil_AssaultColony)
 										{
 											dangerRatingInt = StoryDanger.High;
@@ -197,7 +196,7 @@ namespace ZombieLand
 				var method = AccessTools.Method(typeof(Pawn_MindState_Notify_DamageTaken_Patch), "ShouldStartManhunting");
 
 				var instr = instructions.ToList();
-				for (int i = 1; i < instr.Count; i++)
+				for (var i = 1; i < instr.Count; i++)
 				{
 					if (instr[i - 1].opcode == OpCodes.Bge_Un)
 					{
@@ -216,7 +215,7 @@ namespace ZombieLand
 						}
 					}
 				}
-				for (int i = 0; i < instr.Count; i++)
+				for (var i = 0; i < instr.Count; i++)
 					yield return instr[i];
 			}
 		}
@@ -286,7 +285,7 @@ namespace ZombieLand
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				bool previousPopInstruction = false;
+				var previousPopInstruction = false;
 				foreach (var instruction in instructions)
 				{
 					if (previousPopInstruction == false && instruction.opcode == OpCodes.Pop)
@@ -324,7 +323,7 @@ namespace ZombieLand
 					var zombies = FactionGenerator.NewGeneratedFaction(ZombieDefOf.Zombies);
 					foreach (var faction in factions)
 					{
-						FactionRelation rel1 = new FactionRelation()
+						var rel1 = new FactionRelation()
 						{
 							other = faction,
 							goodwill = 0f,
@@ -332,7 +331,7 @@ namespace ZombieLand
 						};
 						Traverse.Create(zombies).Field("relations").GetValue<List<FactionRelation>>().Add(rel1);
 
-						FactionRelation rel2 = new FactionRelation()
+						var rel2 = new FactionRelation()
 						{
 							other = zombies,
 							goodwill = 0f,
@@ -502,6 +501,139 @@ namespace ZombieLand
 				if (zombie == null) return true;
 				__result = false;
 				return false;
+			}
+		}
+
+		// patch to keep shooting even if a zombie is down (only
+		// if "double tap" is on)
+		//
+		[HarmonyPatch(typeof(Pawn))]
+		[HarmonyPatch("ThreatDisabled")]
+		static class Pawn_ThreatDisabled_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Pawn __instance, ref bool __result)
+			{
+				var zombie = __instance as Zombie;
+				if (zombie == null) return true;
+				__result = !zombie.Spawned || ZombieSettings.Values.doubleTapRequired == false;
+				return false;
+			}
+		}
+		[HarmonyPatch]
+		static class Toils_Combat_FollowAndMeleeAttack_KillIncappedTarget_Patch
+		{
+			static bool IncappedTargetCheck(Job curJob, Pawn target)
+			{
+				if (target is Zombie && ZombieSettings.Values.doubleTapRequired) return true;
+				return !curJob.killIncappedTarget;
+			}
+
+			static MethodBase TargetMethod()
+			{
+				var inner = AccessTools.FirstInner(typeof(Toils_Combat), type => type.Name.StartsWith("<FollowAndMeleeAttack"));
+				return inner.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.StartsWith("<>m__"));
+			}
+
+			[HarmonyPriority(Priority.First)]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var f_killIncappedTarget = AccessTools.Field(typeof(Job), "killIncappedTarget");
+				var m_IncappedTargetCheck = AccessTools.Method(typeof(Toils_Combat_FollowAndMeleeAttack_KillIncappedTarget_Patch), "IncappedTargetCheck");
+				var m_get_Downed = AccessTools.Method(typeof(Pawn), "get_Downed");
+
+				CodeInstruction last = null;
+				CodeInstruction localPawnInstruction = null;
+				foreach (var instruction in instructions)
+				{
+					if (instruction.opcode == OpCodes.Callvirt && instruction.operand == m_get_Downed)
+						localPawnInstruction = new CodeInstruction(last);
+
+					if (instruction.opcode == OpCodes.Ldfld
+						&& instruction.operand == f_killIncappedTarget
+						&& localPawnInstruction != null)
+					{
+						yield return localPawnInstruction;
+
+						instruction.opcode = OpCodes.Call;
+						instruction.operand = m_IncappedTargetCheck;
+					}
+					yield return instruction;
+					last = instruction;
+				}
+			}
+		}
+		[HarmonyPatch(typeof(Stance_Warmup))]
+		[HarmonyPatch("StanceTick")]
+		static class Stance_Warmup_StanceTick_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				return Tools.DownedReplacer(instructions);
+			}
+		}
+		[HarmonyPatch]
+		static class Toils_Jump_JumpIfTargetDownedDistant_Patch
+		{
+			static MethodBase TargetMethod()
+			{
+				var inner = AccessTools.FirstInner(typeof(Toils_Jump), type => type.Name.StartsWith("<JumpIfTargetDownedDistant>c__"));
+				return inner.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.StartsWith("<>m__"));
+			}
+
+			[HarmonyPriority(Priority.First)]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				return Tools.DownedReplacer(instructions);
+			}
+		}
+		[HarmonyPatch(typeof(Pawn_MindState))]
+		[HarmonyPatch("MeleeThreatStillThreat", PropertyMethod.Getter)]
+		static class Pawn_MindState_MeleeThreatStillThreat_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				return Tools.DownedReplacer(instructions);
+			}
+		}
+		[HarmonyPatch(typeof(JobDriver_Wait))]
+		[HarmonyPatch("CheckForAutoAttack")]
+		static class JobDriver_Wait_CheckForAutoAttack_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				return Tools.DownedReplacer(instructions, 1);
+			}
+		}
+		[HarmonyPatch]
+		static class JobDriver_AttackStatic_TickAction_Patch
+		{
+			static MethodBase TargetMethod()
+			{
+				var inner = AccessTools.FirstInner(typeof(JobDriver_AttackStatic), type => type.Name.StartsWith("<MakeNewToils>c__Iterator"));
+				return inner.GetMethods(AccessTools.all)
+					.Where(m => m.Name.StartsWith("<>m__"))
+					.OrderBy(m => m.Name)
+					.LastOrDefault(); // the second one is the tickAction
+			}
+
+			[HarmonyPriority(Priority.First)]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				return Tools.DownedReplacer(instructions);
+			}
+		}
+		[HarmonyPatch(typeof(TargetingParameters))]
+		[HarmonyPatch("CanTarget")]
+		static class TargetingParameters_CanTarget_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				return Tools.DownedReplacer(instructions);
 			}
 		}
 
@@ -714,7 +846,7 @@ namespace ZombieLand
 			{
 				var zombie = pawn as Zombie;
 				if (zombie.wasColonist)
-					return 100f;
+					return 1000f;
 				switch (zombie.story.bodyType)
 				{
 					case BodyType.Thin:
@@ -941,7 +1073,7 @@ namespace ZombieLand
 		}
 
 		// allow clicks on zombies that were colonists
-		/*
+		//
 		[HarmonyPatch(typeof(ThingSelectionUtility))]
 		[HarmonyPatch("SelectableByMapClick")]
 		static class ThingSelectionUtility_SelectableByMapClick_Patch
@@ -958,7 +1090,6 @@ namespace ZombieLand
 				return true;
 			}
 		}
-		*/
 
 		// patch for a custom zombie corpse class
 		//
@@ -1251,7 +1382,7 @@ namespace ZombieLand
 			{
 				var get_InnerPawn = AccessTools.Method(typeof(Corpse), "get_InnerPawn");
 				CodeInstruction prevInstruction = null;
-				Label label = new Label();
+				var label = new Label();
 				foreach (var instruction in instructions)
 				{
 					if (instruction.opcode == OpCodes.Callvirt)

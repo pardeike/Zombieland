@@ -8,11 +8,11 @@
 	<ZombiesRisingNearYourBase>Группа зомби появилась рядом с вашей базой</ZombiesRisingNearYourBase>
 
 	<LetterLabelXDaysUntilZombies>{0} {1} Дней до прихода зомби-орды</LetterLabelXDaysUntilZombies>
-	<XDaysUntilZombies>Зомби будут появляться {0}где есть почва, грязь, песок и гравий. Застройте всё напольными покрытиями, чтобы зомби не могли подкопаться.</XDaysUntilZombies>
-	<XDays_Everywhere>по всей карте </XDays_Everywhere>
-	<XDays_Edges>с краев </XDays_Edges>
-	<ZombieDays>Дней</ZombieDays>
-	<ZombieHours>Час(ов)</ZombieHours>
+	<XDaysUntilZombies>Зомби появятся там, где есть мягкая почва, грязь, песок и гравий. Застройте всё напольными покрытиями, чтобы зомби не могли подкопаться.</XDaysUntilZombies>
+	<ZombieDay>день</ZombieDay>
+	<ZombieDays>дней</ZombieDays>
+	<ZombieHour>час</ZombieHour>
+	<ZombieHours>часов</ZombieHours>
 
 	<ZombielandDefaultSettings>Zombieland Настройки</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Zombieland Настройки</ZombielandGameSettings>
@@ -48,14 +48,14 @@
 	<ZombiesPerColonistInEvent>Кол-во зомби на одного колониста</ZombiesPerColonistInEvent>
 
 	<ZombieSpeedTitle>Скорость зомби</ZombieSpeedTitle>
-	<MoveSpeedIdle>В спокойном состоянии: {0}x</MoveSpeedIdle>
-	<MoveSpeedTracking>Когда преследуют(спровоцированы): {0}x</MoveSpeedTracking>
+	<MoveSpeedIdle>В спокойном состоянии</MoveSpeedIdle>
+	<MoveSpeedTracking>Когда преследуют(спровоцированы)</MoveSpeedTracking>
 
 	<ZombieDamageFactorTitle>Урон который наносят зомби</ZombieDamageFactorTitle>
-	<ZombieDamageFactor>Множетель урон: {0}x</ZombieDamageFactor>
+	<ZombieDamageFactor>Множетель урон</ZombieDamageFactor>
 
 	<ZombieInfections>Инфекции зомби</ZombieInfections>
-	<ZombieBiteInfectionChance>Вероятность заражения укусом зомби: {0}%</ZombieBiteInfectionChance>
+	<ZombieBiteInfectionChance>Вероятность заражения укусом зомби</ZombieBiteInfectionChance>
 
 	<ZombieInstinctTitle>Уровень чувств зомби</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Тупые</ZombieInstinct_Dull>

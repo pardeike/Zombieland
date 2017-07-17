@@ -25,13 +25,7 @@ namespace ZombieLand
 		public int infectionStartTime = 0;
 		public int infectionEndTime = 0;
 
-		public HediffCompProperties_Zombie_Infecter Props
-		{
-			get
-			{
-				return (HediffCompProperties_Zombie_Infecter)props;
-			}
-		}
+		public HediffCompProperties_Zombie_Infecter Props => (HediffCompProperties_Zombie_Infecter)props;
 
 		public override void CompExposeData()
 		{

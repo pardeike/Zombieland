@@ -10,13 +10,7 @@ namespace ZombieLand
 	{
 		public static Type type = typeof(ZombieCorpse);
 
-		public override bool IngestibleNow
-		{
-			get
-			{
-				return false;
-			}
-		}
+		public override bool IngestibleNow => false;
 
 		public override void SpawnSetup(Map map, bool respawningAfterLoad)
 		{
@@ -47,7 +41,7 @@ namespace ZombieLand
 		public override void TickRare()
 		{
 			var comps = AllComps;
-			for (int i = 0; i < comps.Count; i++)
+			for (var i = 0; i < comps.Count; i++)
 				comps[i].CompTickRare();
 
 			if (Destroyed == false && Bugged == false)
@@ -60,7 +54,7 @@ namespace ZombieLand
 			}
 
 			comps = InnerPawn.AllComps;
-			for (int i = 0; i < comps.Count; i++)
+			for (var i = 0; i < comps.Count; i++)
 				comps[i].CompTickRare();
 		}
 	}

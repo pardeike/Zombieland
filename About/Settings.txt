@@ -12,12 +12,9 @@ DEBUGGRID = false
 // Setting this to false will turn of zombie sounds
 USE_SOUND = true
 
-// This controls if zombies have custom random textures. If your computer
-// or graphics card is slow, you might want to turn this off.
-USE_CUSTOM_TEXTURES = true
-
-// In a new game, the number of days until zombies start spawning. Default 3.0
-DAYS_BEFORE_ZOMBIES_SPAWN = 3.0
+// Setting this to greater than zero will simulate (overwrite) a colonies
+// aggresion value (scales zombies). Default is off, which is 0
+DEBUG_COLONY_POINTS = 0
 
 // The maximum time per tick is 1/60 second. If computing zombies takes longer
 // not all zombies will be computed to avoid lag. This factor is multiplied into
@@ -35,6 +32,10 @@ PHEROMONE_FADEOFF = 90.0
 // time. It is in game-seconds and the default is 5.0
 TICKMANAGER_RECALCULATE_DELAY = 5.0
 
+// This is the base value for the delay between eating parts of a corpse or an
+// downed enemy. The default value is 1800
+EAT_DELAY_TICKS = 1800
+
 // This controls the day/night cycle for zombies
 // The following hours continue after 23h with 24, 25, 26...
 // Default is 18-22 and 28-32
@@ -43,10 +44,6 @@ HOUR_START_OF_NIGHT = 22
 HOUR_END_OF_NIGHT = 28
 HOUR_START_OF_DAWN = 32
 
-// If a zombie gets aware of something, this radius will alert other zombies
-// that are nearby. Default is 1.5
-ZOMBIE_CHAINING_RADIUS = 1.5
-
 // This controls the distance within zombies will be aware of animals.
 // Default is 2.0
 ANIMAL_PHEROMONE_RADIUS = 2.0
@@ -54,12 +51,6 @@ ANIMAL_PHEROMONE_RADIUS = 2.0
 // This controls the distance within zombies will be aware of non-animals.
 // Default is 4.0
 HUMAN_PHEROMONE_RADIUS = 4.0
-
-// How fast do zombies move if they are not tracking anything. Default is 0.2
-ZOMBIE_MOVE_SPEED_IDLE = 0.2
-
-// How fast do zombies move if they are tracking something. Default is 1.5
-ZOMBIE_MOVE_SPEED_TRACKING = 1.5
 
 // The hit chance a zombie has when he is not tracking anything.
 // Default is 0.2 (20%)

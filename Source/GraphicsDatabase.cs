@@ -37,7 +37,7 @@ namespace ZombieLand
 					{
 						var pixels = originalPixels.Clone() as Color[];
 						var color = hex.HexColor();
-						for (int i = 0; i < pixels.Length; i++)
+						for (var i = 0; i < pixels.Length; i++)
 						{
 							// Linear burn gives best coloring results
 							//
@@ -65,8 +65,8 @@ namespace ZombieLand
 				throw new System.Exception("Cannot load texture " + textureRoot + "SkinColors.png");
 			var w = colors.width / 9;
 			var h = colors.height / 9;
-			for (int x = 1; x <= 7; x += 2)
-				for (int y = 1; y <= 7; y += 2)
+			for (var x = 1; x <= 7; x += 2)
+				for (var y = 1; y <= 7; y += 2)
 				{
 					var c = colors.GetPixel(x * w, y * h);
 					var hexColor = string.Format("{0:x02}{1:x02}{2:x02}", (int)(c.r * 255), (int)(c.g * 255), (int)(c.b * 255));

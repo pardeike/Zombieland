@@ -46,12 +46,12 @@ namespace ZombieLand
 		private PreparedMaterial[] mats = new PreparedMaterial[3];
 		private int hash;
 
-		public string GraphicPath { get { return path; } }
-		public override Material MatSingle { get { return mats[2].GetMaterial; } }
-		public override Material MatFront { get { return mats[2].GetMaterial; } }
-		public override Material MatSide { get { return mats[1].GetMaterial; } }
-		public override Material MatBack { get { return mats[0].GetMaterial; } }
-		public override bool ShouldDrawRotated { get { return MatSide == MatBack; } }
+		public string GraphicPath => path;
+		public override Material MatSingle => mats[2].GetMaterial;
+		public override Material MatFront => mats[2].GetMaterial;
+		public override Material MatSide => mats[1].GetMaterial;
+		public override Material MatBack => mats[0].GetMaterial;
+		public override bool ShouldDrawRotated => MatSide == MatBack;
 
 		public override void Init(GraphicRequest req)
 		{

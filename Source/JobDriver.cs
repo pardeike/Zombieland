@@ -184,7 +184,11 @@ namespace ZombieLand
 						zombie.Drawer.rotator.FaceCell(eatTarget.Position);
 						var zombieLeaner = zombie.Drawer.leaner as ZombieLeaner;
 						if (zombieLeaner != null)
-							zombieLeaner.extraOffset = (eatTarget.Position.ToVector3() - zombie.Position.ToVector3()) * 0.5f;
+						{
+							var offset = (eatTarget.Position.ToVector3() - zombie.Position.ToVector3()) * 0.5f;
+							if (offset.magnitude < 1f)
+								zombieLeaner.extraOffset = offset;
+						}
 
 						Tools.CastThoughtBubble(pawn, Constants.EATING);
 					}
@@ -275,7 +279,7 @@ namespace ZombieLand
 			var possibleTrackingMoves = new List<IntVec3>();
 			var currentTicks = Tools.Ticks();
 			var timeDelta = long.MaxValue;
-			for (int i = 0; i < 8; i++)
+			for (var i = 0; i < 8; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCells[i];
 				if (currentTicks - grid.Get(pos, false).timestamp < fadeOff && zombie.HasValidDestination(pos))
@@ -300,7 +304,7 @@ namespace ZombieLand
 			}
 			if (destination.IsValid == false) zombie.state = ZombieState.Wandering;
 
-			bool checkSmashable = timeDelta >= checkSmashableFadeoff;
+			var checkSmashable = timeDelta >= checkSmashableFadeoff;
 			if (ZombieSettings.Values.smashOnlyWhenAgitated)
 				checkSmashable &= zombie.state == ZombieState.Tracking;
 
@@ -341,7 +345,7 @@ namespace ZombieLand
 				}
 
 				var possibleMoves = new List<IntVec3>();
-				for (int i = 0; i < 8; i++)
+				for (var i = 0; i < 8; i++)
 				{
 					var pos = basePos + GenAdj.AdjacentCells[i];
 					if (zombie.HasValidDestination(pos))
@@ -442,7 +446,7 @@ namespace ZombieLand
 
 			var grid = pawn.Map.thingGrid;
 			var basePos = pawn.Position;
-			for (int i = 0; i < 8; i++)
+			for (var i = 0; i < 8; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCells[adjIndex8[i]];
 				var enumerator = grid.ThingsAt(pos).GetEnumerator();
@@ -551,7 +555,7 @@ namespace ZombieLand
 
 			if (ZombieSettings.Values.smashMode == SmashMode.DoorsOnly)
 			{
-				for (int i = 0; i < 4; i++)
+				for (var i = 0; i < 4; i++)
 				{
 					var pos = basePos + GenAdj.CardinalDirections[adjIndex4[i]];
 					if (pos.InBounds(map))
@@ -568,7 +572,7 @@ namespace ZombieLand
 
 			if (ZombieSettings.Values.smashMode == SmashMode.AnyBuilding)
 			{
-				for (int i = 0; i < 4; i++)
+				for (var i = 0; i < 4; i++)
 				{
 					var pos = basePos + GenAdj.CardinalDirections[adjIndex4[i]];
 					if (pos.InBounds(map))
