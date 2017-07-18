@@ -389,9 +389,12 @@ namespace ZombieLand
 				}
 				else
 				{
-					var now = Tools.Ticks();
-					var radius = Tools.RadiusForPawn(pawn);
-					Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(value + vec, now - (long)(2f * vec.LengthHorizontal)));
+					if (Tools.HasInfectionState(pawn, InfectionState.Infecting) == false)
+					{
+						var now = Tools.Ticks();
+						var radius = Tools.RadiusForPawn(pawn);
+						Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(value + vec, now - (long)(2f * vec.LengthHorizontal)));
+					}
 				}
 			}
 		}
@@ -650,10 +653,12 @@ namespace ZombieLand
 				var zombie = __instance.pawn as Zombie;
 				if (zombie == null) return;
 
-				__instance.nakedGraphic = zombie.customBodyGraphic;
+				if (zombie.customBodyGraphic != null)
+					__instance.nakedGraphic = zombie.customBodyGraphic;
 				zombie.customBodyGraphic = null;
 
-				__instance.headGraphic = zombie.customHeadGraphic;
+				if (zombie.customHeadGraphic != null)
+					__instance.headGraphic = zombie.customHeadGraphic;
 				zombie.customHeadGraphic = null;
 			}
 		}
@@ -808,6 +813,29 @@ namespace ZombieLand
 					}
 				}
 				return true;
+			}
+		}
+
+		// patch to allow amputation of biten body parts
+		//
+		[HarmonyPatch]
+		static class Recipe_RemoveBodyPart_GetPartsToApplyOn_Patch
+		{
+			static MethodBase TargetMethod()
+			{
+				var type = AccessTools.TypeByName("RimWorld.Recipe_RemoveBodyPart");
+				return AccessTools.Method(type, "GetPartsToApplyOn");
+			}
+
+			static void Postfix(Pawn pawn, RecipeDef recipe, ref IEnumerable<BodyPartRecord> __result)
+			{
+				if (recipe != RecipeDefOf.RemoveBodyPart)
+					return;
+
+				__result = pawn.health.hediffSet
+					.GetHediffs<Hediff_Injury_ZombieBite>()
+					.Select(bite => bite.Part)
+					.Union(__result);
 			}
 		}
 

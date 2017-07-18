@@ -7,12 +7,8 @@
 	<LetterLabelZombiesRisingNearYourBase>Прямая атака зомби</LetterLabelZombiesRisingNearYourBase>
 	<ZombiesRisingNearYourBase>Группа зомби появилась рядом с вашей базой</ZombiesRisingNearYourBase>
 
-	<LetterLabelXDaysUntilZombies>{0} {1} Дней до прихода зомби-орды</LetterLabelXDaysUntilZombies>
+	<LetterLabelXDaysUntilZombies>{0} Дней до прихода зомби-орды</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>Зомби появятся там, где есть мягкая почва, грязь, песок и гравий. Застройте всё напольными покрытиями, чтобы зомби не могли подкопаться.</XDaysUntilZombies>
-	<ZombieDay>день</ZombieDay>
-	<ZombieDays>дней</ZombieDays>
-	<ZombieHour>час</ZombieHour>
-	<ZombieHours>часов</ZombieHours>
 
 	<ZombielandDefaultSettings>Zombieland Настройки</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Zombieland Настройки</ZombielandGameSettings>
@@ -56,6 +52,10 @@
 
 	<ZombieInfections>Инфекции зомби</ZombieInfections>
 	<ZombieBiteInfectionChance>Вероятность заражения укусом зомби</ZombieBiteInfectionChance>
+	<ZombieBiteInfectionUnknown>Время, пока инфекция не известна</ZombieBiteInfectionUnknown>
+	<ZombieBiteInfectionTreatable>Время в то время как инфекция поддается лечению</ZombieBiteInfectionTreatable>
+	<ZombieBiteInfectionPersists>Продолжительность заражения</ZombieBiteInfectionPersists>
+	<AnyTreatmentStopsInfection>Лечение в постели останавливает инфекцию</AnyTreatmentStopsInfection>
 
 	<ZombieInstinctTitle>Уровень чувств зомби</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Тупые</ZombieInstinct_Dull>
@@ -63,8 +63,8 @@
 	<ZombieInstinct_Sensitive>Агресивные</ZombieInstinct_Sensitive>
 
 	<ZombieHealthTitle>Стойкость зомби</ZombieHealthTitle>
-	<DoubleTapRequired>Падшим(не убитым) зомби нужен контрольный выстрел</DoubleTapRequired>
-	<ZombiesDieVeryEasily>Легко убить</ZombiesDieVeryEasily>
+	<DoubleTapRequired>Зомби восстанавливаются после травм</DoubleTapRequired>
+	<ZombiesDieVeryEasily>Зомби легко убить</ZombiesDieVeryEasily>
 
 	<ZombieEatingTitle>Зомби едят</ZombieEatingTitle>
 	<ZombiesEatDowned>Зомби едят сбитые существа</ZombiesEatDowned>

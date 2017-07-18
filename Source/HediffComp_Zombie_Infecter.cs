@@ -6,9 +6,6 @@ namespace ZombieLand
 {
 	public class HediffCompProperties_Zombie_Infecter : HediffCompProperties
 	{
-		public FloatRange infectionKnownDelayInHours = new FloatRange(0.05f, 0.2f);
-		public FloatRange infectionStartInHours = new FloatRange(1f, 3f);
-		public FloatRange infectionDurationInHours = new FloatRange(4f, 120);
 		public float minBedTendQualityToAvoidInfection = 0.5f;
 		public QualityCategory minBedQualityToAvoidInfection = QualityCategory.Masterwork;
 		public float minTendQualityToAvoidInfection = 0.5f;
@@ -56,15 +53,15 @@ namespace ZombieLand
 
 			var h = GenDate.TicksPerHour;
 
-			var ticks = (int)(Rand.Range(Props.infectionKnownDelayInHours.min, Props.infectionKnownDelayInHours.max) * h);
+			var ticks = ZombieSettings.Values.hoursInfectionIsUnknown * h;
 			infectionKnownDelay = GenTicks.TicksAbs + ticks;
 
 			if (Rand.Chance(ZombieSettings.Values.zombieBiteInfectionChance))
 			{
-				ticks = (int)(Rand.Range(Props.infectionStartInHours.min, Props.infectionStartInHours.max) * h);
+				ticks = ZombieSettings.Values.hoursInfectionIsTreatable * h;
 				infectionStartTime = GenTicks.TicksAbs + ticks;
 
-				ticks = (int)(Rand.Range(Props.infectionDurationInHours.min, Props.infectionDurationInHours.max) * h);
+				ticks = ZombieSettings.Values.hoursInfectionPersists * h;
 				infectionEndTime = infectionStartTime + ticks;
 			}
 		}
@@ -83,6 +80,14 @@ namespace ZombieLand
 			var bed = Pawn.CurrentBed();
 			if (bed == null)
 				return;
+
+			if (ZombieSettings.Values.anyTreatmentStopsInfection)
+			{
+				infectionKnownDelay = 0;
+				infectionStartTime = 0;
+				infectionEndTime = 0;
+				return;
+			}
 
 			var tendQuality = bed.GetStatValue(StatDefOf.MedicalTendQualityOffset, true);
 			if (tendQuality < Props.minBedTendQualityToAvoidInfection)

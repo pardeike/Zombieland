@@ -103,11 +103,13 @@ namespace ZombieLand
 			return def.defName.StartsWith("ZL_REPELL", StringComparison.Ordinal);
 		}
 
+		// TODO: implement
 		public static bool DoesAttractZombies(this Def def)
 		{
 			return def.defName.StartsWith("ZL_ATTRACT", StringComparison.Ordinal);
 		}
 
+		// TODO: implement
 		public static bool DoesKillZombies(this Def def)
 		{
 			return def.defName.StartsWith("ZL_KILL", StringComparison.Ordinal);
@@ -138,6 +140,28 @@ namespace ZombieLand
 			}
 			if (pawn.Map.pathGrid.WalkableFast(dest) == false) return false;
 			return pawn.Map.terrainGrid.TerrainAt(dest).DoesRepellZombies() == false;
+		}
+
+		public static bool HasInfectionState(Pawn pawn, InfectionState state)
+		{
+			if (pawn.IsColonist == false) return false;
+
+			return pawn.health.hediffSet
+						.GetHediffs<Hediff_Injury_ZombieBite>()
+						.SelectMany(hediff => hediff.comps)
+						.OfType<HediffComp_Zombie_TendDuration>()
+						.Cast<HediffComp_Zombie_TendDuration>()
+						.Any(tendDuration => tendDuration.GetInfectionState() == state);
+		}
+
+		public static bool HasInfectionState(Pawn pawn, InfectionState minState, InfectionState maxState)
+		{
+			return pawn.health.hediffSet
+						.GetHediffs<Hediff_Injury_ZombieBite>()
+						.SelectMany(hediff => hediff.comps)
+						.OfType<HediffComp_Zombie_TendDuration>()
+						.Cast<HediffComp_Zombie_TendDuration>()
+						.Any(tendDuration => tendDuration.InfectionStateBetween(minState, maxState));
 		}
 
 		public static Predicate<IntVec3> ZombieSpawnLocator(Map map, bool isEvent = false)
@@ -201,6 +225,22 @@ namespace ZombieLand
 			}
 		}
 
+		public static void AutoExposeDataWithDefaults<T>(this T settings) where T : new()
+		{
+			var defaults = new T();
+			AccessTools.GetFieldNames(settings).Do(name =>
+			{
+				var finfo = AccessTools.Field(settings.GetType(), name);
+				var value = finfo.GetValue(settings);
+				var type = value.GetType();
+				var defaultValue = Traverse.Create(defaults).Field(name).GetValue();
+				var m_Look = AccessTools.Method(typeof(Scribe_Values), "Look", null, new Type[] { type });
+				var arguments = new object[] { value, name, defaultValue, false };
+				m_Look.Invoke(null, arguments);
+				finfo.SetValue(settings, arguments[0]);
+			});
+		}
+
 		public static string ToHourString(this int ticks, bool relativeToAbsoluteGameTime = true)
 		{
 			var t = relativeToAbsoluteGameTime ? ticks - GenTicks.TicksAbs : ticks;
@@ -258,6 +298,12 @@ namespace ZombieLand
 			GenSpawn.Spawn(newThing, pawn.Position, pawn.Map);
 		}
 
+		static readonly float[] halfToDouble = { 0.5f, 1.0f, 2.0f };
+		public static float HalfToDoubleValue(this ZombieInstinct e)
+		{
+			return halfToDouble[(int)e];
+		}
+
 		public static Dictionary<float, HashSet<IntVec3>> circles;
 		public static IEnumerable<IntVec3> GetCircle(float radius)
 		{
@@ -279,6 +325,18 @@ namespace ZombieLand
 				circles[radius] = cells;
 			}
 			return cells;
+		}
+
+		public static string TranslateHoursToText(float hours)
+		{
+			var ticks = (int)(GenDate.TicksPerHour * hours);
+			return ticks.ToStringTicksToPeriod(true, true, false);
+		}
+
+		public static string TranslateHoursToText(int hours)
+		{
+			var ticks = GenDate.TicksPerHour * hours;
+			return ticks.ToStringTicksToPeriod(true, true, false);
 		}
 
 		public static List<CodeInstruction> NotZombieInstructions(ILGenerator generator, MethodBase method)

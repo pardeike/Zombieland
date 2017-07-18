@@ -7,6 +7,19 @@ using Verse.Sound;
 
 namespace ZombieLand
 {
+	class SettingsDialog : Page
+	{
+		public override string PageTitle => "ZombielandGameSettings".Translate();
+
+		public override void DoWindowContents(Rect inRect)
+		{
+			DrawPageTitle(inRect);
+			var mainRect = GetMainRect(inRect, 0f, false);
+			Dialogs.DoWindowContentsInternal(ref ZombieSettings.Values, mainRect, false);
+			DoBottomButtons(inRect, null, null, null, true);
+		}
+	}
+
 	static class Dialogs
 	{
 		static Color contentColor = new Color(1f, 1f, 1f, 0.7f);
@@ -172,6 +185,109 @@ namespace ZombieLand
 			srect.xMin += inset;
 			srect.xMax -= inset;
 			value = Widgets.HorizontalSlider(srect, value, min, max, false, null, desc.Translate(), valstr, -1f);
+		}
+
+		public static void Dialog_TimeSlider(this Listing_Standard list, string desc, ref int value, int min, int max, bool fullDaysOnly = false)
+		{
+			list.Gap(16f);
+			var valstr = Tools.TranslateHoursToText(value);
+			var srect = list.GetRect(24f);
+			srect.xMin += inset;
+			srect.xMax -= inset;
+			var newValue = (double)Widgets.HorizontalSlider(srect, value, min, max, false, null, desc.Translate(), valstr, -1f);
+			if (fullDaysOnly)
+				newValue = Math.Round(newValue / 24f, MidpointRounding.ToEven) * 24f;
+			value = (int)newValue;
+		}
+
+		static Vector2 scrollPosition = Vector2.zero;
+		public static void DoWindowContentsInternal(ref SettingsGroup settings, Rect inRect, bool isDefaults)
+		{
+			if (settings == null) settings = new SettingsGroup();
+
+			inRect.yMin += 15f;
+			inRect.yMax -= 15f;
+
+			var numberOfColumns = 2;
+			var defaultColumnWidth = (inRect.width - (numberOfColumns - 1) * 2f * Listing.ColumnSpacing) / numberOfColumns;
+			var list = new Listing_Standard() { ColumnWidth = defaultColumnWidth };
+
+			var outRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height);
+			var scrollRect = new Rect(0f, 0f, inRect.width - 16f, inRect.height * 2f);
+			Widgets.BeginScrollView(outRect, ref scrollPosition, scrollRect, true);
+
+			list.Begin(scrollRect); // -----------------------------------------------------------------------------
+
+			// When?
+			list.Dialog_Enum("WhenDoZombiesSpawn", ref settings.spawnWhenType, true, false);
+
+			// How?
+			list.Dialog_Enum("HowDoZombiesSpawn", ref settings.spawnHowType);
+
+			// Attack?
+			list.Dialog_Enum("WhatDoZombiesAttack", ref settings.attackMode);
+
+			// Smash?
+			list.Dialog_Enum("WhatDoZombiesSmash", ref settings.smashMode, false);
+			list.Dialog_Checkbox("SmashOnlyWhenAgitated", ref settings.smashOnlyWhenAgitated);
+
+			// Senses
+			list.Dialog_Enum("ZombieInstinctTitle", ref settings.zombieInstinct);
+			list.Gap(4f);
+
+			// Health
+			list.Dialog_Label("ZombieHealthTitle");
+			list.Dialog_Checkbox("DoubleTapRequired", ref settings.doubleTapRequired);
+			list.Dialog_Checkbox("ZombiesDieVeryEasily", ref settings.zombiesDieVeryEasily);
+			list.Gap(6f);
+
+			// Eating
+			list.Dialog_Label("ZombieEatingTitle");
+			list.Dialog_Checkbox("ZombiesEatDowned", ref settings.zombiesEatDowned);
+			list.Dialog_Checkbox("ZombiesEatCorpses", ref settings.zombiesEatCorpses);
+			list.Gap(6f);
+
+			list.NewColumn();
+			list.ColumnWidth -= Listing.ColumnSpacing; // ----------------------------------------------------------
+
+			// Days
+			list.Dialog_Label("NewGameTitle", false);
+			list.Dialog_Integer("DaysBeforeZombiesCome", null, 0, 100, ref settings.daysBeforeZombiesCome);
+
+			// Total
+			list.Dialog_Label("ZombiesOnTheMap");
+			list.Dialog_Integer("MaximumNumberOfZombies", "Zombies", 0, 5000, ref settings.maximumNumberOfZombies);
+
+			// Events
+			list.Dialog_Label("ZombieEventTitle");
+			list.Dialog_Integer("ZombiesPerColonistInEvent", null, 0, 200, ref settings.baseNumberOfZombiesinEvent);
+
+			// Speed
+			list.Dialog_Label("ZombieSpeedTitle");
+			list.Dialog_FloatSlider("MoveSpeedIdle", "0.0x", ref settings.moveSpeedIdle, 0.05f, 2f);
+			list.Gap(-4f);
+			list.Dialog_FloatSlider("MoveSpeedTracking", "0.0x", ref settings.moveSpeedTracking, 0.2f, 3f);
+
+			// Strength
+			list.Dialog_Label("ZombieDamageFactorTitle");
+			list.Dialog_FloatSlider("ZombieDamageFactor", "0.0x", ref settings.damageFactor, 0.1f, 4f);
+
+			// Infections
+			list.Dialog_Label("ZombieInfections");
+			list.Dialog_FloatSlider("ZombieBiteInfectionChance", "0%", ref settings.zombieBiteInfectionChance, 0f, 1f);
+			list.Dialog_TimeSlider("ZombieBiteInfectionUnknown", ref settings.hoursInfectionIsUnknown, 0, 48);
+			list.Dialog_TimeSlider("ZombieBiteInfectionTreatable", ref settings.hoursInfectionIsTreatable, 0, 6 * 24);
+			list.Dialog_TimeSlider("ZombieBiteInfectionPersists", ref settings.hoursInfectionPersists, 24, 30 * 24, true);
+			list.Dialog_Checkbox("AnyTreatmentStopsInfection", ref settings.anyTreatmentStopsInfection);
+
+			// Miscellaneous
+			list.Dialog_Label("ZombieMiscTitle");
+			list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);
+			list.Dialog_Checkbox("ZombiesTriggerDangerMusic", ref settings.zombiesTriggerDangerMusic);
+
+			list.End(); // -----------------------------------------------------------------------------------------
+
+			Widgets.EndScrollView();
 		}
 	}
 }

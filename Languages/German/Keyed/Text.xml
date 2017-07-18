@@ -7,12 +7,8 @@
 	<LetterLabelZombiesRisingNearYourBase>Zombie Direktangriff</LetterLabelZombiesRisingNearYourBase>
 	<ZombiesRisingNearYourBase>Eine Gruppe von Zombies greift in der Nähe der Basis an</ZombiesRisingNearYourBase>
 
-	<LetterLabelXDaysUntilZombies>{0} {1} bis Zombies kommen</LetterLabelXDaysUntilZombies>
+	<LetterLabelXDaysUntilZombies>{0} bis Zombies kommen</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>Zombies erscheinen dort, wo es weichen Erde, Dreck, Sand oder Kies gibt. Der Bau von Fußböden verhindert, dass Zombies an diesen Stellen rauskommen.</XDaysUntilZombies>
-	<ZombieDay>Tag</ZombieDay>
-	<ZombieDays>Tage</ZombieDays>
-	<ZombieHour>Stunde</ZombieHour>
-	<ZombieHours>Stunden</ZombieHours>
 
 	<ZombielandDefaultSettings>Zombieland Standardeinstellungen</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Zombieland Spieleinstellungen</ZombielandGameSettings>
@@ -56,6 +52,10 @@
 
 	<ZombieInfections>Zombieinfektionen</ZombieInfections>
 	<ZombieBiteInfectionChance>Risiko das ein Biss infiziert</ZombieBiteInfectionChance>
+	<ZombieBiteInfectionUnknown>Zeit bis Infektion bekannt wird</ZombieBiteInfectionUnknown>
+	<ZombieBiteInfectionTreatable>Infektion behandelbar</ZombieBiteInfectionTreatable>
+	<ZombieBiteInfectionPersists>Dauer der Infektion</ZombieBiteInfectionPersists>
+	<AnyTreatmentStopsInfection>Behandlung in einem Bett stoppt Infektionen</AnyTreatmentStopsInfection>
 
 	<ZombieInstinctTitle>Zombiegespür</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Begrenzt</ZombieInstinct_Dull>
@@ -63,7 +63,7 @@
 	<ZombieInstinct_Sensitive>Empfindlich</ZombieInstinct_Sensitive>
 
 	<ZombieHealthTitle>Zombiegesundheit</ZombieHealthTitle>
-	<DoubleTapRequired>Bei verletzten Zombies gilt "Doppelt hält besser"</DoubleTapRequired>
+	<DoubleTapRequired>Zombies erholen sich von Verletzungen</DoubleTapRequired>
 	<ZombiesDieVeryEasily>Zombies sind einfach zu töten</ZombiesDieVeryEasily>
 
 	<ZombieEatingTitle>Zombies fressen</ZombieEatingTitle>

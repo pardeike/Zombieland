@@ -11,16 +11,7 @@ namespace ZombieLand
 	{
 		public override bool ColonistSelector(Pawn pawn)
 		{
-			var result = pawn.health.hediffSet
-						.GetHediffs<Hediff_Injury_ZombieBite>()
-						.Cast<HediffWithComps>()
-						.FirstOrDefault(comps =>
-						{
-							var tendDuration = comps.TryGetComp<HediffComp_Zombie_TendDuration>();
-							if (tendDuration == null || comps.IsTended()) return false;
-							return tendDuration.GetInfectionState() == InfectionState.BittenNotVisible;
-						});
-			return (result != null);
+			return Tools.HasInfectionState(pawn, InfectionState.BittenNotVisible);
 		}
 
 		public override void Prepare()
@@ -34,17 +25,7 @@ namespace ZombieLand
 	{
 		public override bool ColonistSelector(Pawn pawn)
 		{
-			var result = pawn.health.hediffSet
-						.GetHediffs<Hediff_Injury_ZombieBite>()
-						.Cast<HediffWithComps>()
-						.FirstOrDefault(comps =>
-						{
-							var tendDuration = comps.TryGetComp<HediffComp_Zombie_TendDuration>();
-							if (tendDuration == null) return false;
-							return tendDuration.GetInfectionState() == InfectionState.BittenInfectable;
-
-						});
-			return (result != null);
+			return Tools.HasInfectionState(pawn, InfectionState.BittenInfectable);
 		}
 
 		public override void Prepare()
@@ -58,17 +39,7 @@ namespace ZombieLand
 	{
 		public override bool ColonistSelector(Pawn pawn)
 		{
-			var result = pawn.health.hediffSet
-						.GetHediffs<Hediff_Injury_ZombieBite>()
-						.Cast<HediffWithComps>()
-						.FirstOrDefault(comps =>
-						{
-							var tendDuration = comps.TryGetComp<HediffComp_Zombie_TendDuration>();
-							if (tendDuration == null) return false;
-							return tendDuration.InfectionStateBetween(InfectionState.Infecting, InfectionState.Infected);
-
-						});
-			return (result != null);
+			return Tools.HasInfectionState(pawn, InfectionState.Infecting, InfectionState.Infected);
 		}
 
 		public override void Prepare()
@@ -148,18 +119,8 @@ namespace ZombieLand
 
 		public override string GetLabel()
 		{
-			if (days < 1f)
-			{
-				var val = (int)Math.Round(24f * days);
-				var unit = ("ZombieHour" + (val == 1 ? "" : "s")).Translate();
-				return "LetterLabelXDaysUntilZombies".Translate(val, unit);
-			}
-			else
-			{
-				var val = (float)Math.Round(10f * days) / 10f;
-				var unit = ("ZombieDay" + (val == 1 ? "" : "s")).Translate();
-				return "LetterLabelXDaysUntilZombies".Translate(val, unit);
-			}
+			var timeStr = Tools.TranslateHoursToText((float)days * GenDate.HoursPerDay);
+			return "LetterLabelXDaysUntilZombies".Translate(timeStr);
 		}
 
 		public override string GetExplanation()

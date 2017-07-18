@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -466,24 +467,35 @@ namespace ZombieLand
 			var enumerator = GetAdjacted<Pawn>().GetEnumerator();
 			while (enumerator.MoveNext())
 			{
-				var p = enumerator.Current;
-				if (p.Dead == false && p.Downed == false)
+				var target = enumerator.Current;
+				if (target.Dead == false && target.Downed == false)
 				{
-					if (mode == AttackMode.Everything)
-						return p;
-
-					if (p.MentalState != null)
+					if (Tools.HasInfectionState(target, InfectionState.Infecting) == false)
 					{
-						var msDef = p.MentalState.def;
-						if (msDef == MentalStateDefOf.Manhunter || msDef == MentalStateDefOf.ManhunterPermanent)
-							return p;
+						Log.Warning("INFECTIONS FOR " + target.NameStringShort);
+						target.health.hediffSet
+							.GetHediffs<Hediff_Injury_ZombieBite>()
+							.SelectMany(hediff => hediff.comps)
+							.OfType<HediffComp_Zombie_TendDuration>()
+							.Cast<HediffComp_Zombie_TendDuration>()
+							.Do(tendDuration => Log.Warning("# " + tendDuration.parent.Part.def.defName + " " + tendDuration.GetInfectionState()));
+
+						if (mode == AttackMode.Everything)
+							return target;
+
+						if (target.MentalState != null)
+						{
+							var msDef = target.MentalState.def;
+							if (msDef == MentalStateDefOf.Manhunter || msDef == MentalStateDefOf.ManhunterPermanent)
+								return target;
+						}
+
+						if (mode == AttackMode.OnlyHumans && target.RaceProps.Humanlike)
+							return target;
+
+						if (mode == AttackMode.OnlyColonists && target.IsColonist)
+							return target;
 					}
-
-					if (mode == AttackMode.OnlyHumans && p.RaceProps.Humanlike)
-						return p;
-
-					if (mode == AttackMode.OnlyColonists && p.IsColonist)
-						return p;
 				}
 			}
 			return null;
