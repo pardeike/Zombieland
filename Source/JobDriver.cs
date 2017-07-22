@@ -472,14 +472,6 @@ namespace ZombieLand
 				{
 					if (Tools.HasInfectionState(target, InfectionState.Infecting) == false)
 					{
-						Log.Warning("INFECTIONS FOR " + target.NameStringShort);
-						target.health.hediffSet
-							.GetHediffs<Hediff_Injury_ZombieBite>()
-							.SelectMany(hediff => hediff.comps)
-							.OfType<HediffComp_Zombie_TendDuration>()
-							.Cast<HediffComp_Zombie_TendDuration>()
-							.Do(tendDuration => Log.Warning("# " + tendDuration.parent.Part.def.defName + " " + tendDuration.GetInfectionState()));
-
 						if (mode == AttackMode.Everything)
 							return target;
 

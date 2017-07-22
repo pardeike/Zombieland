@@ -529,7 +529,7 @@ namespace ZombieLand
 			static bool IncappedTargetCheck(Job curJob, Pawn target)
 			{
 				if (target is Zombie) return true;
-				return !curJob.killIncappedTarget;
+				return curJob.killIncappedTarget;
 			}
 
 			static MethodBase TargetMethod()
@@ -1427,6 +1427,108 @@ namespace ZombieLand
 
 					yield return instruction;
 					prevInstruction = instruction;
+				}
+			}
+		}
+
+		// patch to add our settings to the main bottom-right menu
+		//
+		[HarmonyPatch(typeof(MainTabWindow_Menu))]
+		[HarmonyPatch("RequestedTabSize", PropertyMethod.Getter)]
+		static class MainTabWindow_Menu_RequestedTabSize_Path
+		{
+			static void Postfix(ref Vector2 __result)
+			{
+				__result.y += MainMenuDrawer_DoMainMenuControls_Path.addedHeight;
+			}
+		}
+		[HarmonyPatch(typeof(MainTabWindow_Menu))]
+		[HarmonyPatch("DoWindowContents")]
+		static class MainTabWindow_Menu_DoWindowContents_Path
+		{
+			static void Prefix(ref Rect rect)
+			{
+				rect.height += MainMenuDrawer_DoMainMenuControls_Path.addedHeight;
+			}
+		}
+		[HarmonyPatch(typeof(Widgets))]
+		[HarmonyPatch("ButtonText")]
+		[HarmonyPatch(new Type[] { typeof(Rect), typeof(string), typeof(bool), typeof(bool), typeof(Color), typeof(bool) })]
+		static class Widgets_DoWindowContents_Path
+		{
+			static void NewDrawAtlas(Rect rect, Texture2D atlas, string label)
+			{
+				Widgets.DrawAtlas(rect, atlas);
+				if (label == "Zombieland")
+				{
+					var texture = Tools.GetZombieButtonBackground();
+					Log.Warning(rect + " => " + texture.width + " x " + texture.height);
+					GUI.DrawTexture(rect, texture, ScaleMode.StretchToFill, true, 0f);
+				}
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var from = AccessTools.Method(typeof(Widgets), "DrawAtlas", new Type[] { typeof(Rect), typeof(Texture2D) });
+				var to = AccessTools.Method(typeof(Widgets_DoWindowContents_Path), "NewDrawAtlas");
+				foreach (var instruction in instructions)
+				{
+					if (instruction.operand == from)
+					{
+						instruction.operand = to;
+						yield return new CodeInstruction(OpCodes.Ldarg_1);
+					}
+					yield return instruction;
+				}
+			}
+		}
+		[HarmonyPatch(typeof(MainMenuDrawer))]
+		[HarmonyPatch("DoMainMenuControls")]
+		static class MainMenuDrawer_DoMainMenuControls_Path
+		{
+			public static float addedHeight = 45f + 7f; // default height ListableOption + OptionListingUtility.DrawOptionListing spacing
+			static Dialog_ModSettings modDialog = new Dialog_ModSettings();
+			static Vector2 closeButSize = Traverse.Create(modDialog).Field("CloseButSize").GetValue<Vector2>();
+
+			static float DrawOptionListingPatch1(Rect rect, List<ListableOption> optList)
+			{
+				if (Current.ProgramState == ProgramState.Playing)
+				{
+					var label = "Options".Translate();
+					var idx = optList.FirstIndexOf(opt => opt.label == label);
+					if (idx > 0) optList.Insert(idx, new ListableOption("Zombieland", delegate
+					{
+						var dialog = new Dialog_ModSettings();
+						var me = LoadedModManager.GetMod<ZombielandMod>();
+						Traverse.Create(dialog).Field("selMod").SetValue(me);
+						Find.WindowStack.Add(dialog);
+					}, null));
+				}
+				return OptionListingUtility.DrawOptionListing(rect, optList);
+			}
+
+			static float DrawOptionListingPatch2(Rect rect, List<ListableOption> optList)
+			{
+				if (Current.ProgramState == ProgramState.Playing)
+				{
+					var item = new ListableOption_WebLink("Brrainz", "http://patreon.com/pardeike", Tools.GetMenuIcon());
+					optList.Add(item);
+				}
+				return OptionListingUtility.DrawOptionListing(rect, optList);
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var m_DrawOptionListing = AccessTools.Method(typeof(OptionListingUtility), "DrawOptionListing");
+				var counter = 0;
+				foreach (var instruction in instructions)
+				{
+					if (instruction.operand == m_DrawOptionListing)
+					{
+						counter++;
+						instruction.operand = AccessTools.Method(typeof(MainMenuDrawer_DoMainMenuControls_Path), "DrawOptionListingPatch" + counter);
+					}
+					yield return instruction;
 				}
 			}
 		}

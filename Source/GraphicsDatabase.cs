@@ -74,6 +74,15 @@ namespace ZombieLand
 				}
 		}
 
+		public static Texture2D LoadTexture(string path, int width, int height)
+		{
+			var texture = new Texture2D(width, height, TextureFormat.ARGB32, false);
+			var filePath = textureRoot + path.Replace('/', Path.DirectorySeparatorChar) + pngSuffix;
+			if (texture.LoadImage(File.ReadAllBytes(filePath)) == false)
+				return null;
+			return texture;
+		}
+
 		public static ColorData GetColorData(string path, string color, bool makeCopy = false)
 		{
 			ColorData data;

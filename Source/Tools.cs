@@ -44,10 +44,17 @@ namespace ZombieLand
 	static class Tools
 	{
 		public static ZombieGenerator generator = new ZombieGenerator();
+		public static Texture2D MenuIcon;
+		public static Texture2D ZombieButtonBackground;
 
 		public static string GetModRootDirectory()
 		{
 			var me = LoadedModManager.GetMod<ZombielandMod>();
+			if (me == null)
+			{
+				Log.Error("LoadedModManager.GetMod<ZombielandMod>() failed");
+				return "";
+			}
 			return me.Content.RootDir;
 		}
 
@@ -287,6 +294,20 @@ namespace ZombieLand
 		public static void DoWithAllZombies(Map map, Action<Zombie> action)
 		{
 			map.GetComponent<TickManager>().AllZombies().Do(action);
+		}
+
+		public static Texture2D GetMenuIcon()
+		{
+			if (MenuIcon == null)
+				MenuIcon = GraphicsDatabase.LoadTexture("PatreonIcon", 60, 45);
+			return MenuIcon;
+		}
+
+		public static Texture2D GetZombieButtonBackground()
+		{
+			if (ZombieButtonBackground == null)
+				ZombieButtonBackground = GraphicsDatabase.LoadTexture("ZombieButtonBackground", 170, 45);
+			return ZombieButtonBackground;
 		}
 
 		public static void CastThoughtBubble(Pawn pawn, Material material)
