@@ -73,7 +73,7 @@
 	<ZombieMiscTitle>Miscellaneous</ZombieMiscTitle>
 	<UseCustomTextures>Use custom textures</UseCustomTextures>
 	<ZombiesTriggerDangerMusic>Zombies affect danger music</ZombiesTriggerDangerMusic>
-	<BetterZombieAvoidance>Improved avoidance around zomibes</BetterZombieAvoidance>
+	<BetterZombieAvoidance>Automatic avoidance of zombies</BetterZombieAvoidance>
 
 	<ColonistsBittenByZombie>Colonist bitten by zombie</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>These colonists have been bitten by a zombie. At this point, it is unclear if they develop an infection:\n\n{0}\nMonitor their wounds closely because infections take some time to develop.</ColonistsBittenByZombieDesc>
