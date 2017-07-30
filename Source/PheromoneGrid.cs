@@ -65,7 +65,7 @@ namespace ZombieLand
 				}
 		}
 
-		public Pheromone Get(IntVec3 position, bool create = true)
+		public Pheromone GetPheromone(IntVec3 position, bool create = true)
 		{
 			if (position.x < 0 || position.x >= mapSizeX || position.z < 0 || position.z >= mapSizeZ)
 				return Pheromone.empty;

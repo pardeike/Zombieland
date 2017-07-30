@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Alerts.cs" />
+    <Compile Include="ConcurrentQueue.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Dialogs.cs" />
     <Compile Include="ColorData.cs" />
@@ -60,6 +61,7 @@
     <Compile Include="JobDriver.cs" />
     <Compile Include="JobGiver.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="ZombieAvoider.cs" />
     <Compile Include="_translate\Mono_HTTP_Helpers.cs" />
     <Compile Include="_translate\Mono_HTTP_HtmlEncoder.cs" />
     <Compile Include="_translate\Mono_HTTP_HttpUtility.cs" />

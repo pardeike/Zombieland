@@ -20,19 +20,17 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	public class ZombieGenerator
 	{
-		Semaphore requestsAvailable;
-
-		Queue<ZombieRequest> requestQueue;
-		Dictionary<Map, Queue<ZombieRequest>> resultQueues;
+		ConcurrentQueue<ZombieRequest> requestQueue;
+		Dictionary<Map, ConcurrentQueue<ZombieRequest>> resultQueues;
 
 		Thread workerThread;
 
-		public Queue<ZombieRequest> QueueForMap(Map map)
+		public ConcurrentQueue<ZombieRequest> QueueForMap(Map map)
 		{
-			Queue<ZombieRequest> queue;
+			ConcurrentQueue<ZombieRequest> queue;
 			if (resultQueues.TryGetValue(map, out queue) == false)
 			{
-				queue = new Queue<ZombieRequest>();
+				queue = new ConcurrentQueue<ZombieRequest>(true);
 				resultQueues.Add(map, queue);
 			}
 			return queue;
@@ -40,77 +38,59 @@ namespace ZombieLand
 
 		public ZombieGenerator()
 		{
-			requestsAvailable = new Semaphore(0, int.MaxValue);
-
-			requestQueue = new Queue<ZombieRequest>();
-			resultQueues = new Dictionary<Map, Queue<ZombieRequest>>();
+			requestQueue = new ConcurrentQueue<ZombieRequest>();
+			resultQueues = new Dictionary<Map, ConcurrentQueue<ZombieRequest>>();
 
 			workerThread = new Thread(() =>
 			{
-				while (requestsAvailable.WaitOne())
+			EndlessLoop:
+
+				try
 				{
-					ZombieRequest request;
-					lock (requestQueue)
-						request = requestQueue.Dequeue();
-					if (request != null)
-					{
-						if (request.zombie == null)
-							request.zombie = GeneratePawn();
-						lock (resultQueues)
-						{
-							var queue = QueueForMap(request.map);
-							queue.Enqueue(request);
-						}
-					}
+					var request = requestQueue.Dequeue();
+					if (request.zombie == null)
+						request.zombie = GeneratePawn();
+
+					var queue = QueueForMap(request.map);
+					queue.Enqueue(request);
 				}
+				catch (Exception e)
+				{
+					Log.Error("ZombieAvoider thread error: " + e);
+					Thread.Sleep(500);
+				}
+
+				goto EndlessLoop;
 			});
 			workerThread.Start();
 		}
 
 		public int ZombiesQueued(Map map)
 		{
-			lock (requestQueue)
-				lock (resultQueues)
-				{
-					var queue = QueueForMap(map);
-					return requestQueue.Count(q => q.map == map) + queue.Count;
-				}
+			var queue = QueueForMap(map);
+			return requestQueue.Count(q => q.map == map) + queue.Count();
 		}
 
 		public void SpawnZombieAt(Map map, IntVec3 cell, bool isEvent)
 		{
-			lock (requestQueue)
-			{
-				// Log.Warning("Zombie enqueued at " + cell.x + "," + cell.z);
-				requestQueue.Enqueue(new ZombieRequest() { map = map, cell = cell, isEvent = isEvent, zombie = null });
-			}
-			requestsAvailable.Release();
+			requestQueue.Enqueue(new ZombieRequest() { map = map, cell = cell, isEvent = isEvent, zombie = null });
 		}
 
 		public ZombieRequest TryGetNextGeneratedZombie(Map map)
 		{
-			lock (resultQueues)
-			{
-				var queue = QueueForMap(map);
-				if (queue.Count == 0) return null;
-				var result = queue.Dequeue();
-				// Log.Warning("Zombie dequeued at " + result.cell.x + "," + result.cell.z);
-				return result;
-			}
+			var queue = QueueForMap(map);
+			return queue.Dequeue();
 		}
 
 		public void RequeueZombie(ZombieRequest request)
 		{
-			lock (resultQueues)
-			{
-				var queue = QueueForMap(request.map);
-				queue.Enqueue(request);
-			}
+			var queue = QueueForMap(request.map);
+			queue.Enqueue(request);
 		}
 
 		static Color HairColor()
 		{
-			float num3 = Rand.Value;
+			var num3 = Rand.Value;
 			if (num3 < 0.25f)
 				return new Color(0.2f, 0.2f, 0.2f);
 

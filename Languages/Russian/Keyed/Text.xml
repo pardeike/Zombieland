@@ -73,6 +73,7 @@
 	<ZombieMiscTitle>Разное</ZombieMiscTitle>
 	<UseCustomTextures>Использовать текстуры дополнения для зомби</UseCustomTextures>
 	<ZombiesTriggerDangerMusic>Проигрывать музыку боя при Зомби-происшествие</ZombiesTriggerDangerMusic>
+	<BetterZombieAvoidance>Улучшенный способ избежать зомби</BetterZombieAvoidance>
 
 	<ColonistsBittenByZombie>Colonist bitten by zombie</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>These colonists have been bitten by a zombie. At this point, it is unclear if they develop an infection:\n\n{0}\nMonitor their wounds closely because infections take some time to show up.</ColonistsBittenByZombieDesc>

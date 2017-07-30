@@ -1,5 +1,4 @@
-﻿using Harmony;
-using RimWorld;
+﻿using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,7 +64,7 @@ namespace ZombieLand
 
 		int SortByTimestamp(PheromoneGrid grid, IntVec3 p1, IntVec3 p2)
 		{
-			return grid.Get(p2, false).timestamp.CompareTo(grid.Get(p1, false).timestamp);
+			return grid.GetPheromone(p2, false).timestamp.CompareTo(grid.GetPheromone(p1, false).timestamp);
 		}
 
 		int SortByDirection(IntVec3 center, IntVec3 p1, IntVec3 p2)
@@ -83,7 +82,7 @@ namespace ZombieLand
 			if (zombie.state == ZombieState.Emerging) return;
 			var map = zombie.Map;
 
-			if (zombie.Dead || zombie.Destroyed)
+			if (zombie.Dead || zombie.Spawned == false)
 			{
 				EndJobWith(JobCondition.InterruptForced);
 				return;
@@ -168,13 +167,18 @@ namespace ZombieLand
 
 			// eat a downed or dead pawn
 			//
+			if (eatTarget != null && eatTarget.Spawned == false)
+			{
+				eatTarget = null;
+				lastEatTarget = null;
+				eatDelayCounter = 0;
+			}
 			if (eatTarget == null)
 			{
 				eatTarget = CanIngest(out eatTargetIsCorpse);
 				if (eatTarget != null)
 					eatTargetDied = eatTarget.Dead;
 			}
-
 			if (eatTarget != null)
 			{
 				if (eatDelayCounter == 0)
@@ -246,20 +250,6 @@ namespace ZombieLand
 						.FirstOrDefault(c => c.InnerPawn == eatTarget);
 					if (corpse != null)
 						corpse.Destroy(DestroyMode.Vanish);
-
-					Tools.DoWithAllZombies(map, z =>
-					{
-						if (z.jobs != null)
-						{
-							var driver = z.jobs.curDriver as JobDriver_Stumble;
-							if (driver != null && driver.eatTarget == eatTarget)
-							{
-								driver.eatTarget = null;
-								driver.lastEatTarget = null;
-								driver.eatDelayCounter = 0;
-							}
-						}
-					});
 				}
 			}
 			else
@@ -283,16 +273,16 @@ namespace ZombieLand
 			for (var i = 0; i < 8; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCells[i];
-				if (currentTicks - grid.Get(pos, false).timestamp < fadeOff && zombie.HasValidDestination(pos))
+				if (currentTicks - grid.GetPheromone(pos, false).timestamp < fadeOff && zombie.HasValidDestination(pos))
 					possibleTrackingMoves.Add(pos);
 			}
 			if (possibleTrackingMoves.Count > 0)
 			{
 				possibleTrackingMoves.Sort((p1, p2) => SortByTimestamp(grid, p1, p2));
 				possibleTrackingMoves = possibleTrackingMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
-				possibleTrackingMoves = possibleTrackingMoves.OrderBy(p => grid.Get(p, false).zombieCount).ToList();
+				possibleTrackingMoves = possibleTrackingMoves.OrderBy(p => grid.GetPheromone(p, false).zombieCount).ToList();
 				var nextMove = possibleTrackingMoves.First();
-				timeDelta = currentTicks - grid.Get(nextMove, false).timestamp;
+				timeDelta = currentTicks - grid.GetPheromone(nextMove, false).timestamp;
 
 				destination = nextMove;
 				if (zombie.state == ZombieState.Wandering)
@@ -361,7 +351,7 @@ namespace ZombieLand
 						var center = zombie.wanderDestination.IsValid ? zombie.wanderDestination : map.Center;
 						possibleMoves.Sort((p1, p2) => SortByDirection(center, p1, p2));
 						possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
-						possibleMoves = possibleMoves.OrderBy(p => grid.Get(p, false).zombieCount).ToList();
+						possibleMoves = possibleMoves.OrderBy(p => grid.GetPheromone(p, false).zombieCount).ToList();
 						destination = possibleMoves.First();
 					}
 					else
@@ -518,7 +508,7 @@ namespace ZombieLand
 					{
 						var p = twc as Pawn;
 						if (p != null && p.RaceProps.IsFlesh
-							&& (p.Dead == true || p.Downed == true && p.Destroyed == false))
+							&& (p.Dead == true || p.Downed == true && p.Spawned))
 						{
 							isCorpse = false;
 							return p;
@@ -529,7 +519,7 @@ namespace ZombieLand
 					{
 						var c = twc as Corpse;
 						if (c != null && c.InnerPawn != null && c.InnerPawn.RaceProps.IsFlesh
-							&& c.Bugged == false && c.Destroyed == false && c.IsDessicated() == false)
+							&& c.Bugged == false && c.Spawned && c.IsDessicated() == false)
 						{
 							isCorpse = true;
 							return c.InnerPawn;

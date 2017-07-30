@@ -54,7 +54,7 @@ namespace ZombieLand
 
 		public void ConvertToZombie()
 		{
-			if (pawn == null || pawn.Spawned == false || pawn.Dead || pawn.DestroyedOrNull() || pawn.IsColonist == false)
+			if (pawn == null || pawn.Spawned == false || pawn.Dead || pawn.IsColonist == false)
 				return;
 
 			var pos = pawn.Position;

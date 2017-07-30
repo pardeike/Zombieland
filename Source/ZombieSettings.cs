@@ -65,6 +65,7 @@ namespace ZombieLand
 		public int hoursInfectionIsTreatable = 24;
 		public int hoursInfectionPersists = 6 * 24;
 		public bool anyTreatmentStopsInfection = false;
+		public bool betterZombieAvoidance = true;
 
 		public object Clone()
 		{

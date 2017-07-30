@@ -34,11 +34,10 @@ namespace ZombieLand
 		public override void CompPostPostAdd(DamageInfo? dinfo)
 		{
 			if (Pawn == null
-				|| Pawn.Map == null
-				|| Pawn.IsColonist == false
 				|| Pawn.Spawned == false
+				|| Pawn.Map == null
 				|| Pawn.Dead
-				|| Pawn.Destroyed
+				|| Pawn.IsColonist == false
 				|| Pawn.health == null
 				|| Pawn.health.hediffSet == null
 				|| parent == null

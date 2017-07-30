@@ -44,7 +44,7 @@ namespace ZombieLand
 			for (var i = 0; i < comps.Count; i++)
 				comps[i].CompTickRare();
 
-			if (Destroyed == false && Bugged == false)
+			if (Spawned && Bugged == false)
 			{
 				if (RottableUtility.GetRotStage(this) == RotStage.Dessicated)
 				{

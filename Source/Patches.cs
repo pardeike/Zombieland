@@ -30,19 +30,40 @@ namespace ZombieLand
 				if (Constants.DEBUGGRID == false) return;
 				var now = Tools.Ticks();
 				var fadeOff = Tools.PheromoneFadeoff();
-				var matrix = new Matrix4x4();
 				Find.VisibleMap.GetGrid().IterateCells((x, z, pheromone) =>
 				{
 					var pos = new Vector3(x, Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1), z);
-					matrix.SetTRS(pos + new Vector3(0.5f, 0f, 0.5f), Quaternion.identity, new Vector3(1f, 1f, 1f));
 					var diff = now - pheromone.timestamp;
 					if (diff < fadeOff)
 					{
 						var a = (double)(fadeOff - diff) * 0.8f / fadeOff;
-						var material = SolidColorMaterials.SimpleSolidColorMaterial(new Color(1f, 0f, 0f, (float)a));
-						Graphics.DrawMesh(MeshPool.plane10, matrix, material, 0);
+						Tools.DebugPosition(pos, new Color(1f, 0f, 0f, (float)a));
 					}
 				});
+			}
+		}
+
+		// patch for debugging: show zombie avoidance grid
+		//
+		[HarmonyPatch(typeof(MapInterface))]
+		[HarmonyPatch("MapInterfaceUpdate")]
+		class MapInterface_MapInterfaceUpdate_Patch
+		{
+			static void Postfix()
+			{
+				if (DebugViewSettings.writePathCosts == false) return;
+
+				var map = Find.VisibleMap;
+				var avoidGrid = map.GetComponent<TickManager>().avoidGrid;
+
+				var currentViewRect = Find.CameraDriver.CurrentViewRect;
+				currentViewRect.ClipInsideMap(map);
+				foreach (var c in currentViewRect)
+				{
+					var cost = avoidGrid.GetCosts()[c.x + c.z * map.Size.x];
+					if (cost > 0)
+						Tools.DebugPosition(c.ToVector3(), new Color(1f, 0f, 0f, GenMath.LerpDouble(0, 10000, 0.1f, 0.8f, cost)));
+				}
 			}
 		}
 
@@ -220,6 +241,101 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to let predators prefer humans for zombies
+		//
+		[HarmonyPatch(typeof(FoodUtility))]
+		[HarmonyPatch("GetPreyScoreFor")]
+		public static class FoodUtility_GetPreyScoreFor_Patch
+		{
+
+			static void Postfix(Pawn predator, Pawn prey, ref float __result)
+			{
+				if (prey is Zombie)
+					__result -= 35f;
+			}
+		}
+
+		// patch for pather to avoid zombies
+		/* 
+			# if (allowedArea != null && !allowedArea[num14])
+			# {
+			# 	num16 += 600;
+			# }
+			# // start added code
+			# num16 += GetZombieCosts(this.map, num14);
+			# // end added code
+			
+			IL_098a: ldloc.s 14
+			IL_098c: brfalse IL_09a9
+
+			IL_0991: ldloc.s 14
+		-4	IL_0993: ldloc.s 36														<-- local var that holds grid index
+			IL_0995: callvirt instance bool Verse.Area::get_Item(int32)
+			IL_099a: brtrue IL_09a9
+
+		-1	IL_099f: ldloc.s 40														<-- local var that holds sum
+		0	IL_09a1: ldc.i4 600														<-- search for "600" to get this as main reference point
+			IL_09a6: add
+			IL_09a7: stloc.s 40 
+			
+		3	IL_09a9:	ldloc.s 40														<-- added code (keep labels from before)
+						ldarg.0
+						ldfld PathFinder::map
+						ldloc.s 36
+						call PathFinder_FindPath_Patch::GetZombieCosts(Map map, int idx)
+						add
+						stloc.s 40
+			*/
+		//
+		[HarmonyPatch(typeof(PathFinder))]
+		[HarmonyPatch("FindPath")]
+		[HarmonyPatch(new Type[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(TraverseParms), typeof(PathEndMode) })]
+		public static class PathFinder_FindPath_Patch
+		{
+			public static MethodInfo zombieCostMethod = AccessTools.Method(typeof(PathFinder_FindPath_Patch), "GetZombieCosts");
+			static Dictionary<Map, TickManager> tickManagerCache = new Dictionary<Map, TickManager>();
+
+			static int GetZombieCosts(Map map, int idx)
+			{
+				if (ZombieSettings.Values.betterZombieAvoidance == false) return 0;
+
+				TickManager tickManager;
+				if (tickManagerCache.TryGetValue(map, out tickManager) == false)
+				{
+					tickManager = map.GetComponent<TickManager>();
+					tickManagerCache[map] = tickManager;
+				}
+				return tickManager.avoidGrid.GetCosts()[idx];
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var list = instructions.ToList();
+				var refIdx = list.FirstIndexOf(ins => ins.operand is int && (int)ins.operand == 600);
+				if (refIdx > 0)
+				{
+					var gridIdx = list[refIdx - 4].operand;
+					var sumIdx = list[refIdx - 1].operand;
+					var insertIdx = refIdx + 3;
+					var movedLabels = list[insertIdx].labels;
+					list[insertIdx].labels = new List<Label>();
+
+					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldloc_S, sumIdx) { labels = movedLabels });
+					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldarg_0));
+					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(PathFinder), "map")));
+					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldloc_S, gridIdx));
+					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Call, zombieCostMethod));
+					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Add));
+					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Stloc_S, sumIdx));
+				}
+				else
+					Log.Error("Cannot find path cost 600 in PathFinder.FindPath");
+
+				foreach (var instr in list)
+					yield return instr;
+			}
+		}
+
 		// patch to add a pheromone info section to the rimworld cell inspector
 		//
 		[HarmonyPatch(typeof(EditWindow_DebugInspector))]
@@ -251,6 +367,10 @@ namespace ZombieLand
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount());
 				builder.AppendLine("Ticked zombies: " + tickedZombies + " out of " + ofTotalZombies);
 				builder.AppendLine("Days left before Zombies spawn: " + Math.Max(0, ZombieSettings.Values.daysBeforeZombiesCome - GenDate.DaysPassedFloat));
+
+				var avoidGrid = map.GetComponent<TickManager>().avoidGrid;
+				builder.AppendLine("Avoid cost: " + avoidGrid.GetCosts()[center.x + center.z * map.Size.x]);
+
 				if (Constants.DEBUGGRID == false) return;
 
 				var pos = UI.MouseCell();
@@ -269,7 +389,7 @@ namespace ZombieLand
 					.Where(cell => cell.InBounds(map))
 					.Do(loc =>
 					{
-						var cell = map.GetGrid().Get(loc, false);
+						var cell = map.GetGrid().GetPheromone(loc, false);
 						if (cell.timestamp > 0)
 						{
 							var now = Tools.Ticks();
@@ -373,11 +493,14 @@ namespace ZombieLand
 				var pos = pawn.Position;
 				if (pos.x == value.x && pos.z == value.z) return;
 
-				var grid = pawn.Map.GetGrid();
-				if (pawn is Zombie)
+				var zombie = pawn as Zombie;
+				if (zombie != null)
 				{
+					var grid = pawn.Map.GetGrid();
 					grid.ChangeZombieCount(pos, -1);
-					var newPos = grid.Get(value);
+
+					var newPos = grid.GetPheromone(value);
+
 					if (newPos.zombieCount > 0)
 					{
 						newPos.timestamp -= newPos.zombieCount * Constants.ZOMBIE_CLOGGING_FACTOR;
@@ -393,6 +516,7 @@ namespace ZombieLand
 					{
 						var now = Tools.Ticks();
 						var radius = Tools.RadiusForPawn(pawn);
+						var grid = pawn.Map.GetGrid();
 						Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(value + vec, now - (long)(2f * vec.LengthHorizontal)));
 					}
 				}
@@ -921,7 +1045,7 @@ namespace ZombieLand
 			{
 				if (__result == false) return;
 				var zombie = pawn as Zombie;
-				if (zombie != null && zombie.Destroyed == false && zombie.Dead == false && zombie.wasColonist == false)
+				if (zombie != null && zombie.Spawned && zombie.Dead == false && zombie.wasColonist == false)
 					zombie.state = ZombieState.ShouldDie;
 			}
 		}
@@ -1160,13 +1284,13 @@ namespace ZombieLand
 				var grid = pawn.Map.GetGrid();
 				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)
 				{
-					var timestamp = grid.Get(pawn.Position).timestamp;
+					var timestamp = grid.GetPheromone(pawn.Position).timestamp;
 					var radius = Tools.RadiusForPawn(pawn) * Constants.KILL_CIRCLE_RADIUS_MULTIPLIER;
 					radius /= ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
 					Tools.GetCircle(radius).Do(vec =>
 					{
 						var pos = pawn.Position + vec;
-						var cell = grid.Get(pos, false);
+						var cell = grid.GetPheromone(pos, false);
 						if (cell.timestamp > 0 && cell.timestamp <= timestamp)
 							grid.SetTimestamp(pos, 0);
 					});
@@ -1185,29 +1309,30 @@ namespace ZombieLand
 			{
 				if (pawn.Map == null) return;
 
-				if (pawn is Zombie)
+				var zombie = pawn as Zombie;
+				if (zombie != null)
 				{
-					var grid = pawn.Map.GetGrid();
-					if (pawn.pather != null)
+					var grid = zombie.Map.GetGrid();
+					if (zombie.pather != null)
 					{
-						var dest = pawn.pather.Destination;
-						if (dest != null && dest != pawn.Position)
+						var dest = zombie.pather.Destination;
+						if (dest != null && dest != zombie.Position)
 							grid.ChangeZombieCount(dest.Cell, -1);
 					}
-					grid.ChangeZombieCount(pawn.Position, -1);
+					grid.ChangeZombieCount(zombie.Position, -1);
 					return;
 				}
 
 				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)
 				{
 					var grid = pawn.Map.GetGrid();
-					var timestamp = grid.Get(pawn.Position).timestamp;
+					var timestamp = grid.GetPheromone(pawn.Position).timestamp;
 					var radius = Tools.RadiusForPawn(pawn) * Constants.KILL_CIRCLE_RADIUS_MULTIPLIER;
 					radius /= ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
 					Tools.GetCircle(radius).Do(vec =>
 					{
 						var pos = pawn.Position + vec;
-						var cell = grid.Get(pos, false);
+						var cell = grid.GetPheromone(pos, false);
 						if (cell.timestamp > 0 && cell.timestamp <= timestamp)
 							grid.SetTimestamp(pos, 0);
 					});
@@ -1462,7 +1587,6 @@ namespace ZombieLand
 				if (label == "Zombieland")
 				{
 					var texture = Tools.GetZombieButtonBackground();
-					Log.Warning(rect + " => " + texture.width + " x " + texture.height);
 					GUI.DrawTexture(rect, texture, ScaleMode.StretchToFill, true, 0f);
 				}
 			}

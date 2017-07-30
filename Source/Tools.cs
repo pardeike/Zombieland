@@ -2,6 +2,7 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -10,10 +11,11 @@ using Verse;
 
 namespace ZombieLand
 {
-	/*class Measure
+	/*
+	class Measure
 	{
 		Stopwatch sw;
-		String text;
+		string text;
 		long prevTime = 0;
 		int counter = 0;
 
@@ -38,12 +40,14 @@ namespace ZombieLand
 			sw.Stop();
 			Checkpoint();
 		}
-	}*/
+	}
+	*/
 
 	[StaticConstructorOnStartup]
 	static class Tools
 	{
 		public static ZombieGenerator generator = new ZombieGenerator();
+		public static ZombieAvoider avoider = new ZombieAvoider();
 		public static Texture2D MenuIcon;
 		public static Texture2D ZombieButtonBackground;
 
@@ -90,6 +94,21 @@ namespace ZombieLand
 			original = original + color - 1f;
 			if (original < 0f) original = 0f;
 			if (original > 1f) original = 1f;
+		}
+
+		public static void DebugPosition(Vector3 pos, Color color)
+		{
+			pos.y = Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1);
+			var material = SolidColorMaterials.SimpleSolidColorMaterial(color);
+			DrawScaledMesh(MeshPool.plane10, material, pos + new Vector3(0.5f, 0f, 0.5f), Quaternion.identity, 1.0f, 1.0f);
+		}
+
+		public static void DrawScaledMesh(Mesh mesh, Material mat, Vector3 pos, Quaternion q, float mx, float my, float mz = 1f)
+		{
+			var s = new Vector3(mx, mz, my);
+			var matrix = new Matrix4x4();
+			matrix.SetTRS(pos, q, s);
+			Graphics.DrawMesh(mesh, matrix, mat, 0);
 		}
 
 		public static T Boxed<T>(T val, T min, T max) where T : IComparable
@@ -219,7 +238,7 @@ namespace ZombieLand
 		public static void ChainReact(Map map, IntVec3 basePos, IntVec3 nextMove)
 		{
 			var grid = map.GetGrid();
-			var baseTimestamp = grid.Get(nextMove, false).timestamp;
+			var baseTimestamp = grid.GetPheromone(nextMove, false).timestamp;
 			for (var i = 0; i < 9; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCellsAndInside[i];

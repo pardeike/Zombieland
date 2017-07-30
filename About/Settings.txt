@@ -32,6 +32,10 @@ PHEROMONE_FADEOFF = 90.0
 // time. It is in game-seconds and the default is 5.0
 TICKMANAGER_RECALCULATE_DELAY = 5.0
 
+// This controls how often the avoid grid around zombies is recalculated. It is
+// in game-seconds and the default is 0.25
+TICKMANAGER_AVOIDGRID_DELAY = 0.25
+
 // This is the base value for the delay between eating parts of a corpse or an
 // downed enemy. The default value is 1800
 EAT_DELAY_TICKS = 1800

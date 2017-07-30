@@ -284,6 +284,7 @@ namespace ZombieLand
 			list.Dialog_Label("ZombieMiscTitle");
 			list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);
 			list.Dialog_Checkbox("ZombiesTriggerDangerMusic", ref settings.zombiesTriggerDangerMusic);
+			list.Dialog_Checkbox("BetterZombieAvoidance", ref settings.betterZombieAvoidance);
 
 			list.End(); // -----------------------------------------------------------------------------------------
 

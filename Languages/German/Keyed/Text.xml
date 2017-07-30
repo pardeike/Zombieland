@@ -73,6 +73,7 @@
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>
 	<UseCustomTextures>Benutze Spezialtexturen</UseCustomTextures>
 	<ZombiesTriggerDangerMusic>Zombies beeinflussen die Kampfmusik</ZombiesTriggerDangerMusic>
+	<BetterZombieAvoidance>Verbesserte Vermeidung von Zombies</BetterZombieAvoidance>
 
 	<ColonistsBittenByZombie>Kolonist wurde von einem Zombie gebissen</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Folgende Kolonisten wurden von einem Zombie gebissen. Noch ist unklar ob sich daraus eine Infektion entwickelt:\n\n{0}\nBeobachten Sie die Wunden um herauszufinden ob eine Infektion stattfinden wird.</ColonistsBittenByZombieDesc>
