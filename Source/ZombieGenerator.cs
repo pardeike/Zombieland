@@ -116,6 +116,7 @@ namespace ZombieLand
 			zombie.SetFactionDirect(faction);
 
 			PawnComponentsUtility.CreateInitialComponents(zombie);
+			zombie.health.hediffSet.Clear();
 
 			zombie.ageTracker.AgeBiologicalTicks = ((long)(Rand.Range(0, 0x9c4 + 1) * 3600000f)) + Rand.Range(0, 0x36ee80);
 			zombie.ageTracker.AgeChronologicalTicks = zombie.ageTracker.AgeBiologicalTicks;

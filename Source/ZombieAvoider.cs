@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -120,10 +121,23 @@ namespace ZombieLand
 			return queue.Dequeue();
 		}
 
+		private static IEnumerable<IntVec3> GetAdjacentCells(IntVec3 loc, IntVec3 pos, float radiusSquared, Map map)
+		{
+			if ((pos - loc).LengthHorizontalSquared <= radiusSquared)
+				for (var i = 0; i < 3; i++)
+				{
+					var c = pos + GenAdj.CardinalDirections[i];
+					if (c.InBounds(map) && c.Walkable(map))
+						if (c.GetEdifice(map) is Building_Door)
+							yield return c;
+				}
+		}
+
 		private void GenerateCells(Map map, List<ZombieCostSpecs> specs, int[] costCells, FloodFiller filler)
 		{
 			var mapSizeX = map.Size.x;
 			var pathGrid = map.pathGrid;
+			var cardinals = GenAdj.CardinalDirections;
 
 			foreach (var spec in specs)
 			{
@@ -131,13 +145,33 @@ namespace ZombieLand
 				var costBase = spec.maxCosts;
 				var radiusSquared = spec.radius * spec.radius;
 
-				filler.FloodFill(loc, cell => pathGrid.Walkable(cell) && (loc - cell).LengthHorizontalSquared <= radiusSquared, cell =>
-				{
-					var f = 1f - (loc - cell).LengthHorizontalSquared / radiusSquared;
-					var cost = (int)(costBase * f);
-					var idx = cell.x + cell.z * mapSizeX;
-					costCells[idx] = Math.Max(costCells[idx], cost);
-				});
+				var floodedCells = new Dictionary<IntVec3, int>();
+				filler.FloodFill(loc,
+					cell =>
+						(loc - cell).LengthHorizontalSquared <= radiusSquared
+						&& pathGrid.Walkable(cell)
+						&& (cell.GetEdifice(map) is Building_Door) == false,
+					cell =>
+					{
+						var f = 1f - (loc - cell).LengthHorizontalSquared / radiusSquared;
+						var cost = (int)(costBase * f);
+						var idx = cell.x + cell.z * mapSizeX;
+						costCells[idx] = Math.Max(costCells[idx], cost);
+						floodedCells[cell] = costCells[idx];
+					});
+
+				foreach (var cell in floodedCells.Keys)
+					for (var i = 0; i < 3; i++)
+					{
+						var pos = cell + cardinals[i];
+						if (floodedCells.ContainsKey(pos) == false
+							&& (loc - cell).LengthHorizontalSquared <= radiusSquared
+							&& pos.InBounds(map) && pathGrid.Walkable(pos)
+							&& pos.GetEdifice(map) is Building_Door)
+						{
+							costCells[pos.x + pos.z * mapSizeX] = floodedCells[cell];
+						}
+					}
 			}
 		}
 

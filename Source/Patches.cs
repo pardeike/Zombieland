@@ -62,7 +62,7 @@ namespace ZombieLand
 				{
 					var cost = avoidGrid.GetCosts()[c.x + c.z * map.Size.x];
 					if (cost > 0)
-						Tools.DebugPosition(c.ToVector3(), new Color(1f, 0f, 0f, GenMath.LerpDouble(0, 10000, 0.1f, 0.8f, cost)));
+						Tools.DebugPosition(c.ToVector3(), new Color(1f, 0f, 0f, GenMath.LerpDouble(0, 10000, 0.4f, 1f, cost)));
 				}
 			}
 		}
@@ -353,27 +353,22 @@ namespace ZombieLand
 				if (Current.Game == null) return;
 				var map = Find.VisibleMap;
 				if (map == null) return;
+				var pos = UI.MouseCell();
 
 				var tickManager = map.GetComponent<TickManager>();
 				var center = Tools.CenterOfInterest(map);
-				//var tickString = string.Format("{0:d6} {1:d6} {2:d6}", new object[]
-				//{
-				//	TickManager_DoSingleTick_Patch.min,
-				//	TickManager_DoSingleTick_Patch.average,
-				//	TickManager_DoSingleTick_Patch.max
-				//});
-				//builder.AppendLine("Average tick time: " + tickString);
 				builder.AppendLine("Center of Interest: " + center.x + "/" + center.z);
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount());
 				builder.AppendLine("Ticked zombies: " + tickedZombies + " out of " + ofTotalZombies);
 				builder.AppendLine("Days left before Zombies spawn: " + Math.Max(0, ZombieSettings.Values.daysBeforeZombiesCome - GenDate.DaysPassedFloat));
-
-				var avoidGrid = map.GetComponent<TickManager>().avoidGrid;
-				builder.AppendLine("Avoid cost: " + avoidGrid.GetCosts()[center.x + center.z * map.Size.x]);
+				if (pos.InBounds(map))
+				{
+					var avoidGrid = map.GetComponent<TickManager>().avoidGrid;
+					builder.AppendLine("Avoid cost: " + avoidGrid.GetCosts()[pos.x + pos.z * map.Size.x]);
+				}
 
 				if (Constants.DEBUGGRID == false) return;
 
-				var pos = UI.MouseCell();
 				if (pos.InBounds(map) == false) return;
 
 				pos.GetThingList(map).OfType<Zombie>().Do(zombie =>

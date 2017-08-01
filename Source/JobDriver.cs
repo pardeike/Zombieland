@@ -13,13 +13,17 @@ namespace ZombieLand
 	{
 		IntVec3 destination;
 
-		Pawn eatTarget;
-		bool eatTargetIsCorpse;
-		bool eatTargetDied;
+		Thing eatTarget;
 		Pawn lastEatTarget;
 
 		int eatDelay;
 		int eatDelayCounter;
+
+		static readonly int[] adjIndex4 = { 0, 1, 2, 3 };
+		static int prevIndex4;
+		static readonly int[] adjIndex8 = { 0, 1, 2, 3, 4, 5, 6, 7 };
+		static int prevIndex8;
+		static readonly float combatExtendedHealAmount = 1f / GenTicks.SecondsToTicks(1f);
 
 		void InitAction()
 		{
@@ -31,10 +35,25 @@ namespace ZombieLand
 			base.ExposeData();
 			Scribe_Values.Look(ref destination, "destination", IntVec3.Invalid);
 			Scribe_References.Look(ref eatTarget, "eatTarget");
-			Scribe_Values.Look(ref eatTargetIsCorpse, "eatTargetIsCorpse", false);
-			Scribe_Values.Look(ref eatTargetDied, "eatTargetDied", false);
 			Scribe_References.Look(ref lastEatTarget, "lastEatTarget");
 			Scribe_Values.Look(ref eatDelayCounter, "eatDelayCounter");
+
+			// previous versions of Zombieland stored the inner pawn of a corpse
+			// in the eatTarget. We have since then changed it to contain the corpse
+			// itself. For older saves, we need to convert this.
+			//
+			if (Scribe.mode == LoadSaveMode.PostLoadInit)
+			{
+				var p = eatTarget as Pawn;
+				if (p != null && p.Map != null)
+				{
+					// find corpse that points to the pawn we stored
+					eatTarget = p.Map.thingGrid
+						.ThingsListAt(eatTarget.Position)
+						.OfType<Corpse>()
+						.FirstOrDefault(c => c.InnerPawn == eatTarget);
+				}
+			}
 		}
 
 		int EatDelay
@@ -103,6 +122,14 @@ namespace ZombieLand
 					return;
 				}
 			}
+			else
+			{
+				var hediffs = zombie.health.hediffSet.hediffs
+				.Where(hediff => hediff.def == HediffDefOf.WoundInfection)
+				.ToArray();
+				foreach (var hediff in hediffs)
+					pawn.health.RemoveHediff(hediff);
+			}
 
 			if (zombie.Downed)
 			{
@@ -129,14 +156,11 @@ namespace ZombieLand
 						return;
 					}
 
-					if (injury.IsOld() == false)
-					{
-						if (Tools.IsCombatExtendedInstalled())
-							injury.Heal(1f / GenTicks.SecondsToTicks(1f));
-						else
-							injury.Heal(injury.Severity + 0.5f);
-						break;
-					}
+					if (Tools.IsCombatExtendedInstalled())
+						injury.Heal(combatExtendedHealAmount);
+					else
+						injury.Heal(injury.Severity + 0.5f);
+					break;
 				}
 
 				if (zombie.Downed) return;
@@ -165,27 +189,25 @@ namespace ZombieLand
 				return;
 			}
 
-			// eat a downed or dead pawn
+			// eat pawns or corpses
 			//
-			if (eatTarget != null && eatTarget.Destroyed)
+			if (eatTarget != null && eatTarget.Spawned == false)
 			{
 				eatTarget = null;
 				lastEatTarget = null;
 				eatDelayCounter = 0;
 			}
 			if (eatTarget == null)
-			{
-				eatTarget = CanIngest(out eatTargetIsCorpse);
-				if (eatTarget != null)
-					eatTargetDied = eatTarget.Dead;
-			}
-			if (eatTarget != null)
+				eatTarget = CanIngest();
+
+			var eatTargetPawn = eatTarget as Pawn ?? (eatTarget as Corpse)?.InnerPawn;
+			if (eatTargetPawn != null)
 			{
 				if (eatDelayCounter == 0)
 				{
-					if (eatTarget != lastEatTarget)
+					if (eatTargetPawn != lastEatTarget)
 					{
-						lastEatTarget = eatTarget;
+						lastEatTarget = eatTargetPawn;
 						zombie.Drawer.rotator.FaceCell(eatTarget.Position);
 						var zombieLeaner = zombie.Drawer.leaner as ZombieLeaner;
 						if (zombieLeaner != null)
@@ -205,30 +227,19 @@ namespace ZombieLand
 					return;
 				eatDelayCounter = 0;
 
-				var bodyPartRecord = FirstEatablePart(eatTarget);
+				var bodyPartRecord = FirstEatablePart(eatTargetPawn);
 				if (bodyPartRecord != null)
 				{
-					var hediff_MissingPart = (Hediff_MissingPart)HediffMaker.MakeHediff(HediffDefOf.MissingBodyPart, eatTarget, bodyPartRecord);
+					var eatTargetAlive = eatTarget is Pawn && ((Pawn)eatTarget).Dead == false;
+					var hediff_MissingPart = (Hediff_MissingPart)HediffMaker.MakeHediff(HediffDefOf.MissingBodyPart, eatTargetPawn, bodyPartRecord);
 					hediff_MissingPart.lastInjury = HediffDefOf.Bite;
 					hediff_MissingPart.IsFresh = true;
-					eatTarget.health.AddHediff(hediff_MissingPart, null, null);
+					eatTargetPawn.health.AddHediff(hediff_MissingPart, null, null);
 
-					if (eatTargetIsCorpse == false && eatTargetDied == false && eatTarget.Dead)
+					var eatTargetStillAlive = eatTarget is Pawn && ((Pawn)eatTarget).Dead == false;
+					if (eatTargetAlive && eatTargetStillAlive == false)
 					{
-						Tools.DoWithAllZombies(map, z =>
-						{
-							if (z.jobs != null)
-							{
-								var driver = z.jobs.curDriver as JobDriver_Stumble;
-								if (driver != null && driver.eatTarget == eatTarget)
-								{
-									driver.eatTargetDied = true;
-									driver.eatTargetIsCorpse = true;
-								}
-							}
-						});
-
-						if (PawnUtility.ShouldSendNotificationAbout(eatTarget) && eatTarget.RaceProps.Humanlike)
+						if (PawnUtility.ShouldSendNotificationAbout(eatTargetPawn) && eatTargetPawn.RaceProps.Humanlike)
 						{
 							Messages.Message("MessageEatenByPredator".Translate(new object[]
 							{
@@ -237,20 +248,13 @@ namespace ZombieLand
 							}).CapitalizeFirst(), zombie, MessageSound.Negative);
 						}
 
-						eatTarget.Strip();
+						eatTargetPawn.Strip();
 					}
 
 					return;
 				}
 				else
-				{
-					var corpse = map.thingGrid
-						.ThingsListAt(eatTarget.Position)
-						.OfType<Corpse>()
-						.FirstOrDefault(c => c.InnerPawn == eatTarget);
-					if (corpse != null)
-						corpse.Destroy(DestroyMode.Vanish);
-				}
+					eatTarget.Destroy(DestroyMode.Vanish);
 			}
 			else
 			{
@@ -422,11 +426,6 @@ namespace ZombieLand
 			destination = IntVec3.Invalid;
 		}
 
-		static int[] adjIndex4 = { 0, 1, 2, 3 };
-		static int prevIndex4;
-		static int[] adjIndex8 = { 0, 1, 2, 3, 4, 5, 6, 7 };
-		static int prevIndex8;
-
 		IEnumerable<T> GetAdjacted<T>() where T : ThingWithComps
 		{
 			var nextIndex = Constants.random.Next(8);
@@ -483,20 +482,18 @@ namespace ZombieLand
 			return null;
 		}
 
-		BodyPartRecord FirstEatablePart(Pawn pawn)
+		BodyPartRecord FirstEatablePart(Pawn eatSubject)
 		{
-			if (pawn == null || pawn.health == null || pawn.health.hediffSet == null) return null;
-			return pawn.health.hediffSet
+			if (eatSubject == null || eatSubject.health == null || eatSubject.health.hediffSet == null) return null;
+			return eatSubject.health.hediffSet
 						.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined)
 						.Where(new Func<BodyPartRecord, bool>(r => r.depth == BodyPartDepth.Outside))
 						.InRandomOrder()
 						.FirstOrDefault();
 		}
 
-		Pawn CanIngest(out bool isCorpse)
+		Thing CanIngest()
 		{
-			isCorpse = false;
-
 			if (ZombieSettings.Values.zombiesEatDowned || ZombieSettings.Values.zombiesEatCorpses)
 			{
 				var enumerator = GetAdjacted<ThingWithComps>().GetEnumerator();
@@ -504,26 +501,18 @@ namespace ZombieLand
 				{
 					var twc = enumerator.Current;
 
-					if (ZombieSettings.Values.zombiesEatDowned)
+					var p = twc as Pawn;
+					if (p != null && ZombieSettings.Values.zombiesEatDowned)
 					{
-						var p = twc as Pawn;
-						if (p != null && p.RaceProps.IsFlesh
-							&& (p.Dead == true || p.Downed == true && p.Destroyed == false))
-						{
-							isCorpse = false;
+						if (p.Spawned && p.RaceProps.IsFlesh && (p.Downed || p.Dead))
 							return p;
-						}
 					}
 
-					if (ZombieSettings.Values.zombiesEatCorpses)
+					var c = twc as Corpse;
+					if (c != null && ZombieSettings.Values.zombiesEatCorpses)
 					{
-						var c = twc as Corpse;
-						if (c != null && c.InnerPawn != null && c.InnerPawn.RaceProps.IsFlesh
-							&& c.Bugged == false && c.Destroyed == false && c.IsDessicated() == false)
-						{
-							isCorpse = true;
-							return c.InnerPawn;
-						}
+						if (c.Spawned && c.InnerPawn != null && c.InnerPawn.RaceProps.IsFlesh)
+							return c;
 					}
 				}
 			}
