@@ -167,7 +167,7 @@ namespace ZombieLand
 
 			// eat a downed or dead pawn
 			//
-			if (eatTarget != null && eatTarget.Spawned == false)
+			if (eatTarget != null && eatTarget.Destroyed)
 			{
 				eatTarget = null;
 				lastEatTarget = null;
@@ -508,7 +508,7 @@ namespace ZombieLand
 					{
 						var p = twc as Pawn;
 						if (p != null && p.RaceProps.IsFlesh
-							&& (p.Dead == true || p.Downed == true && p.Spawned))
+							&& (p.Dead == true || p.Downed == true && p.Destroyed == false))
 						{
 							isCorpse = false;
 							return p;
@@ -519,7 +519,7 @@ namespace ZombieLand
 					{
 						var c = twc as Corpse;
 						if (c != null && c.InnerPawn != null && c.InnerPawn.RaceProps.IsFlesh
-							&& c.Bugged == false && c.Spawned && c.IsDessicated() == false)
+							&& c.Bugged == false && c.Destroyed == false && c.IsDessicated() == false)
 						{
 							isCorpse = true;
 							return c.InnerPawn;
