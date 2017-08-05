@@ -10,6 +10,7 @@ namespace ZombieLand
 	public class Zombie : Pawn
 	{
 		public ZombieState state = ZombieState.Emerging;
+		public bool raging = false;
 		public IntVec3 wanderDestination = IntVec3.Invalid;
 
 		int rubbleTicks;
@@ -25,6 +26,7 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 			Scribe_Values.Look(ref state, "zstate");
+			Scribe_Values.Look(ref raging, "raging");
 			Scribe_Values.Look(ref wanderDestination, "wanderDestination");
 			Scribe_Values.Look(ref rubbleTicks, "rubbleTicks");
 			Scribe_Values.Look(ref rubbleCounter, "rubbleCounter");
@@ -44,14 +46,14 @@ namespace ZombieLand
 		public override void DeSpawn()
 		{
 			var grid = Map.GetGrid();
+			var pos = Position;
 			if (pather != null)
 			{
 				var dest = pather.Destination;
-				if (dest != null && dest != Position)
-					grid.ChangeZombieCount(dest.Cell, -1);
+				if (dest != null && dest != Position) pos = dest.Cell;
 			}
-			grid.ChangeZombieCount(Position, -1);
 
+			grid.ChangeZombieCount(pos, -1);
 			base.DeSpawn();
 		}
 

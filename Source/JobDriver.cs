@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -83,7 +84,7 @@ namespace ZombieLand
 
 		int SortByTimestamp(PheromoneGrid grid, IntVec3 p1, IntVec3 p2)
 		{
-			return grid.GetPheromone(p2, false).timestamp.CompareTo(grid.GetPheromone(p1, false).timestamp);
+			return grid.GetTimestamp(p2).CompareTo(grid.GetTimestamp(p1));
 		}
 
 		int SortByDirection(IntVec3 center, IntVec3 p1, IntVec3 p2)
@@ -277,16 +278,16 @@ namespace ZombieLand
 			for (var i = 0; i < 8; i++)
 			{
 				var pos = basePos + GenAdj.AdjacentCells[i];
-				if (currentTicks - grid.GetPheromone(pos, false).timestamp < fadeOff && zombie.HasValidDestination(pos))
+				if (currentTicks - grid.GetTimestamp(pos) < fadeOff && zombie.HasValidDestination(pos))
 					possibleTrackingMoves.Add(pos);
 			}
 			if (possibleTrackingMoves.Count > 0)
 			{
 				possibleTrackingMoves.Sort((p1, p2) => SortByTimestamp(grid, p1, p2));
 				possibleTrackingMoves = possibleTrackingMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
-				possibleTrackingMoves = possibleTrackingMoves.OrderBy(p => grid.GetPheromone(p, false).zombieCount).ToList();
+				possibleTrackingMoves = possibleTrackingMoves.OrderBy(p => grid.GetZombieCount(p)).ToList();
 				var nextMove = possibleTrackingMoves.First();
-				timeDelta = currentTicks - grid.GetPheromone(nextMove, false).timestamp;
+				timeDelta = currentTicks - (grid.GetTimestamp(nextMove));
 
 				destination = nextMove;
 				if (zombie.state == ZombieState.Wandering)
@@ -352,16 +353,43 @@ namespace ZombieLand
 					//
 					if (moveTowardsCenter)
 					{
-						var center = zombie.wanderDestination.IsValid ? zombie.wanderDestination : map.Center;
-						possibleMoves.Sort((p1, p2) => SortByDirection(center, p1, p2));
-						possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
-						possibleMoves = possibleMoves.OrderBy(p => grid.GetPheromone(p, false).zombieCount).ToList();
-						destination = possibleMoves.First();
+						if (zombie.raging)
+						{
+							// raging - go to nearest colonist
+
+							var info = Tools.wanderer.GetMapInfo(map);
+							destination = info.GetParent(basePos);
+
+							if (destination.IsValid && Rand.Chance(Constants.DIVERTING_FROM_RAGE))
+								TryToDivert(basePos, possibleMoves);
+							else
+							{
+								if (destination.IsValid && grid.GetZombieCount(destination) > 0)
+									destination = IntVec3.Invalid;
+							}
+
+							if (destination.IsValid == false)
+							{
+								var zCount = possibleMoves.Select(p => grid.GetZombieCount(p)).Min();
+								destination = possibleMoves.Where(p => grid.GetZombieCount(p) == zCount).RandomElement();
+							}
+						}
+						else
+						{
+							// not raging - go to approx center
+
+							var center = zombie.wanderDestination.IsValid ? zombie.wanderDestination : map.Center;
+							possibleMoves.Sort((p1, p2) => SortByDirection(center, p1, p2));
+							possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
+							possibleMoves = possibleMoves.OrderBy(p => grid.GetZombieCount(p)).ToList();
+							destination = possibleMoves.First();
+
+							if (Rand.Chance(Constants.DIVERTING_FROM_RAGE))
+								TryToDivert(basePos, possibleMoves);
+						}
 					}
 					else
 					{
-						// otherwise they sometimes stand or walk towards a random direction
-						//
 						if (Rand.Chance(Constants.STANDING_STILL_CHANCE))
 						{
 							var n = possibleMoves.Count();
@@ -375,13 +403,60 @@ namespace ZombieLand
 			//
 			if (destination.IsValid)
 				MoveToCell(destination);
+
+			// check for tight groups of zombies
+			if (zombie.raging == false)
+			{
+				var count = CountSurroundingZombies(zombie.Position, map, grid);
+				if (count > Constants.SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE)
+					StartRage(zombie, count);
+			}
+		}
+
+		void TryToDivert(IntVec3 basePos, List<IntVec3> possibleMoves)
+		{
+			var forward = destination - basePos;
+			var rotation = Rand.Value > 0.5 ? Rot4.East : Rot4.West;
+			var divert = basePos + forward.RotatedBy(rotation);
+			if (possibleMoves.Contains(divert))
+				destination = divert;
+			else
+			{
+				rotation = rotation == Rot4.East ? Rot4.West : Rot4.East;
+				divert = basePos + forward.RotatedBy(rotation);
+				if (possibleMoves.Contains(divert))
+					destination = divert;
+				else
+				{
+					var n = possibleMoves.Count();
+					destination = possibleMoves[Constants.random.Next(n)];
+				}
+			}
+		}
+
+		int CountSurroundingZombies(IntVec3 pos, Map map, PheromoneGrid grid)
+		{
+			return GenAdj.AdjacentCellsAndInside.Select(vec => pos + vec)
+				.Where(c => c.InBounds(map))
+				.Select(c => grid.GetZombieCount(c))
+				.Sum();
+		}
+
+		void StartRage(Zombie zombie, int count)
+		{
+			zombie.raging = true;
+			Tools.CastThoughtBubble(zombie, Constants.RAGING);
+
+			if (Constants.USE_SOUND)
+			{
+				var info = SoundInfo.InMap(zombie);
+				SoundDef.Named("ZombieRage").PlayOneShot(info);
+			}
 		}
 
 		void MoveToCell(LocalTargetInfo dest)
 		{
-			var zombie = (Zombie)pawn;
-			zombie.Map.GetGrid().ChangeZombieCount(dest.Cell, 1);
-			zombie.pather.StartPath(dest, PathEndMode.OnCell);
+			pawn.pather.StartPath(dest, PathEndMode.OnCell);
 		}
 
 		void CastEatingSound()

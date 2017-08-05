@@ -6,12 +6,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Xml;
 using UnityEngine;
 using Verse;
 
 namespace ZombieLand
 {
-	/*
 	class Measure
 	{
 		Stopwatch sw;
@@ -41,13 +41,13 @@ namespace ZombieLand
 			Checkpoint();
 		}
 	}
-	*/
 
 	[StaticConstructorOnStartup]
 	static class Tools
 	{
 		public static ZombieGenerator generator = new ZombieGenerator();
 		public static ZombieAvoider avoider = new ZombieAvoider();
+		public static ZombieWanderer wanderer = new ZombieWanderer();
 		public static Texture2D MenuIcon;
 		public static Texture2D ZombieButtonBackground;
 
@@ -238,17 +238,18 @@ namespace ZombieLand
 		public static void ChainReact(Map map, IntVec3 basePos, IntVec3 nextMove)
 		{
 			var grid = map.GetGrid();
-			var baseTimestamp = grid.GetPheromone(nextMove, false).timestamp;
-			for (var i = 0; i < 9; i++)
-			{
-				var pos = basePos + GenAdj.AdjacentCellsAndInside[i];
-				if (pos.x != nextMove.x || pos.z != nextMove.z && pos.InBounds(map))
+			var baseTimestamp = grid.GetTimestamp(nextMove);
+			if (baseTimestamp > 0)
+				for (var i = 0; i < 9; i++)
 				{
-					var distance = Math.Abs(nextMove.x - pos.x) + Math.Abs(nextMove.z - pos.z);
-					var timestamp = baseTimestamp - distance * Constants.ZOMBIE_CLOGGING_FACTOR * 2;
-					grid.SetTimestamp(pos, timestamp);
+					var pos = basePos + GenAdj.AdjacentCellsAndInside[i];
+					if (pos.x != nextMove.x || pos.z != nextMove.z && pos.InBounds(map))
+					{
+						var distance = Math.Abs(nextMove.x - pos.x) + Math.Abs(nextMove.z - pos.z);
+						var timestamp = baseTimestamp - distance * Constants.ZOMBIE_CLOGGING_FACTOR * 2;
+						grid.SetTimestamp(pos, timestamp);
+					}
 				}
-			}
 		}
 
 		public static void AutoExposeDataWithDefaults<T>(this T settings) where T : new()
@@ -377,6 +378,46 @@ namespace ZombieLand
 		{
 			var ticks = GenDate.TicksPerHour * hours;
 			return ticks.ToStringTicksToPeriod(true, true, false);
+		}
+
+		public static void Look<T>(ref T[] list, string label, params object[] ctorArgs) where T : IExposable
+		{
+			if (Scribe.EnterNode(label) == false) return;
+
+			try
+			{
+				if (Scribe.mode == LoadSaveMode.Saving)
+				{
+					if (list == null)
+						Scribe.saver.WriteAttribute("IsNull", "True");
+					else
+					{
+						foreach (var current in list)
+						{
+							var t2 = current;
+							Scribe_Deep.Look<T>(ref t2, false, "li", ctorArgs);
+						}
+					}
+				}
+				else if (Scribe.mode == LoadSaveMode.LoadingVars)
+				{
+					var curXmlParent = Scribe.loader.curXmlParent;
+					var xmlAttribute = curXmlParent.Attributes["IsNull"];
+					if (xmlAttribute != null && xmlAttribute.Value.ToLower() == "true")
+						list = null;
+					else
+					{
+						list = new T[curXmlParent.ChildNodes.Count];
+						var i = 0;
+						foreach (var subNode2 in curXmlParent.ChildNodes)
+							list[i++] = ScribeExtractor.SaveableFromNode<T>((XmlNode)subNode2, ctorArgs);
+					}
+				}
+			}
+			finally
+			{
+				Scribe.ExitNode();
+			}
 		}
 
 		public static List<CodeInstruction> NotZombieInstructions(ILGenerator generator, MethodBase method)

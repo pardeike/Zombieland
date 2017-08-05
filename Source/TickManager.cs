@@ -17,6 +17,7 @@ namespace ZombieLand
 		int visibleGridUpdateCounter;
 		int avoidGridCounter;
 
+		public IntVec3 centerOfInterest = IntVec3.Invalid;
 		public int currentColonyPoints;
 
 		public List<Zombie> prioritizedZombies;
@@ -37,16 +38,22 @@ namespace ZombieLand
 			var zombieFaction = Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies);
 			if (!destinations.ContainsKey(zombieFaction)) map.pawnDestinationManager.RegisterFaction(zombieFaction);
 
-			var specs = AllZombies().Select(zombie => new ZombieCostSpecs()
-			{
-				position = zombie.Position,
-				radius = ZombieAvoidRadius(zombie),
-				maxCosts = ZombieMaxCosts(zombie)
-
-			}).ToList();
+			var grid = map.GetGrid();
+			grid.IterateCellsQuick(cell => cell.zombieCount = 0);
+			AllZombies().Do(zombie => grid.ChangeZombieCount(zombie.Position, 1));
 
 			if (ZombieSettings.Values.betterZombieAvoidance)
+			{
+				var specs = AllZombies().Select(zombie => new ZombieCostSpecs()
+				{
+					position = zombie.Position,
+					radius = ZombieAvoidRadius(zombie),
+					maxCosts = ZombieMaxCosts(zombie)
+
+				}).ToList();
+
 				avoidGrid = Tools.avoider.UpdateZombiePositionsImmediately(map, specs);
+			}
 			else
 				avoidGrid = new AvoidGrid(map);
 		}
@@ -70,19 +77,27 @@ namespace ZombieLand
 				prioritizedZombies = AllZombies().ToList();
 				var home = map.areaManager.Home;
 				if (home.TrueCount > 0)
+				{
 					prioritizedZombies.Do(zombie => zombie.wanderDestination = home.ActiveCells.RandomElement());
+					var cells = home.ActiveCells;
+					centerOfInterest = new IntVec3(
+						(int)Math.Round(cells.Average(c => c.x)),
+						0/*(int)Math.Round(cells.Average(c => c.y))*/,
+						(int)Math.Round(cells.Average(c => c.z))
+					);
+				}
 				else
 				{
-					var center = Tools.CenterOfInterest(map);
-					prioritizedZombies.Do(zombie => zombie.wanderDestination = center);
+					centerOfInterest = Tools.CenterOfInterest(map);
+					prioritizedZombies.Do(zombie => zombie.wanderDestination = centerOfInterest);
 				}
 
 				var grid = map.GetGrid();
 				prioritizedZombies.Sort(
 					delegate (Zombie z1, Zombie z2)
 					{
-						var v1 = grid.GetPheromone(z1.Position).timestamp;
-						var v2 = grid.GetPheromone(z2.Position).timestamp;
+						var v1 = grid.GetTimestamp(z1.Position);
+						var v2 = grid.GetTimestamp(z2.Position);
 						var order = v2.CompareTo(v1);
 						if (order != 0) return order;
 						var d1 = z1.Position.DistanceToSquared(z1.wanderDestination);
@@ -224,9 +239,8 @@ namespace ZombieLand
 				if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return;
 				if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly) return;
 
-				var zombieCount = ZombieCount() + Tools.generator.ZombiesQueued(map);
-				var zombieDestCount = GetMaxZombieCount();
-				if (zombieCount < zombieDestCount)
+				var numberOfZombies = ZombieCount() + Tools.generator.ZombiesQueued(map);
+				if (numberOfZombies < GetMaxZombieCount())
 				{
 					switch (ZombieSettings.Values.spawnHowType)
 					{
@@ -250,7 +264,6 @@ namespace ZombieLand
 							}
 					}
 				}
-
 			}
 		}
 

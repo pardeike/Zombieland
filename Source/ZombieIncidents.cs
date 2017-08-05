@@ -64,7 +64,12 @@ namespace ZombieLand
 			{
 				if (ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap)
 				{
-					RCellFinder.TryFindRandomSpotJustOutsideColony(Tools.CenterOfInterest(map), map, null, out spot, spotValidator);
+					var tickManager = map.GetComponent<TickManager>();
+					var center = tickManager != null ? tickManager.centerOfInterest : IntVec3.Invalid;
+					if (center.IsValid == false)
+						center = Tools.CenterOfInterest(map);
+
+					RCellFinder.TryFindRandomSpotJustOutsideColony(center, map, null, out spot, spotValidator);
 					headline = "LetterLabelZombiesRisingNearYourBase".Translate();
 					text = "ZombiesRisingNearYourBase".Translate();
 				}
@@ -97,7 +102,8 @@ namespace ZombieLand
 			var location = new GlobalTargetInfo(spot, map);
 			Find.LetterStack.ReceiveLetter(headline, text, LetterDefOf.BadUrgent, location);
 
-			SoundDef.Named("ZombiesRising").PlayOneShotOnCamera(null);
+			if (Constants.USE_SOUND)
+				SoundDef.Named("ZombiesRising").PlayOneShotOnCamera(null);
 			return true;
 		}
 	}

@@ -28,16 +28,29 @@ namespace ZombieLand
 			static void Postfix()
 			{
 				if (Constants.DEBUGGRID == false) return;
-				var now = Tools.Ticks();
-				var fadeOff = Tools.PheromoneFadeoff();
-				Find.VisibleMap.GetGrid().IterateCells((x, z, pheromone) =>
+
+				// debug zombie counts
+				Find.VisibleMap.GetGrid().IterateCells((x, z, cell) =>
 				{
 					var pos = new Vector3(x, Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1), z);
-					var diff = now - pheromone.timestamp;
+					if (cell.zombieCount > 1)
+					{
+						var a = Math.Min(0.9f, 0.2f * (cell.zombieCount - 1));
+						Tools.DebugPosition(pos, new Color(0f, 0f, 1f, a));
+					}
+				});
+
+				// debug timestamps
+				var fadeOff = Tools.PheromoneFadeoff();
+				var now = Tools.Ticks();
+				Find.VisibleMap.GetGrid().IterateCells((x, z, cell) =>
+				{
+					var pos = new Vector3(x, Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1), z);
+					var diff = now - cell.timestamp;
 					if (diff < fadeOff)
 					{
-						var a = (double)(fadeOff - diff) * 0.8f / fadeOff;
-						Tools.DebugPosition(pos, new Color(1f, 0f, 0f, (float)a));
+						var a = (fadeOff - diff) * 0.5f / fadeOff;
+						Tools.DebugPosition(pos, new Color(1f, 0f, 0f, a));
 					}
 				});
 			}
@@ -357,7 +370,7 @@ namespace ZombieLand
 
 				var tickManager = map.GetComponent<TickManager>();
 				var center = Tools.CenterOfInterest(map);
-				builder.AppendLine("Center of Interest: " + center.x + "/" + center.z);
+				builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount());
 				builder.AppendLine("Ticked zombies: " + tickedZombies + " out of " + ofTotalZombies);
 				builder.AppendLine("Days left before Zombies spawn: " + Math.Max(0, ZombieSettings.Values.daysBeforeZombiesCome - GenDate.DaysPassedFloat));
@@ -367,35 +380,46 @@ namespace ZombieLand
 					builder.AppendLine("Avoid cost: " + avoidGrid.GetCosts()[pos.x + pos.z * map.Size.x]);
 				}
 
-				if (Constants.DEBUGGRID == false) return;
-
 				if (pos.InBounds(map) == false) return;
 
-				pos.GetThingList(map).OfType<Zombie>().Do(zombie =>
+				var cell = map.GetGrid().GetPheromone(pos, false);
+				if (cell != null)
 				{
-					var dest = zombie.pather.Destination.Cell;
-					var wanderTo = zombie.wanderDestination;
-					builder.AppendLine("Zombie " + zombie.NameStringShort + ": " + zombie.state + " at " + dest.x + "/" + dest.z + " -> " + wanderTo.x + "/" + wanderTo.z);
-				});
+					var realZombieCount = pos.GetThingList(map).OfType<Zombie>().Count();
+					var timestampDiff = Tools.Ticks() - cell.timestamp;
 
-				var fadeOff = Tools.PheromoneFadeoff();
-				GenAdj.AdjacentCellsAndInside
-					.Select(cell => pos + cell)
-					.Where(cell => cell.InBounds(map))
-					.Do(loc =>
-					{
-						var cell = map.GetGrid().GetPheromone(loc, false);
-						if (cell.timestamp > 0)
-						{
-							var now = Tools.Ticks();
-							var diff = now - cell.timestamp;
-							var realZombieCount = loc.GetThingList(map).OfType<Zombie>().Count();
-							builder.AppendLine(loc.x + " " + loc.z + ": " + cell.zombieCount + "z (" + realZombieCount + "z), "
-								+ cell.timestamp + (diff < fadeOff ? (", +" + diff) : ""));
-						}
-						else
-							builder.AppendLine(loc.x + " " + loc.z + ": empty");
-					});
+					var sb = new StringBuilder();
+					sb.Append("Zombie grid: " + cell.zombieCount + " zombies");
+					if (cell.zombieCount != realZombieCount) sb.Append(" (real " + realZombieCount + ")");
+					sb.Append(", timestamp " + (timestampDiff > 0 ? "+" + timestampDiff : "" + timestampDiff));
+					builder.AppendLine(sb.ToString());
+				}
+				else
+					builder.AppendLine(pos.x + " " + pos.z + ": empty");
+
+				var gridSum = GenAdj.AdjacentCellsAndInside.Select(vec => pos + vec)
+					.Where(c => c.InBounds(map))
+					.Select(c => map.GetGrid().GetZombieCount(c))
+					.Sum();
+				var realSum = GenAdj.AdjacentCellsAndInside.Select(vec => pos + vec)
+					.Where(c => c.InBounds(map))
+					.Select(c => map.thingGrid.ThingsListAtFast(c).OfType<Zombie>().Count())
+					.Sum();
+				builder.AppendLine("Rage factor: grid=" + gridSum + ", real=" + realSum);
+
+				map.thingGrid.ThingsListAtFast(pos).OfType<Zombie>().Do(zombie =>
+				{
+					var currPos = zombie.Position;
+					var gotoPos = zombie.pather?.Destination.Cell ?? IntVec3.Invalid;
+					var wanderTo = zombie.wanderDestination;
+					var sb = new StringBuilder();
+					sb.Append("Zombie " + zombie.NameStringShort + " at " + currPos.x + "," + currPos.z);
+					sb.Append(", " + zombie.state.ToString().ToLower());
+					if (zombie.raging) sb.Append(", raging ");
+					sb.Append(", going to " + gotoPos.x + "," + gotoPos.z);
+					sb.Append(" (wander dest " + wanderTo.x + "," + wanderTo.z + ")");
+					builder.AppendLine(sb.ToString());
+				});
 			}
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -474,39 +498,35 @@ namespace ZombieLand
 				var pawn = __instance as Pawn;
 				if (pawn == null || pawn.Map == null) return;
 
-				// manhunting will always trigger senses
-				//
-				if (pawn.MentalState == null || (pawn.MentalState.def != def1 && pawn.MentalState.def != def2))
-				{
-					if (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans)
-						if (pawn.RaceProps.Humanlike == false) return;
-
-					if (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists)
-						if (pawn.IsColonist == false) return;
-				}
-
-				var pos = pawn.Position;
-				if (pos.x == value.x && pos.z == value.z) return;
-
 				var zombie = pawn as Zombie;
 				if (zombie != null)
 				{
 					var grid = pawn.Map.GetGrid();
-					grid.ChangeZombieCount(pos, -1);
+					grid.ChangeZombieCount(pawn.Position, -1);
+					grid.ChangeZombieCount(value, 1);
 
-					var newPos = grid.GetPheromone(value);
-
-					if (newPos.zombieCount > 0)
+					var newCell = grid.GetPheromone(value, false);
+					if (newCell != null && newCell.zombieCount > 0)
 					{
-						newPos.timestamp -= newPos.zombieCount * Constants.ZOMBIE_CLOGGING_FACTOR;
-						var currentTicks = Tools.Ticks();
-						var notOlderThan = currentTicks - Tools.PheromoneFadeoff();
-						if (newPos.timestamp < notOlderThan)
-							newPos.timestamp = notOlderThan;
+						newCell.timestamp -= newCell.zombieCount * Constants.ZOMBIE_CLOGGING_FACTOR;
+						var notOlderThan = Tools.Ticks() - Tools.PheromoneFadeoff();
+						if (newCell.timestamp < notOlderThan)
+							newCell.timestamp = notOlderThan;
 					}
 				}
 				else
 				{
+					// manhunting will always trigger senses
+					//
+					if (pawn.MentalState == null || (pawn.MentalState.def != def1 && pawn.MentalState.def != def2))
+					{
+						if (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans)
+							if (pawn.RaceProps.Humanlike == false) return;
+
+						if (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists)
+							if (pawn.IsColonist == false) return;
+					}
+
 					if (Tools.HasInfectionState(pawn, InfectionState.Infecting) == false)
 					{
 						var now = Tools.Ticks();
@@ -802,6 +822,22 @@ namespace ZombieLand
 				}
 
 				return true;
+			}
+
+			static void Postfix(PawnRenderer __instance, Vector3 drawLoc)
+			{
+				var zombie = __instance.graphics.pawn as Zombie;
+				if (zombie == null || zombie.raging == false) return;
+
+				drawLoc.y = Altitudes.AltitudeFor(AltitudeLayer.FlyingItem);
+				var rot = Quaternion.identity;
+				var scale = 2.5f;
+				if (!Find.TickManager.Paused)
+				{
+					rot = Quaternion.Euler(Rand.Value * 10 - 5, Rand.Value * 10 - 5, Rand.Value * 10 - 5);
+					scale += Rand.Value / 2;
+				}
+				GraphicToolbox.DrawScaledMesh(MeshPool.plane10, Constants.RAGE_INDICATOR, drawLoc, rot, scale, scale);
 			}
 		}
 
@@ -1279,16 +1315,19 @@ namespace ZombieLand
 				var grid = pawn.Map.GetGrid();
 				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)
 				{
-					var timestamp = grid.GetPheromone(pawn.Position).timestamp;
-					var radius = Tools.RadiusForPawn(pawn) * Constants.KILL_CIRCLE_RADIUS_MULTIPLIER;
-					radius /= ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
-					Tools.GetCircle(radius).Do(vec =>
+					var timestamp = grid.GetTimestamp(pawn.Position);
+					if (timestamp > 0)
 					{
-						var pos = pawn.Position + vec;
-						var cell = grid.GetPheromone(pos, false);
-						if (cell.timestamp > 0 && cell.timestamp <= timestamp)
-							grid.SetTimestamp(pos, 0);
-					});
+						var radius = Tools.RadiusForPawn(pawn) * Constants.KILL_CIRCLE_RADIUS_MULTIPLIER;
+						radius /= ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
+						Tools.GetCircle(radius).Do(vec =>
+						{
+							var pos = pawn.Position + vec;
+							var cell = grid.GetPheromone(pos, false);
+							if (cell != null && cell.timestamp > 0 && cell.timestamp <= timestamp)
+								cell.timestamp = 0;
+						});
+					}
 				}
 				grid.SetTimestamp(pawn.Position, 0);
 			}
@@ -1321,14 +1360,14 @@ namespace ZombieLand
 				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)
 				{
 					var grid = pawn.Map.GetGrid();
-					var timestamp = grid.GetPheromone(pawn.Position).timestamp;
+					var timestamp = grid.GetTimestamp(pawn.Position);
 					var radius = Tools.RadiusForPawn(pawn) * Constants.KILL_CIRCLE_RADIUS_MULTIPLIER;
 					radius /= ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
 					Tools.GetCircle(radius).Do(vec =>
 					{
 						var pos = pawn.Position + vec;
 						var cell = grid.GetPheromone(pos, false);
-						if (cell.timestamp > 0 && cell.timestamp <= timestamp)
+						if (cell != null && cell.timestamp > 0 && cell.timestamp <= timestamp)
 							grid.SetTimestamp(pos, 0);
 					});
 				}

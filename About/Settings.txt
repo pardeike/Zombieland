@@ -68,8 +68,11 @@ ZOMBIE_HIT_CHANCE_TRACKING = 0.7
 // that get selected for moving. Default is 3
 NUMBER_OF_TOP_MOVEMENT_PICKS = 3
 
-// The chance a zombie does not move during idle movement. Default 0.6 (60%)
+// The chance a zombie does not move during idle movement. Default is 0.6 (60%)
 STANDING_STILL_CHANCE = 0.6
+
+// The chance a raging zombie diverts from the main path. Default is 0.15 (15%)
+DIVERTING_FROM_RAGE = 0.15
 
 // This controls the grouping of zombies. The higher the number, the quicker
 // will zombies loose interest in a trace if there are many zombies close to
@@ -80,6 +83,13 @@ ZOMBIE_CLOGGING_FACTOR = 10000
 // When zombies kill something, this radius is applied to disburst them from
 // the target in a random way. Default is 0.0 (off)
 KILL_CIRCLE_RADIUS_MULTIPLIER = 0.0
+
+// Muzzle flash value to base all other "how loud" calculations on.
+// Default is 9 (vanilla Rimworld)
+BASE_MUZZLE_FLASH_VALUE = 9
+
+// Number of surrounding zombies it takes to make a zombie rage. Default is 12
+SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 12
 
 // For the spawn incident, this defines the area size in where this event will
 // take place. Default is 10

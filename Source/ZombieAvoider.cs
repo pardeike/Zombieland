@@ -101,6 +101,8 @@ namespace ZombieLand
 
 				goto EndlessLoop;
 			});
+
+			//workerThread.Priority = ThreadPriority.Lowest;
 			workerThread.Start();
 		}
 

@@ -7,8 +7,6 @@ namespace ZombieLand
 {
 	public class Pheromone : IExposable
 	{
-		public static Pheromone empty = new Pheromone();
-
 		public long timestamp;
 		public int zombieCount;
 
@@ -32,88 +30,88 @@ namespace ZombieLand
 
 	public class PheromoneGrid : MapComponent
 	{
-		List<Pheromone> grid;
+		Pheromone[] grid;
 
-		readonly int mapSizeX;
-		readonly int mapSizeZ;
+		int mapSizeX;
+		int mapSizeZ;
 
 		public PheromoneGrid(Map map) : base(map)
 		{
 			mapSizeX = map.Size.x;
 			mapSizeZ = map.Size.z;
-			grid = new Pheromone[mapSizeX * mapSizeZ].ToList();
+			grid = new Pheromone[mapSizeX * mapSizeZ];
 		}
 
 		public override void ExposeData()
 		{
 			base.ExposeData();
-			Scribe_Collections.Look(ref grid, "pheromones", LookMode.Deep, new object[0]);
-		}
 
-		public int Count()
-		{
-			return grid.Count;
+			Tools.Look(ref grid, "pheromones", new object[0]);
+			Scribe_Values.Look(ref mapSizeX, "mapx");
+			Scribe_Values.Look(ref mapSizeZ, "mapz");
+
+			if (mapSizeX == 0 || mapSizeZ == 0)
+			{
+				mapSizeX = (int)Math.Sqrt(grid.Length);
+				mapSizeZ = mapSizeX;
+			}
 		}
 
 		public void IterateCells(Action<int, int, Pheromone> callback)
 		{
 			for (var z = 0; z < mapSizeZ; z++)
+			{
+				var baseIndex = z * mapSizeX;
 				for (var x = 0; x < mapSizeX; x++)
 				{
-					var cell = grid[CellToIndex(x, z)];
-					if (cell != null) callback(x, z, cell);
+					var cell = grid[baseIndex + x];
+					if (cell != null)
+						callback(x, z, cell);
 				}
+			}
+		}
+
+		public void IterateCellsQuick(Action<Pheromone> callback)
+		{
+			foreach (var cell in grid)
+				if (cell != null)
+					callback(cell);
 		}
 
 		public Pheromone GetPheromone(IntVec3 position, bool create = true)
 		{
 			if (position.x < 0 || position.x >= mapSizeX || position.z < 0 || position.z >= mapSizeZ)
-				return Pheromone.empty;
-			var cell = grid[CellToIndex(position)];
-			if (cell == null)
+				return null;
+
+			var idx = (position.z * mapSizeX) + position.x;
+			var cell = grid[idx];
+			if (cell == null && create)
 			{
-				cell = Pheromone.empty;
-				if (create)
-					grid[CellToIndex(position)] = cell;
+				cell = new Pheromone();
+				grid[idx] = cell;
 			}
 			return cell;
 		}
 
-		public void SetTimestamp(IntVec3 position, long timestamp = 0)
+		public long GetTimestamp(IntVec3 position)
 		{
-			if (position.x < 0 || position.x >= mapSizeX || position.z < 0 || position.z >= mapSizeZ) return;
-			var cell = grid[CellToIndex(position)];
-			if (cell == null)
-				grid[CellToIndex(position)] = new Pheromone(timestamp);
-			else
-				grid[CellToIndex(position)].timestamp = timestamp;
+			return GetPheromone(position, false)?.timestamp ?? 0;
+		}
+
+		public void SetTimestamp(IntVec3 position, long timestamp)
+		{
+			GetPheromone(position).timestamp = timestamp;
+		}
+
+		public int GetZombieCount(IntVec3 position)
+		{
+			return GetPheromone(position, false)?.zombieCount ?? 0;
 		}
 
 		public void ChangeZombieCount(IntVec3 position, int change)
 		{
-			if (position.x < 0 || position.x >= mapSizeX || position.z < 0 || position.z >= mapSizeZ) return;
-			var cell = grid[CellToIndex(position)];
-			if (cell == null)
-			{
-				grid[CellToIndex(position)] = new Pheromone()
-				{
-					zombieCount = Math.Max(0, change)
-				};
-			}
-			else
-				grid[CellToIndex(position)].zombieCount = Math.Max(0, cell.zombieCount + change);
-		}
-
-		//
-
-		int CellToIndex(IntVec3 c)
-		{
-			return ((c.z * mapSizeX) + c.x);
-		}
-
-		int CellToIndex(int x, int z)
-		{
-			return ((z * mapSizeX) + x);
+			var cell = GetPheromone(position);
+			cell.zombieCount = Math.Max(0, cell.zombieCount + change);
 		}
 	}
 }

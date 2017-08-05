@@ -75,7 +75,7 @@ namespace ZombieLand
 
 		// general debugging and testing
 		//
-		public static bool DEBUGGRID;
+		public static bool DEBUGGRID = false;
 		public static bool USE_SOUND = true;
 		public static int DEBUG_COLONY_POINTS = 0;
 
@@ -103,9 +103,11 @@ namespace ZombieLand
 		public static float ZOMBIE_HIT_CHANCE_TRACKING = 0.7f;
 		public static int NUMBER_OF_TOP_MOVEMENT_PICKS = 3;
 		public static float STANDING_STILL_CHANCE = 0.6f;
+		public static float DIVERTING_FROM_RAGE = 0.15f;
 		public static int ZOMBIE_CLOGGING_FACTOR = 10000;
 		public static float KILL_CIRCLE_RADIUS_MULTIPLIER = 0f;
 		public static float BASE_MUZZLE_FLASH_VALUE = 9f;
+		public static float SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 12;
 
 		// rubble
 		//
@@ -128,6 +130,8 @@ namespace ZombieLand
 		//
 		public static float MIN_WEAPON_RANGE = 2f;
 		public static float MAX_WEAPON_RANGE = 30f;
+		public static Material RAGE_INDICATOR = MaterialPool.MatFrom("RageIndicator", ShaderDatabase.Transparent, Color.white);
+		public static Material RAGING = MaterialPool.MatFrom("Rage", ShaderDatabase.Cutout);
 		public static Material RUBBLE = MaterialPool.MatFrom("Rubble", ShaderDatabase.Cutout);
 		public static Material BRRAINZ = MaterialPool.MatFrom("Brrainz", ShaderDatabase.Cutout);
 		public static Material EATING = MaterialPool.MatFrom("Eating", ShaderDatabase.Cutout);

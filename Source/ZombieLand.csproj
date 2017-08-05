@@ -42,6 +42,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>D:\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin_Data\Managed\UnityEngine.dll</HintPath>
       <Private>False</Private>
@@ -62,6 +63,7 @@
     <Compile Include="JobGiver.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="ZombieAvoider.cs" />
+    <Compile Include="ZombieWanderer.cs" />
     <Compile Include="_translate\Mono_HTTP_Helpers.cs" />
     <Compile Include="_translate\Mono_HTTP_HtmlEncoder.cs" />
     <Compile Include="_translate\Mono_HTTP_HttpUtility.cs" />
