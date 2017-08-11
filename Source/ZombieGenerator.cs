@@ -56,14 +56,14 @@ namespace ZombieLand
 				}
 				catch (Exception e)
 				{
-					Log.Error("ZombieAvoider thread error: " + e);
+					Log.Warning("ZombieAvoider thread error: " + e);
 					Thread.Sleep(500);
 				}
 
 				goto EndlessLoop;
 			});
 
-			//workerThread.Priority = System.Threading.ThreadPriority.Lowest;
+			workerThread.Priority = System.Threading.ThreadPriority.Lowest;
 			workerThread.Start();
 		}
 
@@ -103,6 +103,24 @@ namespace ZombieLand
 				return new Color(0.25f, 0.2f, 0.15f);
 
 			return new Color(0.3f, 0.2f, 0.1f);
+		}
+
+		static IntVec2 SideEyeOffset(string headPath)
+		{
+			return (new Dictionary<string, IntVec2>() {
+				{ "Female_Average_Normal", new IntVec2(11, -5) },
+				{ "Female_Average_Pointy", new IntVec2(11, -5) },
+				{ "Female_Average_Wide", new IntVec2(11, -6) },
+				{ "Female_Narrow_Normal", new IntVec2(10, -7) },
+				{ "Female_Narrow_Pointy", new IntVec2(8, -8) },
+				{ "Female_Narrow_Wide", new IntVec2(9, -8) },
+				{ "Male_Average_Normal", new IntVec2(15, -7) },
+				{ "Male_Average_Pointy", new IntVec2(14, -6) },
+				{ "Male_Average_Wide", new IntVec2(15, -7) },
+				{ "Male_Narrow_Normal", new IntVec2(9, -8) },
+				{ "Male_Narrow_Pointy", new IntVec2(8, -8) },
+				{ "Male_Narrow_Wide", new IntVec2(10, -8) }
+			})[headPath];
 		}
 
 		public static Zombie GeneratePawn()
@@ -166,6 +184,7 @@ namespace ZombieLand
 				AssignNewCustomGraphics(zombie);
 
 			zombie.Drawer.leaner = new ZombieLeaner(zombie);
+			Traverse.Create(zombie.pather).Field("destination").SetValue(IntVec3.Invalid);
 
 			return zombie;
 		}
@@ -184,6 +203,8 @@ namespace ZombieLand
 			var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
 			zombie.customHeadGraphic = Activator.CreateInstance<VariableGraphic>();
 			zombie.customHeadGraphic.Init(headRequest);
+
+			zombie.sideEyeOffset = SideEyeOffset(headPath.ReplaceFirst("Zombie/", ""));
 		}
 
 		public static void FinalizeZombieGeneration(Zombie zombie)

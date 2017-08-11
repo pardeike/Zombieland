@@ -11,6 +11,7 @@ namespace ZombieLand
 	public static class GraphicsDatabase
 	{
 		public static List<string> ZombieRGBSkinColors = new List<string>();
+		public static Graphic TwinkieGraphic;
 
 		static Dictionary<string, ColorData> database = new Dictionary<string, ColorData>();
 		static string textureRoot = Tools.GetModRootDirectory() + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar;
@@ -56,6 +57,14 @@ namespace ZombieLand
 					database.Add(key, data);
 				}
 			});
+
+			var graphicData = new GraphicData()
+			{
+				shaderType = ShaderType.Cutout,
+				texPath = "Twinkie",
+				graphicClass = typeof(Graphic_Single)
+			};
+			TwinkieGraphic = graphicData.Graphic;
 		}
 
 		static void LoadSkinColors()

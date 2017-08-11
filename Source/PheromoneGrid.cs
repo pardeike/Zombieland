@@ -100,18 +100,20 @@ namespace ZombieLand
 
 		public void SetTimestamp(IntVec3 position, long timestamp)
 		{
-			GetPheromone(position).timestamp = timestamp;
+			var cell = GetPheromone(position);
+			if (cell != null) cell.timestamp = timestamp;
 		}
 
 		public int GetZombieCount(IntVec3 position)
 		{
+			var cell = GetPheromone(position);
 			return GetPheromone(position, false)?.zombieCount ?? 0;
 		}
 
 		public void ChangeZombieCount(IntVec3 position, int change)
 		{
 			var cell = GetPheromone(position);
-			cell.zombieCount = Math.Max(0, cell.zombieCount + change);
+			if (cell != null) cell.zombieCount = cell.zombieCount + change;
 		}
 	}
 }

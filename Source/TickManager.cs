@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using UnityEngine;
 using Verse;
 
 namespace ZombieLand
@@ -20,27 +19,26 @@ namespace ZombieLand
 		public IntVec3 centerOfInterest = IntVec3.Invalid;
 		public int currentColonyPoints;
 
-		public List<Zombie> prioritizedZombies;
+		public List<Zombie> allZombiesCached;
 		public AvoidGrid avoidGrid = null;
 		public AvoidGrid emptyAvoidGrid = null;
 
 		public TickManager(Map map) : base(map)
 		{
 			currentColonyPoints = 100;
-			prioritizedZombies = new List<Zombie>();
+			allZombiesCached = new List<Zombie>();
 		}
 
 		public override void FinalizeInit()
 		{
 			base.FinalizeInit();
 
+			var grid = map.GetGrid();
+			grid.IterateCellsQuick(cell => cell.zombieCount = 0);
+
 			var destinations = Traverse.Create(map.pawnDestinationManager).Field("reservedDestinations").GetValue<Dictionary<Faction, Dictionary<Pawn, IntVec3>>>();
 			var zombieFaction = Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies);
 			if (!destinations.ContainsKey(zombieFaction)) map.pawnDestinationManager.RegisterFaction(zombieFaction);
-
-			var grid = map.GetGrid();
-			grid.IterateCellsQuick(cell => cell.zombieCount = 0);
-			AllZombies().Do(zombie => grid.ChangeZombieCount(zombie.Position, 1));
 
 			if (ZombieSettings.Values.betterZombieAvoidance)
 			{
@@ -62,8 +60,8 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 			Scribe_Values.Look(ref currentColonyPoints, "colonyPoints");
-			Scribe_Collections.Look(ref prioritizedZombies, "prioritizedZombies", LookMode.Reference);
-			prioritizedZombies = prioritizedZombies.Where(zombie => zombie != null).ToList();
+			Scribe_Collections.Look(ref allZombiesCached, "prioritizedZombies", LookMode.Reference);
+			allZombiesCached = allZombiesCached.Where(zombie => zombie != null).ToList();
 		}
 
 		public void RecalculateVisibleMap()
@@ -74,38 +72,23 @@ namespace ZombieLand
 
 				currentColonyPoints = Tools.ColonyPoints();
 
-				prioritizedZombies = AllZombies().ToList();
+				allZombiesCached = AllZombies().ToList();
 				var home = map.areaManager.Home;
 				if (home.TrueCount > 0)
 				{
-					prioritizedZombies.Do(zombie => zombie.wanderDestination = home.ActiveCells.RandomElement());
+					allZombiesCached.Do(zombie => zombie.wanderDestination = home.ActiveCells.RandomElement());
 					var cells = home.ActiveCells;
 					centerOfInterest = new IntVec3(
 						(int)Math.Round(cells.Average(c => c.x)),
-						0/*(int)Math.Round(cells.Average(c => c.y))*/,
+						0,
 						(int)Math.Round(cells.Average(c => c.z))
 					);
 				}
 				else
 				{
 					centerOfInterest = Tools.CenterOfInterest(map);
-					prioritizedZombies.Do(zombie => zombie.wanderDestination = centerOfInterest);
+					allZombiesCached.Do(zombie => zombie.wanderDestination = centerOfInterest);
 				}
-
-				var grid = map.GetGrid();
-				prioritizedZombies.Sort(
-					delegate (Zombie z1, Zombie z2)
-					{
-						var v1 = grid.GetTimestamp(z1.Position);
-						var v2 = grid.GetTimestamp(z2.Position);
-						var order = v2.CompareTo(v1);
-						if (order != 0) return order;
-						var d1 = z1.Position.DistanceToSquared(z1.wanderDestination);
-						var d2 = z2.Position.DistanceToSquared(z2.wanderDestination);
-						return d1.CompareTo(d2);
-					}
-				);
-
 			}
 		}
 
@@ -123,8 +106,9 @@ namespace ZombieLand
 
 		public void ZombieTicking(Stopwatch watch)
 		{
-			var maxTickTime = (1f / (60f / Constants.FRAME_TIME_FACTOR)) / Find.TickManager.TickRateMultiplier * Stopwatch.Frequency;
-			var zombies = prioritizedZombies.Where(zombie => zombie.Map == map).ToList();
+			var maxTickTime = Constants.TOTAL_ZOMBIE_FRAME_TIME / Find.TickManager.TickRateMultiplier * Stopwatch.Frequency;
+			var zombies = allZombiesCached.Where(zombie => zombie.Map == map).ToList();
+			zombies.Shuffle();
 			var total = zombies.Count;
 			var ticked = 0;
 			foreach (var zombie in zombies)
@@ -159,9 +143,6 @@ namespace ZombieLand
 				ZombieGenerator.FinalizeZombieGeneration(result.zombie);
 				GenPlace.TryPlaceThing(result.zombie, result.cell, result.map, ThingPlaceMode.Direct);
 
-				var grid = result.map.GetGrid();
-				grid.ChangeZombieCount(result.cell, 1);
-
 			}
 		}
 
@@ -169,6 +150,8 @@ namespace ZombieLand
 		{
 			if (zombie.wasColonist)
 				return 10f;
+			if (zombie.raging > 0)
+				return 5f;
 			switch (zombie.state)
 			{
 				case ZombieState.Wandering:
@@ -182,7 +165,7 @@ namespace ZombieLand
 
 		public float ZombieMaxCosts(Zombie zombie)
 		{
-			if (zombie.wasColonist)
+			if (zombie.wasColonist || zombie.raging > 0)
 				return 8000f;
 			return 3000f;
 		}

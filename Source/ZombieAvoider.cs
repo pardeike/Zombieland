@@ -95,14 +95,14 @@ namespace ZombieLand
 				}
 				catch (Exception e)
 				{
-					Log.Error("ZombieAvoider thread error: " + e);
+					Log.Warning("ZombieAvoider thread error: " + e);
 					Thread.Sleep(500);
 				}
 
 				goto EndlessLoop;
 			});
 
-			//workerThread.Priority = ThreadPriority.Lowest;
+			workerThread.Priority = ThreadPriority.Lowest;
 			workerThread.Start();
 		}
 
@@ -121,18 +121,6 @@ namespace ZombieLand
 		{
 			var queue = QueueForMap(map);
 			return queue.Dequeue();
-		}
-
-		private static IEnumerable<IntVec3> GetAdjacentCells(IntVec3 loc, IntVec3 pos, float radiusSquared, Map map)
-		{
-			if ((pos - loc).LengthHorizontalSquared <= radiusSquared)
-				for (var i = 0; i < 3; i++)
-				{
-					var c = pos + GenAdj.CardinalDirections[i];
-					if (c.InBounds(map) && c.Walkable(map))
-						if (c.GetEdifice(map) is Building_Door)
-							yield return c;
-				}
 		}
 
 		private void GenerateCells(Map map, List<ZombieCostSpecs> specs, int[] costCells, FloodFiller filler)
@@ -168,8 +156,7 @@ namespace ZombieLand
 						var pos = cell + cardinals[i];
 						if (floodedCells.ContainsKey(pos) == false
 							&& (loc - cell).LengthHorizontalSquared <= radiusSquared
-							&& pos.InBounds(map) && pathGrid.Walkable(pos)
-							&& pos.GetEdifice(map) is Building_Door)
+							&& pos.InBounds(map) && pos.GetEdifice(map) is Building_Door)
 						{
 							costCells[pos.x + pos.z * mapSizeX] = floodedCells[cell];
 						}

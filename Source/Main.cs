@@ -15,6 +15,9 @@ namespace ZombieLand
 			var harmony = HarmonyInstance.Create("net.pardeike.zombieland");
 			harmony.PatchAll(Assembly.GetExecutingAssembly());
 
+			// prepare Twinkie
+			LongEventHandler.QueueLongEvent(() => { Tools.EnableTwinkie(false); }, "PrepareTwinkie", true, null);
+
 			// extra patch for Combat Extended
 			Patches.Projectile_Launch_Patch.PatchCombatExtended(harmony);
 		}
@@ -26,6 +29,15 @@ namespace ZombieLand
 				settings.DoWindowContents(inRect);
 			else
 				ZombieSettingsDefaults.DoWindowContents(inRect);
+		}
+
+		public override void WriteSettings()
+		{
+			var settings = ZombieSettings.GetGameSettings();
+			if (settings != null)
+				settings.WriteSettings();
+			else
+				ZombieSettingsDefaults.WriteSettings();
 		}
 
 		public override string SettingsCategory()

@@ -2,6 +2,7 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -77,6 +78,30 @@ namespace ZombieLand
 					if (cost > 0)
 						Tools.DebugPosition(c.ToVector3(), new Color(1f, 0f, 0f, GenMath.LerpDouble(0, 10000, 0.4f, 1f, cost)));
 				}
+			}
+		}
+
+		// patch for debugging: show zombie count around mouse
+		//
+		[HarmonyPatch(typeof(MapInterface))]
+		[HarmonyPatch("MapInterfaceOnGUI_AfterMainTabs")]
+		class MapInterface_MapInterfaceOnGUI_AfterMainTabs_Patch
+		{
+			static void Postfix()
+			{
+				if (DebugViewSettings.writePathCosts == false) return;
+				if (Event.current.type != EventType.Repaint) return;
+
+				var map = Find.VisibleMap;
+				if (map == null) return;
+				var grid = map.GetGrid();
+				var basePos = UI.MouseCell();
+				Tools.GetCircle(4).Select(vec => vec + basePos).Do(cell =>
+				{
+					var n = grid.GetZombieCount(cell);
+					var v = GenMapUI.LabelDrawPosFor(cell);
+					GenMapUI.DrawThingLabel(v, n.ToStringCached(), Color.white);
+				});
 			}
 		}
 
@@ -260,7 +285,6 @@ namespace ZombieLand
 		[HarmonyPatch("GetPreyScoreFor")]
 		public static class FoodUtility_GetPreyScoreFor_Patch
 		{
-
 			static void Postfix(Pawn predator, Pawn prey, ref float __result)
 			{
 				if (prey is Zombie)
@@ -277,7 +301,7 @@ namespace ZombieLand
 			# // start added code
 			# num16 += GetZombieCosts(this.map, num14);
 			# // end added code
-			
+
 			IL_098a: ldloc.s 14
 			IL_098c: brfalse IL_09a9
 
@@ -290,7 +314,7 @@ namespace ZombieLand
 		0	IL_09a1: ldc.i4 600														<-- search for "600" to get this as main reference point
 			IL_09a6: add
 			IL_09a7: stloc.s 40 
-			
+
 		3	IL_09a9:	ldloc.s 40														<-- added code (keep labels from before)
 						ldarg.0
 						ldfld PathFinder::map
@@ -410,12 +434,12 @@ namespace ZombieLand
 				map.thingGrid.ThingsListAtFast(pos).OfType<Zombie>().Do(zombie =>
 				{
 					var currPos = zombie.Position;
-					var gotoPos = zombie.pather?.Destination.Cell ?? IntVec3.Invalid;
+					var gotoPos = zombie.pather.Moving ? zombie.pather.Destination.Cell : IntVec3.Invalid;
 					var wanderTo = zombie.wanderDestination;
 					var sb = new StringBuilder();
 					sb.Append("Zombie " + zombie.NameStringShort + " at " + currPos.x + "," + currPos.z);
 					sb.Append(", " + zombie.state.ToString().ToLower());
-					if (zombie.raging) sb.Append(", raging ");
+					if (zombie.raging > 0) sb.Append(", raging ");
 					sb.Append(", going to " + gotoPos.x + "," + gotoPos.z);
 					sb.Append(" (wander dest " + wanderTo.x + "," + wanderTo.z + ")");
 					builder.AppendLine(sb.ToString());
@@ -484,6 +508,19 @@ namespace ZombieLand
 			}
 		}
 
+		// patch for updating zombie counts
+		//
+		[HarmonyPatch(typeof(GenPlace))]
+		[HarmonyPatch("TryPlaceDirect")]
+		static class GenPlace_TryPlaceDirect_Patch
+		{
+			static void Postfix(Thing resultingThing, bool __result)
+			{
+				if (__result == false || (resultingThing is Zombie) == false) return;
+				var grid = resultingThing.Map.GetGrid();
+			}
+		}
+
 		// patch for detecting if a pawn enters a new cell
 		//
 		[HarmonyPatch(typeof(Thing))]
@@ -497,14 +534,12 @@ namespace ZombieLand
 			{
 				var pawn = __instance as Pawn;
 				if (pawn == null || pawn.Map == null) return;
+				if (pawn.Position == value) return;
 
 				var zombie = pawn as Zombie;
 				if (zombie != null)
 				{
 					var grid = pawn.Map.GetGrid();
-					grid.ChangeZombieCount(pawn.Position, -1);
-					grid.ChangeZombieCount(value, 1);
-
 					var newCell = grid.GetPheromone(value, false);
 					if (newCell != null && newCell.zombieCount > 0)
 					{
@@ -809,6 +844,10 @@ namespace ZombieLand
 		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(RotDrawMode), typeof(bool) })]
 		static class PawnRenderer_RenderPawnAt_Patch
 		{
+			static float moteAltitute = Altitudes.AltitudeFor(AltitudeLayer.MoteOverhead);
+			static Vector3 leftEyeOffset = new Vector3(-0.092f, 0f, -0.08f);
+			static Vector3 rightEyeOffset = new Vector3(0.092f, 0f, -0.08f);
+
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(PawnRenderer __instance, Vector3 drawLoc, RotDrawMode bodyDrawType)
 			{
@@ -827,17 +866,43 @@ namespace ZombieLand
 			static void Postfix(PawnRenderer __instance, Vector3 drawLoc)
 			{
 				var zombie = __instance.graphics.pawn as Zombie;
-				if (zombie == null || zombie.raging == false) return;
+				if (zombie == null || zombie.raging == 0) return;
+				if (zombie.GetPosture() != PawnPosture.Standing) return;
 
-				drawLoc.y = Altitudes.AltitudeFor(AltitudeLayer.FlyingItem);
-				var rot = Quaternion.identity;
-				var scale = 2.5f;
-				if (!Find.TickManager.Paused)
+				drawLoc.y = moteAltitute;
+				var quickHeadCenter = drawLoc + new Vector3(0, 0, 0.35f);
+
+				if (Find.CameraDriver.CurrentZoom <= CameraZoomRange.Middle)
 				{
-					rot = Quaternion.Euler(Rand.Value * 10 - 5, Rand.Value * 10 - 5, Rand.Value * 10 - 5);
-					scale += Rand.Value / 2;
+					var tm = Find.TickManager;
+					var blinkPeriod = 60 + zombie.thingIDNumber % 180; // between 2-5s
+					var eyesOpen = (tm.TicksGame % blinkPeriod) > 3;
+					if (eyesOpen || tm.CurTimeSpeed == TimeSpeed.Paused)
+					{
+						// the following constant comes from PawnRenderer.RenderPawnInternal
+						var loc = drawLoc + __instance.BaseHeadOffsetAt(zombie.Rotation) + new Vector3(0, 0.0281250011f, 0);
+
+						// not clear why 75 but it seems to fit
+						var eyeX = zombie.sideEyeOffset.x / 75f;
+						var eyeZ = zombie.sideEyeOffset.z / 75f;
+
+						if (zombie.Rotation == Rot4.West)
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(-eyeX, 0, eyeZ), Quaternion.identity, 0.5f, 0.5f);
+
+						else if (zombie.Rotation == Rot4.East)
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(eyeX, 0, eyeZ), Quaternion.identity, 0.5f, 0.5f);
+
+						if (zombie.Rotation == Rot4.South)
+						{
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + leftEyeOffset, Quaternion.identity, 0.5f, 0.5f);
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + rightEyeOffset, Quaternion.identity, 0.5f, 0.5f);
+						}
+					}
 				}
-				GraphicToolbox.DrawScaledMesh(MeshPool.plane10, Constants.RAGE_INDICATOR, drawLoc, rot, scale, scale);
+
+				if (zombie.Rotation == Rot4.West) quickHeadCenter.x -= 0.09f;
+				if (zombie.Rotation == Rot4.East) quickHeadCenter.x += 0.09f;
+				GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.RAGE_AURAS[Find.CameraDriver.CurrentZoom], quickHeadCenter, Quaternion.identity, 1f, 1f);
 			}
 		}
 
@@ -855,7 +920,7 @@ namespace ZombieLand
 
 				if (stat == StatDefOf.MeleeHitChance)
 				{
-					if (zombie.state == ZombieState.Tracking)
+					if (zombie.state == ZombieState.Tracking || zombie.raging > 0)
 						__result = Constants.ZOMBIE_HIT_CHANCE_TRACKING;
 					else
 						__result = Constants.ZOMBIE_HIT_CHANCE_IDLE;
@@ -865,7 +930,7 @@ namespace ZombieLand
 				if (stat == StatDefOf.MoveSpeed)
 				{
 					float speed;
-					if (zombie.state == ZombieState.Tracking)
+					if (zombie.state == ZombieState.Tracking || zombie.raging > 0)
 						speed = ZombieSettings.Values.moveSpeedTracking;
 					else
 						speed = ZombieSettings.Values.moveSpeedIdle;
@@ -1028,7 +1093,7 @@ namespace ZombieLand
 			static float Replacement(ref Pawn pawn)
 			{
 				var zombie = pawn as Zombie;
-				if (zombie.wasColonist)
+				if (zombie.wasColonist || zombie.raging > 0)
 					return 1000f;
 				switch (zombie.story.bodyType)
 				{
@@ -1076,7 +1141,7 @@ namespace ZombieLand
 			{
 				if (__result == false) return;
 				var zombie = pawn as Zombie;
-				if (zombie != null && zombie.Spawned && zombie.Dead == false && zombie.wasColonist == false)
+				if (zombie != null && zombie.Spawned && zombie.Dead == false && zombie.raging == 0 && zombie.wasColonist == false)
 					zombie.state = ZombieState.ShouldDie;
 			}
 		}
@@ -1333,6 +1398,31 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to update twinkie graphics
+		//
+		[HarmonyPatch(typeof(Game))]
+		[HarmonyPatch("FinalizeInit")]
+		static class Game_FinalizeInit_Patch
+		{
+			static void Postfix(Game __instance)
+			{
+				Tools.EnableTwinkie(ZombieSettings.Values.replaceTwinkie);
+			}
+		}
+
+		// patches to update our zombie count grid
+		//
+		[HarmonyPatch(typeof(Map))]
+		[HarmonyPatch("FinalizeLoading")]
+		static class Map_FinalizeLoading_Patch
+		{
+			static void Prefix(Map __instance)
+			{
+				var grid = __instance.GetGrid();
+				grid.IterateCellsQuick(cell => cell.zombieCount = 0);
+			}
+		}
+
 		// patch to handle targets deaths so that we update our grid
 		//
 		[HarmonyPatch(typeof(PawnComponentsUtility))]
@@ -1341,21 +1431,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Pawn pawn)
 			{
-				if (pawn.Map == null) return;
-
-				var zombie = pawn as Zombie;
-				if (zombie != null)
-				{
-					var grid = zombie.Map.GetGrid();
-					if (zombie.pather != null)
-					{
-						var dest = zombie.pather.Destination;
-						if (dest != null && dest != zombie.Position)
-							grid.ChangeZombieCount(dest.Cell, -1);
-					}
-					grid.ChangeZombieCount(zombie.Position, -1);
-					return;
-				}
+				if (pawn is Zombie || pawn.Map == null) return;
 
 				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)
 				{

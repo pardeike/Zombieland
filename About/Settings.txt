@@ -19,8 +19,8 @@ DEBUG_COLONY_POINTS = 0
 // The maximum time per tick is 1/60 second. If computing zombies takes longer
 // not all zombies will be computed to avoid lag. This factor is multiplied into
 // this calculation to compensate that a tick is also used for everything else
-// in the game. Default is 0.25 which means that zombies get 1/240 of a second.
-FRAME_TIME_FACTOR = 0.25
+// in the game. Default is 0.01 which means that zombies get 1/100 sec per tick
+TOTAL_ZOMBIE_FRAME_TIME = 0.01
 
 // This is the fade-off of the traces every enemy leaves behind in game-seconds.
 // Setting this lower will make zombies chaise you less because they loose track
@@ -68,8 +68,9 @@ ZOMBIE_HIT_CHANCE_TRACKING = 0.7
 // that get selected for moving. Default is 3
 NUMBER_OF_TOP_MOVEMENT_PICKS = 3
 
-// The chance a zombie does not move during idle movement. Default is 0.6 (60%)
-STANDING_STILL_CHANCE = 0.6
+// The chance a zombie chooses a random movement when raging (multiplied by the number
+// of zombies on the current and the destination positions together. Default is 0.25 (25%)
+CLUSTER_AVOIDANCE_CHANCE = 0.25
 
 // The chance a raging zombie diverts from the main path. Default is 0.15 (15%)
 DIVERTING_FROM_RAGE = 0.15
@@ -88,8 +89,8 @@ KILL_CIRCLE_RADIUS_MULTIPLIER = 0.0
 // Default is 9 (vanilla Rimworld)
 BASE_MUZZLE_FLASH_VALUE = 9
 
-// Number of surrounding zombies it takes to make a zombie rage. Default is 12
-SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 12
+// Number of surrounding zombies it takes to make a zombie rage. Default is 14
+SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 14
 
 // For the spawn incident, this defines the area size in where this event will
 // take place. Default is 10
@@ -100,8 +101,8 @@ SPAWN_INCIDENT_RADIUS = 10
 MIN_ZOMBIE_SPAWN_CELL_COUNT = 6
 
 // For the spawn incident, this defines the number of zombies that will spawn.
-// Default is 40
-NUMBER_OF_ZOMBIES_IN_INCIDENT = 40
+// Default is 20
+NUMBER_OF_ZOMBIES_IN_INCIDENT = 20
 
 // When firing a weapon, this defines the lower and upper limit of the range
 // of that weapon. Zombies will detect a fired weapon within that range.

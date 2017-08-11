@@ -66,6 +66,8 @@ namespace ZombieLand
 		public int hoursInfectionPersists = 6 * 24;
 		public bool anyTreatmentStopsInfection = false;
 		public bool betterZombieAvoidance = true;
+		public bool ragingZombies = true;
+		internal bool replaceTwinkie = true;
 
 		public object Clone()
 		{
@@ -91,6 +93,10 @@ namespace ZombieLand
 		public static void DoWindowContents(Rect inRect)
 		{
 			Dialogs.DoWindowContentsInternal(ref group, inRect, true);
+		}
+
+		public static void WriteSettings()
+		{
 		}
 
 		public override void ExposeData()
@@ -122,6 +128,11 @@ namespace ZombieLand
 		public void DoWindowContents(Rect inRect)
 		{
 			Dialogs.DoWindowContentsInternal(ref Values, inRect, false);
+		}
+
+		public void WriteSettings()
+		{
+			Tools.EnableTwinkie(Values.replaceTwinkie);
 		}
 
 		public override void ExposeData()

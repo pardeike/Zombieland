@@ -61,6 +61,7 @@
 	<ZombieInstinct_Dull>Тупые</ZombieInstinct_Dull>
 	<ZombieInstinct_Normal>Нормальные</ZombieInstinct_Normal>
 	<ZombieInstinct_Sensitive>Агресивные</ZombieInstinct_Sensitive>
+	<RagingZombies>Zombies ярости, если толпа становится слишком большой</RagingZombies>
 
 	<ZombieHealthTitle>Стойкость зомби</ZombieHealthTitle>
 	<DoubleTapRequired>Зомби восстанавливаются после травм</DoubleTapRequired>
@@ -72,6 +73,7 @@
 
 	<ZombieMiscTitle>Разное</ZombieMiscTitle>
 	<UseCustomTextures>Использовать текстуры дополнения для зомби</UseCustomTextures>
+	<ReplaceTwinkie>Заменить и показать Twinkie</ReplaceTwinkie>
 	<ZombiesTriggerDangerMusic>Проигрывать музыку боя при Зомби-происшествие</ZombiesTriggerDangerMusic>
 	<BetterZombieAvoidance>Улучшенный способ избежать зомби</BetterZombieAvoidance>
 

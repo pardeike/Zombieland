@@ -10,14 +10,16 @@ namespace ZombieLand
 	public class Zombie : Pawn
 	{
 		public ZombieState state = ZombieState.Emerging;
-		public bool raging = false;
+		public int raging = 0;
 		public IntVec3 wanderDestination = IntVec3.Invalid;
 
 		int rubbleTicks;
 		public int rubbleCounter;
 		List<Rubble> rubbles = new List<Rubble>();
 
+		public IntVec2 sideEyeOffset;
 		public bool wasColonist;
+		public IntVec3 lastGotoPosition = IntVec3.Invalid;
 
 		public VariableGraphic customHeadGraphic; // not saved
 		public VariableGraphic customBodyGraphic; // not saved
@@ -36,6 +38,7 @@ namespace ZombieLand
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
 				// fix for old zombies not having correct leaner
+				//
 				if ((Drawer.leaner is ZombieLeaner) == false)
 					Drawer.leaner = new ZombieLeaner(this);
 
@@ -46,14 +49,7 @@ namespace ZombieLand
 		public override void DeSpawn()
 		{
 			var grid = Map.GetGrid();
-			var pos = Position;
-			if (pather != null)
-			{
-				var dest = pather.Destination;
-				if (dest != null && dest != Position) pos = dest.Cell;
-			}
-
-			grid.ChangeZombieCount(pos, -1);
+			grid.ChangeZombieCount(lastGotoPosition, -1);
 			base.DeSpawn();
 		}
 

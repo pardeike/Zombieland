@@ -1,5 +1,4 @@
-﻿using Harmony;
-using RimWorld;
+﻿using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -281,7 +280,7 @@ namespace ZombieLand
 				if (currentTicks - grid.GetTimestamp(pos) < fadeOff && zombie.HasValidDestination(pos))
 					possibleTrackingMoves.Add(pos);
 			}
-			if (possibleTrackingMoves.Count > 0)
+			if (possibleTrackingMoves.Count > 0 && zombie.raging == 0)
 			{
 				possibleTrackingMoves.Sort((p1, p2) => SortByTimestamp(grid, p1, p2));
 				possibleTrackingMoves = possibleTrackingMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
@@ -302,11 +301,11 @@ namespace ZombieLand
 
 			var checkSmashable = timeDelta >= checkSmashableFadeoff;
 			if (ZombieSettings.Values.smashOnlyWhenAgitated)
-				checkSmashable &= zombie.state == ZombieState.Tracking;
+				checkSmashable &= (zombie.state == ZombieState.Tracking || zombie.raging > 0);
 
 			if (destination.IsValid == false || checkSmashable)
 			{
-				var building = CanSmash();
+				var building = CanSmash(zombie);
 				if (building != null)
 				{
 					destination = building.Position;
@@ -324,49 +323,43 @@ namespace ZombieLand
 
 			if (destination.IsValid == false)
 			{
-				var hour = GenLocalDate.HourOfDay(Find.VisibleMap);
+				var possibleMoves = GenAdj.AdjacentCells.Select(vec => basePos + vec)
+					.Where(pos => zombie.HasValidDestination(pos)).ToList();
 
-				// check for day/night and dust/dawn
-				//
-				var moveTowardsCenter = false;
-				if (map.areaManager.Home[basePos] == false)
-				{
-					if (hour < 12) hour += 24;
-					if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
-						moveTowardsCenter = true;
-					else if (hour >= Constants.HOUR_START_OF_DUSK && hour <= Constants.HOUR_START_OF_NIGHT)
-						moveTowardsCenter = Rand.RangeInclusive(hour, Constants.HOUR_START_OF_NIGHT) == Constants.HOUR_START_OF_NIGHT;
-					else if (hour >= Constants.HOUR_END_OF_NIGHT && hour <= Constants.HOUR_START_OF_DAWN)
-						moveTowardsCenter = Rand.RangeInclusive(Constants.HOUR_END_OF_NIGHT, hour) == Constants.HOUR_END_OF_NIGHT;
-				}
-
-				var possibleMoves = new List<IntVec3>();
-				for (var i = 0; i < 8; i++)
-				{
-					var pos = basePos + GenAdj.AdjacentCells[i];
-					if (zombie.HasValidDestination(pos))
-						possibleMoves.Add(pos);
-				}
 				if (possibleMoves.Count > 0)
 				{
-					// during night, zombies drift towards the colonies center
-					//
-					if (moveTowardsCenter)
+					if (zombie.raging > 0)
 					{
-						if (zombie.raging)
+						var info = Tools.wanderer.GetMapInfo(map);
+						var bestDestination = info.GetParent(basePos);
+
+						if (ZombieSettings.Values.smashMode == SmashMode.Nothing)
 						{
-							// raging - go to nearest colonist
-
-							var info = Tools.wanderer.GetMapInfo(map);
-							destination = info.GetParent(basePos);
-
-							if (destination.IsValid && Rand.Chance(Constants.DIVERTING_FROM_RAGE))
-								TryToDivert(basePos, possibleMoves);
-							else
+							if (bestDestination.InBounds(map))
 							{
-								if (destination.IsValid && grid.GetZombieCount(destination) > 0)
-									destination = IntVec3.Invalid;
+								var door = bestDestination.GetEdifice(map) as Building_Door;
+								if (door != null && door.Open == false)
+								{
+									zombie.raging = 0;
+									bestDestination = IntVec3.Invalid;
+								}
 							}
+						}
+
+						if (zombie.HasValidDestination(bestDestination))
+						{
+							var destZombieCount = grid.GetZombieCount(bestDestination);
+							var multiplier = Math.Max(0, destZombieCount - 1);
+							if (Rand.Chance(multiplier * Constants.CLUSTER_AVOIDANCE_CHANCE))
+							{
+								// stand still and let other pass by
+								return;
+							}
+
+							destination = bestDestination;
+
+							if (destZombieCount > 0 || (destination.IsValid && Rand.Chance(Constants.DIVERTING_FROM_RAGE)))
+								TryToDivert(grid, basePos, possibleMoves);
 
 							if (destination.IsValid == false)
 							{
@@ -374,23 +367,35 @@ namespace ZombieLand
 								destination = possibleMoves.Where(p => grid.GetZombieCount(p) == zCount).RandomElement();
 							}
 						}
-						else
-						{
-							// not raging - go to approx center
+					}
 
+					if (destination.IsValid == false)
+					{
+						var hour = GenLocalDate.HourOfDay(Find.VisibleMap);
+
+						// check for day/night and dust/dawn
+						// during night, zombies drift towards the colonies center
+						//
+						var moveTowardsCenter = false;
+						if (map.areaManager.Home[basePos] == false)
+						{
+							if (hour < 12) hour += 24;
+							if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
+								moveTowardsCenter = true;
+							else if (hour >= Constants.HOUR_START_OF_DUSK && hour <= Constants.HOUR_START_OF_NIGHT)
+								moveTowardsCenter = Rand.RangeInclusive(hour, Constants.HOUR_START_OF_NIGHT) == Constants.HOUR_START_OF_NIGHT;
+							else if (hour >= Constants.HOUR_END_OF_NIGHT && hour <= Constants.HOUR_START_OF_DAWN)
+								moveTowardsCenter = Rand.RangeInclusive(Constants.HOUR_END_OF_NIGHT, hour) == Constants.HOUR_END_OF_NIGHT;
+						}
+						if (moveTowardsCenter)
+						{
 							var center = zombie.wanderDestination.IsValid ? zombie.wanderDestination : map.Center;
 							possibleMoves.Sort((p1, p2) => SortByDirection(center, p1, p2));
 							possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
 							possibleMoves = possibleMoves.OrderBy(p => grid.GetZombieCount(p)).ToList();
 							destination = possibleMoves.First();
-
-							if (Rand.Chance(Constants.DIVERTING_FROM_RAGE))
-								TryToDivert(basePos, possibleMoves);
 						}
-					}
-					else
-					{
-						if (Rand.Chance(Constants.STANDING_STILL_CHANCE))
+						else
 						{
 							var n = possibleMoves.Count();
 							destination = possibleMoves[Constants.random.Next(n)];
@@ -402,34 +407,41 @@ namespace ZombieLand
 			// if we have a valid destination, go there
 			//
 			if (destination.IsValid)
-				MoveToCell(destination);
+				MoveToCell(grid, destination);
 
 			// check for tight groups of zombies
-			if (zombie.raging == false)
+			if (zombie.raging == 0 && ZombieSettings.Values.ragingZombies)
 			{
 				var count = CountSurroundingZombies(zombie.Position, map, grid);
 				if (count > Constants.SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE)
 					StartRage(zombie, count);
 			}
+			else
+			{
+				if (GenTicks.TicksAbs > zombie.raging || ZombieSettings.Values.ragingZombies == false)
+					zombie.raging = 0;
+			}
 		}
 
-		void TryToDivert(IntVec3 basePos, List<IntVec3> possibleMoves)
+		void TryToDivert(PheromoneGrid grid, IntVec3 basePos, List<IntVec3> possibleMoves)
 		{
 			var forward = destination - basePos;
 			var rotation = Rand.Value > 0.5 ? Rot4.East : Rot4.West;
 			var divert = basePos + forward.RotatedBy(rotation);
-			if (possibleMoves.Contains(divert))
+			if (possibleMoves.Contains(divert) && grid.GetZombieCount(divert) == 0)
 				destination = divert;
 			else
 			{
 				rotation = rotation == Rot4.East ? Rot4.West : Rot4.East;
 				divert = basePos + forward.RotatedBy(rotation);
-				if (possibleMoves.Contains(divert))
+				if (possibleMoves.Contains(divert) && grid.GetZombieCount(divert) == 0)
 					destination = divert;
 				else
 				{
-					var n = possibleMoves.Count();
-					destination = possibleMoves[Constants.random.Next(n)];
+					var zombieFreePossibleMoves = possibleMoves.Where(cell => grid.GetZombieCount(cell) == 0).ToArray();
+					var n = zombieFreePossibleMoves.Length;
+					if (n > 0)
+						destination = zombieFreePossibleMoves[Constants.random.Next(n)];
 				}
 			}
 		}
@@ -444,7 +456,7 @@ namespace ZombieLand
 
 		void StartRage(Zombie zombie, int count)
 		{
-			zombie.raging = true;
+			zombie.raging = GenTicks.TicksAbs + (int)(GenDate.TicksPerDay * (0.5f + 2f * Rand.Value));
 			Tools.CastThoughtBubble(zombie, Constants.RAGING);
 
 			if (Constants.USE_SOUND)
@@ -454,9 +466,15 @@ namespace ZombieLand
 			}
 		}
 
-		void MoveToCell(LocalTargetInfo dest)
+		void MoveToCell(PheromoneGrid grid, IntVec3 cell)
 		{
-			pawn.pather.StartPath(dest, PathEndMode.OnCell);
+			var zombie = pawn as Zombie;
+
+			grid.ChangeZombieCount(zombie.lastGotoPosition, -1);
+			grid.ChangeZombieCount(cell, 1);
+			zombie.lastGotoPosition = cell;
+
+			zombie.pather.StartPath(cell, PathEndMode.OnCell);
 		}
 
 		void CastEatingSound()
@@ -594,10 +612,10 @@ namespace ZombieLand
 			return null;
 		}
 
-		Building CanSmash()
+		Building CanSmash(Zombie zombie)
 		{
 			if (ZombieSettings.Values.smashMode == SmashMode.Nothing) return null;
-			if (ZombieSettings.Values.smashOnlyWhenAgitated && (pawn as Zombie).state != ZombieState.Tracking) return null;
+			if (ZombieSettings.Values.smashOnlyWhenAgitated && zombie.state != ZombieState.Tracking && zombie.raging == 0) return null;
 
 			var nextIndex = Constants.random.Next(4);
 			var c = adjIndex4[prevIndex4];
@@ -618,12 +636,9 @@ namespace ZombieLand
 					var pos = basePos + GenAdj.CardinalDirections[adjIndex4[i]];
 					if (pos.InBounds(map))
 					{
-						foreach (var thing in grid.ThingsListAtFast(pos))
-						{
-							var door = thing as Building_Door;
-							if (door != null && door.Open == false && (attackColonistsOnly == false || door.Faction == playerFaction))
-								return door;
-						}
+						var door = pos.GetEdifice(map) as Building_Door;
+						if (door != null && door.Open == false && (attackColonistsOnly == false || door.Faction == playerFaction))
+							return door;
 					}
 				}
 			}

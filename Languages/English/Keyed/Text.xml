@@ -61,6 +61,7 @@
 	<ZombieInstinct_Dull>Limited</ZombieInstinct_Dull>
 	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>
 	<ZombieInstinct_Sensitive>Elevated</ZombieInstinct_Sensitive>
+	<RagingZombies>Zombies rage if a group gets too large</RagingZombies>
 
 	<ZombieHealthTitle>Zombie health</ZombieHealthTitle>
 	<DoubleTapRequired>Zombies recover from injuries</DoubleTapRequired>
@@ -72,6 +73,7 @@
 
 	<ZombieMiscTitle>Miscellaneous</ZombieMiscTitle>
 	<UseCustomTextures>Use custom textures</UseCustomTextures>
+	<ReplaceTwinkie>Replace and show Twinkie</ReplaceTwinkie>
 	<ZombiesTriggerDangerMusic>Zombies affect danger music</ZombiesTriggerDangerMusic>
 	<BetterZombieAvoidance>Automatic avoidance of zombies</BetterZombieAvoidance>
 

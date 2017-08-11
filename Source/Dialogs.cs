@@ -233,6 +233,7 @@ namespace ZombieLand
 
 			// Senses
 			list.Dialog_Enum("ZombieInstinctTitle", ref settings.zombieInstinct);
+			list.Dialog_Checkbox("RagingZombies", ref settings.ragingZombies);
 			list.Gap(4f);
 
 			// Health
@@ -283,6 +284,7 @@ namespace ZombieLand
 			// Miscellaneous
 			list.Dialog_Label("ZombieMiscTitle");
 			list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);
+			list.Dialog_Checkbox("ReplaceTwinkie", ref settings.replaceTwinkie);
 			list.Dialog_Checkbox("ZombiesTriggerDangerMusic", ref settings.zombiesTriggerDangerMusic);
 			list.Dialog_Checkbox("BetterZombieAvoidance", ref settings.betterZombieAvoidance);
 

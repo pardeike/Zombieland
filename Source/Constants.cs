@@ -1,5 +1,6 @@
 ﻿using Harmony;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -81,7 +82,7 @@ namespace ZombieLand
 
 		// timing
 		//
-		public static float FRAME_TIME_FACTOR = 0.25f;
+		public static float TOTAL_ZOMBIE_FRAME_TIME = 0.01f;
 		public static float PHEROMONE_FADEOFF = 90f;
 		public static float TICKMANAGER_RECALCULATE_DELAY = 5f;
 		public static float TICKMANAGER_AVOIDGRID_DELAY = 0.25f;
@@ -102,12 +103,12 @@ namespace ZombieLand
 		public static float ZOMBIE_HIT_CHANCE_IDLE = 0.2f;
 		public static float ZOMBIE_HIT_CHANCE_TRACKING = 0.7f;
 		public static int NUMBER_OF_TOP_MOVEMENT_PICKS = 3;
-		public static float STANDING_STILL_CHANCE = 0.6f;
+		public static float CLUSTER_AVOIDANCE_CHANCE = 0.25f;
 		public static float DIVERTING_FROM_RAGE = 0.15f;
 		public static int ZOMBIE_CLOGGING_FACTOR = 10000;
 		public static float KILL_CIRCLE_RADIUS_MULTIPLIER = 0f;
 		public static float BASE_MUZZLE_FLASH_VALUE = 9f;
-		public static float SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 12;
+		public static float SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 14;
 
 		// rubble
 		//
@@ -130,7 +131,14 @@ namespace ZombieLand
 		//
 		public static float MIN_WEAPON_RANGE = 2f;
 		public static float MAX_WEAPON_RANGE = 30f;
-		public static Material RAGE_INDICATOR = MaterialPool.MatFrom("RageIndicator", ShaderDatabase.Transparent, Color.white);
+		public static Material RAGE_EYE = MaterialPool.MatFrom("RageEye", ShaderDatabase.Mote);
+		public static Dictionary<CameraZoomRange, Material> RAGE_AURAS = new Dictionary<CameraZoomRange, Material> {
+			{ CameraZoomRange.Closest, MaterialPool.MatFrom("RageAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.15f)) },
+			{ CameraZoomRange.Close, MaterialPool.MatFrom("RageAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.175f)) },
+			{ CameraZoomRange.Middle, MaterialPool.MatFrom("RageAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.2f)) },
+			{ CameraZoomRange.Far, MaterialPool.MatFrom("RageAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.25f)) },
+			{ CameraZoomRange.Furthest, MaterialPool.MatFrom("RageAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.3f)) }
+		};
 		public static Material RAGING = MaterialPool.MatFrom("Rage", ShaderDatabase.Cutout);
 		public static Material RUBBLE = MaterialPool.MatFrom("Rubble", ShaderDatabase.Cutout);
 		public static Material BRRAINZ = MaterialPool.MatFrom("Brrainz", ShaderDatabase.Cutout);

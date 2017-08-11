@@ -90,9 +90,6 @@
     <Content Include="..\About\Settings.txt">
       <Link>_xml\Settings.txt</Link>
     </Content>
-    <Content Include="..\Defs\Twinkie_Override.xml">
-      <Link>_xml\Twinkie_Override.xml</Link>
-    </Content>
     <Content Include="..\Defs\Zombie_Damages.xml">
       <Link>_xml\Zombie_Damages.xml</Link>
     </Content>

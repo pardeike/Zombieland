@@ -100,7 +100,6 @@ namespace ZombieLand
 			ZombieGenerator.AssignNewCustomGraphics(zombie);
 			ZombieGenerator.FinalizeZombieGeneration(zombie);
 			GenPlace.TryPlaceThing(zombie, pos, map, ThingPlaceMode.Direct, null);
-			map.GetGrid().ChangeZombieCount(pos, 1);
 
 			pawn.Kill(null);
 			if (pawn.Corpse != null && pawn.Corpse.Destroyed == false)

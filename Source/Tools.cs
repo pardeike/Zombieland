@@ -35,10 +35,10 @@ namespace ZombieLand
 			prevTime = ms;
 		}
 
-		public void End()
+		public void End(bool cancel = false)
 		{
 			sw.Stop();
-			Checkpoint();
+			if (cancel == false) Checkpoint();
 		}
 	}
 
@@ -50,6 +50,42 @@ namespace ZombieLand
 		public static ZombieWanderer wanderer = new ZombieWanderer();
 		public static Texture2D MenuIcon;
 		public static Texture2D ZombieButtonBackground;
+
+		static string mealLabel;
+		static string mealDescription;
+		static Graphic mealGraphic;
+		public static void EnableTwinkie(bool enable)
+		{
+			var def = ThingDefOf.MealSurvivalPack;
+			var cachedGraphic = Traverse.Create(def.graphicData).Field("cachedGraphic");
+
+			if (mealLabel == null) mealLabel = def.label;
+			if (mealDescription == null) mealDescription = def.description;
+			if (mealGraphic == null) mealGraphic = cachedGraphic.GetValue<Graphic>();
+
+			if (enable)
+			{
+				def.label = "Twinkie";
+				def.description = "A Twinkie is an American snack cake, marketed as a \"Golden Sponge Cake with Creamy Filling\".";
+				cachedGraphic.SetValue(GraphicsDatabase.TwinkieGraphic);
+			}
+			else
+			{
+				def.label = mealLabel;
+				def.description = mealDescription;
+				cachedGraphic.SetValue(mealGraphic);
+			}
+
+			def.graphic = def.graphicData.Graphic;
+			GenLabel.ClearCache();
+
+			var game = Current.Game;
+			if (game != null)
+			{
+				game.Maps.SelectMany(map => map.listerThings.ThingsOfDef(def))
+					.Do(meal => { Traverse.Create(meal).Field("graphicInt").SetValue(null); });
+			}
+		}
 
 		public static string GetModRootDirectory()
 		{
@@ -72,11 +108,11 @@ namespace ZombieLand
 			return (int)(Constants.PHEROMONE_FADEOFF.SecondsToTicks() * ZombieSettings.Values.zombieInstinct.HalfToDoubleValue()) * 1000;
 		}
 
-		static Dictionary<int, PheromoneGrid> gridCache = new Dictionary<int, PheromoneGrid>();
+		static Dictionary<Map, PheromoneGrid> gridCache = new Dictionary<Map, PheromoneGrid>();
 		public static PheromoneGrid GetGrid(this Map map)
 		{
 			PheromoneGrid grid;
-			if (gridCache.TryGetValue(map.uniqueID, out grid))
+			if (gridCache.TryGetValue(map, out grid))
 				return grid;
 
 			grid = map.GetComponent<PheromoneGrid>();
@@ -85,7 +121,7 @@ namespace ZombieLand
 				grid = new PheromoneGrid(map);
 				map.components.Add(grid);
 			}
-			gridCache[map.uniqueID] = grid;
+			gridCache[map] = grid;
 			return grid;
 		}
 
@@ -116,6 +152,20 @@ namespace ZombieLand
 			if (val.CompareTo(min) < 0) return min;
 			if (val.CompareTo(max) > 0) return max;
 			return val;
+		}
+
+		private static System.Random rng = new System.Random();
+		public static void Shuffle<T>(this IList<T> list)
+		{
+			var n = list.Count;
+			while (n > 1)
+			{
+				n--;
+				var k = rng.Next(n + 1);
+				var value = list[k];
+				list[k] = list[n];
+				list[n] = value;
+			}
 		}
 
 		public static float RadiusForPawn(Pawn pawn)

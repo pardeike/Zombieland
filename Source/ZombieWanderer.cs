@@ -1,5 +1,4 @@
 ﻿using Harmony;
-using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +23,7 @@ namespace ZombieLand
 		private readonly PheromoneGrid pheromoneGrid;
 
 		private Queue<IntVec3> openSet;
+		private bool dirtyCells = true;
 
 		private static readonly Random random = new Random();
 		private static readonly int[] adjIndex = { 0, 1, 2, 3, 4, 5, 6, 7 };
@@ -88,7 +88,7 @@ namespace ZombieLand
 		private void ClearCells()
 		{
 			var a = vecGrids[privateIndex];
-			for (var i = 0; i < mapSize; i++) a[i] = 0;
+			Array.Clear(a, 0, a.Length);
 		}
 
 		IEnumerable<IntVec3> GetAdjactedInRandomOrder(IntVec3 basePos)
@@ -115,17 +115,29 @@ namespace ZombieLand
 			// var door = edificeGrid[cell] as Building_Door;
 			// if (door != null && door.Open == false) return false;
 
-			if (pathGrid.WalkableFast(cell) == false) return false;
-
-			if (terrainGrid.TerrainAt(cell).DoesRepellZombies()) return false;
+			try
+			{
+				if (pathGrid.WalkableFast(cell) == false) return false;
+				if (terrainGrid.TerrainAt(cell).DoesRepellZombies()) return false;
+			}
+			catch (Exception)
+			{
+				return false;
+			}
 
 			return true;
 		}
 
 		public void Recalculate(IntVec3[] positions)
 		{
-			ClearCells();
+			if (dirtyCells)
+			{
+				ClearCells();
+				dirtyCells = false;
+			}
+			if (ZombieSettings.Values.ragingZombies == false) return;
 
+			dirtyCells = true;
 			var sleepCounter = 0;
 			var directions = GenAdj.AdjacentCells;
 			positions.Where(c => ValidFloodCell(c) && GetDirect(c) == 0).Do(c =>
@@ -174,8 +186,13 @@ namespace ZombieLand
 				try
 				{
 					if (Current.Game != null && Current.ProgramState == ProgramState.Playing && Scribe.mode == LoadSaveMode.Inactive)
-						foreach (var map in Find.Maps)
+					{
+						var maps = Find.Maps.ToArray();
+						foreach (var map in maps)
 						{
+							if (Current.Game == null || Current.ProgramState != ProgramState.Playing || Scribe.mode != LoadSaveMode.Inactive)
+								break;
+
 							var info = GetMapInfo(map);
 							if (info.IsInValidState() == false) continue;
 
@@ -194,17 +211,18 @@ namespace ZombieLand
 								}
 							}
 						}
+					}
 				}
 				catch (Exception e)
 				{
-					Log.Error("ZombieWanderer thread error: " + e);
+					Log.Warning("ZombieWanderer thread error: " + e);
 				}
 
 				if (wait) Thread.Sleep(500);
 				goto EndlessLoop;
 			});
 
-			//workerThread.Priority = ThreadPriority.Lowest;
+			workerThread.Priority = ThreadPriority.Lowest;
 			workerThread.Start();
 		}
 
