@@ -46,8 +46,8 @@ namespace ZombieLand
 		static float goingBeyondMaxZombiesAnormality = 0.25f;
 
 		static int rampUpDaysBase = 20;
-		static float minNextDays = 1f;
-		static float maxNextDays = 4f;
+		static float minNextDays = 2f;
+		static float maxNextDays = 6f;
 
 		public static int ZombiesForNewIncident(Map map)
 		{
@@ -164,14 +164,15 @@ namespace ZombieLand
 			// Log.Warning("scaleFactor1 " + scaleFactor);
 			scaleFactor *= (0.75f + Rand.Value / 2f);
 			// Log.Warning("scaleFactor2 " + scaleFactor);
-			scaleFactor *= threatScale;
-			// Log.Warning("scaleFactor3 " + scaleFactor);
 			scaleFactor = Tools.Boxed(scaleFactor, 0f, 1f);
 			// Log.Warning("scaleFactor4 " + scaleFactor);
 			incidentSize = Math.Max(1, (int)(incidentSize * scaleFactor + 0.5f));
 
 			// success
-			var deltaDays = Rand.Range(minNextDays, maxNextDays);
+			var dayStretchFactor = GenMath.LerpDouble(1, 500, 1f, 5f, incidentSize);
+			var dMin = minNextDays * dayStretchFactor;
+			var dMax = maxNextDays * dayStretchFactor;
+			var deltaDays = Rand.Range(dMin, dMax);
 			info.Update(deltaDays);
 
 			// Log.Warning("deltaDays = " + deltaDays);
