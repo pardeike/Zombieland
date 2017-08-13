@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Xml;
 using UnityEngine;
 using Verse;
+using Verse.Profile;
 
 namespace ZombieLand
 {
@@ -336,9 +337,67 @@ namespace ZombieLand
 			});
 		}
 
-		public static void RemoveZombieland()
+		private static void RemoveZombielandFromFilter(ThingFilter filter)
 		{
-			// TODO
+			if (filter == null) return;
+			var defs = filter.AllowedThingDefs.Where(def => def.defName.StartsWith("Zombie_")).ToList();
+			foreach (var def in defs)
+				filter.SetAllow(def, false);
+		}
+
+		public static void RemoveZombieland(string filename)
+		{
+			if (Current.Game == null || Current.Game.Maps == null || Find.World == null) return;
+			Find.TickManager.CurTimeSpeed = TimeSpeed.Paused;
+
+			var zlNamespace = typeof(Tools).Namespace;
+			Current.Game.Maps.Do(map =>
+			{
+				// destroy any of our things (even implied like corpse and meat)
+				var allThings = map.listerThings.AllThings.Where(thing => thing.GetType().Namespace == zlNamespace);
+				allThings.Union(map.listerThings.AllThings.Where(thing => thing.def.defName.StartsWith("Zombie_")));
+				allThings.ToList().Do(thing => thing.Destroy(DestroyMode.Vanish));
+
+				// remove any defs in filters of stockpiles
+				map.zoneManager.AllZones.OfType<Zone_Stockpile>().Select(pile => pile?.settings?.filter).ToList()
+					.Do(filter => RemoveZombielandFromFilter(filter));
+
+				// remove any defs in work tables
+				map.listerThings.AllThings.OfType<Building_WorkTable>().SelectMany(table => table?.billStack?.Bills ?? new List<Bill>())
+					.Select(bill => bill?.ingredientFilter).ToList()
+					.Do(filter => RemoveZombielandFromFilter(filter));
+
+				// remove any of our map components
+				map.components.RemoveAll(component => component.GetType().Namespace == zlNamespace);
+
+				// remove any of our hediffs
+				map.mapPawns.AllPawns.Do(pawn => pawn.health.hediffSet.hediffs.RemoveAll(hediff => hediff.GetType().Namespace == zlNamespace));
+			});
+
+			// remove any of our world components
+			Find.World.components.RemoveAll(component => component.GetType().Namespace == zlNamespace);
+
+			// remove zombie faction
+			var factionManager = Find.World.factionManager;
+			var factions = Traverse.Create(factionManager).Field("allFactions").GetValue<List<Faction>>();
+			var zombieFaction = factions.First(faction => faction.def == ZombieDefOf.Zombies);
+			factions.Remove(zombieFaction);
+			foreach (var faction in factions)
+			{
+				var relations = Traverse.Create(faction).Field("relations").GetValue<List<FactionRelation>>();
+				relations.RemoveAll(relation => relation.other == zombieFaction);
+			}
+
+			// this is how we save a file without our mod reference
+			var runningMods = Traverse.Create(typeof(LoadedModManager)).Field("runningMods").GetValue<List<ModContentPack>>();
+			var me = runningMods.First(mod => mod.Identifier == ZombielandMod.Identifier);
+			var myIndex = runningMods.IndexOf(me);
+			runningMods.Remove(me);
+			GameDataSaveLoader.SaveGame(filename);
+			runningMods.Insert(myIndex, me);
+
+			MemoryUtility.ClearAllMapsAndWorld();
+			GenScene.GoToMainMenu();
 		}
 
 		public static string ToHourString(this int ticks, bool relativeToAbsoluteGameTime = true)

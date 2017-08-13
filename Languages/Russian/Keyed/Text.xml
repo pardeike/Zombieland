@@ -80,6 +80,7 @@
 	<ZombieActionsTitle>команды</ZombieActionsTitle>
 	<ZombieSettingsReset>Восстановить настройки по умолчанию</ZombieSettingsReset>
 	<UninstallZombieland>Удалить Zombieland из текущей игры</UninstallZombieland>
+	<ConfirmUninstallZombieland>Если вы продолжаете, вы можете выбрать новое имя файла сохранения и вернуться в главное меню после сохранения игры. Новое сохранение может быть загружено без Zombieland.\n\nВы действительно хотите удалить весь контент Zombieland из текущей игры?</ConfirmUninstallZombieland>
 	<UninstallButton>Удалить</UninstallButton>
 
 	<ColonistsBittenByZombie>Colonist bitten by zombie</ColonistsBittenByZombie>

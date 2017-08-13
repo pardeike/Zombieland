@@ -5,10 +5,13 @@ using Verse;
 
 namespace ZombieLand
 {
-	class ZombielandMod : Mod
+	public class ZombielandMod : Mod
 	{
+		public static string Identifier = "";
+
 		public ZombielandMod(ModContentPack content) : base(content)
 		{
+			Identifier = content.Identifier;
 			GetSettings<ZombieSettingsDefaults>();
 
 			// HarmonyInstance.DEBUG = true;

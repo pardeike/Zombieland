@@ -80,6 +80,7 @@
 	<ZombieActionsTitle>Aktionen</ZombieActionsTitle>
 	<ZombieSettingsReset>Einstellungen zurücksetzen</ZombieSettingsReset>
 	<UninstallZombieland>Zombieland aus aktuellem Spiel entfernen</UninstallZombieland>
+	<ConfirmUninstallZombieland>In den folgenden Schritten können Sie einen neuen Dateinamen auswählen. Nach dem Speichern gelangen Sie wider in das Hauptmenü. Die neue Datei kann ohne Zombieland geladen werden.\n\Wollen Sie wirklich alle Zombieland-Inhalte aus dem aktuellen Spiel entfernen?</ConfirmUninstallZombieland>
 	<UninstallButton>Entfernen</UninstallButton>
 
 	<ColonistsBittenByZombie>Kolonist wurde von einem Zombie gebissen</ColonistsBittenByZombie>

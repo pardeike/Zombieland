@@ -223,12 +223,10 @@ namespace ZombieLand
 		[HarmonyPatch("TryCastShot")]
 		static class Verb_LaunchProjectile_TryCastShot_Patch
 		{
-			static int hardDef = DifficultyDefOf.Hard.difficulty;
-
 			static bool SkipMissingShotsAtZombies(Verb verb, LocalTargetInfo currentTarget)
 			{
 				// difficulty Intense or worse will trigger default behavior
-				if (Find.Storyteller.difficulty.difficulty >= hardDef) return false;
+				if (Find.Storyteller.difficulty.difficulty >= DifficultyDefOf.Hard.difficulty) return false;
 
 				// only for colonists
 				var colonist = verb.caster as Pawn;

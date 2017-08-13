@@ -20,6 +20,41 @@ namespace ZombieLand
 		}
 	}
 
+	public class Dialog_Save : Dialog_SaveFileList
+	{
+		protected override bool ShouldDoTypeInField => true;
+
+		public Dialog_Save()
+		{
+			interactButLabel = "OverwriteButton".Translate();
+			bottomAreaHeight = 85f;
+			if (Faction.OfPlayer.HasName)
+				typingName = Faction.OfPlayer.Name;
+			else
+				typingName = SaveGameFilesUtility.UnusedDefaultFileName(Faction.OfPlayer.def.LabelCap);
+		}
+
+		protected override void DoFileInteraction(string fileName)
+		{
+			Close(true);
+			Tools.RemoveZombieland(fileName);
+		}
+
+		public override void PostClose()
+		{
+		}
+
+		public static void Save()
+		{
+			Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation("ConfirmUninstallZombieland".Translate(), () =>
+			{
+				Find.WindowStack.currentlyDrawnWindow.Close();
+				Find.WindowStack.Add(new Dialog_Save());
+
+			}, true, null));
+		}
+	}
+
 	static class Dialogs
 	{
 		static Color contentColor = new Color(1f, 1f, 1f, 0.7f);
@@ -319,8 +354,7 @@ namespace ZombieLand
 			// Actions
 			list.Dialog_Label("ZombieActionsTitle");
 			list.Dialog_Button("ZombieSettingsReset", "Reset", false, settings.Reset);
-			if (inGame)
-				list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Tools.RemoveZombieland, false);
+			if (inGame) list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Dialog_Save.Save, false);
 
 			list.End(); // -----------------------------------------------------------------------------------------
 
