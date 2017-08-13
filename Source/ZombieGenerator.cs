@@ -141,6 +141,7 @@ namespace ZombieLand
 			zombie.ageTracker.AgeBiologicalTicks = ((long)(Rand.Range(0, 0x9c4 + 1) * 3600000f)) + Rand.Range(0, 0x36ee80);
 			zombie.ageTracker.AgeChronologicalTicks = zombie.ageTracker.AgeBiologicalTicks;
 			zombie.ageTracker.BirthAbsTicks = GenTicks.TicksAbs - zombie.ageTracker.AgeBiologicalTicks;
+			var idx = zombie.ageTracker.CurLifeStageIndex; // trigger calculations
 
 			zombie.needs.SetInitialLevels();
 			zombie.needs.mood = new Need_Mood(zombie);

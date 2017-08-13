@@ -3,6 +3,7 @@ using RimWorld.Planet;
 using UnityEngine;
 using Verse;
 using System.Linq;
+using Harmony;
 
 namespace ZombieLand
 {
@@ -50,7 +51,7 @@ namespace ZombieLand
 		public bool doubleTapRequired = true;
 		public bool zombiesDieVeryEasily = false;
 		public int daysBeforeZombiesCome = 3;
-		public int maximumNumberOfZombies = 1000;
+		public int maximumNumberOfZombies = 500;
 		public int baseNumberOfZombiesinEvent = 20;
 		public float moveSpeedIdle = 0.2f;
 		public float moveSpeedTracking = 1.3f;
@@ -77,6 +78,17 @@ namespace ZombieLand
 		public void ExposeData()
 		{
 			this.AutoExposeDataWithDefaults();
+		}
+
+		public void Reset()
+		{
+			var type = GetType();
+			var defaults = Activator.CreateInstance(type);
+			AccessTools.GetFieldNames(this).Do(name =>
+			{
+				var finfo = AccessTools.Field(type, name);
+				finfo.SetValue(this, finfo.GetValue(defaults));
+			});
 		}
 	}
 

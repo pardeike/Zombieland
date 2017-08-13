@@ -109,6 +109,7 @@ namespace ZombieLand
 		public static float KILL_CIRCLE_RADIUS_MULTIPLIER = 0f;
 		public static float BASE_MUZZLE_FLASH_VALUE = 9f;
 		public static float SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 14;
+		public static float COLONISTS_HIT_ZOMBIES_CHANCE = 0.9f;
 
 		// rubble
 		//

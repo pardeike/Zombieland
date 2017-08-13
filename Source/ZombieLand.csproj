@@ -100,9 +100,6 @@
     <Content Include="..\Defs\Zombie_Hediffs.xml">
       <Link>_xml\Zombie_Hediffs.xml</Link>
     </Content>
-    <Content Include="..\Defs\Zombie_Incidents.xml">
-      <Link>_xml\Zombie_Incidents.xml</Link>
-    </Content>
     <Content Include="..\Defs\Zombie_Jobs.xml">
       <Link>_xml\Zombie_Jobs.xml</Link>
       <SubType>Designer</SubType>

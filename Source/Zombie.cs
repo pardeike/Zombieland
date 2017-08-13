@@ -44,6 +44,11 @@ namespace ZombieLand
 
 				ZombieGenerator.AssignNewCustomGraphics(this);
 			}
+
+			if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
+			{
+				var idx = ageTracker.CurLifeStageIndex; // trigger calculations
+			}
 		}
 
 		public override void DeSpawn()
@@ -142,9 +147,6 @@ namespace ZombieLand
 
 				if (health != null)
 					health.HealthTick();
-
-				//if (!Dead && mindState != null)
-				//	mindState.MindStateTick();
 			}
 
 			if (state == ZombieState.Emerging)

@@ -58,6 +58,33 @@ namespace ZombieLand
 			list.Gap(list.verticalSpacing * 3f);
 		}
 
+		public static void Dialog_Button(this Listing_Standard list, string desc, string label, bool dangerous, Action action, bool addGap = true)
+		{
+			var description = desc.Translate();
+			var buttonText = label.Translate();
+			var descriptionWidth = (list.ColumnWidth - 3 * inset) * 2 / 3;
+			var buttonWidth = list.ColumnWidth - 3 * inset - descriptionWidth;
+			var height = Math.Max(30f, Text.CalcHeight(description, descriptionWidth));
+
+			var rect = list.GetRect(height);
+			var rect2 = rect;
+			rect.xMin += inset;
+			rect.width = descriptionWidth;
+			Widgets.Label(rect, description);
+
+			rect2.xMax -= inset;
+			rect2.xMin = rect2.xMax - buttonWidth;
+			rect2.yMin += (height - 30f) / 2;
+			rect2.yMax -= (height - 30f) / 2;
+
+			var color = GUI.color;
+			GUI.color = dangerous ? new Color(1f, 0.3f, 0.35f) : Color.white;
+			if (Widgets.ButtonText(rect2, buttonText, true, true, true)) action();
+			GUI.color = color;
+
+			if (addGap) list.Gap(2 * list.verticalSpacing);
+		}
+
 		public static void Dialog_Checkbox(this Listing_Standard list, string desc, ref bool forBool, bool addGap = true)
 		{
 			var label = desc.Translate();
@@ -204,6 +231,7 @@ namespace ZombieLand
 		public static void DoWindowContentsInternal(ref SettingsGroup settings, Rect inRect, bool isDefaults)
 		{
 			if (settings == null) settings = new SettingsGroup();
+			var inGame = Current.Game != null && Current.ProgramState == ProgramState.Playing;
 
 			inRect.yMin += 15f;
 			inRect.yMax -= 15f;
@@ -287,6 +315,12 @@ namespace ZombieLand
 			list.Dialog_Checkbox("ReplaceTwinkie", ref settings.replaceTwinkie);
 			list.Dialog_Checkbox("ZombiesTriggerDangerMusic", ref settings.zombiesTriggerDangerMusic);
 			list.Dialog_Checkbox("BetterZombieAvoidance", ref settings.betterZombieAvoidance);
+
+			// Actions
+			list.Dialog_Label("ZombieActionsTitle");
+			list.Dialog_Button("ZombieSettingsReset", "Reset", false, settings.Reset);
+			if (inGame)
+				list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Tools.RemoveZombieland, false);
 
 			list.End(); // -----------------------------------------------------------------------------------------
 

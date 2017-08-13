@@ -240,6 +240,24 @@ namespace ZombieLand
 						.Any(tendDuration => tendDuration.InfectionStateBetween(minState, maxState));
 		}
 
+		public static int CapableColonists(Map map)
+		{
+			var colonists = map.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction.OfPlayer);
+			return colonists.Count(pawn =>
+			{
+				if (pawn.Spawned == false || pawn.Downed || pawn.Dead) return false;
+				if (pawn.health.HasHediffsNeedingTend(true)) return false;
+				if (pawn.equipment.Primary == null) return false;
+				if (pawn.InMentalState) return false;
+				if (pawn.InContainerEnclosed) return false;
+
+				var walkCapacity = PawnCapacityUtility.CalculateCapacityLevel(pawn.health.hediffSet, PawnCapacityDefOf.Moving);
+				if (walkCapacity < 0.25f) return false;
+
+				return true;
+			});
+		}
+
 		public static Predicate<IntVec3> ZombieSpawnLocator(Map map, bool isEvent = false)
 		{
 			if (isEvent || ZombieSettings.Values.spawnWhenType == SpawnWhenType.AllTheTime
@@ -316,6 +334,11 @@ namespace ZombieLand
 				m_Look.Invoke(null, arguments);
 				finfo.SetValue(settings, arguments[0]);
 			});
+		}
+
+		public static void RemoveZombieland()
+		{
+			// TODO
 		}
 
 		public static string ToHourString(this int ticks, bool relativeToAbsoluteGameTime = true)

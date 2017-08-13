@@ -2,7 +2,6 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -215,6 +214,78 @@ namespace ZombieLand
 				}
 				__result = dangerRatingInt == StoryDanger.High;
 				return false;
+			}
+		}
+
+		// patch to increase hit chance for shooting at zombies
+		//
+		[HarmonyPatch(typeof(Verb_LaunchProjectile))]
+		[HarmonyPatch("TryCastShot")]
+		static class Verb_LaunchProjectile_TryCastShot_Patch
+		{
+			static int hardDef = DifficultyDefOf.Hard.difficulty;
+
+			static bool SkipMissingShotsAtZombies(Verb verb, LocalTargetInfo currentTarget)
+			{
+				// difficulty Intense or worse will trigger default behavior
+				if (Find.Storyteller.difficulty.difficulty >= hardDef) return false;
+
+				// only for colonists
+				var colonist = verb.caster as Pawn;
+				if (colonist == null || colonist.Faction != Faction.OfPlayer) return false;
+
+				// shooting zombies
+				var zombie = currentTarget.HasThing ? currentTarget.Thing as Zombie : null;
+				if (zombie == null) return false;
+
+				// max 25 cells awaw
+				if ((zombie.Position - colonist.Position).LengthHorizontalSquared > 625) return false;
+
+				// with line of sight
+				var shot = verb as Verb_LaunchProjectile;
+				if (shot == null || shot.verbProps.requireLineOfSight == false) return false;
+
+				// skip miss calculations
+				return Rand.Chance(Constants.COLONISTS_HIT_ZOMBIES_CHANCE);
+			}
+
+			[HarmonyPriority(Priority.First)]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+			{
+				var m_SkipMissingShotsAtZombies = AccessTools.Method(typeof(Verb_LaunchProjectile_TryCastShot_Patch), "SkipMissingShotsAtZombies");
+				var f_forcedMissRadius = AccessTools.Field(typeof(VerbProperties), "forcedMissRadius");
+				var m_HitReportFor = AccessTools.Method(typeof(ShotReport), "HitReportFor");
+				var f_currentTarget = AccessTools.Field(typeof(Verb), "currentTarget");
+
+				var skipLabel = generator.DefineLabel();
+
+				var inList = instructions.ToList();
+
+				var idx1 = inList.FirstIndexOf(instr => instr.opcode == OpCodes.Ldfld && instr.operand == f_forcedMissRadius);
+				var idx2 = inList.FindLastIndex(instr => instr.opcode == OpCodes.Call
+					&& (instr.operand as MethodInfo)?.DeclaringType == typeof(ShotReport)
+					&& (instr.operand as MethodInfo)?.ReturnType == typeof(float)
+				);
+				if (idx1 > 0)
+				{
+					var jump = inList[idx2 + 1];
+					if (jump.opcode == OpCodes.Ble_Un)
+					{
+						idx1 -= 2;
+						inList.Insert(idx1++, new CodeInstruction(OpCodes.Ldarg_0));
+						inList.Insert(idx1++, new CodeInstruction(OpCodes.Ldarg_0));
+						inList.Insert(idx1++, new CodeInstruction(OpCodes.Ldfld, f_currentTarget));
+						inList.Insert(idx1++, new CodeInstruction(OpCodes.Call, m_SkipMissingShotsAtZombies));
+						inList.Insert(idx1++, new CodeInstruction(OpCodes.Brtrue, jump.operand));
+					}
+					else
+						Log.Error("No call on ShotReport method returning float in Verb_LaunchProjectile.TryCastShot");
+				}
+				else
+					Log.Error("No ldfld forcedMissRadius in Verb_LaunchProjectile.TryCastShot");
+
+				foreach (var instruction in inList)
+					yield return instruction;
 			}
 		}
 
@@ -505,19 +576,6 @@ namespace ZombieLand
 					}
 					factions.Add(zombies);
 				}
-			}
-		}
-
-		// patch for updating zombie counts
-		//
-		[HarmonyPatch(typeof(GenPlace))]
-		[HarmonyPatch("TryPlaceDirect")]
-		static class GenPlace_TryPlaceDirect_Patch
-		{
-			static void Postfix(Thing resultingThing, bool __result)
-			{
-				if (__result == false || (resultingThing is Zombie) == false) return;
-				var grid = resultingThing.Map.GetGrid();
 			}
 		}
 

@@ -14,6 +14,7 @@ namespace ZombieLand
 		int dequeedSpawnCounter;
 
 		int visibleGridUpdateCounter;
+		int incidentTickCounter;
 		int avoidGridCounter;
 
 		public IntVec3 centerOfInterest = IntVec3.Invalid;
@@ -22,6 +23,8 @@ namespace ZombieLand
 		public List<Zombie> allZombiesCached;
 		public AvoidGrid avoidGrid = null;
 		public AvoidGrid emptyAvoidGrid = null;
+
+		public IncidentInfo incidentInfo = new IncidentInfo();
 
 		public TickManager(Map map) : base(map)
 		{
@@ -61,7 +64,9 @@ namespace ZombieLand
 			base.ExposeData();
 			Scribe_Values.Look(ref currentColonyPoints, "colonyPoints");
 			Scribe_Collections.Look(ref allZombiesCached, "prioritizedZombies", LookMode.Reference);
+			Scribe_Deep.Look(ref incidentInfo, "incidentInfo", new object[0]);
 			allZombiesCached = allZombiesCached.Where(zombie => zombie != null).ToList();
+			if (incidentInfo == null) incidentInfo = new IncidentInfo();
 		}
 
 		public void RecalculateVisibleMap()
@@ -95,8 +100,8 @@ namespace ZombieLand
 		public int GetMaxZombieCount()
 		{
 			if (map == null || map.mapPawns == null) return 0;
-			var colonists = map.mapPawns.ColonistCount;
-			var perColonistZombieCount = GenMath.LerpDouble(0f, 4f, 10, 40, (float)Math.Min(4, Math.Sqrt(colonists)));
+			var colonists = Tools.CapableColonists(map);
+			var perColonistZombieCount = GenMath.LerpDouble(0f, 4f, 5, 30, (float)Math.Min(4, Math.Sqrt(colonists)));
 			var colonistMultiplier = Math.Sqrt(colonists) * 2;
 			var baseStrengthFactor = GenMath.LerpDouble(0, 1000, 1f, 4f, Math.Min(1000, currentColonyPoints));
 			var difficultyMultiplier = Find.Storyteller.difficulty.threatScale;
@@ -182,6 +187,24 @@ namespace ZombieLand
 			Tools.avoider.UpdateZombiePositions(map, specs);
 		}
 
+		private void HandleIncidents()
+		{
+			if (incidentTickCounter++ < GenDate.TicksPerHour) return;
+			incidentTickCounter = 0;
+
+			var incidentSize = ZombiesRising.ZombiesForNewIncident(map);
+			if (incidentSize > 0)
+			{
+				Log.Warning("Zombieland incident with " + incidentSize + " zombies");
+				var success = ZombiesRising.TryExecute(map, incidentSize);
+				if (success == false)
+				{
+					Log.Warning("Incident creation failed. Most likely no valid spawn point found.");
+					// TODO incident failed, so mark it for new executing asap
+				}
+			}
+		}
+
 		private void FetchAvoidGrid()
 		{
 			if (ZombieSettings.Values.betterZombieAvoidance == false)
@@ -255,6 +278,7 @@ namespace ZombieLand
 			var watch = new Stopwatch();
 			watch.Start();
 
+			HandleIncidents();
 			FetchAvoidGrid();
 			RecalculateVisibleMap();
 			IncreaseZombiePopulation();

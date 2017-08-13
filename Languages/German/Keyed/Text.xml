@@ -77,6 +77,11 @@
 	<ZombiesTriggerDangerMusic>Zombies beeinflussen die Kampfmusik</ZombiesTriggerDangerMusic>
 	<BetterZombieAvoidance>Automatische Vermeidung von Zombies</BetterZombieAvoidance>
 
+	<ZombieActionsTitle>Aktionen</ZombieActionsTitle>
+	<ZombieSettingsReset>Einstellungen zurücksetzen</ZombieSettingsReset>
+	<UninstallZombieland>Zombieland aus aktuellem Spiel entfernen</UninstallZombieland>
+	<UninstallButton>Entfernen</UninstallButton>
+
 	<ColonistsBittenByZombie>Kolonist wurde von einem Zombie gebissen</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Folgende Kolonisten wurden von einem Zombie gebissen. Noch ist unklar ob sich daraus eine Infektion entwickelt:\n\n{0}\nBeobachten Sie die Wunden um herauszufinden ob eine Infektion stattfinden wird.</ColonistsBittenByZombieDesc>
 

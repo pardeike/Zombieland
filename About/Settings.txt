@@ -92,6 +92,9 @@ BASE_MUZZLE_FLASH_VALUE = 9
 // Number of surrounding zombies it takes to make a zombie rage. Default is 14
 SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 14
 
+// Forced chance that colonists shooting hit zombies. Default is 0.9 (90%)
+COLONISTS_HIT_ZOMBIES_CHANCE = 0.9
+
 // For the spawn incident, this defines the area size in where this event will
 // take place. Default is 10
 SPAWN_INCIDENT_RADIUS = 10
