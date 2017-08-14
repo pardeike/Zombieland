@@ -42,16 +42,15 @@ namespace ZombieLand
 		}
 
 		static float skippingColonistCountCheckAnormality = 0.1f;
-		static float skippingLastIncidentTimeCheckAnormality = 0.1f;
 		static float goingBeyondMaxZombiesAnormality = 0.25f;
 
 		static int rampUpDaysBase = 20;
-		static float minNextDays = 2f;
-		static float maxNextDays = 6f;
+		static float minNextDays = 1f;
+		static float maxNextDays = 4f;
 
 		public static int ZombiesForNewIncident(Map map)
 		{
-			// Log.Warning("");
+			Log.Warning("");
 
 			var tickManager = map.GetComponent<TickManager>();
 			var minThreadScale = MissingDifficulty.Peaceful.threatScale;
@@ -66,26 +65,25 @@ namespace ZombieLand
 			var hour = GenLocalDate.HourOfDay(map);
 			if (hour < 12) hour += 24;
 
-			// Log.Warning("TickManager.info " + info);
-			// Log.Warning("hour " + hour);
-			// Log.Warning("minThreadScale " + minThreadScale);
-			// Log.Warning("baseThreadScale " + baseThreadScale);
-			// Log.Warning("threatScale " + threatScale);
-			// Log.Warning("capableColonists " + capableColonists);
-			// Log.Warning("daysBeforeZombies " + daysBeforeZombies);
-			// Log.Warning("tickManager.GetMaxZombieCount " + tickManager.GetMaxZombieCount());
-			// Log.Warning("ZombieSettings.Values.baseNumberOfZombiesinEvent " + ZombieSettings.Values.baseNumberOfZombiesinEvent);
-			// Log.Warning("ZombieSettings.Values.maximumNumberOfZombies " + ZombieSettings.Values.maximumNumberOfZombies);
-			// Log.Warning("storyteller.difficulty " + Find.Storyteller.difficulty.difficulty);
-			// Log.Warning("GenDate.DaysPassedFloat " + GenDate.DaysPassedFloat);
-			// Log.Warning("totalColonistCount " + map.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction.OfPlayer).Count());
-			// Log.Warning("minimumCapableColonists " + minimumCapableColonists);
-			// Log.Warning("ZombieSettings.Values.spawnWhenType " + ZombieSettings.Values.spawnWhenType);
+			Log.Warning("hour " + hour);
+			Log.Warning("minThreadScale " + minThreadScale);
+			Log.Warning("baseThreadScale " + baseThreadScale);
+			Log.Warning("threatScale " + threatScale);
+			Log.Warning("capableColonists " + capableColonists);
+			Log.Warning("daysBeforeZombies " + daysBeforeZombies);
+			Log.Warning("tickManager.GetMaxZombieCount " + tickManager.GetMaxZombieCount());
+			Log.Warning("ZombieSettings.Values.baseNumberOfZombiesinEvent " + ZombieSettings.Values.baseNumberOfZombiesinEvent);
+			Log.Warning("ZombieSettings.Values.maximumNumberOfZombies " + ZombieSettings.Values.maximumNumberOfZombies);
+			Log.Warning("storyteller.difficulty " + Find.Storyteller.difficulty.difficulty);
+			Log.Warning("GenDate.DaysPassedFloat " + GenDate.DaysPassedFloat);
+			Log.Warning("totalColonistCount " + map.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction.OfPlayer).Count());
+			Log.Warning("minimumCapableColonists " + minimumCapableColonists);
+			Log.Warning("ZombieSettings.Values.spawnWhenType " + ZombieSettings.Values.spawnWhenType);
 
 			// zombie free days
 			if (GenDate.DaysPassedFloat <= daysBeforeZombies)
 			{
-				// Log.Warning("No event because " + GenDate.DaysPassedFloat + " <= daysBeforeZombies");
+				Log.Warning("No event because " + GenDate.DaysPassedFloat + " <= daysBeforeZombies");
 				return 0;
 			}
 
@@ -94,7 +92,7 @@ namespace ZombieLand
 			{
 				if (hour < Constants.HOUR_START_OF_NIGHT || hour > Constants.HOUR_END_OF_NIGHT)
 				{
-					// Log.Warning("No event because " + hour + " is outside night (" + Constants.HOUR_START_OF_NIGHT + " - " + Constants.HOUR_END_OF_NIGHT + ")");
+					Log.Warning("No event because " + hour + " is outside night (" + Constants.HOUR_START_OF_NIGHT + " - " + Constants.HOUR_END_OF_NIGHT + ")");
 					return 0;
 				}
 			}
@@ -106,77 +104,72 @@ namespace ZombieLand
 				{
 					if (capableColonists <= minimumCapableColonists)
 					{
-						// Log.Warning("No event because capableColonists <=" + minimumCapableColonists);
+						Log.Warning("No event because capableColonists <= " + minimumCapableColonists);
 						return 0;
 					}
 				}
 				else
 				{
-					// Log.Warning("Anormality: skipping colonist count check");
+					Log.Warning("Anormality: skipping colonist count check");
 				}
 			}
 
 			// not yet time for next incident
-			if (Rand.Chance(skippingLastIncidentTimeCheckAnormality) == false)
+			if (GenTicks.TicksAbs < info.NextIncident)
 			{
-				if (GenTicks.TicksAbs < info.NextIncident)
-				{
-					// Log.Warning("No event because " + GenTicks.TicksAbs + " < nextIncident (" + info.NextIncident + ")");
-					return 0;
-				}
-			}
-			else
-			{
-				// Log.Warning("Anormality: skipping last incident time check");
+				Log.Warning("No event because " + GenTicks.TicksAbs + " < nextIncident (" + info.NextIncident + ")");
+				return 0;
 			}
 
 			// too little new zombies
 			var currentZombieCount = map.GetComponent<TickManager>().AllZombies().Count();
 			var maxTotalZombies = tickManager.GetMaxZombieCount();
-			// Log.Warning("currentZombieCount " + currentZombieCount);
-			// Log.Warning("maxTotalZombies " + maxTotalZombies);
+			Log.Warning("currentZombieCount " + currentZombieCount);
+			Log.Warning("maxTotalZombies " + maxTotalZombies);
 			if (Rand.Chance(goingBeyondMaxZombiesAnormality) && Find.Storyteller.difficulty.allowBigThreats)
 			{
 				var extendedCount = ZombieSettings.Values.maximumNumberOfZombies - maxTotalZombies;
 				if (extendedCount > 0)
 				{
 					extendedCount = Rand.RangeInclusive(0, extendedCount);
-					// Log.Warning("Anormality: going beyond max " + maxTotalZombies + " zombies to " + (maxTotalZombies + extendedCount));
+					Log.Warning("Anormality: going beyond max " + maxTotalZombies + " zombies to " + (maxTotalZombies + extendedCount));
 					maxTotalZombies += extendedCount;
 				}
 			}
 			var maxAdditionalZombies = Math.Max(0, maxTotalZombies - currentZombieCount);
 			var calculatedZombies = capableColonists * ZombieSettings.Values.baseNumberOfZombiesinEvent;
 			var incidentSize = Math.Min(maxAdditionalZombies, calculatedZombies);
-			// Log.Warning("maxAdditionalZombies " + maxAdditionalZombies);
-			// Log.Warning("calculatedZombies " + calculatedZombies);
-			// Log.Warning("incidentSize (base) " + incidentSize);
+			Log.Warning("maxAdditionalZombies " + maxAdditionalZombies);
+			Log.Warning("calculatedZombies " + calculatedZombies);
+			Log.Warning("incidentSize (base) " + incidentSize);
 			if (incidentSize == 0)
 			{
-				// Log.Warning("No event because incidentSize == 0");
+				Log.Warning("No event because incidentSize == 0");
 				return 0;
 			}
 
 			// ramp it up
 			var rampUpDays = Math.Max(1, rampUpDaysBase * (1f - threatScale));
-			// Log.Warning("rampUpDays " + rampUpDays);
+			Log.Warning("rampUpDays " + rampUpDays);
 			var scaleFactor = GenMath.LerpDouble(daysBeforeZombies, daysBeforeZombies + rampUpDays, 0.1f, 1f, GenDate.DaysPassedFloat);
-			// Log.Warning("scaleFactor1 " + scaleFactor);
+			Log.Warning("scaleFactor1 " + scaleFactor);
 			scaleFactor *= (0.75f + Rand.Value / 2f);
-			// Log.Warning("scaleFactor2 " + scaleFactor);
+			Log.Warning("scaleFactor2 " + scaleFactor);
 			scaleFactor = Tools.Boxed(scaleFactor, 0f, 1f);
-			// Log.Warning("scaleFactor4 " + scaleFactor);
+			Log.Warning("scaleFactor3 " + scaleFactor);
 			incidentSize = Math.Max(1, (int)(incidentSize * scaleFactor + 0.5f));
 
 			// success
-			var dayStretchFactor = GenMath.LerpDouble(1, 500, 1f, 5f, incidentSize);
+			var dayStretchFactor = 1f + incidentSize / 200f;
 			var dMin = minNextDays * dayStretchFactor;
 			var dMax = maxNextDays * dayStretchFactor;
 			var deltaDays = Rand.Range(dMin, dMax);
 			info.Update(deltaDays);
 
-			// Log.Warning("deltaDays = " + deltaDays);
-			// Log.Warning("final incidentSize = " + incidentSize);
+			Log.Warning("dayStretchFactor " + dayStretchFactor);
+			Log.Warning("dMin/dMax " + dMin + " / " + dMax);
+			Log.Warning("deltaDays = " + deltaDays);
+			Log.Warning("final incidentSize = " + incidentSize);
 
 			return incidentSize;
 		}
