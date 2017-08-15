@@ -295,7 +295,7 @@ namespace ZombieLand
 		static class GenHostility_IsActiveThreat_Patch
 		{
 			[HarmonyPriority(Priority.First)]
-			static bool Prefix(bool __result, IAttackTarget target)
+			static bool Prefix(ref bool __result, IAttackTarget target)
 			{
 				if (target is Zombie)
 				{
@@ -441,6 +441,60 @@ namespace ZombieLand
 					yield return instr;
 			}
 		}
+		[HarmonyPatch(typeof(Pawn_PathFollower))]
+		[HarmonyPatch("NeedNewPath")]
+		public static class Pawn_PathFollower_NeedNewPath_Patch
+		{
+			static MethodInfo m_get_LengthHorizontalSquared = AccessTools.Method(typeof(IntVec3), "get_LengthHorizontalSquared");
+			static MethodInfo m_ZombieInPath = AccessTools.Method(typeof(Pawn_PathFollower_NeedNewPath_Patch), "ZombieInPath");
+			static FieldInfo f_pawn = AccessTools.Field(typeof(Pawn_PathFollower), "pawn");
+
+			static bool ZombieInPath(Pawn_PathFollower __instance, Pawn pawn)
+			{
+				if (pawn.IsColonist == false) return false;
+
+				var path = __instance.curPath;
+				if (path.NodesLeftCount < 5) return false;
+				var lookAhead = path.Peek(4);
+				var destination = path.LastNode;
+				if ((lookAhead - destination).LengthHorizontalSquared < 25) return false;
+
+				var map = pawn.Map;
+				var costs = map.GetComponent<TickManager>().avoidGrid.GetCosts();
+				var zombieDanger = costs[lookAhead.x + lookAhead.z * map.Size.x];
+				return (zombieDanger > 0);
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+			{
+				var list = instructions.ToList();
+				var idx = list.FindLastIndex(code => code.opcode == OpCodes.Call && code.operand == m_get_LengthHorizontalSquared);
+				if (idx > 0)
+				{
+					idx = list.FirstIndexOf(code => code.opcode == OpCodes.Ret && list.IndexOf(code) > idx) + 2;
+					if (idx > 2)
+					{
+						var jump = generator.DefineLabel();
+
+						// here we should have a Ldarg_0 but original code has one with a label on it so we reuse it
+						list.Insert(idx++, new CodeInstruction(OpCodes.Ldarg_0));
+						list.Insert(idx++, new CodeInstruction(OpCodes.Ldfld, f_pawn));
+						list.Insert(idx++, new CodeInstruction(OpCodes.Call, m_ZombieInPath));
+						list.Insert(idx++, new CodeInstruction(OpCodes.Brfalse, jump));
+						list.Insert(idx++, new CodeInstruction(OpCodes.Ldc_I4_1));
+						list.Insert(idx++, new CodeInstruction(OpCodes.Ret));
+						list.Insert(idx++, new CodeInstruction(OpCodes.Ldarg_0) { labels = new List<Label>() { jump } }); // add the missing Ldarg_0 from original code here
+					}
+					else
+						Log.Error("Cannot find OpCode.Ret after last " + m_get_LengthHorizontalSquared + " in Pawn_PathFollower.NeedNewPath");
+				}
+				else
+					Log.Error("Cannot find " + m_get_LengthHorizontalSquared + " in Pawn_PathFollower.NeedNewPath");
+
+				foreach (var instr in list)
+					yield return instr;
+			}
+		}
 
 		// patch to add a pheromone info section to the rimworld cell inspector
 		//
@@ -457,7 +511,7 @@ namespace ZombieLand
 			static void DebugGrid(StringBuilder builder)
 			{
 				if (Current.Game == null) return;
-				var map = Find.VisibleMap;
+				var map = Current.Game.VisibleMap;
 				if (map == null) return;
 				var pos = UI.MouseCell();
 
@@ -466,7 +520,15 @@ namespace ZombieLand
 				builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount());
 				builder.AppendLine("Ticked zombies: " + tickedZombies + " out of " + ofTotalZombies);
-				builder.AppendLine("Days left before Zombies spawn: " + Math.Max(0, ZombieSettings.Values.daysBeforeZombiesCome - GenDate.DaysPassedFloat));
+
+				builder.AppendLine("");
+				AccessTools.GetFieldNames(typeof(ZRdebug)).Do(name =>
+				{
+					var value = Traverse.Create(typeof(ZRdebug)).Field(name).GetValue();
+					builder.AppendLine(name + ": " + value);
+				});
+				builder.AppendLine("");
+
 				if (pos.InBounds(map))
 				{
 					var avoidGrid = map.GetComponent<TickManager>().avoidGrid;
@@ -513,6 +575,16 @@ namespace ZombieLand
 					sb.Append(" (wander dest " + wanderTo.x + "," + wanderTo.z + ")");
 					builder.AppendLine(sb.ToString());
 				});
+			}
+
+			static bool Prefix(string __result)
+			{
+				if (Current.Game == null)
+				{
+					__result = "";
+					return false;
+				}
+				return true;
 			}
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

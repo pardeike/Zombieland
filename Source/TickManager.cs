@@ -134,8 +134,16 @@ namespace ZombieLand
 
 				var result = Tools.generator.TryGetNextGeneratedZombie(map);
 				if (result == null) return;
-				if (result.isEvent == false && ZombieCount() >= GetMaxZombieCount()) return;
+				if (result.isEvent == false && ZombieCount() >= GetMaxZombieCount())
+				{
+					Tools.generator.RequeueZombie(result);
+					return;
+				}
 
+				// TODO: if zombie cannot spawn at location, we are wasting it here.
+				// to solve this, we need to find a better location and only if we find
+				// none, we can discard it
+				//
 				if (Tools.IsValidSpawnLocation(result.cell, result.map) == false) return;
 
 				var existingZombies = result.map.thingGrid.ThingsListAtFast(result.cell).OfType<Zombie>();

@@ -43,7 +43,7 @@ namespace ZombieLand
 
 			workerThread = new Thread(() =>
 			{
-			EndlessLoop:
+				EndlessLoop:
 
 				try
 				{
@@ -125,15 +125,11 @@ namespace ZombieLand
 
 		public static Zombie GeneratePawn()
 		{
-			var kindDef = ZombieDefOf.Zombie;
-
-			var zombie = (Zombie)ThingMaker.MakeThing(kindDef.race, null);
+			var zombie = (Zombie)ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null);
 
 			zombie.gender = Rand.Bool ? Gender.Male : Gender.Female;
-			var factionDef = ZombieDefOf.Zombies;
-			var faction = FactionUtility.DefaultFactionFrom(factionDef);
-			zombie.kindDef = kindDef;
-			zombie.SetFactionDirect(faction);
+			zombie.kindDef = ZombieDefOf.Zombie;
+			zombie.SetFactionDirect(FactionUtility.DefaultFactionFrom(ZombieDefOf.Zombies));
 
 			PawnComponentsUtility.CreateInitialComponents(zombie);
 			zombie.health.hediffSet.Clear();
@@ -165,7 +161,7 @@ namespace ZombieLand
 			zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
 
 			zombie.story.hairColor = HairColor();
-			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, factionDef);
+			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, ZombieDefOf.Zombies);
 			zombie.story.bodyType = (zombie.gender == Gender.Female) ? BodyType.Female : BodyType.Male;
 			if (zombie.story.bodyType == BodyType.Male)
 				switch (Rand.Range(1, 6))
