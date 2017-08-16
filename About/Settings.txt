@@ -16,12 +16,6 @@ USE_SOUND = true
 // aggresion value (scales zombies). Default is off, which is 0
 DEBUG_COLONY_POINTS = 0
 
-// The maximum time per tick is 1/60 second. If computing zombies takes longer
-// not all zombies will be computed to avoid lag. This factor is multiplied into
-// this calculation to compensate that a tick is also used for everything else
-// in the game. Default is 0.01 which means that zombies get 1/100 sec per tick
-TOTAL_ZOMBIE_FRAME_TIME = 0.01
-
 // This is the fade-off of the traces every enemy leaves behind in game-seconds.
 // Setting this lower will make zombies chaise you less because they loose track
 // of you. Default is 90.0

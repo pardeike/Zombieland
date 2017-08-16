@@ -2,9 +2,10 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Emit;
 using Verse;
+using Verse.AI;
 
 namespace ZombieLand
 {
@@ -65,7 +66,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref currentColonyPoints, "colonyPoints");
 			Scribe_Collections.Look(ref allZombiesCached, "prioritizedZombies", LookMode.Reference);
 			Scribe_Deep.Look(ref incidentInfo, "incidentInfo", new object[0]);
-			allZombiesCached = allZombiesCached.Where(zombie => zombie != null).ToList();
+			allZombiesCached = allZombiesCached.Where(zombie => zombie != null && zombie.Spawned && zombie.Dead == false).ToList();
 			if (incidentInfo == null) incidentInfo = new IncidentInfo();
 		}
 
@@ -109,10 +110,33 @@ namespace ZombieLand
 			return Math.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
 		}
 
-		public void ZombieTicking(Stopwatch watch)
+		private delegate float GetterHandler();
+		private static GetterHandler __timeLeftToTick;
+		private static GetterHandler TimeLeftToTick
 		{
-			var maxTickTime = Constants.TOTAL_ZOMBIE_FRAME_TIME / Find.TickManager.TickRateMultiplier * Stopwatch.Frequency;
-			var zombies = allZombiesCached.Where(zombie => zombie.Map == map).ToList();
+			get
+			{
+				if (__timeLeftToTick == null)
+				{
+					var dynamicGet = new DynamicMethod("DynamicTimeLeftToTick", typeof(float), new Type[0], typeof(Verse.TickManager), true);
+					var getGenerator = dynamicGet.GetILGenerator();
+					getGenerator.Emit(OpCodes.Call, AccessTools.Method(typeof(Current), "get_Game"));
+					getGenerator.Emit(OpCodes.Ldfld, AccessTools.Field(typeof(Game), "tickManager"));
+					getGenerator.Emit(OpCodes.Ldfld, AccessTools.Field(typeof(Verse.TickManager), "realTimeToTickThrough"));
+					getGenerator.Emit(OpCodes.Ret);
+					__timeLeftToTick = (GetterHandler)dynamicGet.CreateDelegate(typeof(GetterHandler));
+				}
+				return __timeLeftToTick;
+			}
+		}
+
+		public void ZombieTicking()
+		{
+			var multiplier = Find.TickManager.TickRateMultiplier;
+			var partOfTickToLeave = 1 / 5f;
+			var extraTimeRemaining = multiplier == 0f ? 0f : 1f / (60f * multiplier) * partOfTickToLeave;
+
+			var zombies = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false).ToList();
 			zombies.Shuffle();
 			var total = zombies.Count;
 			var ticked = 0;
@@ -120,7 +144,7 @@ namespace ZombieLand
 			{
 				zombie.CustomTick();
 				ticked++;
-				if (watch.ElapsedTicks > maxTickTime) break;
+				if (TimeLeftToTick() <= extraTimeRemaining) break;
 			}
 			Patches.EditWindow_DebugInspector_CurrentDebugString_Patch.tickedZombies = ticked;
 			Patches.EditWindow_DebugInspector_CurrentDebugString_Patch.ofTotalZombies = total;
@@ -185,7 +209,7 @@ namespace ZombieLand
 
 		public void UpdateZombieAvoider()
 		{
-			var specs = AllZombies().Select(zombie => new ZombieCostSpecs()
+			var specs = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false).Select(zombie => new ZombieCostSpecs()
 			{
 				position = zombie.Position,
 				radius = ZombieAvoidRadius(zombie),
@@ -211,6 +235,74 @@ namespace ZombieLand
 					// TODO incident failed, so mark it for new executing asap
 				}
 			}
+		}
+
+		private bool RepositionCondition(Pawn pawn)
+		{
+			return pawn.Spawned &&
+				pawn.Downed == false &&
+				pawn.Dead == false &&
+				pawn.Drafted == false &&
+				avoidGrid.GetCosts()[pawn.Position.x + pawn.Position.z * map.Size.x] > 0 &&
+				pawn.InMentalState == false &&
+				pawn.InContainerEnclosed == false &&
+				(pawn.CurJob == null || (pawn.CurJob.def != JobDefOf.Goto && pawn.CurJob.playerForced == false));
+		}
+
+		private void RepositionColonists()
+		{
+			var checkInterval = 15;
+			var radius = 7f;
+			var radiusSquared = (int)(radius * radius);
+
+			map.mapPawns
+					.FreeHumanlikesSpawnedOfFaction(Faction.OfPlayer)
+					.Where(colonist => colonist.IsHashIntervalTick(checkInterval) && RepositionCondition(colonist))
+					.Do(pawn =>
+					{
+						var m = new Measure(pawn.NameStringShort + "@" + pawn.Position);
+
+						var pos = pawn.Position;
+
+						var zombiesNearby = Tools.GetCircle(radius).Select(vec => pos + vec)
+							.Where(vec => vec.InBounds(map) && avoidGrid.GetCosts()[vec.x + vec.z * map.Size.x] >= 3000)
+							.SelectMany(vec => map.thingGrid.ThingsListAtFast(vec).OfType<Zombie>());
+
+						var maxDistance = 0;
+						var safeDestination = IntVec3.Invalid;
+						map.floodFiller.FloodFill(pos, delegate (IntVec3 vec)
+						{
+							if (!vec.Walkable(map)) return false;
+							if ((float)vec.DistanceToSquared(pos) > radiusSquared) return false;
+							if (map.thingGrid.ThingAt<Zombie>(vec) != null) return false;
+							var building_Door = vec.GetEdifice(map) as Building_Door;
+							if (building_Door != null && !building_Door.CanPhysicallyPass(pawn)) return false;
+							return !PawnUtility.AnyPawnBlockingPathAt(vec, pawn, true, false);
+
+						}, delegate (IntVec3 vec)
+						{
+							var distance = zombiesNearby.Select(zombie => (vec - zombie.Position).LengthHorizontalSquared).Sum();
+							if (distance > maxDistance)
+							{
+								maxDistance = distance;
+								safeDestination = vec;
+							}
+
+						}, false);
+
+						m.Checkpoint();
+
+						if (safeDestination.IsValid)
+						{
+							var newJob = new Job(JobDefOf.Goto, safeDestination);
+							newJob.playerForced = true;
+							pawn.jobs.StartJob(newJob, JobCondition.InterruptForced, null, false, true, null, null);
+
+							m.Checkpoint();
+						}
+
+						m.End();
+					});
 		}
 
 		private void FetchAvoidGrid()
@@ -241,7 +333,7 @@ namespace ZombieLand
 
 		public int ZombieCount()
 		{
-			return AllZombies().Count();
+			return allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false).Count();
 		}
 
 		public void IncreaseZombiePopulation()
@@ -283,19 +375,15 @@ namespace ZombieLand
 
 		public override void MapComponentTick()
 		{
-			var watch = new Stopwatch();
-			watch.Start();
-
+			RepositionColonists();
 			HandleIncidents();
 			FetchAvoidGrid();
 			RecalculateVisibleMap();
 			IncreaseZombiePopulation();
 			DequeuAndSpawnZombies();
 
-			ZombieTicking(watch);
+			ZombieTicking();
 			UpdateZombieAvoider();
-
-			watch.Stop();
 		}
 	}
 }

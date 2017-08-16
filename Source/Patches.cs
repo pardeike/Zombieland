@@ -65,6 +65,7 @@ namespace ZombieLand
 			static void Postfix()
 			{
 				if (DebugViewSettings.writePathCosts == false) return;
+				if (ZombieSettings.Values.betterZombieAvoidance == false) return;
 
 				var map = Find.VisibleMap;
 				var avoidGrid = map.GetComponent<TickManager>().avoidGrid;
@@ -451,6 +452,7 @@ namespace ZombieLand
 
 			static bool ZombieInPath(Pawn_PathFollower __instance, Pawn pawn)
 			{
+				if (ZombieSettings.Values.betterZombieAvoidance == false) return false;
 				if (pawn.IsColonist == false) return false;
 
 				var path = __instance.curPath;
@@ -529,7 +531,7 @@ namespace ZombieLand
 				});
 				builder.AppendLine("");
 
-				if (pos.InBounds(map))
+				if (pos.InBounds(map) && ZombieSettings.Values.betterZombieAvoidance)
 				{
 					var avoidGrid = map.GetComponent<TickManager>().avoidGrid;
 					builder.AppendLine("Avoid cost: " + avoidGrid.GetCosts()[pos.x + pos.z * map.Size.x]);

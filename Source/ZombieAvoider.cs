@@ -1,7 +1,6 @@
 ﻿using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Verse;
 
@@ -83,7 +82,7 @@ namespace ZombieLand
 
 			workerThread = new Thread(() =>
 			{
-			EndlessLoop:
+				EndlessLoop:
 
 				try
 				{
@@ -170,16 +169,6 @@ namespace ZombieLand
 			GenerateCells(request.map, request.specs, avoidGrid.GetNewCosts(), avoidGrid.filler);
 			avoidGrid.FinalizeCosts();
 			return avoidGrid;
-		}
-
-		static Dictionary<float, Pair<IntVec3, float>[]> cellsCache = new Dictionary<float, Pair<IntVec3, float>[]>();
-		private static Pair<IntVec3, float>[] CircleCells(float radius)
-		{
-			if (cellsCache.ContainsKey(radius) == false)
-				cellsCache[radius] = Tools.GetCircle(radius)
-					.Select(vec => new Pair<IntVec3, float>(vec, Math.Max(0f, radius - vec.LengthHorizontal) / radius))
-					.ToArray();
-			return cellsCache[radius];
 		}
 
 		private AvoidGrid GetAvoidGrid(Map map)
