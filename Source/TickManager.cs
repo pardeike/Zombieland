@@ -132,22 +132,12 @@ namespace ZombieLand
 
 		public void ZombieTicking()
 		{
-			var multiplier = Find.TickManager.TickRateMultiplier;
-			var partOfTickToLeave = 1 / 5f;
-			var extraTimeRemaining = multiplier == 0f ? 0f : 1f / (60f * multiplier) * partOfTickToLeave;
-
+			if (Find.TickManager.TickRateMultiplier == 0f) return;
 			var zombies = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false).ToList();
-			zombies.Shuffle();
-			var total = zombies.Count;
-			var ticked = 0;
-			foreach (var zombie in zombies)
-			{
-				zombie.CustomTick();
-				ticked++;
-				if (TimeLeftToTick() <= extraTimeRemaining) break;
-			}
-			Patches.EditWindow_DebugInspector_CurrentDebugString_Patch.tickedZombies = ticked;
-			Patches.EditWindow_DebugInspector_CurrentDebugString_Patch.ofTotalZombies = total;
+
+			for (var i = 0; i < 2; i++)
+				foreach (var zombie in zombies)
+					zombie.CustomTick();
 		}
 
 		public void DequeuAndSpawnZombies()
@@ -260,8 +250,6 @@ namespace ZombieLand
 					.Where(colonist => colonist.IsHashIntervalTick(checkInterval) && RepositionCondition(colonist))
 					.Do(pawn =>
 					{
-						var m = new Measure(pawn.NameStringShort + "@" + pawn.Position);
-
 						var pos = pawn.Position;
 
 						var zombiesNearby = Tools.GetCircle(radius).Select(vec => pos + vec)
@@ -290,18 +278,12 @@ namespace ZombieLand
 
 						}, false);
 
-						m.Checkpoint();
-
 						if (safeDestination.IsValid)
 						{
 							var newJob = new Job(JobDefOf.Goto, safeDestination);
 							newJob.playerForced = true;
 							pawn.jobs.StartJob(newJob, JobCondition.InterruptForced, null, false, true, null, null);
-
-							m.Checkpoint();
 						}
-
-						m.End();
 					});
 		}
 
@@ -381,8 +363,6 @@ namespace ZombieLand
 			RecalculateVisibleMap();
 			IncreaseZombiePopulation();
 			DequeuAndSpawnZombies();
-
-			ZombieTicking();
 			UpdateZombieAvoider();
 		}
 	}

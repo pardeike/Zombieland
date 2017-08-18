@@ -105,6 +105,22 @@ namespace ZombieLand
 			}
 		}
 
+		// smart scaled zombie ticking (must be executed as late as possible 
+		// in game loop since we only process so many zombies that we can without
+		// exceeding the realtime tick -> no lag because of zombies
+		//
+		[HarmonyPatch(typeof(Game))]
+		[HarmonyPatch("UpdatePlay")]
+		static class Game_UpdatePlay_Patch
+		{
+			[HarmonyPriority(Priority.Last)]
+			static void Postfix()
+			{
+				var tickManager = Find.VisibleMap?.GetComponent<TickManager>();
+				tickManager?.ZombieTicking();
+			}
+		}
+
 		// patch to remove the constant danger music because of the constant thread of zombies
 		//
 		[HarmonyPatch(typeof(AttackTargetsCache))]
@@ -507,9 +523,6 @@ namespace ZombieLand
 			static readonly FieldInfo writeCellContentsField = AccessTools.Field(typeof(DebugViewSettings), "writeCellContents");
 			static readonly MethodInfo debugGridMethod = AccessTools.Method(typeof(EditWindow_DebugInspector_CurrentDebugString_Patch), "DebugGrid");
 
-			public static int tickedZombies;
-			public static int ofTotalZombies;
-
 			static void DebugGrid(StringBuilder builder)
 			{
 				if (Current.Game == null) return;
@@ -521,7 +534,6 @@ namespace ZombieLand
 				var center = Tools.CenterOfInterest(map);
 				builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount());
-				builder.AppendLine("Ticked zombies: " + tickedZombies + " out of " + ofTotalZombies);
 
 				builder.AppendLine("");
 				AccessTools.GetFieldNames(typeof(ZRdebug)).Do(name =>
@@ -1082,7 +1094,11 @@ namespace ZombieLand
 							break;
 					}
 
-					__result = speed * factor;
+					// instead of ticking zombies as often as everything else, we tick
+					// them at 1x speed and make them faster instead. Not perfect but
+					// a very good workaround for good game speed
+					//
+					__result = speed * factor * Find.TickManager.TickRateMultiplier;
 					if (zombie.wasColonist)
 						__result *= 2f;
 					return false;
