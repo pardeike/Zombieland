@@ -189,6 +189,9 @@ namespace ZombieLand
 				return;
 			}
 
+			var basePos = zombie.Position;
+			var grid = zombie.Map.GetGrid();
+
 			// eat pawns or corpses
 			//
 			if (eatTarget != null && eatTarget.Spawned == false)
@@ -197,7 +200,7 @@ namespace ZombieLand
 				lastEatTarget = null;
 				eatDelayCounter = 0;
 			}
-			if (eatTarget == null)
+			if (eatTarget == null && grid.GetZombieCount(basePos) <= 2)
 				eatTarget = CanIngest();
 
 			var eatTargetPawn = eatTarget as Pawn ?? (eatTarget as Corpse)?.InnerPawn;
@@ -263,14 +266,11 @@ namespace ZombieLand
 					zombieLeaner.extraOffset = Vector3.zero;
 			}
 
-			var basePos = zombie.Position;
-
 			// calculate possible moves, sort by pheromone value and take top 3
 			// then choose the one with the lowest zombie count
 			// also, emit a circle of timestamps when discovering a pheromone
 			// trace so nearby zombies pick it up too (leads to a chain reaction)
 			//
-			var grid = zombie.Map.GetGrid();
 			var possibleTrackingMoves = new List<IntVec3>();
 			var currentTicks = Tools.Ticks();
 			var timeDelta = long.MaxValue;

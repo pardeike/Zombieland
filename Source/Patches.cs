@@ -109,15 +109,34 @@ namespace ZombieLand
 		// in game loop since we only process so many zombies that we can without
 		// exceeding the realtime tick -> no lag because of zombies
 		//
-		[HarmonyPatch(typeof(Game))]
-		[HarmonyPatch("UpdatePlay")]
-		static class Game_UpdatePlay_Patch
+		[HarmonyPatch(typeof(Verse.TickManager))]
+		[HarmonyPatch("TickManagerUpdate")]
+		static class Verse_TickManager_TickManagerUpdate_Patch
 		{
-			[HarmonyPriority(Priority.Last)]
-			static void Postfix()
+			static void ZombieTick()
 			{
 				var tickManager = Find.VisibleMap?.GetComponent<TickManager>();
 				tickManager?.ZombieTicking();
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+			{
+				var jump = generator.DefineLabel();
+
+				var firstTime = true;
+				foreach (var instruction in instructions)
+				{
+					if (firstTime && instruction.opcode == OpCodes.Ldloc_0)
+					{
+						firstTime = false;
+						yield return new CodeInstruction(OpCodes.Ldloc_0);
+						yield return new CodeInstruction(OpCodes.Ldc_I4_2);
+						yield return new CodeInstruction(OpCodes.Bge, jump);
+						yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Verse_TickManager_TickManagerUpdate_Patch), "ZombieTick"));
+						instruction.labels.Add(jump);
+					}
+					yield return instruction;
+				}
 			}
 		}
 
@@ -253,8 +272,8 @@ namespace ZombieLand
 				var zombie = currentTarget.HasThing ? currentTarget.Thing as Zombie : null;
 				if (zombie == null) return false;
 
-				// max 25 cells awaw
-				if ((zombie.Position - colonist.Position).LengthHorizontalSquared > 625) return false;
+				// max 15 cells awaw
+				if ((zombie.Position - colonist.Position).LengthHorizontalSquared > 225) return false;
 
 				// with line of sight
 				var shot = verb as Verb_LaunchProjectile;

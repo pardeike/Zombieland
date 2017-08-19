@@ -3,7 +3,6 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 using Verse;
 using Verse.AI;
 
@@ -108,26 +107,6 @@ namespace ZombieLand
 			var difficultyMultiplier = Find.Storyteller.difficulty.threatScale;
 			var count = (int)(perColonistZombieCount * colonistMultiplier * baseStrengthFactor * difficultyMultiplier);
 			return Math.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
-		}
-
-		private delegate float GetterHandler();
-		private static GetterHandler __timeLeftToTick;
-		private static GetterHandler TimeLeftToTick
-		{
-			get
-			{
-				if (__timeLeftToTick == null)
-				{
-					var dynamicGet = new DynamicMethod("DynamicTimeLeftToTick", typeof(float), new Type[0], typeof(Verse.TickManager), true);
-					var getGenerator = dynamicGet.GetILGenerator();
-					getGenerator.Emit(OpCodes.Call, AccessTools.Method(typeof(Current), "get_Game"));
-					getGenerator.Emit(OpCodes.Ldfld, AccessTools.Field(typeof(Game), "tickManager"));
-					getGenerator.Emit(OpCodes.Ldfld, AccessTools.Field(typeof(Verse.TickManager), "realTimeToTickThrough"));
-					getGenerator.Emit(OpCodes.Ret);
-					__timeLeftToTick = (GetterHandler)dynamicGet.CreateDelegate(typeof(GetterHandler));
-				}
-				return __timeLeftToTick;
-			}
 		}
 
 		public void ZombieTicking()
