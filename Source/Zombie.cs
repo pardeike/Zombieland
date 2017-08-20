@@ -1,6 +1,7 @@
 ﻿using Harmony;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -162,6 +163,7 @@ namespace ZombieLand
 			}
 		}
 
+		static MethodInfo m_RenderPawnInternal = AccessTools.Method(typeof(PawnRenderer), "RenderPawnInternal", RenderPawnInternalParameterTypes);
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
 		{
 			if (!renderer.graphics.AllResolved)
@@ -175,9 +177,9 @@ namespace ZombieLand
 				var bodyRot = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, 90, 0, progress);
 				var bodyOffset = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, -0.45f, 0, progress);
 
-				Traverse.Create(renderer)
-					.Method("RenderPawnInternal", RenderPawnInternalParameterTypes)
-					.GetValue(drawLoc + new Vector3(0, 0, bodyOffset), Quaternion.Euler(bodyRot, 0, 0), true, Rot4.North, Rot4.North, bodyDrawType, false, false);
+				m_RenderPawnInternal.Invoke(renderer, new object[] {
+					drawLoc + new Vector3(0, 0, bodyOffset), Quaternion.Euler(bodyRot, 0, 0), true, Rot4.North, Rot4.North, bodyDrawType, false, false
+				});
 			}
 
 			RenderRubble(drawLoc);

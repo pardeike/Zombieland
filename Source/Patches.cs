@@ -204,8 +204,11 @@ namespace ZombieLand
 		[HarmonyPatch("DangerMusicMode", PropertyMethod.Getter)]
 		static class MusicManagerPlay_DangerMusicMode_Patch
 		{
+			delegate int LastColonistHarmedTickDelegate(DangerWatcher dw);
+
 			static int lastUpdateTick;
 			static StoryDanger dangerRatingInt = StoryDanger.None;
+			static Func<DangerWatcher, int> lastColonistHarmedTickDelegate = Tools.GetFieldAccessor<DangerWatcher, int>("lastColonistHarmedTick");
 
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(ref bool __result)
@@ -234,7 +237,7 @@ namespace ZombieLand
 							else
 							{
 								dangerRatingInt = StoryDanger.Low;
-								var lastColonistHarmedTick = Traverse.Create(map.dangerWatcher).Field("lastColonistHarmedTick").GetValue<int>();
+								var lastColonistHarmedTick = lastColonistHarmedTickDelegate(map.dangerWatcher);
 								if (lastColonistHarmedTick > Find.TickManager.TicksGame - 900)
 									dangerRatingInt = StoryDanger.High;
 								else
@@ -441,12 +444,14 @@ namespace ZombieLand
 			{
 				if (ZombieSettings.Values.betterZombieAvoidance == false) return 0;
 
+				if (map == null) return 0;
 				TickManager tickManager;
 				if (tickManagerCache.TryGetValue(map, out tickManager) == false)
 				{
 					tickManager = map.GetComponent<TickManager>();
 					tickManagerCache[map] = tickManager;
 				}
+				if (tickManager.avoidGrid == null) return 0;
 				return tickManager.avoidGrid.GetCosts()[idx];
 			}
 
@@ -651,9 +656,12 @@ namespace ZombieLand
 		[HarmonyPatch("ExposeData")]
 		static class FactionManager_ExposeData_Patch
 		{
+			static Func<Faction, List<FactionRelation>> factionRelations = Tools.GetFieldAccessor<Faction, List<FactionRelation>>("relations");
+			static Func<FactionManager, List<Faction>> factionManagerAllFactions = Tools.GetFieldAccessor<FactionManager, List<Faction>>("allFactions");
+
 			static void Postfix(FactionManager __instance)
 			{
-				var factions = Traverse.Create(__instance).Field("allFactions").GetValue<List<Faction>>();
+				var factions = factionManagerAllFactions(__instance);
 				var factionDefs = factions.Select(f => f.def).ToList();
 				if (factionDefs.Contains(ZombieDefOf.Zombies) == false)
 				{
@@ -666,7 +674,7 @@ namespace ZombieLand
 							goodwill = 0f,
 							hostile = true
 						};
-						Traverse.Create(zombies).Field("relations").GetValue<List<FactionRelation>>().Add(rel1);
+						factionRelations(zombies).Add(rel1);
 
 						var rel2 = new FactionRelation()
 						{
@@ -674,7 +682,7 @@ namespace ZombieLand
 							goodwill = 0f,
 							hostile = true
 						};
-						Traverse.Create(faction).Field("relations").GetValue<List<FactionRelation>>().Add(rel2);
+						factionRelations(faction).Add(rel2);
 
 					}
 					factions.Add(zombies);
@@ -1536,9 +1544,11 @@ namespace ZombieLand
 		[HarmonyPatch("MakeDowned")]
 		static class Pawn_HealthTracker_MakeDowned_Patch
 		{
+			static Func<Pawn_HealthTracker, Pawn> healthTrackerPawn = Tools.GetFieldAccessor<Pawn_HealthTracker, Pawn>("pawn");
+
 			static void Postfix(Pawn_HealthTracker __instance)
 			{
-				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
+				var pawn = healthTrackerPawn(__instance);
 				if (pawn is Zombie) return;
 				if (pawn == null || pawn.Map == null) return;
 
@@ -1774,6 +1784,34 @@ namespace ZombieLand
 			}
 		}
 
+		// patch so zombies do not bleed
+		//
+		[HarmonyPatch(typeof(Pawn_HealthTracker))]
+		[HarmonyPatch("DropBloodFilth")]
+		static class Pawn_HealthTracker_DropBloodFilth_Patch
+		{
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+			{
+				var jump = generator.DefineLabel();
+
+				yield return new CodeInstruction(OpCodes.Ldarg_0);
+				yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Pawn_HealthTracker), "pawn"));
+				yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
+				yield return new CodeInstruction(OpCodes.Brfalse, jump);
+
+				yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(ZombieSettings), nameof(ZombieSettings.Values)));
+				yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(SettingsGroup), nameof(SettingsGroup.zombiesDropBlood)));
+				yield return new CodeInstruction(OpCodes.Brtrue, jump);
+				yield return new CodeInstruction(OpCodes.Ret);
+
+				var list = instructions.ToList();
+				list[0].labels.Add(jump);
+
+				foreach (var instr in list)
+					yield return instr;
+			}
+		}
+
 		// patch to insert our settings page
 		//
 		[HarmonyPatch(typeof(Scenario))]
@@ -1886,8 +1924,6 @@ namespace ZombieLand
 		static class MainMenuDrawer_DoMainMenuControls_Path
 		{
 			public static float addedHeight = 45f + 7f; // default height ListableOption + OptionListingUtility.DrawOptionListing spacing
-			static Dialog_ModSettings modDialog = new Dialog_ModSettings();
-			static Vector2 closeButSize = Traverse.Create(modDialog).Field("CloseButSize").GetValue<Vector2>();
 
 			static float DrawOptionListingPatch1(Rect rect, List<ListableOption> optList)
 			{

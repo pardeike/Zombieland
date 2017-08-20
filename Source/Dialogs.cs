@@ -350,6 +350,7 @@ namespace ZombieLand
 			list.Dialog_Checkbox("ReplaceTwinkie", ref settings.replaceTwinkie);
 			list.Dialog_Checkbox("ZombiesTriggerDangerMusic", ref settings.zombiesTriggerDangerMusic);
 			list.Dialog_Checkbox("BetterZombieAvoidance", ref settings.betterZombieAvoidance);
+			list.Dialog_Checkbox("ZombiesDropBlood", ref settings.zombiesDropBlood);
 
 			// Actions
 			list.Dialog_Label("ZombieActionsTitle");

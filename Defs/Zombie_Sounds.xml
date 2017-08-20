@@ -74,12 +74,12 @@
 					<max>1.05</max>
 				</pitchRange>
 				<volumeRange>
-					<min>80</min>
-					<max>80</max>
+					<min>60</min>
+					<max>60</max>
 				</volumeRange>
 				<distRange>
 					<min>10</min>
-					<max>100</max>
+					<max>50</max>
 				</distRange>
 			</li>
 		</subSounds>

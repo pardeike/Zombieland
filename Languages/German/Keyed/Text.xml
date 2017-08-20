@@ -76,6 +76,7 @@
 	<ReplaceTwinkie>Überlebensrationen mit Twinkies ersetzen</ReplaceTwinkie>
 	<ZombiesTriggerDangerMusic>Zombies beeinflussen die Kampfmusik</ZombiesTriggerDangerMusic>
 	<BetterZombieAvoidance>Automatische Vermeidung von Zombies</BetterZombieAvoidance>
+	<ZombiesDropBlood>Zombies hinterlassen Blut</ZombiesDropBlood>
 
 	<ZombieActionsTitle>Aktionen</ZombieActionsTitle>
 	<ZombieSettingsReset>Einstellungen zurücksetzen</ZombieSettingsReset>

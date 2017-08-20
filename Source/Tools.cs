@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Xml;
@@ -146,6 +147,14 @@ namespace ZombieLand
 			var matrix = new Matrix4x4();
 			matrix.SetTRS(pos, q, s);
 			Graphics.DrawMesh(mesh, matrix, mat, 0);
+		}
+
+		public static Func<T, R> GetFieldAccessor<T, R>(string fieldName)
+		{
+			var param = Expression.Parameter(typeof(T), "arg");
+			var member = Expression.Field(param, fieldName);
+			var lambda = Expression.Lambda(typeof(Func<T, R>), member, param);
+			return (Func<T, R>)lambda.Compile();
 		}
 
 		public static T Boxed<T>(T val, T min, T max) where T : IComparable

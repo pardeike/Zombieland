@@ -68,7 +68,8 @@ namespace ZombieLand
 		public bool anyTreatmentStopsInfection = false;
 		public bool betterZombieAvoidance = true;
 		public bool ragingZombies = true;
-		internal bool replaceTwinkie = true;
+		public bool replaceTwinkie = true;
+		public bool zombiesDropBlood = true;
 
 		public object Clone()
 		{
