@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <LetterLabelZombiesRising>喪屍攻擊</LetterLabelZombiesRising>
+  <ZombiesRising>一群喪屍出現.</ZombiesRising>
+
+  <LetterLabelZombiesRisingNearYourBase>喪屍攻擊</LetterLabelZombiesRisingNearYourBase>
+  <ZombiesRisingNearYourBase>一群喪屍出現在你的基地附近.</ZombiesRisingNearYourBase>a
+
+  <LetterLabelXDaysUntilZombies>{0} 後喪屍出現</LetterLabelXDaysUntilZombies>
+  <XDaysUntilZombies>喪屍將出現在軟土，泥地，沙地或沙礫上。建造地板可以防止喪屍的出現。</XDaysUntilZombies>
+
+  <ZombielandDefaultSettings>Zombieland 喪屍之地</ZombielandDefaultSettings>
+  <ZombielandGameSettings>喪屍之地設置</ZombielandGameSettings>
+
+  <WhenDoZombiesSpawn>喪屍什麼時候出現？</WhenDoZombiesSpawn>
+  <SpawnWhenType_AllTheTime>所有時間</SpawnWhenType_AllTheTime>
+  <SpawnWhenType_WhenDark>天黑時</SpawnWhenType_WhenDark>
+  <SpawnWhenType_InEventsOnly>僅喪屍事件</SpawnWhenType_InEventsOnly>
+
+  <HowDoZombiesSpawn>喪屍從什麼地方來？</HowDoZombiesSpawn>
+  <SpawnHowType_AllOverTheMap>所有的軟地面</SpawnHowType_AllOverTheMap>
+  <SpawnHowType_FromTheEdges>從地圖邊緣</SpawnHowType_FromTheEdges>
+
+  <WhatDoZombiesAttack>喪屍攻擊什麼？</WhatDoZombiesAttack>
+  <AttackMode_Everything>所有生物</AttackMode_Everything>
+  <AttackMode_OnlyHumans>人形生物</AttackMode_OnlyHumans>
+  <AttackMode_OnlyColonists>只攻擊殖民者</AttackMode_OnlyColonists>
+
+  <WhatDoZombiesSmash>喪屍會摧毀什麼？</WhatDoZombiesSmash>
+  <SmashMode_Nothing>沒有</SmashMode_Nothing>
+  <SmashMode_DoorsOnly>只有門</SmashMode_DoorsOnly>
+  <SmashMode_AnyBuilding>所有建築</SmashMode_AnyBuilding>
+  <SmashOnlyWhenAgitated>只在它們激動的時候</SmashOnlyWhenAgitated>
+
+  <NewGameTitle>新遊戲</NewGameTitle>
+  <DaysBeforeZombiesCome>喪屍會在多少天後來臨</DaysBeforeZombiesCome>
+
+  <ZombiesOnTheMap>喪屍在地圖上的數量</ZombiesOnTheMap>
+  <MaximumNumberOfZombies>最多</MaximumNumberOfZombies>
+  <Zombies>個喪屍</Zombies>
+
+  <ZombieEventTitle>喪屍事件</ZombieEventTitle>
+  <ZombiesPerColonistInEvent>喪屍/每個殖民者</ZombiesPerColonistInEvent>
+
+  <ZombieSpeedTitle>喪屍速度</ZombieSpeedTitle>
+  <MoveSpeedIdle>喪屍平靜時</MoveSpeedIdle>
+  <MoveSpeedTracking>喪屍興奮時</MoveSpeedTracking>
+
+  <ZombieDamageFactorTitle>喪屍的力量</ZombieDamageFactorTitle>
+  <ZombieDamageFactor>傷害乘數</ZombieDamageFactor>
+
+  <ZombieInfections>喪屍感染</ZombieInfections>
+  <ZombieBiteInfectionChance>被喪屍咬傷的感染風險</ZombieBiteInfectionChance>
+  <ZombieBiteInfectionUnknown>知道感染的時間</ZombieBiteInfectionUnknown>
+  <ZombieBiteInfectionTreatable>可治療的感染時間</ZombieBiteInfectionTreatable>
+  <ZombieBiteInfectionPersists>感染持續時間</ZombieBiteInfectionPersists>
+  <AnyTreatmentStopsInfection>躺在治療床上可以阻止感染</AnyTreatmentStopsInfection>
+
+  <ZombieInstinctTitle>喪屍的感知</ZombieInstinctTitle>
+  <ZombieInstinct_Dull>有限</ZombieInstinct_Dull>
+  <ZombieInstinct_Normal>正常</ZombieInstinct_Normal>
+  <ZombieInstinct_Sensitive>提高</ZombieInstinct_Sensitive>
+  <RagingZombies>喪屍群過於龐大時它們會變得憤怒</RagingZombies>
+
+  <ZombieHealthTitle>喪屍的體質</ZombieHealthTitle>
+  <DoubleTapRequired>喪屍會恢復傷勢</DoubleTapRequired>
+  <ZombiesDieVeryEasily>喪屍很容易被殺死</ZombiesDieVeryEasily>
+
+  <ZombieEatingTitle>喪屍會吃</ZombieEatingTitle>
+  <ZombiesEatDowned>手上的生物</ZombiesEatDowned>
+  <ZombiesEatCorpses>屍體</ZombiesEatCorpses>
+
+  <ZombieMiscTitle>其他</ZombieMiscTitle>
+  <UseCustomTextures>使用自定義紋理</UseCustomTextures>
+  <ReplaceTwinkie>將生存食品改為Twinkies</ReplaceTwinkie>
+  <ZombiesTriggerDangerMusic>喪屍襲擊危險音樂</ZombiesTriggerDangerMusic>
+  <BetterZombieAvoidance>自動回避喪屍</BetterZombieAvoidance>
+  <ZombiesDropBlood>喪屍流血</ZombiesDropBlood>
+
+  <ZombieActionsTitle>操作</ZombieActionsTitle>
+  <ZombieSettingsReset>恢復默認設置</ZombieSettingsReset>
+  <UninstallZombieland>從當前遊戲中移除喪屍之地</UninstallZombieland>
+  <ConfirmUninstallZombieland>如果繼續,您可以選擇一個新的檔案名保存,並在保存遊戲後返回主菜單. 新的保存可以在沒有喪屍之地的情況下加載.\n\n是否真的要從當前遊戲中刪除所有喪屍之地內容？</ConfirmUninstallZombieland>
+  <UninstallButton>移除</UninstallButton>
+
+  <ColonistsBittenByZombie>殖民者被喪屍咬傷</ColonistsBittenByZombie>
+  <ColonistsBittenByZombieDesc>殖民者被喪屍咬傷了,暫時還不知道是否會發生感染:n\n{0}\n 密切關注傷口,因為感染需要一些時間才會發現.</ColonistsBittenByZombieDesc>
+
+  <ImminentZombiInfection>即將發生的喪屍感染</ImminentZombiInfection>
+  <ImminentZombiInfectionDesc>殖民者被喪屍咬傷後感染:n\n{0}\n 你可以立刻給予他們治療,挽救他們的生命. 但這需要一個好的醫生,一個優質的醫療床和一個無菌室與維生素監視器.</ImminentZombiInfectionDesc>
+
+  <ZombieInfection>喪屍感染</ZombieInfection>
+  <ZombieInfectionDesc>殖民者被感染並且變成一個喪屍,沒有辦法可以挽救他們:n\n{0}\n 在感染時,他們對思想,感覺,痛苦和饑餓漠不關心. 最後,他們死了,成了一個喪屍.</ZombieInfectionDesc>
+
+  <NoInfectionRisk>無感染風險</NoInfectionRisk>
+  <HoursBeforeBecomingInfected>{0} 感染</HoursBeforeBecomingInfected>
+  <HoursBeforeBecomingAZombie>{0} 成為喪屍</HoursBeforeBecomingAZombie>
+
+  <ColonistBecameAZombieLabel>殖民者變成了一個喪屍</ColonistBecameAZombieLabel>
+  <ColonistBecameAZombieDesc>{0} 變成了一個強大的喪屍.</ColonistBecameAZombieDesc>
+
+</LanguageData>
