@@ -87,59 +87,32 @@
     <Compile Include="ZombieStains.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\About\Settings.txt">
-      <Link>_xml\Settings.txt</Link>
-    </Content>
     <Content Include="..\Defs\Zombie_Damages.xml">
-      <Link>_xml\Zombie_Damages.xml</Link>
+      <Link>Zombie_Damages.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_Faction.xml">
-      <Link>_xml\Zombie_Faction.xml</Link>
-      <SubType>Designer</SubType>
+      <Link>Zombie_Faction.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_Hediffs.xml">
-      <Link>_xml\Zombie_Hediffs.xml</Link>
+      <Link>Zombie_Hediffs.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_Jobs.xml">
-      <Link>_xml\Zombie_Jobs.xml</Link>
-      <SubType>Designer</SubType>
+      <Link>Zombie_Jobs.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_Kind.xml">
-      <Link>_xml\Zombie_Kind.xml</Link>
-      <SubType>Designer</SubType>
+      <Link>Zombie_Kind.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_Race.xml">
-      <Link>_xml\Zombie_Race.xml</Link>
-      <SubType>Designer</SubType>
+      <Link>Zombie_Race.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_Sounds.xml">
-      <Link>_xml\Zombie_Sounds.xml</Link>
+      <Link>Zombie_Sounds.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_ThingCategories.xml">
-      <Link>_xml\Zombie_ThingCategories.xml</Link>
+      <Link>Zombie_ThingCategories.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_ThinkTree.xml">
-      <Link>_xml\Zombie_ThinkTree.xml</Link>
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="..\Languages\English\Keyed\Text.xml">
-      <Link>_files\English\Keyed\Text.xml</Link>
-      <SubType>Designer</SubType>
-    </Content>
-    <Content Include="..\Languages\English\LanguageInfo.xml">
-      <Link>_files\English\LanguageInfo.xml</Link>
-    </Content>
-    <Content Include="..\Languages\German\Keyed\Text.xml">
-      <Link>_files\German\Keyed\Text.xml</Link>
-    </Content>
-    <Content Include="..\Languages\German\LanguageInfo.xml">
-      <Link>_files\German\LanguageInfo.xml</Link>
-    </Content>
-    <Content Include="..\Languages\Russian\Keyed\Text.xml">
-      <Link>_files\Russian\Keyed\Text.xml</Link>
-    </Content>
-    <Content Include="..\Languages\Russian\LanguageInfo.xml">
-      <Link>_files\Russian\LanguageInfo.xml</Link>
+      <Link>Zombie_ThinkTree.xml</Link>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
