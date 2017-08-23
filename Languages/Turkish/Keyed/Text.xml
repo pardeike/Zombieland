@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<LetterLabelZombiesRisingNearYourBase>Zombi Saldırısı</LetterLabelZombiesRisingNearYourBase>
+	<ZombiesRisingNearYourBase>A group of zombies surfaces near your base</ZombiesRisingNearYourBase>
+
+	<LetterLabelXDaysUntilZombies>Zombilerin gelmesine {0} {1} gün kaldı.</LetterLabelXDaysUntilZombies>
+	<XDaysUntilZombies>Zombiler haritada kum ve toprağın olduğu yerde doğar. Zombilerin doğmasını engellemek için zemin inşa edin.</XDaysUntilZombies>
+	<ZombieDays>gün</ZombieDays>
+	<ZombieHours>saat</ZombieHours>
+
+</LanguageData>
