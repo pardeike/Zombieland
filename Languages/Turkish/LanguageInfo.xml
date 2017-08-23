@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LanguageInfo>
+
+  <friendlyNameNative>Türkçe</friendlyNameNative>
+
+  <friendlyNameEnglish>Turkish</friendlyNameEnglish>
+
+  <canBeTiny>true</canBeTiny>
+
+  <languageWorkerClass>LanguageWorker_English</languageWorkerClass>
+
+  <credits>
+
+    <li Class="CreditRecord_Role">
+
+      <roleKey>Credit_Writer</roleKey>
+
+      <creditee>Andreas Pardeike</creditee>
+
+    </li>
+
+  </credits>
+
+</LanguageInfo>
