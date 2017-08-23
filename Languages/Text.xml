@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<LanguageData>
+
+
+
+	<LetterLabelZombiesRising>Zombi Saldırısı</LetterLabelZombiesRising>
+
+	<ZombiesRising>Bir grup zombi ortaya çıkar.</ZombiesRising>
+
+
+
+	<LetterLabelZombiesRisingNearYourBase>Zombi Baskını</LetterLabelZombiesRisingNearYourBase>
+
+	<ZombiesRisingNearYourBase>Bir grup zombi üssünüzün yakınlarında ortaya çıkar.</ZombiesRisingNearYourBase>
+
+
+
+	<LetterLabelXDaysUntilZombies>Zombiler gelene kadar {0} gün kaldı.</LetterLabelXDaysUntilZombies>
+
+	<XDaysUntilZombies>Zombiler yumuşak toprağın, toprağın, kumun ve de çakılın olduğu yerlerde ortaya çıkar. Bunların bulunduğu yerlere yol ve benzeri şeyler inşa etmek zombilerin oradan çıkmasını engeller.</XDaysUntilZombies>
+
+
+
+	<ZombielandDefaultSettings>Zombieland modunun orijinal ayarları.</ZombielandDefaultSettings>
+
+	<ZombielandGameSettings>Zombieland ayarları.</ZombielandGameSettings>
+
+
+
+	<WhenDoZombiesSpawn>Zombiler ne zaman ortaya çıksın?</WhenDoZombiesSpawn>
+
+	<SpawnWhenType_AllTheTime>Her zaman</SpawnWhenType_AllTheTime>
+
+	<SpawnWhenType_WhenDark>Karanlık olduğunda</SpawnWhenType_WhenDark>
+
+	<SpawnWhenType_InEventsOnly>Only as events</SpawnWhenType_InEventsOnly>
+
+
+
+	<HowDoZombiesSpawn>From where do zombies come?</HowDoZombiesSpawn>
+
+	<SpawnHowType_AllOverTheMap>Where there is soft ground</SpawnHowType_AllOverTheMap>
+
+	<SpawnHowType_FromTheEdges>From the map edges</SpawnHowType_FromTheEdges>
+
+
+
+	<WhatDoZombiesAttack>What will zombies attack?</WhatDoZombiesAttack>
+
+	<AttackMode_Everything>All creature</AttackMode_Everything>
+
+	<AttackMode_OnlyHumans>Human-like creatures</AttackMode_OnlyHumans>
+
+	<AttackMode_OnlyColonists>Only colonists</AttackMode_OnlyColonists>
+
+
+
+	<WhatDoZombiesSmash>What will zombies destroy?</WhatDoZombiesSmash>
+
+	<SmashMode_Nothing>Nothing</SmashMode_Nothing>
+
+	<SmashMode_DoorsOnly>Only doors</SmashMode_DoorsOnly>
+
+	<SmashMode_AnyBuilding>Everything that was built</SmashMode_AnyBuilding>
+
+	<SmashOnlyWhenAgitated>Only when they are agitated</SmashOnlyWhenAgitated>
+
+
+
+	<NewGameTitle>New game</NewGameTitle>
+
+	<DaysBeforeZombiesCome>Days until zombies come</DaysBeforeZombiesCome>
+
+
+
+	<ZombiesOnTheMap>Zombies on the map</ZombiesOnTheMap>
+
+	<MaximumNumberOfZombies>Never more than</MaximumNumberOfZombies>
+
+	<Zombies>Zombies</Zombies>
+
+
+
+	<ZombieEventTitle>Zombie event</ZombieEventTitle>
+
+	<ZombiesPerColonistInEvent>Zombies per colonist</ZombiesPerColonistInEvent>
+
+
+
+	<ZombieSpeedTitle>Zombie speed</ZombieSpeedTitle>
+
+	<MoveSpeedIdle>If they are calm</MoveSpeedIdle>
+
+	<MoveSpeedTracking>If they feel excited</MoveSpeedTracking>
+
+
+
+	<ZombieDamageFactorTitle>Zombie strength</ZombieDamageFactorTitle>
+
+	<ZombieDamageFactor>Damage multiplier</ZombieDamageFactor>
+
+
+
+	<ZombieInfections>Zombie infections</ZombieInfections>
+
+	<ZombieBiteInfectionChance>Risk that a zombie bite is infectious</ZombieBiteInfectionChance>
+
+	<ZombieBiteInfectionUnknown>Time until infection is known</ZombieBiteInfectionUnknown>
+
+	<ZombieBiteInfectionTreatable>Time infection is treatable</ZombieBiteInfectionTreatable>
+
+	<ZombieBiteInfectionPersists>Duration of infection</ZombieBiteInfectionPersists>
+
+	<AnyTreatmentStopsInfection>Treatment in a bed stops infections</AnyTreatmentStopsInfection>
+
+
+
+	<ZombieInstinctTitle>Zombie senses</ZombieInstinctTitle>
+
+	<ZombieInstinct_Dull>Limited</ZombieInstinct_Dull>
+
+	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>
+
+	<ZombieInstinct_Sensitive>Elevated</ZombieInstinct_Sensitive>
+
+	<RagingZombies>Zombies rage if a group gets too large</RagingZombies>
+
+
+
+	<ZombieHealthTitle>Zombie health</ZombieHealthTitle>
+
+	<DoubleTapRequired>Zombies recover from injuries</DoubleTapRequired>
+
+	<ZombiesDieVeryEasily>Zombies are easy to kill</ZombiesDieVeryEasily>
+
+
+
+	<ZombieEatingTitle>Zombies will eat</ZombieEatingTitle>
+
+	<ZombiesEatDowned>Injured creatures</ZombiesEatDowned>
+
+	<ZombiesEatCorpses>Corpses</ZombiesEatCorpses>
+
+
+
+	<ZombieMiscTitle>Miscellaneous</ZombieMiscTitle>
+
+	<UseCustomTextures>Use custom textures</UseCustomTextures>
+
+	<ReplaceTwinkie>Change survival meals to Twinkies</ReplaceTwinkie>
+
+	<ZombiesTriggerDangerMusic>Zombies affect danger music</ZombiesTriggerDangerMusic>
+
+	<BetterZombieAvoidance>Automatic avoidance of zombies</BetterZombieAvoidance>
+
+	<ZombiesDropBlood>Zombies drop blood</ZombiesDropBlood>
+
+
+
+	<ZombieActionsTitle>Actions</ZombieActionsTitle>
+
+	<ZombieSettingsReset>Restore default settings</ZombieSettingsReset>
+
+	<UninstallZombieland>Remove Zombieland from current game</UninstallZombieland>
+
+	<ConfirmUninstallZombieland>If you continue, you can choose a new save file name and you will return to the main menu after the game is saved. The new save can be loaded without Zombieland.\n\nDo you really want to remove all Zombieland content from the current game?</ConfirmUninstallZombieland>
+
+	<UninstallButton>Uninstall</UninstallButton>
+
+
+
+	<ColonistsBittenByZombie>Colonist bitten by zombie</ColonistsBittenByZombie>
+
+	<ColonistsBittenByZombieDesc>These colonists have been bitten by a zombie. At this point, it is unclear if they develop an infection:\n\n{0}\nMonitor their wounds closely because infections take some time to develop.</ColonistsBittenByZombieDesc>
+
+
+
+	<ImminentZombiInfection>Imminent zombie infection</ImminentZombiInfection>
+
+	<ImminentZombiInfectionDesc>These colonists are about to be infected from a zombie bite:\n\n{0}\nYou may rescue them by immediately giving them optimal treatment under best conditions. But it requires a good doctor, a quality medical bed and a sterile room with a vitals monitor.</ImminentZombiInfectionDesc>
+
+
+
+	<ZombieInfection>Zombie infection</ZombieInfection>
+
+	<ZombieInfectionDesc>These colonists have been infected and will become a zombie. There is no way anymore to rescue them:\n\n{0}\nDuring their infection they are indifferent to thoughts, feelings, pain and hunger. At the end, they die and become a zombie.</ZombieInfectionDesc>
+
+
+
+	<NoInfectionRisk>No infection risk</NoInfectionRisk>
+
+	<HoursBeforeBecomingInfected>{0} to infection</HoursBeforeBecomingInfected>
+
+	<HoursBeforeBecomingAZombie>{0} to become a zombie</HoursBeforeBecomingAZombie>
+
+
+
+	<ColonistBecameAZombieLabel>A colonist turned into a zombie</ColonistBecameAZombieLabel>
+
+	<ColonistBecameAZombieDesc>{0} turned into a powerful zombie.</ColonistBecameAZombieDesc>
+
+
+
+</LanguageData>
