@@ -1,4 +1,5 @@
 ﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,8 @@ namespace ZombieLand
 		private readonly TerrainGrid terrainGrid;
 		private readonly PheromoneGrid pheromoneGrid;
 
-		private Queue<IntVec3> openSet;
+		private Queue<IntVec3> openCellSet;
+		private Queue<IntVec3> openDoorSet;
 		private bool dirtyCells = true;
 
 		private static readonly Random random = new Random();
@@ -41,7 +43,8 @@ namespace ZombieLand
 			pheromoneGrid = map.GetGrid();
 
 			vecGrids = new byte[][] { new byte[mapSize], new byte[mapSize] };
-			openSet = new Queue<IntVec3>();
+			openCellSet = new Queue<IntVec3>();
+			openDoorSet = new Queue<IntVec3>();
 		}
 
 		public bool IsInValidState()
@@ -140,18 +143,29 @@ namespace ZombieLand
 			dirtyCells = true;
 			var sleepCounter = 0;
 			var directions = GenAdj.AdjacentCells;
-			positions.Where(c => ValidFloodCell(c) && GetDirect(c) == 0).Do(c =>
+			positions.Where(cell => ValidFloodCell(cell) && GetDirect(cell) == 0).Do(c =>
 			{
 				SetDirect(c, endpoint);
-				openSet.Enqueue(c);
+
+				var door = edificeGrid[c] as Building_Door;
+				if (door != null)
+					openDoorSet.Enqueue(c);
+				else
+					openCellSet.Enqueue(c);
 			});
-			while (openSet.Count > 0)
+
+			while (openCellSet.Count > 0 || openDoorSet.Count > 0)
 			{
-				var parent = openSet.Dequeue();
+				var parent = openCellSet.Count == 0 ? openDoorSet.Dequeue() : openCellSet.Dequeue();
 				GetAdjactedInRandomOrder(parent).Where(ValidFloodCell).Do(child =>
 				{
 					Set(child, parent);
-					openSet.Enqueue(child);
+
+					var door = edificeGrid[child] as Building_Door;
+					if (door != null)
+						openDoorSet.Enqueue(child);
+					else
+						openCellSet.Enqueue(child);
 				});
 
 				if (++sleepCounter > 200)
@@ -180,7 +194,7 @@ namespace ZombieLand
 
 			workerThread = new Thread(() =>
 			{
-			EndlessLoop:
+				EndlessLoop:
 
 				var wait = true;
 				try

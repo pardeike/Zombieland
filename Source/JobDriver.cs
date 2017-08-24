@@ -229,6 +229,7 @@ namespace ZombieLand
 				if (eatDelayCounter <= EatDelay)
 					return;
 				eatDelayCounter = 0;
+				zombie.raging = 0;
 
 				var bodyPartRecord = FirstEatablePart(eatTargetPawn);
 				if (bodyPartRecord != null)

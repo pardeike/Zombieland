@@ -26,6 +26,7 @@
 	<AttackMode_Everything>Alle Kreaturen</AttackMode_Everything>
 	<AttackMode_OnlyHumans>Menschenähnliche Kreaturen</AttackMode_OnlyHumans>
 	<AttackMode_OnlyColonists>Nur deine Kolonisten</AttackMode_OnlyColonists>
+	<EnemiesAttackZombies>Feinde attackieren Zombies trotzdem</EnemiesAttackZombies>
 
 	<WhatDoZombiesSmash>Was machen Zombies kaputt?</WhatDoZombiesSmash>
 	<SmashMode_Nothing>Nichts</SmashMode_Nothing>

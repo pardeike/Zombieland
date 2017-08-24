@@ -140,6 +140,40 @@ namespace ZombieLand
 			}
 		}
 
+		// patch so raiders see zombies as non-hostile if zombies are set to not attack raiders
+		//
+		[HarmonyPatch(typeof(GenHostility))]
+		[HarmonyPatch("HostileTo")]
+		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Thing) })]
+		static class GenHostility_HostileTo_Thing_Thing_Patch
+		{
+			static void Postfix(Thing a, Thing b, ref bool __result)
+			{
+				if (__result == false) return;
+				if (ZombieSettings.Values.attackMode != AttackMode.OnlyColonists) return;
+				if (ZombieSettings.Values.enemiesAttackZombies) return;
+				var pawn = a as Pawn;
+				var zombie = b as Zombie;
+				if (pawn == null || pawn.IsColonist || zombie == null) return;
+				__result = false;
+			}
+		}
+		[HarmonyPatch(typeof(GenHostility))]
+		[HarmonyPatch("HostileTo")]
+		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Faction) })]
+		static class GenHostility_HostileTo_Thing_Faction_Patch
+		{
+			static void Postfix(Thing t, Faction fac, ref bool __result)
+			{
+				if (__result == false) return;
+				if (ZombieSettings.Values.attackMode != AttackMode.OnlyColonists) return;
+				if (ZombieSettings.Values.enemiesAttackZombies) return;
+				var pawn = t as Pawn;
+				if (pawn == null || pawn.IsColonist || fac == null || fac.def != ZombieDefOf.Zombies) return;
+				__result = false;
+			}
+		}
+
 		// patch to remove the constant danger music because of the constant thread of zombies
 		//
 		[HarmonyPatch(typeof(AttackTargetsCache))]
@@ -1072,6 +1106,41 @@ namespace ZombieLand
 				if (zombie.Rotation == Rot4.West) quickHeadCenter.x -= 0.09f;
 				if (zombie.Rotation == Rot4.East) quickHeadCenter.x += 0.09f;
 				GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.RAGE_AURAS[Find.CameraDriver.CurrentZoom], quickHeadCenter, Quaternion.identity, 1f, 1f);
+			}
+		}
+
+		// patch for reducing the warmup smash time for raging zombies
+		//
+		[HarmonyPatch(typeof(Verb))]
+		[HarmonyPatch("TryStartCastOn")]
+		static class Verb_TryStartCastOn_Patch
+		{
+			static MethodInfo m_ModifyTicks = AccessTools.Method(typeof(Verb_TryStartCastOn_Patch), "ModifyTicks");
+
+			static int ModifyTicks(int ticks, Verb verb)
+			{
+				var zombie = verb.caster as Zombie;
+				if (zombie != null && zombie.raging > 0)
+				{
+					var grid = zombie.Map.GetGrid();
+					var count = grid.GetZombieCount(zombie.Position);
+					if (count > 0) ticks = ticks / count;
+				}
+				return ticks;
+			}
+
+			[HarmonyPriority(Priority.Last)]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				foreach (var instruction in instructions)
+				{
+					yield return instruction;
+					if (instruction.opcode == OpCodes.Ldloc_2)
+					{
+						yield return new CodeInstruction(OpCodes.Ldarg_0);
+						yield return new CodeInstruction(OpCodes.Call, m_ModifyTicks);
+					}
+				}
 			}
 		}
 
