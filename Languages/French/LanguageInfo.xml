@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageInfo>
+	<friendlyNameNative>Français</friendlyNameNative>
+	<friendlyNameEnglish>French</friendlyNameEnglish>
+	<canBeTiny>true</canBeTiny>
+	<languageWorkerClass>LanguageWorker_Default</languageWorkerClass>
+	<credits>
+		<li Class="CreditRecord_Role">
+			<roleKey>Credit_Writer</roleKey>
+			<creditee>Ted Yann</creditee>
+		</li>
+	</credits>
+</LanguageInfo>

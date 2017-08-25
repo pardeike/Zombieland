@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<LetterLabelZombiesRising>Attaque de Zombie</LetterLabelZombiesRising>
+	<ZombiesRising>Un groupe de zombie est apparu</ZombiesRising>
+
+	<LetterLabelZombiesRisingNearYourBase>Attaque direct de Zombie</LetterLabelZombiesRisingNearYourBase>
+	<ZombiesRisingNearYourBase>Un groupe de zombie est apparu prêt de votre base</ZombiesRisingNearYourBase>
+
+	<LetterLabelXDaysUntilZombies>{0} avant que les zombies arrivent</LetterLabelXDaysUntilZombies>
+	<XDaysUntilZombies>Les zombies vont apparaitre là où il y a du sol meuble, de poussière, de sable ou de pierre. La construction de plancher empêche les zombies d’apparaitre</XDaysUntilZombies>
+
+	<ZombielandDefaultSettings>Zombieland defaults</ZombielandDefaultSettings>
+	<ZombielandGameSettings>Zombieland options</ZombielandGameSettings>
+
+	<WhenDoZombiesSpawn>Quand les Zombies arrivent-ils ? ?</WhenDoZombiesSpawn>
+	<SpawnWhenType_AllTheTime>Tout le temps</SpawnWhenType_AllTheTime>
+	<SpawnWhenType_WhenDark>Quand il fait nuit</SpawnWhenType_WhenDark>
+	<SpawnWhenType_InEventsOnly>Seulement comme evenement</SpawnWhenType_InEventsOnly>
+
+	<HowDoZombiesSpawn>De où les Zombies arrivent?</HowDoZombiesSpawn>
+	<SpawnHowType_AllOverTheMap>Là où il y a du sol meuble</SpawnHowType_AllOverTheMap>
+	<SpawnHowType_FromTheEdges>Des bords de la carte</SpawnHowType_FromTheEdges>
+
+	<WhatDoZombiesAttack>Que vont attaquer les Zombies ?</WhatDoZombiesAttack>
+	<AttackMode_Everything>Toutes les créatures</AttackMode_Everything>
+	<AttackMode_OnlyHumans>Les créatures proches des humains</AttackMode_OnlyHumans>
+	<AttackMode_OnlyColonists>Seulement les colons</AttackMode_OnlyColonists>
+	<EnemiesAttackZombies>Les ennemis attaquent les zombies de toute façon</EnemiesAttackZombies>
+
+	<WhatDoZombiesSmash>Que vont détruire les Zombies ?</WhatDoZombiesSmash>
+	<SmashMode_Nothing>Rien</SmashMode_Nothing>
+	<SmashMode_DoorsOnly>Seulement les portes</SmashMode_DoorsOnly>
+	<SmashMode_AnyBuilding>Tous ce qui est construit</SmashMode_AnyBuilding>
+	<SmashOnlyWhenAgitated>Seulement quand ils sont agités</SmashOnlyWhenAgitated>
+
+	<NewGameTitle>Nouveau jeu</NewGameTitle>
+	<DaysBeforeZombiesCome>Jours savant que les Zombies arrivent</DaysBeforeZombiesCome>
+
+	<ZombiesOnTheMap>Zombies sur la carte</ZombiesOnTheMap>
+	<MaximumNumberOfZombies>Jamais plus de</MaximumNumberOfZombies>
+	<Zombies>Zombies</Zombies>
+
+	<ZombieEventTitle>Apparition de Zombie</ZombieEventTitle>
+	<ZombiesPerColonistInEvent>Zombies par colon</ZombiesPerColonistInEvent>
+
+	<ZombieSpeedTitle>Vitesse des Zombies</ZombieSpeedTitle>
+	<MoveSpeedIdle>Si ils sont calmes</MoveSpeedIdle>
+	<MoveSpeedTracking>Si ils sont enervés</MoveSpeedTracking>
+
+	<ZombieDamageFactorTitle>Force des Zombies</ZombieDamageFactorTitle>
+	<ZombieDamageFactor>Multiplicateur de dégâts</ZombieDamageFactor>
+
+	<ZombieInfections>Infection par Zombie</ZombieInfections>
+	<ZombieBiteInfectionChance>Risque qu’une morsure de Zombie soit infectieuse</ZombieBiteInfectionChance>
+	<ZombieBiteInfectionUnknown>Temps avant que l’infection soit connu</ZombieBiteInfectionUnknown>
+	<ZombieBiteInfectionTreatable>Temps où l'infection est traitable</ZombieBiteInfectionTreatable>
+	<ZombieBiteInfectionPersists>Durée de l’infection</ZombieBiteInfectionPersists>
+	<AnyTreatmentStopsInfection>Le traitement au lit arête l’infection</AnyTreatmentStopsInfection>
+
+	<ZombieInstinctTitle>Senses des zombies</ZombieInstinctTitle>
+	<ZombieInstinct_Dull>limité</ZombieInstinct_Dull>
+	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>
+	<ZombieInstinct_Sensitive>Elevé</ZombieInstinct_Sensitive>
+	<RagingZombies>Les zombies s’enragent si un groupe devient trop grand</RagingZombies>
+
+	<ZombieHealthTitle>Vitalités des zombies</ZombieHealthTitle>
+	<DoubleTapRequired>Les zombies se remettent de leurs blessures</DoubleTapRequired>
+	<ZombiesDieVeryEasily>Les Zombies sont faciles à tuer</ZombiesDieVeryEasily>
+
+	<ZombieEatingTitle>Les Zombies vont manger</ZombieEatingTitle>
+	<ZombiesEatDowned>Les créatures blessés</ZombiesEatDowned>
+	<ZombiesEatCorpses>Les corps</ZombiesEatCorpses>
+
+	<ZombieMiscTitle>Divers</ZombieMiscTitle>
+	<UseCustomTextures>Utiliser des textures personnalisées </UseCustomTextures>
+	<ReplaceTwinkie>Change les repas de survie en Twinkies (miam!)</ReplaceTwinkie>
+	<ZombiesTriggerDangerMusic>Les Zombies influences la musique de danger</ZombiesTriggerDangerMusic>
+	<BetterZombieAvoidance>Evitement automatique des Zombies</BetterZombieAvoidance>
+	<ZombiesDropBlood>Les zombies lache du sang</ZombiesDropBlood>
+
+	<ZombieActionsTitle>Actions</ZombieActionsTitle>
+	<ZombieSettingsReset>Restaurer les paramètres par defaut</ZombieSettingsReset>
+	<UninstallZombieland>Effacer Zombieland du jeu</UninstallZombieland>
+	<ConfirmUninstallZombieland> Si vous continuez, vous pourrez choisir un nouveau nom de sauvegarde et vous reviendrez au menu principal après la sauvegarde. La nouvelle sauvegarde peut être chargée sans Zombieland. \n\nVoulez-vous vraiment supprimer tout le contenu de Zombieland du jeu en cours?</ConfirmUninstallZombieland>
+	<UninstallButton>Désinstaller</UninstallButton>
+
+	<ColonistsBittenByZombie>Colon mordu par un zombie</ColonistsBittenByZombie>
+	<ColonistsBittenByZombieDesc>Ce colon a été mordu par un zombie. A ce stade, on ne sait pas s’il va développer l’infection. Surveillez les blessures car les infections prennent du temps à se développer</ColonistsBittenByZombieDesc>
+
+	<ImminentZombiInfection>Zombification imminente</ImminentZombiInfection>
+	<ImminentZombiInfectionDesc>Ce colon est sur le point d’être infecté par une morsure de zombie:\n\n{0}\Vous pouvez encore le sauver en lui donnant immédiatement un traitement optimal dans les meilleurs conditions. Mais il est nécessaire d’avoir un bon docteur, un lit médical et une sale stérile avec un moniteur vital.</ImminentZombiInfectionDesc>
+
+	<ZombieInfection>Zombification</ZombieInfection>
+	<ZombieInfectionDesc>Ce colon est infecté et va devenir un Zombie. Il n’y a plus moyen de le sauver. Pendant l’infection il est indifférent aux pensés, aux sentiments, à la douleur et à la faim. A la fin, il meurt et devient un Zombie.</ZombieInfectionDesc>
+
+	<NoInfectionRisk>Pas de risque d’infection</NoInfectionRisk>
+	<HoursBeforeBecomingInfected>{0} avant l’infection</HoursBeforeBecomingInfected>
+	<HoursBeforeBecomingAZombie>{0} avant de devenir un Zombie</HoursBeforeBecomingAZombie>
+
+	<ColonistBecameAZombieLabel>Un colon est devenu un Zombie !</ColonistBecameAZombieLabel>
+	<ColonistBecameAZombieDesc>{0} colons devenus de puissant Zombie.</ColonistBecameAZombieDesc>
+
+</LanguageData>
