@@ -30,6 +30,15 @@ namespace ZombieLand
 				});
 		}
 
+		public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
+		{
+			var zombie = InnerPawn as Zombie;
+			if (zombie != null)
+				zombie.Dispose();
+
+			base.Destroy(mode);
+		}
+
 		public override void DrawExtraSelectionOverlays()
 		{
 		}

@@ -188,6 +188,18 @@ namespace ZombieLand
 		const int halfCellSize = (int)(cellSize / 2f + 0.9f);
 		Thread workerThread;
 
+		private struct PawnProps
+		{
+			public bool valid;
+			public IntVec3 position;
+
+			public PawnProps(Pawn pawn)
+			{
+				valid = (pawn?.Spawned ?? false) && (pawn is Zombie) == false && (pawn?.RaceProps.Humanlike ?? false) && (pawn?.RaceProps.IsFlesh ?? false);
+				position = pawn?.Position ?? IntVec3.Invalid;
+			}
+		}
+
 		public ZombieWanderer()
 		{
 			grids = new Dictionary<Map, MapInfo>();
@@ -213,11 +225,23 @@ namespace ZombieLand
 							var mapPawns = map.mapPawns;
 							if (mapPawns != null)
 							{
-								var colonistPositions = mapPawns.AllPawnsSpawned.ToArray()
-									.Where(pawn => pawn.Spawned && (pawn is Zombie) == false && pawn.RaceProps.Humanlike && pawn.RaceProps.IsFlesh)
-									.Select(pawn => pawn.Position)
+								var pawnArray = new Pawn[0];
+								for (var i = 0; i < 3; i++)
+								{
+									try
+									{
+										pawnArray = mapPawns.AllPawnsSpawned.ToArray();
+										break;
+									}
+									catch
+									{
+									}
+								}
+								var colonistPositions = pawnArray
+									.Select(pawn => new PawnProps(pawn))
+									.Where(props => props.valid)
+									.Select(props => props.position)
 									.ToArray();
-
 								if (colonistPositions.Count() > 0)
 								{
 									info.Recalculate(colonistPositions);

@@ -22,6 +22,7 @@ namespace ZombieLand
 		public bool wasColonist;
 		public IntVec3 lastGotoPosition = IntVec3.Invalid;
 
+		private bool disposed = false;
 		public VariableGraphic customHeadGraphic; // not saved
 		public VariableGraphic customBodyGraphic; // not saved
 
@@ -52,21 +53,35 @@ namespace ZombieLand
 			}
 		}
 
+		~Zombie()
+		{
+			Dispose(false);
+		}
+
 		public void Dispose()
 		{
 			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		private void Dispose(bool disposing)
 		{
+			if (disposed) return;
+			disposed = true;
+
 			customHeadGraphic?.Dispose();
+			customHeadGraphic = null;
+
 			customBodyGraphic?.Dispose();
+			customBodyGraphic = null;
 
 			var head = Drawer.renderer.graphics.headGraphic as VariableGraphic;
 			head?.Dispose();
+			Drawer.renderer.graphics.headGraphic = null;
 
 			var naked = Drawer.renderer.graphics.nakedGraphic as VariableGraphic;
 			naked?.Dispose();
+			Drawer.renderer.graphics.nakedGraphic = null;
 		}
 
 		public override void DeSpawn()
@@ -74,12 +89,6 @@ namespace ZombieLand
 			var grid = Map.GetGrid();
 			grid.ChangeZombieCount(lastGotoPosition, -1);
 			base.DeSpawn();
-		}
-
-		public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
-		{
-			base.Destroy(mode);
-			Dispose();
 		}
 
 		static readonly Type[] RenderPawnInternalParameterTypes = {

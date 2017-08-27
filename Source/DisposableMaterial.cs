@@ -1,11 +1,12 @@
 ﻿using System;
 using UnityEngine;
+using Verse;
 
 namespace ZombieLand
 {
 	public class DisposableMaterial : Material, IDisposable
 	{
-		private bool disposedValue = false;
+		private bool disposed = false;
 
 		public DisposableMaterial(Shader shader) : base(shader)
 		{
@@ -22,11 +23,12 @@ namespace ZombieLand
 
 		protected virtual void Dispose(bool disposing)
 		{
-			if (!disposedValue)
+			if (!disposed)
 			{
 				if (mainTexture != null)
 					Destroy(mainTexture);
-				disposedValue = true;
+
+				disposed = true;
 			}
 		}
 
