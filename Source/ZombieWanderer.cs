@@ -195,7 +195,12 @@ namespace ZombieLand
 
 			public PawnProps(Pawn pawn)
 			{
-				valid = (pawn?.Spawned ?? false) && (pawn is Zombie) == false && (pawn?.RaceProps.Humanlike ?? false) && (pawn?.RaceProps.IsFlesh ?? false);
+				valid = pawn != null
+					&& pawn.Spawned
+					&& pawn.Dead == false
+					&& (pawn is Zombie) == false
+					&& pawn.RaceProps.Humanlike
+					&& pawn.RaceProps.IsFlesh;
 				position = pawn?.Position ?? IntVec3.Invalid;
 			}
 		}
@@ -222,7 +227,7 @@ namespace ZombieLand
 							var info = GetMapInfo(map);
 							if (info.IsInValidState() == false) continue;
 
-							var mapPawns = map.mapPawns;
+							var mapPawns = map?.mapPawns?.AllPawnsSpawned;
 							if (mapPawns != null)
 							{
 								var pawnArray = new Pawn[0];
@@ -230,7 +235,7 @@ namespace ZombieLand
 								{
 									try
 									{
-										pawnArray = mapPawns.AllPawnsSpawned.ToArray();
+										pawnArray = mapPawns.ToArray();
 										break;
 									}
 									catch

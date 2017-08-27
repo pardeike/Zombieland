@@ -173,8 +173,8 @@ namespace ZombieLand
 		public float ZombieMaxCosts(Zombie zombie)
 		{
 			if (zombie.wasColonist || zombie.raging > 0)
-				return 8000f;
-			return 3000f;
+				return 3000f;
+			return 1000f;
 		}
 
 		public void UpdateZombieAvoider()
