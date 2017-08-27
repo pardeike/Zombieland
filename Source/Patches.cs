@@ -105,6 +105,52 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to show zombieland version and total number of zombies
+		//
+		[HarmonyPatch(typeof(GlobalControlsUtility))]
+		[HarmonyPatch("DoDate")]
+		class GlobalControlsUtility_DoDate_Patch
+		{
+			static void Postfix(float leftX, float width, ref float curBaseY)
+			{
+				var map = Find.VisibleMap;
+				if (map == null) return;
+
+				var tickManager = map.GetComponent<TickManager>();
+				var count = tickManager.ZombieCount();
+				if (count == 0) return;
+				var zombieCountString = count + " Zombies";
+				var rightMargin = 7f;
+
+				var zlRect = new Rect(leftX, curBaseY - 24f, width, 24f);
+				Text.Font = GameFont.Small;
+				var len = Text.CalcSize(zombieCountString);
+				zlRect.xMin = zlRect.xMax - Math.Min(leftX, len.x + rightMargin);
+
+				if (Mouse.IsOver(zlRect))
+				{
+					Widgets.DrawHighlight(zlRect);
+				}
+
+				GUI.BeginGroup(zlRect);
+				Text.Anchor = TextAnchor.UpperRight;
+				var rect = zlRect.AtZero();
+				rect.xMax -= rightMargin;
+				Widgets.Label(rect, zombieCountString);
+				Text.Anchor = TextAnchor.UpperLeft;
+				GUI.EndGroup();
+
+				TooltipHandler.TipRegion(zlRect, new TipSignal(delegate
+				{
+					var currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
+					var versionString = currentVersion.Major + "." + currentVersion.Minor + "." + currentVersion.Build;
+					return "Zombieland v" + versionString;
+				}, 99899));
+
+				curBaseY -= zlRect.height;
+			}
+		}
+
 		// smart scaled zombie ticking (must be executed as late as possible 
 		// in game loop since we only process so many zombies that we can without
 		// exceeding the realtime tick -> no lag because of zombies
