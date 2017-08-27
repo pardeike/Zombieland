@@ -16,6 +16,13 @@ namespace ZombieLand
 			this.data = data;
 		}
 
+		~PreparedMaterial()
+		{
+			var tex = material?.mainTexture;
+			if (tex != null)
+				Object.Destroy(tex);
+		}
+
 		public Material GetMaterial
 		{
 			get
