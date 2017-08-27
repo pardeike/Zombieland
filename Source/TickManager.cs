@@ -100,6 +100,7 @@ namespace ZombieLand
 		public int GetMaxZombieCount()
 		{
 			if (map == null || map.mapPawns == null) return 0;
+			if (Constants.DEBUG_MAX_ZOMBIE_COUNT >= 0) return Constants.DEBUG_MAX_ZOMBIE_COUNT;
 			var colonists = Tools.CapableColonists(map);
 			var perColonistZombieCount = GenMath.LerpDouble(0f, 4f, 5, 30, (float)Math.Min(4, Math.Sqrt(colonists)));
 			var colonistMultiplier = Math.Sqrt(colonists) * 2;

@@ -91,6 +91,7 @@ namespace ZombieLand
 			return p1.DistanceToSquared(center).CompareTo(p2.DistanceToSquared(center));
 		}
 
+		//int ticker = 0;
 		void TickAction()
 		{
 			var fadeOff = Tools.PheromoneFadeoff();
@@ -106,6 +107,16 @@ namespace ZombieLand
 				EndJobWith(JobCondition.InterruptForced);
 				return;
 			}
+
+			/*
+			// --------------------------------------------------
+			if (++ticker > 600)
+			{
+				EndJobWith(JobCondition.InterruptForced);
+				zombie.Kill(null); return;
+			}
+			// --------------------------------------------------
+			*/
 
 			if (zombie.state == ZombieState.ShouldDie)
 			{

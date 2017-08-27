@@ -425,8 +425,6 @@ namespace ZombieLand
 
 		public static int ColonyPoints()
 		{
-			if (Constants.DEBUG_COLONY_POINTS > 0) return Constants.DEBUG_COLONY_POINTS;
-
 			var colonists = Find.VisibleMap.mapPawns.FreeColonists;
 			float colonistPoints;
 			float armouryPoints;

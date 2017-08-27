@@ -78,7 +78,7 @@ namespace ZombieLand
 		//
 		public static bool DEBUGGRID = false;
 		public static bool USE_SOUND = true;
-		public static int DEBUG_COLONY_POINTS = 0;
+		public static int DEBUG_MAX_ZOMBIE_COUNT = -1;
 
 		// timing
 		//
@@ -110,6 +110,11 @@ namespace ZombieLand
 		public static float SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 14;
 		public static float COLONISTS_HIT_ZOMBIES_CHANCE = 0.9f;
 
+		// zombie incidents
+		//
+		public static int SPAWN_INCIDENT_RADIUS = 10;
+		public static int MIN_ZOMBIE_SPAWN_CELL_COUNT = 6;
+
 		// rubble
 		//
 		public static int MIN_DELTA_TICKS = 20;
@@ -120,12 +125,6 @@ namespace ZombieLand
 		public static float MAX_SCALE = 0.3f;
 		public static float ZOMBIE_LAYER = Altitudes.AltitudeFor(AltitudeLayer.Pawn) - 0.005f;
 		public static float EMERGE_DELAY = 0.8f;
-
-		// zombie incidents
-		//
-		public static int SPAWN_INCIDENT_RADIUS = 10;
-		public static int MIN_ZOMBIE_SPAWN_CELL_COUNT = 6;
-		public static int NUMBER_OF_ZOMBIES_IN_INCIDENT = 20;
 
 		// misc
 		//
