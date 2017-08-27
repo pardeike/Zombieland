@@ -158,15 +158,15 @@ namespace ZombieLand
 			if (zombie.wasColonist)
 				return 10f;
 			if (zombie.raging > 0)
-				return 5f;
+				return 6f;
 			switch (zombie.state)
 			{
 				case ZombieState.Wandering:
-					return 3f;
+					return 4f;
 				case ZombieState.Tracking:
-					return 5f;
+					return 6f;
 				default:
-					return 1f;
+					return 2f;
 			}
 		}
 

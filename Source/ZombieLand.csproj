@@ -54,6 +54,7 @@
     <Compile Include="Constants.cs" />
     <Compile Include="Dialogs.cs" />
     <Compile Include="ColorData.cs" />
+    <Compile Include="DisposableMaterial.cs" />
     <Compile Include="GraphicsDatabase.cs" />
     <Compile Include="GraphicToolbox.cs" />
     <Compile Include="HediffComp_Zombie_TendDuration.cs" />
@@ -62,6 +63,7 @@
     <Compile Include="JobDriver.cs" />
     <Compile Include="JobGiver.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="VariableMaterial.cs" />
     <Compile Include="ZombieAvoider.cs" />
     <Compile Include="ZombieWanderer.cs" />
     <Compile Include="_translate\Mono_HTTP_Helpers.cs" />

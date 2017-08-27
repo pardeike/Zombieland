@@ -1,56 +1,13 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using UnityEngine;
 using Verse;
 
 namespace ZombieLand
 {
-	public class PreparedMaterial
+	public class VariableGraphic : Graphic, IDisposable
 	{
-		Material material;
-		MaterialRequest req;
-		ColorData data;
-
-		public PreparedMaterial(MaterialRequest req, ColorData data)
-		{
-			this.req = req;
-			this.data = data;
-		}
-
-		~PreparedMaterial()
-		{
-			var tex = material?.mainTexture;
-			if (tex != null)
-				Object.Destroy(tex);
-		}
-
-		public Material GetMaterial
-		{
-			get
-			{
-				if (material == null)
-				{
-					var mainTex = data.ToTexture();
-					data = null;
-					material = new Material(req.shader)
-					{
-						name = req.shader.name + "_" + mainTex.name,
-						mainTexture = mainTex,
-						color = req.color
-					};
-					if (req.maskTex != null)
-					{
-						material.SetTexture(ShaderPropertyIDs.MaskTex, req.maskTex);
-						material.SetColor(ShaderPropertyIDs.ColorTwo, req.colorTwo);
-					}
-				}
-				return material;
-			}
-		}
-	}
-
-	public class VariableGraphic : Graphic
-	{
-		private PreparedMaterial[] mats = new PreparedMaterial[3];
+		private VariableMaterial[] mats = new VariableMaterial[3];
 		private int hash;
 
 		public string GraphicPath => path;
@@ -99,9 +56,24 @@ namespace ZombieLand
 					colorTwo = colorTwo,
 					maskTex = null
 				};
-				return new PreparedMaterial(request, data);
+				return new VariableMaterial(request, data);
 			})
 			.ToArray();
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+
+		private void Dispose(bool v)
+		{
+			if (mats != null)
+			{
+				foreach (var mat in mats)
+					mat.Dispose();
+				mats = null;
+			}
 		}
 
 		public override Graphic GetColoredVersion(Shader newShader, Color newColor, Color newColorTwo)

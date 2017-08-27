@@ -193,12 +193,12 @@ namespace ZombieLand
 
 			var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
 			var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
-			zombie.customBodyGraphic = Activator.CreateInstance<VariableGraphic>();
+			zombie.customBodyGraphic = new VariableGraphic();
 			zombie.customBodyGraphic.Init(bodyRequest);
 
 			var headPath = "Zombie/" + zombie.gender + "_" + zombie.story.crownType + "_" + headShapes[Rand.Range(0, 3)];
 			var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
-			zombie.customHeadGraphic = Activator.CreateInstance<VariableGraphic>();
+			zombie.customHeadGraphic = new VariableGraphic();
 			zombie.customHeadGraphic.Init(headRequest);
 
 			zombie.sideEyeOffset = SideEyeOffset(headPath.ReplaceFirst("Zombie/", ""));
