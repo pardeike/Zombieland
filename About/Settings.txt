@@ -16,7 +16,7 @@ USE_SOUND = true
 
 // To debug zombies you can set this to a fixed number of zombies on the map. 
 // Default is -1 which disables this setting
-DEBUG_MAX_ZOMBIE_COUNT = 500
+DEBUG_MAX_ZOMBIE_COUNT = -1
 
 // This is the fade-off of the traces every enemy leaves behind in game-seconds.
 // Setting this lower will make zombies chaise you less because they loose track
