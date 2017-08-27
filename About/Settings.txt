@@ -14,9 +14,9 @@ DEBUGGRID = false
 // Setting this to false will turn of zombie sounds
 USE_SOUND = true
 
-// To debug zombies you can set this to a fixed number of zombies on the map. 
+// To debug zombies you can set this to a fixed number of zombies on the map.
 // Default is -1 which disables this setting
-DEBUG_MAX_ZOMBIE_COUNT = 500
+DEBUG_MAX_ZOMBIE_COUNT = -1
 
 // This is the fade-off of the traces every enemy leaves behind in game-seconds.
 // Setting this lower will make zombies chaise you less because they loose track
@@ -25,8 +25,8 @@ PHEROMONE_FADEOFF = 90.0
 
 // This controls how often the map is analyzed to find the center-of-interest
 // and to sort zombies into a priority list in case we need to restrain cpu
-// time. It is in game-seconds and the default is 2.0
-TICKMANAGER_RECALCULATE_DELAY = 2.0
+// time. It is in game-seconds and the default is 5.0
+TICKMANAGER_RECALCULATE_DELAY = 5.0
 
 // This controls how often the avoid grid is updated. It is in game-seconds and
 // the default is 0.25
@@ -45,12 +45,12 @@ HOUR_END_OF_NIGHT = 28
 HOUR_START_OF_DAWN = 32
 
 // This controls the distance within zombies will be aware of animals.
-// Default is 3.0
-ANIMAL_PHEROMONE_RADIUS = 3.0
+// Default is 2.0
+ANIMAL_PHEROMONE_RADIUS = 2.0
 
 // This controls the distance within zombies will be aware of non-animals.
-// Default is 5.0
-HUMAN_PHEROMONE_RADIUS = 5.0
+// Default is 4.0
+HUMAN_PHEROMONE_RADIUS = 4.0
 
 // The hit chance a zombie has when he is not tracking anything.
 // Default is 0.2 (20%)
@@ -64,8 +64,8 @@ ZOMBIE_HIT_CHANCE_TRACKING = 0.7
 // that get selected for moving. Default is 3
 NUMBER_OF_TOP_MOVEMENT_PICKS = 3
 
-// This controls the chance that zombies stand still and let other zombies pass
-// them to spread out a horde. The default is 0.25
+// The chance a zombie chooses a random movement when raging (multiplied by the number
+// of zombies on the current and the destination positions together. Default is 0.25 (25%)
 CLUSTER_AVOIDANCE_CHANCE = 0.25
 
 // This is the chance a raging zombie does not go straight to their goal thus
@@ -82,8 +82,8 @@ ZOMBIE_CLOGGING_FACTOR = 10000
 // the target in a random way. Default is 0.0 (off)
 KILL_CIRCLE_RADIUS_MULTIPLIER = 0.0
 
-// The base weapon muzzle flash value to calculate default zombie sense radius
-// from. Default is 9.0
+// Muzzle flash value to base all other "how loud" calculations on.
+// Default is 9 (vanilla Rimworld)
 BASE_MUZZLE_FLASH_VALUE = 9.0
 
 // How many zombies do need to stand close around a zombie to trigger it to
