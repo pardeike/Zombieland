@@ -105,22 +105,23 @@ namespace ZombieLand
 			return new Color(0.3f, 0.2f, 0.1f);
 		}
 
+		static Dictionary<string, IntVec2> eyeOffsets = new Dictionary<string, IntVec2>() {
+			{ "Female_Average_Normal", new IntVec2(11, -5) },
+			{ "Female_Average_Pointy", new IntVec2(11, -5) },
+			{ "Female_Average_Wide", new IntVec2(11, -6) },
+			{ "Female_Narrow_Normal", new IntVec2(10, -7) },
+			{ "Female_Narrow_Pointy", new IntVec2(8, -8) },
+			{ "Female_Narrow_Wide", new IntVec2(9, -8) },
+			{ "Male_Average_Normal", new IntVec2(15, -7) },
+			{ "Male_Average_Pointy", new IntVec2(14, -6) },
+			{ "Male_Average_Wide", new IntVec2(15, -7) },
+			{ "Male_Narrow_Normal", new IntVec2(9, -8) },
+			{ "Male_Narrow_Pointy", new IntVec2(8, -8) },
+			{ "Male_Narrow_Wide", new IntVec2(10, -8) }
+		};
 		static IntVec2 SideEyeOffset(string headPath)
 		{
-			return (new Dictionary<string, IntVec2>() {
-				{ "Female_Average_Normal", new IntVec2(11, -5) },
-				{ "Female_Average_Pointy", new IntVec2(11, -5) },
-				{ "Female_Average_Wide", new IntVec2(11, -6) },
-				{ "Female_Narrow_Normal", new IntVec2(10, -7) },
-				{ "Female_Narrow_Pointy", new IntVec2(8, -8) },
-				{ "Female_Narrow_Wide", new IntVec2(9, -8) },
-				{ "Male_Average_Normal", new IntVec2(15, -7) },
-				{ "Male_Average_Pointy", new IntVec2(14, -6) },
-				{ "Male_Average_Wide", new IntVec2(15, -7) },
-				{ "Male_Narrow_Normal", new IntVec2(9, -8) },
-				{ "Male_Narrow_Pointy", new IntVec2(8, -8) },
-				{ "Male_Narrow_Wide", new IntVec2(10, -8) }
-			})[headPath];
+			return eyeOffsets[headPath];
 		}
 
 		public static Zombie GeneratePawn()
