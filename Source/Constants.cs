@@ -82,7 +82,7 @@ namespace ZombieLand
 
 		// timing
 		//
-		public static float PHEROMONE_FADEOFF = 90f;
+		public static float PHEROMONE_FADEOFF = 180f;
 		public static float TICKMANAGER_RECALCULATE_DELAY = 5f;
 		public static float TICKMANAGER_AVOIDGRID_DELAY = 0.25f;
 		public static int EAT_DELAY_TICKS = 1800;
@@ -103,7 +103,7 @@ namespace ZombieLand
 		public static float ZOMBIE_HIT_CHANCE_TRACKING = 0.7f;
 		public static int NUMBER_OF_TOP_MOVEMENT_PICKS = 3;
 		public static float CLUSTER_AVOIDANCE_CHANCE = 0.25f;
-		public static float DIVERTING_FROM_RAGE = 0.15f;
+		public static float DIVERTING_FROM_RAGE = 0.1f;
 		public static int ZOMBIE_CLOGGING_FACTOR = 10000;
 		public static float KILL_CIRCLE_RADIUS_MULTIPLIER = 0f;
 		public static float BASE_MUZZLE_FLASH_VALUE = 9f;
@@ -130,7 +130,9 @@ namespace ZombieLand
 		//
 		public static float MIN_WEAPON_RANGE = 2f;
 		public static float MAX_WEAPON_RANGE = 30f;
+		public static float MIN_ATTACKDISTANCE_SQUARED = 2.25f;
 		public static Material RAGE_EYE = MaterialPool.MatFrom("RageEye", ShaderDatabase.Mote);
+		public static Material BOMB_LIGHT = MaterialPool.MatFrom("BombLight", ShaderDatabase.MoteGlow);
 		public static Dictionary<CameraZoomRange, Material> RAGE_AURAS = new Dictionary<CameraZoomRange, Material> {
 			{ CameraZoomRange.Closest, MaterialPool.MatFrom("RageAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.15f)) },
 			{ CameraZoomRange.Close, MaterialPool.MatFrom("RageAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.175f)) },

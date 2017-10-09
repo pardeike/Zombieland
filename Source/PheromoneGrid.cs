@@ -104,7 +104,6 @@ namespace ZombieLand
 
 		public int GetZombieCount(IntVec3 position)
 		{
-			var cell = GetPheromone(position);
 			return GetPheromone(position, false)?.zombieCount ?? 0;
 		}
 

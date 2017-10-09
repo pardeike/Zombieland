@@ -41,6 +41,7 @@ namespace ZombieLand
 			requestQueue = new ConcurrentQueue<ZombieRequest>();
 			resultQueues = new Dictionary<Map, ConcurrentQueue<ZombieRequest>>();
 
+#pragma warning disable IDE0017
 			workerThread = new Thread(() =>
 			{
 				EndlessLoop:
@@ -50,18 +51,21 @@ namespace ZombieLand
 					var request = requestQueue.Dequeue();
 					if (request.zombie == null)
 						request.zombie = GeneratePawn();
-
-					var queue = QueueForMap(request.map);
-					queue.Enqueue(request);
+					if (request.zombie != null)
+					{
+						var queue = QueueForMap(request.map);
+						queue.Enqueue(request);
+					}
 				}
 				catch (Exception e)
 				{
-					Log.Warning("ZombieAvoider thread error: " + e);
+					Log.Warning("ZombieGenerator thread error: " + e);
 					Thread.Sleep(500);
 				}
 
 				goto EndlessLoop;
 			});
+#pragma warning restore IDE0017
 
 			workerThread.Priority = System.Threading.ThreadPriority.Lowest;
 			workerThread.Start();
@@ -126,7 +130,13 @@ namespace ZombieLand
 
 		public static Zombie GeneratePawn()
 		{
-			var zombie = (Zombie)ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null);
+			var thing = ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null);
+			var zombie = thing as Zombie;
+			if (zombie == null)
+			{
+				Log.Error("ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null) unexpectedly returned " + thing);
+				return null;
+			}
 
 			zombie.gender = Rand.Bool ? Gender.Male : Gender.Female;
 			zombie.kindDef = ZombieDefOf.Zombie;
@@ -149,7 +159,6 @@ namespace ZombieLand
 			var n3 = name.Nick.Replace('s', 'z').Replace('S', 'Z');
 			zombie.Name = new NameTriple(n1, n3, n2);
 
-			// faster: use MinimalBackstory()
 			zombie.story.childhood = BackstoryDatabase.allBackstories
 				.Where(kvp => kvp.Value.slot == BackstorySlot.Childhood)
 				.RandomElement().Value;
@@ -165,16 +174,21 @@ namespace ZombieLand
 			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, ZombieDefOf.Zombies);
 			zombie.story.bodyType = (zombie.gender == Gender.Female) ? BodyType.Female : BodyType.Male;
 			if (zombie.story.bodyType == BodyType.Male)
-				switch (Rand.Range(1, 6))
+				switch (Rand.RangeInclusive(1, 9))
 				{
 					case 1:
+					case 2:
 						zombie.story.bodyType = BodyType.Thin;
 						break;
-					case 2:
+
+					case 3:
+					case 4:
 						zombie.story.bodyType = BodyType.Fat;
 						break;
-					case 3:
+
+					case 9:
 						zombie.story.bodyType = BodyType.Hulk;
+						zombie.bombTickingInterval = 60f;
 						break;
 				}
 

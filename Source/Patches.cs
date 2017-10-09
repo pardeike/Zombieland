@@ -1115,15 +1115,42 @@ namespace ZombieLand
 			static void Postfix(PawnRenderer __instance, Vector3 drawLoc)
 			{
 				var zombie = __instance.graphics.pawn as Zombie;
-				if (zombie == null || zombie.raging == 0) return;
+				if (zombie == null) return;
 				if (zombie.GetPosture() != PawnPosture.Standing) return;
+
+				// general zombie drawing
+
+				Verse.TickManager tm = null;
+
+				if (zombie.bombTickingInterval != -1f && zombie.state != ZombieState.Emerging)
+				{
+					tm = Find.TickManager;
+					var currentTick = tm.TicksGame;
+					var interval = (int)zombie.bombTickingInterval;
+					if (currentTick >= zombie.lastBombTick + interval)
+						zombie.lastBombTick = currentTick;
+					else if (currentTick <= zombie.lastBombTick + interval / 2)
+					{
+						var bombLightLoc = drawLoc + new Vector3(0, 0.1f, -0.2f);
+						var scale = 1f;
+						if (zombie.Rotation == Rot4.South || zombie.Rotation == Rot4.North) bombLightLoc.z += 0.05f;
+						if (zombie.Rotation == Rot4.North) { bombLightLoc.y -= 0.1f; scale = 1.5f; }
+						if (zombie.Rotation == Rot4.West) { bombLightLoc.x -= 0.25f; bombLightLoc.z -= 0.05f; }
+						if (zombie.Rotation == Rot4.East) { bombLightLoc.x += 0.25f; bombLightLoc.z -= 0.05f; }
+						GraphicToolbox.DrawScaledMesh(MeshPool.plane10, Constants.BOMB_LIGHT, bombLightLoc, Quaternion.identity, scale, scale);
+					}
+				}
+
+				if (zombie.raging == 0) return;
+
+				// raging zombies drawing
 
 				drawLoc.y = moteAltitute;
 				var quickHeadCenter = drawLoc + new Vector3(0, 0, 0.35f);
 
 				if (Find.CameraDriver.CurrentZoom <= CameraZoomRange.Middle)
 				{
-					var tm = Find.TickManager;
+					tm = tm ?? Find.TickManager;
 					var blinkPeriod = 60 + zombie.thingIDNumber % 180; // between 2-5s
 					var eyesOpen = (tm.TicksGame % blinkPeriod) > 3;
 					if (eyesOpen || tm.CurTimeSpeed == TimeSpeed.Paused)
@@ -1152,6 +1179,28 @@ namespace ZombieLand
 				if (zombie.Rotation == Rot4.West) quickHeadCenter.x -= 0.09f;
 				if (zombie.Rotation == Rot4.East) quickHeadCenter.x += 0.09f;
 				GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.RAGE_AURAS[Find.CameraDriver.CurrentZoom], quickHeadCenter, Quaternion.identity, 1f, 1f);
+			}
+		}
+
+		// patch for giving hulk zombies bomb vests
+		//
+		[HarmonyPatch(typeof(PawnGraphicSet))]
+		[HarmonyPatch("ResolveApparelGraphics")]
+		static class PawnGraphicSet_ResolveApparelGraphics_Patch
+		{
+			static void Postfix(PawnGraphicSet __instance)
+			{
+				var zombie = __instance.pawn as Zombie;
+				if (zombie == null) return;
+
+				if (zombie.bombTickingInterval != -1f)
+				{
+					var def = ThingDef.Named("Apparel_BombVest");
+					var bombVest = new Apparel() { def = def };
+					ApparelGraphicRecord record;
+					if (ApparelGraphicRecordGetter.TryGetGraphicApparel(bombVest, BodyType.Hulk, out record))
+						__instance.apparelGraphics.Add(record);
+				}
 			}
 		}
 

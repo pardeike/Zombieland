@@ -1,6 +1,8 @@
 ﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using Verse;
@@ -8,6 +10,15 @@ using Verse.Sound;
 
 namespace ZombieLand
 {
+	public enum NthTick
+	{
+		Every2,
+		Every10,
+		Every15,
+		Every60
+	}
+
+	[StaticConstructorOnStartup]
 	public class Zombie : Pawn, IDisposable
 	{
 		public ZombieState state = ZombieState.Emerging;
@@ -22,9 +33,27 @@ namespace ZombieLand
 		public bool wasColonist;
 		public IntVec3 lastGotoPosition = IntVec3.Invalid;
 
+		public bool bombWillGoOff = false;
+		public int lastBombTick = 0;
+		public float bombTickingInterval = -1f;
+
 		private bool disposed = false;
 		public VariableGraphic customHeadGraphic; // not saved
 		public VariableGraphic customBodyGraphic; // not saved
+
+		static int totalNthTicks = 0;
+		static public int[] nthTickValues;
+		static Zombie()
+		{
+			var nths = Enum.GetNames(typeof(NthTick));
+			totalNthTicks = nths.Length;
+			nthTickValues = new int[totalNthTicks];
+			for (var n = 0; n < totalNthTicks; n++)
+			{
+				var vstr = nths[n].ReplaceFirst("Every", "");
+				nthTickValues[n] = int.Parse(vstr);
+			}
+		}
 
 		public override void ExposeData()
 		{
@@ -36,13 +65,18 @@ namespace ZombieLand
 			Scribe_Values.Look(ref rubbleCounter, "rubbleCounter");
 			Scribe_Collections.Look(ref rubbles, "rubbles", LookMode.Deep);
 			Scribe_Values.Look(ref wasColonist, "wasColonist");
+			Scribe_Values.Look(ref bombWillGoOff, "bombWillGoOff");
+			Scribe_Values.Look(ref bombTickingInterval, "bombTickingInterval");
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
-				// fix for old zombies not having correct leaner
-				//
+				// fix for old zombies
+
 				if ((Drawer.leaner is ZombieLeaner) == false)
 					Drawer.leaner = new ZombieLeaner(this);
+
+				if (bombTickingInterval == 0f)
+					bombTickingInterval = -1f;
 
 				ZombieGenerator.AssignNewCustomGraphics(this);
 			}
@@ -84,6 +118,23 @@ namespace ZombieLand
 			Drawer.renderer.graphics.nakedGraphic = null;
 		}
 
+		public override void Kill(DamageInfo? dinfo)
+		{
+			if (bombTickingInterval != -1f)
+			{
+				bombTickingInterval = -1f;
+				bombWillGoOff = false;
+
+				var def = ThingDef.Named("Apparel_BombVest");
+				Drawer.renderer.graphics.apparelGraphics
+					.RemoveAll(record => record.sourceApparel?.def == def);
+
+				Explode();
+			}
+
+			base.Kill(dinfo);
+		}
+
 		public override void DeSpawn()
 		{
 			var grid = Map.GetGrid();
@@ -101,6 +152,31 @@ namespace ZombieLand
 			typeof(bool),
 			typeof(bool)
 		};
+
+		public void Explode()
+		{
+			var damageDef = DamageDefOf.SuicideBombSmall;
+			var radius = 1f;
+
+			if (Find.Storyteller.difficulty.difficulty >= DifficultyDefOf.Medium.difficulty)
+			{
+				damageDef = DamageDefOf.SuicideBombMedium;
+				radius = 5f;
+			}
+
+			if (Find.Storyteller.difficulty.difficulty >= DifficultyDefOf.Hard.difficulty)
+			{
+				damageDef = DamageDefOf.SuicideBombLarge;
+				radius = 10f;
+			}
+
+			var pos = Position;
+			var map = Map;
+			LongEventHandler.QueueLongEvent(() =>
+			{
+				GenExplosion.DoExplosion(pos, map, radius, damageDef, null, SoundDefOf.PlanetkillerImpact, null, null, null, 1f, 1, false, null, 0f, 1);
+			}, "SuicideBomber", true, null);
+		}
 
 		void HandleRubble()
 		{
@@ -155,6 +231,20 @@ namespace ZombieLand
 				var rot = Quaternion.Euler(0f, r.rot * 360f, 0f);
 				GraphicToolbox.DrawScaledMesh(MeshPool.plane10, Constants.RUBBLE, pos, rot, scale, scale);
 			}
+		}
+
+		private int[] nextNthTick = new int[totalNthTicks];
+		public bool EveryNTick(NthTick interval)
+		{
+			var n = (int)interval;
+			var t = GenTicks.TicksAbs;
+			if (t > nextNthTick[n])
+			{
+				var d = nthTickValues[n];
+				nextNthTick[n] = t + d;
+				return true;
+			}
+			return false;
 		}
 
 		public override void Tick()

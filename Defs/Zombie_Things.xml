@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ThingCategoryDefs>
+
+	<ThingDef ParentName="ApparelBase">
+		<defName>Apparel_BombVest</defName>
+		<thingClass>ZombieLand.BombVest</thingClass>
+		<label>bomb vest</label>
+		<description>A vest with explosives.</description>
+		<techLevel>Transcendent</techLevel>
+		<tickerType>Never</tickerType>
+		<canBeSpawningInventory>false</canBeSpawningInventory>
+		<tradeability>Never</tradeability>
+		<destroyOnDrop>true</destroyOnDrop>
+		<menuHidden>true</menuHidden>
+		<selectable>false</selectable>
+		<useHitPoints>false</useHitPoints>
+		<drawGUIOverlay>false</drawGUIOverlay>
+		<alwaysHaulable>false</alwaysHaulable>
+		<graphicData>
+			<texPath>BombVest/BombVest</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
+		<statBases>
+			<DeteriorationRate>0</DeteriorationRate>
+		</statBases>
+		<apparel>
+			<worngraphicPath>BombVest/BombVest</worngraphicPath>
+			<layers>
+				<li>Shell</li>
+			</layers>
+		</apparel>
+	</ThingDef>
+
+</ThingCategoryDefs>

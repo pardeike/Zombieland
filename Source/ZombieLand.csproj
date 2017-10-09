@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Alerts.cs" />
+    <Compile Include="BombVest.cs" />
     <Compile Include="ConcurrentQueue.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="Dialogs.cs" />
@@ -65,6 +66,7 @@
     <Compile Include="Main.cs" />
     <Compile Include="VariableMaterial.cs" />
     <Compile Include="ZombieAvoider.cs" />
+    <Compile Include="ZombieStateHandler.cs" />
     <Compile Include="ZombieWanderer.cs" />
     <Compile Include="_translate\Mono_HTTP_Helpers.cs" />
     <Compile Include="_translate\Mono_HTTP_HtmlEncoder.cs" />
@@ -112,6 +114,9 @@
     </Content>
     <Content Include="..\Defs\Zombie_ThingCategories.xml">
       <Link>Zombie_ThingCategories.xml</Link>
+    </Content>
+    <Content Include="..\Defs\Zombie_Things.xml">
+      <Link>Zombie_Things.xml</Link>
     </Content>
     <Content Include="..\Defs\Zombie_ThinkTree.xml">
       <Link>Zombie_ThinkTree.xml</Link>

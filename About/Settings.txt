@@ -20,8 +20,8 @@ DEBUG_MAX_ZOMBIE_COUNT = -1
 
 // This is the fade-off of the traces every enemy leaves behind in game-seconds.
 // Setting this lower will make zombies chaise you less because they loose track
-// of you. Default is 90.0
-PHEROMONE_FADEOFF = 90.0
+// of you. Default is 180.0
+PHEROMONE_FADEOFF = 180.0
 
 // This controls how often the map is analyzed to find the center-of-interest
 // and to sort zombies into a priority list in case we need to restrain cpu
@@ -69,8 +69,8 @@ NUMBER_OF_TOP_MOVEMENT_PICKS = 3
 CLUSTER_AVOIDANCE_CHANCE = 0.25
 
 // This is the chance a raging zombie does not go straight to their goal thus
-// spreading them out a bit to keep it organic. Default is 0.15
-DIVERTING_FROM_RAGE = 0.15
+// spreading them out a bit to keep it organic. Default is 0.1
+DIVERTING_FROM_RAGE = 0.1
 
 // This controls the grouping of zombies. The higher the number, the quicker
 // will zombies loose interest in a trace if there are many zombies close to
@@ -107,3 +107,7 @@ MIN_ZOMBIE_SPAWN_CELL_COUNT = 6
 // Default is 2.0 - 30.0
 MIN_WEAPON_RANGE = 2.0
 MAX_WEAPON_RANGE = 30.0
+
+// Minimum distance between a zombie and a pawn for allowing the zombie to
+// attack the pawn. This value is the squared distance! Default is 1.5
+MIN_ATTACKDISTANCE_SQUARED = 2.25

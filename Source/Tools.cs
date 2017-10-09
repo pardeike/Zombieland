@@ -184,6 +184,7 @@ namespace ZombieLand
 			return radius * ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
 		}
 
+		// TODO: implement
 		public static bool DoesRepellZombies(this Def def)
 		{
 			return def.defName.StartsWith("ZL_REPELL", StringComparison.Ordinal);
@@ -211,21 +212,24 @@ namespace ZombieLand
 			if (cell.Walkable(map) == false) return false;
 			var terrain = map.terrainGrid.TerrainAt(cell);
 			if (terrain != TerrainDefOf.Soil && terrain != TerrainDefOf.Sand && terrain != TerrainDefOf.Gravel) return false;
-			if (terrain.DoesRepellZombies()) return false;
+			// For now, we disable this to gain execution speed
+			//if (terrain.DoesRepellZombies()) return false;
 			return true;
 		}
 
+		// this is called very often so we optimize it a bit
 		public static bool HasValidDestination(this Pawn pawn, IntVec3 dest)
 		{
-			if (dest.InBounds(pawn.Map) == false) return false;
-			var door = dest.GetEdifice(pawn.Map) as Building_Door;
-			if (door != null)
-			{
-				if (door.Open == false)
-					return false;
-			}
-			if (pawn.Map.pathGrid.WalkableFast(dest) == false) return false;
-			return pawn.Map.terrainGrid.TerrainAt(dest).DoesRepellZombies() == false;
+			var map = pawn.Map;
+			var size = map.info.Size;
+			if (dest.x < 0 || dest.x >= size.x || dest.z < 0 || dest.z >= size.z) return false;
+			var door = map.edificeGrid[dest] as Building_Door;
+			if (door != null && door.Open == false) return false;
+			var idx = map.cellIndices.CellToIndex(dest);
+			if (map.pathGrid.pathGrid[idx] >= 10000) return false;
+			return true;
+			// For now, we disable this to gain execution speed
+			//return map.terrainGrid.topGrid[idx].DoesRepellZombies() == false;
 		}
 
 		public static bool HasInfectionState(Pawn pawn, InfectionState state)

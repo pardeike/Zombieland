@@ -51,6 +51,10 @@ namespace ZombieLand
 						database.Add(key + "#" + hex, data);
 					});
 				}
+				else if (key.StartsWith("BombVest/"))
+				{
+					// ignore
+				}
 				else
 				{
 					var data = new ColorData(width, height, originalPixels);

@@ -20,8 +20,8 @@
 			</li>
 		</comps>
 		<injuryProps>
-			<painPerSeverity>0.05</painPerSeverity>
-			<averagePainPerSeverityOld>0.025</averagePainPerSeverityOld>
+			<painPerSeverity>0.0125</painPerSeverity>
+      	<averagePainPerSeverityOld>0.00625</averagePainPerSeverityOld>
 			<bleedRate>0.05</bleedRate>
 			<canMerge>false</canMerge>
 			<destroyedLabel>Bitten off by a zombie</destroyedLabel>

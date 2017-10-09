@@ -13,4 +13,50 @@
 		<armorCategory>Sharp</armorCategory>
 	</DamageDef>
 
+	<DamageDef Name="SuicideBomb" ParentName="LocalInjuryBase" Abstract="true">
+		<defName>SuicideBomb</defName>
+		<label>suicide bomb</label>
+		<externalViolence>true</externalViolence>
+		<isExplosive>true</isExplosive>
+		<deathMessage>{0} has died in an suicide bomb attack.</deathMessage>
+		<hediff>Shredded</hediff>
+		<hediffSolid>Crack</hediffSolid>
+		<harmAllLayersUntilOutside>true</harmAllLayersUntilOutside>
+		<impactSoundType>Blunt</impactSoundType>
+		<armorCategory>Blunt</armorCategory>
+		<spreadOut>true</spreadOut>
+		<explosionDamage>50</explosionDamage>
+		<explosionBuildingDamageFactor>4</explosionBuildingDamageFactor>
+		<explosionAffectOutsidePartsOnly>false</explosionAffectOutsidePartsOnly>
+		<explosionHeatEnergyPerCell>5</explosionHeatEnergyPerCell>
+		<explosionCellMote>Mote_BlastDry</explosionCellMote>
+		<explosionColorCenter>(1, 0, 0)</explosionColorCenter>
+		<explosionColorEdge>(1, 0.5, 0)</explosionColorEdge>
+		<soundExplosion>Explosion_Bomb</soundExplosion>
+	</DamageDef>
+
+	<DamageDef Name="SuicideBombSmall" ParentName="SuicideBomb">
+		<defName>SuicideBombSmall</defName>
+		<label>simple suicide bomb</label>
+		<explosionDamage>80</explosionDamage>
+		<explosionBuildingDamageFactor>4</explosionBuildingDamageFactor>
+		<explosionHeatEnergyPerCell>8</explosionHeatEnergyPerCell>
+	</DamageDef>
+
+	<DamageDef Name="SuicideBombMedium" ParentName="SuicideBomb">
+		<defName>SuicideBombMedium</defName>
+		<label>simple suicide bomb</label>
+		<explosionDamage>160</explosionDamage>
+		<explosionBuildingDamageFactor>8</explosionBuildingDamageFactor>
+		<explosionHeatEnergyPerCell>16</explosionHeatEnergyPerCell>
+	</DamageDef>
+
+	<DamageDef Name="SuicideBombLarge" ParentName="SuicideBomb">
+		<defName>SuicideBombLarge</defName>
+		<label>simple suicide bomb</label>
+		<explosionDamage>320</explosionDamage>
+		<explosionBuildingDamageFactor>16</explosionBuildingDamageFactor>
+		<explosionHeatEnergyPerCell>32</explosionHeatEnergyPerCell>
+	</DamageDef>
+
 </DamageDefs>

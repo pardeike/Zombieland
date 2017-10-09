@@ -106,29 +106,48 @@ namespace ZombieLand
 				yield return basePos + GenAdj.AdjacentCells[adjIndex[i]];
 		}
 
-		private bool ValidFloodCell(IntVec3 cell)
+		private bool ValidFloodCell(IntVec3 cell, IntVec3 from)
 		{
 			if (cell.x < 0 || cell.x >= mapSizeX || cell.z < 0 || cell.z >= mapSizeZ) return false;
 			if (GetDirect(cell) != 0) return false;
 
-			// tracing through closed doors covers the case when all targets are inside
-			// and thus are "unreachable". It's too much of an obvious mechanic when all
-			// zombies suddenly go towards a target that steps outside the door
-			//
-			// var door = edificeGrid[cell] as Building_Door;
-			// if (door != null && door.Open == false) return false;
-
+			// wrap things in try/catch because of concurrent access to data structures
+			// used by the main thread
 			try
 			{
+				// tracing through closed doors covers the case when all targets are inside
+				// and thus are "unreachable". It's too much of an obvious mechanic when all
+				// zombies suddenly go towards a target that steps outside the door
+				//
+				// var door = edificeGrid[cell] as Building_Door;
+				// if (door != null && door.Open == false) return false;
+
 				if (pathGrid.WalkableFast(cell) == false) return false;
-				if (terrainGrid.TerrainAt(cell).DoesRepellZombies()) return false;
+
+				// walking diagonal works only if it not across a diagonal gap in a wall
+				// so lets check for that case
+				if (from.AdjacentToDiagonal(cell))
+				{
+					IntVec3 c;
+
+					c = new IntVec3(cell.x, cell.y, from.z);
+					if (pathGrid.WalkableFast(c) || edificeGrid[c] is Building_Door)
+						return false;
+
+					c = new IntVec3(from.x, from.y, cell.z);
+					if (pathGrid.WalkableFast(c) || edificeGrid[c] is Building_Door)
+						return false;
+				}
+
+				// For now, we disable this to gain execution speed
+				//if (terrainGrid.TerrainAt(cell).DoesRepellZombies()) return false;
+
+				return true;
 			}
-			catch (Exception)
+			catch
 			{
 				return false;
 			}
-
-			return true;
 		}
 
 		public void Recalculate(IntVec3[] positions)
@@ -142,8 +161,7 @@ namespace ZombieLand
 
 			dirtyCells = true;
 			var sleepCounter = 0;
-			var directions = GenAdj.AdjacentCells;
-			positions.Where(cell => ValidFloodCell(cell) && GetDirect(cell) == 0).Do(c =>
+			positions.Where(cell => ValidFloodCell(cell, IntVec3.Invalid) && GetDirect(cell) == 0).Do(c =>
 			{
 				SetDirect(c, endpoint);
 
@@ -157,7 +175,7 @@ namespace ZombieLand
 			while (openCellSet.Count > 0 || openDoorSet.Count > 0)
 			{
 				var parent = openCellSet.Count == 0 ? openDoorSet.Dequeue() : openCellSet.Dequeue();
-				GetAdjactedInRandomOrder(parent).Where(ValidFloodCell).Do(child =>
+				GetAdjactedInRandomOrder(parent).Where(cell => ValidFloodCell(cell, parent)).Do(child =>
 				{
 					Set(child, parent);
 
@@ -209,6 +227,7 @@ namespace ZombieLand
 		{
 			grids = new Dictionary<Map, MapInfo>();
 
+#pragma warning disable IDE0017
 			workerThread = new Thread(() =>
 			{
 				EndlessLoop:
@@ -264,6 +283,7 @@ namespace ZombieLand
 				if (wait) Thread.Sleep(500);
 				goto EndlessLoop;
 			});
+#pragma warning restore IDE0017
 
 			workerThread.Priority = ThreadPriority.Lowest;
 			workerThread.Start();
