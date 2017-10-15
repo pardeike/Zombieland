@@ -36,6 +36,7 @@ namespace ZombieLand
 
 		public override void WriteSettings()
 		{
+			base.WriteSettings();
 			var settings = ZombieSettings.GetGameSettings();
 			if (settings != null)
 				settings.WriteSettings();

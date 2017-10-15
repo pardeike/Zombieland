@@ -129,13 +129,20 @@ namespace ZombieLand
 				if (from.AdjacentToDiagonal(cell))
 				{
 					IntVec3 c;
+					Building_Door door;
 
 					c = new IntVec3(cell.x, cell.y, from.z);
-					if (pathGrid.WalkableFast(c) || edificeGrid[c] is Building_Door)
+					if (pathGrid.WalkableFast(c) == false)
+						return false;
+					door = edificeGrid[c] as Building_Door;
+					if (door != null && door.Open == false)
 						return false;
 
-					c = new IntVec3(from.x, from.y, cell.z);
-					if (pathGrid.WalkableFast(c) || edificeGrid[c] is Building_Door)
+					c = new IntVec3(from.x, cell.y, cell.z);
+					if (pathGrid.WalkableFast(c) == false)
+						return false;
+					door = edificeGrid[c] as Building_Door;
+					if (door != null && door.Open == false)
 						return false;
 				}
 
