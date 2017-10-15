@@ -72,6 +72,9 @@
 	<ZombiesEatDowned>Injured creatures</ZombiesEatDowned>
 	<ZombiesEatCorpses>Corpses</ZombiesEatCorpses>
 
+	<SpecialZombiesTitle>Special zombies</SpecialZombiesTitle>
+	<SuicideBomberChance>Suicide bomber zombies</SuicideBomberChance>
+
 	<ZombieMiscTitle>Miscellaneous</ZombieMiscTitle>
 	<UseCustomTextures>Use custom textures</UseCustomTextures>
 	<ReplaceTwinkie>Change survival meals to Twinkies</ReplaceTwinkie>

@@ -6,9 +6,9 @@ namespace ZombieLand
 {
 	public class HediffCompProperties_Zombie_Infecter : HediffCompProperties
 	{
-		public float minBedTendQualityToAvoidInfection = 0.5f;
+		public float minBedTendQualityToAvoidInfection = 0.17f;
 		public QualityCategory minBedQualityToAvoidInfection = QualityCategory.Masterwork;
-		public float minTendQualityToAvoidInfection = 0.5f;
+		public float minTendQualityToAvoidInfection = 0.7f;
 
 		public HediffCompProperties_Zombie_Infecter()
 		{
@@ -112,7 +112,7 @@ namespace ZombieLand
 		{
 			var sb = new StringBuilder();
 
-			if (infectionKnownDelay != 0)
+			if (infectionKnownDelay >= 0)
 				sb.Append("Revealed in " + infectionKnownDelay.ToHourString() + "\n");
 
 			if (infectionStartTime == 0)
@@ -120,7 +120,7 @@ namespace ZombieLand
 			else
 				sb.Append("Starts in " + infectionStartTime.ToHourString() + "\n");
 
-			if (infectionEndTime != 0)
+			if (infectionEndTime >= 0)
 				sb.Append("Death in " + infectionEndTime.ToHourString() + "\n");
 
 			var result = sb.ToString();

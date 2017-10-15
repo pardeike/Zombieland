@@ -138,7 +138,38 @@ namespace ZombieLand
 				return null;
 			}
 
-			zombie.gender = Rand.Bool ? Gender.Male : Gender.Female;
+			var bodyType = BodyType.Undefined;
+			var zombieType = Rand.Chance(ZombieSettings.Values.suicideBomberChance) ? 5 : Rand.RangeInclusive(1, 4);
+			switch (zombieType)
+			{
+				case 1:
+					zombie.gender = Gender.Male;
+					bodyType = BodyType.Male;
+					break;
+
+				case 2:
+					zombie.gender = Gender.Female;
+					bodyType = BodyType.Female;
+					break;
+
+				case 3:
+					zombie.gender = Gender.Male;
+					bodyType = BodyType.Thin;
+					break;
+
+				case 4:
+					zombie.gender = Gender.Male;
+					bodyType = BodyType.Fat;
+					break;
+
+				case 5:
+					zombie.gender = Gender.Male;
+					bodyType = BodyType.Hulk;
+					zombie.bombTickingInterval = 60f;
+					zombie.lastBombTick = Find.TickManager.TicksAbs + Rand.Range(0, (int)zombie.bombTickingInterval);
+					break;
+			}
+
 			zombie.kindDef = ZombieDefOf.Zombie;
 			zombie.SetFactionDirect(FactionUtility.DefaultFactionFrom(ZombieDefOf.Zombies));
 
@@ -169,28 +200,10 @@ namespace ZombieLand
 
 			zombie.story.melanin = 0.01f * Rand.Range(10, 91);
 			zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
+			zombie.story.bodyType = bodyType;
 
 			zombie.story.hairColor = HairColor();
 			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, ZombieDefOf.Zombies);
-			zombie.story.bodyType = (zombie.gender == Gender.Female) ? BodyType.Female : BodyType.Male;
-			if (zombie.story.bodyType == BodyType.Male)
-				switch (Rand.RangeInclusive(1, 9))
-				{
-					case 1:
-					case 2:
-						zombie.story.bodyType = BodyType.Thin;
-						break;
-
-					case 3:
-					case 4:
-						zombie.story.bodyType = BodyType.Fat;
-						break;
-
-					case 9:
-						zombie.story.bodyType = BodyType.Hulk;
-						zombie.bombTickingInterval = 60f;
-						break;
-				}
 
 			if (ZombieSettings.Values.useCustomTextures)
 				AssignNewCustomGraphics(zombie);

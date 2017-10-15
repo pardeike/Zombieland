@@ -314,6 +314,10 @@ namespace ZombieLand
 			list.Dialog_Checkbox("ZombiesEatCorpses", ref settings.zombiesEatCorpses);
 			list.Gap(6f);
 
+			// Eating
+			list.Dialog_Label("SpecialZombiesTitle");
+			list.Dialog_FloatSlider("SuicideBomberChance", "0%", ref settings.suicideBomberChance, 0f, 1f);
+
 			list.NewColumn();
 			list.ColumnWidth -= Listing.ColumnSpacing; // ----------------------------------------------------------
 

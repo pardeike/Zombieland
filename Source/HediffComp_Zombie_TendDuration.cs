@@ -110,6 +110,12 @@ namespace ZombieLand
 			}
 		}
 
+		public override void CompExposeData()
+		{
+			base.CompExposeData();
+			Scribe_Values.Look(ref firstTimeVisible, "firstTimeVisible");
+		}
+
 		public override string CompTipStringExtra
 		{
 			get

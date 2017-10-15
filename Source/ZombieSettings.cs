@@ -54,6 +54,7 @@ namespace ZombieLand
 		public int daysBeforeZombiesCome = 3;
 		public int maximumNumberOfZombies = 500;
 		public int baseNumberOfZombiesinEvent = 20;
+		public float suicideBomberChance = 0.1f;
 		public float moveSpeedIdle = 0.2f;
 		public float moveSpeedTracking = 1.3f;
 		public float damageFactor = 1.0f;

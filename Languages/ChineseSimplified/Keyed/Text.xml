@@ -72,6 +72,9 @@
 	<ZombiesEatDowned>受伤的生物</ZombiesEatDowned>
 	<ZombiesEatCorpses>尸体</ZombiesEatCorpses>
 
+	<SpecialZombiesTitle>特殊僵尸</SpecialZombiesTitle>
+	<SuicideBomberChance>自杀攻击的僵尸</SuicideBomberChance>
+
 	<ZombieMiscTitle>其他</ZombieMiscTitle>
 	<UseCustomTextures>使用自定义纹理</UseCustomTextures>
 	<ReplaceTwinkie>将生存食品改为Twinkies</ReplaceTwinkie>

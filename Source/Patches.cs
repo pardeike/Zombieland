@@ -520,6 +520,8 @@ namespace ZombieLand
 			public static MethodInfo zombieCostMethod = AccessTools.Method(typeof(PathFinder_FindPath_Patch), "GetZombieCosts");
 			static Dictionary<Map, TickManager> tickManagerCache = new Dictionary<Map, TickManager>();
 
+			// TODO: infected colonists will still path so exclude them from this check
+			//       by returning 0 - currently disabled because it does cost too much
 			static int GetZombieCosts(Map map, int idx)
 			{
 				if (ZombieSettings.Values.betterZombieAvoidance == false) return 0;
@@ -1122,22 +1124,25 @@ namespace ZombieLand
 
 				Verse.TickManager tm = null;
 
-				if (zombie.bombTickingInterval != -1f && zombie.state != ZombieState.Emerging)
+				if (zombie.bombTickingInterval != -1f)
 				{
 					tm = Find.TickManager;
-					var currentTick = tm.TicksGame;
+					var currentTick = tm.TicksAbs;
 					var interval = (int)zombie.bombTickingInterval;
 					if (currentTick >= zombie.lastBombTick + interval)
 						zombie.lastBombTick = currentTick;
 					else if (currentTick <= zombie.lastBombTick + interval / 2)
 					{
-						var bombLightLoc = drawLoc + new Vector3(0, 0.1f, -0.2f);
-						var scale = 1f;
-						if (zombie.Rotation == Rot4.South || zombie.Rotation == Rot4.North) bombLightLoc.z += 0.05f;
-						if (zombie.Rotation == Rot4.North) { bombLightLoc.y -= 0.1f; scale = 1.5f; }
-						if (zombie.Rotation == Rot4.West) { bombLightLoc.x -= 0.25f; bombLightLoc.z -= 0.05f; }
-						if (zombie.Rotation == Rot4.East) { bombLightLoc.x += 0.25f; bombLightLoc.z -= 0.05f; }
-						GraphicToolbox.DrawScaledMesh(MeshPool.plane10, Constants.BOMB_LIGHT, bombLightLoc, Quaternion.identity, scale, scale);
+						if (zombie.state != ZombieState.Emerging)
+						{
+							var bombLightLoc = drawLoc + new Vector3(0, 0.1f, -0.2f);
+							var scale = 1f;
+							if (zombie.Rotation == Rot4.South || zombie.Rotation == Rot4.North) bombLightLoc.z += 0.05f;
+							if (zombie.Rotation == Rot4.North) { bombLightLoc.y -= 0.1f; scale = 1.5f; }
+							if (zombie.Rotation == Rot4.West) { bombLightLoc.x -= 0.25f; bombLightLoc.z -= 0.05f; }
+							if (zombie.Rotation == Rot4.East) { bombLightLoc.x += 0.25f; bombLightLoc.z -= 0.05f; }
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane10, Constants.BOMB_LIGHT, bombLightLoc, Quaternion.identity, scale, scale);
+						}
 					}
 				}
 
@@ -1152,7 +1157,7 @@ namespace ZombieLand
 				{
 					tm = tm ?? Find.TickManager;
 					var blinkPeriod = 60 + zombie.thingIDNumber % 180; // between 2-5s
-					var eyesOpen = (tm.TicksGame % blinkPeriod) > 3;
+					var eyesOpen = (tm.TicksAbs % blinkPeriod) > 3;
 					if (eyesOpen || tm.CurTimeSpeed == TimeSpeed.Paused)
 					{
 						// the following constant comes from PawnRenderer.RenderPawnInternal
@@ -1362,7 +1367,7 @@ namespace ZombieLand
 					if (tendDuration != null)
 					{
 						var state = tendDuration.GetInfectionState();
-						if (state == InfectionState.BittenNotVisible || state >= InfectionState.Infecting)
+						if (state == InfectionState.BittenNotVisible || state >= InfectionState.BittenInfectable)
 						{
 							__result = false;
 							return false;
@@ -1370,6 +1375,26 @@ namespace ZombieLand
 					}
 				}
 				return true;
+			}
+		}
+
+		[HarmonyPatch(typeof(HediffUtility))]
+		[HarmonyPatch("CanHealFromTending")]
+		static class HediffUtility_CanHealFromTending_Patch
+		{
+			[HarmonyPriority(Priority.Last)]
+			static void Postfix(Hediff_Injury hd, ref bool __result)
+			{
+				var zombieBite = hd as Hediff_Injury_ZombieBite;
+				if (zombieBite != null)
+				{
+					var tendDuration = zombieBite.TendDuration;
+					if (tendDuration != null)
+					{
+						var state = tendDuration.GetInfectionState();
+						__result = (state == InfectionState.BittenVisible || state == InfectionState.BittenHarmless);
+					}
+				}
 			}
 		}
 
@@ -1400,7 +1425,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(Hediff))]
 		[HarmonyPatch("ShouldRemove", PropertyMethod.Getter)]
-		static class HediffUtility_CanHealFromTending_Patch
+		static class Hediff_ShouldRemove_Patch
 		{
 			[HarmonyPriority(Priority.Last)]
 			static void Postfix(Hediff __instance, ref bool __result)
@@ -1414,8 +1439,95 @@ namespace ZombieLand
 					if (tendDuration != null)
 					{
 						var state = tendDuration.GetInfectionState();
-						if (state == InfectionState.BittenNotVisible || state >= InfectionState.Infecting)
+						if (state == InfectionState.BittenNotVisible || state >= InfectionState.BittenInfectable)
 							__result = false;
+					}
+				}
+			}
+		}
+
+		// patch for making burning zombies keep their fire (even when it rains) 
+		//
+		[HarmonyPatch(typeof(Fire))]
+		[HarmonyPatch("VulnerableToRain")]
+		static class Fire_VulnerableToRain_Patch
+		{
+			static bool Prefix(Fire __instance, ref bool __result)
+			{
+				var zombie = __instance.parent as Zombie;
+				if (zombie != null)
+				{
+					__result = false;
+					return false;
+				}
+
+				return true;
+			}
+		}
+
+		// patch for making zombies burn slower
+		//
+		[HarmonyPatch(typeof(Fire))]
+		[HarmonyPatch("DoFireDamage")]
+		static class Fire_DoFireDamage_Patch
+		{
+			static int Reduce(int n) { return n / 2; }
+
+			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, IEnumerable<CodeInstruction> instructions)
+			{
+				var firstTime = true;
+				foreach (var instruction in instructions)
+				{
+					if (firstTime && instruction.opcode == OpCodes.Ldarg_1)
+					{
+						firstTime = false;
+						var label = generator.DefineLabel();
+
+						yield return instruction;
+						yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
+						yield return new CodeInstruction(OpCodes.Brfalse, label);
+						yield return new CodeInstruction(OpCodes.Ldloc_1);
+						yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Fire_DoFireDamage_Patch), "Reduce"));
+						yield return new CodeInstruction(OpCodes.Stloc_1);
+
+						yield return new CodeInstruction(OpCodes.Ldarg_1) { labels = new List<Label> { label } };
+					}
+					else
+						yield return instruction;
+				}
+			}
+		}
+
+		// patch for excluding burning zombies from total fire count 
+		//
+		[HarmonyPatch(typeof(FireWatcher))]
+		[HarmonyPatch("UpdateObservations")]
+		static class FireWatcher_UpdateObservations_Patch
+		{
+			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, IEnumerable<CodeInstruction> instructions)
+			{
+				var n = 0;
+				var label = generator.DefineLabel();
+
+				foreach (var instruction in instructions)
+				{
+					yield return instruction;
+
+					if (instruction.opcode == OpCodes.Stloc_2)
+					{
+						yield return new CodeInstruction(OpCodes.Ldloc_2);
+						yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(AttachableThing), "parent"));
+						yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
+						yield return new CodeInstruction(OpCodes.Brtrue, label);
+					}
+
+					if (n >= 0 && instruction.opcode == OpCodes.Add)
+						n++;
+
+					if (instruction.opcode == OpCodes.Ldloc_1 && n == 2)
+					{
+						instruction.labels.Add(label);
+						n = -1;
 					}
 				}
 			}

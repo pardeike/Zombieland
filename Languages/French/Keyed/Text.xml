@@ -72,6 +72,9 @@
 	<ZombiesEatDowned>Les créatures blessés</ZombiesEatDowned>
 	<ZombiesEatCorpses>Les corps</ZombiesEatCorpses>
 
+	<SpecialZombiesTitle>Zombies spéciaux</SpecialZombiesTitle>
+	<SuicideBomberChance>Les zombies de Kamikaze</SuicideBomberChance>
+
 	<ZombieMiscTitle>Divers</ZombieMiscTitle>
 	<UseCustomTextures>Utiliser des textures personnalisées </UseCustomTextures>
 	<ReplaceTwinkie>Change les repas de survie en Twinkies (miam!)</ReplaceTwinkie>

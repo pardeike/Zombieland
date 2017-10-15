@@ -72,6 +72,9 @@
 	<ZombiesEatDowned>Verletzte</ZombiesEatDowned>
 	<ZombiesEatCorpses>Leichen</ZombiesEatCorpses>
 
+	<SpecialZombiesTitle>Spezielle Zombies</SpecialZombiesTitle>
+	<SuicideBomberChance>Zombies mit Selbstmordattacke</SuicideBomberChance>
+
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>
 	<UseCustomTextures>Benutze Spezialtexturen</UseCustomTextures>
 	<ReplaceTwinkie>Überlebensrationen mit Twinkies ersetzen</ReplaceTwinkie>
