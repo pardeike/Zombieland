@@ -129,7 +129,7 @@ namespace ZombieLand
 				Drawer.renderer.graphics.apparelGraphics
 					.RemoveAll(record => record.sourceApparel?.def == def);
 
-				Explode();
+				Map.GetComponent<TickManager>().AddExplosion(Position);
 			}
 
 			base.Kill(dinfo);
@@ -152,31 +152,6 @@ namespace ZombieLand
 			typeof(bool),
 			typeof(bool)
 		};
-
-		public void Explode()
-		{
-			var damageDef = DamageDefOf.SuicideBombSmall;
-			var radius = 1f;
-
-			if (Find.Storyteller.difficulty.difficulty >= DifficultyDefOf.Medium.difficulty)
-			{
-				damageDef = DamageDefOf.SuicideBombMedium;
-				radius = 5f;
-			}
-
-			if (Find.Storyteller.difficulty.difficulty >= DifficultyDefOf.Hard.difficulty)
-			{
-				damageDef = DamageDefOf.SuicideBombLarge;
-				radius = 10f;
-			}
-
-			var pos = Position;
-			var map = Map;
-			LongEventHandler.QueueLongEvent(() =>
-			{
-				GenExplosion.DoExplosion(pos, map, radius, damageDef, null, SoundDefOf.PlanetkillerImpact, null, null, null, 1f, 1, false, null, 0f, 1);
-			}, "SuicideBomber", true, null);
-		}
 
 		void HandleRubble()
 		{

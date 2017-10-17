@@ -24,6 +24,8 @@ namespace ZombieLand
 		public AvoidGrid avoidGrid = null;
 		public AvoidGrid emptyAvoidGrid = null;
 
+		public List<IntVec3> explosions = new List<IntVec3>();
+
 		public IncidentInfo incidentInfo = new IncidentInfo();
 
 		public TickManager(Map map) : base(map)
@@ -64,6 +66,7 @@ namespace ZombieLand
 			base.ExposeData();
 			Scribe_Values.Look(ref currentColonyPoints, "colonyPoints");
 			Scribe_Collections.Look(ref allZombiesCached, "prioritizedZombies", LookMode.Reference);
+			Scribe_Collections.Look(ref explosions, "explosions", LookMode.Value);
 			Scribe_Deep.Look(ref incidentInfo, "incidentInfo", new object[0]);
 			allZombiesCached = allZombiesCached.Where(zombie => zombie != null && zombie.Spawned && zombie.Dead == false).ToList();
 			if (incidentInfo == null) incidentInfo = new IncidentInfo();
@@ -335,6 +338,21 @@ namespace ZombieLand
 			}
 		}
 
+		public void AddExplosion(IntVec3 pos)
+		{
+			explosions.Add(pos);
+		}
+
+		public void ExecuteExplosions()
+		{
+			foreach (var position in explosions)
+			{
+				var explosion = new Explosion(map, position);
+				explosion.Explode();
+			}
+			explosions.Clear();
+		}
+
 		public override void MapComponentTick()
 		{
 			RepositionColonists();
@@ -344,6 +362,7 @@ namespace ZombieLand
 			IncreaseZombiePopulation();
 			DequeuAndSpawnZombies();
 			UpdateZombieAvoider();
+			ExecuteExplosions();
 		}
 	}
 }
