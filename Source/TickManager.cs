@@ -64,12 +64,17 @@ namespace ZombieLand
 		public override void ExposeData()
 		{
 			base.ExposeData();
+
 			Scribe_Values.Look(ref currentColonyPoints, "colonyPoints");
 			Scribe_Collections.Look(ref allZombiesCached, "prioritizedZombies", LookMode.Reference);
 			Scribe_Collections.Look(ref explosions, "explosions", LookMode.Value);
 			Scribe_Deep.Look(ref incidentInfo, "incidentInfo", new object[0]);
+
+			if (allZombiesCached == null) allZombiesCached = new List<Zombie>();
 			allZombiesCached = allZombiesCached.Where(zombie => zombie != null && zombie.Spawned && zombie.Dead == false).ToList();
+
 			if (incidentInfo == null) incidentInfo = new IncidentInfo();
+			if (explosions == null) explosions = new List<IntVec3>();
 		}
 
 		public void RecalculateVisibleMap()
