@@ -1361,23 +1361,22 @@ namespace ZombieLand
 			static bool Prefix(Hediff_Injury hd, ref bool __result)
 			{
 				var zombieBite = hd as Hediff_Injury_ZombieBite;
-				if (zombieBite != null)
+				if (zombieBite != null && zombieBite.pawn.IsColonist)
 				{
 					var tendDuration = zombieBite.TendDuration;
 					if (tendDuration != null)
 					{
 						var state = tendDuration.GetInfectionState();
-						if (state == InfectionState.BittenNotVisible || state >= InfectionState.BittenInfectable)
-						{
-							__result = false;
-							return false;
-						}
+						__result = (state != InfectionState.BittenNotVisible && state < InfectionState.BittenInfectable);
+						return false;
 					}
 				}
 				return true;
 			}
 		}
 
+		// for now, replaced with a check in Hediff_Injury_ZombieBite.Heal()
+		/*
 		[HarmonyPatch(typeof(HediffUtility))]
 		[HarmonyPatch("CanHealFromTending")]
 		static class HediffUtility_CanHealFromTending_Patch
@@ -1385,8 +1384,11 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.Last)]
 			static void Postfix(Hediff_Injury hd, ref bool __result)
 			{
+				if (__result == false)
+					return;
+
 				var zombieBite = hd as Hediff_Injury_ZombieBite;
-				if (zombieBite != null)
+				if (zombieBite != null && zombieBite.pawn.IsColonist)
 				{
 					var tendDuration = zombieBite.TendDuration;
 					if (tendDuration != null)
@@ -1397,6 +1399,7 @@ namespace ZombieLand
 				}
 			}
 		}
+		*/
 
 		// patch to allow amputation of biten body parts
 		//
@@ -1433,7 +1436,7 @@ namespace ZombieLand
 				if (__result == false) return;
 
 				var zombieBite = __instance as Hediff_Injury_ZombieBite;
-				if (zombieBite != null)
+				if (zombieBite != null && zombieBite.pawn.IsColonist)
 				{
 					var tendDuration = zombieBite.TendDuration;
 					if (tendDuration != null)

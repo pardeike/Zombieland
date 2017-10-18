@@ -179,6 +179,22 @@ namespace ZombieLand
 			}
 		}
 
+		public override void Heal(float amount)
+		{
+			if (pawn.IsColonist)
+			{
+				var tendDuration = TendDuration;
+				if (tendDuration != null)
+				{
+					var state = tendDuration.GetInfectionState();
+					if (state != InfectionState.BittenVisible && state != InfectionState.BittenHarmless)
+						return;
+				}
+			}
+
+			base.Heal(amount);
+		}
+
 		public override float SummaryHealthPercentImpact
 		{
 			get

@@ -346,17 +346,17 @@ namespace ZombieLand
 
 		// use rage grid to get to colonists ========================================================
 		//
-		public static void RageMove(this JobDriver_Stumble driver, Zombie zombie, PheromoneGrid grid, List<IntVec3> possibleMoves)
+		public static bool RageMove(this JobDriver_Stumble driver, Zombie zombie, PheromoneGrid grid, List<IntVec3> possibleMoves)
 		{
 			if (zombie.raging <= 0)
-				return;
+				return false;
 
 			var info = Tools.wanderer.GetMapInfo(zombie.Map);
 			driver.destination = info.GetParent(zombie.Position);
 			if (driver.destination.IsValid == false)
 			{
 				zombie.raging = 0;
-				return;
+				return false;
 			}
 
 			// if next move is on a door, end raging
@@ -366,12 +366,12 @@ namespace ZombieLand
 				if (door != null && door.Open == false)
 				{
 					zombie.raging = 0;
-					return;
+					return false;
 				}
 			}
 
 			var destZombieCount = grid.GetZombieCount(driver.destination);
-			if (destZombieCount > 0 || Rand.Chance(Constants.DIVERTING_FROM_RAGE))
+			if (destZombieCount > 1 || Rand.Chance(Constants.DIVERTING_FROM_RAGE))
 			{
 				var success = TryToDivert(ref driver.destination, grid, zombie.Position, possibleMoves);
 				if (success == false)
@@ -379,7 +379,11 @@ namespace ZombieLand
 					var zCount = possibleMoves.Select(p => grid.GetZombieCount(p)).Min();
 					driver.destination = possibleMoves.Where(p => grid.GetZombieCount(p) == zCount).RandomElement();
 				}
+
+				return true;
 			}
+
+			return false;
 		}
 
 		// during night, drift towards colony =======================================================

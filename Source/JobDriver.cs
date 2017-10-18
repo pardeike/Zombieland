@@ -86,9 +86,8 @@ namespace ZombieLand
 			var possibleMoves = this.PossibleMoves(zombie);
 			if (possibleMoves.Count > 0)
 			{
-				this.RageMove(zombie, grid, possibleMoves);
-
-				this.Wander(zombie, grid, possibleMoves);
+				if (this.RageMove(zombie, grid, possibleMoves) == false)
+					this.Wander(zombie, grid, possibleMoves);
 			}
 
 			this.ExecuteMove(zombie, grid);
