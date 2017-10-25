@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<HediffDefs>
+<Defs>
 
 	<HediffDef ParentName="InjuryBase">
 		<defName>ZombieBite</defName>
@@ -21,7 +21,7 @@
 		</comps>
 		<injuryProps>
 			<painPerSeverity>0.0125</painPerSeverity>
-      	<averagePainPerSeverityOld>0.00625</averagePainPerSeverityOld>
+			<averagePainPerSeverityOld>0.00625</averagePainPerSeverityOld>
 			<bleedRate>0.05</bleedRate>
 			<canMerge>false</canMerge>
 			<destroyedLabel>Bitten off by a zombie</destroyedLabel>
@@ -29,4 +29,4 @@
 		</injuryProps>
 	</HediffDef>
 
-</HediffDefs>
+</Defs>
