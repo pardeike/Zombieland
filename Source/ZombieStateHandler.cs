@@ -251,14 +251,16 @@ namespace ZombieLand
 		//
 		static int fadeOff = -1;
 		static int agitatedFadeoff;
-		static int checkSmashableFadeoff;
+		static int checkSmashableFadeoff1;
+		static int checkSmashableFadeoff2;
 		public static bool Track(this JobDriver_Stumble driver, Zombie zombie, PheromoneGrid grid)
 		{
 			if (zombie.EveryNTick(NthTick.Every60) || fadeOff == -1)
 			{
 				fadeOff = Tools.PheromoneFadeoff();
 				agitatedFadeoff = fadeOff / 4;
-				checkSmashableFadeoff = agitatedFadeoff / 2;
+				checkSmashableFadeoff1 = agitatedFadeoff / 4;
+				checkSmashableFadeoff2 = agitatedFadeoff * 3 / 4;
 			}
 
 			var trackingMoves = new List<IntVec3>(8);
@@ -296,7 +298,7 @@ namespace ZombieLand
 			if (driver.destination.IsValid == false)
 				zombie.state = ZombieState.Wandering;
 
-			var checkSmashable = timeDelta >= checkSmashableFadeoff;
+			var checkSmashable = timeDelta >= checkSmashableFadeoff1 && timeDelta < checkSmashableFadeoff2;
 			if (ZombieSettings.Values.smashOnlyWhenAgitated)
 				checkSmashable &= (zombie.state == ZombieState.Tracking || zombie.raging > 0);
 
@@ -305,9 +307,12 @@ namespace ZombieLand
 
 		// smash nearby build stuff =================================================================
 		//
-		public static bool Smash(this JobDriver_Stumble driver, Zombie zombie, bool checkSmashable)
+		public static bool Smash(this JobDriver_Stumble driver, Zombie zombie, bool checkSmashable, bool onylWhenNotRaging)
 		{
 			if (driver.destination.IsValid && checkSmashable == false)
+				return false;
+
+			if (onylWhenNotRaging && zombie.raging > 0)
 				return false;
 
 			var building = CanSmash(zombie);
@@ -346,43 +351,51 @@ namespace ZombieLand
 
 		// use rage grid to get to colonists ========================================================
 		//
-		public static bool RageMove(this JobDriver_Stumble driver, Zombie zombie, PheromoneGrid grid, List<IntVec3> possibleMoves)
+		public static bool RageMove(this JobDriver_Stumble driver, Zombie zombie, PheromoneGrid grid, List<IntVec3> possibleMoves, bool checkSmashable)
 		{
-			if (zombie.raging <= 0)
-				return false;
-
 			var info = Tools.wanderer.GetMapInfo(zombie.Map);
-			driver.destination = info.GetParent(zombie.Position);
-			if (driver.destination.IsValid == false)
+			var newPos = info.GetParent(zombie.Position);
+			if (newPos.IsValid == false)
 			{
+				// no next move available
 				zombie.raging = 0;
-				return false;
+				return Smash(driver, zombie, checkSmashable, false);
 			}
 
-			// if next move is on a door, end raging
-			if (ZombieSettings.Values.smashMode == SmashMode.Nothing)
+			// next move is on a door
+			var door = newPos.GetEdifice(zombie.Map) as Building_Door;
+			if (door != null)
 			{
-				var door = driver.destination.GetEdifice(zombie.Map) as Building_Door;
-				if (door != null && door.Open == false)
+				if (door.Open)
 				{
-					zombie.raging = 0;
+					driver.destination = newPos;
 					return false;
 				}
+				return Smash(driver, zombie, checkSmashable, false);
 			}
 
-			var destZombieCount = grid.GetZombieCount(driver.destination);
-			if (destZombieCount > 1 || Rand.Chance(Constants.DIVERTING_FROM_RAGE))
+			// move into places where there is max 1 zombie already
+			var destZombieCount = grid.GetZombieCount(newPos);
+			if (destZombieCount < 2)
 			{
-				var success = TryToDivert(ref driver.destination, grid, zombie.Position, possibleMoves);
-				if (success == false)
-				{
-					var zCount = possibleMoves.Select(p => grid.GetZombieCount(p)).Min();
-					driver.destination = possibleMoves.Where(p => grid.GetZombieCount(p) == zCount).RandomElement();
-				}
-
-				return true;
+				driver.destination = newPos;
+				return false;
 			}
 
+			// cannot move? lets smash things
+			if (Smash(driver, zombie, checkSmashable, false))
+				return true;
+
+			// cannot smash? look for alternative ways to move orthogonal
+			if (TryToDivert(ref newPos, grid, zombie.Position, possibleMoves))
+			{
+				driver.destination = newPos;
+				return false;
+			}
+
+			// move to least populated place
+			var zCount = possibleMoves.Select(p => grid.GetZombieCount(p)).Min();
+			driver.destination = possibleMoves.Where(p => grid.GetZombieCount(p) == zCount).RandomElement();
 			return false;
 		}
 
@@ -678,12 +691,8 @@ namespace ZombieLand
 				maxNumMeleeAttacks = 1,
 				maxNumStaticAttacks = 1,
 				expiryInterval = 600,
-				canBash = false,
-				attackDoorIfTargetLost = false,
-				ignoreForbidden = false,
-				locomotionUrgency = LocomotionUrgency.Amble
+				canBash = true
 			};
-
 			zombie.jobs.StartJob(job, JobCondition.Succeeded, null, true, false, null, null);
 		}
 

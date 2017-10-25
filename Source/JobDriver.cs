@@ -80,13 +80,17 @@ namespace ZombieLand
 				return;
 
 			var checkSmashable = this.Track(zombie, grid);
-			if (this.Smash(zombie, checkSmashable))
+			if (this.Smash(zombie, checkSmashable, true))
 				return;
 
 			var possibleMoves = this.PossibleMoves(zombie);
 			if (possibleMoves.Count > 0)
 			{
-				if (this.RageMove(zombie, grid, possibleMoves) == false)
+				if (zombie.raging > 0)
+					if (this.RageMove(zombie, grid, possibleMoves, checkSmashable))
+						return;
+
+				if (zombie.raging <= 0)
 					this.Wander(zombie, grid, possibleMoves);
 			}
 
