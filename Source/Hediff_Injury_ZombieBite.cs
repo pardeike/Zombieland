@@ -199,7 +199,7 @@ namespace ZombieLand
 		{
 			get
 			{
-				if (InfectionLocked() == false) return base.PainFactor;
+				if (InfectionLocked() == false) return base.SummaryHealthPercentImpact;
 				return this.IsTended() ? 0f : base.SummaryHealthPercentImpact;
 			}
 		}

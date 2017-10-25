@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Verse;
+using static ZombieLand.Patches;
 
 namespace ZombieLand
 {
@@ -37,9 +38,21 @@ namespace ZombieLand
 
 	public class Alert_ZombieInfection : Alert_ZombieInfectionProgress
 	{
+		public static HashSet<Pawn> infectedColonists;
+
 		public override bool ColonistSelector(Pawn pawn)
 		{
 			return Tools.HasInfectionState(pawn, InfectionState.Infecting, InfectionState.Infected);
+		}
+
+		public override IEnumerable<Pawn> AffectedColonists
+		{
+			get
+			{
+				var colonists = base.AffectedColonists;
+				Need_CurLevel_Patch.infectedColonists = new HashSet<Pawn>(colonists);
+				return colonists;
+			}
 		}
 
 		public override void Prepare()
@@ -72,7 +85,7 @@ namespace ZombieLand
 		public virtual string NameDecorator(Pawn pawn) { return pawn.NameStringShort; }
 		public virtual bool ColonistSelector(Pawn pawn) { return false; }
 
-		private IEnumerable<Pawn> AffectedColonists
+		public virtual IEnumerable<Pawn> AffectedColonists
 		{
 			get
 			{
@@ -99,7 +112,7 @@ namespace ZombieLand
 
 		public override AlertReport GetReport()
 		{
-			var pawn = AffectedColonists.FirstOrDefault<Pawn>();
+			var pawn = AffectedColonists.FirstOrDefault();
 			if (pawn == null)
 				return false;
 			return AlertReport.CulpritIs(pawn);
