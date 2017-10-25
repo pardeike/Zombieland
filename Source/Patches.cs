@@ -824,6 +824,146 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to make infected colonists have no needs
+		//
+		[HarmonyPatch(typeof(Need))]
+		[HarmonyPatch("CurLevel", PropertyMethod.Setter)]
+		public static class Need_CurLevel_Patch
+		{
+			// this is set periodically from Alerts.Alert_ZombieInfection
+			public static HashSet<Pawn> infectedColonists = new HashSet<Pawn>();
+
+			static bool ShouldBeAverageNeed(Pawn pawn)
+			{
+				return infectedColonists.Contains(pawn);
+			}
+
+			[HarmonyPriority(Priority.First)]
+			static IEnumerable<CodeInstruction> Transpiler(ILGenerator il, IEnumerable<CodeInstruction> instructions)
+			{
+				var f_pawn = AccessTools.Field(typeof(Need), "pawn");
+				var m_ShouldBeAverageNeed = AccessTools.Method(typeof(Need_CurLevel_Patch), "ShouldBeAverageNeed");
+
+				var average = il.DeclareLocal(typeof(float));
+				var originalStart = il.DefineLabel();
+
+				yield return new CodeInstruction(OpCodes.Ldarg_1);
+				yield return new CodeInstruction(OpCodes.Stloc, average);
+				yield return new CodeInstruction(OpCodes.Ldarg_0);
+				yield return new CodeInstruction(OpCodes.Ldfld, f_pawn);
+				yield return new CodeInstruction(OpCodes.Call, m_ShouldBeAverageNeed);
+				yield return new CodeInstruction(OpCodes.Brfalse, originalStart);
+				yield return new CodeInstruction(OpCodes.Ldc_R4, 0.5f);
+				yield return new CodeInstruction(OpCodes.Stloc, average);
+
+				var firstTime = true;
+				foreach (var instruction in instructions)
+				{
+					if (firstTime)
+						instruction.labels.Add(originalStart);
+					if (instruction.opcode == OpCodes.Ldarg_1)
+					{
+						instruction.opcode = OpCodes.Ldloc;
+						instruction.operand = average;
+					}
+					yield return instruction;
+					firstTime = false;
+				}
+			}
+		}
+
+		// patch to make infected colonists have no mental breaks
+		//
+		[HarmonyPatch(typeof(MentalStateHandler))]
+		[HarmonyPatch("TryStartMentalState")]
+		public static class MentalStateHandler_TryStartMentalState_Patch
+		{
+			static bool NoMentalState(Pawn pawn)
+			{
+				return Need_CurLevel_Patch.infectedColonists.Contains(pawn);
+			}
+
+			[HarmonyPriority(Priority.First)]
+			static IEnumerable<CodeInstruction> Transpiler(ILGenerator il, IEnumerable<CodeInstruction> instructions)
+			{
+				var f_pawn = AccessTools.Field(typeof(MentalStateHandler), "pawn");
+				var m_NoMentalState = AccessTools.Method(typeof(MentalStateHandler_TryStartMentalState_Patch), "NoMentalState");
+
+				var originalStart = il.DefineLabel();
+
+				yield return new CodeInstruction(OpCodes.Ldarg_0);
+				yield return new CodeInstruction(OpCodes.Ldfld, f_pawn);
+				yield return new CodeInstruction(OpCodes.Call, m_NoMentalState);
+				yield return new CodeInstruction(OpCodes.Brfalse, originalStart);
+				yield return new CodeInstruction(OpCodes.Ldc_I4_0);
+				yield return new CodeInstruction(OpCodes.Ret);
+
+				var firstTime = true;
+				foreach (var instruction in instructions)
+				{
+					if (firstTime)
+						instruction.labels.Add(originalStart);
+					yield return instruction;
+					firstTime = false;
+				}
+			}
+		}
+
+		// patch to make infected colonists feel no pain
+		//
+		[HarmonyPatch(typeof(HediffSet))]
+		[HarmonyPatch("PainTotal", PropertyMethod.Getter)]
+		public static class HediffSet_CalculatePain_Patch
+		{
+			static bool Prefix(HediffSet __instance, ref float __result)
+			{
+				if (Need_CurLevel_Patch.infectedColonists.Contains(__instance.pawn))
+				{
+					__result = 0f;
+					return false;
+				}
+				return true;
+			}
+		}
+
+		// patch to make infected colonists have full capacity
+		//
+		[HarmonyPatch(typeof(PawnCapacitiesHandler))]
+		[HarmonyPatch("GetLevel")]
+		public static class PawnCapacitiesHandler_GetLevel_Patch
+		{
+			static bool FullLevel(Pawn pawn)
+			{
+				if (pawn.health.Dead) return false;
+				return Need_CurLevel_Patch.infectedColonists.Contains(pawn);
+			}
+
+			[HarmonyPriority(Priority.First)]
+			static IEnumerable<CodeInstruction> Transpiler(ILGenerator il, IEnumerable<CodeInstruction> instructions)
+			{
+				var f_pawn = AccessTools.Field(typeof(PawnCapacitiesHandler), "pawn");
+				var m_FullLevel = AccessTools.Method(typeof(PawnCapacitiesHandler_GetLevel_Patch), "FullLevel");
+
+				var originalStart = il.DefineLabel();
+
+				yield return new CodeInstruction(OpCodes.Ldarg_0);
+				yield return new CodeInstruction(OpCodes.Ldfld, f_pawn);
+				yield return new CodeInstruction(OpCodes.Call, m_FullLevel);
+				yield return new CodeInstruction(OpCodes.Brfalse, originalStart);
+				yield return new CodeInstruction(OpCodes.Ldc_R4, 1f);
+				yield return new CodeInstruction(OpCodes.Ret);
+
+				var firstTime = true;
+				foreach (var instruction in instructions)
+				{
+					if (firstTime)
+						instruction.labels.Add(originalStart);
+					yield return instruction;
+					firstTime = false;
+				}
+			}
+		}
+
 		// patch to allow spawning Zombies with debug tools
 		//
 		[HarmonyPatch(typeof(PawnGenerator))]
