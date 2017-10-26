@@ -30,7 +30,7 @@ namespace ZombieLand
 
 			var damageDef = new SuicideBombDamage();
 			var radius = 1f + Find.Storyteller.difficulty.difficulty;
-			GenExplosion.DoExplosion(pos, map, radius, damageDef, null, null, null, null, null, 1f, 1, false, null, 0f, 1);
+			GenExplosion.DoExplosion(pos, map, radius, damageDef, null, -1, null, null, null, null, 1f, 1, false, null, 0f, 1);
 		}
 	}
 

@@ -112,7 +112,7 @@ namespace ZombieLand
 			zombie.wasColonist = true;
 
 			var text = "ColonistBecameAZombieDesc".Translate(new object[] { zombie.NameStringShort });
-			Find.LetterStack.ReceiveLetter("ColonistBecameAZombieLabel".Translate(), text, LetterDefOf.BadUrgent, zombie);
+			Find.LetterStack.ReceiveLetter("ColonistBecameAZombieLabel".Translate(), text, LetterDefOf.ThreatBig, zombie);
 		}
 
 		public override Color LabelColor

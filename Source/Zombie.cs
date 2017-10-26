@@ -1,8 +1,6 @@
 ﻿using Harmony;
-using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using Verse;
@@ -118,7 +116,7 @@ namespace ZombieLand
 			Drawer.renderer.graphics.nakedGraphic = null;
 		}
 
-		public override void Kill(DamageInfo? dinfo)
+		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)
 		{
 			if (bombTickingInterval != -1f)
 			{
@@ -235,16 +233,16 @@ namespace ZombieLand
 			{
 				if (Spawned)
 				{
-					if (pather != null) pather.PatherTick();
-					if (jobs != null) jobs.JobTrackerTick();
-					if (stances != null) stances.StanceTrackerTick();
-					if (verbTracker != null) verbTracker.VerbsTick();
-					if (natives != null) natives.NativeVerbsTick();
-					Drawer.DrawTrackerTick();
+					pather?.PatherTick();
+					jobs?.JobTrackerTick();
+					stances?.StanceTrackerTick();
+					verbTracker?.VerbsTick();
+					natives?.NativeVerbsTick();
+					Drawer?.DrawTrackerTick();
+					rotationTracker?.RotationTrackerTick();
 				}
 
-				if (health != null)
-					health.HealthTick();
+				health?.HealthTick();
 			}
 
 			if (state == ZombieState.Emerging)

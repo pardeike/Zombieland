@@ -8,7 +8,11 @@
 		<pawnsPlural>zombies</pawnsPlural>
 		<requiredCountAtGameStart>1</requiredCountAtGameStart>
 		<fixedName>Zombies</fixedName>
-		<raidCommonality>0</raidCommonality>
+		<raidCommonalityFromPointsCurve>
+			<points>
+				<li>(0, 0)</li>
+			</points>
+		</raidCommonalityFromPointsCurve>
 		<humanlikeFaction>true</humanlikeFaction>
 		<hidden>true</hidden>
 		<autoFlee>false</autoFlee>

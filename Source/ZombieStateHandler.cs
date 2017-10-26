@@ -184,7 +184,7 @@ namespace ZombieLand
 				if (eatTargetPawn != driver.lastEatTarget)
 				{
 					driver.lastEatTarget = eatTargetPawn;
-					zombie.Drawer.rotator.FaceCell(driver.eatTarget.Position);
+					zombie.rotationTracker.FaceCell(driver.eatTarget.Position);
 					var zombieLeaner = zombie.Drawer.leaner as ZombieLeaner;
 					if (zombieLeaner != null)
 					{
@@ -231,7 +231,7 @@ namespace ZombieLand
 					{
 								driver.eatTarget.LabelShort,
 								zombie.LabelIndefinite()
-					}).CapitalizeFirst(), zombie, MessageSound.Negative);
+					}).CapitalizeFirst(), zombie, MessageTypeDefOf.NegativeEvent);
 				}
 
 				eatTargetPawn.Strip();

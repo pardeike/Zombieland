@@ -24,7 +24,7 @@
 			<DeteriorationRate>0</DeteriorationRate>
 		</statBases>
 		<apparel>
-			<worngraphicPath>BombVest/BombVest</worngraphicPath>
+			<wornGraphicPath>BombVest/BombVest</wornGraphicPath>
 			<layers>
 				<li>Shell</li>
 			</layers>
