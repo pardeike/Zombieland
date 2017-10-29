@@ -50,7 +50,7 @@ namespace ZombieLand
 				var specs = AllZombies().Select(zombie => new ZombieCostSpecs()
 				{
 					position = zombie.Position,
-					radius = ZombieAvoidRadius(zombie),
+					radius = Tools.ZombieAvoidRadius(zombie),
 					maxCosts = ZombieMaxCosts(zombie)
 
 				}).ToList();
@@ -161,23 +161,6 @@ namespace ZombieLand
 			}
 		}
 
-		public float ZombieAvoidRadius(Zombie zombie)
-		{
-			if (zombie.wasColonist)
-				return 10f;
-			if (zombie.raging > 0)
-				return 6f;
-			switch (zombie.state)
-			{
-				case ZombieState.Wandering:
-					return 4f;
-				case ZombieState.Tracking:
-					return 6f;
-				default:
-					return 2f;
-			}
-		}
-
 		public float ZombieMaxCosts(Zombie zombie)
 		{
 			if (zombie.wasColonist || zombie.raging > 0)
@@ -190,7 +173,7 @@ namespace ZombieLand
 			var specs = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false).Select(zombie => new ZombieCostSpecs()
 			{
 				position = zombie.Position,
-				radius = ZombieAvoidRadius(zombie),
+				radius = Tools.ZombieAvoidRadius(zombie),
 				maxCosts = ZombieMaxCosts(zombie)
 
 			}).ToList();
@@ -205,7 +188,7 @@ namespace ZombieLand
 			var incidentSize = ZombiesRising.ZombiesForNewIncident(map);
 			if (incidentSize > 0)
 			{
-				Log.Warning("Zombieland incident with " + incidentSize + " zombies");
+				// Log.Warning("Zombieland incident with " + incidentSize + " zombies");
 				var success = ZombiesRising.TryExecute(map, incidentSize);
 				if (success == false)
 				{

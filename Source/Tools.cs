@@ -184,6 +184,23 @@ namespace ZombieLand
 			return radius * ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
 		}
 
+		public static float ZombieAvoidRadius(Zombie zombie, bool squared = false)
+		{
+			if (zombie.wasColonist)
+				return squared ? 100f : 10f;
+			if (zombie.raging > 0)
+				return squared ? 36f : 6f;
+			switch (zombie.state)
+			{
+				case ZombieState.Wandering:
+					return squared ? 16f : 4f;
+				case ZombieState.Tracking:
+					return squared ? 36f : 6f;
+				default:
+					return squared ? 4f : 2f;
+			}
+		}
+
 		// TODO: implement
 		public static bool DoesRepellZombies(this Def def)
 		{
