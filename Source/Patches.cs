@@ -240,7 +240,7 @@ namespace ZombieLand
 							return false;
 
 						var attacker = searcher as Pawn;
-						if (attacker != null /* && attacker.Faction.HostileTo(Faction.OfPlayer) */)
+						if (attacker != null && attacker.IsColonist == false /* && attacker.Faction.HostileTo(Faction.OfPlayer) */)
 						{
 							var dist = (float)(attacker.Position - zombie.Position).LengthHorizontalSquared;
 							var attackZombie = zombie.state == ZombieState.Tracking && dist <= Tools.ZombieAvoidRadius(zombie, true);
