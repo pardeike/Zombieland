@@ -220,6 +220,54 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to make raiders choose zombies less likely as a target
+		//
+		[HarmonyPatch(typeof(AttackTargetFinder))]
+		[HarmonyPatch("BestAttackTarget")]
+		static class AttackTargetFinder_BestAttackTarget_Patch
+		{
+			public static Predicate<IAttackTarget> WrappedValidator(Predicate<IAttackTarget> validator, IAttackTargetSearcher searcher)
+			{
+				if (ZombieSettings.Values.betterZombieAvoidance == false) return validator;
+				return (IAttackTarget t) =>
+				{
+					var zombie = t as Zombie;
+					if (zombie != null)
+					{
+						// never try to deliberately melee a zombie!
+						var currentEffectiveVerb = searcher.CurrentEffectiveVerb;
+						if (currentEffectiveVerb == null || currentEffectiveVerb.verbProps.MeleeRange)
+							return false;
+
+						var attacker = searcher as Pawn;
+						if (attacker != null /* && attacker.Faction.HostileTo(Faction.OfPlayer) */)
+						{
+							var dist = (float)(attacker.Position - zombie.Position).LengthHorizontalSquared;
+							var attackZombie = zombie.state == ZombieState.Tracking && dist <= Tools.ZombieAvoidRadius(zombie, true);
+							if (attackZombie == false) return false;
+						}
+					}
+					return validator(t);
+				};
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var innerValidatorType = (instructions.ToArray()[0].operand as MethodBase).DeclaringType;
+				var f_innerValidator = AccessTools.Field(innerValidatorType, "innerValidator");
+				var m_NoZombiesValidatorDecorator = AccessTools.Method(typeof(AttackTargetFinder_BestAttackTarget_Patch), "WrappedValidator");
+				foreach (var instruction in instructions)
+				{
+					if (instruction.opcode == OpCodes.Stfld && instruction.operand == f_innerValidator)
+					{
+						yield return new CodeInstruction(OpCodes.Ldarg_0);
+						yield return new CodeInstruction(OpCodes.Call, m_NoZombiesValidatorDecorator);
+					}
+					yield return instruction;
+				}
+			}
+		}
+
 		// patch to remove the constant danger music because of the constant thread of zombies
 		//
 		[HarmonyPatch(typeof(AttackTargetsCache))]
@@ -575,7 +623,7 @@ namespace ZombieLand
 			static bool ZombieInPath(Pawn_PathFollower __instance, Pawn pawn)
 			{
 				if (ZombieSettings.Values.betterZombieAvoidance == false) return false;
-				if (pawn.IsColonist == false) return false;
+				// if (pawn.IsColonist == false) return false;
 
 				var path = __instance.curPath;
 				if (path.NodesLeftCount < 5) return false;
@@ -617,6 +665,32 @@ namespace ZombieLand
 
 				foreach (var instr in list)
 					yield return instr;
+			}
+		}
+
+		// patch to remove log error "xxx pathing to destroyed thing (zombie)"
+		//
+		[HarmonyPatch(typeof(Pawn_PathFollower))]
+		[HarmonyPatch("StartPath")]
+		public static class Pawn_PathFollower_StartPath_Patch
+		{
+			static bool ThingDestroyedAndNotZombie(LocalTargetInfo info)
+			{
+				return info.ThingDestroyed && (info.Thing is Zombie) == false;
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var from = AccessTools.Method(typeof(LocalTargetInfo), "get_ThingDestroyed");
+				var to = AccessTools.Method(typeof(Pawn_PathFollower_StartPath_Patch), "ThingDestroyedAndNotZombie");
+
+				var insArray = instructions.ToArray();
+				var i = insArray.FirstIndexOf((ins) => ins.operand == from);
+				insArray[i - 1].opcode = OpCodes.Ldarg_1;
+				insArray[i].operand = to;
+
+				foreach (var ins in insArray)
+					yield return ins;
 			}
 		}
 
@@ -1359,7 +1433,7 @@ namespace ZombieLand
 
 			static int ModifyTicks(int ticks, Verb verb)
 			{
-				var zombie = verb.caster as Zombie;
+				var zombie = verb?.caster as Zombie;
 				if (zombie != null && zombie.raging > 0)
 				{
 					var grid = zombie.Map.GetGrid();
