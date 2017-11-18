@@ -41,9 +41,9 @@ namespace ZombieLand
 			var grid = map.GetGrid();
 			grid.IterateCellsQuick(cell => cell.zombieCount = 0);
 
-			var destinations = Traverse.Create(map.pawnDestinationManager).Field("reservedDestinations").GetValue<Dictionary<Faction, Dictionary<Pawn, IntVec3>>>();
+			var destinations = Traverse.Create(map.pawnDestinationReservationManager).Field("reservedDestinations").GetValue<Dictionary<Faction, PawnDestinationReservationManager.PawnDestinationSet>>();
 			var zombieFaction = Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies);
-			if (!destinations.ContainsKey(zombieFaction)) map.pawnDestinationManager.RegisterFaction(zombieFaction);
+			if (!destinations.ContainsKey(zombieFaction)) map.pawnDestinationReservationManager.RegisterFaction(zombieFaction);
 
 			if (ZombieSettings.Values.betterZombieAvoidance)
 			{
@@ -238,7 +238,7 @@ namespace ZombieLand
 							if (building_Door != null && !building_Door.CanPhysicallyPass(pawn)) return false;
 							return !PawnUtility.AnyPawnBlockingPathAt(vec, pawn, true, false);
 
-						}, delegate (IntVec3 vec)
+						}, delegate (IntVec3 vec, int traversalDist)
 						{
 							var distance = zombiesNearby.Select(zombie => (vec - zombie.Position).LengthHorizontalSquared).Sum();
 							if (distance > maxDistance)
@@ -246,13 +246,16 @@ namespace ZombieLand
 								maxDistance = distance;
 								safeDestination = vec;
 							}
+							return false;
 
-						}, false);
+						});
 
 						if (safeDestination.IsValid)
 						{
-							var newJob = new Job(JobDefOf.Goto, safeDestination);
-							newJob.playerForced = true;
+							var newJob = new Job(JobDefOf.Goto, safeDestination)
+							{
+								playerForced = true
+							};
 							pawn.jobs.StartJob(newJob, JobCondition.InterruptForced, null, false, true, null, null);
 						}
 					});

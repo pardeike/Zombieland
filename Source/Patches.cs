@@ -458,7 +458,8 @@ namespace ZombieLand
 		// alter game logic (for example when a caravan leaves an enemy base)
 		//
 		[HarmonyPatch(typeof(GenHostility))]
-		[HarmonyPatch("IsActiveThreat")]
+		[HarmonyPatch("IsActiveThreatTo")]
+		[HarmonyPatch(new Type[] { typeof(IAttackTarget), typeof(Faction) })]
 		static class GenHostility_IsActiveThreat_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -616,7 +617,7 @@ namespace ZombieLand
 		[HarmonyPatch("NeedNewPath")]
 		public static class Pawn_PathFollower_NeedNewPath_Patch
 		{
-			static MethodInfo m_get_LengthHorizontalSquared = AccessTools.Method(typeof(IntVec3), "get_LengthHorizontalSquared");
+			static MethodInfo m_ShouldCollideWithPawns = AccessTools.Method(typeof(PawnUtility), "ShouldCollideWithPawns");
 			static MethodInfo m_ZombieInPath = AccessTools.Method(typeof(Pawn_PathFollower_NeedNewPath_Patch), "ZombieInPath");
 			static FieldInfo f_pawn = AccessTools.Field(typeof(Pawn_PathFollower), "pawn");
 
@@ -640,11 +641,10 @@ namespace ZombieLand
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
 				var list = instructions.ToList();
-				var idx = list.FindLastIndex(code => code.opcode == OpCodes.Call && code.operand == m_get_LengthHorizontalSquared);
+				var idx = list.FirstIndexOf(code => code.opcode == OpCodes.Call && code.operand == m_ShouldCollideWithPawns) - 1;
 				if (idx > 0)
 				{
-					idx = list.FirstIndexOf(code => code.opcode == OpCodes.Ret && list.IndexOf(code) > idx) + 2;
-					if (idx > 2)
+					if (list[idx].opcode == OpCodes.Ldfld)
 					{
 						var jump = generator.DefineLabel();
 
@@ -658,10 +658,10 @@ namespace ZombieLand
 						list.Insert(idx++, new CodeInstruction(OpCodes.Ldarg_0) { labels = new List<Label>() { jump } }); // add the missing Ldarg_0 from original code here
 					}
 					else
-						Log.Error("Cannot find OpCode.Ret after last " + m_get_LengthHorizontalSquared + " in Pawn_PathFollower.NeedNewPath");
+						Log.Error("Cannot find Ldfld one instruction before " + m_ShouldCollideWithPawns + " in Pawn_PathFollower.NeedNewPath");
 				}
 				else
-					Log.Error("Cannot find " + m_get_LengthHorizontalSquared + " in Pawn_PathFollower.NeedNewPath");
+					Log.Error("Cannot find " + m_ShouldCollideWithPawns + " in Pawn_PathFollower.NeedNewPath");
 
 				foreach (var instr in list)
 					yield return instr;
@@ -1449,7 +1449,7 @@ namespace ZombieLand
 				foreach (var instruction in instructions)
 				{
 					yield return instruction;
-					if (instruction.opcode == OpCodes.Ldloc_2)
+					if (instruction.opcode == OpCodes.Ldloc_3)
 					{
 						yield return new CodeInstruction(OpCodes.Ldarg_0);
 						yield return new CodeInstruction(OpCodes.Call, m_ModifyTicks);
@@ -1469,6 +1469,29 @@ namespace ZombieLand
 			{
 				var zombie = thing as Zombie;
 				if (zombie == null) return true;
+
+				if (stat == StatDefOf.PainShockThreshold)
+				{
+					if (zombie.wasColonist || zombie.raging > 0)
+					{
+						__result = 1000f;
+						return false;
+					}
+					switch (zombie.story.bodyType)
+					{
+						case BodyType.Thin:
+							__result = 0.1f;
+							return false;
+						case BodyType.Hulk:
+							__result = 0.8f;
+							return false;
+						case BodyType.Fat:
+							__result = 0.2f;
+							return false;
+					}
+					__result = 0.8f;
+					return false;
+				}
 
 				if (stat == StatDefOf.MeleeHitChance)
 				{
@@ -1747,38 +1770,6 @@ namespace ZombieLand
 						n = -1;
 					}
 				}
-			}
-		}
-
-		// patch for variable zombie shock resistance
-		//
-		[HarmonyPatch(typeof(Pawn_HealthTracker))]
-		[HarmonyPatch("PainShockThreshold", PropertyMethod.Getter)]
-		static class Pawn_HealthTracker_PainShockThreshold_Patch
-		{
-			static float Replacement(ref Pawn pawn)
-			{
-				var zombie = pawn as Zombie;
-				if (zombie.wasColonist || zombie.raging > 0)
-					return 1000f;
-				switch (zombie.story.bodyType)
-				{
-					case BodyType.Thin:
-						return 0.1f;
-					case BodyType.Hulk:
-						return 0.8f;
-					case BodyType.Fat:
-						return 0.2f;
-				}
-				return 0.8f;
-			}
-
-			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
-			{
-				var conditions = Tools.NotZombieInstructions(generator, method);
-				var replacement = AccessTools.Method(MethodBase.GetCurrentMethod().DeclaringType, "Replacement");
-				var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method, replacement);
-				return transpiler(generator, instructions);
 			}
 		}
 
@@ -2149,7 +2140,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(Projectile))]
 		[HarmonyPatch("Launch")]
-		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(Thing) })]
+		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(Thing), typeof(Thing) })]
 		public static class Projectile_Launch_Patch
 		{
 			static void Postfix(Thing launcher, Vector3 origin, LocalTargetInfo targ)

@@ -119,5 +119,10 @@ namespace ZombieLand
 				defaultCompleteMode = ToilCompleteMode.Never
 			};
 		}
+
+		public override bool TryMakePreToilReservations()
+		{
+			return true;
+		}
 	}
 }

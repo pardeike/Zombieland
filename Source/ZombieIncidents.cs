@@ -226,7 +226,7 @@ namespace ZombieLand
 			}
 
 			var location = new GlobalTargetInfo(spot, map);
-			Find.LetterStack.ReceiveLetter(headline, text, LetterDefOf.BadUrgent, location);
+			Find.LetterStack.ReceiveLetter(headline, text, LetterDefOf.ThreatSmall, location);
 
 			if (Constants.USE_SOUND)
 				SoundDef.Named("ZombiesRising").PlayOneShotOnCamera(null);
