@@ -11,7 +11,7 @@ namespace ZombieLand
 	{
 		static Color infectionColor = Color.red.SaturationChanged(0.75f);
 
-		private HediffComp_Zombie_TendDuration tendDurationComp;
+		HediffComp_Zombie_TendDuration tendDurationComp;
 		public HediffComp_Zombie_TendDuration TendDuration
 		{
 			get
@@ -34,11 +34,11 @@ namespace ZombieLand
 
 					case InfectionState.BittenInfectable:
 						var ticksToStart = TendDuration.TicksBeforeStartOfInfection();
-						return "HoursBeforeBecomingInfected".Translate(new object[] { Tools.ToHourString(ticksToStart, false) });
+						return "HoursBeforeBecomingInfected".Translate(new object[] { ticksToStart.ToHourString(false) });
 
 					case InfectionState.Infecting:
 						var ticksToEnd = TendDuration.TicksBeforeEndOfInfection();
-						return "HoursBeforeBecomingAZombie".Translate(new object[] { Tools.ToHourString(ticksToEnd, false) });
+						return "HoursBeforeBecomingAZombie".Translate(new object[] { ticksToEnd.ToHourString(false) });
 				}
 				return base.LabelInBrackets;
 			}
@@ -75,8 +75,7 @@ namespace ZombieLand
 			var apparelToTransfer = new List<Apparel>();
 			pawn.apparel.WornApparelInDrawOrder.Do(apparel =>
 			{
-				Apparel newApparel;
-				if (pawn.apparel.TryDrop(apparel, out newApparel))
+				if (pawn.apparel.TryDrop(apparel, out Apparel newApparel))
 					apparelToTransfer.Add(newApparel);
 			});
 
@@ -156,7 +155,7 @@ namespace ZombieLand
 				base.Tick();
 		}
 
-		private bool InfectionLocked()
+		bool InfectionLocked()
 		{
 			return TendDuration != null && TendDuration.GetInfectionState() == InfectionState.Infecting;
 		}

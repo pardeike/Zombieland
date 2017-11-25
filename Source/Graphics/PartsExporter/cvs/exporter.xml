@@ -1,0 +1,21 @@
+<exporter version="1.0">
+    <name>cvs</name>
+    <displayName>CVS</displayName>
+    <description>Simple comma separated values</description>
+	 <version>1.0</version>
+    <files>
+		 <file>
+			 <name>datafile</name>
+			 <displayName>MyDataFile</displayName>
+			 <fileExtension>cvs</fileExtension>
+			 <description>CVS exporter for TexturePacker</description>
+			 <template>template.txt</template>
+			 <optional>false</optional>
+			 <hasSeparateAutoSDFiles>all</hasSeparateAutoSDFiles>
+			 <hasSeparateMultiPackFiles>true</hasSeparateMultiPackFiles>
+		 </file>
+	 </files>
+	 <supportsTrimming>false</supportsTrimming>
+	 <supportsRotation>false</supportsRotation>
+	 <supportsNPOT>true</supportsNPOT>
+</exporter>

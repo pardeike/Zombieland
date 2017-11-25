@@ -11,26 +11,26 @@ namespace ZombieLand
 {
 	public class MapInfo
 	{
-		private readonly byte[][] vecGrids;
-		private int publicIndex = 0;
-		private int privateIndex = 1;
+		readonly byte[][] vecGrids;
+		int publicIndex;
+		int privateIndex = 1;
 
-		private readonly int mapSize;
-		private readonly int mapSizeX;
-		private readonly int mapSizeZ;
-		private readonly PathGrid pathGrid;
-		private readonly EdificeGrid edificeGrid;
-		private readonly TerrainGrid terrainGrid;
-		private readonly PheromoneGrid pheromoneGrid;
+		readonly int mapSize;
+		readonly int mapSizeX;
+		readonly int mapSizeZ;
+		readonly PathGrid pathGrid;
+		readonly EdificeGrid edificeGrid;
+		readonly TerrainGrid terrainGrid;
+		readonly PheromoneGrid pheromoneGrid;
 
-		private Queue<IntVec3> openCellSet;
-		private Queue<IntVec3> openDoorSet;
-		private bool dirtyCells = true;
+		readonly Queue<IntVec3> openCellSet;
+		readonly Queue<IntVec3> openDoorSet;
+		bool dirtyCells = true;
 
-		private static readonly Random random = new Random();
-		private static readonly int[] adjIndex = { 0, 1, 2, 3, 4, 5, 6, 7 };
-		private static readonly byte endpoint = 255;
-		private static int prevIndex;
+		static readonly Random random = new Random();
+		static readonly int[] adjIndex = { 0, 1, 2, 3, 4, 5, 6, 7 };
+		static readonly byte endpoint = 255;
+		static int prevIndex;
 
 		public MapInfo(Map map)
 		{
@@ -56,17 +56,17 @@ namespace ZombieLand
 			return true;
 		}
 
-		private byte GetDirect(IntVec3 pos)
+		byte GetDirect(IntVec3 pos)
 		{
 			return vecGrids[privateIndex][pos.x + pos.z * mapSizeX];
 		}
 
-		private void SetDirect(IntVec3 pos, byte val)
+		void SetDirect(IntVec3 pos, byte val)
 		{
 			vecGrids[privateIndex][pos.x + pos.z * mapSizeX] = val;
 		}
 
-		private void Set(IntVec3 pos, IntVec3 parent)
+		void Set(IntVec3 pos, IntVec3 parent)
 		{
 			var d = pos - parent;
 			var dx = 2 + Math.Sign(d.x);
@@ -88,7 +88,7 @@ namespace ZombieLand
 			return pos - new IntVec3(dx, 0, dz);
 		}
 
-		private void ClearCells()
+		void ClearCells()
 		{
 			var a = vecGrids[privateIndex];
 			Array.Clear(a, 0, a.Length);
@@ -106,7 +106,7 @@ namespace ZombieLand
 				yield return basePos + GenAdj.AdjacentCells[adjIndex[i]];
 		}
 
-		private bool ValidFloodCell(IntVec3 cell, IntVec3 from)
+		bool ValidFloodCell(IntVec3 cell, IntVec3 from)
 		{
 			if (cell.x < 0 || cell.x >= mapSizeX || cell.z < 0 || cell.z >= mapSizeZ) return false;
 			if (GetDirect(cell) != 0) return false;
@@ -172,8 +172,7 @@ namespace ZombieLand
 			{
 				SetDirect(c, endpoint);
 
-				var door = edificeGrid[c] as Building_Door;
-				if (door != null)
+				if (edificeGrid[c] is Building_Door door)
 					openDoorSet.Enqueue(c);
 				else
 					openCellSet.Enqueue(c);
@@ -186,8 +185,7 @@ namespace ZombieLand
 				{
 					Set(child, parent);
 
-					var door = edificeGrid[child] as Building_Door;
-					if (door != null)
+					if (edificeGrid[child] is Building_Door door)
 						openDoorSet.Enqueue(child);
 					else
 						openCellSet.Enqueue(child);
@@ -213,7 +211,7 @@ namespace ZombieLand
 		const int halfCellSize = (int)(cellSize / 2f + 0.9f);
 		Thread workerThread;
 
-		private struct PawnProps
+		struct PawnProps
 		{
 			public bool valid;
 			public IntVec3 position;
@@ -259,6 +257,7 @@ namespace ZombieLand
 								var pawnArray = new Pawn[0];
 								for (var i = 0; i < 3; i++)
 								{
+#pragma warning disable RECS0022
 									try
 									{
 										pawnArray = mapPawns.ToArray();
@@ -267,13 +266,14 @@ namespace ZombieLand
 									catch
 									{
 									}
+#pragma warning restore RECS0022
 								}
 								var colonistPositions = pawnArray
 									.Select(pawn => new PawnProps(pawn))
 									.Where(props => props.valid)
 									.Select(props => props.position)
 									.ToArray();
-								if (colonistPositions.Count() > 0)
+								if (colonistPositions.Any())
 								{
 									info.Recalculate(colonistPositions);
 									wait = false;
@@ -298,8 +298,7 @@ namespace ZombieLand
 
 		public MapInfo GetMapInfo(Map map)
 		{
-			MapInfo result;
-			if (grids.TryGetValue(map, out result) == false)
+			if (grids.TryGetValue(map, out MapInfo result) == false)
 			{
 				result = new MapInfo(map);
 				grids[map] = result;

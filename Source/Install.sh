@@ -21,5 +21,5 @@ fi
 mkdir -p "$TARGET_DIR"
 for folder in "${FOLDERS_TO_COPY[@]}"
 do
-	cp -R "${SOLUTION_DIR}${folder}" "${TARGET_DIR}${folder}"
+	cp -R "${SOLUTION_DIR}${folder}" "${TARGET_DIR}"
 done

@@ -15,8 +15,8 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	class Explosion
 	{
-		Map map;
-		IntVec3 pos;
+		readonly Map map;
+		readonly IntVec3 pos;
 
 		public Explosion(Map map, IntVec3 pos)
 		{

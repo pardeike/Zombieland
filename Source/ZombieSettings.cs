@@ -50,7 +50,7 @@ namespace ZombieLand
 		public SmashMode smashMode = SmashMode.DoorsOnly;
 		public bool smashOnlyWhenAgitated = true;
 		public bool doubleTapRequired = true;
-		public bool zombiesDieVeryEasily = false;
+		public bool zombiesDieVeryEasily;
 		public int daysBeforeZombiesCome = 3;
 		public int maximumNumberOfZombies = 500;
 		public int baseNumberOfZombiesinEvent = 20;
@@ -60,14 +60,14 @@ namespace ZombieLand
 		public float damageFactor = 1.0f;
 		public ZombieInstinct zombieInstinct = ZombieInstinct.Normal;
 		public bool useCustomTextures = true;
-		public bool zombiesTriggerDangerMusic = false;
+		public bool zombiesTriggerDangerMusic;
 		public bool zombiesEatDowned = true;
 		public bool zombiesEatCorpses = true;
 		public float zombieBiteInfectionChance = 0.5f;
 		public int hoursInfectionIsUnknown = 8;
 		public int hoursInfectionIsTreatable = 24;
 		public int hoursInfectionPersists = 6 * 24;
-		public bool anyTreatmentStopsInfection = false;
+		public bool anyTreatmentStopsInfection;
 		public bool betterZombieAvoidance = true;
 		public bool ragingZombies = true;
 		public bool replaceTwinkie = true;

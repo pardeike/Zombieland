@@ -155,7 +155,7 @@ namespace ZombieLand
 			if (addGap) list.Gap(2 * list.verticalSpacing);
 		}
 
-		public static bool Dialog_RadioButton(this Listing_Standard list, bool active, string desc, float tabIn = 0f)
+		public static bool Dialog_RadioButton(this Listing_Standard list, bool active, string desc)
 		{
 			var label = desc.Translate();
 			var indent = 24 + "_".GetWidthCached();

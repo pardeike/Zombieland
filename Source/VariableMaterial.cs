@@ -6,10 +6,10 @@ namespace ZombieLand
 	public class VariableMaterial : IDisposable
 	{
 		DisposableMaterial material;
-		MaterialRequest req;
+		readonly MaterialRequest req;
 		ColorData data;
 
-		private bool disposed;
+		bool disposed;
 
 		public VariableMaterial(MaterialRequest req, ColorData data)
 		{
@@ -22,7 +22,9 @@ namespace ZombieLand
 			Dispose(true);
 		}
 
-		private void Dispose(bool v)
+#pragma warning disable RECS0154
+		void Dispose(bool v)
+#pragma warning restore RECS0154
 		{
 			if (!disposed)
 			{

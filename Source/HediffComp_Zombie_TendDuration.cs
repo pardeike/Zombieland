@@ -27,9 +27,9 @@ namespace ZombieLand
 
 	public class HediffComp_Zombie_TendDuration : HediffComp_TendDuration
 	{
-		private bool firstTimeVisible = true;
+		bool firstTimeVisible = true;
 
-		private HediffComp_Zombie_Infecter _zombieInfector = null;
+		HediffComp_Zombie_Infecter _zombieInfector;
 		public HediffComp_Zombie_Infecter ZombieInfector
 		{
 			get

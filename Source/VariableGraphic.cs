@@ -7,8 +7,8 @@ namespace ZombieLand
 {
 	public class VariableGraphic : Graphic, IDisposable
 	{
-		private VariableMaterial[] mats = new VariableMaterial[3];
-		private int hash;
+		VariableMaterial[] mats = new VariableMaterial[3];
+		int hash;
 
 		public string GraphicPath => path;
 		public override Material MatSingle => mats[2].GetMaterial;
@@ -66,7 +66,9 @@ namespace ZombieLand
 			Dispose(true);
 		}
 
-		private void Dispose(bool v)
+#pragma warning disable RECS0154
+		void Dispose(bool v)
+#pragma warning restore RECS0154
 		{
 			if (mats != null)
 			{
@@ -97,7 +99,9 @@ namespace ZombieLand
 
 		public override int GetHashCode()
 		{
+#pragma warning disable RECS0025
 			return hash;
+#pragma warning restore RECS0025
 		}
 	}
 }

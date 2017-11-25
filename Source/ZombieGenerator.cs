@@ -27,8 +27,7 @@ namespace ZombieLand
 
 		public ConcurrentQueue<ZombieRequest> QueueForMap(Map map)
 		{
-			ConcurrentQueue<ZombieRequest> queue;
-			if (resultQueues.TryGetValue(map, out queue) == false)
+			if (resultQueues.TryGetValue(map, out ConcurrentQueue<ZombieRequest> queue) == false)
 			{
 				queue = new ConcurrentQueue<ZombieRequest>(true);
 				resultQueues.Add(map, queue);

@@ -16,10 +16,10 @@ namespace ZombieLand
 {
 	class Measure
 	{
-		Stopwatch sw;
+		readonly Stopwatch sw;
 		string text;
-		long prevTime = 0;
-		int counter = 0;
+		long prevTime;
+		int counter;
 
 		public Measure(string text)
 		{
@@ -69,7 +69,7 @@ namespace ZombieLand
 			{
 				def.label = "Twinkie";
 				def.description = "A Twinkie is an American snack cake, marketed as a \"Golden Sponge Cake with Creamy Filling\".";
-				cachedGraphic.SetValue(GraphicsDatabase.TwinkieGraphic);
+				cachedGraphic.SetValue(GraphicsDatabase.twinkieGraphic);
 			}
 			else
 			{
@@ -113,8 +113,7 @@ namespace ZombieLand
 		static Dictionary<Map, PheromoneGrid> gridCache = new Dictionary<Map, PheromoneGrid>();
 		public static PheromoneGrid GetGrid(this Map map)
 		{
-			PheromoneGrid grid;
-			if (gridCache.TryGetValue(map, out grid))
+			if (gridCache.TryGetValue(map, out PheromoneGrid grid))
 				return grid;
 
 			grid = map.GetComponent<PheromoneGrid>();
@@ -164,7 +163,7 @@ namespace ZombieLand
 			return val;
 		}
 
-		private static System.Random rng = new System.Random();
+		static System.Random rng = new System.Random();
 		public static void Shuffle<T>(this IList<T> list)
 		{
 			var n = list.Count;
@@ -201,19 +200,19 @@ namespace ZombieLand
 			}
 		}
 
-		// TODO: implement
+		// implement
 		public static bool DoesRepellZombies(this Def def)
 		{
 			return def.defName.StartsWith("ZL_REPELL", StringComparison.Ordinal);
 		}
 
-		// TODO: implement
+		// implement
 		public static bool DoesAttractZombies(this Def def)
 		{
 			return def.defName.StartsWith("ZL_ATTRACT", StringComparison.Ordinal);
 		}
 
-		// TODO: implement
+		// implement
 		public static bool DoesKillZombies(this Def def)
 		{
 			return def.defName.StartsWith("ZL_KILL", StringComparison.Ordinal);
@@ -240,8 +239,7 @@ namespace ZombieLand
 			var map = pawn.Map;
 			var size = map.info.Size;
 			if (dest.x < 0 || dest.x >= size.x || dest.z < 0 || dest.z >= size.z) return false;
-			var door = map.edificeGrid[dest] as Building_Door;
-			if (door != null && door.Open == false) return false;
+			if (map.edificeGrid[dest] is Building_Door door && door.Open == false) return false;
 			var idx = map.cellIndices.CellToIndex(dest);
 			if (map.pathGrid.pathGrid[idx] >= 10000) return false;
 			return true;
@@ -367,10 +365,10 @@ namespace ZombieLand
 			});
 		}
 
-		private static void RemoveZombielandFromFilter(ThingFilter filter)
+		static void RemoveZombielandFromFilter(ThingFilter filter)
 		{
 			if (filter == null) return;
-			var defs = filter.AllowedThingDefs.Where(def => def.defName.StartsWith("Zombie_")).ToList();
+			var defs = filter.AllowedThingDefs.Where(def => def.defName.StartsWith("Zombie_", StringComparison.Ordinal)).ToList();
 			foreach (var def in defs)
 				filter.SetAllow(def, false);
 		}
@@ -385,17 +383,18 @@ namespace ZombieLand
 			{
 				// destroy any of our things (even implied like corpse and meat)
 				var allThings = map.listerThings.AllThings.Where(thing => thing.GetType().Namespace == zlNamespace);
-				allThings.Union(map.listerThings.AllThings.Where(thing => thing.def.defName.StartsWith("Zombie_")));
+				allThings.Union(map.listerThings.AllThings.Where(thing => thing.def.defName.StartsWith("Zombie_", StringComparison.Ordinal)));
 				allThings.ToList().Do(thing => thing.Destroy(DestroyMode.Vanish));
 
 				// remove any defs in filters of stockpiles
-				map.zoneManager.AllZones.OfType<Zone_Stockpile>().Select(pile => pile?.settings?.filter).ToList()
-					.Do(filter => RemoveZombielandFromFilter(filter));
+				map.zoneManager.AllZones.OfType<Zone_Stockpile>()
+				   .Select(pile => pile?.settings?.filter).ToList()
+					.Do(RemoveZombielandFromFilter);
 
 				// remove any defs in work tables
 				map.listerThings.AllThings.OfType<Building_WorkTable>().SelectMany(table => table?.billStack?.Bills ?? new List<Bill>())
 					.Select(bill => bill?.ingredientFilter).ToList()
-					.Do(filter => RemoveZombielandFromFilter(filter));
+					.Do(RemoveZombielandFromFilter);
 
 				// remove any of our map components
 				map.components.RemoveAll(component => component.GetType().Namespace == zlNamespace);
@@ -436,7 +435,7 @@ namespace ZombieLand
 			return string.Format("{0:0.0}h", Math.Floor(10f * t / GenDate.TicksPerHour) / 10f);
 		}
 
-		static int combatExtendedIsInstalled = 0;
+		static int combatExtendedIsInstalled;
 		public static bool IsCombatExtendedInstalled()
 		{
 			if (combatExtendedIsInstalled == 0)
@@ -447,9 +446,7 @@ namespace ZombieLand
 		public static int ColonyPoints()
 		{
 			var colonists = Find.VisibleMap.mapPawns.FreeColonists;
-			float colonistPoints;
-			float armouryPoints;
-			ColonyEvaluation.GetColonistArmouryPoints(colonists, Find.VisibleMap, out colonistPoints, out armouryPoints);
+			ColonyEvaluation.GetColonistArmouryPoints(colonists, Find.VisibleMap, out float colonistPoints, out float armouryPoints);
 			return (int)(colonistPoints + armouryPoints);
 		}
 
@@ -479,14 +476,14 @@ namespace ZombieLand
 		public static Texture2D GetMenuIcon()
 		{
 			if (MenuIcon == null)
-				MenuIcon = GraphicsDatabase.LoadTexture("PatreonIcon", 60, 45);
+				MenuIcon = GraphicsDatabase.GetTexture("PatreonIcon");
 			return MenuIcon;
 		}
 
 		public static Texture2D GetZombieButtonBackground()
 		{
 			if (ZombieButtonBackground == null)
-				ZombieButtonBackground = GraphicsDatabase.LoadTexture("ZombieButtonBackground", 170, 45);
+				ZombieButtonBackground = GraphicsDatabase.GetTexture("ZombieButtonBackground");
 			return ZombieButtonBackground;
 		}
 
@@ -603,7 +600,7 @@ namespace ZombieLand
 					break;
 				}
 			if (parameterIndex == -1)
-				throw new ArgumentException("Cannot find parameter named " + parameterName, "parameterName");
+				throw new ArgumentException("Cannot find parameter named " + parameterName, nameof(parameterName));
 
 			var skipReplacement = generator.DefineLabel();
 			return new List<CodeInstruction>

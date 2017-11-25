@@ -569,8 +569,8 @@ namespace ZombieLand
 			public static MethodInfo zombieCostMethod = AccessTools.Method(typeof(PathFinder_FindPath_Patch), "GetZombieCosts");
 			static Dictionary<Map, TickManager> tickManagerCache = new Dictionary<Map, TickManager>();
 
-			// TODO: infected colonists will still path so exclude them from this check
-			//       by returning 0 - currently disabled because it does cost too much
+			// infected colonists will still path so exclude them from this check
+			// by returning 0 - currently disabled because it does cost too much
 			static int GetZombieCosts(Map map, int idx)
 			{
 				if (ZombieSettings.Values.betterZombieAvoidance == false) return 0;
@@ -2160,7 +2160,7 @@ namespace ZombieLand
 				Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
 			}
 
-			private static float GetDistanceTraveled(float velocity, float angle, float shotHeight)
+			static float GetDistanceTraveled(float velocity, float angle, float shotHeight)
 			{
 				if (shotHeight < 0.001f)
 					return (Mathf.Pow(velocity, 2f) / 9.8f) * Mathf.Sin(2f * angle);

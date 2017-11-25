@@ -5,7 +5,7 @@ namespace ZombieLand
 {
 	public class DisposableMaterial : Material, IDisposable
 	{
-		private bool disposed = false;
+		bool disposed;
 
 		public DisposableMaterial(Shader shader) : base(shader)
 		{

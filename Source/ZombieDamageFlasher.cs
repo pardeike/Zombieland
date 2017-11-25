@@ -19,7 +19,7 @@ namespace ZombieLand
 		{
 			var from = AccessTools.Constructor(typeof(DamageFlasher), new Type[] { typeof(Pawn) });
 			var to = AccessTools.Constructor(typeof(ZombieDamageFlasher), new Type[] { typeof(Pawn) });
-			return Transpilers.MethodReplacer(instructions, from, to);
+			return instructions.MethodReplacer(from, to);
 		}
 	}
 
@@ -30,8 +30,7 @@ namespace ZombieLand
 		[HarmonyPriority(Priority.First)]
 		static void Prefix(DamageFlasher __instance, DamageInfo dinfo)
 		{
-			var zombieDamageFlasher = __instance as ZombieDamageFlasher;
-			if (zombieDamageFlasher != null)
+			if (__instance is ZombieDamageFlasher zombieDamageFlasher)
 				zombieDamageFlasher.dinfoDef = dinfo.Def;
 		}
 	}
@@ -40,13 +39,12 @@ namespace ZombieLand
 	[HarmonyPatch("GetDamagedMat")]
 	static class DamageFlasher_GetDamagedMat_Patch
 	{
-		static Color greenDamagedMatStartingColor = new Color(0f, 0.8f, 0f);
+		static readonly Color greenDamagedMatStartingColor = new Color(0f, 0.8f, 0f);
 
 		[HarmonyPriority(Priority.Last)]
 		static void Postfix(DamageFlasher __instance, Material baseMat, Material __result)
 		{
-			var zombieDamageFlasher = __instance as ZombieDamageFlasher;
-			if (zombieDamageFlasher != null && zombieDamageFlasher.isColonist
+			if (__instance is ZombieDamageFlasher zombieDamageFlasher && zombieDamageFlasher.isColonist
 				&& zombieDamageFlasher.dinfoDef == ZombieDamageFlasher.zombieBiteDamageDef
 				&& __result != null)
 			{

@@ -18,7 +18,7 @@ namespace ZombieLand
 		static readonly int[] adjIndex8 = { 0, 1, 2, 3, 4, 5, 6, 7 };
 		static int prevIndex8;
 
-		static readonly float combatExtendedHealAmount = 1f / GenTicks.SecondsToTicks(1f);
+		static readonly float combatExtendedHealAmount = 1f / 1f.SecondsToTicks();
 
 		// make zombies die if necessary ============================================================
 		//
@@ -37,7 +37,9 @@ namespace ZombieLand
 				return true;
 			}
 
+#pragma warning disable RECS0018
 			if (zombie.bombTickingInterval != -1f)
+#pragma warning restore RECS0018
 			{
 				if (zombie.bombWillGoOff && zombie.EveryNTick(NthTick.Every10))
 					zombie.bombTickingInterval -= 2f;
@@ -73,7 +75,7 @@ namespace ZombieLand
 
 		// handle downed zombies ====================================================================
 		//
-		public static bool Downed(this JobDriver_Stumble driver, Zombie zombie)
+		public static bool Downed(Zombie zombie)
 		{
 			if (zombie.Downed == false)
 				return false;
@@ -118,7 +120,7 @@ namespace ZombieLand
 		//
 		public static bool ValidDestination(this JobDriver_Stumble driver, Zombie zombie)
 		{
-			// TODO find out if we still need to check for 0,0 as being an invalid location
+			// find out if we still need to check for 0,0 as being an invalid location
 			if (driver.destination.x == 0 && driver.destination.z == 0)
 				driver.destination = IntVec3.Invalid;
 			return zombie.HasValidDestination(driver.destination);
@@ -169,8 +171,7 @@ namespace ZombieLand
 			}
 			else
 			{
-				var zombieLeaner = zombie.Drawer.leaner as ZombieLeaner;
-				if (zombieLeaner != null)
+				if (zombie.Drawer.leaner is ZombieLeaner zombieLeaner)
 					zombieLeaner.extraOffset = Vector3.zero;
 			}
 
@@ -185,8 +186,7 @@ namespace ZombieLand
 				{
 					driver.lastEatTarget = eatTargetPawn;
 					zombie.rotationTracker.FaceCell(driver.eatTarget.Position);
-					var zombieLeaner = zombie.Drawer.leaner as ZombieLeaner;
-					if (zombieLeaner != null)
+					if (zombie.Drawer.leaner is ZombieLeaner zombieLeaner)
 					{
 						var offset = (driver.eatTarget.Position.ToVector3() - zombie.Position.ToVector3()) * 0.5f;
 						if (offset.magnitude < 1f)
@@ -363,8 +363,7 @@ namespace ZombieLand
 			}
 
 			// next move is on a door
-			var door = newPos.GetEdifice(zombie.Map) as Building_Door;
-			if (door != null)
+			if (newPos.GetEdifice(zombie.Map) is Building_Door door)
 			{
 				if (door.Open)
 				{
@@ -454,13 +453,13 @@ namespace ZombieLand
 
 		// check for tight groups of zombies ========================================================
 		//
-		public static void BeginRage(this JobDriver_Stumble driver, Zombie zombie, PheromoneGrid grid)
+		public static void BeginRage(Zombie zombie, PheromoneGrid grid)
 		{
 			if (zombie.raging == 0 && ZombieSettings.Values.ragingZombies)
 			{
-				var count = CountSurroundingZombies(zombie.Position, zombie.Map, grid);
+				var count = CountSurroundingZombies(zombie.Position, grid);
 				if (count > Constants.SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE)
-					StartRage(zombie, count);
+					StartRage(zombie);
 				return;
 			}
 
@@ -482,15 +481,13 @@ namespace ZombieLand
 				{
 					var twc = enumerator.Current;
 
-					var p = twc as Pawn;
-					if (p != null && ZombieSettings.Values.zombiesEatDowned)
+					if (twc is Pawn p && ZombieSettings.Values.zombiesEatDowned)
 					{
 						if (p.Spawned && p.RaceProps.IsFlesh && (p.Downed || p.Dead))
 							return p;
 					}
 
-					var c = twc as Corpse;
-					if (c != null && ZombieSettings.Values.zombiesEatCorpses)
+					if (twc is Corpse c && ZombieSettings.Values.zombiesEatCorpses)
 					{
 						if (c.Spawned && c.InnerPawn != null && c.InnerPawn.RaceProps.IsFlesh)
 							return c;
@@ -542,7 +539,9 @@ namespace ZombieLand
 			if (zombie.EveryNTick(NthTick.Every15) == false)
 				return null;
 
+#pragma warning disable RECS0018
 			var isSuicideBomber = zombie.bombTickingInterval != -1f;
+#pragma warning restore RECS0018
 			if (isSuicideBomber == false)
 			{
 				if (ZombieSettings.Values.smashMode == SmashMode.Nothing) return null;
@@ -568,8 +567,7 @@ namespace ZombieLand
 					if (pos.InBounds(map) == false)
 						continue;
 
-					var door = pos.GetEdifice(map) as Building_Door;
-					if (door != null && door.Open == false && (attackColonistsOnly == false || door.Faction == playerFaction))
+					if (pos.GetEdifice(map) is Building_Door door && door.Open == false && (attackColonistsOnly == false || door.Faction == playerFaction))
 						return door;
 				}
 			}
@@ -677,8 +675,7 @@ namespace ZombieLand
 				var enumerator = grid.ThingsAt(pos).GetEnumerator();
 				while (enumerator.MoveNext())
 				{
-					var t = enumerator.Current as T;
-					if (t != null && (t is Zombie) == false && (t is ZombieCorpse) == false)
+					if (enumerator.Current is T t && (t is Zombie) == false && (t is ZombieCorpse) == false)
 						yield return t;
 				}
 			}
@@ -696,13 +693,13 @@ namespace ZombieLand
 			zombie.jobs.StartJob(job, JobCondition.Succeeded, null, true, false, null, null);
 		}
 
-		static int CountSurroundingZombies(IntVec3 pos, Map map, PheromoneGrid grid)
+		static int CountSurroundingZombies(IntVec3 pos, PheromoneGrid grid)
 		{
 			return GenAdj.AdjacentCellsAndInside.Select(vec => pos + vec)
 				.Select(c => grid.GetZombieCount(c)).Sum();
 		}
 
-		static void StartRage(Zombie zombie, int count)
+		static void StartRage(Zombie zombie)
 		{
 			zombie.raging = GenTicks.TicksAbs + (int)(GenDate.TicksPerHour * Rand.Range(1f, 8f));
 			Tools.CastThoughtBubble(zombie, Constants.RAGING);

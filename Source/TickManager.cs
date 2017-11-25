@@ -21,8 +21,8 @@ namespace ZombieLand
 		public int currentColonyPoints;
 
 		public List<Zombie> allZombiesCached;
-		public AvoidGrid avoidGrid = null;
-		public AvoidGrid emptyAvoidGrid = null;
+		public AvoidGrid avoidGrid;
+		public AvoidGrid emptyAvoidGrid;
 
 		public List<IntVec3> explosions = new List<IntVec3>();
 
@@ -120,7 +120,9 @@ namespace ZombieLand
 
 		public void ZombieTicking()
 		{
+#pragma warning disable RECS0018
 			if (Find.TickManager.TickRateMultiplier == 0f) return;
+#pragma warning restore RECS0018
 			var zombies = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false).ToList();
 
 			for (var i = 0; i < 2; i++)
@@ -142,7 +144,7 @@ namespace ZombieLand
 					return;
 				}
 
-				// TODO: if zombie cannot spawn at location, we are wasting it here.
+				// if zombie cannot spawn at location, we are wasting it here.
 				// to solve this, we need to find a better location and only if we find
 				// none, we can discard it
 				//
@@ -180,7 +182,7 @@ namespace ZombieLand
 			Tools.avoider.UpdateZombiePositions(map, specs);
 		}
 
-		private void HandleIncidents()
+		void HandleIncidents()
 		{
 			if (incidentTickCounter++ < GenDate.TicksPerHour) return;
 			incidentTickCounter = 0;
@@ -193,12 +195,12 @@ namespace ZombieLand
 				if (success == false)
 				{
 					Log.Warning("Incident creation failed. Most likely no valid spawn point found.");
-					// TODO incident failed, so mark it for new executing asap
+					// incident failed, so mark it for new executing asap
 				}
 			}
 		}
 
-		private bool RepositionCondition(Pawn pawn)
+		bool RepositionCondition(Pawn pawn)
 		{
 			return pawn.Spawned &&
 				pawn.Downed == false &&
@@ -210,7 +212,7 @@ namespace ZombieLand
 				(pawn.CurJob == null || (pawn.CurJob.def != JobDefOf.Goto && pawn.CurJob.playerForced == false));
 		}
 
-		private void RepositionColonists()
+		void RepositionColonists()
 		{
 			var checkInterval = 15;
 			var radius = 7f;
@@ -234,11 +236,10 @@ namespace ZombieLand
 							if (!vec.Walkable(map)) return false;
 							if ((float)vec.DistanceToSquared(pos) > radiusSquared) return false;
 							if (map.thingGrid.ThingAt<Zombie>(vec) != null) return false;
-							var building_Door = vec.GetEdifice(map) as Building_Door;
-							if (building_Door != null && !building_Door.CanPhysicallyPass(pawn)) return false;
+							if (vec.GetEdifice(map) is Building_Door building_Door && !building_Door.CanPhysicallyPass(pawn)) return false;
 							return !PawnUtility.AnyPawnBlockingPathAt(vec, pawn, true, false);
 
-						}, delegate (IntVec3 vec, int traversalDist)
+						}, delegate (IntVec3 vec)
 						{
 							var distance = zombiesNearby.Select(zombie => (vec - zombie.Position).LengthHorizontalSquared).Sum();
 							if (distance > maxDistance)
@@ -261,7 +262,7 @@ namespace ZombieLand
 					});
 		}
 
-		private void FetchAvoidGrid()
+		void FetchAvoidGrid()
 		{
 			if (ZombieSettings.Values.betterZombieAvoidance == false)
 			{
@@ -289,7 +290,7 @@ namespace ZombieLand
 
 		public int ZombieCount()
 		{
-			return allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false).Count();
+			return allZombiesCached.Count(zombie => zombie.Spawned && zombie.Dead == false);
 		}
 
 		public void IncreaseZombiePopulation()
@@ -314,8 +315,7 @@ namespace ZombieLand
 							}
 						case SpawnHowType.FromTheEdges:
 							{
-								IntVec3 cell;
-								if (CellFinder.TryFindRandomEdgeCellWith(Tools.ZombieSpawnLocator(map), map, CellFinder.EdgeRoadChance_Neutral, out cell))
+								if (CellFinder.TryFindRandomEdgeCellWith(Tools.ZombieSpawnLocator(map), map, CellFinder.EdgeRoadChance_Neutral, out IntVec3 cell))
 									Tools.generator.SpawnZombieAt(map, cell, false);
 								return;
 							}

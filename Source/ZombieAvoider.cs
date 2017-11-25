@@ -15,9 +15,9 @@ namespace ZombieLand
 
 	public class AvoidGrid
 	{
-		private int[][] costGrids;
-		private int idx;
-		private int mapSize;
+		readonly int[][] costGrids;
+		int idx;
+		readonly int mapSize;
 		public FloodFiller filler;
 
 		public AvoidGrid(Map map)
@@ -59,14 +59,13 @@ namespace ZombieLand
 	{
 		ConcurrentQueue<AvoidRequest> requestQueue;
 		Dictionary<Map, ConcurrentQueue<AvoidGrid>> resultQueues;
-		Dictionary<Map, AvoidGrid> grids;
+		readonly Dictionary<Map, AvoidGrid> grids;
 
 		Thread workerThread;
 
-		private ConcurrentQueue<AvoidGrid> QueueForMap(Map map)
+		ConcurrentQueue<AvoidGrid> QueueForMap(Map map)
 		{
-			ConcurrentQueue<AvoidGrid> queue;
-			if (resultQueues.TryGetValue(map, out queue) == false)
+			if (resultQueues.TryGetValue(map, out ConcurrentQueue<AvoidGrid> queue) == false)
 			{
 				queue = new ConcurrentQueue<AvoidGrid>(true);
 				resultQueues.Add(map, queue);
@@ -82,7 +81,7 @@ namespace ZombieLand
 
 			workerThread = new Thread(() =>
 			{
-				EndlessLoop:
+			EndlessLoop:
 
 				try
 				{
@@ -99,9 +98,10 @@ namespace ZombieLand
 				}
 
 				goto EndlessLoop;
-			});
-
-			workerThread.Priority = ThreadPriority.Lowest;
+			})
+			{
+				Priority = ThreadPriority.Lowest
+			};
 			workerThread.Start();
 		}
 
@@ -122,7 +122,7 @@ namespace ZombieLand
 			return queue.Dequeue();
 		}
 
-		private void GenerateCells(Map map, List<ZombieCostSpecs> specs, int[] costCells, FloodFiller filler)
+		void GenerateCells(Map map, List<ZombieCostSpecs> specs, int[] costCells, FloodFiller filler)
 		{
 			var mapSizeX = map.Size.x;
 			var pathGrid = map.pathGrid;
@@ -163,7 +163,7 @@ namespace ZombieLand
 			}
 		}
 
-		private AvoidGrid ProcessRequest(AvoidRequest request)
+		AvoidGrid ProcessRequest(AvoidRequest request)
 		{
 			var avoidGrid = GetAvoidGrid(request.map);
 			GenerateCells(request.map, request.specs, avoidGrid.GetNewCosts(), avoidGrid.filler);
@@ -171,10 +171,9 @@ namespace ZombieLand
 			return avoidGrid;
 		}
 
-		private AvoidGrid GetAvoidGrid(Map map)
+		AvoidGrid GetAvoidGrid(Map map)
 		{
-			AvoidGrid result;
-			if (grids.TryGetValue(map, out result) == false)
+			if (grids.TryGetValue(map, out AvoidGrid result) == false)
 			{
 				result = new AvoidGrid(map);
 				grids[map] = result;

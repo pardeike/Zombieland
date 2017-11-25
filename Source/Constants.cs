@@ -38,8 +38,7 @@ namespace ZombieLand
 							{
 								case "Boolean":
 									{
-										bool result;
-										if (bool.TryParse(value, out result))
+										if (bool.TryParse(value, out bool result))
 											constant.SetValue(null, result);
 										else
 											Log.Error("Cannot parse boolean '" + value + "' of constant " + field);
@@ -47,8 +46,7 @@ namespace ZombieLand
 									}
 								case "Int32":
 									{
-										int result;
-										if (int.TryParse(value, out result))
+										if (int.TryParse(value, out int result))
 											constant.SetValue(null, result);
 										else
 											Log.Error("Cannot parse int '" + value + "' of constant " + field);
@@ -56,8 +54,7 @@ namespace ZombieLand
 									}
 								case "Single":
 									{
-										float result;
-										if (float.TryParse(value, out result))
+										if (float.TryParse(value, out float result))
 											constant.SetValue(null, result);
 										else
 											Log.Error("Cannot parse float '" + value + "' of constant " + field);
@@ -76,7 +73,7 @@ namespace ZombieLand
 
 		// general debugging and testing
 		//
-		public static bool DEBUGGRID = false;
+		public static bool DEBUGGRID;
 		public static bool USE_SOUND = true;
 		public static int DEBUG_MAX_ZOMBIE_COUNT = -1;
 
@@ -105,7 +102,7 @@ namespace ZombieLand
 		public static float CLUSTER_AVOIDANCE_CHANCE = 0.25f;
 		public static float DIVERTING_FROM_RAGE = 0.1f;
 		public static int ZOMBIE_CLOGGING_FACTOR = 10000;
-		public static float KILL_CIRCLE_RADIUS_MULTIPLIER = 0f;
+		public static float KILL_CIRCLE_RADIUS_MULTIPLIER;
 		public static float BASE_MUZZLE_FLASH_VALUE = 9f;
 		public static float SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 14;
 		public static float COLONISTS_HIT_ZOMBIES_CHANCE = 0.9f;

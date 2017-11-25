@@ -1,8 +1,6 @@
 ﻿using Harmony;
-using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
@@ -25,7 +23,7 @@ namespace ZombieLand
 			harmony.PatchAll(Assembly.GetExecutingAssembly());
 
 			// prepare Twinkie
-			LongEventHandler.QueueLongEvent(() => { Tools.EnableTwinkie(false); }, "PrepareTwinkie", true, null);
+			LongEventHandler.QueueLongEvent(() => { Tools.EnableTwinkie(false); }, "", true, null);
 
 			// extra patch for Combat Extended
 			Patches.Projectile_Launch_Patch.PatchCombatExtended(harmony);
@@ -85,13 +83,13 @@ namespace ZombieLand
 
 			var asm = Assembly.GetAssembly(typeof(Job));
 			var types = asm.GetTypes();
-			Array.Sort(types, (a, b) => { return a.FullName.CompareTo(b.FullName); });
+			Array.Sort(types, (a, b) => { return string.Compare(a.FullName, b.FullName, StringComparison.Ordinal); });
 			for (var i = 0; i < types.Length; i++)
 			{
 				var type = types[i];
 				if (typeFilter(type) == false) continue;
 				var methods = type.GetMethods(AccessTools.all);
-				Array.Sort(methods, (a, b) => { return a.Name.CompareTo(b.Name); });
+				Array.Sort(methods, (a, b) => { return string.Compare(a.Name, b.Name, StringComparison.Ordinal); });
 				for (var j = 0; j < methods.Length; j++)
 				{
 					var method = methods[j];

@@ -20,7 +20,7 @@ namespace ZombieLand
 	public class Zombie : Pawn, IDisposable
 	{
 		public ZombieState state = ZombieState.Emerging;
-		public int raging = 0;
+		public int raging;
 		public IntVec3 wanderDestination = IntVec3.Invalid;
 
 		int rubbleTicks;
@@ -31,15 +31,15 @@ namespace ZombieLand
 		public bool wasColonist;
 		public IntVec3 lastGotoPosition = IntVec3.Invalid;
 
-		public bool bombWillGoOff = false;
-		public int lastBombTick = 0;
+		public bool bombWillGoOff;
+		public int lastBombTick;
 		public float bombTickingInterval = -1f;
 
-		private bool disposed = false;
+		bool disposed;
 		public VariableGraphic customHeadGraphic; // not saved
 		public VariableGraphic customBodyGraphic; // not saved
 
-		static int totalNthTicks = 0;
+		static int totalNthTicks;
 		static public int[] nthTickValues;
 		static Zombie()
 		{
@@ -73,7 +73,9 @@ namespace ZombieLand
 				if ((Drawer.leaner is ZombieLeaner) == false)
 					Drawer.leaner = new ZombieLeaner(this);
 
+#pragma warning disable RECS0018
 				if (bombTickingInterval == 0f)
+#pragma warning restore RECS0018
 					bombTickingInterval = -1f;
 
 				ZombieGenerator.AssignNewCustomGraphics(this);
@@ -96,7 +98,9 @@ namespace ZombieLand
 			GC.SuppressFinalize(this);
 		}
 
-		private void Dispose(bool disposing)
+#pragma warning disable RECS0154
+		void Dispose(bool disposing)
+#pragma warning restore RECS0154
 		{
 			if (disposed) return;
 			disposed = true;
@@ -118,19 +122,20 @@ namespace ZombieLand
 
 		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)
 		{
+#pragma warning disable RECS0018
 			if (bombTickingInterval != -1f)
+#pragma warning restore RECS0018
 			{
 				bombTickingInterval = -1f;
 				bombWillGoOff = false;
 
-				var def = ThingDef.Named("Apparel_BombVest");
-				Drawer.renderer.graphics.apparelGraphics
-					.RemoveAll(record => record.sourceApparel?.def == def);
+				var vestDef = ThingDef.Named("Apparel_BombVest");
+				Drawer.renderer.graphics.apparelGraphics.RemoveAll(record => record.sourceApparel?.def == vestDef);
 
 				Map.GetComponent<TickManager>().AddExplosion(Position);
 			}
 
-			base.Kill(dinfo);
+			base.Kill(dinfo, exactCulprit);
 		}
 
 		public override void DeSpawn()
@@ -206,7 +211,7 @@ namespace ZombieLand
 			}
 		}
 
-		private int[] nextNthTick = new int[totalNthTicks];
+		int[] nextNthTick = new int[totalNthTicks];
 		public bool EveryNTick(NthTick interval)
 		{
 			var n = (int)interval;
@@ -258,7 +263,7 @@ namespace ZombieLand
 			}
 		}
 
-		static MethodInfo m_RenderPawnInternal = AccessTools.Method(typeof(PawnRenderer), "RenderPawnInternal", RenderPawnInternalParameterTypes);
+		static readonly MethodInfo m_RenderPawnInternal = AccessTools.Method(typeof(PawnRenderer), "RenderPawnInternal", RenderPawnInternalParameterTypes);
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
 		{
 			if (!renderer.graphics.AllResolved)

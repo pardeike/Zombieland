@@ -34,8 +34,7 @@ namespace ZombieLand
 			//
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
-				var p = eatTarget as Pawn;
-				if (p != null && p.Map != null)
+				if (eatTarget is Pawn p && p.Map != null)
 				{
 					// find corpse that points to the pawn we stored
 					eatTarget = p.Map.thingGrid
@@ -66,7 +65,7 @@ namespace ZombieLand
 			if (this.ShouldDie(zombie))
 				return;
 
-			if (this.Downed(zombie))
+			if (ZombieStateHandler.Downed(zombie))
 				return;
 
 			if (this.ValidDestination(zombie))
@@ -96,7 +95,7 @@ namespace ZombieLand
 
 			this.ExecuteMove(zombie, grid);
 
-			this.BeginRage(zombie, grid);
+			ZombieStateHandler.BeginRage(zombie, grid);
 		}
 
 		public override void Notify_PatherArrived()

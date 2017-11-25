@@ -59,7 +59,7 @@ namespace ZombieLand
 		public static string skipReason = "";
 	}
 
-	public class ZombiesRising
+	public static class ZombiesRising
 	{
 		[DefOf]
 		public static class MissingDifficulty

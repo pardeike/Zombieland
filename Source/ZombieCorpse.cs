@@ -32,8 +32,7 @@ namespace ZombieLand
 
 		public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
 		{
-			var zombie = InnerPawn as Zombie;
-			if (zombie != null)
+			if (InnerPawn is Zombie zombie)
 				zombie.Dispose();
 
 			base.Destroy(mode);

@@ -15,7 +15,7 @@ namespace ZombieLand
 	public class ThingDef_Zombie : ThingDef { }
 
 	[DefOf]
-	public class ZombieDefOf
+	public static class ZombieDefOf
 	{
 		public static FactionDef Zombies;
 		public static PawnKindDef Zombie;

@@ -11,8 +11,7 @@ namespace ZombieLand
 		[HarmonyPriority(Priority.Last)]
 		static void Postfix(Pawn_DrawTracker __instance, ref Vector3 __result)
 		{
-			var zombieLeaner = __instance.leaner as ZombieLeaner;
-			if (zombieLeaner != null)
+			if (__instance.leaner is ZombieLeaner zombieLeaner)
 				__result += zombieLeaner.ZombieOffset;
 		}
 	}
@@ -24,22 +23,21 @@ namespace ZombieLand
 		[HarmonyPriority(Priority.Last)]
 		static void Postfix(Pawn_DrawTracker __instance)
 		{
-			var zombieLeaner = __instance.leaner as ZombieLeaner;
-			if (zombieLeaner != null)
+			if (__instance.leaner is ZombieLeaner zombieLeaner)
 				zombieLeaner.ZombieTick();
 		}
 	}
 
 	class ZombieLeaner : PawnLeaner
 	{
-		private Zombie zombie;
-		private Vector3 jitterOffset = new Vector3(0, 0, 0);
+		Zombie zombie;
+		Vector3 jitterOffset = new Vector3(0, 0, 0);
 
-		private Vector3 extraOffsetInternal = new Vector3(0, 0, 0);
+		Vector3 extraOffsetInternal = new Vector3(0, 0, 0);
 		public Vector3 extraOffset = new Vector3(0, 0, 0);
 
-		private int randTickFrequency = Rand.Range(3, 9);
-		private int randTickOffset = Rand.Range(0, 9);
+		int randTickFrequency = Rand.Range(3, 9);
+		int randTickOffset = Rand.Range(0, 9);
 
 		public ZombieLeaner(Pawn pawn) : base(pawn)
 		{

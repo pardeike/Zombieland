@@ -18,9 +18,9 @@ namespace ZombieLand
 
 	public class HediffComp_Zombie_Infecter : HediffComp
 	{
-		public int infectionKnownDelay = 0;
-		public int infectionStartTime = 0;
-		public int infectionEndTime = 0;
+		public int infectionKnownDelay;
+		public int infectionStartTime;
+		public int infectionEndTime;
 
 		public HediffCompProperties_Zombie_Infecter Props => (HediffCompProperties_Zombie_Infecter)props;
 
@@ -92,8 +92,7 @@ namespace ZombieLand
 			if (tendQuality < Props.minBedTendQualityToAvoidInfection)
 				return;
 
-			QualityCategory bedQuality;
-			bed.TryGetQuality(out bedQuality);
+			bed.TryGetQuality(out QualityCategory bedQuality);
 			if (bedQuality < Props.minBedQualityToAvoidInfection)
 				return;
 
