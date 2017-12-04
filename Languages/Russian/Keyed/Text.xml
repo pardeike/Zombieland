@@ -26,7 +26,8 @@
 	<AttackMode_Everything>Всё что движеться и дышит</AttackMode_Everything>
 	<AttackMode_OnlyHumans>Людей и гумоноидных созданий</AttackMode_OnlyHumans>
 	<AttackMode_OnlyColonists>Только колонистов и их вещи</AttackMode_OnlyColonists>
-	<EnemiesAttackZombies>Враги атакуют зомби в любом случае</EnemiesAttackZombies>
+	<EnemiesAttackZombies>Враги атакуют зомби</EnemiesAttackZombies>
+	<AnimalsAttackZombies>Животные атакуют зомби</AnimalsAttackZombies>
 
 	<WhatDoZombiesSmash>Что именно зомби будут ломать?</WhatDoZombiesSmash>
 	<SmashMode_Nothing>Ничего</SmashMode_Nothing>

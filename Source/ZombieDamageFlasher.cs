@@ -12,13 +12,13 @@ namespace ZombieLand
 	{
 		static MethodBase TargetMethod()
 		{
-			return AccessTools.Constructor(typeof(PawnGraphicSet), new Type[] { typeof(Pawn) });
+			return typeof(PawnGraphicSet).Constructor(new Type[] { typeof(Pawn) });
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 		{
-			var from = AccessTools.Constructor(typeof(DamageFlasher), new Type[] { typeof(Pawn) });
-			var to = AccessTools.Constructor(typeof(ZombieDamageFlasher), new Type[] { typeof(Pawn) });
+			var from = typeof(DamageFlasher).Constructor(new Type[] { typeof(Pawn) });
+			var to = typeof(ZombieDamageFlasher).Constructor(new Type[] { typeof(Pawn) });
 			return instructions.MethodReplacer(from, to);
 		}
 	}

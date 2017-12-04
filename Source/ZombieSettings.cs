@@ -47,6 +47,7 @@ namespace ZombieLand
 		public SpawnHowType spawnHowType = SpawnHowType.FromTheEdges;
 		public AttackMode attackMode = AttackMode.OnlyHumans;
 		public bool enemiesAttackZombies = true;
+		public bool animalsAttackZombies = false;
 		public SmashMode smashMode = SmashMode.DoorsOnly;
 		public bool smashOnlyWhenAgitated = true;
 		public bool doubleTapRequired = true;

@@ -31,42 +31,38 @@ namespace ZombieLand
 					{
 						var field = parts[1];
 						var value = parts[2];
-						var constant = AccessTools.Field(typeof(Constants), field);
-						if (constant != null)
+						var constant = typeof(Constants).Field(field);
+
+						switch (constant.FieldType.Name)
 						{
-							switch (constant.FieldType.Name)
-							{
-								case "Boolean":
-									{
-										if (bool.TryParse(value, out bool result))
-											constant.SetValue(null, result);
-										else
-											Log.Error("Cannot parse boolean '" + value + "' of constant " + field);
-										break;
-									}
-								case "Int32":
-									{
-										if (int.TryParse(value, out int result))
-											constant.SetValue(null, result);
-										else
-											Log.Error("Cannot parse int '" + value + "' of constant " + field);
-										break;
-									}
-								case "Single":
-									{
-										if (float.TryParse(value, out float result))
-											constant.SetValue(null, result);
-										else
-											Log.Error("Cannot parse float '" + value + "' of constant " + field);
-										break;
-									}
-								default:
-									Log.Error("Zombieland constant '" + field + "' with unknown type " + constant.FieldType.Name);
+							case "Boolean":
+								{
+									if (bool.TryParse(value, out bool result))
+										constant.SetValue(null, result);
+									else
+										Log.Error("Cannot parse boolean '" + value + "' of constant " + field);
 									break;
-							}
+								}
+							case "Int32":
+								{
+									if (int.TryParse(value, out int result))
+										constant.SetValue(null, result);
+									else
+										Log.Error("Cannot parse int '" + value + "' of constant " + field);
+									break;
+								}
+							case "Single":
+								{
+									if (float.TryParse(value, out float result))
+										constant.SetValue(null, result);
+									else
+										Log.Error("Cannot parse float '" + value + "' of constant " + field);
+									break;
+								}
+							default:
+								Log.Error("Zombieland constant '" + field + "' with unknown type " + constant.FieldType.Name);
+								break;
 						}
-						else
-							Log.Error("Zombieland constant '" + field + "' unknown");
 					}
 				});
 		}

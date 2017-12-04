@@ -168,6 +168,7 @@ namespace ZombieLand
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
 				var jump = generator.DefineLabel();
+				var m_ZombieTick = SymbolExtensions.GetMethodInfo(() => ZombieTick());
 
 				var firstTime = true;
 				foreach (var instruction in instructions)
@@ -178,15 +179,17 @@ namespace ZombieLand
 						yield return new CodeInstruction(OpCodes.Ldloc_0);
 						yield return new CodeInstruction(OpCodes.Ldc_I4_2);
 						yield return new CodeInstruction(OpCodes.Bge, jump);
-						yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Verse_TickManager_TickManagerUpdate_Patch), "ZombieTick"));
+						yield return new CodeInstruction(OpCodes.Call, m_ZombieTick);
 						instruction.labels.Add(jump);
 					}
 					yield return instruction;
 				}
+
+				if (firstTime) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 
-		// patch so raiders see zombies as non-hostile if zombies are set to not attack raiders
+		// patch to control if raiders and animals see zombies as hostile
 		//
 		[HarmonyPatch(typeof(GenHostility))]
 		[HarmonyPatch("HostileTo")]
@@ -195,13 +198,11 @@ namespace ZombieLand
 		{
 			static void Postfix(Thing a, Thing b, ref bool __result)
 			{
-				if (__result == false) return;
-				if (ZombieSettings.Values.attackMode != AttackMode.OnlyColonists) return;
-				if (ZombieSettings.Values.enemiesAttackZombies) return;
 				var pawn = a as Pawn;
 				var zombie = b as Zombie;
-				if (pawn == null || pawn.IsColonist || zombie == null) return;
-				__result = false;
+				if (pawn == null || pawn.IsColonist || (pawn is Zombie) || zombie == null)
+					return;
+				__result = Tools.IsHostileToZombies(pawn);
 			}
 		}
 		[HarmonyPatch(typeof(GenHostility))]
@@ -211,12 +212,10 @@ namespace ZombieLand
 		{
 			static void Postfix(Thing t, Faction fac, ref bool __result)
 			{
-				if (__result == false) return;
-				if (ZombieSettings.Values.attackMode != AttackMode.OnlyColonists) return;
-				if (ZombieSettings.Values.enemiesAttackZombies) return;
 				var pawn = t as Pawn;
-				if (pawn == null || pawn.IsColonist || fac == null || fac.def != ZombieDefOf.Zombies) return;
-				__result = false;
+				if (pawn == null || pawn.IsColonist || (pawn is Zombie) || fac == null || fac.def != ZombieDefOf.Zombies)
+					return;
+				__result = Tools.IsHostileToZombies(pawn);
 			}
 		}
 
@@ -226,26 +225,49 @@ namespace ZombieLand
 		[HarmonyPatch("BestAttackTarget")]
 		static class AttackTargetFinder_BestAttackTarget_Patch
 		{
-			public static Predicate<IAttackTarget> WrappedValidator(Predicate<IAttackTarget> validator, IAttackTargetSearcher searcher)
+			static Predicate<IAttackTarget> WrappedValidator(Predicate<IAttackTarget> validator, IAttackTargetSearcher searcher)
 			{
-				if (ZombieSettings.Values.betterZombieAvoidance == false) return validator;
+				var attacker = searcher as Pawn;
+
+				// attacker not animal, eneny or friendly? use default
+				if (attacker == null || attacker.IsColonist || attacker is Zombie)
+					return validator;
+
+				// attacker is animal
+				if (attacker.RaceProps.Animal)
+					return (IAttackTarget t) =>
+					{
+						if (t.Thing is Zombie)
+							return ZombieSettings.Values.animalsAttackZombies;
+						return validator(t);
+					};
+
+				// attacker is friendly
+				if (attacker.Faction.HostileTo(Faction.OfPlayer) == false)
+					return (IAttackTarget t) => (t.Thing is Zombie) ? false : validator(t);
+
+				// attacker is enemy
 				return (IAttackTarget t) =>
 				{
-					var zombie = t as Zombie;
+					var zombie = t.Thing as Zombie;
 					if (zombie != null)
 					{
-						// never try to deliberately melee a zombie!
-						var currentEffectiveVerb = searcher.CurrentEffectiveVerb;
-						if (currentEffectiveVerb == null || currentEffectiveVerb.verbProps.MeleeRange)
+						if (ZombieSettings.Values.enemiesAttackZombies == false)
 							return false;
 
-						var attacker = searcher as Pawn;
-						if (attacker != null && attacker.IsColonist == false /* && attacker.Faction.HostileTo(Faction.OfPlayer) */)
-						{
-							var dist = (float)(attacker.Position - zombie.Position).LengthHorizontalSquared;
-							var attackZombie = zombie.state == ZombieState.Tracking && dist <= Tools.ZombieAvoidRadius(zombie, true);
-							if (attackZombie == false) return false;
-						}
+						if (zombie.state != ZombieState.Tracking || zombie.Downed)
+							return false;
+
+						var distanceToTarget = (float)(attacker.Position - zombie.Position).LengthHorizontalSquared;
+						var verb = searcher.CurrentEffectiveVerb;
+						var attackDistance = verb == null ? 1f : verb.verbProps.range * verb.verbProps.range;
+						var zombieAvoidRadius = Tools.ZombieAvoidRadius(zombie, true);
+
+						if (attackDistance < zombieAvoidRadius && distanceToTarget >= zombieAvoidRadius)
+							return false;
+
+						if (distanceToTarget > attackDistance)
+							return false;
 					}
 					return validator(t);
 				};
@@ -254,17 +276,28 @@ namespace ZombieLand
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
 				var innerValidatorType = (instructions.ToArray()[0].operand as MethodBase).DeclaringType;
-				var f_innerValidator = AccessTools.Field(innerValidatorType, "innerValidator");
-				var m_NoZombiesValidatorDecorator = AccessTools.Method(typeof(AttackTargetFinder_BestAttackTarget_Patch), "WrappedValidator");
+				if (innerValidatorType == null) Log.Error("Cannot find inner validator type");
+				var f_innerValidator = innerValidatorType.Field("innerValidator");
+
+				var found = false;
 				foreach (var instruction in instructions)
 				{
-					if (instruction.opcode == OpCodes.Stfld && instruction.operand == f_innerValidator)
+					if (found == false && instruction.opcode == OpCodes.Stfld && instruction.operand == f_innerValidator)
 					{
 						yield return new CodeInstruction(OpCodes.Ldarg_0);
-						yield return new CodeInstruction(OpCodes.Call, m_NoZombiesValidatorDecorator);
+						yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => WrappedValidator(null, null)));
+						found = true;
 					}
 					yield return instruction;
 				}
+
+				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+			}
+
+			static void Postfix(ref IAttackTarget __result, Predicate<Thing> validator)
+			{
+				if (validator != null && validator((Thing)__result) == false)
+					__result = null;
 			}
 		}
 
@@ -293,9 +326,8 @@ namespace ZombieLand
 					yield return all[i];
 				var ret = all.Last();
 
-				var method = AccessTools.Method(typeof(AttackTargetsCache_RegisterTarget_Patch), "Add");
 				yield return new CodeInstruction(OpCodes.Ldarg_1) { labels = ret.labels };
-				yield return new CodeInstruction(OpCodes.Call, method);
+				yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => Add(null)));
 				yield return new CodeInstruction(OpCodes.Ret);
 			}
 		}
@@ -321,9 +353,8 @@ namespace ZombieLand
 					yield return all[i];
 				var ret = all.Last();
 
-				var method = AccessTools.Method(typeof(AttackTargetsCache_DeregisterTarget_Patch), "Remove");
 				yield return new CodeInstruction(OpCodes.Ldarg_1) { labels = ret.labels };
-				yield return new CodeInstruction(OpCodes.Call, method);
+				yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => Remove(null)));
 				yield return new CodeInstruction(OpCodes.Ret);
 			}
 		}
@@ -417,13 +448,12 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
-				var m_SkipMissingShotsAtZombies = AccessTools.Method(typeof(Verb_LaunchProjectile_TryCastShot_Patch), "SkipMissingShotsAtZombies");
-				var f_forcedMissRadius = AccessTools.Field(typeof(VerbProperties), "forcedMissRadius");
-				var m_HitReportFor = AccessTools.Method(typeof(ShotReport), "HitReportFor");
-				var f_currentTarget = AccessTools.Field(typeof(Verb), "currentTarget");
+				var m_SkipMissingShotsAtZombies = SymbolExtensions.GetMethodInfo(() => SkipMissingShotsAtZombies(null, null));
+				var f_forcedMissRadius = typeof(VerbProperties).Field(nameof(VerbProperties.forcedMissRadius));
+				var m_HitReportFor = SymbolExtensions.GetMethodInfo(() => ShotReport.HitReportFor(null, null, null));
+				var f_currentTarget = typeof(Verb).Field("currentTarget");
 
 				var skipLabel = generator.DefineLabel();
-
 				var inList = instructions.ToList();
 
 				var idx1 = inList.FirstIndexOf(instr => instr.opcode == OpCodes.Ldfld && instr.operand == f_forcedMissRadius);
@@ -480,39 +510,28 @@ namespace ZombieLand
 		[HarmonyPatch("Notify_DamageTaken")]
 		static class Pawn_MindState_Notify_DamageTaken_Patch
 		{
-			static bool ShouldStartManhunting(Pawn instigator)
+			static bool ReducedChance(float chance, Pawn instigator)
 			{
 				if (instigator is Zombie)
-					return Rand.Chance(0.15f);
-				return true;
+					chance = chance / 20;
+				return Rand.Chance(chance);
 			}
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				var method = AccessTools.Method(typeof(Pawn_MindState_Notify_DamageTaken_Patch), "ShouldStartManhunting");
+				var m_Chance = SymbolExtensions.GetMethodInfo(() => Rand.Chance(0f));
+				var m_ReducedChance = SymbolExtensions.GetMethodInfo(() => ReducedChance(0f, null));
 
-				var instr = instructions.ToList();
-				for (var i = 1; i < instr.Count; i++)
+				foreach (var instruction in instructions)
 				{
-					if (instr[i - 1].opcode == OpCodes.Bge_Un)
+					if (instruction.operand == m_Chance)
 					{
-						var jump = new CodeInstruction(OpCodes.Brfalse_S, instr[i - 1].operand);
-
-						if (instr[i].opcode == OpCodes.Ldarg_0)
-						{
-							var ldstr = instr[i + 1];
-							if (ldstr.opcode == OpCodes.Ldstr && (string)ldstr.operand == "AnimalManhunterFromDamage")
-							{
-								instr.Insert(i++, new CodeInstruction(OpCodes.Ldloc_0));
-								instr.Insert(i++, new CodeInstruction(OpCodes.Call, method));
-								instr.Insert(i++, jump);
-								break;
-							}
-						}
+						yield return new CodeInstruction(OpCodes.Ldloc_0);
+						yield return new CodeInstruction(OpCodes.Call, m_ReducedChance);
 					}
+					else
+						yield return instruction;
 				}
-				for (var i = 0; i < instr.Count; i++)
-					yield return instr[i];
 			}
 		}
 
@@ -520,7 +539,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(FoodUtility))]
 		[HarmonyPatch("GetPreyScoreFor")]
-		public static class FoodUtility_GetPreyScoreFor_Patch
+		static class FoodUtility_GetPreyScoreFor_Patch
 		{
 			static void Postfix(Pawn predator, Pawn prey, ref float __result)
 			{
@@ -564,9 +583,8 @@ namespace ZombieLand
 		[HarmonyPatch(typeof(PathFinder))]
 		[HarmonyPatch("FindPath")]
 		[HarmonyPatch(new Type[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(TraverseParms), typeof(PathEndMode) })]
-		public static class PathFinder_FindPath_Patch
+		static class PathFinder_FindPath_Patch
 		{
-			public static MethodInfo zombieCostMethod = AccessTools.Method(typeof(PathFinder_FindPath_Patch), "GetZombieCosts");
 			static Dictionary<Map, TickManager> tickManagerCache = new Dictionary<Map, TickManager>();
 
 			// infected colonists will still path so exclude them from this check
@@ -600,9 +618,9 @@ namespace ZombieLand
 
 					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldloc_S, sumIdx) { labels = movedLabels });
 					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldarg_0));
-					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(PathFinder), "map")));
+					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldfld, typeof(PathFinder).Field("map")));
 					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldloc_S, gridIdx));
-					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Call, zombieCostMethod));
+					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => GetZombieCosts(null, 0))));
 					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Add));
 					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Stloc_S, sumIdx));
 				}
@@ -615,11 +633,9 @@ namespace ZombieLand
 		}
 		[HarmonyPatch(typeof(Pawn_PathFollower))]
 		[HarmonyPatch("NeedNewPath")]
-		public static class Pawn_PathFollower_NeedNewPath_Patch
+		static class Pawn_PathFollower_NeedNewPath_Patch
 		{
-			static MethodInfo m_ShouldCollideWithPawns = AccessTools.Method(typeof(PawnUtility), "ShouldCollideWithPawns");
-			static MethodInfo m_ZombieInPath = AccessTools.Method(typeof(Pawn_PathFollower_NeedNewPath_Patch), "ZombieInPath");
-			static FieldInfo f_pawn = AccessTools.Field(typeof(Pawn_PathFollower), "pawn");
+			static MethodInfo m_ShouldCollideWithPawns = SymbolExtensions.GetMethodInfo(() => PawnUtility.ShouldCollideWithPawns(null));
 
 			static bool ZombieInPath(Pawn_PathFollower __instance, Pawn pawn)
 			{
@@ -650,8 +666,8 @@ namespace ZombieLand
 
 						// here we should have a Ldarg_0 but original code has one with a label on it so we reuse it
 						list.Insert(idx++, new CodeInstruction(OpCodes.Ldarg_0));
-						list.Insert(idx++, new CodeInstruction(OpCodes.Ldfld, f_pawn));
-						list.Insert(idx++, new CodeInstruction(OpCodes.Call, m_ZombieInPath));
+						list.Insert(idx++, new CodeInstruction(OpCodes.Ldfld, typeof(Pawn_PathFollower).Field("pawn")));
+						list.Insert(idx++, new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => ZombieInPath(null, null))));
 						list.Insert(idx++, new CodeInstruction(OpCodes.Brfalse, jump));
 						list.Insert(idx++, new CodeInstruction(OpCodes.Ldc_I4_1));
 						list.Insert(idx++, new CodeInstruction(OpCodes.Ret));
@@ -672,7 +688,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(Pawn_PathFollower))]
 		[HarmonyPatch("StartPath")]
-		public static class Pawn_PathFollower_StartPath_Patch
+		static class Pawn_PathFollower_StartPath_Patch
 		{
 			static bool ThingDestroyedAndNotZombie(LocalTargetInfo info)
 			{
@@ -681,8 +697,8 @@ namespace ZombieLand
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				var from = AccessTools.Method(typeof(LocalTargetInfo), "get_ThingDestroyed");
-				var to = AccessTools.Method(typeof(Pawn_PathFollower_StartPath_Patch), "ThingDestroyedAndNotZombie");
+				var from = typeof(LocalTargetInfo).PropertyGetter(nameof(LocalTargetInfo.ThingDestroyed));
+				var to = SymbolExtensions.GetMethodInfo(() => ThingDestroyedAndNotZombie(null));
 
 				var insArray = instructions.ToArray();
 				var i = insArray.FirstIndexOf((ins) => ins.operand == from);
@@ -698,11 +714,8 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(EditWindow_DebugInspector))]
 		[HarmonyPatch("CurrentDebugString")]
-		public static class EditWindow_DebugInspector_CurrentDebugString_Patch
+		static class EditWindow_DebugInspector_CurrentDebugString_Patch
 		{
-			static readonly FieldInfo writeCellContentsField = AccessTools.Field(typeof(DebugViewSettings), "writeCellContents");
-			static readonly MethodInfo debugGridMethod = AccessTools.Method(typeof(EditWindow_DebugInspector_CurrentDebugString_Patch), "DebugGrid");
-
 			static void DebugGrid(StringBuilder builder)
 			{
 				if (Current.Game == null) return;
@@ -783,6 +796,10 @@ namespace ZombieLand
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
+				var f_writeCellContentsField = typeof(DebugViewSettings).Field(nameof(DebugViewSettings.writeCellContents));
+				if (f_writeCellContentsField == null) throw new Exception("Cannot find field DebugViewSettings.writeCellContents");
+
+				var found = false;
 				var previousPopInstruction = false;
 				foreach (var instruction in instructions)
 				{
@@ -791,11 +808,12 @@ namespace ZombieLand
 						previousPopInstruction = true;
 						yield return instruction;
 					}
-					else if (previousPopInstruction && instruction.opcode == OpCodes.Ldsfld && instruction.operand == writeCellContentsField)
+					else if (previousPopInstruction && instruction.opcode == OpCodes.Ldsfld && instruction.operand == f_writeCellContentsField)
 					{
 						yield return new CodeInstruction(OpCodes.Ldloc_0);
-						yield return new CodeInstruction(OpCodes.Call, debugGridMethod);
+						yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => DebugGrid(null)));
 						yield return instruction;
+						found = true;
 					}
 					else
 					{
@@ -803,6 +821,8 @@ namespace ZombieLand
 						previousPopInstruction = false;
 					}
 				}
+
+				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 
@@ -915,21 +935,19 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator il, IEnumerable<CodeInstruction> instructions)
 			{
-				var f_pawn = AccessTools.Field(typeof(Need), "pawn");
-				var m_ShouldBeAverageNeed = AccessTools.Method(typeof(Need_CurLevel_Patch), "ShouldBeAverageNeed");
-
 				var average = il.DeclareLocal(typeof(float));
 				var originalStart = il.DefineLabel();
 
 				yield return new CodeInstruction(OpCodes.Ldarg_1);
 				yield return new CodeInstruction(OpCodes.Stloc, average);
 				yield return new CodeInstruction(OpCodes.Ldarg_0);
-				yield return new CodeInstruction(OpCodes.Ldfld, f_pawn);
-				yield return new CodeInstruction(OpCodes.Call, m_ShouldBeAverageNeed);
+				yield return new CodeInstruction(OpCodes.Ldfld, typeof(Need).Field("pawn"));
+				yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => ShouldBeAverageNeed(null)));
 				yield return new CodeInstruction(OpCodes.Brfalse, originalStart);
 				yield return new CodeInstruction(OpCodes.Ldc_R4, 0.5f);
 				yield return new CodeInstruction(OpCodes.Stloc, average);
 
+				var found = false;
 				var firstTime = true;
 				foreach (var instruction in instructions)
 				{
@@ -939,10 +957,13 @@ namespace ZombieLand
 					{
 						instruction.opcode = OpCodes.Ldloc;
 						instruction.operand = average;
+						found = true;
 					}
 					yield return instruction;
 					firstTime = false;
 				}
+
+				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 
@@ -950,7 +971,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(MentalStateHandler))]
 		[HarmonyPatch("TryStartMentalState")]
-		public static class MentalStateHandler_TryStartMentalState_Patch
+		static class MentalStateHandler_TryStartMentalState_Patch
 		{
 			static bool NoMentalState(Pawn pawn)
 			{
@@ -960,14 +981,11 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator il, IEnumerable<CodeInstruction> instructions)
 			{
-				var f_pawn = AccessTools.Field(typeof(MentalStateHandler), "pawn");
-				var m_NoMentalState = AccessTools.Method(typeof(MentalStateHandler_TryStartMentalState_Patch), "NoMentalState");
-
 				var originalStart = il.DefineLabel();
 
 				yield return new CodeInstruction(OpCodes.Ldarg_0);
-				yield return new CodeInstruction(OpCodes.Ldfld, f_pawn);
-				yield return new CodeInstruction(OpCodes.Call, m_NoMentalState);
+				yield return new CodeInstruction(OpCodes.Ldfld, typeof(MentalStateHandler).Field("pawn"));
+				yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => NoMentalState(null)));
 				yield return new CodeInstruction(OpCodes.Brfalse, originalStart);
 				yield return new CodeInstruction(OpCodes.Ldc_I4_0);
 				yield return new CodeInstruction(OpCodes.Ret);
@@ -987,7 +1005,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(HediffSet))]
 		[HarmonyPatch("PainTotal", PropertyMethod.Getter)]
-		public static class HediffSet_CalculatePain_Patch
+		static class HediffSet_CalculatePain_Patch
 		{
 			static bool Prefix(HediffSet __instance, ref float __result)
 			{
@@ -1004,7 +1022,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(PawnCapacitiesHandler))]
 		[HarmonyPatch("GetLevel")]
-		public static class PawnCapacitiesHandler_GetLevel_Patch
+		static class PawnCapacitiesHandler_GetLevel_Patch
 		{
 			static bool FullLevel(Pawn pawn)
 			{
@@ -1015,14 +1033,11 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator il, IEnumerable<CodeInstruction> instructions)
 			{
-				var f_pawn = AccessTools.Field(typeof(PawnCapacitiesHandler), "pawn");
-				var m_FullLevel = AccessTools.Method(typeof(PawnCapacitiesHandler_GetLevel_Patch), "FullLevel");
-
 				var originalStart = il.DefineLabel();
 
 				yield return new CodeInstruction(OpCodes.Ldarg_0);
-				yield return new CodeInstruction(OpCodes.Ldfld, f_pawn);
-				yield return new CodeInstruction(OpCodes.Call, m_FullLevel);
+				yield return new CodeInstruction(OpCodes.Ldfld, typeof(PawnCapacitiesHandler).Field("pawn"));
+				yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => FullLevel(null)));
 				yield return new CodeInstruction(OpCodes.Brfalse, originalStart);
 				yield return new CodeInstruction(OpCodes.Ldc_R4, 1f);
 				yield return new CodeInstruction(OpCodes.Ret);
@@ -1173,36 +1188,42 @@ namespace ZombieLand
 
 			static MethodBase TargetMethod()
 			{
-				var inner = AccessTools.FirstInner(typeof(Toils_Combat), type => type.Name.StartsWith("<FollowAndMeleeAttack"));
-				return inner.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.StartsWith("<>m__"));
+				var inner = typeof(Toils_Combat).InnerTypeStartingWith("<FollowAndMeleeAttack");
+				return inner.MethodStartingWith("<>m__");
 			}
 
 			[HarmonyPriority(Priority.First)]
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				var f_killIncappedTarget = AccessTools.Field(typeof(Job), "killIncappedTarget");
-				var m_IncappedTargetCheck = AccessTools.Method(typeof(Toils_Combat_FollowAndMeleeAttack_KillIncappedTarget_Patch), "IncappedTargetCheck");
-				var m_get_Downed = AccessTools.Method(typeof(Pawn), "get_Downed");
+				var m_get_Downed = typeof(Pawn).PropertyGetter(nameof(Pawn.Downed));
 
+				var found1 = false;
+				var found2 = false;
 				CodeInstruction last = null;
 				CodeInstruction localPawnInstruction = null;
 				foreach (var instruction in instructions)
 				{
 					if (instruction.opcode == OpCodes.Callvirt && instruction.operand == m_get_Downed)
+					{
 						localPawnInstruction = new CodeInstruction(last);
+						found1 = true;
+					}
 
 					if (instruction.opcode == OpCodes.Ldfld
-						&& instruction.operand == f_killIncappedTarget
+						&& instruction.operand == typeof(Job).Field(nameof(Job.killIncappedTarget))
 						&& localPawnInstruction != null)
 					{
 						yield return localPawnInstruction;
 
 						instruction.opcode = OpCodes.Call;
-						instruction.operand = m_IncappedTargetCheck;
+						instruction.operand = SymbolExtensions.GetMethodInfo(() => IncappedTargetCheck(null, null));
+						found2 = true;
 					}
 					yield return instruction;
 					last = instruction;
 				}
+
+				if (!found1 || !found2) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 		[HarmonyPatch(typeof(Stance_Warmup))]
@@ -1220,8 +1241,8 @@ namespace ZombieLand
 		{
 			static MethodBase TargetMethod()
 			{
-				var inner = AccessTools.FirstInner(typeof(Toils_Jump), type => type.Name.StartsWith("<JumpIfTargetDownedDistant>c__"));
-				return inner.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.StartsWith("<>m__"));
+				var inner = typeof(Toils_Jump).InnerTypeStartingWith("<JumpIfTargetDownedDistant>c__");
+				return inner.MethodStartingWith("<>m__");
 			}
 
 			[HarmonyPriority(Priority.First)]
@@ -1255,11 +1276,13 @@ namespace ZombieLand
 		{
 			static MethodBase TargetMethod()
 			{
-				var inner = AccessTools.FirstInner(typeof(JobDriver_AttackStatic), type => type.Name.StartsWith("<MakeNewToils>c__Iterator"));
-				return inner.GetMethods(AccessTools.all)
-					.Where(m => m.Name.StartsWith("<>m__"))
-					.OrderBy(m => m.Name)
-					.LastOrDefault(); // the second one is the tickAction
+				var inner = typeof(JobDriver_AttackStatic).InnerTypeStartingWith("<MakeNewToils>c__Iterator");
+				return inner.MethodMatching(methods =>
+				{
+					return methods.Where(m => m.Name.StartsWith("<>m__"))
+						.OrderBy(m => m.Name)
+						.LastOrDefault(); // the second one is the tickAction
+				});
 			}
 
 			[HarmonyPriority(Priority.First)]
@@ -1429,10 +1452,9 @@ namespace ZombieLand
 		[HarmonyPatch("TryStartCastOn")]
 		static class Verb_TryStartCastOn_Patch
 		{
-			static MethodInfo m_ModifyTicks = AccessTools.Method(typeof(Verb_TryStartCastOn_Patch), "ModifyTicks");
-
-			static int ModifyTicks(int ticks, Verb verb)
+			static int ModifyTicks(float seconds, Verb verb)
 			{
+				var ticks = seconds.SecondsToTicks();
 				var zombie = verb?.caster as Zombie;
 				if (zombie != null && zombie.raging > 0)
 				{
@@ -1446,15 +1468,22 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.Last)]
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
+				var m_SecondsToTicks = SymbolExtensions.GetMethodInfo(() => GenTicks.SecondsToTicks(0f));
+
+				var found = false;
 				foreach (var instruction in instructions)
 				{
-					yield return instruction;
-					if (instruction.opcode == OpCodes.Ldloc_3)
+					if (instruction.operand == m_SecondsToTicks)
 					{
 						yield return new CodeInstruction(OpCodes.Ldarg_0);
-						yield return new CodeInstruction(OpCodes.Call, m_ModifyTicks);
+						instruction.opcode = OpCodes.Call;
+						instruction.operand = SymbolExtensions.GetMethodInfo(() => ModifyTicks(0, null));
+						found = true;
 					}
+					yield return instruction;
 				}
+
+				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 
@@ -1645,8 +1674,8 @@ namespace ZombieLand
 		{
 			static MethodBase TargetMethod()
 			{
-				var type = AccessTools.TypeByName("RimWorld.Recipe_RemoveBodyPart");
-				return AccessTools.Method(type, "GetPartsToApplyOn");
+				var type = "RimWorld.Recipe_RemoveBodyPart".ToType();
+				return type.MethodNamed("GetPartsToApplyOn");
 			}
 
 			static void Postfix(Pawn pawn, RecipeDef recipe, ref IEnumerable<BodyPartRecord> __result)
@@ -1727,7 +1756,7 @@ namespace ZombieLand
 						yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
 						yield return new CodeInstruction(OpCodes.Brfalse, label);
 						yield return new CodeInstruction(OpCodes.Ldloc_1);
-						yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Fire_DoFireDamage_Patch), "Reduce"));
+						yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => Reduce(0)));
 						yield return new CodeInstruction(OpCodes.Stloc_1);
 
 						yield return new CodeInstruction(OpCodes.Ldarg_1) { labels = new List<Label> { label } };
@@ -1735,6 +1764,8 @@ namespace ZombieLand
 					else
 						yield return instruction;
 				}
+
+				if (firstTime) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 
@@ -1746,6 +1777,9 @@ namespace ZombieLand
 		{
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, IEnumerable<CodeInstruction> instructions)
 			{
+				var found1 = false;
+				var found2 = false;
+
 				var n = 0;
 				var label = generator.DefineLabel();
 
@@ -1756,9 +1790,10 @@ namespace ZombieLand
 					if (instruction.opcode == OpCodes.Stloc_2)
 					{
 						yield return new CodeInstruction(OpCodes.Ldloc_2);
-						yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(AttachableThing), "parent"));
+						yield return new CodeInstruction(OpCodes.Ldfld, typeof(AttachableThing).Field(nameof(AttachableThing.parent)));
 						yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
 						yield return new CodeInstruction(OpCodes.Brtrue, label);
+						found1 = true;
 					}
 
 					if (n >= 0 && instruction.opcode == OpCodes.Add)
@@ -1768,8 +1803,11 @@ namespace ZombieLand
 					{
 						instruction.labels.Add(label);
 						n = -1;
+						found2 = true;
 					}
 				}
+
+				if (!found1 || !found2) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 
@@ -1829,7 +1867,7 @@ namespace ZombieLand
 				var returnZeroLabel = generator.DefineLabel();
 
 				yield return new CodeInstruction(OpCodes.Ldarg_0);
-				yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Pawn_RelationsTracker), "pawn"));
+				yield return new CodeInstruction(OpCodes.Ldfld, typeof(Pawn_RelationsTracker).Field("pawn"));
 				yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
 				yield return new CodeInstruction(OpCodes.Brtrue_S, returnZeroLabel);
 				yield return new CodeInstruction(OpCodes.Ldarg_1);
@@ -2185,15 +2223,23 @@ namespace ZombieLand
 				Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
 			}
 
+			// called from Main
 			public static void PatchCombatExtended(HarmonyInstance harmony)
 			{
+				// do not throw or error if this type does not exist
+				// it only exists if CombatExtended is loaded (optional)
+				//
 				var type = AccessTools.TypeByName("CombatExtended.ProjectileCE");
 				if (type == null) return;
+
+				// do not throw or error if this method does not exist either
+				//
 				var originalMethodInfo = AccessTools.Method(type, "Launch", new Type[] { typeof(Thing), typeof(Vector2), typeof(float), typeof(float), typeof(float), typeof(float), typeof(Thing) });
 				if (originalMethodInfo == null) return;
 
-				var postfix = new HarmonyMethod(AccessTools.Method(typeof(Projectile_Launch_Patch), "PostfixCombatExtended"));
-				harmony.Patch(originalMethodInfo, new HarmonyMethod(null), postfix);
+				var prefix = new HarmonyMethod(null);
+				var postfix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => PostfixCombatExtended(null, Vector2.zero, 0, 0, 0, 0, null)));
+				harmony.Patch(originalMethodInfo, prefix, postfix);
 			}
 		}
 
@@ -2226,7 +2272,7 @@ namespace ZombieLand
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 			{
 				var conditions = Tools.NotZombieInstructions(generator, method);
-				var replacement = AccessTools.Method(MethodBase.GetCurrentMethod().DeclaringType, "Replacement");
+				var replacement = SymbolExtensions.GetMethodInfo(() => Replacement());
 				var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method, replacement);
 				return transpiler(generator, instructions);
 			}
@@ -2279,12 +2325,12 @@ namespace ZombieLand
 				var jump = generator.DefineLabel();
 
 				yield return new CodeInstruction(OpCodes.Ldarg_0);
-				yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(Pawn_HealthTracker), "pawn"));
+				yield return new CodeInstruction(OpCodes.Ldfld, typeof(Pawn_HealthTracker).Field("pawn"));
 				yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
 				yield return new CodeInstruction(OpCodes.Brfalse, jump);
 
-				yield return new CodeInstruction(OpCodes.Ldsfld, AccessTools.Field(typeof(ZombieSettings), nameof(ZombieSettings.Values)));
-				yield return new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(SettingsGroup), nameof(SettingsGroup.zombiesDropBlood)));
+				yield return new CodeInstruction(OpCodes.Ldsfld, typeof(ZombieSettings).Field(nameof(ZombieSettings.Values)));
+				yield return new CodeInstruction(OpCodes.Ldfld, typeof(SettingsGroup).Field(nameof(SettingsGroup.zombiesDropBlood)));
 				yield return new CodeInstruction(OpCodes.Brtrue, jump);
 				yield return new CodeInstruction(OpCodes.Ret);
 
@@ -2304,52 +2350,128 @@ namespace ZombieLand
 		{
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				var selectLandingSiteConstructor = AccessTools.Constructor(typeof(Page_SelectLandingSite));
+				var selectLandingSiteConstructor = typeof(Page_SelectLandingSite).Constructor();
 
-				var dialogConstructor = AccessTools.Constructor(typeof(SettingsDialog));
-				var addMethod = AccessTools.Method(typeof(List<Page>), "Add");
-
+				var found = false;
 				foreach (var instruction in instructions)
 				{
 					if (instruction.operand == selectLandingSiteConstructor)
 					{
-						yield return new CodeInstruction(OpCodes.Newobj, dialogConstructor);
-						yield return new CodeInstruction(OpCodes.Callvirt, addMethod);
+						yield return new CodeInstruction(OpCodes.Newobj, typeof(SettingsDialog).Constructor());
+						yield return new CodeInstruction(OpCodes.Callvirt, typeof(List<Page>).MethodNamed(nameof(List<Page>.Add)));
 						yield return new CodeInstruction(OpCodes.Ldloc_0);
+						found = true;
 					}
 					yield return instruction;
 				}
+
+				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 
-		// patch to avoid null reference exception
+		// patches to avoid null reference exception
 		//
 		[HarmonyPatch(typeof(ThoughtWorker_ColonistLeftUnburied))]
 		[HarmonyPatch("CurrentStateInternal")]
 		static class ThoughtWorker_ColonistLeftUnburied_CurrentStateInternal_Patch
 		{
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
-				var get_InnerPawn = AccessTools.Method(typeof(Corpse), "get_InnerPawn");
-				CodeInstruction prevInstruction = null;
-				var label = new Label();
-				foreach (var instruction in instructions)
+				var found1 = false;
+				var found2 = false;
+
+				var get_InnerPawn = typeof(Corpse).PropertyGetter(nameof(Corpse.InnerPawn));
+				var skipLabel = generator.DefineLabel();
+
+				var list = instructions.ToList();
+				var skipLoopIndex = list.FirstIndexOf(instr => instr.opcode == OpCodes.Add) - 2;
+				if (skipLoopIndex > 0 && list[skipLoopIndex - 1].opcode == OpCodes.Ret)
 				{
-					if (instruction.opcode == OpCodes.Callvirt)
-						if (instruction.operand == get_InnerPawn)
-						{
-							yield return instruction;
-							yield return new CodeInstruction(OpCodes.Brfalse_S, label);
-
-							yield return prevInstruction;
-						}
-
-					if (instruction.opcode == OpCodes.Ble_Un_S)
-						label = (Label)instruction.operand;
-
-					yield return instruction;
-					prevInstruction = instruction;
+					list[skipLoopIndex].labels.Add(skipLabel);
+					found1 = true;
 				}
+
+				foreach (var instruction in list)
+				{
+					yield return instruction;
+					if (instruction.opcode == OpCodes.Stloc_2)
+					{
+						yield return new CodeInstruction(OpCodes.Ldloc_2);
+						yield return new CodeInstruction(OpCodes.Callvirt, get_InnerPawn);
+						yield return new CodeInstruction(OpCodes.Brfalse_S, skipLabel);
+
+						found2 = true;
+					}
+				}
+
+				if (!found1 || !found2) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+			}
+		}
+		[HarmonyPatch(typeof(Pawn_HealthTracker))]
+		[HarmonyPatch("PreApplyDamage")]
+		static class Pawn_HealthTracker_PreApplyDamage_Patch
+		{
+			/*static void Prefix(Pawn_HealthTracker __instance)
+			{
+				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
+				if (pawn.mindState == null)
+					Log.Error(pawn + " has null mindstate");
+				if (pawn.jobs == null)
+					Log.Error(pawn + " has null jobs");
+				if (pawn.MapHeld == null)
+					Log.Error(pawn + " has null MapHeld");
+				if (pawn.MapHeld.damageWatcher == null)
+					Log.Error(pawn + " has null MapHeld.damageWatcher");
+				if (pawn.apparel != null && pawn.apparel.WornApparel == null)
+					Log.Error(pawn + " has null apparel.WornApparel");
+				if (pawn.stances == null)
+					Log.Error(pawn + " has null stances");
+				if (pawn.relations == null)
+					Log.Error(pawn + " has null relations");
+				if (pawn.needs == null)
+					Log.Error(pawn + " has null needs");
+				if (pawn.needs.mood == null)
+					Log.Error(pawn + " has null needs.mood");
+				if (pawn.needs.mood.thoughts == null)
+					Log.Error(pawn + " has null needs.mood.thoughts");
+				if (pawn.needs.mood.thoughts.memories == null)
+					Log.Error(pawn + " has null needs.mood.thoughts.memories");
+			}*/
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+			{
+				var m_TryGainMemory = typeof(MemoryThoughtHandler).Method("TryGainMemory", new Type[] { typeof(ThoughtDef), typeof(Pawn) });
+				var f_pawn = typeof(Pawn_HealthTracker).Field("pawn");
+
+				var found1 = false;
+				var found2 = false;
+
+				var list = instructions.ToList();
+				var jumpIndex = list.FirstIndexOf(instr => instr.operand == m_TryGainMemory) + 1;
+				if (jumpIndex > 0)
+				{
+					var skipLabel = generator.DefineLabel();
+					list[jumpIndex].labels.Add(skipLabel);
+					found1 = true;
+
+					for (var i = jumpIndex; i >= 0; i--)
+						if (list[i].opcode == OpCodes.Ldarg_0)
+						{
+							var j = i;
+							list.Insert(j++, new CodeInstruction(OpCodes.Ldarg_0));
+							list.Insert(j++, new CodeInstruction(OpCodes.Ldfld, f_pawn));
+							list.Insert(j++, new CodeInstruction(OpCodes.Isinst, typeof(Zombie)));
+							list.Insert(j++, new CodeInstruction(OpCodes.Brtrue_S, skipLabel));
+
+							found2 = true;
+							break;
+						}
+				}
+
+				foreach (var instruction in list)
+					yield return instruction;
+
+				if (!found1 || !found2) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 
@@ -2390,24 +2512,35 @@ namespace ZombieLand
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				var from = AccessTools.Method(typeof(Widgets), "DrawAtlas", new Type[] { typeof(Rect), typeof(Texture2D) });
-				var to = AccessTools.Method(typeof(Widgets_DoWindowContents_Path), "NewDrawAtlas");
+				var from = typeof(Widgets).Method("DrawAtlas", new Type[] { typeof(Rect), typeof(Texture2D) });
+				var to = SymbolExtensions.GetMethodInfo(() => NewDrawAtlas(Rect.zero, null, null));
+
+				var found = false;
 				foreach (var instruction in instructions)
 				{
 					if (instruction.operand == from)
 					{
 						instruction.operand = to;
 						yield return new CodeInstruction(OpCodes.Ldarg_1);
+						found = true;
 					}
 					yield return instruction;
 				}
+
+				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 		[HarmonyPatch(typeof(MainMenuDrawer))]
 		[HarmonyPatch("DoMainMenuControls")]
 		static class MainMenuDrawer_DoMainMenuControls_Path
 		{
+			// called from MainTabWindow_Menu_RequestedTabSize_Path
 			public static float addedHeight = 45f + 7f; // default height ListableOption + OptionListingUtility.DrawOptionListing spacing
+
+			static MethodInfo[] patchMethods = new MethodInfo[] {
+				SymbolExtensions.GetMethodInfo(() => DrawOptionListingPatch1(Rect.zero, null)),
+				SymbolExtensions.GetMethodInfo(() => DrawOptionListingPatch2(Rect.zero, null))
+			};
 
 			static float DrawOptionListingPatch1(Rect rect, List<ListableOption> optList)
 			{
@@ -2438,17 +2571,17 @@ namespace ZombieLand
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				var m_DrawOptionListing = AccessTools.Method(typeof(OptionListingUtility), "DrawOptionListing");
+				var m_DrawOptionListing = SymbolExtensions.GetMethodInfo(() => OptionListingUtility.DrawOptionListing(Rect.zero, null));
+
 				var counter = 0;
 				foreach (var instruction in instructions)
 				{
 					if (instruction.operand == m_DrawOptionListing)
-					{
-						counter++;
-						instruction.operand = AccessTools.Method(typeof(MainMenuDrawer_DoMainMenuControls_Path), "DrawOptionListingPatch" + counter);
-					}
+						instruction.operand = patchMethods[counter++];
 					yield return instruction;
 				}
+
+				if (counter != 2) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 	}

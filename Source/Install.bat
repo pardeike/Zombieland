@@ -8,7 +8,7 @@ SET TARGET_DIR=D:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\Zombi
 SET MONO_EXE="C:\Program Files (x86)\Mono-4\bin\mono.exe"
 SET PDB2MDB_PATH="C:\Program Files (x86)\Mono-4\lib\mono\4.5\pdb2mdb.exe"
 
-SET HARMONY_PATH="%SOLUTION_DIR%2Assemblies\0Harmony.dll"
+SET HARMONY_PATH="%SOLUTION_DIR%Assemblies\0Harmony.dll"
 SET MOD_DLL_PATH="%SOLUTION_DIR%Assemblies\%~3"
 
 IF %1==Debug (

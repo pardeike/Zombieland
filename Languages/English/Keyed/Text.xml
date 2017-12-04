@@ -26,7 +26,8 @@
 	<AttackMode_Everything>All creature</AttackMode_Everything>
 	<AttackMode_OnlyHumans>Human-like creatures</AttackMode_OnlyHumans>
 	<AttackMode_OnlyColonists>Only colonists</AttackMode_OnlyColonists>
-	<EnemiesAttackZombies>Enemies attack zombies anyway</EnemiesAttackZombies>
+	<EnemiesAttackZombies>Enemies attack zombies</EnemiesAttackZombies>
+	<AnimalsAttackZombies>Animals attack zombies</AnimalsAttackZombies>
 
 	<WhatDoZombiesSmash>What will zombies destroy?</WhatDoZombiesSmash>
 	<SmashMode_Nothing>Nothing</SmashMode_Nothing>

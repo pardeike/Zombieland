@@ -27,6 +27,7 @@
 	<AttackMode_OnlyHumans>人形生物</AttackMode_OnlyHumans>
 	<AttackMode_OnlyColonists>只攻擊殖民者</AttackMode_OnlyColonists>
 	<EnemiesAttackZombies>敵人攻擊殭屍</EnemiesAttackZombies>
+	<AnimalsAttackZombies>動物攻擊殭屍</AnimalsAttackZombies>
 
 	<WhatDoZombiesSmash>喪屍會摧毀什麼？</WhatDoZombiesSmash>
 	<SmashMode_Nothing>沒有</SmashMode_Nothing>

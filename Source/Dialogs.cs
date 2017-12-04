@@ -289,8 +289,8 @@ namespace ZombieLand
 
 			// Attack?
 			list.Dialog_Enum("WhatDoZombiesAttack", ref settings.attackMode);
-			if (settings.attackMode == AttackMode.OnlyColonists)
-				list.Dialog_Checkbox("EnemiesAttackZombies", ref settings.enemiesAttackZombies);
+			list.Dialog_Checkbox("EnemiesAttackZombies", ref settings.enemiesAttackZombies);
+			list.Dialog_Checkbox("AnimalsAttackZombies", ref settings.animalsAttackZombies);
 
 			// Smash?
 			list.Dialog_Enum("WhatDoZombiesSmash", ref settings.smashMode);

@@ -1,5 +1,4 @@
-﻿using Harmony;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -263,7 +262,7 @@ namespace ZombieLand
 			}
 		}
 
-		static readonly MethodInfo m_RenderPawnInternal = AccessTools.Method(typeof(PawnRenderer), "RenderPawnInternal", RenderPawnInternalParameterTypes);
+		static readonly MethodInfo m_RenderPawnInternal = typeof(PawnRenderer).Method("RenderPawnInternal", RenderPawnInternalParameterTypes);
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
 		{
 			if (!renderer.graphics.AllResolved)

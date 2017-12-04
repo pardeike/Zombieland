@@ -14,7 +14,7 @@ namespace ZombieLand
 	public class TextureAtlas
 	{
 		static readonly List<AtlasImage> images = new List<AtlasImage>();
-		public List<AtlasImage> AllImages { get => images; }
+		public List<AtlasImage> AllImages => images;
 
 		public TextureAtlas(string basePath)
 		{
@@ -22,10 +22,10 @@ namespace ZombieLand
 			if (atlas.LoadImage(File.ReadAllBytes(basePath + ".png")) == false)
 				return;
 
-			using(var reader = new StreamReader(@basePath + ".cvs"))
+			using (var reader = new StreamReader(@basePath + ".cvs"))
 			{
-				List<string> listA = new List<string>();
-				List<string> listB = new List<string>();
+				var listA = new List<string>();
+				var listB = new List<string>();
 				while (!reader.EndOfStream)
 				{
 					var line = reader.ReadLine();

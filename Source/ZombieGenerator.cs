@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 
 namespace ZombieLand
 {

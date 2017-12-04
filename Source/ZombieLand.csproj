@@ -68,6 +68,8 @@
     <Compile Include="JobDriver.cs" />
     <Compile Include="JobGiver.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="SafeReflections.cs" />
+    <Compile Include="SymbolExtensions.cs" />
     <Compile Include="TextureAtlas.cs" />
     <Compile Include="VariableMaterial.cs" />
     <Compile Include="ZombieAvoider.cs" />

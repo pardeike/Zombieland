@@ -287,6 +287,17 @@ namespace ZombieLand
 			});
 		}
 
+		public static bool IsHostileToZombies(Pawn pawn)
+		{
+			if (pawn.RaceProps.Animal)
+				return ZombieSettings.Values.animalsAttackZombies;
+
+			if (pawn.Faction.HostileTo(Faction.OfPlayer))
+				return ZombieSettings.Values.enemiesAttackZombies;
+
+			return false;
+		}
+
 		public static Predicate<IntVec3> ZombieSpawnLocator(Map map, bool isEvent = false)
 		{
 			if (isEvent || ZombieSettings.Values.spawnWhenType == SpawnWhenType.AllTheTime
@@ -388,7 +399,7 @@ namespace ZombieLand
 
 				// remove any defs in filters of stockpiles
 				map.zoneManager.AllZones.OfType<Zone_Stockpile>()
-				   .Select(pile => pile?.settings?.filter).ToList()
+					.Select(pile => pile?.settings?.filter).ToList()
 					.Do(RemoveZombielandFromFilter);
 
 				// remove any defs in work tables
@@ -583,7 +594,7 @@ namespace ZombieLand
 			return new List<CodeInstruction>
 			{
 				new CodeInstruction(OpCodes.Ldarg_0),
-				new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(method.DeclaringType, "pawn")),
+				new CodeInstruction(OpCodes.Ldfld, method.DeclaringType.Field("pawn")),
 				new CodeInstruction(OpCodes.Isinst, typeof(Zombie)),
 				new CodeInstruction(OpCodes.Brfalse, skipReplacement),
 			};
@@ -643,7 +654,7 @@ namespace ZombieLand
 								instructions.Add(new CodeInstruction(OpCodes.Ldarg, index + 1)); // parameters
 							else
 							{
-								var fInfo = AccessTools.Field(method.DeclaringType, name);
+								var fInfo = method.DeclaringType.Field(name);
 								instructions.Add(new CodeInstruction(OpCodes.Ldarg_0));
 								instructions.Add(new CodeInstruction(OpCodes.Ldflda, fInfo)); // extra fields
 							}
@@ -690,9 +701,10 @@ namespace ZombieLand
 
 		public static IEnumerable<CodeInstruction> DownedReplacer(IEnumerable<CodeInstruction> instructions, int skip = 0)
 		{
-			var m_get_Downed = AccessTools.Method(typeof(Pawn), "get_Downed");
-			var m_replacement = AccessTools.Method(typeof(Tools), "DownedReplacement");
+			var m_get_Downed = typeof(Pawn).PropertyGetter(nameof(Pawn.Downed));
+			var m_replacement = SymbolExtensions.GetMethodInfo(() => DownedReplacement(null));
 
+			var found = false;
 			foreach (var instruction in instructions)
 			{
 				if (instruction.opcode == OpCodes.Callvirt && instruction.operand == m_get_Downed)
@@ -702,10 +714,13 @@ namespace ZombieLand
 					{
 						instruction.opcode = OpCodes.Call;
 						instruction.operand = m_replacement;
+						found = true;
 					}
 				}
 				yield return instruction;
 			}
+
+			if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 		}
 	}
 }

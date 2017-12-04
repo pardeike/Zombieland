@@ -26,7 +26,8 @@
 	<AttackMode_Everything>Toutes les créatures</AttackMode_Everything>
 	<AttackMode_OnlyHumans>Les créatures proches des humains</AttackMode_OnlyHumans>
 	<AttackMode_OnlyColonists>Seulement les colons</AttackMode_OnlyColonists>
-	<EnemiesAttackZombies>Enemies attack zombies anyway</EnemiesAttackZombies>
+	<EnemiesAttackZombies>Les ennemis attaquent les zombies</EnemiesAttackZombies>
+	<AnimalsAttackZombies>Les animaux attaquent les zombies</AnimalsAttackZombies>
 
 	<WhatDoZombiesSmash>Que vont détruire les Zombies ?</WhatDoZombiesSmash>
 	<SmashMode_Nothing>Rien</SmashMode_Nothing>
