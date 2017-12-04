@@ -612,8 +612,12 @@ namespace ZombieLand
 		{
 			if (Constants.USE_SOUND)
 			{
-				var info = SoundInfo.InMap(new TargetInfo(zombie.Position, zombie.Map, false));
-				SoundDef.Named("ZombieEating").PlayOneShot(info);
+				var map = zombie.Map;
+				if (map != null)
+				{
+					var info = SoundInfo.InMap(new TargetInfo(zombie.Position, map, false));
+					SoundDef.Named("ZombieEating").PlayOneShot(info);
+				}
 			}
 		}
 
@@ -623,8 +627,12 @@ namespace ZombieLand
 
 			if (Constants.USE_SOUND)
 			{
-				var info = SoundInfo.InMap(new TargetInfo(pawn.Position, pawn.Map, false));
-				SoundDef.Named("ZombieTracking").PlayOneShot(info);
+				var map = pawn.Map;
+				if (map != null)
+				{
+					var info = SoundInfo.InMap(new TargetInfo(pawn.Position, map, false));
+					SoundDef.Named("ZombieTracking").PlayOneShot(info);
+				}
 			}
 		}
 

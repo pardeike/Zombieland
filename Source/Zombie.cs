@@ -159,8 +159,12 @@ namespace ZombieLand
 		{
 			if (rubbleCounter == 0 && Constants.USE_SOUND)
 			{
-				var info = SoundInfo.InMap(new TargetInfo(Position, Map));
-				SoundDef.Named("ZombieDigOut").PlayOneShot(info);
+				var map = Map;
+				if (map != null)
+				{
+					var info = SoundInfo.InMap(new TargetInfo(Position, map));
+					SoundDef.Named("ZombieDigOut").PlayOneShot(info);
+				}
 			}
 
 			if (rubbleCounter == Constants.RUBBLE_AMOUNT)

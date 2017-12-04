@@ -230,7 +230,7 @@ namespace ZombieLand
 				var attacker = searcher as Pawn;
 
 				// attacker not animal, eneny or friendly? use default
-				if (attacker == null || attacker.IsColonist || attacker is Zombie)
+				if (validator == null || attacker == null || attacker.IsColonist || attacker is Zombie)
 					return validator;
 
 				// attacker is animal
@@ -255,7 +255,7 @@ namespace ZombieLand
 						if (ZombieSettings.Values.enemiesAttackZombies == false)
 							return false;
 
-						if (zombie.state != ZombieState.Tracking || zombie.Downed)
+						if (zombie.state != ZombieState.Tracking)
 							return false;
 
 						var distanceToTarget = (float)(attacker.Position - zombie.Position).LengthHorizontalSquared;
@@ -296,8 +296,54 @@ namespace ZombieLand
 
 			static void Postfix(ref IAttackTarget __result, Predicate<Thing> validator)
 			{
-				if (validator != null && validator((Thing)__result) == false)
+				var thing = __result as Thing;
+				if (validator != null && thing != null && validator(thing) == false)
 					__result = null;
+			}
+		}
+
+		// patch to prefer non-downed zombies from downed one as targets
+		//
+		[HarmonyPatch(typeof(AttackTargetFinder))]
+		[HarmonyPatch("GetAvailableShootingTargetsByScore")]
+		static class AttackTargetFinder_GetAvailableShootingTargetsByScore_Patch
+		{
+			static void Postfix(List<Pair<IAttackTarget, float>> __result)
+			{
+				for (var i = __result.Count - 1; i >= 0; i--)
+				{
+					var zombie = __result[i].First as Zombie;
+					if (zombie != null && zombie.Downed)
+						__result.RemoveAt(i);
+				}
+			}
+		}
+
+		// patch to make downed zombies as easy to kill as standing
+		//
+		[HarmonyPatch(typeof(Projectile))]
+		[HarmonyPatch("ImpactSomething")]
+		static class Projectile_ImpactSomething_Patch
+		{
+			static PawnPosture GetPostureFix(Pawn p)
+			{
+				if (p is Zombie) return PawnPosture.Standing; // fake standing
+				return p.GetPosture();
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var m_GetPosture = SymbolExtensions.GetMethodInfo(() => PawnUtility.GetPosture(null));
+
+				foreach (var instruction in instructions)
+				{
+					if (instruction.operand == m_GetPosture)
+					{
+						instruction.opcode = OpCodes.Call;
+						instruction.operand = SymbolExtensions.GetMethodInfo(() => GetPostureFix(null));
+					}
+					yield return instruction;
+				}
 			}
 		}
 
