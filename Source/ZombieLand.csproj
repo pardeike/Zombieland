@@ -73,6 +73,7 @@
     <Compile Include="TextureAtlas.cs" />
     <Compile Include="VariableMaterial.cs" />
     <Compile Include="ZombieAvoider.cs" />
+    <Compile Include="ZombieRemover.cs" />
     <Compile Include="ZombieStateHandler.cs" />
     <Compile Include="ZombieWanderer.cs" />
     <Compile Include="_translate\Mono_HTTP_Helpers.cs" />
@@ -112,9 +113,11 @@
     </Content>
     <Content Include="..\Defs\Zombie_Kind.xml">
       <Link>Zombie_Kind.xml</Link>
+      <SubType>Designer</SubType>
     </Content>
     <Content Include="..\Defs\Zombie_Race.xml">
       <Link>Zombie_Race.xml</Link>
+      <SubType>Designer</SubType>
     </Content>
     <Content Include="..\Defs\Zombie_Sounds.xml">
       <Link>Zombie_Sounds.xml</Link>

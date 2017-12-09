@@ -138,8 +138,14 @@ namespace ZombieLand
 				return null;
 			}
 
+			var typeChance = Rand.Value;
+			var zombieType = Rand.RangeInclusive(1, 4);
+			if (typeChance <= ZombieSettings.Values.suicideBomberChance)
+				zombieType = 5;
+			else if (typeChance <= ZombieSettings.Values.suicideBomberChance + ZombieSettings.Values.toxicSplasherChance)
+				zombie.isToxicSplasher = true;
+
 			var bodyType = BodyType.Undefined;
-			var zombieType = Rand.Chance(ZombieSettings.Values.suicideBomberChance) ? 5 : Rand.RangeInclusive(1, 4);
 			switch (zombieType)
 			{
 				case 1:
@@ -220,13 +226,14 @@ namespace ZombieLand
 			var renderPrecedence = 0;
 
 			var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
+			var color = zombie.isToxicSplasher ? "toxic" : GraphicToolbox.RandomSkinColorString();
 			var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
-			zombie.customBodyGraphic = new VariableGraphic();
+			zombie.customBodyGraphic = new VariableGraphic { bodyColor = color };
 			zombie.customBodyGraphic.Init(bodyRequest);
 
 			var headPath = "Zombie/" + zombie.gender + "_" + zombie.story.crownType + "_" + headShapes[Rand.Range(0, 3)];
 			var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
-			zombie.customHeadGraphic = new VariableGraphic();
+			zombie.customHeadGraphic = new VariableGraphic { bodyColor = color };
 			zombie.customHeadGraphic.Init(headRequest);
 
 			zombie.sideEyeOffset = SideEyeOffset(headPath.ReplaceFirst("Zombie/", ""));

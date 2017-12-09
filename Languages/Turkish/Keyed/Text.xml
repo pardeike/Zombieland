@@ -41,9 +41,11 @@
 	<ZombiesOnTheMap>Zombies on the map</ZombiesOnTheMap>
 	<MaximumNumberOfZombies>Never more than</MaximumNumberOfZombies>
 	<Zombies>Zombies</Zombies>
+	<ColonyMultiplier>Koloni çarpanı</ColonyMultiplier>
 
 	<ZombieEventTitle>Zombie event</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Zombies per colonist</ZombiesPerColonistInEvent>
+	<ExtraDaysBetweenEvents>Extra days between events</ExtraDaysBetweenEvents>
 
 	<ZombieSpeedTitle>Zombie speed</ZombieSpeedTitle>
 	<MoveSpeedIdle>If they are calm</MoveSpeedIdle>
@@ -75,6 +77,8 @@
 
 	<SpecialZombiesTitle>Özel zombiler</SpecialZombiesTitle>
 	<SuicideBomberChance>Intihar bombacısı zombileri</SuicideBomberChance>
+	<ToxicSplasherChance>Zehirli zombiler</ToxicSplasherChance>
+	<NormalZombieChance>Sıradan zombiler: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Miscellaneous</ZombieMiscTitle>
 	<UseCustomTextures>Use custom textures</UseCustomTextures>

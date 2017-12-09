@@ -41,9 +41,11 @@
 	<ZombiesOnTheMap>Zombies auf der Karte</ZombiesOnTheMap>
 	<MaximumNumberOfZombies>Nie mehr als</MaximumNumberOfZombies>
 	<Zombies>Zombies</Zombies>
+	<ColonyMultiplier>Koloniemultiplikator</ColonyMultiplier>
 
 	<ZombieEventTitle>Zombieangriff</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Zombies pro Kolonist</ZombiesPerColonistInEvent>
+	<ExtraDaysBetweenEvents>Extra Tage zwischen Angriffen</ExtraDaysBetweenEvents>
 
 	<ZombieSpeedTitle>Zombiegeschwindigkeit</ZombieSpeedTitle>
 	<MoveSpeedIdle>Wenn wandernt</MoveSpeedIdle>
@@ -75,6 +77,8 @@
 
 	<SpecialZombiesTitle>Spezielle Zombies</SpecialZombiesTitle>
 	<SuicideBomberChance>Zombies mit Selbstmordattacke</SuicideBomberChance>
+	<ToxicSplasherChance>Giftige Zombies</ToxicSplasherChance>
+	<NormalZombieChance>Normale Zombies: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>
 	<UseCustomTextures>Benutze Spezialtexturen</UseCustomTextures>

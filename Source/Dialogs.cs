@@ -37,7 +37,7 @@ namespace ZombieLand
 		protected override void DoFileInteraction(string fileName)
 		{
 			Close(true);
-			Tools.RemoveZombieland(fileName);
+			ZombieRemover.RemoveZombieland(fileName);
 		}
 
 		public override void PostClose()
@@ -46,6 +46,10 @@ namespace ZombieLand
 
 		public static void Save()
 		{
+			// for quick debugging
+			// ZombieRemover.RemoveZombieland(null);
+			// return;
+
 			Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation("ConfirmUninstallZombieland".Translate(), () =>
 			{
 				Find.WindowStack.currentlyDrawnWindow.Close();
@@ -91,6 +95,23 @@ namespace ZombieLand
 			Widgets.Label(rect, text);
 			Text.Anchor = anchor;
 			list.Gap(list.verticalSpacing * 3f);
+		}
+
+		public static void Dialog_Text(this Listing_Standard list, GameFont font, string text, params object[] args)
+		{
+			text = text.Translate(args);
+			var anchor = Text.Anchor;
+			Text.Anchor = TextAnchor.MiddleLeft;
+			var savedFont = Text.Font;
+			Text.Font = font;
+			var textHeight = Text.CalcHeight(text, list.ColumnWidth - 3f - inset) + 2 * 3f;
+			var rect = list.GetRect(textHeight).Rounded();
+			GUI.color = Color.white;
+			rect.xMin += inset;
+			Widgets.Label(rect, text);
+			Text.Anchor = anchor;
+			Text.Font = savedFont;
+			list.Gap(2 * list.verticalSpacing);
 		}
 
 		public static void Dialog_Button(this Listing_Standard list, string desc, string label, bool dangerous, Action action, bool addGap = true)
@@ -316,7 +337,10 @@ namespace ZombieLand
 
 			// Eating
 			list.Dialog_Label("SpecialZombiesTitle");
-			list.Dialog_FloatSlider("SuicideBomberChance", "0%", ref settings.suicideBomberChance, 0f, 1f);
+			list.Dialog_FloatSlider("SuicideBomberChance", "0%", ref settings.suicideBomberChance, 0f, 1f - settings.toxicSplasherChance);
+			list.Dialog_FloatSlider("ToxicSplasherChance", "0%", ref settings.toxicSplasherChance, 0f, 1f - settings.suicideBomberChance);
+			var normalChance = 1 - settings.suicideBomberChance - settings.toxicSplasherChance;
+			list.Dialog_Text(GameFont.Tiny, "NormalZombieChance", string.Format("{0:0%}", normalChance));
 
 			list.NewColumn();
 			list.ColumnWidth -= Listing.ColumnSpacing; // ----------------------------------------------------------
@@ -328,10 +352,12 @@ namespace ZombieLand
 			// Total
 			list.Dialog_Label("ZombiesOnTheMap");
 			list.Dialog_Integer("MaximumNumberOfZombies", "Zombies", 0, 5000, ref settings.maximumNumberOfZombies);
+			list.Dialog_FloatSlider("ColonyMultiplier", "0.0x", ref settings.colonyMultiplier, 1f, 10f);
 
 			// Events
 			list.Dialog_Label("ZombieEventTitle");
 			list.Dialog_Integer("ZombiesPerColonistInEvent", null, 0, 200, ref settings.baseNumberOfZombiesinEvent);
+			list.Dialog_Integer("ExtraDaysBetweenEvents", null, 0, 10000, ref settings.extraDaysBetweenEvents);
 
 			// Speed
 			list.Dialog_Label("ZombieSpeedTitle");

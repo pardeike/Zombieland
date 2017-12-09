@@ -1,4 +1,5 @@
 ﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -9,6 +10,14 @@ using Verse.AI;
 
 namespace ZombieLand
 {
+	[DefOf]
+	public static class CustomDefs
+	{
+		public static DamageDef SuicideBomb;
+		public static DamageDef ToxicSplatter;
+		public static SoundDef ZombiesClosingIn;
+	}
+
 	public class ZombielandMod : Mod
 	{
 		public static string Identifier = "";

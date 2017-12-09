@@ -41,9 +41,11 @@
 	<ZombiesOnTheMap>丧尸在地图上的数量</ZombiesOnTheMap>
 	<MaximumNumberOfZombies>最多</MaximumNumberOfZombies>
 	<Zombies>个丧尸</Zombies>
+	<ColonyMultiplier>殖民地倍增</ColonyMultiplier>
 
 	<ZombieEventTitle>丧尸事件</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>丧尸/每个殖民者</ZombiesPerColonistInEvent>
+	<ExtraDaysBetweenEvents>事件之间的额外的天</ExtraDaysBetweenEvents>
 
 	<ZombieSpeedTitle>丧尸速度</ZombieSpeedTitle>
 	<MoveSpeedIdle>丧尸平静时</MoveSpeedIdle>
@@ -75,6 +77,8 @@
 
 	<SpecialZombiesTitle>特殊僵尸</SpecialZombiesTitle>
 	<SuicideBomberChance>自杀攻击的僵尸</SuicideBomberChance>
+	<ToxicSplasherChance>有毒的僵尸</ToxicSplasherChance>
+	<NormalZombieChance>普通僵尸数: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>其他</ZombieMiscTitle>
 	<UseCustomTextures>使用自定义纹理</UseCustomTextures>

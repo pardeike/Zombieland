@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Verse;
 using Verse.AI;
+using Verse.Sound;
 
 namespace ZombieLand
 {
@@ -23,6 +24,9 @@ namespace ZombieLand
 		public List<Zombie> allZombiesCached;
 		public AvoidGrid avoidGrid;
 		public AvoidGrid emptyAvoidGrid;
+
+		Sustainer zombiesAmbientSound;
+		float zombiesAmbientSoundVolume;
 
 		public List<IntVec3> explosions = new List<IntVec3>();
 
@@ -113,8 +117,9 @@ namespace ZombieLand
 			var perColonistZombieCount = GenMath.LerpDouble(0f, 4f, 5, 30, (float)Math.Min(4, Math.Sqrt(colonists)));
 			var colonistMultiplier = Math.Sqrt(colonists) * 2;
 			var baseStrengthFactor = GenMath.LerpDouble(0, 1000, 1f, 4f, Math.Min(1000, currentColonyPoints));
+			var colonyMultiplier = ZombieSettings.Values.colonyMultiplier;
 			var difficultyMultiplier = Find.Storyteller.difficulty.threatScale;
-			var count = (int)(perColonistZombieCount * colonistMultiplier * baseStrengthFactor * difficultyMultiplier);
+			var count = (int)(perColonistZombieCount * colonistMultiplier * baseStrengthFactor * colonyMultiplier * difficultyMultiplier);
 			return Math.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
 		}
 
@@ -354,6 +359,27 @@ namespace ZombieLand
 			DequeuAndSpawnZombies();
 			UpdateZombieAvoider();
 			ExecuteExplosions();
+
+			var volume = 0f;
+			if (allZombiesCached.Any())
+			{
+				var hour = GenLocalDate.HourFloat(Find.VisibleMap);
+				if (hour < 12f) hour += 24f;
+				if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
+					volume = 1f;
+				else if (hour >= Constants.HOUR_START_OF_DUSK && hour <= Constants.HOUR_START_OF_NIGHT)
+					volume = GenMath.LerpDouble(Constants.HOUR_START_OF_DUSK, Constants.HOUR_START_OF_NIGHT, 0f, 1f, hour);
+				else if (hour >= Constants.HOUR_END_OF_NIGHT && hour <= Constants.HOUR_START_OF_DAWN)
+					volume = GenMath.LerpDouble(Constants.HOUR_END_OF_NIGHT, Constants.HOUR_START_OF_DAWN, 1f, 0f, hour);
+			}
+			if (zombiesAmbientSound == null)
+				zombiesAmbientSound = CustomDefs.ZombiesClosingIn.TrySpawnSustainer(SoundInfo.OnCamera(MaintenanceType.None));
+
+			if (volume < zombiesAmbientSoundVolume)
+				zombiesAmbientSoundVolume -= 0.0001f;
+			else if (volume > zombiesAmbientSoundVolume)
+				zombiesAmbientSoundVolume += 0.0001f;
+			zombiesAmbientSound.info.volumeFactor = zombiesAmbientSoundVolume;
 		}
 	}
 }

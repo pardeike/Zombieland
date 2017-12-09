@@ -165,4 +165,57 @@
 		</subSounds>
 	</SoundDef>
 
+	<SoundDef>
+		<defName>ToxicSplash</defName>
+		<context>MapOnly</context>
+		<maxSimultaneous>1</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>true</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>toxicSplash</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>90</min>
+					<max>90</max>
+				</volumeRange>
+				<distRange>
+					<min>1000</min>
+					<max>10000</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ZombiesClosingIn</defName>
+		<sustain>True</sustain>
+		<context>MapOnly</context>
+		<eventNames />
+		<priorityMode>PrioritizeNearest</priorityMode>
+		<subSounds>
+			<li>
+				<name>main</name>
+				<onCamera>True</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>zombiesClosingIn</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>75</min>
+					<max>75</max>
+				</volumeRange>
+				<paramMappings>
+					<li>
+						<inParam Class="SoundParamSource_AmbientVolume" />
+						<outParam Class="SoundParamTarget_Volume" />
+					</li>
+				</paramMappings>
+			</li>
+		</subSounds>
+	</SoundDef>
+
 </Defs>

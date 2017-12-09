@@ -37,4 +37,16 @@
 		<explosionHeatEnergyPerCell>0</explosionHeatEnergyPerCell>
 	</DamageDef>
 
+	<DamageDef Name="ToxicSplatter">
+		<defName>ToxicSplatter</defName>
+		<label>smoke</label>
+		<canInterruptJobs>false</canInterruptJobs>
+		<makesBlood>false</makesBlood>
+		<explosionDamage>0</explosionDamage>
+		<explosionCellMote>Mote_BlastDry</explosionCellMote>
+		<explosionColorCenter>(0, 1, 0, 1)</explosionColorCenter>
+		<explosionColorEdge>(0, 1, 0, 0.1)</explosionColorEdge>
+		<harmsHealth>false</harmsHealth>
+	</DamageDef>
+
 </Defs>

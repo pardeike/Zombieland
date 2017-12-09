@@ -4,14 +4,6 @@ using Verse;
 
 namespace ZombieLand
 {
-	public class BombVest : Apparel { }
-
-	[DefOf]
-	public static class DamageDefOf
-	{
-		public static DamageDef SuicideBomb;
-	}
-
 	[StaticConstructorOnStartup]
 	class Explosion
 	{
@@ -42,7 +34,7 @@ namespace ZombieLand
 
 		public SuicideBombDamage()
 		{
-			var baseDef = DamageDefOf.SuicideBomb;
+			var baseDef = CustomDefs.SuicideBomb;
 			Traverse.IterateFields(baseDef, this, (from, to) => { to.SetValue(from.GetValue()); });
 
 			explosionDamage = ScaledValueBetween(8, 120);

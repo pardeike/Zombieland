@@ -9,6 +9,7 @@ namespace ZombieLand
 	{
 		VariableMaterial[] mats = new VariableMaterial[3];
 		int hash;
+		public string bodyColor;
 
 		public string GraphicPath => path;
 		public override Material MatSingle => mats[2].GetMaterial;
@@ -29,7 +30,6 @@ namespace ZombieLand
 			hash = Gen.HashCombineStruct(hash, color);
 			hash = Gen.HashCombineStruct(hash, colorTwo);
 
-			var bodyColor = GraphicToolbox.RandomSkinColorString();
 			mats = new ColorData[]
 			{
 				GraphicsDatabase.GetColorData(req.path + "_back", bodyColor, true),

@@ -41,9 +41,11 @@
 	<ZombiesOnTheMap>Зомби на карте</ZombiesOnTheMap>
 	<MaximumNumberOfZombies>Небольше чем</MaximumNumberOfZombies>
 	<Zombies>Зомби</Zombies>
+	<ColonyMultiplier>Множитель колоний</ColonyMultiplier>
 
 	<ZombieEventTitle>Зомби-происшествие</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Кол-во зомби на одного колониста</ZombiesPerColonistInEvent>
+	<ExtraDaysBetweenEvents>Дополнительные дни между событиями</ExtraDaysBetweenEvents>
 
 	<ZombieSpeedTitle>Скорость зомби</ZombieSpeedTitle>
 	<MoveSpeedIdle>В спокойном состоянии</MoveSpeedIdle>
@@ -75,6 +77,8 @@
 
 	<SpecialZombiesTitle>Уникальные зомби</SpecialZombiesTitle>
 	<SuicideBomberChance>Зомби-смертники</SuicideBomberChance>
+	<ToxicSplasherChance>Ядовитые зомби</ToxicSplasherChance>
+	<NormalZombieChance>Обычные зомби: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Разное</ZombieMiscTitle>
 	<UseCustomTextures>Использовать текстуры дополнения для зомби</UseCustomTextures>

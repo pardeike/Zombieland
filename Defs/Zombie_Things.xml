@@ -31,4 +31,24 @@
 		</apparel>
 	</ThingDef>
 
+	<ThingDef ParentName="BaseFilth">
+		<defName>StickyGoo</defName>
+		<thingClass>ZombieLand.StickyGoo</thingClass>
+		<label>zombie goo</label>
+		<statBases>
+			<Beauty>-5</Beauty>
+			<Cleanliness>-5</Cleanliness>
+		</statBases>
+		<graphicData>
+			<texPath>StickyGoo</texPath>
+			<color>(0, 255, 0, 192)</color>
+		</graphicData>
+		<pathCost>100</pathCost>
+		<filth>
+			<rainWashes>true</rainWashes>
+			<cleaningWorkToReduceThickness>100</cleaningWorkToReduceThickness>
+			<canFilthAttach>true</canFilthAttach>
+		</filth>
+	</ThingDef>
+
 </Defs>

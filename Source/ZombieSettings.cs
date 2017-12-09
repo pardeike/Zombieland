@@ -54,8 +54,11 @@ namespace ZombieLand
 		public bool zombiesDieVeryEasily;
 		public int daysBeforeZombiesCome = 3;
 		public int maximumNumberOfZombies = 500;
+		public float colonyMultiplier = 1f;
 		public int baseNumberOfZombiesinEvent = 20;
-		public float suicideBomberChance = 0.1f;
+		internal int extraDaysBetweenEvents = 0;
+		public float suicideBomberChance = 0.05f;
+		public float toxicSplasherChance = 0.05f;
 		public float moveSpeedIdle = 0.2f;
 		public float moveSpeedTracking = 1.3f;
 		public float damageFactor = 1.0f;

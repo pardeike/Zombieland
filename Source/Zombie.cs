@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
@@ -33,6 +34,7 @@ namespace ZombieLand
 		public bool bombWillGoOff;
 		public int lastBombTick;
 		public float bombTickingInterval = -1f;
+		public bool isToxicSplasher = false;
 
 		bool disposed;
 		public VariableGraphic customHeadGraphic; // not saved
@@ -64,6 +66,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref wasColonist, "wasColonist");
 			Scribe_Values.Look(ref bombWillGoOff, "bombWillGoOff");
 			Scribe_Values.Look(ref bombTickingInterval, "bombTickingInterval");
+			Scribe_Values.Look(ref isToxicSplasher, "toxicSplasher");
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
@@ -131,8 +134,11 @@ namespace ZombieLand
 				var vestDef = ThingDef.Named("Apparel_BombVest");
 				Drawer.renderer.graphics.apparelGraphics.RemoveAll(record => record.sourceApparel?.def == vestDef);
 
-				Map.GetComponent<TickManager>().AddExplosion(Position);
+				Map.GetComponent<TickManager>()?.AddExplosion(Position);
 			}
+
+			if (isToxicSplasher)
+				DropStickyGoo();
 
 			base.Kill(dinfo, exactCulprit);
 		}
@@ -154,6 +160,27 @@ namespace ZombieLand
 			typeof(bool),
 			typeof(bool)
 		};
+
+		void DropStickyGoo()
+		{
+			var pos = Position;
+			var map = Map;
+			var amount = (int)story.bodyType + Find.Storyteller.difficulty.difficulty; // max 10
+			var maxRadius = 0f;
+			var count = (int)GenMath.LerpDouble(0, 10, 2, 30, amount);
+			var hasFilth = 0;
+			for (var i = 0; i < count; i++)
+			{
+				var n = (int)GenMath.LerpDouble(0, 10, 1, 4, amount);
+				var vec = new IntVec3(Rand.Range(-n, n), 0, Rand.Range(-n, n));
+				var r = vec.LengthHorizontalSquared;
+				if (r > maxRadius) maxRadius = r;
+				if (FilthMaker.MakeFilth(pos + vec, map, ThingDef.Named("StickyGoo"), NameStringShort))
+					hasFilth++;
+			}
+			if (hasFilth >= 6)
+				GenExplosion.DoExplosion(pos, map, (float)Math.Max(0.5f, Math.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, SoundDef.Named("ToxicSplash"));
+		}
 
 		void HandleRubble()
 		{

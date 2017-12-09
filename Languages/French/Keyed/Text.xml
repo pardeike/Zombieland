@@ -41,9 +41,11 @@
 	<ZombiesOnTheMap>Zombies sur la carte</ZombiesOnTheMap>
 	<MaximumNumberOfZombies>Jamais plus de</MaximumNumberOfZombies>
 	<Zombies>Zombies</Zombies>
+	<ColonyMultiplier>Multiplicateur de colonies</ColonyMultiplier>
 
 	<ZombieEventTitle>Apparition de Zombie</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Zombies par colon</ZombiesPerColonistInEvent>
+	<ExtraDaysBetweenEvents>Jours supplémentaires entre les événements</ExtraDaysBetweenEvents>
 
 	<ZombieSpeedTitle>Vitesse des Zombies</ZombieSpeedTitle>
 	<MoveSpeedIdle>Si ils sont calmes</MoveSpeedIdle>
@@ -75,6 +77,8 @@
 
 	<SpecialZombiesTitle>Zombies spéciaux</SpecialZombiesTitle>
 	<SuicideBomberChance>Les zombies de Kamikaze</SuicideBomberChance>
+	<ToxicSplasherChance>Zombies vénéneux</ToxicSplasherChance>
+	<NormalZombieChance>Zombies ordinaires: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Divers</ZombieMiscTitle>
 	<UseCustomTextures>Utiliser des textures personnalisées </UseCustomTextures>

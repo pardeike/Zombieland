@@ -12,6 +12,9 @@ using Verse.AI;
 
 namespace ZombieLand
 {
+	public class BombVest : Apparel { }
+	public class StickyGoo : Filth { }
+
 	class Patches
 	{
 		// used to prevent zombies from being counted as hostiles
@@ -68,7 +71,9 @@ namespace ZombieLand
 				if (ZombieSettings.Values.betterZombieAvoidance == false) return;
 
 				var map = Find.VisibleMap;
-				var avoidGrid = map.GetComponent<TickManager>().avoidGrid;
+				var tickManager = map.GetComponent<TickManager>();
+				if (tickManager == null) return;
+				var avoidGrid = tickManager.avoidGrid;
 
 				var currentViewRect = Find.CameraDriver.CurrentViewRect;
 				currentViewRect.ClipInsideMap(map);
@@ -117,6 +122,7 @@ namespace ZombieLand
 				if (map == null) return;
 
 				var tickManager = map.GetComponent<TickManager>();
+				if (tickManager == null) return;
 				var count = tickManager.ZombieCount();
 				if (count == 0) return;
 				var zombieCountString = count + " Zombies";
@@ -629,9 +635,9 @@ namespace ZombieLand
 		[HarmonyPatch(typeof(PathFinder))]
 		[HarmonyPatch("FindPath")]
 		[HarmonyPatch(new Type[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(TraverseParms), typeof(PathEndMode) })]
-		static class PathFinder_FindPath_Patch
+		public static class PathFinder_FindPath_Patch
 		{
-			static Dictionary<Map, TickManager> tickManagerCache = new Dictionary<Map, TickManager>();
+			public static Dictionary<Map, TickManager> tickManagerCache = new Dictionary<Map, TickManager>();
 
 			// infected colonists will still path so exclude them from this check
 			// by returning 0 - currently disabled because it does cost too much
@@ -644,6 +650,7 @@ namespace ZombieLand
 				if (tickManagerCache.TryGetValue(map, out tickManager) == false)
 				{
 					tickManager = map.GetComponent<TickManager>();
+					if (tickManager == null) return 0;
 					tickManagerCache[map] = tickManager;
 				}
 				if (tickManager.avoidGrid == null) return 0;
@@ -695,7 +702,9 @@ namespace ZombieLand
 				if ((lookAhead - destination).LengthHorizontalSquared < 25) return false;
 
 				var map = pawn.Map;
-				var costs = map.GetComponent<TickManager>().avoidGrid.GetCosts();
+				var tickManager = map.GetComponent<TickManager>();
+				if (tickManager == null) return false;
+				var costs = tickManager.avoidGrid.GetCosts();
 				var zombieDanger = costs[lookAhead.x + lookAhead.z * map.Size.x];
 				return (zombieDanger > 0);
 			}
@@ -770,6 +779,7 @@ namespace ZombieLand
 				var pos = UI.MouseCell();
 
 				var tickManager = map.GetComponent<TickManager>();
+				if (tickManager == null) return;
 				var center = Tools.CenterOfInterest(map);
 				builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount());
@@ -883,6 +893,8 @@ namespace ZombieLand
 
 			static void Postfix(FactionManager __instance)
 			{
+				if (Scribe.mode == LoadSaveMode.Saving) return;
+
 				var factions = factionManagerAllFactions(__instance);
 				var factionDefs = factions.Select(f => f.def).ToList();
 				if (factionDefs.Contains(ZombieDefOf.Zombies) == false)
@@ -951,6 +963,17 @@ namespace ZombieLand
 
 						if (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists)
 							if (pawn.IsColonist == false) return;
+					}
+
+					// apply toxic splatter damage
+					var toxity = 0.15f * pawn.GetStatValue(StatDefOf.ToxicSensitivity, true);
+					if (toxity > 0f)
+					{
+						var stickyGooDef = ThingDef.Named("StickyGoo");
+						pawn.Position.GetThingList(pawn.Map).Where(thing => thing.def == stickyGooDef).Do(thing =>
+						{
+							HealthUtility.AdjustSeverity(pawn, HediffDefOf.ToxicBuildup, toxity);
+						});
 					}
 
 					if (Tools.HasInfectionState(pawn, InfectionState.Infecting) == false)
@@ -1373,6 +1396,31 @@ namespace ZombieLand
 
 		// patch for rendering zombies
 		//
+		[HarmonyPatch(typeof(PawnRenderer))]
+		[HarmonyPatch("RenderPawnInternal")]
+		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(Quaternion), typeof(bool), typeof(Rot4), typeof(Rot4), typeof(RotDrawMode), typeof(bool), typeof(bool) })]
+		static class PawnRenderer_RenderPawnInternal_Patch
+		{
+			static Vector3 toxicAuraOffset = new Vector3(0f, 0f, 0.1f);
+			static Quaternion leanLeft = Quaternion.AngleAxis(-15, Vector3.up);
+			static Quaternion leanRight = Quaternion.AngleAxis(15, Vector3.up);
+
+			[HarmonyPriority(Priority.First)]
+			static void Postfix(PawnRenderer __instance, Vector3 rootLoc, Quaternion quat, bool renderBody)
+			{
+				var zombie = __instance.graphics.pawn as Zombie;
+				if (zombie != null && zombie.isToxicSplasher && renderBody && zombie.state != ZombieState.Emerging)
+				{
+					var idx = ((Find.TickManager.TicksGame + zombie.thingIDNumber) / 10) % 8;
+					if (idx >= 5) idx = 8 - idx;
+					var rot = Quaternion.identity;
+					if (zombie.Rotation == Rot4.West) rot = leanLeft;
+					if (zombie.Rotation == Rot4.East) rot = leanRight;
+					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.TOXIC_AURAS[idx], rootLoc + toxicAuraOffset, quat * rot, 1f, 1f);
+				}
+			}
+		}
+
 		[HarmonyPatch(typeof(PawnRenderer))]
 		[HarmonyPatch("RenderPawnAt")]
 		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(RotDrawMode), typeof(bool) })]
@@ -2457,33 +2505,6 @@ namespace ZombieLand
 		[HarmonyPatch("PreApplyDamage")]
 		static class Pawn_HealthTracker_PreApplyDamage_Patch
 		{
-			/*static void Prefix(Pawn_HealthTracker __instance)
-			{
-				var pawn = Traverse.Create(__instance).Field("pawn").GetValue<Pawn>();
-				if (pawn.mindState == null)
-					Log.Error(pawn + " has null mindstate");
-				if (pawn.jobs == null)
-					Log.Error(pawn + " has null jobs");
-				if (pawn.MapHeld == null)
-					Log.Error(pawn + " has null MapHeld");
-				if (pawn.MapHeld.damageWatcher == null)
-					Log.Error(pawn + " has null MapHeld.damageWatcher");
-				if (pawn.apparel != null && pawn.apparel.WornApparel == null)
-					Log.Error(pawn + " has null apparel.WornApparel");
-				if (pawn.stances == null)
-					Log.Error(pawn + " has null stances");
-				if (pawn.relations == null)
-					Log.Error(pawn + " has null relations");
-				if (pawn.needs == null)
-					Log.Error(pawn + " has null needs");
-				if (pawn.needs.mood == null)
-					Log.Error(pawn + " has null needs.mood");
-				if (pawn.needs.mood.thoughts == null)
-					Log.Error(pawn + " has null needs.mood.thoughts");
-				if (pawn.needs.mood.thoughts.memories == null)
-					Log.Error(pawn + " has null needs.mood.thoughts.memories");
-			}*/
-
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
 				var m_TryGainMemory = typeof(MemoryThoughtHandler).Method("TryGainMemory", new Type[] { typeof(ThoughtDef), typeof(Pawn) });
@@ -2518,6 +2539,20 @@ namespace ZombieLand
 					yield return instruction;
 
 				if (!found1 || !found2) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+			}
+		}
+		[HarmonyPatch(typeof(Verb_MeleeAttackBase))]
+		[HarmonyPatch("TryCastShot")]
+		static class Verb_MeleeAttackBase_TryCastShot_Patch
+		{
+			static bool Prefix(Verb_MeleeAttackBase __instance, ref bool __result)
+			{
+				if (__instance.CasterPawn.Map == null)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
 			}
 		}
 

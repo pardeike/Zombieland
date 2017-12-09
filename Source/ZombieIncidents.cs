@@ -24,7 +24,7 @@ namespace ZombieLand
 
 		public void Update(float deltaDays)
 		{
-			nextIncident = GenTicks.TicksAbs + (int)(GenDate.TicksPerDay * deltaDays);
+			nextIncident = GenTicks.TicksAbs + (int)(GenDate.TicksPerDay * deltaDays) + ZombieSettings.Values.extraDaysBetweenEvents;
 		}
 
 		public void ExposeData()
@@ -39,6 +39,7 @@ namespace ZombieLand
 		public static int daysBeforeZombies;
 		public static int maxNumberOfZombies;
 		public static int numberOfZombiesPerColonist;
+		public static float colonyMultiplier;
 
 		public static int capableColonists;
 		public static int totalColonistCount;
@@ -70,6 +71,8 @@ namespace ZombieLand
 		public static int ZombiesForNewIncident(Map map)
 		{
 			var tickManager = map.GetComponent<TickManager>();
+			if (tickManager == null) return 0;
+
 			var info = tickManager.incidentInfo;
 			var ticksNow = GenTicks.TicksAbs;
 			ZRdebug.capableColonists = Tools.CapableColonists(map);
@@ -81,6 +84,7 @@ namespace ZombieLand
 			ZRdebug.storytellerDifficulty = Find.Storyteller.difficulty.difficulty;
 			ZRdebug.currentZombieCount = tickManager.AllZombies().Count();
 			ZRdebug.numberOfZombiesPerColonist = ZombieSettings.Values.baseNumberOfZombiesinEvent;
+			ZRdebug.colonyMultiplier = ZombieSettings.Values.colonyMultiplier;
 			ZRdebug.maxBaseLevelZombies = tickManager.GetMaxZombieCount();
 			ZRdebug.extendedCount = 0;
 			ZRdebug.maxNumberOfZombies = ZombieSettings.Values.maximumNumberOfZombies;
@@ -141,7 +145,7 @@ namespace ZombieLand
 				}
 			}
 			ZRdebug.maxAdditionalZombies = Math.Max(0, ZRdebug.maxBaseLevelZombies - ZRdebug.currentZombieCount);
-			ZRdebug.calculatedZombies = ZRdebug.capableColonists * ZRdebug.numberOfZombiesPerColonist;
+			ZRdebug.calculatedZombies = (int)(ZRdebug.capableColonists * ZRdebug.numberOfZombiesPerColonist * ZRdebug.colonyMultiplier);
 			ZRdebug.incidentSize = Math.Min(ZRdebug.maxAdditionalZombies, ZRdebug.calculatedZombies);
 			if (ZRdebug.incidentSize == 0)
 			{
@@ -191,6 +195,7 @@ namespace ZombieLand
 				if (ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap)
 				{
 					var tickManager = map.GetComponent<TickManager>();
+					if (tickManager == null) return false;
 					var center = tickManager != null ? tickManager.centerOfInterest : IntVec3.Invalid;
 					if (center.IsValid == false)
 						center = Tools.CenterOfInterest(map);

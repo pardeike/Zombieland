@@ -31,9 +31,9 @@ namespace ZombieLand
 
 				if (path.StartsWith("Zombie/", System.StringComparison.Ordinal))
 				{
-					if (zombieRGBSkinColors.Count == 0) 
+					if (zombieRGBSkinColors.Count == 0)
 						throw new Exception("zombieRGBSkinColors not initialized");
-					
+
 					zombieRGBSkinColors.Do(hex =>
 					{
 						var pixels = originalPixels.Clone() as Color[];
@@ -50,8 +50,25 @@ namespace ZombieLand
 						var data = new ColorData(width, height, pixels);
 						colorDataDatabase.Add(path + "#" + hex, data);
 					});
+
+					// add toxic green too
+					{
+						var pixels = originalPixels.Clone() as Color[];
+						var color = Color.green;
+						for (var i = 0; i < pixels.Length; i++)
+						{
+							// Linear burn gives best coloring results
+							//
+							Tools.ColorBlend(ref pixels[i].r, color.r);
+							Tools.ColorBlend(ref pixels[i].g, color.g);
+							Tools.ColorBlend(ref pixels[i].b, color.b);
+						}
+
+						var data = new ColorData(width, height, pixels);
+						colorDataDatabase.Add(path + "#toxic", data);
+					}
 				}
-				else 
+				else
 				{
 					var data = new ColorData(width, height, originalPixels);
 					colorDataDatabase.Add(path, data);
@@ -77,11 +94,11 @@ namespace ZombieLand
 			var h = colors.height / 9;
 			for (var x = 1; x <= 7; x += 2)
 				for (var y = 1; y <= 7; y += 2)
-			{
-				var c = colors.GetPixel(x * w, y * h);
-				var hexColor = string.Format("{0:x02}{1:x02}{2:x02}", (int)(c.r * 255), (int)(c.g * 255), (int)(c.b * 255));
-				zombieRGBSkinColors.Add(hexColor);
-			}
+				{
+					var c = colors.GetPixel(x * w, y * h);
+					var hexColor = string.Format("{0:x02}{1:x02}{2:x02}", (int)(c.r * 255), (int)(c.g * 255), (int)(c.b * 255));
+					zombieRGBSkinColors.Add(hexColor);
+				}
 		}
 
 		public static Texture2D ToTexture(this ColorData data)
