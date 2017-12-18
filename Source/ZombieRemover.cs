@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
-using Verse.AI;
 using Verse.Profile;
 using static ZombieLand.Patches;
 
@@ -84,6 +83,10 @@ namespace ZombieLand
 
 			map.zoneManager.AllZones.OfType<Zone_Stockpile>()
 				.Select(pile => pile?.settings?.filter).ToList()
+				.Do(RemoveFromFilter);
+
+			map.slotGroupManager.AllGroups
+				.Select(slot => slot.Settings.filter)
 				.Do(RemoveFromFilter);
 
 			map.listerThings.AllThings.OfType<Building_WorkTable>().SelectMany(table => table?.billStack?.Bills ?? new List<Bill>())

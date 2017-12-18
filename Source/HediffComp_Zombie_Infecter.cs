@@ -92,7 +92,7 @@ namespace ZombieLand
 			if (tendQuality < Props.minBedTendQualityToAvoidInfection)
 				return;
 
-			bed.TryGetQuality(out QualityCategory bedQuality);
+			bed.TryGetQuality(out var bedQuality);
 			if (bedQuality < Props.minBedQualityToAvoidInfection)
 				return;
 

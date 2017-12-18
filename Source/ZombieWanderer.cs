@@ -298,7 +298,7 @@ namespace ZombieLand
 
 		public MapInfo GetMapInfo(Map map)
 		{
-			if (grids.TryGetValue(map, out MapInfo result) == false)
+			if (grids.TryGetValue(map, out var result) == false)
 			{
 				result = new MapInfo(map);
 				grids[map] = result;

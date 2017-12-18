@@ -84,6 +84,7 @@
 	<UseCustomTextures>Benutze Spezialtexturen</UseCustomTextures>
 	<ReplaceTwinkie>Überlebensrationen mit Twinkies ersetzen</ReplaceTwinkie>
 	<ZombiesTriggerDangerMusic>Zombies beeinflussen die Kampfmusik</ZombiesTriggerDangerMusic>
+	<PlayCreepyAmbientSound>Gruseliger Hintergrundton während der Nacht</PlayCreepyAmbientSound>
 	<BetterZombieAvoidance>Automatische Vermeidung von Zombies</BetterZombieAvoidance>
 	<ZombiesDropBlood>Zombies hinterlassen Blut</ZombiesDropBlood>
 

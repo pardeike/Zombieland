@@ -84,6 +84,7 @@
 	<UseCustomTextures>使用自定義紋理</UseCustomTextures>
 	<ReplaceTwinkie>將生存食品改為Twinkies</ReplaceTwinkie>
 	<ZombiesTriggerDangerMusic>喪屍襲擊危險音樂</ZombiesTriggerDangerMusic>
+	<PlayCreepyAmbientSound>晚上播放令人毛骨悚然的環境聲</PlayCreepyAmbientSound>
 	<BetterZombieAvoidance>自動回避喪屍</BetterZombieAvoidance>
 	<ZombiesDropBlood>喪屍流血</ZombiesDropBlood>
 

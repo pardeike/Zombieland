@@ -8,56 +8,57 @@ using Verse.Sound;
 
 namespace ZombieLand
 {
+	public class IncidentParameters
+	{
+		public string spawnMode = "";
+		public int daysBeforeZombies;
+		public int maxNumberOfZombies;
+		public int numberOfZombiesPerColonist;
+		public float colonyMultiplier;
+
+		public int capableColonists;
+		public int totalColonistCount;
+		public int minimumCapableColonists;
+		public float daysPassed;
+		public int storytellerDifficulty;
+		public int currentZombieCount;
+		public int maxBaseLevelZombies;
+		public int extendedCount;
+		public int maxAdditionalZombies;
+		public int calculatedZombies;
+		public float rampUpDays;
+		public float scaleFactor;
+		public float daysStretched;
+
+		public float deltaDays;
+		public int incidentSize;
+		public string skipReason = "";
+	}
+
 	public class IncidentInfo : IExposable
 	{
-		int nextIncident;
+		int lastIncident;
+		public IncidentParameters parameters = new IncidentParameters();
 
-		public int NextIncident
+		public int NextIncident()
 		{
-			get
-			{
-				if (nextIncident == 0)
-					nextIncident = GenTicks.TicksAbs + (int)(GenDate.TicksPerDay * (ZombieSettings.Values.daysBeforeZombiesCome + Rand.Range(1f, 2f)));
-				return nextIncident;
-			}
+			var startEvent = (int)(GenDate.TicksPerDay * (parameters.daysBeforeZombies + Rand.Range(0f, 1f)));
+			var followEvent = lastIncident + (int)(GenDate.TicksPerDay * parameters.deltaDays);
+			return Math.Max(startEvent, followEvent);
 		}
 
-		public void Update(float deltaDays)
+		public void Update()
 		{
-			nextIncident = GenTicks.TicksAbs + (int)(GenDate.TicksPerDay * deltaDays) + ZombieSettings.Values.extraDaysBetweenEvents;
+			lastIncident = GenTicks.TicksAbs;
 		}
 
 		public void ExposeData()
 		{
-			Scribe_Values.Look(ref nextIncident, "nextIncident");
+			Scribe_Values.Look(ref lastIncident, "lastIncident");
+
+			if (parameters == null)
+				parameters = new IncidentParameters();
 		}
-	}
-
-	public static class ZRdebug
-	{
-		public static string spawnMode = "";
-		public static int daysBeforeZombies;
-		public static int maxNumberOfZombies;
-		public static int numberOfZombiesPerColonist;
-		public static float colonyMultiplier;
-
-		public static int capableColonists;
-		public static int totalColonistCount;
-		public static int minimumCapableColonists;
-		public static float daysPassed;
-		public static int storytellerDifficulty;
-		public static int currentZombieCount;
-		public static int maxBaseLevelZombies;
-		public static int extendedCount;
-		public static int maxAdditionalZombies;
-		public static int calculatedZombies;
-		public static float rampUpDays;
-		public static float scaleFactor;
-		public static float dayStretchFactor;
-
-		public static float deltaDays;
-		public static int incidentSize;
-		public static string skipReason = "";
 	}
 
 	public static class ZombiesRising
@@ -68,102 +69,117 @@ namespace ZombieLand
 			public static DifficultyDef Peaceful;
 		}
 
-		public static int ZombiesForNewIncident(Map map)
+		public static bool ZombiesForNewIncident(TickManager tickManager)
 		{
-			var tickManager = map.GetComponent<TickManager>();
-			if (tickManager == null) return 0;
-
 			var info = tickManager.incidentInfo;
-			var ticksNow = GenTicks.TicksAbs;
-			ZRdebug.capableColonists = Tools.CapableColonists(map);
-			ZRdebug.daysBeforeZombies = ZombieSettings.Values.daysBeforeZombiesCome;
-			ZRdebug.totalColonistCount = map.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction.OfPlayer).Count();
-			ZRdebug.minimumCapableColonists = (ZRdebug.totalColonistCount + 1) / 3;
-			ZRdebug.daysPassed = GenDate.DaysPassedFloat;
-			ZRdebug.spawnMode = ZombieSettings.Values.spawnWhenType.ToString();
-			ZRdebug.storytellerDifficulty = Find.Storyteller.difficulty.difficulty;
-			ZRdebug.currentZombieCount = tickManager.AllZombies().Count();
-			ZRdebug.numberOfZombiesPerColonist = ZombieSettings.Values.baseNumberOfZombiesinEvent;
-			ZRdebug.colonyMultiplier = ZombieSettings.Values.colonyMultiplier;
-			ZRdebug.maxBaseLevelZombies = tickManager.GetMaxZombieCount();
-			ZRdebug.extendedCount = 0;
-			ZRdebug.maxNumberOfZombies = ZombieSettings.Values.maximumNumberOfZombies;
-			ZRdebug.maxAdditionalZombies = 0;
-			ZRdebug.calculatedZombies = 0;
-			ZRdebug.incidentSize = 0;
-			ZRdebug.rampUpDays = GenMath.LerpDouble(1, 5, 40, 0, Math.Max(1, ZRdebug.storytellerDifficulty));
-			ZRdebug.scaleFactor = Tools.Boxed(GenMath.LerpDouble(ZRdebug.daysBeforeZombies, ZRdebug.daysBeforeZombies + ZRdebug.rampUpDays, 0.2f, 1f, ZRdebug.daysPassed), 0.2f, 1f);
-			ZRdebug.dayStretchFactor = 0;
-			ZRdebug.deltaDays = 0;
-			ZRdebug.skipReason = "";
+			if (info == null) return false;
+
+			if (tickManager.incidentInfo == null)
+				tickManager.incidentInfo = new IncidentInfo();
+			if (tickManager.incidentInfo.parameters == null)
+				tickManager.incidentInfo.parameters = new IncidentParameters();
+			var parameters = tickManager.incidentInfo.parameters;
+
+			parameters.capableColonists = Tools.CapableColonists(tickManager.map);
+			parameters.daysBeforeZombies = ZombieSettings.Values.daysBeforeZombiesCome;
+			parameters.totalColonistCount = tickManager.map.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction.OfPlayer).Count();
+			parameters.minimumCapableColonists = (parameters.totalColonistCount + 1) / 3;
+			parameters.daysPassed = GenDate.DaysPassedFloat;
+			parameters.spawnMode = ZombieSettings.Values.spawnWhenType.ToString();
+			parameters.storytellerDifficulty = Find.Storyteller.difficulty.difficulty;
+			parameters.currentZombieCount = tickManager.AllZombies().Count();
+			parameters.numberOfZombiesPerColonist = ZombieSettings.Values.baseNumberOfZombiesinEvent;
+			parameters.colonyMultiplier = ZombieSettings.Values.colonyMultiplier;
+			parameters.maxBaseLevelZombies = tickManager.GetMaxZombieCount();
+			parameters.extendedCount = 0;
+			parameters.maxNumberOfZombies = ZombieSettings.Values.maximumNumberOfZombies;
+			parameters.maxAdditionalZombies = 0;
+			parameters.calculatedZombies = 0;
+			parameters.incidentSize = 0;
+			parameters.rampUpDays = GenMath.LerpDouble(1, 5, 40, 0, Math.Max(1, Find.Storyteller.difficulty.difficulty));
+			//parameters.scaleFactor = Tools.Boxed(GenMath.LerpDouble(parameters.daysBeforeZombies, parameters.daysBeforeZombies + parameters.rampUpDays, 0.2f, 1f, GenDate.DaysPassedFloat), 0.2f, 1f);
+			//parameters.daysStretched = 0;
+			parameters.deltaDays = 0;
+			parameters.skipReason = "-";
 
 			// zombie free days
-			if (ZRdebug.daysPassed <= ZRdebug.daysBeforeZombies)
+			if (parameters.daysPassed <= parameters.daysBeforeZombies)
 			{
-				ZRdebug.skipReason = "waiting for zombies";
-				return 0;
+				parameters.skipReason = "waiting for zombies";
+				return false;
 			}
 
 			// outside night period
 			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.WhenDark)
 			{
-				var hour = GenLocalDate.HourOfDay(map);
+				var hour = GenLocalDate.HourOfDay(tickManager.map);
 				if (hour < 12) hour += 24;
 
 				if (hour < Constants.HOUR_START_OF_NIGHT || hour > Constants.HOUR_END_OF_NIGHT)
 				{
-					ZRdebug.skipReason = "outside night period";
-					return 0;
+					parameters.skipReason = "outside night period";
+					return false;
 				}
 			}
 
 			// too few capable colonists (only in difficulty lower than Intense)
-			if (ZRdebug.storytellerDifficulty < DifficultyDefOf.Hard.difficulty)
+			if (parameters.storytellerDifficulty < DifficultyDefOf.Hard.difficulty)
 			{
-				if (ZRdebug.capableColonists <= ZRdebug.minimumCapableColonists)
+				if (parameters.capableColonists < parameters.minimumCapableColonists)
 				{
-					ZRdebug.skipReason = "too few capable colonists";
-					return 0;
+					parameters.skipReason = "too few capable colonists";
+					return false;
 				}
 			}
 
-			// not yet time for next incident
-			if (ticksNow < info.NextIncident)
+			if (parameters.daysStretched == 0)
 			{
-				ZRdebug.skipReason = "wait " + (info.NextIncident - ticksNow).ToStringTicksToPeriod();
-				return 0;
+				var stretchFactor = 1f + parameters.incidentSize / 150f;
+				parameters.daysStretched = Rand.Range(1.5f * stretchFactor, 4f * stretchFactor);
+			}
+			parameters.deltaDays = parameters.daysStretched + ZombieSettings.Values.extraDaysBetweenEvents;
+
+			// not yet time for next incident
+			var ticksNow = GenTicks.TicksAbs;
+			var ticksNextIncident = tickManager.incidentInfo.NextIncident();
+			if (ticksNow < ticksNextIncident)
+			{
+				parameters.skipReason = "wait " + (ticksNextIncident - ticksNow).ToStringTicksToPeriod();
+				return false;
 			}
 
 			// too little new zombies
 			if (Rand.Chance(1f / 24f) && Find.Storyteller.difficulty.allowBigThreats)
 			{
-				ZRdebug.extendedCount = ZRdebug.maxNumberOfZombies - ZRdebug.maxBaseLevelZombies;
-				if (ZRdebug.extendedCount > 0)
+				parameters.extendedCount = parameters.maxNumberOfZombies - parameters.maxBaseLevelZombies;
+				if (parameters.extendedCount > 0)
 				{
-					ZRdebug.extendedCount = Rand.RangeInclusive(0, ZRdebug.extendedCount);
-					ZRdebug.maxBaseLevelZombies += ZRdebug.extendedCount;
+					parameters.extendedCount = Rand.RangeInclusive(0, parameters.extendedCount);
+					parameters.maxBaseLevelZombies += parameters.extendedCount;
 				}
 			}
-			ZRdebug.maxAdditionalZombies = Math.Max(0, ZRdebug.maxBaseLevelZombies - ZRdebug.currentZombieCount);
-			ZRdebug.calculatedZombies = (int)(ZRdebug.capableColonists * ZRdebug.numberOfZombiesPerColonist * ZRdebug.colonyMultiplier);
-			ZRdebug.incidentSize = Math.Min(ZRdebug.maxAdditionalZombies, ZRdebug.calculatedZombies);
-			if (ZRdebug.incidentSize == 0)
+			parameters.maxAdditionalZombies = Math.Max(0, parameters.maxBaseLevelZombies - parameters.currentZombieCount);
+			parameters.calculatedZombies = (int)(parameters.capableColonists * parameters.numberOfZombiesPerColonist * parameters.colonyMultiplier);
+			parameters.incidentSize = Math.Min(parameters.maxAdditionalZombies, parameters.calculatedZombies);
+			if (parameters.incidentSize == 0)
 			{
-				ZRdebug.skipReason = "empty incident";
-				return 0;
+				parameters.skipReason = "empty incident";
+				return false;
 			}
 
 			// ramp it up
-			ZRdebug.scaleFactor *= (0.75f + Rand.Value / 2f);
-			ZRdebug.scaleFactor = Tools.Boxed(ZRdebug.scaleFactor, 0f, 1f);
-			ZRdebug.incidentSize = Math.Max(1, (int)(ZRdebug.incidentSize * ZRdebug.scaleFactor + 0.5f));
+			if (parameters.scaleFactor == 0)
+				parameters.scaleFactor = Tools.Boxed(GenMath.LerpDouble(parameters.daysBeforeZombies, parameters.daysBeforeZombies + parameters.rampUpDays, 0.2f, 1f, GenDate.DaysPassedFloat), 0.2f, 1f);
+			parameters.scaleFactor *= (0.75f + Rand.Value / 2f);
+			parameters.scaleFactor = Tools.Boxed(parameters.scaleFactor, 0f, 1f);
+			parameters.incidentSize = Math.Max(1, (int)(parameters.incidentSize * parameters.scaleFactor + 0.5f));
 
 			// success
-			ZRdebug.dayStretchFactor = 1f + ZRdebug.incidentSize / 150f;
-			ZRdebug.deltaDays = Rand.Range(1.5f * ZRdebug.dayStretchFactor, 4f * ZRdebug.dayStretchFactor);
-			info.Update(ZRdebug.deltaDays);
-			ZRdebug.skipReason = "-";
-			return ZRdebug.incidentSize;
+			var stretchFactor2 = 1f + parameters.incidentSize / 150f;
+			parameters.daysStretched = Rand.Range(1.5f * stretchFactor2, 4f * stretchFactor2);
+			parameters.deltaDays = parameters.daysStretched + ZombieSettings.Values.extraDaysBetweenEvents;
+			tickManager.incidentInfo.Update();
+			return true;
 		}
 
 		public static Predicate<IntVec3> SpotValidator(Map map)

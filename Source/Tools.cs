@@ -112,7 +112,7 @@ namespace ZombieLand
 		static Dictionary<Map, PheromoneGrid> gridCache = new Dictionary<Map, PheromoneGrid>();
 		public static PheromoneGrid GetGrid(this Map map)
 		{
-			if (gridCache.TryGetValue(map, out PheromoneGrid grid))
+			if (gridCache.TryGetValue(map, out var grid))
 				return grid;
 
 			grid = map.GetComponent<PheromoneGrid>();
@@ -392,7 +392,7 @@ namespace ZombieLand
 		public static int ColonyPoints()
 		{
 			var colonists = Find.VisibleMap.mapPawns.FreeColonists;
-			ColonyEvaluation.GetColonistArmouryPoints(colonists, Find.VisibleMap, out float colonistPoints, out float armouryPoints);
+			ColonyEvaluation.GetColonistArmouryPoints(colonists, Find.VisibleMap, out var colonistPoints, out var armouryPoints);
 			return (int)(colonistPoints + armouryPoints);
 		}
 

@@ -84,6 +84,7 @@
 	<UseCustomTextures>Utiliser des textures personnalisées </UseCustomTextures>
 	<ReplaceTwinkie>Change les repas de survie en Twinkies (miam!)</ReplaceTwinkie>
 	<ZombiesTriggerDangerMusic>Les Zombies influences la musique de danger</ZombiesTriggerDangerMusic>
+	<PlayCreepyAmbientSound>Jouer le bruit ambiant effrayant la nuit</PlayCreepyAmbientSound>
 	<BetterZombieAvoidance>Evitement automatique des Zombies</BetterZombieAvoidance>
 	<ZombiesDropBlood>Les zombies lache du sang</ZombiesDropBlood>
 

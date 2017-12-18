@@ -75,7 +75,7 @@ namespace ZombieLand
 			var apparelToTransfer = new List<Apparel>();
 			pawn.apparel.WornApparelInDrawOrder.Do(apparel =>
 			{
-				if (pawn.apparel.TryDrop(apparel, out Apparel newApparel))
+				if (pawn.apparel.TryDrop(apparel, out var newApparel))
 					apparelToTransfer.Add(newApparel);
 			});
 

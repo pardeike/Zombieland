@@ -9,7 +9,7 @@ using Verse.Sound;
 
 namespace ZombieLand
 {
-	class TickManager : MapComponent
+	public class TickManager : MapComponent
 	{
 		int populationSpawnCounter;
 		int dequeedSpawnCounter;
@@ -74,11 +74,20 @@ namespace ZombieLand
 			Scribe_Collections.Look(ref explosions, "explosions", LookMode.Value);
 			Scribe_Deep.Look(ref incidentInfo, "incidentInfo", new object[0]);
 
-			if (allZombiesCached == null) allZombiesCached = new List<Zombie>();
+			if (allZombiesCached == null)
+				allZombiesCached = new List<Zombie>();
 			allZombiesCached = allZombiesCached.Where(zombie => zombie != null && zombie.Spawned && zombie.Dead == false).ToList();
 
-			if (incidentInfo == null) incidentInfo = new IncidentInfo();
-			if (explosions == null) explosions = new List<IntVec3>();
+			if (incidentInfo == null)
+			{
+				incidentInfo = new IncidentInfo
+				{
+					parameters = new IncidentParameters()
+				};
+			}
+
+			if (explosions == null)
+				explosions = new List<IntVec3>();
 		}
 
 		public void RecalculateVisibleMap()
@@ -192,16 +201,11 @@ namespace ZombieLand
 			if (incidentTickCounter++ < GenDate.TicksPerHour) return;
 			incidentTickCounter = 0;
 
-			var incidentSize = ZombiesRising.ZombiesForNewIncident(map);
-			if (incidentSize > 0)
+			if (ZombiesRising.ZombiesForNewIncident(this))
 			{
-				// Log.Warning("Zombieland incident with " + incidentSize + " zombies");
-				var success = ZombiesRising.TryExecute(map, incidentSize);
+				var success = ZombiesRising.TryExecute(map, incidentInfo.parameters.incidentSize);
 				if (success == false)
-				{
 					Log.Warning("Incident creation failed. Most likely no valid spawn point found.");
-					// incident failed, so mark it for new executing asap
-				}
 			}
 		}
 
@@ -300,12 +304,12 @@ namespace ZombieLand
 
 		public void IncreaseZombiePopulation()
 		{
+			if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return;
+			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly) return;
+
 			if (populationSpawnCounter-- < 0)
 			{
 				populationSpawnCounter = (int)GenMath.LerpDouble(0, 1000, 300, 20, Math.Max(100, Math.Min(1000, currentColonyPoints)));
-
-				if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return;
-				if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly) return;
 
 				var numberOfZombies = ZombieCount() + Tools.generator.ZombiesQueued(map);
 				if (numberOfZombies < GetMaxZombieCount())
@@ -320,7 +324,7 @@ namespace ZombieLand
 							}
 						case SpawnHowType.FromTheEdges:
 							{
-								if (CellFinder.TryFindRandomEdgeCellWith(Tools.ZombieSpawnLocator(map), map, CellFinder.EdgeRoadChance_Neutral, out IntVec3 cell))
+								if (CellFinder.TryFindRandomEdgeCellWith(Tools.ZombieSpawnLocator(map), map, CellFinder.EdgeRoadChance_Neutral, out var cell))
 									Tools.generator.SpawnZombieAt(map, cell, false);
 								return;
 							}
@@ -372,14 +376,26 @@ namespace ZombieLand
 				else if (hour >= Constants.HOUR_END_OF_NIGHT && hour <= Constants.HOUR_START_OF_DAWN)
 					volume = GenMath.LerpDouble(Constants.HOUR_END_OF_NIGHT, Constants.HOUR_START_OF_DAWN, 1f, 0f, hour);
 			}
-			if (zombiesAmbientSound == null)
-				zombiesAmbientSound = CustomDefs.ZombiesClosingIn.TrySpawnSustainer(SoundInfo.OnCamera(MaintenanceType.None));
 
-			if (volume < zombiesAmbientSoundVolume)
-				zombiesAmbientSoundVolume -= 0.0001f;
-			else if (volume > zombiesAmbientSoundVolume)
-				zombiesAmbientSoundVolume += 0.0001f;
-			zombiesAmbientSound.info.volumeFactor = zombiesAmbientSoundVolume;
+			if (Constants.USE_SOUND && ZombieSettings.Values.playCreepyAmbientSound)
+			{
+				if (zombiesAmbientSound == null)
+					zombiesAmbientSound = CustomDefs.ZombiesClosingIn.TrySpawnSustainer(SoundInfo.OnCamera(MaintenanceType.None));
+
+				if (volume < zombiesAmbientSoundVolume)
+					zombiesAmbientSoundVolume -= 0.0001f;
+				else if (volume > zombiesAmbientSoundVolume)
+					zombiesAmbientSoundVolume += 0.0001f;
+				zombiesAmbientSound.info.volumeFactor = zombiesAmbientSoundVolume;
+			}
+			else
+			{
+				if (zombiesAmbientSound != null)
+				{
+					zombiesAmbientSound.End();
+					zombiesAmbientSound = null;
+				}
+			}
 		}
 	}
 }

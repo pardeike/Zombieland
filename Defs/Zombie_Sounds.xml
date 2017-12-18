@@ -205,8 +205,8 @@
 					</li>
 				</grains>
 				<volumeRange>
-					<min>75</min>
-					<max>75</max>
+					<min>60</min>
+					<max>60</max>
 				</volumeRange>
 				<paramMappings>
 					<li>

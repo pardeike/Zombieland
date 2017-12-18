@@ -84,6 +84,7 @@
 	<UseCustomTextures>Использовать текстуры дополнения для зомби</UseCustomTextures>
 	<ReplaceTwinkie>Изменить сухой паёк на Twinkies</ReplaceTwinkie>
 	<ZombiesTriggerDangerMusic>Проигрывать музыку боя при Зомби-происшествие</ZombiesTriggerDangerMusic>
+	<PlayCreepyAmbientSound>Воспроизвести жуткий окружающий звук ночью</PlayCreepyAmbientSound>
 	<BetterZombieAvoidance>Улучшенный способ избежать зомби</BetterZombieAvoidance>
 	<ZombiesDropBlood>Зомби бросают кровь</ZombiesDropBlood>
 

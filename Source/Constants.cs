@@ -37,7 +37,7 @@ namespace ZombieLand
 						{
 							case "Boolean":
 								{
-									if (bool.TryParse(value, out bool result))
+									if (bool.TryParse(value, out var result))
 										constant.SetValue(null, result);
 									else
 										Log.Error("Cannot parse boolean '" + value + "' of constant " + field);
@@ -45,7 +45,7 @@ namespace ZombieLand
 								}
 							case "Int32":
 								{
-									if (int.TryParse(value, out int result))
+									if (int.TryParse(value, out var result))
 										constant.SetValue(null, result);
 									else
 										Log.Error("Cannot parse int '" + value + "' of constant " + field);
@@ -53,7 +53,7 @@ namespace ZombieLand
 								}
 							case "Single":
 								{
-									if (float.TryParse(value, out float result))
+									if (float.TryParse(value, out var result))
 										constant.SetValue(null, result);
 									else
 										Log.Error("Cannot parse float '" + value + "' of constant " + field);

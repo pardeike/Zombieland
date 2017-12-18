@@ -785,9 +785,9 @@ namespace ZombieLand
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount());
 
 				builder.AppendLine("");
-				AccessTools.GetFieldNames(typeof(ZRdebug)).Do(name =>
+				AccessTools.GetFieldNames(typeof(IncidentParameters)).Do(name =>
 				{
-					var value = Traverse.Create(typeof(ZRdebug)).Field(name).GetValue();
+					var value = Traverse.Create(tickManager.incidentInfo.parameters).Field(name).GetValue();
 					builder.AppendLine(name + ": " + value);
 				});
 				builder.AppendLine("");
@@ -966,7 +966,7 @@ namespace ZombieLand
 					}
 
 					// apply toxic splatter damage
-					var toxity = 0.15f * pawn.GetStatValue(StatDefOf.ToxicSensitivity, true);
+					var toxity = 0.05f * pawn.GetStatValue(StatDefOf.ToxicSensitivity, true);
 					if (toxity > 0f)
 					{
 						var stickyGooDef = ThingDef.Named("StickyGoo");
@@ -2539,20 +2539,6 @@ namespace ZombieLand
 					yield return instruction;
 
 				if (!found1 || !found2) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
-			}
-		}
-		[HarmonyPatch(typeof(Verb_MeleeAttackBase))]
-		[HarmonyPatch("TryCastShot")]
-		static class Verb_MeleeAttackBase_TryCastShot_Patch
-		{
-			static bool Prefix(Verb_MeleeAttackBase __instance, ref bool __result)
-			{
-				if (__instance.CasterPawn.Map == null)
-				{
-					__result = false;
-					return false;
-				}
-				return true;
 			}
 		}
 

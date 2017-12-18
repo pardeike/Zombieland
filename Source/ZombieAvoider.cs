@@ -65,7 +65,7 @@ namespace ZombieLand
 
 		ConcurrentQueue<AvoidGrid> QueueForMap(Map map)
 		{
-			if (resultQueues.TryGetValue(map, out ConcurrentQueue<AvoidGrid> queue) == false)
+			if (resultQueues.TryGetValue(map, out var queue) == false)
 			{
 				queue = new ConcurrentQueue<AvoidGrid>(true);
 				resultQueues.Add(map, queue);
@@ -81,7 +81,7 @@ namespace ZombieLand
 
 			workerThread = new Thread(() =>
 			{
-			EndlessLoop:
+				EndlessLoop:
 
 				try
 				{
@@ -173,7 +173,7 @@ namespace ZombieLand
 
 		AvoidGrid GetAvoidGrid(Map map)
 		{
-			if (grids.TryGetValue(map, out AvoidGrid result) == false)
+			if (grids.TryGetValue(map, out var result) == false)
 			{
 				result = new AvoidGrid(map);
 				grids[map] = result;

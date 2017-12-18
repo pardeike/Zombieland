@@ -84,6 +84,7 @@
 	<UseCustomTextures>Use custom textures</UseCustomTextures>
 	<ReplaceTwinkie>Change survival meals to Twinkies</ReplaceTwinkie>
 	<ZombiesTriggerDangerMusic>Zombies affect danger music</ZombiesTriggerDangerMusic>
+	<PlayCreepyAmbientSound>Play creepy ambient sound at night</PlayCreepyAmbientSound>
 	<BetterZombieAvoidance>Automatic avoidance of zombies</BetterZombieAvoidance>
 	<ZombiesDropBlood>Zombies drop blood</ZombiesDropBlood>
 

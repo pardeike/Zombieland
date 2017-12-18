@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using UnityEngine;
 using Verse;
-using Verse.AI;
 
 namespace ZombieLand
 {
@@ -28,7 +27,7 @@ namespace ZombieLand
 
 		public ConcurrentQueue<ZombieRequest> QueueForMap(Map map)
 		{
-			if (resultQueues.TryGetValue(map, out ConcurrentQueue<ZombieRequest> queue) == false)
+			if (resultQueues.TryGetValue(map, out var queue) == false)
 			{
 				queue = new ConcurrentQueue<ZombieRequest>(true);
 				resultQueues.Add(map, queue);

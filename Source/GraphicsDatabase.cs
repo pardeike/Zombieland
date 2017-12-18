@@ -112,7 +112,7 @@ namespace ZombieLand
 		public static ColorData GetColorData(string path, string color, bool makeCopy = false)
 		{
 			var key = color == null ? path : path + "#" + color;
-			if (colorDataDatabase.TryGetValue(key, out ColorData data) == false)
+			if (colorDataDatabase.TryGetValue(key, out var data) == false)
 			{
 				Log.Error("Cannot find preloaded texture path '" + path + (color == null ? "" : "' for color '" + color + "'"));
 				return null;
@@ -122,7 +122,7 @@ namespace ZombieLand
 
 		public static Texture2D GetTexture(string path)
 		{
-			if (colorDataDatabase.TryGetValue(path, out ColorData data) == false)
+			if (colorDataDatabase.TryGetValue(path, out var data) == false)
 			{
 				Log.Error("Cannot find preloaded texture path '" + path);
 				return null;

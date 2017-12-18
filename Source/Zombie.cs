@@ -145,7 +145,10 @@ namespace ZombieLand
 
 		public override void DeSpawn()
 		{
-			var grid = Map.GetGrid();
+			var map = Map;
+			if (map == null) return;
+
+			var grid = map.GetGrid();
 			grid.ChangeZombieCount(lastGotoPosition, -1);
 			base.DeSpawn();
 		}
@@ -165,6 +168,8 @@ namespace ZombieLand
 		{
 			var pos = Position;
 			var map = Map;
+			if (map == null) return;
+
 			var amount = (int)story.bodyType + Find.Storyteller.difficulty.difficulty; // max 10
 			var maxRadius = 0f;
 			var count = (int)GenMath.LerpDouble(0, 10, 2, 30, amount);
@@ -264,7 +269,7 @@ namespace ZombieLand
 
 		public void CustomTick()
 		{
-			if (!ThingOwnerUtility.ContentsFrozen(base.ParentHolder))
+			if (!ThingOwnerUtility.ContentsFrozen(ParentHolder) && Map != null)
 			{
 				if (Spawned)
 				{

@@ -382,6 +382,7 @@ namespace ZombieLand
 			list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);
 			list.Dialog_Checkbox("ReplaceTwinkie", ref settings.replaceTwinkie);
 			list.Dialog_Checkbox("ZombiesTriggerDangerMusic", ref settings.zombiesTriggerDangerMusic);
+			list.Dialog_Checkbox("PlayCreepyAmbientSound", ref settings.playCreepyAmbientSound);
 			list.Dialog_Checkbox("BetterZombieAvoidance", ref settings.betterZombieAvoidance);
 			list.Dialog_Checkbox("ZombiesDropBlood", ref settings.zombiesDropBlood);
 
