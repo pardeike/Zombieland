@@ -47,7 +47,7 @@ namespace ZombieLand
 			return false;
 		}
 
-		static bool IsZombieThingDef(this ThingDef thingdef)
+		public static bool IsZombieThingDef(this ThingDef thingdef)
 		{
 			if (thingdef.GetType().Namespace == zlNamespace) return true;
 			if (thingdef.thingClass.Namespace == zlNamespace) return true;

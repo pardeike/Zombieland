@@ -1346,7 +1346,7 @@ namespace ZombieLand
 			static MethodBase TargetMethod()
 			{
 				var inner = typeof(JobDriver_AttackStatic).InnerTypeStartingWith("<MakeNewToils>c__Iterator");
-				return inner.MethodMatching(methods =>
+				return inner?.MethodMatching(methods =>
 				{
 					return methods.Where(m => m.Name.StartsWith("<>m__"))
 						.OrderBy(m => m.Name)
@@ -1515,6 +1515,35 @@ namespace ZombieLand
 				if (zombie.Rotation == Rot4.West) quickHeadCenter.x -= 0.09f;
 				if (zombie.Rotation == Rot4.East) quickHeadCenter.x += 0.09f;
 				GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.RAGE_AURAS[Find.CameraDriver.CurrentZoom], quickHeadCenter, Quaternion.identity, 1f, 1f);
+			}
+		}
+
+		// patch to exclude any zombieland apparel from being used at all
+		// (we fake our own apparel via the patch below)
+		//
+		[HarmonyPatch]
+		static class PawnApparelGenerator_PossibleApparelSet_PairOverlapsAnything_Patch
+		{
+			static MethodBase TargetMethod()
+			{
+				var inner = AccessTools.Inner(typeof(PawnApparelGenerator), "PossibleApparelSet");
+				return AccessTools.Method(inner, "PairOverlapsAnything");
+			}
+
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(ThingStuffPair pair, ref bool __result)
+			{
+				if (pair.thing?.IsZombieThingDef() ?? false)
+				{
+					__result = true;
+					return false;
+				}
+				if (pair.stuff?.IsZombieThingDef() ?? false)
+				{
+					__result = true;
+					return false;
+				}
+				return true;
 			}
 		}
 
