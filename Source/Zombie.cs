@@ -174,14 +174,17 @@ namespace ZombieLand
 			var maxRadius = 0f;
 			var count = (int)GenMath.LerpDouble(0, 10, 2, 30, amount);
 			var hasFilth = 0;
+
 			for (var i = 0; i < count; i++)
 			{
 				var n = (int)GenMath.LerpDouble(0, 10, 1, 4, amount);
 				var vec = new IntVec3(Rand.Range(-n, n), 0, Rand.Range(-n, n));
 				var r = vec.LengthHorizontalSquared;
 				if (r > maxRadius) maxRadius = r;
-				if (FilthMaker.MakeFilth(pos + vec, map, ThingDef.Named("StickyGoo"), NameStringShort))
-					hasFilth++;
+				var cell = pos + vec;
+				if (GenSight.LineOfSight(pos, cell, map, true, null, 0, 0) && cell.Walkable(map))
+					if (FilthMaker.MakeFilth(cell, map, ThingDef.Named("StickyGoo"), NameStringShort))
+						hasFilth++;
 			}
 			if (hasFilth >= 6)
 				GenExplosion.DoExplosion(pos, map, (float)Math.Max(0.5f, Math.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, SoundDef.Named("ToxicSplash"));
