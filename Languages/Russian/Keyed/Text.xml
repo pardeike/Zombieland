@@ -108,6 +108,7 @@
 	<HoursBeforeBecomingAZombie>{0} hours before becoming a zombie</HoursBeforeBecomingAZombie>
 
 	<ColonistBecameAZombieLabel>Colonist turned into zombie</ColonistBecameAZombieLabel>
+	<SomeoneBecameAZombieLabel>Someone turned into zombie</SomeoneBecameAZombieLabel>
 	<ColonistBecameAZombieDesc>{0} turned into a powerful zombie.</ColonistBecameAZombieDesc>
 
 </LanguageData>

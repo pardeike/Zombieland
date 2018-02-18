@@ -44,17 +44,17 @@ namespace ZombieLand
 			}
 		}
 
-		public override bool CauseDeathNow()
+		/* public override bool CauseDeathNow()
 		{
 			if (TendDuration != null && TendDuration.GetInfectionState() == InfectionState.Infected)
 				return true;
 
 			return base.CauseDeathNow();
-		}
+		} */
 
 		public void ConvertToZombie()
 		{
-			if (pawn == null || pawn.Spawned == false || pawn.Dead || pawn.IsColonist == false)
+			if (pawn == null || pawn.Spawned == false || pawn.Dead /* || pawn.IsColonist == false */)
 				return;
 
 			var pos = pawn.Position;
@@ -100,6 +100,7 @@ namespace ZombieLand
 			ZombieGenerator.FinalizeZombieGeneration(zombie);
 			GenPlace.TryPlaceThing(zombie, pos, map, ThingPlaceMode.Direct, null);
 
+			var wasColonist = pawn.IsColonist;
 			pawn.Kill(null);
 			if (pawn.Corpse != null && pawn.Corpse.Destroyed == false)
 				pawn.Corpse.Destroy();
@@ -110,8 +111,10 @@ namespace ZombieLand
 			zombie.state = ZombieState.Wandering;
 			zombie.wasColonist = true;
 
+			var who = wasColonist ? "Colonist" : "Someone";
+			var label = (who + "BecameAZombieLabel").Translate();
 			var text = "ColonistBecameAZombieDesc".Translate(new object[] { zombie.NameStringShort });
-			Find.LetterStack.ReceiveLetter("ColonistBecameAZombieLabel".Translate(), text, LetterDefOf.ThreatBig, zombie);
+			Find.LetterStack.ReceiveLetter(label, text, LetterDefOf.ThreatBig, zombie);
 		}
 
 		public override Color LabelColor
@@ -180,16 +183,16 @@ namespace ZombieLand
 
 		public override void Heal(float amount)
 		{
-			if (pawn.IsColonist)
+			// if (pawn.IsColonist)
+			// {
+			var tendDuration = TendDuration;
+			if (tendDuration != null)
 			{
-				var tendDuration = TendDuration;
-				if (tendDuration != null)
-				{
-					var state = tendDuration.GetInfectionState();
-					if (state != InfectionState.BittenVisible && state != InfectionState.BittenHarmless)
-						return;
-				}
+				var state = tendDuration.GetInfectionState();
+				if (state != InfectionState.BittenVisible && state != InfectionState.BittenHarmless)
+					return;
 			}
+			// }
 
 			base.Heal(amount);
 		}

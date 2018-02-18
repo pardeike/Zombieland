@@ -108,6 +108,7 @@
 	<HoursBeforeBecomingAZombie>{0} 成为丧尸</HoursBeforeBecomingAZombie>
 
 	<ColonistBecameAZombieLabel>殖民者变成了一个丧尸</ColonistBecameAZombieLabel>
+	<SomeoneBecameAZombieLabel>有人变成了僵尸</SomeoneBecameAZombieLabel>
 	<ColonistBecameAZombieDesc>{0} 变成了一个强大的丧尸.</ColonistBecameAZombieDesc>
 
 </LanguageData>

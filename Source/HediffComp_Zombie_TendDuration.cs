@@ -52,7 +52,7 @@ namespace ZombieLand
 			if (ZombieInfector == null
 				|| Pawn == null
 				|| Pawn.Map == null
-				|| Pawn.IsColonist == false
+				// || Pawn.IsColonist == false
 				|| Pawn.Spawned == false
 				|| Pawn.Dead
 				|| Pawn.Destroyed

@@ -248,7 +248,7 @@ namespace ZombieLand
 
 		public static bool HasInfectionState(Pawn pawn, InfectionState state)
 		{
-			if (pawn.IsColonist == false) return false;
+			// if (pawn.IsColonist == false) return false;
 
 			return pawn.health.hediffSet
 						.GetHediffs<Hediff_Injury_ZombieBite>()

@@ -44,7 +44,7 @@ namespace ZombieLand
 		[HarmonyPriority(Priority.Last)]
 		static void Postfix(DamageFlasher __instance, Material baseMat, Material __result)
 		{
-			if (__instance is ZombieDamageFlasher zombieDamageFlasher && zombieDamageFlasher.isColonist
+			if (__instance is ZombieDamageFlasher zombieDamageFlasher/* && zombieDamageFlasher.isColonist */
 				&& zombieDamageFlasher.dinfoDef == ZombieDamageFlasher.zombieBiteDamageDef
 				&& __result != null)
 			{
@@ -56,7 +56,7 @@ namespace ZombieLand
 
 	class ZombieDamageFlasher : DamageFlasher
 	{
-		public bool isColonist;
+		// public bool isColonist;
 		public DamageDef dinfoDef;
 		public Traverse damageFlashTicksLeft;
 
@@ -64,7 +64,7 @@ namespace ZombieLand
 
 		public ZombieDamageFlasher(Pawn pawn) : base(pawn)
 		{
-			isColonist = pawn.IsColonist;
+			// isColonist = pawn.IsColonist;
 			damageFlashTicksLeft = Traverse.Create(this).Property("DamageFlashTicksLeft");
 		}
 	}

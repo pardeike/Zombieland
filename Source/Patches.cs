@@ -1750,7 +1750,7 @@ namespace ZombieLand
 			static bool Prefix(Hediff_Injury hd, ref bool __result)
 			{
 				var zombieBite = hd as Hediff_Injury_ZombieBite;
-				if (zombieBite != null && zombieBite.pawn.IsColonist)
+				if (zombieBite != null/* && zombieBite.pawn.IsColonist */)
 				{
 					var tendDuration = zombieBite.TendDuration;
 					if (tendDuration != null)
@@ -1825,7 +1825,7 @@ namespace ZombieLand
 				if (__result == false) return;
 
 				var zombieBite = __instance as Hediff_Injury_ZombieBite;
-				if (zombieBite != null && zombieBite.pawn.IsColonist)
+				if (zombieBite != null/* && zombieBite.pawn.IsColonist */)
 				{
 					var tendDuration = zombieBite.TendDuration;
 					if (tendDuration != null)

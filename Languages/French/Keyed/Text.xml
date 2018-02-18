@@ -108,7 +108,8 @@
 	<HoursBeforeBecomingInfected>{0} avant l’infection</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} avant de devenir un Zombie</HoursBeforeBecomingAZombie>
 
-	<ColonistBecameAZombieLabel>Un colon est devenu un Zombie !</ColonistBecameAZombieLabel>
-	<ColonistBecameAZombieDesc>{0} colons devenus de puissant Zombie.</ColonistBecameAZombieDesc>
+	<ColonistBecameAZombieLabel>Un colon est devenu un Zombie!</ColonistBecameAZombieLabel>
+	<SomeoneBecameAZombieLabel>Quelqu'un est devenu un Zombie!</SomeoneBecameAZombieLabel>
+	<ColonistBecameAZombieDesc>{0} devenus de puissant Zombie.</ColonistBecameAZombieDesc>
 
 </LanguageData>
