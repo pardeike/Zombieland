@@ -20,6 +20,9 @@ namespace ZombieLand
 
 		static readonly float combatExtendedHealAmount = 1f / 1f.SecondsToTicks();
 
+		static float lastTrackingSoundPlayed = 0f;
+		static float lastRageSoundPlayed = 0f;
+
 		// make zombies die if necessary ============================================================
 		//
 		public static bool ShouldDie(this JobDriver_Stumble driver, Zombie zombie)
@@ -630,8 +633,14 @@ namespace ZombieLand
 				var map = pawn.Map;
 				if (map != null)
 				{
-					var info = SoundInfo.InMap(new TargetInfo(pawn.Position, map, false));
-					SoundDef.Named("ZombieTracking").PlayOneShot(info);
+					var timeNow = Time.realtimeSinceStartup;
+					if (timeNow > lastTrackingSoundPlayed + 2f)
+					{
+						lastTrackingSoundPlayed = timeNow;
+
+						var info = SoundInfo.InMap(new TargetInfo(pawn.Position, map, false));
+						SoundDef.Named("ZombieTracking").PlayOneShot(info);
+					}
 				}
 			}
 		}
@@ -714,8 +723,14 @@ namespace ZombieLand
 
 			if (Constants.USE_SOUND)
 			{
-				var info = SoundInfo.InMap(zombie);
-				SoundDef.Named("ZombieRage").PlayOneShot(info);
+				var timeNow = Time.realtimeSinceStartup;
+				if (timeNow > lastRageSoundPlayed + 3f)
+				{
+					lastRageSoundPlayed = timeNow;
+
+					var info = SoundInfo.InMap(zombie);
+					SoundDef.Named("ZombieRage").PlayOneShot(info);
+				}
 			}
 		}
 

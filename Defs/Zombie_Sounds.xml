@@ -74,8 +74,8 @@
 					<max>1.05</max>
 				</pitchRange>
 				<volumeRange>
-					<min>60</min>
-					<max>60</max>
+					<min>40</min>
+					<max>40</max>
 				</volumeRange>
 				<distRange>
 					<min>10</min>
