@@ -3,6 +3,7 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
@@ -44,6 +45,8 @@ namespace ZombieLand
 
 			var grid = map.GetGrid();
 			grid.IterateCellsQuick(cell => cell.zombieCount = 0);
+
+			RecalculateVisibleMap();
 
 			var destinations = Traverse.Create(map.pawnDestinationReservationManager).Field("reservedDestinations").GetValue<Dictionary<Faction, PawnDestinationReservationManager.PawnDestinationSet>>();
 			var zombieFaction = Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies);
@@ -123,20 +126,18 @@ namespace ZombieLand
 			if (map == null || map.mapPawns == null) return 0;
 			if (Constants.DEBUG_MAX_ZOMBIE_COUNT >= 0) return Constants.DEBUG_MAX_ZOMBIE_COUNT;
 			var colonists = Tools.CapableColonists(map);
-			var perColonistZombieCount = GenMath.LerpDouble(0f, 4f, 5, 30, (float)Math.Min(4, Math.Sqrt(colonists)));
-			var colonistMultiplier = Math.Sqrt(colonists) * 2;
-			var baseStrengthFactor = GenMath.LerpDouble(0, 1000, 1f, 4f, Math.Min(1000, currentColonyPoints));
+			var perColonistZombieCount = GenMath.LerpDouble(0f, 4f, 5, 30, Mathf.Min(4, Mathf.Sqrt(colonists)));
+			var colonistMultiplier = Mathf.Sqrt(colonists) * 2;
+			var baseStrengthFactor = GenMath.LerpDouble(0, 1000, 1f, 4f, Mathf.Min(1000, currentColonyPoints));
 			var colonyMultiplier = ZombieSettings.Values.colonyMultiplier;
 			var difficultyMultiplier = Find.Storyteller.difficulty.threatScale;
 			var count = (int)(perColonistZombieCount * colonistMultiplier * baseStrengthFactor * colonyMultiplier * difficultyMultiplier);
-			return Math.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
+			return Mathf.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
 		}
 
 		public void ZombieTicking()
 		{
-#pragma warning disable RECS0018
 			if (Find.TickManager.TickRateMultiplier == 0f) return;
-#pragma warning restore RECS0018
 			var zombies = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false).ToList();
 
 			for (var i = 0; i < 2; i++)

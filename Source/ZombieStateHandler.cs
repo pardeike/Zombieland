@@ -40,14 +40,13 @@ namespace ZombieLand
 				return true;
 			}
 
-#pragma warning disable RECS0018
 			if (zombie.bombTickingInterval != -1f)
-#pragma warning restore RECS0018
 			{
 				if (zombie.bombWillGoOff && zombie.EveryNTick(NthTick.Every10))
 					zombie.bombTickingInterval -= 2f;
 				if (zombie.bombTickingInterval <= 0f)
 				{
+					zombie.bombTickingInterval = -1f;
 					zombie.Kill(null);
 					return true;
 				}
@@ -57,7 +56,7 @@ namespace ZombieLand
 			{
 				if (ZombieSettings.Values.zombiesDieVeryEasily)
 				{
-					if (zombie.health.hediffSet.GetHediffs<Hediff_Injury>().Any())
+					if (zombie.hasTankySuit <= 0f && zombie.health.hediffSet.GetHediffs<Hediff_Injury>().Any())
 					{
 						zombie.Kill(null);
 						return true;
@@ -123,7 +122,7 @@ namespace ZombieLand
 		//
 		public static bool ValidDestination(this JobDriver_Stumble driver, Zombie zombie)
 		{
-			// find out if we still need to check for 0,0 as being an invalid location
+			// find out if we still need to check for 0,0 as an invalid location
 			if (driver.destination.x == 0 && driver.destination.z == 0)
 				driver.destination = IntVec3.Invalid;
 			return zombie.HasValidDestination(driver.destination);
@@ -154,6 +153,9 @@ namespace ZombieLand
 		//
 		public static bool Eat(this JobDriver_Stumble driver, Zombie zombie, PheromoneGrid grid)
 		{
+			if (zombie.hasTankyShield != -1f || zombie.hasTankyHelmet != -1f || zombie.hasTankySuit != -1f)
+				return false;
+
 			if (driver.eatTarget != null && driver.eatTarget.Spawned == false)
 			{
 				driver.eatTarget = null;
@@ -249,7 +251,7 @@ namespace ZombieLand
 		// also, emit a circle of timestamps when discovering a pheromone
 		// trace so nearby zombies pick it up too (leads to a chain reaction)
 		//
-		// returns true if zombies are non-busy anc can actually look
+		// returns true if zombies are non-busy and can actually look
 		// for things to smash
 		//
 		static int fadeOff = -1;
@@ -357,13 +359,25 @@ namespace ZombieLand
 		public static bool RageMove(this JobDriver_Stumble driver, Zombie zombie, PheromoneGrid grid, List<IntVec3> possibleMoves, bool checkSmashable)
 		{
 			var info = Tools.wanderer.GetMapInfo(zombie.Map);
-			var newPos = info.GetParent(zombie.Position);
+			var newPos = info.GetParent(zombie.Position, false);
+
 			if (newPos.IsValid == false)
 			{
-				// no next move available
-				zombie.raging = 0;
-				return Smash(driver, zombie, checkSmashable, false);
+				// tanky can get directly through walls
+				if (newPos.IsValid == false && zombie.IsTanky)
+					newPos = info.GetParent(zombie.Position, true);
+
+				if (newPos.IsValid == false)
+				{
+					// no next move available
+					zombie.raging = 0;
+					return Smash(driver, zombie, checkSmashable, false);
+				}
 			}
+
+			// next tanky move is on a building
+			if (newPos.GetEdifice(zombie.Map) is Building)
+				return Smash(driver, zombie, checkSmashable, false);
 
 			// next move is on a door
 			if (newPos.GetEdifice(zombie.Map) is Building_Door door)
@@ -376,9 +390,9 @@ namespace ZombieLand
 				return Smash(driver, zombie, checkSmashable, false);
 			}
 
-			// move into places where there is max 1 zombie already
+			// move into places where there is max 0/1 zombie already
 			var destZombieCount = grid.GetZombieCount(newPos);
-			if (destZombieCount < 2)
+			if (destZombieCount < (zombie.IsTanky ? 1 : 2))
 			{
 				driver.destination = newPos;
 				return false;
@@ -458,6 +472,8 @@ namespace ZombieLand
 		//
 		public static void BeginRage(Zombie zombie, PheromoneGrid grid)
 		{
+			if (zombie.IsTanky) return;
+
 			if (zombie.raging == 0 && ZombieSettings.Values.ragingZombies)
 			{
 				var count = CountSurroundingZombies(zombie.Position, grid);
@@ -539,13 +555,27 @@ namespace ZombieLand
 
 		static Building CanSmash(Zombie zombie)
 		{
-			if (zombie.EveryNTick(NthTick.Every15) == false)
+			if (zombie.EveryNTick(NthTick.Every15) == false && zombie.IsTanky == false)
 				return null;
 
-#pragma warning disable RECS0018
+			var map = zombie.Map;
+			var basePos = zombie.Position;
+			var attackColonistsOnly = (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists);
+			var playerFaction = Faction.OfPlayer;
+
+			if (zombie.IsTanky)
+			{
+				var info = Tools.wanderer.GetMapInfo(map);
+				var pos = info.GetParent(basePos, false);
+				if (pos.IsValid == false)
+					pos = info.GetParent(basePos, true);
+				if (pos.IsValid && pos.GetEdifice(zombie.Map) is Building building && (attackColonistsOnly == false || building.Faction == playerFaction))
+					return building;
+				return null;
+			}
+
 			var isSuicideBomber = zombie.bombTickingInterval != -1f;
-#pragma warning restore RECS0018
-			if (isSuicideBomber == false)
+			if (isSuicideBomber == false && zombie.IsTanky == false)
 			{
 				if (ZombieSettings.Values.smashMode == SmashMode.Nothing) return null;
 				if (ZombieSettings.Values.smashOnlyWhenAgitated && zombie.state != ZombieState.Tracking && zombie.raging == 0) return null;
@@ -556,11 +586,6 @@ namespace ZombieLand
 			adjIndex4[prevIndex4] = adjIndex4[nextIndex];
 			adjIndex4[nextIndex] = c;
 			prevIndex4 = nextIndex;
-
-			var map = zombie.Map;
-			var basePos = zombie.Position;
-			var attackColonistsOnly = (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists);
-			var playerFaction = Faction.OfPlayer;
 
 			if (ZombieSettings.Values.smashMode == SmashMode.DoorsOnly && isSuicideBomber == false)
 			{
@@ -575,7 +600,7 @@ namespace ZombieLand
 				}
 			}
 
-			if (ZombieSettings.Values.smashMode == SmashMode.AnyBuilding || isSuicideBomber)
+			if (ZombieSettings.Values.smashMode == SmashMode.AnyBuilding || isSuicideBomber || zombie.IsTanky)
 			{
 				var grid = map.thingGrid;
 				for (var i = 0; i < 4; i++)
@@ -656,10 +681,10 @@ namespace ZombieLand
 						driver.eatDelay *= 3;
 						break;
 					case BodyType.Hulk:
-						driver.eatDelay /= 4;
+						driver.eatDelay /= 2;
 						break;
 					case BodyType.Fat:
-						driver.eatDelay = (int)(driver.eatDelay / 1.5f);
+						driver.eatDelay /= 4;
 						break;
 				}
 			}

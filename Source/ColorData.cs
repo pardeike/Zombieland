@@ -62,9 +62,7 @@ namespace ZombieLand
 
 		public Rect MinimumFrame()
 		{
-#pragma warning disable RECS0018
-			Func<Color, bool> alphaCheck = c => c.a != 0f;
-#pragma warning restore RECS0018
+			bool alphaCheck(Color c) => c.a != 0f;
 
 			var x1 = 0;
 			var y1 = 0;

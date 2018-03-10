@@ -43,6 +43,13 @@ namespace ZombieLand
 		}
 	}
 
+	public enum FacingIndex
+	{
+		Front,
+		Side,
+		Back
+	}
+
 	[StaticConstructorOnStartup]
 	static class Tools
 	{
@@ -352,9 +359,9 @@ namespace ZombieLand
 					var pos = basePos + GenAdj.AdjacentCellsAndInside[i];
 					if (pos.x != nextMove.x || pos.z != nextMove.z && pos.InBounds(map))
 					{
-						var distance = Math.Abs(nextMove.x - pos.x) + Math.Abs(nextMove.z - pos.z);
+						var distance = Mathf.Abs(nextMove.x - pos.x) + Mathf.Abs(nextMove.z - pos.z);
 						var timestamp = baseTimestamp - distance * Constants.ZOMBIE_CLOGGING_FACTOR * 2;
-						grid.SetTimestamp(pos, timestamp);
+						grid.BumpTimestamp(pos, timestamp);
 					}
 				}
 		}
@@ -378,7 +385,7 @@ namespace ZombieLand
 		public static string ToHourString(this int ticks, bool relativeToAbsoluteGameTime = true)
 		{
 			var t = relativeToAbsoluteGameTime ? ticks - GenTicks.TicksAbs : ticks;
-			return string.Format("{0:0.0}h", Math.Floor(10f * t / GenDate.TicksPerHour) / 10f);
+			return string.Format("{0:0.0}h", Mathf.Floor(10f * t / GenDate.TicksPerHour) / 10f);
 		}
 
 		static int combatExtendedIsInstalled;
@@ -431,6 +438,19 @@ namespace ZombieLand
 			if (ZombieButtonBackground == null)
 				ZombieButtonBackground = GraphicsDatabase.GetTexture("ZombieButtonBackground");
 			return ZombieButtonBackground;
+		}
+
+		public static Material[][] GetDamageableGraphics(string name, int variantCount, int maxCount)
+		{
+			var mats = new Material[variantCount][];
+			for (var v = 0; v < variantCount; v++)
+			{
+				mats[v] = new Material[maxCount + 1];
+				var variant = Enum.GetName(typeof(FacingIndex), v).ToLower();
+				for (var i = 0; i <= maxCount; i++)
+					mats[v][i] = MaterialPool.MatFrom(name + "/" + name + i + "_" + variant, ShaderDatabase.Cutout);
+			}
+			return mats;
 		}
 
 		public static void CastThoughtBubble(Pawn pawn, Material material)

@@ -1,6 +1,7 @@
 ﻿using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using Verse;
@@ -31,10 +32,19 @@ namespace ZombieLand
 		public bool wasColonist;
 		public IntVec3 lastGotoPosition = IntVec3.Invalid;
 
+		// suicide bomber
+		public float bombTickingInterval = -1f;
 		public bool bombWillGoOff;
 		public int lastBombTick;
-		public float bombTickingInterval = -1f;
+
+		// toxic splasher
 		public bool isToxicSplasher = false;
+
+		// tanky operator
+		public float hasTankyShield = -1f;
+		public float hasTankyHelmet = -1f;
+		public float hasTankySuit = -1f;
+		public bool IsTanky => hasTankyHelmet > 0f || hasTankySuit > 0f;
 
 		bool disposed;
 		public VariableGraphic customHeadGraphic; // not saved
@@ -54,6 +64,25 @@ namespace ZombieLand
 			}
 		}
 
+		public void UpgradeOldZombieData()
+		{
+			// fix leaner
+			if ((Drawer.leaner is ZombieLeaner) == false)
+				Drawer.leaner = new ZombieLeaner(this);
+
+			// define suicide bombers
+			if (bombTickingInterval == 0f)
+				bombTickingInterval = -1f;
+
+			// define tanky operators
+			if (hasTankyShield == 0f)
+				hasTankyShield = -1f;
+			if (hasTankyHelmet == 0f)
+				hasTankyHelmet = -1f;
+			if (hasTankySuit == 0f)
+				hasTankySuit = -1f;
+		}
+
 		public override void ExposeData()
 		{
 			base.ExposeData();
@@ -67,19 +96,13 @@ namespace ZombieLand
 			Scribe_Values.Look(ref bombWillGoOff, "bombWillGoOff");
 			Scribe_Values.Look(ref bombTickingInterval, "bombTickingInterval");
 			Scribe_Values.Look(ref isToxicSplasher, "toxicSplasher");
+			Scribe_Values.Look(ref hasTankyShield, "tankyShield");
+			Scribe_Values.Look(ref hasTankyHelmet, "tankyHelmet");
+			Scribe_Values.Look(ref hasTankySuit, "tankySuit");
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
-				// fix for old zombies
-
-				if ((Drawer.leaner is ZombieLeaner) == false)
-					Drawer.leaner = new ZombieLeaner(this);
-
-#pragma warning disable RECS0018
-				if (bombTickingInterval == 0f)
-#pragma warning restore RECS0018
-					bombTickingInterval = -1f;
-
+				UpgradeOldZombieData();
 				ZombieGenerator.AssignNewCustomGraphics(this);
 			}
 
@@ -100,9 +123,7 @@ namespace ZombieLand
 			GC.SuppressFinalize(this);
 		}
 
-#pragma warning disable RECS0154
 		void Dispose(bool disposing)
-#pragma warning restore RECS0154
 		{
 			if (disposed) return;
 			disposed = true;
@@ -124,15 +145,14 @@ namespace ZombieLand
 
 		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)
 		{
-#pragma warning disable RECS0018
 			if (bombTickingInterval != -1f)
-#pragma warning restore RECS0018
 			{
 				bombTickingInterval = -1f;
 				bombWillGoOff = false;
+				hasTankyShield = -1f;
 
-				var vestDef = ThingDef.Named("Apparel_BombVest");
-				Drawer.renderer.graphics.apparelGraphics.RemoveAll(record => record.sourceApparel?.def == vestDef);
+				var def = ThingDef.Named("Apparel_BombVest");
+				Drawer.renderer.graphics.apparelGraphics.RemoveAll(record => record.sourceApparel?.def == def);
 
 				Map.GetComponent<TickManager>()?.AddExplosion(Position);
 			}
@@ -187,7 +207,7 @@ namespace ZombieLand
 						hasFilth++;
 			}
 			if (hasFilth >= 6)
-				GenExplosion.DoExplosion(pos, map, (float)Math.Max(0.5f, Math.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, SoundDef.Named("ToxicSplash"));
+				GenExplosion.DoExplosion(pos, map, Mathf.Max(0.5f, Mathf.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, SoundDef.Named("ToxicSplash"));
 		}
 
 		void HandleRubble()
@@ -220,10 +240,10 @@ namespace ZombieLand
 
 			foreach (var r in rubbles)
 			{
-				var dx = Math.Sign(r.pX) / 2f - r.pX;
+				var dx = Mathf.Sign(r.pX) / 2f - r.pX;
 				r.pX += (r.destX - r.pX) * 0.5f;
 				var dy = r.destY - r.pY;
-				r.pY += dy * 0.5f + Math.Abs(0.5f - dx) / 10f;
+				r.pY += dy * 0.5f + Mathf.Abs(0.5f - dx) / 10f;
 				r.rot = r.rot * 0.95f - (r.destX - r.pX) / 2f;
 
 				if (dy < 0.1f)
@@ -240,8 +260,8 @@ namespace ZombieLand
 			{
 				var scale = Constants.MIN_SCALE + (Constants.MAX_SCALE - Constants.MIN_SCALE) * r.scale;
 				var x = 0f + r.pX / 2f;
-				var bottomExtend = Math.Abs(r.pX) / 6f;
-				var y = -0.5f + Math.Max(bottomExtend, r.pY - r.drop) * (Constants.MAX_HEIGHT - scale / 2f) + (scale - Constants.MAX_SCALE) / 2f;
+				var bottomExtend = Mathf.Abs(r.pX) / 6f;
+				var y = -0.5f + Mathf.Max(bottomExtend, r.pY - r.drop) * (Constants.MAX_HEIGHT - scale / 2f) + (scale - Constants.MAX_SCALE) / 2f;
 				var pos = drawLoc + new Vector3(x, 0, y);
 				pos.y = Altitudes.AltitudeFor(AltitudeLayer.Pawn + 1);
 				var rot = Quaternion.Euler(0f, r.rot * 360f, 0f);

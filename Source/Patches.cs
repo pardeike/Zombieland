@@ -9,10 +9,12 @@ using System.Text;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Verse.Sound;
 
 namespace ZombieLand
 {
 	public class BombVest : Apparel { }
+	public class TankySuit : Apparel { }
 	public class StickyGoo : Filth { }
 
 	class Patches
@@ -28,6 +30,8 @@ namespace ZombieLand
 		[HarmonyPatch("DrawSelectionOverlays")]
 		static class SelectionDrawer_DrawSelectionOverlays_Patch
 		{
+			static float pawnAltitude = Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1);
+
 			static void Postfix()
 			{
 				if (Constants.DEBUGGRID == false) return;
@@ -35,7 +39,7 @@ namespace ZombieLand
 				// debug zombie counts
 				Find.VisibleMap.GetGrid().IterateCells((x, z, cell) =>
 				{
-					var pos = new Vector3(x, Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1), z);
+					var pos = new Vector3(x, pawnAltitude, z);
 					if (cell.zombieCount > 1)
 					{
 						var a = Math.Min(0.9f, 0.2f * (cell.zombieCount - 1));
@@ -48,11 +52,16 @@ namespace ZombieLand
 				var now = Tools.Ticks();
 				Find.VisibleMap.GetGrid().IterateCells((x, z, cell) =>
 				{
-					var pos = new Vector3(x, Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1), z);
+					var pos = new Vector3(x, pawnAltitude, z);
 					var diff = now - cell.timestamp;
-					if (diff < fadeOff)
+					if (diff >= -fadeOff && diff < 0)
 					{
-						var a = (fadeOff - diff) * 0.5f / fadeOff;
+						var a = GenMath.LerpDouble(-fadeOff, 0, 0.8f, 0.5f, diff);
+						Tools.DebugPosition(pos, new Color(1f, 1f, 0f, a));
+					}
+					else if (diff < fadeOff)
+					{
+						var a = GenMath.LerpDouble(0, fadeOff, 0.5f, 0.0f, diff);
 						Tools.DebugPosition(pos, new Color(1f, 0f, 0f, a));
 					}
 				});
@@ -60,7 +69,7 @@ namespace ZombieLand
 		}
 
 		// patch for debugging: show zombie avoidance grid
-		//
+		/*
 		[HarmonyPatch(typeof(MapInterface))]
 		[HarmonyPatch("MapInterfaceUpdate")]
 		class MapInterface_MapInterfaceUpdate_Patch
@@ -84,9 +93,9 @@ namespace ZombieLand
 						Tools.DebugPosition(c.ToVector3(), new Color(1f, 0f, 0f, GenMath.LerpDouble(0, 10000, 0.4f, 1f, cost)));
 				}
 			}
-		}
+		}*/
 
-		// patch for debugging: show zombie count around mouse
+		// patch for debugging: show zombie pathing grid around the mouse
 		//
 		[HarmonyPatch(typeof(MapInterface))]
 		[HarmonyPatch("MapInterfaceOnGUI_AfterMainTabs")]
@@ -101,11 +110,22 @@ namespace ZombieLand
 				if (map == null) return;
 				var grid = map.GetGrid();
 				var basePos = UI.MouseCell();
+				var info = Tools.wanderer.GetMapInfo(map);
+				var ignoreBuildings = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 				Tools.GetCircle(4).Select(vec => vec + basePos).Do(cell =>
 				{
-					var n = grid.GetZombieCount(cell);
-					var v = GenMapUI.LabelDrawPosFor(cell);
-					GenMapUI.DrawThingLabel(v, n.ToStringCached(), Color.white);
+					var labelVec = GenMapUI.LabelDrawPosFor(cell);
+					var newPos = info.GetParent(cell, ignoreBuildings);
+					if (newPos.IsValid == false)
+					{
+						GenMapUI.DrawThingLabel(labelVec, "⁜", Color.red);
+						return;
+					}
+
+					var d = newPos - cell;
+					var n = (d.x + 1) + (d.z + 1) * 3;
+					var arrow = "↙↓↘←◌→↖↑↗".Substring(n, 1);
+					GenMapUI.DrawThingLabel(labelVec, arrow, ignoreBuildings ? Color.yellow : Color.white);
 				});
 			}
 		}
@@ -308,6 +328,23 @@ namespace ZombieLand
 			}
 		}
 
+		// patch so other zombies do not affect goodwill of other factions
+		//
+		[HarmonyPatch(typeof(Faction))]
+		[HarmonyPatch("AffectGoodwillWith")]
+		static class Faction_AffectGoodwillWith_Patch
+		{
+			static bool Prefix(ref bool __result, Faction __instance, Faction other)
+			{
+				if (__instance.def == ZombieDefOf.Zombies || other.def == ZombieDefOf.Zombies)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+
 		// patch to prefer non-downed zombies from downed one as targets
 		//
 		[HarmonyPatch(typeof(AttackTargetFinder))]
@@ -443,7 +480,7 @@ namespace ZombieLand
 							var num = hostiles.Count((IAttackTarget x) => !x.ThreatDisabled());
 							if (num == 0)
 								dangerRatingInt = StoryDanger.None;
-							else if (num <= Mathf.CeilToInt((float)map.mapPawns.FreeColonistsSpawnedCount * 0.5f))
+							else if (num <= Mathf.CeilToInt(map.mapPawns.FreeColonistsSpawnedCount * 0.5f))
 								dangerRatingInt = StoryDanger.Low;
 							else
 							{
@@ -780,7 +817,6 @@ namespace ZombieLand
 
 				var tickManager = map.GetComponent<TickManager>();
 				if (tickManager == null) return;
-				var center = Tools.CenterOfInterest(map);
 				builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount());
 
@@ -792,13 +828,18 @@ namespace ZombieLand
 				});
 				builder.AppendLine("");
 
-				if (pos.InBounds(map) && ZombieSettings.Values.betterZombieAvoidance)
+				if (pos.InBounds(map) == false) return;
+
+				if (ZombieSettings.Values.betterZombieAvoidance)
 				{
 					var avoidGrid = map.GetComponent<TickManager>().avoidGrid;
 					builder.AppendLine("Avoid cost: " + avoidGrid.GetCosts()[pos.x + pos.z * map.Size.x]);
 				}
 
-				if (pos.InBounds(map) == false) return;
+				var info = Tools.wanderer.GetMapInfo(map);
+				builder.AppendLine("Parent normal: " + info.GetParent(pos, false));
+				builder.AppendLine("Parent via doors: " + info.GetParent(pos, true));
+				builder.AppendLine("Parent raw: " + info.GetDirectDebug(pos));
 
 				var cell = map.GetGrid().GetPheromone(pos, false);
 				if (cell != null)
@@ -936,53 +977,80 @@ namespace ZombieLand
 			static void Prefix(Thing __instance, IntVec3 value)
 			{
 				var pawn = __instance as Pawn;
-				if (pawn == null || pawn.Map == null) return;
+				if (pawn == null) return;
+				var map = pawn.Map;
+				if (map == null) return;
 				if (pawn.Position == value) return;
 
 				var zombie = pawn as Zombie;
 				if (zombie != null)
 				{
-					var grid = pawn.Map.GetGrid();
-					var newCell = grid.GetPheromone(value, false);
-					if (newCell != null && newCell.zombieCount > 0)
-					{
-						newCell.timestamp -= newCell.zombieCount * Constants.ZOMBIE_CLOGGING_FACTOR;
-						var notOlderThan = Tools.Ticks() - Tools.PheromoneFadeoff();
-						if (newCell.timestamp < notOlderThan)
-							newCell.timestamp = notOlderThan;
-					}
-				}
-				else
-				{
-					// manhunting will always trigger senses
+					var grid = map.GetGrid();
+
+					// tanky zombies leave pherome trace too so other zombies follow
 					//
-					if (pawn.MentalState == null || (pawn.MentalState.def != def1 && pawn.MentalState.def != def2))
+					if (zombie.IsTanky)
 					{
-						if (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans)
-							if (pawn.RaceProps.Humanlike == false) return;
-
-						if (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists)
-							if (pawn.IsColonist == false) return;
-					}
-
-					// apply toxic splatter damage
-					var toxity = 0.05f * pawn.GetStatValue(StatDefOf.ToxicSensitivity, true);
-					if (toxity > 0f)
-					{
-						var stickyGooDef = ThingDef.Named("StickyGoo");
-						pawn.Position.GetThingList(pawn.Map).Where(thing => thing.def == stickyGooDef).Do(thing =>
+						var fadeOff = Tools.PheromoneFadeoff();
+						var now = Tools.Ticks();
+						var radius = Constants.TANKY_PHEROMONE_RADIUS;
+						var dx = pawn.Position.x - value.x;
+						var dz = pawn.Position.z - value.z;
+						var r2 = radius * radius;
+						Tools.GetCircle(radius).Do(vec =>
 						{
-							HealthUtility.AdjustSeverity(pawn, HediffDefOf.ToxicBuildup, toxity);
+							var vx = Math.Sign(vec.x);
+							var vz = Math.Sign(vec.z);
+							var vlen = vec.LengthHorizontalSquared;
+							if ((vx == 0 || vx == dx) && (vz == 0 || vz == dz) && vlen > 1f)
+							{
+								var offset = GenMath.LerpDouble(0f, r2, fadeOff / 8f, fadeOff / 4f, vlen);
+								grid.BumpTimestamp(value + vec, now - (long)offset);
+							}
 						});
 					}
-
-					if (Tools.HasInfectionState(pawn, InfectionState.Infecting) == false)
+					else
 					{
-						var now = Tools.Ticks();
-						var radius = Tools.RadiusForPawn(pawn);
-						var grid = pawn.Map.GetGrid();
-						Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(value + vec, now - (long)(2f * vec.LengthHorizontal)));
+						var newCell = grid.GetPheromone(value, false);
+						if (newCell != null && newCell.zombieCount > 0)
+						{
+							newCell.timestamp -= newCell.zombieCount * Constants.ZOMBIE_CLOGGING_FACTOR;
+							var notOlderThan = Tools.Ticks() - Tools.PheromoneFadeoff();
+							newCell.timestamp = Math.Max(newCell.timestamp, notOlderThan);
+						}
 					}
+
+					return;
+				}
+
+				// manhunting will always trigger senses
+				//
+				if (pawn.MentalState == null || (pawn.MentalState.def != def1 && pawn.MentalState.def != def2))
+				{
+					if (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans)
+						if (pawn.RaceProps.Humanlike == false) return;
+
+					if (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists)
+						if (pawn.IsColonist == false) return;
+				}
+
+				// apply toxic splatter damage
+				var toxity = 0.05f * pawn.GetStatValue(StatDefOf.ToxicSensitivity, true);
+				if (toxity > 0f)
+				{
+					var stickyGooDef = ThingDef.Named("StickyGoo");
+					pawn.Position.GetThingList(pawn.Map).Where(thing => thing.def == stickyGooDef).Do(thing =>
+					{
+						HealthUtility.AdjustSeverity(pawn, HediffDefOf.ToxicBuildup, toxity);
+					});
+				}
+
+				if (Tools.HasInfectionState(pawn, InfectionState.Infecting) == false)
+				{
+					var now = Tools.Ticks();
+					var radius = Tools.RadiusForPawn(pawn);
+					var grid = pawn.Map.GetGrid();
+					Tools.GetCircle(radius).Do(vec => grid.BumpTimestamp(value + vec, now - (long)(2f * vec.LengthHorizontal)));
 				}
 			}
 		}
@@ -1430,6 +1498,15 @@ namespace ZombieLand
 			static Vector3 leftEyeOffset = new Vector3(-0.092f, 0f, -0.08f);
 			static Vector3 rightEyeOffset = new Vector3(0.092f, 0f, -0.08f);
 
+			static Mesh bodyMesh = MeshPool.GridPlane(new Vector2(1.5f, 1.5f));
+			static Mesh bodyMesh_flipped = MeshPool.GridPlaneFlip(new Vector2(1.5f, 1.5f));
+
+			static Mesh headMesh = MeshPool.GridPlane(new Vector2(1.5f, 1.5f));
+			static Mesh headMesh_flipped = MeshPool.GridPlaneFlip(new Vector2(1.5f, 1.5f));
+
+			static Mesh shieldMesh = MeshPool.GridPlane(new Vector2(2f, 2f));
+			static Mesh shieldMesh_flipped = MeshPool.GridPlaneFlip(new Vector2(2f, 2f));
+
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(PawnRenderer __instance, Vector3 drawLoc, RotDrawMode bodyDrawType)
 			{
@@ -1449,11 +1526,12 @@ namespace ZombieLand
 			{
 				var zombie = __instance.graphics.pawn as Zombie;
 				if (zombie == null) return;
-				if (zombie.GetPosture() != PawnPosture.Standing) return;
+				if (zombie.state == ZombieState.Emerging || zombie.GetPosture() != PawnPosture.Standing) return;
 
 				// general zombie drawing
 
 				Verse.TickManager tm = null;
+				var orientation = zombie.Rotation;
 
 				if (zombie.bombTickingInterval != -1f)
 				{
@@ -1468,12 +1546,89 @@ namespace ZombieLand
 						{
 							var bombLightLoc = drawLoc + new Vector3(0, 0.1f, -0.2f);
 							var scale = 1f;
-							if (zombie.Rotation == Rot4.South || zombie.Rotation == Rot4.North) bombLightLoc.z += 0.05f;
-							if (zombie.Rotation == Rot4.North) { bombLightLoc.y -= 0.1f; scale = 1.5f; }
-							if (zombie.Rotation == Rot4.West) { bombLightLoc.x -= 0.25f; bombLightLoc.z -= 0.05f; }
-							if (zombie.Rotation == Rot4.East) { bombLightLoc.x += 0.25f; bombLightLoc.z -= 0.05f; }
+							if (orientation == Rot4.South || orientation == Rot4.North) bombLightLoc.z += 0.05f;
+							if (orientation == Rot4.North) { bombLightLoc.y -= 0.1f; scale = 1.5f; }
+							if (orientation == Rot4.West) { bombLightLoc.x -= 0.25f; bombLightLoc.z -= 0.05f; }
+							if (orientation == Rot4.East) { bombLightLoc.x += 0.25f; bombLightLoc.z -= 0.05f; }
 							GraphicToolbox.DrawScaledMesh(MeshPool.plane10, Constants.BOMB_LIGHT, bombLightLoc, Quaternion.identity, scale, scale);
 						}
+					}
+				}
+
+				var location = drawLoc;
+				location.y += Altitudes.AltInc / 2f;
+				if (orientation == Rot4.North)
+					location.y += Altitudes.AltInc / 12f;
+
+				if (zombie.hasTankySuit > 0f && zombie.hasTankySuit <= 1f)
+				{
+					var n = (int)(zombie.hasTankySuit * 4f + 0.5f);
+
+					var pos = location;
+					var f = 25f * (zombie.pather.nextCellCostLeft / zombie.pather.nextCellCostTotal);
+					pos.z += (Mathf.Max(0.5f, Mathf.Cos(f)) - 0.7f) / 20f;
+
+					if (orientation == Rot4.South || orientation == Rot4.North)
+					{
+						var rot = Quaternion.identity;
+						var frontBack = (int)(orientation == Rot4.South ? FacingIndex.Front : FacingIndex.Back);
+						GraphicToolbox.DrawScaledMesh(bodyMesh, Constants.TANKYSUITS[frontBack][n], pos, rot, 1f, 1f);
+					}
+					else
+					{
+						var rot = Quaternion.identity;
+						var mesh = orientation == Rot4.West ? bodyMesh_flipped : bodyMesh;
+						GraphicToolbox.DrawScaledMesh(mesh, Constants.TANKYSUITS[(int)FacingIndex.Side][n], pos, rot, 1f, 1f);
+					}
+				}
+
+				if (zombie.hasTankyHelmet > 0f && zombie.hasTankyHelmet <= 1f)
+				{
+					var n = (int)(zombie.hasTankyHelmet * 4f + 0.5f);
+					var headOffset = zombie.Drawer.renderer.BaseHeadOffsetAt(orientation);
+					headOffset.y += Altitudes.AltInc / 2f;
+
+					var pos = location;
+					var f = 25f * (zombie.pather.nextCellCostLeft / zombie.pather.nextCellCostTotal);
+					pos.z += (Mathf.Max(0.5f, Mathf.Cos(f + 0.8f)) - 0.7f) / 20f;
+
+					if (orientation == Rot4.South || orientation == Rot4.North)
+					{
+						var rot = Quaternion.identity;
+						var frontBack = (int)(orientation == Rot4.South ? FacingIndex.Front : FacingIndex.Back);
+						GraphicToolbox.DrawScaledMesh(headMesh, Constants.TANKYHELMETS[frontBack][n], pos + headOffset, rot, 1f, 1f);
+					}
+					else
+					{
+						var rot = Quaternion.identity;
+						var mesh = orientation == Rot4.West ? headMesh_flipped : headMesh;
+						GraphicToolbox.DrawScaledMesh(mesh, Constants.TANKYHELMETS[(int)FacingIndex.Side][n], pos + headOffset, rot, 1f, 1f);
+					}
+				}
+
+				if (zombie.hasTankyShield > 0f && zombie.hasTankyShield <= 1f)
+				{
+					var n = (int)(zombie.hasTankyShield * 4f + 0.5f);
+					var f = Mathf.PI * 4f * (zombie.pather.nextCellCostLeft / zombie.pather.nextCellCostTotal);
+
+					if (orientation == Rot4.South || orientation == Rot4.North)
+					{
+						var x = Mathf.Sin(f) * 0.03f;
+						var dx = x + (orientation == Rot4.South ? 0.2f : -0.2f);
+						var dy = orientation == Rot4.South ? 0.2f : -0.2f;
+						var dz = Mathf.Abs(Mathf.Cos(f) * 0.05f) + (orientation == Rot4.South ? -0.2f : 0.2f);
+						var rot = Quaternion.Euler(0f, x * 100f, 0f);
+						var mesh = orientation == Rot4.South ? shieldMesh : shieldMesh_flipped;
+						GraphicToolbox.DrawScaledMesh(mesh, Constants.TANKYSHIELDS[(int)FacingIndex.Front][n], drawLoc + new Vector3(dx, dy, dz), rot, 0.52f, 0.52f);
+					}
+					else
+					{
+						var dx = orientation == Rot4.West ? -0.45f : 0.45f;
+						var dy = 0.3f;
+						var dz = Mathf.Abs(Mathf.Cos(f) * 0.05f);
+						var rot = Quaternion.Euler(0f, dx * 22f, 0f);
+						var mesh = orientation == Rot4.West ? shieldMesh_flipped : shieldMesh;
+						GraphicToolbox.DrawScaledMesh(mesh, Constants.TANKYSHIELDS[(int)FacingIndex.Side][n], drawLoc + new Vector3(dx, dy, dz), rot, 0.62f, 0.62f);
 					}
 				}
 
@@ -1492,19 +1647,19 @@ namespace ZombieLand
 					if (eyesOpen || tm.CurTimeSpeed == TimeSpeed.Paused)
 					{
 						// the following constant comes from PawnRenderer.RenderPawnInternal
-						var loc = drawLoc + __instance.BaseHeadOffsetAt(zombie.Rotation) + new Vector3(0, 0.0281250011f, 0);
+						var loc = drawLoc + __instance.BaseHeadOffsetAt(orientation) + new Vector3(0, 0.0281250011f, 0);
 
 						// not clear why 75 but it seems to fit
 						var eyeX = zombie.sideEyeOffset.x / 75f;
 						var eyeZ = zombie.sideEyeOffset.z / 75f;
 
-						if (zombie.Rotation == Rot4.West)
+						if (orientation == Rot4.West)
 							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(-eyeX, 0, eyeZ), Quaternion.identity, 0.5f, 0.5f);
 
-						else if (zombie.Rotation == Rot4.East)
+						else if (orientation == Rot4.East)
 							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(eyeX, 0, eyeZ), Quaternion.identity, 0.5f, 0.5f);
 
-						if (zombie.Rotation == Rot4.South)
+						if (orientation == Rot4.South)
 						{
 							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + leftEyeOffset, Quaternion.identity, 0.5f, 0.5f);
 							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + rightEyeOffset, Quaternion.identity, 0.5f, 0.5f);
@@ -1512,8 +1667,8 @@ namespace ZombieLand
 					}
 				}
 
-				if (zombie.Rotation == Rot4.West) quickHeadCenter.x -= 0.09f;
-				if (zombie.Rotation == Rot4.East) quickHeadCenter.x += 0.09f;
+				if (orientation == Rot4.West) quickHeadCenter.x -= 0.09f;
+				if (orientation == Rot4.East) quickHeadCenter.x += 0.09f;
 				GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.RAGE_AURAS[Find.CameraDriver.CurrentZoom], quickHeadCenter, Quaternion.identity, 1f, 1f);
 			}
 		}
@@ -1547,12 +1702,13 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for giving hulk zombies bomb vests
+		// patch for giving zombies accessories like bomb vests or tanky suits
 		//
 		[HarmonyPatch(typeof(PawnGraphicSet))]
 		[HarmonyPatch("ResolveApparelGraphics")]
 		static class PawnGraphicSet_ResolveApparelGraphics_Patch
 		{
+			[HarmonyPriority(Priority.Last)]
 			static void Postfix(PawnGraphicSet __instance)
 			{
 				var zombie = __instance.pawn as Zombie;
@@ -1560,10 +1716,9 @@ namespace ZombieLand
 
 				if (zombie.bombTickingInterval != -1f)
 				{
-					var def = ThingDef.Named("Apparel_BombVest");
-					var bombVest = new Apparel() { def = def };
+					var apparel = new Apparel() { def = ThingDef.Named("Apparel_BombVest") };
 					ApparelGraphicRecord record;
-					if (ApparelGraphicRecordGetter.TryGetGraphicApparel(bombVest, BodyType.Hulk, out record))
+					if (ApparelGraphicRecordGetter.TryGetGraphicApparel(apparel, BodyType.Hulk, out record))
 						__instance.apparelGraphics.Add(record);
 				}
 			}
@@ -1629,6 +1784,11 @@ namespace ZombieLand
 						__result = 1000f;
 						return false;
 					}
+					if (zombie.hasTankyShield != -1f || zombie.hasTankyHelmet != -1f || zombie.hasTankySuit != -1f)
+					{
+						__result = 1000f;
+						return false;
+					}
 					switch (zombie.story.bodyType)
 					{
 						case BodyType.Thin:
@@ -1638,7 +1798,7 @@ namespace ZombieLand
 							__result = 0.8f;
 							return false;
 						case BodyType.Fat:
-							__result = 0.2f;
+							__result = 10f;
 							return false;
 					}
 					__result = 0.8f;
@@ -1647,6 +1807,24 @@ namespace ZombieLand
 
 				if (stat == StatDefOf.MeleeHitChance)
 				{
+					if (zombie.hasTankyShield != -1f)
+					{
+						__result = 1.0f;
+						return false;
+					}
+
+					if (zombie.hasTankyHelmet != -1f || zombie.hasTankySuit != -1f)
+					{
+						__result = 0.9f;
+						return false;
+					}
+
+					if (zombie.story.bodyType == BodyType.Fat)
+					{
+						__result = 0.8f;
+						return false;
+					}
+
 					if (zombie.state == ZombieState.Tracking || zombie.raging > 0)
 						__result = Constants.ZOMBIE_HIT_CHANCE_TRACKING;
 					else
@@ -1656,6 +1834,12 @@ namespace ZombieLand
 
 				if (stat == StatDefOf.MoveSpeed)
 				{
+					if (zombie.IsTanky)
+					{
+						__result = 0.001f * Find.TickManager.TickRateMultiplier;
+						return false;
+					}
+
 					float speed;
 					if (zombie.state == ZombieState.Tracking || zombie.raging > 0)
 						speed = ZombieSettings.Values.moveSpeedTracking;
@@ -1672,7 +1856,7 @@ namespace ZombieLand
 							factor = 0.1f;
 							break;
 						case BodyType.Fat:
-							factor = 0.2f;
+							factor = 0.05f;
 							break;
 						default:
 							factor = 1f;
@@ -1703,6 +1887,17 @@ namespace ZombieLand
 			{
 				var zombie = pawn as Zombie;
 				if (zombie == null) return;
+
+				if (zombie.hasTankyShield > 0f || zombie.hasTankyHelmet > 0f || zombie.hasTankySuit > 0f)
+				{
+					var val = 150f;
+					if (zombie.hasTankyShield > 0f) val += 150f;
+					if (zombie.hasTankyHelmet > 0f) val += 50f;
+					if (zombie.hasTankySuit > 0f) val += 150f;
+					__result *= val;
+					return;
+				}
+
 				var settings = ZombieSettings.Values.damageFactor;
 				switch (zombie.story.bodyType)
 				{
@@ -1713,7 +1908,7 @@ namespace ZombieLand
 						__result *= 4f * settings;
 						break;
 					case BodyType.Fat:
-						__result *= 2f * settings;
+						__result *= 10f * settings;
 						break;
 				}
 				if (zombie.wasColonist)
@@ -1764,32 +1959,6 @@ namespace ZombieLand
 			}
 		}
 
-		// for now, replaced with a check in Hediff_Injury_ZombieBite.Heal()
-		/*
-		[HarmonyPatch(typeof(HediffUtility))]
-		[HarmonyPatch("CanHealFromTending")]
-		static class HediffUtility_CanHealFromTending_Patch
-		{
-			[HarmonyPriority(Priority.Last)]
-			static void Postfix(Hediff_Injury hd, ref bool __result)
-			{
-				if (__result == false)
-					return;
-
-				var zombieBite = hd as Hediff_Injury_ZombieBite;
-				if (zombieBite != null && zombieBite.pawn.IsColonist)
-				{
-					var tendDuration = zombieBite.TendDuration;
-					if (tendDuration != null)
-					{
-						var state = tendDuration.GetInfectionState();
-						__result = (state == InfectionState.BittenVisible || state == InfectionState.BittenHarmless);
-					}
-				}
-			}
-		}
-		*/
-
 		// patch to allow amputation of biten body parts
 		//
 		[HarmonyPatch]
@@ -1801,6 +1970,7 @@ namespace ZombieLand
 				return type.MethodNamed("GetPartsToApplyOn");
 			}
 
+			[HarmonyPriority(Priority.Last)]
 			static void Postfix(Pawn pawn, RecipeDef recipe, ref IEnumerable<BodyPartRecord> __result)
 			{
 				if (recipe != RecipeDefOf.RemoveBodyPart)
@@ -1931,6 +2101,93 @@ namespace ZombieLand
 				}
 
 				if (!found1 || !found2) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+			}
+		}
+
+		// patch to prevent damage if zombie has armor
+		//
+		[HarmonyPatch(typeof(ArmorUtility))]
+		[HarmonyPatch("GetPostArmorDamage")]
+		static class ArmorUtility_GetPostArmorDamage_Patch
+		{
+			static void PlayTink(Thing thing)
+			{
+				if (Constants.USE_SOUND)
+				{
+					var info = SoundInfo.InMap(thing);
+					SoundDef.Named("TankyTink").PlayOneShot(info);
+				}
+			}
+
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Pawn pawn, ref int amountInt, BodyPartRecord part, DamageDef damageDef, ref int __result)
+			{
+				var zombie = pawn as Zombie;
+				if (zombie == null)
+					return true;
+
+				if (zombie.hasTankyShield > 0f)
+				{
+					PlayTink(zombie);
+					zombie.hasTankyShield -= amountInt / 200f;
+					if (zombie.hasTankyShield < 0f)
+						zombie.hasTankyShield = -1f;
+					__result = -1;
+					return false;
+				}
+
+				var fakeHeadShot = (zombie.hasTankySuit <= 0f && zombie.hasTankyHelmet > 0f && Rand.Chance(0.4f));
+				if (part.groups.Contains(BodyPartGroupDefOf.FullHead) || fakeHeadShot)
+				{
+					if (zombie.hasTankyHelmet > 0f)
+					{
+						PlayTink(zombie);
+						zombie.hasTankyHelmet -= amountInt / 10f;
+						if (zombie.hasTankyHelmet < 0f)
+							zombie.hasTankyHelmet = -1f;
+						__result = -1;
+						return false;
+					}
+				}
+				else
+				{
+					if (zombie.hasTankySuit > 0f)
+					{
+						PlayTink(zombie);
+						zombie.hasTankySuit -= amountInt / 100f;
+						if (zombie.hasTankySuit < 0f)
+							zombie.hasTankySuit = -1f;
+						__result = -1;
+						return false;
+					}
+				}
+
+				// still a tough zombie even if we hit the body but some armor is left
+				if (zombie.hasTankyHelmet > 0f || zombie.hasTankySuit > 0f)
+				{
+					var toughnessLevel = 1; // TODO scale from 1..n with difficulty
+					amountInt = (amountInt + toughnessLevel) / (toughnessLevel + 1);
+				}
+
+				return true;
+			}
+		}
+
+		// patch for simpler attack verb handling on zombies (story work tab confict)
+		//
+		[HarmonyPatch(typeof(Pawn))]
+		[HarmonyPatch("TryStartAttack")]
+		static class Pawn_TryStartAttack_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Pawn __instance, LocalTargetInfo targ, ref bool __result)
+			{
+				if ((__instance is Zombie) == false)
+					return true;
+
+				var verb = __instance.TryGetAttackVerb();
+				__result = verb != null && verb.TryStartCastOn(targ, false, true);
+				return false;
 			}
 		}
 
@@ -2318,14 +2575,15 @@ namespace ZombieLand
 				var magnitude = (targ.CenterVector3 - origin).magnitude * noiseScale * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
 				var radius = Tools.Boxed(magnitude, Constants.MIN_WEAPON_RANGE, Constants.MAX_WEAPON_RANGE);
 				var grid = launcher.Map.GetGrid();
-				Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
+				Tools.GetCircle(radius).Do(vec => grid.BumpTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
 			}
 
 			static float GetDistanceTraveled(float velocity, float angle, float shotHeight)
 			{
 				if (shotHeight < 0.001f)
-					return (Mathf.Pow(velocity, 2f) / 9.8f) * Mathf.Sin(2f * angle);
-				return ((velocity * Mathf.Cos(angle)) / 9.8f) * (velocity * Mathf.Sin(angle) + Mathf.Sqrt(Mathf.Pow(velocity * Mathf.Sin(angle), 2f) + 2f * 9.8f * shotHeight));
+					return (velocity * velocity / 9.8f) * Mathf.Sin(2f * angle);
+				var velsin = velocity * Mathf.Sin(angle);
+				return ((velocity * Mathf.Cos(angle)) / 9.8f) * (velsin + Mathf.Sqrt(velsin * velsin + 2f * 9.8f * shotHeight));
 			}
 
 			static void PostfixCombatExtended(Thing launcher, Vector2 origin, float shotAngle, float shotRotation, float shotHeight = 0f, float shotSpeed = -1f, Thing equipment = null)
@@ -2343,7 +2601,7 @@ namespace ZombieLand
 				var magnitude = noiseScale * delta * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
 				var radius = Tools.Boxed(magnitude, Constants.MIN_WEAPON_RANGE, Constants.MAX_WEAPON_RANGE);
 				var grid = launcher.Map.GetGrid();
-				Tools.GetCircle(radius).Do(vec => grid.SetTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
+				Tools.GetCircle(radius).Do(vec => grid.BumpTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
 			}
 
 			// called from Main
@@ -2443,18 +2701,23 @@ namespace ZombieLand
 		[HarmonyPatch("DropBloodFilth")]
 		static class Pawn_HealthTracker_DropBloodFilth_Patch
 		{
+			static bool SkipDropBlood(Pawn pawn)
+			{
+				var zombie = pawn as Zombie;
+				if (zombie == null) return false;
+				if (ZombieSettings.Values.zombiesDropBlood == false) return true;
+				if (zombie.hasTankyShield > 0 || zombie.hasTankySuit > 0) return true;
+				return false;
+			}
+
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
 				var jump = generator.DefineLabel();
 
 				yield return new CodeInstruction(OpCodes.Ldarg_0);
 				yield return new CodeInstruction(OpCodes.Ldfld, typeof(Pawn_HealthTracker).Field("pawn"));
-				yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
+				yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => SkipDropBlood(null)));
 				yield return new CodeInstruction(OpCodes.Brfalse, jump);
-
-				yield return new CodeInstruction(OpCodes.Ldsfld, typeof(ZombieSettings).Field(nameof(ZombieSettings.Values)));
-				yield return new CodeInstruction(OpCodes.Ldfld, typeof(SettingsGroup).Field(nameof(SettingsGroup.zombiesDropBlood)));
-				yield return new CodeInstruction(OpCodes.Brtrue, jump);
 				yield return new CodeInstruction(OpCodes.Ret);
 
 				var list = instructions.ToList();

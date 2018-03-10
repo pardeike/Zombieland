@@ -66,9 +66,7 @@ namespace ZombieLand
 			Dispose(true);
 		}
 
-#pragma warning disable RECS0154
 		void Dispose(bool v)
-#pragma warning restore RECS0154
 		{
 			if (mats != null)
 			{
@@ -99,9 +97,7 @@ namespace ZombieLand
 
 		public override int GetHashCode()
 		{
-#pragma warning disable RECS0025
 			return hash;
-#pragma warning restore RECS0025
 		}
 	}
 }

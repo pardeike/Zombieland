@@ -52,6 +52,11 @@ ANIMAL_PHEROMONE_RADIUS = 2.0
 // Default is 4.0
 HUMAN_PHEROMONE_RADIUS = 4.0
 
+// This controls the radius around tanky zombies which will draw ordinary zombies
+// with the tankys movement.
+// Default is 6.0
+TANKY_PHEROMONE_RADIUS = 6.0
+
 // The hit chance a zombie has when he is not tracking anything.
 // Default is 0.2 (20%)
 ZOMBIE_HIT_CHANCE_IDLE = 0.2

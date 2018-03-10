@@ -78,14 +78,20 @@ namespace ZombieLand
 			if (this.Eat(zombie, grid))
 				return;
 
-			var checkSmashable = this.Track(zombie, grid);
-			if (this.Smash(zombie, checkSmashable, true))
+			var checkSmashable = true;
+			if (zombie.IsTanky == false)
+			{
+				checkSmashable = this.Track(zombie, grid);
+				if (this.Smash(zombie, checkSmashable, true))
+					return;
+			}
+			else if (this.Smash(zombie, true, false))
 				return;
 
 			var possibleMoves = this.PossibleMoves(zombie);
 			if (possibleMoves.Count > 0)
 			{
-				if (zombie.raging > 0)
+				if (zombie.raging > 0 || zombie.IsTanky)
 					if (this.RageMove(zombie, grid, possibleMoves, checkSmashable))
 						return;
 

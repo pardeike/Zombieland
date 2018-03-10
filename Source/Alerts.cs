@@ -97,9 +97,7 @@ namespace ZombieLand
 
 		public Alert_ZombieInfectionProgress()
 		{
-#pragma warning disable RECS0021
 			Prepare();
-#pragma warning restore RECS0021
 			defaultLabel = label.Translate();
 			defaultPriority = priority;
 		}

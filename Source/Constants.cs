@@ -92,6 +92,7 @@ namespace ZombieLand
 		//
 		public static float ANIMAL_PHEROMONE_RADIUS = 2f;
 		public static float HUMAN_PHEROMONE_RADIUS = 4f;
+		public static float TANKY_PHEROMONE_RADIUS = 6f;
 		public static float ZOMBIE_HIT_CHANCE_IDLE = 0.2f;
 		public static float ZOMBIE_HIT_CHANCE_TRACKING = 0.7f;
 		public static int NUMBER_OF_TOP_MOVEMENT_PICKS = 3;
@@ -126,6 +127,9 @@ namespace ZombieLand
 		public static float MIN_ATTACKDISTANCE_SQUARED = 2.25f;
 		public static Material RAGE_EYE = MaterialPool.MatFrom("RageEye", ShaderDatabase.Mote);
 		public static Material BOMB_LIGHT = MaterialPool.MatFrom("BombLight", ShaderDatabase.MoteGlow);
+		public static Material[][] TANKYSHIELDS = Tools.GetDamageableGraphics("TankyShield", 2, 4);
+		public static Material[][] TANKYHELMETS = Tools.GetDamageableGraphics("TankyHelmet", 3, 4);
+		public static Material[][] TANKYSUITS = Tools.GetDamageableGraphics("TankySuit", 3, 4);
 		public static Dictionary<CameraZoomRange, Material> RAGE_AURAS = new Dictionary<CameraZoomRange, Material> {
 			{ CameraZoomRange.Closest, MaterialPool.MatFrom("RageAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.15f)) },
 			{ CameraZoomRange.Close, MaterialPool.MatFrom("RageAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.175f)) },

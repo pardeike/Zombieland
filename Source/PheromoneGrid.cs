@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 using Verse;
 
 namespace ZombieLand
@@ -50,7 +51,7 @@ namespace ZombieLand
 
 			if (mapSizeX == 0 || mapSizeZ == 0)
 			{
-				mapSizeX = (int)Math.Sqrt(grid.Length);
+				mapSizeX = (int)Mathf.Sqrt(grid.Length);
 				mapSizeZ = mapSizeX;
 			}
 		}
@@ -100,6 +101,12 @@ namespace ZombieLand
 		{
 			var cell = GetPheromone(position);
 			if (cell != null) cell.timestamp = timestamp;
+		}
+
+		public void BumpTimestamp(IntVec3 position, long timestamp)
+		{
+			var cell = GetPheromone(position);
+			if (cell != null) cell.timestamp = Math.Max(cell.timestamp, timestamp);
 		}
 
 		public int GetZombieCount(IntVec3 position)

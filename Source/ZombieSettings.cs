@@ -57,8 +57,9 @@ namespace ZombieLand
 		public float colonyMultiplier = 1f;
 		public int baseNumberOfZombiesinEvent = 20;
 		internal int extraDaysBetweenEvents = 0;
-		public float suicideBomberChance = 0.05f;
-		public float toxicSplasherChance = 0.05f;
+		public float suicideBomberChance = 0.03f;
+		public float toxicSplasherChance = 0.03f;
+		public float tankyOperatorChance = 0.03f;
 		public float moveSpeedIdle = 0.2f;
 		public float moveSpeedTracking = 1.3f;
 		public float damageFactor = 1.0f;

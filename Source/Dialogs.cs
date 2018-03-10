@@ -297,7 +297,7 @@ namespace ZombieLand
 			var list = new Listing_Standard() { ColumnWidth = defaultColumnWidth };
 
 			var outRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height);
-			var scrollRect = new Rect(0f, 0f, inRect.width - 16f, inRect.height * 2f);
+			var scrollRect = new Rect(0f, 0f, inRect.width - 16f, inRect.height * 2.2f);
 			Widgets.BeginScrollView(outRect, ref scrollPosition, scrollRect, true);
 
 			list.Begin(scrollRect); // -----------------------------------------------------------------------------
@@ -337,9 +337,10 @@ namespace ZombieLand
 
 			// Eating
 			list.Dialog_Label("SpecialZombiesTitle");
-			list.Dialog_FloatSlider("SuicideBomberChance", "0%", ref settings.suicideBomberChance, 0f, 1f - settings.toxicSplasherChance);
-			list.Dialog_FloatSlider("ToxicSplasherChance", "0%", ref settings.toxicSplasherChance, 0f, 1f - settings.suicideBomberChance);
-			var normalChance = 1 - settings.suicideBomberChance - settings.toxicSplasherChance;
+			list.Dialog_FloatSlider("SuicideBomberChance", "0%", ref settings.suicideBomberChance, 0f, 1f - settings.toxicSplasherChance - settings.tankyOperatorChance);
+			list.Dialog_FloatSlider("ToxicSplasherChance", "0%", ref settings.toxicSplasherChance, 0f, 1f - settings.suicideBomberChance - settings.tankyOperatorChance);
+			list.Dialog_FloatSlider("ToxicSplasherChance", "0%", ref settings.tankyOperatorChance, 0f, 1f - settings.suicideBomberChance - settings.toxicSplasherChance);
+			var normalChance = 1 - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance;
 			list.Dialog_Text(GameFont.Tiny, "NormalZombieChance", string.Format("{0:0%}", normalChance));
 
 			list.NewColumn();

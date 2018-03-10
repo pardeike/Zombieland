@@ -22,9 +22,7 @@ namespace ZombieLand
 			Dispose(true);
 		}
 
-#pragma warning disable RECS0154
 		void Dispose(bool v)
-#pragma warning restore RECS0154
 		{
 			if (!disposed)
 			{

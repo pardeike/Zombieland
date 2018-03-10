@@ -26,10 +26,8 @@ namespace ZombieLand
 			var baseRect = baseData.rect;
 			var stainWidth = stainData.width;
 			var stainHeight = stainData.height;
-#pragma warning disable RECS0018
 			var x = (int)(baseRect.x + (baseRect.width - stainWidth) * (px != -1f ? px : Rand.Value));
 			var y = (int)(baseRect.y + (baseRect.height - stainHeight) * (py != -1f ? py : Rand.Value));
-#pragma warning restore RECS0018
 			var oPixels = baseData.GetRawPixels(x, y, stainWidth, stainHeight);
 			var pPixels = stainData.pixels;
 			for (var sx = 0; sx < stainWidth; sx++)
