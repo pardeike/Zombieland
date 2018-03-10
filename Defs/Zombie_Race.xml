@@ -51,53 +51,54 @@
 			<MeleeHitChance>0.5</MeleeHitChance>
 			<MeleeDodgeChance>0.1</MeleeDodgeChance>
 		</statBases>
-		<verbs>
-			<li>
-				<verbClass>Verb_MeleeAttack</verbClass>
-				<defaultCooldownTime>4.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>4</meleeDamageBaseAmount>
-				<meleeDamageDef>ZombieBite</meleeDamageDef>
-				<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
-				<surpriseAttack>
-					<extraMeleeDamages>
-						<li>
-							<def>Stun</def>
-							<amount>40</amount>
-						</li>
-					</extraMeleeDamages>
-				</surpriseAttack>
-			</li>
-			<li>
-				<verbClass>Verb_MeleeAttack</verbClass>
-				<defaultCooldownTime>2.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>1</meleeDamageBaseAmount>
-				<meleeDamageDef>Scratch</meleeDamageDef>
-				<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
-				<surpriseAttack>
-					<extraMeleeDamages>
-						<li>
-							<def>Stun</def>
-							<amount>20</amount>
-						</li>
-					</extraMeleeDamages>
-				</surpriseAttack>
-			</li>
-			<li>
-				<verbClass>Verb_MeleeAttack</verbClass>
-				<defaultCooldownTime>2.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>1</meleeDamageBaseAmount>
-				<meleeDamageDef>Scratch</meleeDamageDef>
-				<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
-				<surpriseAttack>
-					<extraMeleeDamages>
-						<li>
-							<def>Stun</def>
-							<amount>20</amount>
-						</li>
-					</extraMeleeDamages>
-				</surpriseAttack>
-			</li>
-		</verbs>
+		<tools>
+		<li>
+			<label>ZombieBite</label>
+			<capacities>
+			  <li>ZombieBite</li>
+			</capacities>
+			<power>4</power>
+			<cooldownTime>4</cooldownTime>
+			<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
+		  </li>
+		  <li>
+			<label>left fist</label>
+			<capacities>
+			  <li>Scratch</li>
+			</capacities>
+			<power>1</power>
+			<cooldownTime>2</cooldownTime>
+			<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
+			<commonality>0.2</commonality>
+			<surpriseAttack>
+			  <extraMeleeDamages>
+				<li>
+				  <def>Stun</def>
+				  <amount>22</amount>
+				</li>
+			  </extraMeleeDamages>
+			</surpriseAttack>
+		  </li>
+		  <li>
+			<label>right fist</label>
+			<capacities>
+			  <li>Scratch</li>
+			</capacities>
+			<power>1</power>
+			<cooldownTime>2</cooldownTime>
+			<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
+			<commonality>0.2</commonality>
+			<surpriseAttack>
+			  <extraMeleeDamages>
+				<li>
+				  <def>Stun</def>
+				  <amount>22</amount>
+				</li>
+			  </extraMeleeDamages>
+			</surpriseAttack>
+		  </li>
+		  
+		</tools>
 		<race>
 			<thinkTreeMain>Zombie</thinkTreeMain>
 			<intelligence>Humanlike</intelligence>
