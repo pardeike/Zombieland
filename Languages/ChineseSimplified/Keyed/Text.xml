@@ -111,4 +111,7 @@
 	<BecameAZombieLabel>有人变成了僵尸</BecameAZombieLabel>
 	<BecameAZombieDesc>{0} 变成了一个强大的丧尸.</BecameAZombieDesc>
 
+	<BodyIsInfectedLabel>这个身体被僵尸感染！</BodyIsInfectedLabel>
+	<BodyIsInfectedTooltip>受感染的尸体在开始腐烂时会变成僵尸。</BodyIsInfectedTooltip>
+
 </LanguageData>

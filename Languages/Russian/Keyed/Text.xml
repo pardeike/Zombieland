@@ -111,4 +111,7 @@
 	<BecameAZombieLabel>Someone turned into zombie</BecameAZombieLabel>
 	<BecameAZombieDesc>{0} turned into a powerful zombie.</BecameAZombieDesc>
 
+	<BodyIsInfectedLabel>Это тело заражено вирусом зомби!</BodyIsInfectedLabel>
+	<BodyIsInfectedTooltip>Зараженные тела превратятся в зомби, когда они начнут гнить.</BodyIsInfectedTooltip>
+
 </LanguageData>

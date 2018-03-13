@@ -112,4 +112,7 @@
 	<BecameAZombieLabel>Quelqu'un est devenu un Zombie!</BecameAZombieLabel>
 	<BecameAZombieDesc>{0} devenus de puissant Zombie.</BecameAZombieDesc>
 
+	<BodyIsInfectedLabel>Ce corps est infecté par le virus zombie!</BodyIsInfectedLabel>
+	<BodyIsInfectedTooltip>Les corps infectés se transforment en zombies quand ils commencent à pourrir.</BodyIsInfectedTooltip>
+
 </LanguageData>

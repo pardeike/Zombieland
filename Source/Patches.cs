@@ -2626,11 +2626,13 @@ namespace ZombieLand
 						return;
 				}
 
-				__result += 20f;
+				__result += 15f;
 				GUI.color = Color.red;
-				Widgets.Label(new Rect(0f, __result, leftRect.width, 30f), "Body is infected by zombie virus!");
-				TooltipHandler.TipRegion(new Rect(0f, __result, leftRect.width, 20f), "Infected bodies will turn into a zombie when they start rotting.");
-				__result += 20f;
+				var text = "BodyIsInfectedLabel".Translate();
+				var textHeight = Text.CalcHeight(text, leftRect.width);
+				Widgets.Label(new Rect(0f, __result, leftRect.width, textHeight), text);
+				TooltipHandler.TipRegion(new Rect(0f, __result, leftRect.width, textHeight), "BodyIsInfectedTooltip".Translate());
+				__result += textHeight;
 				GUI.color = Color.white;
 			}
 		}
