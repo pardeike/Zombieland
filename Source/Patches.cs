@@ -255,7 +255,7 @@ namespace ZombieLand
 			{
 				var attacker = searcher as Pawn;
 
-				// attacker not animal, eneny or friendly? use default
+				// attacker is colonist or zombie? use default
 				if (validator == null || attacker == null || attacker.IsColonist || attacker is Zombie)
 					return validator;
 
@@ -269,8 +269,10 @@ namespace ZombieLand
 					};
 
 				// attacker is friendly
-				if (attacker.Faction.HostileTo(Faction.OfPlayer) == false)
-					return (IAttackTarget t) => (t.Thing is Zombie) ? false : validator(t);
+				// (disabled because the postfix deals with that)
+				//
+				// if (attacker.Faction.HostileTo(Faction.OfPlayer) == false)
+				//	return (IAttackTarget t) => (t.Thing is Zombie) ? false : validator(t);
 
 				// attacker is enemy
 				return (IAttackTarget t) =>
@@ -320,9 +322,51 @@ namespace ZombieLand
 				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 
-			static void Postfix(ref IAttackTarget __result, Predicate<Thing> validator)
+			static void Postfix(ref IAttackTarget __result, Predicate<Thing> validator, IAttackTargetSearcher searcher)
 			{
 				var thing = __result as Thing;
+
+				if (thing == null)
+				{
+					// fix only friendlies
+
+					var pawn = searcher as Pawn;
+					if (pawn.Faction.HostileTo(Faction.OfPlayer) == false)
+					{
+						var verb = searcher.CurrentEffectiveVerb;
+						if (verb != null)
+						{
+							var props = verb.verbProps;
+							if (props.MeleeRange == false && props.range > 0)
+							{
+								// the following can be improved by choosing targets that
+								// are not too close. unsolved problem: we do not know how
+								// to relocate shooeters yet
+								//
+								var maxRangeSquared = (int)(props.range * props.range);
+								var tickManager = pawn.Map.GetComponent<TickManager>();
+								var pawnPos = pawn.Position;
+								Func<Zombie, int> zombiePrioritySorter = delegate (Zombie zombie)
+								{
+									var score = maxRangeSquared - pawnPos.DistanceToSquared(zombie.Position);
+									if (zombie.bombTickingInterval != -1f)
+										score += 30;
+									if (zombie.IsTanky)
+										score += 20;
+									if (zombie.isToxicSplasher)
+										score += 10;
+									return -score;
+								};
+								__result = tickManager.allZombiesCached
+									.Where(zombie => zombie.Downed == false && zombie.state != ZombieState.Emerging && pawnPos.DistanceToSquared(zombie.Position) <= maxRangeSquared)
+									.Where(zombie => verb.CanHitTargetFrom(pawnPos, zombie))
+									.OrderBy(zombiePrioritySorter).FirstOrDefault();
+								return;
+							}
+						}
+					}
+				}
+
 				if (validator != null && thing != null && validator(thing) == false)
 					__result = null;
 			}
@@ -458,26 +502,26 @@ namespace ZombieLand
 			static StoryDanger dangerRatingInt = StoryDanger.None;
 			static Func<DangerWatcher, int> lastColonistHarmedTickDelegate = Tools.GetFieldAccessor<DangerWatcher, int>("lastColonistHarmedTick");
 
+			// TODO: the following is ugly since we copy original code (ugh!)
+			// The solution is to add method IL copying to Harmony ...
+			// Until then: this stays
+			//
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(ref bool __result)
 			{
-				if (ZombieSettings.Values.zombiesTriggerDangerMusic) return true;
-
-				if (Find.TickManager.TicksGame > lastUpdateTick + 101)
+				var maps = Find.Maps;
+				for (var i = 0; i < maps.Count; i++)
 				{
-					lastUpdateTick = Find.TickManager.TicksGame;
-
-					var maps = Find.Maps;
-					for (var i = 0; i < maps.Count; i++)
+					var map = maps[i];
+					if (map.IsPlayerHome)
 					{
-						var map = maps[i];
-						if (map.IsPlayerHome)
+						if (Find.TickManager.TicksGame > lastUpdateTick + 101)
 						{
 							var hostiles = playerHostilesWithoutZombies.ContainsKey(map)
 								? playerHostilesWithoutZombies[map]
 								: new HashSet<IAttackTarget>();
 
-							var num = hostiles.Count((IAttackTarget x) => !x.ThreatDisabled());
+							var num = hostiles.Count(GenHostility.IsActiveThreatToPlayer);
 							if (num == 0)
 								dangerRatingInt = StoryDanger.None;
 							else if (num <= Mathf.CeilToInt(map.mapPawns.FreeColonistsSpawnedCount * 0.5f))
@@ -489,13 +533,19 @@ namespace ZombieLand
 								if (lastColonistHarmedTick > Find.TickManager.TicksGame - 900)
 									dangerRatingInt = StoryDanger.High;
 								else
+								{
 									foreach (var current in map.lordManager.lords)
+									{
 										if (current.CurLordToil is LordToil_AssaultColony)
 										{
 											dangerRatingInt = StoryDanger.High;
 											break;
 										}
+									}
+								}
 							}
+
+							lastUpdateTick = Find.TickManager.TicksGame;
 						}
 					}
 				}
@@ -973,6 +1023,7 @@ namespace ZombieLand
 		{
 			static MentalStateDef def1 = MentalStateDefOf.Manhunter;
 			static MentalStateDef def2 = MentalStateDefOf.ManhunterPermanent;
+			static ThingDef stickyGooDef = ThingDef.Named("StickyGoo");
 
 			static void Prefix(Thing __instance, IntVec3 value)
 			{
@@ -1038,13 +1089,13 @@ namespace ZombieLand
 				var toxity = 0.05f * pawn.GetStatValue(StatDefOf.ToxicSensitivity, true);
 				if (toxity > 0f)
 				{
-					var stickyGooDef = ThingDef.Named("StickyGoo");
 					pawn.Position.GetThingList(pawn.Map).Where(thing => thing.def == stickyGooDef).Do(thing =>
 					{
 						HealthUtility.AdjustSeverity(pawn, HediffDefOf.ToxicBuildup, toxity);
 					});
 				}
 
+				// leave pheromone trail
 				if (Tools.HasInfectionState(pawn, InfectionState.Infecting) == false)
 				{
 					var now = Tools.Ticks();
@@ -1200,7 +1251,7 @@ namespace ZombieLand
 			static bool Prefix(ref PawnGenerationRequest request, ref Pawn __result)
 			{
 				if (request.Faction == null || request.Faction.def != ZombieDefOf.Zombies) return true;
-				__result = ZombieGenerator.GeneratePawn();
+				__result = ZombieGenerator.GeneratePawn(false);
 				return false;
 			}
 		}
@@ -1217,7 +1268,7 @@ namespace ZombieLand
 				if (target.HasThing)
 				{
 					var zombie = target.Thing as Zombie;
-					if ((zombie != null && zombie.wasColonist == false) || target.Thing is ZombieCorpse)
+					if ((zombie != null && zombie.wasMapPawnBefore == false) || target.Thing is ZombieCorpse)
 					{
 						__result = false;
 						return false;
@@ -1779,7 +1830,7 @@ namespace ZombieLand
 
 				if (stat == StatDefOf.PainShockThreshold)
 				{
-					if (zombie.wasColonist || zombie.raging > 0)
+					if (zombie.wasMapPawnBefore || zombie.raging > 0)
 					{
 						__result = 1000f;
 						return false;
@@ -1868,7 +1919,7 @@ namespace ZombieLand
 					// a very good workaround for good game speed
 					//
 					__result = speed * factor * Find.TickManager.TickRateMultiplier;
-					if (zombie.wasColonist)
+					if (zombie.wasMapPawnBefore)
 						__result *= 2f;
 					return false;
 				}
@@ -1911,7 +1962,7 @@ namespace ZombieLand
 						__result *= 10f * settings;
 						break;
 				}
-				if (zombie.wasColonist)
+				if (zombie.wasMapPawnBefore)
 					__result *= 10f;
 			}
 		}
@@ -1993,6 +2044,13 @@ namespace ZombieLand
 			static void Postfix(Hediff __instance, ref bool __result)
 			{
 				if (__result == false) return;
+
+				// do not remove our zombie hediffs from dead pawns
+				if (__instance.pawn != null && __instance.pawn.Dead && __instance.def.IsZombieHediff())
+				{
+					__result = false;
+					return;
+				}
 
 				var zombieBite = __instance as Hediff_Injury_ZombieBite;
 				if (zombieBite != null/* && zombieBite.pawn.IsColonist */)
@@ -2191,7 +2249,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to remove current job of zombie immediately when killed
+		// patch to handle various things when someone dies
 		//
 		[HarmonyPatch(typeof(Pawn))]
 		[HarmonyPatch("Kill")]
@@ -2200,9 +2258,21 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static void Prefix(Pawn __instance)
 			{
+				// remove current job of zombie immediately when killed
 				var zombie = __instance as Zombie;
-				if (zombie == null || zombie.jobs == null || zombie.CurJob == null) return;
-				zombie.jobs.EndCurrentJob(JobCondition.InterruptForced, false);
+				if (zombie != null)
+				{
+					if (zombie.jobs != null && zombie.CurJob != null)
+						zombie.jobs.EndCurrentJob(JobCondition.InterruptForced, false);
+					return;
+				}
+				var pawn = __instance;
+
+				// flag zombie bites to be infectious when pawn dies
+				pawn.health.hediffSet
+					.GetHediffs<Hediff_Injury_ZombieBite>()
+					.Where(zombieBite => zombieBite.TendDuration.InfectionStateBetween(InfectionState.BittenInfectable, InfectionState.Infected))
+					.Do(zombieBite => zombieBite.mayBecomeZombieWhenDead = true);
 			}
 		}
 
@@ -2216,7 +2286,7 @@ namespace ZombieLand
 			{
 				if (__result == false) return;
 				var zombie = pawn as Zombie;
-				if (zombie != null && zombie.Spawned && zombie.Dead == false && zombie.raging == 0 && zombie.wasColonist == false)
+				if (zombie != null && zombie.Spawned && zombie.Dead == false && zombie.raging == 0 && zombie.wasMapPawnBefore == false)
 					zombie.state = ZombieState.ShouldDie;
 			}
 		}
@@ -2386,7 +2456,7 @@ namespace ZombieLand
 			static bool Prefix(Pawn pawn, ref Color __result)
 			{
 				var zombie = pawn as Zombie;
-				if (zombie != null && zombie.wasColonist)
+				if (zombie != null && zombie.wasMapPawnBefore)
 				{
 					__result = zombieLabelColor;
 					return false;
@@ -2405,7 +2475,7 @@ namespace ZombieLand
 			static bool Prefix(Thing t, ref bool __result)
 			{
 				var zombie = t as Zombie;
-				if (zombie != null && zombie.wasColonist)
+				if (zombie != null && zombie.wasMapPawnBefore)
 				{
 					__result = true;
 					return false;
@@ -2497,6 +2567,71 @@ namespace ZombieLand
 			{
 				var grid = __instance.GetGrid();
 				grid.IterateCellsQuick(cell => cell.zombieCount = 0);
+			}
+		}
+
+		// convert dying infected pawns when they start rotting
+		//
+		[HarmonyPatch(typeof(Corpse))]
+		[HarmonyPatch("RotStageChanged")]
+		static class Corpse_RotStageChanged_Patch
+		{
+			static void Postfix(Corpse __instance)
+			{
+				var pawn = __instance.InnerPawn;
+				if (pawn == null || (pawn is Zombie))
+					return;
+
+				var rotStage = __instance.GetRotStage();
+				if (rotStage == RotStage.Fresh)
+					return;
+
+				var hasBrain = pawn.health.hediffSet.GetBrain() != null;
+				if (hasBrain == false)
+					return;
+
+				var shouldBecomeZombie = (pawn.health != null && pawn.health.hediffSet
+					.GetHediffs<Hediff_Injury_ZombieBite>()
+					.Any(zombieByte => zombieByte.mayBecomeZombieWhenDead));
+
+				if (shouldBecomeZombie)
+					Tools.ConvertToZombie(__instance);
+			}
+		}
+
+		// show infection on dead pawns
+		//
+		[HarmonyPatch(typeof(HealthCardUtility))]
+		[HarmonyPatch("DrawOverviewTab")]
+		static class HealthCardUtility_DrawOverviewTab_Patch
+		{
+			static void Postfix(Pawn pawn, Rect leftRect, ref float __result)
+			{
+				if (pawn == null)
+					return;
+
+				var hasBrain = pawn.health.hediffSet.GetBrain() != null;
+				if (hasBrain == false)
+					return;
+
+				if (pawn.Dead)
+				{
+					if (pawn.health.hediffSet.GetHediffs<Hediff_Injury_ZombieBite>()
+						.All(zombieByte => zombieByte.mayBecomeZombieWhenDead == false))
+						return;
+				}
+				else
+				{
+					if (Tools.HasInfectionState(pawn, InfectionState.BittenInfectable, InfectionState.Infected) == false)
+						return;
+				}
+
+				__result += 20f;
+				GUI.color = Color.red;
+				Widgets.Label(new Rect(0f, __result, leftRect.width, 30f), "Body is infected by zombie virus!");
+				TooltipHandler.TipRegion(new Rect(0f, __result, leftRect.width, 20f), "Infected bodies will turn into a zombie when they start rotting.");
+				__result += 20f;
+				GUI.color = Color.white;
 			}
 		}
 

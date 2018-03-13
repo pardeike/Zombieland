@@ -78,6 +78,7 @@
 	<SpecialZombiesTitle>特殊僵尸</SpecialZombiesTitle>
 	<SuicideBomberChance>自杀攻击的僵尸</SuicideBomberChance>
 	<ToxicSplasherChance>有毒的僵尸</ToxicSplasherChance>
+	<TankyOperatorChance>重型和装甲僵尸</TankyOperatorChance>
 	<NormalZombieChance>普通僵尸数: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>其他</ZombieMiscTitle>
@@ -107,8 +108,7 @@
 	<HoursBeforeBecomingInfected>{0} 感染</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} 成为丧尸</HoursBeforeBecomingAZombie>
 
-	<ColonistBecameAZombieLabel>殖民者变成了一个丧尸</ColonistBecameAZombieLabel>
-	<SomeoneBecameAZombieLabel>有人变成了僵尸</SomeoneBecameAZombieLabel>
-	<ColonistBecameAZombieDesc>{0} 变成了一个强大的丧尸.</ColonistBecameAZombieDesc>
+	<BecameAZombieLabel>有人变成了僵尸</BecameAZombieLabel>
+	<BecameAZombieDesc>{0} 变成了一个强大的丧尸.</BecameAZombieDesc>
 
 </LanguageData>

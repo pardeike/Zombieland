@@ -65,7 +65,6 @@ namespace ZombieLand
 		{
 			var tendDuration = pawn.health.hediffSet
 						.GetHediffs<Hediff_Injury_ZombieBite>()
-						.Cast<HediffWithComps>()
 						.Select(comps => comps.TryGetComp<HediffComp_Zombie_TendDuration>())
 						.FirstOrDefault();
 

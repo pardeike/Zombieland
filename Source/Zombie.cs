@@ -29,7 +29,7 @@ namespace ZombieLand
 		List<Rubble> rubbles = new List<Rubble>();
 
 		public IntVec2 sideEyeOffset;
-		public bool wasColonist;
+		public bool wasMapPawnBefore;
 		public IntVec3 lastGotoPosition = IntVec3.Invalid;
 
 		// suicide bomber
@@ -86,6 +86,8 @@ namespace ZombieLand
 		public override void ExposeData()
 		{
 			base.ExposeData();
+
+			var wasColonist = wasMapPawnBefore;
 			Scribe_Values.Look(ref state, "zstate");
 			Scribe_Values.Look(ref raging, "raging");
 			Scribe_Values.Look(ref wanderDestination, "wanderDestination");
@@ -93,12 +95,14 @@ namespace ZombieLand
 			Scribe_Values.Look(ref rubbleCounter, "rubbleCounter");
 			Scribe_Collections.Look(ref rubbles, "rubbles", LookMode.Deep);
 			Scribe_Values.Look(ref wasColonist, "wasColonist");
+			Scribe_Values.Look(ref wasMapPawnBefore, "wasMapPawnBefore");
 			Scribe_Values.Look(ref bombWillGoOff, "bombWillGoOff");
 			Scribe_Values.Look(ref bombTickingInterval, "bombTickingInterval");
 			Scribe_Values.Look(ref isToxicSplasher, "toxicSplasher");
 			Scribe_Values.Look(ref hasTankyShield, "tankyShield");
 			Scribe_Values.Look(ref hasTankyHelmet, "tankyHelmet");
 			Scribe_Values.Look(ref hasTankySuit, "tankySuit");
+			wasMapPawnBefore |= wasColonist;
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
@@ -314,7 +318,7 @@ namespace ZombieLand
 
 		public override void DrawGUIOverlay()
 		{
-			if (wasColonist)
+			if (wasMapPawnBefore)
 			{
 				var pos = GenMapUI.LabelDrawPosFor(this, -0.6f);
 				GenMapUI.DrawPawnLabel(this, pos, 1f, 9999f, null, GameFont.Tiny, true, true);

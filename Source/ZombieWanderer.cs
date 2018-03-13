@@ -177,7 +177,7 @@ namespace ZombieLand
 		bool BlocksDiagonalMovement(int x, int z)
 		{
 			var idx = x + mapSizeX * z;
-			return pathGrid.WalkableFast(idx) == false || edificeGrid[idx] is Building_Door;
+			return pathGrid.WalkableFast(idx) == false || (edificeGrid != null && edificeGrid[idx] is Building_Door);
 		}
 
 		bool ValidFloodCell(Map map, IntVec3 cell, IntVec3 from, bool ignoreBuildings)
@@ -195,7 +195,7 @@ namespace ZombieLand
 				if (pathGrid.WalkableFast(cell) == false)
 				{
 					if (ignoreBuildings)
-						return edificeGrid[cell] is Building;
+						return edificeGrid != null && edificeGrid[cell] is Building;
 					return false;
 				}
 
@@ -236,12 +236,12 @@ namespace ZombieLand
 
 					if (ignoreBuildings)
 					{
-						if ((edificeGrid[child] is Building_Door) == false)
+						if ((edificeGrid != null && edificeGrid[child] is Building_Door) == false)
 							highPrioSet.Enqueue(child);
 					}
 					else
 					{
-						if (edificeGrid[child] is Building_Door door && door.Open == false)
+						if (edificeGrid != null && edificeGrid[child] is Building_Door door && door.Open == false)
 							lowPrioSet.Enqueue(child);
 						else
 							highPrioSet.Enqueue(child);

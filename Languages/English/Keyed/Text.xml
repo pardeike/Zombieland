@@ -78,6 +78,7 @@
 	<SpecialZombiesTitle>Special zombies</SpecialZombiesTitle>
 	<SuicideBomberChance>Suicide bomber zombies</SuicideBomberChance>
 	<ToxicSplasherChance>Toxic splasher zombies</ToxicSplasherChance>
+	<TankyOperatorChance>Tanky operator zombies</TankyOperatorChance>
 	<NormalZombieChance>Ordinary zombies: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Miscellaneous</ZombieMiscTitle>
@@ -107,8 +108,7 @@
 	<HoursBeforeBecomingInfected>{0} to infection</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} to become a zombie</HoursBeforeBecomingAZombie>
 
-	<ColonistBecameAZombieLabel>A colonist turned into a zombie</ColonistBecameAZombieLabel>
-	<SomeoneBecameAZombieLabel>Someone turned into a zombie</SomeoneBecameAZombieLabel>
-	<ColonistBecameAZombieDesc>{0} turned into a powerful zombie.</ColonistBecameAZombieDesc>
+	<BecameAZombieLabel>Someone turned into a zombie</BecameAZombieLabel>
+	<BecameAZombieDesc>{0} turned into a powerful zombie.</BecameAZombieDesc>
 
 </LanguageData>

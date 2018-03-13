@@ -78,6 +78,7 @@
 	<SpecialZombiesTitle>Zombies spéciaux</SpecialZombiesTitle>
 	<SuicideBomberChance>Les zombies de Kamikaze</SuicideBomberChance>
 	<ToxicSplasherChance>Zombies vénéneux</ToxicSplasherChance>
+	<TankyOperatorChance>Zombies lourds et blindés</TankyOperatorChance>
 	<NormalZombieChance>Zombies ordinaires: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Divers</ZombieMiscTitle>
@@ -108,8 +109,7 @@
 	<HoursBeforeBecomingInfected>{0} avant l’infection</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} avant de devenir un Zombie</HoursBeforeBecomingAZombie>
 
-	<ColonistBecameAZombieLabel>Un colon est devenu un Zombie!</ColonistBecameAZombieLabel>
-	<SomeoneBecameAZombieLabel>Quelqu'un est devenu un Zombie!</SomeoneBecameAZombieLabel>
-	<ColonistBecameAZombieDesc>{0} devenus de puissant Zombie.</ColonistBecameAZombieDesc>
+	<BecameAZombieLabel>Quelqu'un est devenu un Zombie!</BecameAZombieLabel>
+	<BecameAZombieDesc>{0} devenus de puissant Zombie.</BecameAZombieDesc>
 
 </LanguageData>

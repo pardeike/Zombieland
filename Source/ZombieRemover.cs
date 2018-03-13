@@ -11,8 +11,6 @@ namespace ZombieLand
 {
 	static class ZombieRemover
 	{
-		static string zlNamespace = typeof(Tools).Namespace;
-
 		public static void RemoveZombieland(string filename)
 		{
 			if (Current.Game == null || Current.Game.Maps == null || Find.World == null) return;
@@ -36,30 +34,22 @@ namespace ZombieLand
 		static bool IsZombieType(this object obj)
 		{
 			if (obj == null) return false;
-			return obj.GetType().Namespace == zlNamespace;
+			return obj.GetType().Namespace == Tools.zlNamespace;
 		}
 
 		static bool IsZombieThing(this Thing thing)
 		{
 			if (thing == null) return false;
-			if (thing.GetType().Namespace == zlNamespace) return true;
+			if (thing.GetType().Namespace == Tools.zlNamespace) return true;
 			if (thing.def.IsZombieThingDef()) return true;
 			return false;
 		}
 
 		public static bool IsZombieThingDef(this ThingDef thingdef)
 		{
-			if (thingdef.GetType().Namespace == zlNamespace) return true;
-			if (thingdef.thingClass.Namespace == zlNamespace) return true;
+			if (thingdef.GetType().Namespace == Tools.zlNamespace) return true;
+			if (thingdef.thingClass.Namespace == Tools.zlNamespace) return true;
 			if (thingdef.defName.StartsWith("Zombie_", StringComparison.Ordinal)) return true;
-			return false;
-		}
-
-		static bool IsZombieHediff(this HediffDef hediff)
-		{
-			if (hediff == null) return false;
-			if (hediff.GetType().Namespace == zlNamespace) return true;
-			if (hediff.hediffClass.Namespace == zlNamespace) return true;
 			return false;
 		}
 

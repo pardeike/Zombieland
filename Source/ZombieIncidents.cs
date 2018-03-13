@@ -54,6 +54,8 @@ namespace ZombieLand
 
 		public void ExposeData()
 		{
+			// no base.ExposeData() too call
+
 			Scribe_Values.Look(ref lastIncident, "lastIncident");
 
 			if (parameters == null)

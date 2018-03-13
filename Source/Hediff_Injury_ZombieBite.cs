@@ -1,7 +1,4 @@
-﻿using Harmony;
-using RimWorld;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using UnityEngine;
 using Verse;
 
@@ -10,6 +7,8 @@ namespace ZombieLand
 	public class Hediff_Injury_ZombieBite : Hediff_Injury
 	{
 		static Color infectionColor = Color.red.SaturationChanged(0.75f);
+
+		public bool mayBecomeZombieWhenDead;
 
 		HediffComp_Zombie_TendDuration tendDurationComp;
 		public HediffComp_Zombie_TendDuration TendDuration
@@ -20,6 +19,12 @@ namespace ZombieLand
 					tendDurationComp = this.TryGetComp<HediffComp_Zombie_TendDuration>();
 				return tendDurationComp;
 			}
+		}
+
+		public override void ExposeData()
+		{
+			base.ExposeData();
+			Scribe_Values.Look(ref mayBecomeZombieWhenDead, "mayBecomeZombieWhenDead", false);
 		}
 
 		public override string LabelInBrackets
@@ -52,71 +57,6 @@ namespace ZombieLand
 			return base.CauseDeathNow();
 		} */
 
-		public void ConvertToZombie()
-		{
-			if (pawn == null || pawn.Spawned == false || pawn.Dead /* || pawn.IsColonist == false */)
-				return;
-
-			var pos = pawn.Position;
-			var map = pawn.Map;
-			var rot = pawn.Rotation;
-
-			if (map == null)
-			{
-				pawn.Kill(null);
-				return;
-			}
-
-			var zombie = ZombieGenerator.GeneratePawn();
-
-			zombie.Name = pawn.Name;
-			zombie.gender = pawn.gender;
-
-			var apparelToTransfer = new List<Apparel>();
-			pawn.apparel.WornApparelInDrawOrder.Do(apparel =>
-			{
-				if (pawn.apparel.TryDrop(apparel, out var newApparel))
-					apparelToTransfer.Add(newApparel);
-			});
-
-			zombie.ageTracker.AgeBiologicalTicks = pawn.ageTracker.AgeBiologicalTicks;
-			zombie.ageTracker.AgeChronologicalTicks = pawn.ageTracker.AgeChronologicalTicks;
-			zombie.ageTracker.BirthAbsTicks = pawn.ageTracker.BirthAbsTicks;
-
-			zombie.story.childhood = pawn.story.childhood;
-			zombie.story.adulthood = pawn.story.adulthood;
-			zombie.story.melanin = pawn.story.melanin;
-			zombie.story.crownType = pawn.story.crownType;
-			zombie.story.hairDef = pawn.story.hairDef;
-			zombie.story.bodyType = pawn.story.bodyType;
-
-			var zTweener = Traverse.Create(zombie.Drawer.tweener);
-			var pTweener = Traverse.Create(pawn.Drawer.tweener);
-			zTweener.Field("tweenedPos").SetValue(pTweener.Field("tweenedPos").GetValue());
-			zTweener.Field("lastDrawFrame").SetValue(pTweener.Field("lastDrawFrame").GetValue());
-			zTweener.Field("lastTickSpringPos").SetValue(pTweener.Field("lastTickSpringPos").GetValue());
-
-			ZombieGenerator.AssignNewCustomGraphics(zombie);
-			ZombieGenerator.FinalizeZombieGeneration(zombie);
-			GenPlace.TryPlaceThing(zombie, pos, map, ThingPlaceMode.Direct, null);
-
-			var wasColonist = pawn.IsColonist;
-			pawn.Kill(null);
-			if (pawn.Corpse != null && pawn.Corpse.Destroyed == false)
-				pawn.Corpse.Destroy();
-
-			apparelToTransfer.ForEach(apparel => zombie.apparel.Wear(apparel));
-			zombie.Rotation = rot;
-			zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-			zombie.state = ZombieState.Wandering;
-			zombie.wasColonist = true;
-
-			var who = wasColonist ? "Colonist" : "Someone";
-			var label = (who + "BecameAZombieLabel").Translate();
-			var text = "ColonistBecameAZombieDesc".Translate(new object[] { zombie.NameStringShort });
-			Find.LetterStack.ReceiveLetter(label, text, LetterDefOf.ThreatBig, zombie);
-		}
-
 		public override Color LabelColor
 		{
 			get
@@ -145,7 +85,7 @@ namespace ZombieLand
 
 			if (state == InfectionState.Infected)
 			{
-				ConvertToZombie();
+				Tools.ConvertToZombie(pawn);
 				return;
 			}
 

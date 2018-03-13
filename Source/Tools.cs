@@ -58,6 +58,7 @@ namespace ZombieLand
 		public static ZombieWanderer wanderer = new ZombieWanderer();
 		public static Texture2D MenuIcon;
 		public static Texture2D ZombieButtonBackground;
+		public static string zlNamespace = typeof(Tools).Namespace;
 
 		static string mealLabel;
 		static string mealDescription;
@@ -191,7 +192,7 @@ namespace ZombieLand
 
 		public static float ZombieAvoidRadius(Zombie zombie, bool squared = false)
 		{
-			if (zombie.wasColonist)
+			if (zombie.wasMapPawnBefore)
 				return squared ? 100f : 10f;
 			if (zombie.raging > 0)
 				return squared ? 36f : 6f;
@@ -204,6 +205,89 @@ namespace ZombieLand
 				default:
 					return squared ? 4f : 2f;
 			}
+		}
+
+		public static void ConvertToZombie(ThingWithComps thing)
+		{
+			var pawn = thing is Corpse corpse ? corpse.InnerPawn : thing as Pawn;
+			if (pawn == null) /* pawn.Spawned == false || pawn.Dead || pawn.IsColonist == false */
+				return;
+
+			var pos = thing is IThingHolder ? ThingOwnerUtility.GetRootPosition(thing as IThingHolder) : thing.Position;
+			var map = thing is IThingHolder ? ThingOwnerUtility.GetRootMap(thing as IThingHolder) : thing.Map;
+			var rot = pawn.Rotation;
+			var wasInGround = thing.Map == null;
+
+			if (map == null && thing.Destroyed == false)
+			{
+				thing.Destroy();
+				return;
+			}
+
+			var zombie = ZombieGenerator.GeneratePawn(true);
+
+			zombie.Name = pawn.Name;
+			zombie.gender = pawn.gender;
+
+			zombie.ageTracker.AgeBiologicalTicks = pawn.ageTracker.AgeBiologicalTicks;
+			zombie.ageTracker.AgeChronologicalTicks = pawn.ageTracker.AgeChronologicalTicks;
+			zombie.ageTracker.BirthAbsTicks = pawn.ageTracker.BirthAbsTicks;
+
+			zombie.story.childhood = pawn.story.childhood;
+			zombie.story.adulthood = pawn.story.adulthood;
+			zombie.story.melanin = pawn.story.melanin;
+			zombie.story.crownType = pawn.story.crownType;
+			zombie.story.hairDef = pawn.story.hairDef;
+			zombie.story.bodyType = pawn.story.bodyType;
+
+			var zTweener = Traverse.Create(zombie.Drawer.tweener);
+			var pTweener = Traverse.Create(pawn.Drawer.tweener);
+			zTweener.Field("tweenedPos").SetValue(pTweener.Field("tweenedPos").GetValue());
+			zTweener.Field("lastDrawFrame").SetValue(pTweener.Field("lastDrawFrame").GetValue());
+			zTweener.Field("lastTickSpringPos").SetValue(pTweener.Field("lastTickSpringPos").GetValue());
+
+			ZombieGenerator.AssignNewCustomGraphics(zombie);
+			ZombieGenerator.FinalizeZombieGeneration(zombie);
+			GenPlace.TryPlaceThing(zombie, pos, map, ThingPlaceMode.Direct, null);
+
+			zombie.Rotation = rot;
+			if (wasInGround == false)
+			{
+				zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
+				zombie.state = ZombieState.Wandering;
+			}
+			zombie.wasMapPawnBefore = true;
+
+			zombie.apparel.DestroyAll();
+			pawn.apparel.WornApparelInDrawOrder.ToList().ForEach(apparel =>
+			{
+				if (pawn.apparel.TryDrop(apparel, out var newApparel))
+				{
+					zombie.apparel.Wear(newApparel);
+					newApparel.SetForbidden(false, false);
+					newApparel.HitPoints = 1;
+					var compQuality = newApparel.TryGetComp<CompQuality>();
+					if (compQuality != null)
+						compQuality.SetQuality(QualityCategory.Shoddy, ArtGenerationContext.Colony);
+				}
+			});
+			zombie.apparel.Notify_ApparelAdded(null); // unused arg
+
+			if (thing is Corpse)
+			{
+				if (thing.Destroyed == false)
+					thing.Destroy();
+			}
+			else
+			{
+				pawn.Kill(null);
+				if (pawn.Corpse != null && pawn.Corpse.Destroyed == false)
+					pawn.Corpse.Destroy();
+			}
+
+			var label = "BecameAZombieLabel".Translate();
+			var text = "BecameAZombieDesc".Translate(new object[] { pawn.NameStringShort });
+			Find.LetterStack.ReceiveLetter(label, text, LetterDefOf.ThreatBig, zombie);
 		}
 
 		// implement
@@ -253,6 +337,14 @@ namespace ZombieLand
 			//return map.terrainGrid.topGrid[idx].DoesRepellZombies() == false;
 		}
 
+		public static bool IsZombieHediff(this HediffDef hediff)
+		{
+			if (hediff == null) return false;
+			if (hediff.GetType().Namespace == zlNamespace) return true;
+			if (hediff.hediffClass.Namespace == zlNamespace) return true;
+			return false;
+		}
+
 		public static bool HasInfectionState(Pawn pawn, InfectionState state)
 		{
 			// if (pawn.IsColonist == false) return false;
@@ -261,7 +353,6 @@ namespace ZombieLand
 						.GetHediffs<Hediff_Injury_ZombieBite>()
 						.SelectMany(hediff => hediff.comps)
 						.OfType<HediffComp_Zombie_TendDuration>()
-						.Cast<HediffComp_Zombie_TendDuration>()
 						.Any(tendDuration => tendDuration.GetInfectionState() == state);
 		}
 
@@ -271,7 +362,6 @@ namespace ZombieLand
 						.GetHediffs<Hediff_Injury_ZombieBite>()
 						.SelectMany(hediff => hediff.comps)
 						.OfType<HediffComp_Zombie_TendDuration>()
-						.Cast<HediffComp_Zombie_TendDuration>()
 						.Any(tendDuration => tendDuration.InfectionStateBetween(minState, maxState));
 		}
 

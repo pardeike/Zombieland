@@ -78,6 +78,7 @@
 	<SpecialZombiesTitle>Spezielle Zombies</SpecialZombiesTitle>
 	<SuicideBomberChance>Zombies mit Selbstmordattacke</SuicideBomberChance>
 	<ToxicSplasherChance>Giftige Zombies</ToxicSplasherChance>
+	<TankyOperatorChance>Schwere, gepanzerte Zombies</TankyOperatorChance>
 	<NormalZombieChance>Normale Zombies: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>
@@ -107,8 +108,7 @@
 	<HoursBeforeBecomingInfected>{0} bis zum Beginn der Infektion</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} bis zum Zombie werden</HoursBeforeBecomingAZombie>
 
-	<ColonistBecameAZombieLabel>Kolonist wurde zum Zombie</ColonistBecameAZombieLabel>
-	<SomeoneBecameAZombieLabel>Jemand wurde zum Zombie</SomeoneBecameAZombieLabel>
-	<ColonistBecameAZombieDesc>{0} wurde zu einem mächtigen Zombie.</ColonistBecameAZombieDesc>
+	<BecameAZombieLabel>Jemand wurde zum Zombie</BecameAZombieLabel>
+	<BecameAZombieDesc>{0} wurde zu einem mächtigen Zombie.</BecameAZombieDesc>
 
 </LanguageData>

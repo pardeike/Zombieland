@@ -65,7 +65,6 @@ namespace ZombieLand
 		public float damageFactor = 1.0f;
 		public ZombieInstinct zombieInstinct = ZombieInstinct.Normal;
 		public bool useCustomTextures = true;
-		public bool zombiesTriggerDangerMusic;
 		public bool playCreepyAmbientSound = true;
 		public bool zombiesEatDowned = true;
 		public bool zombiesEatCorpses = true;
@@ -86,6 +85,8 @@ namespace ZombieLand
 
 		public void ExposeData()
 		{
+			// no base.ExposeData() to call
+
 			this.AutoExposeDataWithDefaults();
 		}
 

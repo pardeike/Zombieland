@@ -26,6 +26,7 @@ namespace ZombieLand
 
 		public override void CompExposeData()
 		{
+			base.CompExposeData();
 			Scribe_Values.Look(ref infectionKnownDelay, "infectionKnownDelay", 0);
 			Scribe_Values.Look(ref infectionStartTime, "infectionStartTime", 0);
 			Scribe_Values.Look(ref infectionEndTime, "infectionEndTime", 0);
@@ -36,7 +37,7 @@ namespace ZombieLand
 			if (Pawn == null
 				|| Pawn.Spawned == false
 				|| Pawn.Map == null
-				|| Pawn.Dead
+				// || Pawn.Dead
 				// || Pawn.IsColonist == false
 				|| Pawn.health == null
 				|| Pawn.health.hediffSet == null

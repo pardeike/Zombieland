@@ -22,6 +22,8 @@ namespace ZombieLand
 
 		public void ExposeData()
 		{
+			// no base.ExposeData() to call
+
 			Scribe_Values.Look(ref timestamp, "tstamp");
 			Scribe_Values.Look(ref zombieCount, "zcount");
 		}
