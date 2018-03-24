@@ -91,7 +91,7 @@ namespace ZombieLand
 			var possibleMoves = this.PossibleMoves(zombie);
 			if (possibleMoves.Count > 0)
 			{
-				if (zombie.raging > 0 || zombie.IsTanky)
+				if (zombie.raging > 0 || zombie.IsTanky || (zombie.wasMapPawnBefore && zombie.state != ZombieState.Tracking))
 					if (this.RageMove(zombie, grid, possibleMoves, checkSmashable))
 						return;
 

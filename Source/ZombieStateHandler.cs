@@ -255,6 +255,7 @@ namespace ZombieLand
 		// for things to smash
 		//
 		static int fadeOff = -1;
+		static int wasColonistFadeoff;
 		static int agitatedFadeoff;
 		static int checkSmashableFadeoff1;
 		static int checkSmashableFadeoff2;
@@ -263,6 +264,7 @@ namespace ZombieLand
 			if (zombie.EveryNTick(NthTick.Every60) || fadeOff == -1)
 			{
 				fadeOff = Tools.PheromoneFadeoff();
+				wasColonistFadeoff = fadeOff / 6;
 				agitatedFadeoff = fadeOff / 4;
 				checkSmashableFadeoff1 = agitatedFadeoff / 4;
 				checkSmashableFadeoff2 = agitatedFadeoff * 3 / 4;
@@ -272,13 +274,20 @@ namespace ZombieLand
 			var currentTicks = Tools.Ticks();
 			var timeDelta = long.MaxValue;
 
+			var fmin = long.MaxValue;
 			if (zombie.raging == 0)
 			{
 				for (var i = 0; i < 8; i++)
 				{
 					var pos = zombie.Position + GenAdj.AdjacentCells[i];
-					if (currentTicks - grid.GetTimestamp(pos) < fadeOff && zombie.HasValidDestination(pos))
-						trackingMoves.Add(pos);
+					if (zombie.HasValidDestination(pos))
+					{
+						var f = zombie.wasMapPawnBefore ? wasColonistFadeoff : fadeOff;
+						var tdiff = currentTicks - grid.GetTimestamp(pos);
+						fmin = Math.Min(fmin, tdiff);
+						if (tdiff < f)
+							trackingMoves.Add(pos);
+					}
 				}
 			}
 
@@ -303,6 +312,9 @@ namespace ZombieLand
 			if (driver.destination.IsValid == false)
 				zombie.state = ZombieState.Wandering;
 
+			if (zombie.wasMapPawnBefore)
+				return true;
+
 			var checkSmashable = timeDelta >= checkSmashableFadeoff1 && timeDelta < checkSmashableFadeoff2;
 			if (ZombieSettings.Values.smashOnlyWhenAgitated)
 				checkSmashable &= (zombie.state == ZombieState.Tracking || zombie.raging > 0);
@@ -317,7 +329,7 @@ namespace ZombieLand
 			if (driver.destination.IsValid && checkSmashable == false)
 				return false;
 
-			if (onylWhenNotRaging && zombie.raging > 0)
+			if (onylWhenNotRaging && zombie.raging > 0 && zombie.wasMapPawnBefore == false)
 				return false;
 
 			var building = CanSmash(zombie);
@@ -364,7 +376,7 @@ namespace ZombieLand
 			if (newPos.IsValid == false)
 			{
 				// tanky can get directly through walls
-				if (newPos.IsValid == false && zombie.IsTanky)
+				if (zombie.IsTanky)
 					newPos = info.GetParent(zombie.Position, true);
 
 				if (newPos.IsValid == false)
@@ -520,10 +532,9 @@ namespace ZombieLand
 		{
 			var mode = ZombieSettings.Values.attackMode;
 
-			var enumerator = GetAdjacted<Pawn>(zombie).GetEnumerator();
-			while (enumerator.MoveNext())
+			var targets = GetAdjacted<Pawn>(zombie).ToList();
+			foreach (var target in targets)
 			{
-				var target = enumerator.Current;
 				if (target.Dead || target.Downed)
 					continue;
 
@@ -575,7 +586,7 @@ namespace ZombieLand
 			}
 
 			var isSuicideBomber = zombie.bombTickingInterval != -1f;
-			if (isSuicideBomber == false && zombie.IsTanky == false)
+			if (isSuicideBomber == false && zombie.IsTanky == false && zombie.wasMapPawnBefore == false)
 			{
 				if (ZombieSettings.Values.smashMode == SmashMode.Nothing) return null;
 				if (ZombieSettings.Values.smashOnlyWhenAgitated && zombie.state != ZombieState.Tracking && zombie.raging == 0) return null;

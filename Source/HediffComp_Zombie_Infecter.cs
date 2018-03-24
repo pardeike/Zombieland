@@ -32,6 +32,22 @@ namespace ZombieLand
 			Scribe_Values.Look(ref infectionEndTime, "infectionEndTime", 0);
 		}
 
+		public void MakeHarmless()
+		{
+			infectionKnownDelay = 0;
+			infectionStartTime = 0;
+			infectionEndTime = 0;
+		}
+
+		public void MakeHarmfull()
+		{
+			var hour = GenDate.TicksPerHour;
+
+			infectionKnownDelay = 0;
+			infectionStartTime = GenTicks.TicksAbs + hour;
+			infectionEndTime = infectionStartTime + 2 * hour;
+		}
+
 		public override void CompPostPostAdd(DamageInfo? dinfo)
 		{
 			if (Pawn == null
@@ -83,9 +99,7 @@ namespace ZombieLand
 
 			if (ZombieSettings.Values.anyTreatmentStopsInfection)
 			{
-				infectionKnownDelay = 0;
-				infectionStartTime = 0;
-				infectionEndTime = 0;
+				MakeHarmless();
 				return;
 			}
 
@@ -101,11 +115,7 @@ namespace ZombieLand
 				return;
 
 			if (Rand.Chance(quality))
-			{
-				infectionKnownDelay = 0;
-				infectionStartTime = 0;
-				infectionEndTime = 0;
-			}
+				MakeHarmless();
 		}
 
 		public override string CompDebugString()

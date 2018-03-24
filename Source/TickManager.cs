@@ -204,7 +204,7 @@ namespace ZombieLand
 
 			if (ZombiesRising.ZombiesForNewIncident(this))
 			{
-				var success = ZombiesRising.TryExecute(map, incidentInfo.parameters.incidentSize);
+				var success = ZombiesRising.TryExecute(map, incidentInfo.parameters.incidentSize, IntVec3.Invalid);
 				if (success == false)
 					Log.Warning("Incident creation failed. Most likely no valid spawn point found.");
 			}

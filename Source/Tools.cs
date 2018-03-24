@@ -207,11 +207,17 @@ namespace ZombieLand
 			}
 		}
 
-		public static void ConvertToZombie(ThingWithComps thing)
+		public static void ConvertToZombie(ThingWithComps thing, bool force = false)
 		{
 			var pawn = thing is Corpse corpse ? corpse.InnerPawn : thing as Pawn;
 			if (pawn == null) /* pawn.Spawned == false || pawn.Dead || pawn.IsColonist == false */
 				return;
+
+			// clear zombie hediffs to avoid triggering this convert method again
+			//
+			if (force == false && (pawn.health == null || pawn.health.hediffSet.hediffs.Any(hediff => hediff.def.IsZombieHediff()) == false))
+				return;
+			pawn.health?.hediffSet.hediffs.RemoveAll(hediff => hediff.def.IsZombieHediff());
 
 			var pos = thing is IThingHolder ? ThingOwnerUtility.GetRootPosition(thing as IThingHolder) : thing.Position;
 			var map = thing is IThingHolder ? ThingOwnerUtility.GetRootMap(thing as IThingHolder) : thing.Map;
@@ -224,7 +230,7 @@ namespace ZombieLand
 				return;
 			}
 
-			var zombie = ZombieGenerator.GeneratePawn(true);
+			var zombie = ZombieGenerator.GeneratePawn(ZombieGenerator.ZombieType.Normal);
 
 			zombie.Name = pawn.Name;
 			zombie.gender = pawn.gender;

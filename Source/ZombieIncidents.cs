@@ -5,6 +5,7 @@ using Verse;
 using Harmony;
 using RimWorld.Planet;
 using Verse.Sound;
+using UnityEngine;
 
 namespace ZombieLand
 {
@@ -201,15 +202,17 @@ namespace ZombieLand
 			};
 		}
 
-		public static bool TryExecute(Map map, int incidentSize)
+		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot)
 		{
 			var spotValidator = SpotValidator(map);
 
-			var spot = IntVec3.Invalid;
-			var headline = "";
-			var text = "";
+			var headline = "Attack of zombies";
+			var text = incidentSize + " zombie(s) appear";
 			for (var counter = 1; counter <= 10; counter++)
 			{
+				if (spot.IsValid)
+					break;
+
 				if (ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap)
 				{
 					var tickManager = map.GetComponent<TickManager>();
@@ -228,8 +231,6 @@ namespace ZombieLand
 					headline = "LetterLabelZombiesRising".Translate();
 					text = "ZombiesRising".Translate();
 				}
-
-				if (spot.IsValid) break;
 			}
 			if (spot.IsValid == false) return false;
 

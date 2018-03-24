@@ -48,7 +48,7 @@ namespace ZombieLand
 				{
 					var request = requestQueue.Dequeue();
 					if (request.zombie == null)
-						request.zombie = GeneratePawn(false);
+						request.zombie = GeneratePawn(ZombieGenerator.ZombieType.Random);
 					if (request.zombie != null)
 					{
 						var queue = QueueForMap(request.map);
@@ -126,7 +126,7 @@ namespace ZombieLand
 			return eyeOffsets[headPath];
 		}
 
-		public static Zombie GeneratePawn(bool simpleTypeOnly)
+		public static Zombie GeneratePawn(ZombieType overwriteType)
 		{
 			var thing = ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null);
 			var zombie = thing as Zombie;
@@ -136,7 +136,7 @@ namespace ZombieLand
 				return null;
 			}
 
-			var bodyType = PrepareZombieType(zombie, simpleTypeOnly);
+			var bodyType = PrepareZombieType(zombie, overwriteType);
 
 			zombie.kindDef = ZombieDefOf.Zombie;
 			zombie.SetFactionDirect(FactionUtility.DefaultFactionFrom(ZombieDefOf.Zombies));
@@ -182,7 +182,16 @@ namespace ZombieLand
 			return zombie;
 		}
 
-		private static BodyType PrepareZombieType(Zombie zombie, bool simpleTypeOnly)
+		public enum ZombieType
+		{
+			Random = -1,
+			SuicideBomber = 0,
+			ToxicSplasher = 1,
+			TankyOperator = 2,
+			Normal = 3
+		}
+
+		private static BodyType PrepareZombieType(Zombie zombie, ZombieType overwriteType)
 		{
 			var zombieTypeInitializers = new Pair<float, Func<BodyType>>[]
 			{
@@ -261,7 +270,13 @@ namespace ZombieLand
 				)
 			};
 
-			var typeChance = simpleTypeOnly ? 1f : Rand.Value;
+			if (overwriteType != ZombieType.Random)
+			{
+				var initializer = zombieTypeInitializers[(int)overwriteType];
+				return initializer.Second();
+			}
+
+			var typeChance = Rand.Value;
 			var bodyType = BodyType.Undefined;
 			foreach (var initializer in zombieTypeInitializers)
 			{

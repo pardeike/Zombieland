@@ -61,6 +61,7 @@
     <Compile Include="Constants.cs" />
     <Compile Include="Dialogs.cs" />
     <Compile Include="ColorData.cs" />
+    <Compile Include="Dialog_ZombieDebugActionMenu.cs" />
     <Compile Include="DisposableMaterial.cs" />
     <Compile Include="GraphicsDatabase.cs" />
     <Compile Include="GraphicToolbox.cs" />

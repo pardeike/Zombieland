@@ -34,7 +34,7 @@ namespace ZombieLand
 
 			static void Postfix()
 			{
-				if (Constants.DEBUGGRID == false) return;
+				if (Constants.DEBUGGRID == false && DebugViewSettings.drawDoorsDebug == false) return;
 
 				// debug zombie counts
 				Find.VisibleMap.GetGrid().IterateCells((x, z, cell) =>
@@ -330,8 +330,11 @@ namespace ZombieLand
 				{
 					// fix only friendlies
 
-					var pawn = searcher as Pawn;
-					if (pawn.Faction.HostileTo(Faction.OfPlayer) == false)
+					Thing attacker = searcher as Pawn;
+					if (attacker == null)
+						attacker = searcher.Thing;
+
+					if (attacker != null && attacker.Faction.HostileTo(Faction.OfPlayer) == false)
 					{
 						var verb = searcher.CurrentEffectiveVerb;
 						if (verb != null)
@@ -344,11 +347,11 @@ namespace ZombieLand
 								// to relocate shooeters yet
 								//
 								var maxRangeSquared = (int)(props.range * props.range);
-								var tickManager = pawn.Map.GetComponent<TickManager>();
-								var pawnPos = pawn.Position;
+								var tickManager = attacker.Map.GetComponent<TickManager>();
+								var pos = attacker.Position;
 								Func<Zombie, int> zombiePrioritySorter = delegate (Zombie zombie)
 								{
-									var score = maxRangeSquared - pawnPos.DistanceToSquared(zombie.Position);
+									var score = maxRangeSquared - pos.DistanceToSquared(zombie.Position);
 									if (zombie.bombTickingInterval != -1f)
 										score += 30;
 									if (zombie.IsTanky)
@@ -358,8 +361,8 @@ namespace ZombieLand
 									return -score;
 								};
 								__result = tickManager.allZombiesCached
-									.Where(zombie => zombie.Downed == false && zombie.state != ZombieState.Emerging && pawnPos.DistanceToSquared(zombie.Position) <= maxRangeSquared)
-									.Where(zombie => verb.CanHitTargetFrom(pawnPos, zombie))
+									.Where(zombie => zombie.Downed == false && zombie.state != ZombieState.Emerging && pos.DistanceToSquared(zombie.Position) <= maxRangeSquared)
+									.Where(zombie => verb.CanHitTargetFrom(pos, zombie))
 									.OrderBy(zombiePrioritySorter).FirstOrDefault();
 								return;
 							}
@@ -895,13 +898,18 @@ namespace ZombieLand
 				if (cell != null)
 				{
 					var realZombieCount = pos.GetThingList(map).OfType<Zombie>().Count();
-					var timestampDiff = Tools.Ticks() - cell.timestamp;
-
 					var sb = new StringBuilder();
 					sb.Append("Zombie grid: " + cell.zombieCount + " zombies");
 					if (cell.zombieCount != realZombieCount) sb.Append(" (real " + realZombieCount + ")");
-					sb.Append(", timestamp " + (timestampDiff > 0 ? "+" + timestampDiff : "" + timestampDiff));
 					builder.AppendLine(sb.ToString());
+
+					var now = Tools.Ticks();
+					var tdiff = (cell.timestamp - now).ToString();
+					if (tdiff.StartsWith("-"))
+						tdiff = tdiff.ReplaceFirst("-", "- ");
+					else
+						tdiff = "+ " + tdiff;
+					builder.AppendLine("Pheromone timestamp " + cell.timestamp + " = " + now + " " + tdiff);
 				}
 				else
 					builder.AppendLine(pos.x + " " + pos.z + ": empty");
@@ -970,6 +978,21 @@ namespace ZombieLand
 				}
 
 				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+			}
+		}
+
+		// patch to add our actions to the debug action menu
+		//
+		[HarmonyPatch(typeof(DebugWindowsOpener))]
+		[HarmonyPatch("ToggleDebugActionsMenu")]
+		static class DebugWindowsOpener_ToggleDebugActionsMenu_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var from = typeof(Dialog_DebugActionsMenu).Constructor();
+				var to = typeof(Dialog_ZombieDebugActionMenu).Constructor();
+				return instructions.MethodReplacer(from, to);
 			}
 		}
 
@@ -1251,7 +1274,7 @@ namespace ZombieLand
 			static bool Prefix(ref PawnGenerationRequest request, ref Pawn __result)
 			{
 				if (request.Faction == null || request.Faction.def != ZombieDefOf.Zombies) return true;
-				__result = ZombieGenerator.GeneratePawn(false);
+				__result = ZombieGenerator.GeneratePawn(ZombieGenerator.ZombieType.Random);
 				return false;
 			}
 		}
@@ -1785,7 +1808,7 @@ namespace ZombieLand
 			{
 				var ticks = seconds.SecondsToTicks();
 				var zombie = verb?.caster as Zombie;
-				if (zombie != null && zombie.raging > 0)
+				if (zombie != null && (zombie.raging > 0 || zombie.wasMapPawnBefore))
 				{
 					var grid = zombie.Map.GetGrid();
 					var count = grid.GetZombieCount(zombie.Position);
@@ -1830,7 +1853,7 @@ namespace ZombieLand
 
 				if (stat == StatDefOf.PainShockThreshold)
 				{
-					if (zombie.wasMapPawnBefore || zombie.raging > 0)
+					if (zombie.raging > 0 || zombie.wasMapPawnBefore)
 					{
 						__result = 1000f;
 						return false;
@@ -1876,7 +1899,7 @@ namespace ZombieLand
 						return false;
 					}
 
-					if (zombie.state == ZombieState.Tracking || zombie.raging > 0)
+					if (zombie.state == ZombieState.Tracking || zombie.raging > 0 || zombie.wasMapPawnBefore)
 						__result = Constants.ZOMBIE_HIT_CHANCE_TRACKING;
 					else
 						__result = Constants.ZOMBIE_HIT_CHANCE_IDLE;
@@ -1892,7 +1915,7 @@ namespace ZombieLand
 					}
 
 					float speed;
-					if (zombie.state == ZombieState.Tracking || zombie.raging > 0)
+					if (zombie.state == ZombieState.Tracking || zombie.raging > 0 || zombie.wasMapPawnBefore)
 						speed = ZombieSettings.Values.moveSpeedTracking;
 					else
 						speed = ZombieSettings.Values.moveSpeedIdle;
