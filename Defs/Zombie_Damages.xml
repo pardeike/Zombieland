@@ -4,6 +4,7 @@
 	<DamageDef Name="ZombieBite" ParentName="LocalInjuryBase">
 		<defName>ZombieBite</defName>
 		<label>zombie bite</label>
+		<workerClass>DamageWorker_Bite</workerClass>
 		<externalViolence>true</externalViolence>
 		<deathMessage>{0} has been bitten to death by a zombie.</deathMessage>
 		<hediff>ZombieBite</hediff>
@@ -11,6 +12,7 @@
 		<harmAllLayersUntilOutside>true</harmAllLayersUntilOutside>
 		<impactSoundType>Slice</impactSoundType>
 		<armorCategory>Sharp</armorCategory>
+		<scratchSplitPercentage>0.67</scratchSplitPercentage>
 	</DamageDef>
 
 	<DamageDef Name="SuicideBomb" ParentName="LocalInjuryBase">
