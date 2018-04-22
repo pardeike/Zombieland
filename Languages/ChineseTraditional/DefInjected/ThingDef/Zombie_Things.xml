@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <Apparel_BombVest.label>炸彈背心</Apparel_BombVest.label>
+  <Apparel_BombVest.description>有爆炸物的背心。</Apparel_BombVest.description>
+
+
+  <!-- <ThingDef ParentName="ApparelBase">
+		<defName>Apparel_TankySuit</defName>
+		<thingClass>ZombieLand.DamageableApparel</thingClass>
+		<label>tany suit</label>
+		<description>A suit with maximum protection</description>
+		<techLevel>Transcendent</techLevel>
+		<tickerType>Never</tickerType>
+		<canBeSpawningInventory>false</canBeSpawningInventory>
+		<tradeability>Never</tradeability>
+		<destroyOnDrop>true</destroyOnDrop>
+		<menuHidden>true</menuHidden>
+		<selectable>false</selectable>
+		<useHitPoints>false</useHitPoints>
+		<drawGUIOverlay>false</drawGUIOverlay>
+		<alwaysHaulable>false</alwaysHaulable>
+		<graphicData>
+			<texPath>TankySuit/TankySuit</texPath>
+			<graphicClass>ZombieLand.Graphic_Damageable</graphicClass>
+		</graphicData>
+		<statBases>
+			<DeteriorationRate>0</DeteriorationRate>
+			<MaxHitPoints>500</MaxHitPoints>
+			<ArmorRating_Blunt>2.5</ArmorRating_Blunt>
+			<ArmorRating_Sharp>2.5</ArmorRating_Sharp>
+			<ArmorRating_Heat>2.5</ArmorRating_Heat>
+			<ArmorRating_Electric>2.5</ArmorRating_Electric>
+		</statBases>
+		<apparel>
+			<wornGraphicPath>TankySuit/TankySuit</wornGraphicPath>
+			<layers>
+				<li>Shell</li>
+			</layers>
+		</apparel>
+	</ThingDef>
+
+	<ThingDef ParentName="ApparelBase">
+		<defName>Apparel_TankySuitHelmet</defName>
+		<thingClass>ZombieLand.DamageableApparel</thingClass>
+		<label>tany suit helmet</label>
+		<description>A part of tanky suit</description>
+		<techLevel>Transcendent</techLevel>
+		<graphicData>
+			<texPath>TankyHelmet/TankyHelmet</texPath>
+			<graphicClass>ZombieLand.Graphic_Damageable</graphicClass>
+		</graphicData>
+		<tickerType>Never</tickerType>
+		<canBeSpawningInventory>false</canBeSpawningInventory>
+		<tradeability>Never</tradeability>
+		<destroyOnDrop>true</destroyOnDrop>
+		<menuHidden>true</menuHidden>
+		<selectable>false</selectable>
+		<useHitPoints>false</useHitPoints>
+		<drawGUIOverlay>false</drawGUIOverlay>
+		<alwaysHaulable>false</alwaysHaulable>
+		<statBases>
+			<DeteriorationRate>0</DeteriorationRate>
+			<MaxHitPoints>500</MaxHitPoints>
+			<ArmorRating_Blunt>2.5</ArmorRating_Blunt>
+			<ArmorRating_Sharp>2.5</ArmorRating_Sharp>
+			<ArmorRating_Heat>2.5</ArmorRating_Heat>
+			<ArmorRating_Electric>2.5</ArmorRating_Electric>
+		</statBases>
+		<apparel>
+			<bodyPartGroups>
+				<li>FullHead</li>
+			</bodyPartGroups>
+			<wornGraphicPath>TankySuit/TankyHelmClose</wornGraphicPath>
+			<layers>
+				<li>Overhead</li>
+			</layers>
+		</apparel>
+	</ThingDef> -->
+
+  <StickyGoo.label>有毒 &amp; 喪屍粘著物</StickyGoo.label>
+
+
+</LanguageData>

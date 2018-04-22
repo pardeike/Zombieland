@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <Zombie.label>丧尸</Zombie.label>
+  <Zombie.description>一个丧尸</Zombie.description>
+  <!-- Leather Amount: 0 -->
+  <!-- Meat Amount: 0 -->
+  <Zombie_Corpse.label>丧尸尸体</Zombie_Corpse.label>
+  <Zombie_Corpse.description>丧尸尸体</Zombie_Corpse.description>
+
+
+</LanguageData>
