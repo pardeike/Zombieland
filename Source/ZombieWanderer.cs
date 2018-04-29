@@ -291,12 +291,13 @@ namespace ZombieLand
 			{
 				valid = pawn != null
 					&& pawn.Spawned
-					&& (ZombieSettings.Values.attackMode != AttackMode.OnlyColonists || (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists && pawn.IsColonist))
-					&& (pawn is Zombie) == false
-					&& (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans == false || pawn.RaceProps.Humanlike)
-					&& pawn.RaceProps.IsFlesh
 					&& pawn.Dead == false
-					&& pawn.Downed == false;
+					&& pawn.Downed == false
+					&& (pawn is Zombie) == false
+					&& pawn.RaceProps.IsFlesh
+					&& Tools.HasInfectionState(pawn, InfectionState.Infecting, InfectionState.Infected) == false
+					&& (ZombieSettings.Values.attackMode != AttackMode.OnlyColonists || (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists && pawn.IsColonist))
+					&& (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans == false || pawn.RaceProps.Humanlike);
 				position = pawn?.Position ?? IntVec3.Invalid;
 			}
 		}
