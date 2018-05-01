@@ -52,52 +52,51 @@
 			<MeleeDodgeChance>0.1</MeleeDodgeChance>
 		</statBases>
 		<tools>
-		<li>
-			<label>ZombieBite</label>
-			<capacities>
-			  <li>ZombieBite</li>
-			</capacities>
-			<power>4</power>
-			<cooldownTime>4</cooldownTime>
-			<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
-		  </li>
-		  <li>
-			<label>left fist</label>
-			<capacities>
-			  <li>Scratch</li>
-			</capacities>
-			<power>1</power>
-			<cooldownTime>2</cooldownTime>
-			<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
-			<commonality>0.2</commonality>
-			<surpriseAttack>
-			  <extraMeleeDamages>
-				<li>
-				  <def>Stun</def>
-				  <amount>22</amount>
-				</li>
-			  </extraMeleeDamages>
-			</surpriseAttack>
-		  </li>
-		  <li>
-			<label>right fist</label>
-			<capacities>
-			  <li>Scratch</li>
-			</capacities>
-			<power>1</power>
-			<cooldownTime>2</cooldownTime>
-			<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
-			<commonality>0.2</commonality>
-			<surpriseAttack>
-			  <extraMeleeDamages>
-				<li>
-				  <def>Stun</def>
-				  <amount>22</amount>
-				</li>
-			  </extraMeleeDamages>
-			</surpriseAttack>
-		  </li>
-		  
+			<li>
+				<label>ZombieBite</label>
+				<capacities>
+					<li>ZombieBite</li>
+				</capacities>
+				<power>4</power>
+				<cooldownTime>4</cooldownTime>
+				<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
+			</li>
+			<li>
+				<label>left fist</label>
+				<capacities>
+					<li>Scratch</li>
+				</capacities>
+				<power>1</power>
+				<cooldownTime>2</cooldownTime>
+				<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
+				<commonality>0.2</commonality>
+				<surpriseAttack>
+					<extraMeleeDamages>
+						<li>
+							<def>Stun</def>
+							<amount>22</amount>
+						</li>
+					</extraMeleeDamages>
+				</surpriseAttack>
+			</li>
+			<li>
+				<label>right fist</label>
+				<capacities>
+					<li>Scratch</li>
+				</capacities>
+				<power>1</power>
+				<cooldownTime>2</cooldownTime>
+				<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
+				<commonality>0.2</commonality>
+				<surpriseAttack>
+					<extraMeleeDamages>
+						<li>
+							<def>Stun</def>
+							<amount>22</amount>
+						</li>
+					</extraMeleeDamages>
+				</surpriseAttack>
+			</li>
 		</tools>
 		<race>
 			<thinkTreeMain>Zombie</thinkTreeMain>
@@ -127,7 +126,6 @@
 				<li>OrganicStandard</li>
 			</hediffGiverSets>
 		</race>
-
 	</ThingDef>
 
 </Defs>

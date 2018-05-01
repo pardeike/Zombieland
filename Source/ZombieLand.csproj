@@ -115,6 +115,9 @@
       <Link>Zombie_Kind.xml</Link>
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="..\Defs\Zombie_Maneuvers.xml">
+      <Link>Zombie_Maneuvers.xml</Link>
+    </Content>
     <Content Include="..\Defs\Zombie_Race.xml">
       <Link>Zombie_Race.xml</Link>
       <SubType>Designer</SubType>
@@ -130,6 +133,9 @@
     </Content>
     <Content Include="..\Defs\Zombie_ThinkTree.xml">
       <Link>Zombie_ThinkTree.xml</Link>
+    </Content>
+    <Content Include="..\Defs\Zombie_ToolCapacity.xml">
+      <Link>Zombie_ToolCapacity.xml</Link>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

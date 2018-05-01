@@ -37,7 +37,7 @@ namespace ZombieLand
 				|| Pawn.Spawned == false
 				|| Pawn.Map == null
 				|| Pawn.Dead
-				// || Pawn.IsColonist == false
+				|| Pawn.RaceProps.Humanlike == false
 				|| Pawn.health == null
 				|| Pawn.health.hediffSet == null
 				|| parent == null

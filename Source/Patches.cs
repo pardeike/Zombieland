@@ -693,7 +693,7 @@ namespace ZombieLand
 			static bool ZombieInPath(Pawn_PathFollower __instance, Pawn pawn)
 			{
 				if (ZombieSettings.Values.betterZombieAvoidance == false) return false;
-				// if (pawn.IsColonist == false) return false;
+				if (pawn.RaceProps.Humanlike == false) return false;
 
 				var path = __instance.curPath;
 				if (path.NodesLeftCount < 5) return false;
@@ -1750,7 +1750,7 @@ namespace ZombieLand
 			static bool Prefix(Hediff_Injury hd, ref bool __result)
 			{
 				var zombieBite = hd as Hediff_Injury_ZombieBite;
-				if (zombieBite != null/* && zombieBite.pawn.IsColonist */)
+				if (zombieBite != null && zombieBite.pawn.RaceProps.Humanlike)
 				{
 					var tendDuration = zombieBite.TendDuration;
 					if (tendDuration != null)
@@ -1777,7 +1777,7 @@ namespace ZombieLand
 					return;
 
 				var zombieBite = hd as Hediff_Injury_ZombieBite;
-				if (zombieBite != null && zombieBite.pawn.IsColonist)
+				if (zombieBite != null && zombieBite.pawn.RaceProps.Humanlike)
 				{
 					var tendDuration = zombieBite.TendDuration;
 					if (tendDuration != null)
@@ -1825,7 +1825,7 @@ namespace ZombieLand
 				if (__result == false) return;
 
 				var zombieBite = __instance as Hediff_Injury_ZombieBite;
-				if (zombieBite != null/* && zombieBite.pawn.IsColonist */)
+				if (zombieBite != null && zombieBite.pawn.RaceProps.Humanlike)
 				{
 					var tendDuration = zombieBite.TendDuration;
 					if (tendDuration != null)

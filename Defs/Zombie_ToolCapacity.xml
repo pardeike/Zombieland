@@ -2,9 +2,9 @@
 
 <Defs>
 
-  <ToolCapacityDef>
-    <defName>ZombieBite</defName>
-    <label>Zombie Bite</label>
-  </ToolCapacityDef>
+	<ToolCapacityDef>
+		<defName>ZombieBite</defName>
+		<label>Zombie Bite</label>
+	</ToolCapacityDef>
 
 </Defs>
