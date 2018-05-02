@@ -210,7 +210,7 @@ namespace ZombieLand
 		public static void ConvertToZombie(ThingWithComps thing, bool force = false)
 		{
 			var pawn = thing is Corpse corpse ? corpse.InnerPawn : thing as Pawn;
-			if (pawn == null) /* pawn.Spawned == false || pawn.Dead || pawn.IsColonist == false */
+			if (pawn == null || pawn.RaceProps.Humanlike == false)
 				return;
 
 			// clear zombie hediffs to avoid triggering this convert method again
@@ -353,7 +353,7 @@ namespace ZombieLand
 
 		public static bool HasInfectionState(Pawn pawn, InfectionState state)
 		{
-			// if (pawn.IsColonist == false) return false;
+			if (pawn.RaceProps.Humanlike == false) return false;
 
 			return pawn.health.hediffSet
 						.GetHediffs<Hediff_Injury_ZombieBite>()

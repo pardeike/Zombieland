@@ -52,9 +52,8 @@ namespace ZombieLand
 			if (ZombieInfector == null
 				|| Pawn == null
 				|| Pawn.Map == null
-				// || Pawn.IsColonist == false
+				|| Pawn.RaceProps.Humanlike == false
 				|| Pawn.Spawned == false
-				// || Pawn.Dead
 				|| Pawn.Destroyed
 				) return InfectionState.None;
 

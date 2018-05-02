@@ -56,7 +56,6 @@ namespace ZombieLand
 
 	class ZombieDamageFlasher : DamageFlasher
 	{
-		// public bool isColonist;
 		public DamageDef dinfoDef;
 		public Traverse damageFlashTicksLeft;
 
@@ -64,7 +63,6 @@ namespace ZombieLand
 
 		public ZombieDamageFlasher(Pawn pawn) : base(pawn)
 		{
-			// isColonist = pawn.IsColonist;
 			damageFlashTicksLeft = Traverse.Create(this).Property("DamageFlashTicksLeft");
 		}
 	}
