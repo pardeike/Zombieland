@@ -36,6 +36,7 @@ namespace ZombieLand
 		public float bombTickingInterval = -1f;
 		public bool bombWillGoOff;
 		public int lastBombTick;
+		public bool IsSuicideBomber => bombTickingInterval != -1;
 
 		// toxic splasher
 		public bool isToxicSplasher = false;
@@ -149,7 +150,7 @@ namespace ZombieLand
 
 		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)
 		{
-			if (bombTickingInterval != -1f)
+			if (IsSuicideBomber)
 			{
 				bombTickingInterval = -1f;
 				bombWillGoOff = false;
@@ -307,9 +308,8 @@ namespace ZombieLand
 					natives?.NativeVerbsTick();
 					Drawer?.DrawTrackerTick();
 					rotationTracker?.RotationTrackerTick();
+					health?.HealthTick();
 				}
-
-				health?.HealthTick();
 			}
 
 			if (state == ZombieState.Emerging)

@@ -195,7 +195,7 @@ namespace ZombieLand
 				if (pathGrid.WalkableFast(cell) == false)
 				{
 					if (ignoreBuildings)
-						return edificeGrid != null && edificeGrid[cell] is Building;
+						return edificeGrid != null && edificeGrid[cell] is Building building && (building as Mineable) == null;
 					return false;
 				}
 

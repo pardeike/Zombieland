@@ -344,7 +344,7 @@ namespace ZombieLand
 							{
 								// the following can be improved by choosing targets that
 								// are not too close. unsolved problem: we do not know how
-								// to relocate shooeters yet
+								// to relocate shooters yet
 								//
 								var maxRangeSquared = (int)(props.range * props.range);
 								var tickManager = attacker.Map.GetComponent<TickManager>();
@@ -352,7 +352,7 @@ namespace ZombieLand
 								Func<Zombie, int> zombiePrioritySorter = delegate (Zombie zombie)
 								{
 									var score = maxRangeSquared - pos.DistanceToSquared(zombie.Position);
-									if (zombie.bombTickingInterval != -1f)
+									if (zombie.IsSuicideBomber)
 										score += 30;
 									if (zombie.IsTanky)
 										score += 20;
@@ -1607,7 +1607,7 @@ namespace ZombieLand
 				Verse.TickManager tm = null;
 				var orientation = zombie.Rotation;
 
-				if (zombie.bombTickingInterval != -1f)
+				if (zombie.IsSuicideBomber)
 				{
 					tm = Find.TickManager;
 					var currentTick = tm.TicksAbs;
@@ -1788,7 +1788,7 @@ namespace ZombieLand
 				var zombie = __instance.pawn as Zombie;
 				if (zombie == null) return;
 
-				if (zombie.bombTickingInterval != -1f)
+				if (zombie.IsSuicideBomber)
 				{
 					var apparel = new Apparel() { def = ThingDef.Named("Apparel_BombVest") };
 					ApparelGraphicRecord record;
@@ -1860,7 +1860,7 @@ namespace ZombieLand
 					}
 					if (zombie.hasTankyShield != -1f || zombie.hasTankyHelmet != -1f || zombie.hasTankySuit != -1f)
 					{
-						__result = 1000f;
+						__result = 5000f;
 						return false;
 					}
 					switch (zombie.story.bodyType)
@@ -1910,7 +1910,7 @@ namespace ZombieLand
 				{
 					if (zombie.IsTanky)
 					{
-						__result = 0.001f * Find.TickManager.TickRateMultiplier;
+						__result = 0.002f * Find.TickManager.TickRateMultiplier;
 						return false;
 					}
 
@@ -2207,10 +2207,14 @@ namespace ZombieLand
 				if (zombie == null)
 					return true;
 
+				var difficulty = Find.Storyteller.difficulty.difficulty;
+				if (amountInt > 25)
+					amountInt = 25 + (int)Math.Sqrt(amountInt - 26);
+
 				if (zombie.hasTankyShield > 0f)
 				{
 					PlayTink(zombie);
-					zombie.hasTankyShield -= amountInt / 200f;
+					zombie.hasTankyShield -= amountInt / (1f + difficulty * 150f);
 					if (zombie.hasTankyShield < 0f)
 						zombie.hasTankyShield = -1f;
 					__result = -1;
@@ -2223,7 +2227,7 @@ namespace ZombieLand
 					if (zombie.hasTankyHelmet > 0f)
 					{
 						PlayTink(zombie);
-						zombie.hasTankyHelmet -= amountInt / 10f;
+						zombie.hasTankyHelmet -= amountInt / (1f + difficulty * 10f);
 						if (zombie.hasTankyHelmet < 0f)
 							zombie.hasTankyHelmet = -1f;
 						__result = -1;
@@ -2235,7 +2239,7 @@ namespace ZombieLand
 					if (zombie.hasTankySuit > 0f)
 					{
 						PlayTink(zombie);
-						zombie.hasTankySuit -= amountInt / 100f;
+						zombie.hasTankySuit -= amountInt / (1f + difficulty * 100f);
 						if (zombie.hasTankySuit < 0f)
 							zombie.hasTankySuit = -1f;
 						__result = -1;
@@ -2246,7 +2250,7 @@ namespace ZombieLand
 				// still a tough zombie even if we hit the body but some armor is left
 				if (zombie.hasTankyHelmet > 0f || zombie.hasTankySuit > 0f)
 				{
-					var toughnessLevel = 1; // TODO scale from 1..n with difficulty
+					var toughnessLevel = Find.Storyteller.difficulty.difficulty;
 					amountInt = (amountInt + toughnessLevel) / (toughnessLevel + 1);
 				}
 

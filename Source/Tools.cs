@@ -275,9 +275,10 @@ namespace ZombieLand
 					var compQuality = newApparel.TryGetComp<CompQuality>();
 					if (compQuality != null)
 						compQuality.SetQuality(QualityCategory.Shoddy, ArtGenerationContext.Colony);
+
+					zombie.apparel.Notify_ApparelAdded(newApparel);
 				}
 			});
-			zombie.apparel.Notify_ApparelAdded(null); // unused arg
 
 			if (thing is Corpse)
 			{
