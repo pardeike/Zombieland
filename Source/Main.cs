@@ -34,8 +34,12 @@ namespace ZombieLand
 			// prepare Twinkie
 			LongEventHandler.QueueLongEvent(() => { Tools.EnableTwinkie(false); }, "", true, null);
 
-			// extra patch for Combat Extended
-			Patches.Projectile_Launch_Patch.PatchCombatExtended(harmony);
+			// patches for Combat Extended (need to run late or else statics in those classes are not set yet)
+			LongEventHandler.ExecuteWhenFinished(() =>
+			{
+				Patches.Projectile_Launch_Patch.PatchCombatExtended(harmony);
+				Patches.ArmorUtility_GetPostArmorDamage_Patch.PatchCombatExtended(harmony);
+			});
 
 			// for debugging
 			/*

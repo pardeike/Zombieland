@@ -2189,7 +2189,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(ArmorUtility))]
 		[HarmonyPatch("GetPostArmorDamage")]
-		static class ArmorUtility_GetPostArmorDamage_Patch
+		public static class ArmorUtility_GetPostArmorDamage_Patch
 		{
 			static void PlayTink(Thing thing)
 			{
@@ -2255,6 +2255,47 @@ namespace ZombieLand
 				}
 
 				return true;
+			}
+
+			static bool GetAfterArmorDamagePrefix(ref DamageInfo originalDinfo, Pawn pawn, BodyPartRecord hitPart, out bool shieldAbsorbed)
+			{
+				var dinfo = new DamageInfo(originalDinfo);
+				var dmgAmount = dinfo.Amount;
+
+				shieldAbsorbed = false;
+				var prefixResult = 0;
+				var result = Prefix(pawn, ref dmgAmount, hitPart, originalDinfo.Def, ref prefixResult);
+				if (result)
+					return true;
+
+				dinfo.SetAmount(dmgAmount);
+				originalDinfo = dinfo;
+				shieldAbsorbed = true;
+
+				return false;
+			}
+
+			// called from Main
+			public static void PatchCombatExtended(HarmonyInstance harmony)
+			{
+				// do not throw or error if this type does not exist
+				// it only exists if CombatExtended is loaded (optional)
+				//
+				var type = AccessTools.TypeByName("CombatExtended.ArmorUtilityCE");
+				if (type == null) return;
+
+				// do not throw or error if this method does not exist either
+				//
+				var originalMethodInfo = AccessTools.Method(type, "GetAfterArmorDamage", new Type[] { typeof(DamageInfo), typeof(Pawn), typeof(BodyPartRecord), typeof(bool).MakeByRefType() });
+				if (originalMethodInfo == null) return;
+
+				Log.Warning("Zombieland is going to patch CombatExtended.ArmorUtilityCE.GetAfterArmorDamage with prefix 'GetAfterArmorDamagePrefix'");
+
+				var damageInfo = new DamageInfo();
+				var someBool = false;
+				var prefix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => GetAfterArmorDamagePrefix(ref damageInfo, null, null, out someBool)));
+				var postfix = new HarmonyMethod(null);
+				harmony.Patch(originalMethodInfo, prefix, postfix);
 			}
 		}
 
@@ -2781,6 +2822,8 @@ namespace ZombieLand
 				//
 				var originalMethodInfo = AccessTools.Method(type, "Launch", new Type[] { typeof(Thing), typeof(Vector2), typeof(float), typeof(float), typeof(float), typeof(float), typeof(Thing) });
 				if (originalMethodInfo == null) return;
+
+				Log.Warning("Zombieland is going to patch CombatExtended.ProjectileCE.Launch with a postfix 'Projectile_Launch_Patch'");
 
 				var prefix = new HarmonyMethod(null);
 				var postfix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => PostfixCombatExtended(null, Vector2.zero, 0, 0, 0, 0, null)));
