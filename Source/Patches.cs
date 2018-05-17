@@ -2185,6 +2185,36 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to set armor penetration value for Combat Extended
+		public static class ArmorUtilityCE_GetPenetrationValue_Patch
+		{
+			public static void Patch(HarmonyInstance harmony)
+			{
+				var type = AccessTools.TypeByName("CombatExtended.ArmorUtilityCE");
+				if (type == null) return;
+				var originalMethodInfo = AccessTools.Method(type, "GetPenetrationValue", new Type[] { typeof(DamageInfo) });
+				if (originalMethodInfo != null)
+				{
+					Log.Warning("Zombieland is going to patch CombatExtended.ArmorUtilityCE.GetPenetrationValue with prefix 'GetPenetrationValuePrefix'");
+
+					var someFloat = 0f;
+					var prefix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => GetPenetrationValuePrefix(new DamageInfo(), ref someFloat)));
+					var postfix = new HarmonyMethod(null);
+					harmony.Patch(originalMethodInfo, prefix, postfix);
+				}
+			}
+
+			static bool GetPenetrationValuePrefix(DamageInfo dinfo, ref float __result)
+			{
+				if (dinfo.Def == Tools.ZombieBiteDamageDef || dinfo.Def == Tools.SuicideBombDamageDef || dinfo.Def == Tools.ToxicSplatterDamageDef)
+				{
+					__result = Constants.COMBAT_EXTENDED_ARMOR_PENETRATION;
+					return false;
+				}
+				return true;
+			}
+		}
+
 		// patch to prevent damage if zombie has armor
 		//
 		[HarmonyPatch(typeof(ArmorUtility))]
@@ -2201,7 +2231,7 @@ namespace ZombieLand
 			}
 
 			[HarmonyPriority(Priority.First)]
-			static bool Prefix(Pawn pawn, ref int amountInt, BodyPartRecord part, DamageDef damageDef, ref int __result)
+			static bool Prefix(Pawn pawn, ref int amountInt, BodyPartRecord part, /* DamageDef damageDef, */ ref int __result)
 			{
 				var zombie = pawn as Zombie;
 				if (zombie == null)
@@ -2264,7 +2294,7 @@ namespace ZombieLand
 
 				shieldAbsorbed = false;
 				var prefixResult = 0;
-				var result = Prefix(pawn, ref dmgAmount, hitPart, originalDinfo.Def, ref prefixResult);
+				var result = Prefix(pawn, ref dmgAmount, hitPart, /*originalDinfo.Def,*/ ref prefixResult);
 				if (result)
 					return true;
 

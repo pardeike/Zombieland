@@ -99,6 +99,10 @@ SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 14
 // long distance shots from a colonist. Default is 0.9
 COLONISTS_HIT_ZOMBIES_CHANCE = 0.9
 
+// For use with Combat Extended mod, this value defines the output of the
+// method CombatExtended/ArmorUtilityCE.cs:GetPenetrationValue()
+COMBAT_EXTENDED_ARMOR_PENETRATION = 0.1
+
 // For the spawn incident, this defines the area size in where this event will
 // take place. Default is 10
 SPAWN_INCIDENT_RADIUS = 10

@@ -60,6 +60,39 @@ namespace ZombieLand
 		public static Texture2D ZombieButtonBackground;
 		public static string zlNamespace = typeof(Tools).Namespace;
 
+		private static DamageDef _zombieBiteDamageDef;
+		public static DamageDef ZombieBiteDamageDef
+		{
+			get
+			{
+				if (_zombieBiteDamageDef == null)
+					_zombieBiteDamageDef = DefDatabase<DamageDef>.GetNamed("ZombieBite");
+				return _zombieBiteDamageDef;
+			}
+		}
+
+		private static DamageDef _suicideBombDamageDef;
+		public static DamageDef SuicideBombDamageDef
+		{
+			get
+			{
+				if (_suicideBombDamageDef == null)
+					_suicideBombDamageDef = DefDatabase<DamageDef>.GetNamed("SuicideBomb");
+				return _suicideBombDamageDef;
+			}
+		}
+
+		private static DamageDef _toxicSplatterDamageDef;
+		public static DamageDef ToxicSplatterDamageDef
+		{
+			get
+			{
+				if (_toxicSplatterDamageDef == null)
+					_toxicSplatterDamageDef = DefDatabase<DamageDef>.GetNamed("ToxicSplatter");
+				return _toxicSplatterDamageDef;
+			}
+		}
+
 		static string mealLabel;
 		static string mealDescription;
 		static Graphic mealGraphic;

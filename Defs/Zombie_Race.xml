@@ -49,54 +49,61 @@
 			<ArmorRating_Heat>0</ArmorRating_Heat>
 			<ArmorRating_Electric>0</ArmorRating_Electric>
 			<MeleeHitChance>0.5</MeleeHitChance>
-			<MeleeDodgeChance>0.1</MeleeDodgeChance>
+			<MeleeDodgeChance>0.05</MeleeDodgeChance>
+			<MeleeCritChance>0.2</MeleeCritChance>
+			<MeleeParryChance>0.05</MeleeParryChance>
 		</statBases>
 		<verbs>
-			<li>
-				<verbClass>Verb_MeleeAttack</verbClass>
-				<defaultCooldownTime>4.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>4</meleeDamageBaseAmount>
-				<meleeDamageDef>ZombieBite</meleeDamageDef>
-				<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
-				<surpriseAttack>
-					<extraMeleeDamages>
-						<li>
-							<def>Stun</def>
-							<amount>40</amount>
-						</li>
-					</extraMeleeDamages>
-				</surpriseAttack>
-			</li>
-			<li>
-				<verbClass>Verb_MeleeAttack</verbClass>
-				<defaultCooldownTime>2.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>1</meleeDamageBaseAmount>
-				<meleeDamageDef>Scratch</meleeDamageDef>
-				<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
-				<surpriseAttack>
-					<extraMeleeDamages>
-						<li>
-							<def>Stun</def>
-							<amount>20</amount>
-						</li>
-					</extraMeleeDamages>
-				</surpriseAttack>
-			</li>
-			<li>
-				<verbClass>Verb_MeleeAttack</verbClass>
-				<defaultCooldownTime>2.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>1</meleeDamageBaseAmount>
-				<meleeDamageDef>Scratch</meleeDamageDef>
-				<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
-				<surpriseAttack>
-					<extraMeleeDamages>
-						<li>
-							<def>Stun</def>
-							<amount>20</amount>
-						</li>
-					</extraMeleeDamages>
-				</surpriseAttack>
-			</li>
+			<tools>
+				<li Class="CombatExtended.ToolCE">
+					<label>Bite</label>
+					<capacities>
+						<li>ZombieBite</li>
+					</capacities>
+					<power>4</power>
+					<cooldownTime>4</cooldownTime>
+					<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
+					<armorPenetration>0.15</armorPenetration>
+				</li>
+				<li Class="CombatExtended.ToolCE">
+					<label>Left fist</label>
+					<capacities>
+						<li>Slash</li>
+					</capacities>
+					<power>1</power>
+					<cooldownTime>2</cooldownTime>
+					<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
+					<armorPenetration>0.1</armorPenetration>
+					<commonality>0.2</commonality>
+					<surpriseAttack>
+						<extraMeleeDamages>
+							<li>
+								<def>Stun</def>
+								<amount>22</amount>
+							</li>
+						</extraMeleeDamages>
+					</surpriseAttack>
+				</li>
+				<li Class="CombatExtended.ToolCE">
+					<label>Right fist</label>
+					<capacities>
+						<li>Slash</li>
+					</capacities>
+					<power>1</power>
+					<cooldownTime>2</cooldownTime>
+					<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
+					<armorPenetration>0.1</armorPenetration>
+					<commonality>0.2</commonality>
+					<surpriseAttack>
+						<extraMeleeDamages>
+							<li>
+								<def>Stun</def>
+								<amount>22</amount>
+							</li>
+						</extraMeleeDamages>
+					</surpriseAttack>
+				</li>
+			</tools>
 		</verbs>
 		<race>
 			<thinkTreeMain>Zombie</thinkTreeMain>
@@ -104,6 +111,7 @@
 			<makesFootprints>false</makesFootprints>
 			<lifeExpectancy>9999</lifeExpectancy>
 			<baseBodySize>1</baseBodySize>
+			<BaseHealthScale>1</BaseHealthScale>
 			<leatherColor>(34,113,39)</leatherColor>
 			<leatherCommonalityFactor>0</leatherCommonalityFactor>
 			<foodType>OmnivoreRoughAnimal</foodType>
@@ -126,7 +134,6 @@
 				<li>OrganicStandard</li>
 			</hediffGiverSets>
 		</race>
-
 	</ThingDef>
 
 </Defs>

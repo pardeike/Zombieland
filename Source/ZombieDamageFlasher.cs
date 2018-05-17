@@ -45,7 +45,7 @@ namespace ZombieLand
 		static void Postfix(DamageFlasher __instance, Material baseMat, Material __result)
 		{
 			if (__instance is ZombieDamageFlasher zombieDamageFlasher/* && zombieDamageFlasher.isColonist */
-				&& zombieDamageFlasher.dinfoDef == ZombieDamageFlasher.zombieBiteDamageDef
+				&& zombieDamageFlasher.dinfoDef == Tools.ZombieBiteDamageDef
 				&& __result != null)
 			{
 				var damPct = zombieDamageFlasher.damageFlashTicksLeft.GetValue<int>() / 16f;
@@ -58,8 +58,6 @@ namespace ZombieLand
 	{
 		public DamageDef dinfoDef;
 		public Traverse damageFlashTicksLeft;
-
-		public static DamageDef zombieBiteDamageDef = DefDatabase<DamageDef>.GetNamed("ZombieBite");
 
 		public ZombieDamageFlasher(Pawn pawn) : base(pawn)
 		{

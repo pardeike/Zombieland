@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<ManeuverDef>
+		<defName>ZombieBite</defName>
+		<requiredCapacity>ZombieBite</requiredCapacity>
+		<verb>
+			<verbClass>Verb_MeleeAttack</verbClass>
+			<meleeDamageDef>ZombieBite</meleeDamageDef>
+		</verb>
+		<combatLogRules>Maneuver_Slash</combatLogRules>
+	</ManeuverDef>
+
+</Defs>
