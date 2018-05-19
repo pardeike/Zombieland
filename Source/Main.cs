@@ -39,7 +39,6 @@ namespace ZombieLand
 			{
 				Patches.Projectile_Launch_Patch.PatchCombatExtended(harmony);
 				Patches.ArmorUtility_GetPostArmorDamage_Patch.PatchCombatExtended(harmony);
-				Patches.ArmorUtilityCE_GetPenetrationValue_Patch.Patch(harmony);
 			});
 
 			// for debugging

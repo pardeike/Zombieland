@@ -36,6 +36,7 @@
 			<meatColor>(44,58,44)</meatColor>
 			<canBePredatorPrey>true</canBePredatorPrey>
 		</race>
+		<bodyShape>Humanoid</bodyShape>
 	</ThingDef>
 
 	<ThingDef Class="ZombieLand.ThingDef_Zombie" ParentName="BaseZombie">
@@ -53,58 +54,56 @@
 			<MeleeCritChance>0.2</MeleeCritChance>
 			<MeleeParryChance>0.05</MeleeParryChance>
 		</statBases>
-		<verbs>
-			<tools>
-				<li Class="CombatExtended.ToolCE">
-					<label>Bite</label>
-					<capacities>
-						<li>ZombieBite</li>
-					</capacities>
-					<power>4</power>
-					<cooldownTime>4</cooldownTime>
-					<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
-					<armorPenetration>0.15</armorPenetration>
-				</li>
-				<li Class="CombatExtended.ToolCE">
-					<label>Left fist</label>
-					<capacities>
-						<li>Slash</li>
-					</capacities>
-					<power>1</power>
-					<cooldownTime>2</cooldownTime>
-					<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
-					<armorPenetration>0.1</armorPenetration>
-					<commonality>0.2</commonality>
-					<surpriseAttack>
-						<extraMeleeDamages>
-							<li>
-								<def>Stun</def>
-								<amount>22</amount>
-							</li>
-						</extraMeleeDamages>
-					</surpriseAttack>
-				</li>
-				<li Class="CombatExtended.ToolCE">
-					<label>Right fist</label>
-					<capacities>
-						<li>Slash</li>
-					</capacities>
-					<power>1</power>
-					<cooldownTime>2</cooldownTime>
-					<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
-					<armorPenetration>0.1</armorPenetration>
-					<commonality>0.2</commonality>
-					<surpriseAttack>
-						<extraMeleeDamages>
-							<li>
-								<def>Stun</def>
-								<amount>22</amount>
-							</li>
-						</extraMeleeDamages>
-					</surpriseAttack>
-				</li>
-			</tools>
-		</verbs>
+		<tools>
+			<li Class="CombatExtended.ToolCE">
+				<label>Bite</label>
+				<capacities>
+					<li>ZombieBite</li>
+				</capacities>
+				<power>4</power>
+				<cooldownTime>4</cooldownTime>
+				<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
+				<armorPenetration>0.15</armorPenetration>
+			</li>
+			<li Class="CombatExtended.ToolCE">
+				<label>left fist</label>
+				<capacities>
+					<li>Slash</li>
+				</capacities>
+				<power>1</power>
+				<cooldownTime>2</cooldownTime>
+				<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
+				<armorPenetration>0.1</armorPenetration>
+				<commonality>0.2</commonality>
+				<surpriseAttack>
+					<extraMeleeDamages>
+						<li>
+							<def>Stun</def>
+							<amount>22</amount>
+						</li>
+					</extraMeleeDamages>
+				</surpriseAttack>
+			</li>
+			<li Class="CombatExtended.ToolCE">
+				<label>right fist</label>
+				<capacities>
+					<li>Slash</li>
+				</capacities>
+				<power>1</power>
+				<cooldownTime>2</cooldownTime>
+				<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
+				<armorPenetration>0.1</armorPenetration>
+				<commonality>0.2</commonality>
+				<surpriseAttack>
+					<extraMeleeDamages>
+						<li>
+							<def>Stun</def>
+							<amount>22</amount>
+						</li>
+					</extraMeleeDamages>
+				</surpriseAttack>
+			</li>
+		</tools>
 		<race>
 			<thinkTreeMain>Zombie</thinkTreeMain>
 			<intelligence>Humanlike</intelligence>

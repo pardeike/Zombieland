@@ -2185,36 +2185,6 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to set armor penetration value for Combat Extended
-		public static class ArmorUtilityCE_GetPenetrationValue_Patch
-		{
-			public static void Patch(HarmonyInstance harmony)
-			{
-				var type = AccessTools.TypeByName("CombatExtended.ArmorUtilityCE");
-				if (type == null) return;
-				var originalMethodInfo = AccessTools.Method(type, "GetPenetrationValue", new Type[] { typeof(DamageInfo) });
-				if (originalMethodInfo != null)
-				{
-					Log.Warning("Zombieland is going to patch CombatExtended.ArmorUtilityCE.GetPenetrationValue with prefix 'GetPenetrationValuePrefix'");
-
-					var someFloat = 0f;
-					var prefix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => GetPenetrationValuePrefix(new DamageInfo(), ref someFloat)));
-					var postfix = new HarmonyMethod(null);
-					harmony.Patch(originalMethodInfo, prefix, postfix);
-				}
-			}
-
-			static bool GetPenetrationValuePrefix(DamageInfo dinfo, ref float __result)
-			{
-				if (dinfo.Def == Tools.ZombieBiteDamageDef || dinfo.Def == Tools.SuicideBombDamageDef || dinfo.Def == Tools.ToxicSplatterDamageDef)
-				{
-					__result = Constants.COMBAT_EXTENDED_ARMOR_PENETRATION;
-					return false;
-				}
-				return true;
-			}
-		}
-
 		// patch to prevent damage if zombie has armor
 		//
 		[HarmonyPatch(typeof(ArmorUtility))]
@@ -2305,27 +2275,48 @@ namespace ZombieLand
 				return false;
 			}
 
+			public static bool GetPenetrationValuePrefix(DamageInfo dinfo, ref float __result)
+			{
+				if (dinfo.Instigator is Zombie)
+				{
+					__result = Constants.COMBAT_EXTENDED_ARMOR_PENETRATION;
+					return false;
+				}
+				return true;
+			}
+
+			public static bool GetCollisionBodyFactorsPrefix(Pawn pawn, ref Vector2 __result)
+			{
+				if (pawn is Zombie)
+				{
+					__result = Vector2.one;
+					return false;
+				}
+				return true;
+			}
+
 			// called from Main
 			public static void PatchCombatExtended(HarmonyInstance harmony)
 			{
-				// do not throw or error if this type does not exist
-				// it only exists if CombatExtended is loaded (optional)
-				//
-				var type = AccessTools.TypeByName("CombatExtended.ArmorUtilityCE");
-				if (type == null) return;
+				var t_ArmorUtilityCE = AccessTools.TypeByName("CombatExtended.ArmorUtilityCE");
+				if (t_ArmorUtilityCE == null) return;
 
-				// do not throw or error if this method does not exist either
-				//
-				var originalMethodInfo = AccessTools.Method(type, "GetAfterArmorDamage", new Type[] { typeof(DamageInfo), typeof(Pawn), typeof(BodyPartRecord), typeof(bool).MakeByRefType() });
-				if (originalMethodInfo == null) return;
+				var m_GetAfterArmorDamage = AccessTools.Method(t_ArmorUtilityCE, "GetAfterArmorDamage", new Type[] { typeof(DamageInfo), typeof(Pawn), typeof(BodyPartRecord), typeof(bool).MakeByRefType() });
+				if (m_GetAfterArmorDamage != null)
+				{
+					var damageInfo = new DamageInfo();
+					var someBool = false;
+					var prefix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => GetAfterArmorDamagePrefix(ref damageInfo, null, null, out someBool)));
+					harmony.Patch(m_GetAfterArmorDamage, prefix, new HarmonyMethod(null));
+				}
 
-				Log.Warning("Zombieland is going to patch CombatExtended.ArmorUtilityCE.GetAfterArmorDamage with prefix 'GetAfterArmorDamagePrefix'");
-
-				var damageInfo = new DamageInfo();
-				var someBool = false;
-				var prefix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => GetAfterArmorDamagePrefix(ref damageInfo, null, null, out someBool)));
-				var postfix = new HarmonyMethod(null);
-				harmony.Patch(originalMethodInfo, prefix, postfix);
+				var m_GetPenetrationValue = AccessTools.Method(t_ArmorUtilityCE, "GetPenetrationValue", new Type[] { typeof(DamageInfo) });
+				if (m_GetPenetrationValue != null)
+				{
+					var someFloat = 0f;
+					var prefix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => GetPenetrationValuePrefix(new DamageInfo(), ref someFloat)));
+					harmony.Patch(m_GetPenetrationValue, prefix, new HarmonyMethod(null));
+				}
 			}
 		}
 
@@ -2852,8 +2843,6 @@ namespace ZombieLand
 				//
 				var originalMethodInfo = AccessTools.Method(type, "Launch", new Type[] { typeof(Thing), typeof(Vector2), typeof(float), typeof(float), typeof(float), typeof(float), typeof(Thing) });
 				if (originalMethodInfo == null) return;
-
-				Log.Warning("Zombieland is going to patch CombatExtended.ProjectileCE.Launch with a postfix 'Projectile_Launch_Patch'");
 
 				var prefix = new HarmonyMethod(null);
 				var postfix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => PostfixCombatExtended(null, Vector2.zero, 0, 0, 0, 0, null)));
