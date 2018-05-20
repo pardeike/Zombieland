@@ -144,7 +144,8 @@ namespace ZombieLand
 			PawnComponentsUtility.CreateInitialComponents(zombie);
 			zombie.health.hediffSet.Clear();
 
-			zombie.ageTracker.AgeBiologicalTicks = ((long)(Rand.Range(0, 0x9c4 + 1) * 3600000f)) + Rand.Range(0, 0x36ee80);
+			var ageInYears = (long)Rand.Range(14, 130);
+			zombie.ageTracker.AgeBiologicalTicks = (ageInYears * 3600000);
 			zombie.ageTracker.AgeChronologicalTicks = zombie.ageTracker.AgeBiologicalTicks;
 			zombie.ageTracker.BirthAbsTicks = GenTicks.TicksAbs - zombie.ageTracker.AgeBiologicalTicks;
 			var idx = zombie.ageTracker.CurLifeStageIndex; // trigger calculations
