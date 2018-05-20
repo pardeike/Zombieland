@@ -50,6 +50,17 @@ namespace ZombieLand
 		Back
 	}
 
+	public class PatchOperationFindMod : PatchOperation
+	{
+		private string modName;
+
+		protected override bool ApplyWorker(XmlDocument xml)
+		{
+			if (modName.NullOrEmpty()) return false;
+			return ModsConfig.ActiveModsInLoadOrder.Any(m => m.Name.Contains(modName));
+		}
+	}
+
 	[StaticConstructorOnStartup]
 	static class Tools
 	{

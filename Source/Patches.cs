@@ -2201,7 +2201,7 @@ namespace ZombieLand
 			}
 
 			[HarmonyPriority(Priority.First)]
-			static bool Prefix(Pawn pawn, ref int amountInt, BodyPartRecord part, /* DamageDef damageDef, */ ref int __result)
+			static bool Prefix(Pawn pawn, ref int amountInt, BodyPartRecord part, ref int __result)
 			{
 				var zombie = pawn as Zombie;
 				if (zombie == null)
@@ -2264,35 +2264,18 @@ namespace ZombieLand
 
 				shieldAbsorbed = false;
 				var prefixResult = 0;
-				var result = Prefix(pawn, ref dmgAmount, hitPart, /*originalDinfo.Def,*/ ref prefixResult);
+				var result = Prefix(pawn, ref dmgAmount, hitPart, ref prefixResult);
 				if (result)
-					return true;
+					return (pawn.Spawned && pawn.Dead == false
+						&& pawn.Destroyed == false
+						&& originalDinfo.Instigator.Spawned
+						&& originalDinfo.Instigator.Destroyed == false);
 
 				dinfo.SetAmount(dmgAmount);
 				originalDinfo = dinfo;
 				shieldAbsorbed = true;
 
 				return false;
-			}
-
-			public static bool GetPenetrationValuePrefix(DamageInfo dinfo, ref float __result)
-			{
-				if (dinfo.Instigator is Zombie)
-				{
-					__result = Constants.COMBAT_EXTENDED_ARMOR_PENETRATION;
-					return false;
-				}
-				return true;
-			}
-
-			public static bool GetCollisionBodyFactorsPrefix(Pawn pawn, ref Vector2 __result)
-			{
-				if (pawn is Zombie)
-				{
-					__result = Vector2.one;
-					return false;
-				}
-				return true;
 			}
 
 			// called from Main
@@ -2308,14 +2291,6 @@ namespace ZombieLand
 					var someBool = false;
 					var prefix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => GetAfterArmorDamagePrefix(ref damageInfo, null, null, out someBool)));
 					harmony.Patch(m_GetAfterArmorDamage, prefix, new HarmonyMethod(null));
-				}
-
-				var m_GetPenetrationValue = AccessTools.Method(t_ArmorUtilityCE, "GetPenetrationValue", new Type[] { typeof(DamageInfo) });
-				if (m_GetPenetrationValue != null)
-				{
-					var someFloat = 0f;
-					var prefix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => GetPenetrationValuePrefix(new DamageInfo(), ref someFloat)));
-					harmony.Patch(m_GetPenetrationValue, prefix, new HarmonyMethod(null));
 				}
 			}
 		}

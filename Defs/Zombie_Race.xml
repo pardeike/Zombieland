@@ -36,10 +36,9 @@
 			<meatColor>(44,58,44)</meatColor>
 			<canBePredatorPrey>true</canBePredatorPrey>
 		</race>
-		<bodyShape>Humanoid</bodyShape>
 	</ThingDef>
 
-	<ThingDef Class="ZombieLand.ThingDef_Zombie" ParentName="BaseZombie">
+	<ThingDef Name="Zombie" Class="ZombieLand.ThingDef_Zombie" ParentName="BaseZombie">
 		<defName>Zombie</defName>
 		<label>Zombie</label>
 		<description>A zombie</description>
@@ -51,11 +50,9 @@
 			<ArmorRating_Electric>0</ArmorRating_Electric>
 			<MeleeHitChance>0.5</MeleeHitChance>
 			<MeleeDodgeChance>0.05</MeleeDodgeChance>
-			<MeleeCritChance>0.2</MeleeCritChance>
-			<MeleeParryChance>0.05</MeleeParryChance>
 		</statBases>
 		<tools>
-			<li Class="CombatExtended.ToolCE">
+			<li>
 				<label>Bite</label>
 				<capacities>
 					<li>ZombieBite</li>
@@ -63,17 +60,15 @@
 				<power>4</power>
 				<cooldownTime>4</cooldownTime>
 				<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
-				<armorPenetration>0.15</armorPenetration>
 			</li>
-			<li Class="CombatExtended.ToolCE">
+			<li>
 				<label>left fist</label>
 				<capacities>
-					<li>Slash</li>
+					<li>Scratch</li>
 				</capacities>
 				<power>1</power>
 				<cooldownTime>2</cooldownTime>
 				<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
-				<armorPenetration>0.1</armorPenetration>
 				<commonality>0.2</commonality>
 				<surpriseAttack>
 					<extraMeleeDamages>
@@ -84,15 +79,14 @@
 					</extraMeleeDamages>
 				</surpriseAttack>
 			</li>
-			<li Class="CombatExtended.ToolCE">
+			<li>
 				<label>right fist</label>
 				<capacities>
-					<li>Slash</li>
+					<li>Scratch</li>
 				</capacities>
 				<power>1</power>
 				<cooldownTime>2</cooldownTime>
 				<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
-				<armorPenetration>0.1</armorPenetration>
 				<commonality>0.2</commonality>
 				<surpriseAttack>
 					<extraMeleeDamages>
@@ -110,7 +104,7 @@
 			<makesFootprints>false</makesFootprints>
 			<lifeExpectancy>9999</lifeExpectancy>
 			<baseBodySize>1</baseBodySize>
-			<BaseHealthScale>1</BaseHealthScale>
+			<baseHealthScale>1</baseHealthScale>
 			<leatherColor>(34,113,39)</leatherColor>
 			<leatherCommonalityFactor>0</leatherCommonalityFactor>
 			<foodType>OmnivoreRoughAnimal</foodType>

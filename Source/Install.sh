@@ -1,4 +1,4 @@
-FOLDERS_TO_COPY=("About" "Assemblies" "Defs" "Languages" "Sounds" "Textures")
+FOLDERS_TO_COPY=("About" "Assemblies" "Defs" "Languages" "Patches" "Sounds" "Textures")
 SOLUTION_DIR="$2"
 TARGET_DIR="/Users/ap/Library/Application Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/Mods/Zombieland/"
 

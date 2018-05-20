@@ -4,7 +4,7 @@ SETLOCAL
 REM Configure these to match your mod
 REM -----------------------------------------------------
 SET MOD_FOLDERNAME=Zombieland
-SET FOLDERS_TO_COPY=(About Assemblies Languages Textures)
+SET FOLDERS_TO_COPY=(About Assemblies Defs Languages Patches Sounds Textures)
 REM -----------------------------------------------------
 
 SET SOLUTION_DIR=%~2

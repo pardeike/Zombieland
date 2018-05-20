@@ -134,6 +134,9 @@
     <Content Include="..\Defs\Zombie_ThinkTree.xml">
       <Link>Zombie_ThinkTree.xml</Link>
     </Content>
+    <Content Include="..\Patches\Zombie_CE_Patches.xml">
+      <Link>Zombie_CE_Patches.xml</Link>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
