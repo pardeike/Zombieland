@@ -54,7 +54,7 @@ namespace ZombieLand
 	{
 		protected override bool ApplyWorker(XmlDocument xml)
 		{
-			return ModsConfig.ActiveModsInLoadOrder.Any(mod => mod.Identifier == "CombatExtended");
+			return AccessTools.TypeByName("CombatExtended.ToolCE") != null;
 		}
 	}
 
