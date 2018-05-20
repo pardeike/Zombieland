@@ -4,9 +4,9 @@
 	<Operation Class="PatchOperationSequence">
 		<success>Always</success>
 		<operations>
-			<li Class="ZombieLand.PatchOperationFindMod">
-				<modName>CombatExtended</modName>
-			</li>
+
+			<li Class="ZombieLand.IsCombatExtendedInstalled" />
+
 			<li Class="PatchOperationAdd">
 				<xpath>*/ThingDef[@Name="Zombie"]/statBases</xpath>
 				<value>
@@ -14,15 +14,7 @@
 					<MeleeParryChance>0.05</MeleeParryChance>
 				</value>
 			</li>
-		</operations>
-	</Operation>
 
-	<Operation Class="PatchOperationSequence">
-		<success>Always</success>
-		<operations>
-			<li Class="ZombieLand.PatchOperationFindMod">
-				<modName>CombatExtended</modName>
-			</li>
 			<li Class="PatchOperationAddModExtension">
 				<xpath>*/ThingDef[@Name="Zombie"]</xpath>
 				<value>
@@ -31,15 +23,7 @@
 					</li>
 				</value>
 			</li>
-		</operations>
-	</Operation>
 
-	<Operation Class="PatchOperationSequence">
-		<success>Always</success>
-		<operations>
-			<li Class="ZombieLand.PatchOperationFindMod">
-				<modName>CombatExtended</modName>
-			</li>
 			<li Class="PatchOperationReplace">
 				<xpath>*/ThingDef[@Name="Zombie"]/tools</xpath>
 				<value>
@@ -95,6 +79,7 @@
 					</tools>
 				</value>
 			</li>
+
 		</operations>
 	</Operation>
 
