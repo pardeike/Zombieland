@@ -93,6 +93,16 @@ namespace ZombieLand
 				explosions = new List<IntVec3>();
 		}
 
+		public static void ForceRecalculate()
+		{
+			var tickManager = Find.VisibleMap?.GetComponent<TickManager>();
+			if (tickManager != null)
+			{
+				tickManager.visibleGridUpdateCounter = -1;
+				tickManager.RecalculateVisibleMap();
+			}
+		}
+
 		public void RecalculateVisibleMap()
 		{
 			if (visibleGridUpdateCounter-- < 0)
@@ -100,13 +110,14 @@ namespace ZombieLand
 				visibleGridUpdateCounter = Constants.TICKMANAGER_RECALCULATE_DELAY.SecondsToTicks();
 
 				currentColonyPoints = Tools.ColonyPoints();
-
 				allZombiesCached = AllZombies().ToList();
 				var home = map.areaManager.Home;
 				if (home.TrueCount > 0)
 				{
-					allZombiesCached.Do(zombie => zombie.wanderDestination = home.ActiveCells.RandomElement());
-					var cells = home.ActiveCells;
+					var cells = home.ActiveCells.ToArray();
+					var cellCount = cells.Length;
+					allZombiesCached.Do(zombie => zombie.wanderDestination = cells[Constants.random.Next() % cellCount]);
+
 					centerOfInterest = new IntVec3(
 						(int)Math.Round(cells.Average(c => c.x)),
 						0,
@@ -174,7 +185,7 @@ namespace ZombieLand
 
 				ZombieGenerator.FinalizeZombieGeneration(result.zombie);
 				GenPlace.TryPlaceThing(result.zombie, result.cell, result.map, ThingPlaceMode.Direct);
-
+				allZombiesCached.Add(result.zombie);
 			}
 		}
 

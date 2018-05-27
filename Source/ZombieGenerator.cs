@@ -48,7 +48,7 @@ namespace ZombieLand
 				{
 					var request = requestQueue.Dequeue();
 					if (request.zombie == null)
-						request.zombie = GeneratePawn(ZombieGenerator.ZombieType.Random);
+						request.zombie = GeneratePawn(ZombieType.Random);
 					if (request.zombie != null)
 					{
 						var queue = QueueForMap(request.map);

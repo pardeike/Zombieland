@@ -2,7 +2,6 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -13,36 +12,6 @@ using Verse;
 
 namespace ZombieLand
 {
-	class Measure
-	{
-		readonly Stopwatch sw;
-		string text;
-		long prevTime;
-		int counter;
-
-		public Measure(string text)
-		{
-			this.text = text;
-			sw = new Stopwatch();
-			sw.Start();
-		}
-
-		public void Checkpoint()
-		{
-			counter++;
-			var ms = sw.ElapsedMilliseconds;
-			var delta = prevTime == 0 ? 0 : (ms - prevTime);
-			Log.Warning("#" + counter + " " + text + " = " + ms + " ms (+" + delta + ")");
-			prevTime = ms;
-		}
-
-		public void End(bool cancel = false)
-		{
-			sw.Stop();
-			if (cancel == false) Checkpoint();
-		}
-	}
-
 	public enum FacingIndex
 	{
 		Front,
@@ -211,14 +180,13 @@ namespace ZombieLand
 			return val;
 		}
 
-		static System.Random rng = new System.Random();
 		public static void Shuffle<T>(this IList<T> list)
 		{
 			var n = list.Count;
 			while (n > 1)
 			{
 				n--;
-				var k = rng.Next(n + 1);
+				var k = Constants.random.Next(n + 1);
 				var value = list[k];
 				list[k] = list[n];
 				list[n] = value;

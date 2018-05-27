@@ -18,6 +18,7 @@ namespace ZombieLand
 			}
 			GenPlace.TryPlaceThing(zombie, UI.MouseCell(), Find.VisibleMap, ThingPlaceMode.Direct, null);
 			zombie.Rotation = Rot4.South;
+			TickManager.ForceRecalculate();
 		}
 
 		protected override void DoListingItems()
