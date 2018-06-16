@@ -9,7 +9,7 @@
 		<altitudeLayer>Pawn</altitudeLayer>
 		<useHitPoints>false</useHitPoints>
 		<hasTooltip>false</hasTooltip>
-		<soundImpactDefault>BulletImpactFlesh</soundImpactDefault>
+		<soundImpactDefault>BulletImpact_Flesh</soundImpactDefault>
 		<statBases>
 			<Mass>70</Mass>
 			<Flammability>1</Flammability>
@@ -47,7 +47,6 @@
 			<ArmorRating_Blunt>0</ArmorRating_Blunt>
 			<ArmorRating_Sharp>0</ArmorRating_Sharp>
 			<ArmorRating_Heat>0</ArmorRating_Heat>
-			<ArmorRating_Electric>0</ArmorRating_Electric>
 			<MeleeHitChance>0.5</MeleeHitChance>
 			<MeleeDodgeChance>0.05</MeleeDodgeChance>
 		</statBases>
@@ -105,8 +104,7 @@
 			<lifeExpectancy>9999</lifeExpectancy>
 			<baseBodySize>1</baseBodySize>
 			<baseHealthScale>1</baseHealthScale>
-			<leatherColor>(34,113,39)</leatherColor>
-			<leatherCommonalityFactor>0</leatherCommonalityFactor>
+			<leatherDef>Leather_Human</leatherDef>
 			<foodType>OmnivoreRoughAnimal</foodType>
 			<body>Human</body>
 			<nameCategory>HumanStandard</nameCategory>

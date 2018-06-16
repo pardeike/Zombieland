@@ -95,7 +95,7 @@ namespace ZombieLand
 
 		public static void ForceRecalculate()
 		{
-			var tickManager = Find.VisibleMap?.GetComponent<TickManager>();
+			var tickManager = Find.CurrentMap?.GetComponent<TickManager>();
 			if (tickManager != null)
 			{
 				tickManager.visibleGridUpdateCounter = -1;
@@ -379,7 +379,7 @@ namespace ZombieLand
 			var volume = 0f;
 			if (allZombiesCached.Any())
 			{
-				var hour = GenLocalDate.HourFloat(Find.VisibleMap);
+				var hour = GenLocalDate.HourFloat(Find.CurrentMap);
 				if (hour < 12f) hour += 24f;
 				if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
 					volume = 1f;

@@ -274,7 +274,7 @@ namespace ZombieLand
 			zombie.wasMapPawnBefore = true;
 
 			zombie.apparel.DestroyAll();
-			pawn.apparel.WornApparelInDrawOrder.ToList().ForEach(apparel =>
+			pawn.apparel.WornApparel.ForEach(apparel =>
 			{
 				if (pawn.apparel.TryDrop(apparel, out var newApparel))
 				{
@@ -283,7 +283,7 @@ namespace ZombieLand
 					newApparel.HitPoints = 1;
 					var compQuality = newApparel.TryGetComp<CompQuality>();
 					if (compQuality != null)
-						compQuality.SetQuality(QualityCategory.Shoddy, ArtGenerationContext.Colony);
+						compQuality.SetQuality(QualityCategory.Awful, ArtGenerationContext.Colony);
 
 					zombie.apparel.Notify_ApparelAdded(newApparel);
 				}
@@ -302,7 +302,7 @@ namespace ZombieLand
 			}
 
 			var label = "BecameAZombieLabel".Translate();
-			var text = "BecameAZombieDesc".Translate(new object[] { pawn.NameStringShort });
+			var text = "BecameAZombieDesc".Translate(new object[] { pawn.Name.ToStringShort });
 			Find.LetterStack.ReceiveLetter(label, text, LetterDefOf.ThreatBig, zombie);
 		}
 
@@ -504,8 +504,8 @@ namespace ZombieLand
 
 		public static int ColonyPoints()
 		{
-			var colonists = Find.VisibleMap.mapPawns.FreeColonists;
-			ColonyEvaluation.GetColonistArmouryPoints(colonists, Find.VisibleMap, out var colonistPoints, out var armouryPoints);
+			var colonists = Find.CurrentMap.mapPawns.FreeColonists;
+			ColonyEvaluation.GetColonistArmouryPoints(colonists, Find.CurrentMap, out var colonistPoints, out var armouryPoints);
 			return (int)(colonistPoints + armouryPoints);
 		}
 
@@ -600,13 +600,13 @@ namespace ZombieLand
 		public static string TranslateHoursToText(float hours)
 		{
 			var ticks = (int)(GenDate.TicksPerHour * hours);
-			return ticks.ToStringTicksToPeriod(true, true, false);
+			return ticks.ToStringTicksToPeriodVerbose(true, false);
 		}
 
 		public static string TranslateHoursToText(int hours)
 		{
 			var ticks = GenDate.TicksPerHour * hours;
-			return ticks.ToStringTicksToPeriod(true, true, false);
+			return ticks.ToStringTicksToPeriodVerbose(true, false);
 		}
 
 		public static void Look<T>(ref T[] list, string label, params object[] ctorArgs) where T : IExposable
@@ -784,4 +784,36 @@ namespace ZombieLand
 			if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 		}
 	}
+
+	/*public class Random
+	{
+		private readonly uint seed;
+
+		public Random(uint seed = 0)
+		{
+			this.seed = seed;
+		}
+
+		static uint BitRotate(uint x)
+		{
+			const int bits = 16;
+			return (x << bits) | (x >> (32 - bits));
+		}
+
+		public uint GetValue(int x, int y)
+		{
+			var num = seed;
+			for (uint i = 0; i < 16; i++)
+			{
+				num = num * 541 + (uint)x;
+				num = BitRotate(num);
+				num = num * 809 + (uint)y;
+				num = BitRotate(num);
+				num = num * 673 + (uint)i;
+				num = BitRotate(num);
+			}
+			return num % 4;
+		}
+	}
+	*/
 }

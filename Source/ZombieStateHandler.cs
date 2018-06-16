@@ -443,7 +443,7 @@ namespace ZombieLand
 			{
 				var moveTowardsCenter = false;
 
-				var hour = GenLocalDate.HourOfDay(Find.VisibleMap);
+				var hour = GenLocalDate.HourOfDay(Find.CurrentMap);
 				if (hour < 12) hour += 24;
 				if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
 					moveTowardsCenter = true;
@@ -684,18 +684,13 @@ namespace ZombieLand
 			if (driver.eatDelay == 0)
 			{
 				driver.eatDelay = Constants.EAT_DELAY_TICKS;
-				switch (zombie.story.bodyType)
-				{
-					case BodyType.Thin:
-						driver.eatDelay *= 3;
-						break;
-					case BodyType.Hulk:
-						driver.eatDelay /= 2;
-						break;
-					case BodyType.Fat:
-						driver.eatDelay /= 4;
-						break;
-				}
+				var bodyType = zombie.story.bodyType;
+				if (bodyType == BodyTypeDefOf.Thin)
+					driver.eatDelay *= 3;
+				else if (bodyType == BodyTypeDefOf.Hulk)
+					driver.eatDelay /= 2;
+				else if (bodyType == BodyTypeDefOf.Fat)
+					driver.eatDelay /= 4;
 			}
 			return driver.eatDelay;
 		}

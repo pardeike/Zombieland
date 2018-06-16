@@ -6,13 +6,18 @@
 		<thingClass>ZombieLand.BombVest</thingClass>
 		<label>bomb vest</label>
 		<description>A vest with explosives.</description>
-		<techLevel>Transcendent</techLevel>
+		<techLevel>Archotech</techLevel>
 		<tickerType>Never</tickerType>
-		<canBeSpawningInventory>false</canBeSpawningInventory>
-		<tradeability>Never</tradeability>
+		<tradeNeverStack>true</tradeNeverStack>
+		<tradeability>None</tradeability>
+		<generateCommonality>0</generateCommonality>
+		<generateAllowChance>0</generateAllowChance>
+		<scatterableOnMapGen>false</scatterableOnMapGen>
+		<forceDebugSpawnable>false</forceDebugSpawnable>
 		<destroyOnDrop>true</destroyOnDrop>
 		<menuHidden>true</menuHidden>
 		<selectable>false</selectable>
+		<smeltable>false</smeltable>
 		<useHitPoints>false</useHitPoints>
 		<drawGUIOverlay>false</drawGUIOverlay>
 		<alwaysHaulable>false</alwaysHaulable>
@@ -22,6 +27,7 @@
 		</graphicData>
 		<statBases>
 			<DeteriorationRate>0</DeteriorationRate>
+			<Flammability>0</Flammability>
 		</statBases>
 		<apparel>
 			<wornGraphicPath>BombVest/BombVest</wornGraphicPath>

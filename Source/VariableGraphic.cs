@@ -13,10 +13,10 @@ namespace ZombieLand
 
 		public string GraphicPath => path;
 		public override Material MatSingle => mats[2].GetMaterial;
-		public override Material MatFront => mats[2].GetMaterial;
-		public override Material MatSide => mats[1].GetMaterial;
-		public override Material MatBack => mats[0].GetMaterial;
-		public override bool ShouldDrawRotated => MatSide == MatBack;
+		public override Material MatSouth => mats[2].GetMaterial;
+		public override Material MatWest => mats[1].GetMaterial;
+		public override Material MatNorth => mats[0].GetMaterial;
+		public override bool ShouldDrawRotated => MatWest == MatNorth;
 
 		public override void Init(GraphicRequest req)
 		{
@@ -32,9 +32,9 @@ namespace ZombieLand
 
 			mats = new ColorData[]
 			{
-				GraphicsDatabase.GetColorData(req.path + "_back", bodyColor, true),
-				GraphicsDatabase.GetColorData(req.path + "_side", bodyColor, true),
-				GraphicsDatabase.GetColorData(req.path + "_front", bodyColor, true)
+				GraphicsDatabase.GetColorData(req.path + "_north", bodyColor, true),
+				GraphicsDatabase.GetColorData(req.path + "_west", bodyColor, true),
+				GraphicsDatabase.GetColorData(req.path + "_south", bodyColor, true)
 			}
 			.Select(data =>
 			{

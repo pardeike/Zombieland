@@ -16,7 +16,7 @@ namespace ZombieLand
 				zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
 				zombie.state = ZombieState.Wandering;
 			}
-			GenPlace.TryPlaceThing(zombie, UI.MouseCell(), Find.VisibleMap, ThingPlaceMode.Direct, null);
+			GenPlace.TryPlaceThing(zombie, UI.MouseCell(), Find.CurrentMap, ThingPlaceMode.Direct, null);
 			zombie.Rotation = Rot4.South;
 			TickManager.ForceRecalculate();
 		}
@@ -28,7 +28,7 @@ namespace ZombieLand
 			if (Current.ProgramState != ProgramState.Playing)
 				return;
 
-			var map = Find.VisibleMap;
+			var map = Find.CurrentMap;
 			if (map == null)
 				return;
 
@@ -77,7 +77,7 @@ namespace ZombieLand
 			});
 			DebugToolMap("Convert: Make Zombie", delegate
 			{
-				foreach (var thing in Find.VisibleMap.thingGrid.ThingsAt(UI.MouseCell()))
+				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
 					var pawn = thing as Pawn;
 					if (pawn == null || pawn is Zombie)
@@ -87,7 +87,7 @@ namespace ZombieLand
 			});
 			DebugToolMap("Apply: Trigger rotting", delegate
 			{
-				foreach (var thing in Find.VisibleMap.thingGrid.ThingsAt(UI.MouseCell()))
+				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
 					var compRottable = thing.TryGetComp<CompRottable>();
 					if (compRottable != null)
@@ -96,7 +96,7 @@ namespace ZombieLand
 			});
 			DebugToolMap("Apply: Add infection", delegate
 			{
-				foreach (var thing in Find.VisibleMap.thingGrid.ThingsAt(UI.MouseCell()))
+				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
 					var pawn = thing as Pawn;
 					if (pawn == null || pawn is Zombie)
@@ -120,7 +120,7 @@ namespace ZombieLand
 			});
 			DebugToolMap("Apply: Remove infection", delegate
 			{
-				foreach (var thing in Find.VisibleMap.thingGrid.ThingsAt(UI.MouseCell()))
+				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
 					var pawn = thing as Pawn;
 					if (pawn == null || pawn is Zombie)

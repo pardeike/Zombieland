@@ -110,7 +110,7 @@ namespace ZombieLand
 
 		public static void Advance()
 		{
-			if (Find.VisibleMap != null && Find.TickManager.Paused == false)
+			if (Find.CurrentMap != null && Find.TickManager.Paused == false)
 			{
 				var lastIndex = TickerData.width - 1;
 				for (var t = 0; t < maxTickers; t++)

@@ -153,11 +153,12 @@ namespace ZombieLand
 
 		IEnumerable<IntVec3> GetValidAdjactedCellsInRandomOrder(Map map, IntVec3 basePos, bool ignoreBuildings)
 		{
-			UnityEngine.Random.InitState(basePos.x + basePos.z * 1000);
 			int[] rndices;
 			int i;
+			var t = GenTicks.TicksAbs / GenDate.TicksPerHour;
+			var random = new Random(basePos.x + basePos.z * 1000 + t * 1000000);
 
-			rndices = randomOrders[UnityEngine.Random.Range(0, randomOrders.Length)];
+			rndices = randomOrders[random.Next(0, 24)];
 			for (i = 0; i < 4; i++)
 			{
 				var cell = basePos + GenAdj.CardinalDirections[rndices[i]];
@@ -165,7 +166,7 @@ namespace ZombieLand
 					yield return cell;
 			}
 
-			rndices = randomOrders[UnityEngine.Random.Range(0, randomOrders.Length)];
+			rndices = randomOrders[random.Next(0, 24)];
 			for (i = 0; i < 4; i++)
 			{
 				var cell = basePos + GenAdj.DiagonalDirections[rndices[i]];

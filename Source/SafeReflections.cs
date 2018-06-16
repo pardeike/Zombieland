@@ -35,7 +35,7 @@ namespace ZombieLand
 			return method;
 		}
 
-		public static MethodInfo Method(this Type type, string name, Type[] argumentTypes)
+		public static MethodInfo MethodNamed(this Type type, string name, Type[] argumentTypes)
 		{
 			var method = AccessTools.Method(type, name, argumentTypes);
 			if (method == null) throw new Exception("Cannot find method " + name + argumentTypes.Description() + " in type " + type.FullName);
@@ -51,14 +51,14 @@ namespace ZombieLand
 
 		public static MethodInfo PropertyGetter(this Type type, string propertyName)
 		{
-			var method = AccessTools.Property(type, propertyName)?.GetGetMethod();
+			var method = AccessTools.Property(type, propertyName)?.GetGetMethod(true);
 			if (method == null) throw new Exception("Cannot find property getter '" + propertyName + "' in type " + type.FullName);
 			return method;
 		}
 
 		public static MethodInfo PropertySetter(this Type type, string propertyName)
 		{
-			var method = AccessTools.Property(type, propertyName)?.GetSetMethod();
+			var method = AccessTools.Property(type, propertyName)?.GetSetMethod(true);
 			if (method == null) throw new Exception("Cannot find property getter '" + propertyName + "' in type " + type.FullName);
 			return method;
 		}

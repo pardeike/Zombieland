@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Defs>
 
-	<DamageDef Name="ZombieBite" ParentName="LocalInjuryBase">
+	<DamageDef Name="ZombieBite">
 		<defName>ZombieBite</defName>
 		<label>zombie bite</label>
 		<workerClass>DamageWorker_Bite</workerClass>
@@ -15,7 +15,7 @@
 		<scratchSplitPercentage>0.67</scratchSplitPercentage>
 	</DamageDef>
 
-	<DamageDef Name="SuicideBomb" ParentName="LocalInjuryBase">
+	<DamageDef Name="SuicideBomb">
 		<defName>SuicideBomb</defName>
 		<label>suicide bomb</label>
 		<externalViolence>true</externalViolence>
@@ -26,7 +26,6 @@
 		<harmAllLayersUntilOutside>true</harmAllLayersUntilOutside>
 		<impactSoundType>Blunt</impactSoundType>
 		<armorCategory>Blunt</armorCategory>
-		<spreadOut>true</spreadOut>
 		<explosionAffectOutsidePartsOnly>false</explosionAffectOutsidePartsOnly>
 		<explosionCellMote>Mote_BlastDry</explosionCellMote>
 		<explosionColorCenter>(1, 0, 0)</explosionColorCenter>
@@ -34,17 +33,17 @@
 		<soundExplosion>Explosion_Bomb</soundExplosion>
 
 		<!-- will be overwritten dynamically from code -->
-		<explosionDamage>0</explosionDamage>
+		<defaultDamage>0</defaultDamage>
 		<explosionBuildingDamageFactor>0</explosionBuildingDamageFactor>
 		<explosionHeatEnergyPerCell>0</explosionHeatEnergyPerCell>
 	</DamageDef>
 
 	<DamageDef Name="ToxicSplatter">
 		<defName>ToxicSplatter</defName>
-		<label>smoke</label>
+		<label>splatter</label>
 		<canInterruptJobs>false</canInterruptJobs>
 		<makesBlood>false</makesBlood>
-		<explosionDamage>0</explosionDamage>
+		<defaultDamage>0</defaultDamage>
 		<explosionCellMote>Mote_BlastDry</explosionCellMote>
 		<explosionColorCenter>(0, 1, 0, 1)</explosionColorCenter>
 		<explosionColorEdge>(0, 1, 0, 0.1)</explosionColorEdge>

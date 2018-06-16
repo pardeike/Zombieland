@@ -18,7 +18,7 @@
 			<max>250</max>
 		</apparelMoney>
 		<apparelIgnoreSeasons>true</apparelIgnoreSeasons>
-		<apparelAllowHeadwearChance>0.75</apparelAllowHeadwearChance>
+		<apparelAllowHeadgearChance>0.75</apparelAllowHeadgearChance>
 		<backstoryCryptosleepCommonality>0.0</backstoryCryptosleepCommonality>
 		<forceNormalGearQuality>false</forceNormalGearQuality>
 	</PawnKindDef>

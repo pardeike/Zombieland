@@ -38,7 +38,6 @@ namespace ZombieLand
 			Scribe_Values.Look(ref pY, "pY");
 			Scribe_Values.Look(ref drop, "drop");
 			Scribe_Values.Look(ref dropSpeed, "dropSpeed");
-			Scribe_Values.Look(ref dropSpeed, "dropSpeed");
 			Scribe_Values.Look(ref scale, "scale");
 			Scribe_Values.Look(ref rot, "rot");
 		}

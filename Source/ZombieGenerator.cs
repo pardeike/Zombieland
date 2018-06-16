@@ -192,12 +192,12 @@ namespace ZombieLand
 			Normal = 3
 		}
 
-		private static BodyType PrepareZombieType(Zombie zombie, ZombieType overwriteType)
+		private static BodyTypeDef PrepareZombieType(Zombie zombie, ZombieType overwriteType)
 		{
-			var zombieTypeInitializers = new Pair<float, Func<BodyType>>[]
+			var zombieTypeInitializers = new Pair<float, Func<BodyTypeDef>>[]
 			{
 				// suicide bomber
-				new Pair<float, Func<BodyType>>(
+				new Pair<float, Func<BodyTypeDef>>(
 					ZombieSettings.Values.suicideBomberChance,
 					delegate
 					{
@@ -205,12 +205,12 @@ namespace ZombieLand
 						zombie.lastBombTick = Find.TickManager.TicksAbs + Rand.Range(0, (int)zombie.bombTickingInterval);
 						//
 						zombie.gender = Gender.Male;
-						return BodyType.Hulk;
+						return BodyTypeDefOf.Hulk;
 					}
 				),
 
 				// toxic splasher
-				new Pair<float, Func<BodyType>>(
+				new Pair<float, Func<BodyTypeDef>>(
 					ZombieSettings.Values.toxicSplasherChance,
 					delegate
 					{
@@ -220,20 +220,20 @@ namespace ZombieLand
 						{
 							case 1:
 								zombie.gender = Gender.Male;
-								return BodyType.Male;
+								return BodyTypeDefOf.Male;
 							case 2:
 								zombie.gender = Gender.Female;
-								return BodyType.Female;
+								return BodyTypeDefOf.Female;
 							case 3:
 								zombie.gender = Gender.Male;
-								return BodyType.Thin;
+								return BodyTypeDefOf.Thin;
 						}
-						return BodyType.Undefined;
+						return null;
 					}
 				),
 
 				// tanky operator
-				new Pair<float, Func<BodyType>>(
+				new Pair<float, Func<BodyTypeDef>>(
 					ZombieSettings.Values.tankyOperatorChance,
 					delegate
 					{
@@ -242,12 +242,12 @@ namespace ZombieLand
 						zombie.hasTankySuit = 1f;
 						//
 						zombie.gender = Gender.Male;
-						return BodyType.Fat;
+						return BodyTypeDefOf.Fat;
 					}
 				),
 
 				// default ordinary zombie
-				new Pair<float, Func<BodyType>>(
+				new Pair<float, Func<BodyTypeDef>>(
 					float.MaxValue,
 					delegate
 					{
@@ -255,18 +255,18 @@ namespace ZombieLand
 						{
 							case 1:
 								zombie.gender = Gender.Male;
-								return BodyType.Male;
+								return BodyTypeDefOf.Male;
 							case 2:
 								zombie.gender = Gender.Female;
-								return BodyType.Female;
+								return BodyTypeDefOf.Female;
 							case 3:
 								zombie.gender = Gender.Male;
-								return BodyType.Thin;
+								return BodyTypeDefOf.Thin;
 							case 4:
 								zombie.gender = Gender.Male;
-								return BodyType.Fat;
+								return BodyTypeDefOf.Fat;
 						}
-						return BodyType.Undefined;
+						return null;
 					}
 				)
 			};
@@ -278,7 +278,7 @@ namespace ZombieLand
 			}
 
 			var typeChance = Rand.Value;
-			var bodyType = BodyType.Undefined;
+			BodyTypeDef bodyType = null;
 			foreach (var initializer in zombieTypeInitializers)
 			{
 				if (typeChance < initializer.First)
@@ -298,13 +298,13 @@ namespace ZombieLand
 
 			var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
 			var color = zombie.isToxicSplasher ? "toxic" : GraphicToolbox.RandomSkinColorString();
-			var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
+			var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
 			zombie.customBodyGraphic = new VariableGraphic { bodyColor = color };
 			zombie.customBodyGraphic.Init(bodyRequest);
 
 			var headShape = zombie.hasTankyHelmet == 1f ? "Wide" : headShapes[Rand.Range(0, 3)];
 			var headPath = "Zombie/" + zombie.gender + "_" + zombie.story.crownType + "_" + headShape;
-			var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
+			var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
 			zombie.customHeadGraphic = new VariableGraphic { bodyColor = color };
 			zombie.customHeadGraphic.Init(headRequest);
 

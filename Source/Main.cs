@@ -26,30 +26,6 @@ namespace ZombieLand
 		{
 			Identifier = content.Identifier;
 			GetSettings<ZombieSettingsDefaults>();
-
-			// HarmonyInstance.DEBUG = true;
-			var harmony = HarmonyInstance.Create("net.pardeike.zombieland");
-			harmony.PatchAll(Assembly.GetExecutingAssembly());
-
-			// prepare Twinkie
-			LongEventHandler.QueueLongEvent(() => { Tools.EnableTwinkie(false); }, "", true, null);
-
-			// patches for Combat Extended (need to run late or else statics in those classes are not set yet)
-			LongEventHandler.ExecuteWhenFinished(() =>
-			{
-				Patches.Projectile_Launch_Patch.PatchCombatExtended(harmony);
-				Patches.ArmorUtility_GetPostArmorDamage_Patch.PatchCombatExtended(harmony);
-			});
-
-			// for debugging
-			/*
-			DebugRimworldMethodCalls((Type type) =>
-			{
-				if (type.Name.Contains("AttackTarget")) return true;
-				if (type.Name.Contains("_AI")) return true;
-				if (type.Name.Contains("Reachability")) return true;
-				return false;
-			}); */
 		}
 
 		public override void DoSettingsWindowContents(Rect inRect)

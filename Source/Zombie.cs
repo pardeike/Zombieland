@@ -167,14 +167,14 @@ namespace ZombieLand
 			base.Kill(dinfo, exactCulprit);
 		}
 
-		public override void DeSpawn()
+		public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
 		{
 			var map = Map;
 			if (map == null) return;
 
 			var grid = map.GetGrid();
 			grid.ChangeZombieCount(lastGotoPosition, -1);
-			base.DeSpawn();
+			base.DeSpawn(mode);
 		}
 
 		static readonly Type[] RenderPawnInternalParameterTypes = {
@@ -194,7 +194,14 @@ namespace ZombieLand
 			var map = Map;
 			if (map == null) return;
 
-			var amount = (int)story.bodyType + Find.Storyteller.difficulty.difficulty; // max 10
+			var amount = 1 + Find.Storyteller.difficulty.difficulty;
+			if (story.bodyType == BodyTypeDefOf.Thin)
+				amount -= 1;
+			if (story.bodyType == BodyTypeDefOf.Fat)
+				amount += 1;
+			if (story.bodyType == BodyTypeDefOf.Hulk)
+				amount += 2;
+
 			var maxRadius = 0f;
 			var count = (int)GenMath.LerpDouble(0, 10, 2, 30, amount);
 			var hasFilth = 0;
@@ -207,7 +214,7 @@ namespace ZombieLand
 				if (r > maxRadius) maxRadius = r;
 				var cell = pos + vec;
 				if (GenSight.LineOfSight(pos, cell, map, true, null, 0, 0) && cell.Walkable(map))
-					if (FilthMaker.MakeFilth(cell, map, ThingDef.Named("StickyGoo"), NameStringShort))
+					if (FilthMaker.MakeFilth(cell, map, ThingDef.Named("StickyGoo"), Name.ToStringShort, 1))
 						hasFilth++;
 			}
 			if (hasFilth >= 6)
@@ -296,7 +303,7 @@ namespace ZombieLand
 
 		public void CustomTick()
 		{
-			if (!ThingOwnerUtility.ContentsFrozen(ParentHolder) && Map != null)
+			if (!ThingOwnerUtility.ContentsSuspended(ParentHolder) && Map != null)
 			{
 				if (Spawned)
 				{
@@ -324,7 +331,7 @@ namespace ZombieLand
 			}
 		}
 
-		static readonly MethodInfo m_RenderPawnInternal = typeof(PawnRenderer).Method("RenderPawnInternal", RenderPawnInternalParameterTypes);
+		static readonly MethodInfo m_RenderPawnInternal = typeof(PawnRenderer).MethodNamed("RenderPawnInternal", RenderPawnInternalParameterTypes);
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
 		{
 			if (!renderer.graphics.AllResolved)

@@ -18,7 +18,7 @@ namespace ZombieLand
 
 			// note: order is kind of important here
 
-			Find.BattleLog.RawEntries.RemoveAll(RemoveItem);
+			Find.BattleLog.Battles.RemoveAll(battle => Traverse.Create(battle).Field("concerns").GetValue<HashSet<Pawn>>().Any(RemoveItem));
 			Find.World.components.RemoveAll(component => component.IsZombieType());
 			Current.Game.Maps.Do(CleanMap);
 			Current.Game.Maps.Do(map => PawnsOfType<Pawn>(map).Do(RemovePawnRelatedStuff));
@@ -75,7 +75,7 @@ namespace ZombieLand
 				.Select(pile => pile?.settings?.filter).ToList()
 				.Do(RemoveFromFilter);
 
-			map.slotGroupManager.AllGroups
+			map.haulDestinationManager.AllGroups
 				.Select(slot => slot.Settings.filter)
 				.Do(RemoveFromFilter);
 
