@@ -29,6 +29,8 @@ namespace ZombieLand
 		Sustainer zombiesAmbientSound;
 		float zombiesAmbientSoundVolume;
 
+		public Queue<ThingWithComps> colonistsConverter = new Queue<ThingWithComps>();
+
 		public List<IntVec3> explosions = new List<IntVec3>();
 
 		public IncidentInfo incidentInfo = new IncidentInfo();
@@ -407,6 +409,12 @@ namespace ZombieLand
 					zombiesAmbientSound.End();
 					zombiesAmbientSound = null;
 				}
+			}
+
+			if (colonistsConverter.Count > 0)
+			{
+				var pawn = colonistsConverter.Dequeue();
+				Tools.ConvertToZombie(pawn);
 			}
 		}
 	}

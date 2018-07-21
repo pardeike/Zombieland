@@ -85,7 +85,7 @@ namespace ZombieLand
 
 			if (state == InfectionState.Infected)
 			{
-				Tools.ConvertToZombie(pawn);
+				Tools.QueueConvertToZombie(pawn);
 				return;
 			}
 

@@ -524,7 +524,7 @@ namespace ZombieLand
 		}
 		//
 		[HarmonyPatch(typeof(MusicManagerPlay))]
-		[HarmonyPatch("DangerMusicMode", PropertyMethod.Getter)]
+		[HarmonyPatch("DangerMusicMode", MethodType.Getter)]
 		static class MusicManagerPlay_DangerMusicMode_Patch
 		{
 			delegate int LastColonistHarmedTickDelegate(DangerWatcher dw);
@@ -594,7 +594,7 @@ namespace ZombieLand
 			static bool SkipMissingShotsAtZombies(Verb verb, LocalTargetInfo currentTarget)
 			{
 				// difficulty Intense or worse will trigger default behavior
-				if (Find.Storyteller.difficulty.difficulty >= DifficultyDefOf.Hard.difficulty) return false;
+				if (Find.Storyteller.difficulty.difficulty >= DifficultyDefOf.Rough.difficulty) return false;
 
 				// only for colonists
 				var colonist = verb.caster as Pawn;
@@ -1008,7 +1008,7 @@ namespace ZombieLand
 			{
 				var from = AccessTools.Constructor(typeof(Dialog_DebugActionsMenu));
 				var to = AccessTools.Constructor(typeof(Dialog_ZombieDebugActionMenu));
-				return instructions.MethodReplacer(from, to);
+				return instructions.ConstructorReplacer(from, to);
 			}
 		}
 
@@ -1057,7 +1057,7 @@ namespace ZombieLand
 		// patch for detecting if a pawn enters a new cell
 		//
 		[HarmonyPatch(typeof(Thing))]
-		[HarmonyPatch("Position", PropertyMethod.Setter)]
+		[HarmonyPatch("Position", MethodType.Setter)]
 		static class Thing_Position_Patch
 		{
 			static MentalStateDef def1 = MentalStateDefOf.Manhunter;
@@ -1148,7 +1148,7 @@ namespace ZombieLand
 		// patch to make infected colonists have no needs
 		//
 		[HarmonyPatch(typeof(Need))]
-		[HarmonyPatch("CurLevel", PropertyMethod.Setter)]
+		[HarmonyPatch("CurLevel", MethodType.Setter)]
 		public static class Need_CurLevel_Patch
 		{
 			// this is set periodically from Alerts.Alert_ZombieInfection
@@ -1231,7 +1231,7 @@ namespace ZombieLand
 		// patch to make infected colonists feel no pain
 		//
 		[HarmonyPatch(typeof(HediffSet))]
-		[HarmonyPatch("PainTotal", PropertyMethod.Getter)]
+		[HarmonyPatch("PainTotal", MethodType.Getter)]
 		static class HediffSet_CalculatePain_Patch
 		{
 			static bool Prefix(HediffSet __instance, ref float __result)
@@ -1375,7 +1375,7 @@ namespace ZombieLand
 		// patch to make zombies appear to be never "down"
 		//
 		[HarmonyPatch(typeof(Pawn))]
-		[HarmonyPatch("Downed", PropertyMethod.Getter)]
+		[HarmonyPatch("Downed", MethodType.Getter)]
 		static class Pawn_Downed_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -1479,7 +1479,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(Pawn_MindState))]
-		[HarmonyPatch("MeleeThreatStillThreat", PropertyMethod.Getter)]
+		[HarmonyPatch("MeleeThreatStillThreat", MethodType.Getter)]
 		static class Pawn_MindState_MeleeThreatStillThreat_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -1966,13 +1966,13 @@ namespace ZombieLand
 
 		// patch for variable zombie damage factor
 		//
-		[HarmonyPatch(typeof(Verb))]
-		[HarmonyPatch("GetDamageFactorFor")]
+		[HarmonyPatch(typeof(VerbProperties))]
+		[HarmonyPatch("GetDamageFactorFor", MethodType.Normal, typeof(Tool), typeof(Pawn), typeof(HediffComp_VerbGiver))]
 		static class Verb_GetDamageFactorFor_Patch
 		{
-			static void Postfix(Pawn pawn, ref float __result)
+			static void Postfix(Pawn attacker, ref float __result)
 			{
-				var zombie = pawn as Zombie;
+				var zombie = attacker as Zombie;
 				if (zombie == null) return;
 
 				if (zombie.hasTankyShield > 0f || zombie.hasTankyHelmet > 0f || zombie.hasTankySuit > 0f)
@@ -2002,7 +2002,7 @@ namespace ZombieLand
 		// patch for zombies rotting regardless of temperature
 		//
 		[HarmonyPatch(typeof(Thing))]
-		[HarmonyPatch("AmbientTemperature", PropertyMethod.Getter)]
+		[HarmonyPatch("AmbientTemperature", MethodType.Getter)]
 		static class Thing_AmbientTemperature_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -2069,7 +2069,7 @@ namespace ZombieLand
 		// patch to keep zombie bite injuries even after tending if they have to stay around
 		//
 		[HarmonyPatch(typeof(Hediff))]
-		[HarmonyPatch("ShouldRemove", PropertyMethod.Getter)]
+		[HarmonyPatch("ShouldRemove", MethodType.Getter)]
 		static class Hediff_ShouldRemove_Patch
 		{
 			[HarmonyPriority(Priority.Last)]
@@ -2667,7 +2667,7 @@ namespace ZombieLand
 					.Any(zombieByte => zombieByte.mayBecomeZombieWhenDead));
 
 				if (shouldBecomeZombie)
-					Tools.ConvertToZombie(__instance);
+					Tools.QueueConvertToZombie(__instance);
 			}
 		}
 
@@ -2851,7 +2851,7 @@ namespace ZombieLand
 		// patches so that zombies do not have needs
 		// 
 		[HarmonyPatch(typeof(Pawn_NeedsTracker))]
-		[HarmonyPatch("AllNeeds", PropertyMethod.Getter)]
+		[HarmonyPatch("AllNeeds", MethodType.Getter)]
 		static class Pawn_NeedsTracker_AllNeeds_Patch
 		{
 			static List<Need> Replacement()
@@ -3046,7 +3046,7 @@ namespace ZombieLand
 		// patch to add our settings to the main bottom-right menu
 		//
 		[HarmonyPatch(typeof(MainTabWindow_Menu))]
-		[HarmonyPatch("RequestedTabSize", PropertyMethod.Getter)]
+		[HarmonyPatch("RequestedTabSize", MethodType.Getter)]
 		static class MainTabWindow_Menu_RequestedTabSize_Path
 		{
 			static void Postfix(ref Vector2 __result)

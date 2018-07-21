@@ -117,6 +117,18 @@ namespace ZombieLand
 			return me.Content.RootDir;
 		}
 
+		public static string SafeTranslate(this string key)
+		{
+			if (key == null) return "";
+			return key.Translate();
+		}
+
+		public static string SafeTranslate(this string key, params object[] args)
+		{
+			if (key == null) return "";
+			return key.Translate(args);
+		}
+
 		public static long Ticks()
 		{
 			return 1000L * GenTicks.TicksAbs;
@@ -216,6 +228,13 @@ namespace ZombieLand
 			}
 		}
 
+		public static void QueueConvertToZombie(ThingWithComps thing)
+		{
+			var tickManager = thing.Map.GetComponent<TickManager>();
+			tickManager.colonistsConverter.Enqueue(thing);
+		}
+
+		static readonly NameSingle emptyName = new NameSingle("");
 		public static void ConvertToZombie(ThingWithComps thing, bool force = false)
 		{
 			var pawn = thing is Corpse corpse ? corpse.InnerPawn : thing as Pawn;
@@ -224,9 +243,10 @@ namespace ZombieLand
 
 			// clear zombie hediffs to avoid triggering this convert method again
 			//
-			if (force == false && (pawn.health == null || pawn.health.hediffSet.hediffs.Any(hediff => hediff.def.IsZombieHediff()) == false))
+			var pawnName = pawn.Name;
+			if (force == false && (pawn.health == null || pawnName == emptyName))
 				return;
-			pawn.health?.hediffSet.hediffs.RemoveAll(hediff => hediff.def.IsZombieHediff());
+			pawn.Name = emptyName;
 
 			var pos = thing is IThingHolder ? ThingOwnerUtility.GetRootPosition(thing as IThingHolder) : thing.Position;
 			var map = thing is IThingHolder ? ThingOwnerUtility.GetRootMap(thing as IThingHolder) : thing.Map;
@@ -241,7 +261,7 @@ namespace ZombieLand
 
 			var zombie = ZombieGenerator.GeneratePawn(ZombieGenerator.ZombieType.Normal);
 
-			zombie.Name = pawn.Name;
+			zombie.Name = pawnName;
 			zombie.gender = pawn.gender;
 
 			zombie.ageTracker.AgeBiologicalTicks = pawn.ageTracker.AgeBiologicalTicks;

@@ -218,7 +218,7 @@ namespace ZombieLand
 						hasFilth++;
 			}
 			if (hasFilth >= 6)
-				GenExplosion.DoExplosion(pos, map, Mathf.Max(0.5f, Mathf.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, SoundDef.Named("ToxicSplash"));
+				GenExplosion.DoExplosion(pos, map, Mathf.Max(0.5f, Mathf.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, 0, SoundDef.Named("ToxicSplash"));
 		}
 
 		void HandleRubble()

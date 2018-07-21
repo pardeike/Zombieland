@@ -1,25 +1,16 @@
 ﻿using Harmony;
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 using Verse;
 
 namespace ZombieLand
 {
 	[HarmonyPatch]
+	[HarmonyPatch(typeof(PawnGraphicSet), null, MethodType.Constructor, typeof(Pawn))]
 	static class PawnGraphicSet_Constructor_With_Pawn_Patch
 	{
-		static MethodBase TargetMethod()
+		static void Postfix(PawnGraphicSet __instance)
 		{
-			return typeof(PawnGraphicSet).Constructor(new Type[] { typeof(Pawn) });
-		}
-
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-		{
-			var from = typeof(DamageFlasher).Constructor(new Type[] { typeof(Pawn) });
-			var to = typeof(ZombieDamageFlasher).Constructor(new Type[] { typeof(Pawn) });
-			return instructions.MethodReplacer(from, to);
+			__instance.flasher = new ZombieDamageFlasher(__instance.pawn);
 		}
 	}
 

@@ -68,7 +68,6 @@
 				<power>1</power>
 				<cooldownTime>2</cooldownTime>
 				<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
-				<commonality>0.2</commonality>
 				<surpriseAttack>
 					<extraMeleeDamages>
 						<li>
@@ -86,7 +85,6 @@
 				<power>1</power>
 				<cooldownTime>2</cooldownTime>
 				<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
-				<commonality>0.2</commonality>
 				<surpriseAttack>
 					<extraMeleeDamages>
 						<li>

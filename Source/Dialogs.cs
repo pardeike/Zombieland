@@ -68,20 +68,20 @@ namespace ZombieLand
 		{
 			var rectLine = list.GetRect(Text.LineHeight);
 			Widgets.DrawHighlightIfMouseover(rectLine);
-			TooltipHandler.TipRegion(rectLine, help.Translate());
+			TooltipHandler.TipRegion(rectLine, help.SafeTranslate());
 		}
 
 		public static void Dialog_Headline(this Listing_Standard list, string text)
 		{
 			var font = Text.Font;
 			Text.Font = GameFont.Medium;
-			list.Label(text.Translate());
+			list.Label(text.SafeTranslate());
 			Text.Font = font;
 		}
 
 		public static void Dialog_Label(this Listing_Standard list, string text, bool addGapBefore = true)
 		{
-			text = text.Translate();
+			text = text.SafeTranslate();
 			if (addGapBefore) list.Gap();
 
 			var anchor = Text.Anchor;
@@ -99,7 +99,7 @@ namespace ZombieLand
 
 		public static void Dialog_Text(this Listing_Standard list, GameFont font, string text, params object[] args)
 		{
-			text = text.Translate(args);
+			text = text.SafeTranslate(args);
 			var anchor = Text.Anchor;
 			Text.Anchor = TextAnchor.MiddleLeft;
 			var savedFont = Text.Font;
@@ -116,8 +116,8 @@ namespace ZombieLand
 
 		public static void Dialog_Button(this Listing_Standard list, string desc, string label, bool dangerous, Action action, bool addGap = true)
 		{
-			var description = desc.Translate();
-			var buttonText = label.Translate();
+			var description = desc.SafeTranslate();
+			var buttonText = label.SafeTranslate();
 			var descriptionWidth = (list.ColumnWidth - 3 * inset) * 2 / 3;
 			var buttonWidth = list.ColumnWidth - 3 * inset - descriptionWidth;
 			var height = Math.Max(30f, Text.CalcHeight(description, descriptionWidth));
@@ -143,7 +143,7 @@ namespace ZombieLand
 
 		public static void Dialog_Checkbox(this Listing_Standard list, string desc, ref bool forBool, bool addGap = true)
 		{
-			var label = desc.Translate();
+			var label = desc.SafeTranslate();
 			var indent = 24 + "_".GetWidthCached();
 			var height = Math.Max(Text.LineHeight, Text.CalcHeight(label, list.ColumnWidth - indent));
 
@@ -178,7 +178,7 @@ namespace ZombieLand
 
 		public static bool Dialog_RadioButton(this Listing_Standard list, bool active, string desc)
 		{
-			var label = desc.Translate();
+			var label = desc.SafeTranslate();
 			var indent = 24 + "_".GetWidthCached();
 			var height = Math.Max(Text.LineHeight, Text.CalcHeight(label, list.ColumnWidth - indent));
 
@@ -228,9 +228,10 @@ namespace ZombieLand
 
 		public static void Dialog_Integer(this Listing_Standard list, string desc, string unit, int min, int max, ref int value)
 		{
+			var unitString = unit.SafeTranslate();
 			var extraSpace = "_".GetWidthCached();
 			var descLength = desc.Translate().GetWidthCached() + extraSpace;
-			var unitLength = (unit == null) ? 0 : unit.Translate().GetWidthCached() + extraSpace;
+			var unitLength = (unit == null) ? 0 : unitString.GetWidthCached() + extraSpace;
 
 			var rectLine = list.GetRect(Text.LineHeight);
 			rectLine.xMin += inset;
@@ -242,7 +243,7 @@ namespace ZombieLand
 
 			var color = GUI.color;
 			GUI.color = contentColor;
-			Widgets.Label(rectLeft, desc.Translate());
+			Widgets.Label(rectLeft, unitString);
 
 			var alignment = Text.CurTextFieldStyle.alignment;
 			Text.CurTextFieldStyle.alignment = TextAnchor.MiddleRight;
@@ -252,7 +253,7 @@ namespace ZombieLand
 
 			var anchor = Text.Anchor;
 			Text.Anchor = TextAnchor.MiddleRight;
-			Widgets.Label(rectRight, unit.Translate());
+			Widgets.Label(rectRight, unitString);
 			Text.Anchor = anchor;
 
 			GUI.color = color;
@@ -267,7 +268,7 @@ namespace ZombieLand
 			var srect = list.GetRect(24f);
 			srect.xMin += inset;
 			srect.xMax -= inset;
-			value = Widgets.HorizontalSlider(srect, value, min, max, false, null, desc.Translate(), valstr, -1f);
+			value = Widgets.HorizontalSlider(srect, value, min, max, false, null, desc.SafeTranslate(), valstr, -1f);
 		}
 
 		public static void Dialog_TimeSlider(this Listing_Standard list, string desc, ref int value, int min, int max, bool fullDaysOnly = false)
@@ -277,7 +278,7 @@ namespace ZombieLand
 			var srect = list.GetRect(24f);
 			srect.xMin += inset;
 			srect.xMax -= inset;
-			var newValue = (double)Widgets.HorizontalSlider(srect, value, min, max, false, null, desc.Translate(), valstr, -1f);
+			var newValue = (double)Widgets.HorizontalSlider(srect, value, min, max, false, null, desc.SafeTranslate(), valstr, -1f);
 			if (fullDaysOnly)
 				newValue = Math.Round(newValue / 24f, MidpointRounding.ToEven) * 24f;
 			value = (int)newValue;

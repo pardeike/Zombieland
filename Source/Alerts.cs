@@ -97,7 +97,7 @@ namespace ZombieLand
 		public Alert_ZombieInfectionProgress()
 		{
 			Prepare();
-			defaultLabel = label.Translate();
+			defaultLabel = label.SafeTranslate();
 			defaultPriority = priority;
 		}
 
