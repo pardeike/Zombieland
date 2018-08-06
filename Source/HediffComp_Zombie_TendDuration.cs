@@ -1,4 +1,5 @@
 ﻿using Harmony;
+using System;
 using System.Linq;
 using UnityEngine;
 using Verse;
@@ -102,7 +103,7 @@ namespace ZombieLand
 				if (firstTimeVisible)
 				{
 					firstTimeVisible = false;
-					Traverse.Create(this).Field("tendedCount").SetValue(0);
+					GetterSetters.setTotalTendQuality(this, 0f);
 				}
 
 				return base.CompShouldRemove;

@@ -50,7 +50,7 @@ namespace ZombieLand
 
 			RecalculateVisibleMap();
 
-			var destinations = Traverse.Create(map.pawnDestinationReservationManager).Field("reservedDestinations").GetValue<Dictionary<Faction, PawnDestinationReservationManager.PawnDestinationSet>>();
+			var destinations = GetterSetters.getReservedDestinations(map.pawnDestinationReservationManager);
 			var zombieFaction = Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies);
 			if (!destinations.ContainsKey(zombieFaction)) map.pawnDestinationReservationManager.RegisterFaction(zombieFaction);
 

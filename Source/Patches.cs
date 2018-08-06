@@ -17,7 +17,7 @@ namespace ZombieLand
 	public class TankySuit : Apparel { }
 	public class StickyGoo : Filth { }
 
-	[StaticConstructorOnStartup]
+	// [StaticConstructorOnStartup]
 	static class Patches
 	{
 		static Patches()
@@ -531,7 +531,6 @@ namespace ZombieLand
 
 			static int lastUpdateTick;
 			static StoryDanger dangerRatingInt = StoryDanger.None;
-			static Func<DangerWatcher, int> lastColonistHarmedTickDelegate = Tools.GetFieldAccessor<DangerWatcher, int>("lastColonistHarmedTick");
 
 			// TODO: the following is ugly since we copy original code (ugh!)
 			// The solution is to add method IL copying to Harmony ...
@@ -560,7 +559,7 @@ namespace ZombieLand
 							else
 							{
 								dangerRatingInt = StoryDanger.Low;
-								var lastColonistHarmedTick = lastColonistHarmedTickDelegate(map.dangerWatcher);
+								var lastColonistHarmedTick = GetterSetters.lastColonistHarmedTickDelegate(map.dangerWatcher);
 								if (lastColonistHarmedTick > Find.TickManager.TicksGame - 900)
 									dangerRatingInt = StoryDanger.High;
 								else
@@ -1008,7 +1007,7 @@ namespace ZombieLand
 			{
 				var from = AccessTools.Constructor(typeof(Dialog_DebugActionsMenu));
 				var to = AccessTools.Constructor(typeof(Dialog_ZombieDebugActionMenu));
-				return instructions.ConstructorReplacer(from, to);
+				return instructions.MethodReplacer(from, to);
 			}
 		}
 
@@ -1018,19 +1017,15 @@ namespace ZombieLand
 		[HarmonyPatch("ExposeData")]
 		static class FactionManager_ExposeData_Patch
 		{
-			static Func<Faction, List<FactionRelation>> factionRelations = Tools.GetFieldAccessor<Faction, List<FactionRelation>>("relations");
-			static Func<FactionManager, List<Faction>> factionManagerAllFactions = Tools.GetFieldAccessor<FactionManager, List<Faction>>("allFactions");
-
-			static void Postfix(FactionManager __instance)
+			static void Postfix(FactionManager __instance, List<Faction> ___allFactions)
 			{
 				if (Scribe.mode == LoadSaveMode.Saving) return;
 
-				var factions = factionManagerAllFactions(__instance);
-				var factionDefs = factions.Select(f => f.def).ToList();
+				var factionDefs = ___allFactions.Select(f => f.def).ToList();
 				if (factionDefs.Contains(ZombieDefOf.Zombies) == false)
 				{
 					var zombies = FactionGenerator.NewGeneratedFaction(ZombieDefOf.Zombies);
-					foreach (var faction in factions)
+					foreach (var faction in ___allFactions)
 					{
 						var rel1 = new FactionRelation()
 						{
@@ -1038,7 +1033,7 @@ namespace ZombieLand
 							goodwill = 0,
 							kind = FactionRelationKind.Hostile
 						};
-						factionRelations(zombies).Add(rel1);
+						GetterSetters.factionRelations(zombies).Add(rel1);
 
 						var rel2 = new FactionRelation()
 						{
@@ -1046,10 +1041,10 @@ namespace ZombieLand
 							goodwill = 0,
 							kind = FactionRelationKind.Hostile
 						};
-						factionRelations(faction).Add(rel2);
+						GetterSetters.factionRelations(faction).Add(rel2);
 
 					}
-					factions.Add(zombies);
+					___allFactions.Add(zombies);
 				}
 			}
 		}
@@ -1556,7 +1551,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(PawnRenderer))]
 		[HarmonyPatch("RenderPawnInternal")]
-		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(Quaternion), typeof(bool), typeof(Rot4), typeof(Rot4), typeof(RotDrawMode), typeof(bool), typeof(bool) })]
+		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(float), typeof(bool), typeof(Rot4), typeof(Rot4), typeof(RotDrawMode), typeof(bool), typeof(bool) })]
 		static class PawnRenderer_RenderPawnInternal_Patch
 		{
 			static Vector3 toxicAuraOffset = new Vector3(0f, 0f, 0.1f);
@@ -1564,17 +1559,17 @@ namespace ZombieLand
 			static Quaternion leanRight = Quaternion.AngleAxis(15, Vector3.up);
 
 			[HarmonyPriority(Priority.First)]
-			static void Postfix(PawnRenderer __instance, Vector3 rootLoc, Quaternion quat, bool renderBody)
+			static void Postfix(PawnRenderer __instance, Vector3 rootLoc, float angle, bool renderBody)
 			{
 				var zombie = __instance.graphics.pawn as Zombie;
 				if (zombie != null && zombie.isToxicSplasher && renderBody && zombie.state != ZombieState.Emerging)
 				{
 					var idx = ((Find.TickManager.TicksGame + zombie.thingIDNumber) / 10) % 8;
 					if (idx >= 5) idx = 8 - idx;
-					var rot = Quaternion.identity;
-					if (zombie.Rotation == Rot4.West) rot = leanLeft;
-					if (zombie.Rotation == Rot4.East) rot = leanRight;
-					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.TOXIC_AURAS[idx], rootLoc + toxicAuraOffset, quat * rot, 1f, 1f);
+					if (zombie.Rotation == Rot4.West) angle += -15;
+					if (zombie.Rotation == Rot4.East) angle += 15;
+					var quat = Quaternion.AngleAxis(angle, Vector3.up);
+					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.TOXIC_AURAS[idx], rootLoc + toxicAuraOffset, quat, 1f, 1f);
 				}
 			}
 		}
@@ -1661,14 +1656,14 @@ namespace ZombieLand
 					if (orientation == Rot4.South || orientation == Rot4.North)
 					{
 						var rot = Quaternion.identity;
-						var frontBack = (int)(orientation == Rot4.South ? FacingIndex.Front : FacingIndex.Back);
+						var frontBack = (int)(orientation == Rot4.South ? FacingIndex.South : FacingIndex.North);
 						GraphicToolbox.DrawScaledMesh(bodyMesh, Constants.TANKYSUITS[frontBack][n], pos, rot, 1f, 1f);
 					}
 					else
 					{
 						var rot = Quaternion.identity;
 						var mesh = orientation == Rot4.West ? bodyMesh_flipped : bodyMesh;
-						GraphicToolbox.DrawScaledMesh(mesh, Constants.TANKYSUITS[(int)FacingIndex.Side][n], pos, rot, 1f, 1f);
+						GraphicToolbox.DrawScaledMesh(mesh, Constants.TANKYSUITS[(int)FacingIndex.East][n], pos, rot, 1f, 1f);
 					}
 				}
 
@@ -1685,14 +1680,14 @@ namespace ZombieLand
 					if (orientation == Rot4.South || orientation == Rot4.North)
 					{
 						var rot = Quaternion.identity;
-						var frontBack = (int)(orientation == Rot4.South ? FacingIndex.Front : FacingIndex.Back);
+						var frontBack = (int)(orientation == Rot4.South ? FacingIndex.South : FacingIndex.North);
 						GraphicToolbox.DrawScaledMesh(headMesh, Constants.TANKYHELMETS[frontBack][n], pos + headOffset, rot, 1f, 1f);
 					}
 					else
 					{
 						var rot = Quaternion.identity;
 						var mesh = orientation == Rot4.West ? headMesh_flipped : headMesh;
-						GraphicToolbox.DrawScaledMesh(mesh, Constants.TANKYHELMETS[(int)FacingIndex.Side][n], pos + headOffset, rot, 1f, 1f);
+						GraphicToolbox.DrawScaledMesh(mesh, Constants.TANKYHELMETS[(int)FacingIndex.East][n], pos + headOffset, rot, 1f, 1f);
 					}
 				}
 
@@ -1709,7 +1704,7 @@ namespace ZombieLand
 						var dz = Mathf.Abs(Mathf.Cos(f) * 0.05f) + (orientation == Rot4.South ? -0.2f : 0.2f);
 						var rot = Quaternion.Euler(0f, x * 100f, 0f);
 						var mesh = orientation == Rot4.South ? shieldMesh : shieldMesh_flipped;
-						GraphicToolbox.DrawScaledMesh(mesh, Constants.TANKYSHIELDS[(int)FacingIndex.Front][n], drawLoc + new Vector3(dx, dy, dz), rot, 0.52f, 0.52f);
+						GraphicToolbox.DrawScaledMesh(mesh, Constants.TANKYSHIELDS[(int)FacingIndex.South][n], drawLoc + new Vector3(dx, dy, dz), rot, 0.52f, 0.52f);
 					}
 					else
 					{
@@ -1718,7 +1713,7 @@ namespace ZombieLand
 						var dz = Mathf.Abs(Mathf.Cos(f) * 0.05f);
 						var rot = Quaternion.Euler(0f, dx * 22f, 0f);
 						var mesh = orientation == Rot4.West ? shieldMesh_flipped : shieldMesh;
-						GraphicToolbox.DrawScaledMesh(mesh, Constants.TANKYSHIELDS[(int)FacingIndex.Side][n], drawLoc + new Vector3(dx, dy, dz), rot, 0.62f, 0.62f);
+						GraphicToolbox.DrawScaledMesh(mesh, Constants.TANKYSHIELDS[(int)FacingIndex.East][n], drawLoc + new Vector3(dx, dy, dz), rot, 0.62f, 0.62f);
 					}
 				}
 
@@ -1967,7 +1962,7 @@ namespace ZombieLand
 		// patch for variable zombie damage factor
 		//
 		[HarmonyPatch(typeof(VerbProperties))]
-		[HarmonyPatch("GetDamageFactorFor", MethodType.Normal, typeof(Tool), typeof(Pawn), typeof(HediffComp_VerbGiver))]
+		[HarmonyPatch("GetDamageFactorFor", typeof(Tool), typeof(Pawn), typeof(HediffComp_VerbGiver))]
 		static class Verb_GetDamageFactorFor_Patch
 		{
 			static void Postfix(Pawn attacker, ref float __result)
@@ -2588,32 +2583,29 @@ namespace ZombieLand
 		[HarmonyPatch("MakeDowned")]
 		static class Pawn_HealthTracker_MakeDowned_Patch
 		{
-			static Func<Pawn_HealthTracker, Pawn> healthTrackerPawn = Tools.GetFieldAccessor<Pawn_HealthTracker, Pawn>("pawn");
-
-			static void Postfix(Pawn_HealthTracker __instance)
+			static void Postfix(Pawn_HealthTracker __instance, Pawn ___pawn)
 			{
-				var pawn = healthTrackerPawn(__instance);
-				if (pawn is Zombie) return;
-				if (pawn == null || pawn.Map == null) return;
+				if (___pawn is Zombie) return;
+				if (___pawn == null || ___pawn.Map == null) return;
 
-				var grid = pawn.Map.GetGrid();
+				var grid = ___pawn.Map.GetGrid();
 				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)
 				{
-					var timestamp = grid.GetTimestamp(pawn.Position);
+					var timestamp = grid.GetTimestamp(___pawn.Position);
 					if (timestamp > 0)
 					{
-						var radius = Tools.RadiusForPawn(pawn) * Constants.KILL_CIRCLE_RADIUS_MULTIPLIER;
+						var radius = Tools.RadiusForPawn(___pawn) * Constants.KILL_CIRCLE_RADIUS_MULTIPLIER;
 						radius /= ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
 						Tools.GetCircle(radius).Do(vec =>
 						{
-							var pos = pawn.Position + vec;
+							var pos = ___pawn.Position + vec;
 							var cell = grid.GetPheromone(pos, false);
 							if (cell != null && cell.timestamp > 0 && cell.timestamp <= timestamp)
 								cell.timestamp = 0;
 						});
 					}
 				}
-				grid.SetTimestamp(pawn.Position, 0);
+				grid.SetTimestamp(___pawn.Position, 0);
 			}
 		}
 
@@ -3119,7 +3111,7 @@ namespace ZombieLand
 					{
 						var dialog = new Dialog_ModSettings();
 						var me = LoadedModManager.GetMod<ZombielandMod>();
-						Traverse.Create(dialog).Field("selMod").SetValue(me);
+						GetterSetters.setSelMod(dialog, me);
 						Find.WindowStack.Add(dialog);
 					}, null));
 				}

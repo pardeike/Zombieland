@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using Harmony;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -179,7 +180,7 @@ namespace ZombieLand
 
 		static readonly Type[] RenderPawnInternalParameterTypes = {
 			typeof(Vector3),
-			typeof(Quaternion),
+			typeof(float),
 			typeof(bool),
 			typeof(Rot4),
 			typeof(Rot4),
@@ -331,7 +332,7 @@ namespace ZombieLand
 			}
 		}
 
-		static readonly MethodInfo m_RenderPawnInternal = typeof(PawnRenderer).MethodNamed("RenderPawnInternal", RenderPawnInternalParameterTypes);
+		static readonly FastInvokeHandler delegateRenderPawnInternal = MethodInvoker.GetHandler(typeof(PawnRenderer).MethodNamed("RenderPawnInternal", RenderPawnInternalParameterTypes));
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
 		{
 			if (!renderer.graphics.AllResolved)
@@ -345,8 +346,8 @@ namespace ZombieLand
 				var bodyRot = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, 90, 0, progress);
 				var bodyOffset = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, -0.45f, 0, progress);
 
-				m_RenderPawnInternal.Invoke(renderer, new object[] {
-					drawLoc + new Vector3(0, 0, bodyOffset), Quaternion.Euler(bodyRot, 0, 0), true, Rot4.North, Rot4.North, bodyDrawType, false, false
+				delegateRenderPawnInternal(renderer, new object[] {
+					drawLoc + new Vector3(0, 0, bodyOffset), bodyRot, true, Rot4.North, Rot4.North, bodyDrawType, false, false
 				});
 			}
 

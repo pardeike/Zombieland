@@ -1,11 +1,12 @@
 ﻿using Harmony;
+using System;
 using UnityEngine;
 using Verse;
 
 namespace ZombieLand
 {
-	[HarmonyPatch]
-	[HarmonyPatch(typeof(PawnGraphicSet), null, MethodType.Constructor, typeof(Pawn))]
+	[HarmonyPatch(typeof(PawnGraphicSet))]
+	[HarmonyPatch(MethodType.Constructor, typeof(Pawn))]
 	static class PawnGraphicSet_Constructor_With_Pawn_Patch
 	{
 		static void Postfix(PawnGraphicSet __instance)
@@ -32,14 +33,20 @@ namespace ZombieLand
 	{
 		static readonly Color greenDamagedMatStartingColor = new Color(0f, 0.8f, 0f);
 
+		private static int DamageFlashTicksLeft(DamageFlasher damageFlasher)
+		{
+			// copied from DamageFlasher.DamageFlashTicksLeft
+			return GetterSetters.getLastDamageTick(damageFlasher) + 16 - Find.TickManager.TicksGame;
+		}
+
 		[HarmonyPriority(Priority.Last)]
 		static void Postfix(DamageFlasher __instance, Material baseMat, Material __result)
 		{
-			if (__instance is ZombieDamageFlasher zombieDamageFlasher/* && zombieDamageFlasher.isColonist */
+			if (__instance is ZombieDamageFlasher zombieDamageFlasher
 				&& zombieDamageFlasher.dinfoDef == Tools.ZombieBiteDamageDef
 				&& __result != null)
 			{
-				var damPct = zombieDamageFlasher.damageFlashTicksLeft.GetValue<int>() / 16f;
+				var damPct = DamageFlashTicksLeft(__instance) / 16f;
 				__result.color = Color.Lerp(baseMat.color, greenDamagedMatStartingColor, damPct);
 			}
 		}
@@ -48,11 +55,7 @@ namespace ZombieLand
 	class ZombieDamageFlasher : DamageFlasher
 	{
 		public DamageDef dinfoDef;
-		public Traverse damageFlashTicksLeft;
 
-		public ZombieDamageFlasher(Pawn pawn) : base(pawn)
-		{
-			damageFlashTicksLeft = Traverse.Create(this).Property("DamageFlashTicksLeft");
-		}
+		public ZombieDamageFlasher(Pawn pawn) : base(pawn) { }
 	}
 }

@@ -14,9 +14,9 @@ namespace ZombieLand
 {
 	public enum FacingIndex
 	{
-		Front,
-		Side,
-		Back
+		South,
+		East,
+		North
 	}
 
 	public class IsCombatExtendedInstalled : PatchOperation
@@ -76,23 +76,22 @@ namespace ZombieLand
 		public static void EnableTwinkie(bool enable)
 		{
 			var def = ThingDefOf.MealSurvivalPack;
-			var cachedGraphic = Traverse.Create(def.graphicData).Field("cachedGraphic");
 
 			if (mealLabel == null) mealLabel = def.label;
 			if (mealDescription == null) mealDescription = def.description;
-			if (mealGraphic == null) mealGraphic = cachedGraphic.GetValue<Graphic>();
+			if (mealGraphic == null) mealGraphic = GetterSetters.getCachedGraphic(def.graphicData);
 
 			if (enable)
 			{
 				def.label = "Twinkie";
 				def.description = "A Twinkie is an American snack cake, marketed as a \"Golden Sponge Cake with Creamy Filling\".";
-				cachedGraphic.SetValue(GraphicsDatabase.twinkieGraphic);
+				GetterSetters.setCachedGraphic(def.graphicData, GraphicsDatabase.twinkieGraphic);
 			}
 			else
 			{
 				def.label = mealLabel;
 				def.description = mealDescription;
-				cachedGraphic.SetValue(mealGraphic);
+				GetterSetters.setCachedGraphic(def.graphicData, mealGraphic);
 			}
 
 			def.graphic = def.graphicData.Graphic;
@@ -101,8 +100,9 @@ namespace ZombieLand
 			var game = Current.Game;
 			if (game != null)
 			{
-				game.Maps.SelectMany(map => map.listerThings.ThingsOfDef(def))
-					.Do(meal => { Traverse.Create(meal).Field("graphicInt").SetValue(null); });
+				game.Maps
+					.SelectMany(map => map.listerThings.ThingsOfDef(def))
+					.Do(meal => GetterSetters.setGraphicInt(meal, null));
 			}
 		}
 
@@ -175,14 +175,6 @@ namespace ZombieLand
 			var matrix = new Matrix4x4();
 			matrix.SetTRS(pos, q, s);
 			Graphics.DrawMesh(mesh, matrix, mat, 0);
-		}
-
-		public static Func<T, R> GetFieldAccessor<T, R>(string fieldName)
-		{
-			var param = Expression.Parameter(typeof(T), "arg");
-			var member = Expression.Field(param, fieldName);
-			var lambda = Expression.Lambda(typeof(Func<T, R>), member, param);
-			return (Func<T, R>)lambda.Compile();
 		}
 
 		public static T Boxed<T>(T val, T min, T max) where T : IComparable
@@ -277,9 +269,8 @@ namespace ZombieLand
 
 			var zTweener = Traverse.Create(zombie.Drawer.tweener);
 			var pTweener = Traverse.Create(pawn.Drawer.tweener);
-			zTweener.Field("tweenedPos").SetValue(pTweener.Field("tweenedPos").GetValue());
-			zTweener.Field("lastDrawFrame").SetValue(pTweener.Field("lastDrawFrame").GetValue());
-			zTweener.Field("lastTickSpringPos").SetValue(pTweener.Field("lastTickSpringPos").GetValue());
+			new[] { "tweenedPos", "lastDrawFrame", "lastTickSpringPos" }
+				.Do(field => zTweener.Field(field).SetValue(pTweener.Field(field).GetValue()));
 
 			ZombieGenerator.AssignNewCustomGraphics(zombie);
 			ZombieGenerator.FinalizeZombieGeneration(zombie);

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 
 namespace ZombieLand
 {
@@ -178,7 +179,7 @@ namespace ZombieLand
 				AssignNewCustomGraphics(zombie);
 
 			zombie.Drawer.leaner = new ZombieLeaner(zombie);
-			Traverse.Create(zombie.pather).Field("destination").SetValue(IntVec3.Invalid);
+			GetterSetters.setDestination(zombie.pather, IntVec3.Invalid);
 
 			return zombie;
 		}
@@ -314,7 +315,7 @@ namespace ZombieLand
 		public static void FinalizeZombieGeneration(Zombie zombie)
 		{
 			var graphicPath = GraphicDatabaseHeadRecords.GetHeadRandom(zombie.gender, zombie.story.SkinColor, zombie.story.crownType).GraphicPath;
-			Traverse.Create(zombie.story).Field("headGraphicPath").SetValue(graphicPath);
+			GetterSetters.setHeadGraphicPath(zombie.story, graphicPath);
 
 			var request = new PawnGenerationRequest(zombie.kindDef);
 			PawnApparelGenerator.GenerateStartingApparelFor(zombie, request);

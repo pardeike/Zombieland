@@ -33,7 +33,7 @@ namespace ZombieLand
 			mats = new ColorData[]
 			{
 				GraphicsDatabase.GetColorData(req.path + "_north", bodyColor, true),
-				GraphicsDatabase.GetColorData(req.path + "_west", bodyColor, true),
+				GraphicsDatabase.GetColorData(req.path + "_east", bodyColor, true),
 				GraphicsDatabase.GetColorData(req.path + "_south", bodyColor, true)
 			}
 			.Select(data =>
