@@ -79,19 +79,19 @@ namespace ZombieLand
 
 			if (mealLabel == null) mealLabel = def.label;
 			if (mealDescription == null) mealDescription = def.description;
-			if (mealGraphic == null) mealGraphic = GetterSetters.getCachedGraphic(def.graphicData);
+			if (mealGraphic == null) mealGraphic = GetterSetters.cachedGraphicByRef(def.graphicData);
 
 			if (enable)
 			{
 				def.label = "Twinkie";
 				def.description = "A Twinkie is an American snack cake, marketed as a \"Golden Sponge Cake with Creamy Filling\".";
-				GetterSetters.setCachedGraphic(def.graphicData, GraphicsDatabase.twinkieGraphic);
+				GetterSetters.cachedGraphicByRef(def.graphicData) = GraphicsDatabase.twinkieGraphic;
 			}
 			else
 			{
 				def.label = mealLabel;
 				def.description = mealDescription;
-				GetterSetters.setCachedGraphic(def.graphicData, mealGraphic);
+				GetterSetters.cachedGraphicByRef(def.graphicData) = mealGraphic;
 			}
 
 			def.graphic = def.graphicData.Graphic;
@@ -102,7 +102,7 @@ namespace ZombieLand
 			{
 				game.Maps
 					.SelectMany(map => map.listerThings.ThingsOfDef(def))
-					.Do(meal => GetterSetters.setGraphicInt(meal, null));
+					.Do(meal => GetterSetters.graphicIntByRef(meal) = null);
 			}
 		}
 

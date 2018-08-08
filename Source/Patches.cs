@@ -17,7 +17,7 @@ namespace ZombieLand
 	public class TankySuit : Apparel { }
 	public class StickyGoo : Filth { }
 
-	// [StaticConstructorOnStartup]
+	[StaticConstructorOnStartup]
 	static class Patches
 	{
 		static Patches()
@@ -559,7 +559,7 @@ namespace ZombieLand
 							else
 							{
 								dangerRatingInt = StoryDanger.Low;
-								var lastColonistHarmedTick = GetterSetters.lastColonistHarmedTickDelegate(map.dangerWatcher);
+								var lastColonistHarmedTick = GetterSetters.clastColonistHarmedTickByRef(map.dangerWatcher);
 								if (lastColonistHarmedTick > Find.TickManager.TicksGame - 900)
 									dangerRatingInt = StoryDanger.High;
 								else
@@ -1033,7 +1033,7 @@ namespace ZombieLand
 							goodwill = 0,
 							kind = FactionRelationKind.Hostile
 						};
-						GetterSetters.factionRelations(zombies).Add(rel1);
+						GetterSetters.relationsByRef(zombies).Add(rel1);
 
 						var rel2 = new FactionRelation()
 						{
@@ -1041,7 +1041,7 @@ namespace ZombieLand
 							goodwill = 0,
 							kind = FactionRelationKind.Hostile
 						};
-						GetterSetters.factionRelations(faction).Add(rel2);
+						GetterSetters.relationsByRef(faction).Add(rel2);
 
 					}
 					___allFactions.Add(zombies);
@@ -3111,7 +3111,7 @@ namespace ZombieLand
 					{
 						var dialog = new Dialog_ModSettings();
 						var me = LoadedModManager.GetMod<ZombielandMod>();
-						GetterSetters.setSelMod(dialog, me);
+						GetterSetters.selModByRef(dialog) = me;
 						Find.WindowStack.Add(dialog);
 					}, null));
 				}

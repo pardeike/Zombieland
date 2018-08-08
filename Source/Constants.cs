@@ -1,45 +1,13 @@
 ﻿using Harmony;
-using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
 using Verse;
-using Verse.AI;
 
 namespace ZombieLand
 {
-	public static class GetterSetters
-	{
-		// Dialogs
-		public static Func<Listing_Standard, float> getCurX = AccessTools.MakeGetter<Listing_Standard, float>("curX");
-		public static Action<Listing_Standard, float> setCurX = AccessTools.MakeSetter<Listing_Standard, float>("curX");
-
-		// HediffComp_Zombie_TendDuration
-		public static Action<HediffComp_TendDuration, float> setTotalTendQuality = AccessTools.MakeSetter<HediffComp_TendDuration, float>("totalTendQuality");
-
-		// Patches
-		public static Func<DangerWatcher, int> lastColonistHarmedTickDelegate = AccessTools.MakeGetter<DangerWatcher, int>("lastColonistHarmedTick");
-		public static Func<Faction, List<FactionRelation>> factionRelations = AccessTools.MakeGetter<Faction, List<FactionRelation>>("relations");
-		public static Action<Dialog_ModSettings, Mod> setSelMod = AccessTools.MakeSetter<Dialog_ModSettings, Mod>("selMod");
-
-		// TickManager
-		public static Func<PawnDestinationReservationManager, Dictionary<Faction, PawnDestinationReservationManager.PawnDestinationSet>> getReservedDestinations = AccessTools.MakeGetter<PawnDestinationReservationManager, Dictionary<Faction, PawnDestinationReservationManager.PawnDestinationSet>>("reservedDestinations");
-
-		// Tools
-		public static Func<GraphicData, Graphic> getCachedGraphic = AccessTools.MakeGetter<GraphicData, Graphic>("cachedGraphic");
-		public static Action<GraphicData, Graphic> setCachedGraphic = AccessTools.MakeSetter<GraphicData, Graphic>("cachedGraphic");
-		public static Action<Thing, Graphic> setGraphicInt = AccessTools.MakeSetter<Thing, Graphic>("graphicInt");
-
-		// ZombieDamageFlasher
-		public static Func<DamageFlasher, int> getLastDamageTick = AccessTools.MakeGetter<DamageFlasher, int>("lastDamageTick");
-
-		// ZombieGenerator
-		public static Action<Pawn_PathFollower, IntVec3> setDestination = AccessTools.MakeSetter<Pawn_PathFollower, IntVec3>("destination");
-		public static Action<Pawn_StoryTracker, string> setHeadGraphicPath = AccessTools.MakeSetter<Pawn_StoryTracker, string>("headGraphicPath");
-	}
-
 	[StaticConstructorOnStartup]
 	public static class Constants
 	{

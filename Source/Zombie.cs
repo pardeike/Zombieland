@@ -178,17 +178,6 @@ namespace ZombieLand
 			base.DeSpawn(mode);
 		}
 
-		static readonly Type[] RenderPawnInternalParameterTypes = {
-			typeof(Vector3),
-			typeof(float),
-			typeof(bool),
-			typeof(Rot4),
-			typeof(Rot4),
-			typeof(RotDrawMode),
-			typeof(bool),
-			typeof(bool)
-		};
-
 		void DropStickyGoo()
 		{
 			var pos = Position;
@@ -332,6 +321,16 @@ namespace ZombieLand
 			}
 		}
 
+		static readonly Type[] RenderPawnInternalParameterTypes = {
+			typeof(Vector3),
+			typeof(float),
+			typeof(bool),
+			typeof(Rot4),
+			typeof(Rot4),
+			typeof(RotDrawMode),
+			typeof(bool),
+			typeof(bool)
+		};
 		static readonly FastInvokeHandler delegateRenderPawnInternal = MethodInvoker.GetHandler(typeof(PawnRenderer).MethodNamed("RenderPawnInternal", RenderPawnInternalParameterTypes));
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
 		{

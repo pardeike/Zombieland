@@ -152,8 +152,8 @@ namespace ZombieLand
 			var line = new Rect(rect);
 			Widgets.Checkbox(new Vector2(rect.x, rect.y - 1f), ref forBool);
 
-			var curX = GetterSetters.getCurX(list);
-			GetterSetters.setCurX(list, curX + indent);
+			var curX = GetterSetters.curXByRef(list);
+			GetterSetters.curXByRef(list) = curX + indent;
 
 			var anchor = Text.Anchor;
 			Text.Anchor = TextAnchor.UpperLeft;
@@ -164,7 +164,7 @@ namespace ZombieLand
 			GUI.color = color;
 			Text.Anchor = anchor;
 
-			GetterSetters.setCurX(list, curX);
+			GetterSetters.curXByRef(list) = curX;
 
 			var oldValue = forBool;
 			if (Widgets.ButtonInvisible(rect, false))
@@ -186,8 +186,8 @@ namespace ZombieLand
 			var line = new Rect(rect);
 			var result = Widgets.RadioButton(line.xMin, line.yMin, active);
 
-			var curX = GetterSetters.getCurX(list);
-			GetterSetters.setCurX(list, curX + indent);
+			var curX = GetterSetters.curXByRef(list);
+			GetterSetters.curXByRef(list) = curX + indent;
 
 			var anchor = Text.Anchor;
 			Text.Anchor = TextAnchor.UpperLeft;
@@ -198,7 +198,7 @@ namespace ZombieLand
 			GUI.color = color;
 			Text.Anchor = anchor;
 
-			GetterSetters.setCurX(list, curX);
+			GetterSetters.curXByRef(list) = curX;
 
 			result |= Widgets.ButtonInvisible(rect, false);
 			if (result && !active)
