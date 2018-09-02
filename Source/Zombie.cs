@@ -1,8 +1,7 @@
-﻿using RimWorld;
-using Harmony;
+﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -51,7 +50,7 @@ namespace ZombieLand
 		public VariableGraphic customHeadGraphic; // not saved
 		public VariableGraphic customBodyGraphic; // not saved
 
-		static int totalNthTicks;
+		static readonly int totalNthTicks;
 		static public int[] nthTickValues;
 		static Zombie()
 		{
@@ -270,7 +269,7 @@ namespace ZombieLand
 			}
 		}
 
-		int[] nextNthTick = new int[totalNthTicks];
+		readonly int[] nextNthTick = new int[totalNthTicks];
 		public bool EveryNTick(NthTick interval)
 		{
 			var n = (int)interval;
@@ -321,6 +320,23 @@ namespace ZombieLand
 			}
 		}
 
+		public static Quaternion ZombieAngleAxis(float angle, Vector3 axis, Pawn pawn)
+		{
+			var result = Quaternion.AngleAxis(angle, axis);
+
+			var zombie = pawn as Zombie;
+			if (zombie == null)
+				return result;
+
+			var progress = zombie.rubbleCounter / (float)Constants.RUBBLE_AMOUNT;
+			if (progress >= Constants.EMERGE_DELAY)
+			{
+				var bodyRot = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, 90, 0, progress);
+				result *= Quaternion.Euler(Vector3.right * bodyRot);
+			}
+			return result;
+		}
+
 		static readonly Type[] RenderPawnInternalParameterTypes = {
 			typeof(Vector3),
 			typeof(float),
@@ -342,11 +358,9 @@ namespace ZombieLand
 			var progress = rubbleCounter / (float)Constants.RUBBLE_AMOUNT;
 			if (progress >= Constants.EMERGE_DELAY)
 			{
-				var bodyRot = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, 90, 0, progress);
 				var bodyOffset = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, -0.45f, 0, progress);
-
 				delegateRenderPawnInternal(renderer, new object[] {
-					drawLoc + new Vector3(0, 0, bodyOffset), bodyRot, true, Rot4.North, Rot4.North, bodyDrawType, false, false
+					drawLoc + new Vector3(0, 0, bodyOffset), 0f, true, Rot4.South, Rot4.South, bodyDrawType, false, false
 				});
 			}
 

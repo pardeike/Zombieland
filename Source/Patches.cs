@@ -58,7 +58,7 @@ namespace ZombieLand
 		[HarmonyPatch("DrawSelectionOverlays")]
 		static class SelectionDrawer_DrawSelectionOverlays_Patch
 		{
-			static float pawnAltitude = Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1);
+			static readonly float pawnAltitude = Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1);
 
 			static void Postfix()
 			{
@@ -805,7 +805,7 @@ namespace ZombieLand
 		[HarmonyPatch("NeedNewPath")]
 		static class Pawn_PathFollower_NeedNewPath_Patch
 		{
-			static MethodInfo m_ShouldCollideWithPawns = SymbolExtensions.GetMethodInfo(() => PawnUtility.ShouldCollideWithPawns(null));
+			static readonly MethodInfo m_ShouldCollideWithPawns = SymbolExtensions.GetMethodInfo(() => PawnUtility.ShouldCollideWithPawns(null));
 
 			static bool ZombieInPath(Pawn_PathFollower __instance, Pawn pawn)
 			{
@@ -1055,9 +1055,9 @@ namespace ZombieLand
 		[HarmonyPatch("Position", MethodType.Setter)]
 		static class Thing_Position_Patch
 		{
-			static MentalStateDef def1 = MentalStateDefOf.Manhunter;
-			static MentalStateDef def2 = MentalStateDefOf.ManhunterPermanent;
-			static ThingDef stickyGooDef = ThingDef.Named("StickyGoo");
+			static readonly MentalStateDef def1 = MentalStateDefOf.Manhunter;
+			static readonly MentalStateDef def2 = MentalStateDefOf.ManhunterPermanent;
+			static readonly ThingDef stickyGooDef = ThingDef.Named("StickyGoo");
 
 			static void Prefix(Thing __instance, IntVec3 value)
 			{
@@ -1555,8 +1555,26 @@ namespace ZombieLand
 		static class PawnRenderer_RenderPawnInternal_Patch
 		{
 			static Vector3 toxicAuraOffset = new Vector3(0f, 0f, 0.1f);
-			static Quaternion leanLeft = Quaternion.AngleAxis(-15, Vector3.up);
-			static Quaternion leanRight = Quaternion.AngleAxis(15, Vector3.up);
+			static readonly float leanAngle = 15f;
+
+			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+			{
+				var m_AngleAxis = SymbolExtensions.GetMethodInfo(() => Quaternion.AngleAxis(0f, Vector3.zero));
+				var f_pawn = AccessTools.Field(typeof(PawnRenderer), "pawn");
+
+				var list = instructions.ToList();
+				var idx = list.FirstIndexOf(instr => instr.operand == m_AngleAxis);
+				if (idx > 0)
+				{
+					list[idx].operand = SymbolExtensions.GetMethodInfo(() => Zombie.ZombieAngleAxis(0f, Vector3.zero, null));
+					list.Insert(idx++, new CodeInstruction(OpCodes.Ldarg_0));
+					list.Insert(idx++, new CodeInstruction(OpCodes.Ldfld, f_pawn));
+				}
+				else
+					Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+
+				return list.AsEnumerable();
+			}
 
 			[HarmonyPriority(Priority.First)]
 			static void Postfix(PawnRenderer __instance, Vector3 rootLoc, float angle, bool renderBody)
@@ -1566,8 +1584,8 @@ namespace ZombieLand
 				{
 					var idx = ((Find.TickManager.TicksGame + zombie.thingIDNumber) / 10) % 8;
 					if (idx >= 5) idx = 8 - idx;
-					if (zombie.Rotation == Rot4.West) angle += -15;
-					if (zombie.Rotation == Rot4.East) angle += 15;
+					if (zombie.Rotation == Rot4.West) angle -= leanAngle;
+					if (zombie.Rotation == Rot4.East) angle += leanAngle;
 					var quat = Quaternion.AngleAxis(angle, Vector3.up);
 					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.TOXIC_AURAS[idx], rootLoc + toxicAuraOffset, quat, 1f, 1f);
 				}
@@ -1579,18 +1597,18 @@ namespace ZombieLand
 		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(RotDrawMode), typeof(bool) })]
 		static class PawnRenderer_RenderPawnAt_Patch
 		{
-			static float moteAltitute = Altitudes.AltitudeFor(AltitudeLayer.MoteOverhead);
+			static readonly float moteAltitute = Altitudes.AltitudeFor(AltitudeLayer.MoteOverhead);
 			static Vector3 leftEyeOffset = new Vector3(-0.092f, 0f, -0.08f);
 			static Vector3 rightEyeOffset = new Vector3(0.092f, 0f, -0.08f);
 
-			static Mesh bodyMesh = MeshPool.GridPlane(new Vector2(1.5f, 1.5f));
-			static Mesh bodyMesh_flipped = MeshPool.GridPlaneFlip(new Vector2(1.5f, 1.5f));
+			static readonly Mesh bodyMesh = MeshPool.GridPlane(new Vector2(1.5f, 1.5f));
+			static readonly Mesh bodyMesh_flipped = MeshPool.GridPlaneFlip(new Vector2(1.5f, 1.5f));
 
-			static Mesh headMesh = MeshPool.GridPlane(new Vector2(1.5f, 1.5f));
-			static Mesh headMesh_flipped = MeshPool.GridPlaneFlip(new Vector2(1.5f, 1.5f));
+			static readonly Mesh headMesh = MeshPool.GridPlane(new Vector2(1.5f, 1.5f));
+			static readonly Mesh headMesh_flipped = MeshPool.GridPlaneFlip(new Vector2(1.5f, 1.5f));
 
-			static Mesh shieldMesh = MeshPool.GridPlane(new Vector2(2f, 2f));
-			static Mesh shieldMesh_flipped = MeshPool.GridPlaneFlip(new Vector2(2f, 2f));
+			static readonly Mesh shieldMesh = MeshPool.GridPlane(new Vector2(2f, 2f));
+			static readonly Mesh shieldMesh_flipped = MeshPool.GridPlaneFlip(new Vector2(2f, 2f));
 
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(PawnRenderer __instance, Vector3 drawLoc, RotDrawMode bodyDrawType)
@@ -1773,12 +1791,12 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(ThingStuffPair pair, ref bool __result)
 			{
-				if (pair.thing?.IsZombieThingDef() ?? false)
+				if (pair.thing?.IsZombieDef() ?? false)
 				{
 					__result = true;
 					return false;
 				}
-				if (pair.stuff?.IsZombieThingDef() ?? false)
+				if (pair.stuff?.IsZombieDef() ?? false)
 				{
 					__result = true;
 					return false;
@@ -1972,10 +1990,10 @@ namespace ZombieLand
 
 				if (zombie.hasTankyShield > 0f || zombie.hasTankyHelmet > 0f || zombie.hasTankySuit > 0f)
 				{
-					var val = 150f;
-					if (zombie.hasTankyShield > 0f) val += 150f;
-					if (zombie.hasTankyHelmet > 0f) val += 50f;
-					if (zombie.hasTankySuit > 0f) val += 150f;
+					var val = 0f;
+					if (zombie.hasTankyShield > 0f) val += 50f;
+					if (zombie.hasTankyHelmet > 0f) val += 10f;
+					if (zombie.hasTankySuit > 0f) val += 50f;
 					__result *= val;
 					return;
 				}
@@ -2958,7 +2976,7 @@ namespace ZombieLand
 
 		// patches to avoid null reference exception
 		//
-		[HarmonyPatch(typeof(ThoughtWorker_ColonistLeftUnburied))]
+		/*[HarmonyPatch(typeof(ThoughtWorker_ColonistLeftUnburied))]
 		[HarmonyPatch("CurrentStateInternal")]
 		static class ThoughtWorker_ColonistLeftUnburied_CurrentStateInternal_Patch
 		{
@@ -2993,7 +3011,7 @@ namespace ZombieLand
 
 				if (!found1 || !found2) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
-		}
+		}*/
 		[HarmonyPatch(typeof(Pawn_HealthTracker))]
 		[HarmonyPatch("PreApplyDamage")]
 		static class Pawn_HealthTracker_PreApplyDamage_Patch
@@ -3096,7 +3114,7 @@ namespace ZombieLand
 			// called from MainTabWindow_Menu_RequestedTabSize_Path
 			public static float addedHeight = 45f + 7f; // default height ListableOption + OptionListingUtility.DrawOptionListing spacing
 
-			static MethodInfo[] patchMethods = new MethodInfo[] {
+			static readonly MethodInfo[] patchMethods = new MethodInfo[] {
 				SymbolExtensions.GetMethodInfo(() => DrawOptionListingPatch1(Rect.zero, null)),
 				SymbolExtensions.GetMethodInfo(() => DrawOptionListingPatch2(Rect.zero, null))
 			};

@@ -27,7 +27,9 @@
 			<min>-100</min>
 			<max>-100</max>
 		</naturalColonyGoodwill>
-		<backstoryCategory>Civil</backstoryCategory>
+		<backstoryCategories>
+			<li>Civil</li>
+		</backstoryCategories>
 		<factionNameMaker>NamerFactionOutlander</factionNameMaker>
 		<hairTags>
 			<li>Rural</li>

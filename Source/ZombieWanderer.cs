@@ -155,7 +155,7 @@ namespace ZombieLand
 		{
 			int[] rndices;
 			int i;
-			var t = GenTicks.TicksAbs / GenDate.TicksPerHour;
+			var t = Find.TickManager.gameStartAbsTick == 0 ? 0 : GenTicks.TicksAbs / GenDate.TicksPerHour;
 			var random = new Random(basePos.x + basePos.z * 1000 + t * 1000000);
 
 			rndices = randomOrders[random.Next(0, 24)];

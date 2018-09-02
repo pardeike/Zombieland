@@ -135,6 +135,16 @@ namespace ZombieLand
 						});
 				}
 			});
+			DebugToolMap("Apply: Zombie raging", delegate
+			{
+				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
+				{
+					var zombie = thing as Zombie;
+					if (zombie == null)
+						continue;
+					ZombieStateHandler.StartRage(zombie);
+				}
+			});
 		}
 	}
 }

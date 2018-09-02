@@ -108,7 +108,7 @@ namespace ZombieLand
 			return new Color(0.3f, 0.2f, 0.1f);
 		}
 
-		static Dictionary<string, IntVec2> eyeOffsets = new Dictionary<string, IntVec2>() {
+		static readonly Dictionary<string, IntVec2> eyeOffsets = new Dictionary<string, IntVec2>() {
 			{ "Female_Average_Normal", new IntVec2(11, -5) },
 			{ "Female_Average_Pointy", new IntVec2(11, -5) },
 			{ "Female_Average_Wide", new IntVec2(11, -6) },
@@ -202,7 +202,7 @@ namespace ZombieLand
 			{
 				// suicide bomber
 				new Pair<float, Func<BodyTypeDef>>(
-					ZombieSettings.Values.suicideBomberChance,
+					ZombieSettings.Values.suicideBomberChance / 2f,
 					delegate
 					{
 						zombie.bombTickingInterval = 60f;
@@ -215,7 +215,7 @@ namespace ZombieLand
 
 				// toxic splasher
 				new Pair<float, Func<BodyTypeDef>>(
-					ZombieSettings.Values.toxicSplasherChance,
+					ZombieSettings.Values.toxicSplasherChance / 2f,
 					delegate
 					{
 						zombie.isToxicSplasher = true;
@@ -238,7 +238,7 @@ namespace ZombieLand
 
 				// tanky operator
 				new Pair<float, Func<BodyTypeDef>>(
-					ZombieSettings.Values.tankyOperatorChance,
+					ZombieSettings.Values.tankyOperatorChance / 3f,
 					delegate
 					{
 						zombie.hasTankyShield = 1f;
@@ -285,17 +285,17 @@ namespace ZombieLand
 			BodyTypeDef bodyType = null;
 			foreach (var initializer in zombieTypeInitializers)
 			{
-				if (typeChance < initializer.First)
+				typeChance -= initializer.First;
+				if (typeChance < 0f)
 				{
 					bodyType = initializer.Second();
 					break;
 				}
-				typeChance -= initializer.First;
 			}
 			return bodyType;
 		}
 
-		static string[] headShapes = { "Normal", "Pointy", "Wide" };
+		static readonly string[] headShapes = { "Normal", "Pointy", "Wide" };
 		public static void AssignNewCustomGraphics(Zombie zombie)
 		{
 			var renderPrecedence = 0;

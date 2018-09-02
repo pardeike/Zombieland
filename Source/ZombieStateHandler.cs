@@ -745,7 +745,7 @@ namespace ZombieLand
 				.Select(c => grid.GetZombieCount(c)).Sum();
 		}
 
-		static void StartRage(Zombie zombie)
+		public static void StartRage(Zombie zombie)
 		{
 			zombie.raging = GenTicks.TicksAbs + (int)(GenDate.TicksPerHour * Rand.Range(1f, 8f));
 			Tools.CastThoughtBubble(zombie, Constants.RAGING);

@@ -3,7 +3,6 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Xml;
@@ -344,10 +343,10 @@ namespace ZombieLand
 		{
 			if (cell.Walkable(map) == false) return false;
 			var terrain = map.terrainGrid.TerrainAt(cell);
-			if (terrain != TerrainDefOf.Soil && terrain != TerrainDefOf.Sand && terrain != TerrainDefOf.Gravel) return false;
+			if (terrain == TerrainDefOf.Soil || terrain == TerrainDefOf.Sand || terrain == TerrainDefOf.Gravel) return true;
+			return terrain.affordances.Any(af => af == TerrainAffordanceDefOf.MovingFluid) == false;
 			// For now, we disable this to gain execution speed
 			//if (terrain.DoesRepellZombies()) return false;
-			return true;
 		}
 
 		// this is called very often so we optimize it a bit
