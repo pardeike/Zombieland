@@ -897,6 +897,8 @@ namespace ZombieLand
 
 				var tickManager = map.GetComponent<TickManager>();
 				if (tickManager == null) return;
+
+				builder.AppendLine("---");
 				builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
 				builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount());
 
@@ -978,21 +980,18 @@ namespace ZombieLand
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				var f_writeCellContentsField = typeof(DebugViewSettings).Field(nameof(DebugViewSettings.writeCellContents));
-
-				var found = false;
-				foreach (var instruction in instructions)
+				var list = instructions.ToList();
+				var m_ToString = AccessTools.Method(typeof(object), "ToString");
+				var idx = list.FindLastIndex(instr => instr.operand == m_ToString);
+				if (idx > 0)
 				{
-					if (instruction.opcode == OpCodes.Ldsfld && instruction.operand == f_writeCellContentsField)
-					{
-						yield return new CodeInstruction(OpCodes.Ldloc_0);
-						yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => DebugGrid(null)));
-						found = true;
-					}
-					yield return instruction;
+					list.Insert(idx++, new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => DebugGrid(null))));
+					list.Insert(idx++, list[idx - 3].Clone());
 				}
+				else
+					Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 
-				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+				return list.AsEnumerable();
 			}
 		}
 
