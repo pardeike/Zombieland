@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <Zombies.label>殭屍</Zombies.label>
+  <Zombies.description>不死生物。</Zombies.description>
+  <Zombies.fixedName>殭屍</Zombies.fixedName>
+  <Zombies.pawnsPlural>殭屍</Zombies.pawnsPlural>
+
+
+</LanguageData>

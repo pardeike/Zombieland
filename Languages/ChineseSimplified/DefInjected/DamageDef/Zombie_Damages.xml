@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <ZombieBite.label>丧尸咬伤</ZombieBite.label>
+  <ZombieBite.deathMessage>{0} 死于丧尸撕咬。</ZombieBite.deathMessage>
+
+  <SuicideBomb.label>自杀炸弹</SuicideBomb.label>
+  <SuicideBomb.deathMessage>{0} 死于自杀炸弹攻击。</SuicideBomb.deathMessage>
+
+  <ToxicSplatter.label>毒液飞溅</ToxicSplatter.label>
+  <ToxicSplatter.deathMessage>{0} 被杀死了。</ToxicSplatter.deathMessage>
+
+
+</LanguageData>

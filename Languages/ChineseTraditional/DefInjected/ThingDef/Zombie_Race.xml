@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <Zombie.label>殭屍</Zombie.label>
+  <Zombie.description>一頭殭屍</Zombie.description>
+  <Zombie.tools.0.label>咬</Zombie.tools.0.label>
+  <Zombie.tools.1.label>左拳</Zombie.tools.1.label>
+  <Zombie.tools.2.label>右拳</Zombie.tools.2.label>
+  <!-- Leather Amount: 0 -->
+  <!-- Meat Amount: 0 -->
+  <Zombie_Corpse.label>殭屍屍體</Zombie_Corpse.label>
+  <Zombie_Corpse.description>殭屍的屍體。</Zombie_Corpse.description>
+
+
+</LanguageData>

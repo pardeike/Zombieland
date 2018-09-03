@@ -1,117 +1,117 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-	<LetterLabelZombiesRising>丧尸攻击</LetterLabelZombiesRising>
-	<ZombiesRising>一群丧尸出现.</ZombiesRising>
+  <LetterLabelZombiesRising>丧尸袭击</LetterLabelZombiesRising>
+  <ZombiesRising>一群丧尸出现。</ZombiesRising>
 
-	<LetterLabelZombiesRisingNearYourBase>丧尸攻击</LetterLabelZombiesRisingNearYourBase>
-	<ZombiesRisingNearYourBase>一群丧尸出现在你的基地附近.</ZombiesRisingNearYourBase>
+  <LetterLabelZombiesRisingNearYourBase>丧尸袭击（立即进攻）</LetterLabelZombiesRisingNearYourBase>
+  <ZombiesRisingNearYourBase>一群丧尸出现在你的基地附近。</ZombiesRisingNearYourBase>
 
-	<LetterLabelXDaysUntilZombies>{0} 后丧尸出现</LetterLabelXDaysUntilZombies>
-	<XDaysUntilZombies>丧尸将出现在软土，泥地，沙地或沙砾上。建造地板可以防止丧尸的出现。</XDaysUntilZombies>
+  <LetterLabelXDaysUntilZombies>{0} 后丧尸出现</LetterLabelXDaysUntilZombies>
+  <XDaysUntilZombies>丧尸会出现在有土地、泥地、沙地、沙砾的地方，建造地板可以防止丧尸从这些地方出现。</XDaysUntilZombies>
 
-	<ZombielandDefaultSettings>Zombieland 丧尸之地</ZombielandDefaultSettings>
-	<ZombielandGameSettings>丧尸之地设置</ZombielandGameSettings>
+  <ZombielandDefaultSettings>Zombieland 丧尸之地</ZombielandDefaultSettings>
+  <ZombielandGameSettings>丧尸之地设置</ZombielandGameSettings>
 
-	<WhenDoZombiesSpawn>丧尸什么时候出现？</WhenDoZombiesSpawn>
-	<SpawnWhenType_AllTheTime>所有时间</SpawnWhenType_AllTheTime>
-	<SpawnWhenType_WhenDark>天黑时</SpawnWhenType_WhenDark>
-	<SpawnWhenType_InEventsOnly>仅丧尸事件</SpawnWhenType_InEventsOnly>
+  <WhenDoZombiesSpawn>丧尸出现的时间段？</WhenDoZombiesSpawn>
+  <SpawnWhenType_AllTheTime>所有时间</SpawnWhenType_AllTheTime>
+  <SpawnWhenType_WhenDark>天黑时</SpawnWhenType_WhenDark>
+  <SpawnWhenType_InEventsOnly>仅丧尸事件</SpawnWhenType_InEventsOnly>
 
-	<HowDoZombiesSpawn>丧尸从什么地方来？</HowDoZombiesSpawn>
-	<SpawnHowType_AllOverTheMap>所有的软地面</SpawnHowType_AllOverTheMap>
-	<SpawnHowType_FromTheEdges>从地图边缘</SpawnHowType_FromTheEdges>
+  <HowDoZombiesSpawn>丧尸从什么地方出现？</HowDoZombiesSpawn>
+  <SpawnHowType_AllOverTheMap>所有的软地面</SpawnHowType_AllOverTheMap>
+  <SpawnHowType_FromTheEdges>从地图边缘</SpawnHowType_FromTheEdges>
 
-	<WhatDoZombiesAttack>丧尸攻击什么？</WhatDoZombiesAttack>
-	<AttackMode_Everything>所有生物</AttackMode_Everything>
-	<AttackMode_OnlyHumans>人形生物</AttackMode_OnlyHumans>
-	<AttackMode_OnlyColonists>只攻击殖民者</AttackMode_OnlyColonists>
-	<EnemiesAttackZombies>敌人攻击僵尸</EnemiesAttackZombies>
-	<AnimalsAttackZombies>动物攻击僵尸</AnimalsAttackZombies>
+  <WhatDoZombiesAttack>丧尸攻击什么？</WhatDoZombiesAttack>
+  <AttackMode_Everything>所有生物</AttackMode_Everything>
+  <AttackMode_OnlyHumans>人形生物</AttackMode_OnlyHumans>
+  <AttackMode_OnlyColonists>只攻击殖民者</AttackMode_OnlyColonists>
+  <EnemiesAttackZombies>敌人攻击丧尸</EnemiesAttackZombies>
+  <AnimalsAttackZombies>动物攻击丧尸</AnimalsAttackZombies>
 
-	<WhatDoZombiesSmash>丧尸会摧毁什么？</WhatDoZombiesSmash>
-	<SmashMode_Nothing>没有</SmashMode_Nothing>
-	<SmashMode_DoorsOnly>只有门</SmashMode_DoorsOnly>
-	<SmashMode_AnyBuilding>所有建筑</SmashMode_AnyBuilding>
-	<SmashOnlyWhenAgitated>只在它们激动的时候</SmashOnlyWhenAgitated>
+  <WhatDoZombiesSmash>丧尸会摧毁什么建筑？</WhatDoZombiesSmash>
+  <SmashMode_Nothing>无</SmashMode_Nothing>
+  <SmashMode_DoorsOnly>仅攻击门</SmashMode_DoorsOnly>
+  <SmashMode_AnyBuilding>所有建筑</SmashMode_AnyBuilding>
+  <SmashOnlyWhenAgitated>仅在它们愤怒时。</SmashOnlyWhenAgitated>
 
-	<NewGameTitle>新游戏</NewGameTitle>
-	<DaysBeforeZombiesCome>丧尸会在多少天后来临</DaysBeforeZombiesCome>
+  <NewGameTitle>新游戏</NewGameTitle>
+  <DaysBeforeZombiesCome>丧尸出现的时间</DaysBeforeZombiesCome>
 
-	<ZombiesOnTheMap>丧尸在地图上的数量</ZombiesOnTheMap>
-	<MaximumNumberOfZombies>最多</MaximumNumberOfZombies>
-	<Zombies>个丧尸</Zombies>
-	<ColonyMultiplier>殖民地倍增</ColonyMultiplier>
+  <ZombiesOnTheMap>地图上的丧尸数量</ZombiesOnTheMap>
+  <MaximumNumberOfZombies>最多</MaximumNumberOfZombies>
+  <Zombies>个丧尸</Zombies>
+  <ColonyMultiplier>殖民地倍乘数</ColonyMultiplier>
 
-	<ZombieEventTitle>丧尸事件</ZombieEventTitle>
-	<ZombiesPerColonistInEvent>丧尸/每个殖民者</ZombiesPerColonistInEvent>
-	<ExtraDaysBetweenEvents>事件之间的额外的天</ExtraDaysBetweenEvents>
+  <ZombieEventTitle>丧尸事件</ZombieEventTitle>
+  <ZombiesPerColonistInEvent>丧尸/每个殖民者</ZombiesPerColonistInEvent>
+  <ExtraDaysBetweenEvents>事件的间隔天数</ExtraDaysBetweenEvents>
 
-	<ZombieSpeedTitle>丧尸速度</ZombieSpeedTitle>
-	<MoveSpeedIdle>丧尸平静时</MoveSpeedIdle>
-	<MoveSpeedTracking>丧尸兴奋时</MoveSpeedTracking>
+  <ZombieSpeedTitle>丧尸的速度</ZombieSpeedTitle>
+  <MoveSpeedIdle>平静时</MoveSpeedIdle>
+  <MoveSpeedTracking>兴奋时</MoveSpeedTracking>
 
-	<ZombieDamageFactorTitle>丧尸的力量</ZombieDamageFactorTitle>
-	<ZombieDamageFactor>伤害乘数</ZombieDamageFactor>
+  <ZombieDamageFactorTitle>丧尸的力量</ZombieDamageFactorTitle>
+  <ZombieDamageFactor>伤害倍乘数</ZombieDamageFactor>
 
-	<ZombieInfections>丧尸感染</ZombieInfections>
-	<ZombieBiteInfectionChance>被丧尸咬伤的感染风险</ZombieBiteInfectionChance>
-	<ZombieBiteInfectionUnknown>知道感染的时间</ZombieBiteInfectionUnknown>
-	<ZombieBiteInfectionTreatable>可治疗的感染时间</ZombieBiteInfectionTreatable>
-	<ZombieBiteInfectionPersists>感染持续时间</ZombieBiteInfectionPersists>
-	<AnyTreatmentStopsInfection>躺在治疗床上可以阻止感染</AnyTreatmentStopsInfection>
+  <ZombieInfections>丧尸感染</ZombieInfections>
+  <ZombieBiteInfectionChance>被丧尸咬伤的感染风险</ZombieBiteInfectionChance>
+  <ZombieBiteInfectionUnknown>发现感染的时间</ZombieBiteInfectionUnknown>
+  <ZombieBiteInfectionTreatable>可治疗的感染时间</ZombieBiteInfectionTreatable>
+  <ZombieBiteInfectionPersists>感染持续时间</ZombieBiteInfectionPersists>
+  <AnyTreatmentStopsInfection>躺在床上治疗可阻止感染</AnyTreatmentStopsInfection>
 
-	<ZombieInstinctTitle>丧尸的感知</ZombieInstinctTitle>
-	<ZombieInstinct_Dull>有限</ZombieInstinct_Dull>
-	<ZombieInstinct_Normal>正常</ZombieInstinct_Normal>
-	<ZombieInstinct_Sensitive>提高</ZombieInstinct_Sensitive>
-	<RagingZombies>丧尸群过于庞大时它们会变得愤怒</RagingZombies>
+  <ZombieInstinctTitle>丧尸的感知</ZombieInstinctTitle>
+  <ZombieInstinct_Dull>受限</ZombieInstinct_Dull>
+  <ZombieInstinct_Normal>正常</ZombieInstinct_Normal>
+  <ZombieInstinct_Sensitive>较高</ZombieInstinct_Sensitive>
+  <RagingZombies>群体过于庞大时丧尸会变得愤怒。</RagingZombies>
 
-	<ZombieHealthTitle>丧尸的体质</ZombieHealthTitle>
-	<DoubleTapRequired>丧尸会恢复伤势</DoubleTapRequired>
-	<ZombiesDieVeryEasily>丧尸很容易被杀死</ZombiesDieVeryEasily>
+  <ZombieHealthTitle>丧尸的体质</ZombieHealthTitle>
+  <DoubleTapRequired>丧尸会恢复伤势</DoubleTapRequired>
+  <ZombiesDieVeryEasily>丧尸很容易被杀死</ZombiesDieVeryEasily>
 
-	<ZombieEatingTitle>丧尸会吃</ZombieEatingTitle>
-	<ZombiesEatDowned>受伤的生物</ZombiesEatDowned>
-	<ZombiesEatCorpses>尸体</ZombiesEatCorpses>
+  <ZombieEatingTitle>丧尸会吃</ZombieEatingTitle>
+  <ZombiesEatDowned>受伤的生物</ZombiesEatDowned>
+  <ZombiesEatCorpses>尸体</ZombiesEatCorpses>
 
-	<SpecialZombiesTitle>特殊僵尸</SpecialZombiesTitle>
-	<SuicideBomberChance>自杀攻击的僵尸</SuicideBomberChance>
-	<ToxicSplasherChance>有毒的僵尸</ToxicSplasherChance>
-	<TankyOperatorChance>重型和装甲僵尸</TankyOperatorChance>
-	<NormalZombieChance>普通僵尸数: {0}</NormalZombieChance>
+  <SpecialZombiesTitle>特殊丧尸</SpecialZombiesTitle>
+  <SuicideBomberChance>自爆丧尸</SuicideBomberChance>
+  <ToxicSplasherChance>剧毒丧尸</ToxicSplasherChance>
+  <TankyOperatorChance>重装丧尸</TankyOperatorChance>
+  <NormalZombieChance>普通丧尸: {0}</NormalZombieChance>
 
-	<ZombieMiscTitle>其他</ZombieMiscTitle>
-	<UseCustomTextures>使用自定义纹理</UseCustomTextures>
-	<ReplaceTwinkie>将生存食品改为Twinkies</ReplaceTwinkie>
-	<ZombiesTriggerDangerMusic>丧尸袭击危险音乐</ZombiesTriggerDangerMusic>
-	<PlayCreepyAmbientSound>晚上播放令人毛骨悚然的环境声</PlayCreepyAmbientSound>
-	<BetterZombieAvoidance>自动回避丧尸</BetterZombieAvoidance>
-	<ZombiesDropBlood>丧尸流血</ZombiesDropBlood>
+  <ZombieMiscTitle>其他</ZombieMiscTitle>
+  <UseCustomTextures>使用自定义纹理</UseCustomTextures>
+  <ReplaceTwinkie>将包装生存食品改为Twinkies</ReplaceTwinkie>
+  <ZombiesTriggerDangerMusic>丧尸会触发危险音乐效果</ZombiesTriggerDangerMusic>
+  <PlayCreepyAmbientSound>在夜晚播放令人毛骨悚然的环境声效</PlayCreepyAmbientSound>
+  <BetterZombieAvoidance>自动回避丧尸</BetterZombieAvoidance>
+  <ZombiesDropBlood>丧尸流血</ZombiesDropBlood>
 
-	<ZombieActionsTitle>操作</ZombieActionsTitle>
-	<ZombieSettingsReset>恢复默认设置</ZombieSettingsReset>
-	<UninstallZombieland>从当前游戏中移除丧尸之地</UninstallZombieland>
-	<ConfirmUninstallZombieland>如果继续,您可以选择一个新的文件名保存,并在保存游戏后返回主菜单. 新的保存可以在没有丧尸之地的情况下加载.\n\n是否真的要从当前游戏中删除所有丧尸之地内容？</ConfirmUninstallZombieland>
-	<UninstallButton>移除</UninstallButton>
+  <ZombieActionsTitle>操作</ZombieActionsTitle>
+  <ZombieSettingsReset>恢复默认设置</ZombieSettingsReset>
+  <UninstallZombieland>从当前游戏中移除丧尸之地</UninstallZombieland>
+  <ConfirmUninstallZombieland>如果继续，你可以选择一个新的文件名进行存档，并在保存游戏后返回主菜单。新存档可以在没有丧尸之地的情况下加载。\n\n你真的想要移除所有丧尸之地的内容吗？</ConfirmUninstallZombieland>
+  <UninstallButton>移除</UninstallButton>
 
-	<ColonistsBittenByZombie>殖民者被丧尸咬伤</ColonistsBittenByZombie>
-	<ColonistsBittenByZombieDesc>殖民者被丧尸咬伤了,暂时还不知道是否会发生感染:n\n{0}\n 密切关注伤口,因为感染需要一些时间才会发现.</ColonistsBittenByZombieDesc>
+  <ColonistsBittenByZombie>殖民者被丧尸咬伤</ColonistsBittenByZombie>
+  <ColonistsBittenByZombieDesc>殖民者被丧尸咬伤了,目前尚不清楚他们是否被感染：\n\n{0}\n密切关注他们的伤口，因为感染需要一段时间后才能被发现。</ColonistsBittenByZombieDesc>
 
-	<ImminentZombiInfection>即将发生的丧尸感染</ImminentZombiInfection>
-	<ImminentZombiInfectionDesc>殖民者被丧尸咬伤后感染:n\n{0}\n 你可以立刻给予他们治疗,挽救他们的生命. 但这需要一个好的医生,一个优质的医疗床和一个无菌室与维生素监视器.</ImminentZombiInfectionDesc>
+  <ImminentZombiInfection>发生丧尸感染</ImminentZombiInfection>
+  <ImminentZombiInfectionDesc>殖民者被丧尸咬伤后感染：\n\n{0}\n你可以挽救他们，立即给予他们最佳的医疗环境进行治疗。但这需要一名优秀的医生，一张带有生命体征检测仪的优质医疗床和一个无菌室。</ImminentZombiInfectionDesc>
 
-	<ZombieInfection>丧尸感染</ZombieInfection>
-	<ZombieInfectionDesc>殖民者被感染并且变成一个丧尸,没有办法可以挽救他们:n\n{0}\n 在感染时,他们对思想,感觉,痛苦和饥饿漠不关心. 最后,他们死了,成了一个丧尸.</ZombieInfectionDesc>
+  <ZombieInfection>丧尸感染</ZombieInfection>
+  <ZombieInfectionDesc>殖民者被感染并且会变成一个丧尸。再也没有任何办法可以挽救他们了：\n\n{0}\n 在感染过程中你对他们的思想、感情、痛苦和饥饿漠不关心。最终，他们死了并且变成一个丧尸。</ZombieInfectionDesc>
 
-	<NoInfectionRisk>无感染风险</NoInfectionRisk>
-	<HoursBeforeBecomingInfected>{0} 感染</HoursBeforeBecomingInfected>
-	<HoursBeforeBecomingAZombie>{0} 成为丧尸</HoursBeforeBecomingAZombie>
+  <NoInfectionRisk>无感染风险</NoInfectionRisk>
+  <HoursBeforeBecomingInfected>{0} 感染</HoursBeforeBecomingInfected>
+  <HoursBeforeBecomingAZombie>{0} 变成一个丧尸</HoursBeforeBecomingAZombie>
 
-	<BecameAZombieLabel>有人变成了僵尸</BecameAZombieLabel>
-	<BecameAZombieDesc>{0} 变成了一个强大的丧尸.</BecameAZombieDesc>
+  <BecameAZombieLabel>有人变成了僵尸</BecameAZombieLabel>
+  <BecameAZombieDesc>{0} 变成了一个强大的丧尸.</BecameAZombieDesc>
 
-	<BodyIsInfectedLabel>这个身体被僵尸感染！</BodyIsInfectedLabel>
-	<BodyIsInfectedTooltip>受感染的尸体在开始腐烂时会变成僵尸。</BodyIsInfectedTooltip>
+  <BodyIsInfectedLabel>这具尸体感染了丧尸病毒！</BodyIsInfectedLabel>
+  <BodyIsInfectedTooltip>感染的尸体会在开始腐烂时会变成丧尸。</BodyIsInfectedTooltip>
 
 </LanguageData>
