@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-  <LetterLabelZombiesRising>丧尸攻击</LetterLabelZombiesRising>
-  <ZombiesRising>一群丧尸出现了。</ZombiesRising>
+  <LetterLabelZombiesRising>丧尸袭击</LetterLabelZombiesRising>
+  <ZombiesRising>一群丧尸出现。</ZombiesRising>
 
-  <LetterLabelZombiesRisingNearYourBase>丧尸攻击（立即进攻）</LetterLabelZombiesRisingNearYourBase>
+  <LetterLabelZombiesRisingNearYourBase>丧尸袭击（立即进攻）</LetterLabelZombiesRisingNearYourBase>
   <ZombiesRisingNearYourBase>一群丧尸出现在你的基地附近。</ZombiesRisingNearYourBase>
 
   <LetterLabelXDaysUntilZombies>{0} 后丧尸出现</LetterLabelXDaysUntilZombies>
@@ -13,8 +13,8 @@
   <ZombielandDefaultSettings>Zombieland 丧尸之地</ZombielandDefaultSettings>
   <ZombielandGameSettings>丧尸之地设置</ZombielandGameSettings>
 
-  <WhenDoZombiesSpawn>丧尸什么时候出现？</WhenDoZombiesSpawn>
-  <SpawnWhenType_AllTheTime>任何时间</SpawnWhenType_AllTheTime>
+  <WhenDoZombiesSpawn>丧尸出现的时间段？</WhenDoZombiesSpawn>
+  <SpawnWhenType_AllTheTime>所有时间</SpawnWhenType_AllTheTime>
   <SpawnWhenType_WhenDark>天黑时</SpawnWhenType_WhenDark>
   <SpawnWhenType_InEventsOnly>仅丧尸事件</SpawnWhenType_InEventsOnly>
 
@@ -29,37 +29,37 @@
   <EnemiesAttackZombies>敌人攻击丧尸</EnemiesAttackZombies>
   <AnimalsAttackZombies>动物攻击丧尸</AnimalsAttackZombies>
 
-  <WhatDoZombiesSmash>丧尸会摧毁什么？</WhatDoZombiesSmash>
+  <WhatDoZombiesSmash>丧尸会摧毁什么建筑？</WhatDoZombiesSmash>
   <SmashMode_Nothing>无</SmashMode_Nothing>
-  <SmashMode_DoorsOnly>仅门</SmashMode_DoorsOnly>
+  <SmashMode_DoorsOnly>仅攻击门</SmashMode_DoorsOnly>
   <SmashMode_AnyBuilding>所有建筑</SmashMode_AnyBuilding>
-  <SmashOnlyWhenAgitated>仅在它们愤怒时</SmashOnlyWhenAgitated>
+  <SmashOnlyWhenAgitated>仅在它们愤怒时。</SmashOnlyWhenAgitated>
 
   <NewGameTitle>新游戏</NewGameTitle>
   <DaysBeforeZombiesCome>丧尸出现的时间</DaysBeforeZombiesCome>
 
-  <ZombiesOnTheMap>丧尸在地图上的数量</ZombiesOnTheMap>
+  <ZombiesOnTheMap>地图上的丧尸数量</ZombiesOnTheMap>
   <MaximumNumberOfZombies>最多</MaximumNumberOfZombies>
   <Zombies>个丧尸</Zombies>
-  <ColonyMultiplier>殖民地乘数</ColonyMultiplier>
+  <ColonyMultiplier>殖民地倍乘数</ColonyMultiplier>
 
   <ZombieEventTitle>丧尸事件</ZombieEventTitle>
   <ZombiesPerColonistInEvent>丧尸/每个殖民者</ZombiesPerColonistInEvent>
-  <ExtraDaysBetweenEvents>事件之间的额外间隔天数</ExtraDaysBetweenEvents>
+  <ExtraDaysBetweenEvents>事件的间隔天数</ExtraDaysBetweenEvents>
 
   <ZombieSpeedTitle>丧尸的速度</ZombieSpeedTitle>
-  <MoveSpeedIdle>丧尸平静时</MoveSpeedIdle>
-  <MoveSpeedTracking>丧尸愤怒时</MoveSpeedTracking>
+  <MoveSpeedIdle>平静时</MoveSpeedIdle>
+  <MoveSpeedTracking>兴奋时</MoveSpeedTracking>
 
   <ZombieDamageFactorTitle>丧尸的力量</ZombieDamageFactorTitle>
-  <ZombieDamageFactor>伤害乘数</ZombieDamageFactor>
+  <ZombieDamageFactor>伤害倍乘数</ZombieDamageFactor>
 
   <ZombieInfections>丧尸感染</ZombieInfections>
   <ZombieBiteInfectionChance>被丧尸咬伤的感染风险</ZombieBiteInfectionChance>
-  <ZombieBiteInfectionUnknown>知道感染的时间</ZombieBiteInfectionUnknown>
+  <ZombieBiteInfectionUnknown>发现感染的时间</ZombieBiteInfectionUnknown>
   <ZombieBiteInfectionTreatable>可治疗的感染时间</ZombieBiteInfectionTreatable>
   <ZombieBiteInfectionPersists>感染持续时间</ZombieBiteInfectionPersists>
-  <AnyTreatmentStopsInfection>在床上治疗可以阻止感染</AnyTreatmentStopsInfection>
+  <AnyTreatmentStopsInfection>躺在床上治疗可阻止感染</AnyTreatmentStopsInfection>
 
   <ZombieInstinctTitle>丧尸的感知</ZombieInstinctTitle>
   <ZombieInstinct_Dull>受限</ZombieInstinct_Dull>
@@ -84,7 +84,7 @@
   <ZombieMiscTitle>其他</ZombieMiscTitle>
   <UseCustomTextures>使用自定义纹理</UseCustomTextures>
   <ReplaceTwinkie>将包装生存食品改为Twinkies</ReplaceTwinkie>
-  <ZombiesTriggerDangerMusic>丧尸袭击危险音乐</ZombiesTriggerDangerMusic>
+  <ZombiesTriggerDangerMusic>丧尸会触发危险音乐效果</ZombiesTriggerDangerMusic>
   <PlayCreepyAmbientSound>在夜晚播放令人毛骨悚然的环境声效</PlayCreepyAmbientSound>
   <BetterZombieAvoidance>自动回避丧尸</BetterZombieAvoidance>
   <ZombiesDropBlood>丧尸流血</ZombiesDropBlood>
@@ -108,10 +108,10 @@
   <HoursBeforeBecomingInfected>{0} 感染</HoursBeforeBecomingInfected>
   <HoursBeforeBecomingAZombie>{0} 变成一个丧尸</HoursBeforeBecomingAZombie>
 
-  <BecameAZombieLabel>有人变成了丧尸</BecameAZombieLabel>
-  <BecameAZombieDesc>{0} 变成了一个强大的丧尸。</BecameAZombieDesc>
+  <BecameAZombieLabel>有人变成了僵尸</BecameAZombieLabel>
+  <BecameAZombieDesc>{0} 变成了一个强大的丧尸.</BecameAZombieDesc>
 
   <BodyIsInfectedLabel>这具尸体感染了丧尸病毒！</BodyIsInfectedLabel>
-  <BodyIsInfectedTooltip>感染的尸体在开始腐烂时会变成丧尸。</BodyIsInfectedTooltip>
+  <BodyIsInfectedTooltip>感染的尸体会在开始腐烂时会变成丧尸。</BodyIsInfectedTooltip>
 
 </LanguageData>

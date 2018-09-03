@@ -7,7 +7,7 @@
   <SuicideBomb.label>自杀炸弹</SuicideBomb.label>
   <SuicideBomb.deathMessage>{0} 死于自杀炸弹攻击。</SuicideBomb.deathMessage>
 
-  <ToxicSplatter.label>烟雾</ToxicSplatter.label>
+  <ToxicSplatter.label>毒液飞溅</ToxicSplatter.label>
   <ToxicSplatter.deathMessage>{0} 被杀死了。</ToxicSplatter.deathMessage>
 
 

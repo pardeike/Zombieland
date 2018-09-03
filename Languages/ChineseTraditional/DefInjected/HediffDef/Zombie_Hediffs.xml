@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-  <ZombieBite.label>喪屍咬傷</ZombieBite.label>
+  <ZombieBite.label>殭屍咬傷</ZombieBite.label>
   <ZombieBite.comps.0.labelTendedWell>已包紮</ZombieBite.comps.0.labelTendedWell>
   <ZombieBite.comps.0.labelTendedWellInner>已縫合</ZombieBite.comps.0.labelTendedWellInner>
   <ZombieBite.comps.0.labelSolidTendedWell>已固定</ZombieBite.comps.0.labelSolidTendedWell>
-  <ZombieBite.injuryProps.destroyedLabel>被喪屍咬掉</ZombieBite.injuryProps.destroyedLabel>
-  <ZombieBite.injuryProps.destroyedOutLabel>被喪屍咬掉</ZombieBite.injuryProps.destroyedOutLabel>
+  <ZombieBite.injuryProps.destroyedLabel>被殭屍咬掉</ZombieBite.injuryProps.destroyedLabel>
+  <ZombieBite.injuryProps.destroyedOutLabel>被殭屍咬掉</ZombieBite.injuryProps.destroyedOutLabel>
 
 
 </LanguageData>
