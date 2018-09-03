@@ -69,7 +69,7 @@ namespace ZombieLand
 						.FirstOrDefault();
 
 			var percent = string.Format("{0:P0}", tendDuration.InfectionProgress());
-			return pawn.NameStringShort + ", " + percent;
+			return pawn.Name.ToStringShort + ", " + percent;
 		}
 	}
 
@@ -81,7 +81,7 @@ namespace ZombieLand
 		public string label = "";
 
 		public virtual void Prepare() { }
-		public virtual string NameDecorator(Pawn pawn) { return pawn.NameStringShort; }
+		public virtual string NameDecorator(Pawn pawn) { return pawn.Name.ToStringShort; }
 		public virtual bool ColonistSelector(Pawn pawn) { return false; }
 
 		public virtual IEnumerable<Pawn> AffectedColonists
@@ -97,7 +97,7 @@ namespace ZombieLand
 		public Alert_ZombieInfectionProgress()
 		{
 			Prepare();
-			defaultLabel = label.Translate();
+			defaultLabel = label.SafeTranslate();
 			defaultPriority = priority;
 		}
 

@@ -6,7 +6,7 @@ namespace ZombieLand
 {
 	public class ColorData
 	{
-		static int saveMargin = 5;
+		static readonly int saveMargin = 5;
 
 		public int width;
 		public int height;

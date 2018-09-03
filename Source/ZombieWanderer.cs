@@ -153,11 +153,12 @@ namespace ZombieLand
 
 		IEnumerable<IntVec3> GetValidAdjactedCellsInRandomOrder(Map map, IntVec3 basePos, bool ignoreBuildings)
 		{
-			UnityEngine.Random.InitState(basePos.x + basePos.z * 1000);
 			int[] rndices;
 			int i;
+			var t = (int)(DateTime.Now.Ticks % 1000);
+			var random = new Random(basePos.x + basePos.z * 1000 + t * 1000000);
 
-			rndices = randomOrders[UnityEngine.Random.Range(0, randomOrders.Length)];
+			rndices = randomOrders[random.Next(0, 24)];
 			for (i = 0; i < 4; i++)
 			{
 				var cell = basePos + GenAdj.CardinalDirections[rndices[i]];
@@ -165,7 +166,7 @@ namespace ZombieLand
 					yield return cell;
 			}
 
-			rndices = randomOrders[UnityEngine.Random.Range(0, randomOrders.Length)];
+			rndices = randomOrders[random.Next(0, 24)];
 			for (i = 0; i < 4; i++)
 			{
 				var cell = basePos + GenAdj.DiagonalDirections[rndices[i]];
@@ -195,7 +196,7 @@ namespace ZombieLand
 				if (pathGrid.WalkableFast(cell) == false)
 				{
 					if (ignoreBuildings)
-						return edificeGrid != null && edificeGrid[cell] is Building;
+						return edificeGrid != null && edificeGrid[cell] is Building building && (building as Mineable) == null;
 					return false;
 				}
 
@@ -291,12 +292,13 @@ namespace ZombieLand
 			{
 				valid = pawn != null
 					&& pawn.Spawned
-					&& (ZombieSettings.Values.attackMode != AttackMode.OnlyColonists || (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists && pawn.IsColonist))
-					&& (pawn is Zombie) == false
-					&& (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans == false || pawn.RaceProps.Humanlike)
-					&& pawn.RaceProps.IsFlesh
 					&& pawn.Dead == false
-					&& pawn.Downed == false;
+					&& pawn.Downed == false
+					&& (pawn is Zombie) == false
+					&& pawn.RaceProps.IsFlesh
+					&& Tools.HasInfectionState(pawn, InfectionState.Infecting, InfectionState.Infected) == false
+					&& (ZombieSettings.Values.attackMode != AttackMode.OnlyColonists || (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists && pawn.IsColonist))
+					&& (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans == false || pawn.RaceProps.Humanlike);
 				position = pawn?.Position ?? IntVec3.Invalid;
 			}
 		}

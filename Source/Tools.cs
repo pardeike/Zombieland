@@ -2,9 +2,7 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Xml;
@@ -13,41 +11,19 @@ using Verse;
 
 namespace ZombieLand
 {
-	class Measure
-	{
-		readonly Stopwatch sw;
-		string text;
-		long prevTime;
-		int counter;
-
-		public Measure(string text)
-		{
-			this.text = text;
-			sw = new Stopwatch();
-			sw.Start();
-		}
-
-		public void Checkpoint()
-		{
-			counter++;
-			var ms = sw.ElapsedMilliseconds;
-			var delta = prevTime == 0 ? 0 : (ms - prevTime);
-			Log.Warning("#" + counter + " " + text + " = " + ms + " ms (+" + delta + ")");
-			prevTime = ms;
-		}
-
-		public void End(bool cancel = false)
-		{
-			sw.Stop();
-			if (cancel == false) Checkpoint();
-		}
-	}
-
 	public enum FacingIndex
 	{
-		Front,
-		Side,
-		Back
+		South,
+		East,
+		North
+	}
+
+	public class IsCombatExtendedInstalled : PatchOperation
+	{
+		protected override bool ApplyWorker(XmlDocument xml)
+		{
+			return AccessTools.TypeByName("CombatExtended.ToolCE") != null;
+		}
 	}
 
 	[StaticConstructorOnStartup]
@@ -60,29 +36,61 @@ namespace ZombieLand
 		public static Texture2D ZombieButtonBackground;
 		public static string zlNamespace = typeof(Tools).Namespace;
 
+		private static DamageDef _zombieBiteDamageDef;
+		public static DamageDef ZombieBiteDamageDef
+		{
+			get
+			{
+				if (_zombieBiteDamageDef == null)
+					_zombieBiteDamageDef = DefDatabase<DamageDef>.GetNamed("ZombieBite");
+				return _zombieBiteDamageDef;
+			}
+		}
+
+		private static DamageDef _suicideBombDamageDef;
+		public static DamageDef SuicideBombDamageDef
+		{
+			get
+			{
+				if (_suicideBombDamageDef == null)
+					_suicideBombDamageDef = DefDatabase<DamageDef>.GetNamed("SuicideBomb");
+				return _suicideBombDamageDef;
+			}
+		}
+
+		private static DamageDef _toxicSplatterDamageDef;
+		public static DamageDef ToxicSplatterDamageDef
+		{
+			get
+			{
+				if (_toxicSplatterDamageDef == null)
+					_toxicSplatterDamageDef = DefDatabase<DamageDef>.GetNamed("ToxicSplatter");
+				return _toxicSplatterDamageDef;
+			}
+		}
+
 		static string mealLabel;
 		static string mealDescription;
 		static Graphic mealGraphic;
 		public static void EnableTwinkie(bool enable)
 		{
 			var def = ThingDefOf.MealSurvivalPack;
-			var cachedGraphic = Traverse.Create(def.graphicData).Field("cachedGraphic");
 
 			if (mealLabel == null) mealLabel = def.label;
 			if (mealDescription == null) mealDescription = def.description;
-			if (mealGraphic == null) mealGraphic = cachedGraphic.GetValue<Graphic>();
+			if (mealGraphic == null) mealGraphic = GetterSetters.cachedGraphicByRef(def.graphicData);
 
 			if (enable)
 			{
 				def.label = "Twinkie";
 				def.description = "A Twinkie is an American snack cake, marketed as a \"Golden Sponge Cake with Creamy Filling\".";
-				cachedGraphic.SetValue(GraphicsDatabase.twinkieGraphic);
+				GetterSetters.cachedGraphicByRef(def.graphicData) = GraphicsDatabase.twinkieGraphic;
 			}
 			else
 			{
 				def.label = mealLabel;
 				def.description = mealDescription;
-				cachedGraphic.SetValue(mealGraphic);
+				GetterSetters.cachedGraphicByRef(def.graphicData) = mealGraphic;
 			}
 
 			def.graphic = def.graphicData.Graphic;
@@ -91,8 +99,9 @@ namespace ZombieLand
 			var game = Current.Game;
 			if (game != null)
 			{
-				game.Maps.SelectMany(map => map.listerThings.ThingsOfDef(def))
-					.Do(meal => { Traverse.Create(meal).Field("graphicInt").SetValue(null); });
+				game.Maps
+					.SelectMany(map => map.listerThings.ThingsOfDef(def))
+					.Do(meal => GetterSetters.graphicIntByRef(meal) = null);
 			}
 		}
 
@@ -105,6 +114,18 @@ namespace ZombieLand
 				return "";
 			}
 			return me.Content.RootDir;
+		}
+
+		public static string SafeTranslate(this string key)
+		{
+			if (key == null) return "";
+			return key.Translate();
+		}
+
+		public static string SafeTranslate(this string key, params object[] args)
+		{
+			if (key == null) return "";
+			return key.Translate(args);
 		}
 
 		public static long Ticks()
@@ -155,14 +176,6 @@ namespace ZombieLand
 			Graphics.DrawMesh(mesh, matrix, mat, 0);
 		}
 
-		public static Func<T, R> GetFieldAccessor<T, R>(string fieldName)
-		{
-			var param = Expression.Parameter(typeof(T), "arg");
-			var member = Expression.Field(param, fieldName);
-			var lambda = Expression.Lambda(typeof(Func<T, R>), member, param);
-			return (Func<T, R>)lambda.Compile();
-		}
-
 		public static T Boxed<T>(T val, T min, T max) where T : IComparable
 		{
 			if (val.CompareTo(min) < 0) return min;
@@ -170,14 +183,13 @@ namespace ZombieLand
 			return val;
 		}
 
-		static System.Random rng = new System.Random();
 		public static void Shuffle<T>(this IList<T> list)
 		{
 			var n = list.Count;
 			while (n > 1)
 			{
 				n--;
-				var k = rng.Next(n + 1);
+				var k = Constants.random.Next(n + 1);
 				var value = list[k];
 				list[k] = list[n];
 				list[n] = value;
@@ -207,17 +219,25 @@ namespace ZombieLand
 			}
 		}
 
+		public static void QueueConvertToZombie(ThingWithComps thing)
+		{
+			var tickManager = thing.Map.GetComponent<TickManager>();
+			tickManager.colonistsConverter.Enqueue(thing);
+		}
+
+		static readonly NameSingle emptyName = new NameSingle("");
 		public static void ConvertToZombie(ThingWithComps thing, bool force = false)
 		{
 			var pawn = thing is Corpse corpse ? corpse.InnerPawn : thing as Pawn;
-			if (pawn == null) /* pawn.Spawned == false || pawn.Dead || pawn.IsColonist == false */
+			if (pawn == null || pawn.RaceProps.Humanlike == false)
 				return;
 
 			// clear zombie hediffs to avoid triggering this convert method again
 			//
-			if (force == false && (pawn.health == null || pawn.health.hediffSet.hediffs.Any(hediff => hediff.def.IsZombieHediff()) == false))
+			var pawnName = pawn.Name;
+			if (force == false && (pawn.health == null || pawnName == emptyName))
 				return;
-			pawn.health?.hediffSet.hediffs.RemoveAll(hediff => hediff.def.IsZombieHediff());
+			pawn.Name = emptyName;
 
 			var pos = thing is IThingHolder ? ThingOwnerUtility.GetRootPosition(thing as IThingHolder) : thing.Position;
 			var map = thing is IThingHolder ? ThingOwnerUtility.GetRootMap(thing as IThingHolder) : thing.Map;
@@ -232,7 +252,7 @@ namespace ZombieLand
 
 			var zombie = ZombieGenerator.GeneratePawn(ZombieGenerator.ZombieType.Normal);
 
-			zombie.Name = pawn.Name;
+			zombie.Name = pawnName;
 			zombie.gender = pawn.gender;
 
 			zombie.ageTracker.AgeBiologicalTicks = pawn.ageTracker.AgeBiologicalTicks;
@@ -248,9 +268,8 @@ namespace ZombieLand
 
 			var zTweener = Traverse.Create(zombie.Drawer.tweener);
 			var pTweener = Traverse.Create(pawn.Drawer.tweener);
-			zTweener.Field("tweenedPos").SetValue(pTweener.Field("tweenedPos").GetValue());
-			zTweener.Field("lastDrawFrame").SetValue(pTweener.Field("lastDrawFrame").GetValue());
-			zTweener.Field("lastTickSpringPos").SetValue(pTweener.Field("lastTickSpringPos").GetValue());
+			new[] { "tweenedPos", "lastDrawFrame", "lastTickSpringPos" }
+				.Do(field => zTweener.Field(field).SetValue(pTweener.Field(field).GetValue()));
 
 			ZombieGenerator.AssignNewCustomGraphics(zombie);
 			ZombieGenerator.FinalizeZombieGeneration(zombie);
@@ -265,7 +284,7 @@ namespace ZombieLand
 			zombie.wasMapPawnBefore = true;
 
 			zombie.apparel.DestroyAll();
-			pawn.apparel.WornApparelInDrawOrder.ToList().ForEach(apparel =>
+			pawn.apparel.WornApparel.ForEach(apparel =>
 			{
 				if (pawn.apparel.TryDrop(apparel, out var newApparel))
 				{
@@ -274,10 +293,11 @@ namespace ZombieLand
 					newApparel.HitPoints = 1;
 					var compQuality = newApparel.TryGetComp<CompQuality>();
 					if (compQuality != null)
-						compQuality.SetQuality(QualityCategory.Shoddy, ArtGenerationContext.Colony);
+						compQuality.SetQuality(QualityCategory.Awful, ArtGenerationContext.Colony);
+
+					zombie.apparel.Notify_ApparelAdded(newApparel);
 				}
 			});
-			zombie.apparel.Notify_ApparelAdded(null); // unused arg
 
 			if (thing is Corpse)
 			{
@@ -292,7 +312,7 @@ namespace ZombieLand
 			}
 
 			var label = "BecameAZombieLabel".Translate();
-			var text = "BecameAZombieDesc".Translate(new object[] { pawn.NameStringShort });
+			var text = "BecameAZombieDesc".Translate(new object[] { pawn.Name.ToStringShort });
 			Find.LetterStack.ReceiveLetter(label, text, LetterDefOf.ThreatBig, zombie);
 		}
 
@@ -323,10 +343,10 @@ namespace ZombieLand
 		{
 			if (cell.Walkable(map) == false) return false;
 			var terrain = map.terrainGrid.TerrainAt(cell);
-			if (terrain != TerrainDefOf.Soil && terrain != TerrainDefOf.Sand && terrain != TerrainDefOf.Gravel) return false;
+			if (terrain == TerrainDefOf.Soil || terrain == TerrainDefOf.Sand || terrain == TerrainDefOf.Gravel) return true;
+			return terrain.affordances.Any(af => af == TerrainAffordanceDefOf.MovingFluid) == false;
 			// For now, we disable this to gain execution speed
 			//if (terrain.DoesRepellZombies()) return false;
-			return true;
 		}
 
 		// this is called very often so we optimize it a bit
@@ -353,7 +373,7 @@ namespace ZombieLand
 
 		public static bool HasInfectionState(Pawn pawn, InfectionState state)
 		{
-			// if (pawn.IsColonist == false) return false;
+			if (pawn.RaceProps.Humanlike == false) return false;
 
 			return pawn.health.hediffSet
 						.GetHediffs<Hediff_Injury_ZombieBite>()
@@ -494,8 +514,8 @@ namespace ZombieLand
 
 		public static int ColonyPoints()
 		{
-			var colonists = Find.VisibleMap.mapPawns.FreeColonists;
-			ColonyEvaluation.GetColonistArmouryPoints(colonists, Find.VisibleMap, out var colonistPoints, out var armouryPoints);
+			var colonists = Find.CurrentMap.mapPawns.FreeColonists;
+			ColonyEvaluation.GetColonistArmouryPoints(colonists, Find.CurrentMap, out var colonistPoints, out var armouryPoints);
 			return (int)(colonistPoints + armouryPoints);
 		}
 
@@ -590,13 +610,13 @@ namespace ZombieLand
 		public static string TranslateHoursToText(float hours)
 		{
 			var ticks = (int)(GenDate.TicksPerHour * hours);
-			return ticks.ToStringTicksToPeriod(true, true, false);
+			return ticks.ToStringTicksToPeriodVerbose(true, false);
 		}
 
 		public static string TranslateHoursToText(int hours)
 		{
 			var ticks = GenDate.TicksPerHour * hours;
-			return ticks.ToStringTicksToPeriod(true, true, false);
+			return ticks.ToStringTicksToPeriodVerbose(true, false);
 		}
 
 		public static void Look<T>(ref T[] list, string label, params object[] ctorArgs) where T : IExposable
@@ -774,4 +794,36 @@ namespace ZombieLand
 			if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 		}
 	}
+
+	/*public class Random
+	{
+		private readonly uint seed;
+
+		public Random(uint seed = 0)
+		{
+			this.seed = seed;
+		}
+
+		static uint BitRotate(uint x)
+		{
+			const int bits = 16;
+			return (x << bits) | (x >> (32 - bits));
+		}
+
+		public uint GetValue(int x, int y)
+		{
+			var num = seed;
+			for (uint i = 0; i < 16; i++)
+			{
+				num = num * 541 + (uint)x;
+				num = BitRotate(num);
+				num = num * 809 + (uint)y;
+				num = BitRotate(num);
+				num = num * 673 + (uint)i;
+				num = BitRotate(num);
+			}
+			return num % 4;
+		}
+	}
+	*/
 }

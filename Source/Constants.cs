@@ -76,7 +76,7 @@ namespace ZombieLand
 		// timing
 		//
 		public static float PHEROMONE_FADEOFF = 180f;
-		public static float TICKMANAGER_RECALCULATE_DELAY = 5f;
+		public static float TICKMANAGER_RECALCULATE_DELAY = 60f;
 		public static float TICKMANAGER_AVOIDGRID_DELAY = 0.25f;
 		public static int EAT_DELAY_TICKS = 1800;
 
@@ -103,6 +103,7 @@ namespace ZombieLand
 		public static float BASE_MUZZLE_FLASH_VALUE = 9f;
 		public static float SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 14;
 		public static float COLONISTS_HIT_ZOMBIES_CHANCE = 0.9f;
+		public static float COMBAT_EXTENDED_ARMOR_PENETRATION = 0.1f;
 
 		// zombie incidents
 		//
@@ -148,6 +149,7 @@ namespace ZombieLand
 		public static Material RUBBLE = MaterialPool.MatFrom("Rubble", ShaderDatabase.Cutout);
 		public static Material BRRAINZ = MaterialPool.MatFrom("Brrainz", ShaderDatabase.Cutout);
 		public static Material EATING = MaterialPool.MatFrom("Eating", ShaderDatabase.Cutout);
+
 		public static System.Random random = new System.Random();
 	}
 }

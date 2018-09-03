@@ -85,7 +85,7 @@ namespace ZombieLand
 
 			if (state == InfectionState.Infected)
 			{
-				Tools.ConvertToZombie(pawn);
+				Tools.QueueConvertToZombie(pawn);
 				return;
 			}
 
@@ -123,16 +123,16 @@ namespace ZombieLand
 
 		public override void Heal(float amount)
 		{
-			// if (pawn.IsColonist)
-			// {
-			var tendDuration = TendDuration;
-			if (tendDuration != null)
+			if (pawn.RaceProps.Humanlike)
 			{
-				var state = tendDuration.GetInfectionState();
-				if (state != InfectionState.BittenVisible && state != InfectionState.BittenHarmless)
-					return;
+				var tendDuration = TendDuration;
+				if (tendDuration != null)
+				{
+					var state = tendDuration.GetInfectionState();
+					if (state != InfectionState.BittenVisible && state != InfectionState.BittenHarmless)
+						return;
+				}
 			}
-			// }
 
 			base.Heal(amount);
 		}

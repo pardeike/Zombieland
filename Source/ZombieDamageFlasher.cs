@@ -1,25 +1,17 @@
 ﻿using Harmony;
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 using Verse;
 
 namespace ZombieLand
 {
-	[HarmonyPatch]
+	[HarmonyPatch(typeof(PawnGraphicSet))]
+	[HarmonyPatch(MethodType.Constructor, typeof(Pawn))]
 	static class PawnGraphicSet_Constructor_With_Pawn_Patch
 	{
-		static MethodBase TargetMethod()
+		static void Postfix(PawnGraphicSet __instance)
 		{
-			return typeof(PawnGraphicSet).Constructor(new Type[] { typeof(Pawn) });
-		}
-
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-		{
-			var from = typeof(DamageFlasher).Constructor(new Type[] { typeof(Pawn) });
-			var to = typeof(ZombieDamageFlasher).Constructor(new Type[] { typeof(Pawn) });
-			return instructions.MethodReplacer(from, to);
+			__instance.flasher = new ZombieDamageFlasher(__instance.pawn);
 		}
 	}
 
@@ -41,14 +33,20 @@ namespace ZombieLand
 	{
 		static readonly Color greenDamagedMatStartingColor = new Color(0f, 0.8f, 0f);
 
+		private static int DamageFlashTicksLeft(DamageFlasher damageFlasher)
+		{
+			// copied from DamageFlasher.DamageFlashTicksLeft
+			return GetterSetters.lastDamageTickByRef(damageFlasher) + 16 - Find.TickManager.TicksGame;
+		}
+
 		[HarmonyPriority(Priority.Last)]
 		static void Postfix(DamageFlasher __instance, Material baseMat, Material __result)
 		{
-			if (__instance is ZombieDamageFlasher zombieDamageFlasher/* && zombieDamageFlasher.isColonist */
-				&& zombieDamageFlasher.dinfoDef == ZombieDamageFlasher.zombieBiteDamageDef
+			if (__instance is ZombieDamageFlasher zombieDamageFlasher
+				&& zombieDamageFlasher.dinfoDef == Tools.ZombieBiteDamageDef
 				&& __result != null)
 			{
-				var damPct = zombieDamageFlasher.damageFlashTicksLeft.GetValue<int>() / 16f;
+				var damPct = DamageFlashTicksLeft(__instance) / 16f;
 				__result.color = Color.Lerp(baseMat.color, greenDamagedMatStartingColor, damPct);
 			}
 		}
@@ -56,16 +54,8 @@ namespace ZombieLand
 
 	class ZombieDamageFlasher : DamageFlasher
 	{
-		// public bool isColonist;
 		public DamageDef dinfoDef;
-		public Traverse damageFlashTicksLeft;
 
-		public static DamageDef zombieBiteDamageDef = DefDatabase<DamageDef>.GetNamed("ZombieBite");
-
-		public ZombieDamageFlasher(Pawn pawn) : base(pawn)
-		{
-			// isColonist = pawn.IsColonist;
-			damageFlashTicksLeft = Traverse.Create(this).Property("DamageFlashTicksLeft");
-		}
+		public ZombieDamageFlasher(Pawn pawn) : base(pawn) { }
 	}
 }

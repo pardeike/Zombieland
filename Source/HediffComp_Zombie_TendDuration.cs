@@ -1,4 +1,5 @@
 ﻿using Harmony;
+using System;
 using System.Linq;
 using UnityEngine;
 using Verse;
@@ -52,9 +53,8 @@ namespace ZombieLand
 			if (ZombieInfector == null
 				|| Pawn == null
 				|| Pawn.Map == null
-				// || Pawn.IsColonist == false
+				|| Pawn.RaceProps.Humanlike == false
 				|| Pawn.Spawned == false
-				// || Pawn.Dead
 				|| Pawn.Destroyed
 				) return InfectionState.None;
 
@@ -103,7 +103,7 @@ namespace ZombieLand
 				if (firstTimeVisible)
 				{
 					firstTimeVisible = false;
-					Traverse.Create(this).Field("tendedCount").SetValue(0);
+					GetterSetters.totalTendQualityByRef(this) = 0f;
 				}
 
 				return base.CompShouldRemove;

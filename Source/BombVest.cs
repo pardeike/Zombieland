@@ -19,7 +19,7 @@ namespace ZombieLand
 		{
 			var damageDef = new SuicideBombDamage();
 			var radius = 1f + Find.Storyteller.difficulty.difficulty;
-			GenExplosion.DoExplosion(pos, map, radius, damageDef, null, -1, null, null, null, null, 1f, 1, false, null, 0f, 1);
+			GenExplosion.DoExplosion(pos, map, radius, damageDef, null);
 		}
 	}
 
@@ -34,9 +34,9 @@ namespace ZombieLand
 		public SuicideBombDamage()
 		{
 			var baseDef = CustomDefs.SuicideBomb;
-			Traverse.IterateFields(baseDef, this, (from, to) => { to.SetValue(from.GetValue()); });
+			Traverse.IterateFields(baseDef, this, Traverse.CopyFields);
 
-			explosionDamage = ScaledValueBetween(8, 120);
+			defaultDamage = ScaledValueBetween(8, 120);
 			explosionBuildingDamageFactor = ScaledValueBetween(10, 320);
 			explosionHeatEnergyPerCell = ScaledValueBetween(8, 128);
 		}

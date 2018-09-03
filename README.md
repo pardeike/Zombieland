@@ -1,10 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ModMetaData>
-	<name>Zombieland</name>
-	<author>Andreas Pardeike</author>
-	<url>https://ludeon.com/forums/index.php?topic=32601.0</url>
-	<targetVersion>0.19.0</targetVersion>
-	<description>Do you like The Walking Dead? Are you afraid of The Undead? Good. Because this mod will give you the Heebie-jeebies!
+## RimWorld Zombieland Mod
+
+### About
+
+Do you like The Walking Dead? Are you afraid of The Undead? Good. Because this mod will give you the Heebie-jeebies!
 
 This is not your average Zombie mod. In Zombieland, Zombies are everywhere! They crawl out of the ground in masses, hunt you down, bash your doors and eat you alive! At night, their blood lust will steer them towards your base. So better be prepared!
 
@@ -14,10 +12,15 @@ This Mod features custom controlled Zombies with simulated instincts. Most defau
 
 PS: Aim for the head!
 
-Powered by Harmony Patch Library
+Powered by [Harmony Patch Library](https://github.com/pardeike/Harmony)
 
-Andreas Pardeike
-Email: andreas@pardeike.net
-Steam: pardeike
-Twitter: @pardeike</description>
-</ModMetaData>
+### License
+
+Free. As in free beer. Copy, learn and be respectful.
+
+### Contact
+
+Andreas Pardeike  
+Email: andreas@pardeike.net  
+Steam: pardeike  
+Twitter: @pardeike

@@ -29,6 +29,8 @@ namespace ZombieLand
 		Sustainer zombiesAmbientSound;
 		float zombiesAmbientSoundVolume;
 
+		public Queue<ThingWithComps> colonistsConverter = new Queue<ThingWithComps>();
+
 		public List<IntVec3> explosions = new List<IntVec3>();
 
 		public IncidentInfo incidentInfo = new IncidentInfo();
@@ -48,7 +50,7 @@ namespace ZombieLand
 
 			RecalculateVisibleMap();
 
-			var destinations = Traverse.Create(map.pawnDestinationReservationManager).Field("reservedDestinations").GetValue<Dictionary<Faction, PawnDestinationReservationManager.PawnDestinationSet>>();
+			var destinations = GetterSetters.reservedDestinationsByRef(map.pawnDestinationReservationManager);
 			var zombieFaction = Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies);
 			if (!destinations.ContainsKey(zombieFaction)) map.pawnDestinationReservationManager.RegisterFaction(zombieFaction);
 
@@ -93,6 +95,16 @@ namespace ZombieLand
 				explosions = new List<IntVec3>();
 		}
 
+		public static void ForceRecalculate()
+		{
+			var tickManager = Find.CurrentMap?.GetComponent<TickManager>();
+			if (tickManager != null)
+			{
+				tickManager.visibleGridUpdateCounter = -1;
+				tickManager.RecalculateVisibleMap();
+			}
+		}
+
 		public void RecalculateVisibleMap()
 		{
 			if (visibleGridUpdateCounter-- < 0)
@@ -100,13 +112,14 @@ namespace ZombieLand
 				visibleGridUpdateCounter = Constants.TICKMANAGER_RECALCULATE_DELAY.SecondsToTicks();
 
 				currentColonyPoints = Tools.ColonyPoints();
-
 				allZombiesCached = AllZombies().ToList();
 				var home = map.areaManager.Home;
 				if (home.TrueCount > 0)
 				{
-					allZombiesCached.Do(zombie => zombie.wanderDestination = home.ActiveCells.RandomElement());
-					var cells = home.ActiveCells;
+					var cells = home.ActiveCells.ToArray();
+					var cellCount = cells.Length;
+					allZombiesCached.Do(zombie => zombie.wanderDestination = cells[Constants.random.Next() % cellCount]);
+
 					centerOfInterest = new IntVec3(
 						(int)Math.Round(cells.Average(c => c.x)),
 						0,
@@ -174,7 +187,7 @@ namespace ZombieLand
 
 				ZombieGenerator.FinalizeZombieGeneration(result.zombie);
 				GenPlace.TryPlaceThing(result.zombie, result.cell, result.map, ThingPlaceMode.Direct);
-
+				allZombiesCached.Add(result.zombie);
 			}
 		}
 
@@ -368,7 +381,7 @@ namespace ZombieLand
 			var volume = 0f;
 			if (allZombiesCached.Any())
 			{
-				var hour = GenLocalDate.HourFloat(Find.VisibleMap);
+				var hour = GenLocalDate.HourFloat(Find.CurrentMap);
 				if (hour < 12f) hour += 24f;
 				if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
 					volume = 1f;
@@ -396,6 +409,12 @@ namespace ZombieLand
 					zombiesAmbientSound.End();
 					zombiesAmbientSound = null;
 				}
+			}
+
+			if (colonistsConverter.Count > 0)
+			{
+				var pawn = colonistsConverter.Dequeue();
+				Tools.ConvertToZombie(pawn);
 			}
 		}
 	}

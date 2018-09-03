@@ -1,8 +1,7 @@
-﻿using RimWorld;
+﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -36,6 +35,7 @@ namespace ZombieLand
 		public float bombTickingInterval = -1f;
 		public bool bombWillGoOff;
 		public int lastBombTick;
+		public bool IsSuicideBomber => bombTickingInterval != -1;
 
 		// toxic splasher
 		public bool isToxicSplasher = false;
@@ -50,7 +50,7 @@ namespace ZombieLand
 		public VariableGraphic customHeadGraphic; // not saved
 		public VariableGraphic customBodyGraphic; // not saved
 
-		static int totalNthTicks;
+		static readonly int totalNthTicks;
 		static public int[] nthTickValues;
 		static Zombie()
 		{
@@ -149,7 +149,7 @@ namespace ZombieLand
 
 		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)
 		{
-			if (bombTickingInterval != -1f)
+			if (IsSuicideBomber)
 			{
 				bombTickingInterval = -1f;
 				bombWillGoOff = false;
@@ -167,26 +167,15 @@ namespace ZombieLand
 			base.Kill(dinfo, exactCulprit);
 		}
 
-		public override void DeSpawn()
+		public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
 		{
 			var map = Map;
 			if (map == null) return;
 
 			var grid = map.GetGrid();
 			grid.ChangeZombieCount(lastGotoPosition, -1);
-			base.DeSpawn();
+			base.DeSpawn(mode);
 		}
-
-		static readonly Type[] RenderPawnInternalParameterTypes = {
-			typeof(Vector3),
-			typeof(Quaternion),
-			typeof(bool),
-			typeof(Rot4),
-			typeof(Rot4),
-			typeof(RotDrawMode),
-			typeof(bool),
-			typeof(bool)
-		};
 
 		void DropStickyGoo()
 		{
@@ -194,7 +183,14 @@ namespace ZombieLand
 			var map = Map;
 			if (map == null) return;
 
-			var amount = (int)story.bodyType + Find.Storyteller.difficulty.difficulty; // max 10
+			var amount = 1 + Find.Storyteller.difficulty.difficulty;
+			if (story.bodyType == BodyTypeDefOf.Thin)
+				amount -= 1;
+			if (story.bodyType == BodyTypeDefOf.Fat)
+				amount += 1;
+			if (story.bodyType == BodyTypeDefOf.Hulk)
+				amount += 2;
+
 			var maxRadius = 0f;
 			var count = (int)GenMath.LerpDouble(0, 10, 2, 30, amount);
 			var hasFilth = 0;
@@ -207,11 +203,11 @@ namespace ZombieLand
 				if (r > maxRadius) maxRadius = r;
 				var cell = pos + vec;
 				if (GenSight.LineOfSight(pos, cell, map, true, null, 0, 0) && cell.Walkable(map))
-					if (FilthMaker.MakeFilth(cell, map, ThingDef.Named("StickyGoo"), NameStringShort))
+					if (FilthMaker.MakeFilth(cell, map, ThingDef.Named("StickyGoo"), Name.ToStringShort, 1))
 						hasFilth++;
 			}
 			if (hasFilth >= 6)
-				GenExplosion.DoExplosion(pos, map, Mathf.Max(0.5f, Mathf.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, SoundDef.Named("ToxicSplash"));
+				GenExplosion.DoExplosion(pos, map, Mathf.Max(0.5f, Mathf.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, 0, SoundDef.Named("ToxicSplash"));
 		}
 
 		void HandleRubble()
@@ -273,7 +269,7 @@ namespace ZombieLand
 			}
 		}
 
-		int[] nextNthTick = new int[totalNthTicks];
+		readonly int[] nextNthTick = new int[totalNthTicks];
 		public bool EveryNTick(NthTick interval)
 		{
 			var n = (int)interval;
@@ -296,7 +292,7 @@ namespace ZombieLand
 
 		public void CustomTick()
 		{
-			if (!ThingOwnerUtility.ContentsFrozen(ParentHolder) && Map != null)
+			if (!ThingOwnerUtility.ContentsSuspended(ParentHolder) && Map != null)
 			{
 				if (Spawned)
 				{
@@ -307,9 +303,8 @@ namespace ZombieLand
 					natives?.NativeVerbsTick();
 					Drawer?.DrawTrackerTick();
 					rotationTracker?.RotationTrackerTick();
+					health?.HealthTick();
 				}
-
-				health?.HealthTick();
 			}
 
 			if (state == ZombieState.Emerging)
@@ -325,7 +320,34 @@ namespace ZombieLand
 			}
 		}
 
-		static readonly MethodInfo m_RenderPawnInternal = typeof(PawnRenderer).Method("RenderPawnInternal", RenderPawnInternalParameterTypes);
+		public static Quaternion ZombieAngleAxis(float angle, Vector3 axis, Pawn pawn)
+		{
+			var result = Quaternion.AngleAxis(angle, axis);
+
+			var zombie = pawn as Zombie;
+			if (zombie == null)
+				return result;
+
+			var progress = zombie.rubbleCounter / (float)Constants.RUBBLE_AMOUNT;
+			if (progress >= Constants.EMERGE_DELAY)
+			{
+				var bodyRot = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, 90, 0, progress);
+				result *= Quaternion.Euler(Vector3.right * bodyRot);
+			}
+			return result;
+		}
+
+		static readonly Type[] RenderPawnInternalParameterTypes = {
+			typeof(Vector3),
+			typeof(float),
+			typeof(bool),
+			typeof(Rot4),
+			typeof(Rot4),
+			typeof(RotDrawMode),
+			typeof(bool),
+			typeof(bool)
+		};
+		static readonly FastInvokeHandler delegateRenderPawnInternal = MethodInvoker.GetHandler(typeof(PawnRenderer).MethodNamed("RenderPawnInternal", RenderPawnInternalParameterTypes));
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
 		{
 			if (!renderer.graphics.AllResolved)
@@ -336,11 +358,9 @@ namespace ZombieLand
 			var progress = rubbleCounter / (float)Constants.RUBBLE_AMOUNT;
 			if (progress >= Constants.EMERGE_DELAY)
 			{
-				var bodyRot = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, 90, 0, progress);
 				var bodyOffset = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, -0.45f, 0, progress);
-
-				m_RenderPawnInternal.Invoke(renderer, new object[] {
-					drawLoc + new Vector3(0, 0, bodyOffset), Quaternion.Euler(bodyRot, 0, 0), true, Rot4.North, Rot4.North, bodyDrawType, false, false
+				delegateRenderPawnInternal(renderer, new object[] {
+					drawLoc + new Vector3(0, 0, bodyOffset), 0f, true, Rot4.South, Rot4.South, bodyDrawType, false, false
 				});
 			}
 

@@ -9,7 +9,7 @@
 		<altitudeLayer>Pawn</altitudeLayer>
 		<useHitPoints>false</useHitPoints>
 		<hasTooltip>false</hasTooltip>
-		<soundImpactDefault>BulletImpactFlesh</soundImpactDefault>
+		<soundImpactDefault>BulletImpact_Flesh</soundImpactDefault>
 		<statBases>
 			<Mass>70</Mass>
 			<Flammability>1</Flammability>
@@ -38,7 +38,7 @@
 		</race>
 	</ThingDef>
 
-	<ThingDef Class="ZombieLand.ThingDef_Zombie" ParentName="BaseZombie">
+	<ThingDef Name="Zombie" Class="ZombieLand.ThingDef_Zombie" ParentName="BaseZombie">
 		<defName>Zombie</defName>
 		<label>Zombie</label>
 		<description>A zombie</description>
@@ -47,72 +47,81 @@
 			<ArmorRating_Blunt>0</ArmorRating_Blunt>
 			<ArmorRating_Sharp>0</ArmorRating_Sharp>
 			<ArmorRating_Heat>0</ArmorRating_Heat>
-			<ArmorRating_Electric>0</ArmorRating_Electric>
 			<MeleeHitChance>0.5</MeleeHitChance>
-			<MeleeDodgeChance>0.1</MeleeDodgeChance>
+			<MeleeDodgeChance>0.05</MeleeDodgeChance>
 		</statBases>
-		<verbs>
+		<tools>
 			<li>
-				<verbClass>Verb_MeleeAttack</verbClass>
-				<defaultCooldownTime>4.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>4</meleeDamageBaseAmount>
-				<meleeDamageDef>ZombieBite</meleeDamageDef>
+				<label>Bite</label>
+				<capacities>
+					<li>ZombieBite</li>
+				</capacities>
+				<power>4</power>
+				<cooldownTime>4</cooldownTime>
 				<linkedBodyPartsGroup>Teeth</linkedBodyPartsGroup>
-				<surpriseAttack>
-					<extraMeleeDamages>
-						<li>
-							<def>Stun</def>
-							<amount>40</amount>
-						</li>
-					</extraMeleeDamages>
-				</surpriseAttack>
 			</li>
 			<li>
-				<verbClass>Verb_MeleeAttack</verbClass>
-				<defaultCooldownTime>2.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>1</meleeDamageBaseAmount>
-				<meleeDamageDef>Scratch</meleeDamageDef>
+				<label>left fist</label>
+				<capacities>
+					<li>Scratch</li>
+				</capacities>
+				<power>1</power>
+				<cooldownTime>2</cooldownTime>
 				<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
 				<surpriseAttack>
 					<extraMeleeDamages>
 						<li>
 							<def>Stun</def>
-							<amount>20</amount>
+							<amount>22</amount>
 						</li>
 					</extraMeleeDamages>
 				</surpriseAttack>
 			</li>
 			<li>
-				<verbClass>Verb_MeleeAttack</verbClass>
-				<defaultCooldownTime>2.0</defaultCooldownTime>
-				<meleeDamageBaseAmount>1</meleeDamageBaseAmount>
-				<meleeDamageDef>Scratch</meleeDamageDef>
+				<label>right fist</label>
+				<capacities>
+					<li>Scratch</li>
+				</capacities>
+				<power>1</power>
+				<cooldownTime>2</cooldownTime>
 				<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
 				<surpriseAttack>
 					<extraMeleeDamages>
 						<li>
 							<def>Stun</def>
-							<amount>20</amount>
+							<amount>22</amount>
 						</li>
 					</extraMeleeDamages>
 				</surpriseAttack>
 			</li>
-		</verbs>
+		</tools>
 		<race>
 			<thinkTreeMain>Zombie</thinkTreeMain>
 			<intelligence>Humanlike</intelligence>
 			<makesFootprints>false</makesFootprints>
 			<lifeExpectancy>9999</lifeExpectancy>
 			<baseBodySize>1</baseBodySize>
-			<leatherColor>(34,113,39)</leatherColor>
-			<leatherCommonalityFactor>0</leatherCommonalityFactor>
+			<baseHealthScale>1</baseHealthScale>
+			<leatherDef>Leather_Human</leatherDef>
 			<foodType>OmnivoreRoughAnimal</foodType>
 			<body>Human</body>
 			<nameCategory>HumanStandard</nameCategory>
 			<lifeStageAges>
 				<li>
-					<def>HumanlikeTeenager</def>
+					<def>HumanlikeBaby</def>
 					<minAge>0</minAge>
+				</li>
+				<li>
+					<def>HumanlikeToddler</def>
+					<minAge>1.2</minAge>
+				</li>
+				<li>
+					<def>HumanlikeChild</def>
+					<minAge>4</minAge>
+				</li>
+				<li>
+					<def>HumanlikeTeenager</def>
+					<minAge>13</minAge>
 				</li>
 				<li>
 					<def>HumanlikeAdult</def>
@@ -126,7 +135,6 @@
 				<li>OrganicStandard</li>
 			</hediffGiverSets>
 		</race>
-
 	</ThingDef>
 
 </Defs>

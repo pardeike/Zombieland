@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 
 namespace ZombieLand
 {
@@ -48,7 +49,7 @@ namespace ZombieLand
 				{
 					var request = requestQueue.Dequeue();
 					if (request.zombie == null)
-						request.zombie = GeneratePawn(ZombieGenerator.ZombieType.Random);
+						request.zombie = GeneratePawn(ZombieType.Random);
 					if (request.zombie != null)
 					{
 						var queue = QueueForMap(request.map);
@@ -107,7 +108,7 @@ namespace ZombieLand
 			return new Color(0.3f, 0.2f, 0.1f);
 		}
 
-		static Dictionary<string, IntVec2> eyeOffsets = new Dictionary<string, IntVec2>() {
+		static readonly Dictionary<string, IntVec2> eyeOffsets = new Dictionary<string, IntVec2>() {
 			{ "Female_Average_Normal", new IntVec2(11, -5) },
 			{ "Female_Average_Pointy", new IntVec2(11, -5) },
 			{ "Female_Average_Wide", new IntVec2(11, -6) },
@@ -144,7 +145,8 @@ namespace ZombieLand
 			PawnComponentsUtility.CreateInitialComponents(zombie);
 			zombie.health.hediffSet.Clear();
 
-			zombie.ageTracker.AgeBiologicalTicks = ((long)(Rand.Range(0, 0x9c4 + 1) * 3600000f)) + Rand.Range(0, 0x36ee80);
+			var ageInYears = (long)Rand.Range(14, 130);
+			zombie.ageTracker.AgeBiologicalTicks = (ageInYears * 3600000);
 			zombie.ageTracker.AgeChronologicalTicks = zombie.ageTracker.AgeBiologicalTicks;
 			zombie.ageTracker.BirthAbsTicks = GenTicks.TicksAbs - zombie.ageTracker.AgeBiologicalTicks;
 			var idx = zombie.ageTracker.CurLifeStageIndex; // trigger calculations
@@ -177,7 +179,10 @@ namespace ZombieLand
 				AssignNewCustomGraphics(zombie);
 
 			zombie.Drawer.leaner = new ZombieLeaner(zombie);
-			Traverse.Create(zombie.pather).Field("destination").SetValue(IntVec3.Invalid);
+
+			if (zombie.pather == null)
+				zombie.pather = new Pawn_PathFollower(zombie);
+			GetterSetters.destinationByRef(zombie.pather) = IntVec3.Invalid;
 
 			return zombie;
 		}
@@ -191,26 +196,26 @@ namespace ZombieLand
 			Normal = 3
 		}
 
-		private static BodyType PrepareZombieType(Zombie zombie, ZombieType overwriteType)
+		private static BodyTypeDef PrepareZombieType(Zombie zombie, ZombieType overwriteType)
 		{
-			var zombieTypeInitializers = new Pair<float, Func<BodyType>>[]
+			var zombieTypeInitializers = new Pair<float, Func<BodyTypeDef>>[]
 			{
 				// suicide bomber
-				new Pair<float, Func<BodyType>>(
-					ZombieSettings.Values.suicideBomberChance,
+				new Pair<float, Func<BodyTypeDef>>(
+					ZombieSettings.Values.suicideBomberChance / 2f,
 					delegate
 					{
 						zombie.bombTickingInterval = 60f;
 						zombie.lastBombTick = Find.TickManager.TicksAbs + Rand.Range(0, (int)zombie.bombTickingInterval);
 						//
 						zombie.gender = Gender.Male;
-						return BodyType.Hulk;
+						return BodyTypeDefOf.Hulk;
 					}
 				),
 
 				// toxic splasher
-				new Pair<float, Func<BodyType>>(
-					ZombieSettings.Values.toxicSplasherChance,
+				new Pair<float, Func<BodyTypeDef>>(
+					ZombieSettings.Values.toxicSplasherChance / 2f,
 					delegate
 					{
 						zombie.isToxicSplasher = true;
@@ -219,21 +224,21 @@ namespace ZombieLand
 						{
 							case 1:
 								zombie.gender = Gender.Male;
-								return BodyType.Male;
+								return BodyTypeDefOf.Male;
 							case 2:
 								zombie.gender = Gender.Female;
-								return BodyType.Female;
+								return BodyTypeDefOf.Female;
 							case 3:
 								zombie.gender = Gender.Male;
-								return BodyType.Thin;
+								return BodyTypeDefOf.Thin;
 						}
-						return BodyType.Undefined;
+						return null;
 					}
 				),
 
 				// tanky operator
-				new Pair<float, Func<BodyType>>(
-					ZombieSettings.Values.tankyOperatorChance,
+				new Pair<float, Func<BodyTypeDef>>(
+					ZombieSettings.Values.tankyOperatorChance / 3f,
 					delegate
 					{
 						zombie.hasTankyShield = 1f;
@@ -241,12 +246,12 @@ namespace ZombieLand
 						zombie.hasTankySuit = 1f;
 						//
 						zombie.gender = Gender.Male;
-						return BodyType.Fat;
+						return BodyTypeDefOf.Fat;
 					}
 				),
 
 				// default ordinary zombie
-				new Pair<float, Func<BodyType>>(
+				new Pair<float, Func<BodyTypeDef>>(
 					float.MaxValue,
 					delegate
 					{
@@ -254,18 +259,18 @@ namespace ZombieLand
 						{
 							case 1:
 								zombie.gender = Gender.Male;
-								return BodyType.Male;
+								return BodyTypeDefOf.Male;
 							case 2:
 								zombie.gender = Gender.Female;
-								return BodyType.Female;
+								return BodyTypeDefOf.Female;
 							case 3:
 								zombie.gender = Gender.Male;
-								return BodyType.Thin;
+								return BodyTypeDefOf.Thin;
 							case 4:
 								zombie.gender = Gender.Male;
-								return BodyType.Fat;
+								return BodyTypeDefOf.Fat;
 						}
-						return BodyType.Undefined;
+						return null;
 					}
 				)
 			};
@@ -277,33 +282,33 @@ namespace ZombieLand
 			}
 
 			var typeChance = Rand.Value;
-			var bodyType = BodyType.Undefined;
+			BodyTypeDef bodyType = null;
 			foreach (var initializer in zombieTypeInitializers)
 			{
-				if (typeChance < initializer.First)
+				typeChance -= initializer.First;
+				if (typeChance < 0f)
 				{
 					bodyType = initializer.Second();
 					break;
 				}
-				typeChance -= initializer.First;
 			}
 			return bodyType;
 		}
 
-		static string[] headShapes = { "Normal", "Pointy", "Wide" };
+		static readonly string[] headShapes = { "Normal", "Pointy", "Wide" };
 		public static void AssignNewCustomGraphics(Zombie zombie)
 		{
 			var renderPrecedence = 0;
 
 			var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
 			var color = zombie.isToxicSplasher ? "toxic" : GraphicToolbox.RandomSkinColorString();
-			var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
+			var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
 			zombie.customBodyGraphic = new VariableGraphic { bodyColor = color };
 			zombie.customBodyGraphic.Init(bodyRequest);
 
 			var headShape = zombie.hasTankyHelmet == 1f ? "Wide" : headShapes[Rand.Range(0, 3)];
 			var headPath = "Zombie/" + zombie.gender + "_" + zombie.story.crownType + "_" + headShape;
-			var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence);
+			var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
 			zombie.customHeadGraphic = new VariableGraphic { bodyColor = color };
 			zombie.customHeadGraphic.Init(headRequest);
 
@@ -313,7 +318,7 @@ namespace ZombieLand
 		public static void FinalizeZombieGeneration(Zombie zombie)
 		{
 			var graphicPath = GraphicDatabaseHeadRecords.GetHeadRandom(zombie.gender, zombie.story.SkinColor, zombie.story.crownType).GraphicPath;
-			Traverse.Create(zombie.story).Field("headGraphicPath").SetValue(graphicPath);
+			GetterSetters.headGraphicPathByRef(zombie.story) = graphicPath;
 
 			var request = new PawnGenerationRequest(zombie.kindDef);
 			PawnApparelGenerator.GenerateStartingApparelFor(zombie, request);

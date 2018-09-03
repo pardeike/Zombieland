@@ -40,13 +40,12 @@ namespace ZombieLand
 				return true;
 			}
 
-			if (zombie.bombTickingInterval != -1f)
+			if (zombie.IsSuicideBomber)
 			{
 				if (zombie.bombWillGoOff && zombie.EveryNTick(NthTick.Every10))
 					zombie.bombTickingInterval -= 2f;
 				if (zombie.bombTickingInterval <= 0f)
 				{
-					zombie.bombTickingInterval = -1f;
 					zombie.Kill(null);
 					return true;
 				}
@@ -326,11 +325,14 @@ namespace ZombieLand
 		//
 		public static bool Smash(this JobDriver_Stumble driver, Zombie zombie, bool checkSmashable, bool onylWhenNotRaging)
 		{
-			if (driver.destination.IsValid && checkSmashable == false)
-				return false;
+			if (zombie.wasMapPawnBefore == false && zombie.IsSuicideBomber == false && zombie.IsTanky == false)
+			{
+				if (driver.destination.IsValid && checkSmashable == false)
+					return false;
 
-			if (onylWhenNotRaging && zombie.raging > 0 && zombie.wasMapPawnBefore == false)
-				return false;
+				if (onylWhenNotRaging && zombie.raging > 0)
+					return false;
+			}
 
 			var building = CanSmash(zombie);
 			if (building == null)
@@ -388,7 +390,7 @@ namespace ZombieLand
 			}
 
 			// next tanky move is on a building
-			if (newPos.GetEdifice(zombie.Map) is Building)
+			if (newPos.GetEdifice(zombie.Map) is Building building && (building as Mineable) == null)
 				return Smash(driver, zombie, checkSmashable, false);
 
 			// next move is on a door
@@ -441,7 +443,7 @@ namespace ZombieLand
 			{
 				var moveTowardsCenter = false;
 
-				var hour = GenLocalDate.HourOfDay(Find.VisibleMap);
+				var hour = GenLocalDate.HourOfDay(Find.CurrentMap);
 				if (hour < 12) hour += 24;
 				if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
 					moveTowardsCenter = true;
@@ -566,9 +568,6 @@ namespace ZombieLand
 
 		static Building CanSmash(Zombie zombie)
 		{
-			if (zombie.EveryNTick(NthTick.Every15) == false && zombie.IsTanky == false)
-				return null;
-
 			var map = zombie.Map;
 			var basePos = zombie.Position;
 			var attackColonistsOnly = (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists);
@@ -580,13 +579,12 @@ namespace ZombieLand
 				var pos = info.GetParent(basePos, false);
 				if (pos.IsValid == false)
 					pos = info.GetParent(basePos, true);
-				if (pos.IsValid && pos.GetEdifice(zombie.Map) is Building building && (attackColonistsOnly == false || building.Faction == playerFaction))
+				if (pos.IsValid && pos.GetEdifice(zombie.Map) is Building building && (building as Mineable) == null && (attackColonistsOnly == false || building.Faction == playerFaction))
 					return building;
 				return null;
 			}
 
-			var isSuicideBomber = zombie.bombTickingInterval != -1f;
-			if (isSuicideBomber == false && zombie.IsTanky == false && zombie.wasMapPawnBefore == false)
+			if (zombie.IsSuicideBomber == false && zombie.IsTanky == false && zombie.wasMapPawnBefore == false)
 			{
 				if (ZombieSettings.Values.smashMode == SmashMode.Nothing) return null;
 				if (ZombieSettings.Values.smashOnlyWhenAgitated && zombie.state != ZombieState.Tracking && zombie.raging == 0) return null;
@@ -598,7 +596,7 @@ namespace ZombieLand
 			adjIndex4[nextIndex] = c;
 			prevIndex4 = nextIndex;
 
-			if (ZombieSettings.Values.smashMode == SmashMode.DoorsOnly && isSuicideBomber == false)
+			if (ZombieSettings.Values.smashMode == SmashMode.DoorsOnly && zombie.IsSuicideBomber == false)
 			{
 				for (var i = 0; i < 4; i++)
 				{
@@ -611,7 +609,7 @@ namespace ZombieLand
 				}
 			}
 
-			if (ZombieSettings.Values.smashMode == SmashMode.AnyBuilding || isSuicideBomber || zombie.IsTanky)
+			if (ZombieSettings.Values.smashMode == SmashMode.AnyBuilding || zombie.IsSuicideBomber || zombie.IsTanky)
 			{
 				var grid = map.thingGrid;
 				for (var i = 0; i < 4; i++)
@@ -623,14 +621,14 @@ namespace ZombieLand
 					foreach (var thing in grid.ThingsListAtFast(pos))
 					{
 						var building = thing as Building;
-						if (building == null)
+						if (building == null || (building as Mineable) != null)
 							continue;
 
 						var buildingDef = building.def;
 						var factionCondition = (attackColonistsOnly == false || building.Faction == playerFaction);
 						if (buildingDef.useHitPoints && buildingDef.building.isNaturalRock == false && factionCondition)
 						{
-							if (isSuicideBomber)
+							if (zombie.IsSuicideBomber)
 							{
 								zombie.bombWillGoOff = true;
 								return null;
@@ -686,18 +684,13 @@ namespace ZombieLand
 			if (driver.eatDelay == 0)
 			{
 				driver.eatDelay = Constants.EAT_DELAY_TICKS;
-				switch (zombie.story.bodyType)
-				{
-					case BodyType.Thin:
-						driver.eatDelay *= 3;
-						break;
-					case BodyType.Hulk:
-						driver.eatDelay /= 2;
-						break;
-					case BodyType.Fat:
-						driver.eatDelay /= 4;
-						break;
-				}
+				var bodyType = zombie.story.bodyType;
+				if (bodyType == BodyTypeDefOf.Thin)
+					driver.eatDelay *= 3;
+				else if (bodyType == BodyTypeDefOf.Hulk)
+					driver.eatDelay /= 2;
+				else if (bodyType == BodyTypeDefOf.Fat)
+					driver.eatDelay /= 4;
 			}
 			return driver.eatDelay;
 		}
@@ -752,7 +745,7 @@ namespace ZombieLand
 				.Select(c => grid.GetZombieCount(c)).Sum();
 		}
 
-		static void StartRage(Zombie zombie)
+		public static void StartRage(Zombie zombie)
 		{
 			zombie.raging = GenTicks.TicksAbs + (int)(GenDate.TicksPerHour * Rand.Range(1f, 8f));
 			Tools.CastThoughtBubble(zombie, Constants.RAGING);

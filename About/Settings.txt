@@ -25,8 +25,8 @@ PHEROMONE_FADEOFF = 180.0
 
 // This controls how often the map is analyzed to find the center-of-interest
 // and to sort zombies into a priority list in case we need to restrain cpu
-// time. It is in game-seconds and the default is 5.0
-TICKMANAGER_RECALCULATE_DELAY = 5.0
+// time. It is in game-seconds and the default is 60.0
+TICKMANAGER_RECALCULATE_DELAY = 60.0
 
 // This controls how often the avoid grid is updated. It is in game-seconds and
 // the default is 0.25
@@ -98,6 +98,10 @@ SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 14
 // When easy kill is turned on, what is the chance to skip "missed a shot" on
 // long distance shots from a colonist. Default is 0.9
 COLONISTS_HIT_ZOMBIES_CHANCE = 0.9
+
+// For use with Combat Extended mod, this value defines the output of the
+// method CombatExtended/ArmorUtilityCE.cs:GetPenetrationValue()
+COMBAT_EXTENDED_ARMOR_PENETRATION = 0.1
 
 // For the spawn incident, this defines the area size in where this event will
 // take place. Default is 10

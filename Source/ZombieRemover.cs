@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
-using Verse.Profile;
 using static ZombieLand.Patches;
 
 namespace ZombieLand
@@ -18,7 +17,24 @@ namespace ZombieLand
 
 			// note: order is kind of important here
 
-			Find.BattleLog.RawEntries.RemoveAll(RemoveItem);
+			Find.BattleLog.Battles.RemoveAll(battle =>
+			{
+				battle.Entries.RemoveAll(entry => Traverse.Create(entry).Field("damageDef").GetValue<DamageDef>().IsZombieDef());
+				return Traverse.Create(battle).Field("concerns").GetValue<HashSet<Pawn>>().Any(RemoveItem);
+			});
+			Find.TaleManager.AllTalesListForReading.RemoveAll(tale =>
+			{
+				var singlePawnTale = tale as Tale_SinglePawn;
+				if ((singlePawnTale?.pawnData?.pawn as Zombie) != null) return true;
+				var singlePawnDefTale = tale as Tale_SinglePawnAndDef;
+				if (singlePawnDefTale?.defData?.def.IsZombieDef() ?? false) return true;
+				var doublePawnTale = tale as Tale_DoublePawn;
+				if ((doublePawnTale?.firstPawnData?.pawn as Zombie) != null) return true;
+				if ((doublePawnTale?.secondPawnData?.pawn as Zombie) != null) return true;
+				var doublePawnDefTale = tale as Tale_DoublePawnAndDef;
+				if (doublePawnDefTale?.defData?.def.IsZombieDef() ?? false) return true;
+				return false;
+			});
 			Find.World.components.RemoveAll(component => component.IsZombieType());
 			Current.Game.Maps.Do(CleanMap);
 			Current.Game.Maps.Do(map => PawnsOfType<Pawn>(map).Do(RemovePawnRelatedStuff));
@@ -27,7 +43,6 @@ namespace ZombieLand
 			RemoveOutfits();
 			SaveGameWithoutZombieland(filename);
 
-			MemoryUtility.ClearAllMapsAndWorld();
 			GenScene.GoToMainMenu();
 		}
 
@@ -41,15 +56,18 @@ namespace ZombieLand
 		{
 			if (thing == null) return false;
 			if (thing.GetType().Namespace == Tools.zlNamespace) return true;
-			if (thing.def.IsZombieThingDef()) return true;
+			if (thing.def.IsZombieDef()) return true;
 			return false;
 		}
 
-		public static bool IsZombieThingDef(this ThingDef thingdef)
+		public static bool IsZombieDef(this Def def)
 		{
-			if (thingdef.GetType().Namespace == Tools.zlNamespace) return true;
-			if (thingdef.thingClass.Namespace == Tools.zlNamespace) return true;
-			if (thingdef.defName.StartsWith("Zombie_", StringComparison.Ordinal)) return true;
+			if (def == null) return false;
+			if (def.GetType().Namespace == Tools.zlNamespace) return true;
+			if (def.defName.EndsWith("_Zombie", StringComparison.Ordinal)) return true;
+			if (def.defName.StartsWith("Zombie_", StringComparison.Ordinal)) return true;
+			var thingDef = def as ThingDef;
+			if (thingDef != null && thingDef.thingClass.Namespace == Tools.zlNamespace) return true;
 			return false;
 		}
 
@@ -75,7 +93,7 @@ namespace ZombieLand
 				.Select(pile => pile?.settings?.filter).ToList()
 				.Do(RemoveFromFilter);
 
-			map.slotGroupManager.AllGroups
+			map.haulDestinationManager.AllGroups
 				.Select(slot => slot.Settings.filter)
 				.Do(RemoveFromFilter);
 
@@ -99,6 +117,12 @@ namespace ZombieLand
 
 			var carriedFilth = Traverse.Create(pawn.filth).Field("carriedFilth").GetValue<List<Filth>>();
 			carriedFilth?.RemoveAll(filth => filth.IsZombieThing());
+
+			pawn.needs?.AllNeeds?.Do(need =>
+			{
+				var needMood = need as Need_Mood;
+				needMood?.thoughts?.memories?.Memories?.RemoveAll(memory => (memory.otherPawn as Zombie) != null);
+			});
 		}
 
 		static void RemoveWorldPawns()
@@ -152,7 +176,7 @@ namespace ZombieLand
 		static void RemoveFromFilter(ThingFilter filter)
 		{
 			if (filter == null) return;
-			var defs = filter.AllowedThingDefs.Where(def => def.IsZombieThingDef()).ToList();
+			var defs = filter.AllowedThingDefs.Where(def => def.IsZombieDef()).ToList();
 			foreach (var def in defs)
 				filter.SetAllow(def, false);
 		}

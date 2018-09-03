@@ -1,9 +1,10 @@
 ﻿using Harmony;
+using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using Verse;
-using System;
 
 namespace ZombieLand
 {
@@ -77,7 +78,7 @@ namespace ZombieLand
 
 			var graphicData = new GraphicData()
 			{
-				shaderType = ShaderType.Cutout,
+				shaderType = ShaderTypeDefOf.Cutout,
 				texPath = "Twinkie",
 				graphicClass = typeof(Graphic_Single)
 			};

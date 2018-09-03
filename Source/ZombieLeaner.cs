@@ -6,7 +6,7 @@ using Verse;
 namespace ZombieLand
 {
 	[HarmonyPatch(typeof(Pawn_DrawTracker))]
-	[HarmonyPatch("DrawPos", PropertyMethod.Getter)]
+	[HarmonyPatch("DrawPos", MethodType.Getter)]
 	static class Pawn_DrawTracker_DrawPos_Patch
 	{
 		[HarmonyPriority(Priority.Last)]

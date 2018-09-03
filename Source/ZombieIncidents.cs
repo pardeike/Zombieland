@@ -1,11 +1,10 @@
-﻿using RimWorld;
+﻿using Harmony;
+using RimWorld;
+using RimWorld.Planet;
 using System;
 using System.Linq;
 using Verse;
-using Harmony;
-using RimWorld.Planet;
 using Verse.Sound;
-using UnityEngine;
 
 namespace ZombieLand
 {
@@ -126,7 +125,7 @@ namespace ZombieLand
 			}
 
 			// too few capable colonists (only in difficulty lower than Intense)
-			if (parameters.storytellerDifficulty < DifficultyDefOf.Hard.difficulty)
+			if (parameters.storytellerDifficulty < DifficultyDefOf.Rough.difficulty)
 			{
 				if (parameters.capableColonists < parameters.minimumCapableColonists)
 				{

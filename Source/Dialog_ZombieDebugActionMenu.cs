@@ -16,8 +16,9 @@ namespace ZombieLand
 				zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
 				zombie.state = ZombieState.Wandering;
 			}
-			GenPlace.TryPlaceThing(zombie, UI.MouseCell(), Find.VisibleMap, ThingPlaceMode.Direct, null);
+			GenPlace.TryPlaceThing(zombie, UI.MouseCell(), Find.CurrentMap, ThingPlaceMode.Direct, null);
 			zombie.Rotation = Rot4.South;
+			TickManager.ForceRecalculate();
 		}
 
 		protected override void DoListingItems()
@@ -27,7 +28,7 @@ namespace ZombieLand
 			if (Current.ProgramState != ProgramState.Playing)
 				return;
 
-			var map = Find.VisibleMap;
+			var map = Find.CurrentMap;
 			if (map == null)
 				return;
 
@@ -76,7 +77,7 @@ namespace ZombieLand
 			});
 			DebugToolMap("Convert: Make Zombie", delegate
 			{
-				foreach (var thing in Find.VisibleMap.thingGrid.ThingsAt(UI.MouseCell()))
+				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
 					var pawn = thing as Pawn;
 					if (pawn == null || pawn is Zombie)
@@ -86,7 +87,7 @@ namespace ZombieLand
 			});
 			DebugToolMap("Apply: Trigger rotting", delegate
 			{
-				foreach (var thing in Find.VisibleMap.thingGrid.ThingsAt(UI.MouseCell()))
+				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
 					var compRottable = thing.TryGetComp<CompRottable>();
 					if (compRottable != null)
@@ -95,7 +96,7 @@ namespace ZombieLand
 			});
 			DebugToolMap("Apply: Add infection", delegate
 			{
-				foreach (var thing in Find.VisibleMap.thingGrid.ThingsAt(UI.MouseCell()))
+				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
 					var pawn = thing as Pawn;
 					if (pawn == null || pawn is Zombie)
@@ -113,14 +114,13 @@ namespace ZombieLand
 
 					bite.mayBecomeZombieWhenDead = true;
 					bite.TendDuration.ZombieInfector.MakeHarmfull();
-					var damageDef = DefDatabase<DamageDef>.GetNamed("ZombieBite");
-					var damageInfo = new DamageInfo(damageDef, 2);
+					var damageInfo = new DamageInfo(Tools.ZombieBiteDamageDef, 2);
 					pawn.health.AddHediff(bite, bodyPart, damageInfo);
 				}
 			});
 			DebugToolMap("Apply: Remove infection", delegate
 			{
-				foreach (var thing in Find.VisibleMap.thingGrid.ThingsAt(UI.MouseCell()))
+				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
 					var pawn = thing as Pawn;
 					if (pawn == null || pawn is Zombie)
@@ -133,6 +133,16 @@ namespace ZombieLand
 							var tendDuration = bite.TryGetComp<HediffComp_Zombie_TendDuration>();
 							tendDuration.ZombieInfector.MakeHarmless();
 						});
+				}
+			});
+			DebugToolMap("Apply: Zombie raging", delegate
+			{
+				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
+				{
+					var zombie = thing as Zombie;
+					if (zombie == null)
+						continue;
+					ZombieStateHandler.StartRage(zombie);
 				}
 			});
 		}
