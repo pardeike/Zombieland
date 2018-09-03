@@ -2284,9 +2284,10 @@ namespace ZombieLand
 				var dmgAmount = dinfo.Amount;
 
 				shieldAbsorbed = false;
+				if (pawn == null || hitPart == null) return true;
 				var prefixResult = 0;
 				var result = Prefix(pawn, ref dmgAmount, hitPart, ref prefixResult);
-				if (result)
+				if (result && originalDinfo.Instigator != null)
 					return (pawn.Spawned && pawn.Dead == false
 						&& pawn.Destroyed == false
 						&& originalDinfo.Instigator.Spawned
