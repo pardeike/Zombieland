@@ -1,5 +1,4 @@
-﻿using Harmony;
-using RimWorld;
+﻿using RimWorld;
 using System;
 using UnityEngine;
 using Verse;
@@ -62,7 +61,7 @@ namespace ZombieLand
 	static class Dialogs
 	{
 		static Color contentColor = new Color(1f, 1f, 1f, 0.7f);
-		static float inset = 6f;
+		static readonly float inset = 6f;
 
 		public static void Dialog_ToolTip(this Listing_Standard list, string help)
 		{
@@ -149,7 +148,15 @@ namespace ZombieLand
 
 			var rect = list.GetRect(height);
 			rect.xMin += inset;
-			var line = new Rect(rect);
+
+			var oldValue = forBool;
+			var butRect = rect;
+			butRect.xMin += 24f;
+			if (Widgets.ButtonInvisible(butRect, false))
+				forBool = !forBool;
+			if (forBool != oldValue)
+				SoundDefOf.RadioButtonClicked.PlayOneShotOnCamera(null);
+
 			Widgets.Checkbox(new Vector2(rect.x, rect.y - 1f), ref forBool);
 
 			var curX = GetterSetters.curXByRef(list);
@@ -157,20 +164,14 @@ namespace ZombieLand
 
 			var anchor = Text.Anchor;
 			Text.Anchor = TextAnchor.UpperLeft;
-			line.xMin += indent;
+			rect.xMin += indent;
 			var color = GUI.color;
 			GUI.color = contentColor;
-			Widgets.Label(line, label);
+			Widgets.Label(rect, label);
 			GUI.color = color;
 			Text.Anchor = anchor;
 
 			GetterSetters.curXByRef(list) = curX;
-
-			var oldValue = forBool;
-			if (Widgets.ButtonInvisible(rect, false))
-				forBool = !forBool;
-			if (forBool != oldValue)
-				SoundDefOf.RadioButtonClicked.PlayOneShotOnCamera(null);
 
 			if (addGap) list.Gap(2 * list.verticalSpacing);
 		}
