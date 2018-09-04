@@ -61,12 +61,21 @@
     <Compile Include="ColorData.cs" />
     <Compile Include="Dialog_ZombieDebugActionMenu.cs" />
     <Compile Include="DisposableMaterial.cs" />
+    <Compile Include="fastJSON\Formatter.cs" />
+    <Compile Include="fastJSON\Getters.cs" />
+    <Compile Include="fastJSON\Helper.cs" />
+    <Compile Include="fastJSON\JSON.cs" />
+    <Compile Include="fastJSON\JsonParser.cs" />
+    <Compile Include="fastJSON\JsonSerializer.cs" />
+    <Compile Include="fastJSON\Reflection.cs" />
+    <Compile Include="fastJSON\SafeDictionary.cs" />
     <Compile Include="GetterSetters.cs" />
     <Compile Include="GraphicsDatabase.cs" />
     <Compile Include="GraphicToolbox.cs" />
     <Compile Include="HediffComp_Zombie_TendDuration.cs" />
     <Compile Include="Hediff_Injury_ZombieBite.cs" />
     <Compile Include="HediffComp_Zombie_Infecter.cs" />
+    <Compile Include="SharedSettings.cs" />
     <Compile Include="JobDriver.cs" />
     <Compile Include="JobGiver.cs" />
     <Compile Include="Main.cs" />
@@ -79,9 +88,6 @@
     <Compile Include="ZombieRemover.cs" />
     <Compile Include="ZombieStateHandler.cs" />
     <Compile Include="ZombieWanderer.cs" />
-    <Compile Include="_translate\Mono_HTTP_Helpers.cs" />
-    <Compile Include="_translate\Mono_HTTP_HtmlEncoder.cs" />
-    <Compile Include="_translate\Mono_HTTP_HttpUtility.cs" />
     <Compile Include="Patches.cs" />
     <Compile Include="PheromoneGrid.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -89,7 +95,6 @@
     <Compile Include="Rubble.cs" />
     <Compile Include="TickManager.cs" />
     <Compile Include="Tools.cs" />
-    <Compile Include="_translate\GoogleTranslator.cs" />
     <Compile Include="VariableGraphic.cs" />
     <Compile Include="Zombie.cs" />
     <Compile Include="ZombieCorpse.cs" />
@@ -141,6 +146,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>"$(ProjectDir)Install.bat" $(ConfigurationName) "$(ProjectDir)" "$(ProjectName)" "About Assemblies Defs Languages Patches Sounds Textures"</PostBuildEvent>
