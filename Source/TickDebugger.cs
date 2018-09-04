@@ -58,7 +58,7 @@ namespace ZombieLand
 
 	public class TickDebugger
 	{
-		private static TickerData[] tickers = new TickerData[12];
+		private static readonly TickerData[] tickers = new TickerData[12];
 		public static int maxTickers = -1;
 
 		private static readonly Color[] colors = new Color[]

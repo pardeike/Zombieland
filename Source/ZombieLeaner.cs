@@ -1,5 +1,4 @@
 ﻿using Harmony;
-using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -36,9 +35,8 @@ namespace ZombieLand
 
 		Vector3 extraOffsetInternal = new Vector3(0, 0, 0);
 		public Vector3 extraOffset = new Vector3(0, 0, 0);
-
-		int randTickFrequency = Rand.Range(3, 9);
-		int randTickOffset = Rand.Range(0, 9);
+		readonly int randTickFrequency = Rand.Range(3, 9);
+		readonly int randTickOffset = Rand.Range(0, 9);
 
 		public ZombieLeaner(Pawn pawn) : base(pawn)
 		{

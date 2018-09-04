@@ -377,7 +377,7 @@ namespace ZombieLand
 								var maxRangeSquared = (int)(props.range * props.range);
 								var tickManager = attacker.Map.GetComponent<TickManager>();
 								var pos = attacker.Position;
-								Func<Zombie, int> zombiePrioritySorter = delegate (Zombie zombie)
+								int zombiePrioritySorter(Zombie zombie)
 								{
 									var score = maxRangeSquared - pos.DistanceToSquared(zombie.Position);
 									if (zombie.IsSuicideBomber)
@@ -387,7 +387,7 @@ namespace ZombieLand
 									if (zombie.isToxicSplasher)
 										score += 10;
 									return -score;
-								};
+								}
 								__result = tickManager.allZombiesCached
 									.Where(zombie => zombie.Downed == false && zombie.state != ZombieState.Emerging && pos.DistanceToSquared(zombie.Position) <= maxRangeSquared)
 									.Where(zombie => verb.CanHitTargetFrom(pos, zombie))
