@@ -40,6 +40,9 @@
       <HintPath>D:\Program Files (x86)\Steam\steamapps\common\RimWorld\RimWorldWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Firebaser, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Firebaser.0.9.0\lib\net35\Firebaser.dll</HintPath>
+    </Reference>
     <Reference Include="System">
       <Package>/Users/ap/Library/Application Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/Contents/Resources/Data/Managed/System.dll</Package>
     </Reference>
@@ -61,14 +64,6 @@
     <Compile Include="ColorData.cs" />
     <Compile Include="Dialog_ZombieDebugActionMenu.cs" />
     <Compile Include="DisposableMaterial.cs" />
-    <Compile Include="fastJSON\Formatter.cs" />
-    <Compile Include="fastJSON\Getters.cs" />
-    <Compile Include="fastJSON\Helper.cs" />
-    <Compile Include="fastJSON\JSON.cs" />
-    <Compile Include="fastJSON\JsonParser.cs" />
-    <Compile Include="fastJSON\JsonSerializer.cs" />
-    <Compile Include="fastJSON\Reflection.cs" />
-    <Compile Include="fastJSON\SafeDictionary.cs" />
     <Compile Include="GetterSetters.cs" />
     <Compile Include="GraphicsDatabase.cs" />
     <Compile Include="GraphicToolbox.cs" />
