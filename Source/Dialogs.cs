@@ -10,6 +10,12 @@ namespace ZombieLand
 	{
 		public override string PageTitle => "ZombielandGameSettings".Translate();
 
+		public override void PreOpen()
+		{
+			base.PreOpen();
+			Dialogs.scrollPosition = Vector2.zero;
+		}
+
 		public override void DoWindowContents(Rect inRect)
 		{
 			DrawPageTitle(inRect);
@@ -283,7 +289,7 @@ namespace ZombieLand
 			value = (int)newValue;
 		}
 
-		static Vector2 scrollPosition = Vector2.zero;
+		public static Vector2 scrollPosition = Vector2.zero;
 		public static void DoWindowContentsInternal(ref SettingsGroup settings, Rect inRect, bool isDefaults)
 		{
 			if (settings == null) settings = new SettingsGroup();
@@ -390,6 +396,9 @@ namespace ZombieLand
 			list.Dialog_Label("ZombieActionsTitle");
 			list.Dialog_Button("ZombieSettingsReset", "Reset", false, settings.Reset);
 			if (inGame) list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Dialog_Save.Save, false);
+			list.Gap(8f);
+			list.Dialog_Button("LoadSettings", "LoadSettingsButton", false, settings.Load);
+			list.Dialog_Button("PublishSettings", "PublishSettingsButton", false, settings.Publish);
 
 			list.End(); // -----------------------------------------------------------------------------------------
 

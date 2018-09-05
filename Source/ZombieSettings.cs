@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Harmony;
 using RimWorld.Planet;
+using System;
+using System.Linq;
 using UnityEngine;
 using Verse;
-using System.Linq;
-using Harmony;
 
 namespace ZombieLand
 {
@@ -99,6 +99,17 @@ namespace ZombieLand
 				var finfo = AccessTools.Field(type, name);
 				finfo.SetValue(this, finfo.GetValue(defaults));
 			});
+			Dialogs.scrollPosition = Vector2.zero;
+		}
+
+		public void Load()
+		{
+			Dialog_UseSettings.Present(this);
+		}
+
+		public void Publish()
+		{
+			Dialog_PublishSettings.Present(this);
 		}
 	}
 

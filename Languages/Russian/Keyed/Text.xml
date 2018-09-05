@@ -94,6 +94,12 @@
 	<UninstallZombieland>Удалить Zombieland из текущей игры</UninstallZombieland>
 	<ConfirmUninstallZombieland>Если вы продолжаете, вы можете выбрать новое имя файла сохранения и вернуться в главное меню после сохранения игры. Новое сохранение может быть загружено без Zombieland.\n\nВы действительно хотите удалить весь контент Zombieland из текущей игры?</ConfirmUninstallZombieland>
 	<UninstallButton>Удалить</UninstallButton>
+	<LoadSettings>Загрузить настройки из облака</LoadSettings>
+	<LoadSettingsButton>скачать</LoadSettingsButton>
+	<PublishSettings>Опубликовать настройки в облаке</PublishSettings>
+	<PublishSettingsButton>публиковать</PublishSettingsButton>
+	<SearchSettings>искать</SearchSettings>
+   <SettingsName>название</SettingsName>
 
 	<ColonistsBittenByZombie>Colonist bitten by zombie</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>These colonists have been bitten by a zombie. At this point, it is unclear if they develop an infection:\n\n{0}\nMonitor their wounds closely because infections take some time to show up.</ColonistsBittenByZombieDesc>

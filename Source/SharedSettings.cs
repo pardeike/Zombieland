@@ -1,4 +1,5 @@
 ﻿using Firebaser;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
@@ -7,42 +8,90 @@ namespace ZombieLand
 {
 	class UserSettings
 	{
+		public string Name;
 		public string Creator;
-		public int Downloads;
-		public SettingsGroup Settings;
 		public string Description;
+		public SettingsGroup Settings;
+		public int Downloads;
+	}
+
+	class DownloadIncrement
+	{
+		public int Downloads;
 	}
 
 	class SharedSettings
 	{
 		// https://console.firebase.google.com/project/zombieland-saves/database/zombieland-saves/data
 
+		private static readonly string db = "zombieland-saves";
 		private static readonly string auth = "9OQa7vgOzYleREZo89HnU5J3hdlX9qIvjeMf1GQa";
+		private static readonly Connector client = new Connector(db, auth);
+		private static bool SimpleChar(char c) { return "-abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".Contains(c); }
+		private static string Cleaned(string s) { return new string(s.Where(c => SimpleChar(c)).ToArray()); }
 
-		public static string Save(SettingsGroup settings, string label)
+		public static string Key(string label, string steamName)
 		{
+			return Cleaned(label) + "_" + Cleaned(steamName);
+		}
+
+		public static string Save(SettingsGroup settings, string label, string description)
+		{
+			var currentSteamUser = SteamUtility.SteamPersonaName;
 			var userSettings = new UserSettings()
 			{
-				Creator = SteamUtility.SteamPersonaName,
-				Downloads = 0,
+				Name = label,
+				Creator = currentSteamUser,
+				Description = description,
 				Settings = settings,
-				Description = ""
+				Downloads = 0
 			};
-			var client = new Connector("zombieland-saves", auth);
-			return client.Put("/Settings/" + label, userSettings);
+			var path = "/Settings/" + Key(label, currentSteamUser);
+			try
+			{
+				return client.Put(path, userSettings);
+			}
+			catch (Exception e)
+			{
+				Log.Error("Exception " + e + " while saving to " + path);
+			}
+			return null;
 		}
 
-		public static SettingsGroup Load(string label)
+		public static UserSettings Load(string label, string steamName)
 		{
-			var client = new Connector("zombieland-saves", auth);
-			return client.Get<SettingsGroup>("/Settings/" + label);
+			var path = "/Settings/" + Key(label, steamName);
+			try
+			{
+				var settings = client.Get<UserSettings>(path);
+				if (settings != null)
+					client.Patch(path, new DownloadIncrement() { Downloads = settings.Downloads + 1 });
+				return settings;
+			}
+			catch (Exception e)
+			{
+				Log.Error("Exception " + e + " while loading from " + path);
+			}
+			return null;
 		}
 
-		public static IEnumerable<string> Labels()
+		public static void Delete(string label, string steamName)
 		{
-			var client = new Connector("zombieland-saves", auth);
-			return client.Get<Dictionary<string, bool>>("/Settings/", true)
-				.Keys.OrderBy(s => s).AsEnumerable();
+			var path = "/Settings/" + Key(label, steamName);
+			try
+			{
+				client.Delete(path);
+			}
+			catch (Exception e)
+			{
+				Log.Error("Exception " + e + " while deleting " + path);
+			}
+		}
+
+		public static IEnumerable<UserSettings> GetAll()
+		{
+			return client.Get<Dictionary<string, UserSettings>>("/Settings/")?
+				.Values.AsEnumerable() ?? new List<UserSettings>();
 		}
 	}
 }
