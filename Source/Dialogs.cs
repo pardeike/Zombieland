@@ -396,9 +396,12 @@ namespace ZombieLand
 			list.Dialog_Label("ZombieActionsTitle");
 			list.Dialog_Button("ZombieSettingsReset", "Reset", false, settings.Reset);
 			if (inGame) list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Dialog_Save.Save, false);
-			list.Gap(8f);
-			list.Dialog_Button("LoadSettings", "LoadSettingsButton", false, settings.Load);
-			list.Dialog_Button("PublishSettings", "PublishSettingsButton", false, settings.Publish);
+			if (SharedSettings.HasConnectivity())
+			{
+				list.Gap(8f);
+				list.Dialog_Button("LoadSettings", "LoadSettingsButton", false, settings.Load);
+				list.Dialog_Button("PublishSettings", "PublishSettingsButton", false, settings.Publish);
+			}
 
 			list.End(); // -----------------------------------------------------------------------------------------
 

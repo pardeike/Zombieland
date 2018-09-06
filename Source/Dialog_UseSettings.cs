@@ -24,6 +24,8 @@ namespace ZombieLand
 		private void RefreshList()
 		{
 			allSettings = SharedSettings.GetAll().ToList();
+			if (allSettings == null)
+				allSettings = new List<UserSettings>();
 			if (allSettings.Count > 100)
 				allSettings = allSettings.OrderByDescending(us => us.Downloads).Take(100).ToList();
 		}
@@ -56,7 +58,7 @@ namespace ZombieLand
 			var currentSteamUser = SteamUtility.SteamPersonaName;
 			var rows = showTopOnly ? allSettings.Where(us => us.Downloads > 0).OrderByDescending(us => us.Downloads).Take(5) : allSettings.Where(us =>
 			{
-				if (currentSteamUser.ToLower().Contains(searchTerm.ToLower()))
+				if (us.Creator.ToLower().Contains(searchTerm.ToLower()))
 					return true;
 				if (us.Name.ToLower().Contains(searchTerm.ToLower()))
 					return true;

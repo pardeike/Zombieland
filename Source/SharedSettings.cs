@@ -35,6 +35,11 @@ namespace ZombieLand
 			return Cleaned(label) + "_" + Cleaned(steamName);
 		}
 
+		public static bool HasConnectivity()
+		{
+			return client.IsAvailable();
+		}
+
 		public static string Save(SettingsGroup settings, string label, string description)
 		{
 			var currentSteamUser = SteamUtility.SteamPersonaName;
