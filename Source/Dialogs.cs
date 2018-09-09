@@ -248,7 +248,7 @@ namespace ZombieLand
 
 			var color = GUI.color;
 			GUI.color = contentColor;
-			Widgets.Label(rectLeft, unitString);
+			Widgets.Label(rectLeft, desc.Translate());
 
 			var alignment = Text.CurTextFieldStyle.alignment;
 			Text.CurTextFieldStyle.alignment = TextAnchor.MiddleRight;
