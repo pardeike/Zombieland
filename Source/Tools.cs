@@ -339,12 +339,47 @@ namespace ZombieLand
 			return IsValidSpawnLocation(target.Cell, target.Map);
 		}
 
+		static readonly HashSet<TerrainAffordanceDef> validAffordancesNormal = new HashSet<TerrainAffordanceDef>()
+		{
+			TerrainAffordanceDefOf.Light,
+			TerrainAffordanceDefOf.Medium,
+			TerrainAffordanceDefOf.Diggable,
+			TerrainAffordanceDefOf.GrowSoil
+		};
+		static readonly HashSet<TerrainAffordanceDef> validAffordancesReduced = new HashSet<TerrainAffordanceDef>()
+		{
+			TerrainAffordanceDefOf.Diggable,
+			TerrainAffordanceDefOf.GrowSoil
+		};
 		public static bool IsValidSpawnLocation(IntVec3 cell, Map map)
 		{
 			if (cell.Walkable(map) == false) return false;
-			var terrain = map.terrainGrid.TerrainAt(cell);
-			if (terrain == TerrainDefOf.Soil || terrain == TerrainDefOf.Sand || terrain == TerrainDefOf.Gravel) return true;
-			return terrain.affordances.Any(af => af == TerrainAffordanceDefOf.MovingFluid) == false;
+			var terrainGrid = map.terrainGrid;
+			var terrain = terrainGrid.TerrainAt(cell);
+
+			if (terrainGrid.CanRemoveTopLayerAt(cell))
+				return false;
+
+			if (ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap)
+			{
+				if (terrain.modContentPack.IsCoreMod == false)
+					return terrain.affordances.Intersect(validAffordancesReduced).Any();
+				return (false
+					|| terrain == TerrainDefOf.Soil
+					|| terrain == TerrainDefOf.Sand
+					|| terrain == TerrainDefOf.Gravel
+				);
+			}
+
+			if (terrain.modContentPack.IsCoreMod == false)
+				return terrain.affordances.Intersect(validAffordancesNormal).Any();
+			return (false
+				|| terrain == TerrainDefOf.Soil
+				|| terrain == TerrainDefOf.Sand
+				|| terrain == TerrainDefOf.Gravel
+				|| terrain == TerrainDefOf.Ice
+			);
+
 			// For now, we disable this to gain execution speed
 			//if (terrain.DoesRepellZombies()) return false;
 		}
