@@ -1,5 +1,6 @@
 ﻿using RimWorld;
 using System;
+using System.Threading;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -68,6 +69,8 @@ namespace ZombieLand
 	{
 		static Color contentColor = new Color(1f, 1f, 1f, 0.7f);
 		static readonly float inset = 6f;
+		static DateTime nextNetworkCheck = DateTime.Now;
+		static bool isNetworkAvailable = false;
 
 		public static void Dialog_ToolTip(this Listing_Standard list, string help)
 		{
@@ -396,7 +399,15 @@ namespace ZombieLand
 			list.Dialog_Label("ZombieActionsTitle");
 			list.Dialog_Button("ZombieSettingsReset", "Reset", false, settings.Reset);
 			if (inGame) list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Dialog_Save.Save, false);
-			if (SharedSettings.HasConnectivity())
+
+			var now = DateTime.Now;
+			if (now > nextNetworkCheck)
+			{
+				nextNetworkCheck = now.AddSeconds(10);
+				var thread = new Thread(delegate () { isNetworkAvailable = SharedSettings.HasConnectivity(); });
+				thread.Start();
+			}
+			if (isNetworkAvailable)
 			{
 				list.Gap(8f);
 				list.Dialog_Button("LoadSettings", "LoadSettingsButton", false, settings.Load);
