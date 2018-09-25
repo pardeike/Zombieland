@@ -2636,7 +2636,7 @@ namespace ZombieLand
 			static void Postfix(Game __instance)
 			{
 				Tools.EnableTwinkie(ZombieSettings.Values.replaceTwinkie);
-				FireStats.Trigger(false);
+				ModCounter.Trigger();
 			}
 		}
 

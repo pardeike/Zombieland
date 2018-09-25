@@ -26,7 +26,6 @@ namespace ZombieLand
 		{
 			Identifier = content.Identifier;
 			GetSettings<ZombieSettingsDefaults>();
-			FireStats.Trigger(true);
 		}
 
 		public override void DoSettingsWindowContents(Rect inRect)
