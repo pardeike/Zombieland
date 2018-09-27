@@ -1990,9 +1990,9 @@ namespace ZombieLand
 				if (zombie.hasTankyShield > 0f || zombie.hasTankyHelmet > 0f || zombie.hasTankySuit > 0f)
 				{
 					var val = 0f;
-					if (zombie.hasTankyShield > 0f) val += 50f;
+					if (zombie.hasTankyShield > 0f) val += 30f;
 					if (zombie.hasTankyHelmet > 0f) val += 10f;
-					if (zombie.hasTankySuit > 0f) val += 50f;
+					if (zombie.hasTankySuit > 0f) val += 20f;
 					__result *= val;
 					return;
 				}
@@ -2002,9 +2002,9 @@ namespace ZombieLand
 				if (bodyType == BodyTypeDefOf.Thin)
 					__result *= 0.5f * settings;
 				else if (bodyType == BodyTypeDefOf.Hulk)
-					__result *= 4f * settings;
+					__result *= 3f * settings;
 				else if (bodyType == BodyTypeDefOf.Fat)
-					__result *= 10f * settings;
+					__result *= 4f * settings;
 
 				if (zombie.wasMapPawnBefore)
 					__result *= 10f;
@@ -2214,7 +2214,7 @@ namespace ZombieLand
 		{
 			static void PlayTink(Thing thing)
 			{
-				if (Constants.USE_SOUND)
+				if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
 				{
 					var info = SoundInfo.InMap(thing);
 					SoundDef.Named("TankyTink").PlayOneShot(info);
@@ -2222,15 +2222,18 @@ namespace ZombieLand
 			}
 
 			[HarmonyPriority(Priority.First)]
-			static bool Prefix(Pawn pawn, ref float amount, BodyPartRecord part, ref int __result)
+			static bool Prefix(Pawn pawn, ref float amount, BodyPartRecord part, out bool deflectedByMetalArmor, out bool diminishedByMetalArmor, ref float __result)
 			{
+				deflectedByMetalArmor = false;
+				diminishedByMetalArmor = false;
+
 				var zombie = pawn as Zombie;
 				if (zombie == null)
 					return true;
 
 				var difficulty = Find.Storyteller.difficulty.difficulty;
-				if (amount > 25)
-					amount = 25 + Mathf.Sqrt(amount - 26);
+				if (amount > 45)
+					amount = 45 + Mathf.Sqrt(amount - 46);
 
 				if (zombie.hasTankyShield > 0f)
 				{
@@ -2238,7 +2241,8 @@ namespace ZombieLand
 					zombie.hasTankyShield -= amount / (1f + difficulty * 150f);
 					if (zombie.hasTankyShield < 0f)
 						zombie.hasTankyShield = -1f;
-					__result = -1;
+					__result = -1f;
+					deflectedByMetalArmor = true;
 					return false;
 				}
 
@@ -2251,7 +2255,8 @@ namespace ZombieLand
 						zombie.hasTankyHelmet -= amount / (1f + difficulty * 10f);
 						if (zombie.hasTankyHelmet < 0f)
 							zombie.hasTankyHelmet = -1f;
-						__result = -1;
+						__result = -1f;
+						deflectedByMetalArmor = true;
 						return false;
 					}
 				}
@@ -2263,7 +2268,8 @@ namespace ZombieLand
 						zombie.hasTankySuit -= amount / (1f + difficulty * 100f);
 						if (zombie.hasTankySuit < 0f)
 							zombie.hasTankySuit = -1f;
-						__result = -1;
+						__result = -1f;
+						deflectedByMetalArmor = true;
 						return false;
 					}
 				}
@@ -2285,8 +2291,8 @@ namespace ZombieLand
 
 				shieldAbsorbed = false;
 				if (pawn == null || hitPart == null) return true;
-				var prefixResult = 0;
-				var result = Prefix(pawn, ref dmgAmount, hitPart, ref prefixResult);
+				var prefixResult = 0f;
+				var result = Prefix(pawn, ref dmgAmount, hitPart, out var deflect, out var diminish, ref prefixResult);
 				if (result && originalDinfo.Instigator != null)
 					return (pawn.Spawned && pawn.Dead == false
 						&& pawn.Destroyed == false
@@ -2295,7 +2301,7 @@ namespace ZombieLand
 
 				dinfo.SetAmount(dmgAmount);
 				originalDinfo = dinfo;
-				shieldAbsorbed = true;
+				shieldAbsorbed = deflect || diminish;
 
 				return false;
 			}

@@ -138,7 +138,7 @@ namespace ZombieLand
 			driver.destination = enemy.Position;
 
 			zombie.state = ZombieState.Tracking;
-			if (Constants.USE_SOUND)
+			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
 			{
 				var info = SoundInfo.InMap(enemy);
 				SoundDef.Named("ZombieHit").PlayOneShot(info);
@@ -340,7 +340,7 @@ namespace ZombieLand
 
 			driver.destination = building.Position;
 
-			if (Constants.USE_SOUND)
+			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
 			{
 				var info = SoundInfo.InMap(building);
 				SoundDef.Named("ZombieHit").PlayOneShot(info);
@@ -540,6 +540,7 @@ namespace ZombieLand
 				if (target.Dead || target.Downed)
 					continue;
 
+				// if (TouchPathEndModeUtility.IsAdjacentOrInsideAndAllowedToTouch(zombie.Position, target.Position, zombie.Map) == false)
 				var distance = (target.DrawPos - zombie.DrawPos).MagnitudeHorizontalSquared();
 				if (distance > Constants.MIN_ATTACKDISTANCE_SQUARED)
 					continue;
@@ -647,7 +648,7 @@ namespace ZombieLand
 
 		static void CastEatingSound(Zombie zombie)
 		{
-			if (Constants.USE_SOUND)
+			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
 			{
 				var map = zombie.Map;
 				if (map != null)
@@ -662,7 +663,7 @@ namespace ZombieLand
 		{
 			Tools.CastThoughtBubble(pawn, Constants.BRRAINZ);
 
-			if (Constants.USE_SOUND)
+			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
 			{
 				var map = pawn.Map;
 				if (map != null)
@@ -750,7 +751,7 @@ namespace ZombieLand
 			zombie.raging = GenTicks.TicksAbs + (int)(GenDate.TicksPerHour * Rand.Range(1f, 8f));
 			Tools.CastThoughtBubble(zombie, Constants.RAGING);
 
-			if (Constants.USE_SOUND)
+			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
 			{
 				var timeNow = Time.realtimeSinceStartup;
 				if (timeNow > lastRageSoundPlayed + 3f)

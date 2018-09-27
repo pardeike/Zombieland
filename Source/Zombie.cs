@@ -207,12 +207,15 @@ namespace ZombieLand
 						hasFilth++;
 			}
 			if (hasFilth >= 6)
-				GenExplosion.DoExplosion(pos, map, Mathf.Max(0.5f, Mathf.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, 0, SoundDef.Named("ToxicSplash"));
+			{
+				var soundDef = Constants.USE_SOUND && Prefs.VolumeAmbient > 0f ? SoundDef.Named("ToxicSplash") : null;
+				GenExplosion.DoExplosion(pos, map, Mathf.Max(0.5f, Mathf.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, 0, soundDef);
+			}
 		}
 
 		void HandleRubble()
 		{
-			if (rubbleCounter == 0 && Constants.USE_SOUND)
+			if (rubbleCounter == 0 && Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
 			{
 				var map = Map;
 				if (map != null)
