@@ -34,7 +34,7 @@
 
 		<!-- will be overwritten dynamically from code -->
 		<defaultDamage>0</defaultDamage>
-		<explosionBuildingDamageFactor>0</explosionBuildingDamageFactor>
+		<!--<explosionBuildingDamageFactor>0</explosionBuildingDamageFactor>-->
 		<explosionHeatEnergyPerCell>0</explosionHeatEnergyPerCell>
 	</DamageDef>
 

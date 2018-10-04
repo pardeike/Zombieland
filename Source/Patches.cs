@@ -2962,12 +2962,13 @@ namespace ZombieLand
 		{
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				var selectLandingSiteConstructor = AccessTools.Constructor(typeof(Page_SelectLandingSite));
-
 				var found = false;
 				foreach (var instruction in instructions)
 				{
-					if (instruction.operand == selectLandingSiteConstructor)
+					var constructorInfo = instruction.operand as ConstructorInfo;
+					var constructorName = constructorInfo?.DeclaringType.Name ?? "";
+
+					if (constructorName == "Page_SelectLandingSite" || constructorName == "Page_SelectStartingSite")
 					{
 						yield return new CodeInstruction(OpCodes.Newobj, AccessTools.Constructor(typeof(SettingsDialog)));
 						yield return new CodeInstruction(OpCodes.Callvirt, typeof(List<Page>).MethodNamed(nameof(List<Page>.Add)));
