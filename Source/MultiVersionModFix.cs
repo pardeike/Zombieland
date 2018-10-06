@@ -29,13 +29,14 @@ public static class MultiVersionModFix1
 
 [HarmonyPatch(typeof(Workshop))]
 [HarmonyPatch("SetWorkshopItemDataFrom")]
-public static class MultiVersionModFix2
+public static class MultiVersionModFix3
 {
 	static IList<string> GetTags(string rootDir)
 	{
 		var xml = new XmlDocument();
 		xml.Load(rootDir + Path.DirectorySeparatorChar + "About" + Path.DirectorySeparatorChar + "Manifest.xml");
-		return xml.SelectNodes("/Manifest/tags/li").Cast<XmlNode>().Select(node => node.InnerText).ToList();
+		var tags = xml.SelectNodes("/Manifest/targetVersions/li").Cast<XmlNode>().Select(node => (node.InnerText + "$").Replace(".0$", ""));
+		return tags.Add("Mod").ToList();
 	}
 
 	static void Postfix(UGCUpdateHandle_t updateHandle, WorkshopItemHook hook)
