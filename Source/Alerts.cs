@@ -132,7 +132,7 @@ namespace ZombieLand
 		public override string GetLabel()
 		{
 			var timeStr = Tools.TranslateHoursToText((float)days * GenDate.HoursPerDay);
-			return "LetterLabelXDaysUntilZombies".Translate(timeStr);
+			return "LetterLabelXDaysUntilZombies".SafeTranslate(timeStr);
 		}
 
 		public override string GetExplanation()
