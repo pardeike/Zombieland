@@ -1019,6 +1019,7 @@ namespace ZombieLand
 			static void Postfix(FactionManager __instance, List<Faction> ___allFactions)
 			{
 				if (Scribe.mode == LoadSaveMode.Saving) return;
+				if (___allFactions == null) return;
 
 				var factionDefs = ___allFactions.Select(f => f.def).ToList();
 				if (factionDefs.Contains(ZombieDefOf.Zombies) == false)

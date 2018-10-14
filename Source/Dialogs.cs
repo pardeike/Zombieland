@@ -22,7 +22,7 @@ namespace ZombieLand
 			DrawPageTitle(inRect);
 			var mainRect = GetMainRect(inRect, 0f, false);
 			Dialogs.DoWindowContentsInternal(ref ZombieSettings.Values, mainRect, false);
-			DoBottomButtons(inRect, null, null, null, true);
+			MultiVersionMethods.DoBottomButtons(this, inRect, null, null, null, true, inRect, null, null, null, true, true);
 		}
 	}
 

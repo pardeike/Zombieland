@@ -184,9 +184,8 @@ namespace ZombieLand
 			return true;
 		}
 
-		public static Predicate<IntVec3> SpotValidator(Map map)
+		public static Predicate<IntVec3> SpotValidator(Map map, Predicate<IntVec3> cellValidator)
 		{
-			var cellValidator = Tools.ZombieSpawnLocator(map, true);
 			return cell =>
 			{
 				var count = 0;
@@ -203,11 +202,19 @@ namespace ZombieLand
 
 		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot)
 		{
-			var spotValidator = SpotValidator(map);
+			var cellValidator = Tools.ZombieSpawnLocator(map, true);
+			var spotValidator = SpotValidator(map, cellValidator);
 
-			var headline = "Attack of zombies";
-			var text = incidentSize + " zombie(s) appear";
-			for (var counter = 1; counter <= 10; counter++)
+			var headline = "LetterLabelZombiesRising".Translate();
+			var text = "ZombiesRising".Translate();
+			if (ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap)
+			{
+				headline = "LetterLabelZombiesRisingNearYourBase".Translate();
+				text = "ZombiesRisingNearYourBase".Translate();
+			}
+
+			int counter;
+			for (counter = 1; counter <= 10; counter++)
 			{
 				if (spot.IsValid)
 					break;
@@ -221,20 +228,18 @@ namespace ZombieLand
 						center = Tools.CenterOfInterest(map);
 
 					RCellFinder.TryFindRandomSpotJustOutsideColony(center, map, null, out spot, spotValidator);
-					headline = "LetterLabelZombiesRisingNearYourBase".Translate();
-					text = "ZombiesRisingNearYourBase".Translate();
 				}
 				else
 				{
-					RCellFinder.TryFindRandomPawnEntryCell(out spot, map, 0.5f, spotValidator);
-					headline = "LetterLabelZombiesRising".Translate();
-					text = "ZombiesRising".Translate();
+					var success = MultiVersionMethods.TryFindRandomPawnEntryCell(out spot, map, 0.5f, spotValidator, out spot, map, 0.5f, true, spotValidator);
+					if (success == false) spot = IntVec3.Invalid;
 				}
 			}
 			if (spot.IsValid == false) return false;
 
-			var cellValidator = Tools.ZombieSpawnLocator(map, true);
-			while (incidentSize > 0)
+			var zombieSpawnsQueued = 0;
+			counter = 1;
+			while (incidentSize > 0 && counter <= 10)
 			{
 				Tools.GetCircle(Constants.SPAWN_INCIDENT_RADIUS)
 					.Select(vec => spot + vec)
@@ -245,14 +250,20 @@ namespace ZombieLand
 					{
 						Tools.generator.SpawnZombieAt(map, cell, true);
 						incidentSize--;
+						zombieSpawnsQueued++;
 					});
+				counter++;
 			}
 
-			var location = new GlobalTargetInfo(spot, map);
-			Find.LetterStack.ReceiveLetter(headline, text, LetterDefOf.ThreatSmall, location);
+			if (zombieSpawnsQueued > 3)
+			{
+				var location = new GlobalTargetInfo(spot, map);
+				Find.LetterStack.ReceiveLetter(headline, text, LetterDefOf.ThreatSmall, location);
 
-			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
-				SoundDef.Named("ZombiesRising").PlayOneShotOnCamera(null);
+				var isSubstantialZombieCount = zombieSpawnsQueued > Tools.CapableColonists(map) * 4;
+				if (isSubstantialZombieCount && Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
+					SoundDef.Named("ZombiesRising").PlayOneShotOnCamera(null);
+			}
 			return true;
 		}
 	}

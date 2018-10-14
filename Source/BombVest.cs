@@ -37,7 +37,10 @@ namespace ZombieLand
 			Traverse.IterateFields(baseDef, this, Traverse.CopyFields);
 
 			defaultDamage = ScaledValueBetween(8, 120);
-			explosionBuildingDamageFactor = ScaledValueBetween(10, 320);
+			var damageFactor = ScaledValueBetween(10, 320);
+			var trv = Traverse.Create(this);
+			trv.Field("buildingDamageFactor").SetValue(damageFactor);
+			trv.Field("explosionBuildingDamageFactor").SetValue(damageFactor);
 			explosionHeatEnergyPerCell = ScaledValueBetween(8, 128);
 		}
 	}

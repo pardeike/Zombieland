@@ -77,6 +77,7 @@
     <Compile Include="HediffComp_Zombie_TendDuration.cs" />
     <Compile Include="Hediff_Injury_ZombieBite.cs" />
     <Compile Include="HediffComp_Zombie_Infecter.cs" />
+    <Compile Include="MultiVersionMethods.cs" />
     <Compile Include="MultiVersionModFix.cs" />
     <Compile Include="SharedSettings.cs" />
     <Compile Include="JobDriver.cs" />
