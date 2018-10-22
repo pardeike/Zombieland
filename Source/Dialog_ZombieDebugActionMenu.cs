@@ -9,16 +9,18 @@ namespace ZombieLand
 	{
 		private void SpawnZombie(ZombieGenerator.ZombieType type, bool appearDirectly)
 		{
-			var zombie = ZombieGenerator.GeneratePawn(type);
-			ZombieGenerator.FinalizeZombieGeneration(zombie);
-			if (appearDirectly)
+			ZombieGenerator.SpawnZombie(UI.MouseCell(), Find.CurrentMap, (zombie) =>
 			{
-				zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-				zombie.state = ZombieState.Wandering;
-			}
-			GenPlace.TryPlaceThing(zombie, UI.MouseCell(), Find.CurrentMap, ThingPlaceMode.Direct, null);
-			zombie.Rotation = Rot4.South;
-			TickManager.ForceRecalculate();
+				if (appearDirectly)
+				{
+					zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
+					zombie.state = ZombieState.Wandering;
+				}
+				zombie.Rotation = Rot4.South;
+
+				var tickManager = Find.CurrentMap.GetComponent<TickManager>();
+				tickManager.allZombiesCached.Add(zombie);
+			});
 		}
 
 		protected override void DoListingItems()

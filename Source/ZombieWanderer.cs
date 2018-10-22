@@ -7,6 +7,8 @@ using System.Threading;
 using Verse;
 using Verse.AI;
 
+// TODO: reenable when we have found out why this makes the game stutter
+
 namespace ZombieLand
 {
 	public class MapInfo
@@ -227,7 +229,7 @@ namespace ZombieLand
 					highPrioSet.Enqueue(c);
 				});
 
-			var sleepCounter = 0;
+			long sleepCounter = 0;
 			while (highPrioSet.Count + lowPrioSet.Count > 0)
 			{
 				var parent = highPrioSet.Count == 0 ? lowPrioSet.Dequeue() : highPrioSet.Dequeue();
@@ -249,7 +251,7 @@ namespace ZombieLand
 					}
 				});
 
-				if (++sleepCounter > 200)
+				if (++sleepCounter > 10)
 				{
 					sleepCounter = 0;
 					Thread.Sleep(1);
@@ -281,7 +283,7 @@ namespace ZombieLand
 		static Dictionary<Map, MapInfo> grids;
 		const int cellSize = 5;
 		const int halfCellSize = (int)(cellSize / 2f + 0.9f);
-		Thread workerThread;
+		readonly Thread workerThread;
 
 		struct PawnProps
 		{
@@ -366,7 +368,7 @@ namespace ZombieLand
 			{
 				Priority = ThreadPriority.Lowest
 			};
-			workerThread.Start();
+			//workerThread.Start();
 		}
 
 		public MapInfo GetMapInfo(Map map)

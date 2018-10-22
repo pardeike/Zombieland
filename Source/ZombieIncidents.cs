@@ -248,7 +248,8 @@ namespace ZombieLand
 					.Take(incidentSize)
 					.Do(cell =>
 					{
-						Tools.generator.SpawnZombieAt(map, cell, true);
+						var tickManager = map.GetComponent<TickManager>();
+						ZombieGenerator.SpawnZombie(cell, map, (zombie) => { tickManager.allZombiesCached.Add(zombie); });
 						incidentSize--;
 						zombieSpawnsQueued++;
 					});

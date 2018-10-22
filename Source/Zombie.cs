@@ -22,6 +22,7 @@ namespace ZombieLand
 		public ZombieState state = ZombieState.Emerging;
 		public int raging;
 		public IntVec3 wanderDestination = IntVec3.Invalid;
+		public static Color[] zombieColors;
 
 		int rubbleTicks;
 		public int rubbleCounter;
@@ -62,6 +63,25 @@ namespace ZombieLand
 				var vstr = nths[n].ReplaceFirst("Every", "");
 				nthTickValues[n] = int.Parse(vstr);
 			}
+
+			zombieColors = new Color[]
+			{
+				"442a0a".HexColor(),
+				"615951".HexColor(),
+				"1f4960".HexColor(),
+				"182a64".HexColor(),
+				"73000d".HexColor(),
+				"2c422a".HexColor(),
+				"332341".HexColor()
+			};
+			(zombieColors.Clone() as Color[]).Do(c =>
+			{
+				c.r *= Rand.Range(0.2f, 1f);
+				c.g *= Rand.Range(0.2f, 1f);
+				c.b *= Rand.Range(0.2f, 1f);
+				zombieColors.Add(c);
+			});
+			zombieColors.Add("000000".HexColor());
 		}
 
 		public void UpgradeOldZombieData()
@@ -107,7 +127,8 @@ namespace ZombieLand
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
 				UpgradeOldZombieData();
-				ZombieGenerator.AssignNewCustomGraphics(this);
+				var it = ZombieGenerator.AssignNewCustomGraphics(this);
+				while (it.MoveNext()) ;
 			}
 
 			if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)

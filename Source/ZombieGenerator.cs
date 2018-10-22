@@ -1,97 +1,19 @@
-﻿using Harmony;
-using RimWorld;
+﻿using RimWorld;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using UnityEngine;
 using Verse;
 using Verse.AI;
 
 namespace ZombieLand
 {
-	public class ZombieRequest
-	{
-		public Map map;
-		public IntVec3 cell;
-		public Zombie zombie;
-		public bool isEvent;
-	}
-
 	[StaticConstructorOnStartup]
 	public class ZombieGenerator
 	{
-		ConcurrentQueue<ZombieRequest> requestQueue;
-		Dictionary<Map, ConcurrentQueue<ZombieRequest>> resultQueues;
-
-		Thread workerThread;
-
-		public ConcurrentQueue<ZombieRequest> QueueForMap(Map map)
-		{
-			if (resultQueues.TryGetValue(map, out var queue) == false)
-			{
-				queue = new ConcurrentQueue<ZombieRequest>(true);
-				resultQueues.Add(map, queue);
-			}
-			return queue;
-		}
-
-		public ZombieGenerator()
-		{
-			requestQueue = new ConcurrentQueue<ZombieRequest>();
-			resultQueues = new Dictionary<Map, ConcurrentQueue<ZombieRequest>>();
-
-			workerThread = new Thread(() =>
-			{
-				EndlessLoop:
-
-				try
-				{
-					var request = requestQueue.Dequeue();
-					if (request.zombie == null)
-						request.zombie = GeneratePawn(ZombieType.Random);
-					if (request.zombie != null)
-					{
-						var queue = QueueForMap(request.map);
-						queue.Enqueue(request);
-					}
-				}
-				catch (Exception e)
-				{
-					Log.Warning("ZombieGenerator thread error: " + e);
-					Thread.Sleep(500);
-				}
-
-				goto EndlessLoop;
-			})
-			{
-				Priority = System.Threading.ThreadPriority.Lowest
-			};
-			workerThread.Start();
-		}
-
-		public int ZombiesQueued(Map map)
-		{
-			var queue = QueueForMap(map);
-			return requestQueue.Count(q => q.map == map) + queue.Count();
-		}
-
-		public void SpawnZombieAt(Map map, IntVec3 cell, bool isEvent)
-		{
-			requestQueue.Enqueue(new ZombieRequest() { map = map, cell = cell, isEvent = isEvent, zombie = null });
-		}
-
-		public ZombieRequest TryGetNextGeneratedZombie(Map map)
-		{
-			var queue = QueueForMap(map);
-			return queue.Dequeue();
-		}
-
-		public void RequeueZombie(ZombieRequest request)
-		{
-			var queue = QueueForMap(request.map);
-			queue.Enqueue(request);
-		}
+		static List<ThingStuffPair> allApparelPairs;
 
 		static Color HairColor()
 		{
@@ -176,7 +98,10 @@ namespace ZombieLand
 			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, ZombieDefOf.Zombies);
 
 			if (ZombieSettings.Values.useCustomTextures)
-				AssignNewCustomGraphics(zombie);
+			{
+				var it = AssignNewCustomGraphics(zombie);
+				while (it.MoveNext()) ;
+			}
 
 			zombie.Drawer.leaner = new ZombieLeaner(zombie);
 
@@ -296,55 +221,151 @@ namespace ZombieLand
 		}
 
 		static readonly string[] headShapes = { "Normal", "Pointy", "Wide" };
-		public static void AssignNewCustomGraphics(Zombie zombie)
+		public static IEnumerator AssignNewCustomGraphics(Zombie zombie)
 		{
 			var renderPrecedence = 0;
-
 			var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
 			var color = zombie.isToxicSplasher ? "toxic" : GraphicToolbox.RandomSkinColorString();
+			yield return null;
 			var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
+			yield return null;
 			zombie.customBodyGraphic = new VariableGraphic { bodyColor = color };
-			zombie.customBodyGraphic.Init(bodyRequest);
-
+			yield return null;
+			zombie.customBodyGraphic.Init(VariableGraphic.minimal);
+			yield return null;
+			for (var i = 0; i < 4; i++)
+			{
+				var j = 0;
+				var it = zombie.customBodyGraphic.InitIterativ(bodyRequest, i);
+				while (it.MoveNext())
+				{
+					yield return null;
+					j++;
+				}
+			}
 			var headShape = zombie.hasTankyHelmet == 1f ? "Wide" : headShapes[Rand.Range(0, 3)];
 			var headPath = "Zombie/" + zombie.gender + "_" + zombie.story.crownType + "_" + headShape;
 			var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
+			yield return null;
 			zombie.customHeadGraphic = new VariableGraphic { bodyColor = color };
-			zombie.customHeadGraphic.Init(headRequest);
-
+			yield return null;
+			zombie.customHeadGraphic.Init(VariableGraphic.minimal);
+			yield return null;
+			for (var i = 0; i < 4; i++)
+			{
+				var j = 0;
+				var it = zombie.customHeadGraphic.InitIterativ(headRequest, i);
+				while (it.MoveNext())
+				{
+					yield return null;
+					j++;
+				}
+			}
 			zombie.sideEyeOffset = SideEyeOffset(headPath.ReplaceFirst("Zombie/", ""));
+			yield return null;
 		}
 
-		public static void FinalizeZombieGeneration(Zombie zombie)
+		public static IEnumerator GenerateStartingApparelFor(Pawn zombie)
 		{
-			var graphicPath = GraphicDatabaseHeadRecords.GetHeadRandom(zombie.gender, zombie.story.SkinColor, zombie.story.crownType).GraphicPath;
-			GetterSetters.headGraphicPathByRef(zombie.story) = graphicPath;
-
-			var request = new PawnGenerationRequest(zombie.kindDef);
-			PawnApparelGenerator.GenerateStartingApparelFor(zombie, request);
-			zombie.apparel.WornApparel.Do(apparel =>
+			if (allApparelPairs == null)
+				allApparelPairs = ThingStuffPair.AllWith((ThingDef td) => td.IsApparel && td.IsZombieDef() == false);
+			yield return null;
+			for (var i = 0; i < Rand.Range(0, 4); i++)
 			{
-				Color[] colors =
+				var pair = allApparelPairs
+					.Where(ap => ap.thing.IsApparel && ap.thing != ThingDefOf.Apparel_ShieldBelt && ap.thing != ThingDefOf.Apparel_SmokepopBelt)
+					.RandomElement();
+				var apparel = (Apparel)ThingMaker.MakeThing(pair.thing, pair.stuff);
+				PawnGenerator.PostProcessGeneratedGear(apparel, zombie);
+				if (ApparelUtility.HasPartsToWear(zombie, apparel.def))
 				{
-					"442a0a".HexColor(),
-					"615951".HexColor(),
-					"1f4960".HexColor(),
-					"182a64".HexColor(),
-					"73000d".HexColor(),
-					"2c422a".HexColor(),
-					"332341".HexColor()
-				};
-				(colors.Clone() as Color[]).Do(c =>
-				{
-					c.r *= Rand.Range(0.2f, 1f);
-					c.g *= Rand.Range(0.2f, 1f);
-					c.b *= Rand.Range(0.2f, 1f);
-					colors.Add(c);
-				});
-				colors.Add("000000".HexColor());
+					if (zombie.apparel.WornApparel.All(pa => ApparelUtility.CanWearTogether(pair.thing, pa.def, zombie.RaceProps.body)))
+					{
+						apparel.SetColor(Zombie.zombieColors[Rand.Range(0, Zombie.zombieColors.Length)].SaturationChanged(0.25f));
+						zombie.apparel.Wear(apparel, false);
+					}
+				}
+				yield return null;
+			}
+		}
 
-				apparel.SetColor(colors[Rand.Range(0, colors.Length)]);
-			});
+		public static void SpawnZombie(IntVec3 cell, Map map, Action<Zombie> callback)
+		{
+			Find.CameraDriver.StartCoroutine(SpawnZombieIterativ(cell, map, callback));
+		}
+
+		public static IEnumerator SpawnZombieIterativ(IntVec3 cell, Map map, Action<Zombie> callback)
+		{
+			var sw = new Stopwatch();
+			sw.Start();
+			var thing = ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null);
+			yield return null;
+			var zombie = thing as Zombie;
+			var bodyType = PrepareZombieType(zombie, ZombieType.Random);
+			zombie.kindDef = ZombieDefOf.Zombie;
+			zombie.SetFactionDirect(FactionUtility.DefaultFactionFrom(ZombieDefOf.Zombies));
+			yield return null;
+			PawnComponentsUtility.CreateInitialComponents(zombie);
+			yield return null;
+			zombie.health.hediffSet.Clear();
+			var ageInYears = (long)Rand.Range(14, 130);
+			zombie.ageTracker.AgeBiologicalTicks = (ageInYears * 3600000);
+			zombie.ageTracker.AgeChronologicalTicks = zombie.ageTracker.AgeBiologicalTicks;
+			zombie.ageTracker.BirthAbsTicks = GenTicks.TicksAbs - zombie.ageTracker.AgeBiologicalTicks;
+			var idx = zombie.ageTracker.CurLifeStageIndex; // trigger calculations
+			yield return null;
+			zombie.needs.SetInitialLevels();
+			yield return null;
+			zombie.needs.mood = new Need_Mood(zombie);
+			yield return null;
+			var name = PawnNameDatabaseSolid.GetListForGender((zombie.gender == Gender.Female) ? GenderPossibility.Female : GenderPossibility.Male).RandomElement();
+			yield return null;
+			var n1 = name.First.Replace('s', 'z').Replace('S', 'Z');
+			var n2 = name.Last.Replace('s', 'z').Replace('S', 'Z');
+			var n3 = name.Nick.Replace('s', 'z').Replace('S', 'Z');
+			zombie.Name = new NameTriple(n1, n3, n2);
+			yield return null;
+			zombie.story.childhood = BackstoryDatabase.allBackstories
+				.Where(kvp => kvp.Value.slot == BackstorySlot.Childhood)
+				.RandomElement().Value;
+			yield return null;
+			if (zombie.ageTracker.AgeBiologicalYearsFloat >= 20f)
+				zombie.story.adulthood = BackstoryDatabase.allBackstories
+				.Where(kvp => kvp.Value.slot == BackstorySlot.Adulthood)
+				.RandomElement().Value;
+			yield return null;
+			zombie.story.melanin = 0.01f * Rand.Range(10, 91);
+			zombie.story.bodyType = bodyType;
+			zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
+			zombie.story.hairColor = HairColor();
+			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, ZombieDefOf.Zombies);
+			yield return null;
+			if (ZombieSettings.Values.useCustomTextures)
+			{
+				var it1 = AssignNewCustomGraphics(zombie);
+				while (it1.MoveNext())
+					yield return null;
+			}
+			zombie.Drawer.leaner = new ZombieLeaner(zombie);
+			if (zombie.pather == null)
+				zombie.pather = new Pawn_PathFollower(zombie);
+			GetterSetters.destinationByRef(zombie.pather) = IntVec3.Invalid;
+			yield return null;
+			var graphicPath = GraphicDatabaseHeadRecords.GetHeadRandom(zombie.gender, zombie.story.SkinColor, zombie.story.crownType).GraphicPath;
+			yield return null;
+			GetterSetters.headGraphicPathByRef(zombie.story) = graphicPath;
+			yield return null;
+			var request = new PawnGenerationRequest(zombie.kindDef);
+			yield return null;
+			var it2 = GenerateStartingApparelFor(zombie);
+			while (it2.MoveNext())
+				yield return null;
+			GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Direct);
+			yield return null;
+			zombie.Drawer.renderer.graphics.ResolveAllGraphics();
+			yield return null;
+			if (callback != null)
+				callback(zombie);
 		}
 	}
 }

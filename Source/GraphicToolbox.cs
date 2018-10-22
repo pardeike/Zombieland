@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Collections;
+using System.Globalization;
 using UnityEngine;
 using Verse;
 
@@ -20,7 +21,7 @@ namespace ZombieLand
 			return GraphicsDatabase.zombieRGBSkinColors[idx];
 		}
 
-		public static void ApplyStains(this ColorData baseData, string part, bool flipH, bool flipV, float px = -1f, float py = -1f)
+		public static IEnumerator ApplyStainsIterativ(this ColorData baseData, string part, bool flipH, bool flipV, float px = -1f, float py = -1f)
 		{
 			var stainData = GraphicsDatabase.GetColorData(part, null);
 			var baseRect = baseData.rect;
@@ -30,7 +31,9 @@ namespace ZombieLand
 			var y = (int)(baseRect.y + (baseRect.height - stainHeight) * (py != -1f ? py : Rand.Value));
 			var oPixels = baseData.GetRawPixels(x, y, stainWidth, stainHeight);
 			var pPixels = stainData.pixels;
+			yield return null;
 			for (var sx = 0; sx < stainWidth; sx++)
+			{
 				for (var sy = 0; sy < stainHeight; sy++)
 				{
 					var pIdx = (flipH ? (stainWidth - sx - 1) : sx) + (flipV ? (stainHeight - sy - 1) : sy) * stainWidth;
@@ -45,6 +48,10 @@ namespace ZombieLand
 						oPixels[oIdx].b = oPixels[oIdx].b * (1 - a) + pPixels[pIdx].b * a;
 					}
 				}
+				if (sx % 4 == 0)
+					yield return null;
+			}
+			yield return null;
 			baseData.SetPixels(x, y, new ColorData(stainWidth, stainHeight, oPixels));
 		}
 

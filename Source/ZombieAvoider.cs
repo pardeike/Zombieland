@@ -60,8 +60,7 @@ namespace ZombieLand
 		ConcurrentQueue<AvoidRequest> requestQueue;
 		Dictionary<Map, ConcurrentQueue<AvoidGrid>> resultQueues;
 		readonly Dictionary<Map, AvoidGrid> grids;
-
-		Thread workerThread;
+		readonly Thread workerThread;
 
 		ConcurrentQueue<AvoidGrid> QueueForMap(Map map)
 		{

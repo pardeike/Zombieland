@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Collections;
 using UnityEngine;
 using Verse;
 
@@ -7,7 +7,7 @@ namespace ZombieLand
 {
 	public class VariableGraphic : Graphic, IDisposable
 	{
-		VariableMaterial[] mats = new VariableMaterial[3];
+		VariableMaterial[] mats = new VariableMaterial[4];
 		int hash;
 		public string bodyColor;
 
@@ -19,8 +19,42 @@ namespace ZombieLand
 		public override bool ShouldDrawRotated => MatWest == MatNorth;
 		public override Material MatSingle => mats[2].GetMaterial;
 
+		static readonly string[] directions = new[] { "_north", "_east", "_south", "_east" };
+		public IEnumerator InitIterativ(GraphicRequest req, int n)
+		{
+			var data = GraphicsDatabase.GetColorData(req.path + directions[n], bodyColor, true);
+			yield return null;
+
+			var points = ZombieStains.maxStainPoints;
+			while (points > 0)
+			{
+				var stain = ZombieStains.GetRandom(points, req.path.Contains("Naked"));
+				var it = data.ApplyStainsIterativ(stain.Key, Rand.Bool, Rand.Bool);
+				while (it.MoveNext())
+					yield return null;
+				points -= stain.Value;
+
+				hash = Gen.HashCombine(hash, stain);
+				yield return null;
+			}
+
+			var request = new MaterialRequest
+			{
+				mainTex = null, // will be calculated lazy from 'data'
+				shader = req.shader,
+				color = color,
+				colorTwo = colorTwo,
+				maskTex = null
+			};
+			mats[n] = new VariableMaterial(request, data);
+		}
+
+		public static GraphicRequest minimal = new GraphicRequest();
 		public override void Init(GraphicRequest req)
 		{
+			if (req == minimal)
+				return;
+
 			data = req.graphicData;
 			path = req.path;
 			color = req.color;
@@ -31,36 +65,11 @@ namespace ZombieLand
 			hash = Gen.HashCombineStruct(hash, color);
 			hash = Gen.HashCombineStruct(hash, colorTwo);
 
-			mats = new ColorData[]
+			for (var i = 0; i < 4; i++)
 			{
-				GraphicsDatabase.GetColorData(req.path + "_north", bodyColor, true),
-				GraphicsDatabase.GetColorData(req.path + "_east", bodyColor, true),
-				GraphicsDatabase.GetColorData(req.path + "_south", bodyColor, true),
-				GraphicsDatabase.GetColorData(req.path + "_east", bodyColor, true)
+				var iterator = InitIterativ(req, i);
+				while (iterator.MoveNext()) ;
 			}
-			.Select(data =>
-			{
-				var points = ZombieStains.maxStainPoints;
-				while (points > 0)
-				{
-					var stain = ZombieStains.GetRandom(points, req.path.Contains("Naked"));
-					data.ApplyStains(stain.Key, Rand.Bool, Rand.Bool);
-					points -= stain.Value;
-
-					hash = Gen.HashCombine(hash, stain);
-				}
-
-				var request = new MaterialRequest
-				{
-					mainTex = null, // will be calculated lazy from 'data'
-					shader = req.shader,
-					color = color,
-					colorTwo = colorTwo,
-					maskTex = null
-				};
-				return new VariableMaterial(request, data);
-			})
-			.ToArray();
 		}
 
 		public void Dispose()

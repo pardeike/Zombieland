@@ -1,7 +1,9 @@
 ﻿using Harmony;
 using RimWorld;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 using Verse;
@@ -13,7 +15,6 @@ namespace ZombieLand
 	public class TickManager : MapComponent
 	{
 		int populationSpawnCounter;
-		int dequeedSpawnCounter;
 
 		int visibleGridUpdateCounter;
 		int incidentTickCounter;
@@ -158,39 +159,6 @@ namespace ZombieLand
 					zombie.CustomTick();
 		}
 
-		public void DequeuAndSpawnZombies()
-		{
-			if (dequeedSpawnCounter-- < 0)
-			{
-				dequeedSpawnCounter = Rand.Range(10, 51);
-
-				var result = Tools.generator.TryGetNextGeneratedZombie(map);
-				if (result == null) return;
-				if (result.isEvent == false && ZombieCount() >= GetMaxZombieCount())
-				{
-					Tools.generator.RequeueZombie(result);
-					return;
-				}
-
-				// if zombie cannot spawn at location, we are wasting it here.
-				// to solve this, we need to find a better location and only if we find
-				// none, we can discard it
-				//
-				if (Tools.IsValidSpawnLocation(result.cell, result.map) == false) return;
-
-				var existingZombies = result.map.thingGrid.ThingsListAtFast(result.cell).OfType<Zombie>();
-				if (existingZombies.Any(zombie => zombie.state == ZombieState.Emerging))
-				{
-					Tools.generator.RequeueZombie(result);
-					return;
-				}
-
-				ZombieGenerator.FinalizeZombieGeneration(result.zombie);
-				GenPlace.TryPlaceThing(result.zombie, result.cell, result.map, ThingPlaceMode.Direct);
-				allZombiesCached.Add(result.zombie);
-			}
-		}
-
 		public float ZombieMaxCosts(Zombie zombie)
 		{
 			if (zombie.wasMapPawnBefore || zombie.raging > 0)
@@ -325,21 +293,21 @@ namespace ZombieLand
 			{
 				populationSpawnCounter = (int)GenMath.LerpDouble(0, 1000, 300, 20, Math.Max(100, Math.Min(1000, currentColonyPoints)));
 
-				var numberOfZombies = ZombieCount() + Tools.generator.ZombiesQueued(map);
-				if (numberOfZombies < GetMaxZombieCount())
+				if (ZombieCount() < GetMaxZombieCount())
 				{
 					switch (ZombieSettings.Values.spawnHowType)
 					{
 						case SpawnHowType.AllOverTheMap:
 							{
 								var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4);
-								if (cell.IsValid) Tools.generator.SpawnZombieAt(map, cell, false);
+								if (cell.IsValid)
+									ZombieGenerator.SpawnZombie(cell, map, (zombie) => { allZombiesCached.Add(zombie); });
 								return;
 							}
 						case SpawnHowType.FromTheEdges:
 							{
 								if (CellFinder.TryFindRandomEdgeCellWith(Tools.ZombieSpawnLocator(map), map, CellFinder.EdgeRoadChance_Neutral, out var cell))
-									Tools.generator.SpawnZombieAt(map, cell, false);
+									ZombieGenerator.SpawnZombie(cell, map, (zombie) => { allZombiesCached.Add(zombie); });
 								return;
 							}
 						default:
@@ -367,17 +335,24 @@ namespace ZombieLand
 			explosions.Clear();
 		}
 
-		public override void MapComponentTick()
+		IEnumerator TickTasks()
 		{
+			var sw = new Stopwatch();
+			sw.Start();
 			RepositionColonists();
+			yield return null;
 			HandleIncidents();
+			yield return null;
 			FetchAvoidGrid();
+			yield return null;
 			RecalculateVisibleMap();
+			yield return null;
 			IncreaseZombiePopulation();
-			DequeuAndSpawnZombies();
+			yield return null;
 			UpdateZombieAvoider();
+			yield return null;
 			ExecuteExplosions();
-
+			yield return null;
 			var volume = 0f;
 			if (allZombiesCached.Any())
 			{
@@ -390,7 +365,7 @@ namespace ZombieLand
 				else if (hour >= Constants.HOUR_END_OF_NIGHT && hour <= Constants.HOUR_START_OF_DAWN)
 					volume = GenMath.LerpDouble(Constants.HOUR_END_OF_NIGHT, Constants.HOUR_START_OF_DAWN, 1f, 0f, hour);
 			}
-
+			yield return null;
 			if (Constants.USE_SOUND && ZombieSettings.Values.playCreepyAmbientSound)
 			{
 				if (zombiesAmbientSound == null)
@@ -410,12 +385,18 @@ namespace ZombieLand
 					zombiesAmbientSound = null;
 				}
 			}
-
+			yield return null;
 			if (colonistsConverter.Count > 0)
 			{
 				var pawn = colonistsConverter.Dequeue();
 				Tools.ConvertToZombie(pawn);
 			}
+			yield return null;
+		}
+
+		public override void MapComponentTick()
+		{
+			Find.CameraDriver.StartCoroutine(TickTasks());
 		}
 	}
 }

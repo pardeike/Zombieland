@@ -2,6 +2,7 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -271,8 +272,12 @@ namespace ZombieLand
 			new[] { "tweenedPos", "lastDrawFrame", "lastTickSpringPos" }
 				.Do(field => zTweener.Field(field).SetValue(pTweener.Field(field).GetValue()));
 
-			ZombieGenerator.AssignNewCustomGraphics(zombie);
-			ZombieGenerator.FinalizeZombieGeneration(zombie);
+			var it1 = ZombieGenerator.AssignNewCustomGraphics(zombie);
+			while (it1.MoveNext()) ;
+
+			var it2 = ZombieGenerator.GenerateStartingApparelFor(zombie);
+			while (it2.MoveNext()) ;
+
 			GenPlace.TryPlaceThing(zombie, pos, map, ThingPlaceMode.Direct, null);
 
 			zombie.Rotation = rot;
@@ -518,6 +523,23 @@ namespace ZombieLand
 				m_Look.Invoke(null, arguments);
 				finfo.SetValue(settings, arguments[0]);
 			});
+		}
+
+		public static object Check(this Stopwatch sw, string name)
+		{
+			sw.Stop();
+			var tick = sw.ElapsedTicks * (double)60 / 10000000;
+			if (tick > 0.2)
+				Log.Warning(name + " " + string.Format("{0:0.00}", tick));
+			sw.Reset();
+			sw.Start();
+			return null;
+		}
+
+		public static void Continue(this Stopwatch sw)
+		{
+			sw.Reset();
+			sw.Start();
 		}
 
 		public static string ToHourString(this int ticks, bool relativeToAbsoluteGameTime = true)
