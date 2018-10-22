@@ -1,7 +1,9 @@
-﻿using RimWorld;
+﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -231,11 +233,22 @@ namespace ZombieLand
 			{
 				if (PawnUtility.ShouldSendNotificationAbout(eatTargetPawn) && eatTargetPawn.RaceProps.Humanlike)
 				{
-					Messages.Message("MessageEatenByPredator".Translate(new object[]
+					MethodInfo translate;
+					object[] parameters;
+					var type = AccessTools.TypeByName("Verse.TranslatorFormattedStringExtensions");
+					if (type != null)
 					{
-								driver.eatTarget.LabelShort,
-								zombie.LabelIndefinite()
-					}).CapitalizeFirst(), zombie, MessageTypeDefOf.NegativeEvent);
+						// 1.0
+						translate = AccessTools.Method(type, "Translate", new Type[] { typeof(string), typeof(NamedArgument), typeof(NamedArgument), typeof(NamedArgument) });
+						parameters = new object[] { "MessageEatenByPredator", driver.eatTarget.LabelShort, zombie.LabelIndefinite().Named("PREDATOR"), driver.eatTarget.Named("EATEN") };
+					}
+					else
+					{
+						// B19
+						translate = AccessTools.Method(type, "Translate", new Type[] { typeof(string), typeof(object[]) });
+						parameters = new object[] { "MessageEatenByPredator", new object[] { driver.eatTarget.LabelShort, zombie.LabelIndefinite() } };
+					}
+					Messages.Message(((string)translate.Invoke(null, parameters)).CapitalizeFirst(), zombie, MessageTypeDefOf.NegativeEvent);
 				}
 
 				eatTargetPawn.Strip();
