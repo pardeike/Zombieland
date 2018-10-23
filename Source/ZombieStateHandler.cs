@@ -385,7 +385,7 @@ namespace ZombieLand
 		//
 		public static bool RageMove(this JobDriver_Stumble driver, Zombie zombie, PheromoneGrid grid, List<IntVec3> possibleMoves, bool checkSmashable)
 		{
-			var info = Tools.wanderer.GetMapInfo(zombie.Map);
+			var info = ZombieWanderer.GetMapInfo(zombie.Map);
 			var newPos = info.GetParent(zombie.Position, false);
 
 			if (newPos.IsValid == false)
@@ -589,7 +589,7 @@ namespace ZombieLand
 
 			if (zombie.IsTanky)
 			{
-				var info = Tools.wanderer.GetMapInfo(map);
+				var info = ZombieWanderer.GetMapInfo(map);
 				var pos = info.GetParent(basePos, false);
 				if (pos.IsValid == false)
 					pos = info.GetParent(basePos, true);

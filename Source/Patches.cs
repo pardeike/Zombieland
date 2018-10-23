@@ -138,7 +138,7 @@ namespace ZombieLand
 				if (map == null) return;
 				var grid = map.GetGrid();
 				var basePos = UI.MouseCell();
-				var info = Tools.wanderer.GetMapInfo(map);
+				var info = ZombieWanderer.GetMapInfo(map);
 				var ignoreBuildings = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 				Tools.GetCircle(4).Select(vec => vec + basePos).Do(cell =>
 				{
@@ -205,10 +205,20 @@ namespace ZombieLand
 			}
 		}
 
-		// smart scaled zombie ticking (must be executed as late as possible 
-		// in game loop since we only process so many zombies that we can without
-		// exceeding the realtime tick -> no lag because of zombies
-		//
+		/*
+		[HarmonyPatch(typeof(Verse.TickManager))]
+		[HarmonyPatch("DoSingleTick")]
+		static class Verse_TickManager_DoSingleTick_Patch
+		{
+			static void Postfix(float ___realTimeToTickThrough)
+			{
+				var tickManager = Find.CurrentMap?.GetComponent<TickManager>();
+				var zombieTicker = tickManager?.ZombieTicking();
+				while (___realTimeToTickThrough > 0 && zombieTicker.MoveNext())
+					;
+			}
+		}
+		*/
 		[HarmonyPatch(typeof(Verse.TickManager))]
 		[HarmonyPatch("TickManagerUpdate")]
 		static class Verse_TickManager_TickManagerUpdate_Patch
@@ -216,20 +226,61 @@ namespace ZombieLand
 			static void ZombieTick()
 			{
 				var tickManager = Find.CurrentMap?.GetComponent<TickManager>();
-				tickManager?.ZombieTicking();
+				var zombieTicker = tickManager?.ZombieTicking();
+				while (zombieTicker.MoveNext())
+					;
+			}
+
+			static void ZombieWandererProcess(Verse.TickManager manager, float realTimeToTickThrough)
+			{
+				var curTimePerTick = manager.TickRateMultiplier == 0f ? 0f : 1f / (60f * manager.TickRateMultiplier);
+				while (realTimeToTickThrough > 0f)
+				{
+					ZombieWanderer.processor.MoveNext();
+					realTimeToTickThrough -= curTimePerTick;
+				}
+			}
+
+			static void SingleTick(Verse.TickManager manager, int num)
+			{
+				manager.DoSingleTick();
+				if (num == 0)
+					ZombieTick();
 			}
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
 				var jump = generator.DefineLabel();
-				var m_ZombieTick = SymbolExtensions.GetMethodInfo(() => ZombieTick());
+				//var m_ZombieTick = SymbolExtensions.GetMethodInfo(() => ZombieTick());
+				var m_SingleTick = SymbolExtensions.GetMethodInfo(() => SingleTick(null, 0));
+				var m_DoSingleTick = AccessTools.Method(typeof(Verse.TickManager), "DoSingleTick");
+				var m_ZombieWandererProcess = SymbolExtensions.GetMethodInfo(() => ZombieWandererProcess(null, 0f));
+				var f_realTimeToTickThrough = AccessTools.Field(typeof(Verse.TickManager), "realTimeToTickThrough");
 
-				var firstTime = true;
+				var list = instructions.ToList();
+				var idx = list.FindIndex(code => code.operand == m_DoSingleTick);
+				list[idx].operand = m_SingleTick;
+				list.Insert(idx, new CodeInstruction(OpCodes.Ldloc_1));
+				idx = list.FindLastIndex(code => code.opcode == OpCodes.Ldfld && code.operand == f_realTimeToTickThrough) - 1;
+				/*list.InsertRange(idx, new CodeInstruction[]
+				{
+					new CodeInstruction(OpCodes.Ldarg_0),
+					new CodeInstruction(OpCodes.Ldarg_0),
+					new CodeInstruction(OpCodes.Ldfld, f_realTimeToTickThrough),
+					new CodeInstruction(OpCodes.Call, m_ZombieWandererProcess)
+				});*/
+
+				return list.AsEnumerable();
+
+				/*var nextInstr = false;
+				var found = false;
 				foreach (var instruction in instructions)
 				{
-					if (firstTime && instruction.opcode == OpCodes.Ldloc_0)
+					if (instruction.operand == m_DoSingleTick)
+						nextInstr = true;
+					else if (nextInstr && !found)
 					{
-						firstTime = false;
+						found = true;
 						yield return new CodeInstruction(OpCodes.Ldloc_1);
 						yield return new CodeInstruction(OpCodes.Ldc_I4_2);
 						yield return new CodeInstruction(OpCodes.Bge, jump);
@@ -239,7 +290,23 @@ namespace ZombieLand
 					yield return instruction;
 				}
 
-				if (firstTime) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+				if (found == false) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);*/
+			}
+
+			static void Postfix()
+			{
+
+			}
+		}
+		[HarmonyPatch(typeof(Verse.TickManager))]
+		[HarmonyPatch("NothingHappeningInGame")]
+		static class Verse_TickManager_NothingHappeningInGame_Patch
+		{
+			static void Postfix(ref bool __result)
+			{
+				if (__result == false)
+					return;
+				__result = ZombieGenerator.ZombiesSpawning == 0;
 			}
 		}
 
@@ -918,7 +985,7 @@ namespace ZombieLand
 					builder.AppendLine("Avoid cost: " + avoidGrid.GetCosts()[pos.x + pos.z * map.Size.x]);
 				}
 
-				var info = Tools.wanderer.GetMapInfo(map);
+				var info = ZombieWanderer.GetMapInfo(map);
 				builder.AppendLine("Parent normal: " + info.GetParent(pos, false));
 				builder.AppendLine("Parent via doors: " + info.GetParent(pos, true));
 				builder.AppendLine("Parent raw: " + info.GetDirectDebug(pos));
@@ -2644,6 +2711,7 @@ namespace ZombieLand
 			{
 				Tools.EnableTwinkie(ZombieSettings.Values.replaceTwinkie);
 				ModCounter.Trigger();
+				ZombieWanderer.InitProcess();
 			}
 		}
 

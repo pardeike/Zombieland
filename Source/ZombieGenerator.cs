@@ -14,6 +14,7 @@ namespace ZombieLand
 	public class ZombieGenerator
 	{
 		static List<ThingStuffPair> allApparelPairs;
+		public static int ZombiesSpawning = 0;
 
 		static Color HairColor()
 		{
@@ -296,6 +297,7 @@ namespace ZombieLand
 
 		public static IEnumerator SpawnZombieIterativ(IntVec3 cell, Map map, Action<Zombie> callback)
 		{
+			ZombiesSpawning++;
 			var sw = new Stopwatch();
 			sw.Start();
 			var thing = ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null);
@@ -366,6 +368,7 @@ namespace ZombieLand
 			yield return null;
 			if (callback != null)
 				callback(zombie);
+			ZombiesSpawning--;
 		}
 	}
 }

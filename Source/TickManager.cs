@@ -149,14 +149,18 @@ namespace ZombieLand
 			return Mathf.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
 		}
 
-		public void ZombieTicking()
+		public IEnumerator ZombieTicking()
 		{
-			if (Find.TickManager.TickRateMultiplier == 0f) return;
+			if (Find.TickManager.TickRateMultiplier == 0f) yield break;
 			var zombies = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false).ToList();
+			yield return null;
 
-			for (var i = 0; i < 2; i++)
-				foreach (var zombie in zombies)
-					zombie.CustomTick();
+			//for (var i = 0; i < 2; i++)
+			foreach (var zombie in zombies)
+			{
+				zombie.CustomTick();
+				yield return null;
+			}
 		}
 
 		public float ZombieMaxCosts(Zombie zombie)
@@ -281,7 +285,7 @@ namespace ZombieLand
 
 		public int ZombieCount()
 		{
-			return allZombiesCached.Count(zombie => zombie.Spawned && zombie.Dead == false);
+			return allZombiesCached.Count(zombie => zombie.Spawned && zombie.Dead == false) + ZombieGenerator.ZombiesSpawning;
 		}
 
 		public void IncreaseZombiePopulation()

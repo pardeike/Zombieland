@@ -1,7 +1,7 @@
-﻿using Harmony;
-using RimWorld;
+﻿using RimWorld;
 using RimWorld.Planet;
 using System;
+using System.Collections;
 using System.Linq;
 using Verse;
 using Verse.Sound;
@@ -92,7 +92,7 @@ namespace ZombieLand
 			parameters.currentZombieCount = tickManager.AllZombies().Count();
 			parameters.numberOfZombiesPerColonist = ZombieSettings.Values.baseNumberOfZombiesinEvent;
 			parameters.colonyMultiplier = ZombieSettings.Values.colonyMultiplier;
-			parameters.maxBaseLevelZombies = tickManager.GetMaxZombieCount();
+			parameters.maxBaseLevelZombies = tickManager.GetMaxZombieCount() + ZombieGenerator.ZombiesSpawning;
 			parameters.extendedCount = 0;
 			parameters.maxNumberOfZombies = ZombieSettings.Values.maximumNumberOfZombies;
 			parameters.maxAdditionalZombies = 0;
@@ -200,21 +200,56 @@ namespace ZombieLand
 			};
 		}
 
+		static IEnumerator SpawnEventProcess(Map map, int incidentSize, IntVec3 spot, Predicate<IntVec3> cellValidator)
+		{
+			var zombiesSpawning = 0;
+			var counter = 1;
+			while (incidentSize > 0 && counter <= 10)
+			{
+				var cells = Tools.GetCircle(Constants.SPAWN_INCIDENT_RADIUS)
+					.Select(vec => spot + vec)
+					.Where(vec => cellValidator(vec))
+					.InRandomOrder()
+					.Take(incidentSize)
+					.ToList();
+				yield return null;
+
+				var tickManager = map.GetComponent<TickManager>();
+				foreach (var cell in cells)
+				{
+					ZombieGenerator.SpawnZombie(cell, map, (zombie) => { tickManager.allZombiesCached.Add(zombie); });
+					incidentSize--;
+					zombiesSpawning++;
+					yield return null;
+				}
+				counter++;
+			}
+
+			if (zombiesSpawning > 3)
+			{
+				var headline = "LetterLabelZombiesRising".Translate();
+				var text = "ZombiesRising".Translate();
+				if (ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap)
+				{
+					headline = "LetterLabelZombiesRisingNearYourBase".Translate();
+					text = "ZombiesRisingNearYourBase".Translate();
+				}
+
+				var location = new GlobalTargetInfo(spot, map);
+				Find.LetterStack.ReceiveLetter(headline, text, LetterDefOf.ThreatSmall, location);
+
+				var isSubstantialZombieCount = zombiesSpawning > Tools.CapableColonists(map) * 4;
+				if (isSubstantialZombieCount && Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
+					SoundDef.Named("ZombiesRising").PlayOneShotOnCamera(null);
+			}
+		}
+
 		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot)
 		{
 			var cellValidator = Tools.ZombieSpawnLocator(map, true);
 			var spotValidator = SpotValidator(map, cellValidator);
 
-			var headline = "LetterLabelZombiesRising".Translate();
-			var text = "ZombiesRising".Translate();
-			if (ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap)
-			{
-				headline = "LetterLabelZombiesRisingNearYourBase".Translate();
-				text = "ZombiesRisingNearYourBase".Translate();
-			}
-
-			int counter;
-			for (counter = 1; counter <= 10; counter++)
+			for (var counter = 1; counter <= 10; counter++)
 			{
 				if (spot.IsValid)
 					break;
@@ -235,36 +270,10 @@ namespace ZombieLand
 					if (success == false) spot = IntVec3.Invalid;
 				}
 			}
-			if (spot.IsValid == false) return false;
+			if (spot.IsValid == false)
+				return false;
 
-			var zombieSpawnsQueued = 0;
-			counter = 1;
-			while (incidentSize > 0 && counter <= 10)
-			{
-				Tools.GetCircle(Constants.SPAWN_INCIDENT_RADIUS)
-					.Select(vec => spot + vec)
-					.Where(vec => cellValidator(vec))
-					.InRandomOrder()
-					.Take(incidentSize)
-					.Do(cell =>
-					{
-						var tickManager = map.GetComponent<TickManager>();
-						ZombieGenerator.SpawnZombie(cell, map, (zombie) => { tickManager.allZombiesCached.Add(zombie); });
-						incidentSize--;
-						zombieSpawnsQueued++;
-					});
-				counter++;
-			}
-
-			if (zombieSpawnsQueued > 3)
-			{
-				var location = new GlobalTargetInfo(spot, map);
-				Find.LetterStack.ReceiveLetter(headline, text, LetterDefOf.ThreatSmall, location);
-
-				var isSubstantialZombieCount = zombieSpawnsQueued > Tools.CapableColonists(map) * 4;
-				if (isSubstantialZombieCount && Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
-					SoundDef.Named("ZombiesRising").PlayOneShotOnCamera(null);
-			}
+			Find.CameraDriver.StartCoroutine(SpawnEventProcess(map, incidentSize, spot, cellValidator));
 			return true;
 		}
 	}

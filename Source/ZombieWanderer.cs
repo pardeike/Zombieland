@@ -1,13 +1,12 @@
 ﻿using Harmony;
 using RimWorld;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Verse;
 using Verse.AI;
-
-// TODO: reenable when we have found out why this makes the game stutter
 
 namespace ZombieLand
 {
@@ -97,18 +96,6 @@ namespace ZombieLand
 			return b & 0x0f;
 		}
 
-		/*unsafe void SetDirect(IntVec3 pos, int val, bool ignoreBuildings)
-		{
-			var b = (byte*)vecGrids[privateIndex][pos.x + pos.z * mapSizeX];
-			if (ignoreBuildings)
-			{
-				val <<= 4;
-				*b &= 0x0f;
-			}
-			else
-				*b &= 0xf0;
-			*b |= (byte)val;
-		}*/
 		void SetDirect(IntVec3 pos, int val, bool ignoreBuildings)
 		{
 			var grid = vecGrids[privateIndex];
@@ -158,7 +145,7 @@ namespace ZombieLand
 			int[] rndices;
 			int i;
 			var t = (int)(DateTime.Now.Ticks % 1000);
-			var random = new Random(basePos.x + basePos.z * 1000 + t * 1000000);
+			var random = new System.Random(basePos.x + basePos.z * 1000 + t * 1000000);
 
 			rndices = randomOrders[random.Next(0, 24)];
 			for (i = 0; i < 4; i++)
@@ -219,7 +206,8 @@ namespace ZombieLand
 			}
 		}
 
-		void Recalculate(Map map, IntVec3[] positions, bool hasTankyZombies, bool ignoreBuildings)
+		static Stopwatch watch = new Stopwatch();
+		IEnumerator Recalculate(Map map, IntVec3[] positions, bool hasTankyZombies, bool ignoreBuildings)
 		{
 			positions
 				.Where(cell => GetDirectInternal(cell, ignoreBuildings, false) == 0)
@@ -229,7 +217,10 @@ namespace ZombieLand
 					highPrioSet.Enqueue(c);
 				});
 
-			long sleepCounter = 0;
+			yield return null;
+			watch.Reset();
+			watch.Start();
+
 			while (highPrioSet.Count + lowPrioSet.Count > 0)
 			{
 				var parent = highPrioSet.Count == 0 ? lowPrioSet.Dequeue() : highPrioSet.Dequeue();
@@ -251,39 +242,58 @@ namespace ZombieLand
 					}
 				});
 
-				if (++sleepCounter > 10)
+				if (ZombieGenerator.ZombiesSpawning > 0 && Find.TickManager.CurTimeSpeed > TimeSpeed.Normal)
 				{
-					sleepCounter = 0;
-					Thread.Sleep(1);
+					yield return null;
+					watch.Reset();
+					watch.Start();
+					continue;
+				}
+
+				var gameSpeed = (int)Find.TickManager.CurTimeSpeed;
+				var tick = watch.ElapsedTicks * (double)60 / 10000000;
+				var maxTick = gameSpeed == 0 ? 0.15f : (5 - gameSpeed) * 0.005f;
+				if (tick > maxTick)
+				{
+					yield return null;
+					watch.Reset();
+					watch.Start();
 				}
 			}
 		}
 
-		public void RecalculateAll(Map map, IntVec3[] positions, bool hasTankyZombies)
+		public IEnumerator RecalculateAll(Map map, IntVec3[] positions, bool hasTankyZombies)
 		{
 			if (dirtyCells)
 			{
 				ClearCells();
 				dirtyCells = false;
 			}
-			if (ZombieSettings.Values.ragingZombies == false && hasTankyZombies == false) return;
+			if (ZombieSettings.Values.ragingZombies == false && hasTankyZombies == false) yield break;
 
 			dirtyCells = true;
-			Recalculate(map, positions, hasTankyZombies, false);
-			Recalculate(map, positions, hasTankyZombies, true);
+			Log.Warning("recalc 1");
+			var it1 = Recalculate(map, positions, hasTankyZombies, false);
+			while (it1.MoveNext())
+				yield return null;
+
+			Log.Warning("recalc 2");
+			var it2 = Recalculate(map, positions, hasTankyZombies, true);
+			while (it2.MoveNext())
+				yield return null;
 
 			publicIndex = privateIndex;
 			privateIndex = 1 - privateIndex;
 		}
 	}
 
-	[StaticConstructorOnStartup]
 	public class ZombieWanderer
 	{
-		static Dictionary<Map, MapInfo> grids;
+		public static readonly IEnumerator processor = Process();
+
+		static Dictionary<Map, MapInfo> grids = new Dictionary<Map, MapInfo>();
 		const int cellSize = 5;
 		const int halfCellSize = (int)(cellSize / 2f + 0.9f);
-		readonly Thread workerThread;
 
 		struct PawnProps
 		{
@@ -305,73 +315,56 @@ namespace ZombieLand
 			}
 		}
 
-		public ZombieWanderer()
+		public static void InitProcess()
 		{
-			grids = new Dictionary<Map, MapInfo>();
-
-			workerThread = new Thread(() =>
+			/*var driver = Find.CameraDriver;
+			Log.Warning("Camera driver: " + driver);
+			if (driver != null)
 			{
-				EndlessLoop:
+				processor = Process();
+				driver.StartCoroutine(processor);
+			}*/
+		}
 
-				var wait = true;
-				try
+		public static IEnumerator Process()
+		{
+			while (true)
+			{
+				if (Current.Game != null && Current.ProgramState == ProgramState.Playing && Scribe.mode == LoadSaveMode.Inactive)
 				{
-					if (Current.Game != null && Current.ProgramState == ProgramState.Playing && Scribe.mode == LoadSaveMode.Inactive)
+					var maps = Find.Maps.ToArray();
+					foreach (var map in maps)
 					{
-						var maps = Find.Maps.ToArray();
-						foreach (var map in maps)
+						if (Current.Game == null || Current.ProgramState != ProgramState.Playing || Scribe.mode != LoadSaveMode.Inactive)
+							break;
+
+						var info = GetMapInfo(map);
+						if (info.IsInValidState() == false) continue;
+
+						var mapPawns = map?.mapPawns?.AllPawnsSpawned;
+						if (mapPawns != null)
 						{
-							if (Current.Game == null || Current.ProgramState != ProgramState.Playing || Scribe.mode != LoadSaveMode.Inactive)
-								break;
-
-							var info = GetMapInfo(map);
-							if (info.IsInValidState() == false) continue;
-
-							var mapPawns = map?.mapPawns?.AllPawnsSpawned;
-							if (mapPawns != null)
+							var pawnArray = mapPawns.ToArray();
+							var colonistPositions = pawnArray
+								.Select(pawn => new PawnProps(pawn))
+								.Where(props => props.valid)
+								.Select(props => props.position)
+								.ToArray();
+							yield return null;
+							if (colonistPositions.Any())
 							{
-								var pawnArray = new Pawn[0];
-								for (var i = 0; i < 3; i++)
-								{
-									try
-									{
-										pawnArray = mapPawns.ToArray();
-										break;
-									}
-									catch
-									{
-									}
-								}
-								var colonistPositions = pawnArray
-									.Select(pawn => new PawnProps(pawn))
-									.Where(props => props.valid)
-									.Select(props => props.position)
-									.ToArray();
-								if (colonistPositions.Any())
-								{
-									var hasTankyZombies = pawnArray.OfType<Zombie>().Any(zombie => zombie.IsTanky);
-									info.RecalculateAll(map, colonistPositions, hasTankyZombies);
-									wait = false;
-								}
+								var hasTankyZombies = pawnArray.OfType<Zombie>().Any(zombie => zombie.IsTanky);
+								var it = info.RecalculateAll(map, colonistPositions, hasTankyZombies);
+								while (it.MoveNext())
+									yield return null;
 							}
 						}
 					}
 				}
-				catch (Exception e)
-				{
-					Log.Warning("ZombieWanderer thread error: " + e);
-				}
-
-				if (wait) Thread.Sleep(500);
-				goto EndlessLoop;
-			})
-			{
-				Priority = ThreadPriority.Lowest
-			};
-			//workerThread.Start();
+			}
 		}
 
-		public MapInfo GetMapInfo(Map map)
+		public static MapInfo GetMapInfo(Map map)
 		{
 			if (grids.TryGetValue(map, out var result) == false)
 			{
