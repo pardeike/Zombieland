@@ -240,7 +240,7 @@ namespace ZombieLand
 					{
 						// 1.0
 						translate = AccessTools.Method(type, "Translate", new Type[] { typeof(string), typeof(NamedArgument), typeof(NamedArgument), typeof(NamedArgument) });
-						parameters = new object[] { "MessageEatenByPredator", driver.eatTarget.LabelShort, zombie.LabelIndefinite().Named("PREDATOR"), driver.eatTarget.Named("EATEN") };
+						parameters = new object[] { "MessageEatenByPredator", new NamedArgument(driver.eatTarget.LabelShort, null), zombie.LabelIndefinite().Named("PREDATOR"), driver.eatTarget.Named("EATEN") };
 					}
 					else
 					{
@@ -248,7 +248,8 @@ namespace ZombieLand
 						translate = AccessTools.Method(type, "Translate", new Type[] { typeof(string), typeof(object[]) });
 						parameters = new object[] { "MessageEatenByPredator", new object[] { driver.eatTarget.LabelShort, zombie.LabelIndefinite() } };
 					}
-					Messages.Message(((string)translate.Invoke(null, parameters)).CapitalizeFirst(), zombie, MessageTypeDefOf.NegativeEvent);
+					var msg = (string)translate.Invoke(null, parameters);
+					Messages.Message(msg.CapitalizeFirst(), zombie, MessageTypeDefOf.NegativeEvent);
 				}
 
 				eatTargetPawn.Strip();
