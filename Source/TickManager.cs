@@ -155,11 +155,16 @@ namespace ZombieLand
 			var zombies = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false).ToList();
 			yield return null;
 
-			//for (var i = 0; i < 2; i++)
-			foreach (var zombie in zombies)
+			var speed = (int)Find.TickManager.CurTimeSpeed;
+			if (speed > 0)
 			{
-				zombie.CustomTick();
-				yield return null;
+				if (speed > 1) speed--;
+				var randomZombies = zombies.InRandomOrder().ToArray();
+				for (var i = 0; i < randomZombies.Length; i += speed)
+				{
+					randomZombies[i].CustomTick();
+					yield return null;
+				}
 			}
 		}
 

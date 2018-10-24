@@ -2,6 +2,7 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -205,97 +206,50 @@ namespace ZombieLand
 			}
 		}
 
-		/*
-		[HarmonyPatch(typeof(Verse.TickManager))]
-		[HarmonyPatch("DoSingleTick")]
-		static class Verse_TickManager_DoSingleTick_Patch
-		{
-			static void Postfix(float ___realTimeToTickThrough)
-			{
-				var tickManager = Find.CurrentMap?.GetComponent<TickManager>();
-				var zombieTicker = tickManager?.ZombieTicking();
-				while (___realTimeToTickThrough > 0 && zombieTicker.MoveNext())
-					;
-			}
-		}
-		*/
 		[HarmonyPatch(typeof(Verse.TickManager))]
 		[HarmonyPatch("TickManagerUpdate")]
 		static class Verse_TickManager_TickManagerUpdate_Patch
 		{
-			static void ZombieTick()
-			{
-				var tickManager = Find.CurrentMap?.GetComponent<TickManager>();
-				var zombieTicker = tickManager?.ZombieTicking();
-				while (zombieTicker.MoveNext())
-					;
-			}
-
-			static void ZombieWandererProcess(Verse.TickManager manager, float realTimeToTickThrough)
-			{
-				var curTimePerTick = manager.TickRateMultiplier == 0f ? 0f : 1f / (60f * manager.TickRateMultiplier);
-				while (realTimeToTickThrough > 0f)
-				{
-					ZombieWanderer.processor.MoveNext();
-					realTimeToTickThrough -= curTimePerTick;
-				}
-			}
+			static Stopwatch watch = new Stopwatch();
 
 			static void SingleTick(Verse.TickManager manager, int num)
 			{
+				watch.Reset();
+				watch.Start();
 				manager.DoSingleTick();
-				if (num == 0)
-					ZombieTick();
+				var maxTick = 2 * watch.ElapsedTicks;
+
+				var tickManager = Find.CurrentMap?.GetComponent<TickManager>();
+				var zombieTicker = tickManager?.ZombieTicking();
+				if (zombieTicker != null)
+				{
+					watch.Reset();
+					watch.Start();
+					while (zombieTicker.MoveNext() && watch.ElapsedTicks < maxTick) ;
+				}
+			}
+
+			static void Prefix(Verse.TickManager __instance)
+			{
+				ZombieWanderer.processor.MoveNext();
 			}
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
 				var jump = generator.DefineLabel();
-				//var m_ZombieTick = SymbolExtensions.GetMethodInfo(() => ZombieTick());
 				var m_SingleTick = SymbolExtensions.GetMethodInfo(() => SingleTick(null, 0));
 				var m_DoSingleTick = AccessTools.Method(typeof(Verse.TickManager), "DoSingleTick");
-				var m_ZombieWandererProcess = SymbolExtensions.GetMethodInfo(() => ZombieWandererProcess(null, 0f));
-				var f_realTimeToTickThrough = AccessTools.Field(typeof(Verse.TickManager), "realTimeToTickThrough");
 
 				var list = instructions.ToList();
 				var idx = list.FindIndex(code => code.operand == m_DoSingleTick);
 				list[idx].operand = m_SingleTick;
 				list.Insert(idx, new CodeInstruction(OpCodes.Ldloc_1));
-				idx = list.FindLastIndex(code => code.opcode == OpCodes.Ldfld && code.operand == f_realTimeToTickThrough) - 1;
-				/*list.InsertRange(idx, new CodeInstruction[]
-				{
-					new CodeInstruction(OpCodes.Ldarg_0),
-					new CodeInstruction(OpCodes.Ldarg_0),
-					new CodeInstruction(OpCodes.Ldfld, f_realTimeToTickThrough),
-					new CodeInstruction(OpCodes.Call, m_ZombieWandererProcess)
-				});*/
+
+				foreach (var code in list)
+					if (code.operand == (object)1000)
+						code.operand = 200;
 
 				return list.AsEnumerable();
-
-				/*var nextInstr = false;
-				var found = false;
-				foreach (var instruction in instructions)
-				{
-					if (instruction.operand == m_DoSingleTick)
-						nextInstr = true;
-					else if (nextInstr && !found)
-					{
-						found = true;
-						yield return new CodeInstruction(OpCodes.Ldloc_1);
-						yield return new CodeInstruction(OpCodes.Ldc_I4_2);
-						yield return new CodeInstruction(OpCodes.Bge, jump);
-						yield return new CodeInstruction(OpCodes.Call, m_ZombieTick);
-						instruction.labels.Add(jump);
-					}
-					yield return instruction;
-				}
-
-				if (found == false) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);*/
-			}
-
-			static void Postfix()
-			{
-
 			}
 		}
 		[HarmonyPatch(typeof(Verse.TickManager))]
@@ -2034,7 +1988,7 @@ namespace ZombieLand
 					// them at 1x speed and make them faster instead. Not perfect but
 					// a very good workaround for good game speed
 					//
-					__result = speed * factor * Find.TickManager.TickRateMultiplier;
+					__result = 1.5f * speed * factor * Find.TickManager.TickRateMultiplier;
 					if (zombie.wasMapPawnBefore)
 						__result *= 2f;
 					return false;
@@ -2711,7 +2665,6 @@ namespace ZombieLand
 			{
 				Tools.EnableTwinkie(ZombieSettings.Values.replaceTwinkie);
 				ModCounter.Trigger();
-				ZombieWanderer.InitProcess();
 			}
 		}
 

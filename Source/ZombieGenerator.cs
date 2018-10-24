@@ -369,6 +369,23 @@ namespace ZombieLand
 			if (callback != null)
 				callback(zombie);
 			ZombiesSpawning--;
+			switch (Find.TickManager.CurTimeSpeed)
+			{
+				case TimeSpeed.Paused:
+					break;
+				case TimeSpeed.Normal:
+					yield return new WaitForSeconds(0.1f);
+					break;
+				case TimeSpeed.Fast:
+					yield return new WaitForSeconds(0.25f);
+					break;
+				case TimeSpeed.Superfast:
+					yield return new WaitForSeconds(0.5f);
+					break;
+				case TimeSpeed.Ultrafast:
+					yield return new WaitForSeconds(1f);
+					break;
+			}
 		}
 	}
 }

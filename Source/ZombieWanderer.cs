@@ -242,17 +242,9 @@ namespace ZombieLand
 					}
 				});
 
-				if (ZombieGenerator.ZombiesSpawning > 0 && Find.TickManager.CurTimeSpeed > TimeSpeed.Normal)
-				{
-					yield return null;
-					watch.Reset();
-					watch.Start();
-					continue;
-				}
-
-				var gameSpeed = (int)Find.TickManager.CurTimeSpeed;
 				var tick = watch.ElapsedTicks * (double)60 / 10000000;
-				var maxTick = gameSpeed == 0 ? 0.15f : (5 - gameSpeed) * 0.005f;
+				var speed = (int)Find.TickManager.CurTimeSpeed;
+				var maxTick = speed == 0 ? 0.1f : (ZombieGenerator.ZombiesSpawning > 0 ? 0.07f : 0.12f) - speed * 0.0025f;
 				if (tick > maxTick)
 				{
 					yield return null;
@@ -272,12 +264,12 @@ namespace ZombieLand
 			if (ZombieSettings.Values.ragingZombies == false && hasTankyZombies == false) yield break;
 
 			dirtyCells = true;
-			Log.Warning("recalc 1");
+			// Log.Warning("recalc 1");
 			var it1 = Recalculate(map, positions, hasTankyZombies, false);
 			while (it1.MoveNext())
 				yield return null;
 
-			Log.Warning("recalc 2");
+			// Log.Warning("recalc 2");
 			var it2 = Recalculate(map, positions, hasTankyZombies, true);
 			while (it2.MoveNext())
 				yield return null;
@@ -313,17 +305,6 @@ namespace ZombieLand
 					&& (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans == false || pawn.RaceProps.Humanlike);
 				position = pawn?.Position ?? IntVec3.Invalid;
 			}
-		}
-
-		public static void InitProcess()
-		{
-			/*var driver = Find.CameraDriver;
-			Log.Warning("Camera driver: " + driver);
-			if (driver != null)
-			{
-				processor = Process();
-				driver.StartCoroutine(processor);
-			}*/
 		}
 
 		public static IEnumerator Process()
