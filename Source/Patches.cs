@@ -332,7 +332,7 @@ namespace ZombieLand
 						if (ZombieSettings.Values.enemiesAttackZombies == false)
 							return false;
 
-						if (zombie.state != ZombieState.Tracking)
+						if (zombie.state != ZombieState.Tracking || zombie.Downed)
 							return false;
 
 						var distanceToTarget = (float)(attacker.Position - zombie.Position).LengthHorizontalSquared;
@@ -2812,17 +2812,17 @@ namespace ZombieLand
 			static void Postfix(Thing launcher, Vector3 origin, LocalTargetInfo usedTarget)
 			{
 				var pawn = launcher as Pawn;
-				if (pawn == null) return;
+				if (pawn == null || pawn.Map == null) return;
 
 				var noiseScale = 1f;
-				if (pawn.equipment.PrimaryEq != null)
+				if (pawn.equipment?.PrimaryEq?.PrimaryVerb?.verbProps != null)
 					noiseScale = pawn.equipment.PrimaryEq.PrimaryVerb.verbProps.muzzleFlashScale / Constants.BASE_MUZZLE_FLASH_VALUE;
 
 				var now = Tools.Ticks();
 				var pos = origin.ToIntVec3();
-				var magnitude = (usedTarget.CenterVector3 - origin).magnitude * noiseScale * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
+				var magnitude = usedTarget == null ? (Constants.MIN_WEAPON_RANGE + Constants.MAX_WEAPON_RANGE) / 2 : (usedTarget.CenterVector3 - origin).magnitude * noiseScale * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
 				var radius = Tools.Boxed(magnitude, Constants.MIN_WEAPON_RANGE, Constants.MAX_WEAPON_RANGE);
-				var grid = launcher.Map.GetGrid();
+				var grid = pawn.Map.GetGrid();
 				Tools.GetCircle(radius).Do(vec => grid.BumpTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
 			}
 

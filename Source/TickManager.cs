@@ -177,13 +177,14 @@ namespace ZombieLand
 
 		public void UpdateZombieAvoider()
 		{
-			var specs = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false).Select(zombie => new ZombieCostSpecs()
-			{
-				position = zombie.Position,
-				radius = Tools.ZombieAvoidRadius(zombie),
-				maxCosts = ZombieMaxCosts(zombie)
+			var specs = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false && zombie.Downed == false)
+				.Select(zombie => new ZombieCostSpecs()
+				{
+					position = zombie.Position,
+					radius = Tools.ZombieAvoidRadius(zombie),
+					maxCosts = ZombieMaxCosts(zombie)
 
-			}).ToList();
+				}).ToList();
 			Tools.avoider.UpdateZombiePositions(map, specs);
 		}
 
@@ -227,7 +228,8 @@ namespace ZombieLand
 
 						var zombiesNearby = Tools.GetCircle(radius).Select(vec => pos + vec)
 							.Where(vec => vec.InBounds(map) && avoidGrid.GetCosts()[vec.x + vec.z * map.Size.x] >= 3000)
-							.SelectMany(vec => map.thingGrid.ThingsListAtFast(vec).OfType<Zombie>());
+							.SelectMany(vec => map.thingGrid.ThingsListAtFast(vec).OfType<Zombie>())
+							.Where(zombie => zombie.Downed == false);
 
 						var maxDistance = 0;
 						var safeDestination = IntVec3.Invalid;
@@ -235,7 +237,7 @@ namespace ZombieLand
 						{
 							if (!vec.Walkable(map)) return false;
 							if ((float)vec.DistanceToSquared(pos) > radiusSquared) return false;
-							if (map.thingGrid.ThingAt<Zombie>(vec) != null) return false;
+							if (map.thingGrid.ThingAt<Zombie>(vec)?.Downed ?? true == false) return false;
 							if (vec.GetEdifice(map) is Building_Door building_Door && !building_Door.CanPhysicallyPass(pawn)) return false;
 							return !PawnUtility.AnyPawnBlockingPathAt(vec, pawn, true, false);
 
