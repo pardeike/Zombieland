@@ -203,10 +203,15 @@ namespace ZombieLand
 			return radius * ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
 		}
 
+		public static bool IsDowned(this Pawn pawn)
+		{
+			return pawn.health.Downed;
+		}
+
 		public static float ZombieAvoidRadius(Zombie zombie, bool squared = false)
 		{
 			if (zombie.wasMapPawnBefore)
-				return squared ? 100f : 10f;
+				return squared ? 64f : 8f;
 			if (zombie.raging > 0)
 				return squared ? 36f : 6f;
 			switch (zombie.state)
@@ -242,6 +247,7 @@ namespace ZombieLand
 
 			var pos = thing is IThingHolder ? ThingOwnerUtility.GetRootPosition(thing as IThingHolder) : thing.Position;
 			var map = thing is IThingHolder ? ThingOwnerUtility.GetRootMap(thing as IThingHolder) : thing.Map;
+			var tickManager = map.GetComponent<TickManager>();
 			var rot = pawn.Rotation;
 			var wasInGround = thing.Map == null;
 
@@ -251,74 +257,91 @@ namespace ZombieLand
 				return;
 			}
 
-			var zombie = ZombieGenerator.GeneratePawn(ZombieGenerator.ZombieType.Normal);
-
-			zombie.Name = pawnName;
-			zombie.gender = pawn.gender;
-
-			zombie.ageTracker.AgeBiologicalTicks = pawn.ageTracker.AgeBiologicalTicks;
-			zombie.ageTracker.AgeChronologicalTicks = pawn.ageTracker.AgeChronologicalTicks;
-			zombie.ageTracker.BirthAbsTicks = pawn.ageTracker.BirthAbsTicks;
-
-			zombie.story.childhood = pawn.story.childhood;
-			zombie.story.adulthood = pawn.story.adulthood;
-			zombie.story.melanin = pawn.story.melanin;
-			zombie.story.crownType = pawn.story.crownType;
-			zombie.story.hairDef = pawn.story.hairDef;
-			zombie.story.bodyType = pawn.story.bodyType;
-
-			var zTweener = Traverse.Create(zombie.Drawer.tweener);
-			var pTweener = Traverse.Create(pawn.Drawer.tweener);
-			new[] { "tweenedPos", "lastDrawFrame", "lastTickSpringPos" }
-				.Do(field => zTweener.Field(field).SetValue(pTweener.Field(field).GetValue()));
-
-			var it1 = ZombieGenerator.AssignNewCustomGraphics(zombie);
-			while (it1.MoveNext()) ;
-
-			var it2 = ZombieGenerator.GenerateStartingApparelFor(zombie);
-			while (it2.MoveNext()) ;
-
-			GenPlace.TryPlaceThing(zombie, pos, map, ThingPlaceMode.Direct, null);
-
-			zombie.Rotation = rot;
-			if (wasInGround == false)
+			var it = ZombieGenerator.SpawnZombieIterativ(pos, map, ZombieGenerator.ZombieType.Normal, (Zombie zombie) =>
 			{
-				zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-				zombie.state = ZombieState.Wandering;
-			}
-			zombie.wasMapPawnBefore = true;
+				zombie.Name = pawnName;
+				zombie.gender = pawn.gender;
 
-			zombie.apparel.DestroyAll();
-			pawn.apparel.WornApparel.ForEach(apparel =>
-			{
-				if (pawn.apparel.TryDrop(apparel, out var newApparel))
+				if (zombie.ageTracker != null && pawn.ageTracker != null)
 				{
-					zombie.apparel.Wear(newApparel);
-					newApparel.SetForbidden(false, false);
-					newApparel.HitPoints = 1;
-					var compQuality = newApparel.TryGetComp<CompQuality>();
-					if (compQuality != null)
-						compQuality.SetQuality(QualityCategory.Awful, ArtGenerationContext.Colony);
-
-					zombie.apparel.Notify_ApparelAdded(newApparel);
+					zombie.ageTracker.AgeBiologicalTicks = pawn.ageTracker.AgeBiologicalTicks;
+					zombie.ageTracker.AgeChronologicalTicks = pawn.ageTracker.AgeChronologicalTicks;
+					zombie.ageTracker.BirthAbsTicks = pawn.ageTracker.BirthAbsTicks;
 				}
+
+				if (zombie.story != null && pawn.story != null)
+				{
+					zombie.story.childhood = pawn.story.childhood;
+					zombie.story.adulthood = pawn.story.adulthood;
+					zombie.story.melanin = pawn.story.melanin;
+					zombie.story.crownType = pawn.story.crownType;
+					zombie.story.hairDef = pawn.story.hairDef;
+					zombie.story.bodyType = pawn.story.bodyType;
+				}
+
+				// redo because we changed stuff
+				if (ZombieSettings.Values.useCustomTextures)
+				{
+					var it2 = ZombieGenerator.AssignNewGraphics(zombie);
+					while (it2.MoveNext()) ;
+				}
+
+				var zTweener = Traverse.Create(zombie.Drawer.tweener);
+				var pTweener = Traverse.Create(pawn.Drawer.tweener);
+				new[] { "tweenedPos", "lastDrawFrame", "lastTickSpringPos" }
+					.Do(field => zTweener.Field(field).SetValue(pTweener.Field(field).GetValue()));
+
+				zombie.Rotation = rot;
+				if (wasInGround == false)
+				{
+					zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
+					zombie.state = ZombieState.Wandering;
+				}
+				zombie.wasMapPawnBefore = true;
+
+				if (zombie.apparel != null && pawn.apparel != null)
+				{
+					zombie.apparel.DestroyAll();
+					pawn.apparel.WornApparel.ForEach(apparel =>
+					{
+						if (pawn.apparel.TryDrop(apparel, out var newApparel))
+						{
+							zombie.apparel.Wear(newApparel);
+							newApparel.SetForbidden(false, false);
+							newApparel.HitPoints = 1;
+							var compQuality = newApparel.TryGetComp<CompQuality>();
+							if (compQuality != null)
+								compQuality.SetQuality(QualityCategory.Awful, ArtGenerationContext.Colony);
+
+							zombie.apparel.Notify_ApparelAdded(newApparel);
+						}
+					});
+				}
+
+				if (thing is Corpse)
+				{
+					if (thing.Destroyed == false)
+						thing.Destroy();
+				}
+				else
+				{
+					var previousProgramState = Current.ProgramState;
+					Current.ProgramState = ProgramState.Entry;
+					pawn.Kill(null);
+					Current.ProgramState = previousProgramState;
+					Find.ColonistBar.MarkColonistsDirty();
+
+					if (pawn.Corpse != null && pawn.Corpse.Destroyed == false)
+						pawn.Corpse.Destroy();
+				}
+
+				tickManager.allZombiesCached.Add(zombie);
+
+				var label = "BecameAZombieLabel".Translate();
+				var text = "BecameAZombieDesc".Translate(new object[] { pawnName.ToStringShort });
+				Find.LetterStack.ReceiveLetter(label, text, LetterDefOf.ThreatBig, zombie);
 			});
-
-			if (thing is Corpse)
-			{
-				if (thing.Destroyed == false)
-					thing.Destroy();
-			}
-			else
-			{
-				pawn.Kill(null);
-				if (pawn.Corpse != null && pawn.Corpse.Destroyed == false)
-					pawn.Corpse.Destroy();
-			}
-
-			var label = "BecameAZombieLabel".Translate();
-			var text = "BecameAZombieDesc".Translate(new object[] { pawn.Name.ToStringShort });
-			Find.LetterStack.ReceiveLetter(label, text, LetterDefOf.ThreatBig, zombie);
+			while (it.MoveNext()) ;
 		}
 
 		// implement

@@ -312,13 +312,13 @@ namespace ZombieLand
 							{
 								var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4);
 								if (cell.IsValid)
-									ZombieGenerator.SpawnZombie(cell, map, (zombie) => { allZombiesCached.Add(zombie); });
+									ZombieGenerator.SpawnZombie(cell, map, ZombieGenerator.ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
 								return;
 							}
 						case SpawnHowType.FromTheEdges:
 							{
 								if (CellFinder.TryFindRandomEdgeCellWith(Tools.ZombieSpawnLocator(map), map, CellFinder.EdgeRoadChance_Neutral, out var cell))
-									ZombieGenerator.SpawnZombie(cell, map, (zombie) => { allZombiesCached.Add(zombie); });
+									ZombieGenerator.SpawnZombie(cell, map, ZombieGenerator.ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
 								return;
 							}
 						default:

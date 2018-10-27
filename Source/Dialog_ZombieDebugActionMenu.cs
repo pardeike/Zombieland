@@ -9,7 +9,7 @@ namespace ZombieLand
 	{
 		private void SpawnZombie(ZombieGenerator.ZombieType type, bool appearDirectly)
 		{
-			ZombieGenerator.SpawnZombie(UI.MouseCell(), Find.CurrentMap, (zombie) =>
+			ZombieGenerator.SpawnZombie(UI.MouseCell(), Find.CurrentMap, type, (zombie) =>
 			{
 				if (appearDirectly)
 				{

@@ -332,7 +332,7 @@ namespace ZombieLand
 						if (ZombieSettings.Values.enemiesAttackZombies == false)
 							return false;
 
-						if (zombie.state != ZombieState.Tracking || zombie.Downed)
+						if (zombie.state != ZombieState.Tracking || zombie.IsDowned())
 							return false;
 
 						var distanceToTarget = (float)(attacker.Position - zombie.Position).LengthHorizontalSquared;
@@ -391,6 +391,7 @@ namespace ZombieLand
 							var props = verb.verbProps;
 							if (props.IsMeleeAttack == false && props.range > 0)
 							{
+								// TODO
 								// the following can be improved by choosing targets that
 								// are not too close. unsolved problem: we do not know how
 								// to relocate shooters yet
@@ -407,10 +408,12 @@ namespace ZombieLand
 										score += 20;
 									if (zombie.isToxicSplasher)
 										score += 10;
+									if (zombie.story.bodyType == BodyTypeDefOf.Thin)
+										score += 5;
 									return -score;
 								}
 								__result = tickManager.allZombiesCached
-									.Where(zombie => zombie.Downed == false && zombie.state != ZombieState.Emerging && pos.DistanceToSquared(zombie.Position) <= maxRangeSquared)
+									.Where(zombie => zombie.IsDowned() == false && zombie.state != ZombieState.Emerging && pos.DistanceToSquared(zombie.Position) <= maxRangeSquared)
 									.Where(zombie => verb.CanHitTargetFrom(pos, zombie))
 									.OrderBy(zombiePrioritySorter).FirstOrDefault();
 								return;
@@ -421,6 +424,35 @@ namespace ZombieLand
 
 				if (validator != null && thing != null && validator(thing) == false)
 					__result = null;
+			}
+		}
+		[HarmonyPatch(typeof(AttackTargetFinder))]
+		[HarmonyPatch("GetShootingTargetScore")]
+		static class AttackTargetFinder_GetShootingTargetScore_Patch
+		{
+			static bool Prefix(IAttackTarget target, IAttackTargetSearcher searcher, Verb verb, ref float __result)
+			{
+				var pawn = searcher?.Thing as Pawn;
+				if (pawn == null || verb == null || verb.IsMeleeAttack)
+					return true;
+				var zombie = target as Zombie;
+				if (zombie == null || zombie.IsDowned())
+					return true;
+				if (pawn.IsColonist == false && pawn.Faction.HostileTo(Faction.OfPlayer))
+					return true;
+				var distance = (zombie.Position - pawn.Position).LengthHorizontal;
+				var weaponRange = verb.verbProps.range;
+				if (distance > weaponRange)
+					return true;
+
+				__result = 120f * (weaponRange - distance) / weaponRange;
+				if (zombie.IsSuicideBomber)
+					__result += 12f;
+				if (zombie.isToxicSplasher)
+					__result += 6f;
+				if (zombie.story.bodyType == BodyTypeDefOf.Thin)
+					__result += 3f;
+				return false;
 			}
 		}
 
@@ -452,7 +484,7 @@ namespace ZombieLand
 				for (var i = __result.Count - 1; i >= 0; i--)
 				{
 					var zombie = __result[i].First as Zombie;
-					if (zombie != null && zombie.Downed)
+					if (zombie != null && zombie.IsDowned())
 						__result.RemoveAt(i);
 				}
 			}
@@ -470,19 +502,37 @@ namespace ZombieLand
 				return p.GetPosture();
 			}
 
+			static bool RandChance(float chance, Pawn pawn)
+			{
+				return Rand.Chance(pawn is Zombie ? Math.Min(1f, chance * 2f) : chance);
+			}
+
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
 				var m_GetPosture = SymbolExtensions.GetMethodInfo(() => PawnUtility.GetPosture(null));
+				var m_Chance = SymbolExtensions.GetMethodInfo(() => Rand.Chance(0f));
 
-				foreach (var instruction in instructions)
+				var list = instructions.ToList();
+				CodeInstruction lastPawnInstruction = null;
+				var len = list.Count;
+				for (var i = 0; i < len; i++)
 				{
-					if (instruction.operand == m_GetPosture)
+					if (list[i].operand == m_GetPosture)
 					{
-						instruction.opcode = OpCodes.Call;
-						instruction.operand = SymbolExtensions.GetMethodInfo(() => GetPostureFix(null));
+						list[i].opcode = OpCodes.Call;
+						list[i].operand = SymbolExtensions.GetMethodInfo(() => GetPostureFix(null));
+						lastPawnInstruction = list[i - 1];
 					}
-					yield return instruction;
+					if (list[i].operand == m_Chance)
+					{
+						list.Insert(i, lastPawnInstruction);
+						i++;
+						len++;
+						list[i].opcode = OpCodes.Call;
+						list[i].operand = SymbolExtensions.GetMethodInfo(() => RandChance(0f, null));
+					}
 				}
+				return list.AsEnumerable();
 			}
 		}
 
@@ -1388,7 +1438,8 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to make zombies appear to be never "down"
+		// patch to make zombies appear to be never "down" if self-healing is on
+		// to get original state, use Tools.IsDowned(this Pawn pawn)
 		//
 		[HarmonyPatch(typeof(Pawn))]
 		[HarmonyPatch("Downed", MethodType.Getter)]
@@ -1397,6 +1448,8 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn __instance, ref bool __result)
 			{
+				if (ZombieSettings.Values.doubleTapRequired == false)
+					return true;
 				var zombie = __instance as Zombie;
 				if (zombie == null) return true;
 				__result = false;
@@ -1404,8 +1457,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to keep shooting even if a zombie is down (only
-		// if "double tap" is on)
+		// patch to keep shooting even if a zombie is down (only if self-healing is on)
 		//
 		[HarmonyPatch(typeof(Pawn))]
 		[HarmonyPatch("ThreatDisabled")]
@@ -1545,29 +1597,6 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for custom zombie graphic parts
-		//
-		[HarmonyPatch(typeof(PawnGraphicSet))]
-		[HarmonyPatch("ResolveAllGraphics")]
-		static class PawnGraphicSet_ResolveAllGraphics_Patch
-		{
-			static void Postfix(PawnGraphicSet __instance)
-			{
-				if (ZombieSettings.Values.useCustomTextures == false) return;
-
-				var zombie = __instance.pawn as Zombie;
-				if (zombie == null) return;
-
-				if (zombie.customBodyGraphic != null)
-					__instance.nakedGraphic = zombie.customBodyGraphic;
-				zombie.customBodyGraphic = null;
-
-				if (zombie.customHeadGraphic != null)
-					__instance.headGraphic = zombie.customHeadGraphic;
-				zombie.customHeadGraphic = null;
-			}
-		}
-
 		// patch for rendering zombies
 		//
 		[HarmonyPatch(typeof(PawnRenderer))]
@@ -1636,6 +1665,24 @@ namespace ZombieLand
 			{
 				var zombie = __instance.graphics.pawn as Zombie;
 				if (zombie == null) return true;
+
+				if (zombie.needsGraphics)
+				{
+					var tickManager = zombie.Map?.GetComponent<TickManager>();
+					if (tickManager != null)
+						tickManager.AllZombies().DoIf(z => z.needsGraphics, z =>
+						{
+							z.needsGraphics = false;
+							var it = ZombieGenerator.AssignNewGraphics(z);
+							while (it.MoveNext()) ;
+						});
+					else
+					{
+						zombie.needsGraphics = false;
+						var it = ZombieGenerator.AssignNewGraphics(zombie);
+						while (it.MoveNext()) ;
+					}
+				}
 
 				if (zombie.state == ZombieState.Emerging)
 				{
@@ -1832,6 +1879,8 @@ namespace ZombieLand
 		[HarmonyPatch("ResolveApparelGraphics")]
 		static class PawnGraphicSet_ResolveApparelGraphics_Patch
 		{
+			static ThingDef bombVestApparelDef;
+
 			[HarmonyPriority(Priority.Last)]
 			static void Postfix(PawnGraphicSet __instance)
 			{
@@ -1840,10 +1889,12 @@ namespace ZombieLand
 
 				if (zombie.IsSuicideBomber)
 				{
-					var apparel = new Apparel() { def = ThingDef.Named("Apparel_BombVest") };
-					ApparelGraphicRecord record;
-					if (ApparelGraphicRecordGetter.TryGetGraphicApparel(apparel, BodyTypeDefOf.Hulk, out record))
-						__instance.apparelGraphics.Add(record);
+					if (bombVestApparelDef == null)
+						bombVestApparelDef = ThingDef.Named("Apparel_BombVest");
+					var apparel = new Apparel() { def = bombVestApparelDef };
+					if (__instance.apparelGraphics.Any(a => a.sourceApparel.def == bombVestApparelDef) == false)
+						if (ApparelGraphicRecordGetter.TryGetGraphicApparel(apparel, BodyTypeDefOf.Hulk, out var record))
+							__instance.apparelGraphics.Add(record);
 				}
 			}
 		}
@@ -2029,7 +2080,7 @@ namespace ZombieLand
 					__result *= 4f * settings;
 
 				if (zombie.wasMapPawnBefore)
-					__result *= 10f;
+					__result *= 5f;
 			}
 		}
 
@@ -2342,6 +2393,27 @@ namespace ZombieLand
 					var prefix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => GetAfterArmorDamagePrefix(ref damageInfo, null, null, out someBool)));
 					harmony.Patch(m_GetAfterArmorDamage, prefix, new HarmonyMethod(null));
 				}
+			}
+		}
+
+		// patch for not slowing down time if pawn attacks a zombie
+		//
+		[HarmonyPatch(typeof(Verb))]
+		[HarmonyPatch("CausesTimeSlowdown")]
+		class Verb_CausesTimeSlowdown_Patch
+		{
+			static void Postfix(Verb __instance, ref bool __result, LocalTargetInfo castTarg)
+			{
+				if (__result == false || castTarg == null || castTarg.HasThing == false || __instance.caster is Zombie)
+					return;
+
+				var zombie = castTarg.Thing as Zombie;
+				if (zombie == null)
+					return;
+
+				var dist = __instance.caster.Position.DistanceToSquared(zombie.Position);
+				if (dist >= Constants.HUMAN_PHEROMONE_RADIUS * Constants.HUMAN_PHEROMONE_RADIUS)
+					__result = false;
 			}
 		}
 

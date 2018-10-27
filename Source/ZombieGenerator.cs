@@ -2,7 +2,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
 using Verse;
@@ -100,7 +99,7 @@ namespace ZombieLand
 
 			if (ZombieSettings.Values.useCustomTextures)
 			{
-				var it = AssignNewCustomGraphics(zombie);
+				var it = AssignNewGraphics(zombie);
 				while (it.MoveNext()) ;
 			}
 
@@ -221,48 +220,68 @@ namespace ZombieLand
 			return bodyType;
 		}
 
-		static readonly string[] headShapes = { "Normal", "Pointy", "Wide" };
-		public static IEnumerator AssignNewCustomGraphics(Zombie zombie)
+		public static string FixGlowingEyeOffset(Zombie zombie)
 		{
-			var renderPrecedence = 0;
-			var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
-			var color = zombie.isToxicSplasher ? "toxic" : GraphicToolbox.RandomSkinColorString();
-			yield return null;
-			var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
-			yield return null;
-			zombie.customBodyGraphic = new VariableGraphic { bodyColor = color };
-			yield return null;
-			zombie.customBodyGraphic.Init(VariableGraphic.minimal);
-			yield return null;
-			for (var i = 0; i < 4; i++)
-			{
-				var j = 0;
-				var it = zombie.customBodyGraphic.InitIterativ(bodyRequest, i);
-				while (it.MoveNext())
-				{
-					yield return null;
-					j++;
-				}
-			}
 			var headShape = zombie.hasTankyHelmet == 1f ? "Wide" : headShapes[Rand.Range(0, 3)];
 			var headPath = "Zombie/" + zombie.gender + "_" + zombie.story.crownType + "_" + headShape;
-			var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
-			yield return null;
-			zombie.customHeadGraphic = new VariableGraphic { bodyColor = color };
-			yield return null;
-			zombie.customHeadGraphic.Init(VariableGraphic.minimal);
-			yield return null;
-			for (var i = 0; i < 4; i++)
-			{
-				var j = 0;
-				var it = zombie.customHeadGraphic.InitIterativ(headRequest, i);
-				while (it.MoveNext())
-				{
-					yield return null;
-					j++;
-				}
-			}
 			zombie.sideEyeOffset = SideEyeOffset(headPath.ReplaceFirst("Zombie/", ""));
+			return headPath;
+		}
+
+		static readonly string[] headShapes = { "Normal", "Pointy", "Wide" };
+		public static IEnumerator AssignNewGraphics(Zombie zombie)
+		{
+			zombie.Drawer.renderer.graphics.ResolveAllGraphics();
+			yield return null;
+
+			var headPath = FixGlowingEyeOffset(zombie);
+			if (zombie.IsSuicideBomber)
+				zombie.lastBombTick = Find.TickManager.TicksAbs + Rand.Range(0, (int)zombie.bombTickingInterval);
+
+			if (ZombieSettings.Values.useCustomTextures)
+			{
+				var renderPrecedence = 0;
+				var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
+				var color = zombie.isToxicSplasher ? "toxic" : GraphicToolbox.RandomSkinColorString();
+				yield return null;
+				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
+				yield return null;
+
+				var customBodyGraphic = new VariableGraphic { bodyColor = color };
+				yield return null;
+				customBodyGraphic.Init(VariableGraphic.minimal);
+				yield return null;
+				for (var i = 0; i < 4; i++)
+				{
+					var j = 0;
+					var it = customBodyGraphic.InitIterativ(bodyRequest, i);
+					while (it.MoveNext())
+					{
+						yield return null;
+						j++;
+					}
+				}
+				zombie.Drawer.renderer.graphics.nakedGraphic = customBodyGraphic;
+
+				var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
+				yield return null;
+				var customHeadGraphic = new VariableGraphic { bodyColor = color };
+				yield return null;
+				customHeadGraphic.Init(VariableGraphic.minimal);
+				yield return null;
+				for (var i = 0; i < 4; i++)
+				{
+					var j = 0;
+					var it = customHeadGraphic.InitIterativ(headRequest, i);
+					while (it.MoveNext())
+					{
+						yield return null;
+						j++;
+					}
+				}
+				zombie.Drawer.renderer.graphics.headGraphic = customHeadGraphic;
+			}
+
 			yield return null;
 		}
 
@@ -290,20 +309,18 @@ namespace ZombieLand
 			}
 		}
 
-		public static void SpawnZombie(IntVec3 cell, Map map, Action<Zombie> callback)
+		public static void SpawnZombie(IntVec3 cell, Map map, ZombieType zombieType, Action<Zombie> callback)
 		{
-			Find.CameraDriver.StartCoroutine(SpawnZombieIterativ(cell, map, callback));
+			Find.CameraDriver.StartCoroutine(SpawnZombieIterativ(cell, map, zombieType, callback));
 		}
 
-		public static IEnumerator SpawnZombieIterativ(IntVec3 cell, Map map, Action<Zombie> callback)
+		public static IEnumerator SpawnZombieIterativ(IntVec3 cell, Map map, ZombieType zombieType, Action<Zombie> callback)
 		{
 			ZombiesSpawning++;
-			var sw = new Stopwatch();
-			sw.Start();
 			var thing = ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null);
 			yield return null;
 			var zombie = thing as Zombie;
-			var bodyType = PrepareZombieType(zombie, ZombieType.Random);
+			var bodyType = PrepareZombieType(zombie, zombieType);
 			zombie.kindDef = ZombieDefOf.Zombie;
 			zombie.SetFactionDirect(FactionUtility.DefaultFactionFrom(ZombieDefOf.Zombies));
 			yield return null;
@@ -342,29 +359,23 @@ namespace ZombieLand
 			zombie.story.hairColor = HairColor();
 			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, ZombieDefOf.Zombies);
 			yield return null;
-			if (ZombieSettings.Values.useCustomTextures)
-			{
-				var it1 = AssignNewCustomGraphics(zombie);
-				while (it1.MoveNext())
-					yield return null;
-			}
+			var it = AssignNewGraphics(zombie);
+			while (it.MoveNext())
+				yield return null;
 			zombie.Drawer.leaner = new ZombieLeaner(zombie);
 			if (zombie.pather == null)
 				zombie.pather = new Pawn_PathFollower(zombie);
 			GetterSetters.destinationByRef(zombie.pather) = IntVec3.Invalid;
 			yield return null;
-			var graphicPath = GraphicDatabaseHeadRecords.GetHeadRandom(zombie.gender, zombie.story.SkinColor, zombie.story.crownType).GraphicPath;
-			yield return null;
-			GetterSetters.headGraphicPathByRef(zombie.story) = graphicPath;
-			yield return null;
-			var request = new PawnGenerationRequest(zombie.kindDef);
-			yield return null;
-			var it2 = GenerateStartingApparelFor(zombie);
-			while (it2.MoveNext())
-				yield return null;
+			if (zombie.IsTanky == false)
+			{
+				var it2 = GenerateStartingApparelFor(zombie);
+				while (it2.MoveNext())
+					yield return null;
+			}
+			if (zombie.IsSuicideBomber)
+				zombie.lastBombTick = Find.TickManager.TicksAbs + Rand.Range(0, (int)zombie.bombTickingInterval);
 			GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Direct);
-			yield return null;
-			zombie.Drawer.renderer.graphics.ResolveAllGraphics();
 			yield return null;
 			if (callback != null)
 				callback(zombie);

@@ -47,9 +47,9 @@ namespace ZombieLand
 		public float hasTankySuit = -1f;
 		public bool IsTanky => hasTankyHelmet > 0f || hasTankySuit > 0f;
 
-		bool disposed;
-		public VariableGraphic customHeadGraphic; // not saved
-		public VariableGraphic customBodyGraphic; // not saved
+		// transient vars
+		public bool needsGraphics = false;
+		bool disposed = false;
 
 		static readonly int totalNthTicks;
 		static public int[] nthTickValues;
@@ -127,10 +127,10 @@ namespace ZombieLand
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
 				UpgradeOldZombieData();
-				var it = ZombieGenerator.AssignNewCustomGraphics(this);
-				while (it.MoveNext()) ;
+				ZombieGenerator.FixGlowingEyeOffset(this);
+				if (ZombieSettings.Values.useCustomTextures)
+					needsGraphics = true; // make custom textures in renderer
 			}
-
 			if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
 			{
 				var idx = ageTracker.CurLifeStageIndex; // trigger calculations
@@ -152,12 +152,6 @@ namespace ZombieLand
 		{
 			if (disposed) return;
 			disposed = true;
-
-			customHeadGraphic?.Dispose();
-			customHeadGraphic = null;
-
-			customBodyGraphic?.Dispose();
-			customBodyGraphic = null;
 
 			var head = Drawer.renderer.graphics.headGraphic as VariableGraphic;
 			head?.Dispose();
@@ -374,9 +368,6 @@ namespace ZombieLand
 		static readonly FastInvokeHandler delegateRenderPawnInternal = MethodInvoker.GetHandler(typeof(PawnRenderer).MethodNamed("RenderPawnInternal", RenderPawnInternalParameterTypes));
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
 		{
-			if (!renderer.graphics.AllResolved)
-				renderer.graphics.ResolveAllGraphics();
-
 			drawLoc.x = (int)(drawLoc.x) + 0.5f;
 
 			var progress = rubbleCounter / (float)Constants.RUBBLE_AMOUNT;
