@@ -80,7 +80,7 @@ namespace ZombieLand
 		//
 		public static bool Downed(Zombie zombie)
 		{
-			if (zombie.Downed == false)
+			if (zombie.IsDowned() == false)
 				return false;
 
 			if (ZombieSettings.Values.zombiesDieVeryEasily || ZombieSettings.Values.doubleTapRequired == false)
@@ -89,15 +89,17 @@ namespace ZombieLand
 				return true;
 			}
 
-			if (zombie.EveryNTick(NthTick.Every10))
+			var walkCapacity = PawnCapacityUtility.CalculateCapacityLevel(zombie.health.hediffSet, PawnCapacityDefOf.Moving);
+			var missingBrain = zombie.health.hediffSet.GetBrain() == null;
+			if (walkCapacity < 0.25f || missingBrain)
 			{
-				var walkCapacity = PawnCapacityUtility.CalculateCapacityLevel(zombie.health.hediffSet, PawnCapacityDefOf.Moving);
-				var missingBrain = zombie.health.hediffSet.GetBrain() == null;
-				if (walkCapacity < 0.25f || missingBrain)
-				{
-					zombie.Kill(null);
-					return true;
-				}
+				zombie.Kill(null);
+				return true;
+			}
+
+			if (++zombie.healCounter >= Constants.ZOMBIE_HEALING_TICKS)
+			{
+				zombie.healCounter = 0;
 
 				var injuries = zombie.health.hediffSet.GetHediffs<Hediff_Injury>();
 				foreach (var injury in injuries)
@@ -112,11 +114,12 @@ namespace ZombieLand
 						injury.Heal(combatExtendedHealAmount);
 					else
 						injury.Heal(injury.Severity + 0.5f);
+
 					break;
 				}
 			}
 
-			return (zombie.Downed);
+			return false;
 		}
 
 		// invalidate destination if necessary ======================================================

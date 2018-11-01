@@ -54,6 +54,9 @@
 	<ZombieDamageFactorTitle>Zombie strength</ZombieDamageFactorTitle>
 	<ZombieDamageFactor>Damage multiplier</ZombieDamageFactor>
 
+	<ZombieGameTweaks>Oyun ince ayarlar</ZombieGameTweaks>
+	<ReduceTurretConsumption>Taret silah tüketimini azaltın</ReduceTurretConsumption>
+
 	<ZombieInfections>Zombie infections</ZombieInfections>
 	<ZombieBiteInfectionChance>Risk that a zombie bite is infectious</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Time until infection is known</ZombieBiteInfectionUnknown>

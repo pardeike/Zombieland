@@ -54,6 +54,9 @@
 	<ZombieDamageFactorTitle>Force des Zombies</ZombieDamageFactorTitle>
 	<ZombieDamageFactor>Multiplicateur de dégâts</ZombieDamageFactor>
 
+	<ZombieGameTweaks>Jeu peaufiner</ZombieGameTweaks>
+	<ReduceTurretConsumption>Réduire la consommation des armes à feu de la tourelle</ReduceTurretConsumption>
+
 	<ZombieInfections>Infection par Zombie</ZombieInfections>
 	<ZombieBiteInfectionChance>Risque qu’une morsure de Zombie soit infectieuse</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Temps avant que l’infection soit connu</ZombieBiteInfectionUnknown>

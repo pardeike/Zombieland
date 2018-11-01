@@ -54,6 +54,9 @@
 	<ZombieDamageFactorTitle>Урон который наносят зомби</ZombieDamageFactorTitle>
 	<ZombieDamageFactor>Множетель урон</ZombieDamageFactor>
 
+	<ZombieGameTweaks>Игра твики</ZombieGameTweaks>
+	<ReduceTurretConsumption>Уменьшить потребление пушки башни</ReduceTurretConsumption>
+
 	<ZombieInfections>Инфекции зомби</ZombieInfections>
 	<ZombieBiteInfectionChance>Вероятность заражения укусом зомби</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Время, пока инфекция не известна</ZombieBiteInfectionUnknown>

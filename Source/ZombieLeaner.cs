@@ -54,17 +54,9 @@ namespace ZombieLand
 				}
 				else
 				{
-					if (zombie.Downed)
-					{
-						jitterOffset.x /= 1.1f;
-						jitterOffset.z /= 1.1f;
-					}
-					else
-					{
-						var f = zombie.hasTankySuit != -1f || zombie.hasTankyShield != -1f ? 0.1f : 1f;
-						jitterOffset.x = Mathf.Clamp(jitterOffset.x + f * Rand.Range(-0.025f, 0.025f), f * -0.25f, f * 0.25f);
-						jitterOffset.z = Mathf.Clamp(jitterOffset.z + f * Rand.Range(-0.025f, 0.025f), f * -0.25f, f * 0.25f);
-					}
+					var f = zombie.hasTankySuit != -1f || zombie.hasTankyShield != -1f ? 0.1f : 1f;
+					jitterOffset.x = Mathf.Clamp(jitterOffset.x + f * Rand.Range(-0.025f, 0.025f), f * -0.25f, f * 0.25f);
+					jitterOffset.z = Mathf.Clamp(jitterOffset.z + f * Rand.Range(-0.025f, 0.025f), f * -0.25f, f * 0.25f);
 				}
 				extraOffsetInternal = (extraOffset + 3 * extraOffsetInternal) / 4;
 			}

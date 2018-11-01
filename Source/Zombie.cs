@@ -13,6 +13,7 @@ namespace ZombieLand
 		Every2,
 		Every10,
 		Every15,
+		Every30,
 		Every60
 	}
 
@@ -31,6 +32,7 @@ namespace ZombieLand
 		public IntVec2 sideEyeOffset;
 		public bool wasMapPawnBefore;
 		public IntVec3 lastGotoPosition = IntVec3.Invalid;
+		public int healCounter = 0;
 
 		// suicide bomber
 		public float bombTickingInterval = -1f;
@@ -122,6 +124,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref hasTankyShield, "tankyShield");
 			Scribe_Values.Look(ref hasTankyHelmet, "tankyHelmet");
 			Scribe_Values.Look(ref hasTankySuit, "tankySuit");
+			Scribe_Values.Look(ref healCounter, "healCounter");
 			wasMapPawnBefore |= wasColonist;
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)

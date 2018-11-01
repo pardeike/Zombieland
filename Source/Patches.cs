@@ -938,18 +938,34 @@ namespace ZombieLand
 				return info.ThingDestroyed && (info.Thing is Zombie) == false;
 			}
 
+			static PawnPosture GetPawnPosture(Pawn pawn)
+			{
+				var zombie = pawn as Zombie;
+				if (zombie != null && zombie.IsDowned())
+					return PawnPosture.LayingOnGroundNormal;
+				return PawnPosture.Standing;
+			}
+
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
 				var from = typeof(LocalTargetInfo).PropertyGetter(nameof(LocalTargetInfo.ThingDestroyed));
 				var to = SymbolExtensions.GetMethodInfo(() => ThingDestroyedAndNotZombie(null));
 
-				var insArray = instructions.ToArray();
-				var i = insArray.FirstIndexOf((ins) => ins.operand == from);
-				insArray[i - 1].opcode = OpCodes.Ldarg_1;
-				insArray[i].operand = to;
+				var list = Tools.DownedReplacer(instructions).ToList();
+				var i = list.FirstIndexOf(instr => instr.operand == from);
+				list[i - 1].opcode = OpCodes.Ldarg_1;
+				list[i].operand = to;
 
-				foreach (var ins in insArray)
-					yield return ins;
+				i = list.FindLastIndex(instr => instr.opcode == OpCodes.Ldc_I4_0);
+				list.RemoveAt(i);
+				list.InsertRange(i, new CodeInstruction[]
+				{
+					new CodeInstruction(OpCodes.Ldarg_0),
+					new CodeInstruction(OpCodes.Ldfld, typeof(Pawn_PathFollower).Field("pawn")),
+					new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => GetPawnPosture(null)))
+				});
+
+				return list.AsEnumerable();
 			}
 		}
 
@@ -1208,6 +1224,48 @@ namespace ZombieLand
 					var grid = pawn.Map.GetGrid();
 					Tools.GetCircle(radius).Do(vec => grid.BumpTimestamp(value + vec, now - (long)(2f * vec.LengthHorizontal)));
 				}
+			}
+		}
+
+		// turrets consume less steam
+		//
+		[HarmonyPatch(typeof(CompRefuelable))]
+		[HarmonyPatch("ConsumeFuel")]
+		public static class CompRefuelable_ConsumeFuel_Patch
+		{
+			static void Prefix(CompRefuelable __instance, ref float amount)
+			{
+				var turret = __instance.parent as Building_Turret;
+				if (turret == null)
+					return;
+				amount -= amount * ZombieSettings.Values.reducedTurretConsumption;
+			}
+		}
+
+		// downed zombies only scratch feet parts
+		//
+		[HarmonyPatch(typeof(DamageWorker_Scratch))]
+		[HarmonyPatch("ChooseHitPart")]
+		public static class DamageWorker_Scratch_ChooseHitPart_Patch
+		{
+			static void Prefix(ref DamageInfo dinfo, Pawn pawn)
+			{
+				var zombie = dinfo.Instigator as Zombie;
+				if (zombie == null || zombie.IsDowned() == false)
+					return;
+				dinfo.SetBodyRegion(BodyPartHeight.Bottom, BodyPartDepth.Outside);
+			}
+		}
+		[HarmonyPatch(typeof(DamageWorker_Bite))]
+		[HarmonyPatch("ChooseHitPart")]
+		public static class DamageWorker_Bite_ChooseHitPart_Patch
+		{
+			static void Prefix(ref DamageInfo dinfo, Pawn pawn)
+			{
+				var zombie = dinfo.Instigator as Zombie;
+				if (zombie == null || zombie.IsDowned() == false)
+					return;
+				dinfo.SetBodyRegion(BodyPartHeight.Bottom, BodyPartDepth.Outside);
 			}
 		}
 
@@ -1642,6 +1700,22 @@ namespace ZombieLand
 			}
 		}
 
+		// makes downed zombie crawl rotated to their destination
+		//
+		[HarmonyPatch(typeof(PawnDownedWiggler))]
+		[HarmonyPatch("WigglerTick")]
+		static class PawnDownedWiggler_WigglerTick_Patch
+		{
+			static void Postfix(PawnDownedWiggler __instance, Pawn ___pawn)
+			{
+				var zombie = ___pawn as Zombie;
+				if (zombie == null || zombie.IsDowned() == false)
+					return;
+				var vec = ___pawn.pather.Destination.Cell - ___pawn.Position;
+				__instance.downedAngle = vec.AngleFlat;
+			}
+		}
+
 		[HarmonyPatch(typeof(PawnRenderer))]
 		[HarmonyPatch("RenderPawnAt")]
 		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(RotDrawMode), typeof(bool) })]
@@ -2042,6 +2116,8 @@ namespace ZombieLand
 					__result = 1.5f * speed * factor * Find.TickManager.TickRateMultiplier;
 					if (zombie.wasMapPawnBefore)
 						__result *= 2f;
+					if (zombie.IsDowned())
+						__result /= 2f;
 					return false;
 				}
 

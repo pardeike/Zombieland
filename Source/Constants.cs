@@ -104,6 +104,7 @@ namespace ZombieLand
 		public static float SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 14;
 		public static float COLONISTS_HIT_ZOMBIES_CHANCE = 0.9f;
 		public static float COMBAT_EXTENDED_ARMOR_PENETRATION = 0.1f;
+		public static int ZOMBIE_HEALING_TICKS = 3000;
 
 		// zombie incidents
 		//

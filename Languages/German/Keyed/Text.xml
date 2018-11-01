@@ -54,6 +54,9 @@
 	<ZombieDamageFactorTitle>Zombiekraft</ZombieDamageFactorTitle>
 	<ZombieDamageFactor>Schadenmultiplikator</ZombieDamageFactor>
 
+	<ZombieGameTweaks>Spielveränderungen</ZombieGameTweaks>
+	<ReduceTurretConsumption>Reduzierter Geschützverbrauch</ReduceTurretConsumption>
+
 	<ZombieInfections>Zombieinfektionen</ZombieInfections>
 	<ZombieBiteInfectionChance>Risiko das ein Biss infiziert</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Zeit bis Infektion bekannt wird</ZombieBiteInfectionUnknown>

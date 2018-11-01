@@ -379,6 +379,10 @@ namespace ZombieLand
 			list.Dialog_Label("ZombieDamageFactorTitle");
 			list.Dialog_FloatSlider("ZombieDamageFactor", "0.0x", ref settings.damageFactor, 0.1f, 4f);
 
+			// Tweaks
+			list.Dialog_Label("ZombieGameTweaks");
+			list.Dialog_FloatSlider("ReduceTurretConsumption", "0%", ref settings.reducedTurretConsumption, 0f, 1f);
+
 			// Infections
 			list.Dialog_Label("ZombieInfections");
 			list.Dialog_FloatSlider("ZombieBiteInfectionChance", "0%", ref settings.zombieBiteInfectionChance, 0f, 1f);

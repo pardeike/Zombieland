@@ -65,13 +65,13 @@ namespace ZombieLand
 			if (this.ShouldDie(zombie))
 				return;
 
+			if (this.Attack(zombie))
+				return;
+
 			if (ZombieStateHandler.Downed(zombie))
 				return;
 
 			if (this.ValidDestination(zombie))
-				return;
-
-			if (this.Attack(zombie))
 				return;
 
 			var grid = zombie.Map.GetGrid();
