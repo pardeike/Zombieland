@@ -76,7 +76,7 @@ namespace ZombieLand
 				return;
 
 			if (zombie.isMiner && (zombie.story.bodyType == BodyTypeDefOf.Fat || zombie.story.bodyType == BodyTypeDefOf.Hulk))
-				if (this.Mine(zombie))
+				if (this.Mine(zombie, true))
 					return;
 
 			var grid = zombie.Map.GetGrid();
@@ -103,7 +103,7 @@ namespace ZombieLand
 				if (zombie.raging <= 0)
 				{
 					if (zombie.isMiner)
-						if (this.Mine(zombie))
+						if (this.Mine(zombie, false))
 							return;
 
 					this.Wander(zombie, grid, possibleMoves);

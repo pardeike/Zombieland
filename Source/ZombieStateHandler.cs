@@ -370,7 +370,7 @@ namespace ZombieLand
 		// mine mountains ===========================================================================
 		//
 		static Effecter effecter = EffecterDefOf.Mine.Spawn();
-		public static bool Mine(this JobDriver_Stumble driver, Zombie zombie)
+		public static bool Mine(this JobDriver_Stumble driver, Zombie zombie, bool allDirections = false)
 		{
 			if (zombie.miningCounter > 0)
 			{
@@ -386,8 +386,9 @@ namespace ZombieLand
 			if (idx == -1)
 				return false;
 			var adjacted = GenAdj.AdjacentCellsAround;
+			var cells = allDirections ? adjacted.ToList() : new List<IntVec3>() { adjacted[idx], adjacted[(idx + 1) % 8], adjacted[(idx + 7) % 8] };
 
-			var mineable = new List<IntVec3>() { adjacted[idx], adjacted[(idx + 1) % 8], adjacted[(idx + 7) % 8] }
+			var mineable = cells
 				.Select(c => basePos + c)
 				.Where(c => c.InBounds(map))
 				.Select(c => c.GetFirstThing<Mineable>(map))
