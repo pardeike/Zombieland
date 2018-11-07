@@ -1877,6 +1877,21 @@ namespace ZombieLand
 					}
 				}
 
+				if (zombie.isMiner)
+				{
+					var headOffset = zombie.Drawer.renderer.BaseHeadOffsetAt(orientation);
+					headOffset.y += Altitudes.AltInc / 2f;
+
+					var pos = location;
+					var f = 25f * (zombie.pather.nextCellCostLeft / zombie.pather.nextCellCostTotal);
+					pos.z += (Mathf.Max(0.5f, Mathf.Cos(f + 0.8f)) - 0.7f) / 20f;
+					var angle = orientation == Rot4.South || orientation == Rot4.North ? 0f : (Mathf.Sin(f) + Mathf.Cos(f + zombie.HashOffset())) * 3f;
+					if (orientation == Rot4.West) angle += 5f;
+					if (orientation == Rot4.East) angle -= 5f;
+					var rot = Quaternion.AngleAxis(angle, Vector3.up);
+					GraphicToolbox.DrawScaledMesh(headMesh, Constants.MINERHELMET[orientation.AsInt][0], pos + headOffset, rot, 1f, 1f);
+				}
+
 				if (zombie.raging == 0) return;
 
 				// raging zombies drawing
@@ -1970,6 +1985,30 @@ namespace ZombieLand
 						if (ApparelGraphicRecordGetter.TryGetGraphicApparel(apparel, BodyTypeDefOf.Hulk, out var record))
 							__instance.apparelGraphics.Add(record);
 				}
+			}
+		}
+
+		// patch to inform zombie generator that apparel texture could not load
+		[HarmonyPatch(typeof(Graphic_Multi))]
+		[HarmonyPatch(nameof(Graphic_Multi.Init))]
+		public static class Graphic_Multi_Init_Patch
+		{
+			public static bool suppressError = false;
+			public static bool textureError = false;
+
+			static void Error(string text, bool ignoreStopLoggingLimit)
+			{
+				textureError = true;
+				if (suppressError == false)
+					Log.Error(text, ignoreStopLoggingLimit);
+			}
+
+			[HarmonyPriority(Priority.First)]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var m1 = SymbolExtensions.GetMethodInfo(() => Log.Error("", false));
+				var m2 = SymbolExtensions.GetMethodInfo(() => Error("", false));
+				return Transpilers.MethodReplacer(instructions, m1, m2);
 			}
 		}
 

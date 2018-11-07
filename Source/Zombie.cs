@@ -49,6 +49,9 @@ namespace ZombieLand
 		public float hasTankySuit = -1f;
 		public bool IsTanky => hasTankyHelmet > 0f || hasTankySuit > 0f;
 
+		// miner
+		public bool isMiner = false;
+
 		// transient vars
 		public bool needsGraphics = false;
 		bool disposed = false;
@@ -121,6 +124,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref bombWillGoOff, "bombWillGoOff");
 			Scribe_Values.Look(ref bombTickingInterval, "bombTickingInterval");
 			Scribe_Values.Look(ref isToxicSplasher, "toxicSplasher");
+			Scribe_Values.Look(ref isMiner, "isMiner");
 			Scribe_Values.Look(ref hasTankyShield, "tankyShield");
 			Scribe_Values.Look(ref hasTankyHelmet, "tankyHelmet");
 			Scribe_Values.Look(ref hasTankySuit, "tankySuit");

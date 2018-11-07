@@ -6,13 +6,13 @@ using System.Linq;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using static ZombieLand.Patches;
 
 namespace ZombieLand
 {
 	[StaticConstructorOnStartup]
 	public class ZombieGenerator
 	{
-		static List<ThingStuffPair> allApparelPairs;
 		public static int ZombiesSpawning = 0;
 
 		static Color HairColor()
@@ -118,7 +118,28 @@ namespace ZombieLand
 			SuicideBomber = 0,
 			ToxicSplasher = 1,
 			TankyOperator = 2,
-			Normal = 3
+			Miner = 3,
+			Normal = 4
+		}
+
+		private static BodyTypeDef SetRandomBody(Zombie zombie)
+		{
+			switch (Rand.RangeInclusive(1, 4))
+			{
+				case 1:
+					zombie.gender = Gender.Male;
+					return BodyTypeDefOf.Male;
+				case 2:
+					zombie.gender = Gender.Female;
+					return BodyTypeDefOf.Female;
+				case 3:
+					zombie.gender = Gender.Male;
+					return BodyTypeDefOf.Thin;
+				case 4:
+					zombie.gender = Gender.Male;
+					return BodyTypeDefOf.Fat;
+			}
+			return null;
 		}
 
 		private static BodyTypeDef PrepareZombieType(Zombie zombie, ZombieType overwriteType)
@@ -175,27 +196,22 @@ namespace ZombieLand
 					}
 				),
 
+				// miner
+				new Pair<float, Func<BodyTypeDef>>(
+					ZombieSettings.Values.minerChance / 2f,
+					delegate
+					{
+						zombie.isMiner = true;
+						return SetRandomBody(zombie);
+					}
+				),
+
 				// default ordinary zombie
 				new Pair<float, Func<BodyTypeDef>>(
 					float.MaxValue,
 					delegate
 					{
-						switch (Rand.RangeInclusive(1, 4))
-						{
-							case 1:
-								zombie.gender = Gender.Male;
-								return BodyTypeDefOf.Male;
-							case 2:
-								zombie.gender = Gender.Female;
-								return BodyTypeDefOf.Female;
-							case 3:
-								zombie.gender = Gender.Male;
-								return BodyTypeDefOf.Thin;
-							case 4:
-								zombie.gender = Gender.Male;
-								return BodyTypeDefOf.Fat;
-						}
-						return null;
+						return SetRandomBody(zombie);
 					}
 				)
 			};
@@ -242,10 +258,14 @@ namespace ZombieLand
 			{
 				var renderPrecedence = 0;
 				var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
-				var color = zombie.isToxicSplasher ? "toxic" : GraphicToolbox.RandomSkinColorString();
+				var color = zombie.isToxicSplasher ? "toxic" : (zombie.isMiner ? "miner" : GraphicToolbox.RandomSkinColorString());
 				yield return null;
 				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
 				yield return null;
+
+				var maxStainPoints = ZombieStains.maxStainPoints;
+				if (zombie.isMiner)
+					maxStainPoints *= 2;
 
 				var customBodyGraphic = new VariableGraphic { bodyColor = color };
 				yield return null;
@@ -254,7 +274,7 @@ namespace ZombieLand
 				for (var i = 0; i < 4; i++)
 				{
 					var j = 0;
-					var it = customBodyGraphic.InitIterativ(bodyRequest, i);
+					var it = customBodyGraphic.InitIterativ(bodyRequest, i, maxStainPoints);
 					while (it.MoveNext())
 					{
 						yield return null;
@@ -272,7 +292,7 @@ namespace ZombieLand
 				for (var i = 0; i < 4; i++)
 				{
 					var j = 0;
-					var it = customHeadGraphic.InitIterativ(headRequest, i);
+					var it = customHeadGraphic.InitIterativ(headRequest, i, maxStainPoints);
 					while (it.MoveNext())
 					{
 						yield return null;
@@ -285,27 +305,73 @@ namespace ZombieLand
 			yield return null;
 		}
 
-		public static IEnumerator GenerateStartingApparelFor(Pawn zombie)
+		static List<ThingStuffPair> _allApparelPairs;
+		static List<ThingStuffPair> AllApparelPairs()
 		{
-			if (allApparelPairs == null)
-				allApparelPairs = ThingStuffPair.AllWith((ThingDef td) => td.IsApparel && td.IsZombieDef() == false);
-			yield return null;
-			for (var i = 0; i < Rand.Range(0, 4); i++)
+			if (_allApparelPairs == null)
 			{
-				var pair = allApparelPairs
-					.Where(ap => ap.thing.IsApparel && ap.thing != ThingDefOf.Apparel_ShieldBelt && ap.thing != ThingDefOf.Apparel_SmokepopBelt)
-					.RandomElement();
-				var apparel = (Apparel)ThingMaker.MakeThing(pair.thing, pair.stuff);
-				PawnGenerator.PostProcessGeneratedGear(apparel, zombie);
-				if (ApparelUtility.HasPartsToWear(zombie, apparel.def))
-				{
-					if (zombie.apparel.WornApparel.All(pa => ApparelUtility.CanWearTogether(pair.thing, pa.def, zombie.RaceProps.body)))
+				_allApparelPairs = ThingStuffPair.AllWith((ThingDef td) => td.IsApparel)
+					.Where(pair =>
 					{
-						apparel.SetColor(Zombie.zombieColors[Rand.Range(0, Zombie.zombieColors.Length)].SaturationChanged(0.25f));
-						zombie.apparel.Wear(apparel, false);
+						var def = pair.thing;
+						if (def.IsApparel == false) return false;
+						if (def.IsZombieDef()) return false;
+						if (def == ThingDefOf.Apparel_ShieldBelt) return false;
+						if (def == ThingDefOf.Apparel_SmokepopBelt) return false;
+						var path = def.apparel.wornGraphicPath;
+						return path != null && path.Length > 0;
+					})
+					.ToList();
+			}
+			return _allApparelPairs;
+		}
+
+		static bool CanWear(Zombie zombie, ThingStuffPair pair)
+		{
+			if (pair.thing == null)
+				return false;
+
+			if (zombie.isMiner && PawnApparelGenerator.IsHeadgear(pair.thing))
+				return false;
+
+			return ApparelUtility.HasPartsToWear(zombie, pair.thing);
+		}
+
+		public static IEnumerator GenerateStartingApparelFor(Zombie zombie)
+		{
+			var possibleApparel = AllApparelPairs().Where(pair => CanWear(zombie, pair)).ToList();
+			yield return null;
+			if (possibleApparel.Count > 0)
+			{
+				for (var i = 0; i < Rand.Range(0, 4); i++)
+				{
+					var pair = possibleApparel.RandomElement();
+					yield return null;
+					var apparel = (Apparel)ThingMaker.MakeThing(pair.thing, pair.stuff);
+					yield return null;
+					PawnGenerator.PostProcessGeneratedGear(apparel, zombie);
+					yield return null;
+					if (ApparelUtility.HasPartsToWear(zombie, apparel.def))
+					{
+						if (zombie.apparel.WornApparel.All(pa => ApparelUtility.CanWearTogether(pair.thing, pa.def, zombie.RaceProps.body)))
+						{
+							apparel.SetColor(Zombie.zombieColors[Rand.Range(0, Zombie.zombieColors.Length)].SaturationChanged(0.25f));
+							Graphic_Multi_Init_Patch.suppressError = true;
+							Graphic_Multi_Init_Patch.textureError = false;
+							try
+							{
+								zombie.apparel.Wear(apparel, false);
+							}
+							catch (Exception)
+							{
+							}
+							if (Graphic_Multi_Init_Patch.textureError)
+								zombie.apparel.Remove(apparel);
+							Graphic_Multi_Init_Patch.suppressError = false;
+						}
 					}
+					yield return null;
 				}
-				yield return null;
 			}
 		}
 

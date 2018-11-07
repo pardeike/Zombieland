@@ -60,6 +60,7 @@ namespace ZombieLand
 		public float suicideBomberChance = 0.03f;
 		public float toxicSplasherChance = 0.03f;
 		public float tankyOperatorChance = 0.03f;
+		public float minerChance = 0.03f;
 		public float moveSpeedIdle = 0.2f;
 		public float moveSpeedTracking = 1.3f;
 		public float damageFactor = 1.0f;

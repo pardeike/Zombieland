@@ -131,6 +131,7 @@ namespace ZombieLand
 		public static Material BOMB_LIGHT = MaterialPool.MatFrom("BombLight", ShaderDatabase.MoteGlow);
 		public static Material[][] TANKYSHIELDS = Tools.GetDamageableGraphics("TankyShield", 2, 4);
 		public static Material[][] TANKYHELMETS = Tools.GetDamageableGraphics("TankyHelmet", 3, 4);
+		public static Material[][] MINERHELMET = Tools.GetDamageableGraphics("MinerHelmet", 4, 0);
 		public static Material[][] TANKYSUITS = Tools.GetDamageableGraphics("TankySuit", 3, 4);
 		public static Dictionary<CameraZoomRange, Material> RAGE_AURAS = new Dictionary<CameraZoomRange, Material> {
 			{ CameraZoomRange.Closest, MaterialPool.MatFrom("RageAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.15f)) },

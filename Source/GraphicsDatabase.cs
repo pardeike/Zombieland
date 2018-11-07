@@ -37,36 +37,27 @@ namespace ZombieLand
 
 					zombieRGBSkinColors.Do(hex =>
 					{
-						var pixels = originalPixels.Clone() as Color[];
-						var color = hex.HexColor();
-						for (var i = 0; i < pixels.Length; i++)
-						{
-							// Linear burn gives best coloring results
-							//
-							Tools.ColorBlend(ref pixels[i].r, color.r);
-							Tools.ColorBlend(ref pixels[i].g, color.g);
-							Tools.ColorBlend(ref pixels[i].b, color.b);
-						}
-
-						var data = new ColorData(width, height, pixels);
+						var data = GetColoredData(originalPixels, hex.HexColor(), width, height);
 						colorDataDatabase.Add(path + "#" + hex, data);
 					});
 
-					// add toxic green too
+					// add toxic green
+					{
+						var data = GetColoredData(originalPixels, Color.green, width, height);
+						colorDataDatabase.Add(path + "#toxic", data);
+					}
+
+					// add miner dark
 					{
 						var pixels = originalPixels.Clone() as Color[];
-						var color = Color.green;
 						for (var i = 0; i < pixels.Length; i++)
 						{
-							// Linear burn gives best coloring results
-							//
-							Tools.ColorBlend(ref pixels[i].r, color.r);
-							Tools.ColorBlend(ref pixels[i].g, color.g);
-							Tools.ColorBlend(ref pixels[i].b, color.b);
+							pixels[i].r /= 4f;
+							pixels[i].g /= 4f;
+							pixels[i].b /= 4f;
 						}
-
 						var data = new ColorData(width, height, pixels);
-						colorDataDatabase.Add(path + "#toxic", data);
+						colorDataDatabase.Add(path + "#miner", data);
 					}
 				}
 				else
@@ -83,6 +74,21 @@ namespace ZombieLand
 				graphicClass = typeof(Graphic_Single)
 			};
 			twinkieGraphic = graphicData.Graphic;
+		}
+
+		static ColorData GetColoredData(Color[] data, Color color, int width, int height)
+		{
+			var pixels = data.Clone() as Color[];
+			for (var i = 0; i < pixels.Length; i++)
+			{
+				// Linear burn gives best coloring results
+				//
+				Tools.ColorBlend(ref pixels[i].r, color.r);
+				Tools.ColorBlend(ref pixels[i].g, color.g);
+				Tools.ColorBlend(ref pixels[i].b, color.b);
+			}
+
+			return new ColorData(width, height, pixels);
 		}
 
 		static void ReadSkinColors()

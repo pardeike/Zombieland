@@ -16,7 +16,8 @@ namespace ZombieLand
 	{
 		South,
 		East,
-		North
+		North,
+		West
 	}
 
 	public class IsCombatExtendedInstalled : PatchOperation

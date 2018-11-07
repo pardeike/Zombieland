@@ -20,12 +20,11 @@ namespace ZombieLand
 		public override Material MatSingle => mats[2].GetMaterial;
 
 		static readonly string[] directions = new[] { "_north", "_east", "_south", "_east" };
-		public IEnumerator InitIterativ(GraphicRequest req, int n)
+		public IEnumerator InitIterativ(GraphicRequest req, int n, int points)
 		{
 			var data = GraphicsDatabase.GetColorData(req.path + directions[n], bodyColor, true);
 			yield return null;
 
-			var points = ZombieStains.maxStainPoints;
 			while (points > 0)
 			{
 				var stain = ZombieStains.GetRandom(points, req.path.Contains("Naked"));
@@ -67,7 +66,7 @@ namespace ZombieLand
 
 			for (var i = 0; i < 4; i++)
 			{
-				var iterator = InitIterativ(req, i);
+				var iterator = InitIterativ(req, i, ZombieStains.maxStainPoints);
 				while (iterator.MoveNext()) ;
 			}
 		}
