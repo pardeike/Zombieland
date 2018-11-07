@@ -82,6 +82,7 @@
   <SuicideBomberChance>自爆丧尸</SuicideBomberChance>
   <ToxicSplasherChance>剧毒丧尸</ToxicSplasherChance>
   <TankyOperatorChance>重装丧尸</TankyOperatorChance>
+	<MinerChance>挖掘僵尸</MinerChance>
   <NormalZombieChance>普通丧尸: {0}</NormalZombieChance>
 
   <ZombieMiscTitle>其他</ZombieMiscTitle>

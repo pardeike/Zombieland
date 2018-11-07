@@ -82,6 +82,7 @@
 	<SuicideBomberChance>Зомби-смертники</SuicideBomberChance>
 	<ToxicSplasherChance>Ядовитые зомби</ToxicSplasherChance>
 	<TankyOperatorChance>Тяжелые и бронированные зомби</TankyOperatorChance>
+	<MinerChance>Горные зомби</MinerChance>
 	<NormalZombieChance>Обычные зомби: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Разное</ZombieMiscTitle>

@@ -82,6 +82,7 @@
 	<SuicideBomberChance>Suicide bomber zombies</SuicideBomberChance>
 	<ToxicSplasherChance>Toxic splasher zombies</ToxicSplasherChance>
 	<TankyOperatorChance>Tanky operator zombies</TankyOperatorChance>
+	<MinerChance>Mining zombies</MinerChance>
 	<NormalZombieChance>Ordinary zombies: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Miscellaneous</ZombieMiscTitle>

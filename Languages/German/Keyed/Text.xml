@@ -82,6 +82,7 @@
 	<SuicideBomberChance>Zombies mit Selbstmordattacke</SuicideBomberChance>
 	<ToxicSplasherChance>Giftige Zombies</ToxicSplasherChance>
 	<TankyOperatorChance>Schwere, gepanzerte Zombies</TankyOperatorChance>
+	<MinerChance>Grabende Zombies</MinerChance>
 	<NormalZombieChance>Normale Zombies: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>
