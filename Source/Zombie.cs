@@ -51,6 +51,7 @@ namespace ZombieLand
 
 		// miner
 		public bool isMiner = false;
+		public int miningCounter = 0;
 
 		// transient vars
 		public bool needsGraphics = false;

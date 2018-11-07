@@ -367,6 +367,47 @@ namespace ZombieLand
 			return true;
 		}
 
+		// mine mountains ===========================================================================
+		//
+		static Effecter effecter = EffecterDefOf.Mine.Spawn();
+		public static bool Mine(this JobDriver_Stumble driver, Zombie zombie)
+		{
+			if (zombie.miningCounter > 0)
+			{
+				zombie.miningCounter--;
+				return true;
+			}
+
+			var map = zombie.Map;
+			var basePos = zombie.Position;
+
+			var delta = (zombie.wanderDestination.IsValid ? zombie.wanderDestination : zombie.Map.Center) - basePos;
+			var idx = Tools.CellsAroundIndex(delta);
+			if (idx == -1)
+				return false;
+			var adjacted = GenAdj.AdjacentCellsAround;
+
+			var mineable = new List<IntVec3>() { adjacted[idx], adjacted[(idx + 1) % 8], adjacted[(idx + 7) % 8] }
+				.Select(c => basePos + c)
+				.Where(c => c.InBounds(map))
+				.Select(c => c.GetFirstThing<Mineable>(map))
+				.FirstOrDefault();
+			if (mineable == null)
+				return false;
+
+			zombie.rotationTracker.FaceCell(mineable.Position);
+			effecter.Trigger(zombie, mineable);
+			var baseDamage = (int)GenMath.LerpDouble(1, 5, 1, 10, Math.Max(1, Find.Storyteller.difficulty.difficulty));
+			var damage = (!mineable.def.building.isNaturalRock) ? baseDamage : baseDamage * 2;
+			if (mineable.HitPoints > damage)
+				mineable.TakeDamage(new DamageInfo(DamageDefOf.Mining, damage));
+			else
+				mineable.Destroy(DestroyMode.KillFinalize);
+
+			zombie.miningCounter = (int)GenMath.LerpDouble(1, 5, 180, 90, Math.Max(1, Find.Storyteller.difficulty.difficulty));
+			return true;
+		}
+
 		// calculate possible moves =================================================================
 		//
 		public static List<IntVec3> PossibleMoves(this JobDriver_Stumble driver, Zombie zombie)

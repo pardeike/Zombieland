@@ -516,6 +516,17 @@ namespace ZombieLand
 			return n == 0 ? map.Center : new IntVec3(x / n, 0, z / n);
 		}
 
+		static readonly int[] _cellsAroundIndex = new int[] { 5, 6, 7, 4, -1, 0, 3, 2, 1 };
+		public static int CellsAroundIndex(IntVec3 delta)
+		{
+			var v = Vector3.Normalize(delta.ToVector3()) * Mathf.Sqrt(2);
+			var x = (int)Math.Round(v.x);
+			var z = (int)Math.Round(v.z);
+			if (x == 0 && z == 0) return -1;
+			var i = 3 * (x + 1) + z + 1;
+			return _cellsAroundIndex[i];
+		}
+
 		public static void ChainReact(Map map, IntVec3 basePos, IntVec3 nextMove)
 		{
 			var grid = map.GetGrid();

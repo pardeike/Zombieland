@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
@@ -74,6 +75,10 @@ namespace ZombieLand
 			if (this.ValidDestination(zombie))
 				return;
 
+			if (zombie.isMiner && (zombie.story.bodyType == BodyTypeDefOf.Fat || zombie.story.bodyType == BodyTypeDefOf.Hulk))
+				if (this.Mine(zombie))
+					return;
+
 			var grid = zombie.Map.GetGrid();
 			if (this.Eat(zombie, grid))
 				return;
@@ -96,7 +101,13 @@ namespace ZombieLand
 						return;
 
 				if (zombie.raging <= 0)
+				{
+					if (zombie.isMiner)
+						if (this.Mine(zombie))
+							return;
+
 					this.Wander(zombie, grid, possibleMoves);
+				}
 			}
 
 			this.ExecuteMove(zombie, grid);
