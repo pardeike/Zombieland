@@ -83,7 +83,7 @@ namespace ZombieLand
 			if (zombie.IsDowned() == false)
 				return false;
 
-			if (ZombieSettings.Values.zombiesDieVeryEasily || ZombieSettings.Values.doubleTapRequired == false)
+			if (ZombieSettings.Values.zombiesDieVeryEasily || zombie.IsSuicideBomber || ZombieSettings.Values.doubleTapRequired == false)
 			{
 				zombie.Kill(null);
 				return true;

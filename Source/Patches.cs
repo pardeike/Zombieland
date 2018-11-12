@@ -2165,11 +2165,11 @@ namespace ZombieLand
 					var factor = 1f;
 					var bodyType = zombie.story.bodyType;
 					if (bodyType == BodyTypeDefOf.Thin)
-						factor = 0.8f;
+						factor = 0.75f;
 					else if (bodyType == BodyTypeDefOf.Hulk)
-						factor = 0.1f;
+						factor = 0.2f;
 					else if (bodyType == BodyTypeDefOf.Fat)
-						factor = 0.05f;
+						factor = 0.1f;
 
 					// instead of ticking zombies as often as everything else, we tick
 					// them at 1x speed and make them faster instead. Not perfect but
