@@ -38,6 +38,11 @@ namespace ZombieLand
 			base.Destroy(mode);
 		}
 
+		public override void ExposeData()
+		{
+			base.ExposeData();
+		}
+
 		public override void DrawExtraSelectionOverlays()
 		{
 		}
@@ -55,6 +60,12 @@ namespace ZombieLand
 			if (Spawned && Bugged == false)
 			{
 				if (RottableUtility.GetRotStage(this) == RotStage.Dessicated)
+				{
+					Destroy(DestroyMode.Vanish);
+					return;
+				}
+
+				if (Map.thingGrid.ThingsListAtFast(Position).Any(thing => thing is Blueprint || thing is Frame))
 				{
 					Destroy(DestroyMode.Vanish);
 					return;

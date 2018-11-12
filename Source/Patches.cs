@@ -396,6 +396,7 @@ namespace ZombieLand
 								// are not too close. unsolved problem: we do not know how
 								// to relocate shooters yet
 								//
+								var maxDownedRangeSquared = 6 * 6;
 								var maxRangeSquared = (int)(props.range * props.range);
 								var tickManager = attacker.Map.GetComponent<TickManager>();
 								var pos = attacker.Position;
@@ -410,11 +411,20 @@ namespace ZombieLand
 										score += 10;
 									if (zombie.story.bodyType == BodyTypeDefOf.Thin)
 										score += 5;
+									if (zombie.state == ZombieState.Tracking)
+										score += 5;
 									return -score;
 								}
 								__result = tickManager.allZombiesCached
-									.Where(zombie => zombie.IsDowned() == false && zombie.state != ZombieState.Emerging && pos.DistanceToSquared(zombie.Position) <= maxRangeSquared)
-									.Where(zombie => verb.CanHitTargetFrom(pos, zombie))
+									.Where(zombie =>
+									{
+										if (zombie.state == ZombieState.Emerging) return false;
+										var d = pos.DistanceToSquared(zombie.Position);
+										var dn = zombie.IsDowned();
+										if (dn && (d > maxDownedRangeSquared || ZombieSettings.Values.doubleTapRequired == false)) return false;
+										if (dn == false && d > maxRangeSquared) return false;
+										return verb.CanHitTargetFrom(pos, zombie);
+									})
 									.OrderBy(zombiePrioritySorter).FirstOrDefault();
 								return;
 							}
@@ -436,7 +446,7 @@ namespace ZombieLand
 				if (pawn == null || verb == null || verb.IsMeleeAttack)
 					return true;
 				var zombie = target as Zombie;
-				if (zombie == null || zombie.IsDowned())
+				if (zombie == null || (zombie.IsDowned() && ZombieSettings.Values.doubleTapRequired == false))
 					return true;
 				if (pawn.IsColonist == false && pawn.Faction.HostileTo(Faction.OfPlayer))
 					return true;
@@ -1712,7 +1722,8 @@ namespace ZombieLand
 				if (zombie == null || zombie.IsDowned() == false)
 					return;
 				var vec = ___pawn.pather.Destination.Cell - ___pawn.Position;
-				__instance.downedAngle = vec.AngleFlat;
+				var pos = ___pawn.DrawPos;
+				__instance.downedAngle = vec.AngleFlat + 15f * Mathf.Sin(6f * pos.x) * Mathf.Cos(6f * pos.z);
 			}
 		}
 
@@ -2100,6 +2111,12 @@ namespace ZombieLand
 
 				if (stat == StatDefOf.MeleeHitChance)
 				{
+					if (zombie.IsDowned())
+					{
+						__result = 0.1f;
+						return false;
+					}
+
 					if (zombie.hasTankyShield != -1f)
 					{
 						__result = 1.0f;
@@ -2127,6 +2144,12 @@ namespace ZombieLand
 
 				if (stat == StatDefOf.MoveSpeed)
 				{
+					if (zombie.IsDowned())
+					{
+						__result = 0.004f * Find.TickManager.TickRateMultiplier;
+						return false;
+					}
+
 					if (zombie.IsTanky)
 					{
 						__result = 0.002f * Find.TickManager.TickRateMultiplier;
@@ -2155,8 +2178,6 @@ namespace ZombieLand
 					__result = 1.5f * speed * factor * Find.TickManager.TickRateMultiplier;
 					if (zombie.wasMapPawnBefore)
 						__result *= 2f;
-					if (zombie.IsDowned())
-						__result /= 2f;
 					return false;
 				}
 
