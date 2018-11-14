@@ -2181,6 +2181,17 @@ namespace ZombieLand
 					return false;
 				}
 
+				if (stat == StatDefOf.ComfyTemperatureMin)
+				{
+					__result = -100f;
+					return false;
+				}
+				if (stat == StatDefOf.ComfyTemperatureMax)
+				{
+					__result = 100f;
+					return false;
+				}
+
 				return true;
 			}
 		}
