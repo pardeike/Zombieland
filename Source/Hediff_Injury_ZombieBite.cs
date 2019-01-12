@@ -39,11 +39,11 @@ namespace ZombieLand
 
 					case InfectionState.BittenInfectable:
 						var ticksToStart = TendDuration.TicksBeforeStartOfInfection();
-						return "HoursBeforeBecomingInfected".Translate(new object[] { ticksToStart.ToHourString(false) });
+						return "HoursBeforeBecomingInfected".SafeTranslate(new object[] { ticksToStart.ToHourString(false) });
 
 					case InfectionState.Infecting:
 						var ticksToEnd = TendDuration.TicksBeforeEndOfInfection();
-						return "HoursBeforeBecomingAZombie".Translate(new object[] { ticksToEnd.ToHourString(false) });
+						return "HoursBeforeBecomingAZombie".SafeTranslate(new object[] { ticksToEnd.ToHourString(false) });
 				}
 				return base.LabelInBrackets;
 			}

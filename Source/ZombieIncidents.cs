@@ -88,7 +88,7 @@ namespace ZombieLand
 			parameters.minimumCapableColonists = (parameters.totalColonistCount + 1) / 3;
 			parameters.daysPassed = GenDate.DaysPassedFloat;
 			parameters.spawnMode = ZombieSettings.Values.spawnWhenType.ToString();
-			parameters.storytellerDifficulty = Find.Storyteller.difficulty.difficulty;
+			parameters.storytellerDifficulty = Tools.StoryTellerDifficulty;
 			parameters.currentZombieCount = tickManager.AllZombies().Count();
 			parameters.numberOfZombiesPerColonist = ZombieSettings.Values.baseNumberOfZombiesinEvent;
 			parameters.colonyMultiplier = ZombieSettings.Values.colonyMultiplier;
@@ -98,7 +98,7 @@ namespace ZombieLand
 			parameters.maxAdditionalZombies = 0;
 			parameters.calculatedZombies = 0;
 			parameters.incidentSize = 0;
-			parameters.rampUpDays = GenMath.LerpDouble(1, 5, 40, 0, Math.Max(1, Find.Storyteller.difficulty.difficulty));
+			parameters.rampUpDays = GenMath.LerpDouble(1, 5, 40, 0, Math.Max(1, Tools.StoryTellerDifficulty));
 			//parameters.scaleFactor = Tools.Boxed(GenMath.LerpDouble(parameters.daysBeforeZombies, parameters.daysBeforeZombies + parameters.rampUpDays, 0.2f, 1f, GenDate.DaysPassedFloat), 0.2f, 1f);
 			//parameters.daysStretched = 0;
 			parameters.deltaDays = 0;
@@ -200,11 +200,12 @@ namespace ZombieLand
 			};
 		}
 
-		static IEnumerator SpawnEventProcess(Map map, int incidentSize, IntVec3 spot, Predicate<IntVec3> cellValidator)
+		static IEnumerator SpawnEventProcess(Map map, int incidentSize, IntVec3 spot, Predicate<IntVec3> cellValidator, bool ignoreLimit)
 		{
 			var zombiesSpawning = 0;
 			var counter = 1;
-			while (incidentSize > 0 && counter <= 10)
+			var tickManager = map.GetComponent<TickManager>();
+			while (incidentSize > 0 && (ignoreLimit || tickManager.CanHaveMoreZombies()) && counter <= 10)
 			{
 				var cells = Tools.GetCircle(Constants.SPAWN_INCIDENT_RADIUS)
 					.Select(vec => spot + vec)
@@ -214,7 +215,6 @@ namespace ZombieLand
 					.ToList();
 				yield return null;
 
-				var tickManager = map.GetComponent<TickManager>();
 				foreach (var cell in cells)
 				{
 					ZombieGenerator.SpawnZombie(cell, map, ZombieGenerator.ZombieType.Random, (zombie) => { tickManager.allZombiesCached.Add(zombie); });
@@ -244,7 +244,7 @@ namespace ZombieLand
 			}
 		}
 
-		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot)
+		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot, bool ignoreLimit = false)
 		{
 			var cellValidator = Tools.ZombieSpawnLocator(map, true);
 			var spotValidator = SpotValidator(map, cellValidator);
@@ -273,7 +273,7 @@ namespace ZombieLand
 			if (spot.IsValid == false)
 				return false;
 
-			Find.CameraDriver.StartCoroutine(SpawnEventProcess(map, incidentSize, spot, cellValidator));
+			Find.CameraDriver.StartCoroutine(SpawnEventProcess(map, incidentSize, spot, cellValidator, ignoreLimit));
 			return true;
 		}
 	}

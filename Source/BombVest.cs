@@ -18,7 +18,7 @@ namespace ZombieLand
 		public void Explode()
 		{
 			var damageDef = new SuicideBombDamage();
-			var radius = 1f + Find.Storyteller.difficulty.difficulty;
+			var radius = 1f + Tools.StoryTellerDifficulty;
 			GenExplosion.DoExplosion(pos, map, radius, damageDef, null);
 		}
 	}
@@ -27,8 +27,7 @@ namespace ZombieLand
 	{
 		static int ScaledValueBetween(int a, int b)
 		{
-			var n = Find.Storyteller.difficulty.difficulty;
-			return (int)GenMath.LerpDouble(0, 5, a, b, n);
+			return (int)GenMath.LerpDouble(0, 5, a, b, Tools.StoryTellerDifficulty);
 		}
 
 		public SuicideBombDamage()

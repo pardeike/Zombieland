@@ -92,6 +92,7 @@
 	<PlayCreepyAmbientSound>Gruseliger Hintergrundton während der Nacht</PlayCreepyAmbientSound>
 	<BetterZombieAvoidance>Automatische Vermeidung von Zombies</BetterZombieAvoidance>
 	<ZombiesDropBlood>Zombies hinterlassen Blut</ZombiesDropBlood>
+	<ZombiesBurnLonger>Zombies brennen länger</ZombiesBurnLonger>
 
 	<ZombieActionsTitle>Aktionen</ZombieActionsTitle>
 	<ZombieSettingsReset>Einstellungen zurücksetzen</ZombieSettingsReset>

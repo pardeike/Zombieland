@@ -16,67 +16,67 @@
 	<WhenDoZombiesSpawn>Zombiler ne zaman ortaya çıksın?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Her zaman</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>Karanlık olduğunda</SpawnWhenType_WhenDark>
-	<SpawnWhenType_InEventsOnly>Only as events</SpawnWhenType_InEventsOnly>
+	<SpawnWhenType_InEventsOnly>Sadece olaylar olarak</SpawnWhenType_InEventsOnly>
 
-	<HowDoZombiesSpawn>From where do zombies come?</HowDoZombiesSpawn>
-	<SpawnHowType_AllOverTheMap>Where there is soft ground</SpawnHowType_AllOverTheMap>
-	<SpawnHowType_FromTheEdges>From the map edges</SpawnHowType_FromTheEdges>
+	<HowDoZombiesSpawn>Zombiler nereden geliyor?</HowDoZombiesSpawn>
+	<SpawnHowType_AllOverTheMap>Yumuşak zemin olan yerlerde</SpawnHowType_AllOverTheMap>
+	<SpawnHowType_FromTheEdges>Harita kenarlarından</SpawnHowType_FromTheEdges>
 
-	<WhatDoZombiesAttack>What will zombies attack?</WhatDoZombiesAttack>
-	<AttackMode_Everything>All creature</AttackMode_Everything>
-	<AttackMode_OnlyHumans>Human-like creatures</AttackMode_OnlyHumans>
-	<AttackMode_OnlyColonists>Only colonists</AttackMode_OnlyColonists>
+	<WhatDoZombiesAttack>Zombiler neye saldıracak?</WhatDoZombiesAttack>
+	<AttackMode_Everything>Bütün yaratıklar</AttackMode_Everything>
+	<AttackMode_OnlyHumans>İnsan benzeri yaratıklar</AttackMode_OnlyHumans>
+	<AttackMode_OnlyColonists>Sadece kolonistler</AttackMode_OnlyColonists>
 	<EnemiesAttackZombies>Düşmanlar zombi saldırır</EnemiesAttackZombies>
 	<AnimalsAttackZombies>Hayvanlar zombi saldırı</AnimalsAttackZombies>
 
-	<WhatDoZombiesSmash>What will zombies destroy?</WhatDoZombiesSmash>
-	<SmashMode_Nothing>Nothing</SmashMode_Nothing>
-	<SmashMode_DoorsOnly>Only doors</SmashMode_DoorsOnly>
-	<SmashMode_AnyBuilding>Everything that was built</SmashMode_AnyBuilding>
-	<SmashOnlyWhenAgitated>Only when they are agitated</SmashOnlyWhenAgitated>
+	<WhatDoZombiesSmash>Zombiler neyi mahvedecek?</WhatDoZombiesSmash>
+	<SmashMode_Nothing>Hiçbir şey</SmashMode_Nothing>
+	<SmashMode_DoorsOnly>Sadece kapılar</SmashMode_DoorsOnly>
+	<SmashMode_AnyBuilding>Inşa edilmiş her şey</SmashMode_AnyBuilding>
+	<SmashOnlyWhenAgitated>Sadece ajite olduklarında</SmashOnlyWhenAgitated>
 
-	<NewGameTitle>New game</NewGameTitle>
-	<DaysBeforeZombiesCome>Days until zombies come</DaysBeforeZombiesCome>
+	<NewGameTitle>Yeni oyun</NewGameTitle>
+	<DaysBeforeZombiesCome>Günler zombiler gelene kadar</DaysBeforeZombiesCome>
 
-	<ZombiesOnTheMap>Zombies on the map</ZombiesOnTheMap>
-	<MaximumNumberOfZombies>Never more than</MaximumNumberOfZombies>
-	<Zombies>Zombies</Zombies>
+	<ZombiesOnTheMap>Haritadaki Zombiler</ZombiesOnTheMap>
+	<MaximumNumberOfZombies>Daha asla fazla</MaximumNumberOfZombies>
+	<Zombies>Zombiler</Zombies>
 	<ColonyMultiplier>Koloni çarpanı</ColonyMultiplier>
 
-	<ZombieEventTitle>Zombie event</ZombieEventTitle>
-	<ZombiesPerColonistInEvent>Zombies per colonist</ZombiesPerColonistInEvent>
-	<ExtraDaysBetweenEvents>Extra days between events</ExtraDaysBetweenEvents>
+	<ZombieEventTitle>Zombi olayı</ZombieEventTitle>
+	<ZombiesPerColonistInEvent>Kolonist başına zombiler</ZombiesPerColonistInEvent>
+	<ExtraDaysBetweenEvents>Etkinlikler arasında ekstra günler</ExtraDaysBetweenEvents>
 
-	<ZombieSpeedTitle>Zombie speed</ZombieSpeedTitle>
-	<MoveSpeedIdle>If they are calm</MoveSpeedIdle>
-	<MoveSpeedTracking>If they feel excited</MoveSpeedTracking>
+	<ZombieSpeedTitle>Zombi hızı</ZombieSpeedTitle>
+	<MoveSpeedIdle>Onlar sakin iseniz</MoveSpeedIdle>
+	<MoveSpeedTracking>Heyecanlı hissediyorlarsa</MoveSpeedTracking>
 
-	<ZombieDamageFactorTitle>Zombie strength</ZombieDamageFactorTitle>
-	<ZombieDamageFactor>Damage multiplier</ZombieDamageFactor>
+	<ZombieDamageFactorTitle>Zombi gücü</ZombieDamageFactorTitle>
+	<ZombieDamageFactor>Hasar çarpan</ZombieDamageFactor>
 
 	<ZombieGameTweaks>Oyun ince ayarlar</ZombieGameTweaks>
 	<ReduceTurretConsumption>Taret silah tüketimini azaltın</ReduceTurretConsumption>
 
-	<ZombieInfections>Zombie infections</ZombieInfections>
-	<ZombieBiteInfectionChance>Risk that a zombie bite is infectious</ZombieBiteInfectionChance>
-	<ZombieBiteInfectionUnknown>Time until infection is known</ZombieBiteInfectionUnknown>
-	<ZombieBiteInfectionTreatable>Time infection is treatable</ZombieBiteInfectionTreatable>
-	<ZombieBiteInfectionPersists>Duration of infection</ZombieBiteInfectionPersists>
-	<AnyTreatmentStopsInfection>Treatment in a bed stops infections</AnyTreatmentStopsInfection>
+	<ZombieInfections>Zombi enfeksiyonları</ZombieInfections>
+	<ZombieBiteInfectionChance>Bir zombi ısırığının bulaşıcı olma riski</ZombieBiteInfectionChance>
+	<ZombieBiteInfectionUnknown>Enfeksiyon bilinene kadar geçen süre</ZombieBiteInfectionUnknown>
+	<ZombieBiteInfectionTreatable>Zaman enfeksiyonu tedavi edilebilir</ZombieBiteInfectionTreatable>
+	<ZombieBiteInfectionPersists>Enfeksiyonun süresi</ZombieBiteInfectionPersists>
+	<AnyTreatmentStopsInfection>Yatakta tedavi enfeksiyonları durdurur</AnyTreatmentStopsInfection>
 
-	<ZombieInstinctTitle>Zombie senses</ZombieInstinctTitle>
-	<ZombieInstinct_Dull>Limited</ZombieInstinct_Dull>
+	<ZombieInstinctTitle>Zombi duyuları</ZombieInstinctTitle>
+	<ZombieInstinct_Dull>Sınırlı</ZombieInstinct_Dull>
 	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>
-	<ZombieInstinct_Sensitive>Elevated</ZombieInstinct_Sensitive>
-	<RagingZombies>Zombies rage if a group gets too large</RagingZombies>
+	<ZombieInstinct_Sensitive>Yükseltilmiş</ZombieInstinct_Sensitive>
+	<RagingZombies>Bir grup çok büyük alırsa Zombiler öfke</RagingZombies>
 
-	<ZombieHealthTitle>Zombie health</ZombieHealthTitle>
-	<DoubleTapRequired>Zombies recover from injuries</DoubleTapRequired>
-	<ZombiesDieVeryEasily>Zombies are easy to kill</ZombiesDieVeryEasily>
+	<ZombieHealthTitle>Zombi sağlığı</ZombieHealthTitle>
+	<DoubleTapRequired>Zombiler yaralanmaları kurtarmak</DoubleTapRequired>
+	<ZombiesDieVeryEasily>Zombiler öldürmek kolaydır</ZombiesDieVeryEasily>
 
-	<ZombieEatingTitle>Zombies will eat</ZombieEatingTitle>
-	<ZombiesEatDowned>Injured creatures</ZombiesEatDowned>
-	<ZombiesEatCorpses>Corpses</ZombiesEatCorpses>
+	<ZombieEatingTitle>Zombiler yeme</ZombieEatingTitle>
+	<ZombiesEatDowned>Yaralı yaratıklar</ZombiesEatDowned>
+	<ZombiesEatCorpses>Cesetler</ZombiesEatCorpses>
 
 	<SpecialZombiesTitle>Özel zombiler</SpecialZombiesTitle>
 	<SuicideBomberChance>Intihar bombacısı zombileri</SuicideBomberChance>
@@ -85,19 +85,20 @@
 	<MinerChance>Madencilik zombiler</MinerChance>
 	<NormalZombieChance>Sıradan zombiler: {0}</NormalZombieChance>
 
-	<ZombieMiscTitle>Miscellaneous</ZombieMiscTitle>
-	<UseCustomTextures>Use custom textures</UseCustomTextures>
-	<ReplaceTwinkie>Change survival meals to Twinkies</ReplaceTwinkie>
-	<ZombiesTriggerDangerMusic>Zombies affect danger music</ZombiesTriggerDangerMusic>
-	<PlayCreepyAmbientSound>Play creepy ambient sound at night</PlayCreepyAmbientSound>
-	<BetterZombieAvoidance>Automatic avoidance of zombies</BetterZombieAvoidance>
-	<ZombiesDropBlood>Zombies drop blood</ZombiesDropBlood>
+	<ZombieMiscTitle>Çeşitli</ZombieMiscTitle>
+	<UseCustomTextures>Özel dokular kullanın</UseCustomTextures>
+	<ReplaceTwinkie>Hayatta kalma öğünlerini Twinkies olarak değiştir</ReplaceTwinkie>
+	<ZombiesTriggerDangerMusic>Zombiler tehlike müziğini etkiliyor</ZombiesTriggerDangerMusic>
+	<PlayCreepyAmbientSound>Geceleri ürpertici ortam sesi çal</PlayCreepyAmbientSound>
+	<BetterZombieAvoidance>Zombilerden otomatik olarak kaçınma</BetterZombieAvoidance>
+	<ZombiesDropBlood>Zombiler kan damlar</ZombiesDropBlood>
+	<ZombiesBurnLonger>Zombiler uzun süre yanacak</ZombiesBurnLonger>
 
-	<ZombieActionsTitle>Actions</ZombieActionsTitle>
-	<ZombieSettingsReset>Restore default settings</ZombieSettingsReset>
-	<UninstallZombieland>Remove Zombieland from current game</UninstallZombieland>
-	<ConfirmUninstallZombieland>If you continue, you can choose a new save file name and you will return to the main menu after the game is saved. The new save can be loaded without Zombieland.\n\nDo you really want to remove all Zombieland content from the current game?</ConfirmUninstallZombieland>
-	<UninstallButton>Uninstall</UninstallButton>
+	<ZombieActionsTitle>Eylemler</ZombieActionsTitle>
+	<ZombieSettingsReset>Ayarları varsayılan duruma getirmek</ZombieSettingsReset>
+	<UninstallZombieland>Mevcut oyundan Zombieland'ı kaldır</UninstallZombieland>
+	<ConfirmUninstallZombieland>Devam ederseniz, yeni bir kayıt dosyası adı seçebilir ve oyun kaydedildikten sonra ana menüye dönersiniz. Yeni kayıt Zombieland olmadan yüklenebilir.\n\nTüm Zombieland içeriğini mevcut oyundan gerçekten kaldırmak istiyor musunuz?</ConfirmUninstallZombieland>
+	<UninstallButton>Kaldırıp</UninstallButton>
 	<LoadSettings>Web'den ayarları yükle</LoadSettings>
 	<LoadSettingsButton>Indir</LoadSettingsButton>
 	<PublishSettings>Ayarları web'de yayınla</PublishSettings>
@@ -105,21 +106,21 @@
 	<SearchSettings>Aramak</SearchSettings>
    <SettingsName>Isim</SettingsName>
 
-	<ColonistsBittenByZombie>Colonist bitten by zombie</ColonistsBittenByZombie>
-	<ColonistsBittenByZombieDesc>These colonists have been bitten by a zombie. At this point, it is unclear if they develop an infection:\n\n{0}\nMonitor their wounds closely because infections take some time to develop.</ColonistsBittenByZombieDesc>
+	<ColonistsBittenByZombie>Colonist zombi tarafından ısırıldı</ColonistsBittenByZombie>
+	<ColonistsBittenByZombieDesc>Bu kolonistler bir zombi tarafından ısırıldı. Bu noktada, bir enfeksiyon geliştirmeleri net değil:\n\n{0}\nYaralarını yakından izleyin çünkü enfeksiyonların gelişmesi biraz zaman alır.</ColonistsBittenByZombieDesc>
 
-	<ImminentZombiInfection>Imminent zombie infection</ImminentZombiInfection>
-	<ImminentZombiInfectionDesc>These colonists are about to be infected from a zombie bite:\n\n{0}\nYou may rescue them by immediately giving them optimal treatment under best conditions. But it requires a good doctor, a quality medical bed and a sterile room with a vitals monitor.</ImminentZombiInfectionDesc>
+	<ImminentZombiInfection>Yakın zombi enfeksiyonu</ImminentZombiInfection>
+	<ImminentZombiInfectionDesc>Bu kolonistler bir zombi ısırığından enfekte olmak üzereler:\n\n{0}\nOnları en iyi koşullarda en iyi şekilde tedavi ederek hemen kurtarabilirsiniz. Ancak iyi bir doktor, kaliteli bir tıbbi yatak ve hayati öneme sahip monitör içeren steril bir oda gerektirir.</ImminentZombiInfectionDesc>
 
 	<ZombieInfection>Zombie infection</ZombieInfection>
-	<ZombieInfectionDesc>These colonists have been infected and will become a zombie. There is no way anymore to rescue them:\n\n{0}\nDuring their infection they are indifferent to thoughts, feelings, pain and hunger. At the end, they die and become a zombie.</ZombieInfectionDesc>
+	<ZombieInfectionDesc>Bu kolonistler enfekte olmuş ve bir zombi haline gelecektir. Onları kurtarmanın artık yolu yok:\n\n{0}\nEnfeksiyonları sırasında düşüncelere, hislere, acıya ve açlığa kayıtsız kalıyorlar. Sonunda ölür ve bir zombi olurlar.</ZombieInfectionDesc>
 
-	<NoInfectionRisk>No infection risk</NoInfectionRisk>
-	<HoursBeforeBecomingInfected>{0} to infection</HoursBeforeBecomingInfected>
-	<HoursBeforeBecomingAZombie>{0} to become a zombie</HoursBeforeBecomingAZombie>
+	<NoInfectionRisk>Enfeksiyon riski yok</NoInfectionRisk>
+	<HoursBeforeBecomingInfected>Enfeksiyona {0}</HoursBeforeBecomingInfected>
+	<HoursBeforeBecomingAZombie>Zombi olmak için {0}</HoursBeforeBecomingAZombie>
 
-	<BecameAZombieLabel>Someone turned into a zombie</BecameAZombieLabel>
-	<BecameAZombieDesc>{0} turned into a powerful zombie.</BecameAZombieDesc>
+	<BecameAZombieLabel>Birisi bir zombiye dönüştü</BecameAZombieLabel>
+	<BecameAZombieDesc>{0} güçlü bir zombiye dönüştü.</BecameAZombieDesc>
 
 	<BodyIsInfectedLabel>Bu vücut zombi virüsü ile enfekte!</BodyIsInfectedLabel>
 	<BodyIsInfectedTooltip>Enfekte olmuş bedenler çürümeye başladıklarında zombiye dönüşeceklerdir.</BodyIsInfectedTooltip>

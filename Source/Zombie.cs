@@ -206,7 +206,7 @@ namespace ZombieLand
 			var map = Map;
 			if (map == null) return;
 
-			var amount = 1 + Find.Storyteller.difficulty.difficulty;
+			var amount = 1 + ZombieLand.Tools.StoryTellerDifficulty;
 			if (story.bodyType == BodyTypeDefOf.Thin)
 				amount -= 1;
 			if (story.bodyType == BodyTypeDefOf.Fat)

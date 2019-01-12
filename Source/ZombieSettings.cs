@@ -78,6 +78,7 @@ namespace ZombieLand
 		public bool ragingZombies = true;
 		public bool replaceTwinkie = true;
 		public bool zombiesDropBlood = true;
+		public bool zombiesBurnLonger = true;
 		public float reducedTurretConsumption = 0f;
 
 		public object Clone()

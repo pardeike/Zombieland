@@ -674,7 +674,7 @@ namespace ZombieLand
 			static bool SkipMissingShotsAtZombies(Verb verb, LocalTargetInfo currentTarget)
 			{
 				// difficulty Intense or worse will trigger default behavior
-				if (Find.Storyteller.difficulty.difficulty >= DifficultyDefOf.Rough.difficulty) return false;
+				if (Tools.StoryTellerDifficulty >= DifficultyDefOf.Rough.difficulty) return false;
 
 				// only for colonists
 				var colonist = verb.caster as Pawn;
@@ -2336,16 +2336,14 @@ namespace ZombieLand
 		[HarmonyPatch("VulnerableToRain")]
 		static class Fire_VulnerableToRain_Patch
 		{
-			static bool Prefix(Fire __instance, ref bool __result)
+			static void Postfix(Fire __instance, ref bool __result)
 			{
-				var zombie = __instance.parent as Zombie;
-				if (zombie != null)
-				{
-					__result = false;
-					return false;
-				}
+				if (__result == false)
+					return;
 
-				return true;
+				var zombie = __instance.parent as Zombie;
+				if (zombie != null && ZombieSettings.Values.zombiesBurnLonger && Rand.Chance(0.2f))
+					__result = false;
 			}
 		}
 
@@ -2355,32 +2353,36 @@ namespace ZombieLand
 		[HarmonyPatch("DoFireDamage")]
 		static class Fire_DoFireDamage_Patch
 		{
-			static int Reduce(int n) { return n / 2; }
+			static int FireDamagePatch(float f, Pawn pawn)
+			{
+				var num = GenMath.RoundRandom(f);
+				if (ZombieSettings.Values.zombiesBurnLonger == false)
+					return num;
+				
+				var zombie = pawn as Zombie;
+				if (zombie == null)
+					return num;
+
+				return Math.Max(2, num / 2);
+			}
 
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, IEnumerable<CodeInstruction> instructions)
 			{
-				var firstTime = true;
-				foreach (var instruction in instructions)
+				var m_RoundRandom = SymbolExtensions.GetMethodInfo(() => GenMath.RoundRandom(0f));
+				var m_FireDamagePatch = SymbolExtensions.GetMethodInfo(() => FireDamagePatch(0f, null));
+
+				var list = instructions.ToList();
+				var idx = list.FirstIndexOf(code => code.operand == m_RoundRandom);
+				if (idx > 0)
 				{
-					if (firstTime && instruction.opcode == OpCodes.Ldarg_1)
-					{
-						firstTime = false;
-						var label = generator.DefineLabel();
-
-						yield return instruction;
-						yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
-						yield return new CodeInstruction(OpCodes.Brfalse, label);
-						yield return new CodeInstruction(OpCodes.Ldloc_1);
-						yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => Reduce(0)));
-						yield return new CodeInstruction(OpCodes.Stloc_1);
-
-						yield return new CodeInstruction(OpCodes.Ldarg_1) { labels = new List<Label> { label } };
-					}
-					else
-						yield return instruction;
+					list[idx].opcode = OpCodes.Ldarg_1; // first argument of instance method
+					list[idx].operand = null;
+					list.Insert(idx + 1, new CodeInstruction(OpCodes.Call, m_FireDamagePatch));
 				}
+				else
+					Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 
-				if (firstTime) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+				return list.AsEnumerable();
 			}
 		}
 
@@ -2451,7 +2453,7 @@ namespace ZombieLand
 				if (zombie == null)
 					return true;
 
-				var difficulty = Find.Storyteller.difficulty.difficulty;
+				var difficulty = Tools.StoryTellerDifficulty;
 				if (amount > 45)
 					amount = 45 + Mathf.Sqrt(amount - 46);
 
@@ -2497,7 +2499,7 @@ namespace ZombieLand
 				// still a tough zombie even if we hit the body but some armor is left
 				if (zombie.hasTankyHelmet > 0f || zombie.hasTankySuit > 0f)
 				{
-					var toughnessLevel = Find.Storyteller.difficulty.difficulty;
+					var toughnessLevel = Tools.StoryTellerDifficulty;
 					amount = (amount + toughnessLevel) / (toughnessLevel + 1);
 				}
 

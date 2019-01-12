@@ -92,6 +92,7 @@
 	<PlayCreepyAmbientSound>Jouer le bruit ambiant effrayant la nuit</PlayCreepyAmbientSound>
 	<BetterZombieAvoidance>Evitement automatique des Zombies</BetterZombieAvoidance>
 	<ZombiesDropBlood>Les zombies lache du sang</ZombiesDropBlood>
+	<ZombiesBurnLonger>Les zombies brûlent plus longtemps</ZombiesBurnLonger>
 
 	<ZombieActionsTitle>Actions</ZombieActionsTitle>
 	<ZombieSettingsReset>Restaurer les paramètres par defaut</ZombieSettingsReset>

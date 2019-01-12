@@ -92,6 +92,7 @@
   <PlayCreepyAmbientSound>在夜晚播放令人毛骨悚然的環境聲效</PlayCreepyAmbientSound>
   <BetterZombieAvoidance>自動迴避殭屍</BetterZombieAvoidance>
   <ZombiesDropBlood>殭屍流血</ZombiesDropBlood>
+	<ZombiesBurnLonger>殭屍燃燒時間更長</ZombiesBurnLonger>
 
   <ZombieActionsTitle>操作</ZombieActionsTitle>
   <ZombieSettingsReset>恢復默認設置</ZombieSettingsReset>

@@ -92,6 +92,7 @@
 	<PlayCreepyAmbientSound>Воспроизвести жуткий окружающий звук ночью</PlayCreepyAmbientSound>
 	<BetterZombieAvoidance>Улучшенный способ избежать зомби</BetterZombieAvoidance>
 	<ZombiesDropBlood>Зомби бросают кровь</ZombiesDropBlood>
+	<ZombiesBurnLonger>Зомби горят дольше</ZombiesBurnLonger>
 
 	<ZombieActionsTitle>команды</ZombieActionsTitle>
 	<ZombieSettingsReset>Восстановить настройки по умолчанию</ZombieSettingsReset>

@@ -398,14 +398,14 @@ namespace ZombieLand
 
 			zombie.rotationTracker.FaceCell(mineable.Position);
 			effecter.Trigger(zombie, mineable);
-			var baseDamage = (int)GenMath.LerpDouble(1, 5, 1, 10, Math.Max(1, Find.Storyteller.difficulty.difficulty));
+			var baseDamage = (int)GenMath.LerpDouble(1, 5, 1, 10, Math.Max(1, Tools.StoryTellerDifficulty));
 			var damage = (!mineable.def.building.isNaturalRock) ? baseDamage : baseDamage * 2;
 			if (mineable.HitPoints > damage)
 				mineable.TakeDamage(new DamageInfo(DamageDefOf.Mining, damage));
 			else
 				mineable.Destroy(DestroyMode.KillFinalize);
 
-			zombie.miningCounter = (int)GenMath.LerpDouble(1, 5, 180, 90, Math.Max(1, Find.Storyteller.difficulty.difficulty));
+			zombie.miningCounter = (int)GenMath.LerpDouble(1, 5, 180, 90, Math.Max(1, Tools.StoryTellerDifficulty));
 			return true;
 		}
 

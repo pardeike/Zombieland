@@ -127,12 +127,20 @@ namespace ZombieLand
 		public static string SafeTranslate(this string key, params object[] args)
 		{
 			if (key == null) return "";
+#pragma warning disable CS0618
 			return key.Translate(args);
+#pragma warning restore CS0618
 		}
 
 		public static long Ticks()
 		{
 			return 1000L * GenTicks.TicksAbs;
+		}
+
+		public static int StoryTellerDifficulty = 0;
+		public static void UpdateStoryTellerDifficulty()
+		{
+			StoryTellerDifficulty = Boxed(Find.Storyteller.difficulty.difficulty, 0, 5);
 		}
 
 		public static int PheromoneFadeoff()
@@ -339,7 +347,7 @@ namespace ZombieLand
 				tickManager.allZombiesCached.Add(zombie);
 
 				var label = "BecameAZombieLabel".Translate();
-				var text = "BecameAZombieDesc".Translate(new object[] { pawnName.ToStringShort });
+				var text = "BecameAZombieDesc".SafeTranslate(new object[] { pawnName.ToStringShort });
 				Find.LetterStack.ReceiveLetter(label, text, LetterDefOf.ThreatBig, zombie);
 			});
 			while (it.MoveNext()) ;

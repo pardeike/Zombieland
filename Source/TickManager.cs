@@ -45,6 +45,7 @@ namespace ZombieLand
 		public override void FinalizeInit()
 		{
 			base.FinalizeInit();
+			Tools.UpdateStoryTellerDifficulty();
 
 			var grid = map.GetGrid();
 			grid.IterateCellsQuick(cell => cell.zombieCount = 0);
@@ -108,6 +109,8 @@ namespace ZombieLand
 
 		public void RecalculateVisibleMap()
 		{
+			Tools.UpdateStoryTellerDifficulty();
+
 			if (visibleGridUpdateCounter-- < 0)
 			{
 				visibleGridUpdateCounter = Constants.TICKMANAGER_RECALCULATE_DELAY.SecondsToTicks();
@@ -295,6 +298,11 @@ namespace ZombieLand
 			return allZombiesCached.Count(zombie => zombie.Spawned && zombie.Dead == false) + ZombieGenerator.ZombiesSpawning;
 		}
 
+		public bool CanHaveMoreZombies()
+		{
+			return ZombieCount() < GetMaxZombieCount();
+		}
+
 		public void IncreaseZombiePopulation()
 		{
 			if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return;
@@ -304,7 +312,7 @@ namespace ZombieLand
 			{
 				populationSpawnCounter = (int)GenMath.LerpDouble(0, 1000, 300, 20, Math.Max(100, Math.Min(1000, currentColonyPoints)));
 
-				if (ZombieCount() < GetMaxZombieCount())
+				if (CanHaveMoreZombies())
 				{
 					switch (ZombieSettings.Values.spawnHowType)
 					{
