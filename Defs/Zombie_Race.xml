@@ -43,12 +43,9 @@
 		<label>Zombie</label>
 		<description>A zombie</description>
 		<statBases>
-			<!--<MoveSpeed>0.1</MoveSpeed>-->
 			<ArmorRating_Blunt>0</ArmorRating_Blunt>
 			<ArmorRating_Sharp>0</ArmorRating_Sharp>
 			<ArmorRating_Heat>0</ArmorRating_Heat>
-			<!--<MeleeHitChance>0.5</MeleeHitChance>-->
-			<!--<MeleeDodgeChance>0.05</MeleeDodgeChance>-->
 		</statBases>
 		<tools>
 			<li>

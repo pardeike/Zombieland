@@ -10,7 +10,6 @@
 			<li Class="PatchOperationAdd">
 				<xpath>*/ThingDef[@Name="Zombie"]/statBases</xpath>
 				<value>
-					<!--<MeleeCritChance>0.2</MeleeCritChance>-->
 					<MeleeParryChance>0.05</MeleeParryChance>
 				</value>
 			</li>
@@ -47,7 +46,6 @@
 							<cooldownTime>2</cooldownTime>
 							<linkedBodyPartsGroup>LeftHand</linkedBodyPartsGroup>
 							<armorPenetration>0.1</armorPenetration>
-							<!--<commonality>0.2</commonality>-->
 							<surpriseAttack>
 								<extraMeleeDamages>
 									<li>
@@ -66,7 +64,6 @@
 							<cooldownTime>2</cooldownTime>
 							<linkedBodyPartsGroup>RightHand</linkedBodyPartsGroup>
 							<armorPenetration>0.1</armorPenetration>
-							<!--<commonality>0.2</commonality>-->
 							<surpriseAttack>
 								<extraMeleeDamages>
 									<li>

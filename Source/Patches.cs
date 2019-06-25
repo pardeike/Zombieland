@@ -2142,6 +2142,12 @@ namespace ZombieLand
 					return false;
 				}
 
+				if (stat == StatDefOf.MeleeDodgeChance)
+				{
+					__result = 0.02f;
+					return false;
+				}
+
 				if (stat == StatDefOf.MoveSpeed)
 				{
 					if (zombie.IsDowned())
