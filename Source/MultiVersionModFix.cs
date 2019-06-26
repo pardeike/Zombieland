@@ -23,7 +23,7 @@ static class MultiVersionModFix
 		var m_VersionCompatiblePostfix = SymbolExtensions.GetMethodInfo(() => VersionCompatible_Postfix(null, ref aBool));
 		instance.PostfixOnce(m_VersionCompatible, m_VersionCompatiblePostfix);
 		var m_SetWorkshopItemDataFrom = AccessTools.Method(typeof(Workshop), "SetWorkshopItemDataFrom");
-		var m_SetWorkshopItemDataFrom_Postfix = SymbolExtensions.GetMethodInfo(() => SetWorkshopItemDataFrom_Postfix(default(UGCUpdateHandle_t), null));
+		var m_SetWorkshopItemDataFrom_Postfix = SymbolExtensions.GetMethodInfo(() => SetWorkshopItemDataFrom_Postfix(default, null));
 		instance.PostfixOnce(m_SetWorkshopItemDataFrom, m_SetWorkshopItemDataFrom_Postfix);
 	}
 

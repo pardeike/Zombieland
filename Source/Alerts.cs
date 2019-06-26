@@ -100,6 +100,7 @@ namespace ZombieLand
 		// Alert_ZombieInfectionProgress..ctor()
 		// Alert_ZombieInfectionProgress.Prepare():Void ZombieLand  C:\Users\Admin\Source\ModRepos\ZombieLand\Source\Alerts.cs	97	Active
 		//
+		[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
 		public Alert_ZombieInfectionProgress()
 		{
 			Prepare();

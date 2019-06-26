@@ -274,11 +274,11 @@ namespace CameraPlus
 
 			var outRect = new Rect(0f, 0f, leftColumn, mainRect.height);
 			var width = outRect.width - 20f;
-			var imageRect = new Rect(0f, 0f, width, width * mod.previewImage.height / mod.previewImage.width);
+			var imageRect = new Rect(0f, 0f, width, width * mod.PreviewImage.height / mod.PreviewImage.width);
 			var textRect = new Rect(0f, 24f + 10f + imageRect.height, width, Text.CalcHeight(description, width));
 			var innerRect = new Rect(0f, 0f, width, imageRect.height + 20f + 8f + 10f + textRect.height);
 			Widgets.BeginScrollView(outRect, ref leftScroll, innerRect, true);
-			GUI.DrawTexture(imageRect, mod.previewImage, ScaleMode.ScaleToFit);
+			GUI.DrawTexture(imageRect, mod.PreviewImage, ScaleMode.ScaleToFit);
 			var widgetRow = new WidgetRow(imageRect.xMax, imageRect.yMax + 8f, UIDirection.LeftThenDown, width, 8f);
 			if (isLocalFile == false)
 			{

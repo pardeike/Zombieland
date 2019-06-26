@@ -48,7 +48,7 @@ namespace ZombieLand
 				while (queue.Count == 0)
 				{
 					if (returnNullOnEmpty)
-						return default(T);
+						return default;
 
 					Monitor.Wait(queue);
 				}
