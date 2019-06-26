@@ -326,20 +326,30 @@ namespace ZombieLand
 			return _allApparelPairs;
 		}
 
-		static bool CanWear(Zombie zombie, ThingStuffPair pair)
+		static bool CanWear(Zombie zombie, ThingDef thing)
 		{
-			if (pair.thing == null)
+			if (thing == null)
 				return false;
 
-			if (zombie.isMiner && PawnApparelGenerator.IsHeadgear(pair.thing))
+			if (zombie.isMiner && PawnApparelGenerator.IsHeadgear(thing))
 				return false;
 
-			return ApparelUtility.HasPartsToWear(zombie, pair.thing);
+			return ApparelUtility.HasPartsToWear(zombie, thing);
+		}
+
+		static bool GraphicFileExist(Zombie zombie, ApparelProperties apparel)
+		{
+			var path = apparel.wornGraphicPath;
+			if (apparel.LastLayer != ApparelLayerDefOf.Overhead)
+				path += "_" + zombie.story.bodyType.defName;
+			return ContentFinder<Texture2D>.Get(path + "_north", false) != null;
 		}
 
 		public static IEnumerator GenerateStartingApparelFor(Zombie zombie)
 		{
-			var possibleApparel = AllApparelPairs().Where(pair => CanWear(zombie, pair)).ToList();
+			var wearableApparel = AllApparelPairs().Where(pair => CanWear(zombie, pair.thing)).ToList();
+			yield return null;
+			var possibleApparel = wearableApparel.Where(pair => GraphicFileExist(zombie, pair.thing.apparel)).ToList();
 			yield return null;
 			if (possibleApparel.Count > 0)
 			{
