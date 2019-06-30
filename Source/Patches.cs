@@ -2434,6 +2434,19 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to prevent errors in combat log
+		//
+		[HarmonyPatch(typeof(DamageWorker.DamageResult))]
+		[HarmonyPatch("AssociateWithLog")]
+		public static class DamageWorker_DamageResult_AssociateWithLog_Patch
+		{
+			static bool Prefix(DamageWorker.DamageResult __instance)
+			{
+				var zombie = __instance.hitThing as Zombie;
+				return zombie == null;
+			}
+		}
+
 		// patch to prevent damage if zombie has armor
 		//
 		[HarmonyPatch(typeof(ArmorUtility))]
@@ -2449,8 +2462,22 @@ namespace ZombieLand
 				}
 			}
 
+			static void ApplyDamage(ref float armor, ref float amount, float reducer)
+			{
+				var damage = amount / reducer;
+				Log.Warning("damage=" + damage + " (" + reducer + ")");
+				if (armor >= damage)
+				{
+					armor -= damage;
+					amount = 0f;
+					return;
+				}
+				amount = (damage - armor) * reducer;
+				armor = -1f;
+			}
+
 			[HarmonyPriority(Priority.First)]
-			static bool Prefix(Pawn pawn, ref float amount, BodyPartRecord part, out bool deflectedByMetalArmor, out bool diminishedByMetalArmor, ref float __result)
+			static bool Prefix(Pawn pawn, ref float amount, BodyPartRecord part, float armorPenetration, out bool deflectedByMetalArmor, out bool diminishedByMetalArmor, ref float __result)
 			{
 				deflectedByMetalArmor = false;
 				diminishedByMetalArmor = false;
@@ -2460,56 +2487,63 @@ namespace ZombieLand
 					return true;
 
 				var difficulty = Tools.StoryTellerDifficulty;
-				if (amount > 45)
-					amount = 45 + Mathf.Sqrt(amount - 46);
+				var penetration = Math.Max(armorPenetration - 0.25f, 0f);
+				amount *= (1f + 2 * penetration);
+				Log.Warning("1:" + amount + "(" + zombie.hasTankyShield + " " + zombie.hasTankyHelmet + " " + zombie.hasTankySuit + ")");
+				var skip = false;
 
-				if (zombie.hasTankyShield > 0f)
+				if (amount > 0f && zombie.hasTankyShield > 0f)
 				{
-					PlayTink(zombie);
-					zombie.hasTankyShield -= amount / (1f + difficulty * 150f);
-					if (zombie.hasTankyShield < 0f)
-						zombie.hasTankyShield = -1f;
+					if (penetration == 0f && deflectedByMetalArmor == false)
+					{
+						PlayTink(zombie);
+						deflectedByMetalArmor = true;
+					}
+					ApplyDamage(ref zombie.hasTankyShield, ref amount, 1f + difficulty * 150f);
+					Log.Warning("2:" + amount + "(" + zombie.hasTankyShield + " " + zombie.hasTankyHelmet + " " + zombie.hasTankySuit + ")");
 					__result = -1f;
-					deflectedByMetalArmor = true;
-					return false;
+					skip = true;
 				}
 
-				var fakeHeadShot = (zombie.hasTankySuit <= 0f && zombie.hasTankyHelmet > 0f && Rand.Chance(0.4f));
+				var fakeHeadShot = (zombie.hasTankySuit <= 0f && Rand.Chance(0.25f));
 				if (part.groups.Contains(BodyPartGroupDefOf.FullHead) || fakeHeadShot)
 				{
-					if (zombie.hasTankyHelmet > 0f)
+					if (amount > 0f && zombie.hasTankyHelmet > 0f)
 					{
-						PlayTink(zombie);
-						zombie.hasTankyHelmet -= amount / (1f + difficulty * 10f);
-						if (zombie.hasTankyHelmet < 0f)
-							zombie.hasTankyHelmet = -1f;
+						if (penetration == 0f && deflectedByMetalArmor == false)
+						{
+							PlayTink(zombie);
+							deflectedByMetalArmor = true;
+						}
+						ApplyDamage(ref zombie.hasTankyHelmet, ref amount, 1f + difficulty * 10f);
+						Log.Warning("3:" + amount + "(" + zombie.hasTankyShield + " " + zombie.hasTankyHelmet + " " + zombie.hasTankySuit + ")");
 						__result = -1f;
-						deflectedByMetalArmor = true;
-						return false;
+						skip = true;
 					}
 				}
-				else
+
+				if (amount > 0f && zombie.hasTankySuit > 0f)
 				{
-					if (zombie.hasTankySuit > 0f)
+					if (penetration == 0f && deflectedByMetalArmor == false)
 					{
 						PlayTink(zombie);
-						zombie.hasTankySuit -= amount / (1f + difficulty * 100f);
-						if (zombie.hasTankySuit < 0f)
-							zombie.hasTankySuit = -1f;
-						__result = -1f;
 						deflectedByMetalArmor = true;
-						return false;
 					}
+					ApplyDamage(ref zombie.hasTankySuit, ref amount, 1f + difficulty * 100f);
+					Log.Warning("4:" + amount + "(" + zombie.hasTankyShield + " " + zombie.hasTankyHelmet + " " + zombie.hasTankySuit + ")");
+					__result = -1f;
+					skip = true;
 				}
 
 				// still a tough zombie even if we hit the body but some armor is left
-				if (zombie.hasTankyHelmet > 0f || zombie.hasTankySuit > 0f)
+				if (amount > 0f && (zombie.hasTankyHelmet > 0f || zombie.hasTankySuit > 0f))
 				{
 					var toughnessLevel = Tools.StoryTellerDifficulty;
 					amount = (amount + toughnessLevel) / (toughnessLevel + 1);
+					Log.Warning("5:" + amount + "(" + zombie.hasTankyShield + " " + zombie.hasTankyHelmet + " " + zombie.hasTankySuit + ")");
 				}
 
-				return true;
+				return skip == false;
 			}
 
 			static bool GetAfterArmorDamagePrefix(ref DamageInfo originalDinfo, Pawn pawn, BodyPartRecord hitPart, out bool shieldAbsorbed)
@@ -2520,7 +2554,7 @@ namespace ZombieLand
 				shieldAbsorbed = false;
 				if (pawn == null || hitPart == null) return true;
 				var prefixResult = 0f;
-				var result = Prefix(pawn, ref dmgAmount, hitPart, out var deflect, out var diminish, ref prefixResult);
+				var result = Prefix(pawn, ref dmgAmount, hitPart, dinfo.ArmorPenetrationInt, out var deflect, out var diminish, ref prefixResult);
 				if (result && originalDinfo.Instigator != null)
 					return (pawn.Spawned && pawn.Dead == false
 						&& pawn.Destroyed == false
