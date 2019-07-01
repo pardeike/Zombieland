@@ -2465,7 +2465,6 @@ namespace ZombieLand
 			static void ApplyDamage(ref float armor, ref float amount, float reducer)
 			{
 				var damage = amount / reducer;
-				Log.Warning("damage=" + damage + " (" + reducer + ")");
 				if (armor >= damage)
 				{
 					armor -= damage;
@@ -2489,7 +2488,6 @@ namespace ZombieLand
 				var difficulty = Tools.StoryTellerDifficulty;
 				var penetration = Math.Max(armorPenetration - 0.25f, 0f);
 				amount *= (1f + 2 * penetration);
-				Log.Warning("1:" + amount + "(" + zombie.hasTankyShield + " " + zombie.hasTankyHelmet + " " + zombie.hasTankySuit + ")");
 				var skip = false;
 
 				if (amount > 0f && zombie.hasTankyShield > 0f)
@@ -2500,7 +2498,6 @@ namespace ZombieLand
 						deflectedByMetalArmor = true;
 					}
 					ApplyDamage(ref zombie.hasTankyShield, ref amount, 1f + difficulty * 150f);
-					Log.Warning("2:" + amount + "(" + zombie.hasTankyShield + " " + zombie.hasTankyHelmet + " " + zombie.hasTankySuit + ")");
 					__result = -1f;
 					skip = true;
 				}
@@ -2516,7 +2513,6 @@ namespace ZombieLand
 							deflectedByMetalArmor = true;
 						}
 						ApplyDamage(ref zombie.hasTankyHelmet, ref amount, 1f + difficulty * 10f);
-						Log.Warning("3:" + amount + "(" + zombie.hasTankyShield + " " + zombie.hasTankyHelmet + " " + zombie.hasTankySuit + ")");
 						__result = -1f;
 						skip = true;
 					}
@@ -2530,7 +2526,6 @@ namespace ZombieLand
 						deflectedByMetalArmor = true;
 					}
 					ApplyDamage(ref zombie.hasTankySuit, ref amount, 1f + difficulty * 100f);
-					Log.Warning("4:" + amount + "(" + zombie.hasTankyShield + " " + zombie.hasTankyHelmet + " " + zombie.hasTankySuit + ")");
 					__result = -1f;
 					skip = true;
 				}
@@ -2540,7 +2535,6 @@ namespace ZombieLand
 				{
 					var toughnessLevel = Tools.StoryTellerDifficulty;
 					amount = (amount + toughnessLevel) / (toughnessLevel + 1);
-					Log.Warning("5:" + amount + "(" + zombie.hasTankyShield + " " + zombie.hasTankyHelmet + " " + zombie.hasTankySuit + ")");
 				}
 
 				return skip == false;

@@ -11,6 +11,7 @@ namespace ZombieLand
 	{
 		// Dialogs
 		public static FieldRef<Listing, float> curXByRef = FieldRefAccess<Listing, float>("curX");
+		public static FieldRef<Listing, float> curYByRef = FieldRefAccess<Listing, float>("curY");
 
 		// HediffComp_Zombie_TendDuration
 		public static FieldRef<HediffComp_TendDuration, float> totalTendQualityByRef = FieldRefAccess<HediffComp_TendDuration, float>("totalTendQuality");
