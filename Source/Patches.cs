@@ -1506,6 +1506,22 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to hide zombie names
+		//
+		[HarmonyPatch(typeof(GenMapUI))]
+		[HarmonyPatch("DrawPawnLabel")]
+		[HarmonyPatch(new Type[] { typeof(Pawn), typeof(Vector2), typeof(float), typeof(float), typeof(Dictionary<string, string>), typeof(GameFont), typeof(bool), typeof(bool) })]
+		[StaticConstructorOnStartup]
+		static class GenMapUI_DrawPawnLabel_Patch
+		{
+			static bool Prefix(Pawn pawn)
+			{
+				var zombie = pawn as Zombie;
+				if (zombie == null) return true;
+				return zombie.wasMapPawnBefore;
+			}
+		}
+
 		// patch to make zombies appear to be never "down" if self-healing is on
 		// to get original state, use Tools.IsDowned(this Pawn pawn)
 		//
@@ -1778,9 +1794,25 @@ namespace ZombieLand
 				return true;
 			}
 
-			static void Postfix(PawnRenderer __instance, Vector3 drawLoc)
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				var zombie = __instance.graphics.pawn as Zombie;
+				var list = instructions.ToList();
+				var ret = list.Last();
+				if (ret.opcode != OpCodes.Ret)
+					Log.Error("Expected ret in PawnRenderer.RenderPawnAt");
+				ret.opcode = OpCodes.Ldarg_0;
+				list.Add(new CodeInstruction(OpCodes.Ldarg_1));
+				list.Add(new CodeInstruction(OpCodes.Call, m_RenderExtras));
+				list.Add(new CodeInstruction(OpCodes.Ret));
+				return list.AsEnumerable();
+			}
+
+			static readonly MethodInfo m_RenderExtras = SymbolExtensions.GetMethodInfo(() => RenderExtras(null, Vector3.zero));
+
+			// we don't use a postfix so that someone that patches and skips RenderPawnAt will also skip RenderExtras 
+			static void RenderExtras(PawnRenderer renderer, Vector3 drawLoc)
+			{
+				var zombie = renderer.graphics.pawn as Zombie;
 				if (zombie == null) return;
 				if (zombie.state == ZombieState.Emerging || zombie.GetPosture() != PawnPosture.Standing) return;
 
@@ -1918,7 +1950,7 @@ namespace ZombieLand
 					if (eyesOpen || tm.CurTimeSpeed == TimeSpeed.Paused)
 					{
 						// the following constant comes from PawnRenderer.RenderPawnInternal
-						var loc = drawLoc + __instance.BaseHeadOffsetAt(orientation) + new Vector3(0, 0.0281250011f, 0);
+						var loc = drawLoc + renderer.BaseHeadOffsetAt(orientation) + new Vector3(0, 0.0281250011f, 0);
 
 						// not clear why 75 but it seems to fit
 						var eyeX = zombie.sideEyeOffset.x / 75f;

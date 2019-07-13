@@ -337,15 +337,6 @@ namespace ZombieLand
 				HandleRubble();
 		}
 
-		public override void DrawGUIOverlay()
-		{
-			if (wasMapPawnBefore)
-			{
-				var pos = GenMapUI.LabelDrawPosFor(this, -0.6f);
-				GenMapUI.DrawPawnLabel(this, pos, 1f, 9999f, null, GameFont.Tiny, true, true);
-			}
-		}
-
 		public static Quaternion ZombieAngleAxis(float angle, Vector3 axis, Pawn pawn)
 		{
 			var result = Quaternion.AngleAxis(angle, axis);
