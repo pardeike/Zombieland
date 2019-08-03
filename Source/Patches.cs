@@ -2611,6 +2611,25 @@ namespace ZombieLand
 			}
 		}
 
+		[HarmonyPatch]
+		class Harmony_DamageWorker_AddInjury_ApplyDamageToPart_ArmorReroute_Patch
+		{
+			static bool Prepare()
+			{
+				return TargetMethod() != null;
+			}
+
+			static MethodInfo TargetMethod()
+			{
+				return AccessTools.Method("CombatExtended.Harmony.Harmony_DamageWorker_AddInjury_ApplyDamageToPart:ArmorReroute");
+			}
+
+			static bool Prefix(ref DamageInfo dinfo)
+			{
+				return dinfo.Def != DamageDefOf.SurgicalCut;
+			}
+		}
+
 		// patch for not slowing down time if pawn attacks a zombie
 		//
 		[HarmonyPatch(typeof(Verb))]
