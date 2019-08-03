@@ -68,6 +68,7 @@
     <Compile Include="Dialog_UseSettings.cs" />
     <Compile Include="Dialog_ZombieDebugActionMenu.cs" />
     <Compile Include="DisposableMaterial.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="ModCounter.cs" />
     <Compile Include="GetterSetters.cs" />
     <Compile Include="GraphicsDatabase.cs" />

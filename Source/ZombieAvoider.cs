@@ -57,8 +57,8 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	public class ZombieAvoider
 	{
-		ConcurrentQueue<AvoidRequest> requestQueue;
-		Dictionary<Map, ConcurrentQueue<AvoidGrid>> resultQueues;
+		readonly ConcurrentQueue<AvoidRequest> requestQueue;
+		readonly Dictionary<Map, ConcurrentQueue<AvoidGrid>> resultQueues;
 		readonly Dictionary<Map, AvoidGrid> grids;
 		readonly Thread workerThread;
 
@@ -80,7 +80,7 @@ namespace ZombieLand
 
 			workerThread = new Thread(() =>
 			{
-				EndlessLoop:
+			EndlessLoop:
 
 				try
 				{

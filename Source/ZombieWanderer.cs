@@ -22,7 +22,6 @@ namespace ZombieLand
 		readonly PathGrid pathGrid;
 		readonly EdificeGrid edificeGrid;
 		readonly TerrainGrid terrainGrid;
-		readonly PheromoneGrid pheromoneGrid;
 
 		readonly Queue<IntVec3> highPrioSet;
 		readonly Queue<IntVec3> lowPrioSet;
@@ -63,7 +62,6 @@ namespace ZombieLand
 			pathGrid = map.pathGrid;
 			edificeGrid = map.edificeGrid;
 			terrainGrid = map.terrainGrid;
-			pheromoneGrid = map.GetGrid();
 
 			vecGrids = new byte[][] { new byte[mapSize], new byte[mapSize] };
 			highPrioSet = new Queue<IntVec3>();
@@ -140,7 +138,7 @@ namespace ZombieLand
 			Array.Clear(a, 0, a.Length);
 		}
 
-		IEnumerable<IntVec3> GetValidAdjactedCellsInRandomOrder(Map map, IntVec3 basePos, bool ignoreBuildings)
+		IEnumerable<IntVec3> GetValidAdjactedCellsInRandomOrder(IntVec3 basePos, bool ignoreBuildings)
 		{
 			int[] rndices;
 			int i;
@@ -151,7 +149,7 @@ namespace ZombieLand
 			for (i = 0; i < 4; i++)
 			{
 				var cell = basePos + GenAdj.CardinalDirections[rndices[i]];
-				if (ValidFloodCell(map, cell, basePos, ignoreBuildings))
+				if (ValidFloodCell(cell, basePos, ignoreBuildings))
 					yield return cell;
 			}
 
@@ -159,7 +157,7 @@ namespace ZombieLand
 			for (i = 0; i < 4; i++)
 			{
 				var cell = basePos + GenAdj.DiagonalDirections[rndices[i]];
-				if (ValidFloodCell(map, cell, basePos, ignoreBuildings))
+				if (ValidFloodCell(cell, basePos, ignoreBuildings))
 					yield return cell;
 			}
 		}
@@ -170,7 +168,7 @@ namespace ZombieLand
 			return pathGrid.WalkableFast(idx) == false || (edificeGrid != null && edificeGrid[idx] is Building_Door);
 		}
 
-		bool ValidFloodCell(Map map, IntVec3 cell, IntVec3 from, bool ignoreBuildings)
+		bool ValidFloodCell(IntVec3 cell, IntVec3 from, bool ignoreBuildings)
 		{
 			if (cell.x < 0 || cell.x >= mapSizeX || cell.z < 0 || cell.z >= mapSizeZ)
 				return false;
@@ -206,8 +204,8 @@ namespace ZombieLand
 			}
 		}
 
-		static Stopwatch watch = new Stopwatch();
-		IEnumerator Recalculate(Map map, IntVec3[] positions, bool hasTankyZombies, bool ignoreBuildings)
+		static readonly Stopwatch watch = new Stopwatch();
+		IEnumerator Recalculate(IntVec3[] positions, bool ignoreBuildings)
 		{
 			positions
 				.Where(cell => GetDirectInternal(cell, ignoreBuildings, false) == 0)
@@ -224,7 +222,7 @@ namespace ZombieLand
 			while (highPrioSet.Count + lowPrioSet.Count > 0)
 			{
 				var parent = highPrioSet.Count == 0 ? lowPrioSet.Dequeue() : highPrioSet.Dequeue();
-				GetValidAdjactedCellsInRandomOrder(map, parent, ignoreBuildings).Do(child =>
+				GetValidAdjactedCellsInRandomOrder(parent, ignoreBuildings).Do(child =>
 				{
 					Set(child, parent, ignoreBuildings);
 
@@ -254,7 +252,7 @@ namespace ZombieLand
 			}
 		}
 
-		public IEnumerator RecalculateAll(Map map, IntVec3[] positions, bool hasTankyZombies)
+		public IEnumerator RecalculateAll(IntVec3[] positions, bool hasTankyZombies)
 		{
 			if (dirtyCells)
 			{
@@ -265,12 +263,12 @@ namespace ZombieLand
 
 			dirtyCells = true;
 			// Log.Warning("recalc 1");
-			var it1 = Recalculate(map, positions, hasTankyZombies, false);
+			var it1 = Recalculate(positions, hasTankyZombies);
 			while (it1.MoveNext())
 				yield return null;
 
 			// Log.Warning("recalc 2");
-			var it2 = Recalculate(map, positions, hasTankyZombies, true);
+			var it2 = Recalculate(positions, hasTankyZombies);
 			while (it2.MoveNext())
 				yield return null;
 
@@ -283,7 +281,7 @@ namespace ZombieLand
 	{
 		public static readonly IEnumerator processor = Process();
 
-		static Dictionary<Map, MapInfo> grids = new Dictionary<Map, MapInfo>();
+		static readonly Dictionary<Map, MapInfo> grids = new Dictionary<Map, MapInfo>();
 		const int cellSize = 5;
 		const int halfCellSize = (int)(cellSize / 2f + 0.9f);
 
@@ -335,7 +333,7 @@ namespace ZombieLand
 							if (colonistPositions.Any())
 							{
 								var hasTankyZombies = pawnArray.OfType<Zombie>().Any(zombie => zombie.IsTanky);
-								var it = info.RecalculateAll(map, colonistPositions, hasTankyZombies);
+								var it = info.RecalculateAll(colonistPositions, hasTankyZombies);
 								while (it.MoveNext())
 									yield return null;
 							}

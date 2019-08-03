@@ -67,19 +67,19 @@ namespace ZombieLand
 			});
 			DebugToolMap("Spawn: Zombie incident (4)", delegate
 			{
-				ZombiesRising.TryExecute(map, 4, UI.MouseCell(), true);
+				_ = ZombiesRising.TryExecute(map, 4, UI.MouseCell(), true);
 			});
 			DebugToolMap("Spawn: Zombie incident (25)", delegate
 			{
-				ZombiesRising.TryExecute(map, 25, UI.MouseCell(), true);
+				_ = ZombiesRising.TryExecute(map, 25, UI.MouseCell(), true);
 			});
 			DebugToolMap("Spawn: Zombie incident (100)", delegate
 			{
-				ZombiesRising.TryExecute(map, 100, UI.MouseCell(), true);
+				_ = ZombiesRising.TryExecute(map, 100, UI.MouseCell(), true);
 			});
 			DebugToolMap("Spawn: Zombie incident (200)", delegate
 			{
-				ZombiesRising.TryExecute(map, 200, UI.MouseCell(), true);
+				_ = ZombiesRising.TryExecute(map, 200, UI.MouseCell(), true);
 			});
 			DebugToolMap("Convert: Make Zombie", delegate
 			{

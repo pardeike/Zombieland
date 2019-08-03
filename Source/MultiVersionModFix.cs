@@ -31,7 +31,7 @@ static class MultiVersionModFix
 	{
 		var postfixes = instance.GetPatchInfo(original)?.Postfixes;
 		if (postfixes == null || !postfixes.Any(patch => patch != null && patch.owner == _multiversionmodfix))
-			instance.Patch(original, postfix: new HarmonyMethod(postfix));
+			_ = instance.Patch(original, postfix: new HarmonyMethod(postfix));
 	}
 
 	static List<System.Version> GetTaggedVersions(string rootDir)
@@ -74,8 +74,8 @@ static class MultiVersionModFix
 		if (!taggedVersions.NullOrEmpty())
 		{
 			var tags = taggedVersions.Select(version => version.Major + "." + version.Minor);
-			tags.Add("Mod");
-			SteamUGC.SetItemTags(updateHandle, tags.Distinct().ToList());
+			_ = tags.Add("Mod");
+			_ = SteamUGC.SetItemTags(updateHandle, tags.Distinct().ToList());
 		}
 	}
 }

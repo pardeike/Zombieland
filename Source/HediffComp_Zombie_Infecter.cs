@@ -106,7 +106,7 @@ namespace ZombieLand
 			if (tendQuality < Props.minBedTendQualityToAvoidInfection)
 				return;
 
-			bed.TryGetQuality(out var bedQuality);
+			_ = bed.TryGetQuality(out var bedQuality);
 			if (bedQuality < Props.minBedQualityToAvoidInfection)
 				return;
 
@@ -122,15 +122,15 @@ namespace ZombieLand
 			var sb = new StringBuilder();
 
 			if (infectionKnownDelay >= 0)
-				sb.Append("Revealed in " + infectionKnownDelay.ToHourString() + "\n");
+				_ = sb.Append("Revealed in " + infectionKnownDelay.ToHourString() + "\n");
 
 			if (infectionStartTime == 0)
-				sb.Append("No infection risk\n");
+				_ = sb.Append("No infection risk\n");
 			else
-				sb.Append("Starts in " + infectionStartTime.ToHourString() + "\n");
+				_ = sb.Append("Starts in " + infectionStartTime.ToHourString() + "\n");
 
 			if (infectionEndTime >= 0)
-				sb.Append("Death in " + infectionEndTime.ToHourString() + "\n");
+				_ = sb.Append("Death in " + infectionEndTime.ToHourString() + "\n");
 
 			var result = sb.ToString();
 			return result.TrimEndNewlines();

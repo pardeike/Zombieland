@@ -119,7 +119,7 @@ namespace ZombieLand
 		public void ChangeZombieCount(IntVec3 position, int change)
 		{
 			var cell = GetPheromone(position);
-			if (cell != null) cell.zombieCount = cell.zombieCount + change;
+			if (cell != null) cell.zombieCount += change;
 		}
 	}
 }

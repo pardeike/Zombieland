@@ -85,9 +85,9 @@ namespace ZombieLand
 				c.r *= Rand.Range(0.2f, 1f);
 				c.g *= Rand.Range(0.2f, 1f);
 				c.b *= Rand.Range(0.2f, 1f);
-				zombieColors.Add(c);
+				_ = zombieColors.Add(c);
 			});
-			zombieColors.Add("000000".HexColor());
+			_ = zombieColors.Add("000000".HexColor());
 		}
 
 		public void UpgradeOldZombieData()
@@ -135,13 +135,13 @@ namespace ZombieLand
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
 				UpgradeOldZombieData();
-				ZombieGenerator.FixGlowingEyeOffset(this);
+				_ = ZombieGenerator.FixGlowingEyeOffset(this);
 				if (ZombieSettings.Values.useCustomTextures)
 					needsGraphics = true; // make custom textures in renderer
 			}
 			if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
 			{
-				var idx = ageTracker.CurLifeStageIndex; // trigger calculations
+				_ = ageTracker.CurLifeStageIndex; // trigger calculations
 			}
 		}
 
@@ -158,6 +158,7 @@ namespace ZombieLand
 
 		void Dispose(bool disposing)
 		{
+			_ = disposing;
 			if (disposed) return;
 			disposed = true;
 
@@ -179,7 +180,7 @@ namespace ZombieLand
 				hasTankyShield = -1f;
 
 				var def = ThingDef.Named("Apparel_BombVest");
-				Drawer.renderer.graphics.apparelGraphics.RemoveAll(record => record.sourceApparel?.def == def);
+				_ = Drawer.renderer.graphics.apparelGraphics.RemoveAll(record => record.sourceApparel?.def == def);
 
 				Map.GetComponent<TickManager>()?.AddExplosion(Position);
 			}
@@ -373,7 +374,7 @@ namespace ZombieLand
 			if (progress >= Constants.EMERGE_DELAY)
 			{
 				var bodyOffset = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, -0.45f, 0, progress);
-				delegateRenderPawnInternal(renderer, new object[] {
+				_ = delegateRenderPawnInternal(renderer, new object[] {
 					drawLoc + new Vector3(0, 0, bodyOffset), 0f, true, Rot4.South, Rot4.South, bodyDrawType, false, false
 				});
 			}

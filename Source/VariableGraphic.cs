@@ -78,6 +78,7 @@ namespace ZombieLand
 
 		void Dispose(bool v)
 		{
+			_ = v;
 			if (mats != null)
 			{
 				foreach (var mat in mats)

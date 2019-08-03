@@ -317,23 +317,23 @@ namespace ZombieLand
 					switch (ZombieSettings.Values.spawnHowType)
 					{
 						case SpawnHowType.AllOverTheMap:
-							{
-								var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4);
-								if (cell.IsValid)
-									ZombieGenerator.SpawnZombie(cell, map, ZombieGenerator.ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
-								return;
-							}
+						{
+							var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4);
+							if (cell.IsValid)
+								ZombieGenerator.SpawnZombie(cell, map, ZombieGenerator.ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
+							return;
+						}
 						case SpawnHowType.FromTheEdges:
-							{
-								if (CellFinder.TryFindRandomEdgeCellWith(Tools.ZombieSpawnLocator(map), map, CellFinder.EdgeRoadChance_Neutral, out var cell))
-									ZombieGenerator.SpawnZombie(cell, map, ZombieGenerator.ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
-								return;
-							}
+						{
+							if (CellFinder.TryFindRandomEdgeCellWith(Tools.ZombieSpawnLocator(map), map, CellFinder.EdgeRoadChance_Neutral, out var cell))
+								ZombieGenerator.SpawnZombie(cell, map, ZombieGenerator.ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
+							return;
+						}
 						default:
-							{
-								Log.Error("Unknown spawn type " + ZombieSettings.Values.spawnHowType);
-								return;
-							}
+						{
+							Log.Error("Unknown spawn type " + ZombieSettings.Values.spawnHowType);
+							return;
+						}
 					}
 				}
 			}
@@ -415,7 +415,7 @@ namespace ZombieLand
 
 		public override void MapComponentTick()
 		{
-			Find.CameraDriver.StartCoroutine(TickTasks());
+			_ = Find.CameraDriver.StartCoroutine(TickTasks());
 		}
 	}
 }

@@ -13,8 +13,8 @@
 		<statBases>
 			<Mass>70</Mass>
 			<Flammability>1</Flammability>
-			<ComfyTemperatureMin>-999</ComfyTemperatureMin>
-			<ComfyTemperatureMax>999</ComfyTemperatureMax>
+			<ComfyTemperatureMin>-60</ComfyTemperatureMin>
+			<ComfyTemperatureMax>200</ComfyTemperatureMax>
 			<PsychicSensitivity>0</PsychicSensitivity>
 			<ToxicSensitivity>0</ToxicSensitivity>
 			<MeatAmount>0</MeatAmount>

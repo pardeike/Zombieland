@@ -40,7 +40,7 @@ namespace ZombieLand
 
 		private void Save()
 		{
-			SharedSettings.Save(settings, name, description);
+			_ = SharedSettings.Save(settings, name, description);
 			Close(true);
 		}
 	}

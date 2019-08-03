@@ -24,6 +24,7 @@ namespace ZombieLand
 
 		void Dispose(bool v)
 		{
+			_ = v;
 			if (!disposed)
 			{
 				material?.Dispose();

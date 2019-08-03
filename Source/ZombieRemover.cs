@@ -17,12 +17,12 @@ namespace ZombieLand
 
 			// note: order is kind of important here
 
-			Find.BattleLog.Battles.RemoveAll(battle =>
+			_ = Find.BattleLog.Battles.RemoveAll(battle =>
 			{
-				battle.Entries.RemoveAll(entry => Traverse.Create(entry).Field("damageDef").GetValue<DamageDef>().IsZombieDef());
+				_ = battle.Entries.RemoveAll(entry => Traverse.Create(entry).Field("damageDef").GetValue<DamageDef>().IsZombieDef());
 				return Traverse.Create(battle).Field("concerns").GetValue<HashSet<Pawn>>().Any(RemoveItem);
 			});
-			Find.TaleManager.AllTalesListForReading.RemoveAll(tale =>
+			_ = Find.TaleManager.AllTalesListForReading.RemoveAll(tale =>
 			{
 				var singlePawnTale = tale as Tale_SinglePawn;
 				if ((singlePawnTale?.pawnData?.pawn as Zombie) != null) return true;
@@ -35,7 +35,7 @@ namespace ZombieLand
 				if (doublePawnDefTale?.defData?.def.IsZombieDef() ?? false) return true;
 				return false;
 			});
-			Find.World.components.RemoveAll(component => component.IsZombieType());
+			_ = Find.World.components.RemoveAll(component => component.IsZombieType());
 			Current.Game.Maps.Do(CleanMap);
 			Current.Game.Maps.Do(map => PawnsOfType<Pawn>(map).Do(RemovePawnRelatedStuff));
 			RemoveWorldPawns();
@@ -78,7 +78,7 @@ namespace ZombieLand
 
 		static void CleanMap(Map map)
 		{
-			map.components.RemoveAll(component => component.IsZombieType());
+			_ = map.components.RemoveAll(component => component.IsZombieType());
 			PathFinder_FindPath_Patch.tickManagerCache = new Dictionary<Map, TickManager>();
 
 			var zombies = PawnsOfType<Zombie>(map);
@@ -116,12 +116,12 @@ namespace ZombieLand
 				pawn.health.RemoveHediff(hediff);
 
 			var carriedFilth = Traverse.Create(pawn.filth).Field("carriedFilth").GetValue<List<Filth>>();
-			carriedFilth?.RemoveAll(filth => filth.IsZombieThing());
+			_ = carriedFilth?.RemoveAll(filth => filth.IsZombieThing());
 
 			pawn.needs?.AllNeeds?.Do(need =>
 			{
 				var needMood = need as Need_Mood;
-				needMood?.thoughts?.memories?.Memories?.RemoveAll(memory => (memory.otherPawn as Zombie) != null);
+				_ = needMood?.thoughts?.memories?.Memories?.RemoveAll(memory => (memory.otherPawn as Zombie) != null);
 			});
 		}
 
@@ -132,7 +132,7 @@ namespace ZombieLand
 			foreach (var fieldName in fieldNames)
 			{
 				var pawnSet = trvWorldPawns.Field(fieldName).GetValue<HashSet<Pawn>>();
-				pawnSet.RemoveWhere(pawn => pawn is Zombie);
+				_ = pawnSet.RemoveWhere(pawn => pawn is Zombie);
 				foreach (var pawn in pawnSet)
 					RemovePawnRelatedStuff(pawn);
 			}
@@ -157,17 +157,17 @@ namespace ZombieLand
 				var reservedDestinations2 = new Dictionary<Faction, PawnDestinationReservationManager.PawnDestinationSet>();
 				foreach (var key in reservedDestinations.Keys.Where(faction => faction != zombieFaction))
 					reservedDestinations2.Add(key, reservedDestinations[key]);
-				trv.SetValue(reservedDestinations2);
+				_ = trv.SetValue(reservedDestinations2);
 			});
 
 			zombieFaction.RemoveAllRelations();
 			var factions = Find.World.factionManager.AllFactions as List<Faction>;
-			factions.Remove(zombieFaction);
+			_ = factions.Remove(zombieFaction);
 		}
 
 		static void RemoveOutfits()
 		{
-			Current.Game.outfitDatabase.AllOutfits.RemoveAll(item => item.IsZombieType());
+			_ = Current.Game.outfitDatabase.AllOutfits.RemoveAll(item => item.IsZombieType());
 			Current.Game.outfitDatabase.AllOutfits
 				.Select(outfit => outfit.filter).ToList()
 				.Do(RemoveFromFilter);
@@ -210,7 +210,7 @@ namespace ZombieLand
 			var runningMods = LoadedModManager.RunningMods as List<ModContentPack>;
 			var me = runningMods.First(mod => mod.Identifier == ZombielandMod.Identifier);
 			var myIndex = runningMods.IndexOf(me);
-			runningMods.Remove(me);
+			_ = runningMods.Remove(me);
 			GameDataSaveLoader.SaveGame(filename);
 			runningMods.Insert(myIndex, me);
 		}

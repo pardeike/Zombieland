@@ -6,8 +6,6 @@ namespace ZombieLand
 {
 	public class Hediff_Injury_ZombieBite : Hediff_Injury
 	{
-		static Color infectionColor = Color.red.SaturationChanged(0.75f);
-
 		public bool mayBecomeZombieWhenDead;
 
 		HediffComp_Zombie_TendDuration tendDurationComp;

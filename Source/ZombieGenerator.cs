@@ -387,7 +387,7 @@ namespace ZombieLand
 
 		public static void SpawnZombie(IntVec3 cell, Map map, ZombieType zombieType, Action<Zombie> callback)
 		{
-			Find.CameraDriver.StartCoroutine(SpawnZombieIterativ(cell, map, zombieType, callback));
+			_ = Find.CameraDriver.StartCoroutine(SpawnZombieIterativ(cell, map, zombieType, callback));
 		}
 
 		public static IEnumerator SpawnZombieIterativ(IntVec3 cell, Map map, ZombieType zombieType, Action<Zombie> callback)
@@ -451,10 +451,9 @@ namespace ZombieLand
 			}
 			if (zombie.IsSuicideBomber)
 				zombie.lastBombTick = Find.TickManager.TicksAbs + Rand.Range(0, (int)zombie.bombTickingInterval);
-			GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Direct);
+			_ = GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Direct);
 			yield return null;
-			if (callback != null)
-				callback(zombie);
+			callback?.Invoke(zombie);
 			ZombiesSpawning--;
 			switch (Find.TickManager.CurTimeSpeed)
 			{

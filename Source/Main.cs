@@ -8,6 +8,23 @@ using UnityEngine;
 using Verse;
 using Verse.AI;
 
+/*
+Cannot play ZombieHit (subSound UnnamedSubSoundDef_: No resolved grains.
+Verse.Log:Error(String, Boolean)
+Verse.Sound.SubSoundDef:TryPlay(SoundInfo)
+Verse.Sound.SoundStarter:PlayOneShot(SoundDef, SoundInfo)
+ZombieLand.ZombieStateHandler:Smash(JobDriver_Stumble, Zombie, Boolean, Boolean)
+ZombieLand.JobDriver_Stumble:TickAction()
+Verse.AI.JobDriver:DriverTick()
+Verse.AI.Pawn_JobTracker:JobTrackerTick()
+ZombieLand.Zombie:CustomTick()
+ZombieLand.<ZombieTicking>d__20:MoveNext()
+ZombieLand.Verse_TickManager_TickManagerUpdate_Patch:SingleTick(TickManager, Int32)
+Verse.TickManager:TickManagerUpdate_Patch1(Object)
+Verse.Game:UpdatePlay()
+Verse.Root_Play:Update()
+*/
+
 namespace ZombieLand
 {
 	[DefOf]
@@ -25,7 +42,7 @@ namespace ZombieLand
 		public ZombielandMod(ModContentPack content) : base(content)
 		{
 			Identifier = content.Identifier;
-			GetSettings<ZombieSettingsDefaults>();
+			_ = GetSettings<ZombieSettingsDefaults>();
 		}
 
 		public override void DoSettingsWindowContents(Rect inRect)
@@ -85,10 +102,10 @@ namespace ZombieLand
 					if (method.IsAbstract) continue;
 					if (method.DeclaringType != type) continue;
 					if (patches.Contains(method)) continue;
-					patches.Add(method);
+					_ = patches.Add(method);
 					try
 					{
-						harmony.Patch(method, null, null, transpiler);
+						_ = harmony.Patch(method, null, null, transpiler);
 					}
 					catch (Exception ex)
 					{

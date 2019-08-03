@@ -112,7 +112,7 @@ namespace ZombieLand
 		{
 			var stringBuilder = new StringBuilder();
 			foreach (var pawn in AffectedColonists)
-				stringBuilder.AppendLine("    " + NameDecorator(pawn));
+				_ = stringBuilder.AppendLine("    " + NameDecorator(pawn));
 			return string.Format((label + "Desc").Translate(), stringBuilder.ToString());
 		}
 

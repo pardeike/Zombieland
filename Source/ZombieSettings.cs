@@ -128,7 +128,7 @@ namespace ZombieLand
 
 		public static void DoWindowContents(Rect inRect)
 		{
-			Dialogs.DoWindowContentsInternal(ref group, inRect, true);
+			Dialogs.DoWindowContentsInternal(ref group, inRect);
 		}
 
 		public static void WriteSettings()
@@ -163,7 +163,7 @@ namespace ZombieLand
 
 		public void DoWindowContents(Rect inRect)
 		{
-			Dialogs.DoWindowContentsInternal(ref Values, inRect, false);
+			Dialogs.DoWindowContentsInternal(ref Values, inRect);
 		}
 
 		public void WriteSettings()

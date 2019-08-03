@@ -30,7 +30,7 @@ namespace ZombieLand
 
 	class ZombieLeaner : PawnLeaner
 	{
-		Zombie zombie;
+		readonly Zombie zombie;
 		Vector3 jitterOffset = new Vector3(0, 0, 0);
 
 		Vector3 extraOffsetInternal = new Vector3(0, 0, 0);

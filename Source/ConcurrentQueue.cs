@@ -23,7 +23,7 @@ namespace ZombieLand
 			lock (queue)
 			{
 				while (queue.Count >= maxSize)
-					Monitor.Wait(queue);
+					_ = Monitor.Wait(queue);
 
 				if (overwritePredicate == null)
 					queue.Add(item);
@@ -50,7 +50,7 @@ namespace ZombieLand
 					if (returnNullOnEmpty)
 						return default;
 
-					Monitor.Wait(queue);
+					_ = Monitor.Wait(queue);
 				}
 
 				var item = queue[0];

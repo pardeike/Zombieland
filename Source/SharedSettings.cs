@@ -70,7 +70,7 @@ namespace ZombieLand
 			{
 				var settings = client.Get<UserSettings>(path);
 				if (settings != null)
-					client.Patch(path, new DownloadIncrement() { Downloads = settings.Downloads + 1 });
+					_ = client.Patch(path, new DownloadIncrement() { Downloads = settings.Downloads + 1 });
 				return settings;
 			}
 			catch (Exception e)
@@ -85,7 +85,7 @@ namespace ZombieLand
 			var path = "/Settings/" + Key(label, steamName);
 			try
 			{
-				client.Delete(path);
+				_ = client.Delete(path);
 			}
 			catch (Exception e)
 			{

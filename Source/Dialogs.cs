@@ -21,7 +21,7 @@ namespace ZombieLand
 		{
 			DrawPageTitle(inRect);
 			var mainRect = GetMainRect(inRect, 0f, false);
-			Dialogs.DoWindowContentsInternal(ref ZombieSettings.Values, mainRect, false);
+			Dialogs.DoWindowContentsInternal(ref ZombieSettings.Values, mainRect);
 			MultiVersionMethods.DoBottomButtons(this, inRect, null, null, null, true, inRect, null, null, null, true, true);
 		}
 	}
@@ -230,7 +230,7 @@ namespace ZombieLand
 			return result;
 		}
 
-		public static void Dialog_Enum<T>(this Listing_Standard list, string desc, ref T forEnum, bool addGapBefore = true)
+		public static void Dialog_Enum<T>(this Listing_Standard list, string desc, ref T forEnum)
 		{
 			list.Dialog_Label(desc);
 
@@ -317,7 +317,7 @@ namespace ZombieLand
 		}
 
 		public static Vector2 scrollPosition = Vector2.zero;
-		public static void DoWindowContentsInternal(ref SettingsGroup settings, Rect inRect, bool isDefaults)
+		public static void DoWindowContentsInternal(ref SettingsGroup settings, Rect inRect)
 		{
 			if (settings == null) settings = new SettingsGroup();
 			var inGame = Current.Game != null && Current.ProgramState == ProgramState.Playing;
@@ -345,7 +345,7 @@ namespace ZombieLand
 				list.Gap(20f);
 
 				// When?
-				list.Dialog_Enum("WhenDoZombiesSpawn", ref settings.spawnWhenType, false);
+				list.Dialog_Enum("WhenDoZombiesSpawn", ref settings.spawnWhenType);
 				list.Gap(20f);
 
 				// How?

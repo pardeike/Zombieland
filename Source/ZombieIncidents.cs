@@ -184,7 +184,7 @@ namespace ZombieLand
 			return true;
 		}
 
-		public static Predicate<IntVec3> SpotValidator(Map map, Predicate<IntVec3> cellValidator)
+		public static Predicate<IntVec3> SpotValidator(Predicate<IntVec3> cellValidator)
 		{
 			return cell =>
 			{
@@ -247,7 +247,7 @@ namespace ZombieLand
 		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot, bool ignoreLimit = false)
 		{
 			var cellValidator = Tools.ZombieSpawnLocator(map, true);
-			var spotValidator = SpotValidator(map, cellValidator);
+			var spotValidator = SpotValidator(cellValidator);
 
 			for (var counter = 1; counter <= 10; counter++)
 			{
@@ -262,7 +262,7 @@ namespace ZombieLand
 					if (center.IsValid == false)
 						center = Tools.CenterOfInterest(map);
 
-					RCellFinder.TryFindRandomSpotJustOutsideColony(center, map, null, out spot, spotValidator);
+					_ = RCellFinder.TryFindRandomSpotJustOutsideColony(center, map, null, out spot, spotValidator);
 				}
 				else
 				{
@@ -273,7 +273,7 @@ namespace ZombieLand
 			if (spot.IsValid == false)
 				return false;
 
-			Find.CameraDriver.StartCoroutine(SpawnEventProcess(map, incidentSize, spot, cellValidator, ignoreLimit));
+			_ = Find.CameraDriver.StartCoroutine(SpawnEventProcess(map, incidentSize, spot, cellValidator, ignoreLimit));
 			return true;
 		}
 	}

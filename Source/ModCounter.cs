@@ -14,8 +14,8 @@ namespace ZombieLand
 			try
 			{
 				var uri = new Uri(baseUrl + "Zombieland");
-				var client = new System.Net.WebClient();
-				client.DownloadStringAsync(uri);
+				using (var client = new System.Net.WebClient())
+					client.DownloadStringAsync(uri);
 			}
 			catch (Exception)
 			{

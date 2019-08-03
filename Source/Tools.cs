@@ -148,7 +148,7 @@ namespace ZombieLand
 			return (int)(Constants.PHEROMONE_FADEOFF.SecondsToTicks() * ZombieSettings.Values.zombieInstinct.HalfToDoubleValue()) * 1000;
 		}
 
-		static Dictionary<Map, PheromoneGrid> gridCache = new Dictionary<Map, PheromoneGrid>();
+		static readonly Dictionary<Map, PheromoneGrid> gridCache = new Dictionary<Map, PheromoneGrid>();
 		public static PheromoneGrid GetGrid(this Map map)
 		{
 			if (gridCache.TryGetValue(map, out var grid))
@@ -563,7 +563,7 @@ namespace ZombieLand
 				var defaultValue = Traverse.Create(defaults).Field(name).GetValue();
 				var m_Look = AccessTools.Method(typeof(Scribe_Values), "Look", null, new Type[] { type });
 				var arguments = new object[] { value, name, defaultValue, false };
-				m_Look.Invoke(null, arguments);
+				_ = m_Look.Invoke(null, arguments);
 				finfo.SetValue(settings, arguments[0]);
 			});
 		}
@@ -662,7 +662,7 @@ namespace ZombieLand
 			var newThing = (MoteBubble)ThingMaker.MakeThing(def, null);
 			newThing.iconMat = material;
 			newThing.Attach(pawn);
-			GenSpawn.Spawn(newThing, pawn.Position, pawn.Map);
+			_ = GenSpawn.Spawn(newThing, pawn.Position, pawn.Map);
 		}
 
 		static readonly float[] halfToDouble = { 0.5f, 1.0f, 2.0f };
@@ -683,10 +683,10 @@ namespace ZombieLand
 				while (enumerator.MoveNext())
 				{
 					var v = enumerator.Current;
-					cells.Add(v);
-					cells.Add(new IntVec3(-v.x, 0, v.z));
-					cells.Add(new IntVec3(-v.x, 0, -v.z));
-					cells.Add(new IntVec3(v.x, 0, -v.z));
+					_ = cells.Add(v);
+					_ = cells.Add(new IntVec3(-v.x, 0, v.z));
+					_ = cells.Add(new IntVec3(-v.x, 0, -v.z));
+					_ = cells.Add(new IntVec3(v.x, 0, -v.z));
 				}
 				enumerator.Dispose();
 				circles[radius] = cells;
