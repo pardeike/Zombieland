@@ -707,7 +707,7 @@ namespace ZombieLand
 				var inList = instructions.ToList();
 
 				var idx1 = inList.FirstIndexOf(instr => instr.opcode == OpCodes.Ldfld && instr.operand == f_forcedMissRadius);
-				if (idx1 > 0)
+				if (idx1 > 0 && idx1 < inList.Count())
 				{
 					var idx2 = inList.FindLastIndex(instr => instr.opcode == OpCodes.Call
 						&& (instr.operand as MethodInfo)?.DeclaringType == typeof(ShotReport)
@@ -858,7 +858,7 @@ namespace ZombieLand
 			{
 				var list = instructions.ToList();
 				var refIdx = list.FirstIndexOf(ins => ins.operand is int && (int)ins.operand == 600);
-				if (refIdx > 0)
+				if (refIdx > 0 && refIdx < list.Count())
 				{
 					var gridIdx = list[refIdx - 4].operand;
 					var sumIdx = list[refIdx - 1].operand;
@@ -910,7 +910,7 @@ namespace ZombieLand
 			{
 				var list = instructions.ToList();
 				var idx = list.FirstIndexOf(code => code.opcode == OpCodes.Call && code.operand == m_ShouldCollideWithPawns) - 1;
-				if (idx > 0)
+				if (idx > 0 && idx < list.Count())
 				{
 					if (list[idx].opcode == OpCodes.Ldfld)
 					{
@@ -962,6 +962,12 @@ namespace ZombieLand
 
 				var list = Tools.DownedReplacer(instructions).ToList();
 				var i = list.FirstIndexOf(instr => instr.operand == from);
+				if (i < 0 || i >= list.Count())
+				{
+					Log.Error("Cannot find " + from.FullDescription() + " in Pawn_PathFollower.StartPath");
+					return list.AsEnumerable();
+				}
+
 				list[i - 1].opcode = OpCodes.Ldarg_1;
 				list[i].operand = to;
 
@@ -1699,7 +1705,7 @@ namespace ZombieLand
 
 				var list = instructions.ToList();
 				var idx = list.FirstIndexOf(instr => instr.operand == m_AngleAxis);
-				if (idx > 0)
+				if (idx > 0 && idx < list.Count())
 				{
 					list[idx].operand = SymbolExtensions.GetMethodInfo(() => Zombie.ZombieAngleAxis(0f, Vector3.zero, null));
 					list.Insert(idx++, new CodeInstruction(OpCodes.Ldarg_0));
@@ -2328,15 +2334,16 @@ namespace ZombieLand
 			}
 
 			[HarmonyPriority(Priority.Last)]
-			static void Postfix(Pawn pawn, RecipeDef recipe, ref IEnumerable<BodyPartRecord> __result)
+			static IEnumerable<BodyPartRecord> Postfix(IEnumerable<BodyPartRecord> parts, Pawn pawn, RecipeDef recipe)
 			{
+				foreach (var part in parts)
+					yield return part;
 				if (recipe != RecipeDefOf.RemoveBodyPart)
-					return;
+					yield break;
 
-				__result = pawn.health.hediffSet
-					.GetHediffs<Hediff_Injury_ZombieBite>()
-					.Select(bite => bite.Part)
-					.Union(__result);
+				var bites = pawn.health.hediffSet.GetHediffs<Hediff_Injury_ZombieBite>().Select(bite => bite.Part);
+				foreach (var bite in bites)
+					yield return bite;
 			}
 		}
 
@@ -2415,7 +2422,7 @@ namespace ZombieLand
 
 				var list = instructions.ToList();
 				var idx = list.FirstIndexOf(code => code.operand == m_RoundRandom);
-				if (idx > 0)
+				if (idx > 0 && idx < list.Count())
 				{
 					list[idx].opcode = OpCodes.Ldarg_1; // first argument of instance method
 					list[idx].operand = null;
@@ -3315,7 +3322,7 @@ namespace ZombieLand
 
 				var list = instructions.ToList();
 				var jumpIndex = list.FirstIndexOf(instr => instr.operand == m_TryGainMemory) + 1;
-				if (jumpIndex > 0)
+				if (jumpIndex > 0 && jumpIndex < list.Count())
 				{
 					var skipLabel = generator.DefineLabel();
 					list[jumpIndex].labels.Add(skipLabel);
@@ -3414,7 +3421,7 @@ namespace ZombieLand
 				{
 					var label = "Options".Translate();
 					var idx = optList.FirstIndexOf(opt => opt.label == label);
-					if (idx > 0) optList.Insert(idx, new ListableOption("Zombieland", delegate
+					if (idx > 0 && idx < optList.Count()) optList.Insert(idx, new ListableOption("Zombieland", delegate
 					{
 						var dialog = new Dialog_ModSettings();
 						var me = LoadedModManager.GetMod<ZombielandMod>();
