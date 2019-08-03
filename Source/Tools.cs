@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Xml;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace ZombieLand
 {
@@ -238,6 +239,15 @@ namespace ZombieLand
 		{
 			var tickManager = thing.Map.GetComponent<TickManager>();
 			tickManager.colonistsConverter.Enqueue(thing);
+		}
+
+		public static void PlayTink(Thing thing)
+		{
+			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
+			{
+				var info = SoundInfo.InMap(thing);
+				SoundDef.Named("TankyTink").PlayOneShot(info);
+			}
 		}
 
 		static readonly NameSingle emptyName = new NameSingle("");

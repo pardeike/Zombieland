@@ -122,6 +122,21 @@ namespace ZombieLand
 			return false;
 		}
 
+		// handle things that affect zombies ====================================================================
+		//
+		public static void Affects(Zombie zombie)
+		{
+			if (zombie.EveryNTick(NthTick.Every60) == false)
+				return;
+
+			if (zombie.HasAttachment(ThingDefOf.Fire))
+				return;
+
+			var temp = GenTemperature.GetTemperatureForCell(zombie.Position, zombie.Map);
+			if (temp >= 200f)
+				FireUtility.TryAttachFire(zombie, GenMath.LerpDoubleClamped(200f, 1000f, 0.01f, 1f, temp));
+		}
+
 		// invalidate destination if necessary ======================================================
 		//
 		public static bool ValidDestination(this JobDriver_Stumble driver, Zombie zombie)

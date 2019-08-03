@@ -10,7 +10,6 @@ using System.Text;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using Verse.Sound;
 
 namespace ZombieLand
 {
@@ -2490,15 +2489,6 @@ namespace ZombieLand
 		[HarmonyPatch("GetPostArmorDamage")]
 		public static class ArmorUtility_GetPostArmorDamage_Patch
 		{
-			static void PlayTink(Thing thing)
-			{
-				if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
-				{
-					var info = SoundInfo.InMap(thing);
-					SoundDef.Named("TankyTink").PlayOneShot(info);
-				}
-			}
-
 			static void ApplyDamage(ref float armor, ref float amount, float reducer)
 			{
 				var damage = amount / reducer;
@@ -2522,19 +2512,16 @@ namespace ZombieLand
 				if (zombie == null)
 					return true;
 
-				var difficulty = Tools.StoryTellerDifficulty;
 				var penetration = Math.Max(armorPenetration - 0.25f, 0f);
 				amount *= (1f + 2 * penetration);
+
 				var skip = false;
+				var difficulty = Tools.StoryTellerDifficulty;
 
 				if (amount > 0f && zombie.hasTankyShield > 0f)
 				{
-					if (penetration == 0f && deflectedByMetalArmor == false)
-					{
-						PlayTink(zombie);
-						deflectedByMetalArmor = true;
-					}
 					ApplyDamage(ref zombie.hasTankyShield, ref amount, 1f + difficulty * 150f);
+					diminishedByMetalArmor |= zombie.hasTankyShield > 0f;
 					__result = -1f;
 					skip = true;
 				}
@@ -2544,12 +2531,8 @@ namespace ZombieLand
 				{
 					if (amount > 0f && zombie.hasTankyHelmet > 0f)
 					{
-						if (penetration == 0f && deflectedByMetalArmor == false)
-						{
-							PlayTink(zombie);
-							deflectedByMetalArmor = true;
-						}
 						ApplyDamage(ref zombie.hasTankyHelmet, ref amount, 1f + difficulty * 10f);
+						diminishedByMetalArmor |= zombie.hasTankyHelmet > 0f;
 						__result = -1f;
 						skip = true;
 					}
@@ -2557,15 +2540,15 @@ namespace ZombieLand
 
 				if (amount > 0f && zombie.hasTankySuit > 0f)
 				{
-					if (penetration == 0f && deflectedByMetalArmor == false)
-					{
-						PlayTink(zombie);
-						deflectedByMetalArmor = true;
-					}
 					ApplyDamage(ref zombie.hasTankySuit, ref amount, 1f + difficulty * 100f);
+					diminishedByMetalArmor |= zombie.hasTankySuit > 0f;
 					__result = -1f;
 					skip = true;
 				}
+
+				deflectedByMetalArmor = amount == 0f;
+				if (diminishedByMetalArmor)
+					Tools.PlayTink(zombie);
 
 				// still a tough zombie even if we hit the body but some armor is left
 				if (amount > 0f && (zombie.hasTankyHelmet > 0f || zombie.hasTankySuit > 0f))

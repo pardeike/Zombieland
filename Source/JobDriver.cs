@@ -75,6 +75,8 @@ namespace ZombieLand
 			if (this.ValidDestination(zombie))
 				return;
 
+			ZombieStateHandler.Affects(zombie);
+
 			if (zombie.isMiner && (zombie.story.bodyType == BodyTypeDefOf.Fat || zombie.story.bodyType == BodyTypeDefOf.Hulk))
 				if (this.Mine(zombie, true))
 					return;
