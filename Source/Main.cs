@@ -33,6 +33,8 @@ namespace ZombieLand
 		public static DamageDef SuicideBomb;
 		public static DamageDef ToxicSplatter;
 		public static SoundDef ZombiesClosingIn;
+		public static SoundDef ZombieElectricHum;
+		public static SoundDef ElectricShock;
 	}
 
 	public class ZombielandMod : Mod

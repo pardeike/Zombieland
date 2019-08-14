@@ -10,6 +10,7 @@ using System.Text;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Verse.Sound;
 
 namespace ZombieLand
 {
@@ -1721,15 +1722,62 @@ namespace ZombieLand
 			static void Postfix(PawnRenderer __instance, Vector3 rootLoc, float angle, bool renderBody)
 			{
 				var zombie = __instance.graphics.pawn as Zombie;
-				if (zombie != null && zombie.isToxicSplasher && renderBody && zombie.state != ZombieState.Emerging)
+				if (zombie == null || renderBody == false || zombie.state == ZombieState.Emerging) return;
+
+				if (zombie.Rotation == Rot4.West) angle -= leanAngle;
+				if (zombie.Rotation == Rot4.East) angle += leanAngle;
+				var quat = Quaternion.AngleAxis(angle, Vector3.up);
+
+				if (zombie.isToxicSplasher)
 				{
 					var idx = ((Find.TickManager.TicksGame + zombie.thingIDNumber) / 10) % 8;
 					if (idx >= 5) idx = 8 - idx;
-					if (zombie.Rotation == Rot4.West) angle -= leanAngle;
-					if (zombie.Rotation == Rot4.East) angle += leanAngle;
-					var quat = Quaternion.AngleAxis(angle, Vector3.up);
 					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.TOXIC_AURAS[idx], rootLoc + toxicAuraOffset, quat, 1f, 1f);
+					return;
 				}
+
+				if (zombie.isElectrifier)
+				{
+					// stage: 0 2 4 6 8 10 12 14 16 18
+					// shine: x - x x x  x  x  -  x  -
+					// arc  : - - - x -  x  -  -  -  -
+					// new  :                        x
+
+					zombie.electricCounter--;
+					if (zombie.electricCounter <= 0)
+					{
+						var stage = -zombie.electricCounter;
+
+						if (stage == 0)
+						{
+							var info = SoundInfo.InMap(zombie);
+							SoundDef.Named("ElectricShock").PlayOneShot(info);
+						}
+
+						if (stage == 0 || (stage >= 4 && stage <= 12) || stage == 16)
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.ELECTRIC_SHINE, rootLoc, quat, 1f, 1f);
+
+						if (stage == 6 || stage == 7 || stage == 10 || stage == 11)
+						{
+							if (Rand.Chance(0.1f))
+								zombie.electricAngle = Rand.RangeInclusive(0, 359);
+							quat = Quaternion.Euler(0, zombie.electricAngle, 0);
+							var idx = Rand.RangeInclusive(0, 3);
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.ELECTRIC_ARCS[idx], rootLoc, quat, 1.5f, 1.5f);
+						}
+
+						if (stage >= 18)
+						{
+							zombie.electricCounter = Rand.RangeInclusive(60, 180);
+							if (Find.TickManager.Paused)
+								zombie.electricCounter += Rand.RangeInclusive(300, 600);
+							zombie.electricAngle = Rand.RangeInclusive(0, 359);
+						}
+					}
+					return;
+				}
+
+				return;
 			}
 		}
 
@@ -1935,11 +1983,24 @@ namespace ZombieLand
 					var pos = location;
 					var f = 25f * (zombie.pather.nextCellCostLeft / zombie.pather.nextCellCostTotal);
 					pos.z += (Mathf.Max(0.5f, Mathf.Cos(f + 0.8f)) - 0.7f) / 20f;
-					var angle = orientation == Rot4.South || orientation == Rot4.North ? 0f : (Mathf.Sin(f) + Mathf.Cos(f + zombie.HashOffset())) * 3f;
-					if (orientation == Rot4.West) angle += 5f;
-					if (orientation == Rot4.East) angle -= 5f;
-					var rot = Quaternion.AngleAxis(angle, Vector3.up);
+					var helmetWiggleAngle = orientation == Rot4.South || orientation == Rot4.North ? 0f : (Mathf.Sin(f) + Mathf.Cos(f + zombie.HashOffset())) * 3f;
+					if (orientation == Rot4.West) helmetWiggleAngle += 5f;
+					if (orientation == Rot4.East) helmetWiggleAngle -= 5f;
+					var rot = Quaternion.AngleAxis(helmetWiggleAngle, Vector3.up);
 					GraphicToolbox.DrawScaledMesh(headMesh, Constants.MINERHELMET[orientation.AsInt][0], pos + headOffset, rot, 1f, 1f);
+				}
+
+				if (zombie.isElectrifier)
+				{
+					tm = tm ?? Find.TickManager;
+					var flicker = (tm.TicksAbs / (2 + zombie.thingIDNumber % 2) + zombie.thingIDNumber) % 3;
+					if (flicker != 0 || tm.Paused)
+					{
+						var mesh = MeshPool.humanlikeBodySet.MeshAt(orientation);
+						var glowingMaterials = Constants.ELECTRIC_GLOWING[zombie.story.bodyType];
+						var idx = orientation == Rot4.East || orientation == Rot4.West ? 0 : (orientation == Rot4.North ? 1 : 2);
+						GraphicToolbox.DrawScaledMesh(mesh, glowingMaterials[idx], drawLoc, Quaternion.identity, 1f, 1f);
+					}
 				}
 
 				if (zombie.raging == 0) return;

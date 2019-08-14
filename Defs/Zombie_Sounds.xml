@@ -246,4 +246,64 @@
 		</subSounds>
 	</SoundDef>
 
+	<SoundDef>
+		<defName>ZombieElectricHum</defName>
+		<sustain>true</sustain>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxVoices>8</maxVoices>
+		<maxSimultaneous>8</maxSimultaneous>
+		<priorityMode>PrioritizeNearest</priorityMode>
+		<subSounds>
+			<li>
+				<name>hum</name>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>hum</clipPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>1.2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>10</min>
+					<max>10</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>30</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ElectricShock</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>4</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>shock</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>20</min>
+					<max>20</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>30</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
 </Defs>

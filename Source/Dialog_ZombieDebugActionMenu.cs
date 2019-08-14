@@ -61,6 +61,10 @@ namespace ZombieLand
 			{
 				SpawnZombie(ZombieGenerator.ZombieType.Miner, true);
 			});
+			DebugToolMap("Spawn: Electrifier", delegate
+			{
+				SpawnZombie(ZombieGenerator.ZombieType.Electrifier, true);
+			});
 			DebugToolMap("Spawn: Random zombie", delegate
 			{
 				SpawnZombie(ZombieGenerator.ZombieType.Random, true);

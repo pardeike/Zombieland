@@ -59,6 +59,12 @@ namespace ZombieLand
 						var data = new ColorData(width, height, pixels);
 						colorDataDatabase.Add(path + "#miner", data);
 					}
+
+					// add electric cyan
+					{
+						var data = GetColoredData(originalPixels, new Color(0.196078431f, 0.470588235f, 0.470588235f), width, height);
+						colorDataDatabase.Add(path + "#electric", data);
+					}
 				}
 				else
 				{

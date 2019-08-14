@@ -53,6 +53,13 @@ namespace ZombieLand
 		public bool isMiner = false;
 		public int miningCounter = 0;
 
+		// electrifier
+		public bool isElectrifier = false;
+		public int electricCounter = -1000;
+		public float electricAngle = 0;
+		public int electricArcType = 0;
+		public Sustainer electricSustainer;
+
 		// transient vars
 		public bool needsGraphics = false;
 		bool disposed = false;
@@ -126,6 +133,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref bombTickingInterval, "bombTickingInterval");
 			Scribe_Values.Look(ref isToxicSplasher, "toxicSplasher");
 			Scribe_Values.Look(ref isMiner, "isMiner");
+			Scribe_Values.Look(ref isElectrifier, "isElectrifier");
 			Scribe_Values.Look(ref hasTankyShield, "tankyShield");
 			Scribe_Values.Look(ref hasTankyHelmet, "tankyHelmet");
 			Scribe_Values.Look(ref hasTankySuit, "tankySuit");
@@ -187,12 +195,16 @@ namespace ZombieLand
 
 			if (isToxicSplasher)
 				DropStickyGoo();
+			// ETODO
 
 			base.Kill(dinfo, exactCulprit);
 		}
 
 		public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
 		{
+			electricSustainer?.End();
+			electricSustainer = null;
+
 			var map = Map;
 			if (map == null) return;
 
@@ -336,6 +348,13 @@ namespace ZombieLand
 
 			if (state == ZombieState.Emerging)
 				HandleRubble();
+
+			if (isElectrifier && Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
+			{
+				if (electricSustainer == null || electricSustainer.Ended)
+					electricSustainer = CustomDefs.ZombieElectricHum.TrySpawnSustainer(SoundInfo.InMap(this, MaintenanceType.PerFrame));
+				electricSustainer?.Maintain();
+			}
 		}
 
 		public static Quaternion ZombieAngleAxis(float angle, Vector3 axis, Pawn pawn)

@@ -119,7 +119,8 @@ namespace ZombieLand
 			ToxicSplasher = 1,
 			TankyOperator = 2,
 			Miner = 3,
-			Normal = 4
+			Electrifier = 4,
+			Normal = 5
 		}
 
 		private static BodyTypeDef SetRandomBody(Zombie zombie)
@@ -206,6 +207,16 @@ namespace ZombieLand
 					}
 				),
 
+				// electrifier
+				new Pair<float, Func<BodyTypeDef>>(
+					ZombieSettings.Values.electrifierChance / 2f,
+					delegate
+					{
+						zombie.isElectrifier = true;
+						return SetRandomBody(zombie);
+					}
+				),
+
 				// default ordinary zombie
 				new Pair<float, Func<BodyTypeDef>>(
 					float.MaxValue,
@@ -258,7 +269,10 @@ namespace ZombieLand
 			{
 				var renderPrecedence = 0;
 				var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
-				var color = zombie.isToxicSplasher ? "toxic" : (zombie.isMiner ? "miner" : GraphicToolbox.RandomSkinColorString());
+				var color = GraphicToolbox.RandomSkinColorString();
+				if (zombie.isToxicSplasher) color = "toxic";
+				if (zombie.isMiner) color = "miner";
+				if (zombie.isElectrifier) color = "electric";
 				yield return null;
 				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
 				yield return null;

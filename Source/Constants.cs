@@ -1,4 +1,5 @@
 ﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -36,29 +37,29 @@ namespace ZombieLand
 						switch (constant.FieldType.Name)
 						{
 							case "Boolean":
-								{
-									if (bool.TryParse(value, out var result))
-										constant.SetValue(null, result);
-									else
-										Log.Error("Cannot parse boolean '" + value + "' of constant " + field);
-									break;
-								}
+							{
+								if (bool.TryParse(value, out var result))
+									constant.SetValue(null, result);
+								else
+									Log.Error("Cannot parse boolean '" + value + "' of constant " + field);
+								break;
+							}
 							case "Int32":
-								{
-									if (int.TryParse(value, out var result))
-										constant.SetValue(null, result);
-									else
-										Log.Error("Cannot parse int '" + value + "' of constant " + field);
-									break;
-								}
+							{
+								if (int.TryParse(value, out var result))
+									constant.SetValue(null, result);
+								else
+									Log.Error("Cannot parse int '" + value + "' of constant " + field);
+								break;
+							}
 							case "Single":
-								{
-									if (float.TryParse(value, out var result))
-										constant.SetValue(null, result);
-									else
-										Log.Error("Cannot parse float '" + value + "' of constant " + field);
-									break;
-								}
+							{
+								if (float.TryParse(value, out var result))
+									constant.SetValue(null, result);
+								else
+									Log.Error("Cannot parse float '" + value + "' of constant " + field);
+								break;
+							}
 							default:
 								Log.Error("Zombieland constant '" + field + "' with unknown type " + constant.FieldType.Name);
 								break;
@@ -146,6 +147,48 @@ namespace ZombieLand
 			MaterialPool.MatFrom("ToxicAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.7f)),
 			MaterialPool.MatFrom("ToxicAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.9f)),
 			MaterialPool.MatFrom("ToxicAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 1.0f))
+		};
+		public static Material ELECTRIC_SHINE = MaterialPool.MatFrom("Electrifier/Shine", ShaderDatabase.Mote, Color.white);
+		public static Material[] ELECTRIC_ARCS = new Material[] {
+			MaterialPool.MatFrom("Electrifier/Arc0", ShaderDatabase.Mote, Color.white),
+			MaterialPool.MatFrom("Electrifier/Arc1", ShaderDatabase.Mote, Color.white),
+			MaterialPool.MatFrom("Electrifier/Arc2", ShaderDatabase.Mote, Color.white),
+			MaterialPool.MatFrom("Electrifier/Arc3", ShaderDatabase.Mote, Color.white),
+		};
+		public static Dictionary<BodyTypeDef, Material[]> ELECTRIC_GLOWING = new Dictionary<BodyTypeDef, Material[]>
+		{
+			{
+				BodyTypeDefOf.Fat, new Material[]
+				{
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Fat_east", ShaderDatabase.Mote, Color.white),
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Fat_north", ShaderDatabase.Mote, Color.white),
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Fat_south", ShaderDatabase.Mote, Color.white),
+				}
+			},
+			{
+				BodyTypeDefOf.Female, new Material[]
+				{
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Female_east", ShaderDatabase.Mote, Color.white),
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Female_north", ShaderDatabase.Mote, Color.white),
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Female_south", ShaderDatabase.Mote, Color.white),
+				}
+			},
+			{
+				BodyTypeDefOf.Male, new Material[]
+				{
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Male_east", ShaderDatabase.Mote, Color.white),
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Male_north", ShaderDatabase.Mote, Color.white),
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Male_south", ShaderDatabase.Mote, Color.white),
+				}
+			},
+			{
+				BodyTypeDefOf.Thin, new Material[]
+				{
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Thin_east", ShaderDatabase.Mote, Color.white),
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Thin_north", ShaderDatabase.Mote, Color.white),
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Thin_south", ShaderDatabase.Mote, Color.white),
+				}
+			}
 		};
 		public static Material RAGING = MaterialPool.MatFrom("Rage", ShaderDatabase.Cutout);
 		public static Material RUBBLE = MaterialPool.MatFrom("Rubble", ShaderDatabase.Cutout);

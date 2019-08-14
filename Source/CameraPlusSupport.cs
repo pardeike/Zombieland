@@ -27,6 +27,8 @@ namespace CameraPlusSupport
 			var innerColor = defaultColor;
 			if (zombie.isToxicSplasher)
 				innerColor = Color.green;
+			if (zombie.isElectrifier)
+				innerColor = Color.cyan;
 			else if (zombie.isMiner)
 				innerColor = minerColor;
 			else if (zombie.IsTanky)
