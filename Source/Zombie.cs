@@ -2,6 +2,7 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -58,7 +59,6 @@ namespace ZombieLand
 		public int electricCounter = -1000;
 		public float electricAngle = 0;
 		public int electricArcType = 0;
-		public Sustainer electricSustainer;
 
 		// transient vars
 		public bool needsGraphics = false;
@@ -66,6 +66,9 @@ namespace ZombieLand
 
 		static readonly int totalNthTicks;
 		static public int[] nthTickValues;
+
+		public static readonly HashSet<Zombie> hummingZombies;
+		static Sustainer electricSustainer;
 		static Zombie()
 		{
 			var nths = Enum.GetNames(typeof(NthTick));
@@ -95,6 +98,8 @@ namespace ZombieLand
 				_ = zombieColors.Add(c);
 			});
 			_ = zombieColors.Add("000000".HexColor());
+
+			hummingZombies = new HashSet<Zombie>();
 		}
 
 		public void UpgradeOldZombieData()
@@ -202,8 +207,7 @@ namespace ZombieLand
 
 		public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
 		{
-			electricSustainer?.End();
-			electricSustainer = null;
+			_ = hummingZombies.Remove(this);
 
 			var map = Map;
 			if (map == null) return;
@@ -322,6 +326,34 @@ namespace ZombieLand
 			return false;
 		}
 
+		public static void TickSustainers()
+		{
+			if (Constants.USE_SOUND == false || Prefs.VolumeAmbient <= 0f) return;
+
+			if (electricSustainer == null)
+			{
+				electricSustainer = CustomDefs.ZombieElectricHum.TrySpawnSustainer(SoundInfo.OnCamera());
+				electricSustainer.info.volumeFactor = 0f;
+			}
+
+			electricSustainer.Maintain();
+			electricSustainer.SustainerUpdate();
+
+			if (hummingZombies.Count == 0)
+			{
+				electricSustainer.info.volumeFactor = 0f;
+				return;
+			}
+
+			var cameraPos = Find.CameraDriver.MapPosition;
+			var nearestElectricalZombieDistance = hummingZombies
+				.Select(zombie => (cameraPos - zombie.Position).LengthHorizontalSquared)
+				.OrderBy(dist => dist)
+				.First();
+
+			electricSustainer.info.volumeFactor = 1f - Math.Min(1f, nearestElectricalZombieDistance / 36f);
+		}
+
 		public override void Tick()
 		{
 			var comps = AllComps;
@@ -348,13 +380,6 @@ namespace ZombieLand
 
 			if (state == ZombieState.Emerging)
 				HandleRubble();
-
-			if (isElectrifier && Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
-			{
-				if (electricSustainer == null || electricSustainer.Ended)
-					electricSustainer = CustomDefs.ZombieElectricHum.TrySpawnSustainer(SoundInfo.InMap(this, MaintenanceType.PerFrame));
-				electricSustainer?.Maintain();
-			}
 		}
 
 		public static Quaternion ZombieAngleAxis(float angle, Vector3 axis, Pawn pawn)

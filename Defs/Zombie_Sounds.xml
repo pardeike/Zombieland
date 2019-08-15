@@ -251,29 +251,24 @@
 		<sustain>true</sustain>
 		<context>MapOnly</context>
 		<eventNames />
-		<maxVoices>8</maxVoices>
-		<maxSimultaneous>8</maxSimultaneous>
+		<maxSimultaneous>1</maxSimultaneous>
 		<priorityMode>PrioritizeNearest</priorityMode>
 		<subSounds>
 			<li>
 				<name>hum</name>
+				<onCamera>True</onCamera>
+				<repeatMode>Any</repeatMode>
 				<grains>
 					<li Class="AudioGrain_Clip">
 						<clipPath>hum</clipPath>
 					</li>
 				</grains>
-				<pitchRange>
-					<min>0.8</min>
-					<max>1.2</max>
-				</pitchRange>
+				<sustainAttack>0.5</sustainAttack>
+				<sustainRelease>0.5</sustainRelease>
 				<volumeRange>
 					<min>10</min>
 					<max>10</max>
 				</volumeRange>
-				<distRange>
-					<min>10</min>
-					<max>30</max>
-				</distRange>
 			</li>
 		</subSounds>
 	</SoundDef>

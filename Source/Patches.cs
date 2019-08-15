@@ -235,6 +235,11 @@ namespace ZombieLand
 				_ = ZombieWanderer.processor.MoveNext();
 			}
 
+			static void Postfix()
+			{
+				Zombie.TickSustainers();
+			}
+
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
 				var jump = generator.DefineLabel();

@@ -486,6 +486,8 @@ namespace ZombieLand
 					yield return new WaitForSeconds(1f);
 					break;
 			}
+			if (zombie.isElectrifier)
+				_ = Zombie.hummingZombies.Add(zombie);
 		}
 	}
 }
