@@ -250,6 +250,15 @@ namespace ZombieLand
 			}
 		}
 
+		public static void PlayAbsorb(Thing thing)
+		{
+			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
+			{
+				var info = SoundInfo.InMap(thing);
+				SoundDef.Named("Bzzt").PlayOneShot(info);
+			}
+		}
+
 		static readonly NameSingle emptyName = new NameSingle("");
 		public static void ConvertToZombie(ThingWithComps thing, bool force = false)
 		{

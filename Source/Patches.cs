@@ -1779,6 +1779,22 @@ namespace ZombieLand
 							zombie.electricAngle = Rand.RangeInclusive(0, 359);
 						}
 					}
+
+					if (zombie.absorbAttack.Count > 0)
+					{
+						var pair = zombie.absorbAttack.Pop();
+						var idx = pair.Value;
+						if (idx >= 0)
+						{
+							var fromPos = pair.Key;
+							var facing = (fromPos - zombie.Position.ToVector3Shifted()).AngleFlat();
+							var center = rootLoc + Quaternion.AngleAxis(facing + 45f, Vector3.up) * new Vector3(-0.4f, 0, 0.4f);
+							quat = Quaternion.AngleAxis(facing + 45f, Vector3.up);
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane14, Constants.ELECTRIC_ABSORB[idx], center, quat, 1f, 1f);
+							Tools.PlayAbsorb(zombie);
+						}
+					}
+
 					return;
 				}
 
@@ -2576,7 +2592,7 @@ namespace ZombieLand
 			}
 
 			[HarmonyPriority(Priority.First)]
-			static bool Prefix(Pawn pawn, ref float amount, BodyPartRecord part, float armorPenetration, out bool deflectedByMetalArmor, out bool diminishedByMetalArmor, ref float __result)
+			static bool Prefix(Pawn pawn, ref DamageDef damageDef, ref float amount, BodyPartRecord part, float armorPenetration, out bool deflectedByMetalArmor, out bool diminishedByMetalArmor, ref float __result)
 			{
 				deflectedByMetalArmor = false;
 				diminishedByMetalArmor = false;
@@ -2584,6 +2600,21 @@ namespace ZombieLand
 				var zombie = pawn as Zombie;
 				if (zombie == null)
 					return true;
+
+				if (zombie.isElectrifier && (damageDef.isRanged || damageDef.isExplosive))
+				{
+					var indices = new List<int>() { 0, 1, 2, 3 };
+					indices.Shuffle();
+					for (var i = 0; i < Rand.RangeInclusive(1, 4); i++)
+					{
+						zombie.absorbAttack.Add(new KeyValuePair<Vector3, int>(pawn.DrawPos, i));
+						if (Rand.Chance(0.9f))
+							zombie.absorbAttack.Add(new KeyValuePair<Vector3, int>(Vector3.zero, -1));
+					}
+					amount = 0f;
+					__result = -1f;
+					return false;
+				}
 
 				var penetration = Math.Max(armorPenetration - 0.25f, 0f);
 				amount *= (1f + 2 * penetration);
@@ -2637,11 +2668,12 @@ namespace ZombieLand
 			{
 				var dinfo = new DamageInfo(originalDinfo);
 				var dmgAmount = dinfo.Amount;
+				var damageDef = originalDinfo.Def;
 
 				shieldAbsorbed = false;
 				if (pawn == null || hitPart == null) return true;
 				var prefixResult = 0f;
-				var result = Prefix(pawn, ref dmgAmount, hitPart, dinfo.ArmorPenetrationInt, out var deflect, out var diminish, ref prefixResult);
+				var result = Prefix(pawn, ref damageDef, ref dmgAmount, hitPart, dinfo.ArmorPenetrationInt, out var deflect, out var diminish, ref prefixResult);
 				if (result && originalDinfo.Instigator != null)
 					return (pawn.Spawned && pawn.Dead == false
 						&& pawn.Destroyed == false

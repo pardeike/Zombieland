@@ -59,6 +59,7 @@ namespace ZombieLand
 		public int electricCounter = -1000;
 		public float electricAngle = 0;
 		public int electricArcType = 0;
+		public List<KeyValuePair<Vector3, int>> absorbAttack = new List<KeyValuePair<Vector3, int>>();
 
 		// transient vars
 		public bool needsGraphics = false;

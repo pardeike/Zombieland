@@ -190,6 +190,12 @@ namespace ZombieLand
 				}
 			}
 		};
+		public static Material[] ELECTRIC_ABSORB = new Material[] {
+			MaterialPool.MatFrom("Electrifier/Absorb0", ShaderDatabase.Mote, Color.white),
+			MaterialPool.MatFrom("Electrifier/Absorb1", ShaderDatabase.Mote, Color.white),
+			MaterialPool.MatFrom("Electrifier/Absorb2", ShaderDatabase.Mote, Color.white),
+			MaterialPool.MatFrom("Electrifier/Absorb3", ShaderDatabase.Mote, Color.white),
+		};
 		public static Material RAGING = MaterialPool.MatFrom("Rage", ShaderDatabase.Cutout);
 		public static Material RUBBLE = MaterialPool.MatFrom("Rubble", ShaderDatabase.Cutout);
 		public static Material BRRAINZ = MaterialPool.MatFrom("Brrainz", ShaderDatabase.Cutout);

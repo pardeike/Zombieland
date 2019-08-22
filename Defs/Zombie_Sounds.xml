@@ -218,6 +218,34 @@
 	</SoundDef>
 
 	<SoundDef>
+		<defName>Bzzt</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>2</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>bzzt</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>60</min>
+					<max>60</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>50</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
 		<defName>ZombiesClosingIn</defName>
 		<sustain>True</sustain>
 		<context>MapOnly</context>
