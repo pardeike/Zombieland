@@ -1781,10 +1781,9 @@ namespace ZombieLand
 						var idx = pair.Value;
 						if (idx >= 0)
 						{
-							var fromPos = pair.Key;
-							var facing = (fromPos - zombie.Position.ToVector3Shifted()).AngleFlat();
-							var center = rootLoc + Quaternion.AngleAxis(facing + 45f, Vector3.up) * new Vector3(-0.4f, 0, 0.4f);
-							quat = Quaternion.AngleAxis(facing + 45f, Vector3.up);
+							var facing = pair.Key;
+							var center = rootLoc + Quaternion.AngleAxis(facing + 225f, Vector3.up) * new Vector3(-0.4f, 0, 0.4f);
+							quat = Quaternion.AngleAxis(facing + 225f, Vector3.up);
 							GraphicToolbox.DrawScaledMesh(MeshPool.plane14, Constants.ELECTRIC_ABSORB[idx], center, quat, 1f, 1f);
 							Tools.PlayAbsorb(zombie);
 						}
@@ -2581,6 +2580,37 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to remove non-melee damage from electrifier zombies
+		//
+		[HarmonyPatch(typeof(DamageWorker_AddInjury))]
+		[HarmonyPatch("ApplyDamageToPart")]
+		public static class DamageWorker_AddInjury_ApplyDamageToPart_Patch
+		{
+			static bool Prefix(DamageInfo dinfo, Pawn pawn)
+			{
+				var zombie = pawn as Zombie;
+				if (zombie == null)
+					return true;
+
+				if (zombie.isElectrifier == false || zombie.IsDowned())
+					return true;
+
+				var def = dinfo.Def;
+				if (def.isRanged == false && def.isExplosive == false)
+					return true;
+
+				var indices = new List<int>() { 0, 1, 2, 3 };
+				indices.Shuffle();
+				for (var i = 0; i < Rand.RangeInclusive(1, 4); i++)
+				{
+					zombie.absorbAttack.Add(new KeyValuePair<float, int>(dinfo.Angle, i));
+					if (Rand.Chance(0.9f))
+						zombie.absorbAttack.Add(new KeyValuePair<float, int>(0f, -1));
+				}
+				return false;
+			}
+		}
+
 		// patch to prevent damage if zombie has armor
 		//
 		[HarmonyPatch(typeof(ArmorUtility))]
@@ -2609,21 +2639,6 @@ namespace ZombieLand
 				var zombie = pawn as Zombie;
 				if (zombie == null)
 					return true;
-
-				if (zombie.isElectrifier && zombie.IsDowned() == false && (damageDef.isRanged || damageDef.isExplosive))
-				{
-					var indices = new List<int>() { 0, 1, 2, 3 };
-					indices.Shuffle();
-					for (var i = 0; i < Rand.RangeInclusive(1, 4); i++)
-					{
-						zombie.absorbAttack.Add(new KeyValuePair<Vector3, int>(pawn.DrawPos, i));
-						if (Rand.Chance(0.9f))
-							zombie.absorbAttack.Add(new KeyValuePair<Vector3, int>(Vector3.zero, -1));
-					}
-					amount = 0f;
-					__result = -1f;
-					return false;
-				}
 
 				var penetration = Math.Max(armorPenetration - 0.25f, 0f);
 				amount *= (1f + 2 * penetration);
