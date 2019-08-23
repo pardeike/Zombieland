@@ -235,11 +235,6 @@ namespace ZombieLand
 				_ = ZombieWanderer.processor.MoveNext();
 			}
 
-			static void Postfix()
-			{
-				Zombie.TickSustainers();
-			}
-
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
 				var jump = generator.DefineLabel();
@@ -1741,7 +1736,7 @@ namespace ZombieLand
 					return;
 				}
 
-				if (zombie.isElectrifier)
+				if (zombie.isElectrifier && zombie.IsDowned() == false)
 				{
 					// stage: 0 2 4 6 8 10 12 14 16 18
 					// shine: x - x x x  x  x  -  x  -
@@ -1816,6 +1811,20 @@ namespace ZombieLand
 				var vec = ___pawn.pather.Destination.Cell - ___pawn.Position;
 				var pos = ___pawn.DrawPos;
 				__instance.downedAngle = vec.AngleFlat + 15f * Mathf.Sin(6f * pos.x) * Mathf.Cos(6f * pos.z);
+			}
+		}
+
+		[HarmonyPatch(typeof(Root_Play))]
+		[HarmonyPatch(nameof(Root_Play.Update))]
+		static class Root_Play_Update_Patch
+		{
+			static void Postfix()
+			{
+				var map = Find.CurrentMap;
+				if (map == null) return;
+				var tickManager = map.GetComponent<TickManager>();
+				if (tickManager == null) return;
+				tickManager.UpdateElectricalHumming();
 			}
 		}
 
@@ -2011,7 +2020,7 @@ namespace ZombieLand
 					GraphicToolbox.DrawScaledMesh(headMesh, Constants.MINERHELMET[orientation.AsInt][0], pos + headOffset, rot, 1f, 1f);
 				}
 
-				if (zombie.isElectrifier)
+				if (zombie.isElectrifier && zombie.IsDowned() == false)
 				{
 					tm = tm ?? Find.TickManager;
 					var flicker = (tm.TicksAbs / (2 + zombie.thingIDNumber % 2) + zombie.thingIDNumber) % 3;
@@ -2601,7 +2610,7 @@ namespace ZombieLand
 				if (zombie == null)
 					return true;
 
-				if (zombie.isElectrifier && (damageDef.isRanged || damageDef.isExplosive))
+				if (zombie.isElectrifier && zombie.IsDowned() == false && (damageDef.isRanged || damageDef.isExplosive))
 				{
 					var indices = new List<int>() { 0, 1, 2, 3 };
 					indices.Shuffle();

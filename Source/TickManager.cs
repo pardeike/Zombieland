@@ -30,6 +30,9 @@ namespace ZombieLand
 		Sustainer zombiesAmbientSound;
 		float zombiesAmbientSoundVolume;
 
+		public readonly HashSet<Zombie> hummingZombies = new HashSet<Zombie>();
+		Sustainer electricSustainer;
+
 		public Queue<ThingWithComps> colonistsConverter = new Queue<ThingWithComps>();
 
 		public List<IntVec3> explosions = new List<IntVec3>();
@@ -56,9 +59,10 @@ namespace ZombieLand
 			var zombieFaction = Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies);
 			if (!destinations.ContainsKey(zombieFaction)) map.pawnDestinationReservationManager.RegisterFaction(zombieFaction);
 
+			var allZombies = AllZombies();
 			if (ZombieSettings.Values.betterZombieAvoidance)
 			{
-				var specs = AllZombies().Select(zombie => new ZombieCostSpecs()
+				var specs = allZombies.Select(zombie => new ZombieCostSpecs()
 				{
 					position = zombie.Position,
 					radius = Tools.ZombieAvoidRadius(zombie),
@@ -70,6 +74,9 @@ namespace ZombieLand
 			}
 			else
 				avoidGrid = new AvoidGrid(map);
+
+			hummingZombies.Clear();
+			allZombies.Where(zombie => zombie.isElectrifier).Do(zombie => hummingZombies.Add(zombie));
 		}
 
 		public override void ExposeData()
@@ -354,6 +361,37 @@ namespace ZombieLand
 			explosions.Clear();
 		}
 
+		public void UpdateElectricalHumming()
+		{
+			var ticks = DateTime.Now.Ticks;
+			if ((ticks % 30) != 0)
+				return;
+
+			if (Constants.USE_SOUND == false || Prefs.VolumeAmbient <= 0f)
+			{
+				electricSustainer?.End();
+				electricSustainer = null;
+				return;
+			}
+
+			if (electricSustainer == null)
+				electricSustainer = CustomDefs.ZombieElectricHum.TrySpawnSustainer(SoundInfo.OnCamera(MaintenanceType.None));
+
+			if (hummingZombies.Count == 0)
+			{
+				electricSustainer.info.volumeFactor = 0f;
+				return;
+			}
+
+			var cameraPos = Find.CameraDriver.transform.position;
+			var nearestElectricalZombieDistance = hummingZombies
+				.Select(zombie => (cameraPos - zombie.DrawPos).magnitude)
+				.OrderBy(dist => dist)
+				.First();
+
+			electricSustainer.info.volumeFactor = 1f - Math.Min(1f, nearestElectricalZombieDistance / 36f);
+		}
+
 		IEnumerator TickTasks()
 		{
 			var sw = new Stopwatch();
@@ -398,11 +436,8 @@ namespace ZombieLand
 			}
 			else
 			{
-				if (zombiesAmbientSound != null)
-				{
-					zombiesAmbientSound.End();
-					zombiesAmbientSound = null;
-				}
+				zombiesAmbientSound?.End();
+				zombiesAmbientSound = null;
 			}
 			yield return null;
 			if (colonistsConverter.Count > 0)

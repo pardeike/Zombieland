@@ -487,7 +487,10 @@ namespace ZombieLand
 					break;
 			}
 			if (zombie.isElectrifier)
-				_ = Zombie.hummingZombies.Add(zombie);
+			{
+				var tickManager = Find.CurrentMap.GetComponent<TickManager>();
+				_ = tickManager.hummingZombies.Add(zombie);
+			}
 		}
 	}
 }
