@@ -755,6 +755,21 @@ namespace ZombieLand
 			}
 		}
 
+		/*[HarmonyPatch(typeof(Pawn_MeleeVerbs))]
+		[HarmonyPatch("ChooseMeleeVerb")]
+		static class Pawn_MeleeVerbs_ChooseMeleeVerb_Patch
+		{
+			static IEnumerable<DamageInfo> Postfix(IEnumerable<DamageInfo> results, LocalTargetInfo target, Thing ___caster)
+			{
+				Log.Warning("# DamageInfosToApply:");
+				foreach (var result in results)
+				{
+					Log.Warning($"{___caster} applied {result} to {target}");
+					yield return result;
+				}
+			}
+		}*/
+
 		// patch to reduce revenge by animals
 		//
 		[HarmonyPatch(typeof(Pawn_MindState))]

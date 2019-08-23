@@ -490,6 +490,7 @@ namespace ZombieLand
 			{
 				var tickManager = Find.CurrentMap.GetComponent<TickManager>();
 				_ = tickManager.hummingZombies.Add(zombie);
+				_ = zombie.verbTracker.AllVerbs.RemoveAll(verb => verb.GetDamageDef() == Tools.ZombieBiteDamageDef);
 			}
 		}
 	}
