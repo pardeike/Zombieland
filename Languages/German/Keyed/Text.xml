@@ -83,6 +83,7 @@
 	<ToxicSplasherChance>Giftige Zombies</ToxicSplasherChance>
 	<TankyOperatorChance>Schwere, gepanzerte Zombies</TankyOperatorChance>
 	<MinerChance>Grabende Zombies</MinerChance>
+	<ElectrifierChance>Elektrische Zombies</ElectrifierChance>
 	<NormalZombieChance>Normale Zombies: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>

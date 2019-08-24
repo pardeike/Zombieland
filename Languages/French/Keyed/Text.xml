@@ -79,10 +79,11 @@
 	<ZombiesEatCorpses>Les corps</ZombiesEatCorpses>
 
 	<SpecialZombiesTitle>Zombies spéciaux</SpecialZombiesTitle>
-	<SuicideBomberChance>Les zombies de Kamikaze</SuicideBomberChance>
+	<SuicideBomberChance>Zombies de Kamikaze</SuicideBomberChance>
 	<ToxicSplasherChance>Zombies vénéneux</ToxicSplasherChance>
 	<TankyOperatorChance>Zombies lourds et blindés</TankyOperatorChance>
 	<MinerChance>Zombies miniers</MinerChance>
+	<ElectrifierChance>Zombies électrisants</ElectrifierChance>
 	<NormalZombieChance>Zombies ordinaires: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Divers</ZombieMiscTitle>

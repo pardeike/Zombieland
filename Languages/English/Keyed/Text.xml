@@ -83,6 +83,7 @@
 	<ToxicSplasherChance>Toxic splasher zombies</ToxicSplasherChance>
 	<TankyOperatorChance>Tanky operator zombies</TankyOperatorChance>
 	<MinerChance>Mining zombies</MinerChance>
+	<ElectrifierChance>Electrifying zombies</ElectrifierChance>
 	<NormalZombieChance>Ordinary zombies: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Miscellaneous</ZombieMiscTitle>

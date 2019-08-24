@@ -761,12 +761,11 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Pawn_MeleeVerbs.GetUpdatedAvailableVerbsList))]
 		static class Pawn_MeleeVerbs_GetUpdatedAvailableVerbsList_Patch
 		{
-			static List<VerbEntry> Postfix(List<VerbEntry> result, Pawn ___pawn)
+			static void Postfix(List<VerbEntry> __result, Pawn ___pawn)
 			{
 				var zombie = ___pawn as Zombie;
 				if (zombie != null && zombie.isElectrifier)
-					_ = result.RemoveAll(entry => entry.verb.GetDamageDef() == Tools.ZombieBiteDamageDef);
-				return result;
+					_ = __result.RemoveAll(entry => entry.verb.GetDamageDef() == Tools.ZombieBiteDamageDef);
 			}
 		}
 
@@ -787,6 +786,7 @@ namespace ZombieLand
 				if (smokepopBelt != null)
 				{
 					damageInfo = new DamageInfo(Tools.ElectricalShockDamageDef, 1f, 0f, -1f, zombie, null, Tools.ElectricalFieldThingDef);
+					zombie.ElectrifyAnimation();
 					return;
 				}
 
@@ -800,28 +800,29 @@ namespace ZombieLand
 
 					_ = MoteMaker.MakeStaticMote(pawn.TrueCenter(), pawn.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
 					MoteMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
+					zombie.ElectrifyAnimation();
 					return;
 				}
 
-				foreach (var equipment in pawn.equipment.AllEquipmentListForReading)
-					if (equipment.def.costList.Any(cost => cost.thingDef == ThingDefOf.ComponentIndustrial || cost.thingDef == ThingDefOf.ComponentSpacer))
+				var sensitiveStuff = new List<Thing>()
+					.Union(pawn.equipment.AllEquipmentListForReading.Cast<Thing>())
+					.Union(pawn.inventory.GetDirectlyHeldThings().ToList())
+					.Union(apparel.Cast<Thing>())
+					.Where(thing =>
 					{
-						var damage = new DamageInfo(DamageDefOf.Deterioration, 10f);
-						_ = equipment.TakeDamage(damage);
+						if (thing?.def?.costList == null) return false;
+						return thing.def.costList.Any(cost => cost.thingDef == ThingDefOf.ComponentIndustrial || cost.thingDef == ThingDefOf.ComponentSpacer);
+					});
+				if (sensitiveStuff.TryRandomElement(out var stuff))
+				{
+					var amount = 2f * Find.Storyteller.difficulty.threatScale;
+					var damage = new DamageInfo(DamageDefOf.Deterioration, amount);
+					_ = stuff.TakeDamage(damage);
 
-						_ = MoteMaker.MakeStaticMote(pawn.TrueCenter(), pawn.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
-						MoteMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
-					}
-
-				foreach (var thing in pawn.inventory.GetDirectlyHeldThings().ToList())
-					if (thing.def.costList.Any(cost => cost.thingDef == ThingDefOf.ComponentIndustrial || cost.thingDef == ThingDefOf.ComponentSpacer))
-					{
-						var damage = new DamageInfo(DamageDefOf.Deterioration, 10f);
-						_ = thing.TakeDamage(damage);
-
-						_ = MoteMaker.MakeStaticMote(pawn.TrueCenter(), pawn.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
-						MoteMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
-					}
+					_ = MoteMaker.MakeStaticMote(pawn.TrueCenter(), pawn.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
+					MoteMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
+					zombie.ElectrifyAnimation();
+				}
 			}
 
 			static IEnumerable<DamageInfo> Postfix(IEnumerable<DamageInfo> results, LocalTargetInfo target, Thing ___caster)
@@ -1522,7 +1523,7 @@ namespace ZombieLand
 			static bool Prefix(ref PawnGenerationRequest request, ref Pawn __result)
 			{
 				if (request.Faction == null || request.Faction.def != ZombieDefOf.Zombies) return true;
-				__result = ZombieGenerator.GeneratePawn(ZombieGenerator.ZombieType.Random);
+				__result = ZombieGenerator.GeneratePawn(ZombieType.Random);
 				return false;
 			}
 		}
@@ -1875,6 +1876,16 @@ namespace ZombieLand
 							var center = rootLoc + Quaternion.AngleAxis(facing + 225f, Vector3.up) * new Vector3(-0.4f, 0, 0.4f);
 							quat = Quaternion.AngleAxis(facing + 225f, Vector3.up);
 							GraphicToolbox.DrawScaledMesh(MeshPool.plane14, Constants.ELECTRIC_ABSORB[idx], center, quat, 1f, 1f);
+							Tools.PlayAbsorb(zombie);
+						}
+						else if (idx == -2)
+						{
+							for (var facing = 0; facing < 360; facing += 90)
+							{
+								var center = rootLoc + Quaternion.AngleAxis(facing + 225f, Vector3.up) * new Vector3(-0.4f, 0, 0.4f);
+								quat = Quaternion.AngleAxis(facing + 225f, Vector3.up);
+								GraphicToolbox.DrawScaledMesh(MeshPool.plane14, Constants.ELECTRIC_ABSORB[Rand.RangeInclusive(0, 3)], center, quat, 1f, 1f);
+							}
 							Tools.PlayAbsorb(zombie);
 						}
 					}

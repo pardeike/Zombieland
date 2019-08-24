@@ -65,7 +65,6 @@ namespace ZombieLand
 		public bool isElectrifier = false;
 		public int electricCounter = -1000;
 		public float electricAngle = 0;
-		public int electricArcType = 0;
 		public List<KeyValuePair<float, int>> absorbAttack = new List<KeyValuePair<float, int>>();
 
 		// transient vars
@@ -256,6 +255,15 @@ namespace ZombieLand
 				var soundDef = Constants.USE_SOUND && Prefs.VolumeAmbient > 0f ? SoundDef.Named("ToxicSplash") : null;
 				GenExplosion.DoExplosion(pos, map, Mathf.Max(0.5f, Mathf.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, 0, soundDef);
 			}
+		}
+
+		public void ElectrifyAnimation()
+		{
+			electricCounter = 1;
+			absorbAttack.Add(new KeyValuePair<float, int>(0f, -2));
+			absorbAttack.Add(new KeyValuePair<float, int>(0f, -2));
+			absorbAttack.Add(new KeyValuePair<float, int>(0f, -2));
+			absorbAttack.Add(new KeyValuePair<float, int>(0f, -2));
 		}
 
 		void HandleRubble()

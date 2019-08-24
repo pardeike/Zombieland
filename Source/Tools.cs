@@ -307,7 +307,7 @@ namespace ZombieLand
 				return;
 			}
 
-			var it = ZombieGenerator.SpawnZombieIterativ(pos, map, ZombieGenerator.ZombieType.Normal, (Zombie zombie) =>
+			var it = ZombieGenerator.SpawnZombieIterativ(pos, map, ZombieType.Normal, (Zombie zombie) =>
 			{
 				zombie.Name = pawnName;
 				zombie.gender = pawn.gender;

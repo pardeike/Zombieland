@@ -7,7 +7,7 @@ namespace ZombieLand
 {
 	public class Dialog_ZombieDebugActionMenu : Dialog_DebugActionsMenu
 	{
-		private void SpawnZombie(ZombieGenerator.ZombieType type, bool appearDirectly)
+		private void SpawnZombie(ZombieType type, bool appearDirectly)
 		{
 			ZombieGenerator.SpawnZombie(UI.MouseCell(), Find.CurrentMap, type, (zombie) =>
 			{
@@ -39,35 +39,35 @@ namespace ZombieLand
 
 			DebugToolMap("Spawn: Zombie (dig out)", delegate
 			{
-				SpawnZombie(ZombieGenerator.ZombieType.Normal, false);
+				SpawnZombie(ZombieType.Normal, false);
 			});
 			DebugToolMap("Spawn: Zombie (standing)", delegate
 			{
-				SpawnZombie(ZombieGenerator.ZombieType.Normal, true);
+				SpawnZombie(ZombieType.Normal, true);
 			});
 			DebugToolMap("Spawn: Suicide bomber", delegate
 			{
-				SpawnZombie(ZombieGenerator.ZombieType.SuicideBomber, true);
+				SpawnZombie(ZombieType.SuicideBomber, true);
 			});
 			DebugToolMap("Spawn: Toxic Splasher", delegate
 			{
-				SpawnZombie(ZombieGenerator.ZombieType.ToxicSplasher, true);
+				SpawnZombie(ZombieType.ToxicSplasher, true);
 			});
 			DebugToolMap("Spawn: Tanky Operator", delegate
 			{
-				SpawnZombie(ZombieGenerator.ZombieType.TankyOperator, true);
+				SpawnZombie(ZombieType.TankyOperator, true);
 			});
 			DebugToolMap("Spawn: Miner", delegate
 			{
-				SpawnZombie(ZombieGenerator.ZombieType.Miner, true);
+				SpawnZombie(ZombieType.Miner, true);
 			});
 			DebugToolMap("Spawn: Electrifier", delegate
 			{
-				SpawnZombie(ZombieGenerator.ZombieType.Electrifier, true);
+				SpawnZombie(ZombieType.Electrifier, true);
 			});
 			DebugToolMap("Spawn: Random zombie", delegate
 			{
-				SpawnZombie(ZombieGenerator.ZombieType.Random, true);
+				SpawnZombie(ZombieType.Random, true);
 			});
 			DebugToolMap("Spawn: Zombie incident (4)", delegate
 			{

@@ -83,6 +83,7 @@
 	<ToxicSplasherChance>Zehirli zombiler</ToxicSplasherChance>
 	<TankyOperatorChance>Ağır ve zırhlı zombiler</TankyOperatorChance>
 	<MinerChance>Madencilik zombiler</MinerChance>
+	<ElectrifierChance>Elektrikli zombiler</ElectrifierChance>
 	<NormalZombieChance>Sıradan zombiler: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Çeşitli</ZombieMiscTitle>

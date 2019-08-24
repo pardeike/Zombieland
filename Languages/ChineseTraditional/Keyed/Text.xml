@@ -83,6 +83,7 @@
   <ToxicSplasherChance>劇毒殭屍</ToxicSplasherChance>
   <TankyOperatorChance>重裝殭屍</TankyOperatorChance>
 	<MinerChance>挖掘殭屍</MinerChance>
+	<ElectrifierChance>電動殭屍</ElectrifierChance>
   <NormalZombieChance>普通殭屍: {0}</NormalZombieChance>
 
   <ZombieMiscTitle>其他</ZombieMiscTitle>

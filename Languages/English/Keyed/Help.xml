@@ -100,6 +100,7 @@
 	<ToxicSplasherChance_Help>Toxic splasher zombies will splatter their surroundings with very toxic and sticky green material. Make sure your colonists do not walk over these patches.</ToxicSplasherChance_Help>
 	<TankyOperatorChance_Help>Tanky operator zombies are heavily armored but slow. They take a lot of damage before their shield, helmet and suit fall apart and you can finally kill them.</TankyOperatorChance_Help>
 	<MinerChance_Help>Mining zombies will start mining if they encounter mountains on their way to your base. Easily recognisable with their orange hard hats.</MinerChance_Help>
+	<ElectrifierChance_Help>Electrifying zombies don't bite so you can melee them. In fact, their electric force field will protect them from any damage except melee. They will interfer and break anything electric, electronic or anything build with components including powered things, armor and weapons.</ElectrifierChance_Help>
 	<NormalZombieChance_Help>Ordinary zombies come in different body sizes. That defines their strength but also their speed! They often wear any apparel that is available in the game and in any mods you have installed.</NormalZombieChance_Help>
 
 	<!-- -->

@@ -217,7 +217,7 @@ namespace ZombieLand
 
 				foreach (var cell in cells)
 				{
-					ZombieGenerator.SpawnZombie(cell, map, ZombieGenerator.ZombieType.Random, (zombie) => { tickManager.allZombiesCached.Add(zombie); });
+					ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { tickManager.allZombiesCached.Add(zombie); });
 					incidentSize--;
 					zombiesSpawning++;
 					yield return null;

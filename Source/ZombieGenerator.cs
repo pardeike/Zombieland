@@ -10,12 +10,20 @@ using static ZombieLand.Patches;
 
 namespace ZombieLand
 {
-	[StaticConstructorOnStartup]
-	public class ZombieGenerator
+	public enum ZombieType
 	{
-		public static int ZombiesSpawning = 0;
+		Random = -1,
+		SuicideBomber = 0,
+		ToxicSplasher = 1,
+		TankyOperator = 2,
+		Miner = 3,
+		Electrifier = 4,
+		Normal = 5
+	}
 
-		static Color HairColor()
+	public static class ZombieBaseValues
+	{
+		public static Color HairColor()
 		{
 			var num3 = Rand.Value;
 			if (num3 < 0.25f)
@@ -30,7 +38,7 @@ namespace ZombieLand
 			return new Color(0.3f, 0.2f, 0.1f);
 		}
 
-		static readonly Dictionary<string, IntVec2> eyeOffsets = new Dictionary<string, IntVec2>() {
+		public static readonly Dictionary<string, IntVec2> eyeOffsets = new Dictionary<string, IntVec2>() {
 			{ "Female_Average_Normal", new IntVec2(11, -5) },
 			{ "Female_Average_Pointy", new IntVec2(11, -5) },
 			{ "Female_Average_Wide", new IntVec2(11, -6) },
@@ -44,10 +52,119 @@ namespace ZombieLand
 			{ "Male_Narrow_Pointy", new IntVec2(8, -8) },
 			{ "Male_Narrow_Wide", new IntVec2(10, -8) }
 		};
-		static IntVec2 SideEyeOffset(string headPath)
+
+		public static IntVec2 SideEyeOffset(string headPath)
 		{
 			return eyeOffsets[headPath];
 		}
+
+		static BodyTypeDef SetRandomBody(Zombie zombie)
+		{
+			switch (Rand.RangeInclusive(1, 4))
+			{
+				case 1:
+					zombie.gender = Gender.Male;
+					return BodyTypeDefOf.Male;
+				case 2:
+					zombie.gender = Gender.Female;
+					return BodyTypeDefOf.Female;
+				case 3:
+					zombie.gender = Gender.Male;
+					return BodyTypeDefOf.Thin;
+				case 4:
+					zombie.gender = Gender.Male;
+					return BodyTypeDefOf.Fat;
+			}
+			return null;
+		}
+
+		public static readonly Pair<float, Func<Zombie, BodyTypeDef>>[] zombieTypeInitializers = new Pair<float, Func<Zombie, BodyTypeDef>>[]
+		{
+			// suicide bomber
+			new Pair<float, Func<Zombie, BodyTypeDef>>(
+				ZombieSettings.Values.suicideBomberChance,
+				zombie =>
+				{
+					zombie.bombTickingInterval = 60f;
+					zombie.lastBombTick = Find.TickManager.TicksAbs + Rand.Range(0, (int)zombie.bombTickingInterval);
+					//
+					zombie.gender = Gender.Male;
+					return BodyTypeDefOf.Hulk;
+				}
+			),
+
+			// toxic splasher
+			new Pair<float, Func<Zombie, BodyTypeDef>>(
+				ZombieSettings.Values.toxicSplasherChance,
+				zombie =>
+				{
+					zombie.isToxicSplasher = true;
+					//
+					switch (Rand.RangeInclusive(1, 3))
+					{
+						case 1:
+							zombie.gender = Gender.Male;
+							return BodyTypeDefOf.Male;
+						case 2:
+							zombie.gender = Gender.Female;
+							return BodyTypeDefOf.Female;
+						case 3:
+							zombie.gender = Gender.Male;
+							return BodyTypeDefOf.Thin;
+					}
+					return null;
+				}
+			),
+
+			// tanky operator
+			new Pair<float, Func<Zombie, BodyTypeDef>>(
+				ZombieSettings.Values.tankyOperatorChance,
+				zombie =>
+				{
+					zombie.hasTankyShield = 1f;
+					zombie.hasTankyHelmet = 1f;
+					zombie.hasTankySuit = 1f;
+					//
+					zombie.gender = Gender.Male;
+					return BodyTypeDefOf.Fat;
+				}
+			),
+
+			// miner
+			new Pair<float, Func<Zombie, BodyTypeDef>>(
+				ZombieSettings.Values.minerChance,
+				zombie =>
+				{
+					zombie.isMiner = true;
+					return SetRandomBody(zombie);
+				}
+			),
+
+			// electrifier
+			new Pair<float, Func<Zombie, BodyTypeDef>>(
+				ZombieSettings.Values.electrifierChance,
+				zombie =>
+				{
+					zombie.isElectrifier = true;
+					return SetRandomBody(zombie);
+				}
+			),
+
+			// default ordinary zombie
+			new Pair<float, Func<Zombie, BodyTypeDef>>(
+				float.MaxValue,
+				zombie =>
+				{
+					return SetRandomBody(zombie);
+				}
+			)
+		};
+	}
+
+	[StaticConstructorOnStartup]
+	public class ZombieGenerator
+	{
+		public static int ZombiesSpawning = 0;
 
 		public static Zombie GeneratePawn(ZombieType overwriteType)
 		{
@@ -94,7 +211,7 @@ namespace ZombieLand
 			zombie.story.bodyType = bodyType;
 			zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
 
-			zombie.story.hairColor = HairColor();
+			zombie.story.hairColor = ZombieBaseValues.HairColor();
 			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, ZombieDefOf.Zombies);
 
 			if (ZombieSettings.Values.useCustomTextures)
@@ -112,146 +229,40 @@ namespace ZombieLand
 			return zombie;
 		}
 
-		public enum ZombieType
-		{
-			Random = -1,
-			SuicideBomber = 0,
-			ToxicSplasher = 1,
-			TankyOperator = 2,
-			Miner = 3,
-			Electrifier = 4,
-			Normal = 5
-		}
-
-		private static BodyTypeDef SetRandomBody(Zombie zombie)
-		{
-			switch (Rand.RangeInclusive(1, 4))
-			{
-				case 1:
-					zombie.gender = Gender.Male;
-					return BodyTypeDefOf.Male;
-				case 2:
-					zombie.gender = Gender.Female;
-					return BodyTypeDefOf.Female;
-				case 3:
-					zombie.gender = Gender.Male;
-					return BodyTypeDefOf.Thin;
-				case 4:
-					zombie.gender = Gender.Male;
-					return BodyTypeDefOf.Fat;
-			}
-			return null;
-		}
-
 		private static BodyTypeDef PrepareZombieType(Zombie zombie, ZombieType overwriteType)
 		{
-			var zombieTypeInitializers = new Pair<float, Func<BodyTypeDef>>[]
-			{
-				// suicide bomber
-				new Pair<float, Func<BodyTypeDef>>(
-					ZombieSettings.Values.suicideBomberChance / 2f,
-					delegate
-					{
-						zombie.bombTickingInterval = 60f;
-						zombie.lastBombTick = Find.TickManager.TicksAbs + Rand.Range(0, (int)zombie.bombTickingInterval);
-						//
-						zombie.gender = Gender.Male;
-						return BodyTypeDefOf.Hulk;
-					}
-				),
-
-				// toxic splasher
-				new Pair<float, Func<BodyTypeDef>>(
-					ZombieSettings.Values.toxicSplasherChance / 2f,
-					delegate
-					{
-						zombie.isToxicSplasher = true;
-						//
-						switch (Rand.RangeInclusive(1, 3))
-						{
-							case 1:
-								zombie.gender = Gender.Male;
-								return BodyTypeDefOf.Male;
-							case 2:
-								zombie.gender = Gender.Female;
-								return BodyTypeDefOf.Female;
-							case 3:
-								zombie.gender = Gender.Male;
-								return BodyTypeDefOf.Thin;
-						}
-						return null;
-					}
-				),
-
-				// tanky operator
-				new Pair<float, Func<BodyTypeDef>>(
-					ZombieSettings.Values.tankyOperatorChance / 3f,
-					delegate
-					{
-						zombie.hasTankyShield = 1f;
-						zombie.hasTankyHelmet = 1f;
-						zombie.hasTankySuit = 1f;
-						//
-						zombie.gender = Gender.Male;
-						return BodyTypeDefOf.Fat;
-					}
-				),
-
-				// miner
-				new Pair<float, Func<BodyTypeDef>>(
-					ZombieSettings.Values.minerChance / 2f,
-					delegate
-					{
-						zombie.isMiner = true;
-						return SetRandomBody(zombie);
-					}
-				),
-
-				// electrifier
-				new Pair<float, Func<BodyTypeDef>>(
-					ZombieSettings.Values.electrifierChance / 2f,
-					delegate
-					{
-						zombie.isElectrifier = true;
-						return SetRandomBody(zombie);
-					}
-				),
-
-				// default ordinary zombie
-				new Pair<float, Func<BodyTypeDef>>(
-					float.MaxValue,
-					delegate
-					{
-						return SetRandomBody(zombie);
-					}
-				)
-			};
+			Func<Zombie, BodyTypeDef> bodyType;
 
 			if (overwriteType != ZombieType.Random)
 			{
-				var initializer = zombieTypeInitializers[(int)overwriteType];
-				return initializer.Second();
+				var initializer = ZombieBaseValues.zombieTypeInitializers[(int)overwriteType];
+				bodyType = initializer.Second;
+				return bodyType(zombie);
 			}
 
+			var typeCount = ZombieBaseValues.zombieTypeInitializers.Count();
+			bodyType = ZombieBaseValues.zombieTypeInitializers[typeCount - 1].Second;
+
 			var typeChance = Rand.Value;
-			BodyTypeDef bodyType = null;
-			foreach (var initializer in zombieTypeInitializers)
+			for (var i = 0; i < typeCount - 1; i++)
 			{
-				typeChance -= initializer.First;
+				typeChance -= ZombieBaseValues.zombieTypeInitializers[i].First;
 				if (typeChance < 0f)
 				{
-					bodyType = initializer.Second();
-					break;
+					Log.Warning($"{typeChance} => {Enum.GetName(typeof(ZombieType), i)}");
+					bodyType = ZombieBaseValues.zombieTypeInitializers[i].Second;
+					return bodyType(zombie);
 				}
 			}
-			return bodyType;
+			Log.Warning($"{typeChance} => {Enum.GetName(typeof(ZombieType), typeCount - 1)} [default]");
+			return bodyType(zombie);
 		}
 
 		public static string FixGlowingEyeOffset(Zombie zombie)
 		{
 			var headShape = zombie.hasTankyHelmet == 1f ? "Wide" : headShapes[Rand.Range(0, 3)];
 			var headPath = "Zombie/" + zombie.gender + "_" + zombie.story.crownType + "_" + headShape;
-			zombie.sideEyeOffset = SideEyeOffset(headPath.ReplaceFirst("Zombie/", ""));
+			zombie.sideEyeOffset = ZombieBaseValues.SideEyeOffset(headPath.ReplaceFirst("Zombie/", ""));
 			return headPath;
 		}
 
@@ -446,7 +457,7 @@ namespace ZombieLand
 			zombie.story.melanin = 0.01f * Rand.Range(10, 91);
 			zombie.story.bodyType = bodyType;
 			zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
-			zombie.story.hairColor = HairColor();
+			zombie.story.hairColor = ZombieBaseValues.HairColor();
 			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, ZombieDefOf.Zombies);
 			yield return null;
 			var it = AssignNewGraphics(zombie);
