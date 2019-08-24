@@ -49,4 +49,27 @@
 		<harmsHealth>false</harmsHealth>
 	</DamageDef>
 
+	<ToolCapacityDef>
+		<defName>ElectricalShock</defName>
+	</ToolCapacityDef>
+
+	<DamageDef name="ElectricalShock">
+		<defName>ElectricalShock</defName>
+		<label>shock</label>
+		<externalViolence>true</externalViolence>
+		<deathMessage>{0} has been shocked to death.</deathMessage>
+		<impactSoundType>Electric</impactSoundType>
+		<isRanged>true</isRanged>
+		<canInterruptJobs>true</canInterruptJobs>
+		<makesBlood>false</makesBlood>
+		<defaultDamage>0</defaultDamage>
+		<explosionSnowMeltAmount>0</explosionSnowMeltAmount>
+		<explosionCellMote>Mote_BlastEMP</explosionCellMote>
+		<explosionColorEdge>(0.8, 0.8, 0.8, 0.8)</explosionColorEdge>
+		<explosionInteriorMote>Mote_ElectricalSpark</explosionInteriorMote>
+		<soundExplosion>Explosion_EMP</soundExplosion>
+		<combatLogRules>Damage_EMP</combatLogRules>
+		<makesAnimalsFlee>true</makesAnimalsFlee>
+	</DamageDef>
+
 </Defs>

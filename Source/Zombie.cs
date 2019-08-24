@@ -17,6 +17,14 @@ namespace ZombieLand
 		Every60
 	}
 
+	public class Verb_Shock : Verb
+	{
+		protected override bool TryCastShot()
+		{
+			return true;
+		}
+	}
+
 	[StaticConstructorOnStartup]
 	public class Zombie : Pawn, IDisposable
 	{
@@ -147,11 +155,12 @@ namespace ZombieLand
 				_ = ZombieGenerator.FixGlowingEyeOffset(this);
 				if (ZombieSettings.Values.useCustomTextures)
 					needsGraphics = true; // make custom textures in renderer
+
+				// _ = verbTracker.AllVerbs.RemoveAll(verb => verb.GetDamageDef() == ZombieLand.Tools.ZombieBiteDamageDef);
 			}
+
 			if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
-			{
 				_ = ageTracker.CurLifeStageIndex; // trigger calculations
-			}
 		}
 
 		~Zombie()

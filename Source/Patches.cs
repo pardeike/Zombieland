@@ -755,20 +755,95 @@ namespace ZombieLand
 			}
 		}
 
-		/*[HarmonyPatch(typeof(Pawn_MeleeVerbs))]
-		[HarmonyPatch("ChooseMeleeVerb")]
+		// hide zombie bite when electrifier zombie wants to melee
+		//
+		[HarmonyPatch(typeof(Pawn_MeleeVerbs))]
+		[HarmonyPatch(nameof(Pawn_MeleeVerbs.GetUpdatedAvailableVerbsList))]
+		static class Pawn_MeleeVerbs_GetUpdatedAvailableVerbsList_Patch
+		{
+			static List<VerbEntry> Postfix(List<VerbEntry> result, Pawn ___pawn)
+			{
+				var zombie = ___pawn as Zombie;
+				if (zombie != null && zombie.isElectrifier)
+					_ = result.RemoveAll(entry => entry.verb.GetDamageDef() == Tools.ZombieBiteDamageDef);
+				return result;
+			}
+		}
+
+		// apply electrical damage when electrifier zombies melee
+		//
+		[HarmonyPatch(typeof(Verb_MeleeAttackDamage))]
+		[HarmonyPatch("DamageInfosToApply")]
 		static class Pawn_MeleeVerbs_ChooseMeleeVerb_Patch
 		{
+			static void ElectricalDamage(Zombie zombie, Pawn pawn, ref DamageInfo damageInfo)
+			{
+				if (zombie == null || zombie.isElectrifier == false)
+					return;
+
+				var apparel = pawn.apparel.WornApparel;
+
+				var smokepopBelt = apparel.OfType<SmokepopBelt>().FirstOrDefault();
+				if (smokepopBelt != null)
+				{
+					damageInfo = new DamageInfo(Tools.ElectricalShockDamageDef, 1f, 0f, -1f, zombie, null, Tools.ElectricalFieldThingDef);
+					return;
+				}
+
+				var shieldBelt = apparel.OfType<ShieldBelt>().FirstOrDefault();
+				if (shieldBelt != null)
+				{
+					if (shieldBelt.Energy > 0)
+						damageInfo = new DamageInfo(DamageDefOf.EMP, 1f, 0f, -1f, zombie, null, Tools.ElectricalFieldThingDef);
+					else
+						shieldBelt.Destroy(DestroyMode.Vanish);
+
+					_ = MoteMaker.MakeStaticMote(pawn.TrueCenter(), pawn.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
+					MoteMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
+					return;
+				}
+
+				foreach (var equipment in pawn.equipment.AllEquipmentListForReading)
+					if (equipment.def.costList.Any(cost => cost.thingDef == ThingDefOf.ComponentIndustrial || cost.thingDef == ThingDefOf.ComponentSpacer))
+					{
+						var damage = new DamageInfo(DamageDefOf.Deterioration, 10f);
+						_ = equipment.TakeDamage(damage);
+
+						_ = MoteMaker.MakeStaticMote(pawn.TrueCenter(), pawn.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
+						MoteMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
+					}
+
+				foreach (var thing in pawn.inventory.GetDirectlyHeldThings().ToList())
+					if (thing.def.costList.Any(cost => cost.thingDef == ThingDefOf.ComponentIndustrial || cost.thingDef == ThingDefOf.ComponentSpacer))
+					{
+						var damage = new DamageInfo(DamageDefOf.Deterioration, 10f);
+						_ = thing.TakeDamage(damage);
+
+						_ = MoteMaker.MakeStaticMote(pawn.TrueCenter(), pawn.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
+						MoteMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
+					}
+			}
+
 			static IEnumerable<DamageInfo> Postfix(IEnumerable<DamageInfo> results, LocalTargetInfo target, Thing ___caster)
 			{
-				Log.Warning("# DamageInfosToApply:");
+				if (target.Thing is Pawn pawn)
+					if (___caster is Zombie zombie)
+					{
+						foreach (var result in results)
+						{
+							var def = result.Def;
+							var damage = result;
+							if (def.isRanged == false && def.isExplosive == false && target.HasThing)
+								ElectricalDamage(zombie, pawn, ref damage);
+							yield return damage;
+						}
+						yield break;
+					}
+
 				foreach (var result in results)
-				{
-					Log.Warning($"{___caster} applied {result} to {target}");
 					yield return result;
-				}
 			}
-		}*/
+		}
 
 		// patch to reduce revenge by animals
 		//
@@ -2646,7 +2721,7 @@ namespace ZombieLand
 			}
 
 			[HarmonyPriority(Priority.First)]
-			static bool Prefix(Pawn pawn, ref DamageDef damageDef, ref float amount, BodyPartRecord part, float armorPenetration, out bool deflectedByMetalArmor, out bool diminishedByMetalArmor, ref float __result)
+			static bool Prefix(Pawn pawn, ref float amount, BodyPartRecord part, float armorPenetration, out bool deflectedByMetalArmor, out bool diminishedByMetalArmor, ref float __result)
 			{
 				deflectedByMetalArmor = false;
 				diminishedByMetalArmor = false;
@@ -2712,7 +2787,7 @@ namespace ZombieLand
 				shieldAbsorbed = false;
 				if (pawn == null || hitPart == null) return true;
 				var prefixResult = 0f;
-				var result = Prefix(pawn, ref damageDef, ref dmgAmount, hitPart, dinfo.ArmorPenetrationInt, out var deflect, out var diminish, ref prefixResult);
+				var result = Prefix(pawn, ref dmgAmount, hitPart, dinfo.ArmorPenetrationInt, out var deflect, out var diminish, ref prefixResult);
 				if (result && originalDinfo.Instigator != null)
 					return (pawn.Spawned && pawn.Dead == false
 						&& pawn.Destroyed == false

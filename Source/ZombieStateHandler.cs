@@ -168,6 +168,28 @@ namespace ZombieLand
 			return true;
 		}
 
+		// electrify nearby stuff ====================================================================
+		//
+		public static void Electrify(Zombie zombie)
+		{
+			var things = GetAdjacted<ThingWithComps>(zombie).ToList();
+			foreach (var thing in things)
+			{
+				var building = thing as Building;
+				if (building != null)
+				{
+					var power = building.PowerComp;
+					if (power != null && building.IsBurning() == false)
+					{
+						_ = MoteMaker.MakeStaticMote(building.TrueCenter(), building.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
+						MoteMaker.ThrowDustPuff(building.TrueCenter(), building.Map, Rand.Range(0.8f, 1.2f));
+						ShortCircuitUtility.DoShortCircuit(building);
+						return;
+					}
+				}
+			}
+		}
+
 		// lean in and eat bodies made out of flesh =================================================
 		//
 		public static bool Eat(this JobDriver_Stumble driver, Zombie zombie, PheromoneGrid grid)

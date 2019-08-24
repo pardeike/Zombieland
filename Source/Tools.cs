@@ -72,6 +72,28 @@ namespace ZombieLand
 			}
 		}
 
+		private static DamageDef _electricalShockDamageDef;
+		public static DamageDef ElectricalShockDamageDef
+		{
+			get
+			{
+				if (_electricalShockDamageDef == null)
+					_electricalShockDamageDef = DefDatabase<DamageDef>.GetNamed("ElectricalShock");
+				return _electricalShockDamageDef;
+			}
+		}
+
+		private static ThingDef _electricalFieldThingDef;
+		public static ThingDef ElectricalFieldThingDef
+		{
+			get
+			{
+				if (_electricalFieldThingDef == null)
+					_electricalFieldThingDef = DefDatabase<ThingDef>.GetNamed("ElectricalField");
+				return _electricalFieldThingDef;
+			}
+		}
+
 		static string mealLabel;
 		static string mealDescription;
 		static Graphic mealGraphic;

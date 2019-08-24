@@ -134,4 +134,39 @@
 		</race>
 	</ThingDef>
 
+	<ThingDef>
+		<defName>ElectricalField</defName>
+		<label>ElectricalField</label>
+		<category>Item</category>
+		<verbs>
+			<li>
+				<label>shock</label>
+				<verbClass>ZombieLand.Verb_Shock</verbClass>
+				<hasStandardCommand>false</hasStandardCommand>
+				<range>1</range>
+				<forcedMissRadius>0</forcedMissRadius>
+				<warmupTime>0</warmupTime>
+				<noiseRadius>4</noiseRadius>
+			</li>
+		</verbs>
+		<tools>
+			<li>
+				<label>Shock</label>
+				<capacities>
+					<li>ElectricalShock</li>
+				</capacities>
+			</li>
+		</tools>
+		<thingClass>Spark</thingClass>
+		<graphicData>
+			<texPath>Things/Projectile/Spark</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+			<shaderType>Transparent</shaderType>
+		</graphicData>
+		<tickerType>Normal</tickerType>
+		<altitudeLayer>Projectile</altitudeLayer>
+		<useHitPoints>false</useHitPoints>
+		<neverMultiSelect>true</neverMultiSelect>
+	</ThingDef>
+
 </Defs>

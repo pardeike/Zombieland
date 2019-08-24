@@ -121,6 +121,10 @@ namespace ZombieLand
 		{
 			base.Notify_PatherArrived();
 			destination = IntVec3.Invalid;
+
+			var zombie = (Zombie)pawn;
+			if (zombie.isElectrifier)
+				ZombieStateHandler.Electrify(zombie);
 		}
 
 		public override string GetReport()
