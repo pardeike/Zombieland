@@ -170,22 +170,27 @@ namespace ZombieLand
 
 		// electrify nearby stuff ====================================================================
 		//
+		static readonly FastInvokeHandler _DrainBatteriesAndCauseExplosion = MethodInvoker.GetHandler(AccessTools.Method(typeof(ShortCircuitUtility), "DrainBatteriesAndCauseExplosion"));
 		public static void Electrify(Zombie zombie)
 		{
-			var things = GetAdjacted<ThingWithComps>(zombie).ToList();
-			foreach (var thing in things)
+			var buildings = GetAdjacted<ThingWithComps>(zombie).OfType<Building>();
+			foreach (var building in buildings)
 			{
-				var building = thing as Building;
-				if (building != null)
+				var powerNet = building?.PowerComp?.PowerNet;
+				if (powerNet != null && building.IsBurning() == false)
 				{
-					var power = building.PowerComp;
-					if (power != null && building.IsBurning() == false)
+					_ = MoteMaker.MakeStaticMote(building.TrueCenter(), building.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
+					MoteMaker.ThrowDustPuff(building.TrueCenter(), building.Map, Rand.Range(0.8f, 1.2f));
+
+					if (powerNet.batteryComps.Any((CompPowerBattery x) => x.StoredEnergy > 20f))
 					{
-						_ = MoteMaker.MakeStaticMote(building.TrueCenter(), building.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
-						MoteMaker.ThrowDustPuff(building.TrueCenter(), building.Map, Rand.Range(0.8f, 1.2f));
-						ShortCircuitUtility.DoShortCircuit(building);
-						return;
+						var arguments = new object[] { powerNet, building, 0f, 0f };
+						_ = _DrainBatteriesAndCauseExplosion(null, arguments);
 					}
+					else
+						_ = FireUtility.TryStartFireIn(building.Position, building.Map, Rand.Range(0.1f, 1.75f));
+
+					return;
 				}
 			}
 		}
