@@ -1,6 +1,4 @@
-﻿using Harmony;
-using System;
-using System.Linq;
+﻿using System.Linq;
 using UnityEngine;
 using Verse;
 
@@ -52,10 +50,7 @@ namespace ZombieLand
 		{
 			if (ZombieInfector == null
 				|| Pawn == null
-				|| Pawn.Map == null
 				|| Pawn.RaceProps.Humanlike == false
-				|| Pawn.Spawned == false
-				|| Pawn.Destroyed
 				) return InfectionState.None;
 
 			var now = GenTicks.TicksAbs;

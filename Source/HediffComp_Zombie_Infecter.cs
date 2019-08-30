@@ -51,8 +51,6 @@ namespace ZombieLand
 		public override void CompPostPostAdd(DamageInfo? dinfo)
 		{
 			if (Pawn == null
-				|| Pawn.Spawned == false
-				|| Pawn.Map == null
 				|| Pawn.RaceProps.Humanlike == false
 				|| Pawn.health == null
 				|| Pawn.health.hediffSet == null
@@ -83,9 +81,6 @@ namespace ZombieLand
 
 		public override void CompTended(float quality, int batchPosition = 0)
 		{
-			if (Pawn.Spawned == false)
-				return;
-
 			if (infectionStartTime == 0)
 				return;
 

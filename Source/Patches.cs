@@ -796,7 +796,7 @@ namespace ZombieLand
 					if (shieldBelt.Energy > 0)
 						damageInfo = new DamageInfo(DamageDefOf.EMP, 1f, 0f, -1f, zombie, null, Tools.ElectricalFieldThingDef);
 					else
-						shieldBelt.Destroy(DestroyMode.Vanish);
+						shieldBelt.Destroy();
 
 					_ = MoteMaker.MakeStaticMote(pawn.TrueCenter(), pawn.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
 					MoteMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));

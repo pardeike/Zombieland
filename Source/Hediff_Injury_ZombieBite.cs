@@ -81,7 +81,7 @@ namespace ZombieLand
 				return;
 			}
 
-			if (state == InfectionState.Infected)
+			if (state == InfectionState.Infected && pawn.Map != null)
 			{
 				Tools.QueueConvertToZombie(pawn);
 				return;
@@ -98,7 +98,12 @@ namespace ZombieLand
 
 		bool InfectionLocked()
 		{
-			return TendDuration != null && TendDuration.GetInfectionState() == InfectionState.Infecting;
+			var duration = TendDuration;
+			if (duration == null)
+				return false;
+
+			var state = duration.GetInfectionState();
+			return state == InfectionState.Infecting || state == InfectionState.Infected;
 		}
 
 		public override float PainFactor
