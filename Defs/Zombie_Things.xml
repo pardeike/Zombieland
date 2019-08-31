@@ -57,4 +57,96 @@
 		</filth>
 	</ThingDef>
 
+	<ThingDef ParentName="ResourceBase">
+		<defName>ZombieExtract</defName>
+		<label>zombie extract</label>
+		<description>A tiny extract from a dead zombie.</description>
+		<graphicData>
+			<graphicClass>Graphic_Single</graphicClass>
+			<texPath>ZombieExtract</texPath>
+		</graphicData>
+		<stackLimit>100</stackLimit>
+		<statBases>
+			<MarketValue>10</MarketValue>
+			<Mass>0.005</Mass>
+			<MaxHitPoints>1</MaxHitPoints>
+			<Flammability>0.2</Flammability>
+			<Nutrition>0</Nutrition>
+			<WorkToMake>1000</WorkToMake>
+		</statBases>
+		<tradeability>Sellable</tradeability>
+		<tradeTags>
+			<li>ExoticMisc</li>
+		</tradeTags>
+		<thingCategories>
+			<li>Serum</li>
+		</thingCategories>
+		<tickerType>Rare</tickerType>
+		<resourceReadoutPriority>First</resourceReadoutPriority>
+	</ThingDef>
+
+	<ThingDef ParentName="UnfinishedBase">
+		<defName>UnfinishedZombieSerum</defName>
+		<label>unfinished zombie serum</label>
+		<statBases>
+			<Flammability>0.7</Flammability>
+		</statBases>
+		<graphicData>
+			<graphicClass>Graphic_Single</graphicClass>
+			<texPath>ZombieSerum_unfinished</texPath>
+		</graphicData>
+		<stuffCategories Inherit="false" />
+	</ThingDef>
+
+	<ThingDef ParentName="ResourceBase">
+		<defName>ZombieSerum</defName>
+		<label>zombie serum</label>
+		<description>A serum from dead zombies.</description>
+		<thingClass>Medicine</thingClass>
+		<stackLimit>10</stackLimit>
+		<uiIconForStackCount>1</uiIconForStackCount>
+		<soundInteract>Standard_Drop</soundInteract>
+		<soundDrop>Standard_Drop</soundDrop>
+		<graphicData>
+			<graphicClass>Graphic_Single</graphicClass>
+			<texPath>ZombieSerum</texPath>
+		</graphicData>
+		<techLevel>Industrial</techLevel>
+		<statBases>
+			<MarketValue>1200</MarketValue>
+			<Mass>0.50</Mass>
+			<Flammability>0.7</Flammability>
+			<MedicalPotency>1.60</MedicalPotency>
+			<MedicalQualityMax>1.30</MedicalQualityMax>
+			<DeteriorationRate>2.0</DeteriorationRate>
+			<MaxHitPoints>60</MaxHitPoints>
+		</statBases>
+		<costList>
+			<ZombieExtract>100</ZombieExtract>
+			<MedicineIndustrial>1</MedicineIndustrial>
+		</costList>
+		<recipeMaker>
+			<unfinishedThingDef>UnfinishedZombieSerum</unfinishedThingDef>
+			<workSpeedStat>DrugSynthesisSpeed</workSpeedStat>
+			<workSkill>Medicine</workSkill>
+			<recipeUsers>
+				<li>DrugLab</li>
+			</recipeUsers>
+			<skillRequirements>
+				<Crafting>3</Crafting>
+				<Intellectual>4</Intellectual>
+			</skillRequirements>
+			<workAmount>24000</workAmount>
+		</recipeMaker>
+		<tradeability>Sellable</tradeability>
+		<tradeTags>
+			<li>ExoticMisc</li>
+		</tradeTags>
+		<thingCategories>
+			<li>Serum</li>
+		</thingCategories>
+		<tickerType>Rare</tickerType>
+		<resourceReadoutPriority>First</resourceReadoutPriority>
+	</ThingDef>
+
 </Defs>

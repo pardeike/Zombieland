@@ -7,4 +7,12 @@
 		<parent>Items</parent>
 	</ThingCategoryDef>
 
+	<ThingCategoryDef>
+		<defName>Serum</defName>
+		<label>serum</label>
+		<parent>Manufactured</parent>
+		<resourceReadoutRoot>true</resourceReadoutRoot>
+		<iconPath>ZombieSerumIcon</iconPath>
+	</ThingCategoryDef>
+
 </Defs>

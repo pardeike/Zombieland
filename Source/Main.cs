@@ -35,6 +35,8 @@ namespace ZombieLand
 		public static SoundDef ZombiesClosingIn;
 		public static SoundDef ZombieElectricHum;
 		public static SoundDef ElectricShock;
+		public static JobDef ExtractZombieSerum;
+		public static ThingDef Corpse_Zombie;
 	}
 
 	public class ZombielandMod : Mod

@@ -163,10 +163,21 @@
 			<graphicClass>Graphic_Single</graphicClass>
 			<shaderType>Transparent</shaderType>
 		</graphicData>
-		<tickerType>Normal</tickerType>
+		<tickerType>Never</tickerType>
 		<altitudeLayer>Projectile</altitudeLayer>
-		<useHitPoints>false</useHitPoints>
 		<neverMultiSelect>true</neverMultiSelect>
+		<tradeNeverStack>true</tradeNeverStack>
+		<tradeability>None</tradeability>
+		<generateCommonality>0</generateCommonality>
+		<generateAllowChance>0</generateAllowChance>
+		<scatterableOnMapGen>false</scatterableOnMapGen>
+		<forceDebugSpawnable>false</forceDebugSpawnable>
+		<destroyOnDrop>true</destroyOnDrop>
+		<menuHidden>true</menuHidden>
+		<selectable>false</selectable>
+		<smeltable>false</smeltable>
+		<useHitPoints>false</useHitPoints>
+		<alwaysHaulable>false</alwaysHaulable>
 	</ThingDef>
 
 </Defs>

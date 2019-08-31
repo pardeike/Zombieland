@@ -28,10 +28,16 @@ namespace ZombieLand
 					rotcomp.daysToRotStart = 1f * GenTicks.SecondsToTicks(10) / 60000f;
 					rotcomp.daysToDessicated = 1f * GenTicks.SecondsToTicks(30) / 60000f;
 				});
+
+			var tickManager = map.GetComponent<TickManager>();
+			tickManager.allZombieCorpses.Add(this);
 		}
 
 		public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
 		{
+			var tickManager = Map.GetComponent<TickManager>();
+			_ = tickManager.allZombieCorpses.Remove(this);
+
 			if (InnerPawn is Zombie zombie)
 				zombie.Dispose();
 

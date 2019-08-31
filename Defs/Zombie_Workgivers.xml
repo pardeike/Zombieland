@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<WorkGiverDef>
+		<defName>ExtractZombieSerum</defName>
+		<label>extract serum from zombie corpses</label>
+		<giverClass>ZombieLand.WorkGiver_ExtractZombieSerum</giverClass>
+		<workType>Doctor</workType>
+		<verb>extract</verb>
+		<gerund>extracting</gerund>
+		<priorityInType>90</priorityInType>
+		<prioritizeSustains>true</prioritizeSustains>
+		<canBeDoneWhileDrafted>true</canBeDoneWhileDrafted>
+	</WorkGiverDef>
+
+</Defs>

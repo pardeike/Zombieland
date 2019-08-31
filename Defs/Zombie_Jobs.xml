@@ -8,4 +8,11 @@
 		<suspendable>true</suspendable>
 	</JobDef>
 
+	<JobDef>
+		<defName>ExtractZombieSerum</defName>
+		<driverClass>ZombieLand.JobDriver_ExtractZombieSerum</driverClass>
+		<reportString>extracting zombie serum from TargetA.</reportString>
+		<allowOpportunisticPrefix>false</allowOpportunisticPrefix>
+	</JobDef>
+
 </Defs>

@@ -780,6 +780,9 @@ namespace ZombieLand
 				if (zombie == null || zombie.isElectrifier == false)
 					return;
 
+				if (pawn?.Map == null || pawn.apparel == null)
+					return;
+
 				var apparel = pawn.apparel.WornApparel;
 
 				var smokepopBelt = apparel.OfType<SmokepopBelt>().FirstOrDefault();
@@ -804,16 +807,23 @@ namespace ZombieLand
 					return;
 				}
 
-				var sensitiveStuff = new List<Thing>()
-					.Union(pawn.equipment.AllEquipmentListForReading.Cast<Thing>())
-					.Union(pawn.inventory.GetDirectlyHeldThings().ToList())
-					.Union(apparel.Cast<Thing>())
+				var sensitiveStuff = apparel.Cast<Thing>();
+				if (pawn.equipment != null)
+					sensitiveStuff = sensitiveStuff
+						.Union(pawn.equipment.AllEquipmentListForReading.Cast<Thing>());
+				if (pawn.inventory != null)
+					sensitiveStuff = sensitiveStuff
+						.Union(pawn.inventory.GetDirectlyHeldThings());
+
+				var success = sensitiveStuff
 					.Where(thing =>
 					{
 						if (thing?.def?.costList == null) return false;
 						return thing.def.costList.Any(cost => cost.thingDef == ThingDefOf.ComponentIndustrial || cost.thingDef == ThingDefOf.ComponentSpacer);
-					});
-				if (sensitiveStuff.TryRandomElement(out var stuff))
+					})
+					.TryRandomElement(out var stuff);
+
+				if (success && stuff != null)
 				{
 					var amount = 2f * Find.Storyteller.difficulty.threatScale;
 					var damage = new DamageInfo(DamageDefOf.Deterioration, amount);
@@ -1540,7 +1550,8 @@ namespace ZombieLand
 				if (target.HasThing)
 				{
 					var zombie = target.Thing as Zombie;
-					if ((zombie != null && zombie.wasMapPawnBefore == false) || target.Thing is ZombieCorpse)
+					//if ((zombie != null && zombie.wasMapPawnBefore == false) || target.Thing is ZombieCorpse)
+					if (zombie != null && zombie.wasMapPawnBefore == false)
 					{
 						__result = false;
 						return false;
@@ -1558,7 +1569,8 @@ namespace ZombieLand
 			{
 				if (target.HasThing)
 				{
-					if (target.Thing is Zombie || target.Thing is ZombieCorpse)
+					//if (target.Thing is Zombie || target.Thing is ZombieCorpse)
+					if (target.Thing is Zombie)
 					{
 						__result = false;
 						return false;
@@ -1596,7 +1608,8 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Thing t, ref bool __result)
 			{
-				if (t is Zombie || t is ZombieCorpse)
+				//if (t is Zombie || t is ZombieCorpse)
+				if (t is Zombie)
 				{
 					__result = true;
 					return false;

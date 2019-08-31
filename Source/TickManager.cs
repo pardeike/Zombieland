@@ -24,6 +24,7 @@ namespace ZombieLand
 		public int currentColonyPoints;
 
 		public List<Zombie> allZombiesCached;
+		public List<ZombieCorpse> allZombieCorpses;
 		public AvoidGrid avoidGrid;
 		public AvoidGrid emptyAvoidGrid;
 
@@ -43,6 +44,7 @@ namespace ZombieLand
 		{
 			currentColonyPoints = 100;
 			allZombiesCached = new List<Zombie>();
+			allZombieCorpses = new List<ZombieCorpse>();
 		}
 
 		public override void FinalizeInit()
@@ -91,6 +93,10 @@ namespace ZombieLand
 			if (allZombiesCached == null)
 				allZombiesCached = new List<Zombie>();
 			allZombiesCached = allZombiesCached.Where(zombie => zombie != null && zombie.Spawned && zombie.Dead == false).ToList();
+
+			if (allZombieCorpses == null)
+				allZombieCorpses = new List<ZombieCorpse>();
+			allZombieCorpses = allZombieCorpses.Where(corpse => corpse.DestroyedOrNull() == false && corpse.Spawned).ToList();
 
 			if (incidentInfo == null)
 			{
