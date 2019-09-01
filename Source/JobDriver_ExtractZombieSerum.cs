@@ -51,26 +51,6 @@ namespace ZombieLand
 			{
 				var actor = wait.actor;
 				extractProcess += actor.GetStatValue(StatDefOf.MedicalTendSpeed, true) / 2;
-				if (job.playerForced == false && extractProcess >= nextZombieCheck)
-				{
-					nextZombieCheck += 0.05f;
-
-					// disabled in favor of the more inaccurate but much faster ZombiesNearby method
-					//
-					/*var map = actor.Map;
-					var center = actor.Position;
-					foreach (var vec in GenRadial.RadialPatternInRadius(5f))
-					{
-						var c = center + vec;
-						if (map.thingGrid.ThingAt<Zombie>(c) != null)
-						{
-							actor.jobs.EndCurrentJob(JobCondition.InterruptOptional, true);
-							break;
-						}
-					}*/
-					if (Tools.ZombiesNearby(actor, actor.Position).IsValid)
-						actor.jobs.EndCurrentJob(JobCondition.InterruptOptional, true);
-				}
 				if (extractProcess >= extractWork)
 				{
 					var extract = ThingMaker.MakeThing(extractDef, null);
@@ -82,6 +62,19 @@ namespace ZombieLand
 						zombieCorpse.Destroy();
 
 					actor.jobs.EndCurrentJob(JobCondition.Succeeded, true);
+				}
+				if (job.playerForced == false && extractProcess >= nextZombieCheck)
+				{
+					nextZombieCheck += 0.02f;
+
+					var map = actor.Map;
+					var center = actor.Position;
+					foreach (var vec in GenRadial.RadialPatternInRadius(4f))
+						if (map.thingGrid.ThingAt<Zombie>(center + vec) != null)
+						{
+							actor.jobs.EndCurrentJob(JobCondition.InterruptOptional, true);
+							break;
+						}
 				}
 			};
 			_ = wait.FailOnDespawnedOrNull(TargetIndex.A);

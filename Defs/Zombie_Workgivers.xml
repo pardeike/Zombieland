@@ -8,7 +8,10 @@
 		<workType>Doctor</workType>
 		<verb>extract</verb>
 		<gerund>extracting</gerund>
-		<priorityInType>90</priorityInType>
+		<priorityInType>45</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
 		<prioritizeSustains>true</prioritizeSustains>
 		<canBeDoneWhileDrafted>true</canBeDoneWhileDrafted>
 	</WorkGiverDef>

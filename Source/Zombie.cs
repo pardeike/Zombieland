@@ -25,6 +25,14 @@ namespace ZombieLand
 		}
 	}
 
+	public class ZombieSerum : ThingWithComps
+	{
+	}
+
+	public class ZombieExtract : ThingWithComps
+	{
+	}
+
 	[StaticConstructorOnStartup]
 	public class Zombie : Pawn, IDisposable
 	{

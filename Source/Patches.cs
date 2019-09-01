@@ -2501,6 +2501,20 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to exclude our zombie extract/serum from being used as medicine
+		//
+		[HarmonyPatch(typeof(ListerThings))]
+		[HarmonyPatch(nameof(ListerThings.ThingsInGroup))]
+		static class ListerThings_ThingsInGroup_Patch
+		{
+			static void Postfix(ThingRequestGroup group, List<Thing> __result)
+			{
+				if (group != ThingRequestGroup.Medicine)
+					return;
+				_ = __result.RemoveAll(thing => thing.def.thingClass == typeof(ZombieExtract) || thing.def.thingClass == typeof(ZombieSerum));
+			}
+		}
+
 		// patch to set zombie bite injuries as non natural healing to avoid
 		// the healing cross mote
 		//

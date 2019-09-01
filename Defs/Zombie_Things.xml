@@ -59,6 +59,7 @@
 
 	<ThingDef ParentName="ResourceBase">
 		<defName>ZombieExtract</defName>
+		<thingClass>ZombieLand.ZombieExtract</thingClass>
 		<label>zombie extract</label>
 		<description>A tiny extract from a dead zombie.</description>
 		<graphicData>
@@ -99,6 +100,7 @@
 	</ThingDef>
 
 	<ThingDef Name="ZombieSerumBase" ParentName="ResourceBase" Abstract="True">
+		<thingClass>ZombieLand.ZombieSerum</thingClass>
 		<stackLimit>10</stackLimit>
 		<uiIconForStackCount>1</uiIconForStackCount>
 		<soundInteract>Standard_Drop</soundInteract>
