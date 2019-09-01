@@ -8,7 +8,7 @@
 	</ThingCategoryDef>
 
 	<ThingCategoryDef>
-		<defName>Serum</defName>
+		<defName>ZombieSerum</defName>
 		<label>serum</label>
 		<parent>Manufactured</parent>
 		<resourceReadoutRoot>true</resourceReadoutRoot>

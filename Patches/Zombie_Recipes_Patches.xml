@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<Patch>
+
+	<Operation Class="PatchOperationSequence">
+		<operations>
+			<li Class="PatchOperationAdd">
+				<xpath>Defs/ThingDef[defName="Human"]/recipes</xpath>
+				<value>
+					<li>CureZombieInfection</li>
+				</value>
+			</li>
+		</operations>
+	</Operation>
+
+</Patch>

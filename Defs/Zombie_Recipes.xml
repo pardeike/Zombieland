@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<RecipeDef ParentName="SurgeryFlesh">
+		<defName>CureZombieInfection</defName>
+		<label>cure zombie infection</label>
+		<description>Removes an early stage zombie infection from a body part.</description>
+		<workerClass>ZombieLand.Recipe_CureZombieInfection</workerClass>
+		<jobString>Curing zombie infection.</jobString>
+		<targetsBodyPart>true</targetsBodyPart>
+		<anesthetize>false</anesthetize>
+		<workAmount>2000</workAmount>
+		<effectWorking>Surgery</effectWorking>
+		<soundWorking>Recipe_Surgery</soundWorking>
+		<workSpeedStat>MedicalOperationSpeed</workSpeedStat>
+		<workSkill>Medicine</workSkill>
+		<workSkillLearnFactor>32</workSkillLearnFactor>
+		<hideBodyPartNames>false</hideBodyPartNames>
+		<ingredients>
+			<li>
+				<filter>
+					<categories>
+						<li>ZombieSerum</li>
+					</categories>
+					<disallowedThingDefs>
+						<li>ZombieExtract</li>
+					</disallowedThingDefs>
+				</filter>
+				<count>1</count>
+			</li>
+		</ingredients>
+		<fixedIngredientFilter>
+			<categories>
+				<li>ZombieSerum</li>
+			</categories>
+			<disallowedThingDefs>
+				<li>ZombieExtract</li>
+			</disallowedThingDefs>
+		</fixedIngredientFilter>
+	</RecipeDef>
+
+</Defs>

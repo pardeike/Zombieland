@@ -79,6 +79,7 @@
     <Compile Include="HediffComp_Zombie_Infecter.cs" />
     <Compile Include="MultiVersionMethods.cs" />
     <Compile Include="MultiVersionModFix.cs" />
+    <Compile Include="Recipe_CureZombieInfection.cs" />
     <Compile Include="SharedSettings.cs" />
     <Compile Include="JobDriver_Stumble.cs" />
     <Compile Include="JobGiver.cs" />
@@ -131,6 +132,9 @@
       <Link>Zombie_Race.xml</Link>
       <SubType>Designer</SubType>
     </Content>
+    <Content Include="..\Defs\Zombie_Recipes.xml">
+      <Link>Zombie_Recipes.xml</Link>
+    </Content>
     <Content Include="..\Defs\Zombie_Sounds.xml">
       <Link>Zombie_Sounds.xml</Link>
     </Content>
@@ -148,6 +152,9 @@
     </Content>
     <Content Include="..\Patches\Zombie_CE_Patches.xml">
       <Link>Zombie_CE_Patches.xml</Link>
+    </Content>
+    <Content Include="..\Patches\Zombie_Recipes_Patches.xml">
+      <Link>Zombie_Recipes_Patches.xml</Link>
     </Content>
   </ItemGroup>
   <ItemGroup>

@@ -2806,7 +2806,6 @@ namespace ZombieLand
 			{
 				var dinfo = new DamageInfo(originalDinfo);
 				var dmgAmount = dinfo.Amount;
-				var damageDef = originalDinfo.Def;
 
 				shieldAbsorbed = false;
 				if (pawn == null || hitPart == null) return true;
