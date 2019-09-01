@@ -8,7 +8,8 @@ namespace ZombieLand
 	public class JobDriver_ExtractZombieSerum : JobDriver
 	{
 		private const float extractWork = 100;
-		private float extractProcess;
+		private float extractProcess = 0;
+		private float nextZombieCheck = 0;
 
 		private readonly ThingDef extractDef = ThingDef.Named("ZombieExtract");
 
@@ -16,6 +17,7 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 			Scribe_Values.Look<float>(ref extractProcess, "extractProcess", 0f, false);
+			Scribe_Values.Look<float>(ref nextZombieCheck, "nextZombieCheck", 0f, false);
 		}
 
 		public override string GetReport()
@@ -49,6 +51,26 @@ namespace ZombieLand
 			{
 				var actor = wait.actor;
 				extractProcess += actor.GetStatValue(StatDefOf.MedicalTendSpeed, true) / 2;
+				if (job.playerForced == false && extractProcess >= nextZombieCheck)
+				{
+					nextZombieCheck += 0.05f;
+
+					// disabled in favor of the more inaccurate but much faster ZombiesNearby method
+					//
+					/*var map = actor.Map;
+					var center = actor.Position;
+					foreach (var vec in GenRadial.RadialPatternInRadius(5f))
+					{
+						var c = center + vec;
+						if (map.thingGrid.ThingAt<Zombie>(c) != null)
+						{
+							actor.jobs.EndCurrentJob(JobCondition.InterruptOptional, true);
+							break;
+						}
+					}*/
+					if (Tools.ZombiesNearby(actor, actor.Position).IsValid)
+						actor.jobs.EndCurrentJob(JobCondition.InterruptOptional, true);
+				}
 				if (extractProcess >= extractWork)
 				{
 					var extract = ThingMaker.MakeThing(extractDef, null);

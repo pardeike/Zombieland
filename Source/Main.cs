@@ -36,6 +36,7 @@ namespace ZombieLand
 		public static SoundDef ZombieElectricHum;
 		public static SoundDef ElectricShock;
 		public static JobDef ExtractZombieSerum;
+		public static ThingDef Zombie;
 		public static ThingDef Corpse_Zombie;
 	}
 

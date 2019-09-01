@@ -58,10 +58,15 @@ namespace ZombieLand
 		public int baseNumberOfZombiesinEvent = 20;
 		internal int extraDaysBetweenEvents = 0;
 		public float suicideBomberChance = 0.01f;
+		public int suicideBomberIntChance = 1;
 		public float toxicSplasherChance = 0.01f;
+		public int toxicSplasherIntChance = 1;
 		public float tankyOperatorChance = 0.01f;
+		public int tankyOperatorIntChance = 1;
 		public float minerChance = 0.01f;
+		public int minerIntChance = 1;
 		public float electrifierChance = 0.01f;
+		public int electrifierIntChance = 1;
 		public float moveSpeedIdle = 0.2f;
 		public float moveSpeedTracking = 1.3f;
 		public float damageFactor = 1.0f;
@@ -92,6 +97,35 @@ namespace ZombieLand
 			// no base.ExposeData() to call
 
 			this.AutoExposeDataWithDefaults();
+
+			if (Scribe.mode == LoadSaveMode.PostLoadInit)
+			{
+				if (suicideBomberChance >= 0)
+				{
+					suicideBomberIntChance = (int)Math.Max(0f, Math.Min(100f, suicideBomberChance * 100f + 0.5f));
+					suicideBomberChance = -1f;
+				}
+				if (toxicSplasherChance >= 0)
+				{
+					toxicSplasherIntChance = (int)Math.Max(0f, Math.Min(100f, toxicSplasherChance * 100f + 0.5f));
+					toxicSplasherChance = -1f;
+				}
+				if (tankyOperatorChance >= 0)
+				{
+					tankyOperatorIntChance = (int)Math.Max(0f, Math.Min(100f, tankyOperatorChance * 100f + 0.5f));
+					tankyOperatorChance = -1f;
+				}
+				if (minerChance >= 0)
+				{
+					minerIntChance = (int)Math.Max(0f, Math.Min(100f, minerChance * 100f + 0.5f));
+					minerChance = -1f;
+				}
+				if (electrifierChance >= 0)
+				{
+					electrifierIntChance = (int)Math.Max(0f, Math.Min(100f, electrifierChance * 100f + 0.5f));
+					electrifierChance = -1f;
+				}
+			}
 		}
 
 		public void Reset()

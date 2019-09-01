@@ -27,10 +27,23 @@ namespace ZombieLand
 
 		public override void ApplyOnPawn(Pawn pawn, BodyPartRecord part, Pawn billDoer, List<Thing> ingredients, Bill bill)
 		{
-			var serum = ingredients.First();
-			var purity = serum.CostListAdjusted().First(d => d.thingDef.defName == "ZombieExtract").count;
+			if (pawn.DestroyedOrNull() || pawn.Dead || pawn.Map != billDoer.Map || pawn.IsInAnyStorage())
+				return;
+
+			var serum = ingredients.FirstOrDefault();
+			if (serum == null)
+				return;
+
+			var extract = serum.CostListAdjusted().FirstOrDefault(d => d.thingDef.defName == "ZombieExtract");
+			if (extract == null)
+				return;
+
+			var bite = GetInfectingBites(pawn).FirstOrDefault(b => b.Part == part);
+			if (bite == null)
+				return;
 
 			var chance = Rand.RangeInclusive(0, 100);
+			var purity = extract.count;
 			var failure = chance > purity;
 			var catastrophic = chance > purity + (100 - purity) * 3 / 4;
 
@@ -45,15 +58,14 @@ namespace ZombieLand
 				}
 				else
 				{
-					Messages.Message("MessageMedicalOperationFailureMinor".Translate(billDoer.LabelShort, pawn.LabelShort, billDoer.Named("SURGEON"), pawn.Named("PATIENT")), pawn, MessageTypeDefOf.NegativeHealthEvent, true);
 					HealthUtility.GiveInjuriesOperationFailureMinor(pawn, part);
 					pawn.needs.mood.thoughts.memories.TryGainMemory(ThoughtDefOf.BotchedMySurgery, billDoer);
+					Messages.Message("MessageMedicalOperationFailureMinor".Translate(billDoer.LabelShort, pawn.LabelShort, billDoer.Named("SURGEON"), pawn.Named("PATIENT")), pawn, MessageTypeDefOf.NegativeHealthEvent, true);
 				}
 
 				return;
 			}
 
-			var bite = GetInfectingBites(pawn).First(b => b.Part == part);
 			bite.mayBecomeZombieWhenDead = false;
 			var tendDuration = bite.TryGetComp<HediffComp_Zombie_TendDuration>();
 			tendDuration.ZombieInfector.MakeHarmless();

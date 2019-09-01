@@ -30,9 +30,19 @@ namespace ZombieLand
 			var corpse = t as ZombieCorpse;
 			if (corpse.DestroyedOrNull() || corpse.Spawned == false)
 				return false;
+
 			if (pawn.CanReach(corpse, PathEndMode.ClosestTouch, pawn.NormalMaxDanger(), false, TraverseMode.ByPawn) == false)
 				return false;
-			return pawn.CanReserve(corpse, 1, -1, null, forced);
+
+			var result = pawn.CanReserve(corpse, 1, -1, null, forced);
+			if (result)
+			{
+				var location = Tools.ZombiesNearby(pawn, corpse.Position);
+				if (location.IsValid)
+					result = false;
+			}
+
+			return result;
 		}
 
 		public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)

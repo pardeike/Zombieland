@@ -257,6 +257,21 @@ namespace ZombieLand
 			}
 		}
 
+		public static IntVec3 ZombiesNearby(Pawn pawn, IntVec3 destination, bool ignoreDowned = false)
+		{
+			var tp = TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false);
+			var foundZombie = IntVec3.Invalid;
+			RegionTraverser.BreadthFirstTraverse(destination, pawn.Map, (Region from, Region to) => to.Allows(tp, false), delegate (Region r)
+			{
+				var zombie = r.ListerThings.ThingsOfDef(CustomDefs.Zombie).OfType<Zombie>().FirstOrDefault();
+				if (zombie != null && (ignoreDowned || zombie.IsDowned() == false))
+					foundZombie = zombie.Position;
+				return foundZombie.IsValid;
+
+			}, 9, RegionType.Set_Passable);
+			return foundZombie;
+		}
+
 		public static void QueueConvertToZombie(ThingWithComps thing)
 		{
 			var tickManager = thing.Map.GetComponent<TickManager>();

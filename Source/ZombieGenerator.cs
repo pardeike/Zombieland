@@ -78,11 +78,11 @@ namespace ZombieLand
 			return null;
 		}
 
-		public static readonly Pair<float, Func<Zombie, BodyTypeDef>>[] zombieTypeInitializers = new Pair<float, Func<Zombie, BodyTypeDef>>[]
+		public static readonly Pair<int, Func<Zombie, BodyTypeDef>>[] zombieTypeInitializers = new Pair<int, Func<Zombie, BodyTypeDef>>[]
 		{
 			// suicide bomber
-			new Pair<float, Func<Zombie, BodyTypeDef>>(
-				ZombieSettings.Values.suicideBomberChance,
+			new Pair<int, Func<Zombie, BodyTypeDef>>(
+				ZombieSettings.Values.suicideBomberIntChance,
 				zombie =>
 				{
 					zombie.bombTickingInterval = 60f;
@@ -94,8 +94,8 @@ namespace ZombieLand
 			),
 
 			// toxic splasher
-			new Pair<float, Func<Zombie, BodyTypeDef>>(
-				ZombieSettings.Values.toxicSplasherChance,
+			new Pair<int, Func<Zombie, BodyTypeDef>>(
+				ZombieSettings.Values.toxicSplasherIntChance,
 				zombie =>
 				{
 					zombie.isToxicSplasher = true;
@@ -117,8 +117,8 @@ namespace ZombieLand
 			),
 
 			// tanky operator
-			new Pair<float, Func<Zombie, BodyTypeDef>>(
-				ZombieSettings.Values.tankyOperatorChance,
+			new Pair<int, Func<Zombie, BodyTypeDef>>(
+				ZombieSettings.Values.tankyOperatorIntChance,
 				zombie =>
 				{
 					zombie.hasTankyShield = 1f;
@@ -131,8 +131,8 @@ namespace ZombieLand
 			),
 
 			// miner
-			new Pair<float, Func<Zombie, BodyTypeDef>>(
-				ZombieSettings.Values.minerChance,
+			new Pair<int, Func<Zombie, BodyTypeDef>>(
+				ZombieSettings.Values.minerIntChance,
 				zombie =>
 				{
 					zombie.isMiner = true;
@@ -141,8 +141,8 @@ namespace ZombieLand
 			),
 
 			// electrifier
-			new Pair<float, Func<Zombie, BodyTypeDef>>(
-				ZombieSettings.Values.electrifierChance,
+			new Pair<int, Func<Zombie, BodyTypeDef>>(
+				ZombieSettings.Values.electrifierIntChance,
 				zombie =>
 				{
 					zombie.isElectrifier = true;
@@ -151,8 +151,8 @@ namespace ZombieLand
 			),
 
 			// default ordinary zombie
-			new Pair<float, Func<Zombie, BodyTypeDef>>(
-				float.MaxValue,
+			new Pair<int, Func<Zombie, BodyTypeDef>>(
+				100,
 				zombie =>
 				{
 					return SetRandomBody(zombie);
@@ -243,11 +243,11 @@ namespace ZombieLand
 			var typeCount = ZombieBaseValues.zombieTypeInitializers.Count();
 			bodyType = ZombieBaseValues.zombieTypeInitializers[typeCount - 1].Second;
 
-			var typeChance = Rand.Value;
+			var typeChance = Rand.RangeInclusive(0, 100);
 			for (var i = 0; i < typeCount - 1; i++)
 			{
 				typeChance -= ZombieBaseValues.zombieTypeInitializers[i].First;
-				if (typeChance < 0f)
+				if (typeChance <= 0)
 				{
 					Log.Warning($"{typeChance} => {Enum.GetName(typeof(ZombieType), i)}");
 					bodyType = ZombieBaseValues.zombieTypeInitializers[i].Second;
