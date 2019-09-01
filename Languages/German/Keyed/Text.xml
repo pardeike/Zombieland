@@ -126,4 +126,6 @@
 	<BodyIsInfectedLabel>Dieser Körper ist mit dem Zombievirus infiziert!</BodyIsInfectedLabel>
 	<BodyIsInfectedTooltip>Infizierte Körper werden als Zombies auferstehen wenn sie anfangen zu verrotten.</BodyIsInfectedTooltip>
 
+	<CureZombieInfection>Heile Zombieinfektion</CureZombieInfection>
+
 </LanguageData>

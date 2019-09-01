@@ -126,4 +126,6 @@
 	<BodyIsInfectedLabel>Это тело заражено вирусом зомби!</BodyIsInfectedLabel>
 	<BodyIsInfectedTooltip>Зараженные тела превратятся в зомби, когда они начнут гнить.</BodyIsInfectedTooltip>
 
+	<CureZombieInfection>Вылечить зомби-инфекцию</CureZombieInfection>
+
 </LanguageData>

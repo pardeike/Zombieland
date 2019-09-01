@@ -75,7 +75,7 @@ namespace ZombieLand
 
 		public override string GetLabelWhenUsedOn(Pawn pawn, BodyPartRecord part)
 		{
-			return "CuringZombieInfection".Translate();
+			return "CureZombieInfection".Translate();
 		}
 	}
 }

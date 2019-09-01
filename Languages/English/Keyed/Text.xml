@@ -126,4 +126,6 @@
 	<BodyIsInfectedLabel>This body is infected with the zombie virus!</BodyIsInfectedLabel>
 	<BodyIsInfectedTooltip>Infected bodies will turn into zombies when they start to rot.</BodyIsInfectedTooltip>
 
+	<CureZombieInfection>Cure zombie infection</CureZombieInfection>
+
 </LanguageData>

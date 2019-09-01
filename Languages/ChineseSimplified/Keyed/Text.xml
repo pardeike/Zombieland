@@ -126,4 +126,6 @@
   <BodyIsInfectedLabel>这具尸体感染了丧尸病毒！</BodyIsInfectedLabel>
   <BodyIsInfectedTooltip>感染的尸体会在开始腐烂时会变成丧尸。</BodyIsInfectedTooltip>
 
+  <CureZombieInfection>治愈僵尸感染</CureZombieInfection>
+
 </LanguageData>

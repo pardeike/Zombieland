@@ -126,4 +126,6 @@
 	<BodyIsInfectedLabel>Bu vücut zombi virüsü ile enfekte!</BodyIsInfectedLabel>
 	<BodyIsInfectedTooltip>Enfekte olmuş bedenler çürümeye başladıklarında zombiye dönüşeceklerdir.</BodyIsInfectedTooltip>
 
+	<CureZombieInfection>Tedavi zombi enfeksiyonu</CureZombieInfection>
+
 </LanguageData>
