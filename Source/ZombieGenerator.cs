@@ -78,11 +78,11 @@ namespace ZombieLand
 			return null;
 		}
 
-		public static readonly Pair<int, Func<Zombie, BodyTypeDef>>[] zombieTypeInitializers = new Pair<int, Func<Zombie, BodyTypeDef>>[]
+		public static readonly Pair<Func<float>, Func<Zombie, BodyTypeDef>>[] zombieTypeInitializers = new Pair<Func<float>, Func<Zombie, BodyTypeDef>>[]
 		{
 			// suicide bomber
-			new Pair<int, Func<Zombie, BodyTypeDef>>(
-				ZombieSettings.Values.suicideBomberIntChance,
+			new Pair<Func<float>, Func<Zombie, BodyTypeDef>>(
+				() => ZombieSettings.Values.suicideBomberChance,
 				zombie =>
 				{
 					zombie.bombTickingInterval = 60f;
@@ -94,8 +94,8 @@ namespace ZombieLand
 			),
 
 			// toxic splasher
-			new Pair<int, Func<Zombie, BodyTypeDef>>(
-				ZombieSettings.Values.toxicSplasherIntChance,
+			new Pair<Func<float>, Func<Zombie, BodyTypeDef>>(
+				() => ZombieSettings.Values.toxicSplasherChance,
 				zombie =>
 				{
 					zombie.isToxicSplasher = true;
@@ -117,8 +117,8 @@ namespace ZombieLand
 			),
 
 			// tanky operator
-			new Pair<int, Func<Zombie, BodyTypeDef>>(
-				ZombieSettings.Values.tankyOperatorIntChance,
+			new Pair<Func<float>, Func<Zombie, BodyTypeDef>>(
+				() => ZombieSettings.Values.tankyOperatorChance,
 				zombie =>
 				{
 					zombie.hasTankyShield = 1f;
@@ -131,8 +131,8 @@ namespace ZombieLand
 			),
 
 			// miner
-			new Pair<int, Func<Zombie, BodyTypeDef>>(
-				ZombieSettings.Values.minerIntChance,
+			new Pair<Func<float>, Func<Zombie, BodyTypeDef>>(
+				() => ZombieSettings.Values.minerChance,
 				zombie =>
 				{
 					zombie.isMiner = true;
@@ -141,8 +141,8 @@ namespace ZombieLand
 			),
 
 			// electrifier
-			new Pair<int, Func<Zombie, BodyTypeDef>>(
-				ZombieSettings.Values.electrifierIntChance,
+			new Pair<Func<float>, Func<Zombie, BodyTypeDef>>(
+				() => ZombieSettings.Values.electrifierChance,
 				zombie =>
 				{
 					zombie.isElectrifier = true;
@@ -151,8 +151,13 @@ namespace ZombieLand
 			),
 
 			// default ordinary zombie
-			new Pair<int, Func<Zombie, BodyTypeDef>>(
-				100,
+			new Pair<Func<float>, Func<Zombie, BodyTypeDef>>(
+				() => 1f
+					- ZombieSettings.Values.suicideBomberChance
+					- ZombieSettings.Values.toxicSplasherChance
+					- ZombieSettings.Values.tankyOperatorChance
+					- ZombieSettings.Values.minerChance
+					- ZombieSettings.Values.electrifierChance,
 				zombie =>
 				{
 					return SetRandomBody(zombie);
@@ -232,30 +237,22 @@ namespace ZombieLand
 		private static BodyTypeDef PrepareZombieType(Zombie zombie, ZombieType overwriteType)
 		{
 			Func<Zombie, BodyTypeDef> bodyType;
+			Pair<Func<float>, Func<Zombie, BodyTypeDef>> initializer;
 
 			if (overwriteType != ZombieType.Random)
 			{
-				var initializer = ZombieBaseValues.zombieTypeInitializers[(int)overwriteType];
+				initializer = ZombieBaseValues.zombieTypeInitializers[(int)overwriteType];
 				bodyType = initializer.Second;
 				return bodyType(zombie);
 			}
 
-			var typeCount = ZombieBaseValues.zombieTypeInitializers.Count();
-			bodyType = ZombieBaseValues.zombieTypeInitializers[typeCount - 1].Second;
-
-			var typeChance = Rand.RangeInclusive(0, 100);
-			for (var i = 0; i < typeCount - 1; i++)
+			var success = GenCollection.TryRandomElementByWeight(ZombieBaseValues.zombieTypeInitializers, pair => pair.First(), out initializer);
+			if (success == false)
 			{
-				typeChance -= ZombieBaseValues.zombieTypeInitializers[i].First;
-				if (typeChance <= 0)
-				{
-					Log.Warning($"{typeChance} => {Enum.GetName(typeof(ZombieType), i)}");
-					bodyType = ZombieBaseValues.zombieTypeInitializers[i].Second;
-					return bodyType(zombie);
-				}
+				Log.Error("GenCollection.TryRandomElementByWeight returned false");
+				return null;
 			}
-			Log.Warning($"{typeChance} => {Enum.GetName(typeof(ZombieType), typeCount - 1)} [default]");
-			return bodyType(zombie);
+			return initializer.Second(zombie);
 		}
 
 		public static string FixGlowingEyeOffset(Zombie zombie)

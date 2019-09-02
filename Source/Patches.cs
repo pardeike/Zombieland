@@ -1540,6 +1540,26 @@ namespace ZombieLand
 
 		// patches to disallow interacting with zombies or zombiecorpses
 		//
+		[HarmonyPatch(typeof(WorkGiver_Haul))]
+		[HarmonyPatch(nameof(WorkGiver_Haul.JobOnThing))]
+		static class WorkGiver_Haul_JobOnThing_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Thing t, bool forced, ref Job __result)
+			{
+				if (forced)
+					return true;
+
+				var corpse = t as ZombieCorpse;
+				if (corpse != null)
+				{
+					__result = null;
+					return false;
+				}
+
+				return true;
+			}
+		}
 		[HarmonyPatch(typeof(ReservationManager))]
 		[HarmonyPatch("CanReserve")]
 		static class ReservationManager_CanReserve_Patch

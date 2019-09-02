@@ -41,6 +41,14 @@ namespace ZombieLand
 		Sensitive
 	}
 
+	internal class NoteDialog : Dialog_MessageBox
+	{
+		internal NoteDialog(string text, string buttonAText = null, Action buttonAAction = null, string buttonBText = null, Action buttonBAction = null, string title = null, bool buttonADestructive = false, Action acceptAction = null, Action cancelAction = null)
+			: base(text, buttonAText, buttonAAction, buttonBText, buttonBAction, title, buttonADestructive, acceptAction, cancelAction) { }
+
+		public override Vector2 InitialSize => new Vector2(320, 240);
+	}
+
 	class SettingsGroup : IExposable, ICloneable
 	{
 		public SpawnWhenType spawnWhenType = SpawnWhenType.WhenDark;
@@ -58,15 +66,15 @@ namespace ZombieLand
 		public int baseNumberOfZombiesinEvent = 20;
 		internal int extraDaysBetweenEvents = 0;
 		public float suicideBomberChance = 0.01f;
-		public int suicideBomberIntChance = 1;
+		public int suicideBomberIntChance = 1;//unused
 		public float toxicSplasherChance = 0.01f;
-		public int toxicSplasherIntChance = 1;
+		public int toxicSplasherIntChance = 1;//unused
 		public float tankyOperatorChance = 0.01f;
-		public int tankyOperatorIntChance = 1;
+		public int tankyOperatorIntChance = 1;//unused
 		public float minerChance = 0.01f;
-		public int minerIntChance = 1;
+		public int minerIntChance = 1;//unused
 		public float electrifierChance = 0.01f;
-		public int electrifierIntChance = 1;
+		public int electrifierIntChance = 1;//unused
 		public float moveSpeedIdle = 0.2f;
 		public float moveSpeedTracking = 1.3f;
 		public float damageFactor = 1.0f;
@@ -100,31 +108,40 @@ namespace ZombieLand
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
-				if (suicideBomberChance >= 0)
+				var dirty = false;
+
+				if (suicideBomberChance < 0 || suicideBomberChance > 1)
 				{
-					suicideBomberIntChance = (int)Math.Max(0f, Math.Min(100f, suicideBomberChance * 100f + 0.5f));
-					suicideBomberChance = -1f;
+					suicideBomberChance = 0.01f;
+					dirty = true;
 				}
-				if (toxicSplasherChance >= 0)
+				if (toxicSplasherChance < 0 || toxicSplasherChance > 1)
 				{
-					toxicSplasherIntChance = (int)Math.Max(0f, Math.Min(100f, toxicSplasherChance * 100f + 0.5f));
-					toxicSplasherChance = -1f;
+					toxicSplasherChance = 0.01f;
+					dirty = true;
 				}
-				if (tankyOperatorChance >= 0)
+				if (tankyOperatorChance < 0 || tankyOperatorChance > 1)
 				{
-					tankyOperatorIntChance = (int)Math.Max(0f, Math.Min(100f, tankyOperatorChance * 100f + 0.5f));
-					tankyOperatorChance = -1f;
+					tankyOperatorChance = 0.01f;
+					dirty = true;
 				}
-				if (minerChance >= 0)
+				if (minerChance < 0 || minerChance > 1)
 				{
-					minerIntChance = (int)Math.Max(0f, Math.Min(100f, minerChance * 100f + 0.5f));
-					minerChance = -1f;
+					minerChance = 0.01f;
+					dirty = true;
 				}
-				if (electrifierChance >= 0)
+				if (electrifierChance < 0 || electrifierChance > 1)
 				{
-					electrifierIntChance = (int)Math.Max(0f, Math.Min(100f, electrifierChance * 100f + 0.5f));
-					electrifierChance = -1f;
+					electrifierChance = 0.01f;
+					dirty = true;
 				}
+
+				if (dirty && ZombielandMod.IsLoadingDefaults == false)
+					LongEventHandler.QueueLongEvent(() =>
+					{
+						var note = "Zombieland Mod\n\nSpecial zombie percentages were reset to their defaults. Please adjust them and save the game.";
+						Find.WindowStack.Add(new NoteDialog(note));
+					}, "special-zombies", true, null);
 			}
 		}
 

@@ -297,20 +297,6 @@ namespace ZombieLand
 			value = Widgets.HorizontalSlider(srect, value, min, max, false, null, labelId.SafeTranslate(), valstr, -1f);
 		}
 
-		public static void Dialog_PercentSlider(this Listing_Standard list, string labelId, ref int value, int min, int max)
-		{
-			list.Help(labelId, 32f);
-
-			list.Gap(12f);
-
-			var srect = list.GetRect(24f);
-			srect.xMin += inset;
-			srect.xMax -= inset;
-
-			var result = Widgets.HorizontalSlider(srect, value, min, max, false, null, labelId.SafeTranslate(), $"{value}%", -1f);
-			value = (int)(result + 0.5f);
-		}
-
 		public static void Dialog_TimeSlider(this Listing_Standard list, string labelId, ref int value, int min, int max, bool fullDaysOnly = false)
 		{
 			list.Gap(-4f);
@@ -400,13 +386,14 @@ namespace ZombieLand
 				// Eating
 				list.Dialog_Label("SpecialZombiesTitle");
 				list.Gap(8f);
-				list.Dialog_PercentSlider("SuicideBomberChance", ref settings.suicideBomberIntChance, 0, 100 - settings.toxicSplasherIntChance - settings.tankyOperatorIntChance - settings.minerIntChance - settings.electrifierIntChance);
-				list.Dialog_PercentSlider("ToxicSplasherChance", ref settings.toxicSplasherIntChance, 0, 100 - settings.suicideBomberIntChance - settings.tankyOperatorIntChance - settings.minerIntChance - settings.electrifierIntChance);
-				list.Dialog_PercentSlider("TankyOperatorChance", ref settings.tankyOperatorIntChance, 0, 100 - settings.suicideBomberIntChance - settings.toxicSplasherIntChance - settings.minerIntChance - settings.electrifierIntChance);
-				list.Dialog_PercentSlider("MinerChance", ref settings.minerIntChance, 0, 100 - settings.suicideBomberIntChance - settings.toxicSplasherIntChance - settings.tankyOperatorIntChance - settings.electrifierIntChance);
-				list.Dialog_PercentSlider("ElectrifierChance", ref settings.electrifierIntChance, 0, 100 - settings.suicideBomberIntChance - settings.toxicSplasherIntChance - settings.tankyOperatorIntChance - settings.minerIntChance);
+				list.Dialog_FloatSlider("SuicideBomberChance", "0%", ref settings.suicideBomberChance, 0f, 1f - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance);
+				list.Dialog_FloatSlider("ToxicSplasherChance", "0%", ref settings.toxicSplasherChance, 0f, 1f - settings.suicideBomberChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance);
+				list.Dialog_FloatSlider("TankyOperatorChance", "0%", ref settings.tankyOperatorChance, 0f, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.minerChance - settings.electrifierChance);
+				list.Dialog_FloatSlider("MinerChance", "0%", ref settings.minerChance, 0f, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.electrifierChance);
+				list.Dialog_FloatSlider("ElectrifierChance", "0%", ref settings.electrifierChance, 0f, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance);
+				var normalChance = 1 - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance;
 				list.Gap(-6f);
-				list.Dialog_Text(GameFont.Tiny, "NormalZombieChance", $"{100 - settings.suicideBomberIntChance - settings.toxicSplasherIntChance - settings.tankyOperatorIntChance - settings.minerIntChance - settings.electrifierIntChance}%");
+				list.Dialog_Text(GameFont.Tiny, "NormalZombieChance", string.Format("{0:0%}", normalChance));
 				list.Gap(20f);
 
 				// Days

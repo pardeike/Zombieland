@@ -44,11 +44,13 @@ namespace ZombieLand
 	public class ZombielandMod : Mod
 	{
 		public static string Identifier = "";
+		public static bool IsLoadingDefaults = true;
 
 		public ZombielandMod(ModContentPack content) : base(content)
 		{
 			Identifier = content.Identifier;
 			_ = GetSettings<ZombieSettingsDefaults>();
+			IsLoadingDefaults = false;
 		}
 
 		public override void DoSettingsWindowContents(Rect inRect)
