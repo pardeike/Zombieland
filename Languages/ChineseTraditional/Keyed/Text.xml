@@ -127,5 +127,9 @@
   <BodyIsInfectedTooltip>感染的屍體會在開始腐爛時會變成殭屍。</BodyIsInfectedTooltip>
 
   <CureZombieInfection>治愈殭屍感染</CureZombieInfection>
+	<ExtractingZombieSerum>提取殭屍血清</ExtractingZombieSerum>
+	<AutoExtractDisabledDescription>不能提取殭屍血清（沒有醫生）</AutoExtractDisabledDescription>
+	<AutoExtractAllowedDescription>當沒有殭屍在附近時自動提取殭屍血清</AutoExtractAllowedDescription>
+	<AutoExtractForbiddenDescription>訂購時只能提取殭屍精華素</AutoExtractForbiddenDescription>
 
 </LanguageData>

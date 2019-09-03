@@ -127,5 +127,9 @@
 	<BodyIsInfectedTooltip>Enfekte olmuş bedenler çürümeye başladıklarında zombiye dönüşeceklerdir.</BodyIsInfectedTooltip>
 
 	<CureZombieInfection>Tedavi zombi enfeksiyonu</CureZombieInfection>
+	<ExtractingZombieSerum>Zombi serumu ayıklanıyor</ExtractingZombieSerum>
+	<AutoExtractDisabledDescription>Zombi serumunu çıkaramıyorum (doktor yok)</AutoExtractDisabledDescription>
+	<AutoExtractAllowedDescription>Yakında zombi olmadığında zombi serumunu otomatik olarak çıkar</AutoExtractAllowedDescription>
+	<AutoExtractForbiddenDescription>Yalnızca sipariş edildiğinde zombi serumu ayıklayın</AutoExtractForbiddenDescription>
 
 </LanguageData>

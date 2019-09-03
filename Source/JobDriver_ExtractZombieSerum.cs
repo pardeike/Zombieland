@@ -22,7 +22,7 @@ namespace ZombieLand
 
 		public override string GetReport()
 		{
-			return "ExtractingZombieSerum";
+			return "ExtractingZombieSerum".Translate();
 		}
 
 		public override bool TryMakePreToilReservations(bool errorOnFailed)

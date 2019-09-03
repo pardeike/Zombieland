@@ -257,6 +257,17 @@ namespace ZombieLand
 			}
 		}
 
+		public static bool CanDoctor(this Pawn pawn)
+		{
+			if (pawn.RaceProps.Humanlike == false)
+				return false;
+			if (pawn.Downed || pawn.Awake() == false || pawn.InBed() || pawn.InMentalState || pawn.IsPrisoner)
+				return false;
+			if (pawn.workSettings == null)
+				return false;
+			return pawn.workSettings.WorkIsActive(WorkTypeDefOf.Doctor) && pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation);
+		}
+
 		public static IntVec3 ZombiesNearby(Pawn pawn, IntVec3 destination, bool ignoreDowned = false)
 		{
 			var tp = TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false);
@@ -268,7 +279,7 @@ namespace ZombieLand
 					foundZombie = zombie.Position;
 				return foundZombie.IsValid;
 
-			}, 9, RegionType.Set_Passable);
+			}, 25, RegionType.Set_Passable);
 			return foundZombie;
 		}
 

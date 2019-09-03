@@ -127,5 +127,9 @@
 	<BodyIsInfectedTooltip>Infizierte Körper werden als Zombies auferstehen wenn sie anfangen zu verrotten.</BodyIsInfectedTooltip>
 
 	<CureZombieInfection>Heile Zombieinfektion</CureZombieInfection>
+	<ExtractingZombieSerum>Extrahieren von Zombieserum</ExtractingZombieSerum>
+	<AutoExtractDisabledDescription>Zombieserum kann nicht extrahiert werden (kein Doktor)</AutoExtractDisabledDescription>
+	<AutoExtractAllowedDescription>Zombieserum automatisch extrahieren wenn keine Zombies in der Nähe sind</AutoExtractAllowedDescription>
+	<AutoExtractForbiddenDescription>Zombieserum nur auf Befehl extrahieren</AutoExtractForbiddenDescription>
 
 </LanguageData>

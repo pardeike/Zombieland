@@ -59,6 +59,7 @@
     <Compile Include="Alerts.cs" />
     <Compile Include="BombVest.cs" />
     <Compile Include="CameraPlusSupport.cs" />
+    <Compile Include="ColonistSettings.cs" />
     <Compile Include="ConcurrentQueue.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="CrossPromotion.cs" />

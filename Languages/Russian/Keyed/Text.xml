@@ -127,5 +127,9 @@
 	<BodyIsInfectedTooltip>Зараженные тела превратятся в зомби, когда они начнут гнить.</BodyIsInfectedTooltip>
 
 	<CureZombieInfection>Вылечить зомби-инфекцию</CureZombieInfection>
+	<ExtractingZombieSerum>Извлечение зомби-сыворотки</ExtractingZombieSerum>
+	<AutoExtractDisabledDescription>Не может извлечь сыворотку зомби (не врач)</AutoExtractDisabledDescription>
+	<AutoExtractAllowedDescription>Автоматически извлекать сыворотку зомби, когда поблизости нет зомби</AutoExtractAllowedDescription>
+	<AutoExtractForbiddenDescription>Извлекайте зомби-сыворотку только при заказе</AutoExtractForbiddenDescription>
 
 </LanguageData>

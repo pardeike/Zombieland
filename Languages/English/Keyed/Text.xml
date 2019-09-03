@@ -127,5 +127,9 @@
 	<BodyIsInfectedTooltip>Infected bodies will turn into zombies when they start to rot.</BodyIsInfectedTooltip>
 
 	<CureZombieInfection>Cure zombie infection</CureZombieInfection>
+	<ExtractingZombieSerum>Extracting zombie serum</ExtractingZombieSerum>
+	<AutoExtractDisabledDescription>Cannot extract zombie serum (no doctor)</AutoExtractDisabledDescription>
+	<AutoExtractAllowedDescription>Automatically extract zombie serum when no zombies are nearby</AutoExtractAllowedDescription>
+	<AutoExtractForbiddenDescription>Only extract zombie serum when ordered</AutoExtractForbiddenDescription>
 
 </LanguageData>

@@ -2521,6 +2521,50 @@ namespace ZombieLand
 			}
 		}
 
+		// add start/stop extracting zombie serum gizmo
+		//
+		[HarmonyPatch(typeof(PriorityWork))]
+		[HarmonyPatch(nameof(PriorityWork.GetGizmos))]
+		[StaticConstructorOnStartup]
+		static class PriorityWork_GetGizmos_Patch
+		{
+			public static readonly Texture2D ExtractingAllowed = ContentFinder<Texture2D>.Get("ExtractingAllowed", true);
+			public static readonly Texture2D ExtractingForbidden = ContentFinder<Texture2D>.Get("ExtractingForbidden", true);
+			public static readonly Texture2D ExtractingDisabled = ContentFinder<Texture2D>.Get("ZombieExtract", true); // auto-dimmed
+
+			static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> gizmos, Pawn ___pawn)
+			{
+				var gizmoList = gizmos.ToList();
+				foreach (var gizmo in gizmos)
+					yield return gizmo;
+
+				var description = "AutoExtractDisabledDescription";
+				var icon = ExtractingDisabled;
+				SoundDef activateSound = null;
+				Action action = null;
+
+				var canDoctor = ___pawn.CanDoctor();
+				var config = canDoctor ? ColonistSettings.Values.ConfigFor(___pawn) : null;
+				if (canDoctor)
+				{
+					var autoExtractZombieSerum = config.autoExtractZombieSerum;
+					description = autoExtractZombieSerum ? "AutoExtractAllowedDescription" : "AutoExtractForbiddenDescription";
+					icon = autoExtractZombieSerum ? ExtractingAllowed : ExtractingForbidden;
+					activateSound = autoExtractZombieSerum ? SoundDefOf.Designate_ZoneAdd : SoundDefOf.Designate_ZoneDelete;
+					action = config.ToggleAutoExtractZombieSerum;
+				}
+
+				yield return new Command_Action
+				{
+					disabled = canDoctor == false,
+					defaultDesc = description.Translate(),
+					icon = icon,
+					activateSound = activateSound,
+					action = action
+				};
+			}
+		}
+
 		// patch to forbid zombie extract and use our zombie serum in the right order with medicine
 		// - first use medicine to tend all wounds by excluding serum
 		// - then allow serum and let it automatically execute operation bills

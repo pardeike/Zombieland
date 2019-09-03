@@ -127,5 +127,9 @@
   <BodyIsInfectedTooltip>感染的尸体会在开始腐烂时会变成丧尸。</BodyIsInfectedTooltip>
 
   <CureZombieInfection>治愈僵尸感染</CureZombieInfection>
+	<ExtractingZombieSerum>提取僵尸血清</ExtractingZombieSerum>
+	<AutoExtractDisabledDescription>不能提取僵尸血清（没有医生）)</AutoExtractDisabledDescription>
+	<AutoExtractAllowedDescription>当没有僵尸在附近时自动提取僵尸血清</AutoExtractAllowedDescription>
+	<AutoExtractForbiddenDescription>订购时只能提取僵尸精华素</AutoExtractForbiddenDescription>
 
 </LanguageData>

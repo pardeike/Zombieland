@@ -31,6 +31,9 @@ namespace ZombieLand
 			if (corpse.DestroyedOrNull() || corpse.Spawned == false)
 				return false;
 
+			if (forced == false && ColonistSettings.Values.ConfigFor(pawn).autoExtractZombieSerum == false)
+				return false;
+
 			if (pawn.CanReach(corpse, PathEndMode.ClosestTouch, pawn.NormalMaxDanger(), false, TraverseMode.ByPawn) == false)
 				return false;
 
