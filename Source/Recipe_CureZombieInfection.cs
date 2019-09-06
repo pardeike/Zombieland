@@ -14,7 +14,9 @@ namespace ZombieLand
 				.Where(bite =>
 				{
 					var state = bite.TendDuration.GetInfectionState();
-					return state == InfectionState.BittenInfectable && state < InfectionState.Infecting;
+					if (Find.Storyteller.difficulty.isExtreme)
+						return state > InfectionState.BittenInfectable && state < InfectionState.Infecting;
+					return state > InfectionState.BittenHarmless;
 				});
 		}
 

@@ -4,7 +4,7 @@
 	<RecipeDef ParentName="SurgeryFlesh">
 		<defName>CureZombieInfection</defName>
 		<label>cure zombie infection</label>
-		<description>Removes an early stage zombie infection from a body part.</description>
+		<description>Removes an early stage zombie infection from a body part. Requires one zombie serum (better percentage gives less failure risk).</description>
 		<workerClass>ZombieLand.Recipe_CureZombieInfection</workerClass>
 		<jobString>Curing zombie infection.</jobString>
 		<targetsBodyPart>true</targetsBodyPart>

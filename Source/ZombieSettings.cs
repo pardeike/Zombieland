@@ -88,6 +88,8 @@ namespace ZombieLand
 		public int hoursInfectionIsTreatable = 24;
 		public int hoursInfectionPersists = 6 * 24;
 		public bool anyTreatmentStopsInfection;
+		public int corpsesExtractAmount = 1;
+		public int corpsesHoursToDessicated = 1;
 		public bool betterZombieAvoidance = true;
 		public bool ragingZombies = true;
 		public bool replaceTwinkie = true;

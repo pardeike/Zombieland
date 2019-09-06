@@ -297,6 +297,21 @@ namespace ZombieLand
 			value = Widgets.HorizontalSlider(srect, value, min, max, false, null, labelId.SafeTranslate(), valstr, -1f);
 		}
 
+		public static void Dialog_IntSlider(this Listing_Standard list, string labelId, string format, ref int value, int min, int max)
+		{
+			list.Help(labelId, 32f);
+
+			list.Gap(12f);
+
+			var valstr = string.Format("{0:" + format + "}", value);
+
+			var srect = list.GetRect(24f);
+			srect.xMin += inset;
+			srect.xMax -= inset;
+
+			value = (int)(0.5f + Widgets.HorizontalSlider(srect, value, min, max, false, null, labelId.SafeTranslate(), valstr, -1f));
+		}
+
 		public static void Dialog_TimeSlider(this Listing_Standard list, string labelId, ref int value, int min, int max, bool fullDaysOnly = false)
 		{
 			list.Gap(-4f);
@@ -325,11 +340,11 @@ namespace ZombieLand
 			inRect.yMin += 15f;
 			inRect.yMax -= 15f;
 
-			var firstColumnWidth = (inRect.width - Listing.ColumnSpacing) * 3 / 5;
+			var firstColumnWidth = (inRect.width - Listing.ColumnSpacing) * 3.5f / 5f;
 			var secondColumnWidth = inRect.width - Listing.ColumnSpacing - firstColumnWidth;
 
 			var outerRect = new Rect(inRect.x, inRect.y, firstColumnWidth, inRect.height);
-			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, inRect.height * 4.3f);
+			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, inRect.height * 4.6f);
 			Widgets.BeginScrollView(outerRect, ref scrollPosition, innerRect, true);
 
 			currentHelpItem = null;
@@ -342,7 +357,7 @@ namespace ZombieLand
 				var intro = "Zombieland_Settings".SafeTranslate();
 				var textHeight = Text.CalcHeight(intro, list.ColumnWidth - 3f - inset) + 2 * 3f;
 				Widgets.Label(list.GetRect(textHeight).Rounded(), intro);
-				list.Gap(20f);
+				list.Gap(10f);
 
 				// When?
 				list.Dialog_Enum("WhenDoZombiesSpawn", ref settings.spawnWhenType);
@@ -443,6 +458,13 @@ namespace ZombieLand
 				list.Gap(-4f);
 				list.Dialog_Checkbox("AnyTreatmentStopsInfection", ref settings.anyTreatmentStopsInfection);
 				list.Gap(24f);
+
+				// Infections
+				list.Dialog_Label("ZombieSerum");
+				list.Gap(8f);
+				list.Dialog_IntSlider("CorpsesExtractAmount", "0", ref settings.corpsesExtractAmount, 1, 10);
+				list.Dialog_TimeSlider("CorpsesDaysToDessicated", ref settings.corpsesHoursToDessicated, 1, 120);
+				list.Gap(18f);
 
 				// Miscellaneous
 				list.Dialog_Label("ZombieMiscTitle");

@@ -64,6 +64,10 @@
 	<ZombieBiteInfectionPersists>Duration of infection</ZombieBiteInfectionPersists>
 	<AnyTreatmentStopsInfection>Treatment in a bed stops infections</AnyTreatmentStopsInfection>
 
+	<ZombieSerum>Zombie Serum</ZombieSerum>
+	<CorpsesExtractAmount>Amount of zombie extract per zombie</CorpsesExtractAmount>
+	<CorpsesDaysToDessicated>Hours until zombie corpses disappear</CorpsesDaysToDessicated>
+
 	<ZombieInstinctTitle>Zombie senses</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Limited</ZombieInstinct_Dull>
 	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>

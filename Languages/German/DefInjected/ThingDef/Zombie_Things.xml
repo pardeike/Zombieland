@@ -6,39 +6,39 @@
 
 	<StickyGoo.label>Giftiger und klebriger Schleim</StickyGoo.label>
 
-	<ZombieExtract.label>Extrakt von einem Zombie</ZombieExtract.label>
-	<ZombieExtract.description>Eine kleine Menge an Substanz von einem toten Zombie</ZombieExtract.description>
+	<ZombieExtract.label>Zombieextrakt</ZombieExtract.label>
+	<ZombieExtract.description>Eine kleine Menge an Substanz von einem toten Zombie. Kombiniere bis zu 100 Extrakte um eine Droge namens Zombieserum herzustellen die dann bei Operationen infizierte Körperteile heilt.</ZombieExtract.description>
 
 	<UnfinishedZombieSerum.label>Nicht fertiggestelltes Zombieserum</UnfinishedZombieSerum.label>
 
 	<Zombie10Serum.label>Zombieserum 10%</Zombie10Serum.label>
-	<Zombie10Serum.description>Serum von einem toten Zombie welches Zombieinfektionen heilt (10% Erfolgsrate)</Zombie10Serum.description>
+	<Zombie10Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (10% Erfolgsrate)</Zombie10Serum.description>
 
 	<Zombie20Serum.label>Zombieserum 20%</Zombie20Serum.label>
-	<Zombie20Serum.description>Serum von einem toten Zombie welches Zombieinfektionen heilt (20% Erfolgsrate)</Zombie20Serum.description>
+	<Zombie20Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (20% Erfolgsrate)</Zombie20Serum.description>
 
 	<Zombie30Serum.label>Zombieserum 30%</Zombie30Serum.label>
-	<Zombie30Serum.description>Serum von einem toten Zombie welches Zombieinfektionen heilt (30% Erfolgsrate)</Zombie30Serum.description>
+	<Zombie30Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (30% Erfolgsrate)</Zombie30Serum.description>
 
 	<Zombie40Serum.label>Zombieserum 40%</Zombie40Serum.label>
-	<Zombie40Serum.description>Serum von einem toten Zombie welches Zombieinfektionen heilt (40% Erfolgsrate)</Zombie40Serum.description>
+	<Zombie40Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (40% Erfolgsrate)</Zombie40Serum.description>
 
 	<Zombie50Serum.label>Zombieserum 50%</Zombie50Serum.label>
-	<Zombie50Serum.description>Serum von einem toten Zombie welches Zombieinfektionen heilt (50% Erfolgsrate)</Zombie50Serum.description>
+	<Zombie50Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (50% Erfolgsrate)</Zombie50Serum.description>
 
 	<Zombie60Serum.label>Zombieserum 60%</Zombie60Serum.label>
-	<Zombie60Serum.description>Serum von einem toten Zombie welches Zombieinfektionen heilt (60% Erfolgsrate)</Zombie60Serum.description>
+	<Zombie60Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (60% Erfolgsrate)</Zombie60Serum.description>
 
 	<Zombie70Serum.label>Zombieserum 70%</Zombie70Serum.label>
-	<Zombie70Serum.description>Serum von einem toten Zombie welches Zombieinfektionen heilt (70% Erfolgsrate)</Zombie70Serum.description>
+	<Zombie70Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (70% Erfolgsrate)</Zombie70Serum.description>
 
 	<Zombie80Serum.label>Zombieserum 80%</Zombie80Serum.label>
-	<Zombie80Serum.description>Serum von einem toten Zombie welches Zombieinfektionen heilt (80% Erfolgsrate)</Zombie80Serum.description>
+	<Zombie80Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (80% Erfolgsrate)</Zombie80Serum.description>
 
 	<Zombie90Serum.label>Zombieserum 90%</Zombie90Serum.label>
-	<Zombie90Serum.description>Serum von einem toten Zombie welches Zombieinfektionen heilt (90% Erfolgsrate)</Zombie90Serum.description>
+	<Zombie90Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (90% Erfolgsrate)</Zombie90Serum.description>
 
 	<Zombie100Serum.label>Zombieserum 100%</Zombie100Serum.label>
-	<Zombie100Serum.description>Serum von einem toten Zombie welches Zombieinfektionen heilt (100% Erfolgsrate)</Zombie100Serum.description>
+	<Zombie100Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (100% Erfolgsrate)</Zombie100Serum.description>
 
 </LanguageData>

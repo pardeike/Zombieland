@@ -22,11 +22,11 @@ namespace ZombieLand
 			GetComps<CompRottable>()
 				.Select(comp => comp.props)
 				.OfType<CompProperties_Rottable>()
-				.Cast<CompProperties_Rottable>()
 				.Do(rotcomp =>
 				{
-					rotcomp.daysToRotStart = 1f * GenTicks.SecondsToTicks(10) / 60000f;
-					rotcomp.daysToDessicated = 1f * GenTicks.SecondsToTicks(30) / 60000f;
+					var t = (float)ZombieSettings.Values.corpsesHoursToDessicated / GenDate.HoursPerDay;
+					rotcomp.daysToRotStart = t / 2f;
+					rotcomp.daysToDessicated = t;
 				});
 
 			var tickManager = map.GetComponent<TickManager>();

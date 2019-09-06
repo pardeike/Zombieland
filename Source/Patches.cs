@@ -125,7 +125,7 @@ namespace ZombieLand
 		}*/
 
 		// patch for debugging: show zombie pathing grid around the mouse
-		//
+		/*
 		[HarmonyPatch(typeof(MapInterface))]
 		[HarmonyPatch("MapInterfaceOnGUI_AfterMainTabs")]
 		class MapInterface_MapInterfaceOnGUI_AfterMainTabs_Patch
@@ -158,6 +158,7 @@ namespace ZombieLand
 				});
 			}
 		}
+		*/
 
 		// patch to show zombieland version and total number of zombies
 		//

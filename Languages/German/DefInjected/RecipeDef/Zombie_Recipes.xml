@@ -2,7 +2,7 @@
 <LanguageData>
 
 	<CureZombieInfection.label>Zum heilen von Zombieinfektionen</CureZombieInfection.label>
-	<CureZombieInfection.description>Entfernt Zombieinfektionen in einem frühen Stadium</CureZombieInfection.description>
+	<CureZombieInfection.description>Entfernt Zombieinfektionen in einem frühen Stadium. Benötigt 1 Zombieserum (höhere Konzentrationen resultieren in geringerer Fehlerrate).</CureZombieInfection.description>
 	<CureZombieInfection.jobString>Entfernen der Zombieinfektion</CureZombieInfection.jobString>
 
 </LanguageData>

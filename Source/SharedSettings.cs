@@ -93,6 +93,18 @@ namespace ZombieLand
 			}
 		}
 
+		/*public static void Cull()
+		{
+			GetAll().ToList()
+				.Where(setting => setting.Downloads == 0)
+				.ToList()
+				.ForEach(setting =>
+				{
+					Delete(setting.Name,, setting.Creator);
+					Log.Warning($"# {setting.Name} {setting.Creator}");
+				});
+		}*/
+
 		public static IEnumerable<UserSettings> GetAll()
 		{
 			return client.Get<Dictionary<string, UserSettings>>("/Settings/")?
