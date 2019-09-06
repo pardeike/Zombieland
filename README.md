@@ -124,6 +124,9 @@ These zombies are slow but smart and **very** strong. They will try to reach you
 **Miners**  
 Normal zombies but with a hobby. They like to mine through mountains
 
+**Electric**
+Electrifying zombies that are shockingly resistent to bullets or ranged weapons. You need to melee them but luckily they don't bite so you don't get infected by them. Their electric field damages everything close by that is electric/electronic - like power lines, appliences, powerarmors, shield belts - basically anything you build out of components.
+
 ### New game
 
 **Days until zombies come**  
@@ -188,6 +191,14 @@ Stage 3) An unstopped infection will start the conversion to a zombie. At this p
 **Treatment in a bed stops infections**  
 Normally, treatment only works if done by a really good doctor, in a really good medical bed with a vitals monitor in a sterile room. This option makes it work in *any* bed. Please note: if the wound has been treated outside of a bed before, it's too late. You have one chance
 
+### Zombie serum
+
+You can collect zombie extract in small amounts from dead zombies and refine it on a drugtable into zombie serum (requires 1x medicine too). The serum comes in qualities of 10% to 100% and they require different amounts of zombie extract. One potion of serum heals one zombie bite and the quality determines the failure risk when doing an operation on an infected colonist. 
+
+Colonists that are scheduled to do doctor tasks automatically collect zombie extract if there are no zombies nearby but you can order them too. There is a button in the colonist actions that toggles automtic collection on and off.
+
+Zombie serum is a very good way to remove a zombie infection regardless of its stage. So try to plan ahead and start collecting it early - gathering enough zombie extract to make serum takes a while.
+
 ### Miscellaneous
 
 **Use custom textures**  
@@ -238,13 +249,25 @@ When colonists become infected or go from one stage to the next, Zombieland will
 
 Infections continue even after death. When a corpse starts rotting, it will become a zombie and get out of the grave if necessary. Raiders or friendly can become infected and when they return, they will become zombies the moment they enter the map.
 
-Infections are quite fatal. Once a colonist is terminal infected and the affected body part cannot be amputated, there is no hope anymore. Consider it a loss and be more careful next time. Don't kill stage 3 infected colonists too early. They might prove more useful than you think. Find out what their special abilities are.
+Infections are quite fatal. Once a colonist is terminal infected and the affected body part cannot be amputated or you don't have any zombie serum, there is almost no hope anymore. Consider it a loss and be more careful next time. **But: Don't kill or amputate stage 3 infected colonists too early!** They might prove more useful than you think: they get zombie like powers and don't need to sleep or eat. And the best is that zombies won't attack them anymore. They are almost part of the zombie family anyway!
 
 ## Compatibility
 
 Zombieland is a huge and complex mod. It is designed to showcase Harmony, the patch library that powers most Unity game mods. A lot of areas are carefully manipulated but conflicts are impossible to prevent. Especially badly written mods conflict easily with Zombieland. So if no zombies spawn or you cannot treat infected wounds or any other unusual outcome, try playing with Zombieland alone to see if this is a specific bug in the mod or just an incompatibility.
 
 Zombieland seems to work best when put at the end of the mod list but you may have to try other positions or mod combinations. Please do not ask me to find the conflict for you because I don't have the knowledge nor the time to test Zombieland with all the mods out there. As a rule of thumb, I also do not adapt Zombieland to specific mods unless the mod is very popular and I can establish some sort of cooperation with the other mod author.
+
+**Existing games**
+
+You can add Zombieland to existing games but be careful: if your colony already has many powerful colonists, the number of zombies will rise significant since the mod scales zombie numbers to match the defendability of your colony.
+
+**Multiplayer**
+
+Zombieland is currently not compatible with multiplayer. It is not very likely that it will be made compatible because of the huge amount of time that would require.
+
+**Combat Extended**
+
+Zombieland is compatible with Combat Extended. From time to time there might be small bugs but reporting them to **both** authors in a useful way usually helps.
 
 ## License
 
