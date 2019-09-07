@@ -69,6 +69,12 @@
 	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>
 	<ZombieInstinct_Sensitive>Yükseltilmiş</ZombieInstinct_Sensitive>
 	<RagingZombies>Bir grup çok büyük alırsa Zombiler öfke</RagingZombies>
+	<RageLevel>Öfke seviyesi</RageLevel>
+	<RageLevelVeryLow>Çok düşük</RageLevelVeryLow>
+	<RageLevelLow>Düşük</RageLevelLow>
+	<RageLevelNormal>Normal</RageLevelNormal>
+	<RageLevelHigh>Yüksek</RageLevelHigh>
+	<RageLevelVeryHigh>Çok yüksek</RageLevelVeryHigh>
 
 	<ZombieHealthTitle>Zombi sağlığı</ZombieHealthTitle>
 	<DoubleTapRequired>Zombiler yaralanmaları kurtarmak</DoubleTapRequired>

@@ -86,6 +86,7 @@
 	<ZombieInstinct_Normal_Help>Zombie senses reach a bit longer</ZombieInstinct_Normal_Help>
 	<ZombieInstinct_Sensitive_Help>Zombies are very sensitive and sense you and your trails over many cells</ZombieInstinct_Sensitive_Help>
 	<RagingZombies_Help>To simulate group behaviour, zombies can become enraged if a tight group of zombies gets too large. Raging zombies have red eyes and start walking towards your colonists. They will be stronger and faster than normal. Try preventing zombie hordes from becoming to large or stuck at places on the map to avoid raging zombies.</RagingZombies_Help>
+	<RageLevel_Help>This level controls the group size that triggers raging zombies. High levels are more dangerous and make zombies trigger more easily.</RageLevel_Help>
 
 	<!-- -->
 

@@ -587,6 +587,7 @@ namespace ZombieLand
 
 		// check for tight groups of zombies ========================================================
 		//
+		static readonly int[] rageLevels = new int[] { 40, 32, 21, 18, 12 };
 		public static void BeginRage(Zombie zombie, PheromoneGrid grid)
 		{
 			if (zombie.IsTanky) return;
@@ -594,10 +595,19 @@ namespace ZombieLand
 			if (zombie.raging == 0 && ZombieSettings.Values.ragingZombies)
 			{
 				var count = CountSurroundingZombies(zombie.Position, grid);
-				if (count > Constants.SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE)
+				if (count >= rageLevels[ZombieSettings.Values.zombieRageLevel - 1])
 					StartRage(zombie);
 				return;
 			}
+
+			if (GenTicks.TicksAbs > zombie.raging || ZombieSettings.Values.ragingZombies == false)
+				zombie.raging = 0;
+		}
+
+		public static void CheckEndRage(Zombie zombie)
+		{
+			if (zombie.raging == 0)
+				return;
 
 			if (GenTicks.TicksAbs > zombie.raging || ZombieSettings.Values.ragingZombies == false)
 				zombie.raging = 0;
@@ -849,9 +859,13 @@ namespace ZombieLand
 				.Select(c => grid.GetZombieCount(c)).Sum();
 		}
 
+		static readonly float[] minRageLength = new float[] { 0.1f, 0.2f, 0.5f, 1f, 2f };
+		static readonly float[] maxRageLength = new float[] { 1f, 2f, 4f, 6f, 8f };
 		public static void StartRage(Zombie zombie)
 		{
-			zombie.raging = GenTicks.TicksAbs + (int)(GenDate.TicksPerHour * Rand.Range(1f, 8f));
+			var min = minRageLength[ZombieSettings.Values.zombieRageLevel - 1];
+			var max = maxRageLength[ZombieSettings.Values.zombieRageLevel - 1];
+			zombie.raging = GenTicks.TicksAbs + (int)(GenDate.TicksPerHour * Rand.Range(min, max));
 			Tools.CastThoughtBubble(zombie, Constants.RAGING);
 
 			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)

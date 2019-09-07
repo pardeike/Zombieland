@@ -252,25 +252,32 @@ namespace ZombieLand
 			}
 		}
 
-		public IEnumerator RecalculateAll(IntVec3[] positions, bool hasTankyZombies)
+		public IEnumerator RecalculateAll(IntVec3[] positions, IEnumerable<Zombie> zombies)
 		{
 			if (dirtyCells)
 			{
 				ClearCells();
 				dirtyCells = false;
 			}
-			if (ZombieSettings.Values.ragingZombies == false && hasTankyZombies == false) yield break;
 
-			dirtyCells = true;
-			// Log.Warning("recalc 1");
-			var it1 = Recalculate(positions, hasTankyZombies);
-			while (it1.MoveNext())
-				yield return null;
+			var hasRagingZombies = zombies.Any(zombie => zombie.raging > 0);
+			if (hasRagingZombies)
+			{
+				dirtyCells = true;
+				//Log.Warning("recalc 1");
+				var it1 = Recalculate(positions, false);
+				while (it1.MoveNext())
+					yield return null;
+			}
 
-			// Log.Warning("recalc 2");
-			var it2 = Recalculate(positions, hasTankyZombies);
-			while (it2.MoveNext())
-				yield return null;
+			var hasTankyZombies = zombies.Any(zombie => zombie.IsTanky);
+			if (hasTankyZombies)
+			{
+				//Log.Warning("recalc 2");
+				var it2 = Recalculate(positions, true);
+				while (it2.MoveNext())
+					yield return null;
+			}
 
 			publicIndex = privateIndex;
 			privateIndex = 1 - privateIndex;
@@ -332,8 +339,7 @@ namespace ZombieLand
 							yield return null;
 							if (colonistPositions.Any())
 							{
-								var hasTankyZombies = pawnArray.OfType<Zombie>().Any(zombie => zombie.IsTanky);
-								var it = info.RecalculateAll(colonistPositions, hasTankyZombies);
+								var it = info.RecalculateAll(colonistPositions, mapPawns.OfType<Zombie>());
 								while (it.MoveNext())
 									yield return null;
 							}

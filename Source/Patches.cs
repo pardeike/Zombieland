@@ -54,7 +54,7 @@ namespace ZombieLand
 		static readonly Dictionary<Map, HashSet<IAttackTarget>> playerHostilesWithoutZombies = new Dictionary<Map, HashSet<IAttackTarget>>();
 
 		// patch for debugging: show pheromone grid as overlay
-		// 
+		/*
 		[HarmonyPatch(typeof(SelectionDrawer))]
 		[HarmonyPatch("DrawSelectionOverlays")]
 		static class SelectionDrawer_DrawSelectionOverlays_Patch
@@ -96,6 +96,7 @@ namespace ZombieLand
 				});
 			}
 		}
+		*/
 
 		// patch for debugging: show zombie avoidance grid
 		/*
@@ -208,12 +209,12 @@ namespace ZombieLand
 		}
 
 		[HarmonyPatch(typeof(Verse.TickManager))]
-		[HarmonyPatch("TickManagerUpdate")]
+		[HarmonyPatch(nameof(Verse.TickManager.TickManagerUpdate))]
 		static class Verse_TickManager_TickManagerUpdate_Patch
 		{
 			static readonly Stopwatch watch = new Stopwatch();
 
-			static void SingleTick(Verse.TickManager manager, int num)
+			static void TickZombies(Verse.TickManager manager, int num)
 			{
 				_ = num;
 				watch.Reset();
@@ -231,7 +232,7 @@ namespace ZombieLand
 				}
 			}
 
-			static void Prefix()
+			static void TickZombieWanderer()
 			{
 				_ = ZombieWanderer.processor.MoveNext();
 			}
@@ -239,17 +240,32 @@ namespace ZombieLand
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
 				var jump = generator.DefineLabel();
-				var m_SingleTick = SymbolExtensions.GetMethodInfo(() => SingleTick(null, 0));
+				var m_TickZombieWanderer = SymbolExtensions.GetMethodInfo(() => TickZombieWanderer());
+				var m_TickZombies = SymbolExtensions.GetMethodInfo(() => TickZombies(null, 0));
 				var m_DoSingleTick = AccessTools.Method(typeof(Verse.TickManager), "DoSingleTick");
 
 				var list = instructions.ToList();
+				list.Insert(0, new CodeInstruction(OpCodes.Call, m_TickZombieWanderer));
 				var idx = list.FindIndex(code => code.operand == m_DoSingleTick);
-				list[idx].operand = m_SingleTick;
-				list.Insert(idx, new CodeInstruction(OpCodes.Ldloc_1));
+				if (idx >= 0)
+				{
+					list[idx].operand = m_TickZombies;
+					list.Insert(idx, new CodeInstruction(OpCodes.Ldloc_1));
+				}
+				else
+					Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 
+				/*var found = false;
+				var valueFrom = 1000f;
+				var valueTo = 3000f;
 				foreach (var code in list)
-					if (code.operand == (object)1000)
-						code.operand = 200;
+					if (code.operand is float floatValue && floatValue == valueFrom)
+					{
+						code.operand = valueTo;
+						found = true;
+					}
+				if (found == false)
+					Log.Error("Float constant " + valueFrom + " not found in patch " + MethodBase.GetCurrentMethod().DeclaringType);*/
 
 				return list.AsEnumerable();
 			}
@@ -1168,7 +1184,7 @@ namespace ZombieLand
 					_ = sb.Append("Zombie " + zombie.Name.ToStringShort + " at " + currPos.x + "," + currPos.z);
 					_ = sb.Append(", " + zombie.state.ToString().ToLower());
 					if (zombie.raging > 0)
-						_ = sb.Append(", raging ");
+						_ = sb.Append(", raging[" + (zombie.raging - GenTicks.TicksAbs) + "] ");
 					_ = sb.Append(", going to " + gotoPos.x + "," + gotoPos.z);
 					_ = sb.Append(" (wander dest " + wanderTo.x + "," + wanderTo.z + ")");
 					_ = builder.AppendLine(sb.ToString());

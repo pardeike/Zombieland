@@ -69,6 +69,12 @@
   <ZombieInstinct_Normal>正常</ZombieInstinct_Normal>
   <ZombieInstinct_Sensitive>較高</ZombieInstinct_Sensitive>
   <RagingZombies>群體過於龐大時殭屍會變得憤怒。</RagingZombies>
+	<RageLevel>憤怒程度</RageLevel>
+	<RageLevelVeryLow>非常低的水平</RageLevelVeryLow>
+	<RageLevelLow>低水平</RageLevelLow>
+	<RageLevelNormal>正常水平</RageLevelNormal>
+	<RageLevelHigh>高水平</RageLevelHigh>
+	<RageLevelVeryHigh>非常高的水平</RageLevelVeryHigh>
 
   <ZombieHealthTitle>殭屍的體質</ZombieHealthTitle>
   <DoubleTapRequired>殭屍會恢復傷勢</DoubleTapRequired>

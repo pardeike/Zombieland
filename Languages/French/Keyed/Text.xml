@@ -69,6 +69,12 @@
 	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>
 	<ZombieInstinct_Sensitive>Elevé</ZombieInstinct_Sensitive>
 	<RagingZombies>Les zombies s’enragent si un groupe devient trop grand</RagingZombies>
+	<RageLevel>Niveau de rage</RageLevel>
+	<RageLevelVeryLow>Très bas</RageLevelVeryLow>
+	<RageLevelLow>Faible</RageLevelLow>
+	<RageLevelNormal>Normal</RageLevelNormal>
+	<RageLevelHigh>Haut</RageLevelHigh>
+	<RageLevelVeryHigh>Très haut</RageLevelVeryHigh>
 
 	<ZombieHealthTitle>Vitalités des zombies</ZombieHealthTitle>
 	<DoubleTapRequired>Les zombies se remettent de leurs blessures</DoubleTapRequired>

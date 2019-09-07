@@ -63,6 +63,8 @@ namespace ZombieLand
 			// --------------------------------------------------
 			*/
 
+			ZombieStateHandler.CheckEndRage(zombie);
+
 			if (this.ShouldDie(zombie))
 				return;
 

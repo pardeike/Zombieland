@@ -297,19 +297,17 @@ namespace ZombieLand
 			value = Widgets.HorizontalSlider(srect, value, min, max, false, null, labelId.SafeTranslate(), valstr, -1f);
 		}
 
-		public static void Dialog_IntSlider(this Listing_Standard list, string labelId, string format, ref int value, int min, int max)
+		public static void Dialog_IntSlider(this Listing_Standard list, string labelId, Func<int, string> format, ref int value, int min, int max)
 		{
 			list.Help(labelId, 32f);
 
 			list.Gap(12f);
 
-			var valstr = string.Format("{0:" + format + "}", value);
-
 			var srect = list.GetRect(24f);
 			srect.xMin += inset;
 			srect.xMax -= inset;
 
-			value = (int)(0.5f + Widgets.HorizontalSlider(srect, value, min, max, false, null, labelId.SafeTranslate(), valstr, -1f));
+			value = (int)(0.5f + Widgets.HorizontalSlider(srect, value, min, max, false, null, labelId.SafeTranslate(), format(value), -1f));
 		}
 
 		public static void Dialog_TimeSlider(this Listing_Standard list, string labelId, ref int value, int min, int max, bool fullDaysOnly = false)
@@ -344,7 +342,7 @@ namespace ZombieLand
 			var secondColumnWidth = inRect.width - Listing.ColumnSpacing - firstColumnWidth;
 
 			var outerRect = new Rect(inRect.x, inRect.y, firstColumnWidth, inRect.height);
-			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, inRect.height * 4.6f);
+			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, inRect.height * 4.7f);
 			Widgets.BeginScrollView(outerRect, ref scrollPosition, innerRect, true);
 
 			currentHelpItem = null;
@@ -384,7 +382,11 @@ namespace ZombieLand
 				// Senses
 				list.Dialog_Enum("ZombieInstinctTitle", ref settings.zombieInstinct);
 				list.Dialog_Checkbox("RagingZombies", ref settings.ragingZombies);
-				list.Gap(20f);
+				var rageLevelNames = new string[] { "RageLevelVeryLow", "RageLevelLow", "RageLevelNormal", "RageLevelHigh", "RageLevelVeryHigh" };
+				list.Gap(4f);
+				if (settings.ragingZombies)
+					list.Dialog_IntSlider("RageLevel", level => rageLevelNames[level - 1].Translate(), ref settings.zombieRageLevel, 1, 5);
+				list.Gap(16f);
 
 				// Health
 				list.Dialog_Label("ZombieHealthTitle");
@@ -462,7 +464,7 @@ namespace ZombieLand
 				// Infections
 				list.Dialog_Label("ZombieSerum");
 				list.Gap(8f);
-				list.Dialog_IntSlider("CorpsesExtractAmount", "0", ref settings.corpsesExtractAmount, 1, 10);
+				list.Dialog_IntSlider("CorpsesExtractAmount", amount => "" + amount, ref settings.corpsesExtractAmount, 1, 10);
 				list.Dialog_TimeSlider("CorpsesDaysToDessicated", ref settings.corpsesHoursToDessicated, 1, 120);
 				list.Gap(18f);
 

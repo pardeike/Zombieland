@@ -69,6 +69,12 @@
 	<ZombieInstinct_Normal>Нормальные</ZombieInstinct_Normal>
 	<ZombieInstinct_Sensitive>Агресивные</ZombieInstinct_Sensitive>
 	<RagingZombies>Zombies ярости, если толпа становится слишком большой</RagingZombies>
+	<RageLevel>Уровень ярости</RageLevel>
+	<RageLevelVeryLow>Очень низкий</RageLevelVeryLow>
+	<RageLevelLow>Низкий уровень</RageLevelLow>
+	<RageLevelNormal>Нормальный</RageLevelNormal>
+	<RageLevelHigh>Высокий</RageLevelHigh>
+	<RageLevelVeryHigh>Очень высокий</RageLevelVeryHigh>
 
 	<ZombieHealthTitle>Стойкость зомби</ZombieHealthTitle>
 	<DoubleTapRequired>Зомби восстанавливаются после травм</DoubleTapRequired>

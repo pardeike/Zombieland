@@ -69,6 +69,12 @@
 	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>
 	<ZombieInstinct_Sensitive>Empfindlich</ZombieInstinct_Sensitive>
 	<RagingZombies>Zombies in zu grossen Gruppen werden rasend</RagingZombies>
+	<RageLevel>Raserei</RageLevel>
+	<RageLevelVeryLow>Sehr niedrig</RageLevelVeryLow>
+	<RageLevelLow>Niedrig</RageLevelLow>
+	<RageLevelNormal>Normal</RageLevelNormal>
+	<RageLevelHigh>Hoch</RageLevelHigh>
+	<RageLevelVeryHigh>Sehr hoch</RageLevelVeryHigh>
 
 	<ZombieHealthTitle>Zombiegesundheit</ZombieHealthTitle>
 	<DoubleTapRequired>Zombies erholen sich von Verletzungen</DoubleTapRequired>

@@ -66,15 +66,10 @@ namespace ZombieLand
 		public int baseNumberOfZombiesinEvent = 20;
 		internal int extraDaysBetweenEvents = 0;
 		public float suicideBomberChance = 0.01f;
-		public int suicideBomberIntChance = 1;//unused
 		public float toxicSplasherChance = 0.01f;
-		public int toxicSplasherIntChance = 1;//unused
 		public float tankyOperatorChance = 0.01f;
-		public int tankyOperatorIntChance = 1;//unused
 		public float minerChance = 0.01f;
-		public int minerIntChance = 1;//unused
 		public float electrifierChance = 0.01f;
-		public int electrifierIntChance = 1;//unused
 		public float moveSpeedIdle = 0.2f;
 		public float moveSpeedTracking = 1.3f;
 		public float damageFactor = 1.0f;
@@ -92,10 +87,18 @@ namespace ZombieLand
 		public int corpsesHoursToDessicated = 1;
 		public bool betterZombieAvoidance = true;
 		public bool ragingZombies = true;
+		public int zombieRageLevel = 3;
 		public bool replaceTwinkie = true;
 		public bool zombiesDropBlood = true;
 		public bool zombiesBurnLonger = true;
 		public float reducedTurretConsumption = 0f;
+
+		// unused
+		public int suicideBomberIntChance = 1;
+		public int toxicSplasherIntChance = 1;
+		public int tankyOperatorIntChance = 1;
+		public int minerIntChance = 1;
+		public int electrifierIntChance = 1;
 
 		public object Clone()
 		{

@@ -73,6 +73,12 @@
 	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>
 	<ZombieInstinct_Sensitive>Elevated</ZombieInstinct_Sensitive>
 	<RagingZombies>Zombies rage if a group gets too large</RagingZombies>
+	<RageLevel>Rage level</RageLevel>
+	<RageLevelVeryLow>Very low</RageLevelVeryLow>
+	<RageLevelLow>Low</RageLevelLow>
+	<RageLevelNormal>Normal</RageLevelNormal>
+	<RageLevelHigh>High</RageLevelHigh>
+	<RageLevelVeryHigh>Very high</RageLevelVeryHigh>
 
 	<ZombieHealthTitle>Zombie health</ZombieHealthTitle>
 	<DoubleTapRequired>Zombies recover from injuries</DoubleTapRequired>
