@@ -193,11 +193,13 @@ Normally, treatment only works if done by a really good doctor, in a really good
 
 ### Zombie serum
 
-You can collect zombie extract in small amounts from dead zombies and refine it on a drugtable into zombie serum (requires 1x medicine too). The serum comes in qualities of 10% to 100% and they require different amounts of zombie extract. One potion of serum heals one zombie bite and the quality determines the failure risk when doing an operation on an infected colonist. 
+Note: see Serum for more details on how serum in Zombieland work
 
-Colonists that are scheduled to do doctor tasks automatically collect zombie extract if there are no zombies nearby but you can order them too. There is a button in the colonist actions that toggles automtic collection on and off.
+**Amount of zombie extract per zombie**
+Here, you can set how much extract you will get from each zombie corpse
 
-Zombie serum is a very good way to remove a zombie infection regardless of its stage. So try to plan ahead and start collecting it early - gathering enough zombie extract to make serum takes a while.
+**Hours until zombie corpses disappear**
+To reduce the overall impact of all dead zombies on the game, the visuals and your ability to select things, Zombieland lets you configure how fast zombie corpses desiccate and disappear.
 
 ### Miscellaneous
 
@@ -232,6 +234,14 @@ Loads saved settings
 
 **Publish settings to the cloud**  
 Saves current settings
+
+## Serum
+
+You can collect zombie extract in small amounts from dead zombies and refine it on a drugtable into zombie serum (requires 1x medicine too). The serum comes in qualities of 10% to 100% and they require different amounts of zombie extract. One potion of serum heals one zombie bite and the quality determines the failure risk when doing an operation on an infected colonist. 
+
+Colonists that are scheduled to do doctor tasks automatically collect zombie extract if there are no zombies nearby but you can order them too. There is a button in the colonist actions that toggles automtic collection on and off.
+
+Zombie serum is a very good way to remove a zombie infection regardless of its stage. So try to plan ahead and start collecting it early - gathering enough zombie extract to make serum takes a while.
 
 ## Infections
 
