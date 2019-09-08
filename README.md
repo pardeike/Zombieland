@@ -10,6 +10,12 @@ Zombies attack anything that moves, smells and makes sounds. They do not discrim
 
 This Mod features custom controlled Zombies with simulated instincts. Most default RimWorld functions have been disabled on them to allow for a smooth game play experience. Therefore, you cannot select or harvest them.
 
+## Design and goal
+
+With zombies in Zombieland you won't get the normal planing and attacking behaviour like with other mods. Zombies are dumb, get stuck and in general slowly radiate towards your base than to attack it. There are exceptions though: special zombies (depending on type) are smarter and will find you but the big masses just wander around. When they hear, see or smell you they will start following your trail and if one zombie starts to track that way others around it will follow thus resulting in a group behaviour that you would expect from animal packs.
+
+So when you see that zombies get stuck in a cave or near your base, don't get fooled in underestimating the danger. You can use the mechanics to your advantage too. Try to kite them around or lead them away while another colonist rescues someone. In general, zombies add a chaotic moment to your base Rimworld experience that changes the game substantially. If you expect normal gameplay you will be disappointed. 
+
 ## Handling Settings
 
 There are 4 ways to edit settings in Zombieland.
