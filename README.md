@@ -92,6 +92,9 @@ Larger range, 10 or more cells, traces fade away slowly
 **Zombies rage when a group gets too large**  
 Makes extra angry zombies (red eyes) that know where you are and will follow you (and destroy things if previous setting allows it)
 
+**Rage level**
+This controls the difficulty of raging. Set to low, raging only occurs in very large groups and does not last long. Set to high, raging will happen in smaller groups and the effect will last longer.
+
 ### Zombie health
 
 **Zombies recover from injuries**  
