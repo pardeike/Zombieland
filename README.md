@@ -92,7 +92,7 @@ Larger range, 10 or more cells, traces fade away slowly
 **Zombies rage when a group gets too large**  
 Makes extra angry zombies (red eyes) that know where you are and will follow you (and destroy things if previous setting allows it)
 
-**Rage level**
+**Rage level**  
 This controls the difficulty of raging. Set to low, raging only occurs in very large groups and does not last long. Set to high, raging will happen in smaller groups and the effect will last longer.
 
 ### Zombie health
@@ -198,10 +198,10 @@ Normally, treatment only works if done by a really good doctor, in a really good
 
 Note: see Serum for more details on how serum in Zombieland work
 
-**Amount of zombie extract per zombie**
+**Amount of zombie extract per zombie**  
 Here, you can set how much extract you will get from each zombie corpse
 
-**Hours until zombie corpses disappear**
+**Hours until zombie corpses disappear**  
 To reduce the overall impact of all dead zombies on the game, the visuals and your ability to select things, Zombieland lets you configure how fast zombie corpses desiccate and disappear.
 
 ### Miscellaneous
