@@ -987,7 +987,8 @@ namespace ZombieLand
 					list[insertIdx].labels = new List<Label>();
 
 					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldloc_S, sumIdx) { labels = movedLabels });
-					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldloc_0)); // pawn
+					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldarga_S, 3));
+					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(TraverseParms), "pawn")));
 					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldloc_S, gridIdx));
 					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => GetZombieCosts(null, 0))));
 					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Add));
