@@ -11,7 +11,6 @@ using UnityEngine;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
-using static Harmony.AccessTools;
 
 namespace ZombieLand
 {
@@ -1062,9 +1061,6 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(JobDriver.DriverTick))]
 		static class JobDriver_DriverTick_Patch
 		{
-			static readonly FieldRef<Pawn_JobTracker, int> jobsGivenThisTickRef = FieldRefAccess<Pawn_JobTracker, int>("jobsGivenThisTick");
-			static readonly FieldRef<Pawn_JobTracker, string> jobsGivenThisTickTextualRef = FieldRefAccess<Pawn_JobTracker, string>("jobsGivenThisTickTextual");
-
 			static void Postfix(JobDriver __instance, Pawn ___pawn)
 			{
 				if (___pawn is Zombie || ___pawn.IsColonist == false)
@@ -1117,11 +1113,9 @@ namespace ZombieLand
 					var destination = safeDestinations.First();
 					if (destination.IsValid)
 					{
-						jobsGivenThisTickRef(___pawn.jobs) = 0;
-						jobsGivenThisTickTextualRef(___pawn.jobs) = string.Empty;
-
 						var flee = new Job(JobDefOf.Flee, destination) { playerForced = true };
-						___pawn.jobs.StartJob(flee, JobCondition.InterruptOptional, null);
+						___pawn.jobs.ClearQueuedJobs();
+						___pawn.jobs.StartJob(flee, JobCondition.Incompletable, null);
 					}
 				}
 			}

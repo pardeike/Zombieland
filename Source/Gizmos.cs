@@ -14,6 +14,9 @@ namespace ZombieLand
 		public static Gizmo ZombieAvoidance(Pawn pawn)
 		{
 			var config = ColonistSettings.Values.ConfigFor(pawn);
+			if (config == null)
+				return null;
+
 			var autoAvoidZombies = config.autoAvoidZombies;
 			var description = autoAvoidZombies ? "AutoAvoidZombiesEnabledDescription" : "AutoAvoidZombiesDisabledDescription";
 
@@ -37,14 +40,17 @@ namespace ZombieLand
 			Action action = null;
 
 			var canDoctor = pawn.CanDoctor();
-			var config = canDoctor ? ColonistSettings.Values.ConfigFor(pawn) : null;
 			if (canDoctor)
 			{
-				var autoExtractZombieSerum = config.autoExtractZombieSerum;
-				description = autoExtractZombieSerum ? "AutoExtractAllowedDescription" : "AutoExtractForbiddenDescription";
-				icon = autoExtractZombieSerum ? ExtractingAllowed : ExtractingForbidden;
-				activateSound = autoExtractZombieSerum ? SoundDefOf.Designate_ZoneAdd : SoundDefOf.Designate_ZoneDelete;
-				action = config.ToggleAutoExtractZombieSerum;
+				var config = canDoctor ? ColonistSettings.Values.ConfigFor(pawn) : null;
+				if (config != null)
+				{
+					var autoExtractZombieSerum = config.autoExtractZombieSerum;
+					description = autoExtractZombieSerum ? "AutoExtractAllowedDescription" : "AutoExtractForbiddenDescription";
+					icon = autoExtractZombieSerum ? ExtractingAllowed : ExtractingForbidden;
+					activateSound = autoExtractZombieSerum ? SoundDefOf.Designate_ZoneAdd : SoundDefOf.Designate_ZoneDelete;
+					action = config.ToggleAutoExtractZombieSerum;
+				}
 			}
 
 			return new Command_Action

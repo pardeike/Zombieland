@@ -27,6 +27,9 @@ namespace ZombieLand
 
 		public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
 		{
+			if (pawn.IsColonist == false)
+				return false;
+
 			var corpse = t as ZombieCorpse;
 			if (corpse.DestroyedOrNull() || corpse.Spawned == false)
 				return false;

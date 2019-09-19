@@ -243,7 +243,7 @@ namespace ZombieLand
 
 		public static bool ShouldAvoidZombies(Pawn pawn = null)
 		{
-			if (pawn == null)
+			if (pawn == null || pawn.IsColonist == false)
 				return ZombieSettings.Values.betterZombieAvoidance;
 
 			if (ZombieSettings.Values.betterZombieAvoidance == false) return false;

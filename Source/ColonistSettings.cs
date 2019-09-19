@@ -40,6 +40,8 @@ namespace ZombieLand
 
 		public ColonistConfig ConfigFor(Pawn pawn)
 		{
+			if (pawn.IsColonist == false)
+				return null;
 			if (colonists.TryGetValue(pawn, out var config))
 				return config;
 			config = new ColonistConfig();
@@ -51,12 +53,17 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 
+			if (Scribe.mode == LoadSaveMode.Saving)
+				_ = colonists.RemoveAll(pair => pair.Key == null || pair.Key.IsColonist == false);
+
 			Scribe_Collections.Look(ref colonists, "colonists", LookMode.Reference, LookMode.Deep, ref colonistsKeysWorkingList, ref colonistsValuesWorkingList);
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
 				if (colonists == null)
 					colonists = new Dictionary<Pawn, ColonistConfig>();
+				else
+					_ = colonists.RemoveAll(pair => pair.Key == null || pair.Key.IsColonist == false);
 			}
 		}
 	}
