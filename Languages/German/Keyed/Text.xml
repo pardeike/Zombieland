@@ -138,4 +138,7 @@
 	<AutoExtractAllowedDescription>Zombieserum automatisch extrahieren wenn keine Zombies in der Nähe sind</AutoExtractAllowedDescription>
 	<AutoExtractForbiddenDescription>Zombieserum nur auf Befehl extrahieren</AutoExtractForbiddenDescription>
 
+	<AutoAvoidZombiesEnabledDescription>Automatisches Vermeiden von Zombies, außer wenn im Kampfmodus (stehend)</AutoAvoidZombiesEnabledDescription>
+	<AutoAvoidZombiesDisabledDescription>Ignoriere Zombies. Alle Aktionen müssen manuell kontrolliert werden</AutoAvoidZombiesDisabledDescription>
+
 </LanguageData>

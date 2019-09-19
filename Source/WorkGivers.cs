@@ -37,15 +37,23 @@ namespace ZombieLand
 			if (pawn.CanReach(corpse, PathEndMode.ClosestTouch, pawn.NormalMaxDanger(), false, TraverseMode.ByPawn) == false)
 				return false;
 
-			var result = pawn.CanReserve(corpse, 1, -1, null, forced);
-			if (result)
+			return pawn.CanReserve(corpse, 1, -1, null, forced);
+			/*var result = pawn.CanReserve(corpse, 1, -1, null, forced);
+			if (result && forced == false && ZombieSettings.Values.betterZombieAvoidance)
 			{
-				var location = Tools.ZombiesNearby(pawn, corpse.Position);
-				if (location.IsValid)
-					result = false;
+				var map = pawn.Map;
+				var tickManager = map.GetComponent<TickManager>();
+				if (tickManager != null)
+				{
+					var avoidGrid = tickManager.avoidGrid;
+					var path = pawn.Map.pathFinder.FindPath(pawn.Position, t, pawn, PathEndMode.ClosestTouch);
+					var shouldAvoid = path.NodesReversed.Any(cell => avoidGrid.ShouldAvoid(map, cell));
+					path.Dispose();
+					if (shouldAvoid)
+						return false;
+				}
 			}
-
-			return result;
+			return result;*/
 		}
 
 		public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)

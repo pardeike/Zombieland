@@ -11,6 +11,7 @@ using UnityEngine;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
+using static Harmony.AccessTools;
 
 namespace ZombieLand
 {
@@ -96,10 +97,9 @@ namespace ZombieLand
 				});
 			}
 		}
-		*/
 
 		// patch for debugging: show zombie avoidance grid
-		/*
+		//
 		[HarmonyPatch(typeof(MapInterface))]
 		[HarmonyPatch("MapInterfaceUpdate")]
 		class MapInterface_MapInterfaceUpdate_Patch
@@ -107,7 +107,7 @@ namespace ZombieLand
 			static void Postfix()
 			{
 				if (DebugViewSettings.writePathCosts == false) return;
-				if (ZombieSettings.Values.betterZombieAvoidance == false) return;
+				if (Tools.ShouldAvoidZombies() == false) return;
 
 				var map = Find.CurrentMap;
 				var tickManager = map.GetComponent<TickManager>();
@@ -115,7 +115,7 @@ namespace ZombieLand
 				var avoidGrid = tickManager.avoidGrid;
 
 				var currentViewRect = Find.CameraDriver.CurrentViewRect;
-				currentViewRect.ClipInsideMap(map);
+				_ = currentViewRect.ClipInsideMap(map);
 				foreach (var c in currentViewRect)
 				{
 					var cost = avoidGrid.GetCosts()[c.x + c.z * map.Size.x];
@@ -123,7 +123,8 @@ namespace ZombieLand
 						Tools.DebugPosition(c.ToVector3(), new Color(1f, 0f, 0f, GenMath.LerpDouble(0, 10000, 0.4f, 1f, cost)));
 				}
 			}
-		}*/
+		}
+		*/
 
 		// patch for debugging: show zombie pathing grid around the mouse
 		/*
@@ -958,10 +959,11 @@ namespace ZombieLand
 
 			// infected colonists will still path so exclude them from this check
 			// by returning 0 - currently disabled because it does cost too much
-			static int GetZombieCosts(Map map, int idx)
+			static int GetZombieCosts(Pawn pawn, int idx)
 			{
-				if (ZombieSettings.Values.betterZombieAvoidance == false) return 0;
+				if (Tools.ShouldAvoidZombies(pawn) == false) return 0;
 
+				var map = pawn.Map;
 				if (map == null) return 0;
 				if (tickManagerCache.TryGetValue(map, out var tickManager) == false)
 				{
@@ -986,8 +988,7 @@ namespace ZombieLand
 					list[insertIdx].labels = new List<Label>();
 
 					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldloc_S, sumIdx) { labels = movedLabels });
-					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldarg_0));
-					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldfld, typeof(PathFinder).Field("map")));
+					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldloc_0)); // pawn
 					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldloc_S, gridIdx));
 					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => GetZombieCosts(null, 0))));
 					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Add));
@@ -1008,7 +1009,7 @@ namespace ZombieLand
 
 			static bool ZombieInPath(Pawn_PathFollower __instance, Pawn pawn)
 			{
-				if (ZombieSettings.Values.betterZombieAvoidance == false) return false;
+				if (Tools.ShouldAvoidZombies(pawn) == false) return false;
 				if (pawn.RaceProps.Humanlike == false) return false;
 
 				var path = __instance.curPath;
@@ -1052,6 +1053,287 @@ namespace ZombieLand
 
 				foreach (var instr in list)
 					yield return instr;
+			}
+		}
+
+		// patch to stop jobs when zombies have to be avoided
+		//
+		[HarmonyPatch(typeof(JobDriver))]
+		[HarmonyPatch(nameof(JobDriver.DriverTick))]
+		static class JobDriver_DriverTick_Patch
+		{
+			static readonly FieldRef<Pawn_JobTracker, int> jobsGivenThisTickRef = FieldRefAccess<Pawn_JobTracker, int>("jobsGivenThisTick");
+			static readonly FieldRef<Pawn_JobTracker, string> jobsGivenThisTickTextualRef = FieldRefAccess<Pawn_JobTracker, string>("jobsGivenThisTickTextual");
+
+			static void Postfix(JobDriver __instance, Pawn ___pawn)
+			{
+				if (___pawn is Zombie || ___pawn.IsColonist == false)
+					return;
+
+				// could also check ___pawn.health.capacities.CapableOf(PawnCapacityDefOf.Moving) but it's expensive
+				// and Pawn_HealthTracker.ShouldBeDowned checks it too
+				if (___pawn.health.Downed || ___pawn.InMentalState || ___pawn.Drafted)
+					return;
+
+				if (__instance.job.playerForced || Tools.ShouldAvoidZombies(___pawn) == false)
+					return;
+
+				var tickManager = ___pawn.Map?.GetComponent<TickManager>();
+				if (tickManager == null)
+					return;
+
+				var avoidGrid = tickManager.avoidGrid;
+				if (avoidGrid.InAvoidDanger(___pawn) == false)
+					return;
+
+				var jobDef = __instance.job.def;
+				if (false
+					|| jobDef == JobDefOf.ExtinguishSelf
+					|| jobDef == JobDefOf.Flee
+					|| jobDef == JobDefOf.FleeAndCower
+					|| jobDef == JobDefOf.Vomit
+				) return;
+
+				var pos = ___pawn.Position;
+				var map = ___pawn.Map;
+
+				var safeDestinations = new List<IntVec3>();
+				map.floodFiller.FloodFill(pos, (IntVec3 cell) =>
+				{
+					if (cell.Walkable(map) == false) return false;
+					var building_Door = cell.GetEdifice(map) as Building_Door;
+					if (building_Door != null && building_Door.CanPhysicallyPass(___pawn) == false) return false;
+					return PawnUtility.AnyPawnBlockingPathAt(cell, ___pawn, true, false, false) == false;
+				}, (IntVec3 cell) =>
+				{
+					if (cell.Standable(map) && avoidGrid.ShouldAvoid(map, cell) == false)
+						safeDestinations.Add(cell);
+					return false;
+				}, 64, false, null);
+
+				if (safeDestinations.Count > 0)
+				{
+					safeDestinations.SortByDescending(dest => (pos - dest).LengthHorizontalSquared);
+					var destination = safeDestinations.First();
+					if (destination.IsValid)
+					{
+						jobsGivenThisTickRef(___pawn.jobs) = 0;
+						jobsGivenThisTickTextualRef(___pawn.jobs) = string.Empty;
+
+						var flee = new Job(JobDefOf.Flee, destination) { playerForced = true };
+						___pawn.jobs.StartJob(flee, JobCondition.InterruptOptional, null);
+					}
+				}
+			}
+		}
+		[HarmonyPatch(typeof(JobGiver_ConfigurableHostilityResponse))]
+		[HarmonyPatch("TryGetAttackNearbyEnemyJob")]
+		static class JobGiver_ConfigurableHostilityResponse_TryGetAttackNearbyEnemyJob_Patch
+		{
+			static bool Prefix(Pawn pawn, ref Job __result)
+			{
+				if (pawn.CurJobDef == JobDefOf.Flee && pawn.CurJob.playerForced)
+				{
+					__result = null;
+					return false;
+				}
+				return true;
+			}
+		}
+		[HarmonyPatch(typeof(DangerUtility))]
+		[HarmonyPatch(nameof(DangerUtility.GetDangerFor))]
+		static class DangerUtility_GetDangerFor_Patch
+		{
+			static void Postfix(IntVec3 c, Pawn p, Map map, ref Danger __result)
+			{
+				if (p is Zombie || p.IsColonist == false || Tools.ShouldAvoidZombies(p) == false)
+					return;
+
+				if (p.CurJob?.playerForced ?? false)
+					return;
+
+				var avoidGrid = map.GetComponent<TickManager>()?.avoidGrid;
+				if (avoidGrid == null)
+					return;
+
+				if (avoidGrid.ShouldAvoid(map, c))
+					__result = Danger.Deadly;
+			}
+		}
+		[HarmonyPatch]
+		static class WorkGiver_Scanner_HasJobOnCell_Patches
+		{
+			static bool ShouldAvoid(Pawn pawn, IntVec3 cell, bool forced)
+			{
+				if (forced || pawn.IsColonist == false)
+					return false;
+
+				if (Tools.ShouldAvoidZombies(pawn) == false)
+					return false;
+
+				var tickManager = pawn.Map?.GetComponent<TickManager>();
+				if (tickManager == null)
+					return false;
+
+				return tickManager.avoidGrid.ShouldAvoid(pawn.Map, cell);
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+			{
+				var label = generator.DefineLabel();
+
+				yield return new CodeInstruction(OpCodes.Ldarg_1);
+				yield return new CodeInstruction(OpCodes.Ldarg_2);
+				yield return new CodeInstruction(OpCodes.Ldarg_3);
+				yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => ShouldAvoid(null, default, false)));
+				yield return new CodeInstruction(OpCodes.Brfalse, label);
+				yield return new CodeInstruction(OpCodes.Ldc_I4_0);
+				yield return new CodeInstruction(OpCodes.Ret);
+
+				var list = instructions.ToList();
+				list[0].labels.Add(label);
+				foreach (var instruction in list)
+					yield return instruction;
+			}
+
+			static IEnumerable<MethodBase> TargetMethods()
+			{
+				return GenTypes.AllSubclasses(typeof(WorkGiver_Scanner))
+				.Select(type => type.GetMethod("HasJobOnCell", AccessTools.all | BindingFlags.DeclaredOnly))
+				.Where(method => method != null)
+				.Cast<MethodBase>();
+			}
+		}
+		[HarmonyPatch]
+		static class WorkGiver_Scanner_JobOnCell_Patches
+		{
+			static bool ShouldAvoid(Pawn pawn, IntVec3 cell, bool forced)
+			{
+				if (forced || pawn.IsColonist == false)
+					return false;
+
+				if (Tools.ShouldAvoidZombies(pawn) == false)
+					return false;
+
+				var tickManager = pawn.Map?.GetComponent<TickManager>();
+				if (tickManager == null)
+					return false;
+
+				return tickManager.avoidGrid.ShouldAvoid(pawn.Map, cell);
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+			{
+				var label = generator.DefineLabel();
+
+				yield return new CodeInstruction(OpCodes.Ldarg_1);
+				yield return new CodeInstruction(OpCodes.Ldarg_2);
+				yield return new CodeInstruction(OpCodes.Ldarg_3);
+				yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => ShouldAvoid(null, default, false)));
+				yield return new CodeInstruction(OpCodes.Brfalse, label);
+				yield return new CodeInstruction(OpCodes.Ldnull);
+				yield return new CodeInstruction(OpCodes.Ret);
+
+				var list = instructions.ToList();
+				list[0].labels.Add(label);
+				foreach (var instruction in list)
+					yield return instruction;
+			}
+
+			static IEnumerable<MethodBase> TargetMethods()
+			{
+				return GenTypes.AllSubclasses(typeof(WorkGiver_Scanner))
+				.Select(type => type.GetMethod("JobOnCell", AccessTools.all | BindingFlags.DeclaredOnly))
+				.Where(method => method != null)
+				.Cast<MethodBase>();
+			}
+		}
+		[HarmonyPatch]
+		static class WorkGiver_Scanner_HasJobOnThing_Patches
+		{
+			static bool ShouldAvoid(Pawn pawn, Thing thing, bool forced)
+			{
+				if (forced || pawn.IsColonist == false)
+					return false;
+
+				if (Tools.ShouldAvoidZombies(pawn) == false)
+					return false;
+
+				var tickManager = pawn.Map?.GetComponent<TickManager>();
+				if (tickManager == null)
+					return false;
+
+				return tickManager.avoidGrid.ShouldAvoid(thing.Map, thing.Position);
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+			{
+				var label = generator.DefineLabel();
+
+				yield return new CodeInstruction(OpCodes.Ldarg_1);
+				yield return new CodeInstruction(OpCodes.Ldarg_2);
+				yield return new CodeInstruction(OpCodes.Ldarg_3);
+				yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => ShouldAvoid(null, null, false)));
+				yield return new CodeInstruction(OpCodes.Brfalse, label);
+				yield return new CodeInstruction(OpCodes.Ldc_I4_0);
+				yield return new CodeInstruction(OpCodes.Ret);
+
+				var list = instructions.ToList();
+				list[0].labels.Add(label);
+				foreach (var instruction in list)
+					yield return instruction;
+			}
+
+			static IEnumerable<MethodBase> TargetMethods()
+			{
+				return GenTypes.AllSubclasses(typeof(WorkGiver_Scanner))
+				.Select(type => type.GetMethod("HasJobOnThing", AccessTools.all | BindingFlags.DeclaredOnly))
+				.Where(method => method != null)
+				.Cast<MethodBase>();
+			}
+		}
+		[HarmonyPatch]
+		static class WorkGiver_Scanner_JobOnThing_Patches
+		{
+			static bool ShouldAvoid(Pawn pawn, Thing thing, bool forced)
+			{
+				if (forced || pawn.IsColonist == false)
+					return false;
+
+				if (Tools.ShouldAvoidZombies(pawn) == false)
+					return false;
+
+				var tickManager = pawn.Map?.GetComponent<TickManager>();
+				if (tickManager == null)
+					return false;
+
+				return tickManager.avoidGrid.ShouldAvoid(thing.Map, thing.Position);
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+			{
+				var label = generator.DefineLabel();
+
+				yield return new CodeInstruction(OpCodes.Ldarg_1);
+				yield return new CodeInstruction(OpCodes.Ldarg_2);
+				yield return new CodeInstruction(OpCodes.Ldarg_3);
+				yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => ShouldAvoid(null, null, false)));
+				yield return new CodeInstruction(OpCodes.Brfalse, label);
+				yield return new CodeInstruction(OpCodes.Ldnull);
+				yield return new CodeInstruction(OpCodes.Ret);
+
+				var list = instructions.ToList();
+				list[0].labels.Add(label);
+				foreach (var instruction in list)
+					yield return instruction;
+			}
+
+			static IEnumerable<MethodBase> TargetMethods()
+			{
+				return GenTypes.AllSubclasses(typeof(WorkGiver_Scanner))
+				.Select(type => type.GetMethod("JobOnThing", AccessTools.all | BindingFlags.DeclaredOnly))
+				.Where(method => method != null)
+				.Cast<MethodBase>();
 			}
 		}
 
@@ -1133,7 +1415,7 @@ namespace ZombieLand
 
 				if (pos.InBounds(map) == false) return;
 
-				if (ZombieSettings.Values.betterZombieAvoidance)
+				if (Tools.ShouldAvoidZombies())
 				{
 					var avoidGrid = map.GetComponent<TickManager>().avoidGrid;
 					_ = builder.AppendLine("Avoid cost: " + avoidGrid.GetCosts()[pos.x + pos.z * map.Size.x]);
@@ -2344,7 +2626,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for variable zombie movement speed
+		// patch for variable zombie stats (speed, pain, melee, dodge)
 		//
 		[HarmonyPatch(typeof(StatExtension))]
 		[HarmonyPatch("GetStatValue")]
@@ -2461,7 +2743,9 @@ namespace ZombieLand
 					// them at 1x speed and make them faster instead. Not perfect but
 					// a very good workaround for good game speed
 					//
-					__result = 1.5f * speed * factor * Find.TickManager.TickRateMultiplier;
+					var multiplier = Find.TickManager.TickRateMultiplier;
+					if (multiplier > 1f) multiplier = 1f + (multiplier - 1f) / 3f;
+					__result = 1.5f * speed * factor * multiplier;
 					if (zombie.wasMapPawnBefore)
 						__result *= 2f;
 					return false;
@@ -2545,40 +2829,14 @@ namespace ZombieLand
 		[StaticConstructorOnStartup]
 		static class PriorityWork_GetGizmos_Patch
 		{
-			public static readonly Texture2D ExtractingAllowed = ContentFinder<Texture2D>.Get("ExtractingAllowed", true);
-			public static readonly Texture2D ExtractingForbidden = ContentFinder<Texture2D>.Get("ExtractingForbidden", true);
-			public static readonly Texture2D ExtractingDisabled = ContentFinder<Texture2D>.Get("ZombieExtract", true); // auto-dimmed
-
 			static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> gizmos, Pawn ___pawn)
 			{
 				var gizmoList = gizmos.ToList();
 				foreach (var gizmo in gizmos)
 					yield return gizmo;
 
-				var description = "AutoExtractDisabledDescription";
-				var icon = ExtractingDisabled;
-				SoundDef activateSound = null;
-				Action action = null;
-
-				var canDoctor = ___pawn.CanDoctor();
-				var config = canDoctor ? ColonistSettings.Values.ConfigFor(___pawn) : null;
-				if (canDoctor)
-				{
-					var autoExtractZombieSerum = config.autoExtractZombieSerum;
-					description = autoExtractZombieSerum ? "AutoExtractAllowedDescription" : "AutoExtractForbiddenDescription";
-					icon = autoExtractZombieSerum ? ExtractingAllowed : ExtractingForbidden;
-					activateSound = autoExtractZombieSerum ? SoundDefOf.Designate_ZoneAdd : SoundDefOf.Designate_ZoneDelete;
-					action = config.ToggleAutoExtractZombieSerum;
-				}
-
-				yield return new Command_Action
-				{
-					disabled = canDoctor == false,
-					defaultDesc = description.Translate(),
-					icon = icon,
-					activateSound = activateSound,
-					action = action
-				};
+				yield return Gizmos.ZombieAvoidance(___pawn);
+				yield return Gizmos.ExtractSerum(___pawn);
 			}
 		}
 

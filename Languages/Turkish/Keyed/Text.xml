@@ -138,4 +138,7 @@
 	<AutoExtractAllowedDescription>Yakında zombi olmadığında zombi serumunu otomatik olarak çıkar</AutoExtractAllowedDescription>
 	<AutoExtractForbiddenDescription>Yalnızca sipariş edildiğinde zombi serumu ayıklayın</AutoExtractForbiddenDescription>
 
+	<AutoAvoidZombiesEnabledDescription>Koloninin hazırlandığı ve ayakta durduğu durumlar dışında zombileri otomatik olarak önlemek</AutoAvoidZombiesEnabledDescription>
+	<AutoAvoidZombiesDisabledDescription>Zombileri yoksay. Tüm eylemleri manuel olarak kontrol etmeniz gerekir</AutoAvoidZombiesDisabledDescription>
+
 </LanguageData>

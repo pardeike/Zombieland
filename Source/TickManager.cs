@@ -62,7 +62,7 @@ namespace ZombieLand
 			if (!destinations.ContainsKey(zombieFaction)) map.pawnDestinationReservationManager.RegisterFaction(zombieFaction);
 
 			var allZombies = AllZombies();
-			if (ZombieSettings.Values.betterZombieAvoidance)
+			if (Tools.ShouldAvoidZombies())
 			{
 				var specs = allZombies.Select(zombie => new ZombieCostSpecs()
 				{
@@ -193,7 +193,7 @@ namespace ZombieLand
 
 		public void UpdateZombieAvoider()
 		{
-			var specs = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false && zombie.Downed == false)
+			var specs = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false && zombie.IsDowned() == false)
 				.Select(zombie => new ZombieCostSpecs()
 				{
 					position = zombie.Position,
@@ -220,10 +220,10 @@ namespace ZombieLand
 		bool RepositionCondition(Pawn pawn)
 		{
 			return pawn.Spawned &&
-				pawn.Downed == false &&
+				pawn.IsDowned() == false &&
 				pawn.Dead == false &&
 				pawn.Drafted == false &&
-				avoidGrid.GetCosts()[pawn.Position.x + pawn.Position.z * map.Size.x] > 0 &&
+				avoidGrid.InAvoidDanger(pawn) &&
 				pawn.InMentalState == false &&
 				pawn.InContainerEnclosed == false &&
 				(pawn.CurJob == null || (pawn.CurJob.def != JobDefOf.Goto && pawn.CurJob.playerForced == false));
@@ -245,7 +245,7 @@ namespace ZombieLand
 						var zombiesNearby = Tools.GetCircle(radius).Select(vec => pos + vec)
 							.Where(vec => vec.InBounds(map) && avoidGrid.GetCosts()[vec.x + vec.z * map.Size.x] >= 3000)
 							.SelectMany(vec => map.thingGrid.ThingsListAtFast(vec).OfType<Zombie>())
-							.Where(zombie => zombie.Downed == false);
+							.Where(zombie => zombie.IsDowned() == false);
 
 						var maxDistance = 0;
 						var safeDestination = IntVec3.Invalid;
@@ -253,7 +253,7 @@ namespace ZombieLand
 						{
 							if (!vec.Walkable(map)) return false;
 							if ((float)vec.DistanceToSquared(pos) > radiusSquared) return false;
-							if (map.thingGrid.ThingAt<Zombie>(vec)?.Downed ?? true == false) return false;
+							if (map.thingGrid.ThingAt<Zombie>(vec)?.IsDowned() ?? true == false) return false;
 							if (vec.GetEdifice(map) is Building_Door building_Door && !building_Door.CanPhysicallyPass(pawn)) return false;
 							return !PawnUtility.AnyPawnBlockingPathAt(vec, pawn, true, false);
 
@@ -282,7 +282,7 @@ namespace ZombieLand
 
 		void FetchAvoidGrid()
 		{
-			if (ZombieSettings.Values.betterZombieAvoidance == false)
+			if (Tools.ShouldAvoidZombies() == false)
 			{
 				if (emptyAvoidGrid == null)
 					emptyAvoidGrid = new AvoidGrid(map);

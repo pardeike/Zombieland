@@ -138,4 +138,7 @@
 	<AutoExtractAllowedDescription>Автоматически извлекать сыворотку зомби, когда поблизости нет зомби</AutoExtractAllowedDescription>
 	<AutoExtractForbiddenDescription>Извлекайте зомби-сыворотку только при заказе</AutoExtractForbiddenDescription>
 
+	<AutoAvoidZombiesEnabledDescription>Автоматически избегайте зомби, кроме случаев, когда колонист мобилизован и стоит</AutoAvoidZombiesEnabledDescription>
+	<AutoAvoidZombiesDisabledDescription>Игнорировать зомби. Вам нужно вручную контролировать все действия</AutoAvoidZombiesDisabledDescription>
+
 </LanguageData>

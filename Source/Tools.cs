@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Xml;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 using Verse.Sound;
 
 namespace ZombieLand
@@ -240,6 +241,15 @@ namespace ZombieLand
 			return pawn.health.Downed;
 		}
 
+		public static bool ShouldAvoidZombies(Pawn pawn = null)
+		{
+			if (pawn == null)
+				return ZombieSettings.Values.betterZombieAvoidance;
+
+			if (ZombieSettings.Values.betterZombieAvoidance == false) return false;
+			return ColonistSettings.Values.ConfigFor(pawn).autoAvoidZombies;
+		}
+
 		public static float ZombieAvoidRadius(Zombie zombie, bool squared = false)
 		{
 			if (zombie.wasMapPawnBefore)
@@ -257,18 +267,84 @@ namespace ZombieLand
 			}
 		}
 
-		public static bool CanDoctor(this Pawn pawn)
+		public static bool CanDoctor(this Pawn pawn, bool rightNow = false)
 		{
-			if (pawn.RaceProps.Humanlike == false)
+			if (pawn.RaceProps.Humanlike == false || pawn.IsPrisoner)
 				return false;
-			if (pawn.Downed || pawn.Awake() == false || pawn.InBed() || pawn.InMentalState || pawn.IsPrisoner)
+			if (rightNow && (pawn.IsDowned() || pawn.Awake() == false || pawn.InBed() || pawn.InMentalState))
 				return false;
 			if (pawn.workSettings == null)
 				return false;
 			return pawn.workSettings.WorkIsActive(WorkTypeDefOf.Doctor) && pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation);
 		}
 
-		public static IntVec3 ZombiesNearby(Pawn pawn, IntVec3 destination, bool ignoreDowned = false)
+		public static List<Zombie> NearByZombiesSorted(Pawn pawn, IntVec3 center, int radius, bool ignoreDowned, bool sortByDistance, bool usePathing)
+		{
+			var maxDistance = radius * radius;
+			var map = pawn.Map;
+
+			var tp = TraverseParms.For(pawn, Danger.Deadly, TraverseMode.NoPassClosedDoors, false);
+			var zombies = new List<Zombie>();
+			var cx = center.x;
+			var cz = center.z;
+			int distanceSquared(int px, int pz) => (cx - px) * (cx - px) + (cz - pz) * (cz - pz);
+
+			bool regionValidator(Region from, Region to)
+			{
+				if (to.Allows(tp, false) == false)
+					return false;
+
+				return true;
+
+				/*if (to.CellCount == 1)
+					return true;
+
+				var minX = to.extentsClose.minX;
+				var minZ = to.extentsClose.minZ;
+				var maxX = to.extentsClose.maxX;
+				var maxZ = to.extentsClose.maxZ;
+
+				if (distanceSquared(minX, minZ) <= maxDistance) return true;
+				if (distanceSquared(maxX, minZ) <= maxDistance) return true;
+				if (distanceSquared(minX, maxZ) <= maxDistance) return true;
+				if (distanceSquared(maxX, maxZ) <= maxDistance) return true;
+				return false;*/
+			}
+
+			bool regionProcessor(Region r)
+			{
+				var zombie = r.ListerThings.ThingsOfDef(CustomDefs.Zombie).OfType<Zombie>().FirstOrDefault();
+				if (zombie != null)
+				{
+					var pos = zombie.Position;
+					if (distanceSquared(pos.x, pos.z) <= maxDistance)
+						if (ignoreDowned || zombie.IsDowned() == false)
+							zombies.Add(zombie);
+				}
+				return false;
+			}
+
+			RegionTraverser.BreadthFirstTraverse(center, map, regionValidator, regionProcessor, 25, RegionType.Set_Passable);
+			if (sortByDistance)
+				zombies.Sort(new DistanceComparer(center));
+
+			if (usePathing)
+			{
+				var pather = map.pathFinder;
+				_ = zombies.RemoveAll(zombie => pather.FindPath(zombie.Position, center, zombie, PathEndMode.InteractionCell) == PawnPath.NotFound);
+			}
+
+			return zombies;
+		}
+
+		public static Zombie NearestZombie(Pawn pawn, IntVec3 cell, int radius, bool ignoreDowned = false)
+		{
+			var zombies = NearByZombiesSorted(pawn, cell, radius, ignoreDowned, true, false);
+			var pather = pawn.Map.pathFinder;
+			return zombies.FirstOrDefault(zombie => pather.FindPath(zombie.Position, cell, zombie, PathEndMode.InteractionCell) != PawnPath.NotFound);
+		}
+
+		/*public static IntVec3 ZombiesNearby(Pawn pawn, IntVec3 destination, bool ignoreDowned = false)
 		{
 			var tp = TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false);
 			var foundZombie = IntVec3.Invalid;
@@ -281,7 +357,7 @@ namespace ZombieLand
 
 			}, 25, RegionType.Set_Passable);
 			return foundZombie;
-		}
+		}*/
 
 		public static void QueueConvertToZombie(ThingWithComps thing)
 		{
@@ -522,7 +598,7 @@ namespace ZombieLand
 			var colonists = map.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction.OfPlayer);
 			return colonists.Count(pawn =>
 			{
-				if (pawn.Spawned == false || pawn.Downed || pawn.Dead) return false;
+				if (pawn.Spawned == false || pawn.IsDowned() || pawn.Dead) return false;
 				if (pawn.health.HasHediffsNeedingTend(true)) return false;
 				if (pawn.equipment.Primary == null) return false;
 				if (pawn.InMentalState) return false;
@@ -921,7 +997,7 @@ namespace ZombieLand
 		static bool DownedReplacement(Pawn pawn)
 		{
 			if (pawn is Zombie) return false;
-			return pawn.Downed;
+			return pawn.IsDowned();
 		}
 
 		public static IEnumerable<CodeInstruction> DownedReplacer(IEnumerable<CodeInstruction> instructions, int skip = 0)

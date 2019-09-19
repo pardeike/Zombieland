@@ -629,7 +629,7 @@ namespace ZombieLand
 
 					if (twc is Pawn p && ZombieSettings.Values.zombiesEatDowned)
 					{
-						if (p.Spawned && p.RaceProps.IsFlesh && (p.Downed || p.Dead))
+						if (p.Spawned && p.RaceProps.IsFlesh && (p.IsDowned() || p.Dead))
 							return p;
 					}
 
@@ -650,7 +650,7 @@ namespace ZombieLand
 			var targets = GetAdjacted<Pawn>(zombie).ToList();
 			foreach (var target in targets)
 			{
-				if (target.Dead || target.Downed)
+				if (target.Dead || target.IsDowned())
 					continue;
 
 				// if (TouchPathEndModeUtility.IsAdjacentOrInsideAndAllowedToTouch(zombie.Position, target.Position, zombie.Map) == false)

@@ -33,6 +33,16 @@ namespace ZombieLand
 			return costGrids[idx];
 		}
 
+		public bool InAvoidDanger(Pawn pawn)
+		{
+			return GetCosts()[pawn.Position.x + pawn.Position.z * pawn.Map.Size.x] > 0;
+		}
+
+		public bool ShouldAvoid(Map map, IntVec3 position)
+		{
+			return GetCosts()[position.x + position.z * map.Size.x] > 0;
+		}
+
 		public int[] GetNewCosts()
 		{
 			return costGrids[1 - idx];

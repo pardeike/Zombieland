@@ -7,15 +7,22 @@ namespace ZombieLand
 	class ColonistConfig : IExposable
 	{
 		public bool autoExtractZombieSerum = true;
+		public bool autoAvoidZombies = true;
 
 		public void ToggleAutoExtractZombieSerum()
 		{
 			autoExtractZombieSerum = autoExtractZombieSerum == false;
 		}
 
+		public void ToggleAutoAvoidZombies()
+		{
+			autoAvoidZombies = autoAvoidZombies == false;
+		}
+
 		public void ExposeData()
 		{
 			Scribe_Values.Look(ref autoExtractZombieSerum, "autoExtractZombieSerum", true);
+			Scribe_Values.Look(ref autoAvoidZombies, "autoAvoidZombies", true);
 		}
 	}
 

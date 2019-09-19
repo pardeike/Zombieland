@@ -9,7 +9,6 @@ namespace ZombieLand
 	{
 		private const float extractWork = 100;
 		private float extractProcess = 0;
-		private float nextZombieCheck = 0;
 
 		private readonly ThingDef extractDef = ThingDef.Named("ZombieExtract");
 
@@ -17,7 +16,6 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 			Scribe_Values.Look<float>(ref extractProcess, "extractProcess", 0f, false);
-			Scribe_Values.Look<float>(ref nextZombieCheck, "nextZombieCheck", 0f, false);
 		}
 
 		public override string GetReport()
@@ -31,65 +29,50 @@ namespace ZombieLand
 			return pawn.Reserve(corpse, job, 1, -1, null, errorOnFailed);
 		}
 
-		public override void Notify_PatherArrived()
-		{
-			base.Notify_PatherArrived();
-		}
-
 		protected override IEnumerable<Toil> MakeNewToils()
 		{
 			_ = this.FailOnDespawnedOrNull(TargetIndex.A);
 			yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.Touch);
 
-			var wait = new Toil();
-			wait.initAction = delegate ()
+			var extract = new Toil
 			{
-				var actor = wait.actor;
-				actor.pather.StopDead();
-			};
-			wait.tickAction = delegate ()
-			{
-				var actor = wait.actor;
-				extractProcess += actor.GetStatValue(StatDefOf.MedicalTendSpeed, true) / 2;
-				if (extractProcess >= extractWork)
-				{
-					var extract = ThingMaker.MakeThing(extractDef, null);
-					extract.stackCount = ZombieSettings.Values.corpsesExtractAmount;
-					_ = GenPlace.TryPlaceThing(extract, actor.Position, actor.Map, ThingPlaceMode.Near, null, null);
+				activeSkill = (() => SkillDefOf.Medicine),
+				defaultCompleteMode = ToilCompleteMode.Never,
 
+				initAction = delegate ()
+				{
+					pawn.pather.StopDead();
+				},
+
+				tickAction = delegate ()
+				{
 					var zombieCorpse = (ZombieCorpse)job.GetTarget(TargetIndex.A).Thing;
-					if (zombieCorpse != null)
-						zombieCorpse.Destroy();
+					extractProcess += pawn.GetStatValue(StatDefOf.MedicalTendSpeed, true) / 2;
+					if (extractProcess >= extractWork)
+					{
+						var extractResult = ThingMaker.MakeThing(extractDef, null);
+						extractResult.stackCount = ZombieSettings.Values.corpsesExtractAmount;
+						_ = GenPlace.TryPlaceThing(extractResult, pawn.Position, pawn.Map, ThingPlaceMode.Near, null, null);
 
-					actor.jobs.EndCurrentJob(JobCondition.Succeeded, true);
-				}
-				if (job.playerForced == false && extractProcess >= nextZombieCheck)
-				{
-					nextZombieCheck += 0.02f;
+						if (zombieCorpse != null)
+							zombieCorpse.Destroy();
 
-					var map = actor.Map;
-					var center = actor.Position;
-					foreach (var vec in GenRadial.RadialPatternInRadius(4f))
-						if (map.thingGrid.ThingAt<Zombie>(center + vec) != null)
-						{
-							actor.jobs.EndCurrentJob(JobCondition.InterruptOptional, true);
-							break;
-						}
+						pawn.jobs.EndCurrentJob(JobCondition.Succeeded, true);
+					}
 				}
 			};
-			_ = wait.FailOnDespawnedOrNull(TargetIndex.A);
-			_ = wait.FailOnCannotTouch(TargetIndex.A, PathEndMode.Touch);
-			wait.AddEndCondition(delegate
+			_ = extract.FailOnDespawnedOrNull(TargetIndex.A);
+			_ = extract.FailOnCannotTouch(TargetIndex.A, PathEndMode.Touch);
+			extract.AddEndCondition(delegate
 			{
 				var zombieCorpse = (ZombieCorpse)job.GetTarget(TargetIndex.A).Thing;
 				if (zombieCorpse == null || zombieCorpse.Destroyed || zombieCorpse.Spawned == false)
 					return JobCondition.Incompletable;
 				return JobCondition.Ongoing;
 			});
-			wait.defaultCompleteMode = ToilCompleteMode.Never;
-			_ = wait.WithProgressBar(TargetIndex.A, () => extractProcess / extractWork, false, -0.5f);
-			wait.activeSkill = (() => SkillDefOf.Medicine);
-			yield return wait;
+			_ = extract.WithProgressBar(TargetIndex.A, () => extractProcess / extractWork, false, -0.5f);
+
+			yield return extract;
 		}
 	}
 }

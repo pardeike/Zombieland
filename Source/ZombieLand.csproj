@@ -69,6 +69,8 @@
     <Compile Include="Dialog_UseSettings.cs" />
     <Compile Include="Dialog_ZombieDebugActionMenu.cs" />
     <Compile Include="DisposableMaterial.cs" />
+    <Compile Include="DistanceComparer.cs" />
+    <Compile Include="Gizmos.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="JobDriver_ExtractZombieSerum.cs" />
     <Compile Include="ModCounter.cs" />

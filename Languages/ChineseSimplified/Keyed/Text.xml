@@ -138,4 +138,7 @@
 	<AutoExtractAllowedDescription>当没有僵尸在附近时自动提取僵尸血清</AutoExtractAllowedDescription>
 	<AutoExtractForbiddenDescription>订购时只能提取僵尸精华素</AutoExtractForbiddenDescription>
 
+	<AutoAvoidZombiesEnabledDescription>自动避免僵尸，除非殖民者被起草和站立</AutoAvoidZombiesEnabledDescription>
+	<AutoAvoidZombiesDisabledDescription>忽略僵尸。 您需要手动控制所有操作</AutoAvoidZombiesDisabledDescription>
+
 </LanguageData>

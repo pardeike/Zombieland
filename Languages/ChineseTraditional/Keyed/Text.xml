@@ -138,4 +138,7 @@
 	<AutoExtractAllowedDescription>當沒有殭屍在附近時自動提取殭屍血清</AutoExtractAllowedDescription>
 	<AutoExtractForbiddenDescription>訂購時只能提取殭屍精華素</AutoExtractForbiddenDescription>
 
+	<AutoAvoidZombiesEnabledDescription>自動避免殭屍，除非殖民者被起草和站立</AutoAvoidZombiesEnabledDescription>
+	<AutoAvoidZombiesDisabledDescription>忽略殭屍。 您需要手動控制所有操作</AutoAvoidZombiesDisabledDescription>
+
 </LanguageData>

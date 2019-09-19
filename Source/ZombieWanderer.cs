@@ -302,7 +302,7 @@ namespace ZombieLand
 				valid = pawn != null
 					&& pawn.Spawned
 					&& pawn.Dead == false
-					&& pawn.Downed == false
+					&& pawn.IsDowned() == false
 					&& (pawn is Zombie) == false
 					&& pawn.RaceProps.IsFlesh
 					&& Tools.HasInfectionState(pawn, InfectionState.Infecting, InfectionState.Infected) == false
