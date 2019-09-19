@@ -400,7 +400,7 @@ namespace ZombieLand
 				list.Dialog_Checkbox("ZombiesEatCorpses", ref settings.zombiesEatCorpses);
 				list.Gap(20f);
 
-				// Eating
+				// Types
 				list.Dialog_Label("SpecialZombiesTitle");
 				list.Gap(8f);
 				list.Dialog_FloatSlider("SuicideBomberChance", "0%", ref settings.suicideBomberChance, 0f, 1f - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance);
@@ -461,7 +461,7 @@ namespace ZombieLand
 				list.Dialog_Checkbox("AnyTreatmentStopsInfection", ref settings.anyTreatmentStopsInfection);
 				list.Gap(24f);
 
-				// Infections
+				// Serum
 				list.Dialog_Label("ZombieSerum");
 				list.Gap(8f);
 				list.Dialog_IntSlider("CorpsesExtractAmount", amount => "" + amount, ref settings.corpsesExtractAmount, 1, 10);

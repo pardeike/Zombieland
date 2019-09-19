@@ -10,6 +10,12 @@ Zombies attack anything that moves, smells and makes sounds. They do not discrim
 
 This Mod features custom controlled Zombies with simulated instincts. Most default RimWorld functions have been disabled on them to allow for a smooth game play experience. Therefore, you cannot select or harvest them.
 
+## Design and goal
+
+With zombies in Zombieland you won't get the normal planing and attacking behaviour like with other mods. Zombies are dumb, get stuck and in general slowly radiate towards your base than to attack it. There are exceptions though: special zombies (depending on type) are smarter and will find you but the big masses just wander around. When they hear, see or smell you they will start following your trail and if one zombie starts to track that way others around it will follow thus resulting in a group behaviour that you would expect from animal packs.
+
+So when you see that zombies get stuck in a cave or near your base, don't get fooled in underestimating the danger. You can use the mechanics to your advantage too. Try to kite them around or lead them away while another colonist rescues someone. In general, zombies add a chaotic moment to your base Rimworld experience that changes the game substantially. If you expect normal gameplay you will be disappointed. 
+
 ## Handling Settings
 
 There are 4 ways to edit settings in Zombieland.
@@ -91,6 +97,9 @@ Larger range, 10 or more cells, traces fade away slowly
 
 **Zombies rage when a group gets too large**  
 Makes extra angry zombies (red eyes) that know where you are and will follow you (and destroy things if previous setting allows it)
+
+**Rage level**  
+This controls the difficulty of raging. Set to low, raging only occurs in very large groups and does not last long. Set to high, raging will happen in smaller groups and the effect will last longer.
 
 ### Zombie health
 
@@ -193,11 +202,13 @@ Normally, treatment only works if done by a really good doctor, in a really good
 
 ### Zombie serum
 
-You can collect zombie extract in small amounts from dead zombies and refine it on a drugtable into zombie serum (requires 1x medicine too). The serum comes in qualities of 10% to 100% and they require different amounts of zombie extract. One potion of serum heals one zombie bite and the quality determines the failure risk when doing an operation on an infected colonist. 
+Note: see Serum for more details on how serum in Zombieland work
 
-Colonists that are scheduled to do doctor tasks automatically collect zombie extract if there are no zombies nearby but you can order them too. There is a button in the colonist actions that toggles automtic collection on and off.
+**Amount of zombie extract per zombie**  
+Here, you can set how much extract you will get from each zombie corpse
 
-Zombie serum is a very good way to remove a zombie infection regardless of its stage. So try to plan ahead and start collecting it early - gathering enough zombie extract to make serum takes a while.
+**Hours until zombie corpses disappear**  
+To reduce the overall impact of all dead zombies on the game, the visuals and your ability to select things, Zombieland lets you configure how fast zombie corpses desiccate and disappear.
 
 ### Miscellaneous
 
@@ -232,6 +243,14 @@ Loads saved settings
 
 **Publish settings to the cloud**  
 Saves current settings
+
+## Serum
+
+You can collect zombie extract in small amounts from dead zombies and refine it on a drugtable into zombie serum (requires 1x medicine too). The serum comes in qualities of 10% to 100% and they require different amounts of zombie extract. One potion of serum heals one zombie bite and the quality determines the failure risk when doing an operation on an infected colonist. 
+
+Colonists that are scheduled to do doctor tasks automatically collect zombie extract if there are no zombies nearby but you can order them too. There is a button in the colonist actions that toggles automtic collection on and off.
+
+Zombie serum is a very good way to remove a zombie infection regardless of its stage. So try to plan ahead and start collecting it early - gathering enough zombie extract to make serum takes a while.
 
 ## Infections
 
