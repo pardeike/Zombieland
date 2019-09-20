@@ -55,7 +55,8 @@ namespace ZombieLand
 			var grid = map.GetGrid();
 			grid.IterateCellsQuick(cell => cell.zombieCount = 0);
 
-			RecalculateVisibleMap();
+			visibleGridUpdateCounter = -1;
+			RecalculateZombieWanderDestination();
 
 			var destinations = GetterSetters.reservedDestinationsByRef(map.pawnDestinationReservationManager);
 			var zombieFaction = Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies);
@@ -110,17 +111,7 @@ namespace ZombieLand
 				explosions = new List<IntVec3>();
 		}
 
-		public static void ForceRecalculate()
-		{
-			var tickManager = Find.CurrentMap?.GetComponent<TickManager>();
-			if (tickManager != null)
-			{
-				tickManager.visibleGridUpdateCounter = -1;
-				tickManager.RecalculateVisibleMap();
-			}
-		}
-
-		public void RecalculateVisibleMap()
+		public void RecalculateZombieWanderDestination()
 		{
 			Tools.UpdateStoryTellerDifficulty();
 
@@ -408,7 +399,7 @@ namespace ZombieLand
 			yield return null;
 			FetchAvoidGrid();
 			yield return null;
-			RecalculateVisibleMap();
+			RecalculateZombieWanderDestination();
 			yield return null;
 			IncreaseZombiePopulation();
 			yield return null;

@@ -252,6 +252,8 @@ namespace ZombieLand
 
 		public static float ZombieAvoidRadius(Zombie zombie, bool squared = false)
 		{
+			if (zombie.isElectrifier)
+				return 0f;
 			if (zombie.wasMapPawnBefore)
 				return squared ? 64f : 8f;
 			if (zombie.raging > 0)

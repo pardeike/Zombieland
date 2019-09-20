@@ -1134,6 +1134,21 @@ namespace ZombieLand
 				}
 				return true;
 			}
+
+			public static bool MyCanReachImmediate(Pawn pawn, LocalTargetInfo target, PathEndMode peMode)
+			{
+				if (target.Thing is Zombie zombie)
+					if (zombie.isElectrifier)
+						return true;
+				return pawn.CanReachImmediate(target, peMode);
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var m_CanReachImmediate = SymbolExtensions.GetMethodInfo(() => ReachabilityImmediate.CanReachImmediate(null, default, default));
+				var m_MyCanReachImmediate = SymbolExtensions.GetMethodInfo(() => MyCanReachImmediate(null, default, default));
+				return Transpilers.MethodReplacer(instructions, m_CanReachImmediate, m_MyCanReachImmediate);
+			}
 		}
 		[HarmonyPatch(typeof(DangerUtility))]
 		[HarmonyPatch(nameof(DangerUtility.GetDangerFor))]
