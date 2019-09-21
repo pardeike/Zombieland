@@ -960,6 +960,7 @@ namespace ZombieLand
 			// by returning 0 - currently disabled because it does cost too much
 			static int GetZombieCosts(Pawn pawn, int idx)
 			{
+				if (pawn == null) return 0;
 				if (Tools.ShouldAvoidZombies(pawn) == false) return 0;
 
 				var map = pawn.Map;

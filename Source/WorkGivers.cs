@@ -51,7 +51,7 @@ namespace ZombieLand
 					var avoidGrid = tickManager.avoidGrid;
 					var path = pawn.Map.pathFinder.FindPath(pawn.Position, t, pawn, PathEndMode.ClosestTouch);
 					var shouldAvoid = path.NodesReversed.Any(cell => avoidGrid.ShouldAvoid(map, cell));
-					path.Dispose();
+					path.ReleaseToPool();
 					if (shouldAvoid)
 						return false;
 				}

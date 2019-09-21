@@ -9,7 +9,6 @@ using System.Reflection.Emit;
 using System.Xml;
 using UnityEngine;
 using Verse;
-using Verse.AI;
 using Verse.Sound;
 
 namespace ZombieLand
@@ -280,7 +279,15 @@ namespace ZombieLand
 			return pawn.workSettings.WorkIsActive(WorkTypeDefOf.Doctor) && pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation);
 		}
 
-		public static List<Zombie> NearByZombiesSorted(Pawn pawn, IntVec3 center, int radius, bool ignoreDowned, bool sortByDistance, bool usePathing)
+		/*public static bool CanPathTo(this Zombie zombie, IntVec3 cell)
+		{
+			var path = zombie.Map.pathFinder.FindPath(zombie.Position, cell, zombie, PathEndMode.InteractionCell);
+			var result = path != PawnPath.NotFound;
+			path.ReleaseToPool();
+			return result;
+		}*/
+
+		/*public static List<Zombie> NearByZombiesSorted(Pawn pawn, IntVec3 center, int radius, bool ignoreDowned, bool sortByDistance, bool usePathing)
 		{
 			var maxDistance = radius * radius;
 			var map = pawn.Map;
@@ -295,22 +302,7 @@ namespace ZombieLand
 			{
 				if (to.Allows(tp, false) == false)
 					return false;
-
 				return true;
-
-				/*if (to.CellCount == 1)
-					return true;
-
-				var minX = to.extentsClose.minX;
-				var minZ = to.extentsClose.minZ;
-				var maxX = to.extentsClose.maxX;
-				var maxZ = to.extentsClose.maxZ;
-
-				if (distanceSquared(minX, minZ) <= maxDistance) return true;
-				if (distanceSquared(maxX, minZ) <= maxDistance) return true;
-				if (distanceSquared(minX, maxZ) <= maxDistance) return true;
-				if (distanceSquared(maxX, maxZ) <= maxDistance) return true;
-				return false;*/
 			}
 
 			bool regionProcessor(Region r)
@@ -331,20 +323,16 @@ namespace ZombieLand
 				zombies.Sort(new DistanceComparer(center));
 
 			if (usePathing)
-			{
-				var pather = map.pathFinder;
-				_ = zombies.RemoveAll(zombie => pather.FindPath(zombie.Position, center, zombie, PathEndMode.InteractionCell) == PawnPath.NotFound);
-			}
+				_ = zombies.RemoveAll(zombie => zombie.CanPathTo(center) == false);
 
 			return zombies;
-		}
+		}*/
 
-		public static Zombie NearestZombie(Pawn pawn, IntVec3 cell, int radius, bool ignoreDowned = false)
+		/*public static Zombie NearestZombie(Pawn pawn, IntVec3 cell, int radius, bool ignoreDowned = false)
 		{
 			var zombies = NearByZombiesSorted(pawn, cell, radius, ignoreDowned, true, false);
-			var pather = pawn.Map.pathFinder;
-			return zombies.FirstOrDefault(zombie => pather.FindPath(zombie.Position, cell, zombie, PathEndMode.InteractionCell) != PawnPath.NotFound);
-		}
+			return zombies.FirstOrDefault(zombie => zombie.CanPathTo(cell);
+		}*/
 
 		/*public static IntVec3 ZombiesNearby(Pawn pawn, IntVec3 destination, bool ignoreDowned = false)
 		{
