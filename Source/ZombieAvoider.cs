@@ -159,7 +159,7 @@ namespace ZombieLand
 					});
 
 				foreach (var cell in floodedCells.Keys)
-					for (var i = 0; i < 3; i++)
+					for (var i = 0; i <= 3; i++)
 					{
 						var pos = cell + cardinals[i];
 						if (floodedCells.ContainsKey(pos) == false

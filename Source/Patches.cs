@@ -54,7 +54,7 @@ namespace ZombieLand
 		static readonly Dictionary<Map, HashSet<IAttackTarget>> playerHostilesWithoutZombies = new Dictionary<Map, HashSet<IAttackTarget>>();
 
 		// patch for debugging: show pheromone grid as overlay
-		/*
+		//
 		[HarmonyPatch(typeof(SelectionDrawer))]
 		[HarmonyPatch("DrawSelectionOverlays")]
 		static class SelectionDrawer_DrawSelectionOverlays_Patch
@@ -63,7 +63,7 @@ namespace ZombieLand
 
 			static void Postfix()
 			{
-				if (Constants.DEBUGGRID == false && DebugViewSettings.drawDoorsDebug == false) return;
+				if (Constants.DEBUGGRID == false || DebugViewSettings.drawDoorsDebug == false) return;
 
 				// debug zombie counts
 				Find.CurrentMap.GetGrid().IterateCells((x, z, cell) =>
@@ -105,7 +105,7 @@ namespace ZombieLand
 		{
 			static void Postfix()
 			{
-				if (DebugViewSettings.writePathCosts == false) return;
+				if (Constants.DEBUGGRID == false || DebugViewSettings.writePathCosts == false) return;
 				if (Tools.ShouldAvoidZombies() == false) return;
 
 				var map = Find.CurrentMap;
@@ -123,7 +123,6 @@ namespace ZombieLand
 				}
 			}
 		}
-		*/
 
 		// patch for debugging: show zombie pathing grid around the mouse
 		/*
