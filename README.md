@@ -222,7 +222,11 @@ A homage to the movie Zombieland!
 Makes the nights, when zombies tend to wander towards your base, a bit more creepier
 
 **Automatic avoidance of zombies**  
-Since the risk of getting close to a zombie is high, Zombieland can help you continuously reevaluate the path to avoid zombies. Recommended. Downside: you might not be able to order colonists close to zombies if you want to
+Since the risk of getting close to a zombie is high, Zombieland can help you continuously reevaluate the path to avoid zombies. Recommended. Downside: sometimes, you might not be able to order colonists close to zombies if you want to
+
+In addition, you have a button for each colonist where you can turn avoidance on/off at any time. This affects not only pathing but also any action or job that colonist does. If zombies get too close, the job (sleeping, building, shooting) gets shortly interrupted by a quick flee to a better position unless your colonist is drafted in which case you are fully in control of the action. This allows you to configure your colonists with auto-attack to let them fight zombies on their own or let them haul things without worrying too much about them.
+
+Electrical zombies are excluded from avoidance since they don't bite and to allow auto melee attacks (the only way to fight them).
 
 **Zombies drop blood**  
 Keep on for more dramatic visuals but can slow your game down a bit
