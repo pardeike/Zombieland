@@ -37,11 +37,10 @@ namespace ZombieLand
 			if (forced == false && ColonistSettings.Values.ConfigFor(pawn).autoExtractZombieSerum == false)
 				return false;
 
-			if (pawn.CanReach(corpse, PathEndMode.ClosestTouch, pawn.NormalMaxDanger(), false, TraverseMode.ByPawn) == false)
+			if (pawn.CanReach(corpse, PathEndMode.ClosestTouch, forced ? Danger.Deadly : Danger.None) == false)
 				return false;
 
-			return pawn.CanReserve(corpse, 1, -1, null, forced);
-			/*var result = pawn.CanReserve(corpse, 1, -1, null, forced);
+			var result = pawn.CanReserve(corpse, 1, -1, null, forced);
 			if (result && forced == false && ZombieSettings.Values.betterZombieAvoidance)
 			{
 				var map = pawn.Map;
@@ -56,7 +55,7 @@ namespace ZombieLand
 						return false;
 				}
 			}
-			return result;*/
+			return result;
 		}
 
 		public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)

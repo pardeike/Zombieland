@@ -125,14 +125,14 @@ namespace ZombieLand
 		}
 
 		// patch for debugging: show zombie pathing grid around the mouse
-		/*
+		//
 		[HarmonyPatch(typeof(MapInterface))]
 		[HarmonyPatch("MapInterfaceOnGUI_AfterMainTabs")]
 		class MapInterface_MapInterfaceOnGUI_AfterMainTabs_Patch
 		{
 			static void Postfix()
 			{
-				if (DebugViewSettings.writePathCosts == false) return;
+				if (Constants.DEBUGGRID == false || DebugViewSettings.writeBeauty == false) return;
 				if (Event.current.type != EventType.Repaint) return;
 
 				var map = Find.CurrentMap;
@@ -158,7 +158,6 @@ namespace ZombieLand
 				});
 			}
 		}
-		*/
 
 		// patch to show zombieland version and total number of zombies
 		//
@@ -1053,6 +1052,60 @@ namespace ZombieLand
 
 				foreach (var instr in list)
 					yield return instr;
+			}
+		}
+
+		// do not open doors when not drafted and they are marked by the avoid grid
+		//
+		[HarmonyPatch]
+		static class Building_Door_PawnCanOpen_Patch
+		{
+			static void Postfix(Building_Door __instance, Pawn p, ref bool __result)
+			{
+				if (__result == false)
+					return;
+
+				if (p == null || p.Map == null || p.Drafted)
+					return;
+
+				if (__instance.FreePassage)
+					return;
+
+				if (p.CurJob?.playerForced ?? false)
+					return;
+
+				if (Tools.ShouldAvoidZombies(p) == false)
+					return;
+
+				var map = p.Map;
+
+				var tickManager = map.GetComponent<TickManager>();
+				if (tickManager == null)
+					return;
+
+				var avoidGrid = tickManager.avoidGrid;
+
+				var size = __instance.def.size;
+				if (size.x == 1 && size.z == 1)
+				{
+					if (avoidGrid.ShouldAvoid(map, __instance.Position))
+						__result = false;
+				}
+				else
+				{
+					var cells = __instance.OccupiedRect().Cells;
+					if (cells.Any(cell => avoidGrid.ShouldAvoid(map, cell)))
+						__result = false;
+				}
+			}
+
+			static IEnumerable<MethodBase> TargetMethods()
+			{
+				return GenTypes.AllSubclasses(typeof(Building_Door))
+				.Union(new List<Type>() { typeof(Building_Door) })
+				.Select(type => type.GetMethod("PawnCanOpen", AccessTools.all | BindingFlags.DeclaredOnly))
+				.Where(method => method != null)
+				.Cast<MethodBase>();
 			}
 		}
 
