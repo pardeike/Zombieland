@@ -32,9 +32,18 @@ namespace ZombieLand
 	{
 		public static DamageDef SuicideBomb;
 		public static DamageDef ToxicSplatter;
-		public static SoundDef ZombiesClosingIn;
-		public static SoundDef ZombieElectricHum;
+		public static SoundDef Bzzt;
 		public static SoundDef ElectricShock;
+		public static SoundDef TankyTink;
+		public static SoundDef ToxicSplash;
+		public static SoundDef ZombieDigOut;
+		public static SoundDef ZombieEating;
+		public static SoundDef ZombieElectricHum;
+		public static SoundDef ZombieHit;
+		public static SoundDef ZombieRage;
+		public static SoundDef ZombieTracking;
+		public static SoundDef ZombiesClosingIn;
+		public static SoundDef ZombiesRising;
 		public static JobDef ExtractZombieSerum;
 		public static RecipeDef CureZombieInfection;
 		public static ThingDef Zombie;

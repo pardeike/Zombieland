@@ -210,6 +210,7 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Verse.TickManager.TickManagerUpdate))]
 		static class Verse_TickManager_TickManagerUpdate_Patch
 		{
+			public static float percentZombiesTicked = 1f;
 			static readonly Stopwatch watch = new Stopwatch();
 
 			static void TickZombies(Verse.TickManager manager, int num)
@@ -224,9 +225,13 @@ namespace ZombieLand
 				var zombieTicker = tickManager?.ZombieTicking();
 				if (zombieTicker != null)
 				{
+					tickManager.zombiesTicked = 0;
+
 					watch.Reset();
 					watch.Start();
 					while (zombieTicker.MoveNext() && watch.ElapsedTicks < maxTick) ;
+
+					percentZombiesTicked = tickManager.zombiesTicked == 0 || tickManager.totalTicking == 0 ? 1f : (float)tickManager.zombiesTicked / tickManager.totalTicking;
 				}
 			}
 
@@ -387,7 +392,7 @@ namespace ZombieLand
 				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 
-			static void Postfix(ref IAttackTarget __result, Predicate<Thing> validator, IAttackTargetSearcher searcher)
+			static void Postfix(ref IAttackTarget __result, TargetScanFlags flags, Predicate<Thing> validator, IAttackTargetSearcher searcher)
 			{
 				var thing = __result as Thing;
 
@@ -431,6 +436,7 @@ namespace ZombieLand
 										score += 5;
 									return -score;
 								}
+								var losFlags = TargetScanFlags.NeedLOSToPawns | TargetScanFlags.NeedLOSToAll;
 								__result = tickManager.allZombiesCached
 									.Where(zombie =>
 									{
@@ -439,7 +445,9 @@ namespace ZombieLand
 										var dn = zombie.IsDowned();
 										if (dn && (d > maxDownedRangeSquared || ZombieSettings.Values.doubleTapRequired == false)) return false;
 										if (dn == false && d > maxRangeSquared) return false;
-										return verb.CanHitTargetFrom(pos, zombie);
+										if (verb.CanHitTargetFrom(pos, zombie) == false) return false;
+										if ((flags & losFlags) != 0 && attacker.CanSee(zombie, null) == false) return false;
+										return true;
 									})
 									.OrderBy(zombiePrioritySorter).FirstOrDefault();
 								return;
@@ -1117,7 +1125,7 @@ namespace ZombieLand
 		{
 			static void Postfix(JobDriver __instance, Pawn ___pawn)
 			{
-				if (___pawn is Zombie || ___pawn.IsColonist == false)
+				if (___pawn is Zombie || ___pawn.Map == null || ___pawn.IsColonist == false)
 					return;
 
 				// could also check ___pawn.health.capacities.CapableOf(PawnCapacityDefOf.Moving) but it's expensive
@@ -1125,14 +1133,16 @@ namespace ZombieLand
 				if (___pawn.health.Downed || ___pawn.InMentalState || ___pawn.Drafted)
 					return;
 
-				if (__instance.job.playerForced || Tools.ShouldAvoidZombies(___pawn) == false)
+				if (__instance.job == null || __instance.job.playerForced || Tools.ShouldAvoidZombies(___pawn) == false)
 					return;
 
-				var tickManager = ___pawn.Map?.GetComponent<TickManager>();
+				var tickManager = ___pawn.Map.GetComponent<TickManager>();
 				if (tickManager == null)
 					return;
 
 				var avoidGrid = tickManager.avoidGrid;
+				if (avoidGrid == null)
+					return;
 				if (avoidGrid.InAvoidDanger(___pawn) == false)
 					return;
 
@@ -1150,6 +1160,7 @@ namespace ZombieLand
 				var safeDestinations = new List<IntVec3>();
 				map.floodFiller.FloodFill(pos, (IntVec3 cell) =>
 				{
+					if (cell.x == pos.x && cell.z == pos.z) return true;
 					if (cell.Walkable(map) == false) return false;
 					var building_Door = cell.GetEdifice(map) as Building_Door;
 					if (building_Door != null && building_Door.CanPhysicallyPass(___pawn) == false) return false;
@@ -2237,7 +2248,7 @@ namespace ZombieLand
 						if (stage == 0)
 						{
 							var info = SoundInfo.InMap(zombie);
-							SoundDef.Named("ElectricShock").PlayOneShot(info);
+							CustomDefs.ElectricShock.PlayOneShot(info);
 						}
 
 						if (stage == 0 || (stage >= 4 && stage <= 12) || stage == 16)
@@ -2354,14 +2365,12 @@ namespace ZombieLand
 						tickManager.AllZombies().DoIf(z => z.needsGraphics, z =>
 						{
 							z.needsGraphics = false;
-							var it = ZombieGenerator.AssignNewGraphics(z);
-							while (it.MoveNext()) ;
+							ZombieGenerator.AssignNewGraphics(z);
 						});
 					else
 					{
 						zombie.needsGraphics = false;
-						var it = ZombieGenerator.AssignNewGraphics(zombie);
-						while (it.MoveNext()) ;
+						ZombieGenerator.AssignNewGraphics(zombie);
 					}
 				}
 
@@ -2775,15 +2784,17 @@ namespace ZombieLand
 
 				if (stat == StatDefOf.MoveSpeed)
 				{
+					var tm = Find.TickManager;
+
 					if (zombie.IsDowned())
 					{
-						__result = 0.004f * Find.TickManager.TickRateMultiplier;
+						__result = 0.004f * tm.TickRateMultiplier;
 						return false;
 					}
 
 					if (zombie.IsTanky)
 					{
-						__result = 0.002f * Find.TickManager.TickRateMultiplier;
+						__result = 0.002f * tm.TickRateMultiplier;
 						return false;
 					}
 
@@ -2802,12 +2813,18 @@ namespace ZombieLand
 					else if (bodyType == BodyTypeDefOf.Fat)
 						factor = 0.1f;
 
-					// instead of ticking zombies as often as everything else, we tick
-					// them at 1x speed and make them faster instead. Not perfect but
-					// a very good workaround for good game speed
+					// instead of ticking them with the game speed multiplier, we
 					//
-					var multiplier = Find.TickManager.TickRateMultiplier;
-					if (multiplier > 1f) multiplier = 1f + (multiplier - 1f) / 3f;
+					var multiplier = (float)(tm.CurTimeSpeed) / Verse_TickManager_TickManagerUpdate_Patch.percentZombiesTicked;
+					if (Constants.USE_ADAPTIVE_TICKING == false)
+					{
+						// instead of ticking zombies as often as everything else, we tick
+						// them at 1x speed and make them faster instead. Not perfect but
+						// a very good workaround for good game speed
+						//
+						multiplier = tm.TickRateMultiplier;
+						if (multiplier > 1f) multiplier = 1f + (multiplier - 1f) / 5f;
+					}
 					__result = 1.5f * speed * factor * multiplier;
 					if (zombie.wasMapPawnBefore)
 						__result *= 2f;
@@ -3135,6 +3152,25 @@ namespace ZombieLand
 			{
 				var zombie = __instance.hitThing as Zombie;
 				return zombie == null;
+			}
+		}
+
+		// patch to prevent errors in for null body parts (seems like a bug in rimworld)
+		//
+		[HarmonyPatch(typeof(PlayLogEntryUtility))]
+		[HarmonyPatch(nameof(PlayLogEntryUtility.RulesForDamagedParts))]
+		public static class PlayLogEntryUtility_RulesForDamagedParts_Patch
+		{
+			static void Prefix(List<BodyPartRecord> bodyParts, List<bool> bodyPartsDestroyed)
+			{
+				while (true)
+				{
+					var idx = bodyParts.FindIndex(bp => bp == null);
+					if (idx == -1)
+						break;
+					bodyParts.RemoveAt(idx);
+					bodyPartsDestroyed.RemoveAt(idx);
+				}
 			}
 		}
 
@@ -3999,7 +4035,7 @@ namespace ZombieLand
 		{
 			static void Postfix()
 			{
-				Find.CurrentMap.mapPawns.FreeColonists
+				Find.CurrentMap?.mapPawns.FreeColonists
 					.Do(pawn => pawn.playerSettings.hostilityResponse = HostilityResponseMode.Attack);
 			}
 		}

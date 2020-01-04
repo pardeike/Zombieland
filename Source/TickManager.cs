@@ -24,6 +24,9 @@ namespace ZombieLand
 		public int currentColonyPoints;
 
 		public List<Zombie> allZombiesCached;
+		public int zombiesTicked = 0;
+		public int totalTicking = 0;
+
 		public List<ZombieCorpse> allZombieCorpses;
 		public AvoidGrid avoidGrid;
 		public AvoidGrid emptyAvoidGrid;
@@ -167,9 +170,11 @@ namespace ZombieLand
 			{
 				if (speed > 1) speed--;
 				var randomZombies = zombies.InRandomOrder().ToArray();
-				for (var i = 0; i < randomZombies.Length; i += speed)
+				totalTicking = randomZombies.Length;
+				for (var i = 0; i < totalTicking; i += speed)
 				{
 					randomZombies[i].CustomTick();
+					zombiesTicked++;
 					yield return null;
 				}
 			}
@@ -391,6 +396,8 @@ namespace ZombieLand
 
 		IEnumerator TickTasks()
 		{
+			var map = Find.CurrentMap;
+			if (map == null) yield break;
 			var sw = new Stopwatch();
 			sw.Start();
 			RepositionColonists();
@@ -410,7 +417,7 @@ namespace ZombieLand
 			var volume = 0f;
 			if (allZombiesCached.Any())
 			{
-				var hour = GenLocalDate.HourFloat(Find.CurrentMap);
+				var hour = GenLocalDate.HourFloat(map);
 				if (hour < 12f) hour += 24f;
 				if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
 					volume = 1f;

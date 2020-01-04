@@ -240,7 +240,7 @@ namespace ZombieLand
 
 				var isSubstantialZombieCount = zombiesSpawning > Tools.CapableColonists(map) * 4;
 				if (isSubstantialZombieCount && Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
-					SoundDef.Named("ZombiesRising").PlayOneShotOnCamera(null);
+					CustomDefs.ZombiesRising.PlayOneShotOnCamera(null);
 			}
 		}
 

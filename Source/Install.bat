@@ -30,10 +30,10 @@ REM +- Modname.sln
 REM
 REM Also needed are the following environment variables in the system settings (example values):
 REM
-REM MONO_EXE = C:\Program Files (x86)\Mono-4\bin\mono.exe
-REM PDB2MDB_PATH = C:\Program Files (x86)\Mono-4\lib\mono\4.5\pdb2mdb.exe
+REM MONO_EXE = C:\Program Files\Mono\bin\mono.exe
+REM PDB2MDB_PATH = C:\Program Files\Mono\lib\mono\4.5\pdb2mdb.exe
 REM RIMWORLD_DIR_STEAM = C:\Program Files (x86)\Steam\steamapps\common\RimWorld
-REM RIMWORLD_DIR_STANDALONE = C:\Program Files (x86)\RimWorld1722Win
+REM RIMWORLD_DIR_STANDALONE = %USERPROFILE%\RimWorld1-0-2282Win
 REM RIMWORLD_MOD_DEBUG = --debugger-agent=transport=dt_socket,address=127.0.0.1:56000,server=y
 REM
 REM Finally, configure Visual Studio's Debug configuration with the rimworld exe as an external

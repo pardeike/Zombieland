@@ -74,6 +74,9 @@ namespace ZombieLand
 		public static bool USE_SOUND = true;
 		public static int DEBUG_MAX_ZOMBIE_COUNT = -1;
 
+		// ticking
+		public static bool USE_ADAPTIVE_TICKING = true;
+
 		// timing
 		//
 		public static float PHEROMONE_FADEOFF = 180f;

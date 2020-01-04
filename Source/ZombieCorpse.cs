@@ -36,7 +36,7 @@ namespace ZombieLand
 		public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
 		{
 			var tickManager = Map.GetComponent<TickManager>();
-			_ = tickManager.allZombieCorpses.Remove(this);
+			_ = tickManager?.allZombieCorpses.Remove(this);
 
 			if (InnerPawn is Zombie zombie)
 				zombie.Dispose();

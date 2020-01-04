@@ -1,8 +1,10 @@
-﻿using RimWorld;
+﻿using Harmony;
+using RimWorld;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -219,11 +221,7 @@ namespace ZombieLand
 			zombie.story.hairColor = ZombieBaseValues.HairColor();
 			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, ZombieDefOf.Zombies);
 
-			if (ZombieSettings.Values.useCustomTextures)
-			{
-				var it = AssignNewGraphics(zombie);
-				while (it.MoveNext()) ;
-			}
+			AssignNewGraphics(zombie);
 
 			zombie.Drawer.leaner = new ZombieLeaner(zombie);
 
@@ -263,8 +261,14 @@ namespace ZombieLand
 			return headPath;
 		}
 
+		public static void AssignNewGraphics(Zombie zombie)
+		{
+			var it = AssignNewGraphicsIterator(zombie);
+			while (it.MoveNext()) ;
+		}
+
 		static readonly string[] headShapes = { "Normal", "Pointy", "Wide" };
-		public static IEnumerator AssignNewGraphics(Zombie zombie)
+		static IEnumerator AssignNewGraphicsIterator(Zombie zombie)
 		{
 			zombie.Drawer.renderer.graphics.ResolveAllGraphics();
 			yield return null;
@@ -457,7 +461,9 @@ namespace ZombieLand
 			zombie.story.hairColor = ZombieBaseValues.HairColor();
 			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, ZombieDefOf.Zombies);
 			yield return null;
-			var it = AssignNewGraphics(zombie);
+			FixVanillaHairExpanded(zombie, ZombieDefOf.Zombies);
+			yield return null;
+			var it = AssignNewGraphicsIterator(zombie);
 			while (it.MoveNext())
 				yield return null;
 			zombie.Drawer.leaner = new ZombieLeaner(zombie);
@@ -496,9 +502,22 @@ namespace ZombieLand
 			}
 			if (zombie.isElectrifier)
 			{
-				var tickManager = Find.CurrentMap.GetComponent<TickManager>();
-				_ = tickManager.hummingZombies.Add(zombie);
+				var tickManager = map.GetComponent<TickManager>();
+				_ = tickManager?.hummingZombies.Add(zombie);
 				// _ = zombie.verbTracker.AllVerbs.RemoveAll(verb => verb.GetDamageDef() == Tools.ZombieBiteDamageDef);
+			}
+		}
+
+		// fixes for other mods
+
+		static readonly MethodInfo m_PawnBeardChooser_GenerateBeard = AccessTools.Method("VanillaHairExpanded.PawnBeardChooser:GenerateBeard");
+		static FastInvokeHandler GenerateBeard = null;
+		static void FixVanillaHairExpanded(Pawn pawn, FactionDef faction)
+		{
+			if (m_PawnBeardChooser_GenerateBeard != null)
+			{
+				if (GenerateBeard == null) GenerateBeard = MethodInvoker.GetHandler(m_PawnBeardChooser_GenerateBeard);
+				_ = GenerateBeard(null, new object[] { pawn, faction });
 			}
 		}
 	}

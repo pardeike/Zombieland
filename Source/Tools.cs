@@ -360,7 +360,7 @@ namespace ZombieLand
 			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
 			{
 				var info = SoundInfo.InMap(thing);
-				SoundDef.Named("TankyTink").PlayOneShot(info);
+				CustomDefs.TankyTink.PlayOneShot(info);
 			}
 		}
 
@@ -369,7 +369,7 @@ namespace ZombieLand
 			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
 			{
 				var info = SoundInfo.InMap(thing);
-				SoundDef.Named("Bzzt").PlayOneShot(info);
+				CustomDefs.Bzzt.PlayOneShot(info);
 			}
 		}
 
@@ -423,10 +423,7 @@ namespace ZombieLand
 
 				// redo because we changed stuff
 				if (ZombieSettings.Values.useCustomTextures)
-				{
-					var it2 = ZombieGenerator.AssignNewGraphics(zombie);
-					while (it2.MoveNext()) ;
-				}
+					ZombieGenerator.AssignNewGraphics(zombie);
 
 				var zTweener = Traverse.Create(zombie.Drawer.tweener);
 				var pTweener = Traverse.Create(pawn.Drawer.tweener);
@@ -734,8 +731,10 @@ namespace ZombieLand
 
 		public static int ColonyPoints()
 		{
-			var colonists = Find.CurrentMap.mapPawns.FreeColonists;
-			ColonyEvaluation.GetColonistArmouryPoints(colonists, Find.CurrentMap, out var colonistPoints, out var armouryPoints);
+			var map = Find.CurrentMap;
+			if (map == null) return 0;
+			var colonists = map.mapPawns.FreeColonists;
+			ColonyEvaluation.GetColonistArmouryPoints(colonists, map, out var colonistPoints, out var armouryPoints);
 			return (int)(colonistPoints + armouryPoints);
 		}
 

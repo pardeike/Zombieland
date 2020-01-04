@@ -212,7 +212,6 @@ namespace ZombieLand
 
 			if (isToxicSplasher)
 				DropStickyGoo();
-			// ETODO
 
 			base.Kill(dinfo, exactCulprit);
 		}
@@ -260,7 +259,7 @@ namespace ZombieLand
 			}
 			if (hasFilth >= 6)
 			{
-				var soundDef = Constants.USE_SOUND && Prefs.VolumeAmbient > 0f ? SoundDef.Named("ToxicSplash") : null;
+				var soundDef = Constants.USE_SOUND && Prefs.VolumeAmbient > 0f ? CustomDefs.ToxicSplash : null;
 				GenExplosion.DoExplosion(pos, map, Mathf.Max(0.5f, Mathf.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, 0, soundDef);
 			}
 		}
@@ -282,7 +281,7 @@ namespace ZombieLand
 				if (map != null)
 				{
 					var info = SoundInfo.InMap(new TargetInfo(Position, map));
-					SoundDef.Named("ZombieDigOut").PlayOneShot(info);
+					CustomDefs.ZombieDigOut.PlayOneShot(info);
 				}
 			}
 

@@ -6,6 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{34AA2AF2-8E82-4C5B-8ABA-9AC53DA7C110}</ProjectGuid>
     <OutputType>Library</OutputType>
+    <LangVersion>7.3</LangVersion>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ZombieLand</RootNamespace>
     <AssemblyName>ZombieLand</AssemblyName>

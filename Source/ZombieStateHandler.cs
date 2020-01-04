@@ -151,6 +151,9 @@ namespace ZombieLand
 		//
 		public static bool Attack(this JobDriver_Stumble driver, Zombie zombie)
 		{
+			if (zombie.Downed && ZombieSettings.Values.doubleTapRequired == false)
+				return false;
+
 			var enemy = CanAttack(zombie);
 			if (enemy == null)
 				return false;
@@ -161,7 +164,7 @@ namespace ZombieLand
 			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
 			{
 				var info = SoundInfo.InMap(enemy);
-				SoundDef.Named("ZombieHit").PlayOneShot(info);
+				CustomDefs.ZombieHit.PlayOneShot(info);
 			}
 
 			AttackThing(zombie, enemy, JobDefOf.AttackMelee);
@@ -402,7 +405,7 @@ namespace ZombieLand
 			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
 			{
 				var info = SoundInfo.InMap(building);
-				SoundDef.Named("ZombieHit").PlayOneShot(info);
+				CustomDefs.ZombieHit.PlayOneShot(info);
 			}
 
 			AttackThing(zombie, building, JobDefOf.AttackStatic);
@@ -546,7 +549,7 @@ namespace ZombieLand
 			{
 				var moveTowardsCenter = false;
 
-				var hour = GenLocalDate.HourOfDay(Find.CurrentMap);
+				var hour = GenLocalDate.HourOfDay(zombie.Map);
 				if (hour < 12) hour += 24;
 				if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
 					moveTowardsCenter = true;
@@ -767,7 +770,7 @@ namespace ZombieLand
 				if (map != null)
 				{
 					var info = SoundInfo.InMap(new TargetInfo(zombie.Position, map, false));
-					SoundDef.Named("ZombieEating").PlayOneShot(info);
+					CustomDefs.ZombieEating.PlayOneShot(info);
 				}
 			}
 		}
@@ -787,7 +790,7 @@ namespace ZombieLand
 						lastTrackingSoundPlayed = timeNow;
 
 						var info = SoundInfo.InMap(new TargetInfo(pawn.Position, map, false));
-						SoundDef.Named("ZombieTracking").PlayOneShot(info);
+						CustomDefs.ZombieTracking.PlayOneShot(info);
 					}
 				}
 			}
@@ -876,7 +879,7 @@ namespace ZombieLand
 					lastRageSoundPlayed = timeNow;
 
 					var info = SoundInfo.InMap(zombie);
-					SoundDef.Named("ZombieRage").PlayOneShot(info);
+					CustomDefs.ZombieRage.PlayOneShot(info);
 				}
 			}
 		}
