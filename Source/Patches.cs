@@ -1,5 +1,6 @@
 ﻿using Harmony;
 using RimWorld;
+using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -206,6 +207,8 @@ namespace ZombieLand
 			}
 		}
 
+		// custom ticking
+		//
 		[HarmonyPatch(typeof(Verse.TickManager))]
 		[HarmonyPatch(nameof(Verse.TickManager.TickManagerUpdate))]
 		static class Verse_TickManager_TickManagerUpdate_Patch
@@ -282,6 +285,45 @@ namespace ZombieLand
 				if (__result == false)
 					return;
 				__result = ZombieGenerator.ZombiesSpawning == 0;
+			}
+		}
+
+		// patch to have zombies not enter dead world pawn list or being mothballed
+		//
+		[HarmonyPatch(typeof(WorldPawns))]
+		[HarmonyPatch("ShouldMothball")]
+		static class WorldPawns_ShouldMothball_Patch
+		{
+			static bool Prefix(Pawn p, ref bool __result)
+			{
+				var zombie = p as Zombie;
+				if (zombie != null)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+		[HarmonyPatch(typeof(WorldPawns))]
+		[HarmonyPatch(nameof(WorldPawns.PassToWorld))]
+		static class WorldPawns_PassToWorld_Patch
+		{
+			static void Prefix(Pawn pawn, ref PawnDiscardDecideMode discardMode)
+			{
+				var zombie = pawn as Zombie;
+				if (zombie != null && discardMode != PawnDiscardDecideMode.Discard)
+					discardMode = PawnDiscardDecideMode.Discard;
+			}
+		}
+		[HarmonyPatch(typeof(WorldPawns))]
+		[HarmonyPatch(nameof(WorldPawns.Notify_PawnDestroyed))]
+		static class WorldPawns_Notify_PawnDestroyed_Patch
+		{
+			static bool Prefix(Pawn p)
+			{
+				var zombie = p as Zombie;
+				return (zombie == null);
 			}
 		}
 
