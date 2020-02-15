@@ -108,7 +108,7 @@ namespace ZombieLand
 			defaultPriority = priority;
 		}
 
-		public override string GetExplanation()
+		public override TaggedString GetExplanation()
 		{
 			var stringBuilder = new StringBuilder();
 			foreach (var pawn in AffectedColonists)
@@ -142,7 +142,7 @@ namespace ZombieLand
 			return "LetterLabelXDaysUntilZombies".SafeTranslate(timeStr);
 		}
 
-		public override string GetExplanation()
+		public override TaggedString GetExplanation()
 		{
 			return "XDaysUntilZombies".Translate();
 		}

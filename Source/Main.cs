@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using RimWorld;
 using System;
 using System.Collections.Generic;
@@ -44,6 +44,7 @@ namespace ZombieLand
 		public static SoundDef ZombieTracking;
 		public static SoundDef ZombiesClosingIn;
 		public static SoundDef ZombiesRising;
+		public static JobDef Stumble;
 		public static JobDef ExtractZombieSerum;
 		public static RecipeDef CureZombieInfection;
 		public static ThingDef Zombie;
@@ -57,7 +58,7 @@ namespace ZombieLand
 
 		public ZombielandMod(ModContentPack content) : base(content)
 		{
-			Identifier = content.Identifier;
+			Identifier = content.PackageId;
 			_ = GetSettings<ZombieSettingsDefaults>();
 			IsLoadingDefaults = false;
 		}
@@ -98,9 +99,9 @@ namespace ZombieLand
 			foreach (var instruction in instructions)
 				yield return instruction;
 		}
-		public void DebugRimworldMethodCalls(Func<Type, bool> typeFilter)
+		public static void DebugRimworldMethodCalls(Func<Type, bool> typeFilter)
 		{
-			var harmony = HarmonyInstance.Create("net.pardeike.zombieland.debug");
+			var harmony = new Harmony("net.pardeike.zombieland.debug");
 			var transpiler = new HarmonyMethod(AccessTools.Method(typeof(ZombielandMod), "MethodCallsTranspiler"));
 			var patches = new HashSet<MethodBase>();
 

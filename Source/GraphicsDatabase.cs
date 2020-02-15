@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using RimWorld;
 using System;
 using System.Collections.Generic;
@@ -22,8 +22,7 @@ namespace ZombieLand
 		{
 			ReadSkinColors();
 
-			var atlas = new TextureAtlas(textureRoot + "Parts");
-			atlas.AllImages.Do(item =>
+			TextureAtlas.AllImages.Do(item =>
 			{
 				var path = item.path;
 				var width = item.data.width;

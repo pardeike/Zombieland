@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using RimWorld;
+using System.Collections.Generic;
 using Verse;
-using RimWorld;
 
 namespace ZombieLand
 {
@@ -74,15 +74,15 @@ namespace ZombieLand
 			var colonistPointTally = 0f;
 			var armouryWealthTally = 0f;
 
-			foreach (var dude in colonists)
+			foreach (var colonist in colonists)
 			{
-				if (dude.story.WorkTagIsDisabled(WorkTags.Violent)) continue; // Non-violent colonists are exempt
+				if (colonist.WorkTagIsDisabled(WorkTags.Violent)) continue; // Non-violent colonists are exempt
 
-				if (dude.health.capacities.GetLevel(PawnCapacityDefOf.Moving) < 0.15) continue; // Colonists with extremely poor movement are exempt
+				if (colonist.health.capacities.GetLevel(PawnCapacityDefOf.Moving) < 0.15) continue; // Colonists with extremely poor movement are exempt
 
-				var battlescore = 0.5f * dude.health.capacities.GetLevel(PawnCapacityDefOf.Consciousness); // Half comes from consciousness
-				battlescore += 0.5f * dude.health.capacities.GetLevel(PawnCapacityDefOf.Sight); // Half comes from sight
-				battlescore *= dude.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation); // Multiplied by manipulation, should give 1.0 for normal healthy colonist
+				var battlescore = 0.5f * colonist.health.capacities.GetLevel(PawnCapacityDefOf.Consciousness); // Half comes from consciousness
+				battlescore += 0.5f * colonist.health.capacities.GetLevel(PawnCapacityDefOf.Sight); // Half comes from sight
+				battlescore *= colonist.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation); // Multiplied by manipulation, should give 1.0 for normal healthy colonist
 
 				if (battlescore < 0.2f) continue; // This pawn is too useless to be counted
 
@@ -91,7 +91,7 @@ namespace ZombieLand
 
 				colonistPointTally += battlescore;
 
-				armouryWealthTally += GetDudeArmouryPoints(dude);
+				armouryWealthTally += GetDudeArmouryPoints(colonist);
 			}
 
 			armouryWealthTally += GetMapArmouryPoints(map);

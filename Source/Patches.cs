@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using System;
@@ -24,8 +24,7 @@ namespace ZombieLand
 	{
 		static Patches()
 		{
-			// HarmonyInstance.DEBUG = true;
-			var harmony = HarmonyInstance.Create("net.pardeike.zombieland");
+			var harmony = new Harmony("net.pardeike.zombieland");
 			harmony.PatchAll(Assembly.GetExecutingAssembly());
 
 			// prepare Twinkie
@@ -251,12 +250,19 @@ namespace ZombieLand
 				var m_DoSingleTick = AccessTools.Method(typeof(Verse.TickManager), "DoSingleTick");
 
 				var list = instructions.ToList();
-				list.Insert(0, new CodeInstruction(OpCodes.Call, m_TickZombieWanderer));
-				var idx = list.FindIndex(code => code.operand == m_DoSingleTick);
-				if (idx >= 0)
+				var idx = list.FindLastIndex(code => code.opcode == OpCodes.Conv_R4);
+				if (idx > 0)
 				{
-					list[idx].operand = m_TickZombies;
-					list.Insert(idx, new CodeInstruction(OpCodes.Ldloc_1));
+					var ticksThisFrameLocalVarCode = list[idx - 1].Clone();
+					list.Insert(0, new CodeInstruction(OpCodes.Call, m_TickZombieWanderer));
+					idx = list.FindIndex(code => code.Calls(m_DoSingleTick));
+					if (idx >= 0)
+					{
+						list[idx].operand = m_TickZombies;
+						list.Insert(idx, ticksThisFrameLocalVarCode);
+					}
+					else
+						Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 				}
 				else
 					Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
@@ -422,7 +428,7 @@ namespace ZombieLand
 				var found = false;
 				foreach (var instruction in instructions)
 				{
-					if (found == false && instruction.opcode == OpCodes.Stfld && instruction.operand == f_innerValidator)
+					if (found == false && instruction.StoresField(f_innerValidator))
 					{
 						yield return new CodeInstruction(OpCodes.Ldarg_0);
 						yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => WrappedValidator(null, null)));
@@ -593,13 +599,13 @@ namespace ZombieLand
 				var len = list.Count;
 				for (var i = 0; i < len; i++)
 				{
-					if (list[i].operand == m_GetPosture)
+					if (list[i].Calls(m_GetPosture))
 					{
 						list[i].opcode = OpCodes.Call;
 						list[i].operand = SymbolExtensions.GetMethodInfo(() => GetPostureFix(null));
 						lastPawnInstruction = list[i - 1];
 					}
-					if (list[i].operand == m_Chance)
+					if (list[i].Calls(m_Chance))
 					{
 						list.Insert(i, lastPawnInstruction);
 						i++;
@@ -766,31 +772,39 @@ namespace ZombieLand
 			{
 				var m_SkipMissingShotsAtZombies = SymbolExtensions.GetMethodInfo(() => SkipMissingShotsAtZombies(null, null));
 				var f_forcedMissRadius = typeof(VerbProperties).Field(nameof(VerbProperties.forcedMissRadius));
-				var m_HitReportFor = SymbolExtensions.GetMethodInfo(() => ShotReport.HitReportFor(null, null, null));
+				var f_canHitNonTargetPawnsNow = AccessTools.DeclaredField(typeof(Verb), "canHitNonTargetPawnsNow");
 				var f_currentTarget = typeof(Verb).Field("currentTarget");
 
 				var skipLabel = generator.DefineLabel();
 				var inList = instructions.ToList();
 
-				var idx1 = inList.FirstIndexOf(instr => instr.opcode == OpCodes.Ldfld && instr.operand == f_forcedMissRadius);
+				var idx1 = inList.FirstIndexOf(instr => instr.LoadsField(f_forcedMissRadius));
 				if (idx1 > 0 && idx1 < inList.Count())
 				{
-					var idx2 = inList.FindLastIndex(instr => instr.opcode == OpCodes.Call
-						&& (instr.operand as MethodInfo)?.DeclaringType == typeof(ShotReport)
-						&& (instr.operand as MethodInfo)?.ReturnType == typeof(float)
-					);
-					var jump = inList[idx2 + 2]; // skip CALL bool Verse.Rand::Chance(float32) 
-					if (jump.opcode == OpCodes.Brtrue)
+					var jumpToIndex = -1;
+					for (var i = inList.Count - 1; i >= 3; i--)
 					{
+						if (inList[i].LoadsField(f_canHitNonTargetPawnsNow) == false) continue;
+						i -= 3;
+						if (inList[i].LoadsConstant(1))
+						{
+							jumpToIndex = i;
+							break;
+						}
+					}
+					if (jumpToIndex >= 0)
+					{
+						inList[jumpToIndex].labels.Add(skipLabel);
+
 						idx1 -= 2;
 						inList.Insert(idx1++, new CodeInstruction(OpCodes.Ldarg_0));
 						inList.Insert(idx1++, new CodeInstruction(OpCodes.Ldarg_0));
 						inList.Insert(idx1++, new CodeInstruction(OpCodes.Ldfld, f_currentTarget));
 						inList.Insert(idx1++, new CodeInstruction(OpCodes.Call, m_SkipMissingShotsAtZombies));
-						inList.Insert(idx1++, new CodeInstruction(OpCodes.Brtrue, jump.operand));
+						inList.Insert(idx1++, new CodeInstruction(OpCodes.Brtrue, skipLabel));
 					}
 					else
-						Log.Error("No call on ShotReport method returning float in Verb_LaunchProjectile.TryCastShot");
+						Log.Error("No ldfld canHitNonTargetPawnsNow prefixed by ldc.i4.1;stloc.s;ldarg.0 in Verb_LaunchProjectile.TryCastShot");
 				}
 				else
 					Log.Error("No ldfld forcedMissRadius in Verb_LaunchProjectile.TryCastShot");
@@ -939,11 +953,29 @@ namespace ZombieLand
 				var m_Chance = SymbolExtensions.GetMethodInfo(() => Rand.Chance(0f));
 				var m_ReducedChance = SymbolExtensions.GetMethodInfo(() => ReducedChance(0f, null));
 
+				var list = instructions.ToList();
+				var idx = list.FirstIndexOf(code => code.opcode == OpCodes.Isinst && code.OperandIs(typeof(Pawn)));
+				if (idx < 0 || idx >= list.Count)
+				{
+					Log.Error("Cannot find Isinst Pawn in Pawn_MindState.Notify_DamageTaken");
+					foreach (var instruction in instructions)
+						yield return instruction;
+					yield break;
+				}
+				var pawnVar = OpCodes.Nop;
+				var op = list[idx + 1].opcode;
+				if (op == OpCodes.Stloc_0) pawnVar = OpCodes.Ldloc_0;
+				if (op == OpCodes.Stloc_1) pawnVar = OpCodes.Ldloc_1;
+				if (op == OpCodes.Stloc_2) pawnVar = OpCodes.Ldloc_2;
+				if (op == OpCodes.Stloc_3) pawnVar = OpCodes.Ldloc_3;
+				if (pawnVar == OpCodes.Nop)
+					Log.Error("Cannot find Stloc_x after Isinst<Pawn> in Pawn_MindState.Notify_DamageTaken");
+
 				foreach (var instruction in instructions)
 				{
-					if (instruction.operand == m_Chance)
+					if (instruction.Calls(m_Chance))
 					{
-						yield return new CodeInstruction(OpCodes.Ldloc_0);
+						yield return new CodeInstruction(pawnVar);
 						yield return new CodeInstruction(OpCodes.Call, m_ReducedChance);
 					}
 					else
@@ -1078,7 +1110,7 @@ namespace ZombieLand
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
 				var list = instructions.ToList();
-				var idx = list.FirstIndexOf(code => code.opcode == OpCodes.Call && code.operand == m_ShouldCollideWithPawns) - 1;
+				var idx = list.FirstIndexOf(code => code.Calls(m_ShouldCollideWithPawns)) - 1;
 				if (idx > 0 && idx < list.Count())
 				{
 					if (list[idx].opcode == OpCodes.Ldfld)
@@ -1478,7 +1510,7 @@ namespace ZombieLand
 				var to = SymbolExtensions.GetMethodInfo(() => ThingDestroyedAndNotZombie(null));
 
 				var list = Tools.DownedReplacer(instructions).ToList();
-				var i = list.FirstIndexOf(instr => instr.operand == from);
+				var i = list.FirstIndexOf(instr => instr.Calls(from));
 				if (i < 0 || i >= list.Count())
 				{
 					Log.Error("Cannot find " + from.FullDescription() + " in Pawn_PathFollower.StartPath");
@@ -1488,7 +1520,7 @@ namespace ZombieLand
 				list[i - 1].opcode = OpCodes.Ldarg_1;
 				list[i].operand = to;
 
-				i = list.FindLastIndex(instr => instr.opcode == OpCodes.Ldc_I4_0);
+				i = list.FindLastIndex(instr => instr.LoadsConstant(0));
 				list.RemoveAt(i);
 				list.InsertRange(i, new CodeInstruction[]
 				{
@@ -1603,7 +1635,7 @@ namespace ZombieLand
 			{
 				var list = instructions.ToList();
 				var m_ToString = AccessTools.Method(typeof(object), "ToString");
-				var idx = list.FindLastIndex(instr => instr.operand == m_ToString);
+				var idx = list.FindLastIndex(instr => instr.Calls(m_ToString));
 				if (idx > 0)
 				{
 					list.Insert(idx++, new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => DebugGrid(null))));
@@ -1838,7 +1870,7 @@ namespace ZombieLand
 				{
 					if (firstTime)
 						instruction.labels.Add(originalStart);
-					if (instruction.opcode == OpCodes.Ldarg_1)
+					if (instruction.IsLdarg(1))
 					{
 						instruction.opcode = OpCodes.Ldloc;
 						instruction.operand = average;
@@ -2114,14 +2146,14 @@ namespace ZombieLand
 
 			static MethodBase TargetMethod()
 			{
-				var inner = typeof(Toils_Combat).InnerTypeStartingWith("<FollowAndMeleeAttack");
-				return inner.MethodStartingWith("<>m__");
+				return typeof(Toils_Combat).InnerMethodsStartingWith("<FollowAndMeleeAttack>b__0").First();
 			}
 
 			[HarmonyPriority(Priority.First)]
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
 				var m_get_Downed = typeof(Pawn).PropertyGetter(nameof(Pawn.Downed));
+				var f_killIncappedTarget = typeof(Job).Field(nameof(Job.killIncappedTarget));
 
 				var found1 = false;
 				var found2 = false;
@@ -2129,15 +2161,13 @@ namespace ZombieLand
 				CodeInstruction localPawnInstruction = null;
 				foreach (var instruction in instructions)
 				{
-					if (instruction.opcode == OpCodes.Callvirt && instruction.operand == m_get_Downed)
+					if (instruction.Calls(m_get_Downed))
 					{
 						localPawnInstruction = new CodeInstruction(last);
 						found1 = true;
 					}
 
-					if (instruction.opcode == OpCodes.Ldfld
-						&& instruction.operand == typeof(Job).Field(nameof(Job.killIncappedTarget))
-						&& localPawnInstruction != null)
+					if (instruction.LoadsField(f_killIncappedTarget) && localPawnInstruction != null)
 					{
 						yield return localPawnInstruction;
 
@@ -2167,8 +2197,7 @@ namespace ZombieLand
 		{
 			static MethodBase TargetMethod()
 			{
-				var inner = typeof(Toils_Jump).InnerTypeStartingWith("<JumpIfTargetDowned>c__");
-				return inner.MethodStartingWith("<>m__");
+				return typeof(Toils_Jump).InnerMethodsStartingWith("<JumpIfTargetDowned>b__0").First();
 			}
 
 			[HarmonyPriority(Priority.First)]
@@ -2197,20 +2226,10 @@ namespace ZombieLand
 				return Tools.DownedReplacer(instructions, 1);
 			}
 		}
-		[HarmonyPatch]
+		[HarmonyPatch(typeof(JobDriver_AttackStatic))]
+		[HarmonyPatch("<MakeNewToils>b__4_1")]
 		static class JobDriver_AttackStatic_TickAction_Patch
 		{
-			static MethodBase TargetMethod()
-			{
-				var inner = typeof(JobDriver_AttackStatic).InnerTypeStartingWith("<MakeNewToils>c__Iterator");
-				return inner?.MethodMatching(methods =>
-				{
-					return methods.Where(m => m.Name.StartsWith("<>m__"))
-						.OrderBy(m => m.Name)
-						.LastOrDefault(); // the second one is the tickAction
-				});
-			}
-
 			[HarmonyPriority(Priority.First)]
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
@@ -2232,11 +2251,11 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(PawnRenderer))]
 		[HarmonyPatch("RenderPawnInternal")]
-		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(float), typeof(bool), typeof(Rot4), typeof(Rot4), typeof(RotDrawMode), typeof(bool), typeof(bool) })]
+		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(float), typeof(bool), typeof(Rot4), typeof(Rot4), typeof(RotDrawMode), typeof(bool), typeof(bool), typeof(bool) })]
 		static class PawnRenderer_RenderPawnInternal_Patch
 		{
 			static Vector3 toxicAuraOffset = new Vector3(0f, 0f, 0.1f);
-			static readonly float leanAngle = 15f;
+			const float leanAngle = 15f;
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
@@ -2244,7 +2263,7 @@ namespace ZombieLand
 				var f_pawn = AccessTools.Field(typeof(PawnRenderer), "pawn");
 
 				var list = instructions.ToList();
-				var idx = list.FirstIndexOf(instr => instr.operand == m_AngleAxis);
+				var idx = list.FirstIndexOf(instr => instr.Calls(m_AngleAxis));
 				if (idx > 0 && idx < list.Count())
 				{
 					list[idx].operand = SymbolExtensions.GetMethodInfo(() => Zombie.ZombieAngleAxis(0f, Vector3.zero, null));
@@ -2378,7 +2397,7 @@ namespace ZombieLand
 
 		[HarmonyPatch(typeof(PawnRenderer))]
 		[HarmonyPatch("RenderPawnAt")]
-		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(RotDrawMode), typeof(bool) })]
+		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(RotDrawMode), typeof(bool), typeof(bool) })]
 		static class PawnRenderer_RenderPawnAt_Patch
 		{
 			static readonly float moteAltitute = Altitudes.AltitudeFor(AltitudeLayer.MoteOverhead);
@@ -2703,6 +2722,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(Verb))]
 		[HarmonyPatch("TryStartCastOn")]
+		[HarmonyPatch(new Type[] { typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(bool), typeof(bool) })]
 		static class Verb_TryStartCastOn_Patch
 		{
 			static int ModifyTicks(float seconds, Verb verb)
@@ -2726,7 +2746,7 @@ namespace ZombieLand
 				var found = false;
 				foreach (var instruction in instructions)
 				{
-					if (instruction.operand == m_SecondsToTicks)
+					if (instruction.Calls(m_SecondsToTicks))
 					{
 						yield return new CodeInstruction(OpCodes.Ldarg_0);
 						instruction.opcode = OpCodes.Call;
@@ -2953,7 +2973,6 @@ namespace ZombieLand
 		{
 			static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> gizmos, Pawn ___pawn)
 			{
-				var gizmoList = gizmos.ToList();
 				foreach (var gizmo in gizmos)
 					yield return gizmo;
 
@@ -3128,7 +3147,7 @@ namespace ZombieLand
 				var m_FireDamagePatch = SymbolExtensions.GetMethodInfo(() => FireDamagePatch(0f, null));
 
 				var list = instructions.ToList();
-				var idx = list.FirstIndexOf(code => code.operand == m_RoundRandom);
+				var idx = list.FirstIndexOf(code => code.Calls(m_RoundRandom));
 				if (idx > 0 && idx < list.Count())
 				{
 					list[idx].opcode = OpCodes.Ldarg_1; // first argument of instance method
@@ -3197,7 +3216,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to prevent errors in for null body parts (seems like a bug in rimworld)
+		/* patch to prevent errors for null body parts (seems like a bug in rimworld)
 		//
 		[HarmonyPatch(typeof(PlayLogEntryUtility))]
 		[HarmonyPatch(nameof(PlayLogEntryUtility.RulesForDamagedParts))]
@@ -3205,16 +3224,17 @@ namespace ZombieLand
 		{
 			static void Prefix(List<BodyPartRecord> bodyParts, List<bool> bodyPartsDestroyed)
 			{
-				while (true)
-				{
-					var idx = bodyParts.FindIndex(bp => bp == null);
-					if (idx == -1)
-						break;
-					bodyParts.RemoveAt(idx);
-					bodyPartsDestroyed.RemoveAt(idx);
-				}
+				if (bodyParts != null && bodyPartsDestroyed != null)
+					while (true)
+					{
+						var idx = bodyParts.FindIndex(bp => bp == null);
+						if (idx == -1)
+							break;
+						bodyParts.RemoveAt(idx);
+						bodyPartsDestroyed.RemoveAt(idx);
+					}
 			}
-		}
+		}*/
 
 		// patch to remove non-melee damage from electrifier zombies
 		//
@@ -3347,7 +3367,7 @@ namespace ZombieLand
 			}
 
 			// called from Main
-			public static void PatchCombatExtended(HarmonyInstance harmony)
+			public static void PatchCombatExtended(Harmony harmony)
 			{
 				var t_ArmorUtilityCE = AccessTools.TypeByName("CombatExtended.ArmorUtilityCE");
 				if (t_ArmorUtilityCE == null) return;
@@ -3450,6 +3470,8 @@ namespace ZombieLand
 					.GetHediffs<Hediff_Injury_ZombieBite>()
 					.Where(zombieBite => zombieBite.TendDuration.InfectionStateBetween(InfectionState.BittenInfectable, InfectionState.Infected))
 					.Do(zombieBite => zombieBite.mayBecomeZombieWhenDead = true);
+
+				ColonistSettings.Values.RemoveColonist(pawn);
 			}
 		}
 
@@ -3917,7 +3939,7 @@ namespace ZombieLand
 
 			// called from Main
 			//
-			public static void PatchCombatExtended(HarmonyInstance harmony)
+			public static void PatchCombatExtended(Harmony harmony)
 			{
 				// do not throw or error if this type does not exist
 				// it only exists if CombatExtended is loaded (optional)
@@ -4097,7 +4119,7 @@ namespace ZombieLand
 				var found2 = false;
 
 				var list = instructions.ToList();
-				var jumpIndex = list.FirstIndexOf(instr => instr.operand == m_TryGainMemory) + 1;
+				var jumpIndex = list.FirstIndexOf(instr => instr.Calls(m_TryGainMemory)) + 1;
 				if (jumpIndex > 0 && jumpIndex < list.Count())
 				{
 					var skipLabel = generator.DefineLabel();
@@ -4105,7 +4127,7 @@ namespace ZombieLand
 					found1 = true;
 
 					for (var i = jumpIndex; i >= 0; i--)
-						if (list[i].opcode == OpCodes.Ldarg_0)
+						if (list[i].IsLdarg(0))
 						{
 							var j = i;
 							list.Insert(j++, new CodeInstruction(OpCodes.Ldarg_0));
@@ -4167,7 +4189,7 @@ namespace ZombieLand
 				var found = false;
 				foreach (var instruction in instructions)
 				{
-					if (instruction.operand == from)
+					if (instruction.Calls(from))
 					{
 						instruction.operand = to;
 						yield return new CodeInstruction(OpCodes.Ldarg_1);
@@ -4225,7 +4247,7 @@ namespace ZombieLand
 				var counter = 0;
 				foreach (var instruction in instructions)
 				{
-					if (instruction.operand == m_DrawOptionListing)
+					if (instruction.Calls(m_DrawOptionListing))
 						instruction.operand = patchMethods[counter++];
 					yield return instruction;
 				}

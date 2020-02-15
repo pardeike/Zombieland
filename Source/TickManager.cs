@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using RimWorld;
 using System;
 using System.Collections;
@@ -63,7 +63,7 @@ namespace ZombieLand
 
 			var destinations = GetterSetters.reservedDestinationsByRef(map.pawnDestinationReservationManager);
 			var zombieFaction = Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies);
-			if (!destinations.ContainsKey(zombieFaction)) map.pawnDestinationReservationManager.RegisterFaction(zombieFaction);
+			if (!destinations.ContainsKey(zombieFaction)) _ = map.pawnDestinationReservationManager.GetPawnDestinationSetFor(zombieFaction);
 
 			var allZombies = AllZombies();
 			if (Tools.ShouldAvoidZombies())
@@ -92,7 +92,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref currentColonyPoints, "colonyPoints");
 			Scribe_Collections.Look(ref allZombiesCached, "prioritizedZombies", LookMode.Reference);
 			Scribe_Collections.Look(ref explosions, "explosions", LookMode.Value);
-			Scribe_Deep.Look(ref incidentInfo, "incidentInfo", new object[0]);
+			Scribe_Deep.Look(ref incidentInfo, "incidentInfo", Array.Empty<object>());
 
 			if (allZombiesCached == null)
 				allZombiesCached = new List<Zombie>();
@@ -180,7 +180,7 @@ namespace ZombieLand
 			}
 		}
 
-		public float ZombieMaxCosts(Zombie zombie)
+		public static float ZombieMaxCosts(Zombie zombie)
 		{
 			if (zombie.wasMapPawnBefore || zombie.raging > 0)
 				return 3000f;

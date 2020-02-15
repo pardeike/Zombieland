@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using RimWorld;
 using System;
 using System.Collections;
@@ -284,7 +284,7 @@ namespace ZombieLand
 		}
 	}
 
-	public class ZombieWanderer
+	public static class ZombieWanderer
 	{
 		public static readonly IEnumerator processor = Process();
 

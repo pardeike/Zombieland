@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using RimWorld;
 using System;
 using System.Collections;
@@ -169,7 +169,7 @@ namespace ZombieLand
 	}
 
 	[StaticConstructorOnStartup]
-	public class ZombieGenerator
+	public static class ZombieGenerator
 	{
 		public static int ZombiesSpawning = 0;
 

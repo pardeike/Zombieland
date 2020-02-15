@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using RimWorld;
 using System;
 using System.Collections.Generic;
@@ -82,7 +82,7 @@ namespace ZombieLand
 		public static float PHEROMONE_FADEOFF = 180f;
 		public static float TICKMANAGER_RECALCULATE_DELAY = 60f;
 		public static float TICKMANAGER_AVOIDGRID_DELAY = 0.25f;
-		public static int EAT_DELAY_TICKS = 1800;
+		public static int EAT_DELAY_TICKS = 1200;
 
 		// zombie spawning
 		// the following hours continue after 23h with 24, 25, 26...

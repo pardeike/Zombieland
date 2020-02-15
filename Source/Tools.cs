@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using RimWorld;
 using System;
 using System.Collections.Generic;
@@ -32,9 +32,7 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	static class Tools
 	{
-		public static ZombieGenerator generator = new ZombieGenerator();
 		public static ZombieAvoider avoider = new ZombieAvoider();
-		public static ZombieWanderer wanderer = new ZombieWanderer();
 		public static Texture2D MenuIcon;
 		public static Texture2D ZombieButtonBackground;
 		public static string zlNamespace = typeof(Tools).Namespace;
@@ -380,8 +378,6 @@ namespace ZombieLand
 			if (pawn == null || pawn.RaceProps.Humanlike == false)
 				return;
 
-			// clear zombie hediffs to avoid triggering this convert method again
-			//
 			var pawnName = pawn.Name;
 			if (force == false && (pawn.health == null || pawnName == emptyName))
 				return;
@@ -441,7 +437,8 @@ namespace ZombieLand
 				if (zombie.apparel != null && pawn.apparel != null)
 				{
 					zombie.apparel.DestroyAll();
-					pawn.apparel.WornApparel.ForEach(apparel =>
+					var wornApparel = pawn.apparel.WornApparel.ToArray();
+					foreach (var apparel in wornApparel)
 					{
 						if (pawn.apparel.TryDrop(apparel, out var newApparel))
 						{
@@ -454,7 +451,7 @@ namespace ZombieLand
 
 							zombie.apparel.Notify_ApparelAdded(newApparel);
 						}
-					});
+					}
 				}
 
 				if (thing is Corpse)
@@ -997,7 +994,7 @@ namespace ZombieLand
 			var found = false;
 			foreach (var instruction in instructions)
 			{
-				if (instruction.opcode == OpCodes.Callvirt && instruction.operand == m_get_Downed)
+				if (instruction.Calls(m_get_Downed))
 				{
 					skip--;
 					if (skip < 0)

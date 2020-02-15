@@ -22,10 +22,10 @@ namespace ZombieLand
 
 	class SharedSettings
 	{
-		private static readonly string db = "zombieland-saves";
-		private static readonly string a1 = "9OQa7vgOzYleRE";
-		private static readonly string a2 = "Zo89HnU5J3hdlX9";
-		private static readonly string a3 = "qIvjeMf1GQa";
+		private const string db = "zombieland-saves";
+		private const string a1 = "9OQa7vgOzYleRE";
+		private const string a2 = "Zo89HnU5J3hdlX9";
+		private const string a3 = "qIvjeMf1GQa";
 		private static readonly Connector client = new Connector(db, a1 + a2 + a3);
 		private static bool SimpleChar(char c) { return "-abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".Contains(c); }
 		private static string Cleaned(string s) { return new string(s.Where(c => SimpleChar(c)).ToArray()); }

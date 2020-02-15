@@ -76,6 +76,7 @@ namespace ZombieLand
 			Dispose(true);
 		}
 
+#pragma warning disable CA1063
 		void Dispose(bool v)
 		{
 			_ = v;
@@ -86,6 +87,7 @@ namespace ZombieLand
 				mats = null;
 			}
 		}
+#pragma warning restore CA1063
 
 		public override Graphic GetColoredVersion(Shader newShader, Color newColor, Color newColorTwo)
 		{

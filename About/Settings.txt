@@ -38,8 +38,8 @@ TICKMANAGER_RECALCULATE_DELAY = 60.0
 TICKMANAGER_AVOIDGRID_DELAY = 0.25
 
 // This controls how many game ticks wait between each bite when they eat and
-// the default is 1800
-EAT_DELAY_TICKS = 1800
+// the default is 1200
+EAT_DELAY_TICKS = 1200
 
 // This controls the day/night cycle for zombies
 // The following hours continue after 23h with 24, 25, 26...

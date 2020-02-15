@@ -12,7 +12,9 @@ namespace ZombieLand
 
 		protected override Job TryGiveJob(Pawn pawn)
 		{
-			return new Job(DefDatabase<JobDef>.GetNamed("Stumble"));
+			if ((pawn is Zombie) == false) return null;
+			pawn.jobs.StopAll();
+			return new Job(CustomDefs.Stumble);
 		}
 	}
 

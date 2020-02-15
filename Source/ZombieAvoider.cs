@@ -131,7 +131,7 @@ namespace ZombieLand
 			return queue.Dequeue();
 		}
 
-		void GenerateCells(Map map, List<ZombieCostSpecs> specs, int[] costCells, FloodFiller filler)
+		static void GenerateCells(Map map, List<ZombieCostSpecs> specs, int[] costCells, FloodFiller filler)
 		{
 			var mapSizeX = map.Size.x;
 			var pathGrid = map.pathGrid;

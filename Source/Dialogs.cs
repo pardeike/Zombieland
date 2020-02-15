@@ -68,7 +68,7 @@ namespace ZombieLand
 	static class Dialogs
 	{
 		static Color contentColor = new Color(1f, 1f, 1f, 0.7f);
-		static readonly float inset = 6f;
+		const float inset = 6f;
 		static DateTime nextNetworkCheck = DateTime.Now;
 		static bool isNetworkAvailable = false;
 		public static string currentHelpItem = null;
@@ -177,7 +177,12 @@ namespace ZombieLand
 			if (Widgets.ButtonInvisible(butRect, false))
 				forBool = !forBool;
 			if (forBool != oldValue)
-				SoundDefOf.RadioButtonClicked.PlayOneShotOnCamera(null);
+			{
+				if (forBool)
+					SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera(null);
+				else
+					SoundDefOf.Checkbox_TurnedOff.PlayOneShotOnCamera(null);
+			}
 
 			Widgets.Checkbox(new Vector2(rect.x, rect.y - 1f), ref forBool);
 
@@ -225,7 +230,7 @@ namespace ZombieLand
 
 			result |= Widgets.ButtonInvisible(rect, false);
 			if (result && !active)
-				SoundDefOf.RadioButtonClicked.PlayOneShotOnCamera(null);
+				SoundDefOf.Click.PlayOneShotOnCamera(null);
 
 			return result;
 		}

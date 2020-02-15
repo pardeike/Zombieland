@@ -1,28 +1,31 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
 using System.Linq;
+using UnityEngine;
 
 namespace ZombieLand
 {
+#pragma warning disable CA1815
 	public struct AtlasImage
 	{
 		public string path;
 		public ColorData data;
 	}
+#pragma warning restore CA1815
 
-	public class TextureAtlas
+	public static class TextureAtlas
 	{
-		static readonly List<AtlasImage> images = new List<AtlasImage>();
-		public List<AtlasImage> AllImages => images;
+		public static readonly string textureRoot = Tools.GetModRootDirectory() + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar;
 
-		public TextureAtlas(string basePath)
+		public static List<AtlasImage> AllImages { get; } = new List<AtlasImage>();
+
+		static TextureAtlas()
 		{
 			var atlas = new Texture2D(1, 1, TextureFormat.ARGB32, false);
-			if (atlas.LoadImage(File.ReadAllBytes(basePath + ".png")) == false)
+			if (atlas.LoadImage(File.ReadAllBytes(textureRoot + "Parts.png")) == false)
 				return;
 
-			using (var reader = new StreamReader(@basePath + ".cvs"))
+			using (var reader = new StreamReader(textureRoot + "Parts.cvs"))
 			{
 				var listA = new List<string>();
 				var listB = new List<string>();
@@ -39,7 +42,7 @@ namespace ZombieLand
 					var name = vals[4];
 
 					var pixels = atlas.GetPixels(x, y, w, h);
-					images.Add(new AtlasImage()
+					AllImages.Add(new AtlasImage()
 					{
 						path = name,
 						data = new ColorData(w, h, pixels)

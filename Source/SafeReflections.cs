@@ -1,5 +1,6 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -63,17 +64,13 @@ namespace ZombieLand
 			return method;
 		}
 
-		public static Type InnerTypeStartingWith(this Type type, string prefix)
+		public static List<MethodInfo> InnerMethodsStartingWith(this Type type, string prefix)
 		{
-			var innerType = AccessTools.FirstInner(type, subType => subType.Name.StartsWith(prefix));
-			if (innerType == null) throw new Exception("Cannot find inner type starting with '" + prefix + "' in type " + type.FullName);
-			return innerType;
-		}
-
-		public static MethodInfo MethodStartingWith(this Type type, string prefix)
-		{
-			var method = type.GetMethods(AccessTools.all).FirstOrDefault(m => m.Name.StartsWith(prefix));
-			if (method == null) throw new Exception("Cannot find method starting with '" + prefix + "' in type " + type.FullName);
+			var method = type.GetNestedTypes(AccessTools.all)
+				.SelectMany(innerType => innerType.GetMethods(AccessTools.all))
+				.Where(m => m.Name.StartsWith(prefix))
+				.ToList();
+			if (method.Count == 0) throw new Exception("Cannot find method starting with '" + prefix + "' in any inner type of " + type.FullName);
 			return method;
 		}
 

@@ -5,6 +5,7 @@
 		<defName>ZombieBite</defName>
 		<hediffClass>Zombieland.Hediff_Injury_ZombieBite</hediffClass>
 		<label>zombie bite</label>
+		<description>A infectious bite of a zombie.</description>
 		<displayWound>true</displayWound>
 		<isBad>true</isBad>
 		<comps>

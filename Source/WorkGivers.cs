@@ -10,7 +10,7 @@ namespace ZombieLand
 	{
 		public override ThingRequest PotentialWorkThingRequest => ThingRequest.ForDef(CustomDefs.Corpse_Zombie);
 		public override PathEndMode PathEndMode => PathEndMode.ClosestTouch;
-		public override int LocalRegionsToScanFirst => 4;
+		public override int MaxRegionsToScanBeforeGlobalSearch => 4;
 
 		public override Danger MaxPathDanger(Pawn pawn)
 		{

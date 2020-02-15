@@ -49,6 +49,11 @@ namespace ZombieLand
 			return config;
 		}
 
+		public void RemoveColonist(Pawn pawn)
+		{
+			_ = colonists.Remove(pawn);
+		}
+
 		public override void ExposeData()
 		{
 			base.ExposeData();

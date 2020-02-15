@@ -22,6 +22,7 @@ namespace ZombieLand
 			Dispose(true);
 		}
 
+#pragma warning disable CA1063
 		void Dispose(bool v)
 		{
 			_ = v;
@@ -32,6 +33,7 @@ namespace ZombieLand
 				disposed = true;
 			}
 		}
+#pragma warning restore CA1063
 
 		public DisposableMaterial GetMaterial
 		{

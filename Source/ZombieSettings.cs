@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using RimWorld.Planet;
 using System;
 using System.Linq;
@@ -196,7 +196,7 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 			if (group == null) group = new SettingsGroup();
-			Scribe_Deep.Look(ref group, "defaults", new object[0]);
+			Scribe_Deep.Look(ref group, "defaults", Array.Empty<object>());
 		}
 	}
 
@@ -231,7 +231,7 @@ namespace ZombieLand
 		public override void ExposeData()
 		{
 			base.ExposeData();
-			Scribe_Deep.Look(ref Values, "values", new object[0]);
+			Scribe_Deep.Look(ref Values, "values", Array.Empty<object>());
 		}
 	}
 }

@@ -47,7 +47,7 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 
-			Tools.Look(ref grid, "pheromones", new object[0]);
+			Tools.Look(ref grid, "pheromones", Array.Empty<object>());
 			Scribe_Values.Look(ref mapSizeX, "mapx");
 			Scribe_Values.Look(ref mapSizeZ, "mapz");
 

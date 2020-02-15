@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using RimWorld;
 using Steamworks;
 using System;
@@ -12,7 +12,7 @@ using UnityEngine;
 using Verse;
 using Verse.Steam;
 
-namespace CameraPlus
+namespace CrossPromotionModule
 {
 	[StaticConstructorOnStartup]
 	static class CrossPromotion
@@ -28,9 +28,10 @@ namespace CameraPlus
 
 		static CrossPromotion()
 		{
-			var instance = HarmonyInstance.Create(_crosspromotion);
-			if (instance.HasAnyPatches(_crosspromotion))
+			if (Harmony.HasAnyPatches(_crosspromotion))
 				return;
+
+			var instance = new Harmony(_crosspromotion);
 
 			_ = instance.Patch(
 				SymbolExtensions.GetMethodInfo(() => MainMenuDrawer.Init()),
@@ -92,11 +93,11 @@ namespace CameraPlus
 			var list = instructions.ToList();
 			var beginGroupIndicies = list
 				.Select((instr, idx) => new Pair<int, CodeInstruction>(idx, instr))
-				.Where(pair => pair.Second.operand == m_BeginGroup)
+				.Where(pair => pair.Second.operand is MethodInfo mi && mi == m_BeginGroup)
 				.Select(pair => pair.First).ToArray();
 			var endGroupIndicies = list
 				.Select((instr, idx) => new Pair<int, CodeInstruction>(idx, instr))
-				.Where(pair => pair.Second.operand == m_EndGroup)
+				.Where(pair => pair.Second.operand is MethodInfo mi && mi == m_EndGroup)
 				.Select(pair => pair.First).ToArray();
 			if (beginGroupIndicies.Length != 2 || endGroupIndicies.Length != 2)
 				return instructions;
@@ -249,7 +250,7 @@ namespace CameraPlus
 			var mainModID = mod.GetPublishedFileId().m_PublishedFileId;
 			var promoMods = CrossPromotion.promotionMods.ToArray();
 			var thisMod = promoMods.FirstOrDefault(m => m.m_nPublishedFileId.m_PublishedFileId == mainModID);
-			var isLocalFile = ModLister.AllInstalledMods.Any(meta => meta.GetPublishedFileId().m_PublishedFileId == mainModID && meta.Source == ContentSource.LocalFolder);
+			var isLocalFile = ModLister.AllInstalledMods.Any(meta => meta.GetPublishedFileId().m_PublishedFileId == mainModID && meta.Source == ContentSource.ModsFolder);
 			var isSubbed = workshopMods.Contains(mainModID);
 
 			if (CrossPromotion.lastPresentedMod != mainModID)
@@ -336,7 +337,7 @@ namespace CameraPlus
 			foreach (var promoMod in promoMods)
 			{
 				var myModID = promoMod.m_nPublishedFileId.m_PublishedFileId;
-				var isLocalFile = ModLister.AllInstalledMods.Any(meta => meta.GetPublishedFileId().m_PublishedFileId == myModID && meta.Source == ContentSource.LocalFolder);
+				var isLocalFile = ModLister.AllInstalledMods.Any(meta => meta.GetPublishedFileId().m_PublishedFileId == myModID && meta.Source == ContentSource.ModsFolder);
 				var isSubbed = workshopMods.Contains(myModID);
 				_ = CrossPromotion.allVoteStati.TryGetValue(myModID, out var voteStatus);
 
@@ -357,7 +358,7 @@ namespace CameraPlus
 			foreach (var promoMod in promoMods)
 			{
 				var myModID = promoMod.m_nPublishedFileId.m_PublishedFileId;
-				var isLocalFile = ModLister.AllInstalledMods.Any(meta => meta.GetPublishedFileId().m_PublishedFileId == myModID && meta.Source == ContentSource.LocalFolder);
+				var isLocalFile = ModLister.AllInstalledMods.Any(meta => meta.GetPublishedFileId().m_PublishedFileId == myModID && meta.Source == ContentSource.ModsFolder);
 				var isSubbed = workshopMods.Contains(myModID);
 				var isActive = activeMods.Contains(myModID);
 				_ = CrossPromotion.allVoteStati.TryGetValue(myModID, out var voteStatus);
@@ -400,10 +401,10 @@ namespace CameraPlus
 							{
 								if (isSubbed || isLocalFile)
 								{
-									var orderedMods = (IEnumerable<ModMetaData>)AccessTools.Method(typeof(Page_ModsConfig), "ModsInListOrder").Invoke(page, new object[0]);
+									var orderedMods = (IEnumerable<ModMetaData>)AccessTools.Method(typeof(Page_ModsConfig), "ModsInListOrder").Invoke(page, Array.Empty<object>());
 									page.selectedMod = orderedMods.FirstOrDefault(meta => meta.GetPublishedFileId().m_PublishedFileId == myModID);
 									var modsBefore = orderedMods.FirstIndexOf(m => m == page.selectedMod);
-									if (modsBefore >= 0 && modsBefore < orderedMods.Count())
+									if (modsBefore >= 0)
 										_ = Traverse.Create(page).Field("modListScrollPosition").SetValue(new Vector2(0f, modsBefore * 26f + 4f));
 								}
 								else

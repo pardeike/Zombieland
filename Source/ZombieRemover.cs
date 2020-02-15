@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using RimWorld;
 using System;
 using System.Collections.Generic;
@@ -210,7 +210,7 @@ namespace ZombieLand
 		static void SaveGameWithoutZombieland(string filename)
 		{
 			var runningMods = LoadedModManager.RunningMods as List<ModContentPack>;
-			var me = runningMods.First(mod => mod.Identifier == ZombielandMod.Identifier);
+			var me = runningMods.First(mod => mod.PackageId == ZombielandMod.Identifier);
 			var myIndex = runningMods.IndexOf(me);
 			_ = runningMods.Remove(me);
 			GameDataSaveLoader.SaveGame(filename);

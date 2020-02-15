@@ -1,4 +1,4 @@
-﻿using Harmony;
+﻿using HarmonyLib;
 using RimWorld;
 using System;
 using System.Collections.Generic;
@@ -108,9 +108,9 @@ namespace ZombieLand
 				c.r *= Rand.Range(0.2f, 1f);
 				c.g *= Rand.Range(0.2f, 1f);
 				c.b *= Rand.Range(0.2f, 1f);
-				_ = zombieColors.Add(c);
+				_ = zombieColors.AddItem(c);
 			});
-			_ = zombieColors.Add("000000".HexColor());
+			_ = zombieColors.AddItem("000000".HexColor());
 		}
 
 		public void UpgradeOldZombieData()
@@ -181,6 +181,7 @@ namespace ZombieLand
 			GC.SuppressFinalize(this);
 		}
 
+#pragma warning disable CA1063
 		void Dispose(bool disposing)
 		{
 			_ = disposing;
@@ -195,6 +196,7 @@ namespace ZombieLand
 			naked?.Dispose();
 			Drawer.renderer.graphics.nakedGraphic = null;
 		}
+#pragma warning restore CA1063
 
 		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)
 		{
@@ -254,7 +256,7 @@ namespace ZombieLand
 				if (r > maxRadius) maxRadius = r;
 				var cell = pos + vec;
 				if (GenSight.LineOfSight(pos, cell, map, true, null, 0, 0) && cell.Walkable(map))
-					if (FilthMaker.MakeFilth(cell, map, ThingDef.Named("StickyGoo"), Name.ToStringShort, 1))
+					if (FilthMaker.TryMakeFilth(cell, map, ThingDef.Named("StickyGoo"), Name.ToStringShort, 1))
 						hasFilth++;
 			}
 			if (hasFilth >= 6)
@@ -399,6 +401,7 @@ namespace ZombieLand
 			typeof(Rot4),
 			typeof(RotDrawMode),
 			typeof(bool),
+			typeof(bool),
 			typeof(bool)
 		};
 		static readonly FastInvokeHandler delegateRenderPawnInternal = MethodInvoker.GetHandler(typeof(PawnRenderer).MethodNamed("RenderPawnInternal", RenderPawnInternalParameterTypes));
@@ -411,7 +414,7 @@ namespace ZombieLand
 			{
 				var bodyOffset = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, -0.45f, 0, progress);
 				_ = delegateRenderPawnInternal(renderer, new object[] {
-					drawLoc + new Vector3(0, 0, bodyOffset), 0f, true, Rot4.South, Rot4.South, bodyDrawType, false, false
+					drawLoc + new Vector3(0, 0, bodyOffset), 0f, true, Rot4.South, Rot4.South, bodyDrawType, false, false, false
 				});
 			}
 
