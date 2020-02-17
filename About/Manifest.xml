@@ -3,8 +3,8 @@
   <identifier>net.pardeike.rimworld.mod.zombieland</identifier>
   <version>2.0.0.0</version>
   <targetVersions>
-    <li>0.19.0</li>
     <li>1.0.0</li>
+    <li>1.1.0</li>
   </targetVersions>
   <dependencies>
   </dependencies>

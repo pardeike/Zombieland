@@ -352,7 +352,7 @@
     <Compile Include="Hediff_Injury_ZombieBite.cs" />
     <Compile Include="HediffComp_Zombie_Infecter.cs" />
     <Compile Include="MultiVersionMethods.cs" />
-    <Compile Include="MultiVersionModFix.cs" />
+    <None Include="MultiVersionModFix.cs" />
     <Compile Include="Recipe_CureZombieInfection.cs" />
     <Compile Include="SharedSettings.cs" />
     <Compile Include="JobDriver_Stumble.cs" />

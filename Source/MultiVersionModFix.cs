@@ -41,8 +41,8 @@ static class MultiVersionModFix
 		try
 		{
 			var xml = new XmlDocument();
-			xml.Load(rootDir + Path.DirectorySeparatorChar + "About" + Path.DirectorySeparatorChar + "Manifest.xml");
-			var tags = xml.SelectNodes("/Manifest/targetVersions/li").Cast<XmlNode>().Select(node => node.InnerText);
+			xml.Load(rootDir + Path.DirectorySeparatorChar + "About" + Path.DirectorySeparatorChar + "About.xml");
+			var tags = xml.SelectNodes("/ModMetaData/supportedVersions/li").Cast<XmlNode>().Select(node => node.InnerText);
 			var result = tags
 				.Where(tag => VersionControl.IsWellFormattedVersionString(tag))
 				.Select(tag => VersionControl.VersionFromString(tag)).ToList();
