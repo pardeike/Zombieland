@@ -34,8 +34,8 @@ namespace CrossPromotionModule
 			var instance = new Harmony(_crosspromotion);
 
 			_ = instance.Patch(
-				SymbolExtensions.GetMethodInfo(() => MainMenuDrawer.Init()),
-				postfix: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => MainMenuDrawer_Init_Postfix()))
+				SymbolExtensions.GetMethodInfo(() => ModLister.RebuildModList()),
+				postfix: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => ModLister_RebuildModList_Postfix()))
 			);
 
 			_ = instance.Patch(
@@ -54,7 +54,7 @@ namespace CrossPromotionModule
 			);
 		}
 
-		static void MainMenuDrawer_Init_Postfix()
+		static void ModLister_RebuildModList_Postfix()
 		{
 			_ = ModPreviewPath(0);
 			new Thread(() => { FetchPromotionMods(); }).Start();
@@ -167,7 +167,7 @@ namespace CrossPromotionModule
 			resultHandle.Set(call, null);
 		}
 
-		internal static void FetchPromotionMods()
+		public static void FetchPromotionMods()
 		{
 			if (SteamManager.Initialized == false)
 				return;

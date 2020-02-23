@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using RimWorld;
-using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -295,7 +294,8 @@ namespace ZombieLand
 		}
 
 		// patch to have zombies not enter dead world pawn list or being mothballed
-		//
+		// TODO: needs work because it breaks other things
+		/*
 		[HarmonyPatch(typeof(WorldPawns))]
 		[HarmonyPatch("ShouldMothball")]
 		static class WorldPawns_ShouldMothball_Patch
@@ -332,6 +332,7 @@ namespace ZombieLand
 				return (zombie == null);
 			}
 		}
+		*/
 
 		// patch to control if raiders and animals see zombies as hostile
 		//
@@ -997,38 +998,6 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for pather to avoid zombies
-		/* 
-			# if (allowedArea != null && !allowedArea[num14])
-			# {
-			# 	num16 += 600;
-			# }
-			# // start added code
-			# num16 += GetZombieCosts(this.map, num14);
-			# // end added code
-
-			IL_098a: ldloc.s 14
-			IL_098c: brfalse IL_09a9
-
-			IL_0991: ldloc.s 14
-		-4	IL_0993: ldloc.s 36														<-- local var that holds grid index
-			IL_0995: callvirt instance bool Verse.Area::get_Item(int32)
-			IL_099a: brtrue IL_09a9
-
-		-1	IL_099f: ldloc.s 40														<-- local var that holds sum
-		0	IL_09a1: ldc.i4 600														<-- search for "600" to get this as main reference point
-			IL_09a6: add
-			IL_09a7: stloc.s 40 
-
-		3	IL_09a9:	ldloc.s 40														<-- added code (keep labels from before)
-						ldarg.0
-						ldfld PathFinder::map
-						ldloc.s 36
-						call PathFinder_FindPath_Patch::GetZombieCosts(Map map, int idx)
-						add
-						stloc.s 40
-			*/
-		//
 		[HarmonyPatch(typeof(PathFinder))]
 		[HarmonyPatch("FindPath")]
 		[HarmonyPatch(new Type[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(TraverseParms), typeof(PathEndMode) })]
@@ -1055,28 +1024,51 @@ namespace ZombieLand
 				return tickManager.avoidGrid.GetCosts()[idx];
 			}
 
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			static readonly MethodInfo m_CellToIndex_int_int = AccessTools.Method(typeof(CellIndices), nameof(CellIndices.CellToIndex), new Type[] { typeof(int), typeof(int) });
+			static readonly FieldInfo f_TraverseParms_pawn = AccessTools.Field(typeof(TraverseParms), nameof(TraverseParms.pawn));
+			static readonly MethodInfo m_GetExtraCosts = SymbolExtensions.GetMethodInfo(() => GetZombieCosts(null, 0));
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase original)
 			{
 				var list = instructions.ToList();
-				var refIdx = list.FirstIndexOf(ins => ins.operand is int && (int)ins.operand == 600);
-				if (refIdx > 0 && refIdx < list.Count())
+				while (true)
 				{
-					var gridIdx = list[refIdx - 4].operand;
-					var sumIdx = list[refIdx - 1].operand;
-					var insertIdx = refIdx + 3;
-					var movedLabels = list[insertIdx].labels;
-					list[insertIdx].labels = new List<Label>();
+					var t_PathFinderNodeFast = AccessTools.Inner(typeof(PathFinder), "PathFinderNodeFast");
+					var f_knownCost = AccessTools.Field(t_PathFinderNodeFast, "knownCost");
+					if (f_knownCost == null)
+					{
+						Log.Error($"Cannot find field Verse.AI.PathFinder.PathFinderNodeFast.knownCost");
+						break;
+					}
 
-					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldloc_S, sumIdx) { labels = movedLabels });
-					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldarga_S, 3));
-					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(TraverseParms), "pawn")));
-					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Ldloc_S, gridIdx));
-					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => GetZombieCosts(null, 0))));
-					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Add));
-					list.Insert(insertIdx++, new CodeInstruction(OpCodes.Stloc_S, sumIdx));
+					var idx = list.FirstIndexOf(ins => ins.Calls(m_CellToIndex_int_int));
+					if (idx < 0 || idx >= list.Count() || list[idx + 1].opcode != OpCodes.Stloc_S)
+					{
+						Log.Error($"Cannot find CellToIndex(n,n)/Stloc_S in {original.FullDescription()}");
+						break;
+					}
+					var gridIdx = list[idx + 1].operand;
+
+					var insertLoc = list.FirstIndexOf(ins => ins.opcode == OpCodes.Ldfld && (FieldInfo)ins.operand == f_knownCost);
+					while (insertLoc >= 0 && insertLoc < list.Count)
+					{
+						if (list[insertLoc].opcode == OpCodes.Add) break;
+						insertLoc++;
+					}
+					if (insertLoc < 0 || insertLoc >= list.Count())
+					{
+						Log.Error($"Cannot find Ldfld knownCost ... Add in {original.FullDescription()}");
+						break;
+					}
+
+					var traverseParmsIdx = original.GetParameters().FirstIndexOf(info => info.ParameterType == typeof(TraverseParms)) + 1;
+
+					list.Insert(insertLoc++, new CodeInstruction(OpCodes.Add));
+					list.Insert(insertLoc++, new CodeInstruction(OpCodes.Ldarga_S, traverseParmsIdx));
+					list.Insert(insertLoc++, new CodeInstruction(OpCodes.Ldfld, f_TraverseParms_pawn));
+					list.Insert(insertLoc++, new CodeInstruction(OpCodes.Ldloc_S, gridIdx));
+					list.Insert(insertLoc++, new CodeInstruction(OpCodes.Call, m_GetExtraCosts));
+					break;
 				}
-				else
-					Log.Error("Cannot find path cost 600 in PathFinder.FindPath");
 
 				foreach (var instr in list)
 					yield return instr;

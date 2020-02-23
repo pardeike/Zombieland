@@ -266,7 +266,7 @@ namespace ZombieLand
 				}
 				else
 				{
-					var success = MultiVersionMethods.TryFindRandomPawnEntryCell(out spot, map, 0.5f, spotValidator, out spot, map, 0.5f, true, spotValidator);
+					var success = RCellFinder.TryFindRandomPawnEntryCell(out spot, map, 0.5f, true, spotValidator);
 					if (success == false) spot = IntVec3.Invalid;
 				}
 			}
