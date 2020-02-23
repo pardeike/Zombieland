@@ -14,7 +14,7 @@ namespace ZombieLand
 		{
 			if ((pawn is Zombie) == false) return null;
 			pawn.jobs.StopAll();
-			return new Job(CustomDefs.Stumble);
+			return JobMaker.MakeJob(CustomDefs.Stumble);
 		}
 	}
 
@@ -27,7 +27,7 @@ namespace ZombieLand
 
 		protected override Job TryGiveJob(Pawn pawn)
 		{
-			return new Job(DefDatabase<JobDef>.GetNamed("ExtractZombieSerum"));
+			return JobMaker.MakeJob(DefDatabase<JobDef>.GetNamed("ExtractZombieSerum"));
 		}
 	}
 }

@@ -63,7 +63,7 @@ namespace ZombieLand
 			var corpse = t as ZombieCorpse;
 			if (corpse == null)
 				return null;
-			return new Job(CustomDefs.ExtractZombieSerum) { targetA = corpse };
+			return JobMaker.MakeJob(CustomDefs.ExtractZombieSerum, corpse);
 		}
 	}
 }

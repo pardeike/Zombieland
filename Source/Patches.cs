@@ -1244,7 +1244,8 @@ namespace ZombieLand
 					var destination = safeDestinations.First();
 					if (destination.IsValid)
 					{
-						var flee = new Job(JobDefOf.Flee, destination) { playerForced = true };
+						var flee = JobMaker.MakeJob(JobDefOf.Flee, destination);
+						flee.playerForced = true;
 						___pawn.jobs.ClearQueuedJobs();
 						___pawn.jobs.StartJob(flee, JobCondition.Incompletable, null);
 					}

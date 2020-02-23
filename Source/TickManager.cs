@@ -267,10 +267,8 @@ namespace ZombieLand
 
 						if (safeDestination.IsValid)
 						{
-							var newJob = new Job(JobDefOf.Goto, safeDestination)
-							{
-								playerForced = true
-							};
+							var newJob = JobMaker.MakeJob(JobDefOf.Goto, safeDestination);
+							newJob.playerForced = true;
 							pawn.jobs.StartJob(newJob, JobCondition.InterruptForced, null, false, true, null, null);
 						}
 					});

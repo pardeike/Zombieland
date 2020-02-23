@@ -41,6 +41,7 @@ namespace ZombieLand
 			RemoveWorldPawns();
 			RemoveZombieFaction();
 			RemoveOutfits();
+			RemoveFoodRestrictions();
 			SaveGameWithoutZombieland(filename);
 
 			GenScene.GoToMainMenu();
@@ -173,6 +174,15 @@ namespace ZombieLand
 			Current.Game.outfitDatabase.AllOutfits
 				.Select(outfit => outfit.filter).ToList()
 				.Do(RemoveFromFilter);
+		}
+
+		static void RemoveFoodRestrictions()
+		{
+			_ = Current.Game.foodRestrictionDatabase.AllFoodRestrictions.RemoveAll(item => item.IsZombieType());
+			Current.Game.foodRestrictionDatabase.AllFoodRestrictions
+				.Select(restriction => restriction.filter).ToList()
+				.Do(RemoveFromFilter);
+
 		}
 
 		static void RemoveFromFilter(ThingFilter filter)

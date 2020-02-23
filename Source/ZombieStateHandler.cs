@@ -830,13 +830,11 @@ namespace ZombieLand
 
 		static void AttackThing(Zombie zombie, Thing thing, JobDef def)
 		{
-			var job = new Job(def, thing)
-			{
-				maxNumMeleeAttacks = 1,
-				maxNumStaticAttacks = 1,
-				expiryInterval = 600,
-				canBash = true
-			};
+			var job = JobMaker.MakeJob(def, thing);
+			job.maxNumMeleeAttacks = 1;
+			job.maxNumStaticAttacks = 1;
+			job.expiryInterval = 600;
+			job.canBash = true;
 			zombie.jobs.StartJob(job, JobCondition.Succeeded, null, true, false, null, null);
 		}
 
