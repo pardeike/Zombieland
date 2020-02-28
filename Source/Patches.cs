@@ -24,7 +24,7 @@ namespace ZombieLand
 		static Patches()
 		{
 			var harmony = new Harmony("net.pardeike.zombieland");
-			harmony.PatchAll(Assembly.GetExecutingAssembly());
+			harmony.PatchAll();
 
 			// prepare Twinkie
 			LongEventHandler.QueueLongEvent(() => { Tools.EnableTwinkie(false); }, "", true, null);
