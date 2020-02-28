@@ -11,7 +11,7 @@ public static class ModCounter
 	{
 		try
 		{
-			var uri = new Uri(baseUrl + "CameraPlus");
+			var uri = new Uri(baseUrl + "Zombieland");
 			using (var client = new System.Net.WebClient())
 				client.DownloadStringAsync(uri);
 		}
