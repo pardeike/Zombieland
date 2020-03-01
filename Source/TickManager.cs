@@ -102,13 +102,7 @@ namespace ZombieLand
 				allZombieCorpses = new List<ZombieCorpse>();
 			allZombieCorpses = allZombieCorpses.Where(corpse => corpse.DestroyedOrNull() == false && corpse.Spawned).ToList();
 
-			if (incidentInfo == null)
-			{
-				incidentInfo = new IncidentInfo
-				{
-					parameters = new IncidentParameters()
-				};
-			}
+			_ = ZombiesRising.ZombiesForNewIncident(this);
 
 			if (explosions == null)
 				explosions = new List<IntVec3>();

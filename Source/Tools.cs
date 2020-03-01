@@ -583,10 +583,10 @@ namespace ZombieLand
 			return colonists.Count(pawn =>
 			{
 				if (pawn.Spawned == false || pawn.IsDowned() || pawn.Dead) return false;
-				if (pawn.health.HasHediffsNeedingTend(true)) return false;
-				if (pawn.equipment.Primary == null) return false;
 				if (pawn.InMentalState) return false;
 				if (pawn.InContainerEnclosed) return false;
+				if (pawn.equipment.Primary == null) return false;
+				if (pawn.health.summaryHealth.SummaryHealthPercent <= 0.25f) return false;
 
 				var walkCapacity = PawnCapacityUtility.CalculateCapacityLevel(pawn.health.hediffSet, PawnCapacityDefOf.Moving);
 				if (walkCapacity < 0.25f) return false;

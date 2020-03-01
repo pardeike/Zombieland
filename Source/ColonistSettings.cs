@@ -58,8 +58,7 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 
-			if (Scribe.mode == LoadSaveMode.Saving)
-				_ = colonists.RemoveAll(pair => pair.Key == null || pair.Key.IsColonist == false);
+			_ = colonists.RemoveAll(pair => pair.Key == null || pair.Key.IsColonist == false || pair.Value == null);
 
 			Scribe_Collections.Look(ref colonists, "colonists", LookMode.Reference, LookMode.Deep, ref colonistsKeysWorkingList, ref colonistsValuesWorkingList);
 
@@ -68,7 +67,7 @@ namespace ZombieLand
 				if (colonists == null)
 					colonists = new Dictionary<Pawn, ColonistConfig>();
 				else
-					_ = colonists.RemoveAll(pair => pair.Key == null || pair.Key.IsColonist == false);
+					_ = colonists.RemoveAll(pair => pair.Key == null || pair.Key.IsColonist == false || pair.Value == null);
 			}
 		}
 	}
