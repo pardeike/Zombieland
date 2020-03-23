@@ -56,8 +56,9 @@
 
 	<!-- -->
 
-	<ZombieDamageFactorTitle_Help>If you set your zombies to attack things or creatures, this will allow you to fine tune their strength.</ZombieDamageFactorTitle_Help>
+	<ZombieDamageTitle_Help>Change what happens when zombies attack other creatures.</ZombieDamageTitle_Help>
 	<ZombieDamageFactor_Help>A large multiplier will increase their strength which will allow them to overcome others easily. Very useful for mech raids but will deteriorate your walls and doors quicker (if you have that turned on).</ZombieDamageFactor_Help>
+	<ZombiesCauseManhunting_Help>Will animals become manhunters when attacked by zombies?</ZombiesCauseManhunting_Help>
 
 	<!-- -->
 

@@ -26,6 +26,7 @@ namespace ZombieLand
 		public List<Zombie> allZombiesCached;
 		public int zombiesTicked = 0;
 		public int totalTicking = 0;
+		IEnumerator taskTicker;
 
 		public List<ZombieCorpse> allZombieCorpses;
 		public AvoidGrid avoidGrid;
@@ -83,6 +84,10 @@ namespace ZombieLand
 
 			hummingZombies.Clear();
 			allZombies.Where(zombie => zombie.isElectrifier).Do(zombie => hummingZombies.Add(zombie));
+
+			taskTicker = TickTasks();
+			while (taskTicker.Current as string != "end")
+				_ = taskTicker.MoveNext();
 		}
 
 		public override void ExposeData()
@@ -388,65 +393,70 @@ namespace ZombieLand
 
 		IEnumerator TickTasks()
 		{
-			var map = Find.CurrentMap;
-			if (map == null) yield break;
-			var sw = new Stopwatch();
-			sw.Start();
-			RepositionColonists();
-			yield return null;
-			HandleIncidents();
-			yield return null;
-			FetchAvoidGrid();
-			yield return null;
-			RecalculateZombieWanderDestination();
-			yield return null;
-			IncreaseZombiePopulation();
-			yield return null;
-			UpdateZombieAvoider();
-			yield return null;
-			ExecuteExplosions();
-			yield return null;
-			var volume = 0f;
-			if (allZombiesCached.Any())
+			while (true)
 			{
-				var hour = GenLocalDate.HourFloat(map);
-				if (hour < 12f) hour += 24f;
-				if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
-					volume = 1f;
-				else if (hour >= Constants.HOUR_START_OF_DUSK && hour <= Constants.HOUR_START_OF_NIGHT)
-					volume = GenMath.LerpDouble(Constants.HOUR_START_OF_DUSK, Constants.HOUR_START_OF_NIGHT, 0f, 1f, hour);
-				else if (hour >= Constants.HOUR_END_OF_NIGHT && hour <= Constants.HOUR_START_OF_DAWN)
-					volume = GenMath.LerpDouble(Constants.HOUR_END_OF_NIGHT, Constants.HOUR_START_OF_DAWN, 1f, 0f, hour);
-			}
-			yield return null;
-			if (Constants.USE_SOUND && ZombieSettings.Values.playCreepyAmbientSound)
-			{
-				if (zombiesAmbientSound == null)
-					zombiesAmbientSound = CustomDefs.ZombiesClosingIn.TrySpawnSustainer(SoundInfo.OnCamera(MaintenanceType.None));
+				var sw = new Stopwatch();
+				sw.Start();
+				RepositionColonists();
+				yield return null;
+				HandleIncidents();
+				yield return null;
+				FetchAvoidGrid();
+				yield return null;
+				RecalculateZombieWanderDestination();
+				yield return null;
+				IncreaseZombiePopulation();
+				yield return null;
+				UpdateZombieAvoider();
+				yield return null;
+				ExecuteExplosions();
+				yield return null;
+				var volume = 0f;
+				if (allZombiesCached.Any())
+				{
+					var map = Find.CurrentMap;
+					if (map != null)
+					{
+						var hour = GenLocalDate.HourFloat(map);
+						if (hour < 12f) hour += 24f;
+						if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
+							volume = 1f;
+						else if (hour >= Constants.HOUR_START_OF_DUSK && hour <= Constants.HOUR_START_OF_NIGHT)
+							volume = GenMath.LerpDouble(Constants.HOUR_START_OF_DUSK, Constants.HOUR_START_OF_NIGHT, 0f, 1f, hour);
+						else if (hour >= Constants.HOUR_END_OF_NIGHT && hour <= Constants.HOUR_START_OF_DAWN)
+							volume = GenMath.LerpDouble(Constants.HOUR_END_OF_NIGHT, Constants.HOUR_START_OF_DAWN, 1f, 0f, hour);
+					}
+				}
+				yield return null;
+				if (Constants.USE_SOUND && ZombieSettings.Values.playCreepyAmbientSound)
+				{
+					if (zombiesAmbientSound == null)
+						zombiesAmbientSound = CustomDefs.ZombiesClosingIn.TrySpawnSustainer(SoundInfo.OnCamera(MaintenanceType.None));
 
-				if (volume < zombiesAmbientSoundVolume)
-					zombiesAmbientSoundVolume -= 0.0001f;
-				else if (volume > zombiesAmbientSoundVolume)
-					zombiesAmbientSoundVolume += 0.0001f;
-				zombiesAmbientSound.info.volumeFactor = zombiesAmbientSoundVolume;
+					if (volume < zombiesAmbientSoundVolume)
+						zombiesAmbientSoundVolume -= 0.0001f;
+					else if (volume > zombiesAmbientSoundVolume)
+						zombiesAmbientSoundVolume += 0.0001f;
+					zombiesAmbientSound.info.volumeFactor = zombiesAmbientSoundVolume;
+				}
+				else
+				{
+					zombiesAmbientSound?.End();
+					zombiesAmbientSound = null;
+				}
+				yield return null;
+				if (colonistsConverter.Count > 0)
+				{
+					var pawn = colonistsConverter.Dequeue();
+					Tools.ConvertToZombie(pawn);
+				}
+				yield return "end";
 			}
-			else
-			{
-				zombiesAmbientSound?.End();
-				zombiesAmbientSound = null;
-			}
-			yield return null;
-			if (colonistsConverter.Count > 0)
-			{
-				var pawn = colonistsConverter.Dequeue();
-				Tools.ConvertToZombie(pawn);
-			}
-			yield return null;
 		}
 
 		public override void MapComponentTick()
 		{
-			_ = Find.CameraDriver.StartCoroutine(TickTasks());
+			_ = taskTicker.MoveNext();
 		}
 	}
 }

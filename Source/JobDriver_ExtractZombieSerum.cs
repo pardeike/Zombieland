@@ -25,12 +25,21 @@ namespace ZombieLand
 
 		public override bool TryMakePreToilReservations(bool errorOnFailed)
 		{
+			if (ZombieSettings.Values.corpsesExtractAmount == 0)
+				return false;
 			var corpse = job.GetTarget(TargetIndex.A).Thing;
 			return pawn.Reserve(corpse, job, 1, -1, null, errorOnFailed);
 		}
 
 		protected override IEnumerable<Toil> MakeNewToils()
 		{
+			AddEndCondition(delegate
+			{
+				if (ZombieSettings.Values.corpsesExtractAmount == 0)
+					return JobCondition.Incompletable;
+				return JobCondition.Ongoing;
+			});
+
 			_ = this.FailOnDespawnedOrNull(TargetIndex.A);
 			yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.Touch);
 

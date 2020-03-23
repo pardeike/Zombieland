@@ -89,7 +89,7 @@ namespace ZombieLand
 
 			var font = Text.Font;
 			Text.Font = GameFont.Medium;
-			list.Label(headline);
+			_ = list.Label(headline);
 			Text.Font = font;
 		}
 
@@ -302,6 +302,25 @@ namespace ZombieLand
 			value = Widgets.HorizontalSlider(srect, value, min, max, false, null, labelId.SafeTranslate(), valstr, -1f);
 		}
 
+		public static void Dialog_EnumSlider<T>(this Listing_Standard list, string labelId, ref T forEnum)
+		{
+			list.Help(labelId, 32f);
+
+			var type = forEnum.GetType();
+			var choices = Enum.GetValues(type);
+			var max = choices.Length - 1;
+
+			list.Gap(12f);
+
+			var srect = list.GetRect(24f);
+			srect.xMin += inset;
+			srect.xMax -= inset;
+
+			var value = $"{typeof(T).Name}_{forEnum}".SafeTranslate();
+			var n = (int)Widgets.HorizontalSlider(srect, Convert.ToInt32(forEnum), 0, max, false, null, labelId.SafeTranslate(), value, 1);
+			forEnum = (T)Enum.ToObject(typeof(T), n);
+		}
+
 		public static void Dialog_IntSlider(this Listing_Standard list, string labelId, Func<int, string> format, ref int value, int min, int max)
 		{
 			list.Help(labelId, 32f);
@@ -443,10 +462,12 @@ namespace ZombieLand
 				list.Dialog_FloatSlider("MoveSpeedTracking", "0.0x", ref settings.moveSpeedTracking, 0.2f, 3f);
 				list.Gap(18f);
 
-				// Strength
-				list.Dialog_Label("ZombieDamageFactorTitle");
+				// Damage
+				list.Dialog_Label("ZombieDamageTitle");
 				list.Gap(8f);
 				list.Dialog_FloatSlider("ZombieDamageFactor", "0.0x", ref settings.damageFactor, 0.1f, 4f);
+				list.Gap(-4f);
+				list.Dialog_Checkbox("ZombiesCauseManhunting", ref settings.zombiesCauseManhuntingResponse);
 				list.Gap(18f);
 
 				// Tweaks
@@ -469,7 +490,7 @@ namespace ZombieLand
 				// Serum
 				list.Dialog_Label("ZombieSerum");
 				list.Gap(8f);
-				list.Dialog_IntSlider("CorpsesExtractAmount", amount => "" + amount, ref settings.corpsesExtractAmount, 1, 10);
+				list.Dialog_IntSlider("CorpsesExtractAmount", amount => (amount == 0 ? "Off".TranslateSimple() : "" + amount), ref settings.corpsesExtractAmount, 0, 10);
 				list.Dialog_TimeSlider("CorpsesDaysToDessicated", ref settings.corpsesHoursToDessicated, 1, 120);
 				list.Gap(18f);
 

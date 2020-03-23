@@ -29,5 +29,12 @@ namespace ZombieLand
 		{
 			return JobMaker.MakeJob(DefDatabase<JobDef>.GetNamed("ExtractZombieSerum"));
 		}
+
+		public override ThinkResult TryIssueJobPackage(Pawn pawn, JobIssueParams jobParams)
+		{
+			if (ZombieSettings.Values.corpsesExtractAmount == 0)
+				return ThinkResult.NoJob;
+			return base.TryIssueJobPackage(pawn, jobParams);
+		}
 	}
 }

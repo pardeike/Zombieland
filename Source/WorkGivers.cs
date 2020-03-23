@@ -34,6 +34,9 @@ namespace ZombieLand
 			if (corpse.DestroyedOrNull() || corpse.Spawned == false)
 				return false;
 
+			if (ZombieSettings.Values.corpsesExtractAmount == 0)
+				return false;
+
 			if (forced == false && ColonistSettings.Values.ConfigFor(pawn).autoExtractZombieSerum == false)
 				return false;
 

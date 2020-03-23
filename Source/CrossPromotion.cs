@@ -126,6 +126,22 @@ namespace CrossPromotionModule
 			return dir + modID + "-preview.jpg";
 		}
 
+		internal static byte[] SafeRead(string path)
+		{
+			for (var i = 1; i <= 5; i++)
+			{
+				try
+				{
+					return File.ReadAllBytes(path);
+				}
+				catch (Exception)
+				{
+					Thread.Sleep(250);
+				}
+			}
+			return null;
+		}
+
 		internal static Texture2D PreviewForMod(ulong modID)
 		{
 			if (previewTextures.TryGetValue(modID, out var texture))
@@ -134,7 +150,7 @@ namespace CrossPromotionModule
 			if (File.Exists(path) == false)
 				return null;
 			texture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
-			if (texture.LoadImage(File.ReadAllBytes(path)))
+			if (texture.LoadImage(SafeRead(path)))
 				previewTextures[modID] = texture;
 			return texture;
 		}
@@ -403,7 +419,7 @@ namespace CrossPromotionModule
 								{
 									var orderedMods = (IEnumerable<ModMetaData>)AccessTools.Method(typeof(Page_ModsConfig), "ModsInListOrder").Invoke(page, Array.Empty<object>());
 									page.selectedMod = orderedMods.FirstOrDefault(meta => meta.GetPublishedFileId().m_PublishedFileId == myModID);
-									var modsBefore = orderedMods.FirstIndexOf(m => m == page.selectedMod);
+									var modsBefore = orderedMods.ToList().FindIndex(m => m == page.selectedMod);
 									if (modsBefore >= 0)
 										_ = Traverse.Create(page).Field("modListScrollPosition").SetValue(new Vector2(0f, modsBefore * 26f + 4f));
 								}

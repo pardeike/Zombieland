@@ -92,6 +92,7 @@ namespace ZombieLand
 		public bool zombiesDropBlood = true;
 		public bool zombiesBurnLonger = true;
 		public float reducedTurretConsumption = 0f;
+		public bool zombiesCauseManhuntingResponse = true;
 
 		// unused
 		public int suicideBomberIntChance = 1;

@@ -51,8 +51,9 @@
 	<MoveSpeedIdle>Onlar sakin iseniz</MoveSpeedIdle>
 	<MoveSpeedTracking>Heyecanlı hissediyorlarsa</MoveSpeedTracking>
 
-	<ZombieDamageFactorTitle>Zombi gücü</ZombieDamageFactorTitle>
+	<ZombieDamageTitle>Zombi hasarı</ZombieDamageTitle>
 	<ZombieDamageFactor>Hasar çarpan</ZombieDamageFactor>
+	<ZombiesCauseManhunting>Zombiler hayvanları kızdırıyor</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>Oyun ince ayarlar</ZombieGameTweaks>
 	<ReduceTurretConsumption>Taret silah tüketimini azaltın</ReduceTurretConsumption>
@@ -111,7 +112,7 @@
 	<PublishSettings>Ayarları web'de yayınla</PublishSettings>
 	<PublishSettingsButton>Yayınlamak</PublishSettingsButton>
 	<SearchSettings>Aramak</SearchSettings>
-   <SettingsName>Isim</SettingsName>
+	<SettingsName>Isim</SettingsName>
 
 	<ColonistsBittenByZombie>Colonist zombi tarafından ısırıldı</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Bu kolonistler bir zombi tarafından ısırıldı. Bu noktada, bir enfeksiyon geliştirmeleri net değil:\n\n{0}\nYaralarını yakından izleyin çünkü enfeksiyonların gelişmesi biraz zaman alır.</ColonistsBittenByZombieDesc>

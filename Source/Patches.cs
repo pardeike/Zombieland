@@ -197,8 +197,7 @@ namespace ZombieLand
 				TooltipHandler.TipRegion(zlRect, new TipSignal(delegate
 				{
 					var currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
-					var versionString = currentVersion.Major + "." + currentVersion.Minor + "." + currentVersion.Build;
-					return "Zombieland v" + versionString;
+					return $"Zombieland v{currentVersion.ToString(4)}";
 				}, 99899));
 
 				curBaseY -= zlRect.height;
@@ -938,50 +937,17 @@ namespace ZombieLand
 
 		// patch to reduce revenge by animals
 		//
-		[HarmonyPatch(typeof(Pawn_MindState))]
-		[HarmonyPatch("Notify_DamageTaken")]
-		static class Pawn_MindState_Notify_DamageTaken_Patch
+		[HarmonyPatch(typeof(PawnUtility))]
+		[HarmonyPatch(nameof(PawnUtility.GetManhunterOnDamageChance))]
+		[HarmonyPatch(new Type[] { typeof(Pawn), typeof(float), typeof(Thing) })]
+		static class PawnUtility_GetManhunterOnDamageChance_Patch
 		{
-			static bool ReducedChance(float chance, Pawn instigator)
+			static void Postfix(ref float __result, Pawn pawn, Thing instigator)
 			{
-				if (instigator is Zombie)
-					chance /= 20;
-				return Rand.Chance(chance);
-			}
-
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			{
-				var m_Chance = SymbolExtensions.GetMethodInfo(() => Rand.Chance(0f));
-				var m_ReducedChance = SymbolExtensions.GetMethodInfo(() => ReducedChance(0f, null));
-
-				var list = instructions.ToList();
-				var idx = list.FirstIndexOf(code => code.opcode == OpCodes.Isinst && code.OperandIs(typeof(Pawn)));
-				if (idx < 0 || idx >= list.Count)
-				{
-					Log.Error("Cannot find Isinst Pawn in Pawn_MindState.Notify_DamageTaken");
-					foreach (var instruction in instructions)
-						yield return instruction;
-					yield break;
-				}
-				var pawnVar = OpCodes.Nop;
-				var op = list[idx + 1].opcode;
-				if (op == OpCodes.Stloc_0) pawnVar = OpCodes.Ldloc_0;
-				if (op == OpCodes.Stloc_1) pawnVar = OpCodes.Ldloc_1;
-				if (op == OpCodes.Stloc_2) pawnVar = OpCodes.Ldloc_2;
-				if (op == OpCodes.Stloc_3) pawnVar = OpCodes.Ldloc_3;
-				if (pawnVar == OpCodes.Nop)
-					Log.Error("Cannot find Stloc_x after Isinst<Pawn> in Pawn_MindState.Notify_DamageTaken");
-
-				foreach (var instruction in instructions)
-				{
-					if (instruction.Calls(m_Chance))
-					{
-						yield return new CodeInstruction(pawnVar);
-						yield return new CodeInstruction(OpCodes.Call, m_ReducedChance);
-					}
-					else
-						yield return instruction;
-				}
+				if (ZombieSettings.Values.zombiesCauseManhuntingResponse == false)
+					__result = 0;
+				else if (instigator is Zombie)
+					__result /= 20;
 			}
 		}
 
@@ -994,7 +960,12 @@ namespace ZombieLand
 			static void Postfix(Pawn prey, ref float __result)
 			{
 				if (prey is Zombie)
-					__result -= 35f;
+				{
+					if (ZombieSettings.Values.animalsAttackZombies)
+						__result -= 70f;
+					else
+						__result -= 10000f;
+				}
 			}
 		}
 
@@ -2970,7 +2941,8 @@ namespace ZombieLand
 					yield return gizmo;
 
 				yield return Gizmos.ZombieAvoidance(___pawn);
-				yield return Gizmos.ExtractSerum(___pawn);
+				if (ZombieSettings.Values.corpsesExtractAmount > 0)
+					yield return Gizmos.ExtractSerum(___pawn);
 			}
 		}
 

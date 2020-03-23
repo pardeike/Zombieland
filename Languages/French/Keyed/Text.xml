@@ -51,8 +51,9 @@
 	<MoveSpeedIdle>Si ils sont calmes</MoveSpeedIdle>
 	<MoveSpeedTracking>Si ils sont enervés</MoveSpeedTracking>
 
-	<ZombieDamageFactorTitle>Force des Zombies</ZombieDamageFactorTitle>
+	<ZombieDamageTitle>Dommages causés par les zombies</ZombieDamageTitle>
 	<ZombieDamageFactor>Multiplicateur de dégâts</ZombieDamageFactor>
+	<ZombiesCauseManhunting>Les zombies déclenchent les animaux</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>Jeu peaufiner</ZombieGameTweaks>
 	<ReduceTurretConsumption>Réduire la consommation des armes à feu de la tourelle</ReduceTurretConsumption>
@@ -111,7 +112,7 @@
 	<PublishSettings>Publier les paramètres sur le cloud</PublishSettings>
 	<PublishSettingsButton>Publier</PublishSettingsButton>
 	<SearchSettings>Rechercher</SearchSettings>
-   <SettingsName>Titre</SettingsName>
+	<SettingsName>Titre</SettingsName>
 
 	<ColonistsBittenByZombie>Colon mordu par un zombie</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Ce colon a été mordu par un zombie. A ce stade, on ne sait pas s’il va développer l’infection. Surveillez les blessures car les infections prennent du temps à se développer</ColonistsBittenByZombieDesc>

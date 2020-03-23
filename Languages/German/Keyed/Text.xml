@@ -51,8 +51,9 @@
 	<MoveSpeedIdle>Wenn wandernt</MoveSpeedIdle>
 	<MoveSpeedTracking>Wenn aufgeregt</MoveSpeedTracking>
 
-	<ZombieDamageFactorTitle>Zombiekraft</ZombieDamageFactorTitle>
+	<ZombieDamageTitle>Zombieschaden</ZombieDamageTitle>
 	<ZombieDamageFactor>Schadenmultiplikator</ZombieDamageFactor>
+	<ZombiesCauseManhunting>Zombies verärgern Tiere</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>Spielveränderungen</ZombieGameTweaks>
 	<ReduceTurretConsumption>Reduzierter Geschützverbrauch</ReduceTurretConsumption>
@@ -111,7 +112,7 @@
 	<PublishSettings>Publiziere Einstellungen in die Cloud</PublishSettings>
 	<PublishSettingsButton>Publizieren</PublishSettingsButton>
 	<SearchSettings>Suchen</SearchSettings>
-   <SettingsName>Name</SettingsName>
+	<SettingsName>Name</SettingsName>
 
 	<ColonistsBittenByZombie>Kolonist wurde von einem Zombie gebissen</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Folgende Kolonisten wurden von einem Zombie gebissen. Noch ist unklar ob sich daraus eine Infektion entwickelt:\n\n{0}\nBeobachten Sie die Wunden um herauszufinden ob eine Infektion stattfinden wird.</ColonistsBittenByZombieDesc>

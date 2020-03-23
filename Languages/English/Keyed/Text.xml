@@ -51,8 +51,9 @@
 	<MoveSpeedIdle>If they are calm</MoveSpeedIdle>
 	<MoveSpeedTracking>If they feel excited</MoveSpeedTracking>
 
-	<ZombieDamageFactorTitle>Zombie strength</ZombieDamageFactorTitle>
+	<ZombieDamageTitle>Zombie damage</ZombieDamageTitle>
 	<ZombieDamageFactor>Damage multiplier</ZombieDamageFactor>
+	<ZombiesCauseManhunting>Zombies can anger animals</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>Game tweaks</ZombieGameTweaks>
 	<ReduceTurretConsumption>Reduce turret gun consumption</ReduceTurretConsumption>
@@ -115,7 +116,7 @@
 	<PublishSettings>Publish settings to the cloud</PublishSettings>
 	<PublishSettingsButton>Publish</PublishSettingsButton>
 	<SearchSettings>Search</SearchSettings>
-   <SettingsName>Name</SettingsName>
+	<SettingsName>Name</SettingsName>
 
 	<ColonistsBittenByZombie>Colonist bitten by zombie</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>These colonists have been bitten by a zombie. At this point, it is unclear if they develop an infection:\n\n{0}\nMonitor their wounds closely because infections take some time to develop.</ColonistsBittenByZombieDesc>
