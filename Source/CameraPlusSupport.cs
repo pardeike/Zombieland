@@ -29,6 +29,8 @@ namespace CameraPlusSupport
 				innerColor = Color.green;
 			if (zombie.isElectrifier)
 				innerColor = Color.cyan;
+			else if (zombie.isAlbino)
+				innerColor = Color.white;
 			else if (zombie.isMiner)
 				innerColor = minerColor;
 			else if (zombie.IsTanky)

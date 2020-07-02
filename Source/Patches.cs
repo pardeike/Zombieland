@@ -834,7 +834,7 @@ namespace ZombieLand
 			}
 		}
 
-		// hide zombie bite when electrifier zombie wants to melee
+		// hide zombie bite when electrifier/albino zombie wants to melee
 		//
 		[HarmonyPatch(typeof(Pawn_MeleeVerbs))]
 		[HarmonyPatch(nameof(Pawn_MeleeVerbs.GetUpdatedAvailableVerbsList))]
@@ -843,7 +843,7 @@ namespace ZombieLand
 			static void Postfix(List<VerbEntry> __result, Pawn ___pawn)
 			{
 				var zombie = ___pawn as Zombie;
-				if (zombie != null && zombie.isElectrifier)
+				if (zombie != null && (zombie.isElectrifier || zombie.isAlbino))
 					_ = __result.RemoveAll(entry => entry.verb.GetDamageDef() == Tools.ZombieBiteDamageDef);
 			}
 		}
@@ -942,7 +942,7 @@ namespace ZombieLand
 		[HarmonyPatch(new Type[] { typeof(Pawn), typeof(float), typeof(Thing) })]
 		static class PawnUtility_GetManhunterOnDamageChance_Patch
 		{
-			static void Postfix(ref float __result, Pawn pawn, Thing instigator)
+			static void Postfix(ref float __result, Thing instigator)
 			{
 				if (ZombieSettings.Values.zombiesCauseManhuntingResponse == false)
 					__result = 0;
@@ -1240,7 +1240,7 @@ namespace ZombieLand
 			public static bool MyCanReachImmediate(Pawn pawn, LocalTargetInfo target, PathEndMode peMode)
 			{
 				if (target.Thing is Zombie zombie)
-					if (zombie.isElectrifier)
+					if (zombie.isElectrifier || zombie.isAlbino)
 						return true;
 				return pawn.CanReachImmediate(target, peMode);
 			}
@@ -3213,7 +3213,7 @@ namespace ZombieLand
 				if (zombie == null)
 					return true;
 
-				if (zombie.isElectrifier == false || zombie.IsDowned())
+				if ((zombie.isElectrifier == false && zombie.isAlbino == false) || zombie.IsDowned())
 					return true;
 
 				var def = dinfo.Def;

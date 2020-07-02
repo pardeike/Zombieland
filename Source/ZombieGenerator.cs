@@ -20,7 +20,8 @@ namespace ZombieLand
 		TankyOperator = 2,
 		Miner = 3,
 		Electrifier = 4,
-		Normal = 5
+		Albino = 5,
+		Normal = 6
 	}
 
 	public static class ZombieBaseValues
@@ -152,6 +153,17 @@ namespace ZombieLand
 				}
 			),
 
+			// albino
+			new Pair<Func<float>, Func<Zombie, BodyTypeDef>>(
+				() => ZombieSettings.Values.albinoChance,
+				zombie =>
+				{
+					zombie.isAlbino = true;
+					zombie.gender = Rand.Bool ? Gender.Male : Gender.Female;
+					return BodyTypeDefOf.Thin;
+				}
+			),
+
 			// default ordinary zombie
 			new Pair<Func<float>, Func<Zombie, BodyTypeDef>>(
 				() => 1f
@@ -159,7 +171,8 @@ namespace ZombieLand
 					- ZombieSettings.Values.toxicSplasherChance
 					- ZombieSettings.Values.tankyOperatorChance
 					- ZombieSettings.Values.minerChance
-					- ZombieSettings.Values.electrifierChance,
+					- ZombieSettings.Values.electrifierChance
+					- ZombieSettings.Values.albinoChance,
 				zombie =>
 				{
 					return SetRandomBody(zombie);
@@ -214,7 +227,7 @@ namespace ZombieLand
 				.Where(kvp => kvp.Value.slot == BackstorySlot.Adulthood)
 				.RandomElement().Value;
 
-			zombie.story.melanin = 0.01f * Rand.Range(10, 91);
+			zombie.story.melanin = zombie.isAlbino ? 1f : 0.01f * Rand.Range(10, 91);
 			zombie.story.bodyType = bodyType;
 			zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
 
@@ -285,13 +298,16 @@ namespace ZombieLand
 				if (zombie.isToxicSplasher) color = "toxic";
 				if (zombie.isMiner) color = "miner";
 				if (zombie.isElectrifier) color = "electric";
+				if (zombie.isAlbino) color = "albino";
 				yield return null;
-				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
+				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.Cutout, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
 				yield return null;
 
 				var maxStainPoints = ZombieStains.maxStainPoints;
 				if (zombie.isMiner)
 					maxStainPoints *= 2;
+				if (zombie.isAlbino)
+					maxStainPoints = 0;
 
 				var customBodyGraphic = new VariableGraphic { bodyColor = color };
 				yield return null;
@@ -309,7 +325,7 @@ namespace ZombieLand
 				}
 				zombie.Drawer.renderer.graphics.nakedGraphic = customBodyGraphic;
 
-				var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.CutoutSkin, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
+				var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.Cutout, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
 				yield return null;
 				var customHeadGraphic = new VariableGraphic { bodyColor = color };
 				yield return null;
@@ -455,7 +471,7 @@ namespace ZombieLand
 				.Where(kvp => kvp.Value.slot == BackstorySlot.Adulthood)
 				.RandomElement().Value;
 			yield return null;
-			zombie.story.melanin = 0.01f * Rand.Range(10, 91);
+			zombie.story.melanin = zombie.isAlbino ? 1f : 0.01f * Rand.Range(10, 91);
 			zombie.story.bodyType = bodyType;
 			zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
 			zombie.story.hairColor = ZombieBaseValues.HairColor();

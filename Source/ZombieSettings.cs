@@ -70,6 +70,7 @@ namespace ZombieLand
 		public float tankyOperatorChance = 0.01f;
 		public float minerChance = 0.01f;
 		public float electrifierChance = 0.01f;
+		public float albinoChance = 0.01f;
 		public float moveSpeedIdle = 0.2f;
 		public float moveSpeedTracking = 1.3f;
 		public float damageFactor = 1.0f;
@@ -141,6 +142,18 @@ namespace ZombieLand
 					electrifierChance = 0.01f;
 					dirty = true;
 				}
+				if (albinoChance < 0 || albinoChance > 1)
+				{
+					albinoChance = 0.01f;
+					dirty = true;
+				}
+
+				if (suicideBomberChance
+					+ toxicSplasherChance
+					+ tankyOperatorChance
+					+ minerChance
+					+ electrifierChance
+					+ albinoChance > 1) dirty = true;
 
 				if (dirty && ZombielandMod.IsLoadingDefaults == false)
 					LongEventHandler.QueueLongEvent(() =>

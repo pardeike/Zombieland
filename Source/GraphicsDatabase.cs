@@ -64,6 +64,12 @@ namespace ZombieLand
 						var data = GetColoredData(originalPixels, new Color(0.196078431f, 0.470588235f, 0.470588235f), width, height);
 						colorDataDatabase.Add(path + "#electric", data);
 					}
+
+					// add albino white
+					{
+						var data = GetColoredData(originalPixels, Color.white, width, height);
+						colorDataDatabase.Add(path + "#albino", data);
+					}
 				}
 				else
 				{
