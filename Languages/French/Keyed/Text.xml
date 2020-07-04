@@ -91,6 +91,7 @@
 	<TankyOperatorChance>Zombies lourds et blindés</TankyOperatorChance>
 	<MinerChance>Zombies miniers</MinerChance>
 	<ElectrifierChance>Zombies électrisants</ElectrifierChance>
+	<AlbinoChance>Zombies albinos</AlbinoChance>
 	<NormalZombieChance>Zombies ordinaires: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Divers</ZombieMiscTitle>

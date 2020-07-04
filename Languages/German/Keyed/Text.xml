@@ -91,6 +91,7 @@
 	<TankyOperatorChance>Schwere, gepanzerte Zombies</TankyOperatorChance>
 	<MinerChance>Grabende Zombies</MinerChance>
 	<ElectrifierChance>Elektrische Zombies</ElectrifierChance>
+	<AlbinoChance>Albino Zombies</AlbinoChance>
 	<NormalZombieChance>Normale Zombies: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>

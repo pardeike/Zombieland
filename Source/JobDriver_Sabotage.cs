@@ -21,8 +21,11 @@ namespace ZombieLand
 		void InitAction()
 		{
 			destination = IntVec3.Invalid;
+			door = null;
+			hackTarget = null;
 			waitCounter = 0;
 			hackCounter = 0;
+			(pawn as Zombie).scream = -1;
 		}
 
 		public override void ExposeData()
@@ -56,13 +59,20 @@ namespace ZombieLand
 				return;
 
 			waitCounter = 60;
-			// Log.Warning(zombie.LabelCap + " debug-waits 60 at " + zombie.Position);
 		}
 
 		public override void Notify_PatherArrived()
 		{
+
 			base.Notify_PatherArrived();
 			destination = IntVec3.Invalid;
+		}
+
+		public override void Notify_PatherFailed()
+		{
+
+			base.Notify_PatherFailed();
+			InitAction();
 		}
 
 		public override string GetReport()
@@ -117,18 +127,12 @@ namespace ZombieLand
 		{
 			if (thing == null && thing.Spawned == false) return false;
 
-			// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " checking path to " + thing + "...");
-
 			var zombie = driver.pawn;
 			var path = zombie.Map.pathFinder.FindPath(zombie.Position, thing, TraverseParms.For(zombie, Danger.None, TraverseMode.PassDoors, false), PathEndMode.ClosestTouch);
 			if (path.Found)
 			{
-				// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " check door in path to thing...");
-
 				if (path.TryFindLastCellBeforeBlockingDoor(zombie, out var doorCell, out var door))
 				{
-					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " goes near door before thing");
-
 					driver.door = door;
 					driver.destination = doorCell;
 					driver.hackTarget = thing;
@@ -138,8 +142,6 @@ namespace ZombieLand
 				}
 				else if (path.NodesLeftCount > 0)
 				{
-					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " goto " + thing);
-
 					driver.destination = path.NodesLeftCount > 1 ? path.NodesReversed[1] : path.NodesReversed[0];
 					driver.hackTarget = thing;
 					path.ReleaseToPool();
@@ -155,18 +157,12 @@ namespace ZombieLand
 		{
 			if (cell.IsValid == false) return false;
 
-			// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " checking path to " + cell + "...");
-
 			var zombie = driver.pawn;
 			var path = zombie.Map.pathFinder.FindPath(zombie.Position, cell, TraverseParms.For(zombie, Danger.None, TraverseMode.PassDoors, false), PathEndMode.OnCell);
 			if (path.Found)
 			{
-				// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " check door in path to cell...");
-
 				if (path.TryFindLastCellBeforeBlockingDoor(zombie, out var doorCell, out var door))
 				{
-					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " goes near door before cell");
-
 					driver.door = door;
 					driver.destination = doorCell;
 					path.ReleaseToPool();
@@ -175,8 +171,6 @@ namespace ZombieLand
 				}
 				else
 				{
-					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " goto " + cell);
-
 					driver.destination = cell;
 					path.ReleaseToPool();
 					zombie.pather.StartPath(cell, PathEndMode.OnCell);
@@ -192,8 +186,6 @@ namespace ZombieLand
 		{
 			if (driver.hackCounter == 0)
 			{
-				// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " hacks " + thing + "...");
-
 				CustomDefs.Hacking.PlayOneShot(new TargetInfo(thing.Position, thing.Map, false));
 				Tools.CastThoughtBubble(driver.pawn, Constants.HACKING);
 				driver.hackCounter = 240;
@@ -221,13 +213,10 @@ namespace ZombieLand
 			if (door != null && door.CanPhysicallyPass(driver.pawn) == false)
 				return driver.Hack(door, () =>
 				{
-					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " opens door");
-
 					door.StartManualOpenBy(driver.pawn);
 					ticksUntilClose(door) *= 4;
 					driver.door = null;
 					driver.waitCounter = 90;
-					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " waits 90 at " + driver.pawn.Position);
 
 					if (driver.hackTarget != null)
 						_ = driver.Goto(driver.hackTarget);
@@ -237,13 +226,9 @@ namespace ZombieLand
 			if (thing != null && thing.Spawned)
 				return driver.Hack(thing, () =>
 				{
-					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " checks flicking " + thing);
-
 					var compFlickable = thing.TryGetComp<CompFlickable>();
 					if (compFlickable != null && compFlickable.SwitchIsOn)
 					{
-						// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " flicks " + thing);
-
 						compFlickable.SwitchIsOn = false;
 						SoundDefOf.FlickSwitch.PlayOneShot(new TargetInfo(thing.Position, thing.Map, false));
 						Tools.CastThoughtBubble(driver.pawn, Constants.HACKING);
@@ -253,8 +238,6 @@ namespace ZombieLand
 
 					if (thing.def.IsRangedWeapon && thing.def.useHitPoints)
 					{
-						// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " deteriorates " + thing);
-
 						Tools.CastThoughtBubble(driver.pawn, Constants.HACKING);
 						var amount = thing.HitPoints / 2;
 						_ = thing.TakeDamage(new DamageInfo(DamageDefOf.Deterioration, amount, 0, -1, driver.pawn));
@@ -278,7 +261,6 @@ namespace ZombieLand
 				if (driver.destination.IsValid == false)
 				{
 					driver.waitCounter = 120;
-					// Log.Warning(zombie.LabelCap + " waits 120 at " + zombie.Position);
 					zombie.scream = 0;
 					zombie.Rotation = Rot4.South;
 				}
@@ -287,8 +269,6 @@ namespace ZombieLand
 
 			if (zombie.scream == 0)
 			{
-				// Log.Warning(zombie.LabelCap + " screams ...");
-
 				CustomDefs.Scream.PlayOneShot(new TargetInfo(zombie.Position, zombie.Map, false));
 				Tools.CastThoughtBubble(driver.pawn, Constants.RAGING);
 			}
@@ -358,28 +338,19 @@ namespace ZombieLand
 			var zombie = driver.pawn as Zombie;
 			var map = zombie.Map;
 
-			// Log.Warning("Find destination for " + zombie.LabelCap + " ...");
-
 			if (Rand.Chance(0.8f) && driver.ChooseHackTarget())
 				return true;
-
-			// Log.Warning("Find spot outside colony for " + zombie.LabelCap + " ...");
 
 			if (RCellFinder.TryFindRandomSpotJustOutsideColony(zombie.Position, map, null, out var cell))
 				if (driver.Goto(cell))
 					return true;
 
-			// Log.Warning("Find flee pos for " + zombie.LabelCap + " ...");
-
 			if (RCellFinder.TryFindDirectFleeDestination(zombie.Position, 16f, zombie, out cell))
 				if (driver.Goto(cell))
 					return true;
 
-			// Log.Warning("Failed to find stuff to do for " + zombie.LabelCap + " !");
-
 			driver.destination = IntVec3.Invalid;
 			driver.waitCounter = 30;
-			// Log.Warning(zombie.LabelCap + " waits 30 at " + zombie.Position);
 			return false;
 		}
 
@@ -388,10 +359,12 @@ namespace ZombieLand
 			var count = pawns.Count();
 			if (count == 0) return IntVec3.Invalid;
 			var vec = pawns.Select(p => p.Position.ToVector3()).Aggregate((prev, pos) => prev + pos) / count;
-			var center = vec.ToIntVec3();
-			// Log.Warning("PawnCenter for " + pawns.Join(p => p.Position.x + "," + p.Position.z, " ; ") + " = " + center);
-			if (RCellFinder.TryFindRandomCellNearWith(center, c => c.Standable(map), map, out var cell, 0, 10))
-				return cell;
+			var it = GenRadial.RadialCellsAround(vec.ToIntVec3(), 6, true).GetEnumerator();
+			while (it.MoveNext())
+				if (it.Current.Standable(map))
+				{
+					return it.Current;
+				}
 			return IntVec3.Invalid;
 		}
 
@@ -405,7 +378,6 @@ namespace ZombieLand
 			{
 				// hack door of a room
 				case 0:
-					// Log.Warning("Order " + zombie.LabelCap + " to hack room at " + zombie.Position);
 					var rooms = map.regionGrid.allRooms.Where(r => r.IsDoorway == false && r.Fogged == false && r.IsHuge == false && r.UsesOutdoorTemperature == false);
 					var room = rooms.SafeRandomElement();
 					if (room != null)
@@ -419,7 +391,6 @@ namespace ZombieLand
 
 				// turn off a flickable thing
 				case 1:
-					// Log.Warning("Order " + zombie.LabelCap + " to flick at " + zombie.Position);
 					var building = map.listerBuildings.allBuildingsColonist.Where(b =>
 					{
 						var compFlickable = b.Spawned ? b.TryGetComp<CompFlickable>() : null;
@@ -432,7 +403,6 @@ namespace ZombieLand
 
 				// degrade a weapon
 				case 2:
-					// Log.Warning("Order " + zombie.LabelCap + " to degrade weapon at " + zombie.Position);
 					var weapon = map.listerThings.ThingsInGroup(ThingRequestGroup.Weapon)
 						.Where(t => t.def.IsRangedWeapon && t.def.useHitPoints)
 						.OrderBy(t => -t.MarketValue).FirstOrDefault();
@@ -443,7 +413,6 @@ namespace ZombieLand
 
 				// scream on colonists
 				case 3:
-					// Log.Warning("Order " + zombie.LabelCap + " to scream to colonists at " + zombie.Position);
 					cell = PawnCenter(map, map.mapPawns.FreeColonists);
 					if (cell.IsValid)
 						if (driver.Goto(cell, () => zombie.scream = -2))
@@ -452,7 +421,6 @@ namespace ZombieLand
 
 				// scream on enemies
 				case 4:
-					// Log.Warning("Order " + zombie.LabelCap + " to scream to enemies at " + zombie.Position);
 					var enemies = map.attackTargetsCache
 						.TargetsHostileToColony.OfType<Pawn>()
 						.Where(p => (p is Zombie) == false && p.RaceProps.Humanlike && p.RaceProps.IsFlesh && p.IsDowned() == false);

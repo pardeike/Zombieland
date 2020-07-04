@@ -91,6 +91,7 @@
 	<TankyOperatorChance>重装丧尸</TankyOperatorChance>
 	<MinerChance>挖掘僵尸</MinerChance>
 	<ElectrifierChance>电动僵尸</ElectrifierChance>
+	<AlbinoChance>白化僵尸</AlbinoChance>
 	<NormalZombieChance>普通丧尸: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>其他</ZombieMiscTitle>

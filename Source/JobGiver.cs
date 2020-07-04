@@ -17,6 +17,14 @@ namespace ZombieLand
 			pawn.jobs.StopAll();
 			return JobMaker.MakeJob(CustomDefs.Stumble);
 		}
+
+		public override ThinkResult TryIssueJobPackage(Pawn pawn, JobIssueParams jobParams)
+		{
+			var zombie = pawn as Zombie;
+			if (zombie == null || zombie.isAlbino)
+				return ThinkResult.NoJob;
+			return base.TryIssueJobPackage(pawn, jobParams);
+		}
 	}
 
 	public class JobGiver_Sabotage : ThinkNode_JobGiver
@@ -32,6 +40,14 @@ namespace ZombieLand
 			if (zombie == null || zombie.isAlbino == false) return null;
 			zombie.jobs.StopAll();
 			return JobMaker.MakeJob(CustomDefs.Sabotage);
+		}
+
+		public override ThinkResult TryIssueJobPackage(Pawn pawn, JobIssueParams jobParams)
+		{
+			var zombie = pawn as Zombie;
+			if (zombie == null || zombie.isAlbino == false)
+				return ThinkResult.NoJob;
+			return base.TryIssueJobPackage(pawn, jobParams);
 		}
 	}
 

@@ -91,6 +91,7 @@
 	<TankyOperatorChance>Тяжелые и бронированные зомби</TankyOperatorChance>
 	<MinerChance>Горные зомби</MinerChance>
 	<ElectrifierChance>Электрические зомби</ElectrifierChance>
+	<AlbinoChance>альбинос зомби</AlbinoChance>
 	<NormalZombieChance>Обычные зомби: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Разное</ZombieMiscTitle>
