@@ -278,8 +278,9 @@ namespace ZombieLand
 			if (zombie.scream % 40 == 0)
 			{
 				var pos = zombie.Position;
-				var dist = 1 + (int)(zombie.scream * 12f / 401);
-				dist *= dist;
+				var d = 1 + (int)(zombie.scream * 12f / 401);
+				var dist = d * d;
+				var stunTicks = 60 * (14 - d);
 				zombie.Map.mapPawns.AllPawns.DoIf(
 					pawn => (pawn is Zombie) == false
 						&& pawn.RaceProps.Humanlike
@@ -292,6 +293,7 @@ namespace ZombieLand
 					{
 						if (RestUtility.Awake(pawn) == false) RestUtility.WakeUp(pawn);
 						pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Vomit), JobCondition.InterruptForced, null, true, true);
+						pawn.stances.stunner.StunFor(stunTicks, zombie, true);
 					});
 			}
 
