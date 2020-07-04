@@ -40,6 +40,9 @@ namespace ZombieLand
 			var zombie = (Zombie)pawn;
 			if (zombie.state == ZombieState.Emerging) return;
 
+			if (this.DieEasily())
+				return;
+
 			if (this.Wait())
 				return;
 
@@ -215,7 +218,7 @@ namespace ZombieLand
 				return false;
 
 			var door = driver.door;
-			if (door != null && door.Open == false)
+			if (door != null && door.CanPhysicallyPass(driver.pawn) == false)
 				return driver.Hack(door, () =>
 				{
 					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " opens door");
@@ -298,9 +301,9 @@ namespace ZombieLand
 				var dist = 1 + (int)(zombie.scream * 12f / 401);
 				dist *= dist;
 				zombie.Map.mapPawns.AllPawns.DoIf(
-					pawn => pawn.RaceProps.Humanlike
+					pawn => (pawn is Zombie) == false
+						&& pawn.RaceProps.Humanlike
 						&& pawn.RaceProps.IsFlesh
-						&& (pawn is Zombie) == false
 						&& pawn.Position.DistanceToSquared(pos) < dist
 						&& pawn.IsDowned() == false
 						&& pawn.InMentalState == false
@@ -319,6 +322,21 @@ namespace ZombieLand
 			}
 
 			return true;
+		}
+
+		public static bool DieEasily(this JobDriver_Sabotage driver)
+		{
+			if (driver.pawn.IsDowned())
+			{
+				driver.pawn.Kill(null);
+				return true;
+			}
+			if (driver.pawn.health.hediffSet.GetHediffs<Hediff_Injury>().Any())
+			{
+				driver.pawn.Kill(null);
+				return true;
+			}
+			return false;
 		}
 
 		public static bool Wait(this JobDriver_Sabotage driver)
@@ -404,7 +422,7 @@ namespace ZombieLand
 					// Log.Warning("Order " + zombie.LabelCap + " to flick at " + zombie.Position);
 					var building = map.listerBuildings.allBuildingsColonist.Where(b =>
 					{
-						var compFlickable = b.TryGetComp<CompFlickable>();
+						var compFlickable = b.Spawned ? b.TryGetComp<CompFlickable>() : null;
 						return compFlickable != null && compFlickable.SwitchIsOn;
 					}).SafeRandomElement();
 					if (building != null)
@@ -416,7 +434,7 @@ namespace ZombieLand
 				case 2:
 					// Log.Warning("Order " + zombie.LabelCap + " to degrade weapon at " + zombie.Position);
 					var weapon = map.listerThings.ThingsInGroup(ThingRequestGroup.Weapon)
-						.Where(t => t.def.IsRangedWeapon)
+						.Where(t => t.def.IsRangedWeapon && t.def.useHitPoints)
 						.OrderBy(t => -t.MarketValue).FirstOrDefault();
 					if (weapon != null)
 						if (driver.Goto(weapon))

@@ -69,13 +69,15 @@ namespace ZombieLand
 			var allZombies = AllZombies();
 			if (Tools.ShouldAvoidZombies())
 			{
-				var specs = allZombies.Select(zombie => new ZombieCostSpecs()
-				{
-					position = zombie.Position,
-					radius = Tools.ZombieAvoidRadius(zombie),
-					maxCosts = ZombieMaxCosts(zombie)
+				var specs = allZombies
+					.Where(zombie => zombie.isAlbino == false)
+					.Select(zombie => new ZombieCostSpecs()
+					{
+						position = zombie.Position,
+						radius = Tools.ZombieAvoidRadius(zombie),
+						maxCosts = ZombieMaxCosts(zombie)
 
-				}).ToList();
+					}).ToList();
 
 				avoidGrid = Tools.avoider.UpdateZombiePositionsImmediately(map, specs);
 			}
@@ -191,7 +193,7 @@ namespace ZombieLand
 
 		public void UpdateZombieAvoider()
 		{
-			var specs = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false && zombie.IsDowned() == false)
+			var specs = allZombiesCached.Where(zombie => zombie.isAlbino == false && zombie.Spawned && zombie.Dead == false && zombie.IsDowned() == false)
 				.Select(zombie => new ZombieCostSpecs()
 				{
 					position = zombie.Position,

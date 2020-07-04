@@ -54,15 +54,6 @@ namespace ZombieLand
 
 			if (zombie.EveryNTick(NthTick.Every10))
 			{
-				if (zombie.isAlbino)
-				{
-					if (zombie.health.hediffSet.GetHediffs<Hediff_Injury>().Any())
-					{
-						zombie.Kill(null);
-						return true;
-					}
-				}
-
 				if (ZombieSettings.Values.zombiesDieVeryEasily)
 				{
 					if (zombie.hasTankySuit <= 0f && zombie.health.hediffSet.GetHediffs<Hediff_Injury>().Any())
@@ -91,7 +82,7 @@ namespace ZombieLand
 			if (zombie.IsDowned() == false)
 				return false;
 
-			if (ZombieSettings.Values.zombiesDieVeryEasily || zombie.IsSuicideBomber || zombie.isAlbino || ZombieSettings.Values.doubleTapRequired == false)
+			if (ZombieSettings.Values.zombiesDieVeryEasily || zombie.IsSuicideBomber || ZombieSettings.Values.doubleTapRequired == false)
 			{
 				zombie.Kill(null);
 				return true;
@@ -210,7 +201,7 @@ namespace ZombieLand
 		//
 		public static bool Eat(this JobDriver_Stumble driver, Zombie zombie, PheromoneGrid grid)
 		{
-			if (zombie.isAlbino || zombie.hasTankyShield != -1f || zombie.hasTankyHelmet != -1f || zombie.hasTankySuit != -1f)
+			if (zombie.hasTankyShield != -1f || zombie.hasTankyHelmet != -1f || zombie.hasTankySuit != -1f)
 				return false;
 
 			if (driver.eatTarget != null && driver.eatTarget.Spawned == false)
@@ -336,7 +327,7 @@ namespace ZombieLand
 					var pos = zombie.Position + GenAdj.AdjacentCells[i];
 					if (zombie.HasValidDestination(pos))
 					{
-						var f = zombie.wasMapPawnBefore || zombie.isAlbino ? wasColonistFadeoff : fadeOff;
+						var f = zombie.wasMapPawnBefore ? wasColonistFadeoff : fadeOff;
 						var tdiff = currentTicks - grid.GetTimestamp(pos);
 						fmin = Math.Min(fmin, tdiff);
 						if (tdiff < f)
@@ -366,7 +357,7 @@ namespace ZombieLand
 			if (driver.destination.IsValid == false)
 				zombie.state = ZombieState.Wandering;
 
-			if (zombie.wasMapPawnBefore || zombie.isAlbino)
+			if (zombie.wasMapPawnBefore)
 				return true;
 
 			var checkSmashable = timeDelta >= checkSmashableFadeoff1 && timeDelta < checkSmashableFadeoff2;
@@ -380,9 +371,6 @@ namespace ZombieLand
 		//
 		public static bool Smash(this JobDriver_Stumble driver, Zombie zombie, bool checkSmashable, bool onylWhenNotRaging)
 		{
-			if (zombie.isAlbino)
-				return false;
-
 			if (zombie.wasMapPawnBefore == false && zombie.IsSuicideBomber == false && zombie.IsTanky == false)
 			{
 				if (driver.destination.IsValid && checkSmashable == false)
@@ -504,13 +492,6 @@ namespace ZombieLand
 					return false;
 				}
 				return Smash(driver, zombie, checkSmashable, false);
-			}
-
-			// albinos move regardless of zombie count
-			if (zombie.isAlbino)
-			{
-				driver.destination = newPos;
-				return false;
 			}
 
 			// move into places where there is max 0/1 zombie already
@@ -651,9 +632,6 @@ namespace ZombieLand
 
 		static Thing CanAttack(Zombie zombie)
 		{
-			if (zombie.isAlbino)
-				return null;
-
 			var mode = ZombieSettings.Values.attackMode;
 
 			var targets = GetAdjacted<Pawn>(zombie).ToList();
@@ -695,9 +673,6 @@ namespace ZombieLand
 			var basePos = zombie.Position;
 			var attackColonistsOnly = (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists);
 			var playerFaction = Faction.OfPlayer;
-
-			if (zombie.isAlbino)
-				return null;
 
 			if (zombie.IsTanky)
 			{
