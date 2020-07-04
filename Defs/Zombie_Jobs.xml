@@ -9,6 +9,13 @@
 	</JobDef>
 
 	<JobDef>
+		<defName>Sabotage</defName>
+		<driverClass>ZombieLand.JobDriver_Sabotage</driverClass>
+		<reportString>sabotaging.</reportString>
+		<suspendable>false</suspendable>
+	</JobDef>
+
+	<JobDef>
 		<defName>ExtractZombieSerum</defName>
 		<driverClass>ZombieLand.JobDriver_ExtractZombieSerum</driverClass>
 		<reportString>extracting zombie serum from TargetA.</reportString>

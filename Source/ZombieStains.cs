@@ -40,7 +40,7 @@ namespace ZombieLand
 		public static KeyValuePair<string, int> GetRandom(int remainingPoints, bool isBody)
 		{
 			var stains = isBody ? stainsBody : stainsHead;
-			return stains.Where(st => st.Value <= remainingPoints).RandomElement();
+			return stains.Where(st => st.Value <= remainingPoints).SafeRandomElement();
 		}
 	}
 }

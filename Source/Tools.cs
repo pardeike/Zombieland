@@ -10,6 +10,7 @@ using System.Xml;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
+using static HarmonyLib.AccessTools;
 
 namespace ZombieLand
 {
@@ -225,6 +226,12 @@ namespace ZombieLand
 				list[k] = list[n];
 				list[n] = value;
 			}
+		}
+
+		public static T SafeRandomElement<T>(this IEnumerable<T> source)
+		{
+			if (source.Count() == 0) return default;
+			return source.RandomElement();
 		}
 
 		public static float RadiusForPawn(Pawn pawn)
@@ -726,13 +733,28 @@ namespace ZombieLand
 			return combatExtendedIsInstalled == 1;
 		}
 
+		static readonly FieldRef<Building_TurretGun, CompPowerTrader> powerComp = FieldRefAccess<Building_TurretGun, CompPowerTrader>("powerComp");
 		public static int ColonyPoints()
 		{
+			int dangerPoints(Building building)
+			{
+				var turretGun = building as Building_TurretGun;
+				if (turretGun != null)
+				{
+					if (turretGun.Active) return 200;
+					var powerComp = Tools.powerComp(turretGun);
+					if (powerComp != null) return 50;
+					return 5;
+				}
+				return building is Building_Turret ? 20 : 0;
+			}
+
 			var map = Find.CurrentMap;
 			if (map == null) return 0;
 			var colonists = map.mapPawns.FreeColonists;
 			ColonyEvaluation.GetColonistArmouryPoints(colonists, map, out var colonistPoints, out var armouryPoints);
-			return (int)(colonistPoints + armouryPoints);
+			var turretPoints = map.listerBuildings.allBuildingsColonist.Sum(dangerPoints);
+			return (int)(colonistPoints + armouryPoints + turretPoints);
 		}
 
 		public static void ReApplyThingToListerThings(IntVec3 cell, Thing thing)

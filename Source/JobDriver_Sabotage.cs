@@ -1,0 +1,451 @@
+﻿using HarmonyLib;
+using RimWorld;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Verse;
+using Verse.AI;
+using Verse.Sound;
+using static HarmonyLib.AccessTools;
+
+namespace ZombieLand
+{
+	public class JobDriver_Sabotage : JobDriver
+	{
+		public IntVec3 destination = IntVec3.Invalid;
+		public Building_Door door = null;
+		public Thing hackTarget = null;
+		public int waitCounter = 0;
+		public int hackCounter = 0;
+
+		void InitAction()
+		{
+			destination = IntVec3.Invalid;
+			waitCounter = 0;
+			hackCounter = 0;
+		}
+
+		public override void ExposeData()
+		{
+			base.ExposeData();
+			Scribe_Values.Look(ref destination, "destination", IntVec3.Invalid);
+			Scribe_References.Look(ref door, "door");
+			Scribe_References.Look(ref hackTarget, "hackTarget");
+			Scribe_Values.Look(ref waitCounter, "waitCounter", 0);
+			Scribe_Values.Look(ref hackCounter, "hackCounter", 0);
+		}
+
+		void TickAction()
+		{
+			var zombie = (Zombie)pawn;
+			if (zombie.state == ZombieState.Emerging) return;
+
+			if (this.Wait())
+				return;
+
+			if (this.Scream())
+				return;
+
+			if (this.HackThing())
+				return;
+
+			if (this.CheckAndFindDestination())
+				return;
+
+			waitCounter = 60;
+			// Log.Warning(zombie.LabelCap + " debug-waits 60 at " + zombie.Position);
+		}
+
+		public override void Notify_PatherArrived()
+		{
+			base.Notify_PatherArrived();
+			destination = IntVec3.Invalid;
+		}
+
+		public override string GetReport()
+		{
+			return "Sabotaging";
+		}
+
+		protected override IEnumerable<Toil> MakeNewToils()
+		{
+			yield return new Toil()
+			{
+				initAction = new Action(InitAction),
+				tickAction = new Action(TickAction),
+				defaultCompleteMode = ToilCompleteMode.Never
+			};
+		}
+
+		public override bool TryMakePreToilReservations(bool errorOnFailed)
+		{
+			return true;
+		}
+	}
+
+	static class SabotageHandler
+	{
+		static bool TryFindLastCellBeforeBlockingDoor(this PawnPath path, Pawn pawn, out IntVec3 result, out Building_Door door)
+		{
+			if (path.NodesReversed.Count == 1)
+			{
+				result = path.NodesReversed[0];
+				door = null;
+				return false;
+			}
+
+			var nodesReversed = path.NodesReversed;
+			for (var num = nodesReversed.Count - 2; num >= 1; num--)
+			{
+				door = nodesReversed[num].GetEdifice(pawn.Map) as Building_Door;
+				if (door != null && !door.CanPhysicallyPass(pawn))
+				{
+					result = nodesReversed[num + 1];
+					return true;
+				}
+			}
+
+			result = nodesReversed[0];
+			door = null;
+			return false;
+		}
+
+		static bool Goto(this JobDriver_Sabotage driver, Thing thing)
+		{
+			if (thing == null && thing.Spawned == false) return false;
+
+			// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " checking path to " + thing + "...");
+
+			var zombie = driver.pawn;
+			var path = zombie.Map.pathFinder.FindPath(zombie.Position, thing, TraverseParms.For(zombie, Danger.None, TraverseMode.PassDoors, false), PathEndMode.ClosestTouch);
+			if (path.Found)
+			{
+				// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " check door in path to thing...");
+
+				if (path.TryFindLastCellBeforeBlockingDoor(zombie, out var doorCell, out var door))
+				{
+					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " goes near door before thing");
+
+					driver.door = door;
+					driver.destination = doorCell;
+					driver.hackTarget = thing;
+					path.ReleaseToPool();
+					zombie.pather.StartPath(doorCell, PathEndMode.OnCell);
+					return true;
+				}
+				else if (path.NodesLeftCount > 0)
+				{
+					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " goto " + thing);
+
+					driver.destination = path.NodesLeftCount > 1 ? path.NodesReversed[1] : path.NodesReversed[0];
+					driver.hackTarget = thing;
+					path.ReleaseToPool();
+					zombie.pather.StartPath(driver.destination, PathEndMode.OnCell);
+					return true;
+				}
+			}
+			path.ReleaseToPool();
+			return false;
+		}
+
+		static bool Goto(this JobDriver_Sabotage driver, IntVec3 cell, Action arrivalAction = null)
+		{
+			if (cell.IsValid == false) return false;
+
+			// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " checking path to " + cell + "...");
+
+			var zombie = driver.pawn;
+			var path = zombie.Map.pathFinder.FindPath(zombie.Position, cell, TraverseParms.For(zombie, Danger.None, TraverseMode.PassDoors, false), PathEndMode.OnCell);
+			if (path.Found)
+			{
+				// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " check door in path to cell...");
+
+				if (path.TryFindLastCellBeforeBlockingDoor(zombie, out var doorCell, out var door))
+				{
+					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " goes near door before cell");
+
+					driver.door = door;
+					driver.destination = doorCell;
+					path.ReleaseToPool();
+					zombie.pather.StartPath(doorCell, PathEndMode.OnCell);
+					return true;
+				}
+				else
+				{
+					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " goto " + cell);
+
+					driver.destination = cell;
+					path.ReleaseToPool();
+					zombie.pather.StartPath(cell, PathEndMode.OnCell);
+					arrivalAction?.Invoke();
+					return true;
+				}
+			}
+			path.ReleaseToPool();
+			return false;
+		}
+
+		static bool Hack(this JobDriver_Sabotage driver, Thing thing, Action action)
+		{
+			if (driver.hackCounter == 0)
+			{
+				// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " hacks " + thing + "...");
+
+				CustomDefs.Hacking.PlayOneShot(new TargetInfo(thing.Position, thing.Map, false));
+				Tools.CastThoughtBubble(driver.pawn, Constants.HACKING);
+				driver.hackCounter = 240;
+				return true;
+			}
+
+			if (driver.hackCounter > 0)
+			{
+				driver.hackCounter--;
+				if (driver.hackCounter == 0)
+					action();
+				return true;
+			}
+
+			return false;
+		}
+
+		static readonly FieldRef<Building_Door, int> ticksUntilClose = FieldRefAccess<Building_Door, int>("ticksUntilClose");
+		public static bool HackThing(this JobDriver_Sabotage driver)
+		{
+			if (driver.destination.IsValid)
+				return false;
+
+			var door = driver.door;
+			if (door != null && door.Open == false)
+				return driver.Hack(door, () =>
+				{
+					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " opens door");
+
+					door.StartManualOpenBy(driver.pawn);
+					ticksUntilClose(door) *= 4;
+					driver.door = null;
+					driver.waitCounter = 90;
+					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " waits 90 at " + driver.pawn.Position);
+
+					if (driver.hackTarget != null)
+						_ = driver.Goto(driver.hackTarget);
+				});
+
+			var thing = driver.hackTarget;
+			if (thing != null && thing.Spawned)
+				return driver.Hack(thing, () =>
+				{
+					// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " checks flicking " + thing);
+
+					var compFlickable = thing.TryGetComp<CompFlickable>();
+					if (compFlickable != null && compFlickable.SwitchIsOn)
+					{
+						// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " flicks " + thing);
+
+						compFlickable.SwitchIsOn = false;
+						SoundDefOf.FlickSwitch.PlayOneShot(new TargetInfo(thing.Position, thing.Map, false));
+						Tools.CastThoughtBubble(driver.pawn, Constants.HACKING);
+						driver.hackTarget = null;
+						return;
+					}
+
+					if (thing.def.IsRangedWeapon && thing.def.useHitPoints)
+					{
+						// Log.Warning(driver.pawn.LabelCap + " at " + driver.pawn.Position + " deteriorates " + thing);
+
+						Tools.CastThoughtBubble(driver.pawn, Constants.HACKING);
+						var amount = thing.HitPoints / 2;
+						_ = thing.TakeDamage(new DamageInfo(DamageDefOf.Deterioration, amount, 0, -1, driver.pawn));
+						driver.hackTarget = null;
+						return;
+					}
+				});
+
+			return false;
+		}
+
+		public static bool Scream(this JobDriver_Sabotage driver)
+		{
+			var zombie = driver.pawn as Zombie;
+
+			if (zombie.scream == -1)
+				return false;
+
+			if (zombie.scream == -2)
+			{
+				if (driver.destination.IsValid == false)
+				{
+					driver.waitCounter = 120;
+					// Log.Warning(zombie.LabelCap + " waits 120 at " + zombie.Position);
+					zombie.scream = 0;
+					zombie.Rotation = Rot4.South;
+				}
+				return true;
+			}
+
+			if (zombie.scream == 0)
+			{
+				// Log.Warning(zombie.LabelCap + " screams ...");
+
+				CustomDefs.Scream.PlayOneShot(new TargetInfo(zombie.Position, zombie.Map, false));
+				Tools.CastThoughtBubble(driver.pawn, Constants.RAGING);
+			}
+
+			zombie.scream += 1;
+
+			if (zombie.scream % 40 == 0)
+			{
+				var pos = zombie.Position;
+				var dist = 1 + (int)(zombie.scream * 12f / 401);
+				dist *= dist;
+				zombie.Map.mapPawns.AllPawns.DoIf(
+					pawn => pawn.RaceProps.Humanlike
+						&& pawn.RaceProps.IsFlesh
+						&& (pawn is Zombie) == false
+						&& pawn.Position.DistanceToSquared(pos) < dist
+						&& pawn.IsDowned() == false
+						&& pawn.InMentalState == false
+						&& pawn.CurJobDef != JobDefOf.Vomit,
+					pawn =>
+					{
+						if (RestUtility.Awake(pawn) == false) RestUtility.WakeUp(pawn);
+						pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Vomit), JobCondition.InterruptForced, null, true, true);
+					});
+			}
+
+			if (zombie.scream >= 400)
+			{
+				zombie.scream = -1;
+				return false;
+			}
+
+			return true;
+		}
+
+		public static bool Wait(this JobDriver_Sabotage driver)
+		{
+			if (driver.waitCounter > 0)
+			{
+				driver.waitCounter--;
+				return true;
+			}
+
+			return false;
+		}
+
+		public static bool CheckAndFindDestination(this JobDriver_Sabotage driver)
+		{
+			if (driver.destination.IsValid)
+				return true;
+
+			var zombie = driver.pawn as Zombie;
+			var map = zombie.Map;
+
+			// Log.Warning("Find destination for " + zombie.LabelCap + " ...");
+
+			if (Rand.Chance(0.8f) && driver.ChooseHackTarget())
+				return true;
+
+			// Log.Warning("Find spot outside colony for " + zombie.LabelCap + " ...");
+
+			if (RCellFinder.TryFindRandomSpotJustOutsideColony(zombie.Position, map, null, out var cell))
+				if (driver.Goto(cell))
+					return true;
+
+			// Log.Warning("Find flee pos for " + zombie.LabelCap + " ...");
+
+			if (RCellFinder.TryFindDirectFleeDestination(zombie.Position, 16f, zombie, out cell))
+				if (driver.Goto(cell))
+					return true;
+
+			// Log.Warning("Failed to find stuff to do for " + zombie.LabelCap + " !");
+
+			driver.destination = IntVec3.Invalid;
+			driver.waitCounter = 30;
+			// Log.Warning(zombie.LabelCap + " waits 30 at " + zombie.Position);
+			return false;
+		}
+
+		static IntVec3 PawnCenter(Map map, IEnumerable<Pawn> pawns)
+		{
+			var count = pawns.Count();
+			if (count == 0) return IntVec3.Invalid;
+			var vec = pawns.Select(p => p.Position.ToVector3()).Aggregate((prev, pos) => prev + pos) / count;
+			var center = vec.ToIntVec3();
+			// Log.Warning("PawnCenter for " + pawns.Join(p => p.Position.x + "," + p.Position.z, " ; ") + " = " + center);
+			if (RCellFinder.TryFindRandomCellNearWith(center, c => c.Standable(map), map, out var cell, 0, 10))
+				return cell;
+			return IntVec3.Invalid;
+		}
+
+		static bool ChooseHackTarget(this JobDriver_Sabotage driver)
+		{
+			var zombie = driver.pawn as Zombie;
+			var map = zombie.Map;
+			IntVec3 cell;
+
+			switch (Rand.Range(0, 5)) // 0..4
+			{
+				// hack door of a room
+				case 0:
+					// Log.Warning("Order " + zombie.LabelCap + " to hack room at " + zombie.Position);
+					var rooms = map.regionGrid.allRooms.Where(r => r.IsDoorway == false && r.Fogged == false && r.IsHuge == false && r.UsesOutdoorTemperature == false);
+					var room = rooms.SafeRandomElement();
+					if (room != null)
+					{
+						var cells = room.Cells.Where(c => c.Standable(map));
+						cell = cells.SafeRandomElement();
+						if (driver.Goto(cell))
+							return true;
+					}
+					break;
+
+				// turn off a flickable thing
+				case 1:
+					// Log.Warning("Order " + zombie.LabelCap + " to flick at " + zombie.Position);
+					var building = map.listerBuildings.allBuildingsColonist.Where(b =>
+					{
+						var compFlickable = b.TryGetComp<CompFlickable>();
+						return compFlickable != null && compFlickable.SwitchIsOn;
+					}).SafeRandomElement();
+					if (building != null)
+						if (driver.Goto(building))
+							return true;
+					break;
+
+				// degrade a weapon
+				case 2:
+					// Log.Warning("Order " + zombie.LabelCap + " to degrade weapon at " + zombie.Position);
+					var weapon = map.listerThings.ThingsInGroup(ThingRequestGroup.Weapon)
+						.Where(t => t.def.IsRangedWeapon)
+						.OrderBy(t => -t.MarketValue).FirstOrDefault();
+					if (weapon != null)
+						if (driver.Goto(weapon))
+							return true;
+					break;
+
+				// scream on colonists
+				case 3:
+					// Log.Warning("Order " + zombie.LabelCap + " to scream to colonists at " + zombie.Position);
+					cell = PawnCenter(map, map.mapPawns.FreeColonists);
+					if (cell.IsValid)
+						if (driver.Goto(cell, () => zombie.scream = -2))
+							return true;
+					break;
+
+				// scream on enemies
+				case 4:
+					// Log.Warning("Order " + zombie.LabelCap + " to scream to enemies at " + zombie.Position);
+					var enemies = map.attackTargetsCache
+						.TargetsHostileToColony.OfType<Pawn>()
+						.Where(p => (p is Zombie) == false && p.RaceProps.Humanlike && p.RaceProps.IsFlesh && p.IsDowned() == false);
+					cell = PawnCenter(map, enemies);
+					if (cell.IsValid)
+						if (driver.Goto(cell, () => zombie.scream = -2))
+							return true;
+					break;
+			}
+
+			return false;
+		}
+	}
+}

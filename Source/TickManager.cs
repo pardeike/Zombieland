@@ -151,7 +151,7 @@ namespace ZombieLand
 			var colonists = Tools.CapableColonists(map);
 			var perColonistZombieCount = GenMath.LerpDouble(0f, 4f, 5, 30, Mathf.Min(4, Mathf.Sqrt(colonists)));
 			var colonistMultiplier = Mathf.Sqrt(colonists) * 2;
-			var baseStrengthFactor = GenMath.LerpDouble(0, 1000, 1f, 4f, Mathf.Min(1000, currentColonyPoints));
+			var baseStrengthFactor = GenMath.LerpDouble(0, 2000, 1f, 8f, Mathf.Min(1000, currentColonyPoints));
 			var colonyMultiplier = ZombieSettings.Values.colonyMultiplier;
 			var difficultyMultiplier = Find.Storyteller.difficulty.threatScale;
 			var count = (int)(perColonistZombieCount * colonistMultiplier * baseStrengthFactor * colonyMultiplier * difficultyMultiplier);
@@ -161,14 +161,17 @@ namespace ZombieLand
 		public IEnumerator ZombieTicking()
 		{
 			if (Find.TickManager.TickRateMultiplier == 0f) yield break;
-			var zombies = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false).ToList();
-			yield return null;
-
 			var speed = (int)Find.TickManager.CurTimeSpeed;
 			if (speed > 0)
 			{
+				var zombies = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false);
+				yield return null;
+
+				zombies = zombies.InRandomOrder();
+				yield return null;
+
 				if (speed > 1) speed--;
-				var randomZombies = zombies.InRandomOrder().ToArray();
+				var randomZombies = zombies.ToArray();
 				totalTicking = randomZombies.Length;
 				for (var i = 0; i < totalTicking; i += speed)
 				{

@@ -12,9 +12,26 @@ namespace ZombieLand
 
 		protected override Job TryGiveJob(Pawn pawn)
 		{
-			if ((pawn is Zombie) == false) return null;
+			var zombie = pawn as Zombie;
+			if (zombie == null || zombie.isAlbino) return null;
 			pawn.jobs.StopAll();
 			return JobMaker.MakeJob(CustomDefs.Stumble);
+		}
+	}
+
+	public class JobGiver_Sabotage : ThinkNode_JobGiver
+	{
+		public override ThinkNode DeepCopy(bool resolve = true)
+		{
+			return (JobGiver_Sabotage)base.DeepCopy(resolve);
+		}
+
+		protected override Job TryGiveJob(Pawn pawn)
+		{
+			var zombie = pawn as Zombie;
+			if (zombie == null || zombie.isAlbino == false) return null;
+			zombie.jobs.StopAll();
+			return JobMaker.MakeJob(CustomDefs.Sabotage);
 		}
 	}
 

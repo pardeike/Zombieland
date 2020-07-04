@@ -8,23 +8,6 @@ using UnityEngine;
 using Verse;
 using Verse.AI;
 
-/*
-Cannot play ZombieHit (subSound UnnamedSubSoundDef_: No resolved grains.
-Verse.Log:Error(String, Boolean)
-Verse.Sound.SubSoundDef:TryPlay(SoundInfo)
-Verse.Sound.SoundStarter:PlayOneShot(SoundDef, SoundInfo)
-ZombieLand.ZombieStateHandler:Smash(JobDriver_Stumble, Zombie, Boolean, Boolean)
-ZombieLand.JobDriver_Stumble:TickAction()
-Verse.AI.JobDriver:DriverTick()
-Verse.AI.Pawn_JobTracker:JobTrackerTick()
-ZombieLand.Zombie:CustomTick()
-ZombieLand.<ZombieTicking>d__20:MoveNext()
-ZombieLand.Verse_TickManager_TickManagerUpdate_Patch:SingleTick(TickManager, Int32)
-Verse.TickManager:TickManagerUpdate_Patch1(Object)
-Verse.Game:UpdatePlay()
-Verse.Root_Play:Update()
-*/
-
 namespace ZombieLand
 {
 	[DefOf]
@@ -34,6 +17,8 @@ namespace ZombieLand
 		public static DamageDef ToxicSplatter;
 		public static SoundDef Bzzt;
 		public static SoundDef ElectricShock;
+		public static SoundDef Hacking;
+		public static SoundDef Scream;
 		public static SoundDef TankyTink;
 		public static SoundDef ToxicSplash;
 		public static SoundDef ZombieDigOut;
@@ -45,6 +30,7 @@ namespace ZombieLand
 		public static SoundDef ZombiesClosingIn;
 		public static SoundDef ZombiesRising;
 		public static JobDef Stumble;
+		public static JobDef Sabotage;
 		public static JobDef ExtractZombieSerum;
 		public static RecipeDef CureZombieInfection;
 		public static ThingDef Zombie;

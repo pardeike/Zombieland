@@ -1154,6 +1154,38 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to make zombie not auto-close doors
+		//
+		[HarmonyPatch(typeof(Building_Door))]
+		[HarmonyPatch(nameof(Building_Door.Tick))]
+		static class Building_Door_Tick_Patch
+		{
+			static bool CellContains(ThingGrid instance, IntVec3 c, ThingCategory cat)
+			{
+				var zombie = instance.ThingAt<Zombie>(c);
+				if (zombie != null && zombie.isAlbino) return false;
+				return instance.CellContains(c, cat);
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var from = SymbolExtensions.GetMethodInfo(() => new ThingGrid(null).CellContains(default, default(ThingCategory)));
+				var to = SymbolExtensions.GetMethodInfo(() => CellContains(null, default, default(ThingCategory)));
+				return Transpilers.MethodReplacer(instructions, from, to);
+			}
+		}
+		//
+		[HarmonyPatch(typeof(Building_Door))]
+		[HarmonyPatch(nameof(Building_Door.StartManualCloseBy))]
+		static class Building_Door_StartManualCloseBy_Patch
+		{
+			static bool Prefix(Pawn closer)
+			{
+				var zombie = closer as Zombie;
+				return zombie == null;
+			}
+		}
+
 		// patch to stop jobs when zombies have to be avoided
 		//
 		[HarmonyPatch(typeof(JobDriver))]
@@ -1944,7 +1976,12 @@ namespace ZombieLand
 			static bool Prefix(ref PawnGenerationRequest request, ref Pawn __result)
 			{
 				if (request.Faction == null || request.Faction.def != ZombieDefOf.Zombies) return true;
-				__result = ZombieGenerator.GeneratePawn(ZombieType.Random);
+
+				Zombie zombie = null;
+				var map = Find.CurrentMap;
+				var it = ZombieGenerator.SpawnZombieIterativ(map.Center, map, ZombieType.Random, z => zombie = z);
+				while (it.MoveNext()) ;
+				__result = zombie;
 				return false;
 			}
 		}
@@ -2368,6 +2405,9 @@ namespace ZombieLand
 			static Vector3 leftEyeOffset = new Vector3(-0.092f, 0f, -0.08f);
 			static Vector3 rightEyeOffset = new Vector3(0.092f, 0f, -0.08f);
 
+			static readonly Color white50 = new Color(1f, 1f, 1f, 0.5f);
+			static readonly Vector3 screamOffset = new Vector3(0f, Altitudes.AltInc / 4f, 0f);
+
 			static readonly Mesh bodyMesh = MeshPool.GridPlane(new Vector2(1.5f, 1.5f));
 			static readonly Mesh bodyMesh_flipped = MeshPool.GridPlaneFlip(new Vector2(1.5f, 1.5f));
 
@@ -2408,6 +2448,7 @@ namespace ZombieLand
 				return true;
 			}
 
+			[HarmonyPriority(Priority.First)]
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
 				var list = instructions.ToList();
@@ -2419,6 +2460,33 @@ namespace ZombieLand
 				list.Add(new CodeInstruction(OpCodes.Call, m_RenderExtras));
 				list.Add(new CodeInstruction(OpCodes.Ret));
 				return list.AsEnumerable();
+			}
+
+			[HarmonyPriority(Priority.First)]
+			static void Postfix(PawnRenderer __instance, Vector3 drawLoc)
+			{
+				var zombie = __instance.graphics.pawn as Zombie;
+				if (zombie == null || zombie.isAlbino == false || zombie.scream < 0) return;
+
+				var center = drawLoc + new Vector3(0, moteAltitute, 0.25f);
+
+				var f1 = zombie.scream / 400f;
+				var f2 = Mathf.Sin(Mathf.PI * f1);
+				var f3 = Math.Max(0, Mathf.Sin(Mathf.PI * f1 * 1.5f));
+
+				var mat = new Material(Constants.SCREAM)
+				{
+					color = new Color(1f, 1f, 1f, f2)
+				};
+				var size = f1 * 4f;
+				GraphicToolbox.DrawScaledMesh(Constants.screamMesh, mat, center + screamOffset, Quaternion.identity, size, size);
+
+				mat = new Material(Constants.SCREAMSHADOW)
+				{
+					color = new Color(1f, 1f, 1f, f3)
+				};
+				var q = Quaternion.AngleAxis(f2 * 360f, Vector3.up);
+				GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat, center + 2 * screamOffset, q, 1.5f, 1.5f);
 			}
 
 			static readonly MethodInfo m_RenderExtras = SymbolExtensions.GetMethodInfo(() => RenderExtras(null, Vector3.zero));
@@ -2562,9 +2630,9 @@ namespace ZombieLand
 					}
 				}
 
-				if (zombie.raging == 0) return;
+				if (zombie.raging == 0 && zombie.isAlbino == false) return;
 
-				// raging zombies drawing
+				// raging zombies and albino eyes drawing
 
 				drawLoc.y = moteAltitute;
 				var quickHeadCenter = drawLoc + new Vector3(0, 0, 0.35f);
@@ -2582,24 +2650,29 @@ namespace ZombieLand
 						// not clear why 75 but it seems to fit
 						var eyeX = zombie.sideEyeOffset.x / 75f;
 						var eyeZ = zombie.sideEyeOffset.z / 75f;
+						var eyeScale = zombie.isAlbino ? 0.25f : 0.5f;
+						var eyeMat = zombie.isAlbino ? new Material(Constants.RAGE_EYE) { color = white50 } : Constants.RAGE_EYE;
 
 						if (orientation == Rot4.West)
-							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(-eyeX, 0, eyeZ), Quaternion.identity, 0.5f, 0.5f);
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(-eyeX, 0, eyeZ), Quaternion.identity, eyeScale, eyeScale);
 
 						else if (orientation == Rot4.East)
-							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(eyeX, 0, eyeZ), Quaternion.identity, 0.5f, 0.5f);
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(eyeX, 0, eyeZ), Quaternion.identity, eyeScale, eyeScale);
 
 						if (orientation == Rot4.South)
 						{
-							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + leftEyeOffset, Quaternion.identity, 0.5f, 0.5f);
-							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + rightEyeOffset, Quaternion.identity, 0.5f, 0.5f);
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + leftEyeOffset, Quaternion.identity, eyeScale, eyeScale);
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + rightEyeOffset, Quaternion.identity, eyeScale, eyeScale);
 						}
 					}
 				}
 
-				if (orientation == Rot4.West) quickHeadCenter.x -= 0.09f;
-				if (orientation == Rot4.East) quickHeadCenter.x += 0.09f;
-				GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.RAGE_AURAS[Find.CameraDriver.CurrentZoom], quickHeadCenter, Quaternion.identity, 1f, 1f);
+				if (zombie.isAlbino == false)
+				{
+					if (orientation == Rot4.West) quickHeadCenter.x -= 0.09f;
+					if (orientation == Rot4.East) quickHeadCenter.x += 0.09f;
+					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.RAGE_AURAS[Find.CameraDriver.CurrentZoom], quickHeadCenter, Quaternion.identity, 1f, 1f);
+				}
 			}
 		}
 
@@ -2804,7 +2877,10 @@ namespace ZombieLand
 
 				if (stat == StatDefOf.MeleeDodgeChance)
 				{
-					__result = 0.02f;
+					if (zombie.isAlbino)
+						__result = 0f;
+					else
+						__result = 0.02f;
 					return false;
 				}
 
@@ -2825,7 +2901,7 @@ namespace ZombieLand
 					}
 
 					float speed;
-					if (zombie.state == ZombieState.Tracking || zombie.raging > 0 || zombie.wasMapPawnBefore)
+					if (zombie.isAlbino || zombie.state == ZombieState.Tracking || zombie.raging > 0 || zombie.wasMapPawnBefore)
 						speed = ZombieSettings.Values.moveSpeedTracking;
 					else
 						speed = ZombieSettings.Values.moveSpeedIdle;
@@ -2854,6 +2930,8 @@ namespace ZombieLand
 					__result = 1.5f * speed * factor * multiplier;
 					if (zombie.wasMapPawnBefore)
 						__result *= 2f;
+					if (zombie.isAlbino)
+						__result *= 5f;
 					return false;
 				}
 
@@ -3181,25 +3259,22 @@ namespace ZombieLand
 			}
 		}
 
-		/* patch to prevent errors for null body parts (seems like a bug in rimworld)
+		// patch to prevent errors for empty corpses (seems like a bug in rimworld)
 		//
-		[HarmonyPatch(typeof(PlayLogEntryUtility))]
-		[HarmonyPatch(nameof(PlayLogEntryUtility.RulesForDamagedParts))]
-		public static class PlayLogEntryUtility_RulesForDamagedParts_Patch
+		[HarmonyPatch(typeof(Alert_ColonistLeftUnburied))]
+		[HarmonyPatch(nameof(Alert_ColonistLeftUnburied.IsCorpseOfColonist))]
+		public static class Alert_ColonistLeftUnburied_IsCorpseOfColonist_Patch
 		{
-			static void Prefix(List<BodyPartRecord> bodyParts, List<bool> bodyPartsDestroyed)
+			static bool Prefix(Corpse corpse, ref bool __result)
 			{
-				if (bodyParts != null && bodyPartsDestroyed != null)
-					while (true)
-					{
-						var idx = bodyParts.FindIndex(bp => bp == null);
-						if (idx == -1)
-							break;
-						bodyParts.RemoveAt(idx);
-						bodyPartsDestroyed.RemoveAt(idx);
-					}
+				if (corpse?.InnerPawn == null)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
 			}
-		}*/
+		}
 
 		// patch to remove non-melee damage from electrifier zombies
 		//

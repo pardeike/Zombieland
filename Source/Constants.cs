@@ -199,11 +199,16 @@ namespace ZombieLand
 			MaterialPool.MatFrom("Electrifier/Absorb2", ShaderDatabase.Mote, Color.white),
 			MaterialPool.MatFrom("Electrifier/Absorb3", ShaderDatabase.Mote, Color.white),
 		};
+		public static Material SCREAM = MaterialPool.MatFrom("Scream", ShaderDatabase.Mote);
+		public static Material SCREAMSHADOW = MaterialPool.MatFrom("ScreamShadow", ShaderDatabase.Mote);
 		public static Material RAGING = MaterialPool.MatFrom("Rage", ShaderDatabase.Cutout);
 		public static Material RUBBLE = MaterialPool.MatFrom("Rubble", ShaderDatabase.Cutout);
 		public static Material BRRAINZ = MaterialPool.MatFrom("Brrainz", ShaderDatabase.Cutout);
 		public static Material EATING = MaterialPool.MatFrom("Eating", ShaderDatabase.Cutout);
+		public static Material HACKING = MaterialPool.MatFrom("Hacking", ShaderDatabase.Cutout);
 
 		public static System.Random random = new System.Random();
+
+		public static readonly Mesh screamMesh = MeshMakerPlanes.NewPlaneMesh(8f);
 	}
 }

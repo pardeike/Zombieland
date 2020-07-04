@@ -329,4 +329,54 @@
 		</subSounds>
 	</SoundDef>
 
+	<SoundDef>
+		<defName>Hacking</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>2</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>true</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>hack</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>90</min>
+					<max>90</max>
+				</volumeRange>
+				<distRange>
+					<min>1000</min>
+					<max>10000</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>Scream</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>2</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>true</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>scream</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>90</min>
+					<max>90</max>
+				</volumeRange>
+				<distRange>
+					<min>1000</min>
+					<max>10000</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
 </Defs>

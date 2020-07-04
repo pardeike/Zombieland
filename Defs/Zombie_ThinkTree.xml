@@ -6,6 +6,7 @@
 		<thinkRoot Class="ThinkNode_Priority">
 			<subNodes>
 				<li Class="ZombieLand.JobGiver_Stumble"/>
+				<li Class="ZombieLand.JobGiver_Sabotage"/>
 			</subNodes>
 		</thinkRoot>
 	</ThinkTreeDef>

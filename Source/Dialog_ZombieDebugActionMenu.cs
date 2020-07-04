@@ -121,7 +121,7 @@ namespace ZombieLand
 						.FirstOrDefault(part => part.IsCorePart == false);
 					if (bodyPart == null)
 						bodyPart = pawn.health.hediffSet
-						.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined).RandomElement();
+						.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined).SafeRandomElement();
 
 					var def = HediffDef.Named("ZombieBite");
 					var bite = (Hediff_Injury_ZombieBite)HediffMaker.MakeHediff(def, pawn, bodyPart);

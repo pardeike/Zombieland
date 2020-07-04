@@ -345,6 +345,7 @@
     <Compile Include="Gizmos.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="JobDriver_ExtractZombieSerum.cs" />
+    <Compile Include="JobDriver_Sabotage.cs" />
     <Compile Include="ModCounter.cs" />
     <Compile Include="GetterSetters.cs" />
     <Compile Include="GraphicsDatabase.cs" />

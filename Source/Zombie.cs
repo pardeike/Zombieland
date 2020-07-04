@@ -77,7 +77,7 @@ namespace ZombieLand
 
 		// albino
 		public bool isAlbino = false;
-		public List<LocalTargetInfo> targets = new List<LocalTargetInfo>();
+		public int scream = -1;
 
 		// transient vars
 		public bool needsGraphics = false;
@@ -155,7 +155,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref isMiner, "isMiner");
 			Scribe_Values.Look(ref isElectrifier, "isElectrifier");
 			Scribe_Values.Look(ref isAlbino, "isAlbino");
-			Scribe_Collections.Look(ref targets, "targets", LookMode.LocalTargetInfo);
+			Scribe_Values.Look(ref scream, "scream");
 			Scribe_Values.Look(ref hasTankyShield, "tankyShield");
 			Scribe_Values.Look(ref hasTankyHelmet, "tankyHelmet");
 			Scribe_Values.Look(ref hasTankySuit, "tankySuit");

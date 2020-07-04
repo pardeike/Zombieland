@@ -186,7 +186,7 @@ namespace ZombieLand
 	{
 		public static int ZombiesSpawning = 0;
 
-		public static Zombie GeneratePawn(ZombieType overwriteType)
+		/*public static Zombie GeneratePawn(ZombieType overwriteType)
 		{
 			var thing = ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null);
 			var zombie = thing as Zombie;
@@ -213,7 +213,7 @@ namespace ZombieLand
 			zombie.needs.SetInitialLevels();
 			zombie.needs.mood = new Need_Mood(zombie);
 
-			var name = PawnNameDatabaseSolid.GetListForGender((zombie.gender == Gender.Female) ? GenderPossibility.Female : GenderPossibility.Male).RandomElement();
+			var name = PawnNameDatabaseSolid.GetListForGender((zombie.gender == Gender.Female) ? GenderPossibility.Female : GenderPossibility.Male).SafeRandomElement();
 			var n1 = name.First.Replace('s', 'z').Replace('S', 'Z');
 			var n2 = name.Last.Replace('s', 'z').Replace('S', 'Z');
 			var n3 = name.Nick.Replace('s', 'z').Replace('S', 'Z');
@@ -221,11 +221,11 @@ namespace ZombieLand
 
 			zombie.story.childhood = BackstoryDatabase.allBackstories
 				.Where(kvp => kvp.Value.slot == BackstorySlot.Childhood)
-				.RandomElement().Value;
+				.SafeRandomElement().Value;
 			if (zombie.ageTracker.AgeBiologicalYearsFloat >= 20f)
 				zombie.story.adulthood = BackstoryDatabase.allBackstories
 				.Where(kvp => kvp.Value.slot == BackstorySlot.Adulthood)
-				.RandomElement().Value;
+				.SafeRandomElement().Value;
 
 			zombie.story.melanin = zombie.isAlbino ? 1f : 0.01f * Rand.Range(10, 91);
 			zombie.story.bodyType = bodyType;
@@ -243,7 +243,7 @@ namespace ZombieLand
 			GetterSetters.destinationByRef(zombie.pather) = IntVec3.Invalid;
 
 			return zombie;
-		}
+		}*/
 
 		private static BodyTypeDef PrepareZombieType(Zombie zombie, ZombieType overwriteType)
 		{
@@ -397,7 +397,7 @@ namespace ZombieLand
 			{
 				for (var i = 0; i < Rand.Range(0, 4); i++)
 				{
-					var pair = possibleApparel.RandomElement();
+					var pair = possibleApparel.SafeRandomElement();
 					yield return null;
 					var apparel = (Apparel)ThingMaker.MakeThing(pair.thing, pair.stuff);
 					yield return null;
@@ -455,7 +455,7 @@ namespace ZombieLand
 			yield return null;
 			zombie.needs.mood = new Need_Mood(zombie);
 			yield return null;
-			var name = PawnNameDatabaseSolid.GetListForGender((zombie.gender == Gender.Female) ? GenderPossibility.Female : GenderPossibility.Male).RandomElement();
+			var name = PawnNameDatabaseSolid.GetListForGender((zombie.gender == Gender.Female) ? GenderPossibility.Female : GenderPossibility.Male).SafeRandomElement();
 			yield return null;
 			var n1 = name.First.Replace('s', 'z').Replace('S', 'Z');
 			var n2 = name.Last.Replace('s', 'z').Replace('S', 'Z');
@@ -464,12 +464,12 @@ namespace ZombieLand
 			yield return null;
 			zombie.story.childhood = BackstoryDatabase.allBackstories
 				.Where(kvp => kvp.Value.slot == BackstorySlot.Childhood)
-				.RandomElement().Value;
+				.SafeRandomElement().Value;
 			yield return null;
 			if (zombie.ageTracker.AgeBiologicalYearsFloat >= 20f)
 				zombie.story.adulthood = BackstoryDatabase.allBackstories
 				.Where(kvp => kvp.Value.slot == BackstorySlot.Adulthood)
-				.RandomElement().Value;
+				.SafeRandomElement().Value;
 			yield return null;
 			zombie.story.melanin = zombie.isAlbino ? 1f : 0.01f * Rand.Range(10, 91);
 			zombie.story.bodyType = bodyType;
