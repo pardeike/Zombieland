@@ -407,7 +407,9 @@ namespace ZombieLand
 					{
 						if (zombie.apparel.WornApparel.All(pa => ApparelUtility.CanWearTogether(pair.thing, pa.def, zombie.RaceProps.body)))
 						{
-							apparel.SetColor(Zombie.zombieColors[Rand.Range(0, Zombie.zombieColors.Length)].SaturationChanged(0.25f));
+							var colorComp = apparel.GetComp<CompColorable>();
+							if (colorComp != null)
+								colorComp.Color = Zombie.zombieColors[Rand.Range(0, Zombie.zombieColors.Length)].SaturationChanged(0.25f);
 							Graphic_Multi_Init_Patch.suppressError = true;
 							Graphic_Multi_Init_Patch.textureError = false;
 							try
