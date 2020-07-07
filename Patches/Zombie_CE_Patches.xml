@@ -40,7 +40,7 @@
 						<li Class="CombatExtended.ToolCE">
 							<label>left fist</label>
 							<capacities>
-								<li>Slash</li>
+								<li>Bite</li>
 							</capacities>
 							<power>1</power>
 							<cooldownTime>2</cooldownTime>
@@ -58,7 +58,7 @@
 						<li Class="CombatExtended.ToolCE">
 							<label>right fist</label>
 							<capacities>
-								<li>Slash</li>
+								<li>Bite</li>
 							</capacities>
 							<power>1</power>
 							<cooldownTime>2</cooldownTime>
