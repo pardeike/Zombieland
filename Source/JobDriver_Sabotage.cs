@@ -376,7 +376,7 @@ namespace ZombieLand
 			var map = zombie.Map;
 			IntVec3 cell;
 
-			switch (Rand.Range(0, 5)) // 0..4
+			switch (Rand.Range(0, 6)) // 0..5
 			{
 				// hack door of a room
 				case 0:
@@ -423,6 +423,7 @@ namespace ZombieLand
 
 				// scream on enemies
 				case 4:
+				case 5:
 					var enemies = map.attackTargetsCache
 						.TargetsHostileToColony.OfType<Pawn>()
 						.Where(p => (p is Zombie) == false && p.RaceProps.Humanlike && p.RaceProps.IsFlesh && p.IsDowned() == false);

@@ -2406,7 +2406,6 @@ namespace ZombieLand
 			static Vector3 rightEyeOffset = new Vector3(0.092f, 0f, -0.08f);
 
 			static readonly Color white50 = new Color(1f, 1f, 1f, 0.5f);
-			static readonly Vector3 screamOffset = new Vector3(0f, Altitudes.AltInc / 4f, 0f);
 
 			static readonly Mesh bodyMesh = MeshPool.GridPlane(new Vector2(1.5f, 1.5f));
 			static readonly Mesh bodyMesh_flipped = MeshPool.GridPlaneFlip(new Vector2(1.5f, 1.5f));
@@ -2468,7 +2467,7 @@ namespace ZombieLand
 				var zombie = __instance.graphics.pawn as Zombie;
 				if (zombie == null || zombie.isAlbino == false || zombie.scream < 0) return;
 
-				var center = drawLoc + new Vector3(0, moteAltitute, 0.25f);
+				var center = drawLoc + new Vector3(0, 0.1f, 0.25f);
 
 				var f1 = zombie.scream / 400f;
 				var f2 = Mathf.Sin(Mathf.PI * f1);
@@ -2479,14 +2478,14 @@ namespace ZombieLand
 					color = new Color(1f, 1f, 1f, f2)
 				};
 				var size = f1 * 4f;
-				GraphicToolbox.DrawScaledMesh(Constants.screamMesh, mat, center + screamOffset, Quaternion.identity, size, size);
+				GraphicToolbox.DrawScaledMesh(Constants.screamMesh, mat, center, Quaternion.identity, size, size);
 
 				mat = new Material(Constants.SCREAMSHADOW)
 				{
 					color = new Color(1f, 1f, 1f, f3)
 				};
 				var q = Quaternion.AngleAxis(f2 * 360f, Vector3.up);
-				GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat, center + 2 * screamOffset, q, 1.5f, 1.5f);
+				GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat, center, q, 1.5f, 1.5f);
 			}
 
 			static readonly MethodInfo m_RenderExtras = SymbolExtensions.GetMethodInfo(() => RenderExtras(null, Vector3.zero));
