@@ -64,20 +64,21 @@ namespace ZombieLand
 			return method;
 		}
 
-		public static List<MethodInfo> InnerMethodsStartingWith(this Type type, string prefix)
+		public static IEnumerable<Type> GetAllInnerTypes(Type parentType)
 		{
-			var method = type.GetNestedTypes(AccessTools.all)
-				.SelectMany(innerType => innerType.GetMethods(AccessTools.all))
-				.Where(m => m.Name.StartsWith(prefix))
-				.ToList();
-			if (method.Count == 0) throw new Exception("Cannot find method starting with '" + prefix + "' in any inner type of " + type.FullName);
-			return method;
+			yield return parentType;
+			foreach (var t1 in parentType.GetNestedTypes(AccessTools.all))
+				foreach (var t2 in GetAllInnerTypes(t1))
+					yield return t2;
 		}
 
-		public static MethodInfo MethodMatching(this Type type, Func<MethodInfo[], MethodInfo> predicate)
+		public static List<MethodInfo> InnerMethodsStartingWith(this Type type, string prefix)
 		{
-			var method = predicate(type.GetMethods(AccessTools.all));
-			if (method == null) throw new Exception("Cannot find method matching " + predicate + " in type " + type.FullName);
+			var method = GetAllInnerTypes(type)
+				.SelectMany(innerType => AccessTools.GetDeclaredMethods(innerType))
+				.Where(m => prefix == "*" || m.Name.StartsWith(prefix))
+				.ToList();
+			if (method.Count == 0) throw new Exception("Cannot find method starting with '" + prefix + "' in any inner type of " + type.FullName);
 			return method;
 		}
 	}

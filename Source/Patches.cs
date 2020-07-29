@@ -1170,7 +1170,7 @@ namespace ZombieLand
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
 				var from = SymbolExtensions.GetMethodInfo(() => new ThingGrid(null).CellContains(default, default(ThingCategory)));
-				var to = SymbolExtensions.GetMethodInfo(() => CellContains(null, default, default(ThingCategory)));
+				var to = SymbolExtensions.GetMethodInfo(() => CellContains(null, default, default));
 				return Transpilers.MethodReplacer(instructions, from, to);
 			}
 		}
@@ -2196,9 +2196,12 @@ namespace ZombieLand
 		[HarmonyPatch]
 		static class Toils_Jump_JumpIfTargetDownedDistant_Patch
 		{
-			static MethodBase TargetMethod()
+			static IEnumerable<MethodBase> TargetMethods()
 			{
-				return typeof(Toils_Jump).InnerMethodsStartingWith("<JumpIfTargetDowned>b__0").First();
+				var m_Downed = AccessTools.PropertyGetter(typeof(Pawn), nameof(Pawn.Downed));
+				return typeof(Toils_Jump)
+					.InnerMethodsStartingWith("<JumpIfTargetDowned>")
+					.Where(method => PatchProcessor.GetCurrentInstructions(method).Any(code => code.Calls(m_Downed)));
 			}
 
 			[HarmonyPriority(Priority.First)]
@@ -2227,10 +2230,17 @@ namespace ZombieLand
 				return Tools.DownedReplacer(instructions, 1);
 			}
 		}
-		[HarmonyPatch(typeof(JobDriver_AttackStatic))]
-		[HarmonyPatch("<MakeNewToils>b__4_1")]
+		[HarmonyPatch]
 		static class JobDriver_AttackStatic_TickAction_Patch
 		{
+			static IEnumerable<MethodBase> TargetMethods()
+			{
+				var m_Downed = AccessTools.PropertyGetter(typeof(Pawn), nameof(Pawn.Downed));
+				return typeof(JobDriver_AttackStatic)
+					.InnerMethodsStartingWith("*")
+					.Where(method => PatchProcessor.GetCurrentInstructions(method).Any(code => code.Calls(m_Downed)));
+			}
+
 			[HarmonyPriority(Priority.First)]
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
