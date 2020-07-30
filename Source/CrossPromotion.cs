@@ -249,10 +249,17 @@ namespace CrossPromotionModule
 			var rightColumn = mainRect.width - leftColumn - 10f;
 
 			GUI.BeginGroup(mainRect);
-			ContentPart(mainRect, leftColumn, mod, page);
-			PromotionPart(mainRect, leftColumn, rightColumn, mod, page);
+			try
+			{
+				ContentPart(mainRect, leftColumn, mod, page);
+				PromotionPart(mainRect, leftColumn, rightColumn, mod, page);
+			}
+			catch
+			{
+				GUI.EndGroup();
+				return false;
+			}
 			GUI.EndGroup();
-
 			return true;
 		}
 
