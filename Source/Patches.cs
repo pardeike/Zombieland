@@ -37,14 +37,14 @@ namespace ZombieLand
 			});
 
 			// for debugging
-			/*
-			DebugRimworldMethodCalls((Type type) =>
-			{
-				if (type.Name.Contains("AttackTarget")) return true;
-				if (type.Name.Contains("_AI")) return true;
-				if (type.Name.Contains("Reachability")) return true;
-				return false;
-			}); */
+			//
+			//DebugRimworldMethodCalls((Type type) =>
+			//{
+			//	if (type.Name.Contains("AttackTarget")) return true;
+			//	if (type.Name.Contains("_AI")) return true;
+			//	if (type.Name.Contains("Reachability")) return true;
+			//	return false;
+			//});
 		}
 
 		// used to prevent zombies from being counted as hostiles
@@ -1272,7 +1272,7 @@ namespace ZombieLand
 			public static bool MyCanReachImmediate(Pawn pawn, LocalTargetInfo target, PathEndMode peMode)
 			{
 				if (target.Thing is Zombie zombie)
-					if (zombie.isElectrifier || zombie.isAlbino)
+					if (zombie.isElectrifier)
 						return true;
 				return pawn.CanReachImmediate(target, peMode);
 			}
@@ -3297,11 +3297,15 @@ namespace ZombieLand
 				if (zombie == null)
 					return true;
 
-				if ((zombie.isElectrifier == false && zombie.isAlbino == false) || zombie.IsDowned())
+				if ((zombie.isElectrifier == false) || zombie.IsDowned())
 					return true;
 
 				var def = dinfo.Def;
 				if (def.isRanged == false && def.isExplosive == false)
+					return true;
+
+				// albinos are a bit harder to hit
+				if (zombie.isAlbino && def.isExplosive == false && Rand.Chance(0.5f))
 					return true;
 
 				var indices = new List<int>() { 0, 1, 2, 3 };
