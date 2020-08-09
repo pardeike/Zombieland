@@ -27,6 +27,7 @@ namespace ZombieLand
 		public int zombiesTicked = 0;
 		public int totalTicking = 0;
 		IEnumerator taskTicker;
+		bool runZombiesForNewIncident = false;
 
 		public List<ZombieCorpse> allZombieCorpses;
 		public AvoidGrid avoidGrid;
@@ -101,18 +102,20 @@ namespace ZombieLand
 			Scribe_Collections.Look(ref explosions, "explosions", LookMode.Value);
 			Scribe_Deep.Look(ref incidentInfo, "incidentInfo", Array.Empty<object>());
 
-			if (allZombiesCached == null)
-				allZombiesCached = new List<Zombie>();
-			allZombiesCached = allZombiesCached.Where(zombie => zombie != null && zombie.Spawned && zombie.Dead == false).ToList();
+			if (Scribe.mode == LoadSaveMode.PostLoadInit)
+			{
+				if (allZombiesCached == null)
+					allZombiesCached = new List<Zombie>();
+				allZombiesCached = allZombiesCached.Where(zombie => zombie != null && zombie.Spawned && zombie.Dead == false).ToList();
 
-			if (allZombieCorpses == null)
-				allZombieCorpses = new List<ZombieCorpse>();
-			allZombieCorpses = allZombieCorpses.Where(corpse => corpse.DestroyedOrNull() == false && corpse.Spawned).ToList();
+				if (allZombieCorpses == null)
+					allZombieCorpses = new List<ZombieCorpse>();
+				allZombieCorpses = allZombieCorpses.Where(corpse => corpse.DestroyedOrNull() == false && corpse.Spawned).ToList();
 
-			_ = ZombiesRising.ZombiesForNewIncident(this);
-
-			if (explosions == null)
-				explosions = new List<IntVec3>();
+				runZombiesForNewIncident = true;
+				if (explosions == null)
+					explosions = new List<IntVec3>();
+			}
 		}
 
 		public void RecalculateZombieWanderDestination()
@@ -398,6 +401,12 @@ namespace ZombieLand
 
 		IEnumerator TickTasks()
 		{
+			if (runZombiesForNewIncident && map != null)
+			{
+				runZombiesForNewIncident = false;
+				_ = ZombiesRising.ZombiesForNewIncident(this);
+			}
+
 			while (true)
 			{
 				var sw = new Stopwatch();

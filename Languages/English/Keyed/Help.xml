@@ -17,7 +17,7 @@
 	<!-- -->
 
 	<WhatDoZombiesAttack_Help>Zombies do not behave like raiders (with the exception of raging zombies). They are mindless wanderers that only get excited when their senses get activated. This setting allows you to define the creature type that will get them going.</WhatDoZombiesAttack_Help>
-	<AttackMode_Everything_Help>Make zombies track and attack anything that movesm - even animals. Only stationary weapons like turrents and such will never catch their attention.</AttackMode_Everything_Help>
+	<AttackMode_Everything_Help>Make zombies track and attack anything that moves - even animals. Only stationary weapons like turrents and such will never catch their attention.</AttackMode_Everything_Help>
 	<AttackMode_OnlyHumans_Help>This is the "normal" way zombies should work. Their lust for brains makes them hunt human pawns regardless of faction.</AttackMode_OnlyHumans_Help>
 	<AttackMode_OnlyColonists_Help>If you think that zombies should never attack anyone else but your colonists, then this is the right mode for you. They might hit back when attacked but will never initiate any aggression.</AttackMode_OnlyColonists_Help>
 	<EnemiesAttackZombies_Help>Turn this off and your enemies will ignore and avoid zombies. When turned on, raiders will see them as dangerous and will try their best to fight them. Good luck!</EnemiesAttackZombies_Help>
