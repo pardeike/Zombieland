@@ -316,6 +316,7 @@ namespace ZombieLand
 		{
 			while (true)
 			{
+				var didNothing = true;
 				if (Current.Game != null && Current.ProgramState == ProgramState.Playing && Scribe.mode == LoadSaveMode.Inactive)
 				{
 					var maps = Find.Maps.ToArray();
@@ -343,9 +344,12 @@ namespace ZombieLand
 								while (it.MoveNext())
 									yield return null;
 							}
+							didNothing = false;
 						}
 					}
 				}
+				if (didNothing)
+					yield return null;
 			}
 		}
 
