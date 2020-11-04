@@ -119,7 +119,7 @@ Turn this off if you don't want zombies to eat anything
 
 ### Special zombies
 
-Zombieland has four special types of zombies and the rest is either fat and slow or slim and fast.
+Zombieland has six special types of zombies and the rest is either fat and slow or slim and fast.
 
 **Suicide bombers**  
 They have a explosive vest on their body that explodes when they die or when they get close to your walls
@@ -135,6 +135,9 @@ Normal zombies but with a hobby. They like to mine through mountains
 
 **Electric**
 Electrifying zombies that are shockingly resistent to bullets or ranged weapons. You need to melee them but luckily they don't bite so you don't get infected by them. Their electric field damages everything close by that is electric/electronic - like power lines, appliences, powerarmors, shield belts - basically anything you build out of components.
+
+**Albinos**
+Very fast zombies that are easy to kill. They go for your doors and sabotage them so they stay open for a bit longer than usual. Will start to scream when getting close to your colonists which makes them vomit so you loose control for a short while.
 
 ### New game
 
