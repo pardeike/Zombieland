@@ -133,10 +133,10 @@ These zombies are slow but smart and **very** strong. They will try to reach you
 **Miners**  
 Normal zombies but with a hobby. They like to mine through mountains
 
-**Electric**
+**Electric**  
 Electrifying zombies that are shockingly resistent to bullets or ranged weapons. You need to melee them but luckily they don't bite so you don't get infected by them. Their electric field damages everything close by that is electric/electronic - like power lines, appliences, powerarmors, shield belts - basically anything you build out of components.
 
-**Albinos**
+**Albinos**  
 Very fast zombies that are easy to kill. They go for your doors and sabotage them so they stay open for a bit longer than usual. Will start to scream when getting close to your colonists which makes them vomit so you loose control for a short while.
 
 ### New game
