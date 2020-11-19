@@ -67,8 +67,7 @@ namespace ZombieLand
 			if (def.GetType().Namespace == Tools.zlNamespace) return true;
 			if (def.defName.EndsWith("_Zombie", StringComparison.Ordinal)) return true;
 			if (def.defName.StartsWith("Zombie_", StringComparison.Ordinal)) return true;
-			var thingDef = def as ThingDef;
-			if (thingDef != null && thingDef.thingClass.Namespace == Tools.zlNamespace) return true;
+			if (def is ThingDef thingDef && thingDef.thingClass.Namespace == Tools.zlNamespace) return true;
 			return false;
 		}
 
@@ -205,8 +204,7 @@ namespace ZombieLand
 				var f_defName = AccessTools.Field(def.GetType(), "defName");
 				if (f_defName != null)
 				{
-					var defName = f_defName.GetValue(def) as string;
-					if (defName != null && defName.StartsWith("Zombie_", StringComparison.Ordinal))
+					if (f_defName.GetValue(def) is string defName && defName.StartsWith("Zombie_", StringComparison.Ordinal))
 						return true;
 				}
 			}

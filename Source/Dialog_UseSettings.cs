@@ -46,13 +46,13 @@ namespace ZombieLand
 			var listing = new Listing_Standard();
 			listing.Begin(inRect);
 
-			listing.Label("SearchSettings".Translate());
+			_ = listing.Label("SearchSettings".Translate());
 			searchTerm = listing.TextEntry(searchTerm);
 			var showTopOnly = searchTerm.Length == 0;
 			listing.Gap(10f);
 			if (showTopOnly)
 			{
-				listing.Label("TOP5".Translate());
+				_ = listing.Label("TOP5".Translate());
 				listing.Gap(10f);
 			}
 			var currentSteamUser = SteamUtility.SteamPersonaName;

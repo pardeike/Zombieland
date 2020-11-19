@@ -50,18 +50,21 @@ namespace ZombieLand
 
 		public override void CompPostPostAdd(DamageInfo? dinfo)
 		{
-			if (Pawn == null
-				|| Pawn.RaceProps.Humanlike == false
-				|| Pawn.health == null
-				|| Pawn.health.hediffSet == null
+			var pawn = Pawn;
+			if (pawn == null
+				|| pawn.RaceProps.Humanlike == false
+				|| pawn.RaceProps.IsFlesh == false
+				|| AlienTools.IsFleshPawn(pawn) == false
+				|| pawn.health == null
+				|| pawn.health.hediffSet == null
 				|| parent == null
 				|| parent.Part == null
 				|| parent.Part.def == null)
 				return;
 
-			if (parent.Part.def.IsSolid(parent.Part, Pawn.health.hediffSet.hediffs))
+			if (parent.Part.def.IsSolid(parent.Part, pawn.health.hediffSet.hediffs))
 				return;
-			if (Pawn.health.hediffSet.PartOrAnyAncestorHasDirectlyAddedParts(parent.Part))
+			if (pawn.health.hediffSet.PartOrAnyAncestorHasDirectlyAddedParts(parent.Part))
 				return;
 
 			var h = GenDate.TicksPerHour;
@@ -79,6 +82,7 @@ namespace ZombieLand
 			}
 		}
 
+#pragma warning disable CS0672 // Member overrides obsolete member
 		public override void CompTended(float quality, int batchPosition = 0)
 		{
 			if (infectionStartTime == 0)
@@ -111,6 +115,7 @@ namespace ZombieLand
 			if (Rand.Chance(quality))
 				MakeHarmless();
 		}
+#pragma warning restore CS0672 // Member overrides obsolete member
 
 		public override string CompDebugString()
 		{

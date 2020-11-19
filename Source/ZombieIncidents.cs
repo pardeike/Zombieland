@@ -125,7 +125,7 @@ namespace ZombieLand
 			}
 
 			// too few capable colonists (only in difficulty lower than Intense)
-			if (parameters.storytellerDifficulty < DifficultyDefOf.Rough.difficulty)
+			if (parameters.storytellerDifficulty < DifficultyDefOf.Rough.GetDifficulty())
 			{
 				if (parameters.capableColonists < parameters.minimumCapableColonists)
 				{

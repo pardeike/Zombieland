@@ -37,6 +37,7 @@ namespace ZombieLand
 			DoGap();
 			DoLabel("Tools - Zombies");
 
+#pragma warning disable CS0618 // Type or member is obsolete
 			DebugToolMap("Spawn: Zombie (dig out)", delegate
 			{
 				SpawnZombie(ZombieType.Normal, false);
@@ -93,9 +94,7 @@ namespace ZombieLand
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
-					var pawn = thing as Pawn;
-					if (pawn == null || pawn is Zombie)
-						continue;
+					if (!(thing is Pawn pawn) || pawn is Zombie) continue;
 					Tools.ConvertToZombie(pawn, true);
 				}
 			});
@@ -112,8 +111,7 @@ namespace ZombieLand
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
-					var pawn = thing as Pawn;
-					if (pawn == null || pawn is Zombie)
+					if (!(thing is Pawn pawn) || pawn is Zombie)
 						continue;
 
 					var bodyPart = pawn.health.hediffSet
@@ -136,9 +134,7 @@ namespace ZombieLand
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
-					var pawn = thing as Pawn;
-					if (pawn == null || pawn is Zombie)
-						continue;
+					if (!(thing is Pawn pawn) || pawn is Zombie) continue;
 					pawn.health.hediffSet
 						.GetHediffs<Hediff_Injury_ZombieBite>()
 						.Do(bite =>
@@ -153,12 +149,11 @@ namespace ZombieLand
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
-					var zombie = thing as Zombie;
-					if (zombie == null)
-						continue;
+					if (!(thing is Zombie zombie)) continue;
 					ZombieStateHandler.StartRage(zombie);
 				}
 			});
+#pragma warning restore CS0618 // Type or member is obsolete
 		}
 	}
 }

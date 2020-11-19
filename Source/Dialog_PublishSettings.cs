@@ -27,10 +27,10 @@ namespace ZombieLand
 		{
 			var listing = new Listing_Standard();
 			listing.Begin(inRect);
-			listing.Label("SettingsName".Translate());
+			_ = listing.Label("SettingsName".Translate());
 			name = listing.TextEntry(name);
 			listing.Gap(4f);
-			listing.Label("Description".Translate());
+			_ = listing.Label("Description".Translate());
 			description = listing.TextEntry(description, 4);
 			listing.Gap(8f);
 			if (listing.ButtonText("PublishSettingsButton".Translate()))

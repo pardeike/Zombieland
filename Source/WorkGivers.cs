@@ -63,8 +63,7 @@ namespace ZombieLand
 
 		public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
 		{
-			var corpse = t as ZombieCorpse;
-			if (corpse == null)
+			if (!(t is ZombieCorpse corpse))
 				return null;
 			return JobMaker.MakeJob(CustomDefs.ExtractZombieSerum, corpse);
 		}

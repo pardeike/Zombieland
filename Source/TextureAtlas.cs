@@ -5,13 +5,11 @@ using UnityEngine;
 
 namespace ZombieLand
 {
-#pragma warning disable CA1815
 	public struct AtlasImage
 	{
 		public string path;
 		public ColorData data;
 	}
-#pragma warning restore CA1815
 
 	public static class TextureAtlas
 	{

@@ -285,6 +285,7 @@ namespace ZombieLand
 					pawn => (pawn is Zombie) == false
 						&& pawn.RaceProps.Humanlike
 						&& pawn.RaceProps.IsFlesh
+						&& AlienTools.IsFleshPawn(pawn)
 						&& pawn.Position.DistanceToSquared(pos) < dist
 						&& pawn.IsDowned() == false
 						&& pawn.InMentalState == false
@@ -293,7 +294,9 @@ namespace ZombieLand
 					{
 						if (RestUtility.Awake(pawn) == false) RestUtility.WakeUp(pawn);
 						pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Vomit), JobCondition.InterruptForced, null, true, true);
+#pragma warning disable CS0618 // Type or member is obsolete
 						pawn.stances.stunner.StunFor(stunTicks, zombie, true);
+#pragma warning restore CS0618 // Type or member is obsolete
 					});
 			}
 
@@ -426,7 +429,7 @@ namespace ZombieLand
 				case 5:
 					var enemies = map.attackTargetsCache
 						.TargetsHostileToColony.OfType<Pawn>()
-						.Where(p => (p is Zombie) == false && p.RaceProps.Humanlike && p.RaceProps.IsFlesh && p.IsDowned() == false);
+						.Where(p => (p is Zombie) == false && p.RaceProps.Humanlike && p.RaceProps.IsFlesh && AlienTools.IsFleshPawn(p) && p.IsDowned() == false);
 					cell = PawnCenter(map, enemies);
 					if (cell.IsValid)
 						if (driver.Goto(cell, () => zombie.scream = -2))

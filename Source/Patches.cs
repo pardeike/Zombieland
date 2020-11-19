@@ -34,6 +34,7 @@ namespace ZombieLand
 			{
 				Projectile_Launch_Patch.PatchCombatExtended(harmony);
 				ArmorUtility_GetPostArmorDamage_Patch.PatchCombatExtended(harmony);
+				AlienTools.Init();
 			});
 
 			// for debugging
@@ -342,9 +343,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Thing a, Thing b, ref bool __result)
 			{
-				var pawn = a as Pawn;
-				var zombie = b as Zombie;
-				if (pawn == null || pawn.IsColonist || (pawn is Zombie) || zombie == null)
+				if (!(a is Pawn pawn) || pawn.IsColonist || (pawn is Zombie) || !(b is Zombie zombie))
 					return;
 				__result = Tools.IsHostileToZombies(pawn);
 			}
@@ -356,8 +355,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Thing t, Faction fac, ref bool __result)
 			{
-				var pawn = t as Pawn;
-				if (pawn == null || pawn.IsColonist || (pawn is Zombie) || fac == null || fac.def != ZombieDefOf.Zombies)
+				if (!(t is Pawn pawn) || pawn.IsColonist || (pawn is Zombie) || fac == null || fac.def != ZombieDefOf.Zombies)
 					return;
 				__result = Tools.IsHostileToZombies(pawn);
 			}
@@ -371,10 +369,8 @@ namespace ZombieLand
 		{
 			static Predicate<IAttackTarget> WrappedValidator(Predicate<IAttackTarget> validator, IAttackTargetSearcher searcher)
 			{
-				var attacker = searcher as Pawn;
-
 				// attacker is colonist or zombie? use default
-				if (validator == null || attacker == null || attacker.IsColonist || attacker is Zombie)
+				if (validator == null || !(searcher is Pawn attacker) || attacker.IsColonist || attacker is Zombie)
 					return validator;
 
 				// attacker is animal
@@ -395,8 +391,7 @@ namespace ZombieLand
 				// attacker is enemy
 				return (IAttackTarget t) =>
 				{
-					var zombie = t.Thing as Zombie;
-					if (zombie != null)
+					if (t.Thing is Zombie zombie)
 					{
 						if (ZombieSettings.Values.enemiesAttackZombies == false)
 							return false;
@@ -514,11 +509,9 @@ namespace ZombieLand
 		{
 			static bool Prefix(IAttackTarget target, IAttackTargetSearcher searcher, Verb verb, ref float __result)
 			{
-				var pawn = searcher?.Thing as Pawn;
-				if (pawn == null || verb == null || verb.IsMeleeAttack)
+				if (!(searcher?.Thing is Pawn pawn) || verb == null || verb.IsMeleeAttack)
 					return true;
-				var zombie = target as Zombie;
-				if (zombie == null || (zombie.IsDowned() && ZombieSettings.Values.doubleTapRequired == false))
+				if (!(target is Zombie zombie) || (zombie.IsDowned() && ZombieSettings.Values.doubleTapRequired == false))
 					return true;
 				if (pawn.IsColonist == false && pawn.Faction.HostileTo(Faction.OfPlayer))
 					return true;
@@ -565,8 +558,7 @@ namespace ZombieLand
 			{
 				for (var i = __result.Count - 1; i >= 0; i--)
 				{
-					var zombie = __result[i].First as Zombie;
-					if (zombie != null && zombie.IsDowned())
+					if (__result[i].First is Zombie zombie && zombie.IsDowned())
 						__result.RemoveAt(i);
 				}
 			}
@@ -746,11 +738,10 @@ namespace ZombieLand
 			static bool SkipMissingShotsAtZombies(Verb verb, LocalTargetInfo currentTarget)
 			{
 				// difficulty Intense or worse will trigger default behavior
-				if (Tools.StoryTellerDifficulty >= DifficultyDefOf.Rough.difficulty) return false;
+				if (Tools.StoryTellerDifficulty >= DifficultyDefOf.Rough.GetDifficulty()) return false;
 
 				// only for colonists
-				var colonist = verb.caster as Pawn;
-				if (colonist == null || colonist.Faction != Faction.OfPlayer) return false;
+				if (!(verb.caster is Pawn colonist) || colonist.Faction != Faction.OfPlayer) return false;
 
 				// shooting zombies
 				var zombie = currentTarget.HasThing ? currentTarget.Thing as Zombie : null;
@@ -760,8 +751,7 @@ namespace ZombieLand
 				if ((zombie.Position - colonist.Position).LengthHorizontalSquared > 225) return false;
 
 				// with line of sight
-				var shot = verb as Verb_LaunchProjectile;
-				if (shot == null || shot.verbProps.requireLineOfSight == false) return false;
+				if (!(verb is Verb_LaunchProjectile shot) || shot.verbProps.requireLineOfSight == false) return false;
 
 				// skip miss calculations
 				return Rand.Chance(Constants.COLONISTS_HIT_ZOMBIES_CHANCE);
@@ -842,8 +832,7 @@ namespace ZombieLand
 		{
 			static void Postfix(List<VerbEntry> __result, Pawn ___pawn)
 			{
-				var zombie = ___pawn as Zombie;
-				if (zombie != null && (zombie.isElectrifier || zombie.isAlbino))
+				if (___pawn is Zombie zombie && (zombie.isElectrifier || zombie.isAlbino))
 					_ = __result.RemoveAll(entry => entry.verb.GetDamageDef() == Tools.ZombieBiteDamageDef);
 			}
 		}
@@ -1055,6 +1044,8 @@ namespace ZombieLand
 			{
 				if (Tools.ShouldAvoidZombies(pawn) == false) return false;
 				if (pawn.RaceProps.Humanlike == false) return false;
+				if (pawn.RaceProps.IsFlesh == false) return false;
+				if (AlienTools.IsFleshPawn(pawn) == false) return false;
 
 				var path = __instance.curPath;
 				if (path.NodesLeftCount < 5) return false;
@@ -1181,8 +1172,7 @@ namespace ZombieLand
 		{
 			static bool Prefix(Pawn closer)
 			{
-				var zombie = closer as Zombie;
-				return zombie == null;
+				return !(closer is Zombie zombie);
 			}
 		}
 
@@ -1231,8 +1221,7 @@ namespace ZombieLand
 				{
 					if (cell.x == pos.x && cell.z == pos.z) return true;
 					if (cell.Walkable(map) == false) return false;
-					var building_Door = cell.GetEdifice(map) as Building_Door;
-					if (building_Door != null && building_Door.CanPhysicallyPass(___pawn) == false) return false;
+					if (cell.GetEdifice(map) is Building_Door building_Door && building_Door.CanPhysicallyPass(___pawn) == false) return false;
 					return PawnUtility.AnyPawnBlockingPathAt(cell, ___pawn, true, false, false) == false;
 				}, (IntVec3 cell) =>
 				{
@@ -1494,8 +1483,7 @@ namespace ZombieLand
 
 			static PawnPosture GetPawnPosture(Pawn pawn)
 			{
-				var zombie = pawn as Zombie;
-				if (zombie != null && zombie.IsDowned())
+				if (pawn is Zombie zombie && zombie.IsDowned())
 					return PawnPosture.LayingOnGroundNormal;
 				return PawnPosture.Standing;
 			}
@@ -1710,14 +1698,12 @@ namespace ZombieLand
 
 			static void Prefix(Thing __instance, IntVec3 value)
 			{
-				var pawn = __instance as Pawn;
-				if (pawn == null) return;
+				if (!(__instance is Pawn pawn)) return;
 				var map = pawn.Map;
 				if (map == null) return;
 				if (pawn.Position == value) return;
 
-				var zombie = pawn as Zombie;
-				if (zombie != null)
+				if (pawn is Zombie zombie)
 				{
 					var grid = map.GetGrid();
 
@@ -1762,7 +1748,7 @@ namespace ZombieLand
 				if (pawn.MentalState == null || (pawn.MentalState.def != def1 && pawn.MentalState.def != def2))
 				{
 					if (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans)
-						if (pawn.RaceProps.Humanlike == false) return;
+						if (pawn.RaceProps.Humanlike == false || pawn.RaceProps.IsFlesh == false || AlienTools.IsFleshPawn(pawn) == false) return;
 
 					if (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists)
 						if (pawn.IsColonist == false) return;
@@ -1797,8 +1783,7 @@ namespace ZombieLand
 		{
 			static void Prefix(CompRefuelable __instance, ref float amount)
 			{
-				var turret = __instance.parent as Building_Turret;
-				if (turret == null)
+				if (!(__instance.parent is Building_Turret turret))
 					return;
 				amount -= amount * ZombieSettings.Values.reducedTurretConsumption;
 			}
@@ -1812,8 +1797,7 @@ namespace ZombieLand
 		{
 			static void Prefix(ref DamageInfo dinfo)
 			{
-				var zombie = dinfo.Instigator as Zombie;
-				if (zombie == null || zombie.IsDowned() == false)
+				if (!(dinfo.Instigator is Zombie zombie) || zombie.IsDowned() == false)
 					return;
 				dinfo.SetBodyRegion(BodyPartHeight.Bottom, BodyPartDepth.Outside);
 			}
@@ -1824,8 +1808,7 @@ namespace ZombieLand
 		{
 			static void Prefix(ref DamageInfo dinfo)
 			{
-				var zombie = dinfo.Instigator as Zombie;
-				if (zombie == null || zombie.IsDowned() == false)
+				if (!(dinfo.Instigator is Zombie zombie) || zombie.IsDowned() == false)
 					return;
 				dinfo.SetBodyRegion(BodyPartHeight.Bottom, BodyPartDepth.Outside);
 			}
@@ -1998,8 +1981,7 @@ namespace ZombieLand
 				if (forced)
 					return true;
 
-				var corpse = t as ZombieCorpse;
-				if (corpse != null)
+				if (t is ZombieCorpse corpse)
 				{
 					__result = null;
 					return false;
@@ -2017,9 +1999,8 @@ namespace ZombieLand
 			{
 				if (target.HasThing)
 				{
-					var zombie = target.Thing as Zombie;
 					//if ((zombie != null && zombie.wasMapPawnBefore == false) || target.Thing is ZombieCorpse)
-					if (zombie != null && zombie.wasMapPawnBefore == false)
+					if (target.Thing is Zombie zombie && zombie.wasMapPawnBefore == false)
 					{
 						__result = false;
 						return false;
@@ -2096,8 +2077,7 @@ namespace ZombieLand
 		{
 			static bool Prefix(Pawn pawn)
 			{
-				var zombie = pawn as Zombie;
-				if (zombie == null) return true;
+				if (!(pawn is Zombie zombie)) return true;
 				return zombie.wasMapPawnBefore;
 			}
 		}
@@ -2114,8 +2094,7 @@ namespace ZombieLand
 			{
 				if (ZombieSettings.Values.doubleTapRequired == false)
 					return true;
-				var zombie = __instance as Zombie;
-				if (zombie == null) return true;
+				if (!(__instance is Zombie zombie)) return true;
 				__result = false;
 				return false;
 			}
@@ -2130,8 +2109,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn __instance, ref bool __result)
 			{
-				var zombie = __instance as Zombie;
-				if (zombie == null) return true;
+				if (!(__instance is Zombie zombie)) return true;
 				__result = !zombie.Spawned;
 				return false;
 			}
@@ -2290,8 +2268,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static void Postfix(PawnRenderer __instance, Vector3 rootLoc, float angle, bool renderBody)
 			{
-				var zombie = __instance.graphics.pawn as Zombie;
-				if (zombie == null || renderBody == false || zombie.state == ZombieState.Emerging) return;
+				if (!(__instance.graphics.pawn is Zombie zombie) || renderBody == false || zombie.state == ZombieState.Emerging) return;
 
 				if (zombie.Rotation == Rot4.West) angle -= leanAngle;
 				if (zombie.Rotation == Rot4.East) angle += leanAngle;
@@ -2383,8 +2360,7 @@ namespace ZombieLand
 		{
 			static void Postfix(PawnDownedWiggler __instance, Pawn ___pawn)
 			{
-				var zombie = ___pawn as Zombie;
-				if (zombie == null || zombie.IsDowned() == false)
+				if (!(___pawn is Zombie zombie) || zombie.IsDowned() == false)
 					return;
 				var vec = ___pawn.pather.Destination.Cell - ___pawn.Position;
 				var pos = ___pawn.DrawPos;
@@ -2429,8 +2405,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(PawnRenderer __instance, Vector3 drawLoc, RotDrawMode bodyDrawType)
 			{
-				var zombie = __instance.graphics.pawn as Zombie;
-				if (zombie == null) return true;
+				if (!(__instance.graphics.pawn is Zombie zombie)) return true;
 
 				if (zombie.needsGraphics)
 				{
@@ -2474,8 +2449,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static void Postfix(PawnRenderer __instance, Vector3 drawLoc)
 			{
-				var zombie = __instance.graphics.pawn as Zombie;
-				if (zombie == null || zombie.isAlbino == false || zombie.scream < 0) return;
+				if (!(__instance.graphics.pawn is Zombie zombie) || zombie.isAlbino == false || zombie.scream < 0) return;
 
 				var center = drawLoc + new Vector3(0, 0.1f, 0.25f);
 
@@ -2503,8 +2477,7 @@ namespace ZombieLand
 			// we don't use a postfix so that someone that patches and skips RenderPawnAt will also skip RenderExtras 
 			static void RenderExtras(PawnRenderer renderer, Vector3 drawLoc)
 			{
-				var zombie = renderer.graphics.pawn as Zombie;
-				if (zombie == null) return;
+				if (!(renderer.graphics.pawn is Zombie zombie)) return;
 				if (zombie.state == ZombieState.Emerging || zombie.GetPosture() != PawnPosture.Standing) return;
 
 				// general zombie drawing
@@ -2725,8 +2698,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.Last)]
 			static void Postfix(PawnGraphicSet __instance)
 			{
-				var zombie = __instance.pawn as Zombie;
-				if (zombie == null) return;
+				if (!(__instance.pawn is Zombie zombie)) return;
 
 				if (zombie.IsSuicideBomber)
 				{
@@ -2774,8 +2746,7 @@ namespace ZombieLand
 			static int ModifyTicks(float seconds, Verb verb)
 			{
 				var ticks = seconds.SecondsToTicks();
-				var zombie = verb?.caster as Zombie;
-				if (zombie != null && (zombie.raging > 0 || zombie.wasMapPawnBefore))
+				if (verb?.caster is Zombie zombie && (zombie.raging > 0 || zombie.wasMapPawnBefore))
 				{
 					var grid = zombie.Map.GetGrid();
 					var count = grid.GetZombieCount(zombie.Position);
@@ -2815,8 +2786,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Thing thing, StatDef stat, ref float __result)
 			{
-				var zombie = thing as Zombie;
-				if (zombie == null) return true;
+				if (!(thing is Zombie zombie)) return true;
 
 				if (stat == StatDefOf.PainShockThreshold)
 				{
@@ -2970,8 +2940,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Pawn attacker, ref float __result)
 			{
-				var zombie = attacker as Zombie;
-				if (zombie == null) return;
+				if (!(attacker is Zombie zombie)) return;
 
 				if (zombie.hasTankyShield > 0f || zombie.hasTankyHelmet > 0f || zombie.hasTankySuit > 0f)
 				{
@@ -3085,8 +3054,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Hediff_Injury hd, ref bool __result)
 			{
-				var zombieBite = hd as Hediff_Injury_ZombieBite;
-				if (zombieBite != null && zombieBite.pawn.RaceProps.Humanlike)
+				if (hd is Hediff_Injury_ZombieBite zombieBite && zombieBite.pawn.RaceProps.Humanlike && zombieBite.pawn.RaceProps.IsFlesh && AlienTools.IsFleshPawn(zombieBite.pawn))
 				{
 					var tendDuration = zombieBite.TendDuration;
 					if (tendDuration != null)
@@ -3143,8 +3111,7 @@ namespace ZombieLand
 					return;
 				}
 
-				var zombieBite = __instance as Hediff_Injury_ZombieBite;
-				if (zombieBite != null && zombieBite.pawn.RaceProps.Humanlike)
+				if (__instance is Hediff_Injury_ZombieBite zombieBite && zombieBite.pawn.RaceProps.Humanlike && zombieBite.pawn.RaceProps.IsFlesh && AlienTools.IsFleshPawn(zombieBite.pawn))
 				{
 					var tendDuration = zombieBite.TendDuration;
 					if (tendDuration != null)
@@ -3168,8 +3135,7 @@ namespace ZombieLand
 				if (__result == false)
 					return;
 
-				var zombie = __instance.parent as Zombie;
-				if (zombie != null && ZombieSettings.Values.zombiesBurnLonger && Rand.Chance(0.2f))
+				if (__instance.parent is Zombie zombie && ZombieSettings.Values.zombiesBurnLonger && Rand.Chance(0.2f))
 					__result = false;
 			}
 		}
@@ -3186,8 +3152,7 @@ namespace ZombieLand
 				if (ZombieSettings.Values.zombiesBurnLonger == false)
 					return num;
 
-				var zombie = pawn as Zombie;
-				if (zombie == null)
+				if (!(pawn is Zombie zombie))
 					return num;
 
 				return Math.Max(2, num / 2);
@@ -3263,8 +3228,7 @@ namespace ZombieLand
 		{
 			static bool Prefix(DamageWorker.DamageResult __instance)
 			{
-				var zombie = __instance.hitThing as Zombie;
-				return zombie == null;
+				return !(__instance.hitThing is Zombie zombie);
 			}
 		}
 
@@ -3293,8 +3257,7 @@ namespace ZombieLand
 		{
 			static bool Prefix(DamageInfo dinfo, Pawn pawn)
 			{
-				var zombie = pawn as Zombie;
-				if (zombie == null)
+				if (!(pawn is Zombie zombie))
 					return true;
 
 				if ((zombie.isElectrifier == false) || zombie.IsDowned())
@@ -3345,8 +3308,7 @@ namespace ZombieLand
 				deflectedByMetalArmor = false;
 				diminishedByMetalArmor = false;
 
-				var zombie = pawn as Zombie;
-				if (zombie == null)
+				if (!(pawn is Zombie zombie))
 					return true;
 
 				var penetration = Math.Max(armorPenetration - 0.25f, 0f);
@@ -3414,7 +3376,8 @@ namespace ZombieLand
 						&& originalDinfo.Instigator.Destroyed == false);
 
 				dinfo.SetAmount(dmgAmount);
-				originalDinfo = __result = dinfo;
+				originalDinfo = dinfo;
+				__result = dinfo;
 				shieldAbsorbed = deflect || diminish;
 
 				return false;
@@ -3436,7 +3399,7 @@ namespace ZombieLand
 				}
 
 				var prefix = new HarmonyMethod(typeof(ArmorUtility_GetPostArmorDamage_Patch).GetMethod(nameof(GetAfterArmorDamagePrefix), AccessTools.all));
-				harmony.Patch(m_GetAfterArmorDamage, prefix);
+				_ = harmony.Patch(m_GetAfterArmorDamage, prefix);
 			}
 		}
 
@@ -3470,8 +3433,7 @@ namespace ZombieLand
 				if (__result == false || castTarg == null || castTarg.HasThing == false || __instance.caster is Zombie)
 					return;
 
-				var zombie = castTarg.Thing as Zombie;
-				if (zombie == null)
+				if (!(castTarg.Thing is Zombie zombie))
 					return;
 
 				var dist = __instance.caster.Position.DistanceToSquared(zombie.Position);
@@ -3508,8 +3470,7 @@ namespace ZombieLand
 			static void Prefix(Pawn __instance)
 			{
 				// remove current job of zombie immediately when killed
-				var zombie = __instance as Zombie;
-				if (zombie != null)
+				if (__instance is Zombie zombie)
 				{
 					if (zombie.jobs != null && zombie.CurJob != null)
 						zombie.jobs.EndCurrentJob(JobCondition.InterruptForced, false);
@@ -3536,8 +3497,7 @@ namespace ZombieLand
 			static void Postfix(Pawn pawn, bool __result)
 			{
 				if (__result == false) return;
-				var zombie = pawn as Zombie;
-				if (zombie != null && zombie.Spawned && zombie.Dead == false && zombie.raging == 0 && zombie.wasMapPawnBefore == false)
+				if (pawn is Zombie zombie && zombie.Spawned && zombie.Dead == false && zombie.raging == 0 && zombie.wasMapPawnBefore == false)
 					zombie.state = ZombieState.ShouldDie;
 			}
 		}
@@ -3706,8 +3666,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn pawn, ref Color __result)
 			{
-				var zombie = pawn as Zombie;
-				if (zombie != null && zombie.wasMapPawnBefore)
+				if (pawn is Zombie zombie && zombie.wasMapPawnBefore)
 				{
 					__result = zombieLabelColor;
 					return false;
@@ -3725,8 +3684,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Thing t, ref bool __result)
 			{
-				var zombie = t as Zombie;
-				if (zombie != null && zombie.wasMapPawnBefore)
+				if (t is Zombie zombie && zombie.wasMapPawnBefore)
 				{
 					__result = true;
 					return false;
@@ -3948,8 +3906,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Thing launcher, Vector3 origin, LocalTargetInfo usedTarget)
 			{
-				var pawn = launcher as Pawn;
-				if (pawn == null || pawn.Map == null) return;
+				if (!(launcher is Pawn pawn) || pawn.Map == null) return;
 
 				var noiseScale = 1f;
 				if (pawn.equipment?.PrimaryEq?.PrimaryVerb?.verbProps != null)
@@ -3973,8 +3930,7 @@ namespace ZombieLand
 
 			static void PostfixCombatExtended(Thing launcher, Vector2 origin, float shotAngle, float shotHeight, float shotSpeed)
 			{
-				var pawn = launcher as Pawn;
-				if (pawn == null) return;
+				if (!(launcher is Pawn pawn)) return;
 
 				var noiseScale = 1f;
 				if (pawn.equipment.PrimaryEq != null)
@@ -4090,8 +4046,7 @@ namespace ZombieLand
 		{
 			static bool SkipDropBlood(Pawn pawn)
 			{
-				var zombie = pawn as Zombie;
-				if (zombie == null) return false;
+				if (!(pawn is Zombie zombie)) return false;
 				if (ZombieSettings.Values.zombiesDropBlood == false) return true;
 				if (zombie.hasTankyShield > 0 || zombie.hasTankySuit > 0) return true;
 				return false;

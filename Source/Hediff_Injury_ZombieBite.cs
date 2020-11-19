@@ -126,7 +126,7 @@ namespace ZombieLand
 
 		public override void Heal(float amount)
 		{
-			if (pawn.RaceProps.Humanlike)
+			if (pawn.RaceProps.Humanlike && pawn.RaceProps.IsFlesh && AlienTools.IsFleshPawn(pawn))
 			{
 				var tendDuration = TendDuration;
 				if (tendDuration != null)

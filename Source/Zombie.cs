@@ -187,7 +187,6 @@ namespace ZombieLand
 			GC.SuppressFinalize(this);
 		}
 
-#pragma warning disable CA1063
 		void Dispose(bool disposing)
 		{
 			_ = disposing;
@@ -202,7 +201,6 @@ namespace ZombieLand
 			naked?.Dispose();
 			Drawer.renderer.graphics.nakedGraphic = null;
 		}
-#pragma warning restore CA1063
 
 		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)
 		{
@@ -386,8 +384,7 @@ namespace ZombieLand
 		{
 			var result = Quaternion.AngleAxis(angle, axis);
 
-			var zombie = pawn as Zombie;
-			if (zombie == null)
+			if (!(pawn is Zombie zombie))
 				return result;
 
 			var progress = zombie.rubbleCounter / (float)Constants.RUBBLE_AMOUNT;

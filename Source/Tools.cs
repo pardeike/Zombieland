@@ -160,9 +160,19 @@ namespace ZombieLand
 		}
 
 		public static int StoryTellerDifficulty = 0;
+
+		public static int GetDifficulty(this DifficultyDef def)
+		{
+#if RW11
+			return def.difficulty;
+#else
+			return (int)def.threatScale;
+#endif
+		}
+
 		public static void UpdateStoryTellerDifficulty()
 		{
-			StoryTellerDifficulty = Boxed(Find.Storyteller.difficulty.difficulty, 0, 5);
+			StoryTellerDifficulty = Find.Storyteller.difficulty.GetDifficulty();
 		}
 
 		public static int PheromoneFadeoff()
@@ -382,7 +392,7 @@ namespace ZombieLand
 		public static void ConvertToZombie(ThingWithComps thing, bool force = false)
 		{
 			var pawn = thing is Corpse corpse ? corpse.InnerPawn : thing as Pawn;
-			if (pawn == null || pawn.RaceProps.Humanlike == false)
+			if (pawn == null || pawn.RaceProps.Humanlike == false || pawn.RaceProps.IsFlesh == false || AlienTools.IsFleshPawn(pawn) == false)
 				return;
 
 			var pawnName = pawn.Name;
@@ -567,6 +577,8 @@ namespace ZombieLand
 		public static bool HasInfectionState(Pawn pawn, InfectionState state)
 		{
 			if (pawn.RaceProps.Humanlike == false) return false;
+			if (pawn.RaceProps.IsFlesh == false) return false;
+			if (AlienTools.IsFleshPawn(pawn) == false) return false;
 
 			return pawn.health.hediffSet
 						.GetHediffs<Hediff_Injury_ZombieBite>()
@@ -738,8 +750,7 @@ namespace ZombieLand
 		{
 			int dangerPoints(Building building)
 			{
-				var turretGun = building as Building_TurretGun;
-				if (turretGun != null)
+				if (building is Building_TurretGun turretGun)
 				{
 					if (turretGun.Active) return 200;
 					var powerComp = Tools.powerComp(turretGun);
@@ -939,8 +950,8 @@ namespace ZombieLand
 				var labels = new List<Label>();
 				foreach (var cond in condition)
 				{
-					if (cond.operand is Label)
-						labels.Add((Label)cond.operand);
+					if (cond.operand is Label label)
+						labels.Add(label);
 				}
 
 				var instructions = new List<CodeInstruction>();

@@ -269,13 +269,13 @@ namespace ZombieLand
 				return false;
 			}
 
-			var eatTargetAlive = driver.eatTarget is Pawn && ((Pawn)driver.eatTarget).Dead == false;
+			var eatTargetAlive = driver.eatTarget is Pawn eatTarget1 && eatTarget1.Dead == false;
 			var hediff_MissingPart = (Hediff_MissingPart)HediffMaker.MakeHediff(HediffDefOf.MissingBodyPart, eatTargetPawn, bodyPartRecord);
 			hediff_MissingPart.lastInjury = HediffDefOf.Bite;
 			hediff_MissingPart.IsFresh = true;
 			eatTargetPawn.health.AddHediff(hediff_MissingPart, null, null);
 
-			var eatTargetStillAlive = driver.eatTarget is Pawn && ((Pawn)driver.eatTarget).Dead == false;
+			var eatTargetStillAlive = driver.eatTarget is Pawn eatTarget2 && eatTarget2.Dead == false;
 			if (eatTargetAlive && eatTargetStillAlive == false)
 			{
 				if (PawnUtility.ShouldSendNotificationAbout(eatTargetPawn) && eatTargetPawn.RaceProps.Humanlike)
@@ -616,13 +616,13 @@ namespace ZombieLand
 
 					if (twc is Pawn p && ZombieSettings.Values.zombiesEatDowned)
 					{
-						if (p.Spawned && p.RaceProps.IsFlesh && (p.IsDowned() || p.Dead))
+						if (p.Spawned && p.RaceProps.IsFlesh && AlienTools.IsFleshPawn(p) && (p.IsDowned() || p.Dead))
 							return p;
 					}
 
 					if (twc is Corpse c && ZombieSettings.Values.zombiesEatCorpses)
 					{
-						if (c.Spawned && c.InnerPawn != null && c.InnerPawn.RaceProps.IsFlesh)
+						if (c.Spawned && c.InnerPawn != null && c.InnerPawn.RaceProps.IsFlesh && AlienTools.IsFleshPawn(c.InnerPawn))
 							return c;
 					}
 				}
@@ -658,7 +658,7 @@ namespace ZombieLand
 						return target;
 				}
 
-				if (mode == AttackMode.OnlyHumans && target.RaceProps.Humanlike)
+				if (mode == AttackMode.OnlyHumans && target.RaceProps.Humanlike && target.RaceProps.IsFlesh && AlienTools.IsFleshPawn(target))
 					return target;
 
 				if (mode == AttackMode.OnlyColonists && target.IsColonist)
@@ -721,8 +721,7 @@ namespace ZombieLand
 
 					foreach (var thing in grid.ThingsListAtFast(pos))
 					{
-						var building = thing as Building;
-						if (building == null || (building as Mineable) != null)
+						if (!(thing is Building building) || (building as Mineable) != null)
 							continue;
 
 						var buildingDef = building.def;
