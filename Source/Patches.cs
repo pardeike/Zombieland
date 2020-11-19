@@ -3397,8 +3397,9 @@ namespace ZombieLand
 				return skip == false;
 			}
 
-			static bool GetAfterArmorDamagePrefix(ref DamageInfo originalDinfo, Pawn pawn, BodyPartRecord hitPart, out bool shieldAbsorbed)
+			static bool GetAfterArmorDamagePrefix(ref DamageInfo originalDinfo, Pawn pawn, BodyPartRecord hitPart, out bool shieldAbsorbed, ref DamageInfo __result)
 			{
+				__result = originalDinfo;
 				var dinfo = new DamageInfo(originalDinfo);
 				var dmgAmount = dinfo.Amount;
 
@@ -3413,7 +3414,7 @@ namespace ZombieLand
 						&& originalDinfo.Instigator.Destroyed == false);
 
 				dinfo.SetAmount(dmgAmount);
-				originalDinfo = dinfo;
+				originalDinfo = __result = dinfo;
 				shieldAbsorbed = deflect || diminish;
 
 				return false;
@@ -3434,10 +3435,8 @@ namespace ZombieLand
 					return;
 				}
 
-				var damageInfo = new DamageInfo();
-				var someBool = false;
-				var prefix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => GetAfterArmorDamagePrefix(ref damageInfo, null, null, out someBool)));
-				_ = harmony.Patch(m_GetAfterArmorDamage, prefix);
+				var prefix = new HarmonyMethod(typeof(ArmorUtility_GetPostArmorDamage_Patch).GetMethod(nameof(GetAfterArmorDamagePrefix), AccessTools.all));
+				harmony.Patch(m_GetAfterArmorDamage, prefix);
 			}
 		}
 
