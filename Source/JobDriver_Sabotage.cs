@@ -281,7 +281,7 @@ namespace ZombieLand
 				var d = 1 + (int)(zombie.scream * 12f / 401);
 				var dist = d * d;
 				var stunTicks = 60 * (14 - d);
-				zombie.Map.mapPawns.AllPawns.DoIf(
+				zombie.Map.mapPawns.AllPawns.ToArray().DoIf(
 					pawn => (pawn is Zombie) == false
 						&& pawn.RaceProps.Humanlike
 						&& pawn.RaceProps.IsFlesh

@@ -220,20 +220,29 @@ namespace ZombieLand
 				watch.Reset();
 				watch.Start();
 				manager.DoSingleTick();
-				var maxTick = 2 * watch.ElapsedTicks;
 
-				var tickManager = Find.CurrentMap?.GetComponent<TickManager>();
-				var zombieTicker = tickManager?.ZombieTicking();
-				if (zombieTicker != null)
+				var currentMap = Find.CurrentMap;
+				var zombiesTicked = 0;
+				var totalTicking = 0;
+				foreach (var map in Find.Maps)
 				{
-					tickManager.zombiesTicked = 0;
+					var tickManager = map?.GetComponent<TickManager>();
+					var zombieTicker = tickManager?.ZombieTicking();
+					if (zombieTicker != null)
+					{
+						tickManager.zombiesTicked = 0;
 
-					watch.Reset();
-					watch.Start();
-					while (zombieTicker.MoveNext() && watch.ElapsedTicks < maxTick) ;
+						watch.Reset();
+						watch.Start();
 
-					percentZombiesTicked = tickManager.zombiesTicked == 0 || tickManager.totalTicking == 0 ? 1f : (float)tickManager.zombiesTicked / tickManager.totalTicking;
+						var maxTick = watch.ElapsedTicks * (map == currentMap ? 2 : 1);
+						while (zombieTicker.MoveNext() && watch.ElapsedTicks < maxTick) ;
+
+						zombiesTicked += tickManager.zombiesTicked;
+						totalTicking = tickManager.totalTicking;
+					}
 				}
+				percentZombiesTicked = zombiesTicked == 0 || totalTicking == 0 ? 1f : (float)zombiesTicked / totalTicking;
 			}
 
 			static void TickZombieWanderer()
@@ -2866,6 +2875,16 @@ namespace ZombieLand
 				if (stat == StatDefOf.MoveSpeed)
 				{
 					var tm = Find.TickManager;
+					var multiplier = (float)(tm.CurTimeSpeed) / Verse_TickManager_TickManagerUpdate_Patch.percentZombiesTicked;
+					if (Constants.USE_ADAPTIVE_TICKING == false)
+					{
+						// instead of ticking zombies as often as everything else, we tick
+						// them at 1x speed and make them faster instead. Not perfect but
+						// a very good workaround for good game speed
+						//
+						multiplier = tm.TickRateMultiplier;
+						if (multiplier > 1f) multiplier = 1f + (multiplier - 1f) / 5f;
+					}
 
 					if (zombie.IsDowned())
 					{
@@ -2875,7 +2894,7 @@ namespace ZombieLand
 
 					if (zombie.IsTanky)
 					{
-						__result = 0.002f * tm.TickRateMultiplier;
+						__result = 0.004f * multiplier * tm.TickRateMultiplier;
 						return false;
 					}
 
@@ -2894,23 +2913,12 @@ namespace ZombieLand
 					else if (bodyType == BodyTypeDefOf.Fat)
 						factor = 0.1f;
 
-					// instead of ticking them with the game speed multiplier, we
-					//
-					var multiplier = (float)(tm.CurTimeSpeed) / Verse_TickManager_TickManagerUpdate_Patch.percentZombiesTicked;
-					if (Constants.USE_ADAPTIVE_TICKING == false)
-					{
-						// instead of ticking zombies as often as everything else, we tick
-						// them at 1x speed and make them faster instead. Not perfect but
-						// a very good workaround for good game speed
-						//
-						multiplier = tm.TickRateMultiplier;
-						if (multiplier > 1f) multiplier = 1f + (multiplier - 1f) / 5f;
-					}
 					__result = 1.5f * speed * factor * multiplier;
 					if (zombie.wasMapPawnBefore)
 						__result *= 2f;
 					if (zombie.isAlbino)
 						__result *= 5f;
+
 					return false;
 				}
 
