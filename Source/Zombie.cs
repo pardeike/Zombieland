@@ -192,11 +192,34 @@ namespace ZombieLand
 			_ = disposing;
 			if (disposed) return;
 			disposed = true;
+			CleanupZombie();
+		}
 
+		void CleanupZombie()
+		{
+			// log
+			Find.BattleLog.Battles.Do(battle => battle.Entries.RemoveAll(entry => entry.Concerns(this)));
+
+			// tales
+			_ = Find.TaleManager.AllTalesListForReading.RemoveAll(tale =>
+			{
+				var singlePawnTale = tale as Tale_SinglePawn;
+				if (singlePawnTale?.pawnData?.pawn == this) return true;
+				var doublePawnTale = tale as Tale_DoublePawn;
+				if (doublePawnTale?.firstPawnData?.pawn == this) return true;
+				if (doublePawnTale?.secondPawnData?.pawn == this) return true;
+				return false;
+			});
+
+			// worldpawns
+			var worldPawns = Find.WorldPawns;
+			if (worldPawns.Contains(this))
+				worldPawns.RemovePawn(this);
+
+			// graphics
 			var head = Drawer.renderer.graphics.headGraphic as VariableGraphic;
 			head?.Dispose();
 			Drawer.renderer.graphics.headGraphic = null;
-
 			var naked = Drawer.renderer.graphics.nakedGraphic as VariableGraphic;
 			naked?.Dispose();
 			Drawer.renderer.graphics.nakedGraphic = null;

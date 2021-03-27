@@ -19,7 +19,7 @@ namespace ZombieLand
 
 			_ = Find.BattleLog.Battles.RemoveAll(battle =>
 			{
-				_ = battle.Entries.RemoveAll(entry => Traverse.Create(entry).Field("damageDef").GetValue<DamageDef>().IsZombieDef());
+				_ = battle.Entries.RemoveAll(entry => entry.GetConcerns().Any(th => th is Zombie));
 				return Traverse.Create(battle).Field("concerns").GetValue<HashSet<Pawn>>().Any(RemoveItem);
 			});
 			_ = Find.TaleManager.AllTalesListForReading.RemoveAll(tale =>

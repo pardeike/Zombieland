@@ -165,6 +165,7 @@ namespace ZombieLand
 
 		public IEnumerator ZombieTicking()
 		{
+			zombiesTicked = 0;
 			if (Find.TickManager.TickRateMultiplier == 0f) yield break;
 			var speed = (int)Find.TickManager.CurTimeSpeed;
 			if (speed > 0)
@@ -331,23 +332,23 @@ namespace ZombieLand
 					switch (ZombieSettings.Values.spawnHowType)
 					{
 						case SpawnHowType.AllOverTheMap:
-						{
-							var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4);
-							if (cell.IsValid)
-								ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
-							return;
-						}
+							{
+								var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4);
+								if (cell.IsValid)
+									ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
+								return;
+							}
 						case SpawnHowType.FromTheEdges:
-						{
-							if (CellFinder.TryFindRandomEdgeCellWith(Tools.ZombieSpawnLocator(map), map, CellFinder.EdgeRoadChance_Neutral, out var cell))
-								ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
-							return;
-						}
+							{
+								if (CellFinder.TryFindRandomEdgeCellWith(Tools.ZombieSpawnLocator(map), map, CellFinder.EdgeRoadChance_Neutral, out var cell))
+									ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
+								return;
+							}
 						default:
-						{
-							Log.Error("Unknown spawn type " + ZombieSettings.Values.spawnHowType);
-							return;
-						}
+							{
+								Log.Error("Unknown spawn type " + ZombieSettings.Values.spawnHowType);
+								return;
+							}
 					}
 				}
 			}

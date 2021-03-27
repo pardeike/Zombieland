@@ -165,6 +165,8 @@ namespace ZombieLand
 		[HarmonyPatch("DoDate")]
 		class GlobalControlsUtility_DoDate_Patch
 		{
+			static Color percentageBackground = new Color(1, 1, 1, 0.1f);
+
 			static void Postfix(float leftX, float width, ref float curBaseY)
 			{
 				var map = Find.CurrentMap;
@@ -182,15 +184,16 @@ namespace ZombieLand
 				var len = Text.CalcSize(zombieCountString);
 				zlRect.xMin = zlRect.xMax - Math.Min(leftX, len.x + rightMargin);
 
-				if (Mouse.IsOver(zlRect))
-				{
-					Widgets.DrawHighlight(zlRect);
-				}
-
 				GUI.BeginGroup(zlRect);
 				Text.Anchor = TextAnchor.UpperRight;
 				var rect = zlRect.AtZero();
 				rect.xMax -= rightMargin;
+				var percentRect = rect;
+				percentRect.width *= Verse_TickManager_TickManagerUpdate_Patch.percentZombiesTicked;
+				percentRect.xMin -= 2;
+				percentRect.xMax += 2;
+				percentRect.yMax -= 3;
+				Widgets.DrawRectFast(percentRect, percentageBackground);
 				Widgets.Label(rect, zombieCountString);
 				Text.Anchor = TextAnchor.UpperLeft;
 				GUI.EndGroup();
@@ -220,26 +223,28 @@ namespace ZombieLand
 				watch.Reset();
 				watch.Start();
 				manager.DoSingleTick();
+				var singleTickDuration = watch.ElapsedTicks;
 
 				var currentMap = Find.CurrentMap;
 				var zombiesTicked = 0;
 				var totalTicking = 0;
 				foreach (var map in Find.Maps)
 				{
+					var maxTick = singleTickDuration * (map == currentMap ? 2 : 1);
+
 					var tickManager = map?.GetComponent<TickManager>();
 					var zombieTicker = tickManager?.ZombieTicking();
 					if (zombieTicker != null)
 					{
-						tickManager.zombiesTicked = 0;
-
 						watch.Reset();
 						watch.Start();
-
-						var maxTick = watch.ElapsedTicks * (map == currentMap ? 2 : 1);
 						while (zombieTicker.MoveNext() && watch.ElapsedTicks < maxTick) ;
 
-						zombiesTicked += tickManager.zombiesTicked;
-						totalTicking = tickManager.totalTicking;
+						if (tickManager.totalTicking > 0)
+						{
+							zombiesTicked += tickManager.zombiesTicked;
+							totalTicking = tickManager.totalTicking;
+						}
 					}
 				}
 				percentZombiesTicked = zombiesTicked == 0 || totalTicking == 0 ? 1f : (float)zombiesTicked / totalTicking;
@@ -302,17 +307,15 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to have zombies not enter dead world pawn list or being mothballed
-		// TODO: needs work because it breaks other things
-		/*
-		[HarmonyPatch(typeof(WorldPawns))]
+		// patch to have zombies not being mothballed
+		//
+		[HarmonyPatch(typeof(RimWorld.Planet.WorldPawns))]
 		[HarmonyPatch("ShouldMothball")]
 		static class WorldPawns_ShouldMothball_Patch
 		{
 			static bool Prefix(Pawn p, ref bool __result)
 			{
-				var zombie = p as Zombie;
-				if (zombie != null)
+				if (p is Zombie zombie)
 				{
 					__result = false;
 					return false;
@@ -320,28 +323,6 @@ namespace ZombieLand
 				return true;
 			}
 		}
-		[HarmonyPatch(typeof(WorldPawns))]
-		[HarmonyPatch(nameof(WorldPawns.PassToWorld))]
-		static class WorldPawns_PassToWorld_Patch
-		{
-			static void Prefix(Pawn pawn, ref PawnDiscardDecideMode discardMode)
-			{
-				var zombie = pawn as Zombie;
-				if (zombie != null && discardMode != PawnDiscardDecideMode.Discard)
-					discardMode = PawnDiscardDecideMode.Discard;
-			}
-		}
-		[HarmonyPatch(typeof(WorldPawns))]
-		[HarmonyPatch(nameof(WorldPawns.Notify_PawnDestroyed))]
-		static class WorldPawns_Notify_PawnDestroyed_Patch
-		{
-			static bool Prefix(Pawn p)
-			{
-				var zombie = p as Zombie;
-				return (zombie == null);
-			}
-		}
-		*/
 
 		// patch to control if raiders and animals see zombies as hostile
 		//
