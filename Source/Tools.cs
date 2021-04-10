@@ -9,6 +9,7 @@ using System.Reflection.Emit;
 using System.Xml;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 using Verse.Sound;
 using static HarmonyLib.AccessTools;
 
@@ -26,7 +27,7 @@ namespace ZombieLand
 	{
 		protected override bool ApplyWorker(XmlDocument xml)
 		{
-			return AccessTools.TypeByName("CombatExtended.ToolCE") != null;
+			return TypeByName("CombatExtended.ToolCE") != null;
 		}
 	}
 
@@ -159,20 +160,13 @@ namespace ZombieLand
 			return 1000L * GenTicks.TicksAbs;
 		}
 
-		public static int StoryTellerDifficulty = 0;
-
-		public static int GetDifficulty(this DifficultyDef def)
+		public static float Difficulty()
 		{
 #if RW11
-			return def.difficulty;
+			return Find.Storyteller.difficulty.difficulty;
 #else
-			return (int)def.threatScale;
+			return Find.Storyteller.difficultyValues.threatScale;
 #endif
-		}
-
-		public static void UpdateStoryTellerDifficulty()
-		{
-			StoryTellerDifficulty = Find.Storyteller.difficulty.GetDifficulty();
 		}
 
 		public static int PheromoneFadeoff()
@@ -391,8 +385,8 @@ namespace ZombieLand
 		static readonly NameSingle emptyName = new NameSingle("");
 		public static void ConvertToZombie(ThingWithComps thing, bool force = false)
 		{
-			var pawn = thing is Corpse corpse ? corpse.InnerPawn : thing as Pawn;
-			if (pawn == null || pawn.RaceProps.Humanlike == false || pawn.RaceProps.IsFlesh == false || AlienTools.IsFleshPawn(pawn) == false)
+			var pawn = thing is Corpse corpse ? corpse?.InnerPawn : thing as Pawn;
+			if (pawn?.RaceProps == null || pawn.RaceProps.Humanlike == false || pawn.RaceProps.IsFlesh == false || AlienTools.IsFleshPawn(pawn) == false)
 				return;
 
 			var pawnName = pawn.Name;
@@ -400,18 +394,17 @@ namespace ZombieLand
 				return;
 			pawn.Name = emptyName;
 
-			var pos = thing is IThingHolder ? ThingOwnerUtility.GetRootPosition(thing as IThingHolder) : thing.Position;
-			var map = thing is IThingHolder ? ThingOwnerUtility.GetRootMap(thing as IThingHolder) : thing.Map;
-			var tickManager = map.GetComponent<TickManager>();
+			var (pos, map) = thing is IThingHolder thingHolder ? (ThingOwnerUtility.GetRootPosition(thingHolder), ThingOwnerUtility.GetRootMap(thingHolder)) : (thing.Position, thing.Map);
 			var rot = pawn.Rotation;
-			var wasInGround = thing.Map == null;
+			var wasInGround = thing?.Map == null;
 
-			if (map == null && thing.Destroyed == false)
+			if (map == null && thing != null && thing.Destroyed == false)
 			{
 				thing.Destroy();
 				return;
 			}
 
+			var tickManager = map.GetComponent<TickManager>();
 			var it = ZombieGenerator.SpawnZombieIterativ(pos, map, ZombieType.Normal, (Zombie zombie) =>
 			{
 				zombie.Name = pawnName;
@@ -513,11 +506,6 @@ namespace ZombieLand
 		public static bool DoesKillZombies(this Def def)
 		{
 			return def.defName.StartsWith("ZL_KILL", StringComparison.Ordinal);
-		}
-
-		public static bool IsValidSpawnLocation(TargetInfo target)
-		{
-			return IsValidSpawnLocation(target.Cell, target.Map);
 		}
 
 		public static bool IsValidSpawnLocation(IntVec3 cell, Map map)
@@ -701,13 +689,13 @@ namespace ZombieLand
 		public static void AutoExposeDataWithDefaults<T>(this T settings) where T : new()
 		{
 			var defaults = new T();
-			AccessTools.GetFieldNames(settings).Do(name =>
+			GetFieldNames(settings).Do(name =>
 			{
-				var finfo = AccessTools.Field(settings.GetType(), name);
+				var finfo = Field(settings.GetType(), name);
 				var value = finfo.GetValue(settings);
 				var type = value.GetType();
 				var defaultValue = Traverse.Create(defaults).Field(name).GetValue();
-				var m_Look = AccessTools.Method(typeof(Scribe_Values), "Look", null, new Type[] { type });
+				var m_Look = Method(typeof(Scribe_Values), "Look", null, new Type[] { type });
 				var arguments = new object[] { value, name, defaultValue, false };
 				_ = m_Look.Invoke(null, arguments);
 				finfo.SetValue(settings, arguments[0]);
@@ -741,31 +729,51 @@ namespace ZombieLand
 		public static bool IsCombatExtendedInstalled()
 		{
 			if (combatExtendedIsInstalled == 0)
-				combatExtendedIsInstalled = (AccessTools.TypeByName("CombatExtended.Controller") != null) ? 1 : 2;
+				combatExtendedIsInstalled = (TypeByName("CombatExtended.Controller") != null) ? 1 : 2;
 			return combatExtendedIsInstalled == 1;
 		}
 
-		static readonly FieldRef<Building_TurretGun, CompPowerTrader> powerComp = FieldRefAccess<Building_TurretGun, CompPowerTrader>("powerComp");
-		public static int ColonyPoints()
+		/*public static float GetCurrentDifficulty()
 		{
-			int dangerPoints(Building building)
+			float totalThreatPointsFactor = Find.StoryWatcher.watcherAdaptation.TotalThreatPointsFactor;
+			float factor = Mathf.Lerp(1f, totalThreatPointsFactor, Find.Storyteller.difficultyValues.adaptationEffectFactor);
+			return Mathf.Clamp(factor * Find.Storyteller.difficultyValues.threatScale * Find.Storyteller.def.pointsFactorFromDaysPassed.Evaluate(GenDate.DaysPassed), 35f, 10000f);
+		}*/
+
+		static float DPS(IAttackTargetSearcher s)
+		{
+			var verb = s.CurrentEffectiveVerb;
+			if (verb == null) return 0f;
+			var verbProps = verb?.verbProps;
+			var damage = verbProps.defaultProjectile?.projectile.GetDamageAmount(null, null) ?? 0;
+			if (damage == 0) return 0f;
+			var burst = Mathf.Max(1, verbProps.burstShotCount);
+			var interval = Mathf.Max(1, verbProps.AdjustedFullCycleTime(verb, null));
+			return damage * 60f * burst / interval;
+		}
+
+		static readonly FieldRef<Building_TurretGun, CompPowerTrader> powerComp = FieldRefAccess<Building_TurretGun, CompPowerTrader>("powerComp");
+		public static int[] ColonyPoints()
+		{
+			float dangerPoints(Building building)
 			{
 				if (building is Building_TurretGun turretGun)
-				{
-					if (turretGun.Active) return 200;
-					var powerComp = Tools.powerComp(turretGun);
-					if (powerComp != null) return 50;
-					return 5;
-				}
-				return building is Building_Turret ? 20 : 0;
+					return DPS(turretGun) * ((powerComp(turretGun)?.PowerOn ?? false) ? 1 : 0.5f);
+				if (building is Building_Turret turret)
+					return DPS(turret);
+				if (building is IAttackTargetSearcher searcher)
+					return DPS(searcher);
+				if (building.def == ThingDefOf.Wall && building.def.MadeFromStuff)
+					return building.def.GetStatValueAbstract(StatDefOf.MaxHitPoints, building.Stuff) / 500;
+				return building.HitPoints / 100;
 			}
 
 			var map = Find.CurrentMap;
-			if (map == null) return 0;
+			if (map == null) return new int[3];
 			var colonists = map.mapPawns.FreeColonists;
 			ColonyEvaluation.GetColonistArmouryPoints(colonists, map, out var colonistPoints, out var armouryPoints);
 			var turretPoints = map.listerBuildings.allBuildingsColonist.Sum(dangerPoints);
-			return (int)(colonistPoints + armouryPoints + turretPoints);
+			return new int[] { (int)colonistPoints, (int)armouryPoints, (int)turretPoints };
 		}
 
 		public static void ReApplyThingToListerThings(IntVec3 cell, Thing thing)

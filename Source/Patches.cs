@@ -728,7 +728,7 @@ namespace ZombieLand
 			static bool SkipMissingShotsAtZombies(Verb verb, LocalTargetInfo currentTarget)
 			{
 				// difficulty Intense or worse will trigger default behavior
-				if (Tools.StoryTellerDifficulty >= DifficultyDefOf.Rough.GetDifficulty()) return false;
+				if (Tools.Difficulty() >= 1.5f) return false;
 
 				// only for colonists
 				if (!(verb.caster is Pawn colonist) || colonist.Faction != Faction.OfPlayer) return false;
@@ -883,7 +883,7 @@ namespace ZombieLand
 
 				if (success && stuff != null)
 				{
-					var amount = 2f * Find.Storyteller.difficulty.threatScale;
+					var amount = 2f * Tools.Difficulty();
 					var damage = new DamageInfo(DamageDefOf.Deterioration, amount);
 					_ = stuff.TakeDamage(damage);
 
@@ -1513,6 +1513,9 @@ namespace ZombieLand
 		[HarmonyPatch("CurrentDebugString")]
 		static class EditWindow_DebugInspector_CurrentDebugString_Patch
 		{
+			static int[] colonyPoints = new int[3];
+			static int colonyPointsCounter = 0;
+
 			static void DebugGrid(StringBuilder builder)
 			{
 				if (Current.Game == null) return;
@@ -1523,8 +1526,17 @@ namespace ZombieLand
 				var tickManager = map.GetComponent<TickManager>();
 				if (tickManager == null) return;
 
+				if (colonyPointsCounter-- < 0)
+				{
+					colonyPointsCounter = 60;
+					colonyPoints = Tools.ColonyPoints();
+				}
+
 				_ = builder.AppendLine("---");
 				_ = builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
+				_ = builder.AppendLine("Colonist points: " + colonyPoints[0]);
+				_ = builder.AppendLine("Weapon points: " + colonyPoints[1]);
+				_ = builder.AppendLine("Defense points: " + colonyPoints[2]);
 				_ = builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount());
 
 				_ = builder.AppendLine("");
@@ -1939,7 +1951,28 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to allow spawning Zombies with debug tools
+		// patch to allow spawning zombie raids with debug tools
+		//
+		[HarmonyPatch(typeof(IncidentWorker_Raid))]
+		[HarmonyPatch("TryExecuteWorker")]
+		static class IncidentWorker_Raid_TryExecuteWorker_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(ref bool __result, IncidentParms parms)
+			{
+				if (parms?.faction?.def != ZombieDefOf.Zombies)
+					return true;
+
+				var oldMode = ZombieSettings.Values.spawnHowType;
+				ZombieSettings.Values.spawnHowType = parms.raidArrivalMode.walkIn ? SpawnHowType.FromTheEdges : SpawnHowType.AllOverTheMap;
+				_ = ZombiesRising.TryExecute(Find.CurrentMap, Mathf.FloorToInt(parms.points), parms.spawnCenter);
+				ZombieSettings.Values.spawnHowType = oldMode;
+				__result = false;
+				return false;
+			}
+		}
+
+		// patch to allow spawning zombies with debug tools
 		//
 		[HarmonyPatch(typeof(PawnGenerator))]
 		[HarmonyPatch("GenerateNewPawnInternal")]
@@ -2780,7 +2813,12 @@ namespace ZombieLand
 
 				if (stat == StatDefOf.PainShockThreshold)
 				{
-					if (zombie.raging > 0 || zombie.wasMapPawnBefore)
+					if (zombie.wasMapPawnBefore)
+					{
+						__result = 100000f;
+						return false;
+					}
+					if (zombie.raging > 0)
 					{
 						__result = 1000f;
 						return false;
@@ -2813,6 +2851,12 @@ namespace ZombieLand
 
 				if (stat == StatDefOf.MeleeHitChance)
 				{
+					if (zombie.wasMapPawnBefore)
+					{
+						__result = 1f;
+						return false;
+					}
+
 					if (zombie.IsDowned())
 					{
 						__result = 0.1f;
@@ -2837,7 +2881,7 @@ namespace ZombieLand
 						return false;
 					}
 
-					if (zombie.state == ZombieState.Tracking || zombie.raging > 0 || zombie.wasMapPawnBefore)
+					if (zombie.state == ZombieState.Tracking || zombie.raging > 0)
 						__result = Constants.ZOMBIE_HIT_CHANCE_TRACKING;
 					else
 						__result = Constants.ZOMBIE_HIT_CHANCE_IDLE;
@@ -2846,6 +2890,12 @@ namespace ZombieLand
 
 				if (stat == StatDefOf.MeleeDodgeChance)
 				{
+					if (zombie.wasMapPawnBefore)
+					{
+						__result = 0.9f;
+						return false;
+					}
+
 					if (zombie.isAlbino)
 						__result = 0f;
 					else
@@ -3244,12 +3294,23 @@ namespace ZombieLand
 		[HarmonyPatch("ApplyDamageToPart")]
 		public static class DamageWorker_AddInjury_ApplyDamageToPart_Patch
 		{
-			static bool Prefix(DamageInfo dinfo, Pawn pawn)
+			static bool Prefix(ref DamageInfo dinfo, Pawn pawn)
 			{
 				if (!(pawn is Zombie zombie))
 					return true;
 
-				if ((zombie.isElectrifier == false) || zombie.IsDowned())
+				if (zombie.IsDowned())
+					return true;
+
+				if (zombie.wasMapPawnBefore)
+				{
+					dinfo.SetAllowDamagePropagation(false);
+					dinfo.SetInstantPermanentInjury(false);
+					dinfo.SetAmount(dinfo.Amount / 5);
+					return true;
+				}
+
+				if (zombie.isElectrifier == false)
 					return true;
 
 				var def = dinfo.Def;
@@ -3304,11 +3365,11 @@ namespace ZombieLand
 				amount *= (1f + 2 * penetration);
 
 				var skip = false;
-				var difficulty = Tools.StoryTellerDifficulty;
+				var difficulty = Tools.Difficulty();
 
 				if (amount > 0f && zombie.hasTankyShield > 0f)
 				{
-					ApplyDamage(ref zombie.hasTankyShield, ref amount, 1f + difficulty * 150f);
+					ApplyDamage(ref zombie.hasTankyShield, ref amount, 1f + difficulty * 100f);
 					diminishedByMetalArmor |= zombie.hasTankyShield > 0f;
 					__result = -1f;
 					skip = true;
@@ -3328,7 +3389,7 @@ namespace ZombieLand
 
 				if (amount > 0f && zombie.hasTankySuit > 0f)
 				{
-					ApplyDamage(ref zombie.hasTankySuit, ref amount, 1f + difficulty * 100f);
+					ApplyDamage(ref zombie.hasTankySuit, ref amount, 1f + difficulty * 50f);
 					diminishedByMetalArmor |= zombie.hasTankySuit > 0f;
 					__result = -1f;
 					skip = true;
@@ -3341,7 +3402,7 @@ namespace ZombieLand
 				// still a tough zombie even if we hit the body but some armor is left
 				if (amount > 0f && (zombie.hasTankyHelmet > 0f || zombie.hasTankySuit > 0f))
 				{
-					var toughnessLevel = Tools.StoryTellerDifficulty;
+					var toughnessLevel = Tools.Difficulty() / 2;
 					amount = (amount + toughnessLevel) / (toughnessLevel + 1);
 				}
 

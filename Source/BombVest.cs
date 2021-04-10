@@ -3,7 +3,6 @@ using Verse;
 
 namespace ZombieLand
 {
-	[StaticConstructorOnStartup]
 	class Explosion
 	{
 		readonly Map map;
@@ -18,7 +17,7 @@ namespace ZombieLand
 		public void Explode()
 		{
 			var damageDef = new SuicideBombDamage();
-			var radius = 1f + Tools.StoryTellerDifficulty;
+			var radius = 1f + 2f * Tools.Difficulty();
 			GenExplosion.DoExplosion(pos, map, radius, damageDef, null);
 		}
 	}
@@ -27,7 +26,7 @@ namespace ZombieLand
 	{
 		static int ScaledValueBetween(int a, int b)
 		{
-			return (int)GenMath.LerpDouble(0, 5, a, b, Tools.StoryTellerDifficulty);
+			return (int)(a + b * Tools.Difficulty() / 5f);
 		}
 
 		public SuicideBombDamage()

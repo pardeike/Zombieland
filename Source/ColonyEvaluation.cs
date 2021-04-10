@@ -7,8 +7,9 @@ namespace ZombieLand
 	class ColonyEvaluation
 	{
 		const float PreIndustrialWeaponMultiplier = 0.25f;
-		const float PointsPerColonist = 99;
-		const float PointsPer1000ArmouryWealth = 2.5f;
+		const float PointsPerColonist = 150;
+		const float wornArmouryMultiplier = 10;
+		const float armourFactor = 1f / 60;
 
 		static float GetMapArmouryPoints(Map map)
 		{
@@ -85,19 +86,16 @@ namespace ZombieLand
 				battlescore *= colonist.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation); // Multiplied by manipulation, should give 1.0 for normal healthy colonist
 
 				if (battlescore < 0.2f) continue; // This pawn is too useless to be counted
-
 				if (battlescore > 1.0f) battlescore = 1.0f; // To not penalise having bionic limbs.
-				battlescore *= PointsPerColonist;
-
 				colonistPointTally += battlescore;
 
-				armouryWealthTally += GetDudeArmouryPoints(colonist);
+				armouryWealthTally += GetDudeArmouryPoints(colonist) * wornArmouryMultiplier;
 			}
 
 			armouryWealthTally += GetMapArmouryPoints(map);
 
-			armouryPoints = armouryWealthTally / 1000f * PointsPer1000ArmouryWealth;
-			colonistPoints = colonistPointTally;
+			armouryPoints = armouryWealthTally * armourFactor;
+			colonistPoints = colonistPointTally * PointsPerColonist;
 		}
 	}
 }

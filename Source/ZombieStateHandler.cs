@@ -44,7 +44,7 @@ namespace ZombieLand
 			if (zombie.IsSuicideBomber)
 			{
 				if (zombie.bombWillGoOff && zombie.EveryNTick(NthTick.Every10))
-					zombie.bombTickingInterval -= 2f;
+					zombie.bombTickingInterval -= 1f + Tools.Difficulty();
 				if (zombie.bombTickingInterval <= 0f)
 				{
 					zombie.Kill(null);
@@ -429,14 +429,14 @@ namespace ZombieLand
 
 			zombie.rotationTracker.FaceCell(mineable.Position);
 			effecter.Trigger(zombie, mineable);
-			var baseDamage = (int)GenMath.LerpDouble(1, 5, 1, 10, Math.Max(1, Tools.StoryTellerDifficulty));
+			var baseDamage = (int)GenMath.LerpDoubleClamped(0, 5, 1, 10, Tools.Difficulty());
 			var damage = (!mineable.def.building.isNaturalRock) ? baseDamage : baseDamage * 2;
 			if (mineable.HitPoints > damage)
 				_ = mineable.TakeDamage(new DamageInfo(DamageDefOf.Mining, damage));
 			else
 				mineable.Destroy(DestroyMode.KillFinalize);
 
-			zombie.miningCounter = (int)GenMath.LerpDouble(1, 5, 180, 90, Math.Max(1, Tools.StoryTellerDifficulty));
+			zombie.miningCounter = (int)GenMath.LerpDoubleClamped(0, 5, 180, 90, Tools.Difficulty());
 			return true;
 		}
 

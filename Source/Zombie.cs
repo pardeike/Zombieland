@@ -263,7 +263,7 @@ namespace ZombieLand
 			var map = Map;
 			if (map == null) return;
 
-			var amount = 1 + ZombieLand.Tools.StoryTellerDifficulty;
+			var amount = 1 + (int)(ZombieLand.Tools.Difficulty() + 0.5f);
 			if (story.bodyType == BodyTypeDefOf.Thin)
 				amount -= 1;
 			if (story.bodyType == BodyTypeDefOf.Fat)

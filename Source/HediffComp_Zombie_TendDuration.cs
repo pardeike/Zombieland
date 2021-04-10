@@ -85,8 +85,7 @@ namespace ZombieLand
 		public float InfectionProgress()
 		{
 			if (GetInfectionState() != InfectionState.Infecting) return 0f;
-			var progress = GenMath.LerpDouble(ZombieInfector.infectionStartTime, ZombieInfector.infectionEndTime, 0f, 1f, GenTicks.TicksAbs);
-			return Mathf.Clamp01(progress);
+			return GenMath.LerpDoubleClamped(ZombieInfector.infectionStartTime, ZombieInfector.infectionEndTime, 0f, 1f, GenTicks.TicksAbs);
 		}
 
 		public override bool CompShouldRemove

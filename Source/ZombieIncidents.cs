@@ -20,7 +20,6 @@ namespace ZombieLand
 		public int totalColonistCount;
 		public int minimumCapableColonists;
 		public float daysPassed;
-		public int storytellerDifficulty;
 		public int currentZombieCount;
 		public int maxBaseLevelZombies;
 		public int extendedCount;
@@ -88,7 +87,6 @@ namespace ZombieLand
 			parameters.minimumCapableColonists = (parameters.totalColonistCount + 1) / 3;
 			parameters.daysPassed = GenDate.DaysPassedFloat;
 			parameters.spawnMode = ZombieSettings.Values.spawnWhenType.ToString();
-			parameters.storytellerDifficulty = Tools.StoryTellerDifficulty;
 			parameters.currentZombieCount = tickManager.AllZombies().Count();
 			parameters.numberOfZombiesPerColonist = ZombieSettings.Values.baseNumberOfZombiesinEvent;
 			parameters.colonyMultiplier = ZombieSettings.Values.colonyMultiplier;
@@ -98,7 +96,7 @@ namespace ZombieLand
 			parameters.maxAdditionalZombies = 0;
 			parameters.calculatedZombies = 0;
 			parameters.incidentSize = 0;
-			parameters.rampUpDays = GenMath.LerpDouble(1, 5, 40, 0, Math.Max(1, Tools.StoryTellerDifficulty));
+			parameters.rampUpDays = GenMath.LerpDoubleClamped(0, 5, 40, 0, Tools.Difficulty());
 			//parameters.scaleFactor = Tools.Boxed(GenMath.LerpDouble(parameters.daysBeforeZombies, parameters.daysBeforeZombies + parameters.rampUpDays, 0.2f, 1f, GenDate.DaysPassedFloat), 0.2f, 1f);
 			//parameters.daysStretched = 0;
 			parameters.deltaDays = 0;
@@ -125,7 +123,7 @@ namespace ZombieLand
 			}
 
 			// too few capable colonists (only in difficulty lower than Intense)
-			if (parameters.storytellerDifficulty < DifficultyDefOf.Rough.GetDifficulty())
+			if (Tools.Difficulty() < 1.5f)
 			{
 				if (parameters.capableColonists < parameters.minimumCapableColonists)
 				{
@@ -266,7 +264,7 @@ namespace ZombieLand
 				}
 				else
 				{
-					var success = RCellFinder.TryFindRandomPawnEntryCell(out spot, map, 0.5f, true, spotValidator);
+					var success = RCellFinder.TryFindRandomPawnEntryCell(out spot, map, 0.1f, true, spotValidator);
 					if (success == false) spot = IntVec3.Invalid;
 				}
 			}

@@ -18,6 +18,7 @@ namespace ZombieLand
 
 		int visibleGridUpdateCounter;
 		int incidentTickCounter;
+		int colonyPointsTickCounter;
 		int avoidGridCounter;
 
 		public IntVec3 centerOfInterest = IntVec3.Invalid;
@@ -55,10 +56,12 @@ namespace ZombieLand
 		public override void FinalizeInit()
 		{
 			base.FinalizeInit();
-			Tools.UpdateStoryTellerDifficulty();
 
 			var grid = map.GetGrid();
 			grid.IterateCellsQuick(cell => cell.zombieCount = 0);
+
+			colonyPointsTickCounter = -1;
+			RecalculateColonyPoints();
 
 			visibleGridUpdateCounter = -1;
 			RecalculateZombieWanderDestination();
@@ -118,34 +121,37 @@ namespace ZombieLand
 			}
 		}
 
+		public void RecalculateColonyPoints()
+		{
+			if (colonyPointsTickCounter-- >= 0) return;
+			colonyPointsTickCounter = 100;
+
+			currentColonyPoints = Tools.ColonyPoints().Sum();
+		}
+
 		public void RecalculateZombieWanderDestination()
 		{
-			Tools.UpdateStoryTellerDifficulty();
+			if (visibleGridUpdateCounter-- >= 0) return;
+			visibleGridUpdateCounter = Constants.TICKMANAGER_RECALCULATE_DELAY.SecondsToTicks();
 
-			if (visibleGridUpdateCounter-- < 0)
+			allZombiesCached = AllZombies().ToList();
+			var home = map.areaManager.Home;
+			if (home.TrueCount > 0)
 			{
-				visibleGridUpdateCounter = Constants.TICKMANAGER_RECALCULATE_DELAY.SecondsToTicks();
+				var cells = home.ActiveCells.ToArray();
+				var cellCount = cells.Length;
+				allZombiesCached.Do(zombie => zombie.wanderDestination = cells[Constants.random.Next() % cellCount]);
 
-				currentColonyPoints = Tools.ColonyPoints();
-				allZombiesCached = AllZombies().ToList();
-				var home = map.areaManager.Home;
-				if (home.TrueCount > 0)
-				{
-					var cells = home.ActiveCells.ToArray();
-					var cellCount = cells.Length;
-					allZombiesCached.Do(zombie => zombie.wanderDestination = cells[Constants.random.Next() % cellCount]);
-
-					centerOfInterest = new IntVec3(
-						(int)Math.Round(cells.Average(c => c.x)),
-						0,
-						(int)Math.Round(cells.Average(c => c.z))
-					);
-				}
-				else
-				{
-					centerOfInterest = Tools.CenterOfInterest(map);
-					allZombiesCached.Do(zombie => zombie.wanderDestination = centerOfInterest);
-				}
+				centerOfInterest = new IntVec3(
+					(int)Math.Round(cells.Average(c => c.x)),
+					0,
+					(int)Math.Round(cells.Average(c => c.z))
+				);
+			}
+			else
+			{
+				centerOfInterest = Tools.CenterOfInterest(map);
+				allZombiesCached.Do(zombie => zombie.wanderDestination = centerOfInterest);
 			}
 		}
 
@@ -154,11 +160,11 @@ namespace ZombieLand
 			if (map == null || map.mapPawns == null) return 0;
 			if (Constants.DEBUG_MAX_ZOMBIE_COUNT >= 0) return Constants.DEBUG_MAX_ZOMBIE_COUNT;
 			var colonists = Tools.CapableColonists(map);
-			var perColonistZombieCount = GenMath.LerpDouble(0f, 4f, 5, 30, Mathf.Min(4, Mathf.Sqrt(colonists)));
+			var perColonistZombieCount = GenMath.LerpDoubleClamped(0f, 4f, 5, 30, Mathf.Sqrt(colonists));
 			var colonistMultiplier = Mathf.Sqrt(colonists) * 2;
-			var baseStrengthFactor = GenMath.LerpDouble(0, 2000, 1f, 8f, Mathf.Min(1000, currentColonyPoints));
+			var baseStrengthFactor = GenMath.LerpDoubleClamped(0, 40000, 1f, 8f, currentColonyPoints);
 			var colonyMultiplier = ZombieSettings.Values.colonyMultiplier;
-			var difficultyMultiplier = Find.Storyteller.difficulty.threatScale;
+			var difficultyMultiplier = Tools.Difficulty();
 			var count = (int)(perColonistZombieCount * colonistMultiplier * baseStrengthFactor * colonyMultiplier * difficultyMultiplier);
 			return Mathf.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
 		}
@@ -325,7 +331,9 @@ namespace ZombieLand
 
 			if (populationSpawnCounter-- < 0)
 			{
-				populationSpawnCounter = (int)GenMath.LerpDouble(0, 1000, 300, 20, Math.Max(100, Math.Min(1000, currentColonyPoints)));
+				var min = GenMath.LerpDoubleClamped(1.5f, 5, 400, 15, Tools.Difficulty());
+				var max = GenMath.LerpDoubleClamped(1.5f, 5, 15, 2, Tools.Difficulty());
+				populationSpawnCounter = (int)GenMath.LerpDoubleClamped(0, 40000, min, max, currentColonyPoints);
 
 				if (CanHaveMoreZombies())
 				{
@@ -340,7 +348,7 @@ namespace ZombieLand
 							}
 						case SpawnHowType.FromTheEdges:
 							{
-								if (CellFinder.TryFindRandomEdgeCellWith(Tools.ZombieSpawnLocator(map), map, CellFinder.EdgeRoadChance_Neutral, out var cell))
+								if (RCellFinder.TryFindRandomPawnEntryCell(out var cell, map, 0.1f, true, Tools.ZombieSpawnLocator(map)))
 									ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
 								return;
 							}
@@ -418,9 +426,9 @@ namespace ZombieLand
 				yield return null;
 				FetchAvoidGrid();
 				yield return null;
-				RecalculateZombieWanderDestination();
+				RecalculateColonyPoints();
 				yield return null;
-				IncreaseZombiePopulation();
+				RecalculateZombieWanderDestination();
 				yield return null;
 				UpdateZombieAvoider();
 				yield return null;
@@ -472,6 +480,7 @@ namespace ZombieLand
 		public override void MapComponentTick()
 		{
 			_ = taskTicker.MoveNext();
+			IncreaseZombiePopulation();
 		}
 	}
 }
