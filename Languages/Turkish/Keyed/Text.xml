@@ -92,6 +92,7 @@
 	<MinerChance>Madencilik zombiler</MinerChance>
 	<ElectrifierChance>Elektrikli zombiler</ElectrifierChance>
 	<AlbinoChance>Albino zombiler</AlbinoChance>
+	<DarkSlimerChance>Karanlık sümüksü zombiler</DarkSlimerChance>
 	<NormalZombieChance>Sıradan zombiler: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Çeşitli</ZombieMiscTitle>

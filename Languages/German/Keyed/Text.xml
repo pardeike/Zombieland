@@ -92,6 +92,7 @@
 	<MinerChance>Grabende Zombies</MinerChance>
 	<ElectrifierChance>Elektrische Zombies</ElectrifierChance>
 	<AlbinoChance>Albino Zombies</AlbinoChance>
+	<DarkSlimerChance>Dunkle Schleimer zombies</DarkSlimerChance>
 	<NormalZombieChance>Normale Zombies: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>

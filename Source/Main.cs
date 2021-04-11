@@ -35,6 +35,7 @@ namespace ZombieLand
 		public static RecipeDef CureZombieInfection;
 		public static ThingDef Zombie;
 		public static ThingDef Corpse_Zombie;
+		public static ThingDef TarSlime;
 	}
 
 	public class ZombielandMod : Mod

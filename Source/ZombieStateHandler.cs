@@ -577,7 +577,7 @@ namespace ZombieLand
 		static readonly int[] rageLevels = new int[] { 40, 32, 21, 18, 12 };
 		public static void BeginRage(Zombie zombie, PheromoneGrid grid)
 		{
-			if (zombie.IsTanky || zombie.isAlbino) return;
+			if (zombie.IsTanky || zombie.isAlbino || zombie.isDarkSlimer) return;
 
 			if (zombie.raging == 0 && ZombieSettings.Values.ragingZombies)
 			{
@@ -596,7 +596,7 @@ namespace ZombieLand
 			if (zombie.raging == 0)
 				return;
 
-			if (zombie.isAlbino || GenTicks.TicksAbs > zombie.raging || ZombieSettings.Values.ragingZombies == false)
+			if (zombie.isAlbino || zombie.isDarkSlimer || GenTicks.TicksAbs > zombie.raging || ZombieSettings.Values.ragingZombies == false)
 				zombie.raging = 0;
 		}
 

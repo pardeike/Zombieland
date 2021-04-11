@@ -38,6 +38,31 @@
 	</ThingDef>
 
 	<ThingDef ParentName="BaseFilth">
+		<defName>TarSlime</defName>
+		<thingClass>ZombieLand.TarSlime</thingClass>
+		<label>super sticky slime</label>
+		<statBases>
+			<Beauty>-10</Beauty>
+			<Cleanliness>-10</Cleanliness>
+		</statBases>
+		<graphicData>
+			<texPath>Dummy</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
+		<altitudeLayer>FloorEmplacement</altitudeLayer>
+		<pathCost>9999</pathCost>
+		<pathCostIgnoreRepeat>false</pathCostIgnoreRepeat>
+		<size>(1,1)</size>
+		<filth>
+			<cleaningWorkToReduceThickness>4000</cleaningWorkToReduceThickness>
+			<rainWashes>true</rainWashes>
+			<canFilthAttach>false</canFilthAttach>
+			<allowsFire>false</allowsFire>
+			<maxThickness>4</maxThickness>
+		</filth>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseFilth">
 		<defName>StickyGoo</defName>
 		<thingClass>ZombieLand.StickyGoo</thingClass>
 		<label>toxic &amp; sticky zombie goo</label>
@@ -49,10 +74,10 @@
 			<texPath>StickyGoo</texPath>
 			<color>(0, 255, 0, 192)</color>
 		</graphicData>
-		<pathCost>5000</pathCost>
+		<pathCost>10</pathCost>
 		<filth>
-			<rainWashes>true</rainWashes>
 			<cleaningWorkToReduceThickness>250</cleaningWorkToReduceThickness>
+			<rainWashes>true</rainWashes>
 			<canFilthAttach>true</canFilthAttach>
 		</filth>
 	</ThingDef>

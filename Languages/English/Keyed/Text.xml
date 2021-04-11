@@ -96,6 +96,7 @@
 	<MinerChance>Mining zombies</MinerChance>
 	<ElectrifierChance>Electrifying zombies</ElectrifierChance>
 	<AlbinoChance>Albino zombies</AlbinoChance>
+	<DarkSlimerChance>Dark slimer zombies</DarkSlimerChance>
 	<NormalZombieChance>Ordinary zombies: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Miscellaneous</ZombieMiscTitle>

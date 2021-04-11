@@ -70,6 +70,19 @@ namespace ZombieLand
 						var data = GetColoredData(originalPixels, Color.white, width, height);
 						colorDataDatabase.Add(path + "#albino", data);
 					}
+
+					// add dark slimer black
+					{
+						var pixels = originalPixels.Clone() as Color[];
+						for (var i = 0; i < pixels.Length; i++)
+						{
+							pixels[i].r /= 8f;
+							pixels[i].g /= 8f;
+							pixels[i].b /= 8f;
+						}
+						var data = new ColorData(width, height, pixels);
+						colorDataDatabase.Add(path + "#dark", data);
+					}
 				}
 				else
 				{

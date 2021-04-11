@@ -9,6 +9,7 @@ namespace CameraPlusSupport
 		static Color defaultColor = new Color(0.3019608f, 0.215686277f, 0.0431372561f);
 		static Color minerColor = new Color(0.8745098f, 0.5411765f, 0.168627456f);
 		static Color tankyColor = new Color(0.294117659f, 0.294117659f, 0.294117659f);
+		static Color darkColor = new Color(0.1f, 0.1f, 0.1f);
 		static Color bombBlinkColor = new Color(1f, 0f, 0.2901961f);
 		static Color turnedColor = new Color(0.105882354f, 0.403921574f, 0.105882354f);
 		static Color trackColor = new Color(1f, 0.8509804f, 0.8509804f);
@@ -30,6 +31,8 @@ namespace CameraPlusSupport
 				innerColor = Color.cyan;
 			else if (zombie.isAlbino)
 				innerColor = Color.white;
+			else if (zombie.isDarkSlimer)
+				innerColor = darkColor;
 			else if (zombie.isMiner)
 				innerColor = minerColor;
 			else if (zombie.IsTanky)

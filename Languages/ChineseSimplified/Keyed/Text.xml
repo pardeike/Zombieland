@@ -92,6 +92,7 @@
 	<MinerChance>挖掘僵尸</MinerChance>
 	<ElectrifierChance>电动僵尸</ElectrifierChance>
 	<AlbinoChance>白化僵尸</AlbinoChance>
+	<DarkSlimerChance>黑暗黏糊糊的僵尸</DarkSlimerChance>
 	<NormalZombieChance>普通丧尸: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>其他</ZombieMiscTitle>

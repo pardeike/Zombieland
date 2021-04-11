@@ -92,6 +92,7 @@
 	<MinerChance>Zombies miniers</MinerChance>
 	<ElectrifierChance>Zombies électrisants</ElectrifierChance>
 	<AlbinoChance>Zombies albinos</AlbinoChance>
+	<DarkSlimerChance>Zombies gluants sombres</DarkSlimerChance>
 	<NormalZombieChance>Zombies ordinaires: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Divers</ZombieMiscTitle>

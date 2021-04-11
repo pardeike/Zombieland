@@ -260,11 +260,10 @@ namespace ZombieLand
 				dirtyCells = false;
 			}
 
-			var hasRagingZombies = zombies.Any(zombie => zombie.raging > 0);
+			var hasRagingZombies = zombies.Any(zombie => zombie.raging > 0 || zombie.isDarkSlimer);
 			if (hasRagingZombies)
 			{
 				dirtyCells = true;
-				//Log.Warning("recalc 1");
 				var it1 = Recalculate(positions, false);
 				while (it1.MoveNext())
 					yield return null;
@@ -273,7 +272,7 @@ namespace ZombieLand
 			var hasTankyZombies = zombies.Any(zombie => zombie.IsTanky);
 			if (hasTankyZombies)
 			{
-				//Log.Warning("recalc 2");
+				dirtyCells = true;
 				var it2 = Recalculate(positions, true);
 				while (it2.MoveNext())
 					yield return null;

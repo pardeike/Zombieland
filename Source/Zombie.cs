@@ -79,6 +79,9 @@ namespace ZombieLand
 		public bool isAlbino = false;
 		public int scream = -1;
 
+		// dark slimer
+		public bool isDarkSlimer = false;
+
 		// transient vars
 		public bool needsGraphics = false;
 		bool disposed = false;
@@ -155,6 +158,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref isMiner, "isMiner");
 			Scribe_Values.Look(ref isElectrifier, "isElectrifier");
 			Scribe_Values.Look(ref isAlbino, "isAlbino");
+			Scribe_Values.Look(ref isDarkSlimer, "isDarkSlimer");
 			Scribe_Values.Look(ref scream, "scream");
 			Scribe_Values.Look(ref hasTankyShield, "tankyShield");
 			Scribe_Values.Look(ref hasTankyHelmet, "tankyHelmet");

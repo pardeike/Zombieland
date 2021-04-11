@@ -461,6 +461,8 @@ namespace ZombieLand
 										score += 30;
 									if (zombie.IsTanky)
 										score += 20;
+									if (zombie.isDarkSlimer)
+										score += 15;
 									if (zombie.isToxicSplasher)
 										score += 10;
 									if (zombie.story.bodyType == BodyTypeDefOf.Thin)
@@ -1703,7 +1705,8 @@ namespace ZombieLand
 				if (!(__instance is Pawn pawn)) return;
 				var map = pawn.Map;
 				if (map == null) return;
-				if (pawn.Position == value) return;
+				var pos = pawn.Position;
+				if (pos == value) return;
 
 				if (pawn is Zombie zombie)
 				{
@@ -1716,8 +1719,8 @@ namespace ZombieLand
 						var fadeOff = Tools.PheromoneFadeoff();
 						var now = Tools.Ticks();
 						var radius = Constants.TANKY_PHEROMONE_RADIUS;
-						var dx = pawn.Position.x - value.x;
-						var dz = pawn.Position.z - value.z;
+						var dx = pos.x - value.x;
+						var dz = pos.z - value.z;
 						var r2 = radius * radius;
 						Tools.GetCircle(radius).Do(vec =>
 						{
@@ -1741,6 +1744,11 @@ namespace ZombieLand
 							newCell.timestamp = Math.Max(newCell.timestamp, notOlderThan);
 						}
 					}
+
+					// dark slimers leave dark slime behind them
+					//
+					if (zombie.isDarkSlimer)
+						_ = FilthMaker.TryMakeFilth(value, map, ThingDef.Named("TarSlime"), zombie.Name.ToStringShort, 1);
 
 					return;
 				}
@@ -2949,6 +2957,8 @@ namespace ZombieLand
 						__result *= 2f;
 					if (zombie.isAlbino)
 						__result *= 5f;
+					if (zombie.isDarkSlimer)
+						__result /= 1.5f;
 
 					return false;
 				}
@@ -4085,6 +4095,23 @@ namespace ZombieLand
 				var conditions = Tools.NotZombieInstructions(generator, method);
 				var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
 				return transpiler(generator, instructions);
+			}
+		}
+
+		// patch so zombies get less move cost from tar slime
+		//
+		[HarmonyPatch(typeof(Pawn_PathFollower))]
+		[HarmonyPatch("CostToMoveIntoCell")]
+		[HarmonyPatch(new[] { typeof(Pawn), typeof(IntVec3) })]
+		static class Pawn_PathFollower_CostToMoveIntoCell_Patch
+		{
+			static void Postfix(Pawn pawn, IntVec3 c, ref int __result)
+			{
+				if ((pawn is Zombie) == false) return;
+				if (__result < 450) return;
+
+				if (pawn.Map.thingGrid.ThingAt<TarSlime>(c) != null)
+					__result = 100;
 			}
 		}
 

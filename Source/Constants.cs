@@ -37,29 +37,29 @@ namespace ZombieLand
 						switch (constant.FieldType.Name)
 						{
 							case "Boolean":
-							{
-								if (bool.TryParse(value, out var result))
-									constant.SetValue(null, result);
-								else
-									Log.Error("Cannot parse boolean '" + value + "' of constant " + field);
-								break;
-							}
+								{
+									if (bool.TryParse(value, out var result))
+										constant.SetValue(null, result);
+									else
+										Log.Error("Cannot parse boolean '" + value + "' of constant " + field);
+									break;
+								}
 							case "Int32":
-							{
-								if (int.TryParse(value, out var result))
-									constant.SetValue(null, result);
-								else
-									Log.Error("Cannot parse int '" + value + "' of constant " + field);
-								break;
-							}
+								{
+									if (int.TryParse(value, out var result))
+										constant.SetValue(null, result);
+									else
+										Log.Error("Cannot parse int '" + value + "' of constant " + field);
+									break;
+								}
 							case "Single":
-							{
-								if (float.TryParse(value, out var result))
-									constant.SetValue(null, result);
-								else
-									Log.Error("Cannot parse float '" + value + "' of constant " + field);
-								break;
-							}
+								{
+									if (float.TryParse(value, out var result))
+										constant.SetValue(null, result);
+									else
+										Log.Error("Cannot parse float '" + value + "' of constant " + field);
+									break;
+								}
 							default:
 								Log.Error("Zombieland constant '" + field + "' with unknown type " + constant.FieldType.Name);
 								break;
@@ -206,6 +206,48 @@ namespace ZombieLand
 		public static Material BRRAINZ = MaterialPool.MatFrom("Brrainz", ShaderDatabase.Cutout);
 		public static Material EATING = MaterialPool.MatFrom("Eating", ShaderDatabase.Cutout);
 		public static Material HACKING = MaterialPool.MatFrom("Hacking", ShaderDatabase.Cutout);
+		public static Material[][] TARSLIMES = new Material[][] {
+			new Material[] {
+				MaterialPool.MatFrom("TarSlime/TarSlime0", ShaderDatabase.Mote, new Color(1,1,1,0.25f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime1", ShaderDatabase.Mote, new Color(1,1,1,0.25f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime2", ShaderDatabase.Mote, new Color(1,1,1,0.25f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime3", ShaderDatabase.Mote, new Color(1,1,1,0.25f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime4", ShaderDatabase.Mote, new Color(1,1,1,0.25f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime5", ShaderDatabase.Mote, new Color(1,1,1,0.25f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime6", ShaderDatabase.Mote, new Color(1,1,1,0.25f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime7", ShaderDatabase.Mote, new Color(1,1,1,0.25f)),
+			},
+			new Material[] {
+				MaterialPool.MatFrom("TarSlime/TarSlime0", ShaderDatabase.Mote, new Color(1,1,1,0.5f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime1", ShaderDatabase.Mote, new Color(1,1,1,0.5f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime2", ShaderDatabase.Mote, new Color(1,1,1,0.5f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime3", ShaderDatabase.Mote, new Color(1,1,1,0.5f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime4", ShaderDatabase.Mote, new Color(1,1,1,0.5f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime5", ShaderDatabase.Mote, new Color(1,1,1,0.5f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime6", ShaderDatabase.Mote, new Color(1,1,1,0.5f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime7", ShaderDatabase.Mote, new Color(1,1,1,0.5f)),
+			},
+			new Material[] {
+				MaterialPool.MatFrom("TarSlime/TarSlime0", ShaderDatabase.Mote, new Color(1,1,1,0.75f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime1", ShaderDatabase.Mote, new Color(1,1,1,0.75f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime2", ShaderDatabase.Mote, new Color(1,1,1,0.75f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime3", ShaderDatabase.Mote, new Color(1,1,1,0.75f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime4", ShaderDatabase.Mote, new Color(1,1,1,0.75f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime5", ShaderDatabase.Mote, new Color(1,1,1,0.75f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime6", ShaderDatabase.Mote, new Color(1,1,1,0.75f)),
+				MaterialPool.MatFrom("TarSlime/TarSlime7", ShaderDatabase.Mote, new Color(1,1,1,0.75f)),
+			},
+			new Material[] {
+				MaterialPool.MatFrom("TarSlime/TarSlime0", ShaderDatabase.Mote, new Color(1,1,1,1)),
+				MaterialPool.MatFrom("TarSlime/TarSlime1", ShaderDatabase.Mote, new Color(1,1,1,1)),
+				MaterialPool.MatFrom("TarSlime/TarSlime2", ShaderDatabase.Mote, new Color(1,1,1,1)),
+				MaterialPool.MatFrom("TarSlime/TarSlime3", ShaderDatabase.Mote, new Color(1,1,1,1)),
+				MaterialPool.MatFrom("TarSlime/TarSlime4", ShaderDatabase.Mote, new Color(1,1,1,1)),
+				MaterialPool.MatFrom("TarSlime/TarSlime5", ShaderDatabase.Mote, new Color(1,1,1,1)),
+				MaterialPool.MatFrom("TarSlime/TarSlime6", ShaderDatabase.Mote, new Color(1,1,1,1)),
+				MaterialPool.MatFrom("TarSlime/TarSlime7", ShaderDatabase.Mote, new Color(1,1,1,1)),
+			},
+		};
 
 		public static System.Random random = new System.Random();
 

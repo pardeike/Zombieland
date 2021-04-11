@@ -58,7 +58,8 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 
-			_ = colonists.RemoveAll(pair => pair.Key == null || pair.Key.IsColonist == false || pair.Value == null);
+			if (Scribe.mode == LoadSaveMode.Saving)
+				_ = colonists.RemoveAll(pair => pair.Key == null || pair.Key.IsColonist == false || pair.Key.Spawned == false || pair.Value == null);
 
 			Scribe_Collections.Look(ref colonists, "colonists", LookMode.Reference, LookMode.Deep, ref colonistsKeysWorkingList, ref colonistsValuesWorkingList);
 

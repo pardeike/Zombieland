@@ -59,6 +59,7 @@
     <Compile Include="JobGiver.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="SafeReflections.cs" />
+    <Compile Include="TarSlime.cs" />
     <Compile Include="TextureAtlas.cs" />
     <Compile Include="VariableMaterial.cs" />
     <Compile Include="WorkGivers.cs" />

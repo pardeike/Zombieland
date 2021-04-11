@@ -21,7 +21,8 @@ namespace ZombieLand
 		Miner = 3,
 		Electrifier = 4,
 		Albino = 5,
-		Normal = 6
+		DarkSlimer = 6,
+		Normal = 7
 	}
 
 	public static class ZombieBaseValues
@@ -164,6 +165,17 @@ namespace ZombieLand
 				}
 			),
 
+			// dark slimer
+			new Pair<Func<float>, Func<Zombie, BodyTypeDef>>(
+				() => ZombieSettings.Values.darkSlimerChance,
+				zombie =>
+				{
+					zombie.isDarkSlimer = true;
+					zombie.gender = Gender.Male;
+					return BodyTypeDefOf.Fat;
+				}
+			),
+
 			// default ordinary zombie
 			new Pair<Func<float>, Func<Zombie, BodyTypeDef>>(
 				() => 1f
@@ -172,7 +184,8 @@ namespace ZombieLand
 					- ZombieSettings.Values.tankyOperatorChance
 					- ZombieSettings.Values.minerChance
 					- ZombieSettings.Values.electrifierChance
-					- ZombieSettings.Values.albinoChance,
+					- ZombieSettings.Values.albinoChance
+					- ZombieSettings.Values.darkSlimerChance,
 				zombie =>
 				{
 					return SetRandomBody(zombie);
@@ -185,65 +198,6 @@ namespace ZombieLand
 	public static class ZombieGenerator
 	{
 		public static int ZombiesSpawning = 0;
-
-		/*public static Zombie GeneratePawn(ZombieType overwriteType)
-		{
-			var thing = ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null);
-			var zombie = thing as Zombie;
-			if (zombie == null)
-			{
-				Log.Error("ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null) unexpectedly returned " + thing);
-				return null;
-			}
-
-			var bodyType = PrepareZombieType(zombie, overwriteType);
-
-			zombie.kindDef = ZombieDefOf.Zombie;
-			zombie.SetFactionDirect(FactionUtility.DefaultFactionFrom(ZombieDefOf.Zombies));
-
-			PawnComponentsUtility.CreateInitialComponents(zombie);
-			zombie.health.hediffSet.Clear();
-
-			var ageInYears = (long)Rand.Range(14, 130);
-			zombie.ageTracker.AgeBiologicalTicks = (ageInYears * 3600000);
-			zombie.ageTracker.AgeChronologicalTicks = zombie.ageTracker.AgeBiologicalTicks;
-			zombie.ageTracker.BirthAbsTicks = GenTicks.TicksAbs - zombie.ageTracker.AgeBiologicalTicks;
-			var idx = zombie.ageTracker.CurLifeStageIndex; // trigger calculations
-
-			zombie.needs.SetInitialLevels();
-			zombie.needs.mood = new Need_Mood(zombie);
-
-			var name = PawnNameDatabaseSolid.GetListForGender((zombie.gender == Gender.Female) ? GenderPossibility.Female : GenderPossibility.Male).SafeRandomElement();
-			var n1 = name.First.Replace('s', 'z').Replace('S', 'Z');
-			var n2 = name.Last.Replace('s', 'z').Replace('S', 'Z');
-			var n3 = name.Nick.Replace('s', 'z').Replace('S', 'Z');
-			zombie.Name = new NameTriple(n1, n3, n2);
-
-			zombie.story.childhood = BackstoryDatabase.allBackstories
-				.Where(kvp => kvp.Value.slot == BackstorySlot.Childhood)
-				.SafeRandomElement().Value;
-			if (zombie.ageTracker.AgeBiologicalYearsFloat >= 20f)
-				zombie.story.adulthood = BackstoryDatabase.allBackstories
-				.Where(kvp => kvp.Value.slot == BackstorySlot.Adulthood)
-				.SafeRandomElement().Value;
-
-			zombie.story.melanin = zombie.isAlbino ? 1f : 0.01f * Rand.Range(10, 91);
-			zombie.story.bodyType = bodyType;
-			zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
-
-			zombie.story.hairColor = ZombieBaseValues.HairColor();
-			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, ZombieDefOf.Zombies);
-
-			AssignNewGraphics(zombie);
-
-			zombie.Drawer.leaner = new ZombieLeaner(zombie);
-
-			if (zombie.pather == null)
-				zombie.pather = new Pawn_PathFollower(zombie);
-			GetterSetters.destinationByRef(zombie.pather) = IntVec3.Invalid;
-
-			return zombie;
-		}*/
 
 		private static BodyTypeDef PrepareZombieType(Zombie zombie, ZombieType overwriteType)
 		{
@@ -299,6 +253,7 @@ namespace ZombieLand
 				if (zombie.isMiner) color = "miner";
 				if (zombie.isElectrifier) color = "electric";
 				if (zombie.isAlbino) color = "albino";
+				if (zombie.isDarkSlimer) color = "dark";
 				yield return null;
 				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.Cutout, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
 				yield return null;
@@ -308,6 +263,8 @@ namespace ZombieLand
 					maxStainPoints *= 2;
 				if (zombie.isAlbino)
 					maxStainPoints = 0;
+				if (zombie.isMiner)
+					maxStainPoints *= 4;
 
 				var customBodyGraphic = new VariableGraphic { bodyColor = color };
 				yield return null;
@@ -473,7 +430,7 @@ namespace ZombieLand
 				.Where(kvp => kvp.Value.slot == BackstorySlot.Adulthood)
 				.SafeRandomElement().Value;
 			yield return null;
-			zombie.story.melanin = zombie.isAlbino ? 1f : 0.01f * Rand.Range(10, 91);
+			zombie.story.melanin = zombie.isAlbino ? 1f : (zombie.isDarkSlimer ? 0f : 0.01f * Rand.Range(10, 91));
 			zombie.story.bodyType = bodyType;
 			zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
 			zombie.story.hairColor = ZombieBaseValues.HairColor();
