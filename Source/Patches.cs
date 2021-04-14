@@ -3298,6 +3298,40 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to make zombies in tar smoke un-hitable
+		//
+		[HarmonyPatch(typeof(Verb))]
+		[HarmonyPatch("CanHitTargetFrom")]
+		static class ShotReport_HitReportFor_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Verb __instance, LocalTargetInfo targ, ref bool __result)
+			{
+				if (__instance.IsMeleeAttack) return true;
+				var thing = targ.Thing;
+				var map = thing?.Map;
+				if (map == null) return true;
+				if (thing.Position.GetGas(map)?.def != CustomDefs.TarSmoke) return true;
+				__result = false;
+				return false;
+			}
+		}
+
+		// patch to make tar smoke really affect hit chance a lot
+		//
+		[HarmonyPatch(typeof(ShotReport))]
+		[HarmonyPatch(nameof(ShotReport.AimOnTargetChance_StandardTarget), MethodType.Getter)]
+		public static class ShotReport_AimOnTargetChance_StandardTarget_Patch
+		{
+			public static bool Prefix(ref float __result, ThingDef ___coveringGas)
+			{
+				if (___coveringGas != CustomDefs.TarSmoke)
+					return true;
+				__result = 0f;
+				return false;
+			}
+		}
+
 		// patch to remove non-melee damage from electrifier zombies
 		//
 		[HarmonyPatch(typeof(DamageWorker_AddInjury))]
@@ -3318,6 +3352,22 @@ namespace ZombieLand
 					dinfo.SetInstantPermanentInjury(false);
 					dinfo.SetAmount(dinfo.Amount / 5);
 					return true;
+				}
+
+				if (zombie.isDarkSlimer)
+				{
+					var pos = zombie.Position;
+					var map = zombie.Map;
+					if (map != null && pos.GetGas(map) == null)
+					{
+						var difficulty = Tools.Difficulty();
+						var alpha = GenMath.LerpDoubleClamped(0, 5, 0.25f, 1f, difficulty);
+						var min = GenMath.LerpDoubleClamped(0, 5, 2, 60, difficulty);
+						var max = GenMath.LerpDoubleClamped(0, 5, min, 90, difficulty);
+						CustomDefs.TarSmoke.graphicData.color = new Color(0, 0, 0, alpha);
+						CustomDefs.TarSmoke.gas.expireSeconds = new FloatRange(min, max);
+						GenExplosion.DoExplosion(pos, map, 1 + difficulty, DamageDefOf.Smoke, null, (int)(50 * difficulty), -1f, CustomDefs.TarSmokePop, null, null, null, CustomDefs.TarSmoke, 1f, 1, false, null, 0f, 1, 0f, false, null, null);
+					}
 				}
 
 				if (zombie.isElectrifier == false)

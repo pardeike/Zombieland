@@ -218,6 +218,31 @@
 	</SoundDef>
 
 	<SoundDef>
+		<defName>TarSmokePop</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>2</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>true</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>tarsmokepop</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>90</min>
+					<max>90</max>
+				</volumeRange>
+				<distRange>
+					<min>1000</min>
+					<max>10000</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
 		<defName>Bzzt</defName>
 		<context>MapOnly</context>
 		<eventNames />
@@ -254,7 +279,7 @@
 		<subSounds>
 			<li>
 				<name>main</name>
-				<onCamera>True</onCamera>
+				<onCamera>true</onCamera>
 				<grains>
 					<li Class="AudioGrain_Clip">
 						<clipPath>zombiesClosingIn</clipPath>

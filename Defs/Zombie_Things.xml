@@ -62,6 +62,22 @@
 		</filth>
 	</ThingDef>
 
+	<ThingDef ParentName="BaseGas">
+		<defName>TarSmoke</defName>
+		<label>smoke</label>
+		<graphicData>
+			<texPath>TarSmoke</texPath>
+			<drawSize>2.5</drawSize>
+			<color>(0,0,0,0.5)</color>
+		</graphicData>
+		<gas>
+			<expireSeconds>10~60</expireSeconds>
+			<blockTurretTracking>true</blockTurretTracking>
+			<accuracyPenalty>1</accuracyPenalty>
+			<rotationSpeed>10</rotationSpeed>
+		</gas>
+	</ThingDef>
+
 	<ThingDef ParentName="BaseFilth">
 		<defName>StickyGoo</defName>
 		<thingClass>ZombieLand.StickyGoo</thingClass>

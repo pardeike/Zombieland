@@ -29,6 +29,7 @@ namespace ZombieLand
 		public static SoundDef ZombieTracking;
 		public static SoundDef ZombiesClosingIn;
 		public static SoundDef ZombiesRising;
+		public static SoundDef TarSmokePop;
 		public static JobDef Stumble;
 		public static JobDef Sabotage;
 		public static JobDef ExtractZombieSerum;
@@ -36,6 +37,7 @@ namespace ZombieLand
 		public static ThingDef Zombie;
 		public static ThingDef Corpse_Zombie;
 		public static ThingDef TarSlime;
+		public static ThingDef TarSmoke;
 	}
 
 	public class ZombielandMod : Mod
