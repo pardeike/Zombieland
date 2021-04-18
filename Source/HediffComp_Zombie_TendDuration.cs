@@ -124,16 +124,16 @@ namespace ZombieLand
 				switch (GetInfectionState())
 				{
 					case InfectionState.BittenNotVisible:
-						return "Can infect: unknown";
+						return "Zombie infection not yet known";
 
 					case InfectionState.BittenHarmless:
-						return "Can infect: no";
+						return "No zombie infection risk";
 
 					case InfectionState.BittenInfectable:
-						return "Can infect: yes";
+						return "Developing zombie infection";
 
 					case InfectionState.Infecting:
-						return "Infecting";
+						return (Tools.Difficulty() > 1.5 ? "Uncurable" : "Curable") + " zombie infection";
 				}
 				return null;
 			}
@@ -156,10 +156,12 @@ namespace ZombieLand
 				switch (state)
 				{
 					case InfectionState.BittenInfectable:
-						color = new Color(1f, 0.5f, 0f); // orange
+						// developing stage: orange
+						color = new Color(1f, 0.5f, 0f);
 						break;
 
 					case InfectionState.Infecting:
+						// final stage: red
 						color = Color.red;
 						break;
 				}

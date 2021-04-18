@@ -63,9 +63,11 @@ namespace ZombieLand
 					switch (TendDuration.GetInfectionState())
 					{
 						case InfectionState.BittenInfectable:
-							return new Color(1f, 0.5f, 0f); // orange
+						// developing stage: orange
+						return new Color(1f, 0.5f, 0f);
 
 						case InfectionState.Infecting:
+							// final stage: red
 							return Color.red;
 					}
 				return base.LabelColor;

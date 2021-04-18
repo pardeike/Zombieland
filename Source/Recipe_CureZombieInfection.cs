@@ -5,19 +5,21 @@ using Verse;
 
 namespace ZombieLand
 {
-	public class Recipe_CureZombieInfection : Recipe_Surgery
+    public class Recipe_CureZombieInfection : Recipe_Surgery
 	{
+		private bool BiteIsCurable(Hediff_Injury_ZombieBite bite)
+        {
+			var state = bite.TendDuration.GetInfectionState();
+			if (state < InfectionState.BittenInfectable || state > InfectionState.Infecting)
+				return false;
+			return state == InfectionState.BittenInfectable || Tools.Difficulty() <= 1.5f;
+		}
+
 		private IEnumerable<Hediff_Injury_ZombieBite> GetInfectingBites(Pawn pawn)
 		{
 			return pawn.health.hediffSet
 				.GetHediffs<Hediff_Injury_ZombieBite>()
-				.Where(bite =>
-				{
-					var state = bite.TendDuration.GetInfectionState();
-					if (Tools.Difficulty() > 1.5f)
-						return state > InfectionState.BittenInfectable && state < InfectionState.Infecting;
-					return state > InfectionState.BittenHarmless;
-				});
+				.Where(BiteIsCurable);
 		}
 
 		public override IEnumerable<BodyPartRecord> GetPartsToApplyOn(Pawn pawn, RecipeDef recipe)
