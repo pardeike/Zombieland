@@ -1,5 +1,7 @@
 name: Add latest tag to new release
-on: [push]
+on:
+  release:
+    types: [published]
 
 jobs: 
   run:
