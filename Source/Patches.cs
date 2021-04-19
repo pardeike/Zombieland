@@ -1093,7 +1093,7 @@ namespace ZombieLand
 				if (__result == false)
 					return;
 
-				if (p == null || p.Map == null || p.Drafted)
+				if (p == null || p.Map == null || p.Drafted || __instance == null)
 					return;
 
 				if (__instance.FreePassage)
@@ -1112,6 +1112,8 @@ namespace ZombieLand
 					return;
 
 				var avoidGrid = tickManager.avoidGrid;
+				if (avoidGrid == null)
+					return;
 
 				var size = __instance.def.size;
 				if (size.x == 1 && size.z == 1)
