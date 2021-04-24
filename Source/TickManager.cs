@@ -437,7 +437,6 @@ namespace ZombieLand
 				var volume = 0f;
 				if (allZombiesCached.Any())
 				{
-					var map = Find.CurrentMap;
 					if (map != null)
 					{
 						var hour = GenLocalDate.HourFloat(map);
@@ -468,10 +467,10 @@ namespace ZombieLand
 					zombiesAmbientSound = null;
 				}
 				yield return null;
-				if (colonistsConverter.Count > 0)
+				if (colonistsConverter.Count > 0 && map != null)
 				{
 					var pawn = colonistsConverter.Dequeue();
-					Tools.ConvertToZombie(pawn);
+					Tools.ConvertToZombie(pawn, map);
 				}
 				yield return "end";
 			}

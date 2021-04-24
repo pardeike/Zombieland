@@ -73,6 +73,7 @@
 	<ZombieBiteInfectionTreatable_Help>In this second phase (orange), the infection is still treatable. If you can amputate, you can stop the infection. Treatment must happen under optimal conditions (something you need to find out yourself). Also, you only get one chance of treatment, once the wound was treated you cannot re-treat it in a better way.</ZombieBiteInfectionTreatable_Help>
 	<ZombieBiteInfectionPersists_Help>The third and last phase (red). Now the infection cannot be treated anymore and only amputation can stop the process. Many players make the mistake and end the life of their infected colonist too early. Zombieland, while cruel, has a few surprises build in to make this phase useful for you. Find out how the colonist has changed/morphed into while almost becoming a zombie!</ZombieBiteInfectionPersists_Help>
 	<AnyTreatmentStopsInfection_Help>To allow simple treatment in a bed to stop an infected bite, select this option. It is a good idea to turn this on when you are not yet familiar with the game mechanics.</AnyTreatmentStopsInfection_Help>
+	<HoursAfterDeathToBecomeZombie_Help>The time for a dead humanlike pawn to become a zombie. Move all to the left to turns this feature off.</HoursAfterDeathToBecomeZombie_Help>
 
 	<!-- -->
 

@@ -38,6 +38,9 @@ namespace ZombieLand
 		public static ThingDef Corpse_Zombie;
 		public static ThingDef TarSlime;
 		public static ThingDef TarSmoke;
+		public static HediffDef ZombieInfection;
+		public static LetterDef ColonistTurnedZombie;
+		public static LetterDef OtherTurnedZombie;
 	}
 
 	public class ZombielandMod : Mod

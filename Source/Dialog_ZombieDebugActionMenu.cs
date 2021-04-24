@@ -35,7 +35,7 @@ namespace ZombieLand
 				return;
 
 			DoGap();
-			DoLabel("Tools - Zombies");
+			DoLabel("Tools - ZombieLand");
 
 #pragma warning disable CS0618 // Type or member is obsolete
 			DebugToolMap("Spawn: Zombie (dig out)", delegate
@@ -96,10 +96,10 @@ namespace ZombieLand
 			});
 			DebugToolMap("Convert: Make Zombie", delegate
 			{
-				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
+				foreach (var thing in map.thingGrid.ThingsAt(UI.MouseCell()))
 				{
 					if (!(thing is Pawn pawn) || pawn is Zombie) continue;
-					Tools.ConvertToZombie(pawn, true);
+					Tools.ConvertToZombie(pawn, map, true);
 				}
 			});
 			DebugToolMap("Apply: Trigger rotting", delegate
@@ -111,19 +111,26 @@ namespace ZombieLand
 						compRottable.RotProgress = compRottable.PropsRot.TicksToRotStart;
 				}
 			});
-			DebugToolMap("Apply: Add infection", delegate
+			DebugToolMap("Apply: Add zombie bite", delegate
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
 					if (!(thing is Pawn pawn) || pawn is Zombie)
 						continue;
 
-					var bodyPart = pawn.health.hediffSet
-						.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined)
-						.FirstOrDefault(part => part.IsCorePart == false);
+					var bodyModel = pawn.health.hediffSet;
+
+					var bodyPart = bodyModel
+						.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined, null, null)
+						.Where(part =>
+							part.depth == BodyPartDepth.Outside
+							|| part.depth == BodyPartDepth.Inside
+							&& part.def.IsSolid(part, bodyModel.hediffs)
+						)
+						.SafeRandomElement();
+
 					if (bodyPart == null)
-						bodyPart = pawn.health.hediffSet
-						.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined).SafeRandomElement();
+						bodyPart = bodyModel.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined).SafeRandomElement();
 
 					var def = HediffDef.Named("ZombieBite");
 					var bite = (Hediff_Injury_ZombieBite)HediffMaker.MakeHediff(def, pawn, bodyPart);
@@ -134,7 +141,7 @@ namespace ZombieLand
 					pawn.health.AddHediff(bite, bodyPart, damageInfo);
 				}
 			});
-			DebugToolMap("Apply: Remove infection", delegate
+			DebugToolMap("Apply: Remove infections", delegate
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
@@ -147,6 +154,8 @@ namespace ZombieLand
 							var tendDuration = bite.TryGetComp<HediffComp_Zombie_TendDuration>();
 							tendDuration.ZombieInfector.MakeHarmless();
 						});
+
+					_ = pawn.health.hediffSet.hediffs.RemoveAll(hediff => hediff is Hediff_ZombieInfection);
 				}
 			});
 			DebugToolMap("Apply: Zombie raging", delegate

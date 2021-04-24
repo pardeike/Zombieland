@@ -58,12 +58,18 @@
 	<ZombieGameTweaks>Игра твики</ZombieGameTweaks>
 	<ReduceTurretConsumption>Уменьшить потребление пушки башни</ReduceTurretConsumption>
 
-	<ZombieInfections>Инфекции зомби</ZombieInfections>
+	<ZombieInfection>Зомби-инфекция</ZombieInfection>
 	<ZombieBiteInfectionChance>Вероятность заражения укусом зомби</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Время, пока инфекция не известна</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Время в то время как инфекция поддается лечению</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>Продолжительность заражения</ZombieBiteInfectionPersists>
 	<AnyTreatmentStopsInfection>Лечение в постели останавливает инфекцию</AnyTreatmentStopsInfection>
+	<HoursAfterDeathToBecomeZombie>Время стать зомби после смерти</HoursAfterDeathToBecomeZombie>
+	<Immediately>Немедленно</Immediately>
+
+	<ZombieSerum>Зомби Сыворотка</ZombieSerum>
+	<CorpsesExtractAmount>Количество зомби экстракта на зомби</CorpsesExtractAmount>
+	<CorpsesDaysToDessicated>Часы, пока трупы зомби не исчезнут</CorpsesDaysToDessicated>
 
 	<ZombieInstinctTitle>Уровень чувств зомби</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Тупые</ZombieInstinct_Dull>
@@ -116,21 +122,22 @@
 	<SearchSettings>искать</SearchSettings>
 	<SettingsName>название</SettingsName>
 
-	<ColonistsBittenByZombie>Colonist bitten by zombie</ColonistsBittenByZombie>
-	<ColonistsBittenByZombieDesc>These colonists have been bitten by a zombie. At this point, it is unclear if they develop an infection:\n\n{0}\nMonitor their wounds closely because infections take some time to show up.</ColonistsBittenByZombieDesc>
+	<ColonistsBittenByZombie>Колонист, укушенный зомби</ColonistsBittenByZombie>
+	<ColonistsBittenByZombieDesc>Эти колонисты были укушены зомби. На данный момент неясно, разовьется ли у них инфекция:\n\n{0}\nВнимательно следите за их ранами, потому что инфекциям нужно время, чтобы проявиться.</ColonistsBittenByZombieDesc>
 
-	<ImminentZombiInfection>Imminent zombie infection</ImminentZombiInfection>
-	<ImminentZombiInfectionDesc>These colonists are about to become infected from a zombie bite:\n\n{0}\nYou may save them by immediately giving them optimal treatment under best conditions. But it requires a good doctor, a quality medical bed and a sterile room with a vitals monitor.</ImminentZombiInfectionDesc>
+	<ImminentZombiInfection>Неминуемая зомби-инфекция</ImminentZombiInfection>
+	<ImminentZombiInfectionDesc>Эти колонисты вот-вот заразятся от укуса зомби:\n\n{0}\nВы можете спасти их, немедленно предоставив им оптимальное лечение в наилучших условиях. Но для этого нужен хороший врач, качественная медицинская кровать и стерильная комната с монитором жизненно важных функций.</ImminentZombiInfectionDesc>
 
-	<ZombieInfection>Zombie infection</ZombieInfection>
-	<ZombieInfectionDesc>These colonists have been infected and will become a zombie. There is no way to save them anymore:\n\n{0}\nDuring their infection they are indifferent to thoughts, feelings, pain and hunger. At the end, they die and become a zombie.</ZombieInfectionDesc>
+	<ZombieInfection>Зомби-инфекция</ZombieInfection>
+	<ZombieInfectionDesc>Эти колонисты инфицированы и станут зомби. Спасти их больше нет возможности:\n\n{0}\nВо время заражения им безразличны мысли, чувства, боль и голод. В конце они умирают и становятся зомби.</ZombieInfectionDesc>
 
-	<NoInfectionRisk>No infection risk</NoInfectionRisk>
-	<HoursBeforeBecomingInfected>{0} hours until becoming infected</HoursBeforeBecomingInfected>
-	<HoursBeforeBecomingAZombie>{0} hours before becoming a zombie</HoursBeforeBecomingAZombie>
+	<NoInfectionRisk>Нет риска заражения</NoInfectionRisk>
+	<HoursBeforeBecomingInfected>{0} часов до заражения</HoursBeforeBecomingInfected>
+	<HoursBeforeBecomingAZombie>За {0} часов до превращения в зомби</HoursBeforeBecomingAZombie>
 
-	<BecameAZombieLabel>Someone turned into zombie</BecameAZombieLabel>
-	<BecameAZombieDesc>{0} turned into a powerful zombie.</BecameAZombieDesc>
+	<ColonistBecameAZombieLabel>Какой-то колонист превратился в зомби</ColonistBecameAZombieLabel>
+	<OtherBecameAZombieLabel>Кто-то превратился в зомби</OtherBecameAZombieLabel>
+	<BecameAZombieDesc>{0} превратился в могущественного зомби.</BecameAZombieDesc>
 
 	<BodyIsInfectedLabel>Это тело заражено вирусом зомби!</BodyIsInfectedLabel>
 	<BodyIsInfectedTooltip>Зараженные тела превратятся в зомби, когда они начнут гнить.</BodyIsInfectedTooltip>

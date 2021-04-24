@@ -404,4 +404,23 @@
 		</subSounds>
 	</SoundDef>
 
+	<SoundDef>
+		<defName>LetterArrive_TurnedZombie</defName>
+		<maxSimultaneous>1</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>True</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>zombieTurning</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>90</min>
+					<max>90</max>
+				</volumeRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
 </Defs>

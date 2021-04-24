@@ -358,9 +358,9 @@ namespace ZombieLand
 			return foundZombie;
 		}*/
 
-		public static void QueueConvertToZombie(ThingWithComps thing)
+		public static void QueueConvertToZombie(ThingWithComps thing, Map mapForTickmanager)
 		{
-			var tickManager = thing.Map.GetComponent<TickManager>();
+			var tickManager = mapForTickmanager.GetComponent<TickManager>();
 			tickManager.colonistsConverter.Enqueue(thing);
 		}
 
@@ -383,26 +383,30 @@ namespace ZombieLand
 		}
 
 		static readonly NameSingle emptyName = new NameSingle("");
-		public static void ConvertToZombie(ThingWithComps thing, bool force = false)
+		public static void ConvertToZombie(ThingWithComps thing, Map map, bool force = false)
 		{
-			var pawn = thing is Corpse corpse ? corpse?.InnerPawn : thing as Pawn;
+			var corpse = thing as Corpse;
+			var pawn = corpse != null ? corpse.InnerPawn : thing as Pawn;
 			if (pawn?.RaceProps == null || pawn.RaceProps.Humanlike == false || pawn.RaceProps.IsFlesh == false || AlienTools.IsFleshPawn(pawn) == false)
 				return;
 
+			var pawnFaction = pawn.Faction;
 			var pawnName = pawn.Name;
 			if (force == false && (pawn.health == null || pawnName == emptyName))
 				return;
 			pawn.Name = emptyName;
 
-			var (pos, map) = thing is IThingHolder thingHolder ? (ThingOwnerUtility.GetRootPosition(thingHolder), ThingOwnerUtility.GetRootMap(thingHolder)) : (thing.Position, thing.Map);
+			var pos = thing is IThingHolder thingHolder ? ThingOwnerUtility.GetRootPosition(thingHolder) : thing.Position;
 			var rot = pawn.Rotation;
-			var wasInGround = thing?.Map == null;
+			var wasInGround = corpse != null && corpse.ParentHolder != null && !(corpse.ParentHolder is Map);
 
 			if (map == null && thing != null && thing.Destroyed == false)
 			{
 				thing.Destroy();
 				return;
 			}
+
+			_ = pawn.health.hediffSet.hediffs.RemoveAll(hediff => hediff is Hediff_ZombieInfection);
 
 			var tickManager = map.GetComponent<TickManager>();
 			var it = ZombieGenerator.SpawnZombieIterativ(pos, map, ZombieType.Normal, (Zombie zombie) =>
@@ -471,11 +475,14 @@ namespace ZombieLand
 				}
 				else
 				{
-					var previousProgramState = Current.ProgramState;
-					Current.ProgramState = ProgramState.Entry;
-					pawn.Kill(null);
-					Current.ProgramState = previousProgramState;
-					Find.ColonistBar.MarkColonistsDirty();
+					if (pawn.Dead == false)
+					{
+						var previousProgramState = Current.ProgramState;
+						Current.ProgramState = ProgramState.Entry;
+						pawn.Kill(null);
+						Current.ProgramState = previousProgramState;
+						Find.ColonistBar.MarkColonistsDirty();
+					}
 
 					if (pawn.Corpse != null && pawn.Corpse.Destroyed == false)
 						pawn.Corpse.Destroy();
@@ -483,9 +490,9 @@ namespace ZombieLand
 
 				tickManager.allZombiesCached.Add(zombie);
 
-				var label = "BecameAZombieLabel".Translate();
+				var label = pawnFaction.IsPlayer ? "ColonistBecameAZombieLabel".Translate() : "OtherBecameAZombieLabel".Translate();
 				var text = "BecameAZombieDesc".SafeTranslate(new object[] { pawnName.ToStringShort });
-				Find.LetterStack.ReceiveLetter(label, text, LetterDefOf.ThreatBig, zombie);
+				Find.LetterStack.ReceiveLetter(label, text, pawnFaction.IsPlayer ? CustomDefs.ColonistTurnedZombie : CustomDefs.OtherTurnedZombie, zombie);
 			});
 			while (it.MoveNext()) ;
 		}
@@ -732,13 +739,6 @@ namespace ZombieLand
 				combatExtendedIsInstalled = (TypeByName("CombatExtended.Controller") != null) ? 1 : 2;
 			return combatExtendedIsInstalled == 1;
 		}
-
-		/*public static float GetCurrentDifficulty()
-		{
-			float totalThreatPointsFactor = Find.StoryWatcher.watcherAdaptation.TotalThreatPointsFactor;
-			float factor = Mathf.Lerp(1f, totalThreatPointsFactor, Find.Storyteller.difficultyValues.adaptationEffectFactor);
-			return Mathf.Clamp(factor * Find.Storyteller.difficultyValues.threatScale * Find.Storyteller.def.pointsFactorFromDaysPassed.Evaluate(GenDate.DaysPassed), 35f, 10000f);
-		}*/
 
 		static float DPS(IAttackTargetSearcher s)
 		{

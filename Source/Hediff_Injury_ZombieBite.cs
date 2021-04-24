@@ -47,14 +47,6 @@ namespace ZombieLand
 			}
 		}
 
-		/* public override bool CauseDeathNow()
-		{
-			if (TendDuration != null && TendDuration.GetInfectionState() == InfectionState.Infected)
-				return true;
-
-			return base.CauseDeathNow();
-		} */
-
 		public override Color LabelColor
 		{
 			get
@@ -63,8 +55,8 @@ namespace ZombieLand
 					switch (TendDuration.GetInfectionState())
 					{
 						case InfectionState.BittenInfectable:
-						// developing stage: orange
-						return new Color(1f, 0.5f, 0f);
+							// developing stage: orange
+							return new Color(1f, 0.5f, 0f);
 
 						case InfectionState.Infecting:
 							// final stage: red
@@ -85,7 +77,7 @@ namespace ZombieLand
 
 			if (state == InfectionState.Infected && pawn.Map != null)
 			{
-				Tools.QueueConvertToZombie(pawn);
+				Tools.QueueConvertToZombie(pawn, pawn.Map);
 				return;
 			}
 

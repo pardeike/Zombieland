@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<LetterDef Name="ColonistTurnedZombie">
+		<defName>ColonistTurnedZombie</defName>
+		<color>(115, 204, 115)</color>
+		<flashColor>(85, 255, 85)</flashColor>
+		<flashInterval>16</flashInterval>
+		<arriveSound>LetterArrive_TurnedZombie</arriveSound>
+		<pauseMode>AnyThreat</pauseMode>
+	</LetterDef>
+
+	<LetterDef Name="OtherTurnedZombie">
+		<defName>OtherTurnedZombie</defName>
+		<color>(115, 204, 115)</color>
+		<flashColor>(85, 255, 85)</flashColor>
+		<flashInterval>16</flashInterval>
+		<arriveSound>LetterArrive_TurnedZombie</arriveSound>
+	</LetterDef>
+
+</Defs>

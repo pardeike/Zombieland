@@ -85,6 +85,7 @@ namespace ZombieLand
 		public int hoursInfectionIsTreatable = 24;
 		public int hoursInfectionPersists = 6 * 24;
 		public bool anyTreatmentStopsInfection;
+		public int hoursAfterDeathToBecomeZombie = 8;
 		public int corpsesExtractAmount = 1;
 		public int corpsesHoursToDessicated = 1;
 		public bool betterZombieAvoidance = true;
@@ -181,16 +182,6 @@ namespace ZombieLand
 				finfo.SetValue(this, finfo.GetValue(defaults));
 			});
 			Dialogs.scrollPosition = Vector2.zero;
-		}
-
-		public void Load()
-		{
-			Dialog_UseSettings.Present(this);
-		}
-
-		public void Publish()
-		{
-			Dialog_PublishSettings.Present(this);
 		}
 	}
 

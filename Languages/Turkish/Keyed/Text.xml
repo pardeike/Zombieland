@@ -58,12 +58,18 @@
 	<ZombieGameTweaks>Oyun ince ayarlar</ZombieGameTweaks>
 	<ReduceTurretConsumption>Taret silah tüketimini azaltın</ReduceTurretConsumption>
 
-	<ZombieInfections>Zombi enfeksiyonları</ZombieInfections>
+	<ZombieInfection>Zombi enfeksiyonu</ZombieInfection>
 	<ZombieBiteInfectionChance>Bir zombi ısırığının bulaşıcı olma riski</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Enfeksiyon bilinene kadar geçen süre</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Zaman enfeksiyonu tedavi edilebilir</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>Enfeksiyonun süresi</ZombieBiteInfectionPersists>
 	<AnyTreatmentStopsInfection>Yatakta tedavi enfeksiyonları durdurur</AnyTreatmentStopsInfection>
+	<HoursAfterDeathToBecomeZombie>Ölümden sonra zombi olmak için saatler</HoursAfterDeathToBecomeZombie>
+	<Immediately>Hemen</Immediately>
+
+	<ZombieSerum>Zombi Serumu</ZombieSerum>
+	<CorpsesExtractAmount>Zombi başına zombi ekstresi miktarı</CorpsesExtractAmount>
+	<CorpsesDaysToDessicated>Zombi cesetleri yok olana kadar saatler</CorpsesDaysToDessicated>
 
 	<ZombieInstinctTitle>Zombi duyuları</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Sınırlı</ZombieInstinct_Dull>
@@ -116,7 +122,7 @@
 	<SearchSettings>Aramak</SearchSettings>
 	<SettingsName>Isim</SettingsName>
 
-	<ColonistsBittenByZombie>Colonist zombi tarafından ısırıldı</ColonistsBittenByZombie>
+	<ColonistsBittenByZombie>Kolonist zombi tarafından ısırıldı</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Bu kolonistler bir zombi tarafından ısırıldı. Bu noktada, bir enfeksiyon geliştirmeleri net değil:\n\n{0}\nYaralarını yakından izleyin çünkü enfeksiyonların gelişmesi biraz zaman alır.</ColonistsBittenByZombieDesc>
 
 	<ImminentZombiInfection>Yakın zombi enfeksiyonu</ImminentZombiInfection>
@@ -129,7 +135,8 @@
 	<HoursBeforeBecomingInfected>Enfeksiyona {0}</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>Zombi olmak için {0}</HoursBeforeBecomingAZombie>
 
-	<BecameAZombieLabel>Birisi bir zombiye dönüştü</BecameAZombieLabel>
+	<ColonistBecameAZombieLabel>Bir kolonist zombiye dönüştü</ColonistBecameAZombieLabel>
+	<OtherBecameAZombieLabel>Bir sömürgeci zombiye dönüştü</OtherBecameAZombieLabel>
 	<BecameAZombieDesc>{0} güçlü bir zombiye dönüştü.</BecameAZombieDesc>
 
 	<BodyIsInfectedLabel>Bu vücut zombi virüsü ile enfekte!</BodyIsInfectedLabel>

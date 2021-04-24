@@ -64,6 +64,12 @@
 	<ZombieBiteInfectionTreatable>可治療的感染時間</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>感染持續時間</ZombieBiteInfectionPersists>
 	<AnyTreatmentStopsInfection>躺在床上治療可阻止感染</AnyTreatmentStopsInfection>
+	<HoursAfterDeathToBecomeZombie>死後成為殭屍的時間</HoursAfterDeathToBecomeZombie>
+	<Immediately>立即地</Immediately>
+
+	<ZombieSerum>殭屍血清</ZombieSerum>
+	<CorpsesExtractAmount>每個殭屍的殭屍提取物量</CorpsesExtractAmount>
+	<CorpsesDaysToDessicated>直到殭屍屍體消失的小時數</CorpsesDaysToDessicated>
 
 	<ZombieInstinctTitle>殭屍的感知</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>受限</ZombieInstinct_Dull>
@@ -129,7 +135,8 @@
 	<HoursBeforeBecomingInfected>{0} 感染</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} 變成一個殭屍</HoursBeforeBecomingAZombie>
 
-	<BecameAZombieLabel>有人變成了殭屍</BecameAZombieLabel>
+	<ColonistBecameAZombieLabel>一個殖民者變成了殭屍</ColonistBecameAZombieLabel>
+	<OtherBecameAZombieLabel>有人變成了殭屍</OtherBecameAZombieLabel>
 	<BecameAZombieDesc>{0} 變成了一個強大的殭屍。</BecameAZombieDesc>
 
 	<BodyIsInfectedLabel>這具屍體感染了殭屍病毒！</BodyIsInfectedLabel>

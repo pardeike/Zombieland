@@ -1,6 +1,5 @@
 ﻿using RimWorld;
 using System;
-using System.Threading;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -69,8 +68,6 @@ namespace ZombieLand
 	{
 		static Color contentColor = new Color(1f, 1f, 1f, 0.7f);
 		const float inset = 6f;
-		static DateTime nextNetworkCheck = DateTime.Now;
-		static bool isNetworkAvailable = false;
 		public static string currentHelpItem = null;
 
 		public static void Help(this Listing_Standard list, string helpItem, float height = 0f)
@@ -334,14 +331,15 @@ namespace ZombieLand
 			value = (int)(0.5f + Widgets.HorizontalSlider(srect, value, min, max, false, null, labelId.SafeTranslate(), format(value), -1f));
 		}
 
-		public static void Dialog_TimeSlider(this Listing_Standard list, string labelId, ref int value, int min, int max, bool fullDaysOnly = false)
+		public static void Dialog_TimeSlider(this Listing_Standard list, string labelId, ref int value, int min, int max, Func<int, string> valueStringConverter = null, bool fullDaysOnly = false)
 		{
 			list.Gap(-4f);
 			list.Help(labelId, 32f);
 
 			list.Gap(12f);
 
-			var valstr = Tools.TranslateHoursToText(value);
+			if (valueStringConverter == null) valueStringConverter = (n) => null;
+			var valstr = valueStringConverter(value) ?? Tools.TranslateHoursToText(value);
 
 			var srect = list.GetRect(24f);
 			srect.xMin += inset;
@@ -349,15 +347,15 @@ namespace ZombieLand
 
 			var newValue = (double)Widgets.HorizontalSlider(srect, value, min, max, false, null, labelId.SafeTranslate(), valstr, -1f);
 			if (fullDaysOnly)
-				newValue = Math.Round(newValue / 24f, MidpointRounding.ToEven) * 24f;
-			value = (int)newValue;
+				value = (int)(Math.Round(newValue / 24f, MidpointRounding.ToEven) * 24f);
+			else
+				value = (int)newValue;
 		}
 
 		public static Vector2 scrollPosition = Vector2.zero;
 		public static void DoWindowContentsInternal(ref SettingsGroup settings, Rect inRect)
 		{
 			if (settings == null) settings = new SettingsGroup();
-			var inGame = Current.Game != null && Current.ProgramState == ProgramState.Playing;
 
 			inRect.yMin += 15f;
 			inRect.yMax -= 15f;
@@ -366,7 +364,7 @@ namespace ZombieLand
 			var secondColumnWidth = inRect.width - Listing.ColumnSpacing - firstColumnWidth;
 
 			var outerRect = new Rect(inRect.x, inRect.y, firstColumnWidth, inRect.height);
-			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, inRect.height * 4.7f);
+			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, inRect.height * 4.8f);
 			Widgets.BeginScrollView(outerRect, ref scrollPosition, innerRect, true);
 
 			currentHelpItem = null;
@@ -479,15 +477,18 @@ namespace ZombieLand
 				list.Gap(18f);
 
 				// Infections
-				list.Dialog_Label("ZombieInfections");
+				list.Dialog_Label("ZombieInfection");
 				list.Gap(8f);
 				list.Dialog_FloatSlider("ZombieBiteInfectionChance", "0%", ref settings.zombieBiteInfectionChance, 0f, 1f);
 				list.Dialog_TimeSlider("ZombieBiteInfectionUnknown", ref settings.hoursInfectionIsUnknown, 0, 48);
 				list.Dialog_TimeSlider("ZombieBiteInfectionTreatable", ref settings.hoursInfectionIsTreatable, 0, 6 * 24);
-				list.Dialog_TimeSlider("ZombieBiteInfectionPersists", ref settings.hoursInfectionPersists, 0, 30 * 24, true);
+				list.Dialog_TimeSlider("ZombieBiteInfectionPersists", ref settings.hoursInfectionPersists, 0, 30 * 24, null, true);
 				list.Gap(-4f);
 				list.Dialog_Checkbox("AnyTreatmentStopsInfection", ref settings.anyTreatmentStopsInfection);
-				list.Gap(24f);
+				list.Gap(20f);
+				string hoursTranslator(int n) => n == -1 ? "Off".Translate() : (n == 0 ? "Immediately".Translate() : null);
+				list.Dialog_TimeSlider("HoursAfterDeathToBecomeZombie", ref settings.hoursAfterDeathToBecomeZombie, -1, 24, hoursTranslator, false);
+				list.Gap(20f);
 
 				// Serum
 				list.Dialog_Label("ZombieSerum");
@@ -510,21 +511,9 @@ namespace ZombieLand
 				list.Dialog_Label("ZombieActionsTitle");
 				list.Gap(8f);
 				list.Dialog_Button("ZombieSettingsReset", "Reset", false, settings.Reset);
-				if (inGame) list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Dialog_Save.Save);
 
-				var now = DateTime.Now;
-				if (now > nextNetworkCheck)
-				{
-					nextNetworkCheck = now.AddSeconds(10);
-					var thread = new Thread(delegate () { isNetworkAvailable = SharedSettings.HasConnectivity(); });
-					thread.Start();
-				}
-				if (isNetworkAvailable)
-				{
-					list.Gap(20f);
-					list.Dialog_Button("LoadSettings", "LoadSettingsButton", false, settings.Load);
-					list.Dialog_Button("PublishSettings", "PublishSettingsButton", false, settings.Publish);
-				}
+				var inGame = Current.Game != null && Current.ProgramState == ProgramState.Playing;
+				if (inGame) list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Dialog_Save.Save);
 			}
 
 			list.End();

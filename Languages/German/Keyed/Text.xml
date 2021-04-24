@@ -58,12 +58,18 @@
 	<ZombieGameTweaks>Spielveränderungen</ZombieGameTweaks>
 	<ReduceTurretConsumption>Reduzierter Geschützverbrauch</ReduceTurretConsumption>
 
-	<ZombieInfections>Zombieinfektionen</ZombieInfections>
+	<ZombieInfection>Zombieinfektion</ZombieInfection>
 	<ZombieBiteInfectionChance>Risiko das ein Biss infiziert</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Zeit bis Infektion bekannt wird</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Infektion behandelbar</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>Dauer der Infektion</ZombieBiteInfectionPersists>
 	<AnyTreatmentStopsInfection>Behandlung in einem Bett stoppt Infektionen</AnyTreatmentStopsInfection>
+	<HoursAfterDeathToBecomeZombie>Zeit nach dem Tod bis man zum Zombie wird</HoursAfterDeathToBecomeZombie>
+	<Immediately>Unmittelbar</Immediately>
+
+	<ZombieSerum>Zombieserum</ZombieSerum>
+	<CorpsesExtractAmount>Menge an Zombieextrakt pro Zombie</CorpsesExtractAmount>
+	<CorpsesDaysToDessicated>Zeit bis Zombieleichen verschwinden</CorpsesDaysToDessicated>
 
 	<ZombieInstinctTitle>Zombiegespür</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Begrenzt</ZombieInstinct_Dull>
@@ -129,7 +135,8 @@
 	<HoursBeforeBecomingInfected>{0} bis zum Beginn der Infektion</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} bis zum Zombie werden</HoursBeforeBecomingAZombie>
 
-	<BecameAZombieLabel>Jemand wurde zum Zombie</BecameAZombieLabel>
+	<ColonistBecameAZombieLabel>Ein Kolonist wurde zum Zombie</ColonistBecameAZombieLabel>
+	<OtherBecameAZombieLabel>Jemand wurde zum Zombie</OtherBecameAZombieLabel>
 	<BecameAZombieDesc>{0} wurde zu einem mächtigen Zombie.</BecameAZombieDesc>
 
 	<BodyIsInfectedLabel>Dieser Körper ist mit dem Zombievirus infiziert!</BodyIsInfectedLabel>

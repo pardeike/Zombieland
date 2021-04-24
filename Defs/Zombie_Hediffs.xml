@@ -30,4 +30,16 @@
 		</injuryProps>
 	</HediffDef>
 
+	<HediffDef ParentName="InfectionBase">
+		<defName>ZombieInfection</defName>
+		<label>zombie infection</label>
+		<description>Zombie infection after death</description>
+		<hediffClass>Zombieland.Hediff_ZombieInfection</hediffClass>
+		<stages>
+			<li>
+				<painOffset>0</painOffset>
+			</li>
+		</stages>
+	</HediffDef>
+
 </Defs>

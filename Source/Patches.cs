@@ -3589,12 +3589,25 @@ namespace ZombieLand
 					return;
 				}
 				var pawn = __instance;
+				var hediffSet = pawn.health.hediffSet;
 
 				// flag zombie bites to be infectious when pawn dies
-				pawn.health.hediffSet
+				hediffSet
 					.GetHediffs<Hediff_Injury_ZombieBite>()
 					.Where(zombieBite => zombieBite.TendDuration.InfectionStateBetween(InfectionState.BittenInfectable, InfectionState.Infected))
 					.Do(zombieBite => zombieBite.mayBecomeZombieWhenDead = true);
+
+				// if death means becoming a zombie, install zombie infection
+				if (ZombieSettings.Values.hoursAfterDeathToBecomeZombie > -1)
+				{
+					var brain = hediffSet.GetBrain();
+					if (brain != null)
+					{
+						var hediff = HediffMaker.MakeHediff(CustomDefs.ZombieInfection, pawn, brain) as Hediff_ZombieInfection;
+						hediff.InitializeExpiringDate();
+						hediffSet.AddDirect(hediff, null, null);
+					}
+				}
 
 				ColonistSettings.Values.RemoveColonist(pawn);
 			}
@@ -3897,7 +3910,7 @@ namespace ZombieLand
 			static void Postfix(Corpse __instance)
 			{
 				var pawn = __instance.InnerPawn;
-				if (pawn == null || (pawn is Zombie))
+				if (pawn == null || pawn is Zombie || pawn.health == null)
 					return;
 
 				var rotStage = __instance.GetRotStage();
@@ -3908,12 +3921,44 @@ namespace ZombieLand
 				if (hasBrain == false)
 					return;
 
-				var shouldBecomeZombie = (pawn.health != null && pawn.health.hediffSet
+				var shouldBecomeZombie = pawn.health.hediffSet
 					.GetHediffs<Hediff_Injury_ZombieBite>()
-					.Any(zombieByte => zombieByte.mayBecomeZombieWhenDead));
+					.Any(zombieByte => zombieByte.TendDuration.InfectionStateBetween(InfectionState.BittenInfectable, InfectionState.Infected));
 
 				if (shouldBecomeZombie)
-					Tools.QueueConvertToZombie(__instance);
+				{
+					var map = ThingOwnerUtility.GetRootMap(__instance);
+					if (map != null)
+						Tools.QueueConvertToZombie(__instance, map);
+				}
+			}
+		}
+
+		[HarmonyPatch(typeof(Corpse))]
+		[HarmonyPatch(nameof(Corpse.TickRare))]
+		static class Corpse_TickRare_Patch
+		{
+			static void Postfix(Corpse __instance)
+			{
+				var pawn = __instance.InnerPawn;
+				if (pawn == null || pawn is Zombie)
+					return;
+
+				var hasBrain = pawn.health.hediffSet.GetBrain() != null;
+				if (hasBrain == false)
+					return;
+
+				var ticks = GenTicks.TicksGame;
+				var shouldBecomeZombie = (pawn.health != null && pawn.health.hediffSet
+					.GetHediffs<Hediff_ZombieInfection>()
+					.Any(infection => ticks > infection.ticksWhenBecomingZombie));
+
+				if (shouldBecomeZombie)
+				{
+					var map = ThingOwnerUtility.GetRootMap(__instance);
+					if (map != null)
+						Tools.QueueConvertToZombie(__instance, map);
+				}
 			}
 		}
 

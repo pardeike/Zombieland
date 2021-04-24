@@ -37,13 +37,12 @@
     <Compile Include="CrossPromotion.cs" />
     <Compile Include="Dialogs.cs" />
     <Compile Include="ColorData.cs" />
-    <Compile Include="Dialog_PublishSettings.cs" />
-    <Compile Include="Dialog_UseSettings.cs" />
     <Compile Include="Dialog_ZombieDebugActionMenu.cs" />
     <Compile Include="DisposableMaterial.cs" />
     <Compile Include="DistanceComparer.cs" />
     <Compile Include="Gizmos.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Hediff_ZombieInfection.cs" />
     <Compile Include="JobDriver_ExtractZombieSerum.cs" />
     <Compile Include="JobDriver_Sabotage.cs" />
     <Compile Include="ModCounter.cs" />
@@ -54,7 +53,6 @@
     <Compile Include="Hediff_Injury_ZombieBite.cs" />
     <Compile Include="HediffComp_Zombie_Infecter.cs" />
     <Compile Include="Recipe_CureZombieInfection.cs" />
-    <Compile Include="SharedSettings.cs" />
     <Compile Include="JobDriver_Stumble.cs" />
     <Compile Include="JobGiver.cs" />
     <Compile Include="Main.cs" />
@@ -123,6 +121,9 @@
     </Content>
     <Content Include="..\Defs\Zombie_Workgivers.xml">
       <Link>Zombie_Workgivers.xml</Link>
+    </Content>
+    <Content Include="..\Defs\Zombie_Letter.xml">
+      <Link>Zombie_Letter.xml</Link>
     </Content>
     <Content Include="..\Patches\Zombie_CE_Patches.xml">
       <Link>Zombie_CE_Patches.xml</Link>
