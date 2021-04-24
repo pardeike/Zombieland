@@ -58,7 +58,6 @@
 	<ZombieGameTweaks>Game tweaks</ZombieGameTweaks>
 	<ReduceTurretConsumption>Reduce turret gun consumption</ReduceTurretConsumption>
 
-	<ZombieInfection>Zombie infection</ZombieInfection>
 	<ZombieBiteInfectionChance>Risk that a zombie bite is infectious</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Time until infection is known</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Time infection is treatable</ZombieBiteInfectionTreatable>

@@ -58,7 +58,6 @@
 	<ZombieGameTweaks>Игра твики</ZombieGameTweaks>
 	<ReduceTurretConsumption>Уменьшить потребление пушки башни</ReduceTurretConsumption>
 
-	<ZombieInfection>Зомби-инфекция</ZombieInfection>
 	<ZombieBiteInfectionChance>Вероятность заражения укусом зомби</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Время, пока инфекция не известна</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Время в то время как инфекция поддается лечению</ZombieBiteInfectionTreatable>

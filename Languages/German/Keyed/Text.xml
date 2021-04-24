@@ -58,7 +58,6 @@
 	<ZombieGameTweaks>Spielveränderungen</ZombieGameTweaks>
 	<ReduceTurretConsumption>Reduzierter Geschützverbrauch</ReduceTurretConsumption>
 
-	<ZombieInfection>Zombieinfektion</ZombieInfection>
 	<ZombieBiteInfectionChance>Risiko das ein Biss infiziert</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Zeit bis Infektion bekannt wird</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Infektion behandelbar</ZombieBiteInfectionTreatable>

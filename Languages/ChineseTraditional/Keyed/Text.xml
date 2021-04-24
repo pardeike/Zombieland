@@ -58,7 +58,6 @@
 	<ZombieGameTweaks>遊戲調整</ZombieGameTweaks>
 	<ReduceTurretConsumption>降低砲塔槍消費</ReduceTurretConsumption>
 
-	<ZombieInfections>殭屍感染</ZombieInfections>
 	<ZombieBiteInfectionChance>被殭屍咬傷的感染風險</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>發現感染的時間</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>可治療的感染時間</ZombieBiteInfectionTreatable>

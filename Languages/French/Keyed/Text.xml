@@ -58,7 +58,6 @@
 	<ZombieGameTweaks>Jeu peaufiner</ZombieGameTweaks>
 	<ReduceTurretConsumption>Réduire la consommation des armes à feu de la tourelle</ReduceTurretConsumption>
 
-	<ZombieInfection>Infection par Zombie</ZombieInfection>
 	<ZombieBiteInfectionChance>Risque qu’une morsure de Zombie soit infectieuse</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Temps avant que l’infection soit connu</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Temps où l'infection est traitable</ZombieBiteInfectionTreatable>
