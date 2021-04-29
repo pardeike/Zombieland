@@ -42,6 +42,7 @@
 	<MaximumNumberOfZombies>Небольше чем</MaximumNumberOfZombies>
 	<Zombies>Зомби</Zombies>
 	<ColonyMultiplier>Множитель колоний</ColonyMultiplier>
+	<DoubleTapping>Безопасное двойное убийство</DoubleTapping>
 
 	<ZombieEventTitle>Зомби-происшествие</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Кол-во зомби на одного колониста</ZombiesPerColonistInEvent>
@@ -146,6 +147,9 @@
 	<AutoExtractDisabledDescription>Не может извлечь сыворотку зомби (не врач)</AutoExtractDisabledDescription>
 	<AutoExtractAllowedDescription>Автоматически извлекать сыворотку зомби, когда поблизости нет зомби</AutoExtractAllowedDescription>
 	<AutoExtractForbiddenDescription>Извлекайте зомби-сыворотку только при заказе</AutoExtractForbiddenDescription>
+	<AutoDoubleTapDisabledDescription>Невозможно двойное нажатие (без охоты)</AutoDoubleTapDisabledDescription>
+	<AutoDoubleTapAllowedDescription>Автоматически дважды касайтесь трупов, чтобы они не превратились в зомби</AutoDoubleTapAllowedDescription>
+	<AutoDoubleTapForbiddenDescription>Двойное нажатие только при заказе</AutoDoubleTapForbiddenDescription>
 
 	<AutoAvoidZombiesEnabledDescription>Автоматически избегайте зомби, кроме случаев, когда колонист мобилизован и стоит</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Игнорировать зомби. Вам нужно вручную контролировать все действия</AutoAvoidZombiesDisabledDescription>

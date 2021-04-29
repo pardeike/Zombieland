@@ -3,5 +3,6 @@
 
 	<Stumble.reportString>taumeln.</Stumble.reportString>
 	<ExtractZombieSerum.reportString>Zombieserum von TargetA extrahieren.</ExtractZombieSerum.reportString>
+	<DoubleTap.reportString>killt TargetA 2x um sicher zu gehen.</DoubleTap.reportString>
 
 </LanguageData>

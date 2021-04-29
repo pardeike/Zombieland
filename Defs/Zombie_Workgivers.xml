@@ -16,4 +16,18 @@
 		<canBeDoneWhileDrafted>true</canBeDoneWhileDrafted>
 	</WorkGiverDef>
 
+	<WorkGiverDef>
+		<defName>DoubleTap</defName>
+		<label>double tap a corpses</label>
+		<giverClass>ZombieLand.WorkGiver_DoubleTap</giverClass>
+		<workType>Hunting</workType>
+		<verb>double tap</verb>
+		<gerund>double tapping</gerund>
+		<priorityInType>-5</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+		<canBeDoneWhileDrafted>true</canBeDoneWhileDrafted>
+	</WorkGiverDef>
+
 </Defs>

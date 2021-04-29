@@ -20,6 +20,7 @@ namespace ZombieLand
 		public static SoundDef Hacking;
 		public static SoundDef Scream;
 		public static SoundDef TankyTink;
+		public static SoundDef Smash;
 		public static SoundDef ToxicSplash;
 		public static SoundDef ZombieDigOut;
 		public static SoundDef ZombieEating;
@@ -33,6 +34,7 @@ namespace ZombieLand
 		public static JobDef Stumble;
 		public static JobDef Sabotage;
 		public static JobDef ExtractZombieSerum;
+		public static JobDef DoubleTap;
 		public static RecipeDef CureZombieInfection;
 		public static ThingDef Zombie;
 		public static ThingDef Corpse_Zombie;

@@ -42,6 +42,7 @@
 	<MaximumNumberOfZombies>Never more than</MaximumNumberOfZombies>
 	<Zombies>Zombies</Zombies>
 	<ColonyMultiplier>Colony multiplier</ColonyMultiplier>
+	<DoubleTapping>Double tapping</DoubleTapping>
 
 	<ZombieEventTitle>Zombie event</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Zombies per colonist</ZombiesPerColonistInEvent>
@@ -146,6 +147,9 @@
 	<AutoExtractDisabledDescription>Cannot extract zombie serum (no doctor)</AutoExtractDisabledDescription>
 	<AutoExtractAllowedDescription>Automatically extract zombie serum when no zombies are nearby</AutoExtractAllowedDescription>
 	<AutoExtractForbiddenDescription>Only extract zombie serum when ordered</AutoExtractForbiddenDescription>
+	<AutoDoubleTapDisabledDescription>Cannot double tap (no hunting)</AutoDoubleTapDisabledDescription>
+	<AutoDoubleTapAllowedDescription>Automatically double tap corpses to prevent them from becoming zombies</AutoDoubleTapAllowedDescription>
+	<AutoDoubleTapForbiddenDescription>Only double tap when ordered</AutoDoubleTapForbiddenDescription>
 
 	<AutoAvoidZombiesEnabledDescription>Automatically avoid zombies, except when standing drafted</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Ignore zombies. You need to manually control all actions</AutoAvoidZombiesDisabledDescription>

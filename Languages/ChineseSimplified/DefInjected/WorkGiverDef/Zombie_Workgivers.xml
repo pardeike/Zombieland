@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+
+	<ExtractZombieSerum.label>从僵尸尸体中提取血清</ExtractZombieSerum.label>
+	<ExtractZombieSerum.verb>提炼</ExtractZombieSerum.verb>
+	<ExtractZombieSerum.gerund>提取</ExtractZombieSerum.gerund>
+
+	<DoubleTap.label>双重杀死尸体以防止其成为僵尸</DoubleTap.label>
+	<DoubleTap.verb>双杀</DoubleTap.verb>
+	<DoubleTap.gerund>双重杀害</DoubleTap.gerund>
+
+</LanguageData>

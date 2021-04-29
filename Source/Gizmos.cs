@@ -8,9 +8,8 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	static class Gizmos
 	{
-		static readonly Texture2D AvoidingEnabled = ContentFinder<Texture2D>.Get("AvoidingEnabled", true);
-		static readonly Texture2D AvoidingDisabled = ContentFinder<Texture2D>.Get("AvoidingDisabled", true);
-
+		static readonly Texture2D AvoidingEnabled = Tools.LoadTexture("AvoidingEnabled", true);
+		static readonly Texture2D AvoidingDisabled = Tools.LoadTexture("AvoidingDisabled", true);
 		public static Gizmo ZombieAvoidance(Pawn pawn)
 		{
 			var config = ColonistSettings.Values.ConfigFor(pawn);
@@ -29,9 +28,9 @@ namespace ZombieLand
 			};
 		}
 
-		static readonly Texture2D ExtractingAllowed = ContentFinder<Texture2D>.Get("ExtractingAllowed", true);
-		static readonly Texture2D ExtractingForbidden = ContentFinder<Texture2D>.Get("ExtractingForbidden", true);
-		static readonly Texture2D ExtractingDisabled = ContentFinder<Texture2D>.Get("ZombieExtract", true); // auto-dimmed
+		static readonly Texture2D ExtractingAllowed = Tools.LoadTexture("ExtractingAllowed", true);
+		static readonly Texture2D ExtractingForbidden = Tools.LoadTexture("ExtractingForbidden", true);
+		static readonly Texture2D ExtractingDisabled = Tools.LoadTexture("ZombieExtract", true); // auto-dimmed
 		public static Gizmo ExtractSerum(Pawn pawn)
 		{
 			var description = "AutoExtractDisabledDescription";
@@ -56,6 +55,40 @@ namespace ZombieLand
 			return new Command_Action
 			{
 				disabled = canDoctor == false,
+				defaultDesc = description.Translate(),
+				icon = icon,
+				activateSound = activateSound,
+				action = action
+			};
+		}
+
+		static readonly Texture2D DoubleTapAllowed = Tools.LoadTexture("DoubleTapAllowed", true);
+		static readonly Texture2D DoubleTapForbidden = Tools.LoadTexture("DoubleTapForbidden", true);
+		static readonly Texture2D DoubleTapDisabled = Tools.LoadTexture("DoubleTap", true); // auto-dimmed
+		public static Gizmo DoubleTap(Pawn pawn)
+		{
+			var description = "AutoDoubleTapDisabledDescription";
+			var icon = DoubleTapDisabled;
+			SoundDef activateSound = null;
+			Action action = null;
+
+			var canHunt = pawn.CanHunt();
+			if (canHunt)
+			{
+				var config = canHunt ? ColonistSettings.Values.ConfigFor(pawn) : null;
+				if (config != null)
+				{
+					var autoDoubleTap = config.autoDoubleTap;
+					description = autoDoubleTap ? "AutoDoubleTapAllowedDescription" : "AutoDoubleTapForbiddenDescription";
+					icon = autoDoubleTap ? DoubleTapAllowed : DoubleTapForbidden;
+					activateSound = autoDoubleTap ? SoundDefOf.Designate_ZoneAdd : SoundDefOf.Designate_ZoneDelete;
+					action = config.ToggleAutoDoubleTap;
+				}
+			}
+
+			return new Command_Action
+			{
+				disabled = canHunt == false,
 				defaultDesc = description.Translate(),
 				icon = icon,
 				activateSound = activateSound,

@@ -1,6 +1,12 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
 
-	<ExtractZombieSerum.label>Extrahieren von Zombieserum aus toten Zombies</ExtractZombieSerum.label>
+	<ExtractZombieSerum.label>extrahieren von Zombieserum aus toten Zombies</ExtractZombieSerum.label>
+	<ExtractZombieSerum.verb>extrahiert Zombieextrakt</ExtractZombieSerum.verb>
+	<ExtractZombieSerum.gerund>Das extrahieren von Zombieextrakt aus</ExtractZombieSerum.gerund>
+
+	<DoubleTap.label>sicheres Töten von Leichen</DoubleTap.label>
+	<DoubleTap.verb>tötet sicher</DoubleTap.verb>
+	<DoubleTap.gerund>Das sichere Töten von</DoubleTap.gerund>
 
 </LanguageData>

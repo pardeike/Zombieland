@@ -66,4 +66,24 @@ namespace ZombieLand
 			return base.TryIssueJobPackage(pawn, jobParams);
 		}
 	}
+
+	public class JobGiver_DoubleTap : ThinkNode_JobGiver
+	{
+		public override ThinkNode DeepCopy(bool resolve = true)
+		{
+			return (JobGiver_DoubleTap)base.DeepCopy(resolve);
+		}
+
+		protected override Job TryGiveJob(Pawn pawn)
+		{
+			return JobMaker.MakeJob(DefDatabase<JobDef>.GetNamed("DoubleTap"));
+		}
+
+		public override ThinkResult TryIssueJobPackage(Pawn pawn, JobIssueParams jobParams)
+		{
+			if (ZombieSettings.Values.hoursAfterDeathToBecomeZombie == -1)
+				return ThinkResult.NoJob;
+			return base.TryIssueJobPackage(pawn, jobParams);
+		}
+	}
 }

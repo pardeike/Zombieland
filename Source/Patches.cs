@@ -3050,6 +3050,8 @@ namespace ZombieLand
 				yield return Gizmos.ZombieAvoidance(___pawn);
 				if (ZombieSettings.Values.corpsesExtractAmount > 0)
 					yield return Gizmos.ExtractSerum(___pawn);
+				if (ZombieSettings.Values.hoursAfterDeathToBecomeZombie > 0)
+					yield return Gizmos.DoubleTap(___pawn);
 			}
 		}
 

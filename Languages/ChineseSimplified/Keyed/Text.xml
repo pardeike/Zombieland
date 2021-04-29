@@ -42,6 +42,7 @@
 	<MaximumNumberOfZombies>最多</MaximumNumberOfZombies>
 	<Zombies>个丧尸</Zombies>
 	<ColonyMultiplier>殖民地倍乘数</ColonyMultiplier>
+	<DoubleTapping>安全的双杀</DoubleTapping>
 
 	<ZombieEventTitle>丧尸事件</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>丧尸/每个殖民者</ZombiesPerColonistInEvent>
@@ -146,6 +147,9 @@
 	<AutoExtractDisabledDescription>不能提取僵尸血清（没有医生）)</AutoExtractDisabledDescription>
 	<AutoExtractAllowedDescription>当没有僵尸在附近时自动提取僵尸血清</AutoExtractAllowedDescription>
 	<AutoExtractForbiddenDescription>订购时只能提取僵尸精华素</AutoExtractForbiddenDescription>
+	<AutoDoubleTapDisabledDescription>不能杀死两次（不是猎人）</AutoDoubleTapDisabledDescription>
+	<AutoDoubleTapAllowedDescription>自动杀死尸体两次以防止它们变成僵尸</AutoDoubleTapAllowedDescription>
+	<AutoDoubleTapForbiddenDescription>订购时只能杀死两次</AutoDoubleTapForbiddenDescription>
 
 	<AutoAvoidZombiesEnabledDescription>自动避免僵尸，除非殖民者被起草和站立</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>忽略僵尸。 您需要手动控制所有操作</AutoAvoidZombiesDisabledDescription>

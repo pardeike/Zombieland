@@ -42,6 +42,7 @@
 	<MaximumNumberOfZombies>Jamais plus de</MaximumNumberOfZombies>
 	<Zombies>Zombies</Zombies>
 	<ColonyMultiplier>Multiplicateur de colonies</ColonyMultiplier>
+	<DoubleTapping>Mort à double sécurité</DoubleTapping>
 
 	<ZombieEventTitle>Apparition de Zombie</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Zombies par colon</ZombiesPerColonistInEvent>
@@ -146,6 +147,9 @@
 	<AutoExtractDisabledDescription>Impossible d'extraire le sérum zombie (pas de médecin)</AutoExtractDisabledDescription>
 	<AutoExtractAllowedDescription>Extraire automatiquement le sérum de zombie quand il n'y a pas de zombies à proximité</AutoExtractAllowedDescription>
 	<AutoExtractForbiddenDescription>N'extrayez le sérum zombie que lorsque vous le commandez</AutoExtractForbiddenDescription>
+	<AutoDoubleTapDisabledDescription>Impossible d'appuyer deux fois (pas un chasseur)</AutoDoubleTapDisabledDescription>
+	<AutoDoubleTapAllowedDescription>Appuyez deux fois automatiquement sur les cadavres pour les empêcher de devenir des zombies</AutoDoubleTapAllowedDescription>
+	<AutoDoubleTapForbiddenDescription>Appuyez deux fois uniquement lors de la commande</AutoDoubleTapForbiddenDescription>
 
 	<AutoAvoidZombiesEnabledDescription>Évite automatiquement les zombies, sauf lorsque la personne est mobilisée et debout</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Ignorer les zombies. Vous devez contrôler manuellement toutes les actions</AutoAvoidZombiesDisabledDescription>

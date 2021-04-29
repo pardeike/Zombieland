@@ -42,6 +42,7 @@
 	<MaximumNumberOfZombies>Daha asla fazla</MaximumNumberOfZombies>
 	<Zombies>Zombiler</Zombies>
 	<ColonyMultiplier>Koloni çarpanı</ColonyMultiplier>
+	<DoubleTapping>Güvenli çift öldürme</DoubleTapping>
 
 	<ZombieEventTitle>Zombi olayı</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Kolonist başına zombiler</ZombiesPerColonistInEvent>
@@ -146,6 +147,9 @@
 	<AutoExtractDisabledDescription>Zombi serumunu çıkaramıyorum (doktor yok)</AutoExtractDisabledDescription>
 	<AutoExtractAllowedDescription>Yakında zombi olmadığında zombi serumunu otomatik olarak çıkar</AutoExtractAllowedDescription>
 	<AutoExtractForbiddenDescription>Yalnızca sipariş edildiğinde zombi serumu ayıklayın</AutoExtractForbiddenDescription>
+	<AutoDoubleTapDisabledDescription>Can not çift musluk (avlanma)</AutoDoubleTapDisabledDescription>
+	<AutoDoubleTapAllowedDescription>Zombi olmalarını önlemek için cesetlere otomatik olarak iki kez dokunun</AutoDoubleTapAllowedDescription>
+	<AutoDoubleTapForbiddenDescription>Yalnızca sipariş edildiğinde çift dokunun</AutoDoubleTapForbiddenDescription>
 
 	<AutoAvoidZombiesEnabledDescription>Koloninin hazırlandığı ve ayakta durduğu durumlar dışında zombileri otomatik olarak önlemek</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Zombileri yoksay. Tüm eylemleri manuel olarak kontrol etmeniz gerekir</AutoAvoidZombiesDisabledDescription>

@@ -3,6 +3,7 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -139,6 +140,20 @@ namespace ZombieLand
 				return "";
 			}
 			return me.Content.RootDir;
+		}
+
+		public static Texture2D LoadTexture(string path, bool makeReadonly = true)
+		{
+			var fullPath = Path.Combine(Tools.GetModRootDirectory(), "Textures", $"{path}.png");
+			var data = File.ReadAllBytes(fullPath);
+			if (data == null || data.Length == 0) throw new Exception($"Cannot read texture {fullPath}");
+			var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
+			if (tex.LoadImage(data) == false) throw new Exception($"Cannot create texture {fullPath}");
+			tex.Compress(true);
+			tex.wrapMode = TextureWrapMode.Clamp;
+			tex.filterMode = FilterMode.Trilinear;
+			tex.Apply(true, makeReadonly);
+			return tex;
 		}
 
 		public static string SafeTranslate(this string key)
@@ -288,6 +303,17 @@ namespace ZombieLand
 			return pawn.workSettings.WorkIsActive(WorkTypeDefOf.Doctor) && pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation);
 		}
 
+		public static bool CanHunt(this Pawn pawn, bool rightNow = false)
+		{
+			if (pawn.RaceProps.Humanlike == false || pawn.IsPrisoner)
+				return false;
+			if (rightNow && (pawn.IsDowned() || pawn.Awake() == false || pawn.InBed() || pawn.InMentalState))
+				return false;
+			if (pawn.workSettings == null)
+				return false;
+			return pawn.workSettings.WorkIsActive(WorkTypeDefOf.Hunting) && pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation);
+		}
+
 		/*public static bool CanPathTo(this Zombie zombie, IntVec3 cell)
 		{
 			var path = zombie.Map.pathFinder.FindPath(zombie.Position, cell, zombie, PathEndMode.InteractionCell);
@@ -379,6 +405,15 @@ namespace ZombieLand
 			{
 				var info = SoundInfo.InMap(thing);
 				CustomDefs.Bzzt.PlayOneShot(info);
+			}
+		}
+
+		public static void PlaySmash(Thing thing)
+		{
+			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
+			{
+				var info = SoundInfo.InMap(thing);
+				CustomDefs.Smash.PlayOneShot(info);
 			}
 		}
 

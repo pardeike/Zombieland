@@ -22,4 +22,11 @@
 		<allowOpportunisticPrefix>false</allowOpportunisticPrefix>
 	</JobDef>
 
+	<JobDef>
+		<defName>DoubleTap</defName>
+		<driverClass>ZombieLand.JobDriver_DoubleTap</driverClass>
+		<reportString>double tapping TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+
 </Defs>

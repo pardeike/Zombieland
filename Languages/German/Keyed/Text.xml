@@ -42,6 +42,7 @@
 	<MaximumNumberOfZombies>Nie mehr als</MaximumNumberOfZombies>
 	<Zombies>Zombies</Zombies>
 	<ColonyMultiplier>Koloniemultiplikator</ColonyMultiplier>
+	<DoubleTapping>Sicheres 2x killen</DoubleTapping>
 
 	<ZombieEventTitle>Zombieangriff</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Zombies pro Kolonist</ZombiesPerColonistInEvent>
@@ -146,6 +147,9 @@
 	<AutoExtractDisabledDescription>Zombieserum kann nicht extrahiert werden (kein Doktor)</AutoExtractDisabledDescription>
 	<AutoExtractAllowedDescription>Zombieserum automatisch extrahieren wenn keine Zombies in der Nähe sind</AutoExtractAllowedDescription>
 	<AutoExtractForbiddenDescription>Zombieserum nur auf Befehl extrahieren</AutoExtractForbiddenDescription>
+	<AutoDoubleTapDisabledDescription>Kein sicheres 2x Töten (kein Jäger)</AutoDoubleTapDisabledDescription>
+	<AutoDoubleTapAllowedDescription>Leichen automatisch 2x töten damit daraus keine Zombies werden</AutoDoubleTapAllowedDescription>
+	<AutoDoubleTapForbiddenDescription>Sicheres 2x Töten nur auf Befehl</AutoDoubleTapForbiddenDescription>
 
 	<AutoAvoidZombiesEnabledDescription>Automatisches Vermeiden von Zombies, außer wenn im Kampfmodus (stehend)</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Ignoriere Zombies. Alle Aktionen müssen manuell kontrolliert werden</AutoAvoidZombiesDisabledDescription>
