@@ -65,9 +65,10 @@ namespace ZombieLand
 		{
 			if (def == null) return false;
 			if (def.GetType().Namespace == Tools.zlNamespace) return true;
+			if (def.defName == null) return false;
 			if (def.defName.EndsWith("_Zombie", StringComparison.Ordinal)) return true;
 			if (def.defName.StartsWith("Zombie_", StringComparison.Ordinal)) return true;
-			if (def is ThingDef thingDef && thingDef.thingClass.Namespace == Tools.zlNamespace) return true;
+			if (def is ThingDef thingDef && thingDef.thingClass?.Namespace == Tools.zlNamespace) return true;
 			return false;
 		}
 

@@ -27,8 +27,7 @@ namespace ZombieLand
 		{
 			if (ZombieSettings.Values.corpsesExtractAmount == 0)
 				return false;
-			var corpse = job.GetTarget(TargetIndex.A).Thing;
-			return pawn.Reserve(corpse, job, 1, -1, null, errorOnFailed);
+			return pawn.Reserve(job.targetA, job, 1, -1, null, errorOnFailed);
 		}
 
 		protected override IEnumerable<Toil> MakeNewToils()

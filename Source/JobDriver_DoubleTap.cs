@@ -29,9 +29,11 @@ namespace ZombieLand
 			if (ZombieSettings.Values.hoursAfterDeathToBecomeZombie == -1)
 				return false;
 			var corpse = job.GetTarget(TargetIndex.A).Thing as Corpse;
-			if (corpse.InnerPawn?.health.hediffSet.GetBrain() == null)
+			var innerPawn = corpse.InnerPawn;
+			if (innerPawn == null) return false;
+			if (innerPawn.RaceProps.Humanlike == false || innerPawn.health.hediffSet.GetBrain() == null)
 				return false;
-			return pawn.Reserve(corpse, job, 1, -1, null, errorOnFailed);
+			return pawn.Reserve(job.targetA, job, 1, -1, null, errorOnFailed);
 		}
 
 		protected override IEnumerable<Toil> MakeNewToils()

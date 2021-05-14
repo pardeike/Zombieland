@@ -10,6 +10,7 @@ namespace ZombieLand
 	{
 		public override ThingRequest PotentialWorkThingRequest => ThingRequest.ForDef(CustomDefs.Corpse_Zombie);
 		public override PathEndMode PathEndMode => PathEndMode.ClosestTouch;
+		public override bool Prioritized => true;
 		public override int MaxRegionsToScanBeforeGlobalSearch => 4;
 
 		public override Danger MaxPathDanger(Pawn pawn)
@@ -20,21 +21,17 @@ namespace ZombieLand
 		public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
 		{
 			var map = pawn.Map;
+			if (pawn.IsColonist == false) return Enumerable.Empty<Thing>();
+			if (ZombieSettings.Values.corpsesExtractAmount == 0) return Enumerable.Empty<Thing>();
 			var tickManager = map.GetComponent<TickManager>();
 			return tickManager.allZombieCorpses
+				.Where(corpse => corpse.DestroyedOrNull() == false && corpse.Spawned)
 				.Cast<Thing>();
 		}
 
 		public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
 		{
-			if (pawn.IsColonist == false)
-				return false;
-
-			var corpse = t as ZombieCorpse;
-			if (corpse.DestroyedOrNull() || corpse.Spawned == false)
-				return false;
-
-			if (ZombieSettings.Values.corpsesExtractAmount == 0)
+			if (pawn.IsColonist == false || !(t is ZombieCorpse corpse))
 				return false;
 
 			if (forced == false && ColonistSettings.Values.ConfigFor(pawn).autoExtractZombieSerum == false)
@@ -63,8 +60,7 @@ namespace ZombieLand
 
 		public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
 		{
-			if (!(t is ZombieCorpse corpse))
-				return null;
+			if (!(t is ZombieCorpse corpse)) return null;
 			return JobMaker.MakeJob(CustomDefs.ExtractZombieSerum, corpse);
 		}
 	}
@@ -73,6 +69,7 @@ namespace ZombieLand
 	{
 		public override ThingRequest PotentialWorkThingRequest => ThingRequest.ForDef(ThingDefOf.Human);
 		public override PathEndMode PathEndMode => PathEndMode.ClosestTouch;
+		public override bool Prioritized => true;
 		public override int MaxRegionsToScanBeforeGlobalSearch => 4;
 
 		public override Danger MaxPathDanger(Pawn pawn)
@@ -84,7 +81,14 @@ namespace ZombieLand
 		{
 			return pawn.Map.listerThings.ThingsInGroup(ThingRequestGroup.Corpse)
 				.OfType<Corpse>()
-				.Where(corpse => (corpse is ZombieCorpse) == false && corpse.InnerPawn.health.hediffSet.GetBrain() != null);
+				.Where(corpse =>
+				{
+					if (corpse.Spawned == false) return false;
+					var hediffSet = corpse.InnerPawn?.health?.hediffSet;
+					if (hediffSet == null) return false;
+					if (hediffSet.GetBrain() == null) return false;
+					return hediffSet.HasHediff(CustomDefs.ZombieInfection);
+				});
 		}
 
 		public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
@@ -119,8 +123,7 @@ namespace ZombieLand
 					var path = pawn.Map.pathFinder.FindPath(pawn.Position, t, pawn, PathEndMode.ClosestTouch);
 					var shouldAvoid = path.NodesReversed.Any(cell => avoidGrid.ShouldAvoid(map, cell));
 					path.ReleaseToPool();
-					if (shouldAvoid)
-						return false;
+					if (shouldAvoid) return false;
 				}
 			}
 			return result;

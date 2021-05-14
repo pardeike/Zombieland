@@ -3590,24 +3590,29 @@ namespace ZombieLand
 						zombie.jobs.EndCurrentJob(JobCondition.InterruptForced, false);
 					return;
 				}
+
 				var pawn = __instance;
-				var hediffSet = pawn.health.hediffSet;
 
-				// flag zombie bites to be infectious when pawn dies
-				hediffSet
-					.GetHediffs<Hediff_Injury_ZombieBite>()
-					.Where(zombieBite => zombieBite.TendDuration.InfectionStateBetween(InfectionState.BittenInfectable, InfectionState.Infected))
-					.Do(zombieBite => zombieBite.mayBecomeZombieWhenDead = true);
-
-				// if death means becoming a zombie, install zombie infection
-				if (ZombieSettings.Values.hoursAfterDeathToBecomeZombie > -1)
+				if (pawn.RaceProps.Humanlike)
 				{
-					var brain = hediffSet.GetBrain();
-					if (brain != null)
+					var hediffSet = pawn.health.hediffSet;
+
+					// flag zombie bites to be infectious when pawn dies
+					hediffSet
+						.GetHediffs<Hediff_Injury_ZombieBite>()
+						.Where(zombieBite => zombieBite.TendDuration.InfectionStateBetween(InfectionState.BittenInfectable, InfectionState.Infected))
+						.Do(zombieBite => zombieBite.mayBecomeZombieWhenDead = true);
+
+					// if death means becoming a zombie, install zombie infection
+					if (ZombieSettings.Values.hoursAfterDeathToBecomeZombie > -1)
 					{
-						var hediff = HediffMaker.MakeHediff(CustomDefs.ZombieInfection, pawn, brain) as Hediff_ZombieInfection;
-						hediff.InitializeExpiringDate();
-						hediffSet.AddDirect(hediff, null, null);
+						var brain = hediffSet.GetBrain();
+						if (brain != null)
+						{
+							var hediff = HediffMaker.MakeHediff(CustomDefs.ZombieInfection, pawn, brain) as Hediff_ZombieInfection;
+							hediff.InitializeExpiringDate();
+							hediffSet.AddDirect(hediff, null, null);
+						}
 					}
 				}
 
@@ -3912,7 +3917,7 @@ namespace ZombieLand
 			static void Postfix(Corpse __instance)
 			{
 				var pawn = __instance.InnerPawn;
-				if (pawn == null || pawn is Zombie || pawn.health == null)
+				if (pawn == null || pawn is Zombie || pawn.health == null || pawn.RaceProps.Humanlike == false)
 					return;
 
 				var rotStage = __instance.GetRotStage();
@@ -3943,7 +3948,7 @@ namespace ZombieLand
 			static void Postfix(Corpse __instance)
 			{
 				var pawn = __instance.InnerPawn;
-				if (pawn == null || pawn is Zombie)
+				if (pawn == null || pawn is Zombie || pawn.health == null || pawn.RaceProps.Humanlike == false)
 					return;
 
 				var hasBrain = pawn.health.hediffSet.GetBrain() != null;
@@ -3951,9 +3956,9 @@ namespace ZombieLand
 					return;
 
 				var ticks = GenTicks.TicksGame;
-				var shouldBecomeZombie = (pawn.health != null && pawn.health.hediffSet
+				var shouldBecomeZombie = pawn.health.hediffSet
 					.GetHediffs<Hediff_ZombieInfection>()
-					.Any(infection => ticks > infection.ticksWhenBecomingZombie));
+					.Any(infection => ticks > infection.ticksWhenBecomingZombie);
 
 				if (shouldBecomeZombie)
 				{
@@ -3972,11 +3977,10 @@ namespace ZombieLand
 		{
 			static void Postfix(Pawn pawn, Rect leftRect, ref float __result)
 			{
-				if (pawn == null)
+				if (pawn == null || pawn.health == null)
 					return;
 
-				var hasBrain = pawn.health.hediffSet.GetBrain() != null;
-				if (hasBrain == false)
+				if (pawn.health.hediffSet.GetBrain() == null)
 					return;
 
 				if (pawn.Dead)
