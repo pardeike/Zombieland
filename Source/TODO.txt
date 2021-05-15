@@ -1,2 +1,0 @@
-- Signal if a zombie spawns close to a colonist
-- Implement the settings menu

@@ -26,6 +26,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'RimWorld 1.2|AnyCPU'">
     <DefineConstants>RW12</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <OutputPath>..\1.2\Assemblies\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <Optimize>false</Optimize>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="Alerts.cs" />
     <Compile Include="BombVest.cs" />
@@ -134,6 +140,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Krafs.Rimworld.Ref">
+      <Version>1.2.2900</Version>
+    </PackageReference>
     <PackageReference Include="Lib.Harmony">
       <Version>2.0.4</Version>
     </PackageReference>
@@ -162,6 +171,6 @@
   <PropertyGroup>
     <PostBuildEvent>ModBuilder AssemblyVersion -file "$(TargetPath)" -save "$(ProjectName)-version"
 ModBuilder XMLPut -file "$(SolutionDir)About\Manifest.xml" -xpath /Manifest/version -value "{{$(ProjectName)-version}}"
-"$(ProjectDir)Install.bat" "$(ProjectDir)" "$(ProjectName)" "1.1 1.2 About Assemblies Defs Languages Patches Sounds Textures"</PostBuildEvent>
+"$(ProjectDir)Install.bat" "$(ConfigurationName)" "$(ProjectDir)" "$(ProjectName)" "1.1 1.2 About Assemblies Defs Languages Patches Sounds Textures" "LoadFolders.xml"</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -16,17 +16,17 @@ namespace ZombieLand
 		}
 	}
 
-	[HarmonyPatch(typeof(Pawn_DrawTracker))]
-	[HarmonyPatch("DrawTrackerTick")]
-	static class Pawn_DrawTrackerDrawTrackerTick_Patch
-	{
-		[HarmonyPriority(Priority.Last)]
-		static void Postfix(Pawn_DrawTracker __instance)
-		{
-			if (__instance.leaner is ZombieLeaner zombieLeaner)
-				zombieLeaner.ZombieTick();
-		}
-	}
+	//[HarmonyPatch(typeof(Pawn_DrawTracker))]
+	//[HarmonyPatch("DrawTrackerTick")]
+	//static class Pawn_DrawTrackerDrawTrackerTick_Patch
+	//{
+	//	[HarmonyPriority(Priority.Last)]
+	//	static void Postfix(Pawn_DrawTracker __instance)
+	//	{
+	//		if (__instance.leaner is ZombieLeaner zombieLeaner)
+	//			zombieLeaner.ZombieTick();
+	//	}
+	//}
 
 	class ZombieLeaner : PawnLeaner
 	{

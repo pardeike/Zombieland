@@ -2,7 +2,6 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -189,7 +188,7 @@ namespace ZombieLand
 				var rect = zlRect.AtZero();
 				rect.xMax -= rightMargin;
 				var percentRect = rect;
-				percentRect.width *= Verse_TickManager_TickManagerUpdate_Patch.percentZombiesTicked;
+				percentRect.width *= ZombieTicker.PercentTicking;
 				percentRect.xMin -= 2;
 				percentRect.xMax += 2;
 				percentRect.yMax -= 3;
@@ -214,85 +213,37 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Verse.TickManager.TickManagerUpdate))]
 		static class Verse_TickManager_TickManagerUpdate_Patch
 		{
-			public static float percentZombiesTicked = 1f;
-			static readonly Stopwatch watch = new Stopwatch();
-
-			static void TickZombies(Verse.TickManager manager, int num)
-			{
-				_ = num;
-				watch.Reset();
-				watch.Start();
-				manager.DoSingleTick();
-				var singleTickDuration = watch.ElapsedTicks;
-
-				var currentMap = Find.CurrentMap;
-				var zombiesTicked = 0;
-				var totalTicking = 0;
-				foreach (var map in Find.Maps)
-				{
-					var maxTick = singleTickDuration * (map == currentMap ? 2 : 1);
-
-					var tickManager = map?.GetComponent<TickManager>();
-					var zombieTicker = tickManager?.ZombieTicking();
-					if (zombieTicker != null)
-					{
-						watch.Reset();
-						watch.Start();
-						while (zombieTicker.MoveNext() && watch.ElapsedTicks < maxTick) ;
-
-						if (tickManager.totalTicking > 0)
-						{
-							zombiesTicked += tickManager.zombiesTicked;
-							totalTicking = tickManager.totalTicking;
-						}
-					}
-				}
-				percentZombiesTicked = zombiesTicked == 0 || totalTicking == 0 ? 1f : (float)zombiesTicked / totalTicking;
-			}
-
-			static void TickZombieWanderer()
+			static void Prefix()
 			{
 				_ = ZombieWanderer.processor.MoveNext();
+				if (Find.TickManager.Paused) return;
+
+				ZombieTicker.zombiesTicked = 0;
+				ZombieTicker.managers = Find.Maps.Select(map => map.GetComponent<TickManager>()).OfType<TickManager>();
+				ZombieTicker.maxTicking = Mathf.FloorToInt(Find.TickManager.TickRateMultiplier * 2f * ZombieTicker.managers.Sum(tm => tm.allZombiesCached.Count(zombie => zombie.Spawned && zombie.Dead == false)));
+				ZombieTicker.currentTicking = Mathf.FloorToInt(ZombieTicker.maxTicking * ZombieTicker.PercentTicking);
 			}
 
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+			static void Postfix(Verse.TickManager __instance)
 			{
-				var jump = generator.DefineLabel();
-				var m_TickZombieWanderer = SymbolExtensions.GetMethodInfo(() => TickZombieWanderer());
-				var m_TickZombies = SymbolExtensions.GetMethodInfo(() => TickZombies(null, 0));
-				var m_DoSingleTick = AccessTools.Method(typeof(Verse.TickManager), "DoSingleTick");
+				if (__instance.Paused) return;
 
-				var list = instructions.ToList();
-				var idx = list.FindLastIndex(code => code.opcode == OpCodes.Conv_R4);
-				if (idx > 0)
-				{
-					var ticksThisFrameLocalVarCode = list[idx - 1].Clone();
-					list.Insert(0, new CodeInstruction(OpCodes.Call, m_TickZombieWanderer));
-					idx = list.FindIndex(code => code.Calls(m_DoSingleTick));
-					if (idx >= 0)
-					{
-						list[idx].operand = m_TickZombies;
-						list.Insert(idx, ticksThisFrameLocalVarCode);
-					}
-					else
-						Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
-				}
-				else
-					Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+				var ticked = ZombieTicker.zombiesTicked;
+				var current = ZombieTicker.currentTicking;
+				var newPercentZombiesTicked = ticked == 0 || ZombieTicker.currentTicking == 0 ? 1f : ticked / (float)current;
 
-				/*var found = false;
-				var valueFrom = 1000f;
-				var valueTo = 3000f;
-				foreach (var code in list)
-					if (code.operand is float floatValue && floatValue == valueFrom)
-					{
-						code.operand = valueTo;
-						found = true;
-					}
-				if (found == false)
-					Log.Error("Float constant " + valueFrom + " not found in patch " + MethodBase.GetCurrentMethod().DeclaringType);*/
-
-				return list.AsEnumerable();
+				if (ticked > current - 100) newPercentZombiesTicked = Math.Min(1f, newPercentZombiesTicked + 0.5f);
+				ZombieTicker.PercentTicking = newPercentZombiesTicked;
+			}
+		}
+		[HarmonyPatch(typeof(Verse.TickManager))]
+		[HarmonyPatch(nameof(Verse.TickManager.DoSingleTick))]
+		static class TickManager_DoSingleTick_Patch
+		{
+			static void Postfix()
+			{
+				ZombieTicker.managers
+					.Do(tickManager => ZombieTicker.zombiesTicked += tickManager.ZombieTicking());
 			}
 		}
 		[HarmonyPatch(typeof(Verse.TickManager))]
@@ -301,8 +252,7 @@ namespace ZombieLand
 		{
 			static void Postfix(ref bool __result)
 			{
-				if (__result == false)
-					return;
+				if (__result == false) return;
 				__result = ZombieGenerator.ZombiesSpawning == 0;
 			}
 		}
@@ -2916,7 +2866,7 @@ namespace ZombieLand
 				if (stat == StatDefOf.MoveSpeed)
 				{
 					var tm = Find.TickManager;
-					var multiplier = (float)(tm.CurTimeSpeed) / Verse_TickManager_TickManagerUpdate_Patch.percentZombiesTicked;
+					var multiplier = (float)(tm.CurTimeSpeed) / ZombieTicker.PercentTicking;
 					if (Constants.USE_ADAPTIVE_TICKING == false)
 					{
 						// instead of ticking zombies as often as everything else, we tick

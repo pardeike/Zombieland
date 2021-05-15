@@ -12,6 +12,31 @@ using Verse.Sound;
 
 namespace ZombieLand
 {
+	public static class ZombieTicker
+	{
+		public static IEnumerable<TickManager> managers;
+
+		public static float[] percentZombiesTicked = new[] { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
+		public static int percentZombiesTickedIndex = 0;
+
+		public static int zombiesTicked = 0;
+		public static int maxTicking = 0;
+		public static int currentTicking = 0;
+
+		public static float PercentTicking
+		{
+			get
+			{
+				return percentZombiesTicked.Average();
+			}
+			set
+			{
+				percentZombiesTicked[percentZombiesTickedIndex] = value;
+				percentZombiesTickedIndex = (percentZombiesTickedIndex + 1) % percentZombiesTicked.Length;
+			}
+		}
+	}
+
 	public class TickManager : MapComponent
 	{
 		int populationSpawnCounter;
@@ -25,8 +50,6 @@ namespace ZombieLand
 		public int currentColonyPoints;
 
 		public List<Zombie> allZombiesCached;
-		public int zombiesTicked = 0;
-		public int totalTicking = 0;
 		IEnumerator taskTicker;
 		bool runZombiesForNewIncident = false;
 
@@ -169,29 +192,22 @@ namespace ZombieLand
 			return Mathf.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
 		}
 
-		public IEnumerator ZombieTicking()
+		public int ZombieTicking()
 		{
-			zombiesTicked = 0;
-			if (Find.TickManager.TickRateMultiplier == 0f) yield break;
-			var speed = (int)Find.TickManager.CurTimeSpeed;
-			if (speed > 0)
+			var f = ZombieTicker.PercentTicking;
+			var zombies = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false);
+			if (f < 1f)
 			{
-				var zombies = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false);
-				yield return null;
-
-				zombies = zombies.InRandomOrder();
-				yield return null;
-
-				if (speed > 1) speed--;
-				var randomZombies = zombies.ToArray();
-				totalTicking = randomZombies.Length;
-				for (var i = 0; i < totalTicking; i += speed)
-				{
-					randomZombies[i].CustomTick();
-					zombiesTicked++;
-					yield return null;
-				}
+				var partition = Mathf.FloorToInt(zombies.Count() * f);
+				zombies = zombies.InRandomOrder().Take(partition);
 			}
+			var count = 0;
+			zombies.Do(zombie =>
+			{
+				zombie.CustomTick();
+				count++;
+			});
+			return count;
 		}
 
 		public static float ZombieMaxCosts(Zombie zombie)
