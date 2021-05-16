@@ -23,7 +23,7 @@ namespace ZombieLand
 			});
 		}
 
-		protected override void DoListingItems()
+		public override void DoListingItems()
 		{
 			base.DoListingItems();
 

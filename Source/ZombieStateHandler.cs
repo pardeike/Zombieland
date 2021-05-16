@@ -1,5 +1,4 @@
-﻿using HarmonyLib;
-using RimWorld;
+﻿using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -172,7 +171,6 @@ namespace ZombieLand
 
 		// electrify nearby stuff ====================================================================
 		//
-		static readonly FastInvokeHandler _DrainBatteriesAndCauseExplosion = MethodInvoker.GetHandler(AccessTools.Method(typeof(ShortCircuitUtility), "DrainBatteriesAndCauseExplosion"));
 		public static void Electrify(Zombie zombie)
 		{
 			var buildings = GetAdjacted<ThingWithComps>(zombie).OfType<Building>();
@@ -185,10 +183,7 @@ namespace ZombieLand
 					MoteMaker.ThrowDustPuff(building.TrueCenter(), building.Map, Rand.Range(0.8f, 1.2f));
 
 					if (powerNet.batteryComps.Any((CompPowerBattery x) => x.StoredEnergy > 20f))
-					{
-						var arguments = new object[] { powerNet, building, 0f, 0f };
-						_ = _DrainBatteriesAndCauseExplosion(null, arguments);
-					}
+						ShortCircuitUtility.DrainBatteriesAndCauseExplosion(powerNet, building, out var _1, out var _2);
 					else
 						_ = FireUtility.TryStartFireIn(building.Position, building.Map, Rand.Range(0.1f, 1.75f));
 

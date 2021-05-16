@@ -55,7 +55,7 @@ namespace ZombieLand
 		// patch for debugging: show pheromone grid as overlay
 		//
 		[HarmonyPatch(typeof(SelectionDrawer))]
-		[HarmonyPatch("DrawSelectionOverlays")]
+		[HarmonyPatch(nameof(SelectionDrawer.DrawSelectionOverlays))]
 		static class SelectionDrawer_DrawSelectionOverlays_Patch
 		{
 			static readonly float pawnAltitude = Altitudes.AltitudeFor(AltitudeLayer.Pawn - 1);
@@ -99,7 +99,7 @@ namespace ZombieLand
 		// patch for debugging: show zombie avoidance grid
 		//
 		[HarmonyPatch(typeof(MapInterface))]
-		[HarmonyPatch("MapInterfaceUpdate")]
+		[HarmonyPatch(nameof(MapInterface.MapInterfaceUpdate))]
 		class MapInterface_MapInterfaceUpdate_Patch
 		{
 			static void Postfix()
@@ -126,7 +126,7 @@ namespace ZombieLand
 		// patch for debugging: show zombie pathing grid around the mouse
 		//
 		[HarmonyPatch(typeof(MapInterface))]
-		[HarmonyPatch("MapInterfaceOnGUI_AfterMainTabs")]
+		[HarmonyPatch(nameof(MapInterface.MapInterfaceOnGUI_AfterMainTabs))]
 		class MapInterface_MapInterfaceOnGUI_AfterMainTabs_Patch
 		{
 			static void Postfix()
@@ -213,14 +213,26 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Verse.TickManager.TickManagerUpdate))]
 		static class Verse_TickManager_TickManagerUpdate_Patch
 		{
-			static void Prefix()
+			static void Prefix(Verse.TickManager __instance)
 			{
 				_ = ZombieWanderer.processor.MoveNext();
 				if (Find.TickManager.Paused) return;
 
 				ZombieTicker.zombiesTicked = 0;
 				ZombieTicker.managers = Find.Maps.Select(map => map.GetComponent<TickManager>()).OfType<TickManager>();
-				ZombieTicker.maxTicking = Mathf.FloorToInt(Find.TickManager.TickRateMultiplier * 2f * ZombieTicker.managers.Sum(tm => tm.allZombiesCached.Count(zombie => zombie.Spawned && zombie.Dead == false)));
+
+				var curTimePerTick = __instance.CurTimePerTick;
+				var realTimeToTickThrough = __instance.realTimeToTickThrough;
+				if (Mathf.Abs(Time.deltaTime - curTimePerTick) < curTimePerTick * 0.1f)
+					realTimeToTickThrough += curTimePerTick;
+				else
+					realTimeToTickThrough += Time.deltaTime;
+
+				var n1 = realTimeToTickThrough / curTimePerTick;
+				var n2 = __instance.TickRateMultiplier * 2f;
+				var loopEstimate = Mathf.FloorToInt(Mathf.Min(n1, n2));
+
+				ZombieTicker.maxTicking = Mathf.FloorToInt(loopEstimate * ZombieTicker.managers.Sum(tm => tm.allZombiesCached.Count(zombie => zombie.Spawned && zombie.Dead == false)));
 				ZombieTicker.currentTicking = Mathf.FloorToInt(ZombieTicker.maxTicking * ZombieTicker.PercentTicking);
 			}
 
@@ -230,7 +242,7 @@ namespace ZombieLand
 
 				var ticked = ZombieTicker.zombiesTicked;
 				var current = ZombieTicker.currentTicking;
-				var newPercentZombiesTicked = ticked == 0 || ZombieTicker.currentTicking == 0 ? 1f : ticked / (float)current;
+				var newPercentZombiesTicked = ticked == 0 || current == 0 ? 1f : ticked / (float)current;
 
 				if (ticked > current - 100) newPercentZombiesTicked = Math.Min(1f, newPercentZombiesTicked + 0.5f);
 				ZombieTicker.PercentTicking = newPercentZombiesTicked;
@@ -614,8 +626,6 @@ namespace ZombieLand
 		[HarmonyPatch("DangerMusicMode", MethodType.Getter)]
 		static class MusicManagerPlay_DangerMusicMode_Patch
 		{
-			delegate int LastColonistHarmedTickDelegate(DangerWatcher dw);
-
 			static int lastUpdateTick;
 			static StoryDanger dangerRatingInt = StoryDanger.None;
 
@@ -646,7 +656,7 @@ namespace ZombieLand
 							else
 							{
 								dangerRatingInt = StoryDanger.Low;
-								var lastColonistHarmedTick = GetterSetters.clastColonistHarmedTickByRef(map.dangerWatcher);
+								var lastColonistHarmedTick = map.dangerWatcher.lastColonistHarmedTick;
 								if (lastColonistHarmedTick > Find.TickManager.TicksGame - 900)
 									dangerRatingInt = StoryDanger.High;
 								else
@@ -1626,7 +1636,7 @@ namespace ZombieLand
 							goodwill = 0,
 							kind = FactionRelationKind.Hostile
 						};
-						GetterSetters.relationsByRef(zombies).Add(rel1);
+						zombies.relations.Add(rel1);
 
 						var rel2 = new FactionRelation()
 						{
@@ -1634,7 +1644,7 @@ namespace ZombieLand
 							goodwill = 0,
 							kind = FactionRelationKind.Hostile
 						};
-						GetterSetters.relationsByRef(faction).Add(rel2);
+						faction.relations.Add(rel2);
 
 					}
 					___allFactions.Add(zombies);
@@ -4361,7 +4371,7 @@ namespace ZombieLand
 					{
 						var dialog = new Dialog_ModSettings();
 						var me = LoadedModManager.GetMod<ZombielandMod>();
-						GetterSetters.selModByRef(dialog) = me;
+						dialog.selMod = me;
 						Find.WindowStack.Add(dialog);
 					}, null));
 				}

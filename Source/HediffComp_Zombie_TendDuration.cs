@@ -104,7 +104,7 @@ namespace ZombieLand
 				if (firstTimeVisible)
 				{
 					firstTimeVisible = false;
-					GetterSetters.totalTendQualityByRef(this) = 0f;
+					totalTendQuality = 0f;
 				}
 
 				return base.CompShouldRemove;

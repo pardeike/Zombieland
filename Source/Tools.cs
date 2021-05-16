@@ -26,7 +26,7 @@ namespace ZombieLand
 
 	public class IsCombatExtendedInstalled : PatchOperation
 	{
-		protected override bool ApplyWorker(XmlDocument xml)
+		public override bool ApplyWorker(XmlDocument xml)
 		{
 			return TypeByName("CombatExtended.ToolCE") != null;
 		}
@@ -104,19 +104,19 @@ namespace ZombieLand
 
 			if (mealLabel == null) mealLabel = def.label;
 			if (mealDescription == null) mealDescription = def.description;
-			if (mealGraphic == null) mealGraphic = GetterSetters.cachedGraphicByRef(def.graphicData);
+			if (mealGraphic == null) mealGraphic = def.graphicData.cachedGraphic;
 
 			if (enable)
 			{
 				def.label = "Twinkie";
 				def.description = "A Twinkie is an American snack cake, marketed as a \"Golden Sponge Cake with Creamy Filling\".";
-				GetterSetters.cachedGraphicByRef(def.graphicData) = GraphicsDatabase.twinkieGraphic;
+				def.graphicData.cachedGraphic = GraphicsDatabase.twinkieGraphic;
 			}
 			else
 			{
 				def.label = mealLabel;
 				def.description = mealDescription;
-				GetterSetters.cachedGraphicByRef(def.graphicData) = mealGraphic;
+				def.graphicData.cachedGraphic = mealGraphic;
 			}
 
 			def.graphic = def.graphicData.Graphic;
@@ -127,7 +127,7 @@ namespace ZombieLand
 			{
 				game.Maps
 					.SelectMany(map => map.listerThings.ThingsOfDef(def))
-					.Do(meal => GetterSetters.graphicIntByRef(meal) = null);
+					.Do(meal => meal.graphicInt = null);
 			}
 		}
 
@@ -281,15 +281,12 @@ namespace ZombieLand
 				return squared ? 64f : 8f;
 			if (zombie.raging > 0)
 				return squared ? 36f : 6f;
-			switch (zombie.state)
+			return zombie.state switch
 			{
-				case ZombieState.Wandering:
-					return squared ? 16f : 4f;
-				case ZombieState.Tracking:
-					return squared ? 36f : 6f;
-				default:
-					return squared ? 4f : 2f;
-			}
+				ZombieState.Wandering => squared ? 16f : 4f,
+				ZombieState.Tracking => squared ? 36f : 6f,
+				_ => squared ? 4f : 2f,
+			};
 		}
 
 		public static bool CanDoctor(this Pawn pawn, bool rightNow = false)
@@ -470,10 +467,11 @@ namespace ZombieLand
 				if (ZombieSettings.Values.useCustomTextures)
 					ZombieGenerator.AssignNewGraphics(zombie);
 
-				var zTweener = Traverse.Create(zombie.Drawer.tweener);
-				var pTweener = Traverse.Create(pawn.Drawer.tweener);
-				new[] { "tweenedPos", "lastDrawFrame", "lastTickSpringPos" }
-					.Do(field => zTweener.Field(field).SetValue(pTweener.Field(field).GetValue()));
+				var zTweener = zombie.Drawer.tweener;
+				var pTweener = pawn.Drawer.tweener;
+				zTweener.tweenedPos = pTweener.tweenedPos;
+				zTweener.lastDrawFrame = pTweener.lastDrawFrame;
+				zTweener.lastTickSpringPos = pTweener.lastTickSpringPos;
 
 				zombie.Rotation = rot;
 				if (wasInGround == false)
@@ -790,7 +788,7 @@ namespace ZombieLand
 		static readonly FieldRef<Building_TurretGun, CompPowerTrader> powerComp = FieldRefAccess<Building_TurretGun, CompPowerTrader>("powerComp");
 		public static int[] ColonyPoints()
 		{
-			float dangerPoints(Building building)
+			static float dangerPoints(Building building)
 			{
 				if (building is Building_TurretGun turretGun)
 					return DPS(turretGun) * ((powerComp(turretGun)?.PowerOn ?? false) ? 1 : 0.5f);

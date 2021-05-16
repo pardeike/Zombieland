@@ -27,7 +27,7 @@ namespace ZombieLand
 
 	public class Dialog_Save : Dialog_SaveFileList
 	{
-		protected override bool ShouldDoTypeInField => true;
+		public override bool ShouldDoTypeInField => true;
 
 		public Dialog_Save()
 		{
@@ -39,7 +39,7 @@ namespace ZombieLand
 				typingName = SaveGameFilesUtility.UnusedDefaultFileName(Faction.OfPlayer.def.LabelCap);
 		}
 
-		protected override void DoFileInteraction(string fileName)
+		public override void DoFileInteraction(string fileName)
 		{
 			Close(true);
 			ZombieRemover.RemoveZombieland(fileName);
@@ -72,8 +72,8 @@ namespace ZombieLand
 
 		public static void Help(this Listing_Standard list, string helpItem, float height = 0f)
 		{
-			var curX = GetterSetters.curXByRef(list);
-			var curY = GetterSetters.curYByRef(list);
+			var curX = list.curX;
+			var curY = list.curY;
 			var rect = new Rect(curX, curY, list.ColumnWidth, height > 0f ? height : Text.LineHeight);
 			if (Mouse.IsOver(rect))
 				currentHelpItem = helpItem;
@@ -183,8 +183,8 @@ namespace ZombieLand
 
 			Widgets.Checkbox(new Vector2(rect.x, rect.y - 1f), ref forBool);
 
-			var curX = GetterSetters.curXByRef(list);
-			GetterSetters.curXByRef(list) = curX + indent;
+			var curX = list.curX;
+			list.curX = curX + indent;
 
 			var anchor = Text.Anchor;
 			Text.Anchor = TextAnchor.UpperLeft;
@@ -195,7 +195,7 @@ namespace ZombieLand
 			GUI.color = color;
 			Text.Anchor = anchor;
 
-			GetterSetters.curXByRef(list) = curX;
+			list.curX = curX;
 		}
 
 		public static bool Dialog_RadioButton(this Listing_Standard list, bool active, string labelId)
@@ -211,8 +211,8 @@ namespace ZombieLand
 			var line = new Rect(rect);
 			var result = Widgets.RadioButton(line.xMin, line.yMin, active);
 
-			var curX = GetterSetters.curXByRef(list);
-			GetterSetters.curXByRef(list) = curX + indent;
+			var curX = list.curX;
+			list.curX = curX + indent;
 
 			var anchor = Text.Anchor;
 			Text.Anchor = TextAnchor.UpperLeft;
@@ -223,7 +223,7 @@ namespace ZombieLand
 			GUI.color = color;
 			Text.Anchor = anchor;
 
-			GetterSetters.curXByRef(list) = curX;
+			list.curX = curX;
 
 			result |= Widgets.ButtonInvisible(rect, false);
 			if (result && !active)
@@ -486,7 +486,8 @@ namespace ZombieLand
 				list.Gap(-4f);
 				list.Dialog_Checkbox("AnyTreatmentStopsInfection", ref settings.anyTreatmentStopsInfection);
 				list.Gap(20f);
-				string hoursTranslator(int n) => n == -1 ? "Off".Translate() : (n == 0 ? "Immediately".Translate() : null);
+
+				static string hoursTranslator(int n) => n == -1 ? "Off".Translate() : (n == 0 ? "Immediately".Translate() : null);
 				list.Dialog_TimeSlider("HoursAfterDeathToBecomeZombie", ref settings.hoursAfterDeathToBecomeZombie, -1, 24, hoursTranslator, false);
 				list.Gap(20f);
 

@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using System;
 using UnityEngine;
 using Verse;
 
@@ -36,7 +35,7 @@ namespace ZombieLand
 		private static int DamageFlashTicksLeft(DamageFlasher damageFlasher)
 		{
 			// copied from DamageFlasher.DamageFlashTicksLeft
-			return GetterSetters.lastDamageTickByRef(damageFlasher) + 16 - Find.TickManager.TicksGame;
+			return damageFlasher.lastDamageTick + 16 - Find.TickManager.TicksGame;
 		}
 
 		[HarmonyPriority(Priority.Last)]

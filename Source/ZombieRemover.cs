@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace ZombieLand
 			_ = Find.BattleLog.Battles.RemoveAll(battle =>
 			{
 				_ = battle.Entries.RemoveAll(entry => entry.GetConcerns().Any(th => th is Zombie));
-				return Traverse.Create(battle).Field("concerns").GetValue<HashSet<Pawn>>().Any(RemoveItem);
+				return battle.concerns.Any(RemoveItem);
 			});
 			_ = Find.TaleManager.AllTalesListForReading.RemoveAll(tale =>
 			{
@@ -118,7 +119,7 @@ namespace ZombieLand
 			foreach (var hediff in hediffs3)
 				pawn.health.RemoveHediff(hediff);
 
-			var carriedFilth = Traverse.Create(pawn.filth).Field("carriedFilth").GetValue<List<Filth>>();
+			var carriedFilth = pawn.filth.carriedFilth;
 			_ = carriedFilth?.RemoveAll(filth => filth.IsZombieThing());
 
 			pawn.needs?.AllNeeds?.Do(need =>
@@ -130,7 +131,7 @@ namespace ZombieLand
 
 		static void RemoveWorldPawns()
 		{
-			var fieldNames = new string[] { "pawnsAlive", "pawnsMothballed", "pawnsDead", "pawnsForcefullyKeptAsWorldPawns" };
+			var fieldNames = new string[] { nameof(WorldPawns.pawnsAlive), nameof(WorldPawns.pawnsMothballed), nameof(WorldPawns.pawnsDead), nameof(WorldPawns.pawnsForcefullyKeptAsWorldPawns) };
 			var trvWorldPawns = Traverse.Create(Current.Game.World.worldPawns);
 			foreach (var fieldName in fieldNames)
 			{
@@ -154,13 +155,7 @@ namespace ZombieLand
 				var zombies = PawnsOfType<Zombie>(map);
 				foreach (var zombie in zombies)
 					map.pawnDestinationReservationManager.ReleaseAllClaimedBy(zombie);
-
-				var trv = Traverse.Create(map.pawnDestinationReservationManager).Field("reservedDestinations");
-				var reservedDestinations = trv.GetValue<Dictionary<Faction, PawnDestinationReservationManager.PawnDestinationSet>>();
-				var reservedDestinations2 = new Dictionary<Faction, PawnDestinationReservationManager.PawnDestinationSet>();
-				foreach (var key in reservedDestinations.Keys.Where(faction => faction != zombieFaction))
-					reservedDestinations2.Add(key, reservedDestinations[key]);
-				_ = trv.SetValue(reservedDestinations2);
+				_ = map.pawnDestinationReservationManager.reservedDestinations.RemoveAll(pair => pair.Key == zombieFaction);
 			});
 
 			zombieFaction.RemoveAllRelations();

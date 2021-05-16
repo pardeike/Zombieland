@@ -444,7 +444,7 @@ namespace ZombieLand
 			zombie.Drawer.leaner = new ZombieLeaner(zombie);
 			if (zombie.pather == null)
 				zombie.pather = new Pawn_PathFollower(zombie);
-			GetterSetters.destinationByRef(zombie.pather) = IntVec3.Invalid;
+			zombie.pather.destination = IntVec3.Invalid;
 			yield return null;
 			if (zombie.IsTanky == false)
 			{

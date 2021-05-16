@@ -19,7 +19,7 @@ namespace ZombieLand
 
 	public class Verb_Shock : Verb
 	{
-		protected override bool TryCastShot()
+		public override bool TryCastShot()
 		{
 			return true;
 		}
@@ -423,18 +423,6 @@ namespace ZombieLand
 			return result;
 		}
 
-		static readonly Type[] RenderPawnInternalParameterTypes = {
-			typeof(Vector3),
-			typeof(float),
-			typeof(bool),
-			typeof(Rot4),
-			typeof(Rot4),
-			typeof(RotDrawMode),
-			typeof(bool),
-			typeof(bool),
-			typeof(bool)
-		};
-		static readonly FastInvokeHandler delegateRenderPawnInternal = MethodInvoker.GetHandler(typeof(PawnRenderer).MethodNamed("RenderPawnInternal", RenderPawnInternalParameterTypes));
 		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
 		{
 			drawLoc.x = (int)(drawLoc.x) + 0.5f;
@@ -443,9 +431,7 @@ namespace ZombieLand
 			if (progress >= Constants.EMERGE_DELAY)
 			{
 				var bodyOffset = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, -0.45f, 0, progress);
-				_ = delegateRenderPawnInternal(renderer, new object[] {
-					drawLoc + new Vector3(0, 0, bodyOffset), 0f, true, Rot4.South, Rot4.South, bodyDrawType, false, false, false
-				});
+				renderer.RenderPawnInternal(drawLoc + new Vector3(0, 0, bodyOffset), 0f, true, Rot4.South, Rot4.South, bodyDrawType, false, false, false);
 			}
 
 			RenderRubble(drawLoc);

@@ -89,7 +89,7 @@ namespace ZombieLand
 			visibleGridUpdateCounter = -1;
 			RecalculateZombieWanderDestination();
 
-			var destinations = GetterSetters.reservedDestinationsByRef(map.pawnDestinationReservationManager);
+			var destinations = map.pawnDestinationReservationManager.reservedDestinations;
 			var zombieFaction = Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies);
 			if (!destinations.ContainsKey(zombieFaction)) _ = map.pawnDestinationReservationManager.GetPawnDestinationSetFor(zombieFaction);
 

@@ -80,7 +80,7 @@ namespace ZombieLand
 			return "Sabotaging";
 		}
 
-		protected override IEnumerable<Toil> MakeNewToils()
+		public override IEnumerable<Toil> MakeNewToils()
 		{
 			yield return new Toil()
 			{

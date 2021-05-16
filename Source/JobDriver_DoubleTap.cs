@@ -36,7 +36,7 @@ namespace ZombieLand
 			return pawn.Reserve(job.targetA, job, 1, -1, null, errorOnFailed);
 		}
 
-		protected override IEnumerable<Toil> MakeNewToils()
+		public override IEnumerable<Toil> MakeNewToils()
 		{
 			AddEndCondition(delegate
 			{

@@ -135,7 +135,7 @@ namespace ZombieLand
 			return "Stumbling";
 		}
 
-		protected override IEnumerable<Toil> MakeNewToils()
+		public override IEnumerable<Toil> MakeNewToils()
 		{
 			yield return new Toil()
 			{
