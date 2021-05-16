@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -12,9 +13,11 @@ using Verse.Sound;
 
 namespace ZombieLand
 {
+	[StaticConstructorOnStartup]
 	public static class ZombieTicker
 	{
 		public static IEnumerable<TickManager> managers;
+		public static Type RimThreaded = AccessTools.TypeByName("RimThreaded.RimThreaded");
 
 		public static float[] percentZombiesTicked = new[] { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
 		public static int percentZombiesTickedIndex = 0;
@@ -22,6 +25,12 @@ namespace ZombieLand
 		public static int zombiesTicked = 0;
 		public static int maxTicking = 0;
 		public static int currentTicking = 0;
+
+		public static void DoSingleTick()
+		{
+			if (RimThreaded == null)
+				managers.Do(tickManager => tickManager.ZombieTicking());
+		}
 
 		public static float PercentTicking
 		{
@@ -53,6 +62,9 @@ namespace ZombieLand
 		IEnumerator taskTicker;
 		bool runZombiesForNewIncident = false;
 
+		public Zombie[] currentZombiesTicking;
+		public int currentZombiesTickingIndex;
+
 		public List<ZombieCorpse> allZombieCorpses;
 		public AvoidGrid avoidGrid;
 		public AvoidGrid emptyAvoidGrid;
@@ -74,6 +86,14 @@ namespace ZombieLand
 			currentColonyPoints = 100;
 			allZombiesCached = new List<Zombie>();
 			allZombieCorpses = new List<ZombieCorpse>();
+
+			var type = ZombieTicker.RimThreaded;
+			if (type != null)
+			{
+				var addNormalTicking = AccessTools.Method(type, "AddNormalTicking");
+				if (addNormalTicking != null)
+					_ = addNormalTicking.Invoke(null, new object[] { this, new Action<TickManager>(PrepareThreadedTicking), new Action<TickManager>(DoThreadedSingleTick) });
+			}
 		}
 
 		public override void FinalizeInit()
@@ -192,22 +212,34 @@ namespace ZombieLand
 			return Mathf.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
 		}
 
-		public int ZombieTicking()
+		public void ZombieTicking()
+		{
+			PrepareThreadedTicking(this);
+			currentZombiesTicking.Do(zombie => zombie.CustomTick());
+		}
+
+		public static void PrepareThreadedTicking(TickManager tickManager)
 		{
 			var f = ZombieTicker.PercentTicking;
-			var zombies = allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false);
+			var zombies = tickManager.allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false);
 			if (f < 1f)
 			{
 				var partition = Mathf.FloorToInt(zombies.Count() * f);
 				zombies = zombies.InRandomOrder().Take(partition);
 			}
-			var count = 0;
-			zombies.Do(zombie =>
+			tickManager.currentZombiesTicking = zombies.ToArray();
+			tickManager.currentZombiesTickingIndex = tickManager.currentZombiesTicking.Length;
+		}
+
+		public static void DoThreadedSingleTick(TickManager tickManager)
+		{
+			// is being called by many threads at the same time
+			while (true)
 			{
-				zombie.CustomTick();
-				count++;
-			});
-			return count;
+				var idx = Interlocked.Decrement(ref tickManager.currentZombiesTickingIndex);
+				if (idx < 0) return;
+				tickManager.currentZombiesTicking[idx].CustomTick();
+			}
 		}
 
 		public static float ZombieMaxCosts(Zombie zombie)

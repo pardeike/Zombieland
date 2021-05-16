@@ -254,8 +254,7 @@ namespace ZombieLand
 		{
 			static void Postfix()
 			{
-				ZombieTicker.managers
-					.Do(tickManager => ZombieTicker.zombiesTicked += tickManager.ZombieTicking());
+				ZombieTicker.DoSingleTick();
 			}
 		}
 		[HarmonyPatch(typeof(Verse.TickManager))]
