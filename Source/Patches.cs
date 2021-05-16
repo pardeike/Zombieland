@@ -4044,9 +4044,10 @@ namespace ZombieLand
 			static void PostfixCombatExtended(Thing launcher, Vector2 origin, float shotAngle, float shotHeight, float shotSpeed)
 			{
 				if (!(launcher is Pawn pawn)) return;
+				if (launcher.Map == null) return;
 
 				var noiseScale = 1f;
-				if (pawn.equipment.PrimaryEq != null)
+				if (pawn.equipment?.PrimaryEq?.PrimaryVerb?.verbProps != null)
 					noiseScale = pawn.equipment.PrimaryEq.PrimaryVerb.verbProps.muzzleFlashScale / Constants.BASE_MUZZLE_FLASH_VALUE;
 
 				var now = Tools.Ticks();
