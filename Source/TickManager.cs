@@ -92,7 +92,12 @@ namespace ZombieLand
 			{
 				var addNormalTicking = AccessTools.Method(type, "AddNormalTicking");
 				if (addNormalTicking != null)
-					_ = addNormalTicking.Invoke(null, new object[] { this, new Action<TickManager>(PrepareThreadedTicking), new Action<TickManager>(DoThreadedSingleTick) });
+					_ = addNormalTicking.Invoke(null, new object[]
+					{
+						this,
+						new Action<object>(PrepareThreadedTicking),
+						new Action<object>(DoThreadedSingleTick)
+					});
 			}
 		}
 
@@ -218,8 +223,9 @@ namespace ZombieLand
 			currentZombiesTicking.Do(zombie => zombie.CustomTick());
 		}
 
-		public static void PrepareThreadedTicking(TickManager tickManager)
+		public static void PrepareThreadedTicking(object input)
 		{
+			var tickManager = (TickManager)input;
 			var f = ZombieTicker.PercentTicking;
 			var zombies = tickManager.allZombiesCached.Where(zombie => zombie.Spawned && zombie.Dead == false);
 			if (f < 1f)
@@ -231,9 +237,10 @@ namespace ZombieLand
 			tickManager.currentZombiesTickingIndex = tickManager.currentZombiesTicking.Length;
 		}
 
-		public static void DoThreadedSingleTick(TickManager tickManager)
+		public static void DoThreadedSingleTick(object input)
 		{
 			// is being called by many threads at the same time
+			var tickManager = (TickManager)input;
 			while (true)
 			{
 				var idx = Interlocked.Decrement(ref tickManager.currentZombiesTickingIndex);
