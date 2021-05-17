@@ -15,8 +15,6 @@ namespace ZombieLand
 	{
 		static readonly int[] adjIndex4 = { 0, 1, 2, 3 };
 		static int prevIndex4;
-		static readonly int[] adjIndex8 = { 0, 1, 2, 3, 4, 5, 6, 7 };
-		static int prevIndex8;
 
 		static readonly float combatExtendedHealAmount = 1f / 1f.SecondsToTicks();
 
@@ -173,23 +171,26 @@ namespace ZombieLand
 		//
 		public static void Electrify(Zombie zombie)
 		{
-			var buildings = GetAdjacted<ThingWithComps>(zombie).OfType<Building>();
-			foreach (var building in buildings)
+			zombie.PerformOnAdjacted(thing =>
 			{
-				var powerNet = building?.PowerComp?.PowerNet;
-				if (powerNet != null && building.IsBurning() == false)
+				if (thing is Building building)
 				{
-					_ = MoteMaker.MakeStaticMote(building.TrueCenter(), building.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
-					MoteMaker.ThrowDustPuff(building.TrueCenter(), building.Map, Rand.Range(0.8f, 1.2f));
+					var powerNet = building?.PowerComp?.PowerNet;
+					if (powerNet != null && building.IsBurning() == false)
+					{
+						_ = MoteMaker.MakeStaticMote(building.TrueCenter(), building.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
+						MoteMaker.ThrowDustPuff(building.TrueCenter(), building.Map, Rand.Range(0.8f, 1.2f));
 
-					if (powerNet.batteryComps.Any((CompPowerBattery x) => x.StoredEnergy > 20f))
-						ShortCircuitUtility.DrainBatteriesAndCauseExplosion(powerNet, building, out var _1, out var _2);
-					else
-						_ = FireUtility.TryStartFireIn(building.Position, building.Map, Rand.Range(0.1f, 1.75f));
+						if (powerNet.batteryComps.Any((CompPowerBattery x) => x.StoredEnergy > 20f))
+							ShortCircuitUtility.DrainBatteriesAndCauseExplosion(powerNet, building, out var _1, out var _2);
+						else
+							_ = FireUtility.TryStartFireIn(building.Position, building.Map, Rand.Range(0.1f, 1.75f));
 
-					return;
+						return true;
+					}
 				}
-			}
+				return false;
+			});
 		}
 
 		// lean in and eat bodies made out of flesh =================================================
@@ -285,6 +286,12 @@ namespace ZombieLand
 			return true;
 		}
 
+		struct TrackMove
+		{
+			public IntVec3 pos;
+			public long tstamp;
+		}
+
 		// ==========================================================================================
 		// calculate possible moves, sort by pheromone value and take top 3
 		// then choose the one with the lowest zombie count
@@ -310,33 +317,42 @@ namespace ZombieLand
 				checkSmashableFadeoff2 = agitatedFadeoff * 3 / 4;
 			}
 
-			var trackingMoves = new List<IntVec3>(8);
+			var currentFadeoff = zombie.wasMapPawnBefore ? wasColonistFadeoff : fadeOff;
 			var currentTicks = Tools.Ticks();
-			var timeDelta = long.MaxValue;
+			var treshhold = currentTicks - currentFadeoff;
 
-			var fmin = long.MaxValue;
+			var topTrackingMoves = new TrackMove[Constants.NUMBER_OF_TOP_MOVEMENT_PICKS];
+			var topTrackingMovesCount = 0;
+
+			var zPos = zombie.Position;
 			if (zombie.raging == 0)
 			{
 				for (var i = 0; i < 8; i++)
 				{
-					var pos = zombie.Position + GenAdj.AdjacentCells[i];
+					var pos = zPos + GenAdj.AdjacentCells[i];
 					if (zombie.HasValidDestination(pos))
 					{
-						var f = zombie.wasMapPawnBefore ? wasColonistFadeoff : fadeOff;
-						var tdiff = currentTicks - grid.GetTimestamp(pos);
-						fmin = Math.Min(fmin, tdiff);
-						if (tdiff < f)
-							trackingMoves.Add(pos);
+						var tstamp = grid.GetTimestamp(pos);
+						if (treshhold < tstamp)
+						{
+							for (var j = 0; j < Constants.NUMBER_OF_TOP_MOVEMENT_PICKS; j++)
+								if (j >= topTrackingMovesCount || tstamp > topTrackingMoves[j].tstamp)
+								{
+									for (var k = Constants.NUMBER_OF_TOP_MOVEMENT_PICKS - 1; k >= j + 1; k--)
+										topTrackingMoves[k] = topTrackingMoves[k - 1];
+									topTrackingMoves[j] = new TrackMove { pos = pos, tstamp = tstamp };
+									if (topTrackingMovesCount < Constants.NUMBER_OF_TOP_MOVEMENT_PICKS) topTrackingMovesCount++;
+									break;
+								}
+						}
 					}
 				}
 			}
 
-			if (trackingMoves.Count > 0)
+			var timeDelta = long.MaxValue;
+			if (topTrackingMovesCount > 0)
 			{
-				trackingMoves.Sort((p1, p2) => grid.GetTimestamp(p2).CompareTo(grid.GetTimestamp(p1)));
-				trackingMoves = trackingMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
-				trackingMoves = trackingMoves.OrderBy(p => grid.GetZombieCount(p)).ToList();
-				var nextMove = trackingMoves.First();
+				var nextMove = topTrackingMoves.OrderBy(move => grid.GetZombieCount(move.pos)).First().pos;
 				timeDelta = currentTicks - (grid.GetTimestamp(nextMove));
 
 				driver.destination = nextMove;
@@ -602,64 +618,87 @@ namespace ZombieLand
 			if (zombie.EveryNTick(NthTick.Every2) == false)
 				return null;
 
-			if (ZombieSettings.Values.zombiesEatDowned || ZombieSettings.Values.zombiesEatCorpses)
+			if (ZombieSettings.Values.zombiesEatDowned == false && ZombieSettings.Values.zombiesEatCorpses == false)
+				return null;
+
+			Thing result = null;
+			zombie.PerformOnAdjacted(thing =>
 			{
-				var enumerator = GetAdjacted<ThingWithComps>(zombie).GetEnumerator();
-				while (enumerator.MoveNext())
-				{
-					var twc = enumerator.Current;
+				if (thing is Zombie || thing is ZombieCorpse)
+					return false;
 
-					if (twc is Pawn p && ZombieSettings.Values.zombiesEatDowned)
+				if (thing is Pawn p && ZombieSettings.Values.zombiesEatDowned)
+					if (p.Spawned && p.RaceProps.IsFlesh && AlienTools.IsFleshPawn(p) && (p.IsDowned() || p.Dead))
 					{
-						if (p.Spawned && p.RaceProps.IsFlesh && AlienTools.IsFleshPawn(p) && (p.IsDowned() || p.Dead))
-							return p;
+						result = p;
+						return true;
 					}
 
-					if (twc is Corpse c && ZombieSettings.Values.zombiesEatCorpses)
+				if (thing is Corpse c && ZombieSettings.Values.zombiesEatCorpses)
+					if (c.Spawned && c.InnerPawn != null && c.InnerPawn.RaceProps.IsFlesh && AlienTools.IsFleshPawn(c.InnerPawn))
 					{
-						if (c.Spawned && c.InnerPawn != null && c.InnerPawn.RaceProps.IsFlesh && AlienTools.IsFleshPawn(c.InnerPawn))
-							return c;
+						result = c;
+						return true;
 					}
-				}
-			}
-			return null;
+
+				return false;
+			});
+			return result;
 		}
 
 		static Thing CanAttack(Zombie zombie)
 		{
 			var mode = ZombieSettings.Values.attackMode;
 
-			var targets = GetAdjacted<Pawn>(zombie).ToList();
-			foreach (var target in targets)
+			Thing result = null;
+			zombie.PerformOnAdjacted(thing =>
 			{
-				if (target.Dead || target.IsDowned())
-					continue;
+				if (thing is Zombie || thing is ZombieCorpse)
+					return false;
 
-				// if (TouchPathEndModeUtility.IsAdjacentOrInsideAndAllowedToTouch(zombie.Position, target.Position, zombie.Map) == false)
-				var distance = (target.DrawPos - zombie.DrawPos).MagnitudeHorizontalSquared();
-				if (distance > Constants.MIN_ATTACKDISTANCE_SQUARED)
-					continue;
-
-				if (Tools.HasInfectionState(target, InfectionState.Infecting))
-					continue;
-
-				if (mode == AttackMode.Everything)
-					return target;
-
-				if (target.MentalState != null)
+				if (thing is Pawn target)
 				{
-					var msDef = target.MentalState.def;
-					if (msDef == MentalStateDefOf.Manhunter || msDef == MentalStateDefOf.ManhunterPermanent)
-						return target;
+					if (target.Dead || target.IsDowned())
+						return false;
+
+					var distance = (target.DrawPos - zombie.DrawPos).MagnitudeHorizontalSquared();
+					if (distance > Constants.MIN_ATTACKDISTANCE_SQUARED)
+						return false;
+
+					if (Tools.HasInfectionState(target, InfectionState.Infecting))
+						return false;
+
+					if (mode == AttackMode.Everything)
+					{
+						result = target;
+						return true;
+					}
+
+					if (target.MentalState != null)
+					{
+						var msDef = target.MentalState.def;
+						if (msDef == MentalStateDefOf.Manhunter || msDef == MentalStateDefOf.ManhunterPermanent)
+						{
+							result = target;
+							return true;
+						}
+					}
+
+					if (mode == AttackMode.OnlyHumans && target.RaceProps.Humanlike && target.RaceProps.IsFlesh && AlienTools.IsFleshPawn(target))
+					{
+						result = target;
+						return true;
+					}
+
+					if (mode == AttackMode.OnlyColonists && target.IsColonist)
+					{
+						result = target;
+						return true;
+					}
 				}
-
-				if (mode == AttackMode.OnlyHumans && target.RaceProps.Humanlike && target.RaceProps.IsFlesh && AlienTools.IsFleshPawn(target))
-					return target;
-
-				if (mode == AttackMode.OnlyColonists && target.IsColonist)
-					return target;
-			}
-			return null;
+				return false;
+			});
+			return result;
 		}
 
 		static Building CanSmash(Zombie zombie)
@@ -798,28 +837,6 @@ namespace ZombieLand
 						.Where(new Func<BodyPartRecord, bool>(r => r.depth == BodyPartDepth.Outside))
 						.InRandomOrder()
 						.FirstOrDefault();
-		}
-
-		static IEnumerable<T> GetAdjacted<T>(Pawn pawn) where T : ThingWithComps
-		{
-			var nextIndex = Constants.random.Next(8);
-			var c = adjIndex8[prevIndex8];
-			adjIndex8[prevIndex8] = adjIndex8[nextIndex];
-			adjIndex8[nextIndex] = c;
-			prevIndex8 = nextIndex;
-
-			var grid = pawn.Map.thingGrid;
-			var basePos = pawn.Position;
-			for (var i = 0; i < 8; i++)
-			{
-				var pos = basePos + GenAdj.AdjacentCells[adjIndex8[i]];
-				var enumerator = grid.ThingsAt(pos).GetEnumerator();
-				while (enumerator.MoveNext())
-				{
-					if (enumerator.Current is T t && (t is Zombie) == false && (t is ZombieCorpse) == false)
-						yield return t;
-				}
-			}
 		}
 
 		static void AttackThing(Zombie zombie, Thing thing, JobDef def)

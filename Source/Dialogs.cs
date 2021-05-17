@@ -458,8 +458,8 @@ namespace ZombieLand
 				// Speed
 				list.Dialog_Label("ZombieSpeedTitle");
 				list.Gap(8f);
-				list.Dialog_FloatSlider("MoveSpeedIdle", "0.0x", ref settings.moveSpeedIdle, 0.05f, 2f);
-				list.Dialog_FloatSlider("MoveSpeedTracking", "0.0x", ref settings.moveSpeedTracking, 0.2f, 3f);
+				list.Dialog_FloatSlider("MoveSpeedIdle", "0.00x", ref settings.moveSpeedIdle, 0.01f, 2f);
+				list.Dialog_FloatSlider("MoveSpeedTracking", "0.00x", ref settings.moveSpeedTracking, 0.05f, 3f);
 				list.Gap(18f);
 
 				// Damage

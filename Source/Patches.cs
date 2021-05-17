@@ -2775,6 +2775,8 @@ namespace ZombieLand
 		[HarmonyPatch("GetStatValue")]
 		static class StatExtension_GetStatValue_Patch
 		{
+			static readonly float defaultHumanMoveSpeed = ThingDefOf.Human.statBases.First(mod => mod.stat == StatDefOf.MoveSpeed).value;
+
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Thing thing, StatDef stat, ref float __result)
 			{
@@ -2875,16 +2877,7 @@ namespace ZombieLand
 				if (stat == StatDefOf.MoveSpeed)
 				{
 					var tm = Find.TickManager;
-					var multiplier = (float)(tm.CurTimeSpeed) / ZombieTicker.PercentTicking;
-					if (Constants.USE_ADAPTIVE_TICKING == false)
-					{
-						// instead of ticking zombies as often as everything else, we tick
-						// them at 1x speed and make them faster instead. Not perfect but
-						// a very good workaround for good game speed
-						//
-						multiplier = tm.TickRateMultiplier;
-						if (multiplier > 1f) multiplier = 1f + (multiplier - 1f) / 5f;
-					}
+					var multiplier = defaultHumanMoveSpeed / ZombieTicker.PercentTicking;
 
 					if (zombie.IsDowned())
 					{
@@ -2913,7 +2906,7 @@ namespace ZombieLand
 					else if (bodyType == BodyTypeDefOf.Fat)
 						factor = 0.1f;
 
-					__result = 1.5f * speed * factor * multiplier;
+					__result = speed * factor * multiplier;
 					if (zombie.wasMapPawnBefore)
 						__result *= 2f;
 					if (zombie.isAlbino)

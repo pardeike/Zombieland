@@ -73,7 +73,8 @@ namespace ZombieLand
 		public float albinoChance = 0.01f;
 		public float darkSlimerChance = 0.01f;
 		public float moveSpeedIdle = 0.2f;
-		public float moveSpeedTracking = 1.3f;
+		public float moveSpeedTracking = 0.9f;
+		public bool moveSpeedUpgraded = false;
 		public float damageFactor = 1.0f;
 		public ZombieInstinct zombieInstinct = ZombieInstinct.Normal;
 		public bool useCustomTextures = true;
@@ -117,42 +118,42 @@ namespace ZombieLand
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
-				var dirty = false;
+				var chanceDirty = false;
 
 				if (suicideBomberChance < 0 || suicideBomberChance > 1)
 				{
 					suicideBomberChance = 0.01f;
-					dirty = true;
+					chanceDirty = true;
 				}
 				if (toxicSplasherChance < 0 || toxicSplasherChance > 1)
 				{
 					toxicSplasherChance = 0.01f;
-					dirty = true;
+					chanceDirty = true;
 				}
 				if (tankyOperatorChance < 0 || tankyOperatorChance > 1)
 				{
 					tankyOperatorChance = 0.01f;
-					dirty = true;
+					chanceDirty = true;
 				}
 				if (minerChance < 0 || minerChance > 1)
 				{
 					minerChance = 0.01f;
-					dirty = true;
+					chanceDirty = true;
 				}
 				if (electrifierChance < 0 || electrifierChance > 1)
 				{
 					electrifierChance = 0.01f;
-					dirty = true;
+					chanceDirty = true;
 				}
 				if (albinoChance < 0 || albinoChance > 1)
 				{
 					albinoChance = 0.01f;
-					dirty = true;
+					chanceDirty = true;
 				}
 				if (darkSlimerChance < 0 || darkSlimerChance > 1)
 				{
 					darkSlimerChance = 0.01f;
-					dirty = true;
+					chanceDirty = true;
 				}
 
 				if (suicideBomberChance
@@ -161,14 +162,25 @@ namespace ZombieLand
 					+ minerChance
 					+ electrifierChance
 					+ albinoChance
-					+ darkSlimerChance > 1) dirty = true;
+					+ darkSlimerChance > 1) chanceDirty = true;
 
-				if (dirty && ZombielandMod.IsLoadingDefaults == false)
-					LongEventHandler.QueueLongEvent(() =>
-					{
-						var note = "Zombieland Mod\n\nSpecial zombie percentages were reset to their defaults. Please adjust them and save the game.";
-						Find.WindowStack.Add(new NoteDialog(note));
-					}, "special-zombies", true, null);
+				if (ZombielandMod.IsLoadingDefaults == false)
+				{
+					if (moveSpeedUpgraded == false && (moveSpeedIdle > 1 || moveSpeedTracking > 1))
+						LongEventHandler.QueueLongEvent(() =>
+						{
+							var note = "Zombieland Mod\n\nZombie speed has been normalized to be relative to human speed. Your move speed settings are quite high (> 1), make sure you adjust them.";
+							Find.WindowStack.Add(new NoteDialog(note));
+							moveSpeedUpgraded = true;
+						}, "speed-upgrade", true, null);
+
+					if (chanceDirty)
+						LongEventHandler.QueueLongEvent(() =>
+						{
+							var note = "Zombieland Mod\n\nSpecial zombie percentages were reset to their defaults. Please adjust them and save the game.";
+							Find.WindowStack.Add(new NoteDialog(note));
+						}, "special-zombies", true, null);
+				}
 			}
 		}
 

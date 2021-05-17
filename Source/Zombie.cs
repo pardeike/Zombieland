@@ -292,8 +292,9 @@ namespace ZombieLand
 			}
 			if (hasFilth >= 6)
 			{
-				var soundDef = Constants.USE_SOUND && Prefs.VolumeAmbient > 0f ? CustomDefs.ToxicSplash : null;
-				GenExplosion.DoExplosion(pos, map, Mathf.Max(0.5f, Mathf.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, 0, soundDef);
+				GenExplosion.DoExplosion(pos, map, Mathf.Max(0.5f, Mathf.Sqrt(maxRadius) - 1), CustomDefs.ToxicSplatter, null, 0, 0);
+				if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
+					CustomDefs.ToxicSplash.PlayOneShot(SoundInfo.InMap(new TargetInfo(pos, map)));
 			}
 		}
 

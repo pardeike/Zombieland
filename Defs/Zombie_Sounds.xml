@@ -422,7 +422,7 @@
 			</li>
 		</subSounds>
 	</SoundDef>
-	
+
 	<SoundDef>
 		<defName>Smash</defName>
 		<context>MapOnly</context>
@@ -446,6 +446,30 @@
 				<distRange>
 					<min>10</min>
 					<max>50</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>Silence</defName>
+		<context>MapOnly</context>
+		<maxSimultaneous>1</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>true</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>silence</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>0</min>
+					<max>0</max>
+				</volumeRange>
+				<distRange>
+					<min>1000</min>
+					<max>10000</max>
 				</distRange>
 			</li>
 		</subSounds>

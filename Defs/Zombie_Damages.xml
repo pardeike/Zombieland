@@ -47,6 +47,7 @@
 		<explosionColorCenter>(0, 1, 0, 1)</explosionColorCenter>
 		<explosionColorEdge>(0, 1, 0, 0.1)</explosionColorEdge>
 		<harmsHealth>false</harmsHealth>
+		<soundExplosion>Silence</soundExplosion>
 	</DamageDef>
 
 	<ToolCapacityDef>

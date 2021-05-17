@@ -709,6 +709,51 @@ namespace ZombieLand
 			return _cellsAroundIndex[i];
 		}
 
+		static readonly int[] adjIndex8 = { 0, 1, 2, 3, 4, 5, 6, 7 };
+		static int prevIndex8;
+		public static void PerformOnAdjacted(this Pawn pawn, Func<Thing, bool> action)
+		{
+			var nextIndex = Constants.random.Next(8);
+			var c = adjIndex8[prevIndex8];
+			adjIndex8[prevIndex8] = adjIndex8[nextIndex];
+			adjIndex8[nextIndex] = c;
+			prevIndex8 = nextIndex;
+
+			var map = pawn.Map;
+			var size = map.Size;
+			var grid = map.thingGrid.thingGrid;
+			var basePos = pawn.Position;
+			var (left, top, right, bottom) = (basePos.x > 0, basePos.z < size.z - 1, basePos.x < size.x - 1, basePos.z > 0);
+			var baseIndex = map.cellIndices.CellToIndex(basePos);
+			var rowOffset = size.z;
+
+			bool Evaluate(List<Thing> items)
+			{
+				for (var i = 0; i < items.Count; i++)
+				{
+					var item = items[i];
+					if (action(item)) return true;
+				}
+				return false;
+			}
+
+			var actions = new Func<bool>[]
+			{
+		() => left && Evaluate(grid[baseIndex - 1]),
+		() => left && top && Evaluate(grid[baseIndex - 1 + rowOffset]),
+		() => left && bottom && Evaluate(grid[baseIndex - 1 - rowOffset]),
+		() => top && Evaluate(grid[baseIndex + rowOffset]),
+		() => right && Evaluate(grid[baseIndex + 1]),
+		() => right && bottom && Evaluate(grid[baseIndex + 1 - rowOffset]),
+		() => right && top && Evaluate(grid[baseIndex + 1 + rowOffset]),
+		() => bottom && Evaluate(grid[baseIndex - rowOffset])
+			};
+
+			for (var i = 0; i < 8; i++)
+				if (actions[adjIndex8[i]]())
+					return;
+		}
+
 		public static void ChainReact(Map map, IntVec3 basePos, IntVec3 nextMove)
 		{
 			var grid = map.GetGrid();
