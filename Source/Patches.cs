@@ -569,7 +569,7 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(AttackTargetsCache.RegisterTarget))]
 		static class AttackTargetsCache_RegisterTarget_Patch
 		{
-			static void Add(IAttackTarget target)
+			static void Postfix(IAttackTarget target)
 			{
 				var thing = target.Thing;
 				if (thing == null || thing is Zombie) return;
@@ -580,25 +580,13 @@ namespace ZombieLand
 					playerHostilesWithoutZombies.Add(map, new HashSet<IAttackTarget>());
 				_ = playerHostilesWithoutZombies[map].Add(target);
 			}
-
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			{
-				var all = instructions.ToList();
-				for (var i = 0; i < all.Count - 1; i++)
-					yield return all[i];
-				var ret = all.Last();
-
-				yield return new CodeInstruction(OpCodes.Ldarg_1) { labels = ret.labels };
-				yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => Add(null)));
-				yield return new CodeInstruction(OpCodes.Ret);
-			}
 		}
 		//
 		[HarmonyPatch(typeof(AttackTargetsCache))]
 		[HarmonyPatch(nameof(AttackTargetsCache.DeregisterTarget))]
 		static class AttackTargetsCache_DeregisterTarget_Patch
 		{
-			static void Remove(IAttackTarget target)
+			static void Postfix(IAttackTarget target)
 			{
 				var thing = target.Thing;
 				if (thing == null || thing is Zombie) return;
@@ -606,18 +594,6 @@ namespace ZombieLand
 				if (map == null) return;
 				if (playerHostilesWithoutZombies.ContainsKey(map))
 					_ = playerHostilesWithoutZombies[map].Remove(target);
-			}
-
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			{
-				var all = instructions.ToList();
-				for (var i = 0; i < all.Count - 1; i++)
-					yield return all[i];
-				var ret = all.Last();
-
-				yield return new CodeInstruction(OpCodes.Ldarg_1) { labels = ret.labels };
-				yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => Remove(null)));
-				yield return new CodeInstruction(OpCodes.Ret);
 			}
 		}
 		//
