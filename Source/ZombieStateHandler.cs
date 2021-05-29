@@ -646,13 +646,46 @@ namespace ZombieLand
 			return result;
 		}
 
+		static bool Attackable(AttackMode mode, Thing thing)
+		{
+			if (thing is ZombieCorpse)
+				return false;
+
+			if (thing is Pawn target)
+			{
+				if (target.Dead || target.IsDowned())
+					return false;
+
+				var distance = (target.DrawPos - thing.DrawPos).MagnitudeHorizontalSquared();
+				if (distance > Constants.MIN_ATTACKDISTANCE_SQUARED)
+					return false;
+
+				if (Tools.HasInfectionState(target, InfectionState.Infecting))
+					return false;
+
+				if (mode == AttackMode.Everything)
+					return true;
+
+				if (target.MentalState != null)
+				{
+					var msDef = target.MentalState.def;
+					if (msDef == MentalStateDefOf.Manhunter || msDef == MentalStateDefOf.ManhunterPermanent)
+						return true;
+				}
+
+				if (mode == AttackMode.OnlyHumans && target.RaceProps.Humanlike && target.RaceProps.IsFlesh && AlienTools.IsFleshPawn(target))
+					return true;
+
+				if (mode == AttackMode.OnlyColonists && target.IsColonist)
+					return true;
+			}
+			return false;
+		}
 		static readonly int[] adjIndex8 = { 0, 1, 2, 3, 4, 5, 6, 7 };
 		static int prevIndex8;
 		static Thing CanAttack(Zombie zombie)
 		{
 			var mode = ZombieSettings.Values.attackMode;
-
-			Thing result = null;
 
 			var nextIndex = Constants.random.Next(8);
 			var c = adjIndex8[prevIndex8];
@@ -668,136 +701,107 @@ namespace ZombieLand
 			var baseIndex = map.cellIndices.CellToIndex(basePos);
 			var rowOffset = size.z;
 
-			bool Attackable(Thing thing)
-			{
-				if (thing is ZombieCorpse)
-					return false;
-
-				if (thing is Pawn target)
-				{
-					if (target.Dead || target.IsDowned())
-						return false;
-
-					var distance = (target.DrawPos - zombie.DrawPos).MagnitudeHorizontalSquared();
-					if (distance > Constants.MIN_ATTACKDISTANCE_SQUARED)
-						return false;
-
-					if (Tools.HasInfectionState(target, InfectionState.Infecting))
-						return false;
-
-					if (mode == AttackMode.Everything)
-					{
-						result = target;
-						return true;
-					}
-
-					if (target.MentalState != null)
-					{
-						var msDef = target.MentalState.def;
-						if (msDef == MentalStateDefOf.Manhunter || msDef == MentalStateDefOf.ManhunterPermanent)
-						{
-							result = target;
-							return true;
-						}
-					}
-
-					if (mode == AttackMode.OnlyHumans && target.RaceProps.Humanlike && target.RaceProps.IsFlesh && AlienTools.IsFleshPawn(target))
-					{
-						result = target;
-						return true;
-					}
-
-					if (mode == AttackMode.OnlyColonists && target.IsColonist)
-					{
-						result = target;
-						return true;
-					}
-				}
-				return false;
-			}
-
 			List<Thing> items;
-			if (left)
-			{
-				items = grid[baseIndex - 1];
-				for (var i = 0; i < items.Count; i++)
+			for (var r = 0; r < 8; r++)
+				switch (adjIndex8[r])
 				{
-					var item = items[i];
-					if ((item is Zombie) == false && Attackable(item))
-						return item;
+					case 0:
+						if (left)
+						{
+							items = grid[baseIndex - 1];
+							for (var i = 0; i < items.Count; i++)
+							{
+								var item = items[i];
+								if ((item is Zombie) == false && Attackable(mode, item))
+									return item;
+							}
+						}
+						break;
+					case 1:
+						if (left && top)
+						{
+							items = grid[baseIndex - 1 + rowOffset];
+							for (var i = 0; i < items.Count; i++)
+							{
+								var item = items[i];
+								if ((item is Zombie) == false && Attackable(mode, item))
+									return item;
+							}
+						}
+						break;
+					case 2:
+						if (left && bottom)
+						{
+							items = grid[baseIndex - 1 - rowOffset];
+							for (var i = 0; i < items.Count; i++)
+							{
+								var item = items[i];
+								if ((item is Zombie) == false && Attackable(mode, item))
+									return item;
+							}
+						}
+						break;
+					case 3:
+						if (top)
+						{
+							items = grid[baseIndex + rowOffset];
+							for (var i = 0; i < items.Count; i++)
+							{
+								var item = items[i];
+								if ((item is Zombie) == false && Attackable(mode, item))
+									return item;
+							}
+						}
+						break;
+					case 4:
+						if (right)
+						{
+							items = grid[baseIndex + 1];
+							for (var i = 0; i < items.Count; i++)
+							{
+								var item = items[i];
+								if ((item is Zombie) == false && Attackable(mode, item))
+									return item;
+							}
+						}
+						break;
+					case 5:
+						if (right && bottom)
+						{
+							items = grid[baseIndex + 1 - rowOffset];
+							for (var i = 0; i < items.Count; i++)
+							{
+								var item = items[i];
+								if ((item is Zombie) == false && Attackable(mode, item))
+									return item;
+							}
+						}
+						break;
+					case 6:
+						if (right && top)
+						{
+							items = grid[baseIndex + 1 + rowOffset];
+							for (var i = 0; i < items.Count; i++)
+							{
+								var item = items[i];
+								if ((item is Zombie) == false && Attackable(mode, item))
+									return item;
+							}
+						}
+						break;
+					case 7:
+						if (bottom)
+						{
+							items = grid[baseIndex - rowOffset];
+							for (var i = 0; i < items.Count; i++)
+							{
+								var item = items[i];
+								if ((item is Zombie) == false && Attackable(mode, item))
+									return item;
+							}
+						}
+						break;
 				}
-				if (top)
-				{
-					items = grid[baseIndex - 1 + rowOffset];
-					for (var i = 0; i < items.Count; i++)
-					{
-						var item = items[i];
-						if ((item is Zombie) == false && Attackable(item))
-							return item;
-					}
-				}
-				if (bottom)
-				{
-					items = grid[baseIndex - 1 - rowOffset];
-					for (var i = 0; i < items.Count; i++)
-					{
-						var item = items[i];
-						if ((item is Zombie) == false && Attackable(item))
-							return item;
-					}
-				}
-			}
-			if (top)
-			{
-				items = grid[baseIndex + rowOffset];
-				for (var i = 0; i < items.Count; i++)
-				{
-					var item = items[i];
-					if ((item is Zombie) == false && Attackable(item))
-						return item;
-				}
-			}
-			if (right)
-			{
-				items = grid[baseIndex + 1];
-				for (var i = 0; i < items.Count; i++)
-				{
-					var item = items[i];
-					if ((item is Zombie) == false && Attackable(item))
-						return item;
-				}
-				if (bottom)
-				{
-					items = grid[baseIndex + 1 - rowOffset];
-					for (var i = 0; i < items.Count; i++)
-					{
-						var item = items[i];
-						if ((item is Zombie) == false && Attackable(item))
-							return item;
-					}
-				}
-				if (top)
-				{
-					items = grid[baseIndex + 1 + rowOffset];
-					for (var i = 0; i < items.Count; i++)
-					{
-						var item = items[i];
-						if ((item is Zombie) == false && Attackable(item))
-							return item;
-					}
-				}
-			}
-			if (bottom)
-			{
-				items = grid[baseIndex - rowOffset];
-				for (var i = 0; i < items.Count; i++)
-				{
-					var item = items[i];
-					if ((item is Zombie) == false && Attackable(item))
-						return item;
-				}
-			}
-
 			return null;
 		}
 
