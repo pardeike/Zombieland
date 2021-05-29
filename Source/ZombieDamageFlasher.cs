@@ -15,7 +15,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(DamageFlasher))]
-	[HarmonyPatch("Notify_DamageApplied")]
+	[HarmonyPatch(nameof(DamageFlasher.Notify_DamageApplied))]
 	static class DamageFlasher_Notify_DamageApplied_Patch
 	{
 		[HarmonyPriority(Priority.First)]
@@ -27,7 +27,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(DamageFlasher))]
-	[HarmonyPatch("GetDamagedMat")]
+	[HarmonyPatch(nameof(DamageFlasher.GetDamagedMat))]
 	static class DamageFlasher_GetDamagedMat_Patch
 	{
 		static readonly Color greenDamagedMatStartingColor = new Color(0f, 0.8f, 0f);

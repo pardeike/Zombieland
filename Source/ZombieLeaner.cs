@@ -5,7 +5,7 @@ using Verse;
 namespace ZombieLand
 {
 	[HarmonyPatch(typeof(Pawn_DrawTracker))]
-	[HarmonyPatch("DrawPos", MethodType.Getter)]
+	[HarmonyPatch(nameof(Pawn_DrawTracker.DrawPos), MethodType.Getter)]
 	static class Pawn_DrawTracker_DrawPos_Patch
 	{
 		[HarmonyPriority(Priority.Last)]
@@ -16,17 +16,17 @@ namespace ZombieLand
 		}
 	}
 
-	//[HarmonyPatch(typeof(Pawn_DrawTracker))]
-	//[HarmonyPatch("DrawTrackerTick")]
-	//static class Pawn_DrawTrackerDrawTrackerTick_Patch
-	//{
-	//	[HarmonyPriority(Priority.Last)]
-	//	static void Postfix(Pawn_DrawTracker __instance)
-	//	{
-	//		if (__instance.leaner is ZombieLeaner zombieLeaner)
-	//			zombieLeaner.ZombieTick();
-	//	}
-	//}
+	[HarmonyPatch(typeof(Pawn_DrawTracker))]
+	[HarmonyPatch(nameof(Pawn_DrawTracker.DrawTrackerTick))]
+	static class Pawn_DrawTrackerDrawTrackerTick_Patch
+	{
+		[HarmonyPriority(Priority.Last)]
+		static void Postfix(Pawn_DrawTracker __instance)
+		{
+			if (__instance.leaner is ZombieLeaner zombieLeaner)
+				zombieLeaner.ZombieTick();
+		}
+	}
 
 	class ZombieLeaner : PawnLeaner
 	{

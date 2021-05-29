@@ -8,34 +8,6 @@ namespace ZombieLand
 {
 	public static class SafeReflections
 	{
-		public static Type ToType(this string name)
-		{
-			var type = AccessTools.TypeByName(name);
-			if (type == null) throw new Exception("Cannot find type named '" + name);
-			return type;
-		}
-
-		public static ConstructorInfo Constructor(this Type type)
-		{
-			var constructor = AccessTools.Constructor(type);
-			if (constructor == null) throw new Exception("Cannot find constructor for type " + type.FullName);
-			return constructor;
-		}
-
-		public static ConstructorInfo Constructor(this Type type, Type[] argumentTypes)
-		{
-			var constructor = AccessTools.Constructor(type, argumentTypes);
-			if (constructor == null) throw new Exception("Cannot find constructor" + argumentTypes.Description() + " for type " + type.FullName);
-			return constructor;
-		}
-
-		public static MethodInfo MethodNamed(this Type type, string name)
-		{
-			var method = AccessTools.Method(type, name);
-			if (method == null) throw new Exception("Cannot find method named '" + name + "' in type " + type.FullName);
-			return method;
-		}
-
 		public static MethodInfo MethodNamed(this Type type, string name, Type[] argumentTypes)
 		{
 			var method = AccessTools.Method(type, name, argumentTypes);

@@ -161,7 +161,7 @@ namespace ZombieLand
 		// patch to show zombieland version and total number of zombies
 		//
 		[HarmonyPatch(typeof(GlobalControlsUtility))]
-		[HarmonyPatch("DoDate")]
+		[HarmonyPatch(nameof(GlobalControlsUtility.DoDate))]
 		class GlobalControlsUtility_DoDate_Patch
 		{
 			static Color percentageBackground = new Color(1, 1, 1, 0.1f);
@@ -258,7 +258,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(Verse.TickManager))]
-		[HarmonyPatch("NothingHappeningInGame")]
+		[HarmonyPatch(nameof(Verse.TickManager.NothingHappeningInGame))]
 		static class Verse_TickManager_NothingHappeningInGame_Patch
 		{
 			static void Postfix(ref bool __result)
@@ -271,7 +271,7 @@ namespace ZombieLand
 		// patch to have zombies not being mothballed
 		//
 		[HarmonyPatch(typeof(RimWorld.Planet.WorldPawns))]
-		[HarmonyPatch("ShouldMothball")]
+		[HarmonyPatch(nameof(RimWorld.Planet.WorldPawns.ShouldMothball))]
 		static class WorldPawns_ShouldMothball_Patch
 		{
 			static bool Prefix(Pawn p, ref bool __result)
@@ -288,7 +288,7 @@ namespace ZombieLand
 		// patch to control if raiders and animals see zombies as hostile
 		//
 		[HarmonyPatch(typeof(GenHostility))]
-		[HarmonyPatch("HostileTo")]
+		[HarmonyPatch(nameof(GenHostility.HostileTo))]
 		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Thing) })]
 		static class GenHostility_HostileTo_Thing_Thing_Patch
 		{
@@ -300,7 +300,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(GenHostility))]
-		[HarmonyPatch("HostileTo")]
+		[HarmonyPatch(nameof(GenHostility.HostileTo))]
 		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Faction) })]
 		static class GenHostility_HostileTo_Thing_Faction_Patch
 		{
@@ -315,7 +315,7 @@ namespace ZombieLand
 		// patch to make raiders choose zombies less likely as a target
 		//
 		[HarmonyPatch(typeof(AttackTargetFinder))]
-		[HarmonyPatch("BestAttackTarget")]
+		[HarmonyPatch(nameof(AttackTargetFinder.BestAttackTarget))]
 		static class AttackTargetFinder_BestAttackTarget_Patch
 		{
 			static Predicate<IAttackTarget> WrappedValidator(Predicate<IAttackTarget> validator, IAttackTargetSearcher searcher)
@@ -457,7 +457,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(AttackTargetFinder))]
-		[HarmonyPatch("GetShootingTargetScore")]
+		[HarmonyPatch(nameof(AttackTargetFinder.GetShootingTargetScore))]
 		static class AttackTargetFinder_GetShootingTargetScore_Patch
 		{
 			static bool Prefix(IAttackTarget target, IAttackTargetSearcher searcher, Verb verb, ref float __result)
@@ -487,7 +487,7 @@ namespace ZombieLand
 		// patch so other zombies do not affect goodwill of other factions
 		//
 		[HarmonyPatch(typeof(Faction))]
-		[HarmonyPatch("TryAffectGoodwillWith")]
+		[HarmonyPatch(nameof(Faction.TryAffectGoodwillWith))]
 		static class Faction_TryAffectGoodwillWith_Patch
 		{
 			static bool Prefix(ref bool __result, Faction __instance, Faction other)
@@ -504,7 +504,7 @@ namespace ZombieLand
 		// patch to prefer non-downed zombies from downed one as targets
 		//
 		[HarmonyPatch(typeof(AttackTargetFinder))]
-		[HarmonyPatch("GetAvailableShootingTargetsByScore")]
+		[HarmonyPatch(nameof(AttackTargetFinder.GetAvailableShootingTargetsByScore))]
 		static class AttackTargetFinder_GetAvailableShootingTargetsByScore_Patch
 		{
 			static void Postfix(List<Pair<IAttackTarget, float>> __result)
@@ -520,7 +520,7 @@ namespace ZombieLand
 		// patch to make downed zombies as easy to kill as standing
 		//
 		[HarmonyPatch(typeof(Projectile))]
-		[HarmonyPatch("ImpactSomething")]
+		[HarmonyPatch(nameof(Projectile.ImpactSomething))]
 		static class Projectile_ImpactSomething_Patch
 		{
 			static PawnPosture GetPostureFix(Pawn p)
@@ -566,7 +566,7 @@ namespace ZombieLand
 		// patch to remove the constant danger music because of the constant thread of zombies
 		//
 		[HarmonyPatch(typeof(AttackTargetsCache))]
-		[HarmonyPatch("RegisterTarget")]
+		[HarmonyPatch(nameof(AttackTargetsCache.RegisterTarget))]
 		static class AttackTargetsCache_RegisterTarget_Patch
 		{
 			static void Add(IAttackTarget target)
@@ -595,7 +595,7 @@ namespace ZombieLand
 		}
 		//
 		[HarmonyPatch(typeof(AttackTargetsCache))]
-		[HarmonyPatch("DeregisterTarget")]
+		[HarmonyPatch(nameof(AttackTargetsCache.DeregisterTarget))]
 		static class AttackTargetsCache_DeregisterTarget_Patch
 		{
 			static void Remove(IAttackTarget target)
@@ -622,7 +622,7 @@ namespace ZombieLand
 		}
 		//
 		[HarmonyPatch(typeof(MusicManagerPlay))]
-		[HarmonyPatch("DangerMusicMode", MethodType.Getter)]
+		[HarmonyPatch(nameof(MusicManagerPlay.DangerMusicMode), MethodType.Getter)]
 		static class MusicManagerPlay_DangerMusicMode_Patch
 		{
 			static int lastUpdateTick;
@@ -683,7 +683,7 @@ namespace ZombieLand
 		// patch to increase hit chance for shooting at zombies
 		//
 		[HarmonyPatch(typeof(Verb_LaunchProjectile))]
-		[HarmonyPatch("TryCastShot")]
+		[HarmonyPatch(nameof(Verb_LaunchProjectile.TryCastShot))]
 		static class Verb_LaunchProjectile_TryCastShot_Patch
 		{
 			static bool SkipMissingShotsAtZombies(Verb verb, LocalTargetInfo currentTarget)
@@ -759,7 +759,7 @@ namespace ZombieLand
 		// alter game logic (for example when a caravan leaves an enemy base)
 		//
 		[HarmonyPatch(typeof(GenHostility))]
-		[HarmonyPatch("IsActiveThreatTo")]
+		[HarmonyPatch(nameof(GenHostility.IsActiveThreatTo))]
 		[HarmonyPatch(new Type[] { typeof(IAttackTarget), typeof(Faction) })]
 		static class GenHostility_IsActiveThreat_Patch
 		{
@@ -791,7 +791,7 @@ namespace ZombieLand
 		// apply electrical damage when electrifier zombies melee
 		//
 		[HarmonyPatch(typeof(Verb_MeleeAttackDamage))]
-		[HarmonyPatch("DamageInfosToApply")]
+		[HarmonyPatch(nameof(Verb_MeleeAttackDamage.DamageInfosToApply))]
 		static class Pawn_MeleeVerbs_ChooseMeleeVerb_Patch
 		{
 			static void ElectricalDamage(Zombie zombie, Pawn pawn, ref DamageInfo damageInfo)
@@ -894,7 +894,7 @@ namespace ZombieLand
 		// patch to let predators prefer humans for zombies
 		//
 		[HarmonyPatch(typeof(FoodUtility))]
-		[HarmonyPatch("GetPreyScoreFor")]
+		[HarmonyPatch(nameof(FoodUtility.GetPreyScoreFor))]
 		static class FoodUtility_GetPreyScoreFor_Patch
 		{
 			static void Postfix(Pawn prey, ref float __result)
@@ -910,7 +910,7 @@ namespace ZombieLand
 		}
 
 		[HarmonyPatch(typeof(PathFinder))]
-		[HarmonyPatch("FindPath")]
+		[HarmonyPatch(nameof(PathFinder.FindPath))]
 		[HarmonyPatch(new Type[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(TraverseParms), typeof(PathEndMode) })]
 		public static class PathFinder_FindPath_Patch
 		{
@@ -986,7 +986,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(Pawn_PathFollower))]
-		[HarmonyPatch("NeedNewPath")]
+		[HarmonyPatch(nameof(Pawn_PathFollower.NeedNewPath))]
 		static class Pawn_PathFollower_NeedNewPath_Patch
 		{
 			static readonly MethodInfo m_ShouldCollideWithPawns = SymbolExtensions.GetMethodInfo(() => PawnUtility.ShouldCollideWithPawns(null));
@@ -1198,7 +1198,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(JobGiver_ConfigurableHostilityResponse))]
-		[HarmonyPatch("TryGetAttackNearbyEnemyJob")]
+		[HarmonyPatch(nameof(JobGiver_ConfigurableHostilityResponse.TryGetAttackNearbyEnemyJob))]
 		static class JobGiver_ConfigurableHostilityResponse_TryGetAttackNearbyEnemyJob_Patch
 		{
 			static bool Prefix(Pawn pawn, ref Job __result)
@@ -1426,7 +1426,7 @@ namespace ZombieLand
 		// patch to remove log error "xxx pathing to destroyed thing (zombie)"
 		//
 		[HarmonyPatch(typeof(Pawn_PathFollower))]
-		[HarmonyPatch("StartPath")]
+		[HarmonyPatch(nameof(Pawn_PathFollower.StartPath))]
 		static class Pawn_PathFollower_StartPath_Patch
 		{
 			static bool ThingDestroyedAndNotZombie(LocalTargetInfo info)
@@ -1473,7 +1473,7 @@ namespace ZombieLand
 		// patch to add a pheromone info section to the rimworld cell inspector
 		//
 		[HarmonyPatch(typeof(EditWindow_DebugInspector))]
-		[HarmonyPatch("CurrentDebugString")]
+		[HarmonyPatch(nameof(EditWindow_DebugInspector.CurrentDebugString))]
 		static class EditWindow_DebugInspector_CurrentDebugString_Patch
 		{
 			static int[] colonyPoints = new int[3];
@@ -1600,7 +1600,7 @@ namespace ZombieLand
 		// patch to add our actions to the debug action menu
 		//
 		[HarmonyPatch(typeof(DebugWindowsOpener))]
-		[HarmonyPatch("ToggleDebugActionsMenu")]
+		[HarmonyPatch(nameof(DebugWindowsOpener.ToggleDebugActionsMenu))]
 		static class DebugWindowsOpener_ToggleDebugActionsMenu_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -1615,7 +1615,7 @@ namespace ZombieLand
 		// patch for adding zombie faction to existing games
 		//
 		[HarmonyPatch(typeof(FactionManager))]
-		[HarmonyPatch("ExposeData")]
+		[HarmonyPatch(nameof(FactionManager.ExposeData))]
 		static class FactionManager_ExposeData_Patch
 		{
 			static void Postfix(List<Faction> ___allFactions)
@@ -1654,7 +1654,7 @@ namespace ZombieLand
 		// patch for detecting if a pawn enters a new cell
 		//
 		[HarmonyPatch(typeof(Thing))]
-		[HarmonyPatch("Position", MethodType.Setter)]
+		[HarmonyPatch(nameof(Thing.Position), MethodType.Setter)]
 		static class Thing_Position_Patch
 		{
 			static readonly MentalStateDef def1 = MentalStateDefOf.Manhunter;
@@ -1749,7 +1749,7 @@ namespace ZombieLand
 		// turrets consume less steam
 		//
 		[HarmonyPatch(typeof(CompRefuelable))]
-		[HarmonyPatch("ConsumeFuel")]
+		[HarmonyPatch(nameof(CompRefuelable.ConsumeFuel))]
 		public static class CompRefuelable_ConsumeFuel_Patch
 		{
 			static void Prefix(CompRefuelable __instance, ref float amount)
@@ -1763,7 +1763,7 @@ namespace ZombieLand
 		// downed zombies only scratch feet parts
 		//
 		[HarmonyPatch(typeof(DamageWorker_Scratch))]
-		[HarmonyPatch("ChooseHitPart")]
+		[HarmonyPatch(nameof(DamageWorker_Scratch.ChooseHitPart))]
 		public static class DamageWorker_Scratch_ChooseHitPart_Patch
 		{
 			static void Prefix(ref DamageInfo dinfo)
@@ -1774,7 +1774,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(DamageWorker_Bite))]
-		[HarmonyPatch("ChooseHitPart")]
+		[HarmonyPatch(nameof(DamageWorker_Bite.ChooseHitPart))]
 		public static class DamageWorker_Bite_ChooseHitPart_Patch
 		{
 			static void Prefix(ref DamageInfo dinfo)
@@ -1788,7 +1788,7 @@ namespace ZombieLand
 		// patch to make infected colonists have no needs
 		//
 		[HarmonyPatch(typeof(Need))]
-		[HarmonyPatch("CurLevel", MethodType.Setter)]
+		[HarmonyPatch(nameof(Need.CurLevel), MethodType.Setter)]
 		public static class Need_CurLevel_Patch
 		{
 			// this is set periodically from Alerts.Alert_ZombieInfection
@@ -1837,7 +1837,7 @@ namespace ZombieLand
 		// patch to make infected colonists have no mental breaks
 		//
 		[HarmonyPatch(typeof(MentalStateHandler))]
-		[HarmonyPatch("TryStartMentalState")]
+		[HarmonyPatch(nameof(MentalStateHandler.TryStartMentalState))]
 		static class MentalStateHandler_TryStartMentalState_Patch
 		{
 			static bool NoMentalState(Pawn pawn)
@@ -1871,7 +1871,7 @@ namespace ZombieLand
 		// patch to make infected colonists feel no pain
 		//
 		[HarmonyPatch(typeof(HediffSet))]
-		[HarmonyPatch("PainTotal", MethodType.Getter)]
+		[HarmonyPatch(nameof(HediffSet.PainTotal), MethodType.Getter)]
 		static class HediffSet_CalculatePain_Patch
 		{
 			static bool Prefix(HediffSet __instance, ref float __result)
@@ -1888,7 +1888,7 @@ namespace ZombieLand
 		// patch to make infected colonists have full capacity
 		//
 		[HarmonyPatch(typeof(PawnCapacitiesHandler))]
-		[HarmonyPatch("GetLevel")]
+		[HarmonyPatch(nameof(PawnCapacitiesHandler.GetLevel))]
 		static class PawnCapacitiesHandler_GetLevel_Patch
 		{
 			static bool FullLevel(Pawn pawn)
@@ -1923,7 +1923,7 @@ namespace ZombieLand
 		// patch to allow spawning zombie raids with debug tools
 		//
 		[HarmonyPatch(typeof(IncidentWorker_Raid))]
-		[HarmonyPatch("TryExecuteWorker")]
+		[HarmonyPatch(nameof(IncidentWorker_Raid.TryExecuteWorker))]
 		static class IncidentWorker_Raid_TryExecuteWorker_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -1944,7 +1944,7 @@ namespace ZombieLand
 		// patch to allow spawning zombies with debug tools
 		//
 		[HarmonyPatch(typeof(PawnGenerator))]
-		[HarmonyPatch("GenerateNewPawnInternal")]
+		[HarmonyPatch(nameof(PawnGenerator.GenerateNewPawnInternal))]
 		static class PawnGenerator_GenerateNewPawnInternal_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -1983,7 +1983,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(ReservationManager))]
-		[HarmonyPatch("CanReserve")]
+		[HarmonyPatch(nameof(ReservationManager.CanReserve))]
 		static class ReservationManager_CanReserve_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -2002,7 +2002,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(ReservationManager))]
-		[HarmonyPatch("Reserve")]
+		[HarmonyPatch(nameof(ReservationManager.Reserve))]
 		static class ReservationManager_Reserve_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -2024,7 +2024,7 @@ namespace ZombieLand
 		// patch so you cannot strip zombies
 		//
 		[HarmonyPatch(typeof(Pawn))]
-		[HarmonyPatch("AnythingToStrip")]
+		[HarmonyPatch(nameof(Pawn.AnythingToStrip))]
 		static class Pawn_AnythingToStrip_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -2042,7 +2042,7 @@ namespace ZombieLand
 		// patch to not show forbidden red cross icon on zombies
 		//
 		[HarmonyPatch(typeof(ForbidUtility))]
-		[HarmonyPatch("IsForbidden")]
+		[HarmonyPatch(nameof(ForbidUtility.IsForbidden))]
 		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Faction) })]
 		static class ForbidUtility_IsForbidden_Patch
 		{
@@ -2062,7 +2062,7 @@ namespace ZombieLand
 		// patch to hide zombie names
 		//
 		[HarmonyPatch(typeof(GenMapUI))]
-		[HarmonyPatch("DrawPawnLabel")]
+		[HarmonyPatch(nameof(GenMapUI.DrawPawnLabel))]
 		[HarmonyPatch(new Type[] { typeof(Pawn), typeof(Vector2), typeof(float), typeof(float), typeof(Dictionary<string, string>), typeof(GameFont), typeof(bool), typeof(bool) })]
 		[StaticConstructorOnStartup]
 		static class GenMapUI_DrawPawnLabel_Patch
@@ -2078,7 +2078,7 @@ namespace ZombieLand
 		// to get original state, use Tools.IsDowned(this Pawn pawn)
 		//
 		[HarmonyPatch(typeof(Pawn))]
-		[HarmonyPatch("Downed", MethodType.Getter)]
+		[HarmonyPatch(nameof(Pawn.Downed), MethodType.Getter)]
 		static class Pawn_Downed_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -2095,7 +2095,7 @@ namespace ZombieLand
 		// patch to keep shooting even if a zombie is down (only if self-healing is on)
 		//
 		[HarmonyPatch(typeof(Pawn))]
-		[HarmonyPatch("ThreatDisabled")]
+		[HarmonyPatch(nameof(Pawn.ThreatDisabled))]
 		static class Pawn_ThreatDisabled_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -2154,7 +2154,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(Stance_Warmup))]
-		[HarmonyPatch("StanceTick")]
+		[HarmonyPatch(nameof(Stance_Warmup.StanceTick))]
 		static class Stance_Warmup_StanceTick_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -2181,7 +2181,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(Pawn_MindState))]
-		[HarmonyPatch("MeleeThreatStillThreat", MethodType.Getter)]
+		[HarmonyPatch(nameof(Pawn_MindState.MeleeThreatStillThreat), MethodType.Getter)]
 		static class Pawn_MindState_MeleeThreatStillThreat_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -2191,7 +2191,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(JobDriver_Wait))]
-		[HarmonyPatch("CheckForAutoAttack")]
+		[HarmonyPatch(nameof(JobDriver_Wait.CheckForAutoAttack))]
 		static class JobDriver_Wait_CheckForAutoAttack_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -2218,7 +2218,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(TargetingParameters))]
-		[HarmonyPatch("CanTarget")]
+		[HarmonyPatch(nameof(TargetingParameters.CanTarget))]
 		static class TargetingParameters_CanTarget_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -2231,7 +2231,7 @@ namespace ZombieLand
 		// patch for rendering zombies
 		//
 		[HarmonyPatch(typeof(PawnRenderer))]
-		[HarmonyPatch("RenderPawnInternal")]
+		[HarmonyPatch(nameof(PawnRenderer.RenderPawnInternal))]
 		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(float), typeof(bool), typeof(Rot4), typeof(Rot4), typeof(RotDrawMode), typeof(bool), typeof(bool), typeof(bool) })]
 		static class PawnRenderer_RenderPawnInternal_Patch
 		{
@@ -2347,7 +2347,7 @@ namespace ZombieLand
 		// makes downed zombie crawl rotated to their destination
 		//
 		[HarmonyPatch(typeof(PawnDownedWiggler))]
-		[HarmonyPatch("WigglerTick")]
+		[HarmonyPatch(nameof(PawnDownedWiggler.WigglerTick))]
 		static class PawnDownedWiggler_WigglerTick_Patch
 		{
 			static void Postfix(PawnDownedWiggler __instance, Pawn ___pawn)
@@ -2375,7 +2375,7 @@ namespace ZombieLand
 		}
 
 		[HarmonyPatch(typeof(PawnRenderer))]
-		[HarmonyPatch("RenderPawnAt")]
+		[HarmonyPatch(nameof(PawnRenderer.RenderPawnAt))]
 		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(RotDrawMode), typeof(bool), typeof(bool) })]
 		static class PawnRenderer_RenderPawnAt_Patch
 		{
@@ -2682,7 +2682,7 @@ namespace ZombieLand
 		// patch for giving zombies accessories like bomb vests or tanky suits
 		//
 		[HarmonyPatch(typeof(PawnGraphicSet))]
-		[HarmonyPatch("ResolveApparelGraphics")]
+		[HarmonyPatch(nameof(PawnGraphicSet.ResolveApparelGraphics))]
 		static class PawnGraphicSet_ResolveApparelGraphics_Patch
 		{
 			static ThingDef bombVestApparelDef;
@@ -2731,7 +2731,7 @@ namespace ZombieLand
 		// patch for reducing the warmup smash time for raging zombies
 		//
 		[HarmonyPatch(typeof(Verb))]
-		[HarmonyPatch("TryStartCastOn")]
+		[HarmonyPatch(nameof(Verb.TryStartCastOn))]
 		[HarmonyPatch(new Type[] { typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(bool), typeof(bool) })]
 		static class Verb_TryStartCastOn_Patch
 		{
@@ -2772,7 +2772,7 @@ namespace ZombieLand
 		// patch for variable zombie stats (speed, pain, melee, dodge)
 		//
 		[HarmonyPatch(typeof(StatExtension))]
-		[HarmonyPatch("GetStatValue")]
+		[HarmonyPatch(nameof(StatExtension.GetStatValue))]
 		static class StatExtension_GetStatValue_Patch
 		{
 			static readonly float defaultHumanMoveSpeed = ThingDefOf.Human.statBases.First(mod => mod.stat == StatDefOf.MoveSpeed).value;
@@ -2938,7 +2938,7 @@ namespace ZombieLand
 		// patch for variable zombie damage factor
 		//
 		[HarmonyPatch(typeof(VerbProperties))]
-		[HarmonyPatch("GetDamageFactorFor", typeof(Tool), typeof(Pawn), typeof(HediffComp_VerbGiver))]
+		[HarmonyPatch(nameof(VerbProperties.GetDamageFactorFor), typeof(Tool), typeof(Pawn), typeof(HediffComp_VerbGiver))]
 		static class Verb_GetDamageFactorFor_Patch
 		{
 			static void Postfix(Pawn attacker, ref float __result)
@@ -2972,7 +2972,7 @@ namespace ZombieLand
 		// patch for zombies rotting regardless of temperature
 		//
 		[HarmonyPatch(typeof(Thing))]
-		[HarmonyPatch("AmbientTemperature", MethodType.Getter)]
+		[HarmonyPatch(nameof(Thing.AmbientTemperature), MethodType.Getter)]
 		static class Thing_AmbientTemperature_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -3053,7 +3053,7 @@ namespace ZombieLand
 		// the healing cross mote
 		//
 		[HarmonyPatch(typeof(HediffUtility))]
-		[HarmonyPatch("CanHealNaturally")]
+		[HarmonyPatch(nameof(HediffUtility.CanHealNaturally))]
 		static class HediffUtility_CanHealNaturally_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -3075,15 +3075,10 @@ namespace ZombieLand
 
 		// patch to allow amputation of biten body parts
 		//
-		[HarmonyPatch]
+		[HarmonyPatch(typeof(Recipe_RemoveBodyPart))]
+		[HarmonyPatch(nameof(Recipe_RemoveBodyPart.GetPartsToApplyOn))]
 		static class Recipe_RemoveBodyPart_GetPartsToApplyOn_Patch
 		{
-			static MethodBase TargetMethod()
-			{
-				var type = "RimWorld.Recipe_RemoveBodyPart".ToType();
-				return type.MethodNamed("GetPartsToApplyOn");
-			}
-
 			[HarmonyPriority(Priority.Last)]
 			static IEnumerable<BodyPartRecord> Postfix(IEnumerable<BodyPartRecord> parts, Pawn pawn, RecipeDef recipe)
 			{
@@ -3101,7 +3096,7 @@ namespace ZombieLand
 		// patch to keep zombie bite injuries even after tending if they have to stay around
 		//
 		[HarmonyPatch(typeof(Hediff))]
-		[HarmonyPatch("ShouldRemove", MethodType.Getter)]
+		[HarmonyPatch(nameof(Hediff.ShouldRemove), MethodType.Getter)]
 		static class Hediff_ShouldRemove_Patch
 		{
 			[HarmonyPriority(Priority.Last)]
@@ -3132,7 +3127,7 @@ namespace ZombieLand
 		// patch for making burning zombies keep their fire (even when it rains) 
 		//
 		[HarmonyPatch(typeof(Fire))]
-		[HarmonyPatch("VulnerableToRain")]
+		[HarmonyPatch(nameof(Fire.VulnerableToRain))]
 		static class Fire_VulnerableToRain_Patch
 		{
 			static void Postfix(Fire __instance, ref bool __result)
@@ -3148,7 +3143,7 @@ namespace ZombieLand
 		// patch for making zombies burn slower
 		//
 		[HarmonyPatch(typeof(Fire))]
-		[HarmonyPatch("DoFireDamage")]
+		[HarmonyPatch(nameof(Fire.DoFireDamage))]
 		static class Fire_DoFireDamage_Patch
 		{
 			static int FireDamagePatch(float f, Pawn pawn)
@@ -3186,7 +3181,7 @@ namespace ZombieLand
 		// patch for excluding burning zombies from total fire count 
 		//
 		[HarmonyPatch(typeof(FireWatcher))]
-		[HarmonyPatch("UpdateObservations")]
+		[HarmonyPatch(nameof(FireWatcher.UpdateObservations))]
 		static class FireWatcher_UpdateObservations_Patch
 		{
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, IEnumerable<CodeInstruction> instructions)
@@ -3228,7 +3223,7 @@ namespace ZombieLand
 		// patch to prevent errors in combat log
 		//
 		[HarmonyPatch(typeof(DamageWorker.DamageResult))]
-		[HarmonyPatch("AssociateWithLog")]
+		[HarmonyPatch(nameof(DamageWorker.DamageResult.AssociateWithLog))]
 		public static class DamageWorker_DamageResult_AssociateWithLog_Patch
 		{
 			static bool Prefix(DamageWorker.DamageResult __instance)
@@ -3257,7 +3252,7 @@ namespace ZombieLand
 		// patch to make zombies in tar smoke un-hitable
 		//
 		[HarmonyPatch(typeof(Verb))]
-		[HarmonyPatch("CanHitTargetFrom")]
+		[HarmonyPatch(nameof(Verb.CanHitTargetFrom))]
 		static class ShotReport_HitReportFor_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -3291,7 +3286,7 @@ namespace ZombieLand
 		// patch to remove non-melee damage from electrifier zombies
 		//
 		[HarmonyPatch(typeof(DamageWorker_AddInjury))]
-		[HarmonyPatch("ApplyDamageToPart")]
+		[HarmonyPatch(nameof(DamageWorker_AddInjury.ApplyDamageToPart))]
 		public static class DamageWorker_AddInjury_ApplyDamageToPart_Patch
 		{
 			static bool Prefix(ref DamageInfo dinfo, Pawn pawn)
@@ -3352,7 +3347,7 @@ namespace ZombieLand
 		// patch to prevent damage if zombie has armor
 		//
 		[HarmonyPatch(typeof(ArmorUtility))]
-		[HarmonyPatch("GetPostArmorDamage")]
+		[HarmonyPatch(nameof(ArmorUtility.GetPostArmorDamage))]
 		public static class ArmorUtility_GetPostArmorDamage_Patch
 		{
 			static void ApplyDamage(ref float armor, ref float amount, float reducer)
@@ -3491,7 +3486,7 @@ namespace ZombieLand
 		// patch for not slowing down time if pawn attacks a zombie
 		//
 		[HarmonyPatch(typeof(Verb))]
-		[HarmonyPatch("CausesTimeSlowdown")]
+		[HarmonyPatch(nameof(Verb.CausesTimeSlowdown))]
 		class Verb_CausesTimeSlowdown_Patch
 		{
 			static void Postfix(Verb __instance, ref bool __result, LocalTargetInfo castTarg)
@@ -3511,7 +3506,7 @@ namespace ZombieLand
 		// patch for simpler attack verb handling on zombies (story work tab confict)
 		//
 		[HarmonyPatch(typeof(Pawn))]
-		[HarmonyPatch("TryStartAttack")]
+		[HarmonyPatch(nameof(Pawn.TryStartAttack))]
 		static class Pawn_TryStartAttack_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -3529,7 +3524,7 @@ namespace ZombieLand
 		// patch to handle various things when someone dies
 		//
 		[HarmonyPatch(typeof(Pawn))]
-		[HarmonyPatch("Kill")]
+		[HarmonyPatch(nameof(Pawn.Kill))]
 		static class Pawn_Kill_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -3575,7 +3570,7 @@ namespace ZombieLand
 		// patch headshot to kill zombies right away
 		//
 		[HarmonyPatch(typeof(DamageWorker_AddInjury))]
-		[HarmonyPatch("IsHeadshot")]
+		[HarmonyPatch(nameof(DamageWorker_AddInjury.IsHeadshot))]
 		static class DamageWorker_AddInjury_IsHeadshot_Patch
 		{
 			static void Postfix(Pawn pawn, bool __result)
@@ -3589,7 +3584,7 @@ namespace ZombieLand
 		// patch for disallowing social interaction with zombies
 		//
 		[HarmonyPatch(typeof(RelationsUtility))]
-		[HarmonyPatch("HasAnySocialMemoryWith")]
+		[HarmonyPatch(nameof(RelationsUtility.HasAnySocialMemoryWith))]
 		static class RelationsUtility_HasAnySocialMemoryWith_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -3604,7 +3599,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(Pawn_RelationsTracker))]
-		[HarmonyPatch("OpinionOf")]
+		[HarmonyPatch(nameof(Pawn_RelationsTracker.OpinionOf))]
 		static class Pawn_RelationsTracker_OpinionOf_Patch
 		{
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, IEnumerable<CodeInstruction> instructions)
@@ -3630,7 +3625,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(RelationsUtility))]
-		[HarmonyPatch("PawnsKnowEachOther")]
+		[HarmonyPatch(nameof(RelationsUtility.PawnsKnowEachOther))]
 		static class RelationsUtility_PawnsKnowEachOther_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -3645,7 +3640,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(ThoughtHandler))]
-		[HarmonyPatch("GetSocialThoughts")]
+		[HarmonyPatch(nameof(ThoughtHandler.GetSocialThoughts))]
 		[HarmonyPatch(new Type[] { typeof(Pawn), typeof(List<ISocialThought>) })]
 		static class ThoughtHandler_GetSocialThoughts_Patch
 		{
@@ -3661,7 +3656,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(SituationalThoughtHandler))]
-		[HarmonyPatch("AppendSocialThoughts")]
+		[HarmonyPatch(nameof(SituationalThoughtHandler.AppendSocialThoughts))]
 		static class SituationalThoughtHandler_AppendSocialThoughts_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -3671,7 +3666,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(Corpse))]
-		[HarmonyPatch("GiveObservedThought")]
+		[HarmonyPatch(nameof(Corpse.GiveObservedThought))]
 		static class Corpse_GiveObservedThought_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -3684,7 +3679,7 @@ namespace ZombieLand
 		// patch for disallowing thoughts on zombies
 		//
 		[HarmonyPatch(typeof(ThoughtUtility))]
-		[HarmonyPatch("CanGetThought")]
+		[HarmonyPatch(nameof(ThoughtUtility.CanGetThought))]
 		static class ThoughtUtility_CanGetThought_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -3702,7 +3697,7 @@ namespace ZombieLand
 		// patch for not forbidding zombie corpses
 		//
 		[HarmonyPatch(typeof(ForbidUtility))]
-		[HarmonyPatch("SetForbiddenIfOutsideHomeArea")]
+		[HarmonyPatch(nameof(ForbidUtility.SetForbiddenIfOutsideHomeArea))]
 		static class ForbidUtility_SetForbiddenIfOutsideHomeArea_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -3715,7 +3710,7 @@ namespace ZombieLand
 		// patches to prevent interaction with zombies
 		//
 		[HarmonyPatch(typeof(Pawn_InteractionsTracker))]
-		[HarmonyPatch("TryInteractWith")]
+		[HarmonyPatch(nameof(Pawn_InteractionsTracker.TryInteractWith))]
 		static class Pawn_InteractionsTracker_TryInteractWith_Patch
 		{
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
@@ -3728,7 +3723,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(Pawn_InteractionsTracker))]
-		[HarmonyPatch("InteractionsTrackerTick")]
+		[HarmonyPatch(nameof(Pawn_InteractionsTracker.InteractionsTrackerTick))]
 		static class Pawn_InteractionsTracker_InteractionsTrackerTick_Patch
 		{
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
@@ -3742,7 +3737,7 @@ namespace ZombieLand
 		// patch to colorize the label of zombies that were colonists
 		//
 		[HarmonyPatch(typeof(PawnNameColorUtility))]
-		[HarmonyPatch("PawnNameColorOf")]
+		[HarmonyPatch(nameof(PawnNameColorUtility.PawnNameColorOf))]
 		static class PawnNameColorUtility_PawnNameColorOf_Patch
 		{
 			static Color zombieLabelColor = new Color(0.7f, 1f, 0.7f);
@@ -3762,7 +3757,7 @@ namespace ZombieLand
 		// allow clicks on zombies that were colonists
 		//
 		[HarmonyPatch(typeof(ThingSelectionUtility))]
-		[HarmonyPatch("SelectableByMapClick")]
+		[HarmonyPatch(nameof(ThingSelectionUtility.SelectableByMapClick))]
 		static class ThingSelectionUtility_SelectableByMapClick_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -3780,7 +3775,7 @@ namespace ZombieLand
 		// patch for a custom zombie corpse class
 		//
 		[HarmonyPatch(typeof(ThingMaker))]
-		[HarmonyPatch("MakeThing")]
+		[HarmonyPatch(nameof(ThingMaker.MakeThing))]
 		static class ThingMaker_MakeThing_Patch
 		{
 			static void Prefix(ThingDef def)
@@ -3805,7 +3800,7 @@ namespace ZombieLand
 		// patch to handle targets downed so that we update our grid
 		//
 		[HarmonyPatch(typeof(Pawn_HealthTracker))]
-		[HarmonyPatch("MakeDowned")]
+		[HarmonyPatch(nameof(Pawn_HealthTracker.MakeDowned))]
 		static class Pawn_HealthTracker_MakeDowned_Patch
 		{
 			static void Postfix(Pawn ___pawn)
@@ -3837,7 +3832,7 @@ namespace ZombieLand
 		// patch to update twinkie graphics
 		//
 		[HarmonyPatch(typeof(Game))]
-		[HarmonyPatch("FinalizeInit")]
+		[HarmonyPatch(nameof(Game.FinalizeInit))]
 		static class Game_FinalizeInit_Patch
 		{
 			static void Postfix()
@@ -3850,7 +3845,7 @@ namespace ZombieLand
 		// patches to update our zombie count grid
 		//
 		[HarmonyPatch(typeof(Map))]
-		[HarmonyPatch("FinalizeLoading")]
+		[HarmonyPatch(nameof(Map.FinalizeLoading))]
 		static class Map_FinalizeLoading_Patch
 		{
 			static void Prefix(Map __instance)
@@ -3863,7 +3858,7 @@ namespace ZombieLand
 		// convert dying infected pawns when they start rotting
 		//
 		[HarmonyPatch(typeof(Corpse))]
-		[HarmonyPatch("RotStageChanged")]
+		[HarmonyPatch(nameof(Corpse.RotStageChanged))]
 		static class Corpse_RotStageChanged_Patch
 		{
 			static void Postfix(Corpse __instance)
@@ -3924,7 +3919,7 @@ namespace ZombieLand
 		// show infection on dead pawns
 		//
 		[HarmonyPatch(typeof(HealthCardUtility))]
-		[HarmonyPatch("DrawOverviewTab")]
+		[HarmonyPatch(nameof(HealthCardUtility.DrawOverviewTab))]
 		static class HealthCardUtility_DrawOverviewTab_Patch
 		{
 			static void Postfix(Pawn pawn, Rect leftRect, ref float __result)
@@ -3961,7 +3956,7 @@ namespace ZombieLand
 		// patch to handle targets deaths so that we update our grid
 		//
 		[HarmonyPatch(typeof(PawnComponentsUtility))]
-		[HarmonyPatch("RemoveComponentsOnKilled")]
+		[HarmonyPatch(nameof(PawnComponentsUtility.RemoveComponentsOnKilled))]
 		static class PawnComponentsUtility_RemoveComponentsOnKilled_Patch
 		{
 			static void Postfix(Pawn pawn)
@@ -3988,7 +3983,7 @@ namespace ZombieLand
 		// patch to prevent thoughts on zombies
 		//
 		[HarmonyPatch(typeof(PawnDiedOrDownedThoughtsUtility))]
-		[HarmonyPatch("TryGiveThoughts")]
+		[HarmonyPatch(nameof(PawnDiedOrDownedThoughtsUtility.TryGiveThoughts))]
 		[HarmonyPatch(new Type[] { typeof(Pawn), typeof(DamageInfo?), typeof(PawnDiedOrDownedThoughtsKind) })]
 		static class PawnDiedOrDownedThoughtsUtility_TryGiveThoughts_Patch
 		{
@@ -4002,7 +3997,7 @@ namespace ZombieLand
 		// patch to remove immunity ticks on zombies
 		//
 		[HarmonyPatch(typeof(ImmunityHandler))]
-		[HarmonyPatch("ImmunityHandlerTick")]
+		[HarmonyPatch(nameof(ImmunityHandler.ImmunityHandlerTick))]
 		static class ImmunityHandler_ImmunityHandlerTick_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -4015,7 +4010,7 @@ namespace ZombieLand
 		// patch to trigger on gun shots
 		//
 		[HarmonyPatch(typeof(Projectile))]
-		[HarmonyPatch("Launch")]
+		[HarmonyPatch(nameof(Projectile.Launch))]
 		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(ProjectileHitFlags), typeof(Thing), typeof(ThingDef) })]
 		public static class Projectile_Launch_Patch
 		{
@@ -4086,7 +4081,7 @@ namespace ZombieLand
 		// patch to allow zombies to occupy the same spot without collision
 		// 
 		[HarmonyPatch(typeof(PawnCollisionTweenerUtility))]
-		[HarmonyPatch("PawnCollisionPosOffsetFor")]
+		[HarmonyPatch(nameof(PawnCollisionTweenerUtility.PawnCollisionPosOffsetFor))]
 		static class PawnCollisionTweenerUtility_PawnCollisionPosOffsetFor_Patch
 		{
 			[HarmonyPriority(Priority.First)]
@@ -4101,7 +4096,7 @@ namespace ZombieLand
 		// patches so that zombies do not have needs
 		// 
 		[HarmonyPatch(typeof(Pawn_NeedsTracker))]
-		[HarmonyPatch("AllNeeds", MethodType.Getter)]
+		[HarmonyPatch(nameof(Pawn_NeedsTracker.AllNeeds), MethodType.Getter)]
 		static class Pawn_NeedsTracker_AllNeeds_Patch
 		{
 			static List<Need> Replacement()
@@ -4118,7 +4113,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(Pawn_NeedsTracker))]
-		[HarmonyPatch("AddOrRemoveNeedsAsAppropriate")]
+		[HarmonyPatch(nameof(Pawn_NeedsTracker.AddOrRemoveNeedsAsAppropriate))]
 		static class Pawn_NeedsTracker_AddOrRemoveNeedsAsAppropriate_Patch
 		{
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
@@ -4132,7 +4127,7 @@ namespace ZombieLand
 		// patches so that zombies have no records
 		//
 		[HarmonyPatch(typeof(Pawn_RecordsTracker))]
-		[HarmonyPatch("AddTo")]
+		[HarmonyPatch(nameof(Pawn_RecordsTracker.AddTo))]
 		static class Pawn_RecordsTracker_AddTo_Patch
 		{
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
@@ -4143,7 +4138,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(Pawn_RecordsTracker))]
-		[HarmonyPatch("Increment")]
+		[HarmonyPatch(nameof(Pawn_RecordsTracker.Increment))]
 		static class Pawn_RecordsTracker_Increment_Patch
 		{
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
@@ -4157,7 +4152,7 @@ namespace ZombieLand
 		// patch so zombies get less move cost from tar slime
 		//
 		[HarmonyPatch(typeof(Pawn_PathFollower))]
-		[HarmonyPatch("CostToMoveIntoCell")]
+		[HarmonyPatch(nameof(Pawn_PathFollower.CostToMoveIntoCell))]
 		[HarmonyPatch(new[] { typeof(Pawn), typeof(IntVec3) })]
 		static class Pawn_PathFollower_CostToMoveIntoCell_Patch
 		{
@@ -4174,7 +4169,7 @@ namespace ZombieLand
 		// patch so zombies do not bleed
 		//
 		[HarmonyPatch(typeof(Pawn_HealthTracker))]
-		[HarmonyPatch("DropBloodFilth")]
+		[HarmonyPatch(nameof(Pawn_HealthTracker.DropBloodFilth))]
 		static class Pawn_HealthTracker_DropBloodFilth_Patch
 		{
 			static bool SkipDropBlood(Pawn pawn)
@@ -4206,7 +4201,7 @@ namespace ZombieLand
 		// patch to insert our settings page
 		//
 		[HarmonyPatch(typeof(Scenario))]
-		[HarmonyPatch("GetFirstConfigPage")]
+		[HarmonyPatch(nameof(Scenario.GetFirstConfigPage))]
 		static class Scenario_GetFirstConfigPage_Patch
 		{
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -4220,7 +4215,7 @@ namespace ZombieLand
 					if (constructorName == "Page_SelectLandingSite" || constructorName == "Page_SelectStartingSite")
 					{
 						yield return new CodeInstruction(OpCodes.Newobj, AccessTools.Constructor(typeof(SettingsDialog)));
-						yield return new CodeInstruction(OpCodes.Callvirt, typeof(List<Page>).MethodNamed(nameof(List<Page>.Add)));
+						yield return new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(List<Page>), nameof(List<Page>.Add)));
 						yield return new CodeInstruction(OpCodes.Ldloc_0);
 						found = true;
 					}
@@ -4247,7 +4242,7 @@ namespace ZombieLand
 		// suppress memories of zombie violence
 		//
 		[HarmonyPatch(typeof(Pawn_HealthTracker))]
-		[HarmonyPatch("PreApplyDamage")]
+		[HarmonyPatch(nameof(Pawn_HealthTracker.PreApplyDamage))]
 		static class Pawn_HealthTracker_PreApplyDamage_Patch
 		{
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -4290,7 +4285,7 @@ namespace ZombieLand
 		// patch to add our settings to the main bottom-right menu
 		//
 		[HarmonyPatch(typeof(MainTabWindow_Menu))]
-		[HarmonyPatch("RequestedTabSize", MethodType.Getter)]
+		[HarmonyPatch(nameof(MainTabWindow_Menu.RequestedTabSize), MethodType.Getter)]
 		static class MainTabWindow_Menu_RequestedTabSize_Path
 		{
 			static void Postfix(ref Vector2 __result)
@@ -4299,7 +4294,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(MainTabWindow_Menu))]
-		[HarmonyPatch("DoWindowContents")]
+		[HarmonyPatch(nameof(MainTabWindow_Menu.DoWindowContents))]
 		static class MainTabWindow_Menu_DoWindowContents_Path
 		{
 			static void Prefix(ref Rect rect)
@@ -4308,7 +4303,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(Widgets))]
-		[HarmonyPatch("ButtonTextWorker")]
+		[HarmonyPatch(nameof(Widgets.ButtonTextWorker))]
 		static class Widgets_ButtonText_Path
 		{
 			static void NewDrawAtlas(Rect rect, Texture2D atlas, string label)
@@ -4342,7 +4337,7 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(MainMenuDrawer))]
-		[HarmonyPatch("DoMainMenuControls")]
+		[HarmonyPatch(nameof(MainMenuDrawer.DoMainMenuControls))]
 		static class MainMenuDrawer_DoMainMenuControls_Path
 		{
 			// called from MainTabWindow_Menu_RequestedTabSize_Path
