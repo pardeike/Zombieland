@@ -77,7 +77,7 @@ namespace ZombieLand
 		// timing
 		//
 		public static float PHEROMONE_FADEOFF = 180f;
-		public static float TICKMANAGER_RECALCULATE_DELAY = 60f;
+		public static int TICKMANAGER_RECALCULATE_DELAY = 900;
 		public static float TICKMANAGER_AVOIDGRID_DELAY = 0.25f;
 		public static int EAT_DELAY_TICKS = 1200;
 

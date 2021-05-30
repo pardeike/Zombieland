@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -202,6 +203,8 @@ namespace ZombieLand
 					var currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
 					return $"Zombieland v{currentVersion.ToString(4)}";
 				}, 99899));
+				if (Mouse.IsOver(zlRect) && tickManager.allZombiesCached.Count <= 10)
+					tickManager.allZombiesCached.Do(zombie => TargetHighlighter.Highlight(new GlobalTargetInfo(zombie), true, false, false));
 
 				curBaseY -= zlRect.height;
 			}
@@ -347,10 +350,14 @@ namespace ZombieLand
 						if (ZombieSettings.Values.enemiesAttackZombies == false)
 							return false;
 
-						if (zombie.state != ZombieState.Tracking || zombie.IsDowned())
+						var distanceToTarget = (float)(attacker.Position - zombie.Position).LengthHorizontalSquared;
+
+						if (zombie.health.Downed && distanceToTarget <= 9)
+							return true;
+
+						if (zombie.state != ZombieState.Tracking)
 							return false;
 
-						var distanceToTarget = (float)(attacker.Position - zombie.Position).LengthHorizontalSquared;
 						var verb = searcher.CurrentEffectiveVerb;
 						var attackDistance = verb == null ? 1f : verb.verbProps.range * verb.verbProps.range;
 						var zombieAvoidRadius = Tools.ZombieAvoidRadius(zombie, true);
@@ -438,7 +445,7 @@ namespace ZombieLand
 									{
 										if (zombie.state == ZombieState.Emerging) return false;
 										var d = pos.DistanceToSquared(zombie.Position);
-										var dn = zombie.IsDowned();
+										var dn = zombie.health.Downed;
 										if (dn && (d > maxDownedRangeSquared || ZombieSettings.Values.doubleTapRequired == false)) return false;
 										if (dn == false && d > maxRangeSquared) return false;
 										if (verb.CanHitTargetFrom(pos, zombie) == false) return false;
@@ -464,9 +471,7 @@ namespace ZombieLand
 			{
 				if (!(searcher?.Thing is Pawn pawn) || verb == null || verb.IsMeleeAttack)
 					return true;
-				if (!(target is Zombie zombie) || (zombie.IsDowned() && ZombieSettings.Values.doubleTapRequired == false))
-					return true;
-				if (pawn.IsColonist == false && pawn.Faction.HostileTo(Faction.OfPlayer))
+				if (!(target is Zombie zombie) || (zombie.health.Downed && ZombieSettings.Values.doubleTapRequired == false))
 					return true;
 				var distance = (zombie.Position - pawn.Position).LengthHorizontal;
 				var weaponRange = verb.verbProps.range;
@@ -509,11 +514,8 @@ namespace ZombieLand
 		{
 			static void Postfix(List<Pair<IAttackTarget, float>> __result)
 			{
-				for (var i = __result.Count - 1; i >= 0; i--)
-				{
-					if (__result[i].First is Zombie zombie && zombie.IsDowned())
-						__result.RemoveAt(i);
-				}
+				if (__result.Any(pair => pair.first is Zombie zombie && zombie.health.Downed == false))
+					_ = __result.RemoveAll(pair => pair.first is Zombie zombie && zombie.health.Downed);
 			}
 		}
 
@@ -653,6 +655,24 @@ namespace ZombieLand
 				}
 				__result = dangerRatingInt == StoryDanger.High;
 				return false;
+			}
+		}
+
+		// make zombies not affect overall danger rating
+		//
+		[HarmonyPatch(typeof(DangerWatcher))]
+		[HarmonyPatch(nameof(DangerWatcher.AffectsStoryDanger))]
+		static class DangerWatcher_AffectsStoryDanger_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(IAttackTarget t, ref bool __result)
+			{
+				if (t is Zombie)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
 			}
 		}
 
@@ -1412,7 +1432,7 @@ namespace ZombieLand
 
 			static PawnPosture GetPawnPosture(Pawn pawn)
 			{
-				if (pawn is Zombie zombie && zombie.IsDowned())
+				if (pawn is Zombie zombie && zombie.health.Downed)
 					return PawnPosture.LayingOnGroundNormal;
 				return PawnPosture.Standing;
 			}
@@ -1744,7 +1764,7 @@ namespace ZombieLand
 		{
 			static void Prefix(ref DamageInfo dinfo)
 			{
-				if (!(dinfo.Instigator is Zombie zombie) || zombie.IsDowned() == false)
+				if (!(dinfo.Instigator is Zombie zombie) || zombie.health.Downed == false)
 					return;
 				dinfo.SetBodyRegion(BodyPartHeight.Bottom, BodyPartDepth.Outside);
 			}
@@ -1755,7 +1775,7 @@ namespace ZombieLand
 		{
 			static void Prefix(ref DamageInfo dinfo)
 			{
-				if (!(dinfo.Instigator is Zombie zombie) || zombie.IsDowned() == false)
+				if (!(dinfo.Instigator is Zombie zombie) || zombie.health.Downed == false)
 					return;
 				dinfo.SetBodyRegion(BodyPartHeight.Bottom, BodyPartDepth.Outside);
 			}
@@ -1965,14 +1985,10 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(LocalTargetInfo target, ref bool __result)
 			{
-				if (target.HasThing)
+				if (target.HasThing && target.Thing is Zombie zombie && zombie.wasMapPawnBefore == false)
 				{
-					//if ((zombie != null && zombie.wasMapPawnBefore == false) || target.Thing is ZombieCorpse)
-					if (target.Thing is Zombie zombie && zombie.wasMapPawnBefore == false)
-					{
-						__result = false;
-						return false;
-					}
+					__result = false;
+					return false;
 				}
 				return true;
 			}
@@ -2051,7 +2067,7 @@ namespace ZombieLand
 		}
 
 		// patch to make zombies appear to be never "down" if self-healing is on
-		// to get original state, use Tools.IsDowned(this Pawn pawn)
+		// to get original state, use pawn.health.Downed instead
 		//
 		[HarmonyPatch(typeof(Pawn))]
 		[HarmonyPatch(nameof(Pawn.Downed), MethodType.Getter)]
@@ -2250,7 +2266,7 @@ namespace ZombieLand
 					return;
 				}
 
-				if (zombie.isElectrifier && zombie.IsDowned() == false)
+				if (zombie.isElectrifier && zombie.health.Downed == false)
 				{
 					// stage: 0 2 4 6 8 10 12 14 16 18
 					// shine: x - x x x  x  x  -  x  -
@@ -2328,11 +2344,28 @@ namespace ZombieLand
 		{
 			static void Postfix(PawnDownedWiggler __instance, Pawn ___pawn)
 			{
-				if (!(___pawn is Zombie zombie) || zombie.IsDowned() == false)
+				if (!(___pawn is Zombie zombie) || zombie.health.Downed == false)
 					return;
 				var vec = ___pawn.pather.Destination.Cell - ___pawn.Position;
 				var pos = ___pawn.DrawPos;
 				__instance.downedAngle = vec.AngleFlat + 15f * Mathf.Sin(6f * pos.x) * Mathf.Cos(6f * pos.z);
+			}
+		}
+		[HarmonyPatch(typeof(PawnRenderer))]
+		[HarmonyPatch(nameof(PawnRenderer.BodyAngle))]
+		static class PawnRenderer_BodyAngle_Patch
+		{
+			static bool Prefix(Pawn ___pawn, PawnDownedWiggler ___wiggler, ref float __result)
+			{
+				if (___pawn is Zombie zombie && zombie.health.Downed)
+				{
+					var angle = ___wiggler.downedAngle + 360;
+					if (zombie.currentDownedAngle == -1) zombie.currentDownedAngle = angle;
+					zombie.currentDownedAngle = (zombie.currentDownedAngle * 15 + angle) / 16;
+					__result = zombie.currentDownedAngle;
+					return false;
+				}
+				return true;
 			}
 		}
 
@@ -2567,9 +2600,9 @@ namespace ZombieLand
 					GraphicToolbox.DrawScaledMesh(headMesh, Constants.MINERHELMET[orientation.AsInt][0], pos + headOffset, rot, 1f, 1f);
 				}
 
-				if (zombie.isElectrifier && zombie.IsDowned() == false)
+				if (zombie.isElectrifier && zombie.health.Downed == false)
 				{
-					tm = tm ?? Find.TickManager;
+					tm ??= Find.TickManager;
 					var flicker = (tm.TicksAbs / (2 + zombie.thingIDNumber % 2) + zombie.thingIDNumber) % 3;
 					if (flicker != 0 || tm.Paused)
 					{
@@ -2589,7 +2622,7 @@ namespace ZombieLand
 
 				if (Find.CameraDriver.CurrentZoom <= CameraZoomRange.Middle)
 				{
-					tm = tm ?? Find.TickManager;
+					tm ??= Find.TickManager;
 					var blinkPeriod = 60 + zombie.thingIDNumber % 180; // between 2-5s
 					var eyesOpen = (tm.TicksAbs % blinkPeriod) > 3;
 					if (eyesOpen || tm.CurTimeSpeed == TimeSpeed.Paused)
@@ -2762,7 +2795,7 @@ namespace ZombieLand
 				{
 					if (zombie.wasMapPawnBefore)
 					{
-						__result = 100000f;
+						__result = 4000f;
 						return false;
 					}
 					if (zombie.raging > 0)
@@ -2804,7 +2837,7 @@ namespace ZombieLand
 						return false;
 					}
 
-					if (zombie.IsDowned())
+					if (zombie.health.Downed)
 					{
 						__result = 0.1f;
 						return false;
@@ -2855,7 +2888,7 @@ namespace ZombieLand
 					var tm = Find.TickManager;
 					var multiplier = defaultHumanMoveSpeed / ZombieTicker.PercentTicking;
 
-					if (zombie.IsDowned())
+					if (zombie.health.Downed)
 					{
 						__result = 0.004f * tm.TickRateMultiplier;
 						return false;
@@ -3270,14 +3303,14 @@ namespace ZombieLand
 				if (!(pawn is Zombie zombie))
 					return true;
 
-				if (zombie.IsDowned())
+				if (zombie.health.Downed)
 					return true;
 
 				if (zombie.wasMapPawnBefore)
 				{
 					dinfo.SetAllowDamagePropagation(false);
 					dinfo.SetInstantPermanentInjury(false);
-					dinfo.SetAmount(dinfo.Amount / 5);
+					dinfo.SetAmount(dinfo.Amount / 1.5f);
 					return true;
 				}
 
@@ -3479,6 +3512,22 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to exclude electric zombies from ranged combat
+		//
+		[HarmonyPatch(typeof(Pawn))]
+		[HarmonyPatch(nameof(Pawn.TryGetAttackVerb))]
+		static class Pawn_TryGetAttackVerb_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Pawn __instance, Thing target, ref Verb __result)
+			{
+				if (!(target is Zombie zombie) || zombie.isElectrifier == false)
+					return true;
+				__result = __instance.meleeVerbs.TryGetMeleeVerb(target);
+				return false;
+			}
+		}
+
 		// patch for simpler attack verb handling on zombies (story work tab confict)
 		//
 		[HarmonyPatch(typeof(Pawn))]
@@ -3552,8 +3601,46 @@ namespace ZombieLand
 			static void Postfix(Pawn pawn, bool __result)
 			{
 				if (__result == false) return;
-				if (pawn is Zombie zombie && zombie.Spawned && zombie.Dead == false && zombie.raging == 0 && zombie.wasMapPawnBefore == false)
+				if (pawn is Zombie zombie)
 					zombie.state = ZombieState.ShouldDie;
+			}
+		}
+		//
+		[HarmonyPatch(typeof(HediffSet))]
+		[HarmonyPatch(nameof(HediffSet.AddDirect))]
+		static class HediffSet_AddDirect_Patch
+		{
+			static void Postfix(Pawn ___pawn, Hediff hediff)
+			{
+				if (!(___pawn is Zombie zombie)) return;
+				if (hediff?.Part != null && hediff.Part.def.tags.Contains(BodyPartTagDefOf.ConsciousnessSource))
+					zombie.state = ZombieState.ShouldDie;
+			}
+		}
+
+		// simplify fire lookup by updating isOnFire on zombies
+		//
+		[HarmonyPatch(typeof(CompAttachBase))]
+		[HarmonyPatch(nameof(CompAttachBase.AddAttachment))]
+		static class CompAttachBase_AddAttachment_Patch
+		{
+			static void Postfix(AttachableThing t, ThingWithComps ___parent)
+			{
+				if (t.def != ThingDefOf.Fire) return;
+				if (___parent is Zombie zombie)
+					zombie.isOnFire = true;
+			}
+		}
+		//
+		[HarmonyPatch(typeof(CompAttachBase))]
+		[HarmonyPatch(nameof(CompAttachBase.RemoveAttachment))]
+		static class CompAttachBase_RemoveAttachment_Patch
+		{
+			static void Postfix(AttachableThing t, ThingWithComps ___parent, List<AttachableThing> ___attachments)
+			{
+				if (t.def != ThingDefOf.Fire) return;
+				if (___parent is Zombie zombie)
+					zombie.isOnFire = ___attachments.Any(a => a.def == ThingDefOf.Fire);
 			}
 		}
 
@@ -4097,6 +4184,30 @@ namespace ZombieLand
 				var conditions = Tools.NotZombieInstructions(generator, method);
 				var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
 				return transpiler(generator, instructions);
+			}
+		}
+
+		// patches so zombies don't use clamors at all
+		//
+		[HarmonyPatch(typeof(GenClamor))]
+		[HarmonyPatch(nameof(GenClamor.DoClamor))]
+		[HarmonyPatch(new[] { typeof(Thing), typeof(IntVec3), typeof(float), typeof(ClamorDef) })]
+		static class GenClamor_DoClamor_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Thing source)
+			{
+				return (source is Zombie) == false;
+			}
+		}
+		[HarmonyPatch(typeof(Pawn))]
+		[HarmonyPatch(nameof(Pawn.HearClamor))]
+		static class Pawn_HearClamor_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Thing source)
+			{
+				return (source is Zombie) == false;
 			}
 		}
 

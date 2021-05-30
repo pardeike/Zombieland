@@ -50,7 +50,7 @@ namespace ZombieLand
 	{
 		int populationSpawnCounter;
 
-		int visibleGridUpdateCounter;
+		int nextVisibleGridUpdate;
 		int incidentTickCounter;
 		int colonyPointsTickCounter;
 		int avoidGridCounter;
@@ -111,7 +111,7 @@ namespace ZombieLand
 			colonyPointsTickCounter = -1;
 			RecalculateColonyPoints();
 
-			visibleGridUpdateCounter = -1;
+			nextVisibleGridUpdate = 0;
 			RecalculateZombieWanderDestination();
 
 			var destinations = map.pawnDestinationReservationManager.reservedDestinations;
@@ -179,8 +179,9 @@ namespace ZombieLand
 
 		public void RecalculateZombieWanderDestination()
 		{
-			if (visibleGridUpdateCounter-- >= 0) return;
-			visibleGridUpdateCounter = Constants.TICKMANAGER_RECALCULATE_DELAY.SecondsToTicks();
+			var ticks = GenTicks.TicksGame;
+			if (ticks < nextVisibleGridUpdate) return;
+			nextVisibleGridUpdate = ticks + Constants.TICKMANAGER_RECALCULATE_DELAY;
 
 			allZombiesCached = AllZombies().ToList();
 			var home = map.areaManager.Home;
@@ -251,14 +252,12 @@ namespace ZombieLand
 
 		public static float ZombieMaxCosts(Zombie zombie)
 		{
-			if (zombie.wasMapPawnBefore || zombie.raging > 0)
-				return 3000f;
-			return 1000f;
+			return zombie.wasMapPawnBefore || zombie.raging > 0 ? 3000f : 1000f;
 		}
 
 		public void UpdateZombieAvoider()
 		{
-			var specs = allZombiesCached.Where(zombie => zombie.isAlbino == false && zombie.Spawned && zombie.Dead == false && zombie.IsDowned() == false)
+			var specs = allZombiesCached.Where(zombie => zombie.isAlbino == false && zombie.Spawned && zombie.Dead == false && zombie.health.Downed == false)
 				.Select(zombie => new ZombieCostSpecs()
 				{
 					position = zombie.Position,
@@ -285,7 +284,7 @@ namespace ZombieLand
 		bool RepositionCondition(Pawn pawn)
 		{
 			return pawn.Spawned &&
-				pawn.IsDowned() == false &&
+				pawn.health.Downed == false &&
 				pawn.Dead == false &&
 				pawn.Drafted == false &&
 				avoidGrid.InAvoidDanger(pawn) &&
@@ -310,7 +309,7 @@ namespace ZombieLand
 						var zombiesNearby = Tools.GetCircle(radius).Select(vec => pos + vec)
 							.Where(vec => vec.InBounds(map) && avoidGrid.GetCosts()[vec.x + vec.z * map.Size.x] >= 3000)
 							.SelectMany(vec => map.thingGrid.ThingsListAtFast(vec).OfType<Zombie>())
-							.Where(zombie => zombie.IsDowned() == false);
+							.Where(zombie => zombie.health.Downed == false);
 
 						var maxDistance = 0;
 						var safeDestination = IntVec3.Invalid;
@@ -318,7 +317,7 @@ namespace ZombieLand
 						{
 							if (!vec.Walkable(map)) return false;
 							if ((float)vec.DistanceToSquared(pos) > radiusSquared) return false;
-							if (map.thingGrid.ThingAt<Zombie>(vec)?.IsDowned() ?? true == false) return false;
+							if (map.thingGrid.ThingAt<Zombie>(vec)?.health.Downed ?? true == false) return false;
 							if (vec.GetEdifice(map) is Building_Door building_Door && !building_Door.CanPhysicallyPass(pawn)) return false;
 							return !PawnUtility.AnyPawnBlockingPathAt(vec, pawn, true, false);
 

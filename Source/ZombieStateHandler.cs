@@ -38,9 +38,10 @@ namespace ZombieLand
 				return true;
 			}
 
+			var tick10 = zombie.EveryNTick(NthTick.Every10);
 			if (zombie.IsSuicideBomber)
 			{
-				if (zombie.bombWillGoOff && zombie.EveryNTick(NthTick.Every10))
+				if (zombie.bombWillGoOff && tick10)
 					zombie.bombTickingInterval -= 1f + Tools.Difficulty();
 				if (zombie.bombTickingInterval <= 0f)
 				{
@@ -49,7 +50,7 @@ namespace ZombieLand
 				}
 			}
 
-			if (zombie.EveryNTick(NthTick.Every10))
+			if (tick10)
 			{
 				if (ZombieSettings.Values.zombiesDieVeryEasily)
 				{
@@ -76,7 +77,7 @@ namespace ZombieLand
 		//
 		public static bool Downed(Zombie zombie)
 		{
-			if (zombie.IsDowned() == false)
+			if (zombie.health.Downed == false)
 				return false;
 
 			if (ZombieSettings.Values.zombiesDieVeryEasily || zombie.IsSuicideBomber || ZombieSettings.Values.doubleTapRequired == false)
@@ -85,13 +86,13 @@ namespace ZombieLand
 				return true;
 			}
 
-			var walkCapacity = PawnCapacityUtility.CalculateCapacityLevel(zombie.health.hediffSet, PawnCapacityDefOf.Moving);
-			var missingBrain = zombie.health.hediffSet.GetBrain() == null;
-			if (walkCapacity < 0.25f || missingBrain)
-			{
-				zombie.Kill(null);
-				return true;
-			}
+			// var walkCapacity = PawnCapacityUtility.CalculateCapacityLevel(zombie.health.hediffSet, PawnCapacityDefOf.Moving);
+			// var missingBrain = zombie.health.hediffSet.GetBrain() == null;
+			// if (walkCapacity < 0.25f || missingBrain)
+			// {
+			// 	zombie.Kill(null);
+			// 	return true;
+			// }
 
 			if (++zombie.healCounter >= Constants.ZOMBIE_HEALING_TICKS)
 			{
@@ -120,12 +121,9 @@ namespace ZombieLand
 
 		// handle things that affect zombies ====================================================================
 		//
-		public static void Affects(Zombie zombie)
+		public static void ApplyFire(Zombie zombie)
 		{
-			if (zombie.EveryNTick(NthTick.Every60) == false)
-				return;
-
-			if (zombie.HasAttachment(ThingDefOf.Fire))
+			if (zombie.isOnFire || zombie.EveryNTick(NthTick.Every60) == false)
 				return;
 
 			var temp = GenTemperature.GetTemperatureForCell(zombie.Position, zombie.Map);
@@ -147,9 +145,6 @@ namespace ZombieLand
 		//
 		public static bool Attack(this JobDriver_Stumble driver, Zombie zombie)
 		{
-			if (zombie.Downed && ZombieSettings.Values.doubleTapRequired == false)
-				return false;
-
 			var enemy = CanAttack(zombie);
 			if (enemy == null)
 				return false;
@@ -286,7 +281,7 @@ namespace ZombieLand
 			return true;
 		}
 
-		struct TrackMove
+		public struct TrackMove
 		{
 			public IntVec3 pos;
 			public long tstamp;
@@ -321,7 +316,7 @@ namespace ZombieLand
 			var currentTicks = Tools.Ticks();
 			var treshhold = currentTicks - currentFadeoff;
 
-			var topTrackingMoves = new TrackMove[Constants.NUMBER_OF_TOP_MOVEMENT_PICKS];
+			var topTrackingMoves = zombie.topTrackingMoves;
 			var topTrackingMovesCount = 0;
 
 			var zPos = zombie.Position;
@@ -340,7 +335,8 @@ namespace ZombieLand
 								{
 									for (var k = Constants.NUMBER_OF_TOP_MOVEMENT_PICKS - 1; k >= j + 1; k--)
 										topTrackingMoves[k] = topTrackingMoves[k - 1];
-									topTrackingMoves[j] = new TrackMove { pos = pos, tstamp = tstamp };
+									topTrackingMoves[j].pos = pos;
+									topTrackingMoves[j].tstamp = tstamp;
 									if (topTrackingMovesCount < Constants.NUMBER_OF_TOP_MOVEMENT_PICKS) topTrackingMovesCount++;
 									break;
 								}
@@ -352,7 +348,18 @@ namespace ZombieLand
 			var timeDelta = long.MaxValue;
 			if (topTrackingMovesCount > 0)
 			{
-				var nextMove = topTrackingMoves.OrderBy(move => grid.GetZombieCount(move.pos)).First().pos;
+				var minZombieCount = int.MaxValue;
+				var nextMove = IntVec3.Invalid;
+				for (var i = 0; i < topTrackingMovesCount; i++)
+				{
+					var pos = topTrackingMoves[i].pos;
+					var count = grid.GetZombieCount(pos);
+					if (count < minZombieCount)
+					{
+						nextMove = pos;
+						minZombieCount = count;
+					}
+				}
 				timeDelta = currentTicks - (grid.GetTimestamp(nextMove));
 
 				driver.destination = nextMove;
@@ -380,14 +387,14 @@ namespace ZombieLand
 
 		// smash nearby build stuff =================================================================
 		//
-		public static bool Smash(this JobDriver_Stumble driver, Zombie zombie, bool checkSmashable, bool onylWhenNotRaging)
+		public static bool Smash(this JobDriver_Stumble driver, Zombie zombie, bool checkSmashable, bool skipWhenRaging)
 		{
 			if (zombie.wasMapPawnBefore == false && zombie.IsSuicideBomber == false && zombie.IsTanky == false)
 			{
 				if (driver.destination.IsValid && checkSmashable == false)
 					return false;
 
-				if (onylWhenNotRaging && zombie.raging > 0)
+				if (skipWhenRaging && zombie.raging > 0)
 					return false;
 			}
 
@@ -628,7 +635,7 @@ namespace ZombieLand
 					return false;
 
 				if (thing is Pawn p && ZombieSettings.Values.zombiesEatDowned)
-					if (p.Spawned && p.RaceProps.IsFlesh && AlienTools.IsFleshPawn(p) && (p.IsDowned() || p.Dead))
+					if (p.Spawned && p.RaceProps.IsFlesh && AlienTools.IsFleshPawn(p) && (p.health.Downed || p.Dead))
 					{
 						result = p;
 						return true;
@@ -646,53 +653,8 @@ namespace ZombieLand
 			return result;
 		}
 
-		static bool Attackable(AttackMode mode, Thing thing)
-		{
-			if (thing is ZombieCorpse)
-				return false;
-
-			if (thing is Pawn target)
-			{
-				if (target.Dead || target.IsDowned())
-					return false;
-
-				var distance = (target.DrawPos - thing.DrawPos).MagnitudeHorizontalSquared();
-				if (distance > Constants.MIN_ATTACKDISTANCE_SQUARED)
-					return false;
-
-				if (Tools.HasInfectionState(target, InfectionState.Infecting))
-					return false;
-
-				if (mode == AttackMode.Everything)
-					return true;
-
-				if (target.MentalState != null)
-				{
-					var msDef = target.MentalState.def;
-					if (msDef == MentalStateDefOf.Manhunter || msDef == MentalStateDefOf.ManhunterPermanent)
-						return true;
-				}
-
-				if (mode == AttackMode.OnlyHumans && target.RaceProps.Humanlike && target.RaceProps.IsFlesh && AlienTools.IsFleshPawn(target))
-					return true;
-
-				if (mode == AttackMode.OnlyColonists && target.IsColonist)
-					return true;
-			}
-			return false;
-		}
-		static readonly int[] adjIndex8 = { 0, 1, 2, 3, 4, 5, 6, 7 };
-		static int prevIndex8;
 		static Thing CanAttack(Zombie zombie)
 		{
-			var mode = ZombieSettings.Values.attackMode;
-
-			var nextIndex = Constants.random.Next(8);
-			var c = adjIndex8[prevIndex8];
-			adjIndex8[prevIndex8] = adjIndex8[nextIndex];
-			adjIndex8[nextIndex] = c;
-			prevIndex8 = nextIndex;
-
 			var map = zombie.Map;
 			var size = map.Size;
 			var grid = map.thingGrid.thingGrid;
@@ -700,10 +662,12 @@ namespace ZombieLand
 			var (left, top, right, bottom) = (basePos.x > 0, basePos.z < size.z - 1, basePos.x < size.x - 1, basePos.z > 0);
 			var baseIndex = map.cellIndices.CellToIndex(basePos);
 			var rowOffset = size.z;
+			var mode = ZombieSettings.Values.attackMode;
 
 			List<Thing> items;
+			Tools.Randomize8();
 			for (var r = 0; r < 8; r++)
-				switch (adjIndex8[r])
+				switch (Tools.adjIndex8[r])
 				{
 					case 0:
 						if (left)
@@ -712,7 +676,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Attackable(mode, item))
+								if ((item is Zombie) == false && Tools.Attackable(mode, item))
 									return item;
 							}
 						}
@@ -724,7 +688,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Attackable(mode, item))
+								if ((item is Zombie) == false && Tools.Attackable(mode, item))
 									return item;
 							}
 						}
@@ -736,7 +700,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Attackable(mode, item))
+								if ((item is Zombie) == false && Tools.Attackable(mode, item))
 									return item;
 							}
 						}
@@ -748,7 +712,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Attackable(mode, item))
+								if ((item is Zombie) == false && Tools.Attackable(mode, item))
 									return item;
 							}
 						}
@@ -760,7 +724,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Attackable(mode, item))
+								if ((item is Zombie) == false && Tools.Attackable(mode, item))
 									return item;
 							}
 						}
@@ -772,7 +736,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Attackable(mode, item))
+								if ((item is Zombie) == false && Tools.Attackable(mode, item))
 									return item;
 							}
 						}
@@ -784,7 +748,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Attackable(mode, item))
+								if ((item is Zombie) == false && Tools.Attackable(mode, item))
 									return item;
 							}
 						}
@@ -796,7 +760,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Attackable(mode, item))
+								if ((item is Zombie) == false && Tools.Attackable(mode, item))
 									return item;
 							}
 						}

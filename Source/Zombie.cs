@@ -84,7 +84,11 @@ namespace ZombieLand
 
 		// transient vars
 		public bool needsGraphics = false;
+		public bool isOnFire = false;
+		public bool checkSmashable = true;
+		public float currentDownedAngle = 0f;
 		bool disposed = false;
+		public ZombieStateHandler.TrackMove[] topTrackingMoves = new ZombieStateHandler.TrackMove[Constants.NUMBER_OF_TOP_MOVEMENT_PICKS];
 
 		static readonly int totalNthTicks;
 		static public int[] nthTickValues;
@@ -169,11 +173,14 @@ namespace ZombieLand
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
 				UpgradeOldZombieData();
+
 				_ = ZombieGenerator.FixGlowingEyeOffset(this);
+
 				if (ZombieSettings.Values.useCustomTextures)
 					needsGraphics = true; // make custom textures in renderer
 
-				// _ = verbTracker.AllVerbs.RemoveAll(verb => verb.GetDamageDef() == ZombieLand.Tools.ZombieBiteDamageDef);
+				isOnFire = this.HasAttachment(ThingDefOf.Fire);
+				checkSmashable = true;
 			}
 
 			if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)

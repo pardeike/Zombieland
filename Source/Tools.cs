@@ -40,6 +40,18 @@ namespace ZombieLand
 		public static Texture2D ZombieButtonBackground;
 		public static string zlNamespace = typeof(Tools).Namespace;
 
+		public static readonly int[] adjIndex8 = { 0, 1, 2, 3, 4, 5, 6, 7 };
+		public static int prevIndex8;
+
+		public static void Randomize8()
+		{
+			var nextIndex = Constants.random.Next(8);
+			var c = adjIndex8[prevIndex8];
+			adjIndex8[prevIndex8] = adjIndex8[nextIndex];
+			adjIndex8[nextIndex] = c;
+			prevIndex8 = nextIndex;
+		}
+
 		private static DamageDef _zombieBiteDamageDef;
 		public static DamageDef ZombieBiteDamageDef
 		{
@@ -259,11 +271,6 @@ namespace ZombieLand
 			return radius * ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
 		}
 
-		public static bool IsDowned(this Pawn pawn)
-		{
-			return pawn.health.Downed;
-		}
-
 		public static bool ShouldAvoidZombies(Pawn pawn = null)
 		{
 			if (pawn == null || pawn.IsColonist == false)
@@ -293,7 +300,7 @@ namespace ZombieLand
 		{
 			if (pawn.RaceProps.Humanlike == false || pawn.IsPrisoner)
 				return false;
-			if (rightNow && (pawn.IsDowned() || pawn.Awake() == false || pawn.InBed() || pawn.InMentalState))
+			if (rightNow && (pawn.health.Downed || pawn.Awake() == false || pawn.InBed() || pawn.InMentalState))
 				return false;
 			if (pawn.workSettings == null)
 				return false;
@@ -304,7 +311,7 @@ namespace ZombieLand
 		{
 			if (pawn.RaceProps.Humanlike == false || pawn.IsPrisoner)
 				return false;
-			if (rightNow && (pawn.IsDowned() || pawn.Awake() == false || pawn.InBed() || pawn.InMentalState))
+			if (rightNow && (pawn.health.Downed || pawn.Awake() == false || pawn.InBed() || pawn.InMentalState))
 				return false;
 			if (pawn.workSettings == null)
 				return false;
@@ -344,7 +351,7 @@ namespace ZombieLand
 				{
 					var pos = zombie.Position;
 					if (distanceSquared(pos.x, pos.z) <= maxDistance)
-						if (ignoreDowned || zombie.IsDowned() == false)
+						if (ignoreDowned || zombie.health.Downed == false)
 							zombies.Add(zombie);
 				}
 				return false;
@@ -373,7 +380,7 @@ namespace ZombieLand
 			RegionTraverser.BreadthFirstTraverse(destination, pawn.Map, (Region from, Region to) => to.Allows(tp, false), delegate (Region r)
 			{
 				var zombie = r.ListerThings.ThingsOfDef(CustomDefs.Zombie).OfType<Zombie>().FirstOrDefault();
-				if (zombie != null && (ignoreDowned || zombie.IsDowned() == false))
+				if (zombie != null && (ignoreDowned || zombie.health.Downed == false))
 					foundZombie = zombie.Position;
 				return foundZombie.IsValid;
 
@@ -629,7 +636,7 @@ namespace ZombieLand
 			var colonists = map.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction.OfPlayer);
 			return colonists.Count(pawn =>
 			{
-				if (pawn.Spawned == false || pawn.IsDowned() || pawn.Dead) return false;
+				if (pawn.Spawned == false || pawn.health.Downed || pawn.Dead) return false;
 				if (pawn.InMentalState) return false;
 				if (pawn.InContainerEnclosed) return false;
 				if (pawn.equipment.Primary == null) return false;
@@ -650,6 +657,42 @@ namespace ZombieLand
 			if (pawn.Faction.HostileTo(Faction.OfPlayer))
 				return ZombieSettings.Values.enemiesAttackZombies;
 
+			return false;
+		}
+
+		public static bool Attackable(AttackMode mode, Thing thing)
+		{
+			if (thing is ZombieCorpse)
+				return false;
+
+			if (thing is Pawn target)
+			{
+				if (target.Dead || target.health.Downed)
+					return false;
+
+				var distance = (target.DrawPos - thing.DrawPos).MagnitudeHorizontalSquared();
+				if (distance > Constants.MIN_ATTACKDISTANCE_SQUARED)
+					return false;
+
+				if (Tools.HasInfectionState(target, InfectionState.Infecting))
+					return false;
+
+				if (mode == AttackMode.Everything)
+					return true;
+
+				if (target.MentalState != null)
+				{
+					var msDef = target.MentalState.def;
+					if (msDef == MentalStateDefOf.Manhunter || msDef == MentalStateDefOf.ManhunterPermanent)
+						return true;
+				}
+
+				if (mode == AttackMode.OnlyHumans && target.RaceProps.Humanlike && target.RaceProps.IsFlesh && AlienTools.IsFleshPawn(target))
+					return true;
+
+				if (mode == AttackMode.OnlyColonists && target.IsColonist)
+					return true;
+			}
 			return false;
 		}
 
@@ -675,27 +718,30 @@ namespace ZombieLand
 
 		public static IntVec3 CenterOfInterest(Map map)
 		{
+			var colonists = map.mapPawns?.SpawnedPawnsInFaction(Faction.OfPlayer) ?? new List<Pawn>();
+			var buildings = map.listerBuildings?.allBuildingsColonist ?? new List<Building>();
+
+			if (colonists.Count == 0 && buildings.Count == 0)
+				return new IntVec3(Rand.Range(10, map.Size.x - 10), 0, Rand.Range(10, map.Size.z - 10));
+
 			int x = 0, z = 0, n = 0;
-			var buildingMultiplier = 3;
-			if (map.listerBuildings != null && map.listerBuildings.allBuildingsColonist != null)
+
+			const int buildingMultiplier = 3;
+			buildings.Do(building =>
 			{
-				map.listerBuildings.allBuildingsColonist.Do(building =>
-				{
-					x += building.Position.x * buildingMultiplier;
-					z += building.Position.z * buildingMultiplier;
-					n += buildingMultiplier;
-				});
-			}
-			if (map.mapPawns != null)
+				x += building.Position.x * buildingMultiplier;
+				z += building.Position.z * buildingMultiplier;
+				n += buildingMultiplier;
+			});
+
+			colonists.Do(pawn =>
 			{
-				map.mapPawns.SpawnedPawnsInFaction(Faction.OfPlayer).Do(pawn =>
-				{
-					x += pawn.Position.x;
-					z += pawn.Position.z;
-					n++;
-				});
-			}
-			return n == 0 ? map.Center : new IntVec3(x / n, 0, z / n);
+				x += pawn.Position.x;
+				z += pawn.Position.z;
+				n++;
+			});
+
+			return new IntVec3(x / n, 0, z / n);
 		}
 
 		static readonly int[] _cellsAroundIndex = new int[] { 5, 6, 7, 4, -1, 0, 3, 2, 1 };
@@ -709,15 +755,9 @@ namespace ZombieLand
 			return _cellsAroundIndex[i];
 		}
 
-		static readonly int[] adjIndex8 = { 0, 1, 2, 3, 4, 5, 6, 7 };
-		static int prevIndex8;
 		public static void PerformOnAdjacted(this Pawn pawn, Func<Thing, bool> action)
 		{
-			var nextIndex = Constants.random.Next(8);
-			var c = adjIndex8[prevIndex8];
-			adjIndex8[prevIndex8] = adjIndex8[nextIndex];
-			adjIndex8[nextIndex] = c;
-			prevIndex8 = nextIndex;
+			Randomize8();
 
 			var map = pawn.Map;
 			var size = map.Size;
@@ -1102,7 +1142,7 @@ namespace ZombieLand
 		static bool DownedReplacement(Pawn pawn)
 		{
 			if (pawn is Zombie) return false;
-			return pawn.IsDowned();
+			return pawn.health.Downed;
 		}
 
 		public static IEnumerable<CodeInstruction> DownedReplacer(IEnumerable<CodeInstruction> instructions, int skip = 0)

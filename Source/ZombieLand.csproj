@@ -10,7 +10,7 @@
 		<OutputPath>..\1.2\Assemblies\</OutputPath>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<Version>2.1.7.0</Version>
+		<Version>2.2.0.0</Version>
 		<Copyright>Copyright ©  2017</Copyright>
 	</PropertyGroup>
 
@@ -72,12 +72,11 @@
 where ModBuilder 2&gt; nul | find /i "ModBuilder.exe"
 if not errorlevel 1 (
 	ModBuilder AssemblyVersion -file "$(MSBuildProjectDirectory)\$(OutputPath)$(AssemblyName).dll" -save "$(MSBuildProjectName)-version"
-	ModBuilder XMLPut -file "$(SolutionDir)About\Manifest.xml" -xpath /Manifest/version -value "{{$(MSBuildProjectName)-version}}"
+	ModBuilder XMLPut -file "$(MSBuildProjectDirectory)\..\About\Manifest.xml" -xpath /Manifest/version -value "{{$(MSBuildProjectName)-version}}"
 )
 if defined INSTALL_MOD (
-	"%INSTALL_MOD%" "$(Configuration)" "$(SolutionDir)" "$(MSBuildProjectName)" "1.1 1.2 About Assemblies Defs Languages Patches Sounds Textures" "LoadFolders.xml"
-)
-		</PostBuildEvent>
+	"%INSTALL_MOD%" "$(Configuration)" "$(MSBuildProjectDirectory)\..\" "$(MSBuildProjectName)" "1.1 1.2 About Assemblies Defs Languages Patches Sounds Textures" "LoadFolders.xml"
+)</PostBuildEvent>
 		<Company>Brrainz</Company>
 		<Authors>Andreas Pardeike</Authors>
 		<Description>A zombie mod for the game RimWorld</Description>

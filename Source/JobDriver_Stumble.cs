@@ -68,18 +68,19 @@ namespace ZombieLand
 			if (this.ShouldDie(zombie))
 				return;
 
-			if (this.Attack(zombie))
+			if (ZombieStateHandler.Downed(zombie))
 				return;
 
-			if (ZombieStateHandler.Downed(zombie))
+			if (this.Attack(zombie))
 				return;
 
 			if (this.ValidDestination(zombie))
 				return;
 
-			ZombieStateHandler.Affects(zombie);
+			ZombieStateHandler.ApplyFire(zombie);
 
-			if (zombie.isMiner && (zombie.story.bodyType == BodyTypeDefOf.Fat || zombie.story.bodyType == BodyTypeDefOf.Hulk))
+			var bodyType = zombie.story.bodyType;
+			if (zombie.isMiner && (bodyType == BodyTypeDefOf.Fat || bodyType == BodyTypeDefOf.Hulk))
 				if (this.Mine(zombie, true))
 					return;
 
@@ -87,21 +88,30 @@ namespace ZombieLand
 			if (this.Eat(zombie, grid))
 				return;
 
-			var checkSmashable = true;
-			if (zombie.IsTanky == false)
+			bool smashTime;
+			if (zombie.IsTanky)
 			{
-				checkSmashable = this.Track(zombie, grid);
-				if (this.Smash(zombie, checkSmashable, true))
+				if (this.Smash(zombie, true, false))
+					return;
+				smashTime = true;
+			}
+			else
+			{
+				smashTime = this.Track(zombie, grid);
+				if (smashTime)
+				{
+					if (zombie.checkSmashable == false) smashTime = false;
+					zombie.checkSmashable = false;
+				}
+				if (this.Smash(zombie, smashTime, true))
 					return;
 			}
-			else if (this.Smash(zombie, true, false))
-				return;
 
 			var possibleMoves = this.PossibleMoves(zombie);
 			if (possibleMoves.Count > 0)
 			{
 				if (zombie.raging > 0 || zombie.IsTanky || zombie.isAlbino || zombie.isDarkSlimer || (zombie.wasMapPawnBefore && zombie.state != ZombieState.Tracking))
-					if (this.RageMove(zombie, grid, possibleMoves, checkSmashable))
+					if (this.RageMove(zombie, grid, possibleMoves, smashTime))
 						return;
 
 				if (zombie.raging <= 0)
@@ -125,6 +135,7 @@ namespace ZombieLand
 			destination = IntVec3.Invalid;
 
 			var zombie = (Zombie)pawn;
+			zombie.checkSmashable = true;
 
 			if (zombie.isElectrifier)
 				ZombieStateHandler.Electrify(zombie);

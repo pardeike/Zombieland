@@ -287,7 +287,7 @@ namespace ZombieLand
 						&& pawn.RaceProps.IsFlesh
 						&& AlienTools.IsFleshPawn(pawn)
 						&& pawn.Position.DistanceToSquared(pos) < dist
-						&& pawn.IsDowned() == false
+						&& pawn.health.Downed == false
 						&& pawn.InMentalState == false
 						&& pawn.CurJobDef != JobDefOf.Vomit,
 					pawn =>
@@ -311,7 +311,7 @@ namespace ZombieLand
 
 		public static bool DieEasily(this JobDriver_Sabotage driver)
 		{
-			if (driver.pawn.IsDowned())
+			if (driver.pawn.health.Downed)
 			{
 				driver.pawn.Kill(null);
 				return true;
@@ -429,7 +429,7 @@ namespace ZombieLand
 				case 5:
 					var enemies = map.attackTargetsCache
 						.TargetsHostileToColony.OfType<Pawn>()
-						.Where(p => (p is Zombie) == false && p.RaceProps.Humanlike && p.RaceProps.IsFlesh && AlienTools.IsFleshPawn(p) && p.IsDowned() == false);
+						.Where(p => (p is Zombie) == false && p.RaceProps.Humanlike && p.RaceProps.IsFlesh && AlienTools.IsFleshPawn(p) && p.health.Downed == false);
 					cell = PawnCenter(map, enemies);
 					if (cell.IsValid)
 						if (driver.Goto(cell, () => zombie.scream = -2))
