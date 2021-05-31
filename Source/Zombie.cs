@@ -88,7 +88,10 @@ namespace ZombieLand
 		public bool checkSmashable = true;
 		public float currentDownedAngle = 0f;
 		bool disposed = false;
+
 		public ZombieStateHandler.TrackMove[] topTrackingMoves = new ZombieStateHandler.TrackMove[Constants.NUMBER_OF_TOP_MOVEMENT_PICKS];
+		public readonly int[] adjIndex8 = { 0, 1, 2, 3, 4, 5, 6, 7 };
+		public int prevIndex8;
 
 		static readonly int totalNthTicks;
 		static public int[] nthTickValues;
@@ -204,6 +207,15 @@ namespace ZombieLand
 			if (disposed) return;
 			disposed = true;
 			CleanupZombie();
+		}
+
+		public void Randomize8()
+		{
+			var nextIndex = Constants.random.Next(8);
+			var c = adjIndex8[prevIndex8];
+			adjIndex8[prevIndex8] = adjIndex8[nextIndex];
+			adjIndex8[nextIndex] = c;
+			prevIndex8 = nextIndex;
 		}
 
 		void CleanupZombie()

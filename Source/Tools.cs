@@ -40,18 +40,6 @@ namespace ZombieLand
 		public static Texture2D ZombieButtonBackground;
 		public static string zlNamespace = typeof(Tools).Namespace;
 
-		public static readonly int[] adjIndex8 = { 0, 1, 2, 3, 4, 5, 6, 7 };
-		public static int prevIndex8;
-
-		public static void Randomize8()
-		{
-			var nextIndex = Constants.random.Next(8);
-			var c = adjIndex8[prevIndex8];
-			adjIndex8[prevIndex8] = adjIndex8[nextIndex];
-			adjIndex8[nextIndex] = c;
-			prevIndex8 = nextIndex;
-		}
-
 		private static DamageDef _zombieBiteDamageDef;
 		public static DamageDef ZombieBiteDamageDef
 		{
@@ -755,14 +743,14 @@ namespace ZombieLand
 			return _cellsAroundIndex[i];
 		}
 
-		public static void PerformOnAdjacted(this Pawn pawn, Func<Thing, bool> action)
+		public static void PerformOnAdjacted(this Zombie zombie, Func<Thing, bool> action)
 		{
-			Randomize8();
+			zombie.Randomize8();
 
-			var map = pawn.Map;
+			var map = zombie.Map;
 			var size = map.Size;
 			var grid = map.thingGrid.thingGrid;
-			var basePos = pawn.Position;
+			var basePos = zombie.Position;
 			var (left, top, right, bottom) = (basePos.x > 0, basePos.z < size.z - 1, basePos.x < size.x - 1, basePos.z > 0);
 			var baseIndex = map.cellIndices.CellToIndex(basePos);
 			var rowOffset = size.z;
@@ -790,7 +778,7 @@ namespace ZombieLand
 			};
 
 			for (var i = 0; i < 8; i++)
-				if (actions[adjIndex8[i]]())
+				if (actions[zombie.adjIndex8[i]]())
 					return;
 		}
 

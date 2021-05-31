@@ -665,9 +665,9 @@ namespace ZombieLand
 			var mode = ZombieSettings.Values.attackMode;
 
 			List<Thing> items;
-			Tools.Randomize8();
+			zombie.Randomize8();
 			for (var r = 0; r < 8; r++)
-				switch (Tools.adjIndex8[r])
+				switch (zombie.adjIndex8[r])
 				{
 					case 0:
 						if (left)
