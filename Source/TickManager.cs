@@ -198,10 +198,7 @@ namespace ZombieLand
 				);
 			}
 			else
-			{
-				centerOfInterest = Tools.CenterOfInterest(map);
-				allZombiesCached.Do(zombie => zombie.wanderDestination = centerOfInterest);
-			}
+				allZombiesCached.Do(zombie => zombie.wanderDestination = new IntVec3(Rand.Range(10, map.Size.x - 10), 0, Rand.Range(10, map.Size.z - 10)));
 		}
 
 		public int GetMaxZombieCount()

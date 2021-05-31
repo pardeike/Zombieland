@@ -710,7 +710,7 @@ namespace ZombieLand
 			var buildings = map.listerBuildings?.allBuildingsColonist ?? new List<Building>();
 
 			if (colonists.Count == 0 && buildings.Count == 0)
-				return new IntVec3(Rand.Range(10, map.Size.x - 10), 0, Rand.Range(10, map.Size.z - 10));
+				return IntVec3.Invalid;
 
 			int x = 0, z = 0, n = 0;
 

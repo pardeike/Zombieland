@@ -259,6 +259,8 @@ namespace ZombieLand
 					var center = tickManager != null ? tickManager.centerOfInterest : IntVec3.Invalid;
 					if (center.IsValid == false)
 						center = Tools.CenterOfInterest(map);
+					if (center.IsValid == false)
+						center = new IntVec3(Rand.Range(10, map.Size.x - 10), 0, Rand.Range(10, map.Size.z - 10));
 
 					_ = RCellFinder.TryFindRandomSpotJustOutsideColony(center, map, null, out spot, spotValidator);
 				}
