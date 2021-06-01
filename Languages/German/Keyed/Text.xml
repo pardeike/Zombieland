@@ -70,6 +70,8 @@
 	<ZombieSerum>Zombieserum</ZombieSerum>
 	<CorpsesExtractAmount>Menge an Zombieextrakt pro Zombie</CorpsesExtractAmount>
 	<CorpsesDaysToDessicated>Zeit bis Zombieleichen verschwinden</CorpsesDaysToDessicated>
+	<ExtractZombieArea>Begrenze das Extrahieren auf Bereich</ExtractZombieArea>
+	<Everywhere>Überall</Everywhere>
 
 	<ZombieInstinctTitle>Zombiegespür</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Begrenzt</ZombieInstinct_Dull>

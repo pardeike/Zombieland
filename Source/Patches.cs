@@ -3008,7 +3008,8 @@ namespace ZombieLand
 				foreach (var gizmo in gizmos)
 					yield return gizmo;
 
-				yield return Gizmos.ZombieAvoidance(___pawn);
+				if (ZombieSettings.Values.betterZombieAvoidance)
+					yield return Gizmos.ZombieAvoidance(___pawn);
 				if (ZombieSettings.Values.corpsesExtractAmount > 0)
 					yield return Gizmos.ExtractSerum(___pawn);
 				if (ZombieSettings.Values.hoursAfterDeathToBecomeZombie > 0)

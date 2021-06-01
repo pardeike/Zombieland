@@ -70,6 +70,8 @@
 	<ZombieSerum>Зомби Сыворотка</ZombieSerum>
 	<CorpsesExtractAmount>Количество зомби экстракта на зомби</CorpsesExtractAmount>
 	<CorpsesDaysToDessicated>Часы, пока трупы зомби не исчезнут</CorpsesDaysToDessicated>
+	<ExtractZombieArea>Ограничить извлечение в области</ExtractZombieArea>
+	<Everywhere>Везде</Everywhere>
 
 	<ZombieInstinctTitle>Уровень чувств зомби</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Тупые</ZombieInstinct_Dull>

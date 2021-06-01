@@ -88,6 +88,7 @@ namespace ZombieLand
 		public bool anyTreatmentStopsInfection;
 		public int hoursAfterDeathToBecomeZombie = 8;
 		public int corpsesExtractAmount = 1;
+		public string extractZombieArea = "";
 		public int corpsesHoursToDessicated = 1;
 		public bool betterZombieAvoidance = true;
 		public bool ragingZombies = true;

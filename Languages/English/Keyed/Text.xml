@@ -70,6 +70,8 @@
 	<ZombieSerum>Zombie Serum</ZombieSerum>
 	<CorpsesExtractAmount>Amount of zombie extract per zombie</CorpsesExtractAmount>
 	<CorpsesDaysToDessicated>Hours until zombie corpses disappear</CorpsesDaysToDessicated>
+	<ExtractZombieArea>Restrict extracting to area</ExtractZombieArea>
+	<Everywhere>Everywhere</Everywhere>
 
 	<ZombieInstinctTitle>Zombie senses</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Limited</ZombieInstinct_Dull>

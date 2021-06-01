@@ -70,6 +70,8 @@
 	<ZombieSerum>Zombi Serumu</ZombieSerum>
 	<CorpsesExtractAmount>Zombi başına zombi ekstresi miktarı</CorpsesExtractAmount>
 	<CorpsesDaysToDessicated>Zombi cesetleri yok olana kadar saatler</CorpsesDaysToDessicated>
+	<ExtractZombieArea>Ayıklamayı belirli bir alanla sınırla</ExtractZombieArea>
+	<Everywhere>Her yerde</Everywhere>
 
 	<ZombieInstinctTitle>Zombi duyuları</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Sınırlı</ZombieInstinct_Dull>

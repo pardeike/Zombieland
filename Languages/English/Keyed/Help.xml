@@ -80,6 +80,7 @@
 	<ZombieSerum_Help>Compared to amputations, Zombie Serum is the best alternative to cure infections. Collect zombie extract whenever you can from dead zombies and refine it on a drugtable into zombie serum. The serum comes in qualities of 10% to 100% and one potion of serum heals one zombie bite. The quality determines the failure risk when doing an operation on an infected colonist.</ZombieSerum_Help>
 	<CorpsesExtractAmount_Help>Zombie Extract is the ingredients in Zombie Serum. You collect it from dead zombies before they disappear (either automatic or by right-click on the zombie corpse). Only colonists assigned to doctoring can collect extract. And only if there are no dangerous zombies nearby (roughly 10-20 cell radius) depending on the surroundings. To make creating serum easier, increase the amount of extract per zombie.</CorpsesExtractAmount_Help>
 	<CorpsesDaysToDessicated_Help>Zombie corpses will usually dessicate quickly so you don't end up with too many of them. To make collecting extract easier, you can increase the time before they disappear.</CorpsesDaysToDessicated_Help>
+	<ExtractZombieArea_Help>Extraction from zombies can be dangerous. Use this feature to restrict the activity to one of your areas. If you rename the area, you need to update it here. Manually ordered extraction will always work.</ExtractZombieArea_Help>
 
 	<!-- -->
 

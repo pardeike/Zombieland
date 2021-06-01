@@ -70,6 +70,8 @@
 	<ZombieSerum>僵尸血清</ZombieSerum>
 	<CorpsesExtractAmount>每个僵尸的僵尸提取物量</CorpsesExtractAmount>
 	<CorpsesDaysToDessicated>直到僵尸尸体消失的小时数</CorpsesDaysToDessicated>
+	<ExtractZombieArea>限制提取区域</ExtractZombieArea>
+	<Everywhere>到处</Everywhere>
 
 	<ZombieInstinctTitle>丧尸的感知</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>受限</ZombieInstinct_Dull>

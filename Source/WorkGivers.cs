@@ -21,11 +21,12 @@ namespace ZombieLand
 		public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
 		{
 			var map = pawn.Map;
+			var area = map.areaManager.AllAreas.FirstOrDefault(area => area.Label == ZombieSettings.Values.extractZombieArea);
 			if (pawn.IsColonist == false) return Enumerable.Empty<Thing>();
 			if (ZombieSettings.Values.corpsesExtractAmount == 0) return Enumerable.Empty<Thing>();
 			var tickManager = map.GetComponent<TickManager>();
 			return tickManager.allZombieCorpses
-				.Where(corpse => corpse.DestroyedOrNull() == false && corpse.Spawned)
+				.Where(corpse => corpse.DestroyedOrNull() == false && corpse.Spawned && (area == null || area[corpse.Position]))
 				.Cast<Thing>();
 		}
 
@@ -37,13 +38,20 @@ namespace ZombieLand
 			if (forced == false && ColonistSettings.Values.ConfigFor(pawn).autoExtractZombieSerum == false)
 				return false;
 
+			var map = pawn.Map;
+			if (forced == false)
+			{
+				var area = map.areaManager.AllAreas.FirstOrDefault(area => area.Label == ZombieSettings.Values.extractZombieArea);
+				if (area != null && area[t.Position] == false)
+					return false;
+			}
+
 			if (pawn.CanReach(corpse, PathEndMode.ClosestTouch, forced ? Danger.Deadly : Danger.None) == false)
 				return false;
 
 			var result = pawn.CanReserve(corpse, 1, -1, null, forced);
 			if (result && forced == false && ZombieSettings.Values.betterZombieAvoidance)
 			{
-				var map = pawn.Map;
 				var tickManager = map.GetComponent<TickManager>();
 				if (tickManager != null)
 				{
