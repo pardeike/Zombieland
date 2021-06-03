@@ -1946,7 +1946,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(ref PawnGenerationRequest request, ref Pawn __result)
 			{
-				if (request.Faction == null || request.Faction.def != ZombieDefOf.Zombies) return true;
+				if (request.Faction?.def != ZombieDefOf.Zombies) return true;
 
 				Zombie zombie = null;
 				var map = Find.CurrentMap;

@@ -417,7 +417,7 @@ namespace ZombieLand
 			if (pawn?.RaceProps == null || pawn.RaceProps.Humanlike == false || pawn.RaceProps.IsFlesh == false || AlienTools.IsFleshPawn(pawn) == false)
 				return;
 
-			var pawnFaction = pawn.Faction;
+			var wasPlayer = pawn.Faction?.IsPlayer ?? false;
 			var pawnName = pawn.Name;
 			if (force == false && (pawn.health == null || pawnName == emptyName))
 				return;
@@ -518,9 +518,9 @@ namespace ZombieLand
 
 				tickManager.allZombiesCached.Add(zombie);
 
-				var label = pawnFaction.IsPlayer ? "ColonistBecameAZombieLabel".Translate() : "OtherBecameAZombieLabel".Translate();
+				var label = wasPlayer ? "ColonistBecameAZombieLabel".Translate() : "OtherBecameAZombieLabel".Translate();
 				var text = "BecameAZombieDesc".SafeTranslate(new object[] { pawnName.ToStringShort });
-				Find.LetterStack.ReceiveLetter(label, text, pawnFaction.IsPlayer ? CustomDefs.ColonistTurnedZombie : CustomDefs.OtherTurnedZombie, zombie);
+				Find.LetterStack.ReceiveLetter(label, text, wasPlayer ? CustomDefs.ColonistTurnedZombie : CustomDefs.OtherTurnedZombie, zombie);
 			});
 			while (it.MoveNext()) ;
 		}
