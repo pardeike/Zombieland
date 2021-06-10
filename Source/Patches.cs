@@ -258,9 +258,14 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Verse.TickManager.DoSingleTick))]
 		static class TickManager_DoSingleTick_Patch
 		{
-			static void Postfix()
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				ZombieTicker.DoSingleTick();
+				foreach (var instruction in instructions)
+				{
+					if (instruction.opcode == OpCodes.Ret)
+						yield return CodeInstruction.Call(() => ZombieTicker.DoSingleTick());
+					yield return instruction;
+				}
 			}
 		}
 		[HarmonyPatch(typeof(Verse.TickManager))]
