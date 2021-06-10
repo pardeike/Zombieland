@@ -40,6 +40,10 @@ namespace ZombieLand
 		public static Texture2D ZombieButtonBackground;
 		public static string zlNamespace = typeof(Tools).Namespace;
 
+		// public static List<Region> debugRegions = new List<Region>();
+		public static List<Region> cachedPlayerReachableRegions = new List<Region>();
+		public static int nextPlayerReachableRegionsUpdate = 0;
+
 		private static DamageDef _zombieBiteDamageDef;
 		public static DamageDef ZombieBiteDamageDef
 		{
@@ -376,6 +380,54 @@ namespace ZombieLand
 			return foundZombie;
 		}*/
 
+		public static void PlayerReachableRegions_Iterator(HashSet<Region> knownRegions, List<Region> regions)
+		{
+			var newRegions = regions.Except(knownRegions).ToList();
+			if (newRegions.Any())
+			{
+				knownRegions.AddRange(newRegions);
+				var neighbours = newRegions
+					.SelectMany(region => region.Neighbors)
+					.Where(region => region.valid && region.Room.Fogged == false && region.Room.UsesOutdoorTemperature)
+					.ToList();
+				PlayerReachableRegions_Iterator(knownRegions, neighbours);
+			}
+		}
+
+		public static List<Region> PlayerReachableRegions(Map map)
+		{
+			var ticks = GenTicks.TicksGame;
+			if (ticks > nextPlayerReachableRegionsUpdate)
+			{
+				nextPlayerReachableRegionsUpdate = ticks + GenTicks.TickLongInterval;
+				var f = Faction.OfPlayer;
+				var totalRegions = map.regionGrid.AllRegions
+					.Where(region => region.listerThings.AllThings.Any(thing =>
+					{
+						if (thing.Faction != f) return false;
+						var def = thing.def;
+						return def.fillPercent >= 0.5f && def.blockWind && def.coversFloor &&
+							def.castEdgeShadows && def.holdsRoof && def.blockLight;
+					}))
+					.ToHashSet();
+				var neighbours = totalRegions.SelectMany(region => region.Neighbors).ToList();
+				PlayerReachableRegions_Iterator(totalRegions, neighbours);
+				cachedPlayerReachableRegions = totalRegions.ToList();
+			}
+			return cachedPlayerReachableRegions;
+		}
+
+		public static IntVec3 RandomSpawnCell(Map map, bool nearEdge, Predicate<IntVec3> predicate)
+		{
+			var allRegions = PlayerReachableRegions(map);
+			if (nearEdge)
+				allRegions = allRegions.Where(region => region.touchesMapEdge).ToList();
+			return allRegions
+				.SelectMany(region => region.Cells)
+				.InRandomOrder()
+				.FirstOrFallback(cell => predicate(cell), IntVec3.Invalid);
+		}
+
 		public static void QueueConvertToZombie(ThingWithComps thing, Map mapForTickmanager)
 		{
 			var tickManager = mapForTickmanager.GetComponent<TickManager>();
@@ -686,19 +738,11 @@ namespace ZombieLand
 
 		public static Predicate<IntVec3> ZombieSpawnLocator(Map map, bool isEvent = false)
 		{
-			if (isEvent || ZombieSettings.Values.spawnWhenType == SpawnWhenType.AllTheTime
-				|| ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly)
-			{
-				return cell => IsValidSpawnLocation(cell, map)
-					&& map.reachability.CanReachColony(cell);
-			}
+			if (isEvent || ZombieSettings.Values.spawnWhenType == SpawnWhenType.AllTheTime || ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly)
+				return cell => IsValidSpawnLocation(cell, map);
 
 			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.WhenDark)
-			{
-				return cell => IsValidSpawnLocation(cell, map)
-					&& map.glowGrid.PsychGlowAt(cell) == PsychGlow.Dark
-					&& map.reachability.CanReachColony(cell);
-			}
+				return cell => IsValidSpawnLocation(cell, map) && map.glowGrid.PsychGlowAt(cell) == PsychGlow.Dark;
 
 			Log.Error("Unsupported spawn mode " + ZombieSettings.Values.spawnWhenType);
 			return null;

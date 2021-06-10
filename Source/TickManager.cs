@@ -105,6 +105,8 @@ namespace ZombieLand
 		{
 			base.FinalizeInit();
 
+			Tools.nextPlayerReachableRegionsUpdate = 0;
+
 			var grid = map.GetGrid();
 			grid.IterateCellsQuick(cell => cell.zombieCount = 0);
 
@@ -218,7 +220,8 @@ namespace ZombieLand
 		public void ZombieTicking()
 		{
 			PrepareThreadedTicking(this);
-			currentZombiesTicking.Do(zombie => zombie.CustomTick());
+			for (var i = 0; i < currentZombiesTicking.Length; i++)
+				currentZombiesTicking[i].CustomTick();
 		}
 
 		public static void PrepareThreadedTicking(object input)
@@ -392,14 +395,15 @@ namespace ZombieLand
 					{
 						case SpawnHowType.AllOverTheMap:
 							{
-								var cell = CellFinderLoose.RandomCellWith(Tools.ZombieSpawnLocator(map), map, 4);
+								var cell = Tools.RandomSpawnCell(map, false, Tools.ZombieSpawnLocator(map));
 								if (cell.IsValid)
 									ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
 								return;
 							}
 						case SpawnHowType.FromTheEdges:
 							{
-								if (RCellFinder.TryFindRandomPawnEntryCell(out var cell, map, 0.1f, true, Tools.ZombieSpawnLocator(map)))
+								var cell = Tools.RandomSpawnCell(map, true, Tools.ZombieSpawnLocator(map));
+								if (cell.IsValid)
 									ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
 								return;
 							}

@@ -252,23 +252,8 @@ namespace ZombieLand
 				if (spot.IsValid)
 					break;
 
-				if (ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap)
-				{
-					var tickManager = map.GetComponent<TickManager>();
-					if (tickManager == null) return false;
-					var center = tickManager != null ? tickManager.centerOfInterest : IntVec3.Invalid;
-					if (center.IsValid == false)
-						center = Tools.CenterOfInterest(map);
-					if (center.IsValid == false)
-						center = new IntVec3(Rand.Range(10, map.Size.x - 10), 0, Rand.Range(10, map.Size.z - 10));
-
-					_ = RCellFinder.TryFindRandomSpotJustOutsideColony(center, map, null, out spot, spotValidator);
-				}
-				else
-				{
-					var success = RCellFinder.TryFindRandomPawnEntryCell(out spot, map, 0.1f, true, spotValidator);
-					if (success == false) spot = IntVec3.Invalid;
-				}
+				var allOverTheMap = ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap;
+				spot = Tools.RandomSpawnCell(map, allOverTheMap == false, spotValidator);
 			}
 			if (spot.IsValid == false)
 				return false;

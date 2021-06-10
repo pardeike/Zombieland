@@ -105,6 +105,9 @@ namespace ZombieLand
 		{
 			static void Postfix()
 			{
+				// var m = DebugSolidColorMats.MaterialOf(Color.magenta);
+				// Tools.debugRegions.SelectMany(r => r.Cells).Do(c => CellRenderer.RenderSpot(c.ToVector3Shifted(), m, 0.25f));
+
 				if (Constants.DEBUGGRID == false || DebugViewSettings.writePathCosts == false) return;
 				if (Tools.ShouldAvoidZombies() == false) return;
 
@@ -4143,7 +4146,23 @@ namespace ZombieLand
 		}
 
 		// patch to allow zombies to occupy the same spot without collision
-		// 
+		//
+		[HarmonyPatch(typeof(Pawn_PathFollower))]
+		[HarmonyPatch(nameof(Pawn_PathFollower.WillCollideWithPawnOnNextPathCell))]
+		static class Pawn_PathFollower_WillCollideWithPawnOnNextPathCell_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Pawn ___pawn, ref bool __result)
+			{
+				if (___pawn is Zombie)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+		//
 		[HarmonyPatch(typeof(PawnCollisionTweenerUtility))]
 		[HarmonyPatch(nameof(PawnCollisionTweenerUtility.PawnCollisionPosOffsetFor))]
 		static class PawnCollisionTweenerUtility_PawnCollisionPosOffsetFor_Patch
