@@ -265,8 +265,21 @@ namespace ZombieLand
 
 		public static bool ShouldAvoidZombies(Pawn pawn = null)
 		{
-			if (pawn == null || pawn.IsColonist == false)
+			if (pawn == null)
 				return ZombieSettings.Values.betterZombieAvoidance;
+
+			if (pawn.IsColonist == false)
+			{
+				if (pawn.HostileTo(Faction.OfPlayer) == false)
+				{
+					var map = pawn.Map;
+					if (map.areaManager?.Home[pawn.Position] ?? false) return false;
+					var room = GridsUtility.GetRoom(pawn.Position, map);
+					if (room.IsHuge == false) return false;
+				}
+
+				return ZombieSettings.Values.betterZombieAvoidance;
+			}
 
 			if (ZombieSettings.Values.betterZombieAvoidance == false) return false;
 			return ColonistSettings.Values.ConfigFor(pawn).autoAvoidZombies;
