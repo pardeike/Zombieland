@@ -268,6 +268,9 @@ namespace ZombieLand
 			if (pawn == null)
 				return ZombieSettings.Values.betterZombieAvoidance;
 
+			if (pawn is Zombie || pawn.RaceProps.Humanlike == false)
+				return false;
+
 			if (pawn.IsColonist == false)
 			{
 				if (pawn.HostileTo(Faction.OfPlayer) == false)
