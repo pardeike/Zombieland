@@ -2074,6 +2074,19 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to fix null exceptions for zombie panels
+		//
+		[HarmonyPatch(typeof(MainTabWindow_Inspect))]
+		[HarmonyPatch(nameof(MainTabWindow_Inspect.CurTabs), MethodType.Getter)]
+		static class MainTabWindow_Inspect_CurTabs_Patch
+		{
+			static void Postfix(ref IEnumerable<InspectTabBase> __result)
+			{
+				if (__result == null)
+					__result = new List<InspectTabBase>();
+			}
+		}
+
 		// patch to make zombies appear to be never "down" if self-healing is on
 		// to get original state, use pawn.health.Downed instead
 		//
