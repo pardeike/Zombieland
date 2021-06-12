@@ -92,7 +92,12 @@ namespace ZombieLand
 			if (provideHelp) list.Help(labelId);
 
 			var rect = list.GetRect(textHeight).Rounded();
-			GUI.color = color.RGBMultiplied(0.25f).AlphaMultiplied(0.2f);
+			var color2 = color;
+			color2.r *= 0.25f;
+			color2.g *= 0.25f;
+			color2.b *= 0.25f;
+			color2.a *= 0.2f;
+			GUI.color = color2;
 			var r = rect.ContractedBy(1f);
 			r.yMax -= 2f;
 			GUI.DrawTexture(r, BaseContent.WhiteTex);

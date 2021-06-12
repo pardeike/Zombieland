@@ -10,7 +10,7 @@
 		<OutputPath>..\1.2\Assemblies\</OutputPath>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<Version>2.2.1.0</Version>
+		<Version>2.2.2.0</Version>
 		<Copyright>Copyright ©  2017</Copyright>
 	</PropertyGroup>
 
@@ -30,9 +30,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.2.2900" GeneratePathProperty="true" />
+		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.2.2905" GeneratePathProperty="true" />
 		<PackageReference Include="Lib.Harmony" Version="2.0.4" ExcludeAssets="runtime" />
-		<PackageReference Include="Firebaser" Version="0.9.6.0" />
 		<PackageReference Include="Microsoft.NETCore.Platforms" Version="5.0.2" />
 		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.2">
 			<PrivateAssets>all</PrivateAssets>
@@ -82,6 +81,7 @@ if defined INSTALL_MOD (
 		<Description>A zombie mod for the game RimWorld</Description>
 		<PackageProjectUrl>https://github.com/pardeike/Zombieland</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/pardeike/Zombieland</RepositoryUrl>
+		<Product>ZombieLand</Product>
 	</PropertyGroup>
 
 </Project>

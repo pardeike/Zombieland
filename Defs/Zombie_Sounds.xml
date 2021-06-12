@@ -368,8 +368,8 @@
 					</li>
 				</grains>
 				<volumeRange>
-					<min>90</min>
-					<max>90</max>
+					<min>80</min>
+					<max>80</max>
 				</volumeRange>
 				<distRange>
 					<min>1000</min>
@@ -393,8 +393,8 @@
 					</li>
 				</grains>
 				<volumeRange>
-					<min>90</min>
-					<max>90</max>
+					<min>70</min>
+					<max>70</max>
 				</volumeRange>
 				<distRange>
 					<min>1000</min>
