@@ -128,7 +128,8 @@ namespace ZombieLand
 			if (thing == null && thing.Spawned == false) return false;
 
 			var zombie = driver.pawn;
-			var path = zombie.Map.pathFinder.FindPath(zombie.Position, thing, TraverseParms.For(zombie, Danger.None, TraverseMode.PassDoors, false), PathEndMode.ClosestTouch);
+			var mode = thing.Position.Standable(thing.Map) ? PathEndMode.ClosestTouch : PathEndMode.Touch;
+			var path = zombie.Map.pathFinder.FindPath(zombie.Position, thing, TraverseParms.For(zombie, Danger.None, TraverseMode.PassDoors, false), mode);
 			if (path.Found)
 			{
 				if (path.TryFindLastCellBeforeBlockingDoor(zombie, out var doorCell, out var door))
@@ -210,9 +211,10 @@ namespace ZombieLand
 				return false;
 
 			var door = driver.door;
-			if (door != null && door.CanPhysicallyPass(driver.pawn) == false)
+			if (door != null && door.Spawned && door.CanPhysicallyPass(driver.pawn) == false)
 				return driver.Hack(door, () =>
 				{
+					driver.pawn.rotationTracker.FaceTarget(door);
 					door.StartManualOpenBy(driver.pawn);
 					ticksUntilClose(door) *= 4;
 					driver.door = null;
@@ -230,6 +232,18 @@ namespace ZombieLand
 					if (compFlickable != null && compFlickable.SwitchIsOn)
 					{
 						compFlickable.SwitchIsOn = false;
+						driver.pawn.rotationTracker.FaceTarget(thing);
+						SoundDefOf.FlickSwitch.PlayOneShot(new TargetInfo(thing.Position, thing.Map, false));
+						Tools.CastThoughtBubble(driver.pawn, Constants.HACKING);
+						driver.hackTarget = null;
+						return;
+					}
+
+					var compPowerTrader = thing.TryGetComp<CompPowerTrader>();
+					if (compPowerTrader != null && compPowerTrader.PowerOn)
+					{
+						compPowerTrader.PowerOn = false;
+						driver.pawn.rotationTracker.FaceTarget(thing);
 						SoundDefOf.FlickSwitch.PlayOneShot(new TargetInfo(thing.Position, thing.Map, false));
 						Tools.CastThoughtBubble(driver.pawn, Constants.HACKING);
 						driver.hackTarget = null;
@@ -238,12 +252,15 @@ namespace ZombieLand
 
 					if (thing.def.IsRangedWeapon && thing.def.useHitPoints)
 					{
+						driver.pawn.rotationTracker.FaceTarget(thing);
 						Tools.CastThoughtBubble(driver.pawn, Constants.HACKING);
-						var amount = thing.HitPoints / 2;
+						var amount = Math.Max(1, thing.HitPoints / 2);
 						_ = thing.TakeDamage(new DamageInfo(DamageDefOf.Deterioration, amount, 0, -1, driver.pawn));
 						driver.hackTarget = null;
 						return;
 					}
+
+					driver.hackTarget = null;
 				});
 
 			return false;
@@ -346,7 +363,7 @@ namespace ZombieLand
 			if (Rand.Chance(0.8f) && driver.ChooseHackTarget())
 				return true;
 
-			if (RCellFinder.TryFindRandomSpotJustOutsideColony(zombie.Position, map, null, out var cell))
+			if (Rand.Chance(0.1f) && RCellFinder.TryFindRandomSpotJustOutsideColony(zombie.Position, map, null, out var cell))
 				if (driver.Goto(cell))
 					return true;
 
@@ -379,7 +396,7 @@ namespace ZombieLand
 			var map = zombie.Map;
 			IntVec3 cell;
 
-			switch (Rand.Range(0, 6)) // 0..5
+			switch (Rand.Range(0, 11))
 			{
 				// hack door of a room
 				case 0:
@@ -396,10 +413,15 @@ namespace ZombieLand
 
 				// turn off a flickable thing
 				case 1:
+				case 2:
 					var building = map.listerBuildings.allBuildingsColonist.Where(b =>
 					{
 						var compFlickable = b.Spawned ? b.TryGetComp<CompFlickable>() : null;
-						return compFlickable != null && compFlickable.SwitchIsOn;
+						if (compFlickable != null && compFlickable.SwitchIsOn) return true;
+						var compPowerTrader = b.TryGetComp<CompPowerTrader>();
+						if (compPowerTrader != null && compPowerTrader.PowerOn) return true;
+						return false;
+
 					}).SafeRandomElement();
 					if (building != null)
 						if (driver.Goto(building))
@@ -407,7 +429,8 @@ namespace ZombieLand
 					break;
 
 				// degrade a weapon
-				case 2:
+				case 3:
+				case 4:
 					var weapon = map.listerThings.ThingsInGroup(ThingRequestGroup.Weapon)
 						.Where(t => t.def.IsRangedWeapon && t.def.useHitPoints)
 						.OrderBy(t => -t.MarketValue).FirstOrDefault();
@@ -417,7 +440,8 @@ namespace ZombieLand
 					break;
 
 				// scream on colonists
-				case 3:
+				case 5:
+				case 6:
 					cell = PawnCenter(map, map.mapPawns.FreeColonists);
 					if (cell.IsValid)
 						if (driver.Goto(cell, () => zombie.scream = -2))
@@ -425,8 +449,8 @@ namespace ZombieLand
 					break;
 
 				// scream on enemies
-				case 4:
-				case 5:
+				case 7:
+				case 8:
 					var enemies = map.attackTargetsCache
 						.TargetsHostileToColony.OfType<Pawn>()
 						.Where(p => (p is Zombie) == false && p.RaceProps.Humanlike && p.RaceProps.IsFlesh && AlienTools.IsFleshPawn(p) && p.health.Downed == false);
