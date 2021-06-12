@@ -139,7 +139,7 @@ namespace ZombieLand
 				avoidGrid = new AvoidGrid(map);
 
 			hummingZombies.Clear();
-			allZombies.Where(zombie => zombie.isElectrifier).Do(zombie => hummingZombies.Add(zombie));
+			allZombies.Where(zombie => zombie.IsActiveElectric).Do(zombie => hummingZombies.Add(zombie));
 
 			taskTicker = TickTasks();
 			while (taskTicker.Current as string != "end")

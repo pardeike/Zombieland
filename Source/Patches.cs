@@ -787,7 +787,7 @@ namespace ZombieLand
 		{
 			static void Postfix(List<VerbEntry> __result, Pawn ___pawn)
 			{
-				if (___pawn is Zombie zombie && (zombie.isElectrifier || zombie.isAlbino))
+				if (___pawn is Zombie zombie && (zombie.IsActiveElectric || zombie.isAlbino))
 					_ = __result.RemoveAll(entry => entry.verb.GetDamageDef() == Tools.ZombieBiteDamageDef);
 			}
 		}
@@ -800,7 +800,7 @@ namespace ZombieLand
 		{
 			static void ElectricalDamage(Zombie zombie, Pawn pawn, ref DamageInfo damageInfo)
 			{
-				if (zombie == null || zombie.isElectrifier == false)
+				if (zombie == null || zombie.IsActiveElectric == false)
 					return;
 
 				if (pawn?.Map == null || pawn.apparel == null)
@@ -1218,7 +1218,7 @@ namespace ZombieLand
 			public static bool MyCanReachImmediate(Pawn pawn, LocalTargetInfo target, PathEndMode peMode)
 			{
 				if (target.Thing is Zombie zombie)
-					if (zombie.isElectrifier)
+					if (zombie.IsActiveElectric)
 						return true;
 				return pawn.CanReachImmediate(target, peMode);
 			}
@@ -2287,7 +2287,7 @@ namespace ZombieLand
 					return;
 				}
 
-				if (zombie.isElectrifier && zombie.health.Downed == false)
+				if (zombie.IsActiveElectric && zombie.health.Downed == false)
 				{
 					// stage: 0 2 4 6 8 10 12 14 16 18
 					// shine: x - x x x  x  x  -  x  -
@@ -2621,7 +2621,7 @@ namespace ZombieLand
 					GraphicToolbox.DrawScaledMesh(headMesh, Constants.MINERHELMET[orientation.AsInt][0], pos + headOffset, rot, 1f, 1f);
 				}
 
-				if (zombie.isElectrifier && zombie.health.Downed == false)
+				if (zombie.IsActiveElectric && zombie.health.Downed == false)
 				{
 					tm ??= Find.TickManager;
 					var flicker = (tm.TicksAbs / (2 + zombie.thingIDNumber % 2) + zombie.thingIDNumber) % 3;
@@ -3314,6 +3314,22 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to deactivate electrical zombies with emp
+		//
+		[HarmonyPatch(typeof(StunHandler))]
+		[HarmonyPatch(nameof(StunHandler.Notify_DamageApplied))]
+		static class DamageFlasher_Notify_DamageApplied_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static void Prefix(StunHandler __instance, DamageInfo dinfo)
+			{
+				if (dinfo.Def != DamageDefOf.EMP) return;
+				if (__instance.parent is Zombie zombie && zombie.Downed == false && zombie.Dead == false)
+					if (zombie.IsActiveElectric)
+						zombie.DisableElectric((int)(dinfo.Amount * 60));
+			}
+		}
+
 		// patch to remove non-melee damage from electrifier zombies
 		//
 		[HarmonyPatch(typeof(DamageWorker_AddInjury))]
@@ -3336,6 +3352,11 @@ namespace ZombieLand
 					return true;
 				}
 
+				var def = dinfo.Def;
+
+				if (zombie.isAlbino)
+					return def.isExplosive || Rand.Chance(0.5f);
+
 				if (zombie.isDarkSlimer)
 				{
 					var pos = zombie.Position;
@@ -3352,26 +3373,23 @@ namespace ZombieLand
 					}
 				}
 
-				if (zombie.isElectrifier == false)
-					return true;
-
-				var def = dinfo.Def;
-				if (def.isRanged == false && def.isExplosive == false)
-					return true;
-
-				// albinos are a bit harder to hit
-				if (zombie.isAlbino && def.isExplosive == false && Rand.Chance(0.5f))
-					return true;
-
-				var indices = new List<int>() { 0, 1, 2, 3 };
-				indices.Shuffle();
-				for (var i = 0; i < Rand.RangeInclusive(1, 4); i++)
+				if (zombie.IsActiveElectric)
 				{
-					zombie.absorbAttack.Add(new KeyValuePair<float, int>(dinfo.Angle, i));
-					if (Rand.Chance(0.9f))
-						zombie.absorbAttack.Add(new KeyValuePair<float, int>(0f, -1));
+					if (def.isRanged == false || (def.isRanged && def.isExplosive))
+						return true;
+
+					var indices = new List<int>() { 0, 1, 2, 3 };
+					indices.Shuffle();
+					for (var i = 0; i < Rand.RangeInclusive(1, 4); i++)
+					{
+						zombie.absorbAttack.Add(new KeyValuePair<float, int>(dinfo.Angle, i));
+						if (Rand.Chance(0.9f))
+							zombie.absorbAttack.Add(new KeyValuePair<float, int>(0f, -1));
+					}
+					return false;
 				}
-				return false;
+
+				return true;
 			}
 		}
 
@@ -3543,8 +3561,12 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn __instance, Thing target, ref Verb __result)
 			{
-				if (!(target is Zombie zombie) || zombie.isElectrifier == false)
+				if (!(target is Zombie zombie) || zombie.IsActiveElectric == false)
 					return true;
+
+				if (__instance.equipment?.Primary != null && __instance.equipment.PrimaryEq.PrimaryVerb.targetParams.canTargetLocations)
+					return true;
+
 				__result = __instance.meleeVerbs.TryGetMeleeVerb(target);
 				return false;
 			}

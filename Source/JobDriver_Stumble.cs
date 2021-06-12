@@ -137,7 +137,7 @@ namespace ZombieLand
 			var zombie = (Zombie)pawn;
 			zombie.checkSmashable = true;
 
-			if (zombie.isElectrifier)
+			if (zombie.IsActiveElectric)
 				ZombieStateHandler.Electrify(zombie);
 		}
 

@@ -71,6 +71,9 @@ namespace ZombieLand
 
 		// electrifier
 		public bool isElectrifier = false;
+		public int electricDisabledUntil = 0;
+		public bool IsActiveElectric => isElectrifier && Find.TickManager.TicksGame > electricDisabledUntil;
+		public void DisableElectric(int ticks) { electricDisabledUntil = Find.TickManager.TicksGame + ticks; }
 		public int electricCounter = -1000;
 		public float electricAngle = 0;
 		public List<KeyValuePair<float, int>> absorbAttack = new List<KeyValuePair<float, int>>();
@@ -164,6 +167,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref isToxicSplasher, "toxicSplasher");
 			Scribe_Values.Look(ref isMiner, "isMiner");
 			Scribe_Values.Look(ref isElectrifier, "isElectrifier");
+			Scribe_Values.Look(ref electricDisabledUntil, "electricDisabledUntil");
 			Scribe_Values.Look(ref isAlbino, "isAlbino");
 			Scribe_Values.Look(ref isDarkSlimer, "isDarkSlimer");
 			Scribe_Values.Look(ref scream, "scream");
