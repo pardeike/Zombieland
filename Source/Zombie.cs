@@ -41,7 +41,7 @@ namespace ZombieLand
 		public IntVec3 wanderDestination = IntVec3.Invalid;
 		public static Color[] zombieColors;
 
-		int rubbleTicks;
+		int rubbleTicks = Rand.Range(0, 60);
 		public int rubbleCounter;
 		List<Rubble> rubbles = new List<Rubble>();
 

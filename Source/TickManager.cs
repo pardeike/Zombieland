@@ -58,7 +58,7 @@ namespace ZombieLand
 		public IntVec3 centerOfInterest = IntVec3.Invalid;
 		public int currentColonyPoints;
 
-		public List<Zombie> allZombiesCached;
+		public HashSet<Zombie> allZombiesCached;
 		IEnumerator taskTicker;
 		bool runZombiesForNewIncident = false;
 
@@ -84,7 +84,7 @@ namespace ZombieLand
 		public TickManager(Map map) : base(map)
 		{
 			currentColonyPoints = 100;
-			allZombiesCached = new List<Zombie>();
+			allZombiesCached = new HashSet<Zombie>();
 			allZombieCorpses = new List<ZombieCorpse>();
 
 			var type = ZombieTicker.RimThreaded;
@@ -158,8 +158,8 @@ namespace ZombieLand
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
 				if (allZombiesCached == null)
-					allZombiesCached = new List<Zombie>();
-				allZombiesCached = allZombiesCached.Where(zombie => zombie != null && zombie.Spawned && zombie.Dead == false).ToList();
+					allZombiesCached = new HashSet<Zombie>();
+				allZombiesCached = allZombiesCached.Where(zombie => zombie != null && zombie.Spawned && zombie.Dead == false).ToHashSet();
 
 				if (allZombieCorpses == null)
 					allZombieCorpses = new List<ZombieCorpse>();
@@ -185,7 +185,7 @@ namespace ZombieLand
 			if (ticks < nextVisibleGridUpdate) return;
 			nextVisibleGridUpdate = ticks + Constants.TICKMANAGER_RECALCULATE_DELAY;
 
-			allZombiesCached = AllZombies().ToList();
+			allZombiesCached = AllZombies().ToHashSet();
 			var home = map.areaManager.Home;
 			if (home.TrueCount > 0)
 			{
@@ -397,14 +397,14 @@ namespace ZombieLand
 							{
 								var cell = Tools.RandomSpawnCell(map, false, Tools.ZombieSpawnLocator(map));
 								if (cell.IsValid)
-									ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
+									ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { _ = allZombiesCached.Add(zombie); });
 								return;
 							}
 						case SpawnHowType.FromTheEdges:
 							{
 								var cell = Tools.RandomSpawnCell(map, true, Tools.ZombieSpawnLocator(map));
 								if (cell.IsValid)
-									ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { allZombiesCached.Add(zombie); });
+									ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { _ = allZombiesCached.Add(zombie); });
 								return;
 							}
 						default:
