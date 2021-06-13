@@ -41,9 +41,9 @@ namespace ZombieLand
 		public IntVec3 wanderDestination = IntVec3.Invalid;
 		public static Color[] zombieColors;
 
-		int rubbleTicks;
+		int rubbleTicks = Rand.Range(0, 60);
 		public int rubbleCounter;
-		List<Rubble> rubbles = new List<Rubble>();
+		Rubble[] rubbles = new Rubble[Constants.RUBBLE_AMOUNT];
 
 		public IntVec2 sideEyeOffset;
 		public bool wasMapPawnBefore;
@@ -153,13 +153,19 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 
+
 			var wasColonist = wasMapPawnBefore;
 			Scribe_Values.Look(ref state, "zstate");
 			Scribe_Values.Look(ref raging, "raging");
 			Scribe_Values.Look(ref wanderDestination, "wanderDestination");
 			Scribe_Values.Look(ref rubbleTicks, "rubbleTicks");
 			Scribe_Values.Look(ref rubbleCounter, "rubbleCounter");
-			Scribe_Collections.Look(ref rubbles, "rubbles", LookMode.Deep);
+
+
+			var rubbleList = new List<Rubble>(rubbles);
+			Scribe_Collections.Look(ref rubbleList, "rubbles", LookMode.Deep);
+			rubbles = rubbleList.ToArray();
+
 			Scribe_Values.Look(ref wasColonist, "wasColonist");
 			Scribe_Values.Look(ref wasMapPawnBefore, "wasMapPawnBefore");
 			Scribe_Values.Look(ref bombWillGoOff, "bombWillGoOff");
@@ -345,12 +351,14 @@ namespace ZombieLand
 			if (rubbleCounter == Constants.RUBBLE_AMOUNT)
 			{
 				state = ZombieState.Wandering;
-				rubbles = new List<Rubble>();
+				rubbles = new Rubble[0];
+				return;
 			}
 			else if (rubbleCounter < Constants.RUBBLE_AMOUNT && rubbleTicks-- < 0)
 			{
 				var idx = Rand.Range(rubbleCounter * 4 / 5, rubbleCounter);
-				rubbles.Insert(idx, Rubble.Create(rubbleCounter / (float)Constants.RUBBLE_AMOUNT));
+				while (rubbles[idx] != null) idx = (idx + 1) % (rubbleCounter + 1);
+				rubbles[idx] = Rubble.Create(rubbleCounter / (float)Constants.RUBBLE_AMOUNT);
 
 				var deltaTicks = Constants.MIN_DELTA_TICKS + (float)(Constants.MAX_DELTA_TICKS - Constants.MIN_DELTA_TICKS) / Math.Min(1, rubbleCounter * 2 - Constants.RUBBLE_AMOUNT);
 				rubbleTicks = (int)deltaTicks;
@@ -358,8 +366,9 @@ namespace ZombieLand
 				rubbleCounter++;
 			}
 
-			foreach (var r in rubbles)
+			for (var i = 0; i < rubbleCounter; i++)
 			{
+				var r = rubbles[i];
 				var dx = Mathf.Sign(r.pX) / 2f - r.pX;
 				r.pX += (r.destX - r.pX) * 0.5f;
 				var dy = r.destY - r.pY;
@@ -376,8 +385,9 @@ namespace ZombieLand
 
 		void RenderRubble(Vector3 drawLoc)
 		{
-			foreach (var r in rubbles)
+			for (var i = 0; i < rubbleCounter; i++)
 			{
+				var r = rubbles[i];
 				var scale = Constants.MIN_SCALE + (Constants.MAX_SCALE - Constants.MIN_SCALE) * r.scale;
 				var x = 0f + r.pX / 2f;
 				var bottomExtend = Mathf.Abs(r.pX) / 6f;
@@ -451,14 +461,14 @@ namespace ZombieLand
 		{
 			drawLoc.x = (int)(drawLoc.x) + 0.5f;
 
-			var progress = rubbleCounter / (float)Constants.RUBBLE_AMOUNT;
-			if (progress >= Constants.EMERGE_DELAY)
+			if (state == ZombieState.Emerging)
+				RenderRubble(drawLoc);
+			else
 			{
+				var progress = rubbleCounter / (float)Constants.RUBBLE_AMOUNT;
 				var bodyOffset = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, -0.45f, 0, progress);
 				renderer.RenderPawnInternal(drawLoc + new Vector3(0, 0, bodyOffset), 0f, true, Rot4.South, Rot4.South, bodyDrawType, false, false, false);
 			}
-
-			RenderRubble(drawLoc);
 		}
 	}
 }

@@ -10,7 +10,7 @@
 		<OutputPath>..\1.2\Assemblies\</OutputPath>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<Version>2.2.2.0</Version>
+		<Version>2.2.2.1</Version>
 		<Copyright>Copyright ©  2017</Copyright>
 	</PropertyGroup>
 
