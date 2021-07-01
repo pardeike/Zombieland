@@ -78,6 +78,20 @@ namespace ZombieLand
 			{
 				SpawnZombie(ZombieType.Random, true);
 			});
+			var tm = Find.CurrentMap?.GetComponent<TickManager>();
+			if (tm != null)
+			{
+				var size = tm.incidentInfo.parameters.incidentSize;
+				if (size > 0)
+				{
+					DebugToolMap($"Trigger: Zombie incident ({size})", delegate
+					{
+						var success = ZombiesRising.TryExecute(map, size, IntVec3.Invalid);
+						if (success == false)
+							Log.Error("Incident creation failed. Most likely no valid spawn point found.");
+					});
+				}
+			}
 			DebugToolMap("Spawn: Zombie incident (4)", delegate
 			{
 				_ = ZombiesRising.TryExecute(map, 4, UI.MouseCell(), true);

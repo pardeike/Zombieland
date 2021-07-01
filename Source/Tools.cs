@@ -40,7 +40,6 @@ namespace ZombieLand
 		public static Texture2D ZombieButtonBackground;
 		public static string zlNamespace = typeof(Tools).Namespace;
 
-		// public static List<Region> debugRegions = new List<Region>();
 		public static List<Region> cachedPlayerReachableRegions = new List<Region>();
 		public static int nextPlayerReachableRegionsUpdate = 0;
 
@@ -417,13 +416,15 @@ namespace ZombieLand
 			{
 				nextPlayerReachableRegionsUpdate = ticks + GenTicks.TickLongInterval;
 				var f = Faction.OfPlayer;
-				var totalRegions = map.regionGrid.AllRegions
+				var totalRegions = map.regionGrid.allRooms
+					.Where(room => room.IsHuge == false && room.Fogged == false)
+					.SelectMany(room => room.regions)
 					.Where(region => region.listerThings.AllThings.Any(thing =>
 					{
 						if (thing.Faction != f) return false;
 						var def = thing.def;
-						return def.fillPercent >= 0.5f && def.blockWind && def.coversFloor &&
-							def.castEdgeShadows && def.holdsRoof && def.blockLight;
+						return def.fillPercent >= 0.2f || def.blockWind || def.coversFloor ||
+							def.castEdgeShadows || def.holdsRoof || def.blockLight;
 					}))
 					.ToHashSet();
 				var neighbours = totalRegions.SelectMany(region => region.Neighbors).ToList();
@@ -584,7 +585,7 @@ namespace ZombieLand
 						pawn.Corpse.Destroy();
 				}
 
-				tickManager.allZombiesCached.Add(zombie);
+				_ = tickManager.allZombiesCached.Add(zombie);
 
 				var label = wasPlayer ? "ColonistBecameAZombieLabel".Translate() : "OtherBecameAZombieLabel".Translate();
 				var text = "BecameAZombieDesc".SafeTranslate(new object[] { pawnName.ToStringShort });

@@ -106,7 +106,7 @@ namespace ZombieLand
 			static void Postfix()
 			{
 				// var m = DebugSolidColorMats.MaterialOf(Color.magenta);
-				// Tools.debugRegions.SelectMany(r => r.Cells).Do(c => CellRenderer.RenderSpot(c.ToVector3Shifted(), m, 0.25f));
+				// Tools.PlayerReachableRegions(Find.CurrentMap).SelectMany(r => r.Cells).Do(c => CellRenderer.RenderSpot(c.ToVector3Shifted(), m, 0.25f));
 
 				if (Constants.DEBUGGRID == false || DebugViewSettings.writePathCosts == false) return;
 				if (Tools.ShouldAvoidZombies() == false) return;
@@ -2921,8 +2921,16 @@ namespace ZombieLand
 						return false;
 					}
 
+					var albinoSpeed = 1f;
+					if (zombie.isAlbino)
+					{
+						var albinoPos = zombie.Position;
+						var minDistSquared = zombie.Map.mapPawns.FreeColonistsAndPrisonersSpawned.Min(colonist => colonist.Position.DistanceToSquared(albinoPos));
+						albinoSpeed = GenMath.LerpDoubleClamped(36, 900, 5f, 1f, minDistSquared);
+					}
+
 					float speed;
-					if (zombie.isAlbino || zombie.state == ZombieState.Tracking || zombie.raging > 0 || zombie.wasMapPawnBefore)
+					if (albinoSpeed > 1f || zombie.state == ZombieState.Tracking || zombie.raging > 0 || zombie.wasMapPawnBefore)
 						speed = ZombieSettings.Values.moveSpeedTracking;
 					else
 						speed = ZombieSettings.Values.moveSpeedIdle;
@@ -2936,11 +2944,9 @@ namespace ZombieLand
 					else if (bodyType == BodyTypeDefOf.Fat)
 						factor = 0.1f;
 
-					__result = speed * factor * multiplier;
+					__result = speed * factor * multiplier * albinoSpeed;
 					if (zombie.wasMapPawnBefore)
 						__result *= 2f;
-					if (zombie.isAlbino)
-						__result *= 5f;
 					if (zombie.isDarkSlimer)
 						__result /= 1.5f;
 
