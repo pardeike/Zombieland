@@ -177,9 +177,15 @@ namespace ZombieLand
 						MoteMaker.ThrowDustPuff(building.TrueCenter(), building.Map, Rand.Range(0.8f, 1.2f));
 
 						if (powerNet.batteryComps.Any((CompPowerBattery x) => x.StoredEnergy > 20f))
+						{
 							ShortCircuitUtility.DrainBatteriesAndCauseExplosion(powerNet, building, out var _1, out var _2);
+							zombie.DisableElectric(GenDate.TicksPerHour / 2);
+						}
 						else
+						{
 							_ = FireUtility.TryStartFireIn(building.Position, building.Map, Rand.Range(0.1f, 1.75f));
+							zombie.DisableElectric(GenDate.TicksPerHour / 4);
+						}
 
 						return true;
 					}
