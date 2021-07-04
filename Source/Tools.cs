@@ -919,6 +919,16 @@ namespace ZombieLand
 			return damage * 60f * burst / interval;
 		}
 
+		public static bool InWater(this Pawn pawn)
+		{
+			var map = pawn?.Map;
+			if (map == null) return false;
+			var index = CellIndicesUtility.CellToIndex(pawn.Position, map.Size.x);
+			var terrainDef = map.terrainGrid.TerrainAt(index);
+			if (terrainDef == null) return false;
+			return terrainDef.IsWater;
+		}
+
 		static readonly FieldRef<Building_TurretGun, CompPowerTrader> powerComp = FieldRefAccess<Building_TurretGun, CompPowerTrader>("powerComp");
 		public static int[] ColonyPoints()
 		{

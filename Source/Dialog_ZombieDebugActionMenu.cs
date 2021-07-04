@@ -19,7 +19,7 @@ namespace ZombieLand
 				zombie.Rotation = Rot4.South;
 
 				var tickManager = Find.CurrentMap.GetComponent<TickManager>();
-				tickManager.allZombiesCached.Add(zombie);
+				_ = tickManager.allZombiesCached.Add(zombie);
 			});
 		}
 
