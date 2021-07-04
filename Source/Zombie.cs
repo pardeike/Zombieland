@@ -72,7 +72,7 @@ namespace ZombieLand
 		// electrifier
 		public bool isElectrifier = false;
 		public int electricDisabledUntil = 0;
-		public bool IsActiveElectric => isElectrifier && Find.TickManager.TicksGame > electricDisabledUntil;
+		public bool IsActiveElectric => isElectrifier && Find.TickManager.TicksGame > electricDisabledUntil && this.InWater() == false;
 		public void DisableElectric(int ticks) { electricDisabledUntil = Find.TickManager.TicksGame + ticks; }
 		public int electricCounter = -1000;
 		public float electricAngle = 0;
