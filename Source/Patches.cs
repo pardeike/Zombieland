@@ -206,7 +206,7 @@ namespace ZombieLand
 					var currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
 					return $"Zombieland v{currentVersion.ToString(4)}";
 				}, 99899));
-				if (Mouse.IsOver(zlRect) && tickManager.allZombiesCached.Count <= 10)
+				if (Mouse.IsOver(zlRect) && tickManager.allZombiesCached.Count <= 30)
 					tickManager.allZombiesCached.Do(zombie => TargetHighlighter.Highlight(new GlobalTargetInfo(zombie), true, false, false));
 
 				curBaseY -= zlRect.height;
@@ -1924,6 +1924,28 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to reduce instant zombie infections for pawns in incidents
+		//
+		[HarmonyPatch(typeof(IncidentWorker))]
+		[HarmonyPatch(nameof(IncidentWorker.TryExecute))]
+		static class IncidentWorker_TryExecute_Patch
+		{
+			static void Postfix(IncidentParms parms)
+			{
+				if (parms.pawnGroups == null) return;
+				var f = GenMath.LerpDoubleClamped(0, 5, 100, 0, Tools.Difficulty());
+				parms.pawnGroups.Keys.DoIf(_ => Rand.Chance(f), pawn => pawn.health.hediffSet
+					.GetHediffs<Hediff_Injury_ZombieBite>()
+					.Do(bite =>
+					{
+						bite.mayBecomeZombieWhenDead = false;
+						var tendDuration = bite.TryGetComp<HediffComp_Zombie_TendDuration>();
+						tendDuration?.ZombieInfector.MakeHarmless();
+					})
+				);
+			}
+		}
+
 		// patch to allow spawning zombie raids with debug tools
 		//
 		[HarmonyPatch(typeof(IncidentWorker_Raid))]
@@ -3329,7 +3351,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static void Prefix(StunHandler __instance, DamageInfo dinfo)
 			{
-				if (dinfo.Def != DamageDefOf.EMP) return;
+				if (dinfo.Def != DamageDefOf.EMP && dinfo.Def != DamageDefOf.Stun) return;
 				if (__instance.parent is Zombie zombie && zombie.Downed == false && zombie.Dead == false)
 					if (zombie.IsActiveElectric)
 						zombie.DisableElectric((int)(dinfo.Amount * 60));
