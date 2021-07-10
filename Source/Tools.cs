@@ -615,6 +615,10 @@ namespace ZombieLand
 		public static bool IsValidSpawnLocation(IntVec3 cell, Map map)
 		{
 			if (cell.Standable(map) == false || cell.Fogged(map)) return false;
+			var edifice = cell.GetEdifice(map);
+			if (edifice != null && edifice is Building_Door door)
+				if (door.Open == false)
+					return false;
 
 			if (ZombieSettings.Values.spawnHowType == SpawnHowType.FromTheEdges)
 				return true;
@@ -753,13 +757,18 @@ namespace ZombieLand
 			return false;
 		}
 
+		public static bool IsDark(this Map map, IntVec3 cell)
+		{
+			return map.glowGrid.PsychGlowAt(cell) == PsychGlow.Dark;
+		}
+
 		public static Predicate<IntVec3> ZombieSpawnLocator(Map map, bool isEvent = false)
 		{
 			if (isEvent || ZombieSettings.Values.spawnWhenType == SpawnWhenType.AllTheTime || ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly)
 				return cell => IsValidSpawnLocation(cell, map);
 
 			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.WhenDark)
-				return cell => IsValidSpawnLocation(cell, map) && map.glowGrid.PsychGlowAt(cell) == PsychGlow.Dark;
+				return cell => IsValidSpawnLocation(cell, map) && map.IsDark(cell);
 
 			Log.Error("Unsupported spawn mode " + ZombieSettings.Values.spawnWhenType);
 			return null;

@@ -214,14 +214,16 @@ namespace ZombieLand
 			var colonyMultiplier = ZombieSettings.Values.colonyMultiplier;
 			var difficultyMultiplier = Tools.Difficulty();
 			var count = (int)(perColonistZombieCount * colonistMultiplier * baseStrengthFactor * colonyMultiplier * difficultyMultiplier);
-			return Mathf.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
+			count = Mathf.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
+			return Mathf.FloorToInt(count * map.GetComponent<ZombieWeather>().GetFactorFor(0));
 		}
 
 		public void ZombieTicking()
 		{
 			PrepareThreadedTicking(this);
+			var threatLevel = map.GetComponent<ZombieWeather>()?.GetFactorFor(0) ?? 1f;
 			for (var i = 0; i < currentZombiesTicking.Length; i++)
-				currentZombiesTicking[i].CustomTick();
+				currentZombiesTicking[i].CustomTick(threatLevel);
 		}
 
 		public static void PrepareThreadedTicking(object input)
@@ -242,11 +244,12 @@ namespace ZombieLand
 		{
 			// is being called by many threads at the same time
 			var tickManager = (TickManager)input;
+			var threatLevel = tickManager.map.GetComponent<ZombieWeather>()?.GetFactorFor(0) ?? 1f;
 			while (true)
 			{
 				var idx = Interlocked.Decrement(ref tickManager.currentZombiesTickingIndex);
 				if (idx < 0) return;
-				tickManager.currentZombiesTicking[idx].CustomTick();
+				tickManager.currentZombiesTicking[idx].CustomTick(threatLevel);
 			}
 		}
 

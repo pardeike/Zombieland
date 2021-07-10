@@ -73,7 +73,7 @@ namespace ZombieLand
 		public float albinoChance = 0.01f;
 		public float darkSlimerChance = 0.01f;
 		public float moveSpeedIdle = 0.2f;
-		public float moveSpeedTracking = 0.9f;
+		public float moveSpeedTracking = 0.7f;
 		public bool moveSpeedUpgraded = false;
 		public float damageFactor = 1.0f;
 		public ZombieInstinct zombieInstinct = ZombieInstinct.Normal;

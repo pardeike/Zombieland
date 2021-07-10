@@ -10,7 +10,7 @@
 		<OutputPath>..\1.2\Assemblies\</OutputPath>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<Version>2.2.3.1</Version>
+		<Version>2.2.4.0</Version>
 		<Copyright>Copyright ©  2017</Copyright>
 	</PropertyGroup>
 
@@ -31,7 +31,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.2.2905" GeneratePathProperty="true" />
-		<PackageReference Include="Lib.Harmony" Version="2.0.4" ExcludeAssets="runtime" />
+		<PackageReference Include="Lib.Harmony" Version="2.1.0" ExcludeAssets="runtime" />
 		<PackageReference Include="Microsoft.NETCore.Platforms" Version="5.0.2" />
 		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.2">
 			<PrivateAssets>all</PrivateAssets>

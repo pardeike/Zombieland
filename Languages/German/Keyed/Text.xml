@@ -156,4 +156,9 @@
 	<AutoAvoidZombiesEnabledDescription>Automatisches Vermeiden von Zombies, außer wenn im Kampfmodus (stehend)</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Ignoriere Zombies. Alle Aktionen müssen manuell kontrolliert werden</AutoAvoidZombiesDisabledDescription>
 
+	<ThreatLevel>Bedrohungsniveau</ThreatLevel>
+	<ThreatForecast>Bedrohungsvorhersage</ThreatForecast>
+	<Next14Days>Nächsten 14 Tage</Next14Days>
+	<Next4Quadrums>Nächsten 4 Quartale</Next4Quadrums>
+
 </LanguageData>

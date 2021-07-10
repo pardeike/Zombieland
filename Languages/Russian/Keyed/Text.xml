@@ -156,4 +156,9 @@
 	<AutoAvoidZombiesEnabledDescription>Автоматически избегайте зомби, кроме случаев, когда колонист мобилизован и стоит</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Игнорировать зомби. Вам нужно вручную контролировать все действия</AutoAvoidZombiesDisabledDescription>
 
+	<ThreatLevel>уровень угрозы</ThreatLevel>
+	<ThreatForecast>Прогноз угрозы</ThreatForecast>
+	<Next14Days>Следующие 14 дней</Next14Days>
+	<Next4Quadrums>Следующие 4 квартала</Next4Quadrums>
+
 </LanguageData>

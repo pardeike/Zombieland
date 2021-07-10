@@ -156,4 +156,9 @@
 	<AutoAvoidZombiesEnabledDescription>自動避免殭屍，除非殖民者被起草和站立</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>忽略殭屍。 您需要手動控制所有操作</AutoAvoidZombiesDisabledDescription>
 
+	<ThreatLevel>威脅級別</ThreatLevel>
+	<ThreatForecast>威脅預測</ThreatForecast>
+	<Next14Days>未來 14 天</Next14Days>
+	<Next4Quadrums>未來 4 個季度</Next4Quadrums>
+
 </LanguageData>
