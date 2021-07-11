@@ -838,7 +838,7 @@ namespace ZombieLand
 		{
 			static void Postfix(List<VerbEntry> __result, Pawn ___pawn)
 			{
-				if (___pawn is Zombie zombie && (zombie.IsActiveElectric || zombie.isAlbino))
+				if (___pawn is Zombie zombie && (zombie.isElectrifier || zombie.isAlbino))
 					_ = __result.RemoveAll(entry => entry.verb.GetDamageDef() == Tools.ZombieBiteDamageDef);
 			}
 		}
