@@ -12,19 +12,14 @@ namespace ZombieLand
 	public class ZombieWeather : MapComponent
 	{
 		static readonly Texture2D ForecastBackground = Tools.LoadTexture("Forecast", true);
-		public static int CurrentTicks() => GenTicks.TicksAbs; // GenDate.TicksGame + 6 * GenDate.TicksPerHour;
+		public static int CurrentTicks() => GenTicks.TicksAbs;
 
-		float m = 20; // h-stretch
-		float n = 2.5f; // smoothness
-		float p = 3f; // v-stretch
+		const float p = 3f; // v-stretch
 		float f1 = 1, f2 = 2, f3 = 3, f4 = 4;
 		float o1 = 1, o2 = 2, o3 = 3, o4 = 4;
 
 		public ZombieWeather(Map map) : base(map)
 		{
-			m = Rand.Range(10f, 30f);
-			n = 2.5f;
-			p = 3f;
 			f1 = Rand.Range(1f, 2f);
 			f2 = Rand.Range(2f, 3f);
 			f3 = Rand.Range(3f, 4f);
@@ -38,9 +33,6 @@ namespace ZombieLand
 		public override void ExposeData()
 		{
 			base.ExposeData();
-			Scribe_Values.Look(ref m, "m");
-			Scribe_Values.Look(ref n, "n");
-			Scribe_Values.Look(ref p, "p");
 			Scribe_Values.Look(ref f1, "f1");
 			Scribe_Values.Look(ref f2, "f2");
 			Scribe_Values.Look(ref f3, "f3");
@@ -53,8 +45,13 @@ namespace ZombieLand
 
 		public float GetFactorForTicks(int ticks, int deltaDays = 0)
 		{
+			if ((ticks - GenTicks.TicksAbs + GenTicks.TicksGame) / (float)GenDate.TicksPerDay <= ZombieSettings.Values.daysBeforeZombiesCome)
+				return 0f;
+
 			var currentDay = ticks / (float)GenDate.TicksPerDay;
 			var x = currentDay + deltaDays;
+			var m = ZombieSettings.Values.dynamicThreatSmoothness;
+			var n = ZombieSettings.Values.dynamicThreatStretch;
 			var val = 0
 				+ Mathf.Sin(f1 * x / (m + Mathf.Sin(x / f2 + o3) / n) + o1)
 				+ Mathf.Sin(f2 * x / (m + Mathf.Sin(x / f3 + o4) / n) + o2)

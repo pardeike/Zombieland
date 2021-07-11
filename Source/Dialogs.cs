@@ -325,13 +325,13 @@ namespace ZombieLand
 			GUI.color = color;
 		}
 
-		public static void Dialog_FloatSlider(this Listing_Standard list, string labelId, string format, ref float value, float min, float max, float multiplier = 1f)
+		public static void Dialog_FloatSlider(this Listing_Standard list, string labelId, string format, ref float value, float min, float max, Func<float, float> formatFunc = null)
 		{
 			list.Help(labelId, 32f);
 
 			list.Gap(12f);
 
-			var valstr = string.Format("{0:" + format + "}", value * multiplier);
+			var valstr = string.Format("{0:" + format + "}", formatFunc != null ? formatFunc(value) : value);
 
 			var srect = list.GetRect(24f);
 			srect.xMin += inset;
@@ -504,6 +504,16 @@ namespace ZombieLand
 				list.Dialog_Integer("MaximumNumberOfZombies", "Zombies", 0, 5000, ref settings.maximumNumberOfZombies);
 				list.Gap(8f);
 				list.Dialog_FloatSlider("ColonyMultiplier", "0.0x", ref settings.colonyMultiplier, 1f, 10f);
+				list.Dialog_Checkbox("UseDynamicThreatLevel", ref settings.useDynamicThreatLevel);
+				if (settings.useDynamicThreatLevel)
+				{
+					list.Gap(8f);
+					list.Dialog_FloatSlider("DynamicThreatSmoothness", "0%", ref settings.dynamicThreatSmoothness, 1f, 5f, f => (f - 1f) / 4f);
+					list.Gap(-4f);
+					list.Dialog_FloatSlider("DynamicThreatStretch", "0%", ref settings.dynamicThreatStretch, 10f, 30f, f => (f - 10f) / 20f);
+					list.Gap(-6f);
+					list.Dialog_Checkbox("ZombiesDieOnZeroThreat", ref settings.zombiesDieOnZeroThreat);
+				}
 				list.Gap(28f);
 
 				// Events

@@ -431,7 +431,7 @@ namespace ZombieLand
 			if (state == ZombieState.Emerging)
 				HandleRubble();
 
-			if (threatLevel <= 0.002f && Rand.Chance(0.002f))
+			if (threatLevel <= 0.002f && ZombieSettings.Values.zombiesDieOnZeroThreat && Rand.Chance(0.002f))
 				_ = TakeDamage(damageInfo);
 		}
 

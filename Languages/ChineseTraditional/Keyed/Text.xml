@@ -160,5 +160,9 @@
 	<ThreatForecast>威脅預測</ThreatForecast>
 	<Next14Days>未來 14 天</Next14Days>
 	<Next4Quadrums>未來 4 個季度</Next4Quadrums>
+	<UseDynamicThreatLevel>使用動態威脅級別</UseDynamicThreatLevel>
+	<DynamicThreatSmoothness>威脅曲線平滑度</DynamicThreatSmoothness>
+	<DynamicThreatStretch>威脅曲線拉伸</DynamicThreatStretch>
+	<ZombiesDieOnZeroThreat>殭屍在 0% 威脅時死亡</ZombiesDieOnZeroThreat>
 
 </LanguageData>

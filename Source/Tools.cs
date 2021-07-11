@@ -427,6 +427,17 @@ namespace ZombieLand
 							def.castEdgeShadows || def.holdsRoof || def.blockLight;
 					}))
 					.ToHashSet();
+				if (totalRegions.Count == 0)
+				{
+					var spot = IntVec3.Zero;
+					map.mapPawns.FreeColonists.Do(colonist => spot += colonist.Position);
+					var n = map.mapPawns.FreeColonists.Count;
+					spot.x /= n;
+					spot.z /= n;
+					var region = map.regionGrid.GetValidRegionAt(spot);
+					if (region != null)
+						_ = totalRegions.Add(region);
+				}
 				var neighbours = totalRegions.SelectMany(region => region.Neighbors).ToList();
 				PlayerReachableRegions_Iterator(totalRegions, neighbours);
 				cachedPlayerReachableRegions = totalRegions.ToList();
@@ -615,6 +626,7 @@ namespace ZombieLand
 		public static bool IsValidSpawnLocation(IntVec3 cell, Map map)
 		{
 			if (cell.Standable(map) == false || cell.Fogged(map)) return false;
+
 			var edifice = cell.GetEdifice(map);
 			if (edifice != null && edifice is Building_Door door)
 				if (door.Open == false)

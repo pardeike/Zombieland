@@ -1551,14 +1551,15 @@ namespace ZombieLand
 				}
 
 				var maxCount = tickManager.GetMaxZombieCount();
-				var realCount = Mathf.FloorToInt(maxCount * map.GetComponent<ZombieWeather>().GetFactorFor(0));
+				var threatLevel = map.GetComponent<ZombieWeather>().GetFactorFor(0);
+				var realCount = Mathf.FloorToInt(maxCount * threatLevel);
 				_ = builder.AppendLine("---");
 				_ = builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
 				_ = builder.AppendLine("Colonist points: " + colonyPoints[0]);
 				_ = builder.AppendLine("Weapon points: " + colonyPoints[1]);
 				_ = builder.AppendLine("Defense points: " + colonyPoints[2]);
 				_ = builder.AppendLine("Max zombie count: " + maxCount);
-				_ = builder.AppendLine("Zombie threat level: " + Mathf.FloorToInt(10000 * map.GetComponent<ZombieWeather>().GetFactorFor(0)) / 100f + "%");
+				_ = builder.AppendLine("Zombie threat level: " + Mathf.FloorToInt(10000 * threatLevel) / 100f + "%");
 				_ = builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + realCount);
 
 				_ = builder.AppendLine("");

@@ -160,5 +160,9 @@
 	<ThreatForecast>Bedrohungsvorhersage</ThreatForecast>
 	<Next14Days>Nächsten 14 Tage</Next14Days>
 	<Next4Quadrums>Nächsten 4 Quartale</Next4Quadrums>
+	<UseDynamicThreatLevel>Verwende dynamisches Bedrohungsniveau</UseDynamicThreatLevel>
+	<DynamicThreatSmoothness>Glattheit der Kurve</DynamicThreatSmoothness>
+	<DynamicThreatStretch>Kurve ausweiten</DynamicThreatStretch>
+	<ZombiesDieOnZeroThreat>Zombies sterben während 0% Bedrohung</ZombiesDieOnZeroThreat>
 
 </LanguageData>

@@ -205,7 +205,7 @@ namespace ZombieLand
 
 		public int GetMaxZombieCount()
 		{
-			if (map == null || map.mapPawns == null) return 0;
+			if (map?.mapPawns == null) return 0;
 			if (Constants.DEBUG_MAX_ZOMBIE_COUNT >= 0) return Constants.DEBUG_MAX_ZOMBIE_COUNT;
 			var colonists = Tools.CapableColonists(map);
 			var perColonistZombieCount = GenMath.LerpDoubleClamped(0f, 4f, 5, 30, Mathf.Sqrt(colonists));
@@ -214,8 +214,7 @@ namespace ZombieLand
 			var colonyMultiplier = ZombieSettings.Values.colonyMultiplier;
 			var difficultyMultiplier = Tools.Difficulty();
 			var count = (int)(perColonistZombieCount * colonistMultiplier * baseStrengthFactor * colonyMultiplier * difficultyMultiplier);
-			count = Mathf.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
-			return Mathf.FloorToInt(count * map.GetComponent<ZombieWeather>().GetFactorFor(0));
+			return Mathf.Min(ZombieSettings.Values.maximumNumberOfZombies, count);
 		}
 
 		public void ZombieTicking()
@@ -378,13 +377,17 @@ namespace ZombieLand
 
 		public bool CanHaveMoreZombies()
 		{
-			return ZombieCount() < GetMaxZombieCount();
+			var currentMax = Mathf.FloorToInt(GetMaxZombieCount() * map.GetComponent<ZombieWeather>().GetFactorFor(0));
+			return ZombieCount() < currentMax;
 		}
 
 		public void IncreaseZombiePopulation()
 		{
-			if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return;
-			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly) return;
+			if (ZombieSettings.Values.useDynamicThreatLevel == false)
+			{
+				if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return;
+				if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly) return;
+			}
 
 			if (populationSpawnCounter-- < 0)
 			{

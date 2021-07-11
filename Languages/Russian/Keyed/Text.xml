@@ -160,5 +160,9 @@
 	<ThreatForecast>Прогноз угрозы</ThreatForecast>
 	<Next14Days>Следующие 14 дней</Next14Days>
 	<Next4Quadrums>Следующие 4 квартала</Next4Quadrums>
+	<UseDynamicThreatLevel>Уровень динамической угрозы</UseDynamicThreatLevel>
+	<DynamicThreatSmoothness>Плавность кривой угрозы</DynamicThreatSmoothness>
+	<DynamicThreatStretch>Растяжение кривой угрозы</DynamicThreatStretch>
+	<ZombiesDieOnZeroThreat>Зомби умирают при 0% угрозе</ZombiesDieOnZeroThreat>
 
 </LanguageData>
