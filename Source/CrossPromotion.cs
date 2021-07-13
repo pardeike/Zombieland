@@ -14,6 +14,8 @@ using Verse.Steam;
 
 namespace CrossPromotionModule
 {
+	// works with RimWorld 1.2 and 1.3
+
 	[StaticConstructorOnStartup]
 	static class CrossPromotion
 	{
@@ -39,12 +41,12 @@ namespace CrossPromotionModule
 			);
 
 			_ = instance.Patch(
-				AccessTools.DeclaredMethod(typeof(Page_ModsConfig), nameof(Page_ModsConfig.PostClose)),
+				SymbolExtensions.GetMethodInfo(() => new Page_ModsConfig().PostClose()),
 				postfix: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => Page_ModsConfig_PostClose_Postfix()))
 			);
 
 			_ = instance.Patch(
-				AccessTools.DeclaredMethod(typeof(WorkshopItems), "Notify_Subscribed"),
+				SymbolExtensions.GetMethodInfo(() => WorkshopItems.Notify_Subscribed(default)),
 				postfix: new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => WorkshopItems_Notify_Subscribed_Postfix(new PublishedFileId_t(0))))
 			);
 
@@ -68,6 +70,7 @@ namespace CrossPromotionModule
 		static void WorkshopItems_Notify_Subscribed_Postfix(PublishedFileId_t pfid)
 		{
 			var longID = pfid.m_PublishedFileId;
+
 			if (subscribingMods.Contains(longID) == false)
 				return;
 			_ = subscribingMods.Remove(longID);
@@ -80,6 +83,7 @@ namespace CrossPromotionModule
 
 				ModsConfig.SetActive(mod, true);
 				ModsConfig.Save();
+
 				Find.WindowStack.Add(new MiniDialog(mod.Name + " added"));
 			});
 		}
@@ -91,16 +95,20 @@ namespace CrossPromotionModule
 		static IEnumerable<CodeInstruction> Page_ModsConfig_DoWindowContents_Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 		{
 			var list = instructions.ToList();
+
 			var beginGroupIndicies = list
 				.Select((instr, idx) => new Pair<int, CodeInstruction>(idx, instr))
 				.Where(pair => pair.Second.operand is MethodInfo mi && mi == m_BeginGroup)
 				.Select(pair => pair.First).ToArray();
+
 			var endGroupIndicies = list
 				.Select((instr, idx) => new Pair<int, CodeInstruction>(idx, instr))
 				.Where(pair => pair.Second.operand is MethodInfo mi && mi == m_EndGroup)
 				.Select(pair => pair.First).ToArray();
+
 			if (beginGroupIndicies.Length != 2 || endGroupIndicies.Length != 2)
 				return instructions;
+
 			var iBegin = beginGroupIndicies[1] - 1;
 			var iEnd = endGroupIndicies[0];
 
@@ -121,8 +129,7 @@ namespace CrossPromotionModule
 		internal static string ModPreviewPath(ulong modID)
 		{
 			var dir = Path.GetTempPath() + "BrrainzMods" + Path.DirectorySeparatorChar;
-			if (Directory.Exists(dir) == false)
-				_ = Directory.CreateDirectory(dir);
+			if (Directory.Exists(dir) == false) _ = Directory.CreateDirectory(dir);
 			return dir + modID + "-preview.jpg";
 		}
 
@@ -146,12 +153,15 @@ namespace CrossPromotionModule
 		{
 			if (previewTextures.TryGetValue(modID, out var texture))
 				return texture;
+
 			var path = ModPreviewPath(modID);
 			if (File.Exists(path) == false)
 				return null;
+
 			texture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
 			if (texture.LoadImage(SafeRead(path)))
 				previewTextures[modID] = texture;
+
 			return texture;
 		}
 
@@ -189,51 +199,49 @@ namespace CrossPromotionModule
 				return;
 
 			var rimworldID = SteamUtils.GetAppID();
-			unchecked
-			{
-				var aID = new AccountID_t((uint)userID);
-				var itemQuery = SteamUGC.CreateQueryUserUGCRequest(aID,
+			var aID = new AccountID_t(unchecked((uint)userID));
+
+			var itemQuery = SteamUGC.CreateQueryUserUGCRequest(aID,
 				EUserUGCList.k_EUserUGCList_Published, EUGCMatchingUGCType.k_EUGCMatchingUGCType_UsableInGame,
-				EUserUGCListSortOrder.k_EUserUGCListSortOrder_VoteScoreDesc, rimworldID, rimworldID,
-				1);
-				_ = SteamUGC.SetReturnLongDescription(itemQuery, true);
-				_ = SteamUGC.SetRankedByTrendDays(itemQuery, 7);
-				AsyncUserModsQuery(itemQuery, (result, failure) =>
-				{
-					for (uint i = 0; i < result.m_unNumResultsReturned; i++)
-						if (SteamUGC.GetQueryUGCResult(result.m_handle, i, out var mod))
-							if (promotionMods.Any(m => m.m_nPublishedFileId.m_PublishedFileId == mod.m_nPublishedFileId.m_PublishedFileId) == false)
+				EUserUGCListSortOrder.k_EUserUGCListSortOrder_VoteScoreDesc, rimworldID, rimworldID, 1);
+
+			_ = SteamUGC.SetReturnLongDescription(itemQuery, true);
+			_ = SteamUGC.SetRankedByTrendDays(itemQuery, 7);
+
+			AsyncUserModsQuery(itemQuery, (result, failure) =>
+			{
+				for (var i = (uint)0; i < result.m_unNumResultsReturned; i++)
+					if (SteamUGC.GetQueryUGCResult(result.m_handle, i, out var mod))
+						if (promotionMods.Any(m => m.m_nPublishedFileId.m_PublishedFileId == mod.m_nPublishedFileId.m_PublishedFileId) == false)
+						{
+							promotionMods.Add(mod);
+							var modID = mod.m_nPublishedFileId.m_PublishedFileId;
+
+							var path = ModPreviewPath(modID);
+							if (File.Exists(path) == false || new FileInfo(path).Length != mod.m_nPreviewFileSize)
 							{
-								promotionMods.Add(mod);
-								var modID = mod.m_nPublishedFileId.m_PublishedFileId;
-
-								var path = ModPreviewPath(modID);
-								if (File.Exists(path) == false || new FileInfo(path).Length != mod.m_nPreviewFileSize)
+								AsyncDownloadQuery(mod.m_hPreviewFile, path, (result2, failure2) =>
 								{
-									AsyncDownloadQuery(mod.m_hPreviewFile, path, (result2, failure2) =>
+									if (File.Exists(path))
 									{
-										if (File.Exists(path))
-										{
-											if (previewTextures.ContainsKey(modID))
-												_ = previewTextures.Remove(modID);
-										}
-									});
-								}
-
-								UpdateVotingStatus(modID, (result2, failure2) =>
-								{
-									allVoteStati[modID] = (result2.m_eResult == EResult.k_EResultOK) ? result2.m_bVotedUp : (bool?)null;
+										if (previewTextures.ContainsKey(modID))
+											_ = previewTextures.Remove(modID);
+									}
 								});
 							}
-				});
-			}
+
+							UpdateVotingStatus(modID, (result2, failure2) =>
+							{
+								allVoteStati[modID] = (result2.m_eResult == EResult.k_EResultOK) ? result2.m_bVotedUp : (bool?)null;
+							});
+						}
+			});
 		}
 	}
 
 	[StaticConstructorOnStartup]
 	internal class PromotionLayout
 	{
-		static readonly AccessTools.FieldRef<WorkshopItemHook, CSteamID> ref_steamAuthor = AccessTools.FieldRefAccess<WorkshopItemHook, CSteamID>("steamAuthor");
 		internal static bool Promotion(Rect mainRect, Page_ModsConfig page)
 		{
 			if (SteamManager.Initialized == false)
@@ -241,7 +249,7 @@ namespace CrossPromotionModule
 
 			var mod = page.selectedMod;
 			if (mod == null
-				|| ref_steamAuthor(mod.GetWorkshopItemHook()).m_SteamID != CrossPromotion.userID
+				|| mod.GetWorkshopItemHook().steamAuthor.m_SteamID != CrossPromotion.userID
 				|| CrossPromotion.promotionMods.Count == 0)
 				return false;
 
@@ -249,6 +257,7 @@ namespace CrossPromotionModule
 			var rightColumn = mainRect.width - leftColumn - 10f;
 
 			GUI.BeginGroup(mainRect);
+
 			try
 			{
 				ContentPart(mainRect, leftColumn, mod, page);
@@ -259,6 +268,7 @@ namespace CrossPromotionModule
 				GUI.EndGroup();
 				return false;
 			}
+
 			GUI.EndGroup();
 			return true;
 		}
@@ -289,7 +299,8 @@ namespace CrossPromotionModule
 						{
 							CrossPromotion.allVoteStati[promoMod.m_nPublishedFileId.m_PublishedFileId] = (result2.m_eResult == EResult.k_EResultOK) ? result2.m_bVotedUp : (bool?)null;
 						});
-				}).Start();
+				})
+				.Start();
 			}
 
 			var description = thisMod.m_rgchDescription;
@@ -301,39 +312,37 @@ namespace CrossPromotionModule
 			var imageRect = new Rect(0f, 0f, width, width * mod.PreviewImage.height / mod.PreviewImage.width);
 			var textRect = new Rect(0f, 24f + 10f + imageRect.height, width, Text.CalcHeight(description, width));
 			var innerRect = new Rect(0f, 0f, width, imageRect.height + 20f + 8f + 10f + textRect.height);
+
 			Widgets.BeginScrollView(outRect, ref leftScroll, innerRect, true);
 			GUI.DrawTexture(imageRect, mod.PreviewImage, ScaleMode.ScaleToFit);
 			var widgetRow = new WidgetRow(imageRect.xMax, imageRect.yMax + 8f, UIDirection.LeftThenDown, width, 8f);
 			if (isLocalFile == false)
 			{
-				if (widgetRow.ButtonText("Unsubscribe".Translate(), null, true, true))
+				if (widgetRow.CrossVersionButtonText("Unsubscribe".Translate(), null, true, true))
 				{
-					Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation("ConfirmUnsubscribe".Translate(mod.Name), delegate
+					Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation("ConfirmUnsubscribe".Translate(mod.Name), () =>
 					{
 						mod.enabled = false;
 						new Thread(() =>
 						{
-							_ = AccessTools.Method(typeof(Workshop), "Unsubscribe").Invoke(null, new object[] { mod });
-							_ = AccessTools.Method(typeof(Page_ModsConfig), "Notify_SteamItemUnsubscribed").Invoke(page, new object[] { mainModID });
-						}).Start();
+							Workshop.Unsubscribe(mod);
+							page.Notify_SteamItemUnsubscribed(new PublishedFileId_t(mainModID));
+						})
+						.Start();
 					}, true, null));
 				}
 			}
 			if (isSubbed)
 			{
-				if (widgetRow.ButtonText("WorkshopPage".Translate(), null, true, true))
+				if (widgetRow.CrossVersionButtonText("WorkshopPage".Translate(), null, true, true))
 					SteamUtility.OpenWorkshopPage(new PublishedFileId_t(mainModID));
 			}
 			if (Prefs.DevMode && mod.CanToUploadToWorkshop())
 			{
 				widgetRow = new WidgetRow(imageRect.xMin, imageRect.yMax + 8f, UIDirection.RightThenDown, width, 8f);
-				if (widgetRow.ButtonText("Upload", null, true, true))
-					Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation("ConfirmSteamWorkshopUpload".Translate(), delegate
-					{
-						_ = AccessTools.Method(typeof(Workshop), "Upload").Invoke(null, new object[] { mod });
-					}, true, null));
+				if (widgetRow.CrossVersionButtonText("Upload", null, true, true))
+					Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation("ConfirmSteamWorkshopUpload".Translate(), () => Workshop.Upload(mod), true, null));
 			}
-
 			Widgets.Label(textRect, description);
 			Widgets.EndScrollView();
 		}
@@ -346,7 +355,7 @@ namespace CrossPromotionModule
 			var headerHeight = 30f;
 			var headerRect = new Rect(leftColumn + 10f, -4f, rightColumn - 20f, headerHeight);
 			Text.Anchor = TextAnchor.UpperCenter;
-			Widgets.Label(headerRect, "Mods of " + mod.Author.Replace("Andreas Pardeike", "Brrainz") + ":".Truncate(headerRect.width, null));
+			Widgets.Label(headerRect, "Mods of " + mod.CrossVersionAuthor().Replace("Andreas Pardeike", "Brrainz") + ":".Truncate(headerRect.width, null));
 			Text.Anchor = TextAnchor.UpperLeft;
 
 			var outRect = new Rect(leftColumn + 10f, headerHeight - 4f, rightColumn, mainRect.height - (headerHeight - 4f));
@@ -366,6 +375,7 @@ namespace CrossPromotionModule
 
 				if (height > 0)
 					height += 10f;
+
 				var preview = CrossPromotion.PreviewForMod(promoMod.m_nPublishedFileId.m_PublishedFileId);
 				if (preview != null)
 				{
@@ -424,7 +434,7 @@ namespace CrossPromotionModule
 							{
 								if (isSubbed || isLocalFile)
 								{
-									var orderedMods = (IEnumerable<ModMetaData>)AccessTools.Method(typeof(Page_ModsConfig), "ModsInListOrder").Invoke(page, Array.Empty<object>());
+									var orderedMods = page.ModsInListOrder();
 									page.selectedMod = orderedMods.FirstOrDefault(meta => meta.GetPublishedFileId().m_PublishedFileId == myModID);
 									var modsBefore = orderedMods.ToList().FindIndex(m => m == page.selectedMod);
 									if (modsBefore >= 0)
@@ -435,7 +445,8 @@ namespace CrossPromotionModule
 									{
 										CrossPromotion.subscribingMods.Add(myModID);
 										_ = SteamUGC.SubscribeItem(new PublishedFileId_t(myModID));
-									}).Start();
+									})
+									.Start();
 							}
 							var infoWindow = new Dialog_MessageBox(description, "Close".Translate(), null, actionButton, actionButtonAction, null, false, null, null);
 							Find.WindowStack.Add(infoWindow);
@@ -506,5 +517,32 @@ namespace CrossPromotionModule
 			: base(text, buttonAText, buttonAAction, buttonBText, buttonBAction, title, buttonADestructive, acceptAction, cancelAction) { }
 
 		public override Vector2 InitialSize => new Vector2(320, 240);
+	}
+
+	internal static class CrossVersionMethods
+	{
+		internal static string CrossVersionAuthor(this ModMetaData mod)
+		{
+			var str1 = Traverse.Create(mod).Property("AuthorsString").GetValue<string>();
+			var str2 = Traverse.Create(mod).Property("Author").GetValue<string>();
+			return (str1 ?? str2).Replace("Andreas Pardeike", "Brrainz");
+		}
+
+		private static MethodInfo mButtonText = null;
+		private static object[] buttonTextDefaults = new object[0];
+		internal static bool CrossVersionButtonText(this WidgetRow row, string label, string tooltip = null, bool drawBackground = true, bool doMouseoverSound = true)
+		{
+			if (mButtonText == null)
+			{
+				mButtonText = AccessTools.Method(typeof(WidgetRow), nameof(WidgetRow.ButtonText));
+				buttonTextDefaults = mButtonText.GetParameters().Select(p => p.DefaultValue).ToArray();
+			}
+			var parameters = buttonTextDefaults;
+			parameters[0] = label;
+			parameters[1] = tooltip;
+			parameters[2] = drawBackground;
+			parameters[3] = doMouseoverSound;
+			return (bool)mButtonText.Invoke(row, parameters);
+		}
 	}
 }
