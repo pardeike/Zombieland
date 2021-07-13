@@ -5,10 +5,10 @@ using Verse;
 
 namespace ZombieLand
 {
-    public class Recipe_CureZombieInfection : Recipe_Surgery
+	public class Recipe_CureZombieInfection : Recipe_Surgery
 	{
 		private bool BiteIsCurable(Hediff_Injury_ZombieBite bite)
-        {
+		{
 			var state = bite.TendDuration.GetInfectionState();
 			if (state < InfectionState.BittenInfectable || state > InfectionState.Infecting)
 				return false;
@@ -47,7 +47,7 @@ namespace ZombieLand
 				return;
 
 			var chance = Rand.RangeInclusive(0, 100);
-			var purity = extract.count;
+			var purity = serum.def.defName == "ZombieSerumSimple" ? 100 : extract.count;
 			var failure = chance > purity;
 			var catastrophic = chance > purity + (100 - purity) * 3 / 4;
 

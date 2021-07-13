@@ -26,7 +26,6 @@ namespace ZombieLand
 			map.GetComponent<TickManager>().allZombiesCached
 				.DoIf(zombie => zombie.IsTanky && zombie.Position.DistanceToSquared(pos) <= r2, zombie =>
 				{
-					Log.Warning($"--> {zombie} {zombie.Position}");
 					zombie.hasTankyShield = -1;
 					zombie.hasTankySuit = -1;
 					if (Tools.Difficulty() <= 3)
