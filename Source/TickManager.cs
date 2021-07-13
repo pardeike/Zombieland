@@ -383,11 +383,8 @@ namespace ZombieLand
 
 		public void IncreaseZombiePopulation()
 		{
-			if (ZombieSettings.Values.useDynamicThreatLevel == false)
-			{
-				if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return;
-				if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly) return;
-			}
+			if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return;
+			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly) return;
 
 			if (populationSpawnCounter-- < 0)
 			{
