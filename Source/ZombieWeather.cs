@@ -43,6 +43,11 @@ namespace ZombieLand
 			Scribe_Values.Look(ref o4, "o4");
 		}
 
+		public static float GetThreatLevel(Map map)
+		{
+			return ZombieSettings.Values.useDynamicThreatLevel ? (map?.GetComponent<ZombieWeather>()?.GetFactorFor(0) ?? 1f) : 1f;
+		}
+
 		public float GetFactorForTicks(int ticks, int deltaDays = 0)
 		{
 			if ((ticks - GenTicks.TicksAbs + GenTicks.TicksGame) / (float)GenDate.TicksPerDay <= ZombieSettings.Values.daysBeforeZombiesCome)

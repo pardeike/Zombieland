@@ -220,7 +220,7 @@ namespace ZombieLand
 		public void ZombieTicking()
 		{
 			PrepareThreadedTicking(this);
-			var threatLevel = map.GetComponent<ZombieWeather>()?.GetFactorFor(0) ?? 1f;
+			var threatLevel = ZombieWeather.GetThreatLevel(map);
 			for (var i = 0; i < currentZombiesTicking.Length; i++)
 				currentZombiesTicking[i].CustomTick(threatLevel);
 		}
@@ -243,7 +243,7 @@ namespace ZombieLand
 		{
 			// is being called by many threads at the same time
 			var tickManager = (TickManager)input;
-			var threatLevel = tickManager.map.GetComponent<ZombieWeather>()?.GetFactorFor(0) ?? 1f;
+			var threatLevel = ZombieWeather.GetThreatLevel(tickManager.map);
 			while (true)
 			{
 				var idx = Interlocked.Decrement(ref tickManager.currentZombiesTickingIndex);
@@ -377,7 +377,7 @@ namespace ZombieLand
 
 		public bool CanHaveMoreZombies()
 		{
-			var currentMax = Mathf.FloorToInt(GetMaxZombieCount() * map.GetComponent<ZombieWeather>().GetFactorFor(0));
+			var currentMax = Mathf.FloorToInt(GetMaxZombieCount() * ZombieWeather.GetThreatLevel(map));
 			return ZombieCount() < currentMax;
 		}
 

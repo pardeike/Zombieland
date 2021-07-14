@@ -217,7 +217,7 @@ namespace ZombieLand
 
 				// current threat count + mouseover: forecast
 
-				if (true)
+				if (ZombieSettings.Values.useDynamicThreatLevel)
 				{
 					static string Format(float min, float max)
 					{
@@ -1551,7 +1551,7 @@ namespace ZombieLand
 				}
 
 				var maxCount = tickManager.GetMaxZombieCount();
-				var threatLevel = map.GetComponent<ZombieWeather>().GetFactorFor(0);
+				var threatLevel = ZombieWeather.GetThreatLevel(map);
 				var realCount = Mathf.FloorToInt(maxCount * threatLevel);
 				_ = builder.AppendLine("---");
 				_ = builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
@@ -1559,7 +1559,10 @@ namespace ZombieLand
 				_ = builder.AppendLine("Weapon points: " + colonyPoints[1]);
 				_ = builder.AppendLine("Defense points: " + colonyPoints[2]);
 				_ = builder.AppendLine("Max zombie count: " + maxCount);
-				_ = builder.AppendLine("Zombie threat level: " + Mathf.FloorToInt(10000 * threatLevel) / 100f + "%");
+				if (ZombieSettings.Values.useDynamicThreatLevel)
+					_ = builder.AppendLine("Zombie threat level: " + Mathf.FloorToInt(10000 * threatLevel) / 100f + "%");
+				else
+					_ = builder.AppendLine("Zombie threat level off");
 				_ = builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + realCount);
 
 				_ = builder.AppendLine("");

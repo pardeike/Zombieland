@@ -82,7 +82,7 @@ namespace ZombieLand
 				tickManager.incidentInfo.parameters = new IncidentParameters();
 			var parameters = tickManager.incidentInfo.parameters;
 
-			var currentMax = Mathf.FloorToInt(tickManager.GetMaxZombieCount() * tickManager.map.GetComponent<ZombieWeather>().GetFactorFor(0));
+			var currentMax = Mathf.FloorToInt(tickManager.GetMaxZombieCount() * ZombieWeather.GetThreatLevel(tickManager.map));
 
 			parameters.capableColonists = Tools.CapableColonists(tickManager.map);
 			parameters.daysBeforeZombies = ZombieSettings.Values.daysBeforeZombiesCome;
