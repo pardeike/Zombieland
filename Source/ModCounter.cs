@@ -12,8 +12,8 @@ public static class ModCounter
 		try
 		{
 			var uri = new Uri(baseUrl + "Zombieland");
-			using (var client = new System.Net.WebClient())
-				client.DownloadStringAsync(uri);
+			using var client = new System.Net.WebClient();
+			client.DownloadStringAsync(uri);
 		}
 		catch
 		{
