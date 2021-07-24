@@ -427,6 +427,17 @@ namespace ZombieLand
 							def.castEdgeShadows || def.holdsRoof || def.blockLight;
 					}))
 					.ToHashSet();
+				if (totalRegions.Count == 0)
+				{
+					var spot = IntVec3.Zero;
+					map.mapPawns.FreeColonists.Do(colonist => spot += colonist.Position);
+					var n = map.mapPawns.FreeColonists.Count;
+					spot.x /= n;
+					spot.z /= n;
+					var region = map.regionGrid.GetValidRegionAt(spot);
+					if (region != null)
+						_ = totalRegions.Add(region);
+				}
 				var neighbours = totalRegions.SelectMany(region => region.Neighbors).ToList();
 				PlayerReachableRegions_Iterator(totalRegions, neighbours);
 				cachedPlayerReachableRegions = totalRegions.ToList();
@@ -616,6 +627,11 @@ namespace ZombieLand
 		{
 			if (cell.Standable(map) == false || cell.Fogged(map)) return false;
 
+			var edifice = cell.GetEdifice(map);
+			if (edifice != null && edifice is Building_Door door)
+				if (door.Open == false)
+					return false;
+
 			if (ZombieSettings.Values.spawnHowType == SpawnHowType.FromTheEdges)
 				return true;
 
@@ -753,13 +769,18 @@ namespace ZombieLand
 			return false;
 		}
 
+		public static bool IsDark(this Map map, IntVec3 cell)
+		{
+			return map.glowGrid.PsychGlowAt(cell) == PsychGlow.Dark;
+		}
+
 		public static Predicate<IntVec3> ZombieSpawnLocator(Map map, bool isEvent = false)
 		{
 			if (isEvent || ZombieSettings.Values.spawnWhenType == SpawnWhenType.AllTheTime || ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly)
 				return cell => IsValidSpawnLocation(cell, map);
 
 			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.WhenDark)
-				return cell => IsValidSpawnLocation(cell, map) && map.glowGrid.PsychGlowAt(cell) == PsychGlow.Dark;
+				return cell => IsValidSpawnLocation(cell, map) && map.IsDark(cell);
 
 			Log.Error("Unsupported spawn mode " + ZombieSettings.Values.spawnWhenType);
 			return null;

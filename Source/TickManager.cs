@@ -205,7 +205,7 @@ namespace ZombieLand
 
 		public int GetMaxZombieCount()
 		{
-			if (map == null || map.mapPawns == null) return 0;
+			if (map?.mapPawns == null) return 0;
 			if (Constants.DEBUG_MAX_ZOMBIE_COUNT >= 0) return Constants.DEBUG_MAX_ZOMBIE_COUNT;
 			var colonists = Tools.CapableColonists(map);
 			var perColonistZombieCount = GenMath.LerpDoubleClamped(0f, 4f, 5, 30, Mathf.Sqrt(colonists));
@@ -220,8 +220,9 @@ namespace ZombieLand
 		public void ZombieTicking()
 		{
 			PrepareThreadedTicking(this);
+			var threatLevel = ZombieWeather.GetThreatLevel(map);
 			for (var i = 0; i < currentZombiesTicking.Length; i++)
-				currentZombiesTicking[i].CustomTick();
+				currentZombiesTicking[i].CustomTick(threatLevel);
 		}
 
 		public static void PrepareThreadedTicking(object input)
@@ -242,11 +243,12 @@ namespace ZombieLand
 		{
 			// is being called by many threads at the same time
 			var tickManager = (TickManager)input;
+			var threatLevel = ZombieWeather.GetThreatLevel(tickManager.map);
 			while (true)
 			{
 				var idx = Interlocked.Decrement(ref tickManager.currentZombiesTickingIndex);
 				if (idx < 0) return;
-				tickManager.currentZombiesTicking[idx].CustomTick();
+				tickManager.currentZombiesTicking[idx].CustomTick(threatLevel);
 			}
 		}
 
@@ -375,7 +377,8 @@ namespace ZombieLand
 
 		public bool CanHaveMoreZombies()
 		{
-			return ZombieCount() < GetMaxZombieCount();
+			var currentMax = Mathf.FloorToInt(GetMaxZombieCount() * ZombieWeather.GetThreatLevel(map));
+			return ZombieCount() < currentMax;
 		}
 
 		public void IncreaseZombiePopulation()

@@ -3,6 +3,7 @@ using RimWorld.Planet;
 using System;
 using System.Collections;
 using System.Linq;
+using UnityEngine;
 using Verse;
 using Verse.Sound;
 
@@ -81,6 +82,8 @@ namespace ZombieLand
 				tickManager.incidentInfo.parameters = new IncidentParameters();
 			var parameters = tickManager.incidentInfo.parameters;
 
+			var currentMax = Mathf.FloorToInt(tickManager.GetMaxZombieCount() * ZombieWeather.GetThreatLevel(tickManager.map));
+
 			parameters.capableColonists = Tools.CapableColonists(tickManager.map);
 			parameters.daysBeforeZombies = ZombieSettings.Values.daysBeforeZombiesCome;
 			parameters.totalColonistCount = tickManager.map.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction.OfPlayer).Count();
@@ -90,7 +93,7 @@ namespace ZombieLand
 			parameters.currentZombieCount = tickManager.AllZombies().Count();
 			parameters.numberOfZombiesPerColonist = ZombieSettings.Values.baseNumberOfZombiesinEvent;
 			parameters.colonyMultiplier = ZombieSettings.Values.colonyMultiplier;
-			parameters.maxBaseLevelZombies = tickManager.GetMaxZombieCount() + ZombieGenerator.ZombiesSpawning;
+			parameters.maxBaseLevelZombies = currentMax + ZombieGenerator.ZombiesSpawning;
 			parameters.extendedCount = 0;
 			parameters.maxNumberOfZombies = ZombieSettings.Values.maximumNumberOfZombies;
 			parameters.maxAdditionalZombies = 0;
@@ -215,7 +218,7 @@ namespace ZombieLand
 
 				foreach (var cell in cells)
 				{
-					ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { tickManager.allZombiesCached.Add(zombie); });
+					ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { _ = tickManager.allZombiesCached.Add(zombie); });
 					incidentSize--;
 					zombiesSpawning++;
 					yield return null;

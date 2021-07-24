@@ -156,4 +156,13 @@
 	<AutoAvoidZombiesEnabledDescription>自动避免僵尸，除非殖民者被起草和站立</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>忽略僵尸。 您需要手动控制所有操作</AutoAvoidZombiesDisabledDescription>
 
+	<ThreatLevel>威胁级别</ThreatLevel>
+	<ThreatForecast>威胁预测</ThreatForecast>
+	<Next14Days>未来 14 天</Next14Days>
+	<Next4Quadrums>未来 4 个季度</Next4Quadrums>
+	<UseDynamicThreatLevel>使用动态威胁级别</UseDynamicThreatLevel>
+	<DynamicThreatSmoothness>威胁曲线平滑度</DynamicThreatSmoothness>
+	<DynamicThreatStretch>威胁曲线拉伸</DynamicThreatStretch>
+	<ZombiesDieOnZeroThreat>僵尸在 0% 威胁时死亡</ZombiesDieOnZeroThreat>
+
 </LanguageData>

@@ -175,41 +175,92 @@ namespace ZombieLand
 				var map = Find.CurrentMap;
 				if (map == null) return;
 
+				// current zombie count + mouseover: version
+
 				var tickManager = map.GetComponent<TickManager>();
 				if (tickManager == null) return;
 				var count = tickManager.ZombieCount();
-				if (count == 0) return;
-				var zombieCountString = count + " Zombies";
 				var rightMargin = 7f;
-
-				var zlRect = new Rect(leftX, curBaseY - 24f, width, 24f);
-				Text.Font = GameFont.Small;
-				var len = Text.CalcSize(zombieCountString);
-				zlRect.xMin = zlRect.xMax - Math.Min(leftX, len.x + rightMargin);
-
-				GUI.BeginGroup(zlRect);
-				Text.Anchor = TextAnchor.UpperRight;
-				var rect = zlRect.AtZero();
-				rect.xMax -= rightMargin;
-				var percentRect = rect;
-				percentRect.width *= ZombieTicker.PercentTicking;
-				percentRect.xMin -= 2;
-				percentRect.xMax += 2;
-				percentRect.yMax -= 3;
-				Widgets.DrawRectFast(percentRect, percentageBackground);
-				Widgets.Label(rect, zombieCountString);
-				Text.Anchor = TextAnchor.UpperLeft;
-				GUI.EndGroup();
-
-				TooltipHandler.TipRegion(zlRect, new TipSignal(delegate
+				if (count > 0)
 				{
-					var currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
-					return $"Zombieland v{currentVersion.ToString(4)}";
-				}, 99899));
-				if (Mouse.IsOver(zlRect) && tickManager.allZombiesCached.Count <= 30)
-					tickManager.allZombiesCached.Do(zombie => TargetHighlighter.Highlight(new GlobalTargetInfo(zombie), true, false, false));
+					var zombieCountString = count + " Zombies";
 
-				curBaseY -= zlRect.height;
+					var zlRect = new Rect(leftX, curBaseY - 24f, width, 24f);
+					Text.Font = GameFont.Small;
+					var len = Text.CalcSize(zombieCountString);
+					zlRect.xMin = zlRect.xMax - Math.Min(leftX, len.x + rightMargin);
+
+					GUI.BeginGroup(zlRect);
+					Text.Anchor = TextAnchor.UpperRight;
+					var rect = zlRect.AtZero();
+					rect.xMax -= rightMargin;
+					var percentRect = rect;
+					percentRect.width *= ZombieTicker.PercentTicking;
+					percentRect.xMin -= 2;
+					percentRect.xMax += 2;
+					percentRect.yMax -= 3;
+					Widgets.DrawRectFast(percentRect, percentageBackground);
+					Widgets.Label(rect, zombieCountString);
+					Text.Anchor = TextAnchor.UpperLeft;
+					GUI.EndGroup();
+
+					TooltipHandler.TipRegion(zlRect, new TipSignal(delegate
+					{
+						var currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
+						return $"Zombieland v{currentVersion.ToString(4)}";
+					}, 99799));
+					if (Mouse.IsOver(zlRect) && tickManager.allZombiesCached.Count <= 100)
+						tickManager.allZombiesCached.Do(zombie => TargetHighlighter.Highlight(new GlobalTargetInfo(zombie), true, false, false));
+
+					curBaseY -= zlRect.height;
+				}
+
+				// current threat count + mouseover: forecast
+
+				if (ZombieSettings.Values.useDynamicThreatLevel)
+				{
+					static string Format(float min, float max)
+					{
+						var n1 = Mathf.FloorToInt(min * 100);
+						var n2 = Mathf.FloorToInt(max * 100);
+						if (n1 == n2) return string.Format("{0:D0}%", n1) + " " + "ThreatLevel".Translate();
+						return string.Format("{0:D0}-{1:D0}%", n1, n2) + " " + "ThreatLevel".Translate();
+					}
+
+					var zombieWeather = map.GetComponent<ZombieWeather>();
+					var (min, max) = zombieWeather.GetFactorRangeFor();
+					var zombieWeatherString = Format(min, max);
+					var zlRect = new Rect(leftX, curBaseY - 24f, width, 24f);
+					Text.Font = GameFont.Small;
+					var len = Text.CalcSize(zombieWeatherString);
+					zlRect.xMin = zlRect.xMax - Math.Min(leftX, len.x + rightMargin);
+
+					var over = Mouse.IsOver(zlRect);
+					if (over)
+					{
+						var r = zlRect;
+						r.xMin -= 10;
+						Widgets.DrawHighlight(r);
+					}
+
+					GUI.BeginGroup(zlRect);
+					Text.Anchor = TextAnchor.UpperRight;
+					var rect = zlRect.AtZero();
+					rect.xMax -= rightMargin;
+					Widgets.Label(rect, zombieWeatherString);
+					Text.Anchor = TextAnchor.UpperLeft;
+					GUI.EndGroup();
+
+					if (over)
+					{
+						var winWidth = 720;
+						var winHeight = 320;
+						var bgRect = new Rect(zlRect.xMin - 10 - winWidth, zlRect.yMax - winHeight, winWidth, winHeight);
+						Find.WindowStack.ImmediateWindow(564534346, bgRect, WindowLayer.Super, ZombieWeather.GeneateTooltipDrawer(bgRect.AtZero()), false, false, 1f);
+					}
+
+					curBaseY -= zlRect.height;
+				}
 			}
 		}
 
@@ -787,7 +838,7 @@ namespace ZombieLand
 		{
 			static void Postfix(List<VerbEntry> __result, Pawn ___pawn)
 			{
-				if (___pawn is Zombie zombie && (zombie.IsActiveElectric || zombie.isAlbino))
+				if (___pawn is Zombie zombie && (zombie.isElectrifier || zombie.isAlbino))
 					_ = __result.RemoveAll(entry => entry.verb.GetDamageDef() == Tools.ZombieBiteDamageDef);
 			}
 		}
@@ -1499,12 +1550,20 @@ namespace ZombieLand
 					colonyPoints = Tools.ColonyPoints();
 				}
 
+				var maxCount = tickManager.GetMaxZombieCount();
+				var threatLevel = ZombieWeather.GetThreatLevel(map);
+				var realCount = Mathf.FloorToInt(maxCount * threatLevel);
 				_ = builder.AppendLine("---");
 				_ = builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
 				_ = builder.AppendLine("Colonist points: " + colonyPoints[0]);
 				_ = builder.AppendLine("Weapon points: " + colonyPoints[1]);
 				_ = builder.AppendLine("Defense points: " + colonyPoints[2]);
-				_ = builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + tickManager.GetMaxZombieCount());
+				_ = builder.AppendLine("Max zombie count: " + maxCount);
+				if (ZombieSettings.Values.useDynamicThreatLevel)
+					_ = builder.AppendLine("Zombie threat level: " + Mathf.FloorToInt(10000 * threatLevel) / 100f + "%");
+				else
+					_ = builder.AppendLine("Zombie threat level off");
+				_ = builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + realCount);
 
 				_ = builder.AppendLine("");
 				AccessTools.GetFieldNames(typeof(IncidentParameters)).Do(name =>
@@ -2518,7 +2577,7 @@ namespace ZombieLand
 
 			static readonly MethodInfo m_RenderExtras = SymbolExtensions.GetMethodInfo(() => RenderExtras(null, Vector3.zero));
 
-			// we don't use a postfix so that someone that patches and skips RenderPawnAt will also skip RenderExtras 
+			// we don't use a postfix so that someone that patches and skips RenderPawnAt will also skip RenderExtras
 			static void RenderExtras(PawnRenderer renderer, Vector3 drawLoc)
 			{
 				if (!(renderer.graphics.pawn is Zombie zombie)) return;
@@ -3183,7 +3242,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for making burning zombies keep their fire (even when it rains) 
+		// patch for making burning zombies keep their fire (even when it rains)
 		//
 		[HarmonyPatch(typeof(Fire))]
 		[HarmonyPatch(nameof(Fire.VulnerableToRain))]
@@ -3237,7 +3296,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for excluding burning zombies from total fire count 
+		// patch for excluding burning zombies from total fire count
 		//
 		[HarmonyPatch(typeof(FireWatcher))]
 		[HarmonyPatch(nameof(FireWatcher.UpdateObservations))]
@@ -4245,7 +4304,7 @@ namespace ZombieLand
 		}
 
 		// patches so that zombies do not have needs
-		// 
+		//
 		[HarmonyPatch(typeof(Pawn_NeedsTracker))]
 		[HarmonyPatch(nameof(Pawn_NeedsTracker.AllNeeds), MethodType.Getter)]
 		static class Pawn_NeedsTracker_AllNeeds_Patch

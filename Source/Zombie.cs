@@ -410,7 +410,8 @@ namespace ZombieLand
 				comps[i].CompTick();
 		}
 
-		public void CustomTick()
+		static DamageInfo damageInfo = new DamageInfo(DamageDefOf.Crush, 20f, 20f, -1f, null, null, null, DamageInfo.SourceCategory.ThingOrUnknown, null);
+		public void CustomTick(float threatLevel)
 		{
 			if (!ThingOwnerUtility.ContentsSuspended(ParentHolder) && Map != null)
 			{
@@ -429,6 +430,9 @@ namespace ZombieLand
 
 			if (state == ZombieState.Emerging)
 				HandleRubble();
+
+			if (threatLevel <= 0.002f && ZombieSettings.Values.zombiesDieOnZeroThreat && Rand.Chance(0.002f))
+				_ = TakeDamage(damageInfo);
 		}
 
 		public static Quaternion ZombieAngleAxis(float angle, Vector3 axis, Pawn pawn)

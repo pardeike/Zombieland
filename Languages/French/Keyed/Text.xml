@@ -156,4 +156,13 @@
 	<AutoAvoidZombiesEnabledDescription>Évite automatiquement les zombies, sauf lorsque la personne est mobilisée et debout</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Ignorer les zombies. Vous devez contrôler manuellement toutes les actions</AutoAvoidZombiesDisabledDescription>
 
+	<ThreatLevel>niveau de menace</ThreatLevel>
+	<ThreatForecast>Prévision des menaces</ThreatForecast>
+	<Next14Days>14 prochains jours</Next14Days>
+	<Next4Quadrums>4 prochains trimestres</Next4Quadrums>
+	<UseDynamicThreatLevel>Niveau de menace dynamique</UseDynamicThreatLevel>
+	<DynamicThreatSmoothness>Lissage de la courbe de menace</DynamicThreatSmoothness>
+	<DynamicThreatStretch>Étirement de la courbe de menace</DynamicThreatStretch>
+	<ZombiesDieOnZeroThreat>Zombies meurent au cours de 0% menace</ZombiesDieOnZeroThreat>
+
 </LanguageData>

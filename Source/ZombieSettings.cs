@@ -51,7 +51,7 @@ namespace ZombieLand
 
 	class SettingsGroup : IExposable, ICloneable
 	{
-		public SpawnWhenType spawnWhenType = SpawnWhenType.WhenDark;
+		public SpawnWhenType spawnWhenType = SpawnWhenType.AllTheTime;
 		public SpawnHowType spawnHowType = SpawnHowType.FromTheEdges;
 		public AttackMode attackMode = AttackMode.OnlyHumans;
 		public bool enemiesAttackZombies = true;
@@ -62,6 +62,10 @@ namespace ZombieLand
 		public bool zombiesDieVeryEasily;
 		public int daysBeforeZombiesCome = 3;
 		public int maximumNumberOfZombies = 500;
+		public bool useDynamicThreatLevel = true;
+		public bool zombiesDieOnZeroThreat = true;
+		public float dynamicThreatSmoothness = 2.5f;
+		public float dynamicThreatStretch = 20f;
 		public float colonyMultiplier = 1f;
 		public int baseNumberOfZombiesinEvent = 20;
 		internal int extraDaysBetweenEvents = 0;
@@ -73,7 +77,7 @@ namespace ZombieLand
 		public float albinoChance = 0.01f;
 		public float darkSlimerChance = 0.01f;
 		public float moveSpeedIdle = 0.2f;
-		public float moveSpeedTracking = 0.9f;
+		public float moveSpeedTracking = 0.7f;
 		public bool moveSpeedUpgraded = false;
 		public float damageFactor = 1.0f;
 		public ZombieInstinct zombieInstinct = ZombieInstinct.Normal;

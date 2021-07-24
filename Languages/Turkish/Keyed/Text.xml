@@ -156,4 +156,13 @@
 	<AutoAvoidZombiesEnabledDescription>Koloninin hazırlandığı ve ayakta durduğu durumlar dışında zombileri otomatik olarak önlemek</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Zombileri yoksay. Tüm eylemleri manuel olarak kontrol etmeniz gerekir</AutoAvoidZombiesDisabledDescription>
 
+	<ThreatLevel>tehdit düzeyi</ThreatLevel>
+	<ThreatForecast>Tehdit Tahmini</ThreatForecast>
+	<Next14Days>Önümüzdeki 14 gün</Next14Days>
+	<Next4Quadrums>Sonraki 4 çeyrek</Next4Quadrums>
+	<UseDynamicThreatLevel>Dinamik tehdit düzeyini kullan</UseDynamicThreatLevel>
+	<DynamicThreatSmoothness>Tehdit eğrisi düzgünlüğü</DynamicThreatSmoothness>
+	<DynamicThreatStretch>Tehdit eğrisi esnemesi</DynamicThreatStretch>
+	<ZombiesDieOnZeroThreat>Zombiler %0 tehdit sırasında ölür</ZombiesDieOnZeroThreat>
+
 </LanguageData>

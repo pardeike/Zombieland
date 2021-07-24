@@ -1,5 +1,7 @@
 ﻿using HarmonyLib;
+using RimWorld;
 using Verse;
+using Verse.Sound;
 
 namespace ZombieLand
 {
@@ -19,6 +21,17 @@ namespace ZombieLand
 			var damageDef = new SuicideBombDamage();
 			var radius = 1f + 2f * Tools.Difficulty();
 			GenExplosion.DoExplosion(pos, map, radius, damageDef, null);
+
+			var r2 = (radius - 1) * (radius - 1);
+			map.GetComponent<TickManager>().allZombiesCached
+				.DoIf(zombie => zombie.IsTanky && zombie.Position.DistanceToSquared(pos) <= r2, zombie =>
+				{
+					zombie.hasTankyShield = -1;
+					zombie.hasTankySuit = -1;
+					if (Tools.Difficulty() <= 3)
+						zombie.hasTankyHelmet = -1;
+					SoundDefOf.Crunch.PlayOneShot(SoundInfo.InMap(new TargetInfo(zombie.Position, zombie.Map, false), MaintenanceType.None));
+				});
 		}
 	}
 
