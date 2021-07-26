@@ -121,21 +121,14 @@ namespace ZombieLand
 		{
 			get
 			{
-				switch (GetInfectionState())
+				return GetInfectionState() switch
 				{
-					case InfectionState.BittenNotVisible:
-						return "Zombie infection not yet known";
-
-					case InfectionState.BittenHarmless:
-						return "No zombie infection risk";
-
-					case InfectionState.BittenInfectable:
-						return "Developing zombie infection";
-
-					case InfectionState.Infecting:
-						return (Tools.Difficulty() > 1.5 ? "Uncurable" : "Curable") + " zombie infection";
-				}
-				return null;
+					InfectionState.BittenNotVisible => "Zombie infection not yet known",
+					InfectionState.BittenHarmless => "No zombie infection risk",
+					InfectionState.BittenInfectable => "Developing zombie infection",
+					InfectionState.Infecting => (Tools.Difficulty() > 1.5 ? "Uncurable" : "Curable") + " zombie infection",
+					_ => null,
+				};
 			}
 		}
 

@@ -82,9 +82,8 @@ namespace ZombieLand
 			}
 		}
 
-#pragma warning disable CS0672
-		public override void CompTended(float quality, int batchPosition = 0)
-#pragma warning restore CS0672
+		// TODO: use maxQuality, batchPosition ?
+		public override void CompTended(float quality, float maxQuality, int batchPosition = 0)
 		{
 			if (ZombieSettings.Values.anyTreatmentStopsInfection)
 				MakeHarmless();
@@ -113,16 +112,6 @@ namespace ZombieLand
 			if (Rand.Chance(quality))
 				MakeHarmless();
 		}
-
-#if RW11
-#else
-		public override void CompTended_NewTemp(float quality, float maxQuality, int batchPosition = 0)
-		{
-#pragma warning disable CS0618
-			CompTended(quality, batchPosition);
-#pragma warning restore CS0618
-		}
-#endif
 
 		public override string CompDebugString()
 		{

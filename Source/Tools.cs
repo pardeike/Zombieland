@@ -168,9 +168,9 @@ namespace ZombieLand
 		public static string SafeTranslate(this string key, params object[] args)
 		{
 			if (key == null) return "";
-#pragma warning disable CS0618
-			return key.Translate(args);
-#pragma warning restore CS0618
+			// TODO: no label on NamedArgument(.., "") ?
+			var namedArgs = args.Select(arg => new NamedArgument(arg, "")).ToArray();
+			return key.Translate(namedArgs);
 		}
 
 		public static long Ticks()
@@ -178,14 +178,7 @@ namespace ZombieLand
 			return 1000L * GenTicks.TicksAbs;
 		}
 
-		public static float Difficulty()
-		{
-#if RW11
-			return Find.Storyteller.difficulty.difficulty;
-#else
-			return Find.Storyteller.difficultyValues.threatScale;
-#endif
-		}
+		public static float Difficulty() => Find.Storyteller.difficulty.threatScale;
 
 		public static int PheromoneFadeoff()
 		{
@@ -325,76 +318,6 @@ namespace ZombieLand
 			return pawn.workSettings.WorkIsActive(WorkTypeDefOf.Hunting) && pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation);
 		}
 
-		/*public static bool CanPathTo(this Zombie zombie, IntVec3 cell)
-		{
-			var path = zombie.Map.pathFinder.FindPath(zombie.Position, cell, zombie, PathEndMode.InteractionCell);
-			var result = path != PawnPath.NotFound;
-			path.ReleaseToPool();
-			return result;
-		}*/
-
-		/*public static List<Zombie> NearByZombiesSorted(Pawn pawn, IntVec3 center, int radius, bool ignoreDowned, bool sortByDistance, bool usePathing)
-		{
-			var maxDistance = radius * radius;
-			var map = pawn.Map;
-
-			var tp = TraverseParms.For(pawn, Danger.Deadly, TraverseMode.NoPassClosedDoors, false);
-			var zombies = new List<Zombie>();
-			var cx = center.x;
-			var cz = center.z;
-			int distanceSquared(int px, int pz) => (cx - px) * (cx - px) + (cz - pz) * (cz - pz);
-
-			bool regionValidator(Region from, Region to)
-			{
-				if (to.Allows(tp, false) == false)
-					return false;
-				return true;
-			}
-
-			bool regionProcessor(Region r)
-			{
-				var zombie = r.ListerThings.ThingsOfDef(CustomDefs.Zombie).OfType<Zombie>().FirstOrDefault();
-				if (zombie != null)
-				{
-					var pos = zombie.Position;
-					if (distanceSquared(pos.x, pos.z) <= maxDistance)
-						if (ignoreDowned || zombie.health.Downed == false)
-							zombies.Add(zombie);
-				}
-				return false;
-			}
-
-			RegionTraverser.BreadthFirstTraverse(center, map, regionValidator, regionProcessor, 25, RegionType.Set_Passable);
-			if (sortByDistance)
-				zombies.Sort(new DistanceComparer(center));
-
-			if (usePathing)
-				_ = zombies.RemoveAll(zombie => zombie.CanPathTo(center) == false);
-
-			return zombies;
-		}*/
-
-		/*public static Zombie NearestZombie(Pawn pawn, IntVec3 cell, int radius, bool ignoreDowned = false)
-		{
-			var zombies = NearByZombiesSorted(pawn, cell, radius, ignoreDowned, true, false);
-			return zombies.FirstOrDefault(zombie => zombie.CanPathTo(cell);
-		}*/
-
-		/*public static IntVec3 ZombiesNearby(Pawn pawn, IntVec3 destination, bool ignoreDowned = false)
-		{
-			var tp = TraverseParms.For(pawn, Danger.Deadly, TraverseMode.ByPawn, false);
-			var foundZombie = IntVec3.Invalid;
-			RegionTraverser.BreadthFirstTraverse(destination, pawn.Map, (Region from, Region to) => to.Allows(tp, false), delegate (Region r)
-			{
-				var zombie = r.ListerThings.ThingsOfDef(CustomDefs.Zombie).OfType<Zombie>().FirstOrDefault();
-				if (zombie != null && (ignoreDowned || zombie.health.Downed == false))
-					foundZombie = zombie.Position;
-				return foundZombie.IsValid;
-
-			}, 25, RegionType.Set_Passable);
-			return foundZombie;
-		}*/
-
 		public static void PlayerReachableRegions_Iterator(HashSet<Region> knownRegions, List<Region> regions)
 		{
 			var newRegions = regions.Except(knownRegions).ToList();
@@ -418,7 +341,7 @@ namespace ZombieLand
 				var f = Faction.OfPlayer;
 				var totalRegions = map.regionGrid.allRooms
 					.Where(room => room.IsHuge == false && room.Fogged == false)
-					.SelectMany(room => room.regions)
+					.SelectMany(room => room.Regions)
 					.Where(region => region.listerThings.AllThings.Any(thing =>
 					{
 						if (thing.Faction != f) return false;
@@ -668,7 +591,8 @@ namespace ZombieLand
 			if (dest.x < 0 || dest.x >= size.x || dest.z < 0 || dest.z >= size.z) return false;
 			if (map.edificeGrid[dest] is Building_Door door && door.Open == false) return false;
 			var idx = map.cellIndices.CellToIndex(dest);
-			if (map.pathGrid.pathGrid[idx] >= 10000) return false;
+			var pathGrid = map.pathing.For(pawn).pathGrid;
+			if (pathGrid.pathGrid[idx] >= 10000) return false;
 			return true;
 			// For now, we disable this to gain execution speed
 			//return map.terrainGrid.topGrid[idx].DoesRepellZombies() == false;
@@ -950,13 +874,12 @@ namespace ZombieLand
 			return terrainDef.IsWater;
 		}
 
-		static readonly FieldRef<Building_TurretGun, CompPowerTrader> powerComp = FieldRefAccess<Building_TurretGun, CompPowerTrader>("powerComp");
 		public static int[] ColonyPoints()
 		{
 			static float dangerPoints(Building building)
 			{
 				if (building is Building_TurretGun turretGun)
-					return DPS(turretGun) * ((powerComp(turretGun)?.PowerOn ?? false) ? 1 : 0.5f);
+					return DPS(turretGun) * ((turretGun.powerComp?.PowerOn ?? false) ? 1 : 0.5f);
 				if (building is Building_Turret turret)
 					return DPS(turret);
 				if (building is IAttackTargetSearcher searcher)

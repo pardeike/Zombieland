@@ -23,29 +23,27 @@ namespace ZombieLand
 			if (atlas.LoadImage(File.ReadAllBytes(textureRoot + "Parts.png")) == false)
 				return;
 
-			using (var reader = new StreamReader(textureRoot + "Parts.cvs"))
+			using var reader = new StreamReader(textureRoot + "Parts.cvs");
+			var listA = new List<string>();
+			var listB = new List<string>();
+			while (!reader.EndOfStream)
 			{
-				var listA = new List<string>();
-				var listB = new List<string>();
-				while (!reader.EndOfStream)
+				var line = reader.ReadLine();
+				var vals = line.Split(',');
+				if (vals.Count() != 5) continue;
+
+				var x = int.Parse(vals[0]);
+				var y = int.Parse(vals[1]);
+				var w = int.Parse(vals[2]);
+				var h = int.Parse(vals[3]);
+				var name = vals[4];
+
+				var pixels = atlas.GetPixels(x, y, w, h);
+				AllImages.Add(new AtlasImage()
 				{
-					var line = reader.ReadLine();
-					var vals = line.Split(',');
-					if (vals.Count() != 5) continue;
-
-					var x = int.Parse(vals[0]);
-					var y = int.Parse(vals[1]);
-					var w = int.Parse(vals[2]);
-					var h = int.Parse(vals[3]);
-					var name = vals[4];
-
-					var pixels = atlas.GetPixels(x, y, w, h);
-					AllImages.Add(new AtlasImage()
-					{
-						path = name,
-						data = new ColorData(w, h, pixels)
-					});
-				}
+					path = name,
+					data = new ColorData(w, h, pixels)
+				});
 			}
 		}
 	}

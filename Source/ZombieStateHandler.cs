@@ -173,8 +173,8 @@ namespace ZombieLand
 					var powerNet = building?.PowerComp?.PowerNet;
 					if (powerNet != null && building.IsBurning() == false)
 					{
-						_ = MoteMaker.MakeStaticMote(building.TrueCenter(), building.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
-						MoteMaker.ThrowDustPuff(building.TrueCenter(), building.Map, Rand.Range(0.8f, 1.2f));
+						FleckMaker.Static(building.TrueCenter(), building.Map, FleckDefOf.ExplosionFlash, 12f);
+						FleckMaker.ThrowDustPuff(building.TrueCenter(), building.Map, Rand.Range(0.8f, 1.2f));
 
 						if (powerNet.batteryComps.Any((CompPowerBattery x) => x.StoredEnergy > 20f))
 						{
@@ -919,7 +919,8 @@ namespace ZombieLand
 			job.maxNumMeleeAttacks = 1;
 			job.maxNumStaticAttacks = 1;
 			job.expiryInterval = 600;
-			job.canBash = true;
+			job.canBashDoors = true;
+			job.canBashFences = true;
 			zombie.jobs.StartJob(job, JobCondition.Succeeded, null, true, false, null, null);
 		}
 

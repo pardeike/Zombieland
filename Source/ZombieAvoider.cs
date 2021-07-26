@@ -133,10 +133,11 @@ namespace ZombieLand
 			return queue.Dequeue();
 		}
 
+		static TraverseParms traverseParms = TraverseParms.For(TraverseMode.PassDoors, Danger.None, false, true, false);
 		static void GenerateCells(Map map, List<ZombieCostSpecs> specs, int[] costCells, FloodFiller filler)
 		{
 			var mapSizeX = map.Size.x;
-			var pathGrid = map.pathGrid;
+			var pathGrid = map.pathing.For(traverseParms).pathGrid;
 			var cardinals = GenAdj.CardinalDirections;
 
 			foreach (var spec in specs)

@@ -451,7 +451,7 @@ namespace ZombieLand
 			return result;
 		}
 
-		public void Render(PawnRenderer renderer, Vector3 drawLoc, RotDrawMode bodyDrawType)
+		public void Render(PawnRenderer renderer, Vector3 drawLoc)
 		{
 			drawLoc.x = (int)(drawLoc.x) + 0.5f;
 
@@ -459,7 +459,8 @@ namespace ZombieLand
 			if (progress >= Constants.EMERGE_DELAY)
 			{
 				var bodyOffset = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, -0.45f, 0, progress);
-				renderer.RenderPawnInternal(drawLoc + new Vector3(0, 0, bodyOffset), 0f, true, Rot4.South, Rot4.South, bodyDrawType, false, false, false);
+				var flags = PawnRenderFlags.DrawNow; // TODO: what flags to use and is RenderPawnInternal actually correct usage here?
+				renderer.RenderPawnInternal(drawLoc + new Vector3(0, 0, bodyOffset), 0f, true, Rot4.South, renderer.CurRotDrawMode, flags);
 			}
 
 			RenderRubble(drawLoc);
