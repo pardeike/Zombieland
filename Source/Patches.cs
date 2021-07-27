@@ -767,14 +767,14 @@ namespace ZombieLand
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
 				var m_SkipMissingShotsAtZombies = SymbolExtensions.GetMethodInfo(() => SkipMissingShotsAtZombies(null, null));
-				var f_forcedMissRadius = typeof(VerbProperties).Field(nameof(VerbProperties.forcedMissRadius));
+				var p_forcedMissRadius = AccessTools.DeclaredPropertyGetter(typeof(VerbProperties), nameof(VerbProperties.ForcedMissRadius));
 				var f_canHitNonTargetPawnsNow = AccessTools.DeclaredField(typeof(Verb), "canHitNonTargetPawnsNow");
 				var f_currentTarget = typeof(Verb).Field("currentTarget");
 
 				var skipLabel = generator.DefineLabel();
 				var inList = instructions.ToList();
 
-				var idx1 = inList.FirstIndexOf(instr => instr.LoadsField(f_forcedMissRadius));
+				var idx1 = inList.FirstIndexOf(instr => instr.Calls(p_forcedMissRadius));
 				if (idx1 > 0 && idx1 < inList.Count())
 				{
 					var jumpToIndex = -1;
@@ -875,8 +875,8 @@ namespace ZombieLand
 					else
 						shieldBelt.Destroy();
 
-					_ = MoteMaker.MakeStaticMote(pawn.TrueCenter(), pawn.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
-					MoteMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
+					FleckMaker.Static(pawn.TrueCenter(), pawn.Map, FleckDefOf.ExplosionFlash, 12f);
+					FleckMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
 					zombie.ElectrifyAnimation();
 					return;
 				}
@@ -903,8 +903,8 @@ namespace ZombieLand
 					var damage = new DamageInfo(DamageDefOf.Deterioration, amount);
 					_ = stuff.TakeDamage(damage);
 
-					_ = MoteMaker.MakeStaticMote(pawn.TrueCenter(), pawn.Map, ThingDefOf.Mote_ExplosionFlash, 12f);
-					MoteMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
+					FleckMaker.Static(pawn.TrueCenter(), pawn.Map, FleckDefOf.ExplosionFlash, 12f);
+					FleckMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
 					zombie.ElectrifyAnimation();
 				}
 			}
@@ -966,7 +966,7 @@ namespace ZombieLand
 
 		[HarmonyPatch(typeof(PathFinder))]
 		[HarmonyPatch(nameof(PathFinder.FindPath))]
-		[HarmonyPatch(new Type[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(TraverseParms), typeof(PathEndMode) })]
+		[HarmonyPatch(new Type[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(TraverseParms), typeof(PathEndMode), typeof(PathFinderCostTuning) })]
 		public static class PathFinder_FindPath_Patch
 		{
 			public static Dictionary<Map, TickManager> tickManagerCache = new Dictionary<Map, TickManager>();
@@ -1384,7 +1384,7 @@ namespace ZombieLand
 			static IEnumerable<MethodBase> TargetMethods()
 			{
 				return GenTypes.AllSubclasses(typeof(WorkGiver_Scanner))
-				.Select(type => type.GetMethod("JobOnCell", AccessTools.all | BindingFlags.DeclaredOnly))
+				.Select(type => type.GetMethod(nameof(WorkGiver_Scanner.JobOnCell), AccessTools.all | BindingFlags.DeclaredOnly))
 				.Where(method => method != null)
 				.Cast<MethodBase>();
 			}
@@ -1428,7 +1428,7 @@ namespace ZombieLand
 			static IEnumerable<MethodBase> TargetMethods()
 			{
 				return GenTypes.AllSubclasses(typeof(WorkGiver_Scanner))
-				.Select(type => type.GetMethod("HasJobOnThing", AccessTools.all | BindingFlags.DeclaredOnly))
+				.Select(type => type.GetMethod(nameof(WorkGiver_Scanner.HasJobOnThing), AccessTools.all | BindingFlags.DeclaredOnly))
 				.Where(method => method != null)
 				.Cast<MethodBase>();
 			}
@@ -1472,7 +1472,7 @@ namespace ZombieLand
 			static IEnumerable<MethodBase> TargetMethods()
 			{
 				return GenTypes.AllSubclasses(typeof(WorkGiver_Scanner))
-				.Select(type => type.GetMethod("JobOnThing", AccessTools.all | BindingFlags.DeclaredOnly))
+				.Select(type => type.GetMethod(nameof(WorkGiver_Scanner.JobOnThing), AccessTools.all | BindingFlags.DeclaredOnly))
 				.Where(method => method != null)
 				.Cast<MethodBase>();
 			}
@@ -1689,13 +1689,14 @@ namespace ZombieLand
 				var factionDefs = ___allFactions.Select(f => f.def).ToList();
 				if (factionDefs.Contains(ZombieDefOf.Zombies) == false)
 				{
-					var zombies = FactionGenerator.NewGeneratedFaction(ZombieDefOf.Zombies);
+					var parms = new FactionGeneratorParms(ZombieDefOf.Zombies);
+					var zombies = FactionGenerator.NewGeneratedFaction(parms);
 					foreach (var faction in ___allFactions)
 					{
 						var rel1 = new FactionRelation()
 						{
 							other = faction,
-							goodwill = 0,
+							baseGoodwill = 0,
 							kind = FactionRelationKind.Hostile
 						};
 						zombies.relations.Add(rel1);
@@ -1703,7 +1704,7 @@ namespace ZombieLand
 						var rel2 = new FactionRelation()
 						{
 							other = zombies,
-							goodwill = 0,
+							baseGoodwill = 0,
 							kind = FactionRelationKind.Hostile
 						};
 						faction.relations.Add(rel2);
@@ -2326,7 +2327,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(PawnRenderer))]
 		[HarmonyPatch(nameof(PawnRenderer.RenderPawnInternal))]
-		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(float), typeof(bool), typeof(Rot4), typeof(Rot4), typeof(RotDrawMode), typeof(bool), typeof(bool), typeof(bool) })]
+		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(float), typeof(bool), typeof(Rot4), typeof(RotDrawMode), typeof(PawnRenderFlags) })]
 		static class PawnRenderer_RenderPawnInternal_Patch
 		{
 			static Vector3 toxicAuraOffset = new Vector3(0f, 0f, 0.1f);
@@ -2487,7 +2488,7 @@ namespace ZombieLand
 
 		[HarmonyPatch(typeof(PawnRenderer))]
 		[HarmonyPatch(nameof(PawnRenderer.RenderPawnAt))]
-		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(RotDrawMode), typeof(bool), typeof(bool) })]
+		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(Rot4?), typeof(bool) })]
 		static class PawnRenderer_RenderPawnAt_Patch
 		{
 			static readonly float moteAltitute = Altitudes.AltitudeFor(AltitudeLayer.MoteOverhead);
@@ -2506,7 +2507,7 @@ namespace ZombieLand
 			static readonly Mesh shieldMesh_flipped = MeshPool.GridPlaneFlip(new Vector2(2f, 2f));
 
 			[HarmonyPriority(Priority.First)]
-			static bool Prefix(PawnRenderer __instance, Vector3 drawLoc, RotDrawMode bodyDrawType)
+			static bool Prefix(PawnRenderer __instance, Vector3 drawLoc)
 			{
 				if (!(__instance.graphics.pawn is Zombie zombie)) return true;
 
@@ -2528,7 +2529,7 @@ namespace ZombieLand
 
 				if (zombie.state == ZombieState.Emerging)
 				{
-					zombie.Render(__instance, drawLoc, bodyDrawType);
+					zombie.Render(__instance, drawLoc);
 					return false;
 				}
 
@@ -2577,7 +2578,7 @@ namespace ZombieLand
 
 			static readonly MethodInfo m_RenderExtras = SymbolExtensions.GetMethodInfo(() => RenderExtras(null, Vector3.zero));
 
-			// we don't use a postfix so that someone that patches and skips RenderPawnAt will also skip RenderExtras 
+			// we don't use a postfix so that someone that patches and skips RenderPawnAt will also skip RenderExtras
 			static void RenderExtras(PawnRenderer renderer, Vector3 drawLoc)
 			{
 				if (!(renderer.graphics.pawn is Zombie zombie)) return;
@@ -2823,18 +2824,18 @@ namespace ZombieLand
 			public static bool suppressError = false;
 			public static bool textureError = false;
 
-			static void Error(string text, bool ignoreStopLoggingLimit)
+			static void Error(string text)
 			{
 				textureError = true;
 				if (suppressError == false)
-					Log.Error(text, ignoreStopLoggingLimit);
+					Log.Error(text);
 			}
 
 			[HarmonyPriority(Priority.First)]
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				var m1 = SymbolExtensions.GetMethodInfo(() => Log.Error("", false));
-				var m2 = SymbolExtensions.GetMethodInfo(() => Error("", false));
+				var m1 = SymbolExtensions.GetMethodInfo(() => Log.Error(""));
+				var m2 = SymbolExtensions.GetMethodInfo(() => Error(""));
 				return Transpilers.MethodReplacer(instructions, m1, m2);
 			}
 		}
@@ -2843,7 +2844,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(Verb))]
 		[HarmonyPatch(nameof(Verb.TryStartCastOn))]
-		[HarmonyPatch(new Type[] { typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(bool), typeof(bool) })]
+		[HarmonyPatch(new Type[] { typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(bool), typeof(bool), typeof(bool) })]
 		static class Verb_TryStartCastOn_Patch
 		{
 			static int ModifyTicks(float seconds, Verb verb)
@@ -3242,7 +3243,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for making burning zombies keep their fire (even when it rains) 
+		// patch for making burning zombies keep their fire (even when it rains)
 		//
 		[HarmonyPatch(typeof(Fire))]
 		[HarmonyPatch(nameof(Fire.VulnerableToRain))]
@@ -3296,7 +3297,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for excluding burning zombies from total fire count 
+		// patch for excluding burning zombies from total fire count
 		//
 		[HarmonyPatch(typeof(FireWatcher))]
 		[HarmonyPatch(nameof(FireWatcher.UpdateObservations))]
@@ -4205,7 +4206,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(Projectile))]
 		[HarmonyPatch(nameof(Projectile.Launch))]
-		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(ProjectileHitFlags), typeof(Thing), typeof(ThingDef) })]
+		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Vector3), typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(ProjectileHitFlags), typeof(bool), typeof(Thing), typeof(ThingDef) })]
 		public static class Projectile_Launch_Patch
 		{
 			static void Postfix(Thing launcher, Vector3 origin, LocalTargetInfo usedTarget)
@@ -4304,7 +4305,7 @@ namespace ZombieLand
 		}
 
 		// patches so that zombies do not have needs
-		// 
+		//
 		[HarmonyPatch(typeof(Pawn_NeedsTracker))]
 		[HarmonyPatch(nameof(Pawn_NeedsTracker.AllNeeds), MethodType.Getter)]
 		static class Pawn_NeedsTracker_AllNeeds_Patch
@@ -4481,7 +4482,7 @@ namespace ZombieLand
 		{
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
 			{
-				var m_TryGainMemory = typeof(MemoryThoughtHandler).MethodNamed("TryGainMemory", new Type[] { typeof(ThoughtDef), typeof(Pawn) });
+				var m_TryGainMemory = typeof(MemoryThoughtHandler).MethodNamed(nameof(MemoryThoughtHandler.TryGainMemory), new Type[] { typeof(ThoughtDef), typeof(Pawn), typeof(Precept) });
 				var f_pawn = typeof(Pawn_HealthTracker).Field("pawn");
 
 				var found1 = false;
@@ -4552,7 +4553,7 @@ namespace ZombieLand
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				var from = typeof(Widgets).MethodNamed("DrawAtlas", new Type[] { typeof(Rect), typeof(Texture2D) });
+				var from = typeof(Widgets).MethodNamed(nameof(Widgets.DrawAtlas), new Type[] { typeof(Rect), typeof(Texture2D) });
 				var to = SymbolExtensions.GetMethodInfo(() => NewDrawAtlas(Rect.zero, null, null));
 
 				var found = false;

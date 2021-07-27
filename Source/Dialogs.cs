@@ -401,7 +401,7 @@ namespace ZombieLand
 				.SelectMany(map => map.areaManager.AllAreas
 				.Where(area => area.Mutable)
 				.OrderBy(area => area.ListPriority)
-				.Select(area => (map, area: area)))
+				.Select(area => (map, area)))
 				.Select(pair => multiMap ? $"{pair.area.Label}:{pair.map.Index + 1}" : pair.area.Label)
 				.ToList();
 			list.Gap(-2f);

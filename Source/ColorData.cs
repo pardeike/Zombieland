@@ -62,7 +62,7 @@ namespace ZombieLand
 
 		public Rect MinimumFrame()
 		{
-			bool alphaCheck(Color c) => c.a != 0f;
+			static bool alphaCheck(Color c) => c.a != 0f;
 
 			var x1 = 0;
 			var y1 = 0;

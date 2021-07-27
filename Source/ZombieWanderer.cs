@@ -54,12 +54,13 @@ namespace ZombieLand
 			new int[] { 3, 0, 1, 2 }
 		};
 
+		static TraverseParms traverseParms = TraverseParms.For(TraverseMode.NoPassClosedDoorsOrWater, Danger.Deadly, true, false, true);
 		public MapInfo(Map map)
 		{
 			mapSizeX = map.Size.x;
 			mapSizeZ = map.Size.z;
 			mapSize = mapSizeX * mapSizeZ;
-			pathGrid = map.pathGrid;
+			pathGrid = map.pathing.For(traverseParms).pathGrid;
 			edificeGrid = map.edificeGrid;
 			terrainGrid = map.terrainGrid;
 

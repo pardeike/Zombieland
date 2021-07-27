@@ -1,0 +1,414 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<ThingDef ParentName="ApparelBase">
+		<defName>Apparel_BombVest</defName>
+		<thingClass>ZombieLand.BombVest</thingClass>
+		<label>bomb vest</label>
+		<description>A vest with explosives.</description>
+		<techLevel>Archotech</techLevel>
+		<tickerType>Never</tickerType>
+		<tradeNeverStack>true</tradeNeverStack>
+		<tradeability>None</tradeability>
+		<generateCommonality>0</generateCommonality>
+		<generateAllowChance>0</generateAllowChance>
+		<scatterableOnMapGen>false</scatterableOnMapGen>
+		<forceDebugSpawnable>false</forceDebugSpawnable>
+		<destroyOnDrop>true</destroyOnDrop>
+		<!--<hidden>true</hidden>-->
+		<selectable>false</selectable>
+		<smeltable>false</smeltable>
+		<useHitPoints>false</useHitPoints>
+		<drawGUIOverlay>false</drawGUIOverlay>
+		<alwaysHaulable>false</alwaysHaulable>
+		<graphicData>
+			<texPath>BombVest/BombVest</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
+		<statBases>
+			<DeteriorationRate>0</DeteriorationRate>
+			<Flammability>0</Flammability>
+		</statBases>
+		<apparel>
+			<wornGraphicPath>BombVest/BombVest</wornGraphicPath>
+			<layers>
+				<li>Shell</li>
+			</layers>
+		</apparel>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseFilth">
+		<defName>TarSlime</defName>
+		<thingClass>ZombieLand.TarSlime</thingClass>
+		<label>super sticky slime</label>
+		<statBases>
+			<Beauty>-10</Beauty>
+			<Cleanliness>-10</Cleanliness>
+		</statBases>
+		<graphicData>
+			<texPath>Dummy</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
+		<altitudeLayer>FloorEmplacement</altitudeLayer>
+		<pathCost>8399</pathCost>
+		<pathCostIgnoreRepeat>false</pathCostIgnoreRepeat>
+		<size>(1,1)</size>
+		<filth>
+			<cleaningWorkToReduceThickness>4000</cleaningWorkToReduceThickness>
+			<rainWashes>true</rainWashes>
+			<canFilthAttach>false</canFilthAttach>
+			<allowsFire>false</allowsFire>
+			<maxThickness>4</maxThickness>
+		</filth>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseGas">
+		<defName>TarSmoke</defName>
+		<label>smoke</label>
+		<graphicData>
+			<texPath>TarSmoke</texPath>
+			<drawSize>2.5</drawSize>
+			<color>(0,0,0,0.5)</color>
+		</graphicData>
+		<gas>
+			<expireSeconds>10~60</expireSeconds>
+			<blockTurretTracking>true</blockTurretTracking>
+			<accuracyPenalty>1</accuracyPenalty>
+			<rotationSpeed>10</rotationSpeed>
+		</gas>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseFilth">
+		<defName>StickyGoo</defName>
+		<thingClass>ZombieLand.StickyGoo</thingClass>
+		<label>toxic &amp; sticky zombie goo</label>
+		<statBases>
+			<Beauty>-10</Beauty>
+			<Cleanliness>-10</Cleanliness>
+		</statBases>
+		<graphicData>
+			<texPath>StickyGoo</texPath>
+			<color>(0, 255, 0, 192)</color>
+		</graphicData>
+		<pathCost>10</pathCost>
+		<filth>
+			<cleaningWorkToReduceThickness>250</cleaningWorkToReduceThickness>
+			<rainWashes>true</rainWashes>
+			<canFilthAttach>true</canFilthAttach>
+		</filth>
+	</ThingDef>
+
+	<ThingDef ParentName="ResourceBase">
+		<defName>ZombieExtract</defName>
+		<thingClass>ZombieLand.ZombieExtract</thingClass>
+		<label>zombie extract</label>
+		<description>Small amount of extract from a dead zombie. Combine up to 100 extract to craft a drug called Zombie Serum that is used in operations on infected body parts.</description>
+		<graphicData>
+			<graphicClass>Graphic_Single</graphicClass>
+			<texPath>ZombieExtract</texPath>
+		</graphicData>
+		<stackLimit>100</stackLimit>
+		<statBases>
+			<MarketValue>10</MarketValue>
+			<Mass>0.005</Mass>
+			<MaxHitPoints>1</MaxHitPoints>
+			<Flammability>0.2</Flammability>
+			<Nutrition>0</Nutrition>
+			<WorkToMake>1000</WorkToMake>
+		</statBases>
+		<tradeability>Sellable</tradeability>
+		<tradeTags>
+			<li>ExoticMisc</li>
+		</tradeTags>
+		<thingCategories>
+			<li>ZombieSerum</li>
+		</thingCategories>
+		<tickerType>Rare</tickerType>
+		<resourceReadoutPriority>First</resourceReadoutPriority>
+	</ThingDef>
+
+	<ThingDef ParentName="UnfinishedBase">
+		<defName>UnfinishedZombieSerum</defName>
+		<label>unfinished zombie serum</label>
+		<statBases>
+			<Flammability>0.7</Flammability>
+		</statBases>
+		<graphicData>
+			<graphicClass>Graphic_Single</graphicClass>
+			<texPath>ZombieSerum/Unfinished</texPath>
+		</graphicData>
+		<stuffCategories Inherit="false" />
+	</ThingDef>
+
+	<ThingDef Name="ZombieSerumBase" ParentName="ResourceBase" Abstract="True">
+		<thingClass>ZombieLand.ZombieSerum</thingClass>
+		<stackLimit>10</stackLimit>
+		<uiIconForStackCount>1</uiIconForStackCount>
+		<soundInteract>Standard_Drop</soundInteract>
+		<soundDrop>Standard_Drop</soundDrop>
+		<graphicData>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
+		<techLevel>Neolithic</techLevel>
+		<statBases>
+			<Mass>0.5</Mass>
+			<Flammability>0.7</Flammability>
+			<MedicalPotency>1000</MedicalPotency>
+			<MedicalQualityMax>1</MedicalQualityMax>
+			<MaxHitPoints>60</MaxHitPoints>
+		</statBases>
+		<tradeability>Sellable</tradeability>
+		<tradeTags>
+			<li>ExoticMisc</li>
+		</tradeTags>
+		<thingCategories>
+			<li>ZombieSerum</li>
+		</thingCategories>
+		<tickerType>Rare</tickerType>
+		<resourceReadoutPriority>First</resourceReadoutPriority>
+	</ThingDef>
+
+	<ThingDef Name="ZombieSerumCore" ParentName="ZombieSerumBase" Abstract="True">
+		<techLevel>Industrial</techLevel>
+		<recipeMaker>
+			<unfinishedThingDef>UnfinishedZombieSerum</unfinishedThingDef>
+			<workSpeedStat>DrugSynthesisSpeed</workSpeedStat>
+			<workSkill>Medicine</workSkill>
+			<soundWorking>Recipe_Drug</soundWorking>
+			<effectWorking>BurnDrug</effectWorking>
+			<recipeUsers>
+				<li>DrugLab</li>
+			</recipeUsers>
+			<skillRequirements>
+				<Crafting>3</Crafting>
+				<Intellectual>4</Intellectual>
+			</skillRequirements>
+		</recipeMaker>
+	</ThingDef>
+
+	<ThingDef name="ZombieSerumSimple" ParentName="ZombieSerumBase">
+		<defName>ZombieSerumSimple</defName>
+		<label>zombie serum 100%</label>
+		<description>Pure serum from dead zombies that guaranteed cures zombie infections during operations</description>
+		<graphicData>
+			<texPath>ZombieSerum/ZombieSerum100</texPath>
+		</graphicData>
+		<statBases>
+			<MarketValue>120</MarketValue>
+			<DeteriorationRate>2</DeteriorationRate>
+			<SurgerySuccessChanceFactor>1</SurgerySuccessChanceFactor>
+		</statBases>
+		<tradeability>None</tradeability>
+	</ThingDef>
+
+	<ThingDef name="Zombie10Serum" ParentName="ZombieSerumCore">
+		<defName>Zombie10Serum</defName>
+		<label>zombie serum 10%</label>
+		<description>Serum from dead zombies that cures zombie infections during operations (10% success rate)</description>
+		<graphicData>
+			<texPath>ZombieSerum/ZombieSerum10</texPath>
+		</graphicData>
+		<statBases>
+			<MarketValue>120</MarketValue>
+			<DeteriorationRate>20</DeteriorationRate>
+			<SurgerySuccessChanceFactor>0.1</SurgerySuccessChanceFactor>
+		</statBases>
+		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
+			<ZombieExtract>10</ZombieExtract>
+		</costList>
+		<recipeMaker>
+			<workAmount>2400</workAmount>
+		</recipeMaker>
+	</ThingDef>
+
+	<ThingDef name="Zombie20Serum" ParentName="ZombieSerumCore">
+		<defName>Zombie20Serum</defName>
+		<label>zombie serum 20%</label>
+		<description>Serum from dead zombies that cures zombie infections during operations (20% success rate)</description>
+		<graphicData>
+			<texPath>ZombieSerum/ZombieSerum20</texPath>
+		</graphicData>
+		<statBases>
+			<MarketValue>240</MarketValue>
+			<DeteriorationRate>18</DeteriorationRate>
+			<SurgerySuccessChanceFactor>0.2</SurgerySuccessChanceFactor>
+		</statBases>
+		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
+			<ZombieExtract>20</ZombieExtract>
+		</costList>
+		<recipeMaker>
+			<workAmount>2400</workAmount>
+		</recipeMaker>
+	</ThingDef>
+
+	<ThingDef name="Zombie30Serum" ParentName="ZombieSerumCore">
+		<defName>Zombie30Serum</defName>
+		<label>zombie serum 30%</label>
+		<description>Serum from dead zombies that cures zombie infections during operations (30% success rate)</description>
+		<graphicData>
+			<texPath>ZombieSerum/ZombieSerum30</texPath>
+		</graphicData>
+		<statBases>
+			<MarketValue>360</MarketValue>
+			<DeteriorationRate>16</DeteriorationRate>
+			<SurgerySuccessChanceFactor>0.3</SurgerySuccessChanceFactor>
+		</statBases>
+		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
+			<ZombieExtract>30</ZombieExtract>
+		</costList>
+		<recipeMaker>
+			<workAmount>7200</workAmount>
+		</recipeMaker>
+	</ThingDef>
+
+	<ThingDef name="Zombie40Serum" ParentName="ZombieSerumCore">
+		<defName>Zombie40Serum</defName>
+		<label>zombie serum 40%</label>
+		<description>Serum from dead zombies that cures zombie infections during operations (40% success rate)</description>
+		<graphicData>
+			<texPath>ZombieSerum/ZombieSerum40</texPath>
+		</graphicData>
+		<statBases>
+			<MarketValue>480</MarketValue>
+			<DeteriorationRate>14</DeteriorationRate>
+			<SurgerySuccessChanceFactor>0.4</SurgerySuccessChanceFactor>
+		</statBases>
+		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
+			<ZombieExtract>40</ZombieExtract>
+		</costList>
+		<recipeMaker>
+			<workAmount>9600</workAmount>
+		</recipeMaker>
+	</ThingDef>
+
+	<ThingDef name="Zombie50Serum" ParentName="ZombieSerumCore">
+		<defName>Zombie50Serum</defName>
+		<label>zombie serum 50%</label>
+		<description>Serum from dead zombies that cures zombie infections during operations (50% success rate)</description>
+		<graphicData>
+			<texPath>ZombieSerum/ZombieSerum50</texPath>
+		</graphicData>
+		<statBases>
+			<MarketValue>600</MarketValue>
+			<DeteriorationRate>12</DeteriorationRate>
+			<SurgerySuccessChanceFactor>0.5</SurgerySuccessChanceFactor>
+		</statBases>
+		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
+			<ZombieExtract>50</ZombieExtract>
+		</costList>
+		<recipeMaker>
+			<workAmount>12000</workAmount>
+		</recipeMaker>
+	</ThingDef>
+
+	<ThingDef name="Zombie60Serum" ParentName="ZombieSerumCore">
+		<defName>Zombie60Serum</defName>
+		<label>zombie serum 60%</label>
+		<description>Serum from dead zombies that cures zombie infections during operations (60% success rate)</description>
+		<graphicData>
+			<texPath>ZombieSerum/ZombieSerum60</texPath>
+		</graphicData>
+		<statBases>
+			<MarketValue>720</MarketValue>
+			<DeteriorationRate>10</DeteriorationRate>
+			<SurgerySuccessChanceFactor>0.6</SurgerySuccessChanceFactor>
+		</statBases>
+		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
+			<ZombieExtract>60</ZombieExtract>
+		</costList>
+		<recipeMaker>
+			<workAmount>14400</workAmount>
+		</recipeMaker>
+	</ThingDef>
+
+	<ThingDef name="Zombie70Serum" ParentName="ZombieSerumCore">
+		<defName>Zombie70Serum</defName>
+		<label>zombie serum 70%</label>
+		<description>Serum from dead zombies that cures zombie infections during operations (70% success rate)</description>
+		<graphicData>
+			<texPath>ZombieSerum/ZombieSerum70</texPath>
+		</graphicData>
+		<statBases>
+			<MarketValue>840</MarketValue>
+			<DeteriorationRate>8</DeteriorationRate>
+			<SurgerySuccessChanceFactor>0.7</SurgerySuccessChanceFactor>
+		</statBases>
+		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
+			<ZombieExtract>70</ZombieExtract>
+		</costList>
+		<recipeMaker>
+			<workAmount>16800</workAmount>
+		</recipeMaker>
+	</ThingDef>
+
+	<ThingDef name="Zombie80Serum" ParentName="ZombieSerumCore">
+		<defName>Zombie80Serum</defName>
+		<label>zombie serum 80%</label>
+		<description>Serum from dead zombies that cures zombie infections during operations (80% success rate)</description>
+		<graphicData>
+			<texPath>ZombieSerum/ZombieSerum80</texPath>
+		</graphicData>
+		<statBases>
+			<MarketValue>960</MarketValue>
+			<DeteriorationRate>6</DeteriorationRate>
+			<SurgerySuccessChanceFactor>0.8</SurgerySuccessChanceFactor>
+		</statBases>
+		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
+			<ZombieExtract>80</ZombieExtract>
+		</costList>
+		<recipeMaker>
+			<workAmount>19200</workAmount>
+		</recipeMaker>
+	</ThingDef>
+
+	<ThingDef name="Zombie90Serum" ParentName="ZombieSerumCore">
+		<defName>Zombie90Serum</defName>
+		<label>zombie serum 90%</label>
+		<description>Serum from dead zombies that cures zombie infections during operations (90% success rate)</description>
+		<graphicData>
+			<texPath>ZombieSerum/ZombieSerum90</texPath>
+		</graphicData>
+		<statBases>
+			<MarketValue>1080</MarketValue>
+			<DeteriorationRate>4</DeteriorationRate>
+			<SurgerySuccessChanceFactor>0.9</SurgerySuccessChanceFactor>
+		</statBases>
+		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
+			<ZombieExtract>90</ZombieExtract>
+		</costList>
+		<recipeMaker>
+			<workAmount>21600</workAmount>
+		</recipeMaker>
+	</ThingDef>
+
+	<ThingDef name="Zombie100Serum" ParentName="ZombieSerumCore">
+		<defName>Zombie100Serum</defName>
+		<label>zombie serum 100%</label>
+		<description>Pure serum from dead zombies that guaranteed cures zombie infections during operations</description>
+		<graphicData>
+			<texPath>ZombieSerum/ZombieSerum100</texPath>
+		</graphicData>
+		<statBases>
+			<MarketValue>1200</MarketValue>
+			<DeteriorationRate>2</DeteriorationRate>
+			<SurgerySuccessChanceFactor>1</SurgerySuccessChanceFactor>
+		</statBases>
+		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
+			<ZombieExtract>100</ZombieExtract>
+		</costList>
+		<recipeMaker>
+			<workAmount>24000</workAmount>
+		</recipeMaker>
+	</ThingDef>
+
+</Defs>

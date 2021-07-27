@@ -6,7 +6,6 @@ using System.Linq;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
-using static HarmonyLib.AccessTools;
 
 namespace ZombieLand
 {
@@ -204,7 +203,6 @@ namespace ZombieLand
 			return false;
 		}
 
-		static readonly FieldRef<Building_Door, int> ticksUntilClose = FieldRefAccess<Building_Door, int>("ticksUntilClose");
 		public static bool HackThing(this JobDriver_Sabotage driver)
 		{
 			if (driver.destination.IsValid)
@@ -216,7 +214,7 @@ namespace ZombieLand
 				{
 					driver.pawn.rotationTracker.FaceTarget(door);
 					door.StartManualOpenBy(driver.pawn);
-					ticksUntilClose(door) *= 4;
+					door.ticksUntilClose *= 4;
 					driver.door = null;
 					driver.waitCounter = 90;
 
@@ -311,9 +309,7 @@ namespace ZombieLand
 					{
 						if (RestUtility.Awake(pawn) == false) RestUtility.WakeUp(pawn);
 						pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Vomit), JobCondition.InterruptForced, null, true, true);
-#pragma warning disable CS0618 // Type or member is obsolete
 						pawn.stances.stunner.StunFor(stunTicks, zombie, true);
-#pragma warning restore CS0618 // Type or member is obsolete
 					});
 			}
 

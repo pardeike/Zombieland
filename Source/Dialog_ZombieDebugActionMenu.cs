@@ -36,87 +36,90 @@ namespace ZombieLand
 
 			DoGap();
 			DoLabel("Tools - ZombieLand");
+			var highlightedIndex = HighlightedIndex;
+			var i = 0;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-			DebugToolMap("Spawn: Zombie (dig out)", delegate
+			// TODO: use Dialog_DebugOptionLister.DebugToolMap(string label, Action toolAction, bool highlight) ?
+
+			base.DebugToolMap("Spawn: Zombie (dig out)", delegate
 			{
 				SpawnZombie(ZombieType.Normal, false);
-			});
-			DebugToolMap("Spawn: Zombie (standing)", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Spawn: Zombie (standing)", delegate
 			{
 				SpawnZombie(ZombieType.Normal, true);
-			});
-			DebugToolMap("Spawn: Suicide bomber", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Spawn: Suicide bomber", delegate
 			{
 				SpawnZombie(ZombieType.SuicideBomber, true);
-			});
-			DebugToolMap("Spawn: Toxic Splasher", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Spawn: Toxic Splasher", delegate
 			{
 				SpawnZombie(ZombieType.ToxicSplasher, true);
-			});
-			DebugToolMap("Spawn: Tanky Operator", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Spawn: Tanky Operator", delegate
 			{
 				SpawnZombie(ZombieType.TankyOperator, true);
-			});
-			DebugToolMap("Spawn: Miner", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Spawn: Miner", delegate
 			{
 				SpawnZombie(ZombieType.Miner, true);
-			});
-			DebugToolMap("Spawn: Electrifier", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Spawn: Electrifier", delegate
 			{
 				SpawnZombie(ZombieType.Electrifier, true);
-			});
-			DebugToolMap("Spawn: Albino", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Spawn: Albino", delegate
 			{
 				SpawnZombie(ZombieType.Albino, true);
-			});
-			DebugToolMap("Spawn: Dark Slimer", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Spawn: Dark Slimer", delegate
 			{
 				SpawnZombie(ZombieType.DarkSlimer, true);
-			});
-			DebugToolMap("Spawn: Random zombie", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Spawn: Random zombie", delegate
 			{
 				SpawnZombie(ZombieType.Random, true);
-			});
+			}, highlightedIndex == i++);
 			var tm = Find.CurrentMap?.GetComponent<TickManager>();
 			if (tm != null)
 			{
 				var size = tm.incidentInfo.parameters.incidentSize;
 				if (size > 0)
 				{
-					DebugToolMap($"Trigger: Zombie incident ({size})", delegate
+					base.DebugToolMap($"Trigger: Zombie incident ({size})", delegate
 					{
 						var success = ZombiesRising.TryExecute(map, size, IntVec3.Invalid);
 						if (success == false)
 							Log.Error("Incident creation failed. Most likely no valid spawn point found.");
-					});
+					}, highlightedIndex == i++);
 				}
 			}
-			DebugToolMap("Spawn: Zombie incident (4)", delegate
+			base.DebugToolMap("Spawn: Zombie incident (4)", delegate
 			{
 				_ = ZombiesRising.TryExecute(map, 4, UI.MouseCell(), true);
-			});
-			DebugToolMap("Spawn: Zombie incident (25)", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Spawn: Zombie incident (25)", delegate
 			{
 				_ = ZombiesRising.TryExecute(map, 25, UI.MouseCell(), true);
-			});
-			DebugToolMap("Spawn: Zombie incident (100)", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Spawn: Zombie incident (100)", delegate
 			{
 				_ = ZombiesRising.TryExecute(map, 100, UI.MouseCell(), true);
-			});
-			DebugToolMap("Spawn: Zombie incident (200)", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Spawn: Zombie incident (200)", delegate
 			{
 				_ = ZombiesRising.TryExecute(map, 200, UI.MouseCell(), true);
-			});
-			DebugToolMap("Convert: Make Zombie", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Convert: Make Zombie", delegate
 			{
 				foreach (var thing in map.thingGrid.ThingsAt(UI.MouseCell()))
 				{
 					if (!(thing is Pawn pawn) || pawn is Zombie) continue;
 					Tools.ConvertToZombie(pawn, map, true);
 				}
-			});
-			DebugToolMap("Apply: Trigger rotting", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Apply: Trigger rotting", delegate
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
@@ -124,8 +127,8 @@ namespace ZombieLand
 					if (compRottable != null)
 						compRottable.RotProgress = compRottable.PropsRot.TicksToRotStart;
 				}
-			});
-			DebugToolMap("Apply: Add zombie bite", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Apply: Add zombie bite", delegate
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
@@ -154,8 +157,8 @@ namespace ZombieLand
 					var damageInfo = new DamageInfo(Tools.ZombieBiteDamageDef, 2);
 					pawn.health.AddHediff(bite, bodyPart, damageInfo);
 				}
-			});
-			DebugToolMap("Apply: Remove infections", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Apply: Remove infections", delegate
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
@@ -171,16 +174,15 @@ namespace ZombieLand
 
 					_ = pawn.health.hediffSet.hediffs.RemoveAll(hediff => hediff is Hediff_ZombieInfection);
 				}
-			});
-			DebugToolMap("Apply: Zombie raging", delegate
+			}, highlightedIndex == i++);
+			base.DebugToolMap("Apply: Zombie raging", delegate
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
 					if (!(thing is Zombie zombie)) continue;
 					ZombieStateHandler.StartRage(zombie);
 				}
-			});
-#pragma warning restore CS0618 // Type or member is obsolete
+			}, highlightedIndex == i++);
 		}
 	}
 }

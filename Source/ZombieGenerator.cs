@@ -255,7 +255,7 @@ namespace ZombieLand
 				if (zombie.isAlbino) color = "albino";
 				if (zombie.isDarkSlimer) color = "dark";
 				yield return null;
-				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.Cutout, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
+				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.Cutout, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>(), null);
 				yield return null;
 
 				var maxStainPoints = ZombieStains.maxStainPoints;
@@ -282,7 +282,7 @@ namespace ZombieLand
 				}
 				zombie.Drawer.renderer.graphics.nakedGraphic = customBodyGraphic;
 
-				var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.Cutout, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>());
+				var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.Cutout, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>(), null);
 				yield return null;
 				var customHeadGraphic = new VariableGraphic { bodyColor = color };
 				yield return null;
@@ -366,7 +366,7 @@ namespace ZombieLand
 						{
 							var colorComp = apparel.GetComp<CompColorable>();
 							if (colorComp != null)
-								colorComp.Color = Zombie.zombieColors[Rand.Range(0, Zombie.zombieColors.Length)].SaturationChanged(0.25f);
+								colorComp.SetColor(Zombie.zombieColors[Rand.Range(0, Zombie.zombieColors.Length)].SaturationChanged(0.25f));
 							Graphic_Multi_Init_Patch.suppressError = true;
 							Graphic_Multi_Init_Patch.textureError = false;
 							try
@@ -434,7 +434,7 @@ namespace ZombieLand
 			zombie.story.bodyType = bodyType;
 			zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
 			zombie.story.hairColor = ZombieBaseValues.HairColor();
-			zombie.story.hairDef = PawnHairChooser.RandomHairDefFor(zombie, ZombieDefOf.Zombies);
+			zombie.story.hairDef = PawnStyleItemChooser.RandomHairFor(zombie);
 			yield return null;
 			FixVanillaHairExpanded(zombie, ZombieDefOf.Zombies);
 			yield return null;
