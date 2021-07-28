@@ -4033,7 +4033,6 @@ namespace ZombieLand
 			static void Postfix()
 			{
 				Tools.EnableTwinkie(ZombieSettings.Values.replaceTwinkie);
-				ModCounter.Trigger();
 			}
 		}
 
