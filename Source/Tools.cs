@@ -280,6 +280,20 @@ namespace ZombieLand
 			return ColonistSettings.Values.ConfigFor(pawn).autoAvoidZombies;
 		}
 
+		public static bool CanHarmElectricZombies(this Verb verb)
+		{
+			if (verb == null)
+				return false;
+			if (verb.IsMeleeAttack)
+				return true;
+			if (verb.IsEMP())
+				return true;
+			var def = verb.GetDamageDef();
+			if (def == null)
+				return false;
+			return def.isRanged == false;
+		}
+
 		public static float ZombieAvoidRadius(Zombie zombie, bool squared = false)
 		{
 			if (zombie.IsActiveElectric || zombie.isAlbino)

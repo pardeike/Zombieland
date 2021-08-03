@@ -504,7 +504,7 @@ namespace ZombieLand
 			}
 
 			// next tanky move is on a building
-			if (newPos.GetEdifice(zombie.Map) is Building building && (building as Mineable) == null)
+			if (zombie.IsTanky && newPos.GetEdifice(zombie.Map) is Building building && (building as Mineable) == null)
 				return Smash(driver, zombie, checkSmashable, false);
 
 			// next move is on a door

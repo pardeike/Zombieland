@@ -375,25 +375,73 @@ namespace ZombieLand
 		}
 
 		// patch to make raiders choose zombies less likely as a target
+		// and to prefer non-downed zombies from downed one as targets
 		//
+		[HarmonyPatch(typeof(AttackTargetFinder))]
+		[HarmonyPatch(nameof(AttackTargetFinder.GetAvailableShootingTargetsByScore))]
+		static class AttackTargetFinder_GetAvailableShootingTargetsByScore_Patch
+		{
+			static void Prefix(ref List<IAttackTarget> rawTargets, IAttackTargetSearcher searcher, Verb verb)
+			{
+				if (searcher == null || verb == null)
+					return;
+				if (verb.CanHarmElectricZombies())
+					return;
+				rawTargets = rawTargets.Where(t => !(t.Thing is Zombie zombie) || zombie.IsActiveElectric == false || zombie.Downed).ToList();
+			}
+
+			static void Postfix(List<Pair<IAttackTarget, float>> __result)
+			{
+				if (__result.Any(pair => pair.first is Zombie zombie && zombie.health.Downed == false))
+					_ = __result.RemoveAll(pair => pair.first is Zombie zombie && zombie.health.Downed);
+			}
+		}
 		[HarmonyPatch(typeof(AttackTargetFinder))]
 		[HarmonyPatch(nameof(AttackTargetFinder.BestAttackTarget))]
 		static class AttackTargetFinder_BestAttackTarget_Patch
 		{
-			static Predicate<IAttackTarget> WrappedValidator(Predicate<IAttackTarget> validator, IAttackTargetSearcher searcher)
+			static void Prefix(ref Predicate<Thing> validator, IAttackTargetSearcher searcher)
 			{
+				if (validator == null || searcher == null)
+					return;
+				var verb = searcher.CurrentEffectiveVerb;
+				if (verb == null)
+					return;
+
+				var oldValidator = validator;
+
+				// make ranged weapons (i.e. turrets) ignore electrical zombies
+				if (!(searcher is Pawn attacker))
+				{
+					if (verb.CanHarmElectricZombies())
+						return;
+
+					validator = (Thing t) =>
+					{
+						if (t is Zombie zombie && zombie.IsActiveElectric)
+							return false;
+						return oldValidator(t);
+					};
+
+					return;
+				}
+
 				// attacker is colonist or zombie? use default
-				if (validator == null || !(searcher is Pawn attacker) || attacker.IsColonist || attacker is Zombie)
-					return validator;
+				if (attacker.IsColonist || attacker is Zombie)
+					return;
 
 				// attacker is animal
 				if (attacker.RaceProps.Animal)
-					return (IAttackTarget t) =>
+				{
+					validator = (Thing t) =>
 					{
-						if (t.Thing is Zombie)
+						if (t is Zombie)
 							return ZombieSettings.Values.animalsAttackZombies;
-						return validator(t);
+						return oldValidator(t);
 					};
+
+					return;
+				}
 
 				// attacker is friendly
 				// (disabled because the postfix deals with that)
@@ -402,12 +450,16 @@ namespace ZombieLand
 				//	return (IAttackTarget t) => (t.Thing is Zombie) ? false : validator(t);
 
 				// attacker is enemy
-				return (IAttackTarget t) =>
+				validator = (Thing t) =>
 				{
-					if (t.Thing is Zombie zombie)
+					if (t is Zombie zombie)
 					{
 						if (ZombieSettings.Values.enemiesAttackZombies == false)
 							return false;
+
+						if (zombie.IsActiveElectric && zombie.Downed == false)
+							if (verb.GetDamageDef().isRanged)
+								return false;
 
 						var distanceToTarget = (float)(attacker.Position - zombie.Position).LengthHorizontalSquared;
 
@@ -417,7 +469,6 @@ namespace ZombieLand
 						if (zombie.state != ZombieState.Tracking)
 							return false;
 
-						var verb = searcher.CurrentEffectiveVerb;
 						var attackDistance = verb == null ? 1f : verb.verbProps.range * verb.verbProps.range;
 						var zombieAvoidRadius = Tools.ZombieAvoidRadius(zombie, true);
 
@@ -427,29 +478,9 @@ namespace ZombieLand
 						if (distanceToTarget > attackDistance)
 							return false;
 					}
-					return validator(t);
+
+					return oldValidator(t);
 				};
-			}
-
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			{
-				var innerValidatorType = (instructions.ToArray()[0].operand as MethodBase).DeclaringType;
-				if (innerValidatorType == null) Log.Error("Cannot find inner validator type");
-				var f_innerValidator = innerValidatorType.Field("innerValidator");
-
-				var found = false;
-				foreach (var instruction in instructions)
-				{
-					if (found == false && instruction.StoresField(f_innerValidator))
-					{
-						yield return new CodeInstruction(OpCodes.Ldarg_0);
-						yield return new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => WrappedValidator(null, null)));
-						found = true;
-					}
-					yield return instruction;
-				}
-
-				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 
 			static void Postfix(ref IAttackTarget __result, TargetScanFlags flags, Predicate<Thing> validator, IAttackTargetSearcher searcher)
@@ -470,6 +501,7 @@ namespace ZombieLand
 						if (verb != null)
 						{
 							var props = verb.verbProps;
+							var canHarmElectricZombies = verb.CanHarmElectricZombies();
 							if (props.IsMeleeAttack == false && props.range > 0)
 							{
 								// TODO
@@ -503,6 +535,7 @@ namespace ZombieLand
 									.Where(zombie =>
 									{
 										if (zombie.state == ZombieState.Emerging) return false;
+										if (canHarmElectricZombies == false && zombie.IsActiveElectric && zombie.Downed == false) return false;
 										var d = pos.DistanceToSquared(zombie.Position);
 										var dn = zombie.health.Downed;
 										if (dn && (d > maxDownedRangeSquared || ZombieSettings.Values.doubleTapRequired == false)) return false;
@@ -562,19 +595,6 @@ namespace ZombieLand
 					return false;
 				}
 				return true;
-			}
-		}
-
-		// patch to prefer non-downed zombies from downed one as targets
-		//
-		[HarmonyPatch(typeof(AttackTargetFinder))]
-		[HarmonyPatch(nameof(AttackTargetFinder.GetAvailableShootingTargetsByScore))]
-		static class AttackTargetFinder_GetAvailableShootingTargetsByScore_Patch
-		{
-			static void Postfix(List<Pair<IAttackTarget, float>> __result)
-			{
-				if (__result.Any(pair => pair.first is Zombie zombie && zombie.health.Downed == false))
-					_ = __result.RemoveAll(pair => pair.first is Zombie zombie && zombie.health.Downed);
 			}
 		}
 
@@ -824,6 +844,39 @@ namespace ZombieLand
 				if (target is Zombie)
 				{
 					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+
+		// make static attacks on doors stop when door is open
+		//
+		[HarmonyPatch]
+		static class JobDriver_AttackStatic_MakeNewToils_b__1_Patch
+		{
+			static AccessTools.FieldRef<object, JobDriver_AttackStatic> _this;
+
+			static MethodBase TargetMethod()
+			{
+				var method = typeof(JobDriver_AttackStatic).InnerMethodsStartingWith("<MakeNewToils>b__1").First();
+				if (method != null)
+				{
+					var f_this = AccessTools.GetDeclaredFields(method.DeclaringType).First();
+					_this = AccessTools.FieldRefAccess<object, JobDriver_AttackStatic>(f_this);
+				}
+				else
+					Log.Error($"Cannot find field Verse.AI.JobDriver_AttackStatic.*.<MakeNewToils>b__1");
+
+				return method;
+			}
+
+			static bool Prefix(object __instance)
+			{
+				var me = _this(__instance);
+				if (me.TargetA.HasThing && me.TargetThingA is Building_Door door && door.Open)
+				{
+					me.EndJobWith(JobCondition.Incompletable);
 					return false;
 				}
 				return true;
@@ -2323,122 +2376,6 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for rendering zombies
-		//
-		[HarmonyPatch(typeof(PawnRenderer))]
-		[HarmonyPatch(nameof(PawnRenderer.RenderPawnInternal))]
-		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(float), typeof(bool), typeof(Rot4), typeof(RotDrawMode), typeof(PawnRenderFlags) })]
-		static class PawnRenderer_RenderPawnInternal_Patch
-		{
-			static Vector3 toxicAuraOffset = new Vector3(0f, 0f, 0.1f);
-			const float leanAngle = 15f;
-
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			{
-				var m_AngleAxis = SymbolExtensions.GetMethodInfo(() => Quaternion.AngleAxis(0f, Vector3.zero));
-				var f_pawn = AccessTools.Field(typeof(PawnRenderer), "pawn");
-
-				var list = instructions.ToList();
-				var idx = list.FirstIndexOf(instr => instr.Calls(m_AngleAxis));
-				if (idx > 0 && idx < list.Count())
-				{
-					list[idx].operand = SymbolExtensions.GetMethodInfo(() => Zombie.ZombieAngleAxis(0f, Vector3.zero, null));
-					list.Insert(idx++, new CodeInstruction(OpCodes.Ldarg_0));
-					list.Insert(idx++, new CodeInstruction(OpCodes.Ldfld, f_pawn));
-				}
-				else
-					Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
-
-				return list.AsEnumerable();
-			}
-
-			[HarmonyPriority(Priority.First)]
-			static void Postfix(PawnRenderer __instance, Vector3 rootLoc, float angle, bool renderBody)
-			{
-				if (!(__instance.graphics.pawn is Zombie zombie) || renderBody == false || zombie.state == ZombieState.Emerging) return;
-
-				if (zombie.Rotation == Rot4.West) angle -= leanAngle;
-				if (zombie.Rotation == Rot4.East) angle += leanAngle;
-				var quat = Quaternion.AngleAxis(angle, Vector3.up);
-
-				if (zombie.isToxicSplasher)
-				{
-					var idx = ((Find.TickManager.TicksGame + zombie.thingIDNumber) / 10) % 8;
-					if (idx >= 5) idx = 8 - idx;
-					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.TOXIC_AURAS[idx], rootLoc + toxicAuraOffset, quat, 1f, 1f);
-					return;
-				}
-
-				if (zombie.IsActiveElectric && zombie.health.Downed == false)
-				{
-					// stage: 0 2 4 6 8 10 12 14 16 18
-					// shine: x - x x x  x  x  -  x  -
-					// arc  : - - - x -  x  -  -  -  -
-					// new  :                        x
-
-					zombie.electricCounter--;
-					if (zombie.electricCounter <= 0)
-					{
-						var stage = -zombie.electricCounter;
-
-						if (stage == 0)
-						{
-							var info = SoundInfo.InMap(zombie);
-							CustomDefs.ElectricShock.PlayOneShot(info);
-						}
-
-						if (stage == 0 || (stage >= 4 && stage <= 12) || stage == 16)
-							GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.ELECTRIC_SHINE, rootLoc, quat, 1f, 1f);
-
-						if (stage == 6 || stage == 7 || stage == 10 || stage == 11)
-						{
-							if (Rand.Chance(0.1f))
-								zombie.electricAngle = Rand.RangeInclusive(0, 359);
-							quat = Quaternion.Euler(0, zombie.electricAngle, 0);
-							var idx = Rand.RangeInclusive(0, 3);
-							GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.ELECTRIC_ARCS[idx], rootLoc, quat, 1.5f, 1.5f);
-						}
-
-						if (stage >= 18)
-						{
-							zombie.electricCounter = Rand.RangeInclusive(60, 180);
-							if (Find.TickManager.Paused)
-								zombie.electricCounter += Rand.RangeInclusive(300, 600);
-							zombie.electricAngle = Rand.RangeInclusive(0, 359);
-						}
-					}
-
-					if (zombie.absorbAttack.Count > 0)
-					{
-						var pair = zombie.absorbAttack.Pop();
-						var idx = pair.Value;
-						if (idx >= 0)
-						{
-							var facing = pair.Key;
-							var center = rootLoc + Quaternion.AngleAxis(facing + 225f, Vector3.up) * new Vector3(-0.4f, 0, 0.4f);
-							quat = Quaternion.AngleAxis(facing + 225f, Vector3.up);
-							GraphicToolbox.DrawScaledMesh(MeshPool.plane14, Constants.ELECTRIC_ABSORB[idx], center, quat, 1f, 1f);
-							Tools.PlayAbsorb(zombie);
-						}
-						else if (idx == -2)
-						{
-							for (var facing = 0; facing < 360; facing += 90)
-							{
-								var center = rootLoc + Quaternion.AngleAxis(facing + 225f, Vector3.up) * new Vector3(-0.4f, 0, 0.4f);
-								quat = Quaternion.AngleAxis(facing + 225f, Vector3.up);
-								GraphicToolbox.DrawScaledMesh(MeshPool.plane14, Constants.ELECTRIC_ABSORB[Rand.RangeInclusive(0, 3)], center, quat, 1f, 1f);
-							}
-							Tools.PlayAbsorb(zombie);
-						}
-					}
-
-					return;
-				}
-
-				return;
-			}
-		}
-
 		// makes downed zombie crawl rotated to their destination
 		//
 		[HarmonyPatch(typeof(PawnDownedWiggler))]
@@ -2495,6 +2432,9 @@ namespace ZombieLand
 			static Vector3 leftEyeOffset = new Vector3(-0.092f, 0f, -0.08f);
 			static Vector3 rightEyeOffset = new Vector3(0.092f, 0f, -0.08f);
 
+			static Vector3 toxicAuraOffset = new Vector3(0f, 0f, 0.1f);
+			const float leanAngle = 15f;
+
 			static readonly Color white50 = new Color(1f, 1f, 1f, 0.5f);
 
 			static readonly Mesh bodyMesh = MeshPool.GridPlane(new Vector2(1.5f, 1.5f));
@@ -2545,7 +2485,7 @@ namespace ZombieLand
 					Log.Error("Expected ret in PawnRenderer.RenderPawnAt");
 				ret.opcode = OpCodes.Ldarg_0;
 				list.Add(new CodeInstruction(OpCodes.Ldarg_1));
-				list.Add(new CodeInstruction(OpCodes.Call, m_RenderExtras));
+				list.Add(CodeInstruction.Call(() => RenderExtras(null, Vector3.zero)));
 				list.Add(new CodeInstruction(OpCodes.Ret));
 				return list.AsEnumerable();
 			}
@@ -2575,8 +2515,6 @@ namespace ZombieLand
 				var q = Quaternion.AngleAxis(f2 * 360f, Vector3.up);
 				GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat, center, q, 1.5f, 1.5f);
 			}
-
-			static readonly MethodInfo m_RenderExtras = SymbolExtensions.GetMethodInfo(() => RenderExtras(null, Vector3.zero));
 
 			// we don't use a postfix so that someone that patches and skips RenderPawnAt will also skip RenderExtras
 			static void RenderExtras(PawnRenderer renderer, Vector3 drawLoc)
@@ -2688,6 +2626,18 @@ namespace ZombieLand
 					}
 				}
 
+				if (zombie.isToxicSplasher)
+				{
+					float angle = zombie.drawer.renderer.BodyAngle();
+					if (zombie.Rotation == Rot4.West) angle -= leanAngle;
+					if (zombie.Rotation == Rot4.East) angle += leanAngle;
+					var quat = Quaternion.AngleAxis(angle, Vector3.up);
+
+					var idx = ((Find.TickManager.TicksGame + zombie.thingIDNumber) / 10) % 8;
+					if (idx >= 5) idx = 8 - idx;
+					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.TOXIC_AURAS[idx], drawLoc + toxicAuraOffset, quat, 1f, 1f);
+				}
+
 				if (zombie.isMiner)
 				{
 					var headOffset = zombie.Drawer.renderer.BaseHeadOffsetAt(orientation);
@@ -2709,10 +2659,79 @@ namespace ZombieLand
 					var flicker = (tm.TicksAbs / (2 + zombie.thingIDNumber % 2) + zombie.thingIDNumber) % 3;
 					if (flicker != 0 || tm.Paused)
 					{
+						var glowLoc = drawLoc;
+						glowLoc.y -= Altitudes.AltInc / 2f;
+
 						var mesh = MeshPool.humanlikeBodySet.MeshAt(orientation);
 						var glowingMaterials = Constants.ELECTRIC_GLOWING[zombie.story.bodyType];
 						var idx = orientation == Rot4.East || orientation == Rot4.West ? 0 : (orientation == Rot4.North ? 1 : 2);
-						GraphicToolbox.DrawScaledMesh(mesh, glowingMaterials[idx], drawLoc, Quaternion.identity, 1f, 1f);
+						GraphicToolbox.DrawScaledMesh(mesh, glowingMaterials[idx], glowLoc, Quaternion.identity, 1f, 1f);
+					}
+
+					// stage: 0 2 4 6 8 10 12 14 16 18
+					// shine: x - x x x  x  x  -  x  -
+					// arc  : - - - x -  x  -  -  -  -
+					// new  :                        x
+
+					zombie.electricCounter--;
+					if (zombie.electricCounter <= 0)
+					{
+						var stage = -zombie.electricCounter;
+
+						if (stage == 0)
+						{
+							var info = SoundInfo.InMap(zombie);
+							CustomDefs.ElectricShock.PlayOneShot(info);
+						}
+
+						if (stage == 0 || (stage >= 4 && stage <= 12) || stage == 16)
+						{
+							var behind = drawLoc;
+							behind.x += 0.25f;
+							behind.y -= 0.5f;
+							//GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.ELECTRIC_SHINE, behind, quat, 1f, 1f);
+						}
+
+						if (stage == 6 || stage == 7 || stage == 10 || stage == 11)
+						{
+							if (Rand.Chance(0.1f))
+								zombie.electricAngle = Rand.RangeInclusive(0, 359);
+							var quat = Quaternion.Euler(0, zombie.electricAngle, 0);
+							var idx = Rand.RangeInclusive(0, 3);
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.ELECTRIC_ARCS[idx], drawLoc, quat, 1.5f, 1.5f);
+						}
+
+						if (stage >= 18)
+						{
+							zombie.electricCounter = Rand.RangeInclusive(60, 180);
+							if (Find.TickManager.Paused)
+								zombie.electricCounter += Rand.RangeInclusive(300, 600);
+							zombie.electricAngle = Rand.RangeInclusive(0, 359);
+						}
+					}
+
+					if (zombie.absorbAttack.Count > 0)
+					{
+						var pair = zombie.absorbAttack.Pop();
+						var idx = pair.Value;
+						if (idx >= 0)
+						{
+							var facing = pair.Key;
+							var center = drawLoc + Quaternion.AngleAxis(facing + 225f, Vector3.up) * new Vector3(-0.4f, 0, 0.4f);
+							var quat = Quaternion.AngleAxis(facing + 225f, Vector3.up);
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane14, Constants.ELECTRIC_ABSORB[idx], center, quat, 1f, 1f);
+							Tools.PlayAbsorb(zombie);
+						}
+						else if (idx == -2)
+						{
+							for (var facing = 0; facing < 360; facing += 90)
+							{
+								var center = drawLoc + Quaternion.AngleAxis(facing + 225f, Vector3.up) * new Vector3(-0.4f, 0, 0.4f);
+								var quat = Quaternion.AngleAxis(facing + 225f, Vector3.up);
+								GraphicToolbox.DrawScaledMesh(MeshPool.plane14, Constants.ELECTRIC_ABSORB[Rand.RangeInclusive(0, 3)], center, quat, 1f, 1f);
+							}
+							Tools.PlayAbsorb(zombie);
+						}
 					}
 				}
 
