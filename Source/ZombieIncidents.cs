@@ -201,7 +201,7 @@ namespace ZombieLand
 			};
 		}
 
-		static IEnumerator SpawnEventProcess(Map map, int incidentSize, IntVec3 spot, Predicate<IntVec3> cellValidator, bool ignoreLimit)
+		static IEnumerator SpawnEventProcess(Map map, int incidentSize, IntVec3 spot, Predicate<IntVec3> cellValidator, bool ignoreLimit, ZombieType zombieType = ZombieType.Random)
 		{
 			var zombiesSpawning = 0;
 			var counter = 1;
@@ -218,7 +218,7 @@ namespace ZombieLand
 
 				foreach (var cell in cells)
 				{
-					ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { _ = tickManager.allZombiesCached.Add(zombie); });
+					ZombieGenerator.SpawnZombie(cell, map, zombieType, (zombie) => { _ = tickManager.allZombiesCached.Add(zombie); });
 					incidentSize--;
 					zombiesSpawning++;
 					yield return null;
@@ -245,7 +245,7 @@ namespace ZombieLand
 			}
 		}
 
-		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot, bool ignoreLimit = false)
+		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot, bool ignoreLimit = false, ZombieType zombieType = ZombieType.Random)
 		{
 			var cellValidator = Tools.ZombieSpawnLocator(map, true);
 			var spotValidator = SpotValidator(cellValidator);
@@ -261,7 +261,7 @@ namespace ZombieLand
 			if (spot.IsValid == false)
 				return false;
 
-			_ = Find.CameraDriver.StartCoroutine(SpawnEventProcess(map, incidentSize, spot, cellValidator, ignoreLimit));
+			_ = Find.CameraDriver.StartCoroutine(SpawnEventProcess(map, incidentSize, spot, cellValidator, ignoreLimit, zombieType));
 			return true;
 		}
 	}

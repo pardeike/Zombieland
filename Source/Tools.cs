@@ -147,7 +147,7 @@ namespace ZombieLand
 
 		public static Texture2D LoadTexture(string path, bool makeReadonly = true)
 		{
-			var fullPath = Path.Combine(Tools.GetModRootDirectory(), "Textures", $"{path}.png");
+			var fullPath = Path.Combine(GetModRootDirectory(), "Textures", $"{path}.png");
 			var data = File.ReadAllBytes(fullPath);
 			if (data == null || data.Length == 0) throw new Exception($"Cannot read texture {fullPath}");
 			var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
@@ -685,7 +685,7 @@ namespace ZombieLand
 				if (distance > Constants.MIN_ATTACKDISTANCE_SQUARED)
 					return false;
 
-				if (Tools.HasInfectionState(target, InfectionState.Infecting))
+				if (HasInfectionState(target, InfectionState.Infecting))
 					return false;
 
 				if (mode == AttackMode.Everything)

@@ -76,6 +76,7 @@ namespace ZombieLand
 		Sustainer electricSustainer;
 
 		public Queue<ThingWithComps> colonistsConverter = new Queue<ThingWithComps>();
+		public Queue<Action<Map>> rimConnectActions = new Queue<Action<Map>>();
 
 		public List<IntVec3> explosions = new List<IntVec3>();
 
@@ -529,6 +530,12 @@ namespace ZombieLand
 				{
 					var pawn = colonistsConverter.Dequeue();
 					Tools.ConvertToZombie(pawn, map);
+				}
+				yield return null;
+				if (rimConnectActions.Count > 0 && map != null)
+				{
+					var action = rimConnectActions.Dequeue();
+					action(map);
 				}
 				yield return "end";
 			}

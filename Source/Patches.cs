@@ -21,10 +21,24 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	static class Patches
 	{
+		static readonly List<string> errors = new List<string>();
+
 		static Patches()
 		{
 			var harmony = new Harmony("net.pardeike.zombieland");
-			harmony.PatchAll();
+			errors = new List<string>();
+			try
+			{
+				harmony.PatchAll();
+			}
+			catch (Exception ex)
+			{
+				var error = ex.ToString();
+				Log.Error(error);
+				var idx = error.IndexOf("\n  at");
+				if (idx > 0)
+					errors.Insert(0, error.Substring(0, idx));
+			}
 
 			// prepare Twinkie
 			LongEventHandler.QueueLongEvent(() => { Tools.EnableTwinkie(false); }, "", true, null);
@@ -46,6 +60,31 @@ namespace ZombieLand
 			//	if (type.Name.Contains("Reachability")) return true;
 			//	return false;
 			//});
+		}
+
+		static void Error(string error)
+		{
+			errors.Add(error);
+			Log.Error(error);
+		}
+
+		[HarmonyPatch(typeof(MainMenuDrawer))]
+		[HarmonyPatch(nameof(MainMenuDrawer.Init))]
+		static class MainMenuDrawer_Init_Patch
+		{
+			static void Postfix()
+			{
+				if (errors.Any())
+				{
+					LongEventHandler.ExecuteWhenFinished(() =>
+					{
+						var message = errors.Join(error => error, "\n\n");
+						errors.Clear();
+						if (Find.WindowStack != null)
+							Find.WindowStack.Add(new Dialog_ErrorMessage($"Zombieland encountered an unexpected error and might not work as expected. Either RimWorld has been updated or you have a mod conflict:\n\n{message}"));
+					});
+				}
+			}
 		}
 
 		// used to prevent zombies from being counted as hostiles
@@ -368,7 +407,16 @@ namespace ZombieLand
 		{
 			static void Postfix(Thing t, Faction fac, ref bool __result)
 			{
-				if (!(t is Pawn pawn) || pawn.IsColonist || (pawn is Zombie) || fac == null || fac.def != ZombieDefOf.Zombies)
+				if (fac == null)
+					return;
+				if (fac.def != ZombieDefOf.Zombies)
+					return;
+				if (!(t is Pawn pawn))
+					return;
+				if (pawn is Zombie)
+					return;
+				// jobs != null test is a workaround for a NRE in RW triggered by carried slaves being dropped 
+				if (pawn.jobs != null && pawn.IsColonist)
 					return;
 				__result = Tools.IsHostileToZombies(pawn);
 			}
@@ -820,10 +868,10 @@ namespace ZombieLand
 						inList.Insert(idx1++, new CodeInstruction(OpCodes.Brtrue, skipLabel));
 					}
 					else
-						Log.Error("No ldfld canHitNonTargetPawnsNow prefixed by ldc.i4.1;stloc.s;ldarg.0 in Verb_LaunchProjectile.TryCastShot");
+						Error("No ldfld canHitNonTargetPawnsNow prefixed by ldc.i4.1;stloc.s;ldarg.0 in Verb_LaunchProjectile.TryCastShot");
 				}
 				else
-					Log.Error("No ldfld forcedMissRadius in Verb_LaunchProjectile.TryCastShot");
+					Error("No ldfld forcedMissRadius in Verb_LaunchProjectile.TryCastShot");
 
 				foreach (var instruction in inList)
 					yield return instruction;
@@ -866,7 +914,7 @@ namespace ZombieLand
 					_this = AccessTools.FieldRefAccess<object, JobDriver_AttackStatic>(f_this);
 				}
 				else
-					Log.Error($"Cannot find field Verse.AI.JobDriver_AttackStatic.*.<MakeNewToils>b__1");
+					Error($"Cannot find field Verse.AI.JobDriver_AttackStatic.*.<MakeNewToils>b__1");
 
 				return method;
 			}
@@ -1055,14 +1103,14 @@ namespace ZombieLand
 					var f_knownCost = AccessTools.Field(t_PathFinderNodeFast, "knownCost");
 					if (f_knownCost == null)
 					{
-						Log.Error($"Cannot find field Verse.AI.PathFinder.PathFinderNodeFast.knownCost");
+						Error($"Cannot find field Verse.AI.PathFinder.PathFinderNodeFast.knownCost");
 						break;
 					}
 
 					var idx = list.FirstIndexOf(ins => ins.Calls(m_CellToIndex_int_int));
 					if (idx < 0 || idx >= list.Count() || list[idx + 1].opcode != OpCodes.Stloc_S)
 					{
-						Log.Error($"Cannot find CellToIndex(n,n)/Stloc_S in {original.FullDescription()}");
+						Error($"Cannot find CellToIndex(n,n)/Stloc_S in {original.FullDescription()}");
 						break;
 					}
 					var gridIdx = list[idx + 1].operand;
@@ -1075,7 +1123,7 @@ namespace ZombieLand
 					}
 					if (insertLoc < 0 || insertLoc >= list.Count())
 					{
-						Log.Error($"Cannot find Ldfld knownCost ... Add in {original.FullDescription()}");
+						Error($"Cannot find Ldfld knownCost ... Add in {original.FullDescription()}");
 						break;
 					}
 
@@ -1140,10 +1188,10 @@ namespace ZombieLand
 						list.Insert(idx++, new CodeInstruction(OpCodes.Ldarg_0) { labels = new List<Label>() { jump } }); // add the missing Ldarg_0 from original code here
 					}
 					else
-						Log.Error("Cannot find Ldfld one instruction before " + m_ShouldCollideWithPawns + " in Pawn_PathFollower.NeedNewPath");
+						Error("Cannot find Ldfld one instruction before " + m_ShouldCollideWithPawns + " in Pawn_PathFollower.NeedNewPath");
 				}
 				else
-					Log.Error("Cannot find " + m_ShouldCollideWithPawns + " in Pawn_PathFollower.NeedNewPath");
+					Error("Cannot find " + m_ShouldCollideWithPawns + " in Pawn_PathFollower.NeedNewPath");
 
 				foreach (var instr in list)
 					yield return instr;
@@ -1558,7 +1606,7 @@ namespace ZombieLand
 				var i = list.FirstIndexOf(instr => instr.Calls(from));
 				if (i < 0 || i >= list.Count())
 				{
-					Log.Error("Cannot find " + from.FullDescription() + " in Pawn_PathFollower.StartPath");
+					Error("Cannot find " + from.FullDescription() + " in Pawn_PathFollower.StartPath");
 					return list.AsEnumerable();
 				}
 
@@ -1707,7 +1755,7 @@ namespace ZombieLand
 					list.Insert(idx++, list[idx - 3].Clone());
 				}
 				else
-					Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+					Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 
 				return list.AsEnumerable();
 			}
@@ -1947,7 +1995,7 @@ namespace ZombieLand
 					firstTime = false;
 				}
 
-				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+				if (!found) Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 
@@ -2298,7 +2346,7 @@ namespace ZombieLand
 					last = instruction;
 				}
 
-				if (!found1 || !found2) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+				if (!found1 || !found2) Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 		[HarmonyPatch(typeof(Stance_Warmup))]
@@ -2482,7 +2530,7 @@ namespace ZombieLand
 				var list = instructions.ToList();
 				var ret = list.Last();
 				if (ret.opcode != OpCodes.Ret)
-					Log.Error("Expected ret in PawnRenderer.RenderPawnAt");
+					Error("Expected ret in PawnRenderer.RenderPawnAt");
 				ret.opcode = OpCodes.Ldarg_0;
 				list.Add(new CodeInstruction(OpCodes.Ldarg_1));
 				list.Add(CodeInstruction.Call(() => RenderExtras(null, Vector3.zero)));
@@ -2847,13 +2895,13 @@ namespace ZombieLand
 			{
 				textureError = true;
 				if (suppressError == false)
-					Log.Error(text);
+					Error(text);
 			}
 
 			[HarmonyPriority(Priority.First)]
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				var m1 = SymbolExtensions.GetMethodInfo(() => Log.Error(""));
+				var m1 = SymbolExtensions.GetMethodInfo(() => Error(""));
 				var m2 = SymbolExtensions.GetMethodInfo(() => Error(""));
 				return Transpilers.MethodReplacer(instructions, m1, m2);
 			}
@@ -2896,7 +2944,7 @@ namespace ZombieLand
 					yield return instruction;
 				}
 
-				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+				if (!found) Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 
@@ -3310,7 +3358,7 @@ namespace ZombieLand
 					list.Insert(idx + 1, new CodeInstruction(OpCodes.Call, m_FireDamagePatch));
 				}
 				else
-					Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+					Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 
 				return list.AsEnumerable();
 			}
@@ -3354,7 +3402,7 @@ namespace ZombieLand
 					}
 				}
 
-				if (!found1 || !found2) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+				if (!found1 || !found2) Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 
@@ -3611,7 +3659,7 @@ namespace ZombieLand
 				var m_GetAfterArmorDamage = AccessTools.Method(t_ArmorUtilityCE, "GetAfterArmorDamage", argumentTypes);
 				if (m_GetAfterArmorDamage == null)
 				{
-					Log.Error("Combat Extended installed, but method ArmorUtilityCE.GetAfterArmorDamage not found");
+					Error("Combat Extended installed, but method ArmorUtilityCE.GetAfterArmorDamage not found");
 					return;
 				}
 
@@ -4282,7 +4330,7 @@ namespace ZombieLand
 				var originalMethodInfo = AccessTools.Method(t_ProjectileCE, "Launch", new Type[] { typeof(Thing), typeof(Vector2), typeof(float), typeof(float), typeof(float), typeof(float), typeof(Thing) });
 				if (originalMethodInfo == null)
 				{
-					Log.Error("Combat Extended installed, but method ProjectileCE.Launch not found");
+					Error("Combat Extended installed, but method ProjectileCE.Launch not found");
 					return;
 				}
 
@@ -4475,7 +4523,7 @@ namespace ZombieLand
 					yield return instruction;
 				}
 
-				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+				if (!found) Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 
@@ -4531,7 +4579,7 @@ namespace ZombieLand
 				foreach (var instruction in list)
 					yield return instruction;
 
-				if (!found1 || !found2) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+				if (!found1 || !found2) Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 
@@ -4586,7 +4634,7 @@ namespace ZombieLand
 					yield return instruction;
 				}
 
-				if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+				if (!found) Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 		[HarmonyPatch(typeof(MainMenuDrawer))]
@@ -4640,7 +4688,7 @@ namespace ZombieLand
 					yield return instruction;
 				}
 
-				if (counter != 2) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+				if (counter != 2) Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
 	}
