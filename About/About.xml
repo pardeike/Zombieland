@@ -16,6 +16,9 @@
 			<downloadUrl>https://github.com/pardeike/HarmonyRimWorld/releases/latest</downloadUrl>
 		</li>
 	</modDependencies>
+	<loadBefore>
+		<li>betterscenes.rimconnect</li>
+	</loadBefore>
 	<loadAfter>
 		<li>ceteam.combatextended</li>
 	</loadAfter>

@@ -454,7 +454,8 @@ namespace ZombieLand
 			}
 			if (zombie.IsSuicideBomber)
 				zombie.lastBombTick = Find.TickManager.TicksAbs + Rand.Range(0, (int)zombie.bombTickingInterval);
-			_ = GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Direct);
+			if (cell.IsValid)
+				_ = GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Direct);
 			yield return null;
 			callback?.Invoke(zombie);
 			ZombiesSpawning--;

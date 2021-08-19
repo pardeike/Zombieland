@@ -2121,7 +2121,7 @@ namespace ZombieLand
 
 				var oldMode = ZombieSettings.Values.spawnHowType;
 				ZombieSettings.Values.spawnHowType = parms.raidArrivalMode.walkIn ? SpawnHowType.FromTheEdges : SpawnHowType.AllOverTheMap;
-				_ = ZombiesRising.TryExecute(Find.CurrentMap, Mathf.FloorToInt(parms.points), parms.spawnCenter);
+				_ = ZombiesRising.TryExecute(Find.CurrentMap, Mathf.FloorToInt(parms.points), parms.spawnCenter, false, false);
 				ZombieSettings.Values.spawnHowType = oldMode;
 				__result = false;
 				return false;

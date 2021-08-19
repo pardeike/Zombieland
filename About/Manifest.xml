@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Manifest>
   <identifier>net.pardeike.rimworld.mod.zombieland</identifier>
-  <version>2.3.2.0</version>
+  <version>2.3.3.0</version>
   <targetVersions>
     <li>1.0.0</li>
     <li>1.1.0</li>
@@ -13,8 +13,10 @@
   <incompatibleWith>
   </incompatibleWith>
   <loadBefore>
+    <li>betterscenes.rimconnect</li>
   </loadBefore>
   <loadAfter>
+    <li>ceteam.combatextended</li>
   </loadAfter>
   <manifestUri>https://raw.githubusercontent.com/pardeike/Zombieland/latest/About/Manifest.xml</manifestUri>
   <downloadUri>https://github.com/pardeike/Zombieland/releases/latest</downloadUri>

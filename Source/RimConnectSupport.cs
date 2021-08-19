@@ -1,229 +1,228 @@
 ﻿using HarmonyLib;
+using RimWorld;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
-using System.Xml;
+using System.Reflection.Emit;
+using UnityEngine;
 using Verse;
 
 namespace ZombieLand
 {
-	[HarmonyPatch]
-	static class RimConnectAPI_PostValidCommands_Patch
-	{
-		static readonly string configDefault = @"
-			<ZombieCommands>
-				<Command type='Albino'>
-					<name>Zombies (albino)</name>
-					<costs>20</costs>
-				</Command>
-				<Command type='DarkSlimer'>
-					<name>Zombies (dark slimer)</name>
-					<costs>15</costs>
-				</Command>
-				<Command type='Electrifier'>
-					<name>Zombies (electrifier)</name>
-					<costs>10</costs>
-				</Command>
-				<Command type='Miner'>
-					<name>Zombies (miner)</name>
-					<costs>5</costs>
-				</Command>
-				<Command type='Normal'>
-					<name>Zombies (normal)</name>
-					<costs>2</costs>
-				</Command>
-				<Command type='Random'>
-					<name>Zombies (random)</name>
-					<costs>25</costs>
-				</Command>
-				<Command type='SuicideBomber'>
-					<name>Zombies (bomber)</name>
-					<costs>20</costs>
-				</Command>
-				<Command type='TankyOperator'>
-					<name>Zombies (tanky)</name>
-					<costs>20</costs>
-				</Command>
-				<Command type='ToxicSplasher'>
-					<name>Zombies (toxic)</name>
-					<costs>20</costs>
-				</Command>
-			</ZombieCommands>".Replace('\'', '"');
-
-		static bool Prepare()
-		{
-			return TargetMethod() != null;
-		}
-
-		static MethodBase TargetMethod()
-		{
-			var tRimConnectAPI = AccessTools.TypeByName("RimConnection.RimConnectAPI");
-			if (tRimConnectAPI == null) return null;
-			return AccessTools.Method(tRimConnectAPI, "PostValidCommands");
-		}
-
-		static void Prefix(object commandList)
-		{
-			var list = Traverse.Create(commandList).Property("validCommands").GetValue() as IList;
-			var path = $"{GenFilePaths.ConfigFolderPath}{Path.DirectorySeparatorChar}ZombieLand-RimConnect.xml";
-			if (File.Exists(path) == false)
-				File.WriteAllText(path, configDefault);
-
-			var contents = File.ReadAllText(path);
-			var xmlReaderSettings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true, CheckCharacters = false };
-			using var stringReader = new StringReader(contents);
-			using XmlReader xmlReader = XmlReader.Create(stringReader, xmlReaderSettings);
-			var xmlDoc = new XmlDocument();
-			xmlDoc.Load(xmlReader);
-			foreach (XmlNode command in xmlDoc.DocumentElement.ChildNodes)
-			{
-				if (Enum.TryParse<ZombieType>(command.Attributes["type"].Value, out var confType))
-				{
-					var confName = "";
-					var confCosts = -1;
-					for (var i = 0; i < command.ChildNodes.Count; i++)
-					{
-						var name = command.ChildNodes[i].Name;
-						var value = command.ChildNodes[i].InnerText;
-						switch (name)
-						{
-							case "name":
-								confName = value;
-								break;
-							case "costs":
-								confCosts = int.Parse(value);
-								break;
-						}
-					}
-					if (confCosts > 0 && confName != "")
-						RimConnectSupport.AddCommand(list, confName, $"Creates {confName}", confCosts, (Map map, int amount, string user) =>
-						{
-							var success = ZombiesRising.TryExecute(map, amount, IntVec3.Invalid, true, confType);
-						});
-				}
-			}
-		}
-	}
-
-	[HarmonyPatch]
-	static class RimConnectAPI_GetCommands_Patch
-	{
-		static bool Prepare()
-		{
-			return TargetMethod() != null;
-		}
-
-		static MethodBase TargetMethod()
-		{
-			var tRimConnectAPI = AccessTools.TypeByName("RimConnection.RimConnectAPI");
-			if (tRimConnectAPI == null) return null;
-			return AccessTools.Method(tRimConnectAPI, "GetCommands");
-		}
-
-		static void Postfix(IList __result)
-		{
-			var zlObj = new List<object>();
-			foreach (var obj in __result)
-			{
-				var cmd = RimConnectSupport.Command.Convert(obj);
-				var action = RimConnectSupport.LookupAction(cmd.actionHash);
-				if (action != null)
-				{
-					RimConnectSupport.QueueRimConnectAction(map => action(map, cmd.amount, cmd.boughtBy));
-					zlObj.Add(obj);
-				}
-			}
-			foreach (var obj in zlObj)
-				__result.Remove(obj);
-		}
-	}
-
+	[StaticConstructorOnStartup]
 	public class RimConnectSupport
 	{
-		public delegate void ZombieAction(Map map, int amount, string user);
-		public static Dictionary<string, ZombieAction> zlCommands = new Dictionary<string, ZombieAction>();
+		static readonly Dictionary<string, Func<int, string, (string, IntVec3)>> actions = new Dictionary<string, Func<int, string, (string, IntVec3)>>();
 
-		public class ValidCommand
+		static RimConnectSupport()
 		{
-#pragma warning disable IDE1006
-			public string actionHash { get; set; }
-			public string name { get; set; }
-			public string description { get; set; }
-			public string category { get; set; }
-			public string prefix { get; set; }
-			public bool shouldShowAmount { get; set; }
-			public int localCooldownMs { get; set; }
-			public int globalCooldownMs { get; set; }
-			public int costSilverStore { get; set; }
-			public string bitStoreSKU { get; set; }
-#pragma warning restore IDE1006
+			var tActionList = AccessTools.TypeByName("RimConnection.ActionList");
+			if (tActionList == null) return;
 
-			public void UpdateActionHash()
+			var tAction = AccessTools.TypeByName("RimConnection.Action");
+			if (tAction == null) return;
+			var mExecute = AccessTools.Method(tAction, "Execute");
+			if (mExecute == null) return;
+			var mBadEventNotification = AccessTools.Method("RimConnection.AlertManager:BadEventNotification", new[] { typeof(string), typeof(IntVec3) });
+			if (mBadEventNotification == null) return;
+
+			var harmony = new Harmony("net.pardeike.zombieland.rimconnect");
+			var postfix = new HarmonyMethod(AccessTools.Method(typeof(RimConnectSupport), nameof(Postfix)));
+			var mGenerateActionList = AccessTools.Method(tActionList, "GenerateActionList");
+			_ = harmony.Patch(mGenerateActionList, postfix: postfix);
+		}
+
+		static void Postfix(ref IList __result)
+		{
+			var cat = "Zombies";
+			_ = __result.Add(CreateActionClass("RandomZombieAction", "Random Zombie Event", "Creates some normal zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.Random)));
+			_ = __result.Add(CreateActionClass("SuicideZombieAction", "Suicide Zombie Event", "Creates some suicide bomber zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.SuicideBomber)));
+			_ = __result.Add(CreateActionClass("ToxicZombieAction", "Toxic Zombie Event", "Creates some toxic goo zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.ToxicSplasher)));
+			_ = __result.Add(CreateActionClass("TankZombieAction", "Tank Zombie Event", "Creates some heavy tank zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.TankyOperator)));
+			_ = __result.Add(CreateActionClass("MinerZombieAction", "Miner Zombie Event", "Creates some mining zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.Miner)));
+			_ = __result.Add(CreateActionClass("ElectricZombieAction", "Electric Zombie Event", "Creates some electrical zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.Electrifier)));
+			_ = __result.Add(CreateActionClass("AlbinoZombieAction", "Albino Zombie Event", "Creates some albino zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.Albino)));
+			_ = __result.Add(CreateActionClass("DarkZombieAction", "Dark Zombie Event", "Creates some dark slimer zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.DarkSlimer)));
+			_ = __result.Add(CreateActionClass("NormalZombieAction", "Normal Zombie Event", "Creates some normal zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.Normal)));
+			_ = __result.Add(CreateActionClass("KillAllZombies", "Kill All Zombies", "Instantly kills all zombies on the map", cat, (amount, boughtBy) => KillAllZombies(boughtBy)));
+			_ = __result.Add(CreateActionClass("AllZombiesRage", "Zombies Rage Event", "Makes all zombies rage", cat, (amount, boughtBy) => AllZombiesRage(boughtBy)));
+			_ = __result.Add(CreateActionClass("SuperZombieDropRaid", "Super Zombie Drop", "Creates a drop raid with super zombies", cat, (amount, boughtBy) => SuperZombieDropRaid(amount, boughtBy)));
+		}
+
+		public static (string, IntVec3) SpawnZombies(int amount, string boughtBy, ZombieType type)
+		{
+			var map = Find.CurrentMap;
+			if (map == null) return (null, IntVec3.Invalid);
+			var tickManager = map.GetComponent<TickManager>();
+			if (tickManager == null) return (null, IntVec3.Invalid);
+			var available = Mathf.Max(0, ZombieSettings.Values.maximumNumberOfZombies - tickManager.ZombieCount());
+			amount = Mathf.Min(available, amount);
+			if (amount == 0) return (null, IntVec3.Invalid);
+
+			var cellValidator = Tools.ZombieSpawnLocator(map, true);
+			var spot = ZombiesRising.GetValidSpot(map, IntVec3.Invalid, cellValidator);
+			tickManager.rimConnectActions.Enqueue(map => ZombiesRising.TryExecute(map, amount, spot, false, true, type));
+			return ($"{boughtBy} created an event with {amount} {type.ToString().ToLower()} zombies", spot);
+		}
+
+		public static (string, IntVec3) KillAllZombies(string boughtBy)
+		{
+			var map = Find.CurrentMap;
+			if (map == null) return (null, IntVec3.Invalid);
+			var tickManager = map.GetComponent<TickManager>();
+			if (tickManager == null) return (null, IntVec3.Invalid);
+			tickManager.allZombiesCached.Do(zombie =>
 			{
-				var input = $"{name}{description}{category}{prefix}";
-				var hash = new SHA1Managed().ComputeHash(Encoding.UTF8.GetBytes(input));
+				for (int i = 0; i < 1000; i++)
+				{
+					var dinfo = new DamageInfo(DamageDefOf.Crush, 100f, 100f, -1f, null, null, null, DamageInfo.SourceCategory.ThingOrUnknown, null, true, true);
+					dinfo.SetIgnoreInstantKillProtection(true);
+					_ = zombie.TakeDamage(dinfo);
+					if (zombie.Destroyed)
+						break;
+				}
+			});
+			return ($"{boughtBy} killed all zombies on the map", IntVec3.Invalid);
+		}
 
-				var sb = new StringBuilder();
-				foreach (byte b in hash) _ = sb.Append(b.ToString("X2"));
+		public static (string, IntVec3) AllZombiesRage(string boughtBy)
+		{
+			var map = Find.CurrentMap;
+			if (map == null) return (null, IntVec3.Invalid);
+			var tickManager = map.GetComponent<TickManager>();
+			if (tickManager == null) return (null, IntVec3.Invalid);
+			tickManager.allZombiesCached.Do(zombie => ZombieStateHandler.StartRage(zombie));
+			return ($"{boughtBy} made all zombies on the map rage", IntVec3.Invalid);
+		}
 
-				actionHash = sb.ToString();
+		public static (string, IntVec3) SuperZombieDropRaid(int amount, string boughtBy)
+		{
+			var map = Find.CurrentMap;
+			if (map == null) return (null, IntVec3.Invalid);
+			var tickManager = map.GetComponent<TickManager>();
+			if (tickManager == null) return (null, IntVec3.Invalid);
+			var available = Mathf.Max(0, ZombieSettings.Values.maximumNumberOfZombies - tickManager.ZombieCount());
+			amount = Mathf.Min(available, amount);
+			if (amount == 0) return (null, IntVec3.Invalid);
+
+			if (DropCellFinder.TryFindRaidDropCenterClose(out var spot, map) == false) return (null, IntVec3.Invalid);
+
+			var zombies = new List<Zombie>();
+			for (var i = 1; i <= amount; i++)
+			{
+				var enumerator = ZombieGenerator.SpawnZombieIterativ(IntVec3.Invalid, map, ZombieType.Normal, zombie =>
+				{
+					zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
+					zombie.state = ZombieState.Wandering;
+					PawnComponentsUtility.AddComponentsForSpawn(zombie);
+					var job = JobMaker.MakeJob(CustomDefs.Stumble, zombie);
+					zombie.jobs.StartJob(job);
+
+					zombies.Add(zombie);
+				});
+				while (enumerator.MoveNext()) ;
 			}
+
+			DropPodUtility.DropThingsNear(spot, map, zombies, 0, false, false, true, false);
+
+			return ($"{boughtBy} created an drop raid with {amount} super zombies", spot);
 		}
 
-		public class Command
+		public static object CreateActionClass(string className, string name, string description, string category, Func<int, string, (string, IntVec3)> action)
 		{
-#pragma warning disable IDE1006
-			public string actionHash { get; set; }
-			public int amount { get; set; }
-			public string boughtBy { get; set; }
-#pragma warning restore IDE1006
+			var tAction = AccessTools.TypeByName("RimConnection.Action");
+			var mExecute = AccessTools.Method(tAction, "Execute");
+			var fValueTuple_Item1 = AccessTools.Field(typeof(ValueTuple<System.String, Verse.IntVec3>), "Item1");
+			var fValueTuple_Item2 = AccessTools.Field(typeof(ValueTuple<System.String, Verse.IntVec3>), "Item2");
 
-			public static Command Convert(object cmd)
+			var assemblyName = new AssemblyName("RimConnectSupport");
+			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+			var moduleBuilder = assemblyBuilder.DefineDynamicModule("DefaultModule");
+			var attr1 = TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.AutoClass | TypeAttributes.AnsiClass | TypeAttributes.ExplicitLayout;
+			var typeBuilder = moduleBuilder.DefineType(className, attr1, tAction);
+
+			var constructorBuilder = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[0]);
+			var gen1 = constructorBuilder.GetILGenerator();
+			gen1.Emit(OpCodes.Ldarg_0);
+			gen1.Emit(OpCodes.Call, AccessTools.DeclaredConstructor(tAction, new Type[0]));
+			gen1.Emit(OpCodes.Ldarg_0);
+			gen1.Emit(OpCodes.Ldstr, name);
+			gen1.Emit(OpCodes.Call, AccessTools.PropertySetter(tAction, "Name"));
+			gen1.Emit(OpCodes.Ldarg_0);
+			gen1.Emit(OpCodes.Ldstr, description);
+			gen1.Emit(OpCodes.Call, AccessTools.PropertySetter(tAction, "Description"));
+			gen1.Emit(OpCodes.Ldarg_0);
+			gen1.Emit(OpCodes.Ldstr, category);
+			gen1.Emit(OpCodes.Call, AccessTools.PropertySetter(tAction, "Category"));
+			gen1.Emit(OpCodes.Ret);
+
+			var attr2 = MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.NewSlot | MethodAttributes.Virtual | MethodAttributes.Final;
+			var methodBuilder = typeBuilder.DefineMethod("Execute", attr2, CallingConventions.HasThis, typeof(void), new[] { typeof(int), typeof(string) });
+			var gen2 = methodBuilder.GetILGenerator();
+			gen2.Emit(OpCodes.Ldstr, name);
+			gen2.Emit(OpCodes.Ldarg_1);
+			gen2.Emit(OpCodes.Ldarg_2);
+			gen2.Emit(OpCodes.Call, AccessTools.Method(typeof(RimConnectSupport), nameof(RimConnectSupport.Execute)));
+			gen2.Emit(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => BadEventNotification(default)));
+			gen2.Emit(OpCodes.Ret);
+			typeBuilder.DefineMethodOverride(methodBuilder, mExecute);
+
+			actions[name] = action;
+			return Activator.CreateInstance(typeBuilder.CreateType());
+		}
+
+		static readonly MethodInfo mBadEventNotification = AccessTools.Method("RimConnection.AlertManager:BadEventNotification", new[] { typeof(string), typeof(IntVec3) });
+		public static void BadEventNotification(ValueTuple<string, IntVec3> tuple)
+		{
+			if (tuple.Item1.NullOrEmpty() == false)
+				_ = mBadEventNotification.Invoke(null, new object[] { tuple.Item1, tuple.Item2 });
+		}
+
+		public static (string, IntVec3) Execute(string name, int amount, string boughtBy)
+		{
+			if (actions.TryGetValue(name, out var action))
+				return action(amount, boughtBy);
+			return (null, IntVec3.Invalid);
+		}
+	}
+
+	[HarmonyPatch]
+	class RimConnection_Settings_CommandOptionSettings_Patch
+	{
+		static IEnumerable<MethodBase> TargetMethods()
+		{
+			var method = AccessTools.Method("RimConnection.Settings.CommandOptionSettings:DoWindowContents");
+			if (method != null)
+				yield return method;
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		{
+			var list = instructions.ToList();
+			for (var i = 0; i < list.Count; i++)
 			{
-				var trv = Traverse.Create(cmd);
-				var actionHash = trv.Property("actionHash").GetValue<string>();
-				var amount = trv.Property("amount").GetValue<int>();
-				var boughtBy = trv.Property("boughtBy").GetValue<string>();
-				return new Command() { actionHash = actionHash, amount = amount, boughtBy = boughtBy };
+				var code = list[i];
+				if (code.opcode == OpCodes.Ldarga_S || code.opcode == OpCodes.Ldarga)
+				{
+					code = list[i - 1];
+					if (code.opcode == OpCodes.Ldc_R4)
+					{
+						var value = (float)code.operand;
+						if (value >= 180)
+							code.operand = value + 30f;
+					}
+				}
 			}
-		}
-
-		public static void AddCommand(IList list, string name, string description, int costs, ZombieAction action)
-		{
-			var cmd = new ValidCommand
-			{
-				name = name,
-				description = description,
-				category = "Event",
-				prefix = "Spawn",
-				localCooldownMs = 120000,
-				globalCooldownMs = 60000,
-				costSilverStore = costs,
-				bitStoreSKU = ""
-			};
-			cmd.UpdateActionHash();
-
-			zlCommands[cmd.actionHash] = action;
-
-			var tValidCommand = AccessTools.TypeByName("RimConnection.ValidCommand");
-			_ = list.Add(AccessTools.MakeDeepCopy(cmd, tValidCommand));
-		}
-
-		public static ZombieAction LookupAction(string actionHash)
-		{
-			if (zlCommands.TryGetValue(actionHash, out var action))
-				return action;
-			return null;
-		}
-
-		public static void QueueRimConnectAction(Action<Map> action)
-		{
-			var tickManager = Find.CurrentMap?.GetComponent<TickManager>();
-			tickManager?.rimConnectActions.Enqueue(action);
+			var idx = list.FindLastIndex(code => code.opcode == OpCodes.Sub);
+			if (idx > 0 && idx < list.Count)
+				list.InsertRange(idx + 1, new[]
+				{
+					new CodeInstruction(OpCodes.Ldc_R4, 30f),
+					new CodeInstruction(OpCodes.Sub)
+				});
+			return list.AsEnumerable();
 		}
 	}
 }

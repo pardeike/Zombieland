@@ -89,7 +89,7 @@ namespace ZombieLand
 				{
 					base.DebugToolMap($"Trigger: Zombie incident ({size})", delegate
 					{
-						var success = ZombiesRising.TryExecute(map, size, IntVec3.Invalid);
+						var success = ZombiesRising.TryExecute(map, size, IntVec3.Invalid, false, false);
 						if (success == false)
 							Log.Error("Incident creation failed. Most likely no valid spawn point found.");
 					}, highlightedIndex == i++);
@@ -97,19 +97,19 @@ namespace ZombieLand
 			}
 			base.DebugToolMap("Spawn: Zombie incident (4)", delegate
 			{
-				_ = ZombiesRising.TryExecute(map, 4, UI.MouseCell(), true);
+				_ = ZombiesRising.TryExecute(map, 4, UI.MouseCell(), false, true);
 			}, highlightedIndex == i++);
 			base.DebugToolMap("Spawn: Zombie incident (25)", delegate
 			{
-				_ = ZombiesRising.TryExecute(map, 25, UI.MouseCell(), true);
+				_ = ZombiesRising.TryExecute(map, 25, UI.MouseCell(), false, true);
 			}, highlightedIndex == i++);
 			base.DebugToolMap("Spawn: Zombie incident (100)", delegate
 			{
-				_ = ZombiesRising.TryExecute(map, 100, UI.MouseCell(), true);
+				_ = ZombiesRising.TryExecute(map, 100, UI.MouseCell(), false, true);
 			}, highlightedIndex == i++);
 			base.DebugToolMap("Spawn: Zombie incident (200)", delegate
 			{
-				_ = ZombiesRising.TryExecute(map, 200, UI.MouseCell(), true);
+				_ = ZombiesRising.TryExecute(map, 200, UI.MouseCell(), false, true);
 			}, highlightedIndex == i++);
 			base.DebugToolMap("Convert: Make Zombie", delegate
 			{

@@ -201,7 +201,7 @@ namespace ZombieLand
 			};
 		}
 
-		static IEnumerator SpawnEventProcess(Map map, int incidentSize, IntVec3 spot, Predicate<IntVec3> cellValidator, bool ignoreLimit, ZombieType zombieType = ZombieType.Random)
+		static IEnumerator SpawnEventProcess(Map map, int incidentSize, IntVec3 spot, Predicate<IntVec3> cellValidator, bool useAlert, bool ignoreLimit, ZombieType zombieType = ZombieType.Random)
 		{
 			var zombiesSpawning = 0;
 			var counter = 1;
@@ -228,16 +228,19 @@ namespace ZombieLand
 
 			if (zombiesSpawning > 3)
 			{
-				var headline = "LetterLabelZombiesRising".Translate();
-				var text = "ZombiesRising".Translate();
-				if (ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap)
+				if (useAlert)
 				{
-					headline = "LetterLabelZombiesRisingNearYourBase".Translate();
-					text = "ZombiesRisingNearYourBase".Translate();
-				}
+					var headline = "LetterLabelZombiesRising".Translate();
+					var text = "ZombiesRising".Translate();
+					if (ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap)
+					{
+						headline = "LetterLabelZombiesRisingNearYourBase".Translate();
+						text = "ZombiesRisingNearYourBase".Translate();
+					}
 
-				var location = new GlobalTargetInfo(spot, map);
-				Find.LetterStack.ReceiveLetter(headline, text, LetterDefOf.ThreatSmall, location);
+					var location = new GlobalTargetInfo(spot, map);
+					Find.LetterStack.ReceiveLetter(headline, text, LetterDefOf.ThreatSmall, location);
+				}
 
 				var isSubstantialZombieCount = zombiesSpawning > Tools.CapableColonists(map) * 4;
 				if (isSubstantialZombieCount && Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
@@ -245,9 +248,8 @@ namespace ZombieLand
 			}
 		}
 
-		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot, bool ignoreLimit = false, ZombieType zombieType = ZombieType.Random)
+		public static IntVec3 GetValidSpot(Map map, IntVec3 spot, Predicate<IntVec3> cellValidator)
 		{
-			var cellValidator = Tools.ZombieSpawnLocator(map, true);
 			var spotValidator = SpotValidator(cellValidator);
 
 			for (var counter = 1; counter <= 10; counter++)
@@ -258,10 +260,15 @@ namespace ZombieLand
 				var allOverTheMap = ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap;
 				spot = Tools.RandomSpawnCell(map, allOverTheMap == false, spotValidator);
 			}
-			if (spot.IsValid == false)
-				return false;
+			return spot;
+		}
 
-			_ = Find.CameraDriver.StartCoroutine(SpawnEventProcess(map, incidentSize, spot, cellValidator, ignoreLimit, zombieType));
+		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot, bool useAlert, bool ignoreLimit = false, ZombieType zombieType = ZombieType.Random)
+		{
+			var cellValidator = Tools.ZombieSpawnLocator(map, true);
+			spot = GetValidSpot(map, spot, cellValidator);
+			if (spot.IsValid == false) return false;
+			_ = Find.CameraDriver.StartCoroutine(SpawnEventProcess(map, incidentSize, spot, cellValidator, useAlert, ignoreLimit, zombieType));
 			return true;
 		}
 	}
