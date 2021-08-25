@@ -21,13 +21,14 @@ namespace ZombieLand
 		public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
 		{
 			var map = pawn.Map;
+			var pos = pawn.Position;
 			var area = map.areaManager.AllAreas.FirstOrDefault(area => area.Label == ZombieSettings.Values.extractZombieArea);
 			if (pawn.IsColonist == false) return Enumerable.Empty<Thing>();
 			if (ZombieSettings.Values.corpsesExtractAmount == 0) return Enumerable.Empty<Thing>();
 			var tickManager = map.GetComponent<TickManager>();
 			return tickManager.allZombieCorpses
 				.Where(corpse => corpse.DestroyedOrNull() == false && corpse.Spawned && (area == null || area[corpse.Position]))
-				.Cast<Thing>();
+				.OrderBy(corpse => corpse.Position.DistanceToSquared(pos)).Take(8); // just consider the nearest 8
 		}
 
 		public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
@@ -87,6 +88,7 @@ namespace ZombieLand
 
 		public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
 		{
+			var pos = pawn.Position;
 			return pawn.Map.listerThings.ThingsInGroup(ThingRequestGroup.Corpse)
 				.OfType<Corpse>()
 				.Where(corpse =>
@@ -96,7 +98,8 @@ namespace ZombieLand
 					if (hediffSet == null) return false;
 					if (hediffSet.GetBrain() == null) return false;
 					return hediffSet.HasHediff(CustomDefs.ZombieInfection);
-				});
+				})
+				.OrderBy(corpse => corpse.Position.DistanceToSquared(pos)).Take(8); // just consider the nearest 8
 		}
 
 		public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)

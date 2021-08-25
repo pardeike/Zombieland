@@ -191,11 +191,14 @@ namespace ZombieLand
 	[HarmonyPatch]
 	class RimConnection_Settings_CommandOptionSettings_Patch
 	{
-		static IEnumerable<MethodBase> TargetMethods()
+		static bool Prepare()
 		{
-			var method = AccessTools.Method("RimConnection.Settings.CommandOptionSettings:DoWindowContents");
-			if (method != null)
-				yield return method;
+			return TargetMethod() != null;
+		}
+
+		static MethodBase TargetMethod()
+		{
+			return AccessTools.Method("RimConnection.Settings.CommandOptionSettings:DoWindowContents");
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
