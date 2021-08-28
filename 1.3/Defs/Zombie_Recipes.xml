@@ -45,6 +45,7 @@
 		<description>zombie serum filter</description>
 		<parentCategory>Root</parentCategory>
 		<allowedByDefault>true</allowedByDefault>
+		<configurable>false</configurable>
 		<saveKey>zombieSerumFilter</saveKey>
 		<workerClass>ZombieLand.ZombieSerumFilterWorker</workerClass>
 	</SpecialThingFilterDef>
