@@ -93,21 +93,53 @@ namespace ZombieLand
 			foreach (var thing in things) // includes corpses
 				thing.Destroy();
 
-			map.zoneManager.AllZones.OfType<Zone_Stockpile>()
-				.Select(pile => pile?.settings?.filter).ToList()
-				.Do(RemoveFromFilter);
-
 			map.haulDestinationManager.AllGroups
 				.Select(slot => slot.Settings.filter)
 				.Do(RemoveFromFilter);
 
-			map.listerThings.AllThings.OfType<Building_WorkTable>().SelectMany(table => table?.billStack?.Bills ?? new List<Bill>())
+			map.listerThings.AllThings.SelectMany(thing => ContentOfFields<BillStack>(thing))
+				.SelectMany(billStack => AllBills(billStack))
 				.Select(bill => bill?.ingredientFilter).ToList()
 				.Do(RemoveFromFilter);
+
+			map.listerThings.AllThings.SelectMany(thing => ContentOfFields<Bill>(thing))
+				.SelectMany(bill => AllBills(bill))
+				.Select(bill => bill?.ingredientFilter).ToList()
+				.Do(RemoveFromFilter);
+
+			map.listerThings.AllThings.SelectMany(thing => ContentOfFields<StorageSettings>(thing))
+				.Select(settings => settings?.filter ?? new ThingFilter())
+				.Do(RemoveFromFilter);
+		}
+
+		static IEnumerable<T> ContentOfFields<T>(object instance) where T : class
+		{
+			return instance.GetType().GetFields(AccessTools.all)
+				.Where(f => typeof(T).IsAssignableFrom(f.FieldType))
+				.Select(f => f.GetValue(instance) as T);
+		}
+
+		static IEnumerable<Bill> AllBills(Bill bill)
+		{
+			if (bill == null) yield break;
+			yield return bill;
+			foreach (var innerBill in AllBills(bill.billStack))
+				yield return innerBill;
+		}
+
+		static IEnumerable<Bill> AllBills(BillStack billStack)
+		{
+			var bills = billStack?.bills;
+			if (bills == null) yield break;
+			foreach (var bill in bills)
+				foreach (var innerBill in AllBills(bill))
+					yield return innerBill;
 		}
 
 		static void RemovePawnRelatedStuff(Pawn pawn)
 		{
+			if (pawn?.health?.hediffSet == null) return;
+
 			var hediffs1 = pawn.health.hediffSet.GetHediffs<Hediff_Injury_ZombieBite>().ToList();
 			var hediffs2 = pawn.health.hediffSet.GetHediffs<Hediff_MissingPart>().Where(hediff => hediff.lastInjury.IsZombieHediff()).ToList();
 			var hediffs3 = pawn.health.hediffSet.GetHediffs<Hediff_Injury>().Where(hediff => hediff.source.IsZombieType()).ToList();
@@ -119,8 +151,7 @@ namespace ZombieLand
 			foreach (var hediff in hediffs3)
 				pawn.health.RemoveHediff(hediff);
 
-			var carriedFilth = pawn.filth.carriedFilth;
-			_ = carriedFilth?.RemoveAll(filth => filth.IsZombieThing());
+			_ = pawn.filth?.carriedFilth?.RemoveAll(filth => filth.IsZombieThing());
 
 			pawn.needs?.AllNeeds?.Do(need =>
 			{
