@@ -13,6 +13,9 @@ namespace ZombieLand
 	{
 		public static void RemoveZombieland(string filename)
 		{
+			// clear caches
+			seenBills.Clear();
+
 			if (Current.Game == null || Current.Game.Maps == null || Find.World == null) return;
 			Find.TickManager.CurTimeSpeed = TimeSpeed.Paused;
 
@@ -97,13 +100,13 @@ namespace ZombieLand
 				.Select(slot => slot.Settings.filter)
 				.Do(RemoveFromFilter);
 
-			map.listerThings.AllThings.SelectMany(thing => ContentOfFields<BillStack>(thing))
-				.SelectMany(billStack => AllBills(billStack))
+			map.listerThings.AllThings.SelectMany(thing => ContentOfFields<Bill>(thing))
+				.SelectMany(bill => AllBills(bill))
 				.Select(bill => bill?.ingredientFilter).ToList()
 				.Do(RemoveFromFilter);
 
-			map.listerThings.AllThings.SelectMany(thing => ContentOfFields<Bill>(thing))
-				.SelectMany(bill => AllBills(bill))
+			map.listerThings.AllThings.SelectMany(thing => ContentOfFields<BillStack>(thing))
+				.SelectMany(billStack => AllBills(billStack))
 				.Select(bill => bill?.ingredientFilter).ToList()
 				.Do(RemoveFromFilter);
 
@@ -119,21 +122,32 @@ namespace ZombieLand
 				.Select(f => f.GetValue(instance) as T);
 		}
 
-		static IEnumerable<Bill> AllBills(Bill bill)
-		{
-			if (bill == null) yield break;
-			yield return bill;
-			foreach (var innerBill in AllBills(bill.billStack))
-				yield return innerBill;
-		}
+		static readonly HashSet<Bill> seenBills = new HashSet<Bill>();
 
 		static IEnumerable<Bill> AllBills(BillStack billStack)
 		{
 			var bills = billStack?.bills;
 			if (bills == null) yield break;
 			foreach (var bill in bills)
-				foreach (var innerBill in AllBills(bill))
+				if (bill != null && seenBills.Contains(bill) == false)
+				{
+					_ = seenBills.Add(bill);
+					foreach (var innerBill in AllBills(bill))
+						yield return innerBill;
+				}
+		}
+
+		static IEnumerable<Bill> AllBills(Bill bill)
+		{
+			if (bill == null || seenBills.Contains(bill)) yield break;
+			_ = seenBills.Add(bill);
+			yield return bill;
+			foreach (var innerBill in AllBills(bill.billStack))
+				if (bill != null && seenBills.Contains(bill) == false)
+				{
+					_ = seenBills.Add(bill);
 					yield return innerBill;
+				}
 		}
 
 		static void RemovePawnRelatedStuff(Pawn pawn)
