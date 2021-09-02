@@ -2,6 +2,7 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -31,6 +32,24 @@ namespace ZombieLand
 
 	public class ZombieExtract : ThingWithComps
 	{
+	}
+
+	public class HealerInfo : IExposable
+	{
+		public int step;
+		public Pawn pawn;
+
+		public void ExposeData()
+		{
+			Scribe_Values.Look(ref step, "step");
+			Scribe_References.Look(ref pawn, "pawn");
+		}
+
+		public HealerInfo(Pawn pawn)
+		{
+			step = 0;
+			this.pawn = pawn;
+		}
 	}
 
 	[StaticConstructorOnStartup]
@@ -84,6 +103,10 @@ namespace ZombieLand
 
 		// dark slimer
 		public bool isDarkSlimer = false;
+
+		// healer
+		public bool isHealer = false;
+		public List<HealerInfo> healInfo = new List<HealerInfo>();
 
 		// transient vars
 		public bool needsGraphics = false;
@@ -170,6 +193,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref electricDisabledUntil, "electricDisabledUntil");
 			Scribe_Values.Look(ref isAlbino, "isAlbino");
 			Scribe_Values.Look(ref isDarkSlimer, "isDarkSlimer");
+			Scribe_Values.Look(ref isHealer, "isHealer");
 			Scribe_Values.Look(ref scream, "scream");
 			Scribe_Values.Look(ref hasTankyShield, "tankyShield");
 			Scribe_Values.Look(ref hasTankyHelmet, "tankyHelmet");
@@ -413,7 +437,8 @@ namespace ZombieLand
 		static DamageInfo damageInfo = new DamageInfo(DamageDefOf.Crush, 20f, 20f, -1f, null, null, null, DamageInfo.SourceCategory.ThingOrUnknown, null);
 		public void CustomTick(float threatLevel)
 		{
-			if (!ThingOwnerUtility.ContentsSuspended(ParentHolder) && Map != null)
+			var map = Map;
+			if (!ThingOwnerUtility.ContentsSuspended(ParentHolder) && map != null)
 			{
 				if (Spawned)
 				{
@@ -433,6 +458,20 @@ namespace ZombieLand
 
 			if (threatLevel <= 0.002f && ZombieSettings.Values.zombiesDieOnZeroThreat && Rand.Chance(0.002f))
 				_ = TakeDamage(damageInfo);
+
+			if (isHealer && EveryNTick(NthTick.Every15))
+			{
+				var radius = 4 + ZombieLand.Tools.Difficulty() * 2;
+				GenRadial.RadialDistinctThingsAround(Position, map, radius, false)
+					.OfType<Zombie>()
+					.Where(zombie => zombie.health.hediffSet.hediffs.Any())
+					.Do(zombie =>
+					{
+						zombie.health.hediffSet.Clear();
+						healInfo.Add(new HealerInfo(zombie));
+						map.debugDrawer.debugLines.Add(new DebugLine(DrawPos, zombie.DrawPos, 60, SimpleColor.Cyan));
+					});
+			}
 		}
 
 		public static Quaternion ZombieAngleAxis(float angle, Vector3 axis, Pawn pawn)

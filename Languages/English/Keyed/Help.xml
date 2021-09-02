@@ -113,6 +113,7 @@
 	<ElectrifierChance_Help>Electrifying zombies don't bite so you can melee them. In fact, their electric force field will protect them from any damage except melee. They will interfer and break anything electric, electronic or anything build with components including powered things, armor and weapons.</ElectrifierChance_Help>
 	<AlbinoChance_Help>Albino zombies don't attack you. Instead, they sabotage your base and scream so you get stunned and vomit.</AlbinoChance_Help>
 	<DarkSlimerChance_Help>Dark slimer zombies leave a ultra sticky tar like slime trail behind them. It is hard to clean (rain will wash it away though) and only zombies will pass it easily.</DarkSlimerChance_Help>
+	<HealerChance_Help>Healer zombies heal all zombies within a certain distance to full health. They can be identified by their cyan skin color and they otherwise act like normal standard zombies.</HealerChance_Help>
 	<NormalZombieChance_Help>Ordinary zombies come in different body sizes. That defines their strength but also their speed! They often wear any apparel that is available in the game and in any mods you have installed.</NormalZombieChance_Help>
 
 	<!-- -->

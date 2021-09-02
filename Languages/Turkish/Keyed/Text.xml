@@ -101,6 +101,7 @@
 	<ElectrifierChance>Elektrikli zombiler</ElectrifierChance>
 	<AlbinoChance>Albino zombiler</AlbinoChance>
 	<DarkSlimerChance>Karanlık sümüksü zombiler</DarkSlimerChance>
+	<HealerChance>Şifacı zombiler</HealerChance>
 	<NormalZombieChance>Sıradan zombiler: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Çeşitli</ZombieMiscTitle>

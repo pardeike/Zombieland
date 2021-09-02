@@ -83,6 +83,12 @@ namespace ZombieLand
 						var data = new ColorData(width, height, pixels);
 						colorDataDatabase.Add(path + "#dark", data);
 					}
+
+					// add healer cyan
+					{
+						var data = GetColoredData(originalPixels, Color.cyan, width, height);
+						colorDataDatabase.Add(path + "#healer", data);
+					}
 				}
 				else
 				{

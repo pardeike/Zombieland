@@ -101,6 +101,7 @@
 	<ElectrifierChance>電動殭屍</ElectrifierChance>
 	<AlbinoChance>白化殭屍</AlbinoChance>
 	<DarkSlimerChance>黑暗黏糊糊的殭屍</DarkSlimerChance>
+	<HealerChance>治療殭屍</HealerChance>
 	<NormalZombieChance>普通殭屍: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>其他</ZombieMiscTitle>

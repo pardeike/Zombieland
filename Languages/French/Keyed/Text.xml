@@ -101,6 +101,7 @@
 	<ElectrifierChance>Zombies électrisants</ElectrifierChance>
 	<AlbinoChance>Zombies albinos</AlbinoChance>
 	<DarkSlimerChance>Zombies gluants sombres</DarkSlimerChance>
+	<HealerChance>Zombies guérisseurs</HealerChance>
 	<NormalZombieChance>Zombies ordinaires: {0}</NormalZombieChance>
 
 	<ZombieMiscTitle>Divers</ZombieMiscTitle>

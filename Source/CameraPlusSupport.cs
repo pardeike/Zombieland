@@ -31,6 +31,8 @@ namespace CameraPlusSupport
 				innerColor = Color.cyan;
 			else if (zombie.isAlbino)
 				innerColor = Color.white;
+			else if (zombie.isHealer)
+				innerColor = Color.cyan;
 			else if (zombie.isDarkSlimer)
 				innerColor = darkColor;
 			else if (zombie.isMiner)

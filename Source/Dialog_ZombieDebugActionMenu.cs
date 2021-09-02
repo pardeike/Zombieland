@@ -41,43 +41,47 @@ namespace ZombieLand
 
 			// TODO: use Dialog_DebugOptionLister.DebugToolMap(string label, Action toolAction, bool highlight) ?
 
-			base.DebugToolMap("Spawn: Zombie (dig out)", delegate
+			DebugToolMap("Spawn: Zombie (dig out)", delegate
 			{
 				SpawnZombie(ZombieType.Normal, false);
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Spawn: Zombie (standing)", delegate
+			DebugToolMap("Spawn: Zombie (standing)", delegate
 			{
 				SpawnZombie(ZombieType.Normal, true);
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Spawn: Suicide bomber", delegate
+			DebugToolMap("Spawn: Suicide bomber", delegate
 			{
 				SpawnZombie(ZombieType.SuicideBomber, true);
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Spawn: Toxic Splasher", delegate
+			DebugToolMap("Spawn: Toxic Splasher", delegate
 			{
 				SpawnZombie(ZombieType.ToxicSplasher, true);
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Spawn: Tanky Operator", delegate
+			DebugToolMap("Spawn: Tanky Operator", delegate
 			{
 				SpawnZombie(ZombieType.TankyOperator, true);
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Spawn: Miner", delegate
+			DebugToolMap("Spawn: Miner", delegate
 			{
 				SpawnZombie(ZombieType.Miner, true);
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Spawn: Electrifier", delegate
+			DebugToolMap("Spawn: Electrifier", delegate
 			{
 				SpawnZombie(ZombieType.Electrifier, true);
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Spawn: Albino", delegate
+			DebugToolMap("Spawn: Albino", delegate
 			{
 				SpawnZombie(ZombieType.Albino, true);
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Spawn: Dark Slimer", delegate
+			DebugToolMap("Spawn: Dark Slimer", delegate
 			{
 				SpawnZombie(ZombieType.DarkSlimer, true);
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Spawn: Random zombie", delegate
+			DebugToolMap("Spawn: Healer", delegate
+			{
+				SpawnZombie(ZombieType.Healer, true);
+			}, highlightedIndex == i++);
+			DebugToolMap("Spawn: Random zombie", delegate
 			{
 				SpawnZombie(ZombieType.Random, true);
 			}, highlightedIndex == i++);
@@ -87,7 +91,7 @@ namespace ZombieLand
 				var size = tm.incidentInfo.parameters.incidentSize;
 				if (size > 0)
 				{
-					base.DebugToolMap($"Trigger: Zombie incident ({size})", delegate
+					DebugToolMap($"Trigger: Zombie incident ({size})", delegate
 					{
 						var success = ZombiesRising.TryExecute(map, size, IntVec3.Invalid, false, false);
 						if (success == false)
@@ -95,23 +99,23 @@ namespace ZombieLand
 					}, highlightedIndex == i++);
 				}
 			}
-			base.DebugToolMap("Spawn: Zombie incident (4)", delegate
+			DebugToolMap("Spawn: Zombie incident (4)", delegate
 			{
 				_ = ZombiesRising.TryExecute(map, 4, UI.MouseCell(), false, true);
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Spawn: Zombie incident (25)", delegate
+			DebugToolMap("Spawn: Zombie incident (25)", delegate
 			{
 				_ = ZombiesRising.TryExecute(map, 25, UI.MouseCell(), false, true);
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Spawn: Zombie incident (100)", delegate
+			DebugToolMap("Spawn: Zombie incident (100)", delegate
 			{
 				_ = ZombiesRising.TryExecute(map, 100, UI.MouseCell(), false, true);
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Spawn: Zombie incident (200)", delegate
+			DebugToolMap("Spawn: Zombie incident (200)", delegate
 			{
 				_ = ZombiesRising.TryExecute(map, 200, UI.MouseCell(), false, true);
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Convert: Make Zombie", delegate
+			DebugToolMap("Convert: Make Zombie", delegate
 			{
 				foreach (var thing in map.thingGrid.ThingsAt(UI.MouseCell()))
 				{
@@ -119,7 +123,7 @@ namespace ZombieLand
 					Tools.ConvertToZombie(pawn, map, true);
 				}
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Apply: Trigger rotting", delegate
+			DebugToolMap("Apply: Trigger rotting", delegate
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
@@ -128,7 +132,7 @@ namespace ZombieLand
 						compRottable.RotProgress = compRottable.PropsRot.TicksToRotStart;
 				}
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Apply: Add zombie bite", delegate
+			DebugToolMap("Apply: Add zombie bite", delegate
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
@@ -158,7 +162,7 @@ namespace ZombieLand
 					pawn.health.AddHediff(bite, bodyPart, damageInfo);
 				}
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Apply: Remove infections", delegate
+			DebugToolMap("Apply: Remove infections", delegate
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{
@@ -175,7 +179,7 @@ namespace ZombieLand
 					_ = pawn.health.hediffSet.hediffs.RemoveAll(hediff => hediff is Hediff_ZombieInfection);
 				}
 			}, highlightedIndex == i++);
-			base.DebugToolMap("Apply: Zombie raging", delegate
+			DebugToolMap("Apply: Zombie raging", delegate
 			{
 				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 				{

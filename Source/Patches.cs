@@ -2541,27 +2541,30 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static void Postfix(PawnRenderer __instance, Vector3 drawLoc)
 			{
-				if (!(__instance.graphics.pawn is Zombie zombie) || zombie.isAlbino == false || zombie.scream < 0) return;
+				if (!(__instance.graphics.pawn is Zombie zombie)) return;
 
-				var center = drawLoc + new Vector3(0, 0.1f, 0.25f);
-
-				var f1 = zombie.scream / 400f;
-				var f2 = Mathf.Sin(Mathf.PI * f1);
-				var f3 = Math.Max(0, Mathf.Sin(Mathf.PI * f1 * 1.5f));
-
-				var mat = new Material(Constants.SCREAM)
+				if (zombie.isAlbino && zombie.scream > 0)
 				{
-					color = new Color(1f, 1f, 1f, f2)
-				};
-				var size = f1 * 4f;
-				GraphicToolbox.DrawScaledMesh(Constants.screamMesh, mat, center, Quaternion.identity, size, size);
+					var f1 = zombie.scream / 400f;
+					var f2 = Mathf.Sin(Mathf.PI * f1);
+					var f3 = Math.Max(0, Mathf.Sin(Mathf.PI * f1 * 1.5f));
 
-				mat = new Material(Constants.SCREAMSHADOW)
-				{
-					color = new Color(1f, 1f, 1f, f3)
-				};
-				var q = Quaternion.AngleAxis(f2 * 360f, Vector3.up);
-				GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat, center, q, 1.5f, 1.5f);
+					var mat = new Material(Constants.SCREAM)
+					{
+						color = new Color(1f, 1f, 1f, f2)
+					};
+					var size = f1 * 4f;
+					var center = drawLoc + new Vector3(0, 0.1f, 0.25f);
+
+					GraphicToolbox.DrawScaledMesh(Constants.screamMesh, mat, center, Quaternion.identity, size, size);
+
+					mat = new Material(Constants.SCREAMSHADOW)
+					{
+						color = new Color(1f, 1f, 1f, f3)
+					};
+					var q = Quaternion.AngleAxis(f2 * 360f, Vector3.up);
+					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat, center, q, 1.5f, 1.5f);
+				}
 			}
 
 			// we don't use a postfix so that someone that patches and skips RenderPawnAt will also skip RenderExtras
@@ -2593,6 +2596,44 @@ namespace ZombieLand
 							if (orientation == Rot4.West) { bombLightLoc.x -= 0.25f; bombLightLoc.z -= 0.05f; }
 							if (orientation == Rot4.East) { bombLightLoc.x += 0.25f; bombLightLoc.z -= 0.05f; }
 							GraphicToolbox.DrawScaledMesh(MeshPool.plane10, Constants.BOMB_LIGHT, bombLightLoc, Quaternion.identity, scale, scale);
+						}
+					}
+				}
+
+				if (zombie.isHealer && zombie.healInfo.Count > 0)
+				{
+					var i = 0;
+					var isNotPaused = Find.TickManager.Paused == false;
+					while (i < zombie.healInfo.Count)
+					{
+						// healing:       |0%..100%.............0%|
+						// being healed:          |0%...........100%...........0%|
+						// info.step:     |0      40             80           120|
+
+						var info = zombie.healInfo[i];
+						var healTarget = info.pawn;
+
+						var healingIndex = (int)GenMath.LerpDoubleClamped(0, 80, Constants.healingMaterials.Length - 1, 0, info.step);
+						var beingHealedIndex = (int)GenMath.LerpDoubleClamped(40, 120, 0, 9, info.step);
+						if (beingHealedIndex >= Constants.BEING_HEALED.Length)
+							beingHealedIndex = 9 - beingHealedIndex;
+
+						var mat = Constants.healingMaterials[healingIndex];
+						var size = (zombie.DrawPos - healTarget.DrawPos).MagnitudeHorizontal() / 2 + 0.2f;
+						GraphicToolbox.DrawScaledMesh(Constants.healMesh, mat, drawLoc, Quaternion.identity, size, size);
+
+						float angle = healTarget.drawer.renderer.BodyAngle();
+						if (healTarget.Rotation == Rot4.West) angle -= leanAngle;
+						if (healTarget.Rotation == Rot4.East) angle += leanAngle;
+						var quat = Quaternion.AngleAxis(angle, Vector3.up);
+						GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.BEING_HEALED[beingHealedIndex], healTarget.DrawPos + toxicAuraOffset, quat, 1.5f, 1.5f);
+
+						if (info.step == 120)
+							zombie.healInfo.RemoveAt(i);
+						else
+						{
+							if (isNotPaused) info.step++;
+							i++;
 						}
 					}
 				}
@@ -3074,7 +3115,8 @@ namespace ZombieLand
 					if (zombie.isAlbino)
 					{
 						var albinoPos = zombie.Position;
-						var minDistSquared = zombie.Map.mapPawns.FreeColonistsAndPrisonersSpawned.Min(colonist => colonist.Position.DistanceToSquared(albinoPos));
+						var colonists = zombie.Map.mapPawns.FreeColonistsAndPrisonersSpawned;
+						var minDistSquared = colonists.Any() ? colonists.Min(colonist => colonist.Position.DistanceToSquared(albinoPos)) : 450;
 						albinoSpeed = GenMath.LerpDoubleClamped(36, 900, 5f, 1f, minDistSquared);
 					}
 
@@ -3098,6 +3140,9 @@ namespace ZombieLand
 						__result *= 2f;
 					if (zombie.isDarkSlimer)
 						__result /= 1.5f;
+
+					if (zombie.isHealer)
+						__result *= 0.9f;
 
 					return false;
 				}

@@ -22,7 +22,8 @@ namespace ZombieLand
 		Electrifier = 4,
 		Albino = 5,
 		DarkSlimer = 6,
-		Normal = 7
+		Healer = 7,
+		Normal = 8
 	}
 
 	public static class ZombieBaseValues
@@ -176,6 +177,16 @@ namespace ZombieLand
 				}
 			),
 
+			// healer
+			new Pair<Func<float>, Func<Zombie, BodyTypeDef>>(
+				() => ZombieSettings.Values.healerChance,
+				zombie =>
+				{
+					zombie.isHealer = true;
+					return SetRandomBody(zombie);
+				}
+			),
+
 			// default ordinary zombie
 			new Pair<Func<float>, Func<Zombie, BodyTypeDef>>(
 				() => 1f
@@ -185,7 +196,8 @@ namespace ZombieLand
 					- ZombieSettings.Values.minerChance
 					- ZombieSettings.Values.electrifierChance
 					- ZombieSettings.Values.albinoChance
-					- ZombieSettings.Values.darkSlimerChance,
+					- ZombieSettings.Values.darkSlimerChance
+					- ZombieSettings.Values.healerChance,
 				zombie =>
 				{
 					return SetRandomBody(zombie);
@@ -254,6 +266,7 @@ namespace ZombieLand
 				if (zombie.isElectrifier) color = "electric";
 				if (zombie.isAlbino) color = "albino";
 				if (zombie.isDarkSlimer) color = "dark";
+				if (zombie.isHealer) color = "healer";
 				yield return null;
 				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.Cutout, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>(), null);
 				yield return null;
@@ -265,6 +278,8 @@ namespace ZombieLand
 					maxStainPoints = 0;
 				if (zombie.isMiner)
 					maxStainPoints *= 4;
+				if (zombie.isHealer)
+					maxStainPoints = 0;
 
 				var customBodyGraphic = new VariableGraphic { bodyColor = color };
 				yield return null;
@@ -430,7 +445,7 @@ namespace ZombieLand
 				.Where(kvp => kvp.Value.slot == BackstorySlot.Adulthood)
 				.SafeRandomElement().Value;
 			yield return null;
-			zombie.story.melanin = zombie.isAlbino ? 1f : (zombie.isDarkSlimer ? 0f : 0.01f * Rand.Range(10, 91));
+			zombie.story.melanin = zombie.isAlbino || zombie.isHealer ? 1f : (zombie.isDarkSlimer ? 0f : 0.01f * Rand.Range(10, 91));
 			zombie.story.bodyType = bodyType;
 			zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
 			zombie.story.hairColor = ZombieBaseValues.HairColor();

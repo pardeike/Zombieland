@@ -257,10 +257,42 @@ namespace ZombieLand
 				MaterialPool.MatFrom("TarSlime/TarSlime7", ShaderDatabase.Mote, new Color(1,1,1,1)),
 			},
 		};
+		public static readonly Material HEAL = MaterialPool.MatFrom("Heal", ShaderDatabase.Mote);
+		public static Material[] healingMaterials = new[]
+		{
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.00f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.05f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.1f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.1f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.15f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.2f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.25f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.3f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.3f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.3f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.5f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.7f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.8f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.9f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 1.0f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 1.0f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 1.0f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.8f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.5f) },
+			new Material(HEAL) { color = new Color(1f, 1f, 1f, 0.25f) },
+		};
+		public static readonly Material[] BEING_HEALED = new Material[] {
+			MaterialPool.MatFrom("BeingHealed", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.3f)),
+			MaterialPool.MatFrom("BeingHealed", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.5f)),
+			MaterialPool.MatFrom("BeingHealed", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.7f)),
+			MaterialPool.MatFrom("BeingHealed", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.9f)),
+			MaterialPool.MatFrom("BeingHealed", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 1.0f))
+		};
 
 		public static readonly System.Random random = new System.Random();
 
 		public static readonly Mesh screamMesh = MeshMakerPlanes.NewPlaneMesh(8f);
+		public static readonly Mesh healMesh = MeshMakerPlanes.NewPlaneMesh(4f);
 
 		public static Texture2D dot = new Texture2D(3, 3);
 	}

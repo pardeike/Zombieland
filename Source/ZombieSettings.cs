@@ -76,6 +76,7 @@ namespace ZombieLand
 		public float electrifierChance = 0.01f;
 		public float albinoChance = 0.01f;
 		public float darkSlimerChance = 0.01f;
+		public float healerChance = 0.01f;
 		public float moveSpeedIdle = 0.2f;
 		public float moveSpeedTracking = 0.7f;
 		public bool moveSpeedUpgraded = false;
@@ -160,6 +161,11 @@ namespace ZombieLand
 					darkSlimerChance = 0.01f;
 					chanceDirty = true;
 				}
+				if (healerChance < 0 || healerChance > 1)
+				{
+					healerChance = 0.01f;
+					chanceDirty = true;
+				}
 
 				if (suicideBomberChance
 					+ toxicSplasherChance
@@ -167,7 +173,8 @@ namespace ZombieLand
 					+ minerChance
 					+ electrifierChance
 					+ albinoChance
-					+ darkSlimerChance > 1) chanceDirty = true;
+					+ darkSlimerChance
+					+ healerChance > 1) chanceDirty = true;
 
 				if (ZombielandMod.IsLoadingDefaults == false)
 				{

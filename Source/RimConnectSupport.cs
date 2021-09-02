@@ -45,6 +45,7 @@ namespace ZombieLand
 			_ = __result.Add(CreateActionClass("ElectricZombieAction", "Electric Zombie Event", "Creates some electrical zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.Electrifier)));
 			_ = __result.Add(CreateActionClass("AlbinoZombieAction", "Albino Zombie Event", "Creates some albino zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.Albino)));
 			_ = __result.Add(CreateActionClass("DarkZombieAction", "Dark Zombie Event", "Creates some dark slimer zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.DarkSlimer)));
+			_ = __result.Add(CreateActionClass("HealerZombieAction", "Healer Zombie Event", "Creates some healer zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.Healer)));
 			_ = __result.Add(CreateActionClass("NormalZombieAction", "Normal Zombie Event", "Creates some normal zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.Normal)));
 			_ = __result.Add(CreateActionClass("KillAllZombies", "Kill All Zombies", "Instantly kills all zombies on the map", cat, (amount, boughtBy) => KillAllZombies(boughtBy)));
 			_ = __result.Add(CreateActionClass("AllZombiesRage", "Zombies Rage Event", "Makes all zombies rage", cat, (amount, boughtBy) => AllZombiesRage(boughtBy)));
