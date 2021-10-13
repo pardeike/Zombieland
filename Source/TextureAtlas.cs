@@ -9,6 +9,7 @@ namespace ZombieLand
 	{
 		public string path;
 		public ColorData data;
+		public bool noRecolor;
 	}
 
 	public static class TextureAtlas

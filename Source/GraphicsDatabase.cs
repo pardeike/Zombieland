@@ -8,22 +8,41 @@ using Verse;
 
 namespace ZombieLand
 {
+	delegate void ManipulateImageDelegate(ref string path, ref int width, ref int height, ref Color[] pixels, ref Rect rect, ref bool noColor);
+
 	[StaticConstructorOnStartup]
 	public static class GraphicsDatabase
 	{
 		static readonly string textureRoot = Tools.GetModRootDirectory() + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar;
-
 		public static List<string> zombieRGBSkinColors = new List<string>();
 		public static Graphic twinkieGraphic;
-
 		static readonly Dictionary<string, ColorData> colorDataDatabase = new Dictionary<string, ColorData>();
+
+		public static void ManipulateImage(ref string path, ref int width, ref int height, ref Color[] pixels, ref Rect rect, ref bool noColor)
+		{
+			_ = path;
+			_ = width;
+			_ = height;
+			_ = pixels;
+			_ = rect;
+			_ = noColor;
+		}
 
 		static GraphicsDatabase()
 		{
 			ReadSkinColors();
 
+			ManipulateImageDelegate manipulateImageDelegate = ManipulateImage;
+			var mManipulateImage = AccessTools.Method("CustomizeZombieland:ManipulateImage");
+			Log.Warning($"Found custom image manipulator: {mManipulateImage.FullDescription()}");
+			if (mManipulateImage != null)
+				manipulateImageDelegate = Delegate.CreateDelegate(typeof(ManipulateImageDelegate), mManipulateImage) as ManipulateImageDelegate;
+
 			TextureAtlas.AllImages.Do(item =>
 			{
+				item.noRecolor = false;
+				manipulateImageDelegate(ref item.path, ref item.data.width, ref item.data.height, ref item.data.pixels, ref item.data.rect, ref item.noRecolor);
+
 				var path = item.path;
 				var width = item.data.width;
 				var height = item.data.height;
@@ -36,13 +55,13 @@ namespace ZombieLand
 
 					zombieRGBSkinColors.Do(hex =>
 					{
-						var data = GetColoredData(originalPixels, hex.HexColor(), width, height);
+						var data = item.noRecolor ? new ColorData(width, height, originalPixels) : GetColoredData(originalPixels, hex.HexColor(), width, height);
 						colorDataDatabase.Add(path + "#" + hex, data);
 					});
 
 					// add toxic green
 					{
-						var data = GetColoredData(originalPixels, Color.green, width, height);
+						var data = item.noRecolor ? new ColorData(width, height, originalPixels) : GetColoredData(originalPixels, Color.green, width, height);
 						colorDataDatabase.Add(path + "#toxic", data);
 					}
 
@@ -55,19 +74,19 @@ namespace ZombieLand
 							pixels[i].g /= 4f;
 							pixels[i].b /= 4f;
 						}
-						var data = new ColorData(width, height, pixels);
+						var data = item.noRecolor ? new ColorData(width, height, originalPixels) : new ColorData(width, height, pixels);
 						colorDataDatabase.Add(path + "#miner", data);
 					}
 
 					// add electric cyan
 					{
-						var data = GetColoredData(originalPixels, new Color(0.196078431f, 0.470588235f, 0.470588235f), width, height);
+						var data = item.noRecolor ? new ColorData(width, height, originalPixels) : GetColoredData(originalPixels, new Color(0.196078431f, 0.470588235f, 0.470588235f), width, height);
 						colorDataDatabase.Add(path + "#electric", data);
 					}
 
 					// add albino white
 					{
-						var data = GetColoredData(originalPixels, Color.white, width, height);
+						var data = item.noRecolor ? new ColorData(width, height, originalPixels) : GetColoredData(originalPixels, Color.white, width, height);
 						colorDataDatabase.Add(path + "#albino", data);
 					}
 
@@ -80,19 +99,19 @@ namespace ZombieLand
 							pixels[i].g /= 8f;
 							pixels[i].b /= 8f;
 						}
-						var data = new ColorData(width, height, pixels);
+						var data = item.noRecolor ? new ColorData(width, height, originalPixels) : new ColorData(width, height, pixels);
 						colorDataDatabase.Add(path + "#dark", data);
 					}
 
 					// add healer cyan
 					{
-						var data = GetColoredData(originalPixels, Color.cyan, width, height);
+						var data = item.noRecolor ? new ColorData(width, height, originalPixels) : GetColoredData(originalPixels, Color.cyan, width, height);
 						colorDataDatabase.Add(path + "#healer", data);
 					}
 				}
 				else
 				{
-					var data = new ColorData(width, height, originalPixels);
+					var data = item.noRecolor ? new ColorData(width, height, originalPixels) : new ColorData(width, height, originalPixels);
 					colorDataDatabase.Add(path, data);
 				}
 			});

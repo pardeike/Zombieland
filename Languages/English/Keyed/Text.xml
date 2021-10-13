@@ -8,7 +8,7 @@
 	<ZombiesRisingNearYourBase>A group of zombies appears near your base</ZombiesRisingNearYourBase>
 
 	<LetterLabelXDaysUntilZombies>{0} until Zombies come</LetterLabelXDaysUntilZombies>
-	<XDaysUntilZombies>Zombies will appear where there is soft soil, dirt, sand or gravel. The construction of floors prevents that zombies come out there.</XDaysUntilZombies>
+	<XDaysUntilZombies>Zombies will appear where there is soft soil, dirt, sand or gravel. The construction of floors prevents those zombies from coming out of there.</XDaysUntilZombies>
 
 	<ZombielandDefaultSettings>Zombieland defaults</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Zombieland settings</ZombielandGameSettings>
