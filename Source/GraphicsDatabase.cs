@@ -8,7 +8,7 @@ using Verse;
 
 namespace ZombieLand
 {
-	delegate void ManipulateImageDelegate(ref string path, ref int width, ref int height, ref Color[] pixels, ref Rect rect, ref bool noColor);
+	delegate void ManipulateImageDelegate(ref string path, ref int width, ref int height, ref Color[] pixels, ref Rect rect, ref bool noRecolor);
 
 	[StaticConstructorOnStartup]
 	public static class GraphicsDatabase
@@ -18,25 +18,52 @@ namespace ZombieLand
 		public static Graphic twinkieGraphic;
 		static readonly Dictionary<string, ColorData> colorDataDatabase = new Dictionary<string, ColorData>();
 
-		public static void ManipulateImage(ref string path, ref int width, ref int height, ref Color[] pixels, ref Rect rect, ref bool noColor)
+		public static void NoOpManipulator(ref string path, ref int width, ref int height, ref Color[] pixels, ref Rect rect, ref bool noRecolor)
 		{
 			_ = path;
 			_ = width;
 			_ = height;
 			_ = pixels;
 			_ = rect;
-			_ = noColor;
+			_ = noRecolor;
+		}
+
+		static Color[] pumpkinPixels;
+		public static void PumkinHeads(ref string path, ref int width, ref int height, ref Color[] pixels, ref Rect rect, ref bool noRecolor)
+		{
+			_ = width;
+			_ = height;
+			_ = rect;
+
+			if (path.StartsWith("Zombie/") == false) return;
+			if (path.StartsWith("Zombie/Naked")) return;
+
+			if (pumpkinPixels == null)
+			{
+				var tex = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+				_ = tex.LoadImage(File.ReadAllBytes(textureRoot + "Pumpkin.png"));
+				pumpkinPixels = tex.GetPixels();
+			}
+
+			if (pixels.Length != pumpkinPixels.Length) return;
+			pixels = pumpkinPixels;
+			noRecolor = true;
 		}
 
 		static GraphicsDatabase()
 		{
 			ReadSkinColors();
 
-			ManipulateImageDelegate manipulateImageDelegate = ManipulateImage;
+			var date = DateTime.Today;
+			ManipulateImageDelegate manipulateImageDelegate = NoOpManipulator;
+			if (date.Month == 10 && date.Day == 31) manipulateImageDelegate = PumkinHeads;
+
 			var mManipulateImage = AccessTools.Method("CustomizeZombieland:ManipulateImage");
-			Log.Warning($"Found custom image manipulator: {mManipulateImage.FullDescription()}");
 			if (mManipulateImage != null)
+			{
+				Log.Warning($"Found custom image manipulator: {mManipulateImage.FullDescription()}");
 				manipulateImageDelegate = Delegate.CreateDelegate(typeof(ManipulateImageDelegate), mManipulateImage) as ManipulateImageDelegate;
+			}
 
 			TextureAtlas.AllImages.Do(item =>
 			{
