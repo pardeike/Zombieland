@@ -139,6 +139,12 @@ Electrifying zombies that are shockingly resistent to bullets or ranged weapons.
 **Albinos**  
 Very fast zombies that are easy to kill. They go for your doors and sabotage them so they stay open for a bit longer than usual. Will start to scream when getting close to your colonists which makes them vomit so you loose control for a short while.
 
+**Dark puffers**
+When hit they produce a big cloud of defensive dark smoke that will prevent you from seeing them and their fellow zombies. They also leave a very sticky tar like substance on the ground that makes moving very hard. 
+
+**Healers**
+These cyan zombies will heal other injured zombies around them. 
+
 ### New game
 
 **Days until zombies come**  
@@ -183,6 +189,12 @@ Zombies deal different amounts of damage (slim/fat). This setting makes it less 
 
 **Reduce turret gun consumption**  
 This will reduce the amount of steal turret guns consume when they fire (100% makes them consume nothing)
+
+### Threat level
+If you turn on dynamic threat level you will get a threat level forecast that applies to the maximum number of zombies you would normally get. As default you also get that at 0% threat level, all zombies on the map die. You can turn off that and also define how the level changes over time. 
+
+### Dead humans turn into zombies**
+If this is on, every human with a brain will become a zombie after they are dead for the given time period. This will force you to "double tap" dead humans like raiders or visitors to preventing their corpses becoming powerful zombies. Double tapping can be controlled per selected colonist with the corresponding widget button. 
 
 ### Zombie infections
 
@@ -245,12 +257,6 @@ Will reset the current dialog to the defaults that you have set from the main me
 **Remove Zombieland from current game**  
 Will ask you for a new save file and save a copy of the current game with all references to Zombieland removed
 
-**Load settings from the cloud**  
-Loads saved settings
-
-**Publish settings to the cloud**  
-Saves current settings
-
 ## Serum
 
 You can collect zombie extract in small amounts from dead zombies and refine it on a drugtable into zombie serum (requires 1x medicine too). The serum comes in qualities of 10% to 100% and they require different amounts of zombie extract. One potion of serum heals one zombie bite and the quality determines the failure risk when doing an operation on an infected colonist. 
@@ -258,6 +264,8 @@ You can collect zombie extract in small amounts from dead zombies and refine it 
 Colonists that are scheduled to do doctor tasks automatically collect zombie extract if there are no zombies nearby but you can order them too. There is a button in the colonist actions that toggles automtic collection on and off.
 
 Zombie serum is a very good way to remove a zombie infection regardless of its stage. So try to plan ahead and start collecting it early - gathering enough zombie extract to make serum takes a while.
+
+For tribal runs you can craft serum on a normal crafting spot by combining medicine and a small animal cadaver. This makes it easier for non-tech runs to get serum. 
 
 ## Infections
 
@@ -289,7 +297,7 @@ You can add Zombieland to existing games but be careful: if your colony already 
 
 **Multiplayer**
 
-Zombieland is currently not compatible with multiplayer. It is not very likely that it will be made compatible because of the huge amount of time that would require.
+Zombieland is currently not compatible with multiplayer. It is not very likely that it will be made compatible because of the randomness and optimizations that would prevent running predicably on different computers.
 
 **Combat Extended**
 
