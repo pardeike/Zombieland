@@ -115,15 +115,16 @@
 
 	<ZombieActionsTitle>Aktionen</ZombieActionsTitle>
 	<ZombieSettingsReset>Einstellungen zurücksetzen</ZombieSettingsReset>
+	<ResetButton>Reset</ResetButton>
 	<UninstallZombieland>Zombieland aus aktuellem Spiel entfernen</UninstallZombieland>
 	<ConfirmUninstallZombieland>In den folgenden Schritten können Sie einen neuen Dateinamen auswählen. Nach dem Speichern gelangen Sie wider in das Hauptmenü. Die neue Datei kann ohne Zombieland geladen werden.\n\Wollen Sie wirklich alle Zombieland-Inhalte aus dem aktuellen Spiel entfernen?</ConfirmUninstallZombieland>
 	<UninstallButton>Entfernen</UninstallButton>
-	<LoadSettings>Lade Einstellung aus der Cloud</LoadSettings>
-	<LoadSettingsButton>Laden</LoadSettingsButton>
-	<PublishSettings>Publiziere Einstellungen in die Cloud</PublishSettings>
-	<PublishSettingsButton>Publizieren</PublishSettingsButton>
-	<SearchSettings>Suchen</SearchSettings>
-	<SettingsName>Name</SettingsName>
+
+	<ClipboardActionTitle>Zwischenablage</ClipboardActionTitle>
+	<CopySettings>Kopiert die Einstellungen als Text in die Zwischenablage</CopySettings>
+	<CopyButton>Kopieren</CopyButton>
+	<PasteSettings>Erst die Einstellungen mit dem Inhalt der Zwischenablage</PasteSettings>
+	<PasteButton>Einsetzen</PasteButton>
 
 	<ColonistsBittenByZombie>Kolonist wurde von einem Zombie gebissen</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Folgende Kolonisten wurden von einem Zombie gebissen. Noch ist unklar ob sich daraus eine Infektion entwickelt:\n\n{0}\nBeobachten Sie die Wunden um herauszufinden ob eine Infektion stattfinden wird.</ColonistsBittenByZombieDesc>

@@ -115,15 +115,16 @@
 
 	<ZombieActionsTitle>Actions</ZombieActionsTitle>
 	<ZombieSettingsReset>Restore default settings</ZombieSettingsReset>
+	<ResetButton>Reset</ResetButton>
 	<UninstallZombieland>Remove Zombieland from current game</UninstallZombieland>
 	<ConfirmUninstallZombieland>If you continue, you can choose a new save file name and you will return to the main menu after the game is saved. The new save can be loaded without Zombieland.\n\nDo you really want to remove all Zombieland content from the current game?</ConfirmUninstallZombieland>
 	<UninstallButton>Uninstall</UninstallButton>
-	<LoadSettings>Load settings from the cloud</LoadSettings>
-	<LoadSettingsButton>Download</LoadSettingsButton>
-	<PublishSettings>Publish settings to the cloud</PublishSettings>
-	<PublishSettingsButton>Publish</PublishSettingsButton>
-	<SearchSettings>Search</SearchSettings>
-	<SettingsName>Name</SettingsName>
+
+	<ClipboardActionTitle>Clipboard</ClipboardActionTitle>
+	<CopySettings>Copy settings to clipboard</CopySettings>
+	<CopyButton>Copy</CopyButton>
+	<PasteSettings>Replace settings from clipboard</PasteSettings>
+	<PasteButton>Paste</PasteButton>
 
 	<ColonistsBittenByZombie>Colonist bitten by zombie</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>These colonists have been bitten by a zombie. At this point, it is unclear if they develop an infection:\n\n{0}\nMonitor their wounds closely because infections take some time to develop.</ColonistsBittenByZombieDesc>

@@ -115,15 +115,16 @@
 
 	<ZombieActionsTitle>Actions</ZombieActionsTitle>
 	<ZombieSettingsReset>Restaurer les paramètres par defaut</ZombieSettingsReset>
+	<ResetButton>Réinitialiser</ResetButton>
 	<UninstallZombieland>Effacer Zombieland du jeu</UninstallZombieland>
 	<ConfirmUninstallZombieland> Si vous continuez, vous pourrez choisir un nouveau nom de sauvegarde et vous reviendrez au menu principal après la sauvegarde. La nouvelle sauvegarde peut être chargée sans Zombieland. \n\nVoulez-vous vraiment supprimer tout le contenu de Zombieland du jeu en cours?</ConfirmUninstallZombieland>
 	<UninstallButton>Désinstaller</UninstallButton>
-	<LoadSettings>Charger les paramètres depuis le cloud</LoadSettings>
-	<LoadSettingsButton>Télécharger</LoadSettingsButton>
-	<PublishSettings>Publier les paramètres sur le cloud</PublishSettings>
-	<PublishSettingsButton>Publier</PublishSettingsButton>
-	<SearchSettings>Rechercher</SearchSettings>
-	<SettingsName>Titre</SettingsName>
+
+	<ClipboardActionTitle>Presse-papiers</ClipboardActionTitle>
+	<CopySettings>Copier les paramètres dans le presse-papiers</CopySettings>
+	<CopyButton>Copie</CopyButton>
+	<PasteSettings>Remplacer les paramètres depuis le presse-papiers</PasteSettings>
+	<PasteButton>Coller</PasteButton>
 
 	<ColonistsBittenByZombie>Colon mordu par un zombie</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Ce colon a été mordu par un zombie. A ce stade, on ne sait pas s’il va développer l’infection. Surveillez les blessures car les infections prennent du temps à se développer</ColonistsBittenByZombieDesc>

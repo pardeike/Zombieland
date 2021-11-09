@@ -115,15 +115,16 @@
 
 	<ZombieActionsTitle>Eylemler</ZombieActionsTitle>
 	<ZombieSettingsReset>Ayarları varsayılan duruma getirmek</ZombieSettingsReset>
+	<ResetButton>Sıfırla</ResetButton>
 	<UninstallZombieland>Mevcut oyundan Zombieland'ı kaldır</UninstallZombieland>
 	<ConfirmUninstallZombieland>Devam ederseniz, yeni bir kayıt dosyası adı seçebilir ve oyun kaydedildikten sonra ana menüye dönersiniz. Yeni kayıt Zombieland olmadan yüklenebilir.\n\nTüm Zombieland içeriğini mevcut oyundan gerçekten kaldırmak istiyor musunuz?</ConfirmUninstallZombieland>
 	<UninstallButton>Kaldırıp</UninstallButton>
-	<LoadSettings>Web'den ayarları yükle</LoadSettings>
-	<LoadSettingsButton>Indir</LoadSettingsButton>
-	<PublishSettings>Ayarları web'de yayınla</PublishSettings>
-	<PublishSettingsButton>Yayınlamak</PublishSettingsButton>
-	<SearchSettings>Aramak</SearchSettings>
-	<SettingsName>Isim</SettingsName>
+
+	<ClipboardActionTitle>Panoya</ClipboardActionTitle>
+	<CopySettings>Ayarları panoya kopyala</CopySettings>
+	<CopyButton>Kopyala</CopyButton>
+	<PasteSettings>Panodan ayarları ayarla</PasteSettings>
+	<PasteButton>Yapıştırmak</PasteButton>
 
 	<ColonistsBittenByZombie>Kolonist zombi tarafından ısırıldı</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Bu kolonistler bir zombi tarafından ısırıldı. Bu noktada, bir enfeksiyon geliştirmeleri net değil:\n\n{0}\nYaralarını yakından izleyin çünkü enfeksiyonların gelişmesi biraz zaman alır.</ColonistsBittenByZombieDesc>

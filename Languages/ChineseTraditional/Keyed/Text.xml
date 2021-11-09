@@ -115,15 +115,16 @@
 
 	<ZombieActionsTitle>操作</ZombieActionsTitle>
 	<ZombieSettingsReset>恢復默認設置</ZombieSettingsReset>
+	<ResetButton>重置</ResetButton>
 	<UninstallZombieland>從當前遊戲中移除殭屍之地</UninstallZombieland>
 	<ConfirmUninstallZombieland>如果繼續，你可以選擇一個新的文件名進行存檔，並在保存遊戲後返回主菜單。新存檔可以在沒有殭屍之地的情況下加載。\n\n你真的想要移除所有殭屍之地的內容嗎？</ConfirmUninstallZombieland>
 	<UninstallButton>移除</UninstallButton>
-	<LoadSettings>從雲中加載殭屍設置</LoadSettings>
-	<LoadSettingsButton>裝入</LoadSettingsButton>
-	<PublishSettings>發布殭屍設置到雲</PublishSettings>
-	<PublishSettingsButton>公佈</PublishSettingsButton>
-	<SearchSettings>搜索</SearchSettings>
-	<SettingsName>名稱</SettingsName>
+
+	<ClipboardActionTitle>剪貼板</ClipboardActionTitle>
+	<CopySettings>將設置複製到剪貼板</CopySettings>
+	<CopyButton>複製</CopyButton>
+	<PasteSettings>從剪貼板替換設置</PasteSettings>
+	<PasteButton>插入設置</PasteButton>
 
 	<ColonistsBittenByZombie>殖民者被殭屍咬傷</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>殖民者被殭屍咬傷了,目前尚不清楚他們是否被感染：\n\n{0}\n密切關注他們的傷口，因為感染需要一段時間後才能被發現。</ColonistsBittenByZombieDesc>

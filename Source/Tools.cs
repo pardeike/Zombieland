@@ -1,4 +1,6 @@
 ﻿using HarmonyLib;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Bson;
 using RimWorld;
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
 using System.Xml;
 using UnityEngine;
 using Verse;
@@ -819,6 +822,24 @@ namespace ZombieLand
 				}
 		}
 
+		public static string GetHex(byte[] ba)
+		{
+			var hex = new StringBuilder(ba.Length * 2);
+			foreach (byte b in ba)
+				_ = hex.AppendFormat("{0:x2}", b);
+			return hex.ToString();
+		}
+
+		public static byte[] GetBytesFromHex(string hex)
+		{
+			hex = hex.ToLower();
+			var num = hex.Length;
+			var bytes = new byte[num / 2];
+			for (var i = 0; i < num; i += 2)
+				bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+			return bytes;
+		}
+
 		public static void AutoExposeDataWithDefaults<T>(this T settings) where T : new()
 		{
 			var defaults = new T();
@@ -833,6 +854,26 @@ namespace ZombieLand
 				_ = m_Look.Invoke(null, arguments);
 				finfo.SetValue(settings, arguments[0]);
 			});
+		}
+
+		public static string SerializeToHex<T>(T obj) where T : new()
+		{
+			var ms = new MemoryStream();
+			using (var writer = new BsonWriter(ms))
+			{
+				var serializer = new JsonSerializer();
+				serializer.Serialize(writer, obj);
+			}
+			return GetHex(ms.ToArray());
+		}
+
+		public static T DeserializeFromHex<T>(string hex)
+		{
+			var data = GetBytesFromHex(hex);
+			var ms = new MemoryStream(data);
+			using var reader = new BsonReader(ms);
+			var serializer = new JsonSerializer();
+			return serializer.Deserialize<T>(reader);
 		}
 
 		public static object Check(this Stopwatch sw, string name)

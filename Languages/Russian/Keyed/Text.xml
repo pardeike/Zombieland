@@ -115,15 +115,16 @@
 
 	<ZombieActionsTitle>команды</ZombieActionsTitle>
 	<ZombieSettingsReset>Восстановить настройки по умолчанию</ZombieSettingsReset>
+	<ResetButton>Сброс</ResetButton>
 	<UninstallZombieland>Удалить Zombieland из текущей игры</UninstallZombieland>
 	<ConfirmUninstallZombieland>Если вы продолжаете, вы можете выбрать новое имя файла сохранения и вернуться в главное меню после сохранения игры. Новое сохранение может быть загружено без Zombieland.\n\nВы действительно хотите удалить весь контент Zombieland из текущей игры?</ConfirmUninstallZombieland>
 	<UninstallButton>Удалить</UninstallButton>
-	<LoadSettings>Загрузить настройки из облака</LoadSettings>
-	<LoadSettingsButton>скачать</LoadSettingsButton>
-	<PublishSettings>Опубликовать настройки в облаке</PublishSettings>
-	<PublishSettingsButton>публиковать</PublishSettingsButton>
-	<SearchSettings>искать</SearchSettings>
-	<SettingsName>название</SettingsName>
+
+	<ClipboardActionTitle>Буфер обмена</ClipboardActionTitle>
+	<CopySettings>Копировать настройки в буфер обмена</CopySettings>
+	<CopyButton>Копировать</CopyButton>
+	<PasteSettings>Заменить настройки из буфера обмена</PasteSettings>
+	<PasteButton>Вставить</PasteButton>
 
 	<ColonistsBittenByZombie>Колонист, укушенный зомби</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Эти колонисты были укушены зомби. На данный момент неясно, разовьется ли у них инфекция:\n\n{0}\nВнимательно следите за их ранами, потому что инфекциям нужно время, чтобы проявиться.</ColonistsBittenByZombieDesc>

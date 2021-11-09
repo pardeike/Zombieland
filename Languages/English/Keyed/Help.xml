@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
-	<Zombieland_Settings>Hover over any element to read a help text about it to the right. All settings can be changed in-game and are active immediately, they are saved with the game. To set defaults for new games, change the settings from the main screen (Options/Mod Settings/Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Hover over any element to read a help text about it to the right. All settings can be changed in-game and are active immediately, they are saved with the game.\n\nTo set defaults for new games, change the settings from the main screen (Options/Mod Settings/Zombieland).</Zombieland_Settings>
 
 	<WhenDoZombiesSpawn_Help>In Zombieland, you will face a never-ending invasion of zombies. This setting controls the overall pace and rythm of the game. The three modes are quite different so make sure you choose the right one for your play style and understand how they work. There is an upper limit on the number of zombies, see "Zombies on the map" for more details.</WhenDoZombiesSpawn_Help>
 	<SpawnWhenType_AllTheTime_Help>Zombies will spawn relentlessly. Kill them and more will come instantly. This is a challenging mode that makes zombies an omnipresent force that influences all aspects of the game.</SpawnWhenType_AllTheTime_Help>
@@ -42,6 +42,11 @@
 	<MaximumNumberOfZombies_Help>The upper limit of zombies on a given map tile. Actual numbers can be lower depending on the colony.</MaximumNumberOfZombies_Help>
 	<ColonyMultiplier_Help>Sometimes, Zombieland estimates too few zombies. For example, if you want to play with very few colonists but want the number of zombies to be high nevertheless. With this multiplier, you can tell Zombieland that your colony is x times more capable of defending itself. This will increase the number of zombies for when you really want that challenge (but the upper limit is always respected).</ColonyMultiplier_Help>
 
+	<UseDynamicThreatLevel_Help>Here you to can make the number of zombies on the map dynamically. This means that you get a forecast on the right side of the screen to plan your actions ahead.</UseDynamicThreatLevel_Help>
+	<DynamicThreatSmoothness_Help>Determines the smoothness of the threat curve.</DynamicThreatSmoothness_Help>
+	<DynamicThreatStretch_Help>With this setting you can stretch the curve and make it less dynamic.</DynamicThreatStretch_Help>
+	<ZombiesDieOnZeroThreat_Help>All zombies on the map die on their own if the threat level is 0%.</ZombiesDieOnZeroThreat_Help>
+
 	<!-- -->
 
 	<ZombieEventTitle_Help>If you play with "in events only" and sometimes even in the other modes, Zombieland will trigger a zombie attack. This is not like a raider event but instead, a larger number of zombies appear together and depending on the group size, might even rage and start tracking towards you.</ZombieEventTitle_Help>
@@ -67,7 +72,7 @@
 
 	<!-- -->
 
-	<ZombieInfections_Help>The main danger with zombies are infections. You need to avoid contact with zombies at any cost. Scratches are harmless but bites will always give you the risk for a potentially fatal infection. If you want easier gameplay, reduce the risk for infection substantially down to like 5%. If you want World War Z style gameplay, set it to 100% and remove any delay in the other settings for instant zombification!\n\nZombieland has a 4 stage infection process. Each bite starts out as "unknown" (or normal white color) and even if you treat the wound, the infection will reveal itself after the first period has passed. After that, the wound/body part is either infected (orange) or not (white). An infection can only be stopped by amputation (if the body part allows that) or by a very very good treatment. An infection that exists beyond the second phase will enter the third phase (red). Now, only amputation will help. Finally, this stage ends with the colonist becoming a very powerful zombie (the name is kept and you can even select that special zombie)</ZombieInfections_Help>
+	<ZombieInfection_Help>Zombie scratches are harmless but bites can give you fatal infections.\n\nZombieland has four stages of infection:\n- unknown (white color)\n- developing (orange)\n- infecting (red, zombie-like)\n- zombie (complete zombie)\n\nYou can either amputate the infected part or do an operation with zombie serum (made out of zombie extract) to remove the infection.</ZombieInfection_Help>
 	<ZombieBiteInfectionChance_Help>This is the chance that a zombie bite will infect the limb or body part it is part of. Bites are infectious but scratches are not.</ZombieBiteInfectionChance_Help>
 	<ZombieBiteInfectionUnknown_Help>This is the first phase (white). You can treat the wound but you don't know if it will ever get infected until this phase ends.</ZombieBiteInfectionUnknown_Help>
 	<ZombieBiteInfectionTreatable_Help>In this second phase (orange), the infection is still treatable. If you can amputate, you can stop the infection. Treatment must happen under optimal conditions (something you need to find out yourself). Also, you only get one chance of treatment, once the wound was treated you cannot re-treat it in a better way.</ZombieBiteInfectionTreatable_Help>
@@ -131,8 +136,9 @@
 
 	<ZombieActionsTitle_Help>In this section you can restore the default settings or load and publish your own settings. If you are in a game, you can even uninstall the mod with a click of a button.</ZombieActionsTitle_Help>
 	<UninstallButton_Help>To remove Zombieland, just click Uninstall. You will be asked to save the current game under a new name and will return to the main menu. From there, you can uninstall the mod and load the saved game file to continue your game without Zombieland.</UninstallButton_Help>
-	<Reset_Help>This will reset the settings to default.</Reset_Help>
-	<LoadSettingsButton_Help>This will open a new dialog that lists all settings that Zombieland users deemed interesting enough and that were published to everyone.</LoadSettingsButton_Help>
-	<PublishSettingsButton_Help>If you think you have a particular interesting combination of settings, you can publish them here so others can load the same settings.</PublishSettingsButton_Help>
+	<ResetButton_Help>This will reset the settings to default.</ResetButton_Help>
+	<ClipboardActionTitle_Help>Share your settings with others using simple text copy/paste.</ClipboardActionTitle_Help>
+	<CopyButton_Help>This copies the current settings to your computers clipboard. You can then paste it somewhere to share your settings with others.</CopyButton_Help>
+	<PasteButton_Help>This replaces your current settings using the text from your computers clipboard. Simply copy the text that someone shared first and make your settings equal to theirs.</PasteButton_Help>
 
 </LanguageData>

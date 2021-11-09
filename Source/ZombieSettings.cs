@@ -207,6 +207,35 @@ namespace ZombieLand
 			});
 			Dialogs.scrollPosition = Vector2.zero;
 		}
+
+		public void ToClipboard()
+		{
+			var hex = Tools.SerializeToHex(this);
+			GUIUtility.systemCopyBuffer = $"[{hex}]";
+		}
+
+		public void FromClipboard()
+		{
+			var chars = GUIUtility.systemCopyBuffer.ToLower().ToCharArray();
+			var hex = chars.Where(c => (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')).Join(null, "");
+			if (hex.NullOrEmpty() == false)
+			{
+				try
+				{
+					ZombieSettings.Values = Tools.DeserializeFromHex<SettingsGroup>(hex);
+					var world = Find.World;
+					if (world != null && world.components != null)
+					{
+						var settings = world.components.OfType<ZombieSettings>().FirstOrDefault();
+						Traverse.CopyFields(new Traverse(ZombieSettings.Values), new Traverse(settings));
+					}
+				}
+				catch (Exception ex)
+				{
+					Log.Error($"Cannot restore ZombieLand settings from {hex}: {ex}");
+				}
+			}
+		}
 	}
 
 	class ZombieSettingsDefaults : ModSettings

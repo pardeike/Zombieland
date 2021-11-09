@@ -4702,6 +4702,7 @@ namespace ZombieLand
 					var idx = optList.FirstIndexOf(opt => opt.label == label);
 					if (idx > 0 && idx < optList.Count()) optList.Insert(idx, new ListableOption("Zombieland", delegate
 					{
+						MainMenuDrawer.CloseMainTab();
 						var dialog = new Dialog_ModSettings();
 						var me = LoadedModManager.GetMod<ZombielandMod>();
 						dialog.selMod = me;
