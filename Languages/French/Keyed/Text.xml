@@ -44,9 +44,20 @@
 	<ColonyMultiplier>Multiplicateur de colonies</ColonyMultiplier>
 	<DoubleTapping>Mort à double sécurité</DoubleTapping>
 
+	<DynamicThreatLevelTitle>Niveau de menace dynamique</DynamicThreatLevelTitle>
+	<UseDynamicThreatLevel>Utiliser le niveau de menace dynamique</UseDynamicThreatLevel>
+	<DynamicThreatSmoothness>Lissage de la courbe de menace</DynamicThreatSmoothness>
+	<DynamicThreatStretch>Étirement de la courbe de menace</DynamicThreatStretch>
+	<ZombiesDieOnZeroThreat>Zombies meurent au cours de 0% menace</ZombiesDieOnZeroThreat>
+	<ThreatLevel>niveau de menace</ThreatLevel>
+	<ThreatForecast>Prévision des menaces</ThreatForecast>
+	<Next14Days>14 prochains jours</Next14Days>
+	<Next4Quadrums>4 prochains trimestres</Next4Quadrums>
+
 	<ZombieEventTitle>Apparition de Zombie</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Zombies par colon</ZombiesPerColonistInEvent>
 	<ExtraDaysBetweenEvents>Jours supplémentaires entre les événements</ExtraDaysBetweenEvents>
+	<InfectedRaidsChance>Les groupes d'arrivée sont infectés</InfectedRaidsChance>
 
 	<ZombieSpeedTitle>Vitesse des Zombies</ZombieSpeedTitle>
 	<MoveSpeedIdle>Si ils sont calmes</MoveSpeedIdle>
@@ -66,9 +77,12 @@
 	<AnyTreatmentStopsInfection>Le traitement au lit arête l’infection</AnyTreatmentStopsInfection>
 	<HoursAfterDeathToBecomeZombie>Des heures pour devenir un zombie après la mort</HoursAfterDeathToBecomeZombie>
 	<Immediately>Aussitôt</Immediately>
+	<DeadBecomesZombieMessage>Montrer un message quand quelqu'un se transforme en zombie</DeadBecomesZombieMessage>
 
-	<ZombieSerum>Sérum Zombie</ZombieSerum>
+	<ZombieHarvestingTitle>Butin de zombies</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>Quantité d'extrait de zombie par zombie</CorpsesExtractAmount>
+	<CorpsesExtractChance>Chance</CorpsesExtractChance>
+	<LootExtractAmount>Quantité de butin après que les zombies meurent</LootExtractAmount>
 	<CorpsesDaysToDessicated>Des heures avant que les cadavres de zombies disparaissent</CorpsesDaysToDessicated>
 	<ExtractZombieArea>Limiter l'extraction à la zone</ExtractZombieArea>
 	<Everywhere>Partout</Everywhere>
@@ -157,14 +171,5 @@
 
 	<AutoAvoidZombiesEnabledDescription>Évite automatiquement les zombies, sauf lorsque la personne est mobilisée et debout</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Ignorer les zombies. Vous devez contrôler manuellement toutes les actions</AutoAvoidZombiesDisabledDescription>
-
-	<ThreatLevel>niveau de menace</ThreatLevel>
-	<ThreatForecast>Prévision des menaces</ThreatForecast>
-	<Next14Days>14 prochains jours</Next14Days>
-	<Next4Quadrums>4 prochains trimestres</Next4Quadrums>
-	<UseDynamicThreatLevel>Niveau de menace dynamique</UseDynamicThreatLevel>
-	<DynamicThreatSmoothness>Lissage de la courbe de menace</DynamicThreatSmoothness>
-	<DynamicThreatStretch>Étirement de la courbe de menace</DynamicThreatStretch>
-	<ZombiesDieOnZeroThreat>Zombies meurent au cours de 0% menace</ZombiesDieOnZeroThreat>
 
 </LanguageData>

@@ -268,6 +268,9 @@ namespace ZombieLand
 
 			if (pawn.IsColonist == false)
 			{
+				if (HasInfectionState(pawn, InfectionState.BittenInfectable, InfectionState.Infected))
+					return false;
+
 				if (pawn.HostileTo(Faction.OfPlayer) == false)
 				{
 					var map = pawn.Map;
@@ -538,9 +541,12 @@ namespace ZombieLand
 
 				_ = tickManager.allZombiesCached.Add(zombie);
 
-				var label = wasPlayer ? "ColonistBecameAZombieLabel".Translate() : "OtherBecameAZombieLabel".Translate();
-				var text = "BecameAZombieDesc".SafeTranslate(new object[] { pawnName.ToStringShort });
-				Find.LetterStack.ReceiveLetter(label, text, wasPlayer ? CustomDefs.ColonistTurnedZombie : CustomDefs.OtherTurnedZombie, zombie);
+				if (ZombieSettings.Values.deadBecomesZombieMessage || wasPlayer)
+				{
+					var label = wasPlayer ? "ColonistBecameAZombieLabel".Translate() : "OtherBecameAZombieLabel".Translate();
+					var text = "BecameAZombieDesc".SafeTranslate(new object[] { pawnName.ToStringShort });
+					Find.LetterStack.ReceiveLetter(label, text, wasPlayer ? CustomDefs.ColonistTurnedZombie : CustomDefs.OtherTurnedZombie, zombie);
+				}
 			});
 			while (it.MoveNext()) ;
 		}
@@ -621,6 +627,21 @@ namespace ZombieLand
 			if (hediff.GetType().Namespace == zlNamespace) return true;
 			if (hediff.hediffClass.Namespace == zlNamespace) return true;
 			return false;
+		}
+
+		public static void AddZombieInfection(Pawn pawn)
+		{
+			if (pawn is Zombie || HasInfectionState(pawn, InfectionState.Infected, InfectionState.All))
+				return;
+
+			var torso = pawn.health.hediffSet.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined, null, null).FirstOrDefault((BodyPartRecord x) => x.def == BodyPartDefOf.Torso);
+			var bite = (Hediff_Injury_ZombieBite)HediffMaker.MakeHediff(HediffDef.Named("ZombieBite"), pawn, torso);
+
+			bite.mayBecomeZombieWhenDead = true;
+			var damageInfo = new DamageInfo(ZombieBiteDamageDef, 0);
+			pawn.health.AddHediff(bite, torso, damageInfo);
+			bite.Tended(1, 1);
+			bite.TendDuration.ZombieInfector.ForceFinalStage();
 		}
 
 		public static bool HasInfectionState(Pawn pawn, InfectionState state)
@@ -1225,6 +1246,31 @@ namespace ZombieLand
 			}
 
 			if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+		}
+
+		public static int ExtractPerZombie()
+		{
+			var f = ZombieSettings.Values.corpsesExtractAmount;
+			var n = Mathf.FloorToInt(f);
+			f -= n;
+			n += Rand.Chance(f) ? 1 : 0;
+			return n;
+		}
+
+		public static void DropLoot(Zombie zombie)
+		{
+			var f = ZombieSettings.Values.lootExtractAmount;
+			var amount = Mathf.FloorToInt(f);
+			f -= amount;
+			amount += Rand.Chance(f) ? 1 : 0;
+
+			for (var i = 1; i <= amount; i++)
+			{
+				var apparels = zombie.apparel.UnlockedApparel;
+				if (apparels.Any() == false) break;
+				var apparel = apparels.RandomElementByWeight(apparel => apparel.MarketValue);
+				_ = zombie.apparel.TryDrop(apparel);
+			}
 		}
 	}
 

@@ -44,9 +44,20 @@
 	<ColonyMultiplier>殖民地倍乘數</ColonyMultiplier>
 	<DoubleTapping>安全的雙殺</DoubleTapping>
 
+	<DynamicThreatLevelTitle>動態威脅水平</DynamicThreatLevelTitle>
+	<UseDynamicThreatLevel>使用動態威脅級別</UseDynamicThreatLevel>
+	<DynamicThreatSmoothness>威脅曲線平滑度</DynamicThreatSmoothness>
+	<DynamicThreatStretch>威脅曲線拉伸</DynamicThreatStretch>
+	<ZombiesDieOnZeroThreat>殭屍在 0% 威脅時死亡</ZombiesDieOnZeroThreat>
+	<ThreatLevel>威脅級別</ThreatLevel>
+	<ThreatForecast>威脅預測</ThreatForecast>
+	<Next14Days>未來 14 天</Next14Days>
+	<Next4Quadrums>未來 4 個季度</Next4Quadrums>
+
 	<ZombieEventTitle>殭屍事件</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>殭屍/每個殖民者</ZombiesPerColonistInEvent>
 	<ExtraDaysBetweenEvents>事件的間隔天數</ExtraDaysBetweenEvents>
+	<InfectedRaidsChance>到達群體被感染</InfectedRaidsChance>
 
 	<ZombieSpeedTitle>殭屍的速度</ZombieSpeedTitle>
 	<MoveSpeedIdle>平靜時</MoveSpeedIdle>
@@ -66,9 +77,12 @@
 	<AnyTreatmentStopsInfection>躺在床上治療可阻止感染</AnyTreatmentStopsInfection>
 	<HoursAfterDeathToBecomeZombie>死後成為殭屍的時間</HoursAfterDeathToBecomeZombie>
 	<Immediately>立即地</Immediately>
+	<DeadBecomesZombieMessage>當有人變成殭屍時，展示一條消息</DeadBecomesZombieMessage>
 
-	<ZombieSerum>殭屍血清</ZombieSerum>
+	<ZombieHarvestingTitle>從殭屍收穫</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>每個殭屍的殭屍提取物量</CorpsesExtractAmount>
+	<CorpsesExtractChance>機會</CorpsesExtractChance>
+	<LootExtractAmount>殭屍死後的戰利品數量</LootExtractAmount>
 	<CorpsesDaysToDessicated>直到殭屍屍體消失的小時數</CorpsesDaysToDessicated>
 	<ExtractZombieArea>限制提取區域</ExtractZombieArea>
 	<Everywhere>到處</Everywhere>
@@ -157,14 +171,5 @@
 
 	<AutoAvoidZombiesEnabledDescription>自動避免殭屍，除非殖民者被起草和站立</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>忽略殭屍。 您需要手動控制所有操作</AutoAvoidZombiesDisabledDescription>
-
-	<ThreatLevel>威脅級別</ThreatLevel>
-	<ThreatForecast>威脅預測</ThreatForecast>
-	<Next14Days>未來 14 天</Next14Days>
-	<Next4Quadrums>未來 4 個季度</Next4Quadrums>
-	<UseDynamicThreatLevel>使用動態威脅級別</UseDynamicThreatLevel>
-	<DynamicThreatSmoothness>威脅曲線平滑度</DynamicThreatSmoothness>
-	<DynamicThreatStretch>威脅曲線拉伸</DynamicThreatStretch>
-	<ZombiesDieOnZeroThreat>殭屍在 0% 威脅時死亡</ZombiesDieOnZeroThreat>
 
 </LanguageData>

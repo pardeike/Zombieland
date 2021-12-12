@@ -459,7 +459,7 @@ namespace ZombieLand
 			if (threatLevel <= 0.002f && ZombieSettings.Values.zombiesDieOnZeroThreat && Rand.Chance(0.002f))
 				_ = TakeDamage(damageInfo);
 
-			if (isHealer && EveryNTick(NthTick.Every15))
+			if (isHealer && state != ZombieState.Emerging && EveryNTick(NthTick.Every15))
 			{
 				var radius = 4 + ZombieLand.Tools.Difficulty() * 2;
 				GenRadial.RadialDistinctThingsAround(Position, map, radius, false)

@@ -66,6 +66,7 @@ namespace ZombieLand
 		public bool zombiesDieOnZeroThreat = true;
 		public float dynamicThreatSmoothness = 2.5f;
 		public float dynamicThreatStretch = 20f;
+		public float infectedRaidsChance = 0.1f;
 		public float colonyMultiplier = 1f;
 		public int baseNumberOfZombiesinEvent = 20;
 		internal int extraDaysBetweenEvents = 0;
@@ -77,8 +78,8 @@ namespace ZombieLand
 		public float albinoChance = 0.01f;
 		public float darkSlimerChance = 0.01f;
 		public float healerChance = 0.01f;
-		public float moveSpeedIdle = 0.2f;
-		public float moveSpeedTracking = 0.7f;
+		public float moveSpeedIdle = 0.15f;
+		public float moveSpeedTracking = 0.6f;
 		public bool moveSpeedUpgraded = false;
 		public float damageFactor = 1.0f;
 		public ZombieInstinct zombieInstinct = ZombieInstinct.Normal;
@@ -92,7 +93,9 @@ namespace ZombieLand
 		public int hoursInfectionPersists = 6 * 24;
 		public bool anyTreatmentStopsInfection;
 		public int hoursAfterDeathToBecomeZombie = 8;
-		public int corpsesExtractAmount = 1;
+		public bool deadBecomesZombieMessage = true;
+		public float corpsesExtractAmount = 1f;
+		public float lootExtractAmount = 0.1f;
 		public string extractZombieArea = "";
 		public int corpsesHoursToDessicated = 1;
 		public bool betterZombieAvoidance = true;

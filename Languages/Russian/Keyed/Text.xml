@@ -44,9 +44,20 @@
 	<ColonyMultiplier>Множитель колоний</ColonyMultiplier>
 	<DoubleTapping>Безопасное двойное убийство</DoubleTapping>
 
+	<DynamicThreatLevelTitle>Уровень динамической угрозы</DynamicThreatLevelTitle>
+	<UseDynamicThreatLevel>Используйте динамический уровень угрозы</UseDynamicThreatLevel>
+	<DynamicThreatSmoothness>Плавность кривой угрозы</DynamicThreatSmoothness>
+	<DynamicThreatStretch>Растяжение кривой угрозы</DynamicThreatStretch>
+	<ZombiesDieOnZeroThreat>Зомби умирают при 0% угрозе</ZombiesDieOnZeroThreat>
+	<ThreatLevel>уровень угрозы</ThreatLevel>
+	<ThreatForecast>Прогноз угрозы</ThreatForecast>
+	<Next14Days>Следующие 14 дней</Next14Days>
+	<Next4Quadrums>Следующие 4 квартала</Next4Quadrums>
+
 	<ZombieEventTitle>Зомби-происшествие</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Кол-во зомби на одного колониста</ZombiesPerColonistInEvent>
 	<ExtraDaysBetweenEvents>Дополнительные дни между событиями</ExtraDaysBetweenEvents>
+	<InfectedRaidsChance>Прибывающие группы заражены</InfectedRaidsChance>
 
 	<ZombieSpeedTitle>Скорость зомби</ZombieSpeedTitle>
 	<MoveSpeedIdle>В спокойном состоянии</MoveSpeedIdle>
@@ -66,9 +77,12 @@
 	<AnyTreatmentStopsInfection>Лечение в постели останавливает инфекцию</AnyTreatmentStopsInfection>
 	<HoursAfterDeathToBecomeZombie>Время стать зомби после смерти</HoursAfterDeathToBecomeZombie>
 	<Immediately>Немедленно</Immediately>
+	<DeadBecomesZombieMessage>Показать сообщение, когда кто-то превращается в зомби</DeadBecomesZombieMessage>
 
-	<ZombieSerum>Зомби Сыворотка</ZombieSerum>
+	<ZombieHarvestingTitle>Выигрыш от зомби</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>Количество зомби экстракта на зомби</CorpsesExtractAmount>
+	<CorpsesExtractChance>Шанс</CorpsesExtractChance>
+	<LootExtractAmount>Количество вещей упало после смерти зомби</LootExtractAmount>
 	<CorpsesDaysToDessicated>Часы, пока трупы зомби не исчезнут</CorpsesDaysToDessicated>
 	<ExtractZombieArea>Ограничить извлечение в области</ExtractZombieArea>
 	<Everywhere>Везде</Everywhere>
@@ -157,14 +171,5 @@
 
 	<AutoAvoidZombiesEnabledDescription>Автоматически избегайте зомби, кроме случаев, когда колонист мобилизован и стоит</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Игнорировать зомби. Вам нужно вручную контролировать все действия</AutoAvoidZombiesDisabledDescription>
-
-	<ThreatLevel>уровень угрозы</ThreatLevel>
-	<ThreatForecast>Прогноз угрозы</ThreatForecast>
-	<Next14Days>Следующие 14 дней</Next14Days>
-	<Next4Quadrums>Следующие 4 квартала</Next4Quadrums>
-	<UseDynamicThreatLevel>Уровень динамической угрозы</UseDynamicThreatLevel>
-	<DynamicThreatSmoothness>Плавность кривой угрозы</DynamicThreatSmoothness>
-	<DynamicThreatStretch>Растяжение кривой угрозы</DynamicThreatStretch>
-	<ZombiesDieOnZeroThreat>Зомби умирают при 0% угрозе</ZombiesDieOnZeroThreat>
 
 </LanguageData>

@@ -397,7 +397,11 @@ namespace ZombieLand
 			{
 				if (!(a is Pawn pawn) || pawn.IsColonist || (pawn is Zombie) || !(b is Zombie zombie))
 					return;
-				__result = Tools.IsHostileToZombies(pawn);
+
+				if (Tools.HasInfectionState(pawn, InfectionState.BittenInfectable, InfectionState.Infected))
+					__result = false;
+				else
+					__result = Tools.IsHostileToZombies(pawn);
 			}
 		}
 		[HarmonyPatch(typeof(GenHostility))]
@@ -2128,6 +2132,19 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to let incidents spawn infected
+		[HarmonyPatch(typeof(PawnGroupKindWorker))]
+		[HarmonyPatch(nameof(PawnGroupKindWorker.GeneratePawns))]
+		[HarmonyPatch(new[] { typeof(PawnGroupMakerParms), typeof(PawnGroupMaker), typeof(bool) })]
+		static class IncidentWorker_Patches
+		{
+			static void Postfix(List<Pawn> __result)
+			{
+				if (__result == null || Rand.Chance(ZombieSettings.Values.infectedRaidsChance) == false) return;
+				__result.DoIf(pawn => pawn.RaceProps.Humanlike, Tools.AddZombieInfection);
+			}
+		}
+
 		// patch to allow spawning zombies with debug tools
 		//
 		[HarmonyPatch(typeof(PawnGenerator))]
@@ -2600,7 +2617,7 @@ namespace ZombieLand
 					}
 				}
 
-				if (zombie.isHealer && zombie.healInfo.Count > 0)
+				if (zombie.isHealer && zombie.state != ZombieState.Emerging && zombie.healInfo.Count > 0)
 				{
 					var i = 0;
 					var isNotPaused = Find.TickManager.Paused == false;
@@ -3804,6 +3821,7 @@ namespace ZombieLand
 				{
 					if (zombie.jobs != null && zombie.CurJob != null)
 						zombie.jobs.EndCurrentJob(JobCondition.InterruptForced, false);
+					Tools.DropLoot(zombie);
 					return;
 				}
 

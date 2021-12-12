@@ -44,9 +44,20 @@
 	<ColonyMultiplier>Colony multiplier</ColonyMultiplier>
 	<DoubleTapping>Double tapping</DoubleTapping>
 
+	<DynamicThreatLevelTitle>Dynamic threat level</DynamicThreatLevelTitle>
+	<UseDynamicThreatLevel>Use dynamic threat level</UseDynamicThreatLevel>
+	<DynamicThreatSmoothness>Threat curve smoothness</DynamicThreatSmoothness>
+	<DynamicThreatStretch>Threat curve stretch</DynamicThreatStretch>
+	<ZombiesDieOnZeroThreat>Zombies die during 0% threat</ZombiesDieOnZeroThreat>
+	<ThreatLevel>threat level</ThreatLevel>
+	<ThreatForecast>Threat Forecast</ThreatForecast>
+	<Next14Days>Next 14 days</Next14Days>
+	<Next4Quadrums>Next 4 quadrums</Next4Quadrums>
+
 	<ZombieEventTitle>Zombie event</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Zombies per colonist</ZombiesPerColonistInEvent>
 	<ExtraDaysBetweenEvents>Extra days between events</ExtraDaysBetweenEvents>
+	<InfectedRaidsChance>Arriving groups are infected</InfectedRaidsChance>
 
 	<ZombieSpeedTitle>Zombie speed</ZombieSpeedTitle>
 	<MoveSpeedIdle>If they are calm</MoveSpeedIdle>
@@ -66,9 +77,12 @@
 	<AnyTreatmentStopsInfection>Treatment in a bed stops infections</AnyTreatmentStopsInfection>
 	<HoursAfterDeathToBecomeZombie>Hours to become a zombie after death</HoursAfterDeathToBecomeZombie>
 	<Immediately>Immediately</Immediately>
+	<DeadBecomesZombieMessage>Show a message when someone turns into a zombie</DeadBecomesZombieMessage>
 
-	<ZombieSerum>Zombie Serum</ZombieSerum>
+	<ZombieHarvestingTitle>Loot from zombies</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>Amount of zombie extract per zombie</CorpsesExtractAmount>
+	<CorpsesExtractChance>Chance</CorpsesExtractChance>
+	<LootExtractAmount>Amount of loot that zombies drop</LootExtractAmount>
 	<CorpsesDaysToDessicated>Hours until zombie corpses disappear</CorpsesDaysToDessicated>
 	<ExtractZombieArea>Restrict extracting to area</ExtractZombieArea>
 	<Everywhere>Everywhere</Everywhere>
@@ -157,14 +171,5 @@
 
 	<AutoAvoidZombiesEnabledDescription>Automatically avoid zombies, except when standing drafted</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Ignore zombies. You need to manually control all actions</AutoAvoidZombiesDisabledDescription>
-
-	<ThreatLevel>threat level</ThreatLevel>
-	<ThreatForecast>Threat Forecast</ThreatForecast>
-	<Next14Days>Next 14 days</Next14Days>
-	<Next4Quadrums>Next 4 quadrums</Next4Quadrums>
-	<UseDynamicThreatLevel>Use dynamic threat level</UseDynamicThreatLevel>
-	<DynamicThreatSmoothness>Threat curve smoothness</DynamicThreatSmoothness>
-	<DynamicThreatStretch>Threat curve stretch</DynamicThreatStretch>
-	<ZombiesDieOnZeroThreat>Zombies die during 0% threat</ZombiesDieOnZeroThreat>
 
 </LanguageData>

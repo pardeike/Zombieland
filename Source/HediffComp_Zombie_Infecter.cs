@@ -48,6 +48,16 @@ namespace ZombieLand
 			infectionEndTime = infectionStartTime + 2 * hour;
 		}
 
+		public void ForceFinalStage()
+		{
+			var h = GenDate.TicksPerHour;
+			var start = ZombieSettings.Values.hoursInfectionIsTreatable * h;
+			infectionKnownDelay = GenTicks.TicksAbs - start;
+			infectionStartTime = GenTicks.TicksAbs + 0;
+			var end = ZombieSettings.Values.hoursInfectionPersists * h / 4;
+			infectionEndTime = infectionStartTime + end;
+		}
+
 		public override void CompPostPostAdd(DamageInfo? dinfo)
 		{
 			var pawn = Pawn;

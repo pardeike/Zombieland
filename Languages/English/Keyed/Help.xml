@@ -17,7 +17,7 @@
 	<!-- -->
 
 	<WhatDoZombiesAttack_Help>Zombies do not behave like raiders (with the exception of raging zombies). They are mindless wanderers that only get excited when their senses get activated. This setting allows you to define the creature type that will get them going.</WhatDoZombiesAttack_Help>
-	<AttackMode_Everything_Help>Make zombies track and attack anything that moves - even animals. Only stationary weapons like turrents and such will never catch their attention.</AttackMode_Everything_Help>
+	<AttackMode_Everything_Help>Make zombies track and attack anything that moves - even animals. Only stationary weapons like turrets and such will never catch their attention.</AttackMode_Everything_Help>
 	<AttackMode_OnlyHumans_Help>This is the "normal" way zombies should work. Their lust for brains makes them hunt human pawns regardless of faction.</AttackMode_OnlyHumans_Help>
 	<AttackMode_OnlyColonists_Help>If you think that zombies should never attack anyone else but your colonists, then this is the right mode for you. They might hit back when attacked but will never initiate any aggression.</AttackMode_OnlyColonists_Help>
 	<EnemiesAttackZombies_Help>Turn this off and your enemies will ignore and avoid zombies. When turned on, raiders will see them as dangerous and will try their best to fight them. Good luck!</EnemiesAttackZombies_Help>
@@ -42,6 +42,7 @@
 	<MaximumNumberOfZombies_Help>The upper limit of zombies on a given map tile. Actual numbers can be lower depending on the colony.</MaximumNumberOfZombies_Help>
 	<ColonyMultiplier_Help>Sometimes, Zombieland estimates too few zombies. For example, if you want to play with very few colonists but want the number of zombies to be high nevertheless. With this multiplier, you can tell Zombieland that your colony is x times more capable of defending itself. This will increase the number of zombies for when you really want that challenge (but the upper limit is always respected).</ColonyMultiplier_Help>
 
+	<DynamicThreatLevelTitle_Help>This section lets you switch between a constant and dynamic amount of zombies.</DynamicThreatLevelTitle_Help>
 	<UseDynamicThreatLevel_Help>Here you to can make the number of zombies on the map dynamically. This means that you get a forecast on the right side of the screen to plan your actions ahead.</UseDynamicThreatLevel_Help>
 	<DynamicThreatSmoothness_Help>Determines the smoothness of the threat curve.</DynamicThreatSmoothness_Help>
 	<DynamicThreatStretch_Help>With this setting you can stretch the curve and make it less dynamic.</DynamicThreatStretch_Help>
@@ -52,6 +53,7 @@
 	<ZombieEventTitle_Help>If you play with "in events only" and sometimes even in the other modes, Zombieland will trigger a zombie attack. This is not like a raider event but instead, a larger number of zombies appear together and depending on the group size, might even rage and start tracking towards you.</ZombieEventTitle_Help>
 	<ZombiesPerColonistInEvent_Help>To control the size of the event, you can specify how many zombies per colonist will appear. Please note, that this does not change the overall limit of zombies on the map and if the current number of zombies is already close to the total limit or to the number that Zombieland has determined for your current colony size, less zombies will be in the event. Putting a really large number here will only remove the upper event size limit. Setting a small number will reduce the overall event size - especially with fewer fight-capable colonists.</ZombiesPerColonistInEvent_Help>
 	<ExtraDaysBetweenEvents_Help>Normally, zombie events are spaced out automatically. The actual interval depends on a few internal factors. In case you think that this is too frequent, you can use this setting to add extra days between events.</ExtraDaysBetweenEvents_Help>
+	<InfectedRaidsChance_Help>This is the chance that a hostile/friendly group arriving on the map is already infected and no interaction between them and the zombies happens.</InfectedRaidsChance_Help>
 
 	<!-- -->
 
@@ -79,11 +81,13 @@
 	<ZombieBiteInfectionPersists_Help>The third and last phase (red). Now the infection cannot be treated anymore and only amputation can stop the process. Many players make the mistake and end the life of their infected colonist too early. Zombieland, while cruel, has a few surprises build in to make this phase useful for you. Find out how the colonist has changed/morphed into while almost becoming a zombie!</ZombieBiteInfectionPersists_Help>
 	<AnyTreatmentStopsInfection_Help>To allow simple treatment in a bed to stop an infected bite, select this option. It is a good idea to turn this on when you are not yet familiar with the game mechanics.</AnyTreatmentStopsInfection_Help>
 	<HoursAfterDeathToBecomeZombie_Help>The time for a dead humanlike pawn to become a zombie. Move all to the left to turns this feature off.</HoursAfterDeathToBecomeZombie_Help>
+	<DeadBecomesZombieMessage_Help>Turns the message on/off that indicates that someone turned into a zombie.</DeadBecomesZombieMessage_Help>
 
 	<!-- -->
 
-	<ZombieSerum_Help>Compared to amputations, Zombie Serum is the best alternative to cure infections. Collect zombie extract whenever you can from dead zombies and refine it on a drugtable into zombie serum. The serum comes in qualities of 10% to 100% and one potion of serum heals one zombie bite. The quality determines the failure risk when doing an operation on an infected colonist.</ZombieSerum_Help>
-	<CorpsesExtractAmount_Help>Zombie Extract is the ingredients in Zombie Serum. You collect it from dead zombies before they disappear (either automatic or by right-click on the zombie corpse). Only colonists assigned to doctoring can collect extract. And only if there are no dangerous zombies nearby (roughly 10-20 cell radius) depending on the surroundings. To make creating serum easier, increase the amount of extract per zombie.</CorpsesExtractAmount_Help>
+	<ZombieHarvestingTitle_Help>When zombies die they may drop some of their apparel and you can get zombie extract from their corpses before they disappear. In order to not get overloaded with lots of corpses, you can select how fast zombie corpses disappear.\n\nZombie serum is the best alternative to cure infections. The serum is made out of zombie extract and comes in qualities of 10% to 100% and one potion of serum heals one zombie bite. The quality determines the failure risk when doing an operation on an infected colonist.</ZombieHarvestingTitle_Help>
+	<CorpsesExtractAmount_Help>You collect zombie extract from dead zombies before they disappear either automatic or by right-click on the zombie corpse and make serum out of it on a drug table or a crafting spot if you play with tribals. Only colonists assigned to doctoring can collect extract. And only if there are no dangerous zombies nearby (roughly 10-20 cell radius) depending on the surroundings. To make creating serum easier, increase the amount of extract per zombie.</CorpsesExtractAmount_Help>
+	<LootExtractAmount_Help>Make zombies drop their apparel by chance. Zombies can wear any apparel that exists in your game with all its mods. This defines the chance and amount of dropped apparel (100% = 1 item)</LootExtractAmount_Help>
 	<CorpsesDaysToDessicated_Help>Zombie corpses will usually dessicate quickly so you don't end up with too many of them. To make collecting extract easier, you can increase the time before they disappear.</CorpsesDaysToDessicated_Help>
 	<ExtractZombieArea_Help>Extraction from zombies can be dangerous. Use this feature to restrict the activity to one of your areas. If you rename the area, you need to update it here. Manually ordered extraction will always work.</ExtractZombieArea_Help>
 

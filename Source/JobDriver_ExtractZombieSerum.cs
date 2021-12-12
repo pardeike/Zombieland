@@ -59,7 +59,7 @@ namespace ZombieLand
 					if (extractProcess >= extractWork)
 					{
 						var extractResult = ThingMaker.MakeThing(extractDef, null);
-						extractResult.stackCount = ZombieSettings.Values.corpsesExtractAmount;
+						extractResult.stackCount = Tools.ExtractPerZombie();
 						_ = GenPlace.TryPlaceThing(extractResult, pawn.Position, pawn.Map, ThingPlaceMode.Near, null, null);
 
 						if (zombieCorpse != null)

@@ -361,13 +361,14 @@ namespace ZombieLand
 			GUI.color = color;
 		}
 
-		public static void Dialog_FloatSlider(this Listing_Standard list, string labelId, string format, bool logarithmic, ref float value, float min, float max, Func<float, float> formatFunc = null)
+		public static void Dialog_FloatSlider(this Listing_Standard list, string labelId, Func<float, string> labelFormatFunc, bool logarithmic, ref float value, float min, float max, Func<float, float> formatFunc = null)
 		{
 			list.Help(labelId, 32f);
 
 			list.Gap(12f);
 
-			var valstr = string.Format("{0:" + format + "}", formatFunc != null ? formatFunc(value) : value);
+			var format = labelFormatFunc(value);
+			var valstr = string.Format(format, formatFunc != null ? formatFunc(value) : value);
 
 			var srect = list.GetRect(24f);
 			srect.xMin += inset;
@@ -450,6 +451,12 @@ namespace ZombieLand
 			list.Dialog_List("ExtractZombieArea", settings.extractZombieArea, area => settings.extractZombieArea = area ?? "", areas, "Everywhere".Translate());
 		}
 
+		public static string ExtractAmount(float f)
+		{
+			if (f == 0) return "Off".TranslateSimple();
+			return "{0:0%} " + "CorpsesExtractChance".Translate(f);
+		}
+
 		public static Vector2 scrollPosition = Vector2.zero;
 		public static void DoWindowContentsInternal(ref SettingsGroup settings, Rect inRect)
 		{
@@ -462,7 +469,7 @@ namespace ZombieLand
 			var secondColumnWidth = inRect.width - Listing.ColumnSpacing - firstColumnWidth;
 
 			var outerRect = new Rect(inRect.x, inRect.y, firstColumnWidth, inRect.height);
-			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, 3000);
+			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, 3200);
 			Widgets.BeginScrollView(outerRect, ref scrollPosition, innerRect, true);
 
 			currentHelpItem = null;
@@ -527,14 +534,14 @@ namespace ZombieLand
 				list.Gap(8f);
 				var allMax = Mathf.Max(0.04f, settings.suicideBomberChance, settings.toxicSplasherChance, settings.tankyOperatorChance, settings.minerChance, settings.electrifierChance, settings.albinoChance, settings.darkSlimerChance, settings.healerChance);
 				var max = Mathf.Min(1f, 2f * allMax);
-				list.Dialog_FloatSlider("SuicideBomberChance", "0.00%", false, ref settings.suicideBomberChance, 0f, Mathf.Min(max, 1f - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-				list.Dialog_FloatSlider("ToxicSplasherChance", "0.00%", false, ref settings.toxicSplasherChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-				list.Dialog_FloatSlider("TankyOperatorChance", "0.00%", false, ref settings.tankyOperatorChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-				list.Dialog_FloatSlider("MinerChance", "0.00%", false, ref settings.minerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-				list.Dialog_FloatSlider("ElectrifierChance", "0.00%", false, ref settings.electrifierChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-				list.Dialog_FloatSlider("AlbinoChance", "0.00%", false, ref settings.albinoChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.darkSlimerChance - settings.healerChance));
-				list.Dialog_FloatSlider("DarkSlimerChance", "0.00%", false, ref settings.darkSlimerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.healerChance));
-				list.Dialog_FloatSlider("HealerChance", "0.00%", false, ref settings.healerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance));
+				list.Dialog_FloatSlider("SuicideBomberChance", _ => "{0:0.00%}", false, ref settings.suicideBomberChance, 0f, Mathf.Min(max, 1f - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
+				list.Dialog_FloatSlider("ToxicSplasherChance", _ => "{0:0.00%}", false, ref settings.toxicSplasherChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
+				list.Dialog_FloatSlider("TankyOperatorChance", _ => "{0:0.00%}", false, ref settings.tankyOperatorChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
+				list.Dialog_FloatSlider("MinerChance", _ => "{0:0.00%}", false, ref settings.minerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
+				list.Dialog_FloatSlider("ElectrifierChance", _ => "{0:0.00%}", false, ref settings.electrifierChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
+				list.Dialog_FloatSlider("AlbinoChance", _ => "{0:0.00%}", false, ref settings.albinoChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.darkSlimerChance - settings.healerChance));
+				list.Dialog_FloatSlider("DarkSlimerChance", _ => "{0:0.00%}", false, ref settings.darkSlimerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.healerChance));
+				list.Dialog_FloatSlider("HealerChance", _ => "{0:0.00%}", false, ref settings.healerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance));
 				var normalChance = 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance;
 				list.Gap(-6f);
 				list.Dialog_Text(GameFont.Tiny, "NormalZombieChance", string.Format("{0:0.00%}", normalChance));
@@ -549,14 +556,18 @@ namespace ZombieLand
 				list.Dialog_Label("ZombiesOnTheMap", headerColor);
 				list.Dialog_Integer("MaximumNumberOfZombies", "Zombies", 0, 5000, ref settings.maximumNumberOfZombies);
 				list.Gap(8f);
-				list.Dialog_FloatSlider("ColonyMultiplier", "0.0x", false, ref settings.colonyMultiplier, 1f, 10f);
+				list.Dialog_FloatSlider("ColonyMultiplier", _ => "{0:0.0}x", false, ref settings.colonyMultiplier, 1f, 10f);
+				list.Gap(28f);
+
+				list.Dialog_Label("DynamicThreatLevelTitle", headerColor);
+				list.Gap(8f);
 				list.Dialog_Checkbox("UseDynamicThreatLevel", ref settings.useDynamicThreatLevel);
 				if (settings.useDynamicThreatLevel)
 				{
 					list.Gap(8f);
-					list.Dialog_FloatSlider("DynamicThreatSmoothness", "0%", false, ref settings.dynamicThreatSmoothness, 1f, 5f, f => (f - 1f) / 4f);
+					list.Dialog_FloatSlider("DynamicThreatSmoothness", _ => "{0:0%}", false, ref settings.dynamicThreatSmoothness, 1f, 5f, f => (f - 1f) / 4f);
 					list.Gap(-4f);
-					list.Dialog_FloatSlider("DynamicThreatStretch", "0%", false, ref settings.dynamicThreatStretch, 10f, 30f, f => (f - 10f) / 20f);
+					list.Dialog_FloatSlider("DynamicThreatStretch", _ => "{0:0%}", false, ref settings.dynamicThreatStretch, 10f, 30f, f => (f - 10f) / 20f);
 					list.Gap(-6f);
 					list.Dialog_Checkbox("ZombiesDieOnZeroThreat", ref settings.zombiesDieOnZeroThreat);
 				}
@@ -566,19 +577,21 @@ namespace ZombieLand
 				list.Dialog_Label("ZombieEventTitle", headerColor);
 				list.Dialog_Integer("ZombiesPerColonistInEvent", null, 0, 200, ref settings.baseNumberOfZombiesinEvent);
 				list.Dialog_Integer("ExtraDaysBetweenEvents", null, 0, 10000, ref settings.extraDaysBetweenEvents);
-				list.Gap(34f);
+				list.Gap(12f);
+				list.Dialog_FloatSlider("InfectedRaidsChance", f => f == 0 ? "Off".TranslateSimple() : "{0:0.0%}", true, ref settings.infectedRaidsChance, 0f, 1f);
+				list.Gap(28f);
 
 				// Speed
 				list.Dialog_Label("ZombieSpeedTitle", headerColor);
 				list.Gap(8f);
-				list.Dialog_FloatSlider("MoveSpeedIdle", "0.00x", false, ref settings.moveSpeedIdle, 0.01f, 2f);
-				list.Dialog_FloatSlider("MoveSpeedTracking", "0.00x", false, ref settings.moveSpeedTracking, 0.05f, 3f);
+				list.Dialog_FloatSlider("MoveSpeedIdle", _ => "{0:0.00}x", false, ref settings.moveSpeedIdle, 0.01f, 2f);
+				list.Dialog_FloatSlider("MoveSpeedTracking", _ => "{0:0.00}x", false, ref settings.moveSpeedTracking, 0.05f, 3f);
 				list.Gap(24f);
 
 				// Damage
 				list.Dialog_Label("ZombieDamageTitle", headerColor);
 				list.Gap(8f);
-				list.Dialog_FloatSlider("ZombieDamageFactor", "0.0x", false, ref settings.damageFactor, 0.1f, 4f);
+				list.Dialog_FloatSlider("ZombieDamageFactor", _ => "{0:0.0}x", false, ref settings.damageFactor, 0.1f, 4f);
 				list.Gap(-4f);
 				list.Dialog_Checkbox("ZombiesCauseManhunting", ref settings.zombiesCauseManhuntingResponse);
 				list.Gap(36f);
@@ -586,13 +599,13 @@ namespace ZombieLand
 				// Tweaks
 				list.Dialog_Label("ZombieGameTweaks", headerColor);
 				list.Gap(8f);
-				list.Dialog_FloatSlider("ReduceTurretConsumption", "0%", false, ref settings.reducedTurretConsumption, 0f, 1f);
+				list.Dialog_FloatSlider("ReduceTurretConsumption", _ => "{0:0%}", false, ref settings.reducedTurretConsumption, 0f, 1f);
 				list.Gap(28f);
 
 				// Infections
 				list.Dialog_Label("ZombieInfection", headerColor);
 				list.Gap(8f);
-				list.Dialog_FloatSlider("ZombieBiteInfectionChance", "0%", false, ref settings.zombieBiteInfectionChance, 0f, 1f);
+				list.Dialog_FloatSlider("ZombieBiteInfectionChance", _ => "{0:0%}", false, ref settings.zombieBiteInfectionChance, 0f, 1f);
 				list.Dialog_TimeSlider("ZombieBiteInfectionUnknown", ref settings.hoursInfectionIsUnknown, 0, 48);
 				list.Dialog_TimeSlider("ZombieBiteInfectionTreatable", ref settings.hoursInfectionIsTreatable, 0, 6 * 24);
 				list.Dialog_TimeSlider("ZombieBiteInfectionPersists", ref settings.hoursInfectionPersists, 0, 30 * 24, null, true);
@@ -601,12 +614,22 @@ namespace ZombieLand
 				list.Gap(22f);
 				static string hoursTranslator(int n) => n == -1 ? "Off".Translate() : (n == 0 ? "Immediately".Translate() : null);
 				list.Dialog_TimeSlider("HoursAfterDeathToBecomeZombie", ref settings.hoursAfterDeathToBecomeZombie, -1, 6 * 24, hoursTranslator, false);
+				if (settings.hoursAfterDeathToBecomeZombie > -1)
+				{
+					list.Gap(-4f);
+					list.Dialog_Checkbox("DeadBecomesZombieMessage", ref settings.deadBecomesZombieMessage);
+				}
 				list.Gap(30f);
 
-				// Serum
-				list.Dialog_Label("ZombieSerum", headerColor);
+				// Zombie loot
+				list.Dialog_Label("ZombieHarvestingTitle", headerColor);
 				list.Gap(8f);
-				list.Dialog_IntSlider("CorpsesExtractAmount", amount => (amount == 0 ? "Off".TranslateSimple() : "" + amount), ref settings.corpsesExtractAmount, 0, 10);
+				var f1 = Mathf.Round(settings.corpsesExtractAmount * 100f) / 100f;
+				list.Dialog_FloatSlider("CorpsesExtractAmount", f => ExtractAmount(f), false, ref f1, 0, 4);
+				settings.corpsesExtractAmount = Mathf.Round(f1 * 100f) / 100f;
+				var f2 = Mathf.Round(settings.lootExtractAmount * 100f) / 100f;
+				list.Dialog_FloatSlider("LootExtractAmount", f => ExtractAmount(f), false, ref f2, 0, 4);
+				settings.lootExtractAmount = Mathf.Round(f2 * 100f) / 100f;
 				list.Dialog_TimeSlider("CorpsesDaysToDessicated", ref settings.corpsesHoursToDessicated, 1, 120);
 				ChooseExtractArea(list, settings);
 				list.Gap(28f);
