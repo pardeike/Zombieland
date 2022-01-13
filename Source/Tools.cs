@@ -393,10 +393,16 @@ namespace ZombieLand
 			var allRegions = PlayerReachableRegions(map);
 			if (nearEdge)
 				allRegions = allRegions.Where(region => region.touchesMapEdge).ToList();
-			return allRegions
+			var cell = allRegions
 				.SelectMany(region => region.Cells)
 				.InRandomOrder()
 				.FirstOrFallback(cell => predicate(cell), IntVec3.Invalid);
+			if (cell.IsValid == false)
+			{
+				if (RCellFinder.TryFindRandomPawnEntryCell(out cell, map, 0.1f, true, predicate) == false)
+					cell = IntVec3.Invalid;
+			}
+			return cell;
 		}
 
 		public static void QueueConvertToZombie(ThingWithComps thing, Map mapForTickmanager)

@@ -35,7 +35,7 @@ namespace ZombieLand
 
 	class ColonistSettings : WorldComponent
 	{
-		public static Dictionary<Pawn, ColonistConfig> colonists = new Dictionary<Pawn, ColonistConfig>();
+		public static Dictionary<Pawn, ColonistConfig> colonists;
 		private List<Pawn> colonistsKeysWorkingList;
 		private List<ColonistConfig> colonistsValuesWorkingList;
 
@@ -43,16 +43,18 @@ namespace ZombieLand
 
 		public ColonistSettings(World world) : base(world)
 		{
+			colonists = new Dictionary<Pawn, ColonistConfig>();
 		}
 
 		public ColonistConfig ConfigFor(Pawn pawn)
 		{
-			if (pawn.IsColonist == false)
+			if (pawn?.Map == null || pawn.IsColonist == false || pawn.Spawned == false)
 				return null;
-			if (colonists.TryGetValue(pawn, out var config))
-				return config;
-			config = new ColonistConfig();
-			colonists[pawn] = config;
+			if (colonists.TryGetValue(pawn, out var config) == false)
+			{
+				config = new ColonistConfig();
+				colonists[pawn] = config;
+			}
 			return config;
 		}
 
@@ -64,19 +66,8 @@ namespace ZombieLand
 		public override void ExposeData()
 		{
 			base.ExposeData();
-
-			if (Scribe.mode == LoadSaveMode.Saving)
-				_ = colonists.RemoveAll(pair => pair.Key == null || pair.Key.IsColonist == false || pair.Key.Spawned == false || pair.Value == null);
-
+			colonists ??= new Dictionary<Pawn, ColonistConfig>();
 			Scribe_Collections.Look(ref colonists, "colonists", LookMode.Reference, LookMode.Deep, ref colonistsKeysWorkingList, ref colonistsValuesWorkingList);
-
-			if (Scribe.mode == LoadSaveMode.PostLoadInit)
-			{
-				if (colonists == null)
-					colonists = new Dictionary<Pawn, ColonistConfig>();
-				else
-					_ = colonists.RemoveAll(pair => pair.Key == null || pair.Key.IsColonist == false || pair.Value == null);
-			}
 		}
 	}
 }
