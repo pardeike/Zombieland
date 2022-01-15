@@ -553,7 +553,8 @@ namespace ZombieLand
 			// check for day/night and dust/dawn
 			// during night, zombies drift towards the colonies center
 			//
-			if (zombie.Map.areaManager.Home[zombie.Position] == false)
+			var basePos = zombie.Position;
+			if (zombie.Map.areaManager.Home[basePos] == false)
 			{
 				var moveTowardsCenter = false;
 
@@ -568,12 +569,27 @@ namespace ZombieLand
 
 				if (moveTowardsCenter)
 				{
+					var pathing = zombie.Map.GetComponent<TickManager>()?.zombiePathing;
+					if (pathing != null)
+					{
+						var destination = pathing.GetWanderDestination(basePos);
+						if (destination.IsValid)
+						{
+							possibleMoves.Sort((p1, p2) => p1.DistanceToSquared(destination).CompareTo(p2.DistanceToSquared(destination)));
+							possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
+							possibleMoves = possibleMoves.OrderBy(p => grid.GetZombieCount(p)).ToList();
+							driver.destination = possibleMoves.First();
+							return;
+						}
+					}
+					/*
 					var center = zombie.wanderDestination.IsValid ? zombie.wanderDestination : zombie.Map.Center;
 					possibleMoves.Sort((p1, p2) => p1.DistanceToSquared(center).CompareTo(p2.DistanceToSquared(center)));
 					possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
 					possibleMoves = possibleMoves.OrderBy(p => grid.GetZombieCount(p)).ToList();
 					driver.destination = possibleMoves.First();
 					return;
+					*/
 				}
 			}
 

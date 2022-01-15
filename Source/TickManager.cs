@@ -79,11 +79,15 @@ namespace ZombieLand
 		public Queue<Action<Map>> rimConnectActions = new Queue<Action<Map>>();
 
 		public List<IntVec3> explosions = new List<IntVec3>();
-
 		public IncidentInfo incidentInfo = new IncidentInfo();
+		public ZombiePathing zombiePathing;
+		private IEnumerator zombiePathingEnumerator;
 
 		public TickManager(Map map) : base(map)
 		{
+			zombiePathing = new ZombiePathing(map);
+			zombiePathingEnumerator = zombiePathing.Process();
+
 			currentColonyPoints = 100;
 			allZombiesCached = new HashSet<Zombie>();
 			allZombieCorpses = new List<ZombieCorpse>();
@@ -145,6 +149,14 @@ namespace ZombieLand
 			taskTicker = TickTasks();
 			while (taskTicker.Current as string != "end")
 				_ = taskTicker.MoveNext();
+		}
+
+		public override void MapRemoved()
+		{
+			base.MapRemoved();
+
+			zombiePathing.running = false;
+			zombiePathing = null;
 		}
 
 		public override void ExposeData()
@@ -543,7 +555,10 @@ namespace ZombieLand
 
 		public override void MapComponentTick()
 		{
+			base.MapComponentTick();
+
 			_ = taskTicker.MoveNext();
+			_ = zombiePathingEnumerator.MoveNext();
 			IncreaseZombiePopulation();
 		}
 	}
