@@ -68,7 +68,7 @@ namespace ZombieLand
 			if (this.ShouldDie(zombie))
 				return;
 
-			if (ZombieStateHandler.Downed(zombie))
+			if (ZombieStateHandler.DownedOrUnconsciousness(zombie))
 				return;
 
 			if (this.Attack(zombie))

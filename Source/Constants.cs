@@ -140,6 +140,8 @@ namespace ZombieLand
 		public static readonly float MIN_WEAPON_RANGE = 2f;
 		public static readonly float MAX_WEAPON_RANGE = 30f;
 		public static readonly float MIN_ATTACKDISTANCE_SQUARED = 2.25f;
+		public static readonly float MIN_CONSCIOUSNESS = 0.25f;
+
 		public static readonly Material RAGE_EYE = MaterialPool.MatFrom("RageEye", ShaderDatabase.Mote);
 		public static readonly Material BOMB_LIGHT = MaterialPool.MatFrom("BombLight", ShaderDatabase.MoteGlow);
 		public static readonly Material[][] TANKYSHIELDS = Tools.GetDamageableGraphics("TankyShield", 2, 4);
@@ -215,6 +217,15 @@ namespace ZombieLand
 		public static readonly Material BRRAINZ = MaterialPool.MatFrom("Brrainz", ShaderDatabase.Cutout);
 		public static readonly Material EATING = MaterialPool.MatFrom("Eating", ShaderDatabase.Cutout);
 		public static readonly Material HACKING = MaterialPool.MatFrom("Hacking", ShaderDatabase.Cutout);
+		public static readonly Material[] CONFUSED = new Material[] {
+			MaterialPool.MatFrom("Confused/Confused1", ShaderDatabase.Cutout),
+			MaterialPool.MatFrom("Confused/Confused2", ShaderDatabase.Cutout),
+			MaterialPool.MatFrom("Confused/Confused3", ShaderDatabase.Cutout),
+			MaterialPool.MatFrom("Confused/Confused4", ShaderDatabase.Cutout),
+			MaterialPool.MatFrom("Confused/Confused5", ShaderDatabase.Cutout),
+			MaterialPool.MatFrom("Confused/Confused6", ShaderDatabase.Cutout),
+			MaterialPool.MatFrom("Confused/Confused7", ShaderDatabase.Cutout),
+		};
 		public static readonly Material[][] TARSLIMES = new Material[][] {
 			new Material[] {
 				MaterialPool.MatFrom("TarSlime/TarSlime0", ShaderDatabase.Mote, new Color(1,1,1,0.25f)),

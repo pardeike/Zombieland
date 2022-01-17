@@ -16,8 +16,6 @@ namespace ZombieLand
 		static readonly int[] adjIndex4 = { 0, 1, 2, 3 };
 		static int prevIndex4;
 
-		static readonly float combatExtendedHealAmount = 1f / 1f.SecondsToTicks();
-
 		static float lastTrackingSoundPlayed = 0f;
 		static float lastRageSoundPlayed = 0f;
 
@@ -75,10 +73,26 @@ namespace ZombieLand
 
 		// handle downed zombies ====================================================================
 		//
-		public static bool Downed(Zombie zombie)
+		public static bool DownedOrUnconsciousness(Zombie zombie)
 		{
-			if (zombie.health.Downed == false)
-				return false;
+			if (zombie.IsTanky == false)
+			{
+				zombie.consciousness = zombie.health.capacities.GetLevel(PawnCapacityDefOf.Consciousness);
+				if (zombie.consciousness <= Constants.MIN_CONSCIOUSNESS)
+				{
+					if (ZombieSettings.Values.doubleTapRequired && zombie.EveryNTick(NthTick.Every480))
+					{
+						var bleeding = HealthUtility.FindMostBleedingHediff(zombie);
+						if (bleeding != null)
+							zombie.health.RemoveHediff(bleeding);
+					}
+					return true;
+				}
+			}
+
+			var wasHealing = zombie.isHealing;
+			if (zombie.health.Downed && zombie.isHealing == false)
+				zombie.isHealing = true;
 
 			if (ZombieSettings.Values.zombiesDieVeryEasily || zombie.IsSuicideBomber || ZombieSettings.Values.doubleTapRequired == false)
 			{
@@ -86,36 +100,11 @@ namespace ZombieLand
 				return true;
 			}
 
-			// var walkCapacity = PawnCapacityUtility.CalculateCapacityLevel(zombie.health.hediffSet, PawnCapacityDefOf.Moving);
-			// var missingBrain = zombie.health.hediffSet.GetBrain() == null;
-			// if (walkCapacity < 0.25f || missingBrain)
-			// {
-			// 	zombie.Kill(null);
-			// 	return true;
-			// }
+			if (zombie.isHealing == false || zombie.stances.stunner.Stunned || zombie.IsBurning())
+				return false;
 
-			if (++zombie.healCounter >= Constants.ZOMBIE_HEALING_TICKS)
-			{
-				zombie.healCounter = 0;
-
-				var injuries = zombie.health.hediffSet.GetHediffs<Hediff_Injury>();
-				foreach (var injury in injuries)
-				{
-					if (ZombieSettings.Values.zombiesDieVeryEasily)
-					{
-						zombie.Kill(null);
-						return true;
-					}
-
-					if (Tools.IsCombatExtendedInstalled())
-						injury.Heal(combatExtendedHealAmount);
-					else
-						injury.Heal(injury.Severity + 0.5f);
-
-					break;
-				}
-			}
-
+			if ((wasHealing == false && zombie.isHealing) || zombie.EveryNTick(NthTick.Every480))
+				_ = HealthUtility.FixWorstHealthCondition(zombie);
 			return false;
 		}
 

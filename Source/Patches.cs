@@ -902,6 +902,39 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to not allow some jobs on zombies
+		//
+		[HarmonyPatch(typeof(Pawn_JobTracker))]
+		[HarmonyPatch(nameof(Pawn_JobTracker.StartJob))]
+		static class Pawn_JobTracker_StartJob_Patch
+		{
+			static readonly HashSet<JobDef> allowedJobs = new HashSet<JobDef>()
+			{
+				CustomDefs.Stumble,
+				CustomDefs.Sabotage,
+				DefDatabase<JobDef>.GetNamed("ExtractZombieSerum"),
+				DefDatabase<JobDef>.GetNamed("DoubleTap"),
+				JobDefOf.Goto,
+				JobDefOf.Wait,
+				JobDefOf.Wait_MaintainPosture,
+				JobDefOf.AttackMelee,
+				JobDefOf.AttackStatic
+			};
+
+			static bool Prefix(Job newJob, Pawn ___pawn, ref int ___jobsGivenThisTick, ref string ___jobsGivenThisTickTextual, ref bool ___startingNewJob)
+			{
+				if ((___pawn is Zombie) == false) return true;
+				if (allowedJobs.Contains(newJob.def)) return true;
+
+				___jobsGivenThisTick = 0;
+				___jobsGivenThisTickTextual = "";
+				___startingNewJob = false;
+				___pawn.ClearReservationsForJob(newJob);
+				Log.Warning($"Zombies cannot do job {newJob.def.defName}");
+				return false;
+			}
+		}
+
 		// make static attacks on doors stop when door is open
 		//
 		[HarmonyPatch]
@@ -2320,8 +2353,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn __instance, ref bool __result)
 			{
-				if (ZombieSettings.Values.doubleTapRequired == false)
-					return true;
+				if (ZombieSettings.Values.doubleTapRequired == false) return true;
 				if (!(__instance is Zombie zombie)) return true;
 				__result = false;
 				return false;
@@ -2618,6 +2650,18 @@ namespace ZombieLand
 				Verse.TickManager tm = null;
 				var orientation = zombie.Rotation;
 
+				if (zombie.consciousness <= Constants.MIN_CONSCIOUSNESS)
+				{
+					var confLoc = drawLoc + new Vector3(0, moteAltitute, 0.75f);
+					if (orientation == Rot4.West) confLoc.x -= 0.09f;
+					if (orientation == Rot4.East) confLoc.x += 0.09f;
+
+					var t = GenTicks.TicksAbs;
+					var n = t % 12;
+					if (n > 6) n = 12 - n;
+					GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.CONFUSED[n], confLoc, Quaternion.Euler(0, t, 0), 1f, 1f);
+				}
+
 				if (zombie.IsSuicideBomber)
 				{
 					tm = Find.TickManager;
@@ -2901,12 +2945,11 @@ namespace ZombieLand
 					}
 				}
 
+				if (orientation == Rot4.West) quickHeadCenter.x -= 0.09f;
+				if (orientation == Rot4.East) quickHeadCenter.x += 0.09f;
+
 				if (zombie.isAlbino == false)
-				{
-					if (orientation == Rot4.West) quickHeadCenter.x -= 0.09f;
-					if (orientation == Rot4.East) quickHeadCenter.x += 0.09f;
 					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.RAGE_AURAS[Find.CameraDriver.CurrentZoom], quickHeadCenter, Quaternion.identity, 1f, 1f);
-				}
 			}
 		}
 

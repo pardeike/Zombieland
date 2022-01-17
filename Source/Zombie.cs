@@ -15,7 +15,8 @@ namespace ZombieLand
 		Every10,
 		Every15,
 		Every30,
-		Every60
+		Every60,
+		Every480
 	}
 
 	public class Verb_Shock : Verb
@@ -67,7 +68,8 @@ namespace ZombieLand
 		public IntVec2 sideEyeOffset;
 		public bool wasMapPawnBefore;
 		public IntVec3 lastGotoPosition = IntVec3.Invalid;
-		public int healCounter = 0;
+		public bool isHealing = false;
+		public float consciousness = 1f;
 
 		// suicide bomber
 		public float bombTickingInterval = -1f;
@@ -198,7 +200,8 @@ namespace ZombieLand
 			Scribe_Values.Look(ref hasTankyShield, "tankyShield");
 			Scribe_Values.Look(ref hasTankyHelmet, "tankyHelmet");
 			Scribe_Values.Look(ref hasTankySuit, "tankySuit");
-			Scribe_Values.Look(ref healCounter, "healCounter");
+			Scribe_Values.Look(ref isHealing, "isHealing");
+			Scribe_Values.Look(ref consciousness, "consciousness");
 			wasMapPawnBefore |= wasColonist;
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
