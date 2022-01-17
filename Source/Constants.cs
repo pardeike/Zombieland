@@ -295,5 +295,8 @@ namespace ZombieLand
 		public static readonly Mesh healMesh = MeshMakerPlanes.NewPlaneMesh(4f);
 
 		public static Texture2D dot = new Texture2D(3, 3);
+
+		public static readonly Texture2D healthBarFrame = SolidColorMaterials.NewSolidColorTexture(Color.black);
+		public static readonly Color healthBarBG = new Color(1, 1, 1, 0.25f);
 	}
 }

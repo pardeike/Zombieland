@@ -21,6 +21,10 @@
 	<HowDoZombiesSpawn>殭屍會從什麼地方出現？</HowDoZombiesSpawn>
 	<SpawnHowType_AllOverTheMap>所有的軟地面</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>從地圖邊緣</SpawnHowType_FromTheEdges>
+	<SmartWandering>移動風格</SmartWandering>
+	<SmartWandering_Off>隨機的</SmartWandering_Off>
+	<SmartWandering_Simple>簡單的</SmartWandering_Simple>
+	<SmartWandering_Smart>聰明的</SmartWandering_Smart>
 
 	<WhatDoZombiesAttack>殭屍會攻擊什麼？</WhatDoZombiesAttack>
 	<AttackMode_Everything>所有生物</AttackMode_Everything>

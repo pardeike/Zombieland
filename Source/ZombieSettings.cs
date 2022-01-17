@@ -41,6 +41,13 @@ namespace ZombieLand
 		Sensitive
 	}
 
+	public enum WanderingStyle
+	{
+		Off,
+		Simple,
+		Smart
+	}
+
 	internal class NoteDialog : Dialog_MessageBox
 	{
 		internal NoteDialog(string text, string buttonAText = null, Action buttonAAction = null, string buttonBText = null, Action buttonBAction = null, string title = null, bool buttonADestructive = false, Action acceptAction = null, Action cancelAction = null)
@@ -106,6 +113,7 @@ namespace ZombieLand
 		public bool zombiesBurnLonger = true;
 		public float reducedTurretConsumption = 0f;
 		public bool zombiesCauseManhuntingResponse = true;
+		public WanderingStyle wanderingStyle = WanderingStyle.Smart;
 
 		// unused
 		public int suicideBomberIntChance = 1;

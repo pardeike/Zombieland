@@ -21,6 +21,10 @@
 	<HowDoZombiesSpawn>Как зомби будут появляться?</HowDoZombiesSpawn>
 	<SpawnHowType_AllOverTheMap>Из земли</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>От краёв карты</SpawnHowType_FromTheEdges>
+	<SmartWandering>Стиль движения</SmartWandering>
+	<SmartWandering_Off>Случайный</SmartWandering_Off>
+	<SmartWandering_Simple>Простой</SmartWandering_Simple>
+	<SmartWandering_Smart>Умная</SmartWandering_Smart>
 
 	<WhatDoZombiesAttack>Кого зомби будут атаковать?</WhatDoZombiesAttack>
 	<AttackMode_Everything>Всё что движеться и дышит</AttackMode_Everything>

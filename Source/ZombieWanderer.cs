@@ -144,7 +144,7 @@ namespace ZombieLand
 			int[] rndices;
 			int i;
 			var t = (int)(DateTime.Now.Ticks % 1000);
-			var random = new System.Random(basePos.x + basePos.z * 1000 + t * 1000000);
+			var random = new Random(basePos.x + basePos.z * 1000 + t * 1000000);
 
 			rndices = randomOrders[random.Next(0, 24)];
 			for (i = 0; i < 4; i++)

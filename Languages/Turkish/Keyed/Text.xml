@@ -21,6 +21,10 @@
 	<HowDoZombiesSpawn>Zombiler nereden geliyor?</HowDoZombiesSpawn>
 	<SpawnHowType_AllOverTheMap>Yumuşak zemin olan yerlerde</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>Harita kenarlarından</SpawnHowType_FromTheEdges>
+	<SmartWandering>Hareket tarzı</SmartWandering>
+	<SmartWandering_Off>Rastgele</SmartWandering_Off>
+	<SmartWandering_Simple>Basit</SmartWandering_Simple>
+	<SmartWandering_Smart>Akıllı</SmartWandering_Smart>
 
 	<WhatDoZombiesAttack>Zombiler neye saldıracak?</WhatDoZombiesAttack>
 	<AttackMode_Everything>Bütün yaratıklar</AttackMode_Everything>

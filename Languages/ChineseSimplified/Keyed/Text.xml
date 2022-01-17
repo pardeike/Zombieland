@@ -21,6 +21,10 @@
 	<HowDoZombiesSpawn>丧尸从什么地方出现？</HowDoZombiesSpawn>
 	<SpawnHowType_AllOverTheMap>所有的软地面</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>从地图边缘</SpawnHowType_FromTheEdges>
+	<SmartWandering>移动风格</SmartWandering>
+	<SmartWandering_Off>随机的</SmartWandering_Off>
+	<SmartWandering_Simple>简单的</SmartWandering_Simple>
+	<SmartWandering_Smart>聪明的</SmartWandering_Smart>
 
 	<WhatDoZombiesAttack>丧尸攻击什么？</WhatDoZombiesAttack>
 	<AttackMode_Everything>所有生物</AttackMode_Everything>

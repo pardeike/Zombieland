@@ -282,7 +282,7 @@ namespace ZombieLand
 			}
 		}
 
-		public static void Dialog_List<T>(this Listing_Standard list, string labelId, T value, Action<T> updateValue, List<T> choices, T defaultValue) where T : IComparable<T>
+		public static void Dialog_List<T>(this Listing_Standard list, string labelId, T value, Action<T> updateValue, List<T> choices, Func<T, string> translator, T defaultValue)
 		{
 			var labelText = labelId.SafeTranslate();
 			var valueText = choices.Contains(value) ? value.ToString() : defaultValue.ToString();
@@ -290,6 +290,8 @@ namespace ZombieLand
 			var extraSpace = "_".GetWidthCached();
 			var descLength = labelText.GetWidthCached() + extraSpace;
 			var valueLength = valueText.GetWidthCached();
+
+			if (translator == null) translator = val => val.ToString();
 
 			list.Help(labelId, Text.LineHeight);
 
@@ -317,9 +319,10 @@ namespace ZombieLand
 				{
 					var matches = choice.Equals(value);
 					found |= matches;
-					return new FloatMenuOption($"{choice}{(choice.Equals(value) ? " ✓" : "")}", () => updateValue(choice));
+					return new FloatMenuOption($"{translator(choice)}{(choice.Equals(value) ? " ✓" : "")}", () => updateValue(choice));
 				}).ToList();
-				options.Insert(0, new FloatMenuOption($"{defaultValue}{(found ? "" : " ✓")}", () => updateValue(default)));
+				if (choices.Contains(defaultValue) == false)
+					options.Insert(0, new FloatMenuOption($"{translator(defaultValue)}{(found ? "" : " ✓")}", () => updateValue(default)));
 				Find.WindowStack.Add(new FloatMenu(options));
 			}
 		}
@@ -448,7 +451,14 @@ namespace ZombieLand
 				.Select(pair => multiMap ? $"{pair.area.Label}:{pair.map.Index + 1}" : pair.area.Label)
 				.ToList();
 			list.Gap(-2f);
-			list.Dialog_List("ExtractZombieArea", settings.extractZombieArea, area => settings.extractZombieArea = area ?? "", areas, "Everywhere".Translate());
+			list.Dialog_List("ExtractZombieArea", settings.extractZombieArea, area => settings.extractZombieArea = area ?? "", areas, null, "Everywhere".Translate());
+		}
+
+		public static void ChooseWanderingStyle(Listing_Standard list, SettingsGroup settings)
+		{
+			var defaultChoice = Enum.GetName(typeof(WanderingStyle), WanderingStyle.Smart);
+			var choices = Enum.GetValues(typeof(WanderingStyle)).Cast<WanderingStyle>().ToList();
+			list.Dialog_List("SmartWandering", settings.wanderingStyle, value => settings.wanderingStyle = value, choices, value => $"SmartWandering_{value}".Translate(), WanderingStyle.Smart);
 		}
 
 		public static string ExtractAmount(float f)
@@ -488,10 +498,12 @@ namespace ZombieLand
 
 				// When?
 				list.Dialog_Enum("WhenDoZombiesSpawn", ref settings.spawnWhenType);
-				list.Gap(30f);
+				list.Gap(26f);
 
 				// How?
 				list.Dialog_Enum("HowDoZombiesSpawn", ref settings.spawnHowType);
+				list.Gap(4);
+				ChooseWanderingStyle(list, settings);
 				list.Gap(30f);
 
 				// Attack?

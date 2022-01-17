@@ -413,6 +413,55 @@ namespace ZombieLand
 			}
 		}
 
+		static readonly Color[] severity = new[]
+		{
+			new Color(0.9f, 0, 0),
+			new Color(1f, 0.5f, 0),
+			new Color(1f, 1f, 0),
+		};
+		public override void DrawGUIOverlay()
+		{
+			base.DrawGUIOverlay();
+			var width = 60;
+
+			if (UI.MapToUIPosition(Vector3.one).x - UI.MapToUIPosition(Vector3.zero).x < width / 2)
+				return;
+
+			var pos = DrawPos;
+			if ((UI.MouseMapPosition() - pos).MagnitudeHorizontalSquared() > 0.64f)
+				return;
+
+			pos.z -= 0.65f;
+			Vector2 vec = Find.Camera.WorldToScreenPoint(pos) / Prefs.UIScale;
+			vec.y = UI.screenHeight - vec.y;
+
+			var barRect = new Rect(vec - new Vector2(width / 2, 0), new Vector2(width, width / 5));
+			Widgets.DrawBoxSolid(barRect, Constants.healthBarBG);
+			var barInnerRect = barRect;
+			var percent = health.summaryHealth.SummaryHealthPercent;
+			barInnerRect.width *= percent;
+			Widgets.DrawBoxSolid(barInnerRect, new Color(1 - percent, 0, percent));
+			Widgets.DrawBox(barRect, 1, Constants.healthBarFrame);
+
+			int num = HealthUtility.TicksUntilDeathDueToBloodLoss(this);
+			if (num < 60000)
+			{
+				var text = "TimeToDeath".Translate(num.ToStringTicksToPeriod(true, true, true, true));
+				var color = num <= GenDate.TicksPerHour ? severity[0] : (num < GenDate.TicksPerHour * 4 ? severity[1] : severity[2]);
+
+				Text.Font = GameFont.Tiny;
+				var textWidth = Text.CalcSize(text).x;
+				vec.y -= 16;
+				GUI.DrawTexture(new Rect(vec.x - textWidth / 2f - 4f, vec.y, textWidth + 8f, 12f), TexUI.GrayTextBG);
+				GUI.color = color;
+				Text.Anchor = TextAnchor.UpperCenter;
+				Widgets.Label(new Rect(vec.x - textWidth / 2f, vec.y - 3f, textWidth, 999f), text.RawText);
+				GUI.color = Color.white;
+				Text.Anchor = TextAnchor.UpperLeft;
+				Text.Font = GameFont.Small;
+			}
+		}
+
 		readonly int[] nextNthTick = new int[totalNthTicks];
 		public bool EveryNTick(NthTick interval)
 		{

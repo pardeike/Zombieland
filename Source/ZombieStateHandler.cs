@@ -569,27 +569,32 @@ namespace ZombieLand
 
 				if (moveTowardsCenter)
 				{
-					var pathing = zombie.Map.GetComponent<TickManager>()?.zombiePathing;
-					if (pathing != null)
+					if (ZombieSettings.Values.wanderingStyle == WanderingStyle.Smart)
 					{
-						var destination = pathing.GetWanderDestination(basePos);
-						if (destination.IsValid)
+						var pathing = zombie.Map.GetComponent<TickManager>()?.zombiePathing;
+						if (pathing != null)
 						{
-							possibleMoves.Sort((p1, p2) => p1.DistanceToSquared(destination).CompareTo(p2.DistanceToSquared(destination)));
-							possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
-							possibleMoves = possibleMoves.OrderBy(p => grid.GetZombieCount(p)).ToList();
-							driver.destination = possibleMoves.First();
-							return;
+							var destination = pathing.GetWanderDestination(basePos);
+							if (destination.IsValid)
+							{
+								possibleMoves.Sort((p1, p2) => p1.DistanceToSquared(destination).CompareTo(p2.DistanceToSquared(destination)));
+								possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
+								possibleMoves = possibleMoves.OrderBy(p => grid.GetZombieCount(p)).ToList();
+								driver.destination = possibleMoves.First();
+								return;
+							}
 						}
 					}
-					/*
-					var center = zombie.wanderDestination.IsValid ? zombie.wanderDestination : zombie.Map.Center;
-					possibleMoves.Sort((p1, p2) => p1.DistanceToSquared(center).CompareTo(p2.DistanceToSquared(center)));
-					possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
-					possibleMoves = possibleMoves.OrderBy(p => grid.GetZombieCount(p)).ToList();
-					driver.destination = possibleMoves.First();
-					return;
-					*/
+
+					if (ZombieSettings.Values.wanderingStyle == WanderingStyle.Simple)
+					{
+						var center = zombie.wanderDestination.IsValid ? zombie.wanderDestination : zombie.Map.Center;
+						possibleMoves.Sort((p1, p2) => p1.DistanceToSquared(center).CompareTo(p2.DistanceToSquared(center)));
+						possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
+						possibleMoves = possibleMoves.OrderBy(p => grid.GetZombieCount(p)).ToList();
+						driver.destination = possibleMoves.First();
+						return;
+					}
 				}
 			}
 

@@ -13,6 +13,7 @@
 	<HowDoZombiesSpawn_Help>Zombies in Zombieland always come out of the ground. They dig out of soft spots so make sure that your current map has at least some soft/semi-soft ground (no ice only map for example).</HowDoZombiesSpawn_Help>
 	<SpawnHowType_AllOverTheMap_Help>If you dare you can play with zombies spawning all over the map. Recommended for the experienced player. To control safe areas, you can build floors or walls. Combine this mode with "when dark" for a challenging way to play Zombieland. And beware of your planting zones!</SpawnHowType_AllOverTheMap_Help>
 	<SpawnHowType_FromTheEdges_Help>If you prefer the more classical way of a thread from the edges of the map then this mode is for you.</SpawnHowType_FromTheEdges_Help>
+	<SmartWandering_Help>This setting controls how the zombies will move at night. "Random" makes them move like at daytime. "Simple" will make them drift towards the most interesting part of the map but they can become stuck and build groups. And "Smart" will eventually bring them to you.</SmartWandering_Help>
 
 	<!-- -->
 

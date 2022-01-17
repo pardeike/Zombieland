@@ -81,12 +81,11 @@ namespace ZombieLand
 		public List<IntVec3> explosions = new List<IntVec3>();
 		public IncidentInfo incidentInfo = new IncidentInfo();
 		public ZombiePathing zombiePathing;
-		private IEnumerator zombiePathingEnumerator;
 
 		public TickManager(Map map) : base(map)
 		{
 			zombiePathing = new ZombiePathing(map);
-			zombiePathingEnumerator = zombiePathing.Process();
+			zombiePathing.UpdateRegions();
 
 			currentColonyPoints = 100;
 			allZombiesCached = new HashSet<Zombie>();
@@ -558,7 +557,6 @@ namespace ZombieLand
 			base.MapComponentTick();
 
 			_ = taskTicker.MoveNext();
-			_ = zombiePathingEnumerator.MoveNext();
 			IncreaseZombiePopulation();
 		}
 	}

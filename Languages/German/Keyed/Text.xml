@@ -21,6 +21,10 @@
 	<HowDoZombiesSpawn>Woher kommen Zombies?</HowDoZombiesSpawn>
 	<SpawnHowType_AllOverTheMap>An Stellen mit weichem Boden</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>Von den Kanten der Karte</SpawnHowType_FromTheEdges>
+	<SmartWandering>Bewegungsstil</SmartWandering>
+	<SmartWandering_Off>Chaotisch</SmartWandering_Off>
+	<SmartWandering_Simple>Einfach</SmartWandering_Simple>
+	<SmartWandering_Smart>Smart</SmartWandering_Smart>
 
 	<WhatDoZombiesAttack>Was greifen Zombies an?</WhatDoZombiesAttack>
 	<AttackMode_Everything>Alle Kreaturen</AttackMode_Everything>

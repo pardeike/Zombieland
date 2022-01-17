@@ -1659,22 +1659,22 @@ namespace ZombieLand
 				var threatLevel = ZombieWeather.GetThreatLevel(map);
 				var realCount = Mathf.FloorToInt(maxCount * threatLevel);
 				_ = builder.AppendLine("---");
-				_ = builder.AppendLine("Center of Interest: " + tickManager.centerOfInterest.x + "/" + tickManager.centerOfInterest.z);
-				_ = builder.AppendLine("Colonist points: " + colonyPoints[0]);
-				_ = builder.AppendLine("Weapon points: " + colonyPoints[1]);
-				_ = builder.AppendLine("Defense points: " + colonyPoints[2]);
-				_ = builder.AppendLine("Max zombie count: " + maxCount);
+				_ = builder.AppendLine($"Center of Interest: {tickManager.centerOfInterest.x}/{tickManager.centerOfInterest.z}");
+				_ = builder.AppendLine($"Colonist points: {colonyPoints[0]}");
+				_ = builder.AppendLine($"Weapon points: {colonyPoints[1]}");
+				_ = builder.AppendLine($"Defense points: {colonyPoints[2]}");
+				_ = builder.AppendLine($"Max zombie count: {maxCount}");
 				if (ZombieSettings.Values.useDynamicThreatLevel)
-					_ = builder.AppendLine("Zombie threat level: " + Mathf.FloorToInt(10000 * threatLevel) / 100f + "%");
+					_ = builder.AppendLine($"Zombie threat level: {Mathf.FloorToInt(10000 * threatLevel) / 100f}%");
 				else
 					_ = builder.AppendLine("Zombie threat level off");
-				_ = builder.AppendLine("Total zombie count: " + tickManager.ZombieCount() + " out of " + realCount);
+				_ = builder.AppendLine($"Total zombie count: {tickManager.ZombieCount()} out of {realCount}");
 
 				_ = builder.AppendLine("");
 				AccessTools.GetFieldNames(typeof(IncidentParameters)).Do(name =>
 				{
 					var value = Traverse.Create(tickManager.incidentInfo.parameters).Field(name).GetValue();
-					_ = builder.AppendLine(name + ": " + value);
+					_ = builder.AppendLine($"{name}: {value}");
 				});
 				_ = builder.AppendLine("");
 
@@ -1683,22 +1683,22 @@ namespace ZombieLand
 				if (Tools.ShouldAvoidZombies())
 				{
 					var avoidGrid = map.GetComponent<TickManager>().avoidGrid;
-					_ = builder.AppendLine("Avoid cost: " + avoidGrid.GetCosts()[pos.x + pos.z * map.Size.x]);
+					_ = builder.AppendLine($"Avoid cost: {avoidGrid.GetCosts()[pos.x + pos.z * map.Size.x]}");
 				}
 
 				var info = ZombieWanderer.GetMapInfo(map);
-				_ = builder.AppendLine("Parent normal: " + info.GetParent(pos, false));
-				_ = builder.AppendLine("Parent via doors: " + info.GetParent(pos, true));
-				_ = builder.AppendLine("Parent raw: " + info.GetDirectDebug(pos));
+				_ = builder.AppendLine($"Parent normal: {info.GetParent(pos, false)}");
+				_ = builder.AppendLine($"Parent via doors: {info.GetParent(pos, true)}");
+				_ = builder.AppendLine($"Parent raw: {info.GetDirectDebug(pos)}");
 
 				var cell = map.GetGrid().GetPheromone(pos, false);
 				if (cell != null)
 				{
 					var realZombieCount = pos.GetThingList(map).OfType<Zombie>().Count();
 					var sb = new StringBuilder();
-					_ = sb.Append("Zombie grid: " + cell.zombieCount + " zombies");
+					_ = sb.Append($"Zombie grid: {cell.zombieCount} zombies");
 					if (cell.zombieCount != realZombieCount)
-						_ = sb.Append(" (real " + realZombieCount + ")");
+						_ = sb.Append($" (real {realZombieCount})");
 					_ = builder.AppendLine(sb.ToString());
 
 					var now = Tools.Ticks();
@@ -1707,20 +1707,43 @@ namespace ZombieLand
 						tdiff = tdiff.ReplaceFirst("-", "- ");
 					else
 						tdiff = "+ " + tdiff;
-					_ = builder.AppendLine("Pheromone timestamp " + cell.timestamp + " = " + now + " " + tdiff);
+					_ = builder.AppendLine($"Pheromone timestamp {cell.timestamp} = {now} {tdiff}");
 				}
 				else
-					_ = builder.AppendLine(pos.x + " " + pos.z + ": empty");
+					_ = builder.AppendLine($"{pos.x} {pos.z}: empty");
+
+				var pathing = map.GetComponent<TickManager>()?.zombiePathing;
+				if (pathing != null && pos.InBounds(map))
+				{
+					var wrong = pathing.backpointingRegions.Count != pathing.backpointingRegionsIndices.Count;
+					_ = builder.AppendLine($"Smart wandering seeds: {pathing.backpointingRegions.Count(br => br.parentIdx == -1)}");
+					_ = builder.AppendLine($"Smart wandering regions: {pathing.backpointingRegions.Count} {(wrong ? " [count wrong]" : "")}");
+					var from = IntVec3.Invalid;
+					var region = map.regionGrid.GetRegionAt_NoRebuild_InvalidAllowed(pos);
+					_ = builder.AppendLine($"Smart wandering region id: {region?.id.ToString() ?? "null"}");
+					if (region != null)
+					{
+						if (pathing.backpointingRegionsIndices.TryGetValue(region, out var idx))
+							from = pathing.backpointingRegions[idx].cell;
+						else
+							idx = -1;
+						_ = builder.AppendLine($"Smart wandering index: {idx}");
+					}
+					var destination = pathing.GetWanderDestination(pos);
+					var fromStr = from.IsValid ? from.ToString() : "null";
+					var destStr = destination.IsValid ? destination.ToString() : "null";
+					_ = builder.AppendLine($"Smart wandering {fromStr} -> {destStr}");
+				}
 
 				var gridSum = GenAdj.AdjacentCellsAndInside.Select(vec => pos + vec)
-					.Where(c => c.InBounds(map))
-					.Select(c => map.GetGrid().GetZombieCount(c))
-					.Sum();
+				.Where(c => c.InBounds(map))
+				.Select(c => map.GetGrid().GetZombieCount(c))
+				.Sum();
 				var realSum = GenAdj.AdjacentCellsAndInside.Select(vec => pos + vec)
 					.Where(c => c.InBounds(map))
 					.Select(c => map.thingGrid.ThingsListAtFast(c).OfType<Zombie>().Count())
 					.Sum();
-				_ = builder.AppendLine("Rage factor: grid=" + gridSum + ", real=" + realSum);
+				_ = builder.AppendLine($"Rage factor: grid={gridSum}, real={realSum}");
 
 				map.thingGrid.ThingsListAtFast(pos).OfType<Zombie>().Do(zombie =>
 				{
@@ -1728,12 +1751,12 @@ namespace ZombieLand
 					var gotoPos = zombie.pather.Moving ? zombie.pather.Destination.Cell : IntVec3.Invalid;
 					var wanderTo = zombie.wanderDestination;
 					var sb = new StringBuilder();
-					_ = sb.Append("Zombie " + zombie.Name.ToStringShort + " at " + currPos.x + "," + currPos.z);
-					_ = sb.Append(", " + zombie.state.ToString().ToLower());
+					_ = sb.Append($"Zombie {zombie.Name.ToStringShort} at {currPos.x},{currPos.z}");
+					_ = sb.Append($", {zombie.state.ToString().ToLower()}");
 					if (zombie.raging > 0)
-						_ = sb.Append(", raging[" + (zombie.raging - GenTicks.TicksAbs) + "] ");
-					_ = sb.Append(", going to " + gotoPos.x + "," + gotoPos.z);
-					_ = sb.Append(" (wander dest " + wanderTo.x + "," + wanderTo.z + ")");
+						_ = sb.Append($", raging[{zombie.raging - GenTicks.TicksAbs}] ");
+					_ = sb.Append($", going to {gotoPos.x},{gotoPos.z}");
+					_ = sb.Append($" (wander dest {wanderTo.x},{wanderTo.z})");
 					_ = builder.AppendLine(sb.ToString());
 				});
 			}
@@ -4753,6 +4776,18 @@ namespace ZombieLand
 				}
 
 				if (counter != 2) Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+			}
+		}
+
+		// update zombie pathing
+		//
+		[HarmonyPatch(typeof(RegionAndRoomUpdater))]
+		[HarmonyPatch(nameof(RegionAndRoomUpdater.CreateOrUpdateRooms))]
+		static class RegionAndRoomUpdater_CreateOrUpdateRooms_Patch
+		{
+			static void Postfix(Map ___map)
+			{
+				___map.GetComponent<TickManager>()?.zombiePathing?.UpdateRegions();
 			}
 		}
 	}
