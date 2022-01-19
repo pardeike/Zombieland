@@ -29,4 +29,11 @@
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
 	</JobDef>
 
+	<JobDef>
+		<defName>RopeZombie</defName>
+		<driverClass>ZombieLand.JobDriver_RopeZombie</driverClass>
+		<reportString>roping TargetA.</reportString>
+		<allowOpportunisticPrefix>false</allowOpportunisticPrefix>
+	</JobDef>
+
 </Defs>

@@ -141,6 +141,7 @@ namespace ZombieLand
 		public static readonly float MAX_WEAPON_RANGE = 30f;
 		public static readonly float MIN_ATTACKDISTANCE_SQUARED = 2.25f;
 		public static readonly float MIN_CONSCIOUSNESS = 0.25f;
+		public static readonly float MAX_ROPING_DISTANCE_SQUARED = 144;
 
 		public static readonly Material RAGE_EYE = MaterialPool.MatFrom("RageEye", ShaderDatabase.Mote);
 		public static readonly Material BOMB_LIGHT = MaterialPool.MatFrom("BombLight", ShaderDatabase.MoteGlow);
@@ -298,6 +299,12 @@ namespace ZombieLand
 			MaterialPool.MatFrom("BeingHealed", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.7f)),
 			MaterialPool.MatFrom("BeingHealed", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.9f)),
 			MaterialPool.MatFrom("BeingHealed", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 1.0f))
+		};
+		public static readonly Material[] RopeLineMat = new[]
+		{
+			MaterialPool.MatFrom(Pawn_RopeTracker.RopeTexPath, ShaderDatabase.Transparent, GenColor.FromBytes(255, 0, 0, 255)),
+			MaterialPool.MatFrom(Pawn_RopeTracker.RopeTexPath, ShaderDatabase.Transparent, GenColor.FromBytes(209, 135, 62, 255)),
+			MaterialPool.MatFrom(Pawn_RopeTracker.RopeTexPath, ShaderDatabase.Transparent, GenColor.FromBytes(99, 70, 41, 255)),
 		};
 
 		public static readonly System.Random random = new System.Random();

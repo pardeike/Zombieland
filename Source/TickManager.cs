@@ -269,9 +269,19 @@ namespace ZombieLand
 			return zombie.wasMapPawnBefore || zombie.raging > 0 ? 3000f : 1000f;
 		}
 
+		public Zombie GetRopableZombie(Vector3 clickPos)
+		{
+			return allZombiesCached.FirstOrDefault(zombie =>
+			{
+				if (zombie.consciousness > Constants.MIN_CONSCIOUSNESS)
+					return false;
+				return ((clickPos - zombie.DrawPos).MagnitudeHorizontalSquared() <= 0.8f);
+			});
+		}
+
 		public void UpdateZombieAvoider()
 		{
-			var specs = allZombiesCached.Where(zombie => zombie.isAlbino == false && zombie.Spawned && zombie.Dead == false && zombie.health.Downed == false)
+			var specs = allZombiesCached.Where(zombie => zombie.isAlbino == false && zombie.ropedBy == null && zombie.Spawned && zombie.Dead == false && zombie.health.Downed == false)
 				.Select(zombie => new ZombieCostSpecs()
 				{
 					position = zombie.Position,

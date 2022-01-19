@@ -35,6 +35,7 @@ namespace ZombieLand
 		public static JobDef Sabotage;
 		public static JobDef ExtractZombieSerum;
 		public static JobDef DoubleTap;
+		public static JobDef RopeZombie;
 		public static RecipeDef CureZombieInfection;
 		public static ThingDef Zombie;
 		public static ThingDef Corpse_Zombie;

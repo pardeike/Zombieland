@@ -67,6 +67,7 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 			colonists ??= new Dictionary<Pawn, ColonistConfig>();
+			_ = colonists.RemoveAll(pair => pair.Key == null || pair.Key.Destroyed == false && pair.Key.Spawned == false);
 			Scribe_Collections.Look(ref colonists, "colonists", LookMode.Reference, LookMode.Deep, ref colonistsKeysWorkingList, ref colonistsValuesWorkingList);
 		}
 	}

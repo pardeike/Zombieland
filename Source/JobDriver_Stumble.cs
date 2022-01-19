@@ -68,6 +68,12 @@ namespace ZombieLand
 			if (this.ShouldDie(zombie))
 				return;
 
+			if (this.Roping(zombie))
+			{
+				this.ExecuteMove(zombie, zombie.Map.GetGrid());
+				return;
+			}
+
 			if (ZombieStateHandler.DownedOrUnconsciousness(zombie))
 				return;
 

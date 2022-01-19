@@ -16,7 +16,8 @@ namespace ZombieLand
 		Every15,
 		Every30,
 		Every60,
-		Every480
+		Every480,
+		Every960
 	}
 
 	public class Verb_Shock : Verb
@@ -70,6 +71,7 @@ namespace ZombieLand
 		public IntVec3 lastGotoPosition = IntVec3.Invalid;
 		public bool isHealing = false;
 		public float consciousness = 1f;
+		public Pawn ropedBy;
 
 		// suicide bomber
 		public float bombTickingInterval = -1f;
@@ -202,6 +204,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref hasTankySuit, "tankySuit");
 			Scribe_Values.Look(ref isHealing, "isHealing");
 			Scribe_Values.Look(ref consciousness, "consciousness");
+			Scribe_References.Look(ref ropedBy, "ropedBy");
 			wasMapPawnBefore |= wasColonist;
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
@@ -309,6 +312,12 @@ namespace ZombieLand
 			var grid = map.GetGrid();
 			grid.ChangeZombieCount(lastGotoPosition, -1);
 			base.DeSpawn(mode);
+		}
+
+		public float RopingFactorTo(Pawn pawn)
+		{
+			var delta = pawn.DrawPos - DrawPos;
+			return (delta.x * delta.x + delta.z * delta.z) / Constants.MAX_ROPING_DISTANCE_SQUARED;
 		}
 
 		void DropStickyGoo()

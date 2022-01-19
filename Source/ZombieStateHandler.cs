@@ -71,6 +71,36 @@ namespace ZombieLand
 			return false;
 		}
 
+		// handle roped zombies =====================================================================
+		//
+		public static bool Roping(this JobDriver_Stumble driver, Zombie zombie)
+		{
+			var master = zombie.ropedBy;
+			if (master == null || master.Drafted == false || master.IsColonistPlayerControlled == false)
+			{
+				zombie.ropedBy = null;
+				return false;
+			}
+
+			if (zombie.RopingFactorTo(master) > 1)
+			{
+				zombie.ropedBy = null;
+				return false;
+			}
+
+			if (zombie.EveryNTick(NthTick.Every60))
+				_ = HealthUtility.FixWorstHealthCondition(zombie);
+
+			driver.destination = IntVec3.Invalid;
+			var possibleMoves = PossibleMoves(driver, zombie);
+			var destination = master.Position;
+			possibleMoves.Sort((p1, p2) => p1.DistanceToSquared(destination).CompareTo(p2.DistanceToSquared(destination)));
+			var newCell = possibleMoves.FirstOrDefault();
+			if (newCell != destination)
+				driver.destination = newCell;
+			return true;
+		}
+
 		// handle downed zombies ====================================================================
 		//
 		public static bool DownedOrUnconsciousness(Zombie zombie)
@@ -80,13 +110,22 @@ namespace ZombieLand
 				zombie.consciousness = zombie.health.capacities.GetLevel(PawnCapacityDefOf.Consciousness);
 				if (zombie.consciousness <= Constants.MIN_CONSCIOUSNESS)
 				{
-					if (ZombieSettings.Values.doubleTapRequired && zombie.EveryNTick(NthTick.Every480))
+					if (zombie.EveryNTick(NthTick.Every960))
 					{
-						var bleeding = HealthUtility.FindMostBleedingHediff(zombie);
-						if (bleeding != null)
-							zombie.health.RemoveHediff(bleeding);
+						if (ZombieSettings.Values.doubleTapRequired && ZombieSettings.Values.zombiesDieVeryEasily == false)
+						{
+							var injury = zombie.health.hediffSet.GetInjuriesTendable().SafeRandomElement();
+							if (injury != null)
+								zombie.health.RemoveHediff(injury);
+							else
+							{
+								var bleeding = zombie.health.hediffSet.hediffs.Where(hediff => hediff.def == HediffDefOf.BloodLoss).SafeRandomElement();
+								if (bleeding != null)
+									zombie.health.RemoveHediff(bleeding);
+							}
+						}
 					}
-					return true;
+					return zombie.ropedBy == null;
 				}
 			}
 
@@ -104,7 +143,11 @@ namespace ZombieLand
 				return false;
 
 			if ((wasHealing == false && zombie.isHealing) || zombie.EveryNTick(NthTick.Every480))
-				_ = HealthUtility.FixWorstHealthCondition(zombie);
+			{
+				var injury = zombie.health.hediffSet.hediffs.Where(hediff => hediff is Hediff_Injury injury && injury.IsPermanent() == false).SafeRandomElement();
+				if (injury != null)
+					_ = HealthUtility.Cure(injury);
+			}
 			return false;
 		}
 

@@ -143,6 +143,7 @@
 	<CopyButton>Copie</CopyButton>
 	<PasteSettings>Remplacer les paramètres depuis le presse-papiers</PasteSettings>
 	<PasteButton>Coller</PasteButton>
+	<RopeZombie>Capturer ce zombie</RopeZombie>
 
 	<ColonistsBittenByZombie>Colon mordu par un zombie</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Ce colon a été mordu par un zombie. A ce stade, on ne sait pas s’il va développer l’infection. Surveillez les blessures car les infections prennent du temps à se développer</ColonistsBittenByZombieDesc>

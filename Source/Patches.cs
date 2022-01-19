@@ -419,7 +419,7 @@ namespace ZombieLand
 					return;
 				if (pawn is Zombie)
 					return;
-				// jobs != null test is a workaround for a NRE in RW triggered by carried slaves being dropped 
+				// jobs != null test is a workaround for a NRE in RW triggered by carried slaves being dropped
 				if (pawn.jobs != null && pawn.IsColonist)
 					return;
 				__result = Tools.IsHostileToZombies(pawn);
@@ -433,19 +433,19 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(AttackTargetFinder.GetAvailableShootingTargetsByScore))]
 		static class AttackTargetFinder_GetAvailableShootingTargetsByScore_Patch
 		{
-			static void Prefix(ref List<IAttackTarget> rawTargets, IAttackTargetSearcher searcher, Verb verb)
+			static void Prefix(List<IAttackTarget> rawTargets, IAttackTargetSearcher searcher, Verb verb)
 			{
 				if (searcher == null || verb == null)
 					return;
 				if (verb.CanHarmElectricZombies())
 					return;
-				rawTargets = rawTargets.Where(t => !(t.Thing is Zombie zombie) || zombie.IsActiveElectric == false || zombie.Downed).ToList();
+				_ = rawTargets.RemoveAll(t => t.Thing is Zombie zombie && zombie.IsActiveElectric && zombie.Downed == false);
 			}
 
 			static void Postfix(List<Pair<IAttackTarget, float>> __result)
 			{
 				if (__result.Any(pair => pair.first is Zombie zombie && zombie.health.Downed == false))
-					_ = __result.RemoveAll(pair => pair.first is Zombie zombie && zombie.health.Downed);
+					_ = __result.RemoveAll(pair => pair.first is Zombie zombie && (zombie.health.Downed || zombie.ropedBy != null));
 			}
 		}
 		[HarmonyPatch(typeof(AttackTargetFinder))]
@@ -462,7 +462,7 @@ namespace ZombieLand
 
 				var oldValidator = validator;
 
-				// make ranged weapons (i.e. turrets) ignore electrical zombies
+				// make ranged weapons (i.e. turrets) ignore electrical or roped zombies
 				if (!(searcher is Pawn attacker))
 				{
 					if (verb.CanHarmElectricZombies())
@@ -470,7 +470,7 @@ namespace ZombieLand
 
 					validator = (Thing t) =>
 					{
-						if (t is Zombie zombie && zombie.IsActiveElectric)
+						if (t is Zombie zombie && (zombie.IsActiveElectric || zombie.ropedBy != null))
 							return false;
 						return oldValidator(t);
 					};
@@ -478,9 +478,22 @@ namespace ZombieLand
 					return;
 				}
 
-				// attacker is colonist or zombie? use default
-				if (attacker.IsColonist || attacker is Zombie)
+				// attacker is zombie? use default
+				if (attacker is Zombie)
 					return;
+
+				// attacker is colonist?
+				if (attacker.IsColonist)
+				{
+					validator = (Thing t) =>
+					{
+						if (t is Zombie zombie && zombie.ropedBy == attacker)
+							return false;
+						return oldValidator(t);
+					};
+
+					return;
+				}
 
 				// attacker is animal
 				if (attacker.RaceProps.Animal)
@@ -586,7 +599,7 @@ namespace ZombieLand
 								__result = tickManager.allZombiesCached
 									.Where(zombie =>
 									{
-										if (zombie.state == ZombieState.Emerging) return false;
+										if (zombie.state == ZombieState.Emerging || zombie.ropedBy != null) return false;
 										if (canHarmElectricZombies == false && zombie.IsActiveElectric && zombie.Downed == false) return false;
 										var d = pos.DistanceToSquared(zombie.Position);
 										var dn = zombie.health.Downed;
@@ -2637,6 +2650,26 @@ namespace ZombieLand
 					var q = Quaternion.AngleAxis(f2 * 360f, Vector3.up);
 					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat, center, q, 1.5f, 1.5f);
 				}
+
+				if (zombie.consciousness <= Constants.MIN_CONSCIOUSNESS && zombie.GetPosture() == PawnPosture.Standing)
+				{
+					var confLoc = drawLoc + new Vector3(0, moteAltitute / 2, 0.75f);
+					if (zombie.Rotation == Rot4.West) confLoc.x -= 0.09f;
+					if (zombie.Rotation == Rot4.East) confLoc.x += 0.09f;
+
+					var t = GenTicks.TicksAbs;
+					var n = t % 12;
+					if (n > 6) n = 12 - n;
+					GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.CONFUSED[n], confLoc, Quaternion.Euler(0, t, 0), 1, 1);
+				}
+
+				if (zombie.ropedBy != null && zombie.Spawned && zombie.Dead == false)
+				{
+					var f = zombie.RopingFactorTo(zombie.ropedBy);
+					var n = f <= 0.5f ? 2 : (f <= 0.8f ? 1 : 0);
+					var mat = Constants.RopeLineMat[n];
+					GenDraw.DrawLineBetween(zombie.DrawPos.Yto0(), zombie.ropedBy.DrawPos.Yto0(), AltitudeLayer.PawnRope.AltitudeFor(), mat, 0.2f);
+				}
 			}
 
 			// we don't use a postfix so that someone that patches and skips RenderPawnAt will also skip RenderExtras
@@ -2649,18 +2682,6 @@ namespace ZombieLand
 
 				Verse.TickManager tm = null;
 				var orientation = zombie.Rotation;
-
-				if (zombie.consciousness <= Constants.MIN_CONSCIOUSNESS)
-				{
-					var confLoc = drawLoc + new Vector3(0, moteAltitute, 0.75f);
-					if (orientation == Rot4.West) confLoc.x -= 0.09f;
-					if (orientation == Rot4.East) confLoc.x += 0.09f;
-
-					var t = GenTicks.TicksAbs;
-					var n = t % 12;
-					if (n > 6) n = 12 - n;
-					GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.CONFUSED[n], confLoc, Quaternion.Euler(0, t, 0), 1f, 1f);
-				}
 
 				if (zombie.IsSuicideBomber)
 				{
@@ -3212,18 +3233,17 @@ namespace ZombieLand
 					var factor = 1f;
 					var bodyType = zombie.story.bodyType;
 					if (bodyType == BodyTypeDefOf.Thin)
-						factor = 0.75f;
+						factor = 0.8f;
 					else if (bodyType == BodyTypeDefOf.Hulk)
-						factor = 0.2f;
+						factor = 0.8f;
 					else if (bodyType == BodyTypeDefOf.Fat)
-						factor = 0.1f;
+						factor = 0.7f;
 
 					__result = speed * factor * multiplier * albinoSpeed;
 					if (zombie.wasMapPawnBefore)
 						__result *= 2f;
 					if (zombie.isDarkSlimer)
 						__result /= 1.5f;
-
 					if (zombie.isHealer)
 						__result *= 0.9f;
 
@@ -4188,6 +4208,19 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to make zombies always awake
+		//
+		[HarmonyPatch(typeof(PawnCapacitiesHandler))]
+		[HarmonyPatch(nameof(PawnCapacitiesHandler.CanBeAwake), MethodType.Getter)]
+		static class PawnCapacitiesHandler_CanBeAwake_Patch
+		{
+			static void Postfix(Pawn ___pawn, ref bool __result)
+			{
+				if (___pawn is Zombie)
+					__result = true;
+			}
+		}
+
 		// patch to handle targets downed so that we update our grid
 		//
 		[HarmonyPatch(typeof(Pawn_HealthTracker))]
@@ -4556,10 +4589,17 @@ namespace ZombieLand
 
 		// patches so that zombies have no records
 		//
-		[HarmonyPatch(typeof(Pawn_RecordsTracker))]
-		[HarmonyPatch(nameof(Pawn_RecordsTracker.AddTo))]
-		static class Pawn_RecordsTracker_AddTo_Patch
+		[HarmonyPatch]
+		static class Pawn_RecordsTracker_Increment_Patch
 		{
+			static IEnumerable<MethodBase> TargetMethods()
+			{
+				var type = typeof(Pawn_RecordsTracker);
+				yield return AccessTools.Method(type, nameof(Pawn_RecordsTracker.AddTo));
+				yield return AccessTools.Method(type, nameof(Pawn_RecordsTracker.RecordsTickUpdate));
+				yield return AccessTools.Method(type, nameof(Pawn_RecordsTracker.Increment));
+			}
+
 			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
 			{
 				var conditions = Tools.NotZombieInstructions(generator, method);
@@ -4568,14 +4608,31 @@ namespace ZombieLand
 			}
 		}
 		[HarmonyPatch(typeof(Pawn_RecordsTracker))]
-		[HarmonyPatch(nameof(Pawn_RecordsTracker.Increment))]
-		static class Pawn_RecordsTracker_Increment_Patch
+		[HarmonyPatch(nameof(Pawn_RecordsTracker.GetValue))]
+		static class Pawn_RecordsTracker_GetValue_Patch
 		{
-			static IEnumerable<CodeInstruction> Transpiler(ILGenerator generator, MethodBase method, IEnumerable<CodeInstruction> instructions)
+			static bool Prefix(Pawn ___pawn, ref float __result)
 			{
-				var conditions = Tools.NotZombieInstructions(generator, method);
-				var transpiler = Tools.GenerateReplacementCallTranspiler(conditions, method);
-				return transpiler(generator, instructions);
+				if (___pawn is Zombie)
+				{
+					__result = 0;
+					return false;
+				}
+				return true;
+			}
+		}
+		[HarmonyPatch(typeof(Pawn_RecordsTracker))]
+		[HarmonyPatch(nameof(Pawn_RecordsTracker.GetAsInt))]
+		static class Pawn_RecordsTracker_GetAsInt_Patch
+		{
+			static bool Prefix(Pawn ___pawn, ref int __result)
+			{
+				if (___pawn is Zombie)
+				{
+					__result = 0;
+					return false;
+				}
+				return true;
 			}
 		}
 
@@ -4831,6 +4888,23 @@ namespace ZombieLand
 			static void Postfix(Map ___map)
 			{
 				___map.GetComponent<TickManager>()?.zombiePathing?.UpdateRegions();
+			}
+		}
+
+		// adding roping job
+		//
+		[HarmonyPatch(typeof(FloatMenuMakerMap))]
+		[HarmonyPatch(nameof(FloatMenuMakerMap.AddDraftedOrders))]
+		static class FloatMenuMakerMap_AddHumanlikeOrders_Patch
+		{
+			static void Postfix(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts)
+			{
+				var ropableZombie = pawn.Map.GetComponent<TickManager>().GetRopableZombie(clickPos);
+				if (ropableZombie != null)
+				{
+					void job() => pawn.jobs.StartJob(new Job(CustomDefs.RopeZombie, ropableZombie), JobCondition.InterruptForced, null, true);
+					opts.Add(new FloatMenuOption($"RopeZombie".Translate(), job));
+				}
 			}
 		}
 	}

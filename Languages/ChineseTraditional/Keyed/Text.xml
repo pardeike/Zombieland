@@ -143,6 +143,7 @@
 	<CopyButton>複製</CopyButton>
 	<PasteSettings>從剪貼板替換設置</PasteSettings>
 	<PasteButton>插入設置</PasteButton>
+	<RopeZombie>捕捉這個殭屍</RopeZombie>
 
 	<ColonistsBittenByZombie>殖民者被殭屍咬傷</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>殖民者被殭屍咬傷了,目前尚不清楚他們是否被感染：\n\n{0}\n密切關注他們的傷口，因為感染需要一段時間後才能被發現。</ColonistsBittenByZombieDesc>

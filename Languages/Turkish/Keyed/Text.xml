@@ -143,6 +143,7 @@
 	<CopyButton>Kopyala</CopyButton>
 	<PasteSettings>Panodan ayarları ayarla</PasteSettings>
 	<PasteButton>Yapıştırmak</PasteButton>
+	<RopeZombie>Bu zombiyi yakala</RopeZombie>
 
 	<ColonistsBittenByZombie>Kolonist zombi tarafından ısırıldı</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Bu kolonistler bir zombi tarafından ısırıldı. Bu noktada, bir enfeksiyon geliştirmeleri net değil:\n\n{0}\nYaralarını yakından izleyin çünkü enfeksiyonların gelişmesi biraz zaman alır.</ColonistsBittenByZombieDesc>

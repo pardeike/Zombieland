@@ -124,3 +124,10 @@ MAX_WEAPON_RANGE = 30.0
 // Minimum distance between a zombie and a pawn for allowing the zombie to
 // attack the pawn. This value is the squared distance! Default is 1.5
 MIN_ATTACKDISTANCE_SQUARED = 2.25
+
+// If consciousness falls below this value, zombies get confused and incapable
+// of action or movement
+MIN_CONSCIOUSNESS = 0.25
+
+// The maximum distance between colonist and zombie while roping
+MAX_ROPING_DISTANCE_SQUARED = 144

@@ -426,6 +426,7 @@ namespace ZombieLand
 			var idx = zombie.ageTracker.CurLifeStageIndex; // trigger calculations
 			yield return null;
 			zombie.needs.SetInitialLevels();
+			zombie.records.records.values.Clear();
 			yield return null;
 			zombie.needs.mood = new Need_Mood(zombie);
 			yield return null;

@@ -143,6 +143,7 @@
 	<CopyButton>Копировать</CopyButton>
 	<PasteSettings>Заменить настройки из буфера обмена</PasteSettings>
 	<PasteButton>Вставить</PasteButton>
+	<RopeZombie>Захват зомби</RopeZombie>
 
 	<ColonistsBittenByZombie>Колонист, укушенный зомби</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Эти колонисты были укушены зомби. На данный момент неясно, разовьется ли у них инфекция:\n\n{0}\nВнимательно следите за их ранами, потому что инфекциям нужно время, чтобы проявиться.</ColonistsBittenByZombieDesc>
