@@ -145,6 +145,10 @@
 	<PasteButton>Вставить</PasteButton>
 	<RopeZombie>Захват зомби</RopeZombie>
 
+	<Activate>Активировать</Activate>
+	<ActivateDescription>Активирует устройство. Каждое зомби в комнате теряет сознание.</ActivateDescription>
+	<WrongPlacementZombieShocker>Устройство не может быть размещено здесь.</WrongPlacementZombieShocker>
+
 	<ColonistsBittenByZombie>Колонист, укушенный зомби</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Эти колонисты были укушены зомби. На данный момент неясно, разовьется ли у них инфекция:\n\n{0}\nВнимательно следите за их ранами, потому что инфекциям нужно время, чтобы проявиться.</ColonistsBittenByZombieDesc>
 

@@ -290,7 +290,7 @@ namespace ZombieLand
 		public void Unrope()
 		{
 			ropedBy = null;
-			paralyzedUntil = GenTicks.TicksAbs + GenDate.TicksPerHour / 4;
+			paralyzedUntil = GenTicks.TicksAbs + GenDate.TicksPerHour / 2;
 		}
 
 		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)
@@ -461,9 +461,14 @@ namespace ZombieLand
 			var barRect = new Rect(vec - new Vector2(width / 2, 0), new Vector2(width, width / 5));
 			Widgets.DrawBoxSolid(barRect, Constants.healthBarBG);
 			var barInnerRect = barRect;
-			var percent = health.summaryHealth.SummaryHealthPercent;
-			barInnerRect.width *= percent;
-			Widgets.DrawBoxSolid(barInnerRect, new Color(1 - percent, 0, percent));
+			var percentHealth = health.summaryHealth.SummaryHealthPercent;
+			barInnerRect.width *= percentHealth;
+			Widgets.DrawBoxSolid(barInnerRect, new Color(1 - percentHealth, 0, percentHealth));
+			var barInnerLowerRect = barRect;
+			var percentConsciousness = health.capacities.GetLevel(PawnCapacityDefOf.Consciousness);
+			barInnerLowerRect.yMin += barInnerLowerRect.height * 4 / 5;
+			barInnerLowerRect.width *= percentConsciousness;
+			Widgets.DrawBoxSolid(barInnerLowerRect, Color.white);
 			Widgets.DrawBox(barRect, 1, Constants.healthBarFrame);
 
 			int num = HealthUtility.TicksUntilDeathDueToBloodLoss(this);

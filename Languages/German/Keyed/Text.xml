@@ -145,6 +145,10 @@
 	<PasteButton>Einsetzen</PasteButton>
 	<RopeZombie>Fang diesen Zombie</RopeZombie>
 
+	<Activate>Aktivieren</Activate>
+	<ActivateDescription>Aktiviert das Gerät. Zombies im Raum verlieren das Bewusstsein.</ActivateDescription>
+	<WrongPlacementZombieShocker>Das Gerät kann hier nicht platziert werden.</WrongPlacementZombieShocker>
+
 	<ColonistsBittenByZombie>Kolonist wurde von einem Zombie gebissen</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Folgende Kolonisten wurden von einem Zombie gebissen. Noch ist unklar ob sich daraus eine Infektion entwickelt:\n\n{0}\nBeobachten Sie die Wunden um herauszufinden ob eine Infektion stattfinden wird.</ColonistsBittenByZombieDesc>
 

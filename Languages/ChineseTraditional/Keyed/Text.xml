@@ -145,6 +145,10 @@
 	<PasteButton>插入設置</PasteButton>
 	<RopeZombie>捕捉這個殭屍</RopeZombie>
 
+	<Activate>啟用</Activate>
+	<ActivateDescription>激活設備。房間裡的殭屍失去了意識。</ActivateDescription>
+	<WrongPlacementZombieShocker>設備不能放在這裡。</WrongPlacementZombieShocker>
+
 	<ColonistsBittenByZombie>殖民者被殭屍咬傷</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>殖民者被殭屍咬傷了,目前尚不清楚他們是否被感染：\n\n{0}\n密切關注他們的傷口，因為感染需要一段時間後才能被發現。</ColonistsBittenByZombieDesc>
 

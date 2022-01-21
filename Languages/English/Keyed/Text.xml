@@ -145,6 +145,10 @@
 	<PasteButton>Paste</PasteButton>
 	<RopeZombie>Capture this zombie</RopeZombie>
 
+	<Activate>Activate</Activate>
+	<ActivateDescription>Activates the device. Zombies in the room loose consciousness.</ActivateDescription>
+	<WrongPlacementZombieShocker>The device cannot be placed here.</WrongPlacementZombieShocker>
+
 	<ColonistsBittenByZombie>Colonist bitten by zombie</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>These colonists have been bitten by a zombie. At this point, it is unclear if they develop an infection:\n\n{0}\nMonitor their wounds closely because infections take some time to develop.</ColonistsBittenByZombieDesc>
 

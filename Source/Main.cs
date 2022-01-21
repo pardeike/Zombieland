@@ -41,6 +41,7 @@ namespace ZombieLand
 		public static ThingDef Corpse_Zombie;
 		public static ThingDef TarSlime;
 		public static ThingDef TarSmoke;
+		public static ThingDef ZombieShocker;
 		public static HediffDef ZombieInfection;
 		public static LetterDef ColonistTurnedZombie;
 		public static LetterDef OtherTurnedZombie;
