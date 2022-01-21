@@ -2651,7 +2651,8 @@ namespace ZombieLand
 					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat, center, q, 1.5f, 1.5f);
 				}
 
-				if (zombie.consciousness <= Constants.MIN_CONSCIOUSNESS && zombie.GetPosture() == PawnPosture.Standing)
+				var lowConsciousness = zombie.consciousness <= Constants.MIN_CONSCIOUSNESS;
+				if ((zombie.paralyzedUntil > 0 || lowConsciousness) && zombie.GetPosture() == PawnPosture.Standing)
 				{
 					var confLoc = drawLoc + new Vector3(0, moteAltitute / 2, 0.75f);
 					if (zombie.Rotation == Rot4.West) confLoc.x -= 0.09f;
@@ -2660,7 +2661,11 @@ namespace ZombieLand
 					var t = GenTicks.TicksAbs;
 					var n = t % 12;
 					if (n > 6) n = 12 - n;
-					GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.CONFUSED[n], confLoc, Quaternion.Euler(0, t, 0), 1, 1);
+					var scale = 1f;
+					var ticks = GenTicks.TicksAbs;
+					if (zombie.paralyzedUntil > ticks)
+						scale = Mathf.Clamp((zombie.paralyzedUntil - ticks) / (float)(GenDate.TicksPerHour / 4), 0, 1);
+					GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.CONFUSED[n], confLoc, Quaternion.Euler(0, t, 0), scale, scale);
 				}
 
 				if (zombie.ropedBy != null && zombie.Spawned && zombie.Dead == false)
@@ -4086,6 +4091,16 @@ namespace ZombieLand
 				return !(__instance is ZombieCorpse);
 			}
 		}
+		[HarmonyPatch(typeof(Corpse))]
+		[HarmonyPatch(nameof(Corpse.GiveObservedHistoryEvent))]
+		static class Corpse_GiveObservedHistoryEvent_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Corpse __instance)
+			{
+				return !(__instance is ZombieCorpse);
+			}
+		}
 
 		// patch for disallowing thoughts on zombies
 		//
@@ -4275,6 +4290,25 @@ namespace ZombieLand
 			{
 				var grid = __instance.GetGrid();
 				grid.IterateCellsQuick(cell => cell.zombieCount = 0);
+			}
+		}
+
+		// patches to clean up after us
+		//
+		[HarmonyPatch(typeof(Root))]
+		[HarmonyPatch(nameof(Root.Shutdown))]
+		static class Root_Shutdown_Patch
+		{
+			static void Prefix()
+			{
+				Tools.avoider.running = false;
+
+				// var maps = Find.Maps;
+				// if (maps != null)
+				// 	foreach (var map in maps)
+				// 		map?.GetComponent<TickManager>()?.MapRemoved();
+				// 
+				// MemoryUtility.ClearAllMapsAndWorld();
 			}
 		}
 

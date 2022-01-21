@@ -71,6 +71,7 @@ namespace ZombieLand
 		public IntVec3 lastGotoPosition = IntVec3.Invalid;
 		public bool isHealing = false;
 		public float consciousness = 1f;
+		public int paralyzedUntil = 0;
 		public Pawn ropedBy;
 
 		// suicide bomber
@@ -204,6 +205,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref hasTankySuit, "tankySuit");
 			Scribe_Values.Look(ref isHealing, "isHealing");
 			Scribe_Values.Look(ref consciousness, "consciousness");
+			Scribe_Values.Look(ref paralyzedUntil, "paralyzedUntil");
 			Scribe_References.Look(ref ropedBy, "ropedBy");
 			wasMapPawnBefore |= wasColonist;
 
@@ -218,6 +220,9 @@ namespace ZombieLand
 
 				isOnFire = this.HasAttachment(ThingDefOf.Fire);
 				checkSmashable = true;
+
+				if (consciousness == 0)
+					consciousness = 1;
 			}
 
 			if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)
@@ -280,6 +285,12 @@ namespace ZombieLand
 			var naked = Drawer.renderer.graphics.nakedGraphic as VariableGraphic;
 			naked?.Dispose();
 			Drawer.renderer.graphics.nakedGraphic = null;
+		}
+
+		public void Unrope()
+		{
+			ropedBy = null;
+			paralyzedUntil = GenTicks.TicksAbs + GenDate.TicksPerHour / 4;
 		}
 
 		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)

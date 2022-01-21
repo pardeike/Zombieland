@@ -153,7 +153,12 @@ namespace ZombieLand
 		public override void MapRemoved()
 		{
 			base.MapRemoved();
+			Cleanup();
+		}
 
+		public void Cleanup()
+		{
+			StopAmbientSound();
 			zombiePathing.running = false;
 			zombiePathing = null;
 		}
@@ -281,7 +286,14 @@ namespace ZombieLand
 
 		public void UpdateZombieAvoider()
 		{
-			var specs = allZombiesCached.Where(zombie => zombie.isAlbino == false && zombie.ropedBy == null && zombie.Spawned && zombie.Dead == false && zombie.health.Downed == false)
+			var specs = allZombiesCached.Where(zombie =>
+					zombie.isAlbino == false &&
+					zombie.ropedBy == null &&
+					zombie.paralyzedUntil == 0 &&
+					zombie.Spawned &&
+					zombie.Dead == false &&
+					zombie.health.Downed == false
+				)
 				.Select(zombie => new ZombieCostSpecs()
 				{
 					position = zombie.Position,
@@ -488,6 +500,12 @@ namespace ZombieLand
 			electricSustainer.info.volumeFactor = 1f - Math.Min(1f, nearestElectricalZombieDistance / 36f);
 		}
 
+		public void StopAmbientSound()
+		{
+			zombiesAmbientSound?.End();
+			zombiesAmbientSound = null;
+		}
+
 		IEnumerator TickTasks()
 		{
 			if (runZombiesForNewIncident && map != null)
@@ -542,10 +560,8 @@ namespace ZombieLand
 					zombiesAmbientSound.info.volumeFactor = zombiesAmbientSoundVolume;
 				}
 				else
-				{
-					zombiesAmbientSound?.End();
-					zombiesAmbientSound = null;
-				}
+					StopAmbientSound();
+
 				yield return null;
 				if (colonistsConverter.Count > 0 && map != null)
 				{

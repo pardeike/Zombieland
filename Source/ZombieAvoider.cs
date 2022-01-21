@@ -73,6 +73,7 @@ namespace ZombieLand
 		readonly Dictionary<Map, ConcurrentQueue<AvoidGrid>> resultQueues;
 		readonly Dictionary<Map, AvoidGrid> grids;
 		readonly Thread workerThread;
+		public bool running;
 
 		ConcurrentQueue<AvoidGrid> QueueForMap(Map map)
 		{
@@ -90,6 +91,7 @@ namespace ZombieLand
 			resultQueues = new Dictionary<Map, ConcurrentQueue<AvoidGrid>>();
 			grids = new Dictionary<Map, AvoidGrid>();
 
+			running = true;
 			workerThread = new Thread(() =>
 			{
 			EndlessLoop:
@@ -108,7 +110,8 @@ namespace ZombieLand
 					Thread.Sleep(500);
 				}
 
-				goto EndlessLoop;
+				if (running)
+					goto EndlessLoop;
 			})
 			{
 				Priority = ThreadPriority.Lowest

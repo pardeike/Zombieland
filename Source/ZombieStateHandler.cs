@@ -76,15 +76,18 @@ namespace ZombieLand
 		public static bool Roping(this JobDriver_Stumble driver, Zombie zombie)
 		{
 			var master = zombie.ropedBy;
-			if (master == null || master.Drafted == false || master.IsColonistPlayerControlled == false)
+			if (master == null)
+				return false;
+
+			if (master.Drafted == false || master.IsColonistPlayerControlled == false)
 			{
-				zombie.ropedBy = null;
+				zombie.Unrope();
 				return false;
 			}
 
 			if (zombie.RopingFactorTo(master) > 1)
 			{
-				zombie.ropedBy = null;
+				zombie.Unrope();
 				return false;
 			}
 
@@ -105,6 +108,13 @@ namespace ZombieLand
 		//
 		public static bool DownedOrUnconsciousness(Zombie zombie)
 		{
+			if (zombie.paralyzedUntil > 0)
+			{
+				if (GenTicks.TicksAbs < zombie.paralyzedUntil)
+					return true;
+				zombie.paralyzedUntil = 0;
+			}
+
 			if (zombie.IsTanky == false)
 			{
 				zombie.consciousness = zombie.health.capacities.GetLevel(PawnCapacityDefOf.Consciousness);
