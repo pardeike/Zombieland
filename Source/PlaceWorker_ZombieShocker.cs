@@ -24,6 +24,9 @@ namespace ZombieLand
 		{
 			var msg = "WrongPlacementZombieShocker".Translate();
 
+			if (center.GetRoom(map) != null)
+				return msg;
+
 			var cell = center + IntVec3.North.RotatedBy(rot);
 			var room = cell.GetRoom(map);
 			if (room == null || room.IsHuge || room.Fogged || room.IsDoorway)

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<EffecterDef>
+		<defName>ZombieShockerRoom</defName>
+		<children>
+			<li>
+				<subEffecterClass>ZombieLand.SubEffecter_ZombieShocker</subEffecterClass>
+			</li>
+		</children>
+	</EffecterDef>
+
+</Defs>

@@ -383,6 +383,58 @@
 		</recipeMaker>
 	</ThingDef>
 
+	<ThingDef ParentName="MoteBase">
+		<defName>ZombieZapA</defName>
+		<graphicData>
+			<texPath>Electrifier/Arc0</texPath>
+		</graphicData>
+		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<mote>
+			<fadeInTime>0</fadeInTime>
+			<solidTime>0.1</solidTime>
+			<fadeOutTime>0.4</fadeOutTime>
+		</mote>
+	</ThingDef>
+
+	<ThingDef ParentName="MoteBase">
+		<defName>ZombieZapB</defName>
+		<graphicData>
+			<texPath>Electrifier/Arc1</texPath>
+		</graphicData>
+		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<mote>
+			<fadeInTime>0</fadeInTime>
+			<solidTime>0.1</solidTime>
+			<fadeOutTime>0.4</fadeOutTime>
+		</mote>
+	</ThingDef>
+
+	<ThingDef ParentName="MoteBase">
+		<defName>ZombieZapC</defName>
+		<graphicData>
+			<texPath>Electrifier/Arc2</texPath>
+		</graphicData>
+		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<mote>
+			<fadeInTime>0</fadeInTime>
+			<solidTime>0.1</solidTime>
+			<fadeOutTime>0.4</fadeOutTime>
+		</mote>
+	</ThingDef>
+
+	<ThingDef ParentName="MoteBase">
+		<defName>ZombieZapD</defName>
+		<graphicData>
+			<texPath>Electrifier/Arc3</texPath>
+		</graphicData>
+		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<mote>
+			<fadeInTime>0</fadeInTime>
+			<solidTime>0.1</solidTime>
+			<fadeOutTime>0.4</fadeOutTime>
+		</mote>
+	</ThingDef>
+
 	<ThingDef ParentName="BuildingBase">
 		<defName>ZombieShocker</defName>
 		<label>zombie shocker</label>
@@ -412,7 +464,7 @@
 			<MaxHitPoints>100</MaxHitPoints>
 			<Flammability>0.7</Flammability>
 		</statBases>
-		<tickerType>Rare</tickerType>
+		<tickerType>Normal</tickerType>
 		<costList>
 			<Steel>100</Steel>
 			<ComponentIndustrial>2</ComponentIndustrial>
@@ -426,11 +478,11 @@
 			<canPlaceOverWall>true</canPlaceOverWall>
 		</building>
 		<comps>
+			<li Class="ZombieLand.CompProperties_Activatable"/>
 			<li Class="CompProperties_Power">
 				<compClass>CompPowerTrader</compClass>
 				<basePowerConsumption>50</basePowerConsumption>
 			</li>
-			<li Class="ZombieLand.CompProperties_Activatable"/>
 			<li Class="CompProperties_Breakdownable"/>
 		</comps>
 		<designationCategory>Security</designationCategory>
