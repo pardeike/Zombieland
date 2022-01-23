@@ -181,4 +181,10 @@
 	<AutoAvoidZombiesEnabledDescription>Automatisches Vermeiden von Zombies, außer wenn im Kampfmodus (stehend)</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Ignoriere Zombies. Alle Aktionen müssen manuell kontrolliert werden</AutoAvoidZombiesDisabledDescription>
 
+	<ZapZombies>Starte den Zombie-Schocker</ZapZombies>
+	<ZombieShockerWrongPlacement>Das Gerät kann hier nicht platziert werden</ZombieShockerWrongPlacement>
+	<ZombieShockerHasNoBattery>Das Gerät hat keine angeschlossene Batterie</ZombieShockerHasNoBattery>
+	<ZombieShockerHasNoRoom>Das Gerät verfügt über keinen gültigen Raum</ZombieShockerHasNoRoom>
+	<ZombieShockerLowBatteryState>Das Gerät hat die angeschlossenen Batterien erschöpft</ZombieShockerLowBatteryState>
+
 </LanguageData>

@@ -181,4 +181,10 @@
 	<AutoAvoidZombiesEnabledDescription>Évite automatiquement les zombies, sauf lorsque la personne est mobilisée et debout</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Ignorer les zombies. Vous devez contrôler manuellement toutes les actions</AutoAvoidZombiesDisabledDescription>
 
+	<ZapZombies>Démarrer Zombie Shocker</ZapZombies>
+	<ZombieShockerWrongPlacement>L'appareil ne peut pas être placé ici</ZombieShockerWrongPlacement>
+	<ZombieShockerHasNoBattery>L'appareil n'a pas de batterie fixée</ZombieShockerHasNoBattery>
+	<ZombieShockerHasNoRoom>L'appareil n'a aucune pièce valide attachée</ZombieShockerHasNoRoom>
+	<ZombieShockerLowBatteryState>L'appareil a appauvri les piles attachées</ZombieShockerLowBatteryState>
+
 </LanguageData>

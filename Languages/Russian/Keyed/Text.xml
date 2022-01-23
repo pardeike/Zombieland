@@ -181,4 +181,10 @@
 	<AutoAvoidZombiesEnabledDescription>Автоматически избегайте зомби, кроме случаев, когда колонист мобилизован и стоит</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Игнорировать зомби. Вам нужно вручную контролировать все действия</AutoAvoidZombiesDisabledDescription>
 
+	<ZapZombies>Начать зомби шокер</ZapZombies>
+	<ZombieShockerWrongPlacement>Устройство не может быть размещено здесь</ZombieShockerWrongPlacement>
+	<ZombieShockerHasNoBattery>Устройство не содержит батареи</ZombieShockerHasNoBattery>
+	<ZombieShockerHasNoRoom>Устройство не имеет действительной комнаты</ZombieShockerHasNoRoom>
+	<ZombieShockerLowBatteryState>Устройство истощало прикрепленные батареи</ZombieShockerLowBatteryState>
+
 </LanguageData>

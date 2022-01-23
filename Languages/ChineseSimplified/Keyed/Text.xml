@@ -181,4 +181,10 @@
 	<AutoAvoidZombiesEnabledDescription>自动避免僵尸，除非殖民者被起草和站立</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>忽略僵尸。 您需要手动控制所有操作</AutoAvoidZombiesDisabledDescription>
 
+	<ZapZombies>开始僵尸震惊</ZapZombies>
+	<ZombieShockerWrongPlacement>设备不能放在这里</ZombieShockerWrongPlacement>
+	<ZombieShockerHasNoBattery>该装置没有连接电池</ZombieShockerHasNoBattery>
+	<ZombieShockerHasNoRoom>该设备没有附带有效的房间</ZombieShockerHasNoRoom>
+	<ZombieShockerLowBatteryState>该设备耗尽了附加的电池</ZombieShockerLowBatteryState>
+
 </LanguageData>

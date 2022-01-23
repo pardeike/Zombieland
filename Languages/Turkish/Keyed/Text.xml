@@ -181,4 +181,10 @@
 	<AutoAvoidZombiesEnabledDescription>Koloninin hazırlandığı ve ayakta durduğu durumlar dışında zombileri otomatik olarak önlemek</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Zombileri yoksay. Tüm eylemleri manuel olarak kontrol etmeniz gerekir</AutoAvoidZombiesDisabledDescription>
 
+	<ZapZombies>Zombi şok başlatmak</ZapZombies>
+	<ZombieShockerWrongPlacement>Cihaz buraya yerleştirilemez</ZombieShockerWrongPlacement>
+	<ZombieShockerHasNoBattery>Cihazın bataryası yok</ZombieShockerHasNoBattery>
+	<ZombieShockerHasNoRoom>Cihazın geçerli bir oda ekli yok</ZombieShockerHasNoRoom>
+	<ZombieShockerLowBatteryState>Cihaz ekli pilleri tüketti</ZombieShockerLowBatteryState>
+
 </LanguageData>

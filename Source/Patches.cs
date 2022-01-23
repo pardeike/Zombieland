@@ -4952,7 +4952,7 @@ namespace ZombieLand
 				if (shocker != null)
 				{
 					if (pawn.CanReach(shocker, PathEndMode.ClosestTouch, Danger.Deadly, false, false, TraverseMode.ByPawn))
-						if (pawn.CanReserve(shocker) && shocker.compPowerTrader.PowerOn && shocker.HasRoom())
+						if (pawn.CanReserve(shocker) && shocker.compPowerTrader.PowerOn && shocker.HasValidRoom())
 						{
 							void job()
 							{

@@ -181,4 +181,10 @@
 	<AutoAvoidZombiesEnabledDescription>自動避免殭屍，除非殖民者被起草和站立</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>忽略殭屍。 您需要手動控制所有操作</AutoAvoidZombiesDisabledDescription>
 
+	<ZapZombies>開始殭屍震驚</ZapZombies>
+	<ZombieShockerWrongPlacement>設備不能放在這裡</ZombieShockerWrongPlacement>
+	<ZombieShockerHasNoBattery>該裝置沒有連接電池</ZombieShockerHasNoBattery>
+	<ZombieShockerHasNoRoom>該設備沒有附帶有效的房間</ZombieShockerHasNoRoom>
+	<ZombieShockerLowBatteryState>該設備耗盡了附加的電池</ZombieShockerLowBatteryState>
+
 </LanguageData>

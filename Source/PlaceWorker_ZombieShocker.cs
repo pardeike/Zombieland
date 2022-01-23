@@ -11,8 +11,8 @@ namespace ZombieLand
 		{
 			var map = Find.CurrentMap;
 			var cell = center + IntVec3.North.RotatedBy(rot);
-			var room = cell.GetRoom(map);
-			if (room == null || room.IsHuge || room.Fogged || room.IsDoorway)
+			var room = ZombieShocker.GetValidRoom(map, cell);
+			if (room == null)
 			{
 				GenDraw.DrawFieldEdges(new List<IntVec3> { cell }, Color.white, null);
 				return;
@@ -22,14 +22,14 @@ namespace ZombieLand
 
 		public override AcceptanceReport AllowsPlacing(BuildableDef def, IntVec3 center, Rot4 rot, Map map, Thing thingToIgnore = null, Thing thing = null)
 		{
-			var msg = "WrongPlacementZombieShocker".Translate();
+			var msg = "ZombieShockerWrongPlacement".Translate();
 
 			if (center.GetRoom(map) != null)
 				return msg;
 
 			var cell = center + IntVec3.North.RotatedBy(rot);
-			var room = cell.GetRoom(map);
-			if (room == null || room.IsHuge || room.Fogged || room.IsDoorway)
+			var room = ZombieShocker.GetValidRoom(map, cell);
+			if (room == null)
 				return msg;
 
 			cell = center + IntVec3.North.RotatedBy(rot);

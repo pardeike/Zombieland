@@ -181,4 +181,10 @@
 	<AutoAvoidZombiesEnabledDescription>Automatically avoid zombies, except when standing drafted</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Ignore zombies. You need to manually control all actions</AutoAvoidZombiesDisabledDescription>
 
+	<ZapZombies>Start zombie shocker</ZapZombies>
+	<ZombieShockerWrongPlacement>The device cannot be placed here</ZombieShockerWrongPlacement>
+	<ZombieShockerHasNoBattery>The device has no battery attached</ZombieShockerHasNoBattery>
+	<ZombieShockerHasNoRoom>The device has no valid room attached</ZombieShockerHasNoRoom>
+	<ZombieShockerLowBatteryState>The device has depleted the attached batteries</ZombieShockerLowBatteryState>
+
 </LanguageData>

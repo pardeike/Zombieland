@@ -32,20 +32,25 @@ namespace ZombieLand
 		{
 			if (signal == "Activate")
 			{
-				var cell = Position + IntVec3.North.RotatedBy(Rotation);
-
 				var effecter = new Effecter(CustomDefs.ZombieShockerRoom);
 				subEffecter = effecter.children.OfType<SubEffecter_ZombieShocker>().FirstOrDefault();
 				subEffecter.compPowerTrader = compPowerTrader;
-				effecter.Trigger(new TargetInfo(cell, Map, false), TargetInfo.Invalid);
+				effecter.Trigger(new TargetInfo(this), TargetInfo.Invalid);
 				effecter.Cleanup();
 			}
 		}
 
-		public bool HasRoom()
+		public static Room GetValidRoom(Map map, IntVec3 cell)
+		{
+			var room = cell.GetRoom(map);
+			if (room == null || room.IsHuge || room.Fogged || room.IsDoorway) return null;
+			return room;
+		}
+
+		public bool HasValidRoom()
 		{
 			var cell = Position + IntVec3.North.RotatedBy(Rotation);
-			return cell.GetRoom(Map) != null;
+			return GetValidRoom(Map, cell) != null;
 		}
 	}
 }

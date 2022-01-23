@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using RimWorld;
+using System.Collections.Generic;
+using Verse;
 using Verse.AI;
 
 namespace ZombieLand
@@ -20,11 +22,17 @@ namespace ZombieLand
 				if (!(TargetA.Thing is ZombieShocker shocker))
 					return true;
 
-				if (shocker.compPowerTrader.PowerOn == false)
+				if (shocker.compPowerTrader.PowerNet.batteryComps.Count == 0)
+				{
+					Messages.Message("ZombieShockerHasNoBattery".Translate(), shocker, MessageTypeDefOf.RejectInput, null, false);
 					return true;
+				}
 
-				if (shocker.HasRoom() == false)
+				if (shocker.HasValidRoom() == false)
+				{
+					Messages.Message("ZombieShockerHasNoRoom".Translate(), shocker, MessageTypeDefOf.RejectInput, null, false);
 					return true;
+				}
 
 				return false;
 			});

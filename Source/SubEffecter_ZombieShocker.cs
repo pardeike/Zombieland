@@ -16,6 +16,7 @@ namespace ZombieLand
 
 		public CompPowerTrader compPowerTrader;
 
+		private ZombieShocker shocker;
 		private IntVec3 cell;
 		private Map map;
 		private Room room;
@@ -50,11 +51,17 @@ namespace ZombieLand
 			CustomDefs.ShockingZombie.PlayOneShot(SoundInfo.InMap(new TargetInfo(zombie.Position, map, false), MaintenanceType.None));
 		}
 
+		void EndZapping()
+		{
+			zappingState = -1;
+			cells.Clear();
+		}
+
 		void ZapNextCell()
 		{
 			if (cells.Count == 0)
 			{
-				zappingState = -1;
+				EndZapping();
 				return;
 			}
 
@@ -64,7 +71,8 @@ namespace ZombieLand
 
 			if (battery == null)
 			{
-				zappingState = -1;
+				EndZapping();
+				Messages.Message("ZombieShockerLowBatteryState".Translate(), shocker, MessageTypeDefOf.RejectInput, null, false);
 				return;
 			}
 
@@ -87,10 +95,13 @@ namespace ZombieLand
 
 		public override void SubTrigger(TargetInfo A, TargetInfo B)
 		{
-			cell = A.Cell;
-			map = A.Map;
+			shocker = A.Thing as ZombieShocker;
+			if (shocker == null) return;
 
-			room = cell.GetRoom(map);
+			cell = shocker.Position + IntVec3.North.RotatedBy(shocker.Rotation);
+			map = shocker.Map;
+
+			room = ZombieShocker.GetValidRoom(map, cell);
 			if (room == null) return;
 
 			room.Cells.Where(c => c.Standable(map)).OrderBy(c => c.DistanceTo(cell)).Do(c => cells.Enqueue(c));
@@ -107,7 +118,12 @@ namespace ZombieLand
 
 		public override void SubEffectTick(TargetInfo A, TargetInfo B)
 		{
-			if (zappingState == -1) return;
+			if (zappingState == -1 || shocker.Spawned == false) return;
+			if (shocker.HasValidRoom() == false)
+			{
+				EndZapping();
+				return;
+			}
 
 			if (zappingState == zapDelay)
 				CustomDefs.ShockingRoom.PlayOneShot(SoundInfo.InMap(new TargetInfo(cell, map, false), MaintenanceType.None));
