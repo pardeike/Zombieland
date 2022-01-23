@@ -4929,15 +4929,38 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(FloatMenuMakerMap))]
 		[HarmonyPatch(nameof(FloatMenuMakerMap.AddDraftedOrders))]
-		static class FloatMenuMakerMap_AddHumanlikeOrders_Patch
+		static class FloatMenuMakerMap_AddDraftedOrders_Patch
 		{
 			static void Postfix(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts)
 			{
 				var ropableZombie = pawn.Map.GetComponent<TickManager>().GetRopableZombie(clickPos);
 				if (ropableZombie != null)
 				{
-					void job() => pawn.jobs.StartJob(new Job(CustomDefs.RopeZombie, ropableZombie), JobCondition.InterruptForced, null, true);
-					opts.Add(new FloatMenuOption($"RopeZombie".Translate(), job));
+					void job() => pawn.jobs.StartJob(JobMaker.MakeJob(CustomDefs.RopeZombie, ropableZombie), JobCondition.InterruptForced, null, true);
+					opts.Add(new FloatMenuOption("RopeZombie".Translate(), job));
+				}
+			}
+		}
+
+		[HarmonyPatch(typeof(FloatMenuMakerMap))]
+		[HarmonyPatch(nameof(FloatMenuMakerMap.AddHumanlikeOrders))]
+		static class FloatMenuMakerMap_AddHumanlikeOrders_Patch
+		{
+			static void Postfix(Vector3 clickPos, Pawn pawn, List<FloatMenuOption> opts)
+			{
+				var shocker = pawn.Map.thingGrid.ThingAt<ZombieShocker>(IntVec3.FromVector3(clickPos));
+				if (shocker != null)
+				{
+					if (pawn.CanReach(shocker, PathEndMode.ClosestTouch, Danger.Deadly, false, false, TraverseMode.ByPawn))
+						if (pawn.CanReserve(shocker) && shocker.compPowerTrader.PowerOn && shocker.HasRoom())
+						{
+							void job()
+							{
+								var job = JobMaker.MakeJob(CustomDefs.ZapZombies, shocker);
+								pawn.jobs.StartJob(job, JobCondition.InterruptForced, null, false, true);
+							};
+							opts.Add(new FloatMenuOption("ZapZombies".Translate(), job));
+						}
 				}
 			}
 		}

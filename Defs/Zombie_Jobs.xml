@@ -36,4 +36,11 @@
 		<allowOpportunisticPrefix>false</allowOpportunisticPrefix>
 	</JobDef>
 
+	<JobDef>
+		<defName>ZapZombies</defName>
+		<driverClass>ZombieLand.JobDriver_ZapZombies</driverClass>
+		<reportString>starting zombie zapper.</reportString>
+		<allowOpportunisticPrefix>false</allowOpportunisticPrefix>
+	</JobDef>
+
 </Defs>

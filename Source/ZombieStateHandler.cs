@@ -143,10 +143,13 @@ namespace ZombieLand
 			if (zombie.health.Downed && zombie.isHealing == false)
 				zombie.isHealing = true;
 
-			if (ZombieSettings.Values.zombiesDieVeryEasily || zombie.IsSuicideBomber || ZombieSettings.Values.doubleTapRequired == false)
+			if (zombie.Downed)
 			{
-				zombie.Kill(null);
-				return true;
+				if (ZombieSettings.Values.zombiesDieVeryEasily || zombie.IsSuicideBomber || ZombieSettings.Values.doubleTapRequired == false)
+				{
+					zombie.Kill(null);
+					return true;
+				}
 			}
 
 			if (zombie.isHealing == false || zombie.stances.stunner.Stunned || zombie.IsBurning())
