@@ -1248,6 +1248,21 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to allow the zombieshocker to be placed over walls without them being replaced
+		//
+		[HarmonyPatch(typeof(GenSpawn))]
+		[HarmonyPatch(nameof(GenSpawn.SpawningWipes))]
+		static class GenSpawn_SpawningWipes_Patch
+		{
+			static bool Prefix(BuildableDef newEntDef, BuildableDef oldEntDef)
+			{
+				if (newEntDef != CustomDefs.ZombieShocker) return true;
+				var thingDef = oldEntDef as ThingDef;
+				if (thingDef.category != ThingCategory.Building) return true;
+				return false;
+			}
+		}
+
 		// do not open doors when not drafted and they are marked by the avoid grid
 		//
 		[HarmonyPatch]
@@ -4936,7 +4951,7 @@ namespace ZombieLand
 				var ropableZombie = pawn.Map.GetComponent<TickManager>().GetRopableZombie(clickPos);
 				if (ropableZombie != null)
 				{
-					void job() => pawn.jobs.StartJob(JobMaker.MakeJob(CustomDefs.RopeZombie, ropableZombie), JobCondition.InterruptForced, null, true);
+					void job() => _ = pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(CustomDefs.RopeZombie, ropableZombie), new JobTag?(JobTag.DraftedOrder), false);
 					opts.Add(new FloatMenuOption("RopeZombie".Translate(), job));
 				}
 			}
@@ -4957,7 +4972,7 @@ namespace ZombieLand
 							void job()
 							{
 								var job = JobMaker.MakeJob(CustomDefs.ZapZombies, shocker);
-								pawn.jobs.StartJob(job, JobCondition.InterruptForced, null, false, true);
+								_ = pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
 							};
 							opts.Add(new FloatMenuOption("ZapZombies".Translate(), job));
 						}

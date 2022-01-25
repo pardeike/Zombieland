@@ -471,6 +471,7 @@
 		<graphicData>
 			<texPath>ZombieShocker/ZombieShocker</texPath>
 			<graphicClass>Graphic_Multi</graphicClass>
+			<drawSize>(1.5,1.5)</drawSize>
 			<damageData>
 				<cornerTL>Damage/Corner</cornerTL>
 				<cornerTR>Damage/Corner</cornerTR>
@@ -478,8 +479,10 @@
 				<cornerBR>Damage/Corner</cornerBR>
 			</damageData>
 		</graphicData>
-		<altitudeLayer>Building</altitudeLayer>
+		<altitudeLayer>BuildingOnTop</altitudeLayer>
 		<passability>Impassable</passability>
+		<hasInteractionCell>True</hasInteractionCell>
+		<interactionCellOffset>(0,0,-1)</interactionCellOffset>
 		<blockWind>true</blockWind>
 		<fillPercent>1</fillPercent>
 		<coversFloor>true</coversFloor>
@@ -499,6 +502,7 @@
 		</costList>
 		<terrainAffordanceNeeded>Medium</terrainAffordanceNeeded>
 		<placeWorkers>
+			<li>PlaceWorker_PreventInteractionSpotOverlap</li>
 			<li>ZombieLand.PlaceWorker_ZombieShocker</li>
 		</placeWorkers>
 		<drawPlaceWorkersWhileSelected>true</drawPlaceWorkersWhileSelected>

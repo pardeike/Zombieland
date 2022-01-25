@@ -37,10 +37,10 @@ namespace ZombieLand
 				return false;
 			});
 
-			yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.ClosestTouch);
+			yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.InteractionCell);
 			yield return Toils_General.Wait(90, TargetIndex.None)
 				.FailOnDestroyedNullOrForbidden(TargetIndex.A)
-				.FailOnCannotTouch(TargetIndex.A, PathEndMode.ClosestTouch)
+				.FailOnCannotTouch(TargetIndex.A, PathEndMode.InteractionCell)
 				.WithProgressBarToilDelay(TargetIndex.A, false, -0.5f);
 			yield return new Toil()
 			{
