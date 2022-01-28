@@ -82,6 +82,8 @@ namespace ZombieLand
 		public IncidentInfo incidentInfo = new IncidentInfo();
 		public ZombiePathing zombiePathing;
 
+		public List<SoSTools.Floater> floatingSpaceZombies = new List<SoSTools.Floater>();
+
 		public TickManager(Map map) : base(map)
 		{
 			zombiePathing = new ZombiePathing(map);
@@ -144,6 +146,10 @@ namespace ZombieLand
 
 			hummingZombies.Clear();
 			allZombies.Where(zombie => zombie.IsActiveElectric).Do(zombie => hummingZombies.Add(zombie));
+
+			if (map.IsSpace())
+				for (var i = 0; i < SoSTools.Floater.totalCount; i++)
+					Tools.CreateFakeZombie(map, mat => floatingSpaceZombies.Add(new SoSTools.Floater() { mapSize = map.Size, material = mat }));
 
 			taskTicker = TickTasks();
 			while (taskTicker.Current as string != "end")
@@ -417,6 +423,7 @@ namespace ZombieLand
 
 		public void IncreaseZombiePopulation()
 		{
+			if (map.IsSpace()) return;
 			if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return;
 			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly) return;
 

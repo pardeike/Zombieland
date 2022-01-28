@@ -50,7 +50,7 @@ namespace ZombieLand
 		void TickAction()
 		{
 			var zombie = (Zombie)pawn;
-			if (zombie.state == ZombieState.Emerging) return;
+			if (zombie.state == ZombieState.Emerging || zombie.state == ZombieState.Floating) return;
 
 			/*
 			// for debugging - let zombies only live for 600 ticks

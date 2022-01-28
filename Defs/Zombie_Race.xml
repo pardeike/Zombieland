@@ -36,6 +36,9 @@
 			<meatColor>(44,58,44)</meatColor>
 			<canBePredatorPrey>true</canBePredatorPrey>
 		</race>
+		<tradeTags>
+			<li>AnimalInsectSpace</li>
+		</tradeTags>
 	</ThingDef>
 
 	<ThingDef Name="Zombie" Class="ZombieLand.ThingDef_Zombie" ParentName="BaseZombie">

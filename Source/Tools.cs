@@ -101,6 +101,17 @@ namespace ZombieLand
 			}
 		}
 
+		private static BiomeDef _sosOuterSpaceBiomeDef;
+		public static BiomeDef SoSOuterSpaceBiomeDef
+		{
+			get
+			{
+				if (_sosOuterSpaceBiomeDef == null)
+					_sosOuterSpaceBiomeDef = DefDatabase<BiomeDef>.GetNamed("OuterSpaceBiome");
+				return _sosOuterSpaceBiomeDef;
+			}
+		}
+
 		static string mealLabel;
 		static string mealDescription;
 		static Graphic mealGraphic;
@@ -547,11 +558,14 @@ namespace ZombieLand
 
 				_ = tickManager.allZombiesCached.Add(zombie);
 
-				if (ZombieSettings.Values.deadBecomesZombieMessage || wasPlayer)
+				if (map.IsSpace() == false)
 				{
-					var label = wasPlayer ? "ColonistBecameAZombieLabel".Translate() : "OtherBecameAZombieLabel".Translate();
-					var text = "BecameAZombieDesc".SafeTranslate(new object[] { pawnName.ToStringShort });
-					Find.LetterStack.ReceiveLetter(label, text, wasPlayer ? CustomDefs.ColonistTurnedZombie : CustomDefs.OtherTurnedZombie, zombie);
+					if (ZombieSettings.Values.deadBecomesZombieMessage || wasPlayer)
+					{
+						var label = wasPlayer ? "ColonistBecameAZombieLabel".Translate() : "OtherBecameAZombieLabel".Translate();
+						var text = "BecameAZombieDesc".SafeTranslate(new object[] { pawnName.ToStringShort });
+						Find.LetterStack.ReceiveLetter(label, text, wasPlayer ? CustomDefs.ColonistTurnedZombie : CustomDefs.OtherTurnedZombie, zombie);
+					}
 				}
 			});
 			while (it.MoveNext()) ;
@@ -1277,6 +1291,36 @@ namespace ZombieLand
 				var apparel = apparels.RandomElementByWeight(apparel => apparel.MarketValue);
 				_ = zombie.apparel.TryDrop(apparel);
 			}
+		}
+
+		public static bool IsSpace(this Map map)
+		{
+			if (map == null) return false;
+			return map.Biome == SoSOuterSpaceBiomeDef;
+		}
+
+		static readonly RenderTexture renderTexture = new RenderTexture(256, 256, 16);
+		public static void CreateFakeZombie(Map map, Action<Material> callback)
+		{
+			ZombieGenerator.SpawnZombie(IntVec3.Zero, map, ZombieType.Normal, (zombie) =>
+			{
+				zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
+				zombie.state = ZombieState.Floating;
+				zombie.Rotation = Rot4.South;
+
+				Find.PawnCacheRenderer.RenderPawn(zombie, renderTexture, Vector3.zero, 1f, 0f, Rot4.South, true, true, true, true, true, Vector3.zero, null, null, false);
+				var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false);
+				RenderTexture.active = renderTexture;
+				texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+				texture.Apply();
+				RenderTexture.active = null;
+
+				var material = MaterialPool.MatFrom(texture);
+				material.renderQueue = 2000 + 60;
+				callback(material);
+
+				zombie.Destroy();
+			});
 		}
 	}
 

@@ -449,6 +449,9 @@ namespace ZombieLand
 					return false;
 			}
 
+			if (driver.Map.IsSpace())
+				return false;
+
 			var building = CanSmash(zombie);
 			if (building == null)
 				return false;

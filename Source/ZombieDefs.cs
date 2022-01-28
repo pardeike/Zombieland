@@ -8,7 +8,8 @@ namespace ZombieLand
 		Emerging,
 		Wandering,
 		Tracking,
-		ShouldDie
+		ShouldDie,
+		Floating
 	}
 
 	public class PawnKindDef_Zombie : PawnKindDef { }

@@ -21,6 +21,7 @@
 	</loadBefore>
 	<loadAfter>
 		<li>ceteam.combatextended</li>
+		<li>kentington.saveourship2</li>
 	</loadAfter>
 	<incompatibleWith>
 		<li>Multiplayer</li>

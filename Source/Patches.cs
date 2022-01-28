@@ -43,7 +43,7 @@ namespace ZombieLand
 			// prepare Twinkie
 			LongEventHandler.QueueLongEvent(() => { Tools.EnableTwinkie(false); }, "", true, null);
 
-			// patches for Combat Extended (need to run late or else statics in those classes are not set yet)
+			// patches for other mods (need to run late or else statics in those classes are not set yet)
 			LongEventHandler.ExecuteWhenFinished(() =>
 			{
 				Projectile_Launch_Patch.PatchCombatExtended(harmony);
@@ -256,7 +256,7 @@ namespace ZombieLand
 
 				// current threat count + mouseover: forecast
 
-				if (ZombieSettings.Values.useDynamicThreatLevel)
+				if (ZombieSettings.Values.useDynamicThreatLevel && Find.CurrentMap.IsSpace() == false)
 				{
 					static string Format(float min, float max)
 					{
@@ -2991,6 +2991,30 @@ namespace ZombieLand
 
 				if (zombie.isAlbino == false)
 					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.RAGE_AURAS[Find.CameraDriver.CurrentZoom], quickHeadCenter, Quaternion.identity, 1f, 1f);
+			}
+		}
+
+		// patch to draw floating zombies
+		//
+		[HarmonyPatch(typeof(Map))]
+		[HarmonyPatch(nameof(Map.MapUpdate))]
+		static class Map_MapUpdate_Patch
+		{
+			static readonly Mesh fullMesh = MeshPool.GridPlane(new Vector2(8f, 8f));
+
+			static void Prefix(Map __instance)
+			{
+				if (WorldRendererUtility.WorldRenderedNow) return;
+				if (Find.CurrentMap != __instance) return;
+				var floaters = __instance.GetComponent<TickManager>()?.floatingSpaceZombies;
+				if (floaters == null || floaters.Count < SoSTools.Floater.totalCount) return;
+				for (var i = 0; i < floaters.Count; i++)
+				{
+					var floater = floaters[i];
+					floater.Update(i, floaters.Count);
+					var quat = Quaternion.Euler(0, floater.angle, 0);
+					GraphicToolbox.DrawScaledMesh(fullMesh, floater.material, floater.position, quat, floater.Size.x, floater.Size.y);
+				}
 			}
 		}
 

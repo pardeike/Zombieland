@@ -23,6 +23,7 @@ namespace CameraPlusSupport
 		static Color[] GetCameraPlusColors(Pawn pawn)
 		{
 			if (!(pawn is ZombieLand.Zombie zombie)) return null;
+			if (zombie.state == ZombieLand.ZombieState.Floating) return null;
 
 			var innerColor = defaultColor;
 			if (zombie.isToxicSplasher)

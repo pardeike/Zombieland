@@ -37,6 +37,9 @@
 			<canBePredatorPrey>true</canBePredatorPrey>
 			<gestationPeriodDays>0</gestationPeriodDays>
 		</race>
+		<tradeTags>
+			<li>AnimalInsectSpace</li>
+		</tradeTags>
 	</ThingDef>
 
 	<ThingDef Name="Zombie" Class="ZombieLand.ThingDef_Zombie" ParentName="BaseZombie">
