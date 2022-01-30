@@ -46,8 +46,7 @@ namespace ZombieLand
 			// patches for other mods (need to run late or else statics in those classes are not set yet)
 			LongEventHandler.ExecuteWhenFinished(() =>
 			{
-				Projectile_Launch_Patch.PatchCombatExtended(harmony);
-				ArmorUtility_GetPostArmorDamage_Patch.PatchCombatExtended(harmony);
+				CETools.Init(harmony);
 				AlienTools.Init();
 			});
 
@@ -62,7 +61,7 @@ namespace ZombieLand
 			//});
 		}
 
-		static void Error(string error)
+		public static void Error(string error)
 		{
 			errors.Add(error);
 			Log.Error(error);
@@ -3760,7 +3759,7 @@ namespace ZombieLand
 			}
 
 			[HarmonyPriority(Priority.First)]
-			static bool Prefix(Pawn pawn, ref float amount, BodyPartRecord part, float armorPenetration, out bool deflectedByMetalArmor, out bool diminishedByMetalArmor, ref float __result)
+			public static bool Prefix(Pawn pawn, ref float amount, BodyPartRecord part, float armorPenetration, out bool deflectedByMetalArmor, out bool diminishedByMetalArmor, ref float __result)
 			{
 				deflectedByMetalArmor = false;
 				diminishedByMetalArmor = false;
@@ -3838,44 +3837,6 @@ namespace ZombieLand
 				shieldAbsorbed = deflect || diminish;
 
 				return false;
-			}
-
-			// called from Main
-			public static void PatchCombatExtended(Harmony harmony)
-			{
-				var t_ArmorUtilityCE = AccessTools.TypeByName("CombatExtended.ArmorUtilityCE");
-				if (t_ArmorUtilityCE == null) return;
-
-				var boolRef = typeof(bool).MakeByRefType();
-				var argumentTypes = new Type[] { typeof(DamageInfo), typeof(Pawn), typeof(BodyPartRecord), boolRef, boolRef, boolRef };
-				var m_GetAfterArmorDamage = AccessTools.Method(t_ArmorUtilityCE, "GetAfterArmorDamage", argumentTypes);
-				if (m_GetAfterArmorDamage == null)
-				{
-					Error("Combat Extended installed, but method ArmorUtilityCE.GetAfterArmorDamage not found");
-					return;
-				}
-
-				var prefix = new HarmonyMethod(typeof(ArmorUtility_GetPostArmorDamage_Patch).GetMethod(nameof(GetAfterArmorDamagePrefix), AccessTools.all));
-				_ = harmony.Patch(m_GetAfterArmorDamage, prefix);
-			}
-		}
-
-		[HarmonyPatch]
-		class Harmony_DamageWorker_AddInjury_ApplyDamageToPart_ArmorReroute_Patch
-		{
-			static bool Prepare()
-			{
-				return TargetMethod() != null;
-			}
-
-			static MethodInfo TargetMethod()
-			{
-				return AccessTools.Method("CombatExtended.Harmony.Harmony_DamageWorker_AddInjury_ApplyDamageToPart:ArmorReroute");
-			}
-
-			static bool Prefix(ref DamageInfo dinfo)
-			{
-				return dinfo.Def != DamageDefOf.SurgicalCut;
 			}
 		}
 
@@ -4526,51 +4487,12 @@ namespace ZombieLand
 				Tools.GetCircle(radius).Do(vec => grid.BumpTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
 			}
 
-			static float GetDistanceTraveled(float velocity, float angle, float shotHeight)
+			public static float GetDistanceTraveled(float velocity, float angle, float shotHeight)
 			{
 				if (shotHeight < 0.001f)
 					return (velocity * velocity / 9.8f) * Mathf.Sin(2f * angle);
 				var velsin = velocity * Mathf.Sin(angle);
 				return ((velocity * Mathf.Cos(angle)) / 9.8f) * (velsin + Mathf.Sqrt(velsin * velsin + 2f * 9.8f * shotHeight));
-			}
-
-			static void PostfixCombatExtended(Thing launcher, Vector2 origin, float shotAngle, float shotHeight, float shotSpeed)
-			{
-				if (!(launcher is Pawn pawn)) return;
-				if (launcher.Map == null) return;
-
-				var noiseScale = 1f;
-				if (pawn.equipment?.PrimaryEq?.PrimaryVerb?.verbProps != null)
-					noiseScale = pawn.equipment.PrimaryEq.PrimaryVerb.verbProps.muzzleFlashScale / Constants.BASE_MUZZLE_FLASH_VALUE;
-
-				var now = Tools.Ticks();
-				var pos = new IntVec3(origin);
-				var delta = GetDistanceTraveled(shotSpeed, shotAngle, shotHeight);
-				var magnitude = noiseScale * delta * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
-				var radius = Tools.Boxed(magnitude, Constants.MIN_WEAPON_RANGE, Constants.MAX_WEAPON_RANGE);
-				var grid = launcher.Map.GetGrid();
-				Tools.GetCircle(radius).Do(vec => grid.BumpTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
-			}
-
-			// called from Main
-			//
-			public static void PatchCombatExtended(Harmony harmony)
-			{
-				// do not throw or error if this type does not exist
-				// it only exists if CombatExtended is loaded (optional)
-				//
-				var t_ProjectileCE = AccessTools.TypeByName("CombatExtended.ProjectileCE");
-				if (t_ProjectileCE == null) return;
-
-				var originalMethodInfo = AccessTools.Method(t_ProjectileCE, "Launch", new Type[] { typeof(Thing), typeof(Vector2), typeof(float), typeof(float), typeof(float), typeof(float), typeof(Thing) });
-				if (originalMethodInfo == null)
-				{
-					Error("Combat Extended installed, but method ProjectileCE.Launch not found");
-					return;
-				}
-
-				var postfix = new HarmonyMethod(SymbolExtensions.GetMethodInfo(() => PostfixCombatExtended(null, Vector2.zero, 0, 0, 0)));
-				_ = harmony.Patch(originalMethodInfo, null, postfix);
 			}
 		}
 

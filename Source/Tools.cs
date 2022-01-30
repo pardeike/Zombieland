@@ -101,13 +101,18 @@ namespace ZombieLand
 			}
 		}
 
+		private static bool _sosOuterSpaceBiomeDefChecked = false;
 		private static BiomeDef _sosOuterSpaceBiomeDef;
 		public static BiomeDef SoSOuterSpaceBiomeDef
 		{
 			get
 			{
-				if (_sosOuterSpaceBiomeDef == null)
-					_sosOuterSpaceBiomeDef = DefDatabase<BiomeDef>.GetNamed("OuterSpaceBiome");
+				if (_sosOuterSpaceBiomeDefChecked == false)
+				{
+					if (TypeByName("RimWorld.ShipCombatManager") != null)
+						_sosOuterSpaceBiomeDef = DefDatabase<BiomeDef>.GetNamed("OuterSpaceBiome");
+					_sosOuterSpaceBiomeDefChecked = true;
+				}
 				return _sosOuterSpaceBiomeDef;
 			}
 		}
@@ -1295,7 +1300,7 @@ namespace ZombieLand
 
 		public static bool IsSpace(this Map map)
 		{
-			if (map == null) return false;
+			if (map == null || SoSOuterSpaceBiomeDef == null) return false;
 			return map.Biome == SoSOuterSpaceBiomeDef;
 		}
 
