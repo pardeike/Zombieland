@@ -1911,7 +1911,20 @@ namespace ZombieLand
 		{
 			static readonly MentalStateDef def1 = MentalStateDefOf.Manhunter;
 			static readonly MentalStateDef def2 = MentalStateDefOf.ManhunterPermanent;
-			static readonly ThingDef stickyGooDef = ThingDef.Named("StickyGoo");
+
+			// top level idx = sign(new.x-old.x) + 1 + 3 * (sign(new.z-old.z) + 1)
+			static readonly IntVec3[][] orthogonalIndices = new[]
+			{                                                             // (T)op (B)ottom (L)eft (R)right (0)zero
+				new [] { new IntVec3(00, 0, -1), new IntVec3(-1, 0, 00) }, // LB -> 0B + L0
+				new [] { new IntVec3(01, 0, 00), new IntVec3(-1, 0, 00) }, // 0B -> R0 + L0
+				new [] { new IntVec3(01, 0, 00), new IntVec3(00, 0, -1) }, // RB -> R0 + 0B
+				new [] { new IntVec3(00, 0, -1), new IntVec3(00, 0, 01) }, // L0 -> 0B + 0T
+				new [] { new IntVec3(00, 0, 00), new IntVec3(00, 0, 00) }, // center unused
+				new [] { new IntVec3(00, 0, 01), new IntVec3(00, 0, -1) }, // R0 -> 0T + 0B
+				new [] { new IntVec3(-1, 0, 00), new IntVec3(00, 0, 01) }, // LT -> L0 + 0T
+				new [] { new IntVec3(-1, 0, 00), new IntVec3(01, 0, 00) }, // 0T -> L0 + R0
+				new [] { new IntVec3(00, 0, 01), new IntVec3(01, 0, 00) }, // RT -> 0T + R0
+			};
 
 			static void Prefix(Thing __instance, IntVec3 value)
 			{
@@ -1961,7 +1974,19 @@ namespace ZombieLand
 					// dark slimers leave dark slime behind them
 					//
 					if (zombie.isDarkSlimer)
-						_ = FilthMaker.TryMakeFilth(value, map, ThingDef.Named("TarSlime"), zombie.Name.ToStringShort, 1);
+					{
+						_ = FilthMaker.TryMakeFilth(value, map, CustomDefs.TarSlime, null, true);
+						if (Tools.Difficulty() > 1)
+						{
+							var x = Math.Sign(value.x - pos.x) + 1;
+							var z = Math.Sign(value.z - pos.z) + 1;
+							var orthIdx = x + 3 * z;
+							var pair = orthogonalIndices[orthIdx];
+							Log.Warning($"{pos}->{value} [{x}] [{z}] => {orthIdx} dx[{pair[0]}] dz[{pair[1]}]");
+							_ = FilthMaker.TryMakeFilth(pos + pair[0], map, CustomDefs.TarSlime, null, true);
+							_ = FilthMaker.TryMakeFilth(pos + pair[1], map, CustomDefs.TarSlime, null, true);
+						}
+					}
 
 					return;
 				}
@@ -1981,7 +2006,7 @@ namespace ZombieLand
 				var toxity = 0.05f * pawn.GetStatValue(StatDefOf.ToxicSensitivity, true);
 				if (toxity > 0f)
 				{
-					pawn.Position.GetThingList(pawn.Map).Where(thing => thing.def == stickyGooDef).Do(thing =>
+					pawn.Position.GetThingList(pawn.Map).Where(thing => thing.def == CustomDefs.StickyGoo).Do(thing =>
 					{
 						HealthUtility.AdjustSeverity(pawn, HediffDefOf.ToxicBuildup, toxity);
 					});
@@ -3052,8 +3077,6 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(PawnGraphicSet.ResolveApparelGraphics))]
 		static class PawnGraphicSet_ResolveApparelGraphics_Patch
 		{
-			static ThingDef bombVestApparelDef;
-
 			[HarmonyPriority(Priority.Last)]
 			static void Postfix(PawnGraphicSet __instance)
 			{
@@ -3061,10 +3084,8 @@ namespace ZombieLand
 
 				if (zombie.IsSuicideBomber)
 				{
-					if (bombVestApparelDef == null)
-						bombVestApparelDef = ThingDef.Named("Apparel_BombVest");
-					var apparel = new Apparel() { def = bombVestApparelDef };
-					if (__instance.apparelGraphics.Any(a => a.sourceApparel.def == bombVestApparelDef) == false)
+					var apparel = new Apparel() { def = CustomDefs.Apparel_BombVest };
+					if (__instance.apparelGraphics.Any(a => a.sourceApparel.def == CustomDefs.Apparel_BombVest) == false)
 						if (ApparelGraphicRecordGetter.TryGetGraphicApparel(apparel, BodyTypeDefOf.Hulk, out var record))
 							__instance.apparelGraphics.Add(record);
 				}

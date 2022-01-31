@@ -14,7 +14,7 @@ namespace ZombieLand
 		{
 			if (map.thingGrid.ThingAt<TarSlime>(Position) != null)
 				return;
-			if (Position.Walkable(map) == false)
+			if (Position.Standable(map) == false)
 				return;
 			if (respawningAfterLoad == false)
 				thickness = 4;

@@ -10,12 +10,10 @@ namespace ZombieLand
 		private const float extractWork = 100;
 		private float extractProcess = 0;
 
-		private readonly ThingDef extractDef = ThingDef.Named("ZombieExtract");
-
 		public override void ExposeData()
 		{
 			base.ExposeData();
-			Scribe_Values.Look<float>(ref extractProcess, "extractProcess", 0f, false);
+			Scribe_Values.Look(ref extractProcess, "extractProcess", 0f, false);
 		}
 
 		public override string GetReport()
@@ -58,7 +56,7 @@ namespace ZombieLand
 					extractProcess += pawn.GetStatValue(StatDefOf.MedicalTendSpeed, true) / 2;
 					if (extractProcess >= extractWork)
 					{
-						var extractResult = ThingMaker.MakeThing(extractDef, null);
+						var extractResult = ThingMaker.MakeThing(CustomDefs.ZombieExtract, null);
 						extractResult.stackCount = Tools.ExtractPerZombie();
 						_ = GenPlace.TryPlaceThing(extractResult, pawn.Position, pawn.Map, ThingPlaceMode.Near, null, null);
 

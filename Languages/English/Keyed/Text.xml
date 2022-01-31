@@ -187,4 +187,6 @@
 	<ZombieShockerHasNoRoom>The device has no valid room attached</ZombieShockerHasNoRoom>
 	<ZombieShockerLowBatteryState>The device has depleted the attached batteries</ZombieShockerLowBatteryState>
 
+	<ShowHealthBar>Zombies health bar</ShowHealthBar>
+
 </LanguageData>

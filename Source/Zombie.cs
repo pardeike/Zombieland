@@ -300,10 +300,7 @@ namespace ZombieLand
 				bombTickingInterval = -1f;
 				bombWillGoOff = false;
 				hasTankyShield = -1f;
-
-				var def = ThingDef.Named("Apparel_BombVest");
-				_ = Drawer.renderer.graphics.apparelGraphics.RemoveAll(record => record.sourceApparel?.def == def);
-
+				_ = Drawer.renderer.graphics.apparelGraphics.RemoveAll(record => record.sourceApparel?.def == CustomDefs.Apparel_BombVest);
 				Map.GetComponent<TickManager>()?.AddExplosion(Position);
 			}
 
@@ -357,7 +354,7 @@ namespace ZombieLand
 				if (r > maxRadius) maxRadius = r;
 				var cell = pos + vec;
 				if (GenSight.LineOfSight(pos, cell, map, true, null, 0, 0) && cell.Walkable(map))
-					if (FilthMaker.TryMakeFilth(cell, map, ThingDef.Named("StickyGoo"), Name.ToStringShort, 1))
+					if (FilthMaker.TryMakeFilth(cell, map, CustomDefs.StickyGoo, Name.ToStringShort, 1))
 						hasFilth++;
 			}
 			if (hasFilth >= 6)
@@ -442,10 +439,14 @@ namespace ZombieLand
 			new Color(1f, 0.5f, 0),
 			new Color(1f, 1f, 0),
 		};
+
 		public override void DrawGUIOverlay()
 		{
+			const float width = 60;
+
 			base.DrawGUIOverlay();
-			var width = 60;
+			if (ZombieSettings.Values.showHealthBar == false)
+				return;
 
 			if (UI.MapToUIPosition(Vector3.one).x - UI.MapToUIPosition(Vector3.zero).x < width / 2)
 				return;

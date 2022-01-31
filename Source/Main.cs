@@ -41,14 +41,17 @@ namespace ZombieLand
 		public static JobDef ZapZombies;
 		public static RecipeDef CureZombieInfection;
 		public static ThingDef Zombie;
+		public static ThingDef ZombieExtract;
 		public static ThingDef Corpse_Zombie;
 		public static ThingDef TarSlime;
 		public static ThingDef TarSmoke;
+		public static ThingDef StickyGoo;
 		public static ThingDef ZombieShocker;
 		public static ThingDef ZombieZapA;
 		public static ThingDef ZombieZapB;
 		public static ThingDef ZombieZapC;
 		public static ThingDef ZombieZapD;
+		public static ThingDef Apparel_BombVest;
 		public static HediffDef ZombieInfection;
 		public static LetterDef ColonistTurnedZombie;
 		public static LetterDef OtherTurnedZombie;

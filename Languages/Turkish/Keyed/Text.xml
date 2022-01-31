@@ -187,4 +187,6 @@
 	<ZombieShockerHasNoRoom>Cihazın geçerli bir oda ekli yok</ZombieShockerHasNoRoom>
 	<ZombieShockerLowBatteryState>Cihaz ekli pilleri tüketti</ZombieShockerLowBatteryState>
 
+	<ShowHealthBar>Zombiler sağlık çubuğu</ShowHealthBar>
+
 </LanguageData>

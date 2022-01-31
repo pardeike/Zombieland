@@ -50,11 +50,11 @@
 			<graphicClass>Graphic_Single</graphicClass>
 		</graphicData>
 		<altitudeLayer>FloorEmplacement</altitudeLayer>
-		<pathCost>8399</pathCost>
+		<pathCost>120</pathCost>
 		<pathCostIgnoreRepeat>false</pathCostIgnoreRepeat>
 		<size>(1,1)</size>
 		<filth>
-			<cleaningWorkToReduceThickness>4000</cleaningWorkToReduceThickness>
+			<cleaningWorkToReduceThickness>500</cleaningWorkToReduceThickness>
 			<rainWashes>true</rainWashes>
 			<canFilthAttach>false</canFilthAttach>
 			<allowsFire>false</allowsFire>

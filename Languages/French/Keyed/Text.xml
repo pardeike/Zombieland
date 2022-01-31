@@ -187,4 +187,6 @@
 	<ZombieShockerHasNoRoom>L'appareil n'a aucune pièce valide attachée</ZombieShockerHasNoRoom>
 	<ZombieShockerLowBatteryState>L'appareil a appauvri les piles attachées</ZombieShockerLowBatteryState>
 
+	<ShowHealthBar>Barre de santé de zombies</ShowHealthBar>
+
 </LanguageData>

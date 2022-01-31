@@ -187,4 +187,6 @@
 	<ZombieShockerHasNoRoom>Устройство не имеет действительной комнаты</ZombieShockerHasNoRoom>
 	<ZombieShockerLowBatteryState>Устройство истощало прикрепленные батареи</ZombieShockerLowBatteryState>
 
+	<ShowHealthBar>Зомби Бар здоровья</ShowHealthBar>
+
 </LanguageData>

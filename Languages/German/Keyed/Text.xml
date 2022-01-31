@@ -187,4 +187,6 @@
 	<ZombieShockerHasNoRoom>Das Gerät verfügt über keinen gültigen Raum</ZombieShockerHasNoRoom>
 	<ZombieShockerLowBatteryState>Das Gerät hat die angeschlossenen Batterien erschöpft</ZombieShockerLowBatteryState>
 
+	<ShowHealthBar>Zeige Zombiegesundheit an</ShowHealthBar>
+
 </LanguageData>

@@ -187,4 +187,6 @@
 	<ZombieShockerHasNoRoom>該設備沒有附帶有效的房間</ZombieShockerHasNoRoom>
 	<ZombieShockerLowBatteryState>該設備耗盡了附加的電池</ZombieShockerLowBatteryState>
 
+	<ShowHealthBar>殭屍健康酒吧</ShowHealthBar>
+
 </LanguageData>

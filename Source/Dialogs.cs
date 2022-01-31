@@ -654,6 +654,7 @@ namespace ZombieLand
 				list.Dialog_Checkbox("BetterZombieAvoidance", ref settings.betterZombieAvoidance);
 				list.Dialog_Checkbox("ZombiesDropBlood", ref settings.zombiesDropBlood);
 				list.Dialog_Checkbox("ZombiesBurnLonger", ref settings.zombiesBurnLonger);
+				list.Dialog_Checkbox("ShowHealthBar", ref settings.showHealthBar);
 				list.Gap(30f);
 
 				// Actions
