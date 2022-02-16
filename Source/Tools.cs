@@ -598,6 +598,13 @@ namespace ZombieLand
 		{
 			if (cell.Standable(map) == false || cell.Fogged(map)) return false;
 
+			if (map.IsSpace())
+			{
+				var room = cell.GetRoom(map);
+				if (room == null || room.OpenRoofCount > 0 || room.TouchesMapEdge)
+					return false;
+			}
+
 			var edifice = cell.GetEdifice(map);
 			if (edifice != null && edifice is Building_Door door)
 				if (door.Open == false)

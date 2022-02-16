@@ -14,7 +14,9 @@ namespace ZombieLand
 	{
 		public class Floater
 		{
-			public static readonly int totalCount = 50;
+			public const int totalCount = 50;
+			const float minSize = 0.25f;
+			const float maxSize = 3f;
 
 			public IntVec3 mapSize;
 			public Material material;
@@ -40,11 +42,11 @@ namespace ZombieLand
 				if (scale == 0 || position.x < -4 || position.z < -4 || position.x > mapSize.x + 4 || position.z > mapSize.z + 4)
 				{
 					var f = GenMath.LerpDoubleClamped(0, count - 1, 0, 1, i);
-					scale = (1 + Mathf.Pow(f, Mathf.Pow(f + 1.4f, 4)) * 3) / 4;
-					speed = GenMath.LerpDoubleClamped(0.25f, 1, 0.1f, 1, scale);
-					var yAltitute = (f >= 0.985f ? 20f : -0.5f) + i / 1000f;
+					scale = minSize + Mathf.Pow(f, Mathf.Pow(f + 1.4f, 4)) * (maxSize - minSize);
+					speed = 2 * Mathf.Pow(GenMath.LerpDoubleClamped(minSize, maxSize, 0.2f, 1, scale), 2);
+					var yAltitute = (f >= 0.8f ? 20f : -0.5f) + i / 1000f;
 					angle = Rand.Range(0f, 359f);
-					rotation = Rand.Range(-0.4f, 0.4f);
+					rotation = (Rand.Chance(0.2f) ? 3f : 1f) * Rand.Range(-0.4f, 0.4f);
 					switch (Rand.Int % 4)
 					{
 						case 0: // bottom

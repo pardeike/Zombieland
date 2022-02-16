@@ -82,6 +82,12 @@ namespace ZombieLand
 				tickManager.incidentInfo.parameters = new IncidentParameters();
 			var parameters = tickManager.incidentInfo.parameters;
 
+			if (tickManager.map.IsSpace())
+			{
+				parameters.skipReason = "no zombie events in space";
+				return false;
+			}
+
 			var currentMax = Mathf.FloorToInt(tickManager.GetMaxZombieCount() * ZombieWeather.GetThreatLevel(tickManager.map));
 
 			parameters.capableColonists = Tools.CapableColonists(tickManager.map);
@@ -250,14 +256,14 @@ namespace ZombieLand
 
 		public static IntVec3 GetValidSpot(Map map, IntVec3 spot, Predicate<IntVec3> cellValidator)
 		{
+			if (ZombieSettings.Values.spawnHowType == SpawnHowType.FromTheEdges && map.IsSpace())
+				return IntVec3.Invalid;
+			var allOverTheMap = ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap;
 			var spotValidator = SpotValidator(cellValidator);
-
 			for (var counter = 1; counter <= 10; counter++)
 			{
 				if (spot.IsValid)
 					break;
-
-				var allOverTheMap = ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap;
 				spot = Tools.RandomSpawnCell(map, allOverTheMap == false, spotValidator);
 			}
 			return spot;
