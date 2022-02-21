@@ -3026,10 +3026,14 @@ namespace ZombieLand
 		{
 			static readonly Mesh fullMesh = MeshPool.GridPlane(new Vector2(8f, 8f));
 
+			static bool Prepare() => SoSTools.Installed();
+
 			static void Postfix(Map __instance)
 			{
 				if (WorldRendererUtility.WorldRenderedNow) return;
 				if (Find.CurrentMap != __instance) return;
+				if (__instance.IsSpace() == false) return;
+
 				var tickManager = __instance.GetComponent<TickManager>();
 				if (tickManager == null) return;
 

@@ -12,9 +12,14 @@ namespace ZombieLand
 {
 	public class SoSTools
 	{
+		public static bool Installed()
+		{
+			return AccessTools.TypeByName("SaveOurShip2.ShipInteriorMod2") != null;
+		}
+
 		public class Floater
 		{
-			public const int backCount = 200;
+			public const int backCount = 100;
 			public const int foreCount = 10;
 
 			public IntVec3 mapSize;
