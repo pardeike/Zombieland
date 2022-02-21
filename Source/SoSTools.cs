@@ -14,14 +14,15 @@ namespace ZombieLand
 	{
 		public class Floater
 		{
-			public const int totalCount = 50;
-			const float minSize = 0.25f;
-			const float maxSize = 3f;
+			public const int backCount = 200;
+			public const int foreCount = 10;
 
 			public IntVec3 mapSize;
 			public Material material;
 			public Vector3 position = new Vector3(-1000, 0, -1000);
 			public float angle = 0;
+			public bool foreground;
+			public float alpha = 1f;
 
 			Vector3 drift;
 			float rotation;
@@ -31,7 +32,7 @@ namespace ZombieLand
 
 			public Vector2 Size => Vector2.one * scale;
 
-			public void Update(int i, int count)
+			public void Update(int i, int count, Vector3 mousePos)
 			{
 				if (delay > 0)
 				{
@@ -42,11 +43,21 @@ namespace ZombieLand
 				if (scale == 0 || position.x < -4 || position.z < -4 || position.x > mapSize.x + 4 || position.z > mapSize.z + 4)
 				{
 					var f = GenMath.LerpDoubleClamped(0, count - 1, 0, 1, i);
-					scale = minSize + Mathf.Pow(f, Mathf.Pow(f + 1.4f, 4)) * (maxSize - minSize);
-					speed = 2 * Mathf.Pow(GenMath.LerpDoubleClamped(minSize, maxSize, 0.2f, 1, scale), 2);
-					var yAltitute = (f >= 0.8f ? 20f : -0.5f) + i / 1000f;
+					f = f * f * f;
+
+					var minSize = foreground ? 0.4f : 0.1f;
+					var maxSize = foreground ? 3f : 0.2f;
+
+					var minSpeed = foreground ? 1f : 0.15f;
+					var maxSpeed = foreground ? 4f : 0.75f;
+
+					scale = Mathf.Lerp(minSize, maxSize, foreground ? f * f : f);
+					speed = Mathf.Lerp(minSpeed, maxSpeed, f * f * f);
+					var yAltitute = (foreground ? 0.5f : -0.5f) + i / 1000f;
 					angle = Rand.Range(0f, 359f);
-					rotation = (Rand.Chance(0.2f) ? 3f : 1f) * Rand.Range(-0.4f, 0.4f);
+					var rot = Rand.Chance(0.1f) ? new[] { 2f, 3f } : new[] { 0.1f, 0.4f };
+					rotation = Rand.Range(rot[0], rot[1]) * Rand.Sign;
+
 					switch (Rand.Int % 4)
 					{
 						case 0: // bottom
@@ -70,6 +81,16 @@ namespace ZombieLand
 
 				angle += rotation;
 				position += drift * speed;
+
+				if (foreground)
+				{
+					var a = GenMath.LerpDoubleClamped(scale * 2, scale * 4, 0, 1, (mousePos - position).MagnitudeHorizontal());
+					if (a != alpha)
+					{
+						alpha = a;
+						material.color = new Color(1, 1, 1, alpha);
+					}
+				}
 			}
 		}
 	}

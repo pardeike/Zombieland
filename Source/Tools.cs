@@ -598,12 +598,12 @@ namespace ZombieLand
 		{
 			if (cell.Standable(map) == false || cell.Fogged(map)) return false;
 
-			if (map.IsSpace())
-			{
-				var room = cell.GetRoom(map);
-				if (room == null || room.OpenRoofCount > 0 || room.TouchesMapEdge)
-					return false;
-			}
+			//if (map.IsSpace())
+			//{
+			//	var room = cell.GetRoom(map);
+			//	if (room == null || room.OpenRoofCount > 0 || room.TouchesMapEdge)
+			//		return false;
+			//}
 
 			var edifice = cell.GetEdifice(map);
 			if (edifice != null && edifice is Building_Door door)
@@ -1311,8 +1311,9 @@ namespace ZombieLand
 			return map.Biome == SoSOuterSpaceBiomeDef;
 		}
 
-		static readonly RenderTexture renderTexture = new RenderTexture(256, 256, 16);
-		public static void CreateFakeZombie(Map map, Action<Material> callback)
+		static readonly RenderTexture renderTextureBack = new RenderTexture(64, 64, 16);
+		static readonly RenderTexture renderTextureFore = new RenderTexture(256, 256, 16);
+		public static void CreateFakeZombie(Map map, Action<Material> callback, bool foreground)
 		{
 			ZombieGenerator.SpawnZombie(IntVec3.Zero, map, ZombieType.Normal, (zombie) =>
 			{
@@ -1320,6 +1321,7 @@ namespace ZombieLand
 				zombie.state = ZombieState.Floating;
 				zombie.Rotation = Rot4.South;
 
+				var renderTexture = foreground ? renderTextureFore : renderTextureBack;
 				Find.PawnCacheRenderer.RenderPawn(zombie, renderTexture, Vector3.zero, 1f, 0f, Rot4.South, true, true, true, true, true, Vector3.zero, null, null, false);
 				var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false);
 				RenderTexture.active = renderTexture;
@@ -1327,9 +1329,17 @@ namespace ZombieLand
 				texture.Apply();
 				RenderTexture.active = null;
 
-				var material = MaterialPool.MatFrom(texture);
-				material.renderQueue = 2000 + 60;
-				callback(material);
+				if (foreground)
+				{
+					var materialFront = MaterialPool.MatFrom(new MaterialRequest(texture, ShaderDatabase.MetaOverlay));
+					callback(materialFront);
+				}
+				else
+				{
+					var materialBack = MaterialPool.MatFrom(texture);
+					materialBack.renderQueue = 2000 + 60;
+					callback(materialBack);
+				}
 
 				zombie.Destroy();
 			});

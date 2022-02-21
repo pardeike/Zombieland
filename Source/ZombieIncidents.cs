@@ -256,8 +256,6 @@ namespace ZombieLand
 
 		public static IntVec3 GetValidSpot(Map map, IntVec3 spot, Predicate<IntVec3> cellValidator)
 		{
-			if (ZombieSettings.Values.spawnHowType == SpawnHowType.FromTheEdges && map.IsSpace())
-				return IntVec3.Invalid;
 			var allOverTheMap = ZombieSettings.Values.spawnHowType == SpawnHowType.AllOverTheMap;
 			var spotValidator = SpotValidator(cellValidator);
 			for (var counter = 1; counter <= 10; counter++)
@@ -271,6 +269,7 @@ namespace ZombieLand
 
 		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot, bool useAlert, bool ignoreLimit = false, ZombieType zombieType = ZombieType.Random)
 		{
+			if (map.IsSpace()) return false;
 			var cellValidator = Tools.ZombieSpawnLocator(map, true);
 			spot = GetValidSpot(map, spot, cellValidator);
 			if (spot.IsValid == false) return false;

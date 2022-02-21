@@ -3026,16 +3026,32 @@ namespace ZombieLand
 		{
 			static readonly Mesh fullMesh = MeshPool.GridPlane(new Vector2(8f, 8f));
 
-			static void Prefix(Map __instance)
+			static void Postfix(Map __instance)
 			{
 				if (WorldRendererUtility.WorldRenderedNow) return;
 				if (Find.CurrentMap != __instance) return;
-				var floaters = __instance.GetComponent<TickManager>()?.floatingSpaceZombies;
-				if (floaters == null || floaters.Count < SoSTools.Floater.totalCount) return;
+				var tickManager = __instance.GetComponent<TickManager>();
+				if (tickManager == null) return;
+
+				List<SoSTools.Floater> floaters;
+
+				floaters = tickManager.floatingSpaceZombiesBack;
+				if (floaters == null || floaters.Count < SoSTools.Floater.backCount) return;
+				var mPos = UI.MouseMapPosition();
 				for (var i = 0; i < floaters.Count; i++)
 				{
 					var floater = floaters[i];
-					floater.Update(i, floaters.Count);
+					floater.Update(i, floaters.Count, mPos);
+					var quat = Quaternion.Euler(0, floater.angle, 0);
+					GraphicToolbox.DrawScaledMesh(fullMesh, floater.material, floater.position, quat, floater.Size.x, floater.Size.y);
+				}
+
+				floaters = tickManager.floatingSpaceZombiesFore;
+				if (floaters == null || floaters.Count < SoSTools.Floater.foreCount) return;
+				for (var i = 0; i < floaters.Count; i++)
+				{
+					var floater = floaters[i];
+					floater.Update(i, floaters.Count, mPos);
 					var quat = Quaternion.Euler(0, floater.angle, 0);
 					GraphicToolbox.DrawScaledMesh(fullMesh, floater.material, floater.position, quat, floater.Size.x, floater.Size.y);
 				}
