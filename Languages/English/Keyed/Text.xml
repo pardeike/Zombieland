@@ -70,6 +70,7 @@
 	<ZombieDamageTitle>Zombie damage</ZombieDamageTitle>
 	<ZombieDamageFactor>Damage multiplier</ZombieDamageFactor>
 	<SafeMeleeLimit>Safe melee limit</SafeMeleeLimit>
+	<SafeMeleeExample>Example: [_]{0}[_] melee skill, [_]{1}[_] zombies => chance is {2}%</SafeMeleeExample>
 	<ZombiesCauseManhunting>Zombies can anger animals</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>Game tweaks</ZombieGameTweaks>

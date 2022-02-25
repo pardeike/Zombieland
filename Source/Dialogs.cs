@@ -16,6 +16,8 @@ namespace ZombieLand
 		{
 			base.PreOpen();
 			Dialogs.scrollPosition = Vector2.zero;
+			Dialogs.focusOnSearch = true;
+			Dialogs.searchWidget.Reset();
 		}
 
 		public override void DoWindowContents(Rect inRect)
@@ -467,6 +469,95 @@ namespace ZombieLand
 			return "{0:0%} " + "CorpsesExtractChance".Translate(f);
 		}
 
+		public static void MiniButton(this Listing_Standard list, Texture2D texture, Action action)
+		{
+			const float size = 11f;
+			var butRect = new Rect(list.curX + 1, list.curY + 2, size, size);
+			if (Widgets.ButtonImage(butRect, texture, true))
+				action();
+		}
+
+		public static int exampleMeleeSkill = 10;
+		public static int exampleZombieCount = 1;
+		public static void ExplainSafeMelee(Listing_Standard list, int safeMeleeLimit)
+		{
+			Text.Font = GameFont.Tiny;
+			var chance = Mathf.FloorToInt(100f * exampleMeleeSkill * Mathf.Max(0, safeMeleeLimit - exampleZombieCount + 1) / 20f);
+			var text = "SafeMeleeExample".Translate(exampleMeleeSkill, exampleZombieCount, chance).Resolve();
+			var buttonText = "[_]";
+			var buttonWidth = buttonText.GetWidthCached();
+			list.curX = 7f;
+			for (var i = 0; i <= 4; i++)
+			{
+				var idx = text.IndexOf(buttonText);
+				var part = idx == -1 ? text : text.Substring(0, idx);
+
+				var num = Text.CalcHeight("x", list.ColumnWidth);
+				var rect = new Rect(list.curX, list.curY, list.ColumnWidth, num);
+				Widgets.Label(rect, part);
+				list.curX += part.GetWidthCached();
+				if (i == 4)
+					break;
+
+				list.MiniButton(i % 2 == 0 ? Constants.MinusButton : Constants.PlusButton, () =>
+				{
+					switch (i)
+					{
+						case 0:
+							if (exampleMeleeSkill > 0) exampleMeleeSkill--;
+							break;
+						case 1:
+							exampleMeleeSkill++;
+							break;
+						case 2:
+							if (exampleZombieCount > 1) exampleZombieCount--;
+							break;
+						case 3:
+							exampleZombieCount++;
+							break;
+					}
+				});
+				list.curX += buttonWidth;
+
+				text = text.Substring(idx + buttonText.Length);
+			}
+
+			list.curX = 0;
+			list.Gap(12);
+		}
+
+		public static bool Section<T>(params string[] term)
+		{
+			var search = searchWidget.filter.Text.Trim().ToLower();
+			if (search == "") return true;
+			if (term.Any(t =>
+			{
+				if (t.StartsWith(":"))
+				{
+					t = t.Substring(1);
+					if (t.SafeTranslate().ToLower().Contains(search)) return true;
+					if ($"{t}_Help".SafeTranslate().ToLower().Contains(search)) return true;
+					return false;
+				}
+				return t.ToLower().Contains(search);
+			})) return true;
+			var type = typeof(T);
+			if (type != typeof(string))
+			{
+				if (type.Name.SafeTranslate().ToLower().Contains(search)) return true;
+				var choices = Enum.GetValues(type);
+				foreach (var choice in choices)
+				{
+					var label = type.Name + "_" + choice.ToString();
+					if (label.SafeTranslate().ToLower().Contains(search)) return true;
+					if ($"{label}_Help".SafeTranslate().ToLower().Contains(search)) return true;
+				}
+			}
+			return false;
+		}
+
+		public static QuickSearchWidget searchWidget = new QuickSearchWidget();
+		public static bool focusOnSearch = true;
 		public static Vector2 scrollPosition = Vector2.zero;
 		public static void DoWindowContentsInternal(ref SettingsGroup settings, Rect inRect)
 		{
@@ -497,173 +588,235 @@ namespace ZombieLand
 				list.Gap(10f);
 
 				// When?
-				list.Dialog_Enum("WhenDoZombiesSpawn", ref settings.spawnWhenType);
-				list.Gap(26f);
+				if (Section<SpawnWhenType>(":WhenDoZombiesSpawn"))
+				{
+					list.Dialog_Enum("WhenDoZombiesSpawn", ref settings.spawnWhenType);
+					list.Gap(26f);
+				}
 
 				// How?
-				list.Dialog_Enum("HowDoZombiesSpawn", ref settings.spawnHowType);
-				list.Gap(4);
-				ChooseWanderingStyle(list, settings);
-				list.Gap(30f);
+				if (Section<SpawnHowType>(":HowDoZombiesSpawn", ":SmartWandering"))
+				{
+					list.Dialog_Enum("HowDoZombiesSpawn", ref settings.spawnHowType);
+					list.Gap(4);
+					ChooseWanderingStyle(list, settings);
+					list.Gap(30f);
+				}
 
 				// Attack?
-				list.Dialog_Enum("WhatDoZombiesAttack", ref settings.attackMode);
-				list.Dialog_Checkbox("EnemiesAttackZombies", ref settings.enemiesAttackZombies);
-				list.Dialog_Checkbox("AnimalsAttackZombies", ref settings.animalsAttackZombies);
-				list.Gap(30f);
+				if (Section<AttackMode>(":WhatDoZombiesAttack", ":EnemiesAttackZombies", ":AnimalsAttackZombies"))
+				{
+					list.Dialog_Enum("WhatDoZombiesAttack", ref settings.attackMode);
+					list.Dialog_Checkbox("EnemiesAttackZombies", ref settings.enemiesAttackZombies);
+					list.Dialog_Checkbox("AnimalsAttackZombies", ref settings.animalsAttackZombies);
+					list.Gap(30f);
+				}
 
 				// Smash?
-				list.Dialog_Enum("WhatDoZombiesSmash", ref settings.smashMode);
-				if (settings.smashMode != SmashMode.Nothing)
+				if (Section<SmashMode>(":WhatDoZombiesSmash", ":SmashOnlyWhenAgitated"))
 				{
-					list.Dialog_Checkbox("SmashOnlyWhenAgitated", ref settings.smashOnlyWhenAgitated);
+					list.Dialog_Enum("WhatDoZombiesSmash", ref settings.smashMode);
+					if (settings.smashMode != SmashMode.Nothing)
+					{
+						list.Dialog_Checkbox("SmashOnlyWhenAgitated", ref settings.smashOnlyWhenAgitated);
+					}
+					list.Gap(30f);
 				}
-				list.Gap(30f);
 
 				// Senses
-				list.Dialog_Enum("ZombieInstinctTitle", ref settings.zombieInstinct);
-				list.Dialog_Checkbox("RagingZombies", ref settings.ragingZombies);
-				var rageLevelNames = new string[] { "RageLevelVeryLow", "RageLevelLow", "RageLevelNormal", "RageLevelHigh", "RageLevelVeryHigh" };
-				list.Gap(8f);
-				if (settings.ragingZombies)
-					list.Dialog_IntSlider("RageLevel", level => rageLevelNames[level - 1].Translate(), ref settings.zombieRageLevel, 1, 5);
-				list.Gap(22f);
+				if (Section<ZombieInstinct>(":ZombieInstinctTitle", ":RagingZombies", ":RageLevel"))
+				{
+					list.Dialog_Enum("ZombieInstinctTitle", ref settings.zombieInstinct);
+					list.Dialog_Checkbox("RagingZombies", ref settings.ragingZombies);
+					var rageLevelNames = new string[] { "RageLevelVeryLow", "RageLevelLow", "RageLevelNormal", "RageLevelHigh", "RageLevelVeryHigh" };
+					list.Gap(8f);
+					if (settings.ragingZombies)
+						list.Dialog_IntSlider("RageLevel", level => rageLevelNames[level - 1].Translate(), ref settings.zombieRageLevel, 1, 5);
+					list.Gap(22f);
+				}
 
 				// Health
-				list.Dialog_Label("ZombieHealthTitle", headerColor);
-				list.Dialog_Checkbox("DoubleTapRequired", ref settings.doubleTapRequired);
-				list.Dialog_Checkbox("ZombiesDieVeryEasily", ref settings.zombiesDieVeryEasily);
-				list.Gap(30f);
+				if (Section<string>(":ZombieHealthTitle", ":DoubleTapRequired", ":ZombiesDieVeryEasily"))
+				{
+					list.Dialog_Label("ZombieHealthTitle", headerColor);
+					list.Dialog_Checkbox("DoubleTapRequired", ref settings.doubleTapRequired);
+					list.Dialog_Checkbox("ZombiesDieVeryEasily", ref settings.zombiesDieVeryEasily);
+					list.Gap(30f);
+				}
 
 				// Eating
-				list.Dialog_Label("ZombieEatingTitle", headerColor);
-				list.Dialog_Checkbox("ZombiesEatDowned", ref settings.zombiesEatDowned);
-				list.Dialog_Checkbox("ZombiesEatCorpses", ref settings.zombiesEatCorpses);
-				list.Gap(30f);
+				if (Section<string>(":ZombieEatingTitle", ":ZombiesEatDowned", ":ZombiesEatCorpses"))
+				{
+					list.Dialog_Label("ZombieEatingTitle", headerColor);
+					list.Dialog_Checkbox("ZombiesEatDowned", ref settings.zombiesEatDowned);
+					list.Dialog_Checkbox("ZombiesEatCorpses", ref settings.zombiesEatCorpses);
+					list.Gap(30f);
+				}
 
 				// Types
-				list.Dialog_Label("SpecialZombiesTitle", headerColor);
-				list.Gap(8f);
-				var allMax = Mathf.Max(0.04f, settings.suicideBomberChance, settings.toxicSplasherChance, settings.tankyOperatorChance, settings.minerChance, settings.electrifierChance, settings.albinoChance, settings.darkSlimerChance, settings.healerChance);
-				var max = Mathf.Min(1f, 2f * allMax);
-				list.Dialog_FloatSlider("SuicideBomberChance", _ => "{0:0.00%}", false, ref settings.suicideBomberChance, 0f, Mathf.Min(max, 1f - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-				list.Dialog_FloatSlider("ToxicSplasherChance", _ => "{0:0.00%}", false, ref settings.toxicSplasherChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-				list.Dialog_FloatSlider("TankyOperatorChance", _ => "{0:0.00%}", false, ref settings.tankyOperatorChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-				list.Dialog_FloatSlider("MinerChance", _ => "{0:0.00%}", false, ref settings.minerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-				list.Dialog_FloatSlider("ElectrifierChance", _ => "{0:0.00%}", false, ref settings.electrifierChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-				list.Dialog_FloatSlider("AlbinoChance", _ => "{0:0.00%}", false, ref settings.albinoChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.darkSlimerChance - settings.healerChance));
-				list.Dialog_FloatSlider("DarkSlimerChance", _ => "{0:0.00%}", false, ref settings.darkSlimerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.healerChance));
-				list.Dialog_FloatSlider("HealerChance", _ => "{0:0.00%}", false, ref settings.healerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance));
-				var normalChance = 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance;
-				list.Gap(-6f);
-				list.Dialog_Text(GameFont.Tiny, "NormalZombieChance", string.Format("{0:0.00%}", normalChance));
-				list.Gap(30f);
+				if (Section<string>(":SpecialZombiesTitle", ":SuicideBomberChance", ":ToxicSplasherChance", ":TankyOperatorChance", ":MinerChance", ":ElectrifierChance", ":AlbinoChance", ":DarkSlimerChance", ":HealerChance", ":NormalZombieChance"))
+				{
+					list.Dialog_Label("SpecialZombiesTitle", headerColor);
+					list.Gap(8f);
+					var allMax = Mathf.Max(0.04f, settings.suicideBomberChance, settings.toxicSplasherChance, settings.tankyOperatorChance, settings.minerChance, settings.electrifierChance, settings.albinoChance, settings.darkSlimerChance, settings.healerChance);
+					var max = Mathf.Min(1f, 2f * allMax);
+					list.Dialog_FloatSlider("SuicideBomberChance", _ => "{0:0.00%}", false, ref settings.suicideBomberChance, 0f, Mathf.Min(max, 1f - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
+					list.Dialog_FloatSlider("ToxicSplasherChance", _ => "{0:0.00%}", false, ref settings.toxicSplasherChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
+					list.Dialog_FloatSlider("TankyOperatorChance", _ => "{0:0.00%}", false, ref settings.tankyOperatorChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
+					list.Dialog_FloatSlider("MinerChance", _ => "{0:0.00%}", false, ref settings.minerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
+					list.Dialog_FloatSlider("ElectrifierChance", _ => "{0:0.00%}", false, ref settings.electrifierChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
+					list.Dialog_FloatSlider("AlbinoChance", _ => "{0:0.00%}", false, ref settings.albinoChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.darkSlimerChance - settings.healerChance));
+					list.Dialog_FloatSlider("DarkSlimerChance", _ => "{0:0.00%}", false, ref settings.darkSlimerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.healerChance));
+					list.Dialog_FloatSlider("HealerChance", _ => "{0:0.00%}", false, ref settings.healerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance));
+					var normalChance = 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance;
+					list.Gap(-6f);
+					list.Dialog_Text(GameFont.Tiny, "NormalZombieChance", string.Format("{0:0.00%}", normalChance));
+					list.Gap(30f);
+				}
 
 				// Days
-				list.Dialog_Label("NewGameTitle", headerColor);
-				list.Dialog_Integer("DaysBeforeZombiesCome", null, 0, 100, ref settings.daysBeforeZombiesCome);
-				list.Gap(34f);
+				if (Section<string>(":NewGameTitle", ":DaysBeforeZombiesCome"))
+				{
+					list.Dialog_Label("NewGameTitle", headerColor);
+					list.Dialog_Integer("DaysBeforeZombiesCome", null, 0, 100, ref settings.daysBeforeZombiesCome);
+					list.Gap(34f);
+				}
 
 				// Total
-				list.Dialog_Label("ZombiesOnTheMap", headerColor);
-				list.Dialog_Integer("MaximumNumberOfZombies", "Zombies", 0, 5000, ref settings.maximumNumberOfZombies);
-				list.Gap(8f);
-				list.Dialog_FloatSlider("ColonyMultiplier", _ => "{0:0.0}x", false, ref settings.colonyMultiplier, 1f, 10f);
-				list.Gap(28f);
-
-				list.Dialog_Label("DynamicThreatLevelTitle", headerColor);
-				list.Gap(8f);
-				list.Dialog_Checkbox("UseDynamicThreatLevel", ref settings.useDynamicThreatLevel);
-				if (settings.useDynamicThreatLevel)
+				if (Section<string>(":ZombiesOnTheMap", ":MaximumNumberOfZombies", ":ColonyMultiplier"))
 				{
+					list.Dialog_Label("ZombiesOnTheMap", headerColor);
+					list.Dialog_Integer("MaximumNumberOfZombies", "Zombies", 0, 5000, ref settings.maximumNumberOfZombies);
 					list.Gap(8f);
-					list.Dialog_FloatSlider("DynamicThreatSmoothness", _ => "{0:0%}", false, ref settings.dynamicThreatSmoothness, 1f, 5f, f => (f - 1f) / 4f);
-					list.Gap(-4f);
-					list.Dialog_FloatSlider("DynamicThreatStretch", _ => "{0:0%}", false, ref settings.dynamicThreatStretch, 10f, 30f, f => (f - 10f) / 20f);
-					list.Gap(-6f);
-					list.Dialog_Checkbox("ZombiesDieOnZeroThreat", ref settings.zombiesDieOnZeroThreat);
+					list.Dialog_FloatSlider("ColonyMultiplier", _ => "{0:0.0}x", false, ref settings.colonyMultiplier, 1f, 10f);
+					list.Gap(28f);
 				}
-				list.Gap(28f);
+
+				if (Section<string>(":DynamicThreatLevelTitle", ":UseDynamicThreatLevel", ":DynamicThreatSmoothness", ":DynamicThreatStretch", ":ZombiesDieOnZeroThreat"))
+				{
+					list.Dialog_Label("DynamicThreatLevelTitle", headerColor);
+					list.Gap(8f);
+					list.Dialog_Checkbox("UseDynamicThreatLevel", ref settings.useDynamicThreatLevel);
+					if (settings.useDynamicThreatLevel)
+					{
+						list.Gap(8f);
+						list.Dialog_FloatSlider("DynamicThreatSmoothness", _ => "{0:0%}", false, ref settings.dynamicThreatSmoothness, 1f, 5f, f => (f - 1f) / 4f);
+						list.Gap(-4f);
+						list.Dialog_FloatSlider("DynamicThreatStretch", _ => "{0:0%}", false, ref settings.dynamicThreatStretch, 10f, 30f, f => (f - 10f) / 20f);
+						list.Gap(-6f);
+						list.Dialog_Checkbox("ZombiesDieOnZeroThreat", ref settings.zombiesDieOnZeroThreat);
+					}
+					list.Gap(28f);
+				}
 
 				// Events
-				list.Dialog_Label("ZombieEventTitle", headerColor);
-				list.Dialog_Integer("ZombiesPerColonistInEvent", null, 0, 200, ref settings.baseNumberOfZombiesinEvent);
-				list.Dialog_Integer("ExtraDaysBetweenEvents", null, 0, 10000, ref settings.extraDaysBetweenEvents);
-				list.Gap(12f);
-				list.Dialog_FloatSlider("InfectedRaidsChance", f => f == 0 ? "Off".TranslateSimple() : "{0:0.0%}", true, ref settings.infectedRaidsChance, 0f, 1f);
-				list.Gap(28f);
+				if (Section<string>(":ZombieEventTitle", ":ZombiesPerColonistInEvent", ":ExtraDaysBetweenEvents", ":InfectedRaidsChance"))
+				{
+					list.Dialog_Label("ZombieEventTitle", headerColor);
+					list.Dialog_Integer("ZombiesPerColonistInEvent", null, 0, 200, ref settings.baseNumberOfZombiesinEvent);
+					list.Dialog_Integer("ExtraDaysBetweenEvents", null, 0, 10000, ref settings.extraDaysBetweenEvents);
+					list.Gap(12f);
+					list.Dialog_FloatSlider("InfectedRaidsChance", f => f == 0 ? "Off".TranslateSimple() : "{0:0.0%}", true, ref settings.infectedRaidsChance, 0f, 1f);
+					list.Gap(28f);
+				}
 
 				// Speed
-				list.Dialog_Label("ZombieSpeedTitle", headerColor);
-				list.Gap(8f);
-				list.Dialog_FloatSlider("MoveSpeedIdle", _ => "{0:0.00}x", false, ref settings.moveSpeedIdle, 0.01f, 2f);
-				list.Dialog_FloatSlider("MoveSpeedTracking", _ => "{0:0.00}x", false, ref settings.moveSpeedTracking, 0.05f, 3f);
-				list.Gap(24f);
+				if (Section<string>(":ZombieSpeedTitle", ":MoveSpeedIdle", ":MoveSpeedTracking"))
+				{
+					list.Dialog_Label("ZombieSpeedTitle", headerColor);
+					list.Gap(8f);
+					list.Dialog_FloatSlider("MoveSpeedIdle", _ => "{0:0.00}x", false, ref settings.moveSpeedIdle, 0.01f, 2f);
+					list.Dialog_FloatSlider("MoveSpeedTracking", _ => "{0:0.00}x", false, ref settings.moveSpeedTracking, 0.05f, 3f);
+					list.Gap(24f);
+				}
 
 				// Damage
-				list.Dialog_Label("ZombieDamageTitle", headerColor);
-				list.Gap(8f);
-				list.Dialog_FloatSlider("ZombieDamageFactor", _ => "{0:0.0}x", false, ref settings.damageFactor, 0.1f, 4f);
-				list.Gap(-4f);
-				list.Dialog_IntSlider("SafeMeleeLimit", n => n == 0 ? "Off".TranslateSimple() : n.ToString(), ref settings.safeMeleeLimit, 0, 4);
-				list.Gap(-4f);
-				list.Dialog_Checkbox("ZombiesCauseManhunting", ref settings.zombiesCauseManhuntingResponse);
-				list.Gap(36f);
+				if (Section<string>(":ZombieDamageTitle", ":ZombieDamageFactor", ":SafeMeleeLimit", ":ZombiesCauseManhunting"))
+				{
+					list.Dialog_Label("ZombieDamageTitle", headerColor);
+					list.Gap(8f);
+					list.Dialog_FloatSlider("ZombieDamageFactor", _ => "{0:0.0}x", false, ref settings.damageFactor, 0.1f, 4f);
+					list.Dialog_IntSlider("SafeMeleeLimit", n => n == 0 ? "Off".TranslateSimple() : n.ToString(), ref settings.safeMeleeLimit, 0, 4);
+					if (settings.safeMeleeLimit > 0)
+					{
+						list.Gap(-2f);
+						ExplainSafeMelee(list, settings.safeMeleeLimit);
+						list.Gap(12f);
+					}
+					list.Gap(6f);
+					list.Dialog_Checkbox("ZombiesCauseManhunting", ref settings.zombiesCauseManhuntingResponse);
+					list.Gap(36f);
+				}
 
 				// Tweaks
-				list.Dialog_Label("ZombieGameTweaks", headerColor);
-				list.Gap(8f);
-				list.Dialog_FloatSlider("ReduceTurretConsumption", _ => "{0:0%}", false, ref settings.reducedTurretConsumption, 0f, 1f);
-				list.Gap(28f);
+				if (Section<string>(":ZombieGameTweaks", ":ReduceTurretConsumption"))
+				{
+					list.Dialog_Label("ZombieGameTweaks", headerColor);
+					list.Gap(8f);
+					list.Dialog_FloatSlider("ReduceTurretConsumption", _ => "{0:0%}", false, ref settings.reducedTurretConsumption, 0f, 1f);
+					list.Gap(28f);
+				}
 
 				// Infections
-				list.Dialog_Label("ZombieInfection", headerColor);
-				list.Gap(8f);
-				list.Dialog_FloatSlider("ZombieBiteInfectionChance", _ => "{0:0%}", false, ref settings.zombieBiteInfectionChance, 0f, 1f);
-				list.Dialog_TimeSlider("ZombieBiteInfectionUnknown", ref settings.hoursInfectionIsUnknown, 0, 48);
-				list.Dialog_TimeSlider("ZombieBiteInfectionTreatable", ref settings.hoursInfectionIsTreatable, 0, 6 * 24);
-				list.Dialog_TimeSlider("ZombieBiteInfectionPersists", ref settings.hoursInfectionPersists, 0, 30 * 24, null, true);
-				list.Gap(-4f);
-				list.Dialog_Checkbox("AnyTreatmentStopsInfection", ref settings.anyTreatmentStopsInfection);
-				list.Gap(22f);
-				static string hoursTranslator(int n) => n == -1 ? "Off".Translate() : (n == 0 ? "Immediately".Translate() : null);
-				list.Dialog_TimeSlider("HoursAfterDeathToBecomeZombie", ref settings.hoursAfterDeathToBecomeZombie, -1, 6 * 24, hoursTranslator, false);
-				if (settings.hoursAfterDeathToBecomeZombie > -1)
+				if (Section<string>(":ZombieInfection", ":ZombieBiteInfectionChance", ":ZombieBiteInfectionUnknown", ":ZombieBiteInfectionTreatable", ":ZombieBiteInfectionTreatable", ":ZombieBiteInfectionPersists", ":AnyTreatmentStopsInfection", ":HoursAfterDeathToBecomeZombie", ":DeadBecomesZombieMessage"))
 				{
+					list.Dialog_Label("ZombieInfection", headerColor);
+					list.Gap(8f);
+					list.Dialog_FloatSlider("ZombieBiteInfectionChance", _ => "{0:0%}", false, ref settings.zombieBiteInfectionChance, 0f, 1f);
+					list.Dialog_TimeSlider("ZombieBiteInfectionUnknown", ref settings.hoursInfectionIsUnknown, 0, 48);
+					list.Dialog_TimeSlider("ZombieBiteInfectionTreatable", ref settings.hoursInfectionIsTreatable, 0, 6 * 24);
+					list.Dialog_TimeSlider("ZombieBiteInfectionPersists", ref settings.hoursInfectionPersists, 0, 30 * 24, null, true);
 					list.Gap(-4f);
-					list.Dialog_Checkbox("DeadBecomesZombieMessage", ref settings.deadBecomesZombieMessage);
+					list.Dialog_Checkbox("AnyTreatmentStopsInfection", ref settings.anyTreatmentStopsInfection);
+					list.Gap(22f);
+					static string hoursTranslator(int n) => n == -1 ? "Off".Translate() : (n == 0 ? "Immediately".Translate() : null);
+					list.Dialog_TimeSlider("HoursAfterDeathToBecomeZombie", ref settings.hoursAfterDeathToBecomeZombie, -1, 6 * 24, hoursTranslator, false);
+					if (settings.hoursAfterDeathToBecomeZombie > -1)
+					{
+						list.Gap(-4f);
+						list.Dialog_Checkbox("DeadBecomesZombieMessage", ref settings.deadBecomesZombieMessage);
+					}
+					list.Gap(30f);
 				}
-				list.Gap(30f);
 
 				// Zombie loot
-				list.Dialog_Label("ZombieHarvestingTitle", headerColor);
-				list.Gap(8f);
-				var f1 = Mathf.Round(settings.corpsesExtractAmount * 100f) / 100f;
-				list.Dialog_FloatSlider("CorpsesExtractAmount", f => ExtractAmount(f), false, ref f1, 0, 4);
-				settings.corpsesExtractAmount = Mathf.Round(f1 * 100f) / 100f;
-				var f2 = Mathf.Round(settings.lootExtractAmount * 100f) / 100f;
-				list.Dialog_FloatSlider("LootExtractAmount", f => ExtractAmount(f), false, ref f2, 0, 4);
-				settings.lootExtractAmount = Mathf.Round(f2 * 100f) / 100f;
-				list.Dialog_TimeSlider("CorpsesDaysToDessicated", ref settings.corpsesHoursToDessicated, 1, 120);
-				ChooseExtractArea(list, settings);
-				list.Gap(28f);
+				if (Section<string>(":ZombieHarvestingTitle", ":CorpsesExtractAmount", ":LootExtractAmount", ":CorpsesDaysToDessicated"))
+				{
+					list.Dialog_Label("ZombieHarvestingTitle", headerColor);
+					list.Gap(8f);
+					var f1 = Mathf.Round(settings.corpsesExtractAmount * 100f) / 100f;
+					list.Dialog_FloatSlider("CorpsesExtractAmount", f => ExtractAmount(f), false, ref f1, 0, 4);
+					settings.corpsesExtractAmount = Mathf.Round(f1 * 100f) / 100f;
+					var f2 = Mathf.Round(settings.lootExtractAmount * 100f) / 100f;
+					list.Dialog_FloatSlider("LootExtractAmount", f => ExtractAmount(f), false, ref f2, 0, 4);
+					settings.lootExtractAmount = Mathf.Round(f2 * 100f) / 100f;
+					list.Dialog_TimeSlider("CorpsesDaysToDessicated", ref settings.corpsesHoursToDessicated, 1, 120);
+					ChooseExtractArea(list, settings);
+					list.Gap(28f);
+				}
 
 				// Miscellaneous
-				list.Dialog_Label("ZombieMiscTitle", headerColor);
-				list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);
-				list.Dialog_Checkbox("ReplaceTwinkie", ref settings.replaceTwinkie);
-				list.Dialog_Checkbox("PlayCreepyAmbientSound", ref settings.playCreepyAmbientSound);
-				list.Dialog_Checkbox("BetterZombieAvoidance", ref settings.betterZombieAvoidance);
-				list.Dialog_Checkbox("ZombiesDropBlood", ref settings.zombiesDropBlood);
-				list.Dialog_Checkbox("ZombiesBurnLonger", ref settings.zombiesBurnLonger);
-				list.Dialog_Checkbox("ShowHealthBar", ref settings.showHealthBar);
-				list.Gap(30f);
+				if (Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":PlayCreepyAmbientSound", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":ShowHealthBar"))
+				{
+					list.Dialog_Label("ZombieMiscTitle", headerColor);
+					list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);
+					list.Dialog_Checkbox("ReplaceTwinkie", ref settings.replaceTwinkie);
+					list.Dialog_Checkbox("PlayCreepyAmbientSound", ref settings.playCreepyAmbientSound);
+					list.Dialog_Checkbox("BetterZombieAvoidance", ref settings.betterZombieAvoidance);
+					list.Dialog_Checkbox("ZombiesDropBlood", ref settings.zombiesDropBlood);
+					list.Dialog_Checkbox("ZombiesBurnLonger", ref settings.zombiesBurnLonger);
+					list.Dialog_Checkbox("ShowHealthBar", ref settings.showHealthBar);
+					list.Gap(30f);
+				}
 
 				// Actions
-				list.Dialog_Label("ZombieActionsTitle", headerColor);
-				list.Gap(8f);
-				list.Dialog_Button("ZombieSettingsReset", "ResetButton", false, settings.Reset);
-				if (inGame) list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Dialog_SaveThenUninstall.Run);
+				if (Section<string>(":ZombieActionsTitle", ":ZombieSettingsReset", ":UninstallZombieland"))
+				{
+					list.Dialog_Label("ZombieActionsTitle", headerColor);
+					list.Gap(8f);
+					list.Dialog_Button("ZombieSettingsReset", "ResetButton", false, settings.Reset);
+					if (inGame) list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Dialog_SaveThenUninstall.Run);
+				}
 			}
 
 			list.End();
@@ -708,6 +861,20 @@ namespace ZombieLand
 
 				list.End();
 			}
+
+			GUI.EndGroup();
+			var searchRect = inRect;
+			searchRect.yMin = searchRect.yMax + 20 + 20;
+			searchRect.height = 35;
+			searchRect.xMin += 20;
+			searchRect.width = 350;
+			searchWidget.OnGUI(searchRect, () => scrollPosition = Vector2.zero);
+			if (focusOnSearch)
+			{
+				focusOnSearch = false;
+				GUI.FocusControl(searchWidget.controlName);
+			}
+			GUI.BeginGroup(Rect.zero);
 		}
 	}
 }
