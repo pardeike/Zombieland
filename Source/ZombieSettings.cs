@@ -113,6 +113,7 @@ namespace ZombieLand
 		public bool zombiesBurnLonger = true;
 		public float reducedTurretConsumption = 0f;
 		public bool zombiesCauseManhuntingResponse = true;
+		public int safeMeleeLimit = 1;
 		public WanderingStyle wanderingStyle = WanderingStyle.Smart;
 		public bool showHealthBar = true;
 

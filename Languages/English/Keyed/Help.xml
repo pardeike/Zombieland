@@ -66,6 +66,7 @@
 
 	<ZombieDamageTitle_Help>Change what happens when zombies attack other creatures.</ZombieDamageTitle_Help>
 	<ZombieDamageFactor_Help>A large multiplier will increase their strength which will allow them to overcome others easily. Very useful for mech raids but will deteriorate your walls and doors quicker (if you have that turned on).</ZombieDamageFactor_Help>
+	<SafeMeleeLimit_Help>The number of zombies that can be fought simultaneously in a melee fight before the defender is overwhelmed and starts getting bitten.\n\nTank zombies count as two zombies and defenders melee level 0-20 gives you 0-100% chance to block a bite (better with less zombies than the limit)</SafeMeleeLimit_Help>
 	<ZombiesCauseManhunting_Help>Will animals become manhunters when attacked by zombies?</ZombiesCauseManhunting_Help>
 
 	<!-- -->

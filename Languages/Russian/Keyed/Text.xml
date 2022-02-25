@@ -69,6 +69,7 @@
 
 	<ZombieDamageTitle>Урон зомби</ZombieDamageTitle>
 	<ZombieDamageFactor>Множетель урон</ZombieDamageFactor>
+	<SafeMeleeLimit>безопасный лимит рукопашного боя</SafeMeleeLimit>
 	<ZombiesCauseManhunting>Зомби злить животных</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>Игра твики</ZombieGameTweaks>

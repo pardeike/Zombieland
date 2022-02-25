@@ -69,6 +69,7 @@
 
 	<ZombieDamageTitle>Zombieschaden</ZombieDamageTitle>
 	<ZombieDamageFactor>Schadenmultiplikator</ZombieDamageFactor>
+	<SafeMeleeLimit>Sichere Anzahl für einen Nahkampf</SafeMeleeLimit>
 	<ZombiesCauseManhunting>Zombies verärgern Tiere</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>Spielveränderungen</ZombieGameTweaks>

@@ -69,6 +69,7 @@
 
 	<ZombieDamageTitle>僵尸伤害</ZombieDamageTitle>
 	<ZombieDamageFactor>伤害倍乘数</ZombieDamageFactor>
+	<SafeMeleeLimit>安全近战极限</SafeMeleeLimit>
 	<ZombiesCauseManhunting>僵尸触发动物</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>游戏调整</ZombieGameTweaks>

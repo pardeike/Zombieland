@@ -463,6 +463,22 @@
 		</mote>
 	</ThingDef>
 
+	<ThingDef ParentName="MoteBase">
+		<defName>Mote_Block</defName>
+		<thingClass>MoteAttached</thingClass>
+		<graphicData>
+			<texPath>Block</texPath>
+		</graphicData>
+		<altitudeLayer>MetaOverlays</altitudeLayer>
+		<mote>
+			<fadeInTime>0.2</fadeInTime>
+			<solidTime>0.2</solidTime>
+			<fadeOutTime>0.3</fadeOutTime>
+			<growthRate>0.4</growthRate>
+			<attachedDrawOffset>(0,0.5,0)</attachedDrawOffset>
+		</mote>
+	</ThingDef>
+
 	<ThingDef ParentName="BuildingBase">
 		<defName>ZombieShocker</defName>
 		<label>zombie shocker</label>

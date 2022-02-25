@@ -819,6 +819,54 @@ namespace ZombieLand
 			}
 		}
 
+		// smart melee skips bites 
+		//
+		[HarmonyPatch(typeof(Verb_MeleeAttack))]
+		[HarmonyPatch(nameof(Verb_MeleeAttack.TryCastShot))]
+		static class Verb_MeleeAttack_TryCastShot_Patch
+		{
+			static bool Prefix(Verb_MeleeAttack __instance, ref bool __result)
+			{
+				var limit = ZombieSettings.Values.safeMeleeLimit;
+				if (limit == 0) return true;
+
+				var thing = __instance.currentTarget.Thing;
+
+				if (!(__instance.CasterPawn is Zombie zombie)) return true;
+				if (!(thing is Pawn pawn)) return true;
+
+				if (pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation) == false) return true;
+				if (pawn.WorkTagIsDisabled(WorkTags.Violent)) return true;
+				if (pawn.meleeVerbs.curMeleeVerb.Available() == false) return true;
+				if (pawn.Downed || pawn.GetPosture() > PawnPosture.Standing) return true;
+				// allow mentally broken colonists to use smart melee: if (pawn.mindState.mentalStateHandler.InMentalState) return true;
+
+				var pos = pawn.Position;
+				var vecs = GenAdj.AdjacentCellsAround;
+				var thingGrid = pawn.Map.thingGrid;
+				var concurrentAttacks = GenAdj.AdjacentCellsAround
+					.SelectMany(vec => thingGrid.ThingsAt(pos + vec))
+					.OfType<Zombie>()
+					.Select(zombie => zombie.CurJob)
+					.Where(job => job?.def == JobDefOf.AttackMelee)
+					.Sum(job => job.targetA.Thing == pawn ? (zombie.IsTanky ? 2 : 1) : 0);
+				if (concurrentAttacks <= limit)
+					if (__instance.GetDamageDef() == CustomDefs.ZombieBite)
+					{
+						var level = pawn.skills.GetSkill(SkillDefOf.Melee).Level * (limit - concurrentAttacks + 1);
+						if (Rand.Chance(level / 20f))
+						{
+							pawn.rotationTracker.Face(zombie.DrawPos);
+							CustomDefs.Smash.PlayOneShot(new TargetInfo(pawn.Position, pawn.Map, false));
+							Tools.CastBlockBubble(zombie, pawn);
+							__result = false;
+							return false;
+						}
+					}
+				return true;
+			}
+		}
+
 		// patch to increase hit chance for shooting at zombies
 		//
 		[HarmonyPatch(typeof(Verb_LaunchProjectile))]
@@ -989,7 +1037,7 @@ namespace ZombieLand
 			static void Postfix(List<VerbEntry> __result, Pawn ___pawn)
 			{
 				if (___pawn is Zombie zombie && (zombie.isElectrifier || zombie.isAlbino))
-					_ = __result.RemoveAll(entry => entry.verb.GetDamageDef() == Tools.ZombieBiteDamageDef);
+					_ = __result.RemoveAll(entry => entry.verb.GetDamageDef() == CustomDefs.ZombieBite);
 			}
 		}
 
@@ -1012,7 +1060,7 @@ namespace ZombieLand
 				var smokepopBelt = apparel.OfType<SmokepopBelt>().FirstOrDefault();
 				if (smokepopBelt != null)
 				{
-					damageInfo = new DamageInfo(Tools.ElectricalShockDamageDef, 1f, 0f, -1f, zombie, null, Tools.ElectricalFieldThingDef);
+					damageInfo = new DamageInfo(CustomDefs.ElectricalShock, 1f, 0f, -1f, zombie, null, CustomDefs.ElectricalField);
 					zombie.ElectrifyAnimation();
 					return;
 				}
@@ -1021,7 +1069,7 @@ namespace ZombieLand
 				if (shieldBelt != null)
 				{
 					if (shieldBelt.Energy > 0)
-						damageInfo = new DamageInfo(DamageDefOf.EMP, 1f, 0f, -1f, zombie, null, Tools.ElectricalFieldThingDef);
+						damageInfo = new DamageInfo(DamageDefOf.EMP, 1f, 0f, -1f, zombie, null, CustomDefs.ElectricalField);
 					else
 						shieldBelt.Destroy();
 

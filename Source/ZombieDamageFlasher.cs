@@ -42,7 +42,7 @@ namespace ZombieLand
 		static void Postfix(DamageFlasher __instance, Material baseMat, Material __result)
 		{
 			if (__instance is ZombieDamageFlasher zombieDamageFlasher
-				&& zombieDamageFlasher.dinfoDef == Tools.ZombieBiteDamageDef
+				&& zombieDamageFlasher.dinfoDef == CustomDefs.ZombieBite
 				&& __result != null)
 			{
 				var damPct = DamageFlashTicksLeft(__instance) / 16f;

@@ -69,6 +69,7 @@
 
 	<ZombieDamageTitle>Zombi hasarı</ZombieDamageTitle>
 	<ZombieDamageFactor>Hasar çarpan</ZombieDamageFactor>
+	<SafeMeleeLimit>Güvenli yakın muharebe limiti</SafeMeleeLimit>
 	<ZombiesCauseManhunting>Zombiler hayvanları kızdırıyor</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>Oyun ince ayarlar</ZombieGameTweaks>

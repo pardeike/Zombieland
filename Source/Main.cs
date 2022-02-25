@@ -13,8 +13,10 @@ namespace ZombieLand
 	[DefOf]
 	public static class CustomDefs
 	{
+		public static DamageDef ZombieBite;
 		public static DamageDef SuicideBomb;
 		public static DamageDef ToxicSplatter;
+		public static DamageDef ElectricalShock;
 		public static SoundDef Bzzt;
 		public static SoundDef ElectricShock;
 		public static SoundDef Hacking;
@@ -51,7 +53,9 @@ namespace ZombieLand
 		public static ThingDef ZombieZapB;
 		public static ThingDef ZombieZapC;
 		public static ThingDef ZombieZapD;
+		public static ThingDef ElectricalField;
 		public static ThingDef Apparel_BombVest;
+		public static ThingDef Mote_Block;
 		public static HediffDef ZombieInfection;
 		public static LetterDef ColonistTurnedZombie;
 		public static LetterDef OtherTurnedZombie;

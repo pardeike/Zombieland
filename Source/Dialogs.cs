@@ -479,7 +479,7 @@ namespace ZombieLand
 			var secondColumnWidth = inRect.width - Listing.ColumnSpacing - firstColumnWidth;
 
 			var outerRect = new Rect(inRect.x, inRect.y, firstColumnWidth, inRect.height);
-			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, 3200);
+			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, 3300);
 			Widgets.BeginScrollView(outerRect, ref scrollPosition, innerRect, true);
 
 			currentHelpItem = null;
@@ -604,6 +604,8 @@ namespace ZombieLand
 				list.Dialog_Label("ZombieDamageTitle", headerColor);
 				list.Gap(8f);
 				list.Dialog_FloatSlider("ZombieDamageFactor", _ => "{0:0.0}x", false, ref settings.damageFactor, 0.1f, 4f);
+				list.Gap(-4f);
+				list.Dialog_IntSlider("SafeMeleeLimit", n => n == 0 ? "Off".TranslateSimple() : n.ToString(), ref settings.safeMeleeLimit, 0, 4);
 				list.Gap(-4f);
 				list.Dialog_Checkbox("ZombiesCauseManhunting", ref settings.zombiesCauseManhuntingResponse);
 				list.Gap(36f);

@@ -158,7 +158,7 @@ namespace ZombieLand
 
 					bite.mayBecomeZombieWhenDead = true;
 					bite.TendDuration.ZombieInfector.MakeHarmfull();
-					var damageInfo = new DamageInfo(Tools.ZombieBiteDamageDef, 2);
+					var damageInfo = new DamageInfo(CustomDefs.ZombieBite, 2);
 					pawn.health.AddHediff(bite, bodyPart, damageInfo);
 				}
 			}, highlightedIndex == i++);

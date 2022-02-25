@@ -46,61 +46,6 @@ namespace ZombieLand
 		public static List<Region> cachedPlayerReachableRegions = new List<Region>();
 		public static int nextPlayerReachableRegionsUpdate = 0;
 
-		private static DamageDef _zombieBiteDamageDef;
-		public static DamageDef ZombieBiteDamageDef
-		{
-			get
-			{
-				if (_zombieBiteDamageDef == null)
-					_zombieBiteDamageDef = DefDatabase<DamageDef>.GetNamed("ZombieBite");
-				return _zombieBiteDamageDef;
-			}
-		}
-
-		private static DamageDef _suicideBombDamageDef;
-		public static DamageDef SuicideBombDamageDef
-		{
-			get
-			{
-				if (_suicideBombDamageDef == null)
-					_suicideBombDamageDef = DefDatabase<DamageDef>.GetNamed("SuicideBomb");
-				return _suicideBombDamageDef;
-			}
-		}
-
-		private static DamageDef _toxicSplatterDamageDef;
-		public static DamageDef ToxicSplatterDamageDef
-		{
-			get
-			{
-				if (_toxicSplatterDamageDef == null)
-					_toxicSplatterDamageDef = DefDatabase<DamageDef>.GetNamed("ToxicSplatter");
-				return _toxicSplatterDamageDef;
-			}
-		}
-
-		private static DamageDef _electricalShockDamageDef;
-		public static DamageDef ElectricalShockDamageDef
-		{
-			get
-			{
-				if (_electricalShockDamageDef == null)
-					_electricalShockDamageDef = DefDatabase<DamageDef>.GetNamed("ElectricalShock");
-				return _electricalShockDamageDef;
-			}
-		}
-
-		private static ThingDef _electricalFieldThingDef;
-		public static ThingDef ElectricalFieldThingDef
-		{
-			get
-			{
-				if (_electricalFieldThingDef == null)
-					_electricalFieldThingDef = DefDatabase<ThingDef>.GetNamed("ElectricalField");
-				return _electricalFieldThingDef;
-			}
-		}
-
 		private static bool _sosOuterSpaceBiomeDefChecked = false;
 		private static BiomeDef _sosOuterSpaceBiomeDef;
 		public static BiomeDef SoSOuterSpaceBiomeDef
@@ -670,7 +615,7 @@ namespace ZombieLand
 			var bite = (Hediff_Injury_ZombieBite)HediffMaker.MakeHediff(HediffDef.Named("ZombieBite"), pawn, torso);
 
 			bite.mayBecomeZombieWhenDead = true;
-			var damageInfo = new DamageInfo(ZombieBiteDamageDef, 0);
+			var damageInfo = new DamageInfo(CustomDefs.ZombieBite, 0);
 			pawn.health.AddHediff(bite, torso, damageInfo);
 			bite.Tended(1, 1);
 			bite.TendDuration.ZombieInfector.ForceFinalStage();
@@ -1062,6 +1007,14 @@ namespace ZombieLand
 			newThing.iconMat = material;
 			newThing.Attach(pawn);
 			_ = GenSpawn.Spawn(newThing, pawn.Position, pawn.Map);
+		}
+
+		public static void CastBlockBubble(Pawn attacker, Pawn defender)
+		{
+			var block = (MoteAttached)ThingMaker.MakeThing(CustomDefs.Mote_Block, null);
+			block.Scale = 0.4f;
+			block.Attach(defender, (attacker.DrawPos - defender.DrawPos) * 0.25f);
+			_ = GenSpawn.Spawn(block, defender.Position, defender.Map, WipeMode.Vanish);
 		}
 
 		static readonly float[] halfToDouble = { 0.5f, 1.0f, 2.0f };
