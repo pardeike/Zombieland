@@ -70,6 +70,7 @@
 	<ZombieDamageTitle>Zombieschaden</ZombieDamageTitle>
 	<ZombieDamageFactor>Schadenmultiplikator</ZombieDamageFactor>
 	<SafeMeleeLimit>Sichere Anzahl für einen Nahkampf</SafeMeleeLimit>
+	<SafeMeleeExample>Beispiel: [_]{0}[_] Nahkampflevel, [_]{1}[_] Zombies => {2}% Chance</SafeMeleeExample>
 	<ZombiesCauseManhunting>Zombies verärgern Tiere</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>Spielveränderungen</ZombieGameTweaks>

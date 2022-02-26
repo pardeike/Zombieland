@@ -70,6 +70,7 @@
 	<ZombieDamageTitle>Zombi hasarı</ZombieDamageTitle>
 	<ZombieDamageFactor>Hasar çarpan</ZombieDamageFactor>
 	<SafeMeleeLimit>Güvenli yakın muharebe limiti</SafeMeleeLimit>
+	<SafeMeleeExample>Örnek: [_]{0}[_] yakın dövüş seviyesi, [_]{1}[_] zombiler => %{2} şans</SafeMeleeExample>
 	<ZombiesCauseManhunting>Zombiler hayvanları kızdırıyor</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>Oyun ince ayarlar</ZombieGameTweaks>

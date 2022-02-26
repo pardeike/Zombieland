@@ -70,6 +70,7 @@
 	<ZombieDamageTitle>Dommages causés par les zombies</ZombieDamageTitle>
 	<ZombieDamageFactor>Multiplicateur de dégâts</ZombieDamageFactor>
 	<SafeMeleeLimit>Limite de mêlée sûre</SafeMeleeLimit>
+	<SafeMeleeExample>Exemple : [_]{0}[_] niveau de mêlée, [_]{1}[_] zombies => {2} % de chances</SafeMeleeExample>
 	<ZombiesCauseManhunting>Les zombies déclenchent les animaux</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>Jeu peaufiner</ZombieGameTweaks>

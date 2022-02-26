@@ -70,6 +70,7 @@
 	<ZombieDamageTitle>Урон зомби</ZombieDamageTitle>
 	<ZombieDamageFactor>Множетель урон</ZombieDamageFactor>
 	<SafeMeleeLimit>безопасный лимит рукопашного боя</SafeMeleeLimit>
+	<SafeMeleeExample>Пример: [_]{0}[_] уровень ближнего боя, [_]{1}[_] зомби => шанс {2}%</SafeMeleeExample>
 	<ZombiesCauseManhunting>Зомби злить животных</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>Игра твики</ZombieGameTweaks>
