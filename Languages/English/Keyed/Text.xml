@@ -192,6 +192,6 @@
 	<ZombieShockerLowBatteryState>The device has depleted the attached batteries</ZombieShockerLowBatteryState>
 
 	<ShowHealthBar>Zombies health bar</ShowHealthBar>
-	<ShowZombieCount>Show zombie count</ShowZombieCount>
+	<ShowZombieStats>Show zombie statistics</ShowZombieStats>
 
 </LanguageData>

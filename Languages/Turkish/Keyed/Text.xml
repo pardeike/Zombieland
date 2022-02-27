@@ -190,6 +190,6 @@
 	<ZombieShockerLowBatteryState>Cihaz ekli pilleri tüketti</ZombieShockerLowBatteryState>
 
 	<ShowHealthBar>Zombiler sağlık çubuğu</ShowHealthBar>
-	<ShowZombieCount>Zombi sayısını göster</ShowZombieCount>
+	<ShowZombieStats>Zombi istatistiklerini göster</ShowZombieStats>
 
 </LanguageData>

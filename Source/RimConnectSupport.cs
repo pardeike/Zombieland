@@ -55,7 +55,7 @@ namespace ZombieLand
 		public static (string, IntVec3) SpawnZombies(int amount, string boughtBy, ZombieType type)
 		{
 			var map = Find.CurrentMap;
-			if (map == null || map.AllowsZombies()) return (null, IntVec3.Invalid);
+			if (map.IsBlacklisted()) return (null, IntVec3.Invalid);
 			var tickManager = map.GetComponent<TickManager>();
 			if (tickManager == null) return (null, IntVec3.Invalid);
 			var available = Mathf.Max(0, ZombieSettings.Values.maximumNumberOfZombies - tickManager.ZombieCount());

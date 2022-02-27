@@ -863,7 +863,7 @@ namespace ZombieLand
 				}
 
 				// Miscellaneous
-				if (Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":PlayCreepyAmbientSound", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":ShowHealthBar", ":ShowZombieCount"))
+				if (Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":PlayCreepyAmbientSound", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":ShowHealthBar", ":ShowZombieStats"))
 				{
 					list.Dialog_Label("ZombieMiscTitle", headerColor);
 					list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);
@@ -873,7 +873,7 @@ namespace ZombieLand
 					list.Dialog_Checkbox("ZombiesDropBlood", ref settings.zombiesDropBlood);
 					list.Dialog_Checkbox("ZombiesBurnLonger", ref settings.zombiesBurnLonger);
 					list.Dialog_Checkbox("ShowHealthBar", ref settings.showHealthBar);
-					list.Dialog_Checkbox("ShowZombieCount", ref settings.showZombieCount);
+					list.Dialog_Checkbox("ShowZombieStats", ref settings.showZombieStats);
 					list.Gap(30f);
 				}
 

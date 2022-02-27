@@ -148,13 +148,9 @@ namespace ZombieLand
 
 		public override AlertReport GetReport()
 		{
+			if (ZombieSettings.Values.showZombieStats == false) return false;
 			days = Days();
 			return (days > 0);
-		}
-
-		public override void AlertActiveUpdate()
-		{
-
 		}
 
 		double Days()

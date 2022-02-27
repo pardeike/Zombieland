@@ -428,7 +428,7 @@ namespace ZombieLand
 
 		public void IncreaseZombiePopulation()
 		{
-			if (map.AllowsZombies()) return;
+			if (map.IsBlacklisted()) return;
 			if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return;
 			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly) return;
 

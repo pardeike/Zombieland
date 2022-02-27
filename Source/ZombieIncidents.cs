@@ -82,7 +82,7 @@ namespace ZombieLand
 				tickManager.incidentInfo.parameters = new IncidentParameters();
 			var parameters = tickManager.incidentInfo.parameters;
 
-			if (tickManager.map.AllowsZombies())
+			if (tickManager.map.IsBlacklisted())
 			{
 				parameters.skipReason = "no zombie events in this biome";
 				return false;
@@ -269,7 +269,7 @@ namespace ZombieLand
 
 		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot, bool useAlert, bool ignoreLimit = false, ZombieType zombieType = ZombieType.Random)
 		{
-			if (map.AllowsZombies()) return false;
+			if (map.IsBlacklisted()) return false;
 			var cellValidator = Tools.ZombieSpawnLocator(map, true);
 			spot = GetValidSpot(map, spot, cellValidator);
 			if (spot.IsValid == false) return false;

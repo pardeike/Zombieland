@@ -1272,14 +1272,14 @@ namespace ZombieLand
 		public static void UpdateBiomeBlacklist(HashSet<string> defNames)
 		{
 			biomeBlacklist = defNames
-				.Select(name => DefDatabase<BiomeDef>.GetNamed(name))
+				.Select(name => DefDatabase<BiomeDef>.GetNamed(name, false))
 				.OfType<BiomeDef>()
 				.ToHashSet();
 			if (SoSTools.sosOuterSpaceBiomeDef != null)
 				_ = biomeBlacklist.Add(SoSTools.sosOuterSpaceBiomeDef);
 		}
 
-		public static bool AllowsZombies(this Map map)
+		public static bool IsBlacklisted(this Map map)
 		{
 			if (map == null) return false;
 			return biomeBlacklist.Contains(map.Biome);

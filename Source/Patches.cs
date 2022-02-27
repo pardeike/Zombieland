@@ -212,10 +212,10 @@ namespace ZombieLand
 			{
 				var map = Find.CurrentMap;
 				if (map == null) return;
-				if (Find.CurrentMap.AllowsZombies() == false) return;
+				if (Find.CurrentMap.IsBlacklisted()) return;
 
 				const float rightMargin = 7f;
-				if (ZombieSettings.Values.showZombieCount)
+				if (ZombieSettings.Values.showZombieStats)
 				{
 					var tickManager = map.GetComponent<TickManager>();
 					if (tickManager == null) return;
@@ -253,51 +253,51 @@ namespace ZombieLand
 
 						curBaseY -= zlRect.height;
 					}
-				}
 
-				if (ZombieSettings.Values.useDynamicThreatLevel)
-				{
-					static string Format(float min, float max)
+					if (ZombieSettings.Values.useDynamicThreatLevel)
 					{
-						var n1 = Mathf.FloorToInt(min * 100);
-						var n2 = Mathf.FloorToInt(max * 100);
-						if (n1 == n2) return string.Format("{0:D0}%", n1) + " " + "ThreatLevel".Translate();
-						return string.Format("{0:D0}-{1:D0}%", n1, n2) + " " + "ThreatLevel".Translate();
+						static string Format(float min, float max)
+						{
+							var n1 = Mathf.FloorToInt(min * 100);
+							var n2 = Mathf.FloorToInt(max * 100);
+							if (n1 == n2) return string.Format("{0:D0}%", n1) + " " + "ThreatLevel".Translate();
+							return string.Format("{0:D0}-{1:D0}%", n1, n2) + " " + "ThreatLevel".Translate();
+						}
+
+						var zombieWeather = map.GetComponent<ZombieWeather>();
+						var (min, max) = zombieWeather.GetFactorRangeFor();
+						var zombieWeatherString = Format(min, max);
+						var zlRect = new Rect(leftX, curBaseY - 24f, width, 24f);
+						Text.Font = GameFont.Small;
+						var len = Text.CalcSize(zombieWeatherString);
+						zlRect.xMin = zlRect.xMax - Math.Min(leftX, len.x + rightMargin);
+
+						var over = Mouse.IsOver(zlRect);
+						if (over)
+						{
+							var r = zlRect;
+							r.xMin -= 10;
+							Widgets.DrawHighlight(r);
+						}
+
+						GUI.BeginGroup(zlRect);
+						Text.Anchor = TextAnchor.UpperRight;
+						var rect = zlRect.AtZero();
+						rect.xMax -= rightMargin;
+						Widgets.Label(rect, zombieWeatherString);
+						Text.Anchor = TextAnchor.UpperLeft;
+						GUI.EndGroup();
+
+						if (over)
+						{
+							var winWidth = 720;
+							var winHeight = 320;
+							var bgRect = new Rect(zlRect.xMin - 10 - winWidth, zlRect.yMax - winHeight, winWidth, winHeight);
+							Find.WindowStack.ImmediateWindow(564534346, bgRect, WindowLayer.Super, ZombieWeather.GeneateTooltipDrawer(bgRect.AtZero()), false, false, 1f);
+						}
+
+						curBaseY -= zlRect.height;
 					}
-
-					var zombieWeather = map.GetComponent<ZombieWeather>();
-					var (min, max) = zombieWeather.GetFactorRangeFor();
-					var zombieWeatherString = Format(min, max);
-					var zlRect = new Rect(leftX, curBaseY - 24f, width, 24f);
-					Text.Font = GameFont.Small;
-					var len = Text.CalcSize(zombieWeatherString);
-					zlRect.xMin = zlRect.xMax - Math.Min(leftX, len.x + rightMargin);
-
-					var over = Mouse.IsOver(zlRect);
-					if (over)
-					{
-						var r = zlRect;
-						r.xMin -= 10;
-						Widgets.DrawHighlight(r);
-					}
-
-					GUI.BeginGroup(zlRect);
-					Text.Anchor = TextAnchor.UpperRight;
-					var rect = zlRect.AtZero();
-					rect.xMax -= rightMargin;
-					Widgets.Label(rect, zombieWeatherString);
-					Text.Anchor = TextAnchor.UpperLeft;
-					GUI.EndGroup();
-
-					if (over)
-					{
-						var winWidth = 720;
-						var winHeight = 320;
-						var bgRect = new Rect(zlRect.xMin - 10 - winWidth, zlRect.yMax - winHeight, winWidth, winHeight);
-						Find.WindowStack.ImmediateWindow(564534346, bgRect, WindowLayer.Super, ZombieWeather.GeneateTooltipDrawer(bgRect.AtZero()), false, false, 1f);
-					}
-
-					curBaseY -= zlRect.height;
 				}
 			}
 		}
@@ -3080,7 +3080,7 @@ namespace ZombieLand
 			{
 				if (WorldRendererUtility.WorldRenderedNow) return;
 				if (Find.CurrentMap != __instance) return;
-				if (__instance.AllowsZombies() == false) return;
+				if (__instance.IsBlacklisted()) return;
 
 				var tickManager = __instance.GetComponent<TickManager>();
 				if (tickManager == null) return;

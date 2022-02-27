@@ -118,7 +118,7 @@ namespace ZombieLand
 		public WanderingStyle wanderingStyle = WanderingStyle.Smart;
 		public bool showHealthBar = true;
 		public HashSet<string> biomesWithoutZombies = new HashSet<string>();
-		public bool showZombieCount = true;
+		public bool showZombieStats = true;
 
 		// unused
 		public int suicideBomberIntChance = 1;

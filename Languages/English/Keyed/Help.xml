@@ -139,7 +139,7 @@
 	<ZombiesDropBlood_Help>Game speed tweak: turn this off and zombies do not drop blood anymore.</ZombiesDropBlood_Help>
 	<ZombiesBurnLonger_Help>To give you more interesting gameplay, zombies will catch fire and burn longer than usual while walking around. Turn off if your computer is too slow to handle a lot of fire.</ZombiesBurnLonger_Help>
 	<ShowHealthBar_Help>Since zombies cannot be selected you can enable a mouse-over health bar. It shows the overall health and also the consciousness level.</ShowHealthBar_Help>
-	<ShowZombieCount_Help>This controls the display of the zombie count on the right side of your screen.</ShowZombieCount_Help>
+	<ShowZombieStats_Help>This controls the display of the zombie information on the right side of your screen.</ShowZombieStats_Help>
 
 	<!-- -->
 

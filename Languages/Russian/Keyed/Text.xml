@@ -190,6 +190,6 @@
 	<ZombieShockerLowBatteryState>Устройство истощало прикрепленные батареи</ZombieShockerLowBatteryState>
 
 	<ShowHealthBar>Зомби Бар здоровья</ShowHealthBar>
-	<ShowZombieCount>Показать количество зомби</ShowZombieCount>
+	<ShowZombieStats>Показать статистику зомби</ShowZombieStats>
 
 </LanguageData>
