@@ -456,7 +456,7 @@
 		<hasInteractionCell>True</hasInteractionCell>
 		<interactionCellOffset>(0,0,-1)</interactionCellOffset>
 		<blockWind>true</blockWind>
-		<fillPercent>1</fillPercent>
+		<fillPercent>0.6</fillPercent>
 		<coversFloor>true</coversFloor>
 		<blockLight>true</blockLight>
 		<canOverlapZones>false</canOverlapZones>
@@ -480,6 +480,7 @@
 		<drawPlaceWorkersWhileSelected>true</drawPlaceWorkersWhileSelected>
 		<building>
 			<canPlaceOverWall>true</canPlaceOverWall>
+			<isEdifice>false</isEdifice>
 		</building>
 		<comps>
 			<li Class="ZombieLand.CompProperties_Activatable"/>
