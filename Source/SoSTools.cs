@@ -10,11 +10,17 @@ using Verse.AI.Group;
 
 namespace ZombieLand
 {
+	[StaticConstructorOnStartup]
 	public class SoSTools
 	{
-		public static bool Installed()
+		public static bool isInstalled;
+		public static BiomeDef sosOuterSpaceBiomeDef = null;
+
+		static SoSTools()
 		{
-			return AccessTools.TypeByName("SaveOurShip2.ShipInteriorMod2") != null;
+			isInstalled = AccessTools.TypeByName("SaveOurShip2.ShipInteriorMod2") != null;
+			if (isInstalled)
+				sosOuterSpaceBiomeDef = DefDatabase<BiomeDef>.GetNamed("OuterSpaceBiome", false);
 		}
 
 		public class Floater

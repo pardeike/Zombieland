@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using RimWorld.Planet;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Verse;
@@ -56,7 +57,7 @@ namespace ZombieLand
 		public override Vector2 InitialSize => new Vector2(320, 240);
 	}
 
-	class SettingsGroup : IExposable, ICloneable
+	public class SettingsGroup : IExposable, ICloneable
 	{
 		public SpawnWhenType spawnWhenType = SpawnWhenType.AllTheTime;
 		public SpawnHowType spawnHowType = SpawnHowType.FromTheEdges;
@@ -116,6 +117,8 @@ namespace ZombieLand
 		public int safeMeleeLimit = 1;
 		public WanderingStyle wanderingStyle = WanderingStyle.Smart;
 		public bool showHealthBar = true;
+		public HashSet<string> biomesWithoutZombies = new HashSet<string>();
+		public bool showZombieCount = true;
 
 		// unused
 		public int suicideBomberIntChance = 1;
@@ -206,6 +209,8 @@ namespace ZombieLand
 							Find.WindowStack.Add(new NoteDialog(note));
 						}, "special-zombies", true, null);
 				}
+
+				Tools.UpdateBiomeBlacklist(biomesWithoutZombies);
 			}
 		}
 

@@ -190,5 +190,6 @@
 	<ZombieShockerLowBatteryState>L'appareil a appauvri les piles attachées</ZombieShockerLowBatteryState>
 
 	<ShowHealthBar>Barre de santé de zombies</ShowHealthBar>
+	<ShowZombieCount>Afficher le nombre de zombies</ShowZombieCount>
 
 </LanguageData>

@@ -449,7 +449,7 @@ namespace ZombieLand
 					return false;
 			}
 
-			if (driver.Map.IsSpace())
+			if (driver.Map.Biome == SoSTools.sosOuterSpaceBiomeDef)
 				return false;
 
 			var building = CanSmash(zombie);

@@ -212,50 +212,50 @@ namespace ZombieLand
 			{
 				var map = Find.CurrentMap;
 				if (map == null) return;
+				if (Find.CurrentMap.AllowsZombies() == false) return;
 
-				// current zombie count + mouseover: version
-
-				var tickManager = map.GetComponent<TickManager>();
-				if (tickManager == null) return;
-				var count = tickManager.ZombieCount();
-				var rightMargin = 7f;
-				if (count > 0)
+				const float rightMargin = 7f;
+				if (ZombieSettings.Values.showZombieCount)
 				{
-					var zombieCountString = count + " Zombies";
-
-					var zlRect = new Rect(leftX, curBaseY - 24f, width, 24f);
-					Text.Font = GameFont.Small;
-					var len = Text.CalcSize(zombieCountString);
-					zlRect.xMin = zlRect.xMax - Math.Min(leftX, len.x + rightMargin);
-
-					GUI.BeginGroup(zlRect);
-					Text.Anchor = TextAnchor.UpperRight;
-					var rect = zlRect.AtZero();
-					rect.xMax -= rightMargin;
-					var percentRect = rect;
-					percentRect.width *= ZombieTicker.PercentTicking;
-					percentRect.xMin -= 2;
-					percentRect.xMax += 2;
-					percentRect.yMax -= 3;
-					Widgets.DrawRectFast(percentRect, percentageBackground);
-					Widgets.Label(rect, zombieCountString);
-					Text.Anchor = TextAnchor.UpperLeft;
-					GUI.EndGroup();
-
-					TooltipHandler.TipRegion(zlRect, new TipSignal(delegate
+					var tickManager = map.GetComponent<TickManager>();
+					if (tickManager == null) return;
+					var count = tickManager.ZombieCount();
+					if (count > 0)
 					{
-						var currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
-						return $"Zombieland v{currentVersion.ToString(4)}";
-					}, 99799));
-					if (Mouse.IsOver(zlRect) && tickManager.allZombiesCached.Count <= 100)
-						tickManager.allZombiesCached.Do(zombie => TargetHighlighter.Highlight(new GlobalTargetInfo(zombie), true, false, false));
+						var zombieCountString = count + " Zombies";
 
-					curBaseY -= zlRect.height;
+						var zlRect = new Rect(leftX, curBaseY - 24f, width, 24f);
+						Text.Font = GameFont.Small;
+						var len = Text.CalcSize(zombieCountString);
+						zlRect.xMin = zlRect.xMax - Math.Min(leftX, len.x + rightMargin);
+
+						GUI.BeginGroup(zlRect);
+						Text.Anchor = TextAnchor.UpperRight;
+						var rect = zlRect.AtZero();
+						rect.xMax -= rightMargin;
+						var percentRect = rect;
+						percentRect.width *= ZombieTicker.PercentTicking;
+						percentRect.xMin -= 2;
+						percentRect.xMax += 2;
+						percentRect.yMax -= 3;
+						Widgets.DrawRectFast(percentRect, percentageBackground);
+						Widgets.Label(rect, zombieCountString);
+						Text.Anchor = TextAnchor.UpperLeft;
+						GUI.EndGroup();
+
+						TooltipHandler.TipRegion(zlRect, new TipSignal(delegate
+						{
+							var currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
+							return $"Zombieland v{currentVersion.ToString(4)}";
+						}, 99799));
+						if (Mouse.IsOver(zlRect) && tickManager.allZombiesCached.Count <= 100)
+							tickManager.allZombiesCached.Do(zombie => TargetHighlighter.Highlight(new GlobalTargetInfo(zombie), true, false, false));
+
+						curBaseY -= zlRect.height;
+					}
 				}
 
-				// current threat count + mouseover: forecast
-
-				if (ZombieSettings.Values.useDynamicThreatLevel && Find.CurrentMap.IsSpace() == false)
+				if (ZombieSettings.Values.useDynamicThreatLevel)
 				{
 					static string Format(float min, float max)
 					{
@@ -2030,7 +2030,7 @@ namespace ZombieLand
 							var z = Math.Sign(value.z - pos.z) + 1;
 							var orthIdx = x + 3 * z;
 							var pair = orthogonalIndices[orthIdx];
-							Log.Warning($"{pos}->{value} [{x}] [{z}] => {orthIdx} dx[{pair[0]}] dz[{pair[1]}]");
+							// Log.Warning($"{pos}->{value} [{x}] [{z}] => {orthIdx} dx[{pair[0]}] dz[{pair[1]}]");
 							_ = FilthMaker.TryMakeFilth(pos + pair[0], map, CustomDefs.TarSlime, null, true);
 							_ = FilthMaker.TryMakeFilth(pos + pair[1], map, CustomDefs.TarSlime, null, true);
 						}
@@ -3074,13 +3074,13 @@ namespace ZombieLand
 		{
 			static readonly Mesh fullMesh = MeshPool.GridPlane(new Vector2(8f, 8f));
 
-			static bool Prepare() => SoSTools.Installed();
+			static bool Prepare() => SoSTools.isInstalled;
 
 			static void Postfix(Map __instance)
 			{
 				if (WorldRendererUtility.WorldRenderedNow) return;
 				if (Find.CurrentMap != __instance) return;
-				if (__instance.IsSpace() == false) return;
+				if (__instance.AllowsZombies() == false) return;
 
 				var tickManager = __instance.GetComponent<TickManager>();
 				if (tickManager == null) return;

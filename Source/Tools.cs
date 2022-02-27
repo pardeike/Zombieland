@@ -46,21 +46,7 @@ namespace ZombieLand
 		public static List<Region> cachedPlayerReachableRegions = new List<Region>();
 		public static int nextPlayerReachableRegionsUpdate = 0;
 
-		private static bool _sosOuterSpaceBiomeDefChecked = false;
-		private static BiomeDef _sosOuterSpaceBiomeDef;
-		public static BiomeDef SoSOuterSpaceBiomeDef
-		{
-			get
-			{
-				if (_sosOuterSpaceBiomeDefChecked == false)
-				{
-					if (TypeByName("RimWorld.ShipCombatManager") != null)
-						_sosOuterSpaceBiomeDef = DefDatabase<BiomeDef>.GetNamed("OuterSpaceBiome");
-					_sosOuterSpaceBiomeDefChecked = true;
-				}
-				return _sosOuterSpaceBiomeDef;
-			}
-		}
+		public static HashSet<BiomeDef> biomeBlacklist = new HashSet<BiomeDef>();
 
 		static string mealLabel;
 		static string mealDescription;
@@ -508,7 +494,7 @@ namespace ZombieLand
 
 				_ = tickManager.allZombiesCached.Add(zombie);
 
-				if (map.IsSpace() == false)
+				if (map.Biome != SoSTools.sosOuterSpaceBiomeDef)
 				{
 					if (ZombieSettings.Values.deadBecomesZombieMessage || wasPlayer)
 					{
@@ -845,12 +831,37 @@ namespace ZombieLand
 			{
 				var finfo = Field(settings.GetType(), name);
 				var value = finfo.GetValue(settings);
-				var type = value.GetType();
 				var defaultValue = Traverse.Create(defaults).Field(name).GetValue();
-				var m_Look = Method(typeof(Scribe_Values), "Look", null, new Type[] { type });
-				var arguments = new object[] { value, name, defaultValue, false };
-				_ = m_Look.Invoke(null, arguments);
-				finfo.SetValue(settings, arguments[0]);
+				if (value == null) value = defaultValue;
+				var type = value.GetType();
+				try
+				{
+					MethodInfo m_Look;
+					object[] arguments;
+					if (type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>)))
+					{
+						m_Look = FirstMethod(typeof(Scribe_Collections), method =>
+								method.Name == "Look" && method.GetParameters().Length >= 2 &&
+								method.GetParameters()[0].ParameterType.GetElementType().GetGenericTypeDefinition() == type.GetGenericTypeDefinition() &&
+								method.GetParameters()[1].ParameterType != typeof(bool)
+							).MakeGenericMethod(type.GenericTypeArguments[0]);
+						arguments = new object[] { value, name, LookMode.Value };
+						if (type.GetGenericTypeDefinition() == typeof(List<>))
+							arguments = arguments.Append(Array.Empty<object>()).ToArray();
+					}
+					else
+					{
+						m_Look = Method(typeof(Scribe_Values), "Look", null, new Type[] { type });
+						arguments = new object[] { value, name, defaultValue, false };
+					}
+					_ = m_Look.Invoke(null, arguments);
+					finfo.SetValue(settings, arguments[0]);
+				}
+				catch (Exception ex)
+				{
+					Log.Error($"Exception while auto exposing Zombieland setting '{name}', mode {Scribe.mode} = {ex}");
+					finfo.SetValue(settings, defaultValue);
+				}
 			});
 		}
 
@@ -1258,10 +1269,20 @@ namespace ZombieLand
 			}
 		}
 
-		public static bool IsSpace(this Map map)
+		public static void UpdateBiomeBlacklist(HashSet<string> defNames)
 		{
-			if (map == null || SoSOuterSpaceBiomeDef == null) return false;
-			return map.Biome == SoSOuterSpaceBiomeDef;
+			biomeBlacklist = defNames
+				.Select(name => DefDatabase<BiomeDef>.GetNamed(name))
+				.OfType<BiomeDef>()
+				.ToHashSet();
+			if (SoSTools.sosOuterSpaceBiomeDef != null)
+				_ = biomeBlacklist.Add(SoSTools.sosOuterSpaceBiomeDef);
+		}
+
+		public static bool AllowsZombies(this Map map)
+		{
+			if (map == null) return false;
+			return biomeBlacklist.Contains(map.Biome);
 		}
 
 		static readonly RenderTexture renderTextureBack = new RenderTexture(64, 64, 16);

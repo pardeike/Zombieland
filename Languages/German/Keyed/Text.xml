@@ -190,5 +190,6 @@
 	<ZombieShockerLowBatteryState>Das Gerät hat die angeschlossenen Batterien erschöpft</ZombieShockerLowBatteryState>
 
 	<ShowHealthBar>Zeige Zombiegesundheit an</ShowHealthBar>
+	<ShowZombieCount>Zeige die Anzal von Zombies an</ShowZombieCount>
 
 </LanguageData>

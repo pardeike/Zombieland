@@ -148,7 +148,7 @@ namespace ZombieLand
 			hummingZombies.Clear();
 			allZombies.Where(zombie => zombie.IsActiveElectric).Do(zombie => hummingZombies.Add(zombie));
 
-			if (map.IsSpace())
+			if (map.Biome == SoSTools.sosOuterSpaceBiomeDef)
 			{
 				for (var i = 0; i < SoSTools.Floater.backCount; i++)
 					Tools.CreateFakeZombie(map, mat => floatingSpaceZombiesBack.Add(new SoSTools.Floater() { mapSize = map.Size, material = mat, foreground = false }), false);
@@ -428,7 +428,7 @@ namespace ZombieLand
 
 		public void IncreaseZombiePopulation()
 		{
-			if (map.IsSpace()) return;
+			if (map.AllowsZombies()) return;
 			if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome) return;
 			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly) return;
 

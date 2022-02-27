@@ -190,5 +190,6 @@
 	<ZombieShockerLowBatteryState>该设备耗尽了附加的电池</ZombieShockerLowBatteryState>
 
 	<ShowHealthBar>僵尸健康酒吧</ShowHealthBar>
+	<ShowZombieCount>显示僵尸数量</ShowZombieCount>
 
 </LanguageData>

@@ -25,6 +25,8 @@
 	<SmartWandering_Off>Random</SmartWandering_Off>
 	<SmartWandering_Simple>Simple</SmartWandering_Simple>
 	<SmartWandering_Smart>Smart</SmartWandering_Smart>
+	<BlacklistedBiomes>Biomes without zombies</BlacklistedBiomes>
+	<Biomes>Biomes</Biomes>
 
 	<WhatDoZombiesAttack>What will zombies attack?</WhatDoZombiesAttack>
 	<AttackMode_Everything>All creatures</AttackMode_Everything>
@@ -190,5 +192,6 @@
 	<ZombieShockerLowBatteryState>The device has depleted the attached batteries</ZombieShockerLowBatteryState>
 
 	<ShowHealthBar>Zombies health bar</ShowHealthBar>
+	<ShowZombieCount>Show zombie count</ShowZombieCount>
 
 </LanguageData>

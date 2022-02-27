@@ -104,6 +104,68 @@ namespace ZombieLand
 		}
 	}
 
+	public class BiomeList : Window
+	{
+		public List<(BiomeDef def, TaggedString name)> allBiomes;
+		public override Vector2 InitialSize => new Vector2(320, 380);
+
+		private SettingsGroup settings;
+		private Vector2 scrollPosition = Vector2.zero;
+
+		public BiomeList(SettingsGroup settings)
+		{
+			this.settings = settings;
+
+			var sosOuterSpaceBiomeDefName = SoSTools.sosOuterSpaceBiomeDef?.defName;
+			if (sosOuterSpaceBiomeDefName != null)
+				if (settings.biomesWithoutZombies.Contains(sosOuterSpaceBiomeDefName) == false)
+					_ = settings.biomesWithoutZombies.Add(sosOuterSpaceBiomeDefName);
+
+			doCloseButton = true;
+			absorbInputAroundWindow = true;
+			allBiomes = DefDatabase<BiomeDef>.AllDefsListForReading
+				.Select(def => (def, name: def.LabelCap))
+				.OrderBy(item => item.name.ToString())
+				.ToList();
+		}
+
+		public override void PreClose()
+		{
+			Tools.UpdateBiomeBlacklist(settings.biomesWithoutZombies);
+		}
+
+		public override void DoWindowContents(Rect inRect)
+		{
+			inRect.yMax -= 60;
+
+			var header = "BlacklistedBiomes".SafeTranslate();
+			var num = Text.CalcHeight(header, inRect.width);
+			Widgets.Label(new Rect(inRect.xMin, inRect.yMin, inRect.width, num), header);
+			inRect.yMin += num + 8;
+
+			var outerRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height);
+			var innerRect = new Rect(0f, 0f, inRect.width - 24f, allBiomes.Count * Text.LineHeight);
+			Widgets.BeginScrollView(outerRect, ref scrollPosition, innerRect, true);
+
+			var list = new Listing_Standard();
+			list.Begin(innerRect);
+			foreach (var (def, name) in allBiomes)
+			{
+				var defName = def.defName;
+				var on = settings.biomesWithoutZombies.Contains(defName);
+				var wasOn = on;
+				list.Dialog_Checkbox(name, ref on, true, def == SoSTools.sosOuterSpaceBiomeDef);
+				if (on && wasOn == false)
+					_ = settings.biomesWithoutZombies.Add(defName);
+				if (on == false && wasOn)
+					_ = settings.biomesWithoutZombies.Remove(defName);
+			}
+			list.End();
+
+			Widgets.EndScrollView();
+		}
+	}
+
 	static class Dialogs
 	{
 		static Color contentColor = new Color(1f, 1f, 1f, 0.7f);
@@ -192,11 +254,11 @@ namespace ZombieLand
 			GUI.color = color;
 		}
 
-		public static void Dialog_Checkbox(this Listing_Standard list, string labelId, ref bool forBool)
+		public static void Dialog_Checkbox(this Listing_Standard list, string labelId, ref bool forBool, bool skipTranslation = false, bool disabled = false)
 		{
 			list.Gap(2f);
 
-			var label = labelId.SafeTranslate();
+			var label = skipTranslation ? labelId : labelId.SafeTranslate();
 			var indent = 24 + "_".GetWidthCached();
 			var height = Math.Max(Text.LineHeight, Text.CalcHeight(label, list.ColumnWidth - indent));
 
@@ -208,17 +270,20 @@ namespace ZombieLand
 			var oldValue = forBool;
 			var butRect = rect;
 			butRect.xMin += 24f;
-			if (Widgets.ButtonInvisible(butRect, false))
-				forBool = !forBool;
-			if (forBool != oldValue)
+			if (disabled == false)
 			{
-				if (forBool)
-					SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera(null);
-				else
-					SoundDefOf.Checkbox_TurnedOff.PlayOneShotOnCamera(null);
+				if (Widgets.ButtonInvisible(butRect, false))
+					forBool = !forBool;
+				if (forBool != oldValue)
+				{
+					if (forBool)
+						SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera(null);
+					else
+						SoundDefOf.Checkbox_TurnedOff.PlayOneShotOnCamera(null);
+				}
 			}
 
-			Widgets.Checkbox(new Vector2(rect.x, rect.y - 1f), ref forBool);
+			Widgets.Checkbox(new Vector2(rect.x, rect.y - 1f), ref forBool, disabled: disabled);
 
 			var curX = list.curX;
 			list.curX = curX + indent;
@@ -595,11 +660,13 @@ namespace ZombieLand
 				}
 
 				// How?
-				if (Section<SpawnHowType>(":HowDoZombiesSpawn", ":SmartWandering"))
+				if (Section<SpawnHowType>(":HowDoZombiesSpawn", ":SmartWandering", ":BlacklistedBiomes", ":Biomes"))
 				{
 					list.Dialog_Enum("HowDoZombiesSpawn", ref settings.spawnHowType);
-					list.Gap(4);
+					list.Gap(8);
 					ChooseWanderingStyle(list, settings);
+					var localSettings = settings;
+					list.Dialog_Button("BlacklistedBiomes", "Biomes", false, () => Find.WindowStack.Add(new BiomeList(localSettings)));
 					list.Gap(30f);
 				}
 
@@ -796,7 +863,7 @@ namespace ZombieLand
 				}
 
 				// Miscellaneous
-				if (Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":PlayCreepyAmbientSound", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":ShowHealthBar"))
+				if (Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":PlayCreepyAmbientSound", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":ShowHealthBar", ":ShowZombieCount"))
 				{
 					list.Dialog_Label("ZombieMiscTitle", headerColor);
 					list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);
@@ -806,11 +873,12 @@ namespace ZombieLand
 					list.Dialog_Checkbox("ZombiesDropBlood", ref settings.zombiesDropBlood);
 					list.Dialog_Checkbox("ZombiesBurnLonger", ref settings.zombiesBurnLonger);
 					list.Dialog_Checkbox("ShowHealthBar", ref settings.showHealthBar);
+					list.Dialog_Checkbox("ShowZombieCount", ref settings.showZombieCount);
 					list.Gap(30f);
 				}
 
 				// Actions
-				if (Section<string>(":ZombieActionsTitle", ":ZombieSettingsReset", ":UninstallZombieland"))
+				if (Section<string>(":ZombieActionsTitle", ":ZombieSettingsReset", ":ResetButton", ":UninstallZombieland", ":UninstallButton"))
 				{
 					list.Dialog_Label("ZombieActionsTitle", headerColor);
 					list.Gap(8f);

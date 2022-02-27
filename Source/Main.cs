@@ -70,8 +70,11 @@ namespace ZombieLand
 		public ZombielandMod(ModContentPack content) : base(content)
 		{
 			Identifier = content.PackageId;
-			_ = GetSettings<ZombieSettingsDefaults>();
-			IsLoadingDefaults = false;
+			LongEventHandler.ExecuteWhenFinished(() =>
+			{
+				_ = GetSettings<ZombieSettingsDefaults>();
+				IsLoadingDefaults = false;
+			});
 		}
 
 		public override void DoSettingsWindowContents(Rect inRect)

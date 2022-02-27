@@ -14,6 +14,7 @@
 	<SpawnHowType_AllOverTheMap_Help>If you dare you can play with zombies spawning all over the map. Recommended for the experienced player. To control safe areas, you can build floors or walls. Combine this mode with "when dark" for a challenging way to play Zombieland. And beware of your planting zones!</SpawnHowType_AllOverTheMap_Help>
 	<SpawnHowType_FromTheEdges_Help>If you prefer the more classical way of a thread from the edges of the map then this mode is for you.</SpawnHowType_FromTheEdges_Help>
 	<SmartWandering_Help>This setting controls how the zombies will move at night. "Random" makes them move like at daytime. "Simple" will make them drift towards the most interesting part of the map but they can become stuck and build groups. And "Smart" will eventually bring them to you.</SmartWandering_Help>
+	<Biomes_Help>To prevent zombies from spawning on certain map styles you can exclude biomes here.</Biomes_Help>
 
 	<!-- -->
 
@@ -137,6 +138,8 @@
 	<BetterZombieAvoidance_Help>To assist you with better pathing around any zombies, you can turn this option on. Zombieland will constantly adjust the path of a colonist to avoid zombies. Very useful for less micro and for rescueing other colonists.</BetterZombieAvoidance_Help>
 	<ZombiesDropBlood_Help>Game speed tweak: turn this off and zombies do not drop blood anymore.</ZombiesDropBlood_Help>
 	<ZombiesBurnLonger_Help>To give you more interesting gameplay, zombies will catch fire and burn longer than usual while walking around. Turn off if your computer is too slow to handle a lot of fire.</ZombiesBurnLonger_Help>
+	<ShowHealthBar_Help>Since zombies cannot be selected you can enable a mouse-over health bar. It shows the overall health and also the consciousness level.</ShowHealthBar_Help>
+	<ShowZombieCount_Help>This controls the display of the zombie count on the right side of your screen.</ShowZombieCount_Help>
 
 	<!-- -->
 
