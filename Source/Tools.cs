@@ -824,7 +824,7 @@ namespace ZombieLand
 			return bytes;
 		}
 
-		public static void AutoExposeDataWithDefaults<T>(this T settings) where T : new()
+		public static void AutoExposeDataWithDefaults<T>(this T settings, Func<T, string, object, object, bool> callback = null) where T : new()
 		{
 			var defaults = new T();
 			GetFieldNames(settings).Do(name =>
@@ -836,6 +836,9 @@ namespace ZombieLand
 				var type = value.GetType();
 				try
 				{
+					if (callback != null && callback(settings, name, value, defaultValue))
+						return;
+
 					MethodInfo m_Look;
 					object[] arguments;
 					if (type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICollection<>)))
@@ -996,6 +999,31 @@ namespace ZombieLand
 			if (ZombieButtonBackground == null)
 				ZombieButtonBackground = GraphicsDatabase.GetTexture("ZombieButtonBackground");
 			return ZombieButtonBackground;
+		}
+
+		public static bool ButtonText(Rect rect, string label, bool active, Color activeColor, Color inactiveColor)
+		{
+			var anchor = Text.Anchor;
+			var color = GUI.color;
+			var atlas = Widgets.ButtonBGAtlas;
+			if (active && Mouse.IsOver(rect))
+			{
+				atlas = Widgets.ButtonBGAtlasMouseover;
+				if (Input.GetMouseButton(0))
+					atlas = Widgets.ButtonBGAtlasClick;
+			}
+			Widgets.DrawAtlas(rect, atlas);
+			if (active)
+				MouseoverSounds.DoRegion(rect);
+			GUI.color = active ? activeColor : inactiveColor;
+			Text.Anchor = TextAnchor.MiddleCenter;
+			var wordWrap = Text.WordWrap;
+			Text.WordWrap = false;
+			Widgets.Label(rect, label);
+			Text.Anchor = anchor;
+			GUI.color = color;
+			Text.WordWrap = wordWrap;
+			return active && Widgets.ButtonInvisible(rect, false);
 		}
 
 		public static Material[][] GetDamageableGraphics(string name, int variantCount, int maxCount)

@@ -49,12 +49,35 @@ namespace ZombieLand
 		Smart
 	}
 
+	public enum ZombieRiskMode : byte
+	{
+		Ignore,
+		IfInside,
+		IfOutside
+	}
+
 	internal class NoteDialog : Dialog_MessageBox
 	{
 		internal NoteDialog(string text, string buttonAText = null, Action buttonAAction = null, string buttonBText = null, Action buttonBAction = null, string title = null, bool buttonADestructive = false, Action acceptAction = null, Action cancelAction = null)
 			: base(text, buttonAText, buttonAAction, buttonBText, buttonBAction, title, buttonADestructive, acceptAction, cancelAction) { }
 
 		public override Vector2 InitialSize => new Vector2(320, 240);
+	}
+
+	public class ZombieRiskArea : IExposable
+	{
+		public int area;
+		public int map;
+		public ZombieRiskMode mode;
+
+		public static List<ZombieRiskArea> temp = new List<ZombieRiskArea>();
+
+		public void ExposeData()
+		{
+			Scribe_Values.Look(ref area, nameof(area));
+			Scribe_Values.Look(ref map, nameof(map));
+			Scribe_Values.Look(ref mode, nameof(mode));
+		}
 	}
 
 	public class SettingsGroup : IExposable, ICloneable
@@ -119,6 +142,7 @@ namespace ZombieLand
 		public bool showHealthBar = true;
 		public HashSet<string> biomesWithoutZombies = new HashSet<string>();
 		public bool showZombieStats = true;
+		public Dictionary<Area, ZombieRiskMode> dangerousAreas = new Dictionary<Area, ZombieRiskMode>();
 
 		// unused
 		public int suicideBomberIntChance = 1;
@@ -136,7 +160,42 @@ namespace ZombieLand
 		{
 			// no base.ExposeData() to call
 
-			this.AutoExposeDataWithDefaults();
+			this.AutoExposeDataWithDefaults((settings, name, value, defaultValue) =>
+			{
+				const string fieldName = nameof(dangerousAreas);
+				if (name != fieldName)
+					return false;
+
+				var dict = (Dictionary<Area, ZombieRiskMode>)(value ?? defaultValue);
+				if (Scribe.mode == LoadSaveMode.Saving)
+				{
+					if (Scribe.EnterNode(fieldName))
+					{
+						foreach (var (area, mode) in dict)
+						{
+							var riskArea = new ZombieRiskArea() { area = area.ID, map = area.Map.uniqueID, mode = mode };
+							Scribe_Deep.Look(ref riskArea, "area", Array.Empty<object>());
+						}
+						Scribe.ExitNode();
+					}
+				}
+				if (Scribe.mode == LoadSaveMode.LoadingVars)
+					Scribe_Collections.Look(ref ZombieRiskArea.temp, fieldName, LookMode.Deep);
+				if (Scribe.mode == LoadSaveMode.PostLoadInit)
+				{
+					foreach (var riskArea in ZombieRiskArea.temp)
+					{
+						var realArea = Find.Maps
+								.Where(map => map.uniqueID == riskArea.map)
+								.SelectMany(map => map.areaManager.AllAreas)
+								.FirstOrDefault(area => area.ID == riskArea.area);
+						if (realArea != null)
+							dict[realArea] = riskArea.mode;
+					}
+					settings.dangerousAreas = dict;
+				}
+				return true;
+			});
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{

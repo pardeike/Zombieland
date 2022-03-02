@@ -306,8 +306,15 @@ namespace ZombieLand
 			MaterialPool.MatFrom(Pawn_RopeTracker.RopeTexPath, ShaderDatabase.Transparent, GenColor.FromBytes(209, 135, 62, 255)),
 			MaterialPool.MatFrom(Pawn_RopeTracker.RopeTexPath, ShaderDatabase.Transparent, GenColor.FromBytes(99, 70, 41, 255)),
 		};
-		public static readonly Texture2D MinusButton = ContentFinder<Texture2D>.Get("MinusButton", true);
+
 		public static readonly Texture2D PlusButton = ContentFinder<Texture2D>.Get("PlusButton", true);
+		public static readonly Texture2D MinusButton = ContentFinder<Texture2D>.Get("MinusButton", true);
+		public static readonly Texture2D Lock = ContentFinder<Texture2D>.Get("Lock", true);
+		public static readonly Texture2D[] ButtonAdd = new[] { ContentFinder<Texture2D>.Get("ButtonAdd0", true), ContentFinder<Texture2D>.Get("ButtonAdd1", true) };
+		public static readonly Texture2D[] ButtonDel = new[] { ContentFinder<Texture2D>.Get("ButtonDel0", true), ContentFinder<Texture2D>.Get("ButtonDel1", true) };
+		public static readonly Texture2D[] ButtonDup = new[] { ContentFinder<Texture2D>.Get("ButtonDup0", true), ContentFinder<Texture2D>.Get("ButtonDup1", true) };
+		public static readonly Texture2D[] ButtonDown = new[] { ContentFinder<Texture2D>.Get("ButtonDown0", true), ContentFinder<Texture2D>.Get("ButtonDown1", true) };
+		public static readonly Texture2D[] ButtonUp = new[] { ContentFinder<Texture2D>.Get("ButtonUp0", true), ContentFinder<Texture2D>.Get("ButtonUp1", true) };
 
 		public static readonly System.Random random = new System.Random();
 

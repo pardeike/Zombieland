@@ -835,9 +835,9 @@ namespace ZombieLand
 				if (!(__instance.CasterPawn is Zombie zombie)) return true;
 				if (!(thing is Pawn pawn)) return true;
 
-				if (pawn.health.capacities.CapableOf(PawnCapacityDefOf.Manipulation) == false) return true;
+				if ((pawn.health?.capacities?.CapableOf(PawnCapacityDefOf.Manipulation) ?? false) == false) return true;
 				if (pawn.WorkTagIsDisabled(WorkTags.Violent)) return true;
-				if (pawn.meleeVerbs.curMeleeVerb.Available() == false) return true;
+				if ((pawn.meleeVerbs?.curMeleeVerb?.Available() ?? false) == false) return true;
 				if (pawn.Downed || pawn.GetPosture() > PawnPosture.Standing) return true;
 				// allow mentally broken colonists to use smart melee: if (pawn.mindState.mentalStateHandler.InMentalState) return true;
 
@@ -853,10 +853,10 @@ namespace ZombieLand
 				if (concurrentAttacks <= limit)
 					if (__instance.GetDamageDef() == CustomDefs.ZombieBite)
 					{
-						var level = pawn.skills.GetSkill(SkillDefOf.Melee).Level * (limit - concurrentAttacks + 1);
+						var level = (pawn.skills?.GetSkill(SkillDefOf.Melee)?.Level ?? 0) * (limit - concurrentAttacks + 1);
 						if (Rand.Chance(level / 20f))
 						{
-							pawn.rotationTracker.Face(zombie.DrawPos);
+							pawn.rotationTracker?.Face(zombie.DrawPos);
 							CustomDefs.Smash.PlayOneShot(new TargetInfo(pawn.Position, pawn.Map, false));
 							Tools.CastBlockBubble(zombie, pawn);
 							__result = false;
@@ -4794,6 +4794,28 @@ namespace ZombieLand
 				}
 
 				if (!found) Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+			}
+		}
+
+		// patch to add search field between Back and Next buttons
+		//
+		[HarmonyPatch(typeof(Page))]
+		[HarmonyPatch(nameof(Page.DoBottomButtons))]
+		static class Page_DoBottomButtons_Patch
+		{
+			static void Postfix(Page __instance, Rect rect)
+			{
+				if (!(__instance is SettingsDialog settingsDialog)) return;
+
+				var y = rect.y + rect.height - 38f;
+				var searchRect = new Rect(rect.x + (rect.width - 350) / 2, y, 350, 35);
+				Log.Warning($"searchRect = {searchRect}");
+				Dialogs.searchWidget.OnGUI(searchRect, () => Dialogs.scrollPosition = Vector2.zero);
+				if (Dialogs.focusOnSearch)
+				{
+					Dialogs.focusOnSearch = false;
+					GUI.FocusControl(Dialogs.searchWidget.controlName);
+				}
 			}
 		}
 

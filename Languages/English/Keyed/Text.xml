@@ -194,4 +194,8 @@
 	<ShowHealthBar>Zombies health bar</ShowHealthBar>
 	<ShowZombieStats>Show zombie statistics</ShowZombieStats>
 
+	<ShowZombieRisk>Show Zombie Risk</ShowZombieRisk>
+	<IfInside>If Inside</IfInside>
+	<IfOutside>If Outside</IfOutside>
+
 </LanguageData>

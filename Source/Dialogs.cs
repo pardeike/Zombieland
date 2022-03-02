@@ -26,6 +26,8 @@ namespace ZombieLand
 			var mainRect = GetMainRect(inRect, 0f, false);
 			Dialogs.DoWindowContentsInternal(ref ZombieSettings.Values, mainRect);
 			DoBottomButtons(inRect, null, null, null, true, true);
+			Log.Warning($"inRect={inRect}, mainRect={mainRect}");
+			Dialogs.DoSearchField(inRect);
 		}
 	}
 
@@ -109,7 +111,7 @@ namespace ZombieLand
 		public List<(BiomeDef def, TaggedString name)> allBiomes;
 		public override Vector2 InitialSize => new Vector2(320, 380);
 
-		private SettingsGroup settings;
+		private readonly SettingsGroup settings;
 		private Vector2 scrollPosition = Vector2.zero;
 
 		public BiomeList(SettingsGroup settings)
@@ -160,6 +162,51 @@ namespace ZombieLand
 				if (on == false && wasOn)
 					_ = settings.biomesWithoutZombies.Remove(defName);
 			}
+			list.End();
+
+			Widgets.EndScrollView();
+		}
+	}
+
+	public class MultiOptions<T> : Window
+	{
+		public List<T> items;
+		private readonly Vector2 size;
+		private readonly float rowHeight;
+		public override Vector2 InitialSize => size;
+
+		private readonly string title;
+		private readonly List<T> values;
+		private readonly Action<Listing_Standard, T> rowRenderer;
+		private Vector2 scrollPosition = Vector2.zero;
+
+		public MultiOptions(string title, List<T> values, Action<Listing_Standard, T> rowRenderer, Vector2 size, float rowHeight = 24f) : base()
+		{
+			this.title = title.SafeTranslate();
+			this.values = values;
+			this.rowRenderer = rowRenderer;
+			this.size = size;
+			this.rowHeight = rowHeight;
+			doCloseButton = true;
+			absorbInputAroundWindow = true;
+		}
+
+		public override void DoWindowContents(Rect inRect)
+		{
+			inRect.yMax -= 60;
+
+			var num = Text.CalcHeight(title, inRect.width);
+			Widgets.Label(new Rect(inRect.xMin, inRect.yMin, inRect.width, num), title);
+			inRect.yMin += num + 8;
+
+			var outerRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height);
+			var innerRect = new Rect(0f, 0f, inRect.width - 24f, values.Count * rowHeight);
+			Widgets.BeginScrollView(outerRect, ref scrollPosition, innerRect, true);
+
+			var list = new Listing_Standard();
+			list.Begin(innerRect);
+			foreach (var value in values)
+				rowRenderer(list, value);
 			list.End();
 
 			Widgets.EndScrollView();
@@ -506,11 +553,58 @@ namespace ZombieLand
 				value = (int)newValue;
 		}
 
-		public static void ChooseExtractArea(Listing_Standard list, SettingsGroup settings)
+		public static void ColonistDangerousAreas(this Listing_Standard list)
+		{
+			if (Current.Game == null) return;
+
+			/*
+			var areas = Find.Maps
+				.Where(map => map.IsBlacklisted() == false)
+				.SelectMany(map => map.areaManager.AllAreas
+				.Select(area => (area, name: area.Label, on: settings.dangerousAreas.Contains(area.Label))))
+				.ToList();
+			areas.AddRange(
+				settings.dangerousAreas
+					.Where(name => areas.Any(pair => pair.area.Label == name) == false)
+					.Select(name => (area: (Area)null, name, on: true))
+			);
+			areas.SortBy(pair => $"{pair.name}:{pair.area?.Map.Index ?? 0}");
+			*/
+
+			//const float rowHeight = 24f;
+			list.Dialog_Button("DangerousAreas", "Areas", false, () =>
+			{
+				/*
+				Find.WindowStack.Add(
+					new MultiOptions<(Area, string, bool)>("DangerousAreas", areas, (l, pair) =>
+					{
+						(var area, var name, var on) = pair;
+
+						var label = area?.Label ?? name;
+						if (area != null && areas.Count(area => area.name == name) > 1)
+							label += $" (Map {area.Map.Index + 1})";
+						var oldOn = on;
+						Widgets.DrawBoxSolid(new Rect(l.curX + l.ColumnWidth - rowHeight, l.curY, rowHeight, rowHeight).ExpandedBy(-2), area?.Color ?? Color.clear);
+						l.Dialog_Checkbox(label, ref on, true);
+						if (oldOn != on)
+						{
+							if (on) _ = settings.dangerousAreas.Add(name);
+							else _ = settings.dangerousAreas.Remove(name);
+							pair.Item3 = on;
+						}
+					},
+					new Vector2(320, 480), rowHeight
+				));
+				*/
+			});
+		}
+
+		public static void ChooseExtractArea(this Listing_Standard list, SettingsGroup settings)
 		{
 			if (Current.Game == null) return;
 			var multiMap = Find.Maps.Count > 1;
 			var areas = Find.Maps
+				.Where(map => map.IsBlacklisted() == false)
 				.SelectMany(map => map.areaManager.AllAreas
 				.Where(area => area.Mutable)
 				.OrderBy(area => area.ListPriority)
@@ -521,7 +615,7 @@ namespace ZombieLand
 			list.Dialog_List("ExtractZombieArea", settings.extractZombieArea, area => settings.extractZombieArea = area ?? "", areas, null, "Everywhere".Translate());
 		}
 
-		public static void ChooseWanderingStyle(Listing_Standard list, SettingsGroup settings)
+		public static void ChooseWanderingStyle(this Listing_Standard list, SettingsGroup settings)
 		{
 			var defaultChoice = Enum.GetName(typeof(WanderingStyle), WanderingStyle.Smart);
 			var choices = Enum.GetValues(typeof(WanderingStyle)).Cast<WanderingStyle>().ToList();
@@ -544,7 +638,7 @@ namespace ZombieLand
 
 		public static int exampleMeleeSkill = 10;
 		public static int exampleZombieCount = 1;
-		public static void ExplainSafeMelee(Listing_Standard list, int safeMeleeLimit)
+		public static void ExplainSafeMelee(this Listing_Standard list, int safeMeleeLimit)
 		{
 			Text.Font = GameFont.Tiny;
 			var chance = Mathf.FloorToInt(100f * exampleMeleeSkill * Mathf.Max(0, safeMeleeLimit - exampleZombieCount + 1) / 20f);
@@ -664,7 +758,7 @@ namespace ZombieLand
 				{
 					list.Dialog_Enum("HowDoZombiesSpawn", ref settings.spawnHowType);
 					list.Gap(8);
-					ChooseWanderingStyle(list, settings);
+					list.ChooseWanderingStyle(settings);
 					var localSettings = settings;
 					list.Dialog_Button("BlacklistedBiomes", "Biomes", false, () => Find.WindowStack.Add(new BiomeList(localSettings)));
 					list.Gap(30f);
@@ -750,12 +844,14 @@ namespace ZombieLand
 				}
 
 				// Total
-				if (Section<string>(":ZombiesOnTheMap", ":MaximumNumberOfZombies", ":ColonyMultiplier"))
+				if (Section<string>(":ZombiesOnTheMap", ":MaximumNumberOfZombies", ":ColonyMultiplier", ":DangerousAreas", ":Areas"))
 				{
 					list.Dialog_Label("ZombiesOnTheMap", headerColor);
+					list.Gap(2f);
 					list.Dialog_Integer("MaximumNumberOfZombies", "Zombies", 0, 5000, ref settings.maximumNumberOfZombies);
-					list.Gap(8f);
+					list.Gap(12f);
 					list.Dialog_FloatSlider("ColonyMultiplier", _ => "{0:0.0}x", false, ref settings.colonyMultiplier, 1f, 10f);
+					list.ColonistDangerousAreas();
 					list.Gap(28f);
 				}
 
@@ -807,7 +903,7 @@ namespace ZombieLand
 					if (settings.safeMeleeLimit > 0)
 					{
 						list.Gap(-2f);
-						ExplainSafeMelee(list, settings.safeMeleeLimit);
+						list.ExplainSafeMelee(settings.safeMeleeLimit);
 						list.Gap(12f);
 					}
 					list.Gap(6f);
@@ -858,7 +954,7 @@ namespace ZombieLand
 					list.Dialog_FloatSlider("LootExtractAmount", f => ExtractAmount(f), false, ref f2, 0, 4);
 					settings.lootExtractAmount = Mathf.Round(f2 * 100f) / 100f;
 					list.Dialog_TimeSlider("CorpsesDaysToDessicated", ref settings.corpsesHoursToDessicated, 1, 120);
-					ChooseExtractArea(list, settings);
+					list.ChooseExtractArea(settings);
 					list.Gap(28f);
 				}
 
@@ -890,6 +986,40 @@ namespace ZombieLand
 			list.End();
 			Widgets.EndScrollView();
 
+			var searchRect = new Rect(inRect.x + firstColumnWidth + Listing.ColumnSpacing, inRect.y, secondColumnWidth, 35f + Text.LineHeight + 10);
+			list = new Listing_Standard();
+			list.Begin(searchRect);
+
+			list.Dialog_Label("Search".SafeTranslate(), Color.white, false);
+			list.Gap(8f);
+
+			searchWidget.OnGUI(list.GetRect(35f), () => scrollPosition = Vector2.zero);
+			if (focusOnSearch)
+			{
+				focusOnSearch = false;
+				GUI.FocusControl(searchWidget.controlName);
+			}
+
+			if (currentHelpItem != null)
+			{
+				list.Gap(16f);
+
+				var title = currentHelpItem.SafeTranslate().Replace(": {0}", "");
+				list.Dialog_Label(title, Color.white, false);
+				list.Gap(8f);
+
+				var text = (currentHelpItem + "_Help").SafeTranslate();
+				var anchor = Text.Anchor;
+				Text.Anchor = TextAnchor.MiddleLeft;
+				var textHeight = Text.CalcHeight(text, list.ColumnWidth - 3f - inset) + 2 * 3f;
+				var rect = list.GetRect(textHeight).Rounded();
+				GUI.color = Color.white;
+				Widgets.Label(rect, text);
+				Text.Anchor = anchor;
+			}
+
+			list.End();
+
 			var boxHeight = 136f;
 			var clipboardActionsRect = new Rect(inRect.x + firstColumnWidth + Listing.ColumnSpacing, inRect.y + inRect.height - boxHeight, inRect.width - firstColumnWidth - Listing.ColumnSpacing, boxHeight);
 
@@ -904,34 +1034,10 @@ namespace ZombieLand
 			if (inGame) list.Dialog_Button("PasteSettings", "PasteButton", true, settings.FromClipboard);
 
 			list.End();
+		}
 
-			if (currentHelpItem != null)
-			{
-				outerRect.x += firstColumnWidth + Listing.ColumnSpacing;
-				outerRect.width = secondColumnWidth;
-
-				list = new Listing_Standard();
-				list.Begin(outerRect);
-
-				var title = currentHelpItem.SafeTranslate().Replace(": {0}", "");
-				list.Dialog_Label(title, Color.white, false);
-
-				list.Gap(8f);
-
-				var text = (currentHelpItem + "_Help").SafeTranslate();
-				var anchor = Text.Anchor;
-				Text.Anchor = TextAnchor.MiddleLeft;
-				var textHeight = Text.CalcHeight(text, list.ColumnWidth - 3f - inset) + 2 * 3f;
-				var rect = list.GetRect(textHeight).Rounded();
-				GUI.color = Color.white;
-				Widgets.Label(rect, text);
-				Text.Anchor = anchor;
-
-				list.End();
-			}
-
-			GUI.EndGroup();
-			var searchRect = inRect;
+		public static void DoSearchField(Rect searchRect)
+		{
 			searchRect.yMin = searchRect.yMax + 20 + 20;
 			searchRect.height = 35;
 			searchRect.xMin += 20;
@@ -942,7 +1048,6 @@ namespace ZombieLand
 				focusOnSearch = false;
 				GUI.FocusControl(searchWidget.controlName);
 			}
-			GUI.BeginGroup(Rect.zero);
 		}
 	}
 }
