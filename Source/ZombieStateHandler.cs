@@ -91,7 +91,7 @@ namespace ZombieLand
 				return false;
 			}
 
-			if (zombie.EveryNTick(NthTick.Every60))
+			if (zombie.EveryNTick(NthTick.Every45))
 				_ = HealthUtility.FixWorstHealthCondition(zombie);
 
 			driver.destination = IntVec3.Invalid;
@@ -168,7 +168,7 @@ namespace ZombieLand
 		//
 		public static void ApplyFire(Zombie zombie)
 		{
-			if (zombie.isOnFire || zombie.EveryNTick(NthTick.Every60) == false)
+			if (zombie.isOnFire || zombie.EveryNTick(NthTick.Every50) == false)
 				return;
 
 			var temp = GenTemperature.GetTemperatureForCell(zombie.Position, zombie.Map);

@@ -11,10 +11,12 @@ namespace ZombieLand
 {
 	public enum NthTick
 	{
+		// never use one value more than once per tick cycle and zombie!
 		Every2,
 		Every10,
-		Every15,
-		Every30,
+		Every12,
+		Every45,
+		Every50,
 		Every60,
 		Every480,
 		Every960
@@ -537,17 +539,28 @@ namespace ZombieLand
 			if (threatLevel <= 0.002f && ZombieSettings.Values.zombiesDieOnZeroThreat && Rand.Chance(0.002f))
 				_ = TakeDamage(damageInfo);
 
-			if (isHealer && state != ZombieState.Emerging && EveryNTick(NthTick.Every15))
+			if (isHealer && state != ZombieState.Emerging && EveryNTick(NthTick.Every12))
 			{
 				var radius = 4 + ZombieLand.Tools.Difficulty() * 2;
+
+				var n = GenRadial.RadialDistinctThingsAround(Position, map, radius, false)
+					.OfType<Zombie>()
+					.Where(zombie => zombie.health.hediffSet.hediffs.Any()).Count();
+
 				GenRadial.RadialDistinctThingsAround(Position, map, radius, false)
 					.OfType<Zombie>()
-					.Where(zombie => zombie.health.hediffSet.hediffs.Any())
-					.Do(zombie =>
+					.Select(zombie => (zombie, zombie.health.hediffSet.hediffs))
+					.Where(pair => pair.hediffs.Any())
+					.OrderByDescending(pair => pair.hediffs.Count)
+					.Do(pair =>
 					{
-						zombie.health.hediffSet.Clear();
-						healInfo.Add(new HealerInfo(zombie));
-						map.debugDrawer.debugLines.Add(new DebugLine(DrawPos, zombie.DrawPos, 60, SimpleColor.Cyan));
+						if (healInfo.Count < 4)
+						{
+							var zombie = pair.zombie;
+							zombie.health.hediffSet.Clear();
+							healInfo.Add(new HealerInfo(zombie));
+							map.debugDrawer.debugLines.Add(new DebugLine(DrawPos, zombie.DrawPos, 60, SimpleColor.Cyan));
+						}
 					});
 			}
 		}

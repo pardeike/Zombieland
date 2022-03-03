@@ -3080,7 +3080,7 @@ namespace ZombieLand
 			{
 				if (WorldRendererUtility.WorldRenderedNow) return;
 				if (Find.CurrentMap != __instance) return;
-				if (__instance.IsBlacklisted()) return;
+				if (__instance.Biome != SoSTools.sosOuterSpaceBiomeDef) return;
 
 				var tickManager = __instance.GetComponent<TickManager>();
 				if (tickManager == null) return;
