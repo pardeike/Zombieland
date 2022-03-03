@@ -192,4 +192,9 @@
 	<ShowHealthBar>Barre de santé de zombies</ShowHealthBar>
 	<ShowZombieStats>Afficher les statistiques des zombies</ShowZombieStats>
 
+	<ShowZombieRisk>Afficher le risque zombie</ShowZombieRisk>
+	<IfInside>Quand à l'intérieur</IfInside>
+	<IfOutside>Quand dehors</IfOutside>
+	<HighlightDangerousAreas>Mettre en lumière les zones à risque</HighlightDangerousAreas>
+
 </LanguageData>

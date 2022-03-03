@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,117 @@ using Verse;
 
 namespace ZombieLand
 {
+	public static class ZombieAreaManager
+	{
+		public static Dictionary<Area, HashSet<IntVec3>> cache = new Dictionary<Area, HashSet<IntVec3>>();
+		public static List<(Pawn, Area)> pawnsInDanger = new List<(Pawn, Area)>();
+		public static DateTime nextUpdate = DateTime.Now;
+
+		public static void DangerAlertsOnGUI()
+		{
+			var map = Find.CurrentMap;
+			if (map == null) return;
+
+			var now = DateTime.Now;
+			if (now > nextUpdate)
+			{
+				nextUpdate = now.AddSeconds(0.5f);
+				var pawns = map.mapPawns.SpawnedPawnsInFaction(Faction.OfPlayer);
+				pawnsInDanger = ZombieSettings.Values.dangerousAreas
+					.Where(pair => pair.Key.Map == Find.CurrentMap)
+					.SelectMany(pair =>
+					{
+						var area = pair.Key;
+						var mode = pair.Value;
+						return pawns.Where(pawn =>
+						{
+							if (Tools.HasInfectionState(pawn, InfectionState.Infecting, InfectionState.Infected)) return false;
+							var inside = area.innerGrid[pawn.Position];
+							return inside && mode == ZombieRiskMode.IfInside || !inside && mode == ZombieRiskMode.IfOutside;
+						})
+						.Select(pawn => (pawn, area));
+					})
+					.ToList();
+			}
+			DrawDangerous();
+		}
+
+		public static void DrawDangerous()
+		{
+			Area foundArea = null;
+			Texture2D colorTexture = null;
+			var headsToDraw = new List<(Pawn, Texture)>();
+			var highlightDangerousAreas = ZombieSettings.Values.highlightDangerousAreas;
+			foreach (var (pawn, area) in pawnsInDanger)
+			{
+				if (foundArea != null && foundArea != area)
+					break;
+				if (foundArea == null)
+				{
+					var c = area.Color;
+					colorTexture = SolidColorMaterials.NewSolidColorTexture(c.r, c.g, c.b, 0.75f);
+					Graphics.DrawTexture(new Rect(0, 0, UI.screenWidth, 2), colorTexture);
+
+					if (highlightDangerousAreas)
+						area.MarkForDraw();
+				}
+				foundArea = area;
+
+				var renderTexture = RenderTexture.GetTemporary(44, 44, 32, RenderTextureFormat.ARGB32);
+				Find.PawnCacheRenderer.RenderPawn(pawn, renderTexture, new Vector3(0, 0, 0.4f), 1.75f, 0f, Rot4.South, true, false, true, true, true, default, null, null, false);
+				var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
+				RenderTexture.active = renderTexture;
+				texture.ReadPixels(new Rect(0f, 0f, renderTexture.width, renderTexture.height), 0, 0);
+				texture.Apply();
+				RenderTexture.active = null;
+				RenderTexture.ReleaseTemporary(renderTexture);
+
+				headsToDraw.Add((pawn, texture));
+			}
+			if (colorTexture != null)
+			{
+				var n = headsToDraw.Count;
+				var width = 5 + n * 2 + (n + 1) * 18 + 5;
+				var rect = new Rect(118, 2, width, 29);
+				Graphics.DrawTexture(rect, colorTexture);
+				var showPositions = Mouse.IsOver(rect.ExpandedBy(4));
+
+				rect = new Rect(123, 7, 18, 18);
+				Graphics.DrawTexture(rect, Constants.Danger);
+
+				for (var i = 0; i < n; i++)
+				{
+					var pawn = headsToDraw[i].Item1;
+					rect = new Rect(141 + i * 22, 5, 22, 22);
+					Graphics.DrawTexture(rect, headsToDraw[i].Item2);
+					if (showPositions)
+						TargetHighlighter.Highlight(new GlobalTargetInfo(pawn), true, false, false);
+					if (Widgets.ButtonInvisible(rect))
+						CameraJumper.TryJump(pawn);
+				}
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(Area))]
+	public static class Area_AreaUpdate_Patch
+	{
+		[HarmonyPostfix]
+		[HarmonyPatch(nameof(Area.AreaUpdate))]
+		static void AreaUpdate(Area __instance)
+		{
+			if (ZombieSettings.Values.dangerousAreas.TryGetValue(__instance, out var mode) && mode != ZombieRiskMode.Ignore)
+				ZombieAreaManager.cache[__instance] = new HashSet<IntVec3>(__instance.ActiveCells);
+		}
+
+		[HarmonyPostfix]
+		[HarmonyPatch(nameof(Area.Delete))]
+		static void Delete(Area __instance)
+		{
+			_ = ZombieAreaManager.cache.Remove(__instance);
+		}
+	}
+
 	[HarmonyPatch(typeof(AreaManager))]
 	public static class AreaManager_Patches
 	{
@@ -186,15 +298,12 @@ namespace ZombieLand
 
 		public static Color AreaLabelColor(Area area)
 		{
-			switch (GetMode(area))
+			return GetMode(area) switch
 			{
-				default:
-					return Color.white;
-				case ZombieRiskMode.IfInside:
-					return areaNameZombiesInside;
-				case ZombieRiskMode.IfOutside:
-					return areaNameZombiesOutside;
-			}
+				ZombieRiskMode.IfInside => areaNameZombiesInside,
+				ZombieRiskMode.IfOutside => areaNameZombiesOutside,
+				_ => Color.white,
+			};
 		}
 
 		public static void RenderListRow(Rect rect, Area area, int idx)
@@ -245,17 +354,13 @@ namespace ZombieLand
 
 		public static string ToStringHuman(this ZombieRiskMode mode)
 		{
-			switch (mode)
+			return mode switch
 			{
-				case ZombieRiskMode.Ignore:
-					return "Ignore".Translate();
-				case ZombieRiskMode.IfInside:
-					return "IfInside".Translate();
-				case ZombieRiskMode.IfOutside:
-					return "IfOutside".Translate();
-				default:
-					return null;
-			}
+				ZombieRiskMode.Ignore => "Ignore".Translate(),
+				ZombieRiskMode.IfInside => "IfInside".Translate(),
+				ZombieRiskMode.IfOutside => "IfOutside".Translate(),
+				_ => null,
+			};
 		}
 
 		public static ZombieRiskMode GetMode(Area area)

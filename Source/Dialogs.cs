@@ -16,7 +16,7 @@ namespace ZombieLand
 		{
 			base.PreOpen();
 			Dialogs.scrollPosition = Vector2.zero;
-			Dialogs.focusOnSearch = true;
+			Dialogs.shouldFocusNow = Dialogs.searchWidget.controlName;
 			Dialogs.searchWidget.Reset();
 		}
 
@@ -26,8 +26,6 @@ namespace ZombieLand
 			var mainRect = GetMainRect(inRect, 0f, false);
 			Dialogs.DoWindowContentsInternal(ref ZombieSettings.Values, mainRect);
 			DoBottomButtons(inRect, null, null, null, true, true);
-			Log.Warning($"inRect={inRect}, mainRect={mainRect}");
-			Dialogs.DoSearchField(inRect);
 		}
 	}
 
@@ -716,7 +714,8 @@ namespace ZombieLand
 		}
 
 		public static QuickSearchWidget searchWidget = new QuickSearchWidget();
-		public static bool focusOnSearch = true;
+		public static (int, int) searchWidgetSelectionState = (0, 0);
+		public static string shouldFocusNow = searchWidget.controlName;
 		public static Vector2 scrollPosition = Vector2.zero;
 		public static void DoWindowContentsInternal(ref SettingsGroup settings, Rect inRect)
 		{
@@ -729,7 +728,7 @@ namespace ZombieLand
 			var secondColumnWidth = inRect.width - Listing.ColumnSpacing - firstColumnWidth;
 
 			var outerRect = new Rect(inRect.x, inRect.y, firstColumnWidth, inRect.height);
-			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, 3300);
+			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, 3400);
 			Widgets.BeginScrollView(outerRect, ref scrollPosition, innerRect, true);
 
 			currentHelpItem = null;
@@ -959,7 +958,7 @@ namespace ZombieLand
 				}
 
 				// Miscellaneous
-				if (Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":PlayCreepyAmbientSound", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":ShowHealthBar", ":ShowZombieStats"))
+				if (Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":PlayCreepyAmbientSound", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":ShowHealthBar", ":ShowZombieStats", ":HighlightDangerousAreas"))
 				{
 					list.Dialog_Label("ZombieMiscTitle", headerColor);
 					list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);
@@ -970,6 +969,7 @@ namespace ZombieLand
 					list.Dialog_Checkbox("ZombiesBurnLonger", ref settings.zombiesBurnLonger);
 					list.Dialog_Checkbox("ShowHealthBar", ref settings.showHealthBar);
 					list.Dialog_Checkbox("ShowZombieStats", ref settings.showZombieStats);
+					list.Dialog_Checkbox("HighlightDangerousAreas", ref settings.highlightDangerousAreas);
 					list.Gap(30f);
 				}
 
@@ -986,19 +986,25 @@ namespace ZombieLand
 			list.End();
 			Widgets.EndScrollView();
 
-			var searchRect = new Rect(inRect.x + firstColumnWidth + Listing.ColumnSpacing, inRect.y, secondColumnWidth, 35f + Text.LineHeight + 10);
+			var boxHeight = 136f;
+			var clipboardActionsRect = new Rect(inRect.x + firstColumnWidth + Listing.ColumnSpacing, inRect.y + inRect.height - boxHeight, inRect.width - firstColumnWidth - Listing.ColumnSpacing, boxHeight);
+
+			var auxColumn = new Rect(inRect.x + firstColumnWidth + Listing.ColumnSpacing, inRect.y, secondColumnWidth, inRect.height - boxHeight);
 			list = new Listing_Standard();
-			list.Begin(searchRect);
+			list.Begin(auxColumn);
 
-			list.Dialog_Label("Search".SafeTranslate(), Color.white, false);
-			list.Gap(8f);
-
-			searchWidget.OnGUI(list.GetRect(35f), () => scrollPosition = Vector2.zero);
-			if (focusOnSearch)
+			list.ColumnWidth -= 6;
+			var serachRect = list.GetRect(28f);
+			list.ColumnWidth += 6;
+			searchWidget.OnGUISimple(serachRect, () =>
 			{
-				focusOnSearch = false;
-				GUI.FocusControl(searchWidget.controlName);
-			}
+				var editor = (TextEditor)GUIUtility.GetStateObject(typeof(TextEditor), GUIUtility.keyboardControl);
+				if (editor != null)
+					searchWidgetSelectionState = (editor.cursorIndex, editor.selectIndex);
+
+				scrollPosition = Vector2.zero;
+				shouldFocusNow = searchWidget.controlName;
+			});
 
 			if (currentHelpItem != null)
 			{
@@ -1020,33 +1026,27 @@ namespace ZombieLand
 
 			list.End();
 
-			var boxHeight = 136f;
-			var clipboardActionsRect = new Rect(inRect.x + firstColumnWidth + Listing.ColumnSpacing, inRect.y + inRect.height - boxHeight, inRect.width - firstColumnWidth - Listing.ColumnSpacing, boxHeight);
-
 			list = new Listing_Standard();
 			list.Begin(clipboardActionsRect);
-
-			if (inGame == false) list.Gap(46f);
-
 			list.Dialog_Label("ClipboardActionTitle", headerColor);
 			list.Gap(8f);
 			list.Dialog_Button("CopySettings", "CopyButton", false, settings.ToClipboard);
-			if (inGame) list.Dialog_Button("PasteSettings", "PasteButton", true, settings.FromClipboard);
-
+			list.Dialog_Button("PasteSettings", "PasteButton", true, settings.FromClipboard);
 			list.End();
-		}
 
-		public static void DoSearchField(Rect searchRect)
-		{
-			searchRect.yMin = searchRect.yMax + 20 + 20;
-			searchRect.height = 35;
-			searchRect.xMin += 20;
-			searchRect.width = 350;
-			searchWidget.OnGUI(searchRect, () => scrollPosition = Vector2.zero);
-			if (focusOnSearch)
+			if (shouldFocusNow != null && Event.current.type == EventType.Layout)
 			{
-				focusOnSearch = false;
-				GUI.FocusControl(searchWidget.controlName);
+				GUI.FocusControl(shouldFocusNow);
+
+				var editor = (TextEditor)GUIUtility.GetStateObject(typeof(TextEditor), GUIUtility.keyboardControl);
+				if (editor != null)
+				{
+					editor.OnFocus();
+					editor.cursorIndex = searchWidgetSelectionState.Item1;
+					editor.selectIndex = searchWidgetSelectionState.Item2;
+				}
+
+				shouldFocusNow = null;
 			}
 		}
 	}

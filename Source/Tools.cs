@@ -1026,6 +1026,44 @@ namespace ZombieLand
 			return active && Widgets.ButtonInvisible(rect, false);
 		}
 
+		public static void OnGUISimple(this QuickSearchWidget self, Rect rect, Action onFilterChange = null)
+		{
+			if (OriginalEventUtility.EventType == EventType.MouseDown && !rect.Contains(Event.current.mousePosition)) self.Unfocus();
+
+			var color = GUI.color;
+			GUI.color = Color.white;
+
+			var num = Mathf.Min(18f, rect.height);
+			var num2 = num + 8f;
+			var y = rect.y + (rect.height - num2) / 2f + 4f;
+			var position = new Rect(rect.x + 4f, y, num, num);
+			GUI.DrawTexture(position, TexButton.Search);
+
+			var rect3 = new Rect(rect.xMax - 4f - num, y, num, num);
+			if (self.filter.Text != "" && Widgets.ButtonInvisible(rect3))
+			{
+				self.filter.Text = "";
+				SoundDefOf.CancelMode.PlayOneShotOnCamera(null);
+				onFilterChange?.Invoke();
+			}
+
+			GUI.SetNextControlName(self.controlName);
+			var rect2 = rect;
+			rect2.xMin = position.xMax + 4f;
+			var text = Widgets.TextField(rect2, self.filter.Text, 15, null);
+
+			if (text != self.filter.Text)
+			{
+				self.filter.Text = text;
+				onFilterChange?.Invoke();
+			}
+
+			if (self.filter.Text != "")
+				GUI.DrawTexture(rect3, TexButton.CloseXSmall);
+
+			GUI.color = color;
+		}
+
 		public static Material[][] GetDamageableGraphics(string name, int variantCount, int maxCount)
 		{
 			var mats = new Material[variantCount][];
@@ -1330,6 +1368,7 @@ namespace ZombieLand
 				texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
 				texture.Apply();
 				RenderTexture.active = null;
+				RenderTexture.ReleaseTemporary(renderTexture);
 
 				if (foreground)
 				{

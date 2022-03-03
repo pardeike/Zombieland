@@ -315,6 +315,7 @@ namespace ZombieLand
 		public static readonly Texture2D[] ButtonDup = new[] { ContentFinder<Texture2D>.Get("ButtonDup0", true), ContentFinder<Texture2D>.Get("ButtonDup1", true) };
 		public static readonly Texture2D[] ButtonDown = new[] { ContentFinder<Texture2D>.Get("ButtonDown0", true), ContentFinder<Texture2D>.Get("ButtonDown1", true) };
 		public static readonly Texture2D[] ButtonUp = new[] { ContentFinder<Texture2D>.Get("ButtonUp0", true), ContentFinder<Texture2D>.Get("ButtonUp1", true) };
+		public static readonly Texture2D Danger = ContentFinder<Texture2D>.Get("Danger", true);
 
 		public static readonly System.Random random = new System.Random();
 

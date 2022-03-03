@@ -192,4 +192,9 @@
 	<ShowHealthBar>Zombiler sağlık çubuğu</ShowHealthBar>
 	<ShowZombieStats>Zombi istatistiklerini göster</ShowZombieStats>
 
+	<ShowZombieRisk>Zombi riskini göster</ShowZombieRisk>
+	<IfInside>Ne zaman içeride</IfInside>
+	<IfOutside>Ne zaman dışarıda</IfOutside>
+	<HighlightDangerousAreas>Risk alanlarını vurgulayın</HighlightDangerousAreas>
+
 </LanguageData>

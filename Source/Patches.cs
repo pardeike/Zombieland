@@ -4797,28 +4797,6 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to add search field between Back and Next buttons
-		//
-		[HarmonyPatch(typeof(Page))]
-		[HarmonyPatch(nameof(Page.DoBottomButtons))]
-		static class Page_DoBottomButtons_Patch
-		{
-			static void Postfix(Page __instance, Rect rect)
-			{
-				if (!(__instance is SettingsDialog settingsDialog)) return;
-
-				var y = rect.y + rect.height - 38f;
-				var searchRect = new Rect(rect.x + (rect.width - 350) / 2, y, 350, 35);
-				Log.Warning($"searchRect = {searchRect}");
-				Dialogs.searchWidget.OnGUI(searchRect, () => Dialogs.scrollPosition = Vector2.zero);
-				if (Dialogs.focusOnSearch)
-				{
-					Dialogs.focusOnSearch = false;
-					GUI.FocusControl(Dialogs.searchWidget.controlName);
-				}
-			}
-		}
-
 		// set hostility response to attack as default
 		//
 		[HarmonyPatch(typeof(Game))]
@@ -5014,6 +4992,8 @@ namespace ZombieLand
 			}
 		}
 
+		// add job to turn on zombie shocker
+		//
 		[HarmonyPatch(typeof(FloatMenuMakerMap))]
 		[HarmonyPatch(nameof(FloatMenuMakerMap.AddHumanlikeOrders))]
 		static class FloatMenuMakerMap_AddHumanlikeOrders_Patch
@@ -5034,6 +5014,17 @@ namespace ZombieLand
 							opts.Add(new FloatMenuOption("ZapZombies".Translate(), job));
 						}
 				}
+			}
+		}
+
+		// draw dangerous area info at top of screen
+		//
+		[HarmonyPatch(typeof(Messages), nameof(Messages.MessagesDoGUI))]
+		static class GlobalControls_GlobalControlsOnGUI_Patch
+		{
+			static void Prefix()
+			{
+				ZombieAreaManager.DangerAlertsOnGUI();
 			}
 		}
 	}

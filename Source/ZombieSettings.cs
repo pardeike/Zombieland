@@ -143,6 +143,7 @@ namespace ZombieLand
 		public HashSet<string> biomesWithoutZombies = new HashSet<string>();
 		public bool showZombieStats = true;
 		public Dictionary<Area, ZombieRiskMode> dangerousAreas = new Dictionary<Area, ZombieRiskMode>();
+		public bool highlightDangerousAreas = false;
 
 		// unused
 		public int suicideBomberIntChance = 1;

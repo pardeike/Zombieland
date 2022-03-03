@@ -192,4 +192,9 @@
 	<ShowHealthBar>殭屍健康酒吧</ShowHealthBar>
 	<ShowZombieStats>顯示殭屍統計信息</ShowZombieStats>
 
+	<ShowZombieRisk>顯示殭屍風險</ShowZombieRisk>
+	<IfInside>當在裡面</IfInside>
+	<IfOutside>在外面的時候</IfOutside>
+	<HighlightDangerousAreas>突出風險領域</HighlightDangerousAreas>
+
 </LanguageData>

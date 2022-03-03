@@ -192,4 +192,9 @@
 	<ShowHealthBar>Зомби Бар здоровья</ShowHealthBar>
 	<ShowZombieStats>Показать статистику зомби</ShowZombieStats>
 
+	<ShowZombieRisk>Показать зомби-риск</ShowZombieRisk>
+	<IfInside>Когда внутри</IfInside>
+	<IfOutside>Когда снаружи</IfOutside>
+	<HighlightDangerousAreas>Выделите области риска</HighlightDangerousAreas>
+
 </LanguageData>

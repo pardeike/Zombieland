@@ -140,6 +140,7 @@
 	<ZombiesBurnLonger_Help>To give you more interesting gameplay, zombies will catch fire and burn longer than usual while walking around. Turn off if your computer is too slow to handle a lot of fire.</ZombiesBurnLonger_Help>
 	<ShowHealthBar_Help>Since zombies cannot be selected you can enable a mouse-over health bar. It shows the overall health and also the consciousness level.</ShowHealthBar_Help>
 	<ShowZombieStats_Help>This controls the display of the zombie information on the right side of your screen.</ShowZombieStats_Help>
+	<HighlightDangerousAreas_Help>When a colonist is in a dangerous area or leaves a safe area this setting will highlight that area.\n\nYou can use the normal area manager to manage dangerous areas.</HighlightDangerousAreas_Help>
 
 	<!-- -->
 
