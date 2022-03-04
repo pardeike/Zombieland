@@ -173,26 +173,32 @@ namespace ZombieLand
 					if (Scribe.EnterNode(fieldName))
 					{
 						foreach (var (area, mode) in dict)
-						{
-							var riskArea = new ZombieRiskArea() { area = area.ID, map = area.Map.uniqueID, mode = mode };
-							Scribe_Deep.Look(ref riskArea, "area", Array.Empty<object>());
-						}
+							if (Find.Maps.Select(map => map.uniqueID).Contains(area.Map.uniqueID))
+							{
+								var riskArea = new ZombieRiskArea() { area = area.ID, map = area.Map.uniqueID, mode = mode };
+								Scribe_Deep.Look(ref riskArea, "area", Array.Empty<ZombieRiskArea>());
+							}
 						Scribe.ExitNode();
 					}
 				}
 				if (Scribe.mode == LoadSaveMode.LoadingVars)
+				{
 					Scribe_Collections.Look(ref ZombieRiskArea.temp, fieldName, LookMode.Deep);
+					ZombieRiskArea.temp ??= new List<ZombieRiskArea>();
+				}
 				if (Scribe.mode == LoadSaveMode.PostLoadInit)
 				{
-					foreach (var riskArea in ZombieRiskArea.temp)
-					{
-						var realArea = Find.Maps
-								.Where(map => map.uniqueID == riskArea.map)
-								.SelectMany(map => map.areaManager.AllAreas)
-								.FirstOrDefault(area => area.ID == riskArea.area);
-						if (realArea != null)
-							dict[realArea] = riskArea.mode;
-					}
+					if (Find.Maps != null)
+						foreach (var riskArea in ZombieRiskArea.temp)
+							if (riskArea != null)
+							{
+								var realArea = Find.Maps
+										.Where(map => map.uniqueID == riskArea.map)
+										.SelectMany(map => map.areaManager.AllAreas)
+										.FirstOrDefault(area => area.ID == riskArea.area);
+								if (realArea != null)
+									dict[realArea] = riskArea.mode;
+							}
 					settings.dangerousAreas = dict;
 				}
 				return true;

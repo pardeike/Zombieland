@@ -15,6 +15,7 @@ namespace ZombieLand
 		public static Dictionary<Area, HashSet<IntVec3>> cache = new Dictionary<Area, HashSet<IntVec3>>();
 		public static List<(Pawn, Area)> pawnsInDanger = new List<(Pawn, Area)>();
 		public static DateTime nextUpdate = DateTime.Now;
+		public static bool warningShowing = false;
 
 		public static void DangerAlertsOnGUI()
 		{
@@ -25,7 +26,7 @@ namespace ZombieLand
 			if (now > nextUpdate)
 			{
 				nextUpdate = now.AddSeconds(0.5f);
-				var pawns = map.mapPawns.SpawnedPawnsInFaction(Faction.OfPlayer);
+				var pawns = map.mapPawns.FreeColonistsSpawned;
 				pawnsInDanger = ZombieSettings.Values.dangerousAreas
 					.Where(pair => pair.Key.Map == Find.CurrentMap)
 					.SelectMany(pair =>
@@ -77,7 +78,9 @@ namespace ZombieLand
 
 				headsToDraw.Add((pawn, texture));
 			}
-			if (colorTexture != null)
+
+			warningShowing = colorTexture != null;
+			if (warningShowing)
 			{
 				var n = headsToDraw.Count;
 				var width = 5 + n * 2 + (n + 1) * 18 + 5;

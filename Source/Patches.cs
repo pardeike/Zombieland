@@ -5020,11 +5020,23 @@ namespace ZombieLand
 		// draw dangerous area info at top of screen
 		//
 		[HarmonyPatch(typeof(Messages), nameof(Messages.MessagesDoGUI))]
-		static class GlobalControls_GlobalControlsOnGUI_Patch
+		static class Messages_MessagesDoGUI_Patch
 		{
 			static void Prefix()
 			{
 				ZombieAreaManager.DangerAlertsOnGUI();
+			}
+		}
+
+		// move messages down when dangerous area info shows
+		//
+		[HarmonyPatch(typeof(Message), nameof(Message.Draw))]
+		static class Message_Draw_Patch
+		{
+			static void Prefix(ref int yOffset)
+			{
+				if (ZombieAreaManager.warningShowing)
+					yOffset += 29;
 			}
 		}
 	}
