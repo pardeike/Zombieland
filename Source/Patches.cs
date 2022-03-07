@@ -842,14 +842,22 @@ namespace ZombieLand
 				// allow mentally broken colonists to use smart melee: if (pawn.mindState.mentalStateHandler.InMentalState) return true;
 
 				var pos = pawn.Position;
+				var posX = pos.x;
+				var posZ = pos.z;
 				var vecs = GenAdj.AdjacentCellsAround;
 				var thingGrid = pawn.Map.thingGrid;
 				var concurrentAttacks = GenAdj.AdjacentCellsAround
 					.SelectMany(vec => thingGrid.ThingsAt(pos + vec))
 					.OfType<Zombie>()
-					.Select(zombie => zombie.CurJob)
-					.Where(job => job?.def == JobDefOf.AttackMelee)
-					.Sum(job => job.targetA.Thing == pawn ? (zombie.IsTanky ? 2 : 1) : 0);
+					.Where(zombie => zombie.ropedBy == null && zombie.paralyzedUntil == 0)
+					.Where(zombie =>
+					{
+						var zombiePos = zombie.Position;
+						var dist = posX == zombiePos.x || posZ == zombiePos.z ? 1.1f : 2.2f;
+						var res = (pawn.DrawPos - zombie.DrawPos).MagnitudeHorizontalSquared() <= dist;
+						return res;
+					})
+					.Sum(_zombie => zombie.IsTanky ? 2 : 1);
 				if (concurrentAttacks <= limit)
 					if (__instance.GetDamageDef() == CustomDefs.ZombieBite)
 					{
