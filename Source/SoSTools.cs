@@ -1,9 +1,11 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using Verse;
 using Verse.AI.Group;
@@ -174,6 +176,93 @@ namespace ZombieLand
 		{
 			var from = SymbolExtensions.GetMethodInfo(() => Printer_Mesh.PrintMesh(default, default, default, default));
 			var to = SymbolExtensions.GetMethodInfo(() => PrintMeshWithChangedAltitute(default, default, default, default));
+			return instructions.MethodReplacer(from, to);
+		}
+	}
+
+	// remember genstep def that generated a map
+	//
+	/*[HarmonyPatch]
+	static class GenStep_Generate_Patch
+	{
+		public static readonly ConditionalWeakTable<Map, GenStepDef> genStepsForMaps = new ConditionalWeakTable<Map, GenStepDef>();
+
+		static IEnumerable<MethodBase> TargetMethods()
+		{
+			return AppDomain.CurrentDomain.GetAssemblies()
+				.SelectMany(assembly => assembly.GetTypes())
+				.Where(type => type != typeof(GenStep) && type.IsSubclassOf(typeof(GenStep)))
+				.Select(type => AccessTools.Method(type, nameof(GenStep.Generate)))
+				.OfType<MethodInfo>();
+		}
+
+		static void Prefix(Map map, GenStepDef ___def)
+		{
+			_ = genStepsForMaps.GetValue(map, _ => ___def);
+		}
+	}*/
+	//
+	[HarmonyPatch(typeof(Site), nameof(Site.PostMapGenerate))]
+	static class Site_PostMapGenerate_Patch
+	{
+		static bool Prepare() => SoSTools.isInstalled;
+		static void Prefix(Site __instance)
+		{
+			var tags = __instance.MainSitePartDef.tags;
+			if (tags.Contains("SpaceCore") || tags.Contains("SoSMayday"))
+				_ = SaveOurShip2_DoNotSpamMePlease_NoMoreAreaSpam_Patch.genStepsForMaps.GetValue(__instance.Map, _ => __instance.MainSitePartDef);
+		}
+	}
+
+	// adds sudden zombies to unfogged rooms
+	//
+	[HarmonyPatch]
+	static class SaveOurShip2_DoNotSpamMePlease_NoMoreAreaSpam_Patch
+	{
+		public static readonly ConditionalWeakTable<Map, SitePartDef> genStepsForMaps = new ConditionalWeakTable<Map, SitePartDef>();
+
+		static bool Prepare() => TargetMethod() != null;
+		static MethodBase TargetMethod() => AccessTools.Method("SaveOurShip2.DoNotSpamMePlease:NoMoreAreaSpam");
+
+		public static FloodUnfogResult FloodUnfog(IntVec3 root, Map map)
+		{
+			var room = GridsUtility.GetRoom(root, map);
+			if (room != null)
+			{
+				_ = genStepsForMaps.TryGetValue(map, out var sitePartDef);
+				if (sitePartDef != null)
+				{
+					var cellCount = room.CellCount;
+					if (cellCount >= 4 && cellCount <= 200 && room.TouchesMapEdge == false && room.Fogged)
+					{
+						var pawns = room.Regions.SelectMany(region => region.ListerThings.ThingsInGroup(ThingRequestGroup.Pawn));
+						if (pawns.Any() == false)
+						{
+							foreach (var cell in room.Cells.InRandomOrder().Take(cellCount / 4))
+							{
+								var iterator = ZombieGenerator.SpawnZombieIterativ(cell, map, ZombieType.Random, zombie =>
+								{
+									zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
+									zombie.state = ZombieState.Wandering;
+									zombie.Rotation = Rot4.Random;
+									PawnComponentsUtility.AddComponentsForSpawn(zombie);
+									var job = JobMaker.MakeJob(CustomDefs.Stumble, zombie);
+									zombie.jobs.StartJob(job);
+									// TODO zombies freeze for a while until they start. why?
+								});
+								while (iterator.MoveNext()) ;
+							}
+						}
+					}
+				}
+			}
+			return FloodFillerFog.FloodUnfog(root, map);
+		}
+
+		public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		{
+			var from = SymbolExtensions.GetMethodInfo(() => FloodFillerFog.FloodUnfog(default, default));
+			var to = SymbolExtensions.GetMethodInfo(() => FloodUnfog(default, default));
 			return instructions.MethodReplacer(from, to);
 		}
 	}

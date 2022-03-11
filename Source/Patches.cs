@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿using Brrainz;
+using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using System;
@@ -59,6 +60,8 @@ namespace ZombieLand
 			//	if (type.Name.Contains("Reachability")) return true;
 			//	return false;
 			//});
+
+			CrossPromotion.Install(76561197973010050);
 		}
 
 		public static void Error(string error)
