@@ -65,6 +65,7 @@ namespace ZombieLand
 				|| pawn.RaceProps.Humanlike == false
 				|| pawn.RaceProps.IsFlesh == false
 				|| AlienTools.IsFleshPawn(pawn) == false
+				|| SoSTools.IsHologram(pawn)
 				|| pawn.health == null
 				|| pawn.health.hediffSet == null
 				|| parent == null

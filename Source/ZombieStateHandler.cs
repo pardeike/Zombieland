@@ -710,14 +710,24 @@ namespace ZombieLand
 					return false;
 
 				if (thing is Pawn p && ZombieSettings.Values.zombiesEatDowned)
-					if (p.Spawned && p.RaceProps.IsFlesh && AlienTools.IsFleshPawn(p) && (p.health.Downed || p.Dead))
+					if (p.Spawned
+						&& p.RaceProps.IsFlesh
+						&& AlienTools.IsFleshPawn(p)
+						&& SoSTools.IsHologram(p) == false
+						&& (p.health.Downed || p.Dead)
+					)
 					{
 						result = p;
 						return true;
 					}
 
 				if (thing is Corpse c && ZombieSettings.Values.zombiesEatCorpses)
-					if (c.Spawned && c.InnerPawn != null && c.InnerPawn.RaceProps.IsFlesh && AlienTools.IsFleshPawn(c.InnerPawn))
+					if (c.Spawned
+						&& c.InnerPawn != null
+						&& c.InnerPawn.RaceProps.IsFlesh
+						&& AlienTools.IsFleshPawn(c.InnerPawn)
+						&& SoSTools.IsHologram(c.InnerPawn) == false
+					)
 					{
 						result = c;
 						return true;

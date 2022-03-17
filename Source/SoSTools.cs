@@ -15,14 +15,26 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	public class SoSTools
 	{
+		public delegate bool IsHologramDelegate(Pawn pawn);
+
 		public static bool isInstalled;
 		public static BiomeDef sosOuterSpaceBiomeDef = null;
+		public static IsHologramDelegate IsHologram = _ => false;
 
 		static SoSTools()
 		{
-			isInstalled = AccessTools.TypeByName("SaveOurShip2.ShipInteriorMod2") != null;
+			var sosType = AccessTools.TypeByName("SaveOurShip2.ShipInteriorMod2");
+			isInstalled = sosType != null;
 			if (isInstalled)
+			{
 				sosOuterSpaceBiomeDef = DefDatabase<BiomeDef>.GetNamed("OuterSpaceBiome", false);
+
+				var method = AccessTools.Method(sosType, "IsHologram");
+				if (method != null)
+					IsHologram = AccessTools.MethodDelegate<IsHologramDelegate>(AccessTools.Method(sosType, "IsHologram"));
+
+				// TODO use `IsHologram` to let zombies ignore holograms
+			}
 		}
 
 		public class Floater

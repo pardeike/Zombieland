@@ -301,6 +301,7 @@ namespace ZombieLand
 						&& pawn.RaceProps.Humanlike
 						&& pawn.RaceProps.IsFlesh
 						&& AlienTools.IsFleshPawn(pawn)
+						&& SoSTools.IsHologram(pawn) == false
 						&& pawn.Position.DistanceToSquared(pos) < dist
 						&& pawn.health.Downed == false
 						&& pawn.InMentalState == false
@@ -449,7 +450,13 @@ namespace ZombieLand
 				case 8:
 					var enemies = map.attackTargetsCache
 						.TargetsHostileToColony.OfType<Pawn>()
-						.Where(p => (p is Zombie) == false && p.RaceProps.Humanlike && p.RaceProps.IsFlesh && AlienTools.IsFleshPawn(p) && p.health.Downed == false);
+						.Where(p => (p is Zombie) == false
+							&& p.RaceProps.Humanlike
+							&& p.RaceProps.IsFlesh
+							&& AlienTools.IsFleshPawn(p)
+							&& SoSTools.IsHologram(p) == false
+							&& p.health.Downed == false
+						);
 					cell = PawnCenter(map, enemies);
 					if (cell.IsValid)
 						if (driver.Goto(cell, () => zombie.scream = -2))

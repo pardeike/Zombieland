@@ -306,6 +306,7 @@ namespace ZombieLand
 					&& (pawn is Zombie) == false
 					&& pawn.RaceProps.IsFlesh
 					&& AlienTools.IsFleshPawn(pawn)
+					&& SoSTools.IsHologram(pawn) == false
 					&& Tools.HasInfectionState(pawn, InfectionState.Infecting, InfectionState.Infected) == false
 					&& (ZombieSettings.Values.attackMode != AttackMode.OnlyColonists || (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists && pawn.IsColonist))
 					&& (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans == false || pawn.RaceProps.Humanlike);

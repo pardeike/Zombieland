@@ -39,6 +39,7 @@ namespace ZombieLand
 					if (pawn.RaceProps.Humanlike == false) return null;
 					if (pawn.RaceProps.IsFlesh == false) return null;
 					if (AlienTools.IsFleshPawn(pawn) == false) return null;
+					if (SoSTools.IsHologram(pawn)) return null;
 
 					_zombieInfector = parent.comps
 						.OfType<HediffComp_Zombie_Infecter>()
@@ -56,6 +57,7 @@ namespace ZombieLand
 				|| pawn.RaceProps.Humanlike == false
 				|| pawn.RaceProps.IsFlesh == false
 				|| AlienTools.IsFleshPawn(pawn) == false
+				|| SoSTools.IsHologram(pawn)
 				) return InfectionState.None;
 
 			var now = GenTicks.TicksAbs;
@@ -96,6 +98,7 @@ namespace ZombieLand
 				if (pawn.RaceProps.Humanlike == false) return base.CompShouldRemove;
 				if (pawn.RaceProps.IsFlesh == false) return base.CompShouldRemove;
 				if (AlienTools.IsFleshPawn(pawn) == false) return base.CompShouldRemove;
+				if (SoSTools.IsHologram(pawn)) return base.CompShouldRemove;
 
 				var state = GetInfectionState();
 				if (state == InfectionState.BittenNotVisible || state >= InfectionState.Infecting)
@@ -140,6 +143,7 @@ namespace ZombieLand
 				if (pawn.RaceProps.Humanlike == false) return base.CompStateIcon;
 				if (pawn.RaceProps.IsFlesh == false) return base.CompStateIcon;
 				if (AlienTools.IsFleshPawn(pawn) == false) return base.CompStateIcon;
+				if (SoSTools.IsHologram(pawn)) return base.CompStateIcon;
 
 				var state = GetInfectionState();
 				if (state == InfectionState.None) return base.CompStateIcon;

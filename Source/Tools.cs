@@ -390,7 +390,11 @@ namespace ZombieLand
 		{
 			var corpse = thing as Corpse;
 			var pawn = corpse != null ? corpse.InnerPawn : thing as Pawn;
-			if (pawn?.RaceProps == null || pawn.RaceProps.Humanlike == false || pawn.RaceProps.IsFlesh == false || AlienTools.IsFleshPawn(pawn) == false)
+			if (pawn?.RaceProps == null
+				|| pawn.RaceProps.Humanlike == false
+				|| pawn.RaceProps.IsFlesh == false
+				|| AlienTools.IsFleshPawn(pawn) == false
+				|| SoSTools.IsHologram(pawn))
 				return;
 
 			var wasPlayer = pawn.Faction?.IsPlayer ?? false;
@@ -612,6 +616,7 @@ namespace ZombieLand
 			if (pawn.RaceProps.Humanlike == false) return false;
 			if (pawn.RaceProps.IsFlesh == false) return false;
 			if (AlienTools.IsFleshPawn(pawn) == false) return false;
+			if (SoSTools.IsHologram(pawn)) return false;
 
 			return pawn.health.hediffSet
 						.GetHediffs<Hediff_Injury_ZombieBite>()
@@ -685,7 +690,11 @@ namespace ZombieLand
 						return true;
 				}
 
-				if (mode == AttackMode.OnlyHumans && target.RaceProps.Humanlike && target.RaceProps.IsFlesh && AlienTools.IsFleshPawn(target))
+				if (mode == AttackMode.OnlyHumans
+					&& target.RaceProps.Humanlike
+					&& target.RaceProps.IsFlesh
+					&& AlienTools.IsFleshPawn(target)
+					&& SoSTools.IsHologram(target) == false)
 					return true;
 
 				if (mode == AttackMode.OnlyColonists && target.IsColonist)

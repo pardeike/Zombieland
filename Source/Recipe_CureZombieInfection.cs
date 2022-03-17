@@ -39,7 +39,7 @@ namespace ZombieLand
 				return;
 
 			var extract = serum.CostListAdjusted().FirstOrDefault(d => d.thingDef.defName == "ZombieExtract");
-			if (extract == null)
+			if (extract == null && serum.def.defName != "ZombieSerumSimple")
 				return;
 
 			var bite = GetInfectingBites(pawn).FirstOrDefault(b => b.Part == part);
@@ -70,8 +70,12 @@ namespace ZombieLand
 				return;
 			}
 
+			Log.Warning($"bite={bite}");
+
 			bite.mayBecomeZombieWhenDead = false;
 			var tendDuration = bite.TryGetComp<HediffComp_Zombie_TendDuration>();
+			Log.Warning($"tendDuration={tendDuration}");
+
 			tendDuration.ZombieInfector.MakeHarmless();
 
 			_ = TaleRecorder.RecordTale(TaleDefOf.DidSurgery, new object[] { billDoer, pawn });

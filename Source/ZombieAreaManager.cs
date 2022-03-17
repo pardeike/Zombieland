@@ -19,6 +19,7 @@ namespace ZombieLand
 
 		public static void DangerAlertsOnGUI()
 		{
+			if (WorldRendererUtility.WorldRenderedNow) return;
 			var map = Find.CurrentMap;
 			if (map == null) return;
 

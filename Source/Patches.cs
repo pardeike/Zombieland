@@ -1261,6 +1261,7 @@ namespace ZombieLand
 				if (pawn.RaceProps.Humanlike == false) return false;
 				if (pawn.RaceProps.IsFlesh == false) return false;
 				if (AlienTools.IsFleshPawn(pawn) == false) return false;
+				if (SoSTools.IsHologram(pawn)) return false;
 
 				var path = __instance.curPath;
 				if (path.NodesLeftCount < 5) return false;
@@ -2055,7 +2056,11 @@ namespace ZombieLand
 				if (pawn.MentalState == null || (pawn.MentalState.def != def1 && pawn.MentalState.def != def2))
 				{
 					if (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans)
-						if (pawn.RaceProps.Humanlike == false || pawn.RaceProps.IsFlesh == false || AlienTools.IsFleshPawn(pawn) == false) return;
+						if (pawn.RaceProps.Humanlike == false
+								|| pawn.RaceProps.IsFlesh == false
+								|| AlienTools.IsFleshPawn(pawn) == false
+								|| SoSTools.IsHologram(pawn)
+						) return;
 
 					if (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists)
 						if (pawn.IsColonist == false) return;
@@ -3536,7 +3541,14 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Hediff_Injury hd, ref bool __result)
 			{
-				if (hd is Hediff_Injury_ZombieBite zombieBite && zombieBite.pawn.RaceProps.Humanlike && zombieBite.pawn.RaceProps.IsFlesh && AlienTools.IsFleshPawn(zombieBite.pawn))
+				if (!(hd is Hediff_Injury_ZombieBite zombieBite))
+					return true;
+
+				var pawn = zombieBite.pawn;
+
+				if (pawn.RaceProps.Humanlike && pawn.RaceProps.IsFlesh
+					&& AlienTools.IsFleshPawn(pawn) && SoSTools.IsHologram(pawn) == false
+				)
 				{
 					var tendDuration = zombieBite.TendDuration;
 					if (tendDuration != null)
@@ -3580,6 +3592,7 @@ namespace ZombieLand
 			static void Postfix(Hediff __instance, ref bool __result)
 			{
 				if (__result == false) return;
+				var pawn = __instance.pawn;
 
 				// do not remove our zombie hediffs from dead pawns
 				if (__instance.pawn != null && __instance.pawn.Dead && __instance.def.IsZombieHediff())
@@ -3588,7 +3601,12 @@ namespace ZombieLand
 					return;
 				}
 
-				if (__instance is Hediff_Injury_ZombieBite zombieBite && zombieBite.pawn.RaceProps.Humanlike && zombieBite.pawn.RaceProps.IsFlesh && AlienTools.IsFleshPawn(zombieBite.pawn))
+				if (!(__instance is Hediff_Injury_ZombieBite zombieBite))
+					return;
+
+				if (pawn.RaceProps.Humanlike && pawn.RaceProps.IsFlesh
+					&& AlienTools.IsFleshPawn(pawn) && SoSTools.IsHologram(pawn) == false
+				)
 				{
 					var tendDuration = zombieBite.TendDuration;
 					if (tendDuration != null)
