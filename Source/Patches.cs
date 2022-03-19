@@ -5004,6 +5004,67 @@ namespace ZombieLand
 			}
 		}
 
+		// adds sudden zombies to unfogged rooms
+		//
+		[HarmonyPatch(typeof(Building), nameof(Building.DeSpawn))]
+		static class Building_DeSpawn_Patch
+		{
+			public static void Prefix(Building __instance, DestroyMode mode)
+			{
+				if (Current.ProgramState != ProgramState.Playing)
+					return;
+
+				if (mode == DestroyMode.WillReplace)
+					return;
+
+				if (__instance.def.MakeFog == false)
+					return;
+
+				var map = __instance.Map;
+				if (map == null)
+					return;
+
+				var fogGrid = map.fogGrid;
+				if (fogGrid == null)
+					return;
+
+				var pos = __instance.Position;
+				var validCells = GenAdj.AdjacentCells.Select(v => pos + v).Where(c => c.InBounds(map));
+				var shouldUnfog = validCells.Any(c => fogGrid.IsFogged(c) == false);
+				if (shouldUnfog == false)
+					return;
+
+				bool ShouldSpawn(IntVec3 c)
+				{
+					if (fogGrid.IsFogged(c) == false)
+						return false;
+
+					var edifice = c.GetEdifice(map);
+					return (edifice == null || !edifice.def.MakeFog);
+				}
+
+				validCells.DoIf(c => ShouldSpawn(c), c => Tools.SpawnZombiesInRoom(map, c));
+			}
+		}
+		//
+		[HarmonyPatch(typeof(FogGrid), nameof(FogGrid.Notify_PawnEnteringDoor))]
+		static class FogGrid_Notify_PawnEnteringDoor_Patch
+		{
+			public static void Prefix(Building_Door door, Pawn pawn)
+			{
+				if (pawn.Faction != Faction.OfPlayer && pawn.HostFaction != Faction.OfPlayer)
+					return;
+
+				var pos = door.Position;
+				var map = door.Map;
+				if (map == null)
+					return;
+
+				GenAdj.AdjacentCells.Select(v => pos + v)
+					.DoIf(c => c.InBounds(map), c => Tools.SpawnZombiesInRoom(map, c));
+			}
+		}
+
 		// adding roping job
 		//
 		[HarmonyPatch(typeof(FloatMenuMakerMap))]

@@ -263,6 +263,43 @@ namespace ZombieLand
 			};
 		}
 
+		public static void SpawnZombiesInRoom(Map map, IntVec3 c)
+		{
+			if (map.Parent.def == SoSTools.sosShipOrbitingWorldObjectDef)
+				return;
+
+			var room = GridsUtility.GetRoom(c, map);
+			if (room == null || room.IsHuge || room.TouchesMapEdge || room.Fogged == false)
+				return;
+
+			var cellCount = room.CellCount;
+			var maxCount = (int)GenMath.LerpDoubleClamped(0, 5, 200, 800, Difficulty());
+			if (cellCount < 10 || cellCount > maxCount)
+				return;
+
+			var pawns = room.Regions.SelectMany(region => region.ListerThings.ThingsInGroup(ThingRequestGroup.Pawn));
+			if (pawns.Any())
+				return;
+
+			if (Rand.Chance(ZombieSettings.Values.infectedRaidsChance) == false)
+				return;
+
+			var cells = room.Cells.InRandomOrder().Take(cellCount / 10);
+			foreach (var cell in cells)
+			{
+				var iterator = ZombieGenerator.SpawnZombieIterativ(cell, map, ZombieType.Random, zombie =>
+				{
+					zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
+					zombie.state = ZombieState.Wandering;
+					zombie.Rotation = Rot4.Random;
+
+					var tickManager = Find.CurrentMap.GetComponent<TickManager>();
+					_ = tickManager.allZombiesCached.Add(zombie);
+				});
+				while (iterator.MoveNext()) ;
+			}
+		}
+
 		public static bool CanDoctor(this Pawn pawn, bool rightNow = false)
 		{
 			if (pawn.RaceProps.Humanlike == false || pawn.IsPrisoner)
