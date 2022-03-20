@@ -2819,35 +2819,27 @@ namespace ZombieLand
 					var isNotPaused = Find.TickManager.Paused == false;
 					while (i < zombie.healInfo.Count)
 					{
-						// healing:       |0%..100%.............0%|
-						// being healed:          |0%...........100%...........0%|
-						// info.step:     |0      40             80           120|
-
 						var info = zombie.healInfo[i];
+						if (info.step >= 60)
+						{
+							zombie.healInfo.RemoveAt(i);
+							continue;
+						}
+
+						var beingHealedIndex = (int)GenMath.LerpDoubleClamped(0, 60, 0, 8, info.step);
+						var mat = Constants.BEING_HEALED[beingHealedIndex];
+
 						var healTarget = info.pawn;
-
-						var healingIndex = (int)GenMath.LerpDoubleClamped(0, 80, Constants.healingMaterials.Length - 1, 0, info.step);
-						var beingHealedIndex = (int)GenMath.LerpDoubleClamped(40, 120, 0, 9, info.step);
-						if (beingHealedIndex >= Constants.BEING_HEALED.Length)
-							beingHealedIndex = 9 - beingHealedIndex;
-
-						var mat = Constants.healingMaterials[healingIndex];
-						var size = (zombie.DrawPos - healTarget.DrawPos).MagnitudeHorizontal() / 2 + 0.2f;
-						GraphicToolbox.DrawScaledMesh(Constants.healMesh, mat, drawLoc, Quaternion.identity, size, size);
-
 						float angle = healTarget.drawer.renderer.BodyAngle();
 						if (healTarget.Rotation == Rot4.West) angle -= leanAngle;
 						if (healTarget.Rotation == Rot4.East) angle += leanAngle;
+						var healingPos = healTarget.DrawPos + toxicAuraOffset;
 						var quat = Quaternion.AngleAxis(angle, Vector3.up);
-						GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.BEING_HEALED[beingHealedIndex], healTarget.DrawPos + toxicAuraOffset, quat, 1.5f, 1.5f);
+						GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat, healingPos, quat, 1.5f, 1.5f);
+						GenDraw.DrawLineBetween(zombie.DrawPos, healingPos, GenDraw.LineMatCyan, 0.2f);
 
-						if (info.step == 120)
-							zombie.healInfo.RemoveAt(i);
-						else
-						{
-							if (isNotPaused) info.step++;
-							i++;
-						}
+						if (isNotPaused) info.step++;
+						i++;
 					}
 				}
 

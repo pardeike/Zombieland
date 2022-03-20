@@ -554,12 +554,11 @@ namespace ZombieLand
 					.OrderByDescending(pair => pair.hediffs.Count)
 					.Do(pair =>
 					{
-						if (healInfo.Count < 4)
+						if (healInfo.Count < 8)
 						{
 							var zombie = pair.zombie;
 							zombie.health.hediffSet.Clear();
 							healInfo.Add(new HealerInfo(zombie));
-							map.debugDrawer.debugLines.Add(new DebugLine(DrawPos, zombie.DrawPos, 60, SimpleColor.Cyan));
 						}
 					});
 			}
