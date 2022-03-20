@@ -20,11 +20,14 @@ namespace ZombieLand
 
 		public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
 		{
+			if (ZombieSettings.Values.corpsesExtractAmount == 0) return Enumerable.Empty<Thing>();
+			if (pawn.IsColonist == false) return Enumerable.Empty<Thing>();
+			if (pawn.CanDoctor() == false) return Enumerable.Empty<Thing>();
+
 			var map = pawn.Map;
 			var pos = pawn.Position;
 			var area = map.areaManager.AllAreas.FirstOrDefault(area => area.Label == ZombieSettings.Values.extractZombieArea);
-			if (pawn.IsColonist == false) return Enumerable.Empty<Thing>();
-			if (ZombieSettings.Values.corpsesExtractAmount == 0) return Enumerable.Empty<Thing>();
+
 			var tickManager = map.GetComponent<TickManager>();
 			return tickManager.allZombieCorpses
 				.Where(corpse => corpse.DestroyedOrNull() == false && corpse.Spawned && (area == null || area[corpse.Position]))
