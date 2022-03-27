@@ -232,6 +232,8 @@ namespace ZombieLand
 			{
 				Event.current.Use();
 				areaManager.Remove(selected);
+				_ = ZombieAreaManager.pawnsInDanger.RemoveAll(pair => pair.Item2 == selected);
+				_ = ZombieSettings.Values.dangerousAreas.Remove(selected);
 				var newCount = areaManager.AllAreas.Count;
 				if (newCount == 0)
 				{

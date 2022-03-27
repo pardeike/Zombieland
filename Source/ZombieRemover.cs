@@ -85,7 +85,6 @@ namespace ZombieLand
 		{
 			_ = map.components.RemoveAll(component => component.IsZombieType());
 
-			// TODO: check if we have to disable the following line:
 			PathFinder_FindPath_Patch.tickManagerCache = new Dictionary<Map, TickManager>();
 
 			var zombies = PawnsOfType<Zombie>(map);

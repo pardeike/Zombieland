@@ -94,12 +94,6 @@ namespace ZombieLand
 			}
 		}
 
-		// TODO: check for this warning:
-		//
-		// Contains a call chain that results in a call to a virtual method defined by the class
-		// Alert_ZombieInfectionProgress..ctor()
-		// Alert_ZombieInfectionProgress.Prepare():Void ZombieLand  C:\Users\Admin\Source\ModRepos\ZombieLand\Source\Alerts.cs	97	Active
-		//
 		public Alert_ZombieInfectionProgress()
 		{
 			Prepare();

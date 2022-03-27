@@ -588,8 +588,7 @@ namespace ZombieLand
 			if (progress >= Constants.EMERGE_DELAY)
 			{
 				var bodyOffset = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, -0.45f, 0, progress);
-				var flags = PawnRenderFlags.DrawNow; // TODO: what flags to use and is RenderPawnInternal actually correct usage here?
-				renderer.RenderPawnInternal(drawLoc + new Vector3(0, 0, bodyOffset), 0f, true, Rot4.South, renderer.CurRotDrawMode, flags);
+				renderer.RenderPawnInternal(drawLoc + new Vector3(0, 0, bodyOffset), 0f, true, Rot4.South, renderer.CurRotDrawMode, PawnRenderFlags.DrawNow);
 			}
 
 			RenderRubble(drawLoc);

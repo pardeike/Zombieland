@@ -118,7 +118,6 @@ namespace ZombieLand
 		public static string SafeTranslate(this string key, params object[] args)
 		{
 			if (key == null) return "";
-			// TODO: no label on NamedArgument(.., "") ?
 			var namedArgs = args.Select(arg => new NamedArgument(arg, "")).ToArray();
 			return key.Translate(namedArgs);
 		}

@@ -571,11 +571,6 @@ namespace ZombieLand
 							var canHarmElectricZombies = verb.CanHarmElectricZombies();
 							if (props.IsMeleeAttack == false && props.range > 0)
 							{
-								// TODO
-								// the following can be improved by choosing targets that
-								// are not too close. unsolved problem: we do not know how
-								// to relocate shooters yet
-								//
 								var maxDownedRangeSquared = 6 * 6;
 								var maxRangeSquared = (int)(props.range * props.range);
 								var tickManager = attacker.Map.GetComponent<TickManager>();
@@ -626,6 +621,7 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(AttackTargetFinder.GetShootingTargetScore))]
 		static class AttackTargetFinder_GetShootingTargetScore_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(IAttackTarget target, IAttackTargetSearcher searcher, Verb verb, ref float __result)
 			{
 				if (!(searcher?.Thing is Pawn pawn) || verb == null || verb.IsMeleeAttack)
@@ -654,6 +650,7 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Faction.TryAffectGoodwillWith))]
 		static class Faction_TryAffectGoodwillWith_Patch
 		{
+			[HarmonyPriority(Priority.First)]
 			static bool Prefix(ref bool __result, Faction __instance, Faction other)
 			{
 				if (__instance.def == ZombieDefOf.Zombies || other.def == ZombieDefOf.Zombies)
@@ -744,81 +741,23 @@ namespace ZombieLand
 					_ = playerHostilesWithoutZombies[map].Remove(target);
 			}
 		}
-		//
-		[HarmonyPatch(typeof(MusicManagerPlay))]
-		[HarmonyPatch(nameof(MusicManagerPlay.DangerMusicMode), MethodType.Getter)]
-		static class MusicManagerPlay_DangerMusicMode_Patch
-		{
-			static int lastUpdateTick;
-			static StoryDanger dangerRatingInt = StoryDanger.None;
-
-			// TODO: the following is ugly since we copy original code (ugh!)
-			// The solution is to add method IL copying to Harmony ...
-			// Until then: this stays
-			//
-			[HarmonyPriority(Priority.First)]
-			static bool Prefix(ref bool __result)
-			{
-				var maps = Find.Maps;
-				for (var i = 0; i < maps.Count; i++)
-				{
-					var map = maps[i];
-					if (map.IsPlayerHome)
-					{
-						if (Find.TickManager.TicksGame > lastUpdateTick + 101)
-						{
-							var hostiles = playerHostilesWithoutZombies.ContainsKey(map)
-								? playerHostilesWithoutZombies[map]
-								: new HashSet<IAttackTarget>();
-
-							var num = hostiles.Count(GenHostility.IsActiveThreatToPlayer);
-							if (num == 0)
-								dangerRatingInt = StoryDanger.None;
-							else if (num <= Mathf.CeilToInt(map.mapPawns.FreeColonistsSpawnedCount * 0.5f))
-								dangerRatingInt = StoryDanger.Low;
-							else
-							{
-								dangerRatingInt = StoryDanger.Low;
-								var lastColonistHarmedTick = map.dangerWatcher.lastColonistHarmedTick;
-								if (lastColonistHarmedTick > Find.TickManager.TicksGame - 900)
-									dangerRatingInt = StoryDanger.High;
-								else
-								{
-									foreach (var current in map.lordManager.lords)
-									{
-										if (current.CurLordToil is LordToil_AssaultColony)
-										{
-											dangerRatingInt = StoryDanger.High;
-											break;
-										}
-									}
-								}
-							}
-
-							lastUpdateTick = Find.TickManager.TicksGame;
-						}
-					}
-				}
-				__result = dangerRatingInt == StoryDanger.High;
-				return false;
-			}
-		}
 
 		// make zombies not affect overall danger rating
 		//
-		[HarmonyPatch(typeof(DangerWatcher))]
-		[HarmonyPatch(nameof(DangerWatcher.AffectsStoryDanger))]
+		[HarmonyPatch(typeof(DangerWatcher), nameof(DangerWatcher.AffectsStoryDanger))]
 		static class DangerWatcher_AffectsStoryDanger_Patch
 		{
-			[HarmonyPriority(Priority.First)]
-			static bool Prefix(IAttackTarget t, ref bool __result)
+			static bool Prefix(IAttackTarget t, Map ___map, ref bool __result)
 			{
-				if (t is Zombie)
+				if (!(t.Thing is Zombie zombie)) return true;
+				if (zombie.Spawned == false || zombie.Downed || zombie.ropedBy != null || zombie.paralyzedUntil > 0)
 				{
 					__result = false;
 					return false;
 				}
-				return true;
+				var pos = zombie.Position;
+				__result = (pos.InBounds(___map) && ___map.areaManager.Home[pos]);
+				return false;
 			}
 		}
 

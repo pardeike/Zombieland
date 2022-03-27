@@ -39,8 +39,6 @@ namespace ZombieLand
 			var highlightedIndex = HighlightedIndex;
 			var i = 0;
 
-			// TODO: use Dialog_DebugOptionLister.DebugToolMap(string label, Action toolAction, bool highlight) ?
-
 			DebugToolMap("Spawn: Zombie (dig out)", delegate
 			{
 				SpawnZombie(ZombieType.Normal, false);

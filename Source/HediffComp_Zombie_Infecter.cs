@@ -93,7 +93,6 @@ namespace ZombieLand
 			}
 		}
 
-		// TODO: use maxQuality, batchPosition ?
 		public override void CompTended(float quality, float maxQuality, int batchPosition = 0)
 		{
 			if (ZombieSettings.Values.anyTreatmentStopsInfection)
