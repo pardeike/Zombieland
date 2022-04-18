@@ -958,7 +958,7 @@ namespace ZombieLand
 				}
 
 				// Miscellaneous
-				if (Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":PlayCreepyAmbientSound", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":ShowHealthBar", ":ShowZombieStats", ":HighlightDangerousAreas"))
+				if (Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":PlayCreepyAmbientSound", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":ShowHealthBar", ":ShowZombieStats", ":HighlightDangerousAreas", ":FloatingZombiesInSOS2"))
 				{
 					list.Dialog_Label("ZombieMiscTitle", headerColor);
 					list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);
