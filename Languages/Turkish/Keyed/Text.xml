@@ -196,5 +196,6 @@
 	<IfInside>Ne zaman içeride</IfInside>
 	<IfOutside>Ne zaman dışarıda</IfOutside>
 	<HighlightDangerousAreas>Risk alanlarını vurgulayın</HighlightDangerousAreas>
+	<FloatingZombiesInSOS2>Uzayda yüzen zombiler</FloatingZombiesInSOS2>
 
 </LanguageData>

@@ -196,5 +196,6 @@
 	<IfInside>Wenn innerhalb</IfInside>
 	<IfOutside>Wenn außerhalb</IfOutside>
 	<HighlightDangerousAreas>Zombie-Risiko anzeigen</HighlightDangerousAreas>
+	<FloatingZombiesInSOS2>Schwebende Zombies im All</FloatingZombiesInSOS2>
 
 </LanguageData>

@@ -3031,6 +3031,7 @@ namespace ZombieLand
 			static void Postfix(Map __instance)
 			{
 				if (WorldRendererUtility.WorldRenderedNow) return;
+				if (ZombieSettings.Values.floatingZombies == false) return;
 				if (Find.CurrentMap != __instance) return;
 				if (__instance.Biome != SoSTools.sosOuterSpaceBiomeDef) return;
 

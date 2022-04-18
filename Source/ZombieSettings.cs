@@ -144,6 +144,7 @@ namespace ZombieLand
 		public bool showZombieStats = true;
 		public Dictionary<Area, ZombieRiskMode> dangerousAreas = new Dictionary<Area, ZombieRiskMode>();
 		public bool highlightDangerousAreas = false;
+		public bool floatingZombies = true;
 
 		// unused
 		public int suicideBomberIntChance = 1;

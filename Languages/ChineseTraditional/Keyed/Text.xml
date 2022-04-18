@@ -196,5 +196,6 @@
 	<IfInside>當在裡面</IfInside>
 	<IfOutside>在外面的時候</IfOutside>
 	<HighlightDangerousAreas>突出風險領域</HighlightDangerousAreas>
+	<FloatingZombiesInSOS2>太空中漂浮的僵尸</FloatingZombiesInSOS2>
 
 </LanguageData>

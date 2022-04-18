@@ -970,6 +970,8 @@ namespace ZombieLand
 					list.Dialog_Checkbox("ShowHealthBar", ref settings.showHealthBar);
 					list.Dialog_Checkbox("ShowZombieStats", ref settings.showZombieStats);
 					list.Dialog_Checkbox("HighlightDangerousAreas", ref settings.highlightDangerousAreas);
+					if (SoSTools.isInstalled) list.Dialog_Checkbox("FloatingZombiesInSOS2", ref settings.floatingZombies);
+					else settings.floatingZombies = true;
 					list.Gap(30f);
 				}
 
