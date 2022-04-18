@@ -35,13 +35,25 @@ namespace ZombieLand
 
 		public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
 		{
-			var tickManager = Map.GetComponent<TickManager>();
-			_ = tickManager?.allZombieCorpses.Remove(this);
+			try
+			{
+				var tickManager = Map.GetComponent<TickManager>();
+				_ = tickManager?.allZombieCorpses.Remove(this);
+			}
+			catch
+			{
+			}
 
 			if (InnerPawn is Zombie zombie)
 				zombie.Dispose();
 
-			base.Destroy(mode);
+			try
+			{
+				base.Destroy(mode);
+			}
+			catch
+			{
+			}
 		}
 
 		public override void ExposeData()

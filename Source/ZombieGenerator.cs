@@ -60,7 +60,9 @@ namespace ZombieLand
 
 		public static IntVec2 SideEyeOffset(string headPath)
 		{
-			return eyeOffsets[headPath];
+			if (eyeOffsets.TryGetValue(headPath, out var vec))
+				return vec;
+			return default;
 		}
 
 		static BodyTypeDef SetRandomBody(Zombie zombie)
@@ -407,75 +409,201 @@ namespace ZombieLand
 			_ = Find.CameraDriver.StartCoroutine(SpawnZombieIterativ(cell, map, zombieType, callback));
 		}
 
+		public static bool RunWithFailureCheck(out Exception exception, Action action)
+		{
+			try
+			{
+				action();
+				exception = null;
+				return false;
+			}
+			catch (Exception ex)
+			{
+				exception = ex;
+				return true;
+			}
+		}
+
+		public static bool RunWithFailureCheck<T>(out T result, out Exception exception, Func<T> func)
+		{
+			try
+			{
+				exception = null;
+				result = func();
+				return false;
+			}
+			catch (Exception ex)
+			{
+				exception = ex;
+				result = default;
+				return true;
+			}
+		}
+
 		public static IEnumerator SpawnZombieIterativ(IntVec3 cell, Map map, ZombieType zombieType, Action<Zombie> callback)
 		{
+			static void Abort(Exception ex)
+			{
+				Log.Error($"Zombieland caught an exception from another mod while creating a zombie: {ex}");
+				ZombiesSpawning--;
+			}
+
 			ZombiesSpawning++;
-			var thing = ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null);
+			var zombie = (Zombie)ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null);
 			yield return null;
-			var zombie = thing as Zombie;
-			var bodyType = PrepareZombieType(zombie, zombieType);
-			zombie.kindDef = ZombieDefOf.Zombie;
-			zombie.SetFactionDirect(FactionUtility.DefaultFactionFrom(ZombieDefOf.Zombies));
+
+			if (RunWithFailureCheck(out var bodyType, out var ex1, () =>
+			{
+				var bodyType = PrepareZombieType(zombie, zombieType);
+				zombie.kindDef = ZombieDefOf.Zombie;
+				zombie.SetFactionDirect(FactionUtility.DefaultFactionFrom(ZombieDefOf.Zombies));
+				return bodyType;
+			}))
+			{ Abort(ex1); yield break; }
 			yield return null;
-			PawnComponentsUtility.CreateInitialComponents(zombie);
+
+			if (RunWithFailureCheck(out var ex2, () =>
+			{
+				PawnComponentsUtility.CreateInitialComponents(zombie);
+			}))
+			{ Abort(ex2); yield break; }
 			yield return null;
-			zombie.health.hediffSet.Clear();
-			var ageInYears = (long)Rand.Range(14, 130);
-			zombie.ageTracker.AgeBiologicalTicks = (ageInYears * 3600000);
-			zombie.ageTracker.AgeChronologicalTicks = zombie.ageTracker.AgeBiologicalTicks;
-			zombie.ageTracker.BirthAbsTicks = GenTicks.TicksAbs - zombie.ageTracker.AgeBiologicalTicks;
-			var idx = zombie.ageTracker.CurLifeStageIndex; // trigger calculations
+
+			if (RunWithFailureCheck(out var ex3, () =>
+			{
+				zombie.health.hediffSet.Clear();
+				var ageInYears = (long)Rand.Range(14, 130);
+				zombie.ageTracker.AgeBiologicalTicks = (ageInYears * 3600000);
+				zombie.ageTracker.AgeChronologicalTicks = zombie.ageTracker.AgeBiologicalTicks;
+				zombie.ageTracker.BirthAbsTicks = GenTicks.TicksAbs - zombie.ageTracker.AgeBiologicalTicks;
+				var idx = zombie.ageTracker.CurLifeStageIndex; // trigger calculations
+			}))
+			{ Abort(ex3); yield break; }
 			yield return null;
-			zombie.needs.SetInitialLevels();
-			zombie.records.records.values.Clear();
+
+			if (RunWithFailureCheck(out var ex4, () =>
+			{
+				zombie.needs.SetInitialLevels();
+				zombie.records.records.values.Clear();
+			}))
+			{ Abort(ex4); yield break; }
 			yield return null;
-			zombie.needs.mood = new Need_Mood(zombie);
+
+			if (RunWithFailureCheck(out var ex5, () =>
+			{
+				zombie.needs.mood = new Need_Mood(zombie);
+			}))
+			{ Abort(ex5); yield break; }
 			yield return null;
-			var name = PawnNameDatabaseSolid.GetListForGender((zombie.gender == Gender.Female) ? GenderPossibility.Female : GenderPossibility.Male).SafeRandomElement();
+
+			if (RunWithFailureCheck(out var name, out var ex6, () =>
+			{
+				return PawnNameDatabaseSolid.GetListForGender((zombie.gender == Gender.Female) ? GenderPossibility.Female : GenderPossibility.Male).SafeRandomElement();
+			}))
+			{ Abort(ex6); yield break; }
 			yield return null;
-			var n1 = name.First.Replace('s', 'z').Replace('S', 'Z');
-			var n2 = name.Last.Replace('s', 'z').Replace('S', 'Z');
-			var n3 = name.Nick.Replace('s', 'z').Replace('S', 'Z');
-			zombie.Name = new NameTriple(n1, n3, n2);
+
+			if (RunWithFailureCheck(out var ex7, () =>
+			{
+				var n1 = name.First.Replace('s', 'z').Replace('S', 'Z');
+				var n2 = name.Last.Replace('s', 'z').Replace('S', 'Z');
+				var n3 = name.Nick.Replace('s', 'z').Replace('S', 'Z');
+				zombie.Name = new NameTriple(n1, n3, n2);
+			}))
+			{ Abort(ex7); yield break; }
 			yield return null;
-			zombie.story.childhood = BackstoryDatabase.allBackstories
+
+			if (RunWithFailureCheck(out var ex8, () =>
+			{
+				zombie.story.childhood = BackstoryDatabase.allBackstories
 				.Where(kvp => kvp.Value.slot == BackstorySlot.Childhood)
 				.SafeRandomElement().Value;
+			}))
+			{ Abort(ex8); yield break; }
 			yield return null;
-			if (zombie.ageTracker.AgeBiologicalYearsFloat >= 20f)
-				zombie.story.adulthood = BackstoryDatabase.allBackstories
-				.Where(kvp => kvp.Value.slot == BackstorySlot.Adulthood)
-				.SafeRandomElement().Value;
+
+			if (RunWithFailureCheck(out var ex9, () =>
+			{
+				if (zombie.ageTracker.AgeBiologicalYearsFloat >= 20f)
+					zombie.story.adulthood = BackstoryDatabase.allBackstories
+					.Where(kvp => kvp.Value.slot == BackstorySlot.Adulthood)
+					.SafeRandomElement().Value;
+			}))
+			{ Abort(ex9); yield break; }
 			yield return null;
-			zombie.story.melanin = zombie.isAlbino || zombie.isHealer ? 1f : (zombie.isDarkSlimer ? 0f : 0.01f * Rand.Range(10, 91));
-			zombie.story.bodyType = bodyType;
-			zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
-			zombie.story.hairColor = ZombieBaseValues.HairColor();
-			zombie.story.hairDef = PawnStyleItemChooser.RandomHairFor(zombie);
+
+			if (RunWithFailureCheck(out var ex10, () =>
+			{
+				zombie.story.melanin = zombie.isAlbino || zombie.isHealer ? 1f : (zombie.isDarkSlimer ? 0f : 0.01f * Rand.Range(10, 91));
+				zombie.story.bodyType = bodyType;
+				zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
+				zombie.story.hairColor = ZombieBaseValues.HairColor();
+				zombie.story.hairDef = PawnStyleItemChooser.RandomHairFor(zombie);
+			}))
+			{ Abort(ex10); yield break; }
 			yield return null;
-			FixVanillaHairExpanded(zombie, ZombieDefOf.Zombies);
+
+			if (RunWithFailureCheck(out var ex11, () =>
+			{
+				FixVanillaHairExpanded(zombie, ZombieDefOf.Zombies);
+			}))
+			{ Abort(ex11); yield break; }
 			yield return null;
-			var it = AssignNewGraphicsIterator(zombie);
-			while (it.MoveNext())
+
+			IEnumerator it = default;
+			var looping = false;
+
+			it = AssignNewGraphicsIterator(zombie);
+			looping = true;
+			while (looping)
+			{
+				if (RunWithFailureCheck(out var ex12, () => looping = it.MoveNext()))
+				{ looping = false; Abort(ex12); yield break; }
 				yield return null;
-			zombie.Drawer.leaner = new ZombieLeaner(zombie);
-			if (zombie.pather == null)
-				zombie.pather = new Pawn_PathFollower(zombie);
-			zombie.pather.destination = IntVec3.Invalid;
+			}
+
+			if (RunWithFailureCheck(out var ex13, () =>
+			{
+				zombie.Drawer.leaner = new ZombieLeaner(zombie);
+				if (zombie.pather == null)
+					zombie.pather = new Pawn_PathFollower(zombie);
+				zombie.pather.destination = IntVec3.Invalid;
+			}))
+			{ Abort(ex13); yield break; }
 			yield return null;
+
 			if (zombie.IsTanky == false)
 			{
-				var it2 = GenerateStartingApparelFor(zombie);
-				while (it2.MoveNext())
+				it = GenerateStartingApparelFor(zombie);
+				looping = true;
+				while (looping)
+				{
+					if (RunWithFailureCheck(out var ex14, () => looping = it.MoveNext()))
+					{ looping = false; Abort(ex14); yield break; }
 					yield return null;
+				}
 			}
-			if (zombie.IsSuicideBomber)
-				zombie.lastBombTick = Find.TickManager.TicksAbs + Rand.Range(0, (int)zombie.bombTickingInterval);
-			if (cell.IsValid)
-				_ = GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Direct);
+
+			if (RunWithFailureCheck(out var ex15, () =>
+			{
+				if (zombie.IsSuicideBomber)
+					zombie.lastBombTick = Find.TickManager.TicksAbs + Rand.Range(0, (int)zombie.bombTickingInterval);
+				if (cell.IsValid)
+					_ = GenPlace.TryPlaceThing(zombie, cell, map, ThingPlaceMode.Direct);
+			}))
+			{ Abort(ex15); yield break; }
 			yield return null;
-			callback?.Invoke(zombie);
+
+			try
+			{
+				callback?.Invoke(zombie);
+			}
+			catch (Exception ex16)
+			{
+				Log.Warning($"Zombieland caught an exception after creating a zombie: {ex16}");
+			}
 			ZombiesSpawning--;
+
 			switch (Find.TickManager.CurTimeSpeed)
 			{
 				case TimeSpeed.Paused:

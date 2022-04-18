@@ -2985,22 +2985,27 @@ namespace ZombieLand
 						// the following constant comes from PawnRenderer.RenderPawnInternal
 						var loc = drawLoc + renderer.BaseHeadOffsetAt(orientation) + new Vector3(0, 0.0281250011f, 0);
 
-						// not clear why 75 but it seems to fit
-						var eyeX = zombie.sideEyeOffset.x / 75f;
-						var eyeZ = zombie.sideEyeOffset.z / 75f;
-						var eyeScale = zombie.isAlbino ? 0.25f : 0.5f;
-						var eyeMat = zombie.isAlbino ? new Material(Constants.RAGE_EYE) { color = white50 } : Constants.RAGE_EYE;
-
-						if (orientation == Rot4.West)
-							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(-eyeX, 0, eyeZ), Quaternion.identity, eyeScale, eyeScale);
-
-						else if (orientation == Rot4.East)
-							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(eyeX, 0, eyeZ), Quaternion.identity, eyeScale, eyeScale);
-
-						if (orientation == Rot4.South)
+						var x = zombie.sideEyeOffset.x;
+						var z = zombie.sideEyeOffset.z;
+						if (x != 0 && z != 0)
 						{
-							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + leftEyeOffset, Quaternion.identity, eyeScale, eyeScale);
-							GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + rightEyeOffset, Quaternion.identity, eyeScale, eyeScale);
+							// not clear why 75 but it seems to fit
+							var eyeX = x / 75f;
+							var eyeZ = z / 75f;
+							var eyeScale = zombie.isAlbino ? 0.25f : 0.5f;
+							var eyeMat = zombie.isAlbino ? new Material(Constants.RAGE_EYE) { color = white50 } : Constants.RAGE_EYE;
+
+							if (orientation == Rot4.West)
+								GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(-eyeX, 0, eyeZ), Quaternion.identity, eyeScale, eyeScale);
+
+							else if (orientation == Rot4.East)
+								GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(eyeX, 0, eyeZ), Quaternion.identity, eyeScale, eyeScale);
+
+							if (orientation == Rot4.South)
+							{
+								GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + leftEyeOffset, Quaternion.identity, eyeScale, eyeScale);
+								GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + rightEyeOffset, Quaternion.identity, eyeScale, eyeScale);
+							}
 						}
 					}
 				}
@@ -4015,7 +4020,8 @@ namespace ZombieLand
 			static void Postfix(Pawn ___pawn, Hediff hediff)
 			{
 				if (!(___pawn is Zombie zombie)) return;
-				if (hediff?.Part != null && hediff.Part.def.tags.Contains(BodyPartTagDefOf.ConsciousnessSource))
+				if (hediff == null) return;
+				if (hediff.Part != null && hediff.def.isBad && hediff.Part.def.tags.Contains(BodyPartTagDefOf.ConsciousnessSource))
 					zombie.state = ZombieState.ShouldDie;
 			}
 		}
