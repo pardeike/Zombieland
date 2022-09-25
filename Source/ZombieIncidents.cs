@@ -18,6 +18,7 @@ namespace ZombieLand
 		public float colonyMultiplier;
 
 		public int capableColonists;
+		public int incapableColonists;
 		public int totalColonistCount;
 		public int minimumCapableColonists;
 		public float daysPassed;
@@ -74,7 +75,8 @@ namespace ZombieLand
 		public static bool ZombiesForNewIncident(TickManager tickManager)
 		{
 			var info = tickManager.incidentInfo;
-			if (info == null) return false;
+			if (info == null)
+				return false;
 
 			if (tickManager.incidentInfo == null)
 				tickManager.incidentInfo = new IncidentInfo();
@@ -90,7 +92,7 @@ namespace ZombieLand
 
 			var currentMax = Mathf.FloorToInt(tickManager.GetMaxZombieCount() * ZombieWeather.GetThreatLevel(tickManager.map));
 
-			parameters.capableColonists = Tools.CapableColonists(tickManager.map);
+			(parameters.capableColonists, parameters.incapableColonists) = Tools.ColonistsInfo(tickManager.map);
 			parameters.daysBeforeZombies = ZombieSettings.Values.daysBeforeZombiesCome;
 			parameters.totalColonistCount = tickManager.map.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction.OfPlayer).Count();
 			parameters.minimumCapableColonists = (parameters.totalColonistCount + 1) / 3;
@@ -122,7 +124,8 @@ namespace ZombieLand
 			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.WhenDark)
 			{
 				var hour = GenLocalDate.HourOfDay(tickManager.map);
-				if (hour < 12) hour += 24;
+				if (hour < 12)
+					hour += 24;
 
 				if (hour < Constants.HOUR_START_OF_NIGHT || hour > Constants.HOUR_END_OF_NIGHT)
 				{
@@ -168,7 +171,7 @@ namespace ZombieLand
 				}
 			}
 			parameters.maxAdditionalZombies = Math.Max(0, parameters.maxBaseLevelZombies - parameters.currentZombieCount);
-			parameters.calculatedZombies = (int)(parameters.capableColonists * parameters.numberOfZombiesPerColonist * parameters.colonyMultiplier);
+			parameters.calculatedZombies = (int)((parameters.capableColonists + parameters.capableColonists / 2) * parameters.numberOfZombiesPerColonist * parameters.colonyMultiplier);
 			parameters.incidentSize = Math.Min(parameters.maxAdditionalZombies, parameters.calculatedZombies);
 			if (parameters.incidentSize == 0)
 			{
@@ -248,7 +251,8 @@ namespace ZombieLand
 					Find.LetterStack.ReceiveLetter(headline, text, LetterDefOf.ThreatSmall, location);
 				}
 
-				var isSubstantialZombieCount = zombiesSpawning > Tools.CapableColonists(map) * 4;
+				var (capable, incapable) = Tools.ColonistsInfo(map);
+				var isSubstantialZombieCount = zombiesSpawning > capable * 4;
 				if (isSubstantialZombieCount && Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
 					CustomDefs.ZombiesRising.PlayOneShotOnCamera(null);
 			}
@@ -269,10 +273,12 @@ namespace ZombieLand
 
 		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot, bool useAlert, bool ignoreLimit = false, ZombieType zombieType = ZombieType.Random)
 		{
-			if (map.IsBlacklisted()) return false;
+			if (map.IsBlacklisted())
+				return false;
 			var cellValidator = Tools.ZombieSpawnLocator(map, true);
 			spot = GetValidSpot(map, spot, cellValidator);
-			if (spot.IsValid == false) return false;
+			if (spot.IsValid == false)
+				return false;
 			_ = Find.CameraDriver.StartCoroutine(SpawnEventProcess(map, incidentSize, spot, cellValidator, useAlert, ignoreLimit, zombieType));
 			return true;
 		}

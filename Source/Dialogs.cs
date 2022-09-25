@@ -234,7 +234,8 @@ namespace ZombieLand
 			Text.Anchor = TextAnchor.MiddleLeft;
 			var textHeight = Text.CalcHeight(labelText, list.ColumnWidth - 3f - inset) + 2 * 3f;
 
-			if (provideHelp) list.Help(labelId);
+			if (provideHelp)
+				list.Help(labelId);
 
 			var rect = list.GetRect(textHeight).Rounded();
 			var color2 = color;
@@ -295,7 +296,8 @@ namespace ZombieLand
 
 			var color = GUI.color;
 			GUI.color = dangerous ? new Color(1f, 0.3f, 0.35f) : Color.white;
-			if (Widgets.ButtonText(rect2, buttonText, true, true, true)) action();
+			if (Widgets.ButtonText(rect2, buttonText, true, true, true))
+				action();
 			GUI.color = color;
 		}
 
@@ -403,7 +405,8 @@ namespace ZombieLand
 			var descLength = labelText.GetWidthCached() + extraSpace;
 			var valueLength = valueText.GetWidthCached();
 
-			if (translator == null) translator = val => val.ToString();
+			if (translator == null)
+				translator = val => val.ToString();
 
 			list.Help(labelId, Text.LineHeight);
 
@@ -490,12 +493,16 @@ namespace ZombieLand
 			srect.xMax -= inset;
 
 			var inValue = logarithmic ? (float)(1 - Math.Pow(1 - (double)value, 10)) : value;
-			if (inValue < min) inValue = min;
-			if (inValue > max) inValue = max;
+			if (inValue < min)
+				inValue = min;
+			if (inValue > max)
+				inValue = max;
 			var outValue = Widgets.HorizontalSlider(srect, inValue, min, max, false, null, labelId.SafeTranslate(), valstr, -1f);
 			value = logarithmic ? (float)(1 - Math.Pow(1 - outValue, 1 / (double)10)) : outValue;
-			if (value < min) value = min;
-			if (value > max) value = max;
+			if (value < min)
+				value = min;
+			if (value > max)
+				value = max;
 		}
 
 		public static void Dialog_EnumSlider<T>(this Listing_Standard list, string labelId, ref T forEnum)
@@ -537,7 +544,8 @@ namespace ZombieLand
 
 			list.Gap(12f);
 
-			if (valueStringConverter == null) valueStringConverter = (n) => null;
+			if (valueStringConverter == null)
+				valueStringConverter = (n) => null;
 			var valstr = valueStringConverter(value) ?? Tools.TranslateHoursToText(value);
 
 			var srect = list.GetRect(24f);
@@ -553,7 +561,8 @@ namespace ZombieLand
 
 		public static void ColonistDangerousAreas(this Listing_Standard list)
 		{
-			if (Current.Game == null) return;
+			if (Current.Game == null)
+				return;
 
 			/*
 			var areas = Find.Maps
@@ -599,7 +608,8 @@ namespace ZombieLand
 
 		public static void ChooseExtractArea(this Listing_Standard list, SettingsGroup settings)
 		{
-			if (Current.Game == null) return;
+			if (Current.Game == null)
+				return;
 			var multiMap = Find.Maps.Count > 1;
 			var areas = Find.Maps
 				.Where(map => map.IsBlacklisted() == false)
@@ -622,7 +632,8 @@ namespace ZombieLand
 
 		public static string ExtractAmount(float f)
 		{
-			if (f == 0) return "Off".TranslateSimple();
+			if (f == 0)
+				return "Off".TranslateSimple();
 			return "{0:0%} " + "CorpsesExtractChance".Translate(f);
 		}
 
@@ -661,13 +672,15 @@ namespace ZombieLand
 					switch (i)
 					{
 						case 0:
-							if (exampleMeleeSkill > 0) exampleMeleeSkill--;
+							if (exampleMeleeSkill > 0)
+								exampleMeleeSkill--;
 							break;
 						case 1:
 							exampleMeleeSkill++;
 							break;
 						case 2:
-							if (exampleZombieCount > 1) exampleZombieCount--;
+							if (exampleZombieCount > 1)
+								exampleZombieCount--;
 							break;
 						case 3:
 							exampleZombieCount++;
@@ -686,28 +699,35 @@ namespace ZombieLand
 		public static bool Section<T>(params string[] term)
 		{
 			var search = searchWidget.filter.Text.Trim().ToLower();
-			if (search == "") return true;
+			if (search == "")
+				return true;
 			if (term.Any(t =>
 			{
 				if (t.StartsWith(":"))
 				{
 					t = t.Substring(1);
-					if (t.SafeTranslate().ToLower().Contains(search)) return true;
-					if ($"{t}_Help".SafeTranslate().ToLower().Contains(search)) return true;
+					if (t.SafeTranslate().ToLower().Contains(search))
+						return true;
+					if ($"{t}_Help".SafeTranslate().ToLower().Contains(search))
+						return true;
 					return false;
 				}
 				return t.ToLower().Contains(search);
-			})) return true;
+			}))
+				return true;
 			var type = typeof(T);
 			if (type != typeof(string))
 			{
-				if (type.Name.SafeTranslate().ToLower().Contains(search)) return true;
+				if (type.Name.SafeTranslate().ToLower().Contains(search))
+					return true;
 				var choices = Enum.GetValues(type);
 				foreach (var choice in choices)
 				{
 					var label = type.Name + "_" + choice.ToString();
-					if (label.SafeTranslate().ToLower().Contains(search)) return true;
-					if ($"{label}_Help".SafeTranslate().ToLower().Contains(search)) return true;
+					if (label.SafeTranslate().ToLower().Contains(search))
+						return true;
+					if ($"{label}_Help".SafeTranslate().ToLower().Contains(search))
+						return true;
 				}
 			}
 			return false;
@@ -719,7 +739,8 @@ namespace ZombieLand
 		public static Vector2 scrollPosition = Vector2.zero;
 		public static void DoWindowContentsInternal(ref SettingsGroup settings, Rect inRect)
 		{
-			if (settings == null) settings = new SettingsGroup();
+			if (settings == null)
+				settings = new SettingsGroup();
 
 			inRect.yMin += 15f;
 			inRect.yMax -= 15f;
@@ -849,7 +870,7 @@ namespace ZombieLand
 					list.Gap(2f);
 					list.Dialog_Integer("MaximumNumberOfZombies", "Zombies", 0, 5000, ref settings.maximumNumberOfZombies);
 					list.Gap(12f);
-					list.Dialog_FloatSlider("ColonyMultiplier", _ => "{0:0.0}x", false, ref settings.colonyMultiplier, 1f, 10f);
+					list.Dialog_FloatSlider("ColonyMultiplier", _ => "{0:0.0}x", false, ref settings.colonyMultiplier, 0.1f, 10f);
 					list.ColonistDangerousAreas();
 					list.Gap(28f);
 				}
@@ -970,8 +991,10 @@ namespace ZombieLand
 					list.Dialog_Checkbox("ShowHealthBar", ref settings.showHealthBar);
 					list.Dialog_Checkbox("ShowZombieStats", ref settings.showZombieStats);
 					list.Dialog_Checkbox("HighlightDangerousAreas", ref settings.highlightDangerousAreas);
-					if (SoSTools.isInstalled) list.Dialog_Checkbox("FloatingZombiesInSOS2", ref settings.floatingZombies);
-					else settings.floatingZombies = true;
+					if (SoSTools.isInstalled)
+						list.Dialog_Checkbox("FloatingZombiesInSOS2", ref settings.floatingZombies);
+					else
+						settings.floatingZombies = true;
 					list.Gap(30f);
 				}
 
@@ -981,7 +1004,8 @@ namespace ZombieLand
 					list.Dialog_Label("ZombieActionsTitle", headerColor);
 					list.Gap(8f);
 					list.Dialog_Button("ZombieSettingsReset", "ResetButton", false, settings.Reset);
-					if (inGame) list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Dialog_SaveThenUninstall.Run);
+					if (inGame)
+						list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Dialog_SaveThenUninstall.Run);
 				}
 			}
 

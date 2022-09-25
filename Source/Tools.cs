@@ -55,9 +55,12 @@ namespace ZombieLand
 		{
 			var def = ThingDefOf.MealSurvivalPack;
 
-			if (mealLabel == null) mealLabel = def.label;
-			if (mealDescription == null) mealDescription = def.description;
-			if (mealGraphic == null) mealGraphic = def.graphicData.cachedGraphic;
+			if (mealLabel == null)
+				mealLabel = def.label;
+			if (mealDescription == null)
+				mealDescription = def.description;
+			if (mealGraphic == null)
+				mealGraphic = def.graphicData.cachedGraphic;
 
 			if (enable)
 			{
@@ -99,9 +102,11 @@ namespace ZombieLand
 		{
 			var fullPath = Path.Combine(GetModRootDirectory(), "Textures", $"{path}.png");
 			var data = File.ReadAllBytes(fullPath);
-			if (data == null || data.Length == 0) throw new Exception($"Cannot read texture {fullPath}");
+			if (data == null || data.Length == 0)
+				throw new Exception($"Cannot read texture {fullPath}");
 			var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
-			if (tex.LoadImage(data) == false) throw new Exception($"Cannot create texture {fullPath}");
+			if (tex.LoadImage(data) == false)
+				throw new Exception($"Cannot create texture {fullPath}");
 			tex.Compress(true);
 			tex.wrapMode = TextureWrapMode.Clamp;
 			tex.filterMode = FilterMode.Trilinear;
@@ -111,13 +116,15 @@ namespace ZombieLand
 
 		public static string SafeTranslate(this string key)
 		{
-			if (key == null) return "";
+			if (key == null)
+				return "";
 			return key.Translate();
 		}
 
 		public static string SafeTranslate(this string key, params object[] args)
 		{
-			if (key == null) return "";
+			if (key == null)
+				return "";
 			var namedArgs = args.Select(arg => new NamedArgument(arg, "")).ToArray();
 			return key.Translate(namedArgs);
 		}
@@ -153,8 +160,10 @@ namespace ZombieLand
 		public static void ColorBlend(ref float original, float color)
 		{
 			original = original + color - 1f;
-			if (original < 0f) original = 0f;
-			if (original > 1f) original = 1f;
+			if (original < 0f)
+				original = 0f;
+			if (original > 1f)
+				original = 1f;
 		}
 
 		public static void DebugPosition(Vector3 pos, Color color)
@@ -174,8 +183,10 @@ namespace ZombieLand
 
 		public static T Boxed<T>(T val, T min, T max) where T : IComparable
 		{
-			if (val.CompareTo(min) < 0) return min;
-			if (val.CompareTo(max) > 0) return max;
+			if (val.CompareTo(min) < 0)
+				return min;
+			if (val.CompareTo(max) > 0)
+				return max;
 			return val;
 		}
 
@@ -194,7 +205,8 @@ namespace ZombieLand
 
 		public static T SafeRandomElement<T>(this IEnumerable<T> source)
 		{
-			if (source.Count() == 0) return default;
+			if (source.Count() == 0)
+				return default;
 			return source.RandomElement();
 		}
 
@@ -220,15 +232,18 @@ namespace ZombieLand
 				if (pawn.HostileTo(Faction.OfPlayer) == false)
 				{
 					var map = pawn.Map;
-					if (map.areaManager?.Home[pawn.Position] ?? false) return false;
+					if (map.areaManager?.Home[pawn.Position] ?? false)
+						return false;
 					var room = GridsUtility.GetRoom(pawn.Position, map);
-					if (room.IsHuge == false) return false;
+					if (room.IsHuge == false)
+						return false;
 				}
 
 				return ZombieSettings.Values.betterZombieAvoidance;
 			}
 
-			if (ZombieSettings.Values.betterZombieAvoidance == false) return false;
+			if (ZombieSettings.Values.betterZombieAvoidance == false)
+				return false;
 			return ColonistSettings.Values.ConfigFor(pawn).autoAvoidZombies;
 		}
 
@@ -295,7 +310,8 @@ namespace ZombieLand
 					var tickManager = Find.CurrentMap.GetComponent<TickManager>();
 					_ = tickManager.allZombiesCached.Add(zombie);
 				});
-				while (iterator.MoveNext()) ;
+				while (iterator.MoveNext())
+					;
 			}
 		}
 
@@ -347,7 +363,8 @@ namespace ZombieLand
 					.SelectMany(room => room.Regions)
 					.Where(region => region.listerThings.AllThings.Any(thing =>
 					{
-						if (thing.Faction != f) return false;
+						if (thing.Faction != f)
+							return false;
 						var def = thing.def;
 						return def.fillPercent >= 0.2f || def.blockWind || def.coversFloor ||
 							def.castEdgeShadows || def.holdsRoof || def.blockLight;
@@ -544,7 +561,8 @@ namespace ZombieLand
 					}
 				}
 			});
-			while (it.MoveNext()) ;
+			while (it.MoveNext())
+				;
 		}
 
 		// implement
@@ -567,7 +585,8 @@ namespace ZombieLand
 
 		public static bool IsValidSpawnLocation(IntVec3 cell, Map map)
 		{
-			if (cell.Standable(map) == false || cell.Fogged(map)) return false;
+			if (cell.Standable(map) == false || cell.Fogged(map))
+				return false;
 
 			//if (map.IsSpace())
 			//{
@@ -596,7 +615,8 @@ namespace ZombieLand
 				if (false
 					|| aff.Contains(TerrainAffordanceDefOf.Diggable)
 					|| aff.Contains(TerrainAffordanceDefOf.GrowSoil)
-					) return true;
+					)
+					return true;
 				return false;
 			}
 			return (false
@@ -614,11 +634,14 @@ namespace ZombieLand
 		{
 			var map = pawn.Map;
 			var size = map.info.Size;
-			if (dest.x < 0 || dest.x >= size.x || dest.z < 0 || dest.z >= size.z) return false;
-			if (map.edificeGrid[dest] is Building_Door door && door.Open == false) return false;
+			if (dest.x < 0 || dest.x >= size.x || dest.z < 0 || dest.z >= size.z)
+				return false;
+			if (map.edificeGrid[dest] is Building_Door door && door.Open == false)
+				return false;
 			var idx = map.cellIndices.CellToIndex(dest);
 			var pathGrid = map.pathing.For(pawn).pathGrid;
-			if (pathGrid.pathGrid[idx] >= 10000) return false;
+			if (pathGrid.pathGrid[idx] >= 10000)
+				return false;
 			return true;
 			// For now, we disable this to gain execution speed
 			//return map.terrainGrid.topGrid[idx].DoesRepellZombies() == false;
@@ -626,9 +649,12 @@ namespace ZombieLand
 
 		public static bool IsZombieHediff(this HediffDef hediff)
 		{
-			if (hediff == null) return false;
-			if (hediff.GetType().Namespace == zlNamespace) return true;
-			if (hediff.hediffClass.Namespace == zlNamespace) return true;
+			if (hediff == null)
+				return false;
+			if (hediff.GetType().Namespace == zlNamespace)
+				return true;
+			if (hediff.hediffClass.Namespace == zlNamespace)
+				return true;
 			return false;
 		}
 
@@ -649,10 +675,14 @@ namespace ZombieLand
 
 		public static bool HasInfectionState(Pawn pawn, InfectionState state)
 		{
-			if (pawn.RaceProps.Humanlike == false) return false;
-			if (pawn.RaceProps.IsFlesh == false) return false;
-			if (AlienTools.IsFleshPawn(pawn) == false) return false;
-			if (SoSTools.IsHologram(pawn)) return false;
+			if (pawn.RaceProps.Humanlike == false)
+				return false;
+			if (pawn.RaceProps.IsFlesh == false)
+				return false;
+			if (AlienTools.IsFleshPawn(pawn) == false)
+				return false;
+			if (SoSTools.IsHologram(pawn))
+				return false;
 
 			return pawn.health.hediffSet
 						.GetHediffs<Hediff_Injury_ZombieBite>()
@@ -670,22 +700,36 @@ namespace ZombieLand
 						.Any(tendDuration => tendDuration.InfectionStateBetween(minState, maxState));
 		}
 
-		public static int CapableColonists(Map map)
+		public static (int, int) ColonistsInfo(Map map)
 		{
 			var colonists = map.mapPawns.FreeHumanlikesSpawnedOfFaction(Faction.OfPlayer);
-			return colonists.Count(pawn =>
+			var capable = 0;
+			var incapable = 0;
+			for (var i = 0; i < colonists.Count; i++)
 			{
-				if (pawn.Spawned == false || pawn.health.Downed || pawn.Dead) return false;
-				if (pawn.InMentalState) return false;
-				if (pawn.InContainerEnclosed) return false;
-				if (pawn.equipment.Primary == null) return false;
-				if (pawn.health.summaryHealth.SummaryHealthPercent <= 0.25f) return false;
+				var pawn = colonists[i];
+
+				if (pawn.Spawned == false || pawn.health.Downed || pawn.Dead)
+					continue;
+				if (pawn.InMentalState)
+					continue;
+				if (pawn.InContainerEnclosed)
+					continue;
+
+				incapable++;
+
+				if (pawn.equipment.Primary == null)
+					continue;
+				if (pawn.health.summaryHealth.SummaryHealthPercent <= 0.25f)
+					continue;
 
 				var walkCapacity = PawnCapacityUtility.CalculateCapacityLevel(pawn.health.hediffSet, PawnCapacityDefOf.Moving);
-				if (walkCapacity < 0.25f) return false;
+				if (walkCapacity < 0.25f)
+					continue;
 
-				return true;
-			});
+				capable++;
+			}
+			return (capable, incapable);
 		}
 
 		public static bool IsHostileToZombies(Pawn pawn)
@@ -790,7 +834,8 @@ namespace ZombieLand
 			var v = Vector3.Normalize(delta.ToVector3()) * Mathf.Sqrt(2);
 			var x = (int)Math.Round(v.x);
 			var z = (int)Math.Round(v.z);
-			if (x == 0 && z == 0) return -1;
+			if (x == 0 && z == 0)
+				return -1;
 			var i = 3 * (x + 1) + z + 1;
 			return _cellsAroundIndex[i];
 		}
@@ -812,7 +857,8 @@ namespace ZombieLand
 				for (var i = 0; i < items.Count; i++)
 				{
 					var item = items[i];
-					if (action(item)) return true;
+					if (action(item))
+						return true;
 				}
 				return false;
 			}
@@ -877,7 +923,8 @@ namespace ZombieLand
 				var finfo = Field(settings.GetType(), name);
 				var value = finfo.GetValue(settings);
 				var defaultValue = Traverse.Create(defaults).Field(name).GetValue();
-				if (value == null) value = defaultValue;
+				if (value == null)
+					value = defaultValue;
 				var type = value.GetType();
 				try
 				{
@@ -967,10 +1014,12 @@ namespace ZombieLand
 		static float DPS(IAttackTargetSearcher s)
 		{
 			var verb = s.CurrentEffectiveVerb;
-			if (verb == null) return 0f;
+			if (verb == null)
+				return 0f;
 			var verbProps = verb?.verbProps;
 			var damage = verbProps.defaultProjectile?.projectile.GetDamageAmount(null, null) ?? 0;
-			if (damage == 0) return 0f;
+			if (damage == 0)
+				return 0f;
 			var burst = Mathf.Max(1, verbProps.burstShotCount);
 			var interval = Mathf.Max(1, verbProps.AdjustedFullCycleTime(verb, null));
 			return damage * 60f * burst / interval;
@@ -979,10 +1028,12 @@ namespace ZombieLand
 		public static bool InWater(this Pawn pawn)
 		{
 			var map = pawn?.Map;
-			if (map == null) return false;
+			if (map == null)
+				return false;
 			var index = CellIndicesUtility.CellToIndex(pawn.Position, map.Size.x);
 			var terrainDef = map.terrainGrid.TerrainAt(index);
-			if (terrainDef == null) return false;
+			if (terrainDef == null)
+				return false;
 			return terrainDef.IsWater;
 		}
 
@@ -1002,7 +1053,8 @@ namespace ZombieLand
 			}
 
 			var map = Find.CurrentMap;
-			if (map == null) return new int[3];
+			if (map == null)
+				return new int[3];
 			var colonists = map.mapPawns.FreeColonists;
 			ColonyEvaluation.GetColonistArmouryPoints(colonists, map, out var colonistPoints, out var armouryPoints);
 			var turretPoints = map.listerBuildings.allBuildingsColonist.Sum(dangerPoints);
@@ -1073,7 +1125,8 @@ namespace ZombieLand
 
 		public static void OnGUISimple(this QuickSearchWidget self, Rect rect, Action onFilterChange = null)
 		{
-			if (OriginalEventUtility.EventType == EventType.MouseDown && !rect.Contains(Event.current.mousePosition)) self.Unfocus();
+			if (OriginalEventUtility.EventType == EventType.MouseDown && !rect.Contains(Event.current.mousePosition))
+				self.Unfocus();
 
 			var color = GUI.color;
 			GUI.color = Color.white;
@@ -1148,7 +1201,8 @@ namespace ZombieLand
 		public static Dictionary<float, HashSet<IntVec3>> circles;
 		public static IEnumerable<IntVec3> GetCircle(float radius)
 		{
-			if (circles == null) circles = new Dictionary<float, HashSet<IntVec3>>();
+			if (circles == null)
+				circles = new Dictionary<float, HashSet<IntVec3>>();
 			var cells = circles.ContainsKey(radius) ? circles[radius] : null;
 			if (cells == null)
 			{
@@ -1182,7 +1236,8 @@ namespace ZombieLand
 
 		public static void Look<T>(ref T[] list, string label, params object[] ctorArgs) where T : IExposable
 		{
-			if (Scribe.EnterNode(label) == false) return;
+			if (Scribe.EnterNode(label) == false)
+				return;
 
 			try
 			{
@@ -1327,7 +1382,8 @@ namespace ZombieLand
 
 		static bool DownedReplacement(Pawn pawn)
 		{
-			if (pawn is Zombie) return false;
+			if (pawn is Zombie)
+				return false;
 			return pawn.health.Downed;
 		}
 
@@ -1352,7 +1408,8 @@ namespace ZombieLand
 				yield return instruction;
 			}
 
-			if (!found) Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+			if (!found)
+				Log.Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 		}
 
 		public static int ExtractPerZombie()
@@ -1374,7 +1431,8 @@ namespace ZombieLand
 			for (var i = 1; i <= amount; i++)
 			{
 				var apparels = zombie.apparel.UnlockedApparel;
-				if (apparels.Any() == false) break;
+				if (apparels.Any() == false)
+					break;
 				var apparel = apparels.RandomElementByWeight(apparel => apparel.MarketValue);
 				_ = zombie.apparel.TryDrop(apparel);
 			}
@@ -1392,7 +1450,8 @@ namespace ZombieLand
 
 		public static bool IsBlacklisted(this Map map)
 		{
-			if (map == null) return false;
+			if (map == null)
+				return false;
 			return biomeBlacklist.Contains(map.Biome);
 		}
 
