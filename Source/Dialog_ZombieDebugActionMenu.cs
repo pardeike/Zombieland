@@ -1,16 +1,24 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using System.Collections.Generic;
 using System.Linq;
 using Verse;
 
 namespace ZombieLand
 {
-	public class Dialog_ZombieDebugActionMenu : Dialog_DebugActionsMenu
+	public static class ZombieDebugActions
 	{
-		private void SpawnZombie(ZombieType type, bool appearDirectly)
+		static void SpawnZombie(ZombieType type, bool appearDirectly)
 		{
-			ZombieGenerator.SpawnZombie(UI.MouseCell(), Find.CurrentMap, type, (zombie) =>
+			var map = Find.CurrentMap;
+			if (map == null)
+				return;
+
+			ZombieGenerator.SpawnZombie(UI.MouseCell(), map, type, (zombie) =>
 			{
+				if (Current.ProgramState != ProgramState.Playing)
+					return;
+
 				if (appearDirectly)
 				{
 					zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
@@ -23,168 +31,193 @@ namespace ZombieLand
 			});
 		}
 
-		public override void DoListingItems()
+		[DebugAction("Zombieland", "Spawn: Zombie (dig out)", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnZombieDigOut()
 		{
-			base.DoListingItems();
+			SpawnZombie(ZombieType.Normal, false);
+		}
 
-			if (Current.ProgramState != ProgramState.Playing)
-				return;
+		[DebugAction("Zombieland", "Spawn: Zombie (standing)", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnZombieStanding()
+		{
+			SpawnZombie(ZombieType.Normal, true);
+		}
 
-			var map = Find.CurrentMap;
-			if (map == null)
-				return;
+		[DebugAction("Zombieland", "Spawn: Suicide bomber", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnSuicideBomber()
+		{
+			SpawnZombie(ZombieType.SuicideBomber, true);
+		}
 
-			DoGap();
-			DoLabel("Tools - ZombieLand");
-			var highlightedIndex = HighlightedIndex;
-			var i = 0;
+		[DebugAction("Zombieland", "Spawn: Toxic Splasher", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnToxicSplasher()
+		{
+			SpawnZombie(ZombieType.ToxicSplasher, true);
+		}
 
-			DebugToolMap("Spawn: Zombie (dig out)", delegate
+		[DebugAction("Zombieland", "Spawn: Tanky Operator", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnTankyOperator()
+		{
+			SpawnZombie(ZombieType.TankyOperator, true);
+		}
+
+		[DebugAction("Zombieland", "Spawn: Miner", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnMiner()
+		{
+			SpawnZombie(ZombieType.Miner, true);
+		}
+
+		[DebugAction("Zombieland", "Spawn: Electrifier", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnElectrifier()
+		{
+			SpawnZombie(ZombieType.Electrifier, true);
+		}
+
+		[DebugAction("Zombieland", "Spawn: Albino", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnAlbino()
+		{
+			SpawnZombie(ZombieType.Albino, true);
+		}
+
+		[DebugAction("Zombieland", "Spawn: Dark Slimer", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnDarkSlimer()
+		{
+			SpawnZombie(ZombieType.DarkSlimer, true);
+		}
+
+		[DebugAction("Zombieland", "Spawn: Healer", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnHealer()
+		{
+			SpawnZombie(ZombieType.Healer, true);
+		}
+
+		[DebugAction("Zombieland", "Spawn: Random zombie", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnRandomZombie()
+		{
+			SpawnZombie(ZombieType.Random, true);
+		}
+
+		[DebugAction("Zombieland", "Trigger: Zombie incident", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void TriggerZombieIncident()
+		{
+			var tm = Find.CurrentMap.GetComponent<TickManager>();
+			var size = tm.incidentInfo.parameters.incidentSize;
+			if (size > 0)
 			{
-				SpawnZombie(ZombieType.Normal, false);
-			}, highlightedIndex == i++);
-			DebugToolMap("Spawn: Zombie (standing)", delegate
-			{
-				SpawnZombie(ZombieType.Normal, true);
-			}, highlightedIndex == i++);
-			DebugToolMap("Spawn: Suicide bomber", delegate
-			{
-				SpawnZombie(ZombieType.SuicideBomber, true);
-			}, highlightedIndex == i++);
-			DebugToolMap("Spawn: Toxic Splasher", delegate
-			{
-				SpawnZombie(ZombieType.ToxicSplasher, true);
-			}, highlightedIndex == i++);
-			DebugToolMap("Spawn: Tanky Operator", delegate
-			{
-				SpawnZombie(ZombieType.TankyOperator, true);
-			}, highlightedIndex == i++);
-			DebugToolMap("Spawn: Miner", delegate
-			{
-				SpawnZombie(ZombieType.Miner, true);
-			}, highlightedIndex == i++);
-			DebugToolMap("Spawn: Electrifier", delegate
-			{
-				SpawnZombie(ZombieType.Electrifier, true);
-			}, highlightedIndex == i++);
-			DebugToolMap("Spawn: Albino", delegate
-			{
-				SpawnZombie(ZombieType.Albino, true);
-			}, highlightedIndex == i++);
-			DebugToolMap("Spawn: Dark Slimer", delegate
-			{
-				SpawnZombie(ZombieType.DarkSlimer, true);
-			}, highlightedIndex == i++);
-			DebugToolMap("Spawn: Healer", delegate
-			{
-				SpawnZombie(ZombieType.Healer, true);
-			}, highlightedIndex == i++);
-			DebugToolMap("Spawn: Random zombie", delegate
-			{
-				SpawnZombie(ZombieType.Random, true);
-			}, highlightedIndex == i++);
-			var tm = Find.CurrentMap?.GetComponent<TickManager>();
-			if (tm != null)
-			{
-				var size = tm.incidentInfo.parameters.incidentSize;
-				if (size > 0)
-				{
-					DebugToolMap($"Trigger: Zombie incident ({size})", delegate
-					{
-						var success = ZombiesRising.TryExecute(map, size, IntVec3.Invalid, false, false);
-						if (success == false)
-							Log.Error("Incident creation failed. Most likely no valid spawn point found.");
-					}, highlightedIndex == i++);
-				}
+				var success = ZombiesRising.TryExecute(Find.CurrentMap, size, IntVec3.Invalid, false, false);
+				if (success == false)
+					Log.Error("Incident creation failed. Most likely no valid spawn point found.");
 			}
-			DebugToolMap("Spawn: Zombie incident (4)", delegate
-			{
-				_ = ZombiesRising.TryExecute(map, 4, UI.MouseCell(), false, true);
-			}, highlightedIndex == i++);
-			DebugToolMap("Spawn: Zombie incident (25)", delegate
-			{
-				_ = ZombiesRising.TryExecute(map, 25, UI.MouseCell(), false, true);
-			}, highlightedIndex == i++);
-			DebugToolMap("Spawn: Zombie incident (100)", delegate
-			{
-				_ = ZombiesRising.TryExecute(map, 100, UI.MouseCell(), false, true);
-			}, highlightedIndex == i++);
-			DebugToolMap("Spawn: Zombie incident (200)", delegate
-			{
-				_ = ZombiesRising.TryExecute(map, 200, UI.MouseCell(), false, true);
-			}, highlightedIndex == i++);
-			DebugToolMap("Convert: Make Zombie", delegate
-			{
-				foreach (var thing in map.thingGrid.ThingsAt(UI.MouseCell()))
-				{
-					if (!(thing is Pawn pawn) || pawn is Zombie) continue;
-					Tools.ConvertToZombie(pawn, map, true);
-				}
-			}, highlightedIndex == i++);
-			DebugToolMap("Apply: Trigger rotting", delegate
-			{
-				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
-				{
-					var compRottable = thing.TryGetComp<CompRottable>();
-					if (compRottable != null)
-						compRottable.RotProgress = compRottable.PropsRot.TicksToRotStart;
-				}
-			}, highlightedIndex == i++);
-			DebugToolMap("Apply: Add zombie bite", delegate
-			{
-				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
-				{
-					if (!(thing is Pawn pawn) || pawn is Zombie)
-						continue;
+		}
 
-					var bodyModel = pawn.health.hediffSet;
+		[DebugAction("Zombieland", "Spawn: Zombie incident (4)", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnZombieIncident_4()
+		{
+			_ = ZombiesRising.TryExecute(Find.CurrentMap, 4, UI.MouseCell(), false, true);
+		}
 
-					var bodyPart = bodyModel
-						.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined, null, null)
-						.Where(part =>
-							part.depth == BodyPartDepth.Outside
-							|| part.depth == BodyPartDepth.Inside
-							&& part.def.IsSolid(part, bodyModel.hediffs)
-						)
-						.SafeRandomElement();
+		[DebugAction("Zombieland", "Spawn: Zombie incident (25)", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnZombieIncident_25()
+		{
+			_ = ZombiesRising.TryExecute(Find.CurrentMap, 25, UI.MouseCell(), false, true);
+		}
 
-					if (bodyPart == null)
-						bodyPart = bodyModel.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined).SafeRandomElement();
+		[DebugAction("Zombieland", "Spawn: Zombie incident (100)", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnZombieIncident_100()
+		{
+			_ = ZombiesRising.TryExecute(Find.CurrentMap, 100, UI.MouseCell(), false, true);
+		}
 
-					var def = HediffDef.Named("ZombieBite");
-					var bite = (Hediff_Injury_ZombieBite)HediffMaker.MakeHediff(def, pawn, bodyPart);
+		[DebugAction("Zombieland", "Spawn: Zombie incident (200)", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnZombieIncident_200()
+		{
+			_ = ZombiesRising.TryExecute(Find.CurrentMap, 200, UI.MouseCell(), false, true);
+		}
 
-					bite.mayBecomeZombieWhenDead = true;
-					bite.TendDuration.ZombieInfector.MakeHarmfull();
-					var damageInfo = new DamageInfo(CustomDefs.ZombieBite, 2);
-					pawn.health.AddHediff(bite, bodyPart, damageInfo);
-				}
-			}, highlightedIndex == i++);
-			DebugToolMap("Apply: Remove infections", delegate
+		[DebugAction("Zombieland", "Convert: Make Zombie", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void ConvertToZombie()
+		{
+			var map = Find.CurrentMap;
+			foreach (var thing in map.thingGrid.ThingsAt(UI.MouseCell()))
 			{
-				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
-				{
-					if (!(thing is Pawn pawn) || pawn is Zombie) continue;
-					pawn.health.hediffSet
-						.GetHediffs<Hediff_Injury_ZombieBite>()
-						.Do(bite =>
-						{
-							bite.mayBecomeZombieWhenDead = false;
-							var tendDuration = bite.TryGetComp<HediffComp_Zombie_TendDuration>();
-							tendDuration.ZombieInfector.MakeHarmless();
-						});
+				if (!(thing is Pawn pawn) || pawn is Zombie)
+					continue;
+				Tools.ConvertToZombie(pawn, map, true);
+			}
+		}
 
-					_ = pawn.health.hediffSet.hediffs.RemoveAll(hediff => hediff is Hediff_ZombieInfection);
-				}
-			}, highlightedIndex == i++);
-			DebugToolMap("Apply: Zombie raging", delegate
+		[DebugAction("Zombieland", "Apply: Trigger rotting", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void ApplyTriggerRotting()
+		{
+			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 			{
-				foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
-				{
-					if (!(thing is Zombie zombie)) continue;
-					ZombieStateHandler.StartRage(zombie);
-				}
-			}, highlightedIndex == i++);
+				var compRottable = thing.TryGetComp<CompRottable>();
+				if (compRottable != null)
+					compRottable.RotProgress = compRottable.PropsRot.TicksToRotStart;
+			}
+		}
+
+		[DebugAction("Zombieland", "Apply: Add zombie bite", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void ApplyAddZombieBite()
+		{
+			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
+			{
+				if (!(thing is Pawn pawn) || pawn is Zombie)
+					continue;
+
+				var bodyModel = pawn.health.hediffSet;
+
+				var bodyPart = bodyModel
+					.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined, null, null)
+					.Where(part =>
+						part.depth == BodyPartDepth.Outside
+						|| part.depth == BodyPartDepth.Inside
+						&& part.def.IsSolid(part, bodyModel.hediffs)
+					)
+					.SafeRandomElement();
+
+				bodyPart ??= bodyModel.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined).SafeRandomElement();
+
+				var def = HediffDef.Named("ZombieBite");
+				var bite = (Hediff_Injury_ZombieBite)HediffMaker.MakeHediff(def, pawn, bodyPart);
+
+				bite.mayBecomeZombieWhenDead = true;
+				bite.TendDuration.ZombieInfector.MakeHarmfull();
+				var damageInfo = new DamageInfo(CustomDefs.ZombieBite, 2);
+				pawn.health.AddHediff(bite, bodyPart, damageInfo);
+			}
+		}
+
+		[DebugAction("Zombieland", "Apply: Remove infections", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void ApplyRemoveInfections()
+		{
+			var tmpHediffInjuryZombieBites = new List<Hediff_Injury_ZombieBite>();
+			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
+			{
+				if (!(thing is Pawn pawn) || pawn is Zombie)
+					continue;
+				tmpHediffInjuryZombieBites.Clear();
+				pawn.health.hediffSet.GetHediffs(ref tmpHediffInjuryZombieBites);
+				tmpHediffInjuryZombieBites.Do(bite =>
+					{
+						bite.mayBecomeZombieWhenDead = false;
+						var tendDuration = bite.TryGetComp<HediffComp_Zombie_TendDuration>();
+						tendDuration.ZombieInfector.MakeHarmless();
+					});
+
+				_ = pawn.health.hediffSet.hediffs.RemoveAll(hediff => hediff is Hediff_ZombieInfection);
+			}
+		}
+
+		[DebugAction("Zombieland", "Apply: Zombie raging", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void ApplyZombieRaging()
+		{
+			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
+			{
+				if (!(thing is Zombie zombie))
+					continue;
+				ZombieStateHandler.StartRage(zombie);
+			}
 		}
 	}
 }

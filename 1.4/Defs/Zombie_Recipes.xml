@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<RecipeDef ParentName="SurgeryFlesh">
+		<defName>CureZombieInfection</defName>
+		<label>cure zombie infection</label>
+		<description>Removes an early stage zombie infection from a body part. Requires one zombie serum (better percentage gives less failure risk).</description>
+		<workerClass>ZombieLand.Recipe_CureZombieInfection</workerClass>
+		<jobString>Curing zombie infection.</jobString>
+		<targetsBodyPart>true</targetsBodyPart>
+		<anesthetize>false</anesthetize>
+		<workAmount>2000</workAmount>
+		<effectWorking>Surgery</effectWorking>
+		<soundWorking>Recipe_Surgery</soundWorking>
+		<workSpeedStat>MedicalOperationSpeed</workSpeedStat>
+		<workSkill>Medicine</workSkill>
+		<workSkillLearnFactor>32</workSkillLearnFactor>
+		<hideBodyPartNames>false</hideBodyPartNames>
+		<ingredients>
+			<li>
+				<filter>
+					<categories>
+						<li>ZombieSerum</li>
+					</categories>
+					<disallowedThingDefs>
+						<li>ZombieExtract</li>
+					</disallowedThingDefs>
+				</filter>
+				<count>1</count>
+			</li>
+		</ingredients>
+		<fixedIngredientFilter>
+			<categories>
+				<li>ZombieSerum</li>
+			</categories>
+			<disallowedThingDefs>
+				<li>ZombieExtract</li>
+			</disallowedThingDefs>
+		</fixedIngredientFilter>
+	</RecipeDef>
+
+	<SpecialThingFilterDef>
+		<defName>ZombieSerumFilter</defName>
+		<label>zombie serum filter</label>
+		<description>zombie serum filter</description>
+		<parentCategory>Root</parentCategory>
+		<allowedByDefault>true</allowedByDefault>
+		<configurable>false</configurable>
+		<saveKey>zombieSerumFilter</saveKey>
+		<workerClass>ZombieLand.ZombieSerumFilterWorker</workerClass>
+	</SpecialThingFilterDef>
+
+	<RecipeDef>
+		<defName>MakeZombieSerum</defName>
+		<label>make serum out of zombie extract</label>
+		<description>Craft one zombie serum from zombie extract that cures zombie infections during operations.</description>
+		<jobString>Making zombie serum.</jobString>
+		<workAmount>2400</workAmount>
+		<ingredients>
+			<li>
+				<filter>
+					<categories>
+						<li>Corpses</li>
+					</categories>
+				</filter>
+				<count>1</count>
+			</li>
+			<li>
+				<filter>
+					<thingDefs>
+						<li>ZombieExtract</li>
+					</thingDefs>
+				</filter>
+				<count>10</count>
+			</li>
+			<li>
+				<filter>
+					<categories>
+						<li>Medicine</li>
+					</categories>
+				</filter>
+				<count>1</count>
+			</li>
+		</ingredients>
+		<factionPrerequisiteTags>
+			<li>Tribal</li>
+		</factionPrerequisiteTags>
+		<fixedIngredientFilter>
+			<categories>
+				<li>Corpses</li>
+				<li>Medicine</li>
+				<li>ZombieSerum</li>
+			</categories>
+			<disallowedCategories>
+				<li>CorpsesMechanoid</li>
+				<li>CorpsesHumanlike</li>
+			</disallowedCategories>
+		</fixedIngredientFilter>
+		<forceHiddenSpecialFilters>
+			<li>ZombieSerumFilter</li>
+		</forceHiddenSpecialFilters>
+		<recipeUsers>
+			<li>CraftingSpot</li>
+		</recipeUsers>
+		<products>
+			<ZombieSerumSimple>1</ZombieSerumSimple>
+		</products>
+	</RecipeDef>
+
+</Defs>

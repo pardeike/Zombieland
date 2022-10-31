@@ -17,7 +17,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Pawn_DrawTracker))]
-	[HarmonyPatch(nameof(Pawn_DrawTracker.DrawTrackerTick))]
+	[HarmonyPatch(nameof(Pawn_DrawTracker.ProcessPostTickVisuals))]
 	static class Pawn_DrawTrackerDrawTrackerTick_Patch
 	{
 		[HarmonyPriority(Priority.Last)]

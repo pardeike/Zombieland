@@ -1,35 +1,51 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30413.136
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32922.545
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZombieLand", "Source\ZombieLand.csproj", "{34AA2AF2-8E82-4C5B-8ABA-9AC53DA7C110}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assembly-CSharp", "..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Assembly-CSharp\Assembly-CSharp.csproj", "{ECF021FC-1D56-41B8-A2F2-093EE3B47723}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{34AA2AF2-8E82-4C5B-8ABA-9AC53DA7C110}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{34AA2AF2-8E82-4C5B-8ABA-9AC53DA7C110}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34AA2AF2-8E82-4C5B-8ABA-9AC53DA7C110}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{34AA2AF2-8E82-4C5B-8ABA-9AC53DA7C110}.Debug|x64.Build.0 = Debug|Any CPU
 		{34AA2AF2-8E82-4C5B-8ABA-9AC53DA7C110}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34AA2AF2-8E82-4C5B-8ABA-9AC53DA7C110}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34AA2AF2-8E82-4C5B-8ABA-9AC53DA7C110}.Release|x64.ActiveCfg = Release|Any CPU
+		{34AA2AF2-8E82-4C5B-8ABA-9AC53DA7C110}.Release|x64.Build.0 = Release|Any CPU
+		{ECF021FC-1D56-41B8-A2F2-093EE3B47723}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECF021FC-1D56-41B8-A2F2-093EE3B47723}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECF021FC-1D56-41B8-A2F2-093EE3B47723}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{ECF021FC-1D56-41B8-A2F2-093EE3B47723}.Debug|x64.Build.0 = Debug|Any CPU
+		{ECF021FC-1D56-41B8-A2F2-093EE3B47723}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECF021FC-1D56-41B8-A2F2-093EE3B47723}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECF021FC-1D56-41B8-A2F2-093EE3B47723}.Release|x64.ActiveCfg = Release|Any CPU
+		{ECF021FC-1D56-41B8-A2F2-093EE3B47723}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {56478D89-07B3-4C4D-9FB8-A55403305359}
-		BuildVersion_StartDate = 2000/1/1
-		BuildVersion_IncrementBeforeBuild = False
-		BuildVersion_ConfigurationName = Any
-		BuildVersion_DetectChanges = False
-		BuildVersion_BuildVersioningStyle = None.None.None.None
-		BuildVersion_UpdateAssemblyVersion = False
-		BuildVersion_UpdateFileVersion = False
-		BuildVersion_UseGlobalSettings = False
-		BuildVersion_UseUniversalClock = False
 		BuildVersion_ReplaceNonNumerics = False
+		BuildVersion_UseUniversalClock = False
+		BuildVersion_UseGlobalSettings = False
+		BuildVersion_UpdateFileVersion = False
+		BuildVersion_UpdateAssemblyVersion = False
+		BuildVersion_BuildVersioningStyle = None.None.None.None
+		BuildVersion_DetectChanges = False
+		BuildVersion_ConfigurationName = Any
+		BuildVersion_IncrementBeforeBuild = False
+		BuildVersion_StartDate = 2000/1/1
+		SolutionGuid = {56478D89-07B3-4C4D-9FB8-A55403305359}
 	EndGlobalSection
 EndGlobal

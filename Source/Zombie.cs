@@ -245,7 +245,8 @@ namespace ZombieLand
 		void Dispose(bool disposing)
 		{
 			_ = disposing;
-			if (disposed) return;
+			if (disposed)
+				return;
 			disposed = true;
 			CleanupZombie();
 		}
@@ -253,9 +254,7 @@ namespace ZombieLand
 		public void Randomize8()
 		{
 			var nextIndex = Constants.random.Next(8);
-			var c = adjIndex8[prevIndex8];
-			adjIndex8[prevIndex8] = adjIndex8[nextIndex];
-			adjIndex8[nextIndex] = c;
+			(adjIndex8[nextIndex], adjIndex8[prevIndex8]) = (adjIndex8[prevIndex8], adjIndex8[nextIndex]);
 			prevIndex8 = nextIndex;
 		}
 
@@ -268,10 +267,13 @@ namespace ZombieLand
 			_ = Find.TaleManager.AllTalesListForReading.RemoveAll(tale =>
 			{
 				var singlePawnTale = tale as Tale_SinglePawn;
-				if (singlePawnTale?.pawnData?.pawn == this) return true;
+				if (singlePawnTale?.pawnData?.pawn == this)
+					return true;
 				var doublePawnTale = tale as Tale_DoublePawn;
-				if (doublePawnTale?.firstPawnData?.pawn == this) return true;
-				if (doublePawnTale?.secondPawnData?.pawn == this) return true;
+				if (doublePawnTale?.firstPawnData?.pawn == this)
+					return true;
+				if (doublePawnTale?.secondPawnData?.pawn == this)
+					return true;
 				return false;
 			});
 
@@ -317,7 +319,8 @@ namespace ZombieLand
 			_ = Map.GetComponent<TickManager>()?.hummingZombies.Remove(this);
 
 			var map = Map;
-			if (map == null) return;
+			if (map == null)
+				return;
 
 			var grid = map.GetGrid();
 			grid.ChangeZombieCount(lastGotoPosition, -1);
@@ -334,7 +337,8 @@ namespace ZombieLand
 		{
 			var pos = Position;
 			var map = Map;
-			if (map == null) return;
+			if (map == null)
+				return;
 
 			var amount = 1 + (int)(ZombieLand.Tools.Difficulty() + 0.5f);
 			if (story.bodyType == BodyTypeDefOf.Thin)
@@ -353,7 +357,8 @@ namespace ZombieLand
 				var n = (int)GenMath.LerpDouble(0, 10, 1, 4, amount);
 				var vec = new IntVec3(Rand.Range(-n, n), 0, Rand.Range(-n, n));
 				var r = vec.LengthHorizontalSquared;
-				if (r > maxRadius) maxRadius = r;
+				if (r > maxRadius)
+					maxRadius = r;
 				var cell = pos + vec;
 				if (GenSight.LineOfSight(pos, cell, map, true, null, 0, 0) && cell.Walkable(map))
 					if (FilthMaker.TryMakeFilth(cell, map, CustomDefs.StickyGoo, Name.ToStringShort, 1))
@@ -415,7 +420,8 @@ namespace ZombieLand
 				if (dy < 0.1f)
 				{
 					r.dropSpeed += 0.01f;
-					if (r.drop < 0.3f) r.drop += r.dropSpeed;
+					if (r.drop < 0.3f)
+						r.drop += r.dropSpeed;
 				}
 			}
 		}
@@ -523,12 +529,13 @@ namespace ZombieLand
 				if (Spawned)
 				{
 					pather?.PatherTick();
-					jobs?.JobTrackerTick();
 					stances?.StanceTrackerTick();
 					verbTracker?.VerbsTick();
+					roping?.RopingTick();
 					natives?.NativeVerbsTick();
-					Drawer?.DrawTrackerTick();
-					rotationTracker?.RotationTrackerTick();
+					jobs?.JobTrackerTick();
+					//Drawer?.DrawTrackerTick();
+					//rotationTracker?.RotationTrackerTick();
 					health?.HealthTick();
 				}
 			}

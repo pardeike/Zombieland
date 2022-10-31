@@ -197,9 +197,7 @@ namespace ZombieLand
 			{
 				n--;
 				var k = Constants.random.Next(n + 1);
-				var value = list[k];
-				list[k] = list[n];
-				list[n] = value;
+				(list[n], list[k]) = (list[k], list[n]);
 			}
 		}
 
@@ -438,6 +436,18 @@ namespace ZombieLand
 			}
 		}
 
+		public static bool HasHediff<T>(this Pawn pawn) where T : Hediff
+		{
+			return pawn.health.hediffSet.GetFirstHediff<T>() != null;
+		}
+
+		public static List<T> GetHediffsList<T>(this Pawn pawn) where T : Hediff
+		{
+			var list = new List<T>();
+			pawn.health.hediffSet.GetHediffs<T>(ref list);
+			return list;
+		}
+
 		static readonly NameSingle emptyName = new NameSingle("");
 		public static void ConvertToZombie(ThingWithComps thing, Map map, bool force = false)
 		{
@@ -486,7 +496,7 @@ namespace ZombieLand
 					zombie.story.childhood = pawn.story.childhood;
 					zombie.story.adulthood = pawn.story.adulthood;
 					zombie.story.melanin = pawn.story.melanin;
-					zombie.story.crownType = pawn.story.crownType;
+					//zombie.story.crownType = pawn.story.crownType;
 					zombie.story.hairDef = pawn.story.hairDef;
 					zombie.story.bodyType = pawn.story.bodyType;
 				}
@@ -673,6 +683,8 @@ namespace ZombieLand
 			bite.TendDuration.ZombieInfector.ForceFinalStage();
 		}
 
+		static List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBites = new List<Hediff_Injury_ZombieBite>();
+
 		public static bool HasInfectionState(Pawn pawn, InfectionState state)
 		{
 			if (pawn.RaceProps.Humanlike == false)
@@ -684,8 +696,9 @@ namespace ZombieLand
 			if (SoSTools.IsHologram(pawn))
 				return false;
 
-			return pawn.health.hediffSet
-						.GetHediffs<Hediff_Injury_ZombieBite>()
+			tmpHediffInjuryZombieBites.Clear();
+			pawn.health.hediffSet.GetHediffs(ref tmpHediffInjuryZombieBites);
+			return tmpHediffInjuryZombieBites
 						.SelectMany(hediff => hediff.comps)
 						.OfType<HediffComp_Zombie_TendDuration>()
 						.Any(tendDuration => tendDuration.GetInfectionState() == state);
@@ -693,8 +706,9 @@ namespace ZombieLand
 
 		public static bool HasInfectionState(Pawn pawn, InfectionState minState, InfectionState maxState)
 		{
-			return pawn.health.hediffSet
-						.GetHediffs<Hediff_Injury_ZombieBite>()
+			tmpHediffInjuryZombieBites.Clear();
+			pawn.health.hediffSet.GetHediffs(ref tmpHediffInjuryZombieBites);
+			return tmpHediffInjuryZombieBites
 						.SelectMany(hediff => hediff.comps)
 						.OfType<HediffComp_Zombie_TendDuration>()
 						.Any(tendDuration => tendDuration.InfectionStateBetween(minState, maxState));
