@@ -275,7 +275,7 @@ namespace ZombieLand
 				if (zombie.isMiner)
 				{
 					color = "miner";
-					specialColor = new Color(0, 0, 0, 0.5f);
+					specialColor = new Color(46 / 255f, 35 / 255f, 15 / 255f);
 				}
 				if (zombie.isElectrifier)
 				{
@@ -290,7 +290,7 @@ namespace ZombieLand
 				if (zombie.isDarkSlimer)
 				{
 					color = "dark";
-					specialColor = new Color(0, 0, 0, 0.25f);
+					specialColor = new Color(27 / 255f, 26 / 255f, 25 / 255f);
 				}
 				if (zombie.isHealer)
 				{

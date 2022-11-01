@@ -226,7 +226,7 @@ namespace ZombieLand
 					new CodeInstruction(OpCodes.Ldc_R4, 30f),
 					new CodeInstruction(OpCodes.Sub)
 				});
-			return list.AsEnumerable();
+			return list;
 		}
 	}
 }

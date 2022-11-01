@@ -82,6 +82,7 @@ namespace ZombieLand
 
 	public class SettingsGroup : IExposable, ICloneable
 	{
+		public float threatScale = 1f;
 		public SpawnWhenType spawnWhenType = SpawnWhenType.AllTheTime;
 		public SpawnHowType spawnHowType = SpawnHowType.FromTheEdges;
 		public AttackMode attackMode = AttackMode.OnlyHumans;
@@ -128,7 +129,7 @@ namespace ZombieLand
 		public float corpsesExtractAmount = 1f;
 		public float lootExtractAmount = 0.1f;
 		public string extractZombieArea = "";
-		public int corpsesHoursToDessicated = 1;
+		public int corpsesHoursToDessicated = 2;
 		public bool betterZombieAvoidance = true;
 		public bool ragingZombies = true;
 		public int zombieRageLevel = 3;
@@ -352,11 +353,10 @@ namespace ZombieLand
 
 	class ZombieSettings : WorldComponent
 	{
-		public static SettingsGroup Values;
+		public static SettingsGroup Values = ZombieSettingsDefaults.Defaults();
 
 		public ZombieSettings(World world) : base(world)
 		{
-			Values = ZombieSettingsDefaults.Defaults();
 		}
 
 		public static ZombieSettings GetGameSettings()

@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
+	<Difficulty_ZombielandThreatScale_Info>Регулирует сложность почти всех вещей в Zombieland, таких как способности зомби, прогноз угрозы и многое другое.</Difficulty_ZombielandThreatScale_Info>
+	<Difficulty_ZombielandThreatScale_Label>Шкала угроз Зомбиленда</Difficulty_ZombielandThreatScale_Label>
+
 	<LetterLabelZombiesRising>Аттака Зомби</LetterLabelZombiesRising>
 	<ZombiesRising>Группа зомби появилась</ZombiesRising>
 

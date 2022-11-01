@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
+	<Difficulty_ZombielandThreatScale_Info>Controls the difficulty of almost all things in Zombieland like zombie abilities, threat forecast and much more.</Difficulty_ZombielandThreatScale_Info>
+	<Difficulty_ZombielandThreatScale_Label>Zombieland threat scale</Difficulty_ZombielandThreatScale_Label>
+
 	<LetterLabelZombiesRising>Zombie attack</LetterLabelZombiesRising>
 	<ZombiesRising>A group of zombies appears</ZombiesRising>
 
@@ -12,6 +15,9 @@
 
 	<ZombielandDefaultSettings>Zombieland defaults</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Zombieland settings</ZombielandGameSettings>
+
+	<ZombielandDifficultyTitle>Overall Difficulty</ZombielandDifficultyTitle>
+	<ZombielandDifficulty>Threat scale</ZombielandDifficulty>
 
 	<WhenDoZombiesSpawn>When do zombies appear?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>All the time</SpawnWhenType_AllTheTime>
@@ -199,5 +205,6 @@
 	<IfOutside>When outside</IfOutside>
 	<HighlightDangerousAreas>Highlight risk areas</HighlightDangerousAreas>
 	<FloatingZombiesInSOS2>Floating zombies in space</FloatingZombiesInSOS2>
+
 
 </LanguageData>

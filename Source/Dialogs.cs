@@ -174,14 +174,14 @@ namespace ZombieLand
 		public override Vector2 InitialSize => size;
 
 		private readonly string title;
-		private readonly List<T> values;
-		private readonly Action<Listing_Standard, T> rowRenderer;
+		private readonly Func<List<T>> valueClosure;
+		private readonly Action<Listing_Standard, List<T>, T> rowRenderer;
 		private Vector2 scrollPosition = Vector2.zero;
 
-		public MultiOptions(string title, List<T> values, Action<Listing_Standard, T> rowRenderer, Vector2 size, float rowHeight = 24f) : base()
+		public MultiOptions(string title, Func<List<T>> valueClosure, Action<Listing_Standard, List<T>, T> rowRenderer, Vector2 size, float rowHeight = 24f) : base()
 		{
 			this.title = title.SafeTranslate();
-			this.values = values;
+			this.valueClosure = valueClosure;
 			this.rowRenderer = rowRenderer;
 			this.size = size;
 			this.rowHeight = rowHeight;
@@ -191,6 +191,8 @@ namespace ZombieLand
 
 		public override void DoWindowContents(Rect inRect)
 		{
+			var values = valueClosure();
+
 			inRect.yMax -= 60;
 
 			var num = Text.CalcHeight(title, inRect.width);
@@ -204,7 +206,7 @@ namespace ZombieLand
 			var list = new Listing_Standard();
 			list.Begin(innerRect);
 			foreach (var value in values)
-				rowRenderer(list, value);
+				rowRenderer(list, values, value);
 			list.End();
 
 			Widgets.EndScrollView();
@@ -405,8 +407,7 @@ namespace ZombieLand
 			var descLength = labelText.GetWidthCached() + extraSpace;
 			var valueLength = valueText.GetWidthCached();
 
-			if (translator == null)
-				translator = val => val.ToString();
+			translator ??= val => val.ToString();
 
 			list.Help(labelId, Text.LineHeight);
 
@@ -544,8 +545,7 @@ namespace ZombieLand
 
 			list.Gap(12f);
 
-			if (valueStringConverter == null)
-				valueStringConverter = (n) => null;
+			valueStringConverter ??= (n) => null;
 			var valstr = valueStringConverter(value) ?? Tools.TranslateHoursToText(value);
 
 			var srect = list.GetRect(24f);
@@ -559,50 +559,48 @@ namespace ZombieLand
 				value = (int)newValue;
 		}
 
-		public static void ColonistDangerousAreas(this Listing_Standard list)
+		public static void ColonistDangerousAreas(this Listing_Standard list, SettingsGroup settings)
 		{
 			if (Current.Game == null)
 				return;
 
-			/*
-			var areas = Find.Maps
+			List<(Area, string, bool)> GetAreas()
+			{
+				var areas = Find.Maps
 				.Where(map => map.IsBlacklisted() == false)
 				.SelectMany(map => map.areaManager.AllAreas
-				.Select(area => (area, name: area.Label, on: settings.dangerousAreas.Contains(area.Label))))
+				.Select(area => (area, name: area.Label, on: settings.dangerousAreas.Keys.Any(a => a.Label == area.Label))))
 				.ToList();
-			areas.AddRange(
-				settings.dangerousAreas
-					.Where(name => areas.Any(pair => pair.area.Label == name) == false)
-					.Select(name => (area: (Area)null, name, on: true))
-			);
-			areas.SortBy(pair => $"{pair.name}:{pair.area?.Map.Index ?? 0}");
-			*/
+				areas.AddRange(settings.dangerousAreas
+						.Where(pair1 => areas.Any(pair2 => pair2.area.Label == pair1.Key.Label) == false)
+						.Select(name => (area: (Area)null, name.Key.Label, on: true)));
+				areas.SortBy(pair => $"{pair.name}:{pair.area?.Map.Index ?? 0}");
+				return areas;
+			}
 
-			//const float rowHeight = 24f;
+			const float rowHeight = 24f;
 			list.Dialog_Button("DangerousAreas", "Areas", false, () =>
 			{
-				/*
 				Find.WindowStack.Add(
-					new MultiOptions<(Area, string, bool)>("DangerousAreas", areas, (l, pair) =>
+					new MultiOptions<(Area, string, bool)>("DangerousAreas", GetAreas, (l, rows, row) =>
 					{
-						(var area, var name, var on) = pair;
+						(var area, var name, var on) = row;
 
 						var label = area?.Label ?? name;
-						if (area != null && areas.Count(area => area.name == name) > 1)
+						if (area != null && rows.Count(r => r.Item1.Label == name) > 1)
 							label += $" (Map {area.Map.Index + 1})";
 						var oldOn = on;
 						Widgets.DrawBoxSolid(new Rect(l.curX + l.ColumnWidth - rowHeight, l.curY, rowHeight, rowHeight).ExpandedBy(-2), area?.Color ?? Color.clear);
 						l.Dialog_Checkbox(label, ref on, true);
 						if (oldOn != on)
 						{
-							if (on) _ = settings.dangerousAreas.Add(name);
-							else _ = settings.dangerousAreas.Remove(name);
-							pair.Item3 = on;
+							if (on) settings.dangerousAreas.Add(area, ZombieRiskMode.IfInside); // TODO: how to choose betwen IfInside and IfOutside?
+							else _ = settings.dangerousAreas.Remove(area);
+							row.Item3 = on;
 						}
 					},
 					new Vector2(320, 480), rowHeight
 				));
-				*/
 			});
 		}
 
@@ -739,8 +737,7 @@ namespace ZombieLand
 		public static Vector2 scrollPosition = Vector2.zero;
 		public static void DoWindowContentsInternal(ref SettingsGroup settings, Rect inRect)
 		{
-			if (settings == null)
-				settings = new SettingsGroup();
+			settings ??= new SettingsGroup();
 
 			inRect.yMin += 15f;
 			inRect.yMax -= 15f;
@@ -765,6 +762,15 @@ namespace ZombieLand
 				var textHeight = Text.CalcHeight(intro, list.ColumnWidth - 3f - inset) + 2 * 3f;
 				Widgets.Label(list.GetRect(textHeight).Rounded(), intro);
 				list.Gap(10f);
+
+				// Difficulty
+				if (Section<string>(":ZombielandDifficultyTitle", ":ZombielandDifficulty"))
+				{
+					list.Dialog_Label("ZombielandDifficultyTitle", headerColor);
+					list.Gap(6f);
+					list.Dialog_FloatSlider("ZombielandDifficulty", _ => "{0:0%}", false, ref settings.threatScale, 0f, 5f);
+					list.Gap(12f);
+				}
 
 				// When?
 				if (Section<SpawnWhenType>(":WhenDoZombiesSpawn"))
@@ -871,8 +877,8 @@ namespace ZombieLand
 					list.Dialog_Integer("MaximumNumberOfZombies", "Zombies", 0, 5000, ref settings.maximumNumberOfZombies);
 					list.Gap(12f);
 					list.Dialog_FloatSlider("ColonyMultiplier", _ => "{0:0.0}x", false, ref settings.colonyMultiplier, 0.1f, 10f);
-					list.ColonistDangerousAreas();
-					list.Gap(28f);
+					//list.ColonistDangerousAreas(settings);
+					//list.Gap(28f);
 				}
 
 				if (Section<string>(":DynamicThreatLevelTitle", ":UseDynamicThreatLevel", ":DynamicThreatSmoothness", ":DynamicThreatStretch", ":ZombiesDieOnZeroThreat"))

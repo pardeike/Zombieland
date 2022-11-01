@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
+	<Difficulty_ZombielandThreatScale_Info>控制殭屍樂園中幾乎所有事物的難度，如殭屍能力、威脅預測等等。</Difficulty_ZombielandThreatScale_Info>
+	<Difficulty_ZombielandThreatScale_Label>殭屍之地的威脅等級</Difficulty_ZombielandThreatScale_Label>
+
 	<LetterLabelZombiesRising>殭屍襲擊</LetterLabelZombiesRising>
 	<ZombiesRising>一群殭屍出現。</ZombiesRising>
 

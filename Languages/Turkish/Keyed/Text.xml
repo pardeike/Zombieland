@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
+	<Difficulty_ZombielandThreatScale_Info>Zombieland'deki zombi yetenekleri, tehdit tahmini ve çok daha fazlası gibi neredeyse her şeyin zorluğunu kontrol eder.</Difficulty_ZombielandThreatScale_Info>
+	<Difficulty_ZombielandThreatScale_Label>Zombieland tehdit ölçeği</Difficulty_ZombielandThreatScale_Label>
+
 	<LetterLabelZombiesRising>Zombi Saldırısı</LetterLabelZombiesRising>
 	<ZombiesRising>Bir grup zombi ortaya çıkar.</ZombiesRising>
 

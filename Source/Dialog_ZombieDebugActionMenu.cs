@@ -30,68 +30,68 @@ namespace ZombieLand
 				_ = tickManager.allZombiesCached.Add(zombie);
 			});
 		}
-
-		[DebugAction("Zombieland", "Spawn: Zombie (dig out)", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		
+		[DebugAction("Zombieland", "Spawn: Zombie (dig out)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieDigOut()
 		{
 			SpawnZombie(ZombieType.Normal, false);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Zombie (standing)", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Zombie (standing)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieStanding()
 		{
 			SpawnZombie(ZombieType.Normal, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Suicide bomber", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Suicide bomber", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnSuicideBomber()
 		{
 			SpawnZombie(ZombieType.SuicideBomber, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Toxic Splasher", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Toxic Splasher", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnToxicSplasher()
 		{
 			SpawnZombie(ZombieType.ToxicSplasher, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Tanky Operator", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Tanky Operator", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnTankyOperator()
 		{
 			SpawnZombie(ZombieType.TankyOperator, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Miner", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Miner", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnMiner()
 		{
 			SpawnZombie(ZombieType.Miner, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Electrifier", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Electrifier", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnElectrifier()
 		{
 			SpawnZombie(ZombieType.Electrifier, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Albino", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Albino", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnAlbino()
 		{
 			SpawnZombie(ZombieType.Albino, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Dark Slimer", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Dark Slimer", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnDarkSlimer()
 		{
 			SpawnZombie(ZombieType.DarkSlimer, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Healer", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Healer", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnHealer()
 		{
 			SpawnZombie(ZombieType.Healer, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Random zombie", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Random zombie", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnRandomZombie()
 		{
 			SpawnZombie(ZombieType.Random, true);
@@ -110,31 +110,31 @@ namespace ZombieLand
 			}
 		}
 
-		[DebugAction("Zombieland", "Spawn: Zombie incident (4)", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Zombie incident (4)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieIncident_4()
 		{
 			_ = ZombiesRising.TryExecute(Find.CurrentMap, 4, UI.MouseCell(), false, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Zombie incident (25)", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Zombie incident (25)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieIncident_25()
 		{
 			_ = ZombiesRising.TryExecute(Find.CurrentMap, 25, UI.MouseCell(), false, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Zombie incident (100)", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Zombie incident (100)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieIncident_100()
 		{
 			_ = ZombiesRising.TryExecute(Find.CurrentMap, 100, UI.MouseCell(), false, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Zombie incident (200)", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Zombie incident (200)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieIncident_200()
 		{
 			_ = ZombiesRising.TryExecute(Find.CurrentMap, 200, UI.MouseCell(), false, true);
 		}
 
-		[DebugAction("Zombieland", "Convert: Make Zombie", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Convert: Make Zombie", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void ConvertToZombie()
 		{
 			var map = Find.CurrentMap;
@@ -146,7 +146,7 @@ namespace ZombieLand
 			}
 		}
 
-		[DebugAction("Zombieland", "Apply: Trigger rotting", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Apply: Trigger rotting", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void ApplyTriggerRotting()
 		{
 			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
@@ -157,7 +157,7 @@ namespace ZombieLand
 			}
 		}
 
-		[DebugAction("Zombieland", "Apply: Add zombie bite", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Apply: Add zombie bite", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void ApplyAddZombieBite()
 		{
 			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
@@ -188,7 +188,7 @@ namespace ZombieLand
 			}
 		}
 
-		[DebugAction("Zombieland", "Apply: Remove infections", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Apply: Remove infections", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void ApplyRemoveInfections()
 		{
 			var tmpHediffInjuryZombieBites = new List<Hediff_Injury_ZombieBite>();
@@ -209,7 +209,7 @@ namespace ZombieLand
 			}
 		}
 
-		[DebugAction("Zombieland", "Apply: Zombie raging", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Apply: Zombie raging", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void ApplyZombieRaging()
 		{
 			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))

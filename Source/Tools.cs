@@ -134,7 +134,7 @@ namespace ZombieLand
 			return 1000L * GenTicks.TicksAbs;
 		}
 
-		public static float Difficulty() => Find.Storyteller.difficulty.threatScale;
+		public static float Difficulty() => ZombieSettings.Values.threatScale; // Find.Storyteller.difficulty.threatScale;
 
 		public static int PheromoneFadeoff()
 		{
@@ -1372,7 +1372,7 @@ namespace ZombieLand
 				instructions[idx].labels = instructions[idx].labels ?? new List<Label>();
 				instructions[idx].labels.AddRange(labels);
 
-				return instructions.AsEnumerable();
+				return instructions;
 			};
 
 			/*

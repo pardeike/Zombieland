@@ -546,28 +546,38 @@ namespace ZombieLand
 			if (threatLevel <= 0.002f && ZombieSettings.Values.zombiesDieOnZeroThreat && Rand.Chance(0.002f))
 				_ = TakeDamage(damageInfo);
 
-			if (isHealer && state != ZombieState.Emerging && EveryNTick(NthTick.Every12))
+			if (state != ZombieState.Emerging && EveryNTick(NthTick.Every12))
 			{
-				var radius = 4 + ZombieLand.Tools.Difficulty() * 2;
+				if (isToxicSplasher)
+				{
+					var gasAmount = Mathf.CeilToInt(BodySize * 1.15f * ZombieLand.Tools.Difficulty());
+					if (gasAmount > 0)
+						GasUtility.AddGas(Position, Map, GasType.ToxGas, gasAmount);
+				}	
 
-				var n = GenRadial.RadialDistinctThingsAround(Position, map, radius, false)
-					.OfType<Zombie>()
-					.Where(zombie => zombie.health.hediffSet.hediffs.Any()).Count();
+				if (isHealer)
+				{
+					var radius = 4 + ZombieLand.Tools.Difficulty() * 2;
 
-				GenRadial.RadialDistinctThingsAround(Position, map, radius, false)
-					.OfType<Zombie>()
-					.Select(zombie => (zombie, zombie.health.hediffSet.hediffs))
-					.Where(pair => pair.hediffs.Any())
-					.OrderByDescending(pair => pair.hediffs.Count)
-					.Do(pair =>
-					{
-						if (healInfo.Count < 8)
+					var n = GenRadial.RadialDistinctThingsAround(Position, map, radius, false)
+						.OfType<Zombie>()
+						.Where(zombie => zombie.health.hediffSet.hediffs.Any()).Count();
+
+					GenRadial.RadialDistinctThingsAround(Position, map, radius, false)
+						.OfType<Zombie>()
+						.Select(zombie => (zombie, zombie.health.hediffSet.hediffs))
+						.Where(pair => pair.hediffs.Any())
+						.OrderByDescending(pair => pair.hediffs.Count)
+						.Do(pair =>
 						{
-							var zombie = pair.zombie;
-							zombie.health.hediffSet.Clear();
-							healInfo.Add(new HealerInfo(zombie));
-						}
-					});
+							if (healInfo.Count < 8)
+							{
+								var zombie = pair.zombie;
+								zombie.health.hediffSet.Clear();
+								healInfo.Add(new HealerInfo(zombie));
+							}
+						});
+				}
 			}
 		}
 

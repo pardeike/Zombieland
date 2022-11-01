@@ -725,7 +725,7 @@ namespace ZombieLand
 						list[i].operand = SymbolExtensions.GetMethodInfo(() => RandChance(0f, null));
 					}
 				}
-				return list.AsEnumerable();
+				return list;
 			}
 		}
 
@@ -1739,7 +1739,7 @@ namespace ZombieLand
 				if (i < 0 || i >= list.Count())
 				{
 					Error("Cannot find " + from.FullDescription() + " in Pawn_PathFollower.StartPath");
-					return list.AsEnumerable();
+					return list;
 				}
 
 				list[i - 1].opcode = OpCodes.Ldarg_1;
@@ -1754,7 +1754,7 @@ namespace ZombieLand
 					new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => GetPawnPosture(null)))
 				});
 
-				return list.AsEnumerable();
+				return list;
 			}
 		}
 
@@ -1922,7 +1922,7 @@ namespace ZombieLand
 				else
 					Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 
-				return list.AsEnumerable();
+				return list;
 			}
 		}
 
@@ -1941,6 +1941,20 @@ namespace ZombieLand
 			}
 		}
 		*/
+
+		// patch for adding zombie faction to new games
+		//
+		[HarmonyPatch(typeof(FactionGenerator))]
+		[HarmonyPatch(nameof(FactionGenerator.GenerateFactionsIntoWorld))]
+		static class FactionGenerator_GenerateFactionsIntoWorld_Patch
+		{
+			static void Prefix(List<FactionDef> factions)
+			{
+				if (factions != null && factions.Contains(ZombieDefOf.Zombies) == false)
+					factions.Add(ZombieDefOf.Zombies);
+					
+			}
+		}
 
 		// patch for adding zombie faction to existing games
 		//
@@ -2765,7 +2779,7 @@ namespace ZombieLand
 				list.Add(new CodeInstruction(OpCodes.Ldarg_1));
 				list.Add(CodeInstruction.Call(() => RenderExtras(null, Vector3.zero)));
 				list.Add(new CodeInstruction(OpCodes.Ret));
-				return list.AsEnumerable();
+				return list;
 			}
 
 			[HarmonyPriority(Priority.First)]
@@ -3750,7 +3764,7 @@ namespace ZombieLand
 				else
 					Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 
-				return list.AsEnumerable();
+				return list;
 			}
 		}
 
@@ -4903,6 +4917,37 @@ namespace ZombieLand
 
 				foreach (var instr in list)
 					yield return instr;
+			}
+		}
+
+		// patch to insert our difficulty settings into the custom storyteller UI
+		//
+		[HarmonyPatch(typeof(StorytellerUI))]
+		[HarmonyPatch(nameof(StorytellerUI.DrawCustomLeft))]
+		static class StorytellerUI_DrawCustomLeft_Patch
+		{
+			static readonly MethodInfo m_DrawCustomDifficultySlider = AccessTools.Method(typeof(StorytellerUI), nameof(StorytellerUI.DrawCustomDifficultySlider));
+
+			static void DrawZombielandDifficultySettings(Listing_Standard listing_Standard)
+			{
+				StorytellerUI.DrawCustomDifficultySlider(listing_Standard, "zombielandThreatScale", ref ZombieSettings.Values.threatScale, ToStringStyle.PercentZero, ToStringNumberSense.Absolute, 0f, 5f, 0.01f, false, 1000f);
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var list = instructions.ToList();
+				var idx = list.FirstIndexOf(code => code.Calls(m_DrawCustomDifficultySlider));
+				if (idx > 0 && idx < list.Count())
+				{
+					var localVar = list[idx + 1].Clone();
+					if (localVar.IsLdloc())
+						list.InsertRange(idx + 1, new[]
+						{
+							localVar,
+							CodeInstruction.Call(() => DrawZombielandDifficultySettings(default))
+						});
+				}
+				return list;
 			}
 		}
 
