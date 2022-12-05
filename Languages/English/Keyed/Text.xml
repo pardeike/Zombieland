@@ -15,6 +15,9 @@
 
 	<ZombielandDefaultSettings>Zombieland defaults</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Zombieland settings</ZombielandGameSettings>
+	<JumpToNow>Jump to now</JumpToNow>
+	<Seasons>seasons</Seasons>
+	<Years>years</Years>
 
 	<ZombielandDifficultyTitle>Overall Difficulty</ZombielandDifficultyTitle>
 	<ZombielandDifficulty>Threat scale</ZombielandDifficulty>
@@ -28,7 +31,7 @@
 	<SpawnHowType_AllOverTheMap>Where there is soft ground</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>From the map edges</SpawnHowType_FromTheEdges>
 	<SmartWandering>Movement Style</SmartWandering>
-	<SmartWandering_Off>Random</SmartWandering_Off>
+	<SmartWandering_Random>Random</SmartWandering_Random>
 	<SmartWandering_Simple>Simple</SmartWandering_Simple>
 	<SmartWandering_Smart>Smart</SmartWandering_Smart>
 	<BlacklistedBiomes>Biomes without zombies</BlacklistedBiomes>
@@ -151,6 +154,7 @@
 	<ClipboardActionTitle>Clipboard</ClipboardActionTitle>
 	<CopySettings>Copy settings to clipboard</CopySettings>
 	<CopyButton>Copy</CopyButton>
+	<DuplicateButton>Duplicate</DuplicateButton>
 	<PasteSettings>Replace settings from clipboard</PasteSettings>
 	<PasteButton>Paste</PasteButton>
 	<RopeZombie>Capture this zombie</RopeZombie>

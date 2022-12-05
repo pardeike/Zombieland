@@ -43,7 +43,7 @@ namespace ZombieLand
 			return new Color(0.3f, 0.2f, 0.1f);
 		}
 
-		public static readonly Dictionary<string, IntVec2> eyeOffsets = new Dictionary<string, IntVec2>() {
+		private static readonly Dictionary<string, IntVec2> eyeOffsets = new Dictionary<string, IntVec2>() {
 			{ "Female_Average_Normal", new IntVec2(11, -5) },
 			{ "Female_Average_Pointy", new IntVec2(11, -5) },
 			{ "Female_Average_Wide", new IntVec2(11, -6) },
@@ -58,11 +58,19 @@ namespace ZombieLand
 			{ "Male_Narrow_Wide", new IntVec2(10, -8) }
 		};
 
-		public static IntVec2 SideEyeOffset(string headPath)
+		public static IntVec2 SideEyeOffset(string headType)
 		{
-			if (eyeOffsets.TryGetValue(headPath, out var vec))
+			if (eyeOffsets.TryGetValue(headType, out var vec))
 				return vec;
 			return default;
+		}
+
+		public static bool IsValidHeadPath(string headPath)
+		{
+			var parts = headPath.Split('/');
+			if (parts.Length < 2)
+				return false;
+			return eyeOffsets.ContainsKey(parts.Last());
 		}
 
 		static BodyTypeDef SetRandomBody(Zombie zombie)
@@ -561,7 +569,9 @@ namespace ZombieLand
 
 			if (RunWithFailureCheck(out var ex10, () =>
 			{
-				var headType = DefDatabase<HeadTypeDef>.AllDefsListForReading.RandomElement();
+				var headType = DefDatabase<HeadTypeDef>.AllDefsListForReading
+					.Where(def => ZombieBaseValues.IsValidHeadPath(def.graphicPath))
+					.RandomElement();
 
 				zombie.story.melanin = zombie.isAlbino || zombie.isHealer ? 1f : (zombie.isDarkSlimer ? 0f : 0.01f * Rand.Range(10, 91));
 				zombie.story.bodyType = bodyType;

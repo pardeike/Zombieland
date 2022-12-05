@@ -375,9 +375,12 @@ namespace ZombieLand
 					var n = map.mapPawns.FreeColonists.Count;
 					spot.x /= n;
 					spot.z /= n;
-					var region = map.regionGrid.GetValidRegionAt(spot);
-					if (region != null)
-						_ = totalRegions.Add(region);
+					if (spot.InBounds(map))
+					{
+						var region = map.regionGrid.GetValidRegionAt(spot);
+						if (region != null)
+							_ = totalRegions.Add(region);
+					}
 				}
 				var neighbours = totalRegions.SelectMany(region => region.Neighbors).ToList();
 				PlayerReachableRegions_Iterator(totalRegions, neighbours);
@@ -937,8 +940,7 @@ namespace ZombieLand
 				var finfo = Field(settings.GetType(), name);
 				var value = finfo.GetValue(settings);
 				var defaultValue = Traverse.Create(defaults).Field(name).GetValue();
-				if (value == null)
-					value = defaultValue;
+				value ??= defaultValue;
 				var type = value.GetType();
 				try
 				{
@@ -974,7 +976,7 @@ namespace ZombieLand
 			});
 		}
 
-		public static string SerializeToHex<T>(T obj) where T : new()
+		public static string SerializeToHex<T>(T obj)
 		{
 			var ms = new MemoryStream();
 			using (var writer = new BsonWriter(ms))

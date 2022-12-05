@@ -37,29 +37,29 @@ namespace ZombieLand
 						switch (constant.FieldType.Name)
 						{
 							case "Boolean":
-								{
-									if (bool.TryParse(value, out var result))
-										constant.SetValue(null, result);
-									else
-										Log.Error("Cannot parse boolean '" + value + "' of constant " + field);
-									break;
-								}
+							{
+								if (bool.TryParse(value, out var result))
+									constant.SetValue(null, result);
+								else
+									Log.Error("Cannot parse boolean '" + value + "' of constant " + field);
+								break;
+							}
 							case "Int32":
-								{
-									if (int.TryParse(value, out var result))
-										constant.SetValue(null, result);
-									else
-										Log.Error("Cannot parse int '" + value + "' of constant " + field);
-									break;
-								}
+							{
+								if (int.TryParse(value, out var result))
+									constant.SetValue(null, result);
+								else
+									Log.Error("Cannot parse int '" + value + "' of constant " + field);
+								break;
+							}
 							case "Single":
-								{
-									if (float.TryParse(value, out var result))
-										constant.SetValue(null, result);
-									else
-										Log.Error("Cannot parse float '" + value + "' of constant " + field);
-									break;
-								}
+							{
+								if (float.TryParse(value, out var result))
+									constant.SetValue(null, result);
+								else
+									Log.Error("Cannot parse float '" + value + "' of constant " + field);
+								break;
+							}
 							default:
 								Log.Error("Zombieland constant '" + field + "' with unknown type " + constant.FieldType.Name);
 								break;
@@ -302,6 +302,9 @@ namespace ZombieLand
 		public static readonly Mesh healMesh = MeshMakerPlanes.NewPlaneMesh(4f);
 
 		public static Texture2D dot = new Texture2D(3, 3);
+		public static Texture2D timeArrow = ContentFinder<Texture2D>.Get("TimeArrow", true);
+		public static Texture2D[] timeKnob = new[] { ContentFinder<Texture2D>.Get("TimeKnob", true), ContentFinder<Texture2D>.Get("TimeKnobSelected", true) };
+		public static Texture2D timeKnobHighlight = ContentFinder<Texture2D>.Get("TimeKnobHighlight", true);
 
 		public static readonly Texture2D healthBarFrame = SolidColorMaterials.NewSolidColorTexture(Color.black);
 		public static readonly Color healthBarBG = new Color(1, 1, 1, 0.25f);

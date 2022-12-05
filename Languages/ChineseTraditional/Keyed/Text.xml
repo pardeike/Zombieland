@@ -15,6 +15,9 @@
 
 	<ZombielandDefaultSettings>Zombieland 殭屍之地</ZombielandDefaultSettings>
 	<ZombielandGameSettings>殭屍之地設置</ZombielandGameSettings>
+	<JumpToNow>跳到現在</JumpToNow>
+	<Seasons>季節</Seasons>
+	<Years>年</Years>
 
 	<WhenDoZombiesSpawn>殭屍出現的時間段？</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>所有時間</SpawnWhenType_AllTheTime>
@@ -25,7 +28,7 @@
 	<SpawnHowType_AllOverTheMap>所有的軟地面</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>從地圖邊緣</SpawnHowType_FromTheEdges>
 	<SmartWandering>移動風格</SmartWandering>
-	<SmartWandering_Off>隨機的</SmartWandering_Off>
+	<SmartWandering_Random>隨機的</SmartWandering_Random>
 	<SmartWandering_Simple>簡單的</SmartWandering_Simple>
 	<SmartWandering_Smart>聰明的</SmartWandering_Smart>
 
@@ -146,6 +149,7 @@
 	<ClipboardActionTitle>剪貼板</ClipboardActionTitle>
 	<CopySettings>將設置複製到剪貼板</CopySettings>
 	<CopyButton>複製</CopyButton>
+	<DuplicateButton>复制</DuplicateButton>
 	<PasteSettings>從剪貼板替換設置</PasteSettings>
 	<PasteButton>插入設置</PasteButton>
 	<RopeZombie>捕捉這個殭屍</RopeZombie>

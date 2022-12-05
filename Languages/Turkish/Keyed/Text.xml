@@ -15,6 +15,9 @@
 
 	<ZombielandDefaultSettings>Zombieland modunun orijinal ayarları.</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Zombieland ayarları.</ZombielandGameSettings>
+	<JumpToNow>Mevcut saate atla</JumpToNow>
+	<Seasons>mevsimler</Seasons>
+	<Years>yıllar</Years>
 
 	<WhenDoZombiesSpawn>Zombiler ne zaman ortaya çıksın?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Her zaman</SpawnWhenType_AllTheTime>
@@ -25,7 +28,7 @@
 	<SpawnHowType_AllOverTheMap>Yumuşak zemin olan yerlerde</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>Harita kenarlarından</SpawnHowType_FromTheEdges>
 	<SmartWandering>Hareket tarzı</SmartWandering>
-	<SmartWandering_Off>Rastgele</SmartWandering_Off>
+	<SmartWandering_Random>Rastgele</SmartWandering_Random>
 	<SmartWandering_Simple>Basit</SmartWandering_Simple>
 	<SmartWandering_Smart>Akıllı</SmartWandering_Smart>
 

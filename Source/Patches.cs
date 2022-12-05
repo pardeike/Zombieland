@@ -1952,7 +1952,7 @@ namespace ZombieLand
 			{
 				if (factions != null && factions.Contains(ZombieDefOf.Zombies) == false)
 					factions.Add(ZombieDefOf.Zombies);
-					
+
 			}
 		}
 
@@ -4948,6 +4948,20 @@ namespace ZombieLand
 						});
 				}
 				return list;
+			}
+		}
+
+		[HarmonyPatch(typeof(Page_SelectScenario))]
+		[HarmonyPatch(nameof(Page_SelectScenario.BeginScenarioConfiguration))]
+		static class Page_SelectScenario_BeginScenarioConfiguration_Patch
+		{
+			static void Prefix()
+			{
+				ZombieSettings.Values = ZombieSettingsDefaults.group;
+				ZombieSettings.ValuesOverTime = new(ZombieSettingsDefaults.groupOverTime);
+				Dialogs.scrollPosition = Vector2.zero;
+				DialogExtensions.shouldFocusNow = DialogExtensions.searchWidget.controlName;
+				DialogExtensions.searchWidget.Reset();
 			}
 		}
 

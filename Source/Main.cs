@@ -77,11 +77,23 @@ namespace ZombieLand
 			});
 		}
 
+		static void DrawJumpToCurrent(Rect rect)
+		{
+			var txt = "JumpToNow".Translate();
+			var size = Text.CalcSize(txt);
+			var r = new Rect(rect.width - 20f - size.x, 0f, size.x + 12, size.y + 8);
+			if (Widgets.ButtonText(r, txt))
+				DialogTimeHeader.JumpToCurrent();
+		}
+
 		public override void DoSettingsWindowContents(Rect inRect)
 		{
 			var settings = ZombieSettings.GetGameSettings();
 			if (settings != null)
+			{
+				DrawJumpToCurrent(inRect);
 				settings.DoWindowContents(inRect);
+			}
 			else
 				ZombieSettingsDefaults.DoWindowContents(inRect);
 		}
@@ -125,15 +137,19 @@ namespace ZombieLand
 			for (var i = 0; i < types.Length; i++)
 			{
 				var type = types[i];
-				if (typeFilter(type) == false) continue;
+				if (typeFilter(type) == false)
+					continue;
 				var methods = type.GetMethods(AccessTools.all);
 				Array.Sort(methods, (a, b) => { return string.Compare(a.Name, b.Name, StringComparison.Ordinal); });
 				for (var j = 0; j < methods.Length; j++)
 				{
 					var method = methods[j];
-					if (method.IsAbstract) continue;
-					if (method.DeclaringType != type) continue;
-					if (patches.Contains(method)) continue;
+					if (method.IsAbstract)
+						continue;
+					if (method.DeclaringType != type)
+						continue;
+					if (patches.Contains(method))
+						continue;
 					_ = patches.Add(method);
 					try
 					{
