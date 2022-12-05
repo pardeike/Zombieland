@@ -39,6 +39,7 @@ namespace ZombieLand
 	public class Alert_ZombieInfection : Alert_ZombieInfectionProgress
 	{
 		public static HashSet<Pawn> infectedColonists;
+		private List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBites = new List<Hediff_Injury_ZombieBite>();
 
 		public override bool ColonistSelector(Pawn pawn)
 		{
@@ -63,8 +64,9 @@ namespace ZombieLand
 
 		public override string NameDecorator(Pawn pawn)
 		{
-			var tendDuration = pawn.health.hediffSet
-						.GetHediffs<Hediff_Injury_ZombieBite>()
+			tmpHediffInjuryZombieBites.Clear();
+			pawn.health.hediffSet.GetHediffs(ref tmpHediffInjuryZombieBites);
+			var tendDuration = tmpHediffInjuryZombieBites
 						.Select(comps => comps.TryGetComp<HediffComp_Zombie_TendDuration>())
 						.FirstOrDefault();
 
@@ -142,7 +144,8 @@ namespace ZombieLand
 
 		public override AlertReport GetReport()
 		{
-			if (ZombieSettings.Values.showZombieStats == false) return false;
+			if (ZombieSettings.Values.showZombieStats == false)
+				return false;
 			days = Days();
 			return (days > 0);
 		}

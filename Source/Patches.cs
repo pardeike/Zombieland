@@ -574,8 +574,7 @@ namespace ZombieLand
 					// fix only friendlies
 
 					Thing attacker = searcher as Pawn;
-					if (attacker == null)
-						attacker = searcher.Thing;
+					attacker ??= searcher.Thing;
 
 					if (attacker != null && attacker.Faction.HostileTo(Faction.OfPlayer) == false)
 					{
@@ -726,7 +725,7 @@ namespace ZombieLand
 						list[i].operand = SymbolExtensions.GetMethodInfo(() => RandChance(0f, null));
 					}
 				}
-				return list.AsEnumerable();
+				return list;
 			}
 		}
 
@@ -1058,6 +1057,10 @@ namespace ZombieLand
 					return;
 				}
 
+				var dinfo = new DamageInfo(DamageDefOf.EMP, 1000, 0f, -1f, null, null, null, DamageInfo.SourceCategory.ThingOrUnknown, null, true, true);
+				_ = pawn.TakeDamage(dinfo);
+
+				/*
 				var shieldBelt = apparel.OfType<ShieldBelt>().FirstOrDefault();
 				if (shieldBelt != null)
 				{
@@ -1071,6 +1074,7 @@ namespace ZombieLand
 					zombie.ElectrifyAnimation();
 					return;
 				}
+				*/
 
 				var sensitiveStuff = apparel.Cast<Thing>();
 				if (pawn.equipment != null)
@@ -1735,7 +1739,7 @@ namespace ZombieLand
 				if (i < 0 || i >= list.Count())
 				{
 					Error("Cannot find " + from.FullDescription() + " in Pawn_PathFollower.StartPath");
-					return list.AsEnumerable();
+					return list;
 				}
 
 				list[i - 1].opcode = OpCodes.Ldarg_1;
@@ -1750,7 +1754,7 @@ namespace ZombieLand
 					new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => GetPawnPosture(null)))
 				});
 
-				return list.AsEnumerable();
+				return list;
 			}
 		}
 
@@ -1918,12 +1922,12 @@ namespace ZombieLand
 				else
 					Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 
-				return list.AsEnumerable();
+				return list;
 			}
 		}
 
 		// patch to add our actions to the debug action menu
-		//
+		/*
 		[HarmonyPatch(typeof(DebugWindowsOpener))]
 		[HarmonyPatch(nameof(DebugWindowsOpener.ToggleDebugActionsMenu))]
 		static class DebugWindowsOpener_ToggleDebugActionsMenu_Patch
@@ -1934,6 +1938,21 @@ namespace ZombieLand
 				var from = AccessTools.Constructor(typeof(Dialog_DebugActionsMenu));
 				var to = AccessTools.Constructor(typeof(Dialog_ZombieDebugActionMenu));
 				return instructions.MethodReplacer(from, to);
+			}
+		}
+		*/
+
+		// patch for adding zombie faction to new games
+		//
+		[HarmonyPatch(typeof(FactionGenerator))]
+		[HarmonyPatch(nameof(FactionGenerator.GenerateFactionsIntoWorld))]
+		static class FactionGenerator_GenerateFactionsIntoWorld_Patch
+		{
+			static void Prefix(List<FactionDef> factions)
+			{
+				if (factions != null && factions.Contains(ZombieDefOf.Zombies) == false)
+					factions.Add(ZombieDefOf.Zombies);
+
 			}
 		}
 
@@ -2088,7 +2107,9 @@ namespace ZombieLand
 				}
 
 				// apply toxic splatter damage
-				var toxity = 0.05f * pawn.GetStatValue(StatDefOf.ToxicSensitivity, true);
+				var toxity = 0.023006668f * Mathf.Max(1f - pawn.GetStatValue(StatDefOf.ToxicResistance, true, -1), 0f);
+				if (ModsConfig.BiotechActive)
+					toxity *= Mathf.Max(1f - pawn.GetStatValue(StatDefOf.ToxicEnvironmentResistance, true, -1), 0f);
 				if (toxity > 0f)
 				{
 					pawn.Position.GetThingList(pawn.Map).Where(thing => thing.def == CustomDefs.StickyGoo).Do(thing =>
@@ -2295,8 +2316,7 @@ namespace ZombieLand
 				if (parms.pawnGroups == null)
 					return;
 				var f = GenMath.LerpDoubleClamped(0, 5, 100, 0, Tools.Difficulty());
-				parms.pawnGroups.Keys.DoIf(_ => Rand.Chance(f), pawn => pawn.health.hediffSet
-					.GetHediffs<Hediff_Injury_ZombieBite>()
+				parms.pawnGroups.Keys.DoIf(_ => Rand.Chance(f), pawn => pawn.GetHediffsList<Hediff_Injury_ZombieBite>()
 					.Do(bite =>
 					{
 						bite.mayBecomeZombieWhenDead = false;
@@ -2482,8 +2502,7 @@ namespace ZombieLand
 		{
 			static void Postfix(ref IEnumerable<InspectTabBase> __result)
 			{
-				if (__result == null)
-					__result = new List<InspectTabBase>();
+				__result ??= new List<InspectTabBase>();
 			}
 		}
 
@@ -2648,7 +2667,7 @@ namespace ZombieLand
 		// makes downed zombie crawl rotated to their destination
 		//
 		[HarmonyPatch(typeof(PawnDownedWiggler))]
-		[HarmonyPatch(nameof(PawnDownedWiggler.WigglerTick))]
+		[HarmonyPatch(nameof(PawnDownedWiggler.ProcessPostTickVisuals))]
 		static class PawnDownedWiggler_WigglerTick_Patch
 		{
 			static void Postfix(PawnDownedWiggler __instance, Pawn ___pawn)
@@ -2760,7 +2779,7 @@ namespace ZombieLand
 				list.Add(new CodeInstruction(OpCodes.Ldarg_1));
 				list.Add(CodeInstruction.Call(() => RenderExtras(null, Vector3.zero)));
 				list.Add(new CodeInstruction(OpCodes.Ret));
-				return list.AsEnumerable();
+				return list;
 			}
 
 			[HarmonyPriority(Priority.First)]
@@ -3268,7 +3287,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(Verb))]
 		[HarmonyPatch(nameof(Verb.TryStartCastOn))]
-		[HarmonyPatch(new Type[] { typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(bool), typeof(bool), typeof(bool) })]
+		[HarmonyPatch(new Type[] { typeof(LocalTargetInfo), typeof(LocalTargetInfo), typeof(bool), typeof(bool), typeof(bool), typeof(bool) })]
 		static class Verb_TryStartCastOn_Patch
 		{
 			static int ModifyTicks(float seconds, Verb verb)
@@ -3639,6 +3658,8 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Recipe_RemoveBodyPart.GetPartsToApplyOn))]
 		static class Recipe_RemoveBodyPart_GetPartsToApplyOn_Patch
 		{
+			static List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBite = new List<Hediff_Injury_ZombieBite>();
+
 			[HarmonyPriority(Priority.Last)]
 			static IEnumerable<BodyPartRecord> Postfix(IEnumerable<BodyPartRecord> parts, Pawn pawn, RecipeDef recipe)
 			{
@@ -3647,7 +3668,9 @@ namespace ZombieLand
 				if (recipe != RecipeDefOf.RemoveBodyPart)
 					yield break;
 
-				var bites = pawn.health.hediffSet.GetHediffs<Hediff_Injury_ZombieBite>().Select(bite => bite.Part);
+				tmpHediffInjuryZombieBite.Clear();
+				pawn.health.hediffSet.GetHediffs(ref tmpHediffInjuryZombieBite);
+				var bites = tmpHediffInjuryZombieBite.Select(bite => bite.Part);
 				foreach (var bite in bites)
 					yield return bite;
 			}
@@ -3741,7 +3764,7 @@ namespace ZombieLand
 				else
 					Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 
-				return list.AsEnumerable();
+				return list;
 			}
 		}
 
@@ -3845,9 +3868,9 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(ShotReport.AimOnTargetChance_StandardTarget), MethodType.Getter)]
 		public static class ShotReport_AimOnTargetChance_StandardTarget_Patch
 		{
-			public static bool Prefix(ref float __result, ThingDef ___coveringGas)
+			public static bool Prefix(ref float __result, List<CoverInfo> ___covers)
 			{
-				if (___coveringGas != CustomDefs.TarSmoke)
+				if (___covers.Any(c => c.thingInt.def == CustomDefs.TarSmoke) == false)
 					return true;
 				__result = 0f;
 				return false;
@@ -3910,7 +3933,7 @@ namespace ZombieLand
 						var max = GenMath.LerpDoubleClamped(0, 5, min, 90, difficulty);
 						CustomDefs.TarSmoke.graphicData.color = new Color(0, 0, 0, alpha);
 						CustomDefs.TarSmoke.gas.expireSeconds = new FloatRange(min, max);
-						GenExplosion.DoExplosion(pos, map, 1 + difficulty, DamageDefOf.Smoke, null, (int)(50 * difficulty), -1f, CustomDefs.TarSmokePop, null, null, null, CustomDefs.TarSmoke, 1f, 1, false, null, 0f, 1, 0f, false, null, null);
+						GenExplosion.DoExplosion(pos, map, 1 + difficulty, DamageDefOf.Smoke, null, (int)(50 * difficulty), -1f, CustomDefs.TarSmokePop, null, null, null, CustomDefs.TarSmoke, 1f, 1, GasType.BlindSmoke, false, null, 0f, 1, 0f, false, null, null);
 					}
 				}
 
@@ -4119,8 +4142,7 @@ namespace ZombieLand
 					var hediffSet = pawn.health.hediffSet;
 
 					// flag zombie bites to be infectious when pawn dies
-					hediffSet
-						.GetHediffs<Hediff_Injury_ZombieBite>()
+					pawn.GetHediffsList<Hediff_Injury_ZombieBite>()
 						.Where(zombieBite => zombieBite.TendDuration.InfectionStateBetween(InfectionState.BittenInfectable, InfectionState.Infected))
 						.Do(zombieBite => zombieBite.mayBecomeZombieWhenDead = true);
 
@@ -4538,8 +4560,7 @@ namespace ZombieLand
 				if (hasBrain == false)
 					return;
 
-				var shouldBecomeZombie = pawn.health.hediffSet
-					.GetHediffs<Hediff_Injury_ZombieBite>()
+				var shouldBecomeZombie = pawn.GetHediffsList<Hediff_Injury_ZombieBite>()
 					.Any(zombieByte => zombieByte.TendDuration.InfectionStateBetween(InfectionState.BittenInfectable, InfectionState.Infected));
 
 				if (shouldBecomeZombie)
@@ -4555,6 +4576,8 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Corpse.TickRare))]
 		static class Corpse_TickRare_Patch
 		{
+			static List<Hediff_ZombieInfection> tmpHediffZombieInfections = new List<Hediff_ZombieInfection>();
+
 			static void Postfix(Corpse __instance)
 			{
 				var pawn = __instance.InnerPawn;
@@ -4566,9 +4589,9 @@ namespace ZombieLand
 					return;
 
 				var ticks = GenTicks.TicksGame;
-				var shouldBecomeZombie = pawn.health.hediffSet
-					.GetHediffs<Hediff_ZombieInfection>()
-					.Any(infection => ticks > infection.ticksWhenBecomingZombie);
+				tmpHediffZombieInfections.Clear();
+				pawn.health.hediffSet.GetHediffs(ref tmpHediffZombieInfections);
+				var shouldBecomeZombie = tmpHediffZombieInfections.Any(infection => ticks > infection.ticksWhenBecomingZombie);
 
 				if (shouldBecomeZombie)
 				{
@@ -4585,6 +4608,8 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(HealthCardUtility.DrawOverviewTab))]
 		static class HealthCardUtility_DrawOverviewTab_Patch
 		{
+			static List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBites = new List<Hediff_Injury_ZombieBite>();
+
 			static void Postfix(Pawn pawn, Rect leftRect, ref float __result)
 			{
 				if (pawn == null || pawn.health == null)
@@ -4595,8 +4620,9 @@ namespace ZombieLand
 
 				if (pawn.Dead)
 				{
-					if (pawn.health.hediffSet.GetHediffs<Hediff_Injury_ZombieBite>()
-						.All(zombieByte => zombieByte.mayBecomeZombieWhenDead == false))
+					tmpHediffInjuryZombieBites.Clear();
+					pawn.health.hediffSet.GetHediffs(ref tmpHediffInjuryZombieBites);
+					if (tmpHediffInjuryZombieBites.All(zombieByte => zombieByte.mayBecomeZombieWhenDead == false))
 						return;
 				}
 				else
@@ -4894,6 +4920,51 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to insert our difficulty settings into the custom storyteller UI
+		//
+		[HarmonyPatch(typeof(StorytellerUI))]
+		[HarmonyPatch(nameof(StorytellerUI.DrawCustomLeft))]
+		static class StorytellerUI_DrawCustomLeft_Patch
+		{
+			static readonly MethodInfo m_DrawCustomDifficultySlider = AccessTools.Method(typeof(StorytellerUI), nameof(StorytellerUI.DrawCustomDifficultySlider));
+
+			static void DrawZombielandDifficultySettings(Listing_Standard listing_Standard)
+			{
+				StorytellerUI.DrawCustomDifficultySlider(listing_Standard, "zombielandThreatScale", ref ZombieSettings.Values.threatScale, ToStringStyle.PercentZero, ToStringNumberSense.Absolute, 0f, 5f, 0.01f, false, 1000f);
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var list = instructions.ToList();
+				var idx = list.FirstIndexOf(code => code.Calls(m_DrawCustomDifficultySlider));
+				if (idx > 0 && idx < list.Count())
+				{
+					var localVar = list[idx + 1].Clone();
+					if (localVar.IsLdloc())
+						list.InsertRange(idx + 1, new[]
+						{
+							localVar,
+							CodeInstruction.Call(() => DrawZombielandDifficultySettings(default))
+						});
+				}
+				return list;
+			}
+		}
+
+		[HarmonyPatch(typeof(Page_SelectScenario))]
+		[HarmonyPatch(nameof(Page_SelectScenario.BeginScenarioConfiguration))]
+		static class Page_SelectScenario_BeginScenarioConfiguration_Patch
+		{
+			static void Prefix()
+			{
+				ZombieSettings.Values = ZombieSettingsDefaults.group;
+				ZombieSettings.ValuesOverTime = new(ZombieSettingsDefaults.groupOverTime);
+				Dialogs.scrollPosition = Vector2.zero;
+				DialogExtensions.shouldFocusNow = DialogExtensions.searchWidget.controlName;
+				DialogExtensions.searchWidget.Reset();
+			}
+		}
+
 		// patch to insert our settings page
 		//
 		[HarmonyPatch(typeof(Scenario))]
@@ -5055,13 +5126,12 @@ namespace ZombieLand
 					var idx = optList.FirstIndexOf(opt => opt.label == label);
 					if (idx > 0 && idx < optList.Count())
 						optList.Insert(idx, new ListableOption("Zombieland", delegate
-{
-	MainMenuDrawer.CloseMainTab();
-	var dialog = new Dialog_ModSettings();
-	var me = LoadedModManager.GetMod<ZombielandMod>();
-	dialog.selMod = me;
-	Find.WindowStack.Add(dialog);
-}, null));
+						{
+							MainMenuDrawer.CloseMainTab();
+							var me = LoadedModManager.GetMod<ZombielandMod>();
+							var dialog = new Dialog_ModSettings(me);
+							Find.WindowStack.Add(dialog);
+						}, null));
 				}
 				return OptionListingUtility.DrawOptionListing(rect, optList);
 			}

@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
+	<Difficulty_ZombielandThreatScale_Info>控制僵尸乐园中几乎所有事物的难度，如僵尸能力、威胁预测等等。</Difficulty_ZombielandThreatScale_Info>
+	<Difficulty_ZombielandThreatScale_Label>僵尸之地的威胁等级</Difficulty_ZombielandThreatScale_Label>
+
 	<LetterLabelZombiesRising>丧尸袭击</LetterLabelZombiesRising>
 	<ZombiesRising>一群丧尸出现。</ZombiesRising>
 
@@ -12,6 +15,9 @@
 
 	<ZombielandDefaultSettings>Zombieland 丧尸之地</ZombielandDefaultSettings>
 	<ZombielandGameSettings>丧尸之地设置</ZombielandGameSettings>
+	<JumpToNow>跳到现在</JumpToNow>
+	<Seasons>季节</Seasons>
+	<Years>年</Years>
 
 	<WhenDoZombiesSpawn>丧尸出现的时间段？</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>所有时间</SpawnWhenType_AllTheTime>
@@ -22,7 +28,7 @@
 	<SpawnHowType_AllOverTheMap>所有的软地面</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>从地图边缘</SpawnHowType_FromTheEdges>
 	<SmartWandering>移动风格</SmartWandering>
-	<SmartWandering_Off>随机的</SmartWandering_Off>
+	<SmartWandering_Random>随机的</SmartWandering_Random>
 	<SmartWandering_Simple>简单的</SmartWandering_Simple>
 	<SmartWandering_Smart>聪明的</SmartWandering_Smart>
 
@@ -143,6 +149,7 @@
 	<ClipboardActionTitle>剪贴板</ClipboardActionTitle>
 	<CopySettings>将设置复制到剪贴板</CopySettings>
 	<CopyButton>复制</CopyButton>
+	<DuplicateButton>复制</DuplicateButton>
 	<PasteSettings>从剪贴板替换设置</PasteSettings>
 	<PasteButton>插入设置</PasteButton>
 	<RopeZombie>捕捉这个僵尸</RopeZombie>

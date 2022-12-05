@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<FactionDef>
+		<defName>Zombies</defName>
+		<label>Zombies</label>
+		<description>Undead creatures.</description>
+		<pawnSingular>zombie</pawnSingular>
+		<pawnsPlural>zombies</pawnsPlural>
+		<requiredCountAtGameStart>1</requiredCountAtGameStart>
+		<fixedName>Zombies</fixedName>
+		<raidCommonalityFromPointsCurve>
+			<points>
+				<li>(0, 0)</li>
+			</points>
+		</raidCommonalityFromPointsCurve>
+		<humanlikeFaction>true</humanlikeFaction>
+		<hidden>true</hidden>
+		<displayInFactionSelection>false</displayInFactionSelection>
+		<autoFlee>false</autoFlee>
+		<canUseAvoidGrid>false</canUseAvoidGrid>
+		<techLevel>Animal</techLevel>
+		<factionIconPath>World/WorldObjects/DefaultSettlement</factionIconPath>
+		<permanentEnemy>true</permanentEnemy>
+		<allowedArrivalTemperatureRange>-200~200</allowedArrivalTemperatureRange>
+		<backstoryCategories>
+			<li>Civil</li>
+		</backstoryCategories>
+		<factionNameMaker>NamerFactionOutlander</factionNameMaker>
+		<raidLootValueFromPointsCurve>
+		</raidLootValueFromPointsCurve>
+	</FactionDef>
+
+</Defs>

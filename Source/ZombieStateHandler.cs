@@ -52,7 +52,7 @@ namespace ZombieLand
 			{
 				if (ZombieSettings.Values.zombiesDieVeryEasily)
 				{
-					if (zombie.hasTankySuit <= 0f && zombie.health.hediffSet.GetHediffs<Hediff_Injury>().Any())
+					if (zombie.hasTankySuit <= 0f && zombie.HasHediff<Hediff_Injury>())
 					{
 						zombie.Kill(null);
 						return true;
@@ -388,7 +388,8 @@ namespace ZombieLand
 										topTrackingMoves[k] = topTrackingMoves[k - 1];
 									topTrackingMoves[j].pos = pos;
 									topTrackingMoves[j].tstamp = tstamp;
-									if (topTrackingMovesCount < Constants.NUMBER_OF_TOP_MOVEMENT_PICKS) topTrackingMovesCount++;
+									if (topTrackingMovesCount < Constants.NUMBER_OF_TOP_MOVEMENT_PICKS)
+										topTrackingMovesCount++;
 									break;
 								}
 						}
@@ -607,7 +608,8 @@ namespace ZombieLand
 				var moveTowardsCenter = false;
 
 				var hour = GenLocalDate.HourOfDay(zombie.Map);
-				if (hour < 12) hour += 24;
+				if (hour < 12)
+					hour += 24;
 				if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
 					moveTowardsCenter = true;
 				else if (hour >= Constants.HOUR_START_OF_DUSK && hour <= Constants.HOUR_START_OF_NIGHT)
@@ -670,7 +672,8 @@ namespace ZombieLand
 		static readonly int[] rageLevels = new int[] { 40, 32, 21, 18, 12 };
 		public static void BeginRage(Zombie zombie, PheromoneGrid grid)
 		{
-			if (zombie.IsTanky || zombie.isAlbino || zombie.isDarkSlimer) return;
+			if (zombie.IsTanky || zombie.isAlbino || zombie.isDarkSlimer)
+				return;
 
 			if (zombie.raging == 0 && ZombieSettings.Values.ragingZombies)
 			{
@@ -874,8 +877,10 @@ namespace ZombieLand
 
 			if (zombie.IsSuicideBomber == false && zombie.IsTanky == false && zombie.wasMapPawnBefore == false)
 			{
-				if (ZombieSettings.Values.smashMode == SmashMode.Nothing) return null;
-				if (ZombieSettings.Values.smashOnlyWhenAgitated && zombie.state != ZombieState.Tracking && zombie.raging == 0) return null;
+				if (ZombieSettings.Values.smashMode == SmashMode.Nothing)
+					return null;
+				if (ZombieSettings.Values.smashOnlyWhenAgitated && zombie.state != ZombieState.Tracking && zombie.raging == 0)
+					return null;
 			}
 
 			var nextIndex = Constants.random.Next(4);
@@ -984,7 +989,8 @@ namespace ZombieLand
 
 		static BodyPartRecord FirstEatablePart(Pawn eatSubject)
 		{
-			if (eatSubject == null || eatSubject.health == null || eatSubject.health.hediffSet == null) return null;
+			if (eatSubject == null || eatSubject.health == null || eatSubject.health.hediffSet == null)
+				return null;
 			return eatSubject.health.hediffSet
 						.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined)
 						.Where(new Func<BodyPartRecord, bool>(r => r.depth == BodyPartDepth.Outside))

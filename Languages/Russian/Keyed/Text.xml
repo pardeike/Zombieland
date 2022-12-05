@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
+	<Difficulty_ZombielandThreatScale_Info>Регулирует сложность почти всех вещей в Zombieland, таких как способности зомби, прогноз угрозы и многое другое.</Difficulty_ZombielandThreatScale_Info>
+	<Difficulty_ZombielandThreatScale_Label>Шкала угроз Зомбиленда</Difficulty_ZombielandThreatScale_Label>
+
 	<LetterLabelZombiesRising>Аттака Зомби</LetterLabelZombiesRising>
 	<ZombiesRising>Группа зомби появилась</ZombiesRising>
 
@@ -12,6 +15,9 @@
 
 	<ZombielandDefaultSettings>Zombieland Настройки</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Zombieland Настройки</ZombielandGameSettings>
+	<JumpToNow>Прыгнуть к настоящему</JumpToNow>
+	<Seasons>сезоны</Seasons>
+	<Years>годы</Years>
 
 	<WhenDoZombiesSpawn>Когда зомби будут появляться?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Всё время</SpawnWhenType_AllTheTime>
@@ -22,7 +28,7 @@
 	<SpawnHowType_AllOverTheMap>Из земли</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>От краёв карты</SpawnHowType_FromTheEdges>
 	<SmartWandering>Стиль движения</SmartWandering>
-	<SmartWandering_Off>Случайный</SmartWandering_Off>
+	<SmartWandering_Random>Случайный</SmartWandering_Random>
 	<SmartWandering_Simple>Простой</SmartWandering_Simple>
 	<SmartWandering_Smart>Умная</SmartWandering_Smart>
 
@@ -143,6 +149,7 @@
 	<ClipboardActionTitle>Буфер обмена</ClipboardActionTitle>
 	<CopySettings>Копировать настройки в буфер обмена</CopySettings>
 	<CopyButton>Копировать</CopyButton>
+	<DuplicateButton>Kopyalamak</DuplicateButton>
 	<PasteSettings>Заменить настройки из буфера обмена</PasteSettings>
 	<PasteButton>Вставить</PasteButton>
 	<RopeZombie>Захват зомби</RopeZombie>

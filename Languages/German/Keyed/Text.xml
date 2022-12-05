@@ -1,6 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
+	<Difficulty_ZombielandThreatScale_Info>Steuert den Schwierigkeitsgrad fast aller Dinge in Zombieland wie z.B. Zombiefähigkeiten, Bedrohungsprognosen und vieles mehr.</Difficulty_ZombielandThreatScale_Info>
+	<Difficulty_ZombielandThreatScale_Label>Zombieland Bedrohungsskala</Difficulty_ZombielandThreatScale_Label>
+
 	<LetterLabelZombiesRising>Zombie Attack</LetterLabelZombiesRising>
 	<ZombiesRising>Eine Gruppe von Zombies greift an</ZombiesRising>
 
@@ -12,6 +15,9 @@
 
 	<ZombielandDefaultSettings>Zombieland Standardeinstellungen</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Zombieland Spieleinstellungen</ZombielandGameSettings>
+	<JumpToNow>Zum Jetzt springen</JumpToNow>
+	<Seasons>quartale</Seasons>
+	<Years>jahre</Years>
 
 	<WhenDoZombiesSpawn>Wann erscheinen Zombies?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Jederzeit</SpawnWhenType_AllTheTime>
@@ -22,7 +28,7 @@
 	<SpawnHowType_AllOverTheMap>An Stellen mit weichem Boden</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>Von den Kanten der Karte</SpawnHowType_FromTheEdges>
 	<SmartWandering>Bewegungsstil</SmartWandering>
-	<SmartWandering_Off>Chaotisch</SmartWandering_Off>
+	<SmartWandering_Random>Chaotisch</SmartWandering_Random>
 	<SmartWandering_Simple>Einfach</SmartWandering_Simple>
 	<SmartWandering_Smart>Smart</SmartWandering_Smart>
 
@@ -143,6 +149,7 @@
 	<ClipboardActionTitle>Zwischenablage</ClipboardActionTitle>
 	<CopySettings>Kopiert die Einstellungen als Text in die Zwischenablage</CopySettings>
 	<CopyButton>Kopieren</CopyButton>
+	<DuplicateButton>Duplizieren</DuplicateButton>
 	<PasteSettings>Erst die Einstellungen mit dem Inhalt der Zwischenablage</PasteSettings>
 	<PasteButton>Einsetzen</PasteButton>
 	<RopeZombie>Fang diesen Zombie</RopeZombie>

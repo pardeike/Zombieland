@@ -32,7 +32,8 @@ namespace ZombieLand
 		{
 			var mote = (Mote)ThingMaker.MakeThing(zaps[Random.Range(0, 3)], null);
 			var scale = Random.Range(1.5f, 2f);
-			if (rot == -1) rot = Random.Range(0f, 359f);
+			if (rot == -1)
+				rot = Random.Range(0f, 359f);
 			var color = Color.white;
 			color.a = alpha;
 			mote.exactScale = new Vector3(scale, 1, scale);
@@ -93,16 +94,18 @@ namespace ZombieLand
 			}
 		}
 
-		public override void SubTrigger(TargetInfo A, TargetInfo B)
+		public override void SubTrigger(TargetInfo A, TargetInfo B, int overrideSpawnTick)
 		{
 			shocker = A.Thing as ZombieShocker;
-			if (shocker == null) return;
+			if (shocker == null)
+				return;
 
 			cell = shocker.Position + IntVec3.North.RotatedBy(shocker.Rotation);
 			map = shocker.Map;
 
 			room = ZombieShocker.GetValidRoom(map, cell);
-			if (room == null) return;
+			if (room == null)
+				return;
 
 			room.Cells.Where(c => c.Standable(map)).OrderBy(c => c.DistanceTo(cell)).Do(c => cells.Enqueue(c));
 			if (cells.Count == 0)
@@ -118,7 +121,8 @@ namespace ZombieLand
 
 		public override void SubEffectTick(TargetInfo A, TargetInfo B)
 		{
-			if (zappingState == -1 || shocker.Spawned == false) return;
+			if (zappingState == -1 || shocker.Spawned == false)
+				return;
 			if (shocker.HasValidRoom() == false)
 			{
 				EndZapping();

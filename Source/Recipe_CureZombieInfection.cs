@@ -7,6 +7,8 @@ namespace ZombieLand
 {
 	public class Recipe_CureZombieInfection : Recipe_Surgery
 	{
+		private List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBite = new List<Hediff_Injury_ZombieBite>();
+
 		private bool BiteIsCurable(Hediff_Injury_ZombieBite bite)
 		{
 			var state = bite.TendDuration.GetInfectionState();
@@ -17,9 +19,9 @@ namespace ZombieLand
 
 		private IEnumerable<Hediff_Injury_ZombieBite> GetInfectingBites(Pawn pawn)
 		{
-			return pawn.health.hediffSet
-				.GetHediffs<Hediff_Injury_ZombieBite>()
-				.Where(BiteIsCurable);
+			tmpHediffInjuryZombieBite.Clear();
+			pawn.health.hediffSet.GetHediffs(ref tmpHediffInjuryZombieBite);
+			return tmpHediffInjuryZombieBite.Where(BiteIsCurable);
 		}
 
 		public override IEnumerable<BodyPartRecord> GetPartsToApplyOn(Pawn pawn, RecipeDef recipe)
@@ -49,24 +51,11 @@ namespace ZombieLand
 			var chance = Rand.RangeInclusive(0, 100);
 			var purity = serum.def.defName == "ZombieSerumSimple" ? 100 : extract.count;
 			var failure = chance > purity;
-			var catastrophic = chance > purity + (100 - purity) * 3 / 4;
-
 			if (failure)
 			{
-				if (catastrophic)
-				{
-					HealthUtility.GiveInjuriesOperationFailureCatastrophic(pawn, part);
-					if (!pawn.Dead)
-						pawn.Kill(null, null);
-					Messages.Message("MessageMedicalOperationFailureFatal".Translate(billDoer.LabelShort, pawn.LabelShort, recipe.LabelCap, billDoer.Named("SURGEON"), pawn.Named("PATIENT")), pawn, MessageTypeDefOf.NegativeHealthEvent, true);
-				}
-				else
-				{
-					HealthUtility.GiveInjuriesOperationFailureMinor(pawn, part);
-					pawn.needs.mood.thoughts.memories.TryGainMemory(ThoughtDefOf.BotchedMySurgery, billDoer);
-					Messages.Message("MessageMedicalOperationFailureMinor".Translate(billDoer.LabelShort, pawn.LabelShort, billDoer.Named("SURGEON"), pawn.Named("PATIENT"), recipe.Named("RECIPE")), pawn, MessageTypeDefOf.NegativeHealthEvent, true);
-				}
-
+				HealthUtility.GiveRandomSurgeryInjuries(pawn, 65, part);
+				pawn.needs.mood.thoughts.memories.TryGainMemory(ThoughtDefOf.BotchedMySurgery, billDoer);
+				Messages.Message("MessageMedicalOperationFailureMinor".Translate(billDoer.LabelShort, pawn.LabelShort, billDoer.Named("SURGEON"), pawn.Named("PATIENT"), recipe.Named("RECIPE")), pawn, MessageTypeDefOf.NegativeHealthEvent, true);
 				return;
 			}
 

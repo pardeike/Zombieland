@@ -77,10 +77,16 @@ namespace ZombieLand
 
 			if (Spawned && Bugged == false)
 			{
-				if (RottableUtility.GetRotStage(this) == RotStage.Dessicated)
+				switch (this.GetRotStage())
 				{
-					Destroy(DestroyMode.Vanish);
-					return;
+					case RotStage.Rotting:
+						var num = GasUtility.RotStinkToSpawnForCorpse(this);
+						if (num > 0)
+							GasUtility.AddGas(Position, Map, GasType.RotStink, num);
+						break;
+					case RotStage.Dessicated:
+						Destroy(DestroyMode.Vanish);
+						return;
 				}
 
 				if (Map.thingGrid.ThingsListAtFast(Position).Any(thing => thing is Blueprint || thing is Frame))

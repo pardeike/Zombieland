@@ -2,6 +2,11 @@
 <LanguageData>
 
 	<Zombieland_Settings>Hover over any element to read a help text about it to the right. All settings can be changed in-game and are active immediately, they are saved with the game.\n\nTo set defaults for new games, change the settings from the main screen (Options/Mod Settings/Zombieland).</Zombieland_Settings>
+	<ZombieLandKeyframes>You can add keyframes that define settings in time. Use the slider to check the values in-between. Only settings for keyframes can be edited.</ZombieLandKeyframes>
+	<ZombieLandKeyframe0>&lt;- first keyframe (start of the game) . . . future game time -&gt;</ZombieLandKeyframe0>
+
+	<ZombielandDifficultyTitle_Help>The difficulty in Zombieland is mainly controlled by a combination of:\n\n- Threat scale\n- Special zombies\n- Zombie speed\n- Max zombie count\n- Dynamic threat level</ZombielandDifficultyTitle_Help>
+	<ZombielandDifficulty_Help>This setting controls the difficulty of almost all things in Zombieland: abilities of zombies like senses, toughness, speed, power. In particular, special zombies are affected and the threat forecast will be much worse on higher difficulties.\n\nNote: 500% is really really difficult so be warned.</ZombielandDifficulty_Help>
 
 	<WhenDoZombiesSpawn_Help>In Zombieland, you will face a never-ending invasion of zombies. This setting controls the overall pace and rythm of the game. The three modes are quite different so make sure you choose the right one for your play style and understand how they work. There is an upper limit on the number of zombies, see "Zombies on the map" for more details.</WhenDoZombiesSpawn_Help>
 	<SpawnWhenType_AllTheTime_Help>Zombies will spawn relentlessly. Kill them and more will come instantly. This is a challenging mode that makes zombies an omnipresent force that influences all aspects of the game.</SpawnWhenType_AllTheTime_Help>

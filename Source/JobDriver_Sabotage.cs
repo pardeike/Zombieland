@@ -40,7 +40,8 @@ namespace ZombieLand
 		void TickAction()
 		{
 			var zombie = (Zombie)pawn;
-			if (zombie.state == ZombieState.Emerging) return;
+			if (zombie.state == ZombieState.Emerging)
+				return;
 
 			if (this.DieEasily())
 				return;
@@ -124,7 +125,8 @@ namespace ZombieLand
 
 		static bool Goto(this JobDriver_Sabotage driver, Thing thing)
 		{
-			if (thing == null && thing.Spawned == false) return false;
+			if (thing == null && thing.Spawned == false)
+				return false;
 
 			var zombie = driver.pawn;
 			var mode = thing.Position.Standable(thing.Map) ? PathEndMode.ClosestTouch : PathEndMode.Touch;
@@ -155,7 +157,8 @@ namespace ZombieLand
 
 		static bool Goto(this JobDriver_Sabotage driver, IntVec3 cell, Action arrivalAction = null)
 		{
-			if (cell.IsValid == false) return false;
+			if (cell.IsValid == false)
+				return false;
 
 			var zombie = driver.pawn;
 			var path = zombie.Map.pathFinder.FindPath(zombie.Position, cell, TraverseParms.For(zombie, Danger.None, TraverseMode.PassDoors, false), PathEndMode.OnCell);
@@ -308,7 +311,8 @@ namespace ZombieLand
 						&& pawn.CurJobDef != JobDefOf.Vomit,
 					pawn =>
 					{
-						if (RestUtility.Awake(pawn) == false) RestUtility.WakeUp(pawn);
+						if (RestUtility.Awake(pawn) == false)
+							RestUtility.WakeUp(pawn);
 						pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Vomit), JobCondition.InterruptForced, null, true, true);
 						pawn.stances.stunner.StunFor(stunTicks, zombie, true);
 					});
@@ -323,6 +327,7 @@ namespace ZombieLand
 			return true;
 		}
 
+		static List<Hediff_Injury> tmpHediffInjury = new List<Hediff_Injury>();
 		public static bool DieEasily(this JobDriver_Sabotage driver)
 		{
 			if (driver.pawn.health.Downed)
@@ -330,7 +335,9 @@ namespace ZombieLand
 				driver.pawn.Kill(null);
 				return true;
 			}
-			if (driver.pawn.health.hediffSet.GetHediffs<Hediff_Injury>().Any())
+			tmpHediffInjury.Clear();
+			driver.pawn.health.hediffSet.GetHediffs(ref tmpHediffInjury);
+			if (tmpHediffInjury.Any())
 			{
 				driver.pawn.Kill(null);
 				return true;
@@ -376,7 +383,8 @@ namespace ZombieLand
 		static IntVec3 PawnCenter(Map map, IEnumerable<Pawn> pawns)
 		{
 			var count = pawns.Count();
-			if (count == 0) return IntVec3.Invalid;
+			if (count == 0)
+				return IntVec3.Invalid;
 			var vec = pawns.Select(p => p.Position.ToVector3()).Aggregate((prev, pos) => prev + pos) / count;
 			var it = GenRadial.RadialCellsAround(vec.ToIntVec3(), 6, true).GetEnumerator();
 			while (it.MoveNext())
@@ -414,9 +422,11 @@ namespace ZombieLand
 					var building = map.listerBuildings.allBuildingsColonist.Where(b =>
 					{
 						var compFlickable = b.Spawned ? b.TryGetComp<CompFlickable>() : null;
-						if (compFlickable != null && compFlickable.SwitchIsOn) return true;
+						if (compFlickable != null && compFlickable.SwitchIsOn)
+							return true;
 						var compPowerTrader = b.TryGetComp<CompPowerTrader>();
-						if (compPowerTrader != null && compPowerTrader.PowerOn) return true;
+						if (compPowerTrader != null && compPowerTrader.PowerOn)
+							return true;
 						return false;
 
 					}).SafeRandomElement();

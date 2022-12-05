@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
+	<Difficulty_ZombielandThreatScale_Info>Zombieland'deki zombi yetenekleri, tehdit tahmini ve çok daha fazlası gibi neredeyse her şeyin zorluğunu kontrol eder.</Difficulty_ZombielandThreatScale_Info>
+	<Difficulty_ZombielandThreatScale_Label>Zombieland tehdit ölçeği</Difficulty_ZombielandThreatScale_Label>
+
 	<LetterLabelZombiesRising>Zombi Saldırısı</LetterLabelZombiesRising>
 	<ZombiesRising>Bir grup zombi ortaya çıkar.</ZombiesRising>
 
@@ -12,6 +15,9 @@
 
 	<ZombielandDefaultSettings>Zombieland modunun orijinal ayarları.</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Zombieland ayarları.</ZombielandGameSettings>
+	<JumpToNow>Mevcut saate atla</JumpToNow>
+	<Seasons>mevsimler</Seasons>
+	<Years>yıllar</Years>
 
 	<WhenDoZombiesSpawn>Zombiler ne zaman ortaya çıksın?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Her zaman</SpawnWhenType_AllTheTime>
@@ -22,7 +28,7 @@
 	<SpawnHowType_AllOverTheMap>Yumuşak zemin olan yerlerde</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>Harita kenarlarından</SpawnHowType_FromTheEdges>
 	<SmartWandering>Hareket tarzı</SmartWandering>
-	<SmartWandering_Off>Rastgele</SmartWandering_Off>
+	<SmartWandering_Random>Rastgele</SmartWandering_Random>
 	<SmartWandering_Simple>Basit</SmartWandering_Simple>
 	<SmartWandering_Smart>Akıllı</SmartWandering_Smart>
 

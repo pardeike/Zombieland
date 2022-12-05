@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
+	<Difficulty_ZombielandThreatScale_Info>Contrôle la difficulté de presque tout dans Zombieland, comme les capacités des zombies, la prévision des menaces et bien plus encore.</Difficulty_ZombielandThreatScale_Info>
+	<Difficulty_ZombielandThreatScale_Label>L'échelle de menace de Zombieland</Difficulty_ZombielandThreatScale_Label>
+
 	<LetterLabelZombiesRising>Attaque de Zombie</LetterLabelZombiesRising>
 	<ZombiesRising>Un groupe de zombie est apparu</ZombiesRising>
 
@@ -10,8 +13,11 @@
 	<LetterLabelXDaysUntilZombies>{0} avant que les zombies arrivent</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>Les zombies vont apparaitre là où il y a du sol meuble, de poussière, de sable ou de pierre. La construction de plancher empêche les zombies d’apparaitre</XDaysUntilZombies>
 
-	<ZombielandDefaultSettings>Zombieland defaults</ZombielandDefaultSettings>
-	<ZombielandGameSettings>Zombieland options</ZombielandGameSettings>
+	<ZombielandDefaultSettings>Paramètres par défaut de zombieland</ZombielandDefaultSettings>
+	<ZombielandGameSettings>Options de zombieland</ZombielandGameSettings>
+	<JumpToNow>Sauter au présent</JumpToNow>
+	<Seasons>saisons</Seasons>
+	<Years>années</Years>
 
 	<WhenDoZombiesSpawn>Quand les Zombies arrivent-ils ? </WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Tout le temps</SpawnWhenType_AllTheTime>
@@ -22,7 +28,7 @@
 	<SpawnHowType_AllOverTheMap>Là où il y a du sol meuble</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>Des bords de la carte</SpawnHowType_FromTheEdges>
 	<SmartWandering>Style de mouvement</SmartWandering>
-	<SmartWandering_Off>Aléatoire</SmartWandering_Off>
+	<SmartWandering_Random>Aléatoire</SmartWandering_Random>
 	<SmartWandering_Simple>Simple</SmartWandering_Simple>
 	<SmartWandering_Smart>Intelligente</SmartWandering_Smart>
 
@@ -143,6 +149,7 @@
 	<ClipboardActionTitle>Presse-papiers</ClipboardActionTitle>
 	<CopySettings>Copier les paramètres dans le presse-papiers</CopySettings>
 	<CopyButton>Copie</CopyButton>
+	<DuplicateButton>Dupliquer</DuplicateButton>
 	<PasteSettings>Remplacer les paramètres depuis le presse-papiers</PasteSettings>
 	<PasteButton>Coller</PasteButton>
 	<RopeZombie>Capturer ce zombie</RopeZombie>

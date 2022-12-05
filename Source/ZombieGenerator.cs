@@ -43,7 +43,7 @@ namespace ZombieLand
 			return new Color(0.3f, 0.2f, 0.1f);
 		}
 
-		public static readonly Dictionary<string, IntVec2> eyeOffsets = new Dictionary<string, IntVec2>() {
+		private static readonly Dictionary<string, IntVec2> eyeOffsets = new Dictionary<string, IntVec2>() {
 			{ "Female_Average_Normal", new IntVec2(11, -5) },
 			{ "Female_Average_Pointy", new IntVec2(11, -5) },
 			{ "Female_Average_Wide", new IntVec2(11, -6) },
@@ -58,11 +58,19 @@ namespace ZombieLand
 			{ "Male_Narrow_Wide", new IntVec2(10, -8) }
 		};
 
-		public static IntVec2 SideEyeOffset(string headPath)
+		public static IntVec2 SideEyeOffset(string headType)
 		{
-			if (eyeOffsets.TryGetValue(headPath, out var vec))
+			if (eyeOffsets.TryGetValue(headType, out var vec))
 				return vec;
 			return default;
+		}
+
+		public static bool IsValidHeadPath(string headPath)
+		{
+			var parts = headPath.Split('/');
+			if (parts.Length < 2)
+				return false;
+			return eyeOffsets.ContainsKey(parts.Last());
 		}
 
 		static BodyTypeDef SetRandomBody(Zombie zombie)
@@ -212,6 +220,8 @@ namespace ZombieLand
 	public static class ZombieGenerator
 	{
 		public static int ZombiesSpawning = 0;
+		public static readonly List<BackstoryDef> childBackstories = DefDatabase<BackstoryDef>.AllDefs.Where(b => b.slot == BackstorySlot.Childhood).ToList();
+		public static readonly List<BackstoryDef> adultBackstories = DefDatabase<BackstoryDef>.AllDefs.Where(b => b.slot == BackstorySlot.Adulthood).ToList();
 
 		private static BodyTypeDef PrepareZombieType(Zombie zombie, ZombieType overwriteType)
 		{
@@ -237,7 +247,7 @@ namespace ZombieLand
 		public static string FixGlowingEyeOffset(Zombie zombie)
 		{
 			var headShape = zombie.hasTankyHelmet == 1f ? "Wide" : headShapes[Rand.Range(0, 3)];
-			var headPath = "Zombie/" + zombie.gender + "_" + zombie.story.crownType + "_" + headShape;
+			var headPath = "Zombie/" + zombie.gender + "_" + ("Average"/*zombie.story.crownType*/) + "_" + headShape;
 			zombie.sideEyeOffset = ZombieBaseValues.SideEyeOffset(headPath.ReplaceFirst("Zombie/", ""));
 			return headPath;
 		}
@@ -245,7 +255,8 @@ namespace ZombieLand
 		public static void AssignNewGraphics(Zombie zombie)
 		{
 			var it = AssignNewGraphicsIterator(zombie);
-			while (it.MoveNext()) ;
+			while (it.MoveNext())
+				;
 		}
 
 		static readonly string[] headShapes = { "Normal", "Pointy", "Wide" };
@@ -263,12 +274,37 @@ namespace ZombieLand
 				var renderPrecedence = 0;
 				var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
 				var color = GraphicToolbox.RandomSkinColorString();
-				if (zombie.isToxicSplasher) color = "toxic";
-				if (zombie.isMiner) color = "miner";
-				if (zombie.isElectrifier) color = "electric";
-				if (zombie.isAlbino) color = "albino";
-				if (zombie.isDarkSlimer) color = "dark";
-				if (zombie.isHealer) color = "healer";
+				Color? specialColor = null;
+				if (zombie.isToxicSplasher)
+				{
+					color = "toxic";
+					specialColor = Color.green;
+				}
+				if (zombie.isMiner)
+				{
+					color = "miner";
+					specialColor = new Color(46 / 255f, 35 / 255f, 15 / 255f);
+				}
+				if (zombie.isElectrifier)
+				{
+					color = "electric";
+					specialColor = new Color(0.196078431f, 0.470588235f, 0.470588235f);
+				}
+				if (zombie.isAlbino)
+				{
+					color = "albino";
+					specialColor = Color.white;
+				}
+				if (zombie.isDarkSlimer)
+				{
+					color = "dark";
+					specialColor = new Color(27 / 255f, 26 / 255f, 25 / 255f);
+				}
+				if (zombie.isHealer)
+				{
+					color = "healer";
+					specialColor = Color.cyan;
+				}
 				yield return null;
 				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.Cutout, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>(), null);
 				yield return null;
@@ -315,7 +351,8 @@ namespace ZombieLand
 						j++;
 					}
 				}
-				zombie.Drawer.renderer.graphics.headGraphic = customHeadGraphic;
+				//zombie.Drawer.renderer.graphics.headGraphic = customHeadGraphic;
+				zombie.Drawer.renderer.graphics.headGraphic = zombie.story.headType.GetGraphic(specialColor ?? color.HexColor(), false, true);
 			}
 
 			yield return null;
@@ -324,22 +361,24 @@ namespace ZombieLand
 		static List<ThingStuffPair> _allApparelPairs;
 		static List<ThingStuffPair> AllApparelPairs()
 		{
-			if (_allApparelPairs == null)
-			{
-				_allApparelPairs = ThingStuffPair.AllWith((ThingDef td) => td.IsApparel)
+			_allApparelPairs ??= ThingStuffPair.AllWith((ThingDef td) => td.IsApparel)
 					.Where(pair =>
 					{
 						var def = pair.thing;
-						if (def.IsApparel == false) return false;
-						if (def.IsZombieDef()) return false;
-						if (def == ThingDefOf.Apparel_ShieldBelt) return false;
-						if (def == ThingDefOf.Apparel_SmokepopBelt) return false;
-						if (def.thingClass?.Name.Contains("ApparelHolographic") ?? false) return false; // SoS
+						if (def.IsApparel == false)
+							return false;
+						if (def.IsZombieDef())
+							return false;
+						if (def == ThingDefOf.Apparel_ShieldBelt)
+							return false;
+						if (def == ThingDefOf.Apparel_SmokepopBelt)
+							return false;
+						if (def.thingClass?.Name.Contains("ApparelHolographic") ?? false)
+							return false; // SoS
 						var path = def.apparel.wornGraphicPath;
 						return path != null && path.Length > 0;
 					})
 					.ToList();
-			}
 			return _allApparelPairs;
 		}
 
@@ -515,9 +554,7 @@ namespace ZombieLand
 
 			if (RunWithFailureCheck(out var ex8, () =>
 			{
-				zombie.story.childhood = BackstoryDatabase.allBackstories
-				.Where(kvp => kvp.Value.slot == BackstorySlot.Childhood)
-				.SafeRandomElement().Value;
+				zombie.story.childhood = childBackstories.SafeRandomElement();
 			}))
 			{ Abort(ex8); yield break; }
 			yield return null;
@@ -525,18 +562,21 @@ namespace ZombieLand
 			if (RunWithFailureCheck(out var ex9, () =>
 			{
 				if (zombie.ageTracker.AgeBiologicalYearsFloat >= 20f)
-					zombie.story.adulthood = BackstoryDatabase.allBackstories
-					.Where(kvp => kvp.Value.slot == BackstorySlot.Adulthood)
-					.SafeRandomElement().Value;
+					zombie.story.adulthood = adultBackstories.SafeRandomElement();
 			}))
 			{ Abort(ex9); yield break; }
 			yield return null;
 
 			if (RunWithFailureCheck(out var ex10, () =>
 			{
+				var headType = DefDatabase<HeadTypeDef>.AllDefsListForReading
+					.Where(def => ZombieBaseValues.IsValidHeadPath(def.graphicPath))
+					.RandomElement();
+
 				zombie.story.melanin = zombie.isAlbino || zombie.isHealer ? 1f : (zombie.isDarkSlimer ? 0f : 0.01f * Rand.Range(10, 91));
 				zombie.story.bodyType = bodyType;
-				zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
+				zombie.story.headType = headType;
+				//zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
 				zombie.story.hairColor = ZombieBaseValues.HairColor();
 				zombie.story.hairDef = PawnStyleItemChooser.RandomHairFor(zombie);
 			}))
@@ -565,8 +605,7 @@ namespace ZombieLand
 			if (RunWithFailureCheck(out var ex13, () =>
 			{
 				zombie.Drawer.leaner = new ZombieLeaner(zombie);
-				if (zombie.pather == null)
-					zombie.pather = new Pawn_PathFollower(zombie);
+				zombie.pather ??= new Pawn_PathFollower(zombie);
 				zombie.pather.destination = IntVec3.Invalid;
 			}))
 			{ Abort(ex13); yield break; }
@@ -637,7 +676,7 @@ namespace ZombieLand
 		{
 			if (m_PawnBeardChooser_GenerateBeard != null)
 			{
-				if (GenerateBeard == null) GenerateBeard = MethodInvoker.GetHandler(m_PawnBeardChooser_GenerateBeard);
+				GenerateBeard ??= MethodInvoker.GetHandler(m_PawnBeardChooser_GenerateBeard);
 				_ = GenerateBeard(null, new object[] { pawn, faction });
 			}
 		}

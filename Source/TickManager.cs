@@ -3,7 +3,6 @@ using RimWorld;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
@@ -348,6 +347,12 @@ namespace ZombieLand
 				(pawn.CurJob == null || (pawn.CurJob.def != JobDefOf.Goto && pawn.CurJob.playerForced == false));
 		}
 
+		void UpdateGameSettings()
+		{
+			var ticks = Find.TickManager.TicksGame;
+			ZombieSettings.Values = ZombieSettings.CalculateInterpolation(ZombieSettings.ValuesOverTime, ticks);
+		}
+
 		void RepositionColonists()
 		{
 			var checkInterval = 15;
@@ -544,8 +549,8 @@ namespace ZombieLand
 
 			while (true)
 			{
-				var sw = new Stopwatch();
-				sw.Start();
+				UpdateGameSettings();
+				yield return null;
 				RepositionColonists();
 				yield return null;
 				HandleIncidents();
