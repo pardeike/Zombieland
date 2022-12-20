@@ -62,47 +62,66 @@ namespace ZombieLand
 
 		public Rect MinimumFrame()
 		{
-			static bool alphaCheck(Color c) => c.a != 0f;
+            var x1 = 0;
+            var y1 = 0;
+            var x2 = width;
+            var y2 = height;
 
-			var x1 = 0;
-			var y1 = 0;
-			var x2 = width;
-			var y2 = height;
 
-			for (var x = 0; x < width; x++)
-			{
-				if (GetRawPixels(x, 0, 1, height).Any(alphaCheck))
-				{
-					x1 = Math.Max(x1, x - saveMargin);
-					break;
-				}
-			}
-			for (var x = width - 1; x >= x1; x--)
-			{
-				if (GetRawPixels(x, 0, 1, height).Any(alphaCheck))
-				{
-					x2 = Math.Min(x2, x + saveMargin);
-					break;
-				}
-			}
-			for (var y = 0; y < height; y++)
-			{
-				if (GetRawPixels(0, y, width, 1).Any(alphaCheck))
-				{
-					y1 = Math.Max(y1, y - saveMargin);
-					break;
-				}
-			}
-			for (var y = height - 1; y >= y1; y--)
-			{
-				if (GetRawPixels(0, y, width, 1).Any(alphaCheck))
-				{
-					y2 = Math.Min(y2, y + saveMargin);
-					break;
-				}
-			}
+            for (var x = 0; x < width; x++)
+            {
+                float sum = 0.0f;
+                for (var y = 0; y < height; y++)
+                {
+                    sum += Math.Abs(pixels[x + y * width].a);
+                }
+                if (sum != 0.0f)
+                {
+                    x1 = Math.Max(x1, x - saveMargin);
+                    break;
+                }
+            }
+            for (var x = width - 1; x >= x1; x--)
+            {
+                float sum = 0.0f;
+                for (var y = height - 1; y >= x1; y--)
+                {
+                    sum += Math.Abs(pixels[x + y * width].a);
+                }
+                if (sum != 0.0f)
+                {
+                    x2 = Math.Min(x2, x + saveMargin);
+                    break;
+                }
+            }
+            for (var y = 0; y < height; y++)
+            {
+                float sum = 0.0f;
+                for (var x = 0; x < width; x++)
+                {
+                    sum += Math.Abs(pixels[x * height + y].a);
+                }
+                if (sum != 0.0f)
+                {
+                    y1 = Math.Max(y1, y - saveMargin);
+                    break;
+                }
+            }
+            for (var y = height - 1; y >= y1; y--)
+            {
+                float sum = 0.0f;
+                for (var x = width - 1; x >= y1; x--)
+                {
+                    sum += Math.Abs(pixels[x * height + y].a);
+                }
+                if (sum != 0.0f)
+                {
+                    y2 = Math.Min(y2, y + saveMargin);
+                    break;
+                }
+            }
 
-			return new Rect(x1, y1, x2 - x1, y2 - y1);
-		}
+            return new Rect(x1, y1, x2 - x1, y2 - y1);
+        }
 	}
 }
