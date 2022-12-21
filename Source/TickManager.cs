@@ -467,14 +467,20 @@ namespace ZombieLand
 						{
 							var cell = Tools.RandomSpawnCell(map, false, Tools.ZombieSpawnLocator(map));
 							if (cell.IsValid)
-								ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { _ = allZombiesCached.Add(zombie); });
+							{
+								var zombie = ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random);
+								_ = allZombiesCached.Add(zombie);
+							}
 							return;
 						}
 						case SpawnHowType.FromTheEdges:
 						{
 							var cell = Tools.RandomSpawnCell(map, true, Tools.ZombieSpawnLocator(map));
 							if (cell.IsValid)
-								ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random, (zombie) => { _ = allZombiesCached.Add(zombie); });
+							{
+								var zombie = ZombieGenerator.SpawnZombie(cell, map, ZombieType.Random);
+								_ = allZombiesCached.Add(zombie);
+							}
 							return;
 						}
 						default:

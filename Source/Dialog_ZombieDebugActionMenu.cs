@@ -14,23 +14,21 @@ namespace ZombieLand
 			if (map == null)
 				return;
 
-			ZombieGenerator.SpawnZombie(UI.MouseCell(), map, type, (zombie) =>
+			var zombie = ZombieGenerator.SpawnZombie(UI.MouseCell(), map, type);
+			if (Current.ProgramState != ProgramState.Playing)
+				return;
+
+			if (appearDirectly)
 			{
-				if (Current.ProgramState != ProgramState.Playing)
-					return;
+				zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
+				zombie.state = ZombieState.Wandering;
+			}
+			zombie.Rotation = Rot4.South;
 
-				if (appearDirectly)
-				{
-					zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-					zombie.state = ZombieState.Wandering;
-				}
-				zombie.Rotation = Rot4.South;
-
-				var tickManager = Find.CurrentMap.GetComponent<TickManager>();
-				_ = tickManager.allZombiesCached.Add(zombie);
-			});
+			var tickManager = Find.CurrentMap.GetComponent<TickManager>();
+			_ = tickManager.allZombiesCached.Add(zombie);
 		}
-		
+
 		[DebugAction("Zombieland", "Spawn: Zombie (dig out)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieDigOut()
 		{

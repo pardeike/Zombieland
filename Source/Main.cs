@@ -2,6 +2,7 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using UnityEngine;
@@ -66,6 +67,7 @@ namespace ZombieLand
 	{
 		public static string Identifier = "";
 		public static bool IsLoadingDefaults = true;
+		public static Stopwatch frameWatch = Stopwatch.StartNew();
 
 		public ZombielandMod(ModContentPack content) : base(content)
 		{

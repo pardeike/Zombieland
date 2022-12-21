@@ -59,8 +59,7 @@ namespace ZombieLand
 
 			Scribe_Values.Look(ref lastIncident, "lastIncident");
 
-			if (parameters == null)
-				parameters = new IncidentParameters();
+			parameters ??= new IncidentParameters();
 		}
 	}
 
@@ -78,10 +77,8 @@ namespace ZombieLand
 			if (info == null)
 				return false;
 
-			if (tickManager.incidentInfo == null)
-				tickManager.incidentInfo = new IncidentInfo();
-			if (tickManager.incidentInfo.parameters == null)
-				tickManager.incidentInfo.parameters = new IncidentParameters();
+			tickManager.incidentInfo ??= new IncidentInfo();
+			tickManager.incidentInfo.parameters ??= new IncidentParameters();
 			var parameters = tickManager.incidentInfo.parameters;
 
 			if (tickManager.map.IsBlacklisted())
@@ -227,10 +224,14 @@ namespace ZombieLand
 
 				foreach (var cell in cells)
 				{
-					ZombieGenerator.SpawnZombie(cell, map, zombieType, (zombie) => { _ = tickManager.allZombiesCached.Add(zombie); });
+					var it = ZombieGenerator.SpawnZombieIterativ(cell, map, zombieType, zombie => tickManager.allZombiesCached.Add(zombie));
+					while (it.MoveNext())
+					{
+						if (ZombielandMod.frameWatch.ElapsedMilliseconds >= 4)
+							yield return null;
+					}
 					incidentSize--;
 					zombiesSpawning++;
-					yield return null;
 				}
 				counter++;
 			}

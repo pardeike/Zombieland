@@ -13,15 +13,17 @@ namespace ZombieLand
 	public static class ZombieAreaManager
 	{
 		public static Dictionary<Area, HashSet<IntVec3>> cache = new Dictionary<Area, HashSet<IntVec3>>();
-		public static List<(Pawn, Area)> pawnsInDanger = new List<(Pawn, Area)>();
+		public static List<(Pawn, Area)> pawnsInDanger = new();
 		public static DateTime nextUpdate = DateTime.Now;
 		public static bool warningShowing = false;
 
 		public static void DangerAlertsOnGUI()
 		{
-			if (WorldRendererUtility.WorldRenderedNow) return;
+			if (WorldRendererUtility.WorldRenderedNow)
+				return;
 			var map = Find.CurrentMap;
-			if (map == null) return;
+			if (map == null)
+				return;
 
 			var now = DateTime.Now;
 			if (now > nextUpdate)
@@ -36,7 +38,8 @@ namespace ZombieLand
 						var mode = pair.Value;
 						return pawns.Where(pawn =>
 						{
-							if (Tools.HasInfectionState(pawn, InfectionState.Infecting, InfectionState.Infected)) return false;
+							if (Tools.HasInfectionState(pawn, InfectionState.Infecting, InfectionState.Infected))
+								return false;
 							var inside = area.innerGrid[pawn.Position];
 							return inside && mode == ZombieRiskMode.IfInside || !inside && mode == ZombieRiskMode.IfOutside;
 						})
@@ -439,7 +442,7 @@ namespace ZombieLand
 			Widgets.DrawBoxSolid(cRect, Color.red);
 			cRect.xMin = 240;
 			cRect.xMax = 413;
-			var newRed = Widgets.HorizontalSlider(cRect, area.Color.r, 0f, 1f);
+			var newRed = Widgets.HorizontalSlider_NewTemp(cRect, area.Color.r, 0f, 1f);
 			if (area is Area_Allowed allowed1)
 			{
 				allowed1.colorInt.r = newRed;
@@ -452,7 +455,7 @@ namespace ZombieLand
 			Widgets.DrawBoxSolid(cRect, Color.green);
 			cRect.xMin = 240;
 			cRect.xMax = 413;
-			var newGreen = Widgets.HorizontalSlider(cRect, area.Color.g, 0f, 1f);
+			var newGreen = Widgets.HorizontalSlider_NewTemp(cRect, area.Color.g, 0f, 1f);
 			if (area is Area_Allowed allowed2)
 			{
 				allowed2.colorInt.g = newGreen;
@@ -465,7 +468,7 @@ namespace ZombieLand
 			Widgets.DrawBoxSolid(cRect, Color.blue);
 			cRect.xMin = 240;
 			cRect.xMax = 413;
-			var newBlue = Widgets.HorizontalSlider(cRect, area.Color.b, 0f, 1f);
+			var newBlue = Widgets.HorizontalSlider_NewTemp(cRect, area.Color.b, 0f, 1f);
 			if (area is Area_Allowed allowed3)
 			{
 				allowed3.colorInt.b = newBlue;

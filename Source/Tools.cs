@@ -1475,35 +1475,34 @@ namespace ZombieLand
 		static readonly RenderTexture renderTextureFore = new RenderTexture(256, 256, 16);
 		public static void CreateFakeZombie(Map map, Action<Material> callback, bool foreground)
 		{
-			ZombieGenerator.SpawnZombie(IntVec3.Zero, map, ZombieType.Normal, (zombie) =>
+			var zombie = ZombieGenerator.SpawnZombie(IntVec3.Zero, map, ZombieType.Normal);
+
+			zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
+			zombie.state = ZombieState.Floating;
+			zombie.Rotation = Rot4.South;
+
+			var renderTexture = foreground ? renderTextureFore : renderTextureBack;
+			Find.PawnCacheRenderer.RenderPawn(zombie, renderTexture, Vector3.zero, 1f, 0f, Rot4.South, true, true, true, true, true, Vector3.zero, null, null, false);
+			var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false);
+			RenderTexture.active = renderTexture;
+			texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+			texture.Apply();
+			RenderTexture.active = null;
+			RenderTexture.ReleaseTemporary(renderTexture);
+
+			if (foreground)
 			{
-				zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-				zombie.state = ZombieState.Floating;
-				zombie.Rotation = Rot4.South;
+				var materialFront = MaterialPool.MatFrom(new MaterialRequest(texture, ShaderDatabase.MetaOverlay));
+				callback(materialFront);
+			}
+			else
+			{
+				var materialBack = MaterialPool.MatFrom(texture);
+				materialBack.renderQueue = 2000 + 60;
+				callback(materialBack);
+			}
 
-				var renderTexture = foreground ? renderTextureFore : renderTextureBack;
-				Find.PawnCacheRenderer.RenderPawn(zombie, renderTexture, Vector3.zero, 1f, 0f, Rot4.South, true, true, true, true, true, Vector3.zero, null, null, false);
-				var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false);
-				RenderTexture.active = renderTexture;
-				texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-				texture.Apply();
-				RenderTexture.active = null;
-				RenderTexture.ReleaseTemporary(renderTexture);
-
-				if (foreground)
-				{
-					var materialFront = MaterialPool.MatFrom(new MaterialRequest(texture, ShaderDatabase.MetaOverlay));
-					callback(materialFront);
-				}
-				else
-				{
-					var materialBack = MaterialPool.MatFrom(texture);
-					materialBack.renderQueue = 2000 + 60;
-					callback(materialBack);
-				}
-
-				zombie.Destroy();
-			});
+			zombie.Destroy();
 		}
 	}
 

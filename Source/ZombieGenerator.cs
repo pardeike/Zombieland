@@ -443,9 +443,13 @@ namespace ZombieLand
 			}
 		}
 
-		public static void SpawnZombie(IntVec3 cell, Map map, ZombieType zombieType, Action<Zombie> callback)
+		public static Zombie SpawnZombie(IntVec3 cell, Map map, ZombieType zombieType)
 		{
-			_ = Find.CameraDriver.StartCoroutine(SpawnZombieIterativ(cell, map, zombieType, callback));
+			Zombie result = null;
+			var it = SpawnZombieIterativ(cell, map, zombieType, (zombie) => result = zombie);
+			while (it.MoveNext())
+				;
+			return result;
 		}
 
 		public static bool RunWithFailureCheck(out Exception exception, Action action)

@@ -128,9 +128,12 @@ namespace ZombieLand
 
 		public static void Postfix(Map map, TradeShip tradeShip, Faction fac, Lord lord)
 		{
-			if (tradeShip != null) return;
-			if (fac == Faction.OfPlayer) return;
-			if (Rand.Chance(ZombieSettings.Values.infectedRaidsChance) == false) return;
+			if (tradeShip != null)
+				return;
+			if (fac == Faction.OfPlayer)
+				return;
+			if (Rand.Chance(ZombieSettings.Values.infectedRaidsChance) == false)
+				return;
 
 			var pawns = lord.ownedPawns.Where(p => p.RaceProps.Humanlike && p?.Faction.IsPlayerSafe() == false).ToList();
 			var turned = pawns.Take(Rand.Range(0, pawns.Count)).ToList();
@@ -152,15 +155,13 @@ namespace ZombieLand
 				var cell = room.Cells.Where(cell => cell.Standable(map)).SafeRandomElement();
 				if (cell.IsValid)
 				{
-					ZombieGenerator.SpawnZombie(cell, map, ZombieType.Normal, (zombie) =>
-					{
-						zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-						zombie.state = ZombieState.Wandering;
-						zombie.Rotation = Rot4.Random;
+					var zombie = ZombieGenerator.SpawnZombie(cell, map, ZombieType.Normal);
+					zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
+					zombie.state = ZombieState.Wandering;
+					zombie.Rotation = Rot4.Random;
 
-						var tickManager = Find.CurrentMap.GetComponent<TickManager>();
-						_ = tickManager.allZombiesCached.Add(zombie);
-					});
+					var tickManager = Find.CurrentMap.GetComponent<TickManager>();
+					_ = tickManager.allZombiesCached.Add(zombie);
 				}
 			}
 		}

@@ -4521,6 +4521,18 @@ namespace ZombieLand
 			}
 		}
 
+		// patches to keep track of frame time
+		//
+		[HarmonyPatch(typeof(Root))]
+		[HarmonyPatch(nameof(Root.Update))]
+		static class Root_Update_Patch
+		{
+			static void Prefix()
+			{
+				ZombielandMod.frameWatch.Restart();
+			}
+		}
+
 		// patches to clean up after us
 		//
 		[HarmonyPatch(typeof(Root))]
