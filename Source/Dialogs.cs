@@ -333,17 +333,29 @@ namespace ZombieLand
 				{
 					list.Dialog_Label("SpecialZombiesTitle", headerColor);
 					list.Gap(8f);
-					var allMax = Mathf.Max(0.04f, settings.suicideBomberChance, settings.toxicSplasherChance, settings.tankyOperatorChance, settings.minerChance, settings.electrifierChance, settings.albinoChance, settings.darkSlimerChance, settings.healerChance);
-					var max = Mathf.Min(1f, 2f * allMax);
-					list.Dialog_FloatSlider("SuicideBomberChance", _ => "{0:0.00%}", false, ref settings.suicideBomberChance, 0f, Mathf.Min(max, 1f - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-					list.Dialog_FloatSlider("ToxicSplasherChance", _ => "{0:0.00%}", false, ref settings.toxicSplasherChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-					list.Dialog_FloatSlider("TankyOperatorChance", _ => "{0:0.00%}", false, ref settings.tankyOperatorChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-					list.Dialog_FloatSlider("MinerChance", _ => "{0:0.00%}", false, ref settings.minerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-					list.Dialog_FloatSlider("ElectrifierChance", _ => "{0:0.00%}", false, ref settings.electrifierChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance));
-					list.Dialog_FloatSlider("AlbinoChance", _ => "{0:0.00%}", false, ref settings.albinoChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.darkSlimerChance - settings.healerChance));
-					list.Dialog_FloatSlider("DarkSlimerChance", _ => "{0:0.00%}", false, ref settings.darkSlimerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.healerChance));
-					list.Dialog_FloatSlider("HealerChance", _ => "{0:0.00%}", false, ref settings.healerChance, 0f, Mathf.Min(max, 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance));
-					var normalChance = 1f - settings.suicideBomberChance - settings.toxicSplasherChance - settings.tankyOperatorChance - settings.minerChance - settings.electrifierChance - settings.albinoChance - settings.darkSlimerChance - settings.healerChance;
+					var localSettings = settings;
+					var chances = new[]
+					{
+						( new FloatRef(() => localSettings.suicideBomberChance, f => localSettings.suicideBomberChance = f), "SuicideBomberChance"),
+						( new FloatRef(() => localSettings.toxicSplasherChance, f => localSettings.toxicSplasherChance = f), "ToxicSplasherChance"),
+						( new FloatRef(() => localSettings.tankyOperatorChance, f => localSettings.tankyOperatorChance = f), "TankyOperatorChance"),
+						( new FloatRef(() => localSettings.minerChance, f => localSettings.minerChance = f), "MinerChance"),
+						( new FloatRef(() => localSettings.electrifierChance, f => localSettings.electrifierChance = f), "ElectrifierChance"),
+						( new FloatRef(() => localSettings.albinoChance, f => localSettings.albinoChance = f), "AlbinoChance"),
+						( new FloatRef(() => localSettings.darkSlimerChance, f => localSettings.darkSlimerChance = f), "DarkSlimerChance"),
+						( new FloatRef(() => localSettings.healerChance, f => localSettings.healerChance = f), "HealerChance"),
+					};
+					var total = chances.Sum(c => c.Item1.Value);
+					var max = Mathf.Min(1f, 2f * chances.Aggregate(0.04f, (prev, curr) => Mathf.Max(prev, curr.Item1.Value)));
+					var normalChance = 1f - total;
+					for (var i = 0; i < chances.Length; i++)
+					{
+						var chance = chances[i].Item1;
+						var value = chance.Value;
+						var remaining = total - value;
+						list.Dialog_FloatSlider(chances[i].Item2, _ => "{0:0.00%}", false, ref value, 0f, Mathf.Min(max, 1f - remaining));
+						chance.Value = value;
+					}
 					list.Gap(-6f);
 					list.Dialog_Text(GameFont.Tiny, "NormalZombieChance", string.Format("{0:0.00%}", normalChance));
 					list.Gap(30f);
@@ -473,7 +485,7 @@ namespace ZombieLand
 				}
 
 				// Miscellaneous
-				if (DialogExtensions.Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":PlayCreepyAmbientSound", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":ShowHealthBar", ":ShowZombieStats", ":HighlightDangerousAreas", ":FloatingZombiesInSOS2"))
+				if (DialogExtensions.Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":PlayCreepyAmbientSound", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":ShowHealthBar", ":ShowZombieStats", ":HighlightDangerousAreas", ":DisableRandomApparel", ":FloatingZombiesInSOS2"))
 				{
 					list.Dialog_Label("ZombieMiscTitle", headerColor);
 					list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);
@@ -485,6 +497,7 @@ namespace ZombieLand
 					list.Dialog_Checkbox("ShowHealthBar", ref settings.showHealthBar);
 					list.Dialog_Checkbox("ShowZombieStats", ref settings.showZombieStats);
 					list.Dialog_Checkbox("HighlightDangerousAreas", ref settings.highlightDangerousAreas);
+					list.Dialog_Checkbox("DisableRandomApparel", ref settings.disableRandomApparel);
 					if (SoSTools.isInstalled)
 						list.Dialog_Checkbox("FloatingZombiesInSOS2", ref settings.floatingZombies);
 					else

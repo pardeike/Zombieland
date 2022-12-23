@@ -442,7 +442,7 @@ namespace ZombieLand
 			Widgets.DrawBoxSolid(cRect, Color.red);
 			cRect.xMin = 240;
 			cRect.xMax = 413;
-			var newRed = Widgets.HorizontalSlider_NewTemp(cRect, area.Color.r, 0f, 1f);
+			var newRed = Tools.HorizontalSlider(cRect, area.Color.r, 0f, 1f);
 			if (area is Area_Allowed allowed1)
 			{
 				allowed1.colorInt.r = newRed;
@@ -455,7 +455,7 @@ namespace ZombieLand
 			Widgets.DrawBoxSolid(cRect, Color.green);
 			cRect.xMin = 240;
 			cRect.xMax = 413;
-			var newGreen = Widgets.HorizontalSlider_NewTemp(cRect, area.Color.g, 0f, 1f);
+			var newGreen = Tools.HorizontalSlider(cRect, area.Color.g, 0f, 1f);
 			if (area is Area_Allowed allowed2)
 			{
 				allowed2.colorInt.g = newGreen;
@@ -468,7 +468,7 @@ namespace ZombieLand
 			Widgets.DrawBoxSolid(cRect, Color.blue);
 			cRect.xMin = 240;
 			cRect.xMax = 413;
-			var newBlue = Widgets.HorizontalSlider_NewTemp(cRect, area.Color.b, 0f, 1f);
+			var newBlue = Tools.HorizontalSlider(cRect, area.Color.b, 0f, 1f);
 			if (area is Area_Allowed allowed3)
 			{
 				allowed3.colorInt.b = newBlue;

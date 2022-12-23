@@ -203,6 +203,7 @@
 	<IfInside>Quand à l'intérieur</IfInside>
 	<IfOutside>Quand dehors</IfOutside>
 	<HighlightDangerousAreas>Mettre en lumière les zones à risque</HighlightDangerousAreas>
+	<DisableRandomApparel>Désactiver les vêtements aléatoires pour les zombies</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Les zombies flottent dans l'espace</FloatingZombiesInSOS2>
 
 </LanguageData>

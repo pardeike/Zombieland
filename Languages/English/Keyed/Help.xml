@@ -146,6 +146,7 @@
 	<ShowHealthBar_Help>Since zombies cannot be selected you can enable a mouse-over health bar. It shows the overall health and also the consciousness level.</ShowHealthBar_Help>
 	<ShowZombieStats_Help>This controls the display of the zombie information on the right side of your screen.</ShowZombieStats_Help>
 	<HighlightDangerousAreas_Help>When a colonist is in a dangerous area or leaves a safe area this setting will highlight that area.\n\nYou can use the normal area manager to manage dangerous areas.</HighlightDangerousAreas_Help>
+	<DisableRandomApparel_Help>To speed up zombie spawning and save memory you can make zombies spawn without apparel.</DisableRandomApparel_Help>
 	<FloatingZombiesInSOS2_Help>Zombies will float in space in SOS2 maps.</FloatingZombiesInSOS2_Help>
 
 	<!-- -->

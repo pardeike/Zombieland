@@ -302,7 +302,7 @@ namespace ZombieLand
 				inValue = min;
 			if (inValue > max)
 				inValue = max;
-			var outValue = Widgets.HorizontalSlider_NewTemp(srect, inValue, min, max, false, null, labelId.SafeTranslate(), valstr, -1f);
+			var outValue = Tools.HorizontalSlider(srect, inValue, min, max, false, null, labelId.SafeTranslate(), valstr, -1f);
 			value = logarithmic ? (float)(1 - Math.Pow(1 - outValue, 1 / (double)10)) : outValue;
 			if (value < min)
 				value = min;
@@ -325,7 +325,7 @@ namespace ZombieLand
 			srect.xMax -= inset;
 
 			var value = $"{typeof(T).Name}_{forEnum}".SafeTranslate();
-			var n = (int)Widgets.HorizontalSlider_NewTemp(srect, Convert.ToInt32(forEnum), 0, max, false, null, labelId.SafeTranslate(), value, 1);
+			var n = (int)Tools.HorizontalSlider(srect, Convert.ToInt32(forEnum), 0, max, false, null, labelId.SafeTranslate(), value, 1);
 			forEnum = (T)Enum.ToObject(typeof(T), n);
 		}
 
@@ -339,7 +339,7 @@ namespace ZombieLand
 			srect.xMin += inset;
 			srect.xMax -= inset;
 
-			value = (int)(0.5f + Widgets.HorizontalSlider_NewTemp(srect, value, min, max, false, null, labelId.SafeTranslate(), format(value), -1f));
+			value = (int)(0.5f + Tools.HorizontalSlider(srect, value, min, max, false, null, labelId.SafeTranslate(), format(value), -1f));
 		}
 
 		public static void Dialog_TimeSlider(this Listing_Standard list, string labelId, ref int value, int min, int max, Func<int, string> valueStringConverter = null, bool fullDaysOnly = false)
@@ -356,7 +356,7 @@ namespace ZombieLand
 			srect.xMin += inset;
 			srect.xMax -= inset;
 
-			var newValue = (double)Widgets.HorizontalSlider_NewTemp(srect, value, min, max, false, null, labelId.SafeTranslate(), valstr, -1f);
+			var newValue = (double)Tools.HorizontalSlider(srect, value, min, max, false, null, labelId.SafeTranslate(), valstr, -1f);
 			if (fullDaysOnly)
 				value = (int)(Math.Round(newValue / 24f, MidpointRounding.ToEven) * 24f);
 			else

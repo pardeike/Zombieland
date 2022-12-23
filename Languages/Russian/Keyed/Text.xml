@@ -203,6 +203,7 @@
 	<IfInside>Когда внутри</IfInside>
 	<IfOutside>Когда снаружи</IfOutside>
 	<HighlightDangerousAreas>Выделите области риска</HighlightDangerousAreas>
+	<DisableRandomApparel>Выключить случайную одежду для зомби</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Парящие зомби в космосе</FloatingZombiesInSOS2>
 
 </LanguageData>

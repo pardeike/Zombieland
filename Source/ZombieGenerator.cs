@@ -615,7 +615,7 @@ namespace ZombieLand
 			{ Abort(ex13); yield break; }
 			yield return null;
 
-			if (zombie.IsTanky == false)
+			if (zombie.IsTanky == false && ZombieSettings.Values.disableRandomApparel == false)
 			{
 				it = GenerateStartingApparelFor(zombie);
 				looping = true;

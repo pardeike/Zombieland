@@ -35,6 +35,24 @@ namespace ZombieLand
 		}
 	}
 
+	public class FloatRef
+	{
+		public Func<float> getter;
+		public Action<float> setter;
+
+		public float Value
+		{
+			get => getter();
+			set => setter(value);
+		}
+
+		public FloatRef(Func<float> getter, Action<float> setter)
+		{
+			this.getter = getter;
+			this.setter = setter;
+		}
+	}
+
 	[StaticConstructorOnStartup]
 	static class Tools
 	{
@@ -1112,6 +1130,45 @@ namespace ZombieLand
 			if (ZombieButtonBackground == null)
 				ZombieButtonBackground = GraphicsDatabase.GetTexture("ZombieButtonBackground");
 			return ZombieButtonBackground;
+		}
+
+		public static float HorizontalSlider(Rect rect, float value, float leftValue, float rightValue, bool middleAlignment = false, string label = null, string leftAlignedLabel = null, string rightAlignedLabel = null, float roundTo = -1f)
+		{
+			if (middleAlignment || !label.NullOrEmpty())
+				rect.y += Mathf.Round((rect.height - 16f) / 2f);
+			if (!label.NullOrEmpty())
+				rect.y += 5f;
+			float num = GUI.HorizontalSlider(rect, value, leftValue, rightValue);
+			if (!label.NullOrEmpty() || !leftAlignedLabel.NullOrEmpty() || !rightAlignedLabel.NullOrEmpty())
+			{
+				TextAnchor anchor = Text.Anchor;
+				GameFont font = Text.Font;
+				Text.Font = GameFont.Tiny;
+				float num2 = (label.NullOrEmpty() ? 18f : Text.CalcSize(label).y);
+				rect.y = rect.y - num2 + 3f;
+				if (!leftAlignedLabel.NullOrEmpty())
+				{
+					Text.Anchor = TextAnchor.UpperLeft;
+					Widgets.Label(rect, leftAlignedLabel);
+				}
+				if (!rightAlignedLabel.NullOrEmpty())
+				{
+					Text.Anchor = TextAnchor.UpperRight;
+					Widgets.Label(rect, rightAlignedLabel);
+				}
+				if (!label.NullOrEmpty())
+				{
+					Text.Anchor = TextAnchor.UpperCenter;
+					Widgets.Label(rect, label);
+				}
+				Text.Anchor = anchor;
+				Text.Font = font;
+			}
+			if (roundTo > 0f)
+				num = (float)Mathf.RoundToInt(num / roundTo) * roundTo;
+			if (value != num)
+				SoundDefOf.DragSlider.PlayOneShotOnCamera();
+			return num;
 		}
 
 		public static bool ButtonText(Rect rect, string label, bool active, Color activeColor, Color inactiveColor)

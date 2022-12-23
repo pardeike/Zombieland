@@ -203,6 +203,7 @@
 	<IfInside>当在里面</IfInside>
 	<IfOutside>在外面的时候</IfOutside>
 	<HighlightDangerousAreas>突出风险领域</HighlightDangerousAreas>
+	<DisableRandomApparel>关闭僵尸随机服装</DisableRandomApparel>
 	<FloatingZombiesInSOS2>太空中漂浮的殭屍</FloatingZombiesInSOS2>
 
 </LanguageData>

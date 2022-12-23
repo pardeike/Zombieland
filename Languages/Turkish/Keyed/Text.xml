@@ -202,6 +202,7 @@
 	<IfInside>Ne zaman içeride</IfInside>
 	<IfOutside>Ne zaman dışarıda</IfOutside>
 	<HighlightDangerousAreas>Risk alanlarını vurgulayın</HighlightDangerousAreas>
+	<DisableRandomApparel>Zombiler için rastgele giyimleri kapat</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Uzayda yüzen zombiler</FloatingZombiesInSOS2>
 
 </LanguageData>
