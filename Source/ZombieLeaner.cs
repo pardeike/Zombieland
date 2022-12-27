@@ -31,10 +31,10 @@ namespace ZombieLand
 	class ZombieLeaner : PawnLeaner
 	{
 		readonly Zombie zombie;
-		Vector3 jitterOffset = new Vector3(0, 0, 0);
+		Vector3 jitterOffset = new(0, 0, 0);
 
-		Vector3 extraOffsetInternal = new Vector3(0, 0, 0);
-		public Vector3 extraOffset = new Vector3(0, 0, 0);
+		Vector3 extraOffsetInternal = new(0, 0, 0);
+		public Vector3 extraOffset = new(0, 0, 0);
 		readonly int randTickFrequency = Rand.Range(3, 9);
 		readonly int randTickOffset = Rand.Range(0, 9);
 

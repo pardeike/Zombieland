@@ -13,8 +13,7 @@ namespace ZombieLand
 		{
 			get
 			{
-				if (tendDurationComp == null)
-					tendDurationComp = this.TryGetComp<HediffComp_Zombie_TendDuration>();
+				tendDurationComp ??= this.TryGetComp<HediffComp_Zombie_TendDuration>();
 				return tendDurationComp;
 			}
 		}

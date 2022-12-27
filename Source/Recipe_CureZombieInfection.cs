@@ -7,7 +7,7 @@ namespace ZombieLand
 {
 	public class Recipe_CureZombieInfection : Recipe_Surgery
 	{
-		private List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBite = new List<Hediff_Injury_ZombieBite>();
+		private List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBite = new();
 
 		private bool BiteIsCurable(Hediff_Injury_ZombieBite bite)
 		{

@@ -205,7 +205,7 @@ namespace ZombieLand
 			}
 		}
 
-		static readonly Stopwatch watch = new Stopwatch();
+		static readonly Stopwatch watch = new();
 		IEnumerator Recalculate(IntVec3[] positions, bool ignoreBuildings)
 		{
 			positions
@@ -288,7 +288,7 @@ namespace ZombieLand
 	{
 		public static readonly IEnumerator processor = Process();
 
-		static readonly Dictionary<Map, MapInfo> grids = new Dictionary<Map, MapInfo>();
+		static readonly Dictionary<Map, MapInfo> grids = new();
 		const int cellSize = 5;
 		const int halfCellSize = (int)(cellSize / 2f + 0.9f);
 

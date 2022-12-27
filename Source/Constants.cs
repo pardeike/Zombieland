@@ -149,7 +149,8 @@ namespace ZombieLand
 		public static readonly Material[][] TANKYHELMETS = Tools.GetDamageableGraphics("TankyHelmet", 3, 4);
 		public static readonly Material[][] MINERHELMET = Tools.GetDamageableGraphics("MinerHelmet", 4, 0);
 		public static readonly Material[][] TANKYSUITS = Tools.GetDamageableGraphics("TankySuit", 3, 4);
-		public static readonly Dictionary<CameraZoomRange, Material> RAGE_AURAS = new Dictionary<CameraZoomRange, Material> {
+		public static readonly Dictionary<CameraZoomRange, Material> RAGE_AURAS = new()
+		{
 			{ CameraZoomRange.Closest, MaterialPool.MatFrom("RageAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.15f)) },
 			{ CameraZoomRange.Close, MaterialPool.MatFrom("RageAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.175f)) },
 			{ CameraZoomRange.Middle, MaterialPool.MatFrom("RageAura", ShaderDatabase.Mote, new Color(1f, 1f, 1f, 0.2f)) },
@@ -170,7 +171,7 @@ namespace ZombieLand
 			MaterialPool.MatFrom("Electrifier/Arc2", ShaderDatabase.Mote, Color.white),
 			MaterialPool.MatFrom("Electrifier/Arc3", ShaderDatabase.Mote, Color.white),
 		};
-		public static readonly Dictionary<BodyTypeDef, Material[]> ELECTRIC_GLOWING = new Dictionary<BodyTypeDef, Material[]>
+		public static readonly Dictionary<BodyTypeDef, Material[]> ELECTRIC_GLOWING = new()
 		{
 			{
 				BodyTypeDefOf.Fat, new Material[]
@@ -296,17 +297,17 @@ namespace ZombieLand
 		public static readonly Texture2D[] ButtonUp = new[] { ContentFinder<Texture2D>.Get("ButtonUp0", true), ContentFinder<Texture2D>.Get("ButtonUp1", true) };
 		public static readonly Texture2D Danger = ContentFinder<Texture2D>.Get("Danger", true);
 
-		public static readonly System.Random random = new System.Random();
+		public static readonly System.Random random = new();
 
 		public static readonly Mesh screamMesh = MeshMakerPlanes.NewPlaneMesh(8f);
 		public static readonly Mesh healMesh = MeshMakerPlanes.NewPlaneMesh(4f);
 
-		public static Texture2D dot = new Texture2D(3, 3);
+		public static Texture2D dot = new(3, 3);
 		public static Texture2D timeArrow = ContentFinder<Texture2D>.Get("TimeArrow", true);
 		public static Texture2D[] timeKnob = new[] { ContentFinder<Texture2D>.Get("TimeKnob", true), ContentFinder<Texture2D>.Get("TimeKnobSelected", true) };
 		public static Texture2D timeKnobHighlight = ContentFinder<Texture2D>.Get("TimeKnobHighlight", true);
 
 		public static readonly Texture2D healthBarFrame = SolidColorMaterials.NewSolidColorTexture(Color.black);
-		public static readonly Color healthBarBG = new Color(1, 1, 1, 0.25f);
+		public static readonly Color healthBarBG = new(1, 1, 1, 0.25f);
 	}
 }

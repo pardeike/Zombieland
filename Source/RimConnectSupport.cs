@@ -14,7 +14,7 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	public class RimConnectSupport
 	{
-		static readonly Dictionary<string, Func<int, string, (string, IntVec3)>> actions = new Dictionary<string, Func<int, string, (string, IntVec3)>>();
+		static readonly Dictionary<string, Func<int, string, (string, IntVec3)>> actions = new();
 
 		static RimConnectSupport()
 		{

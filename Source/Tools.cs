@@ -56,15 +56,15 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	static class Tools
 	{
-		public static ZombieAvoider avoider = new ZombieAvoider();
+		public static ZombieAvoider avoider = new();
 		public static Texture2D MenuIcon;
 		public static Texture2D ZombieButtonBackground;
 		public static string zlNamespace = typeof(Tools).Namespace;
 
-		public static List<Region> cachedPlayerReachableRegions = new List<Region>();
+		public static List<Region> cachedPlayerReachableRegions = new();
 		public static int nextPlayerReachableRegionsUpdate = 0;
 
-		public static HashSet<BiomeDef> biomeBlacklist = new HashSet<BiomeDef>();
+		public static HashSet<BiomeDef> biomeBlacklist = new();
 
 		static string mealLabel;
 		static string mealDescription;
@@ -73,12 +73,9 @@ namespace ZombieLand
 		{
 			var def = ThingDefOf.MealSurvivalPack;
 
-			if (mealLabel == null)
-				mealLabel = def.label;
-			if (mealDescription == null)
-				mealDescription = def.description;
-			if (mealGraphic == null)
-				mealGraphic = def.graphicData.cachedGraphic;
+			mealLabel ??= def.label;
+			mealDescription ??= def.description;
+			mealGraphic ??= def.graphicData.cachedGraphic;
 
 			if (enable)
 			{
@@ -159,7 +156,7 @@ namespace ZombieLand
 			return (int)(Constants.PHEROMONE_FADEOFF.SecondsToTicks() * ZombieSettings.Values.zombieInstinct.HalfToDoubleValue()) * 1000;
 		}
 
-		static readonly Dictionary<Map, PheromoneGrid> gridCache = new Dictionary<Map, PheromoneGrid>();
+		static readonly Dictionary<Map, PheromoneGrid> gridCache = new();
 		public static PheromoneGrid GetGrid(this Map map)
 		{
 			if (gridCache.TryGetValue(map, out var grid))
@@ -469,7 +466,7 @@ namespace ZombieLand
 			return list;
 		}
 
-		static readonly NameSingle emptyName = new NameSingle("");
+		static readonly NameSingle emptyName = new("");
 		public static void ConvertToZombie(ThingWithComps thing, Map map, bool force = false)
 		{
 			var corpse = thing as Corpse;
@@ -704,7 +701,7 @@ namespace ZombieLand
 			bite.TendDuration.ZombieInfector.ForceFinalStage();
 		}
 
-		static List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBites = new List<Hediff_Injury_ZombieBite>();
+		static List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBites = new();
 
 		public static bool HasInfectionState(Pawn pawn, InfectionState state)
 		{
@@ -1274,8 +1271,7 @@ namespace ZombieLand
 		public static Dictionary<float, HashSet<IntVec3>> circles;
 		public static IEnumerable<IntVec3> GetCircle(float radius)
 		{
-			if (circles == null)
-				circles = new Dictionary<float, HashSet<IntVec3>>();
+			circles ??= new Dictionary<float, HashSet<IntVec3>>();
 			var cells = circles.ContainsKey(radius) ? circles[radius] : null;
 			if (cells == null)
 			{
@@ -1528,8 +1524,8 @@ namespace ZombieLand
 			return biomeBlacklist.Contains(map.Biome);
 		}
 
-		static readonly RenderTexture renderTextureBack = new RenderTexture(64, 64, 16);
-		static readonly RenderTexture renderTextureFore = new RenderTexture(256, 256, 16);
+		static readonly RenderTexture renderTextureBack = new(64, 64, 16);
+		static readonly RenderTexture renderTextureFore = new(256, 256, 16);
 		public static void CreateFakeZombie(Map map, Action<Material> callback, bool foreground)
 		{
 			var zombie = ZombieGenerator.SpawnZombie(IntVec3.Zero, map, ZombieType.Normal);

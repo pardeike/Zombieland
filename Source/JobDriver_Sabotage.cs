@@ -327,7 +327,7 @@ namespace ZombieLand
 			return true;
 		}
 
-		static List<Hediff_Injury> tmpHediffInjury = new List<Hediff_Injury>();
+		static List<Hediff_Injury> tmpHediffInjury = new();
 		public static bool DieEasily(this JobDriver_Sabotage driver)
 		{
 			if (driver.pawn.health.Downed)

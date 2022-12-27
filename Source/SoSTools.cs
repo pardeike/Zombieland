@@ -42,7 +42,7 @@ namespace ZombieLand
 
 			public IntVec3 mapSize;
 			public Material material;
-			public Vector3 position = new Vector3(-1000, 0, -1000);
+			public Vector3 position = new(-1000, 0, -1000);
 			public float angle = 0;
 			public bool foreground;
 			public float alpha = 1f;

@@ -12,7 +12,7 @@ namespace ZombieLand
 {
 	public static class ZombieAreaManager
 	{
-		public static Dictionary<Area, HashSet<IntVec3>> cache = new Dictionary<Area, HashSet<IntVec3>>();
+		public static Dictionary<Area, HashSet<IntVec3>> cache = new();
 		public static List<(Pawn, Area)> pawnsInDanger = new();
 		public static DateTime nextUpdate = DateTime.Now;
 		public static bool warningShowing = false;
@@ -147,13 +147,13 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Dialog_ManageAreas))]
 	public static class Dialog_ManageAreas_Patches
 	{
-		public static readonly Color listBackground = new Color(32 / 255f, 36 / 255f, 40 / 255f);
-		public static readonly Color highlightedBackground = new Color(74 / 255f, 74 / 255f, 74 / 255f, 0.5f);
-		public static readonly Color background = new Color(74 / 255f, 74 / 255f, 74 / 255f);
-		public static readonly Color inactiveTextColor = new Color(145 / 255f, 125 / 255f, 98 / 255f);
-		public static readonly Color areaNameZombiesInside = new Color(1f, 0.2f, 0.2f);
-		public static readonly Color areaNameZombiesOutside = new Color(0.2f, 1f, 0.2f);
-		public static readonly GUIStyle textFieldStyle = new GUIStyle()
+		public static readonly Color listBackground = new(32 / 255f, 36 / 255f, 40 / 255f);
+		public static readonly Color highlightedBackground = new(74 / 255f, 74 / 255f, 74 / 255f, 0.5f);
+		public static readonly Color background = new(74 / 255f, 74 / 255f, 74 / 255f);
+		public static readonly Color inactiveTextColor = new(145 / 255f, 125 / 255f, 98 / 255f);
+		public static readonly Color areaNameZombiesInside = new(1f, 0.2f, 0.2f);
+		public static readonly Color areaNameZombiesOutside = new(0.2f, 1f, 0.2f);
+		public static readonly GUIStyle textFieldStyle = new()
 		{
 			alignment = TextAnchor.MiddleLeft,
 			clipping = TextClipping.Clip,

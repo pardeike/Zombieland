@@ -6,9 +6,9 @@ namespace ZombieLand
 {
 	public class TarSlime : Filth
 	{
-		static readonly Vector2 size1 = new Vector2(0.85f, 0.85f);
-		static readonly Vector2 size2 = new Vector2(1.5f, 1.5f);
-		static readonly Vector2 size3 = new Vector2(2f, 2f);
+		static readonly Vector2 size1 = new(0.85f, 0.85f);
+		static readonly Vector2 size2 = new(1.5f, 1.5f);
+		static readonly Vector2 size3 = new(2f, 2f);
 
 		public override void SpawnSetup(Map map, bool respawningAfterLoad)
 		{

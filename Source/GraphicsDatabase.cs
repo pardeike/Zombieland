@@ -14,9 +14,9 @@ namespace ZombieLand
 	public static class GraphicsDatabase
 	{
 		static readonly string textureRoot = Tools.GetModRootDirectory() + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar;
-		public static List<string> zombieRGBSkinColors = new List<string>();
+		public static List<string> zombieRGBSkinColors = new();
 		public static Graphic twinkieGraphic;
-		static readonly Dictionary<string, ColorData> colorDataDatabase = new Dictionary<string, ColorData>();
+		static readonly Dictionary<string, ColorData> colorDataDatabase = new();
 
 		public static void NoOpManipulator(ref string path, ref int width, ref int height, ref Color[] pixels, ref Rect rect, ref bool noRecolor)
 		{

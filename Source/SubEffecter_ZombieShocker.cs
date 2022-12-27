@@ -11,7 +11,7 @@ namespace ZombieLand
 	public class SubEffecter_ZombieShocker : SubEffecter
 	{
 		static readonly ThingDef[] zaps = new ThingDef[] { CustomDefs.ZombieZapA, CustomDefs.ZombieZapB, CustomDefs.ZombieZapC, CustomDefs.ZombieZapD };
-		static readonly Vector3 zapBaseVec = new Vector3(0f, 0f, -0.25f);
+		static readonly Vector3 zapBaseVec = new(0f, 0f, -0.25f);
 		static readonly int zapDelay = 45;
 
 		public CompPowerTrader compPowerTrader;
@@ -20,7 +20,7 @@ namespace ZombieLand
 		private IntVec3 cell;
 		private Map map;
 		private Room room;
-		private readonly Queue<IntVec3> cells = new Queue<IntVec3>();
+		private readonly Queue<IntVec3> cells = new();
 		private const float amount = 6;
 		private int zappingState = -1;
 

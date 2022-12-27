@@ -31,8 +31,8 @@ namespace ZombieLand
 	{
 		public bool running = true;
 		readonly Map map;
-		public Dictionary<Region, int> backpointingRegionsIndices = new Dictionary<Region, int>();
-		public List<BackpointingRegion> backpointingRegions = new List<BackpointingRegion>();
+		public Dictionary<Region, int> backpointingRegionsIndices = new();
+		public List<BackpointingRegion> backpointingRegions = new();
 
 		public ZombiePathing(Map map)
 		{

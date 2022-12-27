@@ -39,7 +39,7 @@ namespace ZombieLand
 	public class Alert_ZombieInfection : Alert_ZombieInfectionProgress
 	{
 		public static HashSet<Pawn> infectedColonists;
-		private List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBites = new List<Hediff_Injury_ZombieBite>();
+		private List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBites = new();
 
 		public override bool ColonistSelector(Pawn pawn)
 		{

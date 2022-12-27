@@ -8,7 +8,7 @@ namespace ZombieLand
 {
 	public class ConcurrentQueue<T>
 	{
-		readonly List<T> queue = new List<T>();
+		readonly List<T> queue = new();
 		readonly int maxSize;
 		readonly bool returnNullOnEmpty;
 

@@ -22,7 +22,7 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	static class Patches
 	{
-		static readonly List<string> errors = new List<string>();
+		static readonly List<string> errors = new();
 
 		static Patches()
 		{
@@ -92,7 +92,7 @@ namespace ZombieLand
 		// used to prevent zombies from being counted as hostiles
 		// both in map exist and for danger music
 		//
-		static readonly Dictionary<Map, HashSet<IAttackTarget>> playerHostilesWithoutZombies = new Dictionary<Map, HashSet<IAttackTarget>>();
+		static readonly Dictionary<Map, HashSet<IAttackTarget>> playerHostilesWithoutZombies = new();
 
 		// patch for debugging: show pheromone grid as overlay
 		//
@@ -216,7 +216,7 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(GlobalControlsUtility.DoDate))]
 		class GlobalControlsUtility_DoDate_Patch
 		{
-			static Color percentageBackground = new Color(1, 1, 1, 0.1f);
+			static Color percentageBackground = new(1, 1, 1, 0.1f);
 
 			static void Postfix(float leftX, float width, ref float curBaseY)
 			{
@@ -364,14 +364,9 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Verse.TickManager.DoSingleTick))]
 		static class TickManager_DoSingleTick_Patch
 		{
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			static void Postfix()
 			{
-				foreach (var instruction in instructions)
-				{
-					if (instruction.opcode == OpCodes.Ret)
-						yield return CodeInstruction.Call(() => ZombieTicker.DoSingleTick());
-					yield return instruction;
-				}
+				ZombieTicker.DoSingleTick();
 			}
 		}
 		[HarmonyPatch(typeof(Verse.TickManager))]
@@ -951,6 +946,27 @@ namespace ZombieLand
 				return true;
 			}
 		}
+		// but let drafted pawns attack zombies
+		//
+		[HarmonyPatch(typeof(JobDriver_Wait))]
+		[HarmonyPatch(nameof(JobDriver_Wait.CheckForAutoAttack))]
+		static class JobDriver_Wait_CheckForAutoAttack_Patch
+		{
+			static bool IsActiveThreatTo(IAttackTarget target, Faction faction)
+			{
+				if (target is Zombie)
+					return true;
+				return GenHostility.IsActiveThreatTo(target, faction);
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				return Tools.DownedReplacer(instructions, 1).MethodReplacer(
+					SymbolExtensions.GetMethodInfo(() => GenHostility.IsActiveThreatTo(null, null)),
+					SymbolExtensions.GetMethodInfo(() => IsActiveThreatTo(null, null))
+				);
+			}
+		}
 
 		// patch to not allow some jobs on zombies
 		//
@@ -958,7 +974,7 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Pawn_JobTracker.StartJob))]
 		static class Pawn_JobTracker_StartJob_Patch
 		{
-			static readonly HashSet<JobDef> allowedJobs = new HashSet<JobDef>()
+			static readonly HashSet<JobDef> allowedJobs = new()
 			{
 				CustomDefs.Stumble,
 				CustomDefs.Sabotage,
@@ -1165,7 +1181,7 @@ namespace ZombieLand
 		[HarmonyPatch(new Type[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(TraverseParms), typeof(PathEndMode), typeof(PathFinderCostTuning) })]
 		public static class PathFinder_FindPath_Patch
 		{
-			public static Dictionary<Map, TickManager> tickManagerCache = new Dictionary<Map, TickManager>();
+			public static Dictionary<Map, TickManager> tickManagerCache = new();
 
 			// infected colonists will still path so exclude them from this check
 			// by returning 0 - currently disabled because it does cost too much
@@ -2175,7 +2191,7 @@ namespace ZombieLand
 		public static class Need_CurLevel_Patch
 		{
 			// this is set periodically from Alerts.Alert_ZombieInfection
-			public static HashSet<Pawn> infectedColonists = new HashSet<Pawn>();
+			public static HashSet<Pawn> infectedColonists = new();
 
 			static bool ShouldBeAverageNeed(Pawn pawn)
 			{
@@ -2626,16 +2642,6 @@ namespace ZombieLand
 				return Tools.DownedReplacer(instructions);
 			}
 		}
-		[HarmonyPatch(typeof(JobDriver_Wait))]
-		[HarmonyPatch(nameof(JobDriver_Wait.CheckForAutoAttack))]
-		static class JobDriver_Wait_CheckForAutoAttack_Patch
-		{
-			[HarmonyPriority(Priority.First)]
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			{
-				return Tools.DownedReplacer(instructions, 1);
-			}
-		}
 		[HarmonyPatch]
 		static class JobDriver_AttackStatic_TickAction_Patch
 		{
@@ -2720,13 +2726,13 @@ namespace ZombieLand
 		static class PawnRenderer_RenderPawnAt_Patch
 		{
 			static readonly float moteAltitute = Altitudes.AltitudeFor(AltitudeLayer.MoteOverhead);
-			static Vector3 leftEyeOffset = new Vector3(-0.092f, 0f, -0.08f);
-			static Vector3 rightEyeOffset = new Vector3(0.092f, 0f, -0.08f);
+			static Vector3 leftEyeOffset = new(-0.092f, 0f, -0.08f);
+			static Vector3 rightEyeOffset = new(0.092f, 0f, -0.08f);
 
-			static Vector3 toxicAuraOffset = new Vector3(0f, 0f, 0.1f);
+			static Vector3 toxicAuraOffset = new(0f, 0f, 0.1f);
 			const float leanAngle = 15f;
 
-			static readonly Color white50 = new Color(1f, 1f, 1f, 0.5f);
+			static readonly Color white50 = new(1f, 1f, 1f, 0.5f);
 
 			static readonly Mesh bodyMesh = MeshPool.GridPlane(new Vector2(1.5f, 1.5f));
 			static readonly Mesh bodyMesh_flipped = MeshPool.GridPlaneFlip(new Vector2(1.5f, 1.5f));
@@ -3658,7 +3664,7 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Recipe_RemoveBodyPart.GetPartsToApplyOn))]
 		static class Recipe_RemoveBodyPart_GetPartsToApplyOn_Patch
 		{
-			static List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBite = new List<Hediff_Injury_ZombieBite>();
+			static List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBite = new();
 
 			[HarmonyPriority(Priority.Last)]
 			static IEnumerable<BodyPartRecord> Postfix(IEnumerable<BodyPartRecord> parts, Pawn pawn, RecipeDef recipe)
@@ -4390,7 +4396,7 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(PawnNameColorUtility.PawnNameColorOf))]
 		static class PawnNameColorUtility_PawnNameColorOf_Patch
 		{
-			static Color zombieLabelColor = new Color(0.7f, 1f, 0.7f);
+			static Color zombieLabelColor = new(0.7f, 1f, 0.7f);
 
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn pawn, ref Color __result)
@@ -4588,7 +4594,7 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Corpse.TickRare))]
 		static class Corpse_TickRare_Patch
 		{
-			static List<Hediff_ZombieInfection> tmpHediffZombieInfections = new List<Hediff_ZombieInfection>();
+			static List<Hediff_ZombieInfection> tmpHediffZombieInfections = new();
 
 			static void Postfix(Corpse __instance)
 			{
@@ -4620,7 +4626,7 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(HealthCardUtility.DrawOverviewTab))]
 		static class HealthCardUtility_DrawOverviewTab_Patch
 		{
-			static List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBites = new List<Hediff_Injury_ZombieBite>();
+			static List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBites = new();
 
 			static void Postfix(Pawn pawn, Rect leftRect, ref float __result)
 			{

@@ -102,7 +102,7 @@ namespace ZombieLand
 		public static Action GeneateTooltipDrawer(Rect rect)
 		{
 			const float g = 40f;
-			static Rect R(int x1, int y1, int x2, int y2) => new Rect(g * x1, g * y1, g * (x2 - x1), g * (y2 - y1));
+			static Rect R(int x1, int y1, int x2, int y2) => new(g * x1, g * y1, g * (x2 - x1), g * (y2 - y1));
 
 			return () =>
 			{

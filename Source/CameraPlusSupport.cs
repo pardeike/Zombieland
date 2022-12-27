@@ -6,14 +6,14 @@ namespace CameraPlusSupport
 	[StaticConstructorOnStartup]
 	class Methods
 	{
-		static Color defaultColor = new Color(0.3019608f, 0.215686277f, 0.0431372561f);
-		static Color minerColor = new Color(0.8745098f, 0.5411765f, 0.168627456f);
-		static Color tankyColor = new Color(0.294117659f, 0.294117659f, 0.294117659f);
-		static Color darkColor = new Color(0.1f, 0.1f, 0.1f);
-		static Color bombBlinkColor = new Color(1f, 0f, 0.2901961f);
-		static Color turnedColor = new Color(0.105882354f, 0.403921574f, 0.105882354f);
-		static Color trackColor = new Color(1f, 0.8509804f, 0.8509804f);
-		static Color rageColor = new Color(1f, 0.6509804f, 0.6509804f);
+		static Color defaultColor = new(0.3019608f, 0.215686277f, 0.0431372561f);
+		static Color minerColor = new(0.8745098f, 0.5411765f, 0.168627456f);
+		static Color tankyColor = new(0.294117659f, 0.294117659f, 0.294117659f);
+		static Color darkColor = new(0.1f, 0.1f, 0.1f);
+		static Color bombBlinkColor = new(1f, 0f, 0.2901961f);
+		static Color turnedColor = new(0.105882354f, 0.403921574f, 0.105882354f);
+		static Color trackColor = new(1f, 0.8509804f, 0.8509804f);
+		static Color rageColor = new(1f, 0.6509804f, 0.6509804f);
 
 		static readonly Texture2D innerMarkerTexture = ContentFinder<Texture2D>.Get("InnerCameraMarker", true);
 		static readonly Texture2D outerMarkerTexture = ContentFinder<Texture2D>.Get("OuterCameraMarker", true);

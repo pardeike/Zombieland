@@ -78,7 +78,7 @@ namespace ZombieLand
 		public string text;
 		Vector2 scrollPosition;
 
-		public override Vector2 InitialSize => new Vector2(640f, 460f);
+		public override Vector2 InitialSize => new(640f, 460f);
 
 		public Dialog_ErrorMessage(string text)
 		{
@@ -112,7 +112,7 @@ namespace ZombieLand
 	public class BiomeList : Window
 	{
 		public List<(BiomeDef def, TaggedString name)> allBiomes;
-		public override Vector2 InitialSize => new Vector2(320, 380);
+		public override Vector2 InitialSize => new(320, 380);
 
 		private readonly SettingsGroup settings;
 		private Vector2 scrollPosition = Vector2.zero;

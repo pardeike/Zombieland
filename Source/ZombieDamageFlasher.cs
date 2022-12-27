@@ -30,7 +30,7 @@ namespace ZombieLand
 	[HarmonyPatch(nameof(DamageFlasher.GetDamagedMat))]
 	static class DamageFlasher_GetDamagedMat_Patch
 	{
-		static readonly Color greenDamagedMatStartingColor = new Color(0f, 0.8f, 0f);
+		static readonly Color greenDamagedMatStartingColor = new(0f, 0.8f, 0f);
 
 		private static int DamageFlashTicksLeft(DamageFlasher damageFlasher)
 		{

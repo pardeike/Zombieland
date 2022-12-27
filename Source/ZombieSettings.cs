@@ -63,7 +63,7 @@ namespace ZombieLand
 		internal NoteDialog(string text, string buttonAText = null, Action buttonAAction = null, string buttonBText = null, Action buttonBAction = null, string title = null, bool buttonADestructive = false, Action acceptAction = null, Action cancelAction = null)
 			: base(text, buttonAText, buttonAAction, buttonBText, buttonBAction, title, buttonADestructive, acceptAction, cancelAction) { }
 
-		public override Vector2 InitialSize => new Vector2(320, 240);
+		public override Vector2 InitialSize => new(320, 240);
 	}
 
 	public class ZombieRiskArea : IExposable
@@ -72,7 +72,7 @@ namespace ZombieLand
 		public int map;
 		public ZombieRiskMode mode;
 
-		public static List<ZombieRiskArea> temp = new List<ZombieRiskArea>();
+		public static List<ZombieRiskArea> temp = new();
 
 		public void ExposeData()
 		{
@@ -230,9 +230,9 @@ namespace ZombieLand
 		public int safeMeleeLimit = 1;
 		public WanderingStyle wanderingStyle = WanderingStyle.Smart;
 		public bool showHealthBar = true;
-		public HashSet<string> biomesWithoutZombies = new HashSet<string>();
+		public HashSet<string> biomesWithoutZombies = new();
 		public bool showZombieStats = true;
-		public Dictionary<Area, ZombieRiskMode> dangerousAreas = new Dictionary<Area, ZombieRiskMode>();
+		public Dictionary<Area, ZombieRiskMode> dangerousAreas = new();
 		public bool highlightDangerousAreas = false;
 		public bool disableRandomApparel = false;
 		public bool floatingZombies = true;

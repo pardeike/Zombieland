@@ -137,7 +137,7 @@ namespace ZombieLand
 				.Select(f => f.GetValue(instance) as T);
 		}
 
-		static readonly HashSet<Bill> seenBills = new HashSet<Bill>();
+		static readonly HashSet<Bill> seenBills = new();
 
 		static IEnumerable<Bill> AllBills(BillStack billStack)
 		{

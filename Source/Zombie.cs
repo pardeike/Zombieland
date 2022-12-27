@@ -66,7 +66,7 @@ namespace ZombieLand
 
 		int rubbleTicks = Rand.Range(0, 60);
 		public int rubbleCounter;
-		List<Rubble> rubbles = new List<Rubble>();
+		List<Rubble> rubbles = new();
 
 		public IntVec2 sideEyeOffset;
 		public bool wasMapPawnBefore;
@@ -102,7 +102,7 @@ namespace ZombieLand
 		public void DisableElectric(int ticks) { electricDisabledUntil = Find.TickManager.TicksGame + ticks; }
 		public int electricCounter = -1000;
 		public float electricAngle = 0;
-		public List<KeyValuePair<float, int>> absorbAttack = new List<KeyValuePair<float, int>>();
+		public List<KeyValuePair<float, int>> absorbAttack = new();
 
 		// albino
 		public bool isAlbino = false;
@@ -113,7 +113,7 @@ namespace ZombieLand
 
 		// healer
 		public bool isHealer = false;
-		public List<HealerInfo> healInfo = new List<HealerInfo>();
+		public List<HealerInfo> healInfo = new();
 
 		// transient vars
 		public bool needsGraphics = false;
@@ -520,7 +520,7 @@ namespace ZombieLand
 				comps[i].CompTick();
 		}
 
-		static DamageInfo damageInfo = new DamageInfo(DamageDefOf.Crush, 20f, 20f, -1f, null, null, null, DamageInfo.SourceCategory.ThingOrUnknown, null);
+		static DamageInfo damageInfo = new(DamageDefOf.Crush, 20f, 20f, -1f, null, null, null, DamageInfo.SourceCategory.ThingOrUnknown, null);
 		public void CustomTick(float threatLevel)
 		{
 			var map = Map;
