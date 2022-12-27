@@ -30,7 +30,7 @@ namespace ZombieLand
 				var stain = ZombieStains.GetRandom(points, req.path.Contains("Naked"));
 				var it = data.ApplyStainsIterativ(stain.Key, Rand.Bool, Rand.Bool);
 				while (it.MoveNext())
-					yield return null;
+					yield return it.Current;
 				points -= stain.Value;
 
 				hash = Gen.HashCombine(hash, stain);
@@ -48,7 +48,7 @@ namespace ZombieLand
 			mats[n] = new VariableMaterial(request, data);
 		}
 
-		public static GraphicRequest minimal = new GraphicRequest();
+		public static GraphicRequest minimal = new();
 		public override void Init(GraphicRequest req)
 		{
 			if (req == minimal)
@@ -67,7 +67,8 @@ namespace ZombieLand
 			for (var i = 0; i < 4; i++)
 			{
 				var iterator = InitIterativ(req, i, ZombieStains.maxStainPoints);
-				while (iterator.MoveNext()) ;
+				while (iterator.MoveNext())
+					;
 			}
 		}
 

@@ -77,12 +77,15 @@ namespace ZombieLand
 
 		ConcurrentQueue<AvoidGrid> QueueForMap(Map map)
 		{
-			if (resultQueues.TryGetValue(map, out var queue) == false)
+			lock (requestQueue)
 			{
-				queue = new ConcurrentQueue<AvoidGrid>(true);
-				resultQueues.Add(map, queue);
+				if (resultQueues.TryGetValue(map, out var queue) == false)
+				{
+					queue = new ConcurrentQueue<AvoidGrid>(true);
+					resultQueues.Add(map, queue);
+				}
+				return queue;
 			}
-			return queue;
 		}
 
 		public ZombieAvoider()

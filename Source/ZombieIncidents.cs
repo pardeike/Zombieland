@@ -39,7 +39,7 @@ namespace ZombieLand
 	public class IncidentInfo : IExposable
 	{
 		int lastIncident;
-		public IncidentParameters parameters = new IncidentParameters();
+		public IncidentParameters parameters = new();
 
 		public int NextIncident()
 		{
@@ -227,7 +227,7 @@ namespace ZombieLand
 					var it = ZombieGenerator.SpawnZombieIterativ(cell, map, zombieType, zombie => tickManager.allZombiesCached.Add(zombie));
 					while (it.MoveNext())
 					{
-						if (ZombielandMod.frameWatch.ElapsedMilliseconds >= 4)
+						if (ZombielandMod.frameWatch.ElapsedMilliseconds >= 10)
 							yield return null;
 					}
 					incidentSize--;
@@ -271,6 +271,39 @@ namespace ZombieLand
 			}
 			return spot;
 		}
+
+		/*
+		static readonly Dictionary<string, (long, long)> elapsed = new();
+		static IEnumerator DeltaTimeProxy(Map map, int incidentSize, IntVec3 spot, Predicate<IntVec3> cellValidator, bool useAlert, bool ignoreLimit, ZombieType zombieType = ZombieType.Random)
+		{
+			elapsed.Clear();
+			var it = SpawnEventProcess(map, incidentSize, spot, cellValidator, useAlert, ignoreLimit, zombieType);
+			while (true)
+			{
+				var sw = Stopwatch.StartNew();
+				if (it.MoveNext() == false)
+					break;
+				var res = it.Current;
+				if (res is string key)
+				{
+					var ms = sw.ElapsedMilliseconds;
+					if (elapsed.TryGetValue(key, out var value) == false)
+						elapsed.Add(key, (ms, ms));
+					else
+					{
+						value.Item1 = Math.Min(value.Item1, ms);
+						value.Item2 = Math.Max(value.Item2, ms);
+						elapsed[key] = value;
+					}
+					yield return null;
+				}
+				else
+					yield return res;
+			}
+			foreach (var item in elapsed)
+				Log.Warning($"{item.Key}: {item.Value.Item1} - {item.Value.Item2}");
+		}
+		*/
 
 		public static bool TryExecute(Map map, int incidentSize, IntVec3 spot, bool useAlert, bool ignoreLimit = false, ZombieType zombieType = ZombieType.Random)
 		{

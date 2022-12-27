@@ -28,7 +28,24 @@ namespace ZombieLand
 		public static void DoSingleTick()
 		{
 			if (RimThreaded == null)
-				managers.Do(tickManager => tickManager.ZombieTicking());
+				managers.Do(tickManager =>
+				{
+					switch (tickManager.isInitialized)
+					{
+						case 0:
+							Log.Error("Fatal error! Zombieland's TickManager is not initialized. This should never happen unless you're using another mod that caused an error in MapComponent.FinalizeInit");
+							break;
+						case 1:
+							Log.Error("Fatal error! Zombieland's TickManager is not initialized. The base implementation never returned which means another mod is causing an error in MapComponent.FinalizeInit");
+							break;
+						case 2:
+							Log.Error("Fatal error! Zombieland's TickManager is not initialized because its FinalizeInit method caused an error. Maybe another mod caused this error indirectly, you should report this.");
+							break;
+						case 3:
+							tickManager.ZombieTicking();
+							break;
+					}
+				});
 		}
 
 		public static float PercentTicking
@@ -47,6 +64,7 @@ namespace ZombieLand
 
 	public class TickManager : MapComponent
 	{
+		public int isInitialized = 0;
 		int populationSpawnCounter;
 
 		int nextVisibleGridUpdate;
@@ -71,18 +89,18 @@ namespace ZombieLand
 		Sustainer zombiesAmbientSound;
 		float zombiesAmbientSoundVolume;
 
-		public readonly HashSet<Zombie> hummingZombies = new HashSet<Zombie>();
+		public readonly HashSet<Zombie> hummingZombies = new();
 		Sustainer electricSustainer;
 
-		public Queue<ThingWithComps> colonistsConverter = new Queue<ThingWithComps>();
-		public Queue<Action<Map>> rimConnectActions = new Queue<Action<Map>>();
+		public Queue<ThingWithComps> colonistsConverter = new();
+		public Queue<Action<Map>> rimConnectActions = new();
 
-		public List<IntVec3> explosions = new List<IntVec3>();
-		public IncidentInfo incidentInfo = new IncidentInfo();
+		public List<IntVec3> explosions = new();
+		public IncidentInfo incidentInfo = new();
 		public ZombiePathing zombiePathing;
 
-		public List<SoSTools.Floater> floatingSpaceZombiesBack = new List<SoSTools.Floater>();
-		public List<SoSTools.Floater> floatingSpaceZombiesFore = new List<SoSTools.Floater>();
+		public List<SoSTools.Floater> floatingSpaceZombiesBack = new();
+		public List<SoSTools.Floater> floatingSpaceZombiesFore = new();
 
 		public TickManager(Map map) : base(map)
 		{
@@ -109,7 +127,9 @@ namespace ZombieLand
 
 		public override void FinalizeInit()
 		{
+			isInitialized = 1;
 			base.FinalizeInit();
+			isInitialized = 2;
 
 			Tools.nextPlayerReachableRegionsUpdate = 0;
 
@@ -159,6 +179,8 @@ namespace ZombieLand
 			taskTicker = TickTasks();
 			while (taskTicker.Current as string != "end")
 				_ = taskTicker.MoveNext();
+
+			isInitialized = 3;
 		}
 
 		public override void MapRemoved()
@@ -185,17 +207,14 @@ namespace ZombieLand
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
-				if (allZombiesCached == null)
-					allZombiesCached = new HashSet<Zombie>();
+				allZombiesCached ??= new HashSet<Zombie>();
 				allZombiesCached = allZombiesCached.Where(zombie => zombie != null && zombie.Spawned && zombie.Dead == false).ToHashSet();
 
-				if (allZombieCorpses == null)
-					allZombieCorpses = new List<ZombieCorpse>();
+				allZombieCorpses ??= new List<ZombieCorpse>();
 				allZombieCorpses = allZombieCorpses.Where(corpse => corpse.DestroyedOrNull() == false && corpse.Spawned).ToList();
 
 				runZombiesForNewIncident = true;
-				if (explosions == null)
-					explosions = new List<IntVec3>();
+				explosions ??= new List<IntVec3>();
 			}
 		}
 
@@ -410,8 +429,7 @@ namespace ZombieLand
 		{
 			if (Tools.ShouldAvoidZombies() == false)
 			{
-				if (emptyAvoidGrid == null)
-					emptyAvoidGrid = new AvoidGrid(map);
+				emptyAvoidGrid ??= new AvoidGrid(map);
 				avoidGrid = emptyAvoidGrid;
 				return;
 			}
@@ -521,8 +539,7 @@ namespace ZombieLand
 				return;
 			}
 
-			if (electricSustainer == null)
-				electricSustainer = CustomDefs.ZombieElectricHum.TrySpawnSustainer(SoundInfo.OnCamera(MaintenanceType.None));
+			electricSustainer ??= CustomDefs.ZombieElectricHum.TrySpawnSustainer(SoundInfo.OnCamera(MaintenanceType.None));
 
 			if (hummingZombies.Count == 0)
 			{
@@ -590,8 +607,7 @@ namespace ZombieLand
 				yield return null;
 				if (Constants.USE_SOUND && ZombieSettings.Values.playCreepyAmbientSound)
 				{
-					if (zombiesAmbientSound == null)
-						zombiesAmbientSound = CustomDefs.ZombiesClosingIn.TrySpawnSustainer(SoundInfo.OnCamera(MaintenanceType.None));
+					zombiesAmbientSound ??= CustomDefs.ZombiesClosingIn.TrySpawnSustainer(SoundInfo.OnCamera(MaintenanceType.None));
 
 					if (volume < zombiesAmbientSoundVolume)
 						zombiesAmbientSoundVolume -= 0.0001f;
@@ -600,21 +616,25 @@ namespace ZombieLand
 					zombiesAmbientSound.info.volumeFactor = zombiesAmbientSoundVolume;
 				}
 				else
+				{
 					StopAmbientSound();
+					yield return null;
+				}
 
-				yield return null;
 				if (colonistsConverter.Count > 0 && map != null)
 				{
 					var pawn = colonistsConverter.Dequeue();
 					Tools.ConvertToZombie(pawn, map);
+					yield return null;
 				}
-				yield return null;
 				if (rimConnectActions.Count > 0 && map != null)
 				{
 					var action = rimConnectActions.Dequeue();
 					action(map);
+					yield return null;
 				}
-				yield return "end";
+
+				yield return "end"; // must be called "end"!
 			}
 		}
 
