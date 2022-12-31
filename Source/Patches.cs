@@ -407,7 +407,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Thing a, Thing b, ref bool __result)
 			{
-				if (!(a is Pawn pawn) || pawn.IsColonist || (pawn is Zombie) || !(b is Zombie zombie))
+				if (!(a is Pawn pawn) || pawn.ActivePartOfColony() || (pawn is Zombie) || !(b is Zombie zombie))
 					return;
 
 				if (Tools.HasInfectionState(pawn, InfectionState.BittenInfectable, InfectionState.Infected))
@@ -427,12 +427,11 @@ namespace ZombieLand
 					return;
 				if (fac.def != ZombieDefOf.Zombies)
 					return;
-				if (!(t is Pawn pawn))
+				if (t is not Pawn pawn)
 					return;
 				if (pawn is Zombie)
 					return;
-				// jobs != null test is a workaround for a NRE in RW triggered by carried slaves being dropped
-				if (pawn.jobs != null && pawn.IsColonist)
+				if (pawn.ActivePartOfColony())
 					return;
 				__result = Tools.IsHostileToZombies(pawn);
 			}
@@ -494,19 +493,6 @@ namespace ZombieLand
 				if (attacker is Zombie)
 					return;
 
-				// attacker is colonist?
-				if (attacker.IsColonist)
-				{
-					validator = (Thing t) =>
-					{
-						if (t is Zombie zombie && zombie.ropedBy == attacker)
-							return false;
-						return oldValidator(t);
-					};
-
-					return;
-				}
-
 				// attacker is animal
 				if (attacker.RaceProps.Animal)
 				{
@@ -514,6 +500,19 @@ namespace ZombieLand
 					{
 						if (t is Zombie)
 							return ZombieSettings.Values.animalsAttackZombies;
+						return oldValidator(t);
+					};
+
+					return;
+				}
+
+				// attacker is player
+				if (attacker.Faction.IsPlayer)
+				{
+					validator = (Thing t) =>
+					{
+						if (t is Zombie zombie && zombie.ropedBy == attacker)
+							return false;
 						return oldValidator(t);
 					};
 
@@ -1536,7 +1535,7 @@ namespace ZombieLand
 		{
 			static void Postfix(IntVec3 c, Pawn p, Map map, ref Danger __result)
 			{
-				if (p is Zombie || p.IsColonist == false || Tools.ShouldAvoidZombies(p) == false)
+				if (p is Zombie || p.ActivePartOfColony() == false || Tools.ShouldAvoidZombies(p) == false)
 					return;
 
 				if (p.CurJob?.playerForced ?? false)
@@ -1555,7 +1554,7 @@ namespace ZombieLand
 		{
 			static bool ShouldAvoid(Pawn pawn, IntVec3 cell, bool forced)
 			{
-				if (forced || pawn.IsColonist == false)
+				if (forced || pawn.ActivePartOfColony() == false)
 					return false;
 
 				if (Tools.ShouldAvoidZombies(pawn) == false)
@@ -1599,7 +1598,7 @@ namespace ZombieLand
 		{
 			static bool ShouldAvoid(Pawn pawn, IntVec3 cell, bool forced)
 			{
-				if (forced || pawn.IsColonist == false)
+				if (forced || pawn.ActivePartOfColony() == false)
 					return false;
 
 				if (Tools.ShouldAvoidZombies(pawn) == false)
@@ -1643,7 +1642,7 @@ namespace ZombieLand
 		{
 			static bool ShouldAvoid(Pawn pawn, Thing thing, bool forced)
 			{
-				if (forced || pawn.IsColonist == false)
+				if (forced || pawn.ActivePartOfColony() == false)
 					return false;
 
 				if (Tools.ShouldAvoidZombies(pawn) == false)
@@ -1687,7 +1686,7 @@ namespace ZombieLand
 		{
 			static bool ShouldAvoid(Pawn pawn, Thing thing, bool forced)
 			{
-				if (forced || pawn.IsColonist == false)
+				if (forced || pawn.ActivePartOfColony() == false)
 					return false;
 
 				if (Tools.ShouldAvoidZombies(pawn) == false)

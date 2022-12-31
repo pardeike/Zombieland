@@ -229,6 +229,13 @@ namespace ZombieLand
 			return radius * ZombieSettings.Values.zombieInstinct.HalfToDoubleValue();
 		}
 
+		public static bool ActivePartOfColony(this Pawn pawn)
+		{
+			if (pawn == null)
+				return false;
+			return (pawn.Faction?.IsPlayer ?? false) && pawn.jobs != null;
+		}
+
 		public static bool ShouldAvoidZombies(Pawn pawn = null)
 		{
 			if (pawn == null)
