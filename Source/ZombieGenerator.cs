@@ -208,10 +208,7 @@ namespace ZombieLand
 					- ZombieSettings.Values.albinoChance
 					- ZombieSettings.Values.darkSlimerChance
 					- ZombieSettings.Values.healerChance,
-				zombie =>
-				{
-					return SetRandomBody(zombie);
-				}
+				SetRandomBody
 			)
 		};
 	}

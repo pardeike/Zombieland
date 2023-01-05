@@ -472,10 +472,10 @@ namespace ZombieLand
 					list.Dialog_Label("ZombieHarvestingTitle", headerColor);
 					list.Gap(8f);
 					var f1 = Mathf.Round(settings.corpsesExtractAmount * 100f) / 100f;
-					list.Dialog_FloatSlider("CorpsesExtractAmount", f => DialogExtensions.ExtractAmount(f), false, ref f1, 0, 4);
+					list.Dialog_FloatSlider("CorpsesExtractAmount", DialogExtensions.ExtractAmount, false, ref f1, 0, 4);
 					settings.corpsesExtractAmount = Mathf.Round(f1 * 100f) / 100f;
 					var f2 = Mathf.Round(settings.lootExtractAmount * 100f) / 100f;
-					list.Dialog_FloatSlider("LootExtractAmount", f => DialogExtensions.ExtractAmount(f), false, ref f2, 0, 4);
+					list.Dialog_FloatSlider("LootExtractAmount", DialogExtensions.ExtractAmount, false, ref f2, 0, 4);
 					settings.lootExtractAmount = Mathf.Round(f2 * 100f) / 100f;
 					list.Dialog_TimeSlider("CorpsesDaysToDessicated", ref settings.corpsesHoursToDessicated, 1, 120);
 					list.ChooseExtractArea(settings);

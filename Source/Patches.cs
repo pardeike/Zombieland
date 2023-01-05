@@ -102,8 +102,7 @@ namespace ZombieLand
 					{
 						var message = errors.Join(error => error, "\n\n");
 						errors.Clear();
-						if (Find.WindowStack != null)
-							Find.WindowStack.Add(new Dialog_ErrorMessage($"Zombieland encountered an unexpected error and might not work as expected. Either RimWorld has been updated or you have a mod conflict:\n\n{message}"));
+						Find.WindowStack?.Add(new Dialog_ErrorMessage($"Zombieland encountered an unexpected error and might not work as expected. Either RimWorld has been updated or you have a mod conflict:\n\n{message}"));
 					});
 				}
 			}
@@ -5261,7 +5260,7 @@ namespace ZombieLand
 					return (edifice == null || !edifice.def.MakeFog);
 				}
 
-				validCells.DoIf(c => ShouldSpawn(c), c => Tools.SpawnZombiesInRoom(map, c));
+				validCells.DoIf(ShouldSpawn, c => Tools.SpawnZombiesInRoom(map, c));
 			}
 		}
 		//

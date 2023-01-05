@@ -53,10 +53,7 @@ namespace ZombieLand
 				activeSkill = (() => SkillDefOf.Melee),
 				defaultCompleteMode = ToilCompleteMode.Never,
 
-				initAction = delegate ()
-				{
-					pawn.pather.StopDead();
-				},
+				initAction = pawn.pather.StopDead,
 
 				tickAction = delegate ()
 				{

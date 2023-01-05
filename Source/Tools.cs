@@ -94,12 +94,9 @@ namespace ZombieLand
 			GenLabel.ClearCache();
 
 			var game = Current.Game;
-			if (game != null)
-			{
-				game.Maps
+			game?.Maps
 					.SelectMany(map => map.listerThings.ThingsOfDef(def))
 					.Do(meal => meal.graphicInt = null);
-			}
 		}
 
 		public static string GetModRootDirectory()
@@ -556,8 +553,7 @@ namespace ZombieLand
 							newApparel.SetForbidden(false, false);
 							newApparel.HitPoints = 1;
 							var compQuality = newApparel.TryGetComp<CompQuality>();
-							if (compQuality != null)
-								compQuality.SetQuality(QualityCategory.Awful, ArtGenerationContext.Colony);
+							compQuality?.SetQuality(QualityCategory.Awful, ArtGenerationContext.Colony);
 
 							zombie.apparel.Notify_ApparelAdded(newApparel);
 						}

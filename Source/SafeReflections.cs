@@ -47,7 +47,7 @@ namespace ZombieLand
 		public static List<MethodInfo> InnerMethodsStartingWith(this Type type, string prefix)
 		{
 			var method = GetAllInnerTypes(type)
-				.SelectMany(innerType => AccessTools.GetDeclaredMethods(innerType))
+				.SelectMany(AccessTools.GetDeclaredMethods)
 				.Where(m => prefix == "*" || m.Name.StartsWith(prefix))
 				.ToList();
 			if (method.Count == 0) throw new Exception("Cannot find method starting with '" + prefix + "' in any inner type of " + type.FullName);

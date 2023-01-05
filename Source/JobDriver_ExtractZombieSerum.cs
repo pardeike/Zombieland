@@ -45,10 +45,7 @@ namespace ZombieLand
 				activeSkill = (() => SkillDefOf.Medicine),
 				defaultCompleteMode = ToilCompleteMode.Never,
 
-				initAction = delegate ()
-				{
-					pawn.pather.StopDead();
-				},
+				initAction = pawn.pather.StopDead,
 
 				tickAction = delegate ()
 				{
@@ -60,8 +57,7 @@ namespace ZombieLand
 						extractResult.stackCount = Tools.ExtractPerZombie();
 						_ = GenPlace.TryPlaceThing(extractResult, pawn.Position, pawn.Map, ThingPlaceMode.Near, null, null);
 
-						if (zombieCorpse != null)
-							zombieCorpse.Destroy();
+						zombieCorpse?.Destroy();
 
 						pawn.jobs.EndCurrentJob(JobCondition.Succeeded, true);
 					}

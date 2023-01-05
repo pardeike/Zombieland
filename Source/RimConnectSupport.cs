@@ -49,7 +49,7 @@ namespace ZombieLand
 			_ = __result.Add(CreateActionClass("NormalZombieAction", "Normal Zombie Event", "Creates some normal zombies", cat, (amount, boughtBy) => SpawnZombies(amount, boughtBy, ZombieType.Normal)));
 			_ = __result.Add(CreateActionClass("KillAllZombies", "Kill All Zombies", "Instantly kills all zombies on the map", cat, (amount, boughtBy) => KillAllZombies(boughtBy)));
 			_ = __result.Add(CreateActionClass("AllZombiesRage", "Zombies Rage Event", "Makes all zombies rage", cat, (amount, boughtBy) => AllZombiesRage(boughtBy)));
-			_ = __result.Add(CreateActionClass("SuperZombieDropRaid", "Super Zombie Drop", "Creates a drop raid with super zombies", cat, (amount, boughtBy) => SuperZombieDropRaid(amount, boughtBy)));
+			_ = __result.Add(CreateActionClass("SuperZombieDropRaid", "Super Zombie Drop", "Creates a drop raid with super zombies", cat, SuperZombieDropRaid));
 		}
 
 		public static (string, IntVec3) SpawnZombies(int amount, string boughtBy, ZombieType type)
@@ -94,7 +94,7 @@ namespace ZombieLand
 			if (map == null) return (null, IntVec3.Invalid);
 			var tickManager = map.GetComponent<TickManager>();
 			if (tickManager == null) return (null, IntVec3.Invalid);
-			tickManager.allZombiesCached.Do(zombie => ZombieStateHandler.StartRage(zombie));
+			tickManager.allZombiesCached.Do(ZombieStateHandler.StartRage);
 			return ($"{boughtBy} made all zombies on the map rage", IntVec3.Invalid);
 		}
 

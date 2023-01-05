@@ -587,7 +587,7 @@ namespace ZombieLand
 			}
 
 			// move to least populated place
-			var zCount = possibleMoves.Select(p => grid.GetZombieCount(p)).Min();
+			var zCount = possibleMoves.Select(grid.GetZombieCount).Min();
 			driver.destination = possibleMoves.Where(p => grid.GetZombieCount(p) == zCount).SafeRandomElement();
 			return false;
 		}
@@ -629,7 +629,7 @@ namespace ZombieLand
 							{
 								possibleMoves.Sort((p1, p2) => p1.DistanceToSquared(destination).CompareTo(p2.DistanceToSquared(destination)));
 								possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
-								possibleMoves = possibleMoves.OrderBy(p => grid.GetZombieCount(p)).ToList();
+								possibleMoves = possibleMoves.OrderBy(grid.GetZombieCount).ToList();
 								driver.destination = possibleMoves.First();
 								return;
 							}
@@ -641,7 +641,7 @@ namespace ZombieLand
 						var center = zombie.wanderDestination.IsValid ? zombie.wanderDestination : zombie.Map.Center;
 						possibleMoves.Sort((p1, p2) => p1.DistanceToSquared(center).CompareTo(p2.DistanceToSquared(center)));
 						possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
-						possibleMoves = possibleMoves.OrderBy(p => grid.GetZombieCount(p)).ToList();
+						possibleMoves = possibleMoves.OrderBy(grid.GetZombieCount).ToList();
 						driver.destination = possibleMoves.First();
 						return;
 					}
@@ -1012,7 +1012,7 @@ namespace ZombieLand
 		static int CountSurroundingZombies(IntVec3 pos, PheromoneGrid grid)
 		{
 			return GenAdj.AdjacentCellsAndInside.Select(vec => pos + vec)
-				.Select(c => grid.GetZombieCount(c)).Sum();
+				.Select(grid.GetZombieCount).Sum();
 		}
 
 		static readonly float[] minRageLength = new float[] { 0.1f, 0.2f, 0.5f, 1f, 2f };

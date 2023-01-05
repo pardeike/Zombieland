@@ -82,7 +82,7 @@ namespace ZombieLand
 
 			var zombies = map.thingGrid.ThingsAt(c).OfType<Zombie>();
 			if (zombies.Any())
-				zombies.Do(zombie => ZapZombie(zombie));
+				zombies.Do(ZapZombie);
 			else
 			{
 				var rot = Random.Range(0f, 359f);
@@ -107,7 +107,7 @@ namespace ZombieLand
 			if (room == null)
 				return;
 
-			room.Cells.Where(c => c.Standable(map)).OrderBy(c => c.DistanceTo(cell)).Do(c => cells.Enqueue(c));
+			room.Cells.Where(c => c.Standable(map)).OrderBy(c => c.DistanceTo(cell)).Do(cells.Enqueue);
 			if (cells.Count == 0)
 			{
 				var failEffecter = new Effecter(EffecterDefOf.Interceptor_BlockedProjectile);

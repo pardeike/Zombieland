@@ -115,17 +115,17 @@ namespace ZombieLand
 				.Select(slot => slot.Settings.filter)
 				.Do(RemoveFromFilter);
 
-			map.listerThings.AllThings.SelectMany(thing => ContentOfFields<Bill>(thing))
-				.SelectMany(bill => AllBills(bill))
+			map.listerThings.AllThings.SelectMany(ContentOfFields<Bill>)
+				.SelectMany(AllBills)
 				.Select(bill => bill?.ingredientFilter).ToList()
 				.Do(RemoveFromFilter);
 
-			map.listerThings.AllThings.SelectMany(thing => ContentOfFields<BillStack>(thing))
-				.SelectMany(billStack => AllBills(billStack))
+			map.listerThings.AllThings.SelectMany(ContentOfFields<BillStack>)
+				.SelectMany(AllBills)
 				.Select(bill => bill?.ingredientFilter).ToList()
 				.Do(RemoveFromFilter);
 
-			map.listerThings.AllThings.SelectMany(thing => ContentOfFields<StorageSettings>(thing))
+			map.listerThings.AllThings.SelectMany(ContentOfFields<StorageSettings>)
 				.Select(settings => settings?.filter ?? new ThingFilter())
 				.Do(RemoveFromFilter);
 		}
