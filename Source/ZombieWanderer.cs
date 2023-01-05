@@ -71,10 +71,14 @@ namespace ZombieLand
 
 		public bool IsInValidState()
 		{
-			if (mapSize == 0) return false;
-			if (pathGrid == null) return false;
-			if (edificeGrid == null) return false;
-			if (terrainGrid == null) return false;
+			if (mapSize == 0)
+				return false;
+			if (pathGrid == null)
+				return false;
+			if (edificeGrid == null)
+				return false;
+			if (terrainGrid == null)
+				return false;
 			return true;
 		}
 
@@ -91,7 +95,8 @@ namespace ZombieLand
 		int GetDirectInternal(IntVec3 pos, bool ignoreBuildings, bool publicAccess)
 		{
 			int b = vecGrids[publicAccess ? publicIndex : privateIndex][pos.x + pos.z * mapSizeX];
-			if (ignoreBuildings) b >>= 4;
+			if (ignoreBuildings)
+				b >>= 4;
 			return b & 0x0f;
 		}
 
@@ -307,7 +312,7 @@ namespace ZombieLand
 					&& pawn.RaceProps.IsFlesh
 					&& AlienTools.IsFleshPawn(pawn)
 					&& SoSTools.IsHologram(pawn) == false
-					&& Tools.HasInfectionState(pawn, InfectionState.Infecting, InfectionState.Infected) == false
+					&& pawn.InfectionState() < InfectionState.Infecting
 					&& (ZombieSettings.Values.attackMode != AttackMode.OnlyColonists || (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists && pawn.IsColonist))
 					&& (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans == false || pawn.RaceProps.Humanlike);
 				position = pawn?.Position ?? IntVec3.Invalid;
@@ -328,7 +333,8 @@ namespace ZombieLand
 							break;
 
 						var info = GetMapInfo(map);
-						if (info.IsInValidState() == false) continue;
+						if (info.IsInValidState() == false)
+							continue;
 
 						var mapPawns = map?.mapPawns?.AllPawnsSpawned;
 						if (mapPawns != null)

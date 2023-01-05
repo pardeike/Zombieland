@@ -363,53 +363,6 @@ namespace ZombieLand
 				value = (int)newValue;
 		}
 
-		public static void ColonistDangerousAreas(this Listing_Standard list, SettingsGroup settings)
-		{
-			if (Current.Game == null)
-				return;
-
-			List<(Area, string, bool)> GetAreas()
-			{
-				var areas = Find.Maps
-				.Where(map => map.IsBlacklisted() == false)
-				.SelectMany(map => map.areaManager.AllAreas
-				.Select(area => (area, name: area.Label, on: settings.dangerousAreas.Keys.Any(a => a.Label == area.Label))))
-				.ToList();
-				areas.AddRange(settings.dangerousAreas
-						.Where(pair1 => areas.Any(pair2 => pair2.area.Label == pair1.Key.Label) == false)
-						.Select(name => (area: (Area)null, name.Key.Label, on: true)));
-				areas.SortBy(pair => $"{pair.name}:{pair.area?.Map.Index ?? 0}");
-				return areas;
-			}
-
-			const float rowHeight = 24f;
-			list.Dialog_Button("DangerousAreas", "Areas", false, () =>
-			{
-				Find.WindowStack.Add(
-					new MultiOptions<(Area, string, bool)>("DangerousAreas", GetAreas, (l, rows, row) =>
-					{
-						(var area, var name, var on) = row;
-
-						var label = area?.Label ?? name;
-						if (area != null && rows.Count(r => r.Item1.Label == name) > 1)
-							label += $" (Map {area.Map.Index + 1})";
-						var oldOn = on;
-						Widgets.DrawBoxSolid(new Rect(l.curX + l.ColumnWidth - rowHeight, l.curY, rowHeight, rowHeight).ExpandedBy(-2), area?.Color ?? Color.clear);
-						l.Dialog_Checkbox(label, ref on, true);
-						if (oldOn != on)
-						{
-							if (on)
-								settings.dangerousAreas.Add(area, ZombieRiskMode.IfInside); // TODO: how to choose betwen IfInside and IfOutside?
-							else
-								_ = settings.dangerousAreas.Remove(area);
-							row.Item3 = on;
-						}
-					},
-					new Vector2(320, 480), rowHeight
-				));
-			});
-		}
-
 		public static void ChooseExtractArea(this Listing_Standard list, SettingsGroup settings)
 		{
 			if (Current.Game == null)

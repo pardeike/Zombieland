@@ -2,6 +2,7 @@
 using RimWorld;
 using RimWorld.Planet;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -14,22 +15,14 @@ namespace ZombieLand
 	{
 		public static Dictionary<Area, HashSet<IntVec3>> cache = new();
 		public static List<(Pawn, Area)> pawnsInDanger = new();
-		public static DateTime nextUpdate = DateTime.Now;
 		public static bool warningShowing = false;
+		public static IEnumerator stateUpdater = StateUpdater();
 
-		public static void DangerAlertsOnGUI()
+		static IEnumerator StateUpdater()
 		{
-			if (WorldRendererUtility.WorldRenderedNow)
-				return;
-			var map = Find.CurrentMap;
-			if (map == null)
-				return;
-
-			var now = DateTime.Now;
-			if (now > nextUpdate)
-			{
-				nextUpdate = now.AddSeconds(0.5f);
-				var pawns = map.mapPawns.FreeColonistsSpawned;
+			// TODO !!!
+			/*
+			var pawns = map.mapPawns.FreeColonistsSpawned;
 				pawnsInDanger = ZombieSettings.Values.dangerousAreas
 					.Where(pair => pair.Key.Map == Find.CurrentMap)
 					.SelectMany(pair =>
@@ -41,12 +34,30 @@ namespace ZombieLand
 							if (Tools.HasInfectionState(pawn, InfectionState.Infecting, InfectionState.Infected))
 								return false;
 							var inside = area.innerGrid[pawn.Position];
-							return inside && mode == ZombieRiskMode.IfInside || !inside && mode == ZombieRiskMode.IfOutside;
+							return inside && mode == AreaRiskMode.ColonistInside || !inside && mode == AreaRiskMode.ColonistOutside;
 						})
 						.Select(pawn => (pawn, area));
 					})
 					.ToList();
+			*/
+
+			while (true)
+			{
+				yield return null;
 			}
+		}
+
+		public static void DangerAlertsOnGUI()
+		{
+			if (WorldRendererUtility.WorldRenderedNow)
+				return;
+
+			var map = Find.CurrentMap;
+			if (map == null)
+				return;
+
+			_ = stateUpdater.MoveNext();
+
 			DrawDangerous();
 		}
 
@@ -116,7 +127,7 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Area.AreaUpdate))]
 		static void AreaUpdate(Area __instance)
 		{
-			if (ZombieSettings.Values.dangerousAreas.TryGetValue(__instance, out var mode) && mode != ZombieRiskMode.Ignore)
+			if (ZombieSettings.Values.dangerousAreas.TryGetValue(__instance, out var mode) && mode != AreaRiskMode.Ignore)
 				ZombieAreaManager.cache[__instance] = new HashSet<IntVec3>(__instance.ActiveCells);
 		}
 
@@ -151,8 +162,10 @@ namespace ZombieLand
 		public static readonly Color highlightedBackground = new(74 / 255f, 74 / 255f, 74 / 255f, 0.5f);
 		public static readonly Color background = new(74 / 255f, 74 / 255f, 74 / 255f);
 		public static readonly Color inactiveTextColor = new(145 / 255f, 125 / 255f, 98 / 255f);
-		public static readonly Color areaNameZombiesInside = new(1f, 0.2f, 0.2f);
-		public static readonly Color areaNameZombiesOutside = new(0.2f, 1f, 0.2f);
+		public static readonly Color areaNameColonistInside = new(1f, 0.2f, 0.2f);
+		public static readonly Color areaNameColonistOutside = new(0.2f, 1f, 0.2f);
+		public static readonly Color areaNameZombieInside = new(1f, 0.5f, 0f);
+		public static readonly Color areaNameZombieOutside = new(1f, 26f / 255f, 140f / 255f);
 		public static readonly GUIStyle textFieldStyle = new()
 		{
 			alignment = TextAnchor.MiddleLeft,
@@ -309,8 +322,10 @@ namespace ZombieLand
 		{
 			return GetMode(area) switch
 			{
-				ZombieRiskMode.IfInside => areaNameZombiesInside,
-				ZombieRiskMode.IfOutside => areaNameZombiesOutside,
+				AreaRiskMode.ColonistInside => areaNameColonistInside,
+				AreaRiskMode.ColonistOutside => areaNameColonistOutside,
+				AreaRiskMode.ZombieInside => areaNameZombieInside,
+				AreaRiskMode.ZombieOutside => areaNameZombieOutside,
 				_ => Color.white,
 			};
 		}
@@ -361,22 +376,24 @@ namespace ZombieLand
 			_ = Widgets.LabelFit(lRect, GenText.CapitalizeAsTitle(key.Translate()));
 		}
 
-		public static string ToStringHuman(this ZombieRiskMode mode)
+		public static string ToStringHuman(this AreaRiskMode mode)
 		{
 			return mode switch
 			{
-				ZombieRiskMode.Ignore => "Ignore".Translate(),
-				ZombieRiskMode.IfInside => "IfInside".Translate(),
-				ZombieRiskMode.IfOutside => "IfOutside".Translate(),
+				AreaRiskMode.Ignore => "Ignore".Translate(),
+				AreaRiskMode.ColonistInside => "ColonistInside".Translate(),
+				AreaRiskMode.ColonistOutside => "ColonistOutside".Translate(),
+				AreaRiskMode.ZombieInside => "ZombieInside".Translate(),
+				AreaRiskMode.ZombieOutside => "ZombieOutside".Translate(),
 				_ => null,
 			};
 		}
 
-		public static ZombieRiskMode GetMode(Area area)
+		public static AreaRiskMode GetMode(Area area)
 		{
 			if (ZombieSettings.Values.dangerousAreas.TryGetValue(area, out var mode))
 				return mode;
-			return ZombieRiskMode.Ignore;
+			return AreaRiskMode.Ignore;
 		}
 
 		public static void ZombieMode(Rect rect)
@@ -385,15 +402,15 @@ namespace ZombieLand
 			if (Widgets.ButtonText(rect, mode.ToStringHuman()))
 			{
 				var options = new List<FloatMenuOption>();
-				foreach (var choice in Enum.GetValues(typeof(ZombieRiskMode)))
+				foreach (var choice in Enum.GetValues(typeof(AreaRiskMode)))
 				{
-					var localPmode2 = (ZombieRiskMode)choice;
+					var localPmode2 = (AreaRiskMode)choice;
 					var localPmode = localPmode2;
 					options.Add(new FloatMenuOption(localPmode.ToStringHuman(), delegate ()
 					{
 						if (localPmode != mode)
 						{
-							if (localPmode == ZombieRiskMode.Ignore)
+							if (localPmode == AreaRiskMode.Ignore)
 								_ = ZombieSettings.Values.dangerousAreas.Remove(selected);
 							else
 								ZombieSettings.Values.dangerousAreas[selected] = localPmode;

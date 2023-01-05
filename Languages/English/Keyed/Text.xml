@@ -205,8 +205,10 @@
 	<ShowZombieStats>Show zombie statistics</ShowZombieStats>
 
 	<ShowZombieRisk>Show zombie risk</ShowZombieRisk>
-	<IfInside>When inside</IfInside>
-	<IfOutside>When outside</IfOutside>
+	<ColonistInside>Colonist inside</ColonistInside>
+	<ColonistOutside>Colonist outside</ColonistOutside>
+	<ZombieInside>Zombie inside</ZombieInside>
+	<ZombieOutside>Zombie outside</ZombieOutside>
 	<HighlightDangerousAreas>Highlight risk areas</HighlightDangerousAreas>
 	<DisableRandomApparel>Turn off random apparel for zombies</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Floating zombies in space</FloatingZombiesInSOS2>

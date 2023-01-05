@@ -585,7 +585,7 @@ namespace ZombieLand
 		{
 			var result = Quaternion.AngleAxis(angle, axis);
 
-			if (!(pawn is Zombie zombie))
+			if (pawn is not Zombie zombie)
 				return result;
 
 			var progress = zombie.rubbleCounter / (float)Constants.RUBBLE_AMOUNT;

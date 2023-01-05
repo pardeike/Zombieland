@@ -913,7 +913,7 @@ namespace ZombieLand
 
 					foreach (var thing in grid.ThingsListAtFast(pos))
 					{
-						if (!(thing is Building building) || (building as Mineable) != null)
+						if (thing is not Building building || (building as Mineable) != null)
 							continue;
 
 						var buildingDef = building.def;

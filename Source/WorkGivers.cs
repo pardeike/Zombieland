@@ -36,7 +36,7 @@ namespace ZombieLand
 
 		public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
 		{
-			if (pawn.IsColonist == false || !(t is ZombieCorpse corpse))
+			if (pawn.IsColonist == false || t is not ZombieCorpse corpse)
 				return false;
 
 			if (forced == false && ColonistSettings.Values.ConfigFor(pawn).autoExtractZombieSerum == false)
@@ -72,7 +72,7 @@ namespace ZombieLand
 
 		public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
 		{
-			if (!(t is ZombieCorpse corpse)) return null;
+			if (t is not ZombieCorpse corpse) return null;
 			return JobMaker.MakeJob(CustomDefs.ExtractZombieSerum, corpse);
 		}
 	}
@@ -145,7 +145,7 @@ namespace ZombieLand
 
 		public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
 		{
-			if (!(t is Corpse corpse))
+			if (t is not Corpse corpse)
 				return null;
 			return JobMaker.MakeJob(CustomDefs.DoubleTap, corpse);
 		}

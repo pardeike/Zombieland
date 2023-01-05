@@ -149,7 +149,7 @@ namespace ZombieLand
 			inRect.yMin += num + 8;
 
 			var outerRect = new Rect(inRect.x, inRect.y, inRect.width, inRect.height);
-			var innerRect = new Rect(0f, 0f, inRect.width - 24f, allBiomes.Count * Text.LineHeight);
+			var innerRect = new Rect(0f, 0f, inRect.width - 24f, allBiomes.Count * (2 + Text.LineHeight));
 			Widgets.BeginScrollView(outerRect, ref scrollPosition, innerRect, true);
 
 			var list = new Listing_Standard();
@@ -377,8 +377,6 @@ namespace ZombieLand
 					list.Dialog_Integer("MaximumNumberOfZombies", "Zombies", 0, 5000, ref settings.maximumNumberOfZombies);
 					list.Gap(12f);
 					list.Dialog_FloatSlider("ColonyMultiplier", _ => "{0:0.0}x", false, ref settings.colonyMultiplier, 0.1f, 10f);
-					//list.ColonistDangerousAreas(settings);
-					//list.Gap(28f);
 				}
 
 				if (DialogExtensions.Section<string>(":DynamicThreatLevelTitle", ":UseDynamicThreatLevel", ":DynamicThreatSmoothness", ":DynamicThreatStretch", ":ZombiesDieOnZeroThreat"))

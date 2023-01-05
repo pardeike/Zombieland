@@ -68,6 +68,8 @@ namespace ZombieLand
 		public override void Tick()
 		{
 			var state = TendDuration.GetInfectionState();
+			pawn.SetInfectionState(state);
+
 			if (state == InfectionState.None)
 			{
 				base.Tick();
@@ -103,7 +105,8 @@ namespace ZombieLand
 		{
 			get
 			{
-				if (InfectionLocked() == false) return base.PainFactor;
+				if (InfectionLocked() == false)
+					return base.PainFactor;
 				return this.IsTended() ? 0f : base.PainFactor;
 			}
 		}
@@ -112,7 +115,8 @@ namespace ZombieLand
 		{
 			get
 			{
-				if (InfectionLocked() == false) return base.PainOffset;
+				if (InfectionLocked() == false)
+					return base.PainOffset;
 				return this.IsTended() ? 0f : base.PainOffset;
 			}
 		}
@@ -137,7 +141,8 @@ namespace ZombieLand
 		{
 			get
 			{
-				if (InfectionLocked() == false) return base.SummaryHealthPercentImpact;
+				if (InfectionLocked() == false)
+					return base.SummaryHealthPercentImpact;
 				return this.IsTended() ? 0f : base.SummaryHealthPercentImpact;
 			}
 		}

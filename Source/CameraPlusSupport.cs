@@ -22,7 +22,7 @@ namespace CameraPlusSupport
 		//
 		static Color[] GetCameraPlusColors(Pawn pawn)
 		{
-			if (!(pawn is ZombieLand.Zombie zombie)) return null;
+			if (pawn is not ZombieLand.Zombie zombie) return null;
 			if (zombie.state == ZombieLand.ZombieState.Floating) return null;
 
 			var innerColor = defaultColor;
@@ -67,7 +67,7 @@ namespace CameraPlusSupport
 		//
 		static Texture2D[] GetCameraPlusMarkers(Pawn pawn)
 		{
-			if (!(pawn is ZombieLand.Zombie zombie)) return null;
+			if (pawn is not ZombieLand.Zombie zombie) return null;
 			return new Texture2D[] { innerMarkerTexture, outerMarkerTexture };
 		}
 	}

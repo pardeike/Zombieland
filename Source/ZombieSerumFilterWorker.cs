@@ -9,7 +9,7 @@ namespace ZombieLand
 		{
 			if (t.def == CustomDefs.ZombieExtract) return false; // ok
 			if (t is Medicine) return false; // ok
-			if (!(t is Corpse corpse)) return true; // exclude, need to be corpse
+			if (t is not Corpse corpse) return true; // exclude, need to be corpse
 			var pawn = corpse.InnerPawn;
 			if (pawn == null || pawn.RaceProps.Animal == false) return true; // exclude if not animal
 			var compRottable = t.TryGetComp<CompRottable>();

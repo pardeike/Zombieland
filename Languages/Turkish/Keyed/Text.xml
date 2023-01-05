@@ -199,8 +199,10 @@
 	<ShowZombieStats>Zombi istatistiklerini göster</ShowZombieStats>
 
 	<ShowZombieRisk>Zombi riskini göster</ShowZombieRisk>
-	<IfInside>Ne zaman içeride</IfInside>
-	<IfOutside>Ne zaman dışarıda</IfOutside>
+	<ColonistInside>Kolonist içeride</ColonistInside>
+	<ColonistOutside>Kolonist dışarıda</ColonistOutside>
+	<ZombieInside>Zombi içeride</ZombieInside>
+	<ZombieOutside>Zombi dışarıda</ZombieOutside>
 	<HighlightDangerousAreas>Risk alanlarını vurgulayın</HighlightDangerousAreas>
 	<DisableRandomApparel>Zombiler için rastgele giyimleri kapat</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Uzayda yüzen zombiler</FloatingZombiesInSOS2>

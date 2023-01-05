@@ -50,7 +50,7 @@ namespace ZombieLand
 
 		static void Postfix(Thing launcher, Vector2 origin, float shotAngle, float shotHeight, float shotSpeed)
 		{
-			if (!(launcher is Pawn pawn)) return;
+			if (launcher is not Pawn pawn) return;
 			if (launcher.Map == null) return;
 
 			var noiseScale = 1f;

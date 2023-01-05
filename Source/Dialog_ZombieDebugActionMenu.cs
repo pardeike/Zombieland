@@ -138,7 +138,7 @@ namespace ZombieLand
 			var map = Find.CurrentMap;
 			foreach (var thing in map.thingGrid.ThingsAt(UI.MouseCell()))
 			{
-				if (!(thing is Pawn pawn) || pawn is Zombie)
+				if (thing is not Pawn pawn || pawn is Zombie)
 					continue;
 				Tools.ConvertToZombie(pawn, map, true);
 			}
@@ -160,7 +160,7 @@ namespace ZombieLand
 		{
 			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 			{
-				if (!(thing is Pawn pawn) || pawn is Zombie)
+				if (thing is not Pawn pawn || pawn is Zombie)
 					continue;
 
 				var bodyModel = pawn.health.hediffSet;
@@ -192,7 +192,7 @@ namespace ZombieLand
 			var tmpHediffInjuryZombieBites = new List<Hediff_Injury_ZombieBite>();
 			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 			{
-				if (!(thing is Pawn pawn) || pawn is Zombie)
+				if (thing is not Pawn pawn || pawn is Zombie)
 					continue;
 				tmpHediffInjuryZombieBites.Clear();
 				pawn.health.hediffSet.GetHediffs(ref tmpHediffInjuryZombieBites);
@@ -212,7 +212,7 @@ namespace ZombieLand
 		{
 			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 			{
-				if (!(thing is Zombie zombie))
+				if (thing is not Zombie zombie)
 					continue;
 				ZombieStateHandler.StartRage(zombie);
 			}

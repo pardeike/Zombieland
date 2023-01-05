@@ -200,8 +200,10 @@
 	<ShowZombieStats>Показать статистику зомби</ShowZombieStats>
 
 	<ShowZombieRisk>Показать зомби-риск</ShowZombieRisk>
-	<IfInside>Когда внутри</IfInside>
-	<IfOutside>Когда снаружи</IfOutside>
+	<ColonistInside>Колонист внутри</ColonistInside>
+	<ColonistOutside>Колонист снаружи</ColonistOutside>
+	<ZombieInside>зомби внутри</ZombieInside>
+	<ZombieOutside>зомби снаружи</ZombieOutside>
 	<HighlightDangerousAreas>Выделите области риска</HighlightDangerousAreas>
 	<DisableRandomApparel>Выключить случайную одежду для зомби</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Парящие зомби в космосе</FloatingZombiesInSOS2>

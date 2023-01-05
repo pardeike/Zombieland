@@ -9,7 +9,7 @@ namespace ZombieLand
 		bool ZombieIsRopable()
 		{
 			var thing = job.GetTarget(TargetIndex.A).Thing;
-			if (!(thing is Zombie zombie) || zombie.Destroyed || zombie.Spawned == false)
+			if (thing is not Zombie zombie || zombie.Destroyed || zombie.Spawned == false)
 				return false;
 			return zombie.ropedBy == null;
 		}

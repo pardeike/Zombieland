@@ -12,14 +12,14 @@ namespace ZombieLand
 
 		public override Job TryGiveJob(Pawn pawn)
 		{
-			if (!(pawn is Zombie zombie) || zombie.isAlbino) return null;
+			if (pawn is not Zombie zombie || zombie.isAlbino) return null;
 			pawn.jobs.StopAll();
 			return JobMaker.MakeJob(CustomDefs.Stumble);
 		}
 
 		public override ThinkResult TryIssueJobPackage(Pawn pawn, JobIssueParams jobParams)
 		{
-			if (!(pawn is Zombie zombie) || zombie.isAlbino)
+			if (pawn is not Zombie zombie || zombie.isAlbino)
 				return ThinkResult.NoJob;
 			return base.TryIssueJobPackage(pawn, jobParams);
 		}
@@ -34,14 +34,14 @@ namespace ZombieLand
 
 		public override Job TryGiveJob(Pawn pawn)
 		{
-			if (!(pawn is Zombie zombie) || zombie.isAlbino == false) return null;
+			if (pawn is not Zombie zombie || zombie.isAlbino == false) return null;
 			zombie.jobs.StopAll();
 			return JobMaker.MakeJob(CustomDefs.Sabotage);
 		}
 
 		public override ThinkResult TryIssueJobPackage(Pawn pawn, JobIssueParams jobParams)
 		{
-			if (!(pawn is Zombie zombie) || zombie.isAlbino == false)
+			if (pawn is not Zombie zombie || zombie.isAlbino == false)
 				return ThinkResult.NoJob;
 			return base.TryIssueJobPackage(pawn, jobParams);
 		}

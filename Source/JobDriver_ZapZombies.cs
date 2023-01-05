@@ -19,7 +19,7 @@ namespace ZombieLand
 
 			AddFailCondition(() =>
 			{
-				if (!(TargetA.Thing is ZombieShocker shocker))
+				if (TargetA.Thing is not ZombieShocker shocker)
 					return true;
 
 				if (shocker.compPowerTrader.PowerNet.batteryComps.Count == 0)

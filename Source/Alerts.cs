@@ -10,10 +10,7 @@ namespace ZombieLand
 {
 	public class Alert_ColonistsBittenByZombie : Alert_ZombieInfectionProgress
 	{
-		public override bool ColonistSelector(Pawn pawn)
-		{
-			return Tools.HasInfectionState(pawn, InfectionState.BittenNotVisible);
-		}
+		public override bool ColonistSelector(Pawn pawn) => pawn.InfectionState() == InfectionState.BittenNotVisible;
 
 		public override void Prepare()
 		{
@@ -24,10 +21,7 @@ namespace ZombieLand
 
 	public class Alert_ImminentZombiInfection : Alert_ZombieInfectionProgress
 	{
-		public override bool ColonistSelector(Pawn pawn)
-		{
-			return Tools.HasInfectionState(pawn, InfectionState.BittenInfectable);
-		}
+		public override bool ColonistSelector(Pawn pawn) => pawn.InfectionState() == InfectionState.BittenInfectable;
 
 		public override void Prepare()
 		{
@@ -41,10 +35,7 @@ namespace ZombieLand
 		public static HashSet<Pawn> infectedColonists;
 		private List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBites = new();
 
-		public override bool ColonistSelector(Pawn pawn)
-		{
-			return Tools.HasInfectionState(pawn, InfectionState.Infecting, InfectionState.Infected);
-		}
+		public override bool ColonistSelector(Pawn pawn) => pawn.InfectionState() == InfectionState.Infecting;
 
 		public override IEnumerable<Pawn> AffectedColonists
 		{

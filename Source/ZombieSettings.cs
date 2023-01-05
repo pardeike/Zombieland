@@ -51,11 +51,13 @@ namespace ZombieLand
 		Smart
 	}
 
-	public enum ZombieRiskMode : byte
+	public enum AreaRiskMode : byte
 	{
 		Ignore,
-		IfInside,
-		IfOutside
+		ColonistInside,
+		ColonistOutside,
+		ZombieInside,
+		ZombieOutside,
 	}
 
 	internal class NoteDialog : Dialog_MessageBox
@@ -70,7 +72,7 @@ namespace ZombieLand
 	{
 		public int area;
 		public int map;
-		public ZombieRiskMode mode;
+		public AreaRiskMode mode;
 
 		public static List<ZombieRiskArea> temp = new();
 
@@ -232,7 +234,7 @@ namespace ZombieLand
 		public bool showHealthBar = true;
 		public HashSet<string> biomesWithoutZombies = new();
 		public bool showZombieStats = true;
-		public Dictionary<Area, ZombieRiskMode> dangerousAreas = new();
+		public Dictionary<Area, AreaRiskMode> dangerousAreas = new();
 		public bool highlightDangerousAreas = false;
 		public bool disableRandomApparel = false;
 		public bool floatingZombies = true;
@@ -259,7 +261,7 @@ namespace ZombieLand
 				if (name != fieldName)
 					return false;
 
-				var dict = (Dictionary<Area, ZombieRiskMode>)(value ?? defaultValue);
+				var dict = (Dictionary<Area, AreaRiskMode>)(value ?? defaultValue);
 				if (Scribe.mode == LoadSaveMode.Saving)
 				{
 					if (Scribe.EnterNode(fieldName))

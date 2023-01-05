@@ -200,8 +200,10 @@
 	<ShowZombieStats>顯示殭屍統計信息</ShowZombieStats>
 
 	<ShowZombieRisk>顯示殭屍風險</ShowZombieRisk>
-	<IfInside>當在裡面</IfInside>
-	<IfOutside>在外面的時候</IfOutside>
+	<ColonistInside>裡面的殖民者</ColonistInside>
+	<ColonistOutside>外面的殖民者</ColonistOutside>
+	<ZombieInside>裡面的殭屍</ZombieInside>
+	<ZombieOutside>外面的殭屍</ZombieOutside>
 	<HighlightDangerousAreas>突出風險領域</HighlightDangerousAreas>
 	<DisableRandomApparel>關閉僵屍隨機服裝</DisableRandomApparel>
 	<FloatingZombiesInSOS2>太空中漂浮的僵尸</FloatingZombiesInSOS2>

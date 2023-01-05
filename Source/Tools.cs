@@ -244,11 +244,11 @@ namespace ZombieLand
 			if (pawn is Zombie || pawn.RaceProps.Humanlike == false)
 				return false;
 
+			if (pawn.InfectionState() == InfectionState.Infecting)
+				return false;
+
 			if (pawn.IsColonist == false)
 			{
-				if (HasInfectionState(pawn, InfectionState.BittenInfectable, InfectionState.Infected))
-					return false;
-
 				if (pawn.HostileTo(Faction.OfPlayer) == false)
 				{
 					var map = pawn.Map;
@@ -493,7 +493,7 @@ namespace ZombieLand
 
 			var pos = thing is IThingHolder thingHolder ? ThingOwnerUtility.GetRootPosition(thingHolder) : thing.Position;
 			var rot = pawn.Rotation;
-			var wasInGround = corpse != null && corpse.ParentHolder != null && !(corpse.ParentHolder is Map);
+			var wasInGround = corpse != null && corpse.ParentHolder != null && corpse.ParentHolder is not Map;
 
 			if (map == null && thing != null && thing.Destroyed == false)
 			{
@@ -695,7 +695,7 @@ namespace ZombieLand
 
 		public static void AddZombieInfection(Pawn pawn)
 		{
-			if (pawn is Zombie || HasInfectionState(pawn, InfectionState.Infected, InfectionState.All))
+			if (pawn is Zombie || pawn.InfectionState() == InfectionState.Infected)
 				return;
 
 			var torso = pawn.health.hediffSet.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined, null, null).FirstOrDefault((BodyPartRecord x) => x.def == BodyPartDefOf.Torso);
@@ -706,37 +706,6 @@ namespace ZombieLand
 			pawn.health.AddHediff(bite, torso, damageInfo);
 			bite.Tended(1, 1);
 			bite.TendDuration.ZombieInfector.ForceFinalStage();
-		}
-
-		static List<Hediff_Injury_ZombieBite> tmpHediffInjuryZombieBites = new();
-
-		public static bool HasInfectionState(Pawn pawn, InfectionState state)
-		{
-			if (pawn.RaceProps.Humanlike == false)
-				return false;
-			if (pawn.RaceProps.IsFlesh == false)
-				return false;
-			if (AlienTools.IsFleshPawn(pawn) == false)
-				return false;
-			if (SoSTools.IsHologram(pawn))
-				return false;
-
-			tmpHediffInjuryZombieBites.Clear();
-			pawn.health.hediffSet.GetHediffs(ref tmpHediffInjuryZombieBites);
-			return tmpHediffInjuryZombieBites
-						.SelectMany(hediff => hediff.comps)
-						.OfType<HediffComp_Zombie_TendDuration>()
-						.Any(tendDuration => tendDuration.GetInfectionState() == state);
-		}
-
-		public static bool HasInfectionState(Pawn pawn, InfectionState minState, InfectionState maxState)
-		{
-			tmpHediffInjuryZombieBites.Clear();
-			pawn.health.hediffSet.GetHediffs(ref tmpHediffInjuryZombieBites);
-			return tmpHediffInjuryZombieBites
-						.SelectMany(hediff => hediff.comps)
-						.OfType<HediffComp_Zombie_TendDuration>()
-						.Any(tendDuration => tendDuration.InfectionStateBetween(minState, maxState));
 		}
 
 		public static (int, int) ColonistsInfo(Map map)
@@ -796,7 +765,7 @@ namespace ZombieLand
 				if (distance > Constants.MIN_ATTACKDISTANCE_SQUARED)
 					return false;
 
-				if (HasInfectionState(target, InfectionState.Infecting))
+				if (target.InfectionState() == InfectionState.Infecting)
 					return false;
 
 				if (mode == AttackMode.Everything)

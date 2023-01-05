@@ -171,7 +171,7 @@
 	<HoursBeforeBecomingInfected>{0} avant l’infection</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} avant de devenir un Zombie</HoursBeforeBecomingAZombie>
 
-	<ColonistBecameAZombieLabel>A colonist turned into a zombie</ColonistBecameAZombieLabel>
+	<ColonistBecameAZombieLabel>Un colon transformé en zombie</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>Un colon est devenu un zombie</OtherBecameAZombieLabel>
 	<BecameAZombieDesc>{0} devenus de puissant Zombie.</BecameAZombieDesc>
 
@@ -200,8 +200,10 @@
 	<ShowZombieStats>Afficher les statistiques des zombies</ShowZombieStats>
 
 	<ShowZombieRisk>Afficher le risque zombie</ShowZombieRisk>
-	<IfInside>Quand à l'intérieur</IfInside>
-	<IfOutside>Quand dehors</IfOutside>
+	<ColonistInside>Colon à l'intérieur</ColonistInside>
+	<ColonistOutside>Colon dehors</ColonistOutside>
+	<ZombieInside>Zombie à l'intérieur</ZombieInside>
+	<ZombieOutside>Zombie dehors</ZombieOutside>
 	<HighlightDangerousAreas>Mettre en lumière les zones à risque</HighlightDangerousAreas>
 	<DisableRandomApparel>Désactiver les vêtements aléatoires pour les zombies</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Les zombies flottent dans l'espace</FloatingZombiesInSOS2>

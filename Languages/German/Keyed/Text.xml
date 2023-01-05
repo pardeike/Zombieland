@@ -200,8 +200,10 @@
 	<ShowZombieStats>Zeige die Zombiestatistik an</ShowZombieStats>
 
 	<ShowZombieRisk>Zeige Zombierisko an</ShowZombieRisk>
-	<IfInside>Wenn innerhalb</IfInside>
-	<IfOutside>Wenn außerhalb</IfOutside>
+	<ColonistInside>Kolonist innerhalb</ColonistInside>
+	<ColonistOutside>Kolonist außerhalb</ColonistOutside>
+	<ZombieInside>Zombie innerhalb</ZombieInside>
+	<ZombieOutside>Zombie außerhalb</ZombieOutside>
 	<HighlightDangerousAreas>Zombie-Risiko anzeigen</HighlightDangerousAreas>
 	<DisableRandomApparel>Zufällige Kleidung für Zombies ausschalten</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Schwebende Zombies im All</FloatingZombiesInSOS2>
