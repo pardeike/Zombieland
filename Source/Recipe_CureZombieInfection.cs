@@ -59,11 +59,8 @@ namespace ZombieLand
 				return;
 			}
 
-			Log.Warning($"bite={bite}");
-
 			bite.mayBecomeZombieWhenDead = false;
 			var tendDuration = bite.TryGetComp<HediffComp_Zombie_TendDuration>();
-			Log.Warning($"tendDuration={tendDuration}");
 
 			tendDuration.ZombieInfector.MakeHarmless();
 

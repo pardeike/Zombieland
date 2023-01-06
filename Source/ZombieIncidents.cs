@@ -124,7 +124,7 @@ namespace ZombieLand
 				if (hour < 12)
 					hour += 24;
 
-				if (hour < Constants.HOUR_START_OF_NIGHT || hour > Constants.HOUR_END_OF_NIGHT)
+				if (hour < Constants.ZOMBIE_SPAWNING_HOURS[1] || hour > Constants.ZOMBIE_SPAWNING_HOURS[2])
 				{
 					parameters.skipReason = "outside night period";
 					return false;
@@ -265,7 +265,7 @@ namespace ZombieLand
 			var spotValidator = SpotValidator(cellValidator);
 			for (var counter = 1; counter <= 10; counter++)
 			{
-				if (spot.IsValid)
+				if (spot.IsValid && spot.InBounds(map))
 					break;
 				spot = Tools.RandomSpawnCell(map, allOverTheMap == false, spotValidator);
 			}

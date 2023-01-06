@@ -241,6 +241,13 @@ namespace ZombieLand
 				var cells = home.ActiveCells.ToArray();
 				var cellCount = cells.Length;
 				allZombiesCached.Do(zombie => zombie.wanderDestination = cells[Constants.random.Next() % cellCount]);
+				var tankys = allZombiesCached.Where(zombie => zombie.IsTanky && zombie.tankDestination.IsValid == false);
+				if (tankys.Any())
+				{
+					var valuableRooms = Tools.ValuableRooms(map);
+					if (valuableRooms.Any())
+						tankys.Do(zombie => zombie.tankDestination = valuableRooms.SafeRandomElement().Cells.RandomElement());
+				}
 
 				centerOfInterest = new IntVec3(
 					(int)Math.Round(cells.Average(c => c.x)),
@@ -596,12 +603,12 @@ namespace ZombieLand
 						var hour = GenLocalDate.HourFloat(map);
 						if (hour < 12f)
 							hour += 24f;
-						if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
+						if (hour > Constants.ZOMBIE_SPAWNING_HOURS[1] && hour < Constants.ZOMBIE_SPAWNING_HOURS[2])
 							volume = 1f;
-						else if (hour >= Constants.HOUR_START_OF_DUSK && hour <= Constants.HOUR_START_OF_NIGHT)
-							volume = GenMath.LerpDouble(Constants.HOUR_START_OF_DUSK, Constants.HOUR_START_OF_NIGHT, 0f, 1f, hour);
-						else if (hour >= Constants.HOUR_END_OF_NIGHT && hour <= Constants.HOUR_START_OF_DAWN)
-							volume = GenMath.LerpDouble(Constants.HOUR_END_OF_NIGHT, Constants.HOUR_START_OF_DAWN, 1f, 0f, hour);
+						else if (hour >= Constants.ZOMBIE_SPAWNING_HOURS[0] && hour <= Constants.ZOMBIE_SPAWNING_HOURS[1])
+							volume = GenMath.LerpDouble(Constants.ZOMBIE_SPAWNING_HOURS[0], Constants.ZOMBIE_SPAWNING_HOURS[1], 0f, 1f, hour);
+						else if (hour >= Constants.ZOMBIE_SPAWNING_HOURS[2] && hour <= Constants.ZOMBIE_SPAWNING_HOURS[3])
+							volume = GenMath.LerpDouble(Constants.ZOMBIE_SPAWNING_HOURS[2], Constants.ZOMBIE_SPAWNING_HOURS[3], 1f, 0f, hour);
 					}
 				}
 				yield return null;

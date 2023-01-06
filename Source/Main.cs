@@ -79,13 +79,23 @@ namespace ZombieLand
 			});
 		}
 
-		static void DrawJumpToCurrent(Rect rect)
+		static void DrawJumpToCurrent(Rect rect, float offset)
 		{
 			var txt = "JumpToNow".Translate();
 			var size = Text.CalcSize(txt);
-			var r = new Rect(rect.width - 20f - size.x, 0f, size.x + 12, size.y + 8);
+			var r = new Rect(rect.width - 20f - size.x - offset, 0f, size.x + 12, size.y + 8);
 			if (Widgets.ButtonText(r, txt))
 				DialogTimeHeader.JumpToCurrent();
+		}
+
+		static float DrawAdvancedSettings(Rect rect)
+		{
+			var txt = "AdvancedSettings".Translate();
+			var size = Text.CalcSize(txt);
+			var r = new Rect(rect.width - 20f - size.x, 0f, size.x + 12, size.y + 8);
+			if (Widgets.ButtonText(r, txt))
+				Find.WindowStack.Add(new Dialog_AdvancedSettings());
+			return size.x;
 		}
 
 		public override void DoSettingsWindowContents(Rect inRect)
@@ -93,11 +103,15 @@ namespace ZombieLand
 			var settings = ZombieSettings.GetGameSettings();
 			if (settings != null)
 			{
-				DrawJumpToCurrent(inRect);
+				var offset = DrawAdvancedSettings(inRect);
+				DrawJumpToCurrent(inRect, offset + 20f);
 				settings.DoWindowContents(inRect);
 			}
 			else
+			{
+				_ = DrawAdvancedSettings(inRect);
 				ZombieSettingsDefaults.DoWindowContents(inRect);
+			}
 		}
 
 		public override void WriteSettings()

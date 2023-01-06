@@ -266,8 +266,7 @@ namespace ZombieLand
 				dirtyCells = false;
 			}
 
-			var hasRagingZombies = zombies.Any(zombie => zombie.raging > 0 || zombie.isDarkSlimer);
-			if (hasRagingZombies)
+			if (zombies.Any(zombie => zombie.raging > 0 || zombie.isDarkSlimer))
 			{
 				dirtyCells = true;
 				var it1 = Recalculate(positions, false);
@@ -275,9 +274,13 @@ namespace ZombieLand
 					yield return null;
 			}
 
-			var hasTankyZombies = zombies.Any(zombie => zombie.IsTanky);
-			if (hasTankyZombies)
+			var tankys = zombies.Where(zombie => zombie.IsTanky);
+			if (tankys.Any())
 			{
+				var tankysPositions = tankys.Select(zombie => zombie.tankDestination).Where(pos => pos.IsValid).ToArray();
+				if (tankysPositions.Length > 0)
+					positions = tankysPositions;
+
 				dirtyCells = true;
 				var it2 = Recalculate(positions, true);
 				while (it2.MoveNext())
@@ -336,11 +339,10 @@ namespace ZombieLand
 						if (info.IsInValidState() == false)
 							continue;
 
-						var mapPawns = map?.mapPawns?.AllPawnsSpawned;
+						var mapPawns = map?.mapPawns?.AllPawnsSpawned?.ToArray();
 						if (mapPawns != null)
 						{
-							var pawnArray = mapPawns.ToArray();
-							var colonistPositions = pawnArray
+							var colonistPositions = mapPawns
 								.Select(pawn => new PawnProps(pawn))
 								.Where(props => props.valid)
 								.Select(props => props.position)

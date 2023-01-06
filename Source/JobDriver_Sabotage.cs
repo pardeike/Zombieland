@@ -364,7 +364,7 @@ namespace ZombieLand
 			var zombie = driver.pawn as Zombie;
 			var map = zombie.Map;
 
-			if (Rand.Chance(0.8f) && driver.ChooseHackTarget())
+			if (Rand.Chance(0.8f) && driver.ChooseSabotageTarget())
 				return true;
 
 			if (Rand.Chance(0.1f) && RCellFinder.TryFindRandomSpotJustOutsideColony(zombie.Position, map, null, out var cell))
@@ -395,84 +395,91 @@ namespace ZombieLand
 			return IntVec3.Invalid;
 		}
 
-		static bool ChooseHackTarget(this JobDriver_Sabotage driver)
+		static bool ChooseSabotageTarget(this JobDriver_Sabotage driver)
 		{
 			var zombie = driver.pawn as Zombie;
 			var map = zombie.Map;
 			IntVec3 cell;
+			var options = new int[] { 0, 1, 2, 3, 4, 5 }.InRandomOrder().ToArray();
 
-			switch (Rand.Range(0, 11))
-			{
-				// hack door of a room
-				case 0:
-					var rooms = map.regionGrid.allRooms.Where(r => r.IsDoorway == false && r.Fogged == false && r.IsHuge == false && r.UsesOutdoorTemperature == false);
-					var room = rooms.SafeRandomElement();
-					if (room != null)
-					{
-						var cells = room.Cells.Where(c => c.Standable(map));
-						cell = cells.SafeRandomElement();
-						if (driver.Goto(cell))
-							return true;
-					}
-					break;
+			for (var i = 0; i < options.Length; i++)
+				switch (options[i])
+				{
+					// hack door of a room
+					case 0:
+						var valuableRoom = Tools.ValuableRooms(map).SafeRandomElement();
+						if (valuableRoom != null)
+						{
+							var cells = valuableRoom.Cells.Where(c => c.Standable(map));
+							cell = cells.SafeRandomElement();
+							if (driver.Goto(cell))
+								return true;
+						}
+						break;
 
-				// turn off a flickable thing
-				case 1:
-				case 2:
-					var building = map.listerBuildings.allBuildingsColonist.Where(b =>
-					{
-						var compFlickable = b.Spawned ? b.TryGetComp<CompFlickable>() : null;
-						if (compFlickable != null && compFlickable.SwitchIsOn)
-							return true;
-						var compPowerTrader = b.TryGetComp<CompPowerTrader>();
-						if (compPowerTrader != null && compPowerTrader.PowerOn)
-							return true;
-						return false;
+					// move to home zone
+					case 1:
+						var homeCell = map.areaManager.Home.ActiveCells.SafeRandomElement();
+						if (homeCell.IsValid)
+						{
+							if (driver.Goto(homeCell))
+								return true;
+						}
+						break;
 
-					}).SafeRandomElement();
-					if (building != null)
-						if (driver.Goto(building))
-							return true;
-					break;
+					// turn off a flickable thing
+					case 2:
+						var building = map.listerBuildings.allBuildingsColonist.Where(b =>
+						{
+							var compFlickable = b.Spawned ? b.TryGetComp<CompFlickable>() : null;
+							if (compFlickable != null && compFlickable.SwitchIsOn)
+								return true;
+							var compPowerTrader = b.TryGetComp<CompPowerTrader>();
+							if (compPowerTrader != null && compPowerTrader.PowerOn)
+								return true;
+							return false;
 
-				// degrade a weapon
-				case 3:
-				case 4:
-					var weapon = map.listerThings.ThingsInGroup(ThingRequestGroup.Weapon)
-						.Where(t => t.def.IsRangedWeapon && t.def.useHitPoints)
-						.OrderBy(t => -t.MarketValue).FirstOrDefault();
-					if (weapon != null)
-						if (driver.Goto(weapon))
-							return true;
-					break;
+						}).SafeRandomElement();
+						if (building != null)
+							if (driver.Goto(building))
+								return true;
+						break;
 
-				// scream on colonists
-				case 5:
-				case 6:
-					cell = PawnCenter(map, map.mapPawns.FreeColonists);
-					if (cell.IsValid)
-						if (driver.Goto(cell, () => zombie.scream = -2))
-							return true;
-					break;
+					// degrade a weapon
+					case 3:
+						var weapon = map.listerThings.ThingsInGroup(ThingRequestGroup.Weapon)
+							.Where(t => t.def.IsRangedWeapon && t.def.useHitPoints)
+							.OrderBy(t => -t.MarketValue).FirstOrDefault();
+						if (weapon != null)
+							if (driver.Goto(weapon))
+								return true;
+						break;
 
-				// scream on enemies
-				case 7:
-				case 8:
-					var enemies = map.attackTargetsCache
-						.TargetsHostileToColony.OfType<Pawn>()
-						.Where(p => (p is Zombie) == false
-							&& p.RaceProps.Humanlike
-							&& p.RaceProps.IsFlesh
-							&& AlienTools.IsFleshPawn(p)
-							&& SoSTools.IsHologram(p) == false
-							&& p.health.Downed == false
-						);
-					cell = PawnCenter(map, enemies);
-					if (cell.IsValid)
-						if (driver.Goto(cell, () => zombie.scream = -2))
-							return true;
-					break;
-			}
+					// scream on colonists
+					case 4:
+						cell = PawnCenter(map, map.mapPawns.FreeColonists);
+						if (cell.IsValid)
+							if (driver.Goto(cell, () => zombie.scream = -2))
+								return true;
+						break;
+
+					// scream on enemies
+					case 5:
+						var enemies = map.attackTargetsCache
+							.TargetsHostileToColony.OfType<Pawn>()
+							.Where(p => (p is Zombie) == false
+								&& p.RaceProps.Humanlike
+								&& p.RaceProps.IsFlesh
+								&& AlienTools.IsFleshPawn(p)
+								&& SoSTools.IsHologram(p) == false
+								&& p.health.Downed == false
+							);
+						cell = PawnCenter(map, enemies);
+						if (cell.IsValid)
+							if (driver.Goto(cell, () => zombie.scream = -2))
+								return true;
+						break;
+				}
 
 			return false;
 		}

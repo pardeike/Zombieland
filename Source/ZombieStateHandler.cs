@@ -540,9 +540,15 @@ namespace ZombieLand
 
 			if (newPos.IsValid == false)
 			{
-				// tanky can get directly through walls
 				if (zombie.IsTanky)
+				{
+					// reached goal?
+					if (zombie.tankDestination == zombie.Position)
+						zombie.tankDestination = IntVec3.Invalid;
+
+					// tanky can get directly through walls
 					newPos = info.GetParent(zombie.Position, true);
+				}
 
 				if (newPos.IsValid == false)
 				{
@@ -610,12 +616,12 @@ namespace ZombieLand
 				var hour = GenLocalDate.HourOfDay(zombie.Map);
 				if (hour < 12)
 					hour += 24;
-				if (hour > Constants.HOUR_START_OF_NIGHT && hour < Constants.HOUR_END_OF_NIGHT)
+				if (hour > Constants.ZOMBIE_SPAWNING_HOURS[1] && hour < Constants.ZOMBIE_SPAWNING_HOURS[2])
 					moveTowardsCenter = true;
-				else if (hour >= Constants.HOUR_START_OF_DUSK && hour <= Constants.HOUR_START_OF_NIGHT)
-					moveTowardsCenter = Rand.RangeInclusive(hour, Constants.HOUR_START_OF_NIGHT) == Constants.HOUR_START_OF_NIGHT;
-				else if (hour >= Constants.HOUR_END_OF_NIGHT && hour <= Constants.HOUR_START_OF_DAWN)
-					moveTowardsCenter = Rand.RangeInclusive(Constants.HOUR_END_OF_NIGHT, hour) == Constants.HOUR_END_OF_NIGHT;
+				else if (hour >= Constants.ZOMBIE_SPAWNING_HOURS[0] && hour <= Constants.ZOMBIE_SPAWNING_HOURS[1])
+					moveTowardsCenter = Rand.RangeInclusive(hour, Constants.ZOMBIE_SPAWNING_HOURS[1]) == Constants.ZOMBIE_SPAWNING_HOURS[1];
+				else if (hour >= Constants.ZOMBIE_SPAWNING_HOURS[2] && hour <= Constants.ZOMBIE_SPAWNING_HOURS[3])
+					moveTowardsCenter = Rand.RangeInclusive(Constants.ZOMBIE_SPAWNING_HOURS[2], hour) == Constants.ZOMBIE_SPAWNING_HOURS[2];
 
 				if (moveTowardsCenter)
 				{

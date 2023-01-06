@@ -1,72 +1,44 @@
 ﻿using HarmonyLib;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using Verse;
 
 namespace ZombieLand
 {
+	[AttributeUsage(AttributeTargets.Field)]
+	public class ConstantAttribute : Attribute
+	{
+		public int Version { get; }
+		public string Description { get; }
+
+		public ConstantAttribute(int version, string description)
+		{
+			Version = version;
+			Description = description;
+		}
+	}
+
+	public struct VersionedValue
+	{
+		public object value;
+		public int version;
+	}
+
 	[StaticConstructorOnStartup]
 	public static class Constants
 	{
+		public static readonly Dictionary<string, VersionedValue> defaultValues;
+		static readonly string SettingsFilePath = Path.Combine(GenFilePaths.ConfigFolderPath, "ZombielandAdvancedSettings.json");
+
 		static Constants()
 		{
-			var settingsPath = Tools.GetModRootDirectory() + Path.DirectorySeparatorChar + "About" + Path.DirectorySeparatorChar + "Settings.txt";
-			File.ReadAllLines(settingsPath)
-				.Select(line => line.Trim())
-				.Where(line => line.StartsWith("/", StringComparison.Ordinal) == false && line.Length > 0)
-				.Select(line =>
-				{
-					var parts = line.Split('=').Select(part => part.Trim()).ToList();
-					parts.Insert(0, line);
-					return parts.ToArray();
-				})
-				.Do(parts =>
-				{
-					if (parts.Length != 3)
-						Log.Error("Unexpected line: " + parts[0]);
-					else
-					{
-						var field = parts[1];
-						var value = parts[2];
-						var constant = typeof(Constants).Field(field);
-
-						switch (constant.FieldType.Name)
-						{
-							case "Boolean":
-							{
-								if (bool.TryParse(value, out var result))
-									constant.SetValue(null, result);
-								else
-									Log.Error("Cannot parse boolean '" + value + "' of constant " + field);
-								break;
-							}
-							case "Int32":
-							{
-								if (int.TryParse(value, out var result))
-									constant.SetValue(null, result);
-								else
-									Log.Error("Cannot parse int '" + value + "' of constant " + field);
-								break;
-							}
-							case "Single":
-							{
-								if (float.TryParse(value, out var result))
-									constant.SetValue(null, result);
-								else
-									Log.Error("Cannot parse float '" + value + "' of constant " + field);
-								break;
-							}
-							default:
-								Log.Error("Zombieland constant '" + field + "' with unknown type " + constant.FieldType.Name);
-								break;
-						}
-					}
-				});
-
 			var edge = new Color(1, 1, 1, 0.5f);
 			dot.SetPixel(0, 0, edge);
 			dot.SetPixel(1, 0, Color.white);
@@ -78,54 +50,113 @@ namespace ZombieLand
 			dot.SetPixel(1, 2, Color.white);
 			dot.SetPixel(2, 2, edge);
 			dot.Apply(true);
+
+			// merge settings
+			defaultValues = Current();
+			var settings = Load();
+			foreach (var newSetting in defaultValues)
+			{
+				if (settings.ContainsKey(newSetting.Key) == false)
+					settings.Add(newSetting.Key, newSetting.Value);
+				else
+				{
+					var oldSetting = settings[newSetting.Key];
+					if (newSetting.Value.version > oldSetting.version)
+						oldSetting.value = newSetting.Value.value;
+				}
+			}
+			Save(settings);
+			Apply(settings);
 		}
 
-		// general debugging and testing
+		// grid debugging
 		//
-		public static readonly bool DEBUGGRID;
-		public static readonly bool USE_SOUND = true;
-		public static readonly int DEBUG_MAX_ZOMBIE_COUNT = -1;
+		[Constant(1, "Enable to see how zombies track enemies")]
+		public static bool SHOW_PHEROMONE_GRID = false;
+		[Constant(1, "Enable to show player reachable regions (for zombie spawning)")]
+		public static bool SHOW_PLAYER_REACHABLE_REGIONS = false;
+		[Constant(1, "Enable to see how colonists avoid zombies")]
+		public static bool SHOW_AVOIDANCE_GRID = false;
+		[Constant(1, "Enable to see how raging and dark zombies path towards colonists")]
+		public static bool SHOW_NORMAL_PATHING_GRID = false;
+		[Constant(1, "Enable to see how tank zombies path towards colonists")]
+		public static bool SHOW_DIRECT_PATHING_GRID = false;
+
+		// general debugging/testing
+		//
+		[Constant(1, "Turn zombie sounds on/off")]
+		public static bool USE_SOUND = true;
+		[Constant(1, "Set this to greater than -1 to debug the number of zombies on the map")]
+		public static int DEBUG_MAX_ZOMBIE_COUNT = -1;
 
 		// timing
 		//
-		public static readonly float PHEROMONE_FADEOFF = 180f;
-		public static readonly int TICKMANAGER_RECALCULATE_DELAY = 900;
-		public static readonly float TICKMANAGER_AVOIDGRID_DELAY = 0.25f;
-		public static readonly int EAT_DELAY_TICKS = 1200;
+		[Constant(1, "The fade-off (in game-seconds) of the traces every enemy leaves behind. Set this lower will make zombies chaise you less because they loose track of you")]
+		public static float PHEROMONE_FADEOFF = 180f;
+		[Constant(1, "Sets how often the map is analyzed (in ticks) to find the center-of-interest and to sort zombies into a priority list in case we need to restrain cpu time")]
+		public static int TICKMANAGER_RECALCULATE_DELAY = 900;
+		[Constant(1, "How often (in game-seconds) the avoid grid is updated")]
+		public static float TICKMANAGER_AVOIDGRID_DELAY = 0.25f;
+		[Constant(1, "How long (in ticks) to wait between each bite when zombies eat")]
+		public static int EAT_DELAY_TICKS = 1200;
 
 		// zombie spawning
-		// the following hours continue after 23h with 24, 25, 26...
-		//
-		public static readonly int HOUR_START_OF_DUSK = 18;
-		public static readonly int HOUR_START_OF_NIGHT = 22;
-		public static readonly int HOUR_END_OF_NIGHT = 28;
-		public static readonly int HOUR_START_OF_DAWN = 32;
+		[Constant(1, "This controls the hours of the day/night cycle for zombies (hours keep adding +1 after 23)")]
+		public static int[] ZOMBIE_SPAWNING_HOURS = new[] { 18, 22, 28, 32 };
 
 		// zombie stats
 		//
-		public static readonly float ANIMAL_PHEROMONE_RADIUS = 2f;
-		public static readonly float HUMAN_PHEROMONE_RADIUS = 4f;
-		public static readonly float TANKY_PHEROMONE_RADIUS = 6f;
-		public static readonly float ZOMBIE_HIT_CHANCE_IDLE = 0.2f;
-		public static readonly float ZOMBIE_HIT_CHANCE_TRACKING = 0.7f;
-		public static readonly int NUMBER_OF_TOP_MOVEMENT_PICKS = 3;
-		public static readonly float CLUSTER_AVOIDANCE_CHANCE = 0.25f;
-		public static readonly float DIVERTING_FROM_RAGE = 0.1f;
-		public static readonly int ZOMBIE_CLOGGING_FACTOR = 10000;
-		public static readonly float KILL_CIRCLE_RADIUS_MULTIPLIER;
-		public static readonly float BASE_MUZZLE_FLASH_VALUE = 9f;
-		public static readonly float SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 14;
-		public static readonly float COLONISTS_HIT_ZOMBIES_CHANCE = 0.9f;
-		public static readonly float COMBAT_EXTENDED_ARMOR_PENETRATION = 0.1f;
-		public static readonly int ZOMBIE_HEALING_TICKS = 3000;
+		[Constant(1, "The distance within zombies will be aware of animals")]
+		public static float ANIMAL_PHEROMONE_RADIUS = 2f;
+		[Constant(1, "The distance within zombies will be aware of non-animals")]
+		public static float HUMAN_PHEROMONE_RADIUS = 4f;
+		[Constant(1, "The radius around tanky zombies which will draw ordinary zombies with the tankys movement")]
+		public static float TANKY_PHEROMONE_RADIUS = 6f;
+		[Constant(1, "The hit chance a zombie has when he is not tracking anything")]
+		public static float ZOMBIE_HIT_CHANCE_IDLE = 0.2f;
+		[Constant(1, "The hit chance a zombie has when he is tracking something")]
+		public static float ZOMBIE_HIT_CHANCE_TRACKING = 0.7f;
+		[Constant(1, "The number of cells out of the 8 surrounding cells of a zombie that get selected for moving")]
+		public static int NUMBER_OF_TOP_MOVEMENT_PICKS = 3;
+		[Constant(1, "The chance a zombie chooses a random movement when raging (multiplied by the number of zombies on the current and the destination positions together)")]
+		public static float CLUSTER_AVOIDANCE_CHANCE = 0.25f;
+		[Constant(1, "The chance a raging zombie does not go straight to their goal thus spreading them out a bit to keep it organic")]
+		public static float DIVERTING_FROM_RAGE = 0.1f;
+		[Constant(1, "Grouping of zombies, the higher the number the quicker will zombies loose interest in a trace if there are many zombies close to each other")]
+		public static int ZOMBIE_CLOGGING_FACTOR = 10000;
+		[Constant(1, "When zombies kill, this radius is applied to disburst them from the target in a random way")]
+		public static float KILL_CIRCLE_RADIUS_MULTIPLIER = 0f;
+		[Constant(1, "Muzzle flash value to base all other \"how loud\" calculations on")]
+		public static float BASE_MUZZLE_FLASH_VALUE = 9f;
+		[Constant(1, "How many zombies do need to stand close around a zombie to trigger it to become raging")]
+		public static float SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 14f;
+		[Constant(1, "When easy kill is turned on, what is the chance to skip \"missed a shot\" on long distance shots from a colonist")]
+		public static float COLONISTS_HIT_ZOMBIES_CHANCE = 0.9f;
+		[Constant(1, "With Combat Extended, sets the output of the method CombatExtended/ArmorUtilityCE.cs:GetPenetrationValue()")]
+		public static float COMBAT_EXTENDED_ARMOR_PENETRATION = 0.1f;
+		[Constant(1, "The time (in ticks) between healing a zombie wounds")]
+		public static int ZOMBIE_HEALING_TICKS = 3000;
 
 		// zombie incidents
 		//
-		public static readonly int SPAWN_INCIDENT_RADIUS = 10;
-		public static readonly int MIN_ZOMBIE_SPAWN_CELL_COUNT = 6;
+		[Constant(1, "The area radius in where a spawn incident will take place")]
+		public static int SPAWN_INCIDENT_RADIUS = 10;
+		[Constant(1, "Tthe number of spawnable cells for a spawn area to be considered")]
+		public static int MIN_ZOMBIE_SPAWN_CELL_COUNT = 6;
 
-		// rubble
+		// misc
 		//
+		[Constant(1, "Zombies will detect a fired weapon within this range")]
+		public static float[] WEAPON_RANGE = new[] { 2f, 30f };
+		[Constant(1, "Minimum distance (squared) between a zombie and a pawn for allowing the zombie to attack the pawn")]
+		public static float MIN_ATTACKDISTANCE_SQUARED = 2.25f;
+		[Constant(1, "Lower bound of consciousness for zombies to get confused and incapable of action/movement")]
+		public static float MIN_CONSCIOUSNESS = 0.25f;
+		[Constant(1, "Maximum distance (squared) between colonist and zombie while roping")]
+		public static float MAX_ROPING_DISTANCE_SQUARED = 144f;
+
+		// -- other constants --
+
 		public static readonly int MIN_DELTA_TICKS = 20;
 		public static readonly int MAX_DELTA_TICKS = 4;
 		public static readonly int RUBBLE_AMOUNT = 50;
@@ -134,14 +165,6 @@ namespace ZombieLand
 		public static readonly float MAX_SCALE = 0.3f;
 		public static readonly float ZOMBIE_LAYER = Altitudes.AltitudeFor(AltitudeLayer.Pawn) - 0.005f;
 		public static readonly float EMERGE_DELAY = 0.8f;
-
-		// misc
-		//
-		public static readonly float MIN_WEAPON_RANGE = 2f;
-		public static readonly float MAX_WEAPON_RANGE = 30f;
-		public static readonly float MIN_ATTACKDISTANCE_SQUARED = 2.25f;
-		public static readonly float MIN_CONSCIOUSNESS = 0.25f;
-		public static readonly float MAX_ROPING_DISTANCE_SQUARED = 144;
 
 		public static readonly Material RAGE_EYE = MaterialPool.MatFrom("RageEye", ShaderDatabase.Mote);
 		public static readonly Material BOMB_LIGHT = MaterialPool.MatFrom("BombLight", ShaderDatabase.MoteGlow);
@@ -317,5 +340,76 @@ namespace ZombieLand
 
 		public static readonly Texture2D healthBarFrame = SolidColorMaterials.NewSolidColorTexture(Color.black);
 		public static readonly Color healthBarBG = new(1, 1, 1, 0.25f);
+
+		public static List<(string name, FieldInfo field, ConstantAttribute attr)> AllSettings
+		{
+			get
+			{
+				return AccessTools.GetFieldNames(typeof(Constants))
+					.Select(name =>
+					{
+						var field = AccessTools.Field(typeof(Constants), name);
+						var attr = (ConstantAttribute)field.GetCustomAttribute(typeof(ConstantAttribute));
+						return (name, field, attr);
+					})
+					.Where(info => info.attr != null)
+					.ToList();
+			}
+		}
+
+		public static Dictionary<string, VersionedValue> Current()
+		{
+			return AllSettings
+				.Select(info => (info.name, value: new VersionedValue() { value = info.field.GetValue(null), version = info.attr.Version }))
+				.ToDictionary(pair => pair.name, pair => pair.value);
+		}
+
+		public static Dictionary<string, VersionedValue> Load()
+		{
+			if (File.Exists(SettingsFilePath) == false)
+				return new Dictionary<string, VersionedValue>();
+
+			var serializer = new JsonSerializer();
+			using var reader = new StreamReader(SettingsFilePath);
+			using var jsonReader = new JsonTextReader(reader);
+			return serializer.Deserialize<Dictionary<string, VersionedValue>>(jsonReader);
+		}
+
+		public static void Save(Dictionary<string, VersionedValue> dict)
+		{
+			var serializer = new JsonSerializer();
+			using var writer = new StreamWriter(SettingsFilePath);
+			using var jsonWriter = new JsonTextWriter(writer);
+			serializer.Serialize(jsonWriter, dict);
+		}
+
+		public static void Apply(Dictionary<string, VersionedValue> dict)
+		{
+			var trv = Traverse.Create(typeof(Constants));
+			foreach (var info in dict)
+			{
+				var value = info.Value.value;
+				if (value is double doubleValue)
+					value = (float)doubleValue;
+				if (value is long longValue)
+					value = (int)longValue;
+				if (value is JArray jArray)
+				{
+					var type = trv.Field(info.Key).GetValueType().GetElementType();
+					if (type == typeof(int))
+						value = jArray.Select(jToken => (int)jToken).ToArray();
+					if (type == typeof(float))
+						value = jArray.Select(jToken => (float)jToken).ToArray();
+				}
+				try
+				{
+					_ = trv.Field(info.Key).SetValue(value);
+				}
+				catch (Exception ex)
+				{
+					Log.Error($"Ex: {info.Key}:{info.Value.value} => {ex.Message}");
+				}
+			}
+		}
 	}
 }

@@ -38,7 +38,8 @@ namespace ZombieLand
 		static MethodBase TargetMethod()
 		{
 			var type = AccessTools.TypeByName("CombatExtended.ProjectileCE");
-			if (type == null) return null;
+			if (type == null)
+				return null;
 			var method = AccessTools.Method(type, "Launch", new Type[] { typeof(Thing), typeof(Vector2), typeof(float), typeof(float), typeof(float), typeof(float), typeof(Thing) });
 			if (method == null)
 			{
@@ -50,8 +51,10 @@ namespace ZombieLand
 
 		static void Postfix(Thing launcher, Vector2 origin, float shotAngle, float shotHeight, float shotSpeed)
 		{
-			if (launcher is not Pawn pawn) return;
-			if (launcher.Map == null) return;
+			if (launcher is not Pawn pawn)
+				return;
+			if (launcher.Map == null)
+				return;
 
 			var noiseScale = 1f;
 			if (pawn.equipment?.PrimaryEq?.PrimaryVerb?.verbProps != null)
@@ -61,7 +64,7 @@ namespace ZombieLand
 			var pos = new IntVec3(origin);
 			var delta = Projectile_Launch_Patch.GetDistanceTraveled(shotSpeed, shotAngle, shotHeight);
 			var magnitude = noiseScale * delta * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
-			var radius = Tools.Boxed(magnitude, Constants.MIN_WEAPON_RANGE, Constants.MAX_WEAPON_RANGE);
+			var radius = Tools.Boxed(magnitude, Constants.WEAPON_RANGE[0], Constants.WEAPON_RANGE[1]);
 			var grid = launcher.Map.GetGrid();
 			Tools.GetCircle(radius).Do(vec => grid.BumpTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
 		}
@@ -73,7 +76,8 @@ namespace ZombieLand
 		static MethodBase TargetMethod()
 		{
 			var type = AccessTools.TypeByName("CombatExtended.ArmorUtilityCE");
-			if (type == null) return null;
+			if (type == null)
+				return null;
 			var boolRef = typeof(bool).MakeByRefType();
 			var method = AccessTools.Method(type, "GetAfterArmorDamage", new Type[] { typeof(DamageInfo), typeof(Pawn), typeof(BodyPartRecord), boolRef, boolRef, boolRef });
 			if (method == null)
@@ -91,7 +95,8 @@ namespace ZombieLand
 			var dmgAmount = dinfo.Amount;
 
 			shieldAbsorbed = false;
-			if (pawn == null || hitPart == null) return true;
+			if (pawn == null || hitPart == null)
+				return true;
 			var prefixResult = 0f;
 			var result = ArmorUtility_GetPostArmorDamage_Patch.Prefix(pawn, ref dmgAmount, hitPart, dinfo.ArmorPenetrationInt, out var deflect, out var diminish, ref prefixResult);
 			if (result && originalDinfo.Instigator != null)

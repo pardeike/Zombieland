@@ -89,6 +89,7 @@ namespace ZombieLand
 		public float hasTankyShield = -1f;
 		public float hasTankyHelmet = -1f;
 		public float hasTankySuit = -1f;
+		public IntVec3 tankDestination = IntVec3.Invalid;
 		public bool IsTanky => hasTankyHelmet > 0f || hasTankySuit > 0f;
 
 		// miner
@@ -205,6 +206,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref hasTankyShield, "tankyShield");
 			Scribe_Values.Look(ref hasTankyHelmet, "tankyHelmet");
 			Scribe_Values.Look(ref hasTankySuit, "tankySuit");
+			Scribe_Values.Look(ref tankDestination, "tankDestination", IntVec3.Invalid);
 			Scribe_Values.Look(ref isHealing, "isHealing");
 			Scribe_Values.Look(ref consciousness, "consciousness");
 			Scribe_Values.Look(ref paralyzedUntil, "paralyzedUntil");

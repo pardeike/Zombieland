@@ -13,8 +13,11 @@ namespace ZombieLand
 			var map = Find.CurrentMap;
 			if (map == null)
 				return;
+			var cell = UI.MouseCell();
+			if (cell.InBounds(map) == false)
+				return;
 
-			var zombie = ZombieGenerator.SpawnZombie(UI.MouseCell(), map, type);
+			var zombie = ZombieGenerator.SpawnZombie(cell, map, type);
 			if (Current.ProgramState != ProgramState.Playing)
 				return;
 

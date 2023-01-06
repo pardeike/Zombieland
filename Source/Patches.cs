@@ -123,7 +123,7 @@ namespace ZombieLand
 
 			static void Postfix()
 			{
-				if (Constants.DEBUGGRID == false || DebugViewSettings.drawDoorsDebug == false)
+				if (Constants.SHOW_PHEROMONE_GRID == false)
 					return;
 
 				// debug zombie counts
@@ -166,27 +166,28 @@ namespace ZombieLand
 		{
 			static void Postfix()
 			{
-				// var m = DebugSolidColorMats.MaterialOf(Color.magenta);
-				// Tools.PlayerReachableRegions(Find.CurrentMap).SelectMany(r => r.Cells).Do(c => CellRenderer.RenderSpot(c.ToVector3Shifted(), m, 0.25f));
-
-				if (Constants.DEBUGGRID == false || DebugViewSettings.writePathCosts == false)
-					return;
-				if (Tools.ShouldAvoidZombies() == false)
-					return;
-
-				var map = Find.CurrentMap;
-				var tickManager = map.GetComponent<TickManager>();
-				if (tickManager == null)
-					return;
-				var avoidGrid = tickManager.avoidGrid;
-
-				var currentViewRect = Find.CameraDriver.CurrentViewRect;
-				_ = currentViewRect.ClipInsideMap(map);
-				foreach (var c in currentViewRect)
+				if (Constants.SHOW_PLAYER_REACHABLE_REGIONS)
 				{
-					var cost = avoidGrid.GetCosts()[c.x + c.z * map.Size.x];
-					if (cost > 0)
-						Tools.DebugPosition(c.ToVector3(), new Color(1f, 0f, 0f, GenMath.LerpDouble(0, 10000, 0.4f, 1f, cost)));
+					var m = DebugSolidColorMats.MaterialOf(Color.magenta);
+					Tools.PlayerReachableRegions(Find.CurrentMap).SelectMany(r => r.Cells).Do(c => CellRenderer.RenderSpot(c.ToVector3Shifted(), m, 0.25f));
+				}
+
+				if (Constants.SHOW_AVOIDANCE_GRID && Tools.ShouldAvoidZombies())
+				{
+					var map = Find.CurrentMap;
+					var tickManager = map.GetComponent<TickManager>();
+					if (tickManager == null)
+						return;
+					var avoidGrid = tickManager.avoidGrid;
+
+					var currentViewRect = Find.CameraDriver.CurrentViewRect;
+					_ = currentViewRect.ClipInsideMap(map);
+					foreach (var c in currentViewRect)
+					{
+						var cost = avoidGrid.GetCosts()[c.x + c.z * map.Size.x];
+						if (cost > 0)
+							Tools.DebugPosition(c.ToVector3(), new Color(0f, 1f, 0f, GenMath.LerpDouble(0, 10000, 0.4f, 1f, cost)));
+					}
 				}
 			}
 		}
@@ -199,7 +200,7 @@ namespace ZombieLand
 		{
 			static void Postfix()
 			{
-				if (Constants.DEBUGGRID == false || DebugViewSettings.writeBeauty == false)
+				if (Constants.SHOW_NORMAL_PATHING_GRID == false && Constants.SHOW_DIRECT_PATHING_GRID == false)
 					return;
 				if (Event.current.type != EventType.Repaint)
 					return;
@@ -207,25 +208,33 @@ namespace ZombieLand
 				var map = Find.CurrentMap;
 				if (map == null)
 					return;
-				var grid = map.GetGrid();
 				var basePos = UI.MouseCell();
 				var info = ZombieWanderer.GetMapInfo(map);
-				var ignoreBuildings = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-				Tools.GetCircle(4).Select(vec => vec + basePos).Do(cell =>
-				{
-					var labelVec = GenMapUI.LabelDrawPosFor(cell);
-					var newPos = info.GetParent(cell, ignoreBuildings);
-					if (newPos.IsValid == false)
-					{
-						GenMapUI.DrawThingLabel(labelVec, "⁜", Color.red);
-						return;
-					}
 
-					var d = newPos - cell;
-					var n = (d.x + 1) + (d.z + 1) * 3;
-					var arrow = "↙↓↘←◌→↖↑↗".Substring(n, 1);
-					GenMapUI.DrawThingLabel(labelVec, arrow, ignoreBuildings ? Color.yellow : Color.white);
-				});
+				void DrawGrid(bool ignoreBuildings, Color color, Vector2 offset)
+				{
+					var noneColor = new Color(1f, 0, 0, 0.5f);
+					Tools.GetCircle(4).Select(vec => vec + basePos).Do(cell =>
+					{
+						var labelVec = GenMapUI.LabelDrawPosFor(cell) + offset;
+						var newPos = info.GetParent(cell, ignoreBuildings);
+						if (newPos.IsValid == false)
+						{
+							GenMapUI.DrawThingLabel(labelVec, "⁜", noneColor);
+							return;
+						}
+
+						var d = newPos - cell;
+						var n = (d.x + 1) + (d.z + 1) * 3;
+						var arrow = "↙↓↘←◌→↖↑↗".Substring(n, 1);
+						GenMapUI.DrawThingLabel(labelVec, arrow, color);
+					});
+				}
+
+				if (Constants.SHOW_NORMAL_PATHING_GRID)
+					DrawGrid(false, Color.white, new Vector2(0, -5));
+				if (Constants.SHOW_DIRECT_PATHING_GRID)
+					DrawGrid(true, Color.yellow, new Vector2(0, 5));
 			}
 		}
 
@@ -2114,7 +2123,6 @@ namespace ZombieLand
 							var z = Math.Sign(value.z - pos.z) + 1;
 							var orthIdx = x + 3 * z;
 							var pair = orthogonalIndices[orthIdx];
-							// Log.Warning($"{pos}->{value} [{x}] [{z}] => {orthIdx} dx[{pair[0]}] dz[{pair[1]}]");
 							_ = FilthMaker.TryMakeFilth(pos + pair[0], map, CustomDefs.TarSlime, null, true);
 							_ = FilthMaker.TryMakeFilth(pos + pair[1], map, CustomDefs.TarSlime, null, true);
 						}
@@ -4777,8 +4785,8 @@ namespace ZombieLand
 
 				var now = Tools.Ticks();
 				var pos = origin.ToIntVec3();
-				var magnitude = usedTarget == null ? (Constants.MIN_WEAPON_RANGE + Constants.MAX_WEAPON_RANGE) / 2 : (usedTarget.CenterVector3 - origin).magnitude * noiseScale * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
-				var radius = Tools.Boxed(magnitude, Constants.MIN_WEAPON_RANGE, Constants.MAX_WEAPON_RANGE);
+				var magnitude = usedTarget == null ? (Constants.WEAPON_RANGE[0] + Constants.WEAPON_RANGE[1]) / 2 : (usedTarget.CenterVector3 - origin).magnitude * noiseScale * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
+				var radius = Tools.Boxed(magnitude, Constants.WEAPON_RANGE[0], Constants.WEAPON_RANGE[1]);
 				var grid = pawn.Map.GetGrid();
 				Tools.GetCircle(radius).Do(vec => grid.BumpTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
 			}
@@ -5043,7 +5051,7 @@ namespace ZombieLand
 
 					if (constructorName == "Page_SelectLandingSite" || constructorName == "Page_SelectStartingSite")
 					{
-						yield return new CodeInstruction(OpCodes.Newobj, AccessTools.Constructor(typeof(SettingsDialog)));
+						yield return new CodeInstruction(OpCodes.Newobj, AccessTools.Constructor(typeof(Dialog_Settings)));
 						yield return new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(List<Page>), nameof(List<Page>.Add)));
 						yield return new CodeInstruction(OpCodes.Ldloc_0);
 						found = true;

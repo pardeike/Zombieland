@@ -233,6 +233,46 @@ namespace ZombieLand
 			return (pawn.Faction?.IsPlayer ?? false) && pawn.jobs != null;
 		}
 
+		static readonly HashSet<Type> valuableThings = new()
+		{
+			typeof(Building_Art),
+			typeof(Building_Bed),
+			typeof(Building_Battery),
+			typeof(Building_CommsConsole),
+			typeof(Building_Cooler),
+			typeof(Building_Heater),
+			typeof(Building_MechCharger),
+			typeof(Building_MechGestator),
+			typeof(Building_NutrientPasteDispenser),
+			typeof(Building_OrbitalTradeBeacon),
+			typeof(Building_PodLauncher),
+			typeof(Building_PowerSwitch),
+			typeof(Building_ResearchBench),
+			typeof(Building_Storage),
+			typeof(Building_StylingStation),
+			typeof(Building_SunLamp),
+			typeof(Building_TempControl),
+			typeof(Building_Vent),
+			typeof(Building_WorkTable)
+		};
+		public static IEnumerable<Room> ValuableRooms(Map map)
+		{
+			var rooms = map.regionGrid.allRooms.Where(r => r.IsDoorway == false && r.Fogged == false && r.IsHuge == false && r.UsesOutdoorTemperature == false && r.ProperRoom);
+			var home = map.areaManager.Home;
+			foreach (var room in rooms)
+			{
+				foreach (var thing in room.ContainedAndAdjacentThings)
+				{
+					if (valuableThings.Contains(thing.GetType()))
+						if (home.TrueCount == 0 || home[thing.Position])
+						{
+							yield return room;
+							break;
+						}
+				}
+			}
+		}
+
 		public static bool ShouldAvoidZombies(Pawn pawn = null)
 		{
 			if (pawn == null)
