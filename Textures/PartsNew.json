@@ -1,0 +1,1007 @@
+{
+    "fill_rate": 0.8576755523681641,
+    "grid_height": 0,
+    "grid_width": 0,
+    "height": 1024,
+    "image": "PartsNew.png",
+    "name": "PartsNew",
+    "padding_x": 0,
+    "padding_y": 0,
+    "pot": true,
+    "regions": [
+        {
+            "idx": 16,
+            "name": "PatreonIcon",
+            "origin": [
+                30,
+                22
+            ],
+            "rect": [
+                938,
+                0,
+                60,
+                45
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 8,
+            "name": "Stains/Chain",
+            "origin": [
+                8,
+                23
+            ],
+            "rect": [
+                152,
+                101,
+                16,
+                47
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 17,
+            "name": "Stains/Hole",
+            "origin": [
+                7,
+                5
+            ],
+            "rect": [
+                998,
+                0,
+                15,
+                11
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 18,
+            "name": "Stains/Ribs1",
+            "origin": [
+                6,
+                8
+            ],
+            "rect": [
+                998,
+                11,
+                13,
+                16
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 9,
+            "name": "Stains/Ribs2",
+            "origin": [
+                11,
+                11
+            ],
+            "rect": [
+                128,
+                105,
+                23,
+                23
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 6,
+            "name": "Stains/Ribs3",
+            "origin": [
+                12,
+                15
+            ],
+            "rect": [
+                128,
+                75,
+                24,
+                30
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 7,
+            "name": "Stains/Ribs4",
+            "origin": [
+                8,
+                13
+            ],
+            "rect": [
+                152,
+                75,
+                17,
+                26
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 5,
+            "name": "Stains/Scar",
+            "origin": [
+                3,
+                6
+            ],
+            "rect": [
+                158,
+                55,
+                7,
+                12
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 10,
+            "name": "Stains/Scratch",
+            "origin": [
+                8,
+                11
+            ],
+            "rect": [
+                128,
+                128,
+                16,
+                22
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 4,
+            "name": "Stains/Stain1",
+            "origin": [
+                5,
+                5
+            ],
+            "rect": [
+                158,
+                45,
+                10,
+                10
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 3,
+            "name": "Stains/Stain2",
+            "origin": [
+                15,
+                15
+            ],
+            "rect": [
+                128,
+                45,
+                30,
+                30
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 45,
+            "name": "Zombie/Female_Average_Normal_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                640,
+                256,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 46,
+            "name": "Zombie/Female_Average_Normal_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                768,
+                256,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 47,
+            "name": "Zombie/Female_Average_Normal_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                896,
+                256,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 48,
+            "name": "Zombie/Female_Average_Pointy_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                384,
+                384,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 49,
+            "name": "Zombie/Female_Average_Pointy_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                384,
+                512,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 50,
+            "name": "Zombie/Female_Average_Pointy_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                384,
+                640,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 51,
+            "name": "Zombie/Female_Average_Wide_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                384,
+                768,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 52,
+            "name": "Zombie/Female_Average_Wide_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                384,
+                896,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 53,
+            "name": "Zombie/Female_Average_Wide_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                512,
+                384,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 54,
+            "name": "Zombie/Female_Narrow_Normal_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                640,
+                384,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 65,
+            "name": "Zombie/Female_Narrow_Normal_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                640,
+                768,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 55,
+            "name": "Zombie/Female_Narrow_Normal_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                768,
+                384,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 56,
+            "name": "Zombie/Female_Narrow_Pointy_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                896,
+                384,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 57,
+            "name": "Zombie/Female_Narrow_Pointy_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                512,
+                512,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 58,
+            "name": "Zombie/Female_Narrow_Pointy_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                512,
+                640,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 59,
+            "name": "Zombie/Female_Narrow_Wide_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                512,
+                768,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 60,
+            "name": "Zombie/Female_Narrow_Wide_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                512,
+                896,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 61,
+            "name": "Zombie/Female_Narrow_Wide_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                640,
+                512,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 62,
+            "name": "Zombie/Male_Average_Normal_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                768,
+                512,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 63,
+            "name": "Zombie/Male_Average_Normal_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                896,
+                512,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 44,
+            "name": "Zombie/Male_Average_Normal_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                512,
+                256,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 64,
+            "name": "Zombie/Male_Average_Pointy_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                640,
+                640,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 2,
+            "name": "Zombie/Male_Average_Pointy_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                0,
+                45,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 26,
+            "name": "Zombie/Male_Average_Pointy_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                296,
+                128,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 25,
+            "name": "Zombie/Male_Average_Wide_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                168,
+                128,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 24,
+            "name": "Zombie/Male_Average_Wide_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                0,
+                813,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 23,
+            "name": "Zombie/Male_Average_Wide_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                0,
+                685,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 22,
+            "name": "Zombie/Male_Narrow_Normal_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                0,
+                557,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 21,
+            "name": "Zombie/Male_Narrow_Normal_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                0,
+                429,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 20,
+            "name": "Zombie/Male_Narrow_Normal_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                0,
+                301,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 19,
+            "name": "Zombie/Male_Narrow_Pointy_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                0,
+                173,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 15,
+            "name": "Zombie/Male_Narrow_Pointy_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                810,
+                0,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 14,
+            "name": "Zombie/Male_Narrow_Pointy_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                682,
+                0,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 13,
+            "name": "Zombie/Male_Narrow_Wide_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                554,
+                0,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 12,
+            "name": "Zombie/Male_Narrow_Wide_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                426,
+                0,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 11,
+            "name": "Zombie/Male_Narrow_Wide_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                298,
+                0,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 1,
+            "name": "Zombie/Naked_Child_east",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                170,
+                0,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 28,
+            "name": "Zombie/Naked_Child_north",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                552,
+                128,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 29,
+            "name": "Zombie/Naked_Child_south",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                680,
+                128,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 30,
+            "name": "Zombie/Naked_Fat_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                808,
+                128,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 31,
+            "name": "Zombie/Naked_Fat_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                128,
+                256,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 32,
+            "name": "Zombie/Naked_Fat_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                128,
+                384,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 33,
+            "name": "Zombie/Naked_Female_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                128,
+                512,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 34,
+            "name": "Zombie/Naked_Female_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                128,
+                640,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 35,
+            "name": "Zombie/Naked_Female_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                128,
+                768,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 36,
+            "name": "Zombie/Naked_Hulk_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                128,
+                896,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 37,
+            "name": "Zombie/Naked_Hulk_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                256,
+                256,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 38,
+            "name": "Zombie/Naked_Hulk_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                256,
+                384,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 39,
+            "name": "Zombie/Naked_Male_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                256,
+                512,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 40,
+            "name": "Zombie/Naked_Male_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                256,
+                640,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 41,
+            "name": "Zombie/Naked_Male_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                256,
+                768,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 42,
+            "name": "Zombie/Naked_Thin_back",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                256,
+                896,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 43,
+            "name": "Zombie/Naked_Thin_front",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                384,
+                256,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 27,
+            "name": "Zombie/Naked_Thin_side",
+            "origin": [
+                64,
+                64
+            ],
+            "rect": [
+                424,
+                128,
+                128,
+                128
+            ],
+            "rotated": false
+        },
+        {
+            "idx": 0,
+            "name": "ZombieButtonBackground",
+            "origin": [
+                85,
+                22
+            ],
+            "rect": [
+                0,
+                0,
+                170,
+                45
+            ],
+            "rotated": false
+        }
+    ],
+    "regions_count": 66,
+    "rotations": false,
+    "using_grid": false,
+    "width": 1024
+}

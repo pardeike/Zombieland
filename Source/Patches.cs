@@ -4726,7 +4726,23 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn victim)
 			{
-				return victim is not Zombie;
+				return victim is not Zombie || (victim is Zombie zombie && zombie.DevelopmentalStage.Child());
+			}
+		}
+
+		// patch to allow remaining thoughts to be milder
+		//
+		[HarmonyPatch(typeof(IndividualThoughtToAdd), MethodType.Constructor)]
+		[HarmonyPatch(new[] { typeof(ThoughtDef), typeof(Pawn), typeof(Pawn), typeof(float), typeof(float) })]
+		static class IndividualThoughtToAdd_Constructor_Patch
+		{
+			static void Postfix(IndividualThoughtToAdd __instance, Pawn addTo, Pawn otherPawn)
+			{
+				if (addTo.DevelopmentalStage.Adult() && otherPawn is Zombie zombie && zombie.DevelopmentalStage.Child())
+				{
+					__instance.thought.moodPowerFactor = 1f / 6f;
+					__instance.thought.durationTicksOverride = 2 * GenDate.TicksPerHour;
+				}
 			}
 		}
 
@@ -5344,6 +5360,32 @@ namespace ZombieLand
 			{
 				if (ZombieAreaManager.warningShowing)
 					yOffset += 29;
+			}
+		}
+
+		// suppress no-ideo warning when loading zombies
+		[HarmonyPatch(typeof(Pawn_IdeoTracker), nameof(Pawn_IdeoTracker.ExposeData))]
+		static class Pawn_IdeoTracker_ExposeData_Patch
+		{
+			static readonly FieldInfo f_mode = AccessTools.Field(typeof(Scribe), nameof(Scribe.mode));
+			static readonly FieldInfo f_pawn = AccessTools.Field(typeof(Pawn_IdeoTracker), nameof(Pawn_IdeoTracker.pawn));
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+			{
+				var endLabel = generator.DefineLabel();
+				foreach (var instruction in instructions)
+				{
+					if (instruction.LoadsField(f_mode))
+					{
+						yield return new CodeInstruction(OpCodes.Ldarg_0);
+						yield return new CodeInstruction(OpCodes.Ldfld, f_pawn);
+						yield return new CodeInstruction(OpCodes.Isinst, typeof(Zombie));
+						yield return new CodeInstruction(OpCodes.Brtrue, endLabel);
+					}
+					if (instruction.opcode == OpCodes.Ret)
+						instruction.labels.Add(endLabel);
+					yield return instruction;
+				}
 			}
 		}
 	}

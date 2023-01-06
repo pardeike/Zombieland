@@ -487,6 +487,7 @@ namespace ZombieLand
 			if (force == false && (pawn.health == null || pawnName == emptyName))
 				return;
 			pawn.Name = emptyName;
+			pawn.ideo = null;
 
 			var pos = thing is IThingHolder thingHolder ? ThingOwnerUtility.GetRootPosition(thingHolder) : thing.Position;
 			var rot = pawn.Rotation;
@@ -505,6 +506,7 @@ namespace ZombieLand
 			{
 				zombie.Name = pawnName;
 				zombie.gender = pawn.gender;
+				zombie.ideo = pawn.ideo;
 
 				if (zombie.ageTracker != null && pawn.ageTracker != null)
 				{

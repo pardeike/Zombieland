@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -12,6 +13,34 @@ namespace ZombieLand
 		public bool noRecolor;
 	}
 
+	public class AtlasMeta
+	{
+		public float fill_rate;
+		public int grid_height;
+		public int grid_width;
+		public int height;
+		public string image;
+		public string name;
+		public int padding_x;
+		public int padding_y;
+		public bool pot;
+		public AtlasItem[] regions;
+		public int regions_count;
+		public bool rotations;
+		public bool using_grid;
+		public int width;
+	}
+
+	public class AtlasItem
+	{
+		public int idx;
+		public string name;
+		public int[] origin;
+		public int[] rect;
+		public bool rotated;
+	}
+
+	// uses https://github.com/witnessmonolith/atlased_documentation
 	public static class TextureAtlas
 	{
 		public static readonly string textureRoot = Tools.GetModRootDirectory() + Path.DirectorySeparatorChar + "Textures" + Path.DirectorySeparatorChar;
@@ -21,31 +50,29 @@ namespace ZombieLand
 		static TextureAtlas()
 		{
 			var atlas = new Texture2D(1, 1, TextureFormat.ARGB32, false);
-			if (atlas.LoadImage(File.ReadAllBytes(textureRoot + "Parts.png")) == false)
+			if (atlas.LoadImage(File.ReadAllBytes(textureRoot + "PartsNew.png")) == false)
 				return;
 
-			using var reader = new StreamReader(textureRoot + "Parts.cvs");
-			var listA = new List<string>();
-			var listB = new List<string>();
-			while (!reader.EndOfStream)
-			{
-				var line = reader.ReadLine();
-				var vals = line.Split(',');
-				if (vals.Count() != 5) continue;
-
-				var x = int.Parse(vals[0]);
-				var y = int.Parse(vals[1]);
-				var w = int.Parse(vals[2]);
-				var h = int.Parse(vals[3]);
-				var name = vals[4];
-
-				var pixels = atlas.GetPixels(x, y, w, h);
-				AllImages.Add(new AtlasImage()
+			using var reader = new StreamReader(textureRoot + "PartsNew.json");
+			var jsonReader = new JsonTextReader(reader);
+			var serializer = new JsonSerializer();
+			var meta = serializer.Deserialize<AtlasMeta>(jsonReader);
+			AllImages = meta.regions
+				.Select(r =>
 				{
-					path = name,
-					data = new ColorData(w, h, pixels)
-				});
-			}
+					var (x, y, w, h, name) = (r.rect[0], r.rect[1], r.rect[2], r.rect[3], r.name);
+					name = name
+						.Replace("_front", "_south")
+						.Replace("_back", "_north")
+						.Replace("_side", "_east");
+					y = meta.height - y - h;
+					return new AtlasImage()
+					{
+						path = name,
+						data = new ColorData(w, h, atlas.GetPixels(x, y, w, h))
+					};
+				})
+				.ToList();
 		}
 	}
 }

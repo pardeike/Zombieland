@@ -95,7 +95,7 @@ namespace ZombieLand
 			SpawnZombie(ZombieType.Random, true);
 		}
 
-		[DebugAction("Zombieland", "Trigger: Zombie incident", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Trigger: Incident", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void TriggerZombieIncident()
 		{
 			var tm = Find.CurrentMap.GetComponent<TickManager>();
@@ -108,25 +108,25 @@ namespace ZombieLand
 			}
 		}
 
-		[DebugAction("Zombieland", "Spawn: Zombie incident (4)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Incident (4)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieIncident_4()
 		{
 			_ = ZombiesRising.TryExecute(Find.CurrentMap, 4, UI.MouseCell(), false, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Zombie incident (25)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Incident (25)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieIncident_25()
 		{
 			_ = ZombiesRising.TryExecute(Find.CurrentMap, 25, UI.MouseCell(), false, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Zombie incident (100)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Incident (100)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieIncident_100()
 		{
 			_ = ZombiesRising.TryExecute(Find.CurrentMap, 100, UI.MouseCell(), false, true);
 		}
 
-		[DebugAction("Zombieland", "Spawn: Zombie incident (200)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Spawn: Incident (200)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieIncident_200()
 		{
 			_ = ZombiesRising.TryExecute(Find.CurrentMap, 200, UI.MouseCell(), false, true);

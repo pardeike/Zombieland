@@ -884,9 +884,7 @@ namespace ZombieLand
 			}
 
 			var nextIndex = Constants.random.Next(4);
-			var c = adjIndex4[prevIndex4];
-			adjIndex4[prevIndex4] = adjIndex4[nextIndex];
-			adjIndex4[nextIndex] = c;
+			(adjIndex4[nextIndex], adjIndex4[prevIndex4]) = (adjIndex4[prevIndex4], adjIndex4[nextIndex]);
 			prevIndex4 = nextIndex;
 
 			if (ZombieSettings.Values.smashMode == SmashMode.DoorsOnly && zombie.IsSuicideBomber == false)

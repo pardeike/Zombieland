@@ -129,6 +129,7 @@
 	<DarkSlimerChance>Zombies gluants sombres</DarkSlimerChance>
 	<HealerChance>Zombies guérisseurs</HealerChance>
 	<NormalZombieChance>Zombies ordinaires: {0}</NormalZombieChance>
+	<ChildZombieChance>es enfants zombies</ChildZombieChance>
 
 	<ZombieMiscTitle>Divers</ZombieMiscTitle>
 	<UseCustomTextures>Utiliser des textures personnalisées </UseCustomTextures>

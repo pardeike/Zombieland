@@ -329,7 +329,7 @@ namespace ZombieLand
 				}
 
 				// Types
-				if (DialogExtensions.Section<string>(":SpecialZombiesTitle", ":SuicideBomberChance", ":ToxicSplasherChance", ":TankyOperatorChance", ":MinerChance", ":ElectrifierChance", ":AlbinoChance", ":DarkSlimerChance", ":HealerChance", ":NormalZombieChance"))
+				if (DialogExtensions.Section<string>(":SpecialZombiesTitle", ":SuicideBomberChance", ":ToxicSplasherChance", ":TankyOperatorChance", ":MinerChance", ":ElectrifierChance", ":AlbinoChance", ":DarkSlimerChance", ":HealerChance", ":NormalZombieChance", "ChildZombieChance"))
 				{
 					list.Dialog_Label("SpecialZombiesTitle", headerColor);
 					list.Gap(8f);
@@ -358,7 +358,9 @@ namespace ZombieLand
 					}
 					list.Gap(-6f);
 					list.Dialog_Text(GameFont.Tiny, "NormalZombieChance", string.Format("{0:0.00%}", normalChance));
-					list.Gap(30f);
+					list.Gap(12f);
+					list.Dialog_FloatSlider("ChildZombieChance", _ => "{0:0.00%}", true, ref settings.childChance, 0f, 1f);
+					list.Gap(24f);
 				}
 
 				// Days
@@ -370,7 +372,7 @@ namespace ZombieLand
 				}
 
 				// Total
-				if (DialogExtensions.Section<string>(":ZombiesOnTheMap", ":MaximumNumberOfZombies", ":ColonyMultiplier", ":DangerousAreas", ":Areas"))
+				if (DialogExtensions.Section<string>(":ZombiesOnTheMap", ":MaximumNumberOfZombies", ":ColonyMultiplier"))
 				{
 					list.Dialog_Label("ZombiesOnTheMap", headerColor);
 					list.Gap(2f);
@@ -578,6 +580,12 @@ namespace ZombieLand
 				}
 
 				DialogExtensions.shouldFocusNow = null;
+			}
+
+			if (Current.ProgramState == ProgramState.Playing)
+			{
+				var ticks = Find.TickManager.TicksGame;
+				ZombieSettings.Values = ZombieSettings.CalculateInterpolation(ZombieSettings.ValuesOverTime, ticks);
 			}
 		}
 	}

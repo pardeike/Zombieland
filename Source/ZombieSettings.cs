@@ -238,6 +238,7 @@ namespace ZombieLand
 		public bool highlightDangerousAreas = false;
 		public bool disableRandomApparel = false;
 		public bool floatingZombies = true;
+		public float childChance = 0.02f;
 
 		// unused
 		public int suicideBomberIntChance = 1;

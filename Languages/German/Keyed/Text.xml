@@ -129,6 +129,7 @@
 	<DarkSlimerChance>Dunkle Schleimer Zombies</DarkSlimerChance>
 	<HealerChance>Heilende Zombies</HealerChance>
 	<NormalZombieChance>Normale Zombies: {0}</NormalZombieChance>
+	<ChildZombieChance>Zombiekinder</ChildZombieChance>
 
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>
 	<UseCustomTextures>Benutze Spezialtexturen</UseCustomTextures>

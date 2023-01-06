@@ -524,7 +524,10 @@ namespace ZombieLand
 		public void CustomTick(float threatLevel)
 		{
 			var map = Map;
-			if (!ThingOwnerUtility.ContentsSuspended(ParentHolder) && map != null)
+			if (map == null)
+				return;
+
+			if (!ThingOwnerUtility.ContentsSuspended(ParentHolder))
 			{
 				if (Spawned)
 				{
@@ -552,8 +555,8 @@ namespace ZombieLand
 				{
 					var gasAmount = Mathf.CeilToInt(BodySize * 1.15f * ZombieLand.Tools.Difficulty());
 					if (gasAmount > 0)
-						GasUtility.AddGas(Position, Map, GasType.ToxGas, gasAmount);
-				}	
+						GasUtility.AddGas(Position, map, GasType.ToxGas, gasAmount);
+				}
 
 				if (isHealer)
 				{

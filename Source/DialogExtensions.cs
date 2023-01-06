@@ -286,7 +286,8 @@ namespace ZombieLand
 
 		public static void Dialog_FloatSlider(this Listing_Standard list, string labelId, Func<float, string> labelFormatFunc, bool logarithmic, ref float value, float min, float max, Func<float, float> formatFunc = null)
 		{
-			list.Help(labelId, 32f);
+			if (labelId != null)
+				list.Help(labelId, 32f);
 
 			list.Gap(12f);
 
@@ -302,7 +303,7 @@ namespace ZombieLand
 				inValue = min;
 			if (inValue > max)
 				inValue = max;
-			var outValue = Tools.HorizontalSlider(srect, inValue, min, max, false, null, labelId.SafeTranslate(), valstr, -1f);
+			var outValue = Tools.HorizontalSlider(srect, inValue, min, max, false, null, labelId?.SafeTranslate() ?? "", valstr, -1f);
 			value = logarithmic ? (float)(1 - Math.Pow(1 - outValue, 1 / (double)10)) : outValue;
 			if (value < min)
 				value = min;

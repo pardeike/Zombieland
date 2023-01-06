@@ -129,6 +129,7 @@
 	<DarkSlimerChance>Темные слизистые зомби</DarkSlimerChance>
 	<HealerChance>Целители зомби</HealerChance>
 	<NormalZombieChance>Обычные зомби: {0}</NormalZombieChance>
+	<ChildZombieChance>Зомбированные дети</ChildZombieChance>
 
 	<ZombieMiscTitle>Разное</ZombieMiscTitle>
 	<UseCustomTextures>Использовать текстуры дополнения для зомби</UseCustomTextures>

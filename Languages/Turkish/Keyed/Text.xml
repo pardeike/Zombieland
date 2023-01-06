@@ -129,6 +129,7 @@
 	<DarkSlimerChance>Karanlık sümüksü zombiler</DarkSlimerChance>
 	<HealerChance>Şifacı zombiler</HealerChance>
 	<NormalZombieChance>Sıradan zombiler: {0}</NormalZombieChance>
+	<ChildZombieChance>Zombi çocukları</ChildZombieChance>
 
 	<ZombieMiscTitle>Çeşitli</ZombieMiscTitle>
 	<UseCustomTextures>Özel dokular kullanın</UseCustomTextures>

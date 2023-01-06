@@ -226,7 +226,7 @@ namespace ZombieLand
 			childBackstories = DefDatabase<BackstoryDef>.AllDefs.Where(b => b.slot == BackstorySlot.Childhood).ToList();
 			adultBackstories = DefDatabase<BackstoryDef>.AllDefs.Where(b => b.slot == BackstorySlot.Adulthood).ToList();
 
-			var pairs = ThingStuffPair.AllWith((ThingDef td) => td.IsApparel)
+			var pairs = ThingStuffPair.AllWith(td => td.IsApparel)
 					.Where(pair =>
 					{
 						var def = pair.thing;
@@ -245,7 +245,7 @@ namespace ZombieLand
 					})
 					.ToList();
 
-			var dict = new List<string>() { BodyTypeDefOf.Fat.defName, BodyTypeDefOf.Thin.defName, BodyTypeDefOf.Male.defName, BodyTypeDefOf.Female.defName, BodyTypeDefOf.Hulk.defName }
+			var dict = new List<string>() { BodyTypeDefOf.Child.defName, BodyTypeDefOf.Fat.defName, BodyTypeDefOf.Thin.defName, BodyTypeDefOf.Male.defName, BodyTypeDefOf.Female.defName, BodyTypeDefOf.Hulk.defName }
 				.Select(bodyType => (bodyType, pairs: pairs.Where(pair => GraphicFileExist(pair.thing.apparel, bodyType)).ToList()))
 				.ToDictionary(item => item.bodyType, item => item.pairs);
 
@@ -392,17 +392,20 @@ namespace ZombieLand
 
 		public static IEnumerator GenerateStartingApparelFor(Zombie zombie)
 		{
-			var possibleApparel = AllApparel[zombie.isMiner][zombie.story.bodyType.defName];
-			if (possibleApparel.Count > 0)
+			var developmentStage = zombie.DevelopmentalStage;
+			var possibleApparel = AllApparel[zombie.isMiner][zombie.story.bodyType.defName]
+				.Where(pair => pair.thing.apparel.developmentalStageFilter.Has(developmentStage));
+			if (possibleApparel.Any())
 			{
-				for (var i = 0; i < Rand.Range(0, 4); i++)
+				var tries = developmentStage == DevelopmentalStage.Child ? Rand.Range(0, 1) : Rand.Range(0, 4);
+				for (var i = 0; i < tries; i++)
 				{
 					var pair = possibleApparel.SafeRandomElement();
 					var apparel = (Apparel)ThingMaker.MakeThing(pair.thing, pair.stuff);
 					yield return null;
 					PawnGenerator.PostProcessGeneratedGear(apparel, zombie);
 					yield return null;
-					if (ApparelUtility.HasPartsToWear(zombie, apparel.def))
+					if (ApparelUtility.HasPartsToWear(zombie, apparel.def) && apparel.PawnCanWear(zombie, true))
 					{
 						if (zombie.apparel.WornApparel.All(pa => ApparelUtility.CanWearTogether(pair.thing, pa.def, zombie.RaceProps.body)))
 						{
@@ -484,6 +487,7 @@ namespace ZombieLand
 				var bodyType = PrepareZombieType(zombie, zombieType);
 				zombie.kindDef = ZombieDefOf.Zombie;
 				zombie.SetFactionDirect(FactionUtility.DefaultFactionFrom(ZombieDefOf.Zombies));
+				zombie.ideo = null;
 				return bodyType;
 			}))
 			{ Abort(ex1); yield break; }
@@ -494,14 +498,19 @@ namespace ZombieLand
 			}))
 			{ Abort(ex2); yield break; }
 
+			var isChild = zombie.IsSuicideBomber == false && zombie.IsTanky == false && Rand.Chance(ZombieSettings.Values.childChance);
+			if (isChild)
+				bodyType = BodyTypeDefOf.Child;
+
 			if (RunWithFailureCheck(out var ex3, () =>
 			{
 				zombie.health.hediffSet.Clear();
-				var ageInYears = (long)Rand.Range(14, 130);
-				zombie.ageTracker.AgeBiologicalTicks = (ageInYears * 3600000);
-				zombie.ageTracker.AgeChronologicalTicks = zombie.ageTracker.AgeBiologicalTicks;
-				zombie.ageTracker.BirthAbsTicks = GenTicks.TicksAbs - zombie.ageTracker.AgeBiologicalTicks;
-				var idx = zombie.ageTracker.CurLifeStageIndex; // trigger calculations
+				var ageTicks = (long)((isChild ? Rand.Range(4.5f, 15.5f) : Rand.Range(16.5f, 120f)) * 3600000f);
+				zombie.ageTracker.AgeBiologicalTicks = ageTicks;
+				zombie.ageTracker.AgeChronologicalTicks = (long)(ageTicks * Rand.Range(1f, 3f));
+				zombie.ageTracker.BirthAbsTicks = GenTicks.TicksAbs - ageTicks - Rand.Range(0, 100) * 3600000L;
+				zombie.ageTracker.RecalculateLifeStageIndex();
+				zombie.ageTracker.ResetAgeReversalDemand(Pawn_AgeTracker.AgeReversalReason.Initial, true);
 			}))
 			{ Abort(ex3); yield break; }
 

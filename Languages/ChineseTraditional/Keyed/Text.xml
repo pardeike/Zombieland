@@ -129,6 +129,7 @@
 	<DarkSlimerChance>黑暗黏糊糊的殭屍</DarkSlimerChance>
 	<HealerChance>治療殭屍</HealerChance>
 	<NormalZombieChance>普通殭屍: {0}</NormalZombieChance>
+	<ChildZombieChance>殭屍兒童</ChildZombieChance>
 
 	<ZombieMiscTitle>其他</ZombieMiscTitle>
 	<UseCustomTextures>使用自定義紋理</UseCustomTextures>

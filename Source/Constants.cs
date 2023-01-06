@@ -204,6 +204,14 @@ namespace ZombieLand
 					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Thin_north", ShaderDatabase.Mote, Color.white),
 					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Thin_south", ShaderDatabase.Mote, Color.white),
 				}
+			},
+			{
+				BodyTypeDefOf.Child, new Material[]
+				{
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Child_east", ShaderDatabase.Mote, Color.white),
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Child_north", ShaderDatabase.Mote, Color.white),
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Child_south", ShaderDatabase.Mote, Color.white),
+				}
 			}
 		};
 		public static readonly Material[] ELECTRIC_ABSORB = new Material[] {
