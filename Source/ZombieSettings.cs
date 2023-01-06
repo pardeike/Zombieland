@@ -320,6 +320,16 @@ namespace ZombieLand
 
 		public void Reset()
 		{
+			if (Current.ProgramState == ProgramState.Playing)
+			{
+				ZombieSettings.Values = ZombieSettingsDefaults.group;
+				ZombieSettings.ValuesOverTime = new(ZombieSettingsDefaults.groupOverTime);
+				Dialogs.scrollPosition = Vector2.zero;
+				DialogExtensions.shouldFocusNow = DialogExtensions.searchWidget.controlName;
+				DialogExtensions.searchWidget.Reset();
+				return;
+			}
+
 			var type = GetType();
 			var defaults = Activator.CreateInstance(type);
 			AccessTools.GetFieldNames(this).Do(name =>

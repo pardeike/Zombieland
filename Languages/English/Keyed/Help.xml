@@ -132,6 +132,7 @@
 	<DarkSlimerChance_Help>Dark slimer zombies leave a ultra sticky tar like slime trail behind them. It is hard to clean (rain will wash it away though) and only zombies will pass it easily.</DarkSlimerChance_Help>
 	<HealerChance_Help>Healer zombies heal all zombies within a certain distance to full health. They can be identified by their cyan skin color and they otherwise act like normal standard zombies.</HealerChance_Help>
 	<NormalZombieChance_Help>Ordinary zombies come in different body sizes. That defines their strength but also their speed! They often wear any apparel that is available in the game and in any mods you have installed.</NormalZombieChance_Help>
+	<ChildZombieChance_Help>The percentage of zombies that are children. Note: killing a zombie child will give a slight negative mood (lasts for 2 hours)</ChildZombieChance_Help>
 
 	<!-- -->
 
