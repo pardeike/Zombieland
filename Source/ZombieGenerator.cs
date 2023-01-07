@@ -491,7 +491,7 @@ namespace ZombieLand
 			}))
 			{ Abort(ex2); yield break; }
 
-			var isChild = zombie.IsSuicideBomber == false && zombie.IsTanky == false && Rand.Chance(ZombieSettings.Values.childChance);
+			var isChild = ModLister.BiotechInstalled && zombie.IsSuicideBomber == false && zombie.IsTanky == false && Rand.Chance(ZombieSettings.Values.childChance);
 			if (isChild)
 				bodyType = BodyTypeDefOf.Child;
 
@@ -560,7 +560,8 @@ namespace ZombieLand
 				//zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
 				zombie.story.hairColor = ZombieBaseValues.HairColor();
 				zombie.story.hairDef = PawnStyleItemChooser.RandomHairFor(zombie);
-				zombie.genes.SetXenotype(XenotypeDefOf.Baseliner);
+				if (ModLister.BiotechInstalled)
+					zombie.genes.SetXenotype(XenotypeDefOf.Baseliner);
 			}))
 			{ Abort(ex10); yield break; }
 
