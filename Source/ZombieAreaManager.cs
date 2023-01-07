@@ -13,52 +13,102 @@ namespace ZombieLand
 {
 	public static class ZombieAreaManager
 	{
-		public static Dictionary<Area, HashSet<IntVec3>> cache = new();
-		public static List<(Pawn, Area)> pawnsInDanger = new();
+		public static Dictionary<Pawn, Area> pawnsInDanger = new();
 		public static bool warningShowing = false;
 		public static IEnumerator stateUpdater = StateUpdater();
 
 		static IEnumerator StateUpdater()
 		{
-			// TODO !!!
-			/*
-			var pawns = map.mapPawns.FreeColonistsSpawned;
-				pawnsInDanger = ZombieSettings.Values.dangerousAreas
-					.Where(pair => pair.Key.Map == Find.CurrentMap)
-					.SelectMany(pair =>
-					{
-						var area = pair.Key;
-						var mode = pair.Value;
-						return pawns.Where(pawn =>
-						{
-							if (Tools.HasInfectionState(pawn, InfectionState.Infecting, InfectionState.Infected))
-								return false;
-							var inside = area.innerGrid[pawn.Position];
-							return inside && mode == AreaRiskMode.ColonistInside || !inside && mode == AreaRiskMode.ColonistOutside;
-						})
-						.Select(pawn => (pawn, area));
-					})
-					.ToList();
-			*/
-
 			while (true)
 			{
 				yield return null;
+				var map = Find.CurrentMap;
+				if (map == null)
+					continue;
+
+				var areas = ZombieSettings.Values.dangerousAreas.Where(pair => pair.Key.Map == map && pair.Value != AreaRiskMode.Ignore).ToArray();
+				if (areas.Length == 0)
+					continue;
+
+				var pawns = map.mapPawns.FreeColonistsSpawned.Where(pawn => pawn.InfectionState() < InfectionState.Infecting).ToArray();
+				yield return null;
+				for (int pIdx = 0; pIdx < pawns.Length; pIdx++)
+				{
+					var pawn = pawns[pIdx];
+					var found = false;
+					if (pawn.Spawned && pawn.Map == map)
+					{
+						for (var aIdx = 0; aIdx < areas.Length; aIdx++)
+						{
+							var (area, mode) = (areas[aIdx].Key, areas[aIdx].Value);
+							var inside = area.innerGrid[pawn.Position];
+							if (inside && mode == AreaRiskMode.ColonistInside || inside == false && mode == AreaRiskMode.ColonistOutside)
+							{
+								if (pawnsInDanger.ContainsKey(pawn) == false)
+									pawnsInDanger.Add(pawn, area);
+								found = true;
+							}
+							yield return null;
+						}
+					}
+					if (found == false)
+						_ = pawnsInDanger.Remove(pawn);
+				}
+
+				if (map == null)
+					continue;
+
+				var zombies = map.GetComponent<TickManager>().allZombiesCached.ToArray();
+				yield return null;
+				for (int zIdx = 0; zIdx < zombies.Length; zIdx++)
+				{
+					var zombie = zombies[zIdx];
+					var found = false;
+					if (zombie.Spawned)
+					{
+						for (var aIdx = 0; aIdx < areas.Length; aIdx++)
+						{
+							var (area, mode) = (areas[aIdx].Key, areas[aIdx].Value);
+							var inside = area.innerGrid[zombie.Position];
+							if (inside && mode == AreaRiskMode.ZombieInside || inside == false && mode == AreaRiskMode.ZombieOutside)
+							{
+								if (pawnsInDanger.ContainsKey(zombie) == false)
+									pawnsInDanger.Add(zombie, area);
+								found = true;
+							}
+							yield return null;
+						}
+					}
+					if (found == false)
+						_ = pawnsInDanger.Remove(zombie);
+				}
 			}
 		}
 
 		public static void DangerAlertsOnGUI()
 		{
-			if (WorldRendererUtility.WorldRenderedNow)
-				return;
-
 			var map = Find.CurrentMap;
 			if (map == null)
 				return;
 
-			_ = stateUpdater.MoveNext();
+			try
+			{
+				_ = stateUpdater.MoveNext();
+			}
+			catch (Exception ex)
+			{
+				Log.Error($"ZombieAreaManager threw an exception in the state updater: {ex}");
+				stateUpdater = StateUpdater();
+			}
 
-			DrawDangerous();
+			if (WorldRendererUtility.WorldRenderedNow == false)
+				DrawDangerous();
+		}
+
+		public static void ShowCentered(IntVec3 minCell, IntVec3 maxCell)
+		{
+			var center = new IntVec3((minCell.x + maxCell.x) / 2, 0, (minCell.z + maxCell.z) / 2);
+			CameraJumper.TryJump(new GlobalTargetInfo(center, Find.CurrentMap));
 		}
 
 		public static void DrawDangerous()
@@ -82,22 +132,30 @@ namespace ZombieLand
 				}
 				foundArea = area;
 
-				var renderTexture = RenderTexture.GetTemporary(44, 44, 32, RenderTextureFormat.ARGB32);
-				Find.PawnCacheRenderer.RenderPawn(pawn, renderTexture, new Vector3(0, 0, 0.4f), 1.75f, 0f, Rot4.South, true, false, true, true, true, default, null, null, false);
-				var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
-				RenderTexture.active = renderTexture;
-				texture.ReadPixels(new Rect(0f, 0f, renderTexture.width, renderTexture.height), 0, 0);
-				texture.Apply();
-				RenderTexture.active = null;
-				RenderTexture.ReleaseTemporary(renderTexture);
-
-				headsToDraw.Add((pawn, texture));
+				if (pawn is not Zombie)
+				{
+					var renderTexture = RenderTexture.GetTemporary(44, 44, 32, RenderTextureFormat.ARGB32);
+					Find.PawnCacheRenderer.RenderPawn(pawn, renderTexture, new Vector3(0, 0, 0.4f), 1.75f, 0f, Rot4.South, true, false, true, true, true, default, null, null, false);
+					var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
+					RenderTexture.active = renderTexture;
+					texture.ReadPixels(new Rect(0f, 0f, renderTexture.width, renderTexture.height), 0, 0);
+					texture.Apply();
+					RenderTexture.active = null;
+					RenderTexture.ReleaseTemporary(renderTexture);
+					headsToDraw.Add((pawn, texture));
+				}
+				else
+					headsToDraw.Add((pawn, null));
 			}
 
 			warningShowing = colorTexture != null;
 			if (warningShowing)
 			{
-				var n = headsToDraw.Count;
+				var zombiesInArea = headsToDraw.Where(pair => pair.Item2 == null).Select(pair => pair.Item1).ToArray();
+
+				var n = headsToDraw.Where(pair => pair.Item2 != null).Count();
+				if (zombiesInArea.Length > 0)
+					n++;
 				var width = 5 + n * 2 + (n + 1) * 18 + 5;
 				var rect = new Rect(118, 2, width, 29);
 				Graphics.DrawTexture(rect, colorTexture);
@@ -106,36 +164,43 @@ namespace ZombieLand
 				rect = new Rect(123, 7, 18, 18);
 				Graphics.DrawTexture(rect, Constants.Danger);
 
+				var pos = 0;
+				if (zombiesInArea.Length > 0)
+				{
+					rect = new Rect(141 + pos++ * 22, 5, 22, 22);
+					Graphics.DrawTexture(rect, Constants.zoneZombie);
+					if (Widgets.ButtonInvisible(rect))
+					{
+						var minX = 100000;
+						var minZ = 100000;
+						var maxX = -100000;
+						var maxZ = -100000;
+						zombiesInArea.Select(z => z.Position).Do(p =>
+						{
+							minX = Mathf.Min(minX, p.x);
+							minZ = Mathf.Min(minZ, p.z);
+							maxX = Mathf.Max(maxX, p.x);
+							maxZ = Mathf.Max(maxZ, p.z);
+						});
+						ShowCentered(new IntVec3(minX, 0, minZ), new IntVec3(maxX, 0, maxZ));
+					};
+					if (showPositions)
+						zombiesInArea.Do(zombie => TargetHighlighter.Highlight(new GlobalTargetInfo(zombie), true, false, false));
+				}
 				for (var i = 0; i < n; i++)
 				{
-					var pawn = headsToDraw[i].Item1;
-					rect = new Rect(141 + i * 22, 5, 22, 22);
-					Graphics.DrawTexture(rect, headsToDraw[i].Item2);
+					var (pawn, texture) = headsToDraw[i];
+					if (texture != null)
+					{
+						rect = new Rect(141 + pos++ * 22, 5, 22, 22);
+						Graphics.DrawTexture(rect, texture);
+						if (Widgets.ButtonInvisible(rect))
+							ShowCentered(pawn.Position, pawn.Position);
+					}
 					if (showPositions)
 						TargetHighlighter.Highlight(new GlobalTargetInfo(pawn), true, false, false);
-					if (Widgets.ButtonInvisible(rect))
-						CameraJumper.TryJump(pawn);
 				}
 			}
-		}
-	}
-
-	[HarmonyPatch(typeof(Area))]
-	public static class Area_AreaUpdate_Patch
-	{
-		[HarmonyPostfix]
-		[HarmonyPatch(nameof(Area.AreaUpdate))]
-		static void AreaUpdate(Area __instance)
-		{
-			if (ZombieSettings.Values.dangerousAreas.TryGetValue(__instance, out var mode) && mode != AreaRiskMode.Ignore)
-				ZombieAreaManager.cache[__instance] = new HashSet<IntVec3>(__instance.ActiveCells);
-		}
-
-		[HarmonyPostfix]
-		[HarmonyPatch(nameof(Area.Delete))]
-		static void Delete(Area __instance)
-		{
-			_ = ZombieAreaManager.cache.Remove(__instance);
 		}
 	}
 
@@ -248,7 +313,7 @@ namespace ZombieLand
 			{
 				Event.current.Use();
 				areaManager.Remove(selected);
-				_ = ZombieAreaManager.pawnsInDanger.RemoveAll(pair => pair.Item2 == selected);
+				_ = ZombieAreaManager.pawnsInDanger.RemoveAll(pair => pair.Value == selected);
 				_ = ZombieSettings.Values.dangerousAreas.Remove(selected);
 				var newCount = areaManager.AllAreas.Count;
 				if (newCount == 0)

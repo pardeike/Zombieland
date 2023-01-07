@@ -227,6 +227,10 @@ namespace ZombieLand
 
 			while (highPrioSet.Count + lowPrioSet.Count > 0)
 			{
+				if (highPrioSet.Count == 0)
+					while (lowPrioSet.Count > 0)
+						highPrioSet.Enqueue(lowPrioSet.Dequeue());
+
 				var parent = highPrioSet.Count == 0 ? lowPrioSet.Dequeue() : highPrioSet.Dequeue();
 				GetValidAdjactedCellsInRandomOrder(parent, ignoreBuildings).Do(child =>
 				{

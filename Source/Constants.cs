@@ -95,6 +95,8 @@ namespace ZombieLand
 		public static float PHEROMONE_FADEOFF = 180f;
 		[Constant(1, "Sets how often the map is analyzed (in ticks) to find the center-of-interest and to sort zombies into a priority list in case we need to restrain cpu time")]
 		public static int TICKMANAGER_RECALCULATE_DELAY = 900;
+		[Constant(1, "Sets how often (in ticks) the center of interest is changed")]
+		public static int CENTER_OF_INTEREST_UPDATE = 5000;
 		[Constant(1, "How often (in game-seconds) the avoid grid is updated")]
 		public static float TICKMANAGER_AVOIDGRID_DELAY = 0.25f;
 		[Constant(1, "How long (in ticks) to wait between each bite when zombies eat")]
@@ -340,6 +342,8 @@ namespace ZombieLand
 
 		public static readonly Texture2D healthBarFrame = SolidColorMaterials.NewSolidColorTexture(Color.black);
 		public static readonly Color healthBarBG = new(1, 1, 1, 0.25f);
+
+		public static Texture2D zoneZombie = ContentFinder<Texture2D>.Get("ZoneZombie", true);
 
 		public static List<(string name, FieldInfo field, ConstantAttribute attr)> AllSettings
 		{

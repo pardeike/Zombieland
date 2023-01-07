@@ -81,8 +81,10 @@ namespace ZombieLand
 			for (var i = 0; i < 4; i++)
 			{
 				var f = GetFactorForTicks(t, deltaDays);
-				if (f < min) min = f;
-				if (f > max) max = f;
+				if (f < min)
+					min = f;
+				if (f > max)
+					max = f;
 				t += d;
 			}
 			return (min, max);
@@ -108,7 +110,8 @@ namespace ZombieLand
 			{
 				var map = Find.CurrentMap;
 				var weather = map?.GetComponent<ZombieWeather>();
-				if (weather == null) return;
+				if (weather == null)
+					return;
 				var r = new Rect(0, 0, 3, 3);
 				var ticks = CurrentTicks();
 
@@ -204,7 +207,8 @@ namespace ZombieLand
 					var t = qStart + (int)(x * tpq / (g * 3));
 					var f = weather.GetFactorForTicks(t);
 					if (x == 0)
-						for (var i = 0; i < buffer.Length; i++) buffer[i] = f;
+						for (var i = 0; i < buffer.Length; i++)
+							buffer[i] = f;
 					else
 					{
 						bIndex = (bIndex + 1) % 8;

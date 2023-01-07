@@ -4642,7 +4642,7 @@ namespace ZombieLand
 				if (hasBrain == false)
 					return;
 
-				var ticks = GenTicks.TicksGame;
+				var ticks = Find.TickManager.TicksGame;
 				tmpHediffZombieInfections.Clear();
 				pawn.health.hediffSet.GetHediffs(ref tmpHediffZombieInfections);
 				var shouldBecomeZombie = tmpHediffZombieInfections.Any(infection => ticks > infection.ticksWhenBecomingZombie);

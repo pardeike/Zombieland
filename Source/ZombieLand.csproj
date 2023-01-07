@@ -25,7 +25,7 @@
 		<DebugSymbols>true</DebugSymbols>
 		<DefineConstants>RW12;RW13;TRACE;DEBUG</DefineConstants>
 		<Optimize>false</Optimize>
-		<DebugType>full</DebugType>
+		<DebugType>portable</DebugType>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 

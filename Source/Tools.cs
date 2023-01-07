@@ -262,14 +262,12 @@ namespace ZombieLand
 			foreach (var room in rooms)
 			{
 				foreach (var thing in room.ContainedAndAdjacentThings)
-				{
 					if (valuableThings.Contains(thing.GetType()))
 						if (home.TrueCount == 0 || home[thing.Position])
 						{
 							yield return room;
 							break;
 						}
-				}
 			}
 		}
 
@@ -410,7 +408,7 @@ namespace ZombieLand
 
 		public static List<Region> PlayerReachableRegions(Map map)
 		{
-			var ticks = GenTicks.TicksGame;
+			var ticks = Find.TickManager.TicksGame;
 			if (ticks > nextPlayerReachableRegionsUpdate)
 			{
 				nextPlayerReachableRegionsUpdate = ticks + GenTicks.TickLongInterval;
@@ -447,6 +445,8 @@ namespace ZombieLand
 			}
 			return cachedPlayerReachableRegions;
 		}
+
+		public static T RandomElement<T>(this T[] array) => array[Constants.random.Next() % array.Length];
 
 		public static IntVec3 RandomSpawnCell(Map map, bool nearEdge, Predicate<IntVec3> predicate)
 		{
