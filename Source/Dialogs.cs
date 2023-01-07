@@ -19,7 +19,7 @@ namespace ZombieLand
 			var secondColumnWidth = inRect.width - Listing.ColumnSpacing - firstColumnWidth;
 
 			var outerRect = new Rect(inRect.x, inRect.y, firstColumnWidth, inRect.height);
-			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, 3400);
+			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, 3460);
 
 			outerRect = DialogTimeHeader.Draw(ref settingsOverTime, outerRect);
 
@@ -67,11 +67,13 @@ namespace ZombieLand
 				}
 
 				// Attack?
-				if (DialogExtensions.Section<AttackMode>(":WhatDoZombiesAttack", ":EnemiesAttackZombies", ":AnimalsAttackZombies"))
+				if (DialogExtensions.Section<AttackMode>(":WhatDoZombiesAttack", ":EnemiesAttackZombies", ":AnimalsAttackZombies", ":WallPushing"))
 				{
 					list.Dialog_Enum("WhatDoZombiesAttack", ref settings.attackMode);
 					list.Dialog_Checkbox("EnemiesAttackZombies", ref settings.enemiesAttackZombies);
 					list.Dialog_Checkbox("AnimalsAttackZombies", ref settings.animalsAttackZombies);
+					list.Gap(10f);
+					list.Dialog_IntSlider("WallPushing", n => n == 0 ? "Off".TranslateSimple() : n.ToString(), ref settings.minimumZombiesForWallPushing, 0, 20);
 					list.Gap(30f);
 				}
 

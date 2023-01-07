@@ -77,8 +77,9 @@ namespace ZombieLand
 		public Pawn ropedBy;
 
 		// being pushed over walls
-		public IntVec3 pushStart = IntVec3.Invalid;
-		public IntVec3 pushDestination = IntVec3.Invalid;
+		public float wallPushProgress = -1f;
+		public Vector3 wallPushStart;
+		public Vector3 wallPushDestination;
 
 		// suicide bomber
 		public float bombTickingInterval = -1f;
@@ -182,6 +183,9 @@ namespace ZombieLand
 				hasTankyHelmet = -1f;
 			if (hasTankySuit == 0f)
 				hasTankySuit = -1f;
+
+			if (wallPushProgress == 0 && wallPushStart == Vector3.zero && wallPushDestination == Vector3.zero)
+				wallPushProgress = -1f;
 		}
 
 		public override void ExposeData()
@@ -212,9 +216,12 @@ namespace ZombieLand
 			Scribe_Values.Look(ref hasTankySuit, "tankySuit");
 			Scribe_Values.Look(ref tankDestination, "tankDestination", IntVec3.Invalid);
 			Scribe_Values.Look(ref isHealing, "isHealing");
-			Scribe_Values.Look(ref consciousness, "consciousness");
+			Scribe_Values.Look(ref consciousness, "consciousness", 1f);
 			Scribe_Values.Look(ref paralyzedUntil, "paralyzedUntil");
 			Scribe_References.Look(ref ropedBy, "ropedBy");
+			Scribe_Values.Look(ref wallPushProgress, "wallPushProgress", -1f);
+			Scribe_Values.Look(ref wallPushStart, "wallPushStart", Vector3.zero);
+			Scribe_Values.Look(ref wallPushDestination, "wallPushDestination", Vector3.zero);
 			wasMapPawnBefore |= wasColonist;
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
@@ -331,6 +338,24 @@ namespace ZombieLand
 			var grid = map.GetGrid();
 			grid.ChangeZombieCount(lastGotoPosition, -1);
 			base.DeSpawn(mode);
+		}
+
+		public override Vector3 DrawPos
+		{
+			get
+			{
+				if (wallPushProgress >= 0)
+				{
+					var sqt = wallPushProgress * wallPushProgress;
+					var f = sqt / (2.0f * (sqt - wallPushProgress) + 1.0f);
+					if (Find.TickManager.TicksGame % 10 == 0 && Find.TickManager.CurTimeSpeed != TimeSpeed.Paused)
+						Rotation = new Rot4() { rotInt = (byte)((Rotation.AsInt + 1) % 4) };
+					var vec = wallPushStart + (wallPushDestination - wallPushStart) * f;
+					vec.y = Altitudes.AltitudeFor(AltitudeLayer.MoteOverhead);
+					return vec;
+				}
+				return base.DrawPos;
+			}
 		}
 
 		public float RopingFactorTo(Pawn pawn)

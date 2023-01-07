@@ -131,6 +131,7 @@
 	<HealerChance>Zombies guérisseurs</HealerChance>
 	<NormalZombieChance>Zombies ordinaires: {0}</NormalZombieChance>
 	<ChildZombieChance>es enfants zombies</ChildZombieChance>
+	<WallPushing>Quantité de zombies qui poussent les zombies par-dessus les murs</WallPushing>
 
 	<ZombieMiscTitle>Divers</ZombieMiscTitle>
 	<UseCustomTextures>Utiliser des textures personnalisées </UseCustomTextures>

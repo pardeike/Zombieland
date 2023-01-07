@@ -71,6 +71,77 @@ namespace ZombieLand
 			return false;
 		}
 
+		// handle wall pushed zombies ===============================================================
+		//
+
+		public static bool WallPushing(Zombie zombie)
+		{
+			const float progressDelta = 0.01f;
+
+			if (zombie.wallPushProgress < 0f)
+				return false;
+
+			if (zombie.wallPushProgress > (1f - progressDelta))
+			{
+				zombie.Position = zombie.wallPushDestination.ToIntVec3();
+				zombie.wallPushProgress = -1f;
+				zombie.wallPushStart = Vector3.zero;
+				zombie.wallPushDestination = Vector3.zero;
+				zombie.Notify_Teleported(false, false);
+
+				zombie.Map.roofGrid.SetRoof(zombie.Position, null);
+
+				return false;
+			}
+
+			zombie.wallPushProgress += progressDelta;
+			return true;
+		}
+
+		static readonly IntVec3[] pushDirections = new IntVec3[] { new IntVec3(0, 0, 1), new IntVec3(0, 0, -1), new IntVec3(1, 0, 0), new IntVec3(-1, 0, 0) };
+		public static bool CheckWallPushing(Zombie zombie, PheromoneGrid grid)
+		{
+			if (zombie.wallPushProgress >= 0f || ZombieSettings.Values.minimumZombiesForWallPushing == 0)
+				return false;
+
+			var pos = zombie.Position;
+			var totalZombies = grid.GetZombieCount(pos);
+			for (var i = 0; i < 4; i++)
+				totalZombies += grid.GetZombieCount(pos + pushDirections[i]);
+
+			if (totalZombies < ZombieSettings.Values.minimumZombiesForWallPushing)
+				return false;
+
+			var map = zombie.Map;
+			var tickManager = Find.CurrentMap.GetComponent<TickManager>();
+
+			for (var i = 0; i < 4; i++)
+			{
+				var direction = pushDirections[i];
+				var wallCell = pos + direction;
+				if (wallCell.InBounds(map) == false)
+					continue;
+
+				var edifice = map.edificeGrid[wallCell];
+				if (edifice is not Building building || building is Mineable)
+					continue;
+
+				var destination = wallCell + direction;
+				if (destination.WalkableBy(map, zombie) == false)
+					continue;
+
+				if (tickManager.allZombiesCached.Any(z => z.Position == destination || z.wanderDestination == destination))
+					continue;
+
+				zombie.wallPushProgress = 0f;
+				zombie.wallPushStart = pos.ToVector3Shifted();
+				zombie.wallPushDestination = destination.ToVector3Shifted();
+				return true;
+			}
+
+			return false;
+		}
+
 		// handle roped zombies =====================================================================
 		//
 		public static bool Roping(this JobDriver_Stumble driver, Zombie zombie)

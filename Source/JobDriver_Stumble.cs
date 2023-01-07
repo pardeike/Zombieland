@@ -50,7 +50,8 @@ namespace ZombieLand
 		void TickAction()
 		{
 			var zombie = (Zombie)pawn;
-			if (zombie.state == ZombieState.Emerging || zombie.state == ZombieState.Floating) return;
+			if (zombie.state == ZombieState.Emerging || zombie.state == ZombieState.Floating)
+				return;
 
 			/*
 			// for debugging - let zombies only live for 600 ticks
@@ -68,6 +69,9 @@ namespace ZombieLand
 			if (this.ShouldDie(zombie))
 				return;
 
+			if (ZombieStateHandler.WallPushing(zombie))
+				return;
+
 			if (this.Roping(zombie))
 			{
 				this.ExecuteMove(zombie, zombie.Map.GetGrid());
@@ -83,6 +87,10 @@ namespace ZombieLand
 			if (this.ValidDestination(zombie))
 				return;
 
+			var grid = zombie.Map.GetGrid();
+			if (ZombieStateHandler.CheckWallPushing(zombie, grid))
+				return;
+
 			ZombieStateHandler.ApplyFire(zombie);
 
 			var bodyType = zombie.story.bodyType;
@@ -90,7 +98,6 @@ namespace ZombieLand
 				if (this.Mine(zombie, true))
 					return;
 
-			var grid = zombie.Map.GetGrid();
 			if (this.Eat(zombie, grid))
 				return;
 
@@ -106,7 +113,8 @@ namespace ZombieLand
 				smashTime = this.Track(zombie, grid);
 				if (smashTime)
 				{
-					if (zombie.checkSmashable == false) smashTime = false;
+					if (zombie.checkSmashable == false)
+						smashTime = false;
 					zombie.checkSmashable = false;
 				}
 				if (this.Smash(zombie, smashTime, true))

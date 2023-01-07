@@ -133,6 +133,7 @@
 	<HealerChance_Help>Healer zombies heal all zombies within a certain distance to full health. They can be identified by their cyan skin color and they otherwise act like normal standard zombies.</HealerChance_Help>
 	<NormalZombieChance_Help>Ordinary zombies come in different body sizes. That defines their strength but also their speed! They often wear any apparel that is available in the game and in any mods you have installed.</NormalZombieChance_Help>
 	<ChildZombieChance_Help>The percentage of zombies that are children. Note: killing a zombie child will give a slight negative mood (lasts for 2 hours)</ChildZombieChance_Help>
+	<WallPushing_Help>When a group of zombies gets too dense this will define the number of zombies that will push other zombies over adjacent walls. If the other side of the wall is part of a roofed room, that roof will be damaged by the zombie.</WallPushing_Help>
 
 	<!-- -->
 
