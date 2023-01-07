@@ -3572,6 +3572,54 @@ namespace ZombieLand
 			}
 		}
 
+		// patch zombies having no genes
+		//
+		[HarmonyPatch(typeof(Pawn_GeneTracker))]
+		[HarmonyPatch(nameof(Pawn_GeneTracker.AddGene))]
+		[HarmonyPatch(new[] { typeof(Gene), typeof(bool) })]
+		static class Pawn_GeneTracker_AddGene_Gene_Patch
+		{
+			static bool Prefix(Pawn_GeneTracker __instance, ref Gene __result)
+			{
+				if (__instance.pawn is Zombie)
+				{
+					__result = null;
+					return false;
+				}
+				return true;
+			}
+		}
+		[HarmonyPatch(typeof(Pawn_GeneTracker))]
+		[HarmonyPatch(nameof(Pawn_GeneTracker.AddGene))]
+		[HarmonyPatch(new[] { typeof(GeneDef), typeof(bool) })]
+		static class Pawn_GeneTracker_AddGene_GeneDef_Patch
+		{
+			static bool Prefix(Pawn_GeneTracker __instance, ref Gene __result)
+			{
+				if (__instance.pawn is Zombie)
+				{
+					__result = null;
+					return false;
+				}
+				return true;
+			}
+		}
+		[HarmonyPatch(typeof(Pawn_StoryTracker))]
+		[HarmonyPatch(nameof(Pawn_StoryTracker.SkinColorBase), MethodType.Getter)]
+		static class Pawn_StoryTracker_SkinColorBase_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(Pawn_StoryTracker __instance, ref Color __result)
+			{
+				if (__instance.pawn is Zombie)
+				{
+					__result = Color.white;
+					return false;
+				}
+				return true;
+			}
+		}
+
 		// patch for zombies rotting regardless of temperature
 		//
 		[HarmonyPatch(typeof(Thing))]

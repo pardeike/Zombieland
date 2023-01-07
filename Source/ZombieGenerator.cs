@@ -258,17 +258,10 @@ namespace ZombieLand
 
 		private static BodyTypeDef PrepareZombieType(Zombie zombie, ZombieType overwriteType)
 		{
-			Func<Zombie, BodyTypeDef> bodyType;
-			Pair<Func<float>, Func<Zombie, BodyTypeDef>> initializer;
-
 			if (overwriteType != ZombieType.Random)
-			{
-				initializer = ZombieBaseValues.zombieTypeInitializers[(int)overwriteType];
-				bodyType = initializer.Second;
-				return bodyType(zombie);
-			}
+				return ZombieBaseValues.zombieTypeInitializers[(int)overwriteType].Second(zombie);
 
-			var success = GenCollection.TryRandomElementByWeight(ZombieBaseValues.zombieTypeInitializers, pair => pair.First(), out initializer);
+			var success = GenCollection.TryRandomElementByWeight(ZombieBaseValues.zombieTypeInitializers, pair => pair.First(), out var initializer);
 			if (success == false)
 			{
 				Log.Error("GenCollection.TryRandomElementByWeight returned false");
@@ -484,11 +477,11 @@ namespace ZombieLand
 
 			if (RunWithFailureCheck(out var bodyType, out var ex1, () =>
 			{
-				var bodyType = PrepareZombieType(zombie, zombieType);
+				var _bodyType = PrepareZombieType(zombie, zombieType);
 				zombie.kindDef = ZombieDefOf.Zombie;
 				zombie.SetFactionDirect(FactionUtility.DefaultFactionFrom(ZombieDefOf.Zombies));
 				zombie.ideo = null;
-				return bodyType;
+				return _bodyType;
 			}))
 			{ Abort(ex1); yield break; }
 
@@ -567,6 +560,7 @@ namespace ZombieLand
 				//zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
 				zombie.story.hairColor = ZombieBaseValues.HairColor();
 				zombie.story.hairDef = PawnStyleItemChooser.RandomHairFor(zombie);
+				zombie.genes.SetXenotype(XenotypeDefOf.Baseliner);
 			}))
 			{ Abort(ex10); yield break; }
 

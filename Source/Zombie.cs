@@ -76,6 +76,10 @@ namespace ZombieLand
 		public int paralyzedUntil = 0;
 		public Pawn ropedBy;
 
+		// being pushed over walls
+		public IntVec3 pushStart = IntVec3.Invalid;
+		public IntVec3 pushDestination = IntVec3.Invalid;
+
 		// suicide bomber
 		public float bombTickingInterval = -1f;
 		public bool bombWillGoOff;
