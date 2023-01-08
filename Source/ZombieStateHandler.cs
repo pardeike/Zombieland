@@ -130,6 +130,10 @@ namespace ZombieLand
 				if (destination.WalkableBy(map, zombie) == false)
 					continue;
 
+				var roof = zombie.Map.roofGrid.RoofAt(destination);
+				if (roof == RoofDefOf.RoofRockThick || roof == RoofDefOf.RoofRockThin)
+					continue;
+
 				if (tickManager.allZombiesCached.Any(z => z.Position == destination || z.wanderDestination == destination))
 					continue;
 

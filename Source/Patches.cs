@@ -4229,12 +4229,18 @@ namespace ZombieLand
 					// if death means becoming a zombie, install zombie infection
 					if (ZombieSettings.Values.hoursAfterDeathToBecomeZombie > -1)
 					{
-						var brain = hediffSet.GetBrain();
-						if (brain != null)
+						try
 						{
-							var hediff = HediffMaker.MakeHediff(CustomDefs.ZombieInfection, pawn, brain) as Hediff_ZombieInfection;
-							hediff.InitializeExpiringDate();
-							hediffSet.AddDirect(hediff, null, null);
+							var brain = hediffSet.GetBrain();
+							if (brain != null)
+							{
+								var hediff = HediffMaker.MakeHediff(CustomDefs.ZombieInfection, pawn, brain) as Hediff_ZombieInfection;
+								hediff.InitializeExpiringDate();
+								hediffSet.AddDirect(hediff, null, null);
+							}
+						}
+						catch
+						{
 						}
 					}
 				}
