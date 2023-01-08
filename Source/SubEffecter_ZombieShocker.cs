@@ -49,7 +49,7 @@ namespace ZombieLand
 				RandomZap(zombie.DrawPos, -1, 1);
 
 			zombie.Unrope();
-			CustomDefs.ShockingZombie.PlayOneShot(SoundInfo.InMap(new TargetInfo(zombie.Position, map, false), MaintenanceType.None));
+			CustomDefs.ShockingZombie.PlayOneShot(SoundInfo.InMap(zombie));
 		}
 
 		void EndZapping()
@@ -130,7 +130,7 @@ namespace ZombieLand
 			}
 
 			if (zappingState == zapDelay)
-				CustomDefs.ShockingRoom.PlayOneShot(SoundInfo.InMap(new TargetInfo(cell, map, false), MaintenanceType.None));
+				CustomDefs.ShockingRoom.PlayOneShot(SoundInfo.InMap(new TargetInfo(cell, map)));
 
 			if (zappingState > 0)
 			{

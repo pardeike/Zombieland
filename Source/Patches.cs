@@ -2746,6 +2746,16 @@ namespace ZombieLand
 			}
 		}
 
+		[HarmonyPatch(typeof(Root_Play))]
+		[HarmonyPatch(nameof(Root_Play.SetupForQuickTestPlay))]
+		static class Root_Play_SetupForQuickTestPlay_Patch
+		{
+			static void Postfix()
+			{
+				ZombieSettings.ApplyDefaults();
+			}
+		}
+
 		[HarmonyPatch(typeof(PawnRenderer))]
 		[HarmonyPatch(nameof(PawnRenderer.RenderPawnAt))]
 		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(Rot4?), typeof(bool) })]
@@ -5081,11 +5091,7 @@ namespace ZombieLand
 		{
 			static void Prefix()
 			{
-				ZombieSettings.Values = ZombieSettingsDefaults.group;
-				ZombieSettings.ValuesOverTime = new(ZombieSettingsDefaults.groupOverTime);
-				Dialogs.scrollPosition = Vector2.zero;
-				DialogExtensions.shouldFocusNow = DialogExtensions.searchWidget.controlName;
-				DialogExtensions.searchWidget.Reset();
+				ZombieSettings.ApplyDefaults();
 			}
 		}
 

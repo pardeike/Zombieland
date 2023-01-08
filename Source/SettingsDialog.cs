@@ -6,7 +6,7 @@ using Verse;
 
 namespace ZombieLand
 {
-	static class Dialogs
+	static class SettingsDialog
 	{
 		public static Vector2 scrollPosition = Vector2.zero;
 
@@ -73,7 +73,7 @@ namespace ZombieLand
 					list.Dialog_Checkbox("EnemiesAttackZombies", ref settings.enemiesAttackZombies);
 					list.Dialog_Checkbox("AnimalsAttackZombies", ref settings.animalsAttackZombies);
 					list.Gap(10f);
-					list.Dialog_IntSlider("WallPushing", n => n == 0 ? "Off".TranslateSimple() : n.ToString(), ref settings.minimumZombiesForWallPushing, 0, 20);
+					list.Dialog_IntSlider("WallPushing", n => n == 0 ? "Off".TranslateSimple() : n.ToString(), ref settings.minimumZombiesForWallPushing, 0, 32);
 					list.Gap(30f);
 				}
 
@@ -237,7 +237,7 @@ namespace ZombieLand
 				}
 
 				// Infections
-				if (DialogExtensions.Section<string>(":ZombieInfection", ":ZombieBiteInfectionChance", ":ZombieBiteInfectionUnknown", ":ZombieBiteInfectionTreatable", ":ZombieBiteInfectionTreatable", ":ZombieBiteInfectionPersists", ":AnyTreatmentStopsInfection", ":HoursAfterDeathToBecomeZombie", ":DeadBecomesZombieMessage"))
+				if (DialogExtensions.Section<string>(":ZombieInfection", ":ZombieBiteInfectionChance", ":ZombieBiteInfectionUnknown", ":ZombieBiteInfectionTreatable", ":ZombieBiteInfectionTreatable", ":ZombieBiteInfectionPersists", ":AnyTreatmentStopsInfection", ":HoursAfterDeathToBecomeZombie", ":DeadBecomesZombieMessage", ":DangerousSituationMessage"))
 				{
 					list.Dialog_Label("ZombieInfection", headerColor);
 					list.Gap(8f);
@@ -288,6 +288,7 @@ namespace ZombieLand
 					list.Dialog_Checkbox("ShowZombieStats", ref settings.showZombieStats);
 					list.Dialog_Checkbox("HighlightDangerousAreas", ref settings.highlightDangerousAreas);
 					list.Dialog_Checkbox("DisableRandomApparel", ref settings.disableRandomApparel);
+					list.Dialog_Checkbox("DangerousSituationMessage", ref settings.dangerousSituationMessage);
 					if (SoSTools.isInstalled)
 						list.Dialog_Checkbox("FloatingZombiesInSOS2", ref settings.floatingZombies);
 					else

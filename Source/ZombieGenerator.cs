@@ -245,7 +245,11 @@ namespace ZombieLand
 					})
 					.ToList();
 
-			var dict = new List<string>() { BodyTypeDefOf.Child.defName, BodyTypeDefOf.Fat.defName, BodyTypeDefOf.Thin.defName, BodyTypeDefOf.Male.defName, BodyTypeDefOf.Female.defName, BodyTypeDefOf.Hulk.defName }
+			var bodyTypes = new List<string>() { BodyTypeDefOf.Fat.defName, BodyTypeDefOf.Thin.defName, BodyTypeDefOf.Male.defName, BodyTypeDefOf.Female.defName, BodyTypeDefOf.Hulk.defName };
+			if (BodyTypeDefOf.Child != null)
+				bodyTypes.Add(BodyTypeDefOf.Child.defName);
+
+			var dict = bodyTypes
 				.Select(bodyType => (bodyType, pairs: pairs.Where(pair => GraphicFileExist(pair.thing.apparel, bodyType)).ToList()))
 				.ToDictionary(item => item.bodyType, item => item.pairs);
 
@@ -491,7 +495,7 @@ namespace ZombieLand
 			}))
 			{ Abort(ex2); yield break; }
 
-			var isChild = ModLister.BiotechInstalled && zombie.IsSuicideBomber == false && zombie.IsTanky == false && Rand.Chance(ZombieSettings.Values.childChance);
+			var isChild = BodyTypeDefOf.Child != null && zombie.IsSuicideBomber == false && zombie.IsTanky == false && Rand.Chance(ZombieSettings.Values.childChance);
 			if (isChild)
 				bodyType = BodyTypeDefOf.Child;
 
@@ -560,7 +564,7 @@ namespace ZombieLand
 				//zombie.story.crownType = Rand.Bool ? CrownType.Average : CrownType.Narrow;
 				zombie.story.hairColor = ZombieBaseValues.HairColor();
 				zombie.story.hairDef = PawnStyleItemChooser.RandomHairFor(zombie);
-				if (ModLister.BiotechInstalled)
+				if (XenotypeDefOf.Baseliner != null)
 					zombie.genes.SetXenotype(XenotypeDefOf.Baseliner);
 			}))
 			{ Abort(ex10); yield break; }

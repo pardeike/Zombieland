@@ -16,9 +16,6 @@ namespace ZombieLand
 		static readonly int[] adjIndex4 = { 0, 1, 2, 3 };
 		static int prevIndex4;
 
-		static float lastTrackingSoundPlayed = 0f;
-		static float lastRageSoundPlayed = 0f;
-
 		// make zombies die if necessary ============================================================
 		//
 		public static bool ShouldDie(this JobDriver_Stumble driver, Zombie zombie)
@@ -101,18 +98,33 @@ namespace ZombieLand
 		static readonly IntVec3[] pushDirections = new IntVec3[] { new IntVec3(0, 0, 1), new IntVec3(0, 0, -1), new IntVec3(1, 0, 0), new IntVec3(-1, 0, 0) };
 		public static bool CheckWallPushing(Zombie zombie, PheromoneGrid grid)
 		{
-			if (zombie.wallPushProgress >= 0f || ZombieSettings.Values.minimumZombiesForWallPushing == 0)
+			var minimum = ZombieSettings.Values.minimumZombiesForWallPushing;
+			if (zombie.wallPushProgress >= 0f || minimum == 0)
 				return false;
 
 			var pos = zombie.Position;
-			var totalZombies = grid.GetZombieCount(pos);
-			for (var i = 0; i < 4; i++)
-				totalZombies += grid.GetZombieCount(pos + pushDirections[i]);
-
-			if (totalZombies < ZombieSettings.Values.minimumZombiesForWallPushing)
-				return false;
-
 			var map = zombie.Map;
+
+			var totalZombies = grid.GetZombieCount(pos);
+			var wallCount = 0;
+			for (var i = 0; i < 4; i++)
+			{
+				var adjacent = pos + pushDirections[i];
+				totalZombies += grid.GetZombieCount(adjacent);
+				if (adjacent.IsWallOrDoor(map))
+					wallCount++;
+			}
+			if (wallCount == 1)
+				totalZombies += 4;
+
+			if (totalZombies < minimum)
+			{
+				var diff = 3 - (minimum - totalZombies);
+				if (diff >= 0)
+					Tools.RandomBump(map, pos.ToVector3Shifted(), diff);
+				return false;
+			}
+
 			var tickManager = Find.CurrentMap.GetComponent<TickManager>();
 
 			for (var i = 0; i < 4; i++)
@@ -122,8 +134,7 @@ namespace ZombieLand
 				if (wallCell.InBounds(map) == false)
 					continue;
 
-				var edifice = map.edificeGrid[wallCell];
-				if (edifice is not Building building || building is Mineable)
+				if (wallCell.IsWallOrDoor(map) == false)
 					continue;
 
 				var destination = wallCell + direction;
@@ -140,6 +151,14 @@ namespace ZombieLand
 				zombie.wallPushProgress = 0f;
 				zombie.wallPushStart = pos.ToVector3Shifted();
 				zombie.wallPushDestination = destination.ToVector3Shifted();
+				if (Constants.USE_SOUND)
+					CustomDefs.WallPushing.PlayOneShot(SoundInfo.InMap(new TargetInfo(pos, map)));
+				if (ZombieSettings.Values.dangerousSituationMessage)
+					if ("DangerousSituation".RunThrottled(5f))
+					{
+						var text = "ZombiesAreBeingPushedOverYourWalls".Translate();
+						Find.LetterStack.ReceiveLetter("DangerousSituation".Translate(), text, CustomDefs.DangerousSituation, zombie);
+					}
 				return true;
 			}
 
@@ -1020,12 +1039,8 @@ namespace ZombieLand
 		{
 			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
 			{
-				var map = zombie.Map;
-				if (map != null)
-				{
-					var info = SoundInfo.InMap(new TargetInfo(zombie.Position, map, false));
-					CustomDefs.ZombieEating.PlayOneShot(info);
-				}
+				var info = SoundInfo.InMap(zombie);
+				CustomDefs.ZombieEating.PlayOneShot(info);
 			}
 		}
 
@@ -1034,20 +1049,11 @@ namespace ZombieLand
 			Tools.CastThoughtBubble(pawn, Constants.BRRAINZ);
 
 			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
-			{
-				var map = pawn.Map;
-				if (map != null)
+				if ("CastBrainzThought".RunThrottled(2f))
 				{
-					var timeNow = Time.realtimeSinceStartup;
-					if (timeNow > lastTrackingSoundPlayed + 2f)
-					{
-						lastTrackingSoundPlayed = timeNow;
-
-						var info = SoundInfo.InMap(new TargetInfo(pawn.Position, map, false));
-						CustomDefs.ZombieTracking.PlayOneShot(info);
-					}
+					var info = SoundInfo.InMap(pawn);
+					CustomDefs.ZombieTracking.PlayOneShot(info);
 				}
-			}
 		}
 
 		static int EatDelay(this JobDriver_Stumble driver, Zombie zombie)
@@ -1104,16 +1110,11 @@ namespace ZombieLand
 			Tools.CastThoughtBubble(zombie, Constants.RAGING);
 
 			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
-			{
-				var timeNow = Time.realtimeSinceStartup;
-				if (timeNow > lastRageSoundPlayed + 3f)
+				if ("StartRage".RunThrottled(3f))
 				{
-					lastRageSoundPlayed = timeNow;
-
 					var info = SoundInfo.InMap(zombie);
 					CustomDefs.ZombieRage.PlayOneShot(info);
 				}
-			}
 		}
 
 		static bool TryToDivert(ref IntVec3 destination, PheromoneGrid grid, IntVec3 basePos, List<IntVec3> possibleMoves)

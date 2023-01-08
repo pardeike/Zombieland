@@ -91,6 +91,7 @@
 	<HoursAfterDeathToBecomeZombie>Zeit nach dem Tod bis man zum Zombie wird</HoursAfterDeathToBecomeZombie>
 	<Immediately>Unmittelbar</Immediately>
 	<DeadBecomesZombieMessage>Nachricht, wenn jemand ein Zombie wird</DeadBecomesZombieMessage>
+	<DangerousSituationMessage>Bei Gefahr eine Nachricht anzeigen</DangerousSituationMessage>
 
 	<ZombieHarvestingTitle>Looten von Zombies</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>Menge an Zombieextrakt pro Zombie</CorpsesExtractAmount>
@@ -173,6 +174,9 @@
 	<NoInfectionRisk>Kein Infectionsrisiko</NoInfectionRisk>
 	<HoursBeforeBecomingInfected>{0} bis zum Beginn der Infektion</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} bis zum Zombie werden</HoursBeforeBecomingAZombie>
+
+	<DangerousSituation>Gefährliche Situation</DangerousSituation>
+	<ZombiesAreBeingPushedOverYourWalls>Zombies werden über deine Mauern geschoben! Verhinderne, dass sich Zombies zu dichten Gruppen ansammeln.</ZombiesAreBeingPushedOverYourWalls>
 
 	<ColonistBecameAZombieLabel>Ein Kolonist wurde zum Zombie</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>Jemand wurde zum Zombie</OtherBecameAZombieLabel>

@@ -21,11 +21,11 @@ namespace ZombieLand
 			var idx = DialogTimeHeader.selectedKeyframe;
 			var ticks = DialogTimeHeader.currentTicks;
 			if (idx != -1)
-				Dialogs.DoWindowContentsInternal(ref ZombieSettings.ValuesOverTime[idx].values, ref ZombieSettings.ValuesOverTime, mainRect);
+				SettingsDialog.DoWindowContentsInternal(ref ZombieSettings.ValuesOverTime[idx].values, ref ZombieSettings.ValuesOverTime, mainRect);
 			else
 			{
 				var settings = ZombieSettings.CalculateInterpolation(ZombieSettings.ValuesOverTime, ticks);
-				Dialogs.DoWindowContentsInternal(ref settings, ref ZombieSettings.ValuesOverTime, mainRect);
+				SettingsDialog.DoWindowContentsInternal(ref settings, ref ZombieSettings.ValuesOverTime, mainRect);
 			}
 			DoBottomButtons(inRect, null, null, null, true, true);
 		}

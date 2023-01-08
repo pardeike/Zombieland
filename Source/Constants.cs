@@ -51,6 +51,14 @@ namespace ZombieLand
 			dot.SetPixel(2, 2, edge);
 			dot.Apply(true);
 
+			if (BodyTypeDefOf.Child != null)
+				ELECTRIC_GLOWING.Add(BodyTypeDefOf.Child, new Material[]
+				{
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Child_east", ShaderDatabase.Mote, Color.white),
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Child_north", ShaderDatabase.Mote, Color.white),
+					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Child_south", ShaderDatabase.Mote, Color.white),
+				});
+
 			// merge settings
 			defaultValues = Current();
 			var settings = Load();
@@ -196,7 +204,7 @@ namespace ZombieLand
 			MaterialPool.MatFrom("Electrifier/Arc2", ShaderDatabase.Mote, Color.white),
 			MaterialPool.MatFrom("Electrifier/Arc3", ShaderDatabase.Mote, Color.white),
 		};
-		public static readonly Dictionary<BodyTypeDef, Material[]> ELECTRIC_GLOWING = new()
+		public static Dictionary<BodyTypeDef, Material[]> ELECTRIC_GLOWING = new()
 		{
 			{
 				BodyTypeDefOf.Fat, new Material[]
@@ -228,14 +236,6 @@ namespace ZombieLand
 					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Thin_east", ShaderDatabase.Mote, Color.white),
 					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Thin_north", ShaderDatabase.Mote, Color.white),
 					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Thin_south", ShaderDatabase.Mote, Color.white),
-				}
-			},
-			{
-				BodyTypeDefOf.Child, new Material[]
-				{
-					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Child_east", ShaderDatabase.Mote, Color.white),
-					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Child_north", ShaderDatabase.Mote, Color.white),
-					MaterialPool.MatFrom("Electrifier/Glowing/Naked_Child_south", ShaderDatabase.Mote, Color.white),
 				}
 			}
 		};

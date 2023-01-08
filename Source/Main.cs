@@ -36,6 +36,7 @@ namespace ZombieLand
 		public static SoundDef TarSmokePop;
 		public static SoundDef ShockingRoom;
 		public static SoundDef ShockingZombie;
+		public static SoundDef WallPushing;
 		public static JobDef Stumble;
 		public static JobDef Sabotage;
 		public static JobDef ExtractZombieSerum;
@@ -50,6 +51,7 @@ namespace ZombieLand
 		public static ThingDef TarSmoke;
 		public static ThingDef StickyGoo;
 		public static ThingDef ZombieShocker;
+		public static ThingDef ZombieThought;
 		public static ThingDef ZombieZapA;
 		public static ThingDef ZombieZapB;
 		public static ThingDef ZombieZapC;
@@ -60,7 +62,11 @@ namespace ZombieLand
 		public static HediffDef ZombieInfection;
 		public static LetterDef ColonistTurnedZombie;
 		public static LetterDef OtherTurnedZombie;
+		public static LetterDef DangerousSituation;
 		public static EffecterDef ZombieShockerRoom;
+		public static ThingDef BumpLarge;
+		public static ThingDef BumpMedium;
+		public static ThingDef BumpSmall;
 	}
 
 	public class ZombielandMod : Mod

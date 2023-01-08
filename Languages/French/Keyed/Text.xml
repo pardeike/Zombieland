@@ -91,6 +91,7 @@
 	<HoursAfterDeathToBecomeZombie>Des heures pour devenir un zombie après la mort</HoursAfterDeathToBecomeZombie>
 	<Immediately>Aussitôt</Immediately>
 	<DeadBecomesZombieMessage>Montrer un message quand quelqu'un se transforme en zombie</DeadBecomesZombieMessage>
+	<DangerousSituationMessage>Afficher un message en cas de danger</DangerousSituationMessage>
 
 	<ZombieHarvestingTitle>Butin de zombies</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>Quantité d'extrait de zombie par zombie</CorpsesExtractAmount>
@@ -173,6 +174,9 @@
 	<NoInfectionRisk>Pas de risque d’infection</NoInfectionRisk>
 	<HoursBeforeBecomingInfected>{0} avant l’infection</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} avant de devenir un Zombie</HoursBeforeBecomingAZombie>
+
+	<DangerousSituation>Situation dangeureuse</DangerousSituation>
+	<ZombiesAreBeingPushedOverYourWalls>Il y a des zombies poussés sur vos murs! Empêchez les zombies de s'accumuler en groupes denses.</ZombiesAreBeingPushedOverYourWalls>
 
 	<ColonistBecameAZombieLabel>Un colon transformé en zombie</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>Un colon est devenu un zombie</OtherBecameAZombieLabel>

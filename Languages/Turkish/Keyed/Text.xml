@@ -91,6 +91,7 @@
 	<HoursAfterDeathToBecomeZombie>Ölümden sonra zombi olmak için saatler</HoursAfterDeathToBecomeZombie>
 	<Immediately>Hemen</Immediately>
 	<DeadBecomesZombieMessage>Birisi bir zombiye döndüğünde bir mesaj göster</DeadBecomesZombieMessage>
+	<DangerousSituationMessage>Tehlikedeyken bir mesaj göster</DangerousSituationMessage>
 
 	<ZombieHarvestingTitle>Zombilerden Hasat</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>Zombi başına zombi ekstresi miktarı</CorpsesExtractAmount>
@@ -172,6 +173,9 @@
 	<NoInfectionRisk>Enfeksiyon riski yok</NoInfectionRisk>
 	<HoursBeforeBecomingInfected>Enfeksiyona {0}</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>Zombi olmak için {0}</HoursBeforeBecomingAZombie>
+
+	<DangerousSituation>Tehlikeli durum</DangerousSituation>
+	<ZombiesAreBeingPushedOverYourWalls>Duvarlarınızın üzerinden itilen zombiler var! Zombilerin yoğun gruplar halinde birikmesini önleyin.</ZombiesAreBeingPushedOverYourWalls>
 
 	<ColonistBecameAZombieLabel>Bir kolonist zombiye dönüştü</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>Bir sömürgeci zombiye dönüştü</OtherBecameAZombieLabel>

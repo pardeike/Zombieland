@@ -217,6 +217,7 @@ namespace ZombieLand
 		public bool anyTreatmentStopsInfection;
 		public int hoursAfterDeathToBecomeZombie = 8;
 		public bool deadBecomesZombieMessage = true;
+		public bool dangerousSituationMessage = true;
 		public float corpsesExtractAmount = 1f;
 		public float lootExtractAmount = 0.1f;
 		public string extractZombieArea = "";
@@ -239,7 +240,7 @@ namespace ZombieLand
 		public bool disableRandomApparel = false;
 		public bool floatingZombies = true;
 		public float childChance = 0.02f;
-		public int minimumZombiesForWallPushing = 11;
+		public int minimumZombiesForWallPushing = 16;
 
 		// unused
 		public int suicideBomberIntChance = 1;
@@ -325,7 +326,7 @@ namespace ZombieLand
 			{
 				ZombieSettings.Values = ZombieSettingsDefaults.group;
 				ZombieSettings.ValuesOverTime = new(ZombieSettingsDefaults.groupOverTime);
-				Dialogs.scrollPosition = Vector2.zero;
+				SettingsDialog.scrollPosition = Vector2.zero;
 				DialogExtensions.shouldFocusNow = DialogExtensions.searchWidget.controlName;
 				DialogExtensions.searchWidget.Reset();
 				return;
@@ -338,7 +339,7 @@ namespace ZombieLand
 				var finfo = AccessTools.Field(type, name);
 				finfo.SetValue(this, finfo.GetValue(defaults));
 			});
-			Dialogs.scrollPosition = Vector2.zero;
+			SettingsDialog.scrollPosition = Vector2.zero;
 		}
 	}
 
@@ -359,11 +360,11 @@ namespace ZombieLand
 			var idx = DialogTimeHeader.selectedKeyframe;
 			var ticks = DialogTimeHeader.currentTicks;
 			if (idx != -1)
-				Dialogs.DoWindowContentsInternal(ref groupOverTime[idx].values, ref groupOverTime, inRect);
+				SettingsDialog.DoWindowContentsInternal(ref groupOverTime[idx].values, ref groupOverTime, inRect);
 			else
 			{
 				var settings = ZombieSettings.CalculateInterpolation(groupOverTime, ticks);
-				Dialogs.DoWindowContentsInternal(ref settings, ref groupOverTime, inRect);
+				SettingsDialog.DoWindowContentsInternal(ref settings, ref groupOverTime, inRect);
 			}
 		}
 
@@ -387,6 +388,13 @@ namespace ZombieLand
 
 		public ZombieSettings(World world) : base(world)
 		{
+		}
+
+		public static void ApplyDefaults()
+		{
+			ZombieSettings.ValuesOverTime = new(ZombieSettingsDefaults.groupOverTime);
+			ZombieSettings.Values = ZombieSettings.CalculateInterpolation(ZombieSettings.ValuesOverTime, 0);
+			SettingsDialog.scrollPosition = Vector2.zero;
 		}
 
 		static readonly Dictionary<string, FieldInfo> fieldInfos = new();
@@ -442,11 +450,11 @@ namespace ZombieLand
 			var idx = DialogTimeHeader.selectedKeyframe;
 			var ticks = DialogTimeHeader.currentTicks;
 			if (idx != -1)
-				Dialogs.DoWindowContentsInternal(ref ValuesOverTime[idx].values, ref ValuesOverTime, inRect);
+				SettingsDialog.DoWindowContentsInternal(ref ValuesOverTime[idx].values, ref ValuesOverTime, inRect);
 			else
 			{
 				var settings = CalculateInterpolation(ValuesOverTime, ticks);
-				Dialogs.DoWindowContentsInternal(ref settings, ref ValuesOverTime, inRect);
+				SettingsDialog.DoWindowContentsInternal(ref settings, ref ValuesOverTime, inRect);
 			}
 		}
 

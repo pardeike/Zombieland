@@ -91,6 +91,7 @@
 	<HoursAfterDeathToBecomeZombie>Время стать зомби после смерти</HoursAfterDeathToBecomeZombie>
 	<Immediately>Немедленно</Immediately>
 	<DeadBecomesZombieMessage>Показать сообщение, когда кто-то превращается в зомби</DeadBecomesZombieMessage>
+	<DangerousSituationMessage>Показать сообщение, когда в опасности</DangerousSituationMessage>
 
 	<ZombieHarvestingTitle>Выигрыш от зомби</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>Количество зомби экстракта на зомби</CorpsesExtractAmount>
@@ -173,6 +174,9 @@
 	<NoInfectionRisk>Нет риска заражения</NoInfectionRisk>
 	<HoursBeforeBecomingInfected>{0} часов до заражения</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>За {0} часов до превращения в зомби</HoursBeforeBecomingAZombie>
+
+	<DangerousSituation>Опасная ситуация</DangerousSituation>
+	<ZombiesAreBeingPushedOverYourWalls>Зомби перебрасываются через ваши стены! Предотвратите скопление зомби в плотные группы.</ZombiesAreBeingPushedOverYourWalls>
 
 	<ColonistBecameAZombieLabel>Какой-то колонист превратился в зомби</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>Кто-то превратился в зомби</OtherBecameAZombieLabel>

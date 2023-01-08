@@ -96,6 +96,7 @@
 	<HoursAfterDeathToBecomeZombie>Hours to become a zombie after death</HoursAfterDeathToBecomeZombie>
 	<Immediately>Immediately</Immediately>
 	<DeadBecomesZombieMessage>Show a message when someone turns into a zombie</DeadBecomesZombieMessage>
+	<DangerousSituationMessage>Show a message when in danger</DangerousSituationMessage>
 
 	<ZombieHarvestingTitle>Loot from zombies</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>Amount of zombie extract per zombie</CorpsesExtractAmount>
@@ -178,6 +179,9 @@
 	<NoInfectionRisk>No infection risk</NoInfectionRisk>
 	<HoursBeforeBecomingInfected>{0} to infection</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} to become a zombie</HoursBeforeBecomingAZombie>
+
+	<DangerousSituation>Dangerous situation</DangerousSituation>
+	<ZombiesAreBeingPushedOverYourWalls>There are zombies being pushed over your walls! Prevent zombies from cumulating to dense groups.</ZombiesAreBeingPushedOverYourWalls>
 
 	<ColonistBecameAZombieLabel>A colonist turned into a zombie</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>Someone turned into a zombie</OtherBecameAZombieLabel>

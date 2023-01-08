@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<SoundDef>
+		<defName>ZombieTracking</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>1</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>tracking</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>1.2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>60</min>
+					<max>60</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>50</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ZombieHit</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>2</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>hit</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>1.2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>60</min>
+					<max>60</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>50</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ZombieRage</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>2</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>raging</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.95</min>
+					<max>1.05</max>
+				</pitchRange>
+				<volumeRange>
+					<min>40</min>
+					<max>40</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>50</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ZombieEating</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>4</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>eating</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.95</min>
+					<max>1.05</max>
+				</pitchRange>
+				<volumeRange>
+					<min>60</min>
+					<max>60</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>50</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ZombieDigOut</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>1</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>digout</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>1.2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>60</min>
+					<max>60</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>50</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ZombiesRising</defName>
+		<context>MapOnly</context>
+		<maxSimultaneous>1</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>true</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>zombiesRising</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>50</min>
+					<max>50</max>
+				</volumeRange>
+				<distRange>
+					<min>1000</min>
+					<max>10000</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ToxicSplash</defName>
+		<context>MapOnly</context>
+		<maxSimultaneous>1</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>true</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>toxicSplash</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>80</min>
+					<max>80</max>
+				</volumeRange>
+				<distRange>
+					<min>1000</min>
+					<max>10000</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>TankyTink</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>4</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>tink</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>60</min>
+					<max>60</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>50</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>TarSmokePop</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>2</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>true</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>tarsmokepop</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>80</min>
+					<max>80</max>
+				</volumeRange>
+				<distRange>
+					<min>1000</min>
+					<max>10000</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>Bzzt</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>2</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>bzzt</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>60</min>
+					<max>60</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>50</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ZombiesClosingIn</defName>
+		<sustain>True</sustain>
+		<context>MapOnly</context>
+		<eventNames />
+		<priorityMode>PrioritizeNearest</priorityMode>
+		<subSounds>
+			<li>
+				<name>main</name>
+				<onCamera>true</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>zombiesClosingIn</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>60</min>
+					<max>60</max>
+				</volumeRange>
+				<paramMappings>
+					<li>
+						<inParam Class="SoundParamSource_AmbientVolume" />
+						<outParam Class="SoundParamTarget_Volume" />
+					</li>
+				</paramMappings>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ZombieElectricHum</defName>
+		<sustain>true</sustain>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>1</maxSimultaneous>
+		<priorityMode>PrioritizeNearest</priorityMode>
+		<subSounds>
+			<li>
+				<name>hum</name>
+				<onCamera>True</onCamera>
+				<repeatMode>Any</repeatMode>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>hum</clipPath>
+					</li>
+				</grains>
+				<sustainAttack>0.5</sustainAttack>
+				<sustainRelease>0.5</sustainRelease>
+				<volumeRange>
+					<min>10</min>
+					<max>10</max>
+				</volumeRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ElectricShock</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>4</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>shock</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>20</min>
+					<max>20</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>30</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>Hacking</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>2</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>true</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>hack</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>75</min>
+					<max>75</max>
+				</volumeRange>
+				<distRange>
+					<min>1000</min>
+					<max>10000</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>Scream</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>2</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>true</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>scream</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>50</min>
+					<max>50</max>
+				</volumeRange>
+				<distRange>
+					<min>1000</min>
+					<max>10000</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>LetterArrive_TurnedZombie</defName>
+		<maxSimultaneous>1</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>True</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>zombieTurning</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>90</min>
+					<max>90</max>
+				</volumeRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>Smash</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>2</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>smash</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>1.2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>30</min>
+					<max>40</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>50</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>Silence</defName>
+		<context>MapOnly</context>
+		<maxSimultaneous>1</maxSimultaneous>
+		<subSounds>
+			<li>
+				<onCamera>true</onCamera>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>silence</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>0</min>
+					<max>0</max>
+				</volumeRange>
+				<distRange>
+					<min>1000</min>
+					<max>10000</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ShockingRoom</defName>
+		<context>MapOnly</context>
+		<maxSimultaneous>1</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>shockRoom</clipPath>
+					</li>
+				</grains>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ShockingZombie</defName>
+		<context>MapOnly</context>
+		<maxSimultaneous>2</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>zap</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>1.2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>60</min>
+					<max>60</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>50</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>WallPushing</defName>
+		<context>MapOnly</context>
+		<maxSimultaneous>3</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>wallpushing</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>1.2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>80</min>
+					<max>80</max>
+				</volumeRange>
+				<distRange>
+					<min>1000</min>
+					<max>10000</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+</Defs>

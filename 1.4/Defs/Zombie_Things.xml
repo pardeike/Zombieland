@@ -416,11 +416,26 @@
 	</ThingDef>
 
 	<ThingDef ParentName="MoteBase">
+		<defName>ZombieThought</defName>
+		<thingClass>MoteBubble</thingClass>
+		<graphicData>
+			<texPath>Things/Mote/Speech</texPath>
+			<shaderType>Cutout</shaderType>
+			<drawSize>1</drawSize>
+		</graphicData>
+		<altitudeLayer>MoteOverheadLow</altitudeLayer>
+		<mote>
+			<solidTime>1.0</solidTime>
+			<attachedDrawOffset>(0.75, 0, 0.75)</attachedDrawOffset>
+		</mote>
+	</ThingDef>
+
+	<ThingDef ParentName="MoteBase">
 		<defName>ZombieZapA</defName>
 		<graphicData>
 			<texPath>Electrifier/Arc0</texPath>
 		</graphicData>
-		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<altitudeLayer>MoteOverheadLow</altitudeLayer>
 		<mote>
 			<fadeInTime>0</fadeInTime>
 			<solidTime>0.1</solidTime>
@@ -433,7 +448,7 @@
 		<graphicData>
 			<texPath>Electrifier/Arc1</texPath>
 		</graphicData>
-		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<altitudeLayer>MoteOverheadLow</altitudeLayer>
 		<mote>
 			<fadeInTime>0</fadeInTime>
 			<solidTime>0.1</solidTime>
@@ -446,7 +461,7 @@
 		<graphicData>
 			<texPath>Electrifier/Arc2</texPath>
 		</graphicData>
-		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<altitudeLayer>MoteOverheadLow</altitudeLayer>
 		<mote>
 			<fadeInTime>0</fadeInTime>
 			<solidTime>0.1</solidTime>
@@ -459,7 +474,7 @@
 		<graphicData>
 			<texPath>Electrifier/Arc3</texPath>
 		</graphicData>
-		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<altitudeLayer>MoteOverheadLow</altitudeLayer>
 		<mote>
 			<fadeInTime>0</fadeInTime>
 			<solidTime>0.1</solidTime>
@@ -473,7 +488,7 @@
 		<graphicData>
 			<texPath>Block</texPath>
 		</graphicData>
-		<altitudeLayer>MetaOverlays</altitudeLayer>
+		<altitudeLayer>MoteOverhead</altitudeLayer>
 		<mote>
 			<fadeInTime>0.2</fadeInTime>
 			<solidTime>0.2</solidTime>
@@ -543,6 +558,45 @@
 			<li>Electricity</li>
 		</researchPrerequisites>
 		<constructionSkillPrerequisite>2</constructionSkillPrerequisite>
+	</ThingDef>
+
+	<ThingDef ParentName="MoteBase">
+		<defName>BumpLarge</defName>
+		<graphicData>
+			<texPath>Bumps/BumpLarge</texPath>
+		</graphicData>
+		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<mote>
+			<fadeInTime>0.1</fadeInTime>
+			<solidTime>0.2</solidTime>
+			<fadeOutTime>0.6</fadeOutTime>
+		</mote>
+	</ThingDef>
+
+	<ThingDef ParentName="MoteBase">
+		<defName>BumpMedium</defName>
+		<graphicData>
+			<texPath>Bumps/BumpMedium</texPath>
+		</graphicData>
+		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<mote>
+			<fadeInTime>0.1</fadeInTime>
+			<solidTime>0.25</solidTime>
+			<fadeOutTime>0.5</fadeOutTime>
+		</mote>
+	</ThingDef>
+
+	<ThingDef ParentName="MoteBase">
+		<defName>BumpSmall</defName>
+		<graphicData>
+			<texPath>Bumps/BumpSmall</texPath>
+		</graphicData>
+		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<mote>
+			<fadeInTime>0.1</fadeInTime>
+			<solidTime>0.2</solidTime>
+			<fadeOutTime>0.4</fadeOutTime>
+		</mote>
 	</ThingDef>
 
 </Defs>

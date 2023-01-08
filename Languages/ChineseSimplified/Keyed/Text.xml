@@ -91,6 +91,7 @@
 	<HoursAfterDeathToBecomeZombie>死后成为僵尸的时间</HoursAfterDeathToBecomeZombie>
 	<Immediately>立即地</Immediately>
 	<DeadBecomesZombieMessage>当有人变成僵尸时，展示一条消息</DeadBecomesZombieMessage>
+	<DangerousSituationMessage>遇到危险时显示消息</DangerousSituationMessage>
 
 	<ZombieHarvestingTitle>从僵尸收获</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>每个僵尸的僵尸提取物量</CorpsesExtractAmount>
@@ -173,6 +174,9 @@
 	<NoInfectionRisk>无感染风险</NoInfectionRisk>
 	<HoursBeforeBecomingInfected>{0} 感染</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} 变成一个丧尸</HoursBeforeBecomingAZombie>
+
+	<DangerousSituation>危险情况</DangerousSituation>
+	<ZombiesAreBeingPushedOverYourWalls>有僵尸被推过你的墙！防止僵尸聚集成密集的群体。</ZombiesAreBeingPushedOverYourWalls>
 
 	<ColonistBecameAZombieLabel>一个殖民者变成了僵尸</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>有人变成了僵尸</OtherBecameAZombieLabel>

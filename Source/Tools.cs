@@ -110,6 +110,16 @@ namespace ZombieLand
 			return me.Content.RootDir;
 		}
 
+		static readonly Dictionary<string, float> nextExecutions = new();
+		public static bool RunThrottled(this string key, float cooldown)
+		{
+			var timeNow = Time.realtimeSinceStartup;
+			if (nextExecutions.TryGetValue(key, out var nextExecution) && timeNow < nextExecution)
+				return false;
+			nextExecutions[key] = timeNow + cooldown;
+			return true;
+		}
+
 		public static Texture2D LoadTexture(string path, bool makeReadonly = true)
 		{
 			var fullPath = Path.Combine(GetModRootDirectory(), "Textures", $"{path}.png");
@@ -473,7 +483,7 @@ namespace ZombieLand
 
 		public static void PlayTink(Thing thing)
 		{
-			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
+			if (Constants.USE_SOUND)
 			{
 				var info = SoundInfo.InMap(thing);
 				CustomDefs.TankyTink.PlayOneShot(info);
@@ -482,7 +492,7 @@ namespace ZombieLand
 
 		public static void PlayAbsorb(Thing thing)
 		{
-			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
+			if (Constants.USE_SOUND)
 			{
 				var info = SoundInfo.InMap(thing);
 				CustomDefs.Bzzt.PlayOneShot(info);
@@ -491,7 +501,7 @@ namespace ZombieLand
 
 		public static void PlaySmash(Thing thing)
 		{
-			if (Constants.USE_SOUND && Prefs.VolumeAmbient > 0f)
+			if (Constants.USE_SOUND)
 			{
 				var info = SoundInfo.InMap(thing);
 				CustomDefs.Smash.PlayOneShot(info);
@@ -846,34 +856,6 @@ namespace ZombieLand
 			return null;
 		}
 
-		public static IntVec3 CenterOfInterest(Map map)
-		{
-			var colonists = map.mapPawns?.SpawnedPawnsInFaction(Faction.OfPlayer) ?? new List<Pawn>();
-			var buildings = map.listerBuildings?.allBuildingsColonist ?? new List<Building>();
-
-			if (colonists.Count == 0 && buildings.Count == 0)
-				return IntVec3.Invalid;
-
-			int x = 0, z = 0, n = 0;
-
-			const int buildingMultiplier = 3;
-			buildings.Do(building =>
-			{
-				x += building.Position.x * buildingMultiplier;
-				z += building.Position.z * buildingMultiplier;
-				n += buildingMultiplier;
-			});
-
-			colonists.Do(pawn =>
-			{
-				x += pawn.Position.x;
-				z += pawn.Position.z;
-				n++;
-			});
-
-			return new IntVec3(x / n, 0, z / n);
-		}
-
 		static readonly int[] _cellsAroundIndex = new int[] { 5, 6, 7, 4, -1, 0, 3, 2, 1 };
 		public static int CellsAroundIndex(IntVec3 delta)
 		{
@@ -1082,6 +1064,12 @@ namespace ZombieLand
 			return terrainDef.IsWater;
 		}
 
+		public static bool IsWallOrDoor(this IntVec3 cell, Map map)
+		{
+			var edifice = map.edificeGrid[cell];
+			return edifice is Building building && building is not Mineable;
+		}
+
 		public static int[] ColonyPoints()
 		{
 			static float dangerPoints(Building building)
@@ -1261,8 +1249,7 @@ namespace ZombieLand
 
 		public static void CastThoughtBubble(Pawn pawn, Material material)
 		{
-			var def = ThingDefOf.Mote_Speech;
-			var newThing = (MoteBubble)ThingMaker.MakeThing(def, null);
+			var newThing = (MoteBubble)ThingMaker.MakeThing(CustomDefs.ZombieThought, null);
 			newThing.iconMat = material;
 			newThing.Attach(pawn);
 			_ = GenSpawn.Spawn(newThing, pawn.Position, pawn.Map);
@@ -1271,9 +1258,26 @@ namespace ZombieLand
 		public static void CastBlockBubble(Pawn attacker, Pawn defender)
 		{
 			var block = (MoteAttached)ThingMaker.MakeThing(CustomDefs.Mote_Block, null);
-			block.Scale = 0.4f;
+			block.Scale = 0.5f;
 			block.Attach(defender, (attacker.DrawPos - defender.DrawPos) * 0.25f);
 			_ = GenSpawn.Spawn(block, defender.Position, defender.Map, WipeMode.Vanish);
+		}
+
+		static readonly ThingDef[] bumps = new ThingDef[] { CustomDefs.BumpSmall, CustomDefs.BumpMedium, CustomDefs.BumpLarge };
+		static readonly float[] nextBumps = new float[] { 0f, 0f, 0f };
+		public static void RandomBump(Map map, Vector3 pos, int idx)
+		{
+			var now = Time.time;
+			if (now < nextBumps[idx])
+				return;
+			nextBumps[idx] = now + Rand.Range(0.25f, 0.5f);
+			var mote = (Mote)ThingMaker.MakeThing(bumps[idx], null);
+			mote.exactPosition = pos + Rand.UnitVector3 * 0.25f;
+			mote.exactRotation = UnityEngine.Random.Range(-30f, 30f);
+			mote.exactScale = Vector3.one + Vector3.one * (idx) / 2f;
+			mote.rotationRate = 25f * UnityEngine.Random.Range(1, 3) * Rand.Sign;
+			mote.instanceColor = new(1, 1, 1, 0.5f + idx * 0.1f);
+			_ = GenSpawn.Spawn(mote, pos.ToIntVec3(), map, WipeMode.Vanish);
 		}
 
 		static readonly float[] halfToDouble = { 0.5f, 1.0f, 2.0f };

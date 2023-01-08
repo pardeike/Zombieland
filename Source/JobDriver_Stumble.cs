@@ -84,11 +84,11 @@ namespace ZombieLand
 			if (this.Attack(zombie))
 				return;
 
-			if (this.ValidDestination(zombie))
-				return;
-
 			var grid = zombie.Map.GetGrid();
 			if (ZombieStateHandler.CheckWallPushing(zombie, grid))
+				return;
+
+			if (this.ValidDestination(zombie))
 				return;
 
 			ZombieStateHandler.ApplyFire(zombie);

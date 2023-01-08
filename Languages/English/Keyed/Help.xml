@@ -90,6 +90,7 @@
 	<AnyTreatmentStopsInfection_Help>To allow simple treatment in a bed to stop an infected bite, select this option. It is a good idea to turn this on when you are not yet familiar with the game mechanics.</AnyTreatmentStopsInfection_Help>
 	<HoursAfterDeathToBecomeZombie_Help>The time for a dead humanlike pawn to become a zombie. Move all to the left to turns this feature off.</HoursAfterDeathToBecomeZombie_Help>
 	<DeadBecomesZombieMessage_Help>Turns the message on/off that indicates that someone turned into a zombie.</DeadBecomesZombieMessage_Help>
+	<DangerousSituationMessage_Help>Be notified when something dangerous (like zombies being pushed over your walls) happens.</DangerousSituationMessage_Help>
 
 	<!-- -->
 
