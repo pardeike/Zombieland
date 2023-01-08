@@ -73,7 +73,7 @@ namespace ZombieLand
 					list.Dialog_Checkbox("EnemiesAttackZombies", ref settings.enemiesAttackZombies);
 					list.Dialog_Checkbox("AnimalsAttackZombies", ref settings.animalsAttackZombies);
 					list.Gap(10f);
-					list.Dialog_IntSlider("WallPushing", n => n == 0 ? "Off".TranslateSimple() : n.ToString(), ref settings.minimumZombiesForWallPushing, 0, 32);
+					list.Dialog_IntSlider("WallPushing", n => n == 0 ? "Off".TranslateSimple() : n.ToString(), ref settings.minimumZombiesForWallPushing, 0, 48);
 					list.Gap(30f);
 				}
 

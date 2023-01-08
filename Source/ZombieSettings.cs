@@ -240,7 +240,7 @@ namespace ZombieLand
 		public bool disableRandomApparel = false;
 		public bool floatingZombies = true;
 		public float childChance = 0.02f;
-		public int minimumZombiesForWallPushing = 16;
+		public int minimumZombiesForWallPushing = 24;
 
 		// unused
 		public int suicideBomberIntChance = 1;

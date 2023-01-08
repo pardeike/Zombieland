@@ -1265,7 +1265,7 @@ namespace ZombieLand
 
 		static readonly ThingDef[] bumps = new ThingDef[] { CustomDefs.BumpSmall, CustomDefs.BumpMedium, CustomDefs.BumpLarge };
 		static readonly float[] nextBumps = new float[] { 0f, 0f, 0f };
-		public static void RandomBump(Map map, Vector3 pos, int idx)
+		public static void CastBumpMote(Map map, Vector3 pos, int idx)
 		{
 			var now = Time.time;
 			if (now < nextBumps[idx])

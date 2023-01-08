@@ -107,12 +107,19 @@ namespace ZombieLand
 
 			var totalZombies = grid.GetZombieCount(pos);
 			var wallCount = 0;
+			IntVec3 wallCell = IntVec3.Invalid;
 			for (var i = 0; i < 4; i++)
 			{
 				var adjacent = pos + pushDirections[i];
+				if (adjacent.InBounds(map) == false)
+					continue;
+
 				totalZombies += grid.GetZombieCount(adjacent);
 				if (adjacent.IsWallOrDoor(map))
+				{
+					wallCell = adjacent;
 					wallCount++;
+				}
 			}
 			if (wallCount == 1)
 				totalZombies += 4;
@@ -121,48 +128,37 @@ namespace ZombieLand
 			{
 				var diff = 3 - (minimum - totalZombies);
 				if (diff >= 0)
-					Tools.RandomBump(map, pos.ToVector3Shifted(), diff);
+					Tools.CastBumpMote(map, pos.ToVector3Shifted(), diff);
 				return false;
 			}
 
+			if (wallCount != 1)
+				return false;
+
+			var destination = wallCell + wallCell - pos;
+			if (destination.WalkableBy(map, zombie) == false)
+				return false;
+
+			var roof = zombie.Map.roofGrid.RoofAt(destination);
+			if (roof == RoofDefOf.RoofRockThick || roof == RoofDefOf.RoofRockThin)
+				return false;
+
 			var tickManager = Find.CurrentMap.GetComponent<TickManager>();
+			if (tickManager.allZombiesCached.Any(z => z.Position == destination))
+				return false;
 
-			for (var i = 0; i < 4; i++)
-			{
-				var direction = pushDirections[i];
-				var wallCell = pos + direction;
-				if (wallCell.InBounds(map) == false)
-					continue;
-
-				if (wallCell.IsWallOrDoor(map) == false)
-					continue;
-
-				var destination = wallCell + direction;
-				if (destination.WalkableBy(map, zombie) == false)
-					continue;
-
-				var roof = zombie.Map.roofGrid.RoofAt(destination);
-				if (roof == RoofDefOf.RoofRockThick || roof == RoofDefOf.RoofRockThin)
-					continue;
-
-				if (tickManager.allZombiesCached.Any(z => z.Position == destination || z.wanderDestination == destination))
-					continue;
-
-				zombie.wallPushProgress = 0f;
-				zombie.wallPushStart = pos.ToVector3Shifted();
-				zombie.wallPushDestination = destination.ToVector3Shifted();
-				if (Constants.USE_SOUND)
-					CustomDefs.WallPushing.PlayOneShot(SoundInfo.InMap(new TargetInfo(pos, map)));
-				if (ZombieSettings.Values.dangerousSituationMessage)
-					if ("DangerousSituation".RunThrottled(5f))
-					{
-						var text = "ZombiesAreBeingPushedOverYourWalls".Translate();
-						Find.LetterStack.ReceiveLetter("DangerousSituation".Translate(), text, CustomDefs.DangerousSituation, zombie);
-					}
-				return true;
-			}
-
-			return false;
+			zombie.wallPushProgress = 0f;
+			zombie.wallPushStart = pos.ToVector3Shifted();
+			zombie.wallPushDestination = destination.ToVector3Shifted();
+			if (Constants.USE_SOUND)
+				CustomDefs.WallPushing.PlayOneShot(SoundInfo.InMap(new TargetInfo(pos, map)));
+			if (ZombieSettings.Values.dangerousSituationMessage)
+				if ("DangerousSituation".RunThrottled(5f))
+				{
+					var text = "ZombiesAreBeingPushedOverYourWalls".Translate();
+					Find.LetterStack.ReceiveLetter("DangerousSituation".Translate(), text, CustomDefs.DangerousSituation, zombie);
+				}
+			return true;
 		}
 
 		// handle roped zombies =====================================================================
