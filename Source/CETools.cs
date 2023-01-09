@@ -12,18 +12,27 @@ namespace ZombieLand
 	{
 		public static void Init(Harmony harmony)
 		{
-			_ = new PatchClassProcessor(harmony, typeof(Harmony_DamageWorker_AddInjury_ApplyDamageToPart_ArmorReroute_Patch)).Patch();
-			_ = new PatchClassProcessor(harmony, typeof(CombatExtended_ProjectileCE_Launch_Patch)).Patch();
-			_ = new PatchClassProcessor(harmony, typeof(CombatExtended_ArmorUtilityCE_GetAfterArmorDamage_Patch)).Patch();
+			_ = new PatchClassProcessor(harmony, typeof(Patch1)).Patch();
+			_ = new PatchClassProcessor(harmony, typeof(Patch2)).Patch();
+			_ = new PatchClassProcessor(harmony, typeof(Patch3)).Patch();
 		}
 	}
 
-	class Harmony_DamageWorker_AddInjury_ApplyDamageToPart_ArmorReroute_Patch
+	class Patch1
 	{
 		static bool Prepare() => TargetMethod() != null;
 		static MethodInfo TargetMethod()
 		{
-			return AccessTools.Method("CombatExtended.Harmony.Harmony_DamageWorker_AddInjury_ApplyDamageToPart:ArmorReroute");
+			var type = AccessTools.TypeByName("CombatExtended.Harmony.Harmony_DamageWorker_AddInjury_ApplyDamageToPart");
+			if (type == null)
+				return null;
+			var method = AccessTools.Method(type, "ArmorReroute");
+			if (method == null)
+			{
+				Error("Combat Extended installed, but method Harmony_DamageWorker_AddInjury_ApplyDamageToPart.ArmorReroute not found");
+				return null;
+			}
+			return method;
 		}
 
 		static bool Prefix(ref DamageInfo dinfo)
@@ -32,7 +41,7 @@ namespace ZombieLand
 		}
 	}
 
-	static class CombatExtended_ProjectileCE_Launch_Patch
+	static class Patch2
 	{
 		static bool Prepare() => TargetMethod() != null;
 		static MethodBase TargetMethod()
@@ -70,7 +79,7 @@ namespace ZombieLand
 		}
 	}
 
-	static class CombatExtended_ArmorUtilityCE_GetAfterArmorDamage_Patch
+	static class Patch3
 	{
 		static bool Prepare() => TargetMethod() != null;
 		static MethodBase TargetMethod()
