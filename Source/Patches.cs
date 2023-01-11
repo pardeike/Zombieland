@@ -4264,6 +4264,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static void Prefix(Pawn __instance)
 			{
+				_ = ZombieAreaManager.pawnsInDanger.Remove(__instance);
 				if (__instance is not Zombie && __instance.RaceProps.Humanlike)
 					ColonistSettings.Values.RemoveColonist(__instance);
 			}
