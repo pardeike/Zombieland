@@ -465,6 +465,202 @@ namespace ZombieLand
 			}
 		}
 
+		// remove gizmos from equipped chainsaws
+		//
+		[HarmonyPatch]
+		static class Pawn_EquipmentTracker_YieldGizmos_Patch
+		{
+			static MethodBase TargetMethod()
+			{
+				return AccessTools.GetDeclaredMethods(typeof(Pawn_EquipmentTracker))
+					.FirstOrDefault(mi =>
+					{
+						if (mi.GetParameters().Length < 1)
+							return false;
+						if (mi.GetParameters()[0].ParameterType != typeof(ThingWithComps))
+							return false;
+						return mi.Name.Contains("__YieldGizmos");
+					});
+			}
+
+			static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> gizmos, ThingWithComps eq)
+			{
+				if (eq.def == CustomDefs.Chainsaw)
+					yield break;
+				foreach (var gizmo in gizmos)
+					yield return gizmo;
+			}
+		}
+
+		// precalculate chainsaw action
+		//
+		[HarmonyPatch(typeof(Pawn_EquipmentTracker))]
+		[HarmonyPatch(nameof(Pawn_EquipmentTracker.EquipmentTrackerTick))]
+		static class Pawn_EquipmentTracker_EquipmentTrackerTick_Patch
+		{
+			static (int, SwingAction) MaxEmptyCells(List<Zombie>[] cells)
+			{
+				var idx = 7;
+				while (idx >= 0)
+				{
+					if (cells[idx].Any())
+						break;
+					idx--;
+				}
+				if (idx == -1)
+					return (8, null);
+
+				var empty = 0;
+				var maxEmpty = 0;
+				var emptyIdx = 0;
+				for (var j = 0; j < 8; j++)
+				{
+					if (cells[idx].Count == 0)
+					{
+						empty++;
+						emptyIdx = idx;
+					}
+					else
+					{
+						maxEmpty = Math.Max(maxEmpty, empty);
+						empty = 0;
+					}
+					idx = (idx + 1) % 8;
+				}
+				maxEmpty = Math.Max(maxEmpty, empty);
+
+				var stepsBack = maxEmpty / 2;
+				var middle = emptyIdx - stepsBack;
+
+				var first = -1;
+				var last = -1;
+				for (var i = 1; i <= 4; i++)
+				{
+					idx = (middle - i + 8) % 8;
+					if (first == -1 && cells[idx].Count > 0)
+						first = idx;
+					idx = (middle + i + 8) % 8;
+					if (last == -1 && cells[idx].Count > 0)
+						last = idx;
+				}
+
+				return (maxEmpty, new SwingAction() { beginIndex = first, endIndex = last });
+			}
+
+			static void Postfix(Pawn_EquipmentTracker __instance)
+			{
+				var chainsaw = __instance.AllEquipmentListForReading.FirstOrDefault(e => e.def == CustomDefs.Chainsaw);
+				if (chainsaw == null)
+					return;
+
+				var pawn = __instance.pawn;
+				var map = pawn.Map;
+
+				var pos = pawn.Position;
+				var cells = GenAdj.AdjacentCellsAround.Select(c => c + pos).ToArray();
+				var zombieCells = new List<Zombie>[8];
+				var grid = map.thingGrid;
+				for (var i = 0; i < 8; i++)
+					zombieCells[i] = grid.ThingsListAtFast(cells[i]).OfType<Zombie>().ToList();
+				var (maxEmpty, swingAction) = MaxEmptyCells(zombieCells);
+				if (swingAction == null)
+					return;
+				pawn.SetNextSwingAction(swingAction);
+
+				if (maxEmpty < 3)
+				{
+					_ = __instance.TryDropEquipment(chainsaw, out var _, pos);
+					return;
+				}
+				/*var idx = swingAction.beginIndex;
+				while (true)
+				{
+					idx = (idx + 1) % 8;
+					zombieCells[idx].Do(zombie => zombie.Kill(null));
+					if (idx == swingAction.endIndex)
+						break;
+				}
+				*/
+			}
+		}
+
+		// aim chainsaw
+		//
+		[HarmonyPatch(typeof(PawnRenderer))]
+		[HarmonyPatch(nameof(PawnRenderer.DrawEquipment))]
+		static class PawnRenderer_DrawEquipment_Patch
+		{
+			static bool Prefix(PawnRenderer __instance, Pawn ___pawn, Vector3 rootLoc, Rot4 pawnRotation, PawnRenderFlags flags)
+			{
+				var chainsaw = ___pawn.equipment?.Primary;
+				if (chainsaw?.def != CustomDefs.Chainsaw)
+					return true;
+
+				if (___pawn.Dead || ___pawn.Spawned == false)
+					return true;
+				if ((flags & PawnRenderFlags.NeverAimWeapon) != PawnRenderFlags.None)
+					return true;
+
+				var map = ___pawn.Map;
+				var (swing, nextSwing) = ___pawn.SwingActions();
+				var angle = ___pawn.SwingAngle();
+
+				switch (swing?.state ?? 0)
+				{
+					case 0:
+						___pawn.UseNextSwingAction();
+						break;
+					case 1:
+					{
+						var destinationAngle = swing.beginIndex * 45f;
+						angle = Mathf.MoveTowardsAngle(angle, destinationAngle, 10f);
+						___pawn.SetSwingAngle(angle);
+						if (angle == destinationAngle)
+							swing.state = 2;
+						break;
+					}
+					case 2:
+					{
+						var destinationAngle = swing.endIndex * 45f;
+						angle = Mathf.MoveTowardsAngle(angle, destinationAngle, 5f);
+						___pawn.SetSwingAngle(angle);
+
+						var currentIndex = (((int)angle + 360) % 360) / 45;
+						var pos = ___pawn.Position + GenAdj.AdjacentCellsAround[currentIndex];
+						var zombiesToKill = map.GetComponent<TickManager>().zombiesToKill;
+						var zombies = map.thingGrid.ThingsListAtFast(pos).OfType<Zombie>();
+						zombiesToKill.AddRange(zombies);
+
+						if (angle == destinationAngle)
+							swing.state = 0;
+						break;
+					}
+				}
+
+				var vector = new Vector3(0f, (pawnRotation == Rot4.North) ? (-0.0028957527f) : 0.03474903f, 0f);
+				var equipmentDrawDistanceFactor = ___pawn.ageTracker.CurLifeStage.equipmentDrawDistanceFactor;
+				vector += rootLoc + new Vector3(0f, 0f, 0.4f + CustomDefs.Chainsaw.equippedDistanceOffset).RotatedBy(angle) * equipmentDrawDistanceFactor;
+
+				__instance.DrawEquipmentAiming(chainsaw, vector, angle);
+				___pawn.rotationTracker.Face(vector);
+				return false;
+			}
+		}
+
+		// prevent default facing calculations when equipped with chainsaw
+		//
+		[HarmonyPatch(typeof(Pawn_RotationTracker))]
+		[HarmonyPatch(nameof(Pawn_RotationTracker.UpdateRotation))]
+		static class Pawn_RotationTracker_UpdateRotation_Patch
+		{
+			static bool Prefix(Pawn ___pawn)
+			{
+				if (___pawn.equipment?.Primary?.def == CustomDefs.Chainsaw)
+					return false;
+				return ___pawn.SwingActions().Item2 == null;
+			}
+		}
+
 		// patch to make raiders choose zombies less likely as a target
 		// and to prefer non-downed zombies from downed one as targets
 		//
@@ -821,6 +1017,9 @@ namespace ZombieLand
 				var limit = ZombieSettings.Values.safeMeleeLimit;
 				if (limit == 0)
 					return true;
+
+				if (__instance.CasterPawn.equipment.Primary?.def == CustomDefs.Chainsaw)
+					return false;
 
 				var thing = __instance.currentTarget.Thing;
 

@@ -102,6 +102,37 @@
 		</filth>
 	</ThingDef>
 
+	<ThingDef ParentName="BaseGun">
+		<defName>Chainsaw</defName>
+		<thingClass>ZombieLand.Chainsaw</thingClass>
+		<label>chainsaw</label>
+		<description>A chainsaw.</description>
+		<graphicData>
+			<texPath>Chainsaw</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
+		<burnableByRecipe>true</burnableByRecipe>
+		<soundInteract>Standard_Drop</soundInteract>
+		<statBases>
+			<WorkToMake>12000</WorkToMake>
+			<Mass>3.5</Mass>
+		</statBases>
+		<costList>
+			<Steel>60</Steel>
+			<ComponentIndustrial>3</ComponentIndustrial>
+		</costList>
+		<tools>
+			<li>
+				<label>blade</label>
+				<capacities>
+					<li>Cut</li>
+				</capacities>
+				<power>9</power>
+				<cooldownTime>2</cooldownTime>
+			</li>
+		</tools>
+	</ThingDef>
+
 	<ThingDef ParentName="ResourceBase">
 		<defName>ZombieExtract</defName>
 		<thingClass>ZombieLand.ZombieExtract</thingClass>

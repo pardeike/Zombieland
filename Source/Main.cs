@@ -67,6 +67,7 @@ namespace ZombieLand
 		public static ThingDef BumpLarge;
 		public static ThingDef BumpMedium;
 		public static ThingDef BumpSmall;
+		public static ThingDef Chainsaw;
 	}
 
 	public class ZombielandMod : Mod

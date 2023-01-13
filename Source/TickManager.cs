@@ -94,7 +94,8 @@ namespace ZombieLand
 		public readonly HashSet<Zombie> hummingZombies = new();
 		Sustainer electricSustainer;
 
-		public Queue<ThingWithComps> colonistsConverter = new();
+		public Queue<ThingWithComps> colonistsToConvert = new();
+		public HashSet<Zombie> zombiesToKill = new();
 		public Queue<Action<Map>> rimConnectActions = new();
 
 		public List<IntVec3> explosions = new();
@@ -654,9 +655,9 @@ namespace ZombieLand
 					yield return null;
 				}
 
-				if (colonistsConverter.Count > 0 && map != null)
+				if (colonistsToConvert.Count > 0 && map != null)
 				{
-					var pawn = colonistsConverter.Dequeue();
+					var pawn = colonistsToConvert.Dequeue();
 					Tools.ConvertToZombie(pawn, map);
 					yield return null;
 				}
@@ -665,6 +666,11 @@ namespace ZombieLand
 					var action = rimConnectActions.Dequeue();
 					action(map);
 					yield return null;
+				}
+				if (zombiesToKill.Count > 0)
+				{
+					zombiesToKill.Do(zombie => zombie.Kill(null));
+					zombiesToKill.Clear();
 				}
 
 				yield return "end"; // must be called "end"!
