@@ -95,7 +95,6 @@ namespace ZombieLand
 		Sustainer electricSustainer;
 
 		public Queue<ThingWithComps> colonistsToConvert = new();
-		public HashSet<Zombie> zombiesToKill = new();
 		public Queue<Action<Map>> rimConnectActions = new();
 
 		public List<IntVec3> explosions = new();
@@ -666,11 +665,6 @@ namespace ZombieLand
 					var action = rimConnectActions.Dequeue();
 					action(map);
 					yield return null;
-				}
-				if (zombiesToKill.Count > 0)
-				{
-					zombiesToKill.Do(zombie => zombie.Kill(null));
-					zombiesToKill.Clear();
 				}
 
 				yield return "end"; // must be called "end"!

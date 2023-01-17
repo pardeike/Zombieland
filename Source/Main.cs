@@ -37,6 +37,9 @@ namespace ZombieLand
 		public static SoundDef ShockingRoom;
 		public static SoundDef ShockingZombie;
 		public static SoundDef WallPushing;
+		public static SoundDef ChainsawIdle;
+		public static SoundDef ChainsawStart;
+		public static SoundDef ChainsawWork;
 		public static JobDef Stumble;
 		public static JobDef Sabotage;
 		public static JobDef ExtractZombieSerum;

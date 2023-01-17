@@ -344,6 +344,7 @@ namespace ZombieLand
 		public static readonly Color healthBarBG = new(1, 1, 1, 0.25f);
 
 		public static Texture2D zoneZombie = ContentFinder<Texture2D>.Get("ZoneZombie", true);
+		public static Texture2D blood = ContentFinder<Texture2D>.Get("Blood", true);
 
 		public static List<(string name, FieldInfo field, ConstantAttribute attr)> AllSettings
 		{

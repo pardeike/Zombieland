@@ -117,6 +117,7 @@
 			<WorkToMake>12000</WorkToMake>
 			<Mass>3.5</Mass>
 		</statBases>
+		<tickerType>Normal</tickerType>
 		<costList>
 			<Steel>60</Steel>
 			<ComponentIndustrial>3</ComponentIndustrial>
