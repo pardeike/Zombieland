@@ -9,6 +9,7 @@ using UnityEngine;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
+using static ZombieLand.Chainsaw;
 
 namespace ZombieLand
 {
@@ -103,6 +104,8 @@ namespace ZombieLand
 
 		public List<SoSTools.Floater> floatingSpaceZombiesBack = new();
 		public List<SoSTools.Floater> floatingSpaceZombiesFore = new();
+
+		public List<VictimHead> victimHeads = new();
 
 		public TickManager(Map map) : base(map)
 		{
@@ -217,6 +220,17 @@ namespace ZombieLand
 
 				runZombiesForNewIncident = true;
 				explosions ??= new List<IntVec3>();
+			}
+		}
+
+		static readonly Mesh headMesh = MeshPool.humanlikeHeadSet.MeshAt(Rot4.South);
+		public override void MapComponentUpdate()
+		{
+			foreach (var head in victimHeads)
+			{
+				var mat = new Material(head.material);
+				mat.color = new Color(mat.color.r, mat.color.g, mat.color.b, head.alpha);
+				GraphicToolbox.DrawScaledMesh(headMesh, mat, head.Position, head.quat, 0.7f, 0.7f);
 			}
 		}
 
@@ -544,6 +558,14 @@ namespace ZombieLand
 			}
 		}
 
+		public void TickHeads()
+		{
+			var heads = victimHeads.ToArray();
+			foreach (var head in heads)
+				if (head.Tick())
+					_ = victimHeads.Remove(head);
+		}
+
 		public void AddExplosion(IntVec3 pos)
 		{
 			explosions.Add(pos);
@@ -677,6 +699,7 @@ namespace ZombieLand
 
 			_ = taskTicker.MoveNext();
 			IncreaseZombiePopulation();
+			TickHeads();
 		}
 	}
 }

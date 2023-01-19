@@ -235,11 +235,6 @@ namespace ZombieLand
 			return (pawn.Faction?.IsPlayer ?? false) && pawn.jobs != null;
 		}
 
-		public static bool HasActiveChainsaw(this Pawn pawn)
-		{
-			return pawn?.equipment?.Primary is Chainsaw chainsaw && chainsaw.angle >= 0f;
-		}
-
 		static readonly HashSet<Type> valuableThings = new()
 		{
 			typeof(Building_Art),
@@ -805,7 +800,7 @@ namespace ZombieLand
 			{
 				if (target.Dead || target.health.Downed)
 					return false;
-				if (target.equipment?.Primary is Chainsaw chainsaw)
+				if (target.equipment?.Primary is Chainsaw chainsaw && chainsaw.running)
 					return Rand.Chance(1f - chainsaw.HitPoints / 100f);
 
 				var distance = (target.DrawPos - thing.DrawPos).MagnitudeHorizontalSquared();

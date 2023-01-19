@@ -40,6 +40,7 @@ namespace ZombieLand
 		public static SoundDef ChainsawIdle;
 		public static SoundDef ChainsawStart;
 		public static SoundDef ChainsawWork;
+		public static SoundDef Crush;
 		public static JobDef Stumble;
 		public static JobDef Sabotage;
 		public static JobDef ExtractZombieSerum;

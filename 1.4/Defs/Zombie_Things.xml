@@ -122,6 +122,24 @@
 			<Steel>60</Steel>
 			<ComponentIndustrial>3</ComponentIndustrial>
 		</costList>
+		<comps>
+			<li Class="CompProperties_Breakdownable"/>
+			<li Class="CompProperties_Forbiddable"/>
+			<li Class="CompProperties_Refuelable">
+				<fuelCapacity>100.0</fuelCapacity>
+				<fuelFilter>
+					<thingDefs>
+						<li>Chemfuel</li>
+					</thingDefs>
+				</fuelFilter>
+				<fuelConsumptionRate>300.0</fuelConsumptionRate>
+				<consumeFuelOnlyWhenUsed>true</consumeFuelOnlyWhenUsed>
+				<autoRefuelPercent>1</autoRefuelPercent>
+				<showFuelGizmo>true</showFuelGizmo>
+				<drawOutOfFuelOverlay>false</drawOutOfFuelOverlay>
+				<showAllowAutoRefuelToggle>true</showAllowAutoRefuelToggle>
+			</li>
+		</comps>
 		<tools>
 			<li>
 				<label>blade</label>
@@ -176,7 +194,7 @@
 		<stuffCategories Inherit="false" />
 	</ThingDef>
 
-	<ThingDef Name="ZombieSerumBase" ParentName="ResourceBase" Abstract="True">
+	<ThingDef Name="ZombieSerumBase" ParentName="ResourceBase" Abstract="true">
 		<thingClass>ZombieLand.ZombieSerum</thingClass>
 		<stackLimit>10</stackLimit>
 		<uiIconForStackCount>1</uiIconForStackCount>
@@ -204,7 +222,7 @@
 		<resourceReadoutPriority>First</resourceReadoutPriority>
 	</ThingDef>
 
-	<ThingDef Name="ZombieSerumCore" ParentName="ZombieSerumBase" Abstract="True">
+	<ThingDef Name="ZombieSerumCore" ParentName="ZombieSerumBase" Abstract="true">
 		<techLevel>Industrial</techLevel>
 		<recipeMaker>
 			<unfinishedThingDef>UnfinishedZombieSerum</unfinishedThingDef>
@@ -548,7 +566,7 @@
 		</graphicData>
 		<altitudeLayer>BuildingOnTop</altitudeLayer>
 		<passability>Impassable</passability>
-		<hasInteractionCell>True</hasInteractionCell>
+		<hasInteractionCell>true</hasInteractionCell>
 		<interactionCellOffset>(0,0,-1)</interactionCellOffset>
 		<blockWind>true</blockWind>
 		<fillPercent>0.6</fillPercent>

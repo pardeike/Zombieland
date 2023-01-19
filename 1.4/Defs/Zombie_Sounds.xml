@@ -551,12 +551,16 @@
 		<priorityMode>PrioritizeNearest</priorityMode>
 		<subSounds>
 			<li>
-				<muteWhenPaused>True</muteWhenPaused>
+				<!--<muteWhenPaused>True</muteWhenPaused>-->
 				<grains>
 					<li Class="AudioGrain_Clip">
 						<clipPath>chainsaw-idle</clipPath>
 					</li>
 				</grains>
+				<volumeRange>
+					<min>30</min>
+					<max>30</max>
+				</volumeRange>
 				<distRange>25~40</distRange>
 			</li>
 		</subSounds>
@@ -627,6 +631,34 @@
 					</li>
 				</grains>
 				<distRange>25~40</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>Crush</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>3</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>crush</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>1.2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>30</min>
+					<max>40</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>50</max>
+				</distRange>
 			</li>
 		</subSounds>
 	</SoundDef>

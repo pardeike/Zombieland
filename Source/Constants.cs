@@ -346,6 +346,12 @@ namespace ZombieLand
 		public static Texture2D zoneZombie = ContentFinder<Texture2D>.Get("ZoneZombie", true);
 		public static Texture2D blood = ContentFinder<Texture2D>.Get("Blood", true);
 
+		public static readonly Texture2D[] Chainsaw = new[]
+		{
+			ContentFinder<Texture2D>.Get("Chainsaw0", true),
+			ContentFinder<Texture2D>.Get("Chainsaw1", true),
+		};
+
 		public static List<(string name, FieldInfo field, ConstantAttribute attr)> AllSettings
 		{
 			get

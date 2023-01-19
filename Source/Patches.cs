@@ -478,6 +478,37 @@ namespace ZombieLand
 			}
 		}
 
+		// stop chainsaw when undrafted
+		//
+		[HarmonyPatch(typeof(Pawn_DraftController))]
+		[HarmonyPatch(nameof(Pawn_DraftController.Drafted))]
+		[HarmonyPatch(MethodType.Setter)]
+		static class Pawn_DraftController_setDrafted_Patch
+		{
+			static void Postfix(Pawn ___pawn, bool value)
+			{
+				if (value == false && ___pawn.equipment?.Primary is Chainsaw chainsaw)
+					chainsaw.StopMotor();
+			}
+		}
+
+		// remove melee from chainsaw
+		//
+		[HarmonyPatch(typeof(Pawn_MeleeVerbs))]
+		[HarmonyPatch(nameof(Pawn_MeleeVerbs.TryMeleeAttack))]
+		static class Pawn_MeleeVerbs_TryMeleeAttack_Patch
+		{
+			static bool Prefix(Pawn ___pawn, ref bool __result)
+			{
+				if (___pawn.equipment?.Primary is Chainsaw)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+
 		// remove gizmos from equipped chainsaws
 		//
 		[HarmonyPatch]
@@ -498,9 +529,19 @@ namespace ZombieLand
 
 			static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> gizmos, ThingWithComps eq)
 			{
-				if (eq.def == CustomDefs.Chainsaw)
+				if (eq is not Chainsaw chainsaw || chainsaw.pawn == null)
+				{
+					foreach (var gizmo in gizmos)
+						yield return gizmo;
 					yield break;
-				foreach (var gizmo in gizmos)
+				}
+
+				if (chainsaw.pawn?.Drafted == false)
+					foreach (var gizmo in gizmos)
+						yield return gizmo;
+
+				var chainsawGizmos = chainsaw.GetGizmos();
+				foreach (var gizmo in chainsawGizmos)
 					yield return gizmo;
 			}
 		}
@@ -516,14 +557,12 @@ namespace ZombieLand
 				if (___pawn.equipment?.Primary is not Chainsaw chainsaw)
 					return true;
 
-				chainsaw.Draw();
-
 				if (___pawn.Dead || ___pawn.Spawned == false)
 					return true;
 				if ((flags & PawnRenderFlags.NeverAimWeapon) != PawnRenderFlags.None)
 					return true;
 
-				if (chainsaw.active)
+				if (chainsaw.swinging)
 				{
 					var angle = chainsaw.angle;
 
@@ -549,7 +588,7 @@ namespace ZombieLand
 			{
 				if (___pawn.equipment?.Primary is not Chainsaw chainsaw)
 					return true;
-				return chainsaw.active == false;
+				return chainsaw.swinging == false;
 			}
 		}
 
@@ -910,7 +949,7 @@ namespace ZombieLand
 				if (limit == 0)
 					return true;
 
-				if (__instance.CasterPawn.equipment.Primary?.def == CustomDefs.Chainsaw)
+				if (__instance.CasterPawn.equipment.Primary is Chainsaw)
 					return false;
 
 				var thing = __instance.currentTarget.Thing;
@@ -2382,6 +2421,12 @@ namespace ZombieLand
 					yield return instruction;
 					firstTime = false;
 				}
+			}
+
+			static void Postfix(bool __result, Pawn ___pawn)
+			{
+				if (__result && ___pawn.equipment?.Primary is Chainsaw chainsaw)
+					_ = ___pawn.equipment.TryDropEquipment(chainsaw, out var _, ___pawn.Position);
 			}
 		}
 

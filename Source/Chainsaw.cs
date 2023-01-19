@@ -1,5 +1,4 @@
 ﻿using RimWorld;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,60 +7,21 @@ using Verse.Sound;
 
 namespace ZombieLand
 {
-	public class Chainsaw : ThingWithComps
+	public partial class Chainsaw : ThingWithComps
 	{
-		static readonly Mesh headMesh = MeshPool.humanlikeHeadSet.MeshAt(Rot4.South);
-
 		public Pawn pawn;
-		public float fuel;
+		public bool running;
 		public float angle;
-		public bool active;
+		public bool swinging;
 		public int inactiveCounter;
 
-		public List<ZombieHead> zombieHeads;
 		Sustainer idleSustainer;
 		Sustainer workSustainer;
-
-		public class ZombieHead
-		{
-			public int t;
-			public Material material;
-			public float alpha;
-			public Vector3 position;
-			public Quaternion quat;
-			public float rotAngle;
-
-			public bool Tick()
-			{
-				if (t++ > 100)
-					return true;
-
-				quat = Quaternion.AngleAxis(rotAngle, Vector3.up) * quat;
-				if (t >= 90)
-					alpha -= 0.1f;
-				return false;
-			}
-
-			public Vector3 Position
-			{
-				// https://www.desmos.com/calculator/taxvx1poha
-				get
-				{
-					var x = t / 100f;
-					const float a = 9;
-					const float b = -0.38f;
-					const float c = 8f;
-					var d = x - b;
-					var y = Mathf.Abs(Mathf.Sin(a * (x - b)) / d / d / d) / c;
-					return position + new Vector3(x * Mathf.Sign(rotAngle), 0, y);
-				}
-			}
-		}
 
 		public void Prepare()
 		{
 			angle = -1f;
-			active = false;
+			swinging = false;
 			inactiveCounter = 0;
 		}
 
@@ -69,79 +29,89 @@ namespace ZombieLand
 		{
 			pawn = null;
 			angle = -1f;
-			active = false;
+			swinging = false;
 			inactiveCounter = 0;
 
-			idleSustainer?.End();
-			idleSustainer = null;
-
-			workSustainer?.End();
-			workSustainer = null;
+			StopMotor();
 		}
 
-		public override void Draw()
+		public void Drop()
 		{
-			zombieHeads ??= new();
-			foreach (var head in zombieHeads)
-			{
-				var mat = new Material(head.material);
-				mat.color = new Color(mat.color.r, mat.color.g, mat.color.b, head.alpha);
-				GraphicToolbox.DrawScaledMesh(headMesh, mat, head.Position, head.quat, 0.7f, 0.7f);
-			}
+			_ = pawn.equipment.TryDropEquipment(this, out var _, pawn.Position);
 		}
 
 		public override void Tick()
 		{
 			base.Tick();
 
-			zombieHeads ??= new();
-			var heads = zombieHeads.ToArray();
-			foreach (var head in heads)
-				if (head.Tick())
-					_ = zombieHeads.Remove(head);
-
 			var map = pawn?.Map;
 			if (map == null)
 				return;
 			var pos = pawn.Position;
 
+			if (running)
+			{
+				var refuelable = GetComp<CompRefuelable>();
+				refuelable.ConsumeFuel(refuelable.ConsumptionRatePerTick * (workSustainer != null ? 10f : 1f));
+				if (refuelable.HasFuel == false)
+					StopMotor();
+			}
+
 			var cells = GenAdj.AdjacentCellsAround.Select(c => c + pos).ToArray();
-			var zombieCells = new List<Zombie>[8];
+			var affectedCells = new List<Thing>[8];
 			var grid = map.thingGrid;
 			for (var i = 0; i < 8; i++)
-				zombieCells[i] = grid.ThingsAt(cells[i]).OfType<Zombie>().ToList();
+				affectedCells[i] = grid.ThingsListAt(cells[i]);
+			var hostileCells = new List<Pawn>[8];
+			for (var i = 0; i < 8; i++)
+				hostileCells[i] = affectedCells[i].OfType<Pawn>().Where(victim => victim.HostileTo(pawn)).ToList();
 
-			var maxEmpty = MaxEmptyCells(zombieCells);
+			var maxEmpty = MaxEmptyCells(hostileCells);
 			if (maxEmpty <= 4)
 			{
-				_ = pawn.equipment.TryDropEquipment(this, out var _, pos);
+				Drop();
 				return;
 			}
 
-			var noZombies = (maxEmpty == 8);
-			if (noZombies)
+			if (running == false)
+				return;
+
+			var noHostiles = (maxEmpty == 8);
+			if (noHostiles)
 			{
 				inactiveCounter++;
 				if (inactiveCounter > 60)
 				{
 					workSustainer?.End();
 					workSustainer = null;
-					active = false;
+					swinging = false;
 				}
 				return;
 			}
 
 			workSustainer ??= CustomDefs.ChainsawWork.TrySpawnSustainer(SoundInfo.InMap(pawn, MaintenanceType.None));
 
-			active = true;
+			swinging = true;
 			inactiveCounter = 0;
 			if (angle == -1f)
 				angle = pawn.Rotation.AsAngle;
 
 			var idx = (int)angle / 45;
-			var zombie = zombieCells[idx].FirstOrDefault(zombie => (pawn.DrawPos - zombie.DrawPos).MagnitudeHorizontalSquared() <= 2f);
-			if (zombie != null)
-				SlaughterZombie(zombie);
+			var things = affectedCells[idx].Where(victim => (pawn.DrawPos - victim.DrawPos).MagnitudeHorizontalSquared() <= 2f);
+
+			var victim = things.OfType<Pawn>().FirstOrDefault();
+			if (victim != null)
+			{
+				Slaughter(victim);
+				return;
+			}
+			var building = things.OfType<Building>().FirstOrDefault();
+			if (building != null)
+			{
+				_ = building.TakeDamage(new DamageInfo(DamageDefOf.Crush, 80f));
+				Drop();
+				return;
+			}
 
 			var nextIndex = -1;
 			for (var i = 1; i <= 4 && nextIndex == -1; i++)
@@ -149,12 +119,12 @@ namespace ZombieLand
 				var leftIdx = (idx - i + 8) % 8;
 				var rightIdx = (idx + i + 8) % 8;
 
-				var leftZombies = zombieCells[leftIdx].Count;
-				var rightZombies = zombieCells[rightIdx].Count;
+				var leftHostiles = hostileCells[leftIdx].Count;
+				var rightHostiles = hostileCells[rightIdx].Count;
 
-				if (leftZombies > 0)
+				if (leftHostiles > 0)
 					nextIndex = leftIdx;
-				if (rightZombies > 0 && rightZombies > leftZombies)
+				if (rightHostiles > 0 && rightHostiles > leftHostiles)
 					nextIndex = rightIdx;
 			}
 			if (nextIndex == -1)
@@ -177,8 +147,37 @@ namespace ZombieLand
 
 		public override IEnumerable<Gizmo> GetGizmos()
 		{
-			// todo
-			yield break;
+			if (pawn == null)
+				foreach (var gizmo in base.GetGizmos())
+					yield return gizmo;
+			else if (comps != null)
+				foreach (var comp in comps)
+				{
+					if (comp is CompForbiddable || comp is CompRefuelable)
+						continue;
+					foreach (var gizmo in comp.CompGetGizmosExtra())
+						yield return gizmo;
+				}
+
+			if (pawn != null && pawn.Drafted)
+				yield return new Command_Action
+				{
+					defaultDesc = "ChainsawSwitch".Translate(),
+					disabled = pawn == null || pawn.MentalStateDef != null || (GetComp<CompRefuelable>()?.HasFuel ?? false) == false,
+					icon = Constants.Chainsaw[running ? 1 : 0],
+					hotKey = KeyBindingDefOf.Misc6,
+					action = delegate ()
+					{
+						running = !running;
+						if (running)
+							StartMotor(false);
+						else
+							StopMotor();
+					}
+				};
+
+			var refuelable = GetComp<CompRefuelable>();
+			yield return new Gizmo_RefuelableFuelStatus { refuelable = refuelable };
 		}
 
 		//
@@ -187,26 +186,29 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 			Scribe_References.Look(ref pawn, "pawn");
-			Scribe_Values.Look(ref fuel, "fuel");
+			Scribe_Values.Look(ref running, "on");
 			Scribe_Values.Look(ref angle, "angle");
-			Scribe_Values.Look(ref active, "active");
+			Scribe_Values.Look(ref swinging, "swinging");
 			Scribe_Values.Look(ref inactiveCounter, "inactiveCounter");
 
-			if (Scribe.mode == LoadSaveMode.PostLoadInit && active)
-				idleSustainer ??= CustomDefs.ChainsawIdle.TrySpawnSustainer(SoundInfo.InMap(pawn, MaintenanceType.None));
+			if (Scribe.mode == LoadSaveMode.PostLoadInit)
+			{
+				factionInt = Faction.OfPlayer;
+				if (running)
+					LongEventHandler.ExecuteWhenFinished(() => StartMotor(true));
+			}
 		}
 
 		public override void SpawnSetup(Map map, bool respawningAfterLoad)
 		{
 			base.SpawnSetup(map, respawningAfterLoad);
+			factionInt = Faction.OfPlayer;
 			Prepare();
 		}
 
 		public override void Notify_Equipped(Pawn pawn)
 		{
 			this.pawn = pawn;
-			idleSustainer ??= CustomDefs.ChainsawIdle.TrySpawnSustainer(SoundInfo.InMap(pawn, MaintenanceType.None));
-			CustomDefs.ChainsawStart.PlayOneShot(SoundInfo.InMap(pawn));
 			base.Notify_Equipped(pawn);
 		}
 
@@ -230,12 +232,32 @@ namespace ZombieLand
 
 		//
 
-		static int MaxEmptyCells(List<Zombie>[] cells)
+		public void StartMotor(bool fromLoad)
+		{
+			if (fromLoad == false)
+				CustomDefs.ChainsawStart.PlayOneShot(SoundInfo.InMap(pawn));
+			idleSustainer ??= CustomDefs.ChainsawIdle.TrySpawnSustainer(SoundInfo.InMap(pawn, MaintenanceType.None));
+			running = true;
+		}
+
+		public void StopMotor()
+		{
+			idleSustainer?.End();
+			idleSustainer = null;
+
+			workSustainer?.End();
+			workSustainer = null;
+
+			running = false;
+			swinging = false;
+		}
+
+		static int MaxEmptyCells(List<Pawn>[] cells)
 		{
 			var idx = 7;
 			while (idx >= 0)
 			{
-				if (cells[idx].Any())
+				if (cells[idx]?.Any() ?? false)
 					break;
 				idx--;
 			}
@@ -250,47 +272,49 @@ namespace ZombieLand
 					empty++;
 				else
 				{
-					maxEmpty = Math.Max(maxEmpty, empty);
+					maxEmpty = Mathf.Max(maxEmpty, empty);
 					empty = 0;
 				}
 				idx = (idx + 1) % 8;
 			}
-			return Math.Max(maxEmpty, empty);
+			return Mathf.Max(maxEmpty, empty);
 		}
 
-		void SlaughterZombie(Zombie zombie)
+		void Slaughter(Pawn victim)
 		{
-			var head = zombie?.health.hediffSet.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined, null, null).FirstOrDefault((BodyPartRecord x) => x.def == BodyPartDefOf.Head);
+			var head = victim?.health.hediffSet.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined, null, null).FirstOrDefault((BodyPartRecord x) => x.def == BodyPartDefOf.Head);
 			if (head != null)
 			{
-				var mat = GetZombieHead(zombie);
-				zombieHeads ??= new();
-				var pos = zombie.DrawPos;
+				var mat = GetHead(victim);
+				var pos = victim.DrawPos;
 				pos.y = Altitudes.AltitudeFor(AltitudeLayer.MoteOverhead);
-				zombieHeads.Add(new ZombieHead()
+				victim.Map?.GetComponent<TickManager>()?.victimHeads.Add(new VictimHead()
 				{
 					t = 0,
 					material = mat,
 					alpha = 1f,
 					position = pos,
-					quat = Quaternion.AngleAxis(zombie.Rotation.AsAngle, Vector3.up),
+					quat = Quaternion.AngleAxis(victim.Rotation.AsAngle, Vector3.up),
 					rotAngle = Rand.Range(-10f, 10f)
 				});
 
-				var part2 = (Hediff_MissingPart)HediffMaker.MakeHediff(HediffDefOf.MissingBodyPart, zombie, null);
+				var part2 = (Hediff_MissingPart)HediffMaker.MakeHediff(HediffDefOf.MissingBodyPart, victim, null);
 				part2.IsFresh = true;
 				part2.lastInjury = HediffDefOf.Shredded;
 				part2.Part = head;
-				zombie.health.hediffSet.AddDirect(part2, null, null);
+				victim.health.hediffSet.AddDirect(part2, null, null);
 			}
-			_ = FilthMaker.TryMakeFilth(zombie.Position, zombie.Map, ThingDefOf.Human.race.BloodDef, 4, FilthSourceFlags.None, true);
-			zombie.Kill(null);
+			CustomDefs.Crush.PlayOneShot(SoundInfo.InMap(victim));
+			_ = FilthMaker.TryMakeFilth(victim.Position, victim.Map, ThingDefOf.Human.race.BloodDef, 4, FilthSourceFlags.None, true);
+			victim.Kill(null);
+			if (victim is not Zombie)
+				Drop();
 		}
 
-		static Material GetZombieHead(Zombie zombie)
+		static Material GetHead(Pawn victim)
 		{
 			var renderTexture = RenderTexture.GetTemporary(128, 128, 32, RenderTextureFormat.ARGB32);
-			Find.PawnCacheRenderer.RenderPawn(zombie, renderTexture, new Vector3(0, 0, 0.4f), 1.75f, 0f, Rot4.South, true, false, true, false, true, default, null, null, false);
+			Find.PawnCacheRenderer.RenderPawn(victim, renderTexture, new Vector3(0, 0, 0.4f), 1.75f, 0f, Rot4.South, true, false, true, false, true, default, null, null, false);
 			Graphics.Blit(Constants.blood, renderTexture, MaterialPool.MatFrom(ShaderDatabase.Wound));
 			var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
 			RenderTexture.active = renderTexture;
