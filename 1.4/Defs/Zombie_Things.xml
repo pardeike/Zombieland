@@ -109,7 +109,7 @@
 		<description>A chainsaw.</description>
 		<graphicData>
 			<texPath>Chainsaw</texPath>
-			<graphicClass>Graphic_Single</graphicClass>
+			<graphicClass>ZombieLand.Graphic_Breakable</graphicClass>
 		</graphicData>
 		<burnableByRecipe>true</burnableByRecipe>
 		<soundInteract>Standard_Drop</soundInteract>
@@ -118,12 +118,14 @@
 			<Mass>3.5</Mass>
 		</statBases>
 		<tickerType>Normal</tickerType>
+		<repairEffect>Repair</repairEffect>
+		<drawerType>RealtimeOnly</drawerType>
 		<costList>
 			<Steel>60</Steel>
 			<ComponentIndustrial>3</ComponentIndustrial>
 		</costList>
 		<comps>
-			<li Class="CompProperties_Breakdownable"/>
+			<li Class="ZombieLand.CompProperties_Breakable"/>
 			<li Class="CompProperties_Forbiddable"/>
 			<li Class="CompProperties_Refuelable">
 				<fuelCapacity>100.0</fuelCapacity>

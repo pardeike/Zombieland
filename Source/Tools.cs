@@ -99,6 +99,12 @@ namespace ZombieLand
 					.Do(meal => meal.graphicInt = null);
 		}
 
+		public static bool IsBroken(this Thing t)
+		{
+			var compBreakable = t.TryGetComp<CompBreakable>();
+			return compBreakable != null && compBreakable.broken;
+		}
+
 		public static string GetModRootDirectory()
 		{
 			var me = LoadedModManager.GetMod<ZombielandMod>();

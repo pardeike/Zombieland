@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<JobDef>
+		<defName>Stumble</defName>
+		<driverClass>ZombieLand.JobDriver_Stumble</driverClass>
+		<reportString>stumbling.</reportString>
+		<suspendable>true</suspendable>
+	</JobDef>
+
+	<JobDef>
+		<defName>Sabotage</defName>
+		<driverClass>ZombieLand.JobDriver_Sabotage</driverClass>
+		<reportString>sabotaging.</reportString>
+		<suspendable>false</suspendable>
+	</JobDef>
+
+	<JobDef>
+		<defName>ExtractZombieSerum</defName>
+		<driverClass>ZombieLand.JobDriver_ExtractZombieSerum</driverClass>
+		<reportString>extracting zombie serum from TargetA.</reportString>
+		<allowOpportunisticPrefix>false</allowOpportunisticPrefix>
+	</JobDef>
+
+	<JobDef>
+		<defName>DoubleTap</defName>
+		<driverClass>ZombieLand.JobDriver_DoubleTap</driverClass>
+		<reportString>double tapping TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+
+	<JobDef>
+		<defName>RopeZombie</defName>
+		<driverClass>ZombieLand.JobDriver_RopeZombie</driverClass>
+		<reportString>roping TargetA.</reportString>
+		<allowOpportunisticPrefix>false</allowOpportunisticPrefix>
+	</JobDef>
+
+	<JobDef>
+		<defName>ZapZombies</defName>
+		<driverClass>ZombieLand.JobDriver_ZapZombies</driverClass>
+		<reportString>starting zombie zapper.</reportString>
+		<allowOpportunisticPrefix>false</allowOpportunisticPrefix>
+	</JobDef>
+
+	<JobDef>
+		<defName>FixBrokenChainsaw</defName>
+		<driverClass>ZombieLand.JobDriver_FixBrokenChainsaw</driverClass>
+		<reportString>replacing broken components in TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+
+</Defs>

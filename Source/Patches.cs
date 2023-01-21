@@ -531,17 +531,16 @@ namespace ZombieLand
 			{
 				if (eq is not Chainsaw chainsaw || chainsaw.pawn == null)
 				{
-					foreach (var gizmo in gizmos)
+					foreach (var gizmo in gizmos.OfType<Gizmo>())
 						yield return gizmo;
 					yield break;
 				}
 
 				if (chainsaw.pawn?.Drafted == false)
-					foreach (var gizmo in gizmos)
+					foreach (var gizmo in gizmos.OfType<Gizmo>())
 						yield return gizmo;
 
-				var chainsawGizmos = chainsaw.GetGizmos();
-				foreach (var gizmo in chainsawGizmos)
+				foreach (var gizmo in chainsaw.GetGizmos().OfType<Gizmo>())
 					yield return gizmo;
 			}
 		}

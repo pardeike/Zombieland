@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<WorkGiverDef>
+		<defName>ExtractZombieSerum</defName>
+		<label>extract serum from zombie corpses</label>
+		<giverClass>ZombieLand.WorkGiver_ExtractZombieSerum</giverClass>
+		<workType>Doctor</workType>
+		<verb>extract</verb>
+		<gerund>extracting</gerund>
+		<priorityInType>45</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+		<prioritizeSustains>true</prioritizeSustains>
+		<canBeDoneWhileDrafted>true</canBeDoneWhileDrafted>
+	</WorkGiverDef>
+
+	<WorkGiverDef>
+		<defName>DoubleTap</defName>
+		<label>double tap a corpses</label>
+		<giverClass>ZombieLand.WorkGiver_DoubleTap</giverClass>
+		<workType>Hunting</workType>
+		<verb>double tap</verb>
+		<gerund>double tapping</gerund>
+		<priorityInType>-5</priorityInType>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+		<canBeDoneWhileDrafted>true</canBeDoneWhileDrafted>
+	</WorkGiverDef>
+
+	<WorkGiverDef>
+		<defName>FixBrokenChainsaw</defName>
+		<label>fix broken-down chainsaw</label>
+		<giverClass>ZombieLand.WorkGiver_FixBrokenChainsaw</giverClass>
+		<workType>Construction</workType>
+		<priorityInType>120</priorityInType>
+		<verb>replace broken components in</verb>
+		<gerund>replacing broken components in</gerund>
+		<requiredCapacities>
+			<li>Manipulation</li>
+		</requiredCapacities>
+		<prioritizeSustains>true</prioritizeSustains>
+	</WorkGiverDef>
+
+</Defs>

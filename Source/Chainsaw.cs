@@ -18,6 +18,9 @@ namespace ZombieLand
 		Sustainer idleSustainer;
 		Sustainer workSustainer;
 
+		CompRefuelable refuelable;
+		CompBreakable breakable;
+
 		public void Prepare()
 		{
 			angle = -1f;
@@ -51,7 +54,6 @@ namespace ZombieLand
 
 			if (running)
 			{
-				var refuelable = GetComp<CompRefuelable>();
 				refuelable.ConsumeFuel(refuelable.ConsumptionRatePerTick * (workSustainer != null ? 10f : 1f));
 				if (refuelable.HasFuel == false)
 					StopMotor();
@@ -139,31 +141,36 @@ namespace ZombieLand
 				angle += 360;
 		}
 
-		public override void PreApplyDamage(ref DamageInfo dinfo, out bool absorbed)
-		{
-			base.PreApplyDamage(ref dinfo, out absorbed);
-			// todo
-		}
-
 		public override IEnumerable<Gizmo> GetGizmos()
 		{
 			if (pawn == null)
-				foreach (var gizmo in base.GetGizmos())
+				foreach (var gizmo in base.GetGizmos().OfType<Gizmo>())
 					yield return gizmo;
 			else if (comps != null)
 				foreach (var comp in comps)
 				{
 					if (comp is CompForbiddable || comp is CompRefuelable)
 						continue;
-					foreach (var gizmo in comp.CompGetGizmosExtra())
+					foreach (var gizmo in comp.CompGetGizmosExtra().OfType<Gizmo>())
 						yield return gizmo;
 				}
 
 			if (pawn != null && pawn.Drafted)
+			{
+				var hasFuel = refuelable.HasFuel;
+				var disabled = pawn == null || pawn.MentalStateDef != null || hasFuel == false || breakable.broken;
+				var description = (running ? "ChainsawOff" : "ChainsawOn").Translate();
+				if (disabled)
+				{
+					if (breakable.broken)
+						description = "ChainsawBroken".Translate();
+					else
+						description = (hasFuel ? "ChainsawDisabled" : "ChainsawNoFuel").Translate();
+				}
 				yield return new Command_Action
 				{
-					defaultDesc = "ChainsawSwitch".Translate(),
-					disabled = pawn == null || pawn.MentalStateDef != null || (GetComp<CompRefuelable>()?.HasFuel ?? false) == false,
+					defaultDesc = description,
+					disabled = disabled,
 					icon = Constants.Chainsaw[running ? 1 : 0],
 					hotKey = KeyBindingDefOf.Misc6,
 					action = delegate ()
@@ -175,8 +182,8 @@ namespace ZombieLand
 							StopMotor();
 					}
 				};
+			}
 
-			var refuelable = GetComp<CompRefuelable>();
 			yield return new Gizmo_RefuelableFuelStatus { refuelable = refuelable };
 		}
 
@@ -202,6 +209,10 @@ namespace ZombieLand
 		public override void SpawnSetup(Map map, bool respawningAfterLoad)
 		{
 			base.SpawnSetup(map, respawningAfterLoad);
+
+			refuelable = GetComp<CompRefuelable>();
+			breakable = GetComp<CompBreakable>();
+
 			factionInt = Faction.OfPlayer;
 			Prepare();
 		}
