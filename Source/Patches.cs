@@ -478,6 +478,21 @@ namespace ZombieLand
 			}
 		}
 
+		// roate chainsaw when moving
+		//
+		[HarmonyPatch(typeof(Pawn_PathFollower))]
+		[HarmonyPatch(nameof(Pawn_PathFollower.SetupMoveIntoNextCell))]
+		static class Pawn_PathFollower_SetupMoveIntoNextCell_Patch
+		{
+			static void Postfix(Pawn ___pawn, IntVec3 ___nextCell)
+			{
+				if (___pawn.equipment?.Primary is not Chainsaw chainsaw || chainsaw.swinging)
+					return;
+				var delta = ___nextCell - ___pawn.Position;
+				chainsaw.angle = delta.AngleFlat;
+			}
+		}
+
 		// stop chainsaw when undrafted
 		//
 		[HarmonyPatch(typeof(Pawn_DraftController))]
@@ -561,7 +576,7 @@ namespace ZombieLand
 				if ((flags & PawnRenderFlags.NeverAimWeapon) != PawnRenderFlags.None)
 					return true;
 
-				if (chainsaw.swinging)
+				if (chainsaw.swinging || ___pawn.Drafted && Find.Selector.IsSelected(___pawn))
 				{
 					var angle = chainsaw.angle;
 
@@ -613,6 +628,16 @@ namespace ZombieLand
 					)
 				}.AsEnumerable();
 				return false;
+			}
+		}
+
+		[HarmonyPatch(typeof(Gizmo_RefuelableFuelStatus))]
+		[HarmonyPatch(nameof(Gizmo_RefuelableFuelStatus.GizmoOnGUI))]
+		static class Gizmo_RefuelableFuelStatus_GizmoOnGUI_Patch
+		{
+			static bool Prefix(CompRefuelable ___refuelable)
+			{
+				return ___refuelable != null;
 			}
 		}
 
@@ -973,7 +998,7 @@ namespace ZombieLand
 				if (limit == 0)
 					return true;
 
-				if (__instance.CasterPawn.equipment.Primary is Chainsaw)
+				if (__instance.CasterPawn.equipment?.Primary is Chainsaw)
 					return false;
 
 				var thing = __instance.currentTarget.Thing;

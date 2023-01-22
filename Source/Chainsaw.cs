@@ -30,11 +30,11 @@ namespace ZombieLand
 			factionInt = Faction.OfPlayer;
 			refuelable = GetComp<CompRefuelable>();
 			breakable = GetComp<CompBreakable>();
+			angle = -1;
 		}
 
 		public void Prepare()
 		{
-			angle = -1f;
 			swinging = false;
 			inactiveCounter = 0;
 			stalledCounter = 0;
@@ -43,7 +43,6 @@ namespace ZombieLand
 		public void Cleanup()
 		{
 			pawn = null;
-			angle = -1f;
 			swinging = false;
 			inactiveCounter = 0;
 			stalledCounter = 0;
@@ -99,10 +98,10 @@ namespace ZombieLand
 			if (stalledCounter > 0)
 				stalledCounter--;
 
-
 			if (running)
 			{
-				refuelable.ConsumeFuel(refuelable.ConsumptionRatePerTick * (workSustainer != null ? 10f : 1f));
+				var f = GenMath.LerpDouble(0f, 5f, 2f, 10f, ZombieSettings.Values.threatScale);
+				refuelable.ConsumeFuel(refuelable.ConsumptionRatePerTick * (workSustainer != null ? f : 1f));
 				if (refuelable.HasFuel == false)
 					StopMotor();
 			}
@@ -144,7 +143,10 @@ namespace ZombieLand
 			swinging = true;
 			inactiveCounter = 0;
 			if (angle == -1f)
+			{
 				angle = pawn.Rotation.AsAngle;
+				Log.Warning($"angle set to rotation {angle}");
+			}
 
 			var idx = (int)angle / 45;
 			var things = affectedCells[idx].Where(victim => (pawn.DrawPos - victim.DrawPos).MagnitudeHorizontalSquared() <= 2f);

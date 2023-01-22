@@ -114,7 +114,7 @@
 		<burnableByRecipe>true</burnableByRecipe>
 		<soundInteract>Standard_Drop</soundInteract>
 		<statBases>
-			<MaxHitPoints>200</MaxHitPoints>
+			<MaxHitPoints>500</MaxHitPoints>
 			<WorkToMake>12000</WorkToMake>
 			<Mass>3.5</Mass>
 		</statBases>
@@ -145,7 +145,7 @@
 						<li>Chemfuel</li>
 					</thingDefs>
 				</fuelFilter>
-				<fuelConsumptionRate>300.0</fuelConsumptionRate>
+				<fuelConsumptionRate>100.0</fuelConsumptionRate>
 				<consumeFuelOnlyWhenUsed>true</consumeFuelOnlyWhenUsed>
 				<autoRefuelPercent>1</autoRefuelPercent>
 				<showFuelGizmo>true</showFuelGizmo>
