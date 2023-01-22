@@ -51,28 +51,28 @@ namespace ZombieLand
 			UpdateOverlays();
 		}
 
-		public void DoBreakdown()
+		public void DoBreakdown(Map map)
 		{
 			broken = true;
-			parent.Map.GetComponent<BrokenManager>().Notify_BrokenDown(parent);
+			map.GetComponent<BrokenManager>().Notify_BrokenDown(parent);
 			UpdateOverlays();
 		}
 
 		public override string CompInspectStringExtra()
 		{
 			if (broken)
-				return "BrokenDown".Translate();
+				return "Broken".Translate();
 			return null;
 		}
 
 		[DebugAction("General", "Break...", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void BreakDown()
 		{
-			foreach (Thing thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
+			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 			{
 				var compBreakable = thing.TryGetComp<CompBreakable>();
 				if (compBreakable != null && compBreakable.broken == false)
-					compBreakable.DoBreakdown();
+					compBreakable.DoBreakdown(Find.CurrentMap);
 			}
 		}
 	}

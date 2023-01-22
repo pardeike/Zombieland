@@ -860,7 +860,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Tools.Attackable(mode, item))
+								if (item is not Zombie && Tools.Attackable(zombie, mode, item))
 									return item;
 							}
 						}
@@ -872,7 +872,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Tools.Attackable(mode, item))
+								if (item is not Zombie && Tools.Attackable(zombie, mode, item))
 									return item;
 							}
 						}
@@ -884,7 +884,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Tools.Attackable(mode, item))
+								if (item is not Zombie && Tools.Attackable(zombie, mode, item))
 									return item;
 							}
 						}
@@ -896,7 +896,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Tools.Attackable(mode, item))
+								if (item is not Zombie && Tools.Attackable(zombie, mode, item))
 									return item;
 							}
 						}
@@ -908,7 +908,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Tools.Attackable(mode, item))
+								if (item is not Zombie && Tools.Attackable(zombie, mode, item))
 									return item;
 							}
 						}
@@ -920,7 +920,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Tools.Attackable(mode, item))
+								if (item is not Zombie && Tools.Attackable(zombie, mode, item))
 									return item;
 							}
 						}
@@ -932,7 +932,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Tools.Attackable(mode, item))
+								if (item is not Zombie && Tools.Attackable(zombie, mode, item))
 									return item;
 							}
 						}
@@ -944,7 +944,7 @@ namespace ZombieLand
 							for (var i = 0; i < items.Count; i++)
 							{
 								var item = items[i];
-								if ((item is Zombie) == false && Tools.Attackable(mode, item))
+								if (item is not Zombie && Tools.Attackable(zombie, mode, item))
 									return item;
 							}
 						}

@@ -797,7 +797,7 @@ namespace ZombieLand
 			return false;
 		}
 
-		public static bool Attackable(AttackMode mode, Thing thing)
+		public static bool Attackable(Zombie zombie, AttackMode mode, Thing thing)
 		{
 			if (thing is ZombieCorpse)
 				return false;
@@ -806,8 +806,8 @@ namespace ZombieLand
 			{
 				if (target.Dead || target.health.Downed)
 					return false;
-				if (target.equipment?.Primary is Chainsaw chainsaw && chainsaw.running)
-					return Rand.Chance(1f - chainsaw.HitPoints / 100f);
+				if (target.equipment?.Primary is Chainsaw chainsaw && chainsaw.running && zombie.IsActiveElectric == false)
+					return Rand.Chance(chainsaw.CounterHitChance());
 
 				var distance = (target.DrawPos - thing.DrawPos).MagnitudeHorizontalSquared();
 				if (distance > Constants.MIN_ATTACKDISTANCE_SQUARED)

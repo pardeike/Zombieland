@@ -114,6 +114,7 @@
 		<burnableByRecipe>true</burnableByRecipe>
 		<soundInteract>Standard_Drop</soundInteract>
 		<statBases>
+			<MaxHitPoints>200</MaxHitPoints>
 			<WorkToMake>12000</WorkToMake>
 			<Mass>3.5</Mass>
 		</statBases>
