@@ -118,6 +118,16 @@
 			<WorkToMake>12000</WorkToMake>
 			<Mass>3.5</Mass>
 		</statBases>
+		<recipeMaker>
+			<recipeUsers Inherit="False">
+				<li>FabricationBench</li>
+			</recipeUsers>
+			<researchPrerequisite>GasOperation</researchPrerequisite>
+			<skillRequirements>
+				<Crafting>6</Crafting>
+			</skillRequirements>
+			<displayPriority>100</displayPriority>
+		</recipeMaker>
 		<tickerType>Normal</tickerType>
 		<repairEffect>Repair</repairEffect>
 		<drawerType>RealtimeOnly</drawerType>
