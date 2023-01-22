@@ -221,6 +221,7 @@
 	<FloatingZombiesInSOS2>Floating zombies in space</FloatingZombiesInSOS2>
 
 	<Broken>Broken</Broken>
+	<StatsFuel>{0}% fuel</StatsFuel>
 
 	<ChainsawBroken>Chainsaw is broken</ChainsawBroken>
 	<ChainsawDisabled>Chainsaw cannot be used right now</ChainsawDisabled>

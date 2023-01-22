@@ -591,6 +591,31 @@ namespace ZombieLand
 			}
 		}
 
+		// fix stats panel of chainsaw fuel component
+		//
+		[HarmonyPatch(typeof(CompProperties_Refuelable))]
+		[HarmonyPatch(nameof(CompProperties_Refuelable.SpecialDisplayStats))]
+		static class CompProperties_Refuelable_SpecialDisplayStats_Patch
+		{
+			static bool Prefix(CompProperties_Refuelable __instance, StatRequest req, ref IEnumerable<StatDrawEntry> __result)
+			{
+				if (req.Def != CustomDefs.Chainsaw)
+					return true;
+
+				__result = new List<StatDrawEntry>()
+				{
+					new StatDrawEntry(
+						StatCategoryDefOf.Weapon_Melee,
+						__instance.FuelLabel,
+						((int)__instance.fuelCapacity).ToString(),
+						null,
+						3171
+					)
+				}.AsEnumerable();
+				return false;
+			}
+		}
+
 		// patch to make raiders choose zombies less likely as a target
 		// and to prefer non-downed zombies from downed one as targets
 		//
