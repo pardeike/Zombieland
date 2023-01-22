@@ -215,4 +215,20 @@
 	<DisableRandomApparel>关闭僵尸随机服装</DisableRandomApparel>
 	<FloatingZombiesInSOS2>太空中漂浮的殭屍</FloatingZombiesInSOS2>
 
+	<Broken>破碎</Broken>。
+	<StatsFuel>{0}%燃料</StatsFuel>。
+
+	<ChainsawBroken>链锯坏了</ChainsawBroken>。
+	<ChainsawDisabled>Chainsaw现在不能使用</ChainsawDisabled>。
+	<ChainsawNoFuel>链锯需要加油</ChainsawNoFuel>。
+	<ChainsawTurnOn>打开电锯，攻击附近的僵尸</ChainsawTurnOn>。
+	<ChainsawTurnOff>关闭电锯以节省燃料</ChainsawTurnOff>。
+	<ChainsawStalling>（失速）</ChainsawStalling>。
+	<ChainsawDesc>油锯</ChainsawDesc>。
+	<ChainsawDescBroken>破损的链锯</ChainsawDescBroken>。
+	<ChainsawDescStalling>停顿的电锯</ChainsawDescStalling>。
+	<ChainsawDescFuel> 有{0}%的燃料</ChainsawDescFuel>。
+	<ChainsawDescNoFuel> 没有燃料</ChainsawDescNoFuel>。
+	<ChainsawDescBlockingChance> 阻挡{0}%的来袭攻击</ChainsawDescBlockingChance>
+
 </LanguageData>

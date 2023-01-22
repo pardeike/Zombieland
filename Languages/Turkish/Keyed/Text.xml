@@ -214,4 +214,20 @@
 	<DisableRandomApparel>Zombiler için rastgele giyimleri kapat</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Uzayda yüzen zombiler</FloatingZombiesInSOS2>
 
+	<Broken>Kırık</Broken>
+	<StatsFuel>{0}% yakıt</StatsFuel>
+
+	<ChainsawBroken>Testere bozuldu</ChainsawBroken>
+	<ChainsawDisabled>Zincirli testere şu anda kullanılamıyor</ChainsawDisabled>
+	<ChainsawNoFuel>Zincirli testerenin yakıt ikmaline ihtiyacı var</ChainsawNoFuel>
+	<ChainsawTurnOn>Yakındaki zombilere saldırmak için elektrikli testereyi aç</ChainsawTurnOn>
+	<ChainsawTurnOff>Yakıt tasarrufu için motorlu testereyi kapatın</ChainsawTurnOff>
+	<ChainsawStalling>(oyalanıyor)</ChainsawStalling>
+	<ChainsawDesc>Testere</ChainsawDesc>
+	<ChainsawDescBroken>Kırık testere</ChainsawDescBroken>
+	<ChainsawDescStalling>Zincirli testereyi durdurma</ChainsawDescStalling>
+	<ChainsawDescFuel> {0}% yakıt ile</ChainsawDescFuel>
+	<ChainsawDescNoFuel> yakıtsız</ChainsawDescNoFuel>
+	<ChainsawDescBlockingChance> gelen saldırıların {0}%'ını engelleme</ChainsawDescBlockingChance>
+
 </LanguageData>

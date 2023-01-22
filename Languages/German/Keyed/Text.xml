@@ -215,4 +215,20 @@
 	<DisableRandomApparel>Zufällige Kleidung für Zombies ausschalten</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Schwebende Zombies im All</FloatingZombiesInSOS2>
 
+	<Broken>Kaputt</Broken>
+	<StatsFuel>{0}% Kraftstoff</StatsFuel>
+
+	<ChainsawBroken>Kettensäge ist kaputt</ChainsawBroken>
+	<ChainsawDisabled>Kettensäge kann im Moment nicht verwendet werden</ChainsawDisabled>
+	<ChainsawNoFuel>Kettensäge muss aufgetankt werden</ChainsawNoFuel>
+	<ChainsawTurnOn>Kettensäge einschalten, um Zombies in der Nähe anzugreifen</ChainsawTurnOn>
+	<ChainsawTurnOff>Kettensäge ausschalten, um Treibstoff zu sparen</ChainsawTurnOff>
+	<ChainsawStalling>(Abgewürgt)</ChainsawStalling>
+	<ChainsawDesc>Kettensäge</ChainsawDesc>
+	<ChainsawDescBroken>Kaputte Kettensäge</ChainsawDescBroken>
+	<ChainsawDescStalling>Zerstörte Kettensäge</ChainsawDescStalling>
+	<ChainsawDescFuel> mit {0}% Kraftstoff</ChainsawDescFuel>
+	<ChainsawDescNoFuel> ohne Kraftstoff</ChainsawDescNoFuel>
+	<ChainsawDescBlockingChance> blockiert {0}% der eingehenden Angriffe</ChainsawDescBlockingChance>
+
 </LanguageData>
