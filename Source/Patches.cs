@@ -478,6 +478,21 @@ namespace ZombieLand
 			}
 		}
 
+		// roate chainsaw when moving
+		//
+		[HarmonyPatch(typeof(Pawn_PathFollower))]
+		[HarmonyPatch(nameof(Pawn_PathFollower.SetupMoveIntoNextCell))]
+		static class Pawn_PathFollower_SetupMoveIntoNextCell_Patch
+		{
+			static void Postfix(Pawn ___pawn, IntVec3 ___nextCell)
+			{
+				if (___pawn.equipment?.Primary is not Chainsaw chainsaw || chainsaw.swinging)
+					return;
+				var delta = ___nextCell - ___pawn.Position;
+				chainsaw.angle = delta.AngleFlat;
+			}
+		}
+
 		// stop chainsaw when undrafted
 		//
 		[HarmonyPatch(typeof(Pawn_DraftController))]
@@ -540,8 +555,7 @@ namespace ZombieLand
 					foreach (var gizmo in gizmos)
 						yield return gizmo;
 
-				var chainsawGizmos = chainsaw.GetGizmos();
-				foreach (var gizmo in chainsawGizmos)
+				foreach (var gizmo in chainsaw.GetGizmos())
 					yield return gizmo;
 			}
 		}
@@ -562,7 +576,7 @@ namespace ZombieLand
 				if ((flags & PawnRenderFlags.NeverAimWeapon) != PawnRenderFlags.None)
 					return true;
 
-				if (chainsaw.swinging)
+				if (chainsaw.swinging || ___pawn.Drafted && Find.Selector.IsSelected(___pawn))
 				{
 					var angle = chainsaw.angle;
 
@@ -589,6 +603,41 @@ namespace ZombieLand
 				if (___pawn.equipment?.Primary is not Chainsaw chainsaw)
 					return true;
 				return chainsaw.swinging == false;
+			}
+		}
+
+		// fix stats panel of chainsaw fuel component
+		//
+		[HarmonyPatch(typeof(CompProperties_Refuelable))]
+		[HarmonyPatch(nameof(CompProperties_Refuelable.SpecialDisplayStats))]
+		static class CompProperties_Refuelable_SpecialDisplayStats_Patch
+		{
+			static bool Prefix(CompProperties_Refuelable __instance, StatRequest req, ref IEnumerable<StatDrawEntry> __result)
+			{
+				if (req.Def != CustomDefs.Chainsaw)
+					return true;
+
+				__result = new List<StatDrawEntry>()
+				{
+					new StatDrawEntry(
+						StatCategoryDefOf.Weapon_Melee,
+						__instance.FuelLabel,
+						((int)__instance.fuelCapacity).ToString(),
+						null,
+						3171
+					)
+				}.AsEnumerable();
+				return false;
+			}
+		}
+
+		[HarmonyPatch(typeof(Gizmo_RefuelableFuelStatus))]
+		[HarmonyPatch(nameof(Gizmo_RefuelableFuelStatus.GizmoOnGUI))]
+		static class Gizmo_RefuelableFuelStatus_GizmoOnGUI_Patch
+		{
+			static bool Prefix(CompRefuelable ___refuelable)
+			{
+				return ___refuelable != null;
 			}
 		}
 
@@ -949,7 +998,7 @@ namespace ZombieLand
 				if (limit == 0)
 					return true;
 
-				if (__instance.CasterPawn.equipment.Primary is Chainsaw)
+				if (__instance.CasterPawn.equipment?.Primary is Chainsaw)
 					return false;
 
 				var thing = __instance.currentTarget.Thing;
@@ -1214,74 +1263,80 @@ namespace ZombieLand
 		{
 			static void ElectricalDamage(Zombie zombie, Pawn pawn, ref DamageInfo damageInfo)
 			{
-				if (zombie == null || zombie.IsActiveElectric == false)
-					return;
-
-				if (pawn?.Map == null || pawn.apparel == null)
-					return;
-
-				var apparel = pawn.apparel.WornApparel;
-
-				var smokepopBelt = apparel.OfType<SmokepopBelt>().FirstOrDefault();
-				if (smokepopBelt != null)
+				if (pawn.equipment?.Primary is Chainsaw chainsaw)
 				{
-					damageInfo = new DamageInfo(CustomDefs.ElectricalShock, 1f, 0f, -1f, zombie, null, CustomDefs.ElectricalField);
-					zombie.ElectrifyAnimation();
-					return;
-				}
-
-				var dinfo = new DamageInfo(DamageDefOf.EMP, 1000, 0f, -1f, null, null, null, DamageInfo.SourceCategory.ThingOrUnknown, null, true, true);
-				_ = pawn.TakeDamage(dinfo);
-
-				/*
-				var shieldBelt = apparel.OfType<ShieldBelt>().FirstOrDefault();
-				if (shieldBelt != null)
-				{
-					if (shieldBelt.Energy > 0)
-						damageInfo = new DamageInfo(DamageDefOf.EMP, 1f, 0f, -1f, zombie, null, CustomDefs.ElectricalField);
-					else
-						shieldBelt.Destroy();
+					chainsaw.Shock(120);
 
 					FleckMaker.Static(pawn.TrueCenter(), pawn.Map, FleckDefOf.ExplosionFlash, 12f);
 					FleckMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
 					zombie.ElectrifyAnimation();
-					return;
 				}
-				*/
 
-				var sensitiveStuff = apparel.Cast<Thing>();
-				if (pawn.equipment != null)
-					sensitiveStuff = sensitiveStuff
-						.Union(pawn.equipment.AllEquipmentListForReading.Cast<Thing>());
-				if (pawn.inventory != null)
-					sensitiveStuff = sensitiveStuff
-						.Union(pawn.inventory.GetDirectlyHeldThings());
+				if (pawn.apparel != null)
+				{
+					var apparel = pawn.apparel.WornApparel;
 
-				var success = sensitiveStuff
-					.Where(thing =>
+					var smokepopBelt = apparel.OfType<SmokepopBelt>().FirstOrDefault();
+					if (smokepopBelt != null)
 					{
-						if (thing?.def?.costList == null)
-							return false;
-						return thing.def.costList.Any(cost => cost.thingDef == ThingDefOf.ComponentIndustrial || cost.thingDef == ThingDefOf.ComponentSpacer);
-					})
-					.TryRandomElement(out var stuff);
+						damageInfo = new DamageInfo(CustomDefs.ElectricalShock, 1f, 0f, -1f, zombie, null, CustomDefs.ElectricalField);
+						zombie.ElectrifyAnimation();
+						return;
+					}
 
-				if (success && stuff != null)
-				{
-					var amount = 2f * Tools.Difficulty();
-					var damage = new DamageInfo(DamageDefOf.Deterioration, amount);
-					_ = stuff.TakeDamage(damage);
+					var dinfo = new DamageInfo(DamageDefOf.EMP, 1000, 0f, -1f, null, null, null, DamageInfo.SourceCategory.ThingOrUnknown, null, true, true);
+					_ = pawn.TakeDamage(dinfo);
 
-					FleckMaker.Static(pawn.TrueCenter(), pawn.Map, FleckDefOf.ExplosionFlash, 12f);
-					FleckMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
-					zombie.ElectrifyAnimation();
+					/*
+					var shieldBelt = apparel.OfType<ShieldBelt>().FirstOrDefault();
+					if (shieldBelt != null)
+					{
+						if (shieldBelt.Energy > 0)
+							damageInfo = new DamageInfo(DamageDefOf.EMP, 1f, 0f, -1f, zombie, null, CustomDefs.ElectricalField);
+						else
+							shieldBelt.Destroy();
+
+						FleckMaker.Static(pawn.TrueCenter(), pawn.Map, FleckDefOf.ExplosionFlash, 12f);
+						FleckMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
+						zombie.ElectrifyAnimation();
+						return;
+					}
+					*/
+
+					var sensitiveStuff = apparel.Cast<Thing>();
+					if (pawn.equipment != null)
+						sensitiveStuff = sensitiveStuff
+							.Union(pawn.equipment.AllEquipmentListForReading.Cast<Thing>());
+					if (pawn.inventory != null)
+						sensitiveStuff = sensitiveStuff
+							.Union(pawn.inventory.GetDirectlyHeldThings());
+
+					var success = sensitiveStuff
+						.Where(thing =>
+						{
+							if (thing?.def?.costList == null)
+								return false;
+							return thing.def.costList.Any(cost => cost.thingDef == ThingDefOf.ComponentIndustrial || cost.thingDef == ThingDefOf.ComponentSpacer);
+						})
+						.TryRandomElement(out var stuff);
+
+					if (success && stuff != null)
+					{
+						var amount = 2f * Tools.Difficulty();
+						var damage = new DamageInfo(DamageDefOf.Deterioration, amount);
+						_ = stuff.TakeDamage(damage);
+
+						FleckMaker.Static(pawn.TrueCenter(), pawn.Map, FleckDefOf.ExplosionFlash, 12f);
+						FleckMaker.ThrowDustPuff(pawn.TrueCenter(), pawn.Map, Rand.Range(0.8f, 1.2f));
+						zombie.ElectrifyAnimation();
+					}
 				}
 			}
 
 			static IEnumerable<DamageInfo> Postfix(IEnumerable<DamageInfo> results, LocalTargetInfo target, Thing ___caster)
 			{
-				if (target.Thing is Pawn pawn)
-					if (___caster is Zombie zombie)
+				if (target.Thing is Pawn pawn && pawn.Map != null)
+					if (___caster is Zombie zombie && zombie.IsActiveElectric)
 					{
 						foreach (var result in results)
 						{

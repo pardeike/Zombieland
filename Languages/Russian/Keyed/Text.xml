@@ -215,4 +215,20 @@
 	<DisableRandomApparel>Выключить случайную одежду для зомби</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Парящие зомби в космосе</FloatingZombiesInSOS2>
 
+	<Broken>Сломан</Broken>
+	<StatsFuel>{0}% топлива</StatsFuel>
+
+	<ChainsawBroken>Бензопила сломана</ChainsawBroken>
+	<ChainsawDisabled>Бензопила не может быть использована прямо сейчас</ChainsawDisabled>
+	<ChainsawNoFuel> Бензопила нуждается в дозаправке</ChainsawNoFuel>
+	<ChainsawTurnOn>Включите бензопилу, чтобы атаковать всех ближайших зомби</ChainsawTurnOn>
+	<ChainsawTurnOff>Выключите бензопилу для экономии топлива</ChainsawTurnOff>
+	<ChainsawStalling> (замирание)</ChainsawStalling>
+	<ChainsawDesc>Бензопила</ChainsawDesc>
+	<ChainsawDescBroken>Сломанная бензопила</ChainsawDescBroken>
+	<ChainsawDescStalling>Стоящая бензопила</ChainsawDescStalling>
+	<ChainsawDescFuel> с {0}% топлива</ChainsawDescFuel>
+	<ChainsawDescNoFuel> без топлива</ChainsawDescNoFuel>
+	<ChainsawDescBlockingChance> блокирует {0}% входящих атак</ChainsawDescBlockingChance>
+
 </LanguageData>

@@ -220,5 +220,20 @@
 	<DisableRandomApparel>Turn off random apparel for zombies</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Floating zombies in space</FloatingZombiesInSOS2>
 
+	<Broken>Broken</Broken>
+	<StatsFuel>{0}% fuel</StatsFuel>
+
+	<ChainsawBroken>Chainsaw is broken</ChainsawBroken>
+	<ChainsawDisabled>Chainsaw cannot be used right now</ChainsawDisabled>
+	<ChainsawNoFuel>Chainsaw needs refueling</ChainsawNoFuel>
+	<ChainsawTurnOn>Turn chainsaw on to attack any nearby zombies</ChainsawTurnOn>
+	<ChainsawTurnOff>Turn chainsaw off to conserve fuel</ChainsawTurnOff>
+	<ChainsawStalling>(stalling)</ChainsawStalling>
+	<ChainsawDesc>Chainsaw</ChainsawDesc>
+	<ChainsawDescBroken>Broken chainsaw</ChainsawDescBroken>
+	<ChainsawDescStalling>Stalling chainsaw</ChainsawDescStalling>
+	<ChainsawDescFuel> with {0}% fuel</ChainsawDescFuel>
+	<ChainsawDescNoFuel> with no fuel</ChainsawDescNoFuel>
+	<ChainsawDescBlockingChance> blocking {0}% of incoming attacks</ChainsawDescBlockingChance>
 
 </LanguageData>

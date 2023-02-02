@@ -9,7 +9,7 @@ namespace ZombieLand
 
 		public CompProperties_Activatable()
 		{
-			this.compClass = typeof(CompActivatable);
+			compClass = typeof(CompActivatable);
 		}
 	}
 }

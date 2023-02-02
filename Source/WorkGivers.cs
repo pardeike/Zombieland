@@ -20,9 +20,12 @@ namespace ZombieLand
 
 		public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
 		{
-			if (ZombieSettings.Values.corpsesExtractAmount == 0) return Enumerable.Empty<Thing>();
-			if (pawn.IsColonist == false) return Enumerable.Empty<Thing>();
-			if (pawn.CanDoctor() == false) return Enumerable.Empty<Thing>();
+			if (ZombieSettings.Values.corpsesExtractAmount == 0)
+				return Enumerable.Empty<Thing>();
+			if (pawn.IsColonist == false)
+				return Enumerable.Empty<Thing>();
+			if (pawn.CanDoctor() == false)
+				return Enumerable.Empty<Thing>();
 
 			var map = pawn.Map;
 			var pos = pawn.Position;
@@ -72,7 +75,8 @@ namespace ZombieLand
 
 		public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
 		{
-			if (t is not ZombieCorpse corpse) return null;
+			if (t is not ZombieCorpse corpse)
+				return null;
 			return JobMaker.MakeJob(CustomDefs.ExtractZombieSerum, corpse);
 		}
 	}
@@ -96,10 +100,13 @@ namespace ZombieLand
 				.OfType<Corpse>()
 				.Where(corpse =>
 				{
-					if (corpse.Spawned == false) return false;
+					if (corpse.Spawned == false)
+						return false;
 					var hediffSet = corpse.InnerPawn?.health?.hediffSet;
-					if (hediffSet == null) return false;
-					if (hediffSet.GetBrain() == null) return false;
+					if (hediffSet == null)
+						return false;
+					if (hediffSet.GetBrain() == null)
+						return false;
 					return hediffSet.HasHediff(CustomDefs.ZombieInfection);
 				})
 				.OrderBy(corpse => corpse.Position.DistanceToSquared(pos)).Take(8); // just consider the nearest 8
@@ -137,7 +144,8 @@ namespace ZombieLand
 					var path = pawn.Map.pathFinder.FindPath(pawn.Position, t, pawn, PathEndMode.ClosestTouch);
 					var shouldAvoid = path.NodesReversed.Any(cell => avoidGrid.ShouldAvoid(map, cell));
 					path.ReleaseToPool();
-					if (shouldAvoid) return false;
+					if (shouldAvoid)
+						return false;
 				}
 			}
 			return result;
@@ -148,6 +156,61 @@ namespace ZombieLand
 			if (t is not Corpse corpse)
 				return null;
 			return JobMaker.MakeJob(CustomDefs.DoubleTap, corpse);
+		}
+	}
+
+	public class WorkGiver_FixBrokenChainsaw : WorkGiver_Scanner
+	{
+		public static readonly string NotInHomeAreaTrans = "NotInHomeArea".Translate();
+		private static readonly string NoComponentsToRepairTrans = "NoComponentsToRepair".Translate();
+
+		public override ThingRequest PotentialWorkThingRequest => ThingRequest.ForGroup(ThingRequestGroup.Weapon);
+		public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn) => pawn.Map.GetComponent<BrokenManager>().brokenThings;
+		public override bool ShouldSkip(Pawn pawn, bool forced = false) => pawn.Map.GetComponent<BrokenManager>().brokenThings.Count == 0;
+		public override PathEndMode PathEndMode => PathEndMode.Touch;
+		public override Danger MaxPathDanger(Pawn pawn) => Danger.Deadly;
+
+		public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
+		{
+			if (t is not Chainsaw chainsaw)
+				return false;
+			if (t.Faction != pawn.Faction)
+				return false;
+			if (t.IsBroken() == false)
+				return false;
+			if (t.IsForbidden(pawn))
+				return false;
+			if (pawn.Faction == Faction.OfPlayer && !pawn.Map.areaManager.Home[t.Position])
+			{
+				JobFailReason.Is(NotInHomeAreaTrans, null);
+				return false;
+			}
+			if (pawn.CanReserve(chainsaw, 1, -1, null, forced) == false)
+				return false;
+			if (chainsaw.IsBurning())
+				return false;
+			if (FindClosestComponent(pawn) == null)
+			{
+				JobFailReason.Is(NoComponentsToRepairTrans, null);
+				return false;
+			}
+			return true;
+		}
+
+		public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
+		{
+			Thing t2 = FindClosestComponent(pawn);
+			Job job = JobMaker.MakeJob(CustomDefs.FixBrokenChainsaw, t, t2);
+			job.count = 1;
+			return job;
+		}
+
+		static Thing FindClosestComponent(Pawn pawn)
+		{
+			var thingReq = ThingRequest.ForDef(ThingDefOf.ComponentIndustrial);
+			var traverseParms = TraverseParms.For(pawn, pawn.NormalMaxDanger());
+			bool predicate(Thing x) => x.IsForbidden(pawn) == false && pawn.CanReserve(x);
+			return GenClosest.ClosestThingReachable(pawn.Position, pawn.Map, thingReq, PathEndMode.InteractionCell, traverseParms, 9999f, predicate);
 		}
 	}
 }

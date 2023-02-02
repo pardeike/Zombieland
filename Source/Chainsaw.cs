@@ -1,6 +1,7 @@
 ﻿using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -14,30 +15,75 @@ namespace ZombieLand
 		public float angle;
 		public bool swinging;
 		public int inactiveCounter;
+		public int stalledCounter;
 
 		Sustainer idleSustainer;
 		Sustainer workSustainer;
 
+		CompRefuelable refuelable;
+		CompBreakable breakable;
+
+		bool Disabled => pawn == null || pawn.MentalStateDef != null || refuelable.HasFuel == false || breakable.broken;
+
+		public void Setup()
+		{
+			factionInt = Faction.OfPlayer;
+			refuelable = GetComp<CompRefuelable>();
+			breakable = GetComp<CompBreakable>();
+			angle = -1;
+		}
+
 		public void Prepare()
 		{
-			angle = -1f;
 			swinging = false;
 			inactiveCounter = 0;
+			stalledCounter = 0;
 		}
 
 		public void Cleanup()
 		{
 			pawn = null;
-			angle = -1f;
 			swinging = false;
 			inactiveCounter = 0;
+			stalledCounter = 0;
 
 			StopMotor();
 		}
 
-		public void Drop()
+		public bool Damage(int amount)
 		{
+			HitPoints -= amount;
+			if (HitPoints <= 0)
+			{
+				HitPoints = 0;
+				Destroy();
+				return true;
+			}
+			return false;
+		}
+
+		public float CounterHitChance()
+		{
+			var hitRatio = (float)HitPoints / MaxHitPoints;
+			var maxHitChance = GenMath.LerpDoubleClamped(0f, 5f, 0f, 1f, Tools.Difficulty());
+			return GenMath.LerpDoubleClamped(0f, 1f, maxHitChance, 0f, hitRatio);
+		}
+
+		public void Drop(bool breaking = false)
+		{
+			if (breaking)
+			{
+				if (Damage(20))
+					return;
+				breakable.DoBreakdown(pawn.Map);
+			}
 			_ = pawn.equipment.TryDropEquipment(this, out var _, pawn.Position);
+		}
+
+		public void Shock(int stallTicks)
+		{
+			stalledCounter = stallTicks;
+			StopMotor();
 		}
 
 		public override void Tick()
@@ -49,10 +95,13 @@ namespace ZombieLand
 				return;
 			var pos = pawn.Position;
 
+			if (stalledCounter > 0)
+				stalledCounter--;
+
 			if (running)
 			{
-				var refuelable = GetComp<CompRefuelable>();
-				refuelable.ConsumeFuel(refuelable.ConsumptionRatePerTick * (workSustainer != null ? 10f : 1f));
+				var f = GenMath.LerpDouble(0f, 5f, 2f, 10f, ZombieSettings.Values.threatScale);
+				refuelable.ConsumeFuel(refuelable.ConsumptionRatePerTick * (workSustainer != null ? f : 1f));
 				if (refuelable.HasFuel == false)
 					StopMotor();
 			}
@@ -94,7 +143,10 @@ namespace ZombieLand
 			swinging = true;
 			inactiveCounter = 0;
 			if (angle == -1f)
+			{
 				angle = pawn.Rotation.AsAngle;
+				Log.Warning($"angle set to rotation {angle}");
+			}
 
 			var idx = (int)angle / 45;
 			var things = affectedCells[idx].Where(victim => (pawn.DrawPos - victim.DrawPos).MagnitudeHorizontalSquared() <= 2f);
@@ -109,7 +161,7 @@ namespace ZombieLand
 			if (building != null)
 			{
 				_ = building.TakeDamage(new DamageInfo(DamageDefOf.Crush, 80f));
-				Drop();
+				Drop(true);
 				return;
 			}
 
@@ -139,12 +191,6 @@ namespace ZombieLand
 				angle += 360;
 		}
 
-		public override void PreApplyDamage(ref DamageInfo dinfo, out bool absorbed)
-		{
-			base.PreApplyDamage(ref dinfo, out absorbed);
-			// todo
-		}
-
 		public override IEnumerable<Gizmo> GetGizmos()
 		{
 			if (pawn == null)
@@ -160,24 +206,49 @@ namespace ZombieLand
 				}
 
 			if (pawn != null && pawn.Drafted)
+			{
+				var description = (running ? "ChainsawTurnOff" : "ChainsawTurnOn").Translate();
+				if (Disabled)
+				{
+					if (breakable.broken)
+						description = "ChainsawBroken".Translate();
+					else
+						description = (refuelable.HasFuel ? "ChainsawDisabled" : "ChainsawNoFuel").Translate();
+				}
+				// if (stalledCounter > 0)
+				// description += $" {"ChainsawStalling".Translate()}";
 				yield return new Command_Action
 				{
-					defaultDesc = "ChainsawSwitch".Translate(),
-					disabled = pawn == null || pawn.MentalStateDef != null || (GetComp<CompRefuelable>()?.HasFuel ?? false) == false,
+					defaultDesc = description,
+					disabled = Disabled,
 					icon = Constants.Chainsaw[running ? 1 : 0],
 					hotKey = KeyBindingDefOf.Misc6,
 					action = delegate ()
 					{
-						running = !running;
 						if (running)
-							StartMotor(false);
-						else
 							StopMotor();
+						else
+							StartMotor(false);
 					}
 				};
+			}
 
-			var refuelable = GetComp<CompRefuelable>();
 			yield return new Gizmo_RefuelableFuelStatus { refuelable = refuelable };
+		}
+
+		public override string DescriptionDetailed
+		{
+			get
+			{
+				var builder = new StringBuilder();
+				_ = builder.Append(("ChainsawDesc" + (breakable.broken ? "Broken" : (stalledCounter > 0 ? "Stalling" : ""))).Translate());
+				if (refuelable.HasFuel)
+					_ = builder.Append("ChainsawDescFuel".Translate(Mathf.RoundToInt(refuelable.FuelPercentOfMax * 100)));
+				else
+					_ = builder.Append($"{"ChainsawDescNoFuel".Translate()}");
+				_ = builder.Append("ChainsawDescBlockingChance".Translate(Mathf.RoundToInt(CounterHitChance() * 100)));
+				return builder.ToString();
+			}
 		}
 
 		//
@@ -190,10 +261,11 @@ namespace ZombieLand
 			Scribe_Values.Look(ref angle, "angle");
 			Scribe_Values.Look(ref swinging, "swinging");
 			Scribe_Values.Look(ref inactiveCounter, "inactiveCounter");
+			Scribe_Values.Look(ref stalledCounter, "stalledCounter");
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
-				factionInt = Faction.OfPlayer;
+				Setup();
 				if (running)
 					LongEventHandler.ExecuteWhenFinished(() => StartMotor(true));
 			}
@@ -202,7 +274,7 @@ namespace ZombieLand
 		public override void SpawnSetup(Map map, bool respawningAfterLoad)
 		{
 			base.SpawnSetup(map, respawningAfterLoad);
-			factionInt = Faction.OfPlayer;
+			Setup();
 			Prepare();
 		}
 
@@ -236,8 +308,11 @@ namespace ZombieLand
 		{
 			if (fromLoad == false)
 				CustomDefs.ChainsawStart.PlayOneShot(SoundInfo.InMap(pawn));
-			idleSustainer ??= CustomDefs.ChainsawIdle.TrySpawnSustainer(SoundInfo.InMap(pawn, MaintenanceType.None));
-			running = true;
+			if (stalledCounter == 0)
+			{
+				idleSustainer ??= CustomDefs.ChainsawIdle.TrySpawnSustainer(SoundInfo.InMap(pawn, MaintenanceType.None));
+				running = true;
+			}
 		}
 
 		public void StopMotor()
@@ -307,8 +382,12 @@ namespace ZombieLand
 			CustomDefs.Crush.PlayOneShot(SoundInfo.InMap(victim));
 			_ = FilthMaker.TryMakeFilth(victim.Position, victim.Map, ThingDefOf.Human.race.BloodDef, 4, FilthSourceFlags.None, true);
 			victim.Kill(null);
-			if (victim is not Zombie)
-				Drop();
+			if (Damage(1))
+				return;
+			if (victim is not Zombie zombie)
+				Drop(victim.RaceProps.IsMechanoid);
+			else if (zombie.IsTanky)
+				Drop(true);
 		}
 
 		static Material GetHead(Pawn victim)

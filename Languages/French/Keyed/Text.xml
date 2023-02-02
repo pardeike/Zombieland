@@ -215,4 +215,20 @@
 	<DisableRandomApparel>Désactiver les vêtements aléatoires pour les zombies</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Les zombies flottent dans l'espace</FloatingZombiesInSOS2>
 
+	<Broken>Cassé</Broken>
+	<StatsFuel>{0}% de carburant</StatsFuel>
+
+	<ChainsawBroken>La tronçonneuse est cassée</ChainsawBroken>.
+	<ChainsawDisabled>La scie à chaîne ne peut pas être utilisée pour le moment</ChainsawDisabled>.
+	<ChainsawNoFuel>La scie à chaîne a besoin d'être ravitaillée</ChainsawNoFuel>.
+	<ChainsawTurnOn>Mettre la tronçonneuse en marche pour attaquer tous les zombies proches</ChainsawTurnOn>.
+	<ChainsawTurnOff>Eteindre la tronçonneuse pour économiser du carburant</ChainsawTurnOff>.
+	<ChainsawStalling>(décrochage)</ChainsawStalling>
+	<ChainsawDesc>Tronçonneuse</ChainsawDesc>
+	<ChainsawDescBroken>Tronçonneuse cassée</ChainsawDescBroken>.
+	<ChainsawDescStalling>Tronçonneuse en panne</ChainsawDescStalling>
+	<ChainsawDescFuel> avec {0}% de carburant</ChainsawDescFuel>
+	<ChainsawDescNoFuel> sans carburant</ChainsawDescNoFuel>
+	<ChainsawDescBlockingChance> bloquant {0}% des attaques entrantes</ChainsawDescBlockingChance>.
+
 </LanguageData>

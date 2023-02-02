@@ -111,21 +111,34 @@
 		<description>A chainsaw. Looks like it works only against dumb enemies like zombies and will break if used on anything else. Very high risk for friendly fire and dropping it if attacked from too many angles at once. You've been warned.</description>
 		<graphicData>
 			<texPath>Chainsaw</texPath>
-			<graphicClass>Graphic_Single</graphicClass>
+			<graphicClass>ZombieLand.Graphic_Breakable</graphicClass>
 		</graphicData>
 		<burnableByRecipe>true</burnableByRecipe>
 		<soundInteract>Standard_Drop</soundInteract>
 		<statBases>
+			<MaxHitPoints>500</MaxHitPoints>
 			<WorkToMake>12000</WorkToMake>
 			<Mass>3.5</Mass>
 		</statBases>
+		<recipeMaker>
+			<recipeUsers Inherit="False">
+				<li>FabricationBench</li>
+			</recipeUsers>
+			<researchPrerequisite>GasOperation</researchPrerequisite>
+			<skillRequirements>
+				<Crafting>6</Crafting>
+			</skillRequirements>
+			<displayPriority>100</displayPriority>
+		</recipeMaker>
 		<tickerType>Normal</tickerType>
+		<repairEffect>Repair</repairEffect>
+		<drawerType>RealtimeOnly</drawerType>
 		<costList>
 			<Steel>60</Steel>
 			<ComponentIndustrial>3</ComponentIndustrial>
 		</costList>
 		<comps>
-			<li Class="CompProperties_Breakdownable"/>
+			<li Class="ZombieLand.CompProperties_Breakable"/>
 			<li Class="CompProperties_Forbiddable"/>
 			<li Class="CompProperties_Refuelable">
 				<fuelCapacity>100.0</fuelCapacity>
@@ -134,7 +147,7 @@
 						<li>Chemfuel</li>
 					</thingDefs>
 				</fuelFilter>
-				<fuelConsumptionRate>300.0</fuelConsumptionRate>
+				<fuelConsumptionRate>100.0</fuelConsumptionRate>
 				<consumeFuelOnlyWhenUsed>true</consumeFuelOnlyWhenUsed>
 				<autoRefuelPercent>1</autoRefuelPercent>
 				<showFuelGizmo>true</showFuelGizmo>
