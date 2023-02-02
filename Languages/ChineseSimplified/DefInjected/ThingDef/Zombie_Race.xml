@@ -6,10 +6,12 @@
   <Zombie.tools.0.label>咬</Zombie.tools.0.label>
   <Zombie.tools.1.label>左拳</Zombie.tools.1.label>
   <Zombie.tools.2.label>右拳</Zombie.tools.2.label>
-  <!-- Leather Amount: 0 -->
-  <!-- Meat Amount: 0 -->
+
   <Zombie_Corpse.label>丧尸尸体</Zombie_Corpse.label>
   <Zombie_Corpse.description>丧尸尸体</Zombie_Corpse.description>
 
+  <ElectricalField.label>电场</ElectricalField.label>
+  <ElectricalField.verbs.li.label>冲击</ElectricalField.verbs.li.label>
+  <ElectricalField.tools.li.label>冲击</ElectricalField.tools.li.label>
 
 </LanguageData>

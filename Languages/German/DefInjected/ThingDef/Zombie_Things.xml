@@ -4,7 +4,17 @@
 	<Apparel_BombVest.label>Bombenweste</Apparel_BombVest.label>
 	<Apparel_BombVest.description>Eine Weste mit eingebautem Sprengsatz</Apparel_BombVest.description>
 
+	<TarSlime.label>Teer-Schleim</TarSlime.label>
+	<TarSlime.description>Ein klebriger Schleim auf dem Boden</TarSlime.description>
+
+	<TarSmoke.label>Rauch</TarSmoke.label>
+	<TarSmoke.description>Ein dichter schwarzer Rauch</TarSmoke.description>
+
 	<StickyGoo.label>Giftiger und klebriger Schleim</StickyGoo.label>
+	<StickyGoo.description>Giftiger klebriger Schleim der wahrscheinlich bei Berührung krank macht</StickyGoo.description>
+
+	<Chainsaw.label>Kettensäge</Chainsaw.label>
+	<Chainsaw.description>Eine Kettensäge. Sieht so aus, als würde sie nur gegen dumme Feinde wie Zombies funktionieren und bei anderen Dingen kaputt gehen. Sehr hohes Risiko für eigenen Schaden und wird Fallengelassen, wenn man aus zu vielen Winkeln gleichzeitig angegriffen wird. Sie wurden gewarnt.</Chainsaw.description>
 
 	<ZombieExtract.label>Zombieextrakt</ZombieExtract.label>
 	<ZombieExtract.description>Eine kleine Menge an Substanz von einem toten Zombie. Kombiniere bis zu 100 Extrakte um eine Droge namens Zombieserum herzustellen die dann bei Operationen infizierte Körperteile heilt.</ZombieExtract.description>
@@ -40,5 +50,8 @@
 
 	<Zombie100Serum.label>Zombieserum 100%</Zombie100Serum.label>
 	<Zombie100Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (100% Erfolgsrate)</Zombie100Serum.description>
+
+	<ZombieShocker.label>Zombie-Schocker</ZombieShocker.label>
+	<ZombieShocker.description>Eine Zombie-Kontrollmaschine, die in die Wand eines Raums passt. Sie kann von außen aktiviert werden und verwirrt jeden Zombie in dem Raum für eine Zeit.</ZombieShocker.description>
 
 </LanguageData>

@@ -1,6 +1,15 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
 
+	<Zombie.label>Zombie</Zombie.label>
+	<Zombie.description>Ein Zombie</Zombie.description>
+	<Zombie.tools.0.label>Biss</Zombie.tools.0.label>
+	<Zombie.tools.1.label>Linke Hand</Zombie.tools.1.label>
+	<Zombie.tools.2.label>Rechte Hand</Zombie.tools.2.label>
+
+	<Zombie_Corpse.label>Zombieleiche</Zombie_Corpse.label>
+	<Zombie_Corpse.description>Ein toter Zombie</Zombie_Corpse.description>
+
 	<ElectricalField.label>Elektrisches Schutzschild</ElectricalField.label>
 	<ElectricalField.verbs.li.label>Schock</ElectricalField.verbs.li.label>
 	<ElectricalField.tools.li.label>Schock</ElectricalField.tools.li.label>

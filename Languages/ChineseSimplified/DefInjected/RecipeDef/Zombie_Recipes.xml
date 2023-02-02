@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+
+	<CureZombieInfection.label>僵尸感染治疗</CureZombieInfection.label>
+	<CureZombieInfection.description>清除身体部位的早期僵尸感染。需要一个僵尸血清（更好的百分比使失败风险降低）。</CureZombieInfection.description>
+	<CureZombieInfection.jobString>治愈僵尸感染。</CureZombieInfection.jobString>
+
+	<MakeZombieSerum.label>用僵尸提取物制作血清</MakeZombieSerum.label>
+	<MakeZombieSerum.description>用僵尸提取物制作一种僵尸血清，在行动中治疗僵尸感染。</MakeZombieSerum.description>
+
+</LanguageData>

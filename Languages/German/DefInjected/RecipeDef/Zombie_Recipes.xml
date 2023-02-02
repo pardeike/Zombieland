@@ -5,4 +5,7 @@
 	<CureZombieInfection.description>Entfernt Zombieinfektionen in einem frühen Stadium. Benötigt 1 Zombieserum (höhere Konzentrationen resultieren in geringerer Fehlerrate).</CureZombieInfection.description>
 	<CureZombieInfection.jobString>Entfernen der Zombieinfektion</CureZombieInfection.jobString>
 
+	<MakeZombieSerum.label>Serum aus Zombieextrakt herstellen</MakeZombieSerum.label>
+	<MakeZombieSerum.description>Stelle ein Zombie-Serum aus Zombie-Extrakt her, das Zombie-Infektionen während Operationen heilt.</MakeZombieSerum.description>
+
 </LanguageData>

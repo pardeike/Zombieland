@@ -10,5 +10,7 @@
   <ToxicSplatter.label>毒液飞溅</ToxicSplatter.label>
   <ToxicSplatter.deathMessage>{0} 被杀死了。</ToxicSplatter.deathMessage>
 
+  <ElectricalShock.label>电击</ElectricalShock.label>
+  <ElectricalShock.deathMessage>{0}已经被电死了。</ElectricalShock.deathMessage>
 
 </LanguageData>

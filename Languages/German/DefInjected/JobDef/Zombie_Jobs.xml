@@ -1,8 +1,11 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
 
-	<Stumble.reportString>taumeln.</Stumble.reportString>
+	<Stumble.reportString>taumelt umher.</Stumble.reportString>
+	<Sabotage.reportString>Zombieserum von TargetA extrahieren.</Sabotage.reportString>
 	<ExtractZombieSerum.reportString>Zombieserum von TargetA extrahieren.</ExtractZombieSerum.reportString>
-	<DoubleTap.reportString>killt TargetA 2x um sicher zu gehen.</DoubleTap.reportString>
+	<DoubleTap.reportString>tötet TargetA zweimal um sicher zu gehen.</DoubleTap.reportString>
+	<RopeZombie.reportString>führt TargetA an der Leine.</RopeZombie.reportString>
+	<ZapZombies.reportString>startet den Zombiezapper.</ZapZombies.reportString>
 
 </LanguageData>

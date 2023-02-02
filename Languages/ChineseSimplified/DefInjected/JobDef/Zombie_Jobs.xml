@@ -2,6 +2,10 @@
 <LanguageData>
 
   <Stumble.reportString>蹒跚而行。</Stumble.reportString>
-
+  <Sabotage.reportString>破坏性的。</Sabotage.reportString>
+  <ExtractZombieSerum.reportString>从TargetA提取僵尸血清。</ExtractZombieSerum.reportString>
+  <DoubleTap.reportString>双击TargetA。</DoubleTap.reportString>
+  <RopeZombie.reportString>绳索目标A。</RopeZombie.reportString>
+  <ZapZombies.reportString>启动僵尸清除器。</ZapZombies.reportString>
 
 </LanguageData>

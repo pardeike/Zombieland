@@ -169,7 +169,6 @@
 		<scatterableOnMapGen>false</scatterableOnMapGen>
 		<forceDebugSpawnable>false</forceDebugSpawnable>
 		<destroyOnDrop>true</destroyOnDrop>
-		<!--<menuHidden>true</menuHidden>-->
 		<selectable>false</selectable>
 		<smeltable>false</smeltable>
 		<useHitPoints>false</useHitPoints>

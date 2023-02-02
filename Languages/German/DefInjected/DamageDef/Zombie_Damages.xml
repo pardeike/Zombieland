@@ -2,12 +2,15 @@
 <LanguageData>
 
 	<ZombieBite.label>Zombiebiss</ZombieBite.label>
-	
+	<ZombieBite.deathMessage>{0} ist von einem Zombie zu Tode gebissen worden.</ZombieBite.deathMessage>
+
 	<SuicideBomb.label>Selbstmordbombe</SuicideBomb.label>
+	<SuicideBomb.deathMessage>{0} ist bei einem Zombie-Selbstmordanschlag ums Leben gekommen.</SuicideBomb.deathMessage>
 
 	<ToxicSplatter.label>Fleck</ToxicSplatter.label>
+	<ToxicSplatter.deathMessage>{0} 被杀死了。</ToxicSplatter.deathMessage>
 
-	<ElectricalShock.label>Schock</ElectricalShock.label>
-	<ElectricalShock.deathMessage>{0} wurde zu Tode geschockt.</ElectricalShock.deathMessage>
+	<ElectricalShock.label>Stromschlag</ElectricalShock.label>
+	<ElectricalShock.deathMessage>{0} wurde durch einen Stromschlag getötet.</ElectricalShock.deathMessage>
 
 </LanguageData>

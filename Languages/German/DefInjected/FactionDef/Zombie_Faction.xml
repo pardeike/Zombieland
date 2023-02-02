@@ -3,5 +3,7 @@
 
 	<Zombies.label>Zombies</Zombies.label>
 	<Zombies.description>Untote Kreaturen.</Zombies.description>
+	<Zombies.fixedName>Zombies</Zombies.fixedName>
+	<Zombies.pawnsPlural>Zombies</Zombies.pawnsPlural>
 
 </LanguageData>

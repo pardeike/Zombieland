@@ -4,7 +4,54 @@
   <Apparel_BombVest.label>炸弹背心</Apparel_BombVest.label>
   <Apparel_BombVest.description>带有爆炸物的背心。</Apparel_BombVest.description>
 
-  <StickyGoo.label>剧毒 &amp; 丧尸粘液</StickyGoo.label>
+  <TarSlime.label>超级粘稠的粘液</TarSlime.label>
+  <TarSlime.description>一种非常粘稠的粘液，使你的行动更加缓慢</TarSlime.description>
 
+  <TarSmoke.label>烟雾</TarSmoke.label>
+  <TarSmoke.描述>一种使人难以看清事物的黑烟</TarSmoke.描述>
+
+  <StickyGoo.label>剧毒 &amp; 丧尸粘液</StickyGoo.label>
+  <StickyGoo.description>一种有毒和粘性的物质，可能会使你生病</StickyGoo.description>
+
+  <Chainsaw.label>电锯</Chainsaw.label>
+  <Chainsaw.description>一把电锯。看起来它只适用于像僵尸这样的愚蠢的敌人，如果用在其他东西上就会损坏。如果同时受到太多角度的攻击，会有非常高的友军射击和掉落的风险。你已经被警告了。</Chainsaw.description>
+
+  <ZombieExtract.label>僵尸提取物</ZombieExtract.label>
+  <ZombieExtract.description>从一个死去的僵尸身上提取少量的精华。结合多达100个提取物，制作一种叫做僵尸血清的药物，用于对受感染的身体部位进行手术。</ZombieExtract.description>
+
+  <UnfinishedZombieSerum.label>未完成的僵尸血清</UnfinishedZombieSerum.label>
+
+  <Zombie10Serum.label>僵尸血清 10%</Zombie10Serum.label>
+  <Zombie10Serum.description>来自死亡僵尸的血清，可在行动中治愈僵尸感染。 (10%的成功率)</Zombie10Serum.description>
+
+  <Zombie20Serum.label>僵尸血清 20%</Zombie20Serum.label>
+  <Zombie20Serum.description>来自死亡僵尸的血清，可在行动中治愈僵尸感染。 (20%的成功率)</Zombie20Serum.description>
+
+  <Zombie30Serum.label>僵尸血清 30%</Zombie30Serum.label>
+  <Zombie30Serum.description>来自死亡僵尸的血清，可在行动中治愈僵尸感染。 (30%的成功率)</Zombie30Serum.description>
+
+  <Zombie40Serum.label>僵尸血清 40%</Zombie40Serum.label>
+  <Zombie40Serum.description>来自死亡僵尸的血清，可在行动中治愈僵尸感染。 (40%的成功率)</Zombie40Serum.description>
+
+  <Zombie50Serum.label>僵尸血清 50%</Zombie50Serum.label>
+  <Zombie50Serum.description>来自死亡僵尸的血清，可在行动中治愈僵尸感染。 (50%的成功率)</Zombie50Serum.description>
+
+  <Zombie60Serum.label>僵尸血清 60%</Zombie60Serum.label>
+  <Zombie60Serum.description>来自死亡僵尸的血清，可在行动中治愈僵尸感染。 (60%的成功率)</Zombie60Serum.description>
+
+  <Zombie70Serum.label>僵尸血清 70%</Zombie70Serum.label>
+  <Zombie70Serum.description>来自死亡僵尸的血清，可在行动中治愈僵尸感染。 (70%的成功率)</Zombie70Serum.description>
+
+  <Zombie80Serum.label>僵尸血清 80%</Zombie80Serum.label>
+  <Zombie80Serum.description>来自死亡僵尸的血清，可在行动中治愈僵尸感染。 (80%的成功率)</Zombie80Serum.description>
+
+  <Zombie90Serum.label>僵尸血清 90%</Zombie90Serum.label>
+  <Zombie90Serum.description>来自死亡僵尸的血清，可在行动中治愈僵尸感染。 (90%的成功率)</Zombie90Serum.description>
+
+  <Zombie100Serum.label>僵尸血清 100%</Zombie100Serum.label>
+  <Zombie100Serum.description>来自死亡僵尸的血清，可在行动中治愈僵尸感染。 (100%的成功率)</Zombie100Serum.description>
+
+  <ZombieShocker.label>僵尸惊魂</ZombieShocker.label>
+  <ZombieShocker.description>一个适合在房间墙壁上的僵尸控制机。可以从外面启动，使房间里的每一个僵尸在短时间内失去意识。</ZombieShocker.description>
 
 </LanguageData>

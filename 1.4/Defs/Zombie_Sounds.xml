@@ -551,7 +551,6 @@
 		<priorityMode>PrioritizeNearest</priorityMode>
 		<subSounds>
 			<li>
-				<!--<muteWhenPaused>True</muteWhenPaused>-->
 				<grains>
 					<li Class="AudioGrain_Clip">
 						<clipPath>chainsaw-idle</clipPath>
