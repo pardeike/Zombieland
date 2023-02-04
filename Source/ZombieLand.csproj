@@ -12,13 +12,16 @@
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<Version>3.6.0.0</Version>
 		<Copyright>Copyright © 2017</Copyright>
+		<Configurations>Release;Debug</Configurations>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<DebugSymbols>false</DebugSymbols>
 		<Optimize>true</Optimize>
+		<OutputPath>..\Assemblies</OutputPath>
 		<DebugType>none</DebugType>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<PlatformTarget>anycpu</PlatformTarget>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -41,9 +44,6 @@
 		</Content>
 		<Content Include="..\1.3\Defs\**\*.xml">
 			<Link>Defs\1.3\%(RecursiveDir)%(Filename)%(Extension)</Link>
-		</Content>
-		<Content Include="..\1.4\Defs\**\*.xml">
-			<Link>Defs\1.4\%(RecursiveDir)%(Filename)%(Extension)</Link>
 		</Content>
 		<Content Include="..\Languages\**\Keyed\*.xml">
 			<Link>Languages\%(RecursiveDir)%(FileName)%(Extension)</Link>
@@ -98,17 +98,6 @@
 	</Target>
 
 	<PropertyGroup>
-		<PostBuildEvent>
-			echo Postprocessing
-			where ModBuilder 2&gt; nul | find /i "ModBuilder.exe"
-			if not errorlevel 1 (
-			ModBuilder AssemblyVersion -file "$(MSBuildProjectDirectory)\$(OutputPath)$(AssemblyName).dll" -save "$(MSBuildProjectName)-version"
-			ModBuilder XMLPut -file "$(MSBuildProjectDirectory)\..\About\Manifest.xml" -xpath /Manifest/version -value "{{$(MSBuildProjectName)-version}}"
-			)
-			if defined INSTALL_MOD (
-			"%INSTALL_MOD%" "$(Configuration)" "$(MSBuildProjectDirectory)\..\" "$(MSBuildProjectName)" "1.1 1.2 1.3 1.4 About Assemblies Defs Languages Patches Sounds Textures" "LoadFolders.xml"
-			)
-		</PostBuildEvent>
 		<Company>Brrainz</Company>
 		<Authors>Andreas Pardeike</Authors>
 		<Description>A zombie mod for the game RimWorld</Description>

@@ -177,6 +177,7 @@ BundleArtifacts/
 !*.[Cc]ache/
 
 # Others
+.DS_Store
 ClientBin/
 [Ss]tyle[Cc]op.*
 ~$*

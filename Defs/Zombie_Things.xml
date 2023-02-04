@@ -15,7 +15,6 @@
 		<scatterableOnMapGen>false</scatterableOnMapGen>
 		<forceDebugSpawnable>false</forceDebugSpawnable>
 		<destroyOnDrop>true</destroyOnDrop>
-		<menuHidden>true</menuHidden>
 		<selectable>false</selectable>
 		<smeltable>false</smeltable>
 		<useHitPoints>false</useHitPoints>
@@ -41,6 +40,7 @@
 		<defName>TarSlime</defName>
 		<thingClass>ZombieLand.TarSlime</thingClass>
 		<label>super sticky slime</label>
+		<description>A very sticky slime that makes you move much slower</description>
 		<statBases>
 			<Beauty>-10</Beauty>
 			<Cleanliness>-10</Cleanliness>
@@ -62,18 +62,23 @@
 		</filth>
 	</ThingDef>
 
-	<ThingDef ParentName="BaseGas">
+	<ThingDef>
 		<defName>TarSmoke</defName>
 		<label>smoke</label>
+		<description>A dark smoke making it hard to see things</description>
+		<thingClass>Gas</thingClass>
+		<category>Gas</category>
 		<graphicData>
 			<texPath>TarSmoke</texPath>
 			<drawSize>2.5</drawSize>
 			<color>(0,0,0,0.5)</color>
+			<graphicClass>Graphic_Single</graphicClass>
 		</graphicData>
+		<altitudeLayer>Gas</altitudeLayer>
+		<useHitPoints>false</useHitPoints>
+		<tickerType>Normal</tickerType>
 		<gas>
 			<expireSeconds>10~60</expireSeconds>
-			<blockTurretTracking>true</blockTurretTracking>
-			<accuracyPenalty>1</accuracyPenalty>
 			<rotationSpeed>10</rotationSpeed>
 		</gas>
 	</ThingDef>
@@ -82,6 +87,7 @@
 		<defName>StickyGoo</defName>
 		<thingClass>ZombieLand.StickyGoo</thingClass>
 		<label>toxic &amp; sticky zombie goo</label>
+		<description>A toxic and sticky substance that probably makes you sick</description>
 		<statBases>
 			<Beauty>-10</Beauty>
 			<Cleanliness>-10</Cleanliness>
@@ -96,6 +102,69 @@
 			<rainWashes>true</rainWashes>
 			<canFilthAttach>true</canFilthAttach>
 		</filth>
+	</ThingDef>
+
+	<ThingDef ParentName="BaseGun">
+		<defName>Chainsaw</defName>
+		<thingClass>ZombieLand.Chainsaw</thingClass>
+		<label>chainsaw</label>
+		<description>A chainsaw. Looks like it works only against dumb enemies like zombies and will break if used on anything else. Very high risk for friendly fire and dropping it if attacked from too many angles at once. You've been warned.</description>
+		<graphicData>
+			<texPath>Chainsaw</texPath>
+			<graphicClass>ZombieLand.Graphic_Breakable</graphicClass>
+		</graphicData>
+		<burnableByRecipe>true</burnableByRecipe>
+		<soundInteract>Standard_Drop</soundInteract>
+		<statBases>
+			<MaxHitPoints>500</MaxHitPoints>
+			<WorkToMake>12000</WorkToMake>
+			<Mass>3.5</Mass>
+		</statBases>
+		<recipeMaker>
+			<recipeUsers Inherit="False">
+				<li>FabricationBench</li>
+			</recipeUsers>
+			<researchPrerequisite>GasOperation</researchPrerequisite>
+			<skillRequirements>
+				<Crafting>6</Crafting>
+			</skillRequirements>
+			<displayPriority>100</displayPriority>
+		</recipeMaker>
+		<tickerType>Normal</tickerType>
+		<repairEffect>Repair</repairEffect>
+		<drawerType>RealtimeOnly</drawerType>
+		<costList>
+			<Steel>60</Steel>
+			<ComponentIndustrial>3</ComponentIndustrial>
+		</costList>
+		<comps>
+			<li Class="ZombieLand.CompProperties_Breakable"/>
+			<li Class="CompProperties_Forbiddable"/>
+			<li Class="CompProperties_Refuelable">
+				<fuelCapacity>100.0</fuelCapacity>
+				<fuelFilter>
+					<thingDefs>
+						<li>Chemfuel</li>
+					</thingDefs>
+				</fuelFilter>
+				<fuelConsumptionRate>100.0</fuelConsumptionRate>
+				<consumeFuelOnlyWhenUsed>true</consumeFuelOnlyWhenUsed>
+				<autoRefuelPercent>1</autoRefuelPercent>
+				<showFuelGizmo>true</showFuelGizmo>
+				<drawOutOfFuelOverlay>false</drawOutOfFuelOverlay>
+				<showAllowAutoRefuelToggle>true</showAllowAutoRefuelToggle>
+			</li>
+		</comps>
+		<tools>
+			<li>
+				<label>blade</label>
+				<capacities>
+					<li>Cut</li>
+				</capacities>
+				<power>9</power>
+				<cooldownTime>2</cooldownTime>
+			</li>
+		</tools>
 	</ThingDef>
 
 	<ThingDef ParentName="ResourceBase">
@@ -140,7 +209,7 @@
 		<stuffCategories Inherit="false" />
 	</ThingDef>
 
-	<ThingDef Name="ZombieSerumBase" ParentName="ResourceBase" Abstract="True">
+	<ThingDef Name="ZombieSerumBase" ParentName="ResourceBase" Abstract="true">
 		<thingClass>ZombieLand.ZombieSerum</thingClass>
 		<stackLimit>10</stackLimit>
 		<uiIconForStackCount>1</uiIconForStackCount>
@@ -149,7 +218,7 @@
 		<graphicData>
 			<graphicClass>Graphic_Single</graphicClass>
 		</graphicData>
-		<techLevel>Industrial</techLevel>
+		<techLevel>Neolithic</techLevel>
 		<statBases>
 			<Mass>0.5</Mass>
 			<Flammability>0.7</Flammability>
@@ -157,21 +226,6 @@
 			<MedicalQualityMax>1</MedicalQualityMax>
 			<MaxHitPoints>60</MaxHitPoints>
 		</statBases>
-		<costList>
-			<MedicineIndustrial>1</MedicineIndustrial>
-		</costList>
-		<recipeMaker>
-			<unfinishedThingDef>UnfinishedZombieSerum</unfinishedThingDef>
-			<workSpeedStat>DrugSynthesisSpeed</workSpeedStat>
-			<workSkill>Medicine</workSkill>
-			<recipeUsers>
-				<li>DrugLab</li>
-			</recipeUsers>
-			<skillRequirements>
-				<Crafting>3</Crafting>
-				<Intellectual>4</Intellectual>
-			</skillRequirements>
-		</recipeMaker>
 		<tradeability>Sellable</tradeability>
 		<tradeTags>
 			<li>ExoticMisc</li>
@@ -183,7 +237,40 @@
 		<resourceReadoutPriority>First</resourceReadoutPriority>
 	</ThingDef>
 
-	<ThingDef name="Zombie10Serum" ParentName="ZombieSerumBase">
+	<ThingDef Name="ZombieSerumCore" ParentName="ZombieSerumBase" Abstract="true">
+		<techLevel>Industrial</techLevel>
+		<recipeMaker>
+			<unfinishedThingDef>UnfinishedZombieSerum</unfinishedThingDef>
+			<workSpeedStat>DrugSynthesisSpeed</workSpeedStat>
+			<workSkill>Medicine</workSkill>
+			<soundWorking>Recipe_Drug</soundWorking>
+			<effectWorking>BurnDrug</effectWorking>
+			<recipeUsers>
+				<li>DrugLab</li>
+			</recipeUsers>
+			<skillRequirements>
+				<Crafting>3</Crafting>
+				<Intellectual>4</Intellectual>
+			</skillRequirements>
+		</recipeMaker>
+	</ThingDef>
+
+	<ThingDef name="ZombieSerumSimple" ParentName="ZombieSerumBase">
+		<defName>ZombieSerumSimple</defName>
+		<label>zombie serum 100%</label>
+		<description>Pure serum from dead zombies that guaranteed cures zombie infections during operations</description>
+		<graphicData>
+			<texPath>ZombieSerum/ZombieSerum100</texPath>
+		</graphicData>
+		<statBases>
+			<MarketValue>120</MarketValue>
+			<DeteriorationRate>2</DeteriorationRate>
+			<SurgerySuccessChanceFactor>1</SurgerySuccessChanceFactor>
+		</statBases>
+		<tradeability>None</tradeability>
+	</ThingDef>
+
+	<ThingDef name="Zombie10Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie10Serum</defName>
 		<label>zombie serum 10%</label>
 		<description>Serum from dead zombies that cures zombie infections during operations (10% success rate)</description>
@@ -196,6 +283,7 @@
 			<SurgerySuccessChanceFactor>0.1</SurgerySuccessChanceFactor>
 		</statBases>
 		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
 			<ZombieExtract>10</ZombieExtract>
 		</costList>
 		<recipeMaker>
@@ -203,7 +291,7 @@
 		</recipeMaker>
 	</ThingDef>
 
-	<ThingDef name="Zombie20Serum" ParentName="ZombieSerumBase">
+	<ThingDef name="Zombie20Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie20Serum</defName>
 		<label>zombie serum 20%</label>
 		<description>Serum from dead zombies that cures zombie infections during operations (20% success rate)</description>
@@ -216,6 +304,7 @@
 			<SurgerySuccessChanceFactor>0.2</SurgerySuccessChanceFactor>
 		</statBases>
 		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
 			<ZombieExtract>20</ZombieExtract>
 		</costList>
 		<recipeMaker>
@@ -223,7 +312,7 @@
 		</recipeMaker>
 	</ThingDef>
 
-	<ThingDef name="Zombie30Serum" ParentName="ZombieSerumBase">
+	<ThingDef name="Zombie30Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie30Serum</defName>
 		<label>zombie serum 30%</label>
 		<description>Serum from dead zombies that cures zombie infections during operations (30% success rate)</description>
@@ -236,6 +325,7 @@
 			<SurgerySuccessChanceFactor>0.3</SurgerySuccessChanceFactor>
 		</statBases>
 		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
 			<ZombieExtract>30</ZombieExtract>
 		</costList>
 		<recipeMaker>
@@ -243,7 +333,7 @@
 		</recipeMaker>
 	</ThingDef>
 
-	<ThingDef name="Zombie40Serum" ParentName="ZombieSerumBase">
+	<ThingDef name="Zombie40Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie40Serum</defName>
 		<label>zombie serum 40%</label>
 		<description>Serum from dead zombies that cures zombie infections during operations (40% success rate)</description>
@@ -256,6 +346,7 @@
 			<SurgerySuccessChanceFactor>0.4</SurgerySuccessChanceFactor>
 		</statBases>
 		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
 			<ZombieExtract>40</ZombieExtract>
 		</costList>
 		<recipeMaker>
@@ -263,7 +354,7 @@
 		</recipeMaker>
 	</ThingDef>
 
-	<ThingDef name="Zombie50Serum" ParentName="ZombieSerumBase">
+	<ThingDef name="Zombie50Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie50Serum</defName>
 		<label>zombie serum 50%</label>
 		<description>Serum from dead zombies that cures zombie infections during operations (50% success rate)</description>
@@ -276,6 +367,7 @@
 			<SurgerySuccessChanceFactor>0.5</SurgerySuccessChanceFactor>
 		</statBases>
 		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
 			<ZombieExtract>50</ZombieExtract>
 		</costList>
 		<recipeMaker>
@@ -283,7 +375,7 @@
 		</recipeMaker>
 	</ThingDef>
 
-	<ThingDef name="Zombie60Serum" ParentName="ZombieSerumBase">
+	<ThingDef name="Zombie60Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie60Serum</defName>
 		<label>zombie serum 60%</label>
 		<description>Serum from dead zombies that cures zombie infections during operations (60% success rate)</description>
@@ -296,6 +388,7 @@
 			<SurgerySuccessChanceFactor>0.6</SurgerySuccessChanceFactor>
 		</statBases>
 		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
 			<ZombieExtract>60</ZombieExtract>
 		</costList>
 		<recipeMaker>
@@ -303,7 +396,7 @@
 		</recipeMaker>
 	</ThingDef>
 
-	<ThingDef name="Zombie70Serum" ParentName="ZombieSerumBase">
+	<ThingDef name="Zombie70Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie70Serum</defName>
 		<label>zombie serum 70%</label>
 		<description>Serum from dead zombies that cures zombie infections during operations (70% success rate)</description>
@@ -316,6 +409,7 @@
 			<SurgerySuccessChanceFactor>0.7</SurgerySuccessChanceFactor>
 		</statBases>
 		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
 			<ZombieExtract>70</ZombieExtract>
 		</costList>
 		<recipeMaker>
@@ -323,7 +417,7 @@
 		</recipeMaker>
 	</ThingDef>
 
-	<ThingDef name="Zombie80Serum" ParentName="ZombieSerumBase">
+	<ThingDef name="Zombie80Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie80Serum</defName>
 		<label>zombie serum 80%</label>
 		<description>Serum from dead zombies that cures zombie infections during operations (80% success rate)</description>
@@ -336,6 +430,7 @@
 			<SurgerySuccessChanceFactor>0.8</SurgerySuccessChanceFactor>
 		</statBases>
 		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
 			<ZombieExtract>80</ZombieExtract>
 		</costList>
 		<recipeMaker>
@@ -343,7 +438,7 @@
 		</recipeMaker>
 	</ThingDef>
 
-	<ThingDef name="Zombie90Serum" ParentName="ZombieSerumBase">
+	<ThingDef name="Zombie90Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie90Serum</defName>
 		<label>zombie serum 90%</label>
 		<description>Serum from dead zombies that cures zombie infections during operations (90% success rate)</description>
@@ -356,6 +451,7 @@
 			<SurgerySuccessChanceFactor>0.9</SurgerySuccessChanceFactor>
 		</statBases>
 		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
 			<ZombieExtract>90</ZombieExtract>
 		</costList>
 		<recipeMaker>
@@ -363,7 +459,7 @@
 		</recipeMaker>
 	</ThingDef>
 
-	<ThingDef name="Zombie100Serum" ParentName="ZombieSerumBase">
+	<ThingDef name="Zombie100Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie100Serum</defName>
 		<label>zombie serum 100%</label>
 		<description>Pure serum from dead zombies that guaranteed cures zombie infections during operations</description>
@@ -376,6 +472,7 @@
 			<SurgerySuccessChanceFactor>1</SurgerySuccessChanceFactor>
 		</statBases>
 		<costList>
+			<MedicineIndustrial>1</MedicineIndustrial>
 			<ZombieExtract>100</ZombieExtract>
 		</costList>
 		<recipeMaker>
@@ -384,11 +481,26 @@
 	</ThingDef>
 
 	<ThingDef ParentName="MoteBase">
+		<defName>ZombieThought</defName>
+		<thingClass>MoteBubble</thingClass>
+		<graphicData>
+			<texPath>Things/Mote/Speech</texPath>
+			<shaderType>Cutout</shaderType>
+			<drawSize>1</drawSize>
+		</graphicData>
+		<altitudeLayer>MoteOverheadLow</altitudeLayer>
+		<mote>
+			<solidTime>1.0</solidTime>
+			<attachedDrawOffset>(0.75, 0, 0.75)</attachedDrawOffset>
+		</mote>
+	</ThingDef>
+
+	<ThingDef ParentName="MoteBase">
 		<defName>ZombieZapA</defName>
 		<graphicData>
 			<texPath>Electrifier/Arc0</texPath>
 		</graphicData>
-		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<altitudeLayer>MoteOverheadLow</altitudeLayer>
 		<mote>
 			<fadeInTime>0</fadeInTime>
 			<solidTime>0.1</solidTime>
@@ -401,7 +513,7 @@
 		<graphicData>
 			<texPath>Electrifier/Arc1</texPath>
 		</graphicData>
-		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<altitudeLayer>MoteOverheadLow</altitudeLayer>
 		<mote>
 			<fadeInTime>0</fadeInTime>
 			<solidTime>0.1</solidTime>
@@ -414,7 +526,7 @@
 		<graphicData>
 			<texPath>Electrifier/Arc2</texPath>
 		</graphicData>
-		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<altitudeLayer>MoteOverheadLow</altitudeLayer>
 		<mote>
 			<fadeInTime>0</fadeInTime>
 			<solidTime>0.1</solidTime>
@@ -427,11 +539,27 @@
 		<graphicData>
 			<texPath>Electrifier/Arc3</texPath>
 		</graphicData>
-		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<altitudeLayer>MoteOverheadLow</altitudeLayer>
 		<mote>
 			<fadeInTime>0</fadeInTime>
 			<solidTime>0.1</solidTime>
 			<fadeOutTime>0.4</fadeOutTime>
+		</mote>
+	</ThingDef>
+
+	<ThingDef ParentName="MoteBase">
+		<defName>Mote_Block</defName>
+		<thingClass>MoteAttached</thingClass>
+		<graphicData>
+			<texPath>Block</texPath>
+		</graphicData>
+		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<mote>
+			<fadeInTime>0.2</fadeInTime>
+			<solidTime>0.2</solidTime>
+			<fadeOutTime>0.3</fadeOutTime>
+			<growthRate>0.4</growthRate>
+			<attachedDrawOffset>(0,0.5,0)</attachedDrawOffset>
 		</mote>
 	</ThingDef>
 
@@ -453,7 +581,7 @@
 		</graphicData>
 		<altitudeLayer>BuildingOnTop</altitudeLayer>
 		<passability>Impassable</passability>
-		<hasInteractionCell>True</hasInteractionCell>
+		<hasInteractionCell>true</hasInteractionCell>
 		<interactionCellOffset>(0,0,-1)</interactionCellOffset>
 		<blockWind>true</blockWind>
 		<fillPercent>0.6</fillPercent>
@@ -495,6 +623,45 @@
 			<li>Electricity</li>
 		</researchPrerequisites>
 		<constructionSkillPrerequisite>2</constructionSkillPrerequisite>
+	</ThingDef>
+
+	<ThingDef ParentName="MoteBase">
+		<defName>BumpLarge</defName>
+		<graphicData>
+			<texPath>Bumps/BumpLarge</texPath>
+		</graphicData>
+		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<mote>
+			<fadeInTime>0.1</fadeInTime>
+			<solidTime>0.2</solidTime>
+			<fadeOutTime>0.6</fadeOutTime>
+		</mote>
+	</ThingDef>
+
+	<ThingDef ParentName="MoteBase">
+		<defName>BumpMedium</defName>
+		<graphicData>
+			<texPath>Bumps/BumpMedium</texPath>
+		</graphicData>
+		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<mote>
+			<fadeInTime>0.1</fadeInTime>
+			<solidTime>0.25</solidTime>
+			<fadeOutTime>0.5</fadeOutTime>
+		</mote>
+	</ThingDef>
+
+	<ThingDef ParentName="MoteBase">
+		<defName>BumpSmall</defName>
+		<graphicData>
+			<texPath>Bumps/BumpSmall</texPath>
+		</graphicData>
+		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<mote>
+			<fadeInTime>0.1</fadeInTime>
+			<solidTime>0.2</solidTime>
+			<fadeOutTime>0.4</fadeOutTime>
+		</mote>
 	</ThingDef>
 
 </Defs>

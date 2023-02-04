@@ -16,7 +16,7 @@
 			<ComfyTemperatureMin>-60</ComfyTemperatureMin>
 			<ComfyTemperatureMax>200</ComfyTemperatureMax>
 			<PsychicSensitivity>0</PsychicSensitivity>
-			<ToxicSensitivity>0</ToxicSensitivity>
+			<ToxicResistance>0</ToxicResistance>
 			<MeatAmount>0</MeatAmount>
 			<LeatherAmount>0</LeatherAmount>
 			<CarryingCapacity>0</CarryingCapacity>
@@ -35,6 +35,7 @@
 			<foodType>Corpse</foodType>
 			<meatColor>(44,58,44)</meatColor>
 			<canBePredatorPrey>true</canBePredatorPrey>
+			<gestationPeriodDays>0</gestationPeriodDays>
 		</race>
 		<tradeTags>
 			<li>AnimalInsectSpace</li>
@@ -108,12 +109,16 @@
 			<nameCategory>HumanStandard</nameCategory>
 			<lifeStageAges>
 				<li>
+					<def>HumanlikeBaby</def>
+					<minAge>0</minAge>
+				</li>
+				<li>
 					<def>HumanlikeChild</def>
 					<minAge>4</minAge>
 				</li>
 				<li>
 					<def>HumanlikeAdult</def>
-					<minAge>16</minAge>
+					<minAge>18</minAge>
 				</li>
 			</lifeStageAges>
 			<soundMeleeHitPawn>ZombieHit</soundMeleeHitPawn>
@@ -164,7 +169,6 @@
 		<scatterableOnMapGen>false</scatterableOnMapGen>
 		<forceDebugSpawnable>false</forceDebugSpawnable>
 		<destroyOnDrop>true</destroyOnDrop>
-		<menuHidden>true</menuHidden>
 		<selectable>false</selectable>
 		<smeltable>false</smeltable>
 		<useHitPoints>false</useHitPoints>

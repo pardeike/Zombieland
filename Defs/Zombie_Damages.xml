@@ -27,7 +27,7 @@
 		<impactSoundType>Blunt</impactSoundType>
 		<armorCategory>Blunt</armorCategory>
 		<explosionAffectOutsidePartsOnly>false</explosionAffectOutsidePartsOnly>
-		<explosionCellMote>Mote_BlastDry</explosionCellMote>
+		<explosionCellFleck>BlastDry</explosionCellFleck>
 		<explosionColorCenter>(1, 0, 0)</explosionColorCenter>
 		<explosionColorEdge>(1, 0.5, 0)</explosionColorEdge>
 		<soundExplosion>Explosion_Bomb</soundExplosion>
@@ -43,7 +43,7 @@
 		<canInterruptJobs>false</canInterruptJobs>
 		<makesBlood>false</makesBlood>
 		<defaultDamage>0</defaultDamage>
-		<explosionCellMote>Mote_BlastDry</explosionCellMote>
+		<explosionCellFleck>BlastDry</explosionCellFleck>
 		<explosionColorCenter>(0, 1, 0, 1)</explosionColorCenter>
 		<explosionColorEdge>(0, 1, 0, 0.1)</explosionColorEdge>
 		<harmsHealth>false</harmsHealth>
@@ -65,9 +65,9 @@
 		<makesBlood>false</makesBlood>
 		<defaultDamage>0</defaultDamage>
 		<explosionSnowMeltAmount>0</explosionSnowMeltAmount>
-		<explosionCellMote>Mote_BlastEMP</explosionCellMote>
+		<explosionCellFleck>BlastEMP</explosionCellFleck>
 		<explosionColorEdge>(0.8, 0.8, 0.8, 0.8)</explosionColorEdge>
-		<explosionInteriorMote>Mote_ElectricalSpark</explosionInteriorMote>
+		<explosionInteriorFleck>ElectricalSpark</explosionInteriorFleck>
 		<soundExplosion>Explosion_EMP</soundExplosion>
 		<combatLogRules>Damage_EMP</combatLogRules>
 		<makesAnimalsFlee>true</makesAnimalsFlee>

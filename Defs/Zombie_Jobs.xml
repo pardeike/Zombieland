@@ -43,4 +43,11 @@
 		<allowOpportunisticPrefix>false</allowOpportunisticPrefix>
 	</JobDef>
 
+	<JobDef>
+		<defName>FixBrokenChainsaw</defName>
+		<driverClass>ZombieLand.JobDriver_FixBrokenChainsaw</driverClass>
+		<reportString>replacing broken components in TargetA.</reportString>
+		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+	</JobDef>
+
 </Defs>
