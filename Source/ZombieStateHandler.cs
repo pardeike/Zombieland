@@ -1073,8 +1073,7 @@ namespace ZombieLand
 			if (eatSubject == null || eatSubject.health == null || eatSubject.health.hediffSet == null)
 				return null;
 			return eatSubject.health.hediffSet
-						.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined)
-						.Where(new Func<BodyPartRecord, bool>(r => r.depth == BodyPartDepth.Outside))
+						.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Outside)
 						.InRandomOrder()
 						.FirstOrDefault();
 		}
