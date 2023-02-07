@@ -34,16 +34,7 @@
 
 	<ItemGroup>
 		<Content Include="..\Defs\**\*.xml">
-			<Link>Defs\Base\%(RecursiveDir)%(Filename)%(Extension)</Link>
-		</Content>
-		<Content Include="..\1.1\Defs\**\*.xml">
-			<Link>Defs\1.1\%(RecursiveDir)%(Filename)%(Extension)</Link>
-		</Content>
-		<Content Include="..\1.2\Defs\**\*.xml">
-			<Link>Defs\1.2\%(RecursiveDir)%(Filename)%(Extension)</Link>
-		</Content>
-		<Content Include="..\1.3\Defs\**\*.xml">
-			<Link>Defs\1.3\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<Link>Defs\%(RecursiveDir)%(Filename)%(Extension)</Link>
 		</Content>
 		<Content Include="..\Languages\**\Keyed\*.xml">
 			<Link>Languages\%(RecursiveDir)%(FileName)%(Extension)</Link>
