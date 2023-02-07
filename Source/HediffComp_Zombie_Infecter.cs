@@ -36,17 +36,10 @@ namespace ZombieLand
 		{
 			infectionKnownDelay = 0;
 			infectionStartTime = 0;
-			infectionEndTime = 0;=
-            Pawn.SetInfectionState(InfectionState.None);
-        }
+			infectionEndTime = 0;
+		}
 
-        public override void CompPostPostRemoved()
-        {
-            base.CompPostPostRemoved();
-            Pawn.SetInfectionState(InfectionState.None);
-        }
-
-        public void MakeHarmfull()
+		public void MakeHarmfull()
 		{
 			var hour = GenDate.TicksPerHour;
 
@@ -83,9 +76,9 @@ namespace ZombieLand
 			if (parent.Part.def.IsSolid(parent.Part, pawn.health.hediffSet.hediffs))
 				return;
 			if (pawn.health.hediffSet.PartOrAnyAncestorHasDirectlyAddedParts(parent.Part))
-                return;
+				return;
 
-            var h = GenDate.TicksPerHour;
+			var h = GenDate.TicksPerHour;
 
 			var ticks = ZombieSettings.Values.hoursInfectionIsUnknown * h;
 			infectionKnownDelay = GenTicks.TicksAbs + ticks;

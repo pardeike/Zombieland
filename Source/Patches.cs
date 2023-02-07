@@ -426,6 +426,30 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to update infection state
+		//
+		[HarmonyPatch(typeof(Pawn))]
+		[HarmonyPatch(nameof(Pawn.Tick))]
+		static class Pawn_Tick_Patch
+		{
+			static void Postfix(Pawn __instance)
+			{
+				if (__instance is Zombie || __instance.RaceProps.Humanlike == false)
+					return;
+				var hediffs = __instance.health.hediffSet.hediffs;
+				var maxState = InfectionState.None;
+				for (var i = 0; i < hediffs.Count; i++)
+				{
+					if (hediffs[i] is not Hediff_Injury_ZombieBite bite)
+						continue;
+					var state = bite.TendDuration.GetInfectionState();
+					if (state > maxState)
+						maxState = state;
+				}
+				__instance.SetInfectionState(maxState);
+			}
+		}
+
 		// patch to control if raiders and animals see zombies as hostile
 		//
 		[HarmonyPatch(typeof(GenHostility))]
