@@ -98,6 +98,17 @@
 	</Target>
 
 	<PropertyGroup>
+		<PostBuildEvent>
+			echo Postprocessing
+			where ModBuilder 2&gt; nul | find /i "ModBuilder.exe"
+			if not errorlevel 1 (
+			ModBuilder AssemblyVersion -file "$(MSBuildProjectDirectory)\$(OutputPath)$(AssemblyName).dll" -save "$(MSBuildProjectName)-version"
+			ModBuilder XMLPut -file "$(MSBuildProjectDirectory)\..\About\Manifest.xml" -xpath /Manifest/version -value "{{$(MSBuildProjectName)-version}}"
+			)
+			if defined INSTALL_MOD (
+			"%INSTALL_MOD%" "$(Configuration)" "$(MSBuildProjectDirectory)\..\" "$(MSBuildProjectName)" "About Assemblies Defs Languages Patches Sounds Textures"
+			)
+		</PostBuildEvent>
 		<Company>Brrainz</Company>
 		<Authors>Andreas Pardeike</Authors>
 		<Description>A zombie mod for the game RimWorld</Description>
