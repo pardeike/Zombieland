@@ -35,6 +35,20 @@ namespace ZombieLand
 			}
 		}
 
+		public static void GenerateSpaceZombies(TickManager tickManager)
+		{
+			var map = tickManager.map;
+			if (map.Biome == sosOuterSpaceBiomeDef && (tickManager.floatingSpaceZombiesBack == null || tickManager.floatingSpaceZombiesFore == null))
+			{
+				tickManager.floatingSpaceZombiesBack = new();
+				for (var i = 0; i < Floater.backCount; i++)
+					Tools.CreateFakeZombie(map, mat => tickManager.floatingSpaceZombiesBack.Add(new Floater() { mapSize = map.Size, material = mat, foreground = false }), false);
+				tickManager.floatingSpaceZombiesFore = new();
+				for (var i = 0; i < Floater.foreCount; i++)
+					Tools.CreateFakeZombie(map, mat => tickManager.floatingSpaceZombiesFore.Add(new Floater() { mapSize = map.Size, material = mat, foreground = true }), true);
+			}
+		}
+
 		public class Floater
 		{
 			public const int backCount = 100;
