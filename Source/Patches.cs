@@ -502,7 +502,7 @@ namespace ZombieLand
 			}
 		}
 
-		// roate chainsaw when moving
+		// rotate chainsaw when moving
 		//
 		[HarmonyPatch(typeof(Pawn_PathFollower))]
 		[HarmonyPatch(nameof(Pawn_PathFollower.SetupMoveIntoNextCell))]
@@ -542,6 +542,21 @@ namespace ZombieLand
 				if (___pawn.equipment?.Primary is Chainsaw)
 				{
 					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+		//
+		[HarmonyPatch(typeof(FloatMenuUtility))]
+		[HarmonyPatch(nameof(FloatMenuUtility.GetMeleeAttackAction))]
+		static class FloatMenuUtility_GetMeleeAttackAction_Patch
+		{
+			static bool Prefix(Pawn pawn, ref Action __result)
+			{
+				if (pawn.equipment?.Primary is Chainsaw chainsaw && chainsaw.running)
+				{
+					__result = null;
 					return false;
 				}
 				return true;
@@ -599,18 +614,21 @@ namespace ZombieLand
 					return true;
 				if ((flags & PawnRenderFlags.NeverAimWeapon) != PawnRenderFlags.None)
 					return true;
+				if (chainsaw.running == false)
+					return true;
 
-				if (chainsaw.swinging || ___pawn.Drafted && Find.Selector.IsSelected(___pawn))
-				{
-					var angle = chainsaw.angle;
+				if (chainsaw.swinging == false/* && ___pawn.Drafted && Find.Selector.IsSelected(___pawn) == false*/)
+					return true;
 
-					var vector = new Vector3(0f, (pawnRotation == Rot4.North) ? (-0.0028957527f) : 0.03474903f, 0f);
-					var equipmentDrawDistanceFactor = ___pawn.ageTracker.CurLifeStage.equipmentDrawDistanceFactor;
-					vector += rootLoc + new Vector3(0f, 0f, 0.4f + CustomDefs.Chainsaw.equippedDistanceOffset).RotatedBy(angle) * equipmentDrawDistanceFactor;
+				var angle = chainsaw.angle;
 
-					__instance.DrawEquipmentAiming(chainsaw, vector, angle);
+				var vector = new Vector3(0f, (pawnRotation == Rot4.North) ? (-0.0028957527f) : 0.03474903f, 0f);
+				var equipmentDrawDistanceFactor = ___pawn.ageTracker.CurLifeStage.equipmentDrawDistanceFactor;
+				vector += rootLoc + new Vector3(0f, 0f, 0.4f + CustomDefs.Chainsaw.equippedDistanceOffset).RotatedBy(angle) * equipmentDrawDistanceFactor;
+
+				__instance.DrawEquipmentAiming(chainsaw, vector, angle);
+				if (Find.TickManager.Paused)
 					___pawn.rotationTracker.Face(vector);
-				}
 
 				return false;
 			}
