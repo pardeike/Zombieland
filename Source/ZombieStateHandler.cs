@@ -1,5 +1,4 @@
 ﻿using RimWorld;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -152,7 +151,7 @@ namespace ZombieLand
 			zombie.wallPushDestination = destination.ToVector3Shifted();
 			if (Constants.USE_SOUND)
 				CustomDefs.WallPushing.PlayOneShot(SoundInfo.InMap(new TargetInfo(pos, map)));
-			if (ZombieSettings.Values.dangerousSituationMessage)
+			if (ZombieSettings.Values.dangerousSituationMessage && map.areaManager.Home[wallCell])
 				if ("DangerousSituation".RunThrottled(5f))
 				{
 					var text = "ZombiesAreBeingPushedOverYourWalls".Translate();
@@ -1073,8 +1072,7 @@ namespace ZombieLand
 			if (eatSubject == null || eatSubject.health == null || eatSubject.health.hediffSet == null)
 				return null;
 			return eatSubject.health.hediffSet
-						.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined)
-						.Where(new Func<BodyPartRecord, bool>(r => r.depth == BodyPartDepth.Outside))
+						.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Outside)
 						.InRandomOrder()
 						.FirstOrDefault();
 		}

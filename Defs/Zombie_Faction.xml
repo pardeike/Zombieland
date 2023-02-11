@@ -5,6 +5,7 @@
 		<defName>Zombies</defName>
 		<label>Zombies</label>
 		<description>Undead creatures.</description>
+		<pawnSingular>zombie</pawnSingular>
 		<pawnsPlural>zombies</pawnsPlural>
 		<requiredCountAtGameStart>1</requiredCountAtGameStart>
 		<fixedName>Zombies</fixedName>
@@ -15,25 +16,19 @@
 		</raidCommonalityFromPointsCurve>
 		<humanlikeFaction>true</humanlikeFaction>
 		<hidden>true</hidden>
+		<displayInFactionSelection>false</displayInFactionSelection>
 		<autoFlee>false</autoFlee>
 		<canUseAvoidGrid>false</canUseAvoidGrid>
 		<techLevel>Animal</techLevel>
-		<homeIconPath>World/WorldObjects/DefaultSettlement</homeIconPath>
-		<startingGoodwill>
-			<min>-100</min>
-			<max>-100</max>
-		</startingGoodwill>
-		<naturalColonyGoodwill>
-			<min>-100</min>
-			<max>-100</max>
-		</naturalColonyGoodwill>
+		<factionIconPath>World/WorldObjects/DefaultSettlement</factionIconPath>
+		<permanentEnemy>true</permanentEnemy>
+		<allowedArrivalTemperatureRange>-200~200</allowedArrivalTemperatureRange>
 		<backstoryCategories>
 			<li>Civil</li>
 		</backstoryCategories>
 		<factionNameMaker>NamerFactionOutlander</factionNameMaker>
-		<hairTags>
-			<li>Rural</li>
-		</hairTags>
+		<raidLootValueFromPointsCurve>
+		</raidLootValueFromPointsCurve>
 	</FactionDef>
 
 </Defs>

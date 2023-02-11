@@ -10,17 +10,23 @@ namespace ZombieLand
 {
 	public class CETools
 	{
+		public static bool latePatching = false;
+
 		public static void Init(Harmony harmony)
 		{
+			latePatching = true;
 			_ = new PatchClassProcessor(harmony, typeof(Patch1)).Patch();
 			_ = new PatchClassProcessor(harmony, typeof(Patch2)).Patch();
 			_ = new PatchClassProcessor(harmony, typeof(Patch3)).Patch();
+			_ = new PatchClassProcessor(harmony, typeof(Patch4)).Patch();
+			latePatching = false;
 		}
 	}
 
+	[HarmonyPatch]
 	class Patch1
 	{
-		static bool Prepare() => TargetMethod() != null;
+		static bool Prepare() => CETools.latePatching && TargetMethod() != null;
 		static MethodInfo TargetMethod()
 		{
 			var type = AccessTools.TypeByName("CombatExtended.Harmony.Harmony_DamageWorker_AddInjury_ApplyDamageToPart");
@@ -41,18 +47,19 @@ namespace ZombieLand
 		}
 	}
 
+	[HarmonyPatch]
 	static class Patch2
 	{
-		static bool Prepare() => TargetMethod() != null;
+		static bool Prepare() => CETools.latePatching && TargetMethod() != null;
 		static MethodBase TargetMethod()
 		{
 			var type = AccessTools.TypeByName("CombatExtended.ProjectileCE");
 			if (type == null)
 				return null;
-			var method = AccessTools.Method(type, "Launch", new Type[] { typeof(Thing), typeof(Vector2), typeof(float), typeof(float), typeof(float), typeof(float), typeof(Thing) });
+			var method = AccessTools.Method(type, "Launch", new Type[] { typeof(Thing), typeof(Vector2), typeof(float), typeof(float), typeof(float), typeof(float), typeof(Thing), typeof(float) });
 			if (method == null)
 			{
-				Error("Combat Extended installed, but method ProjectileCE.Launch not found");
+				Error("Combat Extended installed, but method ProjectileCE.Launch(Thing,Vector2,float,float,float,float,Thing,float) not found");
 				return null;
 			}
 			return method;
@@ -79,9 +86,10 @@ namespace ZombieLand
 		}
 	}
 
+	[HarmonyPatch]
 	static class Patch3
 	{
-		static bool Prepare() => TargetMethod() != null;
+		static bool Prepare() => CETools.latePatching && TargetMethod() != null;
 		static MethodBase TargetMethod()
 		{
 			var type = AccessTools.TypeByName("CombatExtended.ArmorUtilityCE");
@@ -120,6 +128,38 @@ namespace ZombieLand
 			shieldAbsorbed = deflect || diminish;
 
 			return false;
+		}
+	}
+
+	[HarmonyPatch]
+	static class Patch4
+	{
+		static bool Prepare() => CETools.latePatching && TargetMethod() != null;
+		static MethodBase TargetMethod()
+		{
+			var type = AccessTools.TypeByName("CombatExtended.CompAmmoUser");
+			if (type == null)
+				return null;
+			var method = AccessTools.Method(type, "TryReduceAmmoCount");
+			if (method == null)
+			{
+				Error("Combat Extended installed, but method CompAmmoUser.TryReduceAmmoCount not found");
+				return null;
+			}
+			return method;
+		}
+
+		static bool Prefix(Building_Turret ___turret, ref bool __result)
+		{
+			Log.Warning($"TryReduceAmmoCount {___turret}");
+			if (___turret == null)
+				return true;
+			if (Rand.Chance(ZombieSettings.Values.reducedTurretConsumption))
+			{
+				__result = true;
+				return false;
+			}
+			return true;
 		}
 	}
 }

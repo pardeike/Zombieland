@@ -166,18 +166,12 @@ namespace ZombieLand
 				if (thing is not Pawn pawn || pawn is Zombie)
 					continue;
 
-				var bodyModel = pawn.health.hediffSet;
-
-				var bodyPart = bodyModel
-					.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined, null, null)
-					.Where(part =>
-						part.depth == BodyPartDepth.Outside
-						|| part.depth == BodyPartDepth.Inside
-						&& part.def.IsSolid(part, bodyModel.hediffs)
-					)
+				var bodyPart = pawn.health.hediffSet
+                    .GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Outside, null, null)
+					.Where(r => r.def.IsSolid(r, pawn.health.hediffSet.hediffs) == false)
 					.SafeRandomElement();
-
-				bodyPart ??= bodyModel.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined).SafeRandomElement();
+				if (bodyPart == null)
+					continue;
 
 				var def = HediffDef.Named("ZombieBite");
 				var bite = (Hediff_Injury_ZombieBite)HediffMaker.MakeHediff(def, pawn, bodyPart);

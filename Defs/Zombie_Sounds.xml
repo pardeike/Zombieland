@@ -517,4 +517,149 @@
 		</subSounds>
 	</SoundDef>
 
+	<SoundDef>
+		<defName>WallPushing</defName>
+		<context>MapOnly</context>
+		<maxSimultaneous>3</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>wallpushing</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>1.2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>80</min>
+					<max>80</max>
+				</volumeRange>
+				<distRange>
+					<min>1000</min>
+					<max>10000</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ChainsawIdle</defName>
+		<context>MapOnly</context>
+		<sustain>True</sustain>
+		<priorityMode>PrioritizeNearest</priorityMode>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>chainsaw-idle</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>30</min>
+					<max>30</max>
+				</volumeRange>
+				<distRange>25~40</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ChainsawStart</defName>
+		<context>MapOnly</context>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>chainsaw-start</clipPath>
+					</li>
+				</grains>
+				<distRange>25~40</distRange>
+				<sustainLoop>False</sustainLoop>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ChainsawWorkStart</defName>
+		<context>MapOnly</context>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>chainsaw-work-start</clipPath>
+					</li>
+				</grains>
+				<distRange>25~40</distRange>
+				<sustainLoop>False</sustainLoop>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ChainsawWorkEnd</defName>
+		<context>MapOnly</context>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>chainsaw-work-end</clipPath>
+					</li>
+				</grains>
+				<distRange>25~40</distRange>
+				<sustainLoop>False</sustainLoop>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ChainsawWork</defName>
+		<sustain>True</sustain>
+		<context>MapOnly</context>
+		<priorityMode>PrioritizeNearest</priorityMode>
+		<sustainStartSound>ChainsawWorkStart</sustainStartSound>
+		<sustainStopSound>ChainsawWorkEnd</sustainStopSound>
+		<subSounds>
+			<li>
+				<startDelayRange>1.13</startDelayRange>
+				<muteWhenPaused>True</muteWhenPaused>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>chainsaw-work-loop</clipPath>
+					</li>
+				</grains>
+				<distRange>25~40</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>Crush</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>3</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Folder">
+						<clipFolderPath>crush</clipFolderPath>
+					</li>
+				</grains>
+				<pitchRange>
+					<min>0.8</min>
+					<max>1.2</max>
+				</pitchRange>
+				<volumeRange>
+					<min>30</min>
+					<max>40</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>50</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
 </Defs>

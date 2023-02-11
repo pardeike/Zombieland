@@ -89,6 +89,8 @@ namespace ZombieLand
 				_ = GetSettings<ZombieSettingsDefaults>();
 				IsLoadingDefaults = false;
 			});
+
+			ApplyEarlyPatches();
 		}
 
 		static void DrawJumpToCurrent(Rect rect, float offset)
@@ -142,6 +144,24 @@ namespace ZombieLand
 			if (world != null && world.components != null)
 				return "ZombielandGameSettings".Translate();
 			return "ZombielandDefaultSettings".Translate();
+		}
+
+		static void ApplyEarlyPatches()
+		{
+			var harmony = new Harmony("net.pardeike.zombieland");
+
+			// patch to customize the blueprint of a zombieshocker so it ticks and vanishes if the wall below is destroyed
+			var method = AccessTools.Method(typeof(ThingDefGenerator_Buildings), nameof(ThingDefGenerator_Buildings.NewBlueprintDef_Thing));
+			var postfix = AccessTools.Method(typeof(ZombielandMod), "NewBlueprintDef_Thing_Postfix");
+			_ = harmony.Patch(method, postfix: new HarmonyMethod(postfix));
+		}
+		//
+		static void NewBlueprintDef_Thing_Postfix(ThingDef def, ref ThingDef __result)
+		{
+			if (def != CustomDefs.ZombieShocker)
+				return;
+			__result.comps.Add(new CompProperties_ZombieShocker());
+			__result.tickerType = TickerType.Normal;
 		}
 
 		// for debugging

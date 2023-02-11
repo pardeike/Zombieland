@@ -123,7 +123,7 @@ namespace ZombieLand
 		{
 			if (zappingState == -1 || shocker.Spawned == false)
 				return;
-			if (shocker.HasValidRoom() == false)
+			if (shocker.HasValidRoom() == false || shocker.OnWall() == false)
 			{
 				EndZapping();
 				return;

@@ -25,7 +25,10 @@ namespace ZombieLand
 		public override void Tick()
 		{
 			base.Tick();
-			subEffecter?.SubEffectTick(TargetInfo.Invalid, TargetInfo.Invalid);
+			if (OnWall())
+				subEffecter?.SubEffectTick(TargetInfo.Invalid, TargetInfo.Invalid);
+			else
+				Destroy();
 		}
 
 		public override void ReceiveCompSignal(string signal)
@@ -43,8 +46,15 @@ namespace ZombieLand
 		public static Room GetValidRoom(Map map, IntVec3 cell)
 		{
 			var room = cell.GetRoom(map);
-			if (room == null || room.IsHuge || room.Fogged || room.IsDoorway) return null;
+			if (room == null || room.IsHuge || room.Fogged || room.IsDoorway)
+				return null;
 			return room;
+		}
+
+		public bool OnWall()
+		{
+			var edifice = Map?.edificeGrid[Position];
+			return edifice != null && edifice is Building building;
 		}
 
 		public bool HasValidRoom()

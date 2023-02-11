@@ -68,7 +68,6 @@ namespace ZombieLand
 		public override void Tick()
 		{
 			var state = TendDuration.GetInfectionState();
-			pawn.SetInfectionState(state);
 
 			if (state == InfectionState.None)
 			{

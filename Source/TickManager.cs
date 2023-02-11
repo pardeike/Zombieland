@@ -9,7 +9,6 @@ using UnityEngine;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
-using static ZombieLand.Chainsaw;
 
 namespace ZombieLand
 {
@@ -102,8 +101,8 @@ namespace ZombieLand
 		public IncidentInfo incidentInfo = new();
 		public ZombiePathing zombiePathing;
 
-		public List<SoSTools.Floater> floatingSpaceZombiesBack = new();
-		public List<SoSTools.Floater> floatingSpaceZombiesFore = new();
+		public List<SoSTools.Floater> floatingSpaceZombiesBack;
+		public List<SoSTools.Floater> floatingSpaceZombiesFore;
 
 		public List<VictimHead> victimHeads = new();
 
@@ -172,14 +171,6 @@ namespace ZombieLand
 
 			hummingZombies.Clear();
 			allZombies.Where(zombie => zombie.IsActiveElectric).Do(zombie => hummingZombies.Add(zombie));
-
-			if (map.Biome == SoSTools.sosOuterSpaceBiomeDef)
-			{
-				for (var i = 0; i < SoSTools.Floater.backCount; i++)
-					Tools.CreateFakeZombie(map, mat => floatingSpaceZombiesBack.Add(new SoSTools.Floater() { mapSize = map.Size, material = mat, foreground = false }), false);
-				for (var i = 0; i < SoSTools.Floater.foreCount; i++)
-					Tools.CreateFakeZombie(map, mat => floatingSpaceZombiesFore.Add(new SoSTools.Floater() { mapSize = map.Size, material = mat, foreground = true }), true);
-			}
 
 			taskTicker = TickTasks();
 			while (taskTicker.Current as string != "end")
@@ -699,6 +690,7 @@ namespace ZombieLand
 
 			_ = taskTicker.MoveNext();
 			IncreaseZombiePopulation();
+			SoSTools.GenerateSpaceZombies(this);
 			TickHeads();
 		}
 	}

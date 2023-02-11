@@ -5,7 +5,6 @@
 		<defName>Zombie</defName>
 		<race>Zombie</race>
 		<combatPower>100</combatPower>
-		<baseRecruitDifficulty>1.0</baseRecruitDifficulty>
 		<backstoryCategories>
 			<li>Civil</li>
 		</backstoryCategories>
@@ -23,6 +22,8 @@
 		<apparelAllowHeadgearChance>0.75</apparelAllowHeadgearChance>
 		<backstoryCryptosleepCommonality>0.0</backstoryCryptosleepCommonality>
 		<forceNormalGearQuality>false</forceNormalGearQuality>
+		<initialWillRange>0~0</initialWillRange>
+		<initialResistanceRange>0~0</initialResistanceRange>
 	</PawnKindDef>
 
 </Defs>
