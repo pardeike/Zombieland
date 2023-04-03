@@ -36,31 +36,33 @@
 		</apparel>
 	</ThingDef>
 
-	<ThingDef ParentName="BaseFilth">
-		<defName>TarSlime</defName>
-		<thingClass>ZombieLand.TarSlime</thingClass>
-		<label>super sticky slime</label>
-		<description>A very sticky slime that makes you move much slower</description>
-		<statBases>
-			<Beauty>-10</Beauty>
-			<Cleanliness>-10</Cleanliness>
-		</statBases>
-		<graphicData>
-			<texPath>Dummy</texPath>
-			<graphicClass>Graphic_Single</graphicClass>
-		</graphicData>
-		<altitudeLayer>FloorEmplacement</altitudeLayer>
-		<pathCost>120</pathCost>
-		<pathCostIgnoreRepeat>false</pathCostIgnoreRepeat>
-		<size>(1,1)</size>
-		<filth>
-			<cleaningWorkToReduceThickness>500</cleaningWorkToReduceThickness>
-			<rainWashes>true</rainWashes>
-			<canFilthAttach>false</canFilthAttach>
-			<allowsFire>false</allowsFire>
-			<maxThickness>4</maxThickness>
-		</filth>
-	</ThingDef>
+<ThingDef ParentName="BaseFilth">
+	<defName>TarSlime</defName>
+	<thingClass>ZombieLand.TarSlime</thingClass>
+	<label>super sticky slime</label>
+	<description>A very sticky slime that makes you move much slower</description>
+	<statBases>
+		<Beauty>-10</Beauty>
+		<Flammability>1.0</Flammability>
+		<Cleanliness>-10</Cleanliness>
+		<MaxHitPoints>300</MaxHitPoints>
+	</statBases>
+	<graphicData>
+		<texPath>Dummy</texPath>
+		<graphicClass>Graphic_Single</graphicClass>
+	</graphicData>
+	<altitudeLayer>FloorEmplacement</altitudeLayer>
+	<pathCost>120</pathCost>
+	<pathCostIgnoreRepeat>false</pathCostIgnoreRepeat>
+	<useHitPoints>True</useHitPoints>
+	<size>(1,1)</size>
+	<filth>
+		<cleaningWorkToReduceThickness>500</cleaningWorkToReduceThickness>
+		<rainWashes>true</rainWashes>
+		<canFilthAttach>false</canFilthAttach>
+		<maxThickness>4</maxThickness>
+	</filth>
+</ThingDef>
 
 	<ThingDef>
 		<defName>TarSmoke</defName>

@@ -307,7 +307,7 @@ namespace ZombieLand
 
 			if (ZombieSettings.Values.betterZombieAvoidance == false)
 				return false;
-			return ColonistSettings.Values.ConfigFor(pawn).autoAvoidZombies;
+			return ColonistSettings.Values.ConfigFor(pawn)?.autoAvoidZombies ?? false;
 		}
 
 		public static bool CanHarmElectricZombies(this Verb verb)

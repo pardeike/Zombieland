@@ -10,6 +10,8 @@ namespace ZombieLand
 		static readonly Vector2 size2 = new(1.5f, 1.5f);
 		static readonly Vector2 size3 = new(2f, 2f);
 
+		private int fireCounter = 0;
+
 		public override void SpawnSetup(Map map, bool respawningAfterLoad)
 		{
 			if (map.thingGrid.ThingAt<TarSlime>(Position) != null)
@@ -30,6 +32,26 @@ namespace ZombieLand
 		{
 			if (thickness == 0)
 				base.Destroy(mode);
+		}
+
+		public override void PostApplyDamage(DamageInfo dinfo, float totalDamageDealt)
+		{
+			if (dinfo.Def == DamageDefOf.Flame)
+			{
+				var n = Mathf.FloorToInt(1 + 2 * Tools.Difficulty());
+				if (++fireCounter >= n)
+				{
+					fireCounter = 0;
+					if (thickness > 0)
+						thickness--;
+					if (thickness == 0)
+					{
+						Destroy(DestroyMode.Vanish);
+						return;
+					}
+				}
+			}
+			base.PostApplyDamage(dinfo, totalDamageDealt);
 		}
 
 		public override void Print(SectionLayer layer)

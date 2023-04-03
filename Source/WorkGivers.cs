@@ -42,7 +42,7 @@ namespace ZombieLand
 			if (pawn.IsColonist == false || t is not ZombieCorpse corpse)
 				return false;
 
-			if (forced == false && ColonistSettings.Values.ConfigFor(pawn).autoExtractZombieSerum == false)
+			if (forced == false && (ColonistSettings.Values.ConfigFor(pawn)?.autoExtractZombieSerum ?? false) == false)
 				return false;
 
 			var map = pawn.Map;
@@ -124,7 +124,7 @@ namespace ZombieLand
 			if (ZombieSettings.Values.hoursAfterDeathToBecomeZombie == -1)
 				return false;
 
-			if (forced == false && ColonistSettings.Values.ConfigFor(pawn).autoDoubleTap == false)
+			if (forced == false && (ColonistSettings.Values.ConfigFor(pawn)?.autoDoubleTap ?? false) == false)
 				return false;
 
 			if (corpse.InnerPawn.health.hediffSet.GetBrain() == null)

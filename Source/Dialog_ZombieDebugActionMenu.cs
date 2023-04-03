@@ -3,6 +3,7 @@ using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
+using static Verse.PawnCapacityUtility;
 
 namespace ZombieLand
 {
@@ -212,6 +213,24 @@ namespace ZombieLand
 				if (thing is not Zombie zombie)
 					continue;
 				ZombieStateHandler.StartRage(zombie);
+			}
+		}
+
+		[DebugAction("Zombieland", "Apply: Zombie add bloodloss", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void ApplyHalfConsciousness()
+		{
+			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
+			{
+				if (thing is not Zombie zombie)
+					continue;
+
+				var cap = new CapacityImpactorCapacity()
+				{
+					capacity = PawnCapacityDefOf.Consciousness
+				};
+				var hediff = HediffMaker.MakeHediff(HediffDefOf.BloodLoss, zombie);
+				hediff.Severity = 0.24f;
+				zombie.health.hediffSet.AddDirect(hediff);
 			}
 		}
 	}

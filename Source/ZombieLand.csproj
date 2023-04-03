@@ -10,7 +10,7 @@
 		<OutputPath>..\1.4\Assemblies\</OutputPath>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<Version>3.7.0.0</Version>
+		<Version>3.8.0.0</Version>
 		<Copyright>Copyright © 2017</Copyright>
 		<Configurations>Release;Debug</Configurations>
 	</PropertyGroup>
@@ -93,7 +93,7 @@
 			echo Postprocessing
 			where ModBuilder 2&gt; nul | find /i "ModBuilder.exe"
 			if not errorlevel 1 (
-			ModBuilder AssemblyVersion -file "$(MSBuildProjectDirectory)\$(OutputPath)$(AssemblyName).dll" -save "$(MSBuildProjectName)-version"
+			ModBuilder AssemblyVersion -file "$(MSBuildProjectDirectory)\$(OutputPath)\$(AssemblyName).dll" -save "$(MSBuildProjectName)-version"
 			ModBuilder XMLPut -file "$(MSBuildProjectDirectory)\..\About\Manifest.xml" -xpath /Manifest/version -value "{{$(MSBuildProjectName)-version}}"
 			)
 			if defined INSTALL_MOD (
