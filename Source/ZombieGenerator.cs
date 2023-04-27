@@ -399,6 +399,7 @@ namespace ZombieLand
 				{
 					var pair = possibleApparel.SafeRandomElement();
 					var apparel = (Apparel)ThingMaker.MakeThing(pair.thing, pair.stuff);
+					apparel.wornByCorpseInt = Tools.Difficulty() >= 2f;
 					yield return null;
 					PawnGenerator.PostProcessGeneratedGear(apparel, zombie);
 					yield return null;
@@ -483,6 +484,11 @@ namespace ZombieLand
 			{
 				var _bodyType = PrepareZombieType(zombie, zombieType);
 				zombie.kindDef = ZombieDefOf.Zombie;
+				if (Tools.Difficulty() > 1f)
+				{
+					var maxHealthRange = GenMath.LerpDoubleClamped(0f, 5f, 1f, 0.02f, Tools.Difficulty());
+					zombie.kindDef.gearHealthRange = new FloatRange(0.02f, maxHealthRange);
+				}
 				zombie.SetFactionDirect(FactionUtility.DefaultFactionFrom(ZombieDefOf.Zombies));
 				zombie.ideo = null;
 				return _bodyType;

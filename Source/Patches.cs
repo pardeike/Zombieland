@@ -5344,30 +5344,13 @@ namespace ZombieLand
 
 		// patch to insert our settings page
 		//
-		[HarmonyPatch(typeof(Scenario))]
-		[HarmonyPatch(nameof(Scenario.GetFirstConfigPage))]
-		static class Scenario_GetFirstConfigPage_Patch
+		[HarmonyPatch(typeof(PageUtility))]
+		[HarmonyPatch(nameof(PageUtility.StitchedPages))]
+		static class PageUtility_StitchedPages_Patch
 		{
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			static void Prefix(ref List<Page> pages)
 			{
-				var found = false;
-				foreach (var instruction in instructions)
-				{
-					var constructorInfo = instruction.operand as ConstructorInfo;
-					var constructorName = constructorInfo?.DeclaringType.Name ?? "";
-
-					if (constructorName == "Page_SelectLandingSite" || constructorName == "Page_SelectStartingSite")
-					{
-						yield return new CodeInstruction(OpCodes.Newobj, AccessTools.Constructor(typeof(Dialog_Settings)));
-						yield return new CodeInstruction(OpCodes.Callvirt, AccessTools.Method(typeof(List<Page>), nameof(List<Page>.Add)));
-						yield return new CodeInstruction(OpCodes.Ldloc_0);
-						found = true;
-					}
-					yield return instruction;
-				}
-
-				if (!found)
-					Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
+				pages.Insert(1, new Dialog_Settings());
 			}
 		}
 
