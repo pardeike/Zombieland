@@ -107,7 +107,7 @@ namespace ZombieLand
 			GUI.color = color;
 		}
 
-		public static void Dialog_Checkbox(this Listing_Standard list, string labelId, ref bool forBool, bool skipTranslation = false, bool disabled = false)
+		public static void Dialog_Checkbox(this Listing_Standard list, string labelId, ref bool forBool, bool skipTranslation = false, bool disabled = false, string tooltip = null)
 		{
 			list.Gap(2f);
 
@@ -115,10 +115,14 @@ namespace ZombieLand
 			var indent = 24 + "_".GetWidthCached();
 			var height = Math.Max(Text.LineHeight, Text.CalcHeight(label, list.ColumnWidth - indent));
 
-			list.Help(labelId, height);
+			if (tooltip == null)
+				list.Help(labelId, height);
 
 			var rect = list.GetRect(height);
 			rect.xMin += inset;
+
+			if (tooltip != null)
+				TooltipHandler.TipRegion(rect, tooltip);
 
 			var oldValue = forBool;
 			var butRect = rect;
@@ -407,6 +411,7 @@ namespace ZombieLand
 		public static int exampleZombieCount = 1;
 		public static void ExplainSafeMelee(this Listing_Standard list, int safeMeleeLimit)
 		{
+			var savedFont = Text.Font;
 			Text.Font = GameFont.Tiny;
 			var chance = Mathf.FloorToInt(100f * exampleMeleeSkill * Mathf.Max(0, safeMeleeLimit - exampleZombieCount + 1) / 20f);
 			var text = "SafeMeleeExample".Translate(exampleMeleeSkill, exampleZombieCount, chance).Resolve();
@@ -452,6 +457,7 @@ namespace ZombieLand
 
 			list.curX = 0;
 			list.Gap(12);
+			Text.Font = savedFont;
 		}
 
 		public static bool Section<T>(params string[] term)

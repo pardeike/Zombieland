@@ -100,6 +100,9 @@
 	<CorpsesDaysToDessicated>Zombi cesetleri yok olana kadar saatler</CorpsesDaysToDessicated>
 	<ExtractZombieArea>Ayıklamayı belirli bir alanla sınırla</ExtractZombieArea>
 	<Everywhere>Her yerde</Everywhere>
+	<BlacklistedApparel>Kara listeye alınmış giysiler</BlacklistedApparel>
+	<SelectAll>Tümünü Seçin</SelectAll>
+	<DeselectAll>Tümünün Seçimini Kaldır</DeselectAll>
 
 	<ZombieInstinctTitle>Zombi duyuları</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Sınırlı</ZombieInstinct_Dull>

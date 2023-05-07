@@ -19,7 +19,7 @@ namespace ZombieLand
 			var secondColumnWidth = inRect.width - Listing.ColumnSpacing - firstColumnWidth;
 
 			var outerRect = new Rect(inRect.x, inRect.y, firstColumnWidth, inRect.height);
-			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, 3460);
+			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, 3600);
 
 			outerRect = DialogTimeHeader.Draw(ref settingsOverTime, outerRect);
 
@@ -169,6 +169,7 @@ namespace ZombieLand
 					list.Dialog_Integer("MaximumNumberOfZombies", "Zombies", 0, 5000, ref settings.maximumNumberOfZombies);
 					list.Gap(12f);
 					list.Dialog_FloatSlider("ColonyMultiplier", _ => "{0:0.0}x", false, ref settings.colonyMultiplier, 0.1f, 10f);
+					list.Gap(24f);
 				}
 
 				if (DialogExtensions.Section<string>(":DynamicThreatLevelTitle", ":UseDynamicThreatLevel", ":DynamicThreatSmoothness", ":DynamicThreatStretch", ":ZombiesDieOnZeroThreat"))
@@ -259,7 +260,7 @@ namespace ZombieLand
 				}
 
 				// Zombie loot
-				if (DialogExtensions.Section<string>(":ZombieHarvestingTitle", ":CorpsesExtractAmount", ":LootExtractAmount", ":CorpsesDaysToDessicated"))
+				if (DialogExtensions.Section<string>(":ZombieHarvestingTitle", ":CorpsesExtractAmount", ":LootExtractAmount", ":CorpsesDaysToDessicated", ":BlacklistedApparel"))
 				{
 					list.Dialog_Label("ZombieHarvestingTitle", headerColor);
 					list.Gap(8f);
@@ -271,6 +272,8 @@ namespace ZombieLand
 					settings.lootExtractAmount = Mathf.Round(f2 * 100f) / 100f;
 					list.Dialog_TimeSlider("CorpsesDaysToDessicated", ref settings.corpsesHoursToDessicated, 1, 120);
 					list.ChooseExtractArea(settings);
+					var localSettings = settings;
+					list.Dialog_Button("BlacklistedApparel", "Apparel", false, () => Find.WindowStack.Add(new Dialog_ApparelBlacklist(localSettings)));
 					list.Gap(28f);
 				}
 

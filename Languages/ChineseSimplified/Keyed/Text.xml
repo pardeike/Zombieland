@@ -100,6 +100,9 @@
 	<CorpsesDaysToDessicated>直到僵尸尸体消失的小时数</CorpsesDaysToDessicated>
 	<ExtractZombieArea>限制提取区域</ExtractZombieArea>
 	<Everywhere>到处</Everywhere>
+	<BlacklistedApparel>被列入黑名单的服装</BlacklistedApparel>
+	<SelectAll>全部选择</SelectAll>
+	<DeselectAll>取消选择所有</DeselectAll>
 
 	<ZombieInstinctTitle>丧尸的感知</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>受限</ZombieInstinct_Dull>

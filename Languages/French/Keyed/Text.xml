@@ -100,6 +100,9 @@
 	<CorpsesDaysToDessicated>Des heures avant que les cadavres de zombies disparaissent</CorpsesDaysToDessicated>
 	<ExtractZombieArea>Limiter l'extraction à la zone</ExtractZombieArea>
 	<Everywhere>Partout</Everywhere>
+	<BlacklistedApparel>Vêtements sur liste noire</BlacklistedApparel>
+	<SelectAll>Sélectionner tout</SelectAll>
+	<DeselectAll>Désélectionner tout</DeselectAll>
 
 	<ZombieInstinctTitle>Senses des zombies</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>limité</ZombieInstinct_Dull>

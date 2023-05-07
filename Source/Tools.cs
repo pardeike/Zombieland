@@ -142,17 +142,11 @@ namespace ZombieLand
 			return tex;
 		}
 
-		public static string SafeTranslate(this string key)
-		{
-			if (key == null)
-				return "";
-			return key.Translate();
-		}
+		public static string SafeTranslate(this string key) => key?.Translate() ?? "";
 
 		public static string SafeTranslate(this string key, params object[] args)
 		{
-			if (key == null)
-				return "";
+			if (key == null) return "";
 			var namedArgs = args.Select(arg => new NamedArgument(arg, "")).ToArray();
 			return key.Translate(namedArgs);
 		}

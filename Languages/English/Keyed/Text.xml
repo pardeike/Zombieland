@@ -105,6 +105,9 @@
 	<CorpsesDaysToDessicated>Hours until zombie corpses disappear</CorpsesDaysToDessicated>
 	<ExtractZombieArea>Restrict extracting to area</ExtractZombieArea>
 	<Everywhere>Everywhere</Everywhere>
+	<BlacklistedApparel>Blacklisted Apparel</BlacklistedApparel>
+	<SelectAll>Select All</SelectAll>
+	<DeselectAll>Deselect All</DeselectAll>
 
 	<ZombieInstinctTitle>Zombie senses</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Limited</ZombieInstinct_Dull>
@@ -235,5 +238,6 @@
 	<ChainsawDescFuel> with {0}% fuel</ChainsawDescFuel>
 	<ChainsawDescNoFuel> with no fuel</ChainsawDescNoFuel>
 	<ChainsawDescBlockingChance> blocking {0}% of incoming attacks</ChainsawDescBlockingChance>
+
 
 </LanguageData>

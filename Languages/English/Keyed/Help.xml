@@ -99,7 +99,8 @@
 	<LootExtractAmount_Help>Make zombies drop their apparel by chance. Zombies can wear any apparel that exists in your game with all its mods. This defines the chance and amount of dropped apparel (100% = 1 item)</LootExtractAmount_Help>
 	<CorpsesDaysToDessicated_Help>Zombie corpses will usually dessicate quickly so you don't end up with too many of them. To make collecting extract easier, you can increase the time before they disappear.</CorpsesDaysToDessicated_Help>
 	<ExtractZombieArea_Help>Extraction from zombies can be dangerous. Use this feature to restrict the activity to one of your areas. If you rename the area, you need to update it here. Manually ordered extraction will always work.</ExtractZombieArea_Help>
-
+	<Apparel_Help>Don't want your zombies to wear some apparel? Blacklist it here by checking its checkbox in the dialog.\n\nGood if some modded apparel causes errors or just for more control.</Apparel_Help>
+	
 	<!-- -->
 
 	<ZombieInstinctTitle_Help>Zombie sense their pray via sound and smell. They also act like a flock in certain situations. This setting allows you to define how far those senses reach</ZombieInstinctTitle_Help>

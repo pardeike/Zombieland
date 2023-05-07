@@ -390,16 +390,20 @@ namespace ZombieLand
 		public static IEnumerator GenerateStartingApparelFor(Zombie zombie)
 		{
 			var developmentStage = zombie.DevelopmentalStage;
+			var blacklistedApparel = new HashSet<string>(ZombieSettings.Values.blacklistedApparel);
+
 			var possibleApparel = AllApparel[zombie.isMiner][zombie.story.bodyType.defName]
+				.Where(pair => blacklistedApparel.Contains(pair.thing.defName) == false)
 				.Where(pair => pair.thing.apparel.developmentalStageFilter.Has(developmentStage));
 			if (possibleApparel.Any())
 			{
 				var tries = developmentStage == DevelopmentalStage.Child ? Rand.Range(0, 1) : Rand.Range(0, 4);
+				var f = Tools.Difficulty();
 				for (var i = 0; i < tries; i++)
 				{
-					var pair = possibleApparel.SafeRandomElement();
+					var pair = possibleApparel.RandomElementByWeight(pair => f * pair.thing.BaseMaxHitPoints);
 					var apparel = (Apparel)ThingMaker.MakeThing(pair.thing, pair.stuff);
-					apparel.wornByCorpseInt = Tools.Difficulty() >= 2f;
+					apparel.wornByCorpseInt = f >= 2f;
 					yield return null;
 					PawnGenerator.PostProcessGeneratedGear(apparel, zombie);
 					yield return null;
