@@ -741,11 +741,19 @@ namespace ZombieLand
 
 		public static void AddZombieInfection(Pawn pawn)
 		{
-			if (pawn is Zombie || pawn.InfectionState() == InfectionState.Infected)
+			if (pawn == null || pawn is Zombie || pawn.InfectionState() == InfectionState.Infected)
+				return;
+
+			if (pawn.health?.hediffSet == null)
 				return;
 
 			var torso = pawn.health.hediffSet.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined, null, null).FirstOrDefault((BodyPartRecord x) => x.def == BodyPartDefOf.Torso);
+			if (torso == null)
+				return;
+			
 			var bite = (Hediff_Injury_ZombieBite)HediffMaker.MakeHediff(HediffDef.Named("ZombieBite"), pawn, torso);
+			if (bite == null)
+				return;
 
 			bite.mayBecomeZombieWhenDead = true;
 			var damageInfo = new DamageInfo(CustomDefs.ZombieBite, 0);
