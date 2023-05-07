@@ -8,6 +8,7 @@ using System.Reflection;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Verse.Noise;
 using static ZombieLand.Patches;
 
 namespace ZombieLand
@@ -397,13 +398,19 @@ namespace ZombieLand
 				.Where(pair => pair.thing.apparel.developmentalStageFilter.Has(developmentStage));
 			if (possibleApparel.Any())
 			{
+				var difficulty = Tools.Difficulty();
+				var minHitpoints = possibleApparel.Min(pair => pair.thing.BaseMaxHitPoints);
+				var maxHitpoints = possibleApparel.Max(pair => pair.thing.BaseMaxHitPoints);
+				var filterWidth = (maxHitpoints + minHitpoints) / 2 - minHitpoints;
+				var filterStart = GenMath.LerpDoubleClamped(0f, 5f, minHitpoints - filterWidth, maxHitpoints, Tools.Difficulty());
+				var filterEnd = filterStart + filterWidth;
 				var tries = developmentStage == DevelopmentalStage.Child ? Rand.Range(0, 1) : Rand.Range(0, 4);
-				var f = Tools.Difficulty();
 				for (var i = 0; i < tries; i++)
 				{
-					var pair = possibleApparel.RandomElementByWeight(pair => f * pair.thing.BaseMaxHitPoints);
+					var pair = possibleApparel.Where(a => a.thing.BaseMaxHitPoints >= filterStart && a.thing.BaseMaxHitPoints <= filterEnd).SafeRandomElement();
+					if (pair == null) continue;
 					var apparel = (Apparel)ThingMaker.MakeThing(pair.thing, pair.stuff);
-					apparel.wornByCorpseInt = f >= 2f;
+					apparel.wornByCorpseInt = difficulty >= 2f;
 					yield return null;
 					PawnGenerator.PostProcessGeneratedGear(apparel, zombie);
 					yield return null;
