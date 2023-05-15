@@ -131,7 +131,7 @@ namespace ZombieLand
 		{
 			amount = amount,
 			unit = unit,
-			values = values.Clone() as SettingsGroup
+			values = values.MakeCopy()
 		};
 	}
 
@@ -250,10 +250,8 @@ namespace ZombieLand
 		public int minerIntChance = 1;
 		public int electrifierIntChance = 1;
 
-		public object Clone()
-		{
-			return MemberwiseClone();
-		}
+		public object Clone() => MemberwiseClone();
+		public SettingsGroup MakeCopy() => Clone() as SettingsGroup;
 
 		public void ExposeData()
 		{
@@ -320,28 +318,6 @@ namespace ZombieLand
 				Tools.UpdateBiomeBlacklist(biomesWithoutZombies);
 			}
 		}
-
-		public void Reset()
-		{
-			if (Current.ProgramState == ProgramState.Playing)
-			{
-				ZombieSettings.Values = ZombieSettingsDefaults.group;
-				ZombieSettings.ValuesOverTime = new(ZombieSettingsDefaults.groupOverTime);
-				SettingsDialog.scrollPosition = Vector2.zero;
-				DialogExtensions.shouldFocusNow = DialogExtensions.searchWidget.controlName;
-				DialogExtensions.searchWidget.Reset();
-				return;
-			}
-
-			var type = GetType();
-			var defaults = Activator.CreateInstance(type);
-			AccessTools.GetFieldNames(this).Do(name =>
-			{
-				var finfo = AccessTools.Field(type, name);
-				finfo.SetValue(this, finfo.GetValue(defaults));
-			});
-			SettingsDialog.scrollPosition = Vector2.zero;
-		}
 	}
 
 	class ZombieSettingsDefaults : ModSettings
@@ -349,11 +325,10 @@ namespace ZombieLand
 		public static SettingsGroup group;
 		public static List<SettingsKeyFrame> groupOverTime;
 
-		public static SettingsGroup Defaults()
+		public static void Defaults()
 		{
-			group ??= new SettingsGroup();
-			groupOverTime ??= new() { new SettingsKeyFrame() { values = group.Clone() as SettingsGroup } };
-			return group.Clone() as SettingsGroup;
+			group = (new SettingsGroup()).MakeCopy();
+			groupOverTime = new() { new SettingsKeyFrame() { values = group.MakeCopy()  } };
 		}
 
 		public static void DoWindowContents(Rect inRect)
@@ -361,7 +336,14 @@ namespace ZombieLand
 			var idx = DialogTimeHeader.selectedKeyframe;
 			var ticks = DialogTimeHeader.currentTicks;
 			if (idx != -1)
+			{
+				if (idx >= groupOverTime.Count)
+				{
+					DialogTimeHeader.selectedKeyframe = 0;
+					idx = 0;
+				}
 				SettingsDialog.DoWindowContentsInternal(ref groupOverTime[idx].values, ref groupOverTime, inRect);
+			}
 			else
 			{
 				var settings = ZombieSettings.CalculateInterpolation(groupOverTime, ticks);
@@ -377,15 +359,22 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 			group ??= new SettingsGroup();
+			groupOverTime ??= new() { new SettingsKeyFrame() { values = group.MakeCopy() } };
 			Scribe_Deep.Look(ref group, "defaults", Array.Empty<object>());
-			Scribe_Collections.Look(ref groupOverTime, "defaultsOverTime", LookMode.Deep);
+			Scribe_Collections.Look(ref groupOverTime, "defaultsOverTime", LookMode.Deep, Array.Empty<object>());
 		}
 	}
 
 	class ZombieSettings : WorldComponent
 	{
-		public static SettingsGroup Values = ZombieSettingsDefaults.Defaults();
-		public static List<SettingsKeyFrame> ValuesOverTime = new() { new SettingsKeyFrame() { values = Values.Clone() as SettingsGroup } };
+		public static SettingsGroup Values;
+		public static List<SettingsKeyFrame> ValuesOverTime;
+
+		static ZombieSettings()
+		{
+			Values = ZombieSettingsDefaults.group;
+			ValuesOverTime = ZombieSettingsDefaults.groupOverTime;
+		}
 
 		public ZombieSettings(World world) : base(world)
 		{
@@ -393,8 +382,8 @@ namespace ZombieLand
 
 		public static void ApplyDefaults()
 		{
-			ZombieSettings.ValuesOverTime = new(ZombieSettingsDefaults.groupOverTime);
-			ZombieSettings.Values = ZombieSettings.CalculateInterpolation(ZombieSettings.ValuesOverTime, 0);
+			ValuesOverTime = new(ZombieSettingsDefaults.groupOverTime);
+			Values = CalculateInterpolation(ValuesOverTime, 0);
 			SettingsDialog.scrollPosition = Vector2.zero;
 		}
 
@@ -403,10 +392,10 @@ namespace ZombieLand
 		{
 			var n = settingsOverTime.Count;
 			if (n == 1)
-				return settingsOverTime[0].values.Clone() as SettingsGroup;
+				return settingsOverTime[0].values.MakeCopy();
 			var upperIndex = settingsOverTime.FirstIndexOf(key => key.Ticks > ticks);
 			if (upperIndex == -1)
-				return settingsOverTime.Last().values.Clone() as SettingsGroup;
+				return settingsOverTime.Last().values.MakeCopy();
 			var lowerFrame = settingsOverTime[upperIndex - 1];
 			var upperFrame = settingsOverTime[upperIndex];
 			var lowerTicks = lowerFrame.Ticks;

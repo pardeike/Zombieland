@@ -46,8 +46,8 @@ namespace ZombieLand
 			var vOffset = inRect.yMin;
 			var width = (int)inRect.width - 26; // scrollbar space
 			var n = settingsOverTime.Count;
-			if (n == 1 && selectedKeyframe == -1)
-				selectedKeyframe = 0;
+			if (selectedKeyframe >= n)
+				selectedKeyframe = n - 1;
 
 			var availableWidth = width - labelWidth * n;
 			var spacing = n == 1 ? 0 : availableWidth / (n - 1);

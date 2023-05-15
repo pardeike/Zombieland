@@ -311,17 +311,7 @@ namespace ZombieLand
 
 			public PawnProps(Pawn pawn)
 			{
-				valid = pawn != null
-					&& pawn.Spawned
-					&& pawn.Dead == false
-					&& pawn.health.Downed == false
-					&& (pawn is Zombie) == false
-					&& pawn.RaceProps.IsFlesh
-					&& AlienTools.IsFleshPawn(pawn)
-					&& SoSTools.IsHologram(pawn) == false
-					&& pawn.InfectionState() < InfectionState.Infecting
-					&& (ZombieSettings.Values.attackMode != AttackMode.OnlyColonists || (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists && pawn.IsColonist))
-					&& (ZombieSettings.Values.attackMode == AttackMode.OnlyHumans == false || pawn.RaceProps.Humanlike);
+				valid = Customization.DoesAttractsZombies(pawn);
 				position = pawn?.Position ?? IntVec3.Invalid;
 			}
 		}

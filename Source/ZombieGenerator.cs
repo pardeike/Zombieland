@@ -8,7 +8,6 @@ using System.Reflection;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using Verse.Noise;
 using static ZombieLand.Patches;
 
 namespace ZombieLand

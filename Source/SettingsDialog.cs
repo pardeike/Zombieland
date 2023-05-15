@@ -8,6 +8,7 @@ namespace ZombieLand
 {
 	static class SettingsDialog
 	{
+		public static readonly float totalEstimatedHeight = 3700f;
 		public static Vector2 scrollPosition = Vector2.zero;
 
 		public static void DoWindowContentsInternal(ref SettingsGroup settings, ref List<SettingsKeyFrame> settingsOverTime, Rect inRect)
@@ -19,7 +20,7 @@ namespace ZombieLand
 			var secondColumnWidth = inRect.width - Listing.ColumnSpacing - firstColumnWidth;
 
 			var outerRect = new Rect(inRect.x, inRect.y, firstColumnWidth, inRect.height);
-			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, 3600);
+			var innerRect = new Rect(0f, 0f, firstColumnWidth - 24f, totalEstimatedHeight);
 
 			outerRect = DialogTimeHeader.Draw(ref settingsOverTime, outerRect);
 
@@ -27,7 +28,6 @@ namespace ZombieLand
 
 			DialogExtensions.ResetHelpItem();
 			var headerColor = Color.yellow;
-			var inGame = Current.Game != null && Current.ProgramState == ProgramState.Playing;
 
 			var list = new Listing_Standard();
 			list.Begin(innerRect);
@@ -304,8 +304,9 @@ namespace ZombieLand
 				{
 					list.Dialog_Label("ZombieActionsTitle", headerColor);
 					list.Gap(8f);
-					list.Dialog_Button("ZombieSettingsReset", "ResetButton", false, settings.Reset);
-					if (inGame)
+					var resetTitle = Tools.OnMainScreen() ? "FactoryResetButton" : "ResetButton";
+					list.Dialog_Button("ZombieSettingsReset", resetTitle, false, Tools.ResetSettings);
+					if (Current.ProgramState == ProgramState.Playing)
 						list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Dialog_SaveThenUninstall.Run);
 				}
 			}
@@ -376,7 +377,7 @@ namespace ZombieLand
 				DialogExtensions.shouldFocusNow = null;
 			}
 
-			if (Current.ProgramState == ProgramState.Playing)
+			if (Tools.OnMainScreen() == false)
 			{
 				var ticks = Find.TickManager.TicksGame;
 				ZombieSettings.Values = ZombieSettings.CalculateInterpolation(ZombieSettings.ValuesOverTime, ticks);

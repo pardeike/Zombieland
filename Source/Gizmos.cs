@@ -19,12 +19,14 @@ namespace ZombieLand
 			var autoAvoidZombies = config.autoAvoidZombies;
 			var description = autoAvoidZombies ? "AutoAvoidZombiesEnabledDescription" : "AutoAvoidZombiesDisabledDescription";
 
+			var doesAttract = Customization.DoesAttractsZombies(pawn);
 			return new Command_Action
 			{
+				disabled = doesAttract == false,
 				defaultDesc = description.Translate(),
-				icon = autoAvoidZombies ? AvoidingEnabled : AvoidingDisabled,
+				icon = autoAvoidZombies && doesAttract ? AvoidingEnabled : AvoidingDisabled,
 				activateSound = autoAvoidZombies ? SoundDefOf.Designate_ZoneAdd : SoundDefOf.Designate_ZoneDelete,
-				action = config.ToggleAutoAvoidZombies
+				action = doesAttract ? config.ToggleAutoAvoidZombies : null
 			};
 		}
 

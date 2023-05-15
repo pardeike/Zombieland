@@ -73,6 +73,9 @@ namespace ZombieLand
 				|| parent.Part.def == null)
 				return;
 
+			if (Customization.CannotBecomeZombie(pawn))
+				return;
+
 			if (parent.Part.def.IsSolid(parent.Part, pawn.health.hediffSet.hediffs))
 				return;
 			if (pawn.health.hediffSet.PartOrAnyAncestorHasDirectlyAddedParts(parent.Part))

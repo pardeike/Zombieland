@@ -87,6 +87,8 @@ namespace ZombieLand
 			LongEventHandler.ExecuteWhenFinished(() =>
 			{
 				_ = GetSettings<ZombieSettingsDefaults>();
+				if (ZombieSettingsDefaults.group == null)
+					Tools.ResetSettings();
 				IsLoadingDefaults = false;
 			});
 

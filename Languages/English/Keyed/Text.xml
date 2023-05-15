@@ -153,6 +153,7 @@
 
 	<ZombieActionsTitle>Actions</ZombieActionsTitle>
 	<ZombieSettingsReset>Restore default settings</ZombieSettingsReset>
+	<FactoryResetButton>Factory Reset</FactoryResetButton>
 	<ResetButton>Reset</ResetButton>
 	<UninstallZombieland>Remove Zombieland from current game</UninstallZombieland>
 	<ConfirmUninstallZombieland>If you continue, you can choose a new save file name and you will return to the main menu after the game is saved. The new save can be loaded without Zombieland.\n\nDo you really want to remove all Zombieland content from the current game?</ConfirmUninstallZombieland>

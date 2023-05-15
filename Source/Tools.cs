@@ -99,6 +99,27 @@ namespace ZombieLand
 					.Do(meal => meal.graphicInt = null);
 		}
 
+		public static bool OnMainScreen() => Current.Game == null;
+
+		public static void ResetSettings()
+		{
+			if (OnMainScreen())
+			{
+				ZombieSettingsDefaults.group = new();
+				ZombieSettingsDefaults.groupOverTime = new() { new() { values = ZombieSettingsDefaults.group.MakeCopy() } };
+			}
+			else
+			{
+				ZombieSettings.Values = ZombieSettingsDefaults.group.MakeCopy();
+				ZombieSettings.ValuesOverTime = ZombieSettingsDefaults.groupOverTime.Select(kf => kf.Copy()).ToList();
+			}
+
+			SettingsDialog.scrollPosition = Vector2.zero;
+			DialogTimeHeader.Reset();
+			DialogExtensions.shouldFocusNow = DialogExtensions.searchWidget.controlName;
+			DialogExtensions.searchWidget.Reset();
+		}
+
 		public static bool IsBroken(this Thing t)
 		{
 			var compBreakable = t.TryGetComp<CompBreakable>();
@@ -278,10 +299,7 @@ namespace ZombieLand
 			if (pawn == null)
 				return ZombieSettings.Values.betterZombieAvoidance;
 
-			if (pawn is Zombie || pawn.RaceProps.Humanlike == false)
-				return false;
-
-			if (pawn.InfectionState() == InfectionState.Infecting)
+			if (Customization.DoesAttractsZombies(pawn) == false)
 				return false;
 
 			if (pawn.IsColonist == false)
@@ -522,6 +540,9 @@ namespace ZombieLand
 				|| pawn.RaceProps.IsFlesh == false
 				|| AlienTools.IsFleshPawn(pawn) == false
 				|| SoSTools.IsHologram(pawn))
+				return;
+
+			if (Customization.CannotBecomeZombie(pawn))
 				return;
 
 			var wasPlayer = pawn.Faction?.IsPlayer ?? false;
@@ -806,7 +827,7 @@ namespace ZombieLand
 
 			if (thing is Pawn target)
 			{
-				if (target.Dead || target.health.Downed)
+				if (Customization.DoesAttractsZombies(target) == false)
 					return false;
 				if (target.equipment?.Primary is Chainsaw chainsaw && chainsaw.running && zombie.IsActiveElectric == false)
 					return Rand.Chance(chainsaw.CounterHitChance());

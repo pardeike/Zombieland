@@ -49,6 +49,7 @@ namespace ZombieLand
 			{
 				CETools.Init(harmony);
 				AlienTools.Init();
+				Customization.Init();
 			});
 
 			// for debugging
@@ -2388,7 +2389,7 @@ namespace ZombieLand
 				}
 
 				// leave pheromone trail
-				if (pawn.InfectionState() < InfectionState.Infecting)
+				if (pawn.InfectionState() < InfectionState.Infecting && Customization.DoesAttractsZombies(pawn))
 				{
 					var now = Tools.Ticks();
 					var radius = Tools.RadiusForPawn(pawn);
@@ -4472,32 +4473,41 @@ namespace ZombieLand
 				}
 
 				var pawn = __instance;
+				var raceProps = pawn.RaceProps;
 
-				if (pawn.RaceProps.Humanlike)
+				if (raceProps.Humanlike == false || raceProps.IsFlesh == false)
+					return;
+
+				if (AlienTools.IsFleshPawn(pawn) == false || SoSTools.IsHologram(pawn))
+					return;
+
+				if (Customization.CannotBecomeZombie(pawn))
+					return;
+
+				var hediffSet = pawn.health?.hediffSet;
+				if (hediffSet == null)
+					return;
+
+				// flag zombie bites to be infectious when pawn dies
+				pawn.GetHediffsList<Hediff_Injury_ZombieBite>()
+					.Where(zombieBite => zombieBite.TendDuration.GetInfectionState() >= InfectionState.BittenInfectable)
+					.Do(zombieBite => zombieBite.mayBecomeZombieWhenDead = true);
+
+				// if death means becoming a zombie, install zombie infection
+				if (ZombieSettings.Values.hoursAfterDeathToBecomeZombie > -1)
 				{
-					var hediffSet = pawn.health.hediffSet;
-
-					// flag zombie bites to be infectious when pawn dies
-					pawn.GetHediffsList<Hediff_Injury_ZombieBite>()
-						.Where(zombieBite => zombieBite.TendDuration.GetInfectionState() >= InfectionState.BittenInfectable)
-						.Do(zombieBite => zombieBite.mayBecomeZombieWhenDead = true);
-
-					// if death means becoming a zombie, install zombie infection
-					if (ZombieSettings.Values.hoursAfterDeathToBecomeZombie > -1)
+					try
 					{
-						try
+						var brain = hediffSet.GetBrain();
+						if (brain != null)
 						{
-							var brain = hediffSet.GetBrain();
-							if (brain != null)
-							{
-								var hediff = HediffMaker.MakeHediff(CustomDefs.ZombieInfection, pawn, brain) as Hediff_ZombieInfection;
-								hediff.InitializeExpiringDate();
-								hediffSet.AddDirect(hediff, null, null);
-							}
+							var hediff = HediffMaker.MakeHediff(CustomDefs.ZombieInfection, pawn, brain) as Hediff_ZombieInfection;
+							hediff.InitializeExpiringDate();
+							hediffSet.AddDirect(hediff, null, null);
 						}
-						catch
-						{
-						}
+					}
+					catch
+					{
 					}
 				}
 			}

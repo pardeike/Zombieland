@@ -45,6 +45,9 @@ namespace ZombieLand
 					if (SoSTools.IsHologram(pawn))
 						return null;
 
+					if (Customization.CannotBecomeZombie(pawn))
+						return null;
+
 					_zombieInfector = parent.comps
 						.OfType<HediffComp_Zombie_Infecter>()
 						.FirstOrDefault();

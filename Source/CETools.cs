@@ -151,7 +151,6 @@ namespace ZombieLand
 
 		static bool Prefix(Building_Turret ___turret, ref bool __result)
 		{
-			Log.Warning($"TryReduceAmmoCount {___turret}");
 			if (___turret == null)
 				return true;
 			if (Rand.Chance(ZombieSettings.Values.reducedTurretConsumption))

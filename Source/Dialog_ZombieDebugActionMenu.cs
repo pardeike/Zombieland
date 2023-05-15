@@ -176,6 +176,8 @@ namespace ZombieLand
 
 				var def = HediffDef.Named("ZombieBite");
 				var bite = (Hediff_Injury_ZombieBite)HediffMaker.MakeHediff(def, pawn, bodyPart);
+				if (bite.TendDuration?.ZombieInfector == null)
+					continue;
 
 				bite.mayBecomeZombieWhenDead = true;
 				bite.TendDuration.ZombieInfector.MakeHarmfull();

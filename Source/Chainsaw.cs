@@ -143,10 +143,7 @@ namespace ZombieLand
 			swinging = true;
 			inactiveCounter = 0;
 			if (angle == -1f)
-			{
 				angle = pawn.Rotation.AsAngle;
-				Log.Warning($"angle set to rotation {angle}");
-			}
 
 			var idx = (int)angle / 45;
 			var things = affectedCells[idx].Where(victim => (pawn.DrawPos - victim.DrawPos).MagnitudeHorizontalSquared() <= 2f);
