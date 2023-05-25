@@ -61,7 +61,7 @@ namespace ZombieLand
 
 			// merge settings
 			defaultValues = Current();
-			var settings = Load();
+			var settings = Load() ?? defaultValues;
 			foreach (var newSetting in defaultValues)
 			{
 				if (settings.ContainsKey(newSetting.Key) == false)
