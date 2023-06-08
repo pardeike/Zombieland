@@ -19,8 +19,8 @@ namespace ZombieLand
 
 	public class Customization
 	{
-		private delegate bool CanBecomeZombie(Pawn pawn);
-		private delegate bool AttractsZombies(Pawn pawn);
+		private delegate bool? CanBecomeZombie(Pawn pawn);
+		private delegate bool? AttractsZombies(Pawn pawn);
 
 		private static readonly List<CanBecomeZombie> canBecomeZombieEvaluators = new();
 		private static readonly List<AttractsZombies> attractsZombiesEvaluators = new();
@@ -51,7 +51,15 @@ namespace ZombieLand
 		
 		public static bool CannotBecomeZombie(Pawn pawn)
 		{
-			return canBecomeZombieEvaluators.Count > 0 && canBecomeZombieEvaluators.Any(evaluator => evaluator(pawn) == false);
+			var i = 0;
+			var j = canBecomeZombieEvaluators.Count;
+			while (i < j)
+			{
+				var result = canBecomeZombieEvaluators[i](pawn);
+				if (result == false) return true;
+				i++;
+			}
+			return false;
 		}
 
 		public static bool DoesAttractsZombies(Pawn pawn)
@@ -60,12 +68,25 @@ namespace ZombieLand
 			if (pawn is Zombie) return false;
 			if (pawn.Spawned == false) return false;
 			if (pawn.Dead) return false;
+
+			var i = 0;
+			var j = attractsZombiesEvaluators.Count;
+			while (i < j)
+			{
+				var result = attractsZombiesEvaluators[i](pawn);
+				if (result.HasValue)
+					return result.Value;
+				i++;
+			}
+
 			if (pawn.health.Downed) return false;
 			if (pawn.RaceProps.IsFlesh == false) return false;
-			if (AlienTools.IsFleshPawn(pawn) == false) return false;
-			if (SoSTools.IsHologram(pawn)) return false;
-			if (pawn.InfectionState() >= InfectionState.Infecting) return false;
-			if (attractsZombiesEvaluators.Count > 0 && attractsZombiesEvaluators.Any(evaluator => evaluator(pawn) == false)) return false;
+			if (pawn.RaceProps.Humanlike)
+			{
+				if (AlienTools.IsFleshPawn(pawn) == false) return false;
+				if (SoSTools.IsHologram(pawn)) return false;
+				if (pawn.InfectionState() >= InfectionState.Infecting) return false;
+			}
 			return ZombieSettings.Values.attackMode switch
 			{
 				AttackMode.Everything => true,

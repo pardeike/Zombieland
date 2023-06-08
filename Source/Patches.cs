@@ -298,18 +298,18 @@ namespace ZombieLand
 
 					if (ZombieSettings.Values.useDynamicThreatLevel)
 					{
-						static string Format(float min, float max)
+						static string Format(float f1, float f2)
 						{
-							var n1 = Mathf.FloorToInt(min * 100);
-							var n2 = Mathf.FloorToInt(max * 100);
+							var n1 = Mathf.FloorToInt(f1 * 100);
+							var n2 = Mathf.FloorToInt(f2 * 100);
 							if (n1 == n2)
 								return string.Format("{0:D0}%", n1) + " " + "ThreatLevel".Translate();
 							return string.Format("{0:D0}-{1:D0}%", n1, n2) + " " + "ThreatLevel".Translate();
 						}
 
 						var zombieWeather = map.GetComponent<ZombieWeather>();
-						var (min, max) = zombieWeather.GetFactorRangeFor();
-						var zombieWeatherString = Format(min, max);
+						var (f1, f2) = zombieWeather.GetFactorRangeFor();
+						var zombieWeatherString = Format(f1, f2);
 						var zlRect = new Rect(leftX, curBaseY - 24f, width, 24f);
 						Text.Font = GameFont.Small;
 						var len = Text.CalcSize(zombieWeatherString);
@@ -2632,7 +2632,11 @@ namespace ZombieLand
 		{
 			static void Postfix(List<Pawn> __result)
 			{
-				if (__result == null || Rand.Chance(ZombieSettings.Values.infectedRaidsChance) == false)
+				if (__result == null)
+					return;
+				if (Rand.Chance(ZombieSettings.Values.infectedRaidsChance) == false)
+					return;
+				if (ZombieWeather.GetThreatLevel(__result.FirstOrDefault()?.Map) == 0f)
 					return;
 				__result.DoIf(pawn => pawn.RaceProps.Humanlike, Tools.AddZombieInfection);
 			}
@@ -4928,7 +4932,7 @@ namespace ZombieLand
 					return;
 
 				var rotStage = __instance.GetRotStage();
-				if (rotStage == RotStage.Fresh)
+				if (rotStage == RotStage.Fresh || rotStage == RotStage.Dessicated)
 					return;
 
 				var hasBrain = pawn.health.hediffSet.GetBrain() != null;
@@ -4957,6 +4961,10 @@ namespace ZombieLand
 			{
 				var pawn = __instance.InnerPawn;
 				if (pawn == null || pawn is Zombie || pawn.health == null || pawn.RaceProps.Humanlike == false)
+					return;
+
+				var rotStage = __instance.GetRotStage();
+				if (rotStage == RotStage.Dessicated)
 					return;
 
 				var hasBrain = pawn.health.hediffSet.GetBrain() != null;

@@ -372,6 +372,8 @@ namespace ZombieLand
 
 			if (Rand.Chance(ZombieSettings.Values.infectedRaidsChance) == false)
 				return;
+			if (ZombieWeather.GetThreatLevel(map) == 0f)
+				return;
 
 			var cells = room.Cells.InRandomOrder().Take(cellCount / 10);
 			foreach (var cell in cells)
@@ -829,6 +831,7 @@ namespace ZombieLand
 			{
 				if (Customization.DoesAttractsZombies(target) == false)
 					return false;
+
 				if (target.equipment?.Primary is Chainsaw chainsaw && chainsaw.running && zombie.IsActiveElectric == false)
 					return Rand.Chance(chainsaw.CounterHitChance());
 

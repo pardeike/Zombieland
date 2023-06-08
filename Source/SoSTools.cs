@@ -148,6 +148,8 @@ namespace ZombieLand
 				return;
 			if (Rand.Chance(ZombieSettings.Values.infectedRaidsChance) == false)
 				return;
+			if (ZombieWeather.GetThreatLevel(map) == 0f)
+				return;
 
 			var pawns = lord.ownedPawns.Where(p => p.RaceProps.Humanlike && p?.Faction.IsPlayerSafe() == false).ToList();
 			var turned = pawns.Take(Rand.Range(0, pawns.Count)).ToList();

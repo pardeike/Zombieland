@@ -77,16 +77,26 @@ namespace ZombieLand
 			var d = GenDate.TicksPerDay / 4;
 			t += d / 2;
 			var min = float.MaxValue;
+			var minTicks = -1;
 			var max = float.MinValue;
+			var maxTicks = -1;
 			for (var i = 0; i < 4; i++)
 			{
 				var f = GetFactorForTicks(t, deltaDays);
 				if (f < min)
+				{
 					min = f;
+					minTicks = t;
+				}
 				if (f > max)
+				{
 					max = f;
+					maxTicks = t;
+				}
 				t += d;
 			}
+			if (minTicks != -1 && maxTicks != -1 && minTicks > maxTicks)
+				return (max, min);
 			return (min, max);
 		}
 

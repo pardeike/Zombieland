@@ -10,7 +10,7 @@
 		<OutputPath>..\1.4\Assemblies\</OutputPath>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<Version>4.0.0.1</Version>
+		<Version>4.0.1.0</Version>
 		<Copyright>Copyright © 2017</Copyright>
 		<Configurations>Release;Debug</Configurations>
 	</PropertyGroup>
@@ -45,7 +45,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Brrainz.RimWorld.CrossPromotion" Version="1.0.0" />
+		<PackageReference Include="Brrainz.RimWorld.CrossPromotion" Version="1.1.1" />
 		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.4.3704" GeneratePathProperty="true" />
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" ExcludeAssets="runtime" />
 		<PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.2" />
@@ -94,6 +94,7 @@
 			where ModBuilder 2&gt; nul | find /i "ModBuilder.exe"
 			if not errorlevel 1 (
 			ModBuilder AssemblyVersion -file "$(MSBuildProjectDirectory)\$(OutputPath)\$(AssemblyName).dll" -save "$(MSBuildProjectName)-version"
+			ModBuilder XMLPut -file "$(MSBuildProjectDirectory)\..\About\About.xml" -xpath /ModMetaData/modVersion -value "{{$(MSBuildProjectName)-version}}"
 			ModBuilder XMLPut -file "$(MSBuildProjectDirectory)\..\About\Manifest.xml" -xpath /Manifest/version -value "{{$(MSBuildProjectName)-version}}"
 			)
 			if defined INSTALL_MOD (
