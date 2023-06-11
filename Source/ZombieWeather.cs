@@ -12,7 +12,6 @@ namespace ZombieLand
 	public class ZombieWeather : MapComponent
 	{
 		static readonly Texture2D ForecastBackground = Tools.LoadTexture("Forecast", true);
-		public static int CurrentTicks() => GenTicks.TicksAbs;
 
 		const float p = 3f; // v-stretch
 		float f1 = 1, f2 = 2, f3 = 3, f4 = 4;
@@ -45,16 +44,23 @@ namespace ZombieLand
 
 		public static float GetThreatLevel(Map map)
 		{
-			return ZombieSettings.Values.useDynamicThreatLevel ? (map?.GetComponent<ZombieWeather>()?.GetFactorFor(0) ?? 1f) : 1f;
+			return ZombieSettings.Values.useDynamicThreatLevel 
+				? map?.GetComponent<ZombieWeather>()?.GetFactorForTicks(GenTicks.TicksAbs) ?? 1f
+				: 1f;
 		}
 
-		public float GetFactorForTicks(int ticks, int deltaDays = 0)
+		public float GetFactorForTicks(int t)
 		{
-			if ((ticks - GenTicks.TicksAbs + GenTicks.TicksGame) / (float)GenDate.TicksPerDay <= ZombieSettings.Values.daysBeforeZombiesCome)
+			var ticks = t - GenTicks.TicksAbs + GenTicks.TicksGame;
+			if (ticks / (float)GenDate.TicksPerDay <= ZombieSettings.Values.daysBeforeZombiesCome)
 				return 0f;
 
-			var currentDay = ticks / (float)GenDate.TicksPerDay;
-			var x = currentDay + deltaDays;
+			var tm = map.GetComponent<TickManager>();
+			if (tm.NewMapZombieDelay(ticks))
+				return 0f;
+
+			var currentDay = t / (float)GenDate.TicksPerDay;
+			var x = currentDay;
 			var m = ZombieSettings.Values.dynamicThreatSmoothness;
 			var n = ZombieSettings.Values.dynamicThreatStretch;
 			var val = 0
@@ -65,14 +71,9 @@ namespace ZombieLand
 			return Mathf.Clamp01((Tools.Difficulty() / 2f + val) / p);
 		}
 
-		public float GetFactorFor(int deltaDays)
+		public (float, float) GetFactorRangeFor()
 		{
-			return GetFactorForTicks(CurrentTicks(), deltaDays);
-		}
-
-		public (float, float) GetFactorRangeFor(int deltaDays = 0)
-		{
-			var t = CurrentTicks();
+			var t = GenTicks.TicksAbs;
 			t -= t % GenDate.TicksPerDay;
 			var d = GenDate.TicksPerDay / 4;
 			t += d / 2;
@@ -82,7 +83,7 @@ namespace ZombieLand
 			var maxTicks = -1;
 			for (var i = 0; i < 4; i++)
 			{
-				var f = GetFactorForTicks(t, deltaDays);
+				var f = GetFactorForTicks(t);
 				if (f < min)
 				{
 					min = f;
@@ -100,18 +101,7 @@ namespace ZombieLand
 			return (min, max);
 		}
 
-		public float GetAverageFor(int deltaStartDay, int deltaEndDay)
-		{
-			var t = CurrentTicks();
-			t -= t % GenDate.TicksPerDay;
-			t += GenDate.TicksPerDay / 2;
-			var sum = 0f;
-			for (var i = deltaStartDay; i <= deltaEndDay; i++)
-				sum += GetFactorForTicks(t, i);
-			return sum / (deltaEndDay - deltaStartDay + 1);
-		}
-
-		public static Action GeneateTooltipDrawer(Rect rect)
+		public static Action GenerateTooltipDrawer(Rect rect)
 		{
 			const float g = 40f;
 			static Rect R(int x1, int y1, int x2, int y2) => new(g * x1, g * y1, g * (x2 - x1), g * (y2 - y1));
@@ -123,7 +113,7 @@ namespace ZombieLand
 				if (weather == null)
 					return;
 				var r = new Rect(0, 0, 3, 3);
-				var ticks = CurrentTicks();
+				var currentTicks = GenTicks.TicksAbs;
 
 				Text.Font = GameFont.Tiny;
 				GUI.color = Color.white;
@@ -163,7 +153,7 @@ namespace ZombieLand
 				Widgets.DrawLineHorizontal(g * 2, g * 2, g * 15);
 				GUI.color = Color.white;
 
-				var dayStart = ticks;
+				var dayStart = currentTicks;
 				var tpd = GenDate.TicksPerDay;
 				dayStart -= dayStart % tpd;
 				for (var x = 0; x < 15 * g; x++)
@@ -176,9 +166,9 @@ namespace ZombieLand
 				}
 
 				GUI.color = Color.magenta;
-				var dx = (ticks % tpd) * g / tpd;
+				var dx = (currentTicks % tpd) * g / tpd;
 				Widgets.DrawLineVertical(dx + g * 2, g * 1 - 2, g * 2 + 6);
-				var currentFactor = Mathf.FloorToInt(weather.GetFactorFor(0) * 100);
+				var currentFactor = Mathf.FloorToInt(weather.GetFactorForTicks(currentTicks) * 100);
 				Text.Anchor = TextAnchor.MiddleLeft;
 				Widgets.Label(new Rect(dx + g * 2 + 2, g * 1 - 16, 45, 16), string.Format("{0:D0}%", currentFactor));
 				GUI.color = Color.white;
@@ -196,7 +186,7 @@ namespace ZombieLand
 				Widgets.Label(R(0, 6, 2, 7), "0%");
 
 				Text.Anchor = TextAnchor.MiddleCenter;
-				var labels = new[] { GenDate.Season(ticks, Find.WorldGrid.LongLatOf(map.Tile)).ToString(), "+1", "+2", "+3", "+4" };
+				var labels = new[] { GenDate.Season(currentTicks, Find.WorldGrid.LongLatOf(map.Tile)).ToString(), "+1", "+2", "+3", "+4" };
 				for (var i = 0; i < labels.Length; i++)
 					Widgets.Label(R(2 + i * 3, 7, 5 + i * 3, 8), labels[i]);
 
@@ -207,7 +197,7 @@ namespace ZombieLand
 				Widgets.DrawLineHorizontal(g * 2, g * 6, g * 15);
 
 				GUI.color = Color.gray;
-				var qStart = ticks;
+				var qStart = currentTicks;
 				var tpq = GenDate.TicksPerQuadrum;
 				qStart -= qStart % tpq;
 				var buffer = new float[8];
@@ -235,7 +225,7 @@ namespace ZombieLand
 				Widgets.DrawLineVertical(g * 14, g * 5 - 2, g * 2 + 4);
 
 				GUI.color = Color.magenta;
-				dx = (ticks % tpq) * 3 * g / tpq;
+				dx = (currentTicks % tpq) * 3 * g / tpq;
 				Widgets.DrawLineVertical(dx + g * 2, g * 5 - 4, g * 2 + 6);
 				GUI.color = Color.white;
 

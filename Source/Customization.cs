@@ -80,9 +80,9 @@ namespace ZombieLand
 			}
 
 			if (pawn.health.Downed) return false;
-			if (pawn.RaceProps.IsFlesh == false) return false;
 			if (pawn.RaceProps.Humanlike)
 			{
+				if (pawn.RaceProps.IsFlesh == false) return false;
 				if (AlienTools.IsFleshPawn(pawn) == false) return false;
 				if (SoSTools.IsHologram(pawn)) return false;
 				if (pawn.InfectionState() >= InfectionState.Infecting) return false;

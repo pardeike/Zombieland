@@ -143,7 +143,19 @@ namespace ZombieLand
 
 		double Days()
 		{
-			return Math.Round(ZombieSettings.Values.daysBeforeZombiesCome - GenDate.DaysPassedFloat, 1);
+			var days = Math.Round(ZombieSettings.Values.daysBeforeZombiesCome - GenDate.DaysPassedFloat, 1);
+			if (days <= 0)
+			{
+				var tm = Find.CurrentMap?.GetComponent<TickManager>();
+				if (tm != null)
+				{
+					var ticksDelay = Tools.NewMapZombieTicksDelay() - (GenDate.TicksGame - tm.mapSpawnedTicks);
+					if (ticksDelay > 0)
+						days = ticksDelay / GenDate.TicksPerDay;
+				}
+			}
+
+			return days;
 		}
 	}
 }

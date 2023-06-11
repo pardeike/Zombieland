@@ -26,6 +26,7 @@ namespace ZombieLand
 				{
 					try { _ = Monitor.Wait(queue); }
 					catch (ThreadInterruptedException) { Thread.Sleep(100); }
+					catch (ThreadAbortException) { Thread.Sleep(100); }
 				}
 
 				if (overwritePredicate == null)
@@ -55,6 +56,7 @@ namespace ZombieLand
 
 					try { _ = Monitor.Wait(queue); }
 					catch (ThreadInterruptedException) { Thread.Sleep(100); }
+					catch (ThreadAbortException) { Thread.Sleep(100); }
 				}
 
 				var item = queue[0];

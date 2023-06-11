@@ -76,6 +76,7 @@ namespace ZombieLand
 		public IntVec3 nextCenterOfInterest = IntVec3.Invalid;
 		public int centerOfInterestUpdateTicks = 0;
 		public int currentColonyPoints;
+		public int mapSpawnedTicks = 0;
 
 		public HashSet<Zombie> allZombiesCached;
 		IEnumerator taskTicker;
@@ -112,6 +113,8 @@ namespace ZombieLand
 			zombiePathing.UpdateRegions();
 
 			currentColonyPoints = 100;
+			mapSpawnedTicks = 0;
+
 			allZombiesCached = new HashSet<Zombie>();
 			allZombieCorpses = new List<ZombieCorpse>();
 
@@ -127,6 +130,12 @@ namespace ZombieLand
 						new Action<object>(DoThreadedSingleTick)
 					});
 			}
+		}
+
+		public override void MapGenerated()
+		{
+			mapSpawnedTicks = GenTicks.TicksGame;
+			base.MapGenerated();
 		}
 
 		public override void FinalizeInit()
@@ -200,6 +209,7 @@ namespace ZombieLand
 			Scribe_Collections.Look(ref allZombiesCached, "prioritizedZombies", LookMode.Reference);
 			Scribe_Collections.Look(ref explosions, "explosions", LookMode.Value);
 			Scribe_Deep.Look(ref incidentInfo, "incidentInfo", Array.Empty<object>());
+			Scribe_Values.Look(ref mapSpawnedTicks, "mapSpawnedTicks");
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
@@ -500,11 +510,20 @@ namespace ZombieLand
 			return ZombieCount() < currentMax;
 		}
 
+		public bool NewMapZombieDelay(int at)
+		{
+			if (mapSpawnedTicks == 0) return false;
+			var ticksDelay = Tools.NewMapZombieTicksDelay();
+			return at - mapSpawnedTicks < ticksDelay;
+		}
+
 		public void IncreaseZombiePopulation()
 		{
 			if (map.IsBlacklisted())
 				return;
 			if (GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome)
+				return;
+			if (NewMapZombieDelay(GenTicks.TicksGame))
 				return;
 			if (ZombieSettings.Values.spawnWhenType == SpawnWhenType.InEventsOnly)
 				return;

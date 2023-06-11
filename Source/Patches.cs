@@ -336,7 +336,7 @@ namespace ZombieLand
 							var winWidth = 720;
 							var winHeight = 320;
 							var bgRect = new Rect(zlRect.xMin - 10 - winWidth, zlRect.yMax - winHeight, winWidth, winHeight);
-							Find.WindowStack.ImmediateWindow(564534346, bgRect, WindowLayer.Super, ZombieWeather.GeneateTooltipDrawer(bgRect.AtZero()), false, false, 1f);
+							Find.WindowStack.ImmediateWindow(564534346, bgRect, WindowLayer.Super, ZombieWeather.GenerateTooltipDrawer(bgRect.AtZero()), false, false, 1f);
 						}
 
 						curBaseY -= zlRect.height;

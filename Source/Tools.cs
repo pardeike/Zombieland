@@ -177,6 +177,12 @@ namespace ZombieLand
 			return 1000L * GenTicks.TicksAbs;
 		}
 
+		public static float NewMapZombieTicksDelay()
+		{
+			var hours = GenMath.LerpDoubleClamped(0f, 5f, 7f, 1f, ZombieSettings.Values.threatScale);
+			return Mathf.FloorToInt(hours * hours * GenDate.TicksPerHour);
+		}
+
 		public static float Difficulty() => ZombieSettings.Values.threatScale; // Find.Storyteller.difficulty.threatScale;
 
 		public static int PheromoneFadeoff()
