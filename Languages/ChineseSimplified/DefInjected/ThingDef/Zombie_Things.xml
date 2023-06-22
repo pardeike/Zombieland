@@ -54,4 +54,7 @@
   <ZombieShocker.label>僵尸惊魂</ZombieShocker.label>
   <ZombieShocker.description>一个适合在房间墙壁上的僵尸控制机。可以从外面启动，使房间里的每一个僵尸在短时间内失去意识。</ZombieShocker.description>
 
+  <Thumper.label>僵尸踩踏器</Thumper.label>
+  <ZombieShocker.description>一个吸引僵尸的跺脚器。使用燃料，每次攻击对环境造成破坏。</ZombieShocker.description>
+
 </LanguageData>

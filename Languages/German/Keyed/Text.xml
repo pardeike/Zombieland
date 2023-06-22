@@ -234,4 +234,12 @@
 	<ChainsawDescNoFuel> ohne Kraftstoff</ChainsawDescNoFuel>
 	<ChainsawDescBlockingChance> blockiert {0}% der eingehenden Angriffe</ChainsawDescBlockingChance>
 
+	<ThumperControl>Einstellungen</ThumperControl>
+	<ThumperControlDesc>Zum Einstellen von Intensität und Intervall für diesen Zombiestampfer</ThumperControlDesc>
+	<Intensity>Intensität</Intensity>
+	<Interval>Interval</Interval>
+
+	<ToggleStateLabel>An / Aus</ToggleStateLabel>
+	<ToggleStateDesc>Macht das Gerät an und aus.</ToggleStateDesc>
+
 </LanguageData>

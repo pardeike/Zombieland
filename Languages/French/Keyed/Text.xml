@@ -232,6 +232,14 @@
 	<ChainsawDescStalling>Tronçonneuse en panne</ChainsawDescStalling>
 	<ChainsawDescFuel> avec {0}% de carburant</ChainsawDescFuel>
 	<ChainsawDescNoFuel> sans carburant</ChainsawDescNoFuel>
-	<ChainsawDescBlockingChance> bloquant {0}% des attaques entrantes</ChainsawDescBlockingChance>.
+	<ChainsawDescBlockingChance> bloquant {0}% des attaques entrantes</ChainsawDescBlockingChance>
+
+	<ThumperControl>Paramètres</ThumperControl>
+	<ThumperControlDesc>Définir l'intensité et l'intervalle pour ce Zombie Thumper</ThumperControlDesc>
+	<Intensity>Intensité</Intensity>
+	<Interval>Intervalle</Interval>
+
+	<ToggleStateLabel>Marche / Arrêt</ToggleStateLabel>
+	<ToggleStateDesc>Permet d'allumer ou d'éteindre l'appareil.</ToggleStateDesc>
 
 </LanguageData>

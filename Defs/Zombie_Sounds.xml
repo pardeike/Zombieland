@@ -553,7 +553,7 @@
 			<li>
 				<grains>
 					<li Class="AudioGrain_Clip">
-						<clipPath>chainsaw-idle</clipPath>
+						<clipPath>chainsaw/chainsaw-idle</clipPath>
 					</li>
 				</grains>
 				<volumeRange>
@@ -572,7 +572,7 @@
 			<li>
 				<grains>
 					<li Class="AudioGrain_Clip">
-						<clipPath>chainsaw-start</clipPath>
+						<clipPath>chainsaw/chainsaw-start</clipPath>
 					</li>
 				</grains>
 				<distRange>25~40</distRange>
@@ -588,7 +588,7 @@
 			<li>
 				<grains>
 					<li Class="AudioGrain_Clip">
-						<clipPath>chainsaw-work-start</clipPath>
+						<clipPath>chainsaw/chainsaw-work-start</clipPath>
 					</li>
 				</grains>
 				<distRange>25~40</distRange>
@@ -604,7 +604,7 @@
 			<li>
 				<grains>
 					<li Class="AudioGrain_Clip">
-						<clipPath>chainsaw-work-end</clipPath>
+						<clipPath>chainsaw/chainsaw-work-end</clipPath>
 					</li>
 				</grains>
 				<distRange>25~40</distRange>
@@ -626,7 +626,7 @@
 				<muteWhenPaused>True</muteWhenPaused>
 				<grains>
 					<li Class="AudioGrain_Clip">
-						<clipPath>chainsaw-work-loop</clipPath>
+						<clipPath>chainsaw/chainsaw-work-loop</clipPath>
 					</li>
 				</grains>
 				<distRange>25~40</distRange>
@@ -658,6 +658,127 @@
 					<min>10</min>
 					<max>50</max>
 				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ThumperOperating</defName>
+		<context>MapOnly</context>
+		<sustain>True</sustain>
+		<priorityMode>PrioritizeNearest</priorityMode>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>thumper/thumper-operating</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>30</min>
+					<max>30</max>
+				</volumeRange>
+				<distRange>25~40</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ThumperLiftingStart</defName>
+		<context>MapOnly</context>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>thumper/thumper-lifting-start</clipPath>
+					</li>
+				</grains>
+				<distRange>25~40</distRange>
+				<sustainLoop>False</sustainLoop>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ThumperLifting</defName>
+		<sustain>True</sustain>
+		<context>MapOnly</context>
+		<priorityMode>PrioritizeNearest</priorityMode>
+		<sustainStartSound>ThumperLiftingStart</sustainStartSound>
+		<subSounds>
+			<li>
+				<startDelayRange>2.411</startDelayRange>
+				<muteWhenPaused>True</muteWhenPaused>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>thumper/thumper-lifting-loop</clipPath>
+					</li>
+				</grains>
+				<distRange>25~40</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ThumperConnecting</defName>
+		<context>MapOnly</context>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>thumper/thumper-connecting</clipPath>
+					</li>
+				</grains>
+				<distRange>25~40</distRange>
+				<sustainLoop>False</sustainLoop>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ThumperRelease</defName>
+		<context>MapOnly</context>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>thumper/thumper-release</clipPath>
+					</li>
+				</grains>
+				<distRange>25~40</distRange>
+				<sustainLoop>False</sustainLoop>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ThumperClang</defName>
+		<context>MapOnly</context>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>thumper/thumper-clang</clipPath>
+					</li>
+				</grains>
+				<distRange>25~40</distRange>
+				<sustainLoop>False</sustainLoop>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
+		<defName>ThumperImpact</defName>
+		<context>MapOnly</context>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>thumper/thumper-impact</clipPath>
+					</li>
+				</grains>
+				<distRange>25~40</distRange>
+				<sustainLoop>False</sustainLoop>
 			</li>
 		</subSounds>
 	</SoundDef>

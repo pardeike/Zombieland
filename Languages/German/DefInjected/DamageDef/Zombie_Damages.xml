@@ -13,4 +13,6 @@
 	<ElectricalShock.label>Stromschlag</ElectricalShock.label>
 	<ElectricalShock.deathMessage>{0} wurde durch einen Stromschlag getötet.</ElectricalShock.deathMessage>
 
+	<SeismicWave.label>Seismische Welle</SeismicWave.label>
+
 </LanguageData>

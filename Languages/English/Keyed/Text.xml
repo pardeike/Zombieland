@@ -240,5 +240,12 @@
 	<ChainsawDescNoFuel> with no fuel</ChainsawDescNoFuel>
 	<ChainsawDescBlockingChance> blocking {0}% of incoming attacks</ChainsawDescBlockingChance>
 
+	<ThumperControl>Settings</ThumperControl>
+	<ThumperControlDesc>Define Intensity and Interval for this Zombie Thumper</ThumperControlDesc>
+	<Intensity>Intensity</Intensity>
+	<Interval>Interval</Interval>
 
+	<ToggleStateLabel>On / Off</ToggleStateLabel>
+	<ToggleStateDesc>Turns the device on or off.</ToggleStateDesc>
+	
 </LanguageData>

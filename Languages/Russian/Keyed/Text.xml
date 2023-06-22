@@ -234,4 +234,12 @@
 	<ChainsawDescNoFuel> без топлива</ChainsawDescNoFuel>
 	<ChainsawDescBlockingChance> блокирует {0}% входящих атак</ChainsawDescBlockingChance>
 
+	<ThumperControl>Настройки</ThumperControl>
+	<ThumperControlDesc>Определите интенсивность и интервал для этого "Зомби-тупика</ThumperControlDesc>
+	<Intensity>Интенсивность</Intensity>
+	<Interval>Интервал</Interval>
+
+	<ToggleStateLabel>Вкл / Выкл</ToggleStateLabel>
+	<ToggleStateDesc>Включает или выключает устройство.</ToggleStateDesc>
+
 </LanguageData>

@@ -234,4 +234,12 @@
 	<ChainsawDescNoFuel> 没有燃料</ChainsawDescNoFuel>。
 	<ChainsawDescBlockingChance> 阻挡{0}%的来袭攻击</ChainsawDescBlockingChance>
 
+	<ThumperControl>设置</ThumperControl>
+	<ThumperControlDesc>为这个僵尸跳楼机定义强度和间隔</ThumperControlDesc>
+	<Intensity>强度</Intensity>
+	<Interval>间隔</Interval>
+
+	<ToggleStateLabel>开/关</ToggleStateLabel>
+	<ToggleStateDesc>将设备打开或关闭。</ToggleStateDesc>
+
 </LanguageData>

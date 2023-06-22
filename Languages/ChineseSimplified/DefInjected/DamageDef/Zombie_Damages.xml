@@ -13,4 +13,6 @@
   <ElectricalShock.label>电击</ElectricalShock.label>
   <ElectricalShock.deathMessage>{0}已经被电死了。</ElectricalShock.deathMessage>
 
+  <SeismicWave.label>地震波</SeismicWave.label>
+
 </LanguageData>

@@ -233,4 +233,12 @@
 	<ChainsawDescNoFuel> yakıtsız</ChainsawDescNoFuel>
 	<ChainsawDescBlockingChance> gelen saldırıların {0}%'ını engelleme</ChainsawDescBlockingChance>
 
+	<ThumperControl>Ayarlar</ThumperControl>
+	<ThumperControlDesc>Bu Zombie Thumper için Yoğunluğu ve Aralığı Tanımlayın</ThumperControlDesc>
+	<Intensity>Yoğunluk</Intensity>
+	<Interval>Aralık</Interval>
+
+	<ToggleStateLabel>Açık / Kapalı</ToggleStateLabel>
+	<ToggleStateDesc>Cihazı açar veya kapatır.</ToggleStateDesc>
+
 </LanguageData>

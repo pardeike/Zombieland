@@ -18,6 +18,7 @@ namespace ZombieLand
 		public static DamageDef SuicideBomb;
 		public static DamageDef ToxicSplatter;
 		public static DamageDef ElectricalShock;
+		public static DamageDef SeismicWave;
 		public static SoundDef Bzzt;
 		public static SoundDef ElectricShock;
 		public static SoundDef Hacking;
@@ -41,6 +42,12 @@ namespace ZombieLand
 		public static SoundDef ChainsawStart;
 		public static SoundDef ChainsawWork;
 		public static SoundDef Crush;
+		public static SoundDef ThumperOperating;
+		public static SoundDef ThumperLifting;
+		public static SoundDef ThumperConnecting;
+		public static SoundDef ThumperRelease;
+		public static SoundDef ThumperClang;
+		public static SoundDef ThumperImpact;
 		public static JobDef Stumble;
 		public static JobDef Sabotage;
 		public static JobDef ExtractZombieSerum;
@@ -73,6 +80,7 @@ namespace ZombieLand
 		public static ThingDef BumpMedium;
 		public static ThingDef BumpSmall;
 		public static ThingDef Chainsaw;
+		public static ThingDef Thumper;
 	}
 
 	public class ZombielandMod : Mod

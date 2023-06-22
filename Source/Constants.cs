@@ -352,6 +352,9 @@ namespace ZombieLand
 			ContentFinder<Texture2D>.Get("Chainsaw1", true),
 		};
 
+		public static readonly Texture2D toggledOff = ContentFinder<Texture2D>.Get("ToggledOff", true);
+		public static readonly Texture2D toggledOn = ContentFinder<Texture2D>.Get("ToggledOn", true);
+
 		public static List<(string name, FieldInfo field, ConstantAttribute attr)> AllSettings
 		{
 			get

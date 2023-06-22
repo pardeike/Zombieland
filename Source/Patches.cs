@@ -418,9 +418,39 @@ namespace ZombieLand
 		{
 			static bool Prefix(Pawn p, ref bool __result)
 			{
-				if (p is Zombie zombie)
+				if (p is Zombie)
 				{
 					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+
+		// patch to make ZombieThumper repell infestations
+		//
+		[HarmonyPatch]
+		static class InfestationCellFinder_CalculateLocationCandidates_Patch
+		{
+			public static List<ZombieThumper> thumpers = new();
+
+			[HarmonyPatch(typeof(InfestationCellFinder))]
+			[HarmonyPatch(nameof(InfestationCellFinder.CalculateLocationCandidates))]
+			[HarmonyPrefix]
+			static void CalculateLocationCandidates_Prefix(Map map)
+			{
+				thumpers = map.listerThings.ThingsOfDef(CustomDefs.Thumper).OfType<ZombieThumper>().ToList();
+			}
+
+			[HarmonyPatch(typeof(InfestationCellFinder))]
+			[HarmonyPatch(nameof(InfestationCellFinder.GetScoreAt))]
+			[HarmonyPrefix]
+			static bool GetScoreAt_Prefix(IntVec3 cell, Map map, ref float __result)
+			{
+				var skipSpawn = thumpers.Any(thumper => thumper.Map == map && thumper.IsActive && thumper.Position.DistanceTo(cell) <= thumper.Radius + 0.5f);
+				if (skipSpawn)
+				{
+					__result = 0f;
 					return false;
 				}
 				return true;
@@ -460,7 +490,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Thing a, Thing b, ref bool __result)
 			{
-				if (a is not Pawn pawn || pawn.ActivePartOfColony() || (pawn is Zombie) || b is not Zombie zombie)
+				if (a is not Pawn pawn || pawn.ActivePartOfColony() || (pawn is Zombie) || b is not Zombie)
 					return;
 
 				if (pawn.InfectionState() == InfectionState.Infecting)
@@ -1680,7 +1710,7 @@ namespace ZombieLand
 		{
 			static bool Prefix(Pawn closer)
 			{
-				return closer is not Zombie zombie;
+				return closer is not Zombie;
 			}
 		}
 
@@ -2407,7 +2437,7 @@ namespace ZombieLand
 		{
 			static void Prefix(CompRefuelable __instance, ref float amount)
 			{
-				if (__instance.parent is not Building_Turret turret)
+				if (__instance.parent is not Building_Turret)
 					return;
 				amount -= amount * ZombieSettings.Values.reducedTurretConsumption;
 			}
@@ -2676,7 +2706,7 @@ namespace ZombieLand
 				if (forced)
 					return true;
 
-				if (t is ZombieCorpse corpse)
+				if (t is ZombieCorpse)
 				{
 					__result = null;
 					return false;
@@ -2798,7 +2828,7 @@ namespace ZombieLand
 			{
 				if (ZombieSettings.Values.doubleTapRequired == false)
 					return true;
-				if (__instance is not Zombie zombie)
+				if (__instance is not Zombie)
 					return true;
 				__result = false;
 				return false;
@@ -3425,15 +3455,15 @@ namespace ZombieLand
 							var eyeMat = zombie.isAlbino ? new Material(Constants.RAGE_EYE) { color = white50 } : Constants.RAGE_EYE;
 
 							if (orientation == Rot4.West)
-								GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(-eyeX, 0, eyeZ), Quaternion.identity, eyeScale, eyeScale);
+								GraphicToolbox.DrawScaledMesh(MeshPool.plane05, eyeMat, loc + new Vector3(-eyeX, 0, eyeZ), Quaternion.identity, eyeScale, eyeScale);
 
 							else if (orientation == Rot4.East)
-								GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, loc + new Vector3(eyeX, 0, eyeZ), Quaternion.identity, eyeScale, eyeScale);
+								GraphicToolbox.DrawScaledMesh(MeshPool.plane05, eyeMat, loc + new Vector3(eyeX, 0, eyeZ), Quaternion.identity, eyeScale, eyeScale);
 
 							if (orientation == Rot4.South)
 							{
-								GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + leftEyeOffset, Quaternion.identity, eyeScale, eyeScale);
-								GraphicToolbox.DrawScaledMesh(MeshPool.plane05, Constants.RAGE_EYE, quickHeadCenter + rightEyeOffset, Quaternion.identity, eyeScale, eyeScale);
+								GraphicToolbox.DrawScaledMesh(MeshPool.plane05, eyeMat, quickHeadCenter + leftEyeOffset, Quaternion.identity, eyeScale, eyeScale);
+								GraphicToolbox.DrawScaledMesh(MeshPool.plane05, eyeMat, quickHeadCenter + rightEyeOffset, Quaternion.identity, eyeScale, eyeScale);
 							}
 						}
 					}
@@ -4066,7 +4096,7 @@ namespace ZombieLand
 				if (__result == false)
 					return;
 
-				if (__instance.parent is Zombie zombie && ZombieSettings.Values.zombiesBurnLonger && Rand.Chance(0.2f))
+				if (__instance.parent is Zombie && ZombieSettings.Values.zombiesBurnLonger && Rand.Chance(0.2f))
 					__result = false;
 			}
 		}
@@ -4083,7 +4113,7 @@ namespace ZombieLand
 				if (ZombieSettings.Values.zombiesBurnLonger == false)
 					return num;
 
-				if (pawn is not Zombie zombie)
+				if (pawn is not Zombie)
 					return num;
 
 				return Math.Max(2, num / 2);
@@ -4160,7 +4190,7 @@ namespace ZombieLand
 		{
 			static bool Prefix(DamageWorker.DamageResult __instance)
 			{
-				return __instance.hitThing is not Zombie zombie;
+				return __instance.hitThing is not Zombie;
 			}
 		}
 

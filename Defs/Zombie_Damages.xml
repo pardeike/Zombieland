@@ -73,4 +73,12 @@
 		<makesAnimalsFlee>true</makesAnimalsFlee>
 	</DamageDef>
 
+	<DamageDef name="SeismicWave">
+		<defName>SeismicWave</defName>
+		<label>seismic wave</label>
+		<hasForcefulImpact>false</hasForcefulImpact>
+		<makesBlood>false</makesBlood>
+		<canInterruptJobs>false</canInterruptJobs>
+	</DamageDef>
+
 </Defs>

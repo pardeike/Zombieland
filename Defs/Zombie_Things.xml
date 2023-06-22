@@ -36,33 +36,33 @@
 		</apparel>
 	</ThingDef>
 
-<ThingDef ParentName="BaseFilth">
-	<defName>TarSlime</defName>
-	<thingClass>ZombieLand.TarSlime</thingClass>
-	<label>super sticky slime</label>
-	<description>A very sticky slime that makes you move much slower</description>
-	<statBases>
-		<Beauty>-10</Beauty>
-		<Flammability>1.0</Flammability>
-		<Cleanliness>-10</Cleanliness>
-		<MaxHitPoints>300</MaxHitPoints>
-	</statBases>
-	<graphicData>
-		<texPath>Dummy</texPath>
-		<graphicClass>Graphic_Single</graphicClass>
-	</graphicData>
-	<altitudeLayer>FloorEmplacement</altitudeLayer>
-	<pathCost>120</pathCost>
-	<pathCostIgnoreRepeat>false</pathCostIgnoreRepeat>
-	<useHitPoints>True</useHitPoints>
-	<size>(1,1)</size>
-	<filth>
-		<cleaningWorkToReduceThickness>500</cleaningWorkToReduceThickness>
-		<rainWashes>true</rainWashes>
-		<canFilthAttach>false</canFilthAttach>
-		<maxThickness>4</maxThickness>
-	</filth>
-</ThingDef>
+	<ThingDef ParentName="BaseFilth">
+		<defName>TarSlime</defName>
+		<thingClass>ZombieLand.TarSlime</thingClass>
+		<label>super sticky slime</label>
+		<description>A very sticky slime that makes you move much slower</description>
+		<statBases>
+			<Beauty>-10</Beauty>
+			<Flammability>1.0</Flammability>
+			<Cleanliness>-10</Cleanliness>
+			<MaxHitPoints>300</MaxHitPoints>
+		</statBases>
+		<graphicData>
+			<texPath>Dummy</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
+		<altitudeLayer>FloorEmplacement</altitudeLayer>
+		<pathCost>120</pathCost>
+		<pathCostIgnoreRepeat>false</pathCostIgnoreRepeat>
+		<useHitPoints>True</useHitPoints>
+		<size>(1,1)</size>
+		<filth>
+			<cleaningWorkToReduceThickness>500</cleaningWorkToReduceThickness>
+			<rainWashes>true</rainWashes>
+			<canFilthAttach>false</canFilthAttach>
+			<maxThickness>4</maxThickness>
+		</filth>
+	</ThingDef>
 
 	<ThingDef>
 		<defName>TarSmoke</defName>
@@ -565,7 +565,7 @@
 		</mote>
 	</ThingDef>
 
-	<ThingDef ParentName="BuildingBase">
+	<ThingDef ParentName="BuildingBase" name="ZombieShocker">
 		<defName>ZombieShocker</defName>
 		<label>zombie shocker</label>
 		<description>A zombie control machine that fits into a wall of a room. Can be activated from the outside and makes every zombie in that room unconscious for a short while.</description>
@@ -664,6 +664,88 @@
 			<solidTime>0.2</solidTime>
 			<fadeOutTime>0.4</fadeOutTime>
 		</mote>
+	</ThingDef>
+
+	<ThingDef Name="Thumper" ParentName="BuildingBase">
+		<defName>Thumper</defName>
+		<label>Zombie Thumper</label>
+		<description>A stamper to attract zombies. Uses fuel and does damage to the environment per hit.</description>
+		<costList>
+			<Steel>200</Steel>
+		</costList>
+		<thingClass>ZombieLand.ZombieThumper</thingClass>
+		<soundImpactDefault>BulletImpact_Metal</soundImpactDefault>
+		<selectable>true</selectable>
+		<drawerType>RealtimeOnly</drawerType>
+		<terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+		<repairEffect>Repair</repairEffect>
+		<filthLeaving>Filth_RubbleBuilding</filthLeaving>
+		<graphicData>
+			<texPath>Thumper/ThumperEmpty</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+			<drawSize>(2,4)</drawSize>
+			<drawOffset>(0,0,1)</drawOffset>
+			<drawRotated>false</drawRotated>
+		</graphicData>
+		<uiIconPath>Thumper/ThumperIcon</uiIconPath>
+		<size>(2,2)</size>
+		<category>Building</category>
+		<tickerType>Normal</tickerType>
+		<altitudeLayer>Building</altitudeLayer>
+		<canBeUsedUnderRoof>true</canBeUsedUnderRoof>
+		<passability>Impassable</passability>
+		<hasInteractionCell>false</hasInteractionCell>
+		<fillPercent>1</fillPercent>
+		<blockWind>true</blockWind>
+		<coversFloor>true</coversFloor>
+		<canOverlapZones>false</canOverlapZones>
+		<castEdgeShadows>false</castEdgeShadows>
+		<leaveResourcesWhenKilled>true</leaveResourcesWhenKilled>
+		<rotatable>false</rotatable>
+		<constructionSkillPrerequisite>4</constructionSkillPrerequisite>
+		<statBases>
+			<SellPriceFactor>0.70</SellPriceFactor>
+			<MaxHitPoints>1000</MaxHitPoints>
+			<WorkToBuild>1500</WorkToBuild>
+			<Flammability>4.0</Flammability>
+			<Beauty>-8</Beauty>
+		</statBases>
+		<researchPrerequisites>
+			<li>Smithing</li>
+		</researchPrerequisites>
+		<designationCategory>Security</designationCategory>
+		<comps>
+			<li Class="CompProperties_Forbiddable"/>
+			<li Class="CompProperties_Breakdownable"/>
+			<li Class="ZombieLand.CompProperties_Switchable"/>
+			<li Class="CompProperties_Explosive">
+				<explosiveRadius>7</explosiveRadius>
+				<explosiveDamageType>Flame</explosiveDamageType>
+				<destroyThingOnExplosionSize>1</destroyThingOnExplosionSize>
+				<startWickHitPointsPercent>0.333</startWickHitPointsPercent>
+				<preExplosionSpawnThingDef>Filth_Fuel</preExplosionSpawnThingDef>
+				<preExplosionSpawnChance>1</preExplosionSpawnChance>
+				<wickTicks>
+					<min>70</min>
+					<max>150</max>
+				</wickTicks>
+			</li>
+			<li Class="CompProperties_Refuelable">
+				<fuelCapacity>250</fuelCapacity>
+				<fuelFilter>
+					<thingDefs>
+						<li>Chemfuel</li>
+					</thingDefs>
+				</fuelFilter>
+				<fuelConsumptionRate>0</fuelConsumptionRate>
+				<targetFuelLevelConfigurable>true</targetFuelLevelConfigurable>
+				<consumeFuelOnlyWhenUsed>true</consumeFuelOnlyWhenUsed>
+				<autoRefuelPercent>0.05</autoRefuelPercent>
+				<showFuelGizmo>true</showFuelGizmo>
+				<drawOutOfFuelOverlay>false</drawOutOfFuelOverlay>
+				<showAllowAutoRefuelToggle>true</showAllowAutoRefuelToggle>
+			</li>
+		</comps>
 	</ThingDef>
 
 </Defs>

@@ -10,7 +10,7 @@
 		<OutputPath>..\1.4\Assemblies\</OutputPath>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<Version>4.1.0.0</Version>
+		<Version>4.2.0.0</Version>
 		<Copyright>Copyright © 2017</Copyright>
 		<Configurations>Release;Debug</Configurations>
 	</PropertyGroup>
@@ -48,7 +48,7 @@
 		<PackageReference Include="Brrainz.RimWorld.CrossPromotion" Version="1.1.1" />
 		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.4.3704" GeneratePathProperty="true" />
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" ExcludeAssets="runtime" />
-		<PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.2" />
+		<PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.3" />
 		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -98,7 +98,7 @@
 			ModBuilder XMLPut -file "$(MSBuildProjectDirectory)\..\About\Manifest.xml" -xpath /Manifest/version -value "{{$(MSBuildProjectName)-version}}"
 			)
 			if defined INSTALL_MOD (
-			"%INSTALL_MOD%" "$(Configuration)" "$(MSBuildProjectDirectory)\..\" "$(MSBuildProjectName)" "About Assemblies Defs Languages Patches Sounds Textures"
+			"%INSTALL_MOD%" "$(Configuration)" "$(MSBuildProjectDirectory)\..\" "$(MSBuildProjectName)" "About Assemblies Defs Languages Patches Resources Sounds Textures"
 			)
 		</PostBuildEvent>
 		<Company>Brrainz</Company>
