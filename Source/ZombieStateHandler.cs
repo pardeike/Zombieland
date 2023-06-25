@@ -15,6 +15,8 @@ namespace ZombieLand
 		static readonly int[] adjIndex4 = { 0, 1, 2, 3 };
 		static int prevIndex4;
 
+		public static Dictionary<int, float> creepyAmbientSoundVolumes = new();
+
 		// make zombies die if necessary ============================================================
 		//
 		public static bool ShouldDie(this JobDriver_Stumble driver, Zombie zombie)
@@ -694,29 +696,21 @@ namespace ZombieLand
 			if (driver.destination.IsValid)
 				return;
 
+			var map = zombie.Map;
+
 			// check for day/night and dust/dawn
 			// during night, zombies drift towards the colonies center
 			//
 			var basePos = zombie.Position;
-			if (zombie.Map.areaManager.Home[basePos] == false)
+			if (map.areaManager.Home[basePos] == false)
 			{
-				var moveTowardsCenter = false;
-
-				var hour = GenLocalDate.HourOfDay(zombie.Map);
-				if (hour < 12)
-					hour += 24;
-				if (hour > Constants.ZOMBIE_SPAWNING_HOURS[1] && hour < Constants.ZOMBIE_SPAWNING_HOURS[2])
-					moveTowardsCenter = true;
-				else if (hour >= Constants.ZOMBIE_SPAWNING_HOURS[0] && hour <= Constants.ZOMBIE_SPAWNING_HOURS[1])
-					moveTowardsCenter = Rand.RangeInclusive(hour, Constants.ZOMBIE_SPAWNING_HOURS[1]) == Constants.ZOMBIE_SPAWNING_HOURS[1];
-				else if (hour >= Constants.ZOMBIE_SPAWNING_HOURS[2] && hour <= Constants.ZOMBIE_SPAWNING_HOURS[3])
-					moveTowardsCenter = Rand.RangeInclusive(Constants.ZOMBIE_SPAWNING_HOURS[2], hour) == Constants.ZOMBIE_SPAWNING_HOURS[2];
-
-				if (moveTowardsCenter)
+				var volume = creepyAmbientSoundVolumes.TryGetValue(map.uniqueID, 0f);
+				if (volume > 0f)
 				{
-					if (ZombieSettings.Values.wanderingStyle == WanderingStyle.Smart)
+					var style = ZombieSettings.Values.wanderingStyle;
+					if (style == WanderingStyle.Smart)
 					{
-						var pathing = zombie.Map.GetComponent<TickManager>()?.zombiePathing;
+						var pathing = map.GetComponent<TickManager>()?.zombiePathing;
 						if (pathing != null)
 						{
 							var destination = pathing.GetWanderDestination(basePos);
@@ -730,10 +724,9 @@ namespace ZombieLand
 							}
 						}
 					}
-
-					if (ZombieSettings.Values.wanderingStyle == WanderingStyle.Simple)
+					if (style == WanderingStyle.Simple)
 					{
-						var center = zombie.wanderDestination.IsValid ? zombie.wanderDestination : zombie.Map.Center;
+						var center = zombie.wanderDestination.IsValid ? zombie.wanderDestination : map.Center;
 						possibleMoves.Sort((p1, p2) => p1.DistanceToSquared(center).CompareTo(p2.DistanceToSquared(center)));
 						possibleMoves = possibleMoves.Take(Constants.NUMBER_OF_TOP_MOVEMENT_PICKS).ToList();
 						possibleMoves = possibleMoves.OrderBy(grid.GetZombieCount).ToList();

@@ -89,6 +89,8 @@ namespace ZombieLand
 		public static bool SHOW_NORMAL_PATHING_GRID = false;
 		[Constant(1, "Enable to see how tank zombies path towards colonists")]
 		public static bool SHOW_DIRECT_PATHING_GRID = false;
+		[Constant(1, "Enable to show wander grid regions")]
+		public static bool SHOW_WANDER_REGIONS = false;
 
 		// general debugging/testing
 		//

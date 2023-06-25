@@ -669,6 +669,7 @@ namespace ZombieLand
 							volume = GenMath.LerpDouble(Constants.ZOMBIE_SPAWNING_HOURS[2], Constants.ZOMBIE_SPAWNING_HOURS[3], 1f, 0f, hour);
 					}
 				}
+				ZombieStateHandler.creepyAmbientSoundVolumes[map.uniqueID] = volume;
 				yield return null;
 				if (Constants.USE_SOUND && ZombieSettings.Values.playCreepyAmbientSound)
 				{

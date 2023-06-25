@@ -11,6 +11,7 @@ using System.Text;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Verse.Noise;
 using Verse.Sound;
 
 namespace ZombieLand
@@ -188,6 +189,39 @@ namespace ZombieLand
 						var cost = avoidGrid.GetCosts()[c.x + c.z * map.Size.x];
 						if (cost > 0)
 							Tools.DebugPosition(c.ToVector3(), new Color(0f, 1f, 0f, GenMath.LerpDouble(0, 10000, 0.4f, 1f, cost)));
+					}
+				}
+
+				if (Constants.SHOW_WANDER_REGIONS)
+				{
+					var map = Find.CurrentMap;
+					var pathing = map?.GetComponent<TickManager>()?.zombiePathing;
+					if (pathing == null)
+						return;
+					var cell = UI.MouseCell();
+					if (cell.InBounds(map))
+					{
+						var region = map.regionGrid.GetRegionAt_NoRebuild_InvalidAllowed(cell);
+						if (region != null)
+						{
+							if (pathing.backpointingRegionsIndices.TryGetValue(region, out var idx))
+							{
+								if (idx != -1)
+								{
+									var r1 = pathing.backpointingRegions[idx].region;
+									GenDraw.DrawFieldEdges(r1.Cells.ToList(), new Color(1f, 1f, 0f, 0.25f), null);
+									idx = pathing.backpointingRegions[idx].parentIdx;
+									if (idx != -1)
+									{
+										var r2 = pathing.backpointingRegions[idx].region;
+										GenDraw.DrawFieldEdges(r2.Cells.ToList(), new Color(1f, 1f, 0f, 0.75f), null);
+										cell = pathing.backpointingRegions[idx].cell;
+										var m = DebugSolidColorMats.MaterialOf(Color.yellow);
+										CellRenderer.RenderSpot(cell.ToVector3Shifted(), m, 0.5f);
+									}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -2150,6 +2184,7 @@ namespace ZombieLand
 				}
 				else
 					_ = builder.AppendLine($"{pos.x} {pos.z}: empty");
+				_ = builder.AppendLine("");
 
 				var pathing = map.GetComponent<TickManager>()?.zombiePathing;
 				if (pathing != null && pos.InBounds(map))
@@ -2172,6 +2207,7 @@ namespace ZombieLand
 					var fromStr = from.IsValid ? from.ToString() : "null";
 					var destStr = destination.IsValid ? destination.ToString() : "null";
 					_ = builder.AppendLine($"Smart wandering {fromStr} -> {destStr}");
+					_ = builder.AppendLine("");
 				}
 
 				var gridSum = GenAdj.AdjacentCellsAndInside.Select(vec => pos + vec)

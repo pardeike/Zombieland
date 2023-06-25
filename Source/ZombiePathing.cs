@@ -76,31 +76,97 @@ namespace ZombieLand
 			if (finalRegions.Any() == false)
 				return;
 
-			var n = 0;
-			while (n < finalRegions.Count)
+			void Iterate()
 			{
-				var region = IncrementAndNext(ref n);
-				var idx = n - 1;
-				if (region == null || region.valid == false)
-					continue;
-
-				var subRegions = region.Neighbors;
-				if (subRegions.Any())
+				var n = 0;
+				while (n < finalRegions.Count)
 				{
-					foreach (var subRegion in subRegions.InRandomOrder())
+					var region = IncrementAndNext(ref n);
+					var idx = n - 1;
+					if (region == null || region.valid == false)
+						continue;
+
+					var subRegions = region.Neighbors.ToArray();
+					var subRegionCount = subRegions.Length;
+					if (subRegionCount > 0)
 					{
-						if (subRegion == null)
-							continue;
-						if (subRegion.valid == false)
-							continue;
-						if ((subRegion.type & RegionType.Set_Passable) == 0)
-							continue;
-						if (finalRegionIndices.ContainsKey(subRegion))
-							continue;
-						Add(subRegion, idx);
+						if (region.IsDoorway && subRegionCount == 1)
+						{
+							var door = region.door;
+							var doorCell = door.Position;
+							var cells = door.InteractionCells;
+							if (cells.Count == 1)
+							{
+								var interactionCell = cells[0];
+								var blockedCell = doorCell + doorCell - interactionCell;
+								if (blockedCell.InBounds(map) && blockedCell.GetEdifice(map) != null)
+								{
+									GenAdj.CardinalDirections.Select(c => c + blockedCell)
+										.Where(c => c != doorCell)
+										.Select(c => map.regionGrid.GetRegionAt_NoRebuild_InvalidAllowed(c))
+										.OfType<Region>().Where(r => r.valid).Distinct()
+										.DoIf(r => finalRegionIndices.ContainsKey(r) == false, r => Add(r, idx));
+								}
+							}
+						}
+						else
+						{
+							foreach (var subRegion in subRegions.InRandomOrder())
+							{
+								if (subRegion == null)
+									continue;
+								if (subRegion.valid == false)
+									continue;
+								if ((subRegion.type & RegionType.Set_Passable) == 0)
+									continue;
+								if (finalRegionIndices.ContainsKey(subRegion))
+									continue;
+								Add(subRegion, idx);
+							}
+						}
 					}
 				}
 			}
+
+			Iterate();
+
+			var knownRegions = finalRegions.Select(r => r.region).ToHashSet();
+			map.regionGrid.allRooms
+				.Where(r => r.IsDoorway && r.Fogged == false)
+				.SelectMany(r => r.Regions)
+				.Where(r => r != null && r.valid)
+				.Except(finalRegions.Select(r => r.region))
+				.Select(r => r.door)
+				.Do(door =>
+				{
+					var doorCell = door.Position;
+					var cells = door.InteractionCells;
+					if (cells.Count == 1)
+					{
+						var interactionCell = cells[0];
+						var blockedCell = doorCell + doorCell - interactionCell;
+						if (blockedCell.InBounds(map) && blockedCell.GetEdifice(map) != null)
+						{
+							var knownRegion = GenAdj.CardinalDirections.Select(c => c + blockedCell)
+								.Where(c => c != doorCell)
+								.Select(c => map.regionGrid.GetRegionAt_NoRebuild_InvalidAllowed(c))
+								.OfType<Region>().Where(r => r.valid).Distinct()
+								.FirstOrDefault(r => knownRegions.Contains(r));
+							if (knownRegion != null)
+							{
+								var idx = finalRegions.FirstIndexOf(r => r.region == knownRegion);
+								if (idx != -1)
+								{
+									var subRegion = map.regionGrid.GetRegionAt_NoRebuild_InvalidAllowed(interactionCell);
+									if (subRegion != null && subRegion.valid && knownRegions.Contains(subRegion) == false)
+										Add(subRegion, idx);
+								}
+							}
+						}
+					}
+				});
+
+			Iterate();
 
 			backpointingRegionsIndices = finalRegionIndices;
 			backpointingRegions = finalRegions;
