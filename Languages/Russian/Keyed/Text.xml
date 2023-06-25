@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
+	<Zombieland_Settings>Наведите курсор на любой элемент, чтобы прочитать справку о нем справа. Все настройки могут быть изменены в игре и активны сразу, они сохраняются вместе с игрой.\n\nЧтобы установить настройки по умолчанию для новых игр, измените настройки с главного экрана (Options/Mod Settings/Zombieland).</Zombieland_Settings>
+	<ZombieLandKeyframes>Вы можете добавить ключевые кадры, которые определяют настройки во времени. Используйте ползунок для проверки промежуточных значений. Редактировать можно только настройки ключевых кадров.</ZombieLandKeyframes>
+	<ZombieLandKeyframe0>&lt;- первый ключевой кадр (начало игры) ... будущее время игры -&gt;</ZombieLandKeyframe0>
+
 	<Difficulty_ZombielandThreatScale_Info>Регулирует сложность почти всех вещей в Zombieland, таких как способности зомби, прогноз угрозы и многое другое.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Шкала угроз Зомбиленда</Difficulty_ZombielandThreatScale_Label>
 
@@ -20,6 +24,9 @@
 	<Seasons>сезоны</Seasons>
 	<Years>годы</Years>
 
+	<ZombielandDifficultyTitle>Общая сложность</ZombielandDifficultyTitle>
+	<ZombielandDifficulty>Шкала угроз</ZombielandDifficulty>
+
 	<WhenDoZombiesSpawn>Когда зомби будут появляться?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Всё время</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>Только ночью</SpawnWhenType_WhenDark>
@@ -32,6 +39,8 @@
 	<SmartWandering_Random>Случайный</SmartWandering_Random>
 	<SmartWandering_Simple>Простой</SmartWandering_Simple>
 	<SmartWandering_Smart>Умная</SmartWandering_Smart>
+	<BlacklistedBiomes>Biomes without zombies</BlacklistedBiomes>
+	<Biomes>Biomes</Biomes>
 
 	<WhatDoZombiesAttack>Кого зомби будут атаковать?</WhatDoZombiesAttack>
 	<AttackMode_Everything>Всё что движеться и дышит</AttackMode_Everything>
@@ -148,6 +157,7 @@
 
 	<ZombieActionsTitle>команды</ZombieActionsTitle>
 	<ZombieSettingsReset>Восстановить настройки по умолчанию</ZombieSettingsReset>
+	<FactoryResetButton>Заводской сброс</FactoryResetButton>
 	<ResetButton>Сброс</ResetButton>
 	<UninstallZombieland>Удалить Zombieland из текущей игры</UninstallZombieland>
 	<ConfirmUninstallZombieland>Если вы продолжаете, вы можете выбрать новое имя файла сохранения и вернуться в главное меню после сохранения игры. Новое сохранение может быть загружено без Zombieland.\n\nВы действительно хотите удалить весь контент Zombieland из текущей игры?</ConfirmUninstallZombieland>

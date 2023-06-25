@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
@@ -57,14 +58,19 @@ namespace ZombieLand
 			var finalRegionIndices = new Dictionary<Region, int>();
 			var finalRegions = new List<BackpointingRegion>();
 
+			bool InvalidRegion(Region region)
+			{
+				if (region == null || region.valid == false || (region.type & RegionType.Set_Passable) == 0)
+					return true;
+				return finalRegionIndices.ContainsKey(region);
+			}
+
 			void Add(Region region, int parentIdx)
 			{
 				var aRegion = new BackpointingRegion(region, parentIdx);
 				finalRegions.Add(aRegion);
 				finalRegionIndices[aRegion.region] = finalRegions.Count - 1;
 			}
-
-			Region IncrementAndNext(ref int n) => finalRegions[n++].region;
 
 			map.regionGrid.allRooms
 				.Where(r => r.IsDoorway == false && r.Fogged == false && r.IsHuge == false && r.ProperRoom)
@@ -76,97 +82,64 @@ namespace ZombieLand
 			if (finalRegions.Any() == false)
 				return;
 
-			void Iterate()
+			var allDoors = map.listerThings
+				.ThingsInGroup(ThingRequestGroup.BuildingArtificial)
+				.OfType<Building_Door>()
+				.Where(door => door.Fogged() == false)
+				.ToList();
+
+			var n = 0;
+			while (n < finalRegions.Count)
 			{
-				var n = 0;
-				while (n < finalRegions.Count)
+				var region = finalRegions[n++].region;
+				var idx = n - 1;
+				if (region == null || region.valid == false)
+					continue;
+
+				foreach (var subRegion in region.Neighbors.InRandomOrder())
 				{
-					var region = IncrementAndNext(ref n);
-					var idx = n - 1;
-					if (region == null || region.valid == false)
+					if (InvalidRegion(subRegion))
 						continue;
-
-					var subRegions = region.Neighbors.ToArray();
-					var subRegionCount = subRegions.Length;
-					if (subRegionCount > 0)
-					{
-						if (region.IsDoorway && subRegionCount == 1)
-						{
-							var door = region.door;
-							var doorCell = door.Position;
-							var cells = door.InteractionCells;
-							if (cells.Count == 1)
-							{
-								var interactionCell = cells[0];
-								var blockedCell = doorCell + doorCell - interactionCell;
-								if (blockedCell.InBounds(map) && blockedCell.GetEdifice(map) != null)
-								{
-									GenAdj.CardinalDirections.Select(c => c + blockedCell)
-										.Where(c => c != doorCell)
-										.Select(c => map.regionGrid.GetRegionAt_NoRebuild_InvalidAllowed(c))
-										.OfType<Region>().Where(r => r.valid).Distinct()
-										.DoIf(r => finalRegionIndices.ContainsKey(r) == false, r => Add(r, idx));
-								}
-							}
-						}
-						else
-						{
-							foreach (var subRegion in subRegions.InRandomOrder())
-							{
-								if (subRegion == null)
-									continue;
-								if (subRegion.valid == false)
-									continue;
-								if ((subRegion.type & RegionType.Set_Passable) == 0)
-									continue;
-								if (finalRegionIndices.ContainsKey(subRegion))
-									continue;
-								Add(subRegion, idx);
-							}
-						}
-					}
+					Add(subRegion, idx);
 				}
-			}
 
-			Iterate();
+				// blocked on the inside, we find any doors that are diagnoally reachable from any of our region cells
+				foreach (var cell in region.Cells)
+				{
+					var adjacentDoor = allDoors.FirstOrDefault(door =>
+					{
+						var doorPos = door.Position;
+						return (doorPos.x == cell.x + 1 || doorPos.x == cell.x - 1) &&
+							(doorPos.z == cell.z + 1 || doorPos.z == cell.z - 1);
+					});
+					if (adjacentDoor == null)
+						continue;
+					var doorRegion = map.regionGrid.GetRegionAt_NoRebuild_InvalidAllowed(adjacentDoor.Position);
+					if (InvalidRegion(doorRegion))
+						continue;
+					Add(doorRegion, idx);
+				}
 
-			var knownRegions = finalRegions.Select(r => r.region).ToHashSet();
-			map.regionGrid.allRooms
-				.Where(r => r.IsDoorway && r.Fogged == false)
-				.SelectMany(r => r.Regions)
-				.Where(r => r != null && r.valid)
-				.Except(finalRegions.Select(r => r.region))
-				.Select(r => r.door)
-				.Do(door =>
+				// blocked outside, lets skip the block
+				var door = region.door;
+				if (door != null)
 				{
 					var doorCell = door.Position;
-					var cells = door.InteractionCells;
-					if (cells.Count == 1)
+					GenAdj.CardinalDirections.Do(v =>
 					{
-						var interactionCell = cells[0];
-						var blockedCell = doorCell + doorCell - interactionCell;
-						if (blockedCell.InBounds(map) && blockedCell.GetEdifice(map) != null)
-						{
-							var knownRegion = GenAdj.CardinalDirections.Select(c => c + blockedCell)
-								.Where(c => c != doorCell)
-								.Select(c => map.regionGrid.GetRegionAt_NoRebuild_InvalidAllowed(c))
-								.OfType<Region>().Where(r => r.valid).Distinct()
-								.FirstOrDefault(r => knownRegions.Contains(r));
-							if (knownRegion != null)
-							{
-								var idx = finalRegions.FirstIndexOf(r => r.region == knownRegion);
-								if (idx != -1)
-								{
-									var subRegion = map.regionGrid.GetRegionAt_NoRebuild_InvalidAllowed(interactionCell);
-									if (subRegion != null && subRegion.valid && knownRegions.Contains(subRegion) == false)
-										Add(subRegion, idx);
-								}
-							}
-						}
-					}
-				});
-
-			Iterate();
+						var block = doorCell + v;
+						if (block.InBounds(map) == false || block.GetEdifice(map) == null)
+							return;
+						var beyond = block + v;
+						if (block.InBounds(map) == false)
+							return;
+						var doorRegion = map.regionGrid.GetRegionAt_NoRebuild_InvalidAllowed(beyond);
+						if (InvalidRegion(doorRegion))
+							return;
+						Add(doorRegion, idx);
+					});
+				}
+			}
 
 			backpointingRegionsIndices = finalRegionIndices;
 			backpointingRegions = finalRegions;

@@ -213,7 +213,7 @@ namespace ZombieLand
 
 			var extraSpace = "_".GetWidthCached();
 			var descLength = labelText.GetWidthCached() + extraSpace;
-			var valueLength = valueText.GetWidthCached();
+			var valueLength = valueText.GetWidthCached() + 20;
 
 			translator ??= val => val.ToString();
 

@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
+	<Zombieland_Settings>Hover over any element to read a help text about it to the right. All settings can be changed in-game and are active immediately, they are saved with the game.\n\nTo set defaults for new games, change the settings from the main screen (Options/Mod Settings/Zombieland).</Zombieland_Settings>
+	<ZombieLandKeyframes>You can add keyframes that define settings in time. Use the slider to check the values in-between. Only settings for keyframes can be edited.</ZombieLandKeyframes>
+	<ZombieLandKeyframe0>&lt;- first keyframe (start of the game) . . . future game time -&gt;</ZombieLandKeyframe0>
+
 	<Difficulty_ZombielandThreatScale_Info>Controls the difficulty of almost all things in Zombieland like zombie abilities, threat forecast and much more.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Zombieland threat scale</Difficulty_ZombielandThreatScale_Label>
 
@@ -247,5 +251,5 @@
 
 	<ToggleStateLabel>On / Off</ToggleStateLabel>
 	<ToggleStateDesc>Turns the device on or off.</ToggleStateDesc>
-	
+
 </LanguageData>

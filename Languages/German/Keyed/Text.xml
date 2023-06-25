@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
+	<Zombieland_Settings>Bewegen Sie den Mauszeiger über ein beliebiges Element, um rechts einen Hilfetext dazu zu lesen. Alle Einstellungen können im Spiel geändert werden und sind sofort aktiv, sie werden mit dem Spiel gespeichert.\n\nUm die Standardeinstellungen für neue Spiele festzulegen, ändern Sie die Einstellungen im Hauptbildschirm (Optionen/Mod-Einstellungen/Zombieland).</Zombieland_Settings>
+	<ZombieLandKeyframes>Keyframes definieren Einstellungen zu einer gewissen Zeit. Mit dem Schieberegler überprüft man die Werte dazwischen. Es können nur Einstellungen für Keyframes geändert werden.</ZombieLandKeyframes>
+	<ZombieLandKeyframe0>&lt;- erster Keyframe (Spielbeginn) ... zukünftige Spielzeit -&gt;</ZombieLandKeyframe0>
+
 	<Difficulty_ZombielandThreatScale_Info>Steuert den Schwierigkeitsgrad fast aller Dinge in Zombieland wie z.B. Zombiefähigkeiten, Bedrohungsprognosen und vieles mehr.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Zombieland Bedrohungsskala</Difficulty_ZombielandThreatScale_Label>
 
@@ -20,6 +24,9 @@
 	<Seasons>quartale</Seasons>
 	<Years>jahre</Years>
 
+	<ZombielandDifficultyTitle>Zombieland Schwierigkeit</ZombielandDifficultyTitle>
+	<ZombielandDifficulty>Bedrohungsskala</ZombielandDifficulty>
+
 	<WhenDoZombiesSpawn>Wann erscheinen Zombies?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Jederzeit</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>Wo es dunkel ist</SpawnWhenType_WhenDark>
@@ -32,6 +39,8 @@
 	<SmartWandering_Random>Chaotisch</SmartWandering_Random>
 	<SmartWandering_Simple>Einfach</SmartWandering_Simple>
 	<SmartWandering_Smart>Smart</SmartWandering_Smart>
+	<BlacklistedBiomes>Biome ohne Zombies</BlacklistedBiomes>
+	<Biomes>Biome</Biomes>
 
 	<WhatDoZombiesAttack>Was greifen Zombies an?</WhatDoZombiesAttack>
 	<AttackMode_Everything>Alle Kreaturen</AttackMode_Everything>
@@ -148,6 +157,7 @@
 
 	<ZombieActionsTitle>Aktionen</ZombieActionsTitle>
 	<ZombieSettingsReset>Einstellungen zurücksetzen</ZombieSettingsReset>
+	<FactoryResetButton>Werkseinstellung</FactoryResetButton>
 	<ResetButton>Reset</ResetButton>
 	<UninstallZombieland>Zombieland aus aktuellem Spiel entfernen</UninstallZombieland>
 	<ConfirmUninstallZombieland>In den folgenden Schritten können Sie einen neuen Dateinamen auswählen. Nach dem Speichern gelangen Sie wider in das Hauptmenü. Die neue Datei kann ohne Zombieland geladen werden.\n\Wollen Sie wirklich alle Zombieland-Inhalte aus dem aktuellen Spiel entfernen?</ConfirmUninstallZombieland>

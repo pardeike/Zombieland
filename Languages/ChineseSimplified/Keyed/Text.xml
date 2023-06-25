@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
+	<Zombieland_Settings>将鼠标悬停在任何元素上，可以阅读右边关于它的帮助文字。所有的设置都可以在游戏中改变，并立即生效，它们与游戏一起被保存。要为新游戏设置默认值，请在主屏幕上改变设置（选项/MOD设置/Zombieland）。</Zombieland_Settings>
+	<ZombieLandKeyframes>你可以添加关键帧，在时间上定义设置。使用滑块来检查中间的数值。只有关键帧的设置可以被编辑。</ZombieLandKeyframes>
+	<ZombieLandKeyframe0>&lt;- 第一个关键帧（游戏开始） ...... 未来游戏时间 -&gt;</ZombieLandKeyframe0>
+
 	<Difficulty_ZombielandThreatScale_Info>控制僵尸乐园中几乎所有事物的难度，如僵尸能力、威胁预测等等。</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>僵尸之地的威胁等级</Difficulty_ZombielandThreatScale_Label>
 
@@ -20,6 +24,9 @@
 	<Seasons>季节</Seasons>
 	<Years>年</Years>
 
+	<ZombielandDifficultyTitle>总体难度</ZombielandDifficultyTitle>
+	<ZombielandDifficulty>威胁等级</ZombielandDifficulty>
+
 	<WhenDoZombiesSpawn>丧尸出现的时间段？</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>所有时间</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>天黑时</SpawnWhenType_WhenDark>
@@ -32,6 +39,8 @@
 	<SmartWandering_Random>随机的</SmartWandering_Random>
 	<SmartWandering_Simple>简单的</SmartWandering_Simple>
 	<SmartWandering_Smart>聪明的</SmartWandering_Smart>
+	<BlacklistedBiomes>没有僵尸的生物群落</BlacklistedBiomes>
+	<Biomes>生物群落</Biomes>
 
 	<WhatDoZombiesAttack>丧尸攻击什么？</WhatDoZombiesAttack>
 	<AttackMode_Everything>所有生物</AttackMode_Everything>
@@ -148,6 +157,7 @@
 
 	<ZombieActionsTitle>操作</ZombieActionsTitle>
 	<ZombieSettingsReset>恢复默认设置</ZombieSettingsReset>
+	<FactoryResetButton>工厂重置</FactoryResetButton>
 	<ResetButton>重置</ResetButton>
 	<UninstallZombieland>从当前游戏中移除丧尸之地</UninstallZombieland>
 	<ConfirmUninstallZombieland>如果继续，你可以选择一个新的文件名进行存档，并在保存游戏后返回主菜单。新存档可以在没有丧尸之地的情况下加载。\n\n你真的想要移除所有丧尸之地的内容吗？</ConfirmUninstallZombieland>
