@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
-	<Zombieland_Settings>Bewegen Sie den Mauszeiger über ein beliebiges Element, um rechts einen Hilfetext dazu zu lesen. Alle Einstellungen können im Spiel geändert werden und sind sofort aktiv, sie werden mit dem Spiel gespeichert.\n\nUm die Standardeinstellungen für neue Spiele festzulegen, ändern Sie die Einstellungen im Hauptbildschirm (Optionen/Mod-Einstellungen/Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Bewegen Sie den Mauszeiger über ein beliebiges Element, um rechts einen Hilfetext dazu zu lesen. Alle Einstellungen können im Spiel geändert werden und sind sofort aktiv, sie werden mit dem Spiel gespeichert.\n\nUm die Standardeinstellungen für neue Spiele festzulegen, ändern Sie die Einstellungen im Hauptbildschirm (Optionen/Mod-Optionen/Zombieland).</Zombieland_Settings>
 	<ZombieLandKeyframes>Editieren Sie zeitbasierte Keyframes. Überprüfen Sie interpolierte Werte mit dem Slider. Nur Keyframes sind änderbar.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- erster Keyframe (Spielbeginn) ... zukünftige Spielzeit -&gt;</ZombieLandKeyframe0>
 
