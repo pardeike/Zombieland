@@ -164,10 +164,10 @@
 	<UninstallButton>Entfernen</UninstallButton>
 
 	<ClipboardActionTitle>Zwischenablage</ClipboardActionTitle>
-	<CopySettings>Kopiert die Einstellungen als Text in die Zwischenablage</CopySettings>
+	<CopySettings>Kopiere Einstellungen in die Zwischenablage</CopySettings>
 	<CopyButton>Kopieren</CopyButton>
 	<DuplicateButton>Duplizieren</DuplicateButton>
-	<PasteSettings>Erst die Einstellungen mit dem Inhalt der Zwischenablage</PasteSettings>
+	<PasteSettings>Lade Einstellungen aus der Zwischenablage</PasteSettings>
 	<PasteButton>Einsetzen</PasteButton>
 	<RopeZombie>Fang diesen Zombie</RopeZombie>
 

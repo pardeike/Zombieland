@@ -164,10 +164,10 @@
 	<UninstallButton>Désinstaller</UninstallButton>
 
 	<ClipboardActionTitle>Presse-papiers</ClipboardActionTitle>
-	<CopySettings>Copier les paramètres dans le presse-papiers</CopySettings>
+	<CopySettings>Paramètres de copie</CopySettings>
 	<CopyButton>Copie</CopyButton>
 	<DuplicateButton>Dupliquer</DuplicateButton>
-	<PasteSettings>Remplacer les paramètres depuis le presse-papiers</PasteSettings>
+	<PasteSettings>Paramètres de collage</PasteSettings>
 	<PasteButton>Coller</PasteButton>
 	<RopeZombie>Capturer ce zombie</RopeZombie>
 

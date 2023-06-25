@@ -164,10 +164,10 @@
 	<UninstallButton>Удалить</UninstallButton>
 
 	<ClipboardActionTitle>Буфер обмена</ClipboardActionTitle>
-	<CopySettings>Копировать настройки в буфер обмена</CopySettings>
+	<CopySettings>Настройки копирования</CopySettings>
 	<CopyButton>Копировать</CopyButton>
 	<DuplicateButton>Kopyalamak</DuplicateButton>
-	<PasteSettings>Заменить настройки из буфера обмена</PasteSettings>
+	<PasteSettings>Настройки вставки</PasteSettings>
 	<PasteButton>Вставить</PasteButton>
 	<RopeZombie>Захват зомби</RopeZombie>
 
