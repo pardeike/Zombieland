@@ -2,7 +2,7 @@
 <LanguageData>
 
 	<Zombieland_Settings>Sağ taraftaki yardım metnini okumak için herhangi bir öğenin üzerine gelin. Tüm ayarlar oyun içinde değiştirilebilir ve hemen aktif olur, oyunla birlikte kaydedilir.\n\nYeni oyunlar için varsayılanları ayarlamak için, ayarları ana ekrandan değiştirin (Seçenekler/Mod Ayarları/Zombieland).</Zombieland_Settings>
-	<ZombieLandKeyframes>Ayarları zaman içinde tanımlayan anahtar kareler ekleyebilirsiniz. Aradaki değerleri kontrol etmek için kaydırıcıyı kullanın. Sadece ana kareler için ayarlar düzenlenebilir.</ZombieLandKeyframes>
+	<ZombieLandKeyframes>Zamana bağlı anahtar kare ekleyin. Değerleri slaytla kontrol edin. Sadece kareler düzenlenebilir.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- ilk ana kare (oyunun başlangıcı) . . . gelecekteki oyun zamanı -&gt;</ZombieLandKeyframe0>
 
 	<Difficulty_ZombielandThreatScale_Info>Zombieland'deki zombi yetenekleri, tehdit tahmini ve çok daha fazlası gibi neredeyse her şeyin zorluğunu kontrol eder.</Difficulty_ZombielandThreatScale_Info>

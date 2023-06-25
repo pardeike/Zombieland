@@ -2,7 +2,7 @@
 <LanguageData>
 
 	<Zombieland_Settings>Bewegen Sie den Mauszeiger über ein beliebiges Element, um rechts einen Hilfetext dazu zu lesen. Alle Einstellungen können im Spiel geändert werden und sind sofort aktiv, sie werden mit dem Spiel gespeichert.\n\nUm die Standardeinstellungen für neue Spiele festzulegen, ändern Sie die Einstellungen im Hauptbildschirm (Optionen/Mod-Einstellungen/Zombieland).</Zombieland_Settings>
-	<ZombieLandKeyframes>Keyframes definieren Einstellungen zu einer gewissen Zeit. Mit dem Schieberegler überprüft man die Werte dazwischen. Es können nur Einstellungen für Keyframes geändert werden.</ZombieLandKeyframes>
+	<ZombieLandKeyframes>Editieren Sie zeitbasierte Keyframes. Überprüfen Sie interpolierte Werte mit dem Slider. Nur Keyframes sind änderbar.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- erster Keyframe (Spielbeginn) ... zukünftige Spielzeit -&gt;</ZombieLandKeyframe0>
 
 	<Difficulty_ZombielandThreatScale_Info>Steuert den Schwierigkeitsgrad fast aller Dinge in Zombieland wie z.B. Zombiefähigkeiten, Bedrohungsprognosen und vieles mehr.</Difficulty_ZombielandThreatScale_Info>
