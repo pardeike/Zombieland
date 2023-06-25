@@ -705,7 +705,7 @@ namespace ZombieLand
 			if (map.areaManager.Home[basePos] == false)
 			{
 				var volume = creepyAmbientSoundVolumes.TryGetValue(map.uniqueID, 0f);
-				if (volume > 0f)
+				if (zombie.GetHashCode() % 16 + 1 <= volume * 16f)
 				{
 					var style = ZombieSettings.Values.wanderingStyle;
 					if (style == WanderingStyle.Smart)
