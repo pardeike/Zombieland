@@ -666,6 +666,51 @@
 		</mote>
 	</ThingDef>
 
+	<ThingDef>
+		<defName>ElectricalField</defName>
+		<label>ElectricalField</label>
+		<category>Item</category>
+		<verbs>
+			<li>
+				<label>shock</label>
+				<verbClass>ZombieLand.Verb_Shock</verbClass>
+				<hasStandardCommand>false</hasStandardCommand>
+				<range>1</range>
+				<forcedMissRadius>0</forcedMissRadius>
+				<warmupTime>0</warmupTime>
+				<noiseRadius>4</noiseRadius>
+			</li>
+		</verbs>
+		<tools>
+			<li>
+				<label>Shock</label>
+				<capacities>
+					<li>ElectricalShock</li>
+				</capacities>
+			</li>
+		</tools>
+		<thingClass>Spark</thingClass>
+		<graphicData>
+			<texPath>Things/Projectile/Spark</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+			<shaderType>Transparent</shaderType>
+		</graphicData>
+		<tickerType>Never</tickerType>
+		<altitudeLayer>Projectile</altitudeLayer>
+		<neverMultiSelect>true</neverMultiSelect>
+		<tradeNeverStack>true</tradeNeverStack>
+		<tradeability>None</tradeability>
+		<generateCommonality>0</generateCommonality>
+		<generateAllowChance>0</generateAllowChance>
+		<scatterableOnMapGen>false</scatterableOnMapGen>
+		<forceDebugSpawnable>false</forceDebugSpawnable>
+		<destroyOnDrop>true</destroyOnDrop>
+		<selectable>false</selectable>
+		<smeltable>false</smeltable>
+		<useHitPoints>false</useHitPoints>
+		<alwaysHaulable>false</alwaysHaulable>
+	</ThingDef>
+
 	<ThingDef Name="Thumper" ParentName="BuildingBase">
 		<defName>Thumper</defName>
 		<label>Zombie Thumper</label>
@@ -695,6 +740,7 @@
 		<canBeUsedUnderRoof>true</canBeUsedUnderRoof>
 		<passability>Impassable</passability>
 		<hasInteractionCell>false</hasInteractionCell>
+		<forceDebugSpawnable>true</forceDebugSpawnable>
 		<fillPercent>1</fillPercent>
 		<blockWind>true</blockWind>
 		<coversFloor>true</coversFloor>

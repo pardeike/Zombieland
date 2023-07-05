@@ -2,6 +2,7 @@
 using RimWorld;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Verse;
 using Verse.Profile;
 
@@ -42,7 +43,7 @@ namespace ZombieLand
 
 		static void Prefix()
 		{
-			foreach (var subscriber in subscribers)
+			foreach (var subscriber in subscribers.ToArray())
 				subscriber.Value();
 		}
 

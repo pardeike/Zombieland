@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.UIElements;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
@@ -186,6 +187,10 @@ namespace ZombieLand
 				_ = taskTicker.MoveNext();
 
 			isInitialized = 3;
+
+			// TODO: TESTING
+			//var spitter = Assets.NewSpitter();
+			//spitter.transform.position = new IntVec3(10, 0, 10).ToVector3ShiftedWithAltitude(AltitudeLayer.DoorMoveable);
 		}
 
 		public override void MapRemoved()

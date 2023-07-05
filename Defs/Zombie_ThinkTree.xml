@@ -11,4 +11,13 @@
 		</thinkRoot>
 	</ThinkTreeDef>
 
+	<ThinkTreeDef>
+		<defName>ZombieSpitter</defName>
+		<thinkRoot Class="ThinkNode_Priority">
+			<subNodes>
+				<li Class="ZombieLand.JobGiver_Spitter"/>
+			</subNodes>
+		</thinkRoot>
+	</ThinkTreeDef>
+
 </Defs>

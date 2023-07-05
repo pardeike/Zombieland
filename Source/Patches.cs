@@ -604,6 +604,12 @@ namespace ZombieLand
 		{
 			static bool Prefix(Pawn ___pawn, ref bool __result)
 			{
+				if (___pawn is ZombieSpitter)
+				{
+					__result = false;
+					return false;
+				}
+
 				if (___pawn.equipment?.Primary is Chainsaw)
 				{
 					__result = false;
@@ -2718,6 +2724,8 @@ namespace ZombieLand
 			static bool Prefix(ref PawnGenerationRequest request, ref Pawn __result)
 			{
 				if (request.Faction?.def != ZombieDefOf.Zombies)
+					return true;
+				if (request.KindDef == ZombieDefOf.ZombieSpitter)
 					return true;
 
 				Zombie zombie = null;

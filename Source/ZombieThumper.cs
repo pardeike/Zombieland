@@ -1,11 +1,9 @@
 ﻿using HarmonyLib;
 using RimWorld;
-using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Analytics;
 using Verse;
 using Verse.Sound;
 
@@ -101,46 +99,35 @@ namespace ZombieLand
 			if (compRefuelable != null)
 				compRefuelable.configuredTargetFuelLevel = compRefuelable.Props.fuelCapacity;
 
-			ClearMapsService.Subscribe(this, RemoveDusts);
+			ClearMapsService.Subscribe(this, Cleanup);
 		}
 
-		private void RemoveDusts()
+		private void Cleanup()
 		{
 			foreach (var dust in dusts)
 				UnityEngine.Object.Destroy(dust.obj);
 			dusts.Clear();
+
+			TimeControlService.Unsubscribe(this);
+			ClearMapsService.Unsubscribe(this);
+
+			operatingSustainer?.End();
+			operatingSustainer = null;
+
+			liftingSustainer?.End();
+			liftingSustainer = null;
 		}
 
 		public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
 		{
 			base.DeSpawn(mode);
-
-			RemoveDusts();
-
-			TimeControlService.Unsubscribe(this);
-			ClearMapsService.Unsubscribe(this);
-
-			operatingSustainer?.End();
-			operatingSustainer = null;
-
-			liftingSustainer?.End();
-			liftingSustainer = null;
+			Cleanup();
 		}
 
 		public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
 		{
 			base.Destroy(mode);
-
-			RemoveDusts();
-
-			TimeControlService.Unsubscribe(this);
-			ClearMapsService.Unsubscribe(this);
-
-			operatingSustainer?.End();
-			operatingSustainer = null;
-
-			liftingSustainer?.End();
-			liftingSustainer = null;
+			Cleanup();
 		}
 
 		public override void ExposeData()

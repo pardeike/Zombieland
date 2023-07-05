@@ -47,6 +47,29 @@ namespace ZombieLand
 		}
 	}
 
+	public class JobGiver_Spitter : ThinkNode_JobGiver
+	{
+		public override ThinkNode DeepCopy(bool resolve = true)
+		{
+			return (JobGiver_Spitter)base.DeepCopy(resolve);
+		}
+
+		public override Job TryGiveJob(Pawn pawn)
+		{
+			if (pawn is not ZombieSpitter)
+				return null;
+			pawn.jobs.StopAll();
+			return JobMaker.MakeJob(CustomDefs.Spitter);
+		}
+
+		public override ThinkResult TryIssueJobPackage(Pawn pawn, JobIssueParams jobParams)
+		{
+			if (pawn is not ZombieSpitter)
+				return ThinkResult.NoJob;
+			return base.TryIssueJobPackage(pawn, jobParams);
+		}
+	}
+
 	public class JobGiver_ExtractZombieSerum : ThinkNode_JobGiver
 	{
 		public override ThinkNode DeepCopy(bool resolve = true)

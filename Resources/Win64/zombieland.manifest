@@ -1,0 +1,32 @@
+ManifestFileVersion: 0
+CRC: 460270081
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: ebc1dd985eff3f0950c1a9f29d446c56
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 64510a3cd72920554ca1c94caa554491
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 198
+  Script: {instanceID: 0}
+- Class: 199
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/_Zombieland/Dust.prefab
+- Assets/_Zombieland/smoke_thin.png
+- Assets/_Zombieland/smoke_n.png
+- Assets/_Zombieland/Smoke_thin.mat
+Dependencies: []

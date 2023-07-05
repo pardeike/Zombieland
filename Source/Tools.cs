@@ -120,6 +120,11 @@ namespace ZombieLand
 			DialogExtensions.searchWidget.Reset();
 		}
 
+		public static Faction GetZombieFaction()
+		{
+			return Find.World.factionManager.AllFactions.First(faction => faction.def == ZombieDefOf.Zombies);
+		}
+
 		public static bool IsBroken(this Thing t)
 		{
 			var compBreakable = t.TryGetComp<CompBreakable>();

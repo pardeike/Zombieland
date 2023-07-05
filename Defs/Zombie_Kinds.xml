@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<PawnKindDef class="ZombieLand.PawnKindDef_Zombie">
+		<defName>Zombie</defName>
+		<race>Zombie</race>
+		<combatPower>100</combatPower>
+		<backstoryCategories>
+			<li>Civil</li>
+		</backstoryCategories>
+		<defaultFactionType>Zombies</defaultFactionType>
+		<isFighter>true</isFighter>
+		<itemQuality>Shoddy</itemQuality>
+		<apparelTags>
+			<li>Spacer</li>
+		</apparelTags>
+		<apparelMoney>
+			<min>100</min>
+			<max>250</max>
+		</apparelMoney>
+		<apparelIgnoreSeasons>true</apparelIgnoreSeasons>
+		<apparelAllowHeadgearChance>0.75</apparelAllowHeadgearChance>
+		<backstoryCryptosleepCommonality>0.0</backstoryCryptosleepCommonality>
+		<forceNormalGearQuality>false</forceNormalGearQuality>
+		<initialWillRange>0~0</initialWillRange>
+		<initialResistanceRange>0~0</initialResistanceRange>
+	</PawnKindDef>
+
+	<PawnKindDef class="ZombieLand.PawnKindDef_ZombieSpitter">
+		<defName>ZombieSpitter</defName>
+		<race>ZombieSpitter</race>
+		<lifeStages>
+			<li>
+				<label>zombie spitter</label>
+				<labelPlural>zombie spitters</labelPlural>
+				<bodyGraphicData>
+					<texPath>Spitter/Spitter</texPath>
+					<drawSize>3</drawSize>
+					<shadowData>
+						<volume>(1, 0.8, 0.5)</volume>
+						<offset>(0,0, -0.5)</offset>
+					</shadowData>
+				</bodyGraphicData>
+			</li>
+		</lifeStages>
+		<destroyGearOnDrop>true</destroyGearOnDrop>
+		<canStrip>false</canStrip>
+		<forceNormalGearQuality>false</forceNormalGearQuality>
+		<combatPower>800</combatPower>
+		<defaultFactionType>Zombies</defaultFactionType>
+		<isFighter>true</isFighter>
+		<itemQuality>Shoddy</itemQuality>
+		<backstoryCryptosleepCommonality>0.0</backstoryCryptosleepCommonality>
+		<initialWillRange>0~0</initialWillRange>
+		<initialResistanceRange>0~0</initialResistanceRange>
+	</PawnKindDef>
+
+</Defs>

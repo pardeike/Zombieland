@@ -50,6 +50,7 @@ namespace ZombieLand
 		public static SoundDef ThumperImpact;
 		public static JobDef Stumble;
 		public static JobDef Sabotage;
+		public static JobDef Spitter;
 		public static JobDef ExtractZombieSerum;
 		public static JobDef DoubleTap;
 		public static JobDef RopeZombie;
@@ -81,6 +82,7 @@ namespace ZombieLand
 		public static ThingDef BumpSmall;
 		public static ThingDef Chainsaw;
 		public static ThingDef Thumper;
+		public static ThingDef ZombieSpitter;
 	}
 
 	public class ZombielandMod : Mod

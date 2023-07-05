@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<LifeStageDef>
+		<defName>ZombieBoss</defName>
+		<label>zombie-boss</label>
+		<visible>false</visible>
+	</LifeStageDef>
+
+</Defs>

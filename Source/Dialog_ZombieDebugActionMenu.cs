@@ -1,8 +1,12 @@
 ﻿using HarmonyLib;
+using Mono.Unix.Native;
 using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using Verse;
+using Verse.AI;
+using Verse.Noise;
 using static Verse.PawnCapacityUtility;
 
 namespace ZombieLand
@@ -134,6 +138,16 @@ namespace ZombieLand
 		private static void SpawnZombieIncident_200()
 		{
 			_ = ZombiesRising.TryExecute(Find.CurrentMap, 200, UI.MouseCell(), false, true);
+		}
+
+		[DebugAction("Zombieland", "Spawn: Zombie Spitter", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnZombieSpitter()
+		{
+			var map = Find.CurrentMap;
+			var spitter = PawnGenerator.GeneratePawn(ZombieDefOf.ZombieSpitter, null);
+			spitter.SetFactionDirect(Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies));
+			GenSpawn.Spawn(spitter, UI.MouseCell(), map, Rot4.Random, WipeMode.Vanish, false);
+			spitter.jobs.StartJob(JobMaker.MakeJob(CustomDefs.Spitter));
 		}
 
 		[DebugAction("Zombieland", "Convert: Make Zombie", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]

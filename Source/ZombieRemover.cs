@@ -205,14 +205,9 @@ namespace ZombieLand
 			}
 		}
 
-		static Faction GetZombieFaction()
-		{
-			return Find.World.factionManager.AllFactions.First(faction => faction.def == ZombieDefOf.Zombies);
-		}
-
 		static void RemoveZombieFaction()
 		{
-			var zombieFaction = GetZombieFaction();
+			var zombieFaction = Tools.GetZombieFaction();
 			Current.Game.Maps.Do(map =>
 			{
 				var zombies = PawnsOfType<Zombie>(map);
