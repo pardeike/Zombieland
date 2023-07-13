@@ -14,6 +14,9 @@
 	<LetterLabelZombiesRisingNearYourBase>Attaque direct de Zombie</LetterLabelZombiesRisingNearYourBase>
 	<ZombiesRisingNearYourBase>Un groupe de zombie est apparu prêt de votre base</ZombiesRisingNearYourBase>
 
+	<LetterLabelZombiesSpitter>Attaque d'un zombie cracheur</LetterLabelZombiesSpitter>
+	<ZombiesSpitter>Un zombie cracheur est entré sur la carte et va vous assiéger</ZombiesSpitter>
+
 	<LetterLabelXDaysUntilZombies>{0} avant que les zombies arrivent</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>Les zombies vont apparaitre là où il y a du sol meuble, de poussière, de sable ou de pierre. La construction de plancher empêche les zombies d’apparaitre</XDaysUntilZombies>
 
@@ -251,5 +254,16 @@
 
 	<ToggleStateLabel>Marche / Arrêt</ToggleStateLabel>
 	<ToggleStateDesc>Permet d'allumer ou d'éteindre l'appareil.</ToggleStateDesc>
+
+	<SpitterStateIdle>Inactif</SpitterStateIdle>
+	<SpitterStateSearching>Recherche</SpitterStateSearching>
+	<SpitterStateMoving>En mouvement</SpitterStateMoving>
+	<SpitterStatePreparing>Préparer</SpitterStatePreparing>
+	<SpitterStateSpitting>Cracher</SpitterStateSpitting>
+	<SpitterStateLeaving>Partir</SpitterStateLeaving>
+	<Mode>Mode</Mode>
+	<Waves>Ondes</Waves>
+	<Aggressive>Agressif</Aggressive>
+	<Calm>Calme</Calm>
 
 </LanguageData>

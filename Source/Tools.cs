@@ -188,6 +188,15 @@ namespace ZombieLand
 			return Mathf.FloorToInt(hours * hours * GenDate.TicksPerHour);
 		}
 
+		public static (int, int, int) ZombieSpitterParameter()
+		{
+			var difficulty = Tools.Difficulty();
+			var minTicksForSpitter = (int)(GenMath.LerpDouble(0, 5, 8, 2, difficulty) * GenDate.TicksPerSeason);
+			var deltaContact = (int)(GenMath.LerpDouble(0, 5, GenDate.DaysPerYear, 8, difficulty) * GenDate.TicksPerDay);
+			var deltaSpitter = (int)(GenMath.LerpDouble(0, 5, 12, 1, difficulty) * GenDate.TicksPerTwelfth);
+			return (minTicksForSpitter, deltaContact, deltaSpitter);
+		}
+
 		public static float Difficulty() => ZombieSettings.Values.threatScale; // Find.Storyteller.difficulty.threatScale;
 
 		public static int PheromoneFadeoff()
@@ -441,7 +450,7 @@ namespace ZombieLand
 
 		public static List<Region> PlayerReachableRegions(Map map)
 		{
-			var ticks = Find.TickManager.TicksGame;
+			var ticks = GenTicks.TicksGame;
 			if (ticks > nextPlayerReachableRegionsUpdate)
 			{
 				nextPlayerReachableRegionsUpdate = ticks + GenTicks.TickLongInterval;

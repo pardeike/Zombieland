@@ -14,6 +14,9 @@
 	<LetterLabelZombiesRisingNearYourBase>Direct attack of zombies</LetterLabelZombiesRisingNearYourBase>
 	<ZombiesRisingNearYourBase>A group of zombies appears near your base</ZombiesRisingNearYourBase>
 
+	<LetterLabelZombiesSpitter>Zombie spitter attack</LetterLabelZombiesSpitter>
+	<ZombiesSpitter>A zombie spitter has entered the map and will siege you</ZombiesSpitter>
+
 	<LetterLabelXDaysUntilZombies>{0} until Zombies come</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>Zombies will appear where there is soft soil, dirt, sand or gravel. The construction of floors prevents those zombies from coming out of there.</XDaysUntilZombies>
 
@@ -251,5 +254,16 @@
 
 	<ToggleStateLabel>On / Off</ToggleStateLabel>
 	<ToggleStateDesc>Turns the device on or off.</ToggleStateDesc>
+
+	<SpitterStateIdle>Idle</SpitterStateIdle>
+	<SpitterStateSearching>Searching</SpitterStateSearching>
+	<SpitterStateMoving>Moving</SpitterStateMoving>
+	<SpitterStatePreparing>Preparing</SpitterStatePreparing>
+	<SpitterStateSpitting>Spitting</SpitterStateSpitting>
+	<SpitterStateLeaving>Leaving</SpitterStateLeaving>
+	<Mode>Mode</Mode>
+	<Waves>Waves</Waves>
+	<Aggressive>Aggressive</Aggressive>
+	<Calm>Calm</Calm>
 
 </LanguageData>

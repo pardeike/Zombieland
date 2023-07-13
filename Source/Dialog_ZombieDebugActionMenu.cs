@@ -1,12 +1,8 @@
 ﻿using HarmonyLib;
-using Mono.Unix.Native;
 using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using Verse;
-using Verse.AI;
-using Verse.Noise;
 using static Verse.PawnCapacityUtility;
 
 namespace ZombieLand
@@ -116,6 +112,12 @@ namespace ZombieLand
 			}
 		}
 
+		[DebugAction("Zombieland", "Trigger: Spitter Event", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnZombieSpitterEvent()
+		{
+			ZombieSpitter.Spawn(Find.CurrentMap);
+		}
+
 		[DebugAction("Zombieland", "Spawn: Incident (4)", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieIncident_4()
 		{
@@ -141,13 +143,10 @@ namespace ZombieLand
 		}
 
 		[DebugAction("Zombieland", "Spawn: Zombie Spitter", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
-		private static void SpawnZombieSpitter()
+		private static void SpawnZombieSpitterOnCell()
 		{
+			ZombieSpitter.Spawn(Find.CurrentMap, UI.MouseCell());
 			var map = Find.CurrentMap;
-			var spitter = PawnGenerator.GeneratePawn(ZombieDefOf.ZombieSpitter, null);
-			spitter.SetFactionDirect(Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies));
-			GenSpawn.Spawn(spitter, UI.MouseCell(), map, Rot4.Random, WipeMode.Vanish, false);
-			spitter.jobs.StartJob(JobMaker.MakeJob(CustomDefs.Spitter));
 		}
 
 		[DebugAction("Zombieland", "Convert: Make Zombie", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]

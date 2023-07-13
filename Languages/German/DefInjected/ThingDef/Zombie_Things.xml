@@ -54,7 +54,11 @@
 	<ZombieShocker.label>Zombie-Schocker</ZombieShocker.label>
 	<ZombieShocker.description>Eine Zombie-Kontrollmaschine, die in die Wand eines Raums passt. Sie kann von außen aktiviert werden und verwirrt jeden Zombie in dem Raum für eine Zeit.</ZombieShocker.description>
 
-	<Thumper.label>Zombie-Stampfer</Thumper.label>
-	<ZombieShocker.description>Ein Stampfer um Zombies anzulocken. Braucht Sprit und macht pro Schlag Schäden in der Umgebung.</ZombieShocker.description>
+	<Thumper.label>Zombiestampfer</Thumper.label>
+	<Thumper.description>Ein Stampfer um Zombies anzulocken. Braucht Sprit und macht pro Schlag Schäden in der Umgebung.</Thumper.description>
+
+	<ZombieSpitter.label>Zombiespucker</ZombieSpitter.label>
+	<ZombieSpitter.description>Ein Unwesen das Zombies spuckt um dich aus der Luft anzugreifen.</ZombieSpitter.description>
+	<ZombieBall.label>Zombieball</ZombieBall.label>
 
 </LanguageData>

@@ -29,6 +29,7 @@ namespace ZombieLand
 		public static SoundDef ZombieDigOut;
 		public static SoundDef ZombieEating;
 		public static SoundDef ZombieElectricHum;
+		public static SoundDef ZombieTankMovement;
 		public static SoundDef ZombieHit;
 		public static SoundDef ZombieRage;
 		public static SoundDef ZombieTracking;
@@ -48,6 +49,9 @@ namespace ZombieLand
 		public static SoundDef ThumperRelease;
 		public static SoundDef ThumperClang;
 		public static SoundDef ThumperImpact;
+		public static SoundDef BallSpit;
+		public static SoundDef BallImpact;
+		public static SoundDef SpitterMove;
 		public static JobDef Stumble;
 		public static JobDef Sabotage;
 		public static JobDef Spitter;
@@ -83,6 +87,7 @@ namespace ZombieLand
 		public static ThingDef Chainsaw;
 		public static ThingDef Thumper;
 		public static ThingDef ZombieSpitter;
+		public static ThingDef ZombieBall;
 	}
 
 	public class ZombielandMod : Mod

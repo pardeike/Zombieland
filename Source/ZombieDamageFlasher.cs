@@ -35,7 +35,7 @@ namespace ZombieLand
 		private static int DamageFlashTicksLeft(DamageFlasher damageFlasher)
 		{
 			// copied from DamageFlasher.DamageFlashTicksLeft
-			return damageFlasher.lastDamageTick + 16 - Find.TickManager.TicksGame;
+			return damageFlasher.lastDamageTick + 16 - GenTicks.TicksGame;
 		}
 
 		[HarmonyPriority(Priority.Last)]

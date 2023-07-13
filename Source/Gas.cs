@@ -19,13 +19,13 @@
 			}
 			SpawnSetup(map, respawningAfterLoad);
 			if (!respawningAfterLoad)
-				destroyTick = Find.TickManager.TicksGame + def.gas.expireSeconds.RandomInRange.SecondsToTicks();
+				destroyTick = GenTicks.TicksGame + def.gas.expireSeconds.RandomInRange.SecondsToTicks();
 			graphicRotationSpeed = Rand.Range(-def.gas.rotationSpeed, def.gas.rotationSpeed) / 60f;
 		}
 
 		public override void Tick()
 		{
-			if (destroyTick <= Find.TickManager.TicksGame)
+			if (destroyTick <= GenTicks.TicksGame)
 				Destroy(DestroyMode.Vanish);
 			graphicRotation += graphicRotationSpeed;
 		}

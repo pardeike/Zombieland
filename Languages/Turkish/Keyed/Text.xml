@@ -14,6 +14,9 @@
 	<LetterLabelZombiesRisingNearYourBase>Zombi Baskını</LetterLabelZombiesRisingNearYourBase>
 	<ZombiesRisingNearYourBase>Bir grup zombi üssünüzün yakınlarında ortaya çıkar.</ZombiesRisingNearYourBase>
 
+	<LetterLabelZombiesSpitter>Zombi tükürük saldırısı</LetterLabelZombiesSpitter>
+	<ZombiesSpitter>Bir zombi tükürücü haritaya girdi ve sizi kuşatacak</ZombiesSpitter>
+
 	<LetterLabelXDaysUntilZombies>Zombiler gelene kadar {0} gün kaldı.</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>Zombiler yumuşak toprağın, toprağın, kumun ve de çakılın olduğu yerlerde ortaya çıkar. Bunların bulunduğu yerlere yol ve benzeri şeyler inşa etmek zombilerin oradan çıkmasını engeller.</XDaysUntilZombies>
 
@@ -250,5 +253,16 @@
 
 	<ToggleStateLabel>Açık / Kapalı</ToggleStateLabel>
 	<ToggleStateDesc>Cihazı açar veya kapatır.</ToggleStateDesc>
+
+	<SpitterStateIdle>Boşta</SpitterStateIdle>
+	<SpitterStateSearching>Arama</SpitterStateSearching>
+	<SpitterStateMoving>Taşınmak</SpitterStateMoving>
+	<SpitterStatePreparing>Hazırlanıyor</SpitterStatePreparing>
+	<SpitterStateSpitting>Tükürmek</SpitterStateSpitting>
+	<SpitterStateLeaving>Ayrılmak</SpitterStateLeaving>
+	<Mode>Mod</Mode>
+	<Waves>Dalgalar</Waves>
+	<Aggressive>Agresif</Aggressive>
+	<Calm>Sakin</Calm>
 
 </LanguageData>

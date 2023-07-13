@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using UnityEngine;
-using UnityEngine.UIElements;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
@@ -96,6 +95,9 @@ namespace ZombieLand
 		public readonly HashSet<Zombie> hummingZombies = new();
 		Sustainer electricSustainer;
 
+		public readonly HashSet<Zombie> tankZombies = new();
+		Sustainer tankSustainer;
+
 		public Queue<ThingWithComps> colonistsToConvert = new();
 		public Queue<Action<Map>> rimConnectActions = new();
 
@@ -107,6 +109,9 @@ namespace ZombieLand
 		public List<SoSTools.Floater> floatingSpaceZombiesFore;
 
 		public List<VictimHead> victimHeads = new();
+
+		public int lastZombieContact = 0;
+		public int lastZombieSpitter = 0;
 
 		public TickManager(Map map) : base(map)
 		{
@@ -181,16 +186,14 @@ namespace ZombieLand
 
 			hummingZombies.Clear();
 			allZombies.Where(zombie => zombie.IsActiveElectric).Do(zombie => hummingZombies.Add(zombie));
+			tankZombies.Clear();
+			allZombies.Where(zombie => zombie.IsTanky).Do(zombie => tankZombies.Add(zombie));
 
 			taskTicker = TickTasks();
 			while (taskTicker.Current as string != "end")
 				_ = taskTicker.MoveNext();
 
 			isInitialized = 3;
-
-			// TODO: TESTING
-			//var spitter = Assets.NewSpitter();
-			//spitter.transform.position = new IntVec3(10, 0, 10).ToVector3ShiftedWithAltitude(AltitudeLayer.DoorMoveable);
 		}
 
 		public override void MapRemoved()
@@ -215,6 +218,8 @@ namespace ZombieLand
 			Scribe_Collections.Look(ref explosions, "explosions", LookMode.Value);
 			Scribe_Deep.Look(ref incidentInfo, "incidentInfo", Array.Empty<object>());
 			Scribe_Values.Look(ref mapSpawnedTicks, "mapSpawnedTicks");
+			Scribe_Values.Look(ref lastZombieContact, "lastZombieContact");
+			Scribe_Values.Look(ref lastZombieSpitter, "lastZombieSpitter");
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
@@ -251,7 +256,7 @@ namespace ZombieLand
 
 		public void RecalculateZombieWanderDestination()
 		{
-			var ticks = Find.TickManager.TicksGame;
+			var ticks = GenTicks.TicksGame;
 			if (ticks < nextVisibleGridUpdate)
 				return;
 			nextVisibleGridUpdate = ticks + Constants.TICKMANAGER_RECALCULATE_DELAY;
@@ -393,8 +398,25 @@ namespace ZombieLand
 			Tools.avoider.UpdateZombiePositions(map, specs);
 		}
 
+		public void MarkZombieContact()
+		{
+			lastZombieContact = GenTicks.TicksGame;
+		}
+
 		void HandleIncidents()
 		{
+			var ticks = GenTicks.TicksGame;
+			var (minTicksForSpitter, deltaContact, deltaSpitter) = Tools.ZombieSpitterParameter();
+			if (ticks > minTicksForSpitter && (ticks - lastZombieContact > deltaContact || ticks - lastZombieSpitter > deltaSpitter))
+			{
+				if (CanHaveMoreZombies())
+				{
+					lastZombieContact = ticks;
+					lastZombieSpitter = ticks;
+					ZombieSpitter.Spawn(map);
+				}
+			}
+
 			if (incidentTickCounter++ < GenDate.TicksPerHour)
 				return;
 			incidentTickCounter = 0;
@@ -421,7 +443,7 @@ namespace ZombieLand
 
 		void UpdateGameSettings()
 		{
-			var ticks = Find.TickManager.TicksGame;
+			var ticks = GenTicks.TicksGame;
 			ZombieSettings.Values = ZombieSettings.CalculateInterpolation(ZombieSettings.ValuesOverTime, ticks);
 		}
 
@@ -623,7 +645,37 @@ namespace ZombieLand
 				.OrderBy(dist => dist)
 				.First();
 
-			electricSustainer.info.volumeFactor = 1f - Math.Min(1f, nearestElectricalZombieDistance / 36f);
+			electricSustainer.info.volumeFactor = GenMath.LerpDoubleClamped(12f, 36f, 1f, 0f, nearestElectricalZombieDistance);
+		}
+
+		public void UpdateTankMovement()
+		{
+			var ticks = DateTime.Now.Ticks;
+			if ((ticks % 30) != 0)
+				return;
+
+			if (Constants.USE_SOUND == false || Prefs.VolumeAmbient <= 0f)
+			{
+				tankSustainer?.End();
+				tankSustainer = null;
+				return;
+			}
+
+			tankSustainer ??= CustomDefs.ZombieTankMovement.TrySpawnSustainer(SoundInfo.OnCamera(MaintenanceType.None));
+
+			if (tankZombies.Count == 0)
+			{
+				tankSustainer.info.volumeFactor = 0f;
+				return;
+			}
+
+			var cameraPos = Find.CameraDriver.transform.position;
+			var nearestTankZombieDistance = tankZombies
+				.Select(zombie => (cameraPos - zombie.DrawPos).magnitude)
+				.OrderBy(dist => dist)
+				.First();
+
+			tankSustainer.info.volumeFactor = GenMath.LerpDoubleClamped(24f, 64f, 1f, 0f, nearestTankZombieDistance);
 		}
 
 		public void StopAmbientSound()

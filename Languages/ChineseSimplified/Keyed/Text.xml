@@ -14,6 +14,9 @@
 	<LetterLabelZombiesRisingNearYourBase>丧尸袭击（立即进攻）</LetterLabelZombiesRisingNearYourBase>
 	<ZombiesRisingNearYourBase>一群丧尸出现在你的基地附近。</ZombiesRisingNearYourBase>
 
+	<LetterLabelZombiesSpitter>僵尸喷吐者攻击</LetterLabelZombiesSpitter>
+	<ZombiesSpitter>僵尸喷吐者进入地图并将围攻你</ZombiesSpitter>
+
 	<LetterLabelXDaysUntilZombies>{0} 后丧尸出现</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>丧尸会出现在有土地、泥地、沙地、沙砾的地方，建造地板可以防止丧尸从这些地方出现。</XDaysUntilZombies>
 
@@ -251,5 +254,16 @@
 
 	<ToggleStateLabel>开/关</ToggleStateLabel>
 	<ToggleStateDesc>将设备打开或关闭。</ToggleStateDesc>
+
+	<SpitterStateIdle>闲置</SpitterStateIdle>
+	<SpitterStateSearching>搜索</SpitterStateSearching>
+	<SpitterStateMoving>移动</SpitterStateMoving>
+	<SpitterStatePreparing>准备</SpitterStatePreparing>
+	<SpitterStateSpitting>吐痰</SpitterStateSpitting>
+	<SpitterStateLeaving>离开</SpitterStateLeaving>
+	<Mode>模式</Mode>
+	<Waves>波</Waves>
+	<Aggressive>咄咄逼人</Aggressive>
+	<Calm>冷静型</Calm>
 
 </LanguageData>

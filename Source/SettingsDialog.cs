@@ -379,7 +379,7 @@ namespace ZombieLand
 
 			if (Tools.OnMainScreen() == false)
 			{
-				var ticks = Find.TickManager.TicksGame;
+				var ticks = GenTicks.TicksGame;
 				ZombieSettings.Values = ZombieSettings.CalculateInterpolation(ZombieSettings.ValuesOverTime, ticks);
 			}
 		}

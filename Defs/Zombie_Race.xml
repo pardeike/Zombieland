@@ -134,7 +134,7 @@
 		<defName>ZombieSpitter</defName>
 		<label>zombie spitter</label>
 		<thingClass>ZombieLand.ZombieSpitter</thingClass>
-		<description>An zombie blob that attacks your base by spitting out zombies.</description>
+		<description>A monster that spits zombies to attack your base from the air.</description>
 		<tools>
 		</tools>
 		<statBases>
@@ -161,7 +161,6 @@
 		<race>
 			<intelligence>ToolUser</intelligence>
 			<thinkTreeMain>ZombieSpitter</thinkTreeMain>
-			<thinkTreeConstant>ZombieSpitter</thinkTreeConstant>
 			<body>ZombieSpitterBody</body>
 			<soundMeleeHitPawn>Pawn_Melee_BigBash_HitPawn</soundMeleeHitPawn>
 			<soundMeleeHitBuilding>Pawn_Melee_BigBash_HitBuilding</soundMeleeHitBuilding>

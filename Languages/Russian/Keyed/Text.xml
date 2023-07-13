@@ -14,6 +14,9 @@
 	<LetterLabelZombiesRisingNearYourBase>Прямая атака зомби</LetterLabelZombiesRisingNearYourBase>
 	<ZombiesRisingNearYourBase>Группа зомби появилась рядом с вашей базой</ZombiesRisingNearYourBase>
 
+	<LetterLabelZombiesSpitter>Атака зомби-спиттера</LetterLabelZombiesSpitter>
+	<ZombiesSpitter>На карту проникли зомби-плевательницы и будут осаждать вас</ZombiesSpitter>
+
 	<LetterLabelXDaysUntilZombies>{0} Дней до прихода зомби-орды</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>Зомби появятся там, где есть мягкая почва, грязь, песок и гравий. Застройте всё напольными покрытиями, чтобы зомби не могли подкопаться.</XDaysUntilZombies>
 
@@ -251,5 +254,16 @@
 
 	<ToggleStateLabel>Вкл / Выкл</ToggleStateLabel>
 	<ToggleStateDesc>Включает или выключает устройство.</ToggleStateDesc>
+
+	<SpitterStateIdle>Ожидание</SpitterStateIdle>
+	<SpitterStateSearching>Поиск</SpitterStateSearching>
+	<SpitterStateMoving>Перемещение</SpitterStateMoving>
+	<SpitterStatePreparing>Подготовка</SpitterStatePreparing>
+	<SpitterStateSpitting>Плевок</SpitterStateSpitting>
+	<SpitterStateLeaving>Оставить</SpitterStateLeaving>
+	<Mode>Режим</Mode>
+	<Waves>Волны</Waves>
+	<Aggressive>Агрессивный</Aggressive>
+	<Calm>Спокойный</Calm>
 
 </LanguageData>

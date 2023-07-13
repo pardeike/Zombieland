@@ -14,4 +14,7 @@
 	<ElectricalField.verbs.li.label>Schock</ElectricalField.verbs.li.label>
 	<ElectricalField.tools.li.label>Schock</ElectricalField.tools.li.label>
 
+	<ZombieSpitter.label>Zombiespucker</ZombieSpitter.label>
+	<ZombieSpitter.description>Ein Unwesen das Zombies spuckt um dich aus der Luft anzugreifen.</ZombieSpitter.description>
+
 </LanguageData>

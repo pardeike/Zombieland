@@ -55,6 +55,10 @@
   <ZombieShocker.description>一个适合在房间墙壁上的僵尸控制机。可以从外面启动，使房间里的每一个僵尸在短时间内失去意识。</ZombieShocker.description>
 
   <Thumper.label>僵尸踩踏器</Thumper.label>
-  <ZombieShocker.description>一个吸引僵尸的跺脚器。使用燃料，每次攻击对环境造成破坏。</ZombieShocker.description>
+  <Thumper.description>一个吸引僵尸的跺脚器。使用燃料，每次攻击对环境造成破坏。</Thumper.description>
+
+  <ZombieSpitter.label>僵尸喷吐者</ZombieSpitter.label>
+  <ZombieSpitter.description>从空中喷出僵尸攻击你的基地的怪物。</ZombieSpitter.description>
+  <ZombieBall.label>僵尸球</ZombieBall.label>
 
 </LanguageData>

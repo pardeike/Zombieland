@@ -794,4 +794,27 @@
 		</comps>
 	</ThingDef>
 
+	<ThingDef ParentName="BaseBullet">
+		<defName>ZombieBall</defName>
+		<label>a zombie ball</label>
+		<graphicData>
+			<texPath>Spitter/ZombieBall</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+		</graphicData>
+		<thingClass>ZombieLand.ZombieBall</thingClass>
+		<projectile>
+			<speed>30</speed>
+			<damageDef>Smoke</damageDef>
+			<explosionRadius>0.1</explosionRadius>
+			<postExplosionGasType>BlindSmoke</postExplosionGasType>
+			<arcHeightFactor>2</arcHeightFactor>
+			<shadowSize>1.5</shadowSize>
+			<flyOverhead>true</flyOverhead>
+			<soundHitThickRoof>Artillery_HitThickRoof</soundHitThickRoof>
+			<soundExplode>BallImpact</soundExplode>
+			<soundImpactAnticipate>MortarRound_PreImpact</soundImpactAnticipate>
+			<soundAmbient>MortarRound_Ambient</soundAmbient>
+		</projectile>
+	</ThingDef>
+
 </Defs>

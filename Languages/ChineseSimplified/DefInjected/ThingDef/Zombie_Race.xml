@@ -14,4 +14,7 @@
   <ElectricalField.verbs.li.label>冲击</ElectricalField.verbs.li.label>
   <ElectricalField.tools.li.label>冲击</ElectricalField.tools.li.label>
 
+  <ZombieSpitter.label>僵尸喷吐者</ZombieSpitter.label>
+  <ZombieSpitter.description>从空中喷出僵尸攻击你的基地的怪物。</ZombieSpitter.description>
+
 </LanguageData>

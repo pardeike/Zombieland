@@ -659,11 +659,13 @@ namespace ZombieLand
 					yield return new WaitForSeconds(0.1f);
 					break;
 			}
-			if (zombie.isElectrifier)
+			var tickManager = map.GetComponent<TickManager>();
+			if (tickManager != null)
 			{
-				var tickManager = map.GetComponent<TickManager>();
-				_ = tickManager?.hummingZombies.Add(zombie);
-				// _ = zombie.verbTracker.AllVerbs.RemoveAll(verb => verb.GetDamageDef() == Tools.ZombieBiteDamageDef);
+				if (zombie.isElectrifier)
+					_ = tickManager.hummingZombies.Add(zombie);
+				if (zombie.IsTanky)
+					_ = tickManager.tankZombies.Add(zombie);
 			}
 		}
 

@@ -11,7 +11,6 @@ using System.Text;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using Verse.Noise;
 using Verse.Sound;
 
 namespace ZombieLand
@@ -2156,6 +2155,14 @@ namespace ZombieLand
 				});
 				_ = builder.AppendLine("");
 
+				var ticks = GenTicks.TicksGame;
+				var (minTicksForSpitter, deltaContact, deltaSpitter) = Tools.ZombieSpitterParameter();
+				_ = builder.AppendLine("Zombie Spitter:");
+				_ = builder.AppendLine($"- min ticks: {minTicksForSpitter}");
+				_ = builder.AppendLine($"- contact last={tickManager.lastZombieContact}, diff={ticks - tickManager.lastZombieContact}, min={deltaContact}");
+				_ = builder.AppendLine($"- spitter last={tickManager.lastZombieSpitter}, diff={ticks - tickManager.lastZombieSpitter}, min={deltaSpitter}");
+				_ = builder.AppendLine("");
+
 				if (pos.InBounds(map) == false)
 					return;
 
@@ -2431,6 +2438,15 @@ namespace ZombieLand
 					return;
 				}
 
+				// set zombie contact timestamp
+				var isNotInfected = pawn.InfectionState() < InfectionState.Infecting;
+				if (isNotInfected && pawn.IsColonist)
+				{
+					var tickManager = map.GetComponent<TickManager>();
+					if (tickManager?.avoidGrid?.InAvoidDanger(pawn) ?? false)
+						tickManager.MarkZombieContact();
+				}
+
 				// manhunting will always trigger senses
 				//
 				if (pawn.MentalState == null || (pawn.MentalState.def != def1 && pawn.MentalState.def != def2))
@@ -2461,7 +2477,7 @@ namespace ZombieLand
 				}
 
 				// leave pheromone trail
-				if (pawn.InfectionState() < InfectionState.Infecting && Customization.DoesAttractsZombies(pawn))
+				if (isNotInfected && Customization.DoesAttractsZombies(pawn))
 				{
 					var now = Tools.Ticks();
 					var radius = Tools.RadiusForPawn(pawn);
@@ -3065,7 +3081,10 @@ namespace ZombieLand
 			static void Postfix()
 			{
 				var tickManager = Find.CurrentMap?.GetComponent<TickManager>();
-				tickManager?.UpdateElectricalHumming();
+				if (tickManager == null)
+					return;
+				tickManager.UpdateElectricalHumming();
+				tickManager.UpdateTankMovement();
 			}
 		}
 
@@ -3365,7 +3384,7 @@ namespace ZombieLand
 						angle += leanAngle;
 					var quat = Quaternion.AngleAxis(angle, Vector3.up);
 
-					var idx = ((Find.TickManager.TicksGame + zombie.thingIDNumber) / 10) % 8;
+					var idx = ((GenTicks.TicksGame + zombie.thingIDNumber) / 10) % 8;
 					if (idx >= 5)
 						idx = 8 - idx;
 					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.TOXIC_AURAS[idx], drawLoc + toxicAuraOffset, quat, 1f, 1f);
@@ -4863,6 +4882,45 @@ namespace ZombieLand
 			}
 		}
 
+		// patch to exclude anything zombie from listings
+		//
+		[HarmonyPatch(typeof(ThingFilter))]
+		[HarmonyPatch(nameof(ThingFilter.SetAllow))]
+		[HarmonyPatch(new Type[] { typeof(ThingDef), typeof(bool) })]
+		static class ThingFilter_SetAllow_Patch
+		{
+			public static bool IsZombieDef(ThingDef thingDef)
+			{
+				if (thingDef == null)
+					return false;
+				if (thingDef.defName.ToLower().Contains("zombie"))
+					return true;
+				if (thingDef.description.ToLower().Contains("zombie"))
+					return true;
+				return false;
+			}
+
+			static bool Prefix(ThingDef thingDef)
+			{
+				return IsZombieDef(thingDef) == false;
+			}
+		}
+		[HarmonyPatch(typeof(Listing_TreeThingFilter))]
+		[HarmonyPatch(nameof(Listing_TreeThingFilter.Visible))]
+		[HarmonyPatch(new Type[] { typeof(ThingDef) })]
+		static class Listing_TreeThingFilter_Visible_Patch
+		{
+			static bool Prefix(ThingDef td, ref bool __result)
+			{
+				if (ThingFilter_SetAllow_Patch.IsZombieDef(td))
+				{
+					__result = false;
+					return false;
+				}
+				return true;
+			}
+		}
+
 		// patch for a custom zombie corpse class
 		//
 		[HarmonyPatch(typeof(ThingMaker))]
@@ -4878,7 +4936,14 @@ namespace ZombieLand
 				if (def.ingestible.sourceDef is ThingDef_Zombie)
 				{
 					def.selectable = false;
+					def.smeltable = false;
+					def.mineable = false;
+					def.stealable = false;
+					def.burnableByRecipe = false;
+					def.canLoadIntoCaravan = false;
 					def.neverMultiSelect = true;
+					def.butcherProducts = null;
+					def.smeltProducts = null;
 					def.drawGUIOverlay = false;
 					def.hasTooltip = false;
 					def.hideAtSnowDepth = 99f;
@@ -5045,7 +5110,7 @@ namespace ZombieLand
 				if (hasBrain == false)
 					return;
 
-				var ticks = Find.TickManager.TicksGame;
+				var ticks = GenTicks.TicksGame;
 				tmpHediffZombieInfections.Clear();
 				pawn.health.hediffSet.GetHediffs(ref tmpHediffZombieInfections);
 				var shouldBecomeZombie = tmpHediffZombieInfections.Any(infection => ticks > infection.ticksWhenBecomingZombie);

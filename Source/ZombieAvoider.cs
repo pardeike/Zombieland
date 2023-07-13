@@ -109,7 +109,8 @@ namespace ZombieLand
 				}
 				catch (Exception e)
 				{
-					Log.Warning("ZombieAvoider thread error: " + e);
+					if (e is not ThreadAbortException)
+						Log.Warning("ZombieAvoider error: " + e);
 					Thread.Sleep(500);
 				}
 

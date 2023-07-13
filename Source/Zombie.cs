@@ -104,8 +104,8 @@ namespace ZombieLand
 		// electrifier
 		public bool isElectrifier = false;
 		public int electricDisabledUntil = 0;
-		public bool IsActiveElectric => isElectrifier && Downed == false && Find.TickManager.TicksGame > electricDisabledUntil && this.InWater() == false;
-		public void DisableElectric(int ticks) { electricDisabledUntil = Find.TickManager.TicksGame + ticks; }
+		public bool IsActiveElectric => isElectrifier && Downed == false && GenTicks.TicksGame > electricDisabledUntil && this.InWater() == false;
+		public void DisableElectric(int ticks) { electricDisabledUntil = GenTicks.TicksGame + ticks; }
 		public int electricCounter = -1000;
 		public float electricAngle = 0;
 		public List<KeyValuePair<float, int>> absorbAttack = new();
@@ -348,7 +348,7 @@ namespace ZombieLand
 				{
 					var sqt = wallPushProgress * wallPushProgress;
 					var f = sqt / (2.0f * (sqt - wallPushProgress) + 1.0f);
-					if (Find.TickManager.TicksGame % 10 == 0 && Find.TickManager.CurTimeSpeed != TimeSpeed.Paused)
+					if (GenTicks.TicksGame % 10 == 0 && Find.TickManager.CurTimeSpeed != TimeSpeed.Paused)
 						Rotation = new Rot4() { rotInt = (byte)((Rotation.AsInt + 1) % 4) };
 					var vec = wallPushStart + (wallPushDestination - wallPushStart) * f;
 					vec.y = Altitudes.AltitudeFor(AltitudeLayer.MoteOverhead);
