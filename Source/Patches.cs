@@ -4893,9 +4893,9 @@ namespace ZombieLand
 			{
 				if (thingDef == null)
 					return false;
-				if (thingDef.defName.ToLower().Contains("zombie"))
+				if (thingDef.defName != null && thingDef.defName.ToLower().Contains("zombie"))
 					return true;
-				if (thingDef.description.ToLower().Contains("zombie"))
+				if (thingDef.description != null && thingDef.description.ToLower().Contains("zombie"))
 					return true;
 				return false;
 			}

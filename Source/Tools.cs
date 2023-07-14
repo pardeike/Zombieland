@@ -190,7 +190,7 @@ namespace ZombieLand
 
 		public static (int, int, int) ZombieSpitterParameter()
 		{
-			var difficulty = Tools.Difficulty();
+			var difficulty = Difficulty();
 			var minTicksForSpitter = (int)(GenMath.LerpDouble(0, 5, 8, 2, difficulty) * GenDate.TicksPerSeason);
 			var deltaContact = (int)(GenMath.LerpDouble(0, 5, GenDate.DaysPerYear, 8, difficulty) * GenDate.TicksPerDay);
 			var deltaSpitter = (int)(GenMath.LerpDouble(0, 5, 12, 1, difficulty) * GenDate.TicksPerTwelfth);
@@ -198,6 +198,8 @@ namespace ZombieLand
 		}
 
 		public static float Difficulty() => ZombieSettings.Values.threatScale; // Find.Storyteller.difficulty.threatScale;
+
+		public static int f(this (int, int) range) => (int)(GenMath.LerpDouble(0, 5, range.Item1, range.Item2, Difficulty()) * GenMath.LerpDoubleClamped(GenDate.TicksPerYear, GenDate.TicksPerYear * 5, 1, 5, GenTicks.TicksGame));
 
 		public static int PheromoneFadeoff()
 		{
