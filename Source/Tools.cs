@@ -635,18 +635,22 @@ namespace ZombieLand
 					zombie.apparel.DestroyAll();
 					var wornApparel = pawn.apparel.WornApparel.ToArray();
 					foreach (var apparel in wornApparel)
-					{
 						if (pawn.apparel.TryDrop(apparel, out var newApparel))
 						{
-							zombie.apparel.Wear(newApparel);
-							newApparel.SetForbidden(false, false);
-							newApparel.HitPoints = 1;
-							var compQuality = newApparel.TryGetComp<CompQuality>();
-							compQuality?.SetQuality(QualityCategory.Awful, ArtGenerationContext.Colony);
+							try
+							{
+								zombie.apparel.Wear(newApparel);
+								newApparel.SetForbidden(false, false);
+								newApparel.HitPoints = 1;
+								var compQuality = newApparel.TryGetComp<CompQuality>();
+								compQuality?.SetQuality(QualityCategory.Awful, ArtGenerationContext.Colony);
 
-							zombie.apparel.Notify_ApparelAdded(newApparel);
+								zombie.apparel.Notify_ApparelAdded(newApparel);
+							}
+							finally
+							{
+							}
 						}
-					}
 				}
 
 				if (thing is Corpse)
