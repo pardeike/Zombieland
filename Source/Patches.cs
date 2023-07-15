@@ -4005,11 +4005,23 @@ namespace ZombieLand
 					yield return gizmo;
 
 				if (ZombieSettings.Values.betterZombieAvoidance)
-					yield return Gizmos.ZombieAvoidance(___pawn);
+				{
+					var gizmo = Gizmos.ZombieAvoidance(___pawn);
+					if (gizmo != null)
+						yield return gizmo;
+				}
 				if (ZombieSettings.Values.corpsesExtractAmount > 0)
-					yield return Gizmos.ExtractSerum(___pawn);
+				{
+					var gizmo = Gizmos.ExtractSerum(___pawn);
+					if (gizmo != null)
+						yield return gizmo;
+				}
 				if (ZombieSettings.Values.hoursAfterDeathToBecomeZombie > 0)
-					yield return Gizmos.DoubleTap(___pawn);
+				{
+					var gizmo = Gizmos.DoubleTap(___pawn);
+					if (gizmo != null)
+						yield return gizmo;
+				}
 			}
 		}
 
