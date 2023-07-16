@@ -147,6 +147,7 @@
 	<HealerChance>Heilende Zombies</HealerChance>
 	<NormalZombieChance>Normale Zombies: {0}</NormalZombieChance>
 	<ChildZombieChance>Zombiekinder</ChildZombieChance>
+	<SpitterThreat>Zombiespucker Schwierigkeit</SpitterThreat>
 	<WallPushing>Anzahl der Zombies, die andere Zombies über Mauern schubst</WallPushing>
 
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>

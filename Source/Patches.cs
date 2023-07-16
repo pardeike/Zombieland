@@ -5,6 +5,7 @@ using RimWorld.Planet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
@@ -537,6 +538,16 @@ namespace ZombieLand
 		[HarmonyPatch(new Type[] { typeof(Thing), typeof(Faction) })]
 		static class GenHostility_HostileTo_Thing_Faction_Patch
 		{
+			static bool Prefix(ref bool __result, Thing t, Faction fac)
+			{
+				if (t is ZombieSpitter && fac.IsPlayer == false)
+				{
+					__result = false;
+					return false;
+				}
+				return true;
+			}
+
 			static void Postfix(Thing t, Faction fac, ref bool __result)
 			{
 				if (fac == null)
@@ -549,11 +560,6 @@ namespace ZombieLand
 					return;
 				if (pawn.ActivePartOfColony())
 					return;
-				if (pawn is ZombieSpitter && fac.IsPlayer == false)
-				{
-					__result = false;
-					return;
-				}
 				__result = Tools.IsHostileToZombies(pawn);
 			}
 		}
@@ -2190,7 +2196,7 @@ namespace ZombieLand
 
 				var ticks = GenTicks.TicksGame;
 				var (minTicksForSpitter, deltaContact, deltaSpitter) = Tools.ZombieSpitterParameter();
-				_ = builder.AppendLine("Zombie Spitter:");
+				_ = builder.AppendLine($"Zombie Spitter ({ZombieSettings.Values.spitterThreat:0%}x):");
 				_ = builder.AppendLine($"- min ticks: {minTicksForSpitter}");
 				_ = builder.AppendLine($"- contact last={tickManager.lastZombieContact}, diff={ticks - tickManager.lastZombieContact}, min={deltaContact}");
 				_ = builder.AppendLine($"- spitter last={tickManager.lastZombieSpitter}, diff={ticks - tickManager.lastZombieSpitter}, min={deltaSpitter}");
@@ -2420,7 +2426,8 @@ namespace ZombieLand
 				{
 					var now = Tools.Ticks();
 					var grid = pawn.Map.GetGrid();
-					var radius = GenMath.LerpDouble(0, 5, 4, 32, Tools.Difficulty());
+					var f = ZombieSettings.Values.spitterThreat;
+					var radius = f * GenMath.LerpDouble(0, 5, 4, 32, Tools.Difficulty());
 					Tools.GetCircle(radius).DoIf(vec => exclude.Contains(vec) == false, vec =>
 						grid.BumpTimestamp(value + vec, now - (long)(2f * vec.LengthHorizontal)));
 					return;
@@ -4559,13 +4566,17 @@ namespace ZombieLand
 		{
 			static void Postfix(Verb __instance, ref bool __result, LocalTargetInfo castTarg)
 			{
-				if (__result == false || castTarg == null || castTarg.HasThing == false || __instance.caster is Zombie)
+				var caster = __instance.caster;
+
+				if (__result == false || castTarg == null || castTarg.HasThing == false)
+					return;
+				if (caster is Zombie || caster is ZombieSpitter)
 					return;
 
 				if (castTarg.Thing is not Zombie zombie)
 					return;
 
-				var dist = __instance.caster.Position.DistanceToSquared(zombie.Position);
+				var dist = caster.Position.DistanceToSquared(zombie.Position);
 				if (dist >= Constants.HUMAN_PHEROMONE_RADIUS * Constants.HUMAN_PHEROMONE_RADIUS)
 					__result = false;
 			}
@@ -4580,6 +4591,13 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn __instance, Thing target, ref Verb __result)
 			{
+				// zombie spitter never attacks or responds to attacks
+				if (__instance is ZombieSpitter)
+				{
+					__result = null;
+					return false;
+				}
+
 				if (target is not Zombie zombie || zombie.IsActiveElectric == false)
 					return true;
 
@@ -4624,6 +4642,13 @@ namespace ZombieLand
 					if (zombie.jobs != null && zombie.CurJob != null)
 						zombie.jobs.EndCurrentJob(JobCondition.InterruptForced, false);
 					Tools.DropLoot(zombie);
+					return;
+				}
+
+				// make spitters drop loot
+				if (__instance is ZombieSpitter)
+				{
+					Tools.DropLoot(__instance);
 					return;
 				}
 
@@ -4951,10 +4976,25 @@ namespace ZombieLand
 			{
 				if (thingDef == null)
 					return false;
-				if (thingDef.defName != null && thingDef.defName.ToLower().Contains("zombie"))
-					return true;
-				if (thingDef.description != null && thingDef.description.ToLower().Contains("zombie"))
-					return true;
+
+				var defName = thingDef.defName?.ToLower();
+				if (defName != null)
+				{
+					if (defName.Contains("zombie")
+						&& defName.Contains("serum") == false
+						&& defName.Contains("extract") == false)
+						return true;
+				}
+
+				var description = thingDef.description?.ToLower();
+				if (description != null)
+				{
+					if (description.Contains("zombie")
+						&& description.Contains("serum") == false
+						&& description.Contains("extract") == false)
+						return true;
+				}
+
 				return false;
 			}
 

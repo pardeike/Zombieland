@@ -147,6 +147,7 @@
 	<HealerChance>Healer zombies</HealerChance>
 	<NormalZombieChance>Ordinary zombies: {0}</NormalZombieChance>
 	<ChildZombieChance>Zombie children</ChildZombieChance>
+	<SpitterThreat>Zombie spitter difficulty</SpitterThreat>
 	<WallPushing>Amount of zombies that will push zombies over walls</WallPushing>
 
 	<ZombieMiscTitle>Miscellaneous</ZombieMiscTitle>

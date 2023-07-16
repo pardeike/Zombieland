@@ -147,6 +147,7 @@
 	<HealerChance>Целители зомби</HealerChance>
 	<NormalZombieChance>Обычные зомби: {0}</NormalZombieChance>
 	<ChildZombieChance>Зомбированные дети</ChildZombieChance>
+	<SpitterThreat>Трудности с зомби-изрыгателем</SpitterThreat>
 	<WallPushing>Количество зомби, которые будут толкать зомби через стены</WallPushing>
 
 	<ZombieMiscTitle>Разное</ZombieMiscTitle>

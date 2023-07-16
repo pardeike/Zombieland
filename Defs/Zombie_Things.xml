@@ -224,7 +224,7 @@
 		<statBases>
 			<Mass>0.5</Mass>
 			<Flammability>0.7</Flammability>
-			<MedicalPotency>1000</MedicalPotency>
+			<MedicalPotency>1</MedicalPotency>
 			<MedicalQualityMax>1</MedicalQualityMax>
 			<MaxHitPoints>60</MaxHitPoints>
 		</statBases>

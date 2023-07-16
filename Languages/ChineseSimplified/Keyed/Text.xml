@@ -147,6 +147,7 @@
 	<HealerChance>治疗僵尸</HealerChance>
 	<NormalZombieChance>普通丧尸: {0}</NormalZombieChance>
 	<ChildZombieChance>僵尸儿童</ChildZombieChance>
+	<SpitterThreat>僵尸喷射难度</SpitterThreat>
 	<WallPushing>将僵尸推到墙上的僵尸数量</WallPushing>
 
 	<ZombieMiscTitle>其他</ZombieMiscTitle>

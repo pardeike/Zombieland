@@ -147,6 +147,7 @@
 	<HealerChance>Şifacı zombiler</HealerChance>
 	<NormalZombieChance>Sıradan zombiler: {0}</NormalZombieChance>
 	<ChildZombieChance>Zombi çocukları</ChildZombieChance>
+	<SpitterThreat>Zombi tükürme zorluğu</SpitterThreat>
 	<WallPushing>Zombileri duvarların üzerinden itecek zombi miktarı</WallPushing>
 
 	<ZombieMiscTitle>Çeşitli</ZombieMiscTitle>

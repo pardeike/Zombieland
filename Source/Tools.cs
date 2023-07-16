@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
@@ -14,6 +15,7 @@ using System.Xml;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Verse.Noise;
 using Verse.Sound;
 using static HarmonyLib.AccessTools;
 
@@ -192,15 +194,17 @@ namespace ZombieLand
 		public static (int, int, int) ZombieSpitterParameter()
 		{
 			var difficulty = Difficulty();
-			var minTicksForSpitter = (int)(GenMath.LerpDouble(0, 5, 8, 2, difficulty) * GenDate.TicksPerSeason);
-			var deltaContact = (int)(GenMath.LerpDouble(0, 5, GenDate.DaysPerYear, 8, difficulty) * GenDate.TicksPerDay);
-			var deltaSpitter = (int)(GenMath.LerpDouble(0, 5, 12, 1, difficulty) * GenDate.TicksPerTwelfth);
+			var f = ZombieSettings.Values.spitterThreat;
+			var minTicksForSpitter = (int)(f * GenMath.LerpDouble(0, 5, 8, 2, difficulty) * GenDate.TicksPerSeason);
+			var deltaContact = (int)(f * GenMath.LerpDouble(0, 5, GenDate.DaysPerYear, 8, difficulty) * GenDate.TicksPerDay);
+			var deltaSpitter = (int)(f * GenMath.LerpDouble(0, 5, 12, 1, difficulty) * GenDate.TicksPerTwelfth);
 			return (minTicksForSpitter, deltaContact, deltaSpitter);
 		}
 
 		public static float Difficulty() => ZombieSettings.Values.threatScale; // Find.Storyteller.difficulty.threatScale;
 
 		public static int F(this (int, int) range) => (int)(GenMath.LerpDouble(0, 5, range.Item1, range.Item2, Difficulty()) * GenMath.LerpDoubleClamped(GenDate.TicksPerYear, GenDate.TicksPerYear * 5, 1, 5, GenTicks.TicksGame));
+		public static float F(this (float, float) range) => GenMath.LerpDouble(0, 5, range.Item1, range.Item2, Difficulty()) * GenMath.LerpDoubleClamped(GenDate.TicksPerYear, GenDate.TicksPerYear * 5, 1, 5, GenTicks.TicksGame);
 
 		public static int PheromoneFadeoff()
 		{
@@ -1564,20 +1568,33 @@ namespace ZombieLand
 			return n;
 		}
 
-		public static void DropLoot(Zombie zombie)
+		public static void DropLoot(Pawn pawn)
 		{
 			var f = ZombieSettings.Values.lootExtractAmount;
 			var amount = Mathf.FloorToInt(f);
 			f -= amount;
 			amount += Rand.Chance(f) ? 1 : 0;
 
+			if (pawn is ZombieSpitter)
+			{
+				var def = DefDatabase<ThingDef>.GetNamed("ZombieSerumSimple", false);
+				if (def != null)
+					for (var i = 0; i < amount; i++)
+					{
+						var serum = ThingMaker.MakeThing(def);
+						GenPlace.TryPlaceThing(serum, pawn.Position, pawn.Map, ThingPlaceMode.Near, out serum);
+						ForbidUtility.SetForbidden(serum, true);
+					}
+				return;
+			}
+
 			for (var i = 1; i <= amount; i++)
 			{
-				var apparels = zombie.apparel.UnlockedApparel;
+				var apparels = pawn.apparel.UnlockedApparel;
 				if (apparels.Any() == false)
 					break;
 				var apparel = apparels.RandomElementByWeight(apparel => apparel.MarketValue);
-				_ = zombie.apparel.TryDrop(apparel);
+				_ = pawn.apparel.TryDrop(apparel);
 			}
 		}
 

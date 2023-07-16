@@ -147,6 +147,7 @@
 	<HealerChance>Zombies guérisseurs</HealerChance>
 	<NormalZombieChance>Zombies ordinaires: {0}</NormalZombieChance>
 	<ChildZombieChance>es enfants zombies</ChildZombieChance>
+	<SpitterThreat>Difficulté du cracheur de zombies</SpitterThreat>
 	<WallPushing>Quantité de zombies qui poussent les zombies par-dessus les murs</WallPushing>
 
 	<ZombieMiscTitle>Divers</ZombieMiscTitle>

@@ -31,8 +31,11 @@ namespace ZombieLand
 
 		void InitAction()
 		{
-			aggressive = Rand.Bool;
-			waves = aggressive ? Rand.Range((1, 2).F(), (2, 10).F()) : Rand.Range((2, 15).F(), (4, 30).F());
+			var f = ZombieSettings.Values.spitterThreat;
+			aggressive = Rand.Chance(f / 2f);
+			waves = Mathf.FloorToInt(f * (aggressive ? Rand.Range((1f, 2f).F(), (2f, 10f).F()) : Rand.Range((2f, 15f).F(), (4f, 30f).F())));
+			if (waves < 1)
+				waves = 1;
 		}
 
 		public override void ExposeData()
@@ -100,8 +103,14 @@ namespace ZombieLand
 		void DoShooting()
 		{
 			tickCounter = 0;
-			spitInterval = aggressive ? Rand.Range((20, 5).F(), (40, 10).F()) : Rand.Range((360, 120).F(), (900, 240).F());
-			remainingZombies = aggressive ? Rand.Range((1, 5).F(), (10, 20).F()) : Rand.Range((5, 20).F(), (10, 50).F());
+			var f = ZombieSettings.Values.spitterThreat;
+			var fReverse = 5f - f;
+			spitInterval = Mathf.FloorToInt(fReverse * (aggressive ? Rand.Range((20f, 5f).F(), (40f, 10f).F()) : Rand.Range((360f, 120f).F(), (900f, 240f).F())));
+			if (spitInterval < 4)
+				spitInterval = 4;
+			remainingZombies = Mathf.FloorToInt(f * (aggressive ? Rand.Range((1f, 5f).F(), (10f, 20f).F()) : Rand.Range((5f, 20f).F(), (10f, 50f).F())));
+			if (remainingZombies < 1)
+				remainingZombies = 1;
 			state = SpitterState.Spitting;
 		}
 

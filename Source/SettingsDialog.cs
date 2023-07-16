@@ -119,7 +119,7 @@ namespace ZombieLand
 				}
 
 				// Types
-				if (DialogExtensions.Section<string>(":SpecialZombiesTitle", ":SuicideBomberChance", ":ToxicSplasherChance", ":TankyOperatorChance", ":MinerChance", ":ElectrifierChance", ":AlbinoChance", ":DarkSlimerChance", ":HealerChance", ":NormalZombieChance", "ChildZombieChance"))
+				if (DialogExtensions.Section<string>(":SpecialZombiesTitle", ":SuicideBomberChance", ":ToxicSplasherChance", ":TankyOperatorChance", ":MinerChance", ":ElectrifierChance", ":AlbinoChance", ":DarkSlimerChance", ":HealerChance", ":NormalZombieChance", ":ChildZombieChance", ":SpitterThreat"))
 				{
 					list.Dialog_Label("SpecialZombiesTitle", headerColor);
 					list.Gap(8f);
@@ -150,6 +150,8 @@ namespace ZombieLand
 					list.Dialog_Text(GameFont.Tiny, "NormalZombieChance", string.Format("{0:0.00%}", normalChance));
 					list.Gap(12f);
 					list.Dialog_FloatSlider("ChildZombieChance", _ => "{0:0.00%}", true, ref settings.childChance, 0f, 1f);
+					list.Gap(8f);
+					list.Dialog_FloatSlider("SpitterThreat", f => f == 0f ? "Off".TranslateSimple() : "{0:0%}", false, ref settings.spitterThreat, 0f, 5f);
 					list.Gap(24f);
 				}
 
@@ -238,7 +240,7 @@ namespace ZombieLand
 				}
 
 				// Infections
-				if (DialogExtensions.Section<string>(":ZombieInfection", ":ZombieBiteInfectionChance", ":ZombieBiteInfectionUnknown", ":ZombieBiteInfectionTreatable", ":ZombieBiteInfectionTreatable", ":ZombieBiteInfectionPersists", ":AnyTreatmentStopsInfection", ":HoursAfterDeathToBecomeZombie", ":DeadBecomesZombieMessage", ":DangerousSituationMessage"))
+				if (DialogExtensions.Section<string>(":ZombieInfection", ":ZombieBiteInfectionChance", ":ZombieBiteInfectionUnknown", ":ZombieBiteInfectionTreatable", ":ZombieBiteInfectionTreatable", ":ZombieBiteInfectionPersists", ":AnyTreatmentStopsInfection", ":HoursAfterDeathToBecomeZombie", ":DeadBecomesZombieMessage"))
 				{
 					list.Dialog_Label("ZombieInfection", headerColor);
 					list.Gap(8f);
@@ -278,7 +280,7 @@ namespace ZombieLand
 				}
 
 				// Miscellaneous
-				if (DialogExtensions.Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":PlayCreepyAmbientSound", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":ShowHealthBar", ":ShowZombieStats", ":HighlightDangerousAreas", ":DisableRandomApparel", ":FloatingZombiesInSOS2"))
+				if (DialogExtensions.Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":PlayCreepyAmbientSound", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":ShowHealthBar", ":ShowZombieStats", ":HighlightDangerousAreas", ":DisableRandomApparel", ":DangerousSituationMessage", SoSTools.isInstalled ? ":FloatingZombiesInSOS2" : ""))
 				{
 					list.Dialog_Label("ZombieMiscTitle", headerColor);
 					list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);
