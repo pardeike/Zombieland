@@ -29,7 +29,7 @@ namespace ZombieLand
 
 			if (parent.Faction != Faction.OfPlayer)
 				yield break;
-			
+
 			yield return new Command_SimpleToggle
 			{
 				hotKey = KeyBindingDefOf.Command_TogglePower,

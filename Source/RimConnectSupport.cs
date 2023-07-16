@@ -19,14 +19,18 @@ namespace ZombieLand
 		static RimConnectSupport()
 		{
 			var tActionList = AccessTools.TypeByName("RimConnection.ActionList");
-			if (tActionList == null) return;
+			if (tActionList == null)
+				return;
 
 			var tAction = AccessTools.TypeByName("RimConnection.Action");
-			if (tAction == null) return;
+			if (tAction == null)
+				return;
 			var mExecute = AccessTools.Method(tAction, "Execute");
-			if (mExecute == null) return;
+			if (mExecute == null)
+				return;
 			var mBadEventNotification = AccessTools.Method("RimConnection.AlertManager:BadEventNotification", new[] { typeof(string), typeof(IntVec3) });
-			if (mBadEventNotification == null) return;
+			if (mBadEventNotification == null)
+				return;
 
 			var harmony = new Harmony("net.pardeike.zombieland.rimconnect");
 			var postfix = new HarmonyMethod(AccessTools.Method(typeof(RimConnectSupport), nameof(Postfix)));
@@ -55,12 +59,15 @@ namespace ZombieLand
 		public static (string, IntVec3) SpawnZombies(int amount, string boughtBy, ZombieType type)
 		{
 			var map = Find.CurrentMap;
-			if (map.IsBlacklisted()) return (null, IntVec3.Invalid);
+			if (map.IsBlacklisted())
+				return (null, IntVec3.Invalid);
 			var tickManager = map.GetComponent<TickManager>();
-			if (tickManager == null) return (null, IntVec3.Invalid);
+			if (tickManager == null)
+				return (null, IntVec3.Invalid);
 			var available = Mathf.Max(0, ZombieSettings.Values.maximumNumberOfZombies - tickManager.ZombieCount());
 			amount = Mathf.Min(available, amount);
-			if (amount == 0) return (null, IntVec3.Invalid);
+			if (amount == 0)
+				return (null, IntVec3.Invalid);
 
 			var cellValidator = Tools.ZombieSpawnLocator(map, true);
 			var spot = ZombiesRising.GetValidSpot(map, IntVec3.Invalid, cellValidator);
@@ -71,9 +78,11 @@ namespace ZombieLand
 		public static (string, IntVec3) KillAllZombies(string boughtBy)
 		{
 			var map = Find.CurrentMap;
-			if (map == null) return (null, IntVec3.Invalid);
+			if (map == null)
+				return (null, IntVec3.Invalid);
 			var tickManager = map.GetComponent<TickManager>();
-			if (tickManager == null) return (null, IntVec3.Invalid);
+			if (tickManager == null)
+				return (null, IntVec3.Invalid);
 			tickManager.allZombiesCached.Do(zombie =>
 			{
 				for (int i = 0; i < 1000; i++)
@@ -91,9 +100,11 @@ namespace ZombieLand
 		public static (string, IntVec3) AllZombiesRage(string boughtBy)
 		{
 			var map = Find.CurrentMap;
-			if (map == null) return (null, IntVec3.Invalid);
+			if (map == null)
+				return (null, IntVec3.Invalid);
 			var tickManager = map.GetComponent<TickManager>();
-			if (tickManager == null) return (null, IntVec3.Invalid);
+			if (tickManager == null)
+				return (null, IntVec3.Invalid);
 			tickManager.allZombiesCached.Do(ZombieStateHandler.StartRage);
 			return ($"{boughtBy} made all zombies on the map rage", IntVec3.Invalid);
 		}
@@ -101,14 +112,18 @@ namespace ZombieLand
 		public static (string, IntVec3) SuperZombieDropRaid(int amount, string boughtBy)
 		{
 			var map = Find.CurrentMap;
-			if (map == null) return (null, IntVec3.Invalid);
+			if (map == null)
+				return (null, IntVec3.Invalid);
 			var tickManager = map.GetComponent<TickManager>();
-			if (tickManager == null) return (null, IntVec3.Invalid);
+			if (tickManager == null)
+				return (null, IntVec3.Invalid);
 			var available = Mathf.Max(0, ZombieSettings.Values.maximumNumberOfZombies - tickManager.ZombieCount());
 			amount = Mathf.Min(available, amount);
-			if (amount == 0) return (null, IntVec3.Invalid);
+			if (amount == 0)
+				return (null, IntVec3.Invalid);
 
-			if (DropCellFinder.TryFindRaidDropCenterClose(out var spot, map) == false) return (null, IntVec3.Invalid);
+			if (DropCellFinder.TryFindRaidDropCenterClose(out var spot, map) == false)
+				return (null, IntVec3.Invalid);
 
 			var zombies = new List<Zombie>();
 			for (var i = 1; i <= amount; i++)
@@ -123,7 +138,8 @@ namespace ZombieLand
 
 					zombies.Add(zombie);
 				});
-				while (enumerator.MoveNext()) ;
+				while (enumerator.MoveNext())
+					;
 			}
 
 			DropPodUtility.DropThingsNear(spot, map, zombies, 0, false, false, true, false);

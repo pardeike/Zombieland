@@ -77,16 +77,20 @@ namespace ZombieLand
 
 			foreach (var colonist in colonists)
 			{
-				if (colonist.WorkTagIsDisabled(WorkTags.Violent)) continue; // Non-violent colonists are exempt
+				if (colonist.WorkTagIsDisabled(WorkTags.Violent))
+					continue; // Non-violent colonists are exempt
 
-				if (colonist.health.capacities.GetLevel(PawnCapacityDefOf.Moving) < 0.15) continue; // Colonists with extremely poor movement are exempt
+				if (colonist.health.capacities.GetLevel(PawnCapacityDefOf.Moving) < 0.15)
+					continue; // Colonists with extremely poor movement are exempt
 
 				var battlescore = 0.5f * colonist.health.capacities.GetLevel(PawnCapacityDefOf.Consciousness); // Half comes from consciousness
 				battlescore += 0.5f * colonist.health.capacities.GetLevel(PawnCapacityDefOf.Sight); // Half comes from sight
 				battlescore *= colonist.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation); // Multiplied by manipulation, should give 1.0 for normal healthy colonist
 
-				if (battlescore < 0.2f) continue; // This pawn is too useless to be counted
-				if (battlescore > 1.0f) battlescore = 1.0f; // To not penalise having bionic limbs.
+				if (battlescore < 0.2f)
+					continue; // This pawn is too useless to be counted
+				if (battlescore > 1.0f)
+					battlescore = 1.0f; // To not penalise having bionic limbs.
 				colonistPointTally += battlescore;
 
 				armouryWealthTally += GetDudeArmouryPoints(colonist) * wornArmouryMultiplier;

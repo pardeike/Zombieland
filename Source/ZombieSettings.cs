@@ -328,7 +328,7 @@ namespace ZombieLand
 		public static void Defaults()
 		{
 			group = (new SettingsGroup()).MakeCopy();
-			groupOverTime = new() { new SettingsKeyFrame() { values = group.MakeCopy()  } };
+			groupOverTime = new() { new SettingsKeyFrame() { values = group.MakeCopy() } };
 		}
 
 		public static void DoWindowContents(Rect inRect)

@@ -539,7 +539,8 @@ namespace ZombieLand
 
 		public bool NewMapZombieDelay(int at)
 		{
-			if (mapSpawnedTicks == 0) return false;
+			if (mapSpawnedTicks == 0)
+				return false;
 			var ticksDelay = Tools.NewMapZombieTicksDelay();
 			return at - mapSpawnedTicks < ticksDelay;
 		}

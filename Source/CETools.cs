@@ -78,11 +78,19 @@ namespace ZombieLand
 
 			var now = Tools.Ticks();
 			var pos = new IntVec3(origin);
-			var delta = Projectile_Launch_Patch.GetDistanceTraveled(shotSpeed, shotAngle, shotHeight);
+			var delta = GetDistanceTraveled(shotSpeed, shotAngle, shotHeight);
 			var magnitude = noiseScale * delta * Math.Min(1f, ZombieSettings.Values.zombieInstinct.HalfToDoubleValue());
 			var radius = Tools.Boxed(magnitude, Constants.WEAPON_RANGE[0], Constants.WEAPON_RANGE[1]);
 			var grid = launcher.Map.GetGrid();
 			Tools.GetCircle(radius).Do(vec => grid.BumpTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
+		}
+
+		public static float GetDistanceTraveled(float velocity, float angle, float shotHeight)
+		{
+			if (shotHeight < 0.001f)
+				return (velocity * velocity / 9.8f) * Mathf.Sin(2f * angle);
+			var velsin = velocity * Mathf.Sin(angle);
+			return ((velocity * Mathf.Cos(angle)) / 9.8f) * (velsin + Mathf.Sqrt(velsin * velsin + 2f * 9.8f * shotHeight));
 		}
 	}
 

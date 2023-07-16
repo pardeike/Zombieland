@@ -12,7 +12,8 @@ namespace ZombieLand
 
 		public override Job TryGiveJob(Pawn pawn)
 		{
-			if (pawn is not Zombie zombie || zombie.isAlbino) return null;
+			if (pawn is not Zombie zombie || zombie.isAlbino)
+				return null;
 			pawn.jobs.StopAll();
 			return JobMaker.MakeJob(CustomDefs.Stumble);
 		}
@@ -34,7 +35,8 @@ namespace ZombieLand
 
 		public override Job TryGiveJob(Pawn pawn)
 		{
-			if (pawn is not Zombie zombie || zombie.isAlbino == false) return null;
+			if (pawn is not Zombie zombie || zombie.isAlbino == false)
+				return null;
 			zombie.jobs.StopAll();
 			return JobMaker.MakeJob(CustomDefs.Sabotage);
 		}

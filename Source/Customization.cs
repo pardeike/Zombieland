@@ -48,7 +48,7 @@ namespace ZombieLand
 					attractsZombiesEvaluators.Add(attractsZombies);
 			});
 		}
-		
+
 		public static bool CannotBecomeZombie(Pawn pawn)
 		{
 			var i = 0;
@@ -56,7 +56,8 @@ namespace ZombieLand
 			while (i < j)
 			{
 				var result = canBecomeZombieEvaluators[i](pawn);
-				if (result == false) return true;
+				if (result == false)
+					return true;
 				i++;
 			}
 			return false;
@@ -64,10 +65,14 @@ namespace ZombieLand
 
 		public static bool DoesAttractsZombies(Pawn pawn)
 		{
-			if (pawn == null) return false;
-			if (pawn is Zombie) return false;
-			if (pawn.Spawned == false) return false;
-			if (pawn.Dead) return false;
+			if (pawn == null)
+				return false;
+			if (pawn is Zombie)
+				return false;
+			if (pawn.Spawned == false)
+				return false;
+			if (pawn.Dead)
+				return false;
 
 			var i = 0;
 			var j = attractsZombiesEvaluators.Count;
@@ -79,13 +84,18 @@ namespace ZombieLand
 				i++;
 			}
 
-			if (pawn.health.Downed) return false;
+			if (pawn.health.Downed)
+				return false;
 			if (pawn.RaceProps.Humanlike)
 			{
-				if (pawn.RaceProps.IsFlesh == false) return false;
-				if (AlienTools.IsFleshPawn(pawn) == false) return false;
-				if (SoSTools.IsHologram(pawn)) return false;
-				if (pawn.InfectionState() >= InfectionState.Infecting) return false;
+				if (pawn.RaceProps.IsFlesh == false)
+					return false;
+				if (AlienTools.IsFleshPawn(pawn) == false)
+					return false;
+				if (SoSTools.IsHologram(pawn))
+					return false;
+				if (pawn.InfectionState() >= InfectionState.Infecting)
+					return false;
 			}
 			return ZombieSettings.Values.attackMode switch
 			{

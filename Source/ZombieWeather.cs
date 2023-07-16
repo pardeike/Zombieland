@@ -44,7 +44,7 @@ namespace ZombieLand
 
 		public static float GetThreatLevel(Map map)
 		{
-			return ZombieSettings.Values.useDynamicThreatLevel 
+			return ZombieSettings.Values.useDynamicThreatLevel
 				? map?.GetComponent<ZombieWeather>()?.GetFactorForTicks(GenTicks.TicksAbs) ?? 1f
 				: 1f;
 		}

@@ -24,7 +24,8 @@ namespace ZombieLand
 			{
 				while (queue.Count >= maxSize)
 				{
-					try { _ = Monitor.Wait(queue); }
+					try
+					{ _ = Monitor.Wait(queue); }
 					catch (ThreadInterruptedException) { Thread.Sleep(100); }
 					catch (ThreadAbortException) { Thread.Sleep(100); }
 				}
@@ -54,7 +55,8 @@ namespace ZombieLand
 					if (returnNullOnEmpty)
 						return default;
 
-					try { _ = Monitor.Wait(queue); }
+					try
+					{ _ = Monitor.Wait(queue); }
 					catch (ThreadInterruptedException) { Thread.Sleep(100); }
 					catch (ThreadAbortException) { Thread.Sleep(100); }
 				}

@@ -172,7 +172,8 @@ namespace ZombieLand
 
 		public static string SafeTranslate(this string key, params object[] args)
 		{
-			if (key == null) return "";
+			if (key == null)
+				return "";
 			var namedArgs = args.Select(arg => new NamedArgument(arg, "")).ToArray();
 			return key.Translate(namedArgs);
 		}
@@ -199,7 +200,7 @@ namespace ZombieLand
 
 		public static float Difficulty() => ZombieSettings.Values.threatScale; // Find.Storyteller.difficulty.threatScale;
 
-		public static int f(this (int, int) range) => (int)(GenMath.LerpDouble(0, 5, range.Item1, range.Item2, Difficulty()) * GenMath.LerpDoubleClamped(GenDate.TicksPerYear, GenDate.TicksPerYear * 5, 1, 5, GenTicks.TicksGame));
+		public static int F(this (int, int) range) => (int)(GenMath.LerpDouble(0, 5, range.Item1, range.Item2, Difficulty()) * GenMath.LerpDoubleClamped(GenDate.TicksPerYear, GenDate.TicksPerYear * 5, 1, 5, GenTicks.TicksGame));
 
 		public static int PheromoneFadeoff()
 		{
@@ -474,13 +475,16 @@ namespace ZombieLand
 					var spot = IntVec3.Zero;
 					map.mapPawns.FreeColonists.Do(colonist => spot += colonist.Position);
 					var n = map.mapPawns.FreeColonists.Count;
-					spot.x /= n;
-					spot.z /= n;
-					if (spot.InBounds(map))
+					if (n > 0)
 					{
-						var region = map.regionGrid.GetValidRegionAt(spot);
-						if (region != null)
-							_ = totalRegions.Add(region);
+						spot.x /= n;
+						spot.z /= n;
+						if (spot.InBounds(map))
+						{
+							var region = map.regionGrid.GetValidRegionAt(spot);
+							if (region != null)
+								_ = totalRegions.Add(region);
+						}
 					}
 				}
 				var neighbours = totalRegions.SelectMany(region => region.Neighbors).ToList();
@@ -784,7 +788,7 @@ namespace ZombieLand
 
 		public static void AddZombieInfection(Pawn pawn)
 		{
-			if (pawn == null || pawn is Zombie || pawn.InfectionState() == InfectionState.Infected)
+			if (pawn == null || pawn is Zombie || pawn is ZombieSpitter || pawn.InfectionState() == InfectionState.Infected)
 				return;
 
 			if (pawn.health?.hediffSet == null)
@@ -793,7 +797,7 @@ namespace ZombieLand
 			var torso = pawn.health.hediffSet.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined, null, null).FirstOrDefault((BodyPartRecord x) => x.def == BodyPartDefOf.Torso);
 			if (torso == null)
 				return;
-			
+
 			var bite = (Hediff_Injury_ZombieBite)HediffMaker.MakeHediff(HediffDef.Named("ZombieBite"), pawn, torso);
 			if (bite == null)
 				return;
@@ -850,7 +854,7 @@ namespace ZombieLand
 
 		public static bool Attackable(Zombie zombie, AttackMode mode, Thing thing)
 		{
-			if (thing is ZombieCorpse)
+			if (thing is ZombieCorpse || thing is ZombieSpitter)
 				return false;
 
 			if (thing is Pawn target)

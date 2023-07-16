@@ -56,7 +56,8 @@ namespace ZombieLand
 
 		public override void Print(SectionLayer layer)
 		{
-			if (thickness <= 0 || thickness > 4) return;
+			if (thickness <= 0 || thickness > 4)
+				return;
 
 			var n = Position.x * 7879 + Position.z * 6577;
 			var mat_heavy = Constants.TARSLIMES[thickness - 1];

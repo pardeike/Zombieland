@@ -35,8 +35,10 @@ namespace ZombieLand
 			_ = height;
 			_ = rect;
 
-			if (path.StartsWith("Zombie/") == false) return;
-			if (path.StartsWith("Zombie/Naked")) return;
+			if (path.StartsWith("Zombie/") == false)
+				return;
+			if (path.StartsWith("Zombie/Naked"))
+				return;
 
 			if (pumpkinPixels == null)
 			{
@@ -45,7 +47,8 @@ namespace ZombieLand
 				pumpkinPixels = tex.GetPixels();
 			}
 
-			if (pixels.Length != pumpkinPixels.Length) return;
+			if (pixels.Length != pumpkinPixels.Length)
+				return;
 			pixels = pumpkinPixels;
 			noRecolor = true;
 		}
@@ -56,7 +59,8 @@ namespace ZombieLand
 
 			var date = DateTime.Today;
 			ManipulateImageDelegate manipulateImageDelegate = NoOpManipulator;
-			if (date.Month == 10 && date.Day == 31) manipulateImageDelegate = PumkinHeads;
+			if (date.Month == 10 && date.Day == 31)
+				manipulateImageDelegate = PumkinHeads;
 
 			var mManipulateImage = AccessTools.Method("CustomizeZombieland:ManipulateImage");
 			if (mManipulateImage != null)

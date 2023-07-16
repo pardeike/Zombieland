@@ -7,14 +7,19 @@ namespace ZombieLand
 	{
 		public override bool Matches(Thing t) // true = exclude
 		{
-			if (t.def == CustomDefs.ZombieExtract) return false; // ok
-			if (t is Medicine) return false; // ok
-			if (t is not Corpse corpse) return true; // exclude, need to be corpse
+			if (t.def == CustomDefs.ZombieExtract)
+				return false; // ok
+			if (t is Medicine)
+				return false; // ok
+			if (t is not Corpse corpse)
+				return true; // exclude, need to be corpse
 			var pawn = corpse.InnerPawn;
-			if (pawn == null || pawn.RaceProps.Animal == false) return true; // exclude if not animal
+			if (pawn == null || pawn.RaceProps.Animal == false)
+				return true; // exclude if not animal
 			var compRottable = t.TryGetComp<CompRottable>();
 			var dessicated = compRottable != null && compRottable.Stage == RotStage.Dessicated;
-			if (dessicated == false) return true; // exclude non dessicated
+			if (dessicated == false)
+				return true; // exclude non dessicated
 			return pawn.BodySize > 0.75f; // exclude too big animals (adult goat is ok)
 		}
 	}

@@ -301,19 +301,15 @@ namespace ZombieLand
 		public static readonly IEnumerator processor = Process();
 
 		static readonly Dictionary<Map, MapInfo> grids = new();
-		const int cellSize = 5;
-		const int halfCellSize = (int)(cellSize / 2f + 0.9f);
 
-		struct PawnProps
+		public static MapInfo GetMapInfo(Map map)
 		{
-			public bool valid;
-			public IntVec3 position;
-
-			public PawnProps(Pawn pawn)
+			if (grids.TryGetValue(map, out var result) == false)
 			{
-				valid = Customization.DoesAttractsZombies(pawn);
-				position = pawn?.Position ?? IntVec3.Invalid;
+				result = new MapInfo(map);
+				grids[map] = result;
 			}
+			return result;
 		}
 
 		public static IEnumerator Process()
@@ -337,10 +333,10 @@ namespace ZombieLand
 						if (mapPawns != null)
 						{
 							var colonistPositions = mapPawns
-								.Select(pawn => new PawnProps(pawn))
-								.Where(props => props.valid)
-								.Select(props => props.position)
-								.ToArray();
+								.OfType<Pawn>()
+								.Where(pawn => Customization.DoesAttractsZombies(pawn) && pawn is not ZombieSpitter)
+								.Select(pawn => pawn.Position).ToArray();
+							didNothing = false;
 							yield return null;
 							if (colonistPositions.Any())
 							{
@@ -348,23 +344,12 @@ namespace ZombieLand
 								while (it.MoveNext())
 									yield return null;
 							}
-							didNothing = false;
 						}
 					}
 				}
 				if (didNothing)
 					yield return null;
 			}
-		}
-
-		public static MapInfo GetMapInfo(Map map)
-		{
-			if (grids.TryGetValue(map, out var result) == false)
-			{
-				result = new MapInfo(map);
-				grids[map] = result;
-			}
-			return result;
 		}
 	}
 }

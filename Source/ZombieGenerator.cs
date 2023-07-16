@@ -407,7 +407,8 @@ namespace ZombieLand
 				for (var i = 0; i < tries; i++)
 				{
 					var pair = possibleApparel.Where(a => a.thing.BaseMaxHitPoints >= filterStart && a.thing.BaseMaxHitPoints <= filterEnd).SafeRandomElement();
-					if (pair == null) continue;
+					if (pair == null)
+						continue;
 					var apparel = (Apparel)ThingMaker.MakeThing(pair.thing, pair.stuff);
 					apparel.wornByCorpseInt = difficulty >= 2f;
 					yield return null;

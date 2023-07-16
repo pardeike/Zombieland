@@ -156,7 +156,7 @@ namespace ZombieLand
 			var thingGrid = map.thingGrid;
 			var center = Position;
 
-			for(var i = 0; i < dusts.Count; i++)
+			for (var i = 0; i < dusts.Count; i++)
 			{
 				var dust = dusts[i];
 
@@ -218,7 +218,7 @@ namespace ZombieLand
 		public override IEnumerable<Gizmo> GetGizmos()
 		{
 			var gizmos = base.GetGizmos();
-			foreach(var gizmo in gizmos)
+			foreach (var gizmo in gizmos)
 				yield return gizmo;
 
 			yield return new Command_Action

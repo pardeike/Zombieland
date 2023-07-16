@@ -30,7 +30,8 @@ namespace ZombieLand
 				return false;
 			var corpse = job.GetTarget(TargetIndex.A).Thing as Corpse;
 			var innerPawn = corpse.InnerPawn;
-			if (innerPawn == null) return false;
+			if (innerPawn == null)
+				return false;
 			if (innerPawn.RaceProps.Humanlike == false || innerPawn.health.hediffSet.GetBrain() == null)
 				return false;
 			return pawn.Reserve(job.targetA, job, 1, -1, null, errorOnFailed);

@@ -22,7 +22,8 @@ namespace ZombieLand
 		public static readonly TraverseParms traverseParams = TraverseParms.For(TraverseMode.NoPassClosedDoors, Danger.Deadly, true, false, true);
 		IntVec3 RandomStandingCell()
 		{
-			if (region.Cells.Any() == false) return IntVec3.Invalid;
+			if (region.Cells.Any() == false)
+				return IntVec3.Invalid;
 			var center = region.extentsClose.CenterCell;
 			return region.Cells.OrderBy(c => center.DistanceToSquared(c)).First();
 		}

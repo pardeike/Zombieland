@@ -25,6 +25,7 @@ namespace ZombieLand
 			_ = Find.BattleLog.Battles.RemoveAll(battle =>
 			{
 				_ = battle.Entries.RemoveAll(entry => entry.GetConcerns().Any(th => th is Zombie));
+				_ = battle.Entries.RemoveAll(entry => entry.GetConcerns().Any(th => th is ZombieSpitter));
 				return battle.concerns.Any(RemoveItem);
 			});
 			_ = Find.TaleManager.AllTalesListForReading.RemoveAll(tale =>
@@ -32,13 +33,19 @@ namespace ZombieLand
 				var singlePawnTale = tale as Tale_SinglePawn;
 				if ((singlePawnTale?.pawnData?.pawn as Zombie) != null)
 					return true;
+				if ((singlePawnTale?.pawnData?.pawn as ZombieSpitter) != null)
+					return true;
 				var singlePawnDefTale = tale as Tale_SinglePawnAndDef;
 				if (singlePawnDefTale?.defData?.def.IsZombieDef() ?? false)
 					return true;
 				var doublePawnTale = tale as Tale_DoublePawn;
 				if ((doublePawnTale?.firstPawnData?.pawn as Zombie) != null)
 					return true;
+				if ((doublePawnTale?.firstPawnData?.pawn as ZombieSpitter) != null)
+					return true;
 				if ((doublePawnTale?.secondPawnData?.pawn as Zombie) != null)
+					return true;
+				if ((doublePawnTale?.secondPawnData?.pawn as ZombieSpitter) != null)
 					return true;
 				var doublePawnDefTale = tale as Tale_DoublePawnAndDef;
 				if (doublePawnDefTale?.defData?.def.IsZombieDef() ?? false)
@@ -188,7 +195,8 @@ namespace ZombieLand
 			pawn.needs?.AllNeeds?.Do(need =>
 			{
 				var needMood = need as Need_Mood;
-				_ = needMood?.thoughts?.memories?.Memories?.RemoveAll(memory => (memory.otherPawn as Zombie) != null);
+				_ = needMood?.thoughts?.memories?.Memories?.RemoveAll(memory => memory.otherPawn is Zombie);
+				_ = needMood?.thoughts?.memories?.Memories?.RemoveAll(memory => memory.otherPawn is ZombieSpitter);
 			});
 		}
 
@@ -199,7 +207,7 @@ namespace ZombieLand
 			foreach (var fieldName in fieldNames)
 			{
 				var pawnSet = trvWorldPawns.Field(fieldName).GetValue<HashSet<Pawn>>();
-				_ = pawnSet.RemoveWhere(pawn => pawn is Zombie);
+				_ = pawnSet.RemoveWhere(pawn => pawn is Zombie || pawn is ZombieSpitter);
 				foreach (var pawn in pawnSet)
 					RemovePawnRelatedStuff(pawn);
 			}

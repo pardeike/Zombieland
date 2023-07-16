@@ -1,4 +1,4 @@
-var ExportCVS = function(root)
+﻿var ExportCVS = function(root)
 {
     var variant = root.allResults[root.variantIndex];
 

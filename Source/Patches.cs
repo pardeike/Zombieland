@@ -498,7 +498,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Pawn __instance)
 			{
-				if (__instance is Zombie || __instance.RaceProps.Humanlike == false)
+				if (__instance is Zombie || __instance is ZombieSpitter || __instance.RaceProps.Humanlike == false)
 					return;
 				var hediffs = __instance.health.hediffSet.hediffs;
 				var maxState = InfectionState.None;
@@ -523,7 +523,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Thing a, Thing b, ref bool __result)
 			{
-				if (a is not Pawn pawn || pawn.ActivePartOfColony() || (pawn is Zombie) || b is not Zombie)
+				if (a is not Pawn pawn || pawn.ActivePartOfColony() || pawn is Zombie || b is not Zombie)
 					return;
 
 				if (pawn.InfectionState() == InfectionState.Infecting)
@@ -549,6 +549,11 @@ namespace ZombieLand
 					return;
 				if (pawn.ActivePartOfColony())
 					return;
+				if (pawn is ZombieSpitter && fac.IsPlayer == false)
+				{
+					__result = false;
+					return;
+				}
 				__result = Tools.IsHostileToZombies(pawn);
 			}
 		}
@@ -766,13 +771,29 @@ namespace ZombieLand
 					return;
 				if (verb.CanHarmElectricZombies())
 					return;
-				_ = rawTargets.RemoveAll(t => t.Thing is Zombie zombie && zombie.IsActiveElectric && zombie.Downed == false);
+				_ = rawTargets.RemoveAll(thing =>
+				{
+					var target = thing.Thing;
+					if (target is Zombie zombie && zombie.IsActiveElectric && zombie.Downed == false)
+						return true;
+					var attacker = searcher.Thing;
+					if (target is ZombieSpitter && attacker != null && attacker.Faction.IsPlayer == false)
+						return true;
+					return false;
+				});
 			}
 
 			static void Postfix(List<Pair<IAttackTarget, float>> __result)
 			{
-				if (__result.Any(pair => pair.first is Zombie zombie && zombie.health.Downed == false))
-					_ = __result.RemoveAll(pair => pair.first is Zombie zombie && (zombie.health.Downed || zombie.ropedBy != null));
+				for (var i = 0; i < __result.Count; i++)
+				{
+					var target = __result[i].first;
+					if (
+						target is Zombie zombie && (zombie.health.Downed || zombie.ropedBy != null)
+						|| target is ZombieSpitter
+					)
+						__result.RemoveAt(i--);
+				}
 			}
 		}
 		[HarmonyPatch(typeof(AttackTargetFinder))]
@@ -814,6 +835,8 @@ namespace ZombieLand
 				{
 					validator = (Thing t) =>
 					{
+						if (t is ZombieSpitter)
+							return false;
 						if (t is Zombie)
 							return ZombieSettings.Values.animalsAttackZombies;
 						return oldValidator(t);
@@ -844,6 +867,9 @@ namespace ZombieLand
 				// attacker is enemy
 				validator = (Thing t) =>
 				{
+					if (t is ZombieSpitter)
+						return false;
+
 					if (t is Zombie zombie)
 					{
 						if (ZombieSettings.Values.enemiesAttackZombies == false)
@@ -1274,6 +1300,8 @@ namespace ZombieLand
 			{
 				if (target is Zombie)
 					return true;
+				if (target is ZombieSpitter)
+					return faction.IsPlayer;
 				return GenHostility.IsActiveThreatTo(target, faction);
 			}
 
@@ -1296,18 +1324,19 @@ namespace ZombieLand
 			{
 				CustomDefs.Stumble,
 				CustomDefs.Sabotage,
+				CustomDefs.Spitter,
 				DefDatabase<JobDef>.GetNamed("ExtractZombieSerum"),
 				DefDatabase<JobDef>.GetNamed("DoubleTap"),
 				JobDefOf.Goto,
 				JobDefOf.Wait,
 				JobDefOf.Wait_MaintainPosture,
 				JobDefOf.AttackMelee,
-				JobDefOf.AttackStatic
+				JobDefOf.AttackStatic,
 			};
 
 			static bool Prefix(Job newJob, Pawn ___pawn, ref int ___jobsGivenThisTick, ref string ___jobsGivenThisTickTextual, ref bool ___startingNewJob)
 			{
-				if ((___pawn is Zombie) == false)
+				if (___pawn is not Zombie && ___pawn is not ZombieSpitter)
 					return true;
 				if (allowedJobs.Contains(newJob.def))
 					return true;
@@ -1479,6 +1508,8 @@ namespace ZombieLand
 					__result = 0;
 				else if (instigator is Zombie)
 					__result /= 20;
+				else if (instigator is ZombieSpitter)
+					__result = 0;
 			}
 		}
 
@@ -1497,6 +1528,8 @@ namespace ZombieLand
 					else
 						__result -= 10000f;
 				}
+				else if (prey is ZombieSpitter)
+					__result = 0f;
 			}
 		}
 
@@ -2371,6 +2404,7 @@ namespace ZombieLand
 				new [] { new IntVec3(00, 0, 01), new IntVec3(01, 0, 00) }, // RT -> 0T + R0
 			};
 
+			static readonly HashSet<IntVec3> exclude = new(Tools.GetCircle(2));
 			static void Prefix(Thing __instance, IntVec3 value)
 			{
 				if (__instance is not Pawn pawn)
@@ -2381,6 +2415,16 @@ namespace ZombieLand
 				var pos = pawn.Position;
 				if (pos == value)
 					return;
+
+				if (pawn is ZombieSpitter)
+				{
+					var now = Tools.Ticks();
+					var grid = pawn.Map.GetGrid();
+					var radius = GenMath.LerpDouble(0, 5, 4, 32, Tools.Difficulty());
+					Tools.GetCircle(radius).DoIf(vec => exclude.Contains(vec) == false, vec =>
+						grid.BumpTimestamp(value + vec, now - (long)(2f * vec.LengthHorizontal)));
+					return;
+				}
 
 				if (pawn is Zombie zombie)
 				{
@@ -2480,9 +2524,8 @@ namespace ZombieLand
 				if (isNotInfected && Customization.DoesAttractsZombies(pawn))
 				{
 					var now = Tools.Ticks();
-					var radius = Tools.RadiusForPawn(pawn);
 					var grid = pawn.Map.GetGrid();
-					Tools.GetCircle(radius).Do(vec => grid.BumpTimestamp(value + vec, now - (long)(2f * vec.LengthHorizontal)));
+					Tools.GetCircle(Tools.RadiusForPawn(pawn)).Do(vec => grid.BumpTimestamp(value + vec, now - (long)(2f * vec.LengthHorizontal)));
 				}
 			}
 		}
@@ -2819,7 +2862,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn __instance, ref bool __result)
 			{
-				if (__instance is Zombie)
+				if (__instance is Zombie || __instance is ZombieSpitter)
 				{
 					__result = false;
 					return false;
@@ -3935,7 +3978,8 @@ namespace ZombieLand
 		{
 			static bool Prefix(Pawn_GeneTracker __instance, ref Gene __result)
 			{
-				if (__instance.pawn is Zombie)
+				var pawn = __instance.pawn;
+				if (pawn is Zombie || pawn is ZombieSpitter)
 				{
 					__result = null;
 					return false;
@@ -3950,7 +3994,8 @@ namespace ZombieLand
 		{
 			static bool Prefix(Pawn_GeneTracker __instance, ref Gene __result)
 			{
-				if (__instance.pawn is Zombie)
+				var pawn = __instance.pawn;
+				if (pawn is Zombie || pawn is ZombieSpitter)
 				{
 					__result = null;
 					return false;
@@ -3965,7 +4010,8 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn_StoryTracker __instance, ref Color __result)
 			{
-				if (__instance.pawn is Zombie)
+				var pawn = __instance.pawn;
+				if (pawn is Zombie || pawn is ZombieSpitter)
 				{
 					__result = Color.white;
 					return false;
@@ -3974,7 +4020,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for zombies rotting regardless of temperature
+		// patch for zombies handling extreme weather
 		//
 		[HarmonyPatch(typeof(Thing))]
 		[HarmonyPatch(nameof(Thing.AmbientTemperature), MethodType.Getter)]
@@ -3983,7 +4029,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Thing __instance, ref float __result)
 			{
-				if (__instance is Zombie || __instance is ZombieCorpse)
+				if (__instance is Zombie || __instance is ZombieSpitter || __instance is ZombieCorpse)
 				{
 					__result = 21f; // fake normal conditions
 					return false;
@@ -4554,7 +4600,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn __instance, LocalTargetInfo targ, ref bool __result)
 			{
-				if ((__instance is Zombie) == false)
+				if (__instance is not Zombie)
 					return true;
 
 				var verb = __instance.TryGetAttackVerb(targ.Thing);
@@ -4988,7 +5034,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Pawn ___pawn)
 			{
-				if (___pawn is Zombie)
+				if (___pawn is Zombie || ___pawn is ZombieSpitter)
 					return;
 				if (___pawn == null || ___pawn.Map == null)
 					return;
@@ -5184,7 +5230,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Pawn pawn)
 			{
-				if (pawn is Zombie || pawn.Map == null)
+				if (pawn is Zombie || pawn is ZombieSpitter || pawn.Map == null)
 					return;
 
 				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)
@@ -5256,7 +5302,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Thing launcher, Vector3 origin, LocalTargetInfo usedTarget)
 			{
-				if (launcher is not Pawn pawn || pawn.Map == null)
+				if (launcher is not Pawn pawn || pawn.Map == null || launcher is ZombieSpitter)
 					return;
 
 				var noiseScale = 1f;
@@ -5269,14 +5315,6 @@ namespace ZombieLand
 				var radius = Tools.Boxed(magnitude, Constants.WEAPON_RANGE[0], Constants.WEAPON_RANGE[1]);
 				var grid = pawn.Map.GetGrid();
 				Tools.GetCircle(radius).Do(vec => grid.BumpTimestamp(pos + vec, now - vec.LengthHorizontalSquared));
-			}
-
-			public static float GetDistanceTraveled(float velocity, float angle, float shotHeight)
-			{
-				if (shotHeight < 0.001f)
-					return (velocity * velocity / 9.8f) * Mathf.Sin(2f * angle);
-				var velsin = velocity * Mathf.Sin(angle);
-				return ((velocity * Mathf.Cos(angle)) / 9.8f) * (velsin + Mathf.Sqrt(velsin * velsin + 2f * 9.8f * shotHeight));
 			}
 		}
 

@@ -13,15 +13,20 @@ namespace ZombieLand
 		public static void Init()
 		{
 			var t_ThingDef_AlienRace = TypeByName("AlienRace.ThingDef_AlienRace");
-			if (t_ThingDef_AlienRace == null) return;
+			if (t_ThingDef_AlienRace == null)
+				return;
 			var t_ThingDef_AlienRace_AlienSettings = TypeByName("AlienRace.ThingDef_AlienRace+AlienSettings");
-			if (t_ThingDef_AlienRace_AlienSettings == null) return;
+			if (t_ThingDef_AlienRace_AlienSettings == null)
+				return;
 			var f_alienRace = Field(t_ThingDef_AlienRace, "alienRace");
-			if (f_alienRace == null) return;
+			if (f_alienRace == null)
+				return;
 			var f_compatibility = Field(t_ThingDef_AlienRace_AlienSettings, "compatibility");
-			if (f_compatibility == null) return;
+			if (f_compatibility == null)
+				return;
 			var m_IsFleshPawn = Method(f_compatibility.FieldType, "IsFleshPawn");
-			if (m_IsFleshPawn == null) return;
+			if (m_IsFleshPawn == null)
+				return;
 
 			// public static bool IsFleshPawn(this Pawn pawn)
 			// {

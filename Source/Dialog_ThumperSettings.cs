@@ -20,7 +20,7 @@ namespace ZombieLand
 
 		public override void DoWindowContents(Rect inRect)
 		{
-			if(thumper.Map == null)
+			if (thumper.Map == null)
 			{
 				Close(false);
 				return;
@@ -30,7 +30,7 @@ namespace ZombieLand
 
 			Rect rect2 = inRect.TopPartPixels(30f);
 			thumper.intensity = Widgets.HorizontalSlider_NewTemp(rect2, thumper.intensity, 0f, 1f, true, null, "Intensity".Translate(), $"{thumper.intensity:P0}", 0.01f);
-			
+
 			rect2.y += 40f;
 			var thumpsPerHour = Tools.Boxed(Mathf.FloorToInt((float)GenDate.TicksPerHour / thumper.intervalTicks + 0.5f), 1, 25);
 			var label = $"{thumpsPerHour}x per hour";
