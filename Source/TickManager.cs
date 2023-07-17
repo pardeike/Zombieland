@@ -112,6 +112,7 @@ namespace ZombieLand
 
 		public int lastZombieContact = 0;
 		public int lastZombieSpitter = 0;
+		public bool zombieSpitterInited = false;
 
 		public TickManager(Map map) : base(map)
 		{
@@ -220,6 +221,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref mapSpawnedTicks, "mapSpawnedTicks");
 			Scribe_Values.Look(ref lastZombieContact, "lastZombieContact");
 			Scribe_Values.Look(ref lastZombieSpitter, "lastZombieSpitter");
+			Scribe_Values.Look(ref zombieSpitterInited, "zombieSpitterInited");
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
@@ -231,6 +233,14 @@ namespace ZombieLand
 
 				runZombiesForNewIncident = true;
 				explosions ??= new List<IntVec3>();
+
+				if (zombieSpitterInited == false)
+				{
+					var ticks = GenTicks.TicksGame;
+					lastZombieContact = ticks;
+					lastZombieSpitter = ticks;
+					zombieSpitterInited = true;
+				}
 			}
 		}
 
@@ -405,15 +415,18 @@ namespace ZombieLand
 
 		void HandleIncidents()
 		{
-			var ticks = GenTicks.TicksGame;
-			var (minTicksForSpitter, deltaContact, deltaSpitter) = Tools.ZombieSpitterParameter();
-			if (ticks > minTicksForSpitter && (ticks - lastZombieContact > deltaContact || ticks - lastZombieSpitter > deltaSpitter))
+			if (ZombieSettings.Values.spitterThreat > 0f)
 			{
-				if (CanHaveMoreZombies())
+				var ticks = GenTicks.TicksGame;
+				var (minTicksForSpitter, deltaContact, deltaSpitter) = Tools.ZombieSpitterParameter();
+				if (ticks > minTicksForSpitter && (ticks - lastZombieContact > deltaContact || ticks - lastZombieSpitter > deltaSpitter))
 				{
-					lastZombieContact = ticks;
-					lastZombieSpitter = ticks;
-					ZombieSpitter.Spawn(map);
+					if (CanHaveMoreZombies())
+					{
+						lastZombieContact = ticks;
+						lastZombieSpitter = ticks;
+						ZombieSpitter.Spawn(map);
+					}
 				}
 			}
 
