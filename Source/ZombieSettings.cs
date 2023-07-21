@@ -241,7 +241,7 @@ namespace ZombieLand
 		public bool floatingZombies = true;
 		public float childChance = 0.02f;
 		public float spitterThreat = 1f;
-		public int minimumZombiesForWallPushing = 24;
+		public int minimumZombiesForWallPushing = 18;
 		public List<string> blacklistedApparel = new();
 
 		// unused

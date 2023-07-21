@@ -143,6 +143,9 @@ namespace ZombieLand
 
 		double Days()
 		{
+			if (ZombieSettings.Values.daysBeforeZombiesCome == 0)
+				return 0;
+
 			var days = Math.Round(ZombieSettings.Values.daysBeforeZombiesCome - GenDate.DaysPassedFloat, 1);
 			if (days <= 0)
 			{
