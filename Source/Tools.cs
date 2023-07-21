@@ -194,7 +194,8 @@ namespace ZombieLand
 		public static (int, int, int) ZombieSpitterParameter()
 		{
 			var difficulty = Difficulty();
-			var f = ZombieSettings.Values.spitterThreat;
+            // https://www.desmos.com/calculator/kbykanhppu
+            var f = 3.7f + 9.5f * Mathf.Exp(-2.4f * Mathf.Sqrt(ZombieSettings.Values.spitterThreat)) - 3.5f;
 			var minTicksForSpitter = (int)(f * GenMath.LerpDouble(0, 5, 8, 2, difficulty) * GenDate.TicksPerSeason);
 			var deltaContact = (int)(f * GenMath.LerpDouble(0, 5, GenDate.DaysPerYear, 8, difficulty) * GenDate.TicksPerDay);
 			var deltaSpitter = (int)(f * GenMath.LerpDouble(0, 5, 12, 1, difficulty) * GenDate.TicksPerTwelfth);
@@ -263,10 +264,10 @@ namespace ZombieLand
 			}
 		}
 
-		public static T SafeRandomElement<T>(this IEnumerable<T> source)
+		public static T SafeRandomElement<T>(this IEnumerable<T> source, T defaultValue = default)
 		{
 			if (source.Count() == 0)
-				return default;
+				return defaultValue;
 			return source.RandomElement();
 		}
 

@@ -2197,7 +2197,7 @@ namespace ZombieLand
 				var ticks = GenTicks.TicksGame;
 				var (minTicksForSpitter, deltaContact, deltaSpitter) = Tools.ZombieSpitterParameter();
 				_ = builder.AppendLine($"Zombie Spitter ({ZombieSettings.Values.spitterThreat:0%}x):");
-				_ = builder.AppendLine($"- min ticks: {minTicksForSpitter}");
+				_ = builder.AppendLine($"- min ticks: {minTicksForSpitter} {(tickManager.zombieSpitterInited ? "(inited)" : "")}");
 				_ = builder.AppendLine($"- contact last={tickManager.lastZombieContact}, diff={ticks - tickManager.lastZombieContact}, min={deltaContact}");
 				_ = builder.AppendLine($"- spitter last={tickManager.lastZombieSpitter}, diff={ticks - tickManager.lastZombieSpitter}, min={deltaSpitter}");
 				_ = builder.AppendLine("");
@@ -2314,22 +2314,6 @@ namespace ZombieLand
 				return list;
 			}
 		}
-
-		// patch to add our actions to the debug action menu
-		/*
-		[HarmonyPatch(typeof(DebugWindowsOpener))]
-		[HarmonyPatch(nameof(DebugWindowsOpener.ToggleDebugActionsMenu))]
-		static class DebugWindowsOpener_ToggleDebugActionsMenu_Patch
-		{
-			[HarmonyPriority(Priority.First)]
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			{
-				var from = AccessTools.Constructor(typeof(Dialog_DebugActionsMenu));
-				var to = AccessTools.Constructor(typeof(Dialog_ZombieDebugActionMenu));
-				return instructions.MethodReplacer(from, to);
-			}
-		}
-		*/
 
 		// patch for adding zombie faction to new games
 		//
@@ -5595,11 +5579,11 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(PageUtility.StitchedPages))]
 		static class PageUtility_StitchedPages_Patch
 		{
-			static void Prefix(ref List<Page> pages)
-			{
-				pages.Insert(1, new Dialog_Settings());
-			}
-		}
+            static void Prefix(List<Page> pages)
+            {
+                pages.Insert(1, new Dialog_Settings());
+            }
+        }
 
 		// set hostility response to attack as default
 		//

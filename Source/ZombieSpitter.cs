@@ -1,6 +1,7 @@
 ﻿using RimWorld;
 using RimWorld.Planet;
 using System;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using Verse;
@@ -14,8 +15,23 @@ namespace ZombieLand
 
 		public static void Spawn(Map map, IntVec3? location = null)
 		{
-			if (location.HasValue == false && RCellFinder.TryFindRandomPawnEntryCell(out var entryCell, map, 0.5f))
-				location = entryCell;
+			if (location.HasValue == false)
+			{
+				var (xMax, zMax) = (map.Size.x - 1, map.Size.z - 1);
+				var roofGrid = map.roofGrid;
+
+				var newLocation = ZombieLand.Tools
+					.PlayerReachableRegions(map)
+					.SelectMany(r => r.Cells)
+					.Where(c => c.x == 0 || c.z == 0 || c.x == xMax || c.z == zMax)
+					.Where(c => c.Standable(map))
+					.Where(c => roofGrid.Roofed(c) == false && c.Fogged(map) == false)
+					.Where(c => RCellFinder.FindSiegePositionFrom(c, map, false, false).IsValid)
+					.SafeRandomElement(IntVec3.Invalid);
+				if (newLocation.IsValid)
+					location = newLocation;
+            }
+
 			if (location.HasValue == false)
 				return;
 
