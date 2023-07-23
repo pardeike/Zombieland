@@ -7,10 +7,10 @@
 		<TargetFramework>net472</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<PlatformTarget>x64</PlatformTarget>
-		<OutputPath>..\1.4\Assemblies\</OutputPath>
+		<OutputPath>..\Assemblies\</OutputPath>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<Version>4.2.4.0</Version>
+		<Version>4.2.5.0</Version>
 		<Copyright>Copyright © 2017</Copyright>
 		<Configurations>Release;Debug</Configurations>
 	</PropertyGroup>
