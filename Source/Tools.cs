@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.NetworkInformation;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
@@ -15,9 +15,9 @@ using System.Xml;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using Verse.Noise;
 using Verse.Sound;
 using static HarmonyLib.AccessTools;
+using static HarmonyLib.Code;
 
 namespace ZombieLand
 {
@@ -194,8 +194,8 @@ namespace ZombieLand
 		public static (int, int, int) ZombieSpitterParameter()
 		{
 			var difficulty = Difficulty();
-            // https://www.desmos.com/calculator/kbykanhppu
-            var f = 3.7f + 9.5f * Mathf.Exp(-2.4f * Mathf.Sqrt(ZombieSettings.Values.spitterThreat)) - 3.5f;
+			// https://www.desmos.com/calculator/kbykanhppu
+			var f = 3.7f + 9.5f * Mathf.Exp(-2.4f * Mathf.Sqrt(ZombieSettings.Values.spitterThreat)) - 3.5f;
 			var minTicksForSpitter = (int)(f * GenMath.LerpDouble(0, 5, 8, 2, difficulty) * GenDate.TicksPerSeason);
 			var deltaContact = (int)(f * GenMath.LerpDouble(0, 5, GenDate.DaysPerYear, 8, difficulty) * GenDate.TicksPerDay);
 			var deltaSpitter = (int)(f * GenMath.LerpDouble(0, 5, 12, 1, difficulty) * GenDate.TicksPerTwelfth);
@@ -1526,6 +1526,39 @@ namespace ZombieLand
 			 (D)
 			 .......
 			*/
+		}
+
+		public static IEnumerable<MethodBase> OverridingMethods(MethodInfo baseMethod)
+		{
+			var baseMethodType = baseMethod.DeclaringType;
+			var baseMethodArgTypes = baseMethod.GetParameters().Select(p => p.ParameterType).ToArray();
+
+			return AppDomain.CurrentDomain.GetAssemblies()
+				 .SelectMany(assembly => assembly.GetTypes())
+				 .Where(type => type.IsSubclassOf(baseMethodType))
+				 .Select(type => type.GetMethod(baseMethod.Name, baseMethodArgTypes))
+				 .OfType<MethodInfo>()
+				 .Where(method => method.DeclaringType != baseMethodType && method.GetBaseDefinition() == baseMethod)
+				 .Union(new[] { baseMethod });
+		}
+
+		public static IEnumerable<CodeInstruction> MakeThingTranspiler(IEnumerable<CodeInstruction> instructions, Expression<Action> expression)
+		{
+			var from = SymbolExtensions.GetMethodInfo(() => ThingMaker.MakeThing(default, default));
+			var to = SymbolExtensions.GetMethodInfo(expression);
+			var matcher = new CodeMatcher(instructions);
+			var found = false;
+			while (true)
+			{
+				matcher = matcher.MatchStartForward(new CodeMatch(operand: from));
+				if (matcher.IsInvalid)
+					break;
+				found = true;
+				matcher = matcher.InsertAndAdvance(Ldarg_0).SetInstruction(Call[to]);
+			}
+			if (found == false)
+				throw new Exception($"Cannot find {from.FullDescription()}");
+			return matcher.InstructionEnumeration();
 		}
 
 		static bool DownedReplacement(Pawn pawn)

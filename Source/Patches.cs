@@ -4062,48 +4062,6 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to forbid zombie extract and use our zombie serum in the right order with medicine
-		// - first use medicine to tend all wounds by excluding serum
-		// - then allow serum and let it automatically execute operation bills
-		//
-		[HarmonyPatch(typeof(HealthAIUtility))]
-		[HarmonyPatch(nameof(HealthAIUtility.FindBestMedicine))]
-		static class HealthAIUtility_FindBestMedicine_Patch
-		{
-			static bool Prefix(Pawn healer, Pawn patient, ref Thing __result)
-			{
-				if (patient.playerSettings == null || patient.playerSettings.medCare <= MedicalCareCategory.NoMeds)
-					return true;
-
-				var useSerum = Medicine.GetMedicineCountToFullyHeal(patient) <= 0;
-
-				bool validator(Thing m)
-				{
-					return !m.IsForbidden(healer) && patient.playerSettings.medCare.AllowsMedicine(m.def) && healer.CanReserve(m, 10, 1, null, false);
-				}
-
-				float priorityGetter(Thing t)
-				{
-					if (t.def.thingClass == typeof(ZombieSerum))
-						return useSerum ? 1000 * t.def.costList[1].count : -10000;
-					return t.def.GetStatValueAbstract(StatDefOf.MedicalPotency, null);
-				}
-
-				var position = patient.Position;
-				var map = patient.Map;
-				var searchSet = patient.Map.listerThings
-					.ThingsInGroup(ThingRequestGroup.Medicine)
-					.Where(t => t.def.thingClass != typeof(ZombieExtract));
-
-				if (useSerum == false)
-					searchSet = searchSet.Where(t => t.def.thingClass != typeof(ZombieSerum));
-
-				var traverseParams = TraverseParms.For(healer, Danger.Deadly, TraverseMode.ByPawn, false);
-				__result = GenClosest.ClosestThing_Global_Reachable(position, map, searchSet, PathEndMode.ClosestTouch, traverseParams, 9999f, validator, priorityGetter);
-				return false;
-			}
-		}
-
 		// patch to set zombie bite injuries as non natural healing to avoid
 		// the healing cross mote
 		//

@@ -48,7 +48,7 @@
 		<PackageReference Include="Brrainz.RimWorld.CrossPromotion" Version="1.1.1" />
 		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.4.3704" GeneratePathProperty="true" />
 		<PackageReference Include="Lib.Harmony" Version="2.2.2" ExcludeAssets="runtime" />
-		<PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.3" />
+		<PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.4" />
 		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -90,6 +90,16 @@
 
 	<PropertyGroup>
 		<PostBuildEvent>
+			mkdir -p /Users/ap/Library/Application\ Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/Mods/$(AssemblyName)
+			pushd ..
+			cp -rf About Assemblies Defs Languages LICENSE Patches README.md Resources Sounds Textures /Users/ap/Library/Application\ Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/Mods/$(AssemblyName)/
+			popd
+			pushd /Users/ap/Library/Application\ Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/Mods
+			rm -f $(AssemblyName).zip
+			zip -q -r -0 $(AssemblyName).zip $(AssemblyName)
+			popd
+		</PostBuildEvent>
+		<!--<PostBuildEvent>
 			echo Postprocessing
 			where ModBuilder 2&gt; nul | find /i "ModBuilder.exe"
 			if not errorlevel 1 (
@@ -100,7 +110,7 @@
 			if defined INSTALL_MOD (
 			"%INSTALL_MOD%" "$(Configuration)" "$(MSBuildProjectDirectory)\..\" "$(MSBuildProjectName)" "About Assemblies Defs Languages Patches Resources Sounds Textures"
 			)
-		</PostBuildEvent>
+		</PostBuildEvent>-->
 		<Company>Brrainz</Company>
 		<Authors>Andreas Pardeike</Authors>
 		<Description>A zombie mod for the game RimWorld</Description>
