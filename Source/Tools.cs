@@ -1398,7 +1398,7 @@ namespace ZombieLand
 						foreach (var current in list)
 						{
 							var t2 = current;
-							Scribe_Deep.Look<T>(ref t2, false, "li", ctorArgs);
+							Scribe_Deep.Look(ref t2, false, "li", ctorArgs);
 						}
 					}
 				}
@@ -1412,8 +1412,8 @@ namespace ZombieLand
 					{
 						list = new T[curXmlParent.ChildNodes.Count];
 						var i = 0;
-						foreach (var subNode2 in curXmlParent.ChildNodes)
-							list[i++] = ScribeExtractor.SaveableFromNode<T>((XmlNode)subNode2, ctorArgs);
+						foreach (var subNode in curXmlParent.ChildNodes)
+							list[i++] = ScribeExtractor.SaveableFromNode<T>((XmlNode)subNode, ctorArgs);
 					}
 				}
 			}
@@ -1528,24 +1528,19 @@ namespace ZombieLand
 			*/
 		}
 
-		public static IEnumerable<MethodBase> OverridingMethods(MethodInfo baseMethod)
+		public static IEnumerable<Type> Subclasses(Type baseType)
 		{
-			var baseMethodType = baseMethod.DeclaringType;
-			var baseMethodArgTypes = baseMethod.GetParameters().Select(p => p.ParameterType).ToArray();
-
 			return AppDomain.CurrentDomain.GetAssemblies()
 				 .SelectMany(assembly => assembly.GetTypes())
-				 .Where(type => type.IsSubclassOf(baseMethodType))
-				 .Select(type => type.GetMethod(baseMethod.Name, baseMethodArgTypes))
-				 .OfType<MethodInfo>()
-				 .Where(method => method.DeclaringType != baseMethodType && method.GetBaseDefinition() == baseMethod)
-				 .Union(new[] { baseMethod });
+				 .Where(type => type != baseType && type.IsAbstract == false && type.IsSubclassOf(baseType));
 		}
 
-		public static IEnumerable<CodeInstruction> MakeThingTranspiler(IEnumerable<CodeInstruction> instructions, Expression<Action> expression)
+		public static IEnumerable<CodeInstruction> ExtraThisTranspiler(IEnumerable<CodeInstruction> instructions, Type type, Expression<Action> replacement)
 		{
-			var from = SymbolExtensions.GetMethodInfo(() => ThingMaker.MakeThing(default, default));
-			var to = SymbolExtensions.GetMethodInfo(expression);
+			var to = SymbolExtensions.GetMethodInfo(replacement);
+			var parameterTypes = to.GetParameters().Types().SkipLast(1).ToArray();
+			var from = DeclaredMethod(type, to.Name, parameterTypes);
+			if (from == null) throw new NullReferenceException($"Cannot find {type.FullName}.{to.Name}({parameterTypes.Join(t => t.FullDescription())})");
 			var matcher = new CodeMatcher(instructions);
 			var found = false;
 			while (true)
@@ -1560,6 +1555,12 @@ namespace ZombieLand
 				throw new Exception($"Cannot find {from.FullDescription()}");
 			return matcher.InstructionEnumeration();
 		}
+
+		/*public static MethodInfo FirstMethodCalling(Type type, Expression<Action> expression)
+		{
+			var search = SymbolExtensions.GetMethodInfo(expression);
+			return GetDeclaredMethods(type).First(m1 => PatchProcessor.ReadMethodBody(m1).Any(pair => pair.Value is MethodInfo m2 && m2 == search));
+		}*/
 
 		static bool DownedReplacement(Pawn pawn)
 		{

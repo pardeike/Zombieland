@@ -267,4 +267,6 @@
 	<Aggressive>Aggressive</Aggressive>
 	<Calm>Calm</Calm>
 
+	<ShowContaminationOverlayToggleButton>Toggle zombie contamination overlay.\n\nThis shows how contaminated things and the ground are, which in turn affects pawns.</ShowContaminationOverlayToggleButton>
+
 </LanguageData>

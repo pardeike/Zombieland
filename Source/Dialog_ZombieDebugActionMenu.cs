@@ -2,6 +2,7 @@
 using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using Verse;
 using static Verse.PawnCapacityUtility;
 
@@ -247,6 +248,80 @@ namespace ZombieLand
 				hediff.Severity = 0.24f;
 				zombie.health.hediffSet.AddDirect(hediff);
 			}
+		}
+
+		static void FloodFillContamination(IntVec3 cell, float value, int maxCells)
+		{
+			ThingDef floodfillThingDef = null;
+
+			bool validator(IntVec3 cell)
+			{
+				if (floodfillThingDef == null)
+				{
+					var thing = Find.CurrentMap.thingGrid.ThingsAt(cell).First();
+					floodfillThingDef = thing.def;
+					return true;
+				}
+				return Find.CurrentMap.thingGrid.ThingsAt(cell).Any(t => t.def == floodfillThingDef);
+			}
+
+			void contaminate(IntVec3 cell)
+			{
+				Find.CurrentMap.thingGrid.ThingsAt(cell)
+					.DoIf(t => t.def == floodfillThingDef, t => t.AddContamination(value));
+			}
+
+			// wrap this because if we click on "nothing" it causes an error
+			try
+			{
+				var filler = new FloodFiller(Find.CurrentMap);
+				filler.FloodFill(cell, validator, contaminate, maxCells);
+			}
+			catch
+			{
+			}
+		}
+
+		[DebugAction("Zombieland", "Apply: Add 0.1 contamination", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void AddLittleContamination()
+		{
+			FloodFillContamination(UI.MouseCell(), 0.1f, 500);
+		}
+
+		[DebugAction("Zombieland", "Apply: Add 1.0 contamination", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void AddSomeContamination()
+		{
+			FloodFillContamination(UI.MouseCell(), 1f, 500);
+		}
+
+		[DebugAction("Zombieland", "Apply: Clear contamination", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void ClearContamination()
+		{
+			var cell = UI.MouseCell();
+			var map = Find.CurrentMap;
+			if (cell.InBounds(map))
+				map.thingGrid.ThingsAt(cell).Do(thing => thing.ClearContamination());
+		}
+
+		[DebugAction("Zombieland", "Apply: Add 0.1 floor contamination", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void AddSomeFloorContamination()
+		{
+			var cell = UI.MouseCell();
+			var map = Find.CurrentMap;
+			if (cell.InBounds(map))
+			{
+				var grid = map.GetContamination();
+				grid[cell] = Mathf.Min(1f, grid[cell] + 0.1f);
+			}
+		}
+
+		[DebugAction("Zombieland", "Apply: Clear floor contamination", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void ClearFloorContamination()
+		{
+			var cell = UI.MouseCell();
+			var map = Find.CurrentMap;
+			if (cell.InBounds(map))
+				map.GetContamination()[cell] = 0f;
 		}
 	}
 }

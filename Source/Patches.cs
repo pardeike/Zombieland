@@ -2,10 +2,10 @@
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
@@ -164,10 +164,29 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(MapInterface))]
 		[HarmonyPatch(nameof(MapInterface.MapInterfaceUpdate))]
+		[StaticConstructorOnStartup]
 		class MapInterface_MapInterfaceUpdate_Patch
 		{
 			static void Postfix()
 			{
+				var map = Find.CurrentMap;
+				var currentViewRect = Find.CameraDriver.CurrentViewRect;
+				currentViewRect.ClipInsideMap(map);
+
+				if (ContaminationManager.Instance.showContaminationOverlay)
+				{
+					if (Find.CameraDriver.CurrentViewRect.Area >= Constants.MAX_CELLS_FOR_DETAILED_CONTAMINATION)
+						map.ContaminationGridUpdate();
+					else
+					{
+						map.listerThings.AllThings
+							.DoIf(thing => currentViewRect.Contains(thing.Position),
+							thing => GraphicToolbox.DrawContamination(thing.DrawPos, thing.GetContamination(), true));
+						var grid = map.GetContamination();
+						currentViewRect.Do(cell => GraphicToolbox.DrawContamination(cell.ToVector3Shifted(), grid[cell], false));
+					}
+				}
+
 				if (Constants.SHOW_PLAYER_REACHABLE_REGIONS)
 				{
 					var m = DebugSolidColorMats.MaterialOf(Color.magenta);
@@ -176,14 +195,10 @@ namespace ZombieLand
 
 				if (Constants.SHOW_AVOIDANCE_GRID && Tools.ShouldAvoidZombies())
 				{
-					var map = Find.CurrentMap;
 					var tickManager = map.GetComponent<TickManager>();
 					if (tickManager == null)
 						return;
 					var avoidGrid = tickManager.avoidGrid;
-
-					var currentViewRect = Find.CameraDriver.CurrentViewRect;
-					_ = currentViewRect.ClipInsideMap(map);
 					foreach (var c in currentViewRect)
 					{
 						var cost = avoidGrid.GetCosts()[c.x + c.z * map.Size.x];
@@ -194,7 +209,6 @@ namespace ZombieLand
 
 				if (Constants.SHOW_WANDER_REGIONS)
 				{
-					var map = Find.CurrentMap;
 					var pathing = map?.GetComponent<TickManager>()?.zombiePathing;
 					if (pathing == null)
 						return;
@@ -2204,6 +2218,16 @@ namespace ZombieLand
 
 				if (pos.InBounds(map) == false)
 					return;
+
+				var contaminationList = map.thingGrid.ThingsListAt(pos)
+					.Select(t => (thing: t, contamination: t.GetContamination()))
+					.Where(pair => pair.contamination != 0)
+					.Join(pair => $"{pair.thing}/{pair.contamination}", " ");
+				if (contaminationList.Any())
+				{
+					_ = builder.AppendLine($"Contaminations: {contaminationList}");
+					_ = builder.AppendLine("");
+				}
 
 				if (Tools.ShouldAvoidZombies())
 				{
@@ -5051,6 +5075,8 @@ namespace ZombieLand
 			static void Postfix()
 			{
 				Tools.EnableTwinkie(ZombieSettings.Values.replaceTwinkie);
+				ContaminationManager.Instance.FixGrounds();
+				ContaminationManager.Instance.FixMinerables();
 			}
 		}
 
