@@ -115,7 +115,10 @@ namespace ZombieLand
 					});
 					if (adjacentDoor == null)
 						continue;
-					var doorRegion = map.regionGrid.GetRegionAt_NoRebuild_InvalidAllowed(adjacentDoor.Position);
+					var doorPosition = adjacentDoor.Position;
+					if (doorPosition.InBounds(map) == false)
+						continue;
+					var doorRegion = map.regionGrid.GetRegionAt_NoRebuild_InvalidAllowed(doorPosition);
 					if (InvalidRegion(doorRegion))
 						continue;
 					Add(doorRegion, idx);
@@ -132,7 +135,7 @@ namespace ZombieLand
 						if (block.InBounds(map) == false || block.GetEdifice(map) == null)
 							return;
 						var beyond = block + v;
-						if (block.InBounds(map) == false)
+						if (beyond.InBounds(map) == false)
 							return;
 						var doorRegion = map.regionGrid.GetRegionAt_NoRebuild_InvalidAllowed(beyond);
 						if (InvalidRegion(doorRegion))
