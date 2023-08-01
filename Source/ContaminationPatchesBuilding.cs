@@ -175,7 +175,7 @@ namespace ZombieLand
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> Tools.ExtraThisTranspiler(instructions, typeof(ThingMaker), () => MakeThing(default, default, default));
+			=> instructions.ExtraThisTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default));
 	}
 
 	[HarmonyPatch(typeof(Building_GeneExtractor), nameof(Building_GeneExtractor.Finish))]
@@ -191,7 +191,7 @@ namespace ZombieLand
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> Tools.ExtraThisTranspiler(instructions, typeof(ThingMaker), () => MakeThing(default, default, default));
+			=> instructions.ExtraThisTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default));
 	}
 
 	[HarmonyPatch(typeof(Building_NutrientPasteDispenser), nameof(Building_NutrientPasteDispenser.TryDispenseFood))]
@@ -262,6 +262,6 @@ namespace ZombieLand
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> Tools.ExtraThisTranspiler(instructions, typeof(ThingMaker), () => MakeThing(default, default, default));
+			=> instructions.ExtraThisTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default));
 	}
 }

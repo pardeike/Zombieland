@@ -4,6 +4,7 @@ using System.Reflection;
 using HarmonyLib;
 using RimWorld;
 using Verse;
+using static HarmonyLib.Code;
 
 namespace ZombieLand
 {
@@ -46,11 +47,14 @@ namespace ZombieLand
 	{
 		static void Prefix(Thing other, out (int, float) __state)
 		{
-			__state = other == null ? (0, 0f) : (other.stackCount, other.GetContamination());
+			__state = other == null || Tools.MapInitialized() == false ? (0, 0f) : (other.stackCount, other.GetContamination());
 		}
 
 		static void Postfix(bool __result, Thing __instance, Thing other, (int, float) __state)
 		{
+			if (Tools.MapInitialized() == false)
+				return;
+
 			var (otherOldStack, otherOldContamination) = __state;
 			var otherStack = __result ? 0 : other?.stackCount ?? 0;
 			var factor = 1f - otherStack / otherOldStack;
@@ -67,6 +71,8 @@ namespace ZombieLand
 		static void Postfix(Thing __result, Thing __instance, int count)
 		{
 			if (__result == null || __result == __instance)
+				return;
+			if (Tools.MapInitialized() == false)
 				return;
 			
 			var previousTotal = __instance.stackCount + count;
@@ -120,7 +126,9 @@ namespace ZombieLand
 		{
 			if (__result == __instance)
 				return;
-			
+			if (Tools.MapInitialized() == false)
+				return;
+
 			var remaining = __instance.Spawned == false ? 0 : __instance.stackCount;
 			var factor = __state == 0 ? 1f : 1f - remaining / (float)__state;
 			__instance.TransferContamination(factor, __result);
@@ -129,7 +137,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class ThingComp_TestPatches
+	static class ThingComp_MakeThing_TestPatches
 	{
 		static IEnumerable<MethodBase> TargetMethods()
 		{
@@ -159,7 +167,23 @@ namespace ZombieLand
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> Tools.ExtraThisTranspiler(instructions, typeof(ThingMaker), () => MakeThing(default, default, default));
+			=> instructions.ExtraThisTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default));
+	}
+
+	[HarmonyPatch(typeof(ExecutionUtility), nameof(ExecutionUtility.ExecutionInt))]
+	[HarmonyPatch(new[] { typeof(Pawn), typeof(Pawn), typeof(bool), typeof(int), typeof(bool) })]
+	static class ExecutionUtility_ExecutionInt_TestPatches
+	{
+		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Pawn victim)
+		{
+			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
+			victim.TransferContamination(ContaminationFactors.produce, result);
+			Log.Warning($"Produce {result} from {victim}");
+			return result;
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase originalMethod)
+			=> instructions.ExtraThisTranspiler(typeof(GenSpawn), () => Spawn(default, default, default, default, default));
 	}
 
 	[HarmonyPatch(typeof(TendUtility), nameof(TendUtility.DoTend))]
@@ -191,6 +215,33 @@ namespace ZombieLand
 		{
 			__result.AddContamination(__instance.GetContamination());
 			Log.Warning($"Copied {__instance} to {__result}");
+		}
+	}
+
+	[HarmonyPatch]
+	static class Jobdriver_ClearPollution_Spawn_TestPatch
+	{
+		static readonly MethodInfo m_Spawn = SymbolExtensions.GetMethodInfo(() => GenSpawn.Spawn((ThingDef)default, default, default, default));
+
+		static MethodBase TargetMethod()
+		{
+			return AccessTools.FirstMethod(typeof(JobDriver_ClearPollution), method =>
+					PatchProcessor.ReadMethodBody(method).Any(pair => pair.Value is MethodInfo method && method == m_Spawn));
+		}
+
+		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode)
+		{
+			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
+			var contamination = map.GetContamination(loc);
+			thing.AddContamination(contamination, ContaminationFactors.wastePack);
+			return thing;
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		{
+			var from = m_Spawn;
+			var to = SymbolExtensions.GetMethodInfo(() => Spawn(default, default, default, default));
+			return instructions.MethodReplacer(from, to);
 		}
 	}
 }

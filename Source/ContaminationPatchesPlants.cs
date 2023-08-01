@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -20,8 +23,12 @@ namespace ZombieLand
 		static Thing Spawn(Thing newThing, IntVec3 loc, Map map, WipeMode wipeMode)
 		{
 			var thing = GenSpawn.Spawn(newThing, loc, map, wipeMode);
-			thing.AddContamination(thing.def.IsPlant ? ContaminationFactors.wildPlant : ContaminationFactors.jelly);
-			Log.Warning($"Spawned {thing} at {loc}");
+			if (Tools.MapInitialized())
+			{
+				var contamination = map.GetContamination(loc);
+				thing.AddContamination(contamination, thing.def.IsPlant ? ContaminationFactors.plant : ContaminationFactors.jelly);
+				Log.Warning($"Spawned {thing} at {loc}");
+			}
 			return thing;
 		}
 
@@ -75,5 +82,46 @@ namespace ZombieLand
 				.SetInstruction(Call[to])
 				.InstructionEnumeration();
 		}
+	}
+
+	[HarmonyPatch(typeof(IncidentWorker_AmbrosiaSprout), nameof(IncidentWorker_AmbrosiaSprout.TryExecuteWorker))]
+	static class IncidentWorker_AmbrosiaSprout_TryExecuteWorker_TestPatches
+	{
+		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode)
+		{
+			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
+			var contamination = map.GetContamination(loc);
+			thing.AddContamination(contamination, ContaminationFactors.plant);
+			Log.Warning($"Spawned {thing} at {loc}");
+			return thing;
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			=> instructions.ReplaceTranspiler(typeof(GenSpawn), () => Spawn(default, default, default, default));
+	}
+
+	[HarmonyPatch]
+	static class JobDriver_PlantSow_MakeNewToils_TestPatch
+	{
+		static readonly Expression<Action> m_Spawn = () => Spawn(default, default, default, default, default);
+
+		static MethodBase TargetMethod()
+		{
+			var type = AccessTools.FirstInner(typeof(JobDriver_PlantSow), type => type.Name.Contains("DisplayClass"));
+			return Tools.FirstMethodForReplacement(type, typeof(GenSpawn), m_Spawn);
+		}
+
+		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, JobDriver_PlantSow driver)
+		{
+			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
+			var contamination = map.GetContamination(loc);
+			thing.AddContamination(contamination, ContaminationFactors.sowedPlant);
+			driver.pawn.TransferContamination(ContaminationFactors.sowingPawn, thing);
+			Log.Warning($"Spawned {thing} at {loc}");
+			return thing;
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			=> instructions.ExtraThisTranspiler(typeof(GenSpawn), m_Spawn, true);
 	}
 }

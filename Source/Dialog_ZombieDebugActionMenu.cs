@@ -321,7 +321,7 @@ namespace ZombieLand
 			var cell = UI.MouseCell();
 			var map = Find.CurrentMap;
 			if (cell.InBounds(map))
-				map.GetContamination()[cell] = 0f;
+				map.SetContamination(cell, 0);
 		}
 	}
 }

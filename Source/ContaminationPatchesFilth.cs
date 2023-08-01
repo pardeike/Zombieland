@@ -210,22 +210,25 @@ namespace ZombieLand
 		};
 		static Thing TransferContaminationToFilth(Thing newThing)
 		{
-			if (filthCell.IsValid)
+			if (Tools.MapInitialized())
 			{
-				var grid = filthCell.Map.GetContamination();
-				var contamination = grid[filthCell.Cell];
-				newThing.AddContamination(contamination, ContaminationFactors.filth);
-				grid[filthCell.Cell] = contamination * (1f - ContaminationFactors.filth);
-				Log.Warning($"Gained {newThing} from {filthCell}");
-			}
-			if (filthSource != null)
-			{
-				filthSource.TransferContamination(ContaminationFactors.filth, newThing);
-				Log.Warning($"Gained {newThing} from {filthSource}");
-				if (nastyFilths.Contains(filthSource.def))
+				if (filthCell.IsValid)
 				{
-					var amount = filthSource.GroundTransfer(ContaminationFactors.blood);
-					Log.Warning($"Nasty ground spill {amount} from {filthSource}");
+					var grid = filthCell.Map.GetContamination();
+					var contamination = grid[filthCell.Cell];
+					newThing.AddContamination(contamination, ContaminationFactors.filth);
+					grid[filthCell.Cell] = contamination * (1f - ContaminationFactors.filth);
+					Log.Warning($"Gained {newThing} from {filthCell}");
+				}
+				if (filthSource != null)
+				{
+					filthSource.TransferContamination(ContaminationFactors.filth, newThing);
+					Log.Warning($"Gained {newThing} from {filthSource}");
+					if (nastyFilths.Contains(filthSource.def))
+					{
+						var amount = filthSource.GroundTransfer(ContaminationFactors.blood);
+						Log.Warning($"Nasty ground spill {amount} from {filthSource}");
+					}
 				}
 			}
 			return newThing;

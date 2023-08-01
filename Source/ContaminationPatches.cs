@@ -15,11 +15,16 @@ namespace ZombieLand
 {
 	static class ContaminationFactors
 	{
+		public static float threshold = 0.0001f;
+
 		public static float construction = 1f;
 		public static float receipe = 1f;
 		public static float billGiver = 0.2f;
 		public static float worker = 0.1f;
 		public static float wildPlant = 0.1f;
+		public static float sowedPlant = 0.2f;
+		public static float sowingPawn = 0.1f;
+		public static float wastePack = 0.5f;
 		public static float jelly = 0.1f;
 		public static float mineable = 0.5f;
 		public static float leavings = 0.5f;
@@ -39,12 +44,11 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(ThingMaker), nameof(ThingMaker.MakeThing))]
 	static file class Thing_MakeThing_TestPatch
 	{
-		static bool Prepare() => false;
+		//static bool Prepare() => false;
 
-		[HarmonyPostfix]
-		static void DebugLogMakeThing(Thing __result)
+		static void Postfix(Thing __result)
 		{
-			if (MapGenerator.mapBeingGenerated == null && Current.Game?.initData == null)
+			if (Tools.MapInitialized() && __result is not Mote)
 			{
 				Log.ResetMessageCount();
 				Log.Message($"NEW {__result}");
@@ -55,11 +59,11 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Thing), nameof(Thing.Destroy))]
 	static class Thing_Destroy_TestPatch
 	{
-		static bool Prepare() => false;
+		//static bool Prepare() => false;
 
 		static void Prefix(Thing __instance, out int __state)
 		{
-			if (MapGenerator.mapBeingGenerated == null && Current.Game?.initData == null)
+			if (Tools.MapInitialized() && __instance is not Mote)
 			{
 				Log.ResetMessageCount();
 				Log.Message($"DEL {__instance}");
@@ -98,8 +102,8 @@ namespace ZombieLand
 			var map = Find.CurrentMap;
 			if (cell.InBounds(map))
 			{
-				var contamination = map.GetContamination()[cell];
-				if (contamination > 0)
+				var contamination = map.GetContamination(cell);
+				if (contamination >= ContaminationFactors.threshold)
 					result += $" Contaminated ({contamination:P2})";
 			}
 			return result;
@@ -111,7 +115,7 @@ namespace ZombieLand
 			if (self is Thing thing)
 			{
 				var contamination = thing.GetContamination();
-				if (contamination > 0)
+				if (contamination >= ContaminationFactors.threshold)
 					result += $", {contamination:P2} contaminated";
 			}
 			return result;
@@ -148,7 +152,7 @@ namespace ZombieLand
 			if (t is not Pawn)
 			{
 				var contamination = t.GetContamination();
-				if (contamination > 0)
+				if (contamination >= ContaminationFactors.threshold)
 				{
 					GUI.color = Color.gray;
 					if (contamination > 0.2f) GUI.color = Color.white;
@@ -180,7 +184,7 @@ namespace ZombieLand
 			if (selected[0] is Pawn pawn)
 			{
 				var contamination = pawn.GetContamination();
-				if (contamination > 0)
+				if (contamination >= ContaminationFactors.threshold)
 					__result += $" ({contamination * 100:F2}%)";
 			}
 		}
@@ -210,7 +214,7 @@ namespace ZombieLand
 						.Where(thing => thing.DrawPos == thing.Position.ToVector3Shifted())
 						.Sum(thing => thing.GetContamination());
 					var totalContamination = contaminationCell + contaminationThings;
-					if (totalContamination > 0)
+					if (totalContamination >= ContaminationFactors.threshold)
 					{
 						var textColor = Color.gray;
 						if (contaminationCell > 0.2f || contaminationThings > 0.2f) textColor = Color.white;
@@ -224,7 +228,7 @@ namespace ZombieLand
 						.DoIf(thing => thing.DrawPos != thing.Position.ToVector3Shifted(), thing =>
 						{
 							var contaminiaton = thing.GetContamination();
-							if (contaminiaton == 0)
+							if (contaminiaton < ContaminationFactors.threshold)
 								return;
 
 							var textColor = Color.gray;

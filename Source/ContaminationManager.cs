@@ -138,6 +138,7 @@ namespace ZombieLand
 	public class ContaminationGrid : ICellBoolGiver
 	{
 		static readonly Color color = new(0, 0.8f, 0);
+		const float pi_half = Mathf.PI / 2;
 
 		public float[] cells;
 		public CellBoolDrawer drawer;
@@ -164,7 +165,7 @@ namespace ZombieLand
 
 		public Color Color => Color.white;
 		public bool GetCellBool(int index) => cells[index] > 0;
-		public Color GetCellExtraColor(int index) => color.ToTransparent(cells[index]);
+		public Color GetCellExtraColor(int index) => color.ToTransparent(Mathf.Cos(pi_half * Mathf.Pow(cells[index] - 1, 3))); // https://www.desmos.com/calculator/hnvwykal4v
 
 		public float this[IntVec3 cell]
 		{
@@ -181,6 +182,13 @@ namespace ZombieLand
 	{
 		public static float GetContamination(this Thing thing) => ContaminationManager.Instance.Get(thing);
 		public static ContaminationGrid GetContamination(this Map map) => ContaminationManager.Instance.grounds[map.Index];
+		public static float GetContamination(this Map map, IntVec3 cell, bool safeMode = false)
+			=> safeMode == false || cell.InBounds(map) ? ContaminationManager.Instance.grounds[map.Index][cell] : 0;
+		public static void SetContamination(this Map map, IntVec3 cell, float value, bool safeMode = false)
+		{
+			if (safeMode == false || cell.InBounds(map))
+				ContaminationManager.Instance.grounds[map.Index][cell] = value;
+		}
 		public static float[] GetContaminationCells(this Map map) => ContaminationManager.Instance.grounds[map.Index].cells;
 		public static CellBoolDrawer GetContaminationDrawer(this Map map) => ContaminationManager.Instance.grounds[map.Index].drawer;
 		public static float GroundTransfer(this Thing thing, float factor) => ContaminationManager.Instance.GroundTransfer(thing, factor);

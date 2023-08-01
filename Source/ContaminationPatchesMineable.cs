@@ -36,6 +36,6 @@ namespace ZombieLand
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> Tools.ExtraThisTranspiler(instructions, typeof(ThingMaker), () => MakeThing(default, default, default));
+			=> instructions.ExtraThisTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default));
 	}
 }
