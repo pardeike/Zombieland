@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
+using UnityEngine;
 using Verse;
+using Verse.AI;
 using static HarmonyLib.Code;
 
 namespace ZombieLand
@@ -18,11 +21,11 @@ namespace ZombieLand
 				return;
 			var cell = __instance.Position;
 			var instance = ContaminationManager.Instance;
-			map.thingGrid.ThingsListAtFast(cell).Do(thing => instance.Subtract(thing, ContaminationFactors.fire));
+			map.thingGrid.ThingsListAtFast(cell).Do(thing => instance.Subtract(thing, ContaminationFactors.fireReduction));
 			var grid = map.GetContamination();
 			var oldValue = grid[cell];
 			if (oldValue > 0)
-				grid[cell] = oldValue - ContaminationFactors.fire;
+				grid[cell] = oldValue - ContaminationFactors.fireReduction;
 		}
 	}
 
@@ -31,14 +34,19 @@ namespace ZombieLand
 	{
 		static IEnumerable<Thing> Postfix(IEnumerable<Thing> things, Pawn worker, IBillGiver billGiver, List<Thing> ingredients)
 		{
-			var thingList = things.ToArray();
-			var processorThing = billGiver as Thing;
-			ingredients.TransferContamination(ContaminationFactors.receipe, thingList);
-			processorThing?.TransferContamination(ContaminationFactors.billGiver, thingList);
-			worker?.TransferContamination(ContaminationFactors.worker, thingList);
-			Log.Warning($"Produce {thingList.Join(t => $"{t}")}, {worker} on {processorThing} from {ingredients.Join(t => $"{t}")}");
-			foreach (var thing in thingList)
-				yield return thing;
+			var results = things.ToArray();
+			if (billGiver is not Thing bench) return things;
+
+			var manager = ContaminationManager.Instance;
+			var transfer = ingredients.Sum(i => manager.Get(i));
+			ingredients.TransferContamination(ContaminationFactors.receipeTransfer, null, results);
+			foreach (var result in results)
+				transfer += Mathf.Abs(manager.Equalize(result, bench, ContaminationFactors.produceEqualize));
+			transfer += Mathf.Abs(manager.Equalize(bench, worker, ContaminationFactors.benchEqualize));
+			worker.TransferContamination(ContaminationFactors.workerTransfer, null, results);
+			if (transfer > 0)
+				Log.Warning($"{worker} produces {results.Join(t => $"{t}")} from {ingredients.Join(t => $"{t}")}{(bench != null ? $" on {bench}" : "")}");
+			return results.AsEnumerable();
 		}
 	}
 
@@ -47,21 +55,21 @@ namespace ZombieLand
 	{
 		static void Prefix(Thing other, out (int, float) __state)
 		{
-			__state = other == null || Tools.MapInitialized() == false ? (0, 0f) : (other.stackCount, other.GetContamination());
+			__state = other == null || Tools.IsPlaying() == false ? (0, 0f) : (other.stackCount, other.GetContamination());
 		}
 
 		static void Postfix(bool __result, Thing __instance, Thing other, (int, float) __state)
 		{
-			if (Tools.MapInitialized() == false)
+			if (Tools.IsPlaying() == false)
 				return;
 
 			var (otherOldStack, otherOldContamination) = __state;
 			var otherStack = __result ? 0 : other?.stackCount ?? 0;
 			var factor = 1f - otherStack / otherOldStack;
 			var transfer = otherOldContamination * factor;
-			if (__result == false)
-				other?.SubtractContamination(transfer);
-			__instance.AddContamination(transfer);
+			if (__result == false && other != null)
+				transfer = other.SubtractContamination(transfer);
+			__instance.AddContamination(transfer, () => Log.Warning($"Absorb {other} into {__instance}"));
 		}
 	}
 
@@ -72,7 +80,7 @@ namespace ZombieLand
 		{
 			if (__result == null || __result == __instance)
 				return;
-			if (Tools.MapInitialized() == false)
+			if (Tools.IsPlaying() == false)
 				return;
 			
 			var previousTotal = __instance.stackCount + count;
@@ -80,8 +88,7 @@ namespace ZombieLand
 				return;
 			
 			var factor = count / (float)previousTotal;
-			__instance.TransferContamination(factor, __result);
-			Log.Warning($"Split off {count}/{previousTotal} ({factor}) from {__instance} to get {__result}");
+			__instance.TransferContamination(factor, () => Log.Warning($"Split off {count}/{previousTotal} ({factor}) from {__instance} to get {__result}"), __result);
 		}
 	}
 
@@ -102,8 +109,7 @@ namespace ZombieLand
 
 			self.IngestedCalculateAmounts(ingester, nutritionWanted, out numTaken, out nutritionIngested);
 			var factor = numTaken == 0 ? (totalNutrition == 0 ? 1 : nutritionIngested / totalNutrition) : (oldStackCount == 0 ? 1 : numTaken / (float)oldStackCount);
-			self.TransferContamination(factor, ingester);
-			Log.Warning($"{ingester} ingested {self}");
+			self.TransferContamination(factor, () => Log.Warning($"{ingester} ingested {self}"), ingester);
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -126,13 +132,12 @@ namespace ZombieLand
 		{
 			if (__result == __instance)
 				return;
-			if (Tools.MapInitialized() == false)
+			if (Tools.IsPlaying() == false)
 				return;
 
 			var remaining = __instance.Spawned == false ? 0 : __instance.stackCount;
 			var factor = __state == 0 ? 1f : 1f - remaining / (float)__state;
-			__instance.TransferContamination(factor, __result);
-			Log.Warning($"Split off {factor} from {__instance} to get {__result}");
+			__instance.TransferContamination(factor, () => Log.Warning($"Split off {factor} from {__instance} to get {__result}"), __result);
 		}
 	}
 
@@ -160,14 +165,13 @@ namespace ZombieLand
 			var result = ThingMaker.MakeThing(def, stuff);
 			if (thingComp?.parent is Thing thing)
 			{
-				thing.TransferContamination(ContaminationFactors.produce, result);
-				Log.Warning($"Produce {result} from {thing}");
+				thing.TransferContamination(ContaminationFactors.generalTransfer, () => Log.Warning($"Produce {result} from {thing}"), result);
 			}
 			return result;
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> instructions.ExtraThisTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default));
+			=> instructions.ExtraArgumentsTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default), new[] { Ldarg_0 }, 1);
 	}
 
 	[HarmonyPatch(typeof(ExecutionUtility), nameof(ExecutionUtility.ExecutionInt))]
@@ -177,13 +181,12 @@ namespace ZombieLand
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Pawn victim)
 		{
 			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
-			victim.TransferContamination(ContaminationFactors.produce, result);
-			Log.Warning($"Produce {result} from {victim}");
+			victim.TransferContamination(ContaminationFactors.generalTransfer, () => Log.Warning($"Produce {result} from {victim}"), result);
 			return result;
 		}
 
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase originalMethod)
-			=> instructions.ExtraThisTranspiler(typeof(GenSpawn), () => Spawn(default, default, default, default, default));
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			=> instructions.ExtraArgumentsTranspiler(typeof(GenSpawn), () => Spawn(default, default, default, default, default), new[] { Ldarg_0 }, 1);
 	}
 
 	[HarmonyPatch(typeof(TendUtility), nameof(TendUtility.DoTend))]
@@ -191,18 +194,93 @@ namespace ZombieLand
 	{
 		static void Postfix(Pawn doctor, Pawn patient, Medicine medicine)
 		{
-			if (medicine == null)
+			if (doctor == null || patient == null)
 				return;
-			if (doctor != null && doctor != patient)
+			var manager = ContaminationManager.Instance;
+			if (medicine != null)
 			{
-				medicine.TransferContamination(0.95f, patient);
-				medicine.TransferContamination(0.05f, doctor);
-				Log.Warning($"{doctor} tended {patient} with {medicine}");
+				manager.Transfer(medicine, ContaminationFactors.medicineTransfer, new[] { patient }, () => Log.Warning($"{patient} treated with {medicine}"));
+				if (doctor != patient)
+					manager.Transfer(medicine, ContaminationFactors.medicineTransfer, new[] { doctor }, () => Log.Warning($"{doctor} handled {medicine}"));
 			}
-			else
+			if (doctor != patient)
 			{
-				medicine.TransferContamination(patient);
-				Log.Warning($"Tended {patient} with {medicine}");
+				var medicineSkill = doctor.skills.GetSkill(SkillDefOf.Medicine).Level;
+				var weight = GenMath.LerpDoubleClamped(0, 20, ContaminationFactors.tendEqualizeWorst, ContaminationFactors.tendEqualizeBest, medicineSkill);
+				manager.Equalize(doctor, patient, weight, () => Log.Warning($"{doctor} tended {patient}"));
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(PawnUtility), nameof(PawnUtility.GainComfortFromCellIfPossible))]
+	[HarmonyPatch(new[] { typeof(Pawn), typeof(bool) })]
+	static class PawnUtility_GainComfortFromCellIfPossible_TestPatch
+	{
+		static void Postfix(Pawn p)
+		{
+			var tick = p.thingIDNumber % 1000;
+			if (Find.TickManager.TicksGame % 1000 != tick)
+				return;
+
+			var cell = p.Position;
+			ContaminationFactors.restEqualize.Equalize(p, cell, () => Log.Warning($"{p} rested at {cell}"));
+			var edifice = cell.GetEdifice(p.Map);
+			if (edifice != null)
+				ContaminationFactors.restEqualize.Equalize(p, edifice, () => Log.Warning($"{p} rested at {edifice}"));
+		}
+	}
+
+	[HarmonyPatch(typeof(Pawn_CarryTracker), nameof(Pawn_CarryTracker.CarryHandsTick))]
+	static class Pawn_CarryTracker_CarryHandsTick_TestPatch
+	{
+		static void Postfix(Pawn_CarryTracker __instance)
+		{
+			var pawn = __instance.pawn;
+
+			var tick = pawn.thingIDNumber % 900;
+			if (Find.TickManager.TicksGame % 900 != tick)
+				return;
+
+			var thing = __instance.CarriedThing;
+			if (thing == null)
+				return;
+			ContaminationFactors.carryEqualize.Equalize(pawn, thing, () => Log.Warning($"{pawn} carrying {thing}"), false, true);
+		}
+	}
+
+	[HarmonyPatch(typeof(PawnUtility), nameof(PawnUtility.Mated))]
+	static class PawnUtility_Mated_TestPatch
+	{
+		static void Postfix(Pawn male, Pawn female)
+		{
+			0.5f.Equalize(male, female, () => Log.Warning($"{male} and {female} mated"));
+		}
+	}
+
+	[HarmonyPatch(typeof(JobDriver_Lovin), nameof(JobDriver_Lovin.MakeNewToils))]
+	static class JobDriver_Lovin_MakeNewToils_TestPatch
+	{
+		static readonly string layDownToilName = Toils_LayDown.LayDown(default, default, default).debugName;
+
+		static IEnumerable<Toil> Postfix(IEnumerable<Toil> toils, JobDriver_Lovin __instance)
+		{
+			foreach(var toil in toils)
+			{
+				if (toil.debugName == layDownToilName && toil.initAction != null)
+				{
+					var action = toil.initAction;
+					toil.initAction = () =>
+					{
+						if (__instance.ticksLeft <= 25000)
+						{
+							var p1 = __instance.pawn;
+							var p2 = __instance.Partner;
+							0.1f.Equalize(p1, p2, () => Log.Warning($"{p1} lovin {p2}"));
+						}
+						action();
+					};
+				}
+				yield return toil;
 			}
 		}
 	}
@@ -213,8 +291,7 @@ namespace ZombieLand
 	{
 		static void Postfix(Pawn __instance, Corpse __result)
 		{
-			__result.AddContamination(__instance.GetContamination());
-			Log.Warning($"Copied {__instance} to {__result}");
+			__result.AddContamination(__instance.GetContamination(), () => Log.Warning($"Copied {__instance} to {__result}"));
 		}
 	}
 
@@ -225,15 +302,14 @@ namespace ZombieLand
 
 		static MethodBase TargetMethod()
 		{
-			return AccessTools.FirstMethod(typeof(JobDriver_ClearPollution), method =>
-					PatchProcessor.ReadMethodBody(method).Any(pair => pair.Value is MethodInfo method && method == m_Spawn));
+			return AccessTools.FirstMethod(typeof(JobDriver_ClearPollution), method => method.CallsMethod(m_Spawn));
 		}
 
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode)
 		{
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, ContaminationFactors.wastePack);
+			thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing}"), ContaminationFactors.wastePackAdd);
 			return thing;
 		}
 
@@ -243,5 +319,116 @@ namespace ZombieLand
 			var to = SymbolExtensions.GetMethodInfo(() => Spawn(default, default, default, default));
 			return instructions.MethodReplacer(from, to);
 		}
+	}
+
+	[HarmonyPatch]
+	static class MedicalRecipesUtility_GenSpawn_Spawn_Patches
+	{
+		static IEnumerable<MethodBase> TargetMethods()
+		{
+			yield return SymbolExtensions.GetMethodInfo(() => MedicalRecipesUtility.SpawnNaturalPartIfClean(default, default, default, default));
+			yield return SymbolExtensions.GetMethodInfo(() => MedicalRecipesUtility.SpawnThingsFromHediffs(default, default, default, default));
+		}
+
+		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Pawn pawn)
+		{
+			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
+			pawn.TransferContamination(ContaminationFactors.generalTransfer, () => Log.Warning($"Produce {result} from {pawn}"), result);
+			return result;
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			=> instructions.ExtraArgumentsTranspiler(typeof(GenSpawn), () => Spawn(default, default, default, default, default), new[] { Ldarg_0 }, 1);
+	}
+
+	[HarmonyPatch(typeof(Recipe_RemoveImplant), nameof(Recipe_RemoveImplant.ApplyOnPawn))]
+	static class Recipe_RemoveImplant_ApplyOnPawn_Patches
+	{
+		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Pawn pawn)
+		{
+			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
+			pawn.TransferContamination(ContaminationFactors.generalTransfer, () => Log.Warning($"Produce {result} from {pawn}"), result);
+			return result;
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			=> instructions.ExtraArgumentsTranspiler(typeof(GenSpawn), () => Spawn(default, default, default, default, default), new[] { Ldarg_0 }, 1);
+	}
+
+	[HarmonyPatch(typeof(CompLifespan), nameof(CompLifespan.Expire))]
+	static class CompLifespan_Expire_TestPatch
+	{
+		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, CompLifespan comp)
+		{
+			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
+			comp.parent.TransferContamination(ContaminationFactors.generalTransfer, () => Log.Warning($"Produce {result} from {comp.parent}"), result);
+			return result;
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			=> instructions.ExtraArgumentsTranspiler(typeof(GenSpawn), () => Spawn(default, default, default, default, default), new[] { Ldarg_0 }, 1);
+	}
+
+	[HarmonyPatch(typeof(RoofCollapserImmediate), nameof(RoofCollapserImmediate.DropRoofInCellPhaseOne))]
+	static class RoofCollapserImmediate_DropRoofInCellPhaseOne_TestPatch
+	{
+		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, IntVec3 c)
+		{
+			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
+			var contamination = map.GetContamination(c);
+			result.AddContamination(contamination, () => Log.Warning($"Produce {result} from roof collapse at {c}"));
+			return result;
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			=> instructions.ExtraArgumentsTranspiler(typeof(GenSpawn), () => Spawn(default, default, default, default, default), new[] { Ldarg_0 }, 1);
+	}
+
+	[HarmonyPatch]
+	static class JobDriver_AffectFloor_MakeNewToils_TestPatch
+	{
+		static readonly MethodInfo m_DoEffect = SymbolExtensions.GetMethodInfo((JobDriver_AffectFloor jobdriver) => jobdriver.DoEffect(default));
+
+		static MethodBase TargetMethod()
+		{
+			var type = AccessTools.FirstInner(typeof(JobDriver_AffectFloor), type => type.Name.Contains("DisplayClass"));
+			return AccessTools.FirstMethod(type, method => method.CallsMethod(m_DoEffect));
+		}
+
+		static void DoEffect(JobDriver_AffectFloor self, IntVec3 c)
+		{
+			var contamination = self.Map.GetContamination(c);
+			static string Affects(object obj) => obj.GetType().Name.Replace("JobDriver_", "").Replace("Floor", "").ToLower();
+			self.pawn.AddContamination(contamination, () => Log.Warning($"{self.pawn} {Affects(self)}s floor at {c}"), ContaminationFactors.floorAdd);
+			self.DoEffect(c);
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		{
+			var replacement = SymbolExtensions.GetMethodInfo(() => DoEffect(default, default));
+			return instructions.MethodReplacer(m_DoEffect, replacement);
+		}
+	}
+
+	[HarmonyPatch]
+	static class JobDriver_DisassembleMech_MakeNewToils_TestPatch
+	{
+		static readonly MethodInfo m_TryPlaceThing = SymbolExtensions.GetMethodInfo(() => GenPlace.TryPlaceThing(default, default, default, default, default, default, default));
+
+		static MethodBase TargetMethod()
+		{
+			return AccessTools.FirstMethod(typeof(JobDriver_DisassembleMech), method => method.CallsMethod(m_TryPlaceThing));
+		}
+
+		static bool TryPlaceThing(Thing thing, IntVec3 center, Map map, ThingPlaceMode mode, Action<Thing, int> placedAction, Predicate<IntVec3> nearPlaceValidator, Rot4 rot, JobDriver_DisassembleMech driver)
+		{
+			var pawn = driver.pawn;
+			var mech = driver.Mech;
+			mech.TransferContamination(ContaminationFactors.disassembleTransfer, () => Log.Warning($"{pawn} produces {thing} from {mech}"), pawn, thing);
+			return GenPlace.TryPlaceThing(thing, center, map, mode, placedAction, nearPlaceValidator, rot);
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			=> instructions.ExtraArgumentsTranspiler(typeof(GenPlace), () => TryPlaceThing(default, default, default, default, default, default, default, default), new[] { Ldarg_0 }, 1);
 	}
 }

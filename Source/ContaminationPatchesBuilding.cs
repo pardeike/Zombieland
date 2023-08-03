@@ -18,7 +18,8 @@ namespace ZombieLand
 			var contamination = self.Sum(thing =>
 			{
 				var contamination = thing.GetContamination();
-				Log.Warning($"Consume {thing} [{contamination}]");
+				if (contamination > 0)
+					Log.Warning($"Consume {thing} gives {contamination}");
 				return contamination;
 			});
 			self.ClearAndDestroyContents(mode);
@@ -28,19 +29,21 @@ namespace ZombieLand
 		static Thing MakeThing(ThingDef def, ThingDef stuff, float contamination)
 		{
 			var thing = ThingMaker.MakeThing(def, stuff);
-			thing.AddContamination(contamination, ContaminationFactors.construction);
-			Log.Warning($"Produce {thing} [{contamination}]");
+			thing.AddContamination(contamination, () => Log.Warning($"Produce {thing} gains {contamination}"), ContaminationFactors.constructionAdd);
 			return thing;
 		}
 
 		static void SetTerrain(TerrainGrid self, IntVec3 c, TerrainDef newTerr, float contamination)
 		{
 			self.SetTerrain(c, newTerr);
-			var map = self.map;
-			var grounds = map.GetContamination();
-			grounds.cells[map.cellIndices.CellToIndex(c)] = contamination;
-			grounds.drawer.SetDirty();
-			Log.Warning($"Produce for {newTerr} at {c} [{contamination}]");
+			if (contamination > 0)
+			{
+				var map = self.map;
+				var grounds = map.GetContamination();
+				grounds.cells[map.cellIndices.CellToIndex(c)] = contamination;
+				grounds.drawer.SetDirty();
+				Log.Warning($"Produce for {newTerr} at {c} [{contamination}]");
+			}
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -80,8 +83,7 @@ namespace ZombieLand
 		{
 			if (thing == null || __result == null)
 				return;
-			thing.TransferContamination(__result);
-			Log.Warning($"Minified {__result} from {thing}");
+			thing.TransferContamination(__result, () => Log.Warning($"Minified {__result} from {thing}"));
 		}
 	}
 
@@ -92,8 +94,7 @@ namespace ZombieLand
 		{
 			if (itemToInstall == null || __result == null)
 				return;
-			itemToInstall.TransferContamination(__result);
-			Log.Warning($"Installed {__result} from {itemToInstall}");
+			itemToInstall.TransferContamination(__result, () => Log.Warning($"Installed {__result} from {itemToInstall}"));
 		}
 	}
 
@@ -104,8 +105,7 @@ namespace ZombieLand
 		{
 			if (buildingToReinstall == null || __result == null)
 				return;
-			buildingToReinstall.TransferContamination(__result);
-			Log.Warning($"Created {__result} from {buildingToReinstall}");
+			buildingToReinstall.TransferContamination(__result, () => Log.Warning($"Created {__result} from {buildingToReinstall}"));
 		}
 	}
 
@@ -116,8 +116,8 @@ namespace ZombieLand
 		{
 			if (createdThing == null)
 				return;
-			__instance.TransferContamination(createdThing);
-			Log.Warning($"Installed {createdThing} from {__instance}");
+			var _createdThing = createdThing;
+			__instance.TransferContamination(createdThing, () => Log.Warning($"Installed {_createdThing} from {__instance}"));
 		}
 	}
 
@@ -133,34 +133,22 @@ namespace ZombieLand
 		{
 			if (__result == null)
 				return;
-			__result.AddContamination(__state);
-			Log.Warning($"Smoothed {__result} [{__state}]");
+			__result.AddContamination(__state, () => Log.Warning($"Smoothed {__result} [{__state}]"));
 		}
 	}
 
 	[HarmonyPatch(typeof(SmoothableWallUtility), nameof(SmoothableWallUtility.Notify_BuildingDestroying))]
 	static class SmoothableWallUtility_Notify_BuildingDestroying_TestPatch
 	{
-		static Thing Spawn(Thing newThing, IntVec3 loc, Map map, Rot4 rot, WipeMode wipeMode, bool respawningAfterLoad, Thing destroyedThing)
+		static Thing Spawn(Thing newThing, IntVec3 loc, Map map, Rot4 rot, WipeMode wipeMode, bool respawningAfterLoad, Thing t)
 		{
 			var thing = GenSpawn.Spawn(newThing, loc, map, rot, wipeMode, respawningAfterLoad);
-			destroyedThing.TransferContamination(thing);
-			Log.Warning($"Produced {thing} from destroyed {destroyedThing}");
+			t.TransferContamination(thing, () => Log.Warning($"Produced {thing} from destroyed {t}"));
 			return thing;
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-		{
-			var from = SymbolExtensions.GetMethodInfo(() => GenSpawn.Spawn(null, IntVec3.Zero, null, Rot4.Invalid, WipeMode.Vanish, false));
-			var to = SymbolExtensions.GetMethodInfo(() => Spawn(null, IntVec3.Zero, null, Rot4.Invalid, WipeMode.Vanish, false, null));
-
-			return new CodeMatcher(instructions)
-				.MatchStartForward(new CodeMatch(operand: from))
-					 .ThrowIfInvalid($"Cannot find {from.FullDescription()}")
-					 .InsertAndAdvance(Ldarg_0)
-					 .SetInstruction(Call[to])
-					 .InstructionEnumeration();
-		}
+			=> instructions.ExtraArgumentsTranspiler(typeof(GenSpawn), () => Spawn(default, default, default, default, default, default, default), new[] { Ldarg_0 }, 1);
 	}
 
 	[HarmonyPatch(typeof(Building_SubcoreScanner), nameof(Building_SubcoreScanner.Tick))]
@@ -169,13 +157,12 @@ namespace ZombieLand
 		static Thing MakeThing(ThingDef def, ThingDef stuff, Building_SubcoreScanner scanner)
 		{
 			var result = ThingMaker.MakeThing(def, stuff);
-			scanner.TransferContamination(ContaminationFactors.subcoreScanner, result);
-			Log.Warning($"Produce {result} from {scanner}");
+			scanner.TransferContamination(ContaminationFactors.subcoreScannerTransfer, () => Log.Warning($"Produce {result} from {scanner}"), result);
 			return result;
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> instructions.ExtraThisTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default));
+			=> instructions.ExtraArgumentsTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default), new[] { Ldarg_0 }, 1);
 	}
 
 	[HarmonyPatch(typeof(Building_GeneExtractor), nameof(Building_GeneExtractor.Finish))]
@@ -185,13 +172,12 @@ namespace ZombieLand
 		{
 			var result = ThingMaker.MakeThing(def, stuff);
 			var pawn = extractor.ContainedPawn;
-			pawn.TransferContamination(ContaminationFactors.geneExtractor, result);
-			Log.Warning($"Produce {result} from {pawn}");
+			pawn.TransferContamination(ContaminationFactors.geneExtractorTransfer, () => Log.Warning($"Produce {result} from {pawn}"), result);
 			return result;
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> instructions.ExtraThisTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default));
+			=> instructions.ExtraArgumentsTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default), new[] { Ldarg_0 }, 1);
 	}
 
 	[HarmonyPatch(typeof(Building_NutrientPasteDispenser), nameof(Building_NutrientPasteDispenser.TryDispenseFood))]
@@ -207,10 +193,7 @@ namespace ZombieLand
 		{
 			var result = ThingMaker.MakeThing(def, stuff);
 			if (things != null)
-			{
-				things.TransferContamination(ContaminationFactors.dispenseFood, result);
-				Log.Warning($"Produce {result} from [{things.Join(t => $"{t}")}]");
-			}
+				things.TransferContamination(ContaminationFactors.dispenseFoodTransfer, () => Log.Warning($"Produce {result} from [{things.Join(t => $"{t}")}]"), result);
 			return result;
 		}
 
@@ -253,15 +236,59 @@ namespace ZombieLand
 			var result = ThingMaker.MakeThing(def, stuff);
 			var factor = 1f;
 			if (building is Building_GeneAssembler)
-				factor = ContaminationFactors.geneAssembler;
+				factor = ContaminationFactors.geneAssemblerTransfer;
 			else if (building is Building_FermentingBarrel)
-				factor = ContaminationFactors.fermentingBarrel;
-			building.TransferContamination(factor, result);
-			Log.Warning($"Produce {result} [{factor}] from {building}");
+				factor = ContaminationFactors.fermentingBarrelTransfer;
+			building.TransferContamination(factor, () => Log.Warning($"Produce {result} [{factor}] from {building}"), result);
 			return result;
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> instructions.ExtraThisTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default));
+			=> instructions.ExtraArgumentsTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default), new[] { Ldarg_0 }, 1);
+	}
+
+	[HarmonyPatch]
+	static class JobDriver_Repair_MakeNewToils_TestPatch
+	{
+		static MethodBase TargetMethod()
+		{
+			var m_Notify_BuildingRepaired = SymbolExtensions.GetMethodInfo((ListerBuildingsRepairable lister) => lister.Notify_BuildingRepaired(default));
+			var type = AccessTools.FirstInner(typeof(JobDriver_Repair), type => type.Name.Contains("DisplayClass"));
+			return AccessTools.FirstMethod(type, method => method.CallsMethod(m_Notify_BuildingRepaired));
+		}
+
+		public static void Equalize(Pawn pawn, Thing thing)
+		{
+			if (thing != null)
+				ContaminationFactors.repairTransfer.Equalize(pawn, thing, () => Log.Warning($"{pawn} repaired {thing}"));
+		}
+
+		static void Notify_BuildingRepaired(ListerBuildingsRepairable self, Building b, Pawn pawn)
+		{
+			Equalize(pawn, b);
+			self.Notify_BuildingRepaired(b);
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			=> instructions.ExtraArgumentsTranspiler(typeof(ListerBuildingsRepairable), () => Notify_BuildingRepaired(default, default, default), new[] { Ldloc_0 }, 1);
+	}
+
+	[HarmonyPatch]
+	static class JobDriver_RepairMech_MakeNewToils_TestPatch
+	{
+		static MethodBase TargetMethod()
+		{
+			var m_RepairTick = SymbolExtensions.GetMethodInfo(() => MechRepairUtility.RepairTick(default));
+			return AccessTools.FirstMethod(typeof(JobDriver_RepairMech), method => method.CallsMethod(m_RepairTick));
+		}
+
+		static void RepairTick(Pawn mech, JobDriver_RepairMech jobDriver)
+		{
+			JobDriver_Repair_MakeNewToils_TestPatch.Equalize(jobDriver.pawn, mech);
+			MechRepairUtility.RepairTick(mech);
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			=> instructions.ExtraArgumentsTranspiler(typeof(MechRepairUtility), () => RepairTick(default, default), new[] { Ldarg_0 }, 1);
 	}
 }

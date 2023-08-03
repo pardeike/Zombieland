@@ -665,15 +665,14 @@ namespace ZombieLand
 		{
 			static MethodBase TargetMethod()
 			{
-				return AccessTools.GetDeclaredMethods(typeof(Pawn_EquipmentTracker))
-					.FirstOrDefault(mi =>
-					{
-						if (mi.GetParameters().Length < 1)
-							return false;
-						if (mi.GetParameters()[0].ParameterType != typeof(ThingWithComps))
-							return false;
-						return mi.Name.Contains("__YieldGizmos");
-					});
+				return AccessTools.FirstMethod(typeof(Pawn_EquipmentTracker), mi =>
+				{
+					if (mi.GetParameters().Length < 1)
+						return false;
+					if (mi.GetParameters()[0].ParameterType != typeof(ThingWithComps))
+						return false;
+					return mi.Name.Contains("__YieldGizmos");
+				});
 			}
 
 			static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> gizmos, ThingWithComps eq)
@@ -5075,8 +5074,6 @@ namespace ZombieLand
 			static void Postfix()
 			{
 				Tools.EnableTwinkie(ZombieSettings.Values.replaceTwinkie);
-				ContaminationManager.Instance.FixGrounds();
-				ContaminationManager.Instance.FixMinerables();
 			}
 		}
 

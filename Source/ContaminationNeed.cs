@@ -20,13 +20,12 @@ namespace ZombieLand
 				if (DebugSettings.ShowDevGizmos == false)
 					return;
 				pawn.ClearContamination();
-				pawn.AddContamination(value);
+				pawn.AddContamination(value, null);
 			}
 		}
 
 		public override int GUIChangeArrow => Find.TickManager.TicksGame < this.lastGainTick + 10 ? 1 : 0;
 		public override bool IsFrozen => false;
-		public override bool ShowOnNeedList => true;
 
 		public override void NeedInterval() { }
 		public override void SetInitialLevel() { }

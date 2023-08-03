@@ -102,7 +102,7 @@ namespace ZombieLand
 		}
 
 		public static bool OnMainScreen() => Current.Game == null;
-		public static bool MapInitialized() => Current.ProgramState == ProgramState.Playing;
+		public static bool IsPlaying() => Current.ProgramState == ProgramState.Playing;
 
 		public static void ResetSettings()
 		{
@@ -1536,45 +1536,43 @@ namespace ZombieLand
 				 .Where(type => type != baseType && type.IsAbstract == false && type.IsSubclassOf(baseType));
 		}
 
-		public static IEnumerable<CodeInstruction> ReplaceTranspiler(this IEnumerable<CodeInstruction> instructions, Type type, Expression<Action> replacement)
+		public static MethodInfo FindOriginalMethod(Type type, MethodType methodType, MethodInfo staticReplacement, int extraArguments)
 		{
-			var to = SymbolExtensions.GetMethodInfo(replacement);
-			var parameterTypes = to.GetParameters().Types().ToArray();
-			var from = DeclaredMethod(type, to.Name, parameterTypes);
-			if (from == null) throw new NullReferenceException($"Cannot find {type.FullName}.{to.Name}({parameterTypes.Join(t => t.FullDescription())})");
-			var matcher = new CodeMatcher(instructions);
-			var found = false;
-			while (true)
+			var parameterTypes = staticReplacement.GetParameters().Types().SkipLast(extraArguments);
+			var result = methodType switch
 			{
-				matcher = matcher.MatchStartForward(new CodeMatch(operand: from));
-				if (matcher.IsInvalid)
-					break;
-				found = true;
-				matcher = matcher.SetInstruction(Call[to]);
-			}
-			if (found == false)
-				throw new Exception($"Cannot find {from.FullDescription()}");
-			return matcher.InstructionEnumeration();
+				MethodType.Getter => FirstProperty(type, method => method.Name == staticReplacement.Name).GetGetMethod(),
+				MethodType.Setter => FirstProperty(type, method => method.Name == staticReplacement.Name).GetSetMethod(),
+				_ => FirstMethod(type, method => method.Name == staticReplacement.Name &&
+					method.GetParameters().Types().SequenceEqual(method.IsStatic ? parameterTypes : parameterTypes.Skip(1))),
+			};
+			if (result == null)
+				throw new NullReferenceException($"Cannot find method {type.FullName}.{staticReplacement.Name} from {staticReplacement.FullDescription()}");
+			return result;
 		}
 
-		public static IEnumerable<CodeInstruction> ExtraThisTranspiler(this IEnumerable<CodeInstruction> instructions, Type type, Expression<Action> replacement, bool isClosure = false)
+		public static bool CallsMethod(this MethodBase method, MethodBase theMethod)
+		{
+			return PatchProcessor.ReadMethodBody(method).Any(pair => pair.Value is MethodInfo method && method == theMethod);
+		}
+
+		public static IEnumerable<CodeInstruction> ExtraArgumentsTranspiler(this IEnumerable<CodeInstruction> instructions, Type type, Expression<Action> replacement, CodeInstruction[] argumentInstructions, int extraArguments, bool isClosure = false, MethodType methodType = MethodType.Normal)
 		{
 			var to = SymbolExtensions.GetMethodInfo(replacement);
-			var parameterTypes = to.GetParameters().Types().SkipLast(1).ToArray();
-			var from = DeclaredMethod(type, to.Name, parameterTypes);
-			if (from == null) throw new NullReferenceException($"Cannot find {type.FullName}.{to.Name}({parameterTypes.Join(t => t.FullDescription())})");
+			var from = FindOriginalMethod(type, methodType, to, extraArguments);
 
 			var codes = instructions.ToArray();
 			if (isClosure)
 			{
 				if (codes.Length < 2)
-					return instructions;
+					throw new Exception("Method too short");
 				if (codes[0].opcode != OpCodes.Ldarg_0)
-					return instructions;
+					throw new Exception("Method does not start with ldarg_0");
 				if (codes[1].opcode != OpCodes.Ldfld || codes[1].operand is not FieldInfo field)
-					return instructions;
-				if (field.FieldType != to.GetParameters().Types().Last())
-					return instructions;
+					throw new Exception("Method does not start with ldarg_0, ldfld");
+				var fieldType = to.GetParameters().Types().Last();
+				if (field.FieldType != fieldType)
+					throw new Exception($"Field type of ldarg_0, ldfld[TYPE] is {field.FieldType} instead of {fieldType}");
 			}
 
 			var matcher = new CodeMatcher(codes);
@@ -1586,9 +1584,8 @@ namespace ZombieLand
 					break;
 				found = true;
 				if (isClosure)
-					matcher = matcher.InsertAndAdvance(codes[0], codes[1]);
-				else
-					matcher = matcher.InsertAndAdvance(Ldarg_0);
+					argumentInstructions = new[] { codes[0], codes[1] };
+				matcher = matcher.InsertAndAdvance(argumentInstructions);
 				matcher = matcher.SetInstruction(Call[to]);
 			}
 			if (found == false)
@@ -1605,7 +1602,7 @@ namespace ZombieLand
 				var parameterTypes = method.GetParameters().Types().SkipLast(1).ToArray();
 				method = DeclaredMethod(onType, method.Name, parameterTypes);
 			}
-			return GetDeclaredMethods(type).First(m1 => PatchProcessor.ReadMethodBody(m1).Any(pair => pair.Value is MethodInfo m2 && m2 == method));
+			return FirstMethod(type, m1 => m1.CallsMethod(method));
 		}
 
 		static bool DownedReplacement(Pawn pawn)

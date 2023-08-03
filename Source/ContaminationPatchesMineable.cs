@@ -2,6 +2,7 @@
 using HarmonyLib;
 using RimWorld;
 using Verse;
+using static HarmonyLib.Code;
 
 namespace ZombieLand
 {
@@ -27,15 +28,11 @@ namespace ZombieLand
 		static Thing MakeThing(ThingDef def, ThingDef stuff, Mineable mineable)
 		{
 			var thing = ThingMaker.MakeThing(def, stuff);
-			if (mineableContamination > 0f)
-			{
-				thing.AddContamination(mineableContamination);
-				Log.Warning($"Yielded {thing} from {mineable}");
-			}
+			thing.AddContamination(mineableContamination, () => Log.Warning($"Yielded {thing} from {mineable}"), ContaminationFactors.destroyMineableAdd);
 			return thing;
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> instructions.ExtraThisTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default));
+			=> instructions.ExtraArgumentsTranspiler(typeof(ThingMaker), () => MakeThing(default, default, default), new[] { Ldarg_0 }, 1);
 	}
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -16,7 +15,8 @@ namespace ZombieLand
 		static void Prefix(Pawn_FilthTracker __instance) => Filth_MakeThing_TestPatch.filthSource = __instance.pawn;
 		static void Postfix(Pawn_FilthTracker __instance)
 		{
-			__instance.pawn.GroundTransfer(ContaminationFactors.ground);
+			var pawn = __instance.pawn;
+			ContaminationFactors.enterCellEqualize.Equalize(pawn, pawn.Position);
 			Filth_MakeThing_TestPatch.filthSource = null;
 		}
 	}
@@ -24,42 +24,21 @@ namespace ZombieLand
 	[HarmonyPatch]
 	static class JobDriver_CleanFilth_MakeNewToils_TestPatch
 	{
-		static readonly MethodInfo m_ThinFilth = SymbolExtensions.GetMethodInfo((Filth filth) => filth.ThinFilth());
-		static readonly MethodInfo m_MyThinFilth = SymbolExtensions.GetMethodInfo(() => ThinFilth(default, default));
-
 		static MethodBase TargetMethod()
 		{
+			var m_ThinFilth = SymbolExtensions.GetMethodInfo((Filth filth) => filth.ThinFilth());
 			var type = AccessTools.FirstInner(typeof(JobDriver_CleanFilth), type => type.Name.Contains("DisplayClass"));
-			return AccessTools.FirstMethod(type, method =>
-					PatchProcessor.ReadMethodBody(method).Any(pair => pair.Value is MethodInfo method && method == m_ThinFilth));
+			return AccessTools.FirstMethod(type, method => method.CallsMethod(m_ThinFilth));
 		}
 
 		static void ThinFilth(Filth filth, JobDriver_CleanFilth jobDriver)
 		{
-			Log.Warning($"{jobDriver.pawn} cleaned {filth}");
-			filth.TransferContamination(ContaminationFactors.filth, jobDriver.pawn);
+			filth.TransferContamination(ContaminationFactors.filthTransfer, () => Log.Warning($"{jobDriver.pawn} cleaned {filth}"), jobDriver.pawn);
 			filth.ThinFilth();
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-		{
-			var codes = instructions.ToArray();
-			if (codes.Length < 2)
-				return instructions;
-			if (codes[0].opcode != OpCodes.Ldarg_0)
-				return instructions;
-			if (codes[1].opcode != OpCodes.Ldfld || codes[1].operand is not FieldInfo field)
-				return instructions;
-			if (field.FieldType != typeof(JobDriver_CleanFilth))
-				return instructions;
-
-			return new CodeMatcher(codes)
-				.MatchStartForward(new CodeMatch(operand: m_ThinFilth))
-				.ThrowIfInvalid($"Cannot find {m_ThinFilth.FullDescription()}")
-				.InsertAndAdvance(codes[0], codes[1])
-				.Set(OpCodes.Call, m_MyThinFilth)
-				.InstructionEnumeration();
-		}
+			=> instructions.ExtraArgumentsTranspiler(typeof(Filth), () => ThinFilth(default, default), default, 1, true);
 	}
 
 	[HarmonyPatch(typeof(CompSpawnerFilth), nameof(CompSpawnerFilth.TrySpawnFilth))]
@@ -84,8 +63,7 @@ namespace ZombieLand
 			if (listOfLeavingsOut.Any())
 			{
 				var leavingsArray = listOfLeavingsOut.ToArray();
-				diedThing.TransferContamination(ContaminationFactors.leavings, leavingsArray);
-				Log.Warning($"Produce {leavingsArray.Join(t => $"{t}")} from {diedThing}");
+				diedThing.TransferContamination(ContaminationFactors.leavingsTransfer, () => Log.Warning($"Produce {leavingsArray.Join(t => $"{t}")} from {diedThing}"), leavingsArray);
 			}
 		}
 	}
@@ -158,8 +136,7 @@ namespace ZombieLand
 
 		static MethodBase TargetMethod()
 		{
-			return AccessTools.FirstMethod(typeof(JobDriver_Vomit), method =>
-				 PatchProcessor.ReadMethodBody(method).Any(pair => pair.Value is MethodInfo method && method == m_TryMakeFilth));
+			return AccessTools.FirstMethod(typeof(JobDriver_Vomit), method => method.CallsMethod(m_TryMakeFilth));
 		}
 	}
 
@@ -208,27 +185,19 @@ namespace ZombieLand
 			ThingDefOf.Filth_Blood, ThingDefOf.Filth_Vomit, ThingDefOf.Filth_AmnioticFluid, ThingDefOf.Filth_Slime,
 			ThingDefOf.Filth_CorpseBile, ThingDefOf.Filth_PodSlime, ThingDefOf.Filth_OilSmear
 		};
-		static Thing TransferContaminationToFilth(Thing newThing)
+		static Thing FilthContamination(Thing newThing)
 		{
-			if (Tools.MapInitialized())
+			if (Tools.IsPlaying())
 			{
 				if (filthCell.IsValid)
 				{
-					var grid = filthCell.Map.GetContamination();
-					var contamination = grid[filthCell.Cell];
-					newThing.AddContamination(contamination, ContaminationFactors.filth);
-					grid[filthCell.Cell] = contamination * (1f - ContaminationFactors.filth);
-					Log.Warning($"Gained {newThing} from {filthCell}");
+					newThing.mapIndexOrState = (sbyte)filthCell.mapInt.Index;
+					ContaminationFactors.filthEqualize.Equalize((LocalTargetInfo)filthCell, newThing, () => Log.Warning($"Gained {newThing} from {filthCell}"));
 				}
 				if (filthSource != null)
 				{
-					filthSource.TransferContamination(ContaminationFactors.filth, newThing);
-					Log.Warning($"Gained {newThing} from {filthSource}");
-					if (nastyFilths.Contains(filthSource.def))
-					{
-						var amount = filthSource.GroundTransfer(ContaminationFactors.blood);
-						Log.Warning($"Nasty ground spill {amount} from {filthSource}");
-					}
+					var factor = nastyFilths.Contains(filthSource.def) ? ContaminationFactors.bloodEqualize : ContaminationFactors.filthEqualize;
+					factor.Equalize(filthSource, newThing, () => Log.Warning($"Gained {newThing} from {filthSource}"));
 				}
 			}
 			return newThing;
@@ -237,7 +206,7 @@ namespace ZombieLand
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 		{
 			var m_MakeThing = SymbolExtensions.GetMethodInfo(() => ThingMaker.MakeThing(default, default));
-			var m_TransferFilth = SymbolExtensions.GetMethodInfo(() => TransferContaminationToFilth(default));
+			var m_TransferFilth = SymbolExtensions.GetMethodInfo(() => FilthContamination(default));
 
 			return new CodeMatcher(instructions)
 				.MatchEndForward(new CodeMatch(operand: m_MakeThing), new CodeMatch())

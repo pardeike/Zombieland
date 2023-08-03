@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
 using RimWorld;
-using Steamworks;
 using UnityEngine;
 using Verse;
 using static HarmonyLib.Code;
@@ -17,38 +16,66 @@ namespace ZombieLand
 	{
 		public static float threshold = 0.0001f;
 
-		public static float construction = 1f;
-		public static float receipe = 1f;
-		public static float billGiver = 0.2f;
-		public static float worker = 0.1f;
-		public static float wildPlant = 0.1f;
-		public static float sowedPlant = 0.2f;
-		public static float sowingPawn = 0.1f;
-		public static float wastePack = 0.5f;
-		public static float jelly = 0.1f;
-		public static float mineable = 0.5f;
-		public static float leavings = 0.5f;
-		public static float filth = 0.1f;
-		public static float dispenseFood = 0.1f;
-		public static float produce = 0.1f;
-		public static float subcoreScanner = 0.1f;
-		public static float geneExtractor = 0.1f;
-		public static float geneAssembler = 0.1f;
-		public static float fermentingBarrel = 0.1f;
-		public static float plant = 0.5f;
-		public static float fire = 0.05f;
-		public static float ground = 0.001f;
-		public static float blood = 0.01f;
+		public static float ambrosiaAdd = 1f;
+		public static float constructionAdd = 0.5f;
+		public static float destroyMineableAdd = 1f;
+		public static float floorAdd = 0.01f;
+		public static float jellyAdd = 0.5f;
+		public static float plantAdd = 0.5f;
+		public static float pollutionAdd = 0.05f;
+		public static float snowAdd = 0.1f;
+		public static float sowedPlantAdd = 0.2f;
+		public static float wastePackAdd = 0.5f;
+
+		public static float disassembleTransfer = 0.1f;
+		public static float dispenseFoodTransfer = 0.1f;
+		public static float fermentingBarrelTransfer = 0.1f;
+		public static float filthTransfer = 0.01f;
+		public static float geneAssemblerTransfer = 0.2f;
+		public static float geneExtractorTransfer = 0.2f;
+		public static float generalTransfer = 0.1f;
+		public static float leavingsTransfer = 0.5f;
+		public static float medicineTransfer = 0.9f;
+		public static float plantTransfer = 0.5f;
+		public static float receipeTransfer = 0.5f;
+		public static float repairTransfer = 0.01f;
+		public static float stumpTransfer = 1f;
+		public static float subcoreScannerTransfer = 0.2f;
+		public static float workerTransfer = 0.02f;
+
+		public static float benchEqualize = 0.02f;
+		public static float bloodEqualize = 0.1f;
+		public static float carryEqualize = 0.002f;
+		public static float enterCellEqualize = 0.001f;
+		public static float filthEqualize = 0.01f;
+		public static float produceEqualize = 0.1f;
+		public static float restEqualize = 0.001f;
+		public static float sowingPawnEqualize = 0.1f;
+		public static float tendEqualizeWorst = 0.2f;
+		public static float tendEqualizeBest = 0f;
+
+		public static float fireReduction = 0.05f;
+	}
+
+	[HarmonyPatch(typeof(Game))]
+	[HarmonyPatch(nameof(Game.FinalizeInit))]
+	static class Game_FinalizeInit_Patch
+	{
+		static void Postfix()
+		{
+			ContaminationManager.Instance.FixGrounds();
+			ContaminationManager.Instance.FixMinerables();
+		}
 	}
 
 	[HarmonyPatch(typeof(ThingMaker), nameof(ThingMaker.MakeThing))]
 	static file class Thing_MakeThing_TestPatch
 	{
-		//static bool Prepare() => false;
+		static bool Prepare() => false;
 
 		static void Postfix(Thing __result)
 		{
-			if (Tools.MapInitialized() && __result is not Mote)
+			if (Tools.IsPlaying() && __result is not Mote)
 			{
 				Log.ResetMessageCount();
 				Log.Message($"NEW {__result}");
@@ -59,11 +86,11 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Thing), nameof(Thing.Destroy))]
 	static class Thing_Destroy_TestPatch
 	{
-		//static bool Prepare() => false;
+		static bool Prepare() => false;
 
 		static void Prefix(Thing __instance, out int __state)
 		{
-			if (Tools.MapInitialized() && __instance is not Mote)
+			if (Tools.IsPlaying() && __instance is not Mote)
 			{
 				Log.ResetMessageCount();
 				Log.Message($"DEL {__instance}");
@@ -143,26 +170,38 @@ namespace ZombieLand
 		}
 	}
 
+	//[HarmonyPatch(typeof(InspectPaneUtility), nameof(InspectPaneUtility.PaneSizeFor))]
+	//internal static class InspectPaneUtility_PaneSizeFor_TestPatch
+	//{
+	//	[HarmonyPriority(Priority.Low)]
+	//	private static void Postfix(ref Vector2 __result, bool __runOriginal, IInspectPane pane)
+	//	{
+	//		if (__runOriginal && pane is MainTabWindow_Inspect)
+	//			__result.x += 146f;
+	//	}
+	//}
+
 	[HarmonyPatch(typeof(InspectPaneFiller), nameof(InspectPaneFiller.DoPaneContentsFor))]
 	static class InspectPaneFiller_DoPaneContentsFor_TestPatch
 	{
 		static void DrawHealth(WidgetRow row, Thing t)
 		{
 			InspectPaneFiller.DrawHealth(row, t);
-			if (t is not Pawn)
+
+			var contamination = t.GetContamination();
+			if (contamination == 0)
+				contamination = t.Map.GetContamination(t.Position, true);
+
+			if (contamination >= ContaminationFactors.threshold)
 			{
-				var contamination = t.GetContamination();
-				if (contamination >= ContaminationFactors.threshold)
-				{
-					GUI.color = Color.gray;
-					if (contamination > 0.2f) GUI.color = Color.white;
-					if (contamination > 0.4f) GUI.color = Color.cyan;
-					if (contamination > 0.6f) GUI.color = Color.yellow;
-					if (contamination > 0.8f) GUI.color = Color.red;
-					row.Gap(6f);
-					row.FillableBar(140f, 16f, contamination, $"{contamination:P2} contamination", InspectPaneFiller.MoodTex, InspectPaneFiller.BarBGTex);
-					GUI.color = Color.white;
-				}
+				GUI.color = Color.gray;
+				if (contamination > 0.2f) GUI.color = Color.white;
+				if (contamination > 0.4f) GUI.color = Color.cyan;
+				if (contamination > 0.6f) GUI.color = Color.yellow;
+				if (contamination > 0.8f) GUI.color = Color.red;
+				row.Gap(6f);
+				row.FillableBar(140f, 16f, contamination, $"{contamination:P2} contamination", InspectPaneFiller.MoodTex, InspectPaneFiller.BarBGTex);
+				GUI.color = Color.white;
 			}
 		}
 
@@ -171,22 +210,6 @@ namespace ZombieLand
 			var from = SymbolExtensions.GetMethodInfo(() => InspectPaneFiller.DrawHealth(default, default));
 			var to = SymbolExtensions.GetMethodInfo(() => DrawHealth(default, default));
 			return instructions.MethodReplacer(from, to);
-		}
-	}
-
-	[HarmonyPatch(typeof(InspectPaneUtility), nameof(InspectPaneUtility.AdjustedLabelFor))]
-	static class InspectPaneUtility_AdjustedLabelFor_TestPatch
-	{
-		static void Postfix(List<object> selected, ref string __result)
-		{
-			if (selected.Count != 1)
-				return;
-			if (selected[0] is Pawn pawn)
-			{
-				var contamination = pawn.GetContamination();
-				if (contamination >= ContaminationFactors.threshold)
-					__result += $" ({contamination * 100:F2}%)";
-			}
 		}
 	}
 

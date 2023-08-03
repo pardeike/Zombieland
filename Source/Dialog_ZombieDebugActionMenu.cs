@@ -253,6 +253,7 @@ namespace ZombieLand
 		static void FloodFillContamination(IntVec3 cell, float value, int maxCells)
 		{
 			ThingDef floodfillThingDef = null;
+			var seen = new HashSet<Thing>();
 
 			bool validator(IntVec3 cell)
 			{
@@ -268,7 +269,7 @@ namespace ZombieLand
 			void contaminate(IntVec3 cell)
 			{
 				Find.CurrentMap.thingGrid.ThingsAt(cell)
-					.DoIf(t => t.def == floodfillThingDef, t => t.AddContamination(value));
+					.DoIf(t => seen.Contains(t) == false && t.def == floodfillThingDef, t => { seen.Add(t); t.AddContamination(value, null); });
 			}
 
 			// wrap this because if we click on "nothing" it causes an error

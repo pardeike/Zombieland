@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using HarmonyLib;
 using RimWorld.Planet;
 using UnityEngine;
 using Verse;
@@ -8,6 +10,8 @@ namespace ZombieLand
 {
 	public class ContaminationManager : WorldComponent
 	{
+		public const bool LOGGING = true;
+
 		public Dictionary<int, float> contaminations = new();
 		public Dictionary<int, ContaminationGrid> grounds = new();
 		public bool showContaminationOverlay = false;
@@ -41,12 +45,12 @@ namespace ZombieLand
 			this.ExposeMineables();
 		}
 
-		public float Get(Thing thing)
+		public float Get(Thing thing, bool includeHoldings = true)
 		{
 			var sum = 0f;
 			if (contaminations.TryGetValue(thing.thingIDNumber, out var contamination))
 				sum += contamination;
-			if (thing is IThingHolder holder)
+			if (includeHoldings && thing is IThingHolder holder)
 			{
 				var innerThings = ThingOwnerUtility.GetAllThingsRecursively(holder, false);
 				foreach(var innerThing in innerThings)
@@ -56,26 +60,43 @@ namespace ZombieLand
 			return sum;
 		}
 
-		public float ChangeDirectly(Thing thing, float amount)
+		public float ChangeDirectly(LocalTargetInfo info, Map map, float amount)
 		{
 			if (amount == 0)
 				return 0;
-			var id = thing.thingIDNumber;
-			if (contaminations.TryGetValue(id, out var contamination) == false)
-				contamination = 0;
+			ContaminationGrid grid = null;
+			var id = info.thingInt?.thingIDNumber ?? -1;
+			float contamination;
+			if (id == -1)
+			{
+				grid = grounds[map.Index];
+				contamination = grid[info.cellInt];
+			}
+			else
+				contaminations.TryGetValue(id, out contamination);
 			if (-amount > contamination)
 				amount = -contamination;
 			contamination += amount;
 			if (contamination <= 0)
-				contaminations.Remove(id);
+			{
+				if (id == -1)
+					grid[info.cellInt] = 0;
+				else
+					contaminations.Remove(id);
+			}
 			else if (contamination > 0)
-				contaminations[id] = contamination;
+			{
+				if (id == -1)
+					grid[info.cellInt] = contamination;
+				else
+					contaminations[id] = contamination;
+			}
 			return amount;
 		}
 
 		public void Add(Thing thing, float amount)
 		{
-			ChangeDirectly(thing, amount);
+			ChangeDirectly(thing, null, amount);
 			if (thing is Pawn pawn)
 			{
 				var need = pawn.needs?.TryGetNeed<ContaminationNeed>();
@@ -87,15 +108,15 @@ namespace ZombieLand
 		public float Subtract(Thing thing, float amount)
 		{
 			if (thing is not IThingHolder holder)
-				return -ChangeDirectly(thing, -amount);
+				return -ChangeDirectly(thing, null, -amount);
 			var hasMain = contaminations.ContainsKey(thing.thingIDNumber);
 			var removed = 0f;
 			var innerThings = ThingOwnerUtility.GetAllThingsRecursively(holder, false);
 			var subAmount = amount / (innerThings.Count + (hasMain ? 1 : 0));
 			foreach (var innerThing in innerThings)
-				removed -= ChangeDirectly(innerThing, -subAmount);
+				removed -= ChangeDirectly(innerThing, null, -subAmount);
 			if (hasMain)
-				removed -= ChangeDirectly(thing, -subAmount);
+				removed -= ChangeDirectly(thing, null, -subAmount);
 			return removed;
 		}
 
@@ -110,27 +131,38 @@ namespace ZombieLand
 			}
 		}
 
-		public float GroundTransfer(Thing thing, float factor)
+		public float Equalize(LocalTargetInfo t1, LocalTargetInfo t2, float weight = 0.5f, Action runIfContaminated = null, bool includeHoldings1 = true, bool includeHoldings2 = true)
 		{
-			var map = thing.Map;
-			if (map == null)
-				return 0;
-			
-			var grid = map.GetContamination();
-			var cell = thing.Position;
-			var pawnContamination = Get(thing);
-			var groundContamination = grid[cell];
-			var transfer = 0f;
-			if (pawnContamination != groundContamination)
+			var map = (t1.Thing ?? t2.Thing).Map;
+
+			var _grid = (ContaminationGrid)null;
+			ContaminationGrid cachedGrid()
 			{
-				var midPoint = (pawnContamination + groundContamination) / 2;
-				transfer = ChangeDirectly(thing, (midPoint - pawnContamination) * factor);
-				grid[cell] -= transfer;
-				if (transfer > 0)
-					Log.Message($"ground transfer {cell} -{transfer}-> {thing}");
-				if (transfer < 0)
-					Log.Message($"ground transfer {thing} -{-transfer}-> {cell}");
+				_grid ??= grounds[map.Index];
+				return _grid;
 			}
+
+			var isT1 = t1.thingInt != null;
+			var isT2 = t2.thingInt != null;
+			if (isT1 == false && isT2 == false)
+				throw new Exception($"cannot equalize cells only ({t1} to {t2}, weight {weight})");
+			var c1 = isT1 ? Get(t1.thingInt, includeHoldings1) : cachedGrid()[t1.cellInt];
+			var c2 = isT2 ? Get(t2.thingInt, includeHoldings2) : cachedGrid()[t2.cellInt];
+			if (c1 < c2)
+				(c1, c2, t1, t2) = (c2, c1, t2, t1);
+			var transfer = c1 * (1 - weight) + c2 * weight - c1;
+			if (transfer == 0)
+				return 0;
+			ChangeDirectly(t1, map, transfer);
+			ChangeDirectly(t2, map, - transfer);
+			if (LOGGING)
+			{
+				if (transfer > 0)
+					Log.Message($"{t2} --({transfer})--> {t1}");
+				if (transfer < 0)
+					Log.Message($"{t1} --({-transfer})--> {t2}");
+			}
+			runIfContaminated?.Invoke();
 			return transfer;
 		}
 	}
@@ -191,54 +223,72 @@ namespace ZombieLand
 		}
 		public static float[] GetContaminationCells(this Map map) => ContaminationManager.Instance.grounds[map.Index].cells;
 		public static CellBoolDrawer GetContaminationDrawer(this Map map) => ContaminationManager.Instance.grounds[map.Index].drawer;
-		public static float GroundTransfer(this Thing thing, float factor) => ContaminationManager.Instance.GroundTransfer(thing, factor);
-		public static void AddContamination(this Thing thing, float val, float factor = 1f)
+		public static float Equalize(this float factor, LocalTargetInfo info1, LocalTargetInfo info2, Action runIfContaminated = null, bool includeHoldings1 = true, bool includeHoldings2 = true)
+			=> ContaminationManager.Instance.Equalize(info1, info2, factor, runIfContaminated, includeHoldings1, includeHoldings2);
+		public static void AddContamination(this Thing thing, float val, Action runIfContaminated, float factor = 1f)
 		{
-			Log.Message($"add {thing} {val} [{factor}x]");
+			if (val <= 0)
+				return;
+			if (ContaminationManager.LOGGING)
+				Log.Message($"add {thing} {val} [{factor}x]");
 			ContaminationManager.Instance.Add(thing, val * factor);
+			runIfContaminated?.Invoke();
+		}
+		public static void AddContamination(this IReadOnlyCollection<Thing> things, float val, Action runIfContaminated, float factor = 1f)
+		{
+			if (val <= 0)
+				return;
+			var manager = ContaminationManager.Instance;
+			foreach (var thing in things)
+			{
+				if (ContaminationManager.LOGGING)
+					Log.Message($"add {thing} {val} [{factor}x]");
+				manager.Add(thing, val * factor);
+			}
+			runIfContaminated?.Invoke();
 		}
 		public static float SubtractContamination(this Thing thing, float val)
 		{
-			Log.Message($"subtract {thing} {val}");
+			if (ContaminationManager.LOGGING)
+				Log.Message($"subtract {thing} {val}");
 			return ContaminationManager.Instance.Subtract(thing, val);
 		}
 		public static void ClearContamination(this Thing thing)
 		{
-			Log.Message($"clear {thing}");
+			if (ContaminationManager.LOGGING)
+				Log.Message($"clear {thing}");
 			ContaminationManager.Instance.Remove(thing);
 		}
 
-		private static void Transfer(this ContaminationManager contamination, Thing from, float factor, Thing[] toArray)
+		public static void Transfer(this ContaminationManager contamination, Thing from, float factor, Thing[] toArray, Action runIfContaminated)
 		{
 			var value = contamination.Get(from);
 			var subtracted = contamination.Subtract(from, value * factor);
 			if (subtracted == 0)
 				return;
-			else
-				Log.Message($"thing transfer: {from} looses {subtracted}");
-			var n = toArray.Length;
+			var n = toArray?.Length ?? 0;
 			if (n == 0)
 				return;
 			var delta = subtracted / n;
 			for (var j = 0; j < n; j++)
-			{
 				contamination.Add(toArray[j], delta);
-				Log.Message($"thing transfer: {toArray[j]} gains {delta}");
-			}
+			if (ContaminationManager.LOGGING)
+				Log.Message($"{from} --({delta}{(n == 1 ? "" : " each")})--> {toArray.Join(t => $"{t}")}");
+			runIfContaminated?.Invoke();
 		}
 
-		public static void TransferContamination(this Thing from, float factor, params Thing[] toArray)
-			=> ContaminationManager.Instance.Transfer(from, factor, toArray);
+		public static void TransferContamination(this Thing from, float factor, Action runIfContaminated, params Thing[] toArray)
+			=> ContaminationManager.Instance.Transfer(from, factor, toArray, runIfContaminated);
 
-		public static void TransferContamination(this Thing from, Thing to)
-			=> from.TransferContamination(1f, to);
+		public static void TransferContamination(this Thing from, Thing to, Action runIfContaminated)
+			=> from.TransferContamination(1f, runIfContaminated, to);
 
-		public static void TransferContamination(this IReadOnlyList<Thing> fromArray, float factor, params Thing[] toArray)
+		public static void TransferContamination(this IReadOnlyList<Thing> fromArray, float factor, Action runIfContaminated, params Thing[] toArray)
 		{
 			var fromCount = fromArray.Count;
 			var contamination = ContaminationManager.Instance;
 			for (var i = 0; i < fromCount; i++)
-				contamination.Transfer(fromArray[i], factor, toArray);
+				contamination.Transfer(fromArray[i], factor, toArray, runIfContaminated);
 		}
 
 		public static void ContaminationGridUpdate(this Map map)

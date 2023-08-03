@@ -23,11 +23,10 @@ namespace ZombieLand
 		static Thing Spawn(Thing newThing, IntVec3 loc, Map map, WipeMode wipeMode)
 		{
 			var thing = GenSpawn.Spawn(newThing, loc, map, wipeMode);
-			if (Tools.MapInitialized())
+			if (Tools.IsPlaying())
 			{
 				var contamination = map.GetContamination(loc);
-				thing.AddContamination(contamination, thing.def.IsPlant ? ContaminationFactors.plant : ContaminationFactors.jelly);
-				Log.Warning($"Spawned {thing} at {loc}");
+				thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing} at {loc}"), thing.def.IsPlant ? ContaminationFactors.plantAdd : ContaminationFactors.jellyAdd);
 			}
 			return thing;
 		}
@@ -47,18 +46,13 @@ namespace ZombieLand
 		static MethodBase TargetMethod()
 		{
 			var type = AccessTools.FirstInner(typeof(JobDriver_PlantWork), type => type.Name.Contains("DisplayClass"));
-			return AccessTools.FirstMethod(type, method =>
-					PatchProcessor.ReadMethodBody(method).Any(pair => pair.Value is MethodInfo method && method == m_MakeThing));
+			return AccessTools.FirstMethod(type, method => method.CallsMethod(m_MakeThing));
 		}
 
 		static Thing MakeThing(ThingDef def, ThingDef stuff, Plant plant)
 		{
 			var result = ThingMaker.MakeThing(def, stuff);
-			if (plant != null)
-			{
-				plant.TransferContamination(ContaminationFactors.plant, result);
-				Log.Warning($"Produce {result} from {plant}");
-			}
+			plant?.TransferContamination(ContaminationFactors.plantTransfer, () => Log.Warning($"Produce {result} from {plant}"), result);
 			return result;
 		}
 
@@ -91,13 +85,26 @@ namespace ZombieLand
 		{
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, ContaminationFactors.plant);
-			Log.Warning($"Spawned {thing} at {loc}");
+			thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing} at {loc}"), ContaminationFactors.ambrosiaAdd);
 			return thing;
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> instructions.ReplaceTranspiler(typeof(GenSpawn), () => Spawn(default, default, default, default));
+			=> instructions.ExtraArgumentsTranspiler(typeof(GenSpawn), () => Spawn(default, default, default, default), new CodeInstruction[0], 0);
+	}
+
+	[HarmonyPatch(typeof(Plant), nameof(Plant.TrySpawnStump))]
+	static class Plant_TrySpawnStump_TestPatches
+	{
+		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Plant plant)
+		{
+			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
+			plant.TransferContamination(ContaminationFactors.stumpTransfer, () => Log.Warning($"Produce {result} from {plant}"), result);
+			return result;
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			=> instructions.ExtraArgumentsTranspiler(typeof(GenSpawn), () => Spawn(default, default, default, default, default), new[] { Ldarg_0 }, 1);
 	}
 
 	[HarmonyPatch]
@@ -114,14 +121,14 @@ namespace ZombieLand
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, JobDriver_PlantSow driver)
 		{
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
+			var pawn = driver.pawn;
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, ContaminationFactors.sowedPlant);
-			driver.pawn.TransferContamination(ContaminationFactors.sowingPawn, thing);
-			Log.Warning($"Spawned {thing} at {loc}");
+			thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing} at {loc}"), ContaminationFactors.sowedPlantAdd);
+			ContaminationFactors.sowingPawnEqualize.Equalize(pawn, thing, () => Log.Warning($"{pawn} sowed {thing}"));
 			return thing;
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> instructions.ExtraThisTranspiler(typeof(GenSpawn), m_Spawn, true);
+			=> instructions.ExtraArgumentsTranspiler(typeof(GenSpawn), m_Spawn, default, 1, true);
 	}
 }
