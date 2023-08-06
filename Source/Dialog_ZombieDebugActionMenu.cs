@@ -232,21 +232,20 @@ namespace ZombieLand
 			}
 		}
 
-		[DebugAction("Zombieland", "Apply: Zombie add bloodloss", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Apply: Add 1% bloodloss", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void ApplyHalfConsciousness()
 		{
 			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 			{
-				if (thing is not Zombie zombie)
+				if (thing is not Pawn pawn)
 					continue;
 
-				var cap = new CapacityImpactorCapacity()
-				{
-					capacity = PawnCapacityDefOf.Consciousness
-				};
-				var hediff = HediffMaker.MakeHediff(HediffDefOf.BloodLoss, zombie);
-				hediff.Severity = 0.24f;
-				zombie.health.hediffSet.AddDirect(hediff);
+				var hediff1 = HediffMaker.MakeHediff(HediffDefOf.BloodLoss, pawn);
+				hediff1.Severity = 0.1f;
+				pawn.health.hediffSet.AddDirect(hediff1);
+				var hediff2 = HediffMaker.MakeHediff(HediffDefOf.Anesthetic, pawn);
+				hediff2.Severity = 0.1f;
+				pawn.health.hediffSet.AddDirect(hediff2);
 			}
 		}
 

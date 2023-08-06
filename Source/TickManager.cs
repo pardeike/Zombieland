@@ -387,20 +387,14 @@ namespace ZombieLand
 
 		public Zombie GetRopableZombie(Vector3 clickPos)
 		{
-			return allZombiesCached.FirstOrDefault(zombie =>
-			{
-				if (zombie.consciousness > Constants.MIN_CONSCIOUSNESS)
-					return false;
-				return ((clickPos - zombie.DrawPos).MagnitudeHorizontalSquared() <= 0.8f);
-			});
+			return allZombiesCached.FirstOrDefault(zombie => zombie.IsConfused && (clickPos - zombie.DrawPos).MagnitudeHorizontalSquared() <= 0.5f);
 		}
 
 		public void UpdateZombieAvoider()
 		{
 			var specs = allZombiesCached.Where(zombie =>
 					zombie.isAlbino == false &&
-					zombie.ropedBy == null &&
-					zombie.paralyzedUntil == 0 &&
+					zombie.IsRopedOrConfused == false &&
 					zombie.Spawned &&
 					zombie.Dead == false &&
 					zombie.health.Downed == false

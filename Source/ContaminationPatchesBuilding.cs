@@ -41,7 +41,7 @@ namespace ZombieLand
 				var map = self.map;
 				var grounds = map.GetContamination();
 				grounds.cells[map.cellIndices.CellToIndex(c)] = contamination;
-				grounds.drawer.SetDirty();
+				grounds.SetDirty();
 				Log.Warning($"Produce for {newTerr} at {c} [{contamination}]");
 			}
 		}

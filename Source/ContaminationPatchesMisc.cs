@@ -109,7 +109,7 @@ namespace ZombieLand
 
 			self.IngestedCalculateAmounts(ingester, nutritionWanted, out numTaken, out nutritionIngested);
 			var factor = numTaken == 0 ? (totalNutrition == 0 ? 1 : nutritionIngested / totalNutrition) : (oldStackCount == 0 ? 1 : numTaken / (float)oldStackCount);
-			self.TransferContamination(factor, () => Log.Warning($"{ingester} ingested {self}"), ingester);
+			self.TransferContamination(ContaminationFactors.ingestTransfer * factor, () => Log.Warning($"{ingester} ingested {self}"), ingester);
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -147,7 +147,6 @@ namespace ZombieLand
 		static IEnumerable<MethodBase> TargetMethods()
 		{
 			yield return SymbolExtensions.GetMethodInfo((CompChangeableProjectile comp) => comp.RemoveShell());
-			yield return SymbolExtensions.GetMethodInfo((CompDeepDrill comp) => comp.TryProducePortion(0f, null));
 			yield return SymbolExtensions.GetMethodInfo((CompEggLayer comp) => comp.ProduceEgg());
 			yield return SymbolExtensions.GetMethodInfo((CompHasGatherableBodyResource comp) => comp.Gathered(default));
 			yield return AccessTools.Method(typeof(CompMechCarrier), nameof(CompMechCarrier.PostSpawnSetup));

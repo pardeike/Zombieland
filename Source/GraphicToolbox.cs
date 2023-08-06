@@ -11,7 +11,7 @@ namespace ZombieLand
 		static readonly Mesh contaminationMesh = MeshMakerPlanes.NewPlaneMesh(0.35f);
 		public static void DrawContamination(Vector3 vec, float contamination, bool small)
 		{
-			if (contamination < ContaminationFactors.threshold) return;
+			if (contamination < ContaminationFactors.minContaminationThreshold) return;
 			var color = new Color(1f, 1f, 1f, 0.1f + 0.8f * contamination);
 
 			vec.y = AltitudeLayer.MetaOverlays.AltitudeFor();

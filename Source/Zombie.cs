@@ -75,6 +75,8 @@ namespace ZombieLand
 		public float consciousness = 1f;
 		public int paralyzedUntil = 0;
 		public Pawn ropedBy;
+		public bool IsConfused => Downed == false && ropedBy == null && (paralyzedUntil > 0 || consciousness <= Constants.MIN_CONSCIOUSNESS);
+		public bool IsRopedOrConfused => Downed == false && (paralyzedUntil > 0 || consciousness <= Constants.MIN_CONSCIOUSNESS || ropedBy != null);
 
 		// being pushed over walls
 		public float wallPushProgress = -1f;

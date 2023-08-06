@@ -64,33 +64,45 @@ namespace ZombieLand
 		{
 			if (amount == 0)
 				return 0;
-			ContaminationGrid grid = null;
-			var id = info.thingInt?.thingIDNumber ?? -1;
+
+			var grid = (ContaminationGrid)null;
+			var id = -1;
+			var thing = info.thingInt;
+			var cell = info.cellInt;
+			if (thing != null)
+			{
+				id = thing.thingIDNumber;
+				map ??= thing.Map;
+			}
+
 			float contamination;
-			if (id == -1)
+			if (thing == null)
 			{
 				grid = grounds[map.Index];
-				contamination = grid[info.cellInt];
+				contamination = grid[cell];
 			}
 			else
 				contaminations.TryGetValue(id, out contamination);
+
 			if (-amount > contamination)
 				amount = -contamination;
 			contamination += amount;
+
 			if (contamination <= 0)
 			{
-				if (id == -1)
-					grid[info.cellInt] = 0;
+				if (thing == null)
+					grid[cell] = 0;
 				else
 					contaminations.Remove(id);
 			}
 			else if (contamination > 0)
 			{
-				if (id == -1)
-					grid[info.cellInt] = contamination;
+				if (thing == null)
+					grid[cell] = contamination;
 				else
 					contaminations[id] = contamination;
 			}
+
 			return amount;
 		}
 
@@ -114,7 +126,7 @@ namespace ZombieLand
 			var innerThings = ThingOwnerUtility.GetAllThingsRecursively(holder, false);
 			var subAmount = amount / (innerThings.Count + (hasMain ? 1 : 0));
 			foreach (var innerThing in innerThings)
-				removed -= ChangeDirectly(innerThing, null, -subAmount);
+				removed -= ChangeDirectly(innerThing, thing.Map, -subAmount);
 			if (hasMain)
 				removed -= ChangeDirectly(thing, null, -subAmount);
 			return removed;
@@ -171,9 +183,11 @@ namespace ZombieLand
 	{
 		static readonly Color color = new(0, 0.8f, 0);
 		const float pi_half = Mathf.PI / 2;
+		private readonly Debouncer debouncer = new(60, false);
 
 		public float[] cells;
 		public CellBoolDrawer drawer;
+		public Map map;
 		public int mapSizeX;
 
 		public ContaminationGrid(float[] cells)
@@ -186,6 +200,7 @@ namespace ZombieLand
 			if (cells.Length != map.Size.x * map.Size.z)
 				throw new Exception($"Map size ({map.Size}) does not match cell array size ({cells.Length})");
 			drawer = new CellBoolDrawer(this, map.Size.x, map.Size.z, 3640, 1f);
+			this.map = map;
 			mapSizeX = map.Size.x;
 		}
 
@@ -196,8 +211,9 @@ namespace ZombieLand
 		}
 
 		public Color Color => Color.white;
-		public bool GetCellBool(int index) => cells[index] > 0;
+		public bool GetCellBool(int index) => cells[index] > 0 && (DebugViewSettings.drawFog == false || map.fogGrid.IsFogged(index) == false);
 		public Color GetCellExtraColor(int index) => color.ToTransparent(Mathf.Cos(pi_half * Mathf.Pow(cells[index] - 1, 3))); // https://www.desmos.com/calculator/hnvwykal4v
+		public void SetDirty() => debouncer.Run(drawer.SetDirty);
 
 		public float this[IntVec3 cell]
 		{
@@ -205,7 +221,7 @@ namespace ZombieLand
 			set
 			{
 				cells[cell.z * mapSizeX + cell.x] = value >= 0 ? value : 0;
-				drawer.SetDirty();
+				SetDirty();
 			}
 		}
 	}

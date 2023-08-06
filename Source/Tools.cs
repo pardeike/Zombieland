@@ -323,6 +323,64 @@ namespace ZombieLand
 			}
 		}
 
+		public static bool SeesZombieAsThreat(this Pawn attacker, Zombie zombie)
+		{
+			if (attacker == null)
+				return false;
+
+			if (zombie.IsActiveElectric || zombie.isAlbino || zombie.IsRopedOrConfused)
+				return false;
+
+			if (ShouldAvoidZombies(attacker) == false)
+				return false;
+
+			if (zombie.jobs.posture != PawnPosture.Standing)
+				return zombie.Position.InHorDistOf(attacker.Position, 5f);
+
+			var attackerFaction = attacker.Faction;
+			var attackerRace = attacker.def.race;
+
+			var isHuman = attackerRace.IsFlesh;
+			var isAnimal = attackerRace.Animal;
+			var isMech = attackerRace.IsMechanoid;
+
+			var isPlayer = isAnimal == false && attackerFaction.IsPlayer;
+			var isEnemy = isAnimal == false && attackerFaction.HostileTo(Faction.OfPlayer);
+			var isFriendly = isAnimal == false && isEnemy == false && isPlayer == false;
+
+			var settings = ZombieSettings.Values;
+			var zombiesAttackEverything = settings.attackMode == AttackMode.Everything;
+			var zombiesAttackOnlyColonists = settings.attackMode == AttackMode.OnlyColonists;
+			var zombiesAttackOnlyHumans = settings.attackMode == AttackMode.OnlyHumans;
+			var animalsDoNotAttackZombies = settings.animalsAttackZombies == false;
+			var enemiesDoNotAttackZombies = settings.enemiesAttackZombies == false;
+
+			// handle all attacker cases: (player | friendly | enemy) x (human | mech | animal | thing)
+			//
+			if (isPlayer)
+			{
+				if (isHuman) return true;
+				else if (isMech) return zombiesAttackOnlyHumans == false;
+				else if (isAnimal) return animalsDoNotAttackZombies == false && zombiesAttackEverything;
+				else return false;
+			}
+			else if (isFriendly)
+			{
+				if (isHuman) return zombiesAttackOnlyColonists == false;
+				else if (isMech) return zombiesAttackEverything;
+				else if (isAnimal) return animalsDoNotAttackZombies == false;
+				else return zombiesAttackEverything;
+			}
+			else if (isEnemy)
+			{
+				if (isHuman) return enemiesDoNotAttackZombies == false;
+				else if (isMech) return enemiesDoNotAttackZombies == false;
+				else if (isAnimal) return enemiesDoNotAttackZombies == false && animalsDoNotAttackZombies == false;
+				else return enemiesDoNotAttackZombies == false;
+			}
+			return false;
+		}
+
 		public static bool ShouldAvoidZombies(Pawn pawn = null)
 		{
 			if (pawn == null)

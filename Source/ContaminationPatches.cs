@@ -14,10 +14,12 @@ namespace ZombieLand
 {
 	static class ContaminationFactors
 	{
-		public static float threshold = 0.0001f;
+		public static float minContaminationThreshold = 0.0001f;
+		public static float contaminationElevationDelta = 0.18f;
 
 		public static float ambrosiaAdd = 1f;
 		public static float constructionAdd = 0.5f;
+		public static float deepDrillAdd = 0.5f;
 		public static float destroyMineableAdd = 1f;
 		public static float floorAdd = 0.01f;
 		public static float jellyAdd = 0.5f;
@@ -34,6 +36,7 @@ namespace ZombieLand
 		public static float geneAssemblerTransfer = 0.2f;
 		public static float geneExtractorTransfer = 0.2f;
 		public static float generalTransfer = 0.1f;
+		public static float ingestTransfer = 0.25f;
 		public static float leavingsTransfer = 0.5f;
 		public static float medicineTransfer = 0.9f;
 		public static float plantTransfer = 0.5f;
@@ -48,6 +51,7 @@ namespace ZombieLand
 		public static float carryEqualize = 0.002f;
 		public static float enterCellEqualize = 0.001f;
 		public static float filthEqualize = 0.01f;
+		public static float meleeEqualize = 0.1f;
 		public static float produceEqualize = 0.1f;
 		public static float restEqualize = 0.001f;
 		public static float sowingPawnEqualize = 0.1f;
@@ -130,7 +134,7 @@ namespace ZombieLand
 			if (cell.InBounds(map))
 			{
 				var contamination = map.GetContamination(cell);
-				if (contamination >= ContaminationFactors.threshold)
+				if (contamination >= ContaminationFactors.minContaminationThreshold)
 					result += $" Contaminated ({contamination:P2})";
 			}
 			return result;
@@ -142,7 +146,7 @@ namespace ZombieLand
 			if (self is Thing thing)
 			{
 				var contamination = thing.GetContamination();
-				if (contamination >= ContaminationFactors.threshold)
+				if (contamination >= ContaminationFactors.minContaminationThreshold)
 					result += $", {contamination:P2} contaminated";
 			}
 			return result;
@@ -192,7 +196,7 @@ namespace ZombieLand
 			if (contamination == 0)
 				contamination = t.Map.GetContamination(t.Position, true);
 
-			if (contamination >= ContaminationFactors.threshold)
+			if (contamination >= ContaminationFactors.minContaminationThreshold)
 			{
 				GUI.color = Color.gray;
 				if (contamination > 0.2f) GUI.color = Color.white;
@@ -237,7 +241,7 @@ namespace ZombieLand
 						.Where(thing => thing.DrawPos == thing.Position.ToVector3Shifted())
 						.Sum(thing => thing.GetContamination());
 					var totalContamination = contaminationCell + contaminationThings;
-					if (totalContamination >= ContaminationFactors.threshold)
+					if (totalContamination >= ContaminationFactors.minContaminationThreshold)
 					{
 						var textColor = Color.gray;
 						if (contaminationCell > 0.2f || contaminationThings > 0.2f) textColor = Color.white;
@@ -251,7 +255,7 @@ namespace ZombieLand
 						.DoIf(thing => thing.DrawPos != thing.Position.ToVector3Shifted(), thing =>
 						{
 							var contaminiaton = thing.GetContamination();
-							if (contaminiaton < ContaminationFactors.threshold)
+							if (contaminiaton < ContaminationFactors.minContaminationThreshold)
 								return;
 
 							var textColor = Color.gray;
