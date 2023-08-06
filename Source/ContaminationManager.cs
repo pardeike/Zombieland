@@ -8,17 +8,20 @@ using Verse;
 
 namespace ZombieLand
 {
-	public class ContaminationManager : WorldComponent
+	public class ContaminationManager : WorldComponent, ICellBoolGiver
 	{
 		public const bool LOGGING = true;
 
 		public Dictionary<int, float> contaminations = new();
 		public Dictionary<int, ContaminationGrid> grounds = new();
-		public bool showContaminationOverlay = false;
+		public bool showContaminationOverlay;
+
+		public CellBoolDrawer currentMapDrawer;
+		public Map currentDrawerMap;
+		public bool currentMapDirty;
 
 		public ContaminationManager(World world) : base(world)
 		{
-			
 		}
 
 		private static ContaminationManager _instance = null;
@@ -93,14 +96,20 @@ namespace ZombieLand
 				if (thing == null)
 					grid[cell] = 0;
 				else
+				{
 					contaminations.Remove(id);
+					currentMapDirty = true;
+				}
 			}
 			else if (contamination > 0)
 			{
 				if (thing == null)
 					grid[cell] = contamination;
 				else
+				{
 					contaminations[id] = contamination;
+					currentMapDirty = true;
+				}
 			}
 
 			return amount;
@@ -177,12 +186,53 @@ namespace ZombieLand
 			runIfContaminated?.Invoke();
 			return transfer;
 		}
+
+		public Color Color => Color.white;
+
+		public bool GetCellBool(int index)
+		{
+			if (currentDrawerMap == null) return false;
+			var things = currentDrawerMap.thingGrid.ThingsListAtFast(index);
+			if (currentDrawerMap.fogGrid.IsFogged(index))
+				return false;
+			return things.Sum(t => contaminations.TryGetValue(t.thingIDNumber, 0)) > 0;
+		}
+
+		public Color GetCellExtraColor(int index)
+		{
+			if (currentDrawerMap == null) return Color.clear;
+			var things = currentDrawerMap.thingGrid.ThingsListAtFast(index);
+			var allContamination = things.Sum(t => contaminations.TryGetValue(t.thingIDNumber, 0));
+			var a = GenMath.LerpDoubleClamped(0, 1, 0, 0.8f, Mathf.Pow(allContamination, 0.7f));
+			return ContaminationGrid.color.ToTransparent(a);
+		}
+
+		public void DrawerUpdate()
+		{
+			var map = Find.CurrentMap;
+			if (currentDrawerMap != map)
+			{
+				currentMapDrawer = new CellBoolDrawer(this, map.Size.x, map.Size.z, 3640, 0.8f);
+				currentDrawerMap = map;
+				currentMapDirty = true;
+			}
+
+			var tickManager = Find.TickManager;
+			if (currentMapDirty && (tickManager.TicksGame % 60 == 30 || tickManager.Paused))
+			{
+				currentMapDirty = false;
+				currentMapDrawer.SetDirty();
+			}
+
+			currentMapDrawer.CellBoolDrawerUpdate();
+			currentMapDrawer.MarkForDraw();
+		}
 	}
 
 	public class ContaminationGrid : ICellBoolGiver
 	{
-		static readonly Color color = new(0, 0.8f, 0);
-		const float pi_half = Mathf.PI / 2;
+		public static readonly Color color = new(0, 0.8f, 0);
+		public const float pi_half = Mathf.PI / 2;
 		private readonly Debouncer debouncer = new(60, false);
 
 		public float[] cells;
@@ -211,7 +261,7 @@ namespace ZombieLand
 		}
 
 		public Color Color => Color.white;
-		public bool GetCellBool(int index) => cells[index] > 0 && (DebugViewSettings.drawFog == false || map.fogGrid.IsFogged(index) == false);
+		public bool GetCellBool(int index) => cells[index] > 0 && map.fogGrid.IsFogged(index) == false;
 		public Color GetCellExtraColor(int index) => color.ToTransparent(Mathf.Cos(pi_half * Mathf.Pow(cells[index] - 1, 3))); // https://www.desmos.com/calculator/hnvwykal4v
 		public void SetDirty() => debouncer.Run(drawer.SetDirty);
 
@@ -226,8 +276,18 @@ namespace ZombieLand
 		}
 	}
 
+	[StaticConstructorOnStartup]
 	public static class ContaminationExtension
 	{
+		static readonly Material[] contaminationMaterials;
+
+		static ContaminationExtension()
+		{
+			contaminationMaterials = new Material[100];
+			for (var i = 0; i < 100; i++)
+				contaminationMaterials[i] = SolidColorMaterials.NewSolidColorMaterial(Color.green.ToTransparent(i / 99f), ShaderDatabase.MoteGlow);
+		}
+
 		public static float GetContamination(this Thing thing) => ContaminationManager.Instance.Get(thing);
 		public static ContaminationGrid GetContamination(this Map map) => ContaminationManager.Instance.grounds[map.Index];
 		public static float GetContamination(this Map map, IntVec3 cell, bool safeMode = false)
@@ -312,6 +372,25 @@ namespace ZombieLand
 			var drawer = map.GetContaminationDrawer();
 			drawer.CellBoolDrawerUpdate();
 			drawer.MarkForDraw();
+			ContaminationManager.Instance.DrawerUpdate();
+
+			/*
+			var currentViewRect = Find.CameraDriver.CurrentViewRect;
+			currentViewRect.ClipInsideMap(map);
+
+			var contaminations = ContaminationManager.Instance.contaminations;
+			map.listerThings.AllThings.Do(thing =>
+			{
+				var cell = thing.Position;
+				if (currentViewRect.Contains(cell) && cell.Fogged(map) == false)
+					if (contaminations.TryGetValue(thing.thingIDNumber, out var contamination))
+					{
+						var idx = Tools.Boxed((int)(Mathf.Cos(ContaminationGrid.pi_half * Mathf.Pow(contamination - 1, 3)) * 100f), 0, 99);
+						var material = contaminationMaterials[idx];
+						GraphicToolbox.DrawScaledMesh(MeshPool.plane10, material, thing.Position.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays), Quaternion.identity, 1.0f, 1.0f);
+					}
+			});
+			*/
 		}
 	}
 }
