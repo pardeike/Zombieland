@@ -174,16 +174,16 @@ namespace ZombieLand
 		}
 	}
 
-	//[HarmonyPatch(typeof(InspectPaneUtility), nameof(InspectPaneUtility.PaneSizeFor))]
-	//internal static class InspectPaneUtility_PaneSizeFor_TestPatch
-	//{
-	//	[HarmonyPriority(Priority.Low)]
-	//	private static void Postfix(ref Vector2 __result, bool __runOriginal, IInspectPane pane)
-	//	{
-	//		if (__runOriginal && pane is MainTabWindow_Inspect)
-	//			__result.x += 146f;
-	//	}
-	//}
+	[HarmonyPatch(typeof(InspectPaneUtility), nameof(InspectPaneUtility.PaneWidthFor))]
+	static class InspectPaneUtility_PaneWidthFor_TestPatch
+	{
+		[HarmonyPriority(Priority.Last)]
+		static void Postfix(ref float __result, IInspectPane pane, bool __runOriginal)
+		{
+			if (__runOriginal && pane is MainTabWindow_Inspect)
+				__result += 146f;
+		}
+	}
 
 	[HarmonyPatch(typeof(InspectPaneFiller), nameof(InspectPaneFiller.DoPaneContentsFor))]
 	static class InspectPaneFiller_DoPaneContentsFor_TestPatch
@@ -196,17 +196,14 @@ namespace ZombieLand
 			if (contamination == 0)
 				contamination = t.Map.GetContamination(t.Position, true);
 
-			if (contamination >= ContaminationFactors.minContaminationThreshold)
-			{
-				GUI.color = Color.gray;
-				if (contamination > 0.2f) GUI.color = Color.white;
-				if (contamination > 0.4f) GUI.color = Color.cyan;
-				if (contamination > 0.6f) GUI.color = Color.yellow;
-				if (contamination > 0.8f) GUI.color = Color.red;
-				row.Gap(6f);
-				row.FillableBar(140f, 16f, contamination, $"{contamination:P2} contamination", InspectPaneFiller.MoodTex, InspectPaneFiller.BarBGTex);
-				GUI.color = Color.white;
-			}
+			GUI.color = Color.gray;
+			if (contamination > 0.2f) GUI.color = Color.white;
+			if (contamination > 0.4f) GUI.color = Color.cyan;
+			if (contamination > 0.6f) GUI.color = Color.yellow;
+			if (contamination > 0.8f) GUI.color = Color.red;
+			row.Gap(6f);
+			row.FillableBar(140f, 16f, contamination, $"{contamination:P2} contamination", InspectPaneFiller.MoodTex, InspectPaneFiller.BarBGTex);
+			GUI.color = Color.white;
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
