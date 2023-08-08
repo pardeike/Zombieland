@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
 using Verse;
@@ -45,11 +46,21 @@ namespace ZombieLand
 
 			this.ExposeContamination();
 			this.ExposeGrounds();
-			this.ExposeMineables();
+			//this.ExposeMineables();
 		}
 
 		public float Get(Thing thing, bool includeHoldings = true)
 		{
+			if (thing is Mineable mineable)
+			{
+				var map = mineable.Map;
+				if (map != null)
+				{
+					var grid = grounds[map.Index];
+					return grid[mineable.Position];
+				}
+			}
+
 			var sum = 0f;
 			if (contaminations.TryGetValue(thing.thingIDNumber, out var contamination))
 				sum += contamination;
@@ -71,7 +82,17 @@ namespace ZombieLand
 			var grid = (ContaminationGrid)null;
 			var id = -1;
 			var thing = info.thingInt;
-			var cell = info.cellInt;
+
+			IntVec3 cell;
+			if (thing is Mineable)
+			{
+				map ??= thing.Map;
+				cell = thing.Position;
+				thing = null;
+			}
+			else
+				cell = info.cellInt;
+
 			if (thing != null)
 			{
 				id = thing.thingIDNumber;
@@ -143,6 +164,17 @@ namespace ZombieLand
 
 		public void Remove(Thing thing)
 		{
+			if (thing is Mineable mineable)
+			{
+				var map = mineable.Map;
+				if (map != null)
+				{
+					var grid = grounds[map.Index];
+					grid[mineable.Position] = 0;
+					return;
+				}
+			}
+
 			contaminations.Remove(thing.thingIDNumber);
 			if (thing is IThingHolder holder)
 			{
@@ -191,11 +223,10 @@ namespace ZombieLand
 
 		public bool GetCellBool(int index)
 		{
-			if (currentDrawerMap == null) return false;
-			var things = currentDrawerMap.thingGrid.ThingsListAtFast(index);
-			if (currentDrawerMap.fogGrid.IsFogged(index))
-				return false;
-			return things.Sum(t => contaminations.TryGetValue(t.thingIDNumber, 0)) > 0;
+			if (currentDrawerMap == null || currentDrawerMap.fogGrid.IsFogged(index)) return false;
+			return currentDrawerMap.thingGrid.thingGrid[index]
+				.Where(t => t is not Mineable)
+				.Sum(t => contaminations.TryGetValue(t.thingIDNumber, 0)) > 0;
 		}
 
 		public Color GetCellExtraColor(int index)
@@ -292,6 +323,15 @@ namespace ZombieLand
 		public static ContaminationGrid GetContamination(this Map map) => ContaminationManager.Instance.grounds[map.Index];
 		public static float GetContamination(this Map map, IntVec3 cell, bool safeMode = false)
 			=> safeMode == false || cell.InBounds(map) ? ContaminationManager.Instance.grounds[map.Index][cell] : 0;
+		public static float ExtractContamination(this Map map, IntVec3 cell, bool safeMode = false)
+		{
+			if (safeMode && cell.InBounds(map) == false)
+				return 0;
+			var grid = ContaminationManager.Instance.grounds[map.Index];
+			var contamination = grid[cell];
+			grid[cell] = 0;
+			return contamination;
+		}
 		public static void SetContamination(this Map map, IntVec3 cell, float value, bool safeMode = false)
 		{
 			if (safeMode == false || cell.InBounds(map))

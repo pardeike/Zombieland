@@ -1,15 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
-using HarmonyLib;
-using RimWorld;
 using Verse;
 
 namespace ZombieLand
 {
 	public static class ContaminationSerializer
 	{
-		static readonly Dictionary<int, (int, int)> mineablesCache = new();
+		//static readonly Dictionary<int, (int, int)> mineablesCache = new();
 
 		public static void ExposeContamination(this ContaminationManager manager)
 		{
@@ -110,7 +107,7 @@ namespace ZombieLand
 			}
 		}
 
-		public static void ExposeMineables(this ContaminationManager manager)
+		/*public static void ExposeMineables(this ContaminationManager manager)
 		{
 			if (Scribe.EnterNode("mineables") == false)
 				return;
@@ -169,7 +166,7 @@ namespace ZombieLand
 				}
 			});
 			mineablesCache.Clear();
-		}
+		}*/
 
 		public static void FixGrounds(this ContaminationManager manager)
 		{

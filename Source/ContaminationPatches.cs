@@ -68,7 +68,7 @@ namespace ZombieLand
 		static void Postfix()
 		{
 			ContaminationManager.Instance.FixGrounds();
-			ContaminationManager.Instance.FixMinerables();
+			//ContaminationManager.Instance.FixMinerables();
 		}
 	}
 

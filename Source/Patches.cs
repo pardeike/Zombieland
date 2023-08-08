@@ -176,6 +176,7 @@ namespace ZombieLand
 						map.listerThings.AllThings
 							.DoIf(thing =>
 							{
+								if (thing is Mineable) return false;
 								var cell = thing.Position;
 								return currentViewRect.Contains(cell) && cell.Fogged(map) == false;
 							},

@@ -35,26 +35,27 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Mineable), nameof(Mineable.Destroy))]
 	static class Mineable_Destroy_TestPatches
 	{
-		static void Prefix(Mineable __instance) => Mineable_TrySpawnYield_TestPatch.mineableContamination = __instance.GetContamination();
-		static void Postfix() => Mineable_TrySpawnYield_TestPatch.mineableContamination = 0f;
+		static void Prefix(Mineable __instance) => Mineable_TrySpawnYield_TestPatch.mineableMap = __instance.Map;
+		static void Postfix() => Mineable_TrySpawnYield_TestPatch.mineableMap = null;
 	}
 
 	[HarmonyPatch(typeof(Mineable), nameof(Mineable.DestroyMined))]
 	static class Mineable_DestroyMined_TestPatches
 	{
-		static void Prefix(Mineable __instance) => Mineable_TrySpawnYield_TestPatch.mineableContamination = __instance.GetContamination();
-		static void Postfix() => Mineable_TrySpawnYield_TestPatch.mineableContamination = 0f;
+		static void Prefix(Mineable __instance) => Mineable_TrySpawnYield_TestPatch.mineableMap = __instance.Map;
+		static void Postfix() => Mineable_TrySpawnYield_TestPatch.mineableMap = null;
 	}
 
 	[HarmonyPatch(typeof(Mineable), nameof(Mineable.TrySpawnYield))]
 	static class Mineable_TrySpawnYield_TestPatch
 	{
-		public static float mineableContamination = 0f;
+		public static Map mineableMap;
 
 		static Thing MakeThing(ThingDef def, ThingDef stuff, Mineable mineable)
 		{
 			var thing = ThingMaker.MakeThing(def, stuff);
-			thing.AddContamination(mineableContamination, () => Log.Warning($"Yielded {thing} from {mineable}"), ContaminationFactors.destroyMineableAdd);
+			var contamination = mineableMap?.ExtractContamination(mineable.Position) ?? 0;
+			thing.AddContamination(contamination, () => Log.Warning($"Yielded {thing} from {mineable}"), ContaminationFactors.destroyMineableAdd);
 			return thing;
 		}
 
