@@ -208,6 +208,13 @@ namespace ZombieLand
 		public static int F(this (int, int) range) => (int)(GenMath.LerpDouble(0, 5, range.Item1, range.Item2, Difficulty()) * GenMath.LerpDoubleClamped(GenDate.TicksPerYear, GenDate.TicksPerYear * 5, 1, 5, GenTicks.TicksGame));
 		public static float F(this (float, float) range) => GenMath.LerpDouble(0, 5, range.Item1, range.Item2, Difficulty()) * GenMath.LerpDoubleClamped(GenDate.TicksPerYear, GenDate.TicksPerYear * 5, 1, 5, GenTicks.TicksGame);
 
+		public static float MoveableWeight(float x, float weight, float factor = 10)
+		{
+			// https://www.desmos.com/calculator/xr6avbi5s8
+			var f = 2 * weight * (1 - factor) + factor;
+			return Mathf.Pow(x, weight <= 0.5f ? 1 / f : 2 - f);
+		}
+
 		public static int PheromoneFadeoff()
 		{
 			return (int)(Constants.PHEROMONE_FADEOFF.SecondsToTicks() * ZombieSettings.Values.zombieInstinct.HalfToDoubleValue()) * 1000;
@@ -1315,6 +1322,16 @@ namespace ZombieLand
 			return active && Widgets.ButtonInvisible(rect, false);
 		}
 
+		public static void DrawBorderRect(Rect area, Color color, int frameWidth = 1)
+		{
+			var texture = SolidColorMaterials.NewSolidColorTexture(color);
+			GUI.DrawTexture(area.LeftPartPixels(frameWidth), texture);
+			GUI.DrawTexture(area.RightPartPixels(frameWidth), texture);
+			area = area.ExpandedBy(-frameWidth, 0);
+			GUI.DrawTexture(area.TopPartPixels(frameWidth), texture);
+			GUI.DrawTexture(area.BottomPartPixels(frameWidth), texture);
+		}
+
 		public static void OnGUISimple(this QuickSearchWidget self, Rect rect, Action onFilterChange = null)
 		{
 			if (OriginalEventUtility.EventType == EventType.MouseDown && !rect.Contains(Event.current.mousePosition))
@@ -1592,6 +1609,17 @@ namespace ZombieLand
 			return AppDomain.CurrentDomain.GetAssemblies()
 				 .SelectMany(assembly => assembly.GetTypes())
 				 .Where(type => type != baseType && type.IsAbstract == false && type.IsSubclassOf(baseType));
+		}
+
+		public static IEnumerable<MethodBase> MethodsImplementing(LambdaExpression expression)
+		{
+			var baseMethod = SymbolExtensions.GetMethodInfo(expression);
+			var name = baseMethod.Name;
+			var args = baseMethod.GetParameters().Types();
+			return baseMethod.DeclaringType
+				.AllSubclassesNonAbstract()
+				.Select(type => Method(type, name, args))
+				.OfType<MethodBase>();
 		}
 
 		public static MethodInfo FindOriginalMethod(Type type, MethodType methodType, MethodInfo staticReplacement, int extraArguments)

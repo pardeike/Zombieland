@@ -267,6 +267,8 @@
 	<Aggressive>Aggressive</Aggressive>
 	<Calm>Calm</Calm>
 
+	<ZombieContamination>Zombie Contamination</ZombieContamination>
+	<ContaminationHelp>Contamination caused by the zombie apocalypse is transferred via touch and handling things. It spreads around and can lead to strange behaviour in colonists.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Toggle zombie contamination overlay.\n\nThis shows how contaminated things and the ground are, which in turn affects pawns.</ShowContaminationOverlayToggleButton>
 
 </LanguageData>

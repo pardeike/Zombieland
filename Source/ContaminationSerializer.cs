@@ -6,8 +6,6 @@ namespace ZombieLand
 {
 	public static class ContaminationSerializer
 	{
-		//static readonly Dictionary<int, (int, int)> mineablesCache = new();
-
 		public static void ExposeContamination(this ContaminationManager manager)
 		{
 			if (Scribe.EnterNode("contaminations") == false)
@@ -106,67 +104,6 @@ namespace ZombieLand
 				Scribe.ExitNode();
 			}
 		}
-
-		/*public static void ExposeMineables(this ContaminationManager manager)
-		{
-			if (Scribe.EnterNode("mineables") == false)
-				return;
-
-			try
-			{
-				if (Scribe.mode == LoadSaveMode.Saving)
-				{
-					var ids = manager.contaminations.Keys.ToHashSet();
-					Find.Maps
-						.SelectMany(map => map.listerThings.AllThings.OfType<Mineable>())
-						.Where(thing => ids.Contains(thing.thingIDNumber))
-						.Do(mineable =>
-						{
-							var id = "T" + mineable.thingIDNumber;
-							var mapIdx = mineable.mapIndexOrState;
-							var cellIdx = mineable.Map.cellIndices.CellToIndex(mineable.positionInt);
-							Scribe.saver.writer.WriteStartElement(id);
-							Scribe.saver.writer.WriteString($"{cellIdx},{mapIdx}");
-							Scribe.saver.writer.WriteEndElement();
-						});
-				}
-				else if (Scribe.mode == LoadSaveMode.LoadingVars)
-				{
-					var curXmlParent = Scribe.loader.curXmlParent.ChildNodes;
-					for (var i = 0; i < curXmlParent.Count; i++)
-					{
-						var subNode = curXmlParent.Item(i);
-						var id = int.Parse(subNode.Name.Substring(1));
-						var parts = subNode.InnerText.Split(',');
-						var cellIndex = int.Parse(parts[0]);
-						var mapIndex = int.Parse(parts[1]);
-						mineablesCache[id] = (cellIndex, mapIndex);
-					}
-				}
-			}
-			finally
-			{
-				Scribe.ExitNode();
-			}
-		}
-
-		public static void FixMinerables(this ContaminationManager manager)
-		{
-			var ids = mineablesCache.Keys.ToHashSet();
-			manager.contaminations.Keys.ToArray().DoIf(ids.Contains, id =>
-			{
-				var (cellIndex, mapIndex) = mineablesCache[id];
-				var map = Find.Maps[mapIndex];
-				var mineable = map.thingGrid.thingGrid[cellIndex].OfType<Mineable>().FirstOrDefault();
-				if (mineable != null)
-				{
-					var newID = mineable.thingIDNumber;
-					manager.contaminations[newID] = manager.contaminations[id];
-					manager.contaminations.Remove(id);
-				}
-			});
-			mineablesCache.Clear();
-		}*/
 
 		public static void FixGrounds(this ContaminationManager manager)
 		{

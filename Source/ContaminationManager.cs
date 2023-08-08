@@ -46,7 +46,6 @@ namespace ZombieLand
 
 			this.ExposeContamination();
 			this.ExposeGrounds();
-			//this.ExposeMineables();
 		}
 
 		public float Get(Thing thing, bool includeHoldings = true)
@@ -323,6 +322,11 @@ namespace ZombieLand
 		public static ContaminationGrid GetContamination(this Map map) => ContaminationManager.Instance.grounds[map.Index];
 		public static float GetContamination(this Map map, IntVec3 cell, bool safeMode = false)
 			=> safeMode == false || cell.InBounds(map) ? ContaminationManager.Instance.grounds[map.Index][cell] : 0;
+		public static void AddContamination(this Map map, IntVec3 cell, float amount)
+		{
+			var grid = ContaminationManager.Instance.grounds[map.Index];
+			grid[cell] = Mathf.Min(1, grid[cell] + amount);
+		}
 		public static float ExtractContamination(this Map map, IntVec3 cell, bool safeMode = false)
 		{
 			if (safeMode && cell.InBounds(map) == false)
@@ -413,24 +417,6 @@ namespace ZombieLand
 			drawer.CellBoolDrawerUpdate();
 			drawer.MarkForDraw();
 			ContaminationManager.Instance.DrawerUpdate();
-
-			/*
-			var currentViewRect = Find.CameraDriver.CurrentViewRect;
-			currentViewRect.ClipInsideMap(map);
-
-			var contaminations = ContaminationManager.Instance.contaminations;
-			map.listerThings.AllThings.Do(thing =>
-			{
-				var cell = thing.Position;
-				if (currentViewRect.Contains(cell) && cell.Fogged(map) == false)
-					if (contaminations.TryGetValue(thing.thingIDNumber, out var contamination))
-					{
-						var idx = Tools.Boxed((int)(Mathf.Cos(ContaminationGrid.pi_half * Mathf.Pow(contamination - 1, 3)) * 100f), 0, 99);
-						var material = contaminationMaterials[idx];
-						GraphicToolbox.DrawScaledMesh(MeshPool.plane10, material, thing.Position.ToVector3ShiftedWithAltitude(AltitudeLayer.MetaOverlays), Quaternion.identity, 1.0f, 1.0f);
-					}
-			});
-			*/
 		}
 	}
 }

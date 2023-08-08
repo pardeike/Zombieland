@@ -23,8 +23,10 @@ namespace ZombieLand
 		public static float destroyMineableAdd = 1f;
 		public static float floorAdd = 0.01f;
 		public static float jellyAdd = 0.5f;
+		public static float meteoriteAdd = 1f;
 		public static float plantAdd = 0.5f;
 		public static float pollutionAdd = 0.05f;
+		public static float shipChunkAdd = 0.25f;
 		public static float snowAdd = 0.1f;
 		public static float sowedPlantAdd = 0.2f;
 		public static float wastePackAdd = 0.5f;
@@ -59,6 +61,8 @@ namespace ZombieLand
 		public static float tendEqualizeBest = 0f;
 
 		public static float fireReduction = 0.05f;
+		public static float randomThingCreateChance = 0.1f;
+		public static float randomThingDensityDistribution = 0.5f;
 	}
 
 	[HarmonyPatch(typeof(Game))]
@@ -68,7 +72,6 @@ namespace ZombieLand
 		static void Postfix()
 		{
 			ContaminationManager.Instance.FixGrounds();
-			//ContaminationManager.Instance.FixMinerables();
 		}
 	}
 
@@ -108,6 +111,39 @@ namespace ZombieLand
 		{
 			if (__state != -1)
 				ContaminationManager.Instance.contaminations.Remove(__state);
+		}
+	}
+
+	[HarmonyPatch(typeof(Thing), nameof(Thing.SpecialDisplayStats))]
+	static class Thing_SpecialDisplayStats_TestPatch
+	{
+		static IEnumerable<StatDrawEntry> Postfix(IEnumerable<StatDrawEntry> entries, Thing __instance)
+		{
+			foreach (var entry in entries)
+				yield return entry;
+			yield return new StatDrawEntry(
+				StatCategoryDefOf.BasicsImportant,
+				"ZombieContamination".Translate(),
+				$"{100 * __instance.GetContamination():F2}%",
+				"ContaminationHelp".Translate(),
+				0
+			);
+		}
+	}
+
+	[HarmonyPatch(typeof(Widgets), nameof(Widgets.ThingIcon))]
+	[HarmonyPatch(new[] { typeof(Rect), typeof(Thing), typeof(float), typeof(Rot4?), typeof(bool) })]
+	static class Widgets_ThingIcon_TestPatch
+	{
+		static void Prefix(Rect rect, Thing thing, float alpha)
+		{
+			var contamination = thing.GetContamination();
+			if (contamination == 0) return;
+			var color = new Color(0, 1, 0, alpha);
+			Tools.DrawBorderRect(rect, color.ToTransparent(0.5f));
+			rect = rect.ExpandedBy(-1, -1);
+			rect.yMin = rect.yMax - rect.height * Tools.Boxed(contamination, 0, 1);
+			Widgets.DrawBoxSolid(rect, color.ToTransparent(0.25f));
 		}
 	}
 
