@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
-using UnityEngine;
 using Verse;
 
 namespace ZombieLand
@@ -17,11 +15,15 @@ namespace ZombieLand
 
 		static void Postfix(Thing thing)
 		{
+			if (thing == null)
+				return;
+
 			if (thing is Mineable mineable)
 			{
-				thing.AddContamination(ContaminationFactors.meteoriteAdd, () => Log.Warning($"Skyfaller produced {thing} at {thing.Position}"));
+				mineable.AddContamination(ContaminationFactors.meteoriteAdd, () => Log.Warning($"Skyfaller produced {mineable} at {mineable.Position}"));
 				return;
 			}
+
 			if (thing.def == ThingDefOf.ShipChunk)
 			{
 				thing.AddContamination(ContaminationFactors.meteoriteAdd, () => Log.Warning($"Skyfaller produced {thing} at {thing.Position}"));
@@ -59,17 +61,26 @@ namespace ZombieLand
 				.ToArray();
 			var uncontaminated = things.Where(thing => manager.Get(thing) == 0).ToArray();
 			if (things.Length > uncontaminated.Length)
-			{
-				Log.Warning($"Trade deal {__instance} already contaminated: ({things.Where(t => t.GetContamination() > 0).Join(t => $"{t}:{t.GetContamination()}")})");
 				return;
-			}
-			Log.Warning($"Contaminating trade deal {__instance} [{uncontaminated.Length} items]");
 			foreach (var thing in uncontaminated)
 				if (Rand.Chance(ContaminationFactors.randomThingCreateChance))
 				{
 					var amount = Tools.MoveableWeight(Rand.Value, ContaminationFactors.randomThingDensityDistribution);
 					thing.AddContamination(amount, () => Log.Warning($"New tradeable {thing}"));
 				}
+		}
+	}
+
+	[HarmonyPatch(typeof(MechClusterUtility), nameof(MechClusterUtility.SpawnCluster))]
+	static class MechClusterUtility_SpawnCluster_TestPatch
+	{
+		static void Postfix(List<Thing> __result)
+		{
+			if (Rand.Chance(ContaminationFactors.mechClusterChance) == false)
+				return;
+			var amount = Tools.MoveableWeight(Rand.Value, ContaminationFactors.mechClusterDensityDistribution);
+			foreach (var thing in __result)
+				thing.AddContamination(amount, () => Log.Warning($"New mech cluster item {thing}"));
 		}
 	}
 }

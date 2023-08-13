@@ -16,6 +16,7 @@ namespace ZombieLand
 	{
 		public static float minContaminationThreshold = 0.0001f;
 		public static float contaminationElevationDelta = 0.18f;
+		public static int decontaminationQuestInterval = GenDate.TicksPerYear / 2;
 
 		public static float ambrosiaAdd = 1f;
 		public static float constructionAdd = 0.5f;
@@ -63,6 +64,8 @@ namespace ZombieLand
 		public static float fireReduction = 0.05f;
 		public static float randomThingCreateChance = 0.1f;
 		public static float randomThingDensityDistribution = 0.5f;
+		public static float mechClusterChance = 1f;
+		public static float mechClusterDensityDistribution = 0.5f;
 	}
 
 	[HarmonyPatch(typeof(Game))]
@@ -145,6 +148,20 @@ namespace ZombieLand
 			rect.yMin = rect.yMax - rect.height * Tools.Boxed(contamination, 0, 1);
 			Widgets.DrawBoxSolid(rect, color.ToTransparent(0.25f));
 		}
+	}
+
+	[HarmonyPatch(typeof(MainTabWindow_Quests), nameof(MainTabWindow_Quests.DoRow))]
+	static class MainTabWindow_Quests_DoRow_TestPatch
+	{
+		static int Max(int a, int b, Quest quest)
+		{
+			if (quest.parts.Any(part => part is QuestPart_DecontaminateColonists))
+				return 0;
+			return Mathf.Max(a, b);
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			=> instructions.ExtraArgumentsTranspiler(typeof(Mathf), () => Max(default, default, default), new[] { Ldarg_2 }, 1);
 	}
 
 	[HarmonyPatch(typeof(PlaySettings), nameof(PlaySettings.DoPlaySettingsGlobalControls))]

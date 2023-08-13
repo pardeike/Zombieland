@@ -4,7 +4,9 @@ using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
+using RimWorld.QuestGen;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 using Verse;
 
 namespace ZombieLand
@@ -16,6 +18,7 @@ namespace ZombieLand
 		public Dictionary<int, float> contaminations = new();
 		public Dictionary<int, ContaminationGrid> grounds = new();
 		public bool showContaminationOverlay;
+		public int nextDecontaminationQuest = 0;
 
 		public CellBoolDrawer currentMapDrawer;
 		public Map currentDrawerMap;
@@ -46,6 +49,17 @@ namespace ZombieLand
 
 			this.ExposeContamination();
 			this.ExposeGrounds();
+		}
+
+		public override void WorldComponentTick()
+		{
+			var ticks = Find.TickManager.TicksGame;
+			if (ticks > nextDecontaminationQuest)
+			{
+				if (nextDecontaminationQuest != 0)
+					DecontaminationQuest();
+				nextDecontaminationQuest = ticks + ContaminationFactors.decontaminationQuestInterval;
+			}
 		}
 
 		public float Get(Thing thing, bool includeHoldings = true)
@@ -256,6 +270,14 @@ namespace ZombieLand
 
 			currentMapDrawer.CellBoolDrawerUpdate();
 			currentMapDrawer.MarkForDraw();
+		}
+
+		public void DecontaminationQuest()
+		{
+			if (QuestNode_GetRandomAlliedFactionLeader.GetAlliedFactionLeader() == null)
+				return;
+			Quest quest = QuestUtility.GenerateQuestAndMakeAvailable(CustomDefs.Decontamination, new Slate());
+			QuestUtility.SendLetterQuestAvailable(quest);
 		}
 	}
 

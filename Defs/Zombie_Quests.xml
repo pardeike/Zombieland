@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+    <QuestScriptDef>
+        <defName>Decontamination</defName>
+        <rootSelectionWeight>0</rootSelectionWeight>
+        <expireDaysRange>4~8</expireDaysRange>
+        <questNameRules>
+            <rulesStrings>
+                <li>questName->decontamination offer</li>
+            </rulesStrings>
+        </questNameRules>
+        <questDescriptionRules>
+            <rulesStrings>
+                <li>questDescription->[asker_faction_leaderTitle] [asker_nameFull] of [asker_faction_name] offers help with reducing contamination. You can to send one colonist away a few days for decontamination.</li>
+            </rulesStrings>
+        </questDescriptionRules>
+        <root Class="QuestNode_Sequence">
+            <nodes>
+                <li Class="QuestNode_SubScript">
+                    <def>Util_RandomizePointsChallengeRating</def>
+                </li>
+
+                <li Class="QuestNode_GetMap">
+                    <preferMapWithMinFreeColonists>2</preferMapWithMinFreeColonists>
+                </li>
+
+                <li Class="QuestNode_End">
+                    <inSignal>map.MapRemoved</inSignal>
+                    <outcome>Fail</outcome>
+                    <signalListenMode>NotYetAcceptedOnly</signalListenMode>
+                </li>
+
+                <li Class="ZombieLand.QuestNode_GetRandomAlliedFactionLeader">
+                    <storeAs>asker</storeAs>
+                </li>
+
+                <li Class="QuestNode_Set">
+                    <name>returnLetterText</name>
+                    <value TKey="LetterTextReturnAfterHelping">{SUBJECT} returned after getting decontaminated.</value>
+                </li>
+
+                <li Class="QuestNode_GetRandomInRangeInt">
+                    <storeAs>treatedForDays</storeAs>
+                    <range>2~8</range>
+                </li>
+
+                <li Class="QuestNode_ShuttleDelay">
+                    <delayTicks>3500</delayTicks>
+                    <node Class="QuestNode_Sequence">
+                        <nodes>
+                            <li Class="QuestNode_SubScript">
+                                <def>Util_TransportShip_Pickup</def>
+                                <parms>
+                                    <leaveDelayTicks>60000</leaveDelayTicks>
+                                    <leaveImmediatelyWhenSatisfied>true</leaveImmediatelyWhenSatisfied>
+                                    <acceptColonists>true</acceptColonists>
+                                    <acceptChildren>false</acceptChildren>
+                                    <onlyAcceptColonists>true</onlyAcceptColonists>
+                                    <onlyAcceptHealthy>true</onlyAcceptHealthy>
+                                    <requireColonistCount>1</requireColonistCount>
+                                    <minAge>$minAge</minAge>
+                                </parms>
+                            </li>
+
+                            <li Class="QuestNode_Letter">
+                                <label TKey="LetterLabelShuttleArrived">Shuttle arrived</label>
+                                <text TKey="LetterTextShuttleArrived">The shuttle has arrived to collect one of your colonists.</text>
+                                <lookTargets>$pickupShipThing</lookTargets>
+                            </li>
+                        </nodes>
+                    </node>
+                </li>
+
+                <li Class="QuestNode_Signal">
+                    <inSignal>pickupShipThing.Destroyed</inSignal>
+                    <node Class="QuestNode_Sequence">
+                        <nodes>
+                            <li Class="QuestNode_Letter">
+                                <label TKey="LetterLabelShuttleDestroyed">Shuttle destroyed</label>
+                                <text TKey="LetterTextShuttleDestroyed">The shuttle sent to collect colonists has been destroyed.</text>
+                            </li>
+                            <li Class="QuestNode_End">
+                                <outcome>Fail</outcome>
+                            </li>
+                        </nodes>
+                    </node>
+                </li>
+
+                <li Class="QuestNode_Signal">
+                    <inSignal>pickupShipThing.SentSatisfied</inSignal>
+                    <node Class="ZombieLand.QuestNode_DecontaminateColonists">
+                        <shuttle>$pickupShipThing</shuttle>
+                        <factionToSendTo>$asker</factionToSendTo>
+                        <returnColonistsInTicks>$($treatedForDays*60000)</returnColonistsInTicks>
+                        <outSignalComplete>ColonistsReturned</outSignalComplete>
+                        <outSignalColonistsDied>ColonistsDied</outSignalColonistsDied>
+                    </node>
+                </li>
+
+                <li Class="QuestNode_Signal">
+                    <inSignal>ColonistsReturned</inSignal>
+                    <node Class="QuestNode_Sequence">
+                        <nodes>
+                            <li Class="QuestNode_Letter">
+                                <label TKey="LetterLabelColonistsReturned">Colonists returned</label>
+                                <text>$returnLetterText</text>
+                                <letterDef>PositiveEvent</letterDef>
+                            </li>
+                            <li Class="QuestNode_End">
+                                <outcome>Success</outcome>
+                            </li>
+                        </nodes>
+                    </node>
+                </li>
+
+                <li Class="QuestNode_Signal">
+                    <inSignal>ColonistsDied</inSignal>
+                    <node Class="QuestNode_End">
+                        <outcome>Success</outcome>
+                    </node>
+                </li>
+
+                <li Class="QuestNode_Signal">
+                    <inSignal>pickupShipThing.SentUnsatisfied</inSignal>
+                    <node Class="QuestNode_End">
+                        <outcome>Fail</outcome>
+                    </node>
+                </li>
+
+            </nodes>
+        </root>
+    </QuestScriptDef>
+
+</Defs>

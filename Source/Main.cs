@@ -88,6 +88,7 @@ namespace ZombieLand
 		public static ThingDef Thumper;
 		public static ThingDef ZombieSpitter;
 		public static ThingDef ZombieBall;
+		public static QuestScriptDef Decontamination;
 	}
 
 	public class ZombielandMod : Mod

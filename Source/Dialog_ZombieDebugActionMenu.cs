@@ -249,6 +249,12 @@ namespace ZombieLand
 			}
 		}
 
+		[DebugAction("Zombieland", "Create Decontamination Quest", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void CreateDecontaminationQuest()
+		{
+			ContaminationManager.Instance.DecontaminationQuest();
+		}
+
 		static void FloodFillContamination(IntVec3 cell, float value, int maxCells)
 		{
 			ThingDef floodfillThingDef = null;
