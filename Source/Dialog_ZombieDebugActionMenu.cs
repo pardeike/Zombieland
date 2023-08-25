@@ -288,6 +288,12 @@ namespace ZombieLand
 			}
 		}
 
+		[DebugAction("Zombieland", "Apply: Add 0.01 contamination", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void AddVeryLittleContamination()
+		{
+			FloodFillContamination(UI.MouseCell(), 0.01f, 500);
+		}
+
 		[DebugAction("Zombieland", "Apply: Add 0.1 contamination", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void AddLittleContamination()
 		{

@@ -192,8 +192,7 @@ namespace ZombieLand
 		static Thing MakeThing(ThingDef def, ThingDef stuff, List<Thing> things)
 		{
 			var result = ThingMaker.MakeThing(def, stuff);
-			if (things != null)
-				things.TransferContamination(ContaminationFactors.dispenseFoodTransfer, () => Log.Warning($"Produce {result} from [{things.Join(t => $"{t}")}]"), result);
+			things?.TransferContamination(ContaminationFactors.dispenseFoodTransfer, () => Log.Warning($"Produce {result} from [{things.Join(t => $"{t}")}]"), result);
 			return result;
 		}
 

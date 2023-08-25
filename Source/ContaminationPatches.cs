@@ -15,7 +15,7 @@ namespace ZombieLand
 	static class ContaminationFactors
 	{
 		public static float minContaminationThreshold = 0.0001f;
-		public static float contaminationElevationDelta = 0.18f;
+		public static float contaminationElevationDelta = 0.175f;
 		public static int decontaminationQuestInterval = GenDate.TicksPerYear / 2;
 
 		public static float ambrosiaAdd = 1f;
@@ -141,7 +141,8 @@ namespace ZombieLand
 		static void Prefix(Rect rect, Thing thing, float alpha)
 		{
 			var contamination = thing.GetContamination();
-			if (contamination == 0) return;
+			if (contamination == 0)
+				return;
 			var color = new Color(0, 1, 0, alpha);
 			Tools.DrawBorderRect(rect, color.ToTransparent(0.5f));
 			rect = rect.ExpandedBy(-1, -1);
@@ -250,10 +251,14 @@ namespace ZombieLand
 				contamination = t.Map.GetContamination(t.Position, true);
 
 			GUI.color = Color.gray;
-			if (contamination > 0.2f) GUI.color = Color.white;
-			if (contamination > 0.4f) GUI.color = Color.cyan;
-			if (contamination > 0.6f) GUI.color = Color.yellow;
-			if (contamination > 0.8f) GUI.color = Color.red;
+			if (contamination > 0.2f)
+				GUI.color = Color.white;
+			if (contamination > 0.4f)
+				GUI.color = Color.cyan;
+			if (contamination > 0.6f)
+				GUI.color = Color.yellow;
+			if (contamination > 0.8f)
+				GUI.color = Color.red;
 			row.Gap(6f);
 			row.FillableBar(140f, 16f, contamination, $"{contamination:P2} contamination", InspectPaneFiller.MoodTex, InspectPaneFiller.BarBGTex);
 			GUI.color = Color.white;
@@ -274,7 +279,7 @@ namespace ZombieLand
 		{
 			if (Input.GetKey(KeyCode.LeftShift) == false && Input.GetKey(KeyCode.RightShift) == false)
 				return true;
-			
+
 			var map = Find.CurrentMap;
 			var mouseCell = UI.MouseCell();
 			var grid = map.GetContamination();
@@ -294,10 +299,14 @@ namespace ZombieLand
 					if (totalContamination >= ContaminationFactors.minContaminationThreshold)
 					{
 						var textColor = Color.gray;
-						if (contaminationCell > 0.2f || contaminationThings > 0.2f) textColor = Color.white;
-						if (contaminationCell > 0.4f || contaminationThings > 0.2f) textColor = Color.cyan;
-						if (contaminationCell > 0.6f || contaminationThings > 0.6f) textColor = Color.yellow;
-						if (contaminationCell > 0.8f || contaminationThings > 0.8f) textColor = Color.red;
+						if (contaminationCell > 0.2f || contaminationThings > 0.2f)
+							textColor = Color.white;
+						if (contaminationCell > 0.4f || contaminationThings > 0.2f)
+							textColor = Color.cyan;
+						if (contaminationCell > 0.6f || contaminationThings > 0.6f)
+							textColor = Color.yellow;
+						if (contaminationCell > 0.8f || contaminationThings > 0.8f)
+							textColor = Color.red;
 						GenMapUI.DrawThingLabel(GenMapUI.LabelDrawPosFor(cell), $"{totalContamination * 100:F1}", textColor);
 					}
 
@@ -309,10 +318,14 @@ namespace ZombieLand
 								return;
 
 							var textColor = Color.gray;
-							if (contaminiaton > 0.2f) textColor = Color.white;
-							if (contaminiaton > 0.2f) textColor = Color.cyan;
-							if (contaminiaton > 0.6f) textColor = Color.yellow;
-							if (contaminiaton > 0.8f) textColor = Color.red;
+							if (contaminiaton > 0.2f)
+								textColor = Color.white;
+							if (contaminiaton > 0.2f)
+								textColor = Color.cyan;
+							if (contaminiaton > 0.6f)
+								textColor = Color.yellow;
+							if (contaminiaton > 0.8f)
+								textColor = Color.red;
 
 							var vector = thing.DrawPos + new Vector3(0, AltitudeLayer.MetaOverlays.AltitudeFor(), 0);
 							var vector2 = Find.Camera.WorldToScreenPoint(vector) / Prefs.UIScale;
