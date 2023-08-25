@@ -27,9 +27,9 @@ namespace ZombieLand
 			var attackerFaction = attacker.Faction;
 			var attackerRace = attacker.def.race;
 
-			var isHuman = attackerRace.IsFlesh;
-			var isAnimal = attackerRace.Animal;
-			var isMech = attackerRace.IsMechanoid;
+			var isHuman = attackerRace?.IsFlesh ?? false;
+			var isAnimal = attackerRace?.Animal ?? false;
+			var isMech = attackerRace?.IsMechanoid ?? false;
 
 			var isPlayer = isAnimal == false && attackerFaction.IsPlayer;
 			var isEnemy = isAnimal == false && attackerFaction.HostileTo(Faction.OfPlayer);
@@ -68,11 +68,13 @@ namespace ZombieLand
 				}
 				else if (isMech)
 				{
-					if (zombiesAttackOnlyHumans) removeAllZombies = true;
+					if (zombiesAttackOnlyHumans)
+						removeAllZombies = true;
 				}
 				else if (isAnimal)
 				{
-					if (animalsDoNotAttackZombies || zombiesAttackEverything == false) removeAllZombies = true;
+					if (animalsDoNotAttackZombies || zombiesAttackEverything == false)
+						removeAllZombies = true;
 				}
 				else // isThing
 				{
@@ -84,8 +86,10 @@ namespace ZombieLand
 				removeSpitter = true;
 				if (isHuman)
 				{
-					if (zombiesAttackOnlyColonists) removeAllZombies = true;
-					else removeHarmlessZombies = true;
+					if (zombiesAttackOnlyColonists)
+						removeAllZombies = true;
+					else
+						removeHarmlessZombies = true;
 					removeRopedZombies = true;
 					removeConfusedZombies = true;
 					removeDistantZombies = true;
@@ -93,25 +97,31 @@ namespace ZombieLand
 				}
 				else if (isMech)
 				{
-					if (zombiesAttackEverything == false) removeAllZombies = true;
-					else removeHarmlessZombies = true;
+					if (zombiesAttackEverything == false)
+						removeAllZombies = true;
+					else
+						removeHarmlessZombies = true;
 					removeRopedZombies = true;
 					removeConfusedZombies = true;
 					removeDistantZombies = true;
 				}
 				else if (isAnimal)
 				{
-					if (animalsDoNotAttackZombies) removeAllZombies = true;
+					if (animalsDoNotAttackZombies)
+						removeAllZombies = true;
 					else
 					{
-						if (zombiesAttackEverything == false) removeAllZombies = true;
-						else removeHarmlessZombies = true;
+						if (zombiesAttackEverything == false)
+							removeAllZombies = true;
+						else
+							removeHarmlessZombies = true;
 						removeDistantZombies = true;
 					}
 				}
 				else // isThing
 				{
-					if (zombiesAttackEverything == false) removeAllZombies = true;
+					if (zombiesAttackEverything == false)
+						removeAllZombies = true;
 					removeHarmlessZombies = true;
 					removeRopedZombies = true;
 				}
@@ -121,11 +131,14 @@ namespace ZombieLand
 				removeSpitter = true;
 				if (isHuman)
 				{
-					if (enemiesDoNotAttackZombies) removeAllZombies = true;
+					if (enemiesDoNotAttackZombies)
+						removeAllZombies = true;
 					else
 					{
-						if (zombiesAttackOnlyColonists) removeAllZombies = true;
-						else removeHarmlessZombies = true;
+						if (zombiesAttackOnlyColonists)
+							removeAllZombies = true;
+						else
+							removeHarmlessZombies = true;
 						removeConfusedZombies = true;
 						removeDistantZombies = true;
 						removeLongDistanceMelee = true;
@@ -133,20 +146,25 @@ namespace ZombieLand
 				}
 				else if (isMech)
 				{
-					if (enemiesDoNotAttackZombies) removeAllZombies = true;
+					if (enemiesDoNotAttackZombies)
+						removeAllZombies = true;
 					else
 					{
-						if (zombiesAttackEverything == false) removeAllZombies = true;
-						else removeHarmlessZombies = true;
+						if (zombiesAttackEverything == false)
+							removeAllZombies = true;
+						else
+							removeHarmlessZombies = true;
 						removeConfusedZombies = true;
 					}
 				}
 				else if (isAnimal)
 				{
-					if (enemiesDoNotAttackZombies || animalsDoNotAttackZombies) removeAllZombies = true;
+					if (enemiesDoNotAttackZombies || animalsDoNotAttackZombies)
+						removeAllZombies = true;
 					else
 					{
-						if (zombiesAttackEverything == false) removeAllZombies = true;
+						if (zombiesAttackEverything == false)
+							removeAllZombies = true;
 						removeHarmlessZombies = true;
 						removeRopedZombies = true;
 						removeConfusedZombies = true;
@@ -155,25 +173,36 @@ namespace ZombieLand
 				}
 				else // isThing
 				{
-					if (enemiesDoNotAttackZombies) removeAllZombies = true;
-					if (zombiesAttackEverything == false) removeAllZombies = true;
+					if (enemiesDoNotAttackZombies)
+						removeAllZombies = true;
+					if (zombiesAttackEverything == false)
+						removeAllZombies = true;
 					removeHarmlessZombies = true;
 				}
 			}
 
 			rawTargets.RemoveAll(target =>
 			{
-				if (target.Thing is not Pawn pawn) return false;
-				if (removeSpitter && pawn is ZombieSpitter) return true;
-				if (pawn is not Zombie zombie) return false;
+				if (target.Thing is not Pawn pawn)
+					return false;
+				if (removeSpitter && pawn is ZombieSpitter)
+					return true;
+				if (pawn is not Zombie zombie)
+					return false;
 				var downed = zombie.Downed;
-				if (removeAllZombies) return true;
-				if (removeHarmlessZombies && (downed || zombie.isAlbino)) return true;
+				if (removeAllZombies)
+					return true;
+				if (removeHarmlessZombies && (downed || zombie.isAlbino))
+					return true;
 				var farAway = attacker.Position.DistanceToSquared(zombie.Position) > 81;
-				if (removeDistantZombies && farAway) return true;
-				if (removeRopedZombies && downed == false && zombie.ropedBy != null) return true;
-				if (removeConfusedZombies && zombie.IsConfused) return true;
-				if (removeLongDistanceMelee && farAway && verb.IsMeleeAttack) return true;
+				if (removeDistantZombies && farAway)
+					return true;
+				if (removeRopedZombies && downed == false && zombie.ropedBy != null)
+					return true;
+				if (removeConfusedZombies && zombie.IsConfused)
+					return true;
+				if (removeLongDistanceMelee && farAway && verb.IsMeleeAttack)
+					return true;
 				return false;
 			});
 		}
@@ -239,7 +268,7 @@ namespace ZombieLand
 				return;
 
 			// attacker is animal
-			if (attacker.RaceProps.Animal)
+			if (attacker.RaceProps?.Animal ?? false)
 			{
 				validator = (Thing t) =>
 				{
@@ -569,7 +598,7 @@ namespace ZombieLand
 				_ = playerHostilesWithoutZombies[map].Add(target);
 			}
 		}
-		
+
 		[HarmonyPatch(typeof(AttackTargetsCache))]
 		[HarmonyPatch(nameof(AttackTargetsCache.DeregisterTarget))]
 		static class AttackTargetsCache_DeregisterTarget_Patch
