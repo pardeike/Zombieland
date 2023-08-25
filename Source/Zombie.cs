@@ -570,8 +570,6 @@ namespace ZombieLand
 					roping?.RopingTick();
 					natives?.NativeVerbsTick();
 					jobs?.JobTrackerTick();
-					//Drawer?.DrawTrackerTick();
-					//rotationTracker?.RotationTrackerTick();
 					health?.HealthTick();
 				}
 			}

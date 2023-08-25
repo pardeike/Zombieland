@@ -147,7 +147,17 @@ namespace ZombieLand
 		private static void SpawnZombieSpitterOnCell()
 		{
 			ZombieSpitter.Spawn(Find.CurrentMap, UI.MouseCell());
-			var map = Find.CurrentMap;
+		}
+
+		[DebugAction("Zombieland", "Remove: All Zombies", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void RemoveAllZombies()
+		{
+			var things = Find.CurrentMap.listerThings.AllThings.ToArray();
+			foreach (var thing in things)
+			{
+				if (thing is Zombie || thing is ZombieSpitter)
+					thing.Destroy();
+			}
 		}
 
 		[DebugAction("Zombieland", "Convert: Make Zombie", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
