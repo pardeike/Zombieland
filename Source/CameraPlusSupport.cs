@@ -69,7 +69,7 @@ namespace CameraPlusSupport
 		//
 		static Texture2D[] GetCameraPlusMarkers(Pawn pawn)
 		{
-			if (pawn is not ZombieLand.Zombie zombie)
+			if (pawn is not ZombieLand.Zombie)
 				return null;
 			return new Texture2D[] { innerMarkerTexture, outerMarkerTexture };
 		}

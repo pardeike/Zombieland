@@ -1,9 +1,9 @@
-﻿using System;
+﻿using HarmonyLib;
+using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HarmonyLib;
-using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -51,7 +51,8 @@ namespace ZombieLand
 		static IEnumerable<Thing> Postfix(IEnumerable<Thing> things, Pawn worker, IBillGiver billGiver, List<Thing> ingredients)
 		{
 			var results = things.ToArray();
-			if (billGiver is not Thing bench) return things;
+			if (billGiver is not Thing bench)
+				return things;
 
 			var manager = ContaminationManager.Instance;
 			var transfer = ingredients.Sum(i => manager.Get(i));
@@ -98,11 +99,11 @@ namespace ZombieLand
 				return;
 			if (Tools.IsPlaying() == false)
 				return;
-			
+
 			var previousTotal = __instance.stackCount + count;
 			if (previousTotal == 0)
 				return;
-			
+
 			var factor = count / (float)previousTotal;
 			__instance.TransferContamination(factor, () => Log.Warning($"Split off {count}/{previousTotal} ({factor}) from {__instance} to get {__result}"), __result);
 		}
@@ -279,7 +280,7 @@ namespace ZombieLand
 
 		static IEnumerable<Toil> Postfix(IEnumerable<Toil> toils, JobDriver_Lovin __instance)
 		{
-			foreach(var toil in toils)
+			foreach (var toil in toils)
 			{
 				if (toil.debugName == layDownToilName && toil.initAction != null)
 				{
@@ -301,7 +302,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Pawn), nameof(Pawn.MakeCorpse))]
-	[HarmonyPatch(new[] { typeof(Building_Grave), typeof(bool), typeof(float) } )]
+	[HarmonyPatch(new[] { typeof(Building_Grave), typeof(bool), typeof(float) })]
 	static class Pawn_MakeCorpse_TestPatch
 	{
 		static void Postfix(Pawn __instance, Corpse __result)

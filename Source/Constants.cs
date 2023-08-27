@@ -369,6 +369,12 @@ namespace ZombieLand
 			MaterialPool.MatFrom("Spitter/Spitter-middle", ShaderDatabase.Cutout),
 			MaterialPool.MatFrom("Spitter/Spitter-front", ShaderDatabase.Cutout),
 		};
+		public static readonly Material[] SpitterAggressive = new[]
+		{
+			MaterialPool.MatFrom("Spitter/Spitter-back", ShaderDatabase.Cutout, new Color(1f, 0.75f, 0.75f)),
+			MaterialPool.MatFrom("Spitter/Spitter-middle", ShaderDatabase.Cutout, new Color(1f, 0.75f, 0.75f)),
+			MaterialPool.MatFrom("Spitter/Spitter-front", ShaderDatabase.Cutout, new Color(1f, 0.75f, 0.75f)),
+		};
 
 		public static List<(string name, FieldInfo field, ConstantAttribute attr)> AllSettings
 		{

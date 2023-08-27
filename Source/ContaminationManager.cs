@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using HarmonyLib;
+﻿using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 using Verse;
 
 namespace ZombieLand
@@ -80,7 +79,7 @@ namespace ZombieLand
 			if (includeHoldings && thing is IThingHolder holder)
 			{
 				var innerThings = ThingOwnerUtility.GetAllThingsRecursively(holder, false);
-				foreach(var innerThing in innerThings)
+				foreach (var innerThing in innerThings)
 					if (contaminations.TryGetValue(innerThing.thingIDNumber, out contamination))
 						sum += contamination;
 			}
@@ -220,7 +219,7 @@ namespace ZombieLand
 			if (transfer == 0)
 				return 0;
 			ChangeDirectly(t1, map, transfer);
-			ChangeDirectly(t2, map, - transfer);
+			ChangeDirectly(t2, map, -transfer);
 			if (LOGGING)
 			{
 				if (transfer > 0)
@@ -236,7 +235,8 @@ namespace ZombieLand
 
 		public bool GetCellBool(int index)
 		{
-			if (currentDrawerMap == null || currentDrawerMap.fogGrid.IsFogged(index)) return false;
+			if (currentDrawerMap == null || currentDrawerMap.fogGrid.IsFogged(index))
+				return false;
 			return currentDrawerMap.thingGrid.thingGrid[index]
 				.Where(t => t is not Mineable)
 				.Sum(t => contaminations.TryGetValue(t.thingIDNumber, 0)) > 0;
@@ -244,7 +244,8 @@ namespace ZombieLand
 
 		public Color GetCellExtraColor(int index)
 		{
-			if (currentDrawerMap == null) return Color.clear;
+			if (currentDrawerMap == null)
+				return Color.clear;
 			var things = currentDrawerMap.thingGrid.ThingsListAtFast(index);
 			var allContamination = things.Sum(t => contaminations.TryGetValue(t.thingIDNumber, 0));
 			var a = GenMath.LerpDoubleClamped(0, 1, 0, 0.8f, Mathf.Pow(allContamination, 0.7f));

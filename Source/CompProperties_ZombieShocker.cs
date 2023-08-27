@@ -1,4 +1,5 @@
-﻿using Verse;
+﻿using Mono.Unix.Native;
+using Verse;
 
 namespace ZombieLand
 {
@@ -25,8 +26,7 @@ namespace ZombieLand
 		{
 			if (parent?.Map == null)
 				return false;
-			var edifice = parent.Map.edificeGrid[parent.Position];
-			return edifice != null && edifice is Building building;
+			return parent.Map.edificeGrid[parent.Position] != null;
 		}
 	}
 }

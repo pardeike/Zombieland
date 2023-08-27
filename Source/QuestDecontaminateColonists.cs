@@ -1,7 +1,7 @@
-﻿using System.Linq;
-using RimWorld;
+﻿using RimWorld;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
+using System.Linq;
 using UnityEngine;
 using Verse;
 
@@ -144,7 +144,7 @@ namespace ZombieLand
 		{
 			if (subject == null)
 				return;
-			
+
 			var building_Grave = pawn.ownership?.AssignedGrave;
 			var corpse = pawn.MakeCorpse(building_Grave, null);
 			ReturnDead(corpse);
@@ -156,7 +156,7 @@ namespace ZombieLand
 		{
 			if (State != QuestPartState.Enabled)
 				return;
-			
+
 			var rect = new Rect(innerRect.x, curY, 500f, 25f);
 			if (Widgets.ButtonText(rect, "End " + ToString()))
 				Complete();

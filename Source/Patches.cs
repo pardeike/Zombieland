@@ -176,7 +176,8 @@ namespace ZombieLand
 						map.listerThings.AllThings
 							.DoIf(thing =>
 							{
-								if (thing is Mineable) return false;
+								if (thing is Mineable)
+									return false;
 								var cell = thing.Position;
 								return currentViewRect.Contains(cell) && cell.Fogged(map) == false;
 							},
@@ -1523,7 +1524,6 @@ namespace ZombieLand
 						var flee = JobMaker.MakeJob(JobDefOf.Flee, destination);
 						flee.playerForced = true;
 						___pawn.jobs.ClearQueuedJobs();
-						Log.Error($"FORCE {___pawn} to flee from nearby zombie");
 						___pawn.jobs.StartJob(flee, JobCondition.Incompletable, null);
 					}
 				}
@@ -2422,6 +2422,7 @@ namespace ZombieLand
 		}
 
 		// patch to let incidents spawn infected
+		//
 		[HarmonyPatch(typeof(PawnGroupKindWorker))]
 		[HarmonyPatch(nameof(PawnGroupKindWorker.GeneratePawns))]
 		[HarmonyPatch(new[] { typeof(PawnGroupMakerParms), typeof(PawnGroupMaker), typeof(bool) })]
@@ -2431,9 +2432,10 @@ namespace ZombieLand
 			{
 				if (__result == null)
 					return;
-				if (Rand.Chance(ZombieSettings.Values.infectedRaidsChance) == false)
+				var notLaunchingShip = ShipCountdown.CountingDown == false;
+				if (notLaunchingShip && Rand.Chance(ZombieSettings.Values.infectedRaidsChance) == false)
 					return;
-				if (ZombieWeather.GetThreatLevel(__result.FirstOrDefault()?.Map) == 0f)
+				if (notLaunchingShip && ZombieWeather.GetThreatLevel(__result.FirstOrDefault()?.Map) == 0f)
 					return;
 				__result.DoIf(pawn => pawn.RaceProps.Humanlike, Tools.AddZombieInfection);
 			}
@@ -4047,14 +4049,15 @@ namespace ZombieLand
 				{
 					dinfo.SetAllowDamagePropagation(false);
 					dinfo.SetInstantPermanentInjury(false);
-					dinfo.SetAmount(dinfo.Amount / 1.5f);
+					var f1 = GenMath.LerpDouble(0, 5, 1, 10, Tools.Difficulty()) + (ShipCountdown.CountingDown ? 2f : 1f);
+					dinfo.SetAmount(dinfo.Amount / f1);
 					return true;
 				}
 
 				var def = dinfo.Def;
 
 				if (zombie.isAlbino)
-					return def.isExplosive || Rand.Chance(0.5f);
+					return def.isExplosive || Rand.Chance(0.25f);
 
 				if (zombie.isDarkSlimer)
 				{
@@ -4088,6 +4091,8 @@ namespace ZombieLand
 					return false;
 				}
 
+				var f2 = Mathf.Max(1f, Tools.Difficulty()) + (ShipCountdown.CountingDown ? 2f : 1f);
+				dinfo.SetAmount(dinfo.Amount / f2);
 				return true;
 			}
 		}
@@ -4686,6 +4691,25 @@ namespace ZombieLand
 					def.passability = Traversability.Standable;
 					def.stackLimit = 1;
 					def.thingClass = typeof(ZombieCorpse);
+				}
+				if (def.ingestible.sourceDef is ThingDef_ZombieSpitter)
+				{
+					def.selectable = false;
+					def.smeltable = false;
+					def.mineable = false;
+					def.stealable = false;
+					def.burnableByRecipe = false;
+					def.canLoadIntoCaravan = false;
+					def.neverMultiSelect = true;
+					def.butcherProducts = null;
+					def.smeltProducts = null;
+					def.drawGUIOverlay = false;
+					def.hasTooltip = false;
+					def.hideAtSnowDepth = 99f;
+					def.inspectorTabs = new List<Type>();
+					def.passability = Traversability.Standable;
+					def.stackLimit = 1;
+					def.thingClass = typeof(ZombieSpitterCorpse);
 				}
 			}
 		}

@@ -142,14 +142,14 @@ namespace ZombieLand
 		public override void MapGenerated()
 		{
 			var ticks = GenTicks.TicksGame;
-            mapSpawnedTicks = ticks;
-            if (zombieSpitterInited == false)
-            {
-                lastZombieContact = ticks;
-                lastZombieSpitter = ticks;
-                zombieSpitterInited = true;
-            }
-            base.MapGenerated();
+			mapSpawnedTicks = ticks;
+			if (zombieSpitterInited == false)
+			{
+				lastZombieContact = ticks;
+				lastZombieSpitter = ticks;
+				zombieSpitterInited = true;
+			}
+			base.MapGenerated();
 		}
 
 		public override void FinalizeInit()
@@ -420,9 +420,15 @@ namespace ZombieLand
 			{
 				var ticks = GenTicks.TicksGame;
 				var (minTicksForSpitter, deltaContact, deltaSpitter) = Tools.ZombieSpitterParameter();
+				var isCountingDown = ShipCountdown.CountingDown;
+				if (isCountingDown)
+				{
+					deltaContact = 0;
+					deltaSpitter -= deltaSpitter / 3;
+				}
 				if (ticks > minTicksForSpitter && ticks - lastZombieContact > deltaContact && ticks - lastZombieSpitter > deltaSpitter)
 				{
-					if (CanHaveMoreZombies())
+					if (isCountingDown || CanHaveMoreZombies())
 					{
 						lastZombieContact = ticks;
 						lastZombieSpitter = ticks;

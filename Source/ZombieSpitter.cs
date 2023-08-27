@@ -9,9 +9,11 @@ using Verse.Sound;
 
 namespace ZombieLand
 {
-	public class ZombieSpitter : Pawn
+	public class ZombieSpitter : Pawn, IDisposable
 	{
+		public bool aggressive = false;
 		static Mesh mesh = null;
+		bool disposed = false;
 
 		public static void Spawn(Map map, IntVec3? location = null)
 		{
@@ -30,7 +32,7 @@ namespace ZombieLand
 					.SafeRandomElement(IntVec3.Invalid);
 				if (newLocation.IsValid)
 					location = newLocation;
-            }
+			}
 
 			if (location.HasValue == false)
 				return;
@@ -55,9 +57,10 @@ namespace ZombieLand
 			mesh ??= MeshMakerPlanes.NewPlaneMesh(3f);
 			var v = new Vector3(0.1f, 0f, 0f) * Mathf.Sin(2 * Mathf.PI * Drawer.tweener.MovedPercent());
 			var h = new Vector3(0f, 0.01f, 0f);
-			Graphics.DrawMesh(mesh, DrawPos + v, Quaternion.identity, Constants.Spitter[0], 0);
-			Graphics.DrawMesh(mesh, DrawPos + h, Quaternion.identity, Constants.Spitter[1], 0);
-			Graphics.DrawMesh(mesh, DrawPos - v + h + h, Quaternion.identity, Constants.Spitter[2], 0);
+			var materials = aggressive ? Constants.SpitterAggressive : Constants.Spitter;
+			Graphics.DrawMesh(mesh, DrawPos + v, Quaternion.identity, materials[0], 0);
+			Graphics.DrawMesh(mesh, DrawPos + h, Quaternion.identity, materials[1], 0);
+			Graphics.DrawMesh(mesh, DrawPos - v + h + h, Quaternion.identity, materials[2], 0);
 		}
 
 		public override string GetInspectString()
@@ -69,6 +72,20 @@ namespace ZombieLand
 				result.Append("Waves".Translate()).Append(": ").Append(spitter.waves).Append(", ");
 			result.AppendLine(("SpitterState" + Enum.GetName(typeof(SpitterState), spitter.state)).Translate());
 			return result.ToString().TrimEndNewlines();
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		void Dispose(bool disposing)
+		{
+			_ = disposing;
+			if (disposed)
+				return;
+			disposed = true;
 		}
 	}
 }

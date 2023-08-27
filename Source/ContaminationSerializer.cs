@@ -66,7 +66,7 @@ namespace ZombieLand
 						for (var i = 0; i < values.Length; i++)
 						{
 							var f = values[i];
-							var n = f == 0 ? 0: (int)(f * 100 + 0.9999);
+							var n = f == 0 ? 0 : (int)(f * 100 + 0.9999);
 							sb.Append(n);
 							sb.Append(',');
 						}

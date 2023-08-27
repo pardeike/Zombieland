@@ -366,24 +366,36 @@ namespace ZombieLand
 			//
 			if (isPlayer)
 			{
-				if (isHuman) return true;
-				else if (isMech) return zombiesAttackOnlyHumans == false;
-				else if (isAnimal) return animalsDoNotAttackZombies == false && zombiesAttackEverything;
-				else return false;
+				if (isHuman)
+					return true;
+				else if (isMech)
+					return zombiesAttackOnlyHumans == false;
+				else if (isAnimal)
+					return animalsDoNotAttackZombies == false && zombiesAttackEverything;
+				else
+					return false;
 			}
 			else if (isFriendly)
 			{
-				if (isHuman) return zombiesAttackOnlyColonists == false;
-				else if (isMech) return zombiesAttackEverything;
-				else if (isAnimal) return animalsDoNotAttackZombies == false;
-				else return zombiesAttackEverything;
+				if (isHuman)
+					return zombiesAttackOnlyColonists == false;
+				else if (isMech)
+					return zombiesAttackEverything;
+				else if (isAnimal)
+					return animalsDoNotAttackZombies == false;
+				else
+					return zombiesAttackEverything;
 			}
 			else if (isEnemy)
 			{
-				if (isHuman) return enemiesDoNotAttackZombies == false;
-				else if (isMech) return enemiesDoNotAttackZombies == false;
-				else if (isAnimal) return enemiesDoNotAttackZombies == false && animalsDoNotAttackZombies == false;
-				else return enemiesDoNotAttackZombies == false;
+				if (isHuman)
+					return enemiesDoNotAttackZombies == false;
+				else if (isMech)
+					return enemiesDoNotAttackZombies == false;
+				else if (isAnimal)
+					return enemiesDoNotAttackZombies == false && animalsDoNotAttackZombies == false;
+				else
+					return enemiesDoNotAttackZombies == false;
 			}
 			return false;
 		}
@@ -1739,7 +1751,7 @@ namespace ZombieLand
 			f -= amount;
 			amount += Rand.Chance(f) ? 1 : 0;
 
-			if (pawn is ZombieSpitter)
+			if (pawn is ZombieSpitter spitter && spitter.aggressive)
 			{
 				var def = DefDatabase<ThingDef>.GetNamed("ZombieSerumSimple", false);
 				if (def != null)
