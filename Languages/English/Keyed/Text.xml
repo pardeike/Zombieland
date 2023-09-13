@@ -30,6 +30,9 @@
 	<ZombielandDifficultyTitle>Overall Difficulty</ZombielandDifficultyTitle>
 	<ZombielandDifficulty>Threat scale</ZombielandDifficulty>
 
+	<ZombielandContaminationTitle>Contamination</ZombielandContaminationTitle>
+	<ZombielandContamination>Intensity</ZombielandContamination>
+
 	<WhenDoZombiesSpawn>When do zombies appear?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>All the time</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>When it is dark</SpawnWhenType_WhenDark>

@@ -344,5 +344,16 @@ namespace ZombieLand
 			if (cell.InBounds(map))
 				map.SetContamination(cell, 0);
 		}
+
+		[DebugAction("Zombieland", "Apply: Contamination effect", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void ContaminationEffect()
+		{
+			var map = Find.CurrentMap;
+			var pawn = map.thingGrid.ThingAt<Pawn>(UI.MouseCell());
+			if (pawn == null || pawn is Zombie || pawn is ZombieSpitter)
+				return;
+			var window = new Dialog_ContaminationDebugSettings(pawn);
+			Find.WindowStack.Add(window);
+		}
 	}
 }

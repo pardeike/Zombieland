@@ -29,7 +29,7 @@ namespace ZombieLand
 		static Thing MakeThing(ThingDef def, ThingDef stuff, float contamination)
 		{
 			var thing = ThingMaker.MakeThing(def, stuff);
-			thing.AddContamination(contamination, () => Log.Warning($"Produce {thing} gains {contamination}"), ContaminationFactors.constructionAdd);
+			thing.AddContamination(contamination, () => Log.Warning($"Produce {thing} gains {contamination}"), ZombieSettings.Values.contamination.constructionAdd);
 			return thing;
 		}
 
@@ -157,7 +157,7 @@ namespace ZombieLand
 		static Thing MakeThing(ThingDef def, ThingDef stuff, Building_SubcoreScanner scanner)
 		{
 			var result = ThingMaker.MakeThing(def, stuff);
-			scanner.TransferContamination(ContaminationFactors.subcoreScannerTransfer, () => Log.Warning($"Produce {result} from {scanner}"), result);
+			scanner.TransferContamination(ZombieSettings.Values.contamination.subcoreScannerTransfer, () => Log.Warning($"Produce {result} from {scanner}"), result);
 			return result;
 		}
 
@@ -172,7 +172,7 @@ namespace ZombieLand
 		{
 			var result = ThingMaker.MakeThing(def, stuff);
 			var pawn = extractor.ContainedPawn;
-			pawn.TransferContamination(ContaminationFactors.geneExtractorTransfer, () => Log.Warning($"Produce {result} from {pawn}"), result);
+			pawn.TransferContamination(ZombieSettings.Values.contamination.geneExtractorTransfer, () => Log.Warning($"Produce {result} from {pawn}"), result);
 			return result;
 		}
 
@@ -192,7 +192,7 @@ namespace ZombieLand
 		static Thing MakeThing(ThingDef def, ThingDef stuff, List<Thing> things)
 		{
 			var result = ThingMaker.MakeThing(def, stuff);
-			things?.TransferContamination(ContaminationFactors.dispenseFoodTransfer, () => Log.Warning($"Produce {result} from [{things.Join(t => $"{t}")}]"), result);
+			things?.TransferContamination(ZombieSettings.Values.contamination.dispenseFoodTransfer, () => Log.Warning($"Produce {result} from [{things.Join(t => $"{t}")}]"), result);
 			return result;
 		}
 
@@ -235,9 +235,9 @@ namespace ZombieLand
 			var result = ThingMaker.MakeThing(def, stuff);
 			var factor = 1f;
 			if (building is Building_GeneAssembler)
-				factor = ContaminationFactors.geneAssemblerTransfer;
+				factor = ZombieSettings.Values.contamination.geneAssemblerTransfer;
 			else if (building is Building_FermentingBarrel)
-				factor = ContaminationFactors.fermentingBarrelTransfer;
+				factor = ZombieSettings.Values.contamination.fermentingBarrelTransfer;
 			building.TransferContamination(factor, () => Log.Warning($"Produce {result} [{factor}] from {building}"), result);
 			return result;
 		}
@@ -259,7 +259,7 @@ namespace ZombieLand
 		public static void Equalize(Pawn pawn, Thing thing)
 		{
 			if (thing != null)
-				ContaminationFactors.repairTransfer.Equalize(pawn, thing, () => Log.Warning($"{pawn} repaired {thing}"));
+				ZombieSettings.Values.contamination.repairTransfer.Equalize(pawn, thing, () => Log.Warning($"{pawn} repaired {thing}"));
 		}
 
 		static void Notify_BuildingRepaired(ListerBuildingsRepairable self, Building b, Pawn pawn)

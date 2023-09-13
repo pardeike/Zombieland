@@ -109,6 +109,7 @@ namespace ZombieLand
 		public List<SoSTools.Floater> floatingSpaceZombiesFore;
 
 		public List<VictimHead> victimHeads = new();
+		public ContaminationEffectManager contaminationEffects = new();
 
 		public int lastZombieContact = 0;
 		public int lastZombieSpitter = 0;
@@ -718,6 +719,8 @@ namespace ZombieLand
 				UpdateGameSettings();
 				yield return null;
 				RepositionColonists();
+				yield return null;
+				contaminationEffects.Tick();
 				yield return null;
 				HandleIncidents();
 				yield return null;

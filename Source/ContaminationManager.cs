@@ -57,7 +57,7 @@ namespace ZombieLand
 			{
 				if (nextDecontaminationQuest != 0)
 					DecontaminationQuest();
-				nextDecontaminationQuest = ticks + ContaminationFactors.decontaminationQuestInterval;
+				nextDecontaminationQuest = ticks + (int)ZombieSettings.Values.contamination.decontaminationQuestInterval;
 			}
 		}
 

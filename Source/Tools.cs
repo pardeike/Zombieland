@@ -1094,6 +1094,17 @@ namespace ZombieLand
 				var type = value.GetType();
 				try
 				{
+					if (value is IExposable exposable)
+					{
+						if (Scribe.EnterNode(name))
+						{
+							exposable.ExposeData();
+							Scribe.ExitNode();
+						}
+						finfo.SetValue(settings, exposable);
+						return;
+					}
+
 					if (callback != null && callback(settings, name, value, defaultValue))
 						return;
 

@@ -44,7 +44,19 @@ namespace ZombieLand
 				{
 					list.Dialog_Label("ZombielandDifficultyTitle", headerColor);
 					list.Gap(6f);
-					list.Dialog_FloatSlider("ZombielandDifficulty", _ => "{0:0%}", false, ref settings.threatScale, 0f, 5f);
+					list.Dialog_FloatSlider("ZombielandDifficulty", f => f == 0f ? "Off".TranslateSimple() : "{0:0%}", false, ref settings.threatScale, 0f, 5f);
+					list.Gap(12f);
+				}
+
+				// Contamination
+				if (DialogExtensions.Section<string>(":ZombielandContaminationTitle", ":ZombielandContamination"))
+				{
+					list.Dialog_Label("ZombielandContaminationTitle", headerColor);
+					list.Gap(6f);
+					var oldValue = settings.contaminationBaseFactor;
+					list.Dialog_FloatSlider("ZombielandContamination", _ => "{0:0%}", false, ref settings.contaminationBaseFactor, 0f, 5f);
+					if (oldValue != settings.contaminationBaseFactor)
+						ContaminationFactors.ApplyBaseFactor(settings.contamination, settings.contaminationBaseFactor);
 					list.Gap(12f);
 				}
 

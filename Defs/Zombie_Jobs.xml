@@ -57,4 +57,11 @@
 		<allowOpportunisticPrefix>true</allowOpportunisticPrefix>
 	</JobDef>
 
+	<JobDef>
+		<defName>ContaminationJobHallucination</defName>
+		<driverClass>ZombieLand.JobDriver_ContaminationHallucination</driverClass>
+		<reportString>hallucinating an imaginary enemy.</reportString>
+		<suspendable>false</suspendable>
+	</JobDef>
+
 </Defs>

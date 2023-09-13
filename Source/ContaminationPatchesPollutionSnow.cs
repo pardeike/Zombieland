@@ -29,7 +29,7 @@ namespace ZombieLand
 		static void Postfix(IntVec3 c, Map map)
 		{
 			var contamination = map.GetContamination(c);
-			subject?.AddContamination(contamination, () => Log.Warning($"{subject} cleaned pollution at {c}"), ContaminationFactors.pollutionAdd);
+			subject?.AddContamination(contamination, () => Log.Warning($"{subject} cleaned pollution at {c}"), ZombieSettings.Values.contamination.pollutionAdd);
 		}
 	}
 
@@ -47,7 +47,7 @@ namespace ZombieLand
 		{
 			var contamination = self.map.GetContamination(c);
 			var pawn = toil.actor;
-			pawn.AddContamination(contamination, () => Log.Warning($"{pawn} cleaned snow at {c}"), ContaminationFactors.snowAdd);
+			pawn.AddContamination(contamination, () => Log.Warning($"{pawn} cleaned snow at {c}"), ZombieSettings.Values.contamination.snowAdd);
 			self.SetDepth(c, newDepth);
 		}
 

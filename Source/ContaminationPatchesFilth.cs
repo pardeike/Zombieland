@@ -16,7 +16,7 @@ namespace ZombieLand
 		static void Postfix(Pawn_FilthTracker __instance)
 		{
 			var pawn = __instance.pawn;
-			ContaminationFactors.enterCellEqualize.Equalize(pawn, pawn.Position);
+			ZombieSettings.Values.contamination.enterCellEqualize.Equalize(pawn, pawn.Position);
 			Filth_MakeThing_TestPatch.filthSource = null;
 		}
 	}
@@ -33,7 +33,7 @@ namespace ZombieLand
 
 		static void ThinFilth(Filth filth, JobDriver_CleanFilth jobDriver)
 		{
-			filth.TransferContamination(ContaminationFactors.filthTransfer, () => Log.Warning($"{jobDriver.pawn} cleaned {filth}"), jobDriver.pawn);
+			filth.TransferContamination(ZombieSettings.Values.contamination.filthTransfer, () => Log.Warning($"{jobDriver.pawn} cleaned {filth}"), jobDriver.pawn);
 			filth.ThinFilth();
 		}
 
@@ -63,7 +63,7 @@ namespace ZombieLand
 			if (listOfLeavingsOut.Any())
 			{
 				var leavingsArray = listOfLeavingsOut.ToArray();
-				diedThing.TransferContamination(ContaminationFactors.leavingsTransfer, () => Log.Warning($"Produce {leavingsArray.Join(t => $"{t}")} from {diedThing}"), leavingsArray);
+				diedThing.TransferContamination(ZombieSettings.Values.contamination.leavingsTransfer, () => Log.Warning($"Produce {leavingsArray.Join(t => $"{t}")} from {diedThing}"), leavingsArray);
 			}
 		}
 	}
@@ -192,11 +192,11 @@ namespace ZombieLand
 				if (filthCell.IsValid)
 				{
 					newThing.mapIndexOrState = (sbyte)filthCell.mapInt.Index;
-					ContaminationFactors.filthEqualize.Equalize((LocalTargetInfo)filthCell, newThing, () => Log.Warning($"Gained {newThing} from {filthCell}"));
+					ZombieSettings.Values.contamination.filthEqualize.Equalize((LocalTargetInfo)filthCell, newThing, () => Log.Warning($"Gained {newThing} from {filthCell}"));
 				}
 				if (filthSource != null)
 				{
-					var factor = nastyFilths.Contains(filthSource.def) ? ContaminationFactors.bloodEqualize : ContaminationFactors.filthEqualize;
+					var factor = nastyFilths.Contains(filthSource.def) ? ZombieSettings.Values.contamination.bloodEqualize : ZombieSettings.Values.contamination.filthEqualize;
 					factor.Equalize(filthSource, newThing, () => Log.Warning($"Gained {newThing} from {filthSource}"));
 				}
 			}

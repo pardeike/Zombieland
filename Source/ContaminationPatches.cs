@@ -12,62 +12,6 @@ using static HarmonyLib.Code;
 //
 namespace ZombieLand
 {
-	static class ContaminationFactors
-	{
-		public static float minContaminationThreshold = 0.0001f;
-		public static float contaminationElevationDelta = 0.175f;
-		public static int decontaminationQuestInterval = GenDate.TicksPerYear / 2;
-
-		public static float ambrosiaAdd = 1f;
-		public static float constructionAdd = 0.5f;
-		public static float deepDrillAdd = 0.5f;
-		public static float destroyMineableAdd = 1f;
-		public static float floorAdd = 0.01f;
-		public static float jellyAdd = 0.5f;
-		public static float meteoriteAdd = 1f;
-		public static float plantAdd = 0.5f;
-		public static float pollutionAdd = 0.05f;
-		public static float shipChunkAdd = 0.25f;
-		public static float snowAdd = 0.1f;
-		public static float sowedPlantAdd = 0.2f;
-		public static float wastePackAdd = 0.5f;
-
-		public static float disassembleTransfer = 0.1f;
-		public static float dispenseFoodTransfer = 0.1f;
-		public static float fermentingBarrelTransfer = 0.1f;
-		public static float filthTransfer = 0.01f;
-		public static float geneAssemblerTransfer = 0.2f;
-		public static float geneExtractorTransfer = 0.2f;
-		public static float generalTransfer = 0.1f;
-		public static float ingestTransfer = 0.25f;
-		public static float leavingsTransfer = 0.5f;
-		public static float medicineTransfer = 0.9f;
-		public static float plantTransfer = 0.5f;
-		public static float receipeTransfer = 0.5f;
-		public static float repairTransfer = 0.01f;
-		public static float stumpTransfer = 1f;
-		public static float subcoreScannerTransfer = 0.2f;
-		public static float workerTransfer = 0.02f;
-
-		public static float benchEqualize = 0.02f;
-		public static float bloodEqualize = 0.1f;
-		public static float carryEqualize = 0.002f;
-		public static float enterCellEqualize = 0.001f;
-		public static float filthEqualize = 0.01f;
-		public static float meleeEqualize = 0.1f;
-		public static float produceEqualize = 0.1f;
-		public static float restEqualize = 0.001f;
-		public static float sowingPawnEqualize = 0.1f;
-		public static float tendEqualizeWorst = 0.2f;
-		public static float tendEqualizeBest = 0f;
-
-		public static float fireReduction = 0.05f;
-		public static float randomThingCreateChance = 0.1f;
-		public static float randomThingDensityDistribution = 0.5f;
-		public static float mechClusterChance = 1f;
-		public static float mechClusterDensityDistribution = 0.5f;
-	}
-
 	[HarmonyPatch(typeof(Game))]
 	[HarmonyPatch(nameof(Game.FinalizeInit))]
 	static class Game_FinalizeInit_Patch

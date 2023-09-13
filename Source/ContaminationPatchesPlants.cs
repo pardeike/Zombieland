@@ -24,7 +24,7 @@ namespace ZombieLand
 			if (Tools.IsPlaying())
 			{
 				var contamination = map.GetContamination(loc);
-				thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing} at {loc}"), thing.def.IsPlant ? ContaminationFactors.plantAdd : ContaminationFactors.jellyAdd);
+				thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing} at {loc}"), thing.def.IsPlant ? ZombieSettings.Values.contamination.plantAdd : ZombieSettings.Values.contamination.jellyAdd);
 			}
 			return thing;
 		}
@@ -50,7 +50,7 @@ namespace ZombieLand
 		static Thing MakeThing(ThingDef def, ThingDef stuff, Plant plant)
 		{
 			var result = ThingMaker.MakeThing(def, stuff);
-			plant?.TransferContamination(ContaminationFactors.plantTransfer, () => Log.Warning($"Produce {result} from {plant}"), result);
+			plant?.TransferContamination(ZombieSettings.Values.contamination.plantTransfer, () => Log.Warning($"Produce {result} from {plant}"), result);
 			return result;
 		}
 
@@ -83,7 +83,7 @@ namespace ZombieLand
 		{
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing} at {loc}"), ContaminationFactors.ambrosiaAdd);
+			thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing} at {loc}"), ZombieSettings.Values.contamination.ambrosiaAdd);
 			return thing;
 		}
 
@@ -97,7 +97,7 @@ namespace ZombieLand
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Plant plant)
 		{
 			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
-			plant.TransferContamination(ContaminationFactors.stumpTransfer, () => Log.Warning($"Produce {result} from {plant}"), result);
+			plant.TransferContamination(ZombieSettings.Values.contamination.stumpTransfer, () => Log.Warning($"Produce {result} from {plant}"), result);
 			return result;
 		}
 
@@ -121,8 +121,8 @@ namespace ZombieLand
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var pawn = driver.pawn;
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing} at {loc}"), ContaminationFactors.sowedPlantAdd);
-			ContaminationFactors.sowingPawnEqualize.Equalize(pawn, thing, () => Log.Warning($"{pawn} sowed {thing}"));
+			thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing} at {loc}"), ZombieSettings.Values.contamination.sowedPlantAdd);
+			ZombieSettings.Values.contamination.sowingPawnEqualize.Equalize(pawn, thing, () => Log.Warning($"{pawn} sowed {thing}"));
 			return thing;
 		}
 

@@ -16,7 +16,7 @@ namespace ZombieLand
 			var grid = new ContaminationGrid(map);
 			var elevation = MapGenerator.Elevation;
 			var allCells = map.AllCells.ToArray();
-			var lowerBound = allCells.Max(cell => elevation[cell]) - ContaminationFactors.contaminationElevationDelta;
+			var lowerBound = allCells.Max(cell => elevation[cell]) - ZombieSettings.Values.contamination.contaminationElevationDelta;
 			var cCells = allCells
 				.Where(cell => elevation[cell] >= lowerBound)
 				.Select(cell => (cell, val: elevation[cell]))
@@ -55,7 +55,7 @@ namespace ZombieLand
 		{
 			var thing = ThingMaker.MakeThing(def, stuff);
 			var contamination = mineableMap?.ExtractContamination(mineable.Position) ?? 0;
-			thing.AddContamination(contamination, () => Log.Warning($"Yielded {thing} from {mineable}"), ContaminationFactors.destroyMineableAdd);
+			thing.AddContamination(contamination, () => Log.Warning($"Yielded {thing} from {mineable}"), ZombieSettings.Values.contamination.destroyMineableAdd);
 			return thing;
 		}
 
@@ -69,7 +69,7 @@ namespace ZombieLand
 		static Thing MakeThing(ThingDef def, ThingDef stuff, CompDeepDrill comp)
 		{
 			var thing = ThingMaker.MakeThing(def, stuff);
-			thing.AddContamination(ContaminationFactors.deepDrillAdd, () => Log.Warning($"Deep drill produced {thing} at {comp.parent.InteractionCell}"));
+			thing.AddContamination(ZombieSettings.Values.contamination.deepDrillAdd, () => Log.Warning($"Deep drill produced {thing} at {comp.parent.InteractionCell}"));
 			return thing;
 		}
 

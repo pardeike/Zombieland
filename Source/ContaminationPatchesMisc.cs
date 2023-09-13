@@ -21,11 +21,11 @@ namespace ZombieLand
 				return;
 			var cell = __instance.Position;
 			var instance = ContaminationManager.Instance;
-			map.thingGrid.ThingsListAtFast(cell).Do(thing => instance.Subtract(thing, ContaminationFactors.fireReduction));
+			map.thingGrid.ThingsListAtFast(cell).Do(thing => instance.Subtract(thing, ZombieSettings.Values.contamination.fireReduction));
 			var grid = map.GetContamination();
 			var oldValue = grid[cell];
 			if (oldValue > 0)
-				grid[cell] = oldValue - ContaminationFactors.fireReduction;
+				grid[cell] = oldValue - ZombieSettings.Values.contamination.fireReduction;
 		}
 	}
 
@@ -41,7 +41,7 @@ namespace ZombieLand
 				return;
 			var pawn = __instance.Caster;
 			var thing = target.Thing;
-			ContaminationFactors.meleeEqualize.Equalize(pawn, thing, () => Log.Warning($"# {pawn} melee {thing}"));
+			ZombieSettings.Values.contamination.meleeEqualize.Equalize(pawn, thing, () => Log.Warning($"# {pawn} melee {thing}"));
 		}
 	}
 
@@ -56,11 +56,11 @@ namespace ZombieLand
 
 			var manager = ContaminationManager.Instance;
 			var transfer = ingredients.Sum(i => manager.Get(i));
-			ingredients.TransferContamination(ContaminationFactors.receipeTransfer, null, results);
+			ingredients.TransferContamination(ZombieSettings.Values.contamination.receipeTransfer, null, results);
 			foreach (var result in results)
-				transfer += Mathf.Abs(manager.Equalize(result, bench, ContaminationFactors.produceEqualize));
-			transfer += Mathf.Abs(manager.Equalize(bench, worker, ContaminationFactors.benchEqualize));
-			worker.TransferContamination(ContaminationFactors.workerTransfer, null, results);
+				transfer += Mathf.Abs(manager.Equalize(result, bench, ZombieSettings.Values.contamination.produceEqualize));
+			transfer += Mathf.Abs(manager.Equalize(bench, worker, ZombieSettings.Values.contamination.benchEqualize));
+			worker.TransferContamination(ZombieSettings.Values.contamination.workerTransfer, null, results);
 			if (transfer > 0)
 				Log.Warning($"{worker} produces {results.Join(t => $"{t}")} from {ingredients.Join(t => $"{t}")}{(bench != null ? $" on {bench}" : "")}");
 			return results.AsEnumerable();
@@ -126,7 +126,7 @@ namespace ZombieLand
 
 			self.IngestedCalculateAmounts(ingester, nutritionWanted, out numTaken, out nutritionIngested);
 			var factor = numTaken == 0 ? (totalNutrition == 0 ? 1 : nutritionIngested / totalNutrition) : (oldStackCount == 0 ? 1 : numTaken / (float)oldStackCount);
-			self.TransferContamination(ContaminationFactors.ingestTransfer * factor, () => Log.Warning($"{ingester} ingested {self}"), ingester);
+			self.TransferContamination(ZombieSettings.Values.contamination.ingestTransfer * factor, () => Log.Warning($"{ingester} ingested {self}"), ingester);
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -181,7 +181,7 @@ namespace ZombieLand
 			var result = ThingMaker.MakeThing(def, stuff);
 			if (thingComp?.parent is Thing thing)
 			{
-				thing.TransferContamination(ContaminationFactors.generalTransfer, () => Log.Warning($"Produce {result} from {thing}"), result);
+				thing.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, () => Log.Warning($"Produce {result} from {thing}"), result);
 			}
 			return result;
 		}
@@ -197,7 +197,7 @@ namespace ZombieLand
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Pawn victim)
 		{
 			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
-			victim.TransferContamination(ContaminationFactors.generalTransfer, () => Log.Warning($"Produce {result} from {victim}"), result);
+			victim.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, () => Log.Warning($"Produce {result} from {victim}"), result);
 			return result;
 		}
 
@@ -215,14 +215,14 @@ namespace ZombieLand
 			var manager = ContaminationManager.Instance;
 			if (medicine != null)
 			{
-				manager.Transfer(medicine, ContaminationFactors.medicineTransfer, new[] { patient }, () => Log.Warning($"{patient} treated with {medicine}"));
+				manager.Transfer(medicine, ZombieSettings.Values.contamination.medicineTransfer, new[] { patient }, () => Log.Warning($"{patient} treated with {medicine}"));
 				if (doctor != patient)
-					manager.Transfer(medicine, ContaminationFactors.medicineTransfer, new[] { doctor }, () => Log.Warning($"{doctor} handled {medicine}"));
+					manager.Transfer(medicine, ZombieSettings.Values.contamination.medicineTransfer, new[] { doctor }, () => Log.Warning($"{doctor} handled {medicine}"));
 			}
 			if (doctor != patient)
 			{
 				var medicineSkill = doctor.skills.GetSkill(SkillDefOf.Medicine).Level;
-				var weight = GenMath.LerpDoubleClamped(0, 20, ContaminationFactors.tendEqualizeWorst, ContaminationFactors.tendEqualizeBest, medicineSkill);
+				var weight = GenMath.LerpDoubleClamped(0, 20, ZombieSettings.Values.contamination.tendEqualizeWorst, ZombieSettings.Values.contamination.tendEqualizeBest, medicineSkill);
 				manager.Equalize(doctor, patient, weight, () => Log.Warning($"{doctor} tended {patient}"));
 			}
 		}
@@ -239,10 +239,10 @@ namespace ZombieLand
 				return;
 
 			var cell = p.Position;
-			ContaminationFactors.restEqualize.Equalize(p, cell, () => Log.Warning($"{p} rested at {cell}"));
+			ZombieSettings.Values.contamination.restEqualize.Equalize(p, cell, () => Log.Warning($"{p} rested at {cell}"));
 			var edifice = cell.GetEdifice(p.Map);
 			if (edifice != null)
-				ContaminationFactors.restEqualize.Equalize(p, edifice, () => Log.Warning($"{p} rested at {edifice}"));
+				ZombieSettings.Values.contamination.restEqualize.Equalize(p, edifice, () => Log.Warning($"{p} rested at {edifice}"));
 		}
 	}
 
@@ -260,7 +260,7 @@ namespace ZombieLand
 			var thing = __instance.CarriedThing;
 			if (thing == null)
 				return;
-			ContaminationFactors.carryEqualize.Equalize(pawn, thing, () => Log.Warning($"{pawn} carrying {thing}"), false, true);
+			ZombieSettings.Values.contamination.carryEqualize.Equalize(pawn, thing, () => Log.Warning($"{pawn} carrying {thing}"), false, true);
 		}
 	}
 
@@ -325,7 +325,7 @@ namespace ZombieLand
 		{
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing}"), ContaminationFactors.wastePackAdd);
+			thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing}"), ZombieSettings.Values.contamination.wastePackAdd);
 			return thing;
 		}
 
@@ -349,7 +349,7 @@ namespace ZombieLand
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Pawn pawn)
 		{
 			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
-			pawn.TransferContamination(ContaminationFactors.generalTransfer, () => Log.Warning($"Produce {result} from {pawn}"), result);
+			pawn.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, () => Log.Warning($"Produce {result} from {pawn}"), result);
 			return result;
 		}
 
@@ -363,7 +363,7 @@ namespace ZombieLand
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Pawn pawn)
 		{
 			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
-			pawn.TransferContamination(ContaminationFactors.generalTransfer, () => Log.Warning($"Produce {result} from {pawn}"), result);
+			pawn.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, () => Log.Warning($"Produce {result} from {pawn}"), result);
 			return result;
 		}
 
@@ -377,7 +377,7 @@ namespace ZombieLand
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, CompLifespan comp)
 		{
 			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
-			comp.parent.TransferContamination(ContaminationFactors.generalTransfer, () => Log.Warning($"Produce {result} from {comp.parent}"), result);
+			comp.parent.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, () => Log.Warning($"Produce {result} from {comp.parent}"), result);
 			return result;
 		}
 
@@ -415,7 +415,7 @@ namespace ZombieLand
 		{
 			var contamination = self.Map.GetContamination(c);
 			static string Affects(object obj) => obj.GetType().Name.Replace("JobDriver_", "").Replace("Floor", "").ToLower();
-			self.pawn.AddContamination(contamination, () => Log.Warning($"{self.pawn} {Affects(self)}s floor at {c}"), ContaminationFactors.floorAdd);
+			self.pawn.AddContamination(contamination, () => Log.Warning($"{self.pawn} {Affects(self)}s floor at {c}"), ZombieSettings.Values.contamination.floorAdd);
 			self.DoEffect(c);
 		}
 
@@ -440,7 +440,7 @@ namespace ZombieLand
 		{
 			var pawn = driver.pawn;
 			var mech = driver.Mech;
-			mech.TransferContamination(ContaminationFactors.disassembleTransfer, () => Log.Warning($"{pawn} produces {thing} from {mech}"), pawn, thing);
+			mech.TransferContamination(ZombieSettings.Values.contamination.disassembleTransfer, () => Log.Warning($"{pawn} produces {thing} from {mech}"), pawn, thing);
 			return GenPlace.TryPlaceThing(thing, center, map, mode, placedAction, nearPlaceValidator, rot);
 		}
 

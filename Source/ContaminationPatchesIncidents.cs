@@ -20,13 +20,13 @@ namespace ZombieLand
 
 			if (thing is Mineable mineable)
 			{
-				mineable.AddContamination(ContaminationFactors.meteoriteAdd, () => Log.Warning($"Skyfaller produced {mineable} at {mineable.Position}"));
+				mineable.AddContamination(ZombieSettings.Values.contamination.meteoriteAdd, () => Log.Warning($"Skyfaller produced {mineable} at {mineable.Position}"));
 				return;
 			}
 
 			if (thing.def == ThingDefOf.ShipChunk)
 			{
-				thing.AddContamination(ContaminationFactors.meteoriteAdd, () => Log.Warning($"Skyfaller produced {thing} at {thing.Position}"));
+				thing.AddContamination(ZombieSettings.Values.contamination.meteoriteAdd, () => Log.Warning($"Skyfaller produced {thing} at {thing.Position}"));
 				return;
 			}
 		}
@@ -40,9 +40,9 @@ namespace ZombieLand
 		{
 			if (Tools.IsPlaying())
 				foreach (var thing in __result.Where(t => t is not Mineable))
-					if (Rand.Chance(ContaminationFactors.randomThingCreateChance))
+					if (Rand.Chance(ZombieSettings.Values.contamination.randomThingCreateChance))
 					{
-						var amount = Tools.MoveableWeight(Rand.Value, ContaminationFactors.randomThingDensityDistribution);
+						var amount = Tools.MoveableWeight(Rand.Value, ZombieSettings.Values.contamination.randomThingDensityDistribution);
 						thing.AddContamination(amount, () => Log.Warning($"Made {thing}"));
 					}
 		}
@@ -63,9 +63,9 @@ namespace ZombieLand
 			if (things.Length > uncontaminated.Length)
 				return;
 			foreach (var thing in uncontaminated)
-				if (Rand.Chance(ContaminationFactors.randomThingCreateChance))
+				if (Rand.Chance(ZombieSettings.Values.contamination.randomThingCreateChance))
 				{
-					var amount = Tools.MoveableWeight(Rand.Value, ContaminationFactors.randomThingDensityDistribution);
+					var amount = Tools.MoveableWeight(Rand.Value, ZombieSettings.Values.contamination.randomThingDensityDistribution);
 					thing.AddContamination(amount, () => Log.Warning($"New tradeable {thing}"));
 				}
 		}
@@ -76,9 +76,9 @@ namespace ZombieLand
 	{
 		static void Postfix(List<Thing> __result)
 		{
-			if (Rand.Chance(ContaminationFactors.mechClusterChance) == false)
+			if (Rand.Chance(ZombieSettings.Values.contamination.mechClusterChance) == false)
 				return;
-			var amount = Tools.MoveableWeight(Rand.Value, ContaminationFactors.mechClusterDensityDistribution);
+			var amount = Tools.MoveableWeight(Rand.Value, ZombieSettings.Values.contamination.mechClusterDensityDistribution);
 			foreach (var thing in __result)
 				thing.AddContamination(amount, () => Log.Warning($"New mech cluster item {thing}"));
 		}
