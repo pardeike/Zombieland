@@ -8,7 +8,7 @@ namespace ZombieLand
 {
 	static class SettingsDialog
 	{
-		public static readonly float totalEstimatedHeight = 3700f;
+		public static readonly float totalEstimatedHeight = 3880f;
 		public static Vector2 scrollPosition = Vector2.zero;
 
 		public static void DoWindowContentsInternal(ref SettingsGroup settings, ref List<SettingsKeyFrame> settingsOverTime, Rect inRect)
@@ -113,11 +113,19 @@ namespace ZombieLand
 				}
 
 				// Health
-				if (DialogExtensions.Section<string>(":ZombieHealthTitle", ":DoubleTapRequired", ":ZombiesDieVeryEasily"))
+				if (DialogExtensions.Section<string>(":ZombieHealthTitle", ":DoubleTapRequired", ":ZombiesDieVeryEasily", ":ZombieHealthFactor"))
 				{
 					list.Dialog_Label("ZombieHealthTitle", headerColor);
 					list.Dialog_Checkbox("DoubleTapRequired", ref settings.doubleTapRequired);
 					list.Dialog_Checkbox("ZombiesDieVeryEasily", ref settings.zombiesDieVeryEasily);
+					if (settings.zombiesDieVeryEasily == false)
+					{
+						list.Gap(8f);
+						var oldHealthFactor = settings.healthFactor;
+						list.Dialog_FloatSlider("ZombieHealthFactor", _ => "{0:0%}", false, ref settings.healthFactor, 0f, 10f);
+						if (oldHealthFactor != settings.healthFactor)
+							CustomDefs.Zombie.race.baseHealthScale = settings.healthFactor;
+					}
 					list.Gap(30f);
 				}
 

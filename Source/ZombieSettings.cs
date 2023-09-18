@@ -183,6 +183,7 @@ namespace ZombieLand
 		public bool smashOnlyWhenAgitated = true;
 		public bool doubleTapRequired = true;
 		public bool zombiesDieVeryEasily = false;
+		public float healthFactor = 1f;
 		public int daysBeforeZombiesCome = 3;
 		public int maximumNumberOfZombies = 500;
 		public bool useDynamicThreatLevel = true;

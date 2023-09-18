@@ -331,14 +331,16 @@ namespace ZombieLand
 
 		public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
 		{
-			_ = Map.GetComponent<TickManager>()?.hummingZombies.Remove(this);
-
 			var map = Map;
-			if (map == null)
-				return;
+			if (map != null)
+			{
+				var tm = map.GetComponent<TickManager>();
+				_ = tm?.hummingZombies.Remove(this);
+				_ = tm?.tankZombies.Remove(this);
 
-			var grid = map.GetGrid();
-			grid.ChangeZombieCount(lastGotoPosition, -1);
+				var grid = map.GetGrid();
+				grid.ChangeZombieCount(lastGotoPosition, -1);
+			}
 			base.DeSpawn(mode);
 		}
 

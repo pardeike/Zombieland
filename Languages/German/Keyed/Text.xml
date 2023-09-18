@@ -129,6 +129,7 @@
 	<RageLevelVeryHigh>Sehr hoch</RageLevelVeryHigh>
 
 	<ZombieHealthTitle>Zombiegesundheit</ZombieHealthTitle>
+	<ZombieHealthFactor>Gesundheit</ZombieHealthFactor>
 	<DoubleTapRequired>Zombies erholen sich von Verletzungen</DoubleTapRequired>
 	<ZombiesDieVeryEasily>Zombies sind einfach zu töten</ZombiesDieVeryEasily>
 

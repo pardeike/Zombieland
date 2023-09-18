@@ -129,6 +129,7 @@
 	<RageLevelVeryHigh>Очень высокий</RageLevelVeryHigh>
 
 	<ZombieHealthTitle>Стойкость зомби</ZombieHealthTitle>
+	<ZombieHealthFactor>Здоровье</ZombieHealthFactor>
 	<DoubleTapRequired>Зомби восстанавливаются после травм</DoubleTapRequired>
 	<ZombiesDieVeryEasily>Зомби легко убить</ZombiesDieVeryEasily>
 

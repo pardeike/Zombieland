@@ -129,6 +129,7 @@
 	<RageLevelVeryHigh>非常高的水平</RageLevelVeryHigh>
 
 	<ZombieHealthTitle>丧尸的体质</ZombieHealthTitle>
+	<ZombieHealthFactor>健康</ZombieHealthFactor>
 	<DoubleTapRequired>丧尸会恢复伤势</DoubleTapRequired>
 	<ZombiesDieVeryEasily>丧尸很容易被杀死</ZombiesDieVeryEasily>
 

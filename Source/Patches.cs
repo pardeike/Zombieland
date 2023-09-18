@@ -4770,6 +4770,7 @@ namespace ZombieLand
 			static void Postfix()
 			{
 				Tools.EnableTwinkie(ZombieSettings.Values.replaceTwinkie);
+				CustomDefs.Zombie.race.baseHealthScale = ZombieSettings.Values.healthFactor;
 			}
 		}
 
@@ -4965,19 +4966,30 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to allow remaining thoughts to be milder
+		// patch to allow child killed thoughts to be milder
 		//
 		[HarmonyPatch(typeof(IndividualThoughtToAdd), MethodType.Constructor)]
 		[HarmonyPatch(new[] { typeof(ThoughtDef), typeof(Pawn), typeof(Pawn), typeof(float), typeof(float) })]
 		static class IndividualThoughtToAdd_Constructor_Patch
 		{
-			static void Postfix(IndividualThoughtToAdd __instance, Pawn addTo, Pawn otherPawn)
+			static void Prefix(ThoughtDef thoughtDef, Pawn otherPawn, ref float moodPowerFactor)
 			{
-				if (addTo.DevelopmentalStage.Adult() && otherPawn is Zombie zombie && zombie.DevelopmentalStage.Child())
-				{
-					__instance.thought.moodPowerFactor = 1f / 6f;
-					__instance.thought.durationTicksOverride = 2 * GenDate.TicksPerHour;
-				}
+				if (thoughtDef == ThoughtDefOf.KilledChild && otherPawn is Zombie)
+					moodPowerFactor *= 0.5f;
+			}
+		}
+		[HarmonyPatch(typeof(Thought_Tale))]
+		[HarmonyPatch(nameof(Thought_Tale.OpinionOffset))]
+		static class Thought_Tale_OpinionOffset_Patch
+		{
+			static void Postfix(Thought_Tale __instance, ref float __result)
+			{
+				if (__instance.def.taleDef != TaleDefOf.KilledChild)
+					return;
+				var tale = Find.TaleManager.GetLatestTale(__instance.def.taleDef, __instance.otherPawn);
+				if (tale is not Tale_DoublePawn doublePawn || doublePawn.secondPawnData.faction.def != ZombieDefOf.Zombies)
+					return;
+				__result *= 0.25f;
 			}
 		}
 
