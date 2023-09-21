@@ -30,6 +30,9 @@
 	<ZombielandDifficultyTitle>Difficulté globale</ZombielandDifficultyTitle>
 	<ZombielandDifficulty>Échelle des menaces</ZombielandDifficulty>
 
+	<ZombielandContaminationTitle>Contamination</ZombielandContaminationTitle>
+	<ZombielandContamination>Intensité</ZombielandContamination>
+
 	<WhenDoZombiesSpawn>Quand les Zombies arrivent-ils ? </WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Tout le temps</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>Quand il fait nuit</SpawnWhenType_WhenDark>
@@ -267,5 +270,9 @@
 	<Waves>Ondes</Waves>
 	<Aggressive>Agressif</Aggressive>
 	<Calm>Calme</Calm>
+
+	<ZombieContamination>Contamination Zombie</ZombieContamination>
+	<ContaminationHelp>La contamination causée par l'apocalypse zombie est transmise par le toucher et la manipulation d'objets. Elle se propage et peut entraîner des comportements étranges chez les colons.</ContaminationHelp>
+	<ShowContaminationOverlayToggleButton>Basculer l'overlay de contamination zombie.\n\nCela montre à quel point les choses et le sol sont contaminés, ce qui affecte à son tour les pions.</ShowContaminationOverlayToggleButton>
 
 </LanguageData>

@@ -30,6 +30,9 @@
 	<ZombielandDifficultyTitle>Общая сложность</ZombielandDifficultyTitle>
 	<ZombielandDifficulty>Шкала угроз</ZombielandDifficulty>
 
+	<ZombielandContaminationTitle>Загрязнение</ZombielandContaminationTitle>
+	<ZombielandContamination>Интенсивность</ZombielandContamination>
+
 	<WhenDoZombiesSpawn>Когда зомби будут появляться?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Всё время</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>Только ночью</SpawnWhenType_WhenDark>
@@ -267,5 +270,9 @@
 	<Waves>Волны</Waves>
 	<Aggressive>Агрессивный</Aggressive>
 	<Calm>Спокойный</Calm>
+
+	<ZombieContamination>Загрязнение зомби</ZombieContamination>
+	<ContaminationHelp>Загрязнение, вызванное зомби-апокалипсисом, передается через прикосновение и обработку вещей. Оно распространяется и может привести к странному поведению у колонистов.</ContaminationHelp>
+	<ShowContaminationOverlayToggleButton>Переключить оверлей загрязнения зомби.\n\nЭто показывает, насколько загрязнены вещи и земля, что в свою очередь влияет на пешек.</ShowContaminationOverlayToggleButton>
 
 </LanguageData>

@@ -30,6 +30,9 @@
 	<ZombielandDifficultyTitle>Genel Zorluk</ZombielandDifficultyTitle>
 	<ZombielandDifficulty>Tehdit ölçeği</ZombielandDifficulty>
 
+	<ZombielandContaminationTitle>Kirlilik</ZombielandContaminationTitle>
+	<ZombielandContamination>Yoğunluk</ZombielandContamination>
+
 	<WhenDoZombiesSpawn>Zombiler ne zaman ortaya çıksın?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Her zaman</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>Karanlık olduğunda</SpawnWhenType_WhenDark>
@@ -266,5 +269,9 @@
 	<Waves>Dalgalar</Waves>
 	<Aggressive>Agresif</Aggressive>
 	<Calm>Sakin</Calm>
+
+	<ZombieContamination>Zombi Kirliliği</ZombieContamination>
+	<ContaminationHelp>Zombi kıyameti tarafından oluşturulan kirlilik, dokunma ve şeylerle uğraşma yoluyla geçer. Yayılır ve kolonistlerde tuhaf davranışlara yol açabilir.</ContaminationHelp>
+	<ShowContaminationOverlayToggleButton>Zombi kirliliği kaplamasını değiştir.\n\nBu, şeylerin ve zeminin ne kadar kirli olduğunu gösterir, bu da taşları etkiler.</ShowContaminationOverlayToggleButton>
 
 </LanguageData>

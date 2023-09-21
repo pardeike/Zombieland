@@ -30,6 +30,9 @@
 	<ZombielandDifficultyTitle>Zombieland Schwierigkeit</ZombielandDifficultyTitle>
 	<ZombielandDifficulty>Bedrohungsskala</ZombielandDifficulty>
 
+	<ZombielandContaminationTitle>Kontamination</ZombielandContaminationTitle>
+	<ZombielandContamination>Intensität</ZombielandContamination>
+
 	<WhenDoZombiesSpawn>Wann erscheinen Zombies?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Jederzeit</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>Wo es dunkel ist</SpawnWhenType_WhenDark>
@@ -267,5 +270,9 @@
 	<Waves>Welle</Waves>
 	<Aggressive>Aggressiv</Aggressive>
 	<Calm>Ruhig</Calm>
+
+	<ZombieContamination>Zombie-Kontamination</ZombieContamination>
+	<ContaminationHelp>Die durch die Zombie-Apokalypse verursachte Kontamination wird durch Berührung und Handhabung von Dingen übertragen. Sie breitet sich aus und kann zu seltsamem Verhalten bei Kolonisten führen.</ContaminationHelp>
+	<ShowContaminationOverlayToggleButton>Kontaminations-Overlay für Zombies umschalten.\n\nDies zeigt, wie kontaminiert Dinge und der Boden sind, was wiederum die Spielfiguren beeinflusst.</ShowContaminationOverlayToggleButton>
 
 </LanguageData>

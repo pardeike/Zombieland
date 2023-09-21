@@ -30,6 +30,9 @@
 	<ZombielandDifficultyTitle>总体难度</ZombielandDifficultyTitle>
 	<ZombielandDifficulty>威胁等级</ZombielandDifficulty>
 
+	<ZombielandContaminationTitle>污染</ZombielandContaminationTitle>
+	<ZombielandContamination>强度</ZombielandContamination>
+
 	<WhenDoZombiesSpawn>丧尸出现的时间段？</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>所有时间</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>天黑时</SpawnWhenType_WhenDark>
@@ -267,5 +270,9 @@
 	<Waves>波</Waves>
 	<Aggressive>咄咄逼人</Aggressive>
 	<Calm>冷静型</Calm>
+
+	<ZombieContamination>僵尸污染</ZombieContamination>
+	<ContaminationHelp>僵尸启示录引发的污染是通过触摸和处理物体传播的。它会传播并可能导致殖民者出现奇怪的行为。</ContaminationHelp>
+	<ShowContaminationOverlayToggleButton>切换僵尸污染图层。\n\n这显示了物体和地面有多么污染，从而影响棋子。</ShowContaminationOverlayToggleButton>
 
 </LanguageData>
