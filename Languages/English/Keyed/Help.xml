@@ -4,6 +4,9 @@
 	<ZombielandDifficultyTitle_Help>The difficulty in Zombieland is mainly controlled by a combination of:\n\n- Threat scale\n- Special zombies\n- Zombie speed\n- Max zombie count\n- Dynamic threat level</ZombielandDifficultyTitle_Help>
 	<ZombielandDifficulty_Help>This setting controls the difficulty of almost all things in Zombieland: abilities of zombies like senses, toughness, speed, power. In particular, special zombies are affected and the threat forecast will be much worse on higher difficulties.\n\nNote: 500% is really really difficult so be warned.</ZombielandDifficulty_Help>
 
+	<ZombielandContaminationTitle_Help>Contamination is a late-game challenge that introduces a persistent and spreading hazard to your colony. Originating from various sources like deep drilling and traded items, it transfers between objects, colonists, and the environment. The further your colony grows, the more you need to manage Contamination to keep your colonists safe.\n\nTo monitor current Contamination levels, consult the inspector, details dialog, or mouse-over ground info, where you will find a percentage indicating the contamination level of the object, cell, or pawn in question.</ZombielandContaminationTitle_Help>
+	<ZombielandContamination_Help>Adjust the Contamination Intensity to set the baseline rate at which Contamination spreads through various means in your colony. This multiplier affects everything from the amount transferred while constructing to the spread through natural resources. Tread carefully; even small changes can lead to widespread effects.</ZombielandContamination_Help>
+	
 	<WhenDoZombiesSpawn_Help>In Zombieland, you will face a never-ending invasion of zombies. This setting controls the overall pace and rythm of the game. The three modes are quite different so make sure you choose the right one for your play style and understand how they work. There is an upper limit on the number of zombies, see "Zombies on the map" for more details.</WhenDoZombiesSpawn_Help>
 	<SpawnWhenType_AllTheTime_Help>Zombies will spawn relentlessly. Kill them and more will come instantly. This is a challenging mode that makes zombies an omnipresent force that influences all aspects of the game.</SpawnWhenType_AllTheTime_Help>
 	<SpawnWhenType_WhenDark_Help>Zombies will only spawn at dark places. This means literally dark and includes areas that are dark during daytime. You can control this mode by setting up light to illuminate your safe areas.</SpawnWhenType_WhenDark_Help>
@@ -109,6 +112,7 @@
 	<!-- -->
 
 	<ZombieHealthTitle_Help>Since zombie are technically dead, they don't have "health". Zombieland can either make it easier or harder to kill zombies.</ZombieHealthTitle_Help>
+	<ZombieHealthFactor_Help>This makes zombies tougher so it takes more work and damage to bring them down.</ZombieHealthFactor_Help>
 	<DoubleTapRequired_Help>This option will make zombies recover from injuries. You need to deal damage more constantly or else they will keep going. Injured zombies can become "crawlers" that move slowly and only attack legs. Turn this off for normal Rimworld like damage.</DoubleTapRequired_Help>
 	<ZombiesDieVeryEasily_Help>Another great option for beginners and players that want a more arcade style gameplay that can be quite fun. When turned on, zombies are 1-shotable and even the smallest injury kills them.</ZombiesDieVeryEasily_Help>
 
@@ -131,7 +135,7 @@
 	<HealerChance_Help>Healer zombies heal all zombies within a certain distance to full health. They can be identified by their cyan skin color and they otherwise act like normal standard zombies.</HealerChance_Help>
 	<NormalZombieChance_Help>Ordinary zombies come in different body sizes. That defines their strength but also their speed! They often wear any apparel that is available in the game and in any mods you have installed.</NormalZombieChance_Help>
 	<ChildZombieChance_Help>The percentage of zombies that are children. Note: killing a zombie child will give a slight negative mood (lasts for 2 hours)</ChildZombieChance_Help>
-	<SpitterThreat_Help>The zombie spitter is a zombie siege biest that spits zombies into your base. This setting changes the intensity and frequence of the spitter. 0% turns the spitter off.</SpitterThreat_Help>
+	<SpitterThreat_Help>The zombie spitter is a siege beast that launches zombies into your base. This setting adjusts both the intensity and frequency with which the Spitter operates. Setting it to 0% disables the Spitter.</SpitterThreat_Help>
 	<WallPushing_Help>When a group of zombies gets too dense this will define the number of zombies that will push other zombies over adjacent walls. If the other side of the wall is part of a roofed room, that roof will be damaged by the zombie.</WallPushing_Help>
 
 	<!-- -->

@@ -2,8 +2,8 @@
 using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using Verse;
-using static Verse.PawnCapacityUtility;
 
 namespace ZombieLand
 {
@@ -146,7 +146,17 @@ namespace ZombieLand
 		private static void SpawnZombieSpitterOnCell()
 		{
 			ZombieSpitter.Spawn(Find.CurrentMap, UI.MouseCell());
-			var map = Find.CurrentMap;
+		}
+
+		[DebugAction("Zombieland", "Remove: All Zombies", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void RemoveAllZombies()
+		{
+			var things = Find.CurrentMap.listerThings.AllThings.ToArray();
+			foreach (var thing in things)
+			{
+				if (thing is Zombie || thing is ZombieSpitter)
+					thing.Destroy();
+			}
 		}
 
 		[DebugAction("Zombieland", "Convert: Make Zombie", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
@@ -231,22 +241,119 @@ namespace ZombieLand
 			}
 		}
 
-		[DebugAction("Zombieland", "Apply: Zombie add bloodloss", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("Zombieland", "Apply: Add 1% bloodloss", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void ApplyHalfConsciousness()
 		{
 			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 			{
-				if (thing is not Zombie zombie)
+				if (thing is not Pawn pawn)
 					continue;
 
-				var cap = new CapacityImpactorCapacity()
-				{
-					capacity = PawnCapacityDefOf.Consciousness
-				};
-				var hediff = HediffMaker.MakeHediff(HediffDefOf.BloodLoss, zombie);
-				hediff.Severity = 0.24f;
-				zombie.health.hediffSet.AddDirect(hediff);
+				var hediff1 = HediffMaker.MakeHediff(HediffDefOf.BloodLoss, pawn);
+				hediff1.Severity = 0.1f;
+				pawn.health.hediffSet.AddDirect(hediff1);
+				var hediff2 = HediffMaker.MakeHediff(HediffDefOf.Anesthetic, pawn);
+				hediff2.Severity = 0.1f;
+				pawn.health.hediffSet.AddDirect(hediff2);
 			}
+		}
+
+		[DebugAction("Zombieland", "Create Decontamination Quest", false, false, false, 0, false, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void CreateDecontaminationQuest()
+		{
+			ContaminationManager.Instance.DecontaminationQuest();
+		}
+
+		static void FloodFillContamination(IntVec3 cell, float value, int maxCells)
+		{
+			ThingDef floodfillThingDef = null;
+			var seen = new HashSet<Thing>();
+
+			bool validator(IntVec3 cell)
+			{
+				if (floodfillThingDef == null)
+				{
+					var thing = Find.CurrentMap.thingGrid.ThingsAt(cell).First();
+					floodfillThingDef = thing.def;
+					return true;
+				}
+				return Find.CurrentMap.thingGrid.ThingsAt(cell).Any(t => t.def == floodfillThingDef);
+			}
+
+			void contaminate(IntVec3 cell)
+			{
+				Find.CurrentMap.thingGrid.ThingsAt(cell)
+					.DoIf(t => seen.Contains(t) == false && t.def == floodfillThingDef, t => { seen.Add(t); t.AddContamination(value, null); });
+			}
+
+			// wrap this because if we click on "nothing" it causes an error
+			try
+			{
+				var filler = new FloodFiller(Find.CurrentMap);
+				filler.FloodFill(cell, validator, contaminate, maxCells);
+			}
+			catch
+			{
+			}
+		}
+
+		[DebugAction("Zombieland", "Apply: Add 0.01 contamination", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void AddVeryLittleContamination()
+		{
+			FloodFillContamination(UI.MouseCell(), 0.01f, 500);
+		}
+
+		[DebugAction("Zombieland", "Apply: Add 0.1 contamination", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void AddLittleContamination()
+		{
+			FloodFillContamination(UI.MouseCell(), 0.1f, 500);
+		}
+
+		[DebugAction("Zombieland", "Apply: Add 1.0 contamination", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void AddSomeContamination()
+		{
+			FloodFillContamination(UI.MouseCell(), 1f, 500);
+		}
+
+		[DebugAction("Zombieland", "Apply: Clear contamination", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void ClearContamination()
+		{
+			var cell = UI.MouseCell();
+			var map = Find.CurrentMap;
+			if (cell.InBounds(map))
+				map.thingGrid.ThingsAt(cell).Do(thing => thing.ClearContamination());
+		}
+
+		[DebugAction("Zombieland", "Apply: Add 0.1 floor contamination", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void AddSomeFloorContamination()
+		{
+			var cell = UI.MouseCell();
+			var map = Find.CurrentMap;
+			if (cell.InBounds(map))
+			{
+				var grid = map.GetContamination();
+				grid[cell] = Mathf.Min(1f, grid[cell] + 0.1f);
+			}
+		}
+
+		[DebugAction("Zombieland", "Apply: Clear floor contamination", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void ClearFloorContamination()
+		{
+			var cell = UI.MouseCell();
+			var map = Find.CurrentMap;
+			if (cell.InBounds(map))
+				map.SetContamination(cell, 0);
+		}
+
+		[DebugAction("Zombieland", "Apply: Contamination effect", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void ContaminationEffect()
+		{
+			var map = Find.CurrentMap;
+			var pawn = map.thingGrid.ThingAt<Pawn>(UI.MouseCell());
+			if (pawn == null || pawn is Zombie || pawn is ZombieSpitter)
+				return;
+			var window = new Dialog_ContaminationDebugSettings(pawn);
+			Find.WindowStack.Add(window);
 		}
 	}
 }

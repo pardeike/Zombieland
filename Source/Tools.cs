@@ -102,6 +102,7 @@ namespace ZombieLand
 		}
 
 		public static bool OnMainScreen() => Current.Game == null;
+		public static bool IsPlaying() => Current.ProgramState == ProgramState.Playing;
 
 		public static void ResetSettings()
 		{
@@ -206,6 +207,13 @@ namespace ZombieLand
 
 		public static int F(this (int, int) range) => (int)(GenMath.LerpDouble(0, 5, range.Item1, range.Item2, Difficulty()) * GenMath.LerpDoubleClamped(GenDate.TicksPerYear, GenDate.TicksPerYear * 5, 1, 5, GenTicks.TicksGame));
 		public static float F(this (float, float) range) => GenMath.LerpDouble(0, 5, range.Item1, range.Item2, Difficulty()) * GenMath.LerpDoubleClamped(GenDate.TicksPerYear, GenDate.TicksPerYear * 5, 1, 5, GenTicks.TicksGame);
+
+		public static float MoveableWeight(float x, float weight, float factor = 10)
+		{
+			// https://www.desmos.com/calculator/xr6avbi5s8
+			var f = 2 * weight * (1 - factor) + factor;
+			return Mathf.Pow(x, weight <= 0.5f ? 1 / f : 2 - f);
+		}
 
 		public static int PheromoneFadeoff()
 		{
@@ -320,6 +328,76 @@ namespace ZombieLand
 							break;
 						}
 			}
+		}
+
+		public static bool SeesZombieAsThreat(this Pawn attacker, Zombie zombie)
+		{
+			if (attacker == null)
+				return false;
+
+			if (zombie.IsActiveElectric || zombie.isAlbino || zombie.IsRopedOrConfused)
+				return false;
+
+			if (ShouldAvoidZombies(attacker) == false)
+				return false;
+
+			if (zombie.jobs.posture != PawnPosture.Standing)
+				return zombie.Position.InHorDistOf(attacker.Position, 5f);
+
+			var attackerFaction = attacker.Faction;
+			var attackerRace = attacker.def.race;
+
+			var isHuman = attackerRace.IsFlesh;
+			var isAnimal = attackerRace.Animal;
+			var isMech = attackerRace.IsMechanoid;
+
+			var isPlayer = isAnimal == false && attackerFaction.IsPlayer;
+			var isEnemy = isAnimal == false && attackerFaction.HostileTo(Faction.OfPlayer);
+			var isFriendly = isAnimal == false && isEnemy == false && isPlayer == false;
+
+			var settings = ZombieSettings.Values;
+			var zombiesAttackEverything = settings.attackMode == AttackMode.Everything;
+			var zombiesAttackOnlyColonists = settings.attackMode == AttackMode.OnlyColonists;
+			var zombiesAttackOnlyHumans = settings.attackMode == AttackMode.OnlyHumans;
+			var animalsDoNotAttackZombies = settings.animalsAttackZombies == false;
+			var enemiesDoNotAttackZombies = settings.enemiesAttackZombies == false;
+
+			// handle all attacker cases: (player | friendly | enemy) x (human | mech | animal | thing)
+			//
+			if (isPlayer)
+			{
+				if (isHuman)
+					return true;
+				else if (isMech)
+					return zombiesAttackOnlyHumans == false;
+				else if (isAnimal)
+					return animalsDoNotAttackZombies == false && zombiesAttackEverything;
+				else
+					return false;
+			}
+			else if (isFriendly)
+			{
+				if (isHuman)
+					return zombiesAttackOnlyColonists == false;
+				else if (isMech)
+					return zombiesAttackEverything;
+				else if (isAnimal)
+					return animalsDoNotAttackZombies == false;
+				else
+					return zombiesAttackEverything;
+			}
+			else if (isEnemy)
+			{
+				if (isHuman)
+					return enemiesDoNotAttackZombies == false;
+				else if (isMech)
+					return enemiesDoNotAttackZombies == false;
+				else if (isAnimal)
+					return enemiesDoNotAttackZombies == false && animalsDoNotAttackZombies == false;
+				else
+					return enemiesDoNotAttackZombies == false;
+			}
+			return false;
 		}
 
 		public static bool ShouldAvoidZombies(Pawn pawn = null)
@@ -1016,6 +1094,17 @@ namespace ZombieLand
 				var type = value.GetType();
 				try
 				{
+					if (value is IExposable exposable)
+					{
+						if (Scribe.EnterNode(name))
+						{
+							exposable.ExposeData();
+							Scribe.ExitNode();
+						}
+						finfo.SetValue(settings, exposable);
+						return;
+					}
+
 					if (callback != null && callback(settings, name, value, defaultValue))
 						return;
 
@@ -1256,6 +1345,16 @@ namespace ZombieLand
 			return active && Widgets.ButtonInvisible(rect, false);
 		}
 
+		public static void DrawBorderRect(Rect area, Color color, int frameWidth = 1)
+		{
+			var texture = SolidColorMaterials.NewSolidColorTexture(color);
+			GUI.DrawTexture(area.LeftPartPixels(frameWidth), texture);
+			GUI.DrawTexture(area.RightPartPixels(frameWidth), texture);
+			area = area.ExpandedBy(-frameWidth, 0);
+			GUI.DrawTexture(area.TopPartPixels(frameWidth), texture);
+			GUI.DrawTexture(area.BottomPartPixels(frameWidth), texture);
+		}
+
 		public static void OnGUISimple(this QuickSearchWidget self, Rect rect, Action onFilterChange = null)
 		{
 			if (OriginalEventUtility.EventType == EventType.MouseDown && !rect.Contains(Event.current.mousePosition))
@@ -1398,7 +1497,7 @@ namespace ZombieLand
 						foreach (var current in list)
 						{
 							var t2 = current;
-							Scribe_Deep.Look<T>(ref t2, false, "li", ctorArgs);
+							Scribe_Deep.Look(ref t2, false, "li", ctorArgs);
 						}
 					}
 				}
@@ -1412,8 +1511,8 @@ namespace ZombieLand
 					{
 						list = new T[curXmlParent.ChildNodes.Count];
 						var i = 0;
-						foreach (var subNode2 in curXmlParent.ChildNodes)
-							list[i++] = ScribeExtractor.SaveableFromNode<T>((XmlNode)subNode2, ctorArgs);
+						foreach (var subNode in curXmlParent.ChildNodes)
+							list[i++] = ScribeExtractor.SaveableFromNode<T>((XmlNode)subNode, ctorArgs);
 					}
 				}
 			}
@@ -1528,25 +1627,64 @@ namespace ZombieLand
 			*/
 		}
 
-		public static IEnumerable<MethodBase> OverridingMethods(MethodInfo baseMethod)
+		public static IEnumerable<Type> Subclasses(Type baseType)
 		{
-			var baseMethodType = baseMethod.DeclaringType;
-			var baseMethodArgTypes = baseMethod.GetParameters().Select(p => p.ParameterType).ToArray();
-
 			return AppDomain.CurrentDomain.GetAssemblies()
 				 .SelectMany(assembly => assembly.GetTypes())
-				 .Where(type => type.IsSubclassOf(baseMethodType))
-				 .Select(type => type.GetMethod(baseMethod.Name, baseMethodArgTypes))
-				 .OfType<MethodInfo>()
-				 .Where(method => method.DeclaringType != baseMethodType && method.GetBaseDefinition() == baseMethod)
-				 .Union(new[] { baseMethod });
+				 .Where(type => type != baseType && type.IsAbstract == false && type.IsSubclassOf(baseType));
 		}
 
-		public static IEnumerable<CodeInstruction> MakeThingTranspiler(IEnumerable<CodeInstruction> instructions, Expression<Action> expression)
+		public static IEnumerable<MethodBase> MethodsImplementing(LambdaExpression expression)
 		{
-			var from = SymbolExtensions.GetMethodInfo(() => ThingMaker.MakeThing(default, default));
-			var to = SymbolExtensions.GetMethodInfo(expression);
-			var matcher = new CodeMatcher(instructions);
+			var baseMethod = SymbolExtensions.GetMethodInfo(expression);
+			var name = baseMethod.Name;
+			var args = baseMethod.GetParameters().Types();
+			return baseMethod.DeclaringType
+				.AllSubclassesNonAbstract()
+				.Select(type => Method(type, name, args))
+				.OfType<MethodBase>();
+		}
+
+		public static MethodInfo FindOriginalMethod(Type type, MethodType methodType, MethodInfo staticReplacement, int extraArguments)
+		{
+			var parameterTypes = staticReplacement.GetParameters().Types().SkipLast(extraArguments);
+			var result = methodType switch
+			{
+				MethodType.Getter => FirstProperty(type, method => method.Name == staticReplacement.Name).GetGetMethod(),
+				MethodType.Setter => FirstProperty(type, method => method.Name == staticReplacement.Name).GetSetMethod(),
+				_ => FirstMethod(type, method => method.Name == staticReplacement.Name &&
+					method.GetParameters().Types().SequenceEqual(method.IsStatic ? parameterTypes : parameterTypes.Skip(1))),
+			};
+			if (result == null)
+				throw new NullReferenceException($"Cannot find method {type.FullName}.{staticReplacement.Name} from {staticReplacement.FullDescription()}");
+			return result;
+		}
+
+		public static bool CallsMethod(this MethodBase method, MethodBase theMethod)
+		{
+			return PatchProcessor.ReadMethodBody(method).Any(pair => pair.Value is MethodInfo method && method == theMethod);
+		}
+
+		public static IEnumerable<CodeInstruction> ExtraArgumentsTranspiler(this IEnumerable<CodeInstruction> instructions, Type type, Expression<Action> replacement, CodeInstruction[] argumentInstructions, int extraArguments, bool isClosure = false, MethodType methodType = MethodType.Normal)
+		{
+			var to = SymbolExtensions.GetMethodInfo(replacement);
+			var from = FindOriginalMethod(type, methodType, to, extraArguments);
+
+			var codes = instructions.ToArray();
+			if (isClosure)
+			{
+				if (codes.Length < 2)
+					throw new Exception("Method too short");
+				if (codes[0].opcode != OpCodes.Ldarg_0)
+					throw new Exception("Method does not start with ldarg_0");
+				if (codes[1].opcode != OpCodes.Ldfld || codes[1].operand is not FieldInfo field)
+					throw new Exception("Method does not start with ldarg_0, ldfld");
+				var fieldType = to.GetParameters().Types().Last();
+				if (field.FieldType != fieldType)
+					throw new Exception($"Field type of ldarg_0, ldfld[TYPE] is {field.FieldType} instead of {fieldType}");
+			}
+
+			var matcher = new CodeMatcher(codes);
 			var found = false;
 			while (true)
 			{
@@ -1554,11 +1692,26 @@ namespace ZombieLand
 				if (matcher.IsInvalid)
 					break;
 				found = true;
-				matcher = matcher.InsertAndAdvance(Ldarg_0).SetInstruction(Call[to]);
+				if (isClosure)
+					argumentInstructions = new[] { codes[0], codes[1] };
+				matcher = matcher.InsertAndAdvance(argumentInstructions);
+				matcher = matcher.SetInstruction(Call[to]);
 			}
 			if (found == false)
 				throw new Exception($"Cannot find {from.FullDescription()}");
+
 			return matcher.InstructionEnumeration();
+		}
+
+		public static MethodInfo FirstMethodForReplacement(Type type, Type onType, Expression<Action> expression)
+		{
+			var method = SymbolExtensions.GetMethodInfo(expression);
+			if (onType != null)
+			{
+				var parameterTypes = method.GetParameters().Types().SkipLast(1).ToArray();
+				method = DeclaredMethod(onType, method.Name, parameterTypes);
+			}
+			return FirstMethod(type, m1 => m1.CallsMethod(method));
 		}
 
 		static bool DownedReplacement(Pawn pawn)
@@ -1609,7 +1762,7 @@ namespace ZombieLand
 			f -= amount;
 			amount += Rand.Chance(f) ? 1 : 0;
 
-			if (pawn is ZombieSpitter)
+			if (pawn is ZombieSpitter spitter && spitter.aggressive)
 			{
 				var def = DefDatabase<ThingDef>.GetNamed("ZombieSerumSimple", false);
 				if (def != null)

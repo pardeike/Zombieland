@@ -109,6 +109,7 @@ namespace ZombieLand
 		public List<SoSTools.Floater> floatingSpaceZombiesFore;
 
 		public List<VictimHead> victimHeads = new();
+		public ContaminationEffectManager contaminationEffects = new();
 
 		public int lastZombieContact = 0;
 		public int lastZombieSpitter = 0;
@@ -142,14 +143,14 @@ namespace ZombieLand
 		public override void MapGenerated()
 		{
 			var ticks = GenTicks.TicksGame;
-            mapSpawnedTicks = ticks;
-            if (zombieSpitterInited == false)
-            {
-                lastZombieContact = ticks;
-                lastZombieSpitter = ticks;
-                zombieSpitterInited = true;
-            }
-            base.MapGenerated();
+			mapSpawnedTicks = ticks;
+			if (zombieSpitterInited == false)
+			{
+				lastZombieContact = ticks;
+				lastZombieSpitter = ticks;
+				zombieSpitterInited = true;
+			}
+			base.MapGenerated();
 		}
 
 		public override void FinalizeInit()
@@ -387,20 +388,14 @@ namespace ZombieLand
 
 		public Zombie GetRopableZombie(Vector3 clickPos)
 		{
-			return allZombiesCached.FirstOrDefault(zombie =>
-			{
-				if (zombie.consciousness > Constants.MIN_CONSCIOUSNESS)
-					return false;
-				return ((clickPos - zombie.DrawPos).MagnitudeHorizontalSquared() <= 0.8f);
-			});
+			return allZombiesCached.FirstOrDefault(zombie => zombie.IsConfused && (clickPos - zombie.DrawPos).MagnitudeHorizontalSquared() <= 0.5f);
 		}
 
 		public void UpdateZombieAvoider()
 		{
 			var specs = allZombiesCached.Where(zombie =>
 					zombie.isAlbino == false &&
-					zombie.ropedBy == null &&
-					zombie.paralyzedUntil == 0 &&
+					zombie.IsRopedOrConfused == false &&
 					zombie.Spawned &&
 					zombie.Dead == false &&
 					zombie.health.Downed == false
@@ -426,9 +421,15 @@ namespace ZombieLand
 			{
 				var ticks = GenTicks.TicksGame;
 				var (minTicksForSpitter, deltaContact, deltaSpitter) = Tools.ZombieSpitterParameter();
+				var isCountingDown = ShipCountdown.CountingDown;
+				if (isCountingDown)
+				{
+					deltaContact = 0;
+					deltaSpitter -= deltaSpitter / 3;
+				}
 				if (ticks > minTicksForSpitter && ticks - lastZombieContact > deltaContact && ticks - lastZombieSpitter > deltaSpitter)
 				{
-					if (CanHaveMoreZombies())
+					if (isCountingDown || CanHaveMoreZombies())
 					{
 						lastZombieContact = ticks;
 						lastZombieSpitter = ticks;
@@ -719,6 +720,11 @@ namespace ZombieLand
 				yield return null;
 				RepositionColonists();
 				yield return null;
+				if (Constants.CONTAMINATION > 1)
+				{
+					contaminationEffects.Tick();
+					yield return null;
+				}
 				HandleIncidents();
 				yield return null;
 				FetchAvoidGrid();

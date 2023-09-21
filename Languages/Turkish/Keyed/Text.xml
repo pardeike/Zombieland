@@ -129,6 +129,7 @@
 	<RageLevelVeryHigh>Çok yüksek</RageLevelVeryHigh>
 
 	<ZombieHealthTitle>Zombi sağlığı</ZombieHealthTitle>
+	<ZombieHealthFactor>Sağlık</ZombieHealthFactor>
 	<DoubleTapRequired>Zombiler yaralanmaları kurtarmak</DoubleTapRequired>
 	<ZombiesDieVeryEasily>Zombiler öldürmek kolaydır</ZombiesDieVeryEasily>
 

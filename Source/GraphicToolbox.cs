@@ -5,8 +5,29 @@ using Verse;
 
 namespace ZombieLand
 {
+	[StaticConstructorOnStartup]
 	static class GraphicToolbox
 	{
+		static readonly Mesh contaminationMesh = MeshMakerPlanes.NewPlaneMesh(0.35f);
+		public static void DrawContamination(Vector3 vec, float contamination, bool small)
+		{
+			if (contamination < ContaminationFactors.minContaminationThreshold)
+				return;
+			var color = new Color(1f, 1f, 1f, 0.1f + 0.8f * contamination);
+
+			vec.y = AltitudeLayer.MetaOverlays.AltitudeFor();
+
+			var size = 1.5f;
+			if (small)
+			{
+				vec.x += 0.25f;
+				vec.z -= 0.25f;
+				size = 1f;
+			}
+			var matSymbol = new Material(Constants.Contamination) { color = color };
+			DrawScaledMesh(contaminationMesh, matSymbol, vec, Quaternion.identity, size, size);
+		}
+
 		public static Color HexColor(this string hex)
 		{
 			var r = int.Parse(hex.Substring(0, 2), NumberStyles.HexNumber);

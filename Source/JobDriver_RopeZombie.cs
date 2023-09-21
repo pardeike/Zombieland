@@ -16,7 +16,6 @@ namespace ZombieLand
 
 		public override bool TryMakePreToilReservations(bool errorOnFailed)
 		{
-			var thing = job.GetTarget(TargetIndex.A).Thing;
 			if (pawn.CanReach(job.GetTarget(TargetIndex.A), PathEndMode.Touch, Danger.Deadly) == false)
 				return false;
 			return ZombieIsRopable();

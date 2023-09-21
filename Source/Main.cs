@@ -76,6 +76,7 @@ namespace ZombieLand
 		public static ThingDef ElectricalField;
 		public static ThingDef Apparel_BombVest;
 		public static ThingDef Mote_Block;
+		public static ThingDef Ghost;
 		public static HediffDef ZombieInfection;
 		public static LetterDef ColonistTurnedZombie;
 		public static LetterDef OtherTurnedZombie;
@@ -88,6 +89,8 @@ namespace ZombieLand
 		public static ThingDef Thumper;
 		public static ThingDef ZombieSpitter;
 		public static ThingDef ZombieBall;
+		public static QuestScriptDef Decontamination;
+		public static ThoughtDef ZombieScare;
 	}
 
 	public class ZombielandMod : Mod

@@ -32,7 +32,8 @@ namespace ZombieLand
 		void InitAction()
 		{
 			var f = ZombieSettings.Values.spitterThreat;
-			aggressive = Rand.Chance(f / 2f);
+			aggressive = ShipCountdown.CountingDown || Rand.Chance(f / 2f);
+			(pawn as ZombieSpitter).aggressive = aggressive;
 			waves = Mathf.FloorToInt(f * (aggressive ? Rand.Range((1f, 2f).F(), (2f, 10f).F()) : Rand.Range((2f, 15f).F(), (4f, 30f).F())));
 			if (waves < 1)
 				waves = 1;
@@ -48,6 +49,8 @@ namespace ZombieLand
 			Scribe_Values.Look(ref spitInterval, "spitInterval", 0);
 			Scribe_Values.Look(ref waves, "waves", 0);
 			Scribe_Values.Look(ref remainingZombies, "remainingZombies", 0);
+			if (Scribe.mode == LoadSaveMode.PostLoadInit)
+				(pawn as ZombieSpitter).aggressive = aggressive;
 		}
 
 		void DoIdle(int minTicks, int maxTicks)

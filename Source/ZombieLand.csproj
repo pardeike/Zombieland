@@ -1,27 +1,32 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<ProjectGuid>{34AA2AF2-8E82-4C5B-8ABA-9AC53DA7C110}</ProjectGuid>
-		<RootNamespace>ZombieLand</RootNamespace>
-		<AssemblyName>ZombieLand</AssemblyName>
+		<RootNamespace>$(ModFileName)</RootNamespace>
+		<AssemblyName>$(ModFileName)</AssemblyName>
 		<TargetFramework>net472</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<PlatformTarget>x64</PlatformTarget>
 		<OutputPath>..\Assemblies\</OutputPath>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-		<Version>4.2.5.0</Version>
-		<Copyright>Copyright © 2017</Copyright>
-		<Configurations>Release;Debug</Configurations>
+		<Version>$(ModVersion)</Version>
+		<AssemblyVersion>$(ModVersion)</AssemblyVersion>
+		<FileVersion>$(ModVersion)</FileVersion>
+		<PackageVersion>$(ModVersion)</PackageVersion>
+		<InformationalVersion>$(ModVersion)</InformationalVersion>
+		<Company>Brrainz</Company>
+		<Authors>Andreas Pardeike</Authors>
+		<Copyright>Copyright Andreas Pardeike</Copyright>
+		<PackageProjectUrl>$(Repository)</PackageProjectUrl>
+		<RepositoryUrl>$(Repository)</RepositoryUrl>
+		<Product>$(ModName)</Product>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<DebugSymbols>false</DebugSymbols>
 		<Optimize>true</Optimize>
-		<OutputPath>..\Assemblies</OutputPath>
 		<DebugType>none</DebugType>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<PlatformTarget>anycpu</PlatformTarget>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -33,6 +38,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Content Include="..\Directory.Build.props">
+			<Link>%(Filename)%(Extension)</Link>
+		</Content>
 		<Content Include="..\Defs\**\*.xml">
 			<Link>Defs\%(RecursiveDir)%(Filename)%(Extension)</Link>
 		</Content>
@@ -88,35 +96,39 @@
 		</ItemGroup>
 	</Target>
 
-	<PropertyGroup>
-		<PostBuildEvent>
-			mkdir -p /Users/ap/Library/Application\ Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/Mods/$(AssemblyName)
-			pushd ..
-			cp -rf About Assemblies Defs Languages LICENSE Patches README.md Resources Sounds Textures /Users/ap/Library/Application\ Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/Mods/$(AssemblyName)/
-			popd
-			pushd /Users/ap/Library/Application\ Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/Mods
-			rm -f $(AssemblyName).zip
-			zip -q -r -0 $(AssemblyName).zip $(AssemblyName)
-			popd
-		</PostBuildEvent>
-		<!--<PostBuildEvent>
-			echo Postprocessing
-			where ModBuilder 2&gt; nul | find /i "ModBuilder.exe"
-			if not errorlevel 1 (
-			ModBuilder AssemblyVersion -file "$(MSBuildProjectDirectory)\$(OutputPath)\$(AssemblyName).dll" -save "$(MSBuildProjectName)-version"
-			ModBuilder XMLPut -file "$(MSBuildProjectDirectory)\..\About\About.xml" -xpath /ModMetaData/modVersion -value "{{$(MSBuildProjectName)-version}}"
-			ModBuilder XMLPut -file "$(MSBuildProjectDirectory)\..\About\Manifest.xml" -xpath /Manifest/version -value "{{$(MSBuildProjectName)-version}}"
-			)
-			if defined INSTALL_MOD (
-			"%INSTALL_MOD%" "$(Configuration)" "$(MSBuildProjectDirectory)\..\" "$(MSBuildProjectName)" "About Assemblies Defs Languages Patches Resources Sounds Textures"
-			)
-		</PostBuildEvent>-->
-		<Company>Brrainz</Company>
-		<Authors>Andreas Pardeike</Authors>
-		<Description>A zombie mod for the game RimWorld</Description>
-		<PackageProjectUrl>https://github.com/pardeike/Zombieland</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/pardeike/Zombieland</RepositoryUrl>
-		<Product>ZombieLand</Product>
-	</PropertyGroup>
+	<Target Name="PostBuildAction" AfterTargets="Build">
+		<XmlPoke XmlInputPath="$(MSBuildProjectDirectory)\..\About\About.xml" Query="//ModMetaData/modVersion" Value="$(ModVersion)" />
+		<XmlPoke XmlInputPath="$(MSBuildProjectDirectory)\..\About\Manifest.xml" Query="//Manifest/version" Value="$(ModVersion)" />
+	</Target>
+
+	<Target Name="CopyToRimworld" AfterTargets="PostBuildAction" Condition="'$(RIMWORLD_MOD_DIR)' != ''">
+		<RemoveDir Directories="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
+		<ItemGroup>
+			<CopyAbout Include="..\About\**" />
+			<CopyAssemblies Include="..\Assemblies\**" />
+			<CopyDefs Include="..\Defs\**" />
+			<CopyLanguages Include="..\Languages\**" />
+			<CopyPatches Include="..\Patches\**" />
+			<CopyResources Include="..\Resources\**" />
+			<CopySounds Include="..\Sounds\**" />
+			<CopyTextures Include="..\Textures\**" />
+			<CopyLicense Include="..\LICENSE" />
+			<CopyReadme Include="..\Readme.md" />
+		</ItemGroup>
+		<Copy SourceFiles="@(CopyAbout)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\About\%(RecursiveDir)" />
+		<Copy SourceFiles="@(CopyAssemblies)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\Assemblies\%(RecursiveDir)" />
+		<Copy SourceFiles="@(CopyDefs)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\Defs\%(RecursiveDir)" />
+		<Copy SourceFiles="@(CopyLanguages)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\Languages\%(RecursiveDir)" />
+		<Copy SourceFiles="@(CopyPatches)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\Patches\%(RecursiveDir)" />
+		<Copy SourceFiles="@(CopyResources)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\Resources\%(RecursiveDir)" />
+		<Copy SourceFiles="@(CopySounds)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\Sounds\%(RecursiveDir)" />
+		<Copy SourceFiles="@(CopyTextures)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\Textures\%(RecursiveDir)" />
+		<Copy SourceFiles="@(CopyLicense)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
+		<Copy SourceFiles="@(CopyReadme)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
+	</Target>
+
+	<Target Name="ZipMod" AfterTargets="CopyToRimworld" Condition="'$(RIMWORLD_MOD_DIR)' != ''">
+		<ZipDirectory SourceDirectory="$(RIMWORLD_MOD_DIR)\$(ModFileName)" DestinationFile="$(RIMWORLD_MOD_DIR)\$(ModFileName).zip" Overwrite="true" />
+	</Target>
 
 </Project>

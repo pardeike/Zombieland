@@ -821,4 +821,21 @@
 		</projectile>
 	</ThingDef>
 
+	<ThingDef ParentName="MoteBase">
+		<defName>Ghost</defName>
+		<graphicData>
+			<texPath>Ghost</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+			<drawSize>(1.5,1.5)</drawSize>
+		</graphicData>
+		<altitudeLayer>MoteOverhead</altitudeLayer>
+		<mote>
+			<fadeInTime>0.5</fadeInTime>
+			<fadeOutTime>0.5</fadeOutTime>
+			<solidTime>999999</solidTime>
+			<needsMaintenance>True</needsMaintenance>
+			<fadeOutUnmaintained>True</fadeOutUnmaintained>
+		</mote>
+	</ThingDef>
+
 </Defs>

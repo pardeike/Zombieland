@@ -183,6 +183,7 @@ namespace ZombieLand
 		public bool smashOnlyWhenAgitated = true;
 		public bool doubleTapRequired = true;
 		public bool zombiesDieVeryEasily = false;
+		public float healthFactor = 1f;
 		public int daysBeforeZombiesCome = 3;
 		public int maximumNumberOfZombies = 500;
 		public bool useDynamicThreatLevel = true;
@@ -243,6 +244,8 @@ namespace ZombieLand
 		public float spitterThreat = 1f;
 		public int minimumZombiesForWallPushing = 18;
 		public List<string> blacklistedApparel = new();
+		public float contaminationBaseFactor = 1f;
+		public ContaminationFactors contamination = new();
 
 		// unused
 		public int suicideBomberIntChance = 1;
@@ -302,22 +305,7 @@ namespace ZombieLand
 			});
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
-			{
-				if (ZombielandMod.IsLoadingDefaults == false)
-				{
-					// upgrade from old settings
-					//
-					//if (moveSpeedUpgraded == false && (moveSpeedIdle > 1 || moveSpeedTracking > 1))
-					//	LongEventHandler.QueueLongEvent(() =>
-					//	{
-					//		var note = "Zombieland Mod\n\nZombie speed has been normalized to be relative to human speed. Your move speed settings are quite high (> 1), make sure you adjust them.";
-					//		Find.WindowStack.Add(new NoteDialog(note));
-					//		moveSpeedUpgraded = true;
-					//	}, "speed-upgrade", true, null);
-				}
-
 				Tools.UpdateBiomeBlacklist(biomesWithoutZombies);
-			}
 		}
 	}
 

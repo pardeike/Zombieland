@@ -140,7 +140,7 @@ namespace ZombieLand
 		static bool Prepare() => TargetMethod() != null;
 		static MethodBase TargetMethod() => AccessTools.Method("RimWorld.ShipCombatManager:GenerateShip");
 
-		public static void Postfix(Map map, TradeShip tradeShip, Faction fac, Lord lord)
+		static void Postfix(Map map, TradeShip tradeShip, Faction fac, Lord lord)
 		{
 			if (tradeShip != null)
 				return;

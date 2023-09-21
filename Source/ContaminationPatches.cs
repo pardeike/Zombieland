@@ -1,10 +1,9 @@
-﻿using System;
+﻿using HarmonyLib;
+using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Emit;
-using HarmonyLib;
-using RimWorld;
+using UnityEngine;
 using Verse;
 using static HarmonyLib.Code;
 
@@ -13,426 +12,293 @@ using static HarmonyLib.Code;
 //
 namespace ZombieLand
 {
-	//[HarmonyPatch(typeof(ThingMaker), nameof(ThingMaker.MakeThing))]
-	static file class Log
+	[HarmonyPatch(typeof(Game))]
+	[HarmonyPatch(nameof(Game.FinalizeInit))]
+	static class Game_FinalizeInit_Patch
 	{
-		public static void Warning(string txt)
-		{
-			_ = txt; //Verse.Log.Warning(txt);
-		}
+		static bool Prepare() => Constants.CONTAMINATION > 0;
 
-		[HarmonyPostfix]
-		static void DebugLogMakeThing(Thing __result)
+		static void Postfix()
 		{
-			if (MapGenerator.mapBeingGenerated == null && Current.Game?.initData == null)
+			ContaminationManager.Instance.FixGrounds();
+		}
+	}
+
+	[HarmonyPatch(typeof(ThingMaker), nameof(ThingMaker.MakeThing))]
+	static file class Thing_MakeThing_TestPatch
+	{
+		static bool Prepare() => false;
+
+		static void Postfix(Thing __result)
+		{
+			if (Tools.IsPlaying() && __result is not Mote)
 			{
-				Verse.Log.ResetMessageCount();
-				Verse.Log.Message($"# {__result}");
+				Log.ResetMessageCount();
+				Log.Message($"NEW {__result}");
 			}
 		}
 	}
 
-	[HarmonyPatch(typeof(Frame), nameof(Frame.CompleteConstruction))]
-	static class Frame_CompleteConstruction_TestPatch
+	[HarmonyPatch(typeof(Thing), nameof(Thing.Destroy))]
+	static class Thing_Destroy_TestPatch
 	{
-		static float ClearAndDestroyContents(ThingOwner self, DestroyMode mode)
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
+		static void Prefix(Thing __instance, out int __state)
 		{
-			var marketValue = self.Sum(thing => { Log.Warning($"Consume {thing} [{thing.MarketValue}]"); return thing.MarketValue; });
-			self.ClearAndDestroyContents(mode);
-			return marketValue;
+			if (Tools.IsPlaying() && __instance is not Mote)
+			{
+				//Log.ResetMessageCount();
+				//Log.Message($"DEL {__instance}");
+				__state = __instance.thingIDNumber;
+			}
+			else
+				__state = -1;
 		}
 
-		static Thing MakeThing(ThingDef def, ThingDef stuff, float sum)
+		static void Postfix(int __state)
 		{
-			var result = ThingMaker.MakeThing(def, stuff);
-			Log.Warning($"Produce {result} [{sum}]");
+			if (__state != -1)
+				ContaminationManager.Instance.contaminations.Remove(__state);
+		}
+	}
+
+	[HarmonyPatch(typeof(Thing), nameof(Thing.SpecialDisplayStats))]
+	static class Thing_SpecialDisplayStats_TestPatch
+	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
+		static IEnumerable<StatDrawEntry> Postfix(IEnumerable<StatDrawEntry> entries, Thing __instance)
+		{
+			foreach (var entry in entries)
+				yield return entry;
+			yield return new StatDrawEntry(
+				StatCategoryDefOf.BasicsImportant,
+				"ZombieContamination".Translate(),
+				$"{100 * __instance.GetContamination():F2}%",
+				"ContaminationHelp".Translate(),
+				0
+			);
+		}
+	}
+
+	[HarmonyPatch(typeof(Widgets), nameof(Widgets.ThingIcon))]
+	[HarmonyPatch(new[] { typeof(Rect), typeof(Thing), typeof(float), typeof(Rot4?), typeof(bool) })]
+	static class Widgets_ThingIcon_TestPatch
+	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
+		static void Prefix(Rect rect, Thing thing, float alpha)
+		{
+			var contamination = thing.GetContamination();
+			if (contamination == 0)
+				return;
+			var color = new Color(0, 1, 0, alpha);
+			Tools.DrawBorderRect(rect, color.ToTransparent(0.5f));
+			rect = rect.ExpandedBy(-1, -1);
+			rect.yMin = rect.yMax - rect.height * Tools.Boxed(contamination, 0, 1);
+			Widgets.DrawBoxSolid(rect, color.ToTransparent(0.25f));
+		}
+	}
+
+	[HarmonyPatch(typeof(MainTabWindow_Quests), nameof(MainTabWindow_Quests.DoRow))]
+	static class MainTabWindow_Quests_DoRow_TestPatch
+	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
+		static int Max(int a, int b, Quest quest)
+		{
+			if (quest.parts.Any(part => part is QuestPart_DecontaminateColonists))
+				return 0;
+			return Mathf.Max(a, b);
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			=> instructions.ExtraArgumentsTranspiler(typeof(Mathf), () => Max(default, default, default), new[] { Ldarg_2 }, 1);
+	}
+
+	[HarmonyPatch(typeof(PlaySettings), nameof(PlaySettings.DoPlaySettingsGlobalControls))]
+	static class PlaySettings_DoPlaySettingsGlobalControls_TestPatch
+	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
+		static void Postfix(WidgetRow row, bool worldView)
+		{
+			if (worldView == false && Current.ProgramState == ProgramState.Playing)
+			{
+				var label = "ShowContaminationOverlayToggleButton".Translate();
+				row.ToggleableIcon(ref ContaminationManager.Instance.showContaminationOverlay, Constants.ShowContaminationOverlay, label, SoundDefOf.Mouseover_ButtonToggle);
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(MouseoverReadout), nameof(MouseoverReadout.MouseoverReadoutOnGUI))]
+	static class MouseoverReadout_MouseoverReadoutOnGUI_TestPatch
+	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
+		static string GetGlowLabelByValue(float value, IntVec3 cell)
+		{
+			var result = MouseoverUtility.GetGlowLabelByValue(value);
+			var map = Find.CurrentMap;
+			if (cell.InBounds(map))
+			{
+				var contamination = map.GetContamination(cell);
+				if (contamination >= ContaminationFactors.minContaminationThreshold)
+					result += $" Contaminated ({contamination:P2})";
+			}
 			return result;
 		}
 
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+		static string LabelMouseover(Entity self)
 		{
-			var sumVar = generator.DeclareLocal(typeof(float));
-
-			var from1 = SymbolExtensions.GetMethodInfo((ThingOwner owner) => owner.ClearAndDestroyContents(DestroyMode.Vanish));
-			var to1 = SymbolExtensions.GetMethodInfo(() => ClearAndDestroyContents(default, default));
-
-			var from2 = SymbolExtensions.GetMethodInfo(() => ThingMaker.MakeThing(default, default));
-			var to2 = SymbolExtensions.GetMethodInfo(() => MakeThing(default, default, default));
-
-			return new CodeMatcher(instructions)
-				 .MatchStartForward(new CodeMatch(operand: from1))
-				 .ThrowIfInvalid($"Cannot find {from1.FullDescription()}")
-				 .SetOperandAndAdvance(to1)
-				 .Insert(Stloc[sumVar])
-				 .MatchStartForward(new CodeMatch(operand: from2))
-				 .ThrowIfInvalid($"Cannot find {from2.FullDescription()}")
-				 .InsertAndAdvance(Ldloc[sumVar])
-				 .SetInstruction(Call[to2])
-				 .InstructionEnumeration();
-		}
-	}
-
-	[HarmonyPatch(typeof(GenRecipe), nameof(GenRecipe.MakeRecipeProducts))]
-	static class GenReciepe_MakeRecipeProducts_TestPatch
-	{
-		static IEnumerable<Thing> Postfix(IEnumerable<Thing> things, List<Thing> ingredients)
-		{
-			var thingList = things.ToArray();
-			Log.Warning($"Produce {thingList.Join(t => $"{t}")} from {ingredients.Join(t => $"{t}")}");
-			foreach (var thing in thingList)
-				yield return thing;
-		}
-	}
-
-	[HarmonyPatch(typeof(Thing), nameof(Thing.ButcherProducts))]
-	static class Thing_ButcherProducts_TestPatch
-	{
-		static IEnumerable<Thing> Postfix(IEnumerable<Thing> things, Thing __instance)
-		{
-			var thingList = things.ToArray();
-			Log.Warning($"Produce {thingList.Join(t => $"{t}")} from {__instance}");
-			foreach (var thing in thingList)
-				yield return thing;
-		}
-	}
-
-	[HarmonyPatch(typeof(Thing), nameof(Thing.SplitOff))]
-	static class Thing_SplitOff_TestPatch
-	{
-		static void Postfix(Thing __result, Thing __instance)
-		{
-			if (__result != __instance)
-				Log.Warning($"Split off {__result} from {__instance}");
-		}
-	}
-
-	[HarmonyPatch(typeof(MinifiedThing), nameof(MinifiedThing.SplitOff))]
-	static class MinifiedThing_SplitOff_TestPatch
-	{
-		static void Postfix(Thing __result, MinifiedThing __instance)
-		{
-			if (__result != __instance)
-				Log.Warning($"Split off {__result} from {__instance}");
-		}
-	}
-
-	[HarmonyPatch(typeof(MinifyUtility), nameof(MinifyUtility.MakeMinified))]
-	static class MinifyUtility_MakeMinified_TestPatch
-	{
-		static void Postfix(MinifiedThing __result, Thing thing)
-		{
-			Log.Warning($"Minified {__result} from {thing}");
-		}
-	}
-
-	[HarmonyPatch]
-	static class GenSpawn_Spawn_Replacement_TestPatch
-	{
-		static IEnumerable<MethodBase> TargetMethods()
-		{
-			yield return SymbolExtensions.GetMethodInfo((WildPlantSpawner spawner) => spawner.CheckSpawnWildPlantAt(IntVec3.Zero, 0f, 0f, false));
-			yield return SymbolExtensions.GetMethodInfo((TunnelJellySpawner spawner) => spawner.Spawn(null, IntVec3.Zero));
-		}
-
-		static Thing Spawn(Thing newThing, IntVec3 loc, Map map, WipeMode wipeMode)
-		{
-			var thing = GenSpawn.Spawn(newThing, loc, map, wipeMode);
-			if (MapGenerator.mapBeingGenerated == null && Current.Game?.initData == null)
-				Log.Warning($"Spawned {thing} at {loc}");
-			return thing;
+			var result = self.LabelMouseover;
+			if (self is Thing thing)
+			{
+				var contamination = thing.GetContamination();
+				if (contamination >= ContaminationFactors.minContaminationThreshold)
+					result += $", {contamination:P2} contaminated";
+			}
+			return result;
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 		{
-			var from = SymbolExtensions.GetMethodInfo(() => GenSpawn.Spawn((Thing)null, IntVec3.Zero, null, WipeMode.Vanish));
-			var to = SymbolExtensions.GetMethodInfo(() => Spawn(null, IntVec3.Zero, null, WipeMode.Vanish));
+			var m_MouseCell = SymbolExtensions.GetMethodInfo(() => UI.MouseCell());
+			var p_LabelMouseover = AccessTools.PropertyGetter(typeof(Entity), nameof(Entity.LabelMouseover));
+			var m_LabelMouseover = SymbolExtensions.GetMethodInfo(() => LabelMouseover(default));
+			var m_GetGlowLabelByValue = SymbolExtensions.GetMethodInfo(() => MouseoverUtility.GetGlowLabelByValue(default));
+			var m_GetGlowLabelByValueWithCell = SymbolExtensions.GetMethodInfo(() => GetGlowLabelByValue(default, default));
+
+			return new CodeMatcher(instructions)
+				.MatchEndForward(new CodeMatch(operand: m_MouseCell), Stloc_0)
+				.ThrowIfInvalid("Cannot find UI.MouseCell(), Stloc_0")
+				.MatchStartForward(new CodeMatch(operand: m_GetGlowLabelByValue))
+				.ThrowIfInvalid($"Cannot find {m_GetGlowLabelByValue.FullDescription()}")
+				.Set(OpCodes.Call, m_GetGlowLabelByValueWithCell)
+				.Insert(Ldloc_0)
+				.MatchStartForward(new CodeMatch(operand: p_LabelMouseover))
+				.ThrowIfInvalid($"Cannot find {p_LabelMouseover.FullDescription()}")
+				.Set(OpCodes.Call, m_LabelMouseover)
+				.InstructionEnumeration();
+		}
+	}
+
+	[HarmonyPatch(typeof(InspectPaneUtility), nameof(InspectPaneUtility.PaneWidthFor))]
+	static class InspectPaneUtility_PaneWidthFor_TestPatch
+	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
+		[HarmonyPriority(Priority.Last)]
+		static void Postfix(ref float __result, IInspectPane pane, bool __runOriginal)
+		{
+			if (__runOriginal && pane is MainTabWindow_Inspect)
+				__result += 146f;
+		}
+	}
+
+	[HarmonyPatch(typeof(InspectPaneFiller), nameof(InspectPaneFiller.DoPaneContentsFor))]
+	static class InspectPaneFiller_DoPaneContentsFor_TestPatch
+	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
+		static void DrawHealth(WidgetRow row, Thing t)
+		{
+			InspectPaneFiller.DrawHealth(row, t);
+
+			var contamination = t.GetContamination();
+			if (contamination == 0)
+				contamination = t.Map.GetContamination(t.Position, true);
+
+			GUI.color = Color.gray;
+			if (contamination > 0.2f)
+				GUI.color = Color.white;
+			if (contamination > 0.4f)
+				GUI.color = Color.cyan;
+			if (contamination > 0.6f)
+				GUI.color = Color.yellow;
+			if (contamination > 0.8f)
+				GUI.color = Color.red;
+			row.Gap(6f);
+			row.FillableBar(140f, 16f, contamination, $"{contamination:P2} contamination", InspectPaneFiller.MoodTex, InspectPaneFiller.BarBGTex);
+			GUI.color = Color.white;
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		{
+			var from = SymbolExtensions.GetMethodInfo(() => InspectPaneFiller.DrawHealth(default, default));
+			var to = SymbolExtensions.GetMethodInfo(() => DrawHealth(default, default));
 			return instructions.MethodReplacer(from, to);
 		}
 	}
 
-	[HarmonyPatch(typeof(SmoothableWallUtility), nameof(SmoothableWallUtility.SmoothWall))]
-	static class SmoothableWallUtility_SmoothWall_TestPatch
+	[HarmonyPatch(typeof(BeautyDrawer), nameof(BeautyDrawer.DrawBeautyAroundMouse))]
+	static class BeautyDrawer_DrawBeautyAroundMouse_TestPatch
 	{
-		static void Prefix(Thing target, out float __state)
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
+		static bool Prefix()
 		{
-			__state = target.MarketValue;
+			if (Input.GetKey(KeyCode.LeftShift) == false && Input.GetKey(KeyCode.RightShift) == false)
+				return true;
+
+			var map = Find.CurrentMap;
+			var mouseCell = UI.MouseCell();
+			var grid = map.GetContamination();
+
+			for (var i = 0; i < BeautyUtility.SampleNumCells_Beauty; i++)
+			{
+				var cell = mouseCell + GenRadial.RadialPattern[i];
+				if (cell.InBounds(map) && !cell.Fogged(map))
+				{
+					var cellThings = map.thingGrid.ThingsListAtFast(cell).Where(t => t is not Mote).ToArray();
+
+					var contaminationCell = grid[cell];
+					var contaminationThings = cellThings
+						.Where(thing => thing.DrawPos == thing.Position.ToVector3Shifted())
+						.Sum(thing => thing.GetContamination());
+					var totalContamination = contaminationCell + contaminationThings;
+					if (totalContamination >= ContaminationFactors.minContaminationThreshold)
+					{
+						var textColor = Color.gray;
+						if (contaminationCell > 0.2f || contaminationThings > 0.2f)
+							textColor = Color.white;
+						if (contaminationCell > 0.4f || contaminationThings > 0.2f)
+							textColor = Color.cyan;
+						if (contaminationCell > 0.6f || contaminationThings > 0.6f)
+							textColor = Color.yellow;
+						if (contaminationCell > 0.8f || contaminationThings > 0.8f)
+							textColor = Color.red;
+						GenMapUI.DrawThingLabel(GenMapUI.LabelDrawPosFor(cell), $"{totalContamination * 100:F1}", textColor);
+					}
+
+					cellThings
+						.DoIf(thing => thing.DrawPos != thing.Position.ToVector3Shifted(), thing =>
+						{
+							var contaminiaton = thing.GetContamination();
+							if (contaminiaton < ContaminationFactors.minContaminationThreshold)
+								return;
+
+							var textColor = Color.gray;
+							if (contaminiaton > 0.2f)
+								textColor = Color.white;
+							if (contaminiaton > 0.2f)
+								textColor = Color.cyan;
+							if (contaminiaton > 0.6f)
+								textColor = Color.yellow;
+							if (contaminiaton > 0.8f)
+								textColor = Color.red;
+
+							var vector = thing.DrawPos + new Vector3(0, AltitudeLayer.MetaOverlays.AltitudeFor(), 0);
+							var vector2 = Find.Camera.WorldToScreenPoint(vector) / Prefs.UIScale;
+							vector2.y = UI.screenHeight - vector2.y;
+							vector2.y -= 1f;
+							GenMapUI.DrawThingLabel(vector2, $"{contaminiaton * 100:F1}", textColor);
+						});
+				}
+			}
+
+			return false;
 		}
-
-		static void Postfix(Thing __result, float __state)
-		{
-			Log.Warning($"Smoothed {__result} [{__state}]");
-		}
-	}
-
-	[HarmonyPatch(typeof(SmoothableWallUtility), nameof(SmoothableWallUtility.Notify_BuildingDestroying))]
-	static class SmoothableWallUtility_Notify_BuildingDestroying_TestPatch
-	{
-		static Thing Spawn(Thing newThing, IntVec3 loc, Map map, Rot4 rot, WipeMode wipeMode, bool respawningAfterLoad, Thing destroyedThing)
-		{
-			var thing = GenSpawn.Spawn(newThing, loc, map, rot, wipeMode, respawningAfterLoad);
-			Log.Warning($"Produced {thing} from destroyed {destroyedThing}");
-			return thing;
-		}
-
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-		{
-			var from = SymbolExtensions.GetMethodInfo(() => GenSpawn.Spawn(null, IntVec3.Zero, null, Rot4.Invalid, WipeMode.Vanish, false));
-			var to = SymbolExtensions.GetMethodInfo(() => Spawn(null, IntVec3.Zero, null, Rot4.Invalid, WipeMode.Vanish, false, null));
-
-			return new CodeMatcher(instructions)
-			.MatchStartForward(new CodeMatch(operand: from))
-				 .ThrowIfInvalid($"Cannot find {from.FullDescription()}")
-				 .InsertAndAdvance(Ldarg_0)
-				 .SetInstruction(Call[to])
-				 .InstructionEnumeration();
-		}
-	}
-
-	[HarmonyPatch(typeof(Mineable), nameof(Mineable.TrySpawnYield))]
-	static class Mineable_TrySpawnYield_TestPatch
-	{
-		static Thing MakeThing(ThingDef def, ThingDef stuff, Mineable mineable)
-		{
-			var thing = ThingMaker.MakeThing(def, stuff);
-			Log.Warning($"Yielded {thing} from {mineable}");
-			return thing;
-		}
-
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> Tools.MakeThingTranspiler(instructions, () => MakeThing(default, default, default));
-	}
-
-	[HarmonyPatch(typeof(Pawn_FilthTracker), nameof(Pawn_FilthTracker.TryPickupFilth))]
-	static class Pawn_FilthTracker_TryPickupFilth_TestPatch
-	{
-		static void Gain(Pawn_FilthTracker self, Filth filth)
-		{
-			if (filth != null)
-				Log.Warning($"Gained {filth} on {self.pawn} at {self.pawn.Position}");
-		}
-
-		static void GainFilth(Pawn_FilthTracker self, ThingDef filthDef)
-		{
-			self.GainFilth(filthDef);
-			var newFilth = self.carriedFilth.LastOrDefault();
-			Gain(self, newFilth);
-		}
-
-		static void GainFilth(Pawn_FilthTracker self, ThingDef filthDef, IEnumerable<string> sources)
-		{
-			self.GainFilth(filthDef, sources);
-			var newFilth = self.carriedFilth.LastOrDefault();
-			Gain(self, newFilth);
-		}
-
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-		{
-			var from1 = SymbolExtensions.GetMethodInfo((Pawn_FilthTracker tracker) => tracker.GainFilth(default));
-			var to1 = SymbolExtensions.GetMethodInfo(() => GainFilth(default, default));
-
-			var from2 = SymbolExtensions.GetMethodInfo((Pawn_FilthTracker tracker) => tracker.GainFilth(default, default));
-			var to2 = SymbolExtensions.GetMethodInfo(() => GainFilth(default, default, default));
-
-			return instructions.MethodReplacer(from1, to1).MethodReplacer(from2, to2);
-		}
-	}
-
-	[HarmonyPatch(typeof(Pawn_FilthTracker), nameof(Pawn_FilthTracker.DropCarriedFilth))]
-	static class Pawn_FilthTracker_DropCarriedFilth_TestPatch
-	{
-		static void Prefix(Filth f) => FilthMaker_TryMakeFilth_TestPatch.filthSource = f;
-		static void Postfix() => FilthMaker_TryMakeFilth_TestPatch.filthSource = null;
-	}
-	[HarmonyPatch(typeof(GenLeaving), nameof(GenLeaving.DoLeavingsFor))]
-	[HarmonyPatch(new[] { typeof(Thing), typeof(Map), typeof(DestroyMode), typeof(CellRect), typeof(Predicate<IntVec3>), typeof(List<Thing>) })]
-	static class GenLeaving_DoLeavingsFor_TestPatch
-	{
-		static void Prefix(Thing diedThing, ref List<Thing> listOfLeavingsOut)
-		{
-			listOfLeavingsOut ??= new List<Thing>();
-			FilthMaker_TryMakeFilth_TestPatch.filthSource = diedThing;
-		}
-		static void Postfix(Thing diedThing, List<Thing> listOfLeavingsOut)
-		{
-			FilthMaker_TryMakeFilth_TestPatch.filthSource = null;
-			if (listOfLeavingsOut.Any())
-				Log.Warning($"Produce {listOfLeavingsOut.Join(t => $"{t}")} from {diedThing}");
-		}
-	}
-	[HarmonyPatch(typeof(GenLeaving), nameof(GenLeaving.DropFilthDueToDamage))]
-	static class Pawn_FilthTracker_DropFilthDueToDamage_TestPatch
-	{
-		static void Prefix(Thing t) => FilthMaker_TryMakeFilth_TestPatch.filthSource = t;
-		static void Postfix() => FilthMaker_TryMakeFilth_TestPatch.filthSource = null;
-	}
-	[HarmonyPatch]
-	static class JobDriver_Vomit_MakeNewToils_TestPatch
-	{
-		static readonly MethodInfo m_TryMakeFilth = SymbolExtensions.GetMethodInfo(() => FilthMaker.TryMakeFilth(IntVec3.Invalid, default, ThingDefOf.Filth_Vomit, "", 0, FilthSourceFlags.Any));
-		static bool TryMakeFilth(IntVec3 c, Map map, ThingDef filthDef, string source, int count, FilthSourceFlags additionalFlags, JobDriver_Vomit jobDriver)
-		{
-			FilthMaker_TryMakeFilth_TestPatch.filthSource = jobDriver.pawn;
-			var result = FilthMaker.TryMakeFilth(c, map, filthDef, source, count, additionalFlags);
-			FilthMaker_TryMakeFilth_TestPatch.filthSource = null;
-			return result;
-		}
-
-		static MethodBase TargetMethod()
-		{
-			return AccessTools.FirstMethod(typeof(JobDriver_Vomit), method =>
-				 PatchProcessor.ReadMethodBody(method).Any(pair => pair.Value is MethodInfo method && method == m_TryMakeFilth));
-		}
-
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-		{
-			var from = m_TryMakeFilth;
-			var to = SymbolExtensions.GetMethodInfo(() => TryMakeFilth(default, default, default, default, default, default, default));
-
-			return new CodeMatcher(instructions)
-			.MatchStartForward(new CodeMatch(operand: from))
-				 .ThrowIfInvalid($"Cannot find {from.FullDescription()}")
-				 .InsertAndAdvance(Ldarg_0)
-				 .SetInstruction(Call[to])
-				 .InstructionEnumeration();
-		}
-	}
-	[HarmonyPatch(typeof(FilthMaker), nameof(FilthMaker.TryMakeFilth))]
-	[HarmonyPatch(new[] { typeof(IntVec3), typeof(Map), typeof(ThingDef), typeof(IEnumerable<string>), typeof(bool), typeof(FilthSourceFlags) })]
-	static class FilthMaker_TryMakeFilth_TestPatch
-	{
-		public static Thing filthSource = null;
-
-		static void AddSources(Filth self, IEnumerable<string> sources)
-		{
-			if (filthSource != null)
-				Log.Warning($"Dropping {self} from {filthSource}");
-			self.AddSources(sources);
-		}
-
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-		{
-			var from = SymbolExtensions.GetMethodInfo((Filth filth) => filth.AddSources(default));
-			var to = SymbolExtensions.GetMethodInfo(() => AddSources(default, default));
-			return instructions.MethodReplacer(from, to);
-		}
-	}
-
-	[HarmonyPatch(typeof(Building_NutrientPasteDispenser), nameof(Building_NutrientPasteDispenser.TryDispenseFood))]
-	static class Building_NutrientPasteDispenser_TryDispenseFood_TestPatch
-	{
-		static Thing AddToThingList(Thing thing, List<Thing> things)
-		{
-			things.Add(thing);
-			return thing;
-		}
-
-		static Thing MakeThing(ThingDef def, ThingDef stuff, List<Thing> things)
-		{
-			var result = ThingMaker.MakeThing(def, stuff);
-			Log.Warning($"Produce {result} from [{things.Join(t => $"{t}")}]");
-			return result;
-		}
-
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
-		{
-			var thingList = generator.DeclareLocal(typeof(List<Thing>));
-			var thingListConstructor = AccessTools.DeclaredConstructor(thingList.LocalType, Array.Empty<Type>());
-
-			var m_SplitOff = SymbolExtensions.GetMethodInfo((Thing thing) => thing.SplitOff(0));
-			var m_AddToThingList = SymbolExtensions.GetMethodInfo(() => AddToThingList(default, default));
-
-			var from2 = SymbolExtensions.GetMethodInfo(() => ThingMaker.MakeThing(default, default));
-			var to2 = SymbolExtensions.GetMethodInfo(() => MakeThing(default, default, default));
-
-			return new CodeMatcher(instructions)
-				 .MatchStartForward(Newobj)
-				 .Insert(Newobj[thingListConstructor], Stloc[thingList])
-				 .MatchStartForward(new CodeMatch(operand: m_SplitOff))
-				 .Advance(1)
-				 .Insert(Ldloc[thingList], Call[m_AddToThingList])
-				 .MatchStartForward(new CodeMatch(operand: from2))
-				 .ThrowIfInvalid($"Cannot find {from2.FullDescription()}")
-				 .InsertAndAdvance(Ldloc[thingList])
-				 .SetInstruction(Call[to2])
-				 .InstructionEnumeration();
-		}
-	}
-
-	[HarmonyPatch]
-	static class ThingComp_TestPatches
-	{
-		static IEnumerable<MethodBase> TargetMethods()
-		{
-			yield return SymbolExtensions.GetMethodInfo((CompChangeableProjectile comp) => comp.RemoveShell());
-			yield return SymbolExtensions.GetMethodInfo((CompDeepDrill comp) => comp.TryProducePortion(0f, null));
-			yield return SymbolExtensions.GetMethodInfo((CompEggLayer comp) => comp.ProduceEgg());
-			yield return SymbolExtensions.GetMethodInfo((CompHasGatherableBodyResource comp) => comp.Gathered(default));
-			yield return AccessTools.Method(typeof(CompMechCarrier), nameof(CompMechCarrier.PostSpawnSetup));
-			yield return SymbolExtensions.GetMethodInfo((CompPlantable comp) => comp.DoPlant(default, default, default));
-			yield return SymbolExtensions.GetMethodInfo((CompPollutionPump comp) => comp.Pump());
-			yield return AccessTools.Method(typeof(CompRefuelable), nameof(CompRefuelable.PostDestroy));
-			yield return SymbolExtensions.GetMethodInfo((CompSpawnerItems comp) => comp.SpawnItems());
-			yield return SymbolExtensions.GetMethodInfo((CompSpawner comp) => comp.TryDoSpawn());
-			yield return AccessTools.Method(typeof(CompTreeConnection), nameof(CompTreeConnection.CompTick));
-			yield return SymbolExtensions.GetMethodInfo((CompWasteProducer comp) => comp.ProduceWaste(0));
-		}
-
-		static Thing MakeThing(ThingDef def, ThingDef stuff, ThingComp thingComp)
-		{
-			var result = ThingMaker.MakeThing(def, stuff);
-			Log.Warning($"Produce {result} from {thingComp.parent}");
-			return result;
-		}
-
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> Tools.MakeThingTranspiler(instructions, () => MakeThing(default, default, default));
-	}
-
-	[HarmonyPatch(typeof(Building_SubcoreScanner), nameof(Building_SubcoreScanner.Tick))]
-	static class Building_SubcoreScanner_Tick_TestPatch
-	{
-		static Thing MakeThing(ThingDef def, ThingDef stuff, Building_SubcoreScanner scanner)
-		{
-			var result = ThingMaker.MakeThing(def, stuff);
-			Log.Warning($"Produce {result} from {scanner}");
-			return result;
-		}
-
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> Tools.MakeThingTranspiler(instructions, () => MakeThing(default, default, default));
-	}
-
-	[HarmonyPatch(typeof(Building_GeneExtractor), nameof(Building_GeneExtractor.Finish))]
-	static class Building_GeneExtractor_Finish_TestPatch
-	{
-		static Thing MakeThing(ThingDef def, ThingDef stuff, Building_GeneExtractor extractor)
-		{
-			var result = ThingMaker.MakeThing(def, stuff);
-			Log.Warning($"Produce {result} from {extractor.ContainedPawn}");
-			return result;
-		}
-
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> Tools.MakeThingTranspiler(instructions, () => MakeThing(default, default, default));
-	}
-
-	[HarmonyPatch]
-	static class Building_TestPatches
-	{
-		static IEnumerable<MethodBase> TargetMethods()
-		{
-			yield return SymbolExtensions.GetMethodInfo((Building_GeneAssembler building) => building.Finish());
-			yield return SymbolExtensions.GetMethodInfo((Building_FermentingBarrel building) => building.TakeOutBeer());
-		}
-
-		static Thing MakeThing(ThingDef def, ThingDef stuff, Building building)
-		{
-			var result = ThingMaker.MakeThing(def, stuff);
-			Log.Warning($"Produce {result} from {building}");
-			return result;
-		}
-
-		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			=> Tools.MakeThingTranspiler(instructions, () => MakeThing(default, default, default));
 	}
 }

@@ -75,6 +75,8 @@ namespace ZombieLand
 		public float consciousness = 1f;
 		public int paralyzedUntil = 0;
 		public Pawn ropedBy;
+		public bool IsConfused => Downed == false && ropedBy == null && (paralyzedUntil > 0 || consciousness <= Constants.MIN_CONSCIOUSNESS);
+		public bool IsRopedOrConfused => Downed == false && (paralyzedUntil > 0 || consciousness <= Constants.MIN_CONSCIOUSNESS || ropedBy != null);
 
 		// being pushed over walls
 		public float wallPushProgress = -1f;
@@ -329,14 +331,16 @@ namespace ZombieLand
 
 		public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
 		{
-			_ = Map.GetComponent<TickManager>()?.hummingZombies.Remove(this);
-
 			var map = Map;
-			if (map == null)
-				return;
+			if (map != null)
+			{
+				var tm = map.GetComponent<TickManager>();
+				_ = tm?.hummingZombies.Remove(this);
+				_ = tm?.tankZombies.Remove(this);
 
-			var grid = map.GetGrid();
-			grid.ChangeZombieCount(lastGotoPosition, -1);
+				var grid = map.GetGrid();
+				grid.ChangeZombieCount(lastGotoPosition, -1);
+			}
 			base.DeSpawn(mode);
 		}
 
@@ -568,8 +572,6 @@ namespace ZombieLand
 					roping?.RopingTick();
 					natives?.NativeVerbsTick();
 					jobs?.JobTrackerTick();
-					//Drawer?.DrawTrackerTick();
-					//rotationTracker?.RotationTrackerTick();
 					health?.HealthTick();
 				}
 			}

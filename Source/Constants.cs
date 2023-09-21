@@ -91,6 +91,12 @@ namespace ZombieLand
 		public static bool SHOW_DIRECT_PATHING_GRID = false;
 		[Constant(1, "Enable to show wander grid regions")]
 		public static bool SHOW_WANDER_REGIONS = false;
+		[Constant(1, "Max visible cells to show detailed contamination overlay")]
+		public static int MAX_CELLS_FOR_DETAILED_CONTAMINATION = 6400;
+
+		// contamination
+		[Constant(1, "Contamination (0=off, 1=basic, 2=development)")]
+		public static int CONTAMINATION = 1;
 
 		// general debugging/testing
 		//
@@ -348,6 +354,10 @@ namespace ZombieLand
 		public static Texture2D zoneZombie = ContentFinder<Texture2D>.Get("ZoneZombie", true);
 		public static Texture2D blood = ContentFinder<Texture2D>.Get("Blood", true);
 
+		public static Material Contamination = MaterialPool.MatFrom("Contamination", ShaderDatabase.Mote);
+		public static Material ContaminationCell = MaterialPool.MatFrom("ContaminationCell", ShaderDatabase.Mote);
+		public static Texture2D ShowContaminationOverlay = ContentFinder<Texture2D>.Get("ShowContaminationOverlay", true);
+
 		public static readonly Texture2D[] Chainsaw = new[]
 		{
 			ContentFinder<Texture2D>.Get("Chainsaw0", true),
@@ -362,6 +372,12 @@ namespace ZombieLand
 			MaterialPool.MatFrom("Spitter/Spitter-back", ShaderDatabase.Cutout),
 			MaterialPool.MatFrom("Spitter/Spitter-middle", ShaderDatabase.Cutout),
 			MaterialPool.MatFrom("Spitter/Spitter-front", ShaderDatabase.Cutout),
+		};
+		public static readonly Material[] SpitterAggressive = new[]
+		{
+			MaterialPool.MatFrom("Spitter/Spitter-back", ShaderDatabase.Cutout, new Color(1f, 0.75f, 0.75f)),
+			MaterialPool.MatFrom("Spitter/Spitter-middle", ShaderDatabase.Cutout, new Color(1f, 0.75f, 0.75f)),
+			MaterialPool.MatFrom("Spitter/Spitter-front", ShaderDatabase.Cutout, new Color(1f, 0.75f, 0.75f)),
 		};
 
 		public static List<(string name, FieldInfo field, ConstantAttribute attr)> AllSettings
