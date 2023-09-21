@@ -12,6 +12,8 @@ namespace ZombieLand
 	[HarmonyPatch]
 	static class GenSpawn_Spawn_Replacement_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static IEnumerable<MethodBase> TargetMethods()
 		{
 			yield return SymbolExtensions.GetMethodInfo((WildPlantSpawner spawner) => spawner.CheckSpawnWildPlantAt(IntVec3.Zero, 0f, 0f, false));
@@ -24,7 +26,7 @@ namespace ZombieLand
 			if (Tools.IsPlaying())
 			{
 				var contamination = map.GetContamination(loc);
-				thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing} at {loc}"), thing.def.IsPlant ? ZombieSettings.Values.contamination.plantAdd : ZombieSettings.Values.contamination.jellyAdd);
+				thing.AddContamination(contamination, null/*() => Log.Warning($"Spawned {thing} at {loc}")*/, thing.def.IsPlant ? ZombieSettings.Values.contamination.plantAdd : ZombieSettings.Values.contamination.jellyAdd);
 			}
 			return thing;
 		}
@@ -41,6 +43,9 @@ namespace ZombieLand
 	static class JobDriver_PlantWork_MakeNewToils_TestPatch
 	{
 		static readonly MethodInfo m_MakeThing = SymbolExtensions.GetMethodInfo(() => ThingMaker.MakeThing(default, default));
+
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static MethodBase TargetMethod()
 		{
 			var type = AccessTools.FirstInner(typeof(JobDriver_PlantWork), type => type.Name.Contains("DisplayClass"));
@@ -50,7 +55,7 @@ namespace ZombieLand
 		static Thing MakeThing(ThingDef def, ThingDef stuff, Plant plant)
 		{
 			var result = ThingMaker.MakeThing(def, stuff);
-			plant?.TransferContamination(ZombieSettings.Values.contamination.plantTransfer, () => Log.Warning($"Produce {result} from {plant}"), result);
+			plant?.TransferContamination(ZombieSettings.Values.contamination.plantTransfer, null/*() => Log.Warning($"Produce {result} from {plant}")*/, result);
 			return result;
 		}
 
@@ -79,11 +84,13 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(IncidentWorker_AmbrosiaSprout), nameof(IncidentWorker_AmbrosiaSprout.TryExecuteWorker))]
 	static class IncidentWorker_AmbrosiaSprout_TryExecuteWorker_TestPatches
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode)
 		{
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing} at {loc}"), ZombieSettings.Values.contamination.ambrosiaAdd);
+			thing.AddContamination(contamination, null/*() => Log.Warning($"Spawned {thing} at {loc}")*/, ZombieSettings.Values.contamination.ambrosiaAdd);
 			return thing;
 		}
 
@@ -94,10 +101,12 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Plant), nameof(Plant.TrySpawnStump))]
 	static class Plant_TrySpawnStump_TestPatches
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Plant plant)
 		{
 			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
-			plant.TransferContamination(ZombieSettings.Values.contamination.stumpTransfer, () => Log.Warning($"Produce {result} from {plant}"), result);
+			plant.TransferContamination(ZombieSettings.Values.contamination.stumpTransfer, null/*() => Log.Warning($"Produce {result} from {plant}")*/, result);
 			return result;
 		}
 
@@ -110,6 +119,8 @@ namespace ZombieLand
 	{
 		static readonly Expression<Action> m_Spawn = () => Spawn(default, default, default, default, default);
 
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static MethodBase TargetMethod()
 		{
 			var type = AccessTools.FirstInner(typeof(JobDriver_PlantSow), type => type.Name.Contains("DisplayClass"));
@@ -121,8 +132,8 @@ namespace ZombieLand
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var pawn = driver.pawn;
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing} at {loc}"), ZombieSettings.Values.contamination.sowedPlantAdd);
-			ZombieSettings.Values.contamination.sowingPawnEqualize.Equalize(pawn, thing, () => Log.Warning($"{pawn} sowed {thing}"));
+			thing.AddContamination(contamination, null/*() => Log.Warning($"Spawned {thing} at {loc}")*/, ZombieSettings.Values.contamination.sowedPlantAdd);
+			ZombieSettings.Values.contamination.sowingPawnEqualize.Equalize(pawn, thing, null/*() => Log.Warning($"{pawn} sowed {thing}")*/);
 			return thing;
 		}
 

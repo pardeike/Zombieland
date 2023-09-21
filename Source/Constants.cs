@@ -94,6 +94,10 @@ namespace ZombieLand
 		[Constant(1, "Max visible cells to show detailed contamination overlay")]
 		public static int MAX_CELLS_FOR_DETAILED_CONTAMINATION = 6400;
 
+		// contamination
+		[Constant(1, "Contamination (0=off, 1=basic, 2=development)")]
+		public static int CONTAMINATION = 1;
+
 		// general debugging/testing
 		//
 		[Constant(1, "Turn zombie sounds on/off")]

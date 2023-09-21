@@ -1032,7 +1032,7 @@ namespace ZombieLand
 			}
 		}
 
-		static void CastBrainzThought(Pawn pawn)
+		public static void CastBrainzThought(Pawn pawn)
 		{
 			Tools.CastThoughtBubble(pawn, Constants.BRRAINZ);
 

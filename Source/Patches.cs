@@ -49,6 +49,7 @@ namespace ZombieLand
 			{
 				CETools.Init(harmony);
 				AlienTools.Init();
+				VehicleTools.Init();
 				Customization.Init();
 			});
 
@@ -2156,6 +2157,10 @@ namespace ZombieLand
 					if (tickManager?.avoidGrid?.InAvoidDanger(pawn) ?? false)
 						tickManager.MarkZombieContact();
 				}
+
+				// vehicles
+				if (VehicleTools.BumpTimestamps(pawn, value))
+					return;
 
 				// manhunting will always trigger senses
 				//
@@ -5460,7 +5465,7 @@ namespace ZombieLand
 		[HarmonyPatch(typeof(Building), nameof(Building.DeSpawn))]
 		static class Building_DeSpawn_Patch
 		{
-			public static void Prefix(Building __instance, DestroyMode mode)
+			static void Prefix(Building __instance, DestroyMode mode)
 			{
 				if (Current.ProgramState != ProgramState.Playing)
 					return;
@@ -5501,7 +5506,7 @@ namespace ZombieLand
 		[HarmonyPatch(typeof(FogGrid), nameof(FogGrid.Notify_PawnEnteringDoor))]
 		static class FogGrid_Notify_PawnEnteringDoor_Patch
 		{
-			public static void Prefix(Building_Door door, Pawn pawn)
+			static void Prefix(Building_Door door, Pawn pawn)
 			{
 				if (pawn.Faction != Faction.OfPlayer && pawn.HostFaction != Faction.OfPlayer)
 					return;

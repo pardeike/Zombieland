@@ -10,6 +10,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(JobDriver_ClearPollution), nameof(JobDriver_ClearPollution.MakeNewToils))]
 	static class JobDriver_ClearPollution_ClearPollutionAt_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static IEnumerable<Toil> Postfix(IEnumerable<Toil> toils, JobDriver_ClearPollution __instance)
 		{
 			foreach (var toil in toils)
@@ -26,16 +28,20 @@ namespace ZombieLand
 	{
 		public static Thing subject = null;
 
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix(IntVec3 c, Map map)
 		{
 			var contamination = map.GetContamination(c);
-			subject?.AddContamination(contamination, () => Log.Warning($"{subject} cleaned pollution at {c}"), ZombieSettings.Values.contamination.pollutionAdd);
+			subject?.AddContamination(contamination, null/*() => Log.Warning($"{subject} cleaned pollution at {c}")*/, ZombieSettings.Values.contamination.pollutionAdd);
 		}
 	}
 
 	[HarmonyPatch]
 	static class JobDriver_ClearSnow_MakeNewToils_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static MethodBase TargetMethod()
 		{
 			var m_SetDepth = SymbolExtensions.GetMethodInfo((SnowGrid grid) => grid.SetDepth(default, default));
@@ -47,7 +53,7 @@ namespace ZombieLand
 		{
 			var contamination = self.map.GetContamination(c);
 			var pawn = toil.actor;
-			pawn.AddContamination(contamination, () => Log.Warning($"{pawn} cleaned snow at {c}"), ZombieSettings.Values.contamination.snowAdd);
+			pawn.AddContamination(contamination, null/*() => Log.Warning($"{pawn} cleaned snow at {c}")*/, ZombieSettings.Values.contamination.snowAdd);
 			self.SetDepth(c, newDepth);
 		}
 

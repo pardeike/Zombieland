@@ -720,8 +720,11 @@ namespace ZombieLand
 				yield return null;
 				RepositionColonists();
 				yield return null;
-				contaminationEffects.Tick();
-				yield return null;
+				if (Constants.CONTAMINATION > 1)
+				{
+					contaminationEffects.Tick();
+					yield return null;
+				}
 				HandleIncidents();
 				yield return null;
 				FetchAvoidGrid();

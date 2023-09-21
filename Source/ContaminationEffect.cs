@@ -20,6 +20,22 @@ namespace ZombieLand
 		}
 	}
 
+	[DefOf]
+	public static class EffectDefs
+	{
+		public static MentalStateDef ContaminationStateHallucination;
+		public static MentalStateDef ContaminationStateSleepwalking;
+		public static MentalStateDef ContaminationStateHoarding;
+		public static MentalStateDef ContaminationStateMimicing;
+		public static MentalStateDef ContaminationStateBreakdown;
+
+		public static JobDef ContaminationJobHallucination;
+		public static JobDef ContaminationJobSleepwalk;
+		public static JobDef ContaminationJobHoard;
+		public static JobDef ContaminationJobMimic;
+		public static JobDef ContaminationJobBreakdown;
+	}
+
 	public class ContaminationEffectManager
 	{
 		public Dictionary<Pawn, ContaminationEffect> pawns = new();
@@ -78,111 +94,218 @@ namespace ZombieLand
 			}
 		}
 
+		static bool Prepare(Pawn pawn, int expiryInterval, MentalStateDef mentalDef, JobDef jobDef, Func<bool> check)
+		{
+			if (pawn?.Map == null || pawn.health.healthState != PawnHealthState.Mobile)
+				return false;
+
+			if (check() == false)
+				return false;
+
+			RestUtility.WakeUp(pawn);
+			pawn.drafter.Drafted = false;
+
+			if (pawn.mindState.mentalStateHandler.TryStartMentalState(mentalDef) == false)
+				return false;
+
+			pawn.mindState.mentalStateHandler.CurState.forceRecoverAfterTicks = expiryInterval;
+
+			var job = JobMaker.MakeJob(jobDef);
+			job.expiryInterval = expiryInterval;
+			job.ignoreJoyTimeAssignment = true;
+			pawn.jobs.ClearQueuedJobs();
+			pawn.jobs.StartJob(job, JobCondition.Incompletable, null);
+
+			return true;
+		}
+
 		[ContaminationRange(0.35f, 0.50f)]
 		public static bool Hallucination(Pawn pawn, float factor)
 		{
-			Log.Warning("Hallucination");
-
-			if (pawn.mindState.mentalStateHandler.TryStartMentalState(CustomDefs.ContaminationHallucination) == false)
-				return false;
-			var interval = GenDate.TicksPerHour / 20;
+			var interval = GenDate.TicksPerHour / 10;
 			var expiryInterval = interval * (int)(1 + factor * 7);
-			pawn.mindState.mentalStateHandler.CurState.forceRecoverAfterTicks = expiryInterval;
 
-			var job = JobMaker.MakeJob(CustomDefs.ContaminationJobHallucination);
-			job.expiryInterval = expiryInterval;
-			pawn.jobs.ClearQueuedJobs();
-			pawn.jobs.StartJob(job, JobCondition.Incompletable, null);
-			return true;
+			return Prepare(
+				pawn, expiryInterval,
+				EffectDefs.ContaminationStateHallucination,
+				EffectDefs.ContaminationJobHallucination,
+				() => true
+			);
 		}
 
 		[ContaminationRange(0.40f, 0.50f)]
 		public static bool Sleepwalk(Pawn pawn, float factor)
 		{
-			Log.Warning("Sleepwalk");
-			_ = pawn;
-			_ = factor;
-			return false;
+			var interval = GenDate.TicksPerHour / 10;
+			var expiryInterval = interval * (int)(1 + factor * 7);
+
+			return Prepare(
+				pawn, expiryInterval,
+				EffectDefs.ContaminationStateSleepwalking,
+				EffectDefs.ContaminationJobSleepwalk,
+				() => pawn.jobs.curDriver.asleep
+			);
 		}
 
 		[ContaminationRange(0.45f, 0.60f)]
 		public static bool Hoarding(Pawn pawn, float factor)
 		{
-			Log.Warning("Hoarding");
-			_ = pawn;
-			_ = factor;
-			return false;
+			var interval = GenDate.TicksPerHour / 10;
+			var expiryInterval = interval * (int)(1 + factor * 7);
+
+			bool HasRoom()
+			{
+				return pawn.Map.listerBuildings.allBuildingsColonist.OfType<Building_Bed>()
+					.FirstOrDefault(bed => bed.GetAssignedPawn() == pawn) != null;
+			}
+
+			return Prepare(
+				pawn, expiryInterval,
+				EffectDefs.ContaminationStateHoarding,
+				EffectDefs.ContaminationJobHoard,
+				HasRoom
+			);
 		}
 
 		[ContaminationRange(0.50f, 1.00f)]
 		public static bool Mimicing(Pawn pawn, float factor)
 		{
-			Log.Warning("Mimicing");
-			_ = pawn;
-			_ = factor;
-			return false;
+			var interval = GenDate.TicksPerHour / 10;
+			var expiryInterval = interval * (int)(1 + factor * 7);
+
+			return Prepare(
+				pawn, expiryInterval,
+				EffectDefs.ContaminationStateMimicing,
+				EffectDefs.ContaminationJobMimic,
+				() => true
+			);
 		}
 
 		[ContaminationRange(0.60f, 0.80f)]
 		public static bool Breakdown(Pawn pawn, float factor)
 		{
-			Log.Warning("Breakdown");
-			_ = pawn;
-			_ = factor;
-			return false;
+			var interval = GenDate.TicksPerHour / 10;
+			var expiryInterval = interval * (int)(1 + factor * 7);
+
+			return Prepare(
+				pawn, expiryInterval,
+				EffectDefs.ContaminationStateBreakdown,
+				EffectDefs.ContaminationJobBreakdown,
+				() => true
+			);
 		}
 
 		[ContaminationRange(0.65f, 0.85f)]
 		public static bool Relocating(Pawn pawn, float factor)
 		{
-			Log.Warning("Relocating");
 			_ = pawn;
 			_ = factor;
+			/*
+			var interval = GenDate.TicksPerHour / 20;
+			var expiryInterval = interval * (int)(1 + factor * 7);
+
+			return Prepare(
+				pawn, expiryInterval,
+				EffectDefs.ContaminationStateRelocating,
+				EffectDefs.ContaminationJobRelocate,
+				() => true
+			);
+			*/
 			return false;
 		}
 
 		[ContaminationRange(0.70f, 1.00f)]
 		public static bool Biting(Pawn pawn, float factor)
 		{
-			Log.Warning("Biting");
 			_ = pawn;
 			_ = factor;
+			/*
+			var interval = GenDate.TicksPerHour / 20;
+			var expiryInterval = interval * (int)(1 + factor * 7);
+
+			return Prepare(
+				pawn, expiryInterval,
+				EffectDefs.ContaminationStateBiting,
+				EffectDefs.ContaminationJobBite,
+				() => true
+			);
+			*/
 			return false;
 		}
 
 		[ContaminationRange(0.75f, 1.00f)]
 		public static bool Refusal(Pawn pawn, float factor)
 		{
-			Log.Warning("Refusal");
 			_ = pawn;
 			_ = factor;
+			/*
+			var interval = GenDate.TicksPerHour / 20;
+			var expiryInterval = interval * (int)(1 + factor * 7);
+
+			return Prepare(
+				pawn, expiryInterval,
+				EffectDefs.ContaminationStateRefusal,
+				EffectDefs.ContaminationJobRefuse,
+				() => true
+			);
+			*/
 			return false;
 		}
 
 		[ContaminationRange(0.80f, 1.00f)]
 		public static bool Pathing(Pawn pawn, float factor)
 		{
-			Log.Warning("Pathing");
 			_ = pawn;
 			_ = factor;
+			/*
+			var interval = GenDate.TicksPerHour / 20;
+			var expiryInterval = interval * (int)(1 + factor * 7);
+
+			return Prepare(
+				pawn, expiryInterval,
+				EffectDefs.ContaminationStatePathing,
+				EffectDefs.ContaminationJobPath,
+				() => true
+			);
+			*/
 			return false;
 		}
 
 		[ContaminationRange(0.85f, 1.00f)]
 		public static bool Forgetting(Pawn pawn, float factor)
 		{
-			Log.Warning("Forgetting");
 			_ = pawn;
 			_ = factor;
+			/*
+			var interval = GenDate.TicksPerHour / 20;
+			var expiryInterval = interval * (int)(1 + factor * 7);
+
+			return Prepare(
+				pawn, expiryInterval,
+				EffectDefs.ContaminationStateForgetting,
+				EffectDefs.ContaminationJobForget,
+				() => true
+			);
+			*/
 			return false;
 		}
 
 		[ContaminationRange(0.90f, 1.00f)]
 		public static bool Sabotage(Pawn pawn, float factor)
 		{
-			Log.Warning("Sabotage");
 			_ = pawn;
 			_ = factor;
+			/*
+			var interval = GenDate.TicksPerHour / 20;
+			var expiryInterval = interval * (int)(1 + factor * 7);
+
+			return Prepare(
+				pawn, expiryInterval,
+				EffectDefs.ContaminationStateSabotaging,
+				EffectDefs.ContaminationJobSabotage,
+				() => true
+			);
+			*/
 			return false;
 		}
 	}

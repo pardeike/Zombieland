@@ -12,7 +12,9 @@ namespace ZombieLand
 {
 	public class ContaminationManager : WorldComponent, ICellBoolGiver
 	{
-		public const bool LOGGING = true;
+		public const bool LOGGING = false;
+
+#pragma warning disable CS0162 // Unreachable code detected
 
 		public Dictionary<int, float> contaminations = new();
 		public Dictionary<int, ContaminationGrid> grounds = new();
@@ -373,7 +375,9 @@ namespace ZombieLand
 			if (val <= 0)
 				return;
 			if (ContaminationManager.LOGGING)
+#pragma warning disable CS0162 // Unreachable code detected
 				Log.Message($"add {thing} {val} [{factor}x]");
+#pragma warning restore CS0162 // Unreachable code detected
 			ContaminationManager.Instance.Add(thing, val * factor);
 			runIfContaminated?.Invoke();
 		}
@@ -385,7 +389,9 @@ namespace ZombieLand
 			foreach (var thing in things)
 			{
 				if (ContaminationManager.LOGGING)
+#pragma warning disable CS0162 // Unreachable code detected
 					Log.Message($"add {thing} {val} [{factor}x]");
+#pragma warning restore CS0162 // Unreachable code detected
 				manager.Add(thing, val * factor);
 			}
 			runIfContaminated?.Invoke();
@@ -393,13 +399,17 @@ namespace ZombieLand
 		public static float SubtractContamination(this Thing thing, float val)
 		{
 			if (ContaminationManager.LOGGING)
+#pragma warning disable CS0162 // Unreachable code detected
 				Log.Message($"subtract {thing} {val}");
+#pragma warning restore CS0162 // Unreachable code detected
 			return ContaminationManager.Instance.Subtract(thing, val);
 		}
 		public static void ClearContamination(this Thing thing)
 		{
 			if (ContaminationManager.LOGGING)
+#pragma warning disable CS0162 // Unreachable code detected
 				Log.Message($"clear {thing}");
+#pragma warning restore CS0162 // Unreachable code detected
 			ContaminationManager.Instance.Remove(thing);
 		}
 
@@ -416,7 +426,9 @@ namespace ZombieLand
 			for (var j = 0; j < n; j++)
 				contamination.Add(toArray[j], delta);
 			if (ContaminationManager.LOGGING)
+#pragma warning disable CS0162 // Unreachable code detected
 				Log.Message($"{from} --({delta}{(n == 1 ? "" : " each")})--> {toArray.Join(t => $"{t}")}");
+#pragma warning restore CS0162 // Unreachable code detected
 			runIfContaminated?.Invoke();
 		}
 
@@ -441,5 +453,8 @@ namespace ZombieLand
 			drawer.MarkForDraw();
 			ContaminationManager.Instance.DrawerUpdate();
 		}
+
+#pragma warning restore CS0162 // Unreachable code detected
+
 	}
 }

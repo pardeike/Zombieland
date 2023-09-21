@@ -113,11 +113,11 @@
 				<capMods>
 					<li>
 						<capacity>Consciousness</capacity>
-						<offset>-0.2</offset>
+						<offset>-0.15</offset>
 					</li>
 					<li>
-						<capacity>BloodFiltration</capacity>
-						<offset>-0.3</offset>
+						<capacity>Metabolism</capacity>
+						<offset>-0.25</offset>
 					</li>
 					<li>
 						<capacity>Moving</capacity>
@@ -142,11 +142,11 @@
 				<capMods>
 					<li>
 						<capacity>Consciousness</capacity>
-						<offset>-0.4</offset>
+						<offset>-0.2</offset>
 					</li>
 					<li>
 						<capacity>Metabolism</capacity>
-						<offset>-0.5</offset>
+						<offset>-0.35</offset>
 					</li>
 					<li>
 						<capacity>Moving</capacity>
@@ -176,11 +176,11 @@
 				<capMods>
 					<li>
 						<capacity>Consciousness</capacity>
-						<offset>-0.5</offset>
+						<offset>-0.3</offset>
 					</li>
 					<li>
 						<capacity>Metabolism</capacity>
-						<offset>-0.75</offset>
+						<offset>-0.5</offset>
 					</li>
 					<li>
 						<capacity>Moving</capacity>
@@ -188,7 +188,7 @@
 					</li>
 					<li>
 						<capacity>Hearing</capacity>
-						<offset>0.3</offset>
+						<offset>0.5</offset>
 					</li>
 				</capMods>
 				<statFactors>
@@ -209,11 +209,11 @@
 				<capMods>
 					<li>
 						<capacity>Consciousness</capacity>
-						<offset>-0.65</offset>
+						<offset>-0.5</offset>
 					</li>
 					<li>
 						<capacity>Metabolism</capacity>
-						<offset>-0.95</offset>
+						<offset>-0.75</offset>
 					</li>
 					<li>
 						<capacity>Moving</capacity>
@@ -221,7 +221,7 @@
 					</li>
 					<li>
 						<capacity>Hearing</capacity>
-						<offset>0.5</offset>
+						<offset>0.75</offset>
 					</li>
 				</capMods>
 				<statFactors>

@@ -10,6 +10,8 @@ namespace ZombieLand
 	[HarmonyPatch]
 	static class Skyfaller_SpawnThings_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static MethodBase TargetMethod()
 			=> AccessTools.FirstMethod(typeof(Skyfaller), m => m.Name.StartsWith("<SpawnThings"));
 
@@ -20,13 +22,13 @@ namespace ZombieLand
 
 			if (thing is Mineable mineable)
 			{
-				mineable.AddContamination(ZombieSettings.Values.contamination.meteoriteAdd, () => Log.Warning($"Skyfaller produced {mineable} at {mineable.Position}"));
+				mineable.AddContamination(ZombieSettings.Values.contamination.meteoriteAdd, null/*() => Log.Warning($"Skyfaller produced {mineable} at {mineable.Position}")*/);
 				return;
 			}
 
 			if (thing.def == ThingDefOf.ShipChunk)
 			{
-				thing.AddContamination(ZombieSettings.Values.contamination.meteoriteAdd, () => Log.Warning($"Skyfaller produced {thing} at {thing.Position}"));
+				thing.AddContamination(ZombieSettings.Values.contamination.meteoriteAdd, null/*() => Log.Warning($"Skyfaller produced {thing} at {thing.Position}")*/);
 				return;
 			}
 		}
@@ -36,6 +38,8 @@ namespace ZombieLand
 	[HarmonyPatch(new[] { typeof(ThingSetMakerParams) })]
 	static class ThingSetMaker_Generate_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix(List<Thing> __result)
 		{
 			if (Tools.IsPlaying())
@@ -43,7 +47,7 @@ namespace ZombieLand
 					if (Rand.Chance(ZombieSettings.Values.contamination.randomThingCreateChance))
 					{
 						var amount = Tools.MoveableWeight(Rand.Value, ZombieSettings.Values.contamination.randomThingDensityDistribution);
-						thing.AddContamination(amount, () => Log.Warning($"Made {thing}"));
+						thing.AddContamination(amount, null/*() => Log.Warning($"Made {thing}")*/);
 					}
 		}
 	}
@@ -51,6 +55,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(TradeDeal), nameof(TradeDeal.AddAllTradeables))]
 	static class TradeDeal_AddAllTradeables_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix(TradeDeal __instance)
 		{
 			var manager = ContaminationManager.Instance;
@@ -66,7 +72,7 @@ namespace ZombieLand
 				if (Rand.Chance(ZombieSettings.Values.contamination.randomThingCreateChance))
 				{
 					var amount = Tools.MoveableWeight(Rand.Value, ZombieSettings.Values.contamination.randomThingDensityDistribution);
-					thing.AddContamination(amount, () => Log.Warning($"New tradeable {thing}"));
+					thing.AddContamination(amount, null/*() => Log.Warning($"New tradeable {thing}")*/);
 				}
 		}
 	}
@@ -74,13 +80,15 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(MechClusterUtility), nameof(MechClusterUtility.SpawnCluster))]
 	static class MechClusterUtility_SpawnCluster_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix(List<Thing> __result)
 		{
 			if (Rand.Chance(ZombieSettings.Values.contamination.mechClusterChance) == false)
 				return;
 			var amount = Tools.MoveableWeight(Rand.Value, ZombieSettings.Values.contamination.mechClusterDensityDistribution);
 			foreach (var thing in __result)
-				thing.AddContamination(amount, () => Log.Warning($"New mech cluster item {thing}"));
+				thing.AddContamination(amount, null/*() => Log.Warning($"New mech cluster item {thing}")*/);
 		}
 	}
 }

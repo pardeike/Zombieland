@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<Defs>
+
+	<ThoughtDef>
+		<defName>ZombieScare</defName>
+		<thoughtClass>Thought_Memory</thoughtClass>
+		<durationDays>2</durationDays>
+		<stackLimit>5</stackLimit>
+		<nullifyingTraits>
+			<li>Psychopath</li>
+		</nullifyingTraits>
+		<stages>
+			<li>
+				<label>scared by {0}</label>
+				<description>I was scared by someone that acted like a zombie and are worried.</description>
+				<baseMoodEffect>-4</baseMoodEffect>
+			</li>
+		</stages>
+	</ThoughtDef>
+
+</Defs>

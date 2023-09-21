@@ -16,6 +16,8 @@ namespace ZombieLand
 	[HarmonyPatch(nameof(Game.FinalizeInit))]
 	static class Game_FinalizeInit_Patch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix()
 		{
 			ContaminationManager.Instance.FixGrounds();
@@ -40,14 +42,14 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Thing), nameof(Thing.Destroy))]
 	static class Thing_Destroy_TestPatch
 	{
-		static bool Prepare() => false;
+		static bool Prepare() => Constants.CONTAMINATION > 0;
 
 		static void Prefix(Thing __instance, out int __state)
 		{
 			if (Tools.IsPlaying() && __instance is not Mote)
 			{
-				Log.ResetMessageCount();
-				Log.Message($"DEL {__instance}");
+				//Log.ResetMessageCount();
+				//Log.Message($"DEL {__instance}");
 				__state = __instance.thingIDNumber;
 			}
 			else
@@ -64,6 +66,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Thing), nameof(Thing.SpecialDisplayStats))]
 	static class Thing_SpecialDisplayStats_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static IEnumerable<StatDrawEntry> Postfix(IEnumerable<StatDrawEntry> entries, Thing __instance)
 		{
 			foreach (var entry in entries)
@@ -82,6 +86,8 @@ namespace ZombieLand
 	[HarmonyPatch(new[] { typeof(Rect), typeof(Thing), typeof(float), typeof(Rot4?), typeof(bool) })]
 	static class Widgets_ThingIcon_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Prefix(Rect rect, Thing thing, float alpha)
 		{
 			var contamination = thing.GetContamination();
@@ -98,6 +104,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(MainTabWindow_Quests), nameof(MainTabWindow_Quests.DoRow))]
 	static class MainTabWindow_Quests_DoRow_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static int Max(int a, int b, Quest quest)
 		{
 			if (quest.parts.Any(part => part is QuestPart_DecontaminateColonists))
@@ -112,6 +120,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(PlaySettings), nameof(PlaySettings.DoPlaySettingsGlobalControls))]
 	static class PlaySettings_DoPlaySettingsGlobalControls_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix(WidgetRow row, bool worldView)
 		{
 			if (worldView == false && Current.ProgramState == ProgramState.Playing)
@@ -125,6 +135,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(MouseoverReadout), nameof(MouseoverReadout.MouseoverReadoutOnGUI))]
 	static class MouseoverReadout_MouseoverReadoutOnGUI_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static string GetGlowLabelByValue(float value, IntVec3 cell)
 		{
 			var result = MouseoverUtility.GetGlowLabelByValue(value);
@@ -175,6 +187,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(InspectPaneUtility), nameof(InspectPaneUtility.PaneWidthFor))]
 	static class InspectPaneUtility_PaneWidthFor_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		[HarmonyPriority(Priority.Last)]
 		static void Postfix(ref float __result, IInspectPane pane, bool __runOriginal)
 		{
@@ -186,6 +200,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(InspectPaneFiller), nameof(InspectPaneFiller.DoPaneContentsFor))]
 	static class InspectPaneFiller_DoPaneContentsFor_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void DrawHealth(WidgetRow row, Thing t)
 		{
 			InspectPaneFiller.DrawHealth(row, t);
@@ -219,6 +235,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(BeautyDrawer), nameof(BeautyDrawer.DrawBeautyAroundMouse))]
 	static class BeautyDrawer_DrawBeautyAroundMouse_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static bool Prefix()
 		{
 			if (Input.GetKey(KeyCode.LeftShift) == false && Input.GetKey(KeyCode.RightShift) == false)

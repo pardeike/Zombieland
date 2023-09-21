@@ -2,7 +2,7 @@
 <Defs>
 
 	<MentalStateDef>
-		<defName>ContaminationHallucination</defName>
+		<defName>ContaminationStateHallucination</defName>
 		<label>hallucinating</label>
 		<stateClass>ZombieLand.MentalState_Contamination</stateClass>
 		<category>Misc</category>
@@ -14,6 +14,66 @@
 		<beginLetterDef>NegativeEvent</beginLetterDef>
 		<recoveryMessage>{0} is no longer hallucinating.</recoveryMessage>
 		<baseInspectLine>Mental state: Hallucinating</baseInspectLine>
+	</MentalStateDef>
+
+	<MentalStateDef>
+		<defName>ContaminationStateSleepwalking</defName>
+		<label>hallucinating</label>
+		<stateClass>ZombieLand.MentalState_Contamination</stateClass>
+		<category>Misc</category>
+		<minTicksBeforeRecovery>99999999</minTicksBeforeRecovery>
+		<blockNormalThoughts>true</blockNormalThoughts>
+		<nameColor>(0.65, 0.9, 0.93)</nameColor>
+		<beginLetterLabel>sleepwalking</beginLetterLabel>
+		<beginLetter>{0} has started to sleepwalk.</beginLetter>
+		<beginLetterDef>NegativeEvent</beginLetterDef>
+		<recoveryMessage>{0} is no longer sleepwalking.</recoveryMessage>
+		<baseInspectLine>Mental state: Sleepwalking</baseInspectLine>
+	</MentalStateDef>
+
+	<MentalStateDef>
+		<defName>ContaminationStateHoarding</defName>
+		<label>hallucinating</label>
+		<stateClass>ZombieLand.MentalState_Contamination</stateClass>
+		<category>Misc</category>
+		<minTicksBeforeRecovery>99999999</minTicksBeforeRecovery>
+		<blockNormalThoughts>true</blockNormalThoughts>
+		<nameColor>(0.65, 0.9, 0.93)</nameColor>
+		<beginLetterLabel>hoarding</beginLetterLabel>
+		<beginLetter>{0} has started to hoard.</beginLetter>
+		<beginLetterDef>NegativeEvent</beginLetterDef>
+		<recoveryMessage>{0} is no longer hoarding.</recoveryMessage>
+		<baseInspectLine>Mental state: Hoarding</baseInspectLine>
+	</MentalStateDef>
+
+	<MentalStateDef>
+		<defName>ContaminationStateMimicing</defName>
+		<label>mimicing</label>
+		<stateClass>ZombieLand.MentalState_Contamination</stateClass>
+		<category>Misc</category>
+		<minTicksBeforeRecovery>99999999</minTicksBeforeRecovery>
+		<blockNormalThoughts>true</blockNormalThoughts>
+		<nameColor>(0.65, 0.9, 0.93)</nameColor>
+		<beginLetterLabel>mimicing</beginLetterLabel>
+		<beginLetter>{0} has started to mimic zombies.</beginLetter>
+		<beginLetterDef>NegativeEvent</beginLetterDef>
+		<recoveryMessage>{0} is no longer mimicing zombies.</recoveryMessage>
+		<baseInspectLine>Mental state: Mimicing zombies</baseInspectLine>
+	</MentalStateDef>
+
+	<MentalStateDef>
+		<defName>ContaminationStateBreakdown</defName>
+		<label>breaking down</label>
+		<stateClass>ZombieLand.MentalState_Contamination</stateClass>
+		<category>Misc</category>
+		<minTicksBeforeRecovery>99999999</minTicksBeforeRecovery>
+		<blockNormalThoughts>true</blockNormalThoughts>
+		<nameColor>(0.65, 0.9, 0.93)</nameColor>
+		<beginLetterLabel>breaking</beginLetterLabel>
+		<beginLetter>{0} has started to break down.</beginLetter>
+		<beginLetterDef>NegativeEvent</beginLetterDef>
+		<recoveryMessage>{0} is no longer in a breakdown.</recoveryMessage>
+		<baseInspectLine>Mental state: Breakdown</baseInspectLine>
 	</MentalStateDef>
 
 </Defs>

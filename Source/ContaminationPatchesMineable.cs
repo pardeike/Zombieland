@@ -11,6 +11,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(GenStep_Terrain), nameof(GenStep_Terrain.Generate))]
 	static class RockNoises_Reset_TestPatches
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix(Map map)
 		{
 			var grid = new ContaminationGrid(map);
@@ -35,6 +37,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Mineable), nameof(Mineable.Destroy))]
 	static class Mineable_Destroy_TestPatches
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Prefix(Mineable __instance) => Mineable_TrySpawnYield_TestPatch.mineableMap = __instance.Map;
 		static void Postfix() => Mineable_TrySpawnYield_TestPatch.mineableMap = null;
 	}
@@ -42,6 +46,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Mineable), nameof(Mineable.DestroyMined))]
 	static class Mineable_DestroyMined_TestPatches
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Prefix(Mineable __instance) => Mineable_TrySpawnYield_TestPatch.mineableMap = __instance.Map;
 		static void Postfix() => Mineable_TrySpawnYield_TestPatch.mineableMap = null;
 	}
@@ -51,11 +57,13 @@ namespace ZombieLand
 	{
 		public static Map mineableMap;
 
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static Thing MakeThing(ThingDef def, ThingDef stuff, Mineable mineable)
 		{
 			var thing = ThingMaker.MakeThing(def, stuff);
 			var contamination = mineableMap?.ExtractContamination(mineable.Position) ?? 0;
-			thing.AddContamination(contamination, () => Log.Warning($"Yielded {thing} from {mineable}"), ZombieSettings.Values.contamination.destroyMineableAdd);
+			thing.AddContamination(contamination, null/*() => Log.Warning($"Yielded {thing} from {mineable}")*/, ZombieSettings.Values.contamination.destroyMineableAdd);
 			return thing;
 		}
 
@@ -66,10 +74,13 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(CompDeepDrill), nameof(CompDeepDrill.TryProducePortion))]
 	static class CompDeepDrill_TryProducePortion_TestPatches
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static Thing MakeThing(ThingDef def, ThingDef stuff, CompDeepDrill comp)
 		{
 			var thing = ThingMaker.MakeThing(def, stuff);
-			thing.AddContamination(ZombieSettings.Values.contamination.deepDrillAdd, () => Log.Warning($"Deep drill produced {thing} at {comp.parent.InteractionCell}"));
+			_ = comp;
+			thing.AddContamination(ZombieSettings.Values.contamination.deepDrillAdd, null/*() => Log.Warning($"Deep drill produced {thing} at {comp.parent.InteractionCell}")*/);
 			return thing;
 		}
 

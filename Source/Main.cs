@@ -60,7 +60,6 @@ namespace ZombieLand
 		public static JobDef RopeZombie;
 		public static JobDef ZapZombies;
 		public static JobDef FixBrokenChainsaw;
-		public static JobDef ContaminationJobHallucination;
 		public static RecipeDef CureZombieInfection;
 		public static ThingDef Zombie;
 		public static ThingDef ZombieExtract;
@@ -91,7 +90,7 @@ namespace ZombieLand
 		public static ThingDef ZombieSpitter;
 		public static ThingDef ZombieBall;
 		public static QuestScriptDef Decontamination;
-		public static MentalStateDef ContaminationHallucination;
+		public static ThoughtDef ZombieScare;
 	}
 
 	public class ZombielandMod : Mod

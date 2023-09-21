@@ -64,4 +64,32 @@
 		<suspendable>false</suspendable>
 	</JobDef>
 
+	<JobDef>
+		<defName>ContaminationJobSleepwalk</defName>
+		<driverClass>ZombieLand.JobDriver_ContaminationSleepwalk</driverClass>
+		<reportString>sleepwalking.</reportString>
+		<suspendable>false</suspendable>
+	</JobDef>
+
+	<JobDef>
+		<defName>ContaminationJobHoard</defName>
+		<driverClass>ZombieLand.JobDriver_ContaminationHoard</driverClass>
+		<reportString>hoarding.</reportString>
+		<suspendable>false</suspendable>
+	</JobDef>
+
+	<JobDef>
+		<defName>ContaminationJobMimic</defName>
+		<driverClass>ZombieLand.JobDriver_ContaminationMimic</driverClass>
+		<reportString>mimicing.</reportString>
+		<suspendable>false</suspendable>
+	</JobDef>
+
+	<JobDef>
+		<defName>ContaminationJobBreakdown</defName>
+		<driverClass>ZombieLand.JobDriver_ContaminationBreakdown</driverClass>
+		<reportString>breaking down.</reportString>
+		<suspendable>false</suspendable>
+	</JobDef>
+
 </Defs>

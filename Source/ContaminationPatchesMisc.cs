@@ -14,6 +14,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Fire), nameof(Fire.DoComplexCalcs))]
 	static class Fire_DoComplexCalcs_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix(Fire __instance)
 		{
 			var map = __instance.Map;
@@ -32,6 +34,8 @@ namespace ZombieLand
 	[HarmonyPatch]
 	static class Verb_MeleeAttack_ApplyMeleeDamageToTarget_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static IEnumerable<MethodBase> TargetMethods()
 			=> Tools.MethodsImplementing((Verb_MeleeAttack verb) => verb.ApplyMeleeDamageToTarget(default));
 
@@ -41,13 +45,15 @@ namespace ZombieLand
 				return;
 			var pawn = __instance.Caster;
 			var thing = target.Thing;
-			ZombieSettings.Values.contamination.meleeEqualize.Equalize(pawn, thing, () => Log.Warning($"# {pawn} melee {thing}"));
+			ZombieSettings.Values.contamination.meleeEqualize.Equalize(pawn, thing, null/*() => Log.Warning($"# {pawn} melee {thing}")*/);
 		}
 	}
 
 	[HarmonyPatch(typeof(GenRecipe), nameof(GenRecipe.MakeRecipeProducts))]
 	static class GenReciepe_MakeRecipeProducts_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static IEnumerable<Thing> Postfix(IEnumerable<Thing> things, Pawn worker, IBillGiver billGiver, List<Thing> ingredients)
 		{
 			var results = things.ToArray();
@@ -61,8 +67,8 @@ namespace ZombieLand
 				transfer += Mathf.Abs(manager.Equalize(result, bench, ZombieSettings.Values.contamination.produceEqualize));
 			transfer += Mathf.Abs(manager.Equalize(bench, worker, ZombieSettings.Values.contamination.benchEqualize));
 			worker.TransferContamination(ZombieSettings.Values.contamination.workerTransfer, null, results);
-			if (transfer > 0)
-				Log.Warning($"{worker} produces {results.Join(t => $"{t}")} from {ingredients.Join(t => $"{t}")}{(bench != null ? $" on {bench}" : "")}");
+			//if (transfer > 0)
+			//	Log.Warning($"{worker} produces {results.Join(t => $"{t}")} from {ingredients.Join(t => $"{t}")}{(bench != null ? $" on {bench}" : "")}");
 			return results.AsEnumerable();
 		}
 	}
@@ -70,6 +76,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Thing), nameof(Thing.TryAbsorbStack))]
 	static class Thing_TryAbsorbStack_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Prefix(Thing other, out (int, float) __state)
 		{
 			__state = other == null || Tools.IsPlaying() == false ? (0, 0f) : (other.stackCount, other.GetContamination());
@@ -86,13 +94,15 @@ namespace ZombieLand
 			var transfer = otherOldContamination * factor;
 			if (__result == false && other != null)
 				transfer = other.SubtractContamination(transfer);
-			__instance.AddContamination(transfer, () => Log.Warning($"Absorb {other} into {__instance}"));
+			__instance.AddContamination(transfer, null/*() => Log.Warning($"Absorb {other} into {__instance}")*/);
 		}
 	}
 
 	[HarmonyPatch(typeof(Thing), nameof(Thing.SplitOff))]
 	static class Thing_SplitOff_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix(Thing __result, Thing __instance, int count)
 		{
 			if (__result == null || __result == __instance)
@@ -105,13 +115,15 @@ namespace ZombieLand
 				return;
 
 			var factor = count / (float)previousTotal;
-			__instance.TransferContamination(factor, () => Log.Warning($"Split off {count}/{previousTotal} ({factor}) from {__instance} to get {__result}"), __result);
+			__instance.TransferContamination(factor, null/*() => Log.Warning($"Split off {count}/{previousTotal} ({factor}) from {__instance} to get {__result}")*/, __result);
 		}
 	}
 
 	[HarmonyPatch(typeof(Thing), nameof(Thing.Ingested))]
 	static class Thing_Ingested_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void IngestedCalculateAmounts(Thing self, Pawn ingester, float nutritionWanted, out int numTaken, out float nutritionIngested)
 		{
 			var oldStackCount = self.stackCount;
@@ -126,7 +138,7 @@ namespace ZombieLand
 
 			self.IngestedCalculateAmounts(ingester, nutritionWanted, out numTaken, out nutritionIngested);
 			var factor = numTaken == 0 ? (totalNutrition == 0 ? 1 : nutritionIngested / totalNutrition) : (oldStackCount == 0 ? 1 : numTaken / (float)oldStackCount);
-			self.TransferContamination(ZombieSettings.Values.contamination.ingestTransfer * factor, () => Log.Warning($"{ingester} ingested {self}"), ingester);
+			self.TransferContamination(ZombieSettings.Values.contamination.ingestTransfer * factor, null/*() => Log.Warning($"{ingester} ingested {self}")*/, ingester);
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -140,10 +152,9 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(MinifiedThing), nameof(MinifiedThing.SplitOff))]
 	static class MinifiedThing_SplitOff_TestPatch
 	{
-		static void Prefix(MinifiedThing __instance, out int __state)
-		{
-			__state = __instance.stackCount;
-		}
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
+		static void Prefix(MinifiedThing __instance, out int __state) => __state = __instance.stackCount;
 
 		static void Postfix(Thing __result, MinifiedThing __instance, int __state)
 		{
@@ -154,13 +165,15 @@ namespace ZombieLand
 
 			var remaining = __instance.Spawned == false ? 0 : __instance.stackCount;
 			var factor = __state == 0 ? 1f : 1f - remaining / (float)__state;
-			__instance.TransferContamination(factor, () => Log.Warning($"Split off {factor} from {__instance} to get {__result}"), __result);
+			__instance.TransferContamination(factor, null/*() => Log.Warning($"Split off {factor} from {__instance} to get {__result}")*/, __result);
 		}
 	}
 
 	[HarmonyPatch]
 	static class ThingComp_MakeThing_TestPatches
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static IEnumerable<MethodBase> TargetMethods()
 		{
 			yield return SymbolExtensions.GetMethodInfo((CompChangeableProjectile comp) => comp.RemoveShell());
@@ -181,7 +194,7 @@ namespace ZombieLand
 			var result = ThingMaker.MakeThing(def, stuff);
 			if (thingComp?.parent is Thing thing)
 			{
-				thing.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, () => Log.Warning($"Produce {result} from {thing}"), result);
+				thing.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, null/*() => Log.Warning($"Produce {result} from {thing}")*/, result);
 			}
 			return result;
 		}
@@ -194,10 +207,12 @@ namespace ZombieLand
 	[HarmonyPatch(new[] { typeof(Pawn), typeof(Pawn), typeof(bool), typeof(int), typeof(bool) })]
 	static class ExecutionUtility_ExecutionInt_TestPatches
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Pawn victim)
 		{
 			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
-			victim.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, () => Log.Warning($"Produce {result} from {victim}"), result);
+			victim.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, null/*() => Log.Warning($"Produce {result} from {victim}")*/, result);
 			return result;
 		}
 
@@ -208,6 +223,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(TendUtility), nameof(TendUtility.DoTend))]
 	static class TendUtility_DoTend_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix(Pawn doctor, Pawn patient, Medicine medicine)
 		{
 			if (doctor == null || patient == null)
@@ -215,15 +232,15 @@ namespace ZombieLand
 			var manager = ContaminationManager.Instance;
 			if (medicine != null)
 			{
-				manager.Transfer(medicine, ZombieSettings.Values.contamination.medicineTransfer, new[] { patient }, () => Log.Warning($"{patient} treated with {medicine}"));
+				manager.Transfer(medicine, ZombieSettings.Values.contamination.medicineTransfer, new[] { patient }, null/*() => Log.Warning($"{patient} treated with {medicine}")*/);
 				if (doctor != patient)
-					manager.Transfer(medicine, ZombieSettings.Values.contamination.medicineTransfer, new[] { doctor }, () => Log.Warning($"{doctor} handled {medicine}"));
+					manager.Transfer(medicine, ZombieSettings.Values.contamination.medicineTransfer, new[] { doctor }, null/*() => Log.Warning($"{doctor} handled {medicine}")*/);
 			}
 			if (doctor != patient)
 			{
 				var medicineSkill = doctor.skills.GetSkill(SkillDefOf.Medicine).Level;
 				var weight = GenMath.LerpDoubleClamped(0, 20, ZombieSettings.Values.contamination.tendEqualizeWorst, ZombieSettings.Values.contamination.tendEqualizeBest, medicineSkill);
-				manager.Equalize(doctor, patient, weight, () => Log.Warning($"{doctor} tended {patient}"));
+				manager.Equalize(doctor, patient, weight, null/*() => Log.Warning($"{doctor} tended {patient}")*/);
 			}
 		}
 	}
@@ -232,6 +249,8 @@ namespace ZombieLand
 	[HarmonyPatch(new[] { typeof(Pawn), typeof(bool) })]
 	static class PawnUtility_GainComfortFromCellIfPossible_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix(Pawn p)
 		{
 			var tick = p.thingIDNumber % 1000;
@@ -239,16 +258,18 @@ namespace ZombieLand
 				return;
 
 			var cell = p.Position;
-			ZombieSettings.Values.contamination.restEqualize.Equalize(p, cell, () => Log.Warning($"{p} rested at {cell}"));
+			ZombieSettings.Values.contamination.restEqualize.Equalize(p, cell, null/*() => Log.Warning($"{p} rested at {cell}")*/);
 			var edifice = cell.GetEdifice(p.Map);
 			if (edifice != null)
-				ZombieSettings.Values.contamination.restEqualize.Equalize(p, edifice, () => Log.Warning($"{p} rested at {edifice}"));
+				ZombieSettings.Values.contamination.restEqualize.Equalize(p, edifice, null/*() => Log.Warning($"{p} rested at {edifice}")*/);
 		}
 	}
 
 	[HarmonyPatch(typeof(Pawn_CarryTracker), nameof(Pawn_CarryTracker.CarryHandsTick))]
 	static class Pawn_CarryTracker_CarryHandsTick_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix(Pawn_CarryTracker __instance)
 		{
 			var pawn = __instance.pawn;
@@ -260,16 +281,18 @@ namespace ZombieLand
 			var thing = __instance.CarriedThing;
 			if (thing == null)
 				return;
-			ZombieSettings.Values.contamination.carryEqualize.Equalize(pawn, thing, () => Log.Warning($"{pawn} carrying {thing}"), false, true);
+			ZombieSettings.Values.contamination.carryEqualize.Equalize(pawn, thing, null/*() => Log.Warning($"{pawn} carrying {thing}")*/, false, true);
 		}
 	}
 
 	[HarmonyPatch(typeof(PawnUtility), nameof(PawnUtility.Mated))]
 	static class PawnUtility_Mated_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix(Pawn male, Pawn female)
 		{
-			0.5f.Equalize(male, female, () => Log.Warning($"{male} and {female} mated"));
+			0.5f.Equalize(male, female, null/*() => Log.Warning($"{male} and {female} mated")*/);
 		}
 	}
 
@@ -277,6 +300,8 @@ namespace ZombieLand
 	static class JobDriver_Lovin_MakeNewToils_TestPatch
 	{
 		static readonly string layDownToilName = Toils_LayDown.LayDown(default, default, default).debugName;
+
+		static bool Prepare() => Constants.CONTAMINATION > 0;
 
 		static IEnumerable<Toil> Postfix(IEnumerable<Toil> toils, JobDriver_Lovin __instance)
 		{
@@ -291,7 +316,7 @@ namespace ZombieLand
 						{
 							var p1 = __instance.pawn;
 							var p2 = __instance.Partner;
-							0.1f.Equalize(p1, p2, () => Log.Warning($"{p1} lovin {p2}"));
+							0.1f.Equalize(p1, p2, null/*() => Log.Warning($"{p1} lovin {p2}")*/);
 						}
 						action();
 					};
@@ -305,9 +330,11 @@ namespace ZombieLand
 	[HarmonyPatch(new[] { typeof(Building_Grave), typeof(bool), typeof(float) })]
 	static class Pawn_MakeCorpse_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Postfix(Pawn __instance, Corpse __result)
 		{
-			__result.AddContamination(__instance.GetContamination(), () => Log.Warning($"Copied {__instance} to {__result}"));
+			__result.AddContamination(__instance.GetContamination(), null/*() => Log.Warning($"Copied {__instance} to {__result}")*/);
 		}
 	}
 
@@ -315,6 +342,8 @@ namespace ZombieLand
 	static class Jobdriver_ClearPollution_Spawn_TestPatch
 	{
 		static readonly MethodInfo m_Spawn = SymbolExtensions.GetMethodInfo(() => GenSpawn.Spawn((ThingDef)default, default, default, default));
+
+		static bool Prepare() => Constants.CONTAMINATION > 0;
 
 		static MethodBase TargetMethod()
 		{
@@ -325,7 +354,7 @@ namespace ZombieLand
 		{
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, () => Log.Warning($"Spawned {thing}"), ZombieSettings.Values.contamination.wastePackAdd);
+			thing.AddContamination(contamination, null/*() => Log.Warning($"Spawned {thing}")*/, ZombieSettings.Values.contamination.wastePackAdd);
 			return thing;
 		}
 
@@ -340,6 +369,8 @@ namespace ZombieLand
 	[HarmonyPatch]
 	static class MedicalRecipesUtility_GenSpawn_Spawn_Patches
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static IEnumerable<MethodBase> TargetMethods()
 		{
 			yield return SymbolExtensions.GetMethodInfo(() => MedicalRecipesUtility.SpawnNaturalPartIfClean(default, default, default, default));
@@ -349,7 +380,7 @@ namespace ZombieLand
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Pawn pawn)
 		{
 			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
-			pawn.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, () => Log.Warning($"Produce {result} from {pawn}"), result);
+			pawn.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, null/*() => Log.Warning($"Produce {result} from {pawn}")*/, result);
 			return result;
 		}
 
@@ -360,10 +391,12 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Recipe_RemoveImplant), nameof(Recipe_RemoveImplant.ApplyOnPawn))]
 	static class Recipe_RemoveImplant_ApplyOnPawn_Patches
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Pawn pawn)
 		{
 			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
-			pawn.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, () => Log.Warning($"Produce {result} from {pawn}"), result);
+			pawn.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, null/*() => Log.Warning($"Produce {result} from {pawn}")*/, result);
 			return result;
 		}
 
@@ -374,10 +407,12 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(CompLifespan), nameof(CompLifespan.Expire))]
 	static class CompLifespan_Expire_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, CompLifespan comp)
 		{
 			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
-			comp.parent.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, () => Log.Warning($"Produce {result} from {comp.parent}"), result);
+			comp.parent.TransferContamination(ZombieSettings.Values.contamination.generalTransfer, null/*() => Log.Warning($"Produce {result} from {comp.parent}")*/, result);
 			return result;
 		}
 
@@ -388,11 +423,13 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(RoofCollapserImmediate), nameof(RoofCollapserImmediate.DropRoofInCellPhaseOne))]
 	static class RoofCollapserImmediate_DropRoofInCellPhaseOne_TestPatch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, IntVec3 c)
 		{
 			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var contamination = map.GetContamination(c);
-			result.AddContamination(contamination, () => Log.Warning($"Produce {result} from roof collapse at {c}"));
+			result.AddContamination(contamination, null/*() => Log.Warning($"Produce {result} from roof collapse at {c}")*/);
 			return result;
 		}
 
@@ -405,6 +442,8 @@ namespace ZombieLand
 	{
 		static readonly MethodInfo m_DoEffect = SymbolExtensions.GetMethodInfo((JobDriver_AffectFloor jobdriver) => jobdriver.DoEffect(default));
 
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static MethodBase TargetMethod()
 		{
 			var type = AccessTools.FirstInner(typeof(JobDriver_AffectFloor), type => type.Name.Contains("DisplayClass"));
@@ -414,8 +453,8 @@ namespace ZombieLand
 		static void DoEffect(JobDriver_AffectFloor self, IntVec3 c)
 		{
 			var contamination = self.Map.GetContamination(c);
-			static string Affects(object obj) => obj.GetType().Name.Replace("JobDriver_", "").Replace("Floor", "").ToLower();
-			self.pawn.AddContamination(contamination, () => Log.Warning($"{self.pawn} {Affects(self)}s floor at {c}"), ZombieSettings.Values.contamination.floorAdd);
+			//static string Affects(object obj) => obj.GetType().Name.Replace("JobDriver_", "").Replace("Floor", "").ToLower();
+			self.pawn.AddContamination(contamination, null/*() => Log.Warning($"{self.pawn} {Affects(self)}s floor at {c}")*/, ZombieSettings.Values.contamination.floorAdd);
 			self.DoEffect(c);
 		}
 
@@ -431,6 +470,8 @@ namespace ZombieLand
 	{
 		static readonly MethodInfo m_TryPlaceThing = SymbolExtensions.GetMethodInfo(() => GenPlace.TryPlaceThing(default, default, default, default, default, default, default));
 
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static MethodBase TargetMethod()
 		{
 			return AccessTools.FirstMethod(typeof(JobDriver_DisassembleMech), method => method.CallsMethod(m_TryPlaceThing));
@@ -440,7 +481,7 @@ namespace ZombieLand
 		{
 			var pawn = driver.pawn;
 			var mech = driver.Mech;
-			mech.TransferContamination(ZombieSettings.Values.contamination.disassembleTransfer, () => Log.Warning($"{pawn} produces {thing} from {mech}"), pawn, thing);
+			mech.TransferContamination(ZombieSettings.Values.contamination.disassembleTransfer, null/*() => Log.Warning($"{pawn} produces {thing} from {mech}")*/, pawn, thing);
 			return GenPlace.TryPlaceThing(thing, center, map, mode, placedAction, nearPlaceValidator, rot);
 		}
 
