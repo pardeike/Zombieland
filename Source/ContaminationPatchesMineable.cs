@@ -1,7 +1,9 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using static HarmonyLib.Code;
@@ -9,51 +11,72 @@ using static HarmonyLib.Code;
 namespace ZombieLand
 {
 	[HarmonyPatch(typeof(GenStep_Terrain), nameof(GenStep_Terrain.Generate))]
-	static class RockNoises_Reset_TestPatches
+	static class GenStep_Terrain_Generate_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
 		static void Postfix(Map map)
 		{
+			var minElevationBase = 0.7f; // default in source code
+			var mGenerate = AccessTools.Method(typeof(GenStep_RocksFromGrid), nameof(GenStep_RocksFromGrid.Generate));
+			var codes = PatchProcessor.ReadMethodBody(mGenerate).ToArray();
+			var idx = codes.FirstIndexOf(code => code.Key == OpCodes.Ldc_R4);
+			if (idx >= 0)
+				minElevationBase = (float)codes[idx].Value; // replace it with the real value
+
 			var grid = new ContaminationGrid(map);
-			var elevation = MapGenerator.Elevation;
-			var allCells = map.AllCells.ToArray();
-			var lowerBound = allCells.Max(cell => elevation[cell]) - ZombieSettings.Values.contamination.contaminationElevationDelta;
-			var cCells = allCells
-				.Where(cell => elevation[cell] >= lowerBound)
-				.Select(cell => (cell, val: elevation[cell]))
-				.ToArray();
-			var (min, max) = (cCells.Min(c => c.val), cCells.Max(c => c.val));
-			static float easeInOutQuart(float x, float p) => x < 0.5f ? Mathf.Pow(2 * x, p) / 2 : 1 - Mathf.Pow(-2 * x + 2, p) / 2;
-			foreach (var (cell, level) in cCells)
+			var elevation = MapGenerator.Elevation.grid;
+			var cellCountAboveBase = elevation.Where(elevation => elevation > minElevationBase).Count();
+			if (cellCountAboveBase > 0)
 			{
-				var f = (level - min) / (max - min);
-				grid[cell] = easeInOutQuart(f, 4);
+				var p = ZombieSettings.Values.contamination.contaminationElevationPercentage;
+				var n = (int)Math.Ceiling(cellCountAboveBase * p);
+				var set = new SortedSet<(float, int)>();
+				for (int i = 0; i < elevation.Length; i++)
+				{
+					var val = elevation[i];
+					if (val > 0)
+					{
+						set.Add((val, i));
+						if (set.Count > n)
+							set.Remove(set.Min);
+					}
+				}
+				var min = set.Min.Item1;
+				var max = set.Max.Item1;
+				static float easeInOutQuart(float x, float p) => x < 0.5f ? Mathf.Pow(2 * x, p) / 2 : 1 - Mathf.Pow(-2 * x + 2, p) / 2;
+				var mapX = map.Size.x;
+				foreach (var item in set)
+				{
+					var cell = CellIndicesUtility.IndexToCell(item.Item2, mapX);
+					var f = (item.Item1 - min) / (max - min);
+					grid[cell] = easeInOutQuart(f, 4);
+				}
 			}
 			ContaminationManager.Instance.grounds[map.Index] = grid;
 		}
 	}
 
 	[HarmonyPatch(typeof(Mineable), nameof(Mineable.Destroy))]
-	static class Mineable_Destroy_TestPatches
+	static class Mineable_Destroy_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
-		static void Prefix(Mineable __instance) => Mineable_TrySpawnYield_TestPatch.mineableMap = __instance.Map;
-		static void Postfix() => Mineable_TrySpawnYield_TestPatch.mineableMap = null;
+		static void Prefix(Mineable __instance) => Mineable_TrySpawnYield_Patch.mineableMap = __instance.Map;
+		static void Postfix() => Mineable_TrySpawnYield_Patch.mineableMap = null;
 	}
 
 	[HarmonyPatch(typeof(Mineable), nameof(Mineable.DestroyMined))]
-	static class Mineable_DestroyMined_TestPatches
+	static class Mineable_DestroyMined_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
-		static void Prefix(Mineable __instance) => Mineable_TrySpawnYield_TestPatch.mineableMap = __instance.Map;
-		static void Postfix() => Mineable_TrySpawnYield_TestPatch.mineableMap = null;
+		static void Prefix(Mineable __instance) => Mineable_TrySpawnYield_Patch.mineableMap = __instance.Map;
+		static void Postfix() => Mineable_TrySpawnYield_Patch.mineableMap = null;
 	}
 
 	[HarmonyPatch(typeof(Mineable), nameof(Mineable.TrySpawnYield))]
-	static class Mineable_TrySpawnYield_TestPatch
+	static class Mineable_TrySpawnYield_Patch
 	{
 		public static Map mineableMap;
 
@@ -72,7 +95,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(CompDeepDrill), nameof(CompDeepDrill.TryProducePortion))]
-	static class CompDeepDrill_TryProducePortion_TestPatches
+	static class CompDeepDrill_TryProducePortion_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 

@@ -11,8 +11,18 @@ using static HarmonyLib.Code;
 
 namespace ZombieLand
 {
+	[HarmonyPatch(typeof(Pawn), nameof(Pawn.Kill))]
+	static class Pawn_Kill_Patch
+	{
+		static void Prefix(Pawn __instance)
+		{
+			if (__instance is Zombie zombie)
+				zombie.Map?.SetContamination(zombie.Position, ZombieSettings.Values.contamination.zombieDeathAdd);
+		}
+	}
+
 	[HarmonyPatch(typeof(Fire), nameof(Fire.DoComplexCalcs))]
-	static class Fire_DoComplexCalcs_TestPatch
+	static class Fire_DoComplexCalcs_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -32,7 +42,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class Verb_MeleeAttack_ApplyMeleeDamageToTarget_TestPatch
+	static class Verb_MeleeAttack_ApplyMeleeDamageToTarget_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -50,7 +60,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(GenRecipe), nameof(GenRecipe.MakeRecipeProducts))]
-	static class GenReciepe_MakeRecipeProducts_TestPatch
+	static class GenReciepe_MakeRecipeProducts_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -74,7 +84,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Thing), nameof(Thing.TryAbsorbStack))]
-	static class Thing_TryAbsorbStack_TestPatch
+	static class Thing_TryAbsorbStack_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -99,7 +109,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Thing), nameof(Thing.SplitOff))]
-	static class Thing_SplitOff_TestPatch
+	static class Thing_SplitOff_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -120,7 +130,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Thing), nameof(Thing.Ingested))]
-	static class Thing_Ingested_TestPatch
+	static class Thing_Ingested_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -150,7 +160,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(MinifiedThing), nameof(MinifiedThing.SplitOff))]
-	static class MinifiedThing_SplitOff_TestPatch
+	static class MinifiedThing_SplitOff_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -170,7 +180,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class ThingComp_MakeThing_TestPatches
+	static class ThingComp_MakeThing_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -205,7 +215,7 @@ namespace ZombieLand
 
 	[HarmonyPatch(typeof(ExecutionUtility), nameof(ExecutionUtility.ExecutionInt))]
 	[HarmonyPatch(new[] { typeof(Pawn), typeof(Pawn), typeof(bool), typeof(int), typeof(bool) })]
-	static class ExecutionUtility_ExecutionInt_TestPatches
+	static class ExecutionUtility_ExecutionInt_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -221,7 +231,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(TendUtility), nameof(TendUtility.DoTend))]
-	static class TendUtility_DoTend_TestPatch
+	static class TendUtility_DoTend_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -247,7 +257,7 @@ namespace ZombieLand
 
 	[HarmonyPatch(typeof(PawnUtility), nameof(PawnUtility.GainComfortFromCellIfPossible))]
 	[HarmonyPatch(new[] { typeof(Pawn), typeof(bool) })]
-	static class PawnUtility_GainComfortFromCellIfPossible_TestPatch
+	static class PawnUtility_GainComfortFromCellIfPossible_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -266,7 +276,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Pawn_CarryTracker), nameof(Pawn_CarryTracker.CarryHandsTick))]
-	static class Pawn_CarryTracker_CarryHandsTick_TestPatch
+	static class Pawn_CarryTracker_CarryHandsTick_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -286,7 +296,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(PawnUtility), nameof(PawnUtility.Mated))]
-	static class PawnUtility_Mated_TestPatch
+	static class PawnUtility_Mated_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -297,7 +307,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(JobDriver_Lovin), nameof(JobDriver_Lovin.MakeNewToils))]
-	static class JobDriver_Lovin_MakeNewToils_TestPatch
+	static class JobDriver_Lovin_MakeNewToils_Patch
 	{
 		static readonly string layDownToilName = Toils_LayDown.LayDown(default, default, default).debugName;
 
@@ -328,7 +338,7 @@ namespace ZombieLand
 
 	[HarmonyPatch(typeof(Pawn), nameof(Pawn.MakeCorpse))]
 	[HarmonyPatch(new[] { typeof(Building_Grave), typeof(bool), typeof(float) })]
-	static class Pawn_MakeCorpse_TestPatch
+	static class Pawn_MakeCorpse_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -339,7 +349,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class Jobdriver_ClearPollution_Spawn_TestPatch
+	static class Jobdriver_ClearPollution_Spawn_Patch
 	{
 		static readonly MethodInfo m_Spawn = SymbolExtensions.GetMethodInfo(() => GenSpawn.Spawn((ThingDef)default, default, default, default));
 
@@ -405,7 +415,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(CompLifespan), nameof(CompLifespan.Expire))]
-	static class CompLifespan_Expire_TestPatch
+	static class CompLifespan_Expire_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -421,7 +431,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(RoofCollapserImmediate), nameof(RoofCollapserImmediate.DropRoofInCellPhaseOne))]
-	static class RoofCollapserImmediate_DropRoofInCellPhaseOne_TestPatch
+	static class RoofCollapserImmediate_DropRoofInCellPhaseOne_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -438,7 +448,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class JobDriver_AffectFloor_MakeNewToils_TestPatch
+	static class JobDriver_AffectFloor_MakeNewToils_Patch
 	{
 		static readonly MethodInfo m_DoEffect = SymbolExtensions.GetMethodInfo((JobDriver_AffectFloor jobdriver) => jobdriver.DoEffect(default));
 
@@ -466,7 +476,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class JobDriver_DisassembleMech_MakeNewToils_TestPatch
+	static class JobDriver_DisassembleMech_MakeNewToils_Patch
 	{
 		static readonly MethodInfo m_TryPlaceThing = SymbolExtensions.GetMethodInfo(() => GenPlace.TryPlaceThing(default, default, default, default, default, default, default));
 

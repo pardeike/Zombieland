@@ -36,16 +36,38 @@ namespace ZombieLand
 				method = AccessTools.Method(type, nameof(CanBecomeZombie));
 				if (method == null)
 					return;
-				var canBecomeZombie = (CanBecomeZombie)Delegate.CreateDelegate(typeof(CanBecomeZombie), method, false);
-				if (canBecomeZombie != null)
-					canBecomeZombieEvaluators.Add(canBecomeZombie);
+				try
+				{
+					var canBecomeZombie = (CanBecomeZombie)Delegate.CreateDelegate(typeof(CanBecomeZombie), method, true);
+					if (canBecomeZombie != null)
+					{
+						Log.Message($"Zombieland is now using {method.FullDescription()} from {type.Assembly.FullName}");
+						canBecomeZombieEvaluators.Add(canBecomeZombie);
+					}
+				}
+				catch (Exception ex)
+				{
+					Log.Error($"ZombielandSupport error in {type.Assembly.FullName}: {ex}");
+				}
 
 				method = AccessTools.Method(type, nameof(AttractsZombies));
 				if (method == null)
 					return;
-				var attractsZombies = (AttractsZombies)Delegate.CreateDelegate(typeof(AttractsZombies), method, false);
-				if (attractsZombies != null)
-					attractsZombiesEvaluators.Add(attractsZombies);
+				try
+				{
+					var attractsZombies = (AttractsZombies)Delegate.CreateDelegate(typeof(AttractsZombies), method, true);
+					if (attractsZombies != null)
+					{
+						Log.Message($"Zombieland is now using {method.FullDescription()} from {type.Assembly.FullName}");
+						attractsZombiesEvaluators.Add(attractsZombies);
+					}
+				}
+				catch (Exception ex)
+				{
+					Log.Error($"ZombielandSupport error in {type.Assembly.FullName}: {ex}");
+				}
+
+
 			});
 		}
 

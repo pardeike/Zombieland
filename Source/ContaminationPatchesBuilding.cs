@@ -11,7 +11,7 @@ using static HarmonyLib.Code;
 namespace ZombieLand
 {
 	[HarmonyPatch(typeof(Frame), nameof(Frame.CompleteConstruction))]
-	static class Frame_CompleteConstruction_TestPatch
+	static class Frame_CompleteConstruction_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -79,7 +79,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(MinifyUtility), nameof(MinifyUtility.MakeMinified))]
-	static class MinifyUtility_MakeMinified_TestPatch
+	static class MinifyUtility_MakeMinified_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -92,7 +92,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(GenConstruct), nameof(GenConstruct.PlaceBlueprintForInstall))]
-	static class GenConstruct_PlaceBlueprintForInstall_TestPatch
+	static class GenConstruct_PlaceBlueprintForInstall_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -105,7 +105,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(GenConstruct), nameof(GenConstruct.PlaceBlueprintForReinstall))]
-	static class GenConstruct_PlaceBlueprintForReinstall_TestPatch
+	static class GenConstruct_PlaceBlueprintForReinstall_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -118,7 +118,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Blueprint), nameof(Blueprint.TryReplaceWithSolidThing))]
-	static class Blueprint_TryReplaceWithSolidThing_TestPatch
+	static class Blueprint_TryReplaceWithSolidThing_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -132,7 +132,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(SmoothableWallUtility), nameof(SmoothableWallUtility.SmoothWall))]
-	static class SmoothableWallUtility_SmoothWall_TestPatch
+	static class SmoothableWallUtility_SmoothWall_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -150,7 +150,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(SmoothableWallUtility), nameof(SmoothableWallUtility.Notify_BuildingDestroying))]
-	static class SmoothableWallUtility_Notify_BuildingDestroying_TestPatch
+	static class SmoothableWallUtility_Notify_BuildingDestroying_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -166,7 +166,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Building_SubcoreScanner), nameof(Building_SubcoreScanner.Tick))]
-	static class Building_SubcoreScanner_Tick_TestPatch
+	static class Building_SubcoreScanner_Tick_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -182,7 +182,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Building_GeneExtractor), nameof(Building_GeneExtractor.Finish))]
-	static class Building_GeneExtractor_Finish_TestPatch
+	static class Building_GeneExtractor_Finish_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -199,7 +199,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Building_NutrientPasteDispenser), nameof(Building_NutrientPasteDispenser.TryDispenseFood))]
-	static class Building_NutrientPasteDispenser_TryDispenseFood_TestPatch
+	static class Building_NutrientPasteDispenser_TryDispenseFood_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -242,7 +242,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class Misc_Building_TestPatches
+	static class Misc_Building_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -269,7 +269,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class JobDriver_Repair_MakeNewToils_TestPatch
+	static class JobDriver_Repair_MakeNewToils_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -297,7 +297,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class JobDriver_RepairMech_MakeNewToils_TestPatch
+	static class JobDriver_RepairMech_MakeNewToils_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -309,7 +309,7 @@ namespace ZombieLand
 
 		static void RepairTick(Pawn mech, JobDriver_RepairMech jobDriver)
 		{
-			JobDriver_Repair_MakeNewToils_TestPatch.Equalize(jobDriver.pawn, mech);
+			JobDriver_Repair_MakeNewToils_Patch.Equalize(jobDriver.pawn, mech);
 			MechRepairUtility.RepairTick(mech);
 		}
 

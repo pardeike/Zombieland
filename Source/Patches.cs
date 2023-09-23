@@ -5227,7 +5227,7 @@ namespace ZombieLand
 		}
 
 		// patch to insert our difficulty settings into the custom storyteller UI
-		//
+		/*
 		[HarmonyPatch(typeof(StorytellerUI))]
 		[HarmonyPatch(nameof(StorytellerUI.DrawCustomLeft))]
 		static class StorytellerUI_DrawCustomLeft_Patch
@@ -5256,6 +5256,7 @@ namespace ZombieLand
 				return list;
 			}
 		}
+		*/
 
 		[HarmonyPatch(typeof(Page_SelectScenario))]
 		[HarmonyPatch(nameof(Page_SelectScenario.BeginScenarioConfiguration))]

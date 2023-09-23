@@ -8,7 +8,7 @@ using Verse.AI;
 namespace ZombieLand
 {
 	[HarmonyPatch(typeof(JobDriver_ClearPollution), nameof(JobDriver_ClearPollution.MakeNewToils))]
-	static class JobDriver_ClearPollution_ClearPollutionAt_TestPatch
+	static class JobDriver_ClearPollution_ClearPollutionAt_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -16,15 +16,15 @@ namespace ZombieLand
 		{
 			foreach (var toil in toils)
 			{
-				GridUtility_Unpollute_TestPatch.subject = __instance.pawn;
+				GridUtility_Unpollute_Patch.subject = __instance.pawn;
 				yield return toil;
 			}
-			GridUtility_Unpollute_TestPatch.subject = null;
+			GridUtility_Unpollute_Patch.subject = null;
 		}
 	}
 
 	[HarmonyPatch(typeof(GridsUtility), nameof(GridsUtility.Unpollute))]
-	static class GridUtility_Unpollute_TestPatch
+	static class GridUtility_Unpollute_Patch
 	{
 		public static Thing subject = null;
 
@@ -38,7 +38,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class JobDriver_ClearSnow_MakeNewToils_TestPatch
+	static class JobDriver_ClearSnow_MakeNewToils_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 

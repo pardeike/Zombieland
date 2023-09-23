@@ -113,6 +113,9 @@ namespace ZombieLand
 				map ??= thing.Map;
 			}
 
+			if (map == null)
+				return 0;
+
 			float contamination;
 			if (thing == null)
 			{

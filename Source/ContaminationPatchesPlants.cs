@@ -10,7 +10,7 @@ using static HarmonyLib.Code;
 namespace ZombieLand
 {
 	[HarmonyPatch]
-	static class GenSpawn_Spawn_Replacement_TestPatch
+	static class GenSpawn_Spawn_Replacement_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -40,7 +40,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class JobDriver_PlantWork_MakeNewToils_TestPatch
+	static class JobDriver_PlantWork_MakeNewToils_Patch
 	{
 		static readonly MethodInfo m_MakeThing = SymbolExtensions.GetMethodInfo(() => ThingMaker.MakeThing(default, default));
 
@@ -82,7 +82,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(IncidentWorker_AmbrosiaSprout), nameof(IncidentWorker_AmbrosiaSprout.TryExecuteWorker))]
-	static class IncidentWorker_AmbrosiaSprout_TryExecuteWorker_TestPatches
+	static class IncidentWorker_AmbrosiaSprout_TryExecuteWorker_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -99,7 +99,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Plant), nameof(Plant.TrySpawnStump))]
-	static class Plant_TrySpawnStump_TestPatches
+	static class Plant_TrySpawnStump_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -115,7 +115,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class JobDriver_PlantSow_MakeNewToils_TestPatch
+	static class JobDriver_PlantSow_MakeNewToils_Patch
 	{
 		static readonly Expression<Action> m_Spawn = () => Spawn(default, default, default, default, default);
 

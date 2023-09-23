@@ -8,7 +8,7 @@ using Verse;
 namespace ZombieLand
 {
 	[HarmonyPatch]
-	static class Skyfaller_SpawnThings_TestPatch
+	static class Skyfaller_SpawnThings_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -36,7 +36,7 @@ namespace ZombieLand
 
 	[HarmonyPatch(typeof(ThingSetMaker), nameof(ThingSetMaker.Generate))]
 	[HarmonyPatch(new[] { typeof(ThingSetMakerParams) })]
-	static class ThingSetMaker_Generate_TestPatch
+	static class ThingSetMaker_Generate_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -53,7 +53,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(TradeDeal), nameof(TradeDeal.AddAllTradeables))]
-	static class TradeDeal_AddAllTradeables_TestPatch
+	static class TradeDeal_AddAllTradeables_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -78,7 +78,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(MechClusterUtility), nameof(MechClusterUtility.SpawnCluster))]
-	static class MechClusterUtility_SpawnCluster_TestPatch
+	static class MechClusterUtility_SpawnCluster_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 

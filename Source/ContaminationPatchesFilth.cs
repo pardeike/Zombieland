@@ -10,21 +10,21 @@ using static HarmonyLib.Code;
 namespace ZombieLand
 {
 	[HarmonyPatch(typeof(Pawn_FilthTracker), nameof(Pawn_FilthTracker.Notify_EnteredNewCell))]
-	static class Pawn_FilthTracker_Notify_EnteredNewCell_TestPatch
+	static class Pawn_FilthTracker_Notify_EnteredNewCell_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
-		static void Prefix(Pawn_FilthTracker __instance) => Filth_MakeThing_TestPatch.filthSource = __instance.pawn;
+		static void Prefix(Pawn_FilthTracker __instance) => Filth_MakeThing_Patch.filthSource = __instance.pawn;
 		static void Postfix(Pawn_FilthTracker __instance)
 		{
 			var pawn = __instance.pawn;
 			ZombieSettings.Values.contamination.enterCellEqualize.Equalize(pawn, pawn.Position);
-			Filth_MakeThing_TestPatch.filthSource = null;
+			Filth_MakeThing_Patch.filthSource = null;
 		}
 	}
 
 	[HarmonyPatch]
-	static class JobDriver_CleanFilth_MakeNewToils_TestPatch
+	static class JobDriver_CleanFilth_MakeNewToils_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -46,28 +46,28 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(CompSpawnerFilth), nameof(CompSpawnerFilth.TrySpawnFilth))]
-	static class CompSpawnerFilth_TrySpawnFilth_TestPatch
+	static class CompSpawnerFilth_TrySpawnFilth_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
-		static void Prefix(CompSpawnerFilth __instance) => Filth_MakeThing_TestPatch.filthSource = __instance.parent;
-		static void Postfix() => Filth_MakeThing_TestPatch.filthSource = null;
+		static void Prefix(CompSpawnerFilth __instance) => Filth_MakeThing_Patch.filthSource = __instance.parent;
+		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
 	}
 
 	[HarmonyPatch(typeof(GenLeaving), nameof(GenLeaving.DoLeavingsFor))]
 	[HarmonyPatch(new[] { typeof(Thing), typeof(Map), typeof(DestroyMode), typeof(CellRect), typeof(Predicate<IntVec3>), typeof(List<Thing>) })]
-	static class GenLeaving_DoLeavingsFor_TestPatch
+	static class GenLeaving_DoLeavingsFor_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
 		static void Prefix(Thing diedThing, ref List<Thing> listOfLeavingsOut)
 		{
 			listOfLeavingsOut ??= new List<Thing>();
-			Filth_MakeThing_TestPatch.filthSource = diedThing;
+			Filth_MakeThing_Patch.filthSource = diedThing;
 		}
 		static void Postfix(Thing diedThing, List<Thing> listOfLeavingsOut)
 		{
-			Filth_MakeThing_TestPatch.filthSource = null;
+			Filth_MakeThing_Patch.filthSource = null;
 			if (listOfLeavingsOut.Any())
 			{
 				var leavingsArray = listOfLeavingsOut.ToArray();
@@ -77,86 +77,86 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Thing), nameof(Thing.TakeDamage))]
-	static class Thing_TakeDamage_TestPatch
+	static class Thing_TakeDamage_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
-		static void Prefix(Thing __instance) => Filth_MakeThing_TestPatch.filthSource = __instance;
-		static void Postfix() => Filth_MakeThing_TestPatch.filthSource = null;
+		static void Prefix(Thing __instance) => Filth_MakeThing_Patch.filthSource = __instance;
+		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
 	}
 
 	[HarmonyPatch(typeof(HediffComp_DissolveGearOnDeath), nameof(HediffComp_DissolveGearOnDeath.Notify_PawnKilled))]
-	static class HediffComp_DissolveGearOnDeath_Notify_PawnKilled_TestPatch
+	static class HediffComp_DissolveGearOnDeath_Notify_PawnKilled_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
-		static void Prefix(HediffComp_DissolveGearOnDeath __instance) => Filth_MakeThing_TestPatch.filthSource = __instance.Pawn;
-		static void Postfix() => Filth_MakeThing_TestPatch.filthSource = null;
+		static void Prefix(HediffComp_DissolveGearOnDeath __instance) => Filth_MakeThing_Patch.filthSource = __instance.Pawn;
+		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
 	}
 
 	[HarmonyPatch(typeof(Projectile_Liquid), nameof(Projectile_Liquid.DoImpact))]
-	static class Projectile_Liquid_DoImpact_TestPatch
+	static class Projectile_Liquid_DoImpact_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
-		static void Prefix(Thing hitThing) => Filth_MakeThing_TestPatch.filthSource = hitThing;
-		static void Postfix() => Filth_MakeThing_TestPatch.filthSource = null;
+		static void Prefix(Thing hitThing) => Filth_MakeThing_Patch.filthSource = hitThing;
+		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
 	}
 
 	[HarmonyPatch(typeof(TunnelHiveSpawner), nameof(TunnelHiveSpawner.Tick))]
-	static class TunnelHiveSpawner_Tick_TestPatch
+	static class TunnelHiveSpawner_Tick_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
 		static void Prefix(TunnelHiveSpawner __instance)
 		{
-			Filth_MakeThing_TestPatch.filthSource = __instance;
-			Filth_MakeThing_TestPatch.filthCell = new TargetInfo(__instance.Position, __instance.Map);
+			Filth_MakeThing_Patch.filthSource = __instance;
+			Filth_MakeThing_Patch.filthCell = new TargetInfo(__instance.Position, __instance.Map);
 		}
 		static void Postfix()
 		{
-			Filth_MakeThing_TestPatch.filthSource = null;
-			Filth_MakeThing_TestPatch.filthCell = null;
+			Filth_MakeThing_Patch.filthSource = null;
+			Filth_MakeThing_Patch.filthCell = null;
 		}
 	}
 
 	[HarmonyPatch(typeof(DamageWorker_Flame), nameof(DamageWorker_Flame.Apply))]
-	static class DamageWorker_Flame_Apply_TestPatch
+	static class DamageWorker_Flame_Apply_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
-		static void Prefix(Thing victim) => Filth_MakeThing_TestPatch.filthSource = victim;
-		static void Postfix() => Filth_MakeThing_TestPatch.filthSource = null;
+		static void Prefix(Thing victim) => Filth_MakeThing_Patch.filthSource = victim;
+		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
 	}
 
 	[HarmonyPatch(typeof(Verse.Explosion), nameof(Verse.Explosion.TrySpawnExplosionThing))]
-	static class Verse_Explosion_TrySpawnExplosionThing_TestPatch
+	static class Verse_Explosion_TrySpawnExplosionThing_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
 		static void Prefix(Verse.Explosion __instance)
-			=> Filth_MakeThing_TestPatch.filthSource = __instance.damagedThings.OrderBy(t => t.GetContamination()).LastOrDefault();
-		static void Postfix() => Filth_MakeThing_TestPatch.filthSource = null;
+			=> Filth_MakeThing_Patch.filthSource = __instance.damagedThings.OrderBy(t => t.GetContamination()).LastOrDefault();
+		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
 	}
 
 	[HarmonyPatch(typeof(RoofCollapserImmediate), nameof(RoofCollapserImmediate.DropRoofInCellPhaseTwo))]
-	static class RoofCollapserImmediate_DropRoofInCellPhaseTwo_TestPatch
+	static class RoofCollapserImmediate_DropRoofInCellPhaseTwo_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
-		static void Prefix(IntVec3 c, Map map) => Filth_MakeThing_TestPatch.filthCell = new TargetInfo(c, map);
-		static void Postfix() => Filth_MakeThing_TestPatch.filthCell = null;
+		static void Prefix(IntVec3 c, Map map) => Filth_MakeThing_Patch.filthCell = new TargetInfo(c, map);
+		static void Postfix() => Filth_MakeThing_Patch.filthCell = null;
 	}
 
 	[HarmonyPatch]
-	static class JobDriver_Vomit_MakeNewToils_TestPatch
+	static class JobDriver_Vomit_MakeNewToils_Patch
 	{
 		static readonly MethodInfo m_TryMakeFilth = SymbolExtensions.GetMethodInfo(() => FilthMaker.TryMakeFilth(IntVec3.Invalid, default, ThingDefOf.Filth_Vomit, "", 0, FilthSourceFlags.Any));
 
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
-		static void Prefix(JobDriver_Vomit __instance) => Filth_MakeThing_TestPatch.filthSource = __instance.pawn;
-		static void Postfix() => Filth_MakeThing_TestPatch.filthSource = null;
+		static void Prefix(JobDriver_Vomit __instance) => Filth_MakeThing_Patch.filthSource = __instance.pawn;
+		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
 
 		static MethodBase TargetMethod()
 		{
@@ -165,16 +165,16 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(PregnancyUtility), nameof(PregnancyUtility.SpawnBirthFilth))]
-	static class PregnancyUtility_SpawnBirthFilth_TestPatch
+	static class PregnancyUtility_SpawnBirthFilth_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
-		static void Prefix(Pawn mother) => Filth_MakeThing_TestPatch.filthSource = mother;
-		static void Postfix() => Filth_MakeThing_TestPatch.filthSource = null;
+		static void Prefix(Pawn mother) => Filth_MakeThing_Patch.filthSource = mother;
+		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
 	}
 
 	[HarmonyPatch(typeof(Corpse), nameof(Corpse.ButcherProducts))]
-	static class Corpse_ButcherProducts_TestPatch
+	static class Corpse_ButcherProducts_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -182,24 +182,24 @@ namespace ZombieLand
 		{
 			foreach (var thing in things)
 			{
-				Filth_MakeThing_TestPatch.filthSource = __instance;
+				Filth_MakeThing_Patch.filthSource = __instance;
 				yield return thing;
 			}
-			Filth_MakeThing_TestPatch.filthSource = null;
+			Filth_MakeThing_Patch.filthSource = null;
 		}
 	}
 
 	[HarmonyPatch(typeof(Pawn_HealthTracker), nameof(Pawn_HealthTracker.DropBloodFilth))]
-	static class Pawn_HealthTracker_DropBloodFilth_TestPatch
+	static class Pawn_HealthTracker_DropBloodFilth_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
-		static void Prefix(Pawn_HealthTracker __instance) => Filth_MakeThing_TestPatch.filthSource = __instance.pawn;
-		static void Postfix() => Filth_MakeThing_TestPatch.filthSource = null;
+		static void Prefix(Pawn_HealthTracker __instance) => Filth_MakeThing_Patch.filthSource = __instance.pawn;
+		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
 	}
 
 	[HarmonyPatch]
-	static class Filth_MakeThing_TestPatch
+	static class Filth_MakeThing_Patch
 	{
 		public static TargetInfo filthCell = null;
 		public static Thing filthSource = null;

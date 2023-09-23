@@ -10,7 +10,7 @@ namespace ZombieLand
 	{
 		public const float minContaminationThreshold = 0.0001f;
 
-		[ValueRange(0.175f, 0.175f)] public float contaminationElevationDelta = 0.175f;
+		[ValueRange(0f, 1f)] public float contaminationElevationPercentage = 0.5f;
 		[ValueRange(GenDate.TicksPerYear / 4, GenDate.TicksPerYear * 2)] public float decontaminationQuestInterval = GenDate.TicksPerYear / 2f;
 
 		[ValueRange(1f, 1f)] public float ambrosiaAdd = 1f;
@@ -26,6 +26,7 @@ namespace ZombieLand
 		[ValueRange(0.001f, 0.2f)] public float snowAdd = 0.1f;
 		[ValueRange(0.05f, 0.4f)] public float sowedPlantAdd = 0.2f;
 		[ValueRange(0.2f, 1f)] public float wastePackAdd = 0.5f;
+		[ValueRange(0.0001f, 0.001f)] public float zombieDeathAdd = 0.0005f;
 
 		[ValueRange(0.01f, 0.5f)] public float disassembleTransfer = 0.1f;
 		[ValueRange(0.01f, 0.5f)] public float dispenseFoodTransfer = 0.1f;

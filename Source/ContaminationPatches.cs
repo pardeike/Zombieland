@@ -25,7 +25,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(ThingMaker), nameof(ThingMaker.MakeThing))]
-	static file class Thing_MakeThing_TestPatch
+	static file class Thing_MakeThing_Patch
 	{
 		static bool Prepare() => false;
 
@@ -40,7 +40,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Thing), nameof(Thing.Destroy))]
-	static class Thing_Destroy_TestPatch
+	static class Thing_Destroy_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -64,7 +64,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(Thing), nameof(Thing.SpecialDisplayStats))]
-	static class Thing_SpecialDisplayStats_TestPatch
+	static class Thing_SpecialDisplayStats_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -84,7 +84,7 @@ namespace ZombieLand
 
 	[HarmonyPatch(typeof(Widgets), nameof(Widgets.ThingIcon))]
 	[HarmonyPatch(new[] { typeof(Rect), typeof(Thing), typeof(float), typeof(Rot4?), typeof(bool) })]
-	static class Widgets_ThingIcon_TestPatch
+	static class Widgets_ThingIcon_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -102,7 +102,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(MainTabWindow_Quests), nameof(MainTabWindow_Quests.DoRow))]
-	static class MainTabWindow_Quests_DoRow_TestPatch
+	static class MainTabWindow_Quests_DoRow_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -118,7 +118,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(PlaySettings), nameof(PlaySettings.DoPlaySettingsGlobalControls))]
-	static class PlaySettings_DoPlaySettingsGlobalControls_TestPatch
+	static class PlaySettings_DoPlaySettingsGlobalControls_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -133,7 +133,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(MouseoverReadout), nameof(MouseoverReadout.MouseoverReadoutOnGUI))]
-	static class MouseoverReadout_MouseoverReadoutOnGUI_TestPatch
+	static class MouseoverReadout_MouseoverReadoutOnGUI_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -185,7 +185,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(InspectPaneUtility), nameof(InspectPaneUtility.PaneWidthFor))]
-	static class InspectPaneUtility_PaneWidthFor_TestPatch
+	static class InspectPaneUtility_PaneWidthFor_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -198,7 +198,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(InspectPaneFiller), nameof(InspectPaneFiller.DoPaneContentsFor))]
-	static class InspectPaneFiller_DoPaneContentsFor_TestPatch
+	static class InspectPaneFiller_DoPaneContentsFor_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
@@ -233,7 +233,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch(typeof(BeautyDrawer), nameof(BeautyDrawer.DrawBeautyAroundMouse))]
-	static class BeautyDrawer_DrawBeautyAroundMouse_TestPatch
+	static class BeautyDrawer_DrawBeautyAroundMouse_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION > 0;
 
