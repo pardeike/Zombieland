@@ -8,15 +8,25 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	static class GraphicToolbox
 	{
-		static readonly Mesh contaminationMesh = MeshMakerPlanes.NewPlaneMesh(0.35f);
+		static readonly Mesh contaminationMesh;
+		static readonly Material[] matSymbols;
+
+		static GraphicToolbox()
+		{
+			contaminationMesh = MeshMakerPlanes.NewPlaneMesh(0.35f);
+			matSymbols = new Material[100];
+			for (var i = 0; i <= 99; i++)
+			{
+				var color = new Color(1f, 1f, 1f, 0.1f + 0.8f * i / 99f);
+				matSymbols[i] = new Material(Constants.Contamination) { color = color };
+			}
+		}
+
 		public static void DrawContamination(Vector3 vec, float contamination, bool small)
 		{
 			if (contamination < ContaminationFactors.minContaminationThreshold)
 				return;
-			var color = new Color(1f, 1f, 1f, 0.1f + 0.8f * contamination);
-
 			vec.y = AltitudeLayer.MetaOverlays.AltitudeFor();
-
 			var size = 1.5f;
 			if (small)
 			{
@@ -24,8 +34,8 @@ namespace ZombieLand
 				vec.z -= 0.25f;
 				size = 1f;
 			}
-			var matSymbol = new Material(Constants.Contamination) { color = color };
-			DrawScaledMesh(contaminationMesh, matSymbol, vec, Quaternion.identity, size, size);
+			var i = (int)Mathf.Lerp(0, 99, contamination);
+			DrawScaledMesh(contaminationMesh, matSymbols[i], vec, Quaternion.identity, size, size);
 		}
 
 		public static Color HexColor(this string hex)

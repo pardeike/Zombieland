@@ -7,9 +7,6 @@ using UnityEngine;
 using Verse;
 using static HarmonyLib.Code;
 
-// TODO the following is code that adds all patches to track future contamination
-//      its purpose is to test compatibility before actually releasing such a feature
-//
 namespace ZombieLand
 {
 	[HarmonyPatch(typeof(Game))]
