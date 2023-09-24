@@ -31,6 +31,8 @@
 	<ZombielandDifficulty>Échelle des menaces</ZombielandDifficulty>
 
 	<ZombielandContaminationTitle>Contamination</ZombielandContaminationTitle>
+	<ContaminationEnabled>Globalement activée</ContaminationEnabled>
+	<ZombielandRestartRequired>La modification de ce paramètre nécessite un redémarrage de RimWorld</ZombielandRestartRequired>
 	<ZombielandContamination>Intensité</ZombielandContamination>
 
 	<WhenDoZombiesSpawn>Quand les Zombies arrivent-ils ? </WhenDoZombiesSpawn>

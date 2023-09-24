@@ -28,6 +28,8 @@
 	<Years>jahre</Years>
 
 	<ZombielandDifficultyTitle>Zombieland Schwierigkeit</ZombielandDifficultyTitle>
+	<ContaminationEnabled>Global aktiviert</ContaminationEnabled>
+	<ZombielandRestartRequired>Die Änderung dieser Einstellung erfordert einen Neustart von RimWorld</ZombielandRestartRequired>
 	<ZombielandDifficulty>Bedrohungsskala</ZombielandDifficulty>
 
 	<ZombielandContaminationTitle>Kontamination</ZombielandContaminationTitle>

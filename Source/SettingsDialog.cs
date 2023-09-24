@@ -49,16 +49,26 @@ namespace ZombieLand
 				}
 
 				// Contamination
+				list.Dialog_Label("ZombielandContaminationTitle", headerColor);
+				list.Gap(6f);
+				var contaminationEnabled = Constants.CONTAMINATION > 0;
+				list.Dialog_Checkbox("ContaminationEnabled", ref contaminationEnabled);
+				if (contaminationEnabled != Constants.CONTAMINATION > 0)
+				{
+					Constants.CONTAMINATION = contaminationEnabled ? 1 : 0;
+					var dict = Constants.Current();
+					Constants.Save(dict);
+					Find.WindowStack.Add(new Dialog_MessageBox("ZombielandRestartRequired".Translate(), "OK".Translate()));
+				}
 				if (Constants.CONTAMINATION > 0 && DialogExtensions.Section<string>(":ZombielandContaminationTitle", ":ZombielandContamination"))
 				{
-					list.Dialog_Label("ZombielandContaminationTitle", headerColor);
-					list.Gap(6f);
+					list.Gap(4f);
 					var oldValue = settings.contaminationBaseFactor;
 					list.Dialog_FloatSlider("ZombielandContamination", _ => "{0:0%}", false, ref settings.contaminationBaseFactor, 0f, 5f);
 					if (oldValue != settings.contaminationBaseFactor)
 						ContaminationFactors.ApplyBaseFactor(settings.contamination, settings.contaminationBaseFactor);
-					list.Gap(12f);
 				}
+				list.Gap(12f);
 
 				// When?
 				if (DialogExtensions.Section<SpawnWhenType>(":WhenDoZombiesSpawn"))

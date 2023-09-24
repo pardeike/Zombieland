@@ -31,6 +31,8 @@
 	<ZombielandDifficulty>威胁等级</ZombielandDifficulty>
 
 	<ZombielandContaminationTitle>污染</ZombielandContaminationTitle>
+	<ContaminationEnabled>全球启用</ContaminationEnabled>
+	<ZombielandRestartRequired>更改此设置需要重新启动</ZombielandRestartRequired>
 	<ZombielandContamination>强度</ZombielandContamination>
 
 	<WhenDoZombiesSpawn>丧尸出现的时间段？</WhenDoZombiesSpawn>

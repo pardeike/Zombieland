@@ -28,6 +28,8 @@
 	<Years>годы</Years>
 
 	<ZombielandDifficultyTitle>Общая сложность</ZombielandDifficultyTitle>
+	<ContaminationEnabled>Глобально включено</ContaminationEnabled>
+	<ZombielandRestartRequired>Изменение этой настройки требует перезапуска RimWorld</ZombielandRestartRequired>
 	<ZombielandDifficulty>Шкала угроз</ZombielandDifficulty>
 
 	<ZombielandContaminationTitle>Загрязнение</ZombielandContaminationTitle>

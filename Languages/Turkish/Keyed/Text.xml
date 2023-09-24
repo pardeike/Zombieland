@@ -28,6 +28,8 @@
 	<Years>yıllar</Years>
 
 	<ZombielandDifficultyTitle>Genel Zorluk</ZombielandDifficultyTitle>
+	<ContaminationEnabled>Global olarak etkin</ContaminationEnabled>
+	<ZombielandRestartRequired>Bu ayarın değiştirilmesi RimWorld'ün yeniden başlatılmasını gerektirir</ZombielandRestartRequired>
 	<ZombielandDifficulty>Tehdit ölçeği</ZombielandDifficulty>
 
 	<ZombielandContaminationTitle>Kirlilik</ZombielandContaminationTitle>
