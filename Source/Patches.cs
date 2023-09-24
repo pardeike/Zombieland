@@ -168,7 +168,7 @@ namespace ZombieLand
 				var currentViewRect = Find.CameraDriver.CurrentViewRect;
 				currentViewRect.ClipInsideMap(map);
 
-				if (ContaminationManager.Instance.showContaminationOverlay)
+				if (Constants.CONTAMINATION > 0 && ContaminationManager.Instance.showContaminationOverlay)
 				{
 					if (Find.CameraDriver.CurrentViewRect.Area >= Constants.MAX_CELLS_FOR_DETAILED_CONTAMINATION)
 						map.ContaminationGridUpdate();
@@ -1871,14 +1871,17 @@ namespace ZombieLand
 				if (pos.InBounds(map) == false)
 					return;
 
-				var contaminationList = map.thingGrid.ThingsListAt(pos)
+				if (Constants.CONTAMINATION > 0)
+				{
+					var contaminationList = map.thingGrid.ThingsListAt(pos)
 					.Select(t => (thing: t, contamination: t.GetContamination()))
 					.Where(pair => pair.contamination != 0)
 					.Join(pair => $"{pair.thing}/{pair.contamination}", " ");
-				if (contaminationList.Any())
-				{
-					_ = builder.AppendLine($"Contaminations: {contaminationList}");
-					_ = builder.AppendLine("");
+					if (contaminationList.Any())
+					{
+						_ = builder.AppendLine($"Contaminations: {contaminationList}");
+						_ = builder.AppendLine("");
+					}
 				}
 
 				if (Tools.ShouldAvoidZombies())

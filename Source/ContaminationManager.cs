@@ -14,8 +14,6 @@ namespace ZombieLand
 	{
 		public const bool LOGGING = false;
 
-#pragma warning disable CS0162 // Unreachable code detected
-
 		public Dictionary<int, float> contaminations = new();
 		public Dictionary<int, ContaminationGrid> grounds = new();
 		public bool showContaminationOverlay;
@@ -46,7 +44,10 @@ namespace ZombieLand
 			if (Scribe.mode == LoadSaveMode.LoadingVars)
 				_instance = null; // clear cache
 
-			Scribe_Values.Look(ref showContaminationOverlay, "showContaminationOverlay");
+			if (Constants.CONTAMINATION > 0)
+				Scribe_Values.Look(ref showContaminationOverlay, "showContaminationOverlay");
+			else
+				showContaminationOverlay = false;
 
 			this.ExposeContamination();
 			this.ExposeGrounds();
@@ -227,10 +228,12 @@ namespace ZombieLand
 			ChangeDirectly(t2, map, -transfer);
 			if (LOGGING)
 			{
+#pragma warning disable CS0162 // Unreachable code detected
 				if (transfer > 0)
 					Log.Message($"{t2} --({transfer})--> {t1}");
 				if (transfer < 0)
 					Log.Message($"{t1} --({-transfer})--> {t2}");
+#pragma warning restore CS0162 // Unreachable code detected
 			}
 			runIfContaminated?.Invoke();
 			return transfer;
@@ -377,8 +380,8 @@ namespace ZombieLand
 		{
 			if (val <= 0)
 				return;
-			if (ContaminationManager.LOGGING)
 #pragma warning disable CS0162 // Unreachable code detected
+			if (ContaminationManager.LOGGING)
 				Log.Message($"add {thing} {val} [{factor}x]");
 #pragma warning restore CS0162 // Unreachable code detected
 			ContaminationManager.Instance.Add(thing, val * factor);
@@ -391,8 +394,8 @@ namespace ZombieLand
 			var manager = ContaminationManager.Instance;
 			foreach (var thing in things)
 			{
-				if (ContaminationManager.LOGGING)
 #pragma warning disable CS0162 // Unreachable code detected
+				if (ContaminationManager.LOGGING)
 					Log.Message($"add {thing} {val} [{factor}x]");
 #pragma warning restore CS0162 // Unreachable code detected
 				manager.Add(thing, val * factor);
@@ -401,16 +404,16 @@ namespace ZombieLand
 		}
 		public static float SubtractContamination(this Thing thing, float val)
 		{
-			if (ContaminationManager.LOGGING)
 #pragma warning disable CS0162 // Unreachable code detected
+			if (ContaminationManager.LOGGING)
 				Log.Message($"subtract {thing} {val}");
 #pragma warning restore CS0162 // Unreachable code detected
 			return ContaminationManager.Instance.Subtract(thing, val);
 		}
 		public static void ClearContamination(this Thing thing)
 		{
-			if (ContaminationManager.LOGGING)
 #pragma warning disable CS0162 // Unreachable code detected
+			if (ContaminationManager.LOGGING)
 				Log.Message($"clear {thing}");
 #pragma warning restore CS0162 // Unreachable code detected
 			ContaminationManager.Instance.Remove(thing);
@@ -428,8 +431,8 @@ namespace ZombieLand
 			var delta = subtracted / n;
 			for (var j = 0; j < n; j++)
 				contamination.Add(toArray[j], delta);
-			if (ContaminationManager.LOGGING)
 #pragma warning disable CS0162 // Unreachable code detected
+			if (ContaminationManager.LOGGING)
 				Log.Message($"{from} --({delta}{(n == 1 ? "" : " each")})--> {toArray.Join(t => $"{t}")}");
 #pragma warning restore CS0162 // Unreachable code detected
 			runIfContaminated?.Invoke();
@@ -456,8 +459,6 @@ namespace ZombieLand
 			drawer.MarkForDraw();
 			ContaminationManager.Instance.DrawerUpdate();
 		}
-
-#pragma warning restore CS0162 // Unreachable code detected
 
 	}
 }

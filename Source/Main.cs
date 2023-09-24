@@ -91,6 +91,7 @@ namespace ZombieLand
 		public static ThingDef ZombieBall;
 		public static QuestScriptDef Decontamination;
 		public static ThoughtDef ZombieScare;
+		public static NeedDef Contamination;
 	}
 
 	public class ZombielandMod : Mod

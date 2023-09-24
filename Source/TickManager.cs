@@ -109,7 +109,7 @@ namespace ZombieLand
 		public List<SoSTools.Floater> floatingSpaceZombiesFore;
 
 		public List<VictimHead> victimHeads = new();
-		public ContaminationEffectManager contaminationEffects = new();
+		public ContaminationEffectManager contaminationEffects = Constants.CONTAMINATION > 1 ? new() : null;
 
 		public int lastZombieContact = 0;
 		public int lastZombieSpitter = 0;

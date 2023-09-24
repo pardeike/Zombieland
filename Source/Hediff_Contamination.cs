@@ -9,17 +9,18 @@ namespace ZombieLand
 		public override void PostAdd(DamageInfo? dinfo)
 		{
 			base.PostAdd(dinfo);
-			Severity = Mathf.Min(1f, ContaminationManager.Instance.Get(pawn));
+			if (Constants.CONTAMINATION > 0)
+				Severity = Mathf.Min(1f, ContaminationManager.Instance.Get(pawn));
 		}
 
 		public override void PostTick()
 		{
 			base.PostTick();
-			if (pawn.IsHashIntervalTick(60))
+			if (Constants.CONTAMINATION > 0 && pawn.IsHashIntervalTick(60))
 				Severity = Mathf.Min(1f, ContaminationManager.Instance.Get(pawn));
 		}
 
-		public override bool ShouldRemove => false;
+		public override bool ShouldRemove => Constants.CONTAMINATION == 0;
 		public override TextureAndColor StateIcon => new(Constants.ShowContaminationOverlay, Color.green);
 		public override void Tended(float quality, float maxQuality, int batchPosition) { }
 		public override bool TryMergeWith(Hediff other) => false;

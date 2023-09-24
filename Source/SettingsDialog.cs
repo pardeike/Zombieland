@@ -49,7 +49,7 @@ namespace ZombieLand
 				}
 
 				// Contamination
-				if (DialogExtensions.Section<string>(":ZombielandContaminationTitle", ":ZombielandContamination"))
+				if (Constants.CONTAMINATION > 0 && DialogExtensions.Section<string>(":ZombielandContaminationTitle", ":ZombielandContamination"))
 				{
 					list.Dialog_Label("ZombielandContaminationTitle", headerColor);
 					list.Gap(6f);

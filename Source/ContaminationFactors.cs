@@ -78,6 +78,7 @@ namespace ZombieLand
 				});
 		}
 
+		// actually not really needed but we keep it for compatibility with old saves
 		public void ExposeData()
 		{
 			AccessTools.GetDeclaredFields(typeof(ContaminationFactors)).Do(field =>

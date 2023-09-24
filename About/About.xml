@@ -19,12 +19,13 @@
   <loadAfter>
     <li>ceteam.combatextended</li>
     <li>kentington.saveourship2</li>
+    <li>petetimessix.simplesidearms</li>
   </loadAfter>
   <incompatibleWith>
     <li>Multiplayer</li>
   </incompatibleWith>
   <packageId>brrainz.zombieland</packageId>
-  <modVersion>4.3.1.0</modVersion>
+  <modVersion>4.3.2.0</modVersion>
   <steamAppId>928376710</steamAppId>
   <description>Do you like The Walking Dead? Are you afraid of The Undead? Good. Because this mod will give you the Heebie-jeebies!
 

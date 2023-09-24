@@ -9,6 +9,17 @@ using static HarmonyLib.Code;
 
 namespace ZombieLand
 {
+	[HarmonyPatch(typeof(Pawn_NeedsTracker))]
+	[HarmonyPatch(nameof(Pawn_NeedsTracker.ShouldHaveNeed))]
+	static class Pawn_NeedsTracker_ShouldHaveNeed_Patch
+	{
+		static void Postfix(NeedDef nd, ref bool __result)
+		{
+			if (nd == CustomDefs.Contamination && Constants.CONTAMINATION == 0)
+				__result = false;
+		}
+	}
+
 	[HarmonyPatch(typeof(Game))]
 	[HarmonyPatch(nameof(Game.FinalizeInit))]
 	static class Game_FinalizeInit_Patch

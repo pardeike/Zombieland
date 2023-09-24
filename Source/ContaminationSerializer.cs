@@ -14,31 +14,34 @@ namespace ZombieLand
 			manager.contaminations ??= new();
 			try
 			{
-				if (Scribe.mode == LoadSaveMode.Saving)
+				if (Constants.CONTAMINATION > 0)
 				{
-					var thingIDs = Find.Maps
-						.SelectMany(map => map.listerThings.AllThings.Where(thing => thing.Destroyed == false))
-						.Select(thing => thing.thingIDNumber)
-						.ToHashSet();
-					var pairs = manager.contaminations
-						.Where(pair => thingIDs.Contains(pair.Key))
-						.OrderBy(pair => pair.Key);
-					foreach (var pair in pairs)
+					if (Scribe.mode == LoadSaveMode.Saving)
 					{
-						Scribe.saver.writer.WriteStartElement("T" + pair.Key);
-						Scribe.saver.writer.WriteString($"{pair.Value:R}");
-						Scribe.saver.writer.WriteEndElement();
+						var thingIDs = Find.Maps
+							.SelectMany(map => map.listerThings.AllThings.Where(thing => thing.Destroyed == false))
+							.Select(thing => thing.thingIDNumber)
+							.ToHashSet();
+						var pairs = manager.contaminations
+							.Where(pair => thingIDs.Contains(pair.Key))
+							.OrderBy(pair => pair.Key);
+						foreach (var pair in pairs)
+						{
+							Scribe.saver.writer.WriteStartElement("T" + pair.Key);
+							Scribe.saver.writer.WriteString($"{pair.Value:R}");
+							Scribe.saver.writer.WriteEndElement();
+						}
 					}
-				}
-				else if (Scribe.mode == LoadSaveMode.LoadingVars)
-				{
-					var curXmlParent = Scribe.loader.curXmlParent.ChildNodes;
-					for (var i = 0; i < curXmlParent.Count; i++)
+					else if (Scribe.mode == LoadSaveMode.LoadingVars)
 					{
-						var subNode = curXmlParent.Item(i);
-						var id = int.Parse(subNode.Name.Substring(1));
-						var val = float.Parse(subNode.InnerText);
-						manager.contaminations[id] = val;
+						var curXmlParent = Scribe.loader.curXmlParent.ChildNodes;
+						for (var i = 0; i < curXmlParent.Count; i++)
+						{
+							var subNode = curXmlParent.Item(i);
+							var id = int.Parse(subNode.Name.Substring(1));
+							var val = float.Parse(subNode.InnerText);
+							manager.contaminations[id] = val;
+						}
 					}
 				}
 			}
@@ -57,45 +60,48 @@ namespace ZombieLand
 
 			try
 			{
-				if (Scribe.mode == LoadSaveMode.Saving)
+				if (Constants.CONTAMINATION > 0)
 				{
-					for (var idx = 0; idx < manager.grounds.Keys.Count; idx++)
+					if (Scribe.mode == LoadSaveMode.Saving)
 					{
-						var values = manager.grounds[idx].cells;
-						var sb = new StringBuilder(values.Length * 10);
-						for (var i = 0; i < values.Length; i++)
+						for (var idx = 0; idx < manager.grounds.Keys.Count; idx++)
 						{
-							var f = values[i];
-							var n = f == 0 ? 0 : (int)(f * 100 + 0.9999);
-							sb.Append(n);
-							sb.Append(',');
-						}
-						Scribe.saver.writer.WriteStartElement("map");
-						Scribe.saver.writer.WriteAttributeString("size", values.Length.ToString());
-						Scribe.saver.writer.WriteString(sb.ToString());
-						Scribe.saver.writer.WriteEndElement();
-					}
-				}
-				else if (Scribe.mode == LoadSaveMode.LoadingVars)
-				{
-					var ChildNodes = Scribe.loader.curXmlParent.ChildNodes;
-					for (var i = 0; i < ChildNodes.Count; i++)
-					{
-						var subNode = ChildNodes.Item(i);
-						var size = int.Parse(subNode.Attributes["size"].Value);
-						var floats = new float[size];
-						var txt = subNode.InnerText;
-						var f = 0;
-						var k = 0;
-						for (var j = 0; j < txt.Length; j++)
-						{
-							if (txt[j] == ',')
+							var values = manager.grounds[idx].cells;
+							var sb = new StringBuilder(values.Length * 10);
+							for (var i = 0; i < values.Length; i++)
 							{
-								floats[f++] = int.Parse(txt.Substring(k, j - k)) / 100f;
-								k = j + 1;
+								var f = values[i];
+								var n = f == 0 ? 0 : (int)(f * 100 + 0.9999);
+								sb.Append(n);
+								sb.Append(',');
 							}
+							Scribe.saver.writer.WriteStartElement("map");
+							Scribe.saver.writer.WriteAttributeString("size", values.Length.ToString());
+							Scribe.saver.writer.WriteString(sb.ToString());
+							Scribe.saver.writer.WriteEndElement();
 						}
-						manager.grounds[i] = new ContaminationGrid(floats);
+					}
+					else if (Scribe.mode == LoadSaveMode.LoadingVars)
+					{
+						var ChildNodes = Scribe.loader.curXmlParent.ChildNodes;
+						for (var i = 0; i < ChildNodes.Count; i++)
+						{
+							var subNode = ChildNodes.Item(i);
+							var size = int.Parse(subNode.Attributes["size"].Value);
+							var floats = new float[size];
+							var txt = subNode.InnerText;
+							var f = 0;
+							var k = 0;
+							for (var j = 0; j < txt.Length; j++)
+							{
+								if (txt[j] == ',')
+								{
+									floats[f++] = int.Parse(txt.Substring(k, j - k)) / 100f;
+									k = j + 1;
+								}
+							}
+							manager.grounds[i] = new ContaminationGrid(floats);
+						}
 					}
 				}
 			}
