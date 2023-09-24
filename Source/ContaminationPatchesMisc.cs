@@ -14,6 +14,8 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Pawn), nameof(Pawn.Kill))]
 	static class Pawn_Kill_Patch
 	{
+		static bool Prepare() => Constants.CONTAMINATION > 0;
+
 		static void Prefix(Pawn __instance)
 		{
 			if (__instance is Zombie zombie)
