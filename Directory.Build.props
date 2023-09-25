@@ -4,7 +4,7 @@
 		<ModName>ZombieLand</ModName>
 		<ModFileName>ZombieLand</ModFileName>
 		<Repository>https://github.com/pardeike/Zombieland</Repository>
-		<ModVersion>4.3.2.0</ModVersion>
+		<ModVersion>4.3.3.0</ModVersion>
 		<ProjectGuid>{34AA2AF2-8E82-4C5B-8ABA-9AC53DA7C110}</ProjectGuid>
 	</PropertyGroup>
 
