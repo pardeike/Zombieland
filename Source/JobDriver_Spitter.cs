@@ -22,6 +22,8 @@ namespace ZombieLand
 	public class JobDriver_Spitter : JobDriver
 	{
 		public SpitterState state = SpitterState.Idle;
+		public int idleCounter = 0;
+		public bool firstShot = true;
 		public bool aggressive = false;
 		public int moveState = -1;
 		public int tickCounter = 0;
@@ -37,12 +39,16 @@ namespace ZombieLand
 			waves = Mathf.FloorToInt(f * (aggressive ? Rand.Range((1f, 2f).F(), (2f, 10f).F()) : Rand.Range((2f, 15f).F(), (4f, 30f).F())));
 			if (waves < 1)
 				waves = 1;
+			idleCounter = 0;
+			firstShot = true;
 		}
 
 		public override void ExposeData()
 		{
 			base.ExposeData();
 			Scribe_Values.Look(ref state, "state", SpitterState.Idle);
+			Scribe_Values.Look(ref idleCounter, "idleCounter", 0);
+			Scribe_Values.Look(ref firstShot, "firstShot", true);
 			Scribe_Values.Look(ref aggressive, "aggressive", false);
 			Scribe_Values.Look(ref moveState, "moveState", -1);
 			Scribe_Values.Look(ref tickCounter, "tickCounter", 0);
@@ -55,6 +61,12 @@ namespace ZombieLand
 
 		void DoIdle(int minTicks, int maxTicks)
 		{
+			idleCounter++;
+			if (idleCounter > 3)
+			{
+				DoShooting();
+				return;
+			}
 			tickCounter = Rand.Range(minTicks, maxTicks);
 			state = SpitterState.Idle;
 		}
@@ -105,19 +117,19 @@ namespace ZombieLand
 
 		void DoShooting()
 		{
-			tickCounter = 0;
 			var f = ZombieSettings.Values.spitterThreat;
 			var fReverse = 5f - f;
-			spitInterval = Mathf.FloorToInt(fReverse * (aggressive ? Rand.Range((20f, 5f).F(), (40f, 10f).F()) : Rand.Range((360f, 120f).F(), (900f, 240f).F())));
+			spitInterval = Mathf.FloorToInt(fReverse * (aggressive ? Rand.Range((20f, 5f).F(), (40f, 10f).F()) : Rand.Range((60f, 30f).F(), (120f, 60f).F())));
 			if (spitInterval < 4)
 				spitInterval = 4;
-			remainingZombies = Mathf.FloorToInt(f * (aggressive ? Rand.Range((1f, 5f).F(), (10f, 20f).F()) : Rand.Range((5f, 20f).F(), (10f, 50f).F())));
+			remainingZombies = Mathf.FloorToInt(f * (aggressive ? Rand.Range((1f, 5f).F(), (10f, 20f).F()) : Rand.Range(1, 2)));
 			if (remainingZombies < 1)
 				remainingZombies = 1;
+			tickCounter = spitInterval;
 			state = SpitterState.Spitting;
 		}
 
-		void Shoot()
+		bool Shoot()
 		{
 			var target = TryFindNewTarget();
 			if (target.IsValid && (target.x != 0 || target.z != 0))
@@ -125,7 +137,9 @@ namespace ZombieLand
 				CustomDefs.BallSpit.PlayOneShot(new TargetInfo(pawn.Position, pawn.Map, false));
 				var projectile = (Projectile)GenSpawn.Spawn(CustomDefs.ZombieBall, pawn.Position, pawn.Map, WipeMode.Vanish);
 				projectile.Launch(pawn, pawn.DrawPos + new Vector3(0, 0, 0.5f), target, target, ProjectileHitFlags.IntendedTarget);
+				return true;
 			}
+			return false;
 		}
 
 		void DoPreparing()
@@ -150,7 +164,19 @@ namespace ZombieLand
 					if (destination.IsValid)
 						DoMoving(destination);
 					else
-						DoIdle(120, 120);
+					{
+						var distance = GenMath.LerpDouble(0, 5, 60, 12, Tools.Difficulty());
+						destination = RCellFinder.RandomWanderDestFor(pawn, pawn.Position, distance, (pawn, c1, c2) => true, Danger.Deadly);
+						if (destination.IsValid)
+							DoMoving(destination);
+						else
+						{
+							if (RCellFinder.TryFindSiegePosition(pawn.Position, 10, pawn.Map, false, out destination))
+								DoMoving(destination);
+							else
+								DoIdle(120, 120);
+						}
+					}
 					break;
 
 				case SpitterState.Moving:
@@ -166,7 +192,10 @@ namespace ZombieLand
 					if (tickCounter > 0)
 						tickCounter--;
 					else
+					{
+						firstShot = true;
 						DoShooting();
+					}
 					break;
 
 				case SpitterState.Spitting:
@@ -175,7 +204,7 @@ namespace ZombieLand
 						waves--;
 						if (waves > 0)
 						{
-							DoPreparing();
+							state = SpitterState.Searching;
 							return;
 						}
 
@@ -194,9 +223,11 @@ namespace ZombieLand
 						tickCounter++;
 						return;
 					}
-					Shoot();
-					remainingZombies--;
-					tickCounter = 0;
+					if (Shoot())
+					{
+						remainingZombies--;
+						tickCounter = 0;
+					}
 					break;
 
 				case SpitterState.Leaving:
@@ -225,7 +256,11 @@ namespace ZombieLand
 
 		public override string GetReport()
 		{
-			return "Spitting";
+			var modeStr = aggressive ? "Aggressive".Translate() : "Calm".Translate();
+			var waveStr = waves < 1 ? "" : $"{waves} {"Waves".Translate()}";
+			var stateStr = ("SpitterState" + Enum.GetName(typeof(SpitterState), state)).Translate();
+			var zombieStr = state != SpitterState.Spitting ? "" : $", {remainingZombies} zombies";
+			return $"{modeStr}, {waveStr}, {stateStr}{zombieStr}";
 		}
 
 		public override IEnumerable<Toil> MakeNewToils()
