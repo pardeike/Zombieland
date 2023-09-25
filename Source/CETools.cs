@@ -113,15 +113,27 @@ namespace ZombieLand
 			return method;
 		}
 
-		static bool Prefix(ref DamageInfo originalDinfo, Pawn pawn, BodyPartRecord hitPart, out bool shieldAbsorbed, ref DamageInfo __result)
+		static bool Prefix(ref DamageInfo originalDinfo, Pawn pawn, BodyPartRecord hitPart, out bool armorDeflected, out bool shieldAbsorbed, out bool armorReduced, ref DamageInfo __result)
 		{
 			__result = originalDinfo;
 			var dinfo = new DamageInfo(originalDinfo);
 			var dmgAmount = dinfo.Amount;
 
+			armorDeflected = false;
 			shieldAbsorbed = false;
+			armorReduced = false;
 			if (pawn == null || hitPart == null)
 				return true;
+			if (pawn is ZombieSpitter)
+			{
+				if (originalDinfo.Def == DamageDefOf.Bullet)
+				{
+					var diff = Tools.Difficulty();
+					armorDeflected = Rand.Range(0, 5.1f) < diff;
+					dinfo.SetAmount(dmgAmount / (1 + 10 * diff));
+				}
+				return armorDeflected;
+			}
 			var prefixResult = 0f;
 			var result = ArmorUtility_GetPostArmorDamage_Patch.Prefix(pawn, ref dmgAmount, hitPart, dinfo.ArmorPenetrationInt, out var deflect, out var diminish, ref prefixResult);
 			if (result && originalDinfo.Instigator != null)

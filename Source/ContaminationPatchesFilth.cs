@@ -223,8 +223,10 @@ namespace ZombieLand
 			{
 				if (filthCell.IsValid)
 				{
+					var oldMapIndex = newThing.mapIndexOrState;
 					newThing.mapIndexOrState = (sbyte)filthCell.mapInt.Index;
 					ZombieSettings.Values.contamination.filthEqualize.Equalize((LocalTargetInfo)filthCell, newThing, null/*() => Log.Warning($"Gained {newThing} from {filthCell}")*/);
+					newThing.mapIndexOrState = oldMapIndex;
 				}
 				if (filthSource != null)
 				{
