@@ -2089,8 +2089,7 @@ namespace ZombieLand
 				{
 					var now = Tools.Ticks();
 					var grid = pawn.Map.GetGrid();
-					var f = ZombieSettings.Values.spitterThreat;
-					var radius = f * GenMath.LerpDouble(0, 5, 4, 32, Tools.Difficulty());
+					var radius = GenMath.LerpDouble(0, 5, 4, 32, ZombieSettings.Values.spitterThreat);
 					Tools.GetCircle(radius).DoIf(vec => exclude.Contains(vec) == false, vec =>
 						grid.BumpTimestamp(value + vec, now - (long)(2f * vec.LengthHorizontal)));
 					return;
@@ -3626,7 +3625,7 @@ namespace ZombieLand
 				{
 					if (stat == StatDefOf.IncomingDamageFactor)
 					{
-						__result = 6f - Tools.Difficulty();
+						__result = 6f - ZombieSettings.Values.spitterThreat;
 						return false;
 					}
 				}
@@ -4061,7 +4060,7 @@ namespace ZombieLand
 					if (pawn is ZombieSpitter)
 					{
 						var def1 = dinfo.Def;
-						var f = 6f - Tools.Difficulty();
+						var f = 6f - ZombieSettings.Values.spitterThreat;
 						if (def1.isRanged == false)
 							dinfo.SetAmount(dinfo.Amount * f);
 						else

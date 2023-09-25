@@ -128,7 +128,7 @@ namespace ZombieLand
 			{
 				if (originalDinfo.Def == DamageDefOf.Bullet)
 				{
-					var diff = Tools.Difficulty();
+					var diff = ZombieSettings.Values.spitterThreat;
 					armorDeflected = Rand.Range(0, 5.1f) < diff;
 					dinfo.SetAmount(dmgAmount / (1 + 10 * diff));
 				}

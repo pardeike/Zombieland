@@ -11,9 +11,32 @@ namespace ZombieLand
 {
 	public class ZombieSpitter : Pawn, IDisposable
 	{
-		public bool aggressive = false;
 		static Mesh mesh = null;
 		bool disposed = false;
+
+		public SpitterState state = SpitterState.Idle;
+		public int idleCounter = 0;
+		public bool firstShot = true;
+		public bool aggressive = false;
+		public int moveState = -1;
+		public int tickCounter = 0;
+		public int spitInterval = 0;
+		public int waves = 0;
+		public int remainingZombies = 0;
+
+		public override void ExposeData()
+		{
+			base.ExposeData();
+			Scribe_Values.Look(ref state, "state", SpitterState.Idle);
+			Scribe_Values.Look(ref idleCounter, "idleCounter", 0);
+			Scribe_Values.Look(ref firstShot, "firstShot", true);
+			Scribe_Values.Look(ref aggressive, "aggressive", false);
+			Scribe_Values.Look(ref moveState, "moveState", -1);
+			Scribe_Values.Look(ref tickCounter, "tickCounter", 0);
+			Scribe_Values.Look(ref spitInterval, "spitInterval", 0);
+			Scribe_Values.Look(ref waves, "waves", 0);
+			Scribe_Values.Look(ref remainingZombies, "remainingZombies", 0);
+		}
 
 		public static void Spawn(Map map, IntVec3? location = null)
 		{
@@ -39,9 +62,18 @@ namespace ZombieLand
 
 			var cell = location.Value;
 
-			var spitter = PawnGenerator.GeneratePawn(ZombieDefOf.ZombieSpitter, null);
+			var spitter = PawnGenerator.GeneratePawn(ZombieDefOf.ZombieSpitter, null) as ZombieSpitter;
 			spitter.SetFactionDirect(Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies));
 			GenSpawn.Spawn(spitter, cell, map, Rot4.Random, WipeMode.Vanish, false);
+
+			var f = ZombieSettings.Values.spitterThreat;
+			spitter.aggressive = ShipCountdown.CountingDown || Rand.Chance(f / 2f);
+			spitter.waves = Mathf.FloorToInt(spitter.aggressive ? ZombieLand.Tools.SpitterRandRange(1, 2, 4, 10) : ZombieLand.Tools.SpitterRandRange(2, 15, 4, 30));
+			if (spitter.waves < 1)
+				spitter.waves = 1;
+			spitter.idleCounter = 0;
+			spitter.firstShot = true;
+
 			spitter.jobs.StartJob(JobMaker.MakeJob(CustomDefs.Spitter));
 
 			var headline = "LetterLabelZombiesSpitter".Translate();
@@ -67,10 +99,10 @@ namespace ZombieLand
 		{
 			var result = new StringBuilder();
 			var spitter = jobs.curDriver as JobDriver_Spitter;
-			result.Append("Mode".Translate()).Append(": ").AppendLine(spitter.aggressive ? "Aggressive".Translate() : "Calm".Translate());
-			if (spitter.waves > 0)
-				result.Append("Waves".Translate()).Append(": ").Append(spitter.waves).Append(", ");
-			result.AppendLine(("SpitterState" + Enum.GetName(typeof(SpitterState), spitter.state)).Translate());
+			result.Append("Mode".Translate()).Append(": ").AppendLine(aggressive ? "Aggressive".Translate() : "Calm".Translate());
+			if (waves > 0)
+				result.Append("Waves".Translate()).Append(": ").Append(waves).Append(", ");
+			result.AppendLine(("SpitterState" + Enum.GetName(typeof(SpitterState), state)).Translate());
 			return result.ToString().TrimEndNewlines();
 		}
 

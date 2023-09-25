@@ -21,60 +21,29 @@ namespace ZombieLand
 
 	public class JobDriver_Spitter : JobDriver
 	{
-		public SpitterState state = SpitterState.Idle;
-		public int idleCounter = 0;
-		public bool firstShot = true;
-		public bool aggressive = false;
-		public int moveState = -1;
-		public int tickCounter = 0;
-		public int spitInterval = 0;
-		public int waves = 0;
-		public int remainingZombies = 0;
+		public ZombieSpitter spitter;
 
 		void InitAction()
 		{
-			var f = ZombieSettings.Values.spitterThreat;
-			aggressive = ShipCountdown.CountingDown || Rand.Chance(f / 2f);
-			(pawn as ZombieSpitter).aggressive = aggressive;
-			waves = Mathf.FloorToInt(f * (aggressive ? Rand.Range((1f, 2f).F(), (2f, 10f).F()) : Rand.Range((2f, 15f).F(), (4f, 30f).F())));
-			if (waves < 1)
-				waves = 1;
-			idleCounter = 0;
-			firstShot = true;
-		}
-
-		public override void ExposeData()
-		{
-			base.ExposeData();
-			Scribe_Values.Look(ref state, "state", SpitterState.Idle);
-			Scribe_Values.Look(ref idleCounter, "idleCounter", 0);
-			Scribe_Values.Look(ref firstShot, "firstShot", true);
-			Scribe_Values.Look(ref aggressive, "aggressive", false);
-			Scribe_Values.Look(ref moveState, "moveState", -1);
-			Scribe_Values.Look(ref tickCounter, "tickCounter", 0);
-			Scribe_Values.Look(ref spitInterval, "spitInterval", 0);
-			Scribe_Values.Look(ref waves, "waves", 0);
-			Scribe_Values.Look(ref remainingZombies, "remainingZombies", 0);
-			if (Scribe.mode == LoadSaveMode.PostLoadInit)
-				(pawn as ZombieSpitter).aggressive = aggressive;
+			spitter = pawn as ZombieSpitter;
 		}
 
 		void DoIdle(int minTicks, int maxTicks)
 		{
-			idleCounter++;
-			if (idleCounter > 3)
+			spitter.idleCounter++;
+			if (spitter.idleCounter > 3)
 			{
 				DoShooting();
 				return;
 			}
-			tickCounter = Rand.Range(minTicks, maxTicks);
-			state = SpitterState.Idle;
+			spitter.tickCounter = Rand.Range(minTicks, maxTicks);
+			spitter.state = SpitterState.Idle;
 		}
 
 		void DoMoving(IntVec3 destination)
 		{
-			pawn.pather.StartPath(destination, PathEndMode.OnCell);
-			state = SpitterState.Moving;
+			spitter.pather.StartPath(destination, PathEndMode.OnCell);
+			spitter.state = SpitterState.Moving;
 		}
 
 		public IntVec3 TryFindNewTarget()
@@ -117,16 +86,14 @@ namespace ZombieLand
 
 		void DoShooting()
 		{
-			var f = ZombieSettings.Values.spitterThreat;
-			var fReverse = 5f - f;
-			spitInterval = Mathf.FloorToInt(fReverse * (aggressive ? Rand.Range((20f, 5f).F(), (40f, 10f).F()) : Rand.Range((60f, 30f).F(), (120f, 60f).F())));
-			if (spitInterval < 4)
-				spitInterval = 4;
-			remainingZombies = Mathf.FloorToInt(f * (aggressive ? Rand.Range((1f, 5f).F(), (10f, 20f).F()) : Rand.Range(1, 2)));
-			if (remainingZombies < 1)
-				remainingZombies = 1;
-			tickCounter = spitInterval;
-			state = SpitterState.Spitting;
+			spitter.spitInterval = Mathf.FloorToInt(spitter.aggressive ? Tools.SpitterRandRange(20, 5, 40, 10) : Tools.SpitterRandRange(60, 30, 120, 60));
+			if (spitter.spitInterval < 4)
+				spitter.spitInterval = 4;
+			spitter.remainingZombies = Mathf.FloorToInt(spitter.aggressive ? Tools.SpitterRandRange(1, 5, 10, 20) : Rand.Range(1, 2));
+			if (spitter.remainingZombies < 1)
+				spitter.remainingZombies = 1;
+			spitter.tickCounter = spitter.spitInterval;
+			spitter.state = SpitterState.Spitting;
 		}
 
 		bool Shoot()
@@ -134,9 +101,9 @@ namespace ZombieLand
 			var target = TryFindNewTarget();
 			if (target.IsValid && (target.x != 0 || target.z != 0))
 			{
-				CustomDefs.BallSpit.PlayOneShot(new TargetInfo(pawn.Position, pawn.Map, false));
-				var projectile = (Projectile)GenSpawn.Spawn(CustomDefs.ZombieBall, pawn.Position, pawn.Map, WipeMode.Vanish);
-				projectile.Launch(pawn, pawn.DrawPos + new Vector3(0, 0, 0.5f), target, target, ProjectileHitFlags.IntendedTarget);
+				CustomDefs.BallSpit.PlayOneShot(new TargetInfo(spitter.Position, spitter.Map, false));
+				var projectile = (Projectile)GenSpawn.Spawn(CustomDefs.ZombieBall, spitter.Position, spitter.Map, WipeMode.Vanish);
+				projectile.Launch(spitter, spitter.DrawPos + new Vector3(0, 0, 0.5f), target, target, ProjectileHitFlags.IntendedTarget);
 				return true;
 			}
 			return false;
@@ -144,34 +111,34 @@ namespace ZombieLand
 
 		void DoPreparing()
 		{
-			tickCounter = Rand.Range(120, 180);
-			state = SpitterState.Preparing;
+			spitter.tickCounter = Rand.Range(120, 180);
+			spitter.state = SpitterState.Preparing;
 		}
 
 		void TickAction()
 		{
-			switch (state)
+			switch (spitter.state)
 			{
 				case SpitterState.Idle:
-					if (tickCounter > 0)
-						tickCounter--;
+					if (spitter.tickCounter > 0)
+						spitter.tickCounter--;
 					else
-						state = SpitterState.Searching;
+						spitter.state = SpitterState.Searching;
 					break;
 
 				case SpitterState.Searching:
-					var destination = RCellFinder.FindSiegePositionFrom(pawn.Position, Map, false, false);
+					var destination = RCellFinder.FindSiegePositionFrom(spitter.Position, Map, false, false);
 					if (destination.IsValid)
 						DoMoving(destination);
 					else
 					{
-						var distance = GenMath.LerpDouble(0, 5, 60, 12, Tools.Difficulty());
-						destination = RCellFinder.RandomWanderDestFor(pawn, pawn.Position, distance, (pawn, c1, c2) => true, Danger.Deadly);
+						var distance = GenMath.LerpDouble(0, 5, 60, 12, ZombieSettings.Values.spitterThreat);
+						destination = RCellFinder.RandomWanderDestFor(spitter, spitter.Position, distance, (spitter, c1, c2) => true, Danger.Deadly);
 						if (destination.IsValid)
 							DoMoving(destination);
 						else
 						{
-							if (RCellFinder.TryFindSiegePosition(pawn.Position, 10, pawn.Map, false, out destination))
+							if (RCellFinder.TryFindSiegePosition(spitter.Position, 10, spitter.Map, false, out destination))
 								DoMoving(destination);
 							else
 								DoIdle(120, 120);
@@ -180,53 +147,53 @@ namespace ZombieLand
 					break;
 
 				case SpitterState.Moving:
-					var currentMoveState = Mathf.FloorToInt(pawn.Drawer.tweener.MovedPercent() * 3.999f);
-					if (moveState != currentMoveState)
+					var currentMoveState = Mathf.FloorToInt(spitter.Drawer.tweener.MovedPercent() * 3.999f);
+					if (spitter.moveState != currentMoveState)
 					{
-						moveState = currentMoveState;
-						CustomDefs.SpitterMove.PlayOneShot(new TargetInfo(pawn.Position, pawn.Map, false));
+						spitter.moveState = currentMoveState;
+						CustomDefs.SpitterMove.PlayOneShot(new TargetInfo(spitter.Position, spitter.Map, false));
 					}
 					break;
 
 				case SpitterState.Preparing:
-					if (tickCounter > 0)
-						tickCounter--;
+					if (spitter.tickCounter > 0)
+						spitter.tickCounter--;
 					else
 					{
-						firstShot = true;
+						spitter.firstShot = true;
 						DoShooting();
 					}
 					break;
 
 				case SpitterState.Spitting:
-					if (remainingZombies <= 0)
+					if (spitter.remainingZombies <= 0)
 					{
-						waves--;
-						if (waves > 0)
+						spitter.waves--;
+						if (spitter.waves > 0)
 						{
-							state = SpitterState.Searching;
+							spitter.state = SpitterState.Searching;
 							return;
 						}
 
-						if (RCellFinder.TryFindBestExitSpot(pawn, out var exitCell, TraverseMode.ByPawn, false))
+						if (RCellFinder.TryFindBestExitSpot(spitter, out var exitCell, TraverseMode.ByPawn, false))
 						{
-							pawn.pather.StartPath(exitCell, PathEndMode.OnCell);
-							state = SpitterState.Leaving;
+							spitter.pather.StartPath(exitCell, PathEndMode.OnCell);
+							spitter.state = SpitterState.Leaving;
 							return;
 						}
 
 						DoIdle(300, 900);
 						break;
 					}
-					if (tickCounter < spitInterval)
+					if (spitter.tickCounter < spitter.spitInterval)
 					{
-						tickCounter++;
+						spitter.tickCounter++;
 						return;
 					}
 					if (Shoot())
 					{
-						remainingZombies--;
-						tickCounter = 0;
+						spitter.remainingZombies--;
+						spitter.tickCounter = 0;
 					}
 					break;
 
@@ -239,9 +206,9 @@ namespace ZombieLand
 		{
 			base.Notify_PatherArrived();
 
-			if (state == SpitterState.Leaving)
+			if (spitter.state == SpitterState.Leaving)
 			{
-				pawn.Destroy();
+				spitter.Destroy();
 				return;
 			}
 
@@ -251,15 +218,15 @@ namespace ZombieLand
 		public override void Notify_PatherFailed()
 		{
 			base.Notify_PatherFailed();
-			DoIdle(300, 900);
+			DoIdle(30, 90);
 		}
 
 		public override string GetReport()
 		{
-			var modeStr = aggressive ? "Aggressive".Translate() : "Calm".Translate();
-			var waveStr = waves < 1 ? "" : $"{waves} {"Waves".Translate()}";
-			var stateStr = ("SpitterState" + Enum.GetName(typeof(SpitterState), state)).Translate();
-			var zombieStr = state != SpitterState.Spitting ? "" : $", {remainingZombies} zombies";
+			var modeStr = spitter.aggressive ? "Aggressive".Translate() : "Calm".Translate();
+			var waveStr = spitter.waves < 1 ? "" : $"{spitter.waves} {"Waves".Translate()}";
+			var stateStr = ("SpitterState" + Enum.GetName(typeof(SpitterState), spitter.state)).Translate();
+			var zombieStr = spitter.state != SpitterState.Spitting ? "" : $", {spitter.remainingZombies} zombies";
 			return $"{modeStr}, {waveStr}, {stateStr}{zombieStr}";
 		}
 

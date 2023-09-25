@@ -593,7 +593,7 @@ namespace ZombieLand
 
 			zombie.rotationTracker.FaceCell(mineable.Position);
 			effecter.Trigger(zombie, mineable);
-			var baseDamage = (int)GenMath.LerpDoubleClamped(0, 5, 1, 10, Tools.Difficulty());
+			var baseDamage = (int)GenMath.LerpDoubleClamped(0, 5, 2, 40, Tools.Difficulty());
 			var damage = (!mineable.def.building.isNaturalRock) ? baseDamage : baseDamage * 2;
 			if (mineable.HitPoints > damage)
 				_ = mineable.TakeDamage(new DamageInfo(DamageDefOf.Mining, damage));

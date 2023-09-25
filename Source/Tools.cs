@@ -13,6 +13,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Xml;
 using UnityEngine;
+using UnityEngine.SocialPlatforms;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
@@ -205,8 +206,15 @@ namespace ZombieLand
 
 		public static float Difficulty() => ZombieSettings.Values.threatScale; // Find.Storyteller.difficulty.threatScale;
 
-		public static int F(this (int, int) range) => (int)(GenMath.LerpDouble(0, 5, range.Item1, range.Item2, Difficulty()) * GenMath.LerpDoubleClamped(GenDate.TicksPerYear, GenDate.TicksPerYear * 5, 1, 5, GenTicks.TicksGame));
-		public static float F(this (float, float) range) => GenMath.LerpDouble(0, 5, range.Item1, range.Item2, Difficulty()) * GenMath.LerpDoubleClamped(GenDate.TicksPerYear, GenDate.TicksPerYear * 5, 1, 5, GenTicks.TicksGame);
+		public static float SpitterRandRange(float minMin, float maxMin, float minMax, float maxMax)
+		{
+			var f = ZombieSettings.Values.spitterThreat;
+			var min = GenMath.LerpDouble(0, 5, minMin, maxMin, f);
+			var max = GenMath.LerpDouble(0, 5, minMax, maxMax, f);
+			if (max < min)
+				return Rand.Range(max, min);
+			return Rand.Range(min, max);
+		}
 
 		public static float MoveableWeight(float x, float weight, float factor = 10)
 		{
