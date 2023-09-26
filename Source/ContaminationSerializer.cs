@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
 using Verse;
 
@@ -56,6 +57,17 @@ namespace ZombieLand
 			if (Scribe.EnterNode("grounds") == false)
 				return;
 
+			if (Scribe.mode == LoadSaveMode.Saving)
+				Scribe.saver.WriteAttribute("version", "2");
+
+			var version = 1;
+			if (Scribe.mode == LoadSaveMode.LoadingVars)
+			{
+				var xmlAttribute = Scribe.loader.curXmlParent.Attributes["version"];
+				if (xmlAttribute != null)
+					version = int.Parse(xmlAttribute.Value);
+			}
+
 			manager.grounds ??= new();
 
 			try
@@ -84,6 +96,7 @@ namespace ZombieLand
 					else if (Scribe.mode == LoadSaveMode.LoadingVars)
 					{
 						var ChildNodes = Scribe.loader.curXmlParent.ChildNodes;
+						var divideFactor = version == 1 ? 100f : 10000f;
 						for (var i = 0; i < ChildNodes.Count; i++)
 						{
 							var subNode = ChildNodes.Item(i);
@@ -96,7 +109,7 @@ namespace ZombieLand
 							{
 								if (txt[j] == ',')
 								{
-									floats[f++] = int.Parse(txt.Substring(k, j - k)) / 10000f;
+									floats[f++] = int.Parse(txt.Substring(k, j - k)) / divideFactor;
 									k = j + 1;
 								}
 							}
