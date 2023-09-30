@@ -2614,20 +2614,7 @@ namespace ZombieLand
 		}
 
 		// patch to keep shooting even if a zombie is down (only if self-healing is on)
-		/*
-		[HarmonyPatch(typeof(Pawn))]
-		[HarmonyPatch(nameof(Pawn.ThreatDisabled))]
-		static class Pawn_ThreatDisabled_Patch
-		{
-			[HarmonyPriority(Priority.First)]
-			static bool Prefix(Pawn __instance, ref bool __result)
-			{
-				if (__instance is not Zombie zombie)
-					return true;
-				__result = !zombie.Spawned;
-				return false;
-			}
-		}
+		//
 		[HarmonyPatch]
 		static class Toils_Combat_FollowAndMeleeAttack_KillIncappedTarget_Patch
 		{
@@ -2677,52 +2664,31 @@ namespace ZombieLand
 					Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 			}
 		}
-		[HarmonyPatch(typeof(Stance_Warmup))]
-		[HarmonyPatch(nameof(Stance_Warmup.StanceTick))]
-		static class Stance_Warmup_StanceTick_Patch
-		{
-			[HarmonyPriority(Priority.First)]
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			{
-				return Tools.DownedReplacer(instructions);
-			}
-		}
-		[HarmonyPatch]
-		static class Toils_Jump_JumpIfTargetDownedDistant_Patch
-		{
-			static IEnumerable<MethodBase> TargetMethods()
-			{
-				var m_Downed = AccessTools.PropertyGetter(typeof(Pawn), nameof(Pawn.Downed));
-				return typeof(Toils_Jump)
-					.InnerMethodsStartingWith("<JumpIfTargetDowned>")
-					.Where(method => PatchProcessor.GetCurrentInstructions(method).Any(code => code.Calls(m_Downed)));
-			}
-
-			[HarmonyPriority(Priority.First)]
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			{
-				return Tools.DownedReplacer(instructions);
-			}
-		}
-		[HarmonyPatch(typeof(Pawn_MindState))]
-		[HarmonyPatch(nameof(Pawn_MindState.MeleeThreatStillThreat), MethodType.Getter)]
-		static class Pawn_MindState_MeleeThreatStillThreat_Patch
-		{
-			[HarmonyPriority(Priority.First)]
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			{
-				return Tools.DownedReplacer(instructions);
-			}
-		}
 		[HarmonyPatch]
 		static class JobDriver_AttackStatic_TickAction_Patch
 		{
 			static IEnumerable<MethodBase> TargetMethods()
 			{
 				var m_Downed = AccessTools.PropertyGetter(typeof(Pawn), nameof(Pawn.Downed));
-				return typeof(JobDriver_AttackStatic)
+				IEnumerable<MethodInfo> methods;
+
+				methods = typeof(JobDriver_AttackStatic)
 					.InnerMethodsStartingWith("*")
 					.Where(method => PatchProcessor.GetCurrentInstructions(method).Any(code => code.Calls(m_Downed)));
+				foreach (var method in methods)
+					yield return method;
+
+				methods = typeof(Toils_Jump)
+					.InnerMethodsStartingWith("<JumpIfTargetDowned>")
+					.Where(method => PatchProcessor.GetCurrentInstructions(method).Any(code => code.Calls(m_Downed)));
+				foreach (var method in methods)
+					yield return method;
+
+				yield return AccessTools.Method(typeof(TargetingParameters), nameof(TargetingParameters.CanTarget));
+				yield return AccessTools.Method(typeof(VerbUtility), nameof(VerbUtility.AllowAdjacentShot));
+				yield return AccessTools.Method(typeof(Stance_Warmup), nameof(Stance_Warmup.StanceTick));
+				yield return AccessTools.Method(typeof(Verb_Shoot), nameof(Verb_Shoot.WarmupComplete));
+				yield return AccessTools.PropertyGetter(typeof(Pawn_MindState), nameof(Pawn_MindState.MeleeThreatStillThreat));
 			}
 
 			[HarmonyPriority(Priority.First)]
@@ -2731,17 +2697,6 @@ namespace ZombieLand
 				return Tools.DownedReplacer(instructions);
 			}
 		}
-		[HarmonyPatch(typeof(TargetingParameters))]
-		[HarmonyPatch(nameof(TargetingParameters.CanTarget))]
-		static class TargetingParameters_CanTarget_Patch
-		{
-			[HarmonyPriority(Priority.First)]
-			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-			{
-				return Tools.DownedReplacer(instructions);
-			}
-		}
-		*/
 
 		// makes downed zombie crawl rotated to their destination
 		//
