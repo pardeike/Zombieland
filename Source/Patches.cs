@@ -4570,6 +4570,21 @@ namespace ZombieLand
 			}
 		}
 
+		// allow clicks on zombie corpses that were colonists
+		//
+		[HarmonyPatch(typeof(Selector))]
+		[HarmonyPatch(nameof(Selector.SelectInternal))]
+		static class Selector_SelectInternal_Patch
+		{
+			[HarmonyPriority(Priority.First)]
+			static bool Prefix(object obj)
+			{
+				if (obj is ZombieCorpse corpse && corpse.InnerPawn is Zombie zombie && zombie.wasMapPawnBefore == false)
+					return false;
+				return true;
+			}
+		}
+
 		// allow clicks on zombies that were colonists
 		//
 		[HarmonyPatch(typeof(ThingSelectionUtility))]
@@ -4579,7 +4594,12 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Thing t, ref bool __result)
 			{
-				if (t is Zombie zombie && zombie.wasMapPawnBefore)
+				if (t is Zombie zombie1 && zombie1.wasMapPawnBefore)
+				{
+					__result = true;
+					return false;
+				}
+				if (t is ZombieCorpse corpse && corpse.InnerPawn is Zombie zombie2 && zombie2.wasMapPawnBefore)
 				{
 					__result = true;
 					return false;
@@ -4649,49 +4669,45 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(ThingMaker.MakeThing))]
 		static class ThingMaker_MakeThing_Patch
 		{
+			static void FixDef(ThingDef def)
+			{
+				def.smeltable = false;
+				def.mineable = false;
+				def.stealable = false;
+				def.burnableByRecipe = false;
+				def.canLoadIntoCaravan = false;
+				def.neverMultiSelect = true;
+				def.butcherProducts = null;
+				def.smeltProducts = null;
+				def.drawGUIOverlay = false;
+				def.hasTooltip = false;
+				def.hideAtSnowDepth = 99f;
+				def.inspectorTabs = new List<Type>();
+				def.passability = Traversability.Standable;
+				def.stackLimit = 1;
+			}
+
 			static void Prefix(ThingDef def)
 			{
 				if (def == null || def.IsCorpse == false)
 					return;
-				if (def.ingestible == null)
-					return;
-				if (def.ingestible.sourceDef is ThingDef_Zombie)
+
+				var ingestibleSourceDef = def.ingestible?.sourceDef;
+
+				if (ingestibleSourceDef is ThingDef_Zombie)
 				{
-					def.selectable = false;
-					def.smeltable = false;
-					def.mineable = false;
-					def.stealable = false;
-					def.burnableByRecipe = false;
-					def.canLoadIntoCaravan = false;
-					def.neverMultiSelect = true;
-					def.butcherProducts = null;
-					def.smeltProducts = null;
-					def.drawGUIOverlay = false;
-					def.hasTooltip = false;
-					def.hideAtSnowDepth = 99f;
-					def.inspectorTabs = new List<Type>();
-					def.passability = Traversability.Standable;
-					def.stackLimit = 1;
+					FixDef(def);
+					def.selectable = true;
 					def.thingClass = typeof(ZombieCorpse);
+					return;
 				}
-				if (def.ingestible.sourceDef is ThingDef_ZombieSpitter)
+
+				if (ingestibleSourceDef is ThingDef_ZombieSpitter)
 				{
-					def.selectable = false;
-					def.smeltable = false;
-					def.mineable = false;
-					def.stealable = false;
-					def.burnableByRecipe = false;
-					def.canLoadIntoCaravan = false;
-					def.neverMultiSelect = true;
-					def.butcherProducts = null;
-					def.smeltProducts = null;
-					def.drawGUIOverlay = false;
-					def.hasTooltip = false;
-					def.hideAtSnowDepth = 99f;
-					def.inspectorTabs = new List<Type>();
-					def.passability = Traversability.Standable;
-					def.stackLimit = 1;
+					FixDef(def);
+					def.selectable = true;
 					def.thingClass = typeof(ZombieSpitterCorpse);
+					return;
 				}
 			}
 		}
