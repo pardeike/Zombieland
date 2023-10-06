@@ -337,10 +337,11 @@ namespace ZombieLand
 			if (zombie.hasTankyShield != -1f || zombie.hasTankyHelmet != -1f || zombie.hasTankySuit != -1f)
 				return false;
 
-			if (driver.eatTarget != null && driver.eatTarget.Spawned == false)
+			if (driver.eatTarget != null && (driver.eatTarget.Spawned == false || driver.eatTarget.Position != driver.lastEatTargetPosition))
 			{
 				driver.eatTarget = null;
 				driver.lastEatTarget = null;
+				driver.lastEatTargetPosition = IntVec3.Invalid;
 				driver.eatDelayCounter = 0;
 			}
 			if (driver.eatTarget == null && grid.GetZombieCount(zombie.Position) <= 2)
@@ -371,7 +372,8 @@ namespace ZombieLand
 				if (eatTargetPawn != driver.lastEatTarget)
 				{
 					driver.lastEatTarget = eatTargetPawn;
-					zombie.rotationTracker.FaceCell(driver.eatTarget.Position);
+					driver.lastEatTargetPosition = eatTargetPawn.Position;
+					zombie.rotationTracker.FaceCell(driver.lastEatTargetPosition);
 					if (zombie.Drawer.leaner is ZombieLeaner zombieLeaner)
 					{
 						var offset = (driver.eatTarget.Position.ToVector3() - zombie.Position.ToVector3()) * 0.5f;

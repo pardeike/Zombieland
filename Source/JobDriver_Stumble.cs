@@ -13,12 +13,14 @@ namespace ZombieLand
 
 		public Thing eatTarget;
 		public Pawn lastEatTarget;
+		public IntVec3 lastEatTargetPosition;
 		public int eatDelayCounter;
 		public int eatDelay;
 
 		void InitAction()
 		{
 			destination = IntVec3.Invalid;
+			lastEatTargetPosition = IntVec3.Invalid;
 		}
 
 		public override void ExposeData()
@@ -27,11 +29,15 @@ namespace ZombieLand
 			Scribe_Values.Look(ref destination, "destination", IntVec3.Invalid);
 			Scribe_References.Look(ref eatTarget, "eatTarget");
 			Scribe_References.Look(ref lastEatTarget, "lastEatTarget");
+			Scribe_Values.Look(ref lastEatTargetPosition, "lastEatTargetPosition", IntVec3.Invalid);
 			Scribe_Values.Look(ref eatDelayCounter, "eatDelayCounter");
 
 			// previous versions of Zombieland stored the inner pawn of a corpse
 			// in the eatTarget. We have since then changed it to contain the corpse
 			// itself. For older saves, we need to convert this.
+			//
+			// we also need to update lastEatTargetPosition since it was not present
+			// in older saves
 			//
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
@@ -43,6 +49,9 @@ namespace ZombieLand
 						.OfType<Corpse>()
 						.FirstOrDefault(c => c.InnerPawn == eatTarget);
 				}
+
+				// update lastEatTargetPosition
+				lastEatTargetPosition = lastEatTarget?.Position ?? IntVec3.Invalid;
 			}
 		}
 
