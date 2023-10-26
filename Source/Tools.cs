@@ -111,6 +111,7 @@ namespace ZombieLand
 			{
 				ZombieSettingsDefaults.group = new();
 				ZombieSettingsDefaults.groupOverTime = new() { new() { values = ZombieSettingsDefaults.group.MakeCopy() } };
+				Constants.Apply(Constants.defaultValues);
 			}
 			else
 			{
@@ -950,6 +951,9 @@ namespace ZombieLand
 
 			if (thing is Pawn target)
 			{
+				if (ZombieSettings.Values.zombiesEatDowned == false || target.Downed)
+					return false;
+
 				if (Customization.DoesAttractsZombies(target) == false)
 					return false;
 
@@ -1462,7 +1466,7 @@ namespace ZombieLand
 			if (cells == null)
 			{
 				cells = new HashSet<IntVec3>();
-				var enumerator = GenRadial.RadialPatternInRadius(radius).GetEnumerator();
+				using var enumerator = GenRadial.RadialPatternInRadius(radius).GetEnumerator();
 				while (enumerator.MoveNext())
 				{
 					var v = enumerator.Current;
@@ -1471,7 +1475,6 @@ namespace ZombieLand
 					_ = cells.Add(new IntVec3(-v.x, 0, -v.z));
 					_ = cells.Add(new IntVec3(v.x, 0, -v.z));
 				}
-				enumerator.Dispose();
 				circles[radius] = cells;
 			}
 			return cells;

@@ -9,10 +9,9 @@ using Verse.Sound;
 
 namespace ZombieLand
 {
-	public class ZombieSpitter : Pawn, IDisposable
+	public class ZombieSpitter : Pawn
 	{
 		static Mesh mesh = null;
-		bool disposed = false;
 
 		public SpitterState state = SpitterState.Idle;
 		public int idleCounter = 0;
@@ -104,20 +103,6 @@ namespace ZombieLand
 				result.Append("Waves".Translate()).Append(": ").Append(waves).Append(", ");
 			result.AppendLine(("SpitterState" + Enum.GetName(typeof(SpitterState), state)).Translate());
 			return result.ToString().TrimEndNewlines();
-		}
-
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		void Dispose(bool disposing)
-		{
-			_ = disposing;
-			if (disposed)
-				return;
-			disposed = true;
 		}
 	}
 }

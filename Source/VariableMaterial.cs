@@ -17,20 +17,20 @@ namespace ZombieLand
 			this.data = data;
 		}
 
-		public void Dispose()
+		protected virtual void Dispose(bool disposing)
 		{
-			Dispose(true);
-		}
-
-		void Dispose(bool v)
-		{
-			_ = v;
+			_ = disposing;
 			if (!disposed)
 			{
 				material?.Dispose();
-				material = null;
 				disposed = true;
 			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		public DisposableMaterial GetMaterial

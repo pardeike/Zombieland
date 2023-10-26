@@ -32,9 +32,6 @@ namespace ZombieLand
 
 		public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
 		{
-			if (InnerPawn is ZombieSpitter spitter)
-				spitter.Dispose();
-
 			try
 			{
 				base.Destroy(mode);

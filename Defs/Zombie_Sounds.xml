@@ -547,7 +547,7 @@
 	<SoundDef>
 		<defName>WallPushing</defName>
 		<context>MapOnly</context>
-		<maxSimultaneous>3</maxSimultaneous>
+		<maxSimultaneous>1</maxSimultaneous>
 		<subSounds>
 			<li>
 				<grains>
@@ -560,8 +560,8 @@
 					<max>1.2</max>
 				</pitchRange>
 				<volumeRange>
-					<min>80</min>
-					<max>80</max>
+					<min>35</min>
+					<max>35</max>
 				</volumeRange>
 				<distRange>
 					<min>1000</min>

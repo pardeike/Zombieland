@@ -1,4 +1,5 @@
 ﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -99,6 +100,10 @@ namespace ZombieLand
 		static readonly IntVec3[] pushDirections = new IntVec3[] { new IntVec3(0, 0, 1), new IntVec3(0, 0, -1), new IntVec3(1, 0, 0), new IntVec3(-1, 0, 0) };
 		public static bool CheckWallPushing(Zombie zombie, PheromoneGrid grid)
 		{
+			var ticks = GenTicks.TicksAbs;
+			if (zombie.wallPushCooldown > 0 && ticks < zombie.wallPushCooldown)
+				return false;
+
 			var minimum = ZombieSettings.Values.minimumZombiesForWallPushing;
 			if (zombie.wallPushProgress >= 0f || minimum == 0)
 				return false;
@@ -151,6 +156,7 @@ namespace ZombieLand
 			zombie.wallPushProgress = 0f;
 			zombie.wallPushStart = pos.ToVector3Shifted();
 			zombie.wallPushDestination = destination.ToVector3Shifted();
+			zombie.wallPushCooldown = ticks + GenDate.TicksPerHour;
 			if (Constants.USE_SOUND)
 				CustomDefs.WallPushing.PlayOneShot(SoundInfo.InMap(new TargetInfo(pos, map)));
 			if (ZombieSettings.Values.dangerousSituationMessage && map.areaManager.Home[wallCell])
@@ -768,7 +774,8 @@ namespace ZombieLand
 			if (zombie.raging == 0 && ZombieSettings.Values.ragingZombies)
 			{
 				var count = CountSurroundingZombies(zombie.Position, grid);
-				if (count >= rageLevels[ZombieSettings.Values.zombieRageLevel - 1])
+				var threshold = Constants.ZOMBIE_COUNT_TO_TRIGGER_RAGE > 0 ? Constants.ZOMBIE_COUNT_TO_TRIGGER_RAGE : rageLevels[ZombieSettings.Values.zombieRageLevel - 1];
+				if (count >= threshold)
 					StartRage(zombie);
 				return;
 			}

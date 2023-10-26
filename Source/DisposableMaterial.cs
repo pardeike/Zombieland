@@ -22,6 +22,7 @@ namespace ZombieLand
 
 		protected virtual void Dispose(bool disposing)
 		{
+			_ = disposing;
 			if (!disposed)
 			{
 				if (mainTexture != null)

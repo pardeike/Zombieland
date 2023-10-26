@@ -146,8 +146,8 @@ namespace ZombieLand
 		public static float KILL_CIRCLE_RADIUS_MULTIPLIER = 0f;
 		[Constant(1, "Muzzle flash value to base all other \"how loud\" calculations on")]
 		public static float BASE_MUZZLE_FLASH_VALUE = 9f;
-		[Constant(1, "How many zombies do need to stand close around a zombie to trigger it to become raging")]
-		public static float SURROUNDING_ZOMBIES_TO_TRIGGER_RAGE = 14f;
+		[Constant(1, "How many zombies do need to stand close around a zombie to trigger it to become raging (0 = use settings)")]
+		public static int ZOMBIE_COUNT_TO_TRIGGER_RAGE = 0;
 		[Constant(1, "When easy kill is turned on, what is the chance to skip \"missed a shot\" on long distance shots from a colonist")]
 		public static float COLONISTS_HIT_ZOMBIES_CHANCE = 0.9f;
 		[Constant(1, "With Combat Extended, sets the output of the method CombatExtended/ArmorUtilityCE.cs:GetPenetrationValue()")]

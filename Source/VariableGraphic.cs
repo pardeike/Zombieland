@@ -10,6 +10,7 @@ namespace ZombieLand
 		VariableMaterial[] mats = new VariableMaterial[4];
 		int hash;
 		public string bodyColor;
+		bool disposed;
 
 		public string GraphicPath => path;
 		public override Material MatNorth => mats[0].GetMaterial;
@@ -72,20 +73,25 @@ namespace ZombieLand
 			}
 		}
 
+		protected virtual void Dispose(bool disposing)
+		{
+			_ = disposing;
+			if (!disposed)
+			{
+				if (mats != null)
+				{
+					foreach (var mat in mats)
+						mat.Dispose();
+					mats = null;
+				}
+				disposed = true;
+			}
+		}
+
 		public void Dispose()
 		{
 			Dispose(true);
-		}
-
-		void Dispose(bool v)
-		{
-			_ = v;
-			if (mats != null)
-			{
-				foreach (var mat in mats)
-					mat.Dispose();
-				mats = null;
-			}
+			GC.SuppressFinalize(this);
 		}
 
 		public override Graphic GetColoredVersion(Shader newShader, Color newColor, Color newColorTwo)

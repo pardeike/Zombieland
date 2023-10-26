@@ -82,6 +82,7 @@ namespace ZombieLand
 		public float wallPushProgress = -1f;
 		public Vector3 wallPushStart;
 		public Vector3 wallPushDestination;
+		public int wallPushCooldown = 0;
 
 		// suicide bomber
 		public float bombTickingInterval = -1f;
@@ -224,6 +225,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref wallPushProgress, "wallPushProgress", -1f);
 			Scribe_Values.Look(ref wallPushStart, "wallPushStart", Vector3.zero);
 			Scribe_Values.Look(ref wallPushDestination, "wallPushDestination", Vector3.zero);
+			Scribe_Values.Look(ref wallPushCooldown, "wallPushCooldown", 0);
 			wasMapPawnBefore |= wasColonist;
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
@@ -251,19 +253,19 @@ namespace ZombieLand
 			Dispose(false);
 		}
 
-		public void Dispose()
-		{
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		void Dispose(bool disposing)
+		protected virtual void Dispose(bool disposing)
 		{
 			_ = disposing;
 			if (disposed)
 				return;
 			disposed = true;
 			CleanupZombie();
+		}
+
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		public void Randomize8()

@@ -386,7 +386,7 @@ namespace ZombieLand
 			if (count == 0)
 				return IntVec3.Invalid;
 			var vec = pawns.Select(p => p.Position.ToVector3()).Aggregate((prev, pos) => prev + pos) / count;
-			var it = GenRadial.RadialCellsAround(vec.ToIntVec3(), 6, true).GetEnumerator();
+			using var it = GenRadial.RadialCellsAround(vec.ToIntVec3(), 6, true).GetEnumerator();
 			while (it.MoveNext())
 				if (it.Current.Standable(map))
 				{
