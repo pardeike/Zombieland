@@ -303,27 +303,28 @@ namespace ZombieLand
 			var head = Drawer.renderer.graphics.headGraphic as VariableGraphic;
 			head?.Dispose();
 			Drawer.renderer.graphics.headGraphic = null;
+
 			var naked = Drawer.renderer.graphics.nakedGraphic as VariableGraphic;
 			naked?.Dispose();
 			Drawer.renderer.graphics.nakedGraphic = null;
 
 			// vanilla graphics
-			Drawer.renderer.graphics.furCoveredGraphic.UnCache();
-			Drawer.renderer.graphics.faceTattooGraphic.UnCache();
-			Drawer.renderer.graphics.bodyTattooGraphic.UnCache();
-			Drawer.renderer.graphics.swaddledBabyGraphic.UnCache();
-			Drawer.renderer.graphics.hairGraphic.UnCache();
-			Drawer.renderer.graphics.nakedGraphic.UnCache();
-			Drawer.renderer.graphics.rottingGraphic.UnCache();
-			Drawer.renderer.graphics.dessicatedGraphic.UnCache();
-			Drawer.renderer.graphics.packGraphic.UnCache();
-			Drawer.renderer.graphics.corpseGraphic.UnCache();
-			Drawer.renderer.graphics.desiccatedHeadGraphic.UnCache();
-			Drawer.renderer.graphics.skullGraphic.UnCache();
-			Drawer.renderer.graphics.headStumpGraphic.UnCache();
-			Drawer.renderer.graphics.desiccatedHeadStumpGraphic.UnCache();
-			Drawer.renderer.graphics.headGraphic.UnCache();
-			Drawer.renderer.graphics.beardGraphic.UnCache();
+			// Drawer.renderer.graphics.furCoveredGraphic.UnCache();
+			// Drawer.renderer.graphics.faceTattooGraphic.UnCache();
+			// Drawer.renderer.graphics.bodyTattooGraphic.UnCache();
+			// Drawer.renderer.graphics.swaddledBabyGraphic.UnCache();
+			// Drawer.renderer.graphics.hairGraphic.UnCache();
+			// Drawer.renderer.graphics.nakedGraphic.UnCache();
+			// Drawer.renderer.graphics.rottingGraphic.UnCache();
+			// Drawer.renderer.graphics.dessicatedGraphic.UnCache();
+			// Drawer.renderer.graphics.packGraphic.UnCache();
+			// Drawer.renderer.graphics.corpseGraphic.UnCache();
+			// Drawer.renderer.graphics.desiccatedHeadGraphic.UnCache();
+			// Drawer.renderer.graphics.skullGraphic.UnCache();
+			// Drawer.renderer.graphics.headStumpGraphic.UnCache();
+			// Drawer.renderer.graphics.desiccatedHeadStumpGraphic.UnCache();
+			// Drawer.renderer.graphics.headGraphic.UnCache();
+			// Drawer.renderer.graphics.beardGraphic.UnCache();
 
 			GlobalTextureAtlasManager.TryMarkPawnFrameSetDirty(this);
 
@@ -353,11 +354,11 @@ namespace ZombieLand
 			base.Kill(dinfo, exactCulprit);
 		}
 
-		public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
-		{
-			base.Destroy(mode);
-			Dispose(false);
-		}
+		// public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
+		// {
+		// 	base.Destroy(mode);
+		// 	Dispose(false);
+		// }
 
 		public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
 		{
