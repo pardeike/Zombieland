@@ -49,7 +49,7 @@ namespace ZombieLand
 
 		static TextureAtlas()
 		{
-			var atlas = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+			var atlas = new Texture2D(1, 1, TextureFormat.ARGB32, false) { name = "PartsNew.png" };
 			if (atlas.LoadImage(File.ReadAllBytes(textureRoot + "PartsNew.png")) == false)
 				return;
 

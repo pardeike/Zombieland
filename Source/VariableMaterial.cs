@@ -40,6 +40,7 @@ namespace ZombieLand
 				if (material == null)
 				{
 					var mainTex = data.ToTexture();
+					mainTex.name = "VariableMaterial";
 					data = null;
 					material = new DisposableMaterial(req.shader)
 					{

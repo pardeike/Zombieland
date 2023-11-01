@@ -42,7 +42,7 @@ namespace ZombieLand
 
 			if (pumpkinPixels == null)
 			{
-				var tex = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+				var tex = new Texture2D(1, 1, TextureFormat.ARGB32, false) { name = "Pumpkin.png" };
 				_ = tex.LoadImage(File.ReadAllBytes(textureRoot + "Pumpkin.png"));
 				pumpkinPixels = tex.GetPixels();
 			}
@@ -173,7 +173,7 @@ namespace ZombieLand
 
 		static void ReadSkinColors()
 		{
-			var colors = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+			var colors = new Texture2D(1, 1, TextureFormat.ARGB32, false) { name = "SkinColors.png" };
 			if (colors.LoadImage(File.ReadAllBytes(textureRoot + "SkinColors.png")) == false)
 				throw new Exception("Cannot read SkinColors");
 
@@ -214,7 +214,9 @@ namespace ZombieLand
 				Log.Error("Cannot find preloaded texture path '" + path);
 				return null;
 			}
-			return data.ToTexture();
+			var tex = data.ToTexture();
+			tex.name = path;
+			return tex;
 		}
 	}
 }

@@ -136,7 +136,7 @@ namespace ZombieLand
 				{
 					var renderTexture = RenderTexture.GetTemporary(44, 44, 32, RenderTextureFormat.ARGB32);
 					Find.PawnCacheRenderer.RenderPawn(pawn, renderTexture, new Vector3(0, 0, 0.4f), 1.75f, 0f, Rot4.South, true, false, true, true, true, default, null, null, false);
-					var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
+					var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false) { name = "DangerousInfoPawn" };
 					RenderTexture.active = renderTexture;
 					texture.ReadPixels(new Rect(0f, 0f, renderTexture.width, renderTexture.height), 0, 0);
 					texture.Apply();

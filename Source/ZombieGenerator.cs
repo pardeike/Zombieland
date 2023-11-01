@@ -295,7 +295,7 @@ namespace ZombieLand
 			zombie.Drawer.renderer.graphics.ResolveAllGraphics();
 			yield return null;
 
-			// var headPath = FixGlowingEyeOffset(zombie);
+			var headPath = FixGlowingEyeOffset(zombie);
 			if (zombie.IsSuicideBomber)
 				zombie.lastBombTick = Find.TickManager.TicksAbs + Rand.Range(0, (int)zombie.bombTickingInterval);
 
@@ -361,21 +361,21 @@ namespace ZombieLand
 				}
 				zombie.Drawer.renderer.graphics.nakedGraphic = customBodyGraphic;
 
-				// var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.Cutout, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>(), null);
-				// var customHeadGraphic = new VariableGraphic { bodyColor = color };
-				// customHeadGraphic.Init(VariableGraphic.minimal);
-				// for (var i = 0; i < 4; i++)
-				// {
-				// 	var j = 0;
-				// 	var it = customHeadGraphic.InitIterativ(headRequest, i, maxStainPoints);
-				// 	while (it.MoveNext())
-				// 	{
-				// 		yield return it.Current;
-				// 		j++;
-				// 	}
-				// }
-				// zombie.Drawer.renderer.graphics.headGraphic = customHeadGraphic;
-				zombie.Drawer.renderer.graphics.headGraphic = zombie.story.headType.GetGraphic(specialColor ?? color.HexColor(), false, true);
+				var headRequest = new GraphicRequest(typeof(VariableGraphic), headPath, ShaderDatabase.Cutout, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>(), null);
+				var customHeadGraphic = new VariableGraphic { bodyColor = color };
+				customHeadGraphic.Init(VariableGraphic.minimal);
+				for (var i = 0; i < 4; i++)
+				{
+					var j = 0;
+					var it = customHeadGraphic.InitIterativ(headRequest, i, maxStainPoints);
+					while (it.MoveNext())
+					{
+						yield return it.Current;
+						j++;
+					}
+				}
+				zombie.Drawer.renderer.graphics.headGraphic = customHeadGraphic;
+				// zombie.Drawer.renderer.graphics.headGraphic = zombie.story.headType.GetGraphic(specialColor ?? color.HexColor(), false, true);
 			}
 		}
 

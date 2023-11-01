@@ -163,7 +163,7 @@ namespace ZombieLand
 			var data = File.ReadAllBytes(fullPath);
 			if (data == null || data.Length == 0)
 				throw new Exception($"Cannot read texture {fullPath}");
-			var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
+			var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false, true) { name = path };
 			if (tex.LoadImage(data) == false)
 				throw new Exception($"Cannot create texture {fullPath}");
 			tex.Compress(true);
@@ -1825,7 +1825,7 @@ namespace ZombieLand
 
 			var renderTexture = foreground ? renderTextureFore : renderTextureBack;
 			Find.PawnCacheRenderer.RenderPawn(zombie, renderTexture, Vector3.zero, 1f, 0f, Rot4.South, true, true, true, true, true, Vector3.zero, null, null, false);
-			var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false);
+			var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false) { name = "FakeZombie" };
 			RenderTexture.active = renderTexture;
 			texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
 			texture.Apply();
