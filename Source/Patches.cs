@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using UnityEngine;
+using UnityEngine.UIElements.Experimental;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
@@ -168,7 +169,7 @@ namespace ZombieLand
 				var currentViewRect = Find.CameraDriver.CurrentViewRect;
 				currentViewRect.ClipInsideMap(map);
 
-				if (Constants.CONTAMINATION > 0 && ContaminationManager.Instance.showContaminationOverlay)
+				if (Constants.CONTAMINATION && ContaminationManager.Instance.showContaminationOverlay)
 				{
 					if (Find.CameraDriver.CurrentViewRect.Area >= Constants.MAX_CELLS_FOR_DETAILED_CONTAMINATION)
 						map.ContaminationGridUpdate();
@@ -512,21 +513,54 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Pawn.Tick))]
 		static class Pawn_Tick_Patch
 		{
-			static void Postfix(Pawn __instance)
+			static bool RunTicking(Pawn pawn)
 			{
-				if (__instance is Zombie || __instance is ZombieSpitter || __instance.RaceProps.Humanlike == false)
-					return;
-				var hediffs = __instance.health.hediffSet.hediffs;
-				var maxState = InfectionState.None;
-				for (var i = 0; i < hediffs.Count; i++)
+				if (pawn is Zombie || pawn is ZombieSpitter)
+					return true;
+
+				if (pawn.RaceProps.Humanlike)
 				{
-					if (hediffs[i] is not Hediff_Injury_ZombieBite bite)
-						continue;
-					var state = bite.TendDuration.GetInfectionState();
-					if (state > maxState)
-						maxState = state;
+					var hediffs = pawn.health.hediffSet.hediffs;
+					var maxState = InfectionState.None;
+					for (var i = 0; i < hediffs.Count; i++)
+					{
+						if (hediffs[i] is not Hediff_Injury_ZombieBite bite)
+							continue;
+						var state = bite.TendDuration.GetInfectionState();
+						if (state > maxState)
+							maxState = state;
+					}
+					pawn.SetInfectionState(maxState);
 				}
-				__instance.SetInfectionState(maxState);
+
+				if (Constants.CONTAMINATION)
+				{
+					var effectiveness = pawn.GetEffectiveness();
+					if (effectiveness > 0.99f)
+						return true;
+					return Rand.Chance(effectiveness);
+				}
+
+				return true;
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+			{
+				var label = generator.DefineLabel();
+				var m_ThingWithComps_Tick = AccessTools.Method(typeof(ThingWithComps), nameof(ThingWithComps.Tick));
+				var list = instructions.ToList();
+				var idx = list.FirstIndexOf(code => code.Calls(m_ThingWithComps_Tick));
+				if (idx < 0)
+					throw new Exception("Cannot find ThingWithComps.Tick() call");
+				list.InsertRange(idx + 1, new[]
+				{
+					new CodeInstruction(OpCodes.Ldarg_0),
+					CodeInstruction.Call(() => RunTicking(default)),
+					new CodeInstruction(OpCodes.Brtrue, label),
+					new CodeInstruction(OpCodes.Ret)
+				});
+				list[idx + 5].labels.Add(label);
+				return list;
 			}
 		}
 
@@ -714,7 +748,7 @@ namespace ZombieLand
 						null,
 						3171
 					)
-				}.AsEnumerable();
+				};
 				return false;
 			}
 		}
@@ -1017,7 +1051,6 @@ namespace ZombieLand
 				___jobsGivenThisTickTextual = "";
 				___startingNewJob = false;
 				___pawn.ClearReservationsForJob(newJob);
-				Log.Warning($"Zombies cannot do job {newJob.def.defName}");
 				return false;
 			}
 		}
@@ -1871,10 +1904,10 @@ namespace ZombieLand
 				if (pos.InBounds(map) == false)
 					return;
 
-				if (Constants.CONTAMINATION > 0)
+				if (Constants.CONTAMINATION)
 				{
 					var contaminationList = map.thingGrid.ThingsListAt(pos)
-					.Select(t => (thing: t, contamination: t.GetContamination()))
+					.Select(t => (thing: t, contamination: t.GetContamination(includeHoldings: true)))
 					.Where(pair => pair.contamination != 0)
 					.Join(pair => $"{pair.thing}/{pair.contamination}", " ");
 					if (contaminationList.Any())
@@ -2738,11 +2771,21 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(PawnGraphicSet.HeadMatAt))]
 		static class PawnGraphicSet_HeadMatAt_Patch
 		{
-			static void Postfix(Pawn ___pawn, bool stump, ref Material __result)
+			static readonly Dictionary<int, Material> headStumpGraphics = new();
+
+			static void Postfix(Pawn ___pawn, RotDrawMode bodyCondition, bool stump, ref Material __result)
 			{
 				if (stump == false || ___pawn is not Zombie)
 					return;
-				__result = new Material(__result) { color = new Color(142f / 255f, 0, 0) };
+
+				var id = __result.GetInstanceID() * (bodyCondition == RotDrawMode.Rotting ? -1 : 1);
+				if (headStumpGraphics.TryGetValue(id, out var mat) == false)
+				{
+					var red = bodyCondition == RotDrawMode.Rotting ? 8f : 110f;
+					mat = new Material(__result) { color = new Color(red / 255f, 0, 0) };
+					headStumpGraphics[id] = mat;
+				}
+				__result = mat;
 			}
 		}
 
@@ -2854,21 +2897,23 @@ namespace ZombieLand
 					var f2 = Mathf.Sin(Mathf.PI * f1);
 					var f3 = Math.Max(0, Mathf.Sin(Mathf.PI * f1 * 1.5f));
 
-					var mat = new Material(Constants.SCREAM)
+					var mat1 = new Material(Constants.SCREAM)
 					{
 						color = new Color(1f, 1f, 1f, f2)
 					};
 					var size = f1 * 4f;
 					var center = drawLoc + new Vector3(0, 0.1f, 0.25f);
 
-					GraphicToolbox.DrawScaledMesh(Constants.screamMesh, mat, center, Quaternion.identity, size, size);
+					GraphicToolbox.DrawScaledMesh(Constants.screamMesh, mat1, center, Quaternion.identity, size, size);
+					UnityEngine.Object.Destroy(mat1);
 
-					mat = new Material(Constants.SCREAMSHADOW)
+					var mat2 = new Material(Constants.SCREAMSHADOW)
 					{
 						color = new Color(1f, 1f, 1f, f3)
 					};
 					var q = Quaternion.AngleAxis(f2 * 360f, Vector3.up);
-					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat, center, q, 1.5f, 1.5f);
+					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat2, center, q, 1.5f, 1.5f);
+					UnityEngine.Object.Destroy(mat2);
 				}
 
 				if (zombie.Dead)
@@ -3218,6 +3263,17 @@ namespace ZombieLand
 
 				if (zombie.isAlbino == false)
 					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.RAGE_AURAS[Find.CameraDriver.CurrentZoom], quickHeadCenter, Quaternion.identity, 1f, 1f);
+			}
+		}
+
+		// patch to not let zombies sound when they are on fire
+		//
+		[HarmonyPatch(typeof(Effecter), nameof(Effecter.Trigger))]
+		static class Effecter_Trigger_Patch
+		{
+			static bool Prefix(EffecterDef ___def, TargetInfo A)
+			{
+				return A.Thing is not Zombie || ___def != EffecterDefOf.Deflect_General;
 			}
 		}
 
@@ -3838,7 +3894,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch for making zombies burn slower
+		// patch for making zombies burn slower and spread fire faster on tar
 		//
 		[HarmonyPatch(typeof(Fire))]
 		[HarmonyPatch(nameof(Fire.DoFireDamage))]
@@ -3873,6 +3929,24 @@ namespace ZombieLand
 					Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 
 				return list;
+			}
+
+			static void Postfix(Fire __instance, Thing targ)
+			{
+				if (targ is not TarSlime)
+					return;
+				var pos = targ.Position;
+				var map = targ.Map ?? __instance.Map;
+				if (map == null)
+					return;
+				if (__instance.fireSize < 0.5f)
+					__instance.fireSize = 0.5f;
+				var fSize = __instance.fireSize;
+				var grid = map.thingGrid;
+				GenAdj.AdjacentCellsAround
+					.Select(c => grid.ThingAt<TarSlime>(pos + c))
+					.OfType<TarSlime>()
+					.DoIf(tar => tar.IsBurning() == false, tar => FireUtility.TryStartFireIn(tar.Position, map, __instance.fireSize));
 			}
 		}
 
@@ -4984,10 +5058,11 @@ namespace ZombieLand
 		{
 			static void Postfix(Thought_Tale __instance, ref float __result)
 			{
-				if (__instance.def.taleDef != TaleDefOf.KilledChild)
+				var taleDef = __instance.def.taleDef;
+				if (taleDef != TaleDefOf.KilledChild)
 					return;
-				var tale = Find.TaleManager.GetLatestTale(__instance.def.taleDef, __instance.otherPawn);
-				if (tale is not Tale_DoublePawn doublePawn || doublePawn.secondPawnData.faction.def != ZombieDefOf.Zombies)
+				var tale = Find.TaleManager.GetLatestTale(taleDef, __instance.otherPawn);
+				if (tale is not Tale_DoublePawn doublePawn || doublePawn.secondPawnData?.faction?.def != ZombieDefOf.Zombies)
 					return;
 				__result *= 0.25f;
 			}
@@ -5176,13 +5251,12 @@ namespace ZombieLand
 		{
 			static void Postfix(Pawn pawn, IntVec3 c, ref int __result)
 			{
-				if ((pawn is Zombie) == false)
+				if (pawn.Map.thingGrid.ThingAt<TarSlime>(c) == null)
 					return;
-				if (__result < 450)
-					return;
-
-				if (pawn.Map.thingGrid.ThingAt<TarSlime>(c) != null)
-					__result = 100;
+				if (pawn is Zombie)
+					__result = (int)GenMath.LerpDouble(0, 5, 150, 14, Tools.Difficulty());
+				else
+					__result = (int)GenMath.LerpDouble(0, 5, 14, 400, Tools.Difficulty());
 			}
 		}
 

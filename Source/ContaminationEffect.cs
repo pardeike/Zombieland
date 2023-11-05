@@ -23,12 +23,14 @@ namespace ZombieLand
 	[DefOf]
 	public static class EffectDefs
 	{
+		public static MentalStateDef ContaminationStateForceRest;
 		public static MentalStateDef ContaminationStateHallucination;
 		public static MentalStateDef ContaminationStateSleepwalking;
 		public static MentalStateDef ContaminationStateHoarding;
 		public static MentalStateDef ContaminationStateMimicing;
 		public static MentalStateDef ContaminationStateBreakdown;
 
+		public static JobDef ContaminationJobForceRest;
 		public static JobDef ContaminationJobHallucination;
 		public static JobDef ContaminationJobSleepwalk;
 		public static JobDef ContaminationJobHoard;
@@ -94,7 +96,7 @@ namespace ZombieLand
 			}
 		}
 
-		static bool Prepare(Pawn pawn, int expiryInterval, MentalStateDef mentalDef, JobDef jobDef, Func<bool> check)
+		static bool ApplyJob(Pawn pawn, int expiryInterval, MentalStateDef mentalDef, JobDef jobDef, Func<bool> check)
 		{
 			if (pawn?.Map == null || pawn.health.healthState != PawnHealthState.Mobile)
 				return false;
@@ -119,13 +121,27 @@ namespace ZombieLand
 			return true;
 		}
 
-		[ContaminationRange(0.35f, 0.50f)]
+		[ContaminationRange(0.15f, 0.40f)]
+		public static bool ForceRest(Pawn pawn, float factor)
+		{
+			var interval = GenDate.TicksPerHour / 10;
+			var expiryInterval = interval * (int)(1 + factor * 7);
+
+			return ApplyJob(
+				pawn, expiryInterval,
+				EffectDefs.ContaminationStateForceRest,
+				EffectDefs.ContaminationJobForceRest,
+				() => true
+			);
+		}
+
+		[ContaminationRange(0.25f, 0.50f)]
 		public static bool Hallucination(Pawn pawn, float factor)
 		{
 			var interval = GenDate.TicksPerHour / 10;
 			var expiryInterval = interval * (int)(1 + factor * 7);
 
-			return Prepare(
+			return ApplyJob(
 				pawn, expiryInterval,
 				EffectDefs.ContaminationStateHallucination,
 				EffectDefs.ContaminationJobHallucination,
@@ -133,13 +149,13 @@ namespace ZombieLand
 			);
 		}
 
-		[ContaminationRange(0.40f, 0.50f)]
+		[ContaminationRange(0.35f, 0.50f)]
 		public static bool Sleepwalk(Pawn pawn, float factor)
 		{
 			var interval = GenDate.TicksPerHour / 10;
 			var expiryInterval = interval * (int)(1 + factor * 7);
 
-			return Prepare(
+			return ApplyJob(
 				pawn, expiryInterval,
 				EffectDefs.ContaminationStateSleepwalking,
 				EffectDefs.ContaminationJobSleepwalk,
@@ -159,7 +175,7 @@ namespace ZombieLand
 					.FirstOrDefault(bed => bed.GetAssignedPawn() == pawn) != null;
 			}
 
-			return Prepare(
+			return ApplyJob(
 				pawn, expiryInterval,
 				EffectDefs.ContaminationStateHoarding,
 				EffectDefs.ContaminationJobHoard,
@@ -173,7 +189,7 @@ namespace ZombieLand
 			var interval = GenDate.TicksPerHour / 10;
 			var expiryInterval = interval * (int)(1 + factor * 7);
 
-			return Prepare(
+			return ApplyJob(
 				pawn, expiryInterval,
 				EffectDefs.ContaminationStateMimicing,
 				EffectDefs.ContaminationJobMimic,
@@ -187,7 +203,7 @@ namespace ZombieLand
 			var interval = GenDate.TicksPerHour / 10;
 			var expiryInterval = interval * (int)(1 + factor * 7);
 
-			return Prepare(
+			return ApplyJob(
 				pawn, expiryInterval,
 				EffectDefs.ContaminationStateBreakdown,
 				EffectDefs.ContaminationJobBreakdown,

@@ -12,7 +12,7 @@ namespace ZombieLand
 	[HarmonyPatch]
 	static class GenSpawn_Spawn_Replacement_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static IEnumerable<MethodBase> TargetMethods()
 		{
@@ -26,7 +26,7 @@ namespace ZombieLand
 			if (Tools.IsPlaying())
 			{
 				var contamination = map.GetContamination(loc);
-				thing.AddContamination(contamination, null/*() => Log.Warning($"Spawned {thing} at {loc}")*/, thing.def.IsPlant ? ZombieSettings.Values.contamination.plantAdd : ZombieSettings.Values.contamination.jellyAdd);
+				thing.AddContamination(contamination, thing.def.IsPlant ? ZombieSettings.Values.contamination.plantAdd : ZombieSettings.Values.contamination.jellyAdd);
 			}
 			return thing;
 		}
@@ -44,7 +44,7 @@ namespace ZombieLand
 	{
 		static readonly MethodInfo m_MakeThing = SymbolExtensions.GetMethodInfo(() => ThingMaker.MakeThing(default, default));
 
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static MethodBase TargetMethod()
 		{
@@ -55,7 +55,7 @@ namespace ZombieLand
 		static Thing MakeThing(ThingDef def, ThingDef stuff, Plant plant)
 		{
 			var result = ThingMaker.MakeThing(def, stuff);
-			plant?.TransferContamination(ZombieSettings.Values.contamination.plantTransfer, null/*() => Log.Warning($"Produce {result} from {plant}")*/, result);
+			plant?.TransferContamination(ZombieSettings.Values.contamination.plantTransfer, result);
 			return result;
 		}
 
@@ -84,13 +84,13 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(IncidentWorker_AmbrosiaSprout), nameof(IncidentWorker_AmbrosiaSprout.TryExecuteWorker))]
 	static class IncidentWorker_AmbrosiaSprout_TryExecuteWorker_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode)
 		{
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, null/*() => Log.Warning($"Spawned {thing} at {loc}")*/, ZombieSettings.Values.contamination.ambrosiaAdd);
+			thing.AddContamination(contamination, ZombieSettings.Values.contamination.ambrosiaAdd);
 			return thing;
 		}
 
@@ -101,12 +101,12 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Plant), nameof(Plant.TrySpawnStump))]
 	static class Plant_TrySpawnStump_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, Plant plant)
 		{
 			var result = GenSpawn.Spawn(def, loc, map, wipeMode);
-			plant.TransferContamination(ZombieSettings.Values.contamination.stumpTransfer, null/*() => Log.Warning($"Produce {result} from {plant}")*/, result);
+			plant.TransferContamination(ZombieSettings.Values.contamination.stumpTransfer, result);
 			return result;
 		}
 
@@ -119,7 +119,7 @@ namespace ZombieLand
 	{
 		static readonly Expression<Action> m_Spawn = () => Spawn(default, default, default, default, default);
 
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static MethodBase TargetMethod()
 		{
@@ -132,8 +132,8 @@ namespace ZombieLand
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var pawn = driver.pawn;
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, null/*() => Log.Warning($"Spawned {thing} at {loc}")*/, ZombieSettings.Values.contamination.sowedPlantAdd);
-			ZombieSettings.Values.contamination.sowingPawnEqualize.Equalize(pawn, thing, null/*() => Log.Warning($"{pawn} sowed {thing}")*/);
+			thing.AddContamination(contamination, ZombieSettings.Values.contamination.sowedPlantAdd);
+			ZombieSettings.Values.contamination.sowingPawnEqualize.Equalize(pawn, thing);
 			return thing;
 		}
 

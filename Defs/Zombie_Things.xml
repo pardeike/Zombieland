@@ -52,7 +52,7 @@
 			<graphicClass>Graphic_Single</graphicClass>
 		</graphicData>
 		<altitudeLayer>FloorEmplacement</altitudeLayer>
-		<pathCost>120</pathCost>
+		<pathCost>300</pathCost>
 		<pathCostIgnoreRepeat>false</pathCostIgnoreRepeat>
 		<useHitPoints>True</useHitPoints>
 		<size>(1,1)</size>

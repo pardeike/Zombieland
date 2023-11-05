@@ -13,7 +13,6 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Xml;
 using UnityEngine;
-using UnityEngine.SocialPlatforms;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
@@ -111,7 +110,7 @@ namespace ZombieLand
 			{
 				ZombieSettingsDefaults.group = new();
 				ZombieSettingsDefaults.groupOverTime = new() { new() { values = ZombieSettingsDefaults.group.MakeCopy() } };
-				Constants.Apply(Constants.defaultValues);
+				_ = Constants.Apply(Constants.defaultValues);
 			}
 			else
 			{
@@ -253,6 +252,9 @@ namespace ZombieLand
 			if (original > 1f)
 				original = 1f;
 		}
+
+		public static string SimplePos(this Thing thing) => thing?.Position.SimplePos() ?? "null";
+		public static string SimplePos(this IntVec3 cell) => $"{cell.x},{cell.z}";
 
 		public static void DebugPosition(Vector3 pos, Color color)
 		{
@@ -1357,9 +1359,8 @@ namespace ZombieLand
 			return active && Widgets.ButtonInvisible(rect, false);
 		}
 
-		public static void DrawBorderRect(Rect area, Color color, int frameWidth = 1)
+		public static void DrawBorderRect(Rect area, Texture2D texture, int frameWidth = 1)
 		{
-			var texture = SolidColorMaterials.NewSolidColorTexture(color);
 			GUI.DrawTexture(area.LeftPartPixels(frameWidth), texture);
 			GUI.DrawTexture(area.RightPartPixels(frameWidth), texture);
 			area = area.ExpandedBy(-frameWidth, 0);

@@ -58,6 +58,13 @@
 	</JobDef>
 
 	<JobDef>
+		<defName>ContaminationJobForceRest</defName>
+		<driverClass>ZombieLand.JobDriver_ContaminationForceRest</driverClass>
+		<reportString>stopping for a while to rest.</reportString>
+		<suspendable>false</suspendable>
+	</JobDef>
+
+	<JobDef>
 		<defName>ContaminationJobHallucination</defName>
 		<driverClass>ZombieLand.JobDriver_ContaminationHallucination</driverClass>
 		<reportString>hallucinating an imaginary enemy.</reportString>

@@ -453,7 +453,7 @@ namespace ZombieLand
 			var list = instructions.ToList();
 			var idx = list.FirstIndexOf(instruction => instruction.operand is MethodInfo method && method == m_GetThingList);
 			list.Insert(idx + 1, CodeInstruction.Call(() => RemoveZombies(default)));
-			return list.AsEnumerable();
+			return list;
 		}
 	}
 

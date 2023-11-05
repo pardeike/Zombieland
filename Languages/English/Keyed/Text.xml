@@ -34,6 +34,7 @@
 	<ContaminationEnabled>Globally enabled</ContaminationEnabled>
 	<ZombielandRestartRequired>Changing this setting requires a restart of RimWorld</ZombielandRestartRequired>
 	<ZombielandContamination>Intensity</ZombielandContamination>
+	<ContaminationEffectiveness>Total effectiveness {0}%</ContaminationEffectiveness>
 
 	<WhenDoZombiesSpawn>When do zombies appear?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>All the time</SpawnWhenType_AllTheTime>

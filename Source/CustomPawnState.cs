@@ -38,7 +38,18 @@ namespace ZombieLand
 
 	public static class PawnInfoExtensions
 	{
-		public static InfectionState InfectionState(this Pawn pawn) => (pawn.drawer.leaner as CustomPawnState).infectionState;
-		public static void SetInfectionState(this Pawn pawn, InfectionState state) => (pawn.drawer.leaner as CustomPawnState).infectionState = state;
+		public static InfectionState InfectionState(this Pawn pawn)
+		{
+			if (pawn is Zombie)
+				return ZombieLand.InfectionState.Infected;
+			return (pawn.drawer.leaner as CustomPawnState)?.infectionState ?? ZombieLand.InfectionState.None;
+		}
+
+		public static void SetInfectionState(this Pawn pawn, InfectionState state)
+		{
+			var pawnState = pawn.drawer.leaner as CustomPawnState;
+			if (pawnState != null)
+				pawnState.infectionState = state;
+		}
 	}
 }

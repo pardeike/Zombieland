@@ -283,7 +283,7 @@ namespace ZombieLand
 			void contaminate(IntVec3 cell)
 			{
 				Find.CurrentMap.thingGrid.ThingsAt(cell)
-					.DoIf(t => seen.Contains(t) == false && t.def == floodfillThingDef, t => { seen.Add(t); t.AddContamination(value, null); });
+					.DoIf(t => seen.Contains(t) == false && t.def == floodfillThingDef, t => { seen.Add(t); t.AddContamination(value); });
 			}
 
 			// wrap this because if we click on "nothing" it causes an error

@@ -13,7 +13,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(GenStep_Terrain), nameof(GenStep_Terrain.Generate))]
 	static class GenStep_Terrain_Generate_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Postfix(Map map)
 		{
@@ -60,7 +60,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Mineable), nameof(Mineable.Destroy))]
 	static class Mineable_Destroy_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(Mineable __instance) => Mineable_TrySpawnYield_Patch.mineableMap = __instance.Map;
 		static void Postfix() => Mineable_TrySpawnYield_Patch.mineableMap = null;
@@ -69,7 +69,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Mineable), nameof(Mineable.DestroyMined))]
 	static class Mineable_DestroyMined_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(Mineable __instance) => Mineable_TrySpawnYield_Patch.mineableMap = __instance.Map;
 		static void Postfix() => Mineable_TrySpawnYield_Patch.mineableMap = null;
@@ -80,13 +80,18 @@ namespace ZombieLand
 	{
 		public static Map mineableMap;
 
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static Thing MakeThing(ThingDef def, ThingDef stuff, Mineable mineable)
 		{
 			var thing = ThingMaker.MakeThing(def, stuff);
-			var contamination = mineableMap?.ExtractContamination(mineable.Position) ?? 0;
-			thing.AddContamination(contamination, null/*() => Log.Warning($"Yielded {thing} from {mineable}")*/, ZombieSettings.Values.contamination.destroyMineableAdd);
+			if (mineableMap != null)
+			{
+				var contamination = mineableMap.GetContamination(mineable.Position);
+				thing.mapIndexOrState = (sbyte)mineableMap.Index;
+				thing.AddContamination(contamination, ZombieSettings.Values.contamination.destroyMineableAdd);
+				thing.mapIndexOrState = -1;
+			}
 			return thing;
 		}
 
@@ -97,13 +102,13 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(CompDeepDrill), nameof(CompDeepDrill.TryProducePortion))]
 	static class CompDeepDrill_TryProducePortion_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static Thing MakeThing(ThingDef def, ThingDef stuff, CompDeepDrill comp)
 		{
 			var thing = ThingMaker.MakeThing(def, stuff);
 			_ = comp;
-			thing.AddContamination(ZombieSettings.Values.contamination.deepDrillAdd, null/*() => Log.Warning($"Deep drill produced {thing} at {comp.parent.InteractionCell}")*/);
+			thing.AddContamination(ZombieSettings.Values.contamination.deepDrillAdd);
 			return thing;
 		}
 

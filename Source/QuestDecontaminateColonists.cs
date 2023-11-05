@@ -115,7 +115,7 @@ namespace ZombieLand
 			if (map == null)
 				return;
 
-			if (Constants.CONTAMINATION > 0)
+			if (Constants.CONTAMINATION)
 				subject.ClearContamination();
 			base.Complete(new SignalArgs(new LookTargets(subject).Named("SUBJECT")));
 			if (factionToSendTo != null && factionToSendTo == Faction.OfEmpire)

@@ -12,6 +12,7 @@ namespace ZombieLand
 
 		[ValueRange(0f, 1f)] public float contaminationElevationPercentage = 0.5f;
 		[ValueRange(GenDate.TicksPerYear / 4, GenDate.TicksPerYear * 2)] public float decontaminationQuestInterval = GenDate.TicksPerYear / 2f;
+		[ValueRange(0f, 1f)] public float contaminationEffectivenessPercentage = 0.5f;
 
 		[ValueRange(1f, 1f)] public float ambrosiaAdd = 1f;
 		[ValueRange(0.3f, 1f)] public float constructionAdd = 0.5f;
@@ -26,7 +27,8 @@ namespace ZombieLand
 		[ValueRange(0.002f, 0.3f)] public float snowAdd = 0.1f;
 		[ValueRange(0.1f, 0.5f)] public float sowedPlantAdd = 0.2f;
 		[ValueRange(0.25f, 1f)] public float wastePackAdd = 0.5f;
-		[ValueRange(0.0002f, 0.002f)] public float zombieDeathAdd = 0.0005f;
+		[ValueRange(0.004f, 0.2f)] public float zombieDeathAdd = 0.01f;
+		[ValueRange(0.004f, 0.04f)] public float enterCellAdd = 0.01f;
 
 		[ValueRange(0.02f, 0.75f)] public float disassembleTransfer = 0.1f;
 		[ValueRange(0.02f, 0.75f)] public float dispenseFoodTransfer = 0.1f;
@@ -35,7 +37,7 @@ namespace ZombieLand
 		[ValueRange(0.075f, 0.5f)] public float geneAssemblerTransfer = 0.2f;
 		[ValueRange(0.075f, 0.5f)] public float geneExtractorTransfer = 0.2f;
 		[ValueRange(0.02f, 0.75f)] public float generalTransfer = 0.1f;
-		[ValueRange(0.15f, 1f)] public float ingestTransfer = 0.25f;
+		[ValueRange(0.2f, 4f)] public float ingestTransfer = 1f;
 		[ValueRange(0.25f, 1f)] public float leavingsTransfer = 0.5f;
 		[ValueRange(0.75f, 1f)] public float medicineTransfer = 0.9f;
 		[ValueRange(0.25f, 1f)] public float plantTransfer = 0.5f;
@@ -46,22 +48,26 @@ namespace ZombieLand
 		[ValueRange(0.01f, 0.5f)] public float workerTransfer = 0.02f;
 
 		[ValueRange(0.0075f, 0.5f)] public float benchEqualize = 0.02f;
-		[ValueRange(0.02f, 0.75f)] public float bloodEqualize = 0.1f;
-		[ValueRange(0.00075f, 0.05f)] public float carryEqualize = 0.002f;
-		[ValueRange(0.0005f, 0.02f)] public float enterCellEqualize = 0.001f;
+		[ValueRange(0.02f, 0.75f)] public float bloodEqualize = 0.2f;
+		[ValueRange(0.02f, 0.35f)] public float carryEqualize = 0.1f;
 		[ValueRange(0.0015f, 0.2f)] public float filthEqualize = 0.01f;
 		[ValueRange(0.02f, 0.75f)] public float meleeEqualize = 0.1f;
 		[ValueRange(0.015f, 0.65f)] public float produceEqualize = 0.1f;
 		[ValueRange(0.0005f, 0.02f)] public float restEqualize = 0.001f;
 		[ValueRange(0.02f, 0.75f)] public float sowingPawnEqualize = 0.1f;
-		[ValueRange(0.075f, 0.5f)] public float tendEqualizeWorst = 0.2f;
+		[ValueRange(1f, 1f)] public float tendEqualizeWorst = 1f;
 		[ValueRange(0f, 0f)] public float tendEqualizeBest = 0f;
 
 		[ValueRange(0.01f, 0.5f)] public float fireReduction = 0.05f;
-		[ValueRange(0.01f, 0.5f)] public float randomThingCreateChance = 0.1f;
-		[ValueRange(0.2f, 1f)] public float randomThingDensityDistribution = 0.5f;
+		[ValueRange(0.01f, 0.9f)] public float randomThingCreateChance = 0.1f;
+		[ValueRange(0f, 1f)] public float randomThingDensityDistribution = 0.5f;
 		[ValueRange(1f, 1f)] public float mechClusterChance = 1f;
-		[ValueRange(0.2f, 1f)] public float mechClusterDensityDistribution = 0.5f;
+		[ValueRange(0f, 1f)] public float mechClusterDensityDistribution = 0.5f;
+
+		[ValueRange(1f, 1.1f)] public float cellFactor = 1.05f;
+		[ValueRange(0.00005f, 0.002f)] public float enterCellGain = 0.0001f;
+		[ValueRange(0.000005f, 0.0002f)] public float enterCellLoose = 0.00001f;
+		[ValueRange(0.0015f, 0.2f)] public float filthGain = 0.01f;
 
 		private static readonly ContaminationFactors defaults = new();
 		public static void ApplyBaseFactor(ContaminationFactors factors, float baseFactor)

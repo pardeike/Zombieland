@@ -1,5 +1,4 @@
-﻿using HarmonyLib;
-using RimWorld;
+﻿using RimWorld;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
 using System;
@@ -37,14 +36,16 @@ namespace ZombieLand
 			}
 		}
 
+		public static void Reset() => _instance = null;
+
 		public override void ExposeData()
 		{
 			base.ExposeData();
 
 			if (Scribe.mode == LoadSaveMode.LoadingVars)
-				_instance = null; // clear cache
+				Reset(); // clear cache
 
-			if (Constants.CONTAMINATION > 0)
+			if (Constants.CONTAMINATION)
 				Scribe_Values.Look(ref showContaminationOverlay, "showContaminationOverlay");
 			else
 				showContaminationOverlay = false;
@@ -87,6 +88,37 @@ namespace ZombieLand
 						sum += contamination;
 			}
 			return sum;
+		}
+
+		public void Set(Thing thing, float contamination)
+		{
+			contaminations[thing.thingIDNumber] = contamination;
+			if (LOGGING)
+			{
+#pragma warning disable CS0162 // Unreachable code detected
+				Log.ResetMessageCount();
+				Log.Message($"THING {thing} at {thing.SimplePos()} => {(contamination * 100):F1}");
+#pragma warning restore CS0162 // Unreachable code detected
+			}
+		}
+
+		public void UpdatePawnHediff(Thing thing, float contamination)
+		{
+			if (thing is not Pawn pawn || pawn is Zombie || pawn is ZombieSpitter)
+				return;
+
+			if (contamination > 0)
+			{
+				var hediff = (Hediff_Contamination)pawn.health.hediffSet.GetFirstHediffOfDef(CustomDefs.ContaminationEffect);
+				hediff ??= (Hediff_Contamination)pawn.health.AddHediff(CustomDefs.ContaminationEffect);
+				hediff.Severity = contamination;
+			}
+			else
+			{
+				var hediff = (Hediff_Contamination)pawn.health.hediffSet.GetFirstHediffOfDef(CustomDefs.ContaminationEffect);
+				if (hediff != null)
+					pawn.health.RemoveHediff(hediff);
+			}
 		}
 
 		public float ChangeDirectly(LocalTargetInfo info, Map map, float amount)
@@ -133,21 +165,55 @@ namespace ZombieLand
 			if (contamination <= 0)
 			{
 				if (thing == null)
+				{
 					grid[cell] = 0;
+					if (LOGGING)
+					{
+#pragma warning disable CS0162 // Unreachable code detected
+						Log.ResetMessageCount();
+						Log.Message($"CELL {cell.SimplePos()} cleared");
+#pragma warning restore CS0162 // Unreachable code detected
+					}
+				}
 				else
 				{
 					contaminations.Remove(id);
+					UpdatePawnHediff(thing, 0);
 					currentMapDirty = true;
+					if (LOGGING)
+					{
+#pragma warning disable CS0162 // Unreachable code detected
+						Log.ResetMessageCount();
+						Log.Message($"THING {thing} at {thing.SimplePos()} cleared");
+#pragma warning restore CS0162 // Unreachable code detected
+					}
 				}
 			}
 			else if (contamination > 0)
 			{
 				if (thing == null)
+				{
 					grid[cell] = contamination;
+					if (LOGGING)
+					{
+#pragma warning disable CS0162 // Unreachable code detected
+						Log.ResetMessageCount();
+						Log.Message($"CELL {cell.SimplePos()} => {(contamination * 100):F1}");
+#pragma warning restore CS0162 // Unreachable code detected
+					}
+				}
 				else
 				{
 					contaminations[id] = contamination;
+					UpdatePawnHediff(thing, contamination);
 					currentMapDirty = true;
+					if (LOGGING)
+					{
+#pragma warning disable CS0162 // Unreachable code detected
+						Log.ResetMessageCount();
+						Log.Message($"THING {thing} at {thing.SimplePos()} => {(contamination * 100):F1}");
+#pragma warning restore CS0162 // Unreachable code detected
+					}
 				}
 			}
 
@@ -202,7 +268,7 @@ namespace ZombieLand
 			}
 		}
 
-		public float Equalize(LocalTargetInfo t1, LocalTargetInfo t2, float weight = 0.5f, Action runIfContaminated = null, bool includeHoldings1 = true, bool includeHoldings2 = true)
+		public float Equalize(LocalTargetInfo t1, LocalTargetInfo t2, float weight = 0.5f, bool includeHoldings1 = true, bool includeHoldings2 = true)
 		{
 			var map = (t1.Thing ?? t2.Thing).Map;
 
@@ -226,16 +292,6 @@ namespace ZombieLand
 				return 0;
 			ChangeDirectly(t1, map, transfer);
 			ChangeDirectly(t2, map, -transfer);
-			if (LOGGING)
-			{
-#pragma warning disable CS0162 // Unreachable code detected
-				if (transfer > 0)
-					Log.Message($"{t2} --({transfer})--> {t1}");
-				if (transfer < 0)
-					Log.Message($"{t1} --({-transfer})--> {t2}");
-#pragma warning restore CS0162 // Unreachable code detected
-			}
-			runIfContaminated?.Invoke();
 			return transfer;
 		}
 
@@ -243,7 +299,7 @@ namespace ZombieLand
 
 		public bool GetCellBool(int index)
 		{
-			if (currentDrawerMap == null || currentDrawerMap.fogGrid.IsFogged(index))
+			if (currentDrawerMap == null || (DebugViewSettings.drawFog && currentDrawerMap.fogGrid.IsFogged(index)))
 				return false;
 			return currentDrawerMap.thingGrid.thingGrid[index]
 				.Where(t => t is not Mineable)
@@ -322,7 +378,7 @@ namespace ZombieLand
 		}
 
 		public Color Color => Color.white;
-		public bool GetCellBool(int index) => cells[index] > 0 && map.fogGrid.IsFogged(index) == false;
+		public bool GetCellBool(int index) => cells[index] > 0 && map.fogGrid.IsFogged(index) == false || DebugViewSettings.drawFog == false;
 		public Color GetCellExtraColor(int index) => color.ToTransparent(Mathf.Cos(pi_half * Mathf.Pow(cells[index] - 1, 3))); // https://www.desmos.com/calculator/hnvwykal4v
 		public void SetDirty() => debouncer.Run(drawer.SetDirty);
 
@@ -349,77 +405,47 @@ namespace ZombieLand
 				contaminationMaterials[i] = SolidColorMaterials.NewSolidColorMaterial(Color.green.ToTransparent(i / 99f), ShaderDatabase.MoteGlow);
 		}
 
-		public static float GetContamination(this Thing thing) => ContaminationManager.Instance.Get(thing);
-		public static ContaminationGrid GetContamination(this Map map) => ContaminationManager.Instance.grounds[map.Index];
+		public static float GetContamination(this Thing thing, bool includeHoldings = false)
+			=> ContaminationManager.Instance.Get(thing, includeHoldings);
+
+		public static float GetEffectiveness(this Thing thing)
+			=> Mathf.Max(0.05f, 1 - ContaminationManager.Instance.Get(thing, false) * ZombieSettings.Values.contamination.contaminationEffectivenessPercentage);
+
+		public static ContaminationGrid GetContamination(this Map map)
+			=> ContaminationManager.Instance.grounds[map.Index];
+
 		public static float GetContamination(this Map map, IntVec3 cell, bool safeMode = false)
 			=> safeMode == false || cell.InBounds(map) ? ContaminationManager.Instance.grounds[map.Index][cell] : 0;
-		public static void AddContamination(this Map map, IntVec3 cell, float amount)
-		{
-			var grid = ContaminationManager.Instance.grounds[map.Index];
-			grid[cell] = Mathf.Min(1, grid[cell] + amount);
-		}
-		public static float ExtractContamination(this Map map, IntVec3 cell, bool safeMode = false)
-		{
-			if (safeMode && cell.InBounds(map) == false)
-				return 0;
-			var grid = ContaminationManager.Instance.grounds[map.Index];
-			var contamination = grid[cell];
-			grid[cell] = 0;
-			return contamination;
-		}
+
+		public static void SetContamination(this Thing thing, float value)
+			=> ContaminationManager.Instance.Set(thing, value);
+
 		public static void SetContamination(this Map map, IntVec3 cell, float value, bool safeMode = false)
 		{
 			if (safeMode == false || cell.InBounds(map))
 				ContaminationManager.Instance.grounds[map.Index][cell] = value;
 		}
-		public static float[] GetContaminationCells(this Map map) => ContaminationManager.Instance.grounds[map.Index].cells;
-		public static CellBoolDrawer GetContaminationDrawer(this Map map) => ContaminationManager.Instance.grounds[map.Index].drawer;
-		public static float Equalize(this float factor, LocalTargetInfo info1, LocalTargetInfo info2, Action runIfContaminated = null, bool includeHoldings1 = true, bool includeHoldings2 = true)
-			=> ContaminationManager.Instance.Equalize(info1, info2, factor, runIfContaminated, includeHoldings1, includeHoldings2);
-		public static void AddContamination(this Thing thing, float val, Action runIfContaminated, float factor = 1f)
+
+		public static CellBoolDrawer GetContaminationDrawer(this Map map)
+			=> ContaminationManager.Instance.grounds[map.Index].drawer;
+
+		public static float Equalize(this float factor, LocalTargetInfo info1, LocalTargetInfo info2, bool includeHoldings1 = true, bool includeHoldings2 = true)
+			=> ContaminationManager.Instance.Equalize(info1, info2, factor, includeHoldings1, includeHoldings2);
+
+		public static void AddContamination(this Thing thing, float val, float factor = 1f)
 		{
 			if (val <= 0)
 				return;
-#pragma warning disable CS0162 // Unreachable code detected
-			if (ContaminationManager.LOGGING)
-				Log.Message($"add {thing} {val} [{factor}x]");
-#pragma warning restore CS0162 // Unreachable code detected
 			ContaminationManager.Instance.Add(thing, val * factor);
-			runIfContaminated?.Invoke();
-		}
-		public static void AddContamination(this IReadOnlyCollection<Thing> things, float val, Action runIfContaminated, float factor = 1f)
-		{
-			if (val <= 0)
-				return;
-			var manager = ContaminationManager.Instance;
-			foreach (var thing in things)
-			{
-#pragma warning disable CS0162 // Unreachable code detected
-				if (ContaminationManager.LOGGING)
-					Log.Message($"add {thing} {val} [{factor}x]");
-#pragma warning restore CS0162 // Unreachable code detected
-				manager.Add(thing, val * factor);
-			}
-			runIfContaminated?.Invoke();
-		}
-		public static float SubtractContamination(this Thing thing, float val)
-		{
-#pragma warning disable CS0162 // Unreachable code detected
-			if (ContaminationManager.LOGGING)
-				Log.Message($"subtract {thing} {val}");
-#pragma warning restore CS0162 // Unreachable code detected
-			return ContaminationManager.Instance.Subtract(thing, val);
-		}
-		public static void ClearContamination(this Thing thing)
-		{
-#pragma warning disable CS0162 // Unreachable code detected
-			if (ContaminationManager.LOGGING)
-				Log.Message($"clear {thing}");
-#pragma warning restore CS0162 // Unreachable code detected
-			ContaminationManager.Instance.Remove(thing);
 		}
 
-		public static void Transfer(this ContaminationManager contamination, Thing from, float factor, Thing[] toArray, Action runIfContaminated)
+		public static float SubtractContamination(this Thing thing, float val)
+			=> ContaminationManager.Instance.Subtract(thing, val);
+
+		public static void ClearContamination(this Thing thing)
+			=> ContaminationManager.Instance.Remove(thing);
+
+		public static void Transfer(this ContaminationManager contamination, Thing from, float factor, Thing[] toArray)
 		{
 			var value = contamination.Get(from);
 			var subtracted = contamination.Subtract(from, value * factor);
@@ -431,25 +457,20 @@ namespace ZombieLand
 			var delta = subtracted / n;
 			for (var j = 0; j < n; j++)
 				contamination.Add(toArray[j], delta);
-#pragma warning disable CS0162 // Unreachable code detected
-			if (ContaminationManager.LOGGING)
-				Log.Message($"{from} --({delta}{(n == 1 ? "" : " each")})--> {toArray.Join(t => $"{t}")}");
-#pragma warning restore CS0162 // Unreachable code detected
-			runIfContaminated?.Invoke();
 		}
 
-		public static void TransferContamination(this Thing from, float factor, Action runIfContaminated, params Thing[] toArray)
-			=> ContaminationManager.Instance.Transfer(from, factor, toArray, runIfContaminated);
+		public static void TransferContamination(this Thing from, float factor, params Thing[] toArray)
+			=> ContaminationManager.Instance.Transfer(from, factor, toArray);
 
-		public static void TransferContamination(this Thing from, Thing to, Action runIfContaminated)
-			=> from.TransferContamination(1f, runIfContaminated, to);
+		public static void TransferContamination(this Thing from, Thing to)
+			=> from.TransferContamination(1f, to);
 
-		public static void TransferContamination(this IReadOnlyList<Thing> fromArray, float factor, Action runIfContaminated, params Thing[] toArray)
+		public static void TransferContamination(this IReadOnlyList<Thing> fromArray, float factor, params Thing[] toArray)
 		{
 			var fromCount = fromArray.Count;
 			var contamination = ContaminationManager.Instance;
 			for (var i = 0; i < fromCount; i++)
-				contamination.Transfer(fromArray[i], factor, toArray, runIfContaminated);
+				contamination.Transfer(fromArray[i], factor, toArray);
 		}
 
 		public static void ContaminationGridUpdate(this Map map)
@@ -459,6 +480,5 @@ namespace ZombieLand
 			drawer.MarkForDraw();
 			ContaminationManager.Instance.DrawerUpdate();
 		}
-
 	}
 }

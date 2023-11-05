@@ -51,16 +51,16 @@ namespace ZombieLand
 				// Contamination
 				list.Dialog_Label("ZombielandContaminationTitle", headerColor);
 				list.Gap(6f);
-				var contaminationEnabled = Constants.CONTAMINATION > 0;
+				var contaminationEnabled = Constants.CONTAMINATION;
 				list.Dialog_Checkbox("ContaminationEnabled", ref contaminationEnabled);
-				if (contaminationEnabled != Constants.CONTAMINATION > 0)
+				if (contaminationEnabled != Constants.CONTAMINATION)
 				{
-					Constants.CONTAMINATION = contaminationEnabled ? 1 : 0;
+					Constants.CONTAMINATION = contaminationEnabled;
 					var dict = Constants.Current();
 					Constants.Save(dict);
 					Find.WindowStack.Add(new Dialog_MessageBox("ZombielandRestartRequired".Translate(), "OK".Translate()));
 				}
-				if (Constants.CONTAMINATION > 0 && DialogExtensions.Section<string>(":ZombielandContaminationTitle", ":ZombielandContamination"))
+				if (Constants.CONTAMINATION && DialogExtensions.Section<string>(":ZombielandContaminationTitle", ":ZombielandContamination"))
 				{
 					list.Gap(4f);
 					var oldValue = settings.contaminationBaseFactor;

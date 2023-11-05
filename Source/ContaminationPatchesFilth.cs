@@ -12,13 +12,19 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Pawn_FilthTracker), nameof(Pawn_FilthTracker.Notify_EnteredNewCell))]
 	static class Pawn_FilthTracker_Notify_EnteredNewCell_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(Pawn_FilthTracker __instance) => Filth_MakeThing_Patch.filthSource = __instance.pawn;
 		static void Postfix(Pawn_FilthTracker __instance)
 		{
 			var pawn = __instance.pawn;
-			ZombieSettings.Values.contamination.enterCellEqualize.Equalize(pawn, pawn.Position);
+			var pawnContamination = pawn.GetContamination(includeHoldings: true);
+			var cellContamination = pawn.Map.GetContamination(pawn.Position);
+			var delta = cellContamination * ZombieSettings.Values.contamination.cellFactor - pawnContamination;
+			if (delta > 0)
+				pawn.AddContamination(delta, ZombieSettings.Values.contamination.enterCellAdd);
+			else
+				ZombieSettings.Values.contamination.enterCellLoose.Equalize(pawn, pawn.Position);
 			Filth_MakeThing_Patch.filthSource = null;
 		}
 	}
@@ -26,7 +32,7 @@ namespace ZombieLand
 	[HarmonyPatch]
 	static class JobDriver_CleanFilth_MakeNewToils_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static MethodBase TargetMethod()
 		{
@@ -37,7 +43,7 @@ namespace ZombieLand
 
 		static void ThinFilth(Filth filth, JobDriver_CleanFilth jobDriver)
 		{
-			filth.TransferContamination(ZombieSettings.Values.contamination.filthTransfer, null/*() => Log.Warning($"{jobDriver.pawn} cleaned {filth}")*/, jobDriver.pawn);
+			filth.TransferContamination(ZombieSettings.Values.contamination.filthTransfer, jobDriver.pawn);
 			filth.ThinFilth();
 		}
 
@@ -48,7 +54,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(CompSpawnerFilth), nameof(CompSpawnerFilth.TrySpawnFilth))]
 	static class CompSpawnerFilth_TrySpawnFilth_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(CompSpawnerFilth __instance) => Filth_MakeThing_Patch.filthSource = __instance.parent;
 		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
@@ -58,7 +64,7 @@ namespace ZombieLand
 	[HarmonyPatch(new[] { typeof(Thing), typeof(Map), typeof(DestroyMode), typeof(CellRect), typeof(Predicate<IntVec3>), typeof(List<Thing>) })]
 	static class GenLeaving_DoLeavingsFor_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(Thing diedThing, ref List<Thing> listOfLeavingsOut)
 		{
@@ -71,7 +77,7 @@ namespace ZombieLand
 			if (listOfLeavingsOut.Any())
 			{
 				var leavingsArray = listOfLeavingsOut.ToArray();
-				diedThing.TransferContamination(ZombieSettings.Values.contamination.leavingsTransfer, null/*() => Log.Warning($"Produce {leavingsArray.Join(t => $"{t}")} from {diedThing}")*/, leavingsArray);
+				diedThing.TransferContamination(ZombieSettings.Values.contamination.leavingsTransfer, leavingsArray);
 			}
 		}
 	}
@@ -79,7 +85,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Thing), nameof(Thing.TakeDamage))]
 	static class Thing_TakeDamage_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(Thing __instance) => Filth_MakeThing_Patch.filthSource = __instance;
 		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
@@ -88,7 +94,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(HediffComp_DissolveGearOnDeath), nameof(HediffComp_DissolveGearOnDeath.Notify_PawnKilled))]
 	static class HediffComp_DissolveGearOnDeath_Notify_PawnKilled_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(HediffComp_DissolveGearOnDeath __instance) => Filth_MakeThing_Patch.filthSource = __instance.Pawn;
 		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
@@ -97,7 +103,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Projectile_Liquid), nameof(Projectile_Liquid.DoImpact))]
 	static class Projectile_Liquid_DoImpact_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(Thing hitThing) => Filth_MakeThing_Patch.filthSource = hitThing;
 		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
@@ -106,7 +112,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(TunnelHiveSpawner), nameof(TunnelHiveSpawner.Tick))]
 	static class TunnelHiveSpawner_Tick_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(TunnelHiveSpawner __instance)
 		{
@@ -123,7 +129,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(DamageWorker_Flame), nameof(DamageWorker_Flame.Apply))]
 	static class DamageWorker_Flame_Apply_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(Thing victim) => Filth_MakeThing_Patch.filthSource = victim;
 		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
@@ -132,17 +138,17 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Verse.Explosion), nameof(Verse.Explosion.TrySpawnExplosionThing))]
 	static class Verse_Explosion_TrySpawnExplosionThing_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(Verse.Explosion __instance)
-			=> Filth_MakeThing_Patch.filthSource = __instance.damagedThings.OrderBy(t => t.GetContamination()).LastOrDefault();
+			=> Filth_MakeThing_Patch.filthSource = __instance.damagedThings.OrderBy(t => t.GetContamination(includeHoldings: true)).LastOrDefault();
 		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
 	}
 
 	[HarmonyPatch(typeof(RoofCollapserImmediate), nameof(RoofCollapserImmediate.DropRoofInCellPhaseTwo))]
 	static class RoofCollapserImmediate_DropRoofInCellPhaseTwo_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(IntVec3 c, Map map) => Filth_MakeThing_Patch.filthCell = new TargetInfo(c, map);
 		static void Postfix() => Filth_MakeThing_Patch.filthCell = null;
@@ -153,7 +159,7 @@ namespace ZombieLand
 	{
 		static readonly MethodInfo m_TryMakeFilth = SymbolExtensions.GetMethodInfo(() => FilthMaker.TryMakeFilth(IntVec3.Invalid, default, ThingDefOf.Filth_Vomit, "", 0, FilthSourceFlags.Any));
 
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(JobDriver_Vomit __instance) => Filth_MakeThing_Patch.filthSource = __instance.pawn;
 		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
@@ -167,7 +173,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(PregnancyUtility), nameof(PregnancyUtility.SpawnBirthFilth))]
 	static class PregnancyUtility_SpawnBirthFilth_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(Pawn mother) => Filth_MakeThing_Patch.filthSource = mother;
 		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
@@ -176,7 +182,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Corpse), nameof(Corpse.ButcherProducts))]
 	static class Corpse_ButcherProducts_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static IEnumerable<Thing> Postfix(IEnumerable<Thing> things, Corpse __instance)
 		{
@@ -192,7 +198,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Pawn_HealthTracker), nameof(Pawn_HealthTracker.DropBloodFilth))]
 	static class Pawn_HealthTracker_DropBloodFilth_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(Pawn_HealthTracker __instance) => Filth_MakeThing_Patch.filthSource = __instance.pawn;
 		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
@@ -204,7 +210,7 @@ namespace ZombieLand
 		public static TargetInfo filthCell = null;
 		public static Thing filthSource = null;
 
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static IEnumerable<MethodBase> TargetMethods()
 		{
@@ -225,13 +231,13 @@ namespace ZombieLand
 				{
 					var oldMapIndex = newThing.mapIndexOrState;
 					newThing.mapIndexOrState = (sbyte)filthCell.mapInt.Index;
-					ZombieSettings.Values.contamination.filthEqualize.Equalize((LocalTargetInfo)filthCell, newThing, null/*() => Log.Warning($"Gained {newThing} from {filthCell}")*/);
+					ZombieSettings.Values.contamination.filthEqualize.Equalize((LocalTargetInfo)filthCell, newThing);
 					newThing.mapIndexOrState = oldMapIndex;
 				}
 				if (filthSource != null)
 				{
 					var factor = nastyFilths.Contains(filthSource.def) ? ZombieSettings.Values.contamination.bloodEqualize : ZombieSettings.Values.contamination.filthEqualize;
-					factor.Equalize(filthSource, newThing, null/*() => Log.Warning($"Gained {newThing} from {filthSource}")*/);
+					newThing.AddContamination(filthSource.GetContamination(includeHoldings: true), ZombieSettings.Values.contamination.filthGain);
 				}
 			}
 			return newThing;

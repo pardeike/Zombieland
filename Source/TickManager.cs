@@ -109,7 +109,7 @@ namespace ZombieLand
 		public List<SoSTools.Floater> floatingSpaceZombiesFore;
 
 		public List<VictimHead> victimHeads = new();
-		public ContaminationEffectManager contaminationEffects = Constants.CONTAMINATION > 1 ? new() : null;
+		public ContaminationEffectManager contaminationEffects = Constants.CONTAMINATION ? new() : null;
 
 		public int lastZombieContact = 0;
 		public int lastZombieSpitter = 0;
@@ -260,6 +260,7 @@ namespace ZombieLand
 				var mat = new Material(head.material);
 				mat.color = new Color(mat.color.r, mat.color.g, mat.color.b, head.alpha);
 				GraphicToolbox.DrawScaledMesh(headMesh, mat, head.Position, head.quat, 0.7f, 0.7f);
+				UnityEngine.Object.Destroy(mat);
 			}
 		}
 
@@ -622,7 +623,10 @@ namespace ZombieLand
 			var heads = victimHeads.ToArray();
 			foreach (var head in heads)
 				if (head.Tick())
+				{
+					head.Cleanup();
 					_ = victimHeads.Remove(head);
+				}
 		}
 
 		public void AddExplosion(IntVec3 pos)
@@ -720,7 +724,7 @@ namespace ZombieLand
 				yield return null;
 				RepositionColonists();
 				yield return null;
-				if (Constants.CONTAMINATION > 1)
+				if (Constants.CONTAMINATION)
 				{
 					contaminationEffects.Tick();
 					yield return null;

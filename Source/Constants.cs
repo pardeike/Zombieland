@@ -74,7 +74,8 @@ namespace ZombieLand
 				}
 			}
 			Save(settings);
-			Apply(settings);
+			if (Apply(settings))
+				Save(settings);
 		}
 
 		// grid debugging
@@ -95,8 +96,8 @@ namespace ZombieLand
 		public static int MAX_CELLS_FOR_DETAILED_CONTAMINATION = 6400;
 
 		// contamination
-		[Constant(1, "Contamination (0=off, 1=basic, 2=development)")]
-		public static int CONTAMINATION = 1;
+		[Constant(2, "Enable to play with contamination")]
+		public static bool CONTAMINATION = true;
 
 		// general debugging/testing
 		//
@@ -351,6 +352,15 @@ namespace ZombieLand
 		public static readonly Texture2D healthBarFrame = SolidColorMaterials.NewSolidColorTexture(Color.black);
 		public static readonly Color healthBarBG = new(1, 1, 1, 0.25f);
 
+		public static readonly Texture2D[] thingIconTextures = new[]
+		{
+			SolidColorMaterials.NewSolidColorTexture(new Color(0, 1, 0, 0f).ToTransparent(0.5f)),
+			SolidColorMaterials.NewSolidColorTexture(new Color(0, 1, 0, 0.25f).ToTransparent(0.5f)),
+			SolidColorMaterials.NewSolidColorTexture(new Color(0, 1, 0, 0.5f).ToTransparent(0.5f)),
+			SolidColorMaterials.NewSolidColorTexture(new Color(0, 1, 0, 0.75f).ToTransparent(0.5f)),
+			SolidColorMaterials.NewSolidColorTexture(new Color(0, 1, 0, 1f).ToTransparent(0.5f))
+		};
+
 		public static Texture2D zoneZombie = ContentFinder<Texture2D>.Get("ZoneZombie", true);
 		public static Texture2D blood = ContentFinder<Texture2D>.Get("Blood", true);
 
@@ -419,36 +429,57 @@ namespace ZombieLand
 			var serializer = new JsonSerializer();
 			using var writer = new StreamWriter(SettingsFilePath);
 			using var jsonWriter = new JsonTextWriter(writer);
+			jsonWriter.Indentation = 1;
+			jsonWriter.IndentChar = '\t';
+			jsonWriter.Formatting = Formatting.Indented;
 			serializer.Serialize(jsonWriter, dict);
 		}
 
-		public static void Apply(Dictionary<string, VersionedValue> dict)
+		public static bool Apply(Dictionary<string, VersionedValue> dict)
 		{
 			var trv = Traverse.Create(typeof(Constants));
-			foreach (var info in dict)
+			var needsSave = false;
+			var keys = dict.Keys.ToList();
+			foreach (var key in keys)
 			{
-				var value = info.Value.value;
+				var field = trv.Field(key);
+				var info = dict[key];
+				var value = info.value;
+
+				var valueVersion = info.version;
+				var fieldVersion = AccessTools.Field(typeof(Constants), key).GetCustomAttribute<ConstantAttribute>().Version;
+				if (valueVersion != fieldVersion)
+				{
+					needsSave = true;
+					value = field.GetValue();
+					dict[key] = new VersionedValue() { version = fieldVersion, value = value };
+					continue;
+				}
+
 				if (value is double doubleValue)
 					value = (float)doubleValue;
 				if (value is long longValue)
 					value = (int)longValue;
+
 				if (value is JArray jArray)
 				{
-					var type = trv.Field(info.Key).GetValueType().GetElementType();
+					var type = field.GetValueType().GetElementType();
 					if (type == typeof(int))
 						value = jArray.Select(jToken => (int)jToken).ToArray();
 					if (type == typeof(float))
 						value = jArray.Select(jToken => (float)jToken).ToArray();
 				}
+
 				try
 				{
-					_ = trv.Field(info.Key).SetValue(value);
+					_ = field.SetValue(value);
 				}
 				catch (Exception ex)
 				{
-					Log.Error($"Ex: {info.Key}:{info.Value.value} => {ex.Message}");
+					Log.Error($"Ex: {key}:{info.value} => {ex.Message}");
 				}
 			}
+			return needsSave;
 		}
 	}
 }

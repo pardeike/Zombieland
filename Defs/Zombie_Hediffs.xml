@@ -43,10 +43,10 @@
 	</HediffDef>
 
 	<HediffDef ParentName="DiseaseBase">
-		<defName>Contamination</defName>
+		<defName>ContaminationEffect</defName>
 		<label>contamination</label>
 		<labelNoun>contamination</labelNoun>
-		<description>Zombie contamination in the brain and mind. Caused by touching and being exposed by contaminated things and places. This effect is terminal and does not wear off.</description>
+		<description>Zombie contamination in the brain and mind. Caused by touching and being exposed by contaminated things and places. It will increasingly affect overall effectiveness and will cause strange side effects. At 100% death will occur.</description>
 		<descriptionShort>Zombie contamination in the brain and mind.</descriptionShort>
 		<hediffClass>ZombieLand.Hediff_Contamination</hediffClass>
 		<defaultLabelColor>(0,0.75,0)</defaultLabelColor>
@@ -66,7 +66,7 @@
 				<capMods>
 					<li>
 						<capacity>Consciousness</capacity>
-						<offset>-0.05</offset>
+						<offset>-0.01</offset>
 					</li>
 					<li>
 						<capacity>Metabolism</capacity>
@@ -89,7 +89,7 @@
 				<capMods>
 					<li>
 						<capacity>Consciousness</capacity>
-						<offset>-0.1</offset>
+						<offset>-0.025</offset>
 					</li>
 					<li>
 						<capacity>Metabolism</capacity>
@@ -113,7 +113,7 @@
 				<capMods>
 					<li>
 						<capacity>Consciousness</capacity>
-						<offset>-0.15</offset>
+						<offset>-0.05</offset>
 					</li>
 					<li>
 						<capacity>Metabolism</capacity>
@@ -142,7 +142,7 @@
 				<capMods>
 					<li>
 						<capacity>Consciousness</capacity>
-						<offset>-0.2</offset>
+						<offset>-0.1</offset>
 					</li>
 					<li>
 						<capacity>Metabolism</capacity>
@@ -176,7 +176,7 @@
 				<capMods>
 					<li>
 						<capacity>Consciousness</capacity>
-						<offset>-0.3</offset>
+						<offset>-0.2</offset>
 					</li>
 					<li>
 						<capacity>Metabolism</capacity>
@@ -209,7 +209,7 @@
 				<capMods>
 					<li>
 						<capacity>Consciousness</capacity>
-						<offset>-0.5</offset>
+						<offset>-0.3</offset>
 					</li>
 					<li>
 						<capacity>Metabolism</capacity>
@@ -233,7 +233,7 @@
 				</statOffsets>
 			</li>
 			<li>
-				<minSeverity>0.9999</minSeverity>
+				<minSeverity>1</minSeverity>
 				<label>deadly</label>
 				<lifeThreatening>true</lifeThreatening>
 				<capMods>
@@ -246,8 +246,6 @@
 						<offset>-1</offset>
 					</li>
 				</capMods>
-				<deathMtbDays>0.0000000001</deathMtbDays>
-				<totalBleedFactor>10000</totalBleedFactor>
 			</li>
 		</stages>
 	</HediffDef>

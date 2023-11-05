@@ -15,7 +15,7 @@ namespace ZombieLand
 			manager.contaminations ??= new();
 			try
 			{
-				if (Constants.CONTAMINATION > 0)
+				if (Constants.CONTAMINATION)
 				{
 					if (Scribe.mode == LoadSaveMode.Saving)
 					{
@@ -72,7 +72,7 @@ namespace ZombieLand
 
 			try
 			{
-				if (Constants.CONTAMINATION > 0)
+				if (Constants.CONTAMINATION)
 				{
 					if (Scribe.mode == LoadSaveMode.Saving)
 					{
@@ -117,6 +117,10 @@ namespace ZombieLand
 						}
 					}
 				}
+			}
+			catch (Exception e)
+			{
+				Log.Error($"Error while serializing contamination: {e}");
 			}
 			finally
 			{

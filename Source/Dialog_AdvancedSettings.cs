@@ -170,7 +170,7 @@ namespace ZombieLand
 
 			if (list.ButtonText("Reset".SafeTranslate()))
 			{
-				Constants.Apply(Constants.defaultValues);
+				_ = Constants.Apply(Constants.defaultValues);
 				scrollPosition = Vector2.zero;
 			}
 

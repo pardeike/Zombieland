@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
+using RimWorld.Planet;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -15,7 +16,7 @@ namespace ZombieLand
 	{
 		static void Postfix(NeedDef nd, ref bool __result)
 		{
-			if (nd == CustomDefs.Contamination && Constants.CONTAMINATION == 0)
+			if (nd == CustomDefs.Contamination && Constants.CONTAMINATION == false)
 				__result = false;
 		}
 	}
@@ -24,12 +25,18 @@ namespace ZombieLand
 	[HarmonyPatch(nameof(Game.FinalizeInit))]
 	static class Game_FinalizeInit_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Postfix()
 		{
 			ContaminationManager.Instance.FixGrounds();
 		}
+	}
+
+	[HarmonyPatch(typeof(WorldGenerator), nameof(WorldGenerator.GenerateWorld))]
+	public static class WorldGenerator_GenerateWorld_Patch
+	{
+		public static void Postfix() => ContaminationManager.Reset();
 	}
 
 	[HarmonyPatch(typeof(ThingMaker), nameof(ThingMaker.MakeThing))]
@@ -50,7 +57,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Thing), nameof(Thing.Destroy))]
 	static class Thing_Destroy_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(Thing __instance, out int __state)
 		{
@@ -74,7 +81,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(Thing), nameof(Thing.SpecialDisplayStats))]
 	static class Thing_SpecialDisplayStats_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static IEnumerable<StatDrawEntry> Postfix(IEnumerable<StatDrawEntry> entries, Thing __instance)
 		{
@@ -94,25 +101,25 @@ namespace ZombieLand
 	[HarmonyPatch(new[] { typeof(Rect), typeof(Thing), typeof(float), typeof(Rot4?), typeof(bool) })]
 	static class Widgets_ThingIcon_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Prefix(Rect rect, Thing thing, float alpha)
 		{
 			var contamination = thing.GetContamination();
 			if (contamination == 0)
 				return;
-			var color = new Color(0, 1, 0, alpha);
-			Tools.DrawBorderRect(rect, color.ToTransparent(0.5f));
+			var texture = Constants.thingIconTextures[Mathf.FloorToInt(alpha * 4f + 0.2f)];
+			Tools.DrawBorderRect(rect, texture);
 			rect = rect.ExpandedBy(-1, -1);
 			rect.yMin = rect.yMax - rect.height * Tools.Boxed(contamination, 0, 1);
-			Widgets.DrawBoxSolid(rect, color.ToTransparent(0.25f));
+			Widgets.DrawBoxSolid(rect, new Color(0, 1, 0, alpha).ToTransparent(0.25f));
 		}
 	}
 
 	[HarmonyPatch(typeof(MainTabWindow_Quests), nameof(MainTabWindow_Quests.DoRow))]
 	static class MainTabWindow_Quests_DoRow_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static int Max(int a, int b, Quest quest)
 		{
@@ -128,7 +135,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(PlaySettings), nameof(PlaySettings.DoPlaySettingsGlobalControls))]
 	static class PlaySettings_DoPlaySettingsGlobalControls_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static void Postfix(WidgetRow row, bool worldView)
 		{
@@ -143,7 +150,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(MouseoverReadout), nameof(MouseoverReadout.MouseoverReadoutOnGUI))]
 	static class MouseoverReadout_MouseoverReadoutOnGUI_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static string GetGlowLabelByValue(float value, IntVec3 cell)
 		{
@@ -195,7 +202,7 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(InspectPaneUtility), nameof(InspectPaneUtility.PaneWidthFor))]
 	static class InspectPaneUtility_PaneWidthFor_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		[HarmonyPriority(Priority.Last)]
 		static void Postfix(ref float __result, IInspectPane pane, bool __runOriginal)
@@ -208,15 +215,18 @@ namespace ZombieLand
 	[HarmonyPatch(typeof(InspectPaneFiller), nameof(InspectPaneFiller.DoPaneContentsFor))]
 	static class InspectPaneFiller_DoPaneContentsFor_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
-		static void DrawHealth(WidgetRow row, Thing t)
+		static void DrawHealth(WidgetRow row, Thing t, Pawn pawn)
 		{
 			InspectPaneFiller.DrawHealth(row, t);
 
 			var contamination = t.GetContamination();
 			if (contamination == 0)
-				contamination = t.Map.GetContamination(t.Position, true);
+			{
+				var map = t.Map ?? pawn?.Map;
+				contamination = map?.GetContamination(t.Position, true) ?? 0;
+			}
 
 			GUI.color = Color.gray;
 			if (contamination > 0.2f)
@@ -235,15 +245,19 @@ namespace ZombieLand
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 		{
 			var from = SymbolExtensions.GetMethodInfo(() => InspectPaneFiller.DrawHealth(default, default));
-			var to = SymbolExtensions.GetMethodInfo(() => DrawHealth(default, default));
-			return instructions.MethodReplacer(from, to);
+			var to = SymbolExtensions.GetMethodInfo(() => DrawHealth(default, default, default));
+			return new CodeMatcher(instructions)
+				.MatchStartForward(new CodeMatch(CodeInstruction.Call(() => InspectPaneFiller.DrawHealth(default, default))))
+				.InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_2))
+				.SetOperandAndAdvance(to)
+				.InstructionEnumeration();
 		}
 	}
 
 	[HarmonyPatch(typeof(BeautyDrawer), nameof(BeautyDrawer.DrawBeautyAroundMouse))]
 	static class BeautyDrawer_DrawBeautyAroundMouse_Patch
 	{
-		static bool Prepare() => Constants.CONTAMINATION > 0;
+		static bool Prepare() => Constants.CONTAMINATION;
 
 		static bool Prefix()
 		{
@@ -257,7 +271,7 @@ namespace ZombieLand
 			for (var i = 0; i < BeautyUtility.SampleNumCells_Beauty; i++)
 			{
 				var cell = mouseCell + GenRadial.RadialPattern[i];
-				if (cell.InBounds(map) && !cell.Fogged(map))
+				if (cell.InBounds(map) && (!cell.Fogged(map) || DebugViewSettings.drawFog == false))
 				{
 					var cellThings = map.thingGrid.ThingsListAtFast(cell).Where(t => t is not Mote).ToArray();
 

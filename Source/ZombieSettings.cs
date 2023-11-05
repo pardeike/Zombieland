@@ -452,6 +452,10 @@ namespace ZombieLand
 			{
 				if (ValuesOverTime == null || ValuesOverTime.Count == 0)
 					ValuesOverTime = new List<SettingsKeyFrame> { new() { amount = 0, unit = SettingsKeyFrame.Unit.Days, values = Values } };
+
+				var ticks = Mathf.Clamp(GenTicks.TicksGame, 0, ValuesOverTime.Last().Ticks);
+				var settings = CalculateInterpolation(ValuesOverTime, ticks);
+				ContaminationFactors.ApplyBaseFactor(settings.contamination, settings.contaminationBaseFactor);
 			}
 		}
 	}

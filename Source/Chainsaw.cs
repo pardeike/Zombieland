@@ -357,18 +357,7 @@ namespace ZombieLand
 			var head = victim?.health.hediffSet.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined, null, null).FirstOrDefault((BodyPartRecord x) => x.def == BodyPartDefOf.Head);
 			if (head != null)
 			{
-				var mat = GetHead(victim);
-				var pos = victim.DrawPos;
-				pos.y = Altitudes.AltitudeFor(AltitudeLayer.MoteOverhead);
-				victim.Map?.GetComponent<TickManager>()?.victimHeads.Add(new VictimHead()
-				{
-					t = 0,
-					material = mat,
-					alpha = 1f,
-					position = pos,
-					quat = Quaternion.AngleAxis(victim.Rotation.AsAngle, Vector3.up),
-					rotAngle = Rand.Range(-10f, 10f)
-				});
+				victim.Map?.GetComponent<TickManager>()?.victimHeads.Add(new VictimHead(victim));
 
 				var part2 = (Hediff_MissingPart)HediffMaker.MakeHediff(HediffDefOf.MissingBodyPart, victim, null);
 				part2.IsFresh = true;
@@ -376,30 +365,18 @@ namespace ZombieLand
 				part2.Part = head;
 				victim.health.hediffSet.AddDirect(part2, null, null);
 			}
+
 			CustomDefs.Crush.PlayOneShot(SoundInfo.InMap(victim));
 			_ = FilthMaker.TryMakeFilth(victim.Position, victim.Map, ThingDefOf.Human.race.BloodDef, 4, FilthSourceFlags.None, true);
 			victim.Kill(null);
+
 			if (Damage(1))
 				return;
+
 			if (victim is not Zombie zombie)
 				Drop(victim.RaceProps.IsMechanoid);
 			else if (zombie.IsTanky)
 				Drop(true);
-		}
-
-		static Material GetHead(Pawn victim)
-		{
-			var renderTexture = RenderTexture.GetTemporary(128, 128, 32, RenderTextureFormat.ARGB32);
-			Find.PawnCacheRenderer.RenderPawn(victim, renderTexture, new Vector3(0, 0, 0.4f), 1.75f, 0f, Rot4.South, true, false, true, false, true, default, null, null, false);
-			Graphics.Blit(Constants.blood, renderTexture, MaterialPool.MatFrom(ShaderDatabase.Wound));
-			var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false) { name = "Chainsaw Victim Head" };
-			RenderTexture.active = renderTexture;
-			texture.ReadPixels(new Rect(0f, 0f, renderTexture.width, renderTexture.height), 0, 0);
-			texture.Apply();
-			RenderTexture.active = null;
-			RenderTexture.ReleaseTemporary(renderTexture);
-
-			return MaterialPool.MatFrom(new MaterialRequest(texture, ShaderDatabase.Mote, Color.white));
 		}
 	}
 }

@@ -20,7 +20,7 @@ namespace ZombieLand
 				if (DebugSettings.ShowDevGizmos == false)
 					return;
 				pawn.ClearContamination();
-				pawn.AddContamination(value, null);
+				pawn.AddContamination(value);
 			}
 		}
 

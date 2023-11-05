@@ -327,8 +327,6 @@ namespace ZombieLand
 			// Drawer.renderer.graphics.beardGraphic.UnCache();
 
 			GlobalTextureAtlasManager.TryMarkPawnFrameSetDirty(this);
-
-			// Log.Warning($"### cleanup {LabelShortCap} @ {Position.x}x{Position.z}");
 		}
 
 		public void Unrope()
