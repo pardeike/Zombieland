@@ -13,9 +13,22 @@ namespace ZombieLand
 {
 	public static class ZombieAreaManager
 	{
+		public static Map lastMap = null;
 		public static Dictionary<Pawn, Area> pawnsInDanger = new();
 		public static bool warningShowing = false;
 		public static IEnumerator stateUpdater = StateUpdater();
+
+		static Zombie[] AllZombies(Map map)
+		{
+			try
+			{
+				return map.GetComponent<TickManager>().allZombiesCached.ToArray();
+			}
+			catch (Exception)
+			{
+				return new Zombie[0];
+			}
+		}
 
 		static IEnumerator StateUpdater()
 		{
@@ -26,9 +39,18 @@ namespace ZombieLand
 				if (map == null)
 					continue;
 
+				if (lastMap != map)
+				{
+					lastMap = map;
+					pawnsInDanger.Clear();
+				}
+
 				var areas = ZombieSettings.Values.dangerousAreas.Where(pair => pair.Key.Map == map && pair.Value != AreaRiskMode.Ignore).ToArray();
 				if (areas.Length == 0)
+				{
+					pawnsInDanger.Clear();
 					continue;
+				}
 
 				var pawns = map.mapPawns.FreeColonistsSpawned.Where(pawn => pawn.InfectionState() < InfectionState.Infecting).ToArray();
 				yield return null;
@@ -58,8 +80,9 @@ namespace ZombieLand
 				if (map == null)
 					continue;
 
-				var zombies = map.GetComponent<TickManager>().allZombiesCached.ToArray();
+				var zombies = AllZombies(map);
 				yield return null;
+
 				for (int zIdx = 0; zIdx < zombies.Length; zIdx++)
 				{
 					var zombie = zombies[zIdx];
@@ -152,7 +175,7 @@ namespace ZombieLand
 						RenderTexture.active = null;
 						RenderTexture.ReleaseTemporary(renderTexture);
 						return tex;
-					});
+					}, UnityEngine.Object.Destroy);
 					headsToDraw.Add((pawn, texture));
 				}
 				else
@@ -465,31 +488,25 @@ namespace ZombieLand
 			};
 		}
 
-		public static AreaRiskMode GetMode(Area area)
-		{
-			if (ZombieSettings.Values.dangerousAreas.TryGetValue(area, out var mode))
-				return mode;
-			return AreaRiskMode.Ignore;
-		}
+		public static AreaRiskMode GetMode(Area area) => ZombieSettings.Values.dangerousAreas.TryGetValue(area, AreaRiskMode.Ignore);
 
 		public static void ZombieMode(Rect rect)
 		{
-			var mode = GetMode(selected);
-			if (Widgets.ButtonText(rect, mode.ToStringHuman()))
+			var currentMode = GetMode(selected);
+			if (Widgets.ButtonText(rect, currentMode.ToStringHuman()))
 			{
 				var options = new List<FloatMenuOption>();
 				foreach (var choice in Enum.GetValues(typeof(AreaRiskMode)))
 				{
-					var localPmode2 = (AreaRiskMode)choice;
-					var localPmode = localPmode2;
-					options.Add(new FloatMenuOption(localPmode.ToStringHuman(), delegate ()
+					var newMode = (AreaRiskMode)choice;
+					options.Add(new FloatMenuOption(newMode.ToStringHuman(), delegate ()
 					{
-						if (localPmode != mode)
+						if (newMode != currentMode)
 						{
-							if (localPmode == AreaRiskMode.Ignore)
+							if (newMode == AreaRiskMode.Ignore)
 								_ = ZombieSettings.Values.dangerousAreas.Remove(selected);
 							else
-								ZombieSettings.Values.dangerousAreas[selected] = localPmode;
+								ZombieSettings.Values.dangerousAreas[selected] = newMode;
 						}
 					},
 					MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));

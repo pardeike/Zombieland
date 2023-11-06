@@ -3,6 +3,7 @@ using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
+using Verse.AI;
 
 namespace ZombieLand
 {
@@ -33,12 +34,14 @@ namespace ZombieLand
 	{
 		public bool running = true;
 		readonly Map map;
+		readonly PathGrid pathGrid;
 		public Dictionary<Region, int> backpointingRegionsIndices = new();
 		public List<BackpointingRegion> backpointingRegions = new();
 
 		public ZombiePathing(Map map)
 		{
 			this.map = map;
+			pathGrid = map.pathing.For(MapInfo.traverseParms).pathGrid;
 		}
 
 		public IntVec3 GetWanderDestination(IntVec3 cell)
@@ -63,6 +66,8 @@ namespace ZombieLand
 			{
 				if (region == null || region.valid == false || (region.type & RegionType.Set_Passable) == 0)
 					return true;
+				if (region.Cells.Any(pathGrid.WalkableFast) == false)
+					return true;
 				return finalRegionIndices.ContainsKey(region);
 			}
 
@@ -76,7 +81,7 @@ namespace ZombieLand
 			map.regionGrid.allRooms
 				.Where(r => r.IsDoorway == false && r.Fogged == false && r.IsHuge == false && r.ProperRoom)
 				.SelectMany(r => r.Regions)
-				.Where(r => r != null && r.valid)
+				.Where(r => r != null && r.valid && r.Cells.Any(cell => pathGrid.WalkableFast(cell)))
 				.Distinct()
 				.Do(region => Add(region, -1));
 

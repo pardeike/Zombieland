@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -276,9 +277,17 @@ namespace ZombieLand
 		//
 		public static bool ValidDestination(this JobDriver_Stumble driver, Zombie zombie)
 		{
-			// find out if we still need to check for 0,0 as an invalid location
 			if (driver.destination.x == 0 && driver.destination.z == 0)
+			{
 				driver.destination = IntVec3.Invalid;
+				return false;
+			}
+			var pather = zombie.pather;
+			if (pather.curPath == null || pather.curPath.Found == false || pather.curPath.NodesLeftCount == 0)
+			{
+				driver.destination = IntVec3.Invalid;
+				return false;
+			}
 			return zombie.HasValidDestination(driver.destination);
 		}
 
@@ -729,6 +738,8 @@ namespace ZombieLand
 								driver.destination = possibleMoves.First();
 								return;
 							}
+							else
+								style = WanderingStyle.Simple; // use fallback
 						}
 					}
 					if (style == WanderingStyle.Simple)

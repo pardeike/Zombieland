@@ -15,16 +15,16 @@ namespace ZombieLand
 		public static void Init(Harmony harmony)
 		{
 			latePatching = true;
-			_ = new PatchClassProcessor(harmony, typeof(Patch1)).Patch();
-			_ = new PatchClassProcessor(harmony, typeof(Patch2)).Patch();
-			_ = new PatchClassProcessor(harmony, typeof(Patch3)).Patch();
-			_ = new PatchClassProcessor(harmony, typeof(Patch4)).Patch();
+			_ = new PatchClassProcessor(harmony, typeof(CETools_Patch1)).Patch();
+			_ = new PatchClassProcessor(harmony, typeof(CETools_Patch2)).Patch();
+			_ = new PatchClassProcessor(harmony, typeof(CETools_Patch3)).Patch();
+			_ = new PatchClassProcessor(harmony, typeof(CETools_Patch4)).Patch();
 			latePatching = false;
 		}
 	}
 
 	[HarmonyPatch]
-	class Patch1
+	class CETools_Patch1
 	{
 		static bool Prepare() => CETools.latePatching && TargetMethod() != null;
 		static MethodInfo TargetMethod()
@@ -48,7 +48,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class Patch2
+	static class CETools_Patch2
 	{
 		static bool Prepare() => CETools.latePatching && TargetMethod() != null;
 		static MethodBase TargetMethod()
@@ -95,7 +95,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class Patch3
+	static class CETools_Patch3
 	{
 		static bool Prepare() => CETools.latePatching && TargetMethod() != null;
 		static MethodBase TargetMethod()
@@ -152,7 +152,7 @@ namespace ZombieLand
 	}
 
 	[HarmonyPatch]
-	static class Patch4
+	static class CETools_Patch4
 	{
 		static bool Prepare() => CETools.latePatching && TargetMethod() != null;
 		static MethodBase TargetMethod()

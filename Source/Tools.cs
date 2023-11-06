@@ -1188,6 +1188,12 @@ namespace ZombieLand
 			sw.Start();
 		}
 
+		public static void LogSelected(this Zombie zombie, string text)
+		{
+			if (UI.MouseCell() == zombie.Position)
+				Log.Warning($"{zombie.Position.SimplePos()}: {text}");
+		}
+
 		public static string ToHourString(this int ticks, bool relativeToAbsoluteGameTime = true)
 		{
 			var t = relativeToAbsoluteGameTime ? ticks - GenTicks.TicksAbs : ticks;

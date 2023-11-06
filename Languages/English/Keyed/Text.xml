@@ -8,6 +8,19 @@
 	<Difficulty_ZombielandThreatScale_Info>Controls the difficulty of almost all things in Zombieland like zombie abilities, threat forecast and much more.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Zombieland threat scale</Difficulty_ZombielandThreatScale_Label>
 
+	<ZombieSuicideBomber>Suicide bomber zombie</ZombieSuicideBomber>
+	<ZombieToxicSplasher>Toxic splasher zombie</ZombieToxicSplasher>
+	<ZombieTanky>Tank breacher zombie</ZombieTanky>
+	<ZombieMiner>Miner zombie</ZombieMiner>
+	<ZombieElectrifier>Electrifier zombie</ZombieElectrifier>
+	<ZombieAlbino>Albino zombie</ZombieAlbino>
+	<ZombieDarkSlimer>Dark slimer zombie</ZombieDarkSlimer>
+	<ZombieHealer>Healer zombie</ZombieHealer>
+	<ZombieChild>Zombie child</ZombieChild>
+	<ZombieWeak>Weak zombie</ZombieWeak>
+	<ZombieStrong>Strong zombie</ZombieStrong>
+	<ZombieSimple>Simple zombie</ZombieSimple>
+	
 	<LetterLabelZombiesRising>Zombie attack</LetterLabelZombiesRising>
 	<ZombiesRising>A group of zombies appears</ZombiesRising>
 

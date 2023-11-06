@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using UnityEngine;
-using UnityEngine.UIElements.Experimental;
 using Verse;
 using Verse.AI;
 using Verse.Sound;
@@ -52,6 +51,7 @@ namespace ZombieLand
 				AlienTools.Init();
 				VehicleTools.Init();
 				Customization.Init();
+				DubsTools.Init();
 			});
 
 			// for debugging
@@ -1752,14 +1752,18 @@ namespace ZombieLand
 				if (forced || pawn.ActivePartOfColony() == false)
 					return false;
 
+				var map = thing?.Map ?? pawn.Map;
+				if (map == null || thing.Position.InBounds(map) == false)
+					return false;
+
 				if (Tools.ShouldAvoidZombies(pawn) == false)
 					return false;
 
-				var tickManager = pawn.Map?.GetComponent<TickManager>();
+				var tickManager = map.GetComponent<TickManager>();
 				if (tickManager == null)
 					return false;
 
-				return tickManager.avoidGrid.ShouldAvoid(thing.Map, thing.Position);
+				return tickManager.avoidGrid.ShouldAvoid(map, thing.Position);
 			}
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
@@ -1966,6 +1970,9 @@ namespace ZombieLand
 						else
 							idx = -1;
 						_ = builder.AppendLine($"Smart wandering index: {idx}");
+
+						var pathGrid = map.pathing.For(MapInfo.traverseParms).pathGrid;
+						_ = builder.AppendLine($"Smart wandering walkable: {region.Cells.Count(pathGrid.WalkableFast)} of {region.Cells.Count()}");
 					}
 					var destination = pathing.GetWanderDestination(pos);
 					var fromStr = from.IsValid ? from.ToString() : "null";

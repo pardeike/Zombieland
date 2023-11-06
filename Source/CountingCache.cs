@@ -14,17 +14,16 @@ namespace ZombieLand
 			cache = new Dictionary<K, (V, int)>();
 		}
 
-		public V Get(K key, Func<K, V> valueFetcher)
+		public V Get(K key, Func<K, V> valueFetcher, Action<V> clearer)
 		{
-			if (cache.TryGetValue(key, out var cacheEntry))
+			if (cache.TryGetValue(key, out var cacheEntry) && cacheEntry.Count < maxAccessCount)
 			{
-				if (cacheEntry.Count < maxAccessCount)
-				{
-					cache[key] = (cacheEntry.Value, cacheEntry.Count + 1);
-					return cacheEntry.Value;
-				}
+				cache[key] = (cacheEntry.Value, cacheEntry.Count + 1);
+				return cacheEntry.Value;
 			}
 			var value = valueFetcher(key);
+			if (cache.ContainsKey(key))
+				clearer(cache[key].Value);
 			cache[key] = (value, 1);
 			return value;
 		}

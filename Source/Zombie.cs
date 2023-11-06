@@ -268,6 +268,51 @@ namespace ZombieLand
 			GC.SuppressFinalize(this);
 		}
 
+		string ZombieType
+		{
+			get
+			{
+				if (IsSuicideBomber)
+					return "ZombieSuicideBomber".Translate();
+				if (isToxicSplasher)
+					return "ZombieToxicSplasher".Translate();
+				if (IsTanky)
+					return "ZombieTanky".Translate();
+				if (isMiner)
+					return "ZombieMiner".Translate();
+				if (isElectrifier)
+					return "ZombieElectrifier".Translate();
+				if (isAlbino)
+					return "ZombieAlbino".Translate();
+				if (isDarkSlimer)
+					return "ZombieDarkSlimer".Translate();
+				if (isHealer)
+					return "ZombieHealer".Translate();
+				if (story.bodyType == BodyTypeDefOf.Child)
+					return "ZombieChild".Translate();
+				if (story.bodyType == BodyTypeDefOf.Thin)
+					return "ZombieWeak".Translate();
+				if (story.bodyType == BodyTypeDefOf.Fat)
+					return "ZombieStrong".Translate();
+				return "ZombieSimple".Translate();
+			}
+		}
+
+		public override string LabelMouseover
+		{
+			get
+			{
+				if (Name is NameTriple nameTriple)
+				{
+					var last = nameTriple.Last;
+					if (last.StartsWith("#"))
+						return $"{ZombieType} {last.Substring(1)}";
+					return $"{ZombieType} {last}";
+				}
+				return ZombieType;
+			}
+		}
+
 		public void Randomize8()
 		{
 			var nextIndex = Constants.random.Next(8);
