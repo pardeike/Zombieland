@@ -137,10 +137,6 @@ namespace ZombieLand
 		public static float ZOMBIE_HIT_CHANCE_TRACKING = 0.7f;
 		[Constant(1, "The number of cells out of the 8 surrounding cells of a zombie that get selected for moving")]
 		public static int NUMBER_OF_TOP_MOVEMENT_PICKS = 3;
-		[Constant(1, "The chance a zombie chooses a random movement when raging (multiplied by the number of zombies on the current and the destination positions together)")]
-		public static float CLUSTER_AVOIDANCE_CHANCE = 0.25f;
-		[Constant(1, "The chance a raging zombie does not go straight to their goal thus spreading them out a bit to keep it organic")]
-		public static float DIVERTING_FROM_RAGE = 0.1f;
 		[Constant(1, "Grouping of zombies, the higher the number the quicker will zombies loose interest in a trace if there are many zombies close to each other")]
 		public static int ZOMBIE_CLOGGING_FACTOR = 10000;
 		[Constant(1, "When zombies kill, this radius is applied to disburst them from the target in a random way")]
@@ -151,10 +147,6 @@ namespace ZombieLand
 		public static int ZOMBIE_COUNT_TO_TRIGGER_RAGE = 0;
 		[Constant(1, "When easy kill is turned on, what is the chance to skip \"missed a shot\" on long distance shots from a colonist")]
 		public static float COLONISTS_HIT_ZOMBIES_CHANCE = 0.9f;
-		[Constant(1, "With Combat Extended, sets the output of the method CombatExtended/ArmorUtilityCE.cs:GetPenetrationValue()")]
-		public static float COMBAT_EXTENDED_ARMOR_PENETRATION = 0.1f;
-		[Constant(1, "The time (in ticks) between healing a zombie wounds")]
-		public static int ZOMBIE_HEALING_TICKS = 3000;
 
 		// zombie incidents
 		//
@@ -176,14 +168,13 @@ namespace ZombieLand
 
 		// -- other constants --
 
-		public static readonly int MIN_DELTA_TICKS = 20;
-		public static readonly int MAX_DELTA_TICKS = 4;
+		public static readonly int RUBBLE_MIN_DELTA_TICKS = 20;
+		public static readonly int RUBBLE_MAX_DELTA_TICKS = 4;
 		public static readonly int RUBBLE_AMOUNT = 50;
-		public static readonly float MAX_HEIGHT = 0.6f;
-		public static readonly float MIN_SCALE = 0.05f;
-		public static readonly float MAX_SCALE = 0.3f;
-		public static readonly float ZOMBIE_LAYER = Altitudes.AltitudeFor(AltitudeLayer.Pawn) - 0.005f;
-		public static readonly float EMERGE_DELAY = 0.8f;
+		public static readonly float RUBBLE_MAX_HEIGHT = 0.6f;
+		public static readonly float RUBBLE_MIN_SCALE = 0.05f;
+		public static readonly float RUBBLE_MAX_SCALE = 0.3f;
+		public static readonly float RUBBLE_EMERGE_DELAY = 0.8f;
 
 		public static readonly Material RAGE_EYE = MaterialPool.MatFrom("RageEye", ShaderDatabase.Mote);
 		public static readonly Material BOMB_LIGHT = MaterialPool.MatFrom("BombLight", ShaderDatabase.MoteGlow);
@@ -447,7 +438,10 @@ namespace ZombieLand
 				var value = info.value;
 
 				var valueVersion = info.version;
-				var fieldVersion = AccessTools.Field(typeof(Constants), key).GetCustomAttribute<ConstantAttribute>().Version;
+				var attributes = AccessTools.Field(typeof(Constants), key)?.GetCustomAttribute<ConstantAttribute>();
+				if (attributes == null)
+					continue;
+				var fieldVersion = attributes.Version;
 				if (valueVersion != fieldVersion)
 				{
 					needsSave = true;

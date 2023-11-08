@@ -512,7 +512,7 @@ namespace ZombieLand
 				var idx = Rand.Range(rubbleCounter * 4 / 5, rubbleCounter);
 				rubbles.Insert(idx, Rubble.Create(rubbleCounter / (float)Constants.RUBBLE_AMOUNT));
 
-				var deltaTicks = Constants.MIN_DELTA_TICKS + (float)(Constants.MAX_DELTA_TICKS - Constants.MIN_DELTA_TICKS) / Math.Min(1, rubbleCounter * 2 - Constants.RUBBLE_AMOUNT);
+				var deltaTicks = Constants.RUBBLE_MIN_DELTA_TICKS + (float)(Constants.RUBBLE_MAX_DELTA_TICKS - Constants.RUBBLE_MIN_DELTA_TICKS) / Math.Min(1, rubbleCounter * 2 - Constants.RUBBLE_AMOUNT);
 				rubbleTicks = (int)deltaTicks;
 
 				rubbleCounter++;
@@ -539,10 +539,10 @@ namespace ZombieLand
 		{
 			foreach (var r in rubbles)
 			{
-				var scale = Constants.MIN_SCALE + (Constants.MAX_SCALE - Constants.MIN_SCALE) * r.scale;
+				var scale = Constants.RUBBLE_MIN_SCALE + (Constants.RUBBLE_MAX_SCALE - Constants.RUBBLE_MIN_SCALE) * r.scale;
 				var x = 0f + r.pX / 2f;
 				var bottomExtend = Mathf.Abs(r.pX) / 6f;
-				var y = -0.5f + Mathf.Max(bottomExtend, r.pY - r.drop) * (Constants.MAX_HEIGHT - scale / 2f) + (scale - Constants.MAX_SCALE) / 2f;
+				var y = -0.5f + Mathf.Max(bottomExtend, r.pY - r.drop) * (Constants.RUBBLE_MAX_HEIGHT - scale / 2f) + (scale - Constants.RUBBLE_MAX_SCALE) / 2f;
 				var pos = drawLoc + new Vector3(x, 0, y);
 				pos.y = Altitudes.AltitudeFor(AltitudeLayer.Pawn + 1);
 				var rot = Quaternion.Euler(0f, r.rot * 360f, 0f);
@@ -699,9 +699,9 @@ namespace ZombieLand
 				return result;
 
 			var progress = zombie.rubbleCounter / (float)Constants.RUBBLE_AMOUNT;
-			if (progress >= Constants.EMERGE_DELAY)
+			if (progress >= Constants.RUBBLE_EMERGE_DELAY)
 			{
-				var bodyRot = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, 90, 0, progress);
+				var bodyRot = GenMath.LerpDouble(Constants.RUBBLE_EMERGE_DELAY, 1, 90, 0, progress);
 				result *= Quaternion.Euler(Vector3.right * bodyRot);
 			}
 			return result;
@@ -712,9 +712,9 @@ namespace ZombieLand
 			drawLoc.x = (int)(drawLoc.x) + 0.5f;
 
 			var progress = rubbleCounter / (float)Constants.RUBBLE_AMOUNT;
-			if (progress >= Constants.EMERGE_DELAY)
+			if (progress >= Constants.RUBBLE_EMERGE_DELAY)
 			{
-				var bodyOffset = GenMath.LerpDouble(Constants.EMERGE_DELAY, 1, -0.45f, 0, progress);
+				var bodyOffset = GenMath.LerpDouble(Constants.RUBBLE_EMERGE_DELAY, 1, -0.45f, 0, progress);
 				renderer.RenderPawnInternal(drawLoc + new Vector3(0, 0, bodyOffset), 0f, true, Rot4.South, renderer.CurRotDrawMode, PawnRenderFlags.DrawNow);
 			}
 
