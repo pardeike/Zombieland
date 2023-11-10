@@ -425,6 +425,14 @@ namespace ZombieLand
 			if (safeMode == false || cell.InBounds(map))
 				ContaminationManager.Instance.grounds[map.Index][cell] = value;
 		}
+		public static void AddContamination(this Map map, IntVec3 cell, float value, bool safeMode = false)
+		{
+			if (safeMode == false || cell.InBounds(map))
+			{
+				var grid = ContaminationManager.Instance.grounds[map.Index];
+				grid[cell] = Mathf.Clamp(grid[cell] + value, 0, 100);
+			}
+		}
 
 		public static CellBoolDrawer GetContaminationDrawer(this Map map)
 			=> ContaminationManager.Instance.grounds[map.Index].drawer;

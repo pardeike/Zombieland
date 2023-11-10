@@ -125,7 +125,7 @@ namespace ZombieLand
 
 		static bool Goto(this JobDriver_Sabotage driver, Thing thing)
 		{
-			if (thing == null && thing.Spawned == false)
+			if (thing == null || thing.Spawned == false)
 				return false;
 
 			var zombie = driver.pawn;
@@ -133,7 +133,7 @@ namespace ZombieLand
 			var path = zombie.Map.pathFinder.FindPath(zombie.Position, thing, TraverseParms.For(zombie, Danger.None, TraverseMode.PassDoors, false), mode);
 			if (path.Found)
 			{
-				if (path.TryFindLastCellBeforeBlockingDoor(zombie, out var doorCell, out var door))
+				if (path.TryFindLastCellBeforeBlockingDoor(zombie, out var doorCell, out var door) && doorCell.IsValid)
 				{
 					driver.door = door;
 					driver.destination = doorCell;
@@ -144,11 +144,15 @@ namespace ZombieLand
 				}
 				else if (path.NodesLeftCount > 0)
 				{
-					driver.destination = path.NodesLeftCount > 1 ? path.NodesReversed[1] : path.NodesReversed[0];
-					driver.hackTarget = thing;
-					path.ReleaseToPool();
-					zombie.pather.StartPath(driver.destination, PathEndMode.OnCell);
-					return true;
+					var cell = path.NodesLeftCount > 1 ? path.NodesReversed[1] : path.NodesReversed[0];
+					if (cell.IsValid)
+					{
+						driver.destination = cell;
+						driver.hackTarget = thing;
+						path.ReleaseToPool();
+						zombie.pather.StartPath(cell, PathEndMode.OnCell);
+						return true;
+					}
 				}
 			}
 			path.ReleaseToPool();
@@ -164,7 +168,7 @@ namespace ZombieLand
 			var path = zombie.Map.pathFinder.FindPath(zombie.Position, cell, TraverseParms.For(zombie, Danger.None, TraverseMode.PassDoors, false), PathEndMode.OnCell);
 			if (path.Found)
 			{
-				if (path.TryFindLastCellBeforeBlockingDoor(zombie, out var doorCell, out var door))
+				if (path.TryFindLastCellBeforeBlockingDoor(zombie, out var doorCell, out var door) && doorCell.IsValid)
 				{
 					driver.door = door;
 					driver.destination = doorCell;
@@ -389,9 +393,7 @@ namespace ZombieLand
 			using var it = GenRadial.RadialCellsAround(vec.ToIntVec3(), 6, true).GetEnumerator();
 			while (it.MoveNext())
 				if (it.Current.Standable(map))
-				{
 					return it.Current;
-				}
 			return IntVec3.Invalid;
 		}
 
@@ -411,7 +413,7 @@ namespace ZombieLand
 						if (valuableRoom != null)
 						{
 							var cells = valuableRoom.Cells.Where(c => c.Standable(map));
-							cell = cells.SafeRandomElement();
+							cell = cells.SafeRandomElement(IntVec3.Invalid);
 							if (driver.Goto(cell))
 								return true;
 						}
@@ -419,12 +421,9 @@ namespace ZombieLand
 
 					// move to home zone
 					case 1:
-						var homeCell = map.areaManager.Home.ActiveCells.SafeRandomElement();
-						if (homeCell.IsValid)
-						{
-							if (driver.Goto(homeCell))
-								return true;
-						}
+						var homeCell = map.areaManager.Home.ActiveCells.SafeRandomElement(IntVec3.Invalid);
+						if (driver.Goto(homeCell))
+							return true;
 						break;
 
 					// turn off a flickable thing
@@ -440,9 +439,8 @@ namespace ZombieLand
 							return false;
 
 						}).SafeRandomElement();
-						if (building != null)
-							if (driver.Goto(building))
-								return true;
+						if (driver.Goto(building))
+							return true;
 						break;
 
 					// degrade a weapon
@@ -450,17 +448,15 @@ namespace ZombieLand
 						var weapon = map.listerThings.ThingsInGroup(ThingRequestGroup.Weapon)
 							.Where(t => t.def.IsRangedWeapon && t.def.useHitPoints)
 							.OrderBy(t => -t.MarketValue).FirstOrDefault();
-						if (weapon != null)
-							if (driver.Goto(weapon))
-								return true;
+						if (driver.Goto(weapon))
+							return true;
 						break;
 
 					// scream on colonists
 					case 4:
 						cell = PawnCenter(map, map.mapPawns.FreeColonists);
-						if (cell.IsValid)
-							if (driver.Goto(cell, () => zombie.scream = -2))
-								return true;
+						if (driver.Goto(cell, () => zombie.scream = -2))
+							return true;
 						break;
 
 					// scream on enemies
@@ -475,9 +471,8 @@ namespace ZombieLand
 								&& p.health.Downed == false
 							);
 						cell = PawnCenter(map, enemies);
-						if (cell.IsValid)
-							if (driver.Goto(cell, () => zombie.scream = -2))
-								return true;
+						if (driver.Goto(cell, () => zombie.scream = -2))
+							return true;
 						break;
 				}
 

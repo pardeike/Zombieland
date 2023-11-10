@@ -2900,27 +2900,16 @@ namespace ZombieLand
 
 				if (zombie.isAlbino && zombie.scream > 0)
 				{
+					var mats = Constants.screamPairs[zombie.scream];
 					var f1 = zombie.scream / 400f;
-					var f2 = Mathf.Sin(Mathf.PI * f1);
-					var f3 = Math.Max(0, Mathf.Sin(Mathf.PI * f1 * 1.5f));
 
-					var mat1 = new Material(Constants.SCREAM)
-					{
-						color = new Color(1f, 1f, 1f, f2)
-					};
 					var size = f1 * 4f;
 					var center = drawLoc + new Vector3(0, 0.1f, 0.25f);
+					GraphicToolbox.DrawScaledMesh(Constants.screamMesh, mats.Item1, center, Quaternion.identity, size, size);
 
-					GraphicToolbox.DrawScaledMesh(Constants.screamMesh, mat1, center, Quaternion.identity, size, size);
-					UnityEngine.Object.Destroy(mat1);
-
-					var mat2 = new Material(Constants.SCREAMSHADOW)
-					{
-						color = new Color(1f, 1f, 1f, f3)
-					};
+					var f2 = Mathf.Sin(Mathf.PI * f1);
 					var q = Quaternion.AngleAxis(f2 * 360f, Vector3.up);
-					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat2, center, q, 1.5f, 1.5f);
-					UnityEngine.Object.Destroy(mat2);
+					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mats.Item2, center, q, 1.5f, 1.5f);
 				}
 
 				if (zombie.Dead)

@@ -19,7 +19,7 @@ namespace ZombieLand
 		static void Prefix(Pawn __instance)
 		{
 			if (__instance is Zombie zombie)
-				zombie.Map?.SetContamination(zombie.Position, ZombieSettings.Values.contamination.zombieDeathAdd);
+				zombie.Map?.AddContamination(zombie.Position, ZombieSettings.Values.contamination.zombieDeathAdd);
 		}
 	}
 
@@ -342,9 +342,9 @@ namespace ZombieLand
 	static class Corpse_InnerPawn_Setter_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION;
-		static void Postfix(Pawn value, Corpse __instance)
+		static void Postfix(Corpse __instance, Pawn value)
 		{
-			if (Current.Game.World != null)
+			if (Current.Game.World != null && value != null)
 				__instance.SetContamination(value.GetContamination());
 		}
 	}

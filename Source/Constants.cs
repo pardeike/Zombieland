@@ -51,6 +51,16 @@ namespace ZombieLand
 			dot.SetPixel(2, 2, edge);
 			dot.Apply(true);
 
+			for (var i = 0; i < 400; i++)
+			{
+				var f1 = i / 400f;
+				var f2 = Mathf.Sin(Mathf.PI * f1);
+				var f3 = Math.Max(0, Mathf.Sin(Mathf.PI * f1 * 1.5f));
+				var mat1 = new Material(Constants.SCREAM) { color = new Color(1f, 1f, 1f, f2) };
+				var mat2 = new Material(Constants.SCREAMSHADOW) { color = new Color(1f, 1f, 1f, f3) };
+				screamPairs[i] = (mat1, mat2);
+			}
+
 			if (BodyTypeDefOf.Child != null)
 				ELECTRIC_GLOWING.Add(BodyTypeDefOf.Child, new Material[]
 				{
@@ -245,6 +255,7 @@ namespace ZombieLand
 			MaterialPool.MatFrom("Electrifier/Absorb2", ShaderDatabase.Mote, Color.white),
 			MaterialPool.MatFrom("Electrifier/Absorb3", ShaderDatabase.Mote, Color.white),
 		};
+		public static readonly (Material, Material)[] screamPairs = new (Material, Material)[400];
 		public static readonly Material SCREAM = MaterialPool.MatFrom("Scream", ShaderDatabase.Mote);
 		public static readonly Material SCREAMSHADOW = MaterialPool.MatFrom("ScreamShadow", ShaderDatabase.Mote);
 		public static readonly Material RAGING = MaterialPool.MatFrom("Rage", ShaderDatabase.Cutout);
