@@ -71,13 +71,15 @@ namespace ZombieLand
 			listOfLeavingsOut ??= new List<Thing>();
 			Filth_MakeThing_Patch.filthSource = diedThing;
 		}
-		static void Postfix(Thing diedThing, List<Thing> listOfLeavingsOut)
+		static void Postfix(Thing diedThing, Map map, List<Thing> listOfLeavingsOut)
 		{
 			Filth_MakeThing_Patch.filthSource = null;
 			if (listOfLeavingsOut.Any())
 			{
 				var leavingsArray = listOfLeavingsOut.ToArray();
+				diedThing.mapIndexOrState = (sbyte)map.Index;
 				diedThing.TransferContamination(ZombieSettings.Values.contamination.leavingsTransfer, leavingsArray);
+				diedThing.mapIndexOrState = -1;
 			}
 		}
 	}

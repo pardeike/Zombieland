@@ -610,7 +610,8 @@ namespace ZombieLand
 		public static void QueueConvertToZombie(ThingWithComps thing, Map mapForTickmanager)
 		{
 			var tickManager = mapForTickmanager.GetComponent<TickManager>();
-			tickManager.colonistsToConvert.Enqueue(thing);
+			if (tickManager.colonistsToConvert.Contains(thing) == false)
+				tickManager.colonistsToConvert.Enqueue(thing);
 		}
 
 		public static void PlayTink(Thing thing)
