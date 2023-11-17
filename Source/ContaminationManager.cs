@@ -71,10 +71,7 @@ namespace ZombieLand
 			{
 				var map = mineable.Map;
 				if (map != null)
-				{
-					var grid = grounds[map.Index];
-					return grid[mineable.Position];
-				}
+					return grounds[map.Index][mineable.Position];
 			}
 
 			var sum = 0f;
@@ -191,6 +188,9 @@ namespace ZombieLand
 			}
 			else if (contamination > 0)
 			{
+				if (contamination > 1)
+					contamination = 1;
+
 				if (thing == null)
 				{
 					grid[cell] = contamination;
@@ -253,8 +253,7 @@ namespace ZombieLand
 				var map = mineable.Map;
 				if (map != null)
 				{
-					var grid = grounds[map.Index];
-					grid[mineable.Position] = 0;
+					grounds[map.Index][mineable.Position] = 0;
 					return;
 				}
 			}
@@ -271,20 +270,13 @@ namespace ZombieLand
 		public float Equalize(LocalTargetInfo t1, LocalTargetInfo t2, float weight = 0.5f, bool includeHoldings1 = true, bool includeHoldings2 = true)
 		{
 			var map = (t1.Thing ?? t2.Thing).Map;
-
-			var _grid = (ContaminationGrid)null;
-			ContaminationGrid cachedGrid()
-			{
-				_grid ??= grounds[map.Index];
-				return _grid;
-			}
-
 			var isT1 = t1.thingInt != null;
 			var isT2 = t2.thingInt != null;
 			if (isT1 == false && isT2 == false)
 				throw new Exception($"cannot equalize cells only ({t1} to {t2}, weight {weight})");
-			var c1 = isT1 ? Get(t1.thingInt, includeHoldings1) : cachedGrid()[t1.cellInt];
-			var c2 = isT2 ? Get(t2.thingInt, includeHoldings2) : cachedGrid()[t2.cellInt];
+			var grid = grounds[map.Index];
+			var c1 = isT1 ? Get(t1.thingInt, includeHoldings1) : grid[t1.cellInt];
+			var c2 = isT2 ? Get(t2.thingInt, includeHoldings2) : grid[t2.cellInt];
 			if (c1 < c2)
 				(c1, c2, t1, t2) = (c2, c1, t2, t1);
 			var transfer = c1 * (1 - weight) + c2 * weight - c1;
@@ -430,7 +422,7 @@ namespace ZombieLand
 			if (safeMode == false || cell.InBounds(map))
 			{
 				var grid = ContaminationManager.Instance.grounds[map.Index];
-				grid[cell] = Mathf.Clamp(grid[cell] + value, 0, 100);
+				grid[cell] = Mathf.Clamp(grid[cell] + value, 0, 1);
 			}
 		}
 

@@ -10,12 +10,35 @@ using static HarmonyLib.Code;
 
 namespace ZombieLand
 {
-	[HarmonyPatch(typeof(GenStep_Terrain), nameof(GenStep_Terrain.Generate))]
-	static class GenStep_Terrain_Generate_Patch
+	[HarmonyPatch(typeof(MapGenerator), nameof(MapGenerator.GenerateContentsIntoMap))]
+	static class MapGenerator_GenerateContentsIntoMap_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION;
 
-		static void Postfix(Map map)
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		{
+			var list = instructions.ToList();
+			var idx = list.FindLastIndex(code => code.opcode == OpCodes.Leave || code.opcode == OpCodes.Leave_S);
+			if (idx == -1)
+			{
+				Log.Error("Cannot find 'leave' instruction in MapGenerator.GenerateContentsIntoMap");
+				return instructions;
+			}
+
+			var blocks = list[idx].blocks;
+			var labels = list[idx].labels;
+			list[idx].blocks.Clear();
+			list[idx].labels.Clear();
+
+			list.Insert(idx, new CodeInstruction(OpCodes.Ldarg_1));
+			list[idx].blocks = blocks;
+			list[idx].labels = labels;
+			list.Insert(idx + 1, new CodeInstruction(OpCodes.Call, SymbolExtensions.GetMethodInfo(() => AddContamination(default))));
+
+			return list;
+		}
+
+		static void AddContamination(Map map)
 		{
 			var minElevationBase = 0.7f; // default in source code
 			var mGenerate = AccessTools.Method(typeof(GenStep_RocksFromGrid), nameof(GenStep_RocksFromGrid.Generate));
@@ -46,11 +69,12 @@ namespace ZombieLand
 				var max = set.Max.Item1;
 				static float easeInOutQuart(float x, float p) => x < 0.5f ? Mathf.Pow(2 * x, p) / 2 : 1 - Mathf.Pow(-2 * x + 2, p) / 2;
 				var mapX = map.Size.x;
+				var difficultyFactor = GenMath.LerpDoubleClamped(1, 4, 0.25f, 1, ZombieSettings.Values.contaminationBaseFactor);
 				foreach (var item in set)
 				{
 					var cell = CellIndicesUtility.IndexToCell(item.Item2, mapX);
 					var f = (item.Item1 - min) / (max - min);
-					grid[cell] = easeInOutQuart(f, 4);
+					grid[cell] = easeInOutQuart(f, 4) * difficultyFactor;
 				}
 			}
 			ContaminationManager.Instance.grounds[map.Index] = grid;
