@@ -77,9 +77,10 @@ namespace ZombieLand
 			if (listOfLeavingsOut.Any())
 			{
 				var leavingsArray = listOfLeavingsOut.ToArray();
+				var savedMapIndex = diedThing.mapIndexOrState;
 				diedThing.mapIndexOrState = (sbyte)map.Index;
 				diedThing.TransferContamination(ZombieSettings.Values.contamination.leavingsTransfer, leavingsArray);
-				diedThing.mapIndexOrState = -1;
+				diedThing.mapIndexOrState = savedMapIndex;
 			}
 		}
 	}
