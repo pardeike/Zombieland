@@ -166,6 +166,9 @@ namespace ZombieLand
 			static void Postfix()
 			{
 				var map = Find.CurrentMap;
+				if (map == null)
+					return;
+
 				var currentViewRect = Find.CameraDriver.CurrentViewRect;
 				currentViewRect.ClipInsideMap(map);
 
@@ -192,7 +195,7 @@ namespace ZombieLand
 				if (Constants.SHOW_PLAYER_REACHABLE_REGIONS)
 				{
 					var m = DebugSolidColorMats.MaterialOf(Color.magenta);
-					Tools.PlayerReachableRegions(Find.CurrentMap).SelectMany(r => r.Cells).Do(c => CellRenderer.RenderSpot(c.ToVector3Shifted(), m, 0.25f));
+					Tools.PlayerReachableRegions(map).SelectMany(r => r.Cells).Do(c => CellRenderer.RenderSpot(c.ToVector3Shifted(), m, 0.25f));
 				}
 
 				if (Constants.SHOW_AVOIDANCE_GRID && Tools.ShouldAvoidZombies())
@@ -259,6 +262,7 @@ namespace ZombieLand
 				var map = Find.CurrentMap;
 				if (map == null)
 					return;
+
 				var basePos = UI.MouseCell();
 				var info = ZombieWanderer.GetMapInfo(map);
 
@@ -302,7 +306,8 @@ namespace ZombieLand
 				var map = Find.CurrentMap;
 				if (map == null)
 					return;
-				if (Find.CurrentMap.IsBlacklisted())
+
+				if (map.IsBlacklisted())
 					return;
 
 				const float rightMargin = 7f;
