@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Verse;
+using static UnityEngine.GraphicsBuffer;
 
 namespace ZombieLand
 {
@@ -95,6 +96,8 @@ namespace ZombieLand
 				return false;
 			if (pawn.Dead)
 				return false;
+			if (pawn.Downed)
+				return false;
 
 			var i = 0;
 			var j = attractsZombiesEvaluators.Count;
@@ -106,8 +109,6 @@ namespace ZombieLand
 				i++;
 			}
 
-			if (pawn.health.Downed)
-				return false;
 			if (pawn.RaceProps.Humanlike)
 			{
 				if (pawn.RaceProps.IsFlesh == false)

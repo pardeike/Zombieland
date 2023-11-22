@@ -954,9 +954,6 @@ namespace ZombieLand
 
 			if (thing is Pawn target)
 			{
-				if (ZombieSettings.Values.zombiesEatDowned == false || target.Downed)
-					return false;
-
 				if (Customization.DoesAttractsZombies(target) == false)
 					return false;
 
