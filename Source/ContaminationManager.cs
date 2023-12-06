@@ -439,11 +439,16 @@ namespace ZombieLand
 		public static float Equalize(this float factor, LocalTargetInfo info1, LocalTargetInfo info2, bool includeHoldings1 = true, bool includeHoldings2 = true)
 			=> ContaminationManager.Instance.Equalize(info1, info2, factor, includeHoldings1, includeHoldings2);
 
-		public static void AddContamination(this Thing thing, float val, float factor = 1f)
+		public static void AddContamination(this Thing thing, float val, sbyte? tempMapIndex = null, float factor = 1f)
 		{
 			if (val <= 0)
 				return;
+			var savedMapIndex = thing.mapIndexOrState;
+			if (tempMapIndex.HasValue)
+				thing.mapIndexOrState = tempMapIndex.Value;
 			ContaminationManager.Instance.Add(thing, val * factor);
+			if (tempMapIndex.HasValue)
+				thing.mapIndexOrState = savedMapIndex;
 		}
 
 		public static float SubtractContamination(this Thing thing, float val)

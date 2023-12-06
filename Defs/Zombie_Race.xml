@@ -153,6 +153,11 @@
 		</statBases>
 		<soundImpactDefault>BulletImpact_Flesh</soundImpactDefault>
 		<tradeability>None</tradeability>
+		<graphicData>
+			<texPath>Blob/Blob</texPath>
+			<graphicClass>Graphic_Single</graphicClass>
+			<shaderType>CutoutComplex</shaderType>
+		</graphicData>
 		<race>
 			<intelligence>ToolUser</intelligence>
 			<thinkTreeMain>ZombieBlob</thinkTreeMain>

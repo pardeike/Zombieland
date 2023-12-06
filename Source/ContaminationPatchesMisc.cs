@@ -365,7 +365,7 @@ namespace ZombieLand
 		{
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, ZombieSettings.Values.contamination.wastePackAdd);
+			thing.AddContamination(contamination, null, ZombieSettings.Values.contamination.wastePackAdd);
 			return thing;
 		}
 
@@ -464,7 +464,7 @@ namespace ZombieLand
 		static void DoEffect(JobDriver_AffectFloor self, IntVec3 c)
 		{
 			var contamination = self.Map.GetContamination(c);
-			self.pawn.AddContamination(contamination, ZombieSettings.Values.contamination.floorAdd);
+			self.pawn.AddContamination(contamination, null, ZombieSettings.Values.contamination.floorAdd);
 			self.DoEffect(c);
 		}
 

@@ -112,10 +112,7 @@ namespace ZombieLand
 			if (mineableMap != null)
 			{
 				var contamination = mineableMap.GetContamination(mineable.Position);
-				var savedMapIndex = thing.mapIndexOrState;
-				thing.mapIndexOrState = (sbyte)mineableMap.Index;
-				thing.AddContamination(contamination, ZombieSettings.Values.contamination.destroyMineableAdd);
-				thing.mapIndexOrState = savedMapIndex;
+				thing.AddContamination(contamination, thing.mapIndexOrState, ZombieSettings.Values.contamination.destroyMineableAdd);
 			}
 			return thing;
 		}
@@ -133,7 +130,7 @@ namespace ZombieLand
 		{
 			var thing = ThingMaker.MakeThing(def, stuff);
 			_ = comp;
-			thing.AddContamination(ZombieSettings.Values.contamination.deepDrillAdd);
+			thing.AddContamination(ZombieSettings.Values.contamination.deepDrillAdd, comp.parent.mapIndexOrState);
 			return thing;
 		}
 

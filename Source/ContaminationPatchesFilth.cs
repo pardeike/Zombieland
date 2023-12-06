@@ -22,7 +22,7 @@ namespace ZombieLand
 			var cellContamination = pawn.Map.GetContamination(pawn.Position);
 			var delta = cellContamination * ZombieSettings.Values.contamination.cellFactor - pawnContamination;
 			if (delta > 0)
-				pawn.AddContamination(delta, ZombieSettings.Values.contamination.enterCellAdd);
+				pawn.AddContamination(delta, null, ZombieSettings.Values.contamination.enterCellAdd);
 			else
 				ZombieSettings.Values.contamination.enterCellLoose.Equalize(pawn, pawn.Position);
 			Filth_MakeThing_Patch.filthSource = null;
@@ -240,7 +240,7 @@ namespace ZombieLand
 				if (filthSource != null)
 				{
 					var factor = nastyFilths.Contains(filthSource.def) ? ZombieSettings.Values.contamination.bloodEqualize : ZombieSettings.Values.contamination.filthEqualize;
-					newThing.AddContamination(filthSource.GetContamination(includeHoldings: true), ZombieSettings.Values.contamination.filthGain);
+					newThing.AddContamination(filthSource.GetContamination(includeHoldings: true), filthSource.mapIndexOrState, factor);
 				}
 			}
 			return newThing;

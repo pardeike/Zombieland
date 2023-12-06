@@ -33,7 +33,7 @@ namespace ZombieLand
 		static void Postfix(IntVec3 c, Map map)
 		{
 			var contamination = map.GetContamination(c);
-			subject?.AddContamination(contamination, ZombieSettings.Values.contamination.pollutionAdd);
+			subject?.AddContamination(contamination, null, ZombieSettings.Values.contamination.pollutionAdd);
 		}
 	}
 
@@ -53,7 +53,7 @@ namespace ZombieLand
 		{
 			var contamination = self.map.GetContamination(c);
 			var pawn = toil.actor;
-			pawn.AddContamination(contamination, ZombieSettings.Values.contamination.snowAdd);
+			pawn.AddContamination(contamination, null, ZombieSettings.Values.contamination.snowAdd);
 			self.SetDepth(c, newDepth);
 		}
 

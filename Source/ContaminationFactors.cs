@@ -16,7 +16,7 @@ namespace ZombieLand
 
 		[ValueRange(1f, 1f)] public float ambrosiaAdd = 1f;
 		[ValueRange(0.3f, 1f)] public float constructionAdd = 0.5f;
-		[ValueRange(0.3f, 1f)] public float deepDrillAdd = 0.5f;
+		[ValueRange(0.3f, 0.9f)] public float deepDrillAdd = 0.5f;
 		[ValueRange(1f, 1f)] public float destroyMineableAdd = 1f;
 		[ValueRange(0.002f, 0.1f)] public float floorAdd = 0.01f;
 		[ValueRange(0.3f, 1f)] public float jellyAdd = 0.5f;

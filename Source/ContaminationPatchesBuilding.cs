@@ -25,7 +25,7 @@ namespace ZombieLand
 		static Thing MakeThing(ThingDef def, ThingDef stuff, float contamination)
 		{
 			var thing = ThingMaker.MakeThing(def, stuff);
-			thing.AddContamination(contamination, ZombieSettings.Values.contamination.constructionAdd);
+			thing.AddContamination(contamination, null, ZombieSettings.Values.contamination.constructionAdd);
 			return thing;
 		}
 

@@ -26,7 +26,8 @@ namespace ZombieLand
 			if (Tools.IsPlaying())
 			{
 				var contamination = map.GetContamination(loc);
-				thing.AddContamination(contamination, thing.def.IsPlant ? ZombieSettings.Values.contamination.plantAdd : ZombieSettings.Values.contamination.jellyAdd);
+				var factor = thing.def.IsPlant ? ZombieSettings.Values.contamination.plantAdd : ZombieSettings.Values.contamination.jellyAdd;
+				thing.AddContamination(contamination, null, factor);
 			}
 			return thing;
 		}
@@ -90,7 +91,7 @@ namespace ZombieLand
 		{
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, ZombieSettings.Values.contamination.ambrosiaAdd);
+			thing.AddContamination(contamination, null, ZombieSettings.Values.contamination.ambrosiaAdd);
 			return thing;
 		}
 
@@ -132,7 +133,7 @@ namespace ZombieLand
 			var thing = GenSpawn.Spawn(def, loc, map, wipeMode);
 			var pawn = driver.pawn;
 			var contamination = map.GetContamination(loc);
-			thing.AddContamination(contamination, ZombieSettings.Values.contamination.sowedPlantAdd);
+			thing.AddContamination(contamination, null, ZombieSettings.Values.contamination.sowedPlantAdd);
 			ZombieSettings.Values.contamination.sowingPawnEqualize.Equalize(pawn, thing);
 			return thing;
 		}
