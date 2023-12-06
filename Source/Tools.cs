@@ -883,7 +883,7 @@ namespace ZombieLand
 
 		public static void AddZombieInfection(Pawn pawn)
 		{
-			if (pawn == null || pawn is Zombie || pawn is ZombieSpitter || pawn.InfectionState() == InfectionState.Infected)
+			if (pawn == null || pawn is Zombie || pawn is ZombieBlob || pawn is ZombieSpitter || pawn.InfectionState() == InfectionState.Infected)
 				return;
 
 			if (pawn.health?.hediffSet == null)
@@ -949,7 +949,7 @@ namespace ZombieLand
 
 		public static bool Attackable(Zombie zombie, AttackMode mode, Thing thing)
 		{
-			if (thing is ZombieCorpse || thing is ZombieSpitter)
+			if (thing is ZombieCorpse || thing is ZombieBlob || thing is ZombieSpitter)
 				return false;
 
 			if (thing is Pawn target)

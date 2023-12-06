@@ -37,7 +37,10 @@ namespace ZombieLand
 
 			// remove spitter for everyone except player
 			if (isPlayer == false)
+			{
+				rawTargets.RemoveAll(thing => thing.Thing is ZombieBlob);
 				rawTargets.RemoveAll(thing => thing.Thing is ZombieSpitter);
+			}
 
 			// remove electric zombies if verb is unsuited
 			if (verb.CanHarmElectricZombies() == false)
@@ -185,7 +188,7 @@ namespace ZombieLand
 			{
 				if (target.Thing is not Pawn pawn)
 					return false;
-				if (removeSpitter && pawn is ZombieSpitter)
+				if (removeSpitter && pawn is ZombieBlob)
 					return true;
 				if (pawn is not Zombie zombie)
 					return false;
@@ -272,7 +275,7 @@ namespace ZombieLand
 			{
 				validator = (Thing t) =>
 				{
-					if (t is ZombieSpitter)
+					if (t is ZombieBlob || t is ZombieSpitter)
 						return false;
 					if (t is Zombie)
 						return ZombieSettings.Values.animalsAttackZombies;
@@ -300,7 +303,7 @@ namespace ZombieLand
 			// attacker is enemy
 			validator = (Thing t) =>
 			{
-				if (t is ZombieSpitter)
+				if (t is ZombieBlob || t is ZombieSpitter)
 					return false;
 
 				if (t is Zombie zombie)
@@ -483,7 +486,7 @@ namespace ZombieLand
 	{
 		static bool Prefix(ref bool __result, Thing t, Faction fac)
 		{
-			if (t is ZombieSpitter && fac.IsPlayer == false)
+			if ((t is ZombieBlob || t is ZombieSpitter) && fac.IsPlayer == false)
 			{
 				__result = false;
 				return false;
@@ -556,7 +559,7 @@ namespace ZombieLand
 		{
 			if (target is Zombie zombie)
 				return zombie.IsRopedOrConfused == false;
-			if (target is ZombieSpitter)
+			if (target is ZombieBlob || target is ZombieSpitter)
 				return faction.IsPlayer;
 			return GenHostility.IsActiveThreatTo(target, faction); // ok to call patched method bc we filtered out zombies
 		}

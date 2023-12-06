@@ -101,7 +101,7 @@ namespace ZombieLand
 
 		public void UpdatePawnHediff(Thing thing, float contamination)
 		{
-			if (thing is not Pawn pawn || pawn is Zombie || pawn is ZombieSpitter)
+			if (thing is not Pawn pawn || pawn is Zombie || pawn is ZombieBlob || pawn is ZombieSpitter)
 				return;
 
 			if (contamination > 0)

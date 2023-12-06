@@ -520,7 +520,7 @@ namespace ZombieLand
 		{
 			static bool RunTicking(Pawn pawn)
 			{
-				if (pawn is Zombie || pawn is ZombieSpitter)
+				if (pawn is Zombie || pawn is ZombieBlob || pawn is ZombieSpitter)
 					return true;
 
 				if (pawn.RaceProps.Humanlike)
@@ -619,7 +619,7 @@ namespace ZombieLand
 		{
 			static bool Prefix(Pawn ___pawn, ref bool __result)
 			{
-				if (___pawn is ZombieSpitter)
+				if (___pawn is ZombieBlob || ___pawn is ZombieSpitter)
 				{
 					__result = false;
 					return false;
@@ -1035,6 +1035,7 @@ namespace ZombieLand
 			{
 				CustomDefs.Stumble,
 				CustomDefs.Sabotage,
+				CustomDefs.Blob,
 				CustomDefs.Spitter,
 				DefDatabase<JobDef>.GetNamed("ExtractZombieSerum"),
 				DefDatabase<JobDef>.GetNamed("DoubleTap"),
@@ -1047,7 +1048,7 @@ namespace ZombieLand
 
 			static bool Prefix(Job newJob, Pawn ___pawn, ref int ___jobsGivenThisTick, ref string ___jobsGivenThisTickTextual, ref bool ___startingNewJob)
 			{
-				if (___pawn is not Zombie && ___pawn is not ZombieSpitter)
+				if (___pawn is not Zombie && ___pawn is not ZombieBlob && ___pawn is not ZombieSpitter)
 					return true;
 				if (allowedJobs.Contains(newJob.def))
 					return true;
@@ -1218,7 +1219,7 @@ namespace ZombieLand
 					__result = 0;
 				else if (instigator is Zombie)
 					__result /= 20;
-				else if (instigator is ZombieSpitter)
+				else if (instigator is ZombieBlob || instigator is ZombieSpitter)
 					__result = 0;
 			}
 		}
@@ -1238,7 +1239,7 @@ namespace ZombieLand
 					else
 						__result -= 10000f;
 				}
-				else if (prey is ZombieSpitter)
+				else if (prey is ZombieBlob || prey is ZombieSpitter)
 					__result = 0f;
 			}
 		}
@@ -2504,6 +2505,8 @@ namespace ZombieLand
 			{
 				if (request.Faction?.def != ZombieDefOf.Zombies)
 					return true;
+				if (request.KindDef == ZombieDefOf.ZombieBlob)
+					return true;
 				if (request.KindDef == ZombieDefOf.ZombieSpitter)
 					return true;
 
@@ -2582,7 +2585,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn __instance, ref bool __result)
 			{
-				if (__instance is Zombie || __instance is ZombieSpitter)
+				if (__instance is Zombie || __instance is ZombieBlob || __instance is ZombieSpitter)
 				{
 					__result = false;
 					return false;
@@ -3694,7 +3697,7 @@ namespace ZombieLand
 			static bool Prefix(Pawn_GeneTracker __instance, ref Gene __result)
 			{
 				var pawn = __instance.pawn;
-				if (pawn is Zombie || pawn is ZombieSpitter)
+				if (pawn is Zombie || pawn is ZombieBlob || pawn is ZombieSpitter)
 				{
 					__result = null;
 					return false;
@@ -3710,7 +3713,7 @@ namespace ZombieLand
 			static bool Prefix(Pawn_GeneTracker __instance, ref Gene __result)
 			{
 				var pawn = __instance.pawn;
-				if (pawn is Zombie || pawn is ZombieSpitter)
+				if (pawn is Zombie || pawn is ZombieBlob || pawn is ZombieSpitter)
 				{
 					__result = null;
 					return false;
@@ -3726,7 +3729,7 @@ namespace ZombieLand
 			static bool Prefix(Pawn_StoryTracker __instance, ref Color __result)
 			{
 				var pawn = __instance.pawn;
-				if (pawn is Zombie || pawn is ZombieSpitter)
+				if (pawn is Zombie || pawn is ZombieBlob || pawn is ZombieSpitter)
 				{
 					__result = Color.white;
 					return false;
@@ -3744,7 +3747,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Thing __instance, ref float __result)
 			{
-				if (__instance is Zombie || __instance is ZombieSpitter || __instance is ZombieCorpse)
+				if (__instance is Zombie || __instance is ZombieBlob || __instance is ZombieSpitter || __instance is ZombieCorpse)
 				{
 					__result = 21f; // fake normal conditions
 					return false;
@@ -4806,11 +4809,11 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Pawn_HealthTracker.MakeDowned))]
 		static class Pawn_HealthTracker_MakeDowned_Patch
 		{
-			static bool Prefix(Pawn ___pawn) => ___pawn is not ZombieSpitter;
+			static bool Prefix(Pawn ___pawn) => ___pawn is not ZombieBlob && ___pawn is not ZombieSpitter;
 
 			static void Postfix(Pawn ___pawn)
 			{
-				if (___pawn is Zombie || ___pawn is ZombieSpitter)
+				if (___pawn is Zombie || ___pawn is ZombieBlob || ___pawn is ZombieSpitter)
 					return;
 				if (___pawn == null || ___pawn.Map == null)
 					return;
@@ -5007,7 +5010,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Pawn pawn)
 			{
-				if (pawn is Zombie || pawn is ZombieSpitter || pawn.Map == null)
+				if (pawn is Zombie || pawn is ZombieBlob || pawn is ZombieSpitter || pawn.Map == null)
 					return;
 
 				if (Constants.KILL_CIRCLE_RADIUS_MULTIPLIER > 0)

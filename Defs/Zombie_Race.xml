@@ -130,6 +130,54 @@
 		</race>
 	</ThingDef>
 
+	<ThingDef Name="ZombieBlob" Class="ZombieLand.ThingDef_ZombieBlob" ParentName="BasePawn">
+		<defName>ZombieBlob</defName>
+		<label>zombie blob</label>
+		<thingClass>ZombieLand.ZombieBlob</thingClass>
+		<description>A zombie blob.</description>
+		<tools>
+		</tools>
+		<statBases>
+			<MaxHitPoints>2000</MaxHitPoints>
+			<MoveSpeed>0.5</MoveSpeed>
+			<Flammability>0.05</Flammability>
+			<ComfyTemperatureMin>-100</ComfyTemperatureMin>
+			<ComfyTemperatureMax>250</ComfyTemperatureMax>
+			<ArmorRating_Sharp>0.80</ArmorRating_Sharp>
+			<ArmorRating_Blunt>0.30</ArmorRating_Blunt>
+			<ArmorRating_Heat>0.90</ArmorRating_Heat>
+			<FilthRate>48</FilthRate>
+			<MeatAmount>0</MeatAmount>
+			<ToxicResistance>1</ToxicResistance>
+			<ToxicEnvironmentResistance MayRequire="Ludeon.RimWorld.Biotech">1</ToxicEnvironmentResistance>
+		</statBases>
+		<soundImpactDefault>BulletImpact_Flesh</soundImpactDefault>
+		<tradeability>None</tradeability>
+		<race>
+			<intelligence>ToolUser</intelligence>
+			<thinkTreeMain>ZombieBlob</thinkTreeMain>
+			<body>ZombieBlobBody</body>
+			<soundMeleeHitPawn>Pawn_Melee_BigBash_HitPawn</soundMeleeHitPawn>
+			<soundMeleeHitBuilding>Pawn_Melee_BigBash_HitBuilding</soundMeleeHitBuilding>
+			<soundMeleeMiss>Pawn_Melee_BigBash_Miss</soundMeleeMiss>
+			<trainability>None</trainability>
+			<needsRest>false</needsRest>
+			<hasGenders>false</hasGenders>
+			<foodType>None</foodType>
+			<lifeExpectancy>2500</lifeExpectancy>
+			<baseBodySize>1</baseBodySize>
+			<baseHealthScale>5</baseHealthScale>
+			<meatColor>(128,128,128)</meatColor>
+			<meatMarketValue>0</meatMarketValue>
+			<manhunterOnDamageChance>0</manhunterOnDamageChance>
+			<lifeStageAges>
+				<li>
+					<def>ZombieBoss</def>
+				</li>
+			</lifeStageAges>
+		</race>
+	</ThingDef>
+
 	<ThingDef Name="ZombieSpitter" Class="ZombieLand.ThingDef_ZombieSpitter" ParentName="BasePawn">
 		<defName>ZombieSpitter</defName>
 		<label>zombie spitter</label>

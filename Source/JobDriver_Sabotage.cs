@@ -304,7 +304,7 @@ namespace ZombieLand
 				var dist = d * d;
 				var stunTicks = 60 * (14 - d);
 				zombie.Map.mapPawns.AllPawns.ToArray().DoIf(
-					pawn => pawn is not Zombie && pawn is not ZombieSpitter
+					pawn => pawn is not Zombie && pawn is not ZombieBlob && pawn is not ZombieSpitter
 						&& pawn.RaceProps.Humanlike
 						&& pawn.RaceProps.IsFlesh
 						&& AlienTools.IsFleshPawn(pawn)
@@ -463,7 +463,7 @@ namespace ZombieLand
 					case 5:
 						var enemies = map.attackTargetsCache
 							.TargetsHostileToColony.OfType<Pawn>()
-							.Where(p => p is not Zombie && p is not ZombieSpitter
+							.Where(p => p is not Zombie && p is not ZombieBlob && p is not ZombieSpitter
 								&& p.RaceProps.Humanlike
 								&& p.RaceProps.IsFlesh
 								&& AlienTools.IsFleshPawn(p)

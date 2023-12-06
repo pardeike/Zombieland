@@ -142,6 +142,12 @@ namespace ZombieLand
 			_ = ZombiesRising.TryExecute(Find.CurrentMap, 200, UI.MouseCell(), false, true);
 		}
 
+		[DebugAction("Zombieland", "Spawn: Zombie Blob", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void SpawnZombieBlob()
+		{
+			ZombieBlob.Spawn(Find.CurrentMap, UI.MouseCell());
+		}
+
 		[DebugAction("Zombieland", "Spawn: Zombie Spitter", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieSpitterOnCell()
 		{
@@ -154,7 +160,7 @@ namespace ZombieLand
 			var things = Find.CurrentMap.listerThings.AllThings.ToArray();
 			foreach (var thing in things)
 			{
-				if (thing is Zombie || thing is ZombieSpitter)
+				if (thing is Zombie || thing is ZombieBlob || thing is ZombieSpitter)
 					thing.Destroy();
 			}
 		}
@@ -165,7 +171,7 @@ namespace ZombieLand
 			var map = Find.CurrentMap;
 			foreach (var thing in map.thingGrid.ThingsAt(UI.MouseCell()))
 			{
-				if (thing is not Pawn pawn || pawn is Zombie || pawn is ZombieSpitter)
+				if (thing is not Pawn pawn || pawn is Zombie || pawn is ZombieBlob || pawn is ZombieSpitter)
 					continue;
 				Tools.ConvertToZombie(pawn, map, true);
 			}
@@ -187,7 +193,7 @@ namespace ZombieLand
 		{
 			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 			{
-				if (thing is not Pawn pawn || pawn is Zombie || pawn is ZombieSpitter)
+				if (thing is not Pawn pawn || pawn is Zombie || pawn is ZombieBlob || pawn is ZombieSpitter)
 					continue;
 
 				var bodyPart = pawn.health.hediffSet
@@ -215,7 +221,7 @@ namespace ZombieLand
 			var tmpHediffInjuryZombieBites = new List<Hediff_Injury_ZombieBite>();
 			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))
 			{
-				if (thing is not Pawn pawn || pawn is Zombie || pawn is ZombieSpitter)
+				if (thing is not Pawn pawn || pawn is Zombie || pawn is ZombieBlob || pawn is ZombieSpitter)
 					continue;
 				tmpHediffInjuryZombieBites.Clear();
 				pawn.health.hediffSet.GetHediffs(ref tmpHediffInjuryZombieBites);
@@ -350,7 +356,7 @@ namespace ZombieLand
 		{
 			var map = Find.CurrentMap;
 			var pawn = map.thingGrid.ThingAt<Pawn>(UI.MouseCell());
-			if (pawn == null || pawn is Zombie || pawn is ZombieSpitter)
+			if (pawn == null || pawn is Zombie || pawn is ZombieBlob || pawn is ZombieSpitter)
 				return;
 			var window = new Dialog_ContaminationDebugSettings(pawn);
 			Find.WindowStack.Add(window);

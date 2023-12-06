@@ -55,6 +55,7 @@ namespace ZombieLand
 		public static JobDef Stumble;
 		public static JobDef Sabotage;
 		public static JobDef Spitter;
+		public static JobDef Blob;
 		public static JobDef ExtractZombieSerum;
 		public static JobDef DoubleTap;
 		public static JobDef RopeZombie;
@@ -87,6 +88,7 @@ namespace ZombieLand
 		public static ThingDef BumpSmall;
 		public static ThingDef Chainsaw;
 		public static ThingDef Thumper;
+		public static ThingDef ZombieBlob;
 		public static ThingDef ZombieSpitter;
 		public static ThingDef ZombieBall;
 		public static QuestScriptDef Decontamination;

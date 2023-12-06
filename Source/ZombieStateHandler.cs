@@ -816,7 +816,7 @@ namespace ZombieLand
 			Thing result = null;
 			zombie.PerformOnAdjacted(thing =>
 			{
-				if (thing is Zombie || thing is ZombieSpitter || thing is ZombieCorpse)
+				if (thing is Zombie || thing is ZombieBlob || thing is ZombieSpitter || thing is ZombieCorpse)
 					return false;
 
 				if (thing is Pawn p && ZombieSettings.Values.zombiesEatDowned)

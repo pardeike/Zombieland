@@ -2,6 +2,33 @@
 <Defs>
 
 	<BodyDef>
+		<defName>ZombieBlobBody</defName>
+		<label>body</label>
+		<corePart>
+			<def>ZombieBlobBase</def>
+			<height>Middle</height>
+			<depth>Outside</depth>
+			<parts>
+			</parts>
+		</corePart>
+	</BodyDef>
+
+	<BodyPartDef>
+		<defName>ZombieBlobBase</defName>
+		<label>body</label>
+		<labelShort>body</labelShort>
+		<hitPoints>800</hitPoints>
+		<frostbiteVulnerability>2</frostbiteVulnerability>
+		<permanentInjuryChanceFactor>0</permanentInjuryChanceFactor>
+		<skinCovered>true</skinCovered>
+		<solid>true</solid>
+		<alive>true</alive>
+		<bleedRate>0</bleedRate>
+		<tags>
+		</tags>
+	</BodyPartDef>
+	
+	<BodyDef>
 		<defName>ZombieSpitterBody</defName>
 		<label>body</label>
 		<corePart>

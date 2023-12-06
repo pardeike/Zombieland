@@ -26,6 +26,27 @@
 		<initialResistanceRange>0~0</initialResistanceRange>
 	</PawnKindDef>
 
+	<PawnKindDef class="ZombieLand.PawnKindDef_ZombieBlob">
+		<defName>ZombieBlob</defName>
+		<race>ZombieBlob</race>
+		<lifeStages>
+			<li>
+				<label>zombie blob</label>
+				<labelPlural>zombie blobs</labelPlural>
+			</li>
+		</lifeStages>
+		<destroyGearOnDrop>true</destroyGearOnDrop>
+		<canStrip>false</canStrip>
+		<forceNormalGearQuality>false</forceNormalGearQuality>
+		<combatPower>800</combatPower>
+		<defaultFactionType>Zombies</defaultFactionType>
+		<isFighter>true</isFighter>
+		<itemQuality>Shoddy</itemQuality>
+		<backstoryCryptosleepCommonality>0.0</backstoryCryptosleepCommonality>
+		<initialWillRange>0~0</initialWillRange>
+		<initialResistanceRange>0~0</initialResistanceRange>
+	</PawnKindDef>
+
 	<PawnKindDef class="ZombieLand.PawnKindDef_ZombieSpitter">
 		<defName>ZombieSpitter</defName>
 		<race>ZombieSpitter</race>
