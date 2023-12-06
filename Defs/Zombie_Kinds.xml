@@ -33,6 +33,9 @@
 			<li>
 				<label>zombie blob</label>
 				<labelPlural>zombie blobs</labelPlural>
+				<bodyGraphicData>
+					<texPath>Blob/Blob</texPath>
+				</bodyGraphicData>
 			</li>
 		</lifeStages>
 		<destroyGearOnDrop>true</destroyGearOnDrop>
