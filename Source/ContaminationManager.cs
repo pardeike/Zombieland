@@ -460,6 +460,8 @@ namespace ZombieLand
 		public static void Transfer(this ContaminationManager contamination, Thing from, float factor, Thing[] toArray)
 		{
 			var value = contamination.Get(from);
+			if (value == 0)
+				return;
 			var subtracted = contamination.Subtract(from, value * factor);
 			if (subtracted == 0)
 				return;

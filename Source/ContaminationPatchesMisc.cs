@@ -1,12 +1,16 @@
 ﻿using HarmonyLib;
+using Mono.Security;
 using RimWorld;
+using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Verse.Noise;
 using static HarmonyLib.Code;
 
 namespace ZombieLand
@@ -85,6 +89,58 @@ namespace ZombieLand
 		}
 	}
 
+	[HarmonyPatch(typeof(ThingOwner), nameof(ThingOwner.TryTransferToContainer))]
+	[HarmonyPatch([typeof(Thing), typeof(ThingOwner), typeof(int), typeof(Thing), typeof(bool)], [ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Out, ArgumentType.Normal])]
+	static class ThingOwner_TryTransferToContainer_Patch
+	{
+		public static sbyte activeThingOwnerMapIndex;
+
+		static bool Prepare() => Constants.CONTAMINATION;
+
+		static void Prefix(ThingOwner __instance, Thing item, ThingOwner otherContainer)
+		{
+			activeThingOwnerMapIndex = (sbyte)(ThingOwnerUtility.GetRootMap(__instance.owner)?.Index ?? -1);
+			if (otherContainer.owner is Frame frame && frame.mapIndexOrState >= 0)
+			{
+				var savedMapIndex = item.mapIndexOrState;
+				item.mapIndexOrState = frame.mapIndexOrState;
+				frame.SetContamination(item.GetContamination());
+				item.mapIndexOrState = savedMapIndex;
+			}
+		}
+
+		static void Postfix()
+		{
+			activeThingOwnerMapIndex = -1;
+		}
+	}
+
+	[HarmonyPatch]
+	static class Pawn_CarryTracker_TryStartCarry_Patch_Patch
+	{
+		public static sbyte pawnMapIndex;
+
+		static bool Prepare() => Constants.CONTAMINATION;
+
+		static IEnumerable<MethodBase> TargetMethods()
+		{
+			var methods = AccessTools.GetDeclaredMethods(typeof(Pawn_CarryTracker))
+				.Where(method => method.Name == nameof(Pawn_CarryTracker.TryStartCarry));
+			foreach (var method in methods)
+				yield return method;
+		}
+
+		static void Prefix(Pawn_CarryTracker __instance)
+		{
+			pawnMapIndex = __instance.pawn.mapIndexOrState;
+		}
+
+		static void Postfix()
+		{
+			pawnMapIndex = -1;
+		}
+	}
+
 	[HarmonyPatch(typeof(Thing), nameof(Thing.TryAbsorbStack))]
 	static class Thing_TryAbsorbStack_Patch
 	{
@@ -100,13 +156,31 @@ namespace ZombieLand
 			if (Tools.IsPlaying() == false)
 				return;
 
-			var (otherOldStack, otherOldContamination) = __state;
-			var otherStack = __result ? 0 : other?.stackCount ?? 0;
-			var factor = 1f - otherStack / otherOldStack;
-			var transfer = otherOldContamination * factor;
+			var (otherOldStackSize, otherContamination) = __state;
+			var otherNewStackSize = other.stackCount;
+			var otherCount = otherOldStackSize - otherNewStackSize;
+			var thisCount = __instance.stackCount - otherCount;
+
+			var thisContamination = __instance.GetContamination(includeHoldings: true);
+			var newContamination = (otherCount * otherContamination + thisCount * thisContamination) / (thisCount + otherCount);
+			var transfer = newContamination - thisContamination;
+
+			var savedMapIndex = __instance.mapIndexOrState;
+			__instance.mapIndexOrState = Pawn_CarryTracker_TryStartCarry_Patch_Patch.pawnMapIndex;
+			if (transfer > 0)
+				__instance.AddContamination(transfer);
+			if (transfer < 0)
+				__instance.SubtractContamination(-transfer);
+			__instance.mapIndexOrState = savedMapIndex;
+
 			if (__result == false && other != null)
-				transfer = other.SubtractContamination(transfer);
-			__instance.AddContamination(transfer);
+			{
+				var factor = otherNewStackSize / (float)otherOldStackSize;
+				savedMapIndex = other.mapIndexOrState;
+				other.mapIndexOrState = Pawn_CarryTracker_TryStartCarry_Patch_Patch.pawnMapIndex;
+				other.SubtractContamination(otherContamination * factor);
+				other.mapIndexOrState = savedMapIndex;
+			}
 		}
 	}
 
@@ -115,19 +189,35 @@ namespace ZombieLand
 	{
 		static bool Prepare() => Constants.CONTAMINATION;
 
-		static void Postfix(Thing __result, Thing __instance, int count)
+		static void Postfix(Thing __result, Thing __instance)
 		{
 			if (__result == null || __result == __instance)
 				return;
 			if (Tools.IsPlaying() == false)
 				return;
 
-			var previousTotal = __instance.stackCount + count;
-			if (previousTotal == 0)
+			var contamination = __instance.GetContamination();
+			if (contamination == 0)
 				return;
 
-			var factor = count / (float)previousTotal;
-			__instance.TransferContamination(factor, __result);
+			var savedMapIndex1 = __instance.mapIndexOrState;
+			var savedMapIndex2 = __result.mapIndexOrState;
+			var ownerMapIndex = ThingOwner_TryTransferToContainer_Patch.activeThingOwnerMapIndex;
+			if (savedMapIndex1 < 0 && ownerMapIndex >= 0)
+			{
+				__instance.mapIndexOrState = ownerMapIndex;
+				__result.mapIndexOrState = ownerMapIndex;
+				__result.AddContamination(contamination);
+				__instance.mapIndexOrState = savedMapIndex1;
+				__result.mapIndexOrState = savedMapIndex2;
+			}
+			else
+			{
+				var savedMapIndex = __result.mapIndexOrState;
+				__result.mapIndexOrState = __instance.mapIndexOrState;
+				__result.AddContamination(contamination);
+				__result.mapIndexOrState = savedMapIndex;
+			}
 		}
 	}
 

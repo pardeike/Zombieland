@@ -30,6 +30,7 @@ namespace ZombieLand
 		[ValueRange(0.004f, 0.2f)] public float zombieDeathAdd = 0.01f;
 		[ValueRange(0.004f, 0.04f)] public float enterCellAdd = 0.01f;
 
+		[ValueRange(0.001f, 0.05f)] public float constructionTransfer = 0.01f;
 		[ValueRange(0.02f, 0.75f)] public float disassembleTransfer = 0.1f;
 		[ValueRange(0.02f, 0.75f)] public float dispenseFoodTransfer = 0.1f;
 		[ValueRange(0.02f, 0.75f)] public float fermentingBarrelTransfer = 0.1f;

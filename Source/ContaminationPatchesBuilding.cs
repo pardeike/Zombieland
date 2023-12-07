@@ -22,10 +22,12 @@ namespace ZombieLand
 			return contamination;
 		}
 
-		static Thing MakeThing(ThingDef def, ThingDef stuff, float contamination)
+		static Thing MakeThing(ThingDef def, ThingDef stuff, float contamination, Pawn worker)
 		{
 			var thing = ThingMaker.MakeThing(def, stuff);
-			thing.AddContamination(contamination, null, ZombieSettings.Values.contamination.constructionAdd);
+			var factor = ZombieSettings.Values.contamination.constructionAdd;
+			thing.AddContamination(contamination, worker.mapIndexOrState, factor * (1 - ZombieSettings.Values.contamination.constructionTransfer));
+			worker.AddContamination(contamination, null, factor * ZombieSettings.Values.contamination.constructionTransfer);
 			return thing;
 		}
 
@@ -49,7 +51,7 @@ namespace ZombieLand
 			var to1 = SymbolExtensions.GetMethodInfo(() => ClearAndDestroyContents(default, default));
 
 			var from2 = SymbolExtensions.GetMethodInfo(() => ThingMaker.MakeThing(default, default));
-			var to2 = SymbolExtensions.GetMethodInfo(() => MakeThing(default, default, default));
+			var to2 = SymbolExtensions.GetMethodInfo(() => MakeThing(default, default, default, default));
 
 			var from3 = SymbolExtensions.GetMethodInfo((TerrainGrid grid) => grid.SetTerrain(default, default));
 			var to3 = SymbolExtensions.GetMethodInfo(() => SetTerrain(default, default, default, default));
@@ -61,7 +63,7 @@ namespace ZombieLand
 				 .Insert(Stloc[sumVar])
 				 .MatchStartForward(new CodeMatch(operand: from2))
 				 .ThrowIfInvalid($"Cannot find {from2.FullDescription()}")
-				 .InsertAndAdvance(Ldloc[sumVar])
+				 .InsertAndAdvance(Ldloc[sumVar], Ldarg_1)
 				 .SetInstruction(Call[to2])
 				 .MatchStartForward(new CodeMatch(operand: from3))
 				 .ThrowIfInvalid($"Cannot find {from3.FullDescription()}")
@@ -119,7 +121,6 @@ namespace ZombieLand
 		{
 			if (createdThing == null)
 				return;
-			var _createdThing = createdThing;
 			__instance.TransferContamination(createdThing);
 		}
 	}
