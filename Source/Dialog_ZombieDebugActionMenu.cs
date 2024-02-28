@@ -148,6 +148,12 @@ namespace ZombieLand
 			ZombieBlob.Spawn(Find.CurrentMap, UI.MouseCell());
 		}
 
+		[DebugAction("Zombieland", "Spawn: Add Blob Cell", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		private static void AddBlobCell()
+		{
+			ZombieBlob.AddCell(Find.CurrentMap, UI.MouseCell());
+		}
+
 		[DebugAction("Zombieland", "Spawn: Zombie Spitter", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
 		private static void SpawnZombieSpitterOnCell()
 		{

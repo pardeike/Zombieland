@@ -2485,10 +2485,16 @@ namespace ZombieLand
 			{
 				if (__result == null)
 					return;
-				var notLaunchingShip = ShipCountdown.CountingDown == false;
-				if (notLaunchingShip && Rand.Chance(ZombieSettings.Values.infectedRaidsChance) == false)
+
+				var launchingShip = Find.Maps.Any(map =>
+				{
+					var reactor = map.listerBuildings.allBuildingsColonist.OfType<Building_ShipReactor>().FirstOrDefault();
+					return reactor?.TryGetComp<CompHibernatable>()?.State == HibernatableStateDefOf.Starting;
+				});
+
+				if (launchingShip == false && Rand.Chance(ZombieSettings.Values.infectedRaidsChance) == false)
 					return;
-				if (notLaunchingShip && ZombieWeather.GetThreatLevel(__result.FirstOrDefault()?.Map) == 0f)
+				if (launchingShip == false && ZombieWeather.GetThreatLevel(__result.FirstOrDefault()?.Map) == 0f)
 					return;
 				__result.DoIf(pawn => pawn.RaceProps.Humanlike, Tools.AddZombieInfection);
 			}

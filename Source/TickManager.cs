@@ -258,9 +258,10 @@ namespace ZombieLand
 			foreach (var head in victimHeads)
 			{
 				var mat = new Material(head.material);
-				mat.color = new Color(mat.color.r, mat.color.g, mat.color.b, head.alpha);
+				head.material.color = new Color(mat.color.r, mat.color.g, mat.color.b, head.alpha);
 				GraphicToolbox.DrawScaledMesh(headMesh, mat, head.Position, head.quat, 0.7f, 0.7f);
-				UnityEngine.Object.Destroy(mat);
+				// don't do the following, it will also remove the original graphic (result: pink texture):
+				// UnityEngine.Object.Destroy(mat);
 			}
 		}
 

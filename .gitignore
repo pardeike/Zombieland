@@ -241,3 +241,7 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+Source/Graphics/Effects/Library/StateCache
+Source/Graphics/Effects/Library/PackageCache
+Source/Graphics/Effects/Library/ShaderCache
+Source/Graphics/Effects/Library/ScriptAssemblies
