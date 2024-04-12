@@ -1,0 +1,44 @@
+{
+  "name": "com.unity.purchasing",
+  "displayName": "In App Purchasing",
+  "unity": "2019.4",
+  "version": "3.2.2",
+  "description": "IMPORTANT UPGRADE NOTES:\n\nIf updating from Unity IAP (com.unity.purchasing + the Asset Store plugin) versions 2.x to version 3.x, complete the following actions in order to resolve compilation errors:\n 1. Move IAPProductCatalog.json and BillingMode.json\n\tFROM: Assets/Plugins/UnityPurchasing/Resources/\n\tTO: Assets/Resources/.\n 2. Move AppleTangle.cs and GooglePlayTangle.cs\n\tFROM: Assets/Plugins/UnityPurchasing/generated\n\tTO: Assets/Scripts/UnityPurchasing/generated.\n 3. Remove all remaining Asset Store plugin folders and files in Assets/Plugins/UnityPurchasing from your project.\n\nPACKAGE DESCRIPTION:\n\nWith Unity IAP, setting up in-app purchases for your game across multiple app stores has never been easier.\n\nThis package provides:\n\n ▪ One common API to access all stores for free so you can fully understand and optimize your in-game economy\n ▪ Automatic coupling with Unity Analytics to enable monitoring and decision-making based on trends in your revenue and purchase data across multiple platforms\n ▪ Support for iOS, Mac, tvOS, Google Play, Windows, Amazon, and Samsung Galaxy app stores(*). (*) NOTE Samsung Galaxy is obsolete and will be removed in v4. Please use Unity Distribution Platform for Samsung Galaxy Apps support.\n ▪ Support to work with the Unity Distribution Portal to synchronize catalogs and transactions with other app stores\n ▪ Client-side receipt validation for Apple App Store and Google Play\n\nAfter installing this package, open the Services Window to enable In-App Purchasing to use these features.",
+  "dependencies": {
+    "com.unity.ugui": "1.0.0",
+    "com.unity.modules.unityanalytics": "1.0.0",
+    "com.unity.modules.unitywebrequest": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.androidjni": "1.0.0"
+  },
+  "keywords": [
+    "purchasing",
+    "iap",
+    "unity"
+  ],
+  "license": "Unity Companion Package License v1.0",
+  "hideInEditor": false,
+  "relatedPackages": {
+    "com.unity.purchasing.tests": "3.2.2"
+  },
+  "upmCi": {
+    "footprint": "602378ccee1decd21b2cecfdac70ef38bee7dcc4"
+  },
+  "repository": {
+    "url": "https://github.cds.internal.unity3d.com/unity/com.unity.purchasing.git",
+    "type": "git",
+    "revision": "6ad60ad670b28d3a131388481318ce0d0ca2bc0d"
+  },
+  "samples": [
+    {
+      "displayName": "01 Buying Consumables",
+      "description": "This sample showcases the basics of how to initialize in-app purchases and handle a simple consumable purchase.",
+      "path": "Samples~/01 BuyingConsumables"
+    },
+    {
+      "displayName": "In App Purchasing Sample",
+      "description": "Sample Implementation of In App Purchasing.",
+      "path": "Samples~/Example"
+    }
+  ]
+}

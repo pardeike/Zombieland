@@ -1,0 +1,18 @@
+{
+    "ErrorExceptions":
+    [
+        {
+            "ValidationTest": "API Validation",
+            "ExceptionError": "Additions require a new minor or major version.",
+            "PackageVersion": "1.0.8"
+        },
+        {
+             "ValidationTest": "NDA Keyword Validation",
+             "PackageVersion": "1.0.8"
+        },
+        {
+            "ValidationTest": "Package Lifecycle Validation",
+            "PackageVersion": "1.0.8"
+       }
+    ]
+}

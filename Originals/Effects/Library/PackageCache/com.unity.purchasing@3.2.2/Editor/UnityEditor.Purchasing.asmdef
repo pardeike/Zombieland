@@ -1,0 +1,23 @@
+{
+    "name": "UnityEditor.Purchasing",
+    "references": [
+        "UnityEngine.Purchasing",
+        "Purchasing.Common",
+        "UnityEngine.Purchasing.Security",
+        "UnityEngine.Purchasing.SecurityCore",
+        "UnityEngine.Purchasing.SecurityStub",
+        "UnityEngine.Purchasing.Stores",
+        "UnityEngine.Purchasing.Codeless"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
