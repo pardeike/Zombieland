@@ -1,5 +1,6 @@
 ﻿using Brrainz;
 using HarmonyLib;
+using LudeonTK;
 using RimWorld;
 using RimWorld.Planet;
 using System;
@@ -2182,15 +2183,15 @@ namespace ZombieLand
 					//
 					if (zombie.isDarkSlimer)
 					{
-						_ = FilthMaker.TryMakeFilth(value, map, CustomDefs.TarSlime, null, true);
+						_ = FilthMaker.TryMakeFilth(value, map, CustomDefs.TarSlime);
 						if (Tools.Difficulty() > 1)
 						{
 							var x = Math.Sign(value.x - pos.x) + 1;
 							var z = Math.Sign(value.z - pos.z) + 1;
 							var orthIdx = x + 3 * z;
 							var pair = orthogonalIndices[orthIdx];
-							_ = FilthMaker.TryMakeFilth(pos + pair[0], map, CustomDefs.TarSlime, null, true);
-							_ = FilthMaker.TryMakeFilth(pos + pair[1], map, CustomDefs.TarSlime, null, true);
+							_ = FilthMaker.TryMakeFilth(pos + pair[0], map, CustomDefs.TarSlime);
+							_ = FilthMaker.TryMakeFilth(pos + pair[1], map, CustomDefs.TarSlime);
 						}
 					}
 
@@ -3016,7 +3017,7 @@ namespace ZombieLand
 						var mat = Constants.BEING_HEALED[beingHealedIndex];
 
 						var healTarget = info.pawn;
-						float angle = healTarget.drawer.renderer.BodyAngle();
+						float angle = healTarget.drawer.renderer.BodyAngle(PawnRenderFlags.None);
 						if (healTarget.Rotation == Rot4.West)
 							angle -= leanAngle;
 						if (healTarget.Rotation == Rot4.East)
@@ -3111,7 +3112,7 @@ namespace ZombieLand
 
 				if (zombie.isToxicSplasher)
 				{
-					float angle = zombie.drawer.renderer.BodyAngle();
+					float angle = zombie.drawer.renderer.BodyAngle(PawnRenderFlags.None);
 					if (zombie.Rotation == Rot4.West)
 						angle -= leanAngle;
 					if (zombie.Rotation == Rot4.East)
@@ -3956,7 +3957,7 @@ namespace ZombieLand
 				GenAdj.AdjacentCellsAround
 					.Select(c => grid.ThingAt<TarSlime>(pos + c))
 					.OfType<TarSlime>()
-					.DoIf(tar => tar.IsBurning() == false, tar => FireUtility.TryStartFireIn(tar.Position, map, __instance.fireSize));
+					.DoIf(tar => tar.IsBurning() == false, tar => FireUtility.TryStartFireIn(tar.Position, map, __instance.fireSize, null));
 			}
 		}
 

@@ -29,12 +29,12 @@ namespace ZombieLand
 			inRect.yMin += 5f;
 
 			Rect rect2 = inRect.TopPartPixels(30f);
-			thumper.intensity = Widgets.HorizontalSlider_NewTemp(rect2, thumper.intensity, 0f, 1f, true, null, "Intensity".Translate(), $"{thumper.intensity:P0}", 0.01f);
+			thumper.intensity = Widgets.HorizontalSlider(rect2, thumper.intensity, 0f, 1f, true, null, "Intensity".Translate(), $"{thumper.intensity:P0}", 0.01f);
 
 			rect2.y += 40f;
 			var thumpsPerHour = Tools.Boxed(Mathf.FloorToInt((float)GenDate.TicksPerHour / thumper.intervalTicks + 0.5f), 1, 25);
 			var label = $"{thumpsPerHour}x per hour";
-			thumpsPerHour = (int)Widgets.HorizontalSlider_NewTemp(rect2, thumpsPerHour, 1, 25, true, null, "Interval".Translate(), label, 1f);
+			thumpsPerHour = (int)Widgets.HorizontalSlider(rect2, thumpsPerHour, 1, 25, true, null, "Interval".Translate(), label, 1f);
 			thumper.intervalTicks = Mathf.FloorToInt((float)GenDate.TicksPerHour / thumpsPerHour + 0.5f);
 
 			rect2 = new Rect(inRect.x + inRect.width / 2f, inRect.yMax - 30f, inRect.width / 2f, 30f);

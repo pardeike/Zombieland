@@ -23,7 +23,7 @@ namespace ZombieLand
 			rotAngle = Rand.Range(-10f, 10f);
 
 			var renderTexture = RenderTexture.GetTemporary(128, 128, 32, RenderTextureFormat.ARGB32);
-			Find.PawnCacheRenderer.RenderPawn(victim, renderTexture, new Vector3(0, 0, 0.4f), 1.75f, 0f, Rot4.South, true, false, true, false, true, default, null, null, false);
+			Find.PawnCacheRenderer.RenderPawn(victim, renderTexture, new Vector3(0, 0, 0.4f), 1.75f, 0f, Rot4.South);
 			Graphics.Blit(Constants.blood, renderTexture, MaterialPool.MatFrom(ShaderDatabase.Wound));
 			texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false) { name = "Chainsaw Victim Head" };
 			RenderTexture.active = renderTexture;

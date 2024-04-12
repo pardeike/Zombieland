@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using LudeonTK;
+using RimWorld;
 using Verse;
 
 namespace ZombieLand
@@ -65,7 +66,7 @@ namespace ZombieLand
 			return null;
 		}
 
-		[DebugAction("General", "Break...", false, false, false, 0, false, actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
+		[DebugAction("General", "Break...")]
 		private static void BreakDown()
 		{
 			foreach (var thing in Find.CurrentMap.thingGrid.ThingsAt(UI.MouseCell()))

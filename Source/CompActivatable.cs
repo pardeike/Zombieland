@@ -27,7 +27,7 @@ namespace ZombieLand
 			SoundDefOf.FlickSwitch.PlayOneShot(new TargetInfo(parent.Position, parent.Map, false));
 			parent.BroadcastCompSignal("Activate");
 			if (parent.Spawned)
-				parent.Map.mapDrawer.MapMeshDirty(parent.Position, MapMeshFlag.Things | MapMeshFlag.Buildings);
+				parent.Map.mapDrawer.MapMeshDirty(parent.Position, MapMeshFlagDefOf.Things | MapMeshFlagDefOf.Buildings);
 		}
 
 		/*

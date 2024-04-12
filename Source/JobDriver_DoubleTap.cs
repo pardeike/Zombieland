@@ -86,7 +86,7 @@ namespace ZombieLand
 					{
 						var part1 = (Hediff_MissingPart)HediffMaker.MakeHediff(HediffDefOf.MissingBodyPart, deadPawn, null);
 						part1.IsFresh = true;
-						part1.lastInjury = HediffDefOf.Shredded;
+						part1.lastInjury = HediffDefOf.Misc;
 						part1.Part = brain;
 						deadPawn.health.hediffSet.AddDirect(part1, null, null);
 
@@ -95,7 +95,7 @@ namespace ZombieLand
 						{
 							var part2 = (Hediff_MissingPart)HediffMaker.MakeHediff(HediffDefOf.MissingBodyPart, deadPawn, null);
 							part2.IsFresh = true;
-							part2.lastInjury = HediffDefOf.Shredded;
+							part2.lastInjury = HediffDefOf.Misc;
 							part2.Part = head;
 							deadPawn.health.hediffSet.AddDirect(part2, null, null);
 						}

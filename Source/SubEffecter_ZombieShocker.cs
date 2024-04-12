@@ -36,7 +36,7 @@ namespace ZombieLand
 				rot = Random.Range(0f, 359f);
 			var color = Color.white;
 			color.a = alpha;
-			mote.exactScale = new Vector3(scale, 1, scale);
+			mote.linearScale = new Vector3(scale, 1, scale);
 			mote.exactRotation = rot;
 			mote.exactPosition = pos + Quaternion.Euler(0, rot, 0) * zapBaseVec;
 			mote.instanceColor = color;
@@ -94,7 +94,7 @@ namespace ZombieLand
 			}
 		}
 
-		public override void SubTrigger(TargetInfo A, TargetInfo B, int overrideSpawnTick)
+		public override void SubTrigger(TargetInfo A, TargetInfo B, int overrideSpawnTick, bool force)
 		{
 			shocker = A.Thing as ZombieShocker;
 			if (shocker == null)

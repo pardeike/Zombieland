@@ -361,7 +361,7 @@ namespace ZombieLand
 
 				var part2 = (Hediff_MissingPart)HediffMaker.MakeHediff(HediffDefOf.MissingBodyPart, victim, null);
 				part2.IsFresh = true;
-				part2.lastInjury = HediffDefOf.Shredded;
+				part2.lastInjury = HediffDefOf.ExecutionCut;
 				part2.Part = head;
 				victim.health.hediffSet.AddDirect(part2, null, null);
 			}

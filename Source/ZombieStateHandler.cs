@@ -221,7 +221,7 @@ namespace ZombieLand
 					{
 						if (ZombieSettings.Values.doubleTapRequired && ZombieSettings.Values.zombiesDieVeryEasily == false)
 						{
-							var injury = zombie.health.hediffSet.GetInjuriesTendable().SafeRandomElement();
+							var injury = zombie.health.hediffSet.GetHediffsTendable().SafeRandomElement();
 							if (injury != null)
 								zombie.health.RemoveHediff(injury);
 							else
@@ -270,7 +270,7 @@ namespace ZombieLand
 
 			var temp = GenTemperature.GetTemperatureForCell(zombie.Position, zombie.Map);
 			if (temp >= 200f)
-				FireUtility.TryAttachFire(zombie, GenMath.LerpDoubleClamped(200f, 1000f, 0.01f, 1f, temp));
+				FireUtility.TryAttachFire(zombie, GenMath.LerpDoubleClamped(200f, 1000f, 0.01f, 1f, temp), null);
 		}
 
 		// invalidate destination if necessary ======================================================
@@ -333,7 +333,7 @@ namespace ZombieLand
 						}
 						else
 						{
-							_ = FireUtility.TryStartFireIn(building.Position, building.Map, Rand.Range(0.1f, 1.75f));
+							_ = FireUtility.TryStartFireIn(building.Position, building.Map, Rand.Range(0.1f, 1.75f), zombie);
 							zombie.DisableElectric(GenDate.TicksPerHour / 4);
 						}
 

@@ -58,7 +58,7 @@ namespace ZombieLand
 			list.Gap();
 
 			var rect = list.GetRect(20);
-			factor = Widgets.HorizontalSlider_NewTemp(rect, factor, 0f, 1f, true, null, "Factor", $"{factor:P0}", 0.01f);
+			factor = Widgets.HorizontalSlider(rect, factor, 0f, 1f, true, null, "Factor", $"{factor:P0}", 0.01f);
 			list.Gap();
 
 			if (list.ButtonText("Apply"))

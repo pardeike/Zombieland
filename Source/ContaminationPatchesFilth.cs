@@ -218,7 +218,7 @@ namespace ZombieLand
 		static IEnumerable<MethodBase> TargetMethods()
 		{
 			yield return SymbolExtensions.GetMethodInfo((Pawn_FilthTracker tracker) => tracker.GainFilth(default, default));
-			yield return SymbolExtensions.GetMethodInfo(() => FilthMaker.TryMakeFilth(default, default, default, (IEnumerable<string>)default, default, default));
+			yield return SymbolExtensions.GetMethodInfo((Filth outFilth) => FilthMaker.TryMakeFilth(default, default, default, default, default, out outFilth, default));
 		}
 
 		static readonly HashSet<ThingDef> nastyFilths = new()

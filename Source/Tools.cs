@@ -1451,7 +1451,7 @@ namespace ZombieLand
 			var mote = (Mote)ThingMaker.MakeThing(bumps[idx], null);
 			mote.exactPosition = pos + Rand.UnitVector3 * 0.25f;
 			mote.exactRotation = UnityEngine.Random.Range(-30f, 30f);
-			mote.exactScale = Vector3.one + Vector3.one * (idx) / 2f;
+			mote.linearScale = Vector3.one + Vector3.one * (idx) / 2f;
 			mote.rotationRate = 25f * UnityEngine.Random.Range(1, 3) * Rand.Sign;
 			mote.instanceColor = new(1, 1, 1, 0.5f + idx * 0.1f);
 			_ = GenSpawn.Spawn(mote, pos.ToIntVec3(), map, WipeMode.Vanish);
@@ -1829,7 +1829,7 @@ namespace ZombieLand
 			zombie.Rotation = Rot4.South;
 
 			var renderTexture = foreground ? renderTextureFore : renderTextureBack;
-			Find.PawnCacheRenderer.RenderPawn(zombie, renderTexture, Vector3.zero, 1f, 0f, Rot4.South, true, true, true, true, true, Vector3.zero, null, null, false);
+			Find.PawnCacheRenderer.RenderPawn(zombie, renderTexture, Vector3.zero, 1f, 0f, Rot4.South);
 			var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGBA32, false) { name = "FakeZombie" };
 			RenderTexture.active = renderTexture;
 			texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
