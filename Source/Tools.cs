@@ -187,7 +187,18 @@ namespace ZombieLand
 
 		public static string GetModRuntimeDirectory()
 		{
-			var assemblyDir = Path.GetDirectoryName(typeof(Tools).Assembly.Location);
+			var assemblyDir = "";
+			try
+			{
+				var assemblyLocation = typeof(Tools).Assembly.Location;
+				if (string.IsNullOrEmpty(assemblyLocation) == false)
+					assemblyDir = Path.GetDirectoryName(assemblyLocation);
+			}
+			catch (ArgumentException)
+			{
+				assemblyDir = "";
+			}
+
 			if (string.IsNullOrEmpty(assemblyDir) == false && Path.GetFileName(assemblyDir).Equals("Assemblies", StringComparison.OrdinalIgnoreCase))
 			{
 				var runtimeDir = Directory.GetParent(assemblyDir)?.FullName;
