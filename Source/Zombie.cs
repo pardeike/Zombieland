@@ -113,7 +113,7 @@ namespace ZombieLand
 		// electrifier
 		public bool isElectrifier = false;
 		public int electricDisabledUntil = 0;
-		public bool IsActiveElectric => isElectrifier && Downed == false && GenTicks.TicksGame > electricDisabledUntil && this.InWater() == false;
+		public bool IsActiveElectric => isElectrifier && health?.Downed == false && health?.Dead == false && GenTicks.TicksGame > electricDisabledUntil && this.InWater() == false;
 		public void DisableElectric(int ticks) { electricDisabledUntil = GenTicks.TicksGame + ticks; }
 		public int electricCounter = -1000;
 		public float electricAngle = 0;

@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 
@@ -31,6 +32,7 @@ namespace ZombieLand
 	static class DamageFlasher_GetDamagedMat_Patch
 	{
 		static readonly Color greenDamagedMatStartingColor = new(0f, 0.8f, 0f);
+		static readonly Dictionary<Material, Material> greenDamagedMats = new();
 
 		private static int DamageFlashTicksLeft(DamageFlasher damageFlasher)
 		{
@@ -38,15 +40,29 @@ namespace ZombieLand
 			return damageFlasher.lastDamageTick + 16 - GenTicks.TicksGame;
 		}
 
+		static Material GetGreenDamageFlashMat(Material baseMat, float damPct)
+		{
+			if (damPct < 0.01f)
+				return baseMat;
+			if (greenDamagedMats.TryGetValue(baseMat, out var material) == false)
+			{
+				material = MaterialAllocator.Create(baseMat);
+				greenDamagedMats.Add(baseMat, material);
+			}
+			material.color = Color.Lerp(baseMat.color, greenDamagedMatStartingColor, damPct);
+			return material;
+		}
+
 		[HarmonyPriority(Priority.Last)]
-		static void Postfix(DamageFlasher __instance, Material baseMat, Material __result)
+		static void Postfix(DamageFlasher __instance, Material baseMat, ref Material __result)
 		{
 			if (__instance is ZombieDamageFlasher zombieDamageFlasher
 				&& zombieDamageFlasher.dinfoDef == CustomDefs.ZombieBite
+				&& baseMat != null
 				&& __result != null)
 			{
 				var damPct = DamageFlashTicksLeft(__instance) / 16f;
-				__result.color = Color.Lerp(baseMat.color, greenDamagedMatStartingColor, damPct);
+				__result = GetGreenDamageFlashMat(baseMat, damPct);
 			}
 		}
 	}

@@ -382,7 +382,15 @@ namespace ZombieLand
 		{
 			var m_Notify_BuildingRepaired = SymbolExtensions.GetMethodInfo((ListerBuildingsRepairable lister) => lister.Notify_BuildingRepaired(default));
 			var type = AccessTools.FirstInner(typeof(JobDriver_Repair), type => type.Name.Contains("DisplayClass"));
-			return AccessTools.FirstMethod(type, method => method.CallsMethod(m_Notify_BuildingRepaired));
+			if (type == null)
+			{
+				Patches.Error("Cannot find RimWorld.JobDriver_Repair MakeNewToils display class");
+				return null;
+			}
+			var method = AccessTools.FirstMethod(type, method => method.CallsMethod(m_Notify_BuildingRepaired));
+			if (method == null)
+				Patches.Error("Cannot find RimWorld.JobDriver_Repair repair delegate");
+			return method;
 		}
 
 		public static void Equalize(Pawn pawn, Thing thing)
@@ -409,7 +417,10 @@ namespace ZombieLand
 		static MethodBase TargetMethod()
 		{
 			var m_RepairTick = SymbolExtensions.GetMethodInfo(() => MechRepairUtility.RepairTick(default));
-			return AccessTools.FirstMethod(typeof(JobDriver_RepairMech), method => method.CallsMethod(m_RepairTick));
+			var method = AccessTools.FirstMethod(typeof(JobDriver_RepairMech), method => method.CallsMethod(m_RepairTick));
+			if (method == null)
+				Patches.Error("Cannot find RimWorld.JobDriver_RepairMech repair delegate");
+			return method;
 		}
 
 		static void RepairTick(Pawn mech, JobDriver_RepairMech jobDriver)

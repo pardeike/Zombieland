@@ -18,7 +18,7 @@ namespace ZombieLand
 		{
 			var actualTimeSpeed = Find.TickManager.curTimeSpeed;
 			if (curTimeSpeed != actualTimeSpeed)
-				foreach (var subscriber in subscribers)
+				foreach (var subscriber in subscribers.ToArray())
 					subscriber.Value(actualTimeSpeed);
 			curTimeSpeed = actualTimeSpeed;
 		}

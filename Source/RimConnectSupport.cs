@@ -35,9 +35,10 @@ namespace ZombieLand
 			var harmony = new Harmony("net.pardeike.zombieland.rimconnect");
 			var postfix = new HarmonyMethod(AccessTools.Method(typeof(RimConnectSupport), nameof(Postfix)));
 			var mGenerateActionList = AccessTools.Method(tActionList, "GenerateActionList");
+			if (mGenerateActionList == null)
+				return;
 			_ = harmony.Patch(mGenerateActionList, postfix: postfix);
 		}
-
 		static void Postfix(ref IList __result)
 		{
 			var cat = "Zombies";
@@ -217,33 +218,38 @@ namespace ZombieLand
 
 		static MethodBase TargetMethod()
 		{
-			return AccessTools.Method("RimConnection.Settings.CommandOptionSettings:DoWindowContents");
+			return AccessTools.Method("RimConnection.Settings.CommandOptionSettings:DoWindowContents", new[] { typeof(Rect) });
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 		{
 			var list = instructions.ToList();
+			var shiftedConstants = 0;
 			for (var i = 0; i < list.Count; i++)
 			{
 				var code = list[i];
-				if (code.opcode == OpCodes.Ldarga_S || code.opcode == OpCodes.Ldarga)
+				if (i > 0 && (code.opcode == OpCodes.Ldarga_S || code.opcode == OpCodes.Ldarga))
 				{
 					code = list[i - 1];
 					if (code.opcode == OpCodes.Ldc_R4)
 					{
 						var value = (float)code.operand;
-						if (value >= 180)
+						if (value == 180f || value == 198f)
+						{
 							code.operand = value + 30f;
+							shiftedConstants++;
+						}
 					}
 				}
 			}
 			var idx = list.FindLastIndex(code => code.opcode == OpCodes.Sub);
-			if (idx > 0 && idx < list.Count)
-				list.InsertRange(idx + 1, new[]
-				{
-					new CodeInstruction(OpCodes.Ldc_R4, 30f),
-					new CodeInstruction(OpCodes.Sub)
-				});
+			if (shiftedConstants != 2 || idx <= 0 || idx >= list.Count)
+				throw new InvalidOperationException($"{nameof(RimConnection_Settings_CommandOptionSettings_Patch)} could not find expected RimConnect layout anchors");
+			list.InsertRange(idx + 1, new[]
+			{
+				new CodeInstruction(OpCodes.Ldc_R4, 30f),
+				new CodeInstruction(OpCodes.Sub)
+			});
 			return list;
 		}
 	}

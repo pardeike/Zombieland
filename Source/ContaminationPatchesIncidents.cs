@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Verse;
 
@@ -13,7 +12,20 @@ namespace ZombieLand
 		static bool Prepare() => Constants.CONTAMINATION;
 
 		static MethodBase TargetMethod()
-			=> AccessTools.FirstMethod(typeof(Skyfaller), m => m.Name.StartsWith("<SpawnThings"));
+		{
+			var method = AccessTools.FirstMethod(typeof(Skyfaller), method =>
+			{
+				if (method.Name.StartsWith("<SpawnThings>") == false || method.ReturnType != typeof(void))
+					return false;
+				var parameters = method.GetParameters();
+				return parameters.Length == 2
+					&& parameters[0].ParameterType == typeof(Thing)
+					&& parameters[1].ParameterType == typeof(int);
+			});
+			if (method == null)
+				Patches.Error("Cannot find RimWorld.Skyfaller SpawnThings placement callback");
+			return method;
+		}
 
 		static void Postfix(Thing thing)
 		{
@@ -42,13 +54,18 @@ namespace ZombieLand
 
 		static void Postfix(List<Thing> __result)
 		{
-			if (Tools.IsPlaying())
-				foreach (var thing in __result.Where(t => t is not Mineable))
-					if (Rand.Chance(ZombieSettings.Values.contamination.randomThingCreateChance))
-					{
-						var amount = Tools.MoveableWeight(Rand.Value, 1 - ZombieSettings.Values.contamination.randomThingDensityDistribution);
-						thing.SetContamination(amount);
-					}
+			if (Tools.IsPlaying() == false || __result == null)
+				return;
+			foreach (var thing in __result)
+			{
+				if (thing is Mineable)
+					continue;
+				if (Rand.Chance(ZombieSettings.Values.contamination.randomThingCreateChance))
+				{
+					var amount = Tools.MoveableWeight(Rand.Value, 1 - ZombieSettings.Values.contamination.randomThingDensityDistribution);
+					thing.SetContamination(amount);
+				}
+			}
 		}
 	}
 
@@ -60,15 +77,21 @@ namespace ZombieLand
 		static void Postfix(TradeDeal __instance)
 		{
 			var manager = ContaminationManager.Instance;
-			var things = __instance.AllTradeables
-				.Where(tradeable => tradeable.HasAnyThing)
-				.SelectMany(tradeable => tradeable.thingsTrader)
-				.Where(thing => thing is not Mineable)
-				.ToArray();
-			var uncontaminated = things.Where(thing => manager.Get(thing) == 0).ToArray();
-			if (things.Length > uncontaminated.Length)
-				return;
-			foreach (var thing in uncontaminated)
+			var things = new List<Thing>();
+			foreach (var tradeable in __instance.AllTradeables)
+			{
+				if (tradeable.HasAnyThing == false)
+					continue;
+				foreach (var thing in tradeable.thingsTrader)
+				{
+					if (thing is Mineable)
+						continue;
+					if (manager.Get(thing) != 0)
+						return;
+					things.Add(thing);
+				}
+			}
+			foreach (var thing in things)
 				if (Rand.Chance(ZombieSettings.Values.contamination.randomThingCreateChance))
 				{
 					var amount = Tools.MoveableWeight(Rand.Value, 1 - ZombieSettings.Values.contamination.randomThingDensityDistribution);
@@ -84,6 +107,8 @@ namespace ZombieLand
 
 		static void Postfix(List<Thing> __result)
 		{
+			if (__result == null || __result.Count == 0)
+				return;
 			if (Rand.Chance(ZombieSettings.Values.contamination.mechClusterChance) == false)
 				return;
 			var amount = Tools.MoveableWeight(Rand.Value, 1 - ZombieSettings.Values.contamination.mechClusterDensityDistribution);

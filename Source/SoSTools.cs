@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using Verse.AI.Group;
@@ -31,7 +32,7 @@ namespace ZombieLand
 
 				var method = AccessTools.Method(sosType, "IsHologram");
 				if (method != null)
-					IsHologram = AccessTools.MethodDelegate<IsHologramDelegate>(AccessTools.Method(sosType, "IsHologram"));
+					IsHologram = AccessTools.MethodDelegate<IsHologramDelegate>(method);
 			}
 		}
 
@@ -139,8 +140,35 @@ namespace ZombieLand
 	{
 		static bool Prepare() => TargetMethod() != null;
 		static MethodBase TargetMethod()
-			=> AccessTools.Method("SaveOurShip2.ShipInteriorMod2:GenerateShip")
+			=> CurrentSoSGenerateShipMethod()
 				?? AccessTools.Method("RimWorld.ShipCombatManager:GenerateShip");
+
+		static MethodInfo CurrentSoSGenerateShipMethod()
+		{
+			var type = AccessTools.TypeByName("SaveOurShip2.ShipInteriorMod2");
+			var shipDefType = AccessTools.TypeByName("SaveOurShip2.ShipDef");
+			var navyDefType = AccessTools.TypeByName("SaveOurShip2.NavyDef");
+			if (type == null || shipDefType == null || navyDefType == null)
+				return null;
+
+			return AccessTools.Method(type, "GenerateShip", new[]
+			{
+				shipDefType,
+				typeof(Map),
+				typeof(PassingShip),
+				typeof(Faction),
+				typeof(Lord),
+				typeof(List<Building>).MakeByRefType(),
+				typeof(bool),
+				typeof(bool),
+				typeof(int),
+				typeof(int),
+				typeof(int),
+				navyDefType,
+				typeof(bool),
+				typeof(bool)
+			});
+		}
 
 		static void Postfix(MethodBase __originalMethod, object[] __args)
 		{
@@ -209,8 +237,17 @@ namespace ZombieLand
 	{
 		static bool Prepare() => TargetMethod() != null;
 		static MethodBase TargetMethod()
-			=> AccessTools.Method("SaveOurShip2.GenerateSpaceSubMesh:Prefix")
+			=> CurrentSpaceSubMeshPrefixMethod()
 				?? AccessTools.Method("SaveOurShip2.GenerateSpaceSubMesh:GenerateMesh");
+
+		static MethodInfo CurrentSpaceSubMeshPrefixMethod()
+		{
+			var type = AccessTools.TypeByName("SaveOurShip2.GenerateSpaceSubMesh");
+			if (type == null)
+				return null;
+
+			return AccessTools.Method(type, "Prefix", new[] { typeof(SectionLayer), typeof(MeshParts) });
+		}
 
 		public static void PrintMeshWithChangedAltitute(SectionLayer layer, Matrix4x4 tsr, Mesh mesh, Material mat)
 		{
@@ -224,7 +261,28 @@ namespace ZombieLand
 		{
 			var from = SymbolExtensions.GetMethodInfo(() => Printer_Mesh.PrintMesh(default, default, default, default));
 			var to = SymbolExtensions.GetMethodInfo(() => PrintMeshWithChangedAltitute(default, default, default, default));
-			return instructions.MethodReplacer(from, to);
+			var planetMaterial = AccessTools.Field("SaveOurShip2.ResourceBank:PlanetMaterial");
+			if (from == null || to == null || planetMaterial == null)
+				throw new MissingMethodException($"{nameof(SaveOurShip2_GenerateSpaceSubMesh_GenerateMesh_Patch)} could not resolve mesh replacement members");
+
+			var list = instructions.ToList();
+			var printMeshCalls = 0;
+			var replaced = 0;
+			for (var i = 0; i < list.Count; i++)
+			{
+				if (list[i].Calls(from) == false)
+					continue;
+				printMeshCalls++;
+				if (i > 0 && list[i - 1].opcode == OpCodes.Ldsfld && Equals(list[i - 1].operand, planetMaterial))
+				{
+					list[i].operand = to;
+					replaced++;
+				}
+			}
+
+			if (printMeshCalls == 0 || replaced != 1)
+				throw new InvalidOperationException($"{nameof(SaveOurShip2_GenerateSpaceSubMesh_GenerateMesh_Patch)} expected one planet-material PrintMesh call but found {replaced} among {printMeshCalls} PrintMesh calls");
+			return list;
 		}
 	}
 }

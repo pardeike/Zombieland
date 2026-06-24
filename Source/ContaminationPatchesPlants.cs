@@ -16,7 +16,13 @@ namespace ZombieLand
 
 		static IEnumerable<MethodBase> TargetMethods()
 		{
-			yield return AccessTools.Method(typeof(TunnelJellySpawner), "Spawn", new[] { typeof(Map), typeof(IntVec3) });
+			var method = AccessTools.Method(typeof(TunnelJellySpawner), "Spawn", new[] { typeof(Map), typeof(IntVec3) });
+			if (method == null)
+			{
+				Patches.Error("Cannot find RimWorld.TunnelJellySpawner protected spawn method");
+				yield break;
+			}
+			yield return method;
 		}
 
 		static Thing Spawn(Thing newThing, IntVec3 loc, Map map, WipeMode wipeMode)
@@ -65,8 +71,23 @@ namespace ZombieLand
 		static MethodBase TargetMethod()
 		{
 			var type = AccessTools.FirstInner(typeof(JobDriver_PlantWork), type => type.Name.Contains("DisplayClass"));
+			if (type == null)
+			{
+				Patches.Error("Cannot find RimWorld.JobDriver_PlantWork MakeNewToils display class");
+				return null;
+			}
+
 			f_JobDriver = AccessTools.Field(type, "<>4__this");
-			return AccessTools.FirstMethod(type, method => method.CallsMethod(m_MakeThing));
+			if (f_JobDriver == null)
+			{
+				Patches.Error("Cannot find RimWorld.JobDriver_PlantWork display class driver field");
+				return null;
+			}
+
+			var method = AccessTools.FirstMethod(type, method => method.CallsMethod(m_MakeThing));
+			if (method == null)
+				Patches.Error("Cannot find RimWorld.JobDriver_PlantWork harvest product delegate");
+			return method;
 		}
 
 		static void Prefix(object __instance)
@@ -136,7 +157,16 @@ namespace ZombieLand
 		static MethodBase TargetMethod()
 		{
 			var type = AccessTools.FirstInner(typeof(JobDriver_PlantSow), type => type.Name.Contains("DisplayClass"));
-			return Tools.FirstMethodForReplacement(type, typeof(GenSpawn), m_Spawn);
+			if (type == null)
+			{
+				Patches.Error("Cannot find RimWorld.JobDriver_PlantSow MakeNewToils display class");
+				return null;
+			}
+
+			var method = Tools.FirstMethodForReplacement(type, typeof(GenSpawn), m_Spawn);
+			if (method == null)
+				Patches.Error("Cannot find RimWorld.JobDriver_PlantSow spawn delegate");
+			return method;
 		}
 
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, JobDriver_PlantSow driver)

@@ -49,32 +49,39 @@ namespace ZombieLand
 
 			var grid = new ContaminationGrid(map);
 			var elevation = MapGenerator.Elevation.grid;
-			var cellCountAboveBase = elevation.Where(elevation => elevation > minElevationBase).Count();
+			var cellCountAboveBase = 0;
+			for (int i = 0; i < elevation.Length; i++)
+				if (elevation[i] > minElevationBase)
+					cellCountAboveBase++;
 			if (cellCountAboveBase > 0)
 			{
 				var p = ZombieSettings.Values.contamination.contaminationElevationPercentage;
 				var n = (int)Math.Ceiling(cellCountAboveBase * p);
-				var set = new SortedSet<(float, int)>();
-				for (int i = 0; i < elevation.Length; i++)
+				if (n > 0)
 				{
-					var val = elevation[i];
-					if (val > 0)
+					var set = new SortedSet<(float, int)>();
+					for (int i = 0; i < elevation.Length; i++)
 					{
-						set.Add((val, i));
-						if (set.Count > n)
-							set.Remove(set.Min);
+						var val = elevation[i];
+						if (val > 0)
+						{
+							set.Add((val, i));
+							if (set.Count > n)
+								set.Remove(set.Min);
+						}
 					}
-				}
-				var min = set.Min.Item1;
-				var max = set.Max.Item1;
-				static float easeInOutQuart(float x, float p) => x < 0.5f ? Mathf.Pow(2 * x, p) / 2 : 1 - Mathf.Pow(-2 * x + 2, p) / 2;
-				var mapX = map.Size.x;
-				var difficultyFactor = GenMath.LerpDoubleClamped(1, 4, 0.25f, 1, ZombieSettings.Values.contaminationBaseFactor);
-				foreach (var item in set)
-				{
-					var cell = CellIndicesUtility.IndexToCell(item.Item2, mapX);
-					var f = (item.Item1 - min) / (max - min);
-					grid[cell] = easeInOutQuart(f, 4) * difficultyFactor;
+					var min = set.Min.Item1;
+					var max = set.Max.Item1;
+					var range = max - min;
+					static float easeInOutQuart(float x, float p) => x < 0.5f ? Mathf.Pow(2 * x, p) / 2 : 1 - Mathf.Pow(-2 * x + 2, p) / 2;
+					var mapX = map.Size.x;
+					var difficultyFactor = GenMath.LerpDoubleClamped(1, 4, 0.25f, 1, ZombieSettings.Values.contaminationBaseFactor);
+					foreach (var item in set)
+					{
+						var cell = CellIndicesUtility.IndexToCell(item.Item2, mapX);
+						var f = range > 0 ? (item.Item1 - min) / range : 1f;
+						grid[cell] = easeInOutQuart(f, 4) * difficultyFactor;
+					}
 				}
 			}
 			ContaminationManager.Instance.grounds[map.Index] = grid;

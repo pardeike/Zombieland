@@ -1,16 +1,12 @@
 ﻿using HarmonyLib;
-using Mono.Security;
 using RimWorld;
-using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Reflection;
 using UnityEngine;
 using Verse;
 using Verse.AI;
-using Verse.Noise;
 using static HarmonyLib.Code;
 
 namespace ZombieLand
@@ -72,10 +68,10 @@ namespace ZombieLand
 
 		static IEnumerable<Thing> Postfix(IEnumerable<Thing> things, Pawn worker, IBillGiver billGiver, List<Thing> ingredients)
 		{
-			var results = things.ToArray();
 			if (billGiver is not Thing bench)
 				return things;
 
+			var results = things.ToArray();
 			var manager = ContaminationManager.Instance;
 			var transfer = ingredients.Sum(i => manager.Get(i));
 			ingredients.TransferContamination(ZombieSettings.Values.contamination.receipeTransfer, results);
@@ -450,7 +446,10 @@ namespace ZombieLand
 
 		static MethodBase TargetMethod()
 		{
-			return AccessTools.FirstMethod(typeof(JobDriver_ClearPollution), method => method.CallsMethod(m_Spawn));
+			var method = AccessTools.FirstMethod(typeof(JobDriver_ClearPollution), method => method.CallsMethod(m_Spawn));
+			if (method == null)
+				Patches.Error("Cannot find RimWorld.JobDriver_ClearPollution wastepack spawn delegate");
+			return method;
 		}
 
 		static Thing Spawn(ThingDef def, IntVec3 loc, Map map, WipeMode wipeMode, JobDriver_ClearPollution driver)
@@ -546,7 +545,16 @@ namespace ZombieLand
 		static MethodBase TargetMethod()
 		{
 			var type = AccessTools.FirstInner(typeof(JobDriver_AffectFloor), type => type.Name.Contains("DisplayClass"));
-			return AccessTools.FirstMethod(type, method => method.CallsMethod(m_DoEffect));
+			if (type == null)
+			{
+				Patches.Error("Cannot find RimWorld.JobDriver_AffectFloor MakeNewToils display class");
+				return null;
+			}
+
+			var method = AccessTools.FirstMethod(type, method => method.CallsMethod(m_DoEffect));
+			if (method == null)
+				Patches.Error("Cannot find RimWorld.JobDriver_AffectFloor effect delegate");
+			return method;
 		}
 
 		static void DoEffect(JobDriver_AffectFloor self, IntVec3 c)
@@ -572,7 +580,10 @@ namespace ZombieLand
 
 		static MethodBase TargetMethod()
 		{
-			return AccessTools.FirstMethod(typeof(JobDriver_DisassembleMech), method => method.CallsMethod(m_TryPlaceThing));
+			var method = AccessTools.FirstMethod(typeof(JobDriver_DisassembleMech), method => method.CallsMethod(m_TryPlaceThing));
+			if (method == null)
+				Patches.Error("Cannot find RimWorld.JobDriver_DisassembleMech product placement delegate");
+			return method;
 		}
 
 		static bool TryPlaceThing(Thing thing, IntVec3 center, Map map, ThingPlaceMode mode, Action<Thing, int> placedAction, Predicate<IntVec3> nearPlaceValidator, Rot4? rot, int squareRadius, JobDriver_DisassembleMech driver)

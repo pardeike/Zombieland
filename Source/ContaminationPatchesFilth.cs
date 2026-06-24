@@ -38,7 +38,15 @@ namespace ZombieLand
 		{
 			var m_ThinFilth = SymbolExtensions.GetMethodInfo((Filth filth) => filth.ThinFilth());
 			var type = AccessTools.FirstInner(typeof(JobDriver_CleanFilth), type => type.Name.Contains("DisplayClass"));
-			return AccessTools.FirstMethod(type, method => method.CallsMethod(m_ThinFilth));
+			if (type == null)
+			{
+				Patches.Error("Cannot find RimWorld.JobDriver_CleanFilth MakeNewToils display class");
+				return null;
+			}
+			var method = AccessTools.FirstMethod(type, method => method.CallsMethod(m_ThinFilth));
+			if (method == null)
+				Patches.Error("Cannot find RimWorld.JobDriver_CleanFilth clean delegate");
+			return method;
 		}
 
 		static void ThinFilth(Filth filth, JobDriver_CleanFilth jobDriver)
@@ -147,8 +155,26 @@ namespace ZombieLand
 	{
 		static bool Prepare() => Constants.CONTAMINATION;
 
+		static Thing MostContaminatedThing(IEnumerable<Thing> things)
+		{
+			Thing result = null;
+			var resultContamination = 0f;
+			foreach (var thing in things)
+			{
+				if (thing == null)
+					continue;
+				var contamination = thing.GetContamination(includeHoldings: true);
+				if (result == null || contamination >= resultContamination)
+				{
+					result = thing;
+					resultContamination = contamination;
+				}
+			}
+			return result;
+		}
+
 		static void Prefix(Verse.Explosion __instance)
-			=> Filth_MakeThing_Patch.filthSource = __instance.damagedThings.OrderBy(t => t.GetContamination(includeHoldings: true)).LastOrDefault();
+			=> Filth_MakeThing_Patch.filthSource = MostContaminatedThing(__instance.damagedThings);
 		static void Postfix() => Filth_MakeThing_Patch.filthSource = null;
 	}
 
@@ -173,7 +199,10 @@ namespace ZombieLand
 
 		static MethodBase TargetMethod()
 		{
-			return AccessTools.FirstMethod(typeof(JobDriver_Vomit), method => method.CallsMethod(m_TryMakeFilth));
+			var method = AccessTools.FirstMethod(typeof(JobDriver_Vomit), method => method.CallsMethod(m_TryMakeFilth));
+			if (method == null)
+				Patches.Error("Cannot find RimWorld.JobDriver_Vomit filth delegate");
+			return method;
 		}
 	}
 

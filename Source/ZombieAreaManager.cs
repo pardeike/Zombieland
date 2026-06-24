@@ -125,7 +125,10 @@ namespace ZombieLand
 		{
 			var map = Find.CurrentMap;
 			if (map == null)
+			{
+				warningShowing = false;
 				return;
+			}
 
 			try
 			{
@@ -139,6 +142,8 @@ namespace ZombieLand
 
 			if (WorldRendererUtility.WorldRendered == false)
 				DrawDangerous();
+			else
+				warningShowing = false;
 		}
 
 		public static void ShowCentered(IntVec3 minCell, IntVec3 maxCell)

@@ -52,7 +52,8 @@ namespace ZombieLand
 				"CombatExtended.Harmony.Harmony_DamageWorker_AddInjury_ApplyDamageToPart");
 			if (type == null)
 				return null;
-			var method = AccessTools.Method(type, "ArmorReroute");
+			var boolRef = typeof(bool).MakeByRefType();
+			var method = AccessTools.Method(type, "ArmorReroute", new[] { typeof(Pawn), typeof(DamageInfo).MakeByRefType(), boolRef, boolRef });
 			if (method == null)
 			{
 				Error("Combat Extended installed, but method Harmony_DamageWorker_AddInjury_ApplyDamageToPart.ArmorReroute not found");
@@ -176,6 +177,8 @@ namespace ZombieLand
 			dinfo.SetAmount(dmgAmount);
 			originalDinfo = dinfo;
 			__result = dinfo;
+			armorDeflected = deflect;
+			armorReduced = diminish;
 			shieldAbsorbed = deflect || diminish;
 
 			return false;

@@ -17,12 +17,15 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static void Prefix(ref string str, Type itemType)
 			{
+				itemType = Nullable.GetUnderlyingType(itemType) ?? itemType;
 				if (itemType == typeof(AreaRiskMode))
 				{
-					if (str == "IfInside")
-						str = nameof(AreaRiskMode.ColonistInside);
-					if (str == "IfOutside")
-						str = nameof(AreaRiskMode.ColonistOutside);
+					str = str switch
+					{
+						"IfInside" => nameof(AreaRiskMode.ColonistInside),
+						"IfOutside" => nameof(AreaRiskMode.ColonistOutside),
+						_ => str
+					};
 				}
 			}
 		}

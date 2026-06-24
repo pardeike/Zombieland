@@ -60,7 +60,16 @@ namespace ZombieLand
 		{
 			var m_SetDepth = SymbolExtensions.GetMethodInfo((SnowGrid grid) => grid.SetDepth(default, default));
 			var type = AccessTools.FirstInner(typeof(JobDriver_ClearSnowAndSand), type => type.Name.Contains("DisplayClass"));
-			return AccessTools.FirstMethod(type, method => method.CallsMethod(m_SetDepth));
+			if (type == null)
+			{
+				Patches.Error("Cannot find RimWorld.JobDriver_ClearSnowAndSand MakeNewToils display class");
+				return null;
+			}
+
+			var method = AccessTools.FirstMethod(type, method => method.CallsMethod(m_SetDepth));
+			if (method == null)
+				Patches.Error("Cannot find RimWorld.JobDriver_ClearSnowAndSand clear-depth delegate");
+			return method;
 		}
 
 		static void SetDepth(SnowGrid self, IntVec3 c, float newDepth, Toil toil)

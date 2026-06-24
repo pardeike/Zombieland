@@ -304,7 +304,7 @@ namespace ZombieLand
 						var textColor = Color.gray;
 						if (contaminationCell > 0.2f || contaminationThings > 0.2f)
 							textColor = Color.white;
-						if (contaminationCell > 0.4f || contaminationThings > 0.2f)
+						if (contaminationCell > 0.4f || contaminationThings > 0.4f)
 							textColor = Color.cyan;
 						if (contaminationCell > 0.6f || contaminationThings > 0.6f)
 							textColor = Color.yellow;
@@ -323,7 +323,7 @@ namespace ZombieLand
 							var textColor = Color.gray;
 							if (contaminiaton > 0.2f)
 								textColor = Color.white;
-							if (contaminiaton > 0.2f)
+							if (contaminiaton > 0.4f)
 								textColor = Color.cyan;
 							if (contaminiaton > 0.6f)
 								textColor = Color.yellow;
