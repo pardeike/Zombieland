@@ -187,23 +187,22 @@ namespace ZombieLand
 
 		public static string GetModRuntimeDirectory()
 		{
-			var assemblyDir = "";
 			try
 			{
 				var assemblyLocation = typeof(Tools).Assembly.Location;
 				if (string.IsNullOrEmpty(assemblyLocation) == false)
-					assemblyDir = Path.GetDirectoryName(assemblyLocation);
+				{
+					var assemblyDir = Path.GetDirectoryName(assemblyLocation);
+					if (string.IsNullOrEmpty(assemblyDir) == false && Path.GetFileName(assemblyDir).Equals("Assemblies", StringComparison.OrdinalIgnoreCase))
+					{
+						var runtimeDir = Directory.GetParent(assemblyDir)?.FullName;
+						if (string.IsNullOrEmpty(runtimeDir) == false && Directory.Exists(runtimeDir))
+							return runtimeDir;
+					}
+				}
 			}
-			catch (ArgumentException)
+			catch (Exception)
 			{
-				assemblyDir = "";
-			}
-
-			if (string.IsNullOrEmpty(assemblyDir) == false && Path.GetFileName(assemblyDir).Equals("Assemblies", StringComparison.OrdinalIgnoreCase))
-			{
-				var runtimeDir = Directory.GetParent(assemblyDir)?.FullName;
-				if (string.IsNullOrEmpty(runtimeDir) == false && Directory.Exists(runtimeDir))
-					return runtimeDir;
 			}
 
 			var root = GetModRootDirectory();

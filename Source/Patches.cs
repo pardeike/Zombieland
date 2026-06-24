@@ -6570,7 +6570,11 @@ namespace ZombieLand
 		{
 			static void Prefix(ref IEnumerable<Page> pages)
 			{
-				var list = pages as List<Page> ?? pages?.ToList() ?? new List<Page>();
+				if (pages == null)
+					return;
+				var list = pages as List<Page> ?? pages.ToList();
+				if (list.Count == 0)
+					return;
 				list.Insert(Math.Min(1, list.Count), new Dialog_Settings());
 				pages = list;
 			}
