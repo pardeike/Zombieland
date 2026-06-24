@@ -6866,6 +6866,18 @@ namespace ZombieLand
 		// add job to turn on zombie shocker
 		// add roping job
 		//
+		[HarmonyPatch(typeof(FloatMenuContext))]
+		[HarmonyPatch(MethodType.Constructor)]
+		[HarmonyPatch(new[] { typeof(List<Pawn>), typeof(Vector3), typeof(Map) })]
+		static class FloatMenuContext_Constructor_Patch
+		{
+			static void Postfix(List<Thing> ___cachedClickedThings, List<Pawn> ___cachedClickedPawns)
+			{
+				___cachedClickedThings?.RemoveAll(thing => thing is ZombieSymbiant);
+				___cachedClickedPawns?.RemoveAll(pawn => pawn is ZombieSymbiant);
+			}
+		}
+
 		[HarmonyPatch(typeof(FloatMenuMakerMap))]
 		[HarmonyPatch(nameof(FloatMenuMakerMap.GetOptions))]
 		static class FloatMenuMakerMap_GetOptions_Patch
@@ -6930,10 +6942,7 @@ namespace ZombieLand
 
 				var feedOptions = SymbiantFeedOptions(pawn, symbiant).ToArray();
 				if (feedOptions.Length == 0)
-				{
-					opts.Add(new FloatMenuOption("NoSymbiantFeed".Translate(), null));
 					return;
-				}
 				foreach (var feed in feedOptions)
 				{
 					var label = SymbiantFeedLabel(feed);
