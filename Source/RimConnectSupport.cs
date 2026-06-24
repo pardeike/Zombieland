@@ -224,7 +224,7 @@ namespace ZombieLand
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 		{
 			var list = instructions.ToList();
-			var shiftedConstants = 0;
+			var shiftIndices = new List<int>();
 			for (var i = 0; i < list.Count; i++)
 			{
 				var code = list[i];
@@ -234,17 +234,19 @@ namespace ZombieLand
 					if (code.opcode == OpCodes.Ldc_R4)
 					{
 						var value = (float)code.operand;
-						if (value == 180f || value == 198f)
-						{
-							code.operand = value + 30f;
-							shiftedConstants++;
-						}
+						if (Mathf.Abs(value - 180f) < 0.001f || Mathf.Abs(value - 198f) < 0.001f)
+							shiftIndices.Add(i - 1);
 					}
 				}
 			}
 			var idx = list.FindLastIndex(code => code.opcode == OpCodes.Sub);
-			if (shiftedConstants != 2 || idx <= 0 || idx >= list.Count)
-				throw new InvalidOperationException($"{nameof(RimConnection_Settings_CommandOptionSettings_Patch)} could not find expected RimConnect layout anchors");
+			if (shiftIndices.Count != 2 || idx <= 0 || idx >= list.Count)
+			{
+				Log.Warning($"{nameof(RimConnection_Settings_CommandOptionSettings_Patch)} could not find expected RimConnect layout anchors");
+				return list;
+			}
+			foreach (var shiftIndex in shiftIndices)
+				list[shiftIndex].operand = (float)list[shiftIndex].operand + 30f;
 			list.InsertRange(idx + 1, new[]
 			{
 				new CodeInstruction(OpCodes.Ldc_R4, 30f),

@@ -27,14 +27,14 @@ namespace ZombieLand
 			var attackerFaction = attacker.Faction;
 			var attackerRace = attacker.def.race;
 
-			var isHuman = attackerRace?.Humanlike ?? false;
+			var isHuman = attackerRace?.IsFlesh ?? false;
 			var isAnimal = attackerRace?.Animal ?? false;
 			var isMech = attackerRace?.IsMechanoid ?? false;
 
 			var attackerFactionDef = attackerFaction?.def;
-			var isPlayer = attackerFactionDef?.isPlayer ?? false;
-			var isEnemy = attackerFactionDef != null && attackerFaction.HostileTo(Faction.OfPlayer);
-			var isFriendly = isEnemy == false && isPlayer == false;
+			var isPlayer = isAnimal == false && (attackerFactionDef?.isPlayer ?? false);
+			var isEnemy = isAnimal == false && attackerFactionDef != null && attackerFaction.HostileTo(Faction.OfPlayer);
+			var isFriendly = isAnimal == false && isEnemy == false && isPlayer == false;
 
 			if (isEnemy == false)
 				rawTargets.RemoveAll(thing => thing.Thing is ZombieSymbiant);
@@ -229,7 +229,7 @@ namespace ZombieLand
 		static void Postfix(List<Pair<IAttackTarget, float>> __result, IAttackTargetSearcher searcher, Verb verb)
 		{
 			var attacker = searcher?.Thing;
-			if (attacker == null || verb == null || __result == null)
+			if (attacker == null)
 				return;
 
 			const float delta = 1f;
@@ -258,20 +258,15 @@ namespace ZombieLand
 	{
 		const float EnemyZombieEngagementDistanceSquared = 81f;
 
-		static bool AlwaysValid(Thing thing)
-		{
-			return true;
-		}
-
 		static void Prefix(ref Predicate<Thing> validator, IAttackTargetSearcher searcher)
 		{
-			if (searcher == null)
+			if (validator == null || searcher == null)
 				return;
 			var verb = searcher.CurrentEffectiveVerb;
 			if (verb == null)
 				return;
 
-			var oldValidator = validator ?? AlwaysValid;
+			var oldValidator = validator;
 
 			// make ranged weapons (i.e. turrets) ignore electrical or roped zombies
 			if (searcher is not Pawn attacker)
@@ -499,9 +494,7 @@ namespace ZombieLand
 			if (target is not Zombie zombie || (zombie.health.Downed && ZombieSettings.Values.doubleTapRequired == false))
 				return true;
 			var distance = (zombie.Position - pawn.Position).LengthHorizontal;
-			var weaponRange = verb.EffectiveRange;
-			if (weaponRange <= 0f)
-				return true;
+			var weaponRange = verb.verbProps.range;
 			if (distance > weaponRange)
 				return true;
 
@@ -527,28 +520,14 @@ namespace ZombieLand
 			yield return SymbolExtensions.GetMethodInfo(() => AttackTargetFinder.FriendlyFireBlastRadiusTargetScoreOffset(default, default, default));
 		}
 
-		static List<Thing> RemoveZombielandPawns(List<Thing> input)
-		{
-			if (input == null)
-				return null;
-			var output = new List<Thing>(input.Count);
-			for (var i = 0; i < input.Count; i++)
-			{
-				var thing = input[i];
-				if (thing is not Zombie && thing is not ZombieSpitter && thing is not ZombieSymbiant)
-					output.Add(thing);
-			}
-			return output;
-		}
+		static List<Thing> RemoveZombies(List<Thing> input) => input.Where(i => i is not Zombie && i is not ZombieSymbiant).ToList();
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 		{
 			var m_GetThingList = SymbolExtensions.GetMethodInfo(() => GridsUtility.GetThingList(default, default));
 			var list = instructions.ToList();
 			var idx = list.FirstIndexOf(instruction => instruction.operand is MethodInfo method && method == m_GetThingList);
-			if (idx < 0)
-				throw new InvalidOperationException($"{nameof(AttackTargetFinder_FriendlyFire_Patch)} could not find GetThingList");
-			list.Insert(idx + 1, CodeInstruction.Call(() => RemoveZombielandPawns(default)));
+			list.Insert(idx + 1, CodeInstruction.Call(() => RemoveZombies(default)));
 			return list;
 		}
 	}
@@ -560,20 +539,10 @@ namespace ZombieLand
 	[HarmonyPatch(new Type[] { typeof(Thing), typeof(Thing) })]
 	static class GenHostility_HostileTo_Thing_Thing_Patch
 	{
-		static bool IsZombielandPawn(Thing thing)
-		{
-			return thing is Pawn pawn && ZombieAreaManager.IsZombielandPawn(pawn);
-		}
-
 		static bool IsHostileToSymbiant(Thing thing)
 		{
 			var faction = thing?.Faction;
 			return faction != null && faction.HostileTo(Faction.OfPlayer);
-		}
-
-		static bool IsHostileToSpitter(Thing thing)
-		{
-			return thing?.Faction?.def?.isPlayer ?? false;
 		}
 
 		[HarmonyPriority(Priority.First)]
@@ -584,17 +553,12 @@ namespace ZombieLand
 				__result = a is ZombieSymbiant ? IsHostileToSymbiant(b) : IsHostileToSymbiant(a);
 				return false;
 			}
-			if (a is ZombieSpitter || b is ZombieSpitter)
-			{
-				__result = a is ZombieSpitter ? IsHostileToSpitter(b) : IsHostileToSpitter(a);
-				return false;
-			}
 			return true;
 		}
 
 		static void Postfix(Thing a, Thing b, ref bool __result)
 		{
-			if (a is not Pawn pawn || pawn.ActivePartOfColony() || IsZombielandPawn(pawn) || b is not Zombie)
+			if (a is not Pawn pawn || pawn.ActivePartOfColony() || pawn is Zombie || b is not Zombie)
 				return;
 
 			if (pawn.InfectionState() == InfectionState.Infecting)
@@ -632,7 +596,7 @@ namespace ZombieLand
 				return;
 			if (t is not Pawn pawn)
 				return;
-			if (ZombieAreaManager.IsZombielandPawn(pawn))
+			if (pawn is Zombie)
 				return;
 			if (pawn.ActivePartOfColony())
 				return;
@@ -648,30 +612,21 @@ namespace ZombieLand
 	[HarmonyPatch(new Type[] { typeof(IAttackTarget), typeof(Faction), typeof(bool), typeof(bool) })]
 	static class GenHostility_IsActiveThreat_Patch
 	{
-		static Pawn ZombielandPawnTarget(IAttackTarget target)
+		static bool IsZombielandPawnTarget(IAttackTarget target)
 		{
-			var pawn = target?.Thing as Pawn;
-			return ZombieAreaManager.IsZombielandPawn(pawn) ? pawn : null;
+			return target is Zombie || target is ZombieSymbiant || target is ZombieSpitter;
 		}
 
 		[HarmonyPriority(Priority.First)]
-		static bool Prefix(ref bool __result, IAttackTarget target, Faction faction, bool canBeFogged)
+		static bool Prefix(ref bool __result, IAttackTarget target, Faction faction)
 		{
-			var pawn = ZombielandPawnTarget(target);
-			if (pawn == null) // must skip non zombies bc next patch requires it
-				return true;
-
-			if (pawn.Destroyed || canBeFogged == false && pawn.Fogged())
-			{
-				__result = false;
-				return false;
-			}
-
-			if (pawn is ZombieSymbiant)
+			if (target is ZombieSymbiant)
 			{
 				__result = faction != null && faction != Faction.OfPlayer && faction.HostileTo(Faction.OfPlayer);
 				return false;
 			}
+			if (IsZombielandPawnTarget(target) == false) // must skip non zombies bc next patch requires it
+				return true;
 
 			if (faction == null)
 			{
@@ -717,43 +672,23 @@ namespace ZombieLand
 	[HarmonyPatch(nameof(JobDriver_Wait.CheckForAutoAttack))]
 	static class JobDriver_Wait_CheckForAutoAttack_Patch
 	{
-		static Pawn ZombielandPawnTarget(IAttackTarget target)
-		{
-			var pawn = target?.Thing as Pawn;
-			return ZombieAreaManager.IsZombielandPawn(pawn) ? pawn : null;
-		}
-
 		static bool IsActiveThreatTo(IAttackTarget target, Faction faction, bool ignoreHives, bool canBeFogged)
 		{
-			var pawn = ZombielandPawnTarget(target);
-			if (pawn == null)
-				return GenHostility.IsActiveThreatTo(target, faction, ignoreHives, canBeFogged); // ok to call patched method bc we filtered out zombies
-			if (pawn.Destroyed || canBeFogged == false && pawn.Fogged())
-				return false;
-			if (pawn is Zombie zombie)
+			if (target is Zombie zombie)
 				return zombie.IsRopedOrConfused == false;
-			if (pawn is ZombieSymbiant)
+			if (target is ZombieSymbiant)
 				return faction != null && faction != Faction.OfPlayer && faction.HostileTo(Faction.OfPlayer);
-			if (pawn is ZombieSpitter)
+			if (target is ZombieSpitter)
 				return faction?.def?.isPlayer ?? false;
-			return false;
+			return GenHostility.IsActiveThreatTo(target, faction, ignoreHives, canBeFogged); // ok to call patched method bc we filtered out zombies
 		}
 
 		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 		{
-			var original = SymbolExtensions.GetMethodInfo(() => GenHostility.IsActiveThreatTo(null, null, default, default));
-			var replacement = SymbolExtensions.GetMethodInfo(() => IsActiveThreatTo(null, null, default, default));
-			var list = instructions.ToList();
-			var count = 0;
-			for (var i = 0; i < list.Count; i++)
-				if (list[i].operand is MethodInfo method && method == original)
-				{
-					list[i].operand = replacement;
-					count++;
-				}
-			if (count != 1)
-				throw new InvalidOperationException($"{nameof(JobDriver_Wait_CheckForAutoAttack_Patch)} expected one IsActiveThreatTo call but found {count}");
-			return list;
+			return instructions.MethodReplacer(
+				SymbolExtensions.GetMethodInfo(() => GenHostility.IsActiveThreatTo(null, null)),
+				SymbolExtensions.GetMethodInfo(() => IsActiveThreatTo(null, null, default, default))
+			);
 		}
 	}
 
@@ -766,7 +701,7 @@ namespace ZombieLand
 
 		static bool IsZombielandTarget(IAttackTarget target)
 		{
-			return target?.Thing is Pawn pawn && ZombieAreaManager.IsZombielandPawn(pawn);
+			return target?.Thing is Zombie || target?.Thing is ZombieSymbiant || target?.Thing is ZombieSpitter;
 		}
 
 		static HashSet<IAttackTarget> PlayerHostilesWithoutZombies(Map map)
@@ -806,16 +741,17 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(AttackTargetsCache.RegisterTarget))]
 		static class AttackTargetsCache_RegisterTarget_Patch
 		{
-			static void Postfix(IAttackTarget target, Map ___map)
+			static void Postfix(IAttackTarget target)
 			{
-				var thing = target?.Thing;
+				var thing = target.Thing;
 				if (thing == null || IsZombielandTarget(target))
-					return;
-				if (___map == null || thing.Spawned == false || thing.Map != ___map)
 					return;
 				if (thing.HostileTo(Faction.OfPlayer) == false)
 					return;
-				_ = PlayerHostilesWithoutZombies(___map).Add(target);
+				var map = thing.Map;
+				if (map == null)
+					return;
+				_ = PlayerHostilesWithoutZombies(map).Add(target);
 			}
 		}
 
@@ -823,12 +759,12 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(AttackTargetsCache.DeregisterTarget))]
 		static class AttackTargetsCache_DeregisterTarget_Patch
 		{
-			static bool Prefix(IAttackTarget target, Map ___map)
+			static bool Prefix(IAttackTarget target)
 			{
 				var thing = target?.Thing;
 				if (thing == null || IsZombielandTarget(target))
 					return true;
-				var map = thing.MapHeld ?? ___map;
+				var map = thing.MapHeld;
 				if (map == null)
 					return true;
 				if (playerHostilesWithoutZombies.TryGetValue(map, out var targets))

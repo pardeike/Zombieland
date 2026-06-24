@@ -263,7 +263,10 @@ namespace ZombieLand
 			var to = SymbolExtensions.GetMethodInfo(() => PrintMeshWithChangedAltitute(default, default, default, default));
 			var planetMaterial = AccessTools.Field("SaveOurShip2.ResourceBank:PlanetMaterial");
 			if (from == null || to == null || planetMaterial == null)
-				throw new MissingMethodException($"{nameof(SaveOurShip2_GenerateSpaceSubMesh_GenerateMesh_Patch)} could not resolve mesh replacement members");
+			{
+				Log.Warning($"{nameof(SaveOurShip2_GenerateSpaceSubMesh_GenerateMesh_Patch)} could not resolve mesh replacement members");
+				return instructions;
+			}
 
 			var list = instructions.ToList();
 			var printMeshCalls = 0;
@@ -273,15 +276,23 @@ namespace ZombieLand
 				if (list[i].Calls(from) == false)
 					continue;
 				printMeshCalls++;
-				if (i > 0 && list[i - 1].opcode == OpCodes.Ldsfld && Equals(list[i - 1].operand, planetMaterial))
+				var start = Math.Max(0, i - 8);
+				var hasPlanetMaterial = false;
+				for (var j = i - 1; j >= start; j--)
+					if (list[j].opcode == OpCodes.Ldsfld && Equals(list[j].operand, planetMaterial))
+					{
+						hasPlanetMaterial = true;
+						break;
+					}
+				if (hasPlanetMaterial)
 				{
 					list[i].operand = to;
 					replaced++;
 				}
 			}
 
-			if (printMeshCalls == 0 || replaced != 1)
-				throw new InvalidOperationException($"{nameof(SaveOurShip2_GenerateSpaceSubMesh_GenerateMesh_Patch)} expected one planet-material PrintMesh call but found {replaced} among {printMeshCalls} PrintMesh calls");
+			if (printMeshCalls == 0 || replaced == 0)
+				Log.Warning($"{nameof(SaveOurShip2_GenerateSpaceSubMesh_GenerateMesh_Patch)} found {replaced} planet-material PrintMesh calls among {printMeshCalls} PrintMesh calls");
 			return list;
 		}
 	}
