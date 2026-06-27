@@ -28,6 +28,8 @@ namespace ZombieLand
 		public static SoundDef ToxicSplash;
 		public static SoundDef ZombieDigOut;
 		public static SoundDef ZombieEating;
+		public static SoundDef ZombieBurningSilencer;
+		public static SoundDef ZombieBurningDamage;
 		public static SoundDef ZombieElectricHum;
 		public static SoundDef ZombieTankMovement;
 		public static SoundDef ZombieHit;

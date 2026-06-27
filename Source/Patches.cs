@@ -108,6 +108,32 @@ namespace ZombieLand
 				CustomDefs.TarSmokePop.PlayOneShot(SoundInfo.InMap(new TargetInfo(center, map)));
 		}
 
+		[ThreadStatic] static int burningZombieFireDamageFeedbackDepth;
+
+		static bool IsBurningZombieFireDamage(Pawn pawn, DamageInfo dinfo)
+		{
+			if (IsZombielandPawn(pawn) == false || dinfo.Def != DamageDefOf.Flame)
+				return false;
+			if (burningZombieFireDamageFeedbackDepth > 0)
+				return true;
+			if (dinfo.Instigator is Fire instigatorFire && ReferenceEquals(instigatorFire.parent, pawn))
+				return true;
+			return false;
+		}
+
+		static bool SuppressBurningZombieFireDamageFeedback => burningZombieFireDamageFeedbackDepth > 0;
+
+		static void PlayBurningZombieDamageSound(Thing hitThing, Map map)
+		{
+			var soundDef = CustomDefs.ZombieBurningDamage ?? CustomDefs.ZombieBurningSilencer;
+			if (soundDef == null || hitThing == null || map == null)
+				return;
+			var position = hitThing.PositionHeld;
+			if (position.IsValid == false)
+				return;
+			soundDef.PlayOneShot(SoundInfo.InMap(new TargetInfo(position, map)));
+		}
+
 		[HarmonyPatch(typeof(GenUI))]
 		[HarmonyPatch(nameof(GenUI.ThingsUnderMouse))]
 		static class GenUI_ThingsUnderMouse_Patch
@@ -3956,13 +3982,15 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to not let zombies sound when they are on fire
+		// patch to suppress burning-zombie damage effecters while keeping normal attached fire visuals
 		//
 		[HarmonyPatch(typeof(Effecter), nameof(Effecter.Trigger))]
 		static class Effecter_Trigger_Patch
 		{
 			static bool Prefix(EffecterDef ___def, TargetInfo A)
 			{
+				if (SuppressBurningZombieFireDamageFeedback)
+					return false;
 				if (___def != EffecterDefOf.Deflect_General)
 					return true;
 				return A.Thing is not Zombie;
@@ -4738,6 +4766,14 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Fire.DoFireDamage))]
 		static class Fire_DoFireDamage_Patch
 		{
+			static void Prefix(Fire __instance, Thing targ, out bool __state)
+			{
+				__state = targ is Pawn pawn && IsZombielandPawn(pawn) && ReferenceEquals(__instance.parent, pawn);
+				if (__state == false)
+					return;
+				burningZombieFireDamageFeedbackDepth++;
+			}
+
 			static int FireDamagePatch(float f, Fire fire, Thing targ)
 			{
 				var num = GenMath.RoundRandom(f);
@@ -4776,6 +4812,13 @@ namespace ZombieLand
 					Error("Unexpected code in patch " + MethodBase.GetCurrentMethod().DeclaringType);
 
 				return list;
+			}
+
+			static Exception Finalizer(Exception __exception, bool __state)
+			{
+				if (__state)
+					burningZombieFireDamageFeedbackDepth = Math.Max(0, burningZombieFireDamageFeedbackDepth - 1);
+				return __exception;
 			}
 
 			static void Postfix(Fire __instance, Thing targ)
@@ -4828,6 +4871,22 @@ namespace ZombieLand
 				if (__instance.fireSize > 0.5f && __instance.parent == null)
 					FleckMaker.ThrowFireGlow(__instance.Position.ToVector3Shifted(), map, __instance.fireSize);
 				return false;
+			}
+		}
+
+		// patch for replacing the vanilla fire crackle on burning zombies
+		//
+		[HarmonyPatch(typeof(SustainerAggregatorUtility))]
+		[HarmonyPatch(nameof(SustainerAggregatorUtility.AggregateOrSpawnSustainerFor))]
+		static class SustainerAggregatorUtility_AggregateOrSpawnSustainerFor_Patch
+		{
+			static void Prefix(ISizeReporter reporter, ref SoundDef def)
+			{
+				if (def != SoundDefOf.FireBurning)
+					return;
+				if (reporter is not Fire fire || IsZombielandPawn(fire.parent as Pawn) == false)
+					return;
+				def = CustomDefs.ZombieBurningSilencer ?? def;
 			}
 		}
 
@@ -4955,12 +5014,73 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to remove non-melee damage from electrifier zombies
+		// patch to replace burning-zombie damage hit feedback with a quieter local sound
 		//
+		[HarmonyPatch(typeof(DamageWorker_AddInjury))]
+		[HarmonyPatch("ApplyToPawn")]
+		[HarmonyPatch(new[] { typeof(DamageInfo), typeof(Pawn) })]
+		public static class DamageWorker_AddInjury_ApplyToPawn_Patch
+		{
+			static void Prefix(DamageInfo dinfo, Pawn pawn, out bool __state)
+			{
+				__state = IsBurningZombieFireDamage(pawn, dinfo);
+				if (__state)
+					burningZombieFireDamageFeedbackDepth++;
+			}
+
+			static Exception Finalizer(Exception __exception, bool __state)
+			{
+				if (__state)
+					burningZombieFireDamageFeedbackDepth = Math.Max(0, burningZombieFireDamageFeedbackDepth - 1);
+				return __exception;
+			}
+		}
+
+		[HarmonyPatch(typeof(Pawn_DrawTracker))]
+		[HarmonyPatch(nameof(Pawn_DrawTracker.Notify_DamageApplied))]
+		public static class Pawn_DrawTracker_Notify_DamageApplied_Patch
+		{
+			static bool Prefix()
+			{
+				return SuppressBurningZombieFireDamageFeedback == false;
+			}
+		}
+
+		[HarmonyPatch(typeof(ImpactSoundUtility))]
+		[HarmonyPatch(nameof(ImpactSoundUtility.PlayImpactSound))]
+		public static class ImpactSoundUtility_PlayImpactSound_Patch
+		{
+			static bool Prefix(Thing hitThing, Map map)
+			{
+				if (SuppressBurningZombieFireDamageFeedback == false)
+					return true;
+				PlayBurningZombieDamageSound(hitThing, map);
+				return false;
+			}
+		}
+
+		[HarmonyPatch(typeof(LifeStageUtility))]
+		[HarmonyPatch(nameof(LifeStageUtility.PlayNearestLifestageSound))]
+		public static class LifeStageUtility_PlayNearestLifestageSound_Patch
+		{
+			static bool Prefix()
+			{
+				return SuppressBurningZombieFireDamageFeedback == false;
+			}
+		}
+
 		[HarmonyPatch(typeof(DamageWorker_AddInjury))]
 		[HarmonyPatch(nameof(DamageWorker_AddInjury.ApplyDamageToPart))]
 		public static class DamageWorker_AddInjury_ApplyDamageToPart_Patch
 		{
+			static float ReduceZombieDamage(Zombie zombie, DamageInfo dinfo, float factor)
+			{
+				var amount = dinfo.Amount / factor;
+				if (dinfo.Def == DamageDefOf.Flame && zombie.HasFireSurvivalBoost)
+					return Math.Max(1f, amount);
+				return amount;
+			}
+
 			static bool Prefix(ref DamageInfo dinfo, Pawn pawn)
 			{
 				if (pawn is not Zombie zombie)
@@ -4978,7 +5098,7 @@ namespace ZombieLand
 					dinfo.SetAllowDamagePropagation(false);
 					dinfo.SetInstantPermanentInjury(false);
 					var f1 = GenMath.LerpDouble(0, 5, 1, 10, Tools.Difficulty()) + (ShipCountdown.CountingDown ? 2f : 1f);
-					dinfo.SetAmount(dinfo.Amount / f1);
+					dinfo.SetAmount(ReduceZombieDamage(zombie, dinfo, f1));
 					return true;
 				}
 
@@ -5016,7 +5136,7 @@ namespace ZombieLand
 				}
 
 				var f2 = Mathf.Max(1f, Tools.Difficulty()) + (ShipCountdown.CountingDown ? 2f : 1f);
-				dinfo.SetAmount(dinfo.Amount / f2);
+				dinfo.SetAmount(ReduceZombieDamage(zombie, dinfo, f2));
 				return true;
 			}
 		}
