@@ -533,6 +533,351 @@ namespace ZombieLand
 				return result;
 			}
 
+			static object DescribeControlledDrop(Thing thing)
+			{
+				if (thing == null)
+					return null;
+				var apparel = thing as Apparel;
+				return new
+				{
+					id = ZombieRuntimeActions.StableThingId(thing),
+					thingId = thing.ThingID,
+					defName = thing.def?.defName,
+					label = thing.LabelShort,
+					spawned = thing.Spawned,
+					destroyed = thing.Destroyed,
+					forbidden = thing.Spawned && thing.IsForbidden(Faction.OfPlayer),
+					position = thing.Spawned ? ZombieRuntimeActions.DescribeCell(thing.Position) : null,
+					stackCount = thing.stackCount,
+					parentHolder = thing.ParentHolder?.GetType().FullName,
+					apparel = apparel == null ? null : new
+					{
+						wearer = apparel.Wearer == null ? null : ZombieRuntimeActions.StableThingId(apparel.Wearer),
+						wornByCorpse = apparel.WornByCorpse
+					}
+				};
+			}
+
+			static bool TryStageControlledEatingDeathGear(Pawn target, out Thing[] controlledGear, out object evidence, out string error)
+			{
+				controlledGear = Array.Empty<Thing>();
+				evidence = null;
+				error = null;
+				if (target?.equipment == null || target.apparel == null || target.inventory?.innerContainer == null)
+				{
+					error = "Target pawn is missing equipment, apparel, or inventory trackers.";
+					return false;
+				}
+
+				target.equipment.DestroyAllEquipment(DestroyMode.Vanish);
+				target.apparel.DestroyAll();
+				target.inventory.innerContainer.ClearAndDestroyContents(DestroyMode.Vanish);
+
+				var preferredApparelDefs = new[] { "Apparel_CowboyHat", "Apparel_Tuque", "Apparel_SimpleHelmet", "Apparel_FlakHelmet" };
+				var apparelDef = preferredApparelDefs
+					.Select(defName => DefDatabase<ThingDef>.GetNamed(defName, false))
+					.FirstOrDefault(def => def?.apparel != null && ApparelUtility.HasPartsToWear(target, def))
+					?? DefDatabase<ThingDef>.AllDefsListForReading
+						.Where(def => def?.apparel != null && ApparelUtility.HasPartsToWear(target, def))
+						.OrderBy(def => def.defName)
+						.FirstOrDefault();
+				var apparelStuff = apparelDef == null || apparelDef.MadeFromStuff == false ? null : GenStuff.DefaultStuffFor(apparelDef);
+				var apparel = apparelDef == null ? null : ThingMaker.MakeThing(apparelDef, apparelStuff) as Apparel;
+				if (apparel == null)
+				{
+					error = "No controlled apparel def was available for the downed-pawn eating forbidden-drop probe.";
+					return false;
+				}
+				target.apparel.Wear(apparel, false);
+				if (target.apparel.WornApparel.Contains(apparel) == false)
+				{
+					apparel.Destroy(DestroyMode.Vanish);
+					error = "Target pawn rejected the controlled apparel.";
+					return false;
+				}
+
+				var weaponDef = DefDatabase<ThingDef>.GetNamed("Gun_BoltActionRifle", false)
+					?? DefDatabase<ThingDef>.GetNamed("Gun_Pistol", false);
+				var weapon = weaponDef == null ? null : ThingMaker.MakeThing(weaponDef) as ThingWithComps;
+				if (weapon == null)
+				{
+					apparel.Destroy(DestroyMode.Vanish);
+					error = "No Core ranged weapon def was available for the downed-pawn eating forbidden-drop probe.";
+					return false;
+				}
+				target.equipment.AddEquipment(weapon);
+
+				var inventoryThing = ThingMaker.MakeThing(ThingDefOf.Silver);
+				inventoryThing.stackCount = 7;
+				if (target.inventory.innerContainer.TryAdd(inventoryThing, false) == false)
+				{
+					apparel.Destroy(DestroyMode.Vanish);
+					weapon.Destroy(DestroyMode.Vanish);
+					inventoryThing.Destroy(DestroyMode.Vanish);
+					error = "Target pawn inventory rejected the controlled silver stack.";
+					return false;
+				}
+
+				controlledGear = new Thing[] { apparel, weapon, inventoryThing };
+				evidence = new
+				{
+					apparel = DescribeControlledDrop(apparel),
+					weapon = DescribeControlledDrop(weapon),
+					inventory = DescribeControlledDrop(inventoryThing)
+				};
+				return true;
+			}
+
+			static bool TryPrepareOneBiteLethalEatingTarget(Pawn target, out object evidence, out string error)
+			{
+				evidence = null;
+				error = null;
+				if (target?.health?.hediffSet == null)
+				{
+					error = "Target pawn has no health tracker.";
+					return false;
+				}
+
+				static bool IsLethalEatingPart(BodyPartRecord part)
+				{
+					var defName = part?.def?.defName;
+					return defName == "Head" || defName == "Neck";
+				}
+
+				var initialParts = target.health.hediffSet
+					.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Outside)
+					.Where(part => Tools.IsSafeMissingPartTarget(target, part))
+					.ToArray();
+				var initialLethalParts = initialParts.Where(IsLethalEatingPart).ToArray();
+				if (initialLethalParts.Length == 0)
+				{
+					error = "Target pawn had no head or neck eating target for the lethal eating probe.";
+					return false;
+				}
+
+				var removedParts = new List<string>();
+				foreach (var part in initialParts)
+				{
+					if (IsLethalEatingPart(part))
+						continue;
+					if (Tools.IsSafeMissingPartTarget(target, part) == false)
+						continue;
+					if (Tools.TryAddMissingPart(target, part, HediffDefOf.Bite, false) == false)
+						continue;
+					removedParts.Add(part.Label);
+					if (target.Dead)
+					{
+						error = $"Preparing the lethal eating probe unexpectedly killed the target while removing {part.Label}.";
+						return false;
+					}
+				}
+
+				var remainingParts = target.health.hediffSet
+					.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Outside)
+					.Where(part => Tools.IsSafeMissingPartTarget(target, part))
+					.ToArray();
+				var remainingNonLethalParts = remainingParts
+					.Where(part => IsLethalEatingPart(part) == false)
+					.Select(part => part.Label)
+					.ToArray();
+				if (remainingParts.Length == 0 || remainingNonLethalParts.Length > 0)
+				{
+					error = "Could not reduce the target to only lethal eating parts.";
+					evidence = new
+					{
+						removedParts,
+						remainingParts = remainingParts.Select(part => part.Label).ToArray(),
+						remainingNonLethalParts
+					};
+					return false;
+				}
+
+				evidence = new
+				{
+					initialEatableParts = initialParts.Select(part => part.Label).ToArray(),
+					initialLethalParts = initialLethalParts.Select(part => part.Label).ToArray(),
+					removedParts,
+					remainingParts = remainingParts.Select(part => part.Label).ToArray()
+				};
+				return true;
+			}
+
+			object RunKillAndForbidDropsCase(IntVec3 caseRoot)
+			{
+				const string name = "downedEatingKillsAndForbidsDrops";
+				if (TryFindEatingFixtureCells(map, caseRoot, "downed-pawn-forbidden-drops", out var zombieCell, out var targetCell, out var error) == false)
+				{
+					allCasesSucceeded = false;
+					return new { name, success = false, error };
+				}
+
+				ApplyZombieSettingsOverride(settings =>
+				{
+					settings.zombiesEatDowned = true;
+					settings.zombiesEatCorpses = false;
+					settings.attackMode = AttackMode.OnlyColonists;
+				});
+
+				Zombie zombie = null;
+				Pawn target = null;
+				Thing[] controlledGear = Array.Empty<Thing>();
+				try
+				{
+					zombie = ZombieRuntimeActions.SpawnZombie(zombieCell, map, ZombieType.Normal, true) as Zombie;
+					if (zombie == null)
+					{
+						allCasesSucceeded = false;
+						return new
+						{
+							name,
+							success = false,
+							error = "ZombieGenerator.SpawnZombie returned no downed-pawn forbidden-drop test zombie.",
+							zombieCell = ZombieRuntimeActions.DescribeCell(zombieCell)
+						};
+					}
+
+					zombie.story.bodyType = BodyTypeDefOf.Fat;
+					zombie.pather?.StopDead();
+					zombie.jobs?.EndCurrentJob(JobCondition.InterruptForced);
+					zombie.state = ZombieState.Wandering;
+					zombie.raging = 0;
+
+					target = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+					GenSpawn.Spawn(target, targetCell, map, WipeMode.Vanish);
+					DisablePawnWork(target);
+					if (TryMakeDowned(target, out var downedError) == false)
+					{
+						allCasesSucceeded = false;
+						return new
+						{
+							name,
+							success = false,
+							zombie = DescribeZombie(zombie),
+							target = DescribePawn(target),
+							error = downedError
+						};
+					}
+					if (TryPrepareOneBiteLethalEatingTarget(target, out var lethalPrep, out var lethalPrepError) == false)
+					{
+						allCasesSucceeded = false;
+						return new
+						{
+							name,
+							success = false,
+							zombie = DescribeZombie(zombie),
+							target = DescribePawn(target),
+							lethalPrep,
+							error = lethalPrepError
+						};
+					}
+					if (TryStageControlledEatingDeathGear(target, out controlledGear, out var gearBefore, out var gearError) == false)
+					{
+						allCasesSucceeded = false;
+						return new
+						{
+							name,
+							success = false,
+							zombie = DescribeZombie(zombie),
+							target = DescribePawn(target),
+							lethalPrep,
+							error = gearError
+						};
+					}
+					ClearEatingGridNeighborhood(map, zombieCell, targetCell);
+
+					var eatDelayTicks = Constants.EAT_DELAY_TICKS / 4;
+					var maxTicks = eatDelayTicks + 30;
+					var deathTick = -1;
+					var samples = new List<object>();
+					var stumbleJob = JobMaker.MakeJob(CustomDefs.Stumble);
+					stumbleJob.playerForced = true;
+					zombie.jobs.StartJob(stumbleJob, JobCondition.InterruptForced, null, true, false, null, null);
+
+					for (var tick = 1; tick <= maxTicks; tick++)
+					{
+						AdvanceGameTicks(1);
+						var driver = zombie.jobs?.curDriver as JobDriver_Stumble;
+						if (tick == 1 || tick == maxTicks || tick % 60 == 0 || target.Dead)
+						{
+							samples.Add(new
+							{
+								tick,
+								zombieJob = zombie.CurJobDef?.defName,
+								eatTarget = driver?.eatTarget == null ? null : ZombieRuntimeActions.StableThingId(driver.eatTarget),
+								eatDelayCounter = driver?.eatDelayCounter ?? -1,
+								eatDelay = driver?.eatDelay ?? -1,
+								targetDowned = target.health?.Downed ?? false,
+								targetDead = target.Dead,
+								targetSpawned = target.Spawned,
+								targetCell = ZombieRuntimeActions.DescribeCell(target.PositionHeld),
+								drops = controlledGear.Select(DescribeControlledDrop).ToArray()
+							});
+						}
+						if (target.Dead)
+						{
+							deathTick = tick;
+							break;
+						}
+					}
+
+					var dropsAfter = controlledGear.Select(DescribeControlledDrop).ToArray();
+					var unforbiddenDrops = controlledGear
+						.Where(thing => thing != null && thing.Destroyed == false && thing.Spawned && thing.IsForbidden(Faction.OfPlayer) == false)
+						.Select(DescribeControlledDrop)
+						.ToArray();
+					var missingDrops = controlledGear
+						.Where(thing => thing == null || thing.Destroyed || thing.Spawned == false)
+						.Select(DescribeControlledDrop)
+						.ToArray();
+					var success = deathTick > 0
+						&& controlledGear.Length == 3
+						&& missingDrops.Length == 0
+						&& unforbiddenDrops.Length == 0;
+					allCasesSucceeded &= success;
+
+					return new
+					{
+						name,
+						success,
+						eatDowned = true,
+						expectEating = true,
+						sourcePath = "JobDriver_Stumble.TickAction -> ZombieStateHandler.Eat -> EatBodyPart -> DropAndForbidGearFromZombieEating",
+						sourceDerivedTicks = new
+						{
+							baseEatDelay = Constants.EAT_DELAY_TICKS,
+							bodyType = zombie.story.bodyType?.defName,
+							eatDelayTicks,
+							maxTicks
+						},
+						zombie = DescribeZombie(zombie),
+						target = DescribePawn(target),
+						cells = new
+						{
+							zombie = ZombieRuntimeActions.DescribeCell(zombieCell),
+							target = ZombieRuntimeActions.DescribeCell(targetCell)
+						},
+						gearBefore,
+						lethalPrep,
+						deathTick,
+						dropsAfter,
+						unforbiddenDrops,
+						missingDrops,
+						samples
+					};
+				}
+				finally
+				{
+					foreach (var thing in controlledGear.Where(thing => thing != null && thing.Destroyed == false).ToArray())
+						thing.Destroy(DestroyMode.Vanish);
+					if (zombie?.Destroyed == false)
+						zombie.Destroy(DestroyMode.Vanish);
+					if (target?.Corpse is { Destroyed: false } corpse)
+						corpse.Destroy(DestroyMode.Vanish);
+					if (target?.Destroyed == false)
+						target.Destroy(DestroyMode.Vanish);
+				}
+			}
+
 			try
 			{
 				var animalKind = DefDatabase<PawnKindDef>.GetNamed("Muffalo", false);
@@ -545,11 +890,12 @@ namespace ZombieLand
 				var harNonFleshCase = harNonFleshKind == null
 					? SkippedOptionalPawnKindCase("downedEatingRejectsHarNonFleshAlien", "ZLTestNonFleshAlienKind", "Optional local ZLTestAlienRace fixture is not loaded.")
 					: RunCase("downedEatingRejectsHarNonFleshAlien", true, false, harNonFleshKind, root + new IntVec3(16, 0, 16));
+				var forbiddenDropCase = RunKillAndForbidDropsCase(root + new IntVec3(24, 0, 0));
 				return new
 				{
 					success = allCasesSucceeded,
 					destroyedZombies,
-					cases = new[] { disabledCase, enabledHumanCase, enabledAnimalCase, nonFleshCase, harNonFleshCase }
+					cases = new[] { disabledCase, enabledHumanCase, enabledAnimalCase, nonFleshCase, harNonFleshCase, forbiddenDropCase }
 				};
 			}
 			finally
