@@ -1225,7 +1225,7 @@ namespace ZombieLand
 					.Select(ZombieRuntimeActions.DescribeCell)
 					.ToArray();
 
-				var waitJob = JobMaker.MakeJob(JobDefOf.Wait_Combat);
+				var waitJob = JobMaker.MakeJob(JobDefOf.Wait);
 				waitJob.playerForced = false;
 				actor.jobs.StartJob(waitJob, JobCondition.InterruptForced, null, false, true);
 				var startedJob = actor.CurJobDef?.defName;
@@ -1262,7 +1262,7 @@ namespace ZombieLand
 				return new
 				{
 					success = inAvoidDangerBefore
-						&& startedJob == JobDefOf.Wait_Combat.defName
+						&& startedJob == JobDefOf.Wait.defName
 						&& tickHit > 0
 						&& fleeJob?.playerForced == true
 						&& fleeDestinationAvoids,
@@ -1288,11 +1288,256 @@ namespace ZombieLand
 			{
 				ZombieSettings.Values.betterZombieAvoidance = oldBetterAvoidance;
 			}
-		}
+			}
 
-		[Tool("zombieland/workgiver_respects_avoid_grid", Description = "Verify a non-forced DoubleTap workgiver rejects an infected corpse in avoid danger while a forced command still creates the job.")]
-		public static object WorkgiverRespectsAvoidGrid()
-		{
+			[Tool("zombieland/avoid_grid_async_recovery_contract", Description = "Verify poisoned or emptied zombie avoidance grids recover to no ghost danger and do not force colonists to flee.")]
+			public static object AvoidGridAsyncRecoveryContract()
+			{
+				var map = CurrentMap;
+				if (map == null)
+				{
+					return new
+					{
+						success = false,
+						error = "No current map is loaded."
+					};
+				}
+
+				var tickManager = map.GetComponent<TickManager>();
+				if (tickManager == null)
+				{
+					return new
+					{
+						success = false,
+						error = "Current map has no Zombieland TickManager."
+					};
+				}
+
+				var oldBetterAvoidance = ZombieSettings.Values.betterZombieAvoidance;
+				ZombieSettings.Values.betterZombieAvoidance = true;
+				try
+				{
+					var destroyedZombies = ZombieRuntimeActions.DestroyZombies(map);
+					var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+					if (TryFindClearSpawnCell(map, root, 16f, out var actorCell, out var actorSpawnError) == false)
+						return actorSpawnError;
+
+					var actor = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+					GenSpawn.Spawn(actor, actorCell, map, Rot4.South);
+					DisablePawnWork(actor);
+					var config = ColonistSettings.Values.ConfigFor(actor);
+					if (config != null)
+						config.autoAvoidZombies = true;
+
+					var emptySpecs = new List<ZombieCostSpecs>();
+					var emptyGrid = Tools.avoider.UpdateZombiePositionsImmediately(map, emptySpecs);
+					tickManager.avoidGrid = emptyGrid;
+
+					var actorIndex = actor.Position.x + actor.Position.z * map.Size.x;
+					var poisonedCosts = emptyGrid.GetNewCosts();
+					poisonedCosts[actorIndex] = 3000;
+					var poisonedInactiveCost = poisonedCosts[actorIndex];
+
+					var recoveredGrid = Tools.avoider.UpdateZombiePositionsImmediately(map, emptySpecs);
+					tickManager.avoidGrid = recoveredGrid;
+					var actorCostAfterRecovery = AvoidCost(recoveredGrid, map, actor.Position);
+					var actorInDangerAfterRecovery = recoveredGrid.InAvoidDanger(actor);
+					var dangerAfterRecovery = actor.Position.GetDangerFor(actor, map);
+
+					var waitJob = JobMaker.MakeJob(JobDefOf.Wait);
+					waitJob.playerForced = false;
+					actor.jobs.StartJob(waitJob, JobCondition.InterruptForced, null, false, true);
+					var startedJob = actor.CurJobDef?.defName;
+					var samples = new List<object>();
+					var fleeTick = -1;
+					const int maxTicks = 12;
+					for (var tick = 1; tick <= maxTicks; tick++)
+					{
+						AdvanceGameTicks(1);
+						var currentJob = actor.CurJob;
+						if (tick == 1 || tick == maxTicks || currentJob?.def == JobDefOf.Flee)
+						{
+							samples.Add(new
+							{
+								tick,
+								job = actor.CurJobDef?.defName,
+								currentJob?.playerForced,
+								target = currentJob?.targetA.Cell.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentJob.targetA.Cell) : null
+							});
+						}
+
+						if (currentJob?.def == JobDefOf.Flee)
+						{
+							fleeTick = tick;
+							break;
+						}
+					}
+
+					var zombieCell = GenRadial.RadialCellsAround(actorCell, 3f, false)
+						.Where(cell => cell.InBounds(map))
+						.Where(cell => cell.Standable(map))
+						.Where(cell => cell.Fogged(map) == false)
+						.Where(cell => cell.GetFirstPawn(map) == null)
+						.OrderBy(cell => cell.DistanceToSquared(actorCell))
+						.FirstOrDefault();
+					if (zombieCell.IsValid == false)
+					{
+						return new
+						{
+							success = false,
+							destroyedZombies,
+							actor = DescribePawn(actor),
+							actorCell = ZombieRuntimeActions.DescribeCell(actorCell),
+							error = "No nearby clear zombie cell was found."
+						};
+					}
+
+					var zombie = ZombieRuntimeActions.SpawnZombie(zombieCell, map, ZombieType.Normal, true);
+					if (zombie == null)
+					{
+						return new
+						{
+							success = false,
+							destroyedZombies,
+							actor = DescribePawn(actor),
+							actorCell = ZombieRuntimeActions.DescribeCell(actorCell),
+							zombieCell = ZombieRuntimeActions.DescribeCell(zombieCell),
+							error = "ZombieGenerator.SpawnZombie returned no zombie."
+						};
+					}
+
+					zombie.state = ZombieState.Tracking;
+					var realGrid = BuildAvoidGridForZombie(map, zombie);
+					var zombieAvoidRadius = Tools.ZombieAvoidRadius(zombie);
+					var formerDangerCells = GenRadial.RadialCellsAround(zombieCell, zombieAvoidRadius, true)
+						.Where(cell => cell.InBounds(map))
+						.ToArray();
+					var zombieCostBeforeCleanup = AvoidCost(realGrid, map, zombieCell);
+					var dangerCellsBeforeCleanup = formerDangerCells.Count(cell => realGrid.ShouldAvoid(map, cell));
+
+					var destroyedAfterZombie = ZombieRuntimeActions.DestroyZombies(map);
+					var clearedGrid = Tools.avoider.UpdateZombiePositionsImmediately(map, emptySpecs);
+					var liveGridUnaffectedByEmptyRebuild = AvoidCost(realGrid, map, zombieCell) == zombieCostBeforeCleanup;
+					tickManager.avoidGrid = clearedGrid;
+					var zombieCostAfterCleanup = AvoidCost(clearedGrid, map, zombieCell);
+					var dangerCellsAfterCleanup = formerDangerCells.Count(cell => clearedGrid.ShouldAvoid(map, cell));
+
+					var fetchMethod = typeof(TickManager).GetMethod("FetchAvoidGrid", BindingFlags.Instance | BindingFlags.NonPublic);
+					var avoidGridCounterField = typeof(TickManager).GetField("avoidGridCounter", BindingFlags.Instance | BindingFlags.NonPublic);
+					var queueForMapMethod = typeof(ZombieAvoider).GetMethod("QueueForMap", BindingFlags.Instance | BindingFlags.NonPublic);
+					if (fetchMethod == null || avoidGridCounterField == null || queueForMapMethod == null)
+					{
+						return new
+						{
+							success = false,
+							error = "Avoid-grid reflection contract could not find FetchAvoidGrid, avoidGridCounter, or QueueForMap."
+						};
+					}
+
+					AvoidGrid ManualGrid(long requestId, IntVec3 cell, int cost)
+					{
+						var grid = new AvoidGrid(map);
+						var costs = grid.GetNewCosts();
+						costs[cell.x + cell.z * map.Size.x] = cost;
+						grid.requestId = requestId;
+						grid.FinalizeCosts();
+						return grid;
+					}
+
+					void QueueAndFetch(AvoidGrid grid)
+					{
+						var queue = (ConcurrentQueue<AvoidGrid>)queueForMapMethod.Invoke(Tools.avoider, new object[] { map });
+						queue.Replace(grid);
+						avoidGridCounterField.SetValue(tickManager, -1);
+						fetchMethod.Invoke(tickManager, Array.Empty<object>());
+					}
+
+					var exactRequestId = Math.Max(tickManager.lastAvoidGridRequestId, clearedGrid.requestId) + 1000;
+					tickManager.avoidGrid = clearedGrid;
+					tickManager.lastAvoidGridRequestId = exactRequestId;
+					tickManager.lastAvoidGridResultId = exactRequestId - 2;
+					tickManager.lastAvoidGridRequestTick = GenTicks.TicksGame;
+					tickManager.lastAvoidGridResultTick = GenTicks.TicksGame;
+
+					var staleResultGrid = ManualGrid(exactRequestId - 1, actor.Position, 3000);
+					QueueAndFetch(staleResultGrid);
+					var staleResultRejected = ReferenceEquals(tickManager.avoidGrid, clearedGrid)
+						&& AvoidCost(tickManager.avoidGrid, map, actor.Position) == 0;
+
+					var futureResultGrid = ManualGrid(exactRequestId + 1, actor.Position, 3000);
+					QueueAndFetch(futureResultGrid);
+					var futureResultRejected = ReferenceEquals(tickManager.avoidGrid, clearedGrid)
+						&& AvoidCost(tickManager.avoidGrid, map, actor.Position) == 0;
+
+					var exactResultGrid = ManualGrid(exactRequestId, actor.Position, 1234);
+					QueueAndFetch(exactResultGrid);
+					var exactResultAccepted = ReferenceEquals(tickManager.avoidGrid, exactResultGrid)
+						&& tickManager.lastAvoidGridResultId == exactRequestId
+						&& AvoidCost(tickManager.avoidGrid, map, actor.Position) == 1234;
+
+					var snapshotReferencesAreDistinct = ReferenceEquals(emptyGrid, recoveredGrid) == false
+						&& ReferenceEquals(realGrid, clearedGrid) == false
+						&& ReferenceEquals(clearedGrid, exactResultGrid) == false;
+
+					tickManager.avoidGrid = clearedGrid;
+					tickManager.lastAvoidGridRequestId = clearedGrid.requestId;
+					tickManager.lastAvoidGridResultId = clearedGrid.requestId;
+					tickManager.lastAvoidGridRequestTick = GenTicks.TicksGame;
+					tickManager.lastAvoidGridResultTick = GenTicks.TicksGame;
+
+					return new
+					{
+						success = poisonedInactiveCost > 0
+							&& actorCostAfterRecovery == 0
+							&& actorInDangerAfterRecovery == false
+							&& dangerAfterRecovery != Danger.Deadly
+							&& startedJob == JobDefOf.Wait.defName
+							&& fleeTick == -1
+							&& zombieCostBeforeCleanup > 0
+							&& dangerCellsBeforeCleanup > 0
+							&& liveGridUnaffectedByEmptyRebuild
+							&& zombieCostAfterCleanup == 0
+							&& dangerCellsAfterCleanup == 0
+							&& snapshotReferencesAreDistinct
+							&& staleResultRejected
+							&& futureResultRejected
+							&& exactResultAccepted,
+						destroyedZombies,
+						destroyedAfterZombie,
+						actor = DescribePawn(actor),
+						zombie = DescribeZombie(zombie),
+						actorCell = ZombieRuntimeActions.DescribeCell(actorCell),
+						zombieCell = ZombieRuntimeActions.DescribeCell(zombieCell),
+						poisonedInactiveCost,
+						actorCostAfterRecovery,
+						actorInDangerAfterRecovery,
+						dangerAfterRecovery = dangerAfterRecovery.ToString(),
+						startedJob,
+						fleeTick,
+						maxTicks,
+						finalJob = actor.CurJobDef?.defName,
+						finalJobPlayerForced = actor.CurJob?.playerForced,
+						samples,
+						zombieCostBeforeCleanup,
+						dangerCellsBeforeCleanup,
+						liveGridUnaffectedByEmptyRebuild,
+						zombieCostAfterCleanup,
+						dangerCellsAfterCleanup,
+						snapshotReferencesAreDistinct,
+						staleResultRejected,
+						futureResultRejected,
+						exactResultAccepted
+					};
+				}
+				finally
+				{
+					ZombieSettings.Values.betterZombieAvoidance = oldBetterAvoidance;
+				}
+			}
+
+			[Tool("zombieland/workgiver_respects_avoid_grid", Description = "Verify a non-forced DoubleTap workgiver rejects an infected corpse in avoid danger while a forced command still creates the job.")]
+			public static object WorkgiverRespectsAvoidGrid()
+			{
 			var map = CurrentMap;
 			if (map == null)
 			{
@@ -1548,7 +1793,7 @@ namespace ZombieLand
 				var draftedDoorCanOpen = door.PawnCanOpen(actor);
 				actor.drafter.Drafted = false;
 
-				var forcedWait = JobMaker.MakeJob(JobDefOf.Wait_Combat);
+				var forcedWait = JobMaker.MakeJob(JobDefOf.Wait);
 				forcedWait.playerForced = true;
 				actor.jobs.StartJob(forcedWait, JobCondition.InterruptForced, null, false, true);
 				var forcedDoorCanOpen = door.PawnCanOpen(actor);
