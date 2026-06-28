@@ -48,7 +48,7 @@
         </questNameRules>
         <questDescriptionRules>
             <rulesStrings>
-                <li>questDescription->[asker_faction_leaderTitle] [asker_nameFull] of [asker_faction_name] offers help with reducing contamination. You can send one colonist away for a few days of decontamination.</li>
+                <li>questDescription->[asker_faction_leaderTitle] [asker_nameFull] of [asker_faction_name] offers help with reducing contamination. You can send one colonist away for a few days of decontamination. The colonist will return clean and temporarily resistant to new contamination.</li>
             </rulesStrings>
         </questDescriptionRules>
         <root Class="QuestNode_Sequence">
@@ -73,7 +73,7 @@
 
                 <li Class="QuestNode_Set">
                     <name>returnLetterText</name>
-                    <value TKey="LetterTextReturnAfterHelping">{SUBJECT} returned after getting decontaminated.</value>
+                    <value TKey="LetterTextReturnAfterHelping">{SUBJECT} returned after getting decontaminated and will resist new contamination for a while.</value>
                 </li>
 
                 <li Class="QuestNode_GetRandomInRangeInt">

@@ -12,9 +12,12 @@ namespace ZombieLand
 	public class ContaminationManager : WorldComponent, ICellBoolGiver
 	{
 		public const bool LOGGING = false;
+		public const float DecontaminationImmunityDaysAtDifficulty100 = 15f;
+		public const float DecontaminationImmunityDaysAtDifficulty500 = 12f;
 
 		public Dictionary<int, float> contaminations = new();
 		public Dictionary<int, ContaminationGrid> grounds = new();
+		public Dictionary<int, int> decontaminationImmunityUntilTicks = new();
 		public bool showContaminationOverlay;
 		public int nextDecontaminationQuest = 0;
 
@@ -41,6 +44,55 @@ namespace ZombieLand
 
 		public static bool CanDrawOverlayFor(Map map) => Tools.MapViewActiveFor(map);
 
+		public static int DecontaminationImmunityTicks()
+		{
+			var days = GenMath.LerpDoubleClamped(1f, 5f, DecontaminationImmunityDaysAtDifficulty100, DecontaminationImmunityDaysAtDifficulty500, Tools.Difficulty());
+			return Mathf.Max(GenDate.TicksPerDay, Mathf.RoundToInt(days * GenDate.TicksPerDay));
+		}
+
+		public void GrantDecontaminationImmunity(Pawn pawn, int ticks)
+		{
+			if (pawn == null || ticks <= 0)
+				return;
+			decontaminationImmunityUntilTicks ??= new Dictionary<int, int>();
+			var untilTick = Find.TickManager.TicksGame + ticks;
+			if (decontaminationImmunityUntilTicks.TryGetValue(pawn.thingIDNumber, out var existingUntilTick))
+				untilTick = Mathf.Max(untilTick, existingUntilTick);
+			decontaminationImmunityUntilTicks[pawn.thingIDNumber] = untilTick;
+			Remove(pawn);
+		}
+
+		public bool HasDecontaminationImmunity(Pawn pawn)
+			=> DecontaminationImmunityTicksLeft(pawn) > 0;
+
+		public int DecontaminationImmunityTicksLeft(Pawn pawn)
+		{
+			if (pawn == null || decontaminationImmunityUntilTicks == null)
+				return 0;
+			if (decontaminationImmunityUntilTicks.TryGetValue(pawn.thingIDNumber, out var untilTick) == false)
+				return 0;
+			var ticksLeft = untilTick - Find.TickManager.TicksGame;
+			if (ticksLeft > 0)
+				return ticksLeft;
+			decontaminationImmunityUntilTicks.Remove(pawn.thingIDNumber);
+			return 0;
+		}
+
+		void PruneExpiredDecontaminationImmunity(int currentTick)
+		{
+			if (decontaminationImmunityUntilTicks == null || decontaminationImmunityUntilTicks.Count == 0)
+				return;
+			var expired = decontaminationImmunityUntilTicks
+				.Where(entry => entry.Value <= currentTick)
+				.Select(entry => entry.Key)
+				.ToArray();
+			for (var i = 0; i < expired.Length; i++)
+				decontaminationImmunityUntilTicks.Remove(expired[i]);
+		}
+
+		internal bool BlocksContaminationGain(Thing thing)
+			=> thing is Pawn pawn && HasDecontaminationImmunity(pawn);
+
 		public void ClearCurrentDrawer()
 		{
 			currentMapDrawer = null;
@@ -60,6 +112,9 @@ namespace ZombieLand
 			else
 				showContaminationOverlay = false;
 
+			Scribe_Collections.Look(ref decontaminationImmunityUntilTicks, "decontaminationImmunityUntilTicks", LookMode.Value, LookMode.Value);
+			decontaminationImmunityUntilTicks ??= new Dictionary<int, int>();
+
 			this.ExposeContamination();
 			this.ExposeGrounds();
 		}
@@ -67,6 +122,8 @@ namespace ZombieLand
 		public override void WorldComponentTick()
 		{
 			var ticks = Find.TickManager.TicksGame;
+			if (ticks % GenDate.TicksPerHour == 0)
+				PruneExpiredDecontaminationImmunity(ticks);
 			if (ticks > nextDecontaminationQuest)
 			{
 				if (nextDecontaminationQuest != 0)
@@ -151,6 +208,11 @@ namespace ZombieLand
 				Remove(thing, contextMap);
 				return;
 			}
+			if (BlocksContaminationGain(thing))
+			{
+				RemoveDirectContamination(thing, contextMap);
+				return;
+			}
 
 			contamination = Mathf.Clamp01(contamination);
 			contaminations[thing.thingIDNumber] = contamination;
@@ -219,6 +281,12 @@ namespace ZombieLand
 
 			if (useThingBacking)
 				id = thing.thingIDNumber;
+
+			if (amount > 0f && useThingBacking && BlocksContaminationGain(thing))
+			{
+				RemoveDirectContamination(thing, map);
+				return 0f;
+			}
 
 			float contamination;
 			if (useThingBacking == false)
@@ -296,10 +364,27 @@ namespace ZombieLand
 			return amount;
 		}
 
+		void RemoveDirectContamination(Thing thing, Map contextMap = null)
+		{
+			if (thing == null)
+				return;
+			if (contaminations.Remove(thing.thingIDNumber))
+			{
+				UpdatePawnHediff(thing, 0, contextMap);
+				currentMapDirty = true;
+			}
+		}
+
 		public void Add(Thing thing, float amount, Map contextMap = null)
 		{
 			if (thing == null)
 				return;
+
+			if (amount > 0f && BlocksContaminationGain(thing))
+			{
+				RemoveDirectContamination(thing, contextMap);
+				return;
+			}
 
 			ChangeDirectly(thing, contextMap, amount);
 			if (thing is Pawn pawn)
@@ -395,6 +480,10 @@ namespace ZombieLand
 				(c1, c2, t1, t2) = (c2, c1, t2, t1);
 			var transfer = c1 * (1 - weight) + c2 * weight - c1;
 			if (transfer == 0)
+				return 0;
+			if (transfer < 0f && BlocksContaminationGain(t2.thingInt))
+				return 0;
+			if (transfer > 0f && BlocksContaminationGain(t1.thingInt))
 				return 0;
 			ChangeDirectly(t1, map, transfer);
 			ChangeDirectly(t2, map, -transfer);
@@ -681,15 +770,18 @@ namespace ZombieLand
 			var value = contamination.Get(from, true, contextMap);
 			if (value == 0)
 				return;
+			var targets = toArray?
+				.Where(thing => thing != null && contamination.BlocksContaminationGain(thing) == false)
+				.ToArray();
+			var n = targets?.Length ?? 0;
+			if (n == 0)
+				return;
 			var subtracted = contamination.Subtract(from, value * factor, contextMap);
 			if (subtracted == 0)
 				return;
-			var n = toArray?.Length ?? 0;
-			if (n == 0)
-				return;
 			var delta = subtracted / n;
 			for (var j = 0; j < n; j++)
-				contamination.Add(toArray[j], delta, contextMap);
+				contamination.Add(targets[j], delta, contextMap);
 		}
 
 		public static void TransferContamination(this Thing from, float factor, params Thing[] toArray)

@@ -53,6 +53,9 @@ namespace ZombieLand
 		const int SymbiosisMetricRefreshInterval = 250;
 		const float HostAuraMinimumFactor = 0.22f;
 		const float FullBenefitRoomCoverage = 0.20f;
+		const float ConstructedWallPreferenceThreshold = 0.50f;
+		const float NaturalWallRoomScoreFactor = 1.00f;
+		const float ConstructedWallRoomScoreFactor = 2.00f;
 		static int UprootedRelocationGraceTicks => GenDate.TicksPerHour * 4;
 		const float UprootedIntegratedCellThreshold = 0.01f;
 		const int AutoHealIntervalTicks = GenDate.TicksPerDay / 4;
@@ -105,6 +108,29 @@ namespace ZombieLand
 			HostBenefit.ZombieIgnore,
 			HostBenefit.AutoHeal
 		];
+
+		sealed class SpawnRoomCandidate
+		{
+			public Room room;
+			public float score;
+			public bool hasSpawnCell;
+			public IntVec3 bestCell;
+			public float bestCellScore;
+			public RoomWallProfile wallProfile;
+		}
+
+		sealed class RoomWallProfile
+		{
+			public int constructedWalls;
+			public int naturalWalls;
+
+			public int TotalWalls => constructedWalls + naturalWalls;
+			public float ConstructedRatio => TotalWalls == 0 ? 0f : constructedWalls / (float)TotalWalls;
+			public bool MostlyConstructed => TotalWalls > 0 && ConstructedRatio >= ConstructedWallPreferenceThreshold;
+			public float PreferenceFactor => TotalWalls == 0
+				? 1f
+				: (float)GenMath.LerpDoubleClamped(0f, 1f, NaturalWallRoomScoreFactor, ConstructedWallRoomScoreFactor, ConstructedRatio);
+		}
 
 		HashSet<IntVec3> cells = [];
 		List<IntVec3> orderedCells = [];
@@ -388,15 +414,17 @@ namespace ZombieLand
 			if (hostCount == 0)
 				return 0f;
 
-			var rooms = CandidateRooms(map).ToArray();
-			if (rooms.Length == 0)
+			var candidates = SpawnRoomCandidates(map)
+				.Where(candidate => candidate.score > 0f && candidate.hasSpawnCell)
+				.ToArray();
+			if (candidates.Length == 0)
 				return 0f;
 
-			var eligibleCells = rooms.Sum(room => room.CellCount);
+			var eligibleCells = candidates.Sum(candidate => candidate.room.CellCount);
 			if (eligibleCells < MinimumNaturalSpawnEligibleCells())
 				return 0f;
 
-			var bestRoomScore = rooms.Select(room => ScoreSpawnRoom(map, room)).DefaultIfEmpty(0f).Max();
+			var bestRoomScore = PreferredSpawnRoomCandidates(candidates).Select(candidate => candidate.score).DefaultIfEmpty(0f).Max();
 			var footprintPressure = GenMath.LerpDoubleClamped(20f, 260f, 0.35f, 1.15f, eligibleCells);
 			var hostPressure = GenMath.LerpDoubleClamped(1f, 8f, 0.65f, 1.15f, hostCount);
 			var usePressure = GenMath.LerpDoubleClamped(80f, 900f, 0.55f, 1.15f, bestRoomScore);
@@ -621,27 +649,26 @@ namespace ZombieLand
 
 			var active = ActiveSymbiant(map);
 			var hosts = EligibleHosts(map, null).ToArray();
-			var candidateRooms = CandidateRooms(map).ToArray();
-			var eligibleRoomCells = candidateRooms.Sum(room => room.CellCount);
+			var candidates = SpawnRoomCandidates(map).ToArray();
+			var eligibleRoomCells = candidates.Sum(candidate => candidate.room.CellCount);
 			var naturalSpawnPressure = NaturalSpawnPressure(map);
-			var scoredRooms = candidateRooms
-				.Select(room =>
+			var scoredRooms = candidates
+				.Where(candidate => candidate.score > 0f && candidate.hasSpawnCell)
+				.Select(candidate => new
 				{
-					var hasSpawnCell = TryFindBestSpawnCell(map, room, out var bestCell, out var bestCellScore);
-					return new
-					{
-						role = room.Role?.defName,
-						roleLabel = room.Role?.LabelCap.ToString(),
-						cellCount = room.CellCount,
-						extents = DescribeDebugCellRect(room.ExtentsClose),
-						score = ScoreSpawnRoom(map, room),
-						bestCell = hasSpawnCell ? DescribeDebugCell(bestCell) : null,
-						bestCellScore = hasSpawnCell ? bestCellScore : 0f,
-						valuableThingCount = room.ContainedAndAdjacentThings.Count(thing => ScoreRoomThing(thing) > 0f)
-					};
+					role = candidate.room.Role?.defName,
+					roleLabel = candidate.room.Role?.LabelCap.ToString(),
+					cellCount = candidate.room.CellCount,
+					extents = DescribeDebugCellRect(candidate.room.ExtentsClose),
+					score = candidate.score,
+					bestCell = DescribeDebugCell(candidate.bestCell),
+					bestCellScore = candidate.bestCellScore,
+					valuableThingCount = candidate.room.ContainedAndAdjacentThings.Count(thing => ScoreRoomThing(thing) > 0f),
+					wallProfile = DescribeRoomWallProfile(candidate.wallProfile),
+					preferredByConstructedWalls = candidate.wallProfile.MostlyConstructed
 				})
-				.Where(room => room.score > 0f && room.bestCell != null)
-				.OrderByDescending(room => room.score)
+				.OrderByDescending(room => room.preferredByConstructedWalls)
+				.ThenByDescending(room => room.score)
 				.ToArray();
 			var rooms = scoredRooms
 				.Take(Mathf.Max(1, limit))
@@ -663,6 +690,7 @@ namespace ZombieLand
 					cell = host.Spawned ? DescribeDebugCell(host.Position) : null
 				}).ToArray(),
 				candidateRoomCount = scoredRooms.Length,
+				preferredConstructedRoomCount = scoredRooms.Count(room => room.preferredByConstructedWalls),
 				returnedRoomCount = rooms.Length,
 				canSpawnNow = ZombieSettings.Values.symbiantEnabled && active == null && hosts.Length > 0 && scoredRooms.Length > 0 && naturalSpawnPressure > 0f,
 				bestRoom = rooms.FirstOrDefault(),
@@ -672,26 +700,50 @@ namespace ZombieLand
 
 		static Room BestSpawnRoom(Map map)
 		{
-			return CandidateRooms(map)
-				.Select(room => new
-				{
-					room,
-					score = ScoreSpawnRoom(map, room),
-					hasSpawnCell = TryFindBestSpawnCell(map, room, out _, out _)
-				})
-				.Where(entry => entry.score > 0f && entry.hasSpawnCell)
+			var candidates = SpawnRoomCandidates(map)
+				.Where(candidate => candidate.score > 0f && candidate.hasSpawnCell)
+				.ToArray();
+			return PreferredSpawnRoomCandidates(candidates)
 				.OrderByDescending(entry => entry.score)
 				.FirstOrDefault()?.room;
 		}
 
+		static IEnumerable<SpawnRoomCandidate> PreferredSpawnRoomCandidates(SpawnRoomCandidate[] candidates)
+		{
+			var preferred = candidates.Where(candidate => candidate.wallProfile.MostlyConstructed).ToArray();
+			return preferred.Length > 0 ? preferred : candidates;
+		}
+
+		static IEnumerable<SpawnRoomCandidate> SpawnRoomCandidates(Map map)
+		{
+			return CandidateRooms(map)
+				.Select(room =>
+				{
+					var wallProfile = RoomWallProfileFor(map, room);
+					var hasSpawnCell = TryFindBestSpawnCell(map, room, out var bestCell, out var bestCellScore);
+					return new SpawnRoomCandidate
+					{
+						room = room,
+						score = ScoreSpawnRoom(map, room, wallProfile),
+						hasSpawnCell = hasSpawnCell,
+						bestCell = bestCell,
+						bestCellScore = bestCellScore,
+						wallProfile = wallProfile
+					};
+				});
+		}
+
 		static float ScoreSpawnRoom(Map map, Room room)
+			=> ScoreSpawnRoom(map, room, RoomWallProfileFor(map, room));
+
+		static float ScoreSpawnRoom(Map map, Room room, RoomWallProfile wallProfile)
 		{
 			if (map == null || room == null)
 				return 0f;
 			var traffic = room.Cells.Take(240).Sum(cell => ScoreTraffic(map, cell));
 			if (traffic > 0f)
-				return traffic;
-			return room.Cells.Take(240).Sum(cell => ScoreColonyCenterFallback(map, cell));
+				return traffic * (wallProfile?.PreferenceFactor ?? 1f);
+			return room.Cells.Take(240).Sum(cell => ScoreColonyCenterFallback(map, cell)) * (wallProfile?.PreferenceFactor ?? 1f);
 		}
 
 		static bool TryFindBestSpawnCell(Map map, Room room, out IntVec3 cell, out float score)
@@ -750,6 +802,56 @@ namespace ZombieLand
 			if (room.ContainedAndAdjacentThings.Any(thing => ScoreRoomThing(thing) > 0f))
 				return true;
 			return room.Cells.Take(120).Any(cell => ScoreTraffic(map, cell) > 0f);
+		}
+
+		static RoomWallProfile RoomWallProfileFor(Map map, Room room)
+		{
+			var profile = new RoomWallProfile();
+			if (map == null || room == null)
+				return profile;
+
+			var counted = new HashSet<IntVec3>();
+			foreach (var cell in room.Cells)
+			{
+				for (var i = 0; i < GenAdj.CardinalDirections.Length; i++)
+				{
+					var adjacent = cell + GenAdj.CardinalDirections[i];
+					if (adjacent.InBounds(map) == false || counted.Add(adjacent) == false)
+						continue;
+					if (adjacent.GetRoom(map) == room)
+						continue;
+
+					var edifice = adjacent.GetEdifice(map);
+					if (edifice == null)
+						continue;
+					if (IsNaturalBoundaryWall(edifice))
+						profile.naturalWalls++;
+					else if (IsConstructedBoundaryWall(edifice))
+						profile.constructedWalls++;
+				}
+			}
+			return profile;
+		}
+
+		static bool IsNaturalBoundaryWall(Building edifice)
+			=> edifice is Mineable || edifice.def?.building?.isNaturalRock == true || edifice.def?.mineable == true;
+
+		static bool IsConstructedBoundaryWall(Building edifice)
+			=> edifice is Building_Door
+				|| (edifice?.def?.building != null && edifice.def.useHitPoints && IsNaturalBoundaryWall(edifice) == false);
+
+		static object DescribeRoomWallProfile(RoomWallProfile profile)
+		{
+			profile ??= new RoomWallProfile();
+			return new
+			{
+				constructedWalls = profile.constructedWalls,
+				naturalWalls = profile.naturalWalls,
+				totalWalls = profile.TotalWalls,
+				constructedRatio = profile.ConstructedRatio,
+				mostlyConstructed = profile.MostlyConstructed,
+				preferenceFactor = profile.PreferenceFactor
+			};
 		}
 
 		static object DescribeDebugCell(IntVec3 cell)

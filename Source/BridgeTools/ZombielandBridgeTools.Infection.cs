@@ -1285,6 +1285,9 @@ namespace ZombieLand
 			var map = actor?.Map;
 			TrackZombieCorpse(map, corpse);
 			var before = CountWorkflowExtract(map);
+			var medicineBefore = actor?.skills?.GetSkill(SkillDefOf.Medicine);
+			var medicineLevelBefore = medicineBefore?.Level ?? -1;
+			var medicineXpBefore = medicineBefore?.xpSinceLastLevel ?? 0f;
 			var jobResult = RunWorkflowJob(
 				actor,
 				corpse,
@@ -1293,18 +1296,32 @@ namespace ZombieLand
 				tick => (corpse?.Destroyed ?? true) || corpse?.Spawned == false || CountWorkflowExtract(map) > before);
 			var after = CountWorkflowExtract(map);
 			var corpseGone = corpse == null || corpse.Destroyed || corpse.Spawned == false;
+			var medicineAfter = actor?.skills?.GetSkill(SkillDefOf.Medicine);
+			var medicineLevelAfter = medicineAfter?.Level ?? -1;
+			var medicineXpAfter = medicineAfter?.xpSinceLastLevel ?? 0f;
+			var medicineImproved = medicineLevelAfter > medicineLevelBefore
+				|| (medicineLevelAfter == medicineLevelBefore && medicineXpAfter > medicineXpBefore + 0.01f);
 
 			return new
 			{
 				success = ObjectSuccess(jobResult)
 					&& corpseGone
-					&& after > before,
+					&& after > before
+					&& medicineImproved,
 				actor = DescribePawn(actor),
 				corpse = DescribeCorpse(corpse),
 				jobResult,
 				extractBefore = before,
 				extractAfter = after,
 				extractDelta = after - before,
+				medicine = new
+				{
+					levelBefore = medicineLevelBefore,
+					levelAfter = medicineLevelAfter,
+					xpSinceLastLevelBefore = medicineXpBefore,
+					xpSinceLastLevelAfter = medicineXpAfter,
+					improved = medicineImproved
+				},
 				expectedExtractPerZombie = Tools.ExtractPerZombie(),
 				corpseGone
 			};

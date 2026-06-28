@@ -715,6 +715,7 @@ namespace ZombieLand
 			var pickup = pickupPart.PickupTransporterForTest;
 			var transporter = pickup?.TryGetComp<CompTransporter>();
 			Pawn loadedPawn = null;
+			var loadedPawnContaminationBeforeTreatment = (ContaminationSnapshot)null;
 			var loadedByContract = false;
 			var loadError = (string)null;
 			var destroyedPickupByContract = false;
@@ -764,6 +765,11 @@ namespace ZombieLand
 					}
 					else
 					{
+						if (Constants.CONTAMINATION)
+						{
+							loadedPawn.SetContamination(0.35f);
+							loadedPawnContaminationBeforeTreatment = DescribeContamination(loadedPawn);
+						}
 						loadedPawn.DeSpawn(DestroyMode.Vanish);
 						loadedByContract = transporter.innerContainer.TryAdd(loadedPawn, false);
 						if (loadedByContract == false)
@@ -795,6 +801,21 @@ namespace ZombieLand
 				forcedReturn = true;
 			}
 
+			var returnContaminationBeforeProbe = (ContaminationSnapshot)null;
+			var returnContaminationAfterProbe = (ContaminationSnapshot)null;
+			var returnImmunitySucceeded = true;
+			const float returnProbeContamination = 0.40f;
+			if (shouldForceReturn && loadedPawn != null && Constants.CONTAMINATION)
+			{
+				returnContaminationBeforeProbe = DescribeContamination(loadedPawn);
+				loadedPawn.AddContamination(returnProbeContamination);
+				returnContaminationAfterProbe = DescribeContamination(loadedPawn);
+				returnImmunitySucceeded = returnContaminationBeforeProbe.hasDecontaminationImmunity
+					&& returnContaminationBeforeProbe.stored <= 0.001f
+					&& returnContaminationAfterProbe.stored <= 0.001f
+					&& returnContaminationAfterProbe.hasHediff == false;
+			}
+
 			treatmentParts = quest.PartsListForReading.OfType<QuestPart_DecontaminateColonists>().ToArray();
 			enabledTreatmentPartCount = treatmentParts.Count(part => part.State == QuestPartState.Enabled);
 			var branchSucceeded = normalizedOutcomeMode switch
@@ -807,6 +828,7 @@ namespace ZombieLand
 					&& (shouldLoadColonist == false || pickupPart.SentSatisfiedForTest)
 					&& (shouldLoadColonist == false || enabledTreatmentPartCount > 0 || quest.State == QuestState.EndedSuccess)
 					&& (shouldForceReturn == false || quest.State == QuestState.EndedSuccess)
+					&& returnImmunitySucceeded
 			};
 			return new
 			{
@@ -831,6 +853,16 @@ namespace ZombieLand
 				loadedByContract,
 				loadError,
 				loadedPawn = loadedPawn == null ? null : DescribePawn(loadedPawn),
+				loadedPawnContaminationBeforeTreatment,
+				decontaminationReturnProbe = loadedPawn == null || shouldForceReturn == false ? null : new
+				{
+					requestedAdd = returnProbeContamination,
+					expectedImmunityTicks = ContaminationManager.DecontaminationImmunityTicks(),
+					expectedImmunityDays = ContaminationManager.DecontaminationImmunityTicks() / (float)GenDate.TicksPerDay,
+					returnImmunitySucceeded,
+					beforeAdd = returnContaminationBeforeProbe,
+					afterAdd = returnContaminationAfterProbe
+				},
 				pickup = DescribePickup(pickupPart),
 				treatmentPartCount = treatmentParts.Length,
 				enabledTreatmentPartCount,

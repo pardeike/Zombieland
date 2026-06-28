@@ -620,6 +620,9 @@ namespace ZombieLand
 				}
 
 				var extractBefore = map.listerThings.AllThings.Where(thing => thing.def == CustomDefs.ZombieExtract).Sum(thing => thing.stackCount);
+				var medicineBefore = actor.skills?.GetSkill(SkillDefOf.Medicine);
+				var medicineLevelBefore = medicineBefore?.Level ?? -1;
+				var medicineXpBefore = medicineBefore?.xpSinceLastLevel ?? 0f;
 				var tendSpeed = Math.Max(0.1f, actor.GetStatValue(StatDefOf.MedicalTendSpeed, true));
 				var maxTicks = 120 + (int)Math.Ceiling(100f / (tendSpeed / 2f));
 				var samples = new List<object>();
@@ -654,10 +657,15 @@ namespace ZombieLand
 
 				var extractAfter = map.listerThings.AllThings.Where(thing => thing.def == CustomDefs.ZombieExtract).Sum(thing => thing.stackCount);
 				var corpseDestroyed = corpse.Destroyed || corpse.Spawned == false;
+				var medicineAfter = actor.skills?.GetSkill(SkillDefOf.Medicine);
+				var medicineLevelAfter = medicineAfter?.Level ?? -1;
+				var medicineXpAfter = medicineAfter?.xpSinceLastLevel ?? 0f;
+				var medicineImproved = medicineLevelAfter > medicineLevelBefore
+					|| (medicineLevelAfter == medicineLevelBefore && medicineXpAfter > medicineXpBefore + 0.01f);
 
 				return new
 				{
-					success = corpseDestroyed && extractAfter > extractBefore && tickHit > 0,
+					success = corpseDestroyed && extractAfter > extractBefore && tickHit > 0 && medicineImproved,
 					actor = DescribePawn(actor),
 					actorCell = ZombieRuntimeActions.DescribeCell(actorCell),
 					zombieCell = ZombieRuntimeActions.DescribeCell(zombieCell),
@@ -672,6 +680,14 @@ namespace ZombieLand
 					extractBefore,
 					extractAfter,
 					extractDelta = extractAfter - extractBefore,
+					medicine = new
+					{
+						levelBefore = medicineLevelBefore,
+						levelAfter = medicineLevelAfter,
+						xpSinceLastLevelBefore = medicineXpBefore,
+						xpSinceLastLevelAfter = medicineXpAfter,
+						improved = medicineImproved
+					},
 					expectedExtractPerZombie = Tools.ExtractPerZombie(),
 					corpseDestroyed,
 					trackedCorpseCount = tickManager?.allZombieCorpses?.Count ?? -1,

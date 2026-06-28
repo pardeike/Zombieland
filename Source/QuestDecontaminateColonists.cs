@@ -278,7 +278,7 @@ namespace ZombieLand
 				return;
 
 			if (Constants.CONTAMINATION)
-				subject.ClearContamination();
+				ContaminationManager.Instance.GrantDecontaminationImmunity(subject, ContaminationManager.DecontaminationImmunityTicks());
 			base.Complete(new SignalArgs(new LookTargets(subject).Named("SUBJECT")));
 			if (factionToSendTo != null && factionToSendTo == Faction.OfEmpire)
 			{

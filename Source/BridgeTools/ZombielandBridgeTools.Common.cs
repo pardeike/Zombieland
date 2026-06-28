@@ -89,6 +89,9 @@ namespace ZombieLand
 			public float? hediffSeverity;
 			public float effectiveness;
 			public int hediffCount;
+			public bool hasDecontaminationImmunity;
+			public int decontaminationImmunityTicksLeft;
+			public float decontaminationImmunityDaysLeft;
 		}
 
 		sealed class FireDamageSample
@@ -972,6 +975,7 @@ namespace ZombieLand
 				.OfType<Hediff_Contamination>()
 				.ToArray() ?? Array.Empty<Hediff_Contamination>();
 			var hediff = hediffs.FirstOrDefault();
+			var immunityTicksLeft = pawn == null ? 0 : ContaminationManager.Instance.DecontaminationImmunityTicksLeft(pawn);
 			return new ContaminationSnapshot
 			{
 				stored = pawn?.GetContamination() ?? 0f,
@@ -980,7 +984,10 @@ namespace ZombieLand
 				hasHediff = hediff != null,
 				hediffSeverity = hediff?.Severity,
 				effectiveness = pawn?.GetEffectiveness() ?? 0f,
-				hediffCount = hediffs.Length
+				hediffCount = hediffs.Length,
+				hasDecontaminationImmunity = immunityTicksLeft > 0,
+				decontaminationImmunityTicksLeft = immunityTicksLeft,
+				decontaminationImmunityDaysLeft = immunityTicksLeft / (float)GenDate.TicksPerDay
 			};
 		}
 

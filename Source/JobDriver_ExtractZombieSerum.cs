@@ -8,6 +8,7 @@ namespace ZombieLand
 	public class JobDriver_ExtractZombieSerum : JobDriver
 	{
 		private const float extractWork = 100;
+		private const float extractMedicineExperience = 80f;
 		private float extractProcess = 0;
 
 		public override void ExposeData()
@@ -56,6 +57,7 @@ namespace ZombieLand
 						var extractResult = ThingMaker.MakeThing(CustomDefs.ZombieExtract, null);
 						extractResult.stackCount = Tools.ExtractPerZombie();
 						_ = GenPlace.TryPlaceThing(extractResult, pawn.Position, pawn.Map, ThingPlaceMode.Near, null, null);
+						pawn.skills?.GetSkill(SkillDefOf.Medicine)?.Learn(extractMedicineExperience);
 
 						zombieCorpse?.Destroy();
 
