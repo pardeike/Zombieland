@@ -38,6 +38,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Remove="BridgeTools\**\*.cs" />
+		<None Include="BridgeTools\**\*" />
 		<Content Include="..\Directory.Build.props">
 			<Link>%(Filename)%(Extension)</Link>
 		</Content>
@@ -57,7 +59,6 @@
 		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4850" GeneratePathProperty="true" />
 		<PackageReference Include="Lib.Harmony" Version="2.3.3" ExcludeAssets="runtime" />
 		<PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.4" />
-		<PackageReference Include="RimBridgeServer.Annotations" Version="1.1.0" />
 		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -102,16 +103,24 @@
 		<XmlPoke XmlInputPath="$(MSBuildProjectDirectory)\..\About\Manifest.xml" Query="//Manifest/version" Value="$(ModVersion)" />
 	</Target>
 
+	<Target Name="BuildBridgeTools" AfterTargets="PostBuildAction" BeforeTargets="CopyToRimworld">
+		<Exec Command="dotnet build &quot;$(MSBuildProjectDirectory)/BridgeTools/Zombieland.BridgeTools.csproj&quot; -c $(Configuration) -v:q -clp:ErrorsOnly -p:Platform=$(Platform) -p:ZombielandAssemblyPath=&quot;$(TargetPath)&quot;" />
+	</Target>
+
 	<Target Name="CopyToRimworld" AfterTargets="PostBuildAction" Condition="'$(RIMWORLD_MOD_DIR)' != ''">
 		<Delete Files="..\1.6\Assemblies\0Harmony.dll" />
 		<RemoveDir Directories="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
+		<PropertyGroup>
+			<RIMWORLD_BRIDGETOOLS_DIR Condition="'$(RIMWORLD_BRIDGETOOLS_DIR)' == ''">$(RIMWORLD_MOD_DIR)\..\BridgeTools</RIMWORLD_BRIDGETOOLS_DIR>
+		</PropertyGroup>
 		<ItemGroup>
 			<Copy_14 Include="..\1.4\**" />
-			<Copy_16 Include="..\1.6\**" />
-			<CopyAbout Include="..\About\**" />
+			<Copy_16 Include="..\1.6\**" Exclude="..\1.6\BridgeTools\**;..\1.6\**\.DS_Store;..\1.6\**\._*" />
+			<CopyAbout Include="..\About\**" Exclude="..\About\**\.DS_Store;..\About\**\._*" />
 			<CopyLicense Include="..\LICENSE" />
 			<CopyLoadFolders Include="..\LoadFolders.xml" />
 			<CopyReadme Include="..\README.md" />
+			<CopyBridgeTools Include="..\artifacts\BridgeTools\Zombieland\Zombieland.BridgeTools.dll" />
 		</ItemGroup>
 		<Copy SourceFiles="@(Copy_14)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\1.4\%(RecursiveDir)" />
 		<Copy SourceFiles="@(Copy_16)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\1.6\%(RecursiveDir)" />
@@ -119,6 +128,7 @@
 		<Copy SourceFiles="@(CopyLicense)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
 		<Copy SourceFiles="@(CopyLoadFolders)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
 		<Copy SourceFiles="@(CopyReadme)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
+		<Copy SourceFiles="@(CopyBridgeTools)" DestinationFolder="$(RIMWORLD_BRIDGETOOLS_DIR)\Zombieland" SkipUnchangedFiles="true" />
 	</Target>
 
 	<Target Name="ZipMod" AfterTargets="CopyToRimworld" Condition="'$(RIMWORLD_MOD_DIR)' != ''">

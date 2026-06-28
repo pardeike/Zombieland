@@ -1,0 +1,90 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<RootNamespace>$(ModFileName)</RootNamespace>
+		<AssemblyName>Zombieland.BridgeTools</AssemblyName>
+		<TargetFramework>net472</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<PlatformTarget>x64</PlatformTarget>
+		<OutputPath>..\..\artifacts\BridgeTools\Zombieland\</OutputPath>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<Version>$(ModVersion)</Version>
+		<AssemblyVersion>$(ModVersion)</AssemblyVersion>
+		<FileVersion>$(ModVersion)</FileVersion>
+		<PackageVersion>$(ModVersion)</PackageVersion>
+		<InformationalVersion>$(ModVersion)</InformationalVersion>
+		<Company>Brrainz</Company>
+		<Authors>Andreas Pardeike</Authors>
+		<Copyright>Copyright Andreas Pardeike</Copyright>
+		<PackageProjectUrl>$(Repository)</PackageProjectUrl>
+		<RepositoryUrl>$(Repository)</RepositoryUrl>
+		<Product>$(ModName)</Product>
+		<ZombielandAssemblyPath Condition="'$(ZombielandAssemblyPath)' == ''">..\..\1.6\Assemblies\ZombieLand.dll</ZombielandAssemblyPath>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DebugSymbols>false</DebugSymbols>
+		<Optimize>true</Optimize>
+		<DebugType>none</DebugType>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<DebugSymbols>true</DebugSymbols>
+		<DefineConstants>RW12;RW13;TRACE;DEBUG</DefineConstants>
+		<Optimize>false</Optimize>
+		<DebugType>portable</DebugType>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Reference Include="ZombieLand">
+			<HintPath>$(ZombielandAssemblyPath)</HintPath>
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Newtonsoft.Json">
+			<HintPath>..\..\1.6\Libraries\Newtonsoft.Json.dll</HintPath>
+			<Private>false</Private>
+		</Reference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4850" GeneratePathProperty="true" />
+		<PackageReference Include="Lib.Harmony" Version="2.3.3" ExcludeAssets="runtime" />
+		<PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.4" />
+		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="RimBridgeServer.Sdk" Version="2.0.0" PrivateAssets="all" ExcludeAssets="runtime" />
+		<PackageReference Include="TaskPubliciser" Version="1.0.3" />
+	</ItemGroup>
+
+	<Target Name="MyCode" BeforeTargets="UpdateReferences">
+		<PropertyGroup>
+			<AssemblyCSharp>$(PkgKrafs_Rimworld_Ref)\ref\net472\Assembly-CSharp.dll</AssemblyCSharp>
+			<PubliciseOutputPath>$(PkgKrafs_Rimworld_Ref)\ref\net472\</PubliciseOutputPath>
+			<AssemblyCSharp_Publicised>$(PubliciseOutputPath)Assembly-CSharp_publicised.dll</AssemblyCSharp_Publicised>
+		</PropertyGroup>
+		<Message Importance="High" Text="Publicising Rimworld Assembly ..." />
+		<Publicise TargetAssemblyPath="$(AssemblyCSharp)" OutputPath="$(PubliciseOutputPath)" Condition="Exists('$(AssemblyCSharp)')" />
+		<Message Importance="High" Text="Replacing reference to un-publicised assemblies with publicised equivalents ..." />
+		<ItemGroup>
+			<Reference Include="$(AssemblyCSharp_Publicised)">
+				<SpecificVersion>false</SpecificVersion>
+				<HintPath>$(AssemblyCSharp_Publicised)</HintPath>
+				<Implicit>true</Implicit>
+				<Private>false</Private>
+			</Reference>
+		</ItemGroup>
+	</Target>
+
+	<Target Name="UpdateReferences" AfterTargets="ResolveLockFileReferences">
+		<Message Importance="High" Text="Remove References ..." />
+		<ItemGroup>
+			<Reference Remove="$(PkgKrafs_Rimworld_Ref)\ref\net472\Assembly-CSharp.dll" />
+		</ItemGroup>
+	</Target>
+
+</Project>
