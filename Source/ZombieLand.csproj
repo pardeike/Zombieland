@@ -104,15 +104,17 @@
 	</Target>
 
 	<Target Name="BuildBridgeTools" AfterTargets="PostBuildAction" BeforeTargets="CopyToRimworld">
-		<Exec Command="dotnet build &quot;$(MSBuildProjectDirectory)/BridgeTools/Zombieland.BridgeTools.csproj&quot; -c $(Configuration) -v:q -clp:ErrorsOnly -p:Platform=$(Platform) -p:ZombielandAssemblyPath=&quot;$(TargetPath)&quot;" />
+		<MSBuild
+			Projects="$(MSBuildProjectDirectory)\BridgeTools\Zombieland.BridgeTools.csproj"
+			Targets="Build"
+			Properties="Configuration=$(Configuration);Platform=$(Platform);ZombielandAssemblyPath=$(TargetPath)" />
 	</Target>
 
 	<Target Name="CopyToRimworld" AfterTargets="PostBuildAction" Condition="'$(RIMWORLD_MOD_DIR)' != ''">
 		<Delete Files="..\1.6\Assemblies\0Harmony.dll" />
 		<RemoveDir Directories="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
 		<PropertyGroup>
-			<RIMWORLD_BRIDGETOOLS_DIR Condition="'$(RIMWORLD_BRIDGETOOLS_DIR)' == '' and $([System.Text.RegularExpressions.Regex]::IsMatch('$(RIMWORLD_MOD_DIR)', '[/\\]Mods[/\\]?$'))">$(RIMWORLD_MOD_DIR)\..\BridgeTools</RIMWORLD_BRIDGETOOLS_DIR>
-			<RIMWORLD_BRIDGETOOLS_DIR Condition="'$(RIMWORLD_BRIDGETOOLS_DIR)' == ''">$(RIMWORLD_MOD_DIR)\BridgeTools</RIMWORLD_BRIDGETOOLS_DIR>
+			<GlobalBridgeToolsDir>$(RIMWORLD_MOD_DIR)\..\BridgeTools</GlobalBridgeToolsDir>
 		</PropertyGroup>
 		<ItemGroup>
 			<Copy_14 Include="..\1.4\**" />
@@ -129,7 +131,7 @@
 		<Copy SourceFiles="@(CopyLicense)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
 		<Copy SourceFiles="@(CopyLoadFolders)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
 		<Copy SourceFiles="@(CopyReadme)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
-		<Copy SourceFiles="@(CopyBridgeTools)" DestinationFolder="$(RIMWORLD_BRIDGETOOLS_DIR)\Zombieland" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="@(CopyBridgeTools)" DestinationFolder="$(GlobalBridgeToolsDir)\Zombieland" SkipUnchangedFiles="true" />
 	</Target>
 
 	<Target Name="ZipMod" AfterTargets="CopyToRimworld" Condition="'$(RIMWORLD_MOD_DIR)' != ''">
