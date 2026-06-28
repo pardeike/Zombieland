@@ -111,7 +111,8 @@
 		<Delete Files="..\1.6\Assemblies\0Harmony.dll" />
 		<RemoveDir Directories="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
 		<PropertyGroup>
-			<RIMWORLD_BRIDGETOOLS_DIR Condition="'$(RIMWORLD_BRIDGETOOLS_DIR)' == ''">$(RIMWORLD_MOD_DIR)\..\BridgeTools</RIMWORLD_BRIDGETOOLS_DIR>
+			<RIMWORLD_BRIDGETOOLS_DIR Condition="'$(RIMWORLD_BRIDGETOOLS_DIR)' == '' and $([System.Text.RegularExpressions.Regex]::IsMatch('$(RIMWORLD_MOD_DIR)', '[/\\]Mods[/\\]?$'))">$(RIMWORLD_MOD_DIR)\..\BridgeTools</RIMWORLD_BRIDGETOOLS_DIR>
+			<RIMWORLD_BRIDGETOOLS_DIR Condition="'$(RIMWORLD_BRIDGETOOLS_DIR)' == ''">$(RIMWORLD_MOD_DIR)\BridgeTools</RIMWORLD_BRIDGETOOLS_DIR>
 		</PropertyGroup>
 		<ItemGroup>
 			<Copy_14 Include="..\1.4\**" />
