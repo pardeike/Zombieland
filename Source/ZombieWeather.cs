@@ -77,7 +77,7 @@ namespace ZombieLand
 		public float GetBaseFactorForTicks(int t)
 		{
 			var ticks = t - GenTicks.TicksAbs + GenTicks.TicksGame;
-			var settings = ZombieSettings.ValuesAtGameTick(ticks);
+			var settings = ZombieSettings.ThreatSettingsAtGameTick(ticks);
 			if (ticks / (float)GenDate.TicksPerDay <= settings.daysBeforeZombiesCome)
 				return 0f;
 

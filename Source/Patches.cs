@@ -368,6 +368,11 @@ namespace ZombieLand
 			internal static Rect LastThreatForecastTooltipRect;
 			internal static string LastThreatForecastLabel;
 			internal static int LastThreatForecastFrame = -1;
+			internal static Rect LastThreatForecastHoverRect;
+			internal static Rect LastThreatForecastHoverTooltipRect;
+			internal static string LastThreatForecastHoverLabel;
+			internal static string LastThreatForecastHoverSource;
+			internal static int LastThreatForecastHoverFrame = -1;
 
 			internal static string FormatThreatForecast(float f1, float f2)
 			{
@@ -399,6 +404,11 @@ namespace ZombieLand
 			static void Postfix(float leftX, float width, ref float curBaseY)
 			{
 				LastThreatForecastVisible = false;
+				LastThreatForecastHoverRect = Rect.zero;
+				LastThreatForecastHoverTooltipRect = Rect.zero;
+				LastThreatForecastHoverLabel = null;
+				LastThreatForecastHoverSource = null;
+				LastThreatForecastHoverFrame = -1;
 				var map = Find.CurrentMap;
 				if (Tools.MapViewActiveFor(map) == false)
 					return;
@@ -408,6 +418,44 @@ namespace ZombieLand
 
 				if (ZombieSettings.Values.showZombieStats)
 				{
+					ZombieWeather zombieWeather = null;
+					string threatForecastString = null;
+					bool TryGetThreatForecastString(out string forecast)
+					{
+						forecast = null;
+						if (ZombieSettings.Values.useDynamicThreatLevel == false)
+							return false;
+						zombieWeather ??= map.GetComponent<ZombieWeather>();
+						if (zombieWeather == null)
+							return false;
+						if (threatForecastString.NullOrEmpty())
+						{
+							var (f1, f2) = zombieWeather.GetFactorRangeFor();
+							threatForecastString = FormatThreatForecast(f1, f2);
+						}
+						forecast = threatForecastString;
+						return true;
+					}
+
+					void DrawThreatForecastHover(Rect triggerRect, string forecast, string source, bool expandHighlight)
+					{
+						if (forecast.NullOrEmpty() || Mouse.IsOver(triggerRect) == false)
+							return;
+
+						var highlightRect = triggerRect;
+						if (expandHighlight)
+							highlightRect.xMin -= 10;
+						Widgets.DrawHighlight(highlightRect);
+
+						var bgRect = GetThreatForecastTooltipRect(triggerRect);
+						LastThreatForecastHoverRect = triggerRect;
+						LastThreatForecastHoverTooltipRect = bgRect;
+						LastThreatForecastHoverLabel = forecast;
+						LastThreatForecastHoverSource = source;
+						LastThreatForecastHoverFrame = Time.frameCount;
+						Find.WindowStack.ImmediateWindow(ThreatForecastTooltipWindowId, bgRect, WindowLayer.Super, ZombieWeather.GenerateTooltipDrawer(bgRect.AtZero()), false, false, 1f);
+					}
+
 					var tickManager = map.GetComponent<TickManager>();
 					if (tickManager == null)
 						return;
@@ -431,11 +479,16 @@ namespace ZombieLand
 						Text.Anchor = TextAnchor.UpperLeft;
 						GUI.EndGroup();
 
-						TooltipHandler.TipRegion(zlRect, new TipSignal(delegate
+						if (TryGetThreatForecastString(out var zombieCountForecast))
+							DrawThreatForecastHover(zlRect, zombieCountForecast, "zombieCount", false);
+						else
 						{
-							var currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
-							return $"Zombieland v{currentVersion.ToString(4)}";
-						}, 99799));
+							TooltipHandler.TipRegion(zlRect, new TipSignal(delegate
+							{
+								var currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
+								return $"Zombieland v{currentVersion.ToString(4)}";
+							}, 99799));
+						}
 						var cachedZombies = tickManager.allZombiesCached;
 						if (Mouse.IsOver(zlRect) && cachedZombies != null && cachedZombies.Count <= 100)
 							cachedZombies.Do(zombie => TargetHighlighter.Highlight(new GlobalTargetInfo(zombie), true, false, false));
@@ -443,11 +496,8 @@ namespace ZombieLand
 						curBaseY -= zlRect.height;
 					}
 
-					if (ZombieSettings.Values.useDynamicThreatLevel)
+					if (TryGetThreatForecastString(out var zombieWeatherString))
 					{
-						var zombieWeather = map.GetComponent<ZombieWeather>();
-						var (f1, f2) = zombieWeather.GetFactorRangeFor();
-						var zombieWeatherString = FormatThreatForecast(f1, f2);
 						var zlRect = GetRightAlignedReadoutRect(leftX, width, curBaseY, zombieWeatherString);
 						LastThreatForecastVisible = true;
 						LastThreatForecastRect = zlRect;
@@ -455,13 +505,7 @@ namespace ZombieLand
 						LastThreatForecastLabel = zombieWeatherString;
 						LastThreatForecastFrame = Time.frameCount;
 
-						var over = Mouse.IsOver(zlRect);
-						if (over)
-						{
-							var r = zlRect;
-							r.xMin -= 10;
-							Widgets.DrawHighlight(r);
-						}
+						DrawThreatForecastHover(zlRect, zombieWeatherString, "threatForecast", true);
 
 						GUI.BeginGroup(zlRect);
 						Text.Anchor = TextAnchor.UpperRight;
@@ -470,12 +514,6 @@ namespace ZombieLand
 						Widgets.Label(rect, zombieWeatherString);
 						Text.Anchor = TextAnchor.UpperLeft;
 						GUI.EndGroup();
-
-						if (over)
-						{
-							var bgRect = GetThreatForecastTooltipRect(zlRect);
-							Find.WindowStack.ImmediateWindow(ThreatForecastTooltipWindowId, bgRect, WindowLayer.Super, ZombieWeather.GenerateTooltipDrawer(bgRect.AtZero()), false, false, 1f);
-						}
 
 						curBaseY -= zlRect.height;
 					}

@@ -70,7 +70,12 @@ namespace ZombieLand
 
 		public static bool IsEnabled()
 		{
-			return ZombieSettings.Values?.zombieFreeEvents != false;
+			return IsEnabledAtGameTick(GenTicks.TicksGame);
+		}
+
+		public static bool IsEnabledAtGameTick(int gameTick)
+		{
+			return ZombieSettings.ZombieFreeEventsAtGameTick(gameTick);
 		}
 
 		public static int GameTickForAbsTick(int absTick)
@@ -85,22 +90,21 @@ namespace ZombieLand
 
 		public static bool IsActiveNow()
 		{
-			if (IsEnabled() == false)
+			if (IsEnabledAtGameTick(GenTicks.TicksGame) == false)
 				return false;
 			return Current?.IsActiveAtGameTick(GenTicks.TicksGame) == true;
 		}
 
 		public static bool IsActiveAtAbsTick(int absTick)
 		{
-			if (IsEnabled() == false)
+			var gameTick = GameTickForAbsTick(absTick);
+			if (IsEnabledAtGameTick(gameTick) == false)
 				return false;
-			return Current?.IsActiveAtGameTick(GameTickForAbsTick(absTick)) == true;
+			return Current?.IsActiveAtGameTick(gameTick) == true;
 		}
 
 		public static List<ZombieFreeEventWindow> WindowsForAbsRange(int absStartTick, int absEndTick)
 		{
-			if (IsEnabled() == false)
-				return new List<ZombieFreeEventWindow>();
 			var manager = Current;
 			if (manager == null)
 				return new List<ZombieFreeEventWindow>();
@@ -111,7 +115,7 @@ namespace ZombieLand
 
 		public bool IsActiveAtGameTick(int gameTick)
 		{
-			if (IsEnabled() == false)
+			if (IsEnabledAtGameTick(gameTick) == false)
 				return false;
 			EnsureScheduleThrough(gameTick);
 			return ActiveWindowAt(gameTick) != null;
@@ -119,11 +123,10 @@ namespace ZombieLand
 
 		public List<ZombieFreeEventWindow> WindowsForGameRange(int gameStartTick, int gameEndTick)
 		{
-			if (IsEnabled() == false)
-				return new List<ZombieFreeEventWindow>();
 			EnsureScheduleThrough(gameEndTick);
 			return windows
 				.Where(window => window.Overlaps(gameStartTick, gameEndTick))
+				.SelectMany(window => EnabledSegmentsForWindow(window, gameStartTick, gameEndTick))
 				.OrderBy(window => window.startTick)
 				.ToList();
 		}
@@ -138,7 +141,7 @@ namespace ZombieLand
 			var ticks = GenTicks.TicksGame;
 			var activeWindow = ActiveWindowAt(ticks);
 			if (activeWindow == null)
-				activeWindow = AddWindow(ticks, durationTicks);
+				activeWindow = AddWindowStartingAt(ticks, durationTicks);
 
 			nextClusterStartTick = Mathf.Max(nextClusterStartTick, activeWindow.endTick + ClusterPeriodTicksFor(DifficultyAtGameTick(activeWindow.endTick)));
 			if (activeWindow.ActiveAt(ticks))
@@ -151,6 +154,28 @@ namespace ZombieLand
 			windows = new List<ZombieFreeEventWindow>();
 			nextClusterStartTick = -1;
 			StopGameCondition();
+		}
+
+		public void DebugRefreshCurrentWindowState()
+		{
+			var ticks = GenTicks.TicksGame;
+			if (IsEnabledAtGameTick(ticks) == false)
+			{
+				StopGameCondition();
+				return;
+			}
+
+			var activeWindows = ActiveWindowsAt(ticks);
+			if (activeWindows.Count == 0)
+			{
+				StopGameCondition();
+				return;
+			}
+
+			if (activeWindows.Any(window => window.startHandled == false))
+				StartWindows(activeWindows, ticks);
+			else
+				EnsureGameCondition(activeWindows, ticks);
 		}
 
 		public void DebugRebuildScheduleThrough(int gameTick, int seed)
@@ -186,13 +211,13 @@ namespace ZombieLand
 			if (Verse.Current.Game == null || Verse.Current.ProgramState != ProgramState.Playing)
 				return;
 
-			if (IsEnabled() == false)
+			var ticks = GenTicks.TicksGame;
+			if (IsEnabledAtGameTick(ticks) == false)
 			{
 				StopGameCondition();
 				return;
 			}
 
-			var ticks = GenTicks.TicksGame;
 			EnsureScheduleThrough(ticks + ForecastHorizonTicks);
 			CleanupExpiredWindows(ticks);
 
@@ -302,6 +327,36 @@ namespace ZombieLand
 			windows.RemoveAll(window => window.endTick < ticks - ExpiredWindowKeepTicks);
 		}
 
+		static IEnumerable<ZombieFreeEventWindow> EnabledSegmentsForWindow(ZombieFreeEventWindow window, int rangeStartTick, int rangeEndTick)
+		{
+			var startTick = Mathf.Max(rangeStartTick, window.startTick);
+			var endTick = Mathf.Min(rangeEndTick, window.endTick);
+			if (endTick <= startTick)
+				yield break;
+
+			var boundaries = ZombieSettings.ValuesOverTime?
+				.Select(keyFrame => keyFrame?.Ticks ?? -1)
+				.Where(tick => tick > startTick && tick < endTick)
+				.Distinct()
+				.OrderBy(tick => tick)
+				.ToArray() ?? Array.Empty<int>();
+
+			var segmentStart = startTick;
+			for (var i = 0; i <= boundaries.Length; i++)
+			{
+				var segmentEnd = i < boundaries.Length ? boundaries[i] : endTick;
+				if (segmentEnd > segmentStart && IsEnabledAtGameTick(segmentStart))
+				{
+					yield return new ZombieFreeEventWindow(segmentStart, segmentEnd)
+					{
+						startHandled = window.startHandled,
+						letterSent = window.letterSent
+					};
+				}
+				segmentStart = segmentEnd;
+			}
+		}
+
 		List<ZombieFreeEventWindow> ActiveWindowsAt(int gameTick)
 		{
 			SanitizeWindows(windows);
@@ -370,7 +425,7 @@ namespace ZombieLand
 
 		static int InitialSilenceEndTick()
 		{
-			return Mathf.CeilToInt(ZombieSettings.ValuesAtGameTick(0).daysBeforeZombiesCome * GenDate.TicksPerDay);
+			return Mathf.CeilToInt(ZombieSettings.ThreatSettingsAtGameTick(0).daysBeforeZombiesCome * GenDate.TicksPerDay);
 		}
 
 		int InitialClusterStartTick()
@@ -403,6 +458,35 @@ namespace ZombieLand
 		ZombieFreeEventWindow AddWindow(int startTick, int durationTicks)
 		{
 			return AddWindowAvoidingOverlap(windows, startTick, durationTicks);
+		}
+
+		ZombieFreeEventWindow AddWindowStartingAt(int startTick, int durationTicks)
+		{
+			SanitizeWindows(windows);
+			var duration = Mathf.Max(MinEventDurationTicks, durationTicks);
+			startTick = Mathf.Max(0, startTick);
+			var result = new ZombieFreeEventWindow(startTick, startTick + duration);
+			windows.Add(result);
+			SanitizeWindows(windows);
+
+			var cursor = result.endTick + MinEventGapTicks;
+			for (var i = 0; i < windows.Count; i++)
+			{
+				var window = windows[i];
+				if (ReferenceEquals(window, result) || window.endTick <= result.startTick)
+					continue;
+
+				var windowDuration = window.DurationTicks;
+				if (window.startTick < cursor)
+				{
+					window.startTick = cursor;
+					window.endTick = cursor + windowDuration;
+				}
+				cursor = window.endTick + MinEventGapTicks;
+			}
+
+			SanitizeWindows(windows);
+			return result;
 		}
 
 		static ZombieFreeEventWindow AddWindowAvoidingOverlap(List<ZombieFreeEventWindow> list, int requestedStartTick, int durationTicks)

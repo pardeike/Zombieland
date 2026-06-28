@@ -1,3 +1,4 @@
+using HarmonyLib;
 using RimBridgeServer.Sdk;
 using RimWorld;
 using System;
@@ -33,6 +34,14 @@ namespace ZombieLand
 			public CellRect interiorRect;
 			public Building_Door door;
 			public Building targetWall;
+		}
+
+		sealed class ZombieFreeScheduleSnapshot
+		{
+			public FieldInfo windowsField;
+			public FieldInfo nextClusterStartField;
+			public List<ZombieFreeEventWindow> windows;
+			public int nextClusterStartTick;
 		}
 
 		sealed class NeedSnapshot
@@ -1340,6 +1349,58 @@ namespace ZombieLand
 				ZombieSettings.Values?.MakeCopy(),
 				ZombieSettings.ValuesOverTime?.Select(keyFrame => keyFrame.Copy()).ToList()
 			);
+		}
+
+		static ZombieFreeEventWindow CopyZombieFreeWindow(ZombieFreeEventWindow window)
+		{
+			if (window == null)
+				return null;
+
+			return new ZombieFreeEventWindow(window.startTick, window.endTick)
+			{
+				startHandled = window.startHandled,
+				letterSent = window.letterSent
+			};
+		}
+
+		static bool TrySnapshotZombieFreeSchedule(ZombieFreeEventManager manager, out ZombieFreeScheduleSnapshot snapshot, out string error)
+		{
+			snapshot = null;
+			error = null;
+			var windowsField = AccessTools.Field(typeof(ZombieFreeEventManager), "windows");
+			var nextClusterStartField = AccessTools.Field(typeof(ZombieFreeEventManager), "nextClusterStartTick");
+			if (manager == null || windowsField == null || nextClusterStartField == null)
+			{
+				error = "The current game cannot snapshot the zombie-free event schedule.";
+				return false;
+			}
+
+			snapshot = new ZombieFreeScheduleSnapshot
+			{
+				windowsField = windowsField,
+				nextClusterStartField = nextClusterStartField,
+				windows = ((List<ZombieFreeEventWindow>)windowsField.GetValue(manager))?
+					.Select(CopyZombieFreeWindow)
+					.Where(window => window != null)
+					.ToList() ?? new List<ZombieFreeEventWindow>(),
+				nextClusterStartTick = (int)nextClusterStartField.GetValue(manager)
+			};
+			return true;
+		}
+
+		static void RestoreZombieFreeSchedule(ZombieFreeEventManager manager, ZombieFreeScheduleSnapshot snapshot, bool tickAfterRestore = true)
+		{
+			if (manager == null || snapshot == null)
+				return;
+
+			manager.DebugClearSchedule();
+			snapshot.windowsField.SetValue(manager, snapshot.windows
+				.Select(CopyZombieFreeWindow)
+				.Where(window => window != null)
+				.ToList());
+			snapshot.nextClusterStartField.SetValue(manager, snapshot.nextClusterStartTick);
+			if (tickAfterRestore)
+				manager.DebugRefreshCurrentWindowState();
 		}
 
 		static void ApplyZombieSettingsOverride(Action<SettingsGroup> configure)

@@ -1385,6 +1385,15 @@ namespace ZombieLand
 			}
 
 			var settingsSnapshot = SnapshotZombieSettings();
+			if (TrySnapshotZombieFreeSchedule(manager, out var scheduleSnapshot, out var scheduleSnapshotError) == false)
+			{
+				return new
+				{
+					success = false,
+					actionMode = "silencePause",
+					error = scheduleSnapshotError
+				};
+			}
 			var initialZombieIds = CurrentZombies(map)
 				.Select(ZombieRuntimeActions.StableThingId)
 				.ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -1451,8 +1460,8 @@ namespace ZombieLand
 			}
 			finally
 			{
-				manager.DebugClearSchedule();
 				RestoreZombieSettings(settingsSnapshot);
+				RestoreZombieFreeSchedule(manager, scheduleSnapshot);
 			}
 		}
 
@@ -1627,15 +1636,16 @@ namespace ZombieLand
 
 		static Pawn CreateWorkflowColonist(Map map, IntVec3 cell, string name, bool doctor)
 		{
+			var request = new PawnGenerationRequest(PawnKindDefOf.Colonist, Faction.OfPlayer, forceGenerateNewPawn: true, canGeneratePawnRelations: false, allowAddictions: false);
 			Pawn pawn = null;
 			for (var attempt = 0; attempt < 25; attempt++)
 			{
-				pawn = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+				pawn = PawnGenerator.GeneratePawn(request);
 				if (doctor == false || pawn.WorkTypeIsDisabled(WorkTypeDefOf.Doctor) == false)
 					break;
 				pawn = null;
 			}
-			pawn ??= PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+			pawn ??= PawnGenerator.GeneratePawn(request);
 			pawn.Name = new NameSingle(name);
 			GenSpawn.Spawn(pawn, cell, map, WipeMode.Vanish);
 			pawn.workSettings?.EnableAndInitializeIfNotAlreadyInitialized();

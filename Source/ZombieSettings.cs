@@ -403,6 +403,33 @@ namespace ZombieLand
 
 	class ZombieSettings : WorldComponent
 	{
+		public readonly struct ThreatTimelineSettings
+		{
+			public readonly float threatScale;
+			public readonly int daysBeforeZombiesCome;
+			public readonly bool zombieFreeEvents;
+			public readonly float dynamicThreatSmoothness;
+			public readonly float dynamicThreatStretch;
+
+			public ThreatTimelineSettings(SettingsGroup settings)
+			{
+				threatScale = settings?.threatScale ?? 1f;
+				daysBeforeZombiesCome = settings?.daysBeforeZombiesCome ?? 3;
+				zombieFreeEvents = settings?.zombieFreeEvents ?? true;
+				dynamicThreatSmoothness = settings?.dynamicThreatSmoothness ?? 2.5f;
+				dynamicThreatStretch = settings?.dynamicThreatStretch ?? 20f;
+			}
+
+			public ThreatTimelineSettings(float threatScale, int daysBeforeZombiesCome, bool zombieFreeEvents, float dynamicThreatSmoothness, float dynamicThreatStretch)
+			{
+				this.threatScale = threatScale;
+				this.daysBeforeZombiesCome = daysBeforeZombiesCome;
+				this.zombieFreeEvents = zombieFreeEvents;
+				this.dynamicThreatSmoothness = dynamicThreatSmoothness;
+				this.dynamicThreatStretch = dynamicThreatStretch;
+			}
+		}
+
 		public static SettingsGroup Values;
 		public static List<SettingsKeyFrame> ValuesOverTime;
 
@@ -469,9 +496,46 @@ namespace ZombieLand
 			return CalculateInterpolation(ValuesOverTime, Mathf.Max(0, ticks));
 		}
 
+		public static ThreatTimelineSettings ThreatSettingsAtGameTick(int ticks)
+		{
+			var fallback = Values ?? ZombieSettingsDefaults.group ?? new SettingsGroup();
+			var valuesOverTime = ValuesOverTime;
+			if (valuesOverTime == null || valuesOverTime.Count == 0)
+				return new ThreatTimelineSettings(fallback);
+
+			ticks = Mathf.Max(0, ticks);
+			var upperIndex = valuesOverTime.FirstIndexOf(key => key != null && key.Ticks > ticks);
+			if (upperIndex == -1)
+				return new ThreatTimelineSettings(valuesOverTime.LastOrDefault(key => key?.values != null)?.values ?? fallback);
+			if (upperIndex == 0)
+				return new ThreatTimelineSettings(valuesOverTime[0]?.values ?? fallback);
+
+			var lowerFrame = valuesOverTime[upperIndex - 1];
+			var upperFrame = valuesOverTime[upperIndex];
+			var lowerValues = lowerFrame?.values ?? fallback;
+			var upperValues = upperFrame?.values ?? lowerValues;
+			var lowerTicks = lowerFrame?.Ticks ?? 0;
+			var upperTicks = upperFrame?.Ticks ?? lowerTicks;
+			if (upperTicks <= lowerTicks)
+				return new ThreatTimelineSettings(lowerValues);
+
+			return new ThreatTimelineSettings(
+				GenMath.LerpDoubleClamped(lowerTicks, upperTicks, lowerValues.threatScale, upperValues.threatScale, ticks),
+				(int)GenMath.LerpDoubleClamped(lowerTicks, upperTicks, lowerValues.daysBeforeZombiesCome, upperValues.daysBeforeZombiesCome, ticks),
+				lowerValues.zombieFreeEvents,
+				GenMath.LerpDoubleClamped(lowerTicks, upperTicks, lowerValues.dynamicThreatSmoothness, upperValues.dynamicThreatSmoothness, ticks),
+				GenMath.LerpDoubleClamped(lowerTicks, upperTicks, lowerValues.dynamicThreatStretch, upperValues.dynamicThreatStretch, ticks)
+			);
+		}
+
 		public static float ThreatScaleAtGameTick(int ticks)
 		{
-			return ValuesAtGameTick(ticks).threatScale;
+			return ThreatSettingsAtGameTick(ticks).threatScale;
+		}
+
+		public static bool ZombieFreeEventsAtGameTick(int ticks)
+		{
+			return ThreatSettingsAtGameTick(ticks).zombieFreeEvents;
 		}
 
 		public static ZombieSettings GetGameSettings()
