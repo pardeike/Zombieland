@@ -259,6 +259,7 @@ namespace ZombieLand
 			{
 				useSound = Constants.USE_SOUND,
 				playSetting = settings?.playCreepyAmbientSound,
+				silenceActive = ZombieFreeEventManager.IsActiveNow(),
 				zombieCount,
 				localHour,
 				normalizedHour,

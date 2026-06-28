@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ZombieFreeEvent.label>тишина зомби</ZombieFreeEvent.label>
+	<ZombieFreeEvent.description>Зомби ненадолго исчезают из мира. Обычные зомби вымирают, а новые зомби не появляются, пока действует это состояние.</ZombieFreeEvent.description>
+	<ZombieFreeEvent.endMessage>Тишина зомби закончилась. Зомби снова могут появляться.</ZombieFreeEvent.endMessage>
+	<ZombieFreeEvent.letterText>На короткое время зомби по всему миру вымирают, и новые зомби не появятся. Это хорошее окно для путешествия.</ZombieFreeEvent.letterText>
+
+</LanguageData>

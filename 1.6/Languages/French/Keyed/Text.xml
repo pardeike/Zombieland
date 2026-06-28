@@ -152,10 +152,14 @@
 	<DynamicThreatSmoothness>Lissage de la courbe de menace</DynamicThreatSmoothness>
 	<DynamicThreatStretch>Étirement de la courbe de menace</DynamicThreatStretch>
 	<ZombiesDieOnZeroThreat>Zombies meurent au cours de 0% menace</ZombiesDieOnZeroThreat>
+	<ZombieFreeEvents>Événements de voyage sans zombies</ZombieFreeEvents>
 	<ThreatLevel>niveau de menace</ThreatLevel>
 	<ThreatForecast>Prévision des menaces</ThreatForecast>
 	<Next14Days>14 prochains jours</Next14Days>
 	<Next4Quadrums>4 prochains trimestres</Next4Quadrums>
+	<LetterLabelZombieFreeEvent>Silence des zombies</LetterLabelZombieFreeEvent>
+	<ZombieFreeEventLetter>Pendant {0}, les zombies disparaissent dans le monde entier et aucun nouveau zombie n'apparaîtra. C'est une bonne fenêtre pour voyager en caravane.</ZombieFreeEventLetter>
+	<ZombieFreeEventTimeLeft>Temps restant</ZombieFreeEventTimeLeft>
 
 	<ZombieEventTitle>Apparition de Zombie</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Zombies par colon</ZombiesPerColonistInEvent>

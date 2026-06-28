@@ -8,6 +8,7 @@ using System.Reflection;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Verse.Sound;
 
 namespace ZombieLand
 {
@@ -53,12 +54,16 @@ namespace ZombieLand
 			public const string StableTitle = "Zombieland Forecast Tooltip Preview";
 
 			readonly string forecastLabel;
+			readonly float? previewDifficulty;
+			readonly List<ZombieFreeEventWindow> previewWindows;
 
 			public override Vector2 InitialSize => new(780f, 410f);
 
-			public ForecastTooltipPreviewWindow(string forecastLabel)
+			public ForecastTooltipPreviewWindow(string forecastLabel, float? previewDifficulty = null, List<ZombieFreeEventWindow> previewWindows = null)
 			{
 				this.forecastLabel = forecastLabel;
+				this.previewDifficulty = previewDifficulty;
+				this.previewWindows = previewWindows;
 				doCloseButton = true;
 				doCloseX = true;
 				forcePause = false;
@@ -76,7 +81,7 @@ namespace ZombieLand
 				GUI.color = Color.white;
 				Widgets.Label(new Rect(0f, 0f, inRect.width, 28f), StableTitle + ": " + forecastLabel);
 				var drawRect = new Rect(0f, 36f, Patches.GlobalControlsUtility_DoDate_Patch.ThreatForecastTooltipWidth, Patches.GlobalControlsUtility_DoDate_Patch.ThreatForecastTooltipHeight);
-				ZombieWeather.GenerateTooltipDrawer(drawRect)();
+				ZombieWeather.GenerateTooltipDrawer(drawRect, previewDifficulty, previewWindows)();
 				Text.Anchor = TextAnchor.UpperLeft;
 				GUI.color = Color.white;
 			}
@@ -115,8 +120,9 @@ namespace ZombieLand
 		[Tool("zombieland/incident_threat_state", Description = "Set up or read a reusable incident/threat fixture, and run scenario-level incident wave, spawn mix, infection, forecast, spawn-mode, and pathing-region checks.")]
 		public static object IncidentThreatState(
 			[ToolParameter(Description = "Create a reusable capable-colony incident fixture before reading state.", Required = false, DefaultValue = false)] bool setupFixture = false,
-			[ToolParameter(Description = "Optional action to run before readback: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, zombieFreeEvent, zombieFreeSchedule, pathingRegions, or all.", Required = false, DefaultValue = "read")] string actionMode = "read",
-			[ToolParameter(Description = "Ticks to advance before reading final state; clamped to 0..5000.", Required = false, DefaultValue = 0)] int advanceTicks = 0)
+			[ToolParameter(Description = "Optional action to run before readback: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, zombieFreeEvent, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, or all.", Required = false, DefaultValue = "read")] string actionMode = "read",
+			[ToolParameter(Description = "Ticks to advance before reading final state; clamped to 0..5000.", Required = false, DefaultValue = 0)] int advanceTicks = 0,
+			[ToolParameter(Description = "Difficulty percentage used by the zombieFreeForecast and zombieFreeHover actions. Clamped to 50..500.", Required = false, DefaultValue = 100)] int zombieFreePreviewDifficultyPercent = 100)
 		{
 			var map = CurrentMap;
 			if (map == null)
@@ -136,7 +142,7 @@ namespace ZombieLand
 			}
 
 			var normalizedActionMode = (actionMode ?? "read").Trim().ToLowerInvariant();
-			if (TryRunIncidentThreatAction(map, normalizedActionMode, out var action, out var actionError) == false)
+			if (TryRunIncidentThreatAction(map, normalizedActionMode, zombieFreePreviewDifficultyPercent, out var action, out var actionError) == false)
 			{
 				return new
 				{
@@ -152,7 +158,8 @@ namespace ZombieLand
 			if (clampedAdvanceTicks > 0)
 				AdvanceGameTicks(clampedAdvanceTicks);
 
-			var state = DescribeIncidentThreatState(map);
+			var includeState = normalizedActionMode != "zombiefreehover";
+			var state = includeState ? DescribeIncidentThreatState(map) : null;
 			var tickManagerPresent = map.GetComponent<TickManager>() != null;
 			return new
 			{
@@ -165,11 +172,12 @@ namespace ZombieLand
 				actionSucceeded,
 				action,
 				advancedTicks = clampedAdvanceTicks,
+				stateIncluded = includeState,
 				state
 			};
 		}
 
-		static bool TryRunIncidentThreatAction(Map map, string actionMode, out object result, out string error)
+		static bool TryRunIncidentThreatAction(Map map, string actionMode, int zombieFreePreviewDifficultyPercent, out object result, out string error)
 		{
 			result = null;
 			error = null;
@@ -201,17 +209,29 @@ namespace ZombieLand
 				case "zombiefreeevent":
 					result = RunZombieFreeEventContract(map);
 					return true;
+				case "zombiefreeambientsound":
+					result = RunZombieFreeAmbientSoundContract(map);
+					return true;
+				case "zombiefreeoverlap":
+					result = RunZombieFreeOverlapContract(map);
+					return true;
 				case "zombiefreeschedule":
 					result = RunZombieFreeSchedulePreview();
 					return true;
+				case "zombiefreeforecast":
+					result = RunZombieFreeForecastPreview(zombieFreePreviewDifficultyPercent);
+					return true;
+				case "zombiefreehover":
+					result = RunZombieFreeHoverSetup(map, zombieFreePreviewDifficultyPercent);
+					return true;
 				case "pathingregions":
-					result = RunPathingRegionsContract(map);
+				result = RunPathingRegionsContract(map);
 					return true;
 				case "all":
 					result = RunIncidentThreatAll(map);
 					return true;
 				default:
-					error = "actionMode must be one of: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, zombieFreeEvent, zombieFreeSchedule, pathingRegions, all.";
+					error = "actionMode must be one of: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, zombieFreeEvent, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, all.";
 					return false;
 			}
 		}
@@ -663,6 +683,7 @@ namespace ZombieLand
 					settings.daysBeforeZombiesCome = 0;
 					settings.threatScale = Math.Max(settings.threatScale, 1f);
 					settings.zombiesDieOnZeroThreat = true;
+					settings.zombieFreeEvents = true;
 				});
 
 				var dynamic = DescribeThreatForecast(map);
@@ -722,6 +743,7 @@ namespace ZombieLand
 					settings.threatScale = Math.Max(settings.threatScale, 1f);
 					settings.spitterThreat = Math.Max(settings.spitterThreat, 1f);
 					settings.zombiesDieOnZeroThreat = false;
+					settings.zombieFreeEvents = true;
 				});
 
 				if (TryFindClearSpawnCell(map, new IntVec3(map.Size.x / 2, 0, map.Size.z / 2), 28f, out var spitterCell, out var spitterCellError) == false)
@@ -733,6 +755,8 @@ namespace ZombieLand
 					.FirstOrDefault(candidate => existingSpitters.Contains(ZombieRuntimeActions.StableThingId(candidate)) == false);
 
 				var forcedWindow = manager.DebugForceWindowStartingNow(GenDate.TicksPerDay * 2);
+				var activeCondition = Find.World?.gameConditionManager?.GetActiveCondition(CustomDefs.ZombieFreeEvent);
+				var conditionTooltip = activeCondition?.TooltipString ?? "";
 				var threatWithDynamicDisabled = ZombieWeather.GetThreatLevel(map);
 				var baseThreatWithDynamicDisabled = ZombieWeather.GetThreatLevelIgnoringZombieFreeEvent(map);
 				var forecast = DescribeThreatForecast(map);
@@ -746,6 +770,16 @@ namespace ZombieLand
 						window.letterSent
 					})
 					.ToArray();
+				var condition = activeCondition == null
+					? null
+					: new
+					{
+						type = activeCondition.GetType().FullName,
+						activeCondition.TicksLeft,
+						tooltipHasTimeLeft = conditionTooltip.Contains("ZombieFreeEventTimeLeft".Translate().ToString()),
+						tooltipHasLasted = conditionTooltip.Contains("Lasted".Translate().ToString()),
+						tooltip = conditionTooltip
+					};
 
 				return new
 				{
@@ -753,7 +787,10 @@ namespace ZombieLand
 						&& threatWithDynamicDisabled == 0f
 						&& baseThreatWithDynamicDisabled == 1f
 						&& spitter?.state == SpitterState.Leaving
-						&& forecast.zombieFreeEvents.Length > 0,
+						&& forecast.zombieFreeEvents.Length > 0
+						&& activeCondition is GameCondition_ZombieFreeEvent
+						&& conditionTooltip.Contains("ZombieFreeEventTimeLeft".Translate().ToString())
+						&& conditionTooltip.Contains("Lasted".Translate().ToString()) == false,
 					activeNow = ZombieFreeEventManager.IsActiveNow(),
 					forcedWindow = new
 					{
@@ -764,6 +801,7 @@ namespace ZombieLand
 					threatWithDynamicDisabled,
 					baseThreatWithDynamicDisabled,
 					canHaveMoreZombies = tickManager.CanHaveMoreZombies(),
+					condition,
 					spitter = spitter == null
 						? null
 						: new
@@ -784,22 +822,258 @@ namespace ZombieLand
 			}
 		}
 
-		static object RunZombieFreeSchedulePreview()
-		{
+			static object RunZombieFreeAmbientSoundContract(Map map)
+			{
+				var manager = ZombieFreeEventManager.Current;
+				var tickManager = map.GetComponent<TickManager>();
+			var ambientSustainerField = tickManager == null ? null : AccessTools.Field(typeof(TickManager), "zombiesAmbientSound");
+			var ambientVolumeField = tickManager == null ? null : AccessTools.Field(typeof(TickManager), "zombiesAmbientSoundVolume");
+			if (manager == null || tickManager == null || ambientSustainerField == null || ambientVolumeField == null || CustomDefs.ZombiesClosingIn == null)
+			{
+				return new
+				{
+					success = false,
+					error = "The current game cannot run the zombie-free ambient sound contract.",
+					managerPresent = manager != null,
+					tickManagerPresent = tickManager != null,
+					ambientSustainerFieldPresent = ambientSustainerField != null,
+					ambientVolumeFieldPresent = ambientVolumeField != null,
+					zombiesClosingInSoundPresent = CustomDefs.ZombiesClosingIn != null
+				};
+			}
+
+			var settingsSnapshot = SnapshotZombieSettings();
+			var oldUseSound = Constants.USE_SOUND;
+			var oldAmbientVolume = Prefs.VolumeAmbient;
+			var oldSustainer = ambientSustainerField.GetValue(tickManager) as Sustainer;
+			var oldSustainerVolume = ambientVolumeField.GetValue(tickManager) is float volume ? volume : 0f;
+			var hadAmbientTargetVolume = ZombieStateHandler.creepyAmbientSoundVolumes.TryGetValue(map.uniqueID, out var oldAmbientTargetVolume);
+			var initialZombieIds = CurrentZombies(map)
+				.Select(ZombieRuntimeActions.StableThingId)
+				.ToHashSet(StringComparer.OrdinalIgnoreCase);
+			Zombie spawnedZombie = null;
+			Sustainer probeSustainer = null;
+			try
+			{
+				Constants.USE_SOUND = true;
+				Prefs.VolumeAmbient = Mathf.Max(Prefs.VolumeAmbient, 0.5f);
+				ApplyZombieSettingsOverride(settings =>
+				{
+					settings.showZombieEventLetters = false;
+					settings.useDynamicThreatLevel = false;
+					settings.daysBeforeZombiesCome = 0;
+					settings.threatScale = Math.Max(settings.threatScale, 1f);
+					settings.playCreepyAmbientSound = true;
+					settings.zombieFreeEvents = true;
+				});
+
+				if (TryFindClearSpawnCell(map, new IntVec3(map.Size.x / 2, 0, map.Size.z / 2), 28f, out var zombieCell, out var zombieCellError))
+					spawnedZombie = ZombieRuntimeActions.SpawnZombie(zombieCell, map, ZombieType.Normal, true) as Zombie;
+
+				ZombieStateHandler.creepyAmbientSoundVolumes[map.uniqueID] = 1f;
+				probeSustainer = CustomDefs.ZombiesClosingIn.TrySpawnSustainer(SoundInfo.OnCamera(MaintenanceType.None));
+				ambientSustainerField.SetValue(tickManager, probeSustainer);
+				ambientVolumeField.SetValue(tickManager, 0.5f);
+				var beforeSustainerPresent = (ambientSustainerField.GetValue(tickManager) as Sustainer) != null;
+				var before = DescribeAmbientSoundState(map, tickManager, ZombieSettings.Values, CurrentZombies(map).Length);
+
+				manager.DebugClearSchedule();
+				var forcedWindow = manager.DebugForceWindowStartingNow(GenDate.TicksPerDay);
+				AdvanceGameTicks(30);
+
+				var afterSustainerPresent = (ambientSustainerField.GetValue(tickManager) as Sustainer) != null;
+				var afterTargetVolume = ZombieStateHandler.creepyAmbientSoundVolumes.TryGetValue(map.uniqueID, out var targetVolume)
+					? targetVolume
+					: -1f;
+				var afterStoredVolume = ambientVolumeField.GetValue(tickManager) is float storedVolume ? storedVolume : -1f;
+				var after = DescribeAmbientSoundState(map, tickManager, ZombieSettings.Values, CurrentZombies(map).Length);
+
+				return new
+				{
+					success = ZombieFreeEventManager.IsActiveNow()
+						&& beforeSustainerPresent
+						&& afterSustainerPresent == false
+						&& Mathf.Approximately(afterTargetVolume, 0f)
+						&& Mathf.Approximately(afterStoredVolume, 0f),
+					activeNow = ZombieFreeEventManager.IsActiveNow(),
+					spawnedZombie = DescribeZombie(spawnedZombie),
+					forcedWindow = new
+					{
+						offsetStartTicks = forcedWindow.startTick - GenTicks.TicksGame,
+						offsetEndTicks = forcedWindow.endTick - GenTicks.TicksGame,
+						forcedWindow.DurationTicks
+					},
+					beforeSustainerPresent,
+					afterSustainerPresent,
+					afterTargetVolume,
+					afterStoredVolume,
+					before,
+					after,
+					sourcePath = "TickManager.TickTasks -> ZombieFreeEventManager.IsActiveNow -> StopAmbientSound"
+				};
+			}
+			finally
+			{
+				var currentSustainer = ambientSustainerField.GetValue(tickManager) as Sustainer;
+				if (currentSustainer != null && ReferenceEquals(currentSustainer, oldSustainer) == false)
+					currentSustainer.End();
+				ambientSustainerField.SetValue(tickManager, oldSustainer);
+				ambientVolumeField.SetValue(tickManager, oldSustainerVolume);
+				if (hadAmbientTargetVolume)
+					ZombieStateHandler.creepyAmbientSoundVolumes[map.uniqueID] = oldAmbientTargetVolume;
+				else
+					ZombieStateHandler.creepyAmbientSoundVolumes.Remove(map.uniqueID);
+
+				foreach (var zombie in CurrentZombies(map).Where(zombie => initialZombieIds.Contains(ZombieRuntimeActions.StableThingId(zombie)) == false).ToArray())
+					if (zombie.Destroyed == false)
+						zombie.Destroy(DestroyMode.Vanish);
+
+				manager.DebugClearSchedule();
+				RestoreZombieSettings(settingsSnapshot);
+				Constants.USE_SOUND = oldUseSound;
+				Prefs.VolumeAmbient = oldAmbientVolume;
+				}
+			}
+
+			static object RunZombieFreeOverlapContract(Map map)
+			{
+				var manager = ZombieFreeEventManager.Current;
+				var windowsField = AccessTools.Field(typeof(ZombieFreeEventManager), "windows");
+				var nextClusterStartField = AccessTools.Field(typeof(ZombieFreeEventManager), "nextClusterStartTick");
+				if (manager == null || windowsField == null || nextClusterStartField == null)
+				{
+					return new
+					{
+						success = false,
+						error = "The current game cannot run the zombie-free overlap contract.",
+						managerPresent = manager != null,
+						windowsFieldPresent = windowsField != null,
+						nextClusterStartFieldPresent = nextClusterStartField != null
+					};
+				}
+
+				static ZombieFreeEventWindow CopyWindow(ZombieFreeEventWindow window)
+				{
+					return new ZombieFreeEventWindow(window.startTick, window.endTick)
+					{
+						startHandled = window.startHandled,
+						letterSent = window.letterSent
+					};
+				}
+
+				var settingsSnapshot = SnapshotZombieSettings();
+				var oldWindows = ((List<ZombieFreeEventWindow>)windowsField.GetValue(manager))?
+					.Select(CopyWindow)
+					.ToList() ?? new List<ZombieFreeEventWindow>();
+				var oldNextClusterStartTick = (int)nextClusterStartField.GetValue(manager);
+				var beforeLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
+					.ToHashSet();
+				Letter[] newLetters = Array.Empty<Letter>();
+				try
+				{
+					ApplyZombieSettingsOverride(settings =>
+					{
+						settings.showZombieEventLetters = true;
+						settings.useDynamicThreatLevel = false;
+						settings.daysBeforeZombiesCome = 0;
+						settings.threatScale = Math.Max(settings.threatScale, 1f);
+						settings.zombieFreeEvents = true;
+					});
+
+					manager.DebugClearSchedule();
+
+					var ticks = GenTicks.TicksGame;
+					var overlappingWindows = new List<ZombieFreeEventWindow>
+					{
+						new(ticks, ticks + GenDate.TicksPerDay * 2),
+						new(ticks + GenDate.TicksPerDay, ticks + GenDate.TicksPerDay * 3)
+					};
+					windowsField.SetValue(manager, overlappingWindows);
+					nextClusterStartField.SetValue(manager, ticks + GenDate.TicksPerDay * 100);
+
+					manager.WorldComponentTick();
+					var afterFirstTickWindows = ((List<ZombieFreeEventWindow>)windowsField.GetValue(manager))
+						.Select(CopyWindow)
+						.ToList();
+					var conditionAfterFirstTick = Find.World?.gameConditionManager?.GetActiveCondition(CustomDefs.ZombieFreeEvent);
+					var conditionTicksAfterFirstTick = conditionAfterFirstTick?.TicksLeft ?? -1;
+					var conditionTooltipAfterFirstTick = conditionAfterFirstTick?.TooltipString ?? "";
+					var lettersAfterFirstTick = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
+						.Where(letter => beforeLetters.Contains(letter) == false)
+						.ToArray();
+
+					manager.WorldComponentTick();
+					var afterSecondTickWindows = ((List<ZombieFreeEventWindow>)windowsField.GetValue(manager))
+						.Select(CopyWindow)
+						.ToList();
+					newLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
+						.Where(letter => beforeLetters.Contains(letter) == false)
+						.ToArray();
+
+					var expectedTicksLeft = GenDate.TicksPerDay * 3;
+					var matchingLetters = newLetters
+						.Where(letter => letter?.def == CustomDefs.ZombieFreeEventLetter)
+						.ToArray();
+					var allWindowsHandled = afterSecondTickWindows
+						.Where(window => window.startTick <= ticks && window.endTick >= ticks + GenDate.TicksPerDay * 2)
+						.All(window => window.startHandled && window.letterSent);
+					var noDuplicateLetters = newLetters.Length == lettersAfterFirstTick.Length;
+
+					return new
+					{
+						success = ZombieFreeEventManager.IsActiveNow()
+							&& conditionAfterFirstTick is GameCondition_ZombieFreeEvent
+							&& conditionTicksAfterFirstTick == expectedTicksLeft
+							&& matchingLetters.Length == 1
+							&& lettersAfterFirstTick.Length == 1
+							&& noDuplicateLetters
+							&& allWindowsHandled
+							&& conditionTooltipAfterFirstTick.Contains("ZombieFreeEventTimeLeft".Translate().ToString())
+							&& conditionTooltipAfterFirstTick.Contains("Lasted".Translate().ToString()) == false,
+						sourcePath = "Injected overlapping ZombieFreeEventManager windows -> WorldComponentTick -> ActiveWindowsAt grouped side effects",
+						activeNow = ZombieFreeEventManager.IsActiveNow(),
+						expectedTicksLeft,
+						condition = new
+						{
+							type = conditionAfterFirstTick?.GetType().FullName,
+							ticksLeft = conditionTicksAfterFirstTick,
+							tooltipHasTimeLeft = conditionTooltipAfterFirstTick.Contains("ZombieFreeEventTimeLeft".Translate().ToString()),
+							tooltipHasLasted = conditionTooltipAfterFirstTick.Contains("Lasted".Translate().ToString()),
+							tooltip = conditionTooltipAfterFirstTick
+						},
+						overlappingWindows = DescribeZombieFreePreviewWindows(overlappingWindows),
+						afterFirstTickWindows = DescribeZombieFreePreviewWindows(afterFirstTickWindows),
+						afterSecondTickWindows = DescribeZombieFreePreviewWindows(afterSecondTickWindows),
+						lettersAfterFirstTick = lettersAfterFirstTick.Select(DescribeLetter).ToArray(),
+						newLettersAfterSecondTick = newLetters.Select(DescribeLetter).ToArray(),
+						matchingZombieFreeLetterCount = matchingLetters.Length,
+						noDuplicateLetters,
+						allWindowsHandled
+					};
+				}
+				finally
+				{
+					if (Find.LetterStack != null)
+						foreach (var letter in newLetters)
+							Find.LetterStack.RemoveLetter(letter);
+					manager.DebugClearSchedule();
+					windowsField.SetValue(manager, oldWindows);
+					nextClusterStartField.SetValue(manager, oldNextClusterStartTick);
+					RestoreZombieSettings(settingsSnapshot);
+					manager.WorldComponentTick();
+				}
+			}
+
+			static object RunZombieFreeSchedulePreview()
+			{
 			const int previewSeed = 73127;
 			const int horizonDays = 180;
 			var initialSilenceDays = ZombieSettings.Values.daysBeforeZombiesCome;
-			var horizonTicks = horizonDays * GenDate.TicksPerDay;
-			var difficulties = new[] { 1f, 2f, 3f, 4f, 5f };
-			return new
-			{
-				success = true,
-				sourcePath = "ZombieFreeEventManager.DebugPreviewWindows using the same duration, jitter, period, and paired-cluster math as live scheduling",
-				previewSeed,
-				horizonDays,
-				ticksPerDay = GenDate.TicksPerDay,
-				initialSilenceDays = RoundDay(initialSilenceDays),
-				difficulties = difficulties
+				var horizonTicks = horizonDays * GenDate.TicksPerDay;
+				var difficulties = Enumerable.Range(0, 10)
+					.Select(index => 0.5f + index * 0.5f)
+					.ToArray();
+				var previews = difficulties
 					.Select(difficulty =>
 					{
 						var windows = ZombieFreeEventManager.DebugPreviewWindows(difficulty, previewSeed, horizonTicks, initialSilenceDays);
@@ -813,12 +1087,262 @@ namespace ZombieLand
 							clusterPeriodDays = RoundDay(ZombieFreeEventManager.ClusterPeriodDaysFor(difficulty)),
 							durationMeanDays = RoundDay(ZombieFreeEventManager.EventDurationMeanDaysFor(difficulty)),
 							durationJitterDays = RoundDay(ZombieFreeEventManager.EventDurationJitterDaysFor(difficulty)),
+							eventOffsetMaxDays = RoundDay(ZombieFreeEventManager.EventOffsetMaxDaysFor(difficulty)),
+							hasOverlaps = HasZombieFreeWindowOverlaps(windows),
+							minimumGapDays = MinimumZombieFreeWindowGapDays(windows),
 							scheduledWindowCount = scheduledWindows.Length,
 							firstScheduledStartDay = scheduledWindows.Length == 0 ? (float?)null : RoundDay(DayForTick(scheduledWindows[0].startTick)),
 							windows = DescribeZombieFreePreviewWindows(windows)
 						};
 					})
-					.ToArray()
+					.ToArray();
+
+				float DynamicStressDifficulty(int tick)
+				{
+					var day = DayForTick(tick);
+					if (day <= 60f)
+						return Mathf.Lerp(5f, 0.5f, day / 60f);
+					if (day <= 120f)
+						return Mathf.Lerp(0.5f, 5f, (day - 60f) / 60f);
+					return 5f;
+				}
+
+				var dynamicStressWindows = ZombieFreeEventManager.DebugPreviewWindows(DynamicStressDifficulty, previewSeed, horizonTicks, initialSilenceDays);
+				var dynamicStressHasOverlaps = HasZombieFreeWindowOverlaps(dynamicStressWindows);
+				return new
+				{
+					success = previews.All(preview => preview.hasOverlaps == false)
+						&& dynamicStressHasOverlaps == false,
+					sourcePath = "ZombieFreeEventManager.DebugPreviewWindows using the same duration, jitter, period, and paired-cluster math as live scheduling",
+					previewSeed,
+					horizonDays,
+					ticksPerDay = GenDate.TicksPerDay,
+					initialSilenceDays = RoundDay(initialSilenceDays),
+					dynamicStress = new
+					{
+						description = "500% -> 50% -> 500% threat-scale interpolation over 120 days",
+						hasOverlaps = dynamicStressHasOverlaps,
+						minimumGapDays = MinimumZombieFreeWindowGapDays(dynamicStressWindows),
+						windows = DescribeZombieFreePreviewWindows(dynamicStressWindows)
+					},
+					difficulties = previews
+				};
+			}
+
+		static object RunZombieFreeForecastPreview(int difficultyPercent)
+		{
+			const int previewSeed = 73127;
+			const int horizonDays = 180;
+			var clampedDifficultyPercent = Mathf.Clamp(difficultyPercent, 50, 500);
+			var difficulty = clampedDifficultyPercent / 100f;
+			var initialSilenceDays = ZombieSettings.Values.daysBeforeZombiesCome;
+			var windows = ZombieFreeEventManager.DebugPreviewWindows(
+				difficulty,
+				previewSeed,
+				horizonDays * GenDate.TicksPerDay,
+				initialSilenceDays);
+			var scheduledWindows = windows
+				.Where(window => IsInitialSilencePreview(window) == false)
+				.ToArray();
+			var forecastLabel = $"{clampedDifficultyPercent}% | period {RoundDay(ZombieFreeEventManager.ClusterPeriodDaysFor(difficulty)):0.##}d | silence {RoundDay(ZombieFreeEventManager.EventDurationMeanDaysFor(difficulty)):0.##}+/-{RoundDay(ZombieFreeEventManager.EventDurationJitterDaysFor(difficulty)):0.##}d";
+
+			var previewWindowOpened = false;
+			if (Find.WindowStack != null)
+			{
+				_ = Find.WindowStack.TryRemove(typeof(ForecastTooltipPreviewWindow), false);
+				Find.WindowStack.Add(new ForecastTooltipPreviewWindow(forecastLabel, difficulty, windows));
+				previewWindowOpened = Find.WindowStack.IsOpen(typeof(ForecastTooltipPreviewWindow));
+			}
+
+			return new
+			{
+				success = previewWindowOpened,
+				sourcePath = "ForecastTooltipPreviewWindow -> ZombieWeather.GenerateTooltipDrawer preview difficulty + ZombieFreeEventManager.DebugPreviewWindows",
+				previewWindowOpened,
+				previewWindowTitle = ForecastTooltipPreviewWindow.StableTitle,
+				previewSeed,
+				horizonDays,
+				requestedDifficultyPercent = difficultyPercent,
+				difficultyPercent = clampedDifficultyPercent,
+				difficulty,
+				initialSilenceDays = RoundDay(initialSilenceDays),
+				clusterPeriodDays = RoundDay(ZombieFreeEventManager.ClusterPeriodDaysFor(difficulty)),
+				durationMeanDays = RoundDay(ZombieFreeEventManager.EventDurationMeanDaysFor(difficulty)),
+				durationJitterDays = RoundDay(ZombieFreeEventManager.EventDurationJitterDaysFor(difficulty)),
+					eventOffsetMaxDays = RoundDay(ZombieFreeEventManager.EventOffsetMaxDaysFor(difficulty)),
+					hasOverlaps = HasZombieFreeWindowOverlaps(windows),
+					minimumGapDays = MinimumZombieFreeWindowGapDays(windows),
+					scheduledWindowCount = scheduledWindows.Length,
+					firstScheduledStartDay = scheduledWindows.Length == 0 ? (float?)null : RoundDay(DayForTick(scheduledWindows[0].startTick)),
+					windows = DescribeZombieFreePreviewWindows(windows)
+				};
+			}
+
+		static object RunZombieFreeHoverSetup(Map map, int difficultyPercent)
+		{
+			var weather = map.GetComponent<ZombieWeather>();
+			var tickManager = map.GetComponent<TickManager>();
+			var manager = ZombieFreeEventManager.Current;
+			if (weather == null || tickManager == null || manager == null)
+			{
+				return new
+				{
+					success = false,
+					error = "No ZombieWeather, Zombieland TickManager, or ZombieFreeEventManager is available for the current game.",
+					weatherPresent = weather != null,
+					tickManagerPresent = tickManager != null,
+					managerPresent = manager != null
+				};
+			}
+
+			const int previewSeed = 73127;
+			var clampedDifficultyPercent = Mathf.Clamp(difficultyPercent, 50, 500);
+			var difficulty = clampedDifficultyPercent / 100f;
+			var settings = ZombieSettings.Values?.MakeCopy() ?? new SettingsGroup();
+			settings.showZombieStats = true;
+			settings.useDynamicThreatLevel = true;
+			settings.daysBeforeZombiesCome = 3;
+			settings.threatScale = difficulty;
+			settings.zombiesDieOnZeroThreat = true;
+			settings.zombieFreeEvents = true;
+
+			ZombieSettings.ValuesOverTime = new List<SettingsKeyFrame>
+			{
+				new()
+				{
+					amount = 0,
+					unit = SettingsKeyFrame.Unit.Days,
+					values = settings.MakeCopy()
+				}
+			};
+			ZombieSettings.Values = ZombieSettings.ValuesAtGameTick(GenTicks.TicksGame);
+
+			if (Find.WindowStack != null)
+				_ = Find.WindowStack.TryRemove(typeof(ForecastTooltipPreviewWindow), false);
+
+			var scheduleEndTick = GenTicks.TicksGame + GenDate.TicksPerQuadrum * 5 + GenDate.TicksPerDay * 2;
+			manager.DebugRebuildScheduleThrough(scheduleEndTick, previewSeed);
+
+			var geometry = DescribeThreatForecastHoverGeometry(map);
+			var tooltipOnScreen = (bool)(geometry?.GetType().GetProperty("tooltipOnScreen")?.GetValue(geometry) ?? false);
+			var forecast = DescribeThreatForecast(map);
+				var qStart = GenTicks.TicksAbs - GenTicks.TicksAbs % GenDate.TicksPerQuadrum;
+				var qEnd = qStart + GenDate.TicksPerQuadrum * 5;
+				var quadrumWindows = ZombieFreeEventManager.WindowsForAbsRange(qStart, qEnd);
+				var hasOverlaps = HasZombieFreeWindowOverlaps(quadrumWindows);
+
+				return new
+				{
+					success = tooltipOnScreen
+						&& forecast.forecastLabel.Contains("ThreatLevel".Translate().ToString())
+						&& quadrumWindows.Count > 0
+						&& hasOverlaps == false,
+				sourcePath = "ZombieSettings.ValuesOverTime single keyframe -> ZombieFreeEventManager.DebugRebuildScheduleThrough -> GlobalControlsUtility.DoDate hover geometry",
+				hoverCanStayOpenAcrossDifficultyChanges = true,
+				requestedDifficultyPercent = difficultyPercent,
+				difficultyPercent = clampedDifficultyPercent,
+				difficulty,
+				previewSeed,
+				settings = new
+				{
+					ZombieSettings.Values.showZombieStats,
+					ZombieSettings.Values.useDynamicThreatLevel,
+					ZombieSettings.Values.daysBeforeZombiesCome,
+					ZombieSettings.Values.threatScale,
+					ZombieSettings.Values.zombiesDieOnZeroThreat,
+					ZombieSettings.Values.zombieFreeEvents,
+					keyframeCount = ZombieSettings.ValuesOverTime?.Count ?? 0
+				},
+				schedule = new
+				{
+					scheduleEndTick,
+					clusterPeriodDays = RoundDay(ZombieFreeEventManager.ClusterPeriodDaysFor(difficulty)),
+						durationMeanDays = RoundDay(ZombieFreeEventManager.EventDurationMeanDaysFor(difficulty)),
+						durationJitterDays = RoundDay(ZombieFreeEventManager.EventDurationJitterDaysFor(difficulty)),
+						eventOffsetMaxDays = RoundDay(ZombieFreeEventManager.EventOffsetMaxDaysFor(difficulty)),
+						hasOverlaps,
+						minimumGapDays = MinimumZombieFreeWindowGapDays(quadrumWindows),
+						quadrumWindows = DescribeZombieFreePreviewWindows(quadrumWindows)
+					},
+				forecast,
+				geometry
+			};
+		}
+
+		static object DescribeThreatForecastHoverGeometry(Map map)
+		{
+			var tickManager = map.GetComponent<TickManager>();
+			var weather = map.GetComponent<ZombieWeather>();
+			var zombieCount = tickManager?.ZombieCount() ?? 0;
+			var (rangeMin, rangeMax) = weather.GetFactorRangeFor();
+			var forecastLabel = Patches.GlobalControlsUtility_DoDate_Patch.FormatThreatForecast(rangeMin, rangeMax);
+
+			var width = 220f;
+			var leftX = Math.Max(0f, UI.screenWidth - width - 10f);
+			var curBaseY = Math.Max(420f, UI.screenHeight - 10f);
+			var dateRect = new Rect(leftX, curBaseY - DateReadout.Height, width, DateReadout.Height);
+			var forecastBaseY = curBaseY - dateRect.height;
+			object zombieCountRectDescription = null;
+			if (zombieCount > 0)
+			{
+				var zombieCountString = zombieCount + " Zombies";
+				var zombieCountRect = Patches.GlobalControlsUtility_DoDate_Patch.GetRightAlignedReadoutRect(leftX, width, forecastBaseY, zombieCountString);
+				zombieCountRectDescription = DescribeRect(zombieCountRect);
+				forecastBaseY -= zombieCountRect.height;
+			}
+
+			var forecastRect = Patches.GlobalControlsUtility_DoDate_Patch.GetRightAlignedReadoutRect(leftX, width, forecastBaseY, forecastLabel);
+			var tooltipRect = Patches.GlobalControlsUtility_DoDate_Patch.GetThreatForecastTooltipRect(forecastRect);
+			var actualVisible = Patches.GlobalControlsUtility_DoDate_Patch.LastThreatForecastVisible;
+			var actualForecastRect = Patches.GlobalControlsUtility_DoDate_Patch.LastThreatForecastRect;
+			var actualTooltipRect = Patches.GlobalControlsUtility_DoDate_Patch.LastThreatForecastTooltipRect;
+			var useActualGeometry = actualVisible
+				&& actualForecastRect.width > 0f
+				&& actualForecastRect.height > 0f
+				&& RectWithinScreen(actualForecastRect);
+			var activeForecastRect = useActualGeometry ? actualForecastRect : forecastRect;
+			var activeTooltipRect = useActualGeometry ? actualTooltipRect : tooltipRect;
+			var forecastCenter = activeForecastRect.center;
+			return new
+			{
+				screen = new
+				{
+					width = UI.screenWidth,
+					height = UI.screenHeight
+				},
+				leftX,
+				width,
+				curBaseY,
+				dateRect = DescribeRect(dateRect),
+				zombieCount,
+				zombieCountRect = zombieCountRectDescription,
+				forecastRect = DescribeRect(activeForecastRect),
+				tooltipRect = DescribeRect(activeTooltipRect),
+				hoverPoint = new
+				{
+					x = forecastCenter.x,
+					y = forecastCenter.y
+				},
+				forecastLabel = useActualGeometry
+					? Patches.GlobalControlsUtility_DoDate_Patch.LastThreatForecastLabel
+					: forecastLabel,
+				tooltipOnScreen = RectWithinScreen(activeTooltipRect),
+				usingActualDrawnGeometry = useActualGeometry,
+				actualDrawnGeometry = new
+				{
+					visible = actualVisible,
+					frame = Patches.GlobalControlsUtility_DoDate_Patch.LastThreatForecastFrame,
+					currentFrame = Time.frameCount,
+					label = Patches.GlobalControlsUtility_DoDate_Patch.LastThreatForecastLabel,
+					forecastRect = DescribeRect(actualForecastRect),
+					tooltipRect = DescribeRect(actualTooltipRect)
+				},
+				fallbackGeometry = new
+				{
+					forecastRect = DescribeRect(forecastRect),
+					tooltipRect = DescribeRect(tooltipRect)
+				},
+				tooltipWindowId = Patches.GlobalControlsUtility_DoDate_Patch.ThreatForecastTooltipWindowId
 			};
 		}
 
@@ -853,13 +1377,41 @@ namespace ZombieLand
 			return result.ToArray();
 		}
 
-		static bool IsInitialSilencePreview(ZombieFreeEventWindow window)
-		{
-			return window.startTick == 0 && window.letterSent;
-		}
+			static bool IsInitialSilencePreview(ZombieFreeEventWindow window)
+			{
+				return window.startTick == 0 && window.letterSent;
+			}
 
-		static float DayForTick(int tick)
-		{
+			static bool HasZombieFreeWindowOverlaps(IEnumerable<ZombieFreeEventWindow> windows)
+			{
+				var previousEnd = int.MinValue;
+				foreach (var window in windows.OrderBy(window => window.startTick))
+				{
+					if (window.startTick < previousEnd)
+						return true;
+					previousEnd = Mathf.Max(previousEnd, window.endTick);
+				}
+				return false;
+			}
+
+			static float? MinimumZombieFreeWindowGapDays(IEnumerable<ZombieFreeEventWindow> windows)
+			{
+				float? minimumGap = null;
+				ZombieFreeEventWindow previous = null;
+				foreach (var window in windows.OrderBy(window => window.startTick))
+				{
+					if (previous != null)
+					{
+						var gap = DayForTick(window.startTick - previous.endTick);
+						minimumGap = minimumGap.HasValue ? Mathf.Min(minimumGap.Value, gap) : gap;
+					}
+					previous = window;
+				}
+				return minimumGap.HasValue ? RoundDay(minimumGap.Value) : null;
+			}
+
+			static float DayForTick(int tick)
+			{
 			return tick / (float)GenDate.TicksPerDay;
 		}
 
@@ -1677,6 +2229,7 @@ namespace ZombieLand
 					ZombieSettings.Values.spawnHowType,
 					ZombieSettings.Values.useDynamicThreatLevel,
 					ZombieSettings.Values.zombiesDieOnZeroThreat,
+					ZombieSettings.Values.zombieFreeEvents,
 					ZombieSettings.Values.daysBeforeZombiesCome,
 					ZombieSettings.Values.maximumNumberOfZombies,
 					ZombieSettings.Values.baseNumberOfZombiesinEvent,

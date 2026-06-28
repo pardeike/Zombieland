@@ -8,7 +8,7 @@ namespace ZombieLand
 {
 	static class SettingsDialog
 	{
-		public static readonly float totalEstimatedHeight = 4120f;
+		public static readonly float totalEstimatedHeight = 4150f;
 		const float scrollContentBottomPadding = 24f;
 		public static float measuredContentHeight = totalEstimatedHeight;
 		public static float lastDrawnContentHeight = 0f;
@@ -238,7 +238,7 @@ namespace ZombieLand
 					list.Gap(24f);
 				}
 
-				if (DialogExtensions.Section<string>(":DynamicThreatLevelTitle", ":UseDynamicThreatLevel", ":DynamicThreatSmoothness", ":DynamicThreatStretch", ":ZombiesDieOnZeroThreat"))
+				if (DialogExtensions.Section<string>(":DynamicThreatLevelTitle", ":UseDynamicThreatLevel", ":DynamicThreatSmoothness", ":DynamicThreatStretch", ":ZombiesDieOnZeroThreat", ":ZombieFreeEvents"))
 				{
 					list.Dialog_Label("DynamicThreatLevelTitle", headerColor);
 					list.Gap(8f);
@@ -251,6 +251,7 @@ namespace ZombieLand
 						list.Dialog_FloatSlider("DynamicThreatStretch", _ => "{0:0%}", false, ref settings.dynamicThreatStretch, 10f, 30f, f => (f - 10f) / 20f);
 						list.Gap(-6f);
 						list.Dialog_Checkbox("ZombiesDieOnZeroThreat", ref settings.zombiesDieOnZeroThreat);
+						list.Dialog_Checkbox("ZombieFreeEvents", ref settings.zombieFreeEvents);
 					}
 					list.Gap(28f);
 				}

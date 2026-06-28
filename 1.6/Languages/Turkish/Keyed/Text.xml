@@ -152,10 +152,14 @@
 	<DynamicThreatSmoothness>Tehdit eğrisi düzgünlüğü</DynamicThreatSmoothness>
 	<DynamicThreatStretch>Tehdit eğrisi esnemesi</DynamicThreatStretch>
 	<ZombiesDieOnZeroThreat>Zombiler %0 tehdit sırasında ölür</ZombiesDieOnZeroThreat>
+	<ZombieFreeEvents>Zombisiz seyahat olayları</ZombieFreeEvents>
 	<ThreatLevel>tehdit düzeyi</ThreatLevel>
 	<ThreatForecast>Tehdit Tahmini</ThreatForecast>
 	<Next14Days>Önümüzdeki 14 gün</Next14Days>
 	<Next4Quadrums>Sonraki 4 çeyrek</Next4Quadrums>
+	<LetterLabelZombieFreeEvent>Zombi sessizliği</LetterLabelZombieFreeEvent>
+	<ZombieFreeEventLetter>{0} boyunca, dünya genelindeki zombiler yok oluyor ve yeni zombi görünmeyecek. Bu, kervan yolculuğu için iyi bir aralıktır.</ZombieFreeEventLetter>
+	<ZombieFreeEventTimeLeft>Kalan süre</ZombieFreeEventTimeLeft>
 
 	<ZombieEventTitle>Zombi olayı</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Kolonist başına zombiler</ZombiesPerColonistInEvent>

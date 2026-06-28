@@ -200,6 +200,7 @@ namespace ZombieLand
 		public int maximumNumberOfZombies = 500;
 		public bool useDynamicThreatLevel = true;
 		public bool zombiesDieOnZeroThreat = true;
+		public bool zombieFreeEvents = true;
 		public float dynamicThreatSmoothness = 2.5f;
 		public float dynamicThreatStretch = 20f;
 		public float infectedRaidsChance = 0.1f;
@@ -459,6 +460,18 @@ namespace ZombieLand
 					field.SetValue(result, lowerValue);
 			});
 			return result;
+		}
+
+		public static SettingsGroup ValuesAtGameTick(int ticks)
+		{
+			if (ValuesOverTime == null || ValuesOverTime.Count == 0)
+				return Values?.MakeCopy() ?? ZombieSettingsDefaults.group?.MakeCopy() ?? new SettingsGroup();
+			return CalculateInterpolation(ValuesOverTime, Mathf.Max(0, ticks));
+		}
+
+		public static float ThreatScaleAtGameTick(int ticks)
+		{
+			return ValuesAtGameTick(ticks).threatScale;
 		}
 
 		public static ZombieSettings GetGameSettings()

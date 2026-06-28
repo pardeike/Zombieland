@@ -1617,7 +1617,8 @@ namespace ZombieLand
 				ExecuteExplosions();
 				yield return null;
 				var volume = 0f;
-				if (allZombiesCached.Any())
+				var zombieFreeEventActive = ZombieFreeEventManager.IsActiveNow();
+				if (zombieFreeEventActive == false && allZombiesCached.Any())
 				{
 					if (map != null)
 					{
@@ -1634,7 +1635,13 @@ namespace ZombieLand
 				}
 				ZombieStateHandler.creepyAmbientSoundVolumes[map.uniqueID] = volume;
 				yield return null;
-				if (Constants.USE_SOUND && ZombieSettings.Values.playCreepyAmbientSound)
+				if (zombieFreeEventActive)
+				{
+					zombiesAmbientSoundVolume = 0f;
+					StopAmbientSound();
+					yield return null;
+				}
+				else if (Constants.USE_SOUND && ZombieSettings.Values.playCreepyAmbientSound)
 				{
 					zombiesAmbientSound ??= CustomDefs.ZombiesClosingIn.TrySpawnSustainer(SoundInfo.OnCamera(MaintenanceType.None));
 

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ZombieFreeEvent.label>silence des zombies</ZombieFreeEvent.label>
+	<ZombieFreeEvent.description>Les zombies disparaissent du monde pour une courte durée. Les zombies ordinaires meurent et aucun nouveau zombie n'apparaît tant que cette condition dure.</ZombieFreeEvent.description>
+	<ZombieFreeEvent.endMessage>Le silence des zombies est terminé. Les zombies peuvent réapparaître.</ZombieFreeEvent.endMessage>
+	<ZombieFreeEvent.letterText>Pendant une courte durée, les zombies disparaissent dans le monde entier et aucun nouveau zombie n'apparaîtra. C'est une bonne fenêtre pour voyager.</ZombieFreeEvent.letterText>
+
+</LanguageData>

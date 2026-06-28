@@ -51,6 +51,7 @@
 	<DynamicThreatSmoothness_Help>Tehdit eğrisinin düzgünlüğünü belirler.</DynamicThreatSmoothness_Help>
 	<DynamicThreatStretch_Help>Bu ayarla eğriyi uzatabilir ve daha az dinamik hale getirebilirsiniz.</DynamicThreatStretch_Help>
 	<ZombiesDieOnZeroThreat_Help>Tehdit seviyesi %0 ise haritadaki tüm zombiler kendiliğinden ölür.</ZombiesDieOnZeroThreat_Help>
+	<ZombieFreeEvents_Help>Etkin olduğunda, ara sıra küresel zombi sessizliği olayları tehdit tahmininde görünür. Bu aralıklarda tüm haritalardaki zombiler yok olur ve yeni zombi doğmaz; kervan yolculuğu daha güvenli hale gelir. Bunu kapatmak, normal dinamik tehdit eğrisini değiştirmeden bu özel seyahat aralıklarını kaldırır.</ZombieFreeEvents_Help>
 
 	<ZombieEventTitle_Help>"Sadece olaylar olarak" oynarsanız ve bazen diğer modlarda da, Zombieland bir zombi saldırısı tetikler. Bu akıncı olayı gibi değildir; daha büyük sayıda zombi birlikte ortaya çıkar ve grup büyüklüğüne bağlı olarak öfkelenip size doğru ilerleyebilir.</ZombieEventTitle_Help>
 	<ZombiesPerColonistInEvent_Help>Olayın büyüklüğünü kontrol etmek için kolonist başına kaç zombi ortaya çıkacağını belirtebilirsiniz. Bunun haritadaki toplam zombi sınırını değiştirmediğini unutmayın. Mevcut zombi sayısı toplam sınıra ya da Zombieland'in koloni büyüklüğünüz için belirlediği sayıya zaten yakınsa olayda daha az zombi olur. Buraya çok büyük bir sayı koymak yalnızca olay boyutu üst sınırını kaldırır. Küçük sayı genel olay boyutunu azaltır; özellikle savaşabilen kolonist azsa.</ZombiesPerColonistInEvent_Help>

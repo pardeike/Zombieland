@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+
+	<ZombieFreeEvent.label>Zombie-Stille</ZombieFreeEvent.label>
+	<ZombieFreeEvent.description>Zombies verschwinden für kurze Zeit aus der Welt. Gewöhnliche Zombies sterben aus und es erscheinen keine neuen Zombies, solange diese Bedingung anhält.</ZombieFreeEvent.description>
+	<ZombieFreeEvent.endMessage>Die Zombie-Stille ist beendet. Zombies können wieder erscheinen.</ZombieFreeEvent.endMessage>
+	<ZombieFreeEvent.letterText>Für kurze Zeit sterben Zombies weltweit aus und es erscheinen keine neuen Zombies. Das ist ein gutes Zeitfenster zum Reisen.</ZombieFreeEvent.letterText>
+
+</LanguageData>

@@ -1200,6 +1200,7 @@ namespace ZombieLand
 				&& left.spawnHowType == right.spawnHowType
 				&& left.smashMode == right.smashMode
 				&& left.doubleTapRequired == right.doubleTapRequired
+				&& left.zombieFreeEvents == right.zombieFreeEvents
 				&& left.betterZombieAvoidance == right.betterZombieAvoidance
 				&& Approximately(left.zombieBiteInfectionChance, right.zombieBiteInfectionChance)
 				&& Approximately(left.contaminationBaseFactor, right.contaminationBaseFactor)
@@ -1669,6 +1670,7 @@ namespace ZombieLand
 				group.enemiesAttackZombies,
 				group.animalsAttackZombies,
 				group.doubleTapRequired,
+				group.zombieFreeEvents,
 				group.betterZombieAvoidance,
 				group.zombiesEatDowned,
 				group.zombieBiteInfectionChance,

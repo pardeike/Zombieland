@@ -61,6 +61,7 @@
 	<DynamicThreatSmoothness_Help>Determines the smoothness of the threat curve.</DynamicThreatSmoothness_Help>
 	<DynamicThreatStretch_Help>With this setting you can stretch the curve and make it less dynamic.</DynamicThreatStretch_Help>
 	<ZombiesDieOnZeroThreat_Help>All zombies on the map die on their own if the threat level is 0%.</ZombiesDieOnZeroThreat_Help>
+	<ZombieFreeEvents_Help>When enabled, occasional global zombie-silence events appear on the threat forecast. During these windows, zombies die out across all maps and no new zombies spawn, making caravan travel safer. Turning this off removes those special travel windows without changing the normal dynamic threat curve.</ZombieFreeEvents_Help>
 
 	<!-- -->
 

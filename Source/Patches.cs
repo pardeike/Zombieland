@@ -363,6 +363,11 @@ namespace ZombieLand
 			internal const int ThreatForecastTooltipHeight = 320;
 
 			static readonly Color percentageBackground = new(1, 1, 1, 0.1f);
+			internal static bool LastThreatForecastVisible;
+			internal static Rect LastThreatForecastRect;
+			internal static Rect LastThreatForecastTooltipRect;
+			internal static string LastThreatForecastLabel;
+			internal static int LastThreatForecastFrame = -1;
 
 			internal static string FormatThreatForecast(float f1, float f2)
 			{
@@ -393,6 +398,7 @@ namespace ZombieLand
 
 			static void Postfix(float leftX, float width, ref float curBaseY)
 			{
+				LastThreatForecastVisible = false;
 				var map = Find.CurrentMap;
 				if (Tools.MapViewActiveFor(map) == false)
 					return;
@@ -443,6 +449,11 @@ namespace ZombieLand
 						var (f1, f2) = zombieWeather.GetFactorRangeFor();
 						var zombieWeatherString = FormatThreatForecast(f1, f2);
 						var zlRect = GetRightAlignedReadoutRect(leftX, width, curBaseY, zombieWeatherString);
+						LastThreatForecastVisible = true;
+						LastThreatForecastRect = zlRect;
+						LastThreatForecastTooltipRect = GetThreatForecastTooltipRect(zlRect);
+						LastThreatForecastLabel = zombieWeatherString;
+						LastThreatForecastFrame = Time.frameCount;
 
 						var over = Mouse.IsOver(zlRect);
 						if (over)
@@ -6121,6 +6132,7 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Corpse.TickRare))]
 		static class Corpse_TickRare_Patch
 		{
+			const int CorpseRareTickInterval = 250;
 			static List<Hediff_ZombieInfection> tmpHediffZombieInfections = new();
 
 			static void Postfix(Corpse __instance)
@@ -6141,6 +6153,14 @@ namespace ZombieLand
 				var ticks = GenTicks.TicksGame;
 				tmpHediffZombieInfections.Clear();
 				hediffSet.GetHediffs(ref tmpHediffZombieInfections);
+				if (ZombieFreeEventManager.IsActiveNow())
+				{
+					for (var i = 0; i < tmpHediffZombieInfections.Count; i++)
+						if (tmpHediffZombieInfections[i].ticksWhenBecomingZombie >= 0)
+							tmpHediffZombieInfections[i].ticksWhenBecomingZombie += CorpseRareTickInterval;
+					return;
+				}
+
 				var shouldBecomeZombie = false;
 				for (var i = 0; i < tmpHediffZombieInfections.Count; i++)
 				{

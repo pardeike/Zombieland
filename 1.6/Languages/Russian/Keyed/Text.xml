@@ -152,10 +152,14 @@
 	<DynamicThreatSmoothness>Плавность кривой угрозы</DynamicThreatSmoothness>
 	<DynamicThreatStretch>Растяжение кривой угрозы</DynamicThreatStretch>
 	<ZombiesDieOnZeroThreat>Зомби умирают при 0% угрозе</ZombiesDieOnZeroThreat>
+	<ZombieFreeEvents>События путешествий без зомби</ZombieFreeEvents>
 	<ThreatLevel>уровень угрозы</ThreatLevel>
 	<ThreatForecast>Прогноз угрозы</ThreatForecast>
 	<Next14Days>Следующие 14 дней</Next14Days>
 	<Next4Quadrums>Следующие 4 квартала</Next4Quadrums>
+	<LetterLabelZombieFreeEvent>Тишина зомби</LetterLabelZombieFreeEvent>
+	<ZombieFreeEventLetter>В течение {0} зомби по всему миру вымирают, и новые зомби не появятся. Это хорошее окно для путешествия караваном.</ZombieFreeEventLetter>
+	<ZombieFreeEventTimeLeft>Осталось времени</ZombieFreeEventTimeLeft>
 
 	<ZombieEventTitle>Зомби-происшествие</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Кол-во зомби на одного колониста</ZombiesPerColonistInEvent>

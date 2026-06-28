@@ -152,10 +152,14 @@
 	<DynamicThreatSmoothness>Glattheit der Kurve</DynamicThreatSmoothness>
 	<DynamicThreatStretch>Kurve ausweiten</DynamicThreatStretch>
 	<ZombiesDieOnZeroThreat>Zombies sterben während 0% Bedrohung</ZombiesDieOnZeroThreat>
+	<ZombieFreeEvents>Zombiefreie Reiseereignisse</ZombieFreeEvents>
 	<ThreatLevel>Bedrohungsniveau</ThreatLevel>
 	<ThreatForecast>Bedrohungsvorhersage</ThreatForecast>
 	<Next14Days>Nächsten 14 Tage</Next14Days>
 	<Next4Quadrums>Nächsten 4 Quartale</Next4Quadrums>
+	<LetterLabelZombieFreeEvent>Zombie-Stille</LetterLabelZombieFreeEvent>
+	<ZombieFreeEventLetter>Für {0} sterben Zombies weltweit aus und es erscheinen keine neuen Zombies. Das ist ein gutes Zeitfenster für Karawanenreisen.</ZombieFreeEventLetter>
+	<ZombieFreeEventTimeLeft>Verbleibende Zeit</ZombieFreeEventTimeLeft>
 
 	<ZombieEventTitle>Zombieangriff</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Zombies pro Kolonist</ZombiesPerColonistInEvent>

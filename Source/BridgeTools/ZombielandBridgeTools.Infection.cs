@@ -900,7 +900,7 @@ namespace ZombieLand
 
 		[Tool("zombieland/infection_workflow_state", Description = "Set up, read, or execute the reusable S-Infection-Medical workflow: alerts, cure, double-tap, serum extraction, and corpse-conversion save-load state.")]
 		public static object InfectionWorkflowState(
-			[ToolParameter(Description = "Action mode: setup, read, or execute.", Required = false, DefaultValue = "read")] string actionMode = "read")
+			[ToolParameter(Description = "Action mode: setup, read, execute, or silencePause.", Required = false, DefaultValue = "read")] string actionMode = "read")
 		{
 			var map = CurrentMap;
 			if (map == null)
@@ -919,12 +919,14 @@ namespace ZombieLand
 				return ExecuteInfectionWorkflow(map);
 			if (normalizedMode == "read")
 				return ReadInfectionWorkflow(map, "read");
+			if (normalizedMode == "silencepause")
+				return VerifyWorkflowCountdownPauseDuringSilence(map);
 
 			return new
 			{
 				success = false,
 				actionMode = normalizedMode,
-				error = "Unsupported infection_workflow_state actionMode. Use setup, read, or execute."
+				error = "Unsupported infection_workflow_state actionMode. Use setup, read, execute, or silencePause."
 			};
 		}
 
@@ -1362,6 +1364,96 @@ namespace ZombieLand
 				newZombieCount = newZombies.Length,
 				newZombies
 			};
+		}
+
+		static object VerifyWorkflowCountdownPauseDuringSilence(Map map)
+		{
+			var manager = ZombieFreeEventManager.Current;
+			var corpse = FindWorkflowCorpse(map, InfectionWorkflowCountdownName);
+			var queue = map.GetComponent<TickManager>()?.colonistsToConvert;
+			if (manager == null || corpse == null || queue == null)
+			{
+				return new
+				{
+					success = false,
+					actionMode = "silencePause",
+					managerPresent = manager != null,
+					countdownCorpse = DescribeCorpse(corpse),
+					queuePresent = queue != null,
+					error = "The countdown corpse, conversion queue, or ZombieFreeEventManager is missing. Run setup first."
+				};
+			}
+
+			var settingsSnapshot = SnapshotZombieSettings();
+			var initialZombieIds = CurrentZombies(map)
+				.Select(ZombieRuntimeActions.StableThingId)
+				.ToHashSet(StringComparer.OrdinalIgnoreCase);
+			try
+			{
+				ApplyZombieSettingsOverride(settings =>
+				{
+					settings.showZombieEventLetters = false;
+					settings.useDynamicThreatLevel = false;
+					settings.daysBeforeZombiesCome = 0;
+					settings.threatScale = Math.Max(settings.threatScale, 1f);
+					settings.zombieFreeEvents = true;
+				});
+
+				manager.DebugClearSchedule();
+				var forcedWindow = manager.DebugForceWindowStartingNow(GenDate.TicksPerDay);
+				var setTicks = SetCorpseConversionTicks(corpse, GenTicks.TicksGame - 1);
+				var before = DescribeWorkflowCorpseConversion(corpse, queue);
+				var targetQueuedBefore = queue.Contains(corpse);
+				var queueCountBefore = queue.Count;
+				corpse.TickRare();
+				var after = DescribeWorkflowCorpseConversion(corpse, queue);
+				var queueCountAfter = queue.Count;
+				var pausedByTicks = before.ticksWhenBecomingZombie.Length == 0 || after.ticksWhenBecomingZombie.Length == 0
+					? 0
+					: after.ticksWhenBecomingZombie[0] - before.ticksWhenBecomingZombie[0];
+				var newZombies = CurrentZombies(map)
+					.Where(zombie => initialZombieIds.Contains(ZombieRuntimeActions.StableThingId(zombie)) == false)
+					.Select(DescribeZombie)
+					.ToArray();
+
+				return new
+				{
+					success = ZombieFreeEventManager.IsActiveNow()
+						&& setTicks.infectionCount == 1
+						&& before.hasBrain
+						&& before.ticksUntilConversion < 0
+						&& targetQueuedBefore == false
+						&& after.queued == false
+						&& queueCountAfter == queueCountBefore
+						&& pausedByTicks > 0
+						&& corpse.Destroyed == false
+						&& newZombies.Length == 0,
+					actionMode = "silencePause",
+					activeNow = ZombieFreeEventManager.IsActiveNow(),
+					forcedWindow = new
+					{
+						offsetStartTicks = forcedWindow.startTick - GenTicks.TicksGame,
+						offsetEndTicks = forcedWindow.endTick - GenTicks.TicksGame,
+						forcedWindow.DurationTicks
+					},
+					setTicks,
+					before,
+					after,
+					pausedByTicks,
+					targetQueuedBefore,
+					queueCountBefore,
+					queueCountAfter,
+					corpseDestroyed = corpse.Destroyed,
+					newZombieCount = newZombies.Length,
+					newZombies,
+					sourcePath = "Corpse.TickRare postfix -> ZombieFreeEventManager.IsActiveNow -> Hediff_ZombieInfection.ticksWhenBecomingZombie pause"
+				};
+			}
+			finally
+			{
+				manager.DebugClearSchedule();
+				RestoreZombieSettings(settingsSnapshot);
+			}
 		}
 
 		static object RunWorkflowJob(Pawn actor, Thing target, WorkGiver_Scanner workGiver, int maxTicks, Func<int, bool> done)

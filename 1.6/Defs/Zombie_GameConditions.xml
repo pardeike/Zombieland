@@ -3,6 +3,7 @@
 
 	<GameConditionDef>
 		<defName>ZombieFreeEvent</defName>
+		<conditionClass>ZombieLand.GameCondition_ZombieFreeEvent</conditionClass>
 		<label>zombie silence</label>
 		<description>Zombies vanish from the world for a short time. Ordinary zombies die out and new zombies do not appear while this condition lasts.</description>
 		<endMessage>The zombie silence has ended. Zombies can appear again.</endMessage>
