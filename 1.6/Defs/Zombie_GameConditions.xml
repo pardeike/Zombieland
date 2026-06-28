@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<GameConditionDef>
+		<defName>ZombieFreeEvent</defName>
+		<label>zombie silence</label>
+		<description>Zombies vanish from the world for a short time. Ordinary zombies die out and new zombies do not appear while this condition lasts.</description>
+		<endMessage>The zombie silence has ended. Zombies can appear again.</endMessage>
+		<letterDef>ZombieFreeEventLetter</letterDef>
+		<letterText>For a short time, zombies are dying out across the world and no new zombies will appear. This is a good window for travel.</letterText>
+		<allowUnderground>true</allowUnderground>
+		<natural>true</natural>
+		<displayOnUI>true</displayOnUI>
+		<canAffectAllPlanetLayers>true</canAffectAllPlanetLayers>
+	</GameConditionDef>
+
+</Defs>

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 using Verse.Sound;
 
 namespace ZombieLand
@@ -135,6 +136,27 @@ namespace ZombieLand
 
 			if (ZombieAwarenessCues.ShouldPlayZombieEventSiren())
 				CustomDefs.ZombiesRising.PlayOneShotOnCamera(null);
+		}
+
+		public bool StartLeavingMap()
+		{
+			if (Destroyed || Spawned == false)
+				return false;
+			if (state == SpitterState.Leaving)
+				return true;
+
+			if (jobs?.curJob?.def != CustomDefs.Spitter)
+				jobs?.StartJob(JobMaker.MakeJob(CustomDefs.Spitter));
+
+			if (RCellFinder.TryFindBestExitSpot(this, out var exitCell, TraverseMode.ByPawn, false) == false)
+				return false;
+
+			remainingZombies = 0;
+			waves = 0;
+			tickCounter = 0;
+			pather?.StartPath(exitCell, PathEndMode.OnCell);
+			state = SpitterState.Leaving;
+			return true;
 		}
 
 		public override void DrawAt(Vector3 drawLoc, bool flip = false)

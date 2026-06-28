@@ -694,6 +694,9 @@ namespace ZombieLand
 
 		public static void QueueConvertToZombie(ThingWithComps thing, Map mapForTickmanager)
 		{
+			if (ZombieFreeEventManager.IsActiveNow())
+				return;
+
 			var queue = mapForTickmanager?.GetComponent<TickManager>()?.colonistsToConvert;
 			if (queue != null && queue.Contains(thing) == false)
 				queue.Enqueue(thing);
@@ -741,6 +744,9 @@ namespace ZombieLand
 		static readonly NameSingle emptyName = new("");
 		public static void ConvertToZombie(ThingWithComps thing, Map map, bool force = false)
 		{
+			if (force == false && ZombieFreeEventManager.IsActiveNow())
+				return;
+
 			var corpse = thing as Corpse;
 			var pawn = corpse != null ? corpse.InnerPawn : thing as Pawn;
 			if (pawn?.RaceProps == null

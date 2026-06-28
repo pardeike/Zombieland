@@ -664,8 +664,14 @@ namespace ZombieLand
 			if (state == ZombieState.Emerging)
 				HandleRubble();
 
-			if (threatLevel <= 0.002f && ZombieSettings.Values.zombiesDieOnZeroThreat && Rand.Chance(0.002f))
-				_ = TakeDamage(damageInfo);
+			if (threatLevel <= 0.002f)
+			{
+				var zeroThreatDeathChance = ZombieFreeEventManager.IsActiveNow()
+					? ZombieFreeEventManager.EventZeroThreatDeathChance
+					: ZombieSettings.Values.zombiesDieOnZeroThreat ? 0.002f : 0f;
+				if (zeroThreatDeathChance > 0f && Rand.Chance(zeroThreatDeathChance))
+					_ = TakeDamage(damageInfo);
+			}
 
 			if (state != ZombieState.Emerging && EveryNTick(NthTick.Every12))
 			{

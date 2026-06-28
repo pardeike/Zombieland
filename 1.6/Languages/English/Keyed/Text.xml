@@ -157,6 +157,8 @@
 	<ThreatForecast>Threat forecast</ThreatForecast>
 	<Next14Days>Next 14 days</Next14Days>
 	<Next4Quadrums>Next 4 quadrums</Next4Quadrums>
+	<LetterLabelZombieFreeEvent>Zombie silence</LetterLabelZombieFreeEvent>
+	<ZombieFreeEventLetter>For {0}, zombies are dying out across the world and no new zombies will appear. This is a good window for caravan travel.</ZombieFreeEventLetter>
 
 	<ZombieEventTitle>Zombie event</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Zombies per colonist</ZombiesPerColonistInEvent>

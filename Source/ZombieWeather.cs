@@ -12,6 +12,7 @@ namespace ZombieLand
 	public class ZombieWeather : MapComponent
 	{
 		static readonly Texture2D ForecastBackground = Tools.LoadTexture("Forecast", true);
+		static readonly Color ZombieFreeEventSpanColor = new(0.18f, 0.85f, 0.30f, 0.42f);
 
 		const float p = 3f; // v-stretch
 		float f1 = 1, f2 = 2, f3 = 3, f4 = 4;
@@ -44,12 +45,29 @@ namespace ZombieLand
 
 		public static float GetThreatLevel(Map map)
 		{
+			if (ZombieFreeEventManager.IsActiveNow())
+				return 0f;
+
 			return ZombieSettings.Values.useDynamicThreatLevel
 				? map?.GetComponent<ZombieWeather>()?.GetFactorForTicks(GenTicks.TicksAbs) ?? 1f
 				: 1f;
 		}
 
+		public static float GetThreatLevelIgnoringZombieFreeEvent(Map map)
+		{
+			return ZombieSettings.Values.useDynamicThreatLevel
+				? map?.GetComponent<ZombieWeather>()?.GetBaseFactorForTicks(GenTicks.TicksAbs) ?? 1f
+				: 1f;
+		}
+
 		public float GetFactorForTicks(int t)
+		{
+			if (ZombieFreeEventManager.IsActiveAtAbsTick(t))
+				return 0f;
+			return GetBaseFactorForTicks(t);
+		}
+
+		public float GetBaseFactorForTicks(int t)
 		{
 			var ticks = t - GenTicks.TicksAbs + GenTicks.TicksGame;
 			if (ticks / (float)GenDate.TicksPerDay <= ZombieSettings.Values.daysBeforeZombiesCome)
@@ -69,6 +87,29 @@ namespace ZombieLand
 				+ Mathf.Sin(f3 * x / (m + Mathf.Sin(x / f4 + o1) / n) + o3)
 				+ Mathf.Sin(f4 * x / (m + Mathf.Sin(x / f1 + o2) / n) + o4);
 			return Mathf.Clamp01((Tools.Difficulty() / 2f + val) / p);
+		}
+
+		static void DrawZombieFreeEventSpans(Rect graphRect, int absStartTick, int absEndTick)
+		{
+			var ticks = absEndTick - absStartTick;
+			if (ticks <= 0)
+				return;
+
+			var windows = ZombieFreeEventManager.WindowsForAbsRange(absStartTick, absEndTick);
+			for (var i = 0; i < windows.Count; i++)
+			{
+				var window = windows[i];
+				var windowStart = ZombieFreeEventManager.AbsTickForGameTick(window.startTick);
+				var windowEnd = ZombieFreeEventManager.AbsTickForGameTick(window.endTick);
+				var start = Mathf.Max(absStartTick, windowStart);
+				var end = Mathf.Min(absEndTick, windowEnd);
+				if (end <= start)
+					continue;
+
+				var x1 = graphRect.x + graphRect.width * (start - absStartTick) / ticks;
+				var x2 = graphRect.x + graphRect.width * (end - absStartTick) / ticks;
+				Widgets.DrawBoxSolid(new Rect(x1, graphRect.y, Mathf.Max(1f, x2 - x1), graphRect.height), ZombieFreeEventSpanColor);
+			}
 		}
 
 		public (float, float) GetFactorRangeFor()
@@ -159,11 +200,13 @@ namespace ZombieLand
 				for (var x = 0; x < 15 * g; x++)
 				{
 					var t = dayStart + (int)(x * tpd / g);
-					var f = weather.GetFactorForTicks(t);
+					var f = weather.GetBaseFactorForTicks(t);
 					var y = 3 * g - 2 * g * f;
 					r.center = new Vector2(x + g * 2, y);
 					Widgets.DrawTextureFitted(r, Constants.dot, 1f);
 				}
+
+				DrawZombieFreeEventSpans(R(2, 1, 17, 3), dayStart, dayStart + 15 * tpd);
 
 				GUI.color = Color.magenta;
 				var dx = (currentTicks % tpd) * g / tpd;
@@ -205,7 +248,7 @@ namespace ZombieLand
 				for (var x = 0; x < 15 * g; x++)
 				{
 					var t = qStart + (int)(x * tpq / (g * 3));
-					var f = weather.GetFactorForTicks(t);
+					var f = weather.GetBaseFactorForTicks(t);
 					if (x == 0)
 						for (var i = 0; i < buffer.Length; i++)
 							buffer[i] = f;
@@ -217,6 +260,8 @@ namespace ZombieLand
 					var y = 7 * g - 2 * g * buffer.Average();
 					Widgets.DrawLineVertical(x + g * 2, y, 7 * g - y);
 				}
+
+				DrawZombieFreeEventSpans(R(2, 5, 17, 7), qStart, qStart + 5 * tpq);
 
 				GUI.color = Color.white;
 				Widgets.DrawLineVertical(g * 5, g * 5 - 2, g * 2 + 4);

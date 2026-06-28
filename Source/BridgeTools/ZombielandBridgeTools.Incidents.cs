@@ -20,6 +20,7 @@ namespace ZombieLand
 			public float rangeMax { get; set; }
 			public string forecastLabel { get; set; }
 			public object[] samples { get; set; }
+			public object[] zombieFreeEvents { get; set; }
 		}
 
 		sealed class PathingRegionMetrics
@@ -114,7 +115,7 @@ namespace ZombieLand
 		[Tool("zombieland/incident_threat_state", Description = "Set up or read a reusable incident/threat fixture, and run scenario-level incident wave, spawn mix, infection, forecast, spawn-mode, and pathing-region checks.")]
 		public static object IncidentThreatState(
 			[ToolParameter(Description = "Create a reusable capable-colony incident fixture before reading state.", Required = false, DefaultValue = false)] bool setupFixture = false,
-			[ToolParameter(Description = "Optional action to run before readback: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, pathingRegions, or all.", Required = false, DefaultValue = "read")] string actionMode = "read",
+			[ToolParameter(Description = "Optional action to run before readback: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, zombieFreeEvent, pathingRegions, or all.", Required = false, DefaultValue = "read")] string actionMode = "read",
 			[ToolParameter(Description = "Ticks to advance before reading final state; clamped to 0..5000.", Required = false, DefaultValue = 0)] int advanceTicks = 0)
 		{
 			var map = CurrentMap;
@@ -197,6 +198,9 @@ namespace ZombieLand
 				case "zerothreat":
 					result = RunZeroThreatDeathContract(map);
 					return true;
+				case "zombiefreeevent":
+					result = RunZombieFreeEventContract(map);
+					return true;
 				case "pathingregions":
 					result = RunPathingRegionsContract(map);
 					return true;
@@ -204,7 +208,7 @@ namespace ZombieLand
 					result = RunIncidentThreatAll(map);
 					return true;
 				default:
-					error = "actionMode must be one of: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, pathingRegions, all.";
+					error = "actionMode must be one of: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, zombieFreeEvent, pathingRegions, all.";
 					return false;
 			}
 		}
@@ -675,6 +679,100 @@ namespace ZombieLand
 					disabledThreat,
 					zombiesDieOnZeroThreat = ZombieSettings.Values.zombiesDieOnZeroThreat,
 					sourcePath = "GlobalControlsUtility.DoDate forecast label uses ZombieWeather.GetFactorRangeFor; tooltip drawer uses ZombieWeather.GenerateTooltipDrawer"
+				};
+			}
+			finally
+			{
+				RestoreZombieSettings(settingsSnapshot);
+			}
+		}
+
+		static object RunZombieFreeEventContract(Map map)
+		{
+			var manager = ZombieFreeEventManager.Current;
+			var weather = map.GetComponent<ZombieWeather>();
+			var tickManager = map.GetComponent<TickManager>();
+			if (manager == null || weather == null || tickManager == null)
+			{
+				return new
+				{
+					success = false,
+					error = "The current game has no ZombieFreeEventManager, ZombieWeather, or Zombieland TickManager.",
+					managerPresent = manager != null,
+					weatherPresent = weather != null,
+					tickManagerPresent = tickManager != null
+				};
+			}
+
+			var settingsSnapshot = SnapshotZombieSettings();
+			var existingSpitters = CurrentZombies(map)
+				.OfType<ZombieSpitter>()
+				.Select(ZombieRuntimeActions.StableThingId)
+				.ToHashSet(StringComparer.OrdinalIgnoreCase);
+			ZombieSpitter spitter = null;
+			try
+			{
+				ApplyZombieSettingsOverride(settings =>
+				{
+					settings.useDynamicThreatLevel = false;
+					settings.daysBeforeZombiesCome = 0;
+					settings.threatScale = Math.Max(settings.threatScale, 1f);
+					settings.spitterThreat = Math.Max(settings.spitterThreat, 1f);
+					settings.zombiesDieOnZeroThreat = false;
+				});
+
+				if (TryFindClearSpawnCell(map, new IntVec3(map.Size.x / 2, 0, map.Size.z / 2), 28f, out var spitterCell, out var spitterCellError) == false)
+					return spitterCellError;
+
+				ZombieSpitter.Spawn(map, spitterCell);
+				spitter = CurrentZombies(map)
+					.OfType<ZombieSpitter>()
+					.FirstOrDefault(candidate => existingSpitters.Contains(ZombieRuntimeActions.StableThingId(candidate)) == false);
+
+				var forcedWindow = manager.DebugForceWindowStartingNow(GenDate.TicksPerDay * 2);
+				var threatWithDynamicDisabled = ZombieWeather.GetThreatLevel(map);
+				var baseThreatWithDynamicDisabled = ZombieWeather.GetThreatLevelIgnoringZombieFreeEvent(map);
+				var forecast = DescribeThreatForecast(map);
+				var windowReadback = manager.WindowsForGameRange(GenTicks.TicksGame, GenTicks.TicksGame + GenDate.TicksPerDay * 3)
+					.Select(window => new
+					{
+						offsetStartTicks = window.startTick - GenTicks.TicksGame,
+						offsetEndTicks = window.endTick - GenTicks.TicksGame,
+						window.DurationTicks,
+						window.startHandled,
+						window.letterSent
+					})
+					.ToArray();
+
+				return new
+				{
+					success = ZombieFreeEventManager.IsActiveNow()
+						&& threatWithDynamicDisabled == 0f
+						&& baseThreatWithDynamicDisabled == 1f
+						&& spitter?.state == SpitterState.Leaving
+						&& forecast.zombieFreeEvents.Length > 0,
+					activeNow = ZombieFreeEventManager.IsActiveNow(),
+					forcedWindow = new
+					{
+						offsetStartTicks = forcedWindow.startTick - GenTicks.TicksGame,
+						offsetEndTicks = forcedWindow.endTick - GenTicks.TicksGame,
+						forcedWindow.DurationTicks
+					},
+					threatWithDynamicDisabled,
+					baseThreatWithDynamicDisabled,
+					canHaveMoreZombies = tickManager.CanHaveMoreZombies(),
+					spitter = spitter == null
+						? null
+						: new
+						{
+							id = ZombieRuntimeActions.StableThingId(spitter),
+							spitter.state,
+							spitter.Spawned,
+							spitter.Destroyed
+						},
+					windowReadback,
+					forecast,
+					sourcePath = "ZombieFreeEventManager.DebugForceWindowStartingNow -> ZombieWeather.GetThreatLevel -> ZombieSpitter.StartLeavingMap"
 				};
 			}
 			finally
@@ -1432,6 +1530,8 @@ namespace ZombieLand
 			var weather = map.GetComponent<ZombieWeather>();
 			var currentThreat = ZombieWeather.GetThreatLevel(map);
 			var (rangeMin, rangeMax) = weather.GetFactorRangeFor();
+			var forecastStart = GenTicks.TicksAbs;
+			var forecastEnd = forecastStart + GenDate.TicksPerDay * 14;
 			return new ThreatForecastSnapshot
 			{
 				currentThreat = currentThreat,
@@ -1447,6 +1547,16 @@ namespace ZombieLand
 							offsetTicks = ticks - GenTicks.TicksAbs,
 							threat = weather.GetFactorForTicks(ticks)
 						};
+					})
+					.ToArray(),
+				zombieFreeEvents = ZombieFreeEventManager.WindowsForAbsRange(forecastStart, forecastEnd)
+					.Select(window => new
+					{
+						offsetStartTicks = ZombieFreeEventManager.AbsTickForGameTick(window.startTick) - GenTicks.TicksAbs,
+						offsetEndTicks = ZombieFreeEventManager.AbsTickForGameTick(window.endTick) - GenTicks.TicksAbs,
+						window.DurationTicks,
+						window.startHandled,
+						window.letterSent
 					})
 					.ToArray()
 			};

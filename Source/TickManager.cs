@@ -1143,6 +1143,15 @@ namespace ZombieLand
 		{
 			HandleSymbiantIncident();
 
+			if (ZombieFreeEventManager.IsActiveNow())
+			{
+				var ticks = GenTicks.TicksGame;
+				lastZombieContact = Mathf.Max(lastZombieContact, ticks);
+				lastZombieSpitter = Mathf.Max(lastZombieSpitter, ticks);
+				incidentTickCounter = 0;
+				return;
+			}
+
 			if (ZombieSettings.Values.spitterThreat > 0f && zombieSpitterInited)
 			{
 				var ticks = GenTicks.TicksGame;
@@ -1422,7 +1431,7 @@ namespace ZombieLand
 			}
 
 			var pressure = Mathf.Max(0.35f, ZombieSymbiant.NaturalSpawnPressure(map, true));
-			var threat = Mathf.Max(0.1f, ZombieWeather.GetThreatLevel(map));
+			var threat = Mathf.Max(0.1f, ZombieWeather.GetThreatLevelIgnoringZombieFreeEvent(map));
 			var minDays = GenMath.LerpDoubleClamped(0f, 5f, 22f, 5f, difficulty);
 			var maxDays = GenMath.LerpDoubleClamped(0f, 5f, 38f, 11f, difficulty);
 			var pressureFactor = GenMath.LerpDoubleClamped(0.35f, 1.6f, 1.25f, 0.70f, pressure);
@@ -1452,7 +1461,7 @@ namespace ZombieLand
 			}
 			if (ZombieSymbiantMinimumPauseActive(ticks))
 				return;
-			if (map.IsBlacklisted() || GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome || NewMapZombieDelay(ticks) || ZombieWeather.GetThreatLevel(map) <= 0f)
+			if (map.IsBlacklisted() || GenDate.DaysPassedFloat < ZombieSettings.Values.daysBeforeZombiesCome || NewMapZombieDelay(ticks) || ZombieWeather.GetThreatLevelIgnoringZombieFreeEvent(map) <= 0f)
 			{
 				ScheduleNextZombieSymbiant(ticks, false);
 				return;
