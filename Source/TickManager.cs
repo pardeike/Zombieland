@@ -333,6 +333,10 @@ namespace ZombieLand
 		int incidentTickCounter;
 		int colonyPointsTickCounter;
 		int avoidGridCounter;
+		public int lastAvoidGridRequestTick;
+		public int lastAvoidGridResultTick;
+		public long lastAvoidGridRequestId;
+		public long lastAvoidGridResultId;
 
 		public IntVec3 centerOfInterest = IntVec3.Invalid;
 		public IntVec3 nextCenterOfInterest = IntVec3.Invalid;
@@ -567,7 +571,7 @@ namespace ZombieLand
 			if (Tools.ShouldAvoidZombies())
 			{
 				var specs = allZombies
-					.Where(zombie => zombie.isAlbino == false)
+					.Where(ShouldAffectAvoidGrid)
 					.Select(zombie => new ZombieCostSpecs()
 					{
 						position = zombie.Position,
@@ -580,6 +584,10 @@ namespace ZombieLand
 			}
 			else
 				avoidGrid = new AvoidGrid(map);
+			lastAvoidGridRequestTick = GenTicks.TicksGame;
+			lastAvoidGridResultTick = lastAvoidGridRequestTick;
+			lastAvoidGridRequestId = avoidGrid?.requestId ?? 0;
+			lastAvoidGridResultId = lastAvoidGridRequestId;
 
 			hummingZombies.Clear();
 			allZombies.Where(zombie => zombie.IsActiveElectric).Do(zombie => hummingZombies.Add(zombie));
@@ -1097,13 +1105,10 @@ namespace ZombieLand
 
 		public void UpdateZombieAvoider()
 		{
-			var specs = allZombiesCached.Where(zombie =>
-					zombie.isAlbino == false &&
-					zombie.IsRopedOrConfused == false &&
-					zombie.Spawned &&
-					zombie.Dead == false &&
-					zombie.health.Downed == false
-				)
+			if (lastAvoidGridRequestId > lastAvoidGridResultId && AvoidGridIsStale() == false)
+				return;
+
+			var specs = (allZombiesCached ?? new HashSet<Zombie>()).Where(ShouldAffectAvoidGrid)
 				.Select(zombie => new ZombieCostSpecs()
 				{
 					position = zombie.Position,
@@ -1111,7 +1116,22 @@ namespace ZombieLand
 					maxCosts = ZombieMaxCosts(zombie)
 
 				}).ToList();
-			Tools.avoider.UpdateZombiePositions(map, specs);
+			var requestId = Tools.avoider.UpdateZombiePositions(map, specs);
+			if (requestId > 0)
+				lastAvoidGridRequestId = requestId;
+			lastAvoidGridRequestTick = GenTicks.TicksGame;
+		}
+
+		static bool ShouldAffectAvoidGrid(Zombie zombie)
+		{
+			return zombie != null
+				&& zombie.isAlbino == false
+				&& zombie.IsRopedOrConfused == false
+				&& zombie.Spawned
+				&& zombie.Dead == false
+				&& zombie.health != null
+				&& zombie.health.Downed == false
+				&& zombie.Position.IsValid;
 		}
 
 		public void MarkZombieContact()
@@ -1233,6 +1253,10 @@ namespace ZombieLand
 			{
 				emptyAvoidGrid ??= new AvoidGrid(map);
 				avoidGrid = emptyAvoidGrid;
+				lastAvoidGridRequestId = avoidGrid.requestId;
+				lastAvoidGridRequestTick = GenTicks.TicksGame;
+				lastAvoidGridResultTick = GenTicks.TicksGame;
+				lastAvoidGridResultId = avoidGrid.requestId;
 				return;
 			}
 
@@ -1242,8 +1266,34 @@ namespace ZombieLand
 
 				var result = Tools.avoider.GetCostsGrid(map);
 				if (result != null)
-					avoidGrid = result;
+				{
+					if (result.requestId == lastAvoidGridRequestId)
+					{
+						avoidGrid = result;
+						lastAvoidGridResultTick = GenTicks.TicksGame;
+						lastAvoidGridResultId = result.requestId;
+					}
+				}
+				else if (AvoidGridIsStale())
+				{
+					emptyAvoidGrid ??= new AvoidGrid(map);
+					avoidGrid = emptyAvoidGrid;
+					lastAvoidGridResultTick = GenTicks.TicksGame;
+					lastAvoidGridResultId = lastAvoidGridRequestId;
+					UpdateZombieAvoider();
+					Tools.avoider.RecoverWorkerIfStale(map, lastAvoidGridRequestId);
+				}
 			}
+		}
+
+		bool AvoidGridIsStale()
+		{
+			var staleTicks = Math.Max(600, Constants.TICKMANAGER_AVOIDGRID_DELAY.SecondsToTicks() * 40);
+			var ticks = GenTicks.TicksGame;
+			return lastAvoidGridRequestId > lastAvoidGridResultId
+				&& lastAvoidGridRequestTick > lastAvoidGridResultTick
+				&& lastAvoidGridResultTick > 0
+				&& ticks - lastAvoidGridResultTick > staleTicks;
 		}
 
 		public IEnumerable<Zombie> AllZombies()

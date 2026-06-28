@@ -71,6 +71,72 @@ namespace ZombieLand
 			}
 		}
 
+		public T DequeueLatest()
+		{
+			lock (queue)
+			{
+				while (queue.Count == 0)
+				{
+					if (returnNullOnEmpty)
+						return default;
+
+					try
+					{ _ = Monitor.Wait(queue); }
+					catch (ThreadInterruptedException) { Thread.Sleep(100); }
+					catch (ThreadAbortException) { Thread.Sleep(100); }
+				}
+
+				var item = queue[queue.Count - 1];
+				queue.Clear();
+				Monitor.PulseAll(queue);
+
+				return item;
+			}
+		}
+
+		public bool TryDequeue(out T item)
+		{
+			lock (queue)
+			{
+				if (queue.Count == 0)
+				{
+					item = default;
+					return false;
+				}
+
+				item = queue[0];
+				queue.RemoveAt(0);
+
+				if (queue.Count == maxSize - 1)
+					Monitor.PulseAll(queue);
+
+				return true;
+			}
+		}
+
+		public void Replace(T item)
+		{
+			lock (queue)
+			{
+				queue.Clear();
+				queue.Add(item);
+				Monitor.PulseAll(queue);
+			}
+		}
+
+		public void ReplaceIf(T item, Func<T, T, bool> shouldReplace)
+		{
+			lock (queue)
+			{
+				if (queue.Count == 0 || shouldReplace(queue[queue.Count - 1], item))
+				{
+					queue.Clear();
+					queue.Add(item);
+					Monitor.PulseAll(queue);
+				}
+			}
+		}
+
 		public int Count()
 		{
 			lock (queue)

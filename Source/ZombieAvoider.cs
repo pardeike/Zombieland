@@ -16,23 +16,23 @@ namespace ZombieLand
 
 	public class AvoidGrid
 	{
-		readonly int[][] costGrids;
-		int idx;
+		readonly int[] costs;
+		int[] newCosts;
 		readonly int mapSize;
+		public long requestId;
 		public FloodFiller filler;
 
 		public AvoidGrid(Map map)
 		{
 			mapSize = map.Size.x * map.Size.z;
-			costGrids = new int[][] { new int[mapSize], new int[mapSize] };
-			idx = 0;
+			costs = new int[mapSize];
 			filler = new FloodFiller(map);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public int[] GetCosts()
 		{
-			return costGrids[idx];
+			return costs;
 		}
 
 		public bool InAvoidDanger(Pawn pawn)
@@ -47,16 +47,22 @@ namespace ZombieLand
 
 		public int[] GetNewCosts()
 		{
-			return costGrids[1 - idx];
+			newCosts ??= new int[mapSize];
+			return newCosts;
+		}
+
+		public void ClearNewCosts()
+		{
+			if (newCosts != null)
+				Array.Clear(newCosts, 0, mapSize);
 		}
 
 		public void FinalizeCosts()
 		{
-			var oldArray = costGrids[idx];
-			idx = 1 - idx;
-
-			for (var i = 0; i < mapSize; i++)
-				oldArray[i] = 0;
+			if (newCosts == null)
+				return;
+			Array.Copy(newCosts, costs, mapSize);
+			newCosts = null;
 		}
 	}
 
@@ -64,6 +70,7 @@ namespace ZombieLand
 	{
 		public Map map;
 		public List<ZombieCostSpecs> specs;
+		public long requestId;
 	}
 
 	[StaticConstructorOnStartup]
@@ -71,8 +78,13 @@ namespace ZombieLand
 	{
 		readonly ConcurrentQueue<AvoidRequest> requestQueue;
 		readonly Dictionary<Map, ConcurrentQueue<AvoidGrid>> resultQueues;
-		readonly Dictionary<Map, AvoidGrid> grids;
-		readonly Thread workerThread;
+		readonly Dictionary<Map, long> completedRequestIds;
+		readonly object workerLock;
+		Thread workerThread;
+		Thread rescueWorkerThread;
+		long lastWarningTicks;
+		long lastRescueTicks;
+		long nextRequestId;
 		public bool running;
 
 		ConcurrentQueue<AvoidGrid> QueueForMap(Map map)
@@ -92,55 +104,90 @@ namespace ZombieLand
 		{
 			requestQueue = new ConcurrentQueue<AvoidRequest>();
 			resultQueues = new Dictionary<Map, ConcurrentQueue<AvoidGrid>>();
-			grids = new Dictionary<Map, AvoidGrid>();
+			completedRequestIds = new Dictionary<Map, long>();
+			workerLock = new object();
 
 			running = true;
-			workerThread = new Thread(() =>
-			{
-				EndlessLoop:
-
-				try
-				{
-					var request = requestQueue.Dequeue();
-					var result = ProcessRequest(request);
-
-					var queue = QueueForMap(request.map);
-					queue.Enqueue(result);
-				}
-				catch (Exception e)
-				{
-					if (e is not ThreadAbortException)
-						Log.Warning("ZombieAvoider error: " + e);
-					Thread.Sleep(500);
-				}
-
-				if (running)
-					goto EndlessLoop;
-			})
-			{
-				Priority = ThreadPriority.Lowest
-			};
-			workerThread.Start();
+			EnsureWorkerRunning();
 		}
 
-		public void UpdateZombiePositions(Map map, List<ZombieCostSpecs> specs)
+		public long UpdateZombiePositions(Map map, List<ZombieCostSpecs> specs)
 		{
-			var request = new AvoidRequest() { map = map, specs = specs };
+			if (map == null || running == false)
+				return 0;
+			EnsureWorkerRunning();
+			var request = new AvoidRequest() { map = map, specs = CopySpecs(specs), requestId = Interlocked.Increment(ref nextRequestId) };
 			requestQueue.Enqueue(request, req => req.map == map);
+			return request.requestId;
 		}
 
 		public AvoidGrid UpdateZombiePositionsImmediately(Map map, List<ZombieCostSpecs> specs)
 		{
-			return ProcessRequest(new AvoidRequest() { map = map, specs = specs });
+			if (map == null)
+				return null;
+			var request = new AvoidRequest() { map = map, specs = CopySpecs(specs), requestId = Interlocked.Increment(ref nextRequestId) };
+			var result = ProcessRequest(request, out var error);
+			if (error != null)
+				WarnProcessingFailure("synchronous avoid-grid rebuild", error, request);
+			return result;
 		}
 
 		public AvoidGrid GetCostsGrid(Map map)
 		{
+			if (map == null)
+				return null;
 			var queue = QueueForMap(map);
-			return queue.Dequeue();
+			return queue.DequeueLatest();
 		}
 
 		static TraverseParms traverseParms = TraverseParms.For(TraverseMode.PassDoors, Danger.None, false, true, false);
+		static bool CanProcessMap(Map map)
+		{
+			return map != null
+				&& map.Size.x > 0
+				&& map.Size.z > 0
+				&& map.pathing != null
+				&& map.edificeGrid != null
+				&& map.thingGrid != null;
+		}
+
+		static bool ValidSpec(Map map, ZombieCostSpecs spec)
+		{
+			return spec != null
+				&& spec.position.IsValid
+				&& spec.position.InBounds(map)
+				&& spec.radius > 0f
+				&& spec.maxCosts > 0f
+				&& float.IsNaN(spec.radius) == false
+				&& float.IsInfinity(spec.radius) == false
+				&& float.IsNaN(spec.maxCosts) == false
+				&& float.IsInfinity(spec.maxCosts) == false;
+		}
+
+		static List<ZombieCostSpecs> CopySpecs(List<ZombieCostSpecs> specs)
+		{
+			if (specs == null || specs.Count == 0)
+				return new List<ZombieCostSpecs>();
+
+			var result = new List<ZombieCostSpecs>(specs.Count);
+			foreach (var spec in specs)
+			{
+				if (spec == null)
+				{
+					result.Add(null);
+					continue;
+				}
+
+				result.Add(new ZombieCostSpecs()
+				{
+					position = spec.position,
+					radius = spec.radius,
+					maxCosts = spec.maxCosts
+				});
+			}
+			return result;
+		}
+
 		static void GenerateCells(Map map, List<ZombieCostSpecs> specs, int[] costCells, FloodFiller filler)
 		{
 			var mapSizeX = map.Size.x;
@@ -149,6 +196,9 @@ namespace ZombieLand
 
 			foreach (var spec in specs)
 			{
+				if (ValidSpec(map, spec) == false)
+					continue;
+
 				var loc = spec.position;
 				var costBase = spec.maxCosts;
 				var radiusSquared = spec.radius * spec.radius;
@@ -182,22 +232,143 @@ namespace ZombieLand
 			}
 		}
 
-		AvoidGrid ProcessRequest(AvoidRequest request)
+		AvoidGrid ProcessRequest(AvoidRequest request, out Exception error)
 		{
-			var avoidGrid = GetAvoidGrid(request.map);
-			GenerateCells(request.map, request.specs, avoidGrid.GetNewCosts(), avoidGrid.filler);
+			error = null;
+			var avoidGrid = new AvoidGrid(request.map);
+			avoidGrid.ClearNewCosts();
+			try
+			{
+				if (CanProcessMap(request.map))
+					GenerateCells(request.map, request.specs ?? new List<ZombieCostSpecs>(), avoidGrid.GetNewCosts(), avoidGrid.filler);
+			}
+			catch (Exception e)
+			{
+				error = e;
+				avoidGrid.ClearNewCosts();
+			}
+			avoidGrid.requestId = request.requestId;
 			avoidGrid.FinalizeCosts();
 			return avoidGrid;
 		}
 
-		AvoidGrid GetAvoidGrid(Map map)
+		bool ProcessOneRequest(bool waitForRequest)
 		{
-			if (grids.TryGetValue(map, out var result) == false)
+			AvoidRequest request = null;
+			try
 			{
-				result = new AvoidGrid(map);
-				grids[map] = result;
+				if (waitForRequest)
+					request = requestQueue.Dequeue();
+				else if (requestQueue.TryDequeue(out request) == false)
+					return false;
+
+				if (request?.map == null)
+					return true;
+
+				var result = ProcessRequest(request, out var error);
+				if (error != null)
+					WarnProcessingFailure("async avoid-grid rebuild", error, request);
+
+				var queue = QueueForMap(request.map);
+				queue.ReplaceIf(result, (existing, incoming) => incoming.requestId >= existing.requestId);
+				MarkRequestCompleted(request);
 			}
-			return result;
+			catch (ThreadAbortException)
+			{
+				return false;
+			}
+			catch (Exception e)
+			{
+				WarnProcessingFailure("worker loop", e, request);
+				Thread.Sleep(500);
+			}
+			return true;
+		}
+
+		void WorkerLoop(bool waitForRequest)
+		{
+			while (running)
+			{
+				if (ProcessOneRequest(waitForRequest) == false)
+					return;
+				if (waitForRequest == false)
+					return;
+			}
+		}
+
+		void MarkRequestCompleted(AvoidRequest request)
+		{
+			if (request?.map == null)
+				return;
+
+			lock (workerLock)
+			{
+				if (completedRequestIds.TryGetValue(request.map, out var completedRequestId) == false || request.requestId > completedRequestId)
+					completedRequestIds[request.map] = request.requestId;
+			}
+		}
+
+		bool EnsureWorkerRunning()
+		{
+			if (running == false)
+				return false;
+
+			lock (workerLock)
+			{
+				if (workerThread?.IsAlive == true)
+					return false;
+
+				workerThread = new Thread(() => WorkerLoop(true))
+				{
+					Priority = ThreadPriority.Lowest,
+					IsBackground = true
+				};
+				workerThread.Start();
+				return true;
+			}
+		}
+
+		public void RecoverWorkerIfStale(Map map, long requestId)
+		{
+			if (map == null || requestId <= 0 || running == false)
+				return;
+			if (EnsureWorkerRunning())
+				return;
+
+			lock (workerLock)
+			{
+				if (completedRequestIds.TryGetValue(map, out var completedRequestId) && completedRequestId >= requestId)
+					return;
+				if (rescueWorkerThread?.IsAlive == true)
+					return;
+
+				var now = DateTime.UtcNow.Ticks;
+				if (now - lastRescueTicks < TimeSpan.TicksPerSecond * 10)
+					return;
+
+				lastRescueTicks = now;
+				rescueWorkerThread = new Thread(() => WorkerLoop(false))
+				{
+					Priority = ThreadPriority.Lowest,
+					IsBackground = true
+				};
+				rescueWorkerThread.Start();
+			}
+		}
+
+		void WarnProcessingFailure(string context, Exception error, AvoidRequest request)
+		{
+			var now = DateTime.UtcNow.Ticks;
+			lock (workerLock)
+			{
+				if (now - lastWarningTicks < TimeSpan.TicksPerSecond * 10)
+					return;
+				lastWarningTicks = now;
+			}
+
+			var mapId = request?.map == null ? "none" : request.map.uniqueID.ToString();
+			var specCount = request?.specs?.Count ?? 0;
+			Log.Warning($"ZombieAvoider recovered from {context} for map {mapId}, specs {specCount}: {error}");
 		}
 	}
 }
