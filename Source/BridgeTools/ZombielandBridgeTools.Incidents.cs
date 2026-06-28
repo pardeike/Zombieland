@@ -115,7 +115,7 @@ namespace ZombieLand
 		[Tool("zombieland/incident_threat_state", Description = "Set up or read a reusable incident/threat fixture, and run scenario-level incident wave, spawn mix, infection, forecast, spawn-mode, and pathing-region checks.")]
 		public static object IncidentThreatState(
 			[ToolParameter(Description = "Create a reusable capable-colony incident fixture before reading state.", Required = false, DefaultValue = false)] bool setupFixture = false,
-			[ToolParameter(Description = "Optional action to run before readback: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, zombieFreeEvent, pathingRegions, or all.", Required = false, DefaultValue = "read")] string actionMode = "read",
+			[ToolParameter(Description = "Optional action to run before readback: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, zombieFreeEvent, zombieFreeSchedule, pathingRegions, or all.", Required = false, DefaultValue = "read")] string actionMode = "read",
 			[ToolParameter(Description = "Ticks to advance before reading final state; clamped to 0..5000.", Required = false, DefaultValue = 0)] int advanceTicks = 0)
 		{
 			var map = CurrentMap;
@@ -201,6 +201,9 @@ namespace ZombieLand
 				case "zombiefreeevent":
 					result = RunZombieFreeEventContract(map);
 					return true;
+				case "zombiefreeschedule":
+					result = RunZombieFreeSchedulePreview();
+					return true;
 				case "pathingregions":
 					result = RunPathingRegionsContract(map);
 					return true;
@@ -208,7 +211,7 @@ namespace ZombieLand
 					result = RunIncidentThreatAll(map);
 					return true;
 				default:
-					error = "actionMode must be one of: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, zombieFreeEvent, pathingRegions, all.";
+					error = "actionMode must be one of: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, zombieFreeEvent, zombieFreeSchedule, pathingRegions, all.";
 					return false;
 			}
 		}
@@ -779,6 +782,90 @@ namespace ZombieLand
 			{
 				RestoreZombieSettings(settingsSnapshot);
 			}
+		}
+
+		static object RunZombieFreeSchedulePreview()
+		{
+			const int previewSeed = 73127;
+			const int horizonDays = 180;
+			var initialSilenceDays = ZombieSettings.Values.daysBeforeZombiesCome;
+			var horizonTicks = horizonDays * GenDate.TicksPerDay;
+			var difficulties = new[] { 1f, 2f, 3f, 4f, 5f };
+			return new
+			{
+				success = true,
+				sourcePath = "ZombieFreeEventManager.DebugPreviewWindows using the same duration, jitter, period, and paired-cluster math as live scheduling",
+				previewSeed,
+				horizonDays,
+				ticksPerDay = GenDate.TicksPerDay,
+				initialSilenceDays = RoundDay(initialSilenceDays),
+				difficulties = difficulties
+					.Select(difficulty =>
+					{
+						var windows = ZombieFreeEventManager.DebugPreviewWindows(difficulty, previewSeed, horizonTicks, initialSilenceDays);
+						var scheduledWindows = windows
+							.Where(window => IsInitialSilencePreview(window) == false)
+							.ToArray();
+						return new
+						{
+							difficultyPercent = Mathf.RoundToInt(difficulty * 100f),
+							difficulty,
+							clusterPeriodDays = RoundDay(ZombieFreeEventManager.ClusterPeriodDaysFor(difficulty)),
+							durationMeanDays = RoundDay(ZombieFreeEventManager.EventDurationMeanDaysFor(difficulty)),
+							durationJitterDays = RoundDay(ZombieFreeEventManager.EventDurationJitterDaysFor(difficulty)),
+							scheduledWindowCount = scheduledWindows.Length,
+							firstScheduledStartDay = scheduledWindows.Length == 0 ? (float?)null : RoundDay(DayForTick(scheduledWindows[0].startTick)),
+							windows = DescribeZombieFreePreviewWindows(windows)
+						};
+					})
+					.ToArray()
+			};
+		}
+
+		static object[] DescribeZombieFreePreviewWindows(List<ZombieFreeEventWindow> windows)
+		{
+			var result = new List<object>();
+			var scheduledIndex = 0;
+			float? previousEndDay = null;
+			foreach (var window in windows.OrderBy(window => window.startTick))
+			{
+				var isInitialSilence = IsInitialSilencePreview(window);
+				var startDay = DayForTick(window.startTick);
+				var endDay = DayForTick(window.endTick);
+				result.Add(new
+				{
+					kind = isInitialSilence ? "initialSilence" : "scheduledEvent",
+					clusterIndex = isInitialSilence ? (int?)null : scheduledIndex / 2,
+					eventInCluster = isInitialSilence ? (int?)null : scheduledIndex % 2 + 1,
+					startTick = window.startTick,
+					endTick = window.endTick,
+					durationTicks = window.DurationTicks,
+					startDay = RoundDay(startDay),
+					endDay = RoundDay(endDay),
+					durationDays = RoundDay(endDay - startDay),
+					gapFromPreviousEndDays = previousEndDay.HasValue ? RoundDay(startDay - previousEndDay.Value) : (float?)null,
+					letterWouldBeSent = window.letterSent == false
+				});
+				if (isInitialSilence == false)
+					scheduledIndex++;
+				previousEndDay = endDay;
+			}
+			return result.ToArray();
+		}
+
+		static bool IsInitialSilencePreview(ZombieFreeEventWindow window)
+		{
+			return window.startTick == 0 && window.letterSent;
+		}
+
+		static float DayForTick(int tick)
+		{
+			return tick / (float)GenDate.TicksPerDay;
+		}
+
+		static float RoundDay(float value)
+		{
+			return (float)Math.Round(value, 2);
 		}
 
 		static object RunThreatForecastUiContract(Map map, bool openPreviewWindow)

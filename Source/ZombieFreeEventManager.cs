@@ -224,6 +224,7 @@ namespace ZombieLand
 		void EnsureScheduleThrough(int gameTick)
 		{
 			windows ??= new List<ZombieFreeEventWindow>();
+			EnsureInitialSilenceWindow();
 			if (nextClusterStartTick <= 0)
 				nextClusterStartTick = InitialClusterStartTick();
 
@@ -236,10 +237,30 @@ namespace ZombieLand
 			}
 		}
 
+		void EnsureInitialSilenceWindow()
+		{
+			var graceEnd = InitialSilenceEndTick();
+			if (graceEnd <= GenTicks.TicksGame)
+				return;
+			if (windows.Any(window => window.startTick == 0 && window.endTick == graceEnd))
+				return;
+
+			windows.Add(new ZombieFreeEventWindow(0, graceEnd)
+			{
+				letterSent = true
+			});
+			windows = windows.OrderBy(window => window.startTick).ToList();
+		}
+
+		static int InitialSilenceEndTick()
+		{
+			return Mathf.CeilToInt(ZombieSettings.Values.daysBeforeZombiesCome * GenDate.TicksPerDay);
+		}
+
 		int InitialClusterStartTick()
 		{
 			var ticks = GenTicks.TicksGame;
-			var graceEnd = Mathf.CeilToInt(ZombieSettings.Values.daysBeforeZombiesCome * GenDate.TicksPerDay);
+			var graceEnd = InitialSilenceEndTick();
 			var startFloor = Mathf.Max(ticks, graceEnd);
 			var period = ClusterPeriodTicks();
 			return startFloor + Mathf.RoundToInt(period * Rand.Range(0.25f, 0.75f));
@@ -271,21 +292,106 @@ namespace ZombieLand
 
 		static float DifficultyFactor()
 		{
-			return Mathf.InverseLerp(1f, 5f, Mathf.Clamp(Tools.Difficulty(), 1f, 5f));
+			return DifficultyFactorFor(Tools.Difficulty());
+		}
+
+		public static float DifficultyFactorFor(float difficulty)
+		{
+			return Mathf.InverseLerp(1f, 5f, Mathf.Clamp(difficulty, 1f, 5f));
+		}
+
+		public static float ClusterPeriodDaysFor(float difficulty)
+		{
+			return Mathf.Lerp(30f, 60f, DifficultyFactorFor(difficulty));
+		}
+
+		public static float EventDurationMeanDaysFor(float difficulty)
+		{
+			return Mathf.Lerp(8f, 2f, DifficultyFactorFor(difficulty));
+		}
+
+		public static float EventDurationJitterDaysFor(float difficulty)
+		{
+			return Mathf.Lerp(2f, 1f, DifficultyFactorFor(difficulty));
+		}
+
+		public static int ClusterPeriodTicksFor(float difficulty)
+		{
+			return Mathf.RoundToInt(ClusterPeriodDaysFor(difficulty) * GenDate.TicksPerDay);
+		}
+
+		public static int EventDurationTicksFor(float difficulty)
+		{
+			var meanDays = EventDurationMeanDaysFor(difficulty);
+			var jitterDays = EventDurationJitterDaysFor(difficulty);
+			var days = meanDays + Rand.Range(-jitterDays, jitterDays);
+			return Mathf.Max(MinEventDurationTicks, Mathf.RoundToInt(days * GenDate.TicksPerDay));
+		}
+
+		public static List<ZombieFreeEventWindow> DebugPreviewWindows(float difficulty, int seed, int horizonTicks, float initialSilenceDays)
+		{
+			var result = new List<ZombieFreeEventWindow>();
+			var initialSilenceTicks = Mathf.CeilToInt(Mathf.Max(0f, initialSilenceDays) * GenDate.TicksPerDay);
+			if (initialSilenceTicks > 0)
+			{
+				result.Add(new ZombieFreeEventWindow(0, initialSilenceTicks)
+				{
+					letterSent = true
+				});
+			}
+
+			Rand.PushState(seed);
+			try
+			{
+				var period = ClusterPeriodTicksFor(difficulty);
+				var nextClusterStartTick = initialSilenceTicks + Mathf.RoundToInt(period * Rand.Range(0.25f, 0.75f));
+				while (nextClusterStartTick < horizonTicks)
+				{
+					AddPreviewCluster(result, difficulty, nextClusterStartTick);
+					nextClusterStartTick += Mathf.RoundToInt(period * Rand.Range(0.9f, 1.1f));
+				}
+			}
+			finally
+			{
+				Rand.PopState();
+			}
+
+			return result
+				.Where(window => window.startTick < horizonTicks)
+				.OrderBy(window => window.startTick)
+				.ToList();
 		}
 
 		static int ClusterPeriodTicks()
 		{
-			return Mathf.RoundToInt(Mathf.Lerp(30f, 60f, DifficultyFactor()) * GenDate.TicksPerDay);
+			return ClusterPeriodTicksFor(Tools.Difficulty());
 		}
 
 		static int EventDurationTicks()
 		{
-			var factor = DifficultyFactor();
-			var meanDays = Mathf.Lerp(8f, 2f, factor);
-			var jitterDays = Mathf.Lerp(2f, 1f, factor);
-			var days = meanDays + Rand.Range(-jitterDays, jitterDays);
-			return Mathf.Max(MinEventDurationTicks, Mathf.RoundToInt(days * GenDate.TicksPerDay));
+			return EventDurationTicksFor(Tools.Difficulty());
+		}
+
+		static void AddPreviewCluster(List<ZombieFreeEventWindow> result, float difficulty, int clusterStartTick)
+		{
+			var period = ClusterPeriodTicksFor(difficulty);
+			var durationA = EventDurationTicksFor(difficulty);
+			AddPreviewWindow(result, clusterStartTick, durationA);
+
+			var durationB = EventDurationTicksFor(difficulty);
+			var preferredB = clusterStartTick + Mathf.RoundToInt(period * Rand.Range(0.38f, 0.45f));
+			var earliestB = clusterStartTick + durationA + GenDate.TicksPerDay * 2;
+			var latestB = clusterStartTick + period - durationB - GenDate.TicksPerDay;
+			var startB = Mathf.Clamp(Mathf.Max(preferredB, earliestB), earliestB, Mathf.Max(earliestB, latestB));
+			AddPreviewWindow(result, startB, durationB);
+		}
+
+		static void AddPreviewWindow(List<ZombieFreeEventWindow> result, int startTick, int durationTicks)
+		{
+			var endTick = startTick + Mathf.Max(MinEventDurationTicks, durationTicks);
+			if (result.Any(window => window.startTick == startTick && window.endTick == endTick))
+				return;
+			result.Add(new ZombieFreeEventWindow(startTick, endTick));
 		}
 	}
 }
