@@ -80,7 +80,7 @@ jobs:
       - name: Build mod
         env:
           RIMWORLD_MOD_DIR: ""
-        run: dotnet build "$MOD_PROJECT" -c Release -p:BuildZombielandBridgeTools=false
+        run: dotnet build "$MOD_PROJECT" -c Release -p:BuildBridgeTools=false
 
       - name: Package mod zip
         run: |
@@ -94,7 +94,7 @@ jobs:
           rm -rf "$PACKAGE_ROOT" dist
           mkdir -p dist "$STAGE_DIR"
 
-          dotnet build "$MOD_PROJECT" -c Release --no-restore -p:RIMWORLD_MOD_DIR="$PACKAGE_ROOT" -p:BuildZombielandBridgeTools=false
+          dotnet build "$MOD_PROJECT" -c Release --no-restore -p:RIMWORLD_MOD_DIR="$PACKAGE_ROOT" -p:BuildBridgeTools=false
 
           test ! -e "$PACKAGE_DIR/BridgeTools"
 
