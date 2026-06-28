@@ -200,6 +200,8 @@ namespace ZombieLand
 				for (var x = 0; x < 15 * g; x++)
 				{
 					var t = dayStart + (int)(x * tpd / g);
+					if (ZombieFreeEventManager.IsActiveAtAbsTick(t))
+						continue;
 					var f = weather.GetBaseFactorForTicks(t);
 					var y = 3 * g - 2 * g * f;
 					r.center = new Vector2(x + g * 2, y);
@@ -257,6 +259,8 @@ namespace ZombieLand
 						bIndex = (bIndex + 1) % 8;
 						buffer[bIndex] = f;
 					}
+					if (ZombieFreeEventManager.IsActiveAtAbsTick(t))
+						continue;
 					var y = 7 * g - 2 * g * buffer.Average();
 					Widgets.DrawLineVertical(x + g * 2, y, 7 * g - y);
 				}
