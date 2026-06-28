@@ -491,8 +491,14 @@ namespace ZombieLand
 			}
 
 			var eatTargetAlive = driver.eatTarget is Pawn eatTarget1 && eatTarget1.Dead == false;
+			var gearToForbid = eatTargetAlive ? GearToForbidOnZombieEating(eatTargetPawn) : null;
+			var dropPos = driver.eatTarget?.PositionHeld ?? eatTargetPawn.PositionHeld;
+			var dropMap = driver.eatTarget?.MapHeld ?? eatTargetPawn.MapHeld ?? zombie.MapHeld;
 			if (Tools.TryAddMissingPart(eatTargetPawn, bodyPartRecord, HediffDefOf.Bite) == false)
 				return false;
+
+			if (eatTargetAlive)
+				ForbidOrPlaceReleasedGearFromZombieEating(gearToForbid, dropPos, dropMap);
 
 			var eatTargetStillAlive = driver.eatTarget is Pawn eatTarget2 && eatTarget2.Dead == false;
 			if (eatTargetAlive && eatTargetStillAlive == false)
@@ -503,10 +509,117 @@ namespace ZombieLand
 					Messages.Message(msg.CapitalizeFirst(), zombie, MessageTypeDefOf.NegativeEvent);
 				}
 
-				eatTargetPawn.Strip();
+				DropAndForbidGearFromZombieEating(eatTargetPawn, gearToForbid, dropPos, dropMap);
 			}
 
 			return true;
+		}
+
+		static HashSet<Thing> GearToForbidOnZombieEating(Pawn pawn)
+		{
+			var result = new HashSet<Thing>();
+			if (pawn == null)
+				return result;
+
+			foreach (var equipment in pawn.equipment?.AllEquipmentListForReading ?? Enumerable.Empty<ThingWithComps>())
+				if (equipment != null)
+					_ = result.Add(equipment);
+			foreach (var apparel in pawn.apparel?.WornApparel ?? Enumerable.Empty<Apparel>())
+				if (apparel != null)
+					_ = result.Add(apparel);
+			foreach (var inventoryThing in pawn.inventory?.innerContainer ?? Enumerable.Empty<Thing>())
+				if (inventoryThing != null)
+					_ = result.Add(inventoryThing);
+			var carriedThing = pawn.carryTracker?.CarriedThing;
+			if (carriedThing != null)
+				_ = result.Add(carriedThing);
+
+			return result;
+		}
+
+		static void DropAndForbidGearFromZombieEating(Pawn pawn, HashSet<Thing> gearToForbid, IntVec3 fallbackPos, Map fallbackMap)
+		{
+			if (pawn == null)
+				return;
+
+			gearToForbid ??= new HashSet<Thing>();
+			var pos = pawn.Corpse?.PositionHeld ?? (fallbackPos.IsValid ? fallbackPos : pawn.PositionHeld);
+			var map = pawn.Corpse?.MapHeld ?? fallbackMap ?? pawn.MapHeld;
+
+			foreach (var equipment in pawn.equipment?.AllEquipmentListForReading?.ToArray() ?? Array.Empty<ThingWithComps>())
+			{
+				_ = gearToForbid.Add(equipment);
+				if (pawn.equipment.TryDropEquipment(equipment, out var droppedEquipment, pos, true) && droppedEquipment != null)
+					_ = gearToForbid.Add(droppedEquipment);
+			}
+
+			var apparelToDrop = pawn.apparel == null
+				? Array.Empty<Apparel>()
+				: pawn.apparel.WornApparel
+					.Concat(gearToForbid.OfType<Apparel>().Where(apparel => pawn.apparel.Contains(apparel)))
+					.Distinct()
+					.ToArray();
+			foreach (var apparel in apparelToDrop)
+			{
+				_ = gearToForbid.Add(apparel);
+				if (TryDropApparelFromZombieEating(pawn, apparel, pos, map, out var droppedApparel) && droppedApparel != null)
+					_ = gearToForbid.Add(droppedApparel);
+			}
+
+			if (map != null && pos.IsValid)
+			{
+				foreach (var inventoryThing in pawn.inventory?.innerContainer?.ToArray() ?? Array.Empty<Thing>())
+					{
+						_ = gearToForbid.Add(inventoryThing);
+						if (pawn.inventory.innerContainer.TryDrop(inventoryThing, pos, map, ThingPlaceMode.Near, out Thing droppedInventory, (thing, _) => thing.SetForbidden(true, false)) && droppedInventory != null)
+							_ = gearToForbid.Add(droppedInventory);
+					}
+				}
+
+			ForbidOrPlaceReleasedGearFromZombieEating(gearToForbid, pos, map);
+
+			pawn.Faction?.Notify_MemberStripped(pawn, Faction.OfPlayer);
+		}
+
+		static void ForbidOrPlaceReleasedGearFromZombieEating(HashSet<Thing> gearToForbid, IntVec3 pos, Map map)
+		{
+			if (gearToForbid == null)
+				return;
+
+			foreach (var thing in gearToForbid.ToArray())
+			{
+				if (thing == null || thing.Destroyed)
+					continue;
+				if (thing.Spawned)
+				{
+					thing.SetForbidden(true, false);
+					continue;
+				}
+				if (thing.ParentHolder != null || map == null || pos.IsValid == false)
+					continue;
+
+				if (GenPlace.TryPlaceThing(thing, pos, map, ThingPlaceMode.Near, out var placedThing, (placed, _) => placed.SetForbidden(true, false)) && placedThing != null)
+				{
+					_ = gearToForbid.Add(placedThing);
+					placedThing.SetForbidden(true, false);
+				}
+			}
+		}
+
+		static bool TryDropApparelFromZombieEating(Pawn pawn, Apparel apparel, IntVec3 pos, Map map, out Apparel droppedApparel)
+		{
+			droppedApparel = null;
+			if (pawn?.apparel == null || apparel == null || pos.IsValid == false)
+				return false;
+
+			if (map != null && pawn.apparel.GetDirectlyHeldThings().TryDrop(apparel, pos, map, ThingPlaceMode.Near, out Thing droppedThing))
+			{
+				droppedApparel = droppedThing as Apparel;
+				droppedThing?.SetForbidden(true, false);
+				return true;
+			}
+
+			return pawn.apparel.TryDrop(apparel, out droppedApparel, pos, true);
 		}
 
 		public struct TrackMove
