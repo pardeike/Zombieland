@@ -4,7 +4,7 @@ Scope: player-facing Symbiant behavior added or materially changed for the simpl
 
 Baseline:
 - Current commit: `f39484d Implement simplified Symbiant feature`.
-- Runtime target: local RimWorld app-bundle mod path managed by `RIMWORLD_MOD_DIR`.
+- Runtime target: paired `RIMWORLD_MOD_DIR` deployment to `Mods/ZombieLand` and sibling `Mods/../BridgeTools/Zombieland`.
 - Working save fixture: `SYMBIANT-TEST-MAP`.
 - Current stance: broad empirical checks are release gates; narrow edge matrices are follow-up work unless they expose a broad player-facing regression.
 

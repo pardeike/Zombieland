@@ -114,6 +114,7 @@
 		<Delete Files="..\1.6\Assemblies\0Harmony.dll" />
 		<RemoveDir Directories="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
 		<PropertyGroup>
+			<!-- Keep the companion DLL paired with the deployed mod DLL: Mods/ZombieLand and sibling Mods/../BridgeTools/Zombieland are one deployment unit. -->
 			<GlobalBridgeToolsDir>$(RIMWORLD_MOD_DIR)\..\BridgeTools</GlobalBridgeToolsDir>
 		</PropertyGroup>
 		<ItemGroup>

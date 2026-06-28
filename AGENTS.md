@@ -30,6 +30,13 @@ Commit policy:
 - Release/version-bump commits are the exception: include the rebuilt `ZombieLand.dll` files together with the version files changed by the bump, currently `Directory.Build.props`, `About/About.xml`, and `About/Manifest.xml`.
 - Do not use `.gitignore` or `git update-index --skip-worktree` as the shared policy for these DLLs. They are tracked files and release commits must remain able to update them intentionally.
 
+DLL and BridgeTools deployment invariant:
+
+- The only valid local deploy shape for this repo is a paired deploy rooted at the active RimWorld `Mods` folder: `$(RIMWORLD_MOD_DIR)/ZombieLand/1.6/Assemblies/ZombieLand.dll` and `$(RIMWORLD_MOD_DIR)/../BridgeTools/Zombieland/Zombieland.BridgeTools.dll`.
+- `RIMWORLD_MOD_DIR` must point at the RimWorld `Mods` folder whose sibling `../BridgeTools` directory is the global BridgeTools directory RimBridge will load for that same game install. Do not deploy the mod DLL to one Mods folder and the companion DLL to an unrelated BridgeTools folder.
+- The `Source/ZombieLand.csproj` `CopyToRimworld` target deliberately derives the companion destination from `$(RIMWORLD_MOD_DIR)\..\BridgeTools`; do not replace this with a separate override unless the deployment model itself changes and this invariant is updated first.
+- If the wrong BridgeTools copy was touched during diagnosis, treat that as a stale side effect, not as an alternate supported deploy path. Rebuild with the correct `RIMWORLD_MOD_DIR` so the mod DLL and companion DLL are in sync.
+
 Asset bundle workflow:
 
 - Use `./scripts/build-assetbundles.sh` for Unity shader and asset bundle builds from `Originals/Effects`; do not re-invent manual Unity command lines or rely on the GUI for routine bundle work.

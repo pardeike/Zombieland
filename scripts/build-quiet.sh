@@ -49,6 +49,8 @@ stop_running_rimworld() {
 	return 1
 }
 
+# Deploy builds intentionally use one root: RIMWORLD_MOD_DIR/../BridgeTools is
+# the paired global BridgeTools location for that RimWorld Mods folder.
 if [[ -n "${RIMWORLD_MOD_DIR:-}" ]]; then
 	running_rimworld="$(rimworld_processes)"
 	if [[ -n "$running_rimworld" ]]; then
