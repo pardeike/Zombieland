@@ -103,7 +103,7 @@
 		<XmlPoke XmlInputPath="$(MSBuildProjectDirectory)\..\About\Manifest.xml" Query="//Manifest/version" Value="$(ModVersion)" />
 	</Target>
 
-	<Target Name="BuildBridgeTools" AfterTargets="PostBuildAction" BeforeTargets="CopyToRimworld">
+	<Target Name="BuildBridgeTools" AfterTargets="PostBuildAction" BeforeTargets="CopyToRimworld" Condition="'$(BuildZombielandBridgeTools)' != 'false'">
 		<MSBuild
 			Projects="$(MSBuildProjectDirectory)\BridgeTools\Zombieland.BridgeTools.csproj"
 			Targets="Build"
@@ -124,7 +124,7 @@
 			<CopyLicense Include="..\LICENSE" />
 			<CopyLoadFolders Include="..\LoadFolders.xml" />
 			<CopyReadme Include="..\README.md" />
-			<CopyBridgeTools Include="..\artifacts\BridgeTools\Zombieland\Zombieland.BridgeTools.dll" />
+			<CopyBridgeTools Include="..\artifacts\BridgeTools\Zombieland\Zombieland.BridgeTools.dll" Condition="'$(BuildZombielandBridgeTools)' != 'false'" />
 		</ItemGroup>
 		<Copy SourceFiles="@(Copy_14)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\1.4\%(RecursiveDir)" />
 		<Copy SourceFiles="@(Copy_16)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\1.6\%(RecursiveDir)" />
@@ -132,7 +132,7 @@
 		<Copy SourceFiles="@(CopyLicense)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
 		<Copy SourceFiles="@(CopyLoadFolders)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
 		<Copy SourceFiles="@(CopyReadme)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
-		<Copy SourceFiles="@(CopyBridgeTools)" DestinationFolder="$(GlobalBridgeToolsDir)\Zombieland" SkipUnchangedFiles="true" />
+		<Copy SourceFiles="@(CopyBridgeTools)" DestinationFolder="$(GlobalBridgeToolsDir)\Zombieland" SkipUnchangedFiles="true" Condition="'@(CopyBridgeTools)' != ''" />
 	</Target>
 
 	<Target Name="ZipMod" AfterTargets="CopyToRimworld" Condition="'$(RIMWORLD_MOD_DIR)' != ''">

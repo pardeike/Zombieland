@@ -80,7 +80,7 @@ jobs:
       - name: Build mod
         env:
           RIMWORLD_MOD_DIR: ""
-        run: dotnet build "$MOD_PROJECT" -c Release
+        run: dotnet build "$MOD_PROJECT" -c Release -p:BuildZombielandBridgeTools=false
 
       - name: Package mod zip
         run: |
@@ -88,16 +88,14 @@ jobs:
 
           PACKAGE_ROOT="$RUNNER_TEMP/mod-package"
           PACKAGE_DIR="$PACKAGE_ROOT/$MOD_FILE_NAME"
-          BRIDGE_TOOLS_DIR="$PACKAGE_ROOT/BridgeTools"
           STAGE_DIR="dist/$MOD_FILE_NAME"
           ARCHIVE_NAME="${MOD_FILE_NAME}.zip"
 
           rm -rf "$PACKAGE_ROOT" dist
           mkdir -p dist "$STAGE_DIR"
 
-          dotnet build "$MOD_PROJECT" -c Release --no-restore -p:RIMWORLD_MOD_DIR="$PACKAGE_ROOT" -p:RIMWORLD_BRIDGETOOLS_DIR="$BRIDGE_TOOLS_DIR"
+          dotnet build "$MOD_PROJECT" -c Release --no-restore -p:RIMWORLD_MOD_DIR="$PACKAGE_ROOT" -p:BuildZombielandBridgeTools=false
 
-          test -f "$BRIDGE_TOOLS_DIR/Zombieland/Zombieland.BridgeTools.dll"
           test ! -e "$PACKAGE_DIR/BridgeTools"
 
           cp -R "$PACKAGE_DIR"/. "$STAGE_DIR"/
