@@ -49,6 +49,38 @@ namespace ZombieLand
 			public bool forcedResult { get; set; }
 		}
 
+		sealed class RaidCadenceProposalSnapshot
+		{
+			public int sampleCount { get; set; }
+			public int totalProposals { get; set; }
+			public int raidEnemyCount { get; set; }
+			public int threatBigCount { get; set; }
+			public string[] incidentDefs { get; set; }
+			public string error { get; set; }
+		}
+
+		sealed class RaidCadenceSnapshot
+		{
+			public string phase { get; set; }
+			public int ticksGame { get; set; }
+			public float defaultThreatPoints { get; set; }
+			public bool raidCanFire { get; set; }
+			public string raidCanFireError { get; set; }
+			public int hostileTargetCount { get; set; }
+			public int zombielandHostileTargetCount { get; set; }
+			public string dangerRating { get; set; }
+			public float zombieThreatLevel { get; set; }
+			public bool zombieFreeActive { get; set; }
+			public float wealthItems { get; set; }
+			public float wealthBuildings { get; set; }
+			public float wealthPawns { get; set; }
+			public float wealthTotal { get; set; }
+			public RaidCadenceProposalSnapshot proposalSample { get; set; }
+			public object hostileTargets { get; set; }
+			public object storyteller { get; set; }
+			public object corpsesAndDrops { get; set; }
+		}
+
 		sealed class ForecastTooltipPreviewWindow : Window
 		{
 			public const string StableTitle = "Zombieland Forecast Tooltip Preview";
@@ -117,10 +149,10 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/incident_threat_state", Description = "Set up or read a reusable incident/threat fixture, and run scenario-level incident wave, spawn mix, infection, forecast, spawn-mode, and pathing-region checks.")]
+		[Tool("zombieland/incident_threat_state", Description = "Set up or read a reusable incident/threat fixture, and run scenario-level incident wave, spawn mix, infection, forecast, spawn-mode, raid-cadence, and pathing-region checks.")]
 		public static object IncidentThreatState(
 			[ToolParameter(Description = "Create a reusable capable-colony incident fixture before reading state.", Required = false, DefaultValue = false)] bool setupFixture = false,
-			[ToolParameter(Description = "Optional action to run before readback: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, zombieFreeEvent, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeReview, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, or all.", Required = false, DefaultValue = "read")] string actionMode = "read",
+			[ToolParameter(Description = "Optional action to run before readback: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, raidCadence, zeroThreat, zombieFreeEvent, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeReview, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, or all.", Required = false, DefaultValue = "read")] string actionMode = "read",
 			[ToolParameter(Description = "Ticks to advance before reading final state; clamped to 0..5000.", Required = false, DefaultValue = 0)] int advanceTicks = 0,
 			[ToolParameter(Description = "Difficulty percentage used by the zombieFreeForecast and zombieFreeHover actions. Clamped to 50..500.", Required = false, DefaultValue = 100)] int zombieFreePreviewDifficultyPercent = 100)
 		{
@@ -203,6 +235,9 @@ namespace ZombieLand
 				case "raidworker":
 					result = RunRaidWorkerContract(map);
 					return true;
+				case "raidcadence":
+					result = RunRaidCadenceContract(map);
+					return true;
 				case "zerothreat":
 					result = RunZeroThreatDeathContract(map);
 					return true;
@@ -228,13 +263,13 @@ namespace ZombieLand
 					result = RunZombieFreeHoverSetup(map, zombieFreePreviewDifficultyPercent);
 					return true;
 				case "pathingregions":
-				result = RunPathingRegionsContract(map);
+					result = RunPathingRegionsContract(map);
 					return true;
 				case "all":
 					result = RunIncidentThreatAll(map);
 					return true;
 				default:
-					error = "actionMode must be one of: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, zeroThreat, zombieFreeEvent, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeReview, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, all.";
+					error = "actionMode must be one of: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, raidCadence, zeroThreat, zombieFreeEvent, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeReview, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, all.";
 					return false;
 			}
 		}
@@ -484,6 +519,7 @@ namespace ZombieLand
 			var forecastUi = RunThreatForecastUiContract(map, false);
 			var spawnModes = RunSpawnModeContracts(map);
 			var raidWorker = RunRaidWorkerContract(map);
+			var raidCadence = RunRaidCadenceContract(map);
 			var zeroThreat = RunZeroThreatDeathContract(map);
 			var scheduledWave = RunScheduledIncidentWave(map);
 			var spawnSuccess = (bool)(spawnMatrix?.GetType().GetProperty("success")?.GetValue(spawnMatrix) ?? false);
@@ -491,16 +527,18 @@ namespace ZombieLand
 			var forecastUiSuccess = (bool)(forecastUi?.GetType().GetProperty("success")?.GetValue(forecastUi) ?? false);
 			var spawnModesSuccess = (bool)(spawnModes?.GetType().GetProperty("success")?.GetValue(spawnModes) ?? false);
 			var raidWorkerSuccess = (bool)(raidWorker?.GetType().GetProperty("success")?.GetValue(raidWorker) ?? false);
+			var raidCadenceSuccess = (bool)(raidCadence?.GetType().GetProperty("success")?.GetValue(raidCadence) ?? false);
 			var zeroThreatSuccess = (bool)(zeroThreat?.GetType().GetProperty("success")?.GetValue(zeroThreat) ?? false);
 			var scheduledSuccess = (bool)(scheduledWave?.GetType().GetProperty("success")?.GetValue(scheduledWave) ?? false);
 			return new
 			{
-				success = scheduledSuccess && spawnSuccess && forecastSuccess && forecastUiSuccess && spawnModesSuccess && raidWorkerSuccess && zeroThreatSuccess,
+				success = scheduledSuccess && spawnSuccess && forecastSuccess && forecastUiSuccess && spawnModesSuccess && raidWorkerSuccess && raidCadenceSuccess && zeroThreatSuccess,
 				spawnMatrix,
 				threatForecast,
 				forecastUi,
 				spawnModes,
 				raidWorker,
+				raidCadence,
 				zeroThreat,
 				scheduledWave
 			};
@@ -2082,6 +2120,429 @@ namespace ZombieLand
 				RestoreZombieSettings(settingsSnapshot);
 				CleanupThingsCreatedAfter(map, initialThingIds);
 			}
+		}
+
+		static object RunRaidCadenceContract(Map map)
+		{
+			if (map == null)
+			{
+				return new
+				{
+					success = false,
+					error = "No current map is loaded."
+				};
+			}
+
+			var manager = ZombieFreeEventManager.Current;
+			if (manager == null)
+			{
+				return new
+				{
+					success = false,
+					error = "The current game has no ZombieFreeEventManager."
+				};
+			}
+
+			if (TrySnapshotZombieFreeSchedule(manager, out var scheduleSnapshot, out var scheduleSnapshotError) == false)
+			{
+				return new
+				{
+					success = false,
+					error = scheduleSnapshotError
+				};
+			}
+
+			var settingsSnapshot = SnapshotZombieSettings();
+			var initialThingIds = map.listerThings.AllThings
+				.Select(ZombieRuntimeActions.StableThingId)
+				.ToHashSet(StringComparer.OrdinalIgnoreCase);
+			var spawned = new List<Pawn>();
+			var spawnErrors = new List<string>();
+			try
+			{
+				ApplyZombieSettingsOverride(settings =>
+				{
+					settings.zombieFreeEvents = true;
+					settings.useDynamicThreatLevel = false;
+					settings.daysBeforeZombiesCome = 0;
+					settings.zombiesDieOnZeroThreat = false;
+				});
+
+				var baseline = DescribeRaidCadenceSnapshot(map, "baseline", initialThingIds);
+				if (TrySpawnRaidCadenceZombies(map, spawned, spawnErrors) == false)
+				{
+					return new
+					{
+						success = false,
+						error = "Could not spawn the controlled normal/spitter/symbiant raid-cadence fixture.",
+						spawnErrors = spawnErrors.ToArray(),
+						baseline
+					};
+				}
+				foreach (var pawn in spawned)
+					map.attackTargetsCache.UpdateTarget(pawn);
+
+				var liveZombies = DescribeRaidCadenceSnapshot(map, "liveZombies", initialThingIds);
+
+				var forcedWindow = manager.DebugForceWindowStartingNow(GenDate.TicksPerDay);
+				manager.DebugRefreshCurrentWindowState();
+				var silence = DescribeRaidCadenceSnapshot(map, "zombieSilence", initialThingIds);
+
+				foreach (var pawn in spawned.Where(pawn => pawn != null && pawn.Destroyed == false && pawn.Dead == false).ToArray())
+					pawn.Kill(null);
+				AdvanceGameTicks(1);
+				ForceRaidCadenceWealthRecount(map);
+				var postCorpse = DescribeRaidCadenceSnapshot(map, "postZombieCorpse", initialThingIds);
+
+				var liveMatchesBaseline = RaidCadenceEquivalent(baseline, liveZombies, false);
+				var silenceMatchesBaseline = RaidCadenceEquivalent(baseline, silence, false);
+				var postCorpseMatchesBaseline = RaidCadenceEquivalent(baseline, postCorpse, true);
+				var proposalsMatch = RaidCadenceProposalEquivalent(baseline.proposalSample, liveZombies.proposalSample)
+					&& RaidCadenceProposalEquivalent(baseline.proposalSample, silence.proposalSample)
+					&& RaidCadenceProposalEquivalent(baseline.proposalSample, postCorpse.proposalSample);
+
+				return new
+				{
+					success = spawned.Count == 3
+						&& spawnErrors.Count == 0
+						&& liveZombies.zombielandHostileTargetCount == 0
+						&& silence.zombielandHostileTargetCount == 0
+						&& liveMatchesBaseline
+						&& silenceMatchesBaseline
+						&& postCorpseMatchesBaseline
+						&& proposalsMatch
+						&& ZombieFreeEventManager.IsActiveNow()
+						&& silence.zombieThreatLevel == 0f,
+					sourcePath = "AttackTargetsCache.TargetsHostileToColony postfix + DangerWatcher/Difficulty/Storyteller raid input readback during forced ZombieFreeEventManager window",
+					expectation = "Controlled live zombies, zombie silence, and the corpses/drops left by silenced zombies must not raise vanilla RaidEnemy CanFireNow, DefaultThreatPointsNow, or deterministic Storyteller interval proposal counts.",
+					forcedWindow = new
+					{
+						offsetStartTicks = forcedWindow.startTick - GenTicks.TicksGame,
+						offsetEndTicks = forcedWindow.endTick - GenTicks.TicksGame,
+						forcedWindow.DurationTicks
+					},
+					spawned = spawned.Select(DescribeZombie).ToArray(),
+					spawnErrors = spawnErrors.ToArray(),
+					comparisons = new
+					{
+						liveMatchesBaseline,
+						silenceMatchesBaseline,
+						postCorpseMatchesBaseline,
+						proposalsMatch
+					},
+					baseline,
+					liveZombies,
+					silence,
+					postCorpse
+				};
+			}
+			finally
+			{
+				RestoreZombieSettings(settingsSnapshot);
+				RestoreZombieFreeSchedule(manager, scheduleSnapshot);
+				CleanupThingsCreatedAfter(map, initialThingIds);
+				ForceRaidCadenceWealthRecount(map);
+			}
+		}
+
+		static bool TrySpawnRaidCadenceZombies(Map map, List<Pawn> spawned, List<string> errors)
+		{
+			var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+			if (TryFindClearSpawnCell(map, root, 16f, out var normalCell, out var normalSpawnError) == false)
+			{
+				errors.Add($"normal: {normalSpawnError}");
+				return false;
+			}
+			if (TryFindClearSpawnCell(map, normalCell + new IntVec3(3, 0, 0), 8f, out var spitterCell, out var spitterSpawnError) == false)
+			{
+				errors.Add($"spitter: {spitterSpawnError}");
+				return false;
+			}
+			if (TryFindClearSpawnCell(map, normalCell + new IntVec3(6, 0, 0), 10f, out var symbiantCell, out var symbiantSpawnError) == false)
+			{
+				errors.Add($"symbiant: {symbiantSpawnError}");
+				return false;
+			}
+
+			var normal = SpawnFireFixturePawn(map, normalCell, "normal");
+			var spitter = SpawnFireFixturePawn(map, spitterCell, "spitter");
+			var symbiant = SpawnFireFixturePawn(map, symbiantCell, "symbiant");
+			if (normal is Zombie == false)
+				errors.Add("Normal zombie fixture did not spawn as Zombie.");
+			if (spitter is ZombieSpitter == false)
+				errors.Add("Spitter fixture did not spawn as ZombieSpitter.");
+			if (symbiant is ZombieSymbiant == false)
+				errors.Add("Symbiant fixture did not spawn as ZombieSymbiant.");
+
+			foreach (var pawn in new[] { normal, spitter, symbiant }.Where(pawn => pawn != null))
+			{
+				pawn.Name = new NameSingle($"ZL Raid Cadence {DescribeZombieKind(pawn as Zombie, pawn as ZombieSymbiant, pawn as ZombieSpitter)}");
+				spawned.Add(pawn);
+			}
+			return errors.Count == 0;
+		}
+
+		static RaidCadenceSnapshot DescribeRaidCadenceSnapshot(Map map, string phase, HashSet<string> initialThingIds)
+		{
+			ForceRaidCadenceWealthRecount(map);
+			var parms = StorytellerUtility.DefaultParmsNow(IncidentCategoryDefOf.ThreatBig, map);
+			var raidWorker = IncidentDefOf.RaidEnemy?.Worker;
+			var raidCanFire = false;
+			string raidCanFireError = null;
+			try
+			{
+				raidCanFire = raidWorker?.CanFireNow(parms) ?? false;
+			}
+			catch (Exception ex)
+			{
+				raidCanFireError = $"{ex.GetType().Name}: {ex.Message}";
+			}
+
+			var hostileTargets = map.attackTargetsCache.TargetsHostileToColony;
+			var zombielandTargets = hostileTargets
+				.Select(target => target.Thing)
+				.Where(thing => thing is Zombie || thing is ZombieSpitter || thing is ZombieSymbiant)
+				.ToArray();
+			var wealthWatcher = map.wealthWatcher;
+			return new RaidCadenceSnapshot
+			{
+				phase = phase,
+				ticksGame = GenTicks.TicksGame,
+				defaultThreatPoints = StorytellerUtility.DefaultThreatPointsNow(map),
+				raidCanFire = raidCanFire,
+				raidCanFireError = raidCanFireError,
+				hostileTargetCount = hostileTargets.Count,
+				zombielandHostileTargetCount = zombielandTargets.Length,
+				dangerRating = map.dangerWatcher?.DangerRating.ToString(),
+				zombieThreatLevel = ZombieWeather.GetThreatLevel(map),
+				zombieFreeActive = ZombieFreeEventManager.IsActiveNow(),
+				wealthItems = ReadFloatMember(wealthWatcher, "WealthItems"),
+				wealthBuildings = ReadFloatMember(wealthWatcher, "WealthBuildings"),
+				wealthPawns = ReadFloatMember(wealthWatcher, "WealthPawns"),
+				wealthTotal = ReadFloatMember(wealthWatcher, "WealthTotal"),
+				proposalSample = DescribeRaidCadenceProposalSample(240, 62071),
+				hostileTargets = new
+				{
+					count = hostileTargets.Count,
+					zombielandCount = zombielandTargets.Length,
+					zombielandTargets = zombielandTargets.Select(thing => new
+					{
+						id = ZombieRuntimeActions.StableThingId(thing),
+						thing.def?.defName,
+						label = thing.LabelCap
+					}).ToArray(),
+					firstTargets = hostileTargets.Take(12).Select(target => new
+					{
+						id = ZombieRuntimeActions.StableThingId(target.Thing),
+						defName = target.Thing?.def?.defName,
+						label = target.Thing?.LabelCap
+					}).ToArray()
+				},
+				storyteller = DescribeRaidCadenceStoryteller(map, parms),
+				corpsesAndDrops = DescribeRaidCadenceNewThings(map, initialThingIds)
+			};
+		}
+
+		static object DescribeRaidCadenceStoryteller(Map map, IncidentParms parms)
+		{
+			var storyState = ReadMember(map, "StoryState");
+			return new
+			{
+				storyteller = Find.Storyteller?.def?.defName,
+				incidentCategory = IncidentCategoryDefOf.ThreatBig?.defName,
+				raidDef = IncidentDefOf.RaidEnemy?.defName,
+				parmsPoints = parms?.points ?? 0f,
+				parmsTarget = parms?.target?.GetType().Name,
+				lastThreatBigTick = ReadIntMember(storyState, "LastThreatBigTick"),
+				recentRandomIncidentCount = ReadCollectionCount(ReadMember(storyState, "RecentRandomIncidents"))
+			};
+		}
+
+		static object DescribeRaidCadenceNewThings(Map map, HashSet<string> initialThingIds)
+		{
+			var newThings = map.listerThings.AllThings
+				.Where(thing => thing != null && thing.Destroyed == false && initialThingIds.Contains(ZombieRuntimeActions.StableThingId(thing)) == false)
+				.ToArray();
+			return new
+			{
+				newThingCount = newThings.Length,
+				zombieCorpseCount = newThings
+					.OfType<Corpse>()
+					.Count(corpse => corpse.InnerPawn is Zombie || corpse.InnerPawn is ZombieSpitter || corpse.InnerPawn is ZombieSymbiant),
+				zombieCorpses = newThings
+					.OfType<Corpse>()
+					.Where(corpse => corpse.InnerPawn is Zombie || corpse.InnerPawn is ZombieSpitter || corpse.InnerPawn is ZombieSymbiant)
+					.Select(DescribeCorpse)
+					.ToArray(),
+				otherDrops = newThings
+					.Where(thing => thing is not Pawn && thing is not Corpse)
+					.Select(thing => new
+					{
+						id = ZombieRuntimeActions.StableThingId(thing),
+						thing.def?.defName,
+						label = thing.LabelCap,
+						thing.stackCount,
+						marketValue = thing.MarketValue,
+						position = thing.Spawned ? ZombieRuntimeActions.DescribeCell(thing.Position) : null
+					})
+					.ToArray()
+			};
+		}
+
+		static RaidCadenceProposalSnapshot DescribeRaidCadenceProposalSample(int sampleCount, int seed)
+		{
+			var snapshot = new RaidCadenceProposalSnapshot
+			{
+				sampleCount = sampleCount,
+				incidentDefs = Array.Empty<string>()
+			};
+			var storyteller = Find.Storyteller;
+			if (storyteller == null)
+			{
+				snapshot.error = "No active storyteller.";
+				return snapshot;
+			}
+
+			var method = storyteller.GetType().GetMethod("MakeIncidentsForInterval", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, Type.EmptyTypes, null);
+			if (method == null)
+			{
+				snapshot.error = "Could not resolve Storyteller.MakeIncidentsForInterval().";
+				return snapshot;
+			}
+
+			var incidents = new List<IncidentDef>();
+			Rand.PushState(seed);
+			try
+			{
+				for (var i = 0; i < sampleCount; i++)
+				{
+					if (method.Invoke(storyteller, Array.Empty<object>()) is not System.Collections.IEnumerable enumerable)
+						continue;
+					foreach (var firingIncident in enumerable)
+					{
+						var incidentDef = ReadMember(firingIncident, "def") as IncidentDef;
+						if (incidentDef != null)
+							incidents.Add(incidentDef);
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				snapshot.error = $"{ex.GetType().Name}: {ex.Message}";
+			}
+			finally
+			{
+				Rand.PopState();
+			}
+
+			snapshot.totalProposals = incidents.Count;
+			snapshot.raidEnemyCount = incidents.Count(def => def == IncidentDefOf.RaidEnemy);
+			snapshot.threatBigCount = incidents.Count(def => def.category == IncidentCategoryDefOf.ThreatBig);
+			snapshot.incidentDefs = incidents
+				.Select(def => def.defName)
+				.GroupBy(defName => defName)
+				.OrderByDescending(group => group.Count())
+				.ThenBy(group => group.Key)
+				.Select(group => $"{group.Key}:{group.Count()}")
+				.ToArray();
+			return snapshot;
+		}
+
+		static bool RaidCadenceEquivalent(RaidCadenceSnapshot baseline, RaidCadenceSnapshot sample, bool allowCorpseOnlyNoise)
+		{
+			if (baseline == null || sample == null)
+				return false;
+			var threatPointTolerance = allowCorpseOnlyNoise ? 0.5f : 0.05f;
+			var wealthTolerance = allowCorpseOnlyNoise ? 0.5f : 0.05f;
+			return baseline.raidCanFire == sample.raidCanFire
+				&& sample.raidCanFireError == null
+				&& Mathf.Abs(baseline.defaultThreatPoints - sample.defaultThreatPoints) <= threatPointTolerance
+				&& Mathf.Abs(baseline.wealthTotal - sample.wealthTotal) <= wealthTolerance;
+		}
+
+		static bool RaidCadenceProposalEquivalent(RaidCadenceProposalSnapshot baseline, RaidCadenceProposalSnapshot sample)
+		{
+			if (baseline == null || sample == null)
+				return false;
+			if (baseline.error != null || sample.error != null)
+				return false;
+			return baseline.totalProposals == sample.totalProposals
+				&& baseline.raidEnemyCount == sample.raidEnemyCount
+				&& baseline.threatBigCount == sample.threatBigCount
+				&& baseline.incidentDefs.SequenceEqual(sample.incidentDefs);
+		}
+
+		static void ForceRaidCadenceWealthRecount(Map map)
+		{
+			var watcher = map?.wealthWatcher;
+			if (watcher == null)
+				return;
+
+			var method = watcher.GetType()
+				.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+				.Where(candidate => candidate.Name == "ForceRecount")
+				.OrderBy(candidate => candidate.GetParameters().Length)
+				.FirstOrDefault();
+			if (method == null)
+				return;
+
+			var parameters = method.GetParameters()
+				.Select(parameter => parameter.HasDefaultValue ? parameter.DefaultValue : parameter.ParameterType.IsValueType ? Activator.CreateInstance(parameter.ParameterType) : null)
+				.ToArray();
+			method.Invoke(watcher, parameters);
+		}
+
+		static object ReadMember(object instance, string name)
+		{
+			if (instance == null || string.IsNullOrEmpty(name))
+				return null;
+			var type = instance.GetType();
+			var property = type.GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+			if (property != null)
+				return property.GetValue(instance);
+			var field = type.GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+			return field?.GetValue(instance);
+		}
+
+		static float ReadFloatMember(object instance, string name)
+		{
+			var value = ReadMember(instance, name);
+			if (value == null)
+				return 0f;
+			try
+			{
+				return Convert.ToSingle(value);
+			}
+			catch
+			{
+				return 0f;
+			}
+		}
+
+		static int ReadIntMember(object instance, string name)
+		{
+			var value = ReadMember(instance, name);
+			if (value == null)
+				return 0;
+			try
+			{
+				return Convert.ToInt32(value);
+			}
+			catch
+			{
+				return 0;
+			}
+		}
+
+		static int ReadCollectionCount(object instance)
+		{
+			if (instance == null)
+				return 0;
+			if (instance is System.Collections.ICollection collection)
+				return collection.Count;
+			if (instance is System.Collections.IEnumerable enumerable)
+				return enumerable.Cast<object>().Count();
+			return 0;
 		}
 
 		static object RunRaidWorkerCase(
