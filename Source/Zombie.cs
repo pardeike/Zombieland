@@ -394,12 +394,15 @@ namespace ZombieLand
 
 		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)
 		{
+			var map = Map;
+			map?.GetComponent<TickManager>()?.RequestAvoidGridRefresh();
+
 			if (IsSuicideBomber)
 			{
 				bombTickingInterval = -1f;
 				bombWillGoOff = false;
 				hasTankyShield = -1f;
-				Map?.GetComponent<TickManager>()?.AddExplosion(Position);
+				map?.GetComponent<TickManager>()?.AddExplosion(Position);
 			}
 
 			if (isToxicSplasher)
@@ -425,6 +428,7 @@ namespace ZombieLand
 
 				var grid = map.GetGrid();
 				grid.ChangeZombieCount(lastGotoPosition, -1);
+				tm?.RequestAvoidGridRefresh();
 			}
 			base.DeSpawn(mode);
 		}

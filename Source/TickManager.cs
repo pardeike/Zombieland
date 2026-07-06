@@ -333,6 +333,8 @@ namespace ZombieLand
 		int incidentTickCounter;
 		int colonyPointsTickCounter;
 		int avoidGridCounter;
+		bool avoidGridRefreshRequested;
+		long promptAvoidGridRequestId;
 		public int lastAvoidGridRequestTick;
 		public int lastAvoidGridResultTick;
 		public long lastAvoidGridRequestId;
@@ -570,20 +572,13 @@ namespace ZombieLand
 			var allZombies = AllZombies();
 			if (Tools.ShouldAvoidZombies())
 			{
-				var specs = allZombies
-					.Where(ShouldAffectAvoidGrid)
-					.Select(zombie => new ZombieCostSpecs()
-					{
-						position = zombie.Position,
-						radius = Tools.ZombieAvoidRadius(zombie),
-						maxCosts = ZombieMaxCosts(zombie)
-
-					}).ToList();
-
+				var specs = BuildAvoidGridSpecs(allZombies);
 				avoidGrid = Tools.avoider.UpdateZombiePositionsImmediately(map, specs);
 			}
 			else
 				avoidGrid = new AvoidGrid(map);
+			avoidGridRefreshRequested = false;
+			promptAvoidGridRequestId = 0;
 			lastAvoidGridRequestTick = GenTicks.TicksGame;
 			lastAvoidGridResultTick = lastAvoidGridRequestTick;
 			lastAvoidGridRequestId = avoidGrid?.requestId ?? 0;
@@ -1103,12 +1098,26 @@ namespace ZombieLand
 			return allZombiesCached.FirstOrDefault(zombie => zombie.IsConfused && (clickPos - zombie.DrawPos).MagnitudeHorizontalSquared() <= 0.5f);
 		}
 
-		public void UpdateZombieAvoider()
+		public void RequestAvoidGridRefresh()
 		{
-			if (lastAvoidGridRequestId > lastAvoidGridResultId && AvoidGridIsStale() == false)
+			if (map == null || RuntimeReady == false)
 				return;
+			avoidGridRefreshRequested = true;
+		}
 
-			var specs = (allZombiesCached ?? new HashSet<Zombie>()).Where(ShouldAffectAvoidGrid)
+		bool FlushRequestedAvoidGridRefresh()
+		{
+			if (avoidGridRefreshRequested == false)
+				return false;
+			avoidGridRefreshRequested = false;
+			UpdateZombieAvoider(true);
+			return true;
+		}
+
+		List<ZombieCostSpecs> BuildAvoidGridSpecs(IEnumerable<Zombie> zombies = null)
+		{
+			var source = zombies ?? allZombiesCached ?? Enumerable.Empty<Zombie>();
+			return source.Where(ShouldAffectAvoidGrid)
 				.Select(zombie => new ZombieCostSpecs()
 				{
 					position = zombie.Position,
@@ -1116,10 +1125,61 @@ namespace ZombieLand
 					maxCosts = ZombieMaxCosts(zombie)
 
 				}).ToList();
+		}
+
+		void AcceptAvoidGridSnapshot(AvoidGrid grid)
+		{
+			if (grid == null)
+				return;
+			avoidGrid = grid;
+			lastAvoidGridRequestTick = GenTicks.TicksGame;
+			lastAvoidGridResultTick = lastAvoidGridRequestTick;
+			lastAvoidGridRequestId = grid.requestId;
+			lastAvoidGridResultId = grid.requestId;
+			ClearPromptAvoidGridRequest(grid.requestId);
+		}
+
+		bool PromptAvoidGridResultPending()
+		{
+			return promptAvoidGridRequestId > 0 && lastAvoidGridResultId < promptAvoidGridRequestId;
+		}
+
+		void ClearPromptAvoidGridRequest(long resultId)
+		{
+			if (promptAvoidGridRequestId > 0 && resultId >= promptAvoidGridRequestId)
+				promptAvoidGridRequestId = 0;
+		}
+
+		public void UpdateZombieAvoider(bool force = false)
+		{
+			if (force == false && lastAvoidGridRequestId > lastAvoidGridResultId && AvoidGridIsStale() == false)
+				return;
+
+			if (Tools.ShouldAvoidZombies() == false)
+			{
+				emptyAvoidGrid ??= new AvoidGrid(map);
+				AcceptAvoidGridSnapshot(emptyAvoidGrid);
+				return;
+			}
+
+			var specs = BuildAvoidGridSpecs();
+			if (force && specs.Count == 0)
+			{
+				emptyAvoidGrid = Tools.avoider.UpdateZombiePositionsImmediately(map, specs);
+				AcceptAvoidGridSnapshot(emptyAvoidGrid);
+				return;
+			}
+
 			var requestId = Tools.avoider.UpdateZombiePositions(map, specs);
 			if (requestId > 0)
+			{
 				lastAvoidGridRequestId = requestId;
+				if (force)
+					promptAvoidGridRequestId = requestId;
+			}
 			lastAvoidGridRequestTick = GenTicks.TicksGame;
+			if (force)
+				avoidGridCounter = -1;
 		}
 
 		static bool ShouldAffectAvoidGrid(Zombie zombie)
@@ -1266,12 +1326,14 @@ namespace ZombieLand
 				lastAvoidGridRequestTick = GenTicks.TicksGame;
 				lastAvoidGridResultTick = GenTicks.TicksGame;
 				lastAvoidGridResultId = avoidGrid.requestId;
+				ClearPromptAvoidGridRequest(avoidGrid.requestId);
 				return;
 			}
 
 			if (avoidGridCounter-- < 0)
 			{
-				avoidGridCounter = Constants.TICKMANAGER_AVOIDGRID_DELAY.SecondsToTicks();
+				var promptRequestPending = PromptAvoidGridResultPending();
+				avoidGridCounter = promptRequestPending ? -1 : Constants.TICKMANAGER_AVOIDGRID_DELAY.SecondsToTicks();
 
 				var result = Tools.avoider.GetCostsGrid(map);
 				if (result != null)
@@ -1281,6 +1343,8 @@ namespace ZombieLand
 						avoidGrid = result;
 						lastAvoidGridResultTick = GenTicks.TicksGame;
 						lastAvoidGridResultId = result.requestId;
+						ClearPromptAvoidGridRequest(result.requestId);
+						avoidGridCounter = Constants.TICKMANAGER_AVOIDGRID_DELAY.SecondsToTicks();
 					}
 				}
 				else if (AvoidGridIsStale())
@@ -1289,6 +1353,7 @@ namespace ZombieLand
 					avoidGrid = emptyAvoidGrid;
 					lastAvoidGridResultTick = GenTicks.TicksGame;
 					lastAvoidGridResultId = lastAvoidGridRequestId;
+					ClearPromptAvoidGridRequest(lastAvoidGridResultId);
 					UpdateZombieAvoider();
 					Tools.avoider.RecoverWorkerIfStale(map, lastAvoidGridRequestId);
 				}
@@ -1612,7 +1677,8 @@ namespace ZombieLand
 				yield return null;
 				RecalculateZombieWanderDestination();
 				yield return null;
-				UpdateZombieAvoider();
+				if (FlushRequestedAvoidGridRefresh() == false)
+					UpdateZombieAvoider();
 				yield return null;
 				ExecuteExplosions();
 				yield return null;

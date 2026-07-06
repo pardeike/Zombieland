@@ -3,6 +3,7 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -256,6 +257,377 @@ namespace ZombieLand
 					ZombieRuntimeActions.DestroyZombies(map);
 				}
 			}
+		}
+
+		[Tool("zombieland/anomaly_sightstealer_ambush_contract", Description = "Verify sightstealer ambush job selection rejects doorless targets without logging the vanilla missing-door error while preserving door ambush targets.")]
+		public static object AnomalySightstealerAmbushContract(
+			[ToolParameter(Description = "Destroy staged sightstealer, target, and door fixtures at the end.", Required = false, DefaultValue = true)] bool cleanup = true)
+		{
+			var map = CurrentMap;
+			if (map == null)
+				return new { success = false, error = "No current map is loaded." };
+			if (ModsConfig.AnomalyActive == false)
+				return new { success = true, skipped = true, reason = "Anomaly is not active in the current mod list." };
+
+			var sightstealerKind = DefDatabase<PawnKindDef>.GetNamedSilentFail("Sightstealer");
+			if (sightstealerKind == null)
+				return new { success = false, error = "PawnKindDef Sightstealer was not loaded." };
+
+			var tryGiveJobMethod = typeof(JobGiver_AIWaitAmbush).GetMethod("TryGiveJob", BindingFlags.Instance | BindingFlags.NonPublic);
+			var targetHelper = typeof(Patches)
+				.GetNestedType("JobGiver_AIWaitAmbush_TryGiveJob_Patch", BindingFlags.NonPublic)
+				?.GetMethod("TryFindDoorAmbushCellForTarget", BindingFlags.Static | BindingFlags.NonPublic);
+			if (tryGiveJobMethod == null || targetHelper == null)
+			{
+				return new
+				{
+					success = false,
+					tryGiveJobMethodFound = tryGiveJobMethod != null,
+					targetHelperFound = targetHelper != null,
+					error = "Could not reflect sightstealer ambush patch helpers."
+				};
+			}
+
+			var spawned = new List<Thing>();
+			var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+			try
+			{
+				ZombieRuntimeActions.DestroyZombies(map);
+				var patchOwners = PatchOwners(typeof(JobGiver_AIWaitAmbush), "TryGiveJob");
+				var doorless = VerifySightstealerAmbushFixture(map, root + new IntVec3(-12, 0, 0), sightstealerKind, targetHelper, tryGiveJobMethod, "doorless", spawned);
+				var doorTarget = VerifySightstealerAmbushFixture(map, root, sightstealerKind, targetHelper, tryGiveJobMethod, "targetOnDoor", spawned);
+				var behindDoor = VerifySightstealerAmbushFixture(map, root + new IntVec3(12, 0, 0), sightstealerKind, targetHelper, tryGiveJobMethod, "behindClosedDoor", spawned);
+
+				return new
+				{
+					success = patchOwners.Contains("net.pardeike.zombieland")
+						&& ObjectSuccess(doorless)
+						&& ObjectSuccess(doorTarget)
+						&& ObjectSuccess(behindDoor),
+					patchOwners,
+					doorless,
+					doorTarget,
+					behindDoor
+				};
+			}
+			finally
+			{
+				if (cleanup)
+				{
+					for (var i = spawned.Count - 1; i >= 0; i--)
+					{
+						if (spawned[i] != null && spawned[i].Destroyed == false)
+							CleanupAnomalyThing(spawned[i]);
+					}
+					ZombieRuntimeActions.DestroyZombies(map);
+				}
+			}
+		}
+
+		static object VerifySightstealerAmbushFixture(
+			Map map,
+			IntVec3 root,
+			PawnKindDef sightstealerKind,
+			MethodInfo targetHelper,
+			MethodInfo tryGiveJobMethod,
+			string fixtureKind,
+			List<Thing> spawned)
+		{
+			Building_Door door = null;
+			IntVec3 sightstealerCell;
+			IntVec3 targetCell;
+			if (fixtureKind == "behindClosedDoor")
+			{
+				if (TryBuildSightstealerDoorRoomFixture(map, root, spawned, out sightstealerCell, out targetCell, out door, out var roomError) == false)
+					return roomError;
+			}
+			else
+			{
+				if (TryFindClearSpawnCell(map, root, 18f, out sightstealerCell, out var sightstealerCellError) == false)
+					return sightstealerCellError;
+				targetCell = GenRadial.RadialCellsAround(sightstealerCell, 8f, false)
+					.Where(cell => cell.InBounds(map))
+					.Where(cell => cell.Standable(map))
+					.Where(cell => cell.Fogged(map) == false)
+					.Where(cell => cell.GetFirstPawn(map) == null)
+					.Where(cell => cell.GetEdifice(map) == null)
+					.Where(cell => cell.DistanceTo(sightstealerCell) >= 3f)
+					.Where(cell => GenSight.LineOfSight(sightstealerCell, cell, map, true))
+					.OrderBy(cell => cell.DistanceToSquared(sightstealerCell))
+					.FirstOrDefault();
+				if (targetCell.IsValid == false)
+				{
+					return new
+					{
+						success = false,
+						fixtureKind,
+						sightstealerCell = ZombieRuntimeActions.DescribeCell(sightstealerCell),
+						error = "No reachable sightstealer ambush target cell was found."
+					};
+				}
+				if (fixtureKind == "targetOnDoor")
+				{
+					door = ThingMaker.MakeThing(ThingDefOf.Door, ThingDefOf.WoodLog) as Building_Door;
+					if (door == null)
+						return new { success = false, fixtureKind, error = "Could not create a wooden door fixture." };
+					GenSpawn.Spawn(door, targetCell, map, WipeMode.Vanish);
+					door.SetFaction(Faction.OfPlayer);
+					spawned.Add(door);
+					map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+				}
+			}
+
+			var sightstealer = PawnGenerator.GeneratePawn(sightstealerKind, ResolveAnomalyMatrixFaction("entities"));
+			var target = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+			GenSpawn.Spawn(sightstealer, sightstealerCell, map, Rot4.South);
+			GenSpawn.Spawn(target, targetCell, map, Rot4.South);
+			DisablePawnWork(target);
+			spawned.Add(sightstealer);
+			spawned.Add(target);
+
+			var targetDoor = target.Position.GetDoor(map);
+			var doorCanPhysicallyPass = door == null ? (bool?)null : door.CanPhysicallyPass(sightstealer);
+			var doorBlocksPawn = door == null ? (bool?)null : door.BlocksPawn(sightstealer);
+			var doorPawnCanOpen = door == null ? (bool?)null : door.PawnCanOpen(sightstealer);
+			var doorFreePassage = door == null ? (bool?)null : door.FreePassage;
+			if (fixtureKind == "behindClosedDoor" && doorCanPhysicallyPass != false)
+			{
+				return new
+				{
+					success = false,
+					fixtureKind,
+					fixtureSetupFailed = true,
+					error = "Behind-closed-door sightstealer fixture produced a door that is not physically blocking this sightstealer.",
+					sightstealer = DescribePawn(sightstealer),
+					target = DescribePawn(target),
+					sightstealerCell = ZombieRuntimeActions.DescribeCell(sightstealerCell),
+					targetCell = ZombieRuntimeActions.DescribeCell(targetCell),
+					targetDoor = targetDoor?.def?.defName,
+					doorCell = door == null ? null : ZombieRuntimeActions.DescribeCell(door.Position),
+					doorOpen = door?.Open,
+					doorCanPhysicallyPass,
+					doorBlocksPawn,
+					doorPawnCanOpen,
+					doorFreePassage
+				};
+			}
+
+			map.attackTargetsCache.UpdateTarget(sightstealer);
+			map.attackTargetsCache.UpdateTarget(target);
+
+			var path = map.pathFinder.FindPathNow(sightstealer.Position, target.Position, TraverseParms.For(sightstealer, Danger.Deadly, TraverseMode.PassDoors));
+			bool pathFound;
+			bool pathHasBlockingDoor;
+			var pathNodeCount = 0;
+			var pathFirstNodes = Array.Empty<object>();
+			var pathDoorCells = Array.Empty<object>();
+			var pathBlockingDoorCells = Array.Empty<object>();
+			try
+			{
+				pathFound = path?.Found == true;
+				if (pathFound)
+				{
+					var nodes = path.NodesReversed;
+					pathNodeCount = nodes.Count;
+					pathFirstNodes = nodes.Take(12).Select(ZombieRuntimeActions.DescribeCell).ToArray();
+					pathDoorCells = nodes
+						.Where(cell => cell.GetDoor(map) != null)
+						.Select(ZombieRuntimeActions.DescribeCell)
+						.ToArray();
+					pathBlockingDoorCells = nodes
+						.Where(cell => cell.GetEdifice(map) is Building_Door pathDoor && pathDoor.CanPhysicallyPass(sightstealer) == false)
+						.Select(ZombieRuntimeActions.DescribeCell)
+						.ToArray();
+				}
+				pathHasBlockingDoor = pathFound && path.TryFindLastCellBeforeBlockingDoor(sightstealer, out _);
+			}
+			finally
+			{
+				path?.ReleaseToPool();
+			}
+
+			var args = new object[] { sightstealer, target, IntVec3.Invalid };
+			var targetAccepted = false;
+			string targetHelperError = null;
+			try
+			{
+				targetAccepted = (bool)targetHelper.Invoke(null, args);
+			}
+			catch (TargetInvocationException ex)
+			{
+				targetHelperError = ex.InnerException?.Message ?? ex.Message;
+			}
+			var ambushCell = (IntVec3)args[2];
+			Job job = null;
+			string invocationError = null;
+			var missingDoorLogsBefore = CountSightstealerMissingDoorLogs();
+			try
+			{
+				job = tryGiveJobMethod.Invoke(new JobGiver_AIWaitAmbush(), new object[] { sightstealer }) as Job;
+			}
+			catch (TargetInvocationException ex)
+			{
+				invocationError = ex.InnerException?.Message ?? ex.Message;
+			}
+			var missingDoorLogsAfter = CountSightstealerMissingDoorLogs();
+
+			var expectedBlockingDoor = fixtureKind == "behindClosedDoor";
+			var expectedTargetOnDoor = fixtureKind == "targetOnDoor";
+			var expectedTargetAccepted = expectedTargetOnDoor || expectedBlockingDoor;
+			var expectedJob = expectedTargetAccepted;
+			var fullJobDecision = expectedTargetAccepted
+				? "Full TryGiveJob must return an ambush wait/goto job for this fixture."
+				: "Full TryGiveJob is not asserted null for the doorless row because it scans every live attack target on the map; target-specific helper rejection is the deterministic assertion.";
+			var fullJobMatchesExpectation = expectedJob == false || job != null;
+			return new
+			{
+				success = pathFound
+					&& pathHasBlockingDoor == expectedBlockingDoor
+					&& (targetDoor != null) == expectedTargetOnDoor
+					&& targetAccepted == expectedTargetAccepted
+					&& targetHelperError == null
+					&& fullJobMatchesExpectation
+					&& invocationError == null
+					&& missingDoorLogsAfter == missingDoorLogsBefore,
+				fixtureKind,
+				sightstealer = DescribePawn(sightstealer),
+				target = DescribePawn(target),
+				sightstealerCell = ZombieRuntimeActions.DescribeCell(sightstealerCell),
+				targetCell = ZombieRuntimeActions.DescribeCell(targetCell),
+				pathFound,
+				pathHasBlockingDoor,
+				pathNodeCount,
+				pathFirstNodes,
+				pathDoorCells,
+				pathBlockingDoorCells,
+				expectedBlockingDoor,
+				targetDoor = targetDoor?.def?.defName,
+				doorCell = door == null ? null : ZombieRuntimeActions.DescribeCell(door.Position),
+				doorOpen = door?.Open,
+				doorCanPhysicallyPass,
+				doorBlocksPawn,
+				doorPawnCanOpen,
+				doorFreePassage,
+				targetAccepted,
+				expectedTargetAccepted,
+				ambushCell = ambushCell.IsValid ? ZombieRuntimeActions.DescribeCell(ambushCell) : null,
+				fullJobDecision,
+				fullJobMatchesExpectation,
+				job = job?.def?.defName,
+				jobTarget = job?.targetA.Cell.IsValid == true ? ZombieRuntimeActions.DescribeCell(job.targetA.Cell) : null,
+				targetHelperError,
+				invocationError,
+				missingDoorLogsBefore,
+				missingDoorLogsAfter
+			};
+		}
+
+		static bool TryBuildSightstealerDoorRoomFixture(Map map, IntVec3 root, List<Thing> spawned, out IntVec3 sightstealerCell, out IntVec3 targetCell, out Building_Door door, out object error)
+		{
+			sightstealerCell = IntVec3.Invalid;
+			targetCell = IntVec3.Invalid;
+			door = null;
+			error = null;
+
+			foreach (var candidate in GenRadial.RadialCellsAround(root, 24f, true))
+			{
+				if (candidate.InBounds(map) == false || candidate.Fogged(map))
+					continue;
+
+				var corridorCells = new[]
+				{
+					candidate + new IntVec3(-2, 0, 0),
+					candidate + new IntVec3(-1, 0, 0),
+					candidate,
+					candidate + new IntVec3(1, 0, 0),
+					candidate + new IntVec3(2, 0, 0)
+				};
+				var blockerCells = Enumerable.Range(-2, 5)
+					.SelectMany(dx => new[]
+					{
+						candidate + new IntVec3(dx, 0, -1),
+						candidate + new IntVec3(dx, 0, 1)
+					})
+					.ToArray();
+				var fixtureCells = corridorCells.Concat(blockerCells).ToArray();
+				var candidateSightstealerCell = candidate + new IntVec3(-2, 0, 0);
+				var candidateTargetCell = candidate + new IntVec3(2, 0, 0);
+				if (fixtureCells.Any(cell => cell.InBounds(map) == false || cell.Fogged(map)))
+					continue;
+				if (corridorCells.Any(cell => cell.Standable(map) == false))
+					continue;
+				if (fixtureCells.Any(cell => cell.GetEdifice(map) != null || cell.GetFirstPawn(map) != null))
+					continue;
+
+				var wallDef = ThingDefOf.Wall;
+				var stuffDef = ThingDefOf.WoodLog;
+				var created = new List<Thing>();
+				var fixtureFailed = false;
+				foreach (var cell in blockerCells)
+				{
+					var wall = ThingMaker.MakeThing(wallDef, stuffDef) as Building;
+					if (wall == null)
+					{
+						fixtureFailed = true;
+						break;
+					}
+					GenSpawn.Spawn(wall, cell, map, WipeMode.Vanish);
+					wall.SetFaction(Faction.OfPlayer);
+					created.Add(wall);
+				}
+				if (fixtureFailed)
+				{
+					for (var i = created.Count - 1; i >= 0; i--)
+						CleanupAnomalyThing(created[i]);
+					continue;
+				}
+
+				door = ThingMaker.MakeThing(ThingDefOf.Door, stuffDef) as Building_Door;
+				if (door == null)
+				{
+					for (var i = created.Count - 1; i >= 0; i--)
+						CleanupAnomalyThing(created[i]);
+					error = new { success = false, error = "Could not create a wooden door fixture." };
+					return false;
+				}
+				GenSpawn.Spawn(door, candidate, map, WipeMode.Vanish);
+				door.SetFaction(Faction.OfPlayer);
+				created.Add(door);
+				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+
+				var missingWallCells = blockerCells
+					.Where(cell => cell.GetEdifice(map)?.def?.passability != Traversability.Impassable)
+					.Select(ZombieRuntimeActions.DescribeCell)
+					.ToArray();
+				if (missingWallCells.Length > 0 || candidate.GetDoor(map) != door)
+				{
+					for (var i = created.Count - 1; i >= 0; i--)
+						CleanupAnomalyThing(created[i]);
+					map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+					continue;
+				}
+
+				spawned.AddRange(created);
+				sightstealerCell = candidateSightstealerCell;
+				targetCell = candidateTargetCell;
+				return true;
+			}
+
+			error = new
+			{
+				success = false,
+				root = ZombieRuntimeActions.DescribeCell(root),
+				error = "No clear closed-door room fixture area was found for the sightstealer ambush contract."
+			};
+			return false;
+		}
+
+		static int CountSightstealerMissingDoorLogs()
+		{
+			const string needle = "did TryFindLastCellBeforeDoor";
+			return Log.Messages.Count(message =>
+				(message.type == LogMessageType.Warning || message.type == LogMessageType.Error)
+				&& (message.text?.IndexOf(needle, StringComparison.OrdinalIgnoreCase) ?? -1) >= 0);
 		}
 
 		[Tool("zombieland/anomaly_targeting_overrides", Description = "Verify Anomaly-specific zombie targeting overrides preserve Automatic base behavior and apply Never/Allow only to active valid Anomaly target categories.")]

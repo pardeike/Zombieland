@@ -5893,6 +5893,164 @@ namespace ZombieLand
 			}
 		}
 
+		[HarmonyPatch]
+		static class JobGiver_AIWaitAmbush_TryGiveJob_Patch
+		{
+			static readonly FieldInfo ignoreNonCombatantsField = AccessTools.Field(typeof(JobGiver_AIWaitAmbush), "ignoreNonCombatants");
+			static readonly FieldInfo humanlikesOnlyField = AccessTools.Field(typeof(JobGiver_AIWaitAmbush), "humanlikesOnly");
+			static readonly FieldInfo expireOnNearbyEnemyField = AccessTools.Field(typeof(JobGiver_AIWaitAmbush), "expireOnNearbyEnemy");
+			static PawnKindDef sightstealerKind;
+			static DutyDef sightstealerAssault;
+			static bool sightstealerDefsResolved;
+
+			static bool Prepare() => TargetMethod() != null;
+
+			static MethodBase TargetMethod()
+			{
+				return AccessTools.Method(typeof(JobGiver_AIWaitAmbush), "TryGiveJob", new[] { typeof(Pawn) });
+			}
+
+			static bool Prefix(JobGiver_AIWaitAmbush __instance, Pawn pawn, ref Job __result)
+			{
+				if (ShouldHandleSightstealer(pawn) == false)
+					return true;
+
+				__result = TryGiveJob(__instance, pawn);
+				return false;
+			}
+
+			static bool ShouldHandleSightstealer(Pawn pawn)
+			{
+				if (ModsConfig.AnomalyActive == false || pawn == null)
+					return false;
+
+				ResolveSightstealerDefs();
+				if (sightstealerKind != null && pawn.kindDef == sightstealerKind)
+					return true;
+
+				return sightstealerAssault != null && pawn.mindState?.duty?.def == sightstealerAssault;
+			}
+
+			static void ResolveSightstealerDefs()
+			{
+				if (sightstealerDefsResolved)
+					return;
+				sightstealerDefsResolved = true;
+				sightstealerKind = DefDatabase<PawnKindDef>.GetNamedSilentFail("Sightstealer");
+				sightstealerAssault = DefDatabase<DutyDef>.GetNamedSilentFail("SightstealerAssault");
+			}
+
+			static Job TryGiveJob(JobGiver_AIWaitAmbush instance, Pawn pawn)
+			{
+				var target = FindBestDoorAmbushTarget(
+					pawn,
+					(bool)(ignoreNonCombatantsField?.GetValue(instance) ?? false),
+					(bool)(humanlikesOnlyField?.GetValue(instance) ?? false),
+					out var ambushCell);
+				if (target == null)
+					return null;
+
+				var region = ambushCell.GetRegion(pawn.Map);
+				if (region == null)
+					return null;
+
+				var randomCell = CellFinder.RandomRegionNear(region, 4, TraverseParms.For(pawn)).RandomCell;
+				pawn.mindState.nextMoveOrderIsWait = !pawn.mindState.nextMoveOrderIsWait;
+				var job = pawn.mindState.nextMoveOrderIsWait
+					? JobMaker.MakeJob(JobDefOf.Wait, 300)
+					: JobMaker.MakeJob(JobDefOf.Goto, randomCell);
+				if ((bool)(expireOnNearbyEnemyField?.GetValue(instance) ?? false))
+				{
+					job.expiryInterval = 30;
+					job.checkOverrideOnExpire = true;
+				}
+				return job;
+			}
+
+			static Thing FindBestDoorAmbushTarget(Pawn pawn, bool ignoreNonCombatants, bool humanlikesOnly, out IntVec3 ambushCell)
+			{
+				ambushCell = IntVec3.Invalid;
+				if (pawn?.Map == null)
+					return null;
+
+				var closestDistance = float.MaxValue;
+				Thing closestTarget = null;
+				var closestAmbushCell = IntVec3.Invalid;
+				var potentialTargets = pawn.Map.attackTargetsCache.GetPotentialTargetsFor(pawn);
+				for (var i = 0; i < potentialTargets.Count; i++)
+				{
+					var attackTarget = potentialTargets[i];
+					if (IsCandidate(pawn, attackTarget, ignoreNonCombatants, humanlikesOnly) == false)
+						continue;
+
+					var thing = attackTarget.Thing;
+					var distance = thing.Position.DistanceToSquared(pawn.Position);
+					if (distance >= closestDistance)
+						continue;
+					if (pawn.CanReach(thing, PathEndMode.OnCell, Danger.Deadly, canBashDoors: false, canBashFences: false, TraverseMode.PassDoors) == false)
+						continue;
+					if (TryFindDoorAmbushCellForTarget(pawn, thing, out var candidateAmbushCell) == false)
+						continue;
+
+					closestDistance = distance;
+					closestTarget = thing;
+					closestAmbushCell = candidateAmbushCell;
+				}
+
+				ambushCell = closestAmbushCell;
+				return closestTarget;
+			}
+
+			static bool IsCandidate(Pawn pawn, IAttackTarget attackTarget, bool ignoreNonCombatants, bool humanlikesOnly)
+			{
+				if (attackTarget?.Thing == null)
+					return false;
+				if (attackTarget.ThreatDisabled(pawn))
+					return false;
+				if (AttackTargetFinder.IsAutoTargetable(attackTarget) == false)
+					return false;
+				if (humanlikesOnly && attackTarget is Pawn pawnTarget && pawnTarget.RaceProps.Humanlike == false)
+					return false;
+				if (attackTarget.Thing is Pawn targetPawn
+					&& targetPawn.IsCombatant() == false
+					&& (ignoreNonCombatants || GenSight.LineOfSightToThing(pawn.Position, targetPawn, pawn.Map) == false))
+					return false;
+				return true;
+			}
+
+			static bool TryFindDoorAmbushCellForTarget(Pawn pawn, Thing target, out IntVec3 ambushCell)
+			{
+				ambushCell = IntVec3.Invalid;
+				if (pawn?.Map == null || target == null)
+					return false;
+
+				var path = pawn.Map.pathFinder.FindPathNow(pawn.Position, target.Position, TraverseParms.For(pawn, Danger.Deadly, TraverseMode.PassDoors));
+				try
+				{
+					return path?.Found == true && TryFindAmbushCell(path, pawn, target, out ambushCell);
+				}
+				finally
+				{
+					path?.ReleaseToPool();
+				}
+			}
+
+			static bool TryFindAmbushCell(PawnPath path, Pawn pawn, Thing target, out IntVec3 ambushCell)
+			{
+				if (path.TryFindLastCellBeforeBlockingDoor(pawn, out ambushCell))
+					return true;
+
+				if (target?.Map != null && target.Position.GetDoor(target.Map) != null && path.NodesReversed.Count > 1)
+				{
+					ambushCell = path.NodesReversed[1];
+					return true;
+				}
+
+				ambushCell = IntVec3.Invalid;
+				return false;
+			}
+		}
+
 		// patch for a custom zombie corpse class
 		//
 		[HarmonyPatch(typeof(ThingMaker))]
@@ -5961,6 +6119,9 @@ namespace ZombieLand
 
 			static void Postfix(Pawn ___pawn)
 			{
+				if (___pawn is Zombie zombie)
+					zombie.Map?.GetComponent<TickManager>()?.RequestAvoidGridRefresh();
+
 				if (IsZombielandPawn(___pawn))
 					return;
 				var map = ___pawn?.Map;
