@@ -999,7 +999,126 @@ namespace ZombieLand
 			}
 		}
 
-		// make zombies not affect overall danger rating
+		[HarmonyPatch]
+		static class DropCellFinder_IsSafeDropSpot_Patch
+		{
+			static MethodBase TargetMethod()
+			{
+				return AccessTools.Method(
+					typeof(DropCellFinder),
+					"IsSafeDropSpot",
+					new[] { typeof(IntVec3), typeof(Map), typeof(Faction), typeof(IntVec2?), typeof(int), typeof(int), typeof(int), typeof(IntVec3?) });
+			}
+
+			static HashSet<IAttackTarget> TargetsHostileToFactionWithoutZombies(AttackTargetsCache cache, Faction faction)
+			{
+				if (cache == null)
+					return [];
+				var result = new HashSet<IAttackTarget>();
+				foreach (var target in cache.TargetsHostileToFaction(faction))
+				{
+					if (StorytellerEventFilters.IsZombielandAttackTarget(target) == false)
+						result.Add(target);
+				}
+				return result;
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				return instructions.MethodReplacer(
+					AccessTools.Method(typeof(AttackTargetsCache), nameof(AttackTargetsCache.TargetsHostileToFaction)),
+					SymbolExtensions.GetMethodInfo(() => TargetsHostileToFactionWithoutZombies(null, null))
+				);
+			}
+		}
+
+		[HarmonyPatch]
+		static class WealthWatcher_CalculateWealthItems_Patch
+		{
+			static readonly AccessTools.FieldRef<WealthWatcher, Map> mapRef = AccessTools.FieldRefAccess<WealthWatcher, Map>("map");
+
+			static MethodBase TargetMethod()
+			{
+				return AccessTools.Method(typeof(WealthWatcher), "CalculateWealthItems");
+			}
+
+			static void Postfix(WealthWatcher __instance, ref float __result)
+			{
+				var map = mapRef(__instance);
+				__result = Math.Max(0f, __result - StorytellerEventFilters.ZombieCorpseWealth(map));
+			}
+		}
+
+		[HarmonyPatch(typeof(WealthWatcher), nameof(WealthWatcher.WealthItemsFilter))]
+		static class WealthWatcher_WealthItemsFilter_Patch
+		{
+			static void Postfix(IThingHolder x, ref bool __result)
+			{
+				if (__result && StorytellerEventFilters.IsZombielandWealthHolder(x))
+					__result = false;
+			}
+		}
+
+		[HarmonyPatch]
+		static class DangerWatcher_CalculateDangerRating_Patch
+		{
+			static readonly AccessTools.FieldRef<DangerWatcher, Map> mapRef = AccessTools.FieldRefAccess<DangerWatcher, Map>("map");
+
+			static MethodBase TargetMethod()
+			{
+				return AccessTools.Method(typeof(DangerWatcher), "CalculateDangerRating");
+			}
+
+			static void Postfix(DangerWatcher __instance, ref StoryDanger __result)
+			{
+				var map = mapRef(__instance);
+				var zombieCombatPower = HomeAreaZombieCombatPower(map);
+				if (zombieCombatPower <= 0f)
+					return;
+				var zombieDanger = StoryDangerFor(map, zombieCombatPower);
+				if (StoryDangerRank(zombieDanger) > StoryDangerRank(__result))
+					__result = zombieDanger;
+			}
+
+			static float HomeAreaZombieCombatPower(Map map)
+			{
+				if (map?.mapPawns == null)
+					return 0f;
+
+				var combatPower = 0f;
+				foreach (var pawn in map.mapPawns.AllPawnsSpawned)
+				{
+					if (StorytellerEventFilters.AffectsStoryDanger(pawn))
+						combatPower += pawn.kindDef?.combatPower ?? 0f;
+				}
+				return combatPower;
+			}
+
+			static StoryDanger StoryDangerFor(Map map, float combatPower)
+			{
+				if (combatPower == 0f)
+					return StoryDanger.None;
+				var freeColonists = map?.mapPawns?.FreeColonistsSpawned?.Count(pawn => pawn.Downed == false) ?? 0;
+				if (combatPower < 150f && combatPower <= freeColonists * 18f)
+					return StoryDanger.Low;
+				if (combatPower > 400f)
+					return StoryDanger.High;
+				return StoryDanger.Low;
+			}
+
+			static int StoryDangerRank(StoryDanger danger)
+			{
+				return danger switch
+				{
+					StoryDanger.High => 2,
+					StoryDanger.Low => 1,
+					_ => 0,
+				};
+			}
+		}
+
+		// Keep disabled zombies out of the vanilla per-target check; active home-area zombies
+		// are re-added by DangerWatcher_CalculateDangerRating_Patch above.
 		//
 		[HarmonyPatch(typeof(DangerWatcher), nameof(DangerWatcher.AffectsStoryDanger))]
 		static class DangerWatcher_AffectsStoryDanger_Patch

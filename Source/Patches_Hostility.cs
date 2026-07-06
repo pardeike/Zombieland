@@ -614,7 +614,7 @@ namespace ZombieLand
 	{
 		static bool IsZombielandPawnTarget(IAttackTarget target)
 		{
-			return target is Zombie || target is ZombieSymbiant || target is ZombieSpitter;
+			return StorytellerEventFilters.IsZombielandAttackTarget(target);
 		}
 
 		[HarmonyPriority(Priority.First)]
@@ -662,6 +662,57 @@ namespace ZombieLand
 				AttackMode.OnlyColonists => false,
 				_ => false,
 			};
+			return false;
+		}
+	}
+
+	[HarmonyPatch]
+	static class GenHostility_AnyHostileActiveThreatTo_Patch
+	{
+		static MethodBase TargetMethod()
+		{
+			return AccessTools.Method(
+				typeof(GenHostility),
+				nameof(GenHostility.AnyHostileActiveThreatTo),
+				new[] { typeof(Map), typeof(Faction), typeof(IAttackTarget).MakeByRefType(), typeof(bool), typeof(bool) });
+		}
+
+		static bool Prefix(Map map, Faction faction, ref IAttackTarget threat, bool countDormantPawnsAsHostile, bool canBeFogged, ref bool __result)
+		{
+			if (map?.attackTargetsCache == null)
+				return true;
+
+			foreach (var target in map.attackTargetsCache.TargetsHostileToFaction(faction))
+			{
+				if (StorytellerEventFilters.IsZombielandAttackTarget(target))
+					continue;
+				if (GenHostility.IsActiveThreatTo(target, faction, true, canBeFogged))
+				{
+					threat = target;
+					__result = true;
+					return false;
+				}
+				if (countDormantPawnsAsHostile == false)
+					continue;
+				if (target.Thing.HostileTo(faction) == false)
+					continue;
+				if (canBeFogged == false && target.Thing.Fogged())
+					continue;
+				if (target.ThreatDisabled(null))
+					continue;
+				if (target.Thing is not Pawn pawn)
+					continue;
+				var dormant = pawn.GetComp<CompCanBeDormant>();
+				if (dormant != null && dormant.Awake == false)
+				{
+					threat = target;
+					__result = true;
+					return false;
+				}
+			}
+
+			threat = null;
+			__result = false;
 			return false;
 		}
 	}
