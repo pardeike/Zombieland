@@ -152,7 +152,7 @@ namespace ZombieLand
 		[Tool("zombieland/incident_threat_state", Description = "Set up or read a reusable incident/threat fixture, and run scenario-level incident wave, spawn mix, infection, forecast, spawn-mode, raid-cadence, and pathing-region checks.")]
 		public static object IncidentThreatState(
 			[ToolParameter(Description = "Create a reusable capable-colony incident fixture before reading state.", Required = false, DefaultValue = false)] bool setupFixture = false,
-			[ToolParameter(Description = "Optional action to run before readback: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, raidCadence, zeroThreat, zombieFreeEvent, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeReview, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, or all.", Required = false, DefaultValue = "read")] string actionMode = "read",
+			[ToolParameter(Description = "Optional action to run before readback: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, raidCadence, eventDelivery, zeroThreat, zombieFreeEvent, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeReview, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, or all.", Required = false, DefaultValue = "read")] string actionMode = "read",
 			[ToolParameter(Description = "Ticks to advance before reading final state; clamped to 0..5000.", Required = false, DefaultValue = 0)] int advanceTicks = 0,
 			[ToolParameter(Description = "Difficulty percentage used by the zombieFreeForecast and zombieFreeHover actions. Clamped to 50..500.", Required = false, DefaultValue = 100)] int zombieFreePreviewDifficultyPercent = 100)
 		{
@@ -238,6 +238,9 @@ namespace ZombieLand
 				case "raidcadence":
 					result = RunRaidCadenceContract(map);
 					return true;
+				case "eventdelivery":
+					result = RunStoryEventDeliveryContract(map);
+					return true;
 				case "zerothreat":
 					result = RunZeroThreatDeathContract(map);
 					return true;
@@ -269,7 +272,7 @@ namespace ZombieLand
 					result = RunIncidentThreatAll(map);
 					return true;
 				default:
-					error = "actionMode must be one of: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, raidCadence, zeroThreat, zombieFreeEvent, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeReview, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, all.";
+					error = "actionMode must be one of: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, raidCadence, eventDelivery, zeroThreat, zombieFreeEvent, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeReview, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, all.";
 					return false;
 			}
 		}
@@ -520,6 +523,7 @@ namespace ZombieLand
 			var spawnModes = RunSpawnModeContracts(map);
 			var raidWorker = RunRaidWorkerContract(map);
 			var raidCadence = RunRaidCadenceContract(map);
+			var eventDelivery = RunStoryEventDeliveryContract(map);
 			var zeroThreat = RunZeroThreatDeathContract(map);
 			var scheduledWave = RunScheduledIncidentWave(map);
 			var spawnSuccess = (bool)(spawnMatrix?.GetType().GetProperty("success")?.GetValue(spawnMatrix) ?? false);
@@ -528,17 +532,19 @@ namespace ZombieLand
 			var spawnModesSuccess = (bool)(spawnModes?.GetType().GetProperty("success")?.GetValue(spawnModes) ?? false);
 			var raidWorkerSuccess = (bool)(raidWorker?.GetType().GetProperty("success")?.GetValue(raidWorker) ?? false);
 			var raidCadenceSuccess = (bool)(raidCadence?.GetType().GetProperty("success")?.GetValue(raidCadence) ?? false);
+			var eventDeliverySuccess = (bool)(eventDelivery?.GetType().GetProperty("success")?.GetValue(eventDelivery) ?? false);
 			var zeroThreatSuccess = (bool)(zeroThreat?.GetType().GetProperty("success")?.GetValue(zeroThreat) ?? false);
 			var scheduledSuccess = (bool)(scheduledWave?.GetType().GetProperty("success")?.GetValue(scheduledWave) ?? false);
 			return new
 			{
-				success = scheduledSuccess && spawnSuccess && forecastSuccess && forecastUiSuccess && spawnModesSuccess && raidWorkerSuccess && raidCadenceSuccess && zeroThreatSuccess,
+				success = scheduledSuccess && spawnSuccess && forecastSuccess && forecastUiSuccess && spawnModesSuccess && raidWorkerSuccess && raidCadenceSuccess && eventDeliverySuccess && zeroThreatSuccess,
 				spawnMatrix,
 				threatForecast,
 				forecastUi,
 				spawnModes,
 				raidWorker,
 				raidCadence,
+				eventDelivery,
 				zeroThreat,
 				scheduledWave
 			};
@@ -2010,6 +2016,362 @@ namespace ZombieLand
 			return destroyed;
 		}
 
+		static object RunStoryEventDeliveryContract(Map map)
+		{
+			if (map == null)
+			{
+				return new
+				{
+					success = false,
+					error = "No current map is loaded."
+				};
+			}
+
+			var faction = FindStoryEventDeliveryFaction();
+			if (faction == null)
+			{
+				return new
+				{
+					success = false,
+					error = "No non-player humanlike faction was found for the storyteller delivery fixture."
+				};
+			}
+
+			var initialThingIds = map.listerThings.AllThings
+				.Select(ZombieRuntimeActions.StableThingId)
+				.ToHashSet(StringComparer.OrdinalIgnoreCase);
+			var settingsSnapshot = SnapshotZombieSettings();
+			try
+			{
+				ApplyZombieSettingsOverride(settings =>
+				{
+					settings.attackMode = AttackMode.OnlyHumans;
+					settings.enemiesAttackZombies = true;
+					settings.zombiesDieOnZeroThreat = false;
+				});
+
+				var dropSpot = RunSafeDropSpotZombieFilterProbe(map, faction);
+				var activeThreat = RunAnyHostileActiveThreatFilterProbe(map, faction);
+				var corpseWealth = RunZombieCorpseWealthFilterProbe(map);
+				var storyDanger = RunHomeAreaZombieStoryDangerProbe(map);
+				var patchTargets = new
+				{
+					dropCellFinder = PatchedMethodsForPatchClass("DropCellFinder_IsSafeDropSpot_Patch"),
+					anyHostileActiveThreat = PatchedMethodsForPatchClass("GenHostility_AnyHostileActiveThreatTo_Patch"),
+					wealthItems = PatchedMethodsForPatchClass("WealthWatcher_CalculateWealthItems_Patch"),
+					wealthItemsFilter = PatchedMethodsForPatchClass("WealthWatcher_WealthItemsFilter_Patch"),
+					dangerRating = PatchedMethodsForPatchClass("DangerWatcher_CalculateDangerRating_Patch")
+				};
+				return new
+				{
+					success = ObjectSuccess(dropSpot)
+						&& ObjectSuccess(activeThreat)
+						&& ObjectSuccess(corpseWealth)
+						&& ObjectSuccess(storyDanger),
+					faction = new
+					{
+						faction.def?.defName,
+						faction.Name,
+						faction.def?.humanlikeFaction,
+						hostileToPlayer = faction.HostileTo(Faction.OfPlayer)
+					},
+					patchTargets,
+					dropSpot,
+					activeThreat,
+					corpseWealth,
+					storyDanger
+				};
+			}
+			finally
+			{
+				RestoreZombieSettings(settingsSnapshot);
+				CleanupThingsCreatedAfter(map, initialThingIds);
+				ForceRaidCadenceWealthRecount(map);
+			}
+		}
+
+		static Faction FindStoryEventDeliveryFaction()
+		{
+			return Find.FactionManager.AllFactions
+				.Where(faction => faction != null)
+				.Where(faction => faction != Faction.OfPlayer)
+				.Where(faction => faction.def != ZombieDefOf.Zombies)
+				.Where(faction => faction.def?.humanlikeFaction == true)
+				.OrderBy(faction => faction.HostileTo(Faction.OfPlayer))
+				.ThenBy(faction => faction.def?.defName)
+				.FirstOrDefault();
+		}
+
+		static object RunSafeDropSpotZombieFilterProbe(Map map, Faction faction)
+		{
+			var method = SafeDropSpotMethod();
+			if (method == null)
+			{
+				return new
+				{
+					success = false,
+					error = "Could not reflect DropCellFinder.IsSafeDropSpot."
+				};
+			}
+			if (TryFindSafeDropProbeCells(map, faction, method, out var dropCell, out var zombieCell, out var cellError) == false)
+				return cellError;
+
+			var safeBefore = InvokeSafeDropSpot(method, dropCell, map, faction, out var safeBeforeError);
+			var zombie = ZombieRuntimeActions.SpawnZombie(zombieCell, map, ZombieType.Normal, true);
+			if (zombie == null)
+			{
+				return new
+				{
+					success = false,
+					dropCell = ZombieRuntimeActions.DescribeCell(dropCell),
+					zombieCell = ZombieRuntimeActions.DescribeCell(zombieCell),
+					error = "Could not spawn the drop safety zombie fixture."
+				};
+			}
+			map.attackTargetsCache.UpdateTarget(zombie);
+			var rawZombielandHostiles = map.attackTargetsCache.TargetsHostileToFaction(faction).Count(StorytellerEventFilters.IsZombielandAttackTarget);
+			var safeNearZombie = InvokeSafeDropSpot(method, dropCell, map, faction, out var safeNearZombieError);
+			return new
+			{
+				success = safeBefore == true
+					&& safeNearZombie == true
+					&& rawZombielandHostiles > 0
+					&& safeBeforeError == null
+					&& safeNearZombieError == null,
+				dropCell = ZombieRuntimeActions.DescribeCell(dropCell),
+				zombieCell = ZombieRuntimeActions.DescribeCell(zombieCell),
+				distance = dropCell.DistanceTo(zombieCell),
+				rawZombielandHostiles,
+				safeBefore,
+				safeNearZombie,
+				safeBeforeError,
+				safeNearZombieError,
+				zombie = DescribeZombie(zombie)
+			};
+		}
+
+		static object RunAnyHostileActiveThreatFilterProbe(Map map, Faction faction)
+		{
+			if (TryFindClearSpawnCell(map, new IntVec3(map.Size.x / 2, 0, map.Size.z / 2) + new IntVec3(8, 0, 0), 24f, out var cell, out var cellError) == false)
+				return cellError;
+
+			var zombie = ZombieRuntimeActions.SpawnZombie(cell, map, ZombieType.Normal, true);
+			if (zombie == null)
+			{
+				return new
+				{
+					success = false,
+					cell = ZombieRuntimeActions.DescribeCell(cell),
+					error = "Could not spawn the active-threat zombie fixture."
+				};
+			}
+			map.attackTargetsCache.UpdateTarget(zombie);
+			var rawZombielandHostiles = map.attackTargetsCache.TargetsHostileToFaction(faction).Count(StorytellerEventFilters.IsZombielandAttackTarget);
+			var aggregateThreat = GenHostility.AnyHostileActiveThreatTo(map, faction, out var threat, countDormantPawnsAsHostile: true);
+			return new
+			{
+				success = rawZombielandHostiles > 0
+					&& aggregateThreat == false
+					&& StorytellerEventFilters.IsZombielandAttackTarget(threat) == false,
+				rawZombielandHostiles,
+				aggregateThreat,
+				threat = threat?.Thing == null ? null : new
+				{
+					id = ZombieRuntimeActions.StableThingId(threat.Thing),
+					threat.Thing.def?.defName,
+					label = threat.Thing.LabelCap
+				},
+				zombie = DescribeZombie(zombie)
+			};
+		}
+
+		static object RunZombieCorpseWealthFilterProbe(Map map)
+		{
+			ForceRaidCadenceWealthRecount(map);
+			var wealthBefore = ReadFloatMember(map.wealthWatcher, "WealthItems");
+			if (TryFindClearSpawnCell(map, new IntVec3(map.Size.x / 2, 0, map.Size.z / 2) + new IntVec3(-8, 0, 0), 24f, out var cell, out var cellError) == false)
+				return cellError;
+
+			var zombie = ZombieRuntimeActions.SpawnZombie(cell, map, ZombieType.Normal, true);
+			if (zombie == null)
+			{
+				return new
+				{
+					success = false,
+					cell = ZombieRuntimeActions.DescribeCell(cell),
+					error = "Could not spawn the corpse wealth zombie fixture."
+				};
+			}
+			zombie.Kill(null);
+			AdvanceGameTicks(1);
+			var corpse = zombie.Corpse as Corpse
+				?? map.listerThings.AllThings.OfType<Corpse>().OrderBy(thing => thing.Position.DistanceToSquared(cell)).FirstOrDefault();
+			ForceRaidCadenceWealthRecount(map);
+			var wealthAfter = ReadFloatMember(map.wealthWatcher, "WealthItems");
+			var corpseWealth = corpse == null ? 0f : corpse.MarketValue * corpse.stackCount;
+			return new
+			{
+				success = corpse != null
+					&& StorytellerEventFilters.IsZombielandCorpse(corpse)
+					&& Mathf.Abs(wealthAfter - wealthBefore) <= 0.5f,
+				wealthBefore,
+				wealthAfter,
+				delta = wealthAfter - wealthBefore,
+				corpseWealth,
+				corpse = DescribeCorpse(corpse)
+			};
+		}
+
+		static object RunHomeAreaZombieStoryDangerProbe(Map map)
+		{
+			var method = AccessTools.Method(typeof(DangerWatcher), "CalculateDangerRating");
+			if (method == null)
+			{
+				return new
+				{
+					success = false,
+					error = "Could not reflect DangerWatcher.CalculateDangerRating."
+				};
+			}
+			if (TryFindClearSpawnCell(map, new IntVec3(map.Size.x / 2, 0, map.Size.z / 2) + new IntVec3(0, 0, 8), 24f, out var cell, out var cellError) == false)
+				return cellError;
+
+			var originalHome = map.areaManager.Home[cell];
+			try
+			{
+				var dangerBefore = InvokeCalculateDangerRating(map, method, out var dangerBeforeError);
+				map.areaManager.Home[cell] = true;
+				var zombie = ZombieRuntimeActions.SpawnZombie(cell, map, ZombieType.Normal, true);
+				if (zombie == null)
+				{
+					return new
+					{
+						success = false,
+						cell = ZombieRuntimeActions.DescribeCell(cell),
+						error = "Could not spawn the story-danger zombie fixture."
+					};
+				}
+				map.attackTargetsCache.UpdateTarget(zombie);
+				var rawColonyZombielandHostiles = map.attackTargetsCache.TargetsHostileToColony.Count(StorytellerEventFilters.IsZombielandAttackTarget);
+				var dangerAfter = InvokeCalculateDangerRating(map, method, out var dangerAfterError);
+				var affectsStoryDanger = StorytellerEventFilters.AffectsStoryDanger(zombie);
+				return new
+				{
+					success = affectsStoryDanger
+						&& rawColonyZombielandHostiles == 0
+						&& StoryDangerRank(dangerAfter) >= StoryDangerRank(StoryDanger.Low)
+						&& dangerBeforeError == null
+						&& dangerAfterError == null,
+					cell = ZombieRuntimeActions.DescribeCell(cell),
+					originalHome,
+					homeAfterSetup = map.areaManager.Home[cell],
+					rawColonyZombielandHostiles,
+					affectsStoryDanger,
+					dangerBefore = dangerBefore.ToString(),
+					dangerAfter = dangerAfter.ToString(),
+					dangerBeforeError,
+					dangerAfterError,
+					zombie = DescribeZombie(zombie)
+				};
+			}
+			finally
+			{
+				map.areaManager.Home[cell] = originalHome;
+			}
+		}
+
+		static MethodInfo SafeDropSpotMethod()
+		{
+			return AccessTools.Method(
+				typeof(DropCellFinder),
+				"IsSafeDropSpot",
+				new[] { typeof(IntVec3), typeof(Map), typeof(Faction), typeof(IntVec2?), typeof(int), typeof(int), typeof(int), typeof(IntVec3?) });
+		}
+
+		static bool TryFindSafeDropProbeCells(Map map, Faction faction, MethodInfo safeDropSpotMethod, out IntVec3 dropCell, out IntVec3 zombieCell, out object error)
+		{
+			dropCell = IntVec3.Invalid;
+			zombieCell = IntVec3.Invalid;
+			error = null;
+			var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+			foreach (var candidate in GenRadial.RadialCellsAround(root, 72f, true))
+			{
+				if (candidate.InBounds(map) == false || candidate.Standable(map) == false || candidate.Fogged(map))
+					continue;
+				if (InvokeSafeDropSpot(safeDropSpotMethod, candidate, map, faction, out _) == false)
+					continue;
+				var nearZombieCell = GenRadial.RadialCellsAround(candidate, 12f, false)
+					.Where(cell => cell.InBounds(map))
+					.Where(cell => cell.Standable(map))
+					.Where(cell => cell.Fogged(map) == false)
+					.Where(cell => cell.GetFirstPawn(map) == null)
+					.Where(cell => cell.DistanceTo(candidate) >= 4f && cell.DistanceTo(candidate) <= 12f)
+					.OrderBy(cell => cell.DistanceToSquared(candidate))
+					.FirstOrDefault();
+				if (nearZombieCell.IsValid == false)
+					continue;
+				dropCell = candidate;
+				zombieCell = nearZombieCell;
+				return true;
+			}
+
+			error = new
+			{
+				success = false,
+				root = ZombieRuntimeActions.DescribeCell(root),
+				error = "No baseline-safe drop cell with a nearby zombie spawn cell was found."
+			};
+			return false;
+		}
+
+		static bool InvokeSafeDropSpot(MethodInfo method, IntVec3 cell, Map map, Faction faction, out string error)
+		{
+			error = null;
+			try
+			{
+				return (bool)method.Invoke(null, new object[] { cell, map, faction, null, 0, 35, 0, null });
+			}
+			catch (TargetInvocationException ex)
+			{
+				error = ex.InnerException?.Message ?? ex.Message;
+				return false;
+			}
+			catch (Exception ex)
+			{
+				error = ex.Message;
+				return false;
+			}
+		}
+
+		static StoryDanger InvokeCalculateDangerRating(Map map, MethodInfo method, out string error)
+		{
+			error = null;
+			try
+			{
+				return (StoryDanger)method.Invoke(map.dangerWatcher, Array.Empty<object>());
+			}
+			catch (TargetInvocationException ex)
+			{
+				error = ex.InnerException?.Message ?? ex.Message;
+				return StoryDanger.None;
+			}
+			catch (Exception ex)
+			{
+				error = ex.Message;
+				return StoryDanger.None;
+			}
+		}
+
+		static int StoryDangerRank(StoryDanger danger)
+		{
+			return danger switch
+			{
+				StoryDanger.High => 2,
+				StoryDanger.Low => 1,
+				_ => 0,
+			};
+		}
+
 		static object RunRaidWorkerContract(Map map)
 		{
 			if (map == null)
@@ -2200,6 +2562,8 @@ namespace ZombieLand
 				var proposalsMatch = RaidCadenceProposalEquivalent(baseline.proposalSample, liveZombies.proposalSample)
 					&& RaidCadenceProposalEquivalent(baseline.proposalSample, silence.proposalSample)
 					&& RaidCadenceProposalEquivalent(baseline.proposalSample, postCorpse.proposalSample);
+				var eventDelivery = RunStoryEventDeliveryContract(map);
+				var eventDeliverySuccess = ObjectSuccess(eventDelivery);
 
 				return new
 				{
@@ -2211,10 +2575,11 @@ namespace ZombieLand
 						&& silenceMatchesBaseline
 						&& postCorpseMatchesBaseline
 						&& proposalsMatch
+						&& eventDeliverySuccess
 						&& ZombieFreeEventManager.IsActiveNow()
 						&& silence.zombieThreatLevel == 0f,
-					sourcePath = "AttackTargetsCache.TargetsHostileToColony postfix + DangerWatcher/Difficulty/Storyteller raid input readback during forced ZombieFreeEventManager window",
-					expectation = "Controlled live zombies, zombie silence, and the corpses/drops left by silenced zombies must not raise vanilla RaidEnemy CanFireNow, DefaultThreatPointsNow, or deterministic Storyteller interval proposal counts.",
+					sourcePath = "AttackTargetsCache.TargetsHostileToColony postfix + delivery-side DropCellFinder/GenHostility/WealthWatcher/DangerWatcher filters + Storyteller raid input readback during forced ZombieFreeEventManager window",
+					expectation = "Controlled live zombies, zombie silence, and the corpses/drops left by silenced zombies must not raise vanilla RaidEnemy CanFireNow, DefaultThreatPointsNow, or deterministic Storyteller interval proposal counts, while delivery-side gates ignore zombies where they should and home-area zombies still raise story danger.",
 					forcedWindow = new
 					{
 						offsetStartTicks = forcedWindow.startTick - GenTicks.TicksGame,
@@ -2228,12 +2593,14 @@ namespace ZombieLand
 						liveMatchesBaseline,
 						silenceMatchesBaseline,
 						postCorpseMatchesBaseline,
-						proposalsMatch
+						proposalsMatch,
+						eventDeliverySuccess
 					},
 					baseline,
 					liveZombies,
 					silence,
-					postCorpse
+					postCorpse,
+					eventDelivery
 				};
 			}
 			finally
