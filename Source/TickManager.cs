@@ -1109,6 +1109,8 @@ namespace ZombieLand
 		{
 			if (avoidGridRefreshRequested == false)
 				return false;
+			if (PromptAvoidGridResultPending())
+				return true;
 			avoidGridRefreshRequested = false;
 			UpdateZombieAvoider(true);
 			return true;

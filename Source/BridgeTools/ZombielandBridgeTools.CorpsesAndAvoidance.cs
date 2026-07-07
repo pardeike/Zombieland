@@ -1938,14 +1938,17 @@ namespace ZombieLand
 					var dangerCellsAfterCleanup = formerDangerCells.Count(cell => clearedGrid.ShouldAvoid(map, cell));
 
 					var fetchMethod = typeof(TickManager).GetMethod("FetchAvoidGrid", BindingFlags.Instance | BindingFlags.NonPublic);
+					var flushMethod = typeof(TickManager).GetMethod("FlushRequestedAvoidGridRefresh", BindingFlags.Instance | BindingFlags.NonPublic);
 					var avoidGridCounterField = typeof(TickManager).GetField("avoidGridCounter", BindingFlags.Instance | BindingFlags.NonPublic);
+					var avoidGridRefreshRequestedField = typeof(TickManager).GetField("avoidGridRefreshRequested", BindingFlags.Instance | BindingFlags.NonPublic);
+					var promptAvoidGridRequestIdField = typeof(TickManager).GetField("promptAvoidGridRequestId", BindingFlags.Instance | BindingFlags.NonPublic);
 					var queueForMapMethod = typeof(ZombieAvoider).GetMethod("QueueForMap", BindingFlags.Instance | BindingFlags.NonPublic);
-					if (fetchMethod == null || avoidGridCounterField == null || queueForMapMethod == null)
+					if (fetchMethod == null || flushMethod == null || avoidGridCounterField == null || avoidGridRefreshRequestedField == null || promptAvoidGridRequestIdField == null || queueForMapMethod == null)
 					{
 						return new
 						{
 							success = false,
-							error = "Avoid-grid reflection contract could not find FetchAvoidGrid, avoidGridCounter, or QueueForMap."
+							error = "Avoid-grid reflection contract could not find FetchAvoidGrid, FlushRequestedAvoidGridRefresh, avoidGridCounter, avoidGridRefreshRequested, promptAvoidGridRequestId, or QueueForMap."
 						};
 					}
 
@@ -1966,6 +1969,10 @@ namespace ZombieLand
 						avoidGridCounterField.SetValue(tickManager, -1);
 						fetchMethod.Invoke(tickManager, Array.Empty<object>());
 					}
+
+					long PromptAvoidGridRequestId() => (long)promptAvoidGridRequestIdField.GetValue(tickManager);
+					bool AvoidGridRefreshRequested() => (bool)avoidGridRefreshRequestedField.GetValue(tickManager);
+					bool FlushRequestedAvoidGridRefresh() => (bool)flushMethod.Invoke(tickManager, Array.Empty<object>());
 
 					var exactRequestId = Math.Max(tickManager.lastAvoidGridRequestId, clearedGrid.requestId) + 1000;
 					tickManager.avoidGrid = clearedGrid;
@@ -1990,6 +1997,89 @@ namespace ZombieLand
 						&& tickManager.lastAvoidGridResultId == exactRequestId
 						&& AvoidCost(tickManager.avoidGrid, map, actor.Position) == 1234;
 
+					var coalesceCell = zombieCell;
+					if (coalesceCell.GetFirstPawn(map) != null || coalesceCell.Standable(map) == false)
+					{
+						if (TryFindClearSpawnCell(map, actorCell, 8f, out var foundCoalesceCell, out var coalesceCellError) == false)
+							return coalesceCellError;
+						coalesceCell = foundCoalesceCell;
+					}
+					var coalesceZombie = ZombieRuntimeActions.SpawnZombie(coalesceCell, map, ZombieType.Normal, true);
+					if (coalesceZombie == null)
+					{
+						return new
+						{
+							success = false,
+							coalesceCell = ZombieRuntimeActions.DescribeCell(coalesceCell),
+							error = "ZombieGenerator.SpawnZombie returned no zombie for the prompt coalescing fixture."
+						};
+					}
+					coalesceZombie.state = ZombieState.Tracking;
+					tickManager.allZombiesCached ??= new HashSet<Zombie>();
+					tickManager.allZombiesCached.Add(coalesceZombie);
+
+					var coalesceBaseGrid = Tools.avoider.UpdateZombiePositionsImmediately(map, emptySpecs);
+					tickManager.avoidGrid = coalesceBaseGrid;
+					tickManager.lastAvoidGridRequestId = coalesceBaseGrid.requestId;
+					tickManager.lastAvoidGridResultId = coalesceBaseGrid.requestId;
+					tickManager.lastAvoidGridRequestTick = GenTicks.TicksGame;
+					tickManager.lastAvoidGridResultTick = GenTicks.TicksGame;
+					avoidGridRefreshRequestedField.SetValue(tickManager, false);
+					promptAvoidGridRequestIdField.SetValue(tickManager, 0L);
+					tickManager.UpdateZombieAvoider(true);
+					var pendingPromptRequestId = PromptAvoidGridRequestId();
+
+					tickManager.RequestAvoidGridRefresh();
+					var coalesceRequestedBeforeFlush = AvoidGridRefreshRequested();
+					var coalesceRequestIdBeforeFlush = tickManager.lastAvoidGridRequestId;
+					var coalescePromptBeforeFlush = PromptAvoidGridRequestId();
+					var coalescedFlushReturned = FlushRequestedAvoidGridRefresh();
+					var coalesceRequestIdAfterFlush = tickManager.lastAvoidGridRequestId;
+					var coalescePromptAfterFlush = PromptAvoidGridRequestId();
+					var coalesceRequestedAfterFlush = AvoidGridRefreshRequested();
+
+					var pendingPromptResultGrid = ManualGrid(pendingPromptRequestId, actor.Position, 0);
+					QueueAndFetch(pendingPromptResultGrid);
+					var pendingPromptResultAccepted = tickManager.lastAvoidGridResultId == pendingPromptRequestId
+						&& PromptAvoidGridRequestId() == 0;
+					var coalesceRequestIdBeforeFollowup = tickManager.lastAvoidGridRequestId;
+					var followupFlushReturned = FlushRequestedAvoidGridRefresh();
+					var coalesceRequestIdAfterFollowup = tickManager.lastAvoidGridRequestId;
+					var coalescePromptAfterFollowup = PromptAvoidGridRequestId();
+					var coalesceRequestedAfterFollowup = AvoidGridRefreshRequested();
+
+					var promptRefreshCoalescing = new
+					{
+						success = coalesceRequestedBeforeFlush
+							&& coalescedFlushReturned
+							&& pendingPromptRequestId > 0
+							&& coalesceRequestIdAfterFlush == coalesceRequestIdBeforeFlush
+							&& coalescePromptBeforeFlush == pendingPromptRequestId
+							&& coalescePromptAfterFlush == pendingPromptRequestId
+							&& coalesceRequestedAfterFlush
+							&& pendingPromptResultAccepted
+							&& followupFlushReturned
+							&& coalesceRequestIdAfterFollowup > coalesceRequestIdBeforeFollowup
+							&& coalescePromptAfterFollowup == coalesceRequestIdAfterFollowup
+							&& coalesceRequestedAfterFollowup == false,
+						coalesceZombie = DescribeZombie(coalesceZombie),
+						coalesceCell = ZombieRuntimeActions.DescribeCell(coalesceCell),
+						pendingPromptRequestId,
+						coalesceRequestedBeforeFlush,
+						coalesceRequestIdBeforeFlush,
+						coalescePromptBeforeFlush,
+						coalescedFlushReturned,
+						coalesceRequestIdAfterFlush,
+						coalescePromptAfterFlush,
+						coalesceRequestedAfterFlush,
+						pendingPromptResultAccepted,
+						coalesceRequestIdBeforeFollowup,
+						followupFlushReturned,
+						coalesceRequestIdAfterFollowup,
+						coalescePromptAfterFollowup,
+						coalesceRequestedAfterFollowup
+					};
+
 					var snapshotReferencesAreDistinct = ReferenceEquals(emptyGrid, recoveredGrid) == false
 						&& ReferenceEquals(realGrid, clearedGrid) == false
 						&& ReferenceEquals(clearedGrid, exactResultGrid) == false;
@@ -1999,6 +2089,8 @@ namespace ZombieLand
 					tickManager.lastAvoidGridResultId = clearedGrid.requestId;
 					tickManager.lastAvoidGridRequestTick = GenTicks.TicksGame;
 					tickManager.lastAvoidGridResultTick = GenTicks.TicksGame;
+					promptAvoidGridRequestIdField.SetValue(tickManager, 0L);
+					avoidGridRefreshRequestedField.SetValue(tickManager, false);
 
 					return new
 					{
@@ -2016,7 +2108,8 @@ namespace ZombieLand
 							&& snapshotReferencesAreDistinct
 							&& staleResultRejected
 							&& futureResultRejected
-							&& exactResultAccepted,
+							&& exactResultAccepted
+							&& promptRefreshCoalescing.success,
 						destroyedZombies,
 						destroyedAfterZombie,
 						actor = DescribePawn(actor),
@@ -2041,7 +2134,8 @@ namespace ZombieLand
 						snapshotReferencesAreDistinct,
 						staleResultRejected,
 						futureResultRejected,
-						exactResultAccepted
+						exactResultAccepted,
+						promptRefreshCoalescing
 					};
 				}
 				finally
