@@ -1109,8 +1109,6 @@ namespace ZombieLand
 		{
 			if (avoidGridRefreshRequested == false)
 				return false;
-			if (PromptAvoidGridResultPending())
-				return true;
 			avoidGridRefreshRequested = false;
 			UpdateZombieAvoider(true);
 			return true;
@@ -1338,7 +1336,7 @@ namespace ZombieLand
 				var result = Tools.avoider.GetCostsGrid(map);
 				if (result != null)
 				{
-					if (result.requestId == lastAvoidGridRequestId)
+					if (result.requestId == lastAvoidGridRequestId && avoidGridRefreshRequested == false)
 					{
 						avoidGrid = result;
 						lastAvoidGridResultTick = GenTicks.TicksGame;

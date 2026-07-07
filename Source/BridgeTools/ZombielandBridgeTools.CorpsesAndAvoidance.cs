@@ -2392,56 +2392,53 @@ namespace ZombieLand
 					var pendingPromptResultPending = PromptAvoidGridResultPending();
 
 					tickManager.RequestAvoidGridRefresh();
-					var coalesceRequestedBeforeFlush = AvoidGridRefreshRequested();
-					var coalesceRequestIdBeforeFlush = tickManager.lastAvoidGridRequestId;
-					var coalescePromptPendingBeforeFlush = PromptAvoidGridResultPending();
+					var coalesceRequestedBeforeStaleFetch = AvoidGridRefreshRequested();
+					var coalesceRequestIdBeforeStaleFetch = tickManager.lastAvoidGridRequestId;
+					var coalescePromptPendingBeforeStaleFetch = PromptAvoidGridResultPending();
+					var stalePromptResultGrid = ManualGrid(pendingPromptRequestId, actor.Position, 4321);
+					QueueAndFetch(stalePromptResultGrid);
+					var stalePromptResultRejected = ReferenceEquals(tickManager.avoidGrid, coalesceBaseGrid)
+						&& tickManager.lastAvoidGridResultId != pendingPromptRequestId
+						&& PromptAvoidGridResultPending()
+						&& AvoidGridRefreshRequested();
+
 					var coalescedFlushReturned = FlushRequestedAvoidGridRefresh();
 					var coalesceRequestIdAfterFlush = tickManager.lastAvoidGridRequestId;
 					var coalescePromptPendingAfterFlush = PromptAvoidGridResultPending();
 					var coalesceRequestedAfterFlush = AvoidGridRefreshRequested();
 
-					var pendingPromptResultGrid = ManualGrid(pendingPromptRequestId, actor.Position, 0);
-					QueueAndFetch(pendingPromptResultGrid);
-					var pendingPromptResultAccepted = tickManager.lastAvoidGridResultId == pendingPromptRequestId
+					var supersedingPromptResultGrid = ManualGrid(coalesceRequestIdAfterFlush, actor.Position, 1234);
+					QueueAndFetch(supersedingPromptResultGrid);
+					var supersedingPromptResultAccepted = ReferenceEquals(tickManager.avoidGrid, supersedingPromptResultGrid)
+						&& tickManager.lastAvoidGridResultId == coalesceRequestIdAfterFlush
 						&& PromptAvoidGridResultPending() == false;
-					var coalesceRequestIdBeforeFollowup = tickManager.lastAvoidGridRequestId;
-					var followupFlushReturned = FlushRequestedAvoidGridRefresh();
-					var coalesceRequestIdAfterFollowup = tickManager.lastAvoidGridRequestId;
-					var coalescePromptPendingAfterFollowup = PromptAvoidGridResultPending();
-					var coalesceRequestedAfterFollowup = AvoidGridRefreshRequested();
 
 					var promptRefreshCoalescing = new
 					{
-						success = coalesceRequestedBeforeFlush
+						success = coalesceRequestedBeforeStaleFetch
 							&& coalescedFlushReturned
 							&& pendingPromptRequestId > 0
 							&& pendingPromptResultPending
-							&& coalesceRequestIdAfterFlush == coalesceRequestIdBeforeFlush
-							&& coalescePromptPendingBeforeFlush
+							&& coalesceRequestIdBeforeStaleFetch == pendingPromptRequestId
+							&& coalescePromptPendingBeforeStaleFetch
+							&& stalePromptResultRejected
+							&& coalesceRequestIdAfterFlush > coalesceRequestIdBeforeStaleFetch
 							&& coalescePromptPendingAfterFlush
-							&& coalesceRequestedAfterFlush
-							&& pendingPromptResultAccepted
-							&& followupFlushReturned
-							&& coalesceRequestIdAfterFollowup > coalesceRequestIdBeforeFollowup
-							&& coalescePromptPendingAfterFollowup
-							&& coalesceRequestedAfterFollowup == false,
+							&& coalesceRequestedAfterFlush == false
+							&& supersedingPromptResultAccepted,
 						coalesceZombie = DescribeZombie(coalesceZombie),
 						coalesceCell = ZombieRuntimeActions.DescribeCell(coalesceCell),
 						pendingPromptRequestId,
 						pendingPromptResultPending,
-						coalesceRequestedBeforeFlush,
-						coalesceRequestIdBeforeFlush,
-						coalescePromptPendingBeforeFlush,
+						coalesceRequestedBeforeStaleFetch,
+						coalesceRequestIdBeforeStaleFetch,
+						coalescePromptPendingBeforeStaleFetch,
+						stalePromptResultRejected,
 						coalescedFlushReturned,
 						coalesceRequestIdAfterFlush,
 						coalescePromptPendingAfterFlush,
 						coalesceRequestedAfterFlush,
-						pendingPromptResultAccepted,
-						coalesceRequestIdBeforeFollowup,
-						followupFlushReturned,
-						coalesceRequestIdAfterFollowup,
-						coalescePromptPendingAfterFollowup,
-						coalesceRequestedAfterFollowup
+						supersedingPromptResultAccepted
 					};
 
 					var snapshotReferencesAreDistinct = ReferenceEquals(emptyGrid, recoveredGrid) == false
