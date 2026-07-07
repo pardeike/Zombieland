@@ -334,7 +334,7 @@ namespace ZombieLand
 		int colonyPointsTickCounter;
 		int avoidGridCounter;
 		bool avoidGridRefreshRequested;
-		long promptAvoidGridRequestId;
+		bool promptAvoidGridResultPending;
 		public int lastAvoidGridRequestTick;
 		public int lastAvoidGridResultTick;
 		public long lastAvoidGridRequestId;
@@ -578,7 +578,7 @@ namespace ZombieLand
 			else
 				avoidGrid = new AvoidGrid(map);
 			avoidGridRefreshRequested = false;
-			promptAvoidGridRequestId = 0;
+			promptAvoidGridResultPending = false;
 			lastAvoidGridRequestTick = GenTicks.TicksGame;
 			lastAvoidGridResultTick = lastAvoidGridRequestTick;
 			lastAvoidGridRequestId = avoidGrid?.requestId ?? 0;
@@ -1143,13 +1143,13 @@ namespace ZombieLand
 
 		bool PromptAvoidGridResultPending()
 		{
-			return promptAvoidGridRequestId > 0 && lastAvoidGridResultId < promptAvoidGridRequestId;
+			return promptAvoidGridResultPending && lastAvoidGridResultId < lastAvoidGridRequestId;
 		}
 
 		void ClearPromptAvoidGridRequest(long resultId)
 		{
-			if (promptAvoidGridRequestId > 0 && resultId >= promptAvoidGridRequestId)
-				promptAvoidGridRequestId = 0;
+			if (promptAvoidGridResultPending && resultId >= lastAvoidGridRequestId)
+				promptAvoidGridResultPending = false;
 		}
 
 		public void UpdateZombieAvoider(bool force = false)
@@ -1177,7 +1177,7 @@ namespace ZombieLand
 			{
 				lastAvoidGridRequestId = requestId;
 				if (force)
-					promptAvoidGridRequestId = requestId;
+					promptAvoidGridResultPending = true;
 			}
 			lastAvoidGridRequestTick = GenTicks.TicksGame;
 			if (force)

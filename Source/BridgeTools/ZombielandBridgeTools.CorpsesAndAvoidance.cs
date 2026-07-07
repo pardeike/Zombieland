@@ -2144,14 +2144,14 @@ namespace ZombieLand
 					var flushMethod = typeof(TickManager).GetMethod("FlushRequestedAvoidGridRefresh", BindingFlags.Instance | BindingFlags.NonPublic);
 					var avoidGridCounterField = typeof(TickManager).GetField("avoidGridCounter", BindingFlags.Instance | BindingFlags.NonPublic);
 					var avoidGridRefreshRequestedField = typeof(TickManager).GetField("avoidGridRefreshRequested", BindingFlags.Instance | BindingFlags.NonPublic);
-					var promptAvoidGridRequestIdField = typeof(TickManager).GetField("promptAvoidGridRequestId", BindingFlags.Instance | BindingFlags.NonPublic);
+					var promptAvoidGridResultPendingField = typeof(TickManager).GetField("promptAvoidGridResultPending", BindingFlags.Instance | BindingFlags.NonPublic);
 					var queueForMapMethod = typeof(ZombieAvoider).GetMethod("QueueForMap", BindingFlags.Instance | BindingFlags.NonPublic);
-					if (fetchMethod == null || flushMethod == null || avoidGridCounterField == null || avoidGridRefreshRequestedField == null || promptAvoidGridRequestIdField == null || queueForMapMethod == null)
+					if (fetchMethod == null || flushMethod == null || avoidGridCounterField == null || avoidGridRefreshRequestedField == null || promptAvoidGridResultPendingField == null || queueForMapMethod == null)
 					{
 						return new
 						{
 							success = false,
-							error = "Avoid-grid reflection contract could not find FetchAvoidGrid, FlushRequestedAvoidGridRefresh, avoidGridCounter, avoidGridRefreshRequested, promptAvoidGridRequestId, or QueueForMap."
+							error = "Avoid-grid reflection contract could not find FetchAvoidGrid, FlushRequestedAvoidGridRefresh, avoidGridCounter, avoidGridRefreshRequested, promptAvoidGridResultPending, or QueueForMap."
 						};
 					}
 
@@ -2173,7 +2173,7 @@ namespace ZombieLand
 						fetchMethod.Invoke(tickManager, Array.Empty<object>());
 					}
 
-					long PromptAvoidGridRequestId() => (long)promptAvoidGridRequestIdField.GetValue(tickManager);
+					bool PromptAvoidGridResultPending() => (bool)promptAvoidGridResultPendingField.GetValue(tickManager);
 					bool AvoidGridRefreshRequested() => (bool)avoidGridRefreshRequestedField.GetValue(tickManager);
 					bool FlushRequestedAvoidGridRefresh() => (bool)flushMethod.Invoke(tickManager, Array.Empty<object>());
 
@@ -2228,27 +2228,28 @@ namespace ZombieLand
 					tickManager.lastAvoidGridRequestTick = GenTicks.TicksGame;
 					tickManager.lastAvoidGridResultTick = GenTicks.TicksGame;
 					avoidGridRefreshRequestedField.SetValue(tickManager, false);
-					promptAvoidGridRequestIdField.SetValue(tickManager, 0L);
+					promptAvoidGridResultPendingField.SetValue(tickManager, false);
 					tickManager.UpdateZombieAvoider(true);
-					var pendingPromptRequestId = PromptAvoidGridRequestId();
+					var pendingPromptRequestId = tickManager.lastAvoidGridRequestId;
+					var pendingPromptResultPending = PromptAvoidGridResultPending();
 
 					tickManager.RequestAvoidGridRefresh();
 					var coalesceRequestedBeforeFlush = AvoidGridRefreshRequested();
 					var coalesceRequestIdBeforeFlush = tickManager.lastAvoidGridRequestId;
-					var coalescePromptBeforeFlush = PromptAvoidGridRequestId();
+					var coalescePromptPendingBeforeFlush = PromptAvoidGridResultPending();
 					var coalescedFlushReturned = FlushRequestedAvoidGridRefresh();
 					var coalesceRequestIdAfterFlush = tickManager.lastAvoidGridRequestId;
-					var coalescePromptAfterFlush = PromptAvoidGridRequestId();
+					var coalescePromptPendingAfterFlush = PromptAvoidGridResultPending();
 					var coalesceRequestedAfterFlush = AvoidGridRefreshRequested();
 
 					var pendingPromptResultGrid = ManualGrid(pendingPromptRequestId, actor.Position, 0);
 					QueueAndFetch(pendingPromptResultGrid);
 					var pendingPromptResultAccepted = tickManager.lastAvoidGridResultId == pendingPromptRequestId
-						&& PromptAvoidGridRequestId() == 0;
+						&& PromptAvoidGridResultPending() == false;
 					var coalesceRequestIdBeforeFollowup = tickManager.lastAvoidGridRequestId;
 					var followupFlushReturned = FlushRequestedAvoidGridRefresh();
 					var coalesceRequestIdAfterFollowup = tickManager.lastAvoidGridRequestId;
-					var coalescePromptAfterFollowup = PromptAvoidGridRequestId();
+					var coalescePromptPendingAfterFollowup = PromptAvoidGridResultPending();
 					var coalesceRequestedAfterFollowup = AvoidGridRefreshRequested();
 
 					var promptRefreshCoalescing = new
@@ -2256,30 +2257,32 @@ namespace ZombieLand
 						success = coalesceRequestedBeforeFlush
 							&& coalescedFlushReturned
 							&& pendingPromptRequestId > 0
+							&& pendingPromptResultPending
 							&& coalesceRequestIdAfterFlush == coalesceRequestIdBeforeFlush
-							&& coalescePromptBeforeFlush == pendingPromptRequestId
-							&& coalescePromptAfterFlush == pendingPromptRequestId
+							&& coalescePromptPendingBeforeFlush
+							&& coalescePromptPendingAfterFlush
 							&& coalesceRequestedAfterFlush
 							&& pendingPromptResultAccepted
 							&& followupFlushReturned
 							&& coalesceRequestIdAfterFollowup > coalesceRequestIdBeforeFollowup
-							&& coalescePromptAfterFollowup == coalesceRequestIdAfterFollowup
+							&& coalescePromptPendingAfterFollowup
 							&& coalesceRequestedAfterFollowup == false,
 						coalesceZombie = DescribeZombie(coalesceZombie),
 						coalesceCell = ZombieRuntimeActions.DescribeCell(coalesceCell),
 						pendingPromptRequestId,
+						pendingPromptResultPending,
 						coalesceRequestedBeforeFlush,
 						coalesceRequestIdBeforeFlush,
-						coalescePromptBeforeFlush,
+						coalescePromptPendingBeforeFlush,
 						coalescedFlushReturned,
 						coalesceRequestIdAfterFlush,
-						coalescePromptAfterFlush,
+						coalescePromptPendingAfterFlush,
 						coalesceRequestedAfterFlush,
 						pendingPromptResultAccepted,
 						coalesceRequestIdBeforeFollowup,
 						followupFlushReturned,
 						coalesceRequestIdAfterFollowup,
-						coalescePromptAfterFollowup,
+						coalescePromptPendingAfterFollowup,
 						coalesceRequestedAfterFollowup
 					};
 
@@ -2292,7 +2295,7 @@ namespace ZombieLand
 					tickManager.lastAvoidGridResultId = clearedGrid.requestId;
 					tickManager.lastAvoidGridRequestTick = GenTicks.TicksGame;
 					tickManager.lastAvoidGridResultTick = GenTicks.TicksGame;
-					promptAvoidGridRequestIdField.SetValue(tickManager, 0L);
+					promptAvoidGridResultPendingField.SetValue(tickManager, false);
 					avoidGridRefreshRequestedField.SetValue(tickManager, false);
 
 					return new
