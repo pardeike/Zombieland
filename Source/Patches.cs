@@ -6055,18 +6055,42 @@ namespace ZombieLand
 		[HarmonyPatch]
 		static class JobGiver_AIWaitAmbush_TryGiveJob_Patch
 		{
-			static readonly FieldInfo ignoreNonCombatantsField = AccessTools.Field(typeof(JobGiver_AIWaitAmbush), "ignoreNonCombatants");
-			static readonly FieldInfo humanlikesOnlyField = AccessTools.Field(typeof(JobGiver_AIWaitAmbush), "humanlikesOnly");
-			static readonly FieldInfo expireOnNearbyEnemyField = AccessTools.Field(typeof(JobGiver_AIWaitAmbush), "expireOnNearbyEnemy");
+			static AccessTools.FieldRef<JobGiver_AIWaitAmbush, bool> ignoreNonCombatantsRef;
+			static AccessTools.FieldRef<JobGiver_AIWaitAmbush, bool> humanlikesOnlyRef;
+			static AccessTools.FieldRef<JobGiver_AIWaitAmbush, bool> expireOnNearbyEnemyRef;
 			static PawnKindDef sightstealerKind;
 			static DutyDef sightstealerAssault;
 			static bool sightstealerDefsResolved;
 
-			static bool Prepare() => TargetMethod() != null;
+			static bool Prepare()
+			{
+				return TargetMethod() != null
+					&& TryResolveBoolField("ignoreNonCombatants", out ignoreNonCombatantsRef)
+					&& TryResolveBoolField("humanlikesOnly", out humanlikesOnlyRef)
+					&& TryResolveBoolField("expireOnNearbyEnemy", out expireOnNearbyEnemyRef);
+			}
 
 			static MethodBase TargetMethod()
 			{
 				return AccessTools.Method(typeof(JobGiver_AIWaitAmbush), "TryGiveJob", new[] { typeof(Pawn) });
+			}
+
+			static bool TryResolveBoolField(string fieldName, out AccessTools.FieldRef<JobGiver_AIWaitAmbush, bool> fieldRef)
+			{
+				fieldRef = null;
+				var field = AccessTools.Field(typeof(JobGiver_AIWaitAmbush), fieldName);
+				if (field == null)
+				{
+					Log.Error($"{nameof(JobGiver_AIWaitAmbush_TryGiveJob_Patch)} skipped because RimWorld.JobGiver_AIWaitAmbush.{fieldName} was not found.");
+					return false;
+				}
+				if (field.FieldType != typeof(bool))
+				{
+					Log.Error($"{nameof(JobGiver_AIWaitAmbush_TryGiveJob_Patch)} skipped because RimWorld.JobGiver_AIWaitAmbush.{fieldName} is {field.FieldType.FullName}, not System.Boolean.");
+					return false;
+				}
+				fieldRef = AccessTools.FieldRefAccess<JobGiver_AIWaitAmbush, bool>(field);
+				return true;
 			}
 
 			static bool Prefix(JobGiver_AIWaitAmbush __instance, Pawn pawn, ref Job __result)
@@ -6103,8 +6127,8 @@ namespace ZombieLand
 			{
 				var target = FindBestDoorAmbushTarget(
 					pawn,
-					(bool)(ignoreNonCombatantsField?.GetValue(instance) ?? false),
-					(bool)(humanlikesOnlyField?.GetValue(instance) ?? false),
+					ignoreNonCombatantsRef(instance),
+					humanlikesOnlyRef(instance),
 					out var ambushCell);
 				if (target == null)
 					return null;
@@ -6118,7 +6142,7 @@ namespace ZombieLand
 				var job = pawn.mindState.nextMoveOrderIsWait
 					? JobMaker.MakeJob(JobDefOf.Wait, 300)
 					: JobMaker.MakeJob(JobDefOf.Goto, randomCell);
-				if ((bool)(expireOnNearbyEnemyField?.GetValue(instance) ?? false))
+				if (expireOnNearbyEnemyRef(instance))
 				{
 					job.expiryInterval = 30;
 					job.checkOverrideOnExpire = true;
