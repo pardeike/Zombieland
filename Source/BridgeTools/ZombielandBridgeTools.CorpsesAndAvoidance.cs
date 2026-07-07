@@ -2149,15 +2149,19 @@ namespace ZombieLand
 
 				var makeDowned = typeof(Pawn_HealthTracker).GetMethod("MakeDowned", BindingFlags.Instance | BindingFlags.NonPublic);
 				var makeUndowned = typeof(Pawn_HealthTracker).GetMethod("MakeUndowned", BindingFlags.Instance | BindingFlags.NonPublic);
-				if (makeDowned == null || makeUndowned == null)
+				var avoidGridRefreshRequestedField = typeof(TickManager).GetField("avoidGridRefreshRequested", BindingFlags.Instance | BindingFlags.NonPublic);
+				var promptAvoidGridResultPendingField = typeof(TickManager).GetField("promptAvoidGridResultPending", BindingFlags.Instance | BindingFlags.NonPublic);
+				if (makeDowned == null || makeUndowned == null || avoidGridRefreshRequestedField == null || promptAvoidGridResultPendingField == null)
 				{
 					return new
 					{
 						success = false,
 						transition,
-						error = "Could not reflect Pawn_HealthTracker.MakeDowned or MakeUndowned."
+						error = "Could not reflect Pawn_HealthTracker.MakeDowned, MakeUndowned, avoidGridRefreshRequested, or promptAvoidGridResultPending."
 					};
 				}
+				bool AvoidGridRefreshRequested() => (bool)avoidGridRefreshRequestedField.GetValue(tickManager);
+				bool PromptAvoidGridResultPending() => (bool)promptAvoidGridResultPendingField.GetValue(tickManager);
 
 				makeDowned.Invoke(zombie.health, new object[makeDowned.GetParameters().Length]);
 				if (zombie.health?.Downed != true)
@@ -2178,6 +2182,9 @@ namespace ZombieLand
 				tickManager.lastAvoidGridResultId = emptyGrid.requestId;
 				tickManager.lastAvoidGridRequestTick = GenTicks.TicksGame;
 				tickManager.lastAvoidGridResultTick = GenTicks.TicksGame;
+				avoidGridRefreshRequestedField.SetValue(tickManager, false);
+				promptAvoidGridResultPendingField.SetValue(tickManager, false);
+				var pendingRefreshClearedBeforeUndowned = AvoidGridRefreshRequested() == false && PromptAvoidGridResultPending() == false;
 
 				var zombieAvoidRadius = Tools.ZombieAvoidRadius(zombie);
 				var formerDangerCells = GenRadial.RadialCellsAround(zombieCell, zombieAvoidRadius, true)
@@ -2191,6 +2198,9 @@ namespace ZombieLand
 				var consciousnessBeforeUndowned = zombie.consciousness;
 				makeUndowned.Invoke(zombie.health, new object[makeUndowned.GetParameters().Length]);
 				var transitioned = zombie.health?.Downed == false;
+				var refreshRequestedByUndowned = AvoidGridRefreshRequested();
+				var promptPendingAfterUndowned = PromptAvoidGridResultPending();
+				var requestIdAfterUndowned = tickManager.lastAvoidGridRequestId;
 				zombie.jobs.StartJob(JobMaker.MakeJob(CustomDefs.Stumble), JobCondition.InterruptForced, null, true, false, null, null);
 				var driverStarted = zombie.jobs?.curDriver is JobDriver_Stumble;
 				var tickTasksAvoidGridCycleYields = 14 + (Constants.CONTAMINATION ? 1 : 0);
@@ -2240,6 +2250,8 @@ namespace ZombieLand
 				{
 					success = transitioned
 						&& driverStarted
+						&& pendingRefreshClearedBeforeUndowned
+						&& refreshRequestedByUndowned
 						&& zombieCostBefore == 0
 						&& dangerCellsBefore == 0
 						&& addedAtTick > 0
@@ -2257,6 +2269,10 @@ namespace ZombieLand
 					dangerCellsBefore,
 					consciousnessBeforeUndowned,
 					transitioned,
+					pendingRefreshClearedBeforeUndowned,
+					refreshRequestedByUndowned,
+					promptPendingAfterUndowned,
+					requestIdAfterUndowned,
 					addedAtTick,
 					promptMaxTicks,
 					normalAvoidGridDelayTicks,
