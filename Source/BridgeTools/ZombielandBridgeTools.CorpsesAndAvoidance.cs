@@ -1871,15 +1871,7 @@ namespace ZombieLand
 
 			static AvoidGrid BuildAvoidGridForZombies(Map map, IEnumerable<Zombie> zombies, bool install = true)
 			{
-				var specs = zombies
-					.Where(zombie => zombie?.AffectsAvoidGrid == true)
-					.Select(zombie => new ZombieCostSpecs
-					{
-						position = zombie.Position,
-						radius = Tools.ZombieAvoidRadius(zombie),
-						maxCosts = TickManager.ZombieMaxCosts(zombie)
-					})
-					.ToList();
+				var specs = TickManager.BuildAvoidGridSpecsFor(zombies);
 				var grid = Tools.avoider.UpdateZombiePositionsImmediately(map, specs);
 				if (install)
 					map.GetComponent<TickManager>().avoidGrid = grid;

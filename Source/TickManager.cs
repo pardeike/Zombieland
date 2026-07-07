@@ -1119,7 +1119,12 @@ namespace ZombieLand
 		List<ZombieCostSpecs> BuildAvoidGridSpecs(IEnumerable<Zombie> zombies = null)
 		{
 			var source = zombies ?? allZombiesCached ?? Enumerable.Empty<Zombie>();
-			return source.Where(ShouldAffectAvoidGrid)
+			return BuildAvoidGridSpecsFor(source);
+		}
+
+		internal static List<ZombieCostSpecs> BuildAvoidGridSpecsFor(IEnumerable<Zombie> zombies)
+		{
+			return (zombies ?? Enumerable.Empty<Zombie>()).Where(ShouldAffectAvoidGrid)
 				.Select(zombie => new ZombieCostSpecs()
 				{
 					position = zombie.Position,

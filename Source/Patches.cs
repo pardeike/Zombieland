@@ -1008,10 +1008,7 @@ namespace ZombieLand
 
 			static MethodBase TargetMethod()
 			{
-				return AccessTools.Method(
-					typeof(DropCellFinder),
-					"IsSafeDropSpot",
-					new[] { typeof(IntVec3), typeof(Map), typeof(Faction), typeof(IntVec2?), typeof(int), typeof(int), typeof(int), typeof(IntVec3?) });
+				return StorytellerEventFilterSupport.SafeDropSpotMethod();
 			}
 
 			static HashSet<IAttackTarget> TargetsHostileToFactionWithoutZombies(AttackTargetsCache cache, Faction faction)
@@ -1109,7 +1106,7 @@ namespace ZombieLand
 				if (zombieCombatPower <= 0f)
 					return;
 				var zombieDanger = StoryDangerFor(map, zombieCombatPower, lastColonistHarmedTickRef(__instance));
-				if (StoryDangerRank(zombieDanger) > StoryDangerRank(__result))
+				if (StorytellerEventFilterSupport.StoryDangerRank(zombieDanger) > StorytellerEventFilterSupport.StoryDangerRank(__result))
 					__result = zombieDanger;
 			}
 
@@ -1141,15 +1138,6 @@ namespace ZombieLand
 				return StoryDanger.Low;
 			}
 
-			static int StoryDangerRank(StoryDanger danger)
-			{
-				return danger switch
-				{
-					StoryDanger.High => 2,
-					StoryDanger.Low => 1,
-					_ => 0,
-				};
-			}
 		}
 
 		// do not flee from certain zombies

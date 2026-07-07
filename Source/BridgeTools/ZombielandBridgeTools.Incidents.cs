@@ -2322,10 +2322,7 @@ namespace ZombieLand
 
 		static MethodInfo SafeDropSpotMethod()
 		{
-			return AccessTools.Method(
-				typeof(DropCellFinder),
-				"IsSafeDropSpot",
-				new[] { typeof(IntVec3), typeof(Map), typeof(Faction), typeof(IntVec2?), typeof(int), typeof(int), typeof(int), typeof(IntVec3?) });
+			return StorytellerEventFilterSupport.SafeDropSpotMethod();
 		}
 
 		static bool TryFindSafeDropProbeCells(Map map, Faction faction, MethodInfo safeDropSpotMethod, out IntVec3 dropCell, out IntVec3 zombieCell, out object error)
@@ -2400,16 +2397,6 @@ namespace ZombieLand
 				error = ex.Message;
 				return StoryDanger.None;
 			}
-		}
-
-		static int StoryDangerRank(StoryDanger danger)
-		{
-			return danger switch
-			{
-				StoryDanger.High => 2,
-				StoryDanger.Low => 1,
-				_ => 0,
-			};
 		}
 
 		static object RunRaidWorkerContract(Map map)
