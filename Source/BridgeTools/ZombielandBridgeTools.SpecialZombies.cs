@@ -2043,7 +2043,7 @@ namespace ZombieLand
 			public string error;
 		}
 
-		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream cooldown, target preference, opportunistic raiders, false thing-target proximity, door-resume, externally opened door resume, flickable, breakdownable, and weapon hacks.")]
+		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream cooldown, target preference, opportunistic raiders, false thing-target proximity, paralysis cancellation, door-resume, externally opened door resume, flickable, breakdownable, and weapon hacks.")]
 		public static object AlbinoSabotageContract()
 		{
 			var map = CurrentMap;
@@ -2078,6 +2078,7 @@ namespace ZombieLand
 			AddCase("opportunistic_raider", () => AlbinoOpportunisticRaiderCase(map));
 			AddCase("raider_attacking_nearby_colonist", () => AlbinoRaiderAttackingNearbyColonistCase(map));
 			AddCase("scream_cooldown", () => AlbinoScreamCooldownCase(map));
+			AddCase("paralysis_clears_queued_scream", () => AlbinoParalysisClearsQueuedScreamCase(map));
 			AddCase("door_resume", () => AlbinoDoorResumeCase(map, false));
 			AddCase("door_open_resume", () => AlbinoDoorResumeCase(map, true));
 			AddCase("flickable_hack", () => AlbinoFlickableHackCase(map));
@@ -2534,6 +2535,106 @@ namespace ZombieLand
 					cooldownRemaining = albino.albinoNextScreamTick - GenTicks.TicksGame,
 					samples
 				});
+			}
+			finally
+			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static AlbinoSabotageCase AlbinoParalysisClearsQueuedScreamCase(Map map)
+		{
+			var spawnedThings = new List<Thing>();
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
+					return AlbinoCase("paralysis_clears_queued_scream", false, error: albinoError?.ToString());
+
+				var doorCell = IntVec3.Invalid;
+				foreach (var offset in GenAdj.CardinalDirections)
+				{
+					var candidate = albinoCell + offset;
+					if (candidate.InBounds(map)
+						&& candidate.Fogged(map) == false
+						&& candidate.GetEdifice(map) == null
+						&& candidate.GetThingList(map).Any(thing => thing is Pawn) == false)
+					{
+						doorCell = candidate;
+						break;
+					}
+				}
+				if (doorCell.IsValid == false)
+					return AlbinoCase("paralysis_clears_queued_scream", false, error: "No adjacent clear door cell was available.");
+				if (TryFindClearSpawnCell(map, doorCell + IntVec3.East, 8f, out var screamCell, out var screamError) == false)
+					return AlbinoCase("paralysis_clears_queued_scream", false, error: screamError?.ToString());
+
+				var door = ThingMaker.MakeThing(ThingDefOf.Door, GenStuff.DefaultStuffFor(ThingDefOf.Door)) as Building_Door;
+				if (door == null)
+					return AlbinoCase("paralysis_clears_queued_scream", false, error: "Could not create a test door.");
+				GenSpawn.Spawn(door, doorCell, map, WipeMode.Vanish);
+				door.SetFaction(Faction.OfPlayer);
+				spawnedThings.Add(door);
+
+				var colonist = SpawnAlbinoTestColonist(map, screamCell, spawnedThings);
+				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+				var driver = StartAlbinoSabotageDriver(albino);
+				if (driver == null)
+					return AlbinoCase("paralysis_clears_queued_scream", false, error: "Albino did not enter the sabotage driver.");
+
+				driver.destination = doorCell;
+				driver.door = door;
+				driver.hackTarget = null;
+				driver.queuedScreamCell = screamCell;
+				driver.waitCounter = 17;
+				driver.hackCounter = 73;
+				albino.scream = -2;
+
+				var queuedBefore = driver.queuedScreamCell.IsValid;
+				var paralyzed = albino.TryParalyze(600, out var paralysisError);
+				var currentDriver = albino.jobs.curDriver as JobDriver_Sabotage;
+				var queuedAfterParalysis = currentDriver?.queuedScreamCell.IsValid == true;
+				var handledAfterClear = false;
+				string hackError = null;
+				var invokeAfterClear = currentDriver != null && TryInvokeAlbinoHackThing(currentDriver, out handledAfterClear, out hackError);
+				var destinationAfterInvoke = currentDriver?.destination.IsValid == true;
+				var success = queuedBefore
+					&& paralyzed
+					&& currentDriver != null
+					&& queuedAfterParalysis == false
+					&& currentDriver.destination.IsValid == false
+					&& currentDriver.door == null
+					&& currentDriver.hackTarget == null
+					&& currentDriver.hackCounter == 0
+					&& albino.scream == -1
+					&& invokeAfterClear
+					&& handledAfterClear == false
+					&& destinationAfterInvoke == false
+					&& albino.scream == -1;
+
+				return AlbinoCase("paralysis_clears_queued_scream", success, new
+				{
+					queuedBefore,
+					paralyzed,
+					paralysisError,
+					queuedAfterParalysis,
+					invokeAfterClear,
+					handledAfterClear,
+					hackError,
+					destinationAfterInvoke,
+					albino = DescribeZombie(albino),
+					colonist = DescribePawn(colonist),
+					doorCell = ZombieRuntimeActions.DescribeCell(doorCell),
+					screamCell = ZombieRuntimeActions.DescribeCell(screamCell),
+					driverPresent = currentDriver != null,
+					destination = currentDriver?.destination.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.destination) : null,
+					queuedScreamCell = currentDriver?.queuedScreamCell.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.queuedScreamCell) : null,
+					door = currentDriver?.door == null ? null : ZombieRuntimeActions.StableThingId(currentDriver.door),
+					hackTarget = currentDriver?.hackTarget == null ? null : ZombieRuntimeActions.StableThingId(currentDriver.hackTarget),
+					hackCounter = currentDriver?.hackCounter,
+					albino.scream
+				}, paralysisError ?? hackError);
 			}
 			finally
 			{

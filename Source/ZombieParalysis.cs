@@ -165,6 +165,7 @@ namespace ZombieLand
 			driver.destination = IntVec3.Invalid;
 			driver.door = null;
 			driver.hackTarget = null;
+			driver.queuedScreamCell = IntVec3.Invalid;
 			driver.waitCounter = 0;
 			driver.hackCounter = 0;
 			if (zombie != null)
