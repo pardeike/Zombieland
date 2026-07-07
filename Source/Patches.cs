@@ -13,6 +13,7 @@ using Unity.Collections;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Verse.AI.Group;
 using Verse.Sound;
 
 namespace ZombieLand
@@ -1105,9 +1106,55 @@ namespace ZombieLand
 				var zombieCombatPower = HomeAreaZombieCombatPower(map);
 				if (zombieCombatPower <= 0f)
 					return;
-				var zombieDanger = StoryDangerFor(map, zombieCombatPower, lastColonistHarmedTickRef(__instance));
-				if (StorytellerEventFilterSupport.StoryDangerRank(zombieDanger) > StorytellerEventFilterSupport.StoryDangerRank(__result))
-					__result = zombieDanger;
+				var combinedCombatPower = VanillaStoryDangerCombatPower(map) + zombieCombatPower;
+				var combinedDanger = StoryDangerFor(map, combinedCombatPower, lastColonistHarmedTickRef(__instance));
+				if (StorytellerEventFilterSupport.StoryDangerRank(combinedDanger) > StorytellerEventFilterSupport.StoryDangerRank(__result))
+					__result = combinedDanger;
+			}
+
+			static float VanillaStoryDangerCombatPower(Map map)
+			{
+				if (map?.attackTargetsCache == null)
+					return 0f;
+
+				var combatPower = 0f;
+				foreach (var target in map.attackTargetsCache.TargetsHostileToColony)
+				{
+					if (StorytellerEventFilters.IsZombielandAttackTarget(target))
+						continue;
+					if (AffectsVanillaStoryDanger(target) == false)
+						continue;
+					combatPower += CombatPowerFor(target);
+				}
+				return combatPower;
+			}
+
+			static bool AffectsVanillaStoryDanger(IAttackTarget target)
+			{
+				if (target?.Thing is Pawn pawn)
+				{
+					var lord = pawn.GetLord();
+					if (lord != null
+						&& (lord.LordJob is LordJob_DefendPoint || lord.LordJob is LordJob_MechanoidDefendBase)
+						&& pawn.CurJobDef != JobDefOf.AttackMelee
+						&& pawn.CurJobDef != JobDefOf.AttackStatic)
+						return false;
+					var dormant = pawn.GetComp<CompCanBeDormant>();
+					if (dormant != null && dormant.Awake == false)
+						return false;
+				}
+				return GenHostility.IsActiveThreatToPlayer(target);
+			}
+
+			static float CombatPowerFor(IAttackTarget target)
+			{
+				if (target is Pawn pawn)
+					return pawn.kindDef?.combatPower ?? 0f;
+				if (target is Building_TurretGun turret
+					&& turret.def?.building?.IsMortar == true
+					&& turret.IsMannable == false)
+					return turret.def.building.combatPower;
+				return 0f;
 			}
 
 			static float HomeAreaZombieCombatPower(Map map)
