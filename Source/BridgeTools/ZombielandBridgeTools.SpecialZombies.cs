@@ -2043,7 +2043,7 @@ namespace ZombieLand
 			public string error;
 		}
 
-		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream cooldown, target preference, opportunistic raiders, false thing-target proximity, paralysis cancellation, door-resume, externally opened door resume, externally opened door hack-target re-path, flickable, breakdownable, and weapon hacks.")]
+		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream cooldown, target preference, opportunistic raiders, attack-mode scream filtering, false thing-target proximity, paralysis cancellation, door-resume, externally opened door resume, externally opened door hack-target re-path, flickable, breakdownable, and weapon hacks.")]
 		public static object AlbinoSabotageContract()
 		{
 			var map = CurrentMap;
@@ -2076,6 +2076,7 @@ namespace ZombieLand
 
 			AddCase("target_preference", () => AlbinoTargetPreferenceCase(map));
 			AddCase("opportunistic_raider", () => AlbinoOpportunisticRaiderCase(map));
+			AddCase("scream_respects_attack_mode", () => AlbinoScreamRespectsAttackModeCase(map));
 			AddCase("raider_attacking_nearby_colonist", () => AlbinoRaiderAttackingNearbyColonistCase(map));
 			AddCase("scream_cooldown", () => AlbinoScreamCooldownCase(map));
 			AddCase("paralysis_clears_queued_scream", () => AlbinoParalysisClearsQueuedScreamCase(map));
@@ -2369,6 +2370,100 @@ namespace ZombieLand
 			}
 			finally
 			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static AlbinoSabotageCase AlbinoScreamRespectsAttackModeCase(Map map)
+		{
+			const string caseName = "scream_respects_attack_mode";
+			var spawnedThings = new List<Thing>();
+			var previousAttackMode = ZombieSettings.Values.attackMode;
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				ApplyZombieSettingsOverride(values => values.attackMode = AttackMode.OnlyColonists);
+
+				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
+					return AlbinoCase(caseName, false, error: albinoError?.ToString());
+
+				var raiderCell = GenAdj.AdjacentCells
+					.Select(offset => albinoCell + offset)
+					.Where(cell => cell.InBounds(map))
+					.Where(cell => cell.Standable(map))
+					.Where(cell => cell.Fogged(map) == false)
+					.Where(cell => cell.GetEdifice(map) == null)
+					.Where(cell => cell.GetFirstThing<Mineable>(map) == null)
+					.Where(cell => cell.GetThingList(map).Any(thing => thing is Pawn) == false)
+					.FirstOrDefault();
+				if (raiderCell.IsValid == false)
+					return AlbinoCase(caseName, false, error: "No adjacent raider cell was available for the attack-mode scream fixture.");
+
+				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+				albino?.SetFaction(Tools.GetZombieFaction());
+				var raider = SpawnAlbinoTestRaider(map, raiderCell, spawnedThings);
+				if (albino == null || raider == null)
+					return AlbinoCase(caseName, false, error: "Could not create albino or raider fixture pawn.");
+
+				AdvanceGameTicks(1);
+				map.attackTargetsCache.UpdateTarget(raider);
+				var attractsUnderOnlyColonists = Customization.DoesAttractsZombies(raider);
+				var driver = StartAlbinoSabotageDriver(albino);
+				if (driver == null)
+					return AlbinoCase(caseName, false, error: "Albino did not enter the sabotage driver.");
+
+				albino.albinoNextScreamTick = GenTicks.TicksGame;
+				var reflectedPlan = TryInvokeAlbinoScreamPlan(driver, out var planCell, out var reason, out var planError);
+				var planDistanceToRaider = planCell.IsValid ? planCell.DistanceToSquared(raider.Position) : int.MaxValue;
+				var plannerTargetsRaider = reflectedPlan && reason == "opportunisticEnemy" && planDistanceToRaider <= 25;
+
+				driver.destination = IntVec3.Invalid;
+				driver.door = null;
+				driver.hackTarget = null;
+				driver.queuedScreamCell = IntVec3.Invalid;
+				driver.waitCounter = 0;
+				driver.hackCounter = 0;
+				albino.scream = 39;
+				albino.albinoScreamAffectedCount = 0;
+				var raiderJobBefore = raider.CurJobDef?.defName;
+				var raiderStunnedBefore = raider.stances?.stunner?.Stunned ?? false;
+				var invokedPulse = TryInvokeAlbinoScream(driver, out var pulseHandled, out var pulseError);
+				var raiderJobAfter = raider.CurJobDef?.defName;
+				var raiderStunnedAfter = raider.stances?.stunner?.Stunned ?? false;
+
+				var success = attractsUnderOnlyColonists == false
+					&& plannerTargetsRaider == false
+					&& invokedPulse
+					&& pulseHandled
+					&& raider.CurJobDef != JobDefOf.Vomit
+					&& raiderStunnedAfter == false;
+
+				return AlbinoCase(caseName, success, new
+				{
+					attackMode = ZombieSettings.Values.attackMode.ToString(),
+					attractsUnderOnlyColonists,
+					reflectedPlan,
+					reason,
+					plannerTargetsRaider,
+					planCell = planCell.IsValid ? ZombieRuntimeActions.DescribeCell(planCell) : null,
+					planDistanceToRaider,
+					invokedPulse,
+					pulseHandled,
+					pulseError,
+					albinoScreamAfterPulse = albino.scream,
+					albino.albinoScreamAffectedCount,
+					raiderJobBefore,
+					raiderJobAfter,
+					raiderStunnedBefore,
+					raiderStunnedAfter,
+					albino = DescribeZombie(albino),
+					raider = DescribePawn(raider)
+				}, planError ?? pulseError);
+			}
+			finally
+			{
+				ApplyZombieSettingsOverride(values => values.attackMode = previousAttackMode);
 				DestroyAlbinoCaseThings(spawnedThings);
 			}
 		}

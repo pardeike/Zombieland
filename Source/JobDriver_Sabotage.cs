@@ -475,6 +475,7 @@ namespace ZombieLand
 				&& pawn.Map == zombie.Map
 				&& pawn.Dead == false
 				&& IsZombielandZombie(pawn) == false
+				&& Customization.DoesAttractsZombies(pawn)
 				&& pawn.RaceProps.Humanlike
 				&& pawn.RaceProps.IsFlesh
 				&& AlienTools.IsFleshPawn(pawn)
