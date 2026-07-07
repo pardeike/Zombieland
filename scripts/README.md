@@ -1,5 +1,48 @@
 # Scripts
 
+## Zombieland Soundtrack
+
+Use `sync-soundtrack.sh` to convert and mirror original soundtrack WAV files into the runtime music folder consumed by the dynamic song loader.
+
+Source files live under:
+
+```text
+Originals/Soundtrack/
+```
+
+Generated runtime files live under:
+
+```text
+1.6/Sounds/music/
+```
+
+The folder structure is preserved. For example:
+
+```text
+Originals/Soundtrack/tense/night/track01.wav
+1.6/Sounds/music/tense/night/track01.ogg
+```
+
+Use `relax` for normal non-tense map music. It is a naming convention, not a special flag; songs are non-tense unless their path contains `tense`, `danger`, or `combat`.
+
+Run a normal sync after adding, changing, moving, or deleting tracks:
+
+```bash
+./scripts/sync-soundtrack.sh
+```
+
+Preview changes without writing files:
+
+```bash
+./scripts/sync-soundtrack.sh --dry-run
+```
+
+The script converts missing or outdated OGGs, deletes stale generated OGGs whose source WAV no longer exists, and removes empty generated subfolders. Non-OGG files in `1.6/Sounds/music`, such as README files, are left alone. It requires `ffmpeg` on `PATH`, or you can pass an explicit executable:
+
+```bash
+./scripts/sync-soundtrack.sh --ffmpeg /path/to/ffmpeg
+```
+
 ## Zombieland Asset Bundles
 
 Use `build-assetbundles.sh` to compile the Unity project in `Originals/Effects` and deploy the generated bundle into the mod resource folders. This is the supported path for shader and asset bundle work; avoid hand-written Unity command lines unless you are changing this script.

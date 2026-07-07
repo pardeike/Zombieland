@@ -221,6 +221,8 @@ namespace ZombieLand
 		public float damageFactor = 1.0f;
 		public ZombieInstinct zombieInstinct = ZombieInstinct.Normal;
 		public bool useCustomTextures = true;
+		public bool playZombielandMusic = true;
+		public int zombielandMusicShare = 50;
 		public bool playCreepyAmbientSound = true;
 		public bool showZombieEventLetters = true;
 		public bool playZombieEventSiren = true;
@@ -335,7 +337,10 @@ namespace ZombieLand
 			});
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
+			{
+				zombielandMusicShare = ZombielandMusic.NormalizeShare(zombielandMusicShare);
 				Tools.UpdateBiomeBlacklist(biomesWithoutZombies);
+			}
 		}
 
 		static AnomalyTargetingOverride ParseAnomalyTargetingOverride(string value, AnomalyTargetingOverride defaultValue)

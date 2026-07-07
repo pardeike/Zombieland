@@ -129,6 +129,8 @@
 	<ZombiesDropBlood_Help>游戏速度调整：关闭后僵尸不再掉落血迹。</ZombiesDropBlood_Help>
 	<ZombiesBurnLonger_Help>为增加有趣玩法，僵尸会着火并在四处行走时燃烧更久。如果你的电脑处理不了大量火焰，请关闭。</ZombiesBurnLonger_Help>
 	<AwarenessCuesTitle_Help>这些设置控制可能暴露僵尸活动的信件、声音和视觉提示。关闭它们只改变反馈，不改变僵尸行为。</AwarenessCuesTitle_Help>
+	<PlayZombielandMusic_Help>启用 Zombieland 配乐。如果你只想听 RimWorld、DLC 和其他音乐模组的音乐，请关闭此项。</PlayZombielandMusic_Help>
+	<ZombielandMusicShare_Help>控制新地图歌曲从 Zombieland 音乐中选择的频率。其他音乐包括 RimWorld、DLC、P-Music 和已安装的音乐包。这影响歌曲开始次数，而不是精确播放时长。</ZombielandMusicShare_Help>
 	<ShowZombieEventLetters_Help>显示或隐藏 Zombieland 自动事件警报，包括僵尸出现事件和喷吐者事件的 RimWorld 信件。</ShowZombieEventLetters_Help>
 	<PlayZombieEventSiren_Help>大型僵尸事件或喷吐者事件开始时，播放镜头位置的响亮警报声。</PlayZombieEventSiren_Help>
 	<PlaySpecialZombieAmbientSounds_Help>播放特殊僵尸发出的镜头环境音，例如坦克移动声和电流嗡鸣声。</PlaySpecialZombieAmbientSounds_Help>

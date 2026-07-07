@@ -8,7 +8,7 @@ namespace ZombieLand
 {
 	static class SettingsDialog
 	{
-		public static readonly float totalEstimatedHeight = 4150f;
+		public static readonly float totalEstimatedHeight = 4210f;
 		const float scrollContentBottomPadding = 24f;
 		public static float measuredContentHeight = totalEstimatedHeight;
 		public static float lastDrawnContentHeight = 0f;
@@ -345,9 +345,18 @@ namespace ZombieLand
 				}
 
 				// Awareness cues
-				if (DialogExtensions.Section<string>(":AwarenessCuesTitle", ":ShowZombieEventLetters", ":PlayZombieEventSiren", ":PlaySpecialZombieAmbientSounds", ":PlayZombieActionSounds", ":PlayWallAndSabotageSounds", ":ShowZombieThoughtBubbles", ":PlayCreepyAmbientSound", ":ShowHealthBar", ":ShowZombieStats", ":HighlightDangerousAreas", ":DangerousSituationMessage"))
+				if (DialogExtensions.Section<string>(":AwarenessCuesTitle", ":PlayZombielandMusic", ":ZombielandMusicShare", ":ShowZombieEventLetters", ":PlayZombieEventSiren", ":PlaySpecialZombieAmbientSounds", ":PlayZombieActionSounds", ":PlayWallAndSabotageSounds", ":ShowZombieThoughtBubbles", ":PlayCreepyAmbientSound", ":ShowHealthBar", ":ShowZombieStats", ":HighlightDangerousAreas", ":DangerousSituationMessage"))
 				{
 					list.Dialog_Label("AwarenessCuesTitle", headerColor);
+					list.Dialog_Checkbox("PlayZombielandMusic", ref settings.playZombielandMusic);
+					if (settings.playZombielandMusic)
+					{
+						list.Gap(8f);
+						var musicShareStep = Mathf.Clamp(Mathf.RoundToInt(settings.zombielandMusicShare / 10f), 0, 10);
+						list.Dialog_IntSlider("ZombielandMusicShare", step => ZombielandMusic.ShareLabel(step * 10), ref musicShareStep, 0, 10);
+						settings.zombielandMusicShare = musicShareStep * 10;
+						list.Gap(4f);
+					}
 					list.Dialog_Checkbox("ShowZombieEventLetters", ref settings.showZombieEventLetters);
 					list.Dialog_Checkbox("PlayZombieEventSiren", ref settings.playZombieEventSiren);
 					list.Dialog_Checkbox("PlaySpecialZombieAmbientSounds", ref settings.playSpecialZombieAmbientSounds);

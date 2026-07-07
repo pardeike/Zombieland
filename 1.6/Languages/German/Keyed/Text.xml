@@ -250,6 +250,11 @@
 	<ZombiesBurnLonger>Zombies brennen länger</ZombiesBurnLonger>
 
 	<AwarenessCuesTitle>Hinweise auf Zombieaktivität</AwarenessCuesTitle>
+	<PlayZombielandMusic>Zombieland-Musik abspielen</PlayZombielandMusic>
+	<ZombielandMusicShare>Zombieland-Soundtrack</ZombielandMusicShare>
+	<ZombielandMusicShare_OnlyOther>Nur Musik ohne Zombieland</ZombielandMusicShare_OnlyOther>
+	<ZombielandMusicShare_Percent>{0}% Zombieland-Musik</ZombielandMusicShare_Percent>
+	<ZombielandMusicShare_OnlyZombieland>Nur Zombieland-Musik</ZombielandMusicShare_OnlyZombieland>
 	<ShowZombieEventLetters>Zombie-Ereignismeldungen anzeigen</ShowZombieEventLetters>
 	<PlayZombieEventSiren>Zombie-Ereignissirene abspielen</PlayZombieEventSiren>
 	<PlaySpecialZombieAmbientSounds>Umgebungsgeräusche spezieller Zombies abspielen</PlaySpecialZombieAmbientSounds>

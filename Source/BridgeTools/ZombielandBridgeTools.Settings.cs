@@ -15,9 +15,9 @@ namespace ZombieLand
 	{
 		const string SettingsScenarioPawnName = "ZL_Settings_Colonist";
 
-		[Tool("zombieland/settings_state", Description = "Read, prepare, or verify reusable Zombieland settings/new-game/keyframe/colonist-toggle persistence fixtures.")]
+		[Tool("zombieland/settings_state", Description = "Read, prepare, or verify reusable Zombieland settings/new-game/keyframe/colonist-toggle/music persistence fixtures.")]
 		public static object SettingsState(
-			[ToolParameter(Description = "Action mode: read, prepare, verify, modal, behavior, gizmos, new-game, apparel-generation, or defaults-write-test.", Required = false, DefaultValue = "read")] string actionMode = "read",
+			[ToolParameter(Description = "Action mode: read, prepare, verify, modal, behavior, gizmos, music, new-game, apparel-generation, or defaults-write-test.", Required = false, DefaultValue = "read")] string actionMode = "read",
 		[ToolParameter(Description = "Open RimWorld's real Zombieland game-settings page/dialog while reading or preparing.", Required = false, DefaultValue = false)] bool openSettingsDialog = false)
 		{
 			var normalizedMode = (actionMode ?? "read").Trim().ToLowerInvariant();
@@ -77,6 +77,17 @@ namespace ZombieLand
 					gizmoVerification
 				};
 			}
+			if (normalizedMode == "music")
+			{
+				var musicVerification = VerifySettingsMusicFixtures(openSettingsDialog);
+				return new
+				{
+					success = ObjectSuccess(musicVerification),
+					actionMode = normalizedMode,
+					state = ReadSettingsPersistenceFixture(openSettingsDialog),
+					musicVerification
+				};
+			}
 			if (normalizedMode == "new-game")
 			{
 				var newGameVerification = VerifySettingsNewGameSetupFixtures();
@@ -124,7 +135,7 @@ namespace ZombieLand
 			{
 				success = false,
 				actionMode,
-				error = "Unsupported settings actionMode. Use read, prepare, verify, modal, behavior, gizmos, new-game, apparel-generation, or defaults-write-test."
+				error = "Unsupported settings actionMode. Use read, prepare, verify, modal, behavior, gizmos, music, new-game, apparel-generation, or defaults-write-test."
 			};
 		}
 
@@ -171,6 +182,8 @@ namespace ZombieLand
 			{
 				success = ZombieSettings.ValuesOverTime.Count == 3
 					&& ZombieSettings.Values.attackMode == AttackMode.Everything
+					&& ZombieSettings.Values.playZombielandMusic
+					&& ZombieSettings.Values.zombielandMusicShare == 0
 					&& pawn.Spawned
 					&& config != null
 					&& config.autoAvoidZombies == false
@@ -249,18 +262,28 @@ namespace ZombieLand
 				&& Approximately(day0.threatScale, 0.5f)
 				&& day0.maximumNumberOfZombies == 100
 				&& day0.attackMode == AttackMode.Everything
+				&& day0.playZombielandMusic
+				&& day0.zombielandMusicShare == 0
 				&& Approximately(day1.threatScale, 1.0f)
 				&& day1.maximumNumberOfZombies == 200
 				&& day1.attackMode == AttackMode.Everything
+				&& day1.playZombielandMusic
+				&& day1.zombielandMusicShare == 25
 				&& Approximately(day2.threatScale, 1.5f)
 				&& day2.maximumNumberOfZombies == 300
 				&& day2.attackMode == AttackMode.OnlyColonists
+				&& day2.playZombielandMusic
+				&& day2.zombielandMusicShare == 50
 				&& Approximately(day3.threatScale, 2.0f)
 				&& day3.maximumNumberOfZombies == 400
 				&& day3.attackMode == AttackMode.OnlyColonists
+				&& day3.playZombielandMusic
+				&& day3.zombielandMusicShare == 66
 				&& Approximately(day6.threatScale, 3.0f)
 				&& day6.maximumNumberOfZombies == 600
-				&& day6.attackMode == AttackMode.OnlyHumans;
+				&& day6.attackMode == AttackMode.OnlyHumans
+				&& day6.playZombielandMusic == false
+				&& day6.zombielandMusicShare == 100;
 			var colonistValid = pawn != null
 				&& pawn.Spawned
 				&& config != null
@@ -448,6 +471,68 @@ namespace ZombieLand
 					_ = windowStack.TryRemove(typeof(Dialog_MessageBox), false);
 				}
 			}
+		}
+
+		static object VerifySettingsMusicFixtures(bool openSettingsDialog)
+		{
+			var defaults = new SettingsGroup();
+			var chooseNextSong = AccessTools.Method(typeof(MusicManagerPlay), "ChooseNextSong");
+			var appropriateNow = AccessTools.Method(typeof(MusicManagerPlay), "AppropriateNow", new[] { typeof(SongDef) });
+			var patchTargets = PatchedMethodsForPatchClass("MusicManagerPlay_ChooseNextSong_Patch");
+			var prefix = FindNestedPatchMethod("MusicManagerPlay_ChooseNextSong_Patch", "Prefix");
+			var dynamicState = ZombielandMusic.DebugState();
+			var dialogState = MaybeOpenSettingsDialog(openSettingsDialog);
+			var normalizationSamples = new[] { -5, 0, 4, 5, 14, 15, 66, 95, 104 }
+				.Select(value => new
+				{
+					value,
+					normalized = ZombielandMusic.NormalizeShare(value)
+				})
+				.ToArray();
+			var labels = new[] { 0, 50, 100 }
+				.Select(value => new
+				{
+					value,
+					label = ZombielandMusic.ShareLabel(value)
+				})
+				.ToArray();
+
+			return new
+			{
+				success = defaults.playZombielandMusic
+					&& defaults.zombielandMusicShare == 50
+					&& ZombielandMusic.NormalizeShare(66) == 70
+					&& chooseNextSong != null
+					&& appropriateNow != null
+					&& prefix != null
+					&& patchTargets.Length > 0,
+				defaults = new
+				{
+					defaults.playZombielandMusic,
+					defaults.zombielandMusicShare
+				},
+				ui = new
+				{
+					settingSection = "AwarenessCuesTitle",
+					sliderHiddenWhenToggleOff = true,
+					intervalPercent = 10,
+					defaultPercent = 50,
+					labels
+				},
+				normalizationSamples,
+				rimWorldTargets = new
+				{
+					chooseNextSong = chooseNextSong?.FullDescription(),
+					appropriateNow = appropriateNow?.FullDescription()
+				},
+				patch = new
+				{
+					targets = patchTargets,
+					hasPrefix = prefix != null
+				},
+				dynamicState,
+				dialogState
+			};
 		}
 
 		static object VerifySettingsBehaviorFixtures()
@@ -1512,24 +1597,24 @@ namespace ZombieLand
 				{
 					amount = 0,
 					unit = SettingsKeyFrame.Unit.Days,
-					values = CreateSettingsGroup(0.5f, 100, AttackMode.Everything, SpawnWhenType.AllTheTime, SpawnHowType.FromTheEdges, SmashMode.DoorsOnly, true, false, 0.25f, 0.75f)
+					values = CreateSettingsGroup(0.5f, 100, AttackMode.Everything, SpawnWhenType.AllTheTime, SpawnHowType.FromTheEdges, SmashMode.DoorsOnly, true, false, 0.25f, 0.75f, true, 0)
 				},
 				new()
 				{
 					amount = 2,
 					unit = SettingsKeyFrame.Unit.Days,
-					values = CreateSettingsGroup(1.5f, 300, AttackMode.OnlyColonists, SpawnWhenType.WhenDark, SpawnHowType.AllOverTheMap, SmashMode.AnyBuilding, false, true, 0.5f, 1.25f)
+					values = CreateSettingsGroup(1.5f, 300, AttackMode.OnlyColonists, SpawnWhenType.WhenDark, SpawnHowType.AllOverTheMap, SmashMode.AnyBuilding, false, true, 0.5f, 1.25f, true, 50)
 				},
 				new()
 				{
 					amount = 5,
 					unit = SettingsKeyFrame.Unit.Days,
-					values = CreateSettingsGroup(3.0f, 600, AttackMode.OnlyHumans, SpawnWhenType.InEventsOnly, SpawnHowType.FromTheEdges, SmashMode.Nothing, true, true, 0.9f, 2.0f)
+					values = CreateSettingsGroup(3.0f, 600, AttackMode.OnlyHumans, SpawnWhenType.InEventsOnly, SpawnHowType.FromTheEdges, SmashMode.Nothing, true, true, 0.9f, 2.0f, false, 100)
 				}
 			};
 		}
 
-		static SettingsGroup CreateSettingsGroup(float threatScale, int maximumNumberOfZombies, AttackMode attackMode, SpawnWhenType spawnWhenType, SpawnHowType spawnHowType, SmashMode smashMode, bool doubleTapRequired, bool betterAvoidance, float infectionChance, float contaminationBaseFactor)
+		static SettingsGroup CreateSettingsGroup(float threatScale, int maximumNumberOfZombies, AttackMode attackMode, SpawnWhenType spawnWhenType, SpawnHowType spawnHowType, SmashMode smashMode, bool doubleTapRequired, bool betterAvoidance, float infectionChance, float contaminationBaseFactor, bool playZombielandMusic = true, int zombielandMusicShare = 50)
 		{
 			var group = new SettingsGroup
 			{
@@ -1541,6 +1626,8 @@ namespace ZombieLand
 				smashMode = smashMode,
 				doubleTapRequired = doubleTapRequired,
 				betterZombieAvoidance = betterAvoidance,
+				playZombielandMusic = playZombielandMusic,
+				zombielandMusicShare = zombielandMusicShare,
 				zombieBiteInfectionChance = infectionChance,
 				contaminationBaseFactor = contaminationBaseFactor,
 				enemiesAttackZombies = attackMode != AttackMode.OnlyColonists,
@@ -1561,6 +1648,8 @@ namespace ZombieLand
 		static SettingsGroup CreateDefaultSettingsPersistenceGroup()
 		{
 			var group = CreateSettingsGroup(0.37f, 137, AttackMode.Everything, SpawnWhenType.WhenDark, SpawnHowType.FromTheEdges, SmashMode.AnyBuilding, false, true, 0.12345f, 1.37f);
+			group.playZombielandMusic = false;
+			group.zombielandMusicShare = 70;
 			group.blacklistedApparel = new List<string> { "ZL_Defaults_Write_Test_Apparel" };
 			group.biomesWithoutZombies = new HashSet<string> { "ZL_Defaults_Write_Test_Biome" };
 			return group;
@@ -1577,6 +1666,8 @@ namespace ZombieLand
 				&& group.smashMode == SmashMode.AnyBuilding
 				&& group.doubleTapRequired == false
 				&& group.betterZombieAvoidance
+				&& group.playZombielandMusic == false
+				&& group.zombielandMusicShare == 70
 				&& Approximately(group.zombieBiteInfectionChance, 0.12345f)
 				&& Approximately(group.contaminationBaseFactor, 1.37f)
 				&& group.blacklistedApparel?.Contains("ZL_Defaults_Write_Test_Apparel") == true
@@ -1670,6 +1761,8 @@ namespace ZombieLand
 				group.enemiesAttackZombies,
 				group.animalsAttackZombies,
 				group.doubleTapRequired,
+				group.playZombielandMusic,
+				group.zombielandMusicShare,
 				group.zombieFreeEvents,
 				group.betterZombieAvoidance,
 				group.zombiesEatDowned,

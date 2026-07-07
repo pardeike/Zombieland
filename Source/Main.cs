@@ -123,6 +123,7 @@ namespace ZombieLand
 				_ = GetSettings<ZombieSettingsDefaults>();
 				if (ZombieSettingsDefaults.group == null)
 					Tools.ResetSettings();
+				ZombielandMusic.RegisterDynamicSongDefs();
 				IsLoadingDefaults = false;
 			});
 

@@ -158,6 +158,8 @@
 	<ZombiesTriggerDangerMusic_Help>Normally RimWorld plays specific danger music when there is a threat on the map. Since zombies are most likely permanent on the map, this option turns this feature off.</ZombiesTriggerDangerMusic_Help>
 	<PlayCreepyAmbientSound_Help>No zombie theme without some creepy ambient sounds. At night, when all zombies drift towards your base, this will play some spooky sounds.</PlayCreepyAmbientSound_Help>
 	<AwarenessCuesTitle_Help>These settings control letters, sounds, and visual hints that can reveal zombie activity. Turning them off changes feedback only, not what zombies do.</AwarenessCuesTitle_Help>
+	<PlayZombielandMusic_Help>Enables the Zombieland soundtrack. Turn this off if you prefer only RimWorld, DLC, and other music mods.</PlayZombielandMusic_Help>
+	<ZombielandMusicShare_Help>Controls how often a new map song is chosen from Zombieland music. Other music includes RimWorld, DLC, P-Music, and any installed music packs. This affects song starts, not exact listening time.</ZombielandMusicShare_Help>
 	<ShowZombieEventLetters_Help>Shows or hides automatic Zombieland event alerts, including RimWorld letters for zombie rising events and spitter events.</ShowZombieEventLetters_Help>
 	<PlayZombieEventSiren_Help>Plays the loud on-camera siren when a large zombie event or spitter event starts.</PlayZombieEventSiren_Help>
 	<PlaySpecialZombieAmbientSounds_Help>Plays camera-based ambient sounds from special zombies, such as tank movement and electric humming.</PlaySpecialZombieAmbientSounds_Help>
