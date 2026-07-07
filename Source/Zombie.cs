@@ -417,7 +417,6 @@ namespace ZombieLand
 		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)
 		{
 			var map = Map;
-			map?.GetComponent<TickManager>()?.RequestAvoidGridRefresh();
 
 			if (IsSuicideBomber)
 			{
