@@ -2672,6 +2672,7 @@ namespace ZombieLand
 					var supersedingPromptResultAccepted = ReferenceEquals(tickManager.avoidGrid, supersedingPromptResultGrid)
 						&& tickManager.lastAvoidGridResultId == coalesceRequestIdAfterFlush
 						&& PromptAvoidGridResultPending() == false;
+					var coalesceZombieBeforeCleanup = DescribeZombie(coalesceZombie);
 
 					var promptRefreshCoalescing = new
 					{
@@ -2686,7 +2687,7 @@ namespace ZombieLand
 							&& coalescePromptPendingAfterFlush
 							&& coalesceRequestedAfterFlush == false
 							&& supersedingPromptResultAccepted,
-						coalesceZombie = DescribeZombie(coalesceZombie),
+						coalesceZombie = coalesceZombieBeforeCleanup,
 						coalesceCell = ZombieRuntimeActions.DescribeCell(coalesceCell),
 						pendingPromptRequestId,
 						pendingPromptResultPending,
@@ -2705,9 +2706,15 @@ namespace ZombieLand
 						&& ReferenceEquals(realGrid, clearedGrid) == false
 						&& ReferenceEquals(clearedGrid, exactResultGrid) == false;
 
-					tickManager.avoidGrid = clearedGrid;
-					tickManager.lastAvoidGridRequestId = clearedGrid.requestId;
-					tickManager.lastAvoidGridResultId = clearedGrid.requestId;
+					var coalesceZombieDestroyed = CleanupAvoidGridDeathRefreshThing(coalesceZombie);
+					var coalesceZombieSpawnedAfterCleanup = coalesceZombie.Spawned && coalesceZombie.Destroyed == false;
+					var liveZombiesAfterCoalesceCleanup = tickManager.AllZombies()
+						.Where(liveZombie => liveZombie.Spawned && liveZombie.Dead == false)
+						.ToHashSet();
+					tickManager.allZombiesCached = liveZombiesAfterCoalesceCleanup;
+					var finalGrid = BuildAvoidGridForZombies(map, liveZombiesAfterCoalesceCleanup);
+					tickManager.lastAvoidGridRequestId = finalGrid.requestId;
+					tickManager.lastAvoidGridResultId = finalGrid.requestId;
 					tickManager.lastAvoidGridRequestTick = GenTicks.TicksGame;
 					tickManager.lastAvoidGridResultTick = GenTicks.TicksGame;
 					promptAvoidGridResultPendingField.SetValue(tickManager, false);
@@ -2730,7 +2737,9 @@ namespace ZombieLand
 							&& staleResultRejected
 							&& futureResultRejected
 							&& exactResultAccepted
-							&& promptRefreshCoalescing.success,
+							&& promptRefreshCoalescing.success
+							&& coalesceZombieDestroyed
+							&& coalesceZombieSpawnedAfterCleanup == false,
 						destroyedZombies,
 						destroyedAfterZombie,
 						actor = DescribePawn(actor),
@@ -2761,6 +2770,10 @@ namespace ZombieLand
 						exactResultCostAfter,
 						exactRefreshRequestedAfter,
 						exactPromptPendingAfter,
+						coalesceZombieDestroyed,
+						coalesceZombieSpawnedAfterCleanup,
+						liveZombiesAfterCoalesceCleanup = liveZombiesAfterCoalesceCleanup.Count,
+						finalGridRequestId = finalGrid.requestId,
 						promptRefreshCoalescing
 					};
 				}
