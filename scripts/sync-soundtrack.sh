@@ -182,7 +182,7 @@ convert_wav() {
 	mkdir -p "$(dirname "$dest")"
 	local tmp
 	tmp="$(mktemp "$(dirname "$dest")/.tmp.XXXXXX")"
-	if "$FFMPEG_BIN" -hide_banner -loglevel error -y -i "$src" -vn -map_metadata 0 "${vorbis_args[@]}" -q:a "$QUALITY" -f ogg "$tmp"; then
+	if "$FFMPEG_BIN" -nostdin -hide_banner -loglevel error -y -i "$src" -vn -map_metadata 0 "${vorbis_args[@]}" -q:a "$QUALITY" -f ogg "$tmp"; then
 		mv "$tmp" "$dest"
 		((converted += 1))
 		log "converted: $rel -> $dest_rel"
