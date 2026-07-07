@@ -2057,7 +2057,7 @@ namespace ZombieLand
 				var patchTargets = new
 				{
 					dropCellFinder = PatchedMethodsForPatchClass("DropCellFinder_IsSafeDropSpot_Patch"),
-					anyHostileActiveThreat = PatchedMethodsForPatchClass("GenHostility_AnyHostileActiveThreatTo_Patch"),
+					targetsHostileToFaction = PatchedMethodsForPatchClass("AttackTargetsCache_TargetsHostileToFaction_Patch"),
 					wealthItems = PatchedMethodsForPatchClass("WealthWatcher_CalculateWealthItems_Patch"),
 					wealthItemsFilter = PatchedMethodsForPatchClass("WealthWatcher_WealthItemsFilter_Patch"),
 					dangerRating = PatchedMethodsForPatchClass("DangerWatcher_CalculateDangerRating_Patch")
@@ -2129,19 +2129,22 @@ namespace ZombieLand
 				};
 			}
 			map.attackTargetsCache.UpdateTarget(zombie);
-			var rawZombielandHostiles = map.attackTargetsCache.TargetsHostileToFaction(faction).Count(StorytellerEventFilters.IsZombielandAttackTarget);
+			var zombieHostileToFaction = zombie.HostileTo(faction);
+			var filteredZombielandHostiles = map.attackTargetsCache.TargetsHostileToFaction(faction).Count(StorytellerEventFilters.IsZombielandAttackTarget);
 			var safeNearZombie = InvokeSafeDropSpot(method, dropCell, map, faction, out var safeNearZombieError);
 			return new
 			{
 				success = safeBefore == true
 					&& safeNearZombie == true
-					&& rawZombielandHostiles > 0
+					&& zombieHostileToFaction
+					&& filteredZombielandHostiles == 0
 					&& safeBeforeError == null
 					&& safeNearZombieError == null,
 				dropCell = ZombieRuntimeActions.DescribeCell(dropCell),
 				zombieCell = ZombieRuntimeActions.DescribeCell(zombieCell),
 				distance = dropCell.DistanceTo(zombieCell),
-				rawZombielandHostiles,
+				zombieHostileToFaction,
+				filteredZombielandHostiles,
 				safeBefore,
 				safeNearZombie,
 				safeBeforeError,
@@ -2166,14 +2169,17 @@ namespace ZombieLand
 				};
 			}
 			map.attackTargetsCache.UpdateTarget(zombie);
-			var rawZombielandHostiles = map.attackTargetsCache.TargetsHostileToFaction(faction).Count(StorytellerEventFilters.IsZombielandAttackTarget);
+			var zombieHostileToFaction = zombie.HostileTo(faction);
+			var filteredZombielandHostiles = map.attackTargetsCache.TargetsHostileToFaction(faction).Count(StorytellerEventFilters.IsZombielandAttackTarget);
 			var aggregateThreat = GenHostility.AnyHostileActiveThreatTo(map, faction, out var threat, countDormantPawnsAsHostile: true);
 			return new
 			{
-				success = rawZombielandHostiles > 0
+				success = zombieHostileToFaction
+					&& filteredZombielandHostiles == 0
 					&& aggregateThreat == false
 					&& StorytellerEventFilters.IsZombielandAttackTarget(threat) == false,
-				rawZombielandHostiles,
+				zombieHostileToFaction,
+				filteredZombielandHostiles,
 				aggregateThreat,
 				threat = threat?.Thing == null ? null : new
 				{

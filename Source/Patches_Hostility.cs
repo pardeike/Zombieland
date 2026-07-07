@@ -666,56 +666,6 @@ namespace ZombieLand
 		}
 	}
 
-	[HarmonyPatch]
-	static class GenHostility_AnyHostileActiveThreatTo_Patch
-	{
-		static MethodBase TargetMethod()
-		{
-			return AccessTools.Method(
-				typeof(GenHostility),
-				nameof(GenHostility.AnyHostileActiveThreatTo),
-				new[] { typeof(Map), typeof(Faction), typeof(IAttackTarget).MakeByRefType(), typeof(bool), typeof(bool) });
-		}
-
-		static bool Prefix(Map map, Faction faction, ref IAttackTarget threat, bool countDormantPawnsAsHostile, bool canBeFogged, ref bool __result)
-		{
-			if (map?.attackTargetsCache == null)
-				return true;
-
-			foreach (var target in map.attackTargetsCache.TargetsHostileToFaction(faction))
-			{
-				if (StorytellerEventFilters.IsZombielandAttackTarget(target))
-					continue;
-				if (GenHostility.IsActiveThreatTo(target, faction, true, canBeFogged))
-				{
-					threat = target;
-					__result = true;
-					return false;
-				}
-				if (countDormantPawnsAsHostile == false)
-					continue;
-				if (target.Thing.HostileTo(faction) == false)
-					continue;
-				if (canBeFogged == false && target.Thing.Fogged())
-					continue;
-				if (target.ThreatDisabled(null))
-					continue;
-				if (target.Thing is not Pawn pawn)
-					continue;
-				var dormant = pawn.GetComp<CompCanBeDormant>();
-				if (dormant != null && dormant.Awake == false)
-				{
-					threat = target;
-					__result = true;
-					return false;
-				}
-			}
-
-			threat = null;
-			__result = false;
-			return false;
-		}
-	}
 	//
 	// but let drafted pawns attack zombies
 	//
@@ -749,10 +699,46 @@ namespace ZombieLand
 		// both in map exist and for danger music
 		//
 		static readonly Dictionary<Map, HashSet<IAttackTarget>> playerHostilesWithoutZombies = new();
+		static readonly Dictionary<AttackTargetsCache, Dictionary<Faction, HashSet<IAttackTarget>>> factionHostilesWithoutZombies = new();
 
 		static bool IsZombielandTarget(IAttackTarget target)
 		{
 			return target?.Thing is Zombie || target?.Thing is ZombieSymbiant || target?.Thing is ZombieSpitter;
+		}
+
+		static HashSet<IAttackTarget> HostilesWithoutZombies(AttackTargetsCache cache, Faction faction, HashSet<IAttackTarget> source)
+		{
+			if (cache == null || faction == null || source == null || source.Count == 0)
+				return source;
+
+			var hasZombielandTarget = false;
+			foreach (var target in source)
+			{
+				if (IsZombielandTarget(target))
+				{
+					hasZombielandTarget = true;
+					break;
+				}
+			}
+			if (hasZombielandTarget == false)
+				return source;
+
+			if (factionHostilesWithoutZombies.TryGetValue(cache, out var factionTargets) == false)
+			{
+				factionTargets = new Dictionary<Faction, HashSet<IAttackTarget>>();
+				factionHostilesWithoutZombies.Add(cache, factionTargets);
+			}
+			if (factionTargets.TryGetValue(faction, out var filtered) == false)
+			{
+				filtered = new HashSet<IAttackTarget>();
+				factionTargets.Add(faction, filtered);
+			}
+
+			filtered.Clear();
+			foreach (var target in source)
+				if (IsZombielandTarget(target) == false)
+					filtered.Add(target);
+			return filtered;
 		}
 
 		static HashSet<IAttackTarget> PlayerHostilesWithoutZombies(Map map)
@@ -774,6 +760,16 @@ namespace ZombieLand
 					|| thing.HostileTo(Faction.OfPlayer) == false;
 			});
 			return targets;
+		}
+
+		[HarmonyPatch(typeof(AttackTargetsCache))]
+		[HarmonyPatch(nameof(AttackTargetsCache.TargetsHostileToFaction))]
+		static class AttackTargetsCache_TargetsHostileToFaction_Patch
+		{
+			static void Postfix(AttackTargetsCache __instance, Faction f, ref HashSet<IAttackTarget> __result)
+			{
+				__result = HostilesWithoutZombies(__instance, f, __result);
+			}
 		}
 
 		[HarmonyPatch(typeof(AttackTargetsCache))]
