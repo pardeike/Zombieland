@@ -514,6 +514,7 @@ namespace ZombieLand
 			"ZombieLand.Patches+Pawn_AnythingToStrip_Patch",
 			"ZombieLand.Patches+PawnCapacitiesHandler_CanBeAwake_Patch",
 			"ZombieLand.Patches+Pawn_HealthTracker_MakeDowned_Patch",
+			"ZombieLand.Patches+Pawn_HealthTracker_MakeUndowned_Patch",
 			"ZombieLand.PsychicRitualToil_SkipAbductionPlayer_ApplyOutcome_Patch"
 		};
 

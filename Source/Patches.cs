@@ -6253,12 +6253,16 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Pawn_HealthTracker.MakeDowned))]
 		static class Pawn_HealthTracker_MakeDowned_Patch
 		{
-			static bool Prefix(Pawn ___pawn) => ___pawn is not ZombieSymbiant && ___pawn is not ZombieSpitter;
+			static bool Prefix(Pawn ___pawn, out bool __state)
+			{
+				__state = ___pawn is Zombie zombie && zombie.AffectsAvoidGrid;
+				return ___pawn is not ZombieSymbiant && ___pawn is not ZombieSpitter;
+			}
 
-			static void Postfix(Pawn ___pawn)
+			static void Postfix(Pawn ___pawn, bool __state)
 			{
 				if (___pawn is Zombie zombie)
-					zombie.Map?.GetComponent<TickManager>()?.RequestAvoidGridRefresh();
+					zombie.RequestAvoidGridRefreshIfAffectingChanged(__state);
 
 				if (IsZombielandPawn(___pawn))
 					return;
@@ -6286,6 +6290,22 @@ namespace ZombieLand
 					}
 				}
 				grid.SetTimestamp(___pawn.Position, 0);
+			}
+		}
+
+		[HarmonyPatch(typeof(Pawn_HealthTracker))]
+		[HarmonyPatch(nameof(Pawn_HealthTracker.MakeUndowned))]
+		static class Pawn_HealthTracker_MakeUndowned_Patch
+		{
+			static void Prefix(Pawn ___pawn, out bool __state)
+			{
+				__state = ___pawn is Zombie zombie && zombie.AffectsAvoidGrid;
+			}
+
+			static void Postfix(Pawn ___pawn, bool __state)
+			{
+				if (___pawn is Zombie zombie)
+					zombie.RequestAvoidGridRefreshIfAffectingChanged(__state);
 			}
 		}
 

@@ -30,7 +30,7 @@ namespace ZombieLand
 				initAction = delegate ()
 				{
 					var zombie = job.GetTarget(TargetIndex.A).Thing as Zombie;
-					zombie.ropedBy = pawn;
+					zombie?.SetRopedBy(pawn);
 				}
 			};
 		}

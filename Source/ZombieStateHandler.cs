@@ -247,10 +247,17 @@ namespace ZombieLand
 
 		public static bool DownedOrUnconsciousness(Zombie zombie)
 		{
+			var wasAffectingAvoidGrid = zombie.AffectsAvoidGrid;
+			bool Return(bool result)
+			{
+				zombie.RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
+				return result;
+			}
+
 			if (zombie.paralyzedUntil > 0)
 			{
 				if (GenTicks.TicksAbs < zombie.paralyzedUntil)
-					return true;
+					return Return(true);
 				zombie.paralyzedUntil = 0;
 			}
 
@@ -261,7 +268,7 @@ namespace ZombieLand
 				if (zombie.Downed == false && zombie.isHealing == false && hediffSet.hediffs.Count == 0)
 				{
 					zombie.consciousness = 1f;
-					return false;
+					return Return(false);
 				}
 
 				zombie.consciousness = health.capacities.GetLevel(PawnCapacityDefOf.Consciousness);
@@ -282,7 +289,7 @@ namespace ZombieLand
 							}
 						}
 					}
-					return zombie.ropedBy == null;
+					return Return(zombie.ropedBy == null);
 				}
 			}
 
@@ -295,12 +302,12 @@ namespace ZombieLand
 				if (ZombieSettings.Values.zombiesDieVeryEasily || zombie.IsSuicideBomber || ZombieSettings.Values.doubleTapRequired == false)
 				{
 					zombie.Kill(null);
-					return true;
+					return Return(true);
 				}
 			}
 
 			if (zombie.isHealing == false || zombie.stances.stunner.Stunned || zombie.IsBurning())
-				return false;
+				return Return(false);
 
 			if ((wasHealing == false && zombie.isHealing) || zombie.EveryNTick(NthTick.Every480))
 			{
@@ -308,7 +315,7 @@ namespace ZombieLand
 				if (injury != null)
 					_ = HealthUtility.Cure(injury);
 			}
-			return false;
+			return Return(false);
 		}
 
 		// handle things that affect zombies ====================================================================

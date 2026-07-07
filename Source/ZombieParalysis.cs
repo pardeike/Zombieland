@@ -73,12 +73,14 @@ namespace ZombieLand
 			if (zombie.CanParalyze(out error) == false)
 				return false;
 
+			var wasAffectingAvoidGrid = zombie.AffectsAvoidGrid;
 			var until = (int)Math.Min(int.MaxValue, (long)GenTicks.TicksAbs + ticks);
 			zombie.paralyzedUntil = Math.Max(zombie.paralyzedUntil, until);
 			if (clearRope)
 				zombie.ropedBy = null;
 			if (stopDangerousJob)
 				StopDangerousState(zombie);
+			zombie.RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
 			return true;
 		}
 
@@ -106,7 +108,9 @@ namespace ZombieLand
 				return false;
 			if (GenTicks.TicksAbs >= zombie.paralyzedUntil)
 			{
+				var wasAffectingAvoidGrid = zombie.AffectsAvoidGrid;
 				zombie.paralyzedUntil = 0;
+				zombie.RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
 				return false;
 			}
 

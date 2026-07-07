@@ -1186,14 +1186,7 @@ namespace ZombieLand
 
 		static bool ShouldAffectAvoidGrid(Zombie zombie)
 		{
-			return zombie != null
-				&& zombie.isAlbino == false
-				&& zombie.IsRopedOrConfused == false
-				&& zombie.Spawned
-				&& zombie.Dead == false
-				&& zombie.health != null
-				&& zombie.health.Downed == false
-				&& zombie.Position.IsValid;
+			return zombie?.AffectsAvoidGrid == true;
 		}
 
 		public void MarkZombieContact()

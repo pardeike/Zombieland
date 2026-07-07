@@ -83,6 +83,13 @@ namespace ZombieLand
 		public Pawn ropedBy;
 		public bool IsConfused => Downed == false && ropedBy == null && (this.IsParalyzed() || consciousness <= Constants.MIN_CONSCIOUSNESS);
 		public bool IsRopedOrConfused => Downed == false && (this.IsParalyzed() || consciousness <= Constants.MIN_CONSCIOUSNESS || ropedBy != null);
+		public bool AffectsAvoidGrid => isAlbino == false
+			&& IsRopedOrConfused == false
+			&& Spawned
+			&& Dead == false
+			&& health != null
+			&& health.Downed == false
+			&& Position.IsValid;
 
 		// being pushed over walls
 		public float wallPushProgress = -1f;
@@ -388,8 +395,23 @@ namespace ZombieLand
 
 		public void Unrope()
 		{
+			var wasAffectingAvoidGrid = AffectsAvoidGrid;
 			if (this.TryParalyze(ZombieParalysis.ShockerParalysisTicks, out _, true, true) == false)
 				ropedBy = null;
+			RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
+		}
+
+		public void SetRopedBy(Pawn pawn)
+		{
+			var wasAffectingAvoidGrid = AffectsAvoidGrid;
+			ropedBy = pawn;
+			RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
+		}
+
+		public void RequestAvoidGridRefreshIfAffectingChanged(bool wasAffectingAvoidGrid)
+		{
+			if (wasAffectingAvoidGrid != AffectsAvoidGrid)
+				Map?.GetComponent<TickManager>()?.RequestAvoidGridRefresh();
 		}
 
 		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)
