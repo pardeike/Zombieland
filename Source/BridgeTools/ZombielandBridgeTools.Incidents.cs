@@ -2129,21 +2129,21 @@ namespace ZombieLand
 			}
 			map.attackTargetsCache.UpdateTarget(zombie);
 			var zombieHostileToFaction = zombie.HostileTo(faction);
-			var filteredZombielandHostiles = map.attackTargetsCache.TargetsHostileToFaction(faction).Count(StorytellerEventFilters.IsZombielandAttackTarget);
+			var rawZombielandHostiles = map.attackTargetsCache.TargetsHostileToFaction(faction).Count(StorytellerEventFilters.IsZombielandAttackTarget);
 			var safeNearZombie = InvokeSafeDropSpot(method, dropCell, map, faction, out var safeNearZombieError);
 			return new
 			{
 				success = safeBefore == true
 					&& safeNearZombie == true
 					&& zombieHostileToFaction
-					&& filteredZombielandHostiles == 0
+					&& rawZombielandHostiles > 0
 					&& safeBeforeError == null
 					&& safeNearZombieError == null,
 				dropCell = ZombieRuntimeActions.DescribeCell(dropCell),
 				zombieCell = ZombieRuntimeActions.DescribeCell(zombieCell),
 				distance = dropCell.DistanceTo(zombieCell),
 				zombieHostileToFaction,
-				filteredZombielandHostiles,
+				rawZombielandHostiles,
 				safeBefore,
 				safeNearZombie,
 				safeBeforeError,
@@ -2169,16 +2169,16 @@ namespace ZombieLand
 			}
 			map.attackTargetsCache.UpdateTarget(zombie);
 			var zombieHostileToFaction = zombie.HostileTo(faction);
-			var filteredZombielandHostiles = map.attackTargetsCache.TargetsHostileToFaction(faction).Count(StorytellerEventFilters.IsZombielandAttackTarget);
+			var rawZombielandHostiles = map.attackTargetsCache.TargetsHostileToFaction(faction).Count(StorytellerEventFilters.IsZombielandAttackTarget);
 			var aggregateThreat = GenHostility.AnyHostileActiveThreatTo(map, faction, out var threat, countDormantPawnsAsHostile: true);
 			return new
 			{
 				success = zombieHostileToFaction
-					&& filteredZombielandHostiles == 0
+					&& rawZombielandHostiles > 0
 					&& aggregateThreat == false
 					&& StorytellerEventFilters.IsZombielandAttackTarget(threat) == false,
 				zombieHostileToFaction,
-				filteredZombielandHostiles,
+				rawZombielandHostiles,
 				aggregateThreat,
 				threat = threat?.Thing == null ? null : new
 				{
