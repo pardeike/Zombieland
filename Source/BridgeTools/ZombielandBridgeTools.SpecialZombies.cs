@@ -2689,8 +2689,9 @@ namespace ZombieLand
 				driver.hackTarget = null;
 				driver.queuedScreamCell = screamCell;
 				driver.waitCounter = 0;
-				driver.hackCounter = 0;
+				driver.hackCounter = doorAlreadyPassable ? 123 : 0;
 				albino.scream = -1;
+				var hackCounterBeforeResume = driver.hackCounter;
 
 				if (doorAlreadyPassable)
 					door.StartManualOpenBy(colonist);
@@ -2699,18 +2700,22 @@ namespace ZombieLand
 				if (doorAlreadyPassable)
 					AdvanceGameTicks(1);
 				else
+				{
 					for (var tick = 1; tick <= hackTicks; tick++)
 						if (TryInvokeAlbinoHackThing(driver, out _, out var hackError) == false)
 							return AlbinoCase(caseName, false, error: hackError);
+				}
 
 				var currentDriver = albino.jobs.curDriver as JobDriver_Sabotage;
 				var success = door.Open
 					&& currentDriver != null
+					&& (doorAlreadyPassable == false || currentDriver.hackCounter == 0)
 					&& (albino.scream == -2 || currentDriver.destination.IsValid || currentDriver.queuedScreamCell.IsValid == false);
 				return AlbinoCase(caseName, success, new
 				{
 					doorAlreadyPassable,
 					hackTicks,
+					hackCounterBeforeResume,
 					doorOpen = door.Open,
 					doorCanPhysicallyPass = door.CanPhysicallyPass(albino),
 					albino = DescribeZombie(albino),
@@ -2719,6 +2724,7 @@ namespace ZombieLand
 					screamCell = ZombieRuntimeActions.DescribeCell(screamCell),
 					destination = currentDriver?.destination.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.destination) : null,
 					queuedScreamCell = currentDriver?.queuedScreamCell.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.queuedScreamCell) : null,
+					hackCounterAfterResume = currentDriver?.hackCounter,
 					albino.scream
 				});
 			}

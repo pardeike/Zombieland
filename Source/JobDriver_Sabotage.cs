@@ -327,6 +327,7 @@ namespace ZombieLand
 
 			var screamCell = driver.queuedScreamCell;
 			driver.door = null;
+			driver.hackCounter = 0;
 			return driver.Goto(screamCell, () => ((Zombie)driver.pawn).scream = -2);
 		}
 
