@@ -660,7 +660,7 @@ namespace ZombieLand
 		{
 			static bool RunTicking(Pawn pawn)
 			{
-				if (pawn is Zombie || pawn is ZombieSymbiant || pawn is ZombieSpitter)
+				if (IsZombielandPawn(pawn))
 					return true;
 
 				if (pawn.RaceProps.Humanlike)
@@ -3340,7 +3340,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn __instance, ref bool __result)
 			{
-				if (__instance is Zombie || __instance is ZombieSymbiant || __instance is ZombieSpitter)
+				if (IsZombielandPawn(__instance))
 				{
 					__result = false;
 					return false;
@@ -5677,7 +5677,7 @@ namespace ZombieLand
 		//
 		static bool IsZombielandPawn(Pawn pawn)
 		{
-			return pawn is Zombie || pawn is ZombieSymbiant || pawn is ZombieSpitter;
+			return StorytellerEventFilters.IsZombielandPawn(pawn);
 		}
 
 		static bool IsZombielandSocialPawn(Pawn pawn)
@@ -5687,7 +5687,7 @@ namespace ZombieLand
 
 		static bool IsZombielandCorpse(Corpse corpse)
 		{
-			return corpse is ZombieCorpse or ZombieSpitterCorpse || IsZombielandPawn(corpse?.InnerPawn);
+			return StorytellerEventFilters.IsZombielandCorpse(corpse);
 		}
 
 		[HarmonyPatch(typeof(TaleRecorder))]

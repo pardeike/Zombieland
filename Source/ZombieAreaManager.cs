@@ -19,7 +19,7 @@ namespace ZombieLand
 
 		public static bool IsZombielandPawn(Pawn pawn)
 		{
-			return pawn is Zombie || pawn is ZombieSymbiant || pawn is ZombieSpitter;
+			return StorytellerEventFilters.IsZombielandPawn(pawn);
 		}
 
 		static Pawn[] AllZombies(Map map)

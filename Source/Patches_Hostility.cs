@@ -204,7 +204,7 @@ namespace ZombieLand
 			{
 				if (target.Thing is not Pawn pawn)
 					return false;
-				if (removeAllZombies && (pawn is Zombie || pawn is ZombieSpitter || pawn is ZombieSymbiant))
+				if (removeAllZombies && StorytellerEventFilters.IsZombielandPawn(pawn))
 					return true;
 				if (removeSpitter && (pawn is ZombieSpitter || pawn is ZombieSymbiant))
 					return true;
@@ -703,7 +703,7 @@ namespace ZombieLand
 
 		static bool IsZombielandTarget(IAttackTarget target)
 		{
-			return target?.Thing is Zombie || target?.Thing is ZombieSymbiant || target?.Thing is ZombieSpitter;
+			return StorytellerEventFilters.IsZombielandAttackTarget(target);
 		}
 
 		static HashSet<IAttackTarget> HostilesWithoutZombies(AttackTargetsCache cache, Faction faction, HashSet<IAttackTarget> source)
