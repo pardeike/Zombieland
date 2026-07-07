@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using System.Collections.Generic;
+using RimWorld;
 using Verse;
 using Verse.AI;
 
@@ -6,6 +7,8 @@ namespace ZombieLand
 {
 	public static class StorytellerEventFilters
 	{
+		static readonly List<Thing> tmpZombieCorpseWealthThings = new();
+
 		public static bool IsZombielandPawn(Thing thing)
 		{
 			return thing is Zombie || thing is ZombieSpitter || thing is ZombieSymbiant;
@@ -47,13 +50,26 @@ namespace ZombieLand
 				return 0f;
 
 			var total = 0f;
-			foreach (var corpse in map.listerThings.ThingsInGroup(ThingRequestGroup.Corpse))
+			try
 			{
-				if (IsZombielandCorpse(corpse) == false)
-					continue;
-				if (corpse.Spawned == false || corpse.PositionHeld.Fogged(map))
-					continue;
-				total += corpse.MarketValue * corpse.stackCount;
+				ThingOwnerUtility.GetAllThingsRecursively(
+					map,
+					ThingRequest.ForGroup(ThingRequestGroup.HaulableEver),
+					tmpZombieCorpseWealthThings,
+					allowUnreal: false,
+					WealthWatcher.WealthItemsFilter);
+				foreach (var thing in tmpZombieCorpseWealthThings)
+				{
+					if (IsZombielandCorpse(thing) == false)
+						continue;
+					if (thing.SpawnedOrAnyParentSpawned == false || thing.PositionHeld.Fogged(map))
+						continue;
+					total += thing.MarketValue * thing.stackCount;
+				}
+			}
+			finally
+			{
+				tmpZombieCorpseWealthThings.Clear();
 			}
 			return total;
 		}
