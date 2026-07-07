@@ -238,7 +238,7 @@ namespace ZombieLand
 			if (driver.destination.IsValid)
 				return false;
 
-			if (driver.ResumeQueuedScreamIfDoorPassable())
+			if (driver.ResumeDoorTargetIfPassable())
 				return true;
 
 			var door = driver.door;
@@ -316,18 +316,32 @@ namespace ZombieLand
 			return false;
 		}
 
-		static bool ResumeQueuedScreamIfDoorPassable(this JobDriver_Sabotage driver)
+		static bool ResumeDoorTargetIfPassable(this JobDriver_Sabotage driver)
 		{
+			var door = driver.door;
+			if (door == null)
+				return false;
+
+			if (door.Spawned && door.CanPhysicallyPass(driver.pawn) == false)
+				return false;
+
+			driver.door = null;
+			driver.hackCounter = 0;
+
+			var thing = driver.hackTarget;
+			if (thing != null)
+			{
+				if (thing.Spawned && driver.Goto(thing))
+					return true;
+
+				driver.hackTarget = null;
+				return true;
+			}
+
 			if (driver.queuedScreamCell.IsValid == false)
 				return false;
 
-			var door = driver.door;
-			if (door != null && door.Spawned && door.CanPhysicallyPass(driver.pawn) == false)
-				return false;
-
 			var screamCell = driver.queuedScreamCell;
-			driver.door = null;
-			driver.hackCounter = 0;
 			return driver.Goto(screamCell, () => ((Zombie)driver.pawn).scream = -2);
 		}
 

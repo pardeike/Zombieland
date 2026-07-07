@@ -2043,7 +2043,7 @@ namespace ZombieLand
 			public string error;
 		}
 
-		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream cooldown, target preference, opportunistic raiders, false thing-target proximity, paralysis cancellation, door-resume, externally opened door resume, flickable, breakdownable, and weapon hacks.")]
+		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream cooldown, target preference, opportunistic raiders, false thing-target proximity, paralysis cancellation, door-resume, externally opened door resume, externally opened door hack-target re-path, flickable, breakdownable, and weapon hacks.")]
 		public static object AlbinoSabotageContract()
 		{
 			var map = CurrentMap;
@@ -2081,6 +2081,7 @@ namespace ZombieLand
 			AddCase("paralysis_clears_queued_scream", () => AlbinoParalysisClearsQueuedScreamCase(map));
 			AddCase("door_resume", () => AlbinoDoorResumeCase(map, false));
 			AddCase("door_open_resume", () => AlbinoDoorResumeCase(map, true));
+			AddCase("door_open_hack_target_resume", () => AlbinoDoorOpenHackTargetResumeCase(map));
 			AddCase("flickable_hack", () => AlbinoFlickableHackCase(map));
 			AddCase("breakdownable_hack", () => AlbinoBreakdownableHackCase(map));
 			AddCase("weapon_hack", () => AlbinoWeaponHackCase(map));
@@ -2727,6 +2728,137 @@ namespace ZombieLand
 					hackCounterAfterResume = currentDriver?.hackCounter,
 					albino.scream
 				});
+			}
+			finally
+			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static AlbinoSabotageCase AlbinoDoorOpenHackTargetResumeCase(Map map)
+		{
+			const string caseName = "door_open_hack_target_resume";
+			var spawnedThings = new List<Thing>();
+
+			bool IsClearFixtureCell(IntVec3 cell)
+			{
+				return cell.InBounds(map)
+					&& cell.Standable(map)
+					&& cell.Fogged(map) == false
+					&& cell.GetEdifice(map) == null
+					&& cell.GetFirstThing<Mineable>(map) == null
+					&& cell.GetThingList(map).Any(thing => thing is Pawn) == false;
+			}
+
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
+					return AlbinoCase(caseName, false, error: albinoError?.ToString());
+
+				var doorCell = IntVec3.Invalid;
+				var behindDoorCell = IntVec3.Invalid;
+				var lampCell = IntVec3.Invalid;
+				foreach (var offset in GenAdj.CardinalDirections)
+				{
+					var candidateDoor = albinoCell + offset;
+					var candidateBehindDoor = candidateDoor + offset;
+					var candidateLamp = candidateBehindDoor + offset;
+					if (IsClearFixtureCell(candidateDoor) && IsClearFixtureCell(candidateBehindDoor) && IsClearFixtureCell(candidateLamp))
+					{
+						doorCell = candidateDoor;
+						behindDoorCell = candidateBehindDoor;
+						lampCell = candidateLamp;
+						break;
+					}
+				}
+				if (doorCell.IsValid == false || behindDoorCell.IsValid == false || lampCell.IsValid == false)
+					return AlbinoCase(caseName, false, error: "No adjacent door, behind-door path, and lamp cells were available.");
+
+				var colonistCell = GenRadial.RadialCellsAround(doorCell, 4f, false)
+					.Where(cell => cell != albinoCell && cell != doorCell && cell != behindDoorCell && cell != lampCell)
+					.Where(IsClearFixtureCell)
+					.OrderBy(cell => cell.DistanceToSquared(doorCell))
+					.FirstOrDefault();
+				if (colonistCell.IsValid == false)
+					return AlbinoCase(caseName, false, error: "No clear colonist cell was available to open the queued door externally.");
+
+				var door = ThingMaker.MakeThing(ThingDefOf.Door, GenStuff.DefaultStuffFor(ThingDefOf.Door)) as Building_Door;
+				if (door == null)
+					return AlbinoCase(caseName, false, error: "Could not create a test door.");
+				GenSpawn.Spawn(door, doorCell, map, WipeMode.Vanish);
+				door.SetFaction(Faction.OfPlayer);
+				spawnedThings.Add(door);
+
+				var lampDef = DefDatabase<ThingDef>.GetNamed("StandingLamp", false);
+				var lamp = lampDef == null ? null : GenSpawn.Spawn(ThingMaker.MakeThing(lampDef), lampCell, map, WipeMode.Vanish) as Building;
+				lamp?.SetFaction(Faction.OfPlayer);
+				if (lamp == null)
+					return AlbinoCase(caseName, false, error: "Could not create StandingLamp.");
+				spawnedThings.Add(lamp);
+				var flickable = lamp.TryGetComp<CompFlickable>();
+				if (flickable == null)
+					return AlbinoCase(caseName, false, error: "StandingLamp has no CompFlickable.");
+				flickable.SwitchIsOn = true;
+
+				var colonist = SpawnAlbinoTestColonist(map, colonistCell, spawnedThings);
+				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+				albino?.SetFaction(Tools.GetZombieFaction());
+				var driver = StartAlbinoSabotageDriver(albino);
+				if (driver == null)
+					return AlbinoCase(caseName, false, error: "Albino did not enter the sabotage driver.");
+
+				door.StartManualOpenBy(colonist);
+				AdvanceGameTicks(1);
+
+				driver = albino.jobs.curDriver as JobDriver_Sabotage;
+				if (driver == null)
+					return AlbinoCase(caseName, false, error: "Albino left the sabotage driver after the external door open.");
+
+				driver.destination = IntVec3.Invalid;
+				driver.door = door;
+				driver.hackTarget = lamp;
+				driver.queuedScreamCell = IntVec3.Invalid;
+				driver.waitCounter = 0;
+				driver.hackCounter = 123;
+				albino.scream = -1;
+				var hackCounterBeforeResume = driver.hackCounter;
+
+				var invoked = TryInvokeAlbinoHackThing(driver, out var handled, out var hackError);
+				var currentDriver = albino.jobs.curDriver as JobDriver_Sabotage;
+				var destination = currentDriver?.destination ?? IntVec3.Invalid;
+				var destinationValid = destination.IsValid;
+				var success = invoked
+					&& handled
+					&& door.Open
+					&& currentDriver != null
+					&& currentDriver.door == null
+					&& currentDriver.hackTarget == lamp
+					&& currentDriver.hackCounter == 0
+					&& destinationValid
+					&& flickable.SwitchIsOn;
+
+				return AlbinoCase(caseName, success, new
+				{
+					invoked,
+					handled,
+					hackError,
+					hackCounterBeforeResume,
+					hackCounterAfterResume = currentDriver?.hackCounter,
+					doorOpen = door.Open,
+					doorCanPhysicallyPass = door.CanPhysicallyPass(albino),
+					lampSwitchIsOn = flickable.SwitchIsOn,
+					albino = DescribeZombie(albino),
+					colonist = DescribePawn(colonist),
+					doorCell = ZombieRuntimeActions.DescribeCell(doorCell),
+					behindDoorCell = ZombieRuntimeActions.DescribeCell(behindDoorCell),
+					lampCell = ZombieRuntimeActions.DescribeCell(lampCell),
+					colonistCell = ZombieRuntimeActions.DescribeCell(colonistCell),
+					destination = destinationValid ? ZombieRuntimeActions.DescribeCell(destination) : null,
+					patherMoving = albino.pather?.Moving,
+					hackTarget = currentDriver?.hackTarget == null ? null : ZombieRuntimeActions.StableThingId(currentDriver.hackTarget)
+				}, hackError);
 			}
 			finally
 			{
