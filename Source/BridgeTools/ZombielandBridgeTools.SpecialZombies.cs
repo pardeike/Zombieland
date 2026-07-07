@@ -1997,17 +1997,21 @@ namespace ZombieLand
 			var hackActionTicks = 240;
 			var totalTicks = hackStartTick + hackActionTicks;
 			var samples = new List<object>();
+			var currentDriver = driver;
 			for (var tick = 1; tick <= totalTicks; tick++)
 			{
 				AdvanceGameTicks(1);
+				currentDriver = albino.jobs.curDriver as JobDriver_Sabotage;
+				if (currentDriver == null)
+					break;
 				if (tick == 1 || tick == totalTicks || tick % 60 == 0)
 				{
 					samples.Add(new
 					{
 						tick,
-						driver.hackCounter,
+						currentDriver.hackCounter,
 						switchIsOn = flickable.SwitchIsOn,
-						hackTarget = driver.hackTarget?.ThingID
+						hackTarget = currentDriver.hackTarget?.ThingID
 					});
 				}
 			}
@@ -2016,7 +2020,7 @@ namespace ZombieLand
 
 			return new
 			{
-				success = switchBefore && switchAfter == false && driver.hackCounter == 0 && driver.hackTarget == null,
+				success = switchBefore && switchAfter == false && currentDriver?.hackCounter == 0 && currentDriver?.hackTarget == null,
 				totalTicks,
 				hackActionTicks,
 				albino = DescribeZombie(albino),
@@ -2024,10 +2028,653 @@ namespace ZombieLand
 				buildingCell = ZombieRuntimeActions.DescribeCell(buildingCell),
 				switchBefore,
 				switchAfter,
-				hackCounterAfter = driver.hackCounter,
-				hackTargetAfter = driver.hackTarget?.ThingID,
+				driverStillCurrent = currentDriver != null,
+				hackCounterAfter = currentDriver?.hackCounter,
+				hackTargetAfter = currentDriver?.hackTarget?.ThingID,
 				samples
 			};
+		}
+
+		sealed class AlbinoSabotageCase
+		{
+			public string name;
+			public bool success;
+			public object details;
+			public string error;
+		}
+
+		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream cooldown, target preference, opportunistic raiders, door-resume, externally opened door resume, flickable, breakdownable, and weapon hacks.")]
+		public static object AlbinoSabotageContract()
+		{
+			var map = CurrentMap;
+			if (map == null)
+			{
+				return new
+				{
+					success = false,
+					error = "No current map is loaded."
+				};
+			}
+
+			var cases = new List<AlbinoSabotageCase>();
+			void AddCase(string name, Func<AlbinoSabotageCase> run)
+			{
+				try
+				{
+					cases.Add(run());
+				}
+				catch (Exception ex)
+				{
+					cases.Add(new AlbinoSabotageCase
+					{
+						name = name,
+						success = false,
+						error = $"{ex.GetType().Name}: {ex.Message}"
+					});
+				}
+			}
+
+			AddCase("target_preference", () => AlbinoTargetPreferenceCase(map));
+			AddCase("opportunistic_raider", () => AlbinoOpportunisticRaiderCase(map));
+			AddCase("scream_cooldown", () => AlbinoScreamCooldownCase(map));
+			AddCase("door_resume", () => AlbinoDoorResumeCase(map, false));
+			AddCase("door_open_resume", () => AlbinoDoorResumeCase(map, true));
+			AddCase("flickable_hack", () => AlbinoFlickableHackCase(map));
+			AddCase("breakdownable_hack", () => AlbinoBreakdownableHackCase(map));
+			AddCase("weapon_hack", () => AlbinoWeaponHackCase(map));
+
+			return new
+			{
+				success = cases.All(item => item.success),
+				cases
+			};
+		}
+
+		static AlbinoSabotageCase AlbinoCase(string name, bool success, object details = null, string error = null)
+		{
+			return new AlbinoSabotageCase
+			{
+				name = name,
+				success = success,
+				details = details,
+				error = error
+			};
+		}
+
+		static Pawn SpawnAlbinoTestColonist(Map map, IntVec3 cell, List<Thing> spawnedThings, bool drafted = false)
+		{
+			var pawn = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+			GenSpawn.Spawn(pawn, cell, map, Rot4.South);
+			DisablePawnWork(pawn);
+			if (pawn.drafter != null)
+				pawn.drafter.Drafted = drafted;
+			spawnedThings.Add(pawn);
+			return pawn;
+		}
+
+		static Pawn SpawnAlbinoTestRaider(Map map, IntVec3 cell, List<Thing> spawnedThings)
+		{
+			var hostileFaction = Find.FactionManager.AllFactionsVisible
+				.FirstOrDefault(faction => faction != null && faction.HostileTo(Faction.OfPlayer) && faction.def?.humanlikeFaction == true)
+				?? Find.FactionManager.AllFactionsVisible.FirstOrDefault(faction => faction != null && faction.HostileTo(Faction.OfPlayer));
+			if (hostileFaction == null)
+				return null;
+
+			var pawn = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, hostileFaction);
+			GenSpawn.Spawn(pawn, cell, map, Rot4.South);
+			DisablePawnWork(pawn);
+			spawnedThings.Add(pawn);
+			map.attackTargetsCache.UpdateTarget(pawn);
+			return pawn;
+		}
+
+		static Zombie SpawnAlbinoTestZombie(Map map, IntVec3 cell, List<Thing> spawnedThings)
+		{
+			var albino = ZombieRuntimeActions.SpawnZombie(cell, map, ZombieType.Albino, true);
+			if (albino == null)
+				return null;
+			albino.SetFaction(Faction.OfPlayer);
+			albino.albinoNextScreamTick = GenTicks.TicksGame;
+			albino.health?.hediffSet?.hediffs?.RemoveAll(hediff => hediff is Hediff_Injury);
+			spawnedThings.Add(albino);
+			return albino;
+		}
+
+		static void DestroyAlbinoCaseThings(List<Thing> spawnedThings)
+		{
+			foreach (var thing in spawnedThings.Where(thing => thing != null && thing.Destroyed == false).ToArray())
+				thing.Destroy(DestroyMode.Vanish);
+		}
+
+		static JobDriver_Sabotage StartAlbinoSabotageDriver(Zombie albino)
+		{
+			if (albino == null)
+				return null;
+			albino.jobs.StartJob(JobMaker.MakeJob(CustomDefs.Sabotage), JobCondition.InterruptForced, null, true, true);
+			AdvanceGameTicks(1);
+			albino.pather?.StopDead();
+			return albino.jobs.curDriver as JobDriver_Sabotage;
+		}
+
+		static void ForceAlbinoHackTarget(JobDriver_Sabotage driver, Thing target)
+		{
+			driver.pawn.pather?.StopDead();
+			driver.destination = IntVec3.Invalid;
+			driver.door = null;
+			driver.hackTarget = target;
+			driver.queuedScreamCell = IntVec3.Invalid;
+			driver.waitCounter = 0;
+			driver.hackCounter = 0;
+			((Zombie)driver.pawn).scream = -1;
+		}
+
+		static (JobDriver_Sabotage driver, bool driverStillCurrent, List<object> samples) RunForcedAlbinoHack(Zombie albino, Thing target)
+		{
+			var samples = new List<object>();
+			if (albino == null || target == null)
+				return (null, false, samples);
+
+			var driver = StartAlbinoSabotageDriver(albino);
+			if (driver == null)
+				return (null, false, samples);
+
+			ForceAlbinoHackTarget(driver, target);
+			for (var tick = 1; tick <= 241; tick++)
+			{
+				if (TryInvokeAlbinoHackThing(driver, out _, out _) == false)
+					return (driver, false, samples);
+				if (tick == 1 || tick == 241 || tick % 60 == 0)
+				{
+					samples.Add(new
+					{
+						tick,
+						driver.hackCounter,
+						hackTarget = driver.hackTarget?.ThingID,
+						albino = DescribeZombie(albino)
+					});
+				}
+			}
+			return (driver, ReferenceEquals(albino.jobs.curDriver, driver), samples);
+		}
+
+		static Type SabotageHandlerType => typeof(JobDriver_Sabotage).Assembly.GetType("ZombieLand.SabotageHandler");
+
+		static bool TryInvokeAlbinoHackThing(JobDriver_Sabotage driver, out bool handled, out string error)
+		{
+			handled = false;
+			error = null;
+			var method = SabotageHandlerType?.GetMethod("HackThing", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+			if (method == null)
+			{
+				error = "Could not find SabotageHandler.HackThing by reflection.";
+				return false;
+			}
+
+			handled = (bool)method.Invoke(null, new object[] { driver });
+			return true;
+		}
+
+		static bool TryInvokeAlbinoScream(JobDriver_Sabotage driver, out bool handled, out string error)
+		{
+			handled = false;
+			error = null;
+			var method = SabotageHandlerType?.GetMethod("Scream", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+			if (method == null)
+			{
+				error = "Could not find SabotageHandler.Scream by reflection.";
+				return false;
+			}
+
+			handled = (bool)method.Invoke(null, new object[] { driver });
+			return true;
+		}
+
+		static bool TryInvokeAlbinoScreamPlan(JobDriver_Sabotage driver, out IntVec3 cell, out string reason, out string error)
+		{
+			cell = IntVec3.Invalid;
+			reason = null;
+			error = null;
+			var method = SabotageHandlerType?.GetMethod("TryFindAlbinoScreamCell", BindingFlags.Static | BindingFlags.NonPublic);
+			if (method == null)
+			{
+				error = "Could not find SabotageHandler.TryFindAlbinoScreamCell by reflection.";
+				return false;
+			}
+
+			var args = new object[] { driver, IntVec3.Invalid, null };
+			var success = (bool)method.Invoke(null, args);
+			cell = (IntVec3)args[1];
+			reason = args[2] as string;
+			return success;
+		}
+
+		static AlbinoSabotageCase AlbinoTargetPreferenceCase(Map map)
+		{
+			var spawnedThings = new List<Thing>();
+			var draftSnapshot = map.mapPawns.FreeColonistsSpawned
+				.Where(pawn => pawn.drafter != null)
+				.Select(pawn => new { pawn, pawn.drafter.Drafted })
+				.ToList();
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				foreach (var snapshot in draftSnapshot)
+					snapshot.pawn.drafter.Drafted = true;
+
+				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
+					return AlbinoCase("target_preference", false, error: albinoError?.ToString());
+				if (TryFindClearSpawnCell(map, albinoCell + new IntVec3(8, 0, 0), 10f, out var isolatedCell, out var isolatedError) == false)
+					return AlbinoCase("target_preference", false, error: isolatedError?.ToString());
+				if (TryFindClearSpawnCell(map, albinoCell + new IntVec3(-8, 0, 0), 10f, out var draftedCellA, out var draftedErrorA) == false)
+					return AlbinoCase("target_preference", false, error: draftedErrorA?.ToString());
+				if (TryFindClearSpawnCell(map, draftedCellA + IntVec3.North, 6f, out var draftedCellB, out var draftedErrorB) == false)
+					return AlbinoCase("target_preference", false, error: draftedErrorB?.ToString());
+
+				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+				var isolated = SpawnAlbinoTestColonist(map, isolatedCell, spawnedThings);
+				var draftedA = SpawnAlbinoTestColonist(map, draftedCellA, spawnedThings, true);
+				var draftedB = SpawnAlbinoTestColonist(map, draftedCellB, spawnedThings, true);
+				var driver = StartAlbinoSabotageDriver(albino);
+				if (driver == null)
+					return AlbinoCase("target_preference", false, error: "Albino did not enter the sabotage driver.");
+
+				albino.albinoNextScreamTick = GenTicks.TicksGame;
+				var reflected = TryInvokeAlbinoScreamPlan(driver, out var planCell, out var reason, out var error);
+				var isolatedDistance = planCell.DistanceToSquared(isolated.Position);
+				var draftedDistance = Math.Min(planCell.DistanceToSquared(draftedA.Position), planCell.DistanceToSquared(draftedB.Position));
+				var success = reflected && reason == "isolatedColonist" && isolatedDistance < draftedDistance;
+				return AlbinoCase("target_preference", success, new
+				{
+					reflected,
+					reason,
+					planCell = ZombieRuntimeActions.DescribeCell(planCell),
+					isolatedDistance,
+					draftedDistance,
+					albino = DescribeZombie(albino),
+					isolated = DescribePawn(isolated),
+					draftedA = DescribePawn(draftedA),
+					draftedB = DescribePawn(draftedB)
+				}, error);
+			}
+			finally
+			{
+				foreach (var snapshot in draftSnapshot)
+					if (snapshot.pawn?.drafter != null)
+						snapshot.pawn.drafter.Drafted = snapshot.Drafted;
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static AlbinoSabotageCase AlbinoOpportunisticRaiderCase(Map map)
+		{
+			var spawnedThings = new List<Thing>();
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
+					return AlbinoCase("opportunistic_raider", false, error: albinoError?.ToString());
+				if (TryFindClearSpawnCell(map, albinoCell + new IntVec3(4, 0, 0), 8f, out var raiderCell, out var raiderError) == false)
+					return AlbinoCase("opportunistic_raider", false, error: raiderError?.ToString());
+				if (TryFindClearSpawnCell(map, albinoCell + new IntVec3(10, 0, 0), 10f, out var colonistCell, out var colonistError) == false)
+					return AlbinoCase("opportunistic_raider", false, error: colonistError?.ToString());
+
+				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+				var raider = SpawnAlbinoTestRaider(map, raiderCell, spawnedThings);
+				var colonist = SpawnAlbinoTestColonist(map, colonistCell, spawnedThings);
+				if (albino == null || raider == null || colonist == null)
+					return AlbinoCase("opportunistic_raider", false, error: "Could not create albino, raider, or colonist fixture pawn.");
+
+				AdvanceGameTicks(1);
+				map.attackTargetsCache.UpdateTarget(raider);
+				var driver = StartAlbinoSabotageDriver(albino);
+				if (driver == null)
+					return AlbinoCase("opportunistic_raider", false, error: "Albino did not enter the sabotage driver.");
+
+				albino.albinoNextScreamTick = GenTicks.TicksGame;
+				var reflected = TryInvokeAlbinoScreamPlan(driver, out var planCell, out var reason, out var error);
+				var raiderDistance = planCell.DistanceToSquared(raider.Position);
+				var colonistDistance = planCell.DistanceToSquared(colonist.Position);
+				var success = reflected && reason == "opportunisticEnemy" && raiderDistance < colonistDistance;
+				return AlbinoCase("opportunistic_raider", success, new
+				{
+					reflected,
+					reason,
+					planCell = ZombieRuntimeActions.DescribeCell(planCell),
+					raiderDistance,
+					colonistDistance,
+					albino = DescribeZombie(albino),
+					raider = DescribePawn(raider),
+					colonist = DescribePawn(colonist)
+				}, error);
+			}
+			finally
+			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static AlbinoSabotageCase AlbinoScreamCooldownCase(Map map)
+		{
+			var spawnedThings = new List<Thing>();
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindClearSpawnCell(map, root, 16f, out var colonistCell, out var colonistError) == false)
+					return AlbinoCase("scream_cooldown", false, error: colonistError?.ToString());
+				if (TryFindClearSpawnCell(map, colonistCell + IntVec3.East, 6f, out var albinoCell, out var albinoError) == false)
+					return AlbinoCase("scream_cooldown", false, error: albinoError?.ToString());
+
+				var colonist = SpawnAlbinoTestColonist(map, colonistCell, spawnedThings);
+				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+				var driver = StartAlbinoSabotageDriver(albino);
+				if (driver == null)
+					return AlbinoCase("scream_cooldown", false, error: "Albino did not enter the sabotage driver.");
+
+				driver.destination = IntVec3.Invalid;
+				driver.door = null;
+				driver.hackTarget = null;
+				driver.queuedScreamCell = IntVec3.Invalid;
+				driver.waitCounter = 0;
+				driver.hackCounter = 0;
+				albino.scream = 0;
+				albino.albinoNextScreamTick = GenTicks.TicksGame;
+				albino.albinoScreamAffectedCount = 0;
+
+				var samples = new List<object>();
+				for (var tick = 1; tick <= 40; tick++)
+				{
+					if (TryInvokeAlbinoScream(driver, out _, out var screamError) == false)
+						return AlbinoCase("scream_cooldown", false, error: screamError);
+					if (tick == 1 || tick == 40)
+					{
+						samples.Add(new
+						{
+							tick,
+							albino.scream,
+							albino.albinoScreamAffectedCount,
+							albino.albinoNextScreamTick,
+							colonistJob = colonist.CurJobDef?.defName,
+							colonistStunned = colonist.stances?.stunner?.Stunned ?? false
+						});
+					}
+				}
+
+				driver = albino.jobs.curDriver as JobDriver_Sabotage;
+				if (driver != null)
+				{
+					driver.waitCounter = 0;
+					driver.destination = IntVec3.Invalid;
+					driver.door = null;
+					driver.hackTarget = null;
+					driver.queuedScreamCell = IntVec3.Invalid;
+					albino.scream = 399;
+					if (TryInvokeAlbinoScream(driver, out _, out var screamError) == false)
+						return AlbinoCase("scream_cooldown", false, error: screamError);
+					samples.Add(new
+					{
+						tick = 400,
+						albino.scream,
+						albino.albinoScreamAffectedCount,
+						albino.albinoNextScreamTick,
+						colonistJob = colonist.CurJobDef?.defName,
+						colonistStunned = colonist.stances?.stunner?.Stunned ?? false
+					});
+				}
+
+				var success = colonist.CurJobDef == JobDefOf.Vomit
+					&& (colonist.stances?.stunner?.Stunned ?? false)
+					&& albino.scream == -1
+					&& albino.albinoScreamAffectedCount > 0
+					&& albino.albinoNextScreamTick > GenTicks.TicksGame;
+				return AlbinoCase("scream_cooldown", success, new
+				{
+					albino = DescribeZombie(albino),
+					colonist = DescribePawn(colonist),
+					cooldownRemaining = albino.albinoNextScreamTick - GenTicks.TicksGame,
+					samples
+				});
+			}
+			finally
+			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static AlbinoSabotageCase AlbinoDoorResumeCase(Map map, bool doorAlreadyPassable)
+		{
+			var caseName = doorAlreadyPassable ? "door_open_resume" : "door_resume";
+			var spawnedThings = new List<Thing>();
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
+					return AlbinoCase(caseName, false, error: albinoError?.ToString());
+				var doorCell = IntVec3.Invalid;
+				foreach (var offset in GenAdj.CardinalDirections)
+				{
+					var candidate = albinoCell + offset;
+					if (candidate.InBounds(map)
+						&& candidate.Fogged(map) == false
+						&& candidate.GetEdifice(map) == null
+						&& candidate.GetThingList(map).Any(thing => thing is Pawn) == false)
+					{
+						doorCell = candidate;
+						break;
+					}
+				}
+				if (doorCell.IsValid == false)
+					return AlbinoCase(caseName, false, error: "No adjacent clear door cell was available.");
+				if (TryFindClearSpawnCell(map, doorCell + IntVec3.East, 8f, out var screamCell, out var screamError) == false)
+					return AlbinoCase(caseName, false, error: screamError?.ToString());
+
+				var door = ThingMaker.MakeThing(ThingDefOf.Door, GenStuff.DefaultStuffFor(ThingDefOf.Door)) as Building_Door;
+				if (door == null)
+					return AlbinoCase(caseName, false, error: "Could not create a test door.");
+				GenSpawn.Spawn(door, doorCell, map, WipeMode.Vanish);
+				door.SetFaction(Faction.OfPlayer);
+				spawnedThings.Add(door);
+
+				var colonist = SpawnAlbinoTestColonist(map, screamCell, spawnedThings);
+				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+				albino?.SetFaction(Tools.GetZombieFaction());
+				var driver = StartAlbinoSabotageDriver(albino);
+				if (driver == null)
+					return AlbinoCase(caseName, false, error: "Albino did not enter the sabotage driver.");
+
+				driver.destination = IntVec3.Invalid;
+				driver.door = door;
+				driver.hackTarget = null;
+				driver.queuedScreamCell = screamCell;
+				driver.waitCounter = 0;
+				driver.hackCounter = 0;
+				albino.scream = -1;
+
+				if (doorAlreadyPassable)
+					door.StartManualOpenBy(colonist);
+
+				var hackTicks = doorAlreadyPassable ? 1 : 241;
+				if (doorAlreadyPassable)
+					AdvanceGameTicks(1);
+				else
+					for (var tick = 1; tick <= hackTicks; tick++)
+						if (TryInvokeAlbinoHackThing(driver, out _, out var hackError) == false)
+							return AlbinoCase(caseName, false, error: hackError);
+
+				var currentDriver = albino.jobs.curDriver as JobDriver_Sabotage;
+				var success = door.Open
+					&& currentDriver != null
+					&& (albino.scream == -2 || currentDriver.destination.IsValid || currentDriver.queuedScreamCell.IsValid == false);
+				return AlbinoCase(caseName, success, new
+				{
+					doorAlreadyPassable,
+					hackTicks,
+					doorOpen = door.Open,
+					doorCanPhysicallyPass = door.CanPhysicallyPass(albino),
+					albino = DescribeZombie(albino),
+					colonist = DescribePawn(colonist),
+					doorCell = ZombieRuntimeActions.DescribeCell(doorCell),
+					screamCell = ZombieRuntimeActions.DescribeCell(screamCell),
+					destination = currentDriver?.destination.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.destination) : null,
+					queuedScreamCell = currentDriver?.queuedScreamCell.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.queuedScreamCell) : null,
+					albino.scream
+				});
+			}
+			finally
+			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static AlbinoSabotageCase AlbinoFlickableHackCase(Map map)
+		{
+			var spawnedThings = new List<Thing>();
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
+					return AlbinoCase("flickable_hack", false, error: albinoError?.ToString());
+				if (TryFindClearSpawnCell(map, albinoCell + IntVec3.East, 6f, out var lampCell, out var lampError) == false)
+					return AlbinoCase("flickable_hack", false, error: lampError?.ToString());
+
+				var lampDef = DefDatabase<ThingDef>.GetNamed("StandingLamp", false);
+				var lamp = lampDef == null ? null : GenSpawn.Spawn(ThingMaker.MakeThing(lampDef), lampCell, map, WipeMode.Vanish) as Building;
+				lamp?.SetFaction(Faction.OfPlayer);
+				if (lamp == null)
+					return AlbinoCase("flickable_hack", false, error: "Could not create StandingLamp.");
+				spawnedThings.Add(lamp);
+				var flickable = lamp.TryGetComp<CompFlickable>();
+				if (flickable == null)
+					return AlbinoCase("flickable_hack", false, error: "StandingLamp has no CompFlickable.");
+				flickable.SwitchIsOn = true;
+
+				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+				var run = RunForcedAlbinoHack(albino, lamp);
+				var success = run.driverStillCurrent && flickable.SwitchIsOn == false && run.driver?.hackTarget == null;
+				return AlbinoCase("flickable_hack", success, new
+				{
+					albino = DescribeZombie(albino),
+					lamp = ZombieRuntimeActions.StableThingId(lamp),
+					switchIsOn = flickable.SwitchIsOn,
+					run.driverStillCurrent,
+					hackCounter = run.driver?.hackCounter,
+					samples = run.samples
+				});
+			}
+			finally
+			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static ThingDef FindAlbinoBreakdownableBuildingDef()
+		{
+			var preferred = new[] { "ElectricTailoringBench", "ElectricSmithy", "HiTechResearchBench", "CommsConsole", "Battery" };
+			foreach (var defName in preferred)
+			{
+				var def = DefDatabase<ThingDef>.GetNamed(defName, false);
+				if (def?.comps?.Any(comp => comp.compClass == typeof(CompBreakdownable)) == true)
+					return def;
+			}
+
+			return DefDatabase<ThingDef>.AllDefsListForReading
+				.FirstOrDefault(def => typeof(Building).IsAssignableFrom(def.thingClass) && def.comps?.Any(comp => comp.compClass == typeof(CompBreakdownable)) == true);
+		}
+
+		static AlbinoSabotageCase AlbinoBreakdownableHackCase(Map map)
+		{
+			var spawnedThings = new List<Thing>();
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
+					return AlbinoCase("breakdownable_hack", false, error: albinoError?.ToString());
+				if (TryFindClearSpawnCell(map, albinoCell + IntVec3.East, 8f, out var buildingCell, out var buildingError) == false)
+					return AlbinoCase("breakdownable_hack", false, error: buildingError?.ToString());
+
+				var def = FindAlbinoBreakdownableBuildingDef();
+				if (def == null)
+					return AlbinoCase("breakdownable_hack", false, error: "No breakdownable building def was found.");
+				var stuff = def.MadeFromStuff ? GenStuff.DefaultStuffFor(def) : null;
+				var building = GenSpawn.Spawn(ThingMaker.MakeThing(def, stuff), buildingCell, map, WipeMode.Vanish) as Building;
+				building?.SetFaction(Faction.OfPlayer);
+				if (building == null)
+					return AlbinoCase("breakdownable_hack", false, error: $"Could not spawn {def.defName} as a building.");
+				spawnedThings.Add(building);
+				var flickable = building.TryGetComp<CompFlickable>();
+				if (flickable != null)
+					flickable.SwitchIsOn = false;
+				var breakdownable = building.TryGetComp<CompBreakdownable>();
+				if (breakdownable == null)
+					return AlbinoCase("breakdownable_hack", false, error: $"{def.defName} did not expose CompBreakdownable.");
+
+				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+				var brokenBefore = breakdownable.BrokenDown;
+				var run = RunForcedAlbinoHack(albino, building);
+				var success = run.driverStillCurrent && brokenBefore == false && breakdownable.BrokenDown && run.driver?.hackTarget == null;
+				return AlbinoCase("breakdownable_hack", success, new
+				{
+					albino = DescribeZombie(albino),
+					building = ZombieRuntimeActions.StableThingId(building),
+					def = def.defName,
+					brokenBefore,
+					brokenAfter = breakdownable.BrokenDown,
+					run.driverStillCurrent,
+					hackCounter = run.driver?.hackCounter,
+					samples = run.samples
+				});
+			}
+			finally
+			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static AlbinoSabotageCase AlbinoWeaponHackCase(Map map)
+		{
+			var spawnedThings = new List<Thing>();
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
+					return AlbinoCase("weapon_hack", false, error: albinoError?.ToString());
+				if (TryFindClearSpawnCell(map, albinoCell + IntVec3.East, 6f, out var weaponCell, out var weaponError) == false)
+					return AlbinoCase("weapon_hack", false, error: weaponError?.ToString());
+
+				var weaponDef = DefDatabase<ThingDef>.GetNamed("Gun_BoltActionRifle", false)
+					?? DefDatabase<ThingDef>.GetNamed("Gun_Pistol", false);
+				var weapon = weaponDef == null ? null : ThingMaker.MakeThing(weaponDef);
+				if (weapon == null)
+					return AlbinoCase("weapon_hack", false, error: "No ranged weapon def was available.");
+				GenSpawn.Spawn(weapon, weaponCell, map, WipeMode.Vanish);
+				spawnedThings.Add(weapon);
+				var hitPointsBefore = weapon.HitPoints;
+
+				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+				var run = RunForcedAlbinoHack(albino, weapon);
+				var success = run.driverStillCurrent && weapon.HitPoints < hitPointsBefore && run.driver?.hackTarget == null;
+				return AlbinoCase("weapon_hack", success, new
+				{
+					albino = DescribeZombie(albino),
+					weapon = ZombieRuntimeActions.StableThingId(weapon),
+					weaponDef = weaponDef.defName,
+					hitPointsBefore,
+					hitPointsAfter = weapon.HitPoints,
+					run.driverStillCurrent,
+					hackCounter = run.driver?.hackCounter,
+					samples = run.samples
+				});
+			}
+			finally
+			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
 		}
 
 		[Tool("zombieland/damage_tanky_armor", Description = "Apply real bullet damage to a tanky zombie and verify the tanky armor patch absorbs it by degrading armor.")]

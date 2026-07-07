@@ -129,6 +129,8 @@ namespace ZombieLand
 		// albino
 		public bool isAlbino = false;
 		public int scream = -1;
+		public int albinoNextScreamTick = -1;
+		public int albinoScreamAffectedCount = 0;
 
 		// dark slimer
 		public bool isDarkSlimer = false;
@@ -242,6 +244,8 @@ namespace ZombieLand
 			Scribe_Values.Look(ref isDarkSlimer, "isDarkSlimer");
 			Scribe_Values.Look(ref isHealer, "isHealer");
 			Scribe_Values.Look(ref scream, "scream");
+			Scribe_Values.Look(ref albinoNextScreamTick, "albinoNextScreamTick", -1);
+			Scribe_Values.Look(ref albinoScreamAffectedCount, "albinoScreamAffectedCount", 0);
 			Scribe_Values.Look(ref hasTankyShield, "tankyShield");
 			Scribe_Values.Look(ref hasTankyHelmet, "tankyHelmet");
 			Scribe_Values.Look(ref hasTankySuit, "tankySuit");

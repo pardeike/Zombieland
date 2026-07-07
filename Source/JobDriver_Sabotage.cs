@@ -14,6 +14,7 @@ namespace ZombieLand
 		public IntVec3 destination = IntVec3.Invalid;
 		public Building_Door door = null;
 		public Thing hackTarget = null;
+		public IntVec3 queuedScreamCell = IntVec3.Invalid;
 		public int waitCounter = 0;
 		public int hackCounter = 0;
 
@@ -22,6 +23,7 @@ namespace ZombieLand
 			destination = IntVec3.Invalid;
 			door = null;
 			hackTarget = null;
+			queuedScreamCell = IntVec3.Invalid;
 			waitCounter = 0;
 			hackCounter = 0;
 			(pawn as Zombie).scream = -1;
@@ -33,6 +35,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref destination, "destination", IntVec3.Invalid);
 			Scribe_References.Look(ref door, "door");
 			Scribe_References.Look(ref hackTarget, "hackTarget");
+			Scribe_Values.Look(ref queuedScreamCell, "queuedScreamCell", IntVec3.Invalid);
 			Scribe_Values.Look(ref waitCounter, "waitCounter", 0);
 			Scribe_Values.Look(ref hackCounter, "hackCounter", 0);
 		}
@@ -101,6 +104,17 @@ namespace ZombieLand
 
 	static class SabotageHandler
 	{
+		const int albinoScreamDurationTicks = 400;
+		const float albinoScreamMaxRadius = 12f;
+		const int albinoScreamWindupTicks = 120;
+		const int albinoScreamInitialMinCooldown = 600;
+		const int albinoScreamInitialMaxCooldown = 1800;
+		const int albinoScreamWastedMinCooldown = 1800;
+		const int albinoScreamWastedMaxCooldown = 3000;
+		const int albinoScreamSuccessMinCooldown = 5000;
+		const int albinoScreamSuccessMaxCooldown = 9000;
+		const int albinoScreamMaxCooldown = 12000;
+
 		static bool TryFindLastCellBeforeBlockingDoor(this PawnPath path, Pawn pawn, out IntVec3 result, out Building_Door door)
 		{
 			if (path.NodesReversed.Count == 1)
@@ -131,6 +145,7 @@ namespace ZombieLand
 			if (thing == null || thing.Spawned == false)
 				return false;
 
+			driver.queuedScreamCell = IntVec3.Invalid;
 			var zombie = driver.pawn;
 			var mode = thing.Position.Standable(thing.Map) ? PathEndMode.ClosestTouch : PathEndMode.Touch;
 			var path = zombie.Map.pathFinder.FindPathNow(zombie.Position, thing, TraverseParms.For(zombie, Danger.None, TraverseMode.PassDoors, false), null, mode, null);
@@ -167,6 +182,7 @@ namespace ZombieLand
 			if (cell.IsValid == false)
 				return false;
 
+			driver.queuedScreamCell = IntVec3.Invalid;
 			var zombie = driver.pawn;
 			var path = zombie.Map.pathFinder.FindPathNow(zombie.Position, cell, TraverseParms.For(zombie, Danger.None, TraverseMode.PassDoors, false), null, PathEndMode.OnCell, null);
 			if (path.Found)
@@ -175,6 +191,8 @@ namespace ZombieLand
 				{
 					driver.door = door;
 					driver.destination = doorCell;
+					if (arrivalAction != null)
+						driver.queuedScreamCell = cell;
 					path.ReleaseToPool();
 					zombie.pather.StartPath(doorCell, PathEndMode.OnCell);
 					return true;
@@ -182,6 +200,7 @@ namespace ZombieLand
 				else
 				{
 					driver.destination = cell;
+					driver.queuedScreamCell = IntVec3.Invalid;
 					path.ReleaseToPool();
 					zombie.pather.StartPath(cell, PathEndMode.OnCell);
 					arrivalAction?.Invoke();
@@ -219,6 +238,9 @@ namespace ZombieLand
 			if (driver.destination.IsValid)
 				return false;
 
+			if (driver.ResumeQueuedScreamIfDoorPassable())
+				return true;
+
 			var door = driver.door;
 			if (door != null && door.Spawned && door.CanPhysicallyPass(driver.pawn) == false)
 				return driver.Hack(door, () =>
@@ -231,6 +253,11 @@ namespace ZombieLand
 
 					if (driver.hackTarget != null)
 						_ = driver.Goto(driver.hackTarget);
+					else if (driver.queuedScreamCell.IsValid)
+					{
+						var screamCell = driver.queuedScreamCell;
+						_ = driver.Goto(screamCell, () => ((Zombie)driver.pawn).scream = -2);
+					}
 				});
 
 			var thing = driver.hackTarget;
@@ -241,6 +268,18 @@ namespace ZombieLand
 					if (compFlickable != null && compFlickable.SwitchIsOn)
 					{
 						compFlickable.SwitchIsOn = false;
+						driver.pawn.rotationTracker.FaceTarget(thing);
+						if (ZombieAwarenessCues.ShouldPlayWallAndSabotageSound())
+							SoundDefOf.FlickSwitch.PlayOneShot(new TargetInfo(thing.Position, thing.Map, false));
+						Tools.CastThoughtBubble(driver.pawn, Constants.HACKING);
+						driver.hackTarget = null;
+						return;
+					}
+
+					var compBreakdownable = thing.TryGetComp<CompBreakdownable>();
+					if (compBreakdownable != null && compBreakdownable.BrokenDown == false)
+					{
+						compBreakdownable.DoBreakdown();
 						driver.pawn.rotationTracker.FaceTarget(thing);
 						if (ZombieAwarenessCues.ShouldPlayWallAndSabotageSound())
 							SoundDefOf.FlickSwitch.PlayOneShot(new TargetInfo(thing.Position, thing.Map, false));
@@ -277,6 +316,20 @@ namespace ZombieLand
 			return false;
 		}
 
+		static bool ResumeQueuedScreamIfDoorPassable(this JobDriver_Sabotage driver)
+		{
+			if (driver.queuedScreamCell.IsValid == false)
+				return false;
+
+			var door = driver.door;
+			if (door != null && door.Spawned && door.CanPhysicallyPass(driver.pawn) == false)
+				return false;
+
+			var screamCell = driver.queuedScreamCell;
+			driver.door = null;
+			return driver.Goto(screamCell, () => ((Zombie)driver.pawn).scream = -2);
+		}
+
 		public static bool Scream(this JobDriver_Sabotage driver)
 		{
 			var zombie = driver.pawn as Zombie;
@@ -288,7 +341,16 @@ namespace ZombieLand
 			{
 				if (driver.destination.IsValid == false)
 				{
-					driver.waitCounter = 120;
+					if (zombie.HasAlbinoScreamTargetInRange(albinoScreamMaxRadius) == false)
+					{
+						zombie.scream = -1;
+						driver.queuedScreamCell = IntVec3.Invalid;
+						SetAlbinoScreamCooldown(zombie, false);
+						driver.waitCounter = 60;
+						return false;
+					}
+
+					driver.waitCounter = Rand.Range(80, 181);
 					zombie.scream = 0;
 					zombie.Rotation = Rot4.South;
 				}
@@ -297,6 +359,7 @@ namespace ZombieLand
 
 			if (zombie.scream == 0)
 			{
+				zombie.albinoScreamAffectedCount = 0;
 				if (ZombieAwarenessCues.ShouldPlayWallAndSabotageSound())
 					CustomDefs.Scream.PlayOneShot(new TargetInfo(zombie.Position, zombie.Map, false));
 				Tools.CastThoughtBubble(driver.pawn, Constants.RAGING);
@@ -310,27 +373,20 @@ namespace ZombieLand
 				var d = 1 + (int)(zombie.scream * 12f / 401);
 				var dist = d * d;
 				var stunTicks = 60 * (14 - d);
-				zombie.Map.mapPawns.AllPawns.ToArray().DoIf(
-					pawn => pawn is not Zombie && pawn is not ZombieSymbiant && pawn is not ZombieSpitter
-						&& pawn.RaceProps.Humanlike
-						&& pawn.RaceProps.IsFlesh
-						&& AlienTools.IsFleshPawn(pawn)
-						&& SoSTools.IsHologram(pawn) == false
-						&& pawn.Position.DistanceToSquared(pos) < dist
-						&& pawn.health.Downed == false
-						&& pawn.InMentalState == false
-						&& pawn.CurJobDef != JobDefOf.Vomit,
-					pawn =>
+				foreach (var pawn in zombie.Map.mapPawns.AllPawnsSpawned)
+					if (CanAlbinoScreamAffect(pawn, zombie) && pawn.Position.DistanceToSquared(pos) < dist)
 					{
 						if (RestUtility.Awake(pawn) == false)
 							RestUtility.WakeUp(pawn);
 						pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Vomit), JobCondition.InterruptForced, null, true, true);
 						pawn.stances.stunner.StunFor(stunTicks, zombie, true);
-					});
+						zombie.albinoScreamAffectedCount++;
+					}
 			}
 
-			if (zombie.scream >= 400)
+			if (zombie.scream >= albinoScreamDurationTicks)
 			{
+				SetAlbinoScreamCooldown(zombie, zombie.albinoScreamAffectedCount > 0);
 				zombie.scream = -1;
 				return false;
 			}
@@ -391,17 +447,278 @@ namespace ZombieLand
 			return false;
 		}
 
-		static IntVec3 PawnCenter(Map map, IEnumerable<Pawn> pawns)
+		static bool IsZombielandZombie(Pawn pawn)
 		{
-			var count = pawns.Count();
-			if (count == 0)
-				return IntVec3.Invalid;
-			var vec = pawns.Select(p => p.Position.ToVector3()).Aggregate((prev, pos) => prev + pos) / count;
-			using var it = GenRadial.RadialCellsAround(vec.ToIntVec3(), 6, true).GetEnumerator();
-			while (it.MoveNext())
-				if (it.Current.Standable(map))
-					return it.Current;
-			return IntVec3.Invalid;
+			return pawn is Zombie || pawn is ZombieSymbiant || pawn is ZombieSpitter;
+		}
+
+		static bool CanAlbinoScreamAffect(Pawn pawn, Zombie zombie)
+		{
+			return pawn != null
+				&& zombie != null
+				&& pawn.Spawned
+				&& pawn.Map == zombie.Map
+				&& pawn.Dead == false
+				&& IsZombielandZombie(pawn) == false
+				&& pawn.RaceProps.Humanlike
+				&& pawn.RaceProps.IsFlesh
+				&& AlienTools.IsFleshPawn(pawn)
+				&& SoSTools.IsHologram(pawn) == false
+				&& pawn.health?.Downed == false
+				&& pawn.jobs != null
+				&& pawn.stances != null
+				&& pawn.InMentalState == false
+				&& pawn.CurJobDef != JobDefOf.Vomit;
+		}
+
+		static bool HasAlbinoScreamTargetInRange(this Zombie zombie, float radius)
+		{
+			if (zombie?.Spawned != true)
+				return false;
+
+			var dist = radius * radius;
+			foreach (var pawn in zombie.Map.mapPawns.AllPawnsSpawned)
+				if (CanAlbinoScreamAffect(pawn, zombie) && pawn.Position.DistanceToSquared(zombie.Position) <= dist)
+					return true;
+			return false;
+		}
+
+		static void SetAlbinoScreamCooldown(Zombie zombie, bool successful)
+		{
+			var affectedCount = Math.Max(0, zombie.albinoScreamAffectedCount);
+			var cooldown = successful
+				? Rand.Range(albinoScreamSuccessMinCooldown, albinoScreamSuccessMaxCooldown) + Math.Min(3000, affectedCount * 600)
+				: Rand.Range(albinoScreamWastedMinCooldown, albinoScreamWastedMaxCooldown);
+			zombie.albinoNextScreamTick = GenTicks.TicksGame + Math.Min(cooldown, albinoScreamMaxCooldown);
+		}
+
+		static bool AlbinoScreamReady(Zombie zombie)
+		{
+			if (zombie.albinoNextScreamTick < 0)
+			{
+				zombie.albinoNextScreamTick = GenTicks.TicksGame + Rand.Range(albinoScreamInitialMinCooldown, albinoScreamInitialMaxCooldown);
+				return false;
+			}
+
+			return GenTicks.TicksGame >= zombie.albinoNextScreamTick;
+		}
+
+		static bool IsDrafted(Pawn pawn)
+		{
+			return pawn?.drafter?.Drafted == true;
+		}
+
+		static bool IsBusy(Pawn pawn)
+		{
+			var defName = pawn?.CurJobDef?.defName;
+			return defName != null
+				&& defName != "Wait"
+				&& defName != "Wait_Combat"
+				&& defName != "Wait_MaintainPosture"
+				&& defName != "Goto"
+				&& defName != "LayDown";
+		}
+
+		static bool IsNearDraftedColonist(Pawn pawn, List<Pawn> draftedColonists)
+		{
+			return draftedColonists.Any(drafted => drafted != pawn && drafted.Position.DistanceToSquared(pawn.Position) <= 100);
+		}
+
+		static int NearbyPawnScore(Pawn pawn, List<Pawn> candidates, int radiusSquared)
+		{
+			var count = 0;
+			foreach (var candidate in candidates)
+				if (candidate.Position.DistanceToSquared(pawn.Position) <= radiusSquared)
+					count++;
+			return count;
+		}
+
+		static bool TryFindStandableScreamCell(Map map, IntVec3 root, out IntVec3 cell)
+		{
+			cell = IntVec3.Invalid;
+			foreach (var candidate in GenRadial.RadialCellsAround(root, 5f, true))
+			{
+				if (candidate.InBounds(map) == false)
+					continue;
+				if (candidate.Standable(map) == false)
+					continue;
+				if (candidate.Fogged(map))
+					continue;
+				if (candidate.GetEdifice(map) != null)
+					continue;
+				if (candidate.GetFirstThing<Mineable>(map) != null)
+					continue;
+				if (candidate.GetThingList(map).Any(thing => thing is Pawn))
+					continue;
+
+				cell = candidate;
+				return true;
+			}
+			return false;
+		}
+
+		static bool TryFindScreamCellForBestPawn(Zombie zombie, List<Pawn> candidates, Func<Pawn, int> scorePawn, out IntVec3 cell)
+		{
+			cell = IntVec3.Invalid;
+			var bestScore = int.MinValue;
+			foreach (var pawn in candidates)
+			{
+				if (TryFindStandableScreamCell(zombie.Map, pawn.Position, out var candidateCell) == false)
+					continue;
+
+				var score = scorePawn(pawn) - zombie.Position.DistanceToSquared(candidateCell) / 16;
+				if (score <= bestScore)
+					continue;
+
+				bestScore = score;
+				cell = candidateCell;
+			}
+			return cell.IsValid;
+		}
+
+		static int ColonistScreamScore(Zombie zombie, Pawn pawn, List<Pawn> colonists)
+		{
+			var score = 1000;
+			score += NearbyPawnScore(pawn, colonists, 100) * 45;
+			if (zombie.Map.areaManager.Home[pawn.Position])
+				score += 35;
+			if (IsBusy(pawn))
+				score += 30;
+			if (IsDrafted(pawn) == false)
+				score += 20;
+			return score;
+		}
+
+		static bool LocalTargetPointsAtZombie(LocalTargetInfo target, Zombie zombie)
+		{
+			return target.HasThing && target.Thing == zombie
+				|| target.Cell.IsValid && target.Cell.DistanceToSquared(zombie.Position) <= 2;
+		}
+
+		static bool IsAttackingOrApproaching(Pawn pawn, Zombie zombie)
+		{
+			if (pawn.TargetCurrentlyAimingAt.Thing == zombie)
+				return true;
+
+			var job = pawn.CurJob;
+			if (job != null && (LocalTargetPointsAtZombie(job.targetA, zombie) || LocalTargetPointsAtZombie(job.targetB, zombie) || LocalTargetPointsAtZombie(job.targetC, zombie)))
+				return true;
+
+			if (pawn.pather?.Moving == true)
+			{
+				var currentDistance = pawn.Position.DistanceToSquared(zombie.Position);
+				var destinationDistance = pawn.pather.Destination.Cell.DistanceToSquared(zombie.Position);
+				if (destinationDistance < currentDistance && currentDistance <= 324)
+					return true;
+			}
+
+			return false;
+		}
+
+		static bool TryFindOpportunisticEnemyScreamCell(Zombie zombie, out IntVec3 cell)
+		{
+			var enemies = zombie.Map.attackTargetsCache.TargetsHostileToColony
+				.OfType<Pawn>()
+				.Where(pawn => CanAlbinoScreamAffect(pawn, zombie))
+				.Where(pawn => IsAttackingOrApproaching(pawn, zombie) || pawn.Position.DistanceToSquared(zombie.Position) <= 100)
+				.ToList();
+
+			return TryFindScreamCellForBestPawn(
+				zombie,
+				enemies,
+				pawn => 1300 + NearbyPawnScore(pawn, enemies, 100) * 35 + (IsAttackingOrApproaching(pawn, zombie) ? 250 : 0),
+				out cell);
+		}
+
+		static bool TryFindGroupedColonistScreamCell(Zombie zombie, List<Pawn> colonists, out IntVec3 cell)
+		{
+			cell = IntVec3.Invalid;
+			var grouped = colonists
+				.Where(pawn => NearbyPawnScore(pawn, colonists, 100) >= 2)
+				.ToList();
+			return TryFindScreamCellForBestPawn(zombie, grouped, pawn => ColonistScreamScore(zombie, pawn, colonists), out cell);
+		}
+
+		static bool TryFindAlbinoScreamCell(this JobDriver_Sabotage driver, out IntVec3 cell, out string reason)
+		{
+			cell = IntVec3.Invalid;
+			reason = null;
+			var zombie = driver.pawn as Zombie;
+			if (zombie?.Spawned != true || AlbinoScreamReady(zombie) == false)
+				return false;
+
+			if (TryFindOpportunisticEnemyScreamCell(zombie, out cell))
+			{
+				reason = "opportunisticEnemy";
+				return true;
+			}
+
+			var colonists = zombie.Map.mapPawns.FreeColonistsSpawned
+				.Where(pawn => CanAlbinoScreamAffect(pawn, zombie))
+				.ToList();
+			if (colonists.Count == 0)
+				return false;
+
+			var draftedColonists = colonists.Where(IsDrafted).ToList();
+			var isolatedColonists = colonists
+				.Where(pawn => IsDrafted(pawn) == false)
+				.Where(pawn => IsBusy(pawn) || IsNearDraftedColonist(pawn, draftedColonists) == false)
+				.ToList();
+			if (TryFindScreamCellForBestPawn(
+				zombie,
+				isolatedColonists,
+				pawn => ColonistScreamScore(zombie, pawn, colonists) + (IsBusy(pawn) ? 100 : 0) + (IsNearDraftedColonist(pawn, draftedColonists) ? -80 : 80),
+				out cell))
+			{
+				reason = "isolatedColonist";
+				return true;
+			}
+
+			if (TryFindGroupedColonistScreamCell(zombie, colonists, out cell))
+			{
+				reason = "groupedColonists";
+				return true;
+			}
+
+			var homeColonists = colonists.Where(pawn => zombie.Map.areaManager.Home[pawn.Position]).ToList();
+			if (TryFindScreamCellForBestPawn(zombie, homeColonists, pawn => ColonistScreamScore(zombie, pawn, colonists), out cell))
+			{
+				reason = "homeColonist";
+				return true;
+			}
+
+			if (TryFindScreamCellForBestPawn(zombie, colonists, pawn => -pawn.Position.DistanceToSquared(zombie.Position), out cell))
+			{
+				reason = "nearestColonist";
+				return true;
+			}
+
+			return false;
+		}
+
+		static bool CanHackBuilding(Building building)
+		{
+			if (building?.Spawned != true)
+				return false;
+
+			var compFlickable = building.TryGetComp<CompFlickable>();
+			if (compFlickable != null && compFlickable.SwitchIsOn)
+				return true;
+
+			var compBreakdownable = building.TryGetComp<CompBreakdownable>();
+			if (compBreakdownable != null && compBreakdownable.BrokenDown == false)
+				return true;
+
+			var compPowerTrader = building.TryGetComp<CompPowerTrader>();
+			return compPowerTrader != null && compPowerTrader.PowerOn;
+		}
+
+		static float WeaponSabotageScore(Map map, Thing weapon)
+		{
+			var score = weapon.MarketValue;
+			if (map.areaManager.Home[weapon.Position])
+				score += 2000f;
+			return score;
 		}
 
 		static bool ChooseSabotageTarget(this JobDriver_Sabotage driver)
@@ -409,7 +726,12 @@ namespace ZombieLand
 			var zombie = driver.pawn as Zombie;
 			var map = zombie.Map;
 			IntVec3 cell;
-			var options = new int[] { 0, 1, 2, 3, 4, 5 }.InRandomOrder().ToArray();
+
+			if (driver.TryFindAlbinoScreamCell(out cell, out _))
+				if (driver.Goto(cell, () => zombie.scream = -2))
+					return true;
+
+			var options = new int[] { 0, 1, 2, 3 }.InRandomOrder().ToArray();
 
 			for (var i = 0; i < options.Length; i++)
 				switch (options[i])
@@ -435,17 +757,7 @@ namespace ZombieLand
 
 					// turn off a flickable thing
 					case 2:
-						var building = map.listerBuildings.allBuildingsColonist.Where(b =>
-						{
-							var compFlickable = b.Spawned ? b.TryGetComp<CompFlickable>() : null;
-							if (compFlickable != null && compFlickable.SwitchIsOn)
-								return true;
-							var compPowerTrader = b.TryGetComp<CompPowerTrader>();
-							if (compPowerTrader != null && compPowerTrader.PowerOn)
-								return true;
-							return false;
-
-						}).SafeRandomElement();
+						var building = map.listerBuildings.allBuildingsColonist.Where(CanHackBuilding).SafeRandomElement();
 						if (driver.Goto(building))
 							return true;
 						break;
@@ -453,32 +765,9 @@ namespace ZombieLand
 					// degrade a weapon
 					case 3:
 						var weapon = map.listerThings.ThingsInGroup(ThingRequestGroup.Weapon)
-							.Where(t => t.def.IsRangedWeapon && t.def.useHitPoints)
-							.OrderBy(t => -t.MarketValue).FirstOrDefault();
+							.Where(t => t.Spawned && t.def.IsRangedWeapon && t.def.useHitPoints)
+							.OrderByDescending(t => WeaponSabotageScore(map, t)).FirstOrDefault();
 						if (driver.Goto(weapon))
-							return true;
-						break;
-
-					// scream on colonists
-					case 4:
-						cell = PawnCenter(map, map.mapPawns.FreeColonists);
-						if (driver.Goto(cell, () => zombie.scream = -2))
-							return true;
-						break;
-
-					// scream on enemies
-					case 5:
-						var enemies = map.attackTargetsCache
-							.TargetsHostileToColony.OfType<Pawn>()
-							.Where(p => p is not Zombie && p is not ZombieSymbiant && p is not ZombieSpitter
-								&& p.RaceProps.Humanlike
-								&& p.RaceProps.IsFlesh
-								&& AlienTools.IsFleshPawn(p)
-								&& SoSTools.IsHologram(p) == false
-								&& p.health.Downed == false
-							);
-						cell = PawnCenter(map, enemies);
-						if (driver.Goto(cell, () => zombie.scream = -2))
 							return true;
 						break;
 				}
