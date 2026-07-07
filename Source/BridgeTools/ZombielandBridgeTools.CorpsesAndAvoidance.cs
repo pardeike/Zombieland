@@ -1290,7 +1290,7 @@ namespace ZombieLand
 			}
 			}
 
-			[Tool("zombieland/avoid_grid_death_refresh_contract", Description = "Verify killed, downed, roped, confused, paralysis-expired, and recovered zombies request prompt avoid-grid refreshes, including non-empty overlap rebuilds and stale-result rejection.")]
+			[Tool("zombieland/avoid_grid_death_refresh_contract", Description = "Verify killed, downed, roped, confused, paralysis-expired, consciousness-reset, and recovered zombies request prompt avoid-grid refreshes, including non-empty overlap rebuilds and stale-result rejection.")]
 			public static object AvoidGridDeathRefreshContract(
 				[ToolParameter(Description = "Destroy staged colonists, zombies, and corpses at the end.", Required = false, DefaultValue = true)] bool cleanup = true)
 			{
@@ -1322,6 +1322,7 @@ namespace ZombieLand
 				try
 				{
 					var destroyedZombies = ZombieRuntimeActions.DestroyZombies(map);
+					var suppressedColonists = SuppressAvoidGridFixtureColonistThreats(map);
 					tickManager.avoidGrid = new AvoidGrid(map);
 
 					var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
@@ -1333,6 +1334,7 @@ namespace ZombieLand
 					var undowned = VerifyAvoidGridAddsAfterZombieRecovery(map, root + new IntVec3(10, 0, 10), spawned);
 					var paralysisExpiredJobDriver = VerifyAvoidGridAddsAfterParalysisExpiry(map, root + new IntVec3(-10, 0, -10), "jobDriver", spawned);
 					var paralysisExpiredStateTick = VerifyAvoidGridAddsAfterParalysisExpiry(map, root + new IntVec3(10, 0, -10), "stateTick", spawned);
+					var consciousnessReset = VerifyAvoidGridAddsAfterConsciousnessReset(map, root + new IntVec3(0, 0, -16), spawned);
 
 					return new
 					{
@@ -1343,9 +1345,11 @@ namespace ZombieLand
 							&& ObjectSuccess(confused)
 							&& ObjectSuccess(undowned)
 							&& ObjectSuccess(paralysisExpiredJobDriver)
-							&& ObjectSuccess(paralysisExpiredStateTick),
+							&& ObjectSuccess(paralysisExpiredStateTick)
+							&& ObjectSuccess(consciousnessReset),
 						cleanup,
 						destroyedZombies,
+						suppressedColonists,
 						killed,
 						downed,
 						overlap,
@@ -1353,7 +1357,8 @@ namespace ZombieLand
 						confused,
 						undowned,
 						paralysisExpiredJobDriver,
-						paralysisExpiredStateTick
+						paralysisExpiredStateTick,
+						consciousnessReset
 					};
 				}
 				finally
@@ -1370,6 +1375,29 @@ namespace ZombieLand
 						tickManager.lastAvoidGridResultTick = GenTicks.TicksGame;
 					}
 				}
+			}
+
+			static int SuppressAvoidGridFixtureColonistThreats(Map map)
+			{
+				if (map?.mapPawns?.FreeColonistsSpawned == null)
+					return 0;
+
+				var count = 0;
+				foreach (var pawn in map.mapPawns.FreeColonistsSpawned.ToArray())
+				{
+					if (pawn == null || pawn.Dead || pawn.Spawned == false)
+						continue;
+					DisablePawnWork(pawn);
+					pawn.equipment?.DestroyAllEquipment(DestroyMode.Vanish);
+					pawn.inventory?.DestroyAll();
+					if (pawn.drafter != null)
+						pawn.drafter.Drafted = true;
+					var waitJob = JobMaker.MakeJob(JobDefOf.Wait);
+					waitJob.playerForced = true;
+					pawn.jobs?.StartJob(waitJob, JobCondition.InterruptForced, null, false, true);
+					count++;
+				}
+				return count;
 			}
 
 			static object VerifyAvoidGridClearsAfterZombieTransition(Map map, IntVec3 root, string transition, bool withSurvivor, List<Thing> spawned)
@@ -1870,6 +1898,142 @@ namespace ZombieLand
 				};
 			}
 
+			static object VerifyAvoidGridAddsAfterConsciousnessReset(Map map, IntVec3 root, List<Thing> spawned)
+			{
+				const string transition = "consciousnessReset";
+				var tickManager = map.GetComponent<TickManager>();
+				if (TryFindClearSpawnCell(map, root, 16f, out var zombieCell, out var zombieSpawnError) == false)
+					return zombieSpawnError;
+
+				var zombie = ZombieRuntimeActions.SpawnZombie(zombieCell, map, ZombieType.Normal, true);
+				if (zombie == null)
+				{
+					return new
+					{
+						success = false,
+						transition,
+						zombieCell = ZombieRuntimeActions.DescribeCell(zombieCell),
+						error = "ZombieGenerator.SpawnZombie returned no zombie."
+					};
+				}
+				zombie.state = ZombieState.Tracking;
+				spawned.Add(zombie);
+
+				foreach (var hediff in zombie.health.hediffSet.hediffs.ToList())
+					zombie.health.RemoveHediff(hediff);
+				var hediffCountAfterClear = zombie.health.hediffSet.hediffs.Count;
+				zombie.paralyzedUntil = 0;
+				zombie.ropedBy = null;
+				zombie.isHealing = false;
+				zombie.consciousness = 0f;
+				zombie.jobs.StartJob(JobMaker.MakeJob(CustomDefs.Stumble), JobCondition.InterruptForced, null, true, false, null, null);
+				var driverStarted = zombie.jobs?.curDriver is JobDriver_Stumble;
+				tickManager.allZombiesCached = tickManager.AllZombies().ToHashSet();
+
+				var emptyGrid = Tools.avoider.UpdateZombiePositionsImmediately(map, new List<ZombieCostSpecs>());
+				tickManager.avoidGrid = emptyGrid;
+				tickManager.lastAvoidGridRequestId = emptyGrid.requestId;
+				tickManager.lastAvoidGridResultId = emptyGrid.requestId;
+				tickManager.lastAvoidGridRequestTick = GenTicks.TicksGame;
+				tickManager.lastAvoidGridResultTick = GenTicks.TicksGame;
+
+				var zombieAvoidRadius = Tools.ZombieAvoidRadius(zombie);
+				var initialDangerCells = GenRadial.RadialCellsAround(zombieCell, zombieAvoidRadius, true)
+					.Where(cell => cell.InBounds(map))
+					.ToArray();
+				var zombieCostBefore = AvoidCost(emptyGrid, map, zombieCell);
+				var dangerCellsBefore = initialDangerCells.Count(cell => emptyGrid.ShouldAvoid(map, cell));
+				var requestIdBefore = tickManager.lastAvoidGridRequestId;
+				var affectsAvoidGridBefore = zombie.AffectsAvoidGrid;
+				var needsDownedTickBefore = ZombieStateHandler.NeedsDownedOrUnconsciousnessTick(zombie);
+
+				var tickTasksAvoidGridCycleYields = 14 + (Constants.CONTAMINATION ? 1 : 0);
+				var normalAvoidGridDelayTicks = Constants.TICKMANAGER_AVOIDGRID_DELAY.SecondsToTicks() * tickTasksAvoidGridCycleYields;
+				var promptMaxTicks = Math.Max(90, normalAvoidGridDelayTicks - 1);
+				const int maxTicks = 240;
+				var resetAtTick = -1;
+				var addedAtTick = -1;
+				var zombieCostAfter = -1;
+				var dangerCellsAfter = -1;
+				var requestIdAfter = tickManager.lastAvoidGridRequestId;
+				var resultIdAfter = tickManager.lastAvoidGridResultId;
+				var finalZombieCell = zombie.Position;
+				var samples = new List<object>();
+				for (var tick = 1; tick <= maxTicks; tick++)
+				{
+					AdvanceGameTicks(1);
+					finalZombieCell = zombie.Position;
+					if (resetAtTick < 0 && zombie.consciousness > Constants.MIN_CONSCIOUSNESS && zombie.AffectsAvoidGrid)
+						resetAtTick = tick;
+
+					var grid = tickManager.avoidGrid;
+					var currentDangerCells = GenRadial.RadialCellsAround(finalZombieCell, zombieAvoidRadius, true)
+						.Where(cell => cell.InBounds(map))
+						.ToArray();
+					zombieCostAfter = grid == null ? -1 : AvoidCost(grid, map, finalZombieCell);
+					dangerCellsAfter = grid == null ? -1 : currentDangerCells.Count(cell => grid.ShouldAvoid(map, cell));
+					requestIdAfter = tickManager.lastAvoidGridRequestId;
+					resultIdAfter = tickManager.lastAvoidGridResultId;
+					var gridAdded = zombieCostAfter > 0 && dangerCellsAfter > 0;
+					if (tick == 1 || tick == maxTicks || tick == resetAtTick || gridAdded)
+					{
+						samples.Add(new
+						{
+							tick,
+							consciousness = zombie.consciousness,
+							affectsAvoidGrid = zombie.AffectsAvoidGrid,
+							zombieCell = ZombieRuntimeActions.DescribeCell(finalZombieCell),
+							zombieCostAfter,
+							dangerCellsAfter,
+							requestIdAfter,
+							resultIdAfter
+						});
+					}
+					if (gridAdded)
+					{
+						addedAtTick = tick;
+						break;
+					}
+				}
+
+				return new
+				{
+					success = driverStarted
+						&& hediffCountAfterClear == 0
+						&& affectsAvoidGridBefore == false
+						&& needsDownedTickBefore == false
+						&& zombieCostBefore == 0
+						&& dangerCellsBefore == 0
+						&& resetAtTick > 0
+						&& addedAtTick > 0
+						&& addedAtTick <= promptMaxTicks
+						&& resultIdAfter > requestIdBefore,
+					transition,
+					zombie = DescribeZombie(zombie),
+					zombieCell = ZombieRuntimeActions.DescribeCell(zombieCell),
+					finalZombieCell = ZombieRuntimeActions.DescribeCell(finalZombieCell),
+					zombieAvoidRadius,
+					driverStarted,
+					hediffCountAfterClear,
+					affectsAvoidGridBefore,
+					needsDownedTickBefore,
+					zombieCostBefore,
+					dangerCellsBefore,
+					resetAtTick,
+					addedAtTick,
+					promptMaxTicks,
+					normalAvoidGridDelayTicks,
+					tickTasksAvoidGridCycleYields,
+					maxTicks,
+					zombieCostAfter,
+					dangerCellsAfter,
+					requestIdBefore,
+					requestIdAfter,
+					resultIdAfter,
+					samples = samples.ToArray()
+				};
+			}
+
 			static object VerifyAvoidGridAddsAfterZombieRecovery(Map map, IntVec3 root, List<Thing> spawned)
 			{
 				const string transition = "undowned";
@@ -1965,8 +2129,12 @@ namespace ZombieLand
 				var dangerCellsBefore = formerDangerCells.Count(cell => emptyGrid.ShouldAvoid(map, cell));
 				var requestIdBefore = tickManager.lastAvoidGridRequestId;
 
+				zombie.consciousness = 1f;
+				var consciousnessBeforeUndowned = zombie.consciousness;
 				makeUndowned.Invoke(zombie.health, new object[makeUndowned.GetParameters().Length]);
 				var transitioned = zombie.health?.Downed == false;
+				zombie.jobs.StartJob(JobMaker.MakeJob(CustomDefs.Stumble), JobCondition.InterruptForced, null, true, false, null, null);
+				var driverStarted = zombie.jobs?.curDriver is JobDriver_Stumble;
 				var tickTasksAvoidGridCycleYields = 14 + (Constants.CONTAMINATION ? 1 : 0);
 				var normalAvoidGridDelayTicks = Constants.TICKMANAGER_AVOIDGRID_DELAY.SecondsToTicks() * tickTasksAvoidGridCycleYields;
 				var promptMaxTicks = Math.Max(90, normalAvoidGridDelayTicks - 1);
@@ -1976,13 +2144,18 @@ namespace ZombieLand
 				var dangerCellsAfter = -1;
 				var requestIdAfter = tickManager.lastAvoidGridRequestId;
 				var resultIdAfter = tickManager.lastAvoidGridResultId;
+				var finalZombieCell = zombie.Position;
 				var samples = new List<object>();
 				for (var tick = 1; tick <= maxTicks; tick++)
 				{
 					AdvanceGameTicks(1);
 					var grid = tickManager.avoidGrid;
-					zombieCostAfter = grid == null ? -1 : AvoidCost(grid, map, zombieCell);
-					dangerCellsAfter = grid == null ? -1 : formerDangerCells.Count(cell => grid.ShouldAvoid(map, cell));
+					finalZombieCell = zombie.Position;
+					var currentDangerCells = GenRadial.RadialCellsAround(finalZombieCell, zombieAvoidRadius, true)
+						.Where(cell => cell.InBounds(map))
+						.ToArray();
+					zombieCostAfter = grid == null ? -1 : AvoidCost(grid, map, finalZombieCell);
+					dangerCellsAfter = grid == null ? -1 : currentDangerCells.Count(cell => grid.ShouldAvoid(map, cell));
 					requestIdAfter = tickManager.lastAvoidGridRequestId;
 					resultIdAfter = tickManager.lastAvoidGridResultId;
 					var gridAdded = zombieCostAfter > 0 && dangerCellsAfter > 0;
@@ -1991,6 +2164,7 @@ namespace ZombieLand
 						samples.Add(new
 						{
 							tick,
+							zombieCell = ZombieRuntimeActions.DescribeCell(finalZombieCell),
 							zombieCostAfter,
 							dangerCellsAfter,
 							requestIdAfter,
@@ -2007,6 +2181,7 @@ namespace ZombieLand
 				return new
 				{
 					success = transitioned
+						&& driverStarted
 						&& zombieCostBefore == 0
 						&& dangerCellsBefore == 0
 						&& addedAtTick > 0
@@ -2017,9 +2192,12 @@ namespace ZombieLand
 					zombie = DescribeZombie(zombie),
 					actorCell = ZombieRuntimeActions.DescribeCell(actorCell),
 					zombieCell = ZombieRuntimeActions.DescribeCell(zombieCell),
+					finalZombieCell = ZombieRuntimeActions.DescribeCell(finalZombieCell),
 					zombieAvoidRadius,
+					driverStarted,
 					zombieCostBefore,
 					dangerCellsBefore,
+					consciousnessBeforeUndowned,
 					transitioned,
 					addedAtTick,
 					promptMaxTicks,
@@ -2341,20 +2519,28 @@ namespace ZombieLand
 					tickManager.lastAvoidGridResultId = exactRequestId - 2;
 					tickManager.lastAvoidGridRequestTick = GenTicks.TicksGame;
 					tickManager.lastAvoidGridResultTick = GenTicks.TicksGame;
+					avoidGridRefreshRequestedField.SetValue(tickManager, false);
+					promptAvoidGridResultPendingField.SetValue(tickManager, false);
 
 					var staleResultGrid = ManualGrid(exactRequestId - 1, actor.Position, 3000);
 					QueueAndFetch(staleResultGrid);
 					var staleResultRejected = ReferenceEquals(tickManager.avoidGrid, clearedGrid)
 						&& AvoidCost(tickManager.avoidGrid, map, actor.Position) == 0;
 
-					var futureResultGrid = ManualGrid(exactRequestId + 1, actor.Position, 3000);
-					QueueAndFetch(futureResultGrid);
-					var futureResultRejected = ReferenceEquals(tickManager.avoidGrid, clearedGrid)
-						&& AvoidCost(tickManager.avoidGrid, map, actor.Position) == 0;
-
 					var exactResultGrid = ManualGrid(exactRequestId, actor.Position, 1234);
 					QueueAndFetch(exactResultGrid);
-					var exactResultAccepted = ReferenceEquals(tickManager.avoidGrid, exactResultGrid)
+					var exactResultReferenceAccepted = ReferenceEquals(tickManager.avoidGrid, exactResultGrid);
+					var exactResultIdAfter = tickManager.lastAvoidGridResultId;
+					var exactResultCostAfter = AvoidCost(tickManager.avoidGrid, map, actor.Position);
+					var exactRefreshRequestedAfter = AvoidGridRefreshRequested();
+					var exactPromptPendingAfter = PromptAvoidGridResultPending();
+					var exactResultAccepted = exactResultReferenceAccepted
+						&& exactResultIdAfter == exactRequestId
+						&& exactResultCostAfter == 1234;
+
+					var futureResultGrid = ManualGrid(exactRequestId + 1, actor.Position, 3000);
+					QueueAndFetch(futureResultGrid);
+					var futureResultRejected = ReferenceEquals(tickManager.avoidGrid, exactResultGrid)
 						&& tickManager.lastAvoidGridResultId == exactRequestId
 						&& AvoidCost(tickManager.avoidGrid, map, actor.Position) == 1234;
 
@@ -2496,6 +2682,11 @@ namespace ZombieLand
 						staleResultRejected,
 						futureResultRejected,
 						exactResultAccepted,
+						exactResultReferenceAccepted,
+						exactResultIdAfter,
+						exactResultCostAfter,
+						exactRefreshRequestedAfter,
+						exactPromptPendingAfter,
 						promptRefreshCoalescing
 					};
 				}

@@ -102,7 +102,11 @@ namespace ZombieLand
 					return;
 			}
 			else if (zombie.IsTanky == false)
+			{
+				var wasAffectingAvoidGrid = zombie.AffectsAvoidGrid;
 				zombie.consciousness = 1f;
+				zombie.RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
+			}
 
 			if (ZombieStateHandler.NeedsAttackTick(zombie) && this.Attack(zombie))
 				return;
