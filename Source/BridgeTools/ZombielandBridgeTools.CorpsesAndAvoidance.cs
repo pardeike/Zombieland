@@ -1322,10 +1322,10 @@ namespace ZombieLand
 				try
 				{
 					var destroyedZombies = ZombieRuntimeActions.DestroyZombies(map);
-					var suppressedColonists = SuppressAvoidGridFixtureColonistThreats(map);
+					if (TryFindAvoidGridDeathRefreshFixtureRoot(map, out var root, out var rootError) == false)
+						return rootError;
 					tickManager.avoidGrid = new AvoidGrid(map);
 
-					var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
 					var killed = VerifyAvoidGridClearsAfterZombieTransition(map, root + new IntVec3(-10, 0, 0), "killed", withSurvivor: false, spawned);
 					var downed = VerifyAvoidGridClearsAfterZombieTransition(map, root, "downed", withSurvivor: false, spawned);
 					var overlap = VerifyAvoidGridClearsAfterZombieTransition(map, root + new IntVec3(10, 0, 0), "killed", withSurvivor: true, spawned);
@@ -1349,7 +1349,7 @@ namespace ZombieLand
 							&& ObjectSuccess(consciousnessReset),
 						cleanup,
 						destroyedZombies,
-						suppressedColonists,
+						fixtureRoot = ZombieRuntimeActions.DescribeCell(root),
 						killed,
 						downed,
 						overlap,
@@ -1377,31 +1377,89 @@ namespace ZombieLand
 				}
 			}
 
-			static int SuppressAvoidGridFixtureColonistThreats(Map map)
+			static bool TryFindAvoidGridDeathRefreshFixtureRoot(Map map, out IntVec3 root, out object error)
 			{
-				if (map?.mapPawns?.FreeColonistsSpawned == null)
-					return 0;
+					root = IntVec3.Invalid;
+					error = null;
+					if (map == null)
+					{
+						error = new
+						{
+							success = false,
+							error = "No current map is loaded."
+						};
+						return false;
+					}
 
-				var count = 0;
-				foreach (var pawn in map.mapPawns.FreeColonistsSpawned.ToArray())
-				{
-					if (pawn == null || pawn.Dead || pawn.Spawned == false)
-						continue;
-					DisablePawnWork(pawn);
-					pawn.equipment?.DestroyAllEquipment(DestroyMode.Vanish);
-					pawn.inventory?.DestroyAll();
-					if (pawn.drafter != null)
-						pawn.drafter.Drafted = true;
-					var waitJob = JobMaker.MakeJob(JobDefOf.Wait);
-					waitJob.playerForced = true;
-					pawn.jobs?.StartJob(waitJob, JobCondition.InterruptForced, null, false, true);
-					count++;
+					var fixtureOffsets = new[]
+					{
+						new IntVec3(-10, 0, 0),
+						IntVec3.Zero,
+						new IntVec3(10, 0, 0),
+						new IntVec3(0, 0, 10),
+						new IntVec3(-10, 0, 10),
+						new IntVec3(10, 0, 10),
+						new IntVec3(-10, 0, -10),
+						new IntVec3(10, 0, -10),
+						new IntVec3(0, 0, -16)
+					};
+					var existingColonists = map.mapPawns?.FreeColonistsSpawned?
+						.Where(pawn => pawn != null && pawn.Dead == false && pawn.Spawned)
+						.ToArray() ?? Array.Empty<Pawn>();
+					var candidates = AvoidGridDeathRefreshRootCandidates(map).ToArray();
+					foreach (var candidate in candidates)
+					{
+						if (candidate.InBounds(map) == false)
+							continue;
+						var clearCells = new List<IntVec3>();
+						var allFixturesReachable = true;
+						foreach (var offset in fixtureOffsets)
+						{
+							var fixtureRoot = candidate + offset;
+							if (fixtureRoot.InBounds(map) == false || TryFindClearSpawnCell(map, fixtureRoot, 16f, out var clearCell, out _) == false)
+							{
+								allFixturesReachable = false;
+								break;
+							}
+							clearCells.Add(clearCell);
+						}
+						if (allFixturesReachable == false)
+							continue;
+						if (existingColonists.Any(colonist => clearCells.Any(cell => colonist.Position.DistanceTo(cell) < 32f)))
+							continue;
+						root = candidate;
+						return true;
+					}
+
+					error = new
+					{
+						success = false,
+						error = "No non-invasive avoid-grid fixture area was found far enough from existing free colonists.",
+						existingColonists = existingColonists.Select(DescribePawn).Take(12).ToArray(),
+						candidateCount = candidates.Length
+					};
+					return false;
 				}
-				return count;
-			}
 
-			static object VerifyAvoidGridClearsAfterZombieTransition(Map map, IntVec3 root, string transition, bool withSurvivor, List<Thing> spawned)
-			{
+				static IEnumerable<IntVec3> AvoidGridDeathRefreshRootCandidates(Map map)
+				{
+					var center = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+					yield return center;
+					yield return new IntVec3(map.Size.x / 4, 0, map.Size.z / 4);
+					yield return new IntVec3(map.Size.x * 3 / 4, 0, map.Size.z / 4);
+					yield return new IntVec3(map.Size.x / 4, 0, map.Size.z * 3 / 4);
+					yield return new IntVec3(map.Size.x * 3 / 4, 0, map.Size.z * 3 / 4);
+
+					var step = Math.Max(20, map.Size.x / 8);
+					for (var x = step; x < map.Size.x - step; x += step)
+					{
+						for (var z = step; z < map.Size.z - step; z += step)
+							yield return new IntVec3(x, 0, z);
+					}
+				}
+
+				static object VerifyAvoidGridClearsAfterZombieTransition(Map map, IntVec3 root, string transition, bool withSurvivor, List<Thing> spawned)
+				{
 				var tickManager = map.GetComponent<TickManager>();
 				if (TryFindClearSpawnCell(map, root, 16f, out var actorCell, out var actorSpawnError) == false)
 					return actorSpawnError;
