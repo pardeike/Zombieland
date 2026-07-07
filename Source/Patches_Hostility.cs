@@ -766,6 +766,11 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(AttackTargetsCache.TargetsHostileToFaction))]
 		static class AttackTargetsCache_TargetsHostileToFaction_Patch
 		{
+			static bool Prepare()
+			{
+				return AccessTools.Method(typeof(AttackTargetsCache), nameof(AttackTargetsCache.TargetsHostileToFaction), new[] { typeof(Faction) }) != null;
+			}
+
 			static void Postfix(AttackTargetsCache __instance, Faction f, ref HashSet<IAttackTarget> __result)
 			{
 				__result = HostilesWithoutZombies(__instance, f, __result);

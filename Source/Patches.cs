@@ -1002,6 +1002,8 @@ namespace ZombieLand
 		[HarmonyPatch]
 		static class DropCellFinder_IsSafeDropSpot_Patch
 		{
+			static bool Prepare() => TargetMethod() != null;
+
 			static MethodBase TargetMethod()
 			{
 				return AccessTools.Method(
@@ -1037,6 +1039,8 @@ namespace ZombieLand
 		{
 			static readonly AccessTools.FieldRef<WealthWatcher, Map> mapRef = AccessTools.FieldRefAccess<WealthWatcher, Map>("map");
 
+			static bool Prepare() => TargetMethod() != null;
+
 			static MethodBase TargetMethod()
 			{
 				return AccessTools.Method(typeof(WealthWatcher), "CalculateWealthItems");
@@ -1052,6 +1056,11 @@ namespace ZombieLand
 		[HarmonyPatch(typeof(WealthWatcher), nameof(WealthWatcher.WealthItemsFilter))]
 		static class WealthWatcher_WealthItemsFilter_Patch
 		{
+			static bool Prepare()
+			{
+				return AccessTools.Method(typeof(WealthWatcher), nameof(WealthWatcher.WealthItemsFilter), new[] { typeof(IThingHolder) }) != null;
+			}
+
 			static void Postfix(IThingHolder x, ref bool __result)
 			{
 				if (__result && StorytellerEventFilters.IsZombielandWealthHolder(x))
@@ -1063,6 +1072,8 @@ namespace ZombieLand
 		static class DangerWatcher_CalculateDangerRating_Patch
 		{
 			static readonly AccessTools.FieldRef<DangerWatcher, Map> mapRef = AccessTools.FieldRefAccess<DangerWatcher, Map>("map");
+
+			static bool Prepare() => TargetMethod() != null;
 
 			static MethodBase TargetMethod()
 			{
@@ -1123,6 +1134,11 @@ namespace ZombieLand
 		[HarmonyPatch(typeof(DangerWatcher), nameof(DangerWatcher.AffectsStoryDanger))]
 		static class DangerWatcher_AffectsStoryDanger_Patch
 		{
+			static bool Prepare()
+			{
+				return AccessTools.Method(typeof(DangerWatcher), nameof(DangerWatcher.AffectsStoryDanger), new[] { typeof(IAttackTarget) }) != null;
+			}
+
 			static bool Prefix(IAttackTarget t, ref bool __result)
 			{
 				var thing = t?.Thing;

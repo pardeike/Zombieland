@@ -472,7 +472,12 @@ namespace ZombieLand
 			"ZombieLand.Patches+IncidentWorker_TryExecute_Patch",
 			"ZombieLand.Patches+IncidentWorker_Raid_TryExecuteWorker_Patch",
 			"ZombieLand.Patches+IncidentWorker_Patches",
-			"ZombieLand.Patches+PawnGenerator_GenerateNewPawnInternal_Patch"
+			"ZombieLand.Patches+PawnGenerator_GenerateNewPawnInternal_Patch",
+			"ZombieLand.Patches+DropCellFinder_IsSafeDropSpot_Patch",
+			"ZombieLand.Patches+WealthWatcher_CalculateWealthItems_Patch",
+			"ZombieLand.Patches+WealthWatcher_WealthItemsFilter_Patch",
+			"ZombieLand.Patches+DangerWatcher_CalculateDangerRating_Patch",
+			"ZombieLand.Patches+DangerWatcher_AffectsStoryDanger_Patch"
 		};
 
 		static readonly HashSet<string> ZombiePatchTypes = new()
