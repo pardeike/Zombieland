@@ -3768,8 +3768,7 @@ namespace ZombieLand
 		static object VerifyAreaWorkflowDangerAndFlee(Map map, IntVec3 root, List<Thing> spawnedThings)
 		{
 			var settingsSnapshot = SnapshotZombieSettings();
-			var dangerMethod = AccessTools.Method(typeof(DangerWatcher), "AffectsStoryDanger");
-			var dangerPatchTargets = PatchedMethodsForPatchClass("DangerWatcher_AffectsStoryDanger_Patch");
+			var dangerRatingPatchTargets = PatchedMethodsForPatchClass("DangerWatcher_CalculateDangerRating_Patch");
 			var fleePatchTargets = PatchedMethodsForPatchClass("FleeUtility_ShouldFleeFrom_Patch");
 			var originalHome = new Dictionary<IntVec3, bool>();
 
@@ -3782,9 +3781,9 @@ namespace ZombieLand
 				map.areaManager.Home[cell] = value;
 			}
 
-			bool InvokeDanger(IAttackTarget target)
+			bool InvokeDanger(Thing thing)
 			{
-				return dangerMethod != null && (bool)dangerMethod.Invoke(null, new object[] { target });
+				return StorytellerEventFilters.AffectsStoryDanger(thing);
 			}
 
 			try
@@ -3798,19 +3797,6 @@ namespace ZombieLand
 					settings.doubleTapRequired = false;
 				});
 
-				if (dangerMethod == null)
-				{
-					return new
-					{
-						success = false,
-						error = "Could not reflect DangerWatcher.AffectsStoryDanger.",
-						patchTargets = new
-						{
-							danger = dangerPatchTargets,
-							flee = fleePatchTargets
-						}
-					};
-				}
 				if (TryFindClearSpawnCell(map, root, 18f, out var actorCell, out var actorError) == false)
 					return actorError;
 
@@ -3901,7 +3887,7 @@ namespace ZombieLand
 
 				return new
 				{
-					success = dangerPatchTargets.Length > 0
+					success = dangerRatingPatchTargets.Length > 0
 						&& fleePatchTargets.Length > 0
 						&& dangerHome
 						&& dangerOutside == false
@@ -3916,7 +3902,7 @@ namespace ZombieLand
 						&& hostileThreat,
 					patchTargets = new
 					{
-						danger = dangerPatchTargets,
+						dangerRating = dangerRatingPatchTargets,
 						flee = fleePatchTargets
 					},
 					actor = DescribePawn(actor),

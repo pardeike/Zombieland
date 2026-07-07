@@ -1196,7 +1196,7 @@ namespace ZombieLand
 					activeThreat = PatchedMethodsForPatchClass("GenHostility_IsActiveThreat_Patch"),
 					registerTarget = PatchedMethodsForPatchClass("AttackTargetsCache_RegisterTarget_Patch"),
 					startJob = PatchedMethodsForPatchClass("Pawn_JobTracker_StartJob_Patch"),
-					danger = PatchedMethodsForPatchClass("DangerWatcher_AffectsStoryDanger_Patch"),
+					dangerRating = PatchedMethodsForPatchClass("DangerWatcher_CalculateDangerRating_Patch"),
 					flee = PatchedMethodsForPatchClass("FleeUtility_ShouldFleeFrom_Patch"),
 					manhunter = PatchedMethodsForPatchClass("PawnUtility_GetManhunterOnDamageChance_Patch"),
 					prey = PatchedMethodsForPatchClass("FoodUtility_GetPreyScoreFor_Patch")
