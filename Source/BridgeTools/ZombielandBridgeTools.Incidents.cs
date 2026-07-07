@@ -2242,47 +2242,81 @@ namespace ZombieLand
 			if (TryFindClearSpawnCell(map, new IntVec3(map.Size.x / 2, 0, map.Size.z / 2) + new IntVec3(0, 0, 8), 24f, out var cell, out var cellError) == false)
 				return cellError;
 
-			var originalHome = map.areaManager.Home[cell];
+			var cells = GenRadial.RadialCellsAround(cell, 8f, true)
+				.Where(candidate => candidate.InBounds(map))
+				.Where(candidate => candidate.Standable(map))
+				.Where(candidate => candidate.Fogged(map) == false)
+				.Where(candidate => candidate.GetFirstPawn(map) == null)
+				.Take(3)
+				.ToArray();
+			if (cells.Length < 3)
+			{
+				return new
+				{
+					success = false,
+					cell = ZombieRuntimeActions.DescribeCell(cell),
+					foundCells = cells.Length,
+					error = "Could not find three clear story-danger zombie fixture cells."
+				};
+			}
+
+			var originalHome = cells.ToDictionary(candidate => candidate, candidate => map.areaManager.Home[candidate]);
 			try
 			{
 				var dangerBefore = InvokeCalculateDangerRating(map, method, out var dangerBeforeError);
-				map.areaManager.Home[cell] = true;
-				var zombie = ZombieRuntimeActions.SpawnZombie(cell, map, ZombieType.Normal, true);
-				if (zombie == null)
+				var zombies = new List<Zombie>();
+				foreach (var candidate in cells)
 				{
-					return new
+					map.areaManager.Home[candidate] = true;
+					var zombie = ZombieRuntimeActions.SpawnZombie(candidate, map, ZombieType.Normal, true);
+					if (zombie == null)
 					{
-						success = false,
-						cell = ZombieRuntimeActions.DescribeCell(cell),
-						error = "Could not spawn the story-danger zombie fixture."
-					};
+						return new
+						{
+							success = false,
+							cell = ZombieRuntimeActions.DescribeCell(candidate),
+							error = "Could not spawn the story-danger zombie fixture."
+						};
+					}
+					zombies.Add(zombie);
+					map.attackTargetsCache.UpdateTarget(zombie);
 				}
-				map.attackTargetsCache.UpdateTarget(zombie);
 				var rawColonyZombielandHostiles = map.attackTargetsCache.TargetsHostileToColony.Count(StorytellerEventFilters.IsZombielandAttackTarget);
 				var dangerAfter = InvokeCalculateDangerRating(map, method, out var dangerAfterError);
-				var affectsStoryDanger = StorytellerEventFilters.AffectsStoryDanger(zombie);
+				map.dangerWatcher.Notify_ColonistHarmedExternally();
+				var dangerAfterHarm = InvokeCalculateDangerRating(map, method, out var dangerAfterHarmError);
+				var zombieCombatPower = zombies.Sum(zombie => zombie.kindDef?.combatPower ?? 0f);
+				var affectsStoryDanger = zombies.All(StorytellerEventFilters.AffectsStoryDanger);
 				return new
 				{
 					success = affectsStoryDanger
 						&& rawColonyZombielandHostiles == 0
-						&& StoryDangerRank(dangerAfter) >= StoryDangerRank(StoryDanger.Low)
+						&& zombieCombatPower > 150f
+						&& zombieCombatPower < 400f
+						&& dangerAfter == StoryDanger.Low
+						&& dangerAfterHarm == StoryDanger.High
 						&& dangerBeforeError == null
-						&& dangerAfterError == null,
-					cell = ZombieRuntimeActions.DescribeCell(cell),
-					originalHome,
-					homeAfterSetup = map.areaManager.Home[cell],
+						&& dangerAfterError == null
+						&& dangerAfterHarmError == null,
+					cells = cells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					zombieCombatPower,
+					originalHome = originalHome.Select(entry => new { cell = ZombieRuntimeActions.DescribeCell(entry.Key), value = entry.Value }).ToArray(),
+					homeAfterSetup = cells.All(candidate => map.areaManager.Home[candidate]),
 					rawColonyZombielandHostiles,
 					affectsStoryDanger,
 					dangerBefore = dangerBefore.ToString(),
 					dangerAfter = dangerAfter.ToString(),
+					dangerAfterHarm = dangerAfterHarm.ToString(),
 					dangerBeforeError,
 					dangerAfterError,
-					zombie = DescribeZombie(zombie)
+					dangerAfterHarmError,
+					zombies = zombies.Select(DescribeZombie).ToArray()
 				};
 			}
 			finally
 			{
-				map.areaManager.Home[cell] = originalHome;
+				foreach (var entry in originalHome)
+					map.areaManager.Home[entry.Key] = entry.Value;
 			}
 		}
 

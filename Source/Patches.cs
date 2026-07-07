@@ -1072,6 +1072,7 @@ namespace ZombieLand
 		static class DangerWatcher_CalculateDangerRating_Patch
 		{
 			static readonly AccessTools.FieldRef<DangerWatcher, Map> mapRef = AccessTools.FieldRefAccess<DangerWatcher, Map>("map");
+			static readonly AccessTools.FieldRef<DangerWatcher, int> lastColonistHarmedTickRef = AccessTools.FieldRefAccess<DangerWatcher, int>("lastColonistHarmedTick");
 
 			static bool Prepare() => TargetMethod() != null;
 
@@ -1086,7 +1087,7 @@ namespace ZombieLand
 				var zombieCombatPower = HomeAreaZombieCombatPower(map);
 				if (zombieCombatPower <= 0f)
 					return;
-				var zombieDanger = StoryDangerFor(map, zombieCombatPower);
+				var zombieDanger = StoryDangerFor(map, zombieCombatPower, lastColonistHarmedTickRef(__instance));
 				if (StoryDangerRank(zombieDanger) > StoryDangerRank(__result))
 					__result = zombieDanger;
 			}
@@ -1105,7 +1106,7 @@ namespace ZombieLand
 				return combatPower;
 			}
 
-			static StoryDanger StoryDangerFor(Map map, float combatPower)
+			static StoryDanger StoryDangerFor(Map map, float combatPower, int lastColonistHarmedTick)
 			{
 				if (combatPower == 0f)
 					return StoryDanger.None;
@@ -1113,6 +1114,8 @@ namespace ZombieLand
 				if (combatPower < 150f && combatPower <= freeColonists * 18f)
 					return StoryDanger.Low;
 				if (combatPower > 400f)
+					return StoryDanger.High;
+				if (lastColonistHarmedTick > Find.TickManager.TicksGame - 900)
 					return StoryDanger.High;
 				return StoryDanger.Low;
 			}
