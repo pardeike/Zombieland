@@ -1152,39 +1152,6 @@ namespace ZombieLand
 			}
 		}
 
-		// Keep disabled zombies out of the vanilla per-target check; active home-area zombies
-		// are re-added by DangerWatcher_CalculateDangerRating_Patch above.
-		//
-		[HarmonyPatch(typeof(DangerWatcher), nameof(DangerWatcher.AffectsStoryDanger))]
-		static class DangerWatcher_AffectsStoryDanger_Patch
-		{
-			static bool Prepare()
-			{
-				return AccessTools.Method(typeof(DangerWatcher), nameof(DangerWatcher.AffectsStoryDanger), new[] { typeof(IAttackTarget) }) != null;
-			}
-
-			static bool Prefix(IAttackTarget t, ref bool __result)
-			{
-				var thing = t?.Thing;
-				if (thing is ZombieSymbiant)
-				{
-					__result = false;
-					return false;
-				}
-				if (thing is not Zombie zombie)
-					return true;
-				if (zombie.Spawned == false || zombie.Downed || zombie.IsRopedOrConfused)
-				{
-					__result = false;
-					return false;
-				}
-				var pos = zombie.Position;
-				var map = zombie.Map;
-				__result = (map != null && pos.InBounds(map) && map.areaManager.Home[pos]);
-				return false;
-			}
-		}
-
 		// do not flee from certain zombies
 		//
 		[HarmonyPatch(typeof(FleeUtility))]
