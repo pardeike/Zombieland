@@ -1002,6 +1002,8 @@ namespace ZombieLand
 		[HarmonyPatch]
 		static class DropCellFinder_IsSafeDropSpot_Patch
 		{
+			static readonly HashSet<IAttackTarget> targetsHostileToFactionWithoutZombies = [];
+
 			static bool Prepare() => TargetMethod() != null;
 
 			static MethodBase TargetMethod()
@@ -1014,23 +1016,42 @@ namespace ZombieLand
 
 			static HashSet<IAttackTarget> TargetsHostileToFactionWithoutZombies(AttackTargetsCache cache, Faction faction)
 			{
+				targetsHostileToFactionWithoutZombies.Clear();
 				if (cache == null)
-					return [];
-				var result = new HashSet<IAttackTarget>();
+					return targetsHostileToFactionWithoutZombies;
 				foreach (var target in cache.TargetsHostileToFaction(faction))
 				{
 					if (StorytellerEventFilters.IsZombielandAttackTarget(target) == false)
-						result.Add(target);
+						targetsHostileToFactionWithoutZombies.Add(target);
 				}
-				return result;
+				return targetsHostileToFactionWithoutZombies;
 			}
 
 			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 			{
-				return instructions.MethodReplacer(
-					AccessTools.Method(typeof(AttackTargetsCache), nameof(AttackTargetsCache.TargetsHostileToFaction)),
-					SymbolExtensions.GetMethodInfo(() => TargetsHostileToFactionWithoutZombies(null, null))
-				);
+				var list = instructions.ToList();
+				var from = AccessTools.Method(typeof(AttackTargetsCache), nameof(AttackTargetsCache.TargetsHostileToFaction));
+				var to = SymbolExtensions.GetMethodInfo(() => TargetsHostileToFactionWithoutZombies(null, null));
+				if (from == null || to == null)
+				{
+					Log.Error($"{nameof(DropCellFinder_IsSafeDropSpot_Patch)} skipped method replacement because a replacement endpoint was not found.");
+					return list;
+				}
+
+				var replaced = false;
+				foreach (var instruction in list)
+				{
+					if (instruction.Calls(from))
+					{
+						instruction.opcode = OpCodes.Call;
+						instruction.operand = to;
+						replaced = true;
+					}
+				}
+
+				if (replaced == false)
+					Log.Error($"{nameof(DropCellFinder_IsSafeDropSpot_Patch)} could not find call to {from.DeclaringType?.FullName}.{from.Name}.");
+				return list;
 			}
 		}
 
