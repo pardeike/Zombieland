@@ -26,6 +26,15 @@ namespace ZombieLand
 			return zombie != null && zombie.paralyzedUntil > GenTicks.TicksAbs;
 		}
 
+		public static bool AffectsAvoidGridBeforeClearingExpiredParalysis(this Zombie zombie)
+		{
+			if (zombie == null)
+				return false;
+			if (zombie.paralyzedUntil > 0 && GenTicks.TicksAbs >= zombie.paralyzedUntil)
+				return false;
+			return zombie.AffectsAvoidGrid;
+		}
+
 		public static bool CanParalyze(this Zombie zombie, out string error)
 		{
 			error = null;
@@ -108,7 +117,7 @@ namespace ZombieLand
 				return false;
 			if (GenTicks.TicksAbs >= zombie.paralyzedUntil)
 			{
-				var wasAffectingAvoidGrid = zombie.AffectsAvoidGrid;
+				var wasAffectingAvoidGrid = zombie.AffectsAvoidGridBeforeClearingExpiredParalysis();
 				zombie.paralyzedUntil = 0;
 				zombie.RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
 				return false;

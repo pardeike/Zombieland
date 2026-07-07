@@ -247,7 +247,7 @@ namespace ZombieLand
 
 		public static bool DownedOrUnconsciousness(Zombie zombie)
 		{
-			var wasAffectingAvoidGrid = zombie.AffectsAvoidGrid;
+			var wasAffectingAvoidGrid = zombie.AffectsAvoidGridBeforeClearingExpiredParalysis();
 			bool Return(bool result)
 			{
 				zombie.RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
