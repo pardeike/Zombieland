@@ -528,7 +528,6 @@ namespace ZombieLand
 			"ZombieLand.GenHostility_HostileTo_Thing_Thing_Patch",
 			"ZombieLand.GenHostility_IsActiveThreat_Patch",
 			"ZombieLand.JobDriver_Wait_CheckForAutoAttack_Patch",
-			"ZombieLand.TargetCachePatches+AttackTargetsCache_TargetsHostileToFaction_Patch",
 			"ZombieLand.TargetCachePatches+AttackTargetsCache_DeregisterTarget_Patch",
 			"ZombieLand.TargetCachePatches+AttackTargetsCache_RegisterTarget_Patch",
 			"ZombieLand.TargetCachePatches+AttackTargetsCache_TargetsHostileToColony_Patch"

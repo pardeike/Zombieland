@@ -2057,7 +2057,6 @@ namespace ZombieLand
 				var patchTargets = new
 				{
 					dropCellFinder = PatchedMethodsForPatchClass("DropCellFinder_IsSafeDropSpot_Patch"),
-					targetsHostileToFaction = PatchedMethodsForPatchClass("AttackTargetsCache_TargetsHostileToFaction_Patch"),
 					wealthItems = PatchedMethodsForPatchClass("WealthWatcher_CalculateWealthItems_Patch"),
 					wealthItemsFilter = PatchedMethodsForPatchClass("WealthWatcher_WealthItemsFilter_Patch"),
 					dangerRating = PatchedMethodsForPatchClass("DangerWatcher_CalculateDangerRating_Patch")
