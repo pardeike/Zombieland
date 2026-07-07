@@ -47,7 +47,7 @@ namespace ZombieLand
 				return 0f;
 
 			var total = 0f;
-			foreach (var corpse in map.listerThings.AllThings)
+			foreach (var corpse in map.listerThings.ThingsInGroup(ThingRequestGroup.Corpse))
 			{
 				if (IsZombielandCorpse(corpse) == false)
 					continue;
