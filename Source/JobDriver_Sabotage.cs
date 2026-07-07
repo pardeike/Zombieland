@@ -591,8 +591,10 @@ namespace ZombieLand
 
 		static bool LocalTargetPointsAtZombie(LocalTargetInfo target, Zombie zombie)
 		{
-			return target.HasThing && target.Thing == zombie
-				|| target.Cell.IsValid && target.Cell.DistanceToSquared(zombie.Position) <= 2;
+			if (target.HasThing)
+				return target.Thing == zombie;
+
+			return target.Cell.IsValid && target.Cell.DistanceToSquared(zombie.Position) <= 2;
 		}
 
 		static bool IsAttackingOrApproaching(Pawn pawn, Zombie zombie)

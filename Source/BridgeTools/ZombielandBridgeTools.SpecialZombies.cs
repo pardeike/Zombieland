@@ -2043,7 +2043,7 @@ namespace ZombieLand
 			public string error;
 		}
 
-		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream cooldown, target preference, opportunistic raiders, door-resume, externally opened door resume, flickable, breakdownable, and weapon hacks.")]
+		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream cooldown, target preference, opportunistic raiders, false thing-target proximity, door-resume, externally opened door resume, flickable, breakdownable, and weapon hacks.")]
 		public static object AlbinoSabotageContract()
 		{
 			var map = CurrentMap;
@@ -2076,6 +2076,7 @@ namespace ZombieLand
 
 			AddCase("target_preference", () => AlbinoTargetPreferenceCase(map));
 			AddCase("opportunistic_raider", () => AlbinoOpportunisticRaiderCase(map));
+			AddCase("raider_attacking_nearby_colonist", () => AlbinoRaiderAttackingNearbyColonistCase(map));
 			AddCase("scream_cooldown", () => AlbinoScreamCooldownCase(map));
 			AddCase("door_resume", () => AlbinoDoorResumeCase(map, false));
 			AddCase("door_open_resume", () => AlbinoDoorResumeCase(map, true));
@@ -2248,6 +2249,21 @@ namespace ZombieLand
 			return success;
 		}
 
+		static bool TryInvokeAlbinoIsAttackingOrApproaching(Pawn pawn, Zombie zombie, out bool result, out string error)
+		{
+			result = false;
+			error = null;
+			var method = SabotageHandlerType?.GetMethod("IsAttackingOrApproaching", BindingFlags.Static | BindingFlags.NonPublic);
+			if (method == null)
+			{
+				error = "Could not find SabotageHandler.IsAttackingOrApproaching by reflection.";
+				return false;
+			}
+
+			result = (bool)method.Invoke(null, new object[] { pawn, zombie });
+			return true;
+		}
+
 		static AlbinoSabotageCase AlbinoTargetPreferenceCase(Map map)
 		{
 			var spawnedThings = new List<Thing>();
@@ -2348,6 +2364,88 @@ namespace ZombieLand
 					raider = DescribePawn(raider),
 					colonist = DescribePawn(colonist)
 				}, error);
+			}
+			finally
+			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static AlbinoSabotageCase AlbinoRaiderAttackingNearbyColonistCase(Map map)
+		{
+			var spawnedThings = new List<Thing>();
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
+					return AlbinoCase("raider_attacking_nearby_colonist", false, error: albinoError?.ToString());
+
+				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+				if (albino == null)
+					return AlbinoCase("raider_attacking_nearby_colonist", false, error: "Could not create an albino fixture pawn.");
+
+				if (TryFindAdjacentClearCell(albino, out var colonistCell) == false)
+					return AlbinoCase("raider_attacking_nearby_colonist", false, error: "No adjacent colonist cell was available for the thing-target proximity fixture.");
+
+				var colonist = SpawnAlbinoTestColonist(map, colonistCell, spawnedThings);
+				var raiderCell = GenRadial.RadialCellsAround(albinoCell, 28f, false)
+					.Where(cell => cell.InBounds(map))
+					.Where(cell => cell.Standable(map))
+					.Where(cell => cell.Fogged(map) == false)
+					.Where(cell => cell.GetThingList(map).Any(thing => thing is Pawn) == false)
+					.Where(cell => cell.DistanceToSquared(albinoCell) > 100)
+					.Where(cell => GenSight.LineOfSight(cell, colonistCell, map, true))
+					.OrderBy(cell => cell.DistanceToSquared(colonistCell))
+					.FirstOrDefault();
+				if (raiderCell.IsValid == false)
+					return AlbinoCase("raider_attacking_nearby_colonist", false, error: "No far line-of-sight raider cell was available for the thing-target proximity fixture.");
+
+				var raider = SpawnAlbinoTestRaider(map, raiderCell, spawnedThings);
+				var verb = EquipAreaWorkflowRangedWeapon(raider);
+				if (raider == null || verb == null)
+					return AlbinoCase("raider_attacking_nearby_colonist", false, error: "Could not create an armed hostile raider for the thing-target proximity fixture.");
+
+				var attackJob = JobMaker.MakeJob(JobDefOf.AttackStatic, colonist);
+				attackJob.canUseRangedWeapon = true;
+				raider.jobs.StartJob(attackJob, JobCondition.InterruptForced, null, true, true);
+				AdvanceGameTicks(1);
+				map.attackTargetsCache.UpdateTarget(raider);
+
+				var driver = StartAlbinoSabotageDriver(albino);
+				if (driver == null)
+					return AlbinoCase("raider_attacking_nearby_colonist", false, error: "Albino did not enter the sabotage driver.");
+
+				albino.albinoNextScreamTick = GenTicks.TicksGame;
+				var reflectedAttack = TryInvokeAlbinoIsAttackingOrApproaching(raider, albino, out var attackingOrApproaching, out var attackError);
+				var reflectedPlan = TryInvokeAlbinoScreamPlan(driver, out var planCell, out var reason, out var planError);
+				var raiderDistanceToAlbino = raider.Position.DistanceToSquared(albino.Position);
+				var targetDistanceToAlbino = colonist.Position.DistanceToSquared(albino.Position);
+				var planDistanceToColonist = planCell.DistanceToSquared(colonist.Position);
+				var planDistanceToRaider = planCell.DistanceToSquared(raider.Position);
+				var success = reflectedAttack
+					&& attackingOrApproaching == false
+					&& reflectedPlan
+					&& reason != "opportunisticEnemy"
+					&& planDistanceToColonist < planDistanceToRaider;
+				return AlbinoCase("raider_attacking_nearby_colonist", success, new
+				{
+					reflectedAttack,
+					attackingOrApproaching,
+					reflectedPlan,
+					reason,
+					planCell = ZombieRuntimeActions.DescribeCell(planCell),
+					targetDistanceToAlbino,
+					raiderDistanceToAlbino,
+					planDistanceToColonist,
+					planDistanceToRaider,
+					albino = DescribeZombie(albino),
+					colonist = DescribePawn(colonist),
+					raider = DescribePawn(raider),
+					raiderJob = raider.CurJobDef?.defName,
+					raiderTarget = ZombieRuntimeActions.StableThingId(raider.CurJob?.targetA.Thing),
+					verb = DescribeVerb(verb)
+				}, attackError ?? planError);
 			}
 			finally
 			{
