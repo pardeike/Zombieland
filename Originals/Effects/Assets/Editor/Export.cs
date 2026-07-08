@@ -17,6 +17,7 @@ public class CreateAssetBundles
 		"assets/_zombieland/smoke_n.png",
 		"assets/_zombieland/smoke_thin.mat",
 		"assets/_zombieland/smoke_thin.png",
+		"assets/_zombieland/mainmenubackgroundeffect.shader",
 		"assets/_zombieland/zombiesymbiant.mat",
 		"assets/_zombieland/zombiesymbiant.shader"
 	};
@@ -149,10 +150,11 @@ public class CreateAssetBundles
 		_ = RequireAsset<Texture2D>(bundle, arch, ExpectedAssetNames[2]);
 		_ = RequireAsset<Material>(bundle, arch, ExpectedAssetNames[3]);
 		_ = RequireAsset<Texture2D>(bundle, arch, ExpectedAssetNames[4]);
-		_ = RequireAsset<Material>(bundle, arch, ExpectedAssetNames[5]);
-		var zombieSymbiant = RequireAsset<Shader>(bundle, arch, ExpectedAssetNames[6]);
+		var mainMenuBackgroundEffect = RequireAsset<Shader>(bundle, arch, ExpectedAssetNames[5]);
+		_ = RequireAsset<Material>(bundle, arch, ExpectedAssetNames[6]);
+		var zombieSymbiant = RequireAsset<Shader>(bundle, arch, ExpectedAssetNames[7]);
 
-		Debug.Log($"Zombieland bundle validated {arch}: Dust={dust.name}, Metaballs={metaballs.name}, ZombieSymbiant={zombieSymbiant.name}, assets={actualNames.Count}, Unity={Application.unityVersion}, path={path}");
+		Debug.Log($"Zombieland bundle validated {arch}: Dust={dust.name}, Metaballs={metaballs.name}, MainMenuBackgroundEffect={mainMenuBackgroundEffect.name}, ZombieSymbiant={zombieSymbiant.name}, assets={actualNames.Count}, Unity={Application.unityVersion}, path={path}");
 	}
 
 	static T RequireAsset<T>(AssetBundle bundle, string arch, string assetName) where T : UnityEngine.Object
@@ -267,6 +269,9 @@ public class CreateAssetBundles
 		var zombieSymbiantShaderPath = $"{GeneratedAssetDir}/ZombieSymbiant.shader";
 		File.Copy("Assets/Zombieland/ZombieSymbiant.shader", zombieSymbiantShaderPath, true);
 
+		var mainMenuBackgroundEffectShaderPath = $"{GeneratedAssetDir}/MainMenuBackgroundEffect.shader";
+		File.Copy("Assets/Zombieland/MainMenuBackgroundEffect.shader", mainMenuBackgroundEffectShaderPath, true);
+
 		var metaballsShaderPath = $"{GeneratedAssetDir}/Metaballs.shader";
 		File.WriteAllText(metaballsShaderPath, MetaballsShaderSource);
 
@@ -333,6 +338,7 @@ public class CreateAssetBundles
 			$"{GeneratedAssetDir}/smoke_n.png",
 			$"{GeneratedAssetDir}/Smoke_thin.mat",
 			$"{GeneratedAssetDir}/smoke_thin.png",
+			$"{GeneratedAssetDir}/MainMenuBackgroundEffect.shader",
 			$"{GeneratedAssetDir}/ZombieSymbiant.mat",
 			$"{GeneratedAssetDir}/ZombieSymbiant.shader"
 		})

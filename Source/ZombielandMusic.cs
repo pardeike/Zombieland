@@ -355,7 +355,7 @@ namespace ZombieLand
 				SongDefOf.EntrySong = originalEntrySong;
 		}
 
-		static bool DefaultSettingsAllowZombielandMusic()
+		public static bool DefaultSettingsAllowZombielandMusic()
 		{
 			if (ZombieSettingsDefaults.group == null)
 			{

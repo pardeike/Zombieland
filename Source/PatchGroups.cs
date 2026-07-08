@@ -689,6 +689,7 @@ namespace ZombieLand
 
 		static readonly HashSet<string> RenderingPatchTypes = new()
 		{
+			"ZombieLand.Patches+UIRoot_Entry_DoMainMenu_Patch",
 			"ZombieLand.Patches+PawnRenderer_DrawEquipment_Patch",
 			"ZombieLand.Patches+Pawn_RotationTracker_UpdateRotation_Patch",
 			"ZombieLand.Patches+PawnDownedWiggler_WigglerTick_Patch",

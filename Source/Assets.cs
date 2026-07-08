@@ -14,6 +14,7 @@ namespace ZombieLand
 		private static GameObject dust;
 		private static Shader metaballShader;
 		private static Shader zombieSymbiantShader;
+		private static Shader mainMenuBackgroundEffectShader;
 
 		[HarmonyPatch(typeof(UIRoot_Entry), nameof(UIRoot_Entry.Init))]
 		[HarmonyPostfix]
@@ -35,6 +36,7 @@ namespace ZombieLand
 			dust = assets.LoadAsset<GameObject>("Dust");
 			metaballShader = assets.LoadAsset<Shader>("Metaballs");
 			zombieSymbiantShader = assets.LoadAsset<Shader>("ZombieSymbiant");
+			mainMenuBackgroundEffectShader = assets.LoadAsset<Shader>("MainMenuBackgroundEffect");
 
 			initialized = true;
 		}
@@ -42,5 +44,6 @@ namespace ZombieLand
 		public static GameObject NewDust() => Object.Instantiate(dust);
 		public static Shader MetaballShader => metaballShader;
 		public static Shader ZombieSymbiantShader => zombieSymbiantShader;
+		public static Shader MainMenuBackgroundEffectShader => mainMenuBackgroundEffectShader;
 	}
 }

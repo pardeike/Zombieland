@@ -131,6 +131,7 @@ assets/_zombieland/metaballs.shader
 assets/_zombieland/smoke_n.png
 assets/_zombieland/smoke_thin.mat
 assets/_zombieland/smoke_thin.png
+assets/_zombieland/mainmenubackgroundeffect.shader
 assets/_zombieland/zombiesymbiant.mat
 assets/_zombieland/zombiesymbiant.shader
 ```
@@ -143,12 +144,12 @@ A successful quick macOS build prints lines similar to:
 
 ```text
 Building Zombieland asset bundle(s): MacOS
-Zombieland bundle validated MacOS: Dust=Dust, Metaballs=Custom/Metaballs, ZombieSymbiant=Custom/ZombieSymbiant, assets=7, Unity=2022.3.62f3, path=/Users/ap/Projects/ZombieLand/1.6/Resources/MacOS/zombieland
+Zombieland bundle validated MacOS: Dust=Dust, Metaballs=Custom/Metaballs, MainMenuBackgroundEffect=Custom/ZombielandMainMenuBackgroundEffect, ZombieSymbiant=Custom/ZombieSymbiant, assets=8, Unity=2022.3.62f3, path=/Users/ap/Projects/ZombieLand/1.6/Resources/MacOS/zombieland
 <sha256>  /Users/ap/Projects/ZombieLand/1.6/Resources/MacOS/zombieland
 Exiting batchmode successfully now!
 ```
 
-The exact SHA-256 changes whenever Unity output changes. The important checks are the correct `1.6/Resources/{OS}/zombieland` path, `assets=7`, and `Exiting batchmode successfully now!`.
+The exact SHA-256 changes whenever Unity output changes. The important checks are the correct `1.6/Resources/{OS}/zombieland` path, `assets=8`, and `Exiting batchmode successfully now!`.
 
 ### Iteration Speed
 
