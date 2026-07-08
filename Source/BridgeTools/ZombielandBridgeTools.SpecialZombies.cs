@@ -2043,7 +2043,7 @@ namespace ZombieLand
 			public string error;
 		}
 
-		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream cooldown, target preference, opportunistic raiders, attack-mode scream filtering, false thing-target proximity, paralysis cancellation, door-resume, externally opened door resume, externally opened door hack-target re-path, stale target clearing, pure power target exclusion, flickable, breakdownable, and weapon hacks.")]
+		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream vomit job resume, scream cooldown, target preference, opportunistic raiders, attack-mode scream filtering, false thing-target proximity, paralysis cancellation, door-resume, externally opened door resume, externally opened door hack-target re-path, stale target clearing, pure power target exclusion, flickable, breakdownable, and weapon hacks.")]
 		public static object AlbinoSabotageContract(
 			[ToolParameter(Description = "Return only case names, pass/fail, and errors to keep routine validation output compact.", Required = false, DefaultValue = false)] bool summaryOnly = false)
 		{
@@ -2081,6 +2081,7 @@ namespace ZombieLand
 			AddCase("pressure_uses_reverse_hostility", () => AlbinoPressureUsesReverseHostilityCase(map));
 			AddCase("raider_attacking_nearby_colonist", () => AlbinoRaiderAttackingNearbyColonistCase(map));
 			AddCase("no_destination_pressure_backoff", () => AlbinoNoDestinationPressureBackoffCase(map));
+			AddCase("scream_vomit_resumes_job", () => AlbinoScreamVomitResumesJobCase(map));
 			AddCase("scream_cooldown", () => AlbinoScreamCooldownCase(map));
 			AddCase("scream_releases_movement_after_75_percent", () => AlbinoScreamReleasesMovementAfter75PercentCase(map));
 			AddCase("paralysis_clears_queued_scream", () => AlbinoParalysisClearsQueuedScreamCase(map));
@@ -3113,6 +3114,97 @@ namespace ZombieLand
 						shooter = DescribePawn(shooter),
 						verb = DescribeVerb(verb)
 					}, canPressureError ?? pressureError ?? firstWaitError ?? secondWaitError);
+			}
+			finally
+			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static AlbinoSabotageCase AlbinoScreamVomitResumesJobCase(Map map)
+		{
+			const string caseName = "scream_vomit_resumes_job";
+			var spawnedThings = new List<Thing>();
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				if (TryFindAlbinoIsolatedFixtureRoot(map, out var root, out var rootError) == false)
+					return AlbinoCase(caseName, false, error: rootError?.ToString());
+				if (TryFindClearSpawnCell(map, root, 16f, out var victimCell, out var victimError) == false)
+					return AlbinoCase(caseName, false, error: victimError?.ToString());
+				if (TryFindClearSpawnCell(map, victimCell + new IntVec3(4, 0, 0), 8f, out var destinationCell, out var destinationError) == false)
+					return AlbinoCase(caseName, false, error: destinationError?.ToString());
+
+				var victim = SpawnAlbinoTestColonist(map, victimCell, spawnedThings);
+				if (victim == null)
+					return AlbinoCase(caseName, false, error: "Could not create a colonist victim fixture.");
+
+				victim.jobs.StopAll(false, true);
+				victim.jobs.ClearQueuedJobs();
+				victim.pather?.StopDead();
+
+				var interruptedJob = JobMaker.MakeJob(JobDefOf.Goto, destinationCell);
+				interruptedJob.expiryInterval = 3000;
+				var interruptedJobSuspendable = interruptedJob.def?.suspendable == true;
+				if (interruptedJobSuspendable == false)
+				{
+					return AlbinoCase(caseName, false, new
+					{
+						interruptedJob = interruptedJob.def?.defName,
+						destinationCell = ZombieRuntimeActions.DescribeCell(destinationCell),
+						interruptedJobSuspendable
+					}, "The fixture job is not suspendable, so it cannot prove resume behavior.");
+				}
+
+				victim.jobs.StartJob(interruptedJob, JobCondition.InterruptForced, null, false, true);
+				var currentBeforeIsInterruptedJob = ReferenceEquals(victim.jobs.curJob, interruptedJob);
+				var queueCountBefore = victim.jobs.jobQueue.Count;
+				var jobBefore = victim.CurJobDef?.defName;
+
+				AlbinoScreamVomit.Start(victim);
+
+				var jobAfterStart = victim.CurJobDef?.defName;
+				var queueCountAfterStart = victim.jobs.jobQueue.Count;
+				var queuedAfterStart = queueCountAfterStart > 0 ? victim.jobs.jobQueue.Peek()?.job : null;
+				var queuedAfterStartIsInterruptedJob = ReferenceEquals(queuedAfterStart, interruptedJob);
+
+				AdvanceGameTicks(1);
+
+				var jobAfterTick = victim.CurJobDef?.defName;
+				var queueCountAfterTick = victim.jobs.jobQueue.Count;
+				var queuedAfterTick = queueCountAfterTick > 0 ? victim.jobs.jobQueue.Peek()?.job : null;
+				var queuedAfterTickIsInterruptedJob = ReferenceEquals(queuedAfterTick, interruptedJob);
+				var vomitDriver = victim.jobs.curDriver as JobDriver_Vomit;
+				var success = currentBeforeIsInterruptedJob
+					&& queueCountBefore == 0
+					&& jobAfterStart == JobDefOf.Vomit.defName
+					&& queuedAfterStartIsInterruptedJob
+					&& queueCountAfterStart == 1
+					&& jobAfterTick == JobDefOf.Vomit.defName
+					&& queuedAfterTickIsInterruptedJob
+					&& queueCountAfterTick == 1
+					&& vomitDriver?.ticksLeft > 0;
+
+				return AlbinoCase(caseName, success, new
+				{
+					victim = DescribePawn(victim),
+					victimCell = ZombieRuntimeActions.DescribeCell(victimCell),
+					destinationCell = ZombieRuntimeActions.DescribeCell(destinationCell),
+					interruptedJob = interruptedJob.def?.defName,
+					interruptedJobSuspendable,
+					currentBeforeIsInterruptedJob,
+					jobBefore,
+					jobAfterStart,
+					jobAfterTick,
+					queueCountBefore,
+					queueCountAfterStart,
+					queueCountAfterTick,
+					queuedAfterStart = queuedAfterStart?.def?.defName,
+					queuedAfterTick = queuedAfterTick?.def?.defName,
+					queuedAfterStartIsInterruptedJob,
+					queuedAfterTickIsInterruptedJob,
+					vomitTicksLeft = vomitDriver?.ticksLeft
+				});
 			}
 			finally
 			{

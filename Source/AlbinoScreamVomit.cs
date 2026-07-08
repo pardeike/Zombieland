@@ -19,7 +19,7 @@ namespace ZombieLand
 				return;
 
 			pendingMultipliers[pawn] = Math.Max(PendingMultiplierFor(pawn), durationMultiplier);
-			pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Vomit), JobCondition.InterruptForced, null, false, true);
+			pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Vomit), JobCondition.InterruptForced, null, true, true);
 			TryExtend(pawn.jobs.curDriver as JobDriver_Vomit);
 		}
 
