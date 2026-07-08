@@ -466,7 +466,6 @@
 		<maxSimultaneous>2</maxSimultaneous>
 		<subSounds>
 			<li>
-				<onCamera>true</onCamera>
 				<grains>
 					<li Class="AudioGrain_Clip">
 						<clipPath>scream</clipPath>
@@ -477,8 +476,8 @@
 					<max>50</max>
 				</volumeRange>
 				<distRange>
-					<min>1000</min>
-					<max>10000</max>
+					<min>10</min>
+					<max>50</max>
 				</distRange>
 			</li>
 		</subSounds>
