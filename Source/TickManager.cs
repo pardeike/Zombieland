@@ -1346,13 +1346,14 @@ namespace ZombieLand
 				var result = Tools.avoider.GetCostsGrid(map);
 				if (result != null)
 				{
-					if (result.requestId == lastAvoidGridRequestId && avoidGridRefreshRequested == false)
+					if (result.requestId > lastAvoidGridResultId && result.requestId <= lastAvoidGridRequestId)
 					{
 						avoidGrid = result;
 						lastAvoidGridResultTick = GenTicks.TicksGame;
 						lastAvoidGridResultId = result.requestId;
 						ClearPromptAvoidGridRequest(result.requestId);
-						avoidGridCounter = Constants.TICKMANAGER_AVOIDGRID_DELAY.SecondsToTicks();
+						if (result.requestId == lastAvoidGridRequestId && avoidGridRefreshRequested == false)
+							avoidGridCounter = Constants.TICKMANAGER_AVOIDGRID_DELAY.SecondsToTicks();
 					}
 				}
 				else if (AvoidGridIsStale())

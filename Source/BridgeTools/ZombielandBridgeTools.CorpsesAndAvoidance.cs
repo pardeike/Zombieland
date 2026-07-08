@@ -2987,10 +2987,11 @@ namespace ZombieLand
 					avoidGridRefreshRequestedField.SetValue(tickManager, false);
 					promptAvoidGridResultPendingField.SetValue(tickManager, false);
 
-					var staleResultGrid = ManualGrid(exactRequestId - 1, actor.Position, 3000);
-					QueueAndFetch(staleResultGrid);
-					var staleResultRejected = ReferenceEquals(tickManager.avoidGrid, clearedGrid)
-						&& AvoidCost(tickManager.avoidGrid, map, actor.Position) == 0;
+					var intermediateResultGrid = ManualGrid(exactRequestId - 1, actor.Position, 3000);
+					QueueAndFetch(intermediateResultGrid);
+					var intermediateResultAccepted = ReferenceEquals(tickManager.avoidGrid, intermediateResultGrid)
+						&& tickManager.lastAvoidGridResultId == exactRequestId - 1
+						&& AvoidCost(tickManager.avoidGrid, map, actor.Position) == 3000;
 
 					var exactResultGrid = ManualGrid(exactRequestId, actor.Position, 1234);
 					QueueAndFetch(exactResultGrid);
@@ -3006,6 +3007,11 @@ namespace ZombieLand
 					var futureResultGrid = ManualGrid(exactRequestId + 1, actor.Position, 3000);
 					QueueAndFetch(futureResultGrid);
 					var futureResultRejected = ReferenceEquals(tickManager.avoidGrid, exactResultGrid)
+						&& tickManager.lastAvoidGridResultId == exactRequestId
+						&& AvoidCost(tickManager.avoidGrid, map, actor.Position) == 1234;
+					var obsoleteResultGrid = ManualGrid(exactRequestId - 1, actor.Position, 5678);
+					QueueAndFetch(obsoleteResultGrid);
+					var obsoleteResultRejected = ReferenceEquals(tickManager.avoidGrid, exactResultGrid)
 						&& tickManager.lastAvoidGridResultId == exactRequestId
 						&& AvoidCost(tickManager.avoidGrid, map, actor.Position) == 1234;
 
@@ -3046,11 +3052,11 @@ namespace ZombieLand
 					var coalesceRequestedBeforeStaleFetch = AvoidGridRefreshRequested();
 					var coalesceRequestIdBeforeStaleFetch = tickManager.lastAvoidGridRequestId;
 					var coalescePromptPendingBeforeStaleFetch = PromptAvoidGridResultPending();
-					var stalePromptResultGrid = ManualGrid(pendingPromptRequestId, actor.Position, 4321);
-					QueueAndFetch(stalePromptResultGrid);
-					var stalePromptResultRejected = ReferenceEquals(tickManager.avoidGrid, coalesceBaseGrid)
-						&& tickManager.lastAvoidGridResultId != pendingPromptRequestId
-						&& PromptAvoidGridResultPending()
+					var coalescedPromptResultGrid = ManualGrid(pendingPromptRequestId, actor.Position, 4321);
+					QueueAndFetch(coalescedPromptResultGrid);
+					var coalescedPromptResultAcceptedBeforeFlush = ReferenceEquals(tickManager.avoidGrid, coalescedPromptResultGrid)
+						&& tickManager.lastAvoidGridResultId == pendingPromptRequestId
+						&& PromptAvoidGridResultPending() == false
 						&& AvoidGridRefreshRequested();
 
 					var coalescedFlushReturned = FlushRequestedAvoidGridRefresh();
@@ -3073,7 +3079,7 @@ namespace ZombieLand
 							&& pendingPromptResultPending
 							&& coalesceRequestIdBeforeStaleFetch == pendingPromptRequestId
 							&& coalescePromptPendingBeforeStaleFetch
-							&& stalePromptResultRejected
+							&& coalescedPromptResultAcceptedBeforeFlush
 							&& coalesceRequestIdAfterFlush > coalesceRequestIdBeforeStaleFetch
 							&& coalescePromptPendingAfterFlush
 							&& coalesceRequestedAfterFlush == false
@@ -3085,7 +3091,7 @@ namespace ZombieLand
 						coalesceRequestedBeforeStaleFetch,
 						coalesceRequestIdBeforeStaleFetch,
 						coalescePromptPendingBeforeStaleFetch,
-						stalePromptResultRejected,
+						coalescedPromptResultAcceptedBeforeFlush,
 						coalescedFlushReturned,
 						coalesceRequestIdAfterFlush,
 						coalescePromptPendingAfterFlush,
@@ -3175,8 +3181,9 @@ namespace ZombieLand
 							&& zombieCostAfterCleanup == 0
 							&& dangerCellsAfterCleanup == 0
 							&& snapshotReferencesAreDistinct
-							&& staleResultRejected
+							&& intermediateResultAccepted
 							&& futureResultRejected
+							&& obsoleteResultRejected
 							&& exactResultAccepted
 							&& promptRefreshCoalescing.success
 							&& stateFlipRefreshCoalescing.success
@@ -3201,12 +3208,13 @@ namespace ZombieLand
 						zombieCostBeforeCleanup,
 						dangerCellsBeforeCleanup,
 						liveGridUnaffectedByEmptyRebuild,
-						zombieCostAfterCleanup,
-						dangerCellsAfterCleanup,
-						snapshotReferencesAreDistinct,
-						staleResultRejected,
-						futureResultRejected,
-						exactResultAccepted,
+							zombieCostAfterCleanup,
+							dangerCellsAfterCleanup,
+							snapshotReferencesAreDistinct,
+							intermediateResultAccepted,
+							futureResultRejected,
+							obsoleteResultRejected,
+							exactResultAccepted,
 						exactResultReferenceAccepted,
 						exactResultIdAfter,
 						exactResultCostAfter,
