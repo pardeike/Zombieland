@@ -1598,6 +1598,12 @@ namespace ZombieLand
 			return host;
 		}
 
+		bool IsSpawnedHostOnCurrentMap(Pawn pawn)
+		{
+			var map = Spawned ? Map : MapHeld;
+			return pawn?.Spawned == true && map != null && pawn.Map == map;
+		}
+
 		public bool TryAssignRandomHost()
 		{
 			if (ResolveHost() != null)
@@ -2203,11 +2209,13 @@ namespace ZombieLand
 			var pawn = ResolveHost();
 			if (pawn == null || pawn.Destroyed || pawn.Dead)
 				return;
+			var killHost = IsSpawnedHostOnCurrentMap(pawn);
 			PlayDisconnectedSound();
 			RemoveHostHediff(pawn);
 			host = null;
 			hostThingId = null;
-			pawn.Kill(null);
+			if (killHost)
+				pawn.Kill(null);
 		}
 
 		void CollapseFromSharedHealthFailure()
