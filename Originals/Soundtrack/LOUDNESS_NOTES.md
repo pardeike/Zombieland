@@ -79,6 +79,17 @@ Later top-level addition:
 | `Zombieland - Machine Ghost.wav` | `-13.45 LUFS` | `-1.02 dB` | `-14.47 LUFS` |
 | `Zombieland - Restrained.wav` | `-14.76 LUFS` | `0.00 dB` | `-14.76 LUFS` |
 
+Latest addition:
+
+| File | Before | Gain Applied | After |
+| --- | ---: | ---: | ---: |
+| `Zombieland - Between.wav` | `-14.15 LUFS` | `-0.32 dB` | `-14.48 LUFS` |
+| `Zombieland - Last Oracle Part 1.wav` | `-13.41 LUFS` | `-1.06 dB` | `-14.47 LUFS` |
+| `Zombieland - Last Oracle Part 2.wav` | `-13.41 LUFS` | `-1.06 dB` | `-14.48 LUFS` |
+| `Zombieland - Pale Parade.wav` | `-13.46 LUFS` | `-1.01 dB` | `-14.47 LUFS` |
+| `Zombieland - Peaceful Times.wav` | `-14.05 LUFS` | `-0.42 dB` | `-14.47 LUFS` |
+| `Zombieland - The Unquiet.wav` | `-13.90 LUFS` | `-0.57 dB` | `-14.47 LUFS` |
+
 ## Backups
 
 The original-volume backup of the first batch is:
@@ -94,6 +105,9 @@ No backup was retained for the later `Zombieland - Colony Dawn.wav`,
 replacements, by request.
 
 No backup was retained for the later top-level additions, by request.
+
+No backup was retained for the latest additions, by request. The new WAV files
+were already copies.
 
 The actual filenames on disk use an en dash between `Zombieland` and the title.
 The names above use a plain hyphen for easier reading in this note.
