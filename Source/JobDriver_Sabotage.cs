@@ -53,7 +53,7 @@ namespace ZombieLand
 				recentlyHackedTargetPauseUntilTicks.RemoveAt(recentlyHackedTargetPauseUntilTicks.Count - 1);
 		}
 
-		void ResetActionState(bool resetScream)
+		internal void ResetActionState(bool resetScream)
 		{
 				destination = IntVec3.Invalid;
 				door = null;
@@ -82,8 +82,8 @@ namespace ZombieLand
 			rushHackTarget = null;
 			rushHackTargetUntilTick = 0;
 			NormalizeRecentlyHackedTargets();
-			if (resetScream)
-				(pawn as Zombie).scream = -1;
+			if (resetScream && pawn is Zombie zombie)
+				zombie.scream = -1;
 		}
 
 		void InitAction()

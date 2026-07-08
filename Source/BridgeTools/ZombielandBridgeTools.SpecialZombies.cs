@@ -3512,24 +3512,79 @@ namespace ZombieLand
 
 				driver.destination = doorCell;
 				driver.door = door;
-				driver.hackTarget = null;
+				driver.doorExitCell = screamCell;
+				driver.hackTarget = door;
+				driver.hackApproachCell = doorCell;
 				driver.queuedScreamCell = screamCell;
+				driver.queuedMoveCell = albinoCell;
 				driver.waitCounter = 17;
 				driver.hackCounter = 73;
+				driver.defensiveScreamQueued = true;
+				driver.noSafeHackRoute = true;
+				driver.interruptibleDestination = true;
+				driver.safetyDestination = true;
+				driver.fallbackDestination = true;
+				driver.nextStrategicRecheckTick = GenTicks.TicksGame + 111;
+				driver.lastStrategicRecheckCell = doorCell;
+				driver.lastFallbackStartCell = albinoCell;
+				driver.lastFallbackDestination = screamCell;
+				driver.nextFallbackMoveTick = GenTicks.TicksGame + 222;
+				driver.deferredHackTarget = door;
+				driver.deferredHackTargetPauseUntilTick = GenTicks.TicksGame + 333;
+				driver.rushHackTarget = door;
+				driver.rushHackTargetUntilTick = GenTicks.TicksGame + 444;
 				albino.scream = -2;
 
 				var queuedBefore = driver.queuedScreamCell.IsValid;
+				var extendedStateSeeded = driver.doorExitCell.IsValid
+					&& driver.hackTarget == door
+					&& driver.hackApproachCell.IsValid
+					&& driver.queuedMoveCell.IsValid
+					&& driver.defensiveScreamQueued
+					&& driver.noSafeHackRoute
+					&& driver.interruptibleDestination
+					&& driver.safetyDestination
+					&& driver.fallbackDestination
+					&& driver.nextStrategicRecheckTick > GenTicks.TicksGame
+					&& driver.lastStrategicRecheckCell.IsValid
+					&& driver.lastFallbackStartCell.IsValid
+					&& driver.lastFallbackDestination.IsValid
+					&& driver.nextFallbackMoveTick > GenTicks.TicksGame
+					&& driver.deferredHackTarget == door
+					&& driver.deferredHackTargetPauseUntilTick > GenTicks.TicksGame
+					&& driver.rushHackTarget == door
+					&& driver.rushHackTargetUntilTick > GenTicks.TicksGame;
 				var paralyzed = albino.TryParalyze(600, out var paralysisError);
 				var currentDriver = albino.jobs.curDriver as JobDriver_Sabotage;
 				var queuedAfterParalysis = currentDriver?.queuedScreamCell.IsValid == true;
+				var extendedStateCleared = currentDriver != null
+					&& currentDriver.doorExitCell.IsValid == false
+					&& currentDriver.hackApproachCell.IsValid == false
+					&& currentDriver.queuedMoveCell.IsValid == false
+					&& currentDriver.defensiveScreamQueued == false
+					&& currentDriver.noSafeHackRoute == false
+					&& currentDriver.interruptibleDestination == false
+					&& currentDriver.safetyDestination == false
+					&& currentDriver.fallbackDestination == false
+					&& currentDriver.nextStrategicRecheckTick == 0
+					&& currentDriver.lastStrategicRecheckCell.IsValid == false
+					&& currentDriver.lastFallbackStartCell.IsValid == false
+					&& currentDriver.lastFallbackDestination.IsValid == false
+					&& currentDriver.nextFallbackMoveTick == 0
+					&& currentDriver.deferredHackTarget == null
+					&& currentDriver.deferredHackTargetPauseUntilTick == 0
+					&& currentDriver.rushHackTarget == null
+					&& currentDriver.rushHackTargetUntilTick == 0;
 				var handledAfterClear = false;
 				string hackError = null;
 				var invokeAfterClear = currentDriver != null && TryInvokeAlbinoHackThing(currentDriver, out handledAfterClear, out hackError);
 				var destinationAfterInvoke = currentDriver?.destination.IsValid == true;
 				var success = queuedBefore
+					&& extendedStateSeeded
 					&& paralyzed
 					&& currentDriver != null
 					&& queuedAfterParalysis == false
+					&& extendedStateCleared
 					&& currentDriver.destination.IsValid == false
 					&& currentDriver.door == null
 					&& currentDriver.hackTarget == null
@@ -3543,9 +3598,11 @@ namespace ZombieLand
 				return AlbinoCase("paralysis_clears_queued_scream", success, new
 				{
 					queuedBefore,
+					extendedStateSeeded,
 					paralyzed,
 					paralysisError,
 					queuedAfterParalysis,
+					extendedStateCleared,
 					invokeAfterClear,
 					handledAfterClear,
 					hackError,
@@ -3557,9 +3614,26 @@ namespace ZombieLand
 					driverPresent = currentDriver != null,
 					destination = currentDriver?.destination.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.destination) : null,
 					queuedScreamCell = currentDriver?.queuedScreamCell.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.queuedScreamCell) : null,
+					queuedMoveCell = currentDriver?.queuedMoveCell.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.queuedMoveCell) : null,
+					doorExitCell = currentDriver?.doorExitCell.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.doorExitCell) : null,
+					hackApproachCell = currentDriver?.hackApproachCell.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.hackApproachCell) : null,
 					door = currentDriver?.door == null ? null : ZombieRuntimeActions.StableThingId(currentDriver.door),
 					hackTarget = currentDriver?.hackTarget == null ? null : ZombieRuntimeActions.StableThingId(currentDriver.hackTarget),
 					hackCounter = currentDriver?.hackCounter,
+					defensiveScreamQueued = currentDriver?.defensiveScreamQueued,
+					noSafeHackRoute = currentDriver?.noSafeHackRoute,
+					interruptibleDestination = currentDriver?.interruptibleDestination,
+					safetyDestination = currentDriver?.safetyDestination,
+					fallbackDestination = currentDriver?.fallbackDestination,
+					nextStrategicRecheckTick = currentDriver?.nextStrategicRecheckTick,
+					lastStrategicRecheckCell = currentDriver?.lastStrategicRecheckCell.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.lastStrategicRecheckCell) : null,
+					lastFallbackStartCell = currentDriver?.lastFallbackStartCell.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.lastFallbackStartCell) : null,
+					lastFallbackDestination = currentDriver?.lastFallbackDestination.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.lastFallbackDestination) : null,
+					nextFallbackMoveTick = currentDriver?.nextFallbackMoveTick,
+					deferredHackTarget = currentDriver?.deferredHackTarget == null ? null : ZombieRuntimeActions.StableThingId(currentDriver.deferredHackTarget),
+					deferredHackTargetPauseUntilTick = currentDriver?.deferredHackTargetPauseUntilTick,
+					rushHackTarget = currentDriver?.rushHackTarget == null ? null : ZombieRuntimeActions.StableThingId(currentDriver.rushHackTarget),
+					rushHackTargetUntilTick = currentDriver?.rushHackTargetUntilTick,
 					albino.scream
 				}, paralysisError ?? hackError);
 			}
