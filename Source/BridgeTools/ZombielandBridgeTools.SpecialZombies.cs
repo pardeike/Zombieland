@@ -2080,6 +2080,7 @@ namespace ZombieLand
 			AddCase("scream_respects_attack_mode", () => AlbinoScreamRespectsAttackModeCase(map));
 			AddCase("pressure_uses_reverse_hostility", () => AlbinoPressureUsesReverseHostilityCase(map));
 			AddCase("raider_attacking_nearby_colonist", () => AlbinoRaiderAttackingNearbyColonistCase(map));
+			AddCase("no_destination_pressure_backoff", () => AlbinoNoDestinationPressureBackoffCase(map));
 			AddCase("scream_cooldown", () => AlbinoScreamCooldownCase(map));
 			AddCase("scream_releases_movement_after_75_percent", () => AlbinoScreamReleasesMovementAfter75PercentCase(map));
 			AddCase("paralysis_clears_queued_scream", () => AlbinoParalysisClearsQueuedScreamCase(map));
@@ -2430,6 +2431,38 @@ namespace ZombieLand
 			}
 
 			handled = (bool)method.Invoke(null, new object[] { driver });
+			return true;
+		}
+
+		static bool TryInvokeAlbinoWait(JobDriver_Sabotage driver, out bool handled, out string error)
+		{
+			handled = false;
+			error = null;
+			var method = SabotageHandlerType?.GetMethod("Wait", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+			if (method == null)
+			{
+				error = "Could not find SabotageHandler.Wait by reflection.";
+				return false;
+			}
+
+			handled = (bool)method.Invoke(null, new object[] { driver });
+			return true;
+		}
+
+		static bool TryInvokeAlbinoImmediateMovementPressure(Zombie zombie, out int pressure, out string error)
+		{
+			pressure = 0;
+			error = null;
+			var sourcesMethod = SabotageHandlerType?.GetMethod("AlbinoPressureSourcesFor", BindingFlags.Static | BindingFlags.NonPublic);
+			var pressureMethod = SabotageHandlerType?.GetMethod("ImmediateAlbinoMovementPressure", BindingFlags.Static | BindingFlags.NonPublic);
+			if (sourcesMethod == null || pressureMethod == null)
+			{
+				error = "Could not find SabotageHandler pressure methods by reflection.";
+				return false;
+			}
+
+			var sources = sourcesMethod.Invoke(null, new object[] { zombie });
+			pressure = (int)pressureMethod.Invoke(null, new object[] { zombie, sources });
 			return true;
 		}
 
@@ -2986,6 +3019,100 @@ namespace ZombieLand
 					raiderTarget = ZombieRuntimeActions.StableThingId(raider.CurJob?.targetA.Thing),
 					verb = DescribeVerb(verb)
 				}, attackError ?? planError);
+			}
+			finally
+			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static AlbinoSabotageCase AlbinoNoDestinationPressureBackoffCase(Map map)
+		{
+			const string caseName = "no_destination_pressure_backoff";
+			var spawnedThings = new List<Thing>();
+			try
+			{
+					_ = ZombieRuntimeActions.DestroyZombies(map);
+					if (TryFindAlbinoIsolatedFixtureRoot(map, out var root, out var rootError) == false)
+						return AlbinoCase(caseName, false, error: rootError?.ToString());
+					if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
+						return AlbinoCase(caseName, false, error: albinoError?.ToString());
+
+					var shooterCell = GenRadial.RadialCellsAround(albinoCell, 14f, false)
+						.Where(cell => cell.InBounds(map))
+						.Where(cell => cell.Standable(map))
+						.Where(cell => cell.Fogged(map) == false)
+						.Where(cell => cell.GetThingList(map).Any(thing => thing is Pawn) == false)
+						.Where(cell => cell.DistanceToSquared(albinoCell) >= 16)
+						.Where(cell => GenSight.LineOfSight(cell, albinoCell, map, true))
+						.OrderBy(cell => cell.DistanceToSquared(albinoCell))
+						.FirstOrDefault();
+					if (shooterCell.IsValid == false)
+						return AlbinoCase(caseName, false, error: "No line-of-sight shooter cell was available for the pressure backoff fixture.");
+
+					var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+					var shooter = SpawnAlbinoTestColonist(map, shooterCell, spawnedThings, true);
+					var verb = EquipAreaWorkflowRangedWeapon(shooter);
+					if (albino == null || shooter == null || verb == null)
+						return AlbinoCase(caseName, false, error: "Could not create an albino and armed drafted colonist fixture.");
+
+					AdvanceGameTicks(1);
+					map.attackTargetsCache.UpdateTarget(shooter);
+					var driver = StartAlbinoSabotageDriver(albino);
+					if (driver == null)
+						return AlbinoCase(caseName, false, error: "Albino did not enter the sabotage driver.");
+
+					ResetAlbinoPlannerState(driver);
+					driver.destination = IntVec3.Invalid;
+					driver.door = null;
+					driver.hackTarget = null;
+					driver.waitCounter = 60;
+					albino.scream = -1;
+					albino.pather?.StopDead();
+
+					var canPressureInvoked = TryInvokeAlbinoCanPressurePawn(shooter, albino, out var canPressure, out var canPressureError);
+					var pressureInvoked = TryInvokeAlbinoImmediateMovementPressure(albino, out var pressure, out var pressureError);
+					var waitBefore = driver.waitCounter;
+					var firstWaitInvoked = TryInvokeAlbinoWait(driver, out var firstWaitHandled, out var firstWaitError);
+					var waitAfterFirst = driver.waitCounter;
+					var secondWaitInvoked = TryInvokeAlbinoWait(driver, out var secondWaitHandled, out var secondWaitError);
+					var waitAfterSecond = driver.waitCounter;
+					var shortenedButStillWaiting = firstWaitHandled
+						&& waitAfterFirst > 0
+						&& waitAfterFirst <= 20
+						&& waitAfterFirst < waitBefore - 1;
+					var countdownContinues = secondWaitHandled
+						&& waitAfterSecond == waitAfterFirst - 1;
+					var success = canPressureInvoked
+						&& canPressure
+						&& pressureInvoked
+						&& pressure >= 4
+						&& firstWaitInvoked
+						&& secondWaitInvoked
+						&& shortenedButStillWaiting
+						&& countdownContinues
+						&& driver.destination.IsValid == false;
+
+					return AlbinoCase(caseName, success, new
+					{
+						canPressureInvoked,
+						canPressure,
+						pressureInvoked,
+						pressure,
+						waitBefore,
+						firstWaitInvoked,
+						firstWaitHandled,
+						waitAfterFirst,
+						secondWaitInvoked,
+						secondWaitHandled,
+						waitAfterSecond,
+						shortenedButStillWaiting,
+						countdownContinues,
+						destinationValid = driver.destination.IsValid,
+						albino = DescribeZombie(albino),
+						shooter = DescribePawn(shooter),
+						verb = DescribeVerb(verb)
+					}, canPressureError ?? pressureError ?? firstWaitError ?? secondWaitError);
 			}
 			finally
 			{

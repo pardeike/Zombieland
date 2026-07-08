@@ -250,6 +250,7 @@ namespace ZombieLand
 		const int albinoFallbackMoveCandidateLimit = 80;
 		const int albinoNearbyFallbackMoveCandidateLimit = 64;
 		const int albinoStrategicRecheckCooldownTicks = 12;
+		const int albinoPressureRetryWaitTicks = 12;
 		const int albinoDoorOpenResumeWaitTicks = 0;
 		const int albinoLostScreamTargetRecheckWaitTicks = 12;
 		const int albinoRecentlyHackedTargetPauseTicks = 4500;
@@ -2017,10 +2018,7 @@ namespace ZombieLand
 				{
 					var sources = AlbinoPressureSourcesFor(zombie);
 					if (ImmediateAlbinoMovementPressure(zombie, sources) >= albinoNoSafeHackRoutePressure)
-					{
-						driver.waitCounter = 0;
-						return false;
-					}
+						driver.waitCounter = Math.Min(driver.waitCounter, albinoPressureRetryWaitTicks);
 				}
 				driver.waitCounter--;
 				return true;
