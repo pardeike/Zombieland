@@ -98,6 +98,7 @@
 	<ZombielandContaminationTitle>Загрязнение</ZombielandContaminationTitle>
 	<ZombielandContamination>Интенсивность</ZombielandContamination>
 	<ContaminationEffectiveness>Общая эффективность: {0}%</ContaminationEffectiveness>
+	<ZombielandStorageContaminationRange>{0} загрязнения</ZombielandStorageContaminationRange>
 
 	<WhenDoZombiesSpawn>Когда зомби будут появляться?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Всё время</SpawnWhenType_AllTheTime>

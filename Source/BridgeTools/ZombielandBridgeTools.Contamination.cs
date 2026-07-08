@@ -65,6 +65,133 @@ namespace ZombieLand
 			};
 		}
 
+		[Tool("zombieland/contamination_storage_filter_contract", Description = "Verify Zombieland contamination storage ranges route clean and contaminated things through StorageSettings.AllowedToAccept.")]
+		public static object ContaminationStorageFilterContract(
+			[ToolParameter(Description = "Destroy spawned sample things before returning.", Required = false, DefaultValue = true)] bool cleanup = true)
+		{
+			var map = CurrentMap;
+			if (map == null)
+				return new { success = false, error = "No current map is loaded." };
+
+			Thing cleanThing = null;
+			Thing lightContaminatedThing = null;
+			Thing heavyContaminatedThing = null;
+			try
+			{
+				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindClearSpawnCell(map, root, 16f, out var cleanCell, out var cleanCellError) == false)
+					return cleanCellError;
+				if (TryFindClearSpawnCell(map, cleanCell + IntVec3.East, 8f, out var lightContaminatedCell, out var lightContaminatedCellError) == false)
+					return lightContaminatedCellError;
+				if (TryFindClearSpawnCell(map, lightContaminatedCell + IntVec3.East, 8f, out var heavyContaminatedCell, out var heavyContaminatedCellError) == false)
+					return heavyContaminatedCellError;
+
+				cleanThing = GenSpawn.Spawn(ThingMaker.MakeThing(ThingDefOf.Steel), cleanCell, map, WipeMode.Vanish);
+				lightContaminatedThing = GenSpawn.Spawn(ThingMaker.MakeThing(ThingDefOf.Steel), lightContaminatedCell, map, WipeMode.Vanish);
+				heavyContaminatedThing = GenSpawn.Spawn(ThingMaker.MakeThing(ThingDefOf.Steel), heavyContaminatedCell, map, WipeMode.Vanish);
+				cleanThing.SetContamination(0f);
+				lightContaminatedThing.SetContamination(0.5f);
+				heavyContaminatedThing.SetContamination(0.9f);
+
+				var defaultSettings = NewAllStorageSettings();
+				var belowHalfSettings = NewAllStorageSettings();
+				ContaminationStorageRange.SetRange(belowHalfSettings, new FloatRange(0f, 0.5f), notifyChanged: false);
+				var heavyOnlySettings = NewAllStorageSettings();
+				ContaminationStorageRange.SetRange(heavyOnlySettings, new FloatRange(0.8f, 1f), notifyChanged: false);
+				var copiedHeavyOnlySettings = NewAllStorageSettings();
+				copiedHeavyOnlySettings.CopyFrom(heavyOnlySettings);
+
+				var cleanContamination = cleanThing.GetContamination();
+				var lightContamination = lightContaminatedThing.GetContamination();
+				var heavyContamination = heavyContaminatedThing.GetContamination();
+				var defaultClean = defaultSettings.AllowedToAccept(cleanThing);
+				var defaultLight = defaultSettings.AllowedToAccept(lightContaminatedThing);
+				var defaultHeavy = defaultSettings.AllowedToAccept(heavyContaminatedThing);
+				var belowHalfClean = belowHalfSettings.AllowedToAccept(cleanThing);
+				var belowHalfLight = belowHalfSettings.AllowedToAccept(lightContaminatedThing);
+				var belowHalfHeavy = belowHalfSettings.AllowedToAccept(heavyContaminatedThing);
+				var heavyOnlyClean = heavyOnlySettings.AllowedToAccept(cleanThing);
+				var heavyOnlyLight = heavyOnlySettings.AllowedToAccept(lightContaminatedThing);
+				var heavyOnlyHeavy = heavyOnlySettings.AllowedToAccept(heavyContaminatedThing);
+				var copiedHeavyOnlyClean = copiedHeavyOnlySettings.AllowedToAccept(cleanThing);
+				var copiedHeavyOnlyLight = copiedHeavyOnlySettings.AllowedToAccept(lightContaminatedThing);
+				var copiedHeavyOnlyHeavy = copiedHeavyOnlySettings.AllowedToAccept(heavyContaminatedThing);
+				var copiedRange = ContaminationStorageRange.GetRange(copiedHeavyOnlySettings);
+				var success = cleanContamination == 0f
+					&& Mathf.Approximately(lightContamination, 0.5f)
+					&& Mathf.Approximately(heavyContamination, 0.9f)
+					&& ContaminationStorageRange.GetRange(defaultSettings) == ContaminationStorageRange.DefaultRange
+					&& defaultClean
+					&& defaultLight
+					&& defaultHeavy
+					&& belowHalfClean
+					&& belowHalfLight
+					&& belowHalfHeavy == false
+					&& heavyOnlyClean == false
+					&& heavyOnlyLight == false
+					&& heavyOnlyHeavy
+					&& copiedRange == ContaminationStorageRange.GetRange(heavyOnlySettings)
+					&& copiedHeavyOnlyClean == false
+					&& copiedHeavyOnlyLight == false
+					&& copiedHeavyOnlyHeavy;
+
+				return new
+				{
+					success,
+					ranges = new
+					{
+						defaultRange = DescribeFloatRange(ContaminationStorageRange.GetRange(defaultSettings)),
+						belowHalf = DescribeFloatRange(ContaminationStorageRange.GetRange(belowHalfSettings)),
+						heavyOnly = DescribeFloatRange(ContaminationStorageRange.GetRange(heavyOnlySettings)),
+						copiedHeavyOnly = DescribeFloatRange(copiedRange)
+					},
+					things = new
+					{
+						clean = DescribeContaminationThing(cleanThing),
+						lightContaminated = DescribeContaminationThing(lightContaminatedThing),
+						heavyContaminated = DescribeContaminationThing(heavyContaminatedThing)
+					},
+					allows = new
+					{
+						defaultRange = new { clean = defaultClean, light = defaultLight, heavy = defaultHeavy },
+						belowHalf = new { clean = belowHalfClean, light = belowHalfLight, heavy = belowHalfHeavy },
+						heavyOnly = new { clean = heavyOnlyClean, light = heavyOnlyLight, heavy = heavyOnlyHeavy },
+						copiedHeavyOnly = new { clean = copiedHeavyOnlyClean, light = copiedHeavyOnlyLight, heavy = copiedHeavyOnlyHeavy }
+					}
+				};
+			}
+			finally
+			{
+				if (cleanup)
+				{
+					if (cleanThing is { Destroyed: false })
+						cleanThing.Destroy(DestroyMode.Vanish);
+					if (lightContaminatedThing is { Destroyed: false })
+						lightContaminatedThing.Destroy(DestroyMode.Vanish);
+					if (heavyContaminatedThing is { Destroyed: false })
+						heavyContaminatedThing.Destroy(DestroyMode.Vanish);
+				}
+			}
+		}
+
+		static StorageSettings NewAllStorageSettings()
+		{
+			var settings = new StorageSettings();
+			settings.filter.SetAllowAll(null);
+			return settings;
+		}
+
+		static object DescribeFloatRange(FloatRange range)
+		{
+			return new
+			{
+				min = range.min,
+				max = range.max,
+				minPercent = Mathf.RoundToInt(range.min * 100f),
+				maxPercent = Mathf.RoundToInt(range.max * 100f)
+			};
+		}
+
 		[Tool("zombieland/read_contamination_effect_state", Description = "Read active contamination mental/job driver state for reusable pawn target lists, optionally advancing ticks first.")]
 		public static object ReadContaminationEffectState(
 			[ToolParameter(Description = "Optional semicolon-separated pawn id, ThingID, label, or short-name list. Empty returns all spawned pawns with contamination, contamination mental states, or contamination jobs.", Required = false, DefaultValue = "")] string pawns = "",

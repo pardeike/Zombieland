@@ -98,6 +98,7 @@
 	<ZombielandRestartRequired>更改此设置需要重新启动</ZombielandRestartRequired>
 	<ZombielandContamination>强度</ZombielandContamination>
 	<ContaminationEffectiveness>总效果 {0}%</ContaminationEffectiveness>
+	<ZombielandStorageContaminationRange>{0} 污染</ZombielandStorageContaminationRange>
 
 	<WhenDoZombiesSpawn>丧尸出现的时间段？</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>所有时间</SpawnWhenType_AllTheTime>

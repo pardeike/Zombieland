@@ -98,6 +98,7 @@
 	<ZombielandContaminationTitle>Kirlilik</ZombielandContaminationTitle>
 	<ZombielandContamination>Yoğunluk</ZombielandContamination>
 	<ContaminationEffectiveness>Toplam etkinlik {0}%</ContaminationEffectiveness>
+	<ZombielandStorageContaminationRange>{0} kirlilik</ZombielandStorageContaminationRange>
 
 	<WhenDoZombiesSpawn>Zombiler ne zaman ortaya çıksın?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Her zaman</SpawnWhenType_AllTheTime>

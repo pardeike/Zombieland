@@ -98,6 +98,7 @@
 	<ZombielandContaminationTitle>Kontamination</ZombielandContaminationTitle>
 	<ZombielandContamination>Intensität</ZombielandContamination>
 	<ContaminationEffectiveness>Gesamteffektivität {0}%</ContaminationEffectiveness>
+	<ZombielandStorageContaminationRange>{0} Kontamination</ZombielandStorageContaminationRange>
 
 	<WhenDoZombiesSpawn>Wann erscheinen Zombies?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Jederzeit</SpawnWhenType_AllTheTime>

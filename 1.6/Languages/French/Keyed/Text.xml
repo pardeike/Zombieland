@@ -98,6 +98,7 @@
 	<ZombielandRestartRequired>La modification de ce paramètre nécessite un redémarrage de RimWorld</ZombielandRestartRequired>
 	<ZombielandContamination>Intensité</ZombielandContamination>
 	<ContaminationEffectiveness>Efficacité totale {0} %</ContaminationEffectiveness>
+	<ZombielandStorageContaminationRange>{0} contamination</ZombielandStorageContaminationRange>
 
 	<WhenDoZombiesSpawn>Quand les Zombies arrivent-ils ? </WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Tout le temps</SpawnWhenType_AllTheTime>
