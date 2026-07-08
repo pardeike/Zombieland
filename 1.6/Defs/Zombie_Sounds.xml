@@ -970,8 +970,8 @@
 					</li>
 				</grains>
 				<volumeRange>
-					<min>75</min>
-					<max>75</max>
+					<min>86</min>
+					<max>86</max>
 				</volumeRange>
 				<distRange>
 					<min>1000</min>

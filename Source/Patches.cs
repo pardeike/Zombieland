@@ -135,6 +135,43 @@ namespace ZombieLand
 			soundDef.PlayOneShot(SoundInfo.InMap(new TargetInfo(position, map)));
 		}
 
+		[HarmonyPatch(typeof(MapParent))]
+		[HarmonyPatch(nameof(MapParent.Abandon))]
+		static class MapParent_Abandon_Patch
+		{
+			static readonly HashSet<MapParent> confirmedSymbiantAbandons = [];
+
+			static bool Prefix(MapParent __instance, bool wasGravshipLaunch)
+			{
+				if (__instance?.HasMap != true || Find.WindowStack == null)
+					return true;
+				if (confirmedSymbiantAbandons.Remove(__instance))
+					return true;
+				var map = __instance.Map;
+				if (ZombieSymbiant.ActiveSymbiant(map) == null)
+					return true;
+
+				Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+					"SymbiantMapAbandonWarning".Translate(),
+					() =>
+					{
+						confirmedSymbiantAbandons.Add(__instance);
+						try
+						{
+							__instance.Abandon(wasGravshipLaunch);
+						}
+						finally
+						{
+							confirmedSymbiantAbandons.Remove(__instance);
+						}
+					},
+					true,
+					"SymbiantMapAbandonWarningTitle".Translate()
+				));
+				return false;
+			}
+		}
+
 		[HarmonyPatch(typeof(GenUI))]
 		[HarmonyPatch(nameof(GenUI.ThingsUnderMouse))]
 		static class GenUI_ThingsUnderMouse_Patch
