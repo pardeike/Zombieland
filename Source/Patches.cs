@@ -7143,6 +7143,7 @@ namespace ZombieLand
 		{
 			static void Prefix()
 			{
+				AlbinoScreamVomit.ClearPendingMultipliers();
 				ZombieBootstrap.ResetLogDedupers();
 			}
 

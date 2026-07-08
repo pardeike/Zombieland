@@ -13,6 +13,8 @@ namespace ZombieLand
 		const int durationMultiplier = 2;
 		static readonly Dictionary<Pawn, int> pendingMultipliers = new();
 
+		public static int PendingMultiplierCount => pendingMultipliers.Count;
+
 		public static void Start(Pawn pawn)
 		{
 			if (pawn?.jobs == null)
@@ -20,7 +22,18 @@ namespace ZombieLand
 
 			pendingMultipliers[pawn] = Math.Max(PendingMultiplierFor(pawn), durationMultiplier);
 			pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.Vomit), JobCondition.InterruptForced, null, true, true);
-			TryExtend(pawn.jobs.curDriver as JobDriver_Vomit);
+			var driver = pawn.jobs.curDriver as JobDriver_Vomit;
+			if (driver == null)
+			{
+				pendingMultipliers.Remove(pawn);
+				return;
+			}
+			TryExtend(driver);
+		}
+
+		public static void ClearPendingMultipliers()
+		{
+			pendingMultipliers.Clear();
 		}
 
 		public static void TryExtend(JobDriver_Vomit driver)

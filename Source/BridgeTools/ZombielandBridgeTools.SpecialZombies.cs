@@ -1,3 +1,4 @@
+using HarmonyLib;
 using RimBridgeServer.Sdk;
 using RimWorld;
 using System;
@@ -2043,7 +2044,7 @@ namespace ZombieLand
 			public string error;
 		}
 
-		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream vomit job resume, scream cooldown, target preference, opportunistic raiders, attack-mode scream filtering, false thing-target proximity, paralysis cancellation, door-resume, externally opened door resume, externally opened door hack-target re-path, stale target clearing, pure power target exclusion, flickable, breakdownable, and weapon hacks.")]
+		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream vomit job resume/cleanup, scream cooldown, target preference, opportunistic raiders, attack-mode scream filtering, false thing-target proximity, paralysis cancellation, door-resume, externally opened door resume, externally opened door hack-target re-path, stale target clearing, pure power target exclusion, flickable, breakdownable, and weapon hacks.")]
 		public static object AlbinoSabotageContract(
 			[ToolParameter(Description = "Return only case names, pass/fail, and errors to keep routine validation output compact.", Required = false, DefaultValue = false)] bool summaryOnly = false)
 		{
@@ -2082,6 +2083,7 @@ namespace ZombieLand
 			AddCase("raider_attacking_nearby_colonist", () => AlbinoRaiderAttackingNearbyColonistCase(map));
 			AddCase("no_destination_pressure_backoff", () => AlbinoNoDestinationPressureBackoffCase(map));
 			AddCase("scream_vomit_resumes_job", () => AlbinoScreamVomitResumesJobCase(map));
+			AddCase("scream_vomit_failed_start_cleans_pending", () => AlbinoScreamVomitFailedStartCleansPendingCase(map));
 			AddCase("scream_cooldown", () => AlbinoScreamCooldownCase(map));
 			AddCase("scream_releases_movement_after_75_percent", () => AlbinoScreamReleasesMovementAfter75PercentCase(map));
 			AddCase("paralysis_clears_queued_scream", () => AlbinoParalysisClearsQueuedScreamCase(map));
@@ -2122,6 +2124,18 @@ namespace ZombieLand
 				details = details,
 				error = error
 			};
+		}
+
+		static readonly FieldInfo pawnJobTrackerPawnField = AccessTools.Field(typeof(Pawn_JobTracker), "pawn");
+		static Pawn albinoScreamVomitBlockedStartJobPawn;
+
+		static bool BlockAlbinoScreamVomitStartJobPrefix(Pawn_JobTracker __instance, Job newJob)
+		{
+			if (newJob?.def != JobDefOf.Vomit)
+				return true;
+
+			var pawn = pawnJobTrackerPawnField?.GetValue(__instance) as Pawn;
+			return ReferenceEquals(pawn, albinoScreamVomitBlockedStartJobPawn) == false;
 		}
 
 		static Pawn SpawnAlbinoTestColonist(Map map, IntVec3 cell, List<Thing> spawnedThings, bool drafted = false)
@@ -3208,6 +3222,77 @@ namespace ZombieLand
 			}
 			finally
 			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static AlbinoSabotageCase AlbinoScreamVomitFailedStartCleansPendingCase(Map map)
+		{
+			const string caseName = "scream_vomit_failed_start_cleans_pending";
+			var spawnedThings = new List<Thing>();
+			Harmony harmony = null;
+			MethodInfo startJobMethod = null;
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				if (TryFindAlbinoIsolatedFixtureRoot(map, out var root, out var rootError) == false)
+					return AlbinoCase(caseName, false, error: rootError?.ToString());
+				if (TryFindClearSpawnCell(map, root, 16f, out var victimCell, out var victimError) == false)
+					return AlbinoCase(caseName, false, error: victimError?.ToString());
+
+				startJobMethod = AccessTools.Method(typeof(Pawn_JobTracker), nameof(Pawn_JobTracker.StartJob));
+				var prefixMethod = AccessTools.Method(typeof(ZombielandBridgeTools), nameof(BlockAlbinoScreamVomitStartJobPrefix));
+				if (startJobMethod == null || prefixMethod == null || pawnJobTrackerPawnField == null)
+				{
+					return AlbinoCase(caseName, false, new
+					{
+						hasStartJobMethod = startJobMethod != null,
+						hasPrefixMethod = prefixMethod != null,
+						hasPawnField = pawnJobTrackerPawnField != null
+					}, "Could not install the temporary StartJob blocker.");
+				}
+
+				var victim = SpawnAlbinoTestColonist(map, victimCell, spawnedThings);
+				if (victim == null)
+					return AlbinoCase(caseName, false, error: "Could not create a colonist victim fixture.");
+
+				victim.jobs.StopAll(false, true);
+				victim.jobs.ClearQueuedJobs();
+				victim.pather?.StopDead();
+				AlbinoScreamVomit.ClearPendingMultipliers();
+				var pendingBefore = AlbinoScreamVomit.PendingMultiplierCount;
+
+				harmony = new Harmony("net.pardeike.zombieland.bridge.albino_scream_vomit_failed_start");
+				harmony.Unpatch(startJobMethod, HarmonyPatchType.Prefix, harmony.Id);
+				albinoScreamVomitBlockedStartJobPawn = victim;
+				harmony.Patch(startJobMethod, prefix: new HarmonyMethod(prefixMethod) { priority = Priority.First });
+
+				AlbinoScreamVomit.Start(victim);
+
+				var pendingAfterFailedStart = AlbinoScreamVomit.PendingMultiplierCount;
+				var vomitStarted = victim.jobs.curDriver is JobDriver_Vomit;
+				var jobAfterFailedStart = victim.CurJobDef?.defName;
+				var success = pendingBefore == 0
+					&& pendingAfterFailedStart == 0
+					&& vomitStarted == false;
+
+				return AlbinoCase(caseName, success, new
+				{
+					victim = DescribePawn(victim),
+					victimCell = ZombieRuntimeActions.DescribeCell(victimCell),
+					pendingBefore,
+					pendingAfterFailedStart,
+					vomitStarted,
+					jobAfterFailedStart,
+					patchInstalled = true
+				});
+			}
+			finally
+			{
+				albinoScreamVomitBlockedStartJobPawn = null;
+				if (harmony != null && startJobMethod != null)
+					harmony.Unpatch(startJobMethod, HarmonyPatchType.Prefix, harmony.Id);
+				AlbinoScreamVomit.ClearPendingMultipliers();
 				DestroyAlbinoCaseThings(spawnedThings);
 			}
 		}

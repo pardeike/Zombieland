@@ -80,6 +80,7 @@ namespace ZombieLand
 		{
 			static void Prefix()
 			{
+				AlbinoScreamVomit.ClearPendingMultipliers();
 				ZombieSymbiant.ResetTransientStaticState();
 				Tools.avoider.running = false;
 
@@ -98,6 +99,7 @@ namespace ZombieLand
 		{
 			static void Prefix()
 			{
+				AlbinoScreamVomit.ClearPendingMultipliers();
 				ZombieBootstrap.ResetLogDedupers();
 				ZombieSymbiant.ResetTransientStaticState();
 			}
@@ -110,7 +112,10 @@ namespace ZombieLand
 			static void Prefix()
 			{
 				if (GenScene.InEntryScene)
+				{
+					AlbinoScreamVomit.ClearPendingMultipliers();
 					ZombieSymbiant.ResetTransientStaticState();
+				}
 			}
 		}
 	}
