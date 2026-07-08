@@ -569,8 +569,9 @@ namespace ZombieLand
 			if (ZombieBootstrap.EnsureZombieDestinationReservations(phase, map, zombieFaction) == false)
 				throw new InvalidOperationException("zombie destination reservations are not ready");
 
-			var allZombies = AllZombies();
-			if (Tools.ShouldAvoidZombies())
+			var allZombies = AllZombies().ToList();
+			var shouldAvoidZombies = Tools.ShouldAvoidZombies();
+			if (shouldAvoidZombies)
 			{
 				var specs = BuildAvoidGridSpecs(allZombies);
 				avoidGrid = Tools.avoider.UpdateZombiePositionsImmediately(map, specs);
@@ -583,6 +584,8 @@ namespace ZombieLand
 			lastAvoidGridResultTick = lastAvoidGridRequestTick;
 			lastAvoidGridRequestId = avoidGrid?.requestId ?? 0;
 			lastAvoidGridResultId = lastAvoidGridRequestId;
+			if (shouldAvoidZombies)
+				SeedElectricAvoidGridSnapshots(allZombies);
 
 			hummingZombies.Clear();
 			allZombies.Where(zombie => zombie.IsActiveElectric).Do(zombie => hummingZombies.Add(zombie));
@@ -1118,6 +1121,13 @@ namespace ZombieLand
 		{
 			var source = zombies ?? allZombiesCached ?? Enumerable.Empty<Zombie>();
 			return BuildAvoidGridSpecsFor(source);
+		}
+
+		internal static void SeedElectricAvoidGridSnapshots(IEnumerable<Zombie> zombies)
+		{
+			foreach (var zombie in zombies ?? Enumerable.Empty<Zombie>())
+				if (zombie?.isElectrifier == true)
+					zombie.SeedElectricAvoidGridSnapshot();
 		}
 
 		internal static List<ZombieCostSpecs> BuildAvoidGridSpecsFor(IEnumerable<Zombie> zombies)

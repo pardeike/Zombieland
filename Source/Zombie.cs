@@ -454,6 +454,14 @@ namespace ZombieLand
 			return ZombieAvoidGridSnapshot.Capture(this);
 		}
 
+		internal void SeedElectricAvoidGridSnapshot()
+		{
+			if (isElectrifier == false)
+				return;
+			lastElectricAvoidGridSnapshot = CaptureAvoidGridSnapshot();
+			hasLastElectricAvoidGridSnapshot = true;
+		}
+
 		internal void RequestAvoidGridRefreshIfSpecChanged(ZombieAvoidGridSnapshot previousSnapshot)
 		{
 			if (previousSnapshot.DiffersFrom(CaptureAvoidGridSnapshot()))
@@ -469,7 +477,14 @@ namespace ZombieLand
 			}
 
 			var currentSnapshot = CaptureAvoidGridSnapshot();
-			if (hasLastElectricAvoidGridSnapshot && lastElectricAvoidGridSnapshot.DiffersFrom(currentSnapshot))
+			if (hasLastElectricAvoidGridSnapshot == false)
+			{
+				Map?.GetComponent<TickManager>()?.RequestAvoidGridRefresh();
+				lastElectricAvoidGridSnapshot = currentSnapshot;
+				hasLastElectricAvoidGridSnapshot = true;
+				return;
+			}
+			if (lastElectricAvoidGridSnapshot.DiffersFrom(currentSnapshot))
 				Map?.GetComponent<TickManager>()?.RequestAvoidGridRefresh();
 			lastElectricAvoidGridSnapshot = currentSnapshot;
 			hasLastElectricAvoidGridSnapshot = true;
