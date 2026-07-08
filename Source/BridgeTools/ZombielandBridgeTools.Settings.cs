@@ -499,6 +499,7 @@ namespace ZombieLand
 					label = ZombielandMusic.ShareLabel(value)
 				})
 				.ToArray();
+			var disabledRecentExhaustion = VerifyMusicDisabledRecentExhaustion(appropriateNow);
 
 			return new
 			{
@@ -511,7 +512,8 @@ namespace ZombieLand
 					&& prefix != null
 					&& patchTargets.Length > 0
 					&& entryPrefix != null
-					&& entryPatchTargets.Length > 0,
+					&& entryPatchTargets.Length > 0
+					&& ObjectSuccess(disabledRecentExhaustion),
 				defaults = new
 				{
 					defaults.playZombielandMusic,
@@ -539,9 +541,127 @@ namespace ZombieLand
 					entryTargets = entryPatchTargets,
 					hasEntryPrefix = entryPrefix != null
 				},
+				disabledRecentExhaustion,
 				dynamicState,
 				dialogState
 			};
+		}
+
+		static object VerifyMusicDisabledRecentExhaustion(MethodInfo appropriateNow)
+		{
+			if (Current.Game == null)
+			{
+				return new
+				{
+					success = true,
+					skipped = true,
+					reason = "No current game is loaded; live recent-song exhaustion requires MusicManagerPlay."
+				};
+			}
+
+			MusicManagerPlay manager;
+			try
+			{
+				manager = Find.MusicManagerPlay;
+			}
+			catch (Exception ex)
+			{
+				return new
+				{
+					success = false,
+					error = ex.GetBaseException().Message
+				};
+			}
+
+			var recentSongsField = AccessTools.Field(typeof(MusicManagerPlay), "recentSongs");
+			var recentSongs = recentSongsField?.GetValue(manager) as Queue<SongDef>;
+			if (manager == null || appropriateNow == null || recentSongs == null)
+			{
+				return new
+				{
+					success = false,
+					hasManager = manager != null,
+					hasAppropriateNow = appropriateNow != null,
+					hasRecentSongs = recentSongs != null,
+					error = "Could not access the live music manager selection state."
+				};
+			}
+
+			var settingsSnapshot = SnapshotZombieSettings();
+			var originalRecentSongs = recentSongs.ToList();
+			var originalDangerOverride = manager.OverrideDangerMode;
+			try
+			{
+				manager.OverrideDangerMode = true;
+				recentSongs.Clear();
+				ApplyZombieSettingsOverride(values =>
+				{
+					values.playZombielandMusic = true;
+					values.zombielandMusicShare = 0;
+				});
+
+				var appropriate = DefDatabase<SongDef>.AllDefs
+					.Where(song => song?.clip != null)
+					.Where(song => appropriateNow.Invoke(manager, new object[] { song }) is true)
+					.ToList();
+				var otherSongs = appropriate
+					.Where(song => ZombielandMusic.IsZombielandSong(song) == false)
+					.Where(song => song.commonality > 0f)
+					.ToList();
+				var zombielandSongs = appropriate
+					.Where(ZombielandMusic.IsZombielandSong)
+					.ToList();
+
+				foreach (var song in otherSongs)
+					recentSongs.Enqueue(song);
+
+				var recentCountBefore = recentSongs.Count;
+				var handled = ZombielandMusic.TryChooseNextSong(manager, recentSongs, out var chosen);
+				var chosenIsZombieland = ZombielandMusic.IsZombielandSong(chosen);
+				var success = otherSongs.Count > 0
+					&& otherSongs.Count <= 7
+					&& zombielandSongs.Count > 0
+					&& handled
+					&& chosen != null
+					&& chosenIsZombieland == false
+					&& chosen.commonality > 0f;
+
+				return new
+				{
+					success,
+					skipped = false,
+					otherSongCount = otherSongs.Count,
+					zombielandSongCount = zombielandSongs.Count,
+					recentCountBefore,
+					recentCountAfter = recentSongs.Count,
+					handled,
+					chosen = new
+					{
+						chosen?.defName,
+						chosen?.label,
+						chosen?.commonality,
+						isZombieland = chosenIsZombieland
+					},
+					otherSongs = otherSongs.Select(song => song.defName).ToArray(),
+					zombielandSongs = zombielandSongs.Select(song => song.defName).ToArray()
+				};
+			}
+			catch (Exception ex)
+			{
+				return new
+				{
+					success = false,
+					error = ex.GetBaseException().Message
+				};
+			}
+			finally
+			{
+				RestoreZombieSettings(settingsSnapshot);
+				manager.OverrideDangerMode = originalDangerOverride;
+				recentSongs.Clear();
+				foreach (var song in originalRecentSongs)
+					recentSongs.Enqueue(song);
+			}
 		}
 
 		static object VerifySettingsBehaviorFixtures()

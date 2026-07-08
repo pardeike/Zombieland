@@ -124,7 +124,22 @@ namespace ZombieLand
 					.ToList();
 
 				if (settings.playZombielandMusic == false || share <= 0)
-					return TryChooseOtherSong(otherSongs, out song);
+				{
+					if (TryChooseOtherSong(otherSongs, out song))
+						return true;
+					if (recentSongs != null && candidates.Any(IsZombielandSong))
+					{
+						recentSongs.Clear();
+						candidates = AppropriateSongs(manager).ToList();
+						otherSongs = candidates
+							.Where(candidate => IsZombielandSong(candidate) == false)
+							.Where(candidate => candidate.commonality > 0f)
+							.ToList();
+						if (TryChooseOtherSong(otherSongs, out song))
+							return true;
+					}
+					return false;
+				}
 
 				if (share >= 100)
 				{
