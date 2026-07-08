@@ -729,7 +729,7 @@ namespace ZombieLand
 			"ZombieLand.ContaminationStorageSettings_ExposeData_Patch",
 			"ZombieLand.ContaminationStorageSettings_OwnerConstructor_Patch",
 			"ZombieLand.ContaminationITabStorage_Constructor_Patch",
-			"ZombieLand.ContaminationThingFilterUI_DrawQualityFilterConfig_Patch",
+			"ZombieLand.ContaminationThingFilterUI_DoThingFilterConfigWindow_Patch",
 			"ZombieLand.Corpse_ButcherProducts_Patch",
 			"ZombieLand.Corpse_InnerPawn_Setter_Patch",
 			"ZombieLand.DamageWorker_Flame_Apply_Patch",

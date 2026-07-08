@@ -1,3 +1,4 @@
+using HarmonyLib;
 using RimBridgeServer.Sdk;
 using RimWorld;
 using System;
@@ -114,6 +115,10 @@ namespace ZombieLand
 				ContaminationStorageRange.SetRange(heavyOnlySettings, new FloatRange(0.8f, 1f), notifyChanged: false);
 				var copiedHeavyOnlySettings = NewAllStorageSettings();
 				copiedHeavyOnlySettings.CopyFrom(heavyOnlySettings);
+				var corpseStorageUi = new[] { "Grave", "Sarcophagus" }
+					.Select(DescribeCorpseStorageRangeUiSurface)
+					.ToArray();
+				var uiPatch = DescribeContaminationStorageRangeUiPatch();
 
 				var cleanContamination = cleanThing.GetContamination();
 				var lightContamination = lightContaminatedThing.GetContamination();
@@ -138,6 +143,7 @@ namespace ZombieLand
 				var copiedHeavyOnlyHeavy = copiedHeavyOnlySettings.AllowedToAccept(heavyContaminatedThing);
 				var copiedHeavyOnlyMinified = copiedHeavyOnlySettings.AllowedToAccept(heavyMinifiedThing);
 				var copiedRange = ContaminationStorageRange.GetRange(copiedHeavyOnlySettings);
+				var corpseStorageUiVisible = corpseStorageUi.All(surface => surface.success);
 				var success = cleanContamination == 0f
 					&& Mathf.Approximately(lightContamination, 0.5f)
 					&& Mathf.Approximately(heavyContamination, 0.9f)
@@ -161,7 +167,9 @@ namespace ZombieLand
 					&& copiedHeavyOnlyClean == false
 					&& copiedHeavyOnlyLight == false
 					&& copiedHeavyOnlyHeavy
-					&& copiedHeavyOnlyMinified;
+					&& copiedHeavyOnlyMinified
+					&& corpseStorageUiVisible
+					&& ObjectSuccess(uiPatch);
 
 				return new
 				{
@@ -188,6 +196,8 @@ namespace ZombieLand
 						innerContamination = heavyMinifiedInnerContamination,
 						sourcePath = "MinifyUtility.MakeMinified -> ReplacementContaminationState.Move(source, minified wrapper)"
 					},
+					corpseStorageUi,
+					uiPatch,
 					allows = new
 					{
 						defaultRange = new { clean = defaultClean, light = defaultLight, heavy = defaultHeavy, minified = defaultMinified },
@@ -220,6 +230,79 @@ namespace ZombieLand
 			var settings = new StorageSettings();
 			settings.filter.SetAllowAll(null);
 			return settings;
+		}
+
+		static CorpseStorageRangeUiSurface DescribeCorpseStorageRangeUiSurface(string defName)
+		{
+			var def = DefDatabase<ThingDef>.GetNamed(defName, false);
+			var parentSettings = def?.building?.fixedStorageSettings;
+			var defaultSettings = def?.building?.defaultStorageSettings ?? parentSettings;
+			var settings = defaultSettings == null ? null : new StorageSettings();
+			if (settings != null)
+				settings.CopyFrom(defaultSettings);
+
+			var parentFilter = parentSettings?.filter;
+			var settingsFilter = settings?.filter;
+			var canDraw = ContaminationStorageRange.CanDrawRangeForFilter(settingsFilter);
+			var parentAllowsHitPoints = parentFilter?.allowedHitPointsConfigurable ?? false;
+			var parentAllowsQuality = parentFilter?.allowedQualitiesConfigurable ?? false;
+			var success = def != null
+				&& parentFilter != null
+				&& settingsFilter != null
+				&& canDraw;
+
+			return new CorpseStorageRangeUiSurface
+			{
+				success = success,
+				defName = defName,
+				thingClass = def?.thingClass?.FullName,
+				parentRootCategory = parentFilter?.DisplayRootCategory?.catDef?.defName,
+				parentAllowsHitPoints = parentAllowsHitPoints,
+				parentAllowsQuality = parentAllowsQuality,
+				legacyQualityHookWouldHaveRun = parentAllowsQuality,
+				contaminationRangeCanDraw = canDraw,
+				allowedThingDefCount = settingsFilter?.AllowedThingDefs?.Count() ?? 0
+			};
+		}
+
+		static object DescribeContaminationStorageRangeUiPatch()
+		{
+			var method = AccessTools.Method(typeof(ThingFilterUI), nameof(ThingFilterUI.DoThingFilterConfigWindow));
+			var patchInfo = method == null ? null : Harmony.GetPatchInfo(method);
+			var expectedType = typeof(ContaminationThingFilterUI_DoThingFilterConfigWindow_Patch).FullName;
+			var transpilers = (patchInfo?.Transpilers ?? Enumerable.Empty<Patch>())
+				.Select(patch => new
+				{
+					patch.owner,
+					declaringType = patch.PatchMethod?.DeclaringType?.FullName,
+					methodName = patch.PatchMethod?.Name,
+					priority = patch.priority
+				})
+				.ToArray();
+			var expectedInstalled = transpilers.Any(patch => patch.owner == "net.pardeike.zombieland"
+				&& patch.declaringType == expectedType
+				&& patch.methodName == "Transpiler");
+
+			return new
+			{
+				success = method != null && expectedInstalled,
+				method = method?.FullDescription(),
+				expectedType,
+				transpilers
+			};
+		}
+
+		sealed class CorpseStorageRangeUiSurface
+		{
+			public bool success;
+			public string defName;
+			public string thingClass;
+			public string parentRootCategory;
+			public bool parentAllowsHitPoints;
+			public bool parentAllowsQuality;
+			public bool legacyQualityHookWouldHaveRun;
+			public bool contaminationRangeCanDraw;
+			public int allowedThingDefCount;
 		}
 
 		static object DescribeFloatRange(FloatRange range)

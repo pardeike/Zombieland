@@ -1,6 +1,9 @@
 ﻿using HarmonyLib;
 using RimWorld;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using Verse;
@@ -85,7 +88,7 @@ namespace ZombieLand
 
 		public static bool DrawRangeForFilter(ref float y, float width, ThingFilter filter)
 		{
-			if (filter == null || filterOwners.TryGetValue(filter, out var settings) == false)
+			if (TryGetFilterOwner(filter, out var settings) == false)
 				return false;
 
 			var sliderRect = new Rect(20f, y, width - 20f, SliderHeight);
@@ -110,6 +113,9 @@ namespace ZombieLand
 			return true;
 		}
 
+		public static bool CanDrawRangeForFilter(ThingFilter filter)
+			=> TryGetFilterOwner(filter, out _);
+
 		public static bool CanResizeStorageTab()
 			=> Constants.CONTAMINATION && inspectTabSizeField != null;
 
@@ -129,6 +135,14 @@ namespace ZombieLand
 			if (range.min > range.max)
 				(range.min, range.max) = (range.max, range.min);
 			return range;
+		}
+
+		static bool TryGetFilterOwner(ThingFilter filter, out StorageSettings settings)
+		{
+			settings = null;
+			if (filter == null || filterOwners.TryGetValue(filter, out settings) == false)
+				return false;
+			return true;
 		}
 	}
 
@@ -182,13 +196,56 @@ namespace ZombieLand
 		}
 	}
 
-	[HarmonyPatch(typeof(ThingFilterUI), "DrawQualityFilterConfig")]
-	static class ContaminationThingFilterUI_DrawQualityFilterConfig_Patch
+	[HarmonyPatch(typeof(ThingFilterUI), nameof(ThingFilterUI.DoThingFilterConfigWindow))]
+	static class ContaminationThingFilterUI_DoThingFilterConfigWindow_Patch
 	{
 		static bool Prepare() => Constants.CONTAMINATION;
 
-		static void Postfix(ref float y, float width, ThingFilter filter)
-			=> ContaminationStorageRange.DrawRangeForFilter(ref y, width, filter);
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		{
+			var codes = instructions.ToList();
+			var anomalyActive = AccessTools.PropertyGetter(typeof(ModsConfig), nameof(ModsConfig.AnomalyActive));
+			var drawMentalBreak = AccessTools.Method(
+				typeof(ThingFilterUI),
+				"DrawMentalBreakFilterConfig",
+				new[] { typeof(float).MakeByRefType(), typeof(float), typeof(ThingFilter) });
+			var rectWidth = AccessTools.PropertyGetter(typeof(Rect), nameof(Rect.width));
+			var drawContamination = AccessTools.Method(typeof(ContaminationStorageRange), nameof(ContaminationStorageRange.DrawRangeForFilter));
+
+			if (anomalyActive == null || drawMentalBreak == null || rectWidth == null || drawContamination == null)
+				throw new MissingMethodException("Cannot resolve ThingFilterUI contamination storage range UI patch members.");
+
+			var insertAt = codes.FindIndex(code => code.Calls(anomalyActive));
+			if (insertAt < 0)
+				throw new MissingMethodException($"Cannot find {anomalyActive.FullDescription()} in ThingFilterUI.DoThingFilterConfigWindow.");
+
+			var mentalBreakCall = codes.FindIndex(insertAt, code => code.Calls(drawMentalBreak));
+			if (mentalBreakCall < 4 || codes[mentalBreakCall - 2].Calls(rectWidth) == false)
+				throw new MissingMethodException($"Cannot find the ThingFilterUI slider draw sequence before {drawMentalBreak.FullDescription()}.");
+
+			var inserted = new List<CodeInstruction>
+			{
+				CleanCopy(codes[mentalBreakCall - 4]),
+				CleanCopy(codes[mentalBreakCall - 3]),
+				CleanCopy(codes[mentalBreakCall - 2]),
+				CleanCopy(codes[mentalBreakCall - 1]),
+				new(OpCodes.Call, drawContamination),
+				new(OpCodes.Pop)
+			};
+
+			inserted[0].labels.AddRange(codes[insertAt].labels);
+			codes[insertAt].labels.Clear();
+			codes.InsertRange(insertAt, inserted);
+			return codes;
+		}
+
+		static CodeInstruction CleanCopy(CodeInstruction instruction)
+		{
+			var copy = new CodeInstruction(instruction);
+			copy.labels.Clear();
+			copy.blocks.Clear();
+			return copy;
+		}
 	}
 
 	[HarmonyPatch(typeof(ITab_Storage), MethodType.Constructor)]
