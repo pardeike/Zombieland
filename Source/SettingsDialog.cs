@@ -8,7 +8,7 @@ namespace ZombieLand
 {
 	static class SettingsDialog
 	{
-		public static readonly float totalEstimatedHeight = 4210f;
+		public static readonly float totalEstimatedHeight = 4235f;
 		const float scrollContentBottomPadding = 24f;
 		public static float measuredContentHeight = totalEstimatedHeight;
 		public static float lastDrawnContentHeight = 0f;
@@ -345,16 +345,14 @@ namespace ZombieLand
 				}
 
 				// Awareness cues
-				if (DialogExtensions.Section<string>(":AwarenessCuesTitle", ":PlayZombielandMusic", ":ZombielandMusicShare", ":ShowZombieEventLetters", ":PlayZombieEventSiren", ":PlaySpecialZombieAmbientSounds", ":PlayZombieActionSounds", ":PlayWallAndSabotageSounds", ":ShowZombieThoughtBubbles", ":PlayCreepyAmbientSound", ":ShowHealthBar", ":ShowZombieStats", ":HighlightDangerousAreas", ":DangerousSituationMessage"))
+				if (DialogExtensions.Section<string>(":AwarenessCuesTitle", ":PlayZombielandMusic", ":ShowZombieEventLetters", ":PlayZombieEventSiren", ":PlaySpecialZombieAmbientSounds", ":PlayZombieActionSounds", ":PlayWallAndSabotageSounds", ":ShowZombieThoughtBubbles", ":PlayCreepyAmbientSound", ":ShowHealthBar", ":ShowZombieStats", ":HighlightDangerousAreas", ":DangerousSituationMessage"))
 				{
 					list.Dialog_Label("AwarenessCuesTitle", headerColor);
 					list.Dialog_Checkbox("PlayZombielandMusic", ref settings.playZombielandMusic);
 					if (settings.playZombielandMusic)
 					{
 						list.Gap(8f);
-						var musicShareStep = Mathf.Clamp(Mathf.RoundToInt(settings.zombielandMusicShare / 10f), 0, 10);
-						list.Dialog_IntSlider("ZombielandMusicShare", step => ZombielandMusic.ShareLabel(step * 10), ref musicShareStep, 0, 10);
-						settings.zombielandMusicShare = musicShareStep * 10;
+						DrawMusicShareSlider(list, ref settings.zombielandMusicShare);
 						list.Gap(4f);
 					}
 					list.Dialog_Checkbox("ShowZombieEventLetters", ref settings.showZombieEventLetters);
@@ -429,7 +427,7 @@ namespace ZombieLand
 			{
 				list.Gap(16f);
 
-				var title = DialogExtensions.currentHelpItem.SafeTranslate().Replace(": {0}", "");
+				var title = DialogExtensions.currentHelpTitle ?? DialogExtensions.currentHelpItem.SafeTranslate().Replace(": {0}", "");
 				list.Dialog_Label(title, Color.white, false);
 				list.Gap(8f);
 
@@ -479,6 +477,57 @@ namespace ZombieLand
 		{
 			lastDrawnContentHeight = Mathf.Ceil(drawnContentHeight + scrollContentBottomPadding);
 			measuredContentHeight = Mathf.Max(lastScrollViewHeight, lastDrawnContentHeight);
+		}
+
+		static void DrawMusicShareSlider(Listing_Standard list, ref int share)
+		{
+			const string labelId = "ZombielandMusicShare";
+			const float headerToSliderGap = 22f;
+			const float sliderHeight = 24f;
+
+			var step = Mathf.Clamp(Mathf.RoundToInt(share / 10f), 0, 10);
+			var title = ZombielandMusic.ShareLabel(step * 10);
+			var width = list.ColumnWidth - 2f * DialogExtensions.inset;
+
+			var savedFont = Text.Font;
+			var savedAnchor = Text.Anchor;
+			var savedColor = GUI.color;
+
+			Text.Font = GameFont.Small;
+			var titleHeight = Mathf.Max(Text.LineHeight, Text.CalcHeight(title, width));
+			var height = titleHeight + headerToSliderGap + sliderHeight;
+
+			list.Help(labelId, height, title);
+			var rect = list.GetRect(height);
+			rect.xMin += DialogExtensions.inset;
+			rect.xMax -= DialogExtensions.inset;
+
+			GUI.color = Color.white;
+			Text.Font = GameFont.Small;
+			Text.Anchor = TextAnchor.MiddleLeft;
+			var titleRect = new Rect(rect.x, rect.y, rect.width, titleHeight);
+			Widgets.Label(titleRect, title);
+
+			Text.Font = savedFont;
+			Text.Anchor = savedAnchor;
+
+			var sliderRect = new Rect(rect.x, titleRect.yMax + headerToSliderGap, rect.width, sliderHeight);
+			var newStep = (int)(0.5f + Tools.HorizontalSlider(
+				sliderRect,
+				step,
+				0,
+				10,
+				false,
+				null,
+				"ZombielandMusicShare_OtherEnd".SafeTranslate(),
+				"ZombielandMusicShare_ZombielandEnd".SafeTranslate(),
+				1f
+			));
+			share = Mathf.Clamp(newStep, 0, 10) * 10;
+
+			GUI.color = savedColor;
+			Text.Anchor = savedAnchor;
+			Text.Font = savedFont;
 		}
 
 		enum AnomalyAutomaticDetail

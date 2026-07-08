@@ -252,7 +252,8 @@
 
 	<AwarenessCuesTitle>Indices d'activité</AwarenessCuesTitle>
 	<PlayZombielandMusic>Jouer la musique de Zombieland</PlayZombielandMusic>
-	<ZombielandMusicShare>Bande-son Zombieland</ZombielandMusicShare>
+	<ZombielandMusicShare_OtherEnd>RimWorld/Mods</ZombielandMusicShare_OtherEnd>
+	<ZombielandMusicShare_ZombielandEnd>Zombieland</ZombielandMusicShare_ZombielandEnd>
 	<ZombielandMusicShare_OnlyOther>Musique non-Zombieland uniquement</ZombielandMusicShare_OnlyOther>
 	<ZombielandMusicShare_Percent>{0}% de musique Zombieland</ZombielandMusicShare_Percent>
 	<ZombielandMusicShare_OnlyZombieland>Musique Zombieland uniquement</ZombielandMusicShare_OnlyZombieland>

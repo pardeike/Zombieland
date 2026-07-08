@@ -252,7 +252,8 @@
 
 	<AwarenessCuesTitle>Zombi etkinliği ipuçları</AwarenessCuesTitle>
 	<PlayZombielandMusic>Zombieland müziğini çal</PlayZombielandMusic>
-	<ZombielandMusicShare>Zombieland müziği</ZombielandMusicShare>
+	<ZombielandMusicShare_OtherEnd>RimWorld/Mods</ZombielandMusicShare_OtherEnd>
+	<ZombielandMusicShare_ZombielandEnd>Zombieland</ZombielandMusicShare_ZombielandEnd>
 	<ZombielandMusicShare_OnlyOther>Yalnızca Zombieland dışı müzik</ZombielandMusicShare_OnlyOther>
 	<ZombielandMusicShare_Percent>%{0} Zombieland müziği</ZombielandMusicShare_Percent>
 	<ZombielandMusicShare_OnlyZombieland>Yalnızca Zombieland müziği</ZombielandMusicShare_OnlyZombieland>

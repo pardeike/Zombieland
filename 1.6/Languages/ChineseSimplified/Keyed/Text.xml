@@ -252,7 +252,8 @@
 
 	<AwarenessCuesTitle>感知提示</AwarenessCuesTitle>
 	<PlayZombielandMusic>播放 Zombieland 音乐</PlayZombielandMusic>
-	<ZombielandMusicShare>Zombieland 配乐</ZombielandMusicShare>
+	<ZombielandMusicShare_OtherEnd>RimWorld/Mods</ZombielandMusicShare_OtherEnd>
+	<ZombielandMusicShare_ZombielandEnd>Zombieland</ZombielandMusicShare_ZombielandEnd>
 	<ZombielandMusicShare_OnlyOther>仅播放非 Zombieland 音乐</ZombielandMusicShare_OnlyOther>
 	<ZombielandMusicShare_Percent>{0}% Zombieland 音乐</ZombielandMusicShare_Percent>
 	<ZombielandMusicShare_OnlyZombieland>仅播放 Zombieland 音乐</ZombielandMusicShare_OnlyZombieland>

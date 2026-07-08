@@ -13,23 +13,28 @@ namespace ZombieLand
 		static Color contentColor = new(1f, 1f, 1f, 0.7f);
 		public const float inset = 6f;
 		public static string currentHelpItem = null;
+		public static string currentHelpTitle = null;
 
 		public static QuickSearchWidget searchWidget = new();
 		public static (int, int) searchWidgetSelectionState = (0, 0);
 		public static string shouldFocusNow = searchWidget.controlName;
 
-		public static void Help(this Listing_Standard list, string helpItem, float height = 0f)
+		public static void Help(this Listing_Standard list, string helpItem, float height = 0f, string title = null)
 		{
 			var curX = list.curX;
 			var curY = list.curY;
 			var rect = new Rect(curX, curY, list.ColumnWidth, height > 0f ? height : Text.LineHeight);
 			if (Mouse.IsOver(rect))
+			{
 				currentHelpItem = helpItem;
+				currentHelpTitle = title;
+			}
 		}
 
 		public static void ResetHelpItem()
 		{
 			currentHelpItem = null;
+			currentHelpTitle = null;
 		}
 
 		public static void Dialog_Label(this Listing_Standard list, string labelId, Color color, bool provideHelp = true)
