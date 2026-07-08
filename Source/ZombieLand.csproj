@@ -132,7 +132,7 @@
 			<GlobalBridgeToolsDir>$(RIMWORLD_MOD_DIR)\..\BridgeTools</GlobalBridgeToolsDir>
 		</PropertyGroup>
 		<ItemGroup>
-			<Copy_14 Include="..\1.4\**" />
+			<Copy_14 Include="..\1.4\**" Exclude="..\1.4\**\.DS_Store;..\1.4\**\._*" />
 			<Copy_16 Include="..\1.6\**" Exclude="..\1.6\BridgeTools\**;..\1.6\**\.DS_Store;..\1.6\**\._*" />
 			<CopyAbout Include="..\About\**" Exclude="..\About\**\.DS_Store;..\About\**\._*" />
 			<CopyLicense Include="..\LICENSE" />
