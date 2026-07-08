@@ -103,14 +103,28 @@
 		<XmlPoke XmlInputPath="$(MSBuildProjectDirectory)\..\About\Manifest.xml" Query="//Manifest/version" Value="$(ModVersion)" />
 	</Target>
 
-	<Target Name="BuildBridgeTools" AfterTargets="PostBuildAction" BeforeTargets="CopyToRimworld" Condition="'$(BuildBridgeTools)' != 'false'">
+	<Target Name="BuildBridgeTools" BeforeTargets="_CopyToRimworldUnlocked" Condition="'$(BuildBridgeTools)' != 'false' And '$(RimworldDeployGuardInner)' == 'true'">
 		<MSBuild
 			Projects="$(MSBuildProjectDirectory)\BridgeTools\Zombieland.BridgeTools.csproj"
 			Targets="Build"
 			Properties="Configuration=$(Configuration);Platform=$(Platform);ZombielandAssemblyPath=$(TargetPath)" />
 	</Target>
 
-	<Target Name="CopyToRimworld" AfterTargets="PostBuildAction" Condition="'$(RIMWORLD_MOD_DIR)' != ''">
+	<Target Name="ValidateRimworldDeployRoot" BeforeTargets="Build;CopyToRimworld" Condition="'$(RIMWORLD_MOD_DIR)' != '' And '$(RimworldDeployGuardInner)' != 'true'">
+		<PropertyGroup>
+			<DeployGuardScript>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\scripts\rimworld-deploy-guard.sh'))</DeployGuardScript>
+		</PropertyGroup>
+		<Exec Command="&quot;$(DeployGuardScript)&quot; validate &quot;$(RIMWORLD_MOD_DIR)&quot; &quot;$(MSBuildProjectFullPath)&quot; &quot;$(ModFileName)&quot;" />
+	</Target>
+
+	<Target Name="CopyToRimworld" AfterTargets="PostBuildAction" Condition="'$(RIMWORLD_MOD_DIR)' != '' And '$(RimworldDeployGuardInner)' != 'true'">
+		<PropertyGroup>
+			<DeployGuardScript>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\scripts\rimworld-deploy-guard.sh'))</DeployGuardScript>
+		</PropertyGroup>
+		<Exec Command="&quot;$(DeployGuardScript)&quot; deploy &quot;$(RIMWORLD_MOD_DIR)&quot; &quot;$(MSBuildProjectFullPath)&quot; &quot;$(Configuration)&quot; &quot;$(Platform)&quot; &quot;$(ModFileName)&quot; &quot;$(BuildBridgeTools)&quot;" />
+	</Target>
+
+	<Target Name="_CopyToRimworldUnlocked" Condition="'$(RIMWORLD_MOD_DIR)' != '' And '$(RimworldDeployGuardInner)' == 'true'">
 		<Delete Files="..\1.6\Assemblies\0Harmony.dll" />
 		<RemoveDir Directories="$(RIMWORLD_MOD_DIR)\$(ModFileName)" />
 		<PropertyGroup>
@@ -135,8 +149,10 @@
 		<Copy SourceFiles="@(CopyBridgeTools)" DestinationFolder="$(GlobalBridgeToolsDir)\Zombieland" SkipUnchangedFiles="true" Condition="'@(CopyBridgeTools)' != ''" />
 	</Target>
 
-	<Target Name="ZipMod" AfterTargets="CopyToRimworld" Condition="'$(RIMWORLD_MOD_DIR)' != ''">
+	<Target Name="_ZipModUnlocked" Condition="'$(RIMWORLD_MOD_DIR)' != '' And '$(RimworldDeployGuardInner)' == 'true'">
 		<ZipDirectory SourceDirectory="$(RIMWORLD_MOD_DIR)\$(ModFileName)" DestinationFile="$(RIMWORLD_MOD_DIR)\$(ModFileName).zip" Overwrite="true" />
 	</Target>
+
+	<Target Name="ZipMod" DependsOnTargets="CopyToRimworld" Condition="'$(RIMWORLD_MOD_DIR)' != '' And '$(RimworldDeployGuardInner)' != 'true'" />
 
 </Project>

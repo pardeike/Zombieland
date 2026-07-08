@@ -7,6 +7,7 @@ cd "$ROOT"
 stop_rimworld=true
 restart_rimworld=false
 dotnet_args=()
+rimworld_mod_dir_arg=""
 for arg in "$@"; do
 	case "$arg" in
 		--stop-rimworld)
@@ -17,6 +18,10 @@ for arg in "$@"; do
 			;;
 		--restart-rimworld)
 			restart_rimworld=true
+			;;
+		/p:RIMWORLD_MOD_DIR=*|-p:RIMWORLD_MOD_DIR=*)
+			rimworld_mod_dir_arg="${arg#*=}"
+			dotnet_args+=("$arg")
 			;;
 		*)
 			dotnet_args+=("$arg")
@@ -49,9 +54,20 @@ stop_running_rimworld() {
 	return 1
 }
 
+effective_rimworld_mod_dir="${RIMWORLD_MOD_DIR:-}"
+if [[ -n "$rimworld_mod_dir_arg" ]]; then
+	if [[ -n "$effective_rimworld_mod_dir" && "$effective_rimworld_mod_dir" != "$rimworld_mod_dir_arg" ]]; then
+		printf 'Refusing deploy build because RIMWORLD_MOD_DIR differs between environment and MSBuild property:\n' >&2
+		printf '  environment: %s\n' "$effective_rimworld_mod_dir" >&2
+		printf '  property:    %s\n' "$rimworld_mod_dir_arg" >&2
+		exit 2
+	fi
+	effective_rimworld_mod_dir="$rimworld_mod_dir_arg"
+fi
+
 # Deploy builds intentionally use one root: RIMWORLD_MOD_DIR/../BridgeTools is
 # the paired global BridgeTools location for that RimWorld Mods folder.
-if [[ -n "${RIMWORLD_MOD_DIR:-}" ]]; then
+if [[ -n "$effective_rimworld_mod_dir" ]]; then
 	running_rimworld="$(rimworld_processes)"
 	if [[ -n "$running_rimworld" ]]; then
 		if [[ "$stop_rimworld" == true ]]; then
