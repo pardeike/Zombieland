@@ -124,7 +124,23 @@ namespace ZombieLand
 					return TryChooseOtherSong(otherSongs, out song);
 
 				if (share >= 100)
-					return TryChooseZombielandSong(zombielandSongs, out song) || TryChooseOtherSong(otherSongs, out song);
+				{
+					if (TryChooseZombielandSong(zombielandSongs, out song))
+						return true;
+					if (recentSongs != null && recentSongs.Any(IsZombielandSong))
+					{
+						recentSongs.Clear();
+						candidates = AppropriateSongs(manager).ToList();
+						zombielandSongs = candidates.Where(IsZombielandSong).ToList();
+						otherSongs = candidates
+							.Where(candidate => IsZombielandSong(candidate) == false)
+							.Where(candidate => candidate.commonality > 0f)
+							.ToList();
+						if (TryChooseZombielandSong(zombielandSongs, out song))
+							return true;
+					}
+					return TryChooseOtherSong(otherSongs, out song);
+				}
 
 				var preferZombieland = Rand.Value < share / 100f;
 				if (preferZombieland)
@@ -159,11 +175,13 @@ namespace ZombieLand
 						song.clipPath,
 						song.tense,
 						allowedTimeOfDay = song.allowedTimeOfDay.ToString(),
-						hasClip = song.clip != null
+						hasClip = song.clip != null,
+						hasDisplayName = HasDisplayName(song),
+						label = song.label
 					})
 					.ToArray()
-			};
-		}
+				};
+			}
 
 		static bool TryRegisterSong(string soundsRoot, string file)
 		{
@@ -182,6 +200,7 @@ namespace ZombieLand
 			var existing = DefDatabase<SongDef>.GetNamedSilentFail(defName);
 			if (existing != null)
 			{
+				EnsureDisplayMetadata(existing, clipPath);
 				RegisterGeneratedSong(existing);
 				return true;
 			}
@@ -189,6 +208,7 @@ namespace ZombieLand
 			var song = new SongDef
 			{
 				defName = defName,
+				label = LabelFor(clipPath),
 				clipPath = clipPath,
 				clip = clip,
 				playOnMap = true,
@@ -207,7 +227,7 @@ namespace ZombieLand
 		static IEnumerable<SongDef> AppropriateSongs(MusicManagerPlay manager)
 		{
 			foreach (var song in DefDatabase<SongDef>.AllDefs)
-				if (song?.clip != null && IsAppropriateNow(manager, song))
+				if (song?.clip != null && HasDisplayName(song) && IsAppropriateNow(manager, song))
 					yield return song;
 		}
 
@@ -274,9 +294,34 @@ namespace ZombieLand
 		{
 			if (song == null)
 				return;
+			EnsureDisplayMetadata(song, song.clipPath);
 			generatedDefNames.Add(song.defName);
 			if (generatedSongs.Contains(song) == false)
 				generatedSongs.Add(song);
+		}
+
+		static bool HasDisplayName(SongDef song)
+		{
+			return song != null
+				&& (song.label.NullOrEmpty() == false || song.clipPath.NullOrEmpty() == false);
+		}
+
+		static void EnsureDisplayMetadata(SongDef song, string clipPath)
+		{
+			if (song == null)
+				return;
+			if (song.label.NullOrEmpty())
+				song.label = LabelFor(clipPath);
+		}
+
+		static string LabelFor(string clipPath)
+		{
+			var name = clipPath ?? "";
+			var slash = name.LastIndexOf('/');
+			if (slash >= 0)
+				name = name.Substring(slash + 1);
+			name = name.Replace('_', ' ').Trim();
+			return name.NullOrEmpty() ? "Zombieland music" : name;
 		}
 
 		static string ClipPathFor(string soundsRoot, string file)

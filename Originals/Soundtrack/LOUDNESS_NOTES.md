@@ -1,6 +1,6 @@
 # Soundtrack Loudness Notes
 
-Last updated: 2026-07-07
+Last updated: 2026-07-08
 
 This folder was loudness-matched so the soundtrack files sit at roughly the
 same perceived volume when played together. The intent was conservative:
@@ -68,6 +68,17 @@ Later replacement:
 | `Zombieland - Fogfront Outpost.wav` | `-12.98 LUFS` | `-2.19 dB` | `-15.17 LUFS` |
 | `Zombieland - Undead.wav` | `-13.33 LUFS` | `-1.14 dB` | `-14.47 LUFS` |
 
+Later top-level addition:
+
+| File | Before | Gain Applied | After |
+| --- | ---: | ---: | ---: |
+| `Zombieland - Abyss.wav` | `-13.60 LUFS` | `-0.87 dB` | `-14.47 LUFS` |
+| `Zombieland - Blood Horizon.wav` | `-14.11 LUFS` | `-0.36 dB` | `-14.48 LUFS` |
+| `Zombieland - Clouds.wav` | `-14.45 LUFS` | `-0.02 dB` | `-14.46 LUFS` |
+| `Zombieland - Little Accidents.wav` | `-13.84 LUFS` | `-0.63 dB` | `-14.47 LUFS` |
+| `Zombieland - Machine Ghost.wav` | `-13.45 LUFS` | `-1.02 dB` | `-14.47 LUFS` |
+| `Zombieland - Restrained.wav` | `-14.76 LUFS` | `0.00 dB` | `-14.76 LUFS` |
+
 ## Backups
 
 The original-volume backup of the first batch is:
@@ -81,6 +92,8 @@ The original added file backup is:
 No backup was retained for the later `Zombieland - Colony Dawn.wav`,
 `Zombieland - Fogfront Outpost.wav`, or `Zombieland - Undead.wav`
 replacements, by request.
+
+No backup was retained for the later top-level additions, by request.
 
 The actual filenames on disk use an en dash between `Zombieland` and the title.
 The names above use a plain hyphen for easier reading in this note.
