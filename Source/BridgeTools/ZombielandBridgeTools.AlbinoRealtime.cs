@@ -111,6 +111,7 @@ namespace ZombieLand
 			public bool vomiting { get; set; }
 			public bool stunned { get; set; }
 			public bool screamAffectable { get; set; }
+			public bool pressureCapable { get; set; }
 			public int? nextScreamPulseRadius { get; set; }
 			public int? ticksUntilScreamPulseCanReach { get; set; }
 			public string stance { get; set; }
@@ -621,6 +622,7 @@ namespace ZombieLand
 				&& pawn.pather.Destination.Cell.DistanceToSquared(albino.Position) < pawn.Position.DistanceToSquared(albino.Position);
 			var canShootAlbino = albino?.Spawned == true && CanAlbinoRealtimeShootCell(pawn, albino.Position);
 			var screamAffectable = AlbinoRealtimeCanScreamAffect(pawn, albino);
+			var pressureCapable = AlbinoRealtimeCanPressurePawn(pawn, albino);
 			return new AlbinoRealtimeColonistSample
 			{
 				pawnId = ZombieRuntimeActions.StableThingId(pawn),
@@ -637,6 +639,7 @@ namespace ZombieLand
 				vomiting = IsAlbinoRealtimeVomiting(pawn),
 				stunned = pawn?.stances?.stunner?.Stunned ?? false,
 				screamAffectable = screamAffectable,
+				pressureCapable = pressureCapable,
 				nextScreamPulseRadius = AlbinoRealtimeNextScreamPulseRadius(albino),
 				ticksUntilScreamPulseCanReach = AlbinoRealtimeTicksUntilScreamPulseCanReach(albino, distanceSquared, screamAffectable),
 				stance = DescribeAlbinoRealtimeColonistStance(pawn, albino, rangedVerb, aimingAtAlbino, attackingOrApproaching),
@@ -684,8 +687,9 @@ namespace ZombieLand
 				var routePressureMax = routeSamples.Length == 0
 					? (int?)null
 					: routeSamples.Max(cell => AlbinoRealtimePressureAtCell(albino, cell, sources));
-				var screamTargetsInRange = sources.pawns.Count(pawn => pawn.Position.DistanceToSquared(albino.Position) <= maxRadius * maxRadius);
-				var screamTargetsInEarlyRange = sources.pawns.Count(pawn => pawn.Position.DistanceToSquared(albino.Position) <= 64);
+				var screamTargets = sources.pawns.Where(pawn => AlbinoRealtimeCanScreamAffect(pawn, albino)).ToList();
+				var screamTargetsInRange = screamTargets.Count(pawn => pawn.Position.DistanceToSquared(albino.Position) <= maxRadius * maxRadius);
+				var screamTargetsInEarlyRange = screamTargets.Count(pawn => pawn.Position.DistanceToSquared(albino.Position) <= 64);
 				var localPressure = localPawnPressure + localTurretPressure;
 				var maximumPressure = Math.Max(localPressure, routePressureMax ?? 0);
 				var immediateThreat = HasImmediateAlbinoRealtimeScreamThreat(albino, sources);
@@ -819,6 +823,15 @@ namespace ZombieLand
 			return pawn is Zombie || pawn is ZombieSymbiant || pawn is ZombieSpitter;
 		}
 
+		static bool IsAlbinoRealtimeHumanlikeFleshPawn(Pawn pawn)
+		{
+			var raceProps = pawn?.RaceProps;
+			return raceProps?.Humanlike == true
+				&& raceProps.IsFlesh
+				&& AlienTools.IsFleshPawn(pawn)
+				&& SoSTools.IsHologram(pawn) == false;
+		}
+
 		static bool AlbinoRealtimeCanScreamAffect(Pawn pawn, Zombie albino)
 		{
 			return pawn != null
@@ -828,15 +841,73 @@ namespace ZombieLand
 				&& pawn.Dead == false
 				&& IsAlbinoRealtimeZombie(pawn) == false
 				&& Customization.DoesAttractsZombies(pawn)
-				&& pawn.RaceProps.Humanlike
-				&& pawn.RaceProps.IsFlesh
-				&& AlienTools.IsFleshPawn(pawn)
-				&& SoSTools.IsHologram(pawn) == false
+				&& IsAlbinoRealtimeHumanlikeFleshPawn(pawn)
 				&& pawn.health?.Downed == false
 				&& pawn.jobs != null
 				&& pawn.stances != null
 				&& pawn.InMentalState == false
 				&& IsAlbinoRealtimeVomiting(pawn) == false;
+		}
+
+		static bool AlbinoRealtimeCanPressurePawn(Pawn pawn, Zombie albino)
+		{
+			if (pawn == null
+				|| albino == null
+				|| pawn.Spawned == false
+				|| pawn.Map != albino.Map
+				|| pawn.Dead
+				|| pawn.health?.Downed == true
+				|| pawn.jobs == null
+				|| pawn.stances == null
+				|| IsAlbinoRealtimeZombie(pawn)
+				|| IsAlbinoRealtimeVomiting(pawn)
+				|| pawn.activity?.IsDormant == true
+				|| pawn.activity?.Deactivated == true
+				|| pawn.canBeDormant?.Awake == false
+				|| (pawn.RaceProps?.Humanlike == true && pawn.InfectionState() >= InfectionState.Infecting))
+				return false;
+
+			if (IsAlbinoRealtimeAttackingOrApproaching(pawn, albino))
+				return true;
+
+			var raceProps = pawn.RaceProps;
+			if (raceProps == null)
+				return false;
+
+			var faction = pawn.Faction;
+			var settings = ZombieSettings.Values;
+			var isHuman = IsAlbinoRealtimeHumanlikeFleshPawn(pawn);
+			var isMech = raceProps.IsMechanoid;
+			var isAnimal = raceProps.Animal;
+
+			if (faction?.def?.isPlayer == true)
+			{
+				if (isHuman)
+					return true;
+				if (isMech)
+					return settings.attackMode != AttackMode.OnlyHumans;
+				if (isAnimal)
+					return settings.animalsAttackZombies && settings.attackMode == AttackMode.Everything;
+				return settings.attackMode == AttackMode.Everything;
+			}
+
+			if (AnomalyTargeting.TryGetZombieHostilityOverride(pawn, out var anomalyAttacksZombies))
+				return anomalyAttacksZombies;
+
+			if (faction != null && faction.HostileTo(Faction.OfPlayer))
+			{
+				if (settings.enemiesAttackZombies == false)
+					return false;
+				if (isHuman)
+					return settings.attackMode != AttackMode.OnlyColonists;
+				if (isMech)
+					return settings.attackMode == AttackMode.Everything;
+				if (isAnimal)
+					return settings.animalsAttackZombies && settings.attackMode == AttackMode.Everything;
+				return settings.attackMode == AttackMode.Everything;
+			}
+
+			return isAnimal && settings.animalsAttackZombies && settings.attackMode == AttackMode.Everything;
 		}
 
 		static string AlbinoRealtimeScreamStateKey(Zombie zombie)
@@ -960,12 +1031,13 @@ namespace ZombieLand
 			var seen = new HashSet<Pawn>();
 			void AddPawn(Pawn pawn)
 			{
-				if (AlbinoRealtimeCanScreamAffect(pawn, albino) && seen.Add(pawn))
+				if (AlbinoRealtimeCanPressurePawn(pawn, albino) && seen.Add(pawn))
 					sources.pawns.Add(pawn);
 			}
 
-			foreach (var pawn in albino.Map.mapPawns.FreeColonistsSpawned)
-				AddPawn(pawn);
+			foreach (var pawn in albino.Map.mapPawns.AllPawnsSpawned)
+				if (pawn.IsColonist || pawn.Faction == Faction.OfPlayer || pawn.Faction?.HostileTo(Faction.OfPlayer) == true)
+					AddPawn(pawn);
 			foreach (var pawn in albino.Map.attackTargetsCache.TargetsHostileToColony.OfType<Pawn>())
 				AddPawn(pawn);
 			foreach (var turret in albino.Map.listerBuildings.allBuildingsColonist.OfType<Building_TurretGun>())
@@ -1045,7 +1117,7 @@ namespace ZombieLand
 
 		static bool HasImmediateAlbinoRealtimeScreamThreat(Zombie albino, AlbinoRealtimePressureSources sources)
 		{
-			foreach (var pawn in sources.pawns)
+			foreach (var pawn in sources.pawns.Where(pawn => AlbinoRealtimeCanScreamAffect(pawn, albino)))
 			{
 				var distance = pawn.Position.DistanceToSquared(albino.Position);
 				if (distance <= 9)
@@ -1070,7 +1142,7 @@ namespace ZombieLand
 			if (albino?.Spawned != true || sources == null)
 				return true;
 
-			foreach (var pawn in sources.pawns)
+			foreach (var pawn in sources.pawns.Where(pawn => AlbinoRealtimeCanScreamAffect(pawn, albino)))
 				if (IsAlbinoRealtimeUrgentRangedThreat(pawn, albino)
 					&& pawn.Position.DistanceToSquared(albino.Position) > 36)
 					return false;
@@ -1082,7 +1154,7 @@ namespace ZombieLand
 			if (AlbinoRealtimeUrgentRangedThreatsAreInEarlyScreamReach(albino, sources) == false)
 				return false;
 
-			var inEarlyRange = sources.pawns.Count(pawn => pawn.Position.DistanceToSquared(albino.Position) <= 64);
+			var inEarlyRange = sources.pawns.Count(pawn => AlbinoRealtimeCanScreamAffect(pawn, albino) && pawn.Position.DistanceToSquared(albino.Position) <= 64);
 			return inEarlyRange >= 2 || HasImmediateAlbinoRealtimeScreamThreat(albino, sources);
 		}
 
@@ -1098,7 +1170,7 @@ namespace ZombieLand
 			if (AlbinoRealtimeDefensiveScreamPayoff(albino, sources) == false)
 				return false;
 
-			foreach (var pawn in sources.pawns)
+			foreach (var pawn in sources.pawns.Where(pawn => AlbinoRealtimeCanScreamAffect(pawn, albino)))
 			{
 				if (pawn.Position.DistanceToSquared(albino.Position) > threatRadiusSquared)
 					continue;

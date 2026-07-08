@@ -665,9 +665,74 @@ namespace ZombieLand
 			return power == null || power.PowerOn;
 		}
 
+		static bool IsHumanlikeFleshPawn(Pawn pawn)
+		{
+			var raceProps = pawn?.RaceProps;
+			return raceProps?.Humanlike == true
+				&& raceProps.IsFlesh
+				&& AlienTools.IsFleshPawn(pawn)
+				&& SoSTools.IsHologram(pawn) == false;
+		}
+
 		static bool CanAlbinoPressurePawn(Pawn pawn, Zombie zombie)
 		{
-			return CanAlbinoScreamAffect(pawn, zombie);
+			if (pawn == null
+				|| zombie == null
+				|| pawn.Spawned == false
+				|| pawn.Map != zombie.Map
+				|| pawn.Dead
+				|| pawn.health?.Downed == true
+				|| pawn.jobs == null
+				|| pawn.stances == null
+				|| IsZombielandZombie(pawn)
+				|| IsVomiting(pawn)
+				|| pawn.activity?.IsDormant == true
+				|| pawn.activity?.Deactivated == true
+				|| pawn.canBeDormant?.Awake == false
+				|| (pawn.RaceProps?.Humanlike == true && pawn.InfectionState() >= InfectionState.Infecting))
+				return false;
+
+			if (IsAttackingOrApproaching(pawn, zombie))
+				return true;
+
+			var raceProps = pawn.RaceProps;
+			if (raceProps == null)
+				return false;
+
+			var faction = pawn.Faction;
+			var settings = ZombieSettings.Values;
+			var isHuman = IsHumanlikeFleshPawn(pawn);
+			var isMech = raceProps.IsMechanoid;
+			var isAnimal = raceProps.Animal;
+
+			if (faction?.def?.isPlayer == true)
+			{
+				if (isHuman)
+					return true;
+				if (isMech)
+					return settings.attackMode != AttackMode.OnlyHumans;
+				if (isAnimal)
+					return settings.animalsAttackZombies && settings.attackMode == AttackMode.Everything;
+				return settings.attackMode == AttackMode.Everything;
+			}
+
+			if (AnomalyTargeting.TryGetZombieHostilityOverride(pawn, out var anomalyAttacksZombies))
+				return anomalyAttacksZombies;
+
+			if (faction != null && faction.HostileTo(Faction.OfPlayer))
+			{
+				if (settings.enemiesAttackZombies == false)
+					return false;
+				if (isHuman)
+					return settings.attackMode != AttackMode.OnlyColonists;
+				if (isMech)
+					return settings.attackMode == AttackMode.Everything;
+				if (isAnimal)
+					return settings.animalsAttackZombies && settings.attackMode == AttackMode.Everything;
+				return settings.attackMode == AttackMode.Everything;
+			}
+
+			return isAnimal && settings.animalsAttackZombies && settings.attackMode == AttackMode.Everything;
 		}
 
 		sealed class AlbinoPressureSources
@@ -686,8 +751,9 @@ namespace ZombieLand
 					sources.pawns.Add(pawn);
 			}
 
-			foreach (var pawn in zombie.Map.mapPawns.FreeColonistsSpawned)
-				Add(pawn);
+			foreach (var pawn in zombie.Map.mapPawns.AllPawnsSpawned)
+				if (pawn.IsColonist || pawn.Faction == Faction.OfPlayer || pawn.Faction?.HostileTo(Faction.OfPlayer) == true)
+					Add(pawn);
 			foreach (var pawn in zombie.Map.attackTargetsCache.TargetsHostileToColony.OfType<Pawn>())
 				Add(pawn);
 			foreach (var turret in zombie.Map.listerBuildings.allBuildingsColonist.OfType<Building_TurretGun>())
@@ -735,6 +801,13 @@ namespace ZombieLand
 		static bool HasAlbinoPressureSources(AlbinoPressureSources sources)
 		{
 			return sources != null && (sources.pawns.Count > 0 || sources.turrets.Count > 0);
+		}
+
+		static IEnumerable<Pawn> AlbinoScreamAffectablePressurePawns(Zombie zombie, IEnumerable<Pawn> pawns)
+		{
+			foreach (var pawn in pawns)
+				if (CanAlbinoScreamAffect(pawn, zombie))
+					yield return pawn;
 		}
 
 		static IEnumerable<IntVec3> HackApproachCandidates(Pawn pawn, Thing target)
@@ -1105,10 +1178,11 @@ namespace ZombieLand
 				if (UrgentRangedThreatsAreInEarlyScreamReach(zombie, sources) == false)
 					return false;
 
-				var screamTargetsInRange = sources.pawns.Count(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoScreamMaxRadius * albinoScreamMaxRadius);
+				var screamTargets = AlbinoScreamAffectablePressurePawns(zombie, sources.pawns).ToList();
+				var screamTargetsInRange = screamTargets.Count(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoScreamMaxRadius * albinoScreamMaxRadius);
 				if (screamTargetsInRange == 0)
 					return false;
-				var screamTargetsInEarlyRange = sources.pawns.Count(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoDefensiveScreamEarlyRadiusSquared);
+				var screamTargetsInEarlyRange = screamTargets.Count(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoDefensiveScreamEarlyRadiusSquared);
 
 				var localPressure = AlbinoPressureAtCell(zombie, zombie.Position, sources);
 				var maxPressure = 0;
@@ -1326,7 +1400,7 @@ namespace ZombieLand
 
 			static bool HasImmediateAlbinoScreamThreat(Zombie zombie, AlbinoPressureSources sources)
 			{
-				foreach (var pawn in sources.pawns)
+				foreach (var pawn in AlbinoScreamAffectablePressurePawns(zombie, sources.pawns))
 				{
 					var distance = pawn.Position.DistanceToSquared(zombie.Position);
 				if (distance <= 9)
@@ -1356,7 +1430,7 @@ namespace ZombieLand
 				if (zombie?.Spawned != true || sources == null)
 					return true;
 
-				foreach (var pawn in sources.pawns)
+				foreach (var pawn in AlbinoScreamAffectablePressurePawns(zombie, sources.pawns))
 					if (IsUrgentRangedAlbinoThreat(pawn, zombie)
 						&& pawn.Position.DistanceToSquared(zombie.Position) > albinoUrgentScreamRadiusSquared)
 						return false;
@@ -1368,7 +1442,7 @@ namespace ZombieLand
 				if (UrgentRangedThreatsAreInEarlyScreamReach(zombie, sources) == false)
 					return false;
 
-				var inRange = sources.pawns
+				var inRange = AlbinoScreamAffectablePressurePawns(zombie, sources.pawns)
 					.Where(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoScreamMaxRadius * albinoScreamMaxRadius)
 					.ToList();
 				var earlyRange = inRange.Count(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoDefensiveScreamEarlyRadiusSquared);
@@ -1388,7 +1462,7 @@ namespace ZombieLand
 
 			static bool HasAlbinoDefensiveEmergencyThreat(Zombie zombie, AlbinoPressureSources sources)
 			{
-				foreach (var pawn in sources.pawns)
+				foreach (var pawn in AlbinoScreamAffectablePressurePawns(zombie, sources.pawns))
 				{
 					if (pawn.Position.DistanceToSquared(zombie.Position) > albinoDefensiveEmergencyScreamThreatRadiusSquared)
 						continue;
@@ -2083,10 +2157,7 @@ namespace ZombieLand
 				&& pawn.Dead == false
 				&& IsZombielandZombie(pawn) == false
 				&& Customization.DoesAttractsZombies(pawn)
-				&& pawn.RaceProps.Humanlike
-				&& pawn.RaceProps.IsFlesh
-				&& AlienTools.IsFleshPawn(pawn)
-				&& SoSTools.IsHologram(pawn) == false
+				&& IsHumanlikeFleshPawn(pawn)
 				&& pawn.health?.Downed == false
 				&& pawn.jobs != null
 				&& pawn.stances != null
@@ -2246,6 +2317,7 @@ namespace ZombieLand
 			var enemies = zombie.Map.attackTargetsCache.TargetsHostileToColony
 				.OfType<Pawn>()
 				.Where(pawn => CanAlbinoScreamAffect(pawn, zombie))
+				.Where(pawn => CanAlbinoPressurePawn(pawn, zombie))
 				.Where(pawn => IsAttackingOrApproaching(pawn, zombie) || pawn.Position.DistanceToSquared(zombie.Position) <= 100)
 				.ToList();
 
@@ -2333,6 +2405,7 @@ namespace ZombieLand
 
 				var sources = AlbinoPressureSourcesFor(zombie);
 				var rangedPawns = sources.pawns
+					.Where(pawn => CanAlbinoScreamAffect(pawn, zombie))
 					.Where(pawn => HasUsableRangedVerb(pawn, out _))
 					.Where(pawn => IsUrgentRangedAlbinoThreat(pawn, zombie) || IsAttackingOrApproaching(pawn, zombie) || CanShootCell(pawn, zombie.Position) || pawn.Position.DistanceToSquared(zombie.Position) <= 400)
 					.ToList();
@@ -2354,7 +2427,7 @@ namespace ZombieLand
 				return false;
 
 			var sources = AlbinoPressureSourcesFor(zombie);
-			foreach (var pawn in sources.pawns)
+			foreach (var pawn in AlbinoScreamAffectablePressurePawns(zombie, sources.pawns))
 				if (HasUsableRangedVerb(pawn, out _) && (IsAttackingOrApproaching(pawn, zombie) || CanShootCell(pawn, zombie.Position)))
 					return false;
 

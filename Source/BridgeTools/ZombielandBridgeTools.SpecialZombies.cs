@@ -2078,6 +2078,7 @@ namespace ZombieLand
 			AddCase("target_preference", () => AlbinoTargetPreferenceCase(map));
 			AddCase("opportunistic_raider", () => AlbinoOpportunisticRaiderCase(map));
 			AddCase("scream_respects_attack_mode", () => AlbinoScreamRespectsAttackModeCase(map));
+			AddCase("pressure_uses_reverse_hostility", () => AlbinoPressureUsesReverseHostilityCase(map));
 			AddCase("raider_attacking_nearby_colonist", () => AlbinoRaiderAttackingNearbyColonistCase(map));
 			AddCase("scream_cooldown", () => AlbinoScreamCooldownCase(map));
 			AddCase("scream_releases_movement_after_75_percent", () => AlbinoScreamReleasesMovementAfter75PercentCase(map));
@@ -2148,6 +2149,34 @@ namespace ZombieLand
 			return pawn;
 		}
 
+		static PawnKindDef FindAlbinoTestMechKindDef()
+		{
+			return PawnKindDefOf.Mech_Scyther
+				?? DefDatabase<PawnKindDef>.AllDefs.FirstOrDefault(def => def.race?.race?.IsMechanoid == true);
+		}
+
+		static Pawn SpawnAlbinoTestMech(Map map, IntVec3 cell, Faction faction, List<Thing> spawnedThings, string name)
+		{
+			var kindDef = FindAlbinoTestMechKindDef();
+			if (kindDef == null)
+				return null;
+
+			var request = new PawnGenerationRequest(
+				kindDef,
+				faction,
+				PawnGenerationContext.NonPlayer,
+				forceGenerateNewPawn: true,
+				canGeneratePawnRelations: false,
+				colonistRelationChanceFactor: 0f,
+				forceNoIdeo: true);
+			var pawn = PawnGenerator.GeneratePawn(request);
+			pawn.Name = new NameSingle(name);
+			GenSpawn.Spawn(pawn, cell, map, Rot4.South);
+			spawnedThings.Add(pawn);
+			map.attackTargetsCache.UpdateTarget(pawn);
+			return pawn;
+		}
+
 		static Zombie SpawnAlbinoTestZombie(Map map, IntVec3 cell, List<Thing> spawnedThings)
 		{
 			var albino = ZombieRuntimeActions.SpawnZombie(cell, map, ZombieType.Albino, true);
@@ -2176,14 +2205,19 @@ namespace ZombieLand
 			return albino.jobs.curDriver as JobDriver_Sabotage;
 		}
 
-		static void ForceAlbinoHackTarget(JobDriver_Sabotage driver, Thing target)
+		static void ResetAlbinoPlannerState(JobDriver_Sabotage driver)
 		{
-			driver.pawn.pather?.StopDead();
+			if (driver == null)
+				return;
+
+			driver.pawn?.pather?.StopDead();
 			driver.destination = IntVec3.Invalid;
 			driver.door = null;
-			driver.hackTarget = target;
+			driver.doorExitCell = IntVec3.Invalid;
+			driver.hackTarget = null;
 			driver.hackApproachCell = IntVec3.Invalid;
 			driver.queuedScreamCell = IntVec3.Invalid;
+			driver.queuedMoveCell = IntVec3.Invalid;
 			driver.waitCounter = 0;
 			driver.hackCounter = 0;
 			driver.nextDefensiveScreamCheckTick = 0;
@@ -2191,7 +2225,71 @@ namespace ZombieLand
 			driver.nextDefensiveScreamCellCheckTick = 0;
 			driver.defensiveScreamQueued = false;
 			driver.noSafeHackRoute = false;
-			((Zombie)driver.pawn).scream = -1;
+			driver.interruptibleDestination = false;
+			driver.safetyDestination = false;
+			driver.fallbackDestination = false;
+			driver.nextStrategicRecheckTick = 0;
+			driver.lastStrategicRecheckCell = IntVec3.Invalid;
+			driver.lastFallbackStartCell = IntVec3.Invalid;
+			driver.lastFallbackDestination = IntVec3.Invalid;
+			driver.nextFallbackMoveTick = 0;
+			driver.deferredHackTarget = null;
+			driver.deferredHackTargetPauseUntilTick = 0;
+			driver.rushHackTarget = null;
+			driver.rushHackTargetUntilTick = 0;
+
+			if (driver.pawn is Zombie albino)
+			{
+				albino.scream = -1;
+				albino.albinoNextScreamTick = GenTicks.TicksGame;
+				albino.albinoScreamAffectedCount = 0;
+			}
+		}
+
+		static void FreezeAlbinoFixturePawn(Pawn pawn)
+		{
+			if (pawn == null)
+				return;
+
+			pawn.jobs?.StopAll(false, true);
+			pawn.pather?.StopDead();
+		}
+
+		static void ForceAlbinoHackTarget(JobDriver_Sabotage driver, Thing target)
+		{
+			driver.pawn.pather?.StopDead();
+			driver.destination = IntVec3.Invalid;
+			driver.door = null;
+			driver.doorExitCell = IntVec3.Invalid;
+			driver.hackTarget = target;
+			driver.hackApproachCell = IntVec3.Invalid;
+			driver.queuedScreamCell = IntVec3.Invalid;
+			driver.queuedMoveCell = IntVec3.Invalid;
+			driver.waitCounter = 0;
+			driver.hackCounter = 0;
+			driver.nextDefensiveScreamCheckTick = 0;
+			driver.lastDefensiveScreamCheckCell = IntVec3.Invalid;
+			driver.nextDefensiveScreamCellCheckTick = 0;
+			driver.defensiveScreamQueued = false;
+			driver.noSafeHackRoute = false;
+			driver.interruptibleDestination = false;
+			driver.safetyDestination = false;
+			driver.fallbackDestination = false;
+			driver.nextStrategicRecheckTick = 0;
+			driver.lastStrategicRecheckCell = IntVec3.Invalid;
+			driver.lastFallbackStartCell = IntVec3.Invalid;
+			driver.lastFallbackDestination = IntVec3.Invalid;
+			driver.nextFallbackMoveTick = 0;
+			driver.deferredHackTarget = null;
+			driver.deferredHackTargetPauseUntilTick = 0;
+			driver.rushHackTarget = null;
+			driver.rushHackTargetUntilTick = 0;
+			if (driver.pawn is Zombie albino)
+			{
+				albino.scream = -1;
+				albino.albinoNextScreamTick = GenTicks.TicksGame;
+				albino.albinoScreamAffectedCount = 0;
+			}
 		}
 
 		static (JobDriver_Sabotage driver, bool driverStillCurrent, List<object> samples) RunForcedAlbinoHack(Zombie albino, Thing target)
@@ -2369,6 +2467,81 @@ namespace ZombieLand
 			return true;
 		}
 
+		static bool TryInvokeAlbinoCanPressurePawn(Pawn pawn, Zombie zombie, out bool result, out string error)
+		{
+			result = false;
+			error = null;
+			var method = SabotageHandlerType?.GetMethod("CanAlbinoPressurePawn", BindingFlags.Static | BindingFlags.NonPublic);
+			if (method == null)
+			{
+				error = "Could not find SabotageHandler.CanAlbinoPressurePawn by reflection.";
+				return false;
+			}
+
+			result = (bool)method.Invoke(null, new object[] { pawn, zombie });
+			return true;
+		}
+
+		static bool TryInvokeAlbinoCanScreamAffect(Pawn pawn, Zombie zombie, out bool result, out string error)
+		{
+			result = false;
+			error = null;
+			var method = SabotageHandlerType?.GetMethod("CanAlbinoScreamAffect", BindingFlags.Static | BindingFlags.NonPublic);
+			if (method == null)
+			{
+				error = "Could not find SabotageHandler.CanAlbinoScreamAffect by reflection.";
+				return false;
+			}
+
+			result = (bool)method.Invoke(null, new object[] { pawn, zombie });
+			return true;
+		}
+
+		static bool TryFindAlbinoIsolatedFixtureRoot(Map map, out IntVec3 root, out object error)
+		{
+			root = IntVec3.Invalid;
+			error = null;
+			if (map == null)
+			{
+				error = new
+				{
+					success = false,
+					error = "No current map is loaded."
+				};
+				return false;
+			}
+
+			var preferred = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+			var searchRadius = Math.Min(Math.Max(map.Size.x, map.Size.z) / 2f, 75f);
+			const int margin = 18;
+			const int pawnClearRadiusSquared = 900;
+			foreach (var candidate in GenRadial.RadialCellsAround(preferred, searchRadius, true))
+			{
+				if (candidate.InBounds(map) == false)
+					continue;
+				if (candidate.x < margin || candidate.z < margin || candidate.x >= map.Size.x - margin || candidate.z >= map.Size.z - margin)
+					continue;
+				if (candidate.Standable(map) == false || candidate.Fogged(map))
+					continue;
+				if (candidate.GetFirstThing<Mineable>(map) != null)
+					continue;
+				if (candidate.GetThingList(map).Any(thing => thing is Pawn))
+					continue;
+				if (map.mapPawns.AllPawnsSpawned.Any(pawn => pawn.Spawned && pawn.Position.DistanceToSquared(candidate) <= pawnClearRadiusSquared))
+					continue;
+
+				root = candidate;
+				return true;
+			}
+
+			error = new
+			{
+				success = false,
+				error = "No isolated albino fixture root was found away from existing pawns."
+			};
+			return false;
+		}
+
 		static AlbinoSabotageCase AlbinoTargetPreferenceCase(Map map)
 		{
 			var spawnedThings = new List<Thing>();
@@ -2382,7 +2555,8 @@ namespace ZombieLand
 				foreach (var snapshot in draftSnapshot)
 					snapshot.pawn.drafter.Drafted = true;
 
-				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindAlbinoIsolatedFixtureRoot(map, out var root, out var rootError) == false)
+					return AlbinoCase("target_preference", false, error: rootError?.ToString());
 				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
 					return AlbinoCase("target_preference", false, error: albinoError?.ToString());
 				if (TryFindClearSpawnCell(map, albinoCell + new IntVec3(8, 0, 0), 10f, out var isolatedCell, out var isolatedError) == false)
@@ -2400,7 +2574,7 @@ namespace ZombieLand
 				if (driver == null)
 					return AlbinoCase("target_preference", false, error: "Albino did not enter the sabotage driver.");
 
-				albino.albinoNextScreamTick = GenTicks.TicksGame;
+				ResetAlbinoPlannerState(driver);
 				var reflected = TryInvokeAlbinoScreamPlan(driver, out var planCell, out var reason, out var error);
 				var isolatedDistance = planCell.DistanceToSquared(isolated.Position);
 				var draftedDistance = Math.Min(planCell.DistanceToSquared(draftedA.Position), planCell.DistanceToSquared(draftedB.Position));
@@ -2453,13 +2627,7 @@ namespace ZombieLand
 				if (driver == null)
 					return AlbinoCase("opportunistic_raider", false, error: "Albino did not enter the sabotage driver.");
 
-				driver.destination = IntVec3.Invalid;
-				driver.door = null;
-				driver.hackTarget = null;
-				driver.queuedScreamCell = IntVec3.Invalid;
-				driver.waitCounter = 0;
-				albino.scream = -1;
-				albino.albinoNextScreamTick = GenTicks.TicksGame;
+				ResetAlbinoPlannerState(driver);
 				var reflected = TryInvokeAlbinoScreamPlan(driver, out var planCell, out var reason, out var error);
 				var raiderDistance = planCell.DistanceToSquared(raider.Position);
 				var colonistDistance = planCell.DistanceToSquared(colonist.Position);
@@ -2521,7 +2689,7 @@ namespace ZombieLand
 				if (driver == null)
 					return AlbinoCase(caseName, false, error: "Albino did not enter the sabotage driver.");
 
-				albino.albinoNextScreamTick = GenTicks.TicksGame;
+				ResetAlbinoPlannerState(driver);
 				var reflectedPlan = TryInvokeAlbinoScreamPlan(driver, out var planCell, out var reason, out var planError);
 				var planDistanceToRaider = planCell.IsValid ? planCell.DistanceToSquared(raider.Position) : int.MaxValue;
 				var plannerTargetsRaider = reflectedPlan && reason == "opportunisticEnemy" && planDistanceToRaider <= 25;
@@ -2576,13 +2744,176 @@ namespace ZombieLand
 			}
 		}
 
+		static AlbinoSabotageCase AlbinoPressureUsesReverseHostilityCase(Map map)
+		{
+			const string caseName = "pressure_uses_reverse_hostility";
+			var spawnedThings = new List<Thing>();
+			var settingsSnapshot = SnapshotZombieSettings();
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				if (TryFindAlbinoIsolatedFixtureRoot(map, out var root, out var rootError) == false)
+					return AlbinoCase(caseName, false, error: rootError?.ToString());
+				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
+					return AlbinoCase(caseName, false, error: albinoError?.ToString());
+				if (TryFindClearSpawnCell(map, albinoCell + new IntVec3(4, 0, 0), 8f, out var raiderCell, out var raiderError) == false)
+					return AlbinoCase(caseName, false, error: raiderError?.ToString());
+				if (TryFindClearSpawnCell(map, albinoCell + new IntVec3(0, 0, 4), 8f, out var playerMechCell, out var playerMechError) == false)
+					return AlbinoCase(caseName, false, error: playerMechError?.ToString());
+				if (TryFindClearSpawnCell(map, albinoCell + new IntVec3(-4, 0, 0), 8f, out var hostileMechCell, out var hostileMechError) == false)
+					return AlbinoCase(caseName, false, error: hostileMechError?.ToString());
+
+				var mechKindDef = FindAlbinoTestMechKindDef();
+				if (mechKindDef == null)
+					return AlbinoCase(caseName, false, error: "No mech pawn kind was available for the reverse-hostility fixture.");
+
+				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+				albino?.SetFaction(Tools.GetZombieFaction());
+				var raider = SpawnAlbinoTestRaider(map, raiderCell, spawnedThings);
+				var playerMech = SpawnAlbinoTestMech(map, playerMechCell, Faction.OfPlayer, spawnedThings, "ZL Player Mech Pressure");
+				var hostileMechFaction = Faction.OfMechanoids
+					?? Find.FactionManager.AllFactionsVisible.FirstOrDefault(faction => faction != null && faction.HostileTo(Faction.OfPlayer));
+				var hostileMech = SpawnAlbinoTestMech(map, hostileMechCell, hostileMechFaction, spawnedThings, "ZL Hostile Mech Pressure");
+				if (albino == null || raider == null || playerMech == null || hostileMech == null)
+					return AlbinoCase(caseName, false, error: "Could not create albino, raider, player mech, or hostile mech fixture pawns.");
+
+				AdvanceGameTicks(1);
+				map.attackTargetsCache.UpdateTarget(raider);
+				map.attackTargetsCache.UpdateTarget(hostileMech);
+				var driver = StartAlbinoSabotageDriver(albino);
+				if (driver == null)
+					return AlbinoCase(caseName, false, error: "Albino did not enter the sabotage driver.");
+				FreezeAlbinoFixturePawn(raider);
+				FreezeAlbinoFixturePawn(playerMech);
+				FreezeAlbinoFixturePawn(hostileMech);
+
+				ApplyZombieSettingsOverride(values =>
+				{
+					values.attackMode = AttackMode.Everything;
+					values.enemiesAttackZombies = false;
+					values.animalsAttackZombies = true;
+				});
+
+				var raiderAttractsReverseDisabled = Customization.DoesAttractsZombies(raider);
+				var invokeRaiderPressureDisabled = TryInvokeAlbinoCanPressurePawn(raider, albino, out var raiderPressureReverseDisabled, out var raiderPressureDisabledError);
+				var invokeRaiderScream = TryInvokeAlbinoCanScreamAffect(raider, albino, out var raiderScreamAffectable, out var raiderScreamError);
+				ResetAlbinoPlannerState(driver);
+				var reflectedPlanReverseDisabled = TryInvokeAlbinoScreamPlan(driver, out var planCellReverseDisabled, out var reasonReverseDisabled, out var planReverseDisabledError);
+				var plannerTargetsRaiderReverseDisabled = reflectedPlanReverseDisabled
+					&& reasonReverseDisabled == "opportunisticEnemy"
+					&& planCellReverseDisabled.DistanceToSquared(raider.Position) <= 25;
+
+				ApplyZombieSettingsOverride(values =>
+				{
+					values.attackMode = AttackMode.Everything;
+					values.enemiesAttackZombies = true;
+					values.animalsAttackZombies = true;
+				});
+
+				var invokeRaiderPressureEnabled = TryInvokeAlbinoCanPressurePawn(raider, albino, out var raiderPressureReverseEnabled, out var raiderPressureEnabledError);
+				var invokePlayerMechPressureEverything = TryInvokeAlbinoCanPressurePawn(playerMech, albino, out var playerMechPressureEverything, out var playerMechPressureEverythingError);
+				var invokeHostileMechPressureEverything = TryInvokeAlbinoCanPressurePawn(hostileMech, albino, out var hostileMechPressureEverything, out var hostileMechPressureEverythingError);
+				var invokePlayerMechScream = TryInvokeAlbinoCanScreamAffect(playerMech, albino, out var playerMechScreamAffectable, out var playerMechScreamError);
+				var invokeHostileMechScream = TryInvokeAlbinoCanScreamAffect(hostileMech, albino, out var hostileMechScreamAffectable, out var hostileMechScreamError);
+				ResetAlbinoPlannerState(driver);
+				var reflectedPlanReverseEnabled = TryInvokeAlbinoScreamPlan(driver, out var planCellReverseEnabled, out var reasonReverseEnabled, out var planReverseEnabledError);
+				var plannerTargetsRaiderReverseEnabled = reflectedPlanReverseEnabled
+					&& reasonReverseEnabled == "opportunisticEnemy"
+					&& planCellReverseEnabled.DistanceToSquared(raider.Position) <= 25;
+
+				ApplyZombieSettingsOverride(values =>
+				{
+					values.attackMode = AttackMode.OnlyHumans;
+					values.enemiesAttackZombies = true;
+					values.animalsAttackZombies = true;
+				});
+
+				var invokePlayerMechPressureOnlyHumans = TryInvokeAlbinoCanPressurePawn(playerMech, albino, out var playerMechPressureOnlyHumans, out var playerMechPressureOnlyHumansError);
+				var invokeHostileMechPressureOnlyHumans = TryInvokeAlbinoCanPressurePawn(hostileMech, albino, out var hostileMechPressureOnlyHumans, out var hostileMechPressureOnlyHumansError);
+
+				var success = raiderAttractsReverseDisabled
+					&& invokeRaiderPressureDisabled
+					&& raiderPressureReverseDisabled == false
+					&& invokeRaiderScream
+					&& raiderScreamAffectable
+					&& plannerTargetsRaiderReverseDisabled == false
+					&& invokeRaiderPressureEnabled
+					&& raiderPressureReverseEnabled
+					&& plannerTargetsRaiderReverseEnabled
+					&& invokePlayerMechPressureEverything
+					&& playerMechPressureEverything
+					&& invokeHostileMechPressureEverything
+					&& hostileMechPressureEverything
+					&& invokePlayerMechScream
+					&& playerMechScreamAffectable == false
+					&& invokeHostileMechScream
+					&& hostileMechScreamAffectable == false
+					&& invokePlayerMechPressureOnlyHumans
+					&& playerMechPressureOnlyHumans == false
+					&& invokeHostileMechPressureOnlyHumans
+					&& hostileMechPressureOnlyHumans == false;
+
+				return AlbinoCase(caseName, success, new
+				{
+					mechKindDef = mechKindDef.defName,
+					raiderAttractsReverseDisabled,
+					invokeRaiderPressureDisabled,
+					raiderPressureReverseDisabled,
+					invokeRaiderScream,
+					raiderScreamAffectable,
+					reflectedPlanReverseDisabled,
+					reasonReverseDisabled,
+					plannerTargetsRaiderReverseDisabled,
+					planCellReverseDisabled = planCellReverseDisabled.IsValid ? ZombieRuntimeActions.DescribeCell(planCellReverseDisabled) : null,
+					invokeRaiderPressureEnabled,
+					raiderPressureReverseEnabled,
+					reflectedPlanReverseEnabled,
+					reasonReverseEnabled,
+					plannerTargetsRaiderReverseEnabled,
+					planCellReverseEnabled = planCellReverseEnabled.IsValid ? ZombieRuntimeActions.DescribeCell(planCellReverseEnabled) : null,
+					invokePlayerMechPressureEverything,
+					playerMechPressureEverything,
+					invokeHostileMechPressureEverything,
+					hostileMechPressureEverything,
+					invokePlayerMechScream,
+					playerMechScreamAffectable,
+					invokeHostileMechScream,
+					hostileMechScreamAffectable,
+					invokePlayerMechPressureOnlyHumans,
+					playerMechPressureOnlyHumans,
+					invokeHostileMechPressureOnlyHumans,
+					hostileMechPressureOnlyHumans,
+					albino = DescribeZombie(albino),
+					raider = DescribePawn(raider),
+					playerMech = DescribePawn(playerMech),
+					hostileMech = DescribePawn(hostileMech)
+				}, raiderPressureDisabledError
+					?? raiderScreamError
+					?? planReverseDisabledError
+					?? raiderPressureEnabledError
+					?? playerMechPressureEverythingError
+					?? hostileMechPressureEverythingError
+					?? playerMechScreamError
+					?? hostileMechScreamError
+					?? planReverseEnabledError
+					?? playerMechPressureOnlyHumansError
+					?? hostileMechPressureOnlyHumansError);
+			}
+			finally
+			{
+				RestoreZombieSettings(settingsSnapshot);
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
 		static AlbinoSabotageCase AlbinoRaiderAttackingNearbyColonistCase(Map map)
 		{
 			var spawnedThings = new List<Thing>();
 			try
 			{
 				_ = ZombieRuntimeActions.DestroyZombies(map);
-				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindAlbinoIsolatedFixtureRoot(map, out var root, out var rootError) == false)
+					return AlbinoCase("raider_attacking_nearby_colonist", false, error: rootError?.ToString());
 				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
 					return AlbinoCase("raider_attacking_nearby_colonist", false, error: albinoError?.ToString());
 
@@ -2594,6 +2925,7 @@ namespace ZombieLand
 					return AlbinoCase("raider_attacking_nearby_colonist", false, error: "No adjacent colonist cell was available for the thing-target proximity fixture.");
 
 				var colonist = SpawnAlbinoTestColonist(map, colonistCell, spawnedThings);
+				FreezeAlbinoFixturePawn(colonist);
 				var raiderCell = GenRadial.RadialCellsAround(albinoCell, 28f, false)
 					.Where(cell => cell.InBounds(map))
 					.Where(cell => cell.Standable(map))
@@ -2610,6 +2942,7 @@ namespace ZombieLand
 				var verb = EquipAreaWorkflowRangedWeapon(raider);
 				if (raider == null || verb == null)
 					return AlbinoCase("raider_attacking_nearby_colonist", false, error: "Could not create an armed hostile raider for the thing-target proximity fixture.");
+				FreezeAlbinoFixturePawn(raider);
 
 				var attackJob = JobMaker.MakeJob(JobDefOf.AttackStatic, colonist);
 				attackJob.canUseRangedWeapon = true;
@@ -2621,24 +2954,26 @@ namespace ZombieLand
 				if (driver == null)
 					return AlbinoCase("raider_attacking_nearby_colonist", false, error: "Albino did not enter the sabotage driver.");
 
-				albino.albinoNextScreamTick = GenTicks.TicksGame;
+				ResetAlbinoPlannerState(driver);
 				var reflectedAttack = TryInvokeAlbinoIsAttackingOrApproaching(raider, albino, out var attackingOrApproaching, out var attackError);
 				var reflectedPlan = TryInvokeAlbinoScreamPlan(driver, out var planCell, out var reason, out var planError);
 				var raiderDistanceToAlbino = raider.Position.DistanceToSquared(albino.Position);
 				var targetDistanceToAlbino = colonist.Position.DistanceToSquared(albino.Position);
 				var planDistanceToColonist = planCell.DistanceToSquared(colonist.Position);
 				var planDistanceToRaider = planCell.DistanceToSquared(raider.Position);
+				var plannerAvoidedRaider = reflectedPlan
+					&& reason != "opportunisticEnemy"
+					&& planDistanceToRaider > 25;
 				var success = reflectedAttack
 					&& attackingOrApproaching == false
-					&& reflectedPlan
-					&& reason != "opportunisticEnemy"
-					&& planDistanceToColonist < planDistanceToRaider;
+					&& plannerAvoidedRaider;
 				return AlbinoCase("raider_attacking_nearby_colonist", success, new
 				{
 					reflectedAttack,
 					attackingOrApproaching,
 					reflectedPlan,
 					reason,
+					plannerAvoidedRaider,
 					planCell = ZombieRuntimeActions.DescribeCell(planCell),
 					targetDistanceToAlbino,
 					raiderDistanceToAlbino,
@@ -3042,7 +3377,8 @@ namespace ZombieLand
 			try
 			{
 				_ = ZombieRuntimeActions.DestroyZombies(map);
-				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindAlbinoIsolatedFixtureRoot(map, out var root, out var rootError) == false)
+					return AlbinoCase(caseName, false, error: rootError?.ToString());
 				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
 					return AlbinoCase(caseName, false, error: albinoError?.ToString());
 
@@ -3488,7 +3824,8 @@ namespace ZombieLand
 			try
 			{
 				_ = ZombieRuntimeActions.DestroyZombies(map);
-				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TryFindAlbinoIsolatedFixtureRoot(map, out var root, out var rootError) == false)
+					return AlbinoCase(caseName, false, error: rootError?.ToString());
 				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
 					return AlbinoCase(caseName, false, error: albinoError?.ToString());
 
@@ -3527,42 +3864,46 @@ namespace ZombieLand
 				AdvanceGameTicks(1);
 
 				var driver = StartAlbinoSabotageDriver(albino);
-					if (driver == null)
-						return AlbinoCase(caseName, false, error: "Albino did not enter the sabotage driver.");
+				if (driver == null)
+					return AlbinoCase(caseName, false, error: "Albino did not enter the sabotage driver.");
 
-					ForceAlbinoHackTarget(driver, weapon);
-					driver.nextDefensiveScreamCheckTick = 0;
-					albino.albinoNextScreamTick = GenTicks.TicksGame;
-					var invokedBefore = TryInvokeAlbinoDefensiveScreamSwitch(driver, out var handledBefore, out var beforeError);
-					var singlePressureRedirected = handledBefore && driver.destination.IsValid;
-					var singlePressureStayed = handledBefore == false;
-					var vomitingIgnored = invokedBefore
-						&& driver.hackTarget == weapon
-						&& driver.hackCounter == 0
-						&& albino.scream == -1
-						&& vomiting.CurJobDef == JobDefOf.Vomit
-						&& (singlePressureRedirected || singlePressureStayed);
+				ForceAlbinoHackTarget(driver, weapon);
+				driver.nextDefensiveScreamCheckTick = 0;
+				albino.albinoNextScreamTick = GenTicks.TicksGame;
+				var invokedBefore = TryInvokeAlbinoDefensiveScreamSwitch(driver, out var handledBefore, out var beforeError);
+				var singlePressureRedirected = handledBefore && driver.destination.IsValid;
+				var singlePressureRedirectedWithDeferredTarget = singlePressureRedirected
+					&& driver.hackTarget == null
+					&& driver.deferredHackTarget == weapon;
+				var singlePressureStayed = handledBefore == false && driver.hackTarget == weapon;
+				var vomitingIgnored = invokedBefore
+					&& driver.hackCounter == 0
+					&& albino.scream == -1
+					&& vomiting.CurJobDef == JobDefOf.Vomit
+					&& (singlePressureRedirectedWithDeferredTarget || singlePressureStayed);
 
 				var blocker = SpawnAlbinoTestColonist(map, blockerCell, spawnedThings);
 				ForceAlbinoHackTarget(driver, weapon);
-					driver.nextDefensiveScreamCheckTick = 0;
-					albino.albinoNextScreamTick = GenTicks.TicksGame;
-					var invokedAfter = TryInvokeAlbinoDefensiveScreamSwitch(driver, out var handledAfter, out var afterError);
-					var switchTriggered = invokedAfter
-						&& handledAfter
-						&& driver.hackTarget == weapon
-						&& driver.hackCounter == 0
-						&& driver.destination.IsValid == false
-						&& albino.scream == -2;
+				driver.noSafeHackRoute = true;
+				driver.nextDefensiveScreamCheckTick = 0;
+				albino.albinoNextScreamTick = GenTicks.TicksGame;
+				var invokedAfter = TryInvokeAlbinoDefensiveScreamSwitch(driver, out var handledAfter, out var afterError);
+				var switchTriggered = invokedAfter
+					&& handledAfter
+					&& driver.hackTarget == weapon
+					&& driver.hackCounter == 0
+					&& driver.destination.IsValid == false
+					&& albino.scream == -2;
 				var success = vomitingIgnored && switchTriggered;
 
-					return AlbinoCase(caseName, success, new
-					{
-						vomitingIgnored,
-						singlePressureRedirected,
-						singlePressureStayed,
-						switchTriggered,
-						invokedBefore,
+				return AlbinoCase(caseName, success, new
+				{
+					vomitingIgnored,
+					singlePressureRedirected,
+					singlePressureRedirectedWithDeferredTarget,
+					singlePressureStayed,
+					switchTriggered,
+					invokedBefore,
 					handledBefore,
 					beforeError,
 					invokedAfter,
@@ -3571,6 +3912,7 @@ namespace ZombieLand
 					shooterCanHitAlbino,
 					albinoScream = albino.scream,
 					hackTargetAfter = driver.hackTarget == null ? null : ZombieRuntimeActions.StableThingId(driver.hackTarget),
+					deferredHackTargetAfter = driver.deferredHackTarget == null ? null : ZombieRuntimeActions.StableThingId(driver.deferredHackTarget),
 					vomitingJob = vomiting.CurJobDef?.defName,
 					albino = DescribeZombie(albino),
 					shooter = DescribePawn(shooter),
