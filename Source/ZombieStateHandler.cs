@@ -380,7 +380,7 @@ namespace ZombieLand
 
 			driver.destination = enemy.Position;
 
-			zombie.state = ZombieState.Tracking;
+			zombie.SetState(ZombieState.Tracking);
 			if (ZombieAwarenessCues.ShouldPlayZombieActionSound() && Prefs.VolumeAmbient > 0f)
 			{
 				var info = SoundInfo.InMap(enemy);
@@ -720,11 +720,11 @@ namespace ZombieLand
 					if (timeDelta <= agitatedFadeoff)
 						CastBrainzThought(zombie);
 				}
-				zombie.state = ZombieState.Tracking;
+				zombie.SetState(ZombieState.Tracking);
 			}
 
 			if (driver.destination.IsValid == false)
-				zombie.state = ZombieState.Wandering;
+				zombie.SetState(ZombieState.Wandering);
 
 			if (zombie.wasMapPawnBefore)
 				return true;

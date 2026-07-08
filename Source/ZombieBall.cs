@@ -72,7 +72,7 @@ namespace ZombieLand
 
 			var zombie = ZombieGenerator.SpawnZombie(Position, map, ZombieType.Random);
 			zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-			zombie.state = ZombieState.Wandering;
+			zombie.SetState(ZombieState.Wandering);
 			zombie.Rotation = Rot4.Random;
 			var tickManager = map.GetComponent<TickManager>();
 			_ = tickManager?.allZombiesCached?.Add(zombie);

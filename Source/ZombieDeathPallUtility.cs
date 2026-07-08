@@ -59,7 +59,7 @@ namespace ZombieLand
 				TransferApparel(oldZombie, zombie);
 				zombie.Rotation = rotation;
 				zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-				zombie.state = ZombieState.Wandering;
+				zombie.SetState(ZombieState.Wandering);
 				_ = tickManager?.allZombiesCached?.Remove(oldZombie);
 				_ = tickManager?.allZombiesCached?.Add(zombie);
 				spawnedZombie = zombie;

@@ -1290,7 +1290,7 @@ namespace ZombieLand
 			}
 			}
 
-			[Tool("zombieland/avoid_grid_death_refresh_contract", Description = "Verify killed, downed, roped, confused, paralysis-expired, consciousness-reset, recovered, electric-state, first-sample electric expiry, and rage-state zombies request prompt avoid-grid refreshes, including non-empty overlap rebuilds and stale-result rejection.")]
+			[Tool("zombieland/avoid_grid_death_refresh_contract", Description = "Verify killed, downed, roped, confused, paralysis-expired, consciousness-reset, recovered, electric-state, movement-state, first-sample electric expiry, and rage-state zombies request prompt avoid-grid refreshes, including non-empty overlap rebuilds and stale-result rejection.")]
 			public static object AvoidGridDeathRefreshContract(
 				[ToolParameter(Description = "Destroy staged colonists, zombies, and corpses at the end.", Required = false, DefaultValue = true)] bool cleanup = true)
 			{
@@ -1342,7 +1342,9 @@ namespace ZombieLand
 						VerifyAvoidGridRefreshesAfterSpecTransition(map, root + new IntVec3(0, 0, 16), "electricWaterEnter", spawned),
 						VerifyAvoidGridRefreshesAfterSpecTransition(map, root + new IntVec3(16, 0, 16), "electricWaterLeave", spawned),
 						VerifyAvoidGridRefreshesAfterSpecTransition(map, root + new IntVec3(-16, 0, 28), "rageStart", spawned),
-						VerifyAvoidGridRefreshesAfterSpecTransition(map, root + new IntVec3(0, 0, 28), "rageEnd", spawned)
+						VerifyAvoidGridRefreshesAfterSpecTransition(map, root + new IntVec3(0, 0, 28), "rageEnd", spawned),
+						VerifyAvoidGridRefreshesAfterSpecTransition(map, root + new IntVec3(-16, 0, -28), "wanderingToTracking", spawned),
+						VerifyAvoidGridRefreshesAfterSpecTransition(map, root + new IntVec3(16, 0, -28), "trackingToWandering", spawned)
 					};
 
 					return new
@@ -1420,7 +1422,9 @@ namespace ZombieLand
 						new IntVec3(16, 0, 16),
 						new IntVec3(-16, 0, 28),
 						new IntVec3(0, 0, 28),
-						new IntVec3(16, 0, 28)
+						new IntVec3(16, 0, 28),
+						new IntVec3(-16, 0, -28),
+						new IntVec3(16, 0, -28)
 					};
 					var existingColonists = map.mapPawns?.FreeColonistsSpawned?
 						.Where(pawn => pawn != null && pawn.Dead == false && pawn.Spawned)
@@ -1834,7 +1838,8 @@ namespace ZombieLand
 						};
 					}
 
-					zombie.state = ZombieState.Wandering;
+					var initialState = transition == "trackingToWandering" ? ZombieState.Tracking : ZombieState.Wandering;
+					zombie.SetState(initialState);
 					zombie.paralyzedUntil = 0;
 					zombie.ropedBy = null;
 					zombie.consciousness = 1f;
@@ -1880,6 +1885,7 @@ namespace ZombieLand
 						var activeElectricBefore = zombie.IsActiveElectric;
 						var inWaterBefore = zombie.InWater();
 						var ragingBefore = zombie.raging;
+						var stateBefore = zombie.state;
 						var zombieCostBefore = AvoidCost(gridBefore, map, zombieCell);
 						var requestIdBefore = tickManager.lastAvoidGridRequestId;
 
@@ -1903,6 +1909,12 @@ namespace ZombieLand
 								zombie.raging = GenTicks.TicksAbs - 1;
 								ZombieStateHandler.CheckEndRage(zombie);
 								break;
+							case "wanderingToTracking":
+								zombie.SetState(ZombieState.Tracking);
+								break;
+							case "trackingToWandering":
+								zombie.SetState(ZombieState.Wandering);
+								break;
 							default:
 								return new
 								{
@@ -1917,6 +1929,7 @@ namespace ZombieLand
 						var activeElectricAfterTransition = zombie.IsActiveElectric;
 						var inWaterAfterTransition = zombie.InWater();
 						var ragingAfterTransition = zombie.raging;
+						var stateAfterTransition = zombie.state;
 						var afterDangerCells = GenRadial.RadialCellsAround(zombieCell, Math.Max(radiusAfterTransition, 0f), true)
 							.Where(cell => cell.InBounds(map))
 							.ToArray();
@@ -1983,6 +1996,8 @@ namespace ZombieLand
 							inWaterAfterTransition,
 							ragingBefore,
 							ragingAfterTransition,
+							stateBefore = stateBefore.ToString(),
+							stateAfterTransition = stateAfterTransition.ToString(),
 							radiusBefore,
 							radiusAfterTransition,
 							maxCostsBefore,
@@ -3078,6 +3093,56 @@ namespace ZombieLand
 						supersedingPromptResultAccepted
 					};
 
+					coalesceZombie.state = ZombieState.Wandering;
+					avoidGridRefreshRequestedField.SetValue(tickManager, false);
+					promptAvoidGridResultPendingField.SetValue(tickManager, false);
+					var stateFlipBaseRequestId = tickManager.lastAvoidGridRequestId;
+					var stateFlipBaseResultId = tickManager.lastAvoidGridResultId;
+					coalesceZombie.SetState(ZombieState.Tracking);
+					coalesceZombie.SetState(ZombieState.Wandering);
+					coalesceZombie.SetState(ZombieState.Wandering);
+					var stateFlipRequestedBeforeFlush = AvoidGridRefreshRequested();
+					var stateFlipRequestIdBeforeFlush = tickManager.lastAvoidGridRequestId;
+					var stateFlipResultIdBeforeFlush = tickManager.lastAvoidGridResultId;
+					var stateFlipPromptPendingBeforeFlush = PromptAvoidGridResultPending();
+					var stateFlipFlushReturned = FlushRequestedAvoidGridRefresh();
+					var stateFlipRequestIdAfterFlush = tickManager.lastAvoidGridRequestId;
+					var stateFlipResultIdAfterFlush = tickManager.lastAvoidGridResultId;
+					var stateFlipPromptPendingAfterFlush = PromptAvoidGridResultPending();
+					var stateFlipRequestedAfterFlush = AvoidGridRefreshRequested();
+					var stateFlipPromptResultGrid = ManualGrid(stateFlipRequestIdAfterFlush, actor.Position, 2468);
+					QueueAndFetch(stateFlipPromptResultGrid);
+					var stateFlipPromptResultAccepted = ReferenceEquals(tickManager.avoidGrid, stateFlipPromptResultGrid)
+						&& tickManager.lastAvoidGridResultId == stateFlipRequestIdAfterFlush
+						&& PromptAvoidGridResultPending() == false;
+
+					var stateFlipRefreshCoalescing = new
+					{
+						success = stateFlipRequestedBeforeFlush
+							&& stateFlipRequestIdBeforeFlush == stateFlipBaseRequestId
+							&& stateFlipResultIdBeforeFlush == stateFlipBaseResultId
+							&& stateFlipPromptPendingBeforeFlush == false
+							&& stateFlipFlushReturned
+							&& stateFlipRequestIdAfterFlush == stateFlipRequestIdBeforeFlush + 1
+							&& stateFlipResultIdAfterFlush == stateFlipResultIdBeforeFlush
+							&& stateFlipPromptPendingAfterFlush
+							&& stateFlipRequestedAfterFlush == false
+							&& stateFlipPromptResultAccepted,
+						stateAfterFlips = coalesceZombie.state.ToString(),
+						stateFlipBaseRequestId,
+						stateFlipBaseResultId,
+						stateFlipRequestedBeforeFlush,
+						stateFlipRequestIdBeforeFlush,
+						stateFlipResultIdBeforeFlush,
+						stateFlipPromptPendingBeforeFlush,
+						stateFlipFlushReturned,
+						stateFlipRequestIdAfterFlush,
+						stateFlipResultIdAfterFlush,
+						stateFlipPromptPendingAfterFlush,
+						stateFlipRequestedAfterFlush,
+						stateFlipPromptResultAccepted
+					};
+
 					var snapshotReferencesAreDistinct = ReferenceEquals(emptyGrid, recoveredGrid) == false
 						&& ReferenceEquals(realGrid, clearedGrid) == false
 						&& ReferenceEquals(clearedGrid, exactResultGrid) == false;
@@ -3114,6 +3179,7 @@ namespace ZombieLand
 							&& futureResultRejected
 							&& exactResultAccepted
 							&& promptRefreshCoalescing.success
+							&& stateFlipRefreshCoalescing.success
 							&& coalesceZombieDestroyed
 							&& coalesceZombieSpawnedAfterCleanup == false,
 						destroyedZombies,
@@ -3150,7 +3216,8 @@ namespace ZombieLand
 						coalesceZombieSpawnedAfterCleanup,
 						liveZombiesAfterCoalesceCleanup = liveZombiesAfterCoalesceCleanup.Count,
 						finalGridRequestId = finalGrid.requestId,
-						promptRefreshCoalescing
+						promptRefreshCoalescing,
+						stateFlipRefreshCoalescing
 					};
 				}
 				finally

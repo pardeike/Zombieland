@@ -220,7 +220,7 @@ namespace ZombieLand
 				{
 					var zombie = ZombieGenerator.SpawnZombie(cell, map, ZombieType.Normal);
 					zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-					zombie.state = ZombieState.Wandering;
+					zombie.SetState(ZombieState.Wandering);
 					zombie.Rotation = Rot4.Random;
 
 					var tickManager = map.GetComponent<TickManager>();

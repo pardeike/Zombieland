@@ -583,7 +583,7 @@ namespace ZombieLand
 				var iterator = ZombieGenerator.SpawnZombieIterativ(cell, map, ZombieType.Random, zombie =>
 				{
 					zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-					zombie.state = ZombieState.Wandering;
+					zombie.SetState(ZombieState.Wandering);
 					zombie.Rotation = Rot4.Random;
 
 					var tickManager = map.GetComponent<TickManager>();
@@ -825,7 +825,7 @@ namespace ZombieLand
 				if (wasInGround == false)
 				{
 					zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-					zombie.state = ZombieState.Wandering;
+					zombie.SetState(ZombieState.Wandering);
 				}
 				zombie.wasMapPawnBefore = true;
 
@@ -1989,7 +1989,7 @@ namespace ZombieLand
 			var zombie = ZombieGenerator.SpawnZombie(IntVec3.Zero, map, ZombieType.Normal);
 
 			zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-			zombie.state = ZombieState.Floating;
+			zombie.SetState(ZombieState.Floating);
 			zombie.Rotation = Rot4.South;
 
 			var renderTexture = foreground ? renderTextureFore : renderTextureBack;

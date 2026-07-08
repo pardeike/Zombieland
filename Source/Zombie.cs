@@ -468,6 +468,15 @@ namespace ZombieLand
 				Map?.GetComponent<TickManager>()?.RequestAvoidGridRefresh();
 		}
 
+		internal void SetState(ZombieState newState)
+		{
+			if (state == newState)
+				return;
+			var avoidGridSnapshot = CaptureAvoidGridSnapshot();
+			state = newState;
+			RequestAvoidGridRefreshIfSpecChanged(avoidGridSnapshot);
+		}
+
 		internal void TrackElectricAvoidGridSpec()
 		{
 			if (isElectrifier == false)
@@ -616,7 +625,7 @@ namespace ZombieLand
 
 			if (rubbleCounter == Constants.RUBBLE_AMOUNT)
 			{
-				state = ZombieState.Wandering;
+				SetState(ZombieState.Wandering);
 				rubbles = new List<Rubble>();
 			}
 			else if (rubbleCounter < Constants.RUBBLE_AMOUNT && rubbleTicks-- < 0)

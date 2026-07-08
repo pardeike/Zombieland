@@ -76,7 +76,7 @@ namespace ZombieLand
 			if (appearDirectly && Current.ProgramState == ProgramState.Playing)
 			{
 				zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-				zombie.state = ZombieState.Wandering;
+				zombie.SetState(ZombieState.Wandering);
 			}
 			zombie.Rotation = Rot4.South;
 

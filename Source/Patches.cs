@@ -5617,7 +5617,7 @@ namespace ZombieLand
 				if (__result == false)
 					return;
 				if (pawn is Zombie zombie)
-					zombie.state = ZombieState.ShouldDie;
+					zombie.SetState(ZombieState.ShouldDie);
 			}
 		}
 		//
@@ -5633,7 +5633,7 @@ namespace ZombieLand
 					return;
 				var part = hediff.Part;
 				if (part?.def?.tags?.Contains(BodyPartTagDefOf.ConsciousnessSource) == true && hediff.def.isBad)
-					zombie.state = ZombieState.ShouldDie;
+					zombie.SetState(ZombieState.ShouldDie);
 			}
 		}
 

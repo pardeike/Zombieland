@@ -134,7 +134,7 @@ namespace ZombieLand
 				var enumerator = ZombieGenerator.SpawnZombieIterativ(IntVec3.Invalid, map, ZombieType.Normal, zombie =>
 				{
 					zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
-					zombie.state = ZombieState.Wandering;
+					zombie.SetState(ZombieState.Wandering);
 					PawnComponentsUtility.AddComponentsForSpawn(zombie);
 					var job = JobMaker.MakeJob(CustomDefs.Stumble, zombie);
 					zombie.jobs.StartJob(job);
