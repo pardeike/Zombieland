@@ -2783,7 +2783,19 @@ namespace ZombieLand
 		static ZombieSpitter SpawnTargetSpitter(Map map, IntVec3 cell, string name, List<Thing> spawnedThings)
 		{
 			var existing = CurrentZombies(map).OfType<ZombieSpitter>().Select(StableId).ToHashSet();
-			ZombieSpitter.Spawn(map, cell);
+			var originalShowLetters = ZombieSettings.Values.showZombieEventLetters;
+			var originalPlaySiren = ZombieSettings.Values.playZombieEventSiren;
+			try
+			{
+				ZombieSettings.Values.showZombieEventLetters = false;
+				ZombieSettings.Values.playZombieEventSiren = false;
+				ZombieSpitter.Spawn(map, cell);
+			}
+			finally
+			{
+				ZombieSettings.Values.showZombieEventLetters = originalShowLetters;
+				ZombieSettings.Values.playZombieEventSiren = originalPlaySiren;
+			}
 			var spitter = CurrentZombies(map).OfType<ZombieSpitter>()
 				.FirstOrDefault(candidate => existing.Contains(StableId(candidate)) == false)
 				?? CurrentZombies(map).OfType<ZombieSpitter>().OrderBy(candidate => candidate.Position.DistanceToSquared(cell)).FirstOrDefault();
@@ -7421,18 +7433,37 @@ namespace ZombieLand
 				percentZombiesTicked = ZombieTicker.percentZombiesTicked.ToArray(),
 				percentZombiesTickedIndex = ZombieTicker.percentZombiesTickedIndex
 			};
-			var gameTickManager = Find.TickManager;
-			var originalTimeSpeed = gameTickManager.CurTimeSpeed;
+			var existingLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>()).ToHashSet();
+			var hiddenFreePawns = map.mapPawns.FreeColonistsAndPrisonersSpawned
+				.Where(pawn => pawn?.Spawned == true)
+				.Select(pawn => (pawn, position: pawn.Position, rotation: pawn.Rotation))
+				.ToList();
 
 			try
 			{
+				foreach (var snapshot in hiddenFreePawns)
+					snapshot.pawn.DeSpawn(DestroyMode.Vanish);
+
 				ZombieSettings.Values.moveSpeedIdle = 0.25f;
 				ZombieSettings.Values.moveSpeedTracking = 0.75f;
 				ZombieSettings.Values.spitterThreat = 2.25f;
 				ZombieSettings.Values.damageFactor = 1.25f;
 				ZombieTicker.percentZombiesTicked = Enumerable.Repeat(1f, ZombieTicker.percentZombiesTicked.Length).ToArray();
 				ZombieTicker.percentZombiesTickedIndex = 0;
-				gameTickManager.CurTimeSpeed = TimeSpeed.Normal;
+
+				var baseMoveSpeed = ThingDefOf.Human.statBases.First(modifier => modifier.stat == StatDefOf.MoveSpeed).value;
+				var albinoNoPawns = SpawnTargetZombie(map, cells[9], ZombieType.Albino, "ZL_Area_StatsAlbinoNoPawns", spawnedThings);
+				if (albinoNoPawns == null)
+				{
+					return new
+					{
+						success = false,
+						albinoNoPawns = DescribeZombie(albinoNoPawns),
+						error = "Could not create the no-nearby-pawns albino stat fixture."
+					};
+				}
+				PrepareAlbinoMoveSpeedProbe(albinoNoPawns);
+				var albinoNoPawnsMoveSpeed = MakeStatCase("albinoNoPawnsMoveSpeed", albinoNoPawns, StatDefOf.MoveSpeed, ZombieSettings.Values.moveSpeedIdle * baseMoveSpeed, "albino with no free colonists or prisoners nearby uses normal idle movement");
 
 				var human = SpawnAreaWorkflowPawn(map, "ZL_Area_StatsHuman", cells[0], Faction.OfPlayer, spawnedThings);
 				var idleFat = SpawnTargetZombie(map, cells[1], ZombieType.Normal, "ZL_Area_StatsIdleFat", spawnedThings);
@@ -7443,7 +7474,13 @@ namespace ZombieLand
 				var albino = SpawnTargetZombie(map, cells[6], ZombieType.Albino, "ZL_Area_StatsAlbino", spawnedThings);
 				var raging = SpawnTargetZombie(map, cells[7], ZombieType.Normal, "ZL_Area_StatsRaging", spawnedThings);
 				var spitter = SpawnTargetSpitter(map, cells[8], "ZL_Area_StatsSpitter", spawnedThings);
-				if (human == null || idleFat == null || trackingThin == null || formerHulk == null || tanky == null || downedRoped == null || albino == null || raging == null || spitter == null)
+				var reservedSpeedCells = hiddenFreePawns.Select(snapshot => snapshot.position).Concat(cells).ToList();
+				if (TryFindZombieStatsAlbinoSpeedCells(map, human?.Position ?? IntVec3.Invalid, reservedSpeedCells, out var farAlbinoCell, out var nearAlbinoCell, out var speedCellError) == false)
+					return speedCellError;
+
+				var albinoFar = SpawnTargetZombie(map, farAlbinoCell, ZombieType.Albino, "ZL_Area_StatsAlbinoFar", spawnedThings);
+				var albinoNear = SpawnTargetZombie(map, nearAlbinoCell, ZombieType.Albino, "ZL_Area_StatsAlbinoNear", spawnedThings);
+				if (human == null || idleFat == null || trackingThin == null || formerHulk == null || tanky == null || downedRoped == null || albino == null || raging == null || spitter == null || albinoFar == null || albinoNear == null)
 				{
 					return new
 					{
@@ -7458,7 +7495,9 @@ namespace ZombieLand
 							downedRoped = DescribeZombie(downedRoped),
 							albino = DescribeZombie(albino),
 							raging = DescribeZombie(raging),
-							spitter = DescribeZombie(spitter)
+							spitter = DescribeZombie(spitter),
+							albinoFar = DescribeZombie(albinoFar),
+							albinoNear = DescribeZombie(albinoNear)
 						},
 						error = "Could not create all zombie stat fixtures."
 					};
@@ -7477,6 +7516,9 @@ namespace ZombieLand
 				tanky.hasTankySuit = 1f;
 				raging.raging = GenTicks.TicksAbs + 60000;
 				raging.story.bodyType = BodyTypeDefOf.Male;
+				PrepareAlbinoMoveSpeedProbe(albino);
+				PrepareAlbinoMoveSpeedProbe(albinoFar);
+				PrepareAlbinoMoveSpeedProbe(albinoNear);
 				if (TryMakeDownedForCombat(downedRoped, out var downedError) == false)
 				{
 					return new
@@ -7488,15 +7530,17 @@ namespace ZombieLand
 				}
 				downedRoped.ropedBy = human;
 
-				var baseMoveSpeed = ThingDefOf.Human.statBases.First(modifier => modifier.stat == StatDefOf.MoveSpeed).value;
 				var tickRate = Find.TickManager.TickRateMultiplier;
 				var cases = new List<StatProbeCase>
 				{
+					albinoNoPawnsMoveSpeed,
 					MakeStatCase("idleFatMoveSpeed", idleFat, StatDefOf.MoveSpeed, ZombieSettings.Values.moveSpeedIdle * 0.7f * baseMoveSpeed, "idle Fat zombie uses idle setting, Fat body factor, and human base speed"),
 					MakeStatCase("trackingThinMoveSpeed", trackingThin, StatDefOf.MoveSpeed, ZombieSettings.Values.moveSpeedTracking * 0.8f * baseMoveSpeed, "tracking Thin zombie uses tracking setting and Thin body factor"),
 					MakeStatCase("formerHulkMoveSpeed", formerHulk, StatDefOf.MoveSpeed, ZombieSettings.Values.moveSpeedTracking * 0.8f * baseMoveSpeed * 2f, "former-map-pawn Hulk zombie uses tracking speed, Hulk factor, and former-pawn doubling"),
 					MakeStatCase("tankyMoveSpeed", tanky, StatDefOf.MoveSpeed, 0.004f * baseMoveSpeed * tickRate, "tanky movement ignores ordinary speed settings"),
 					MakeStatCase("downedRopedMoveSpeed", downedRoped, StatDefOf.MoveSpeed, 0.4f * tickRate, "roped health-downed zombie uses the roped crawler speed"),
+					MakeStatCase("albinoFarMoveSpeed", albinoFar, StatDefOf.MoveSpeed, ZombieSettings.Values.moveSpeedIdle * baseMoveSpeed, "albino more than 30 cells from a free colonist uses normal idle movement"),
+					MakeStatCase("albinoNearMoveSpeed", albinoNear, StatDefOf.MoveSpeed, ExpectedAlbinoMoveSpeed(albinoNear, human, baseMoveSpeed), "albino near a free colonist uses the proximity speed curve"),
 					MakeStatCase("formerMeleeHit", formerHulk, StatDefOf.MeleeHitChance, 1f, "former-map-pawn melee hit override"),
 					MakeStatCase("downedMeleeHit", downedRoped, StatDefOf.MeleeHitChance, 0.1f, "downed zombie melee hit override"),
 					MakeStatCase("tankyMeleeHit", tanky, StatDefOf.MeleeHitChance, 0.9f, "tanky helmet/suit melee hit override"),
@@ -7548,7 +7592,10 @@ namespace ZombieLand
 						downedRoped = DescribeZombie(downedRoped),
 						albino = DescribeZombie(albino),
 						raging = DescribeZombie(raging),
-						spitter = DescribeZombie(spitter)
+						spitter = DescribeZombie(spitter),
+						albinoNoPawns = DescribeZombie(albinoNoPawns),
+						albinoFar = DescribeZombie(albinoFar),
+						albinoNear = DescribeZombie(albinoNear)
 					},
 					settings = new
 					{
@@ -7576,10 +7623,14 @@ namespace ZombieLand
 			}
 			finally
 			{
+				foreach (var snapshot in hiddenFreePawns)
+					if (snapshot.pawn != null && snapshot.pawn.Destroyed == false && snapshot.pawn.Spawned == false)
+						GenSpawn.Spawn(snapshot.pawn, snapshot.position, map, snapshot.rotation, WipeMode.Vanish);
+
 				RestoreZombieSettings(settingsSnapshot);
 				ZombieTicker.percentZombiesTicked = tickerSnapshot.percentZombiesTicked.ToArray();
 				ZombieTicker.percentZombiesTickedIndex = tickerSnapshot.percentZombiesTickedIndex;
-				gameTickManager.CurTimeSpeed = originalTimeSpeed;
+				RemoveZombieStatsFixtureLetters(existingLetters);
 			}
 		}
 
@@ -7679,6 +7730,91 @@ namespace ZombieLand
 			};
 		}
 
+		static void PrepareAlbinoMoveSpeedProbe(Zombie albino)
+		{
+			if (albino == null)
+				return;
+
+			albino.state = ZombieState.Wandering;
+			albino.raging = 0;
+			albino.wasMapPawnBefore = false;
+			albino.ropedBy = null;
+			albino.story.bodyType = BodyTypeDefOf.Male;
+		}
+
+		static void RemoveZombieStatsFixtureLetters(HashSet<Letter> existingLetters)
+		{
+			var letterStack = Find.LetterStack;
+			var letters = letterStack?.LettersListForReading;
+			if (letterStack == null || letters == null)
+				return;
+
+			foreach (var letter in letters
+				.Where(letter => letter != null && existingLetters.Contains(letter) == false)
+				.ToArray())
+				letterStack.RemoveLetter(letter);
+		}
+
+		static float ExpectedAlbinoMoveSpeed(Zombie albino, Pawn target, float baseMoveSpeed)
+		{
+			var minDistSquared = target == null ? 900 : Math.Min(900, albino.Position.DistanceToSquared(target.Position));
+			var albinoSpeed = GenMath.LerpDoubleClamped(36, 900, 5f, 1f, minDistSquared);
+			var speed = albinoSpeed > 1f ? ZombieSettings.Values.moveSpeedTracking : ZombieSettings.Values.moveSpeedIdle;
+			return speed * baseMoveSpeed * albinoSpeed;
+		}
+
+		static bool IsZombieStatsClearCell(Map map, IntVec3 cell)
+		{
+			return cell.InBounds(map)
+				&& cell.Standable(map)
+				&& cell.Fogged(map) == false
+				&& cell.GetFirstPawn(map) == null;
+		}
+
+		static bool TryFindZombieStatsAlbinoSpeedCells(Map map, IntVec3 targetCell, IEnumerable<IntVec3> reservedCells, out IntVec3 farAlbinoCell, out IntVec3 nearAlbinoCell, out object error)
+		{
+			farAlbinoCell = IntVec3.Invalid;
+			nearAlbinoCell = IntVec3.Invalid;
+			error = null;
+			var reserved = new HashSet<IntVec3>(reservedCells ?? Enumerable.Empty<IntVec3>());
+			if (targetCell.IsValid == false)
+			{
+				error = new
+				{
+					success = false,
+					error = "No valid target cell was available for albino speed fixtures."
+				};
+				return false;
+			}
+
+			nearAlbinoCell = GenRadial.RadialCellsAround(targetCell, 6f, false)
+				.Where(cell => cell.DistanceToSquared(targetCell) <= 36)
+				.Where(cell => reserved.Contains(cell) == false)
+				.Where(cell => IsZombieStatsClearCell(map, cell))
+				.OrderByDescending(cell => cell.DistanceToSquared(targetCell))
+				.FirstOrDefault();
+
+			farAlbinoCell = map.AllCells
+				.Where(cell => cell.DistanceToSquared(targetCell) >= 900)
+				.Where(cell => reserved.Contains(cell) == false)
+				.Where(cell => IsZombieStatsClearCell(map, cell))
+				.OrderBy(cell => cell.DistanceToSquared(targetCell))
+				.FirstOrDefault();
+
+			if (nearAlbinoCell.IsValid && farAlbinoCell.IsValid)
+				return true;
+
+			error = new
+			{
+				success = false,
+				targetCell = ZombieRuntimeActions.DescribeCell(targetCell),
+				nearFound = nearAlbinoCell.IsValid,
+				farFound = farAlbinoCell.IsValid,
+				error = "Could not find deterministic near and far albino speed cells."
+			};
+			return false;
+		}
+
 		static bool FindZombieStatsCells(Map map, IntVec3 root, out IntVec3[] cells, out object error)
 		{
 			cells = GenRadial.RadialCellsAround(root, 24f, false)
@@ -7687,9 +7823,9 @@ namespace ZombieLand
 				.Where(cell => cell.Fogged(map) == false)
 				.Where(cell => cell.GetFirstPawn(map) == null)
 				.OrderBy(cell => cell.DistanceToSquared(root))
-				.Take(9)
+				.Take(10)
 				.ToArray();
-			if (cells.Length >= 9)
+			if (cells.Length >= 10)
 			{
 				error = null;
 				return true;
@@ -7701,9 +7837,9 @@ namespace ZombieLand
 				.Where(cell => cell.Fogged(map) == false)
 				.Where(cell => cell.GetFirstPawn(map) == null)
 				.OrderBy(cell => cell.DistanceToSquared(fallbackRoot))
-				.Take(9)
+				.Take(10)
 				.ToArray();
-			if (cells.Length >= 9)
+			if (cells.Length >= 10)
 			{
 				error = null;
 				return true;

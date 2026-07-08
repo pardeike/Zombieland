@@ -1421,6 +1421,15 @@ namespace ZombieLand
 			{
 				if (newJob == null || ___pawn == null)
 					return true;
+				if (___pawn is Zombie { isAlbino: true }
+					&& (newJob.def == JobDefOf.AttackMelee || newJob.def == JobDefOf.AttackStatic))
+				{
+					___jobsGivenThisTick = 0;
+					___jobsGivenThisTickTextual = "";
+					___startingNewJob = false;
+					___pawn.ClearReservationsForJob(newJob);
+					return false;
+				}
 				if (newJob != null
 					&& newJob.targetA.Thing is ZombieSymbiant
 					&& (newJob.def == JobDefOf.AttackMelee || newJob.def == JobDefOf.AttackStatic)
@@ -4444,7 +4453,7 @@ namespace ZombieLand
 						{
 							var albinoPos = zombie.Position;
 							var colonists = zombie.Map?.mapPawns?.FreeColonistsAndPrisonersSpawned;
-							var minDistSquared = 450;
+							var minDistSquared = 900;
 							if (colonists != null)
 								for (var i = 0; i < colonists.Count; i++)
 								{

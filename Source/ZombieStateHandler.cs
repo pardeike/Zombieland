@@ -1367,6 +1367,9 @@ namespace ZombieLand
 			var attackColonistsOnly = (ZombieSettings.Values.attackMode == AttackMode.OnlyColonists);
 			var playerFaction = Faction.OfPlayer;
 
+			if (zombie.isAlbino)
+				return null;
+
 			if (zombie.IsTanky)
 			{
 				var info = ZombieWanderer.GetMapInfo(map);
