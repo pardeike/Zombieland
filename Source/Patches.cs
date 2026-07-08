@@ -6309,16 +6309,16 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Pawn_HealthTracker.MakeDowned))]
 		static class Pawn_HealthTracker_MakeDowned_Patch
 		{
-			static bool Prefix(Pawn ___pawn, out bool __state)
+			static bool Prefix(Pawn ___pawn, out ZombieAvoidGridSnapshot __state)
 			{
-				__state = ___pawn is Zombie zombie && zombie.AffectsAvoidGrid;
+				__state = ___pawn is Zombie zombie ? zombie.CaptureAvoidGridSnapshot() : default;
 				return ___pawn is not ZombieSymbiant && ___pawn is not ZombieSpitter;
 			}
 
-			static void Postfix(Pawn ___pawn, bool __state)
+			static void Postfix(Pawn ___pawn, ZombieAvoidGridSnapshot __state)
 			{
 				if (___pawn is Zombie zombie)
-					zombie.RequestAvoidGridRefreshIfAffectingChanged(__state);
+					zombie.RequestAvoidGridRefreshIfSpecChanged(__state);
 
 				if (IsZombielandPawn(___pawn))
 					return;
@@ -6353,15 +6353,15 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Pawn_HealthTracker.MakeUndowned))]
 		static class Pawn_HealthTracker_MakeUndowned_Patch
 		{
-			static void Prefix(Pawn ___pawn, out bool __state)
+			static void Prefix(Pawn ___pawn, out ZombieAvoidGridSnapshot __state)
 			{
-				__state = ___pawn is Zombie zombie && zombie.AffectsAvoidGrid;
+				__state = ___pawn is Zombie zombie ? zombie.CaptureAvoidGridSnapshot() : default;
 			}
 
-			static void Postfix(Pawn ___pawn, bool __state)
+			static void Postfix(Pawn ___pawn, ZombieAvoidGridSnapshot __state)
 			{
 				if (___pawn is Zombie zombie)
-					zombie.RequestAvoidGridRefreshIfAffectingChanged(__state);
+					zombie.RequestAvoidGridRefreshIfSpecChanged(__state);
 			}
 		}
 

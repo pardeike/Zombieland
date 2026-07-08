@@ -35,6 +35,15 @@ namespace ZombieLand
 			return zombie.AffectsAvoidGrid;
 		}
 
+		internal static ZombieAvoidGridSnapshot AvoidGridSnapshotBeforeClearingExpiredParalysis(this Zombie zombie)
+		{
+			if (zombie == null)
+				return default;
+			if (zombie.paralyzedUntil > 0 && GenTicks.TicksAbs >= zombie.paralyzedUntil)
+				return default;
+			return zombie.CaptureAvoidGridSnapshot();
+		}
+
 		public static bool CanParalyze(this Zombie zombie, out string error)
 		{
 			error = null;
@@ -82,14 +91,14 @@ namespace ZombieLand
 			if (zombie.CanParalyze(out error) == false)
 				return false;
 
-			var wasAffectingAvoidGrid = zombie.AffectsAvoidGrid;
+			var avoidGridSnapshot = zombie.CaptureAvoidGridSnapshot();
 			var until = (int)Math.Min(int.MaxValue, (long)GenTicks.TicksAbs + ticks);
 			zombie.paralyzedUntil = Math.Max(zombie.paralyzedUntil, until);
 			if (clearRope)
 				zombie.ropedBy = null;
 			if (stopDangerousJob)
 				StopDangerousState(zombie);
-			zombie.RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
+			zombie.RequestAvoidGridRefreshIfSpecChanged(avoidGridSnapshot);
 			return true;
 		}
 
@@ -117,9 +126,9 @@ namespace ZombieLand
 				return false;
 			if (GenTicks.TicksAbs >= zombie.paralyzedUntil)
 			{
-				var wasAffectingAvoidGrid = zombie.AffectsAvoidGridBeforeClearingExpiredParalysis();
+				var avoidGridSnapshot = zombie.AvoidGridSnapshotBeforeClearingExpiredParalysis();
 				zombie.paralyzedUntil = 0;
-				zombie.RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
+				zombie.RequestAvoidGridRefreshIfSpecChanged(avoidGridSnapshot);
 				return false;
 			}
 

@@ -247,10 +247,10 @@ namespace ZombieLand
 
 		public static bool DownedOrUnconsciousness(Zombie zombie)
 		{
-			var wasAffectingAvoidGrid = zombie.AffectsAvoidGridBeforeClearingExpiredParalysis();
+			var avoidGridSnapshot = zombie.AvoidGridSnapshotBeforeClearingExpiredParalysis();
 			bool Return(bool result)
 			{
-				zombie.RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
+				zombie.RequestAvoidGridRefreshIfSpecChanged(avoidGridSnapshot);
 				return result;
 			}
 
@@ -483,8 +483,10 @@ namespace ZombieLand
 			if (driver.eatDelayCounter <= EatDelay(driver, zombie))
 				return true;
 
+			var avoidGridSnapshot = zombie.CaptureAvoidGridSnapshot();
 			driver.eatDelayCounter = 0;
 			zombie.raging = 0;
+			zombie.RequestAvoidGridRefreshIfSpecChanged(avoidGridSnapshot);
 			return false;
 		}
 		//
@@ -876,7 +878,9 @@ namespace ZombieLand
 				if (newPos.IsValid == false)
 				{
 					// no next move available
+					var avoidGridSnapshot = zombie.CaptureAvoidGridSnapshot();
 					zombie.raging = 0;
+					zombie.RequestAvoidGridRefreshIfSpecChanged(avoidGridSnapshot);
 					return Smash(driver, zombie, checkSmashable, false);
 				}
 			}
@@ -1027,7 +1031,11 @@ namespace ZombieLand
 			}
 
 			if (GenTicks.TicksAbs > zombie.raging || ZombieSettings.Values.ragingZombies == false)
+			{
+				var avoidGridSnapshot = zombie.CaptureAvoidGridSnapshot();
 				zombie.raging = 0;
+				zombie.RequestAvoidGridRefreshIfSpecChanged(avoidGridSnapshot);
+			}
 		}
 
 		public static void CheckEndRage(Zombie zombie)
@@ -1036,7 +1044,11 @@ namespace ZombieLand
 				return;
 
 			if (zombie.isAlbino || zombie.isDarkSlimer || GenTicks.TicksAbs > zombie.raging || ZombieSettings.Values.ragingZombies == false)
+			{
+				var avoidGridSnapshot = zombie.CaptureAvoidGridSnapshot();
 				zombie.raging = 0;
+				zombie.RequestAvoidGridRefreshIfSpecChanged(avoidGridSnapshot);
+			}
 		}
 
 		// subroutines ==============================================================================
@@ -1544,9 +1556,11 @@ namespace ZombieLand
 		static readonly float[] maxRageLength = new float[] { 1f, 2f, 4f, 6f, 8f };
 		public static void StartRage(Zombie zombie)
 		{
+			var avoidGridSnapshot = zombie.CaptureAvoidGridSnapshot();
 			var min = minRageLength[ZombieSettings.Values.zombieRageLevel - 1];
 			var max = maxRageLength[ZombieSettings.Values.zombieRageLevel - 1];
 			zombie.raging = GenTicks.TicksAbs + (int)(GenDate.TicksPerHour * Rand.Range(min, max));
+			zombie.RequestAvoidGridRefreshIfSpecChanged(avoidGridSnapshot);
 			Tools.CastThoughtBubble(zombie, Constants.RAGING);
 
 			if (ZombieAwarenessCues.ShouldPlayZombieActionSound() && Prefs.VolumeAmbient > 0f)

@@ -103,9 +103,9 @@ namespace ZombieLand
 			}
 			else if (zombie.IsTanky == false)
 			{
-				var wasAffectingAvoidGrid = zombie.AffectsAvoidGrid;
+				var avoidGridSnapshot = zombie.CaptureAvoidGridSnapshot();
 				zombie.consciousness = 1f;
-				zombie.RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
+				zombie.RequestAvoidGridRefreshIfSpecChanged(avoidGridSnapshot);
 			}
 
 			if (ZombieStateHandler.NeedsAttackTick(zombie) && this.Attack(zombie))

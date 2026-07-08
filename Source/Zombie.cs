@@ -58,6 +58,36 @@ namespace ZombieLand
 		}
 	}
 
+	internal readonly struct ZombieAvoidGridSnapshot
+	{
+		readonly bool affects;
+		readonly float radius;
+		readonly float maxCosts;
+
+		ZombieAvoidGridSnapshot(bool affects, float radius, float maxCosts)
+		{
+			this.affects = affects;
+			this.radius = radius;
+			this.maxCosts = maxCosts;
+		}
+
+		public static ZombieAvoidGridSnapshot Capture(Zombie zombie)
+		{
+			if (zombie?.AffectsAvoidGrid != true)
+				return default;
+			return new ZombieAvoidGridSnapshot(true, Tools.ZombieAvoidRadius(zombie), TickManager.ZombieMaxCosts(zombie));
+		}
+
+		public bool DiffersFrom(ZombieAvoidGridSnapshot other)
+		{
+			if (affects != other.affects)
+				return true;
+			if (affects == false)
+				return false;
+			return radius != other.radius || maxCosts != other.maxCosts;
+		}
+	}
+
 	[StaticConstructorOnStartup]
 	public class Zombie : Pawn, IDisposable
 	{
@@ -121,7 +151,14 @@ namespace ZombieLand
 		public bool isElectrifier = false;
 		public int electricDisabledUntil = 0;
 		public bool IsActiveElectric => isElectrifier && health?.Downed == false && health?.Dead == false && GenTicks.TicksGame > electricDisabledUntil && this.InWater() == false;
-		public void DisableElectric(int ticks) { electricDisabledUntil = GenTicks.TicksGame + ticks; }
+		ZombieAvoidGridSnapshot lastElectricAvoidGridSnapshot;
+		bool hasLastElectricAvoidGridSnapshot;
+		public void DisableElectric(int ticks)
+		{
+			var avoidGridSnapshot = CaptureAvoidGridSnapshot();
+			electricDisabledUntil = GenTicks.TicksGame + ticks;
+			RequestAvoidGridRefreshIfSpecChanged(avoidGridSnapshot);
+		}
 		public int electricCounter = -1000;
 		public float electricAngle = 0;
 		public List<KeyValuePair<float, int>> absorbAttack = new();
@@ -399,23 +436,43 @@ namespace ZombieLand
 
 		public void Unrope()
 		{
-			var wasAffectingAvoidGrid = AffectsAvoidGrid;
+			var avoidGridSnapshot = CaptureAvoidGridSnapshot();
 			if (this.TryParalyze(ZombieParalysis.ShockerParalysisTicks, out _, true, true) == false)
 				ropedBy = null;
-			RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
+			RequestAvoidGridRefreshIfSpecChanged(avoidGridSnapshot);
 		}
 
 		public void SetRopedBy(Pawn pawn)
 		{
-			var wasAffectingAvoidGrid = AffectsAvoidGrid;
+			var avoidGridSnapshot = CaptureAvoidGridSnapshot();
 			ropedBy = pawn;
-			RequestAvoidGridRefreshIfAffectingChanged(wasAffectingAvoidGrid);
+			RequestAvoidGridRefreshIfSpecChanged(avoidGridSnapshot);
 		}
 
-		public void RequestAvoidGridRefreshIfAffectingChanged(bool wasAffectingAvoidGrid)
+		internal ZombieAvoidGridSnapshot CaptureAvoidGridSnapshot()
 		{
-			if (wasAffectingAvoidGrid != AffectsAvoidGrid)
+			return ZombieAvoidGridSnapshot.Capture(this);
+		}
+
+		internal void RequestAvoidGridRefreshIfSpecChanged(ZombieAvoidGridSnapshot previousSnapshot)
+		{
+			if (previousSnapshot.DiffersFrom(CaptureAvoidGridSnapshot()))
 				Map?.GetComponent<TickManager>()?.RequestAvoidGridRefresh();
+		}
+
+		internal void TrackElectricAvoidGridSpec()
+		{
+			if (isElectrifier == false)
+			{
+				hasLastElectricAvoidGridSnapshot = false;
+				return;
+			}
+
+			var currentSnapshot = CaptureAvoidGridSnapshot();
+			if (hasLastElectricAvoidGridSnapshot && lastElectricAvoidGridSnapshot.DiffersFrom(currentSnapshot))
+				Map?.GetComponent<TickManager>()?.RequestAvoidGridRefresh();
+			lastElectricAvoidGridSnapshot = currentSnapshot;
+			hasLastElectricAvoidGridSnapshot = true;
 		}
 
 		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)
@@ -687,6 +744,7 @@ namespace ZombieLand
 					natives?.NativeVerbsTick();
 					jobs?.JobTrackerTick();
 					health?.HealthTick();
+					TrackElectricAvoidGridSpec();
 				}
 			}
 
