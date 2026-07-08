@@ -53,7 +53,7 @@
 	<ZombiesDieOnZeroThreat_Help>当威胁等级为 0% 时，地图上的所有僵尸会自行死亡。</ZombiesDieOnZeroThreat_Help>
 	<ZombieFreeEvents_Help>启用后，偶尔会出现全局僵尸沉寂事件，并显示在威胁预测中。在这些窗口期间，所有地图上的僵尸会消亡，且不会生成新僵尸，使商队旅行更安全。关闭后会移除这些特殊旅行窗口，但不会改变普通动态威胁曲线。</ZombieFreeEvents_Help>
 
-	<ZombieEventTitle_Help>如果你选择“仅作为事件”，有时在其他模式下也是如此，Zombieland 会触发僵尸攻击。这不像袭击者事件，而是大量僵尸一起出现，并可能根据群体规模进入狂暴，开始向你追踪。</ZombieEventTitle_Help>
+	<ZombieEventTitle_Help>如果你选择“仅丧尸事件”，有时在其他模式下也是如此，Zombieland 会触发僵尸攻击。这不像袭击者事件，而是大量僵尸一起出现，并可能根据群体规模进入狂暴，开始向你追踪。</ZombieEventTitle_Help>
 	<ZombiesPerColonistInEvent_Help>若要控制事件规模，可以指定每名殖民者对应多少僵尸。请注意，这不会改变地图上的僵尸总上限。如果当前僵尸数量已经接近总上限，或接近 Zombieland 根据当前殖民地规模计算出的数量，事件中的僵尸会更少。在这里填非常大的数字只会移除事件规模上限。较小的数字会降低整体事件规模，尤其是在可战斗殖民者较少时。</ZombiesPerColonistInEvent_Help>
 	<ExtraDaysBetweenEvents_Help>通常僵尸事件会自动拉开间隔，实际间隔取决于一些内部因素。如果你觉得过于频繁，可以用此设置在事件之间增加额外天数。</ExtraDaysBetweenEvents_Help>
 	<InfectedRaidsChance_Help>这是到达地图的敌对或友好队伍已经感染，且它们与僵尸之间不会发生互动的概率。</InfectedRaidsChance_Help>

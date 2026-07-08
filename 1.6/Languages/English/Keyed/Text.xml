@@ -7,8 +7,8 @@
 	<ZombielandPlayerLogRevealFailed>Could not reveal Player.log. The path was copied to the clipboard.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland could not find the Player.log path.</ZombielandPlayerLogPathUnavailable>
 
-	<Zombieland_Settings>Hover over any element to read a help text about it to the right. All settings can be changed in-game and are active immediately, they are saved with the game.\n\nTo set defaults for new games, change the settings from the main screen (Options/Mod Settings/Zombieland).</Zombieland_Settings>
-	<ZombieLandKeyframes>You can add keyframes that define settings in time. Use the slider to check the values in-between. Only settings for keyframes can be edited.</ZombieLandKeyframes>
+	<Zombieland_Settings>Hover over any element to read help text about it to the right. All settings can be changed in-game and take effect immediately; they are saved with the game.\n\nTo set defaults for new games, change the settings from the main menu (Options / Mods / Zombieland).</Zombieland_Settings>
+	<ZombieLandKeyframes>You can add keyframes that define how settings change over game time. Use the slider to preview the values in between. Settings can only be edited at a keyframe.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- first keyframe (start of the game) . . . future game time -&gt;</ZombieLandKeyframe0>
 
 	<Difficulty_ZombielandThreatScale_Info>Controls the difficulty of almost all things in Zombieland, like zombie abilities, threat forecast, and much more.</Difficulty_ZombielandThreatScale_Info>
@@ -53,10 +53,10 @@
 	<FeedZombieSymbiantDesc>Feed the Symbiant a corpse.</FeedZombieSymbiantDesc>
 	<FeedingZombieSymbiant>feeding the Symbiant</FeedingZombieSymbiant>
 	<NoSymbiantFeed>No usable corpse available</NoSymbiantFeed>
-	<SymbiantFedMote>cells +{1}</SymbiantFedMote>
+	<SymbiantFedMote>+{1} cells</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>Feed {0} {1} to the Symbiant (+{2} cells)</FeedZombieSymbiantFloatMenu>
-	<SeverSymbiantSymbiosis>remove the Symbiant bond</SeverSymbiantSymbiosis>
-	<SeverSymbiantSymbiosisWithCost>remove the Symbiant bond ({0} zombie extract)</SeverSymbiantSymbiosisWithCost>
+	<SeverSymbiantSymbiosis>Remove the Symbiant bond</SeverSymbiantSymbiosis>
+	<SeverSymbiantSymbiosisWithCost>Remove the Symbiant bond ({0} zombie extract)</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>{0}'s Symbiant bond has been removed.</SymbiantSeveredMessage>
 	<SymbiantHostBondDescription>Symbiant: {0}/{1} cells. Next benefit at {2} cells. Shared health: {3}. The Symbiant absorbs most shared damage; &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; reaches the host at its current size.\n\nBenefits:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>No active Symbiant is linked to this host.</SymbiantHostBondMissing>
@@ -153,7 +153,7 @@
 	<UseDynamicThreatLevel>Use dynamic threat level</UseDynamicThreatLevel>
 	<DynamicThreatSmoothness>Threat curve smoothness</DynamicThreatSmoothness>
 	<DynamicThreatStretch>Threat curve stretch</DynamicThreatStretch>
-	<ZombiesDieOnZeroThreat>Zombies die during 0% threat</ZombiesDieOnZeroThreat>
+	<ZombiesDieOnZeroThreat>Zombies die at 0% threat</ZombiesDieOnZeroThreat>
 	<ZombieFreeEvents>Zombie-free travel events</ZombieFreeEvents>
 	<ThreatLevel>threat level</ThreatLevel>
 	<ThreatForecast>Threat forecast</ThreatForecast>
@@ -175,8 +175,8 @@
 	<ZombieDamageTitle>Zombie damage</ZombieDamageTitle>
 	<ZombieDamageFactor>Damage multiplier</ZombieDamageFactor>
 	<SafeMeleeLimit>Safe melee limit</SafeMeleeLimit>
-	<SafeMeleeExample>Example: [_]{0}[_] melee level, [_]{1}[_] zombies => {2}% chance</SafeMeleeExample>
-	<ZombiesCauseManhunting>Zombies can anger animals</ZombiesCauseManhunting>
+	<SafeMeleeExample>Example: [_]{0}[_] melee level, [_]{1}[_] zombies: {2}% chance to block a bite</SafeMeleeExample>
+	<ZombiesCauseManhunting>Zombie attacks can turn animals manhunter</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>Game tweaks</ZombieGameTweaks>
 	<ReduceTurretConsumption>Reduce turret steel consumption</ReduceTurretConsumption>
@@ -220,7 +220,7 @@
 	<ZombiesDieVeryEasily>Zombies are easy to kill</ZombiesDieVeryEasily>
 
 	<ZombieEatingTitle>Zombies will eat</ZombieEatingTitle>
-	<ZombiesEatDowned>Injured creatures</ZombiesEatDowned>
+	<ZombiesEatDowned>Downed creatures</ZombiesEatDowned>
 	<ZombiesEatCorpses>Corpses</ZombiesEatCorpses>
 
 	<SpecialZombiesTitle>Special zombies</SpecialZombiesTitle>
@@ -258,7 +258,7 @@
 	<ZombielandMusicShare_OnlyOther>Only non-Zombieland music</ZombielandMusicShare_OnlyOther>
 	<ZombielandMusicShare_Percent>{0}% Zombieland music</ZombielandMusicShare_Percent>
 	<ZombielandMusicShare_OnlyZombieland>Only Zombieland music</ZombielandMusicShare_OnlyZombieland>
-	<ShowZombieEventLetters>Show zombie event alerts</ShowZombieEventLetters>
+	<ShowZombieEventLetters>Show zombie event letters</ShowZombieEventLetters>
 	<PlayZombieEventSiren>Play zombie event siren</PlayZombieEventSiren>
 	<PlaySpecialZombieAmbientSounds>Play special zombie ambient sounds</PlaySpecialZombieAmbientSounds>
 	<PlayZombieActionSounds>Play zombie action sounds</PlayZombieActionSounds>
@@ -292,14 +292,14 @@
 	<ImminentZombiInfectionDesc>These colonists are about to be infected from a zombie bite:\n\n{0}\nYou may rescue them by immediately giving them optimal treatment under the best conditions. This requires a good doctor, a quality medical bed, a sterile room, and a vitals monitor.</ImminentZombiInfectionDesc>
 
 	<ZombieInfection>Zombie infection</ZombieInfection>
-	<ZombieInfectionDesc>These colonists have been infected and will become zombies. There is no way to rescue them anymore:\n\n{0}\nDuring their infection they are indifferent to thoughts, feelings, pain, and hunger. At the end, they die and become zombies.</ZombieInfectionDesc>
+	<ZombieInfectionDesc>These colonists have been infected and will become zombies. There is no way to rescue them anymore:\n\n{0}\nDuring their infection they no longer react to moods, pain, or hunger. At the end, they die and become zombies.</ZombieInfectionDesc>
 
 	<NoInfectionRisk>No infection risk</NoInfectionRisk>
 	<HoursBeforeBecomingInfected>{0} to infection</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} to become a zombie</HoursBeforeBecomingAZombie>
 
 	<DangerousSituation>Dangerous situation</DangerousSituation>
-	<ZombiesAreBeingPushedOverYourWalls>There are zombies being pushed over your walls! Prevent zombies from forming dense groups.</ZombiesAreBeingPushedOverYourWalls>
+	<ZombiesAreBeingPushedOverYourWalls>Zombies are being pushed over your walls! Prevent zombies from forming dense groups.</ZombiesAreBeingPushedOverYourWalls>
 
 	<ColonistBecameAZombieLabel>A colonist turned into a zombie</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>Someone turned into a zombie</OtherBecameAZombieLabel>
@@ -310,10 +310,10 @@
 
 	<CureZombieInfection>Cure zombie infection</CureZombieInfection>
 	<ExtractingZombieSerum>Harvesting zombie extract</ExtractingZombieSerum>
-	<AutoExtractDisabledDescription>Cannot harvest zombie extract (no doctor)</AutoExtractDisabledDescription>
+	<AutoExtractDisabledDescription>Cannot harvest zombie extract (no colonist assigned to Doctor work)</AutoExtractDisabledDescription>
 	<AutoExtractAllowedDescription>Automatically harvest zombie extract when no zombies are nearby</AutoExtractAllowedDescription>
 	<AutoExtractForbiddenDescription>Only harvest zombie extract when ordered</AutoExtractForbiddenDescription>
-	<AutoDoubleTapDisabledDescription>Cannot double tap (no hunting)</AutoDoubleTapDisabledDescription>
+	<AutoDoubleTapDisabledDescription>Cannot double tap (no colonist assigned to Hunt work)</AutoDoubleTapDisabledDescription>
 	<AutoDoubleTapAllowedDescription>Automatically double tap corpses to prevent them from becoming zombies</AutoDoubleTapAllowedDescription>
 	<AutoDoubleTapForbiddenDescription>Only double tap when ordered</AutoDoubleTapForbiddenDescription>
 

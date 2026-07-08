@@ -10,13 +10,13 @@
 	
 	<WhenDoZombiesSpawn_Help>In Zombieland, you will face a never-ending invasion of zombies. This setting controls the overall pace and rhythm of the game. The three modes are quite different so make sure you choose the right one for your play style and understand how they work. There is an upper limit on the number of zombies, see "Zombies on the map" for more details.</WhenDoZombiesSpawn_Help>
 	<SpawnWhenType_AllTheTime_Help>Zombies will spawn relentlessly. Kill them and more will come instantly. This is a challenging mode that makes zombies an omnipresent force that influences all aspects of the game.</SpawnWhenType_AllTheTime_Help>
-	<SpawnWhenType_WhenDark_Help>Zombies will only spawn at dark places. This means literally dark and includes areas that are dark during daytime. You can control this mode by setting up light to illuminate your safe areas.</SpawnWhenType_WhenDark_Help>
+	<SpawnWhenType_WhenDark_Help>Zombies will only spawn in dark places, including areas that are dark during the daytime. You can control this mode by placing lights to illuminate your safe areas.</SpawnWhenType_WhenDark_Help>
 	<SpawnWhenType_InEventsOnly_Help>This classic way of playing Zombieland spawns zombies in groups. The timing and size of the group depends on many aspects of the current colony. Zombieland events are completely independent from any RimWorld events and do not change their frequency.</SpawnWhenType_InEventsOnly_Help>
 
 	<!-- -->
 
-	<HowDoZombiesSpawn_Help>Zombies in Zombieland always come out of the ground. They dig out of soft spots so make sure that your current map has at least some soft/semi-soft ground (no ice only map for example).</HowDoZombiesSpawn_Help>
-	<SpawnHowType_AllOverTheMap_Help>If you dare you can play with zombies spawning all over the map. Recommended for the experienced player. To control safe areas, you can build floors or walls. Combine this mode with "when dark" for a challenging way to play Zombieland. And beware of your planting zones!</SpawnHowType_AllOverTheMap_Help>
+	<HowDoZombiesSpawn_Help>Zombies in Zombieland always come out of the ground. They dig out of soft spots so make sure that your current map has at least some soft/semi-soft ground (for example, not a map of solid ice).</HowDoZombiesSpawn_Help>
+	<SpawnHowType_AllOverTheMap_Help>If you dare you can play with zombies spawning all over the map. Recommended for the experienced player. To control safe areas, you can build floors or walls. Combine this mode with "when dark" for a challenging way to play Zombieland. And beware of your growing zones!</SpawnHowType_AllOverTheMap_Help>
 	<SpawnHowType_FromTheEdges_Help>If you prefer the more classical way of a threat from the edges of the map then this mode is for you.</SpawnHowType_FromTheEdges_Help>
 	<SmartWandering_Help>This setting controls how the zombies will move at night. "Random" makes them move like at daytime. "Simple" will make them drift towards the most interesting part of the map but they can become stuck and build groups. And "Smart" will eventually bring them to you.</SmartWandering_Help>
 	<Biomes_Help>To prevent zombies from spawning on certain map styles you can exclude biomes here.</Biomes_Help>
@@ -66,9 +66,9 @@
 	<!-- -->
 
 	<ZombieEventTitle_Help>If you play with "in events only" and sometimes even in the other modes, Zombieland will trigger a zombie attack. This is not like a raider event but instead, a larger number of zombies appear together and depending on the group size, might even rage and start tracking towards you.</ZombieEventTitle_Help>
-	<ZombiesPerColonistInEvent_Help>To control the size of the event, you can specify how many zombies per colonist will appear. Please note, that this does not change the overall limit of zombies on the map and if the current number of zombies is already close to the total limit or to the number that Zombieland has determined for your current colony size, less zombies will be in the event. Putting a really large number here will only remove the upper event size limit. Setting a small number will reduce the overall event size - especially with fewer fight-capable colonists.</ZombiesPerColonistInEvent_Help>
+	<ZombiesPerColonistInEvent_Help>To control the size of the event, you can specify how many zombies per colonist will appear. Please note, that this does not change the overall limit of zombies on the map and if the current number of zombies is already close to the total limit or to the number that Zombieland has determined for your current colony size, fewer zombies will be in the event. Putting a really large number here will only remove the upper event size limit. Setting a small number will reduce the overall event size - especially with fewer fight-capable colonists.</ZombiesPerColonistInEvent_Help>
 	<ExtraDaysBetweenEvents_Help>Normally, zombie events are spaced out automatically. The actual interval depends on a few internal factors. In case you think that this is too frequent, you can use this setting to add extra days between events.</ExtraDaysBetweenEvents_Help>
-	<InfectedRaidsChance_Help>This is the chance that a hostile/friendly group arriving on the map is already infected and no interaction between them and the zombies happens.</InfectedRaidsChance_Help>
+	<InfectedRaidsChance_Help>The chance that a group arriving on the map (hostile or friendly) is already infected. Zombies ignore infected groups, and infected groups ignore zombies.</InfectedRaidsChance_Help>
 
 	<!-- -->
 
@@ -79,7 +79,7 @@
 	<!-- -->
 
 	<ZombieDamageTitle_Help>Change what happens when zombies attack other creatures.</ZombieDamageTitle_Help>
-	<ZombieDamageFactor_Help>A large multiplier will increase their strength which will allow them to overcome others easily. Very useful against mechanoids but will deteriorate your walls and doors quicker (if you have that turned on).</ZombieDamageFactor_Help>
+	<ZombieDamageFactor_Help>A large multiplier will increase their strength which will allow them to overcome others easily. Very useful against mechanoids, but zombies will wear down your walls and doors faster (if you have building damage turned on).</ZombieDamageFactor_Help>
 	<SafeMeleeLimit_Help>The number of zombies that can be fought simultaneously in a melee fight before the defender is overwhelmed and starts getting bitten.\n\nTanky operator zombies count as two zombies, and the defender's melee level 0-20 gives you a 0-100% chance to block a bite (better with fewer zombies than the limit).</SafeMeleeLimit_Help>
 	<ZombiesCauseManhunting_Help>Will animals become manhunters when attacked by zombies?</ZombiesCauseManhunting_Help>
 
@@ -91,9 +91,9 @@
 	<!-- -->
 
 	<ZombieInfection_Help>Zombie scratches are harmless but bites can give you fatal infections.\n\nZombieland has four stages of infection:\n- unknown (white color)\n- developing (orange)\n- infecting (red, zombie-like)\n- zombie (complete zombie)\n\nYou can either amputate the infected part or do an operation with zombie serum (made out of zombie extract) to remove the infection.</ZombieInfection_Help>
-	<ZombieBiteInfectionChance_Help>This is the chance that a zombie bite will infect the limb or body part it is part of. Bites are infectious but scratches are not.</ZombieBiteInfectionChance_Help>
+	<ZombieBiteInfectionChance_Help>This is the chance that a zombie bite will infect the bitten body part. Bites can be infectious but scratches never are.</ZombieBiteInfectionChance_Help>
 	<ZombieBiteInfectionUnknown_Help>This is the first phase (white). You can treat the wound but you don't know if it will ever get infected until this phase ends.</ZombieBiteInfectionUnknown_Help>
-	<ZombieBiteInfectionTreatable_Help>In this second phase (orange), the infection is still treatable. If you can amputate, you can stop the infection. Treatment must happen under optimal conditions (something you need to find out yourself). Also, you only get one chance of treatment, once the wound was treated you cannot re-treat it in a better way.</ZombieBiteInfectionTreatable_Help>
+	<ZombieBiteInfectionTreatable_Help>In this second phase (orange), the infection is still treatable. If you can amputate, you can stop the infection. Treatment must happen under optimal conditions (something you need to find out yourself). Also, you only get one chance of treatment; once the wound has been treated, you cannot treat it again for a better result.</ZombieBiteInfectionTreatable_Help>
 	<ZombieBiteInfectionPersists_Help>The third and last phase (red). Now the infection cannot be treated anymore and only amputation can stop the process. Many players make the mistake of ending the life of their infected colonist too early. Zombieland, while cruel, has a few surprises built in to make this phase useful for you. Find out how the colonist has changed while almost becoming a zombie!</ZombieBiteInfectionPersists_Help>
 	<AnyTreatmentStopsInfection_Help>To allow simple treatment in a bed to stop an infected bite, select this option. It is a good idea to turn this on when you are not yet familiar with the game mechanics.</AnyTreatmentStopsInfection_Help>
 	<HoursAfterDeathToBecomeZombie_Help>The time for a dead humanlike pawn to become a zombie. Move all the way to the left to turn this feature off.</HoursAfterDeathToBecomeZombie_Help>
@@ -104,7 +104,7 @@
 
 	<ZombieHarvestingTitle_Help>When zombies die they may drop some of their apparel and you can harvest zombie extract from their corpses before they disappear. In order to not get overloaded with lots of corpses, you can select how fast zombie corpses disappear.\n\nZombie serum is the best alternative to cure infections. The serum is made from zombie extract and comes in qualities of 10% to 100%; one dose of serum heals one zombie bite. The quality determines the failure risk when doing a medical operation on an infected colonist.</ZombieHarvestingTitle_Help>
 	<CorpsesExtractAmount_Help>You harvest zombie extract from dead zombies before they disappear, either automatically or by right-clicking on the zombie corpse. You can make serum from it at a drug lab, or at a crafting spot if you play with tribals. Only colonists assigned to doctoring can collect extract, and only if there are no dangerous zombies nearby (roughly 10-20 cells, depending on the surroundings). To make creating serum easier, increase the amount of extract per zombie.</CorpsesExtractAmount_Help>
-	<LootExtractAmount_Help>Make zombies drop their apparel by chance. Zombies can wear any apparel that exists in your game with all its mods. This defines the chance and amount of dropped apparel (100% = 1 item).</LootExtractAmount_Help>
+	<LootExtractAmount_Help>Zombies have a chance to drop their apparel when they die. Zombies can wear any apparel that exists in your game, including modded apparel. This slider sets the chance and amount of dropped apparel (100% = 1 item).</LootExtractAmount_Help>
 	<CorpsesDaysToDessicated_Help>Zombie corpses will usually desiccate quickly so you don't end up with too many of them. To make collecting extract easier, you can increase the time before they disappear.</CorpsesDaysToDessicated_Help>
 	<ExtractZombieArea_Help>Harvesting zombie extract can be dangerous. Use this feature to restrict the activity to one of your areas. If you rename the area, you need to update it here. Manually ordered harvesting will always work.</ExtractZombieArea_Help>
 	<Apparel_Help>Don't want your zombies to wear some apparel? Blacklist it here by checking its checkbox in the dialog.\n\nGood if some modded apparel causes errors or just for more control.</Apparel_Help>
@@ -127,8 +127,8 @@
 
 	<!-- -->
 
-	<ZombieEatingTitle_Help>When zombies detect dead corpses near them, they will stop and focus their attention on the cadavers - use this to your advantage and for defense. This setting controls what and if zombies will eat.</ZombieEatingTitle_Help>
-	<ZombiesEatDowned_Help>Zombies have no mercy and will eat creatures that are alive or injured.</ZombiesEatDowned_Help>
+	<ZombieEatingTitle_Help>When zombies detect corpses near them, they will stop and focus their attention on them - use this to your advantage and for defense. This setting controls what and if zombies will eat.</ZombieEatingTitle_Help>
+	<ZombiesEatDowned_Help>Zombies have no mercy and will eat downed creatures while they are still alive.</ZombiesEatDowned_Help>
 	<ZombiesEatCorpses_Help>Zombies feast on corpses if you turn this option on.</ZombiesEatCorpses_Help>
 
 	<!-- -->
@@ -143,7 +143,7 @@
 	<DarkSlimerChance_Help>Dark slimer zombies leave an ultra-sticky tar-like slime trail behind them. It is hard to clean (rain will wash it away though) and only zombies will pass it easily.</DarkSlimerChance_Help>
 	<HealerChance_Help>Healer zombies heal all zombies within a certain distance to full health. They can be identified by their cyan skin color and they otherwise act like normal standard zombies.</HealerChance_Help>
 	<NormalZombieChance_Help>Ordinary zombies come in different body sizes. That defines their strength but also their speed! They often wear any apparel that is available in the game and in any mods you have installed.</NormalZombieChance_Help>
-	<ChildZombieChance_Help>The percentage of zombies that are children. Note: killing a zombie child will give a slight negative mood (lasts for 2 hours)</ChildZombieChance_Help>
+	<ChildZombieChance_Help>The percentage of zombies that are children. Note: killing a zombie child gives a small negative thought (lasts 2 hours).</ChildZombieChance_Help>
 	<SpitterThreat_Help>The zombie spitter is a siege beast that launches zombies into your base. This setting adjusts both the intensity and frequency with which the spitter operates. Setting it to 0% disables the spitter.</SpitterThreat_Help>
 	<WallPushing_Help>When a group of zombies gets too dense this will define the number of zombies that will push other zombies over adjacent walls. If the other side of the wall is part of a roofed room, that roof will be damaged by the zombie.</WallPushing_Help>
 	<ZombieSymbiantTitle_Help>Zombie Symbiants are indoor infestations that spread through busy indoor rooms. One colonist becomes the host. The host is immune to zombie infection from bites and gains random benefits as the Symbiant grows. Pawns crossing Symbiant cells are slowed, except the host. Feeding corpses grows the Symbiant faster. Surgery removes the bond, and the unbound Symbiant then shrinks away.</ZombieSymbiantTitle_Help>
@@ -153,14 +153,14 @@
 	<!-- -->
 
 	<ZombieMiscTitle_Help>This section contains miscellaneous settings that do not affect gameplay very much. Some are cosmetic and some can speed up the game on a slower computer.</ZombieMiscTitle_Help>
-	<UseCustomTextures_Help>Every zombie will have custom body textures with injuries and other zombie related marks. This makes Zombieland consume a lot of memory so turn it off if you are having problems (especially in the 32bit version)</UseCustomTextures_Help>
-	<ReplaceTwinkie_Help>Zombieland the movie has a meme about twinkies. In honor of the movie, the mod changes the visual appearance of survival meals to a twinkie.</ReplaceTwinkie_Help>
-	<ZombiesTriggerDangerMusic_Help>Normally RimWorld plays specific danger music when there is a threat on the map. Since zombies are most likely permanent on the map, this option turns this feature off.</ZombiesTriggerDangerMusic_Help>
+	<UseCustomTextures_Help>Every zombie will have custom body textures with injuries and other zombie related marks. This makes Zombieland consume a lot of memory, so turn it off if you are having memory problems.</UseCustomTextures_Help>
+	<ReplaceTwinkie_Help>The movie Zombieland has a running joke about Twinkies. In honor of the movie, this mod changes the appearance of survival meals to a Twinkie.</ReplaceTwinkie_Help>
+	<ZombiesTriggerDangerMusic_Help>Normally RimWorld plays danger music while a threat is on the map. Since zombies are usually always present, this would keep danger music playing constantly. Turn this option off to make zombies not count as a threat for danger music.</ZombiesTriggerDangerMusic_Help>
 	<PlayCreepyAmbientSound_Help>No zombie theme without some creepy ambient sounds. At night, when all zombies drift towards your base, this will play some spooky sounds.</PlayCreepyAmbientSound_Help>
 	<AwarenessCuesTitle_Help>These settings control letters, sounds, and visual hints that can reveal zombie activity. Turning them off changes feedback only, not what zombies do.</AwarenessCuesTitle_Help>
 	<PlayZombielandMusic_Help>Enables the Zombieland soundtrack. Turn this off if you prefer only RimWorld, DLC, and other music mods.</PlayZombielandMusic_Help>
 	<ZombielandMusicShare_Help>Controls how often a new map song is chosen from Zombieland music. Other music includes RimWorld, DLC, P-Music, and any installed music packs. This affects song starts, not exact listening time.</ZombielandMusicShare_Help>
-	<ShowZombieEventLetters_Help>Shows or hides automatic Zombieland event alerts, including RimWorld letters for zombie rising events and spitter events.</ShowZombieEventLetters_Help>
+	<ShowZombieEventLetters_Help>Shows or hides Zombieland event letters, such as the letters for zombie attacks and spitter events.</ShowZombieEventLetters_Help>
 	<PlayZombieEventSiren_Help>Plays the loud on-camera siren when a large zombie event or spitter event starts.</PlayZombieEventSiren_Help>
 	<PlaySpecialZombieAmbientSounds_Help>Plays camera-based ambient sounds from special zombies, such as tank movement and electric humming.</PlaySpecialZombieAmbientSounds_Help>
 	<PlayZombieActionSounds_Help>Plays zombie action sounds such as eating, tracking, rage, dig-out, spitter, toxic, tanky, and electrifier sounds.</PlayZombieActionSounds_Help>
@@ -177,7 +177,7 @@
 
 	<!-- -->
 
-	<ZombieActionsTitle_Help>In this section you can restore the default settings or load and publish your own settings. If you are in a game, you can even uninstall the mod with a click of a button.</ZombieActionsTitle_Help>
+	<ZombieActionsTitle_Help>In this section you can restore the default settings or copy and share your own settings. If you are in a game, you can even uninstall the mod with a click of a button.</ZombieActionsTitle_Help>
 	<UninstallButton_Help>To remove Zombieland, just click Uninstall. You will be asked to save the current game under a new name and will return to the main menu. From there, you can uninstall the mod and load the saved game file to continue your game without Zombieland.</UninstallButton_Help>
 	<ResetButton_Help>This will reset the settings to default.</ResetButton_Help>
 	<ClipboardActionTitle_Help>Share your settings with others using simple text copy/paste.</ClipboardActionTitle_Help>

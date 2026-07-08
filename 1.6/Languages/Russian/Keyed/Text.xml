@@ -12,7 +12,7 @@
 	<ZombieLandKeyframe0>&lt;- первый ключевой кадр (начало игры) ... будущее время игры -&gt;</ZombieLandKeyframe0>
 
 	<Difficulty_ZombielandThreatScale_Info>Регулирует сложность почти всех вещей в Zombieland, таких как способности зомби, прогноз угрозы и многое другое.</Difficulty_ZombielandThreatScale_Info>
-	<Difficulty_ZombielandThreatScale_Label>Шкала угроз Зомбиленда</Difficulty_ZombielandThreatScale_Label>
+	<Difficulty_ZombielandThreatScale_Label>Шкала угроз Zombieland</Difficulty_ZombielandThreatScale_Label>
 
 	<ZombieSuicideBomber>Зомби-смертник</ZombieSuicideBomber>
 	<ZombieToxicSplasher>Токсичный зомби-брызгун</ZombieToxicSplasher>
@@ -27,14 +27,14 @@
 	<ZombieStrong>Сильный зомби</ZombieStrong>
 	<ZombieSimple>Обычный зомби</ZombieSimple>
 
-	<LetterLabelZombiesRising>Аттака Зомби</LetterLabelZombiesRising>
+	<LetterLabelZombiesRising>Атака зомби</LetterLabelZombiesRising>
 	<ZombiesRising>Группа зомби появилась</ZombiesRising>
 
 	<LetterLabelZombiesRisingNearYourBase>Прямая атака зомби</LetterLabelZombiesRisingNearYourBase>
 	<ZombiesRisingNearYourBase>Группа зомби появилась рядом с вашей базой</ZombiesRisingNearYourBase>
 
-	<LetterLabelZombiesSpitter>Атака зомби-спиттера</LetterLabelZombiesSpitter>
-	<ZombiesSpitter>На карту проникли зомби-плевательницы и будут осаждать вас</ZombiesSpitter>
+	<LetterLabelZombiesSpitter>Атака зомби-плевуна</LetterLabelZombiesSpitter>
+	<ZombiesSpitter>На карту проник зомби-плевун, и он будет осаждать вас</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>Зомби-симбионт связан с {0}</LetterLabelZombieSymbiant>
 	<LetterLabelZombieSymbiantNoHost>Появился зомби-симбионт</LetterLabelZombieSymbiantNoHost>
 	<ZombieSymbiant>Зомби-симбионт появился в {0} и связался с {1}. Он расползается по оживлённым внутренним комнатам. Пешки, пересекающие его, замедляются, кроме носителя. Носитель получает иммунитет к зомби-инфекции от укусов и случайные преимущества по мере роста симбионта. Кормите его трупами, чтобы ускорить рост. Проведите операцию на {1}, чтобы удалить связь; симбионт без носителя затем отступит.</ZombieSymbiant>
@@ -80,11 +80,11 @@
 	<SymbiantBenefitZombieIgnore>зомби игнорируют носителя</SymbiantBenefitZombieIgnore>
 	<SymbiantBenefitAutoHeal>автоматическое лечение</SymbiantBenefitAutoHeal>
 
-	<LetterLabelXDaysUntilZombies>{0} Дней до прихода зомби-орды</LetterLabelXDaysUntilZombies>
+	<LetterLabelXDaysUntilZombies>{0} до прихода зомби</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>Зомби появятся там, где есть мягкая почва, грязь, песок и гравий. Застройте всё напольными покрытиями, чтобы зомби не могли подкопаться.</XDaysUntilZombies>
 
-	<ZombielandDefaultSettings>Zombieland Настройки</ZombielandDefaultSettings>
-	<ZombielandGameSettings>Zombieland Настройки</ZombielandGameSettings>
+	<ZombielandDefaultSettings>Настройки Zombieland по умолчанию</ZombielandDefaultSettings>
+	<ZombielandGameSettings>Настройки Zombieland</ZombielandGameSettings>
 	<JumpToNow>Прыгнуть к настоящему</JumpToNow>
 	<AdvancedSettings>Расширенные настройки</AdvancedSettings>
 	<Seasons>сезоны</Seasons>
@@ -103,7 +103,7 @@
 	<WhenDoZombiesSpawn>Когда зомби будут появляться?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Всё время</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>Только ночью</SpawnWhenType_WhenDark>
-	<SpawnWhenType_InEventsOnly>В качестве события(происшествия)</SpawnWhenType_InEventsOnly>
+	<SpawnWhenType_InEventsOnly>Только как события</SpawnWhenType_InEventsOnly>
 
 	<HowDoZombiesSpawn>Как зомби будут появляться?</HowDoZombiesSpawn>
 	<SpawnHowType_AllOverTheMap>Из земли</SpawnHowType_AllOverTheMap>
@@ -111,13 +111,13 @@
 	<SmartWandering>Стиль движения</SmartWandering>
 	<SmartWandering_Random>Случайный</SmartWandering_Random>
 	<SmartWandering_Simple>Простой</SmartWandering_Simple>
-	<SmartWandering_Smart>Умная</SmartWandering_Smart>
+	<SmartWandering_Smart>Умный</SmartWandering_Smart>
 	<BlacklistedBiomes>Биомы без зомби</BlacklistedBiomes>
 	<Biomes>Biomes</Biomes>
 
 	<WhatDoZombiesAttack>Кого зомби будут атаковать?</WhatDoZombiesAttack>
-	<AttackMode_Everything>Всё что движеться и дышит</AttackMode_Everything>
-	<AttackMode_OnlyHumans>Людей и гумоноидных созданий</AttackMode_OnlyHumans>
+	<AttackMode_Everything>Всех, кто движется</AttackMode_Everything>
+	<AttackMode_OnlyHumans>Людей и гуманоидов</AttackMode_OnlyHumans>
 	<AttackMode_OnlyColonists>Только колонистов и их вещи</AttackMode_OnlyColonists>
 	<EnemiesAttackZombies>Враги атакуют зомби</EnemiesAttackZombies>
 	<AnimalsAttackZombies>Животные атакуют зомби</AnimalsAttackZombies>
@@ -137,19 +137,19 @@
 	<SmashMode_Nothing>Ничего</SmashMode_Nothing>
 	<SmashMode_DoorsOnly>Двери</SmashMode_DoorsOnly>
 	<SmashMode_AnyBuilding>Любые конструкции</SmashMode_AnyBuilding>
-	<SmashOnlyWhenAgitated>Ломают только когда спровоцированы чем или кем-либо</SmashOnlyWhenAgitated>
+	<SmashOnlyWhenAgitated>Ломают, только когда спровоцированы кем-либо или чем-либо</SmashOnlyWhenAgitated>
 
 	<NewGameTitle>Новая игра</NewGameTitle>
-	<DaysBeforeZombiesCome>Дней прежде чем зомби прейдут</DaysBeforeZombiesCome>
+	<DaysBeforeZombiesCome>Дней до прихода зомби</DaysBeforeZombiesCome>
 
 	<ZombiesOnTheMap>Зомби на карте</ZombiesOnTheMap>
-	<MaximumNumberOfZombies>Небольше чем</MaximumNumberOfZombies>
+	<MaximumNumberOfZombies>Не больше чем</MaximumNumberOfZombies>
 	<Zombies>Зомби</Zombies>
 	<ColonyMultiplier>Множитель колоний</ColonyMultiplier>
-	<DoubleTapping>Безопасное двойное убийство</DoubleTapping>
+	<DoubleTapping>Добивание трупов</DoubleTapping>
 
 	<DynamicThreatLevelTitle>Уровень динамической угрозы</DynamicThreatLevelTitle>
-	<UseDynamicThreatLevel>Используйте динамический уровень угрозы</UseDynamicThreatLevel>
+	<UseDynamicThreatLevel>Использовать динамический уровень угрозы</UseDynamicThreatLevel>
 	<DynamicThreatSmoothness>Плавность кривой угрозы</DynamicThreatSmoothness>
 	<DynamicThreatStretch>Растяжение кривой угрозы</DynamicThreatStretch>
 	<ZombiesDieOnZeroThreat>Зомби умирают при 0% угрозе</ZombiesDieOnZeroThreat>
@@ -169,20 +169,20 @@
 
 	<ZombieSpeedTitle>Скорость зомби</ZombieSpeedTitle>
 	<MoveSpeedIdle>В спокойном состоянии</MoveSpeedIdle>
-	<MoveSpeedTracking>Когда преследуют(спровоцированы)</MoveSpeedTracking>
+	<MoveSpeedTracking>Когда возбуждены (преследуют цель)</MoveSpeedTracking>
 
 	<ZombieDamageTitle>Урон зомби</ZombieDamageTitle>
-	<ZombieDamageFactor>Множетель урон</ZombieDamageFactor>
-	<SafeMeleeLimit>безопасный лимит рукопашного боя</SafeMeleeLimit>
+	<ZombieDamageFactor>Множитель урона</ZombieDamageFactor>
+	<SafeMeleeLimit>Предел безопасного ближнего боя</SafeMeleeLimit>
 	<SafeMeleeExample>Пример: [_]{0}[_] уровень ближнего боя, [_]{1}[_] зомби => шанс {2}%</SafeMeleeExample>
-	<ZombiesCauseManhunting>Зомби злить животных</ZombiesCauseManhunting>
+	<ZombiesCauseManhunting>Зомби могут разъярить животных</ZombiesCauseManhunting>
 
-	<ZombieGameTweaks>Игра твики</ZombieGameTweaks>
-	<ReduceTurretConsumption>Уменьшить потребление пушки башни</ReduceTurretConsumption>
+	<ZombieGameTweaks>Игровые твики</ZombieGameTweaks>
+	<ReduceTurretConsumption>Уменьшить расход стали турелями</ReduceTurretConsumption>
 
 	<ZombieBiteInfectionChance>Вероятность заражения укусом зомби</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Время, пока инфекция не известна</ZombieBiteInfectionUnknown>
-	<ZombieBiteInfectionTreatable>Время в то время как инфекция поддается лечению</ZombieBiteInfectionTreatable>
+	<ZombieBiteInfectionTreatable>Время, пока инфекция поддаётся лечению</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>Продолжительность заражения</ZombieBiteInfectionPersists>
 	<AnyTreatmentStopsInfection>Лечение в постели останавливает инфекцию</AnyTreatmentStopsInfection>
 	<HoursAfterDeathToBecomeZombie>Время стать зомби после смерти</HoursAfterDeathToBecomeZombie>
@@ -190,10 +190,10 @@
 	<DeadBecomesZombieMessage>Показать сообщение, когда кто-то превращается в зомби</DeadBecomesZombieMessage>
 	<DangerousSituationMessage>Показать сообщение, когда в опасности</DangerousSituationMessage>
 
-	<ZombieHarvestingTitle>Выигрыш от зомби</ZombieHarvestingTitle>
-	<CorpsesExtractAmount>Количество зомби экстракта на зомби</CorpsesExtractAmount>
+	<ZombieHarvestingTitle>Добыча с зомби</ZombieHarvestingTitle>
+	<CorpsesExtractAmount>Экстракт зомби с одного трупа</CorpsesExtractAmount>
 	<CorpsesExtractChance>Шанс</CorpsesExtractChance>
-	<LootExtractAmount>Количество вещей упало после смерти зомби</LootExtractAmount>
+	<LootExtractAmount>Количество вещей, выпадающих с зомби</LootExtractAmount>
 	<CorpsesDaysToDessicated>Часы, пока трупы зомби не исчезнут</CorpsesDaysToDessicated>
 	<ExtractZombieArea>Ограничить извлечение в области</ExtractZombieArea>
 	<Everywhere>Везде</Everywhere>
@@ -205,7 +205,7 @@
 	<ZombieInstinct_Dull>Тупые</ZombieInstinct_Dull>
 	<ZombieInstinct_Normal>Нормальные</ZombieInstinct_Normal>
 	<ZombieInstinct_Sensitive>Агресивные</ZombieInstinct_Sensitive>
-	<RagingZombies>Zombies ярости, если толпа становится слишком большой</RagingZombies>
+	<RagingZombies>Зомби впадают в ярость, если группа становится слишком большой</RagingZombies>
 	<RageLevel>Уровень ярости</RageLevel>
 	<RageLevelVeryLow>Очень низкий</RageLevelVeryLow>
 	<RageLevelLow>Низкий уровень</RageLevelLow>
@@ -219,21 +219,21 @@
 	<ZombiesDieVeryEasily>Зомби легко убить</ZombiesDieVeryEasily>
 
 	<ZombieEatingTitle>Зомби едят</ZombieEatingTitle>
-	<ZombiesEatDowned>Зомби едят сбитые существа</ZombiesEatDowned>
+	<ZombiesEatDowned>Обездвиженных существ</ZombiesEatDowned>
 	<ZombiesEatCorpses>Зомби едят трупы</ZombiesEatCorpses>
 
 	<SpecialZombiesTitle>Уникальные зомби</SpecialZombiesTitle>
 	<SuicideBomberChance>Зомби-смертники</SuicideBomberChance>
-	<ToxicSplasherChance>Ядовитые зомби</ToxicSplasherChance>
-	<TankyOperatorChance>Тяжелые и бронированные зомби</TankyOperatorChance>
-	<MinerChance>Горные зомби</MinerChance>
+	<ToxicSplasherChance>Токсичные зомби-брызгуны</ToxicSplasherChance>
+	<TankyOperatorChance>Бронированные зомби-операторы</TankyOperatorChance>
+	<MinerChance>Зомби-шахтёры</MinerChance>
 	<ElectrifierChance>Электрические зомби</ElectrifierChance>
-	<AlbinoChance>альбинос зомби</AlbinoChance>
-	<DarkSlimerChance>Темные слизистые зомби</DarkSlimerChance>
-	<HealerChance>Целители зомби</HealerChance>
+	<AlbinoChance>Зомби-альбиносы</AlbinoChance>
+	<DarkSlimerChance>Тёмные слизневые зомби</DarkSlimerChance>
+	<HealerChance>Зомби-лекари</HealerChance>
 	<NormalZombieChance>Обычные зомби: {0}</NormalZombieChance>
-	<ChildZombieChance>Зомбированные дети</ChildZombieChance>
-	<SpitterThreat>Трудности с зомби-изрыгателем</SpitterThreat>
+	<ChildZombieChance>Дети-зомби</ChildZombieChance>
+	<SpitterThreat>Сложность зомби-плевуна</SpitterThreat>
 	<WallPushing>Количество зомби, которые будут толкать зомби через стены</WallPushing>
 	<ZombieSymbiantTitle>Зомби-симбионт</ZombieSymbiantTitle>
 	<SymbiantEnabled>Включить зомби-симбионтов</SymbiantEnabled>
@@ -244,10 +244,10 @@
 	<ReplaceTwinkie>Изменить сухой паёк на Twinkies</ReplaceTwinkie>
 	<Zombieland_Twinkie_Label>Твинки</Zombieland_Twinkie_Label>
 	<Zombieland_Twinkie_Description>Твинки — американское бисквитное пирожное с кремовой начинкой.</Zombieland_Twinkie_Description>
-	<ZombiesTriggerDangerMusic>Проигрывать музыку боя при Зомби-происшествие</ZombiesTriggerDangerMusic>
-	<PlayCreepyAmbientSound>Воспроизвести жуткий окружающий звук ночью</PlayCreepyAmbientSound>
-	<BetterZombieAvoidance>Улучшенный способ избежать зомби</BetterZombieAvoidance>
-	<ZombiesDropBlood>Зомби бросают кровь</ZombiesDropBlood>
+	<ZombiesTriggerDangerMusic>Зомби включают музыку опасности</ZombiesTriggerDangerMusic>
+	<PlayCreepyAmbientSound>Проигрывать жуткие фоновые звуки ночью</PlayCreepyAmbientSound>
+	<BetterZombieAvoidance>Автоматическое избегание зомби</BetterZombieAvoidance>
+	<ZombiesDropBlood>Зомби оставляют кровь</ZombiesDropBlood>
 	<ZombiesBurnLonger>Зомби горят дольше</ZombiesBurnLonger>
 
 	<AwarenessCuesTitle>Подсказки активности зомби</AwarenessCuesTitle>
@@ -269,7 +269,7 @@
 	<FactoryResetButton>Заводской сброс</FactoryResetButton>
 	<ResetButton>Сброс</ResetButton>
 	<UninstallZombieland>Удалить Zombieland из текущей игры</UninstallZombieland>
-	<ConfirmUninstallZombieland>Если вы продолжаете, вы можете выбрать новое имя файла сохранения и вернуться в главное меню после сохранения игры. Новое сохранение может быть загружено без Zombieland.\n\nВы действительно хотите удалить весь контент Zombieland из текущей игры?</ConfirmUninstallZombieland>
+	<ConfirmUninstallZombieland>Если вы продолжите, вы сможете выбрать новое имя файла сохранения и вернётесь в главное меню после сохранения игры. Новое сохранение может быть загружено без Zombieland.\n\nВы действительно хотите удалить весь контент Zombieland из текущей игры?</ConfirmUninstallZombieland>
 	<UninstallButton>Удалить</UninstallButton>
 
 	<ClipboardActionTitle>Буфер обмена</ClipboardActionTitle>
@@ -281,7 +281,7 @@
 	<RopeZombie>Захват зомби</RopeZombie>
 
 	<Activate>Активировать</Activate>
-	<ActivateDescription>Активирует устройство. Каждое зомби в комнате теряет сознание.</ActivateDescription>
+	<ActivateDescription>Активирует устройство. Каждый зомби в комнате теряет сознание.</ActivateDescription>
 	<WrongPlacementZombieShocker>Устройство не может быть размещено здесь.</WrongPlacementZombieShocker>
 
 	<ColonistsBittenByZombie>Колонист, укушенный зомби</ColonistsBittenByZombie>
@@ -294,38 +294,38 @@
 	<ZombieInfectionDesc>Эти колонисты инфицированы и станут зомби. Спасти их больше нет возможности:\n\n{0}\nВо время заражения им безразличны мысли, чувства, боль и голод. В конце они умирают и становятся зомби.</ZombieInfectionDesc>
 
 	<NoInfectionRisk>Нет риска заражения</NoInfectionRisk>
-	<HoursBeforeBecomingInfected>{0} часов до заражения</HoursBeforeBecomingInfected>
-	<HoursBeforeBecomingAZombie>За {0} часов до превращения в зомби</HoursBeforeBecomingAZombie>
+	<HoursBeforeBecomingInfected>{0} до заражения</HoursBeforeBecomingInfected>
+	<HoursBeforeBecomingAZombie>{0} до превращения в зомби</HoursBeforeBecomingAZombie>
 
 	<DangerousSituation>Опасная ситуация</DangerousSituation>
 	<ZombiesAreBeingPushedOverYourWalls>Зомби перебрасываются через ваши стены! Предотвратите скопление зомби в плотные группы.</ZombiesAreBeingPushedOverYourWalls>
 
-	<ColonistBecameAZombieLabel>Какой-то колонист превратился в зомби</ColonistBecameAZombieLabel>
+	<ColonistBecameAZombieLabel>Колонист превратился в зомби</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>Кто-то превратился в зомби</OtherBecameAZombieLabel>
-	<BecameAZombieDesc>{0} превратился в могущественного зомби.</BecameAZombieDesc>
+	<BecameAZombieDesc>{0} теперь могущественный зомби.</BecameAZombieDesc>
 
 	<BodyIsInfectedLabel>Это тело заражено вирусом зомби!</BodyIsInfectedLabel>
 	<BodyIsInfectedTooltip>Зараженные тела превратятся в зомби, когда они начнут гнить.</BodyIsInfectedTooltip>
 
 	<CureZombieInfection>Вылечить зомби-инфекцию</CureZombieInfection>
-	<ExtractingZombieSerum>Извлечение зомби-сыворотки</ExtractingZombieSerum>
-	<AutoExtractDisabledDescription>Не может извлечь сыворотку зомби (не врач)</AutoExtractDisabledDescription>
-	<AutoExtractAllowedDescription>Автоматически извлекать сыворотку зомби, когда поблизости нет зомби</AutoExtractAllowedDescription>
-	<AutoExtractForbiddenDescription>Извлекайте зомби-сыворотку только при заказе</AutoExtractForbiddenDescription>
-	<AutoDoubleTapDisabledDescription>Невозможно двойное нажатие (без охоты)</AutoDoubleTapDisabledDescription>
-	<AutoDoubleTapAllowedDescription>Автоматически дважды касайтесь трупов, чтобы они не превратились в зомби</AutoDoubleTapAllowedDescription>
-	<AutoDoubleTapForbiddenDescription>Двойное нажатие только при заказе</AutoDoubleTapForbiddenDescription>
+	<ExtractingZombieSerum>Сбор экстракта зомби</ExtractingZombieSerum>
+	<AutoExtractDisabledDescription>Не может собирать экстракт зомби (не назначен врачом)</AutoExtractDisabledDescription>
+	<AutoExtractAllowedDescription>Автоматически собирать экстракт зомби, когда поблизости нет зомби</AutoExtractAllowedDescription>
+	<AutoExtractForbiddenDescription>Собирать экстракт зомби только по приказу</AutoExtractForbiddenDescription>
+	<AutoDoubleTapDisabledDescription>Добивание невозможно (не назначен охотником)</AutoDoubleTapDisabledDescription>
+	<AutoDoubleTapAllowedDescription>Автоматически добивать трупы, чтобы они не превратились в зомби</AutoDoubleTapAllowedDescription>
+	<AutoDoubleTapForbiddenDescription>Добивать только по приказу</AutoDoubleTapForbiddenDescription>
 
-	<AutoAvoidZombiesEnabledDescription>Автоматически избегайте зомби, кроме случаев, когда колонист мобилизован и стоит</AutoAvoidZombiesEnabledDescription>
+	<AutoAvoidZombiesEnabledDescription>Автоматически избегать зомби, кроме случаев, когда колонист мобилизован</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Игнорировать зомби. Вам нужно вручную контролировать все действия</AutoAvoidZombiesDisabledDescription>
 
-	<ZapZombies>Начать зомби шокер</ZapZombies>
+	<ZapZombies>Запустить зомби-шокер</ZapZombies>
 	<ZombieShockerWrongPlacement>Устройство не может быть размещено здесь</ZombieShockerWrongPlacement>
 	<ZombieShockerHasNoBattery>Устройство не содержит батареи</ZombieShockerHasNoBattery>
-	<ZombieShockerHasNoRoom>Устройство не имеет действительной комнаты</ZombieShockerHasNoRoom>
-	<ZombieShockerLowBatteryState>Устройство истощало прикрепленные батареи</ZombieShockerLowBatteryState>
+	<ZombieShockerHasNoRoom>Устройство не подключено к подходящей комнате</ZombieShockerHasNoRoom>
+	<ZombieShockerLowBatteryState>Устройство разрядило подключённые батареи</ZombieShockerLowBatteryState>
 
-	<ShowHealthBar>Зомби Бар здоровья</ShowHealthBar>
+	<ShowHealthBar>Полоски здоровья зомби</ShowHealthBar>
 	<ShowZombieStats>Показать статистику зомби</ShowZombieStats>
 
 	<SnowAndSandClear>Очистка снега и песка</SnowAndSandClear>
@@ -336,7 +336,7 @@
 	<ColonistOutside>Колонист снаружи</ColonistOutside>
 	<ZombieInside>зомби внутри</ZombieInside>
 	<ZombieOutside>зомби снаружи</ZombieOutside>
-	<HighlightDangerousAreas>Выделите области риска</HighlightDangerousAreas>
+	<HighlightDangerousAreas>Подсвечивать опасные зоны</HighlightDangerousAreas>
 	<DisableRandomApparel>Выключить случайную одежду для зомби</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Парящие зомби в космосе</FloatingZombiesInSOS2>
 
@@ -345,19 +345,19 @@
 
 	<ChainsawBroken>Бензопила сломана</ChainsawBroken>
 	<ChainsawDisabled>Бензопила не может быть использована прямо сейчас</ChainsawDisabled>
-	<ChainsawNoFuel> Бензопила нуждается в дозаправке</ChainsawNoFuel>
+	<ChainsawNoFuel>Бензопила нуждается в дозаправке</ChainsawNoFuel>
 	<ChainsawTurnOn>Включите бензопилу, чтобы атаковать всех ближайших зомби</ChainsawTurnOn>
 	<ChainsawTurnOff>Выключите бензопилу для экономии топлива</ChainsawTurnOff>
-	<ChainsawStalling> (замирание)</ChainsawStalling>
+	<ChainsawStalling> (глохнет)</ChainsawStalling>
 	<ChainsawDesc>Бензопила</ChainsawDesc>
 	<ChainsawDescBroken>Сломанная бензопила</ChainsawDescBroken>
-	<ChainsawDescStalling>Стоящая бензопила</ChainsawDescStalling>
+	<ChainsawDescStalling>Глохнущая бензопила</ChainsawDescStalling>
 	<ChainsawDescFuel> с {0}% топлива</ChainsawDescFuel>
 	<ChainsawDescNoFuel> без топлива</ChainsawDescNoFuel>
 	<ChainsawDescBlockingChance> блокирует {0}% входящих атак</ChainsawDescBlockingChance>
 
 	<ThumperControl>Настройки</ThumperControl>
-	<ThumperControlDesc>Определите интенсивность и интервал для этого "Зомби-тупика</ThumperControlDesc>
+	<ThumperControlDesc>Задаёт интенсивность и интервал этой зомби-стучалки.</ThumperControlDesc>
 	<Intensity>Интенсивность</Intensity>
 	<Interval>Интервал</Interval>
 
@@ -369,7 +369,7 @@
 	<SpitterStateMoving>Перемещение</SpitterStateMoving>
 	<SpitterStatePreparing>Подготовка</SpitterStatePreparing>
 	<SpitterStateSpitting>Плевок</SpitterStateSpitting>
-	<SpitterStateLeaving>Оставить</SpitterStateLeaving>
+	<SpitterStateLeaving>Уходит</SpitterStateLeaving>
 	<Mode>Режим</Mode>
 	<Waves>Волны</Waves>
 	<Aggressive>Агрессивный</Aggressive>
