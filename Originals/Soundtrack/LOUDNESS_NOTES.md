@@ -90,6 +90,12 @@ Latest addition:
 | `Zombieland - Peaceful Times.wav` | `-14.05 LUFS` | `-0.42 dB` | `-14.47 LUFS` |
 | `Zombieland - The Unquiet.wav` | `-13.90 LUFS` | `-0.57 dB` | `-14.47 LUFS` |
 
+Entry-screen addition:
+
+| File | Before | Gain Applied | After |
+| --- | ---: | ---: | ---: |
+| `entry-screen.wav` | `-13.97 LUFS` | `-0.50 dB` | `-14.47 LUFS` |
+
 ## Backups
 
 The original-volume backup of the first batch is:
@@ -108,6 +114,9 @@ No backup was retained for the later top-level additions, by request.
 
 No backup was retained for the latest additions, by request. The new WAV files
 were already copies.
+
+No backup was retained for `entry-screen.wav`; the source file was already a
+copy.
 
 The actual filenames on disk use an en dash between `Zombieland` and the title.
 The names above use a plain hyphen for easier reading in this note.

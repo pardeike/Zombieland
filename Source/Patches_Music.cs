@@ -19,5 +19,12 @@ namespace ZombieLand
 				return false;
 			}
 		}
+
+		[HarmonyPatch(typeof(MusicManagerEntry), "StartPlaying")]
+		static class MusicManagerEntry_StartPlaying_Patch
+		{
+			static void Prefix()
+				=> ZombielandMusic.ApplyEntrySongReplacement();
+		}
 	}
 }

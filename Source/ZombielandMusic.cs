@@ -15,12 +15,15 @@ namespace ZombieLand
 	{
 		const string DefPrefix = "ZombielandMusic_";
 		const string MusicFolder = "music";
+		const string EntryScreenClipPath = MusicFolder + "/entry-screen";
 		static readonly HashSet<string> supportedExtensions = new(StringComparer.OrdinalIgnoreCase) { ".ogg", ".wav" };
 		static readonly HashSet<string> generatedDefNames = new();
 		static readonly List<SongDef> generatedSongs = new();
 		static readonly List<SongDef> zombielandShuffleBag = new();
 		static readonly object registrationLock = new();
 		static readonly MethodInfo appropriateNowMethod = AccessTools.Method(typeof(MusicManagerPlay), "AppropriateNow", new[] { typeof(SongDef) });
+		static SongDef originalEntrySong;
+		static bool originalEntrySongCaptured;
 		static bool registered;
 		static string lastRegistrationError;
 		static SongDef lastZombielandSong;
@@ -114,7 +117,7 @@ namespace ZombieLand
 				if (candidates.Count == 0)
 					return false;
 
-				var zombielandSongs = candidates.Where(IsZombielandSong).ToList();
+				var zombielandSongs = candidates.Where(songCandidate => IsZombielandSong(songCandidate) && IsEntryScreenSong(songCandidate) == false).ToList();
 				var otherSongs = candidates
 					.Where(candidate => IsZombielandSong(candidate) == false)
 					.Where(candidate => candidate.commonality > 0f)
@@ -131,7 +134,7 @@ namespace ZombieLand
 					{
 						recentSongs.Clear();
 						candidates = AppropriateSongs(manager).ToList();
-						zombielandSongs = candidates.Where(IsZombielandSong).ToList();
+						zombielandSongs = candidates.Where(songCandidate => IsZombielandSong(songCandidate) && IsEntryScreenSong(songCandidate) == false).ToList();
 						otherSongs = candidates
 							.Where(candidate => IsZombielandSong(candidate) == false)
 							.Where(candidate => candidate.commonality > 0f)
@@ -159,6 +162,7 @@ namespace ZombieLand
 		public static object DebugState()
 		{
 			RegisterDynamicSongDefs();
+			var entrySong = EntryScreenSong();
 			return new
 			{
 				registered,
@@ -167,6 +171,14 @@ namespace ZombieLand
 				generatedSongCount = generatedSongs.Count,
 				shuffleBagCount = zombielandShuffleBag.Count,
 				lastZombielandSong = lastZombielandSong?.defName,
+				entrySong = new
+				{
+					defName = entrySong?.defName,
+					clipPath = entrySong?.clipPath,
+					hasClip = entrySong?.clip != null,
+					installed = entrySong != null && SongDefOf.EntrySong == entrySong,
+					defaultSettingsAllow = DefaultSettingsAllowZombielandMusic()
+				},
 				lastRegistrationError,
 				songs = generatedSongs
 					.Select(song => new
@@ -201,27 +213,40 @@ namespace ZombieLand
 			if (existing != null)
 			{
 				EnsureDisplayMetadata(existing, clipPath);
+				ApplySongRole(existing, clipPath);
 				RegisterGeneratedSong(existing);
 				return true;
 			}
 
+			var isEntryScreenSong = IsEntryScreenClip(clipPath);
 			var song = new SongDef
 			{
 				defName = defName,
 				label = LabelFor(clipPath),
 				clipPath = clipPath,
 				clip = clip,
-				playOnMap = true,
+				playOnMap = isEntryScreenSong == false,
 				commonality = 0f,
 				volume = 1f,
-				tense = IsTenseClip(clipPath),
-				allowedTimeOfDay = TimeOfDayFor(clipPath),
+				tense = isEntryScreenSong == false && IsTenseClip(clipPath),
+				allowedTimeOfDay = isEntryScreenSong ? TimeOfDay.Any : TimeOfDayFor(clipPath),
 				modContentPack = LoadedModManager.GetMod<ZombielandMod>()?.Content
 			};
 
 			DefGenerator.AddImpliedDef(song);
 			RegisterGeneratedSong(song);
 			return true;
+		}
+
+		public static void ApplyEntrySongReplacement()
+		{
+			CaptureOriginalEntrySong();
+			if (DefaultSettingsAllowZombielandMusic() && EntryScreenSong() is { clip: not null } entrySong)
+			{
+				SongDefOf.EntrySong = entrySong;
+				return;
+			}
+			RestoreOriginalEntrySong();
 		}
 
 		static IEnumerable<SongDef> AppropriateSongs(MusicManagerPlay manager)
@@ -295,9 +320,61 @@ namespace ZombieLand
 			if (song == null)
 				return;
 			EnsureDisplayMetadata(song, song.clipPath);
+			ApplySongRole(song, song.clipPath);
 			generatedDefNames.Add(song.defName);
 			if (generatedSongs.Contains(song) == false)
 				generatedSongs.Add(song);
+		}
+
+		static void CaptureOriginalEntrySong()
+		{
+			if (originalEntrySongCaptured)
+				return;
+			originalEntrySong = SongDefOf.EntrySong;
+			originalEntrySongCaptured = true;
+		}
+
+		static void RestoreOriginalEntrySong()
+		{
+			if (originalEntrySongCaptured && originalEntrySong != null)
+				SongDefOf.EntrySong = originalEntrySong;
+		}
+
+		static bool DefaultSettingsAllowZombielandMusic()
+		{
+			if (ZombieSettingsDefaults.group == null)
+			{
+				try
+				{
+					_ = LoadedModManager.GetMod<ZombielandMod>()?.GetSettings<ZombieSettingsDefaults>();
+				}
+				catch { }
+			}
+			var defaults = ZombieSettingsDefaults.group ?? new SettingsGroup();
+			return defaults.playZombielandMusic && Mathf.Clamp(defaults.zombielandMusicShare, 0, 100) > 0;
+		}
+
+		static SongDef EntryScreenSong()
+		{
+			RegisterDynamicSongDefs();
+			return generatedSongs.FirstOrDefault(IsEntryScreenSong)
+				?? DefDatabase<SongDef>.AllDefs.FirstOrDefault(IsEntryScreenSong);
+		}
+
+		static bool IsEntryScreenSong(SongDef song)
+			=> IsEntryScreenClip(song?.clipPath);
+
+		static bool IsEntryScreenClip(string clipPath)
+			=> string.Equals(clipPath, EntryScreenClipPath, StringComparison.OrdinalIgnoreCase);
+
+		static void ApplySongRole(SongDef song, string clipPath)
+		{
+			if (song == null || IsEntryScreenClip(clipPath) == false)
+				return;
+			song.playOnMap = false;
+			song.commonality = 0f;
+			song.tense = false;
+			song.allowedTimeOfDay = TimeOfDay.Any;
 		}
 
 		static bool HasDisplayName(SongDef song)

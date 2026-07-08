@@ -478,8 +478,11 @@ namespace ZombieLand
 			var defaults = new SettingsGroup();
 			var chooseNextSong = AccessTools.Method(typeof(MusicManagerPlay), "ChooseNextSong");
 			var appropriateNow = AccessTools.Method(typeof(MusicManagerPlay), "AppropriateNow", new[] { typeof(SongDef) });
+			var entryStartPlaying = AccessTools.Method(typeof(MusicManagerEntry), "StartPlaying");
 			var patchTargets = PatchedMethodsForPatchClass("MusicManagerPlay_ChooseNextSong_Patch");
 			var prefix = FindNestedPatchMethod("MusicManagerPlay_ChooseNextSong_Patch", "Prefix");
+			var entryPatchTargets = PatchedMethodsForPatchClass("MusicManagerEntry_StartPlaying_Patch");
+			var entryPrefix = FindNestedPatchMethod("MusicManagerEntry_StartPlaying_Patch", "Prefix");
 			var dynamicState = ZombielandMusic.DebugState();
 			var dialogState = MaybeOpenSettingsDialog(openSettingsDialog);
 			var normalizationSamples = new[] { -5, 0, 4, 5, 14, 15, 66, 95, 104 }
@@ -504,8 +507,11 @@ namespace ZombieLand
 					&& ZombielandMusic.NormalizeShare(66) == 70
 					&& chooseNextSong != null
 					&& appropriateNow != null
+					&& entryStartPlaying != null
 					&& prefix != null
-					&& patchTargets.Length > 0,
+					&& patchTargets.Length > 0
+					&& entryPrefix != null
+					&& entryPatchTargets.Length > 0,
 				defaults = new
 				{
 					defaults.playZombielandMusic,
@@ -523,12 +529,15 @@ namespace ZombieLand
 				rimWorldTargets = new
 				{
 					chooseNextSong = chooseNextSong?.FullDescription(),
-					appropriateNow = appropriateNow?.FullDescription()
+					appropriateNow = appropriateNow?.FullDescription(),
+					entryStartPlaying = entryStartPlaying?.FullDescription()
 				},
 				patch = new
 				{
 					targets = patchTargets,
-					hasPrefix = prefix != null
+					hasPrefix = prefix != null,
+					entryTargets = entryPatchTargets,
+					hasEntryPrefix = entryPrefix != null
 				},
 				dynamicState,
 				dialogState
