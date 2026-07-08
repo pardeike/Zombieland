@@ -76,6 +76,8 @@ namespace ZombieLand
 			Thing cleanThing = null;
 			Thing lightContaminatedThing = null;
 			Thing heavyContaminatedThing = null;
+			Building sourceBuilding = null;
+			MinifiedThing heavyMinifiedThing = null;
 			try
 			{
 				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
@@ -85,6 +87,8 @@ namespace ZombieLand
 					return lightContaminatedCellError;
 				if (TryFindClearSpawnCell(map, lightContaminatedCell + IntVec3.East, 8f, out var heavyContaminatedCell, out var heavyContaminatedCellError) == false)
 					return heavyContaminatedCellError;
+				if (TryFindClearSpawnCell(map, heavyContaminatedCell + IntVec3.East, 8f, out var minifiedCell, out var minifiedCellError) == false)
+					return minifiedCellError;
 
 				cleanThing = GenSpawn.Spawn(ThingMaker.MakeThing(ThingDefOf.Steel), cleanCell, map, WipeMode.Vanish);
 				lightContaminatedThing = GenSpawn.Spawn(ThingMaker.MakeThing(ThingDefOf.Steel), lightContaminatedCell, map, WipeMode.Vanish);
@@ -92,6 +96,16 @@ namespace ZombieLand
 				cleanThing.SetContamination(0f);
 				lightContaminatedThing.SetContamination(0.5f);
 				heavyContaminatedThing.SetContamination(0.9f);
+				var stoolDef = DefDatabase<ThingDef>.GetNamed("Stool", false);
+				if (stoolDef?.Minifiable != true || stoolDef.minifiedDef == null)
+					return new { success = false, error = "The Stool building def is not available as a minified storage fixture." };
+				sourceBuilding = GenSpawn.Spawn(ThingMaker.MakeThing(stoolDef, ThingDefOf.WoodLog), minifiedCell, map, Rot4.South) as Building;
+				if (sourceBuilding == null)
+					return new { success = false, error = "Could not spawn the Stool minified storage fixture." };
+				heavyMinifiedThing = MinifyUtility.MakeMinified(sourceBuilding);
+				if (heavyMinifiedThing == null)
+					return new { success = false, error = "MinifyUtility.MakeMinified returned null for the storage fixture." };
+				heavyMinifiedThing.SetContamination(0.9f);
 
 				var defaultSettings = NewAllStorageSettings();
 				var belowHalfSettings = NewAllStorageSettings();
@@ -104,36 +118,50 @@ namespace ZombieLand
 				var cleanContamination = cleanThing.GetContamination();
 				var lightContamination = lightContaminatedThing.GetContamination();
 				var heavyContamination = heavyContaminatedThing.GetContamination();
+				var heavyMinifiedContamination = heavyMinifiedThing.GetContamination();
+				var heavyMinifiedIncludingHoldings = heavyMinifiedThing.GetContamination(includeHoldings: true);
+				var heavyMinifiedInnerContamination = heavyMinifiedThing.InnerThing?.GetContamination() ?? 0f;
 				var defaultClean = defaultSettings.AllowedToAccept(cleanThing);
 				var defaultLight = defaultSettings.AllowedToAccept(lightContaminatedThing);
 				var defaultHeavy = defaultSettings.AllowedToAccept(heavyContaminatedThing);
+				var defaultMinified = defaultSettings.AllowedToAccept(heavyMinifiedThing);
 				var belowHalfClean = belowHalfSettings.AllowedToAccept(cleanThing);
 				var belowHalfLight = belowHalfSettings.AllowedToAccept(lightContaminatedThing);
 				var belowHalfHeavy = belowHalfSettings.AllowedToAccept(heavyContaminatedThing);
+				var belowHalfMinified = belowHalfSettings.AllowedToAccept(heavyMinifiedThing);
 				var heavyOnlyClean = heavyOnlySettings.AllowedToAccept(cleanThing);
 				var heavyOnlyLight = heavyOnlySettings.AllowedToAccept(lightContaminatedThing);
 				var heavyOnlyHeavy = heavyOnlySettings.AllowedToAccept(heavyContaminatedThing);
+				var heavyOnlyMinified = heavyOnlySettings.AllowedToAccept(heavyMinifiedThing);
 				var copiedHeavyOnlyClean = copiedHeavyOnlySettings.AllowedToAccept(cleanThing);
 				var copiedHeavyOnlyLight = copiedHeavyOnlySettings.AllowedToAccept(lightContaminatedThing);
 				var copiedHeavyOnlyHeavy = copiedHeavyOnlySettings.AllowedToAccept(heavyContaminatedThing);
+				var copiedHeavyOnlyMinified = copiedHeavyOnlySettings.AllowedToAccept(heavyMinifiedThing);
 				var copiedRange = ContaminationStorageRange.GetRange(copiedHeavyOnlySettings);
 				var success = cleanContamination == 0f
 					&& Mathf.Approximately(lightContamination, 0.5f)
 					&& Mathf.Approximately(heavyContamination, 0.9f)
+					&& Mathf.Approximately(heavyMinifiedContamination, 0.9f)
+					&& Mathf.Approximately(heavyMinifiedIncludingHoldings, 0.9f)
+					&& heavyMinifiedInnerContamination == 0f
 					&& ContaminationStorageRange.GetRange(defaultSettings) == ContaminationStorageRange.DefaultRange
 					&& defaultClean
 					&& defaultLight
 					&& defaultHeavy
+					&& defaultMinified
 					&& belowHalfClean
 					&& belowHalfLight
 					&& belowHalfHeavy == false
+					&& belowHalfMinified == false
 					&& heavyOnlyClean == false
 					&& heavyOnlyLight == false
 					&& heavyOnlyHeavy
+					&& heavyOnlyMinified
 					&& copiedRange == ContaminationStorageRange.GetRange(heavyOnlySettings)
 					&& copiedHeavyOnlyClean == false
 					&& copiedHeavyOnlyLight == false
-					&& copiedHeavyOnlyHeavy;
+					&& copiedHeavyOnlyHeavy
+					&& copiedHeavyOnlyMinified;
 
 				return new
 				{
@@ -149,14 +177,23 @@ namespace ZombieLand
 					{
 						clean = DescribeContaminationThing(cleanThing),
 						lightContaminated = DescribeContaminationThing(lightContaminatedThing),
-						heavyContaminated = DescribeContaminationThing(heavyContaminatedThing)
+						heavyContaminated = DescribeContaminationThing(heavyContaminatedThing),
+						heavyMinified = DescribeContaminationThing(heavyMinifiedThing),
+						heavyMinifiedInner = DescribeContaminationThing(heavyMinifiedThing.InnerThing)
+					},
+					minified = new
+					{
+						wrapperContamination = heavyMinifiedContamination,
+						includingHoldings = heavyMinifiedIncludingHoldings,
+						innerContamination = heavyMinifiedInnerContamination,
+						sourcePath = "MinifyUtility.MakeMinified -> ReplacementContaminationState.Move(source, minified wrapper)"
 					},
 					allows = new
 					{
-						defaultRange = new { clean = defaultClean, light = defaultLight, heavy = defaultHeavy },
-						belowHalf = new { clean = belowHalfClean, light = belowHalfLight, heavy = belowHalfHeavy },
-						heavyOnly = new { clean = heavyOnlyClean, light = heavyOnlyLight, heavy = heavyOnlyHeavy },
-						copiedHeavyOnly = new { clean = copiedHeavyOnlyClean, light = copiedHeavyOnlyLight, heavy = copiedHeavyOnlyHeavy }
+						defaultRange = new { clean = defaultClean, light = defaultLight, heavy = defaultHeavy, minified = defaultMinified },
+						belowHalf = new { clean = belowHalfClean, light = belowHalfLight, heavy = belowHalfHeavy, minified = belowHalfMinified },
+						heavyOnly = new { clean = heavyOnlyClean, light = heavyOnlyLight, heavy = heavyOnlyHeavy, minified = heavyOnlyMinified },
+						copiedHeavyOnly = new { clean = copiedHeavyOnlyClean, light = copiedHeavyOnlyLight, heavy = copiedHeavyOnlyHeavy, minified = copiedHeavyOnlyMinified }
 					}
 				};
 			}
@@ -170,6 +207,10 @@ namespace ZombieLand
 						lightContaminatedThing.Destroy(DestroyMode.Vanish);
 					if (heavyContaminatedThing is { Destroyed: false })
 						heavyContaminatedThing.Destroy(DestroyMode.Vanish);
+					if (heavyMinifiedThing is { Destroyed: false })
+						heavyMinifiedThing.Destroy(DestroyMode.Vanish);
+					if (sourceBuilding is { Destroyed: false })
+						sourceBuilding.Destroy(DestroyMode.Vanish);
 				}
 			}
 		}

@@ -78,7 +78,7 @@ namespace ZombieLand
 			var range = GetRange(settings);
 			if (range == DefaultRange)
 				return true;
-			var contamination = Mathf.Clamp01(ComparableThing(thing)?.GetContamination() ?? 0f);
+			var contamination = Mathf.Clamp01(thing.GetContamination(includeHoldings: true));
 			contamination = GenMath.RoundedHundredth(contamination);
 			return range.IncludesEpsilon(contamination);
 		}
@@ -121,9 +121,6 @@ namespace ZombieLand
 			size.y += SliderRowHeight;
 			inspectTabSizeField.SetValue(tab, size);
 		}
-
-		public static Thing ComparableThing(Thing thing)
-			=> thing is MinifiedThing minifiedThing ? minifiedThing.InnerThing : thing;
 
 		static FloatRange Normalize(FloatRange range)
 		{
