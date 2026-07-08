@@ -3653,6 +3653,7 @@ namespace ZombieLand
 		[HarmonyPatch(typeof(PawnRenderer))]
 		[HarmonyPatch(nameof(PawnRenderer.RenderPawnAt))]
 		[HarmonyPatch(new Type[] { typeof(Vector3), typeof(Rot4?), typeof(bool) })]
+		[StaticConstructorOnStartup]
 		static class PawnRenderer_RenderPawnAt_Patch
 		{
 			static readonly float moteAltitute = Altitudes.AltitudeFor(AltitudeLayer.MoteOverhead);
@@ -4220,6 +4221,7 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(Map))]
 		[HarmonyPatch(nameof(Map.MapUpdate))]
+		[StaticConstructorOnStartup]
 		static class Map_MapUpdate_Patch
 		{
 			static readonly Mesh fullMesh = MeshPool.GridPlane(new Vector2(8f, 8f));
