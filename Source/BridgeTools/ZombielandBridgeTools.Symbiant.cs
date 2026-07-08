@@ -426,14 +426,17 @@ namespace ZombieLand
 			object cleanupSymbiant = null;
 			object fixtureCleanup = null;
 			object error = null;
+			float feedingGrowthSpeedFactor = 0f;
 
 			try
 			{
 				ApplyZombieSettingsOverride(settings =>
 				{
 					settings.showZombieEventLetters = false;
+					settings.threatScale = 1f;
 					settings.symbiantMaxCells = Math.Max(settings.symbiantMaxCells, 400);
 				});
+				feedingGrowthSpeedFactor = ZombieSymbiant.CurrentGrowthSpeedFactor;
 
 				if (TrySetupSymbiantNaturalSpawnFixture(map, out fixture, out var fixtureError) == false)
 					return fixtureError;
@@ -444,13 +447,13 @@ namespace ZombieLand
 					return humanCellError;
 				if (TryCreateSymbiantFeedCorpse(map, humanCorpseCell, true, "ZL_SymbiantFeed_Human", spawnedThings, out var humanCorpse, out var humanCorpseError) == false)
 					return humanCorpseError;
-				humanCorpseFeed = FeedSymbiantThing(symbiant, humanCorpse, "fresh humanlike corpse", 3);
+				humanCorpseFeed = FeedSymbiantThing(symbiant, humanCorpse, "fresh humanlike corpse", 6);
 
 				if (TryFindClearSpawnCell(map, symbiant.Position + new IntVec3(4, 0, 0), 16f, out var animalCorpseCell, out var animalCellError) == false)
 					return animalCellError;
 				if (TryCreateSymbiantFeedCorpse(map, animalCorpseCell, false, "ZL_SymbiantFeed_Animal", spawnedThings, out var animalCorpse, out var animalCorpseError) == false)
 					return animalCorpseError;
-				animalCorpseFeed = FeedSymbiantThing(symbiant, animalCorpse, "fresh animal corpse", 2);
+				animalCorpseFeed = FeedSymbiantThing(symbiant, animalCorpse, "fresh animal corpse", 4);
 			}
 			catch (Exception ex)
 			{
@@ -480,6 +483,7 @@ namespace ZombieLand
 			{
 				success,
 				sourcePath = "ZombieSymbiant.TryFeed -> FeedGrowthCells -> TryExpansionPulse",
+				growthSpeedFactor = feedingGrowthSpeedFactor,
 				error,
 				fixtureSetup,
 				humanCorpseFeed,

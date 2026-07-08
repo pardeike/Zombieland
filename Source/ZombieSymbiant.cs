@@ -71,6 +71,9 @@ namespace ZombieLand
 		const float AmbientMovementHighBenefitCenterSlack = 5f;
 		const float SymbiantCellSlowMin = 0.10f;
 		const float SymbiantCellSlowMax = 0.50f;
+		const float SymbiantFastGrowthDifficultyLimit = 2.5f;
+		const float SymbiantLowDifficultyGrowthSpeedFactor = 2f;
+		const float SymbiantHighDifficultyGrowthSpeedFactor = 1.5f;
 		internal const float SymbiantContaminationStepReduction = 0.05f;
 			const int SeveranceExtractCostMin = 10;
 			const int SeveranceExtractCostMax = 50;
@@ -197,6 +200,7 @@ namespace ZombieLand
 		public int NextRelocationPulseTick => nextRelocationPulseTick;
 		public int UprootedSinceTick => uprootedSinceTick;
 		public bool CancelNextBreach => cancelNextBreach;
+		public static float CurrentGrowthSpeedFactor => SymbiantGrowthSpeedFactor();
 		public bool FeedRequested => feedRequested;
 		public IEnumerable<IntVec3> AbsoluteCells => orderedCells.Select(cell => Position + cell);
 		CellRect AbsoluteCellBounds => relativeCellBounds.MovedBy(Position);
@@ -1381,6 +1385,14 @@ namespace ZombieLand
 			return GenMath.LerpDoubleClamped(1f, 5f, minAtOne, maxAtFive, SymbiantDifficulty());
 		}
 
+		static float SymbiantGrowthSpeedFactor()
+		{
+			var difficulty = Mathf.Clamp(ZombieLand.Tools.Difficulty(), 0f, 5f);
+			return difficulty <= SymbiantFastGrowthDifficultyLimit
+				? SymbiantLowDifficultyGrowthSpeedFactor
+				: SymbiantHighDifficultyGrowthSpeedFactor;
+		}
+
 		static int BenefitStepCells()
 		{
 			return Mathf.RoundToInt(DifficultyScaled(10f, 50f));
@@ -2502,7 +2514,8 @@ namespace ZombieLand
 			int AutomaticExpansionIntervalTicks()
 			{
 				var days = DifficultyScaled(0.5f, 2f);
-				return Mathf.Max(GenDate.TicksPerHour, Mathf.RoundToInt(days * GenDate.TicksPerDay));
+				var ticks = Mathf.RoundToInt(days * GenDate.TicksPerDay / SymbiantGrowthSpeedFactor());
+				return Mathf.Max(GenDate.TicksPerHour, ticks);
 			}
 
 			int RetreatIntervalTicks()
@@ -3045,6 +3058,14 @@ namespace ZombieLand
 		}
 
 		static int FeedGrowthCells(Thing feed)
+		{
+			var baseCells = BaseFeedGrowthCells(feed);
+			if (baseCells <= 0)
+				return 0;
+			return Mathf.Max(1, Mathf.CeilToInt(baseCells * SymbiantGrowthSpeedFactor()));
+		}
+
+		static int BaseFeedGrowthCells(Thing feed)
 		{
 			if (feed is Corpse corpse)
 			{
