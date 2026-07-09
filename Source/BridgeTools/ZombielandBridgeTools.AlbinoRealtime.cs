@@ -49,11 +49,11 @@ namespace ZombieLand
 		{
 			public bool active { get; set; }
 			public object destination { get; set; }
-				public string doorId { get; set; }
-				public string doorDef { get; set; }
-				public object doorPosition { get; set; }
-				public object doorExitCell { get; set; }
-				public string hackTargetId { get; set; }
+			public string doorId { get; set; }
+			public string doorDef { get; set; }
+			public object doorPosition { get; set; }
+			public object doorExitCell { get; set; }
+			public string hackTargetId { get; set; }
 			public string hackTargetDef { get; set; }
 			public string hackTargetLabel { get; set; }
 			public bool hackTargetSpawned { get; set; }
@@ -61,6 +61,8 @@ namespace ZombieLand
 			public object hackApproachCell { get; set; }
 			public int recentlyHackedTargetCount { get; set; }
 			public object[] recentlyHackedTargets { get; set; }
+			public int enoughHackedItemCount { get; set; }
+			public object[] enoughHackedItems { get; set; }
 			public bool noSafeHackRoute { get; set; }
 			public bool interruptibleDestination { get; set; }
 			public bool safetyDestination { get; set; }
@@ -69,17 +71,17 @@ namespace ZombieLand
 			public int ticksUntilStrategicRecheck { get; set; }
 			public object lastStrategicRecheckCell { get; set; }
 			public object lastFallbackStartCell { get; set; }
-				public object lastFallbackDestination { get; set; }
-				public int nextFallbackMoveTick { get; set; }
-				public int ticksUntilFallbackMove { get; set; }
-				public string deferredHackTargetId { get; set; }
-				public string deferredHackTargetLabel { get; set; }
-				public int ticksUntilDeferredHackTarget { get; set; }
-				public string rushHackTargetId { get; set; }
-				public string rushHackTargetLabel { get; set; }
-				public int ticksUntilRushHackTarget { get; set; }
-				public object queuedScreamCell { get; set; }
-				public object queuedMoveCell { get; set; }
+			public object lastFallbackDestination { get; set; }
+			public int nextFallbackMoveTick { get; set; }
+			public int ticksUntilFallbackMove { get; set; }
+			public string deferredHackTargetId { get; set; }
+			public string deferredHackTargetLabel { get; set; }
+			public int ticksUntilDeferredHackTarget { get; set; }
+			public string rushHackTargetId { get; set; }
+			public string rushHackTargetLabel { get; set; }
+			public int ticksUntilRushHackTarget { get; set; }
+			public object queuedScreamCell { get; set; }
+			public object queuedMoveCell { get; set; }
 			public int waitCounter { get; set; }
 			public int hackCounter { get; set; }
 			public int nextDefensiveScreamCheckTick { get; set; }
@@ -523,14 +525,14 @@ namespace ZombieLand
 			var ticks = GenTicks.TicksGame;
 			var zombie = pawn as Zombie;
 			var screamReady = zombie != null && zombie.albinoNextScreamTick >= 0 && ticks >= zombie.albinoNextScreamTick;
-				var path = pawn?.pather?.curPath;
-				var target = driver.hackTarget;
-				var door = driver.door;
-				var deferredTarget = driver.deferredHackTarget;
-				var rushTarget = driver.rushHackTarget;
-				driver.PausedHackTargetCount();
-				return new AlbinoRealtimeDriverSample
-				{
+			var path = pawn?.pather?.curPath;
+			var target = driver.hackTarget;
+			var door = driver.door;
+			var deferredTarget = driver.deferredHackTarget;
+			var rushTarget = driver.rushHackTarget;
+			driver.PausedHackTargetCount();
+			return new AlbinoRealtimeDriverSample
+			{
 				active = true,
 				destination = driver.destination.IsValid ? ZombieRuntimeActions.DescribeCell(driver.destination) : null,
 				doorId = ZombieRuntimeActions.StableThingId(door),
@@ -545,6 +547,8 @@ namespace ZombieLand
 				hackApproachCell = driver.hackApproachCell.IsValid ? ZombieRuntimeActions.DescribeCell(driver.hackApproachCell) : null,
 				recentlyHackedTargetCount = driver.recentlyHackedTargets?.Count ?? 0,
 				recentlyHackedTargets = DescribeAlbinoRealtimePausedHackTargets(driver, ticks),
+				enoughHackedItemCount = AlbinoEnoughHackedItemCount(pawn?.Map),
+				enoughHackedItems = DescribeAlbinoRealtimeEnoughHackedItems(pawn?.Map),
 				noSafeHackRoute = driver.noSafeHackRoute,
 				interruptibleDestination = driver.interruptibleDestination,
 				safetyDestination = driver.safetyDestination,
@@ -553,16 +557,16 @@ namespace ZombieLand
 				ticksUntilStrategicRecheck = Math.Max(0, driver.nextStrategicRecheckTick - ticks),
 				lastStrategicRecheckCell = driver.lastStrategicRecheckCell.IsValid ? ZombieRuntimeActions.DescribeCell(driver.lastStrategicRecheckCell) : null,
 				lastFallbackStartCell = driver.lastFallbackStartCell.IsValid ? ZombieRuntimeActions.DescribeCell(driver.lastFallbackStartCell) : null,
-					lastFallbackDestination = driver.lastFallbackDestination.IsValid ? ZombieRuntimeActions.DescribeCell(driver.lastFallbackDestination) : null,
-					nextFallbackMoveTick = driver.nextFallbackMoveTick,
-					ticksUntilFallbackMove = Math.Max(0, driver.nextFallbackMoveTick - ticks),
-					deferredHackTargetId = ZombieRuntimeActions.StableThingId(deferredTarget),
-					deferredHackTargetLabel = deferredTarget?.LabelCap.ToString(),
-					ticksUntilDeferredHackTarget = Math.Max(0, driver.deferredHackTargetPauseUntilTick - ticks),
-					rushHackTargetId = ZombieRuntimeActions.StableThingId(rushTarget),
-					rushHackTargetLabel = rushTarget?.LabelCap.ToString(),
-					ticksUntilRushHackTarget = Math.Max(0, driver.rushHackTargetUntilTick - ticks),
-					queuedScreamCell = driver.queuedScreamCell.IsValid ? ZombieRuntimeActions.DescribeCell(driver.queuedScreamCell) : null,
+				lastFallbackDestination = driver.lastFallbackDestination.IsValid ? ZombieRuntimeActions.DescribeCell(driver.lastFallbackDestination) : null,
+				nextFallbackMoveTick = driver.nextFallbackMoveTick,
+				ticksUntilFallbackMove = Math.Max(0, driver.nextFallbackMoveTick - ticks),
+				deferredHackTargetId = ZombieRuntimeActions.StableThingId(deferredTarget),
+				deferredHackTargetLabel = deferredTarget?.LabelCap.ToString(),
+				ticksUntilDeferredHackTarget = Math.Max(0, driver.deferredHackTargetPauseUntilTick - ticks),
+				rushHackTargetId = ZombieRuntimeActions.StableThingId(rushTarget),
+				rushHackTargetLabel = rushTarget?.LabelCap.ToString(),
+				ticksUntilRushHackTarget = Math.Max(0, driver.rushHackTargetUntilTick - ticks),
+				queuedScreamCell = driver.queuedScreamCell.IsValid ? ZombieRuntimeActions.DescribeCell(driver.queuedScreamCell) : null,
 				queuedMoveCell = driver.queuedMoveCell.IsValid ? ZombieRuntimeActions.DescribeCell(driver.queuedMoveCell) : null,
 				waitCounter = driver.waitCounter,
 				hackCounter = driver.hackCounter,
@@ -602,6 +606,19 @@ namespace ZombieLand
 				});
 			}
 			return result.ToArray();
+		}
+
+		static object[] DescribeAlbinoRealtimeEnoughHackedItems(Map map)
+		{
+			return AlbinoEnoughHackedItemsSnapshot(map)
+				.Select(target => new
+				{
+					id = ZombieRuntimeActions.StableThingId(target),
+					def = target.def?.defName,
+					label = target.LabelCap.ToString(),
+					position = target.Spawned ? ZombieRuntimeActions.DescribeCell(target.Position) : null
+				})
+				.ToArray();
 		}
 
 		static AlbinoRealtimeColonistSample[] DescribeAlbinoRealtimeColonists(Zombie albino)

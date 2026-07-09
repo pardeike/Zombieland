@@ -38,6 +38,9 @@ namespace ZombieLand
 				.ThenBy(weapon => weapon.Position.x)
 				.ThenBy(weapon => weapon.Position.z)
 				.ToArray();
+			var selectableWeaponTargets = weaponTargets
+				.Where(weapon => IsAlbinoEnoughHackedItem(map, weapon) == false)
+				.ToArray();
 			var routeDoors = map.listerBuildings.allBuildingsColonist
 				.OfType<Building_Door>()
 				.Where(door => door.Spawned && door.Destroyed == false && door.Open == false)
@@ -59,7 +62,7 @@ namespace ZombieLand
 					"Direct building targets are map.listerBuildings.allBuildingsColonist where SabotageHandler.CanHackBuilding(building) is true.",
 					"Direct weapon targets are spawned ranged weapons with hit points.",
 					"The albino now tries the best safe-route direct hack target before lower-value room/home movement, skipping direct targets whose current route crosses dangerous pressure.",
-					"After a successful direct hack, that albino temporarily pauses the same target so partially damaged weapons are not selected repeatedly while other work is available.",
+					"After a successful weapon hack, Zombieland remembers that item on the map so all albinos skip it afterward.",
 					"A planned scream is allowed to walk into pressure because the scream itself is the mitigation; ordinary movement remains pressure-averse.",
 					"Closed doors are route-only blockers: they are hacked only when a chosen path crosses them."
 				},
@@ -68,6 +71,8 @@ namespace ZombieLand
 				{
 					directBuildings = buildingTargets.Length,
 					directWeapons = weaponTargets.Length,
+					selectableDirectWeapons = selectableWeaponTargets.Length,
+					enoughHackedWeapons = weaponTargets.Length - selectableWeaponTargets.Length,
 					routeOnlyClosedDoors = routeDoors.Length
 				},
 				buildings = buildingTargets.Take(cappedTargets).Select(DescribeAlbinoBuildingHackTarget).ToArray(),
@@ -120,6 +125,7 @@ namespace ZombieLand
 		static object DescribeAlbinoWeaponHackTarget(Map map, Thing weapon)
 		{
 			var damage = Math.Max(1, weapon.HitPoints / 2);
+			var enoughHacked = IsAlbinoEnoughHackedItem(map, weapon);
 			return new
 			{
 				id = ZombieRuntimeActions.StableThingId(weapon),
@@ -134,10 +140,12 @@ namespace ZombieLand
 				marketValue = weapon.MarketValue,
 				weaponSabotageScore = SabotageHandler.WeaponSabotageScore(map, weapon),
 				inHomeArea = map.areaManager.Home[weapon.Position],
+				enoughHacked,
+				selectable = enoughHacked == false,
 				action = "damage_ranged_weapon",
 				effect = $"Apply Deterioration damage for {damage}, which is half of current hit points rounded down with a minimum of 1.",
 				expectedHitPointsAfterDamage = Math.Max(0, weapon.HitPoints - damage),
-				selection = "Survival-first safe-route target selection when the weapon sabotage branch is selected; WeaponSabotageScore is only a tie-breaker after route safety and distance. An individual albino temporarily skips this weapon after successfully damaging it."
+				selection = "Survival-first safe-route target selection when the weapon sabotage branch is selected; WeaponSabotageScore is only a tie-breaker after route safety and distance. A map-remembered enough-hacked weapon is skipped by all albinos."
 			};
 		}
 

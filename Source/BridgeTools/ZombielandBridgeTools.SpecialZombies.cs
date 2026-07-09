@@ -4496,6 +4496,8 @@ namespace ZombieLand
 					return AlbinoCase("weapon_hack", false, error: albinoError?.ToString());
 				if (TryFindClearSpawnCell(map, albinoCell + IntVec3.East, 6f, out var weaponCell, out var weaponError) == false)
 					return AlbinoCase("weapon_hack", false, error: weaponError?.ToString());
+				if (TryFindClearSpawnCell(map, albinoCell + IntVec3.West, 6f, out var secondAlbinoCell, out var secondAlbinoError) == false)
+					return AlbinoCase("weapon_hack", false, error: secondAlbinoError?.ToString());
 
 				var weaponDef = DefDatabase<ThingDef>.GetNamed("Gun_BoltActionRifle", false)
 					?? DefDatabase<ThingDef>.GetNamed("Gun_Pistol", false);
@@ -4508,6 +4510,8 @@ namespace ZombieLand
 
 				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
 				var run = RunForcedAlbinoHack(albino, weapon);
+				var enoughHackedAfterHack = IsAlbinoEnoughHackedItem(map, weapon);
+				var enoughHackedCount = AlbinoEnoughHackedItemCount(map);
 				var pausedAfterHack = run.driver?.recentlyHackedTargets?.Contains(weapon) == true;
 				var pauseRemainingTicks = 0;
 				if (pausedAfterHack && run.driver.recentlyHackedTargetPauseUntilTicks != null)
@@ -4517,21 +4521,31 @@ namespace ZombieLand
 						pauseRemainingTicks = Math.Max(0, run.driver.recentlyHackedTargetPauseUntilTicks[pauseIndex] - GenTicks.TicksGame);
 				}
 				var immediatelyRetargetedWeapon = run.driver?.BestReachableHackTarget(new[] { weapon }) == weapon;
+				var secondAlbino = SpawnAlbinoTestZombie(map, secondAlbinoCell, spawnedThings);
+				var secondDriver = StartAlbinoSabotageDriver(secondAlbino);
+				var secondAlbinoRetargetedWeapon = secondDriver?.BestReachableHackTarget(new[] { weapon }) == weapon;
 				var success = run.driverStillCurrent
 					&& weapon.HitPoints < hitPointsBefore
 					&& run.driver?.hackTarget == null
+					&& enoughHackedAfterHack
 					&& pausedAfterHack
-					&& immediatelyRetargetedWeapon == false;
+					&& immediatelyRetargetedWeapon == false
+					&& secondDriver != null
+					&& secondAlbinoRetargetedWeapon == false;
 				return AlbinoCase("weapon_hack", success, new
 				{
 					albino = DescribeZombie(albino),
+					secondAlbino = DescribeZombie(secondAlbino),
 					weapon = ZombieRuntimeActions.StableThingId(weapon),
 					weaponDef = weaponDef.defName,
 					hitPointsBefore,
 					hitPointsAfter = weapon.HitPoints,
+					enoughHackedAfterHack,
+					enoughHackedCount,
 					pausedAfterHack,
 					pauseRemainingTicks,
 					immediatelyRetargetedWeapon,
+					secondAlbinoRetargetedWeapon,
 					run.driverStillCurrent,
 					hackCounter = run.driver?.hackCounter,
 					samples = run.samples

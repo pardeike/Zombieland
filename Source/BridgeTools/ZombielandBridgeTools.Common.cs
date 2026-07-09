@@ -219,6 +219,43 @@ namespace ZombieLand
 			return selected;
 		}
 
+		static readonly Type albinoSabotageMemoryType = AccessTools.TypeByName("ZombieLand.AlbinoSabotageMemory");
+		static readonly MethodInfo albinoSabotageMemoryGetOrCreateMethod = albinoSabotageMemoryType?.GetMethod("GetOrCreate", BindingFlags.Static | BindingFlags.Public);
+		static readonly MethodInfo albinoSabotageMemoryIsEnoughHackedItemMethod = albinoSabotageMemoryType?.GetMethod("IsEnoughHackedItem", BindingFlags.Instance | BindingFlags.Public);
+		static readonly MethodInfo albinoSabotageMemoryEnoughHackedItemCountMethod = albinoSabotageMemoryType?.GetMethod("EnoughHackedItemCount", BindingFlags.Instance | BindingFlags.Public);
+		static readonly MethodInfo albinoSabotageMemoryEnoughHackedItemsSnapshotMethod = albinoSabotageMemoryType?.GetMethod("EnoughHackedItemsSnapshot", BindingFlags.Instance | BindingFlags.Public);
+
+		static object AlbinoSabotageMemoryFor(Map map)
+		{
+			return map == null || albinoSabotageMemoryGetOrCreateMethod == null
+				? null
+				: albinoSabotageMemoryGetOrCreateMethod.Invoke(null, new object[] { map });
+		}
+
+		static bool IsAlbinoEnoughHackedItem(Map map, Thing thing)
+		{
+			var memory = AlbinoSabotageMemoryFor(map);
+			return memory != null
+				&& albinoSabotageMemoryIsEnoughHackedItemMethod?.Invoke(memory, new object[] { thing }) is bool enoughHacked
+				&& enoughHacked;
+		}
+
+		static int AlbinoEnoughHackedItemCount(Map map)
+		{
+			var memory = AlbinoSabotageMemoryFor(map);
+			return memory != null && albinoSabotageMemoryEnoughHackedItemCountMethod?.Invoke(memory, Array.Empty<object>()) is int count
+				? count
+				: 0;
+		}
+
+		static Thing[] AlbinoEnoughHackedItemsSnapshot(Map map)
+		{
+			var memory = AlbinoSabotageMemoryFor(map);
+			return memory == null
+				? Array.Empty<Thing>()
+				: albinoSabotageMemoryEnoughHackedItemsSnapshotMethod?.Invoke(memory, Array.Empty<object>()) as Thing[] ?? Array.Empty<Thing>();
+		}
+
 		static bool TryHasAnySocialMemoryWith(Pawn pawn, Pawn otherPawn, out bool result, out string error)
 		{
 			result = false;

@@ -412,7 +412,7 @@ namespace ZombieLand
 				&& target?.Spawned == true
 				&& target.Map == driver.pawn.Map
 				&& driver.IsDeferredHackTarget(target) == false
-				&& CanHackThing(target);
+				&& driver.CanSelectHackThing(target);
 		}
 
 		static void InterruptHackProgress(this JobDriver_Sabotage driver, bool preserveHackTarget)
@@ -469,6 +469,26 @@ namespace ZombieLand
 
 			driver.CleanupRecentlyHackedTargets();
 			return driver.recentlyHackedTargets.Contains(thing);
+		}
+
+		static AlbinoSabotageMemory AlbinoMemory(this JobDriver_Sabotage driver)
+		{
+			return AlbinoSabotageMemory.GetOrCreate(driver?.pawn?.Map);
+		}
+
+		static bool IsEnoughHackedItem(this JobDriver_Sabotage driver, Thing thing)
+		{
+			return driver.AlbinoMemory()?.IsEnoughHackedItem(thing) == true;
+		}
+
+		static void RememberEnoughHackedItem(this JobDriver_Sabotage driver, Thing thing)
+		{
+			driver.AlbinoMemory()?.RememberEnoughHackedItem(thing);
+		}
+
+		static bool CanSelectHackThing(this JobDriver_Sabotage driver, Thing thing)
+		{
+			return CanHackThing(thing) && driver.IsEnoughHackedItem(thing) == false;
 		}
 
 		static void CleanupDeferredHackTarget(this JobDriver_Sabotage driver)
@@ -575,14 +595,14 @@ namespace ZombieLand
 			return driver?.pawn?.Spawned == true
 				&& thing?.Spawned == true
 				&& thing.Map == driver.pawn.Map
-				&& CanHackThing(thing)
+				&& driver.CanSelectHackThing(thing)
 				&& thing.OccupiedRect().ExpandedBy(1).Contains(driver.pawn.Position);
 		}
 
 		static bool RepathOrClearHackTarget(this JobDriver_Sabotage driver, Thing thing)
 		{
 			driver.hackCounter = 0;
-			if (thing?.Spawned == true && driver.pawn?.Map == thing.Map && CanHackThing(thing) && driver.Goto(thing))
+			if (thing?.Spawned == true && driver.pawn?.Map == thing.Map && driver.CanSelectHackThing(thing) && driver.Goto(thing))
 				return true;
 
 			driver.ClearHackTarget();
@@ -949,7 +969,7 @@ namespace ZombieLand
 
 			var map = zombie.Map;
 			var targetArray = targets
-				.Where(CanHackThing)
+				.Where(target => driver.CanSelectHackThing(target))
 				.Where(target => driver.IsDeferredHackTarget(target) == false)
 				.Where(target => driver.IsRecentlyHackedTargetPaused(target) == false)
 				.ToArray();
@@ -1537,7 +1557,7 @@ namespace ZombieLand
 		static bool Goto(this JobDriver_Sabotage driver, Thing thing)
 		{
 			driver.MarkStrategicDestination(false, false);
-			if (CanHackThing(thing) == false || driver.pawn?.Map != thing.Map)
+			if (driver.CanSelectHackThing(thing) == false || driver.pawn?.Map != thing.Map)
 			{
 				driver.ClearHackTarget();
 				return false;
@@ -1686,7 +1706,7 @@ namespace ZombieLand
 			driver.doorExitCell = IntVec3.Invalid;
 			driver.hackCounter = 0;
 
-			if (hackTarget?.Spawned == true && driver.pawn?.Map == hackTarget.Map && CanHackThing(hackTarget))
+			if (hackTarget?.Spawned == true && driver.pawn?.Map == hackTarget.Map && driver.CanSelectHackThing(hackTarget))
 			{
 				if (driver.Goto(hackTarget))
 					return true;
@@ -1768,8 +1788,7 @@ namespace ZombieLand
 		{
 			if (driver.hackCounter == 0)
 			{
-				if (ZombieAwarenessCues.ShouldPlayWallAndSabotageSound())
-					CustomDefs.Hacking.PlayOneShot(new TargetInfo(thing.Position, thing.Map, false));
+				driver.PlayHackStartSound(thing);
 				Tools.CastThoughtBubble(driver.pawn, Constants.HACKING);
 				driver.hackCounter = 240;
 				return true;
@@ -1784,6 +1803,22 @@ namespace ZombieLand
 			}
 
 			return false;
+		}
+
+		static void PlayHackStartSound(this JobDriver_Sabotage driver, Thing thing)
+		{
+			if (ZombieAwarenessCues.ShouldPlayWallAndSabotageSound() == false || thing?.Spawned != true)
+				return;
+
+			var target = new TargetInfo(thing.Position, thing.Map, false);
+			if (thing is Building_Door)
+			{
+				CustomDefs.Hacking.PlayOneShot(target);
+				return;
+			}
+
+			var sound = CustomDefs.HackingLocal ?? CustomDefs.Hacking;
+			sound?.PlayOneShot(SoundInfo.InMap(target));
 		}
 
 		public static bool HackThing(this JobDriver_Sabotage driver)
@@ -1861,6 +1896,7 @@ namespace ZombieLand
 						Tools.CastThoughtBubble(driver.pawn, Constants.HACKING);
 						var amount = Math.Max(1, thing.HitPoints / 2);
 						_ = thing.TakeDamage(new DamageInfo(DamageDefOf.Deterioration, amount, 0, -1, driver.pawn));
+						driver.RememberEnoughHackedItem(thing);
 						driver.PauseRecentlyHackedTarget(thing);
 						driver.ClearHackTarget();
 						return;
@@ -2043,7 +2079,7 @@ namespace ZombieLand
 				return true;
 
 			if (Rand.Chance(0.1f) && RCellFinder.TryFindRandomSpotJustOutsideColony(zombie.Position, map, null, out var cell))
-				if (driver.Goto(cell))
+				if (driver.GotoReachableFallbackCell(cell))
 					return true;
 
 			if (ImmediateAlbinoMovementPressure(zombie, pressureSources) >= albinoNoSafeHackRoutePressure && RCellFinder.TryFindDirectFleeDestination(zombie.Position, 16f, zombie, out cell))
@@ -2138,6 +2174,37 @@ namespace ZombieLand
 			driver.noSafeHackRoute = bestMaxPressure >= albinoNoSafeHackRoutePressure;
 			bestPath.ReleaseToPool();
 			zombie.pather.StartPath(bestCell, PathEndMode.OnCell);
+			return true;
+		}
+
+		static bool GotoReachableFallbackCell(this JobDriver_Sabotage driver, IntVec3 cell)
+		{
+			var zombie = driver.pawn as Zombie;
+			if (zombie?.Spawned != true || cell.IsValid == false || cell == zombie.Position)
+				return false;
+
+			var path = driver.FindPressureAwareCellPath(cell, false);
+			if (path == null)
+				return false;
+
+			if (path.TryFindLastCellBeforeBlockingDoor(zombie, out _, out _))
+			{
+				path.ReleaseToPool();
+				return false;
+			}
+
+			driver.ClearHackTarget();
+			driver.destination = cell;
+			driver.door = null;
+			driver.doorExitCell = IntVec3.Invalid;
+			driver.queuedScreamCell = IntVec3.Invalid;
+			driver.queuedMoveCell = IntVec3.Invalid;
+			driver.MarkStrategicDestination(true, false, true);
+			driver.lastFallbackStartCell = zombie.Position;
+			driver.lastFallbackDestination = cell;
+			driver.waitCounter = 0;
+			path.ReleaseToPool();
+			zombie.pather.StartPath(cell, PathEndMode.OnCell);
 			return true;
 		}
 
@@ -2530,11 +2597,8 @@ namespace ZombieLand
 				.Distinct()
 				.OrderBy(cell => zombie.Position.DistanceToSquared(cell))
 				.Take(albinoFallbackMoveCandidateLimit))
-				if (driver.Goto(cell))
+				if (driver.GotoReachableFallbackCell(cell))
 				{
-					driver.fallbackDestination = true;
-					driver.lastFallbackStartCell = zombie.Position;
-					driver.lastFallbackDestination = cell;
 					return true;
 				}
 			return false;

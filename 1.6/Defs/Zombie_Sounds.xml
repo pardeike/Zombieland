@@ -460,6 +460,30 @@
 	</SoundDef>
 
 	<SoundDef>
+		<defName>HackingLocal</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>2</maxSimultaneous>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>hack</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>60</min>
+					<max>60</max>
+				</volumeRange>
+				<distRange>
+					<min>10</min>
+					<max>50</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
 		<defName>Scream</defName>
 		<context>MapOnly</context>
 		<eventNames />
