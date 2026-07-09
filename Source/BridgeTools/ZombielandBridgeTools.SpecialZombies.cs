@@ -4513,6 +4513,7 @@ namespace ZombieLand
 				var enoughHackedAfterHack = IsAlbinoEnoughHackedItem(map, weapon);
 				var enoughHackedCount = AlbinoEnoughHackedItemCount(map);
 				var pausedAfterHack = run.driver?.recentlyHackedTargets?.Contains(weapon) == true;
+				var firstDriverHackTargetAfterHack = run.driver?.hackTarget;
 				var pauseRemainingTicks = 0;
 				if (pausedAfterHack && run.driver.recentlyHackedTargetPauseUntilTicks != null)
 				{
@@ -4527,6 +4528,7 @@ namespace ZombieLand
 				var firstDriverHackTargetAfterSecondAlbino = run.driver?.hackTarget;
 				var success = run.driverStillCurrent
 					&& weapon.HitPoints < hitPointsBefore
+					&& firstDriverHackTargetAfterHack == null
 					&& enoughHackedAfterHack
 					&& pausedAfterHack
 					&& immediatelyRetargetedWeapon == false
@@ -4546,6 +4548,7 @@ namespace ZombieLand
 					pauseRemainingTicks,
 					immediatelyRetargetedWeapon,
 					secondAlbinoRetargetedWeapon,
+					firstDriverHackTargetAfterHack = ZombieRuntimeActions.StableThingId(firstDriverHackTargetAfterHack),
 					firstDriverHackTargetAfterSecondAlbino = ZombieRuntimeActions.StableThingId(firstDriverHackTargetAfterSecondAlbino),
 					run.driverStillCurrent,
 					hackCounter = run.driver?.hackCounter,
