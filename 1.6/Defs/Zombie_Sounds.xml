@@ -435,6 +435,31 @@
 	</SoundDef>
 
 	<SoundDef>
+		<defName>Piep</defName>
+		<context>MapOnly</context>
+		<eventNames />
+		<maxSimultaneous>4</maxSimultaneous>
+		<priorityMode>PrioritizeNearest</priorityMode>
+		<subSounds>
+			<li>
+				<grains>
+					<li Class="AudioGrain_Clip">
+						<clipPath>piep</clipPath>
+					</li>
+				</grains>
+				<volumeRange>
+					<min>90</min>
+					<max>90</max>
+				</volumeRange>
+				<distRange>
+					<min>24</min>
+					<max>64</max>
+				</distRange>
+			</li>
+		</subSounds>
+	</SoundDef>
+
+	<SoundDef>
 		<defName>Hacking</defName>
 		<context>MapOnly</context>
 		<eventNames />

@@ -46,12 +46,7 @@ namespace CameraPlusSupport
 				innerColor = turnedColor;
 			else if (zombie.IsSuicideBomber)
 			{
-				var tm = Find.TickManager;
-				var currentTick = tm.TicksAbs;
-				var interval = (int)zombie.bombTickingInterval;
-				if (currentTick >= zombie.lastBombTick + interval)
-					zombie.lastBombTick = currentTick;
-				if (currentTick <= zombie.lastBombTick + interval / 2)
+				if (zombie.bombLightOn)
 					innerColor = bombBlinkColor;
 			}
 

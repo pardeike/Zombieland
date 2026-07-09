@@ -712,6 +712,8 @@ namespace ZombieLand
 					_ = tickManager.hummingZombies.Add(zombie);
 				if (zombie.IsTanky)
 					_ = tickManager.tankZombies.Add(zombie);
+				if (zombie.IsSuicideBomber)
+					_ = tickManager.suicideBomberZombies.Add(zombie);
 			}
 		}
 

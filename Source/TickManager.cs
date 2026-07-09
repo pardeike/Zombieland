@@ -380,6 +380,8 @@ namespace ZombieLand
 		public readonly HashSet<Zombie> tankZombies = new();
 		Sustainer tankSustainer;
 
+		public readonly HashSet<Zombie> suicideBomberZombies = new();
+
 		public Queue<ThingWithComps> colonistsToConvert = new();
 		public Queue<Action<Map>> rimConnectActions = new();
 
@@ -591,6 +593,8 @@ namespace ZombieLand
 			allZombies.Where(zombie => zombie.IsActiveElectric).Do(zombie => hummingZombies.Add(zombie));
 			tankZombies.Clear();
 			allZombies.Where(zombie => zombie.IsTanky).Do(zombie => tankZombies.Add(zombie));
+			suicideBomberZombies.Clear();
+			allZombies.Where(zombie => zombie.IsSuicideBomber).Do(zombie => suicideBomberZombies.Add(zombie));
 
 			taskTicker = TickTasks();
 			while (taskTicker.Current as string != "end")
@@ -1651,6 +1655,71 @@ namespace ZombieLand
 			}
 
 			tankSustainer.info.volumeFactor = GenMath.LerpDoubleClamped(24f, 64f, 1f, 0f, nearestTankZombieDistance);
+		}
+
+		public void UpdateSuicideBomberPieps()
+		{
+			suicideBomberZombies.RemoveWhere(zombie => zombie == null || zombie.Spawned == false || zombie.Dead || zombie.Destroyed || zombie.Map != map || zombie.IsSuicideBomber == false);
+			if (suicideBomberZombies.Count == 0)
+				return;
+
+			var realtime = Time.realtimeSinceStartup;
+			var timeSpeed = Find.TickManager.CurTimeSpeed;
+			var playSound = ZombieAwarenessCues.ShouldPlaySpecialZombieAmbientSound();
+			foreach (var zombie in suicideBomberZombies)
+			{
+				UpdateSuicideBomberLight(zombie);
+				UpdateSuicideBomberPiep(zombie, realtime, timeSpeed, playSound);
+			}
+		}
+
+		static void UpdateSuicideBomberLight(Zombie zombie)
+		{
+			var currentTick = Find.TickManager.TicksAbs;
+			var interval = Mathf.Max(1, Mathf.RoundToInt(zombie.bombTickingInterval));
+			if (currentTick >= zombie.lastBombTick + interval)
+			{
+				zombie.lastBombTick = currentTick;
+				zombie.bombLightOn = false;
+				return;
+			}
+
+			zombie.bombLightOn = currentTick <= zombie.lastBombTick + interval / 2;
+		}
+
+		static void UpdateSuicideBomberPiep(Zombie zombie, float realtime, TimeSpeed timeSpeed, bool playSound)
+		{
+			var lightStarted = zombie.bombLightOn && zombie.bombPiepLightWasOn == false;
+			zombie.bombPiepLightWasOn = zombie.bombLightOn;
+			if (playSound == false || CustomDefs.Piep == null || timeSpeed == TimeSpeed.Paused)
+				return;
+
+			if (timeSpeed == TimeSpeed.Normal)
+			{
+				if (lightStarted == false)
+					return;
+				CustomDefs.Piep.PlayOneShot(SoundInfo.InMap(zombie));
+				zombie.nextBombPiepRealtime = realtime + SuicideBomberPiepPeriod(zombie);
+				return;
+			}
+
+			var period = SuicideBomberPiepPeriod(zombie);
+			if (zombie.nextBombPiepRealtime < 0f || realtime - zombie.nextBombPiepRealtime > period)
+				zombie.nextBombPiepRealtime = realtime;
+			if (realtime < zombie.nextBombPiepRealtime)
+				return;
+
+			CustomDefs.Piep.PlayOneShot(SoundInfo.InMap(zombie));
+			do
+			{
+				zombie.nextBombPiepRealtime += period;
+			}
+			while (zombie.nextBombPiepRealtime <= realtime);
+		}
+
+		static float SuicideBomberPiepPeriod(Zombie zombie)
+		{
+			return Mathf.Max(0.1f, zombie.bombTickingInterval / 60f);
 		}
 
 		public void StopAmbientSound()

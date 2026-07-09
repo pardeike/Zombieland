@@ -131,6 +131,9 @@ namespace ZombieLand
 		public float bombTickingInterval = -1f;
 		public bool bombWillGoOff;
 		public int lastBombTick;
+		public bool bombLightOn;
+		public bool bombPiepLightWasOn;
+		public float nextBombPiepRealtime = -1f;
 		public bool IsSuicideBomber => bombTickingInterval != -1;
 
 		// toxic splasher
@@ -531,6 +534,7 @@ namespace ZombieLand
 				var tm = map.GetComponent<TickManager>();
 				_ = tm?.hummingZombies.Remove(this);
 				_ = tm?.tankZombies.Remove(this);
+				_ = tm?.suicideBomberZombies.Remove(this);
 
 				var grid = map.GetGrid();
 				grid.ChangeZombieCount(lastGotoPosition, -1);

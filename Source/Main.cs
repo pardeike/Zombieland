@@ -23,6 +23,7 @@ namespace ZombieLand
 		public static SoundDef ElectricShock;
 		public static SoundDef Hacking;
 		public static SoundDef HackingLocal;
+		public static SoundDef Piep;
 		public static SoundDef Scream;
 		public static SoundDef TankyTink;
 		public static SoundDef Smash;

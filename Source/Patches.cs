@@ -3684,6 +3684,7 @@ namespace ZombieLand
 					return;
 				tickManager.UpdateElectricalHumming();
 				tickManager.UpdateTankMovement();
+				tickManager.UpdateSuicideBomberPieps();
 			}
 		}
 
@@ -3848,12 +3849,7 @@ namespace ZombieLand
 				if (zombie.IsSuicideBomber)
 				{
 					DrawBombVest(zombie, drawLoc, orientation);
-					tm = Find.TickManager;
-					var currentTick = tm.TicksAbs;
-					var interval = (int)zombie.bombTickingInterval;
-					if (currentTick >= zombie.lastBombTick + interval)
-						zombie.lastBombTick = currentTick;
-					else if (currentTick <= zombie.lastBombTick + interval / 2)
+					if (zombie.bombLightOn)
 					{
 						if (zombie.state != ZombieState.Emerging)
 						{
