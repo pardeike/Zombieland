@@ -4524,9 +4524,9 @@ namespace ZombieLand
 				var secondAlbino = SpawnAlbinoTestZombie(map, secondAlbinoCell, spawnedThings);
 				var secondDriver = StartAlbinoSabotageDriver(secondAlbino);
 				var secondAlbinoRetargetedWeapon = secondDriver?.BestReachableHackTarget(new[] { weapon }) == weapon;
+				var firstDriverHackTargetAfterSecondAlbino = run.driver?.hackTarget;
 				var success = run.driverStillCurrent
 					&& weapon.HitPoints < hitPointsBefore
-					&& run.driver?.hackTarget == null
 					&& enoughHackedAfterHack
 					&& pausedAfterHack
 					&& immediatelyRetargetedWeapon == false
@@ -4546,6 +4546,7 @@ namespace ZombieLand
 					pauseRemainingTicks,
 					immediatelyRetargetedWeapon,
 					secondAlbinoRetargetedWeapon,
+					firstDriverHackTargetAfterSecondAlbino = ZombieRuntimeActions.StableThingId(firstDriverHackTargetAfterSecondAlbino),
 					run.driverStillCurrent,
 					hackCounter = run.driver?.hackCounter,
 					samples = run.samples

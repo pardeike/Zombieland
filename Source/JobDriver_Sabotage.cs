@@ -250,6 +250,7 @@ namespace ZombieLand
 		const int albinoFallbackMoveCandidateLimit = 80;
 		const int albinoNearbyFallbackMoveCandidateLimit = 64;
 		const int albinoStrategicRecheckCooldownTicks = 12;
+		const int albinoFallbackFailureCooldownTicks = 180;
 		const int albinoPressureRetryWaitTicks = 12;
 		const int albinoDoorOpenResumeWaitTicks = 0;
 		const int albinoLostScreamTargetRecheckWaitTicks = 12;
@@ -488,7 +489,12 @@ namespace ZombieLand
 
 		static bool CanSelectHackThing(this JobDriver_Sabotage driver, Thing thing)
 		{
-			return CanHackThing(thing) && driver.IsEnoughHackedItem(thing) == false;
+			return driver.CanSelectHackThing(thing, driver.AlbinoMemory());
+		}
+
+		static bool CanSelectHackThing(this JobDriver_Sabotage driver, Thing thing, AlbinoSabotageMemory memory)
+		{
+			return CanHackThing(thing) && memory?.IsEnoughHackedItem(thing) != true;
 		}
 
 		static void CleanupDeferredHackTarget(this JobDriver_Sabotage driver)
@@ -934,6 +940,16 @@ namespace ZombieLand
 			}
 		}
 
+		static TraverseParms AlbinoFallbackTraverseParms(Pawn pawn)
+		{
+			return TraverseParms.For(pawn, Danger.None, TraverseMode.NoPassClosedDoors, false);
+		}
+
+		static void CooldownAlbinoFallbackSearch(this JobDriver_Sabotage driver)
+		{
+			driver.nextFallbackMoveTick = Math.Max(driver.nextFallbackMoveTick, GenTicks.TicksGame + albinoFallbackFailureCooldownTicks);
+		}
+
 		static bool AlbinoHackTargetIsBetter(
 			int score,
 			int maxPressure,
@@ -968,8 +984,9 @@ namespace ZombieLand
 				return null;
 
 			var map = zombie.Map;
+			var memory = driver.AlbinoMemory();
 			var targetArray = targets
-				.Where(target => driver.CanSelectHackThing(target))
+				.Where(target => driver.CanSelectHackThing(target, memory))
 				.Where(target => driver.IsDeferredHackTarget(target) == false)
 				.Where(target => driver.IsRecentlyHackedTargetPaused(target) == false)
 				.ToArray();
@@ -1158,6 +1175,46 @@ namespace ZombieLand
 				_ = AlbinoPathPressureScore(zombie, path, sources, out var maxPressure);
 				driver.noSafeHackRoute = maxPressure >= albinoNoSafeHackRoutePressure;
 				if (allowPressure == false && driver.noSafeHackRoute)
+				{
+					path.ReleaseToPool();
+					return null;
+				}
+			}
+			else
+				driver.noSafeHackRoute = false;
+
+			return path;
+		}
+
+		static PawnPath FindFallbackCellPath(this JobDriver_Sabotage driver, IntVec3 cell, AlbinoPressureSources sources, TraverseParms traverseParms)
+		{
+			var zombie = driver.pawn as Zombie;
+			if (zombie?.Spawned != true || cell.IsValid == false || cell == zombie.Position)
+				return null;
+
+			var map = zombie.Map;
+			if (map.reachability.CanReach(zombie.Position, cell, PathEndMode.OnCell, traverseParms) == false)
+				return null;
+
+			var path = map.pathFinder.FindPathNow(zombie.Position, cell, traverseParms, null, PathEndMode.OnCell, null);
+			if (path.Found == false)
+			{
+				path.ReleaseToPool();
+				return null;
+			}
+
+			if (path.TryFindLastCellBeforeBlockingDoor(zombie, out _, out _)
+				|| TryFindDangerousAlbinoDoorExit(zombie, path, sources, out _, out _, out _))
+			{
+				path.ReleaseToPool();
+				return null;
+			}
+
+			if (HasAlbinoPressureSources(sources))
+			{
+				_ = AlbinoPathPressureScore(zombie, path, sources, out var maxPressure);
+				driver.noSafeHackRoute = maxPressure >= albinoNoSafeHackRoutePressure;
+				if (driver.noSafeHackRoute)
 				{
 					path.ReleaseToPool();
 					return null;
@@ -2090,6 +2147,7 @@ namespace ZombieLand
 				return true;
 
 			driver.destination = IntVec3.Invalid;
+			driver.CooldownAlbinoFallbackSearch();
 			driver.waitCounter = 30;
 			return false;
 		}
@@ -2104,7 +2162,7 @@ namespace ZombieLand
 				return false;
 
 			var sources = AlbinoPressureSourcesFor(zombie);
-			var traverseParms = TraverseParms.For(zombie, Danger.None, TraverseMode.PassDoors, false);
+			var traverseParms = AlbinoFallbackTraverseParms(zombie);
 			PawnPath bestPath = null;
 			var bestCell = IntVec3.Invalid;
 			var bestScore = int.MaxValue;
@@ -2130,6 +2188,9 @@ namespace ZombieLand
 					continue;
 
 				checkedPaths++;
+				if (map.reachability.CanReach(zombie.Position, cell, PathEndMode.OnCell, traverseParms) == false)
+					continue;
+
 				var path = map.pathFinder.FindPathNow(zombie.Position, cell, traverseParms, null, PathEndMode.OnCell, null);
 				if (path.Found == false)
 				{
@@ -2177,21 +2238,16 @@ namespace ZombieLand
 			return true;
 		}
 
-		static bool GotoReachableFallbackCell(this JobDriver_Sabotage driver, IntVec3 cell)
+		static bool GotoReachableFallbackCell(this JobDriver_Sabotage driver, IntVec3 cell, AlbinoPressureSources sources = null, TraverseParms? traverseParms = null)
 		{
 			var zombie = driver.pawn as Zombie;
 			if (zombie?.Spawned != true || cell.IsValid == false || cell == zombie.Position)
 				return false;
 
-			var path = driver.FindPressureAwareCellPath(cell, false);
+			sources ??= AlbinoPressureSourcesFor(zombie);
+			var path = driver.FindFallbackCellPath(cell, sources, traverseParms ?? AlbinoFallbackTraverseParms(zombie));
 			if (path == null)
 				return false;
-
-			if (path.TryFindLastCellBeforeBlockingDoor(zombie, out _, out _))
-			{
-				path.ReleaseToPool();
-				return false;
-			}
 
 			driver.ClearHackTarget();
 			driver.destination = cell;
@@ -2589,6 +2645,8 @@ namespace ZombieLand
 			if (GenTicks.TicksGame < driver.nextFallbackMoveTick)
 				return false;
 
+			var sources = AlbinoPressureSourcesFor(zombie);
+			var traverseParms = AlbinoFallbackTraverseParms(zombie);
 			foreach (var cell in cells
 				.Where(cell => cell.InBounds(map) && cell.Standable(map) && cell.Fogged(map) == false)
 				.Where(cell => cell != driver.lastFallbackStartCell)
@@ -2597,7 +2655,7 @@ namespace ZombieLand
 				.Distinct()
 				.OrderBy(cell => zombie.Position.DistanceToSquared(cell))
 				.Take(albinoFallbackMoveCandidateLimit))
-				if (driver.GotoReachableFallbackCell(cell))
+				if (driver.GotoReachableFallbackCell(cell, sources, traverseParms))
 				{
 					return true;
 				}

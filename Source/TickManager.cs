@@ -381,6 +381,7 @@ namespace ZombieLand
 		Sustainer tankSustainer;
 
 		public readonly HashSet<Zombie> suicideBomberZombies = new();
+		int nextSuicideBomberCleanupFrame;
 
 		readonly List<ZombieHitSoundBucket> zombieHitSoundBuckets = new();
 		float nextGlobalZombieHitSoundRealtime = -1f;
@@ -685,6 +686,7 @@ namespace ZombieLand
 		{
 			StopAmbientSound();
 			zombieHitSoundBuckets.Clear();
+			nextSuicideBomberCleanupFrame = 0;
 			if (zombiePathing != null)
 				zombiePathing.running = false;
 			zombiePathing = null;
@@ -1735,18 +1737,35 @@ namespace ZombieLand
 
 		public void UpdateSuicideBomberPieps()
 		{
-			suicideBomberZombies.RemoveWhere(zombie => zombie == null || zombie.Spawned == false || zombie.Dead || zombie.Destroyed || zombie.Map != map || zombie.IsSuicideBomber == false);
 			if (suicideBomberZombies.Count == 0)
 				return;
+			if (Time.frameCount >= nextSuicideBomberCleanupFrame)
+			{
+				suicideBomberZombies.RemoveWhere(zombie => IsTrackedSuicideBomber(zombie, map) == false);
+				nextSuicideBomberCleanupFrame = Time.frameCount + 60;
+				if (suicideBomberZombies.Count == 0)
+					return;
+			}
 
 			var realtime = Time.realtimeSinceStartup;
 			var timeSpeed = Find.TickManager.CurTimeSpeed;
 			var playSound = ZombieAwarenessCues.ShouldPlaySpecialZombieAmbientSound();
 			foreach (var zombie in suicideBomberZombies)
 			{
+				if (IsTrackedSuicideBomber(zombie, map) == false)
+					continue;
 				UpdateSuicideBomberLight(zombie);
 				UpdateSuicideBomberPiep(zombie, realtime, timeSpeed, playSound);
 			}
+		}
+
+		static bool IsTrackedSuicideBomber(Zombie zombie, Map map)
+		{
+			return zombie?.Spawned == true
+				&& zombie.Dead == false
+				&& zombie.Destroyed == false
+				&& zombie.Map == map
+				&& zombie.IsSuicideBomber;
 		}
 
 		static void UpdateSuicideBomberLight(Zombie zombie)

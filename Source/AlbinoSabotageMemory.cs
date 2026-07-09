@@ -8,6 +8,7 @@ namespace ZombieLand
 	{
 		List<Thing> enoughHackedItems = new();
 		HashSet<Thing> enoughHackedItemSet = new();
+		int lastCleanupTick = -1;
 
 		public AlbinoSabotageMemory(Map map) : base(map)
 		{
@@ -31,10 +32,10 @@ namespace ZombieLand
 		{
 			base.ExposeData();
 			if (Scribe.mode == LoadSaveMode.Saving)
-				CleanupEnoughHackedItems();
+				CleanupEnoughHackedItems(true);
 			Scribe_Collections.Look(ref enoughHackedItems, "albinoEnoughHackedItems", LookMode.Reference);
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
-				CleanupEnoughHackedItems();
+				CleanupEnoughHackedItems(true);
 		}
 
 		public static bool IsEnoughHackedItemCandidate(Thing thing)
@@ -48,7 +49,7 @@ namespace ZombieLand
 				return false;
 
 			CleanupEnoughHackedItems();
-			return enoughHackedItemSet.Contains(thing);
+			return IsValidRememberedItem(thing) && enoughHackedItemSet.Contains(thing);
 		}
 
 		public void RememberEnoughHackedItem(Thing thing)
@@ -73,11 +74,18 @@ namespace ZombieLand
 			return enoughHackedItems.Count;
 		}
 
-		public void CleanupEnoughHackedItems()
+		public void CleanupEnoughHackedItems(bool force = false)
 		{
 			enoughHackedItems ??= new List<Thing>();
-			enoughHackedItems.RemoveAll(thing => IsValidRememberedItem(thing) == false);
-			enoughHackedItemSet = enoughHackedItems.ToHashSet();
+			var tick = Find.TickManager?.TicksGame ?? -1;
+			if (force == false && tick >= 0 && lastCleanupTick == tick)
+				return;
+			if (tick >= 0)
+				lastCleanupTick = tick;
+
+			var removed = enoughHackedItems.RemoveAll(thing => IsValidRememberedItem(thing) == false);
+			if (force || removed > 0 || enoughHackedItemSet == null || enoughHackedItemSet.Count != enoughHackedItems.Count)
+				enoughHackedItemSet = enoughHackedItems.ToHashSet();
 		}
 
 		bool IsValidRememberedItem(Thing thing)
