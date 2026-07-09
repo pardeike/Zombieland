@@ -5661,14 +5661,21 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(HediffSet.AddDirect))]
 		static class HediffSet_AddDirect_Patch
 		{
+			static bool IsLethalZombieBrainHediff(Hediff hediff)
+			{
+				if (hediff?.def?.isBad != true)
+					return false;
+				if (hediff is not Hediff_Injury && hediff is not Hediff_MissingPart)
+					return false;
+				var part = hediff.Part;
+				return part?.def?.tags?.Contains(BodyPartTagDefOf.ConsciousnessSource) == true;
+			}
+
 			static void Postfix(Pawn ___pawn, Hediff hediff)
 			{
 				if (___pawn is not Zombie zombie)
 					return;
-				if (hediff == null)
-					return;
-				var part = hediff.Part;
-				if (part?.def?.tags?.Contains(BodyPartTagDefOf.ConsciousnessSource) == true && hediff.def.isBad)
+				if (IsLethalZombieBrainHediff(hediff))
 					zombie.SetState(ZombieState.ShouldDie);
 			}
 		}

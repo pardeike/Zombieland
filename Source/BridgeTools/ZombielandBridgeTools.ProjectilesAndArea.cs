@@ -9007,20 +9007,24 @@ namespace ZombieLand
 				};
 			}
 
+			var painFieldDef = DefDatabase<HediffDef>.GetNamedSilentFail("PainField");
+			var agonyPulseDef = DefDatabase<HediffDef>.GetNamedSilentFail("AgonyPulse");
+			var requiredCells = 4 + new[] { painFieldDef, agonyPulseDef }.Count(def => def != null);
 			var cells = GenRadial.RadialCellsAround(root, 14f, true)
 				.Where(cell => cell.InBounds(map))
 				.Where(cell => cell.Standable(map))
 				.Where(cell => cell.Fogged(map) == false)
 				.Where(cell => cell.GetFirstPawn(map) == null)
-				.Take(4)
+				.Take(requiredCells)
 				.ToArray();
-			if (cells.Length < 4)
+			if (cells.Length < requiredCells)
 			{
 				return new
 				{
 					success = false,
 					root = ZombieRuntimeActions.DescribeCell(root),
 					cellCount = cells.Length,
+					requiredCells,
 					error = "Not enough clear cells were found for the zombie death-state transition fixture."
 				};
 			}
@@ -9029,7 +9033,11 @@ namespace ZombieLand
 			var bodyshotZombie = SpawnTargetZombie(map, cells[1], ZombieType.Normal, "ZL_Area_BodyshotStateZombie", spawnedThings);
 			var brainInjuryZombie = SpawnTargetZombie(map, cells[2], ZombieType.Normal, "ZL_Area_BrainInjuryStateZombie", spawnedThings);
 			var limbInjuryZombie = SpawnTargetZombie(map, cells[3], ZombieType.Normal, "ZL_Area_LimbInjuryStateZombie", spawnedThings);
-			if (new[] { headshotZombie, bodyshotZombie, brainInjuryZombie, limbInjuryZombie }.Any(zombie => zombie == null))
+			var nextCell = 4;
+			var painFieldZombie = painFieldDef == null ? null : SpawnTargetZombie(map, cells[nextCell++], ZombieType.Normal, "ZL_Area_PainFieldStateZombie", spawnedThings);
+			var agonyPulseZombie = agonyPulseDef == null ? null : SpawnTargetZombie(map, cells[nextCell++], ZombieType.Normal, "ZL_Area_AgonyPulseStateZombie", spawnedThings);
+			var fixtureZombies = new[] { headshotZombie, bodyshotZombie, brainInjuryZombie, limbInjuryZombie, painFieldDef == null ? headshotZombie : painFieldZombie, agonyPulseDef == null ? headshotZombie : agonyPulseZombie };
+			if (fixtureZombies.Any(zombie => zombie == null))
 			{
 				return new
 				{
@@ -9043,6 +9051,8 @@ namespace ZombieLand
 					bodyshotZombie = DescribeZombie(bodyshotZombie),
 					brainInjuryZombie = DescribeZombie(brainInjuryZombie),
 					limbInjuryZombie = DescribeZombie(limbInjuryZombie),
+					painFieldZombie = DescribeZombie(painFieldZombie),
+					agonyPulseZombie = DescribeZombie(agonyPulseZombie),
 					error = "Could not create all zombie death-state transition fixtures."
 				};
 			}
@@ -9087,6 +9097,9 @@ namespace ZombieLand
 			limbInjuryZombie.health.hediffSet.AddDirect(limbCut, new DamageInfo(DamageDefOf.Cut, 1f), null);
 			var limbStateAfter = limbInjuryZombie.state;
 
+			var painFieldEffect = VerifyZombieBrainEffectHediff(painFieldZombie, painFieldZombie?.health?.hediffSet?.GetBrain(), painFieldDef, out var painFieldEffectSuccess);
+			var agonyPulseEffect = VerifyZombieBrainEffectHediff(agonyPulseZombie, agonyPulseZombie?.health?.hediffSet?.GetBrain(), agonyPulseDef, out var agonyPulseEffectSuccess);
+
 			return new
 			{
 				success = headshotTargets.Length > 0
@@ -9100,7 +9113,9 @@ namespace ZombieLand
 					&& brainStateAfter == ZombieState.ShouldDie
 					&& limbCut.def.isBad
 					&& limbPart.def.tags.Contains(BodyPartTagDefOf.ConsciousnessSource) == false
-					&& limbStateAfter != ZombieState.ShouldDie,
+					&& limbStateAfter != ZombieState.ShouldDie
+					&& painFieldEffectSuccess
+					&& agonyPulseEffectSuccess,
 				patchTargets = new
 				{
 					headshot = headshotTargets,
@@ -9137,7 +9152,70 @@ namespace ZombieLand
 					isBad = limbCut.def.isBad,
 					consciousnessSource = limbPart.def.tags.Contains(BodyPartTagDefOf.ConsciousnessSource),
 					stateAfter = limbStateAfter.ToString()
-				}
+				},
+				painFieldEffect,
+				agonyPulseEffect
+			};
+		}
+
+		static object VerifyZombieBrainEffectHediff(Zombie zombie, BodyPartRecord brainPart, HediffDef hediffDef, out bool success)
+		{
+			if (hediffDef == null)
+			{
+				success = true;
+				return new
+				{
+					available = false
+				};
+			}
+			if (zombie == null || brainPart == null)
+			{
+				success = false;
+				return new
+				{
+					available = true,
+					hediff = hediffDef.defName,
+					zombie = DescribeZombie(zombie),
+					part = DescribeBodyPartDetail(brainPart),
+					error = "Could not create a zombie brain-effect fixture."
+				};
+			}
+
+			var stateBefore = zombie.state;
+			var hediff = HediffMaker.MakeHediff(hediffDef, zombie, brainPart);
+			if (hediff == null)
+			{
+				success = false;
+				return new
+				{
+					available = true,
+					hediff = hediffDef.defName,
+					zombie = DescribeZombie(zombie),
+					part = DescribeBodyPartDetail(brainPart),
+					error = "Could not create the brain-effect hediff."
+				};
+			}
+
+			zombie.health.hediffSet.AddDirect(hediff, null, null);
+			var stateAfter = zombie.state;
+			var structural = hediff is Hediff_Injury || hediff is Hediff_MissingPart;
+			success = hediff.def.isBad
+				&& structural == false
+				&& brainPart.def.tags.Contains(BodyPartTagDefOf.ConsciousnessSource)
+				&& stateAfter != ZombieState.ShouldDie;
+
+			return new
+			{
+				available = true,
+				zombie = DescribeZombie(zombie),
+				part = DescribeBodyPartDetail(brainPart),
+				hediff = hediff.def.defName,
+				hediffType = hediff.GetType().Name,
+				isBad = hediff.def.isBad,
+				structural,
+				consciousnessSource = brainPart.def.tags.Contains(BodyPartTagDefOf.ConsciousnessSource),
+				stateBefore = stateBefore.ToString(),
+				stateAfter = stateAfter.ToString()
 			};
 		}
 
