@@ -1,6 +1,6 @@
 # Soundtrack Loudness Notes
 
-Last updated: 2026-07-08
+Last updated: 2026-07-09
 
 This folder was loudness-matched so the soundtrack files sit at roughly the
 same perceived volume when played together. The intent was conservative:
@@ -96,6 +96,19 @@ Entry-screen addition:
 | --- | ---: | ---: | ---: |
 | `entry-screen.wav` | `-13.97 LUFS` | `-0.50 dB` | `-14.47 LUFS` |
 
+Latest sorted addition:
+
+| File | Before | Gain Applied | After |
+| --- | ---: | ---: | ---: |
+| `tense/Zombieland - Crimson.wav` | `-14.07 LUFS` | `-0.40 dB` | `-14.47 LUFS` |
+| `tense/Zombieland - Death Pal.wav` | `-13.96 LUFS` | `-0.51 dB` | `-14.47 LUFS` |
+| `relax/Zombieland - Midnight Machine.wav` | `-12.20 LUFS` | `-2.27 dB` | `-14.47 LUFS` |
+| `tense/Zombieland - Misalignment.wav` | `-13.97 LUFS` | `-0.50 dB` | `-14.47 LUFS` |
+| `relax/Zombieland - Moon Shadow.wav` | `-13.71 LUFS` | `-0.76 dB` | `-14.47 LUFS` |
+| `tense/Zombieland - Reshaped.wav` | `-14.19 LUFS` | `-0.28 dB` | `-14.47 LUFS` |
+| `tense/Zombieland - Shades.wav` | `-12.99 LUFS` | `-1.49 dB` | `-14.47 LUFS` |
+| `tense/Zombieland - Walking.wav` | `-13.87 LUFS` | `-0.60 dB` | `-14.47 LUFS` |
+
 ## Backups
 
 The original-volume backup of the first batch is:
@@ -117,6 +130,8 @@ were already copies.
 
 No backup was retained for `entry-screen.wav`; the source file was already a
 copy.
+
+No backup was retained for the latest sorted additions, by request.
 
 The actual filenames on disk use an en dash between `Zombieland` and the title.
 The names above use a plain hyphen for easier reading in this note.
