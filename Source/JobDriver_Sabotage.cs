@@ -947,7 +947,10 @@ namespace ZombieLand
 
 		static void CooldownAlbinoFallbackSearch(this JobDriver_Sabotage driver)
 		{
-			driver.nextFallbackMoveTick = Math.Max(driver.nextFallbackMoveTick, GenTicks.TicksGame + albinoFallbackFailureCooldownTicks);
+			var ticks = GenTicks.TicksGame;
+			if (ticks < driver.nextFallbackMoveTick)
+				return;
+			driver.nextFallbackMoveTick = ticks + albinoFallbackFailureCooldownTicks;
 		}
 
 		static bool AlbinoHackTargetIsBetter(
