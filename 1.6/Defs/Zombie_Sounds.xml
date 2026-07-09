@@ -280,7 +280,6 @@
 		<priorityMode>PrioritizeNearest</priorityMode>
 		<subSounds>
 			<li>
-				<onCamera>true</onCamera>
 				<grains>
 					<li Class="AudioGrain_Clip">
 						<clipPath>silence</clipPath>
