@@ -3685,6 +3685,7 @@ namespace ZombieLand
 				tickManager.UpdateElectricalHumming();
 				tickManager.UpdateTankMovement();
 				tickManager.UpdateSuicideBomberPieps();
+				tickManager.UpdateZombieHitSounds();
 			}
 		}
 

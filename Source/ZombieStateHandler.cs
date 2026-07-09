@@ -382,10 +382,7 @@ namespace ZombieLand
 
 			zombie.SetState(ZombieState.Tracking);
 			if (ZombieAwarenessCues.ShouldPlayZombieActionSound() && Prefs.VolumeAmbient > 0f)
-			{
-				var info = SoundInfo.InMap(enemy);
-				CustomDefs.ZombieHit.PlayOneShot(info);
-			}
+				zombie.Map?.GetComponent<TickManager>()?.RequestZombieHitSound(enemy);
 
 			AttackThing(zombie, enemy, JobDefOf.AttackMelee);
 			return true;
@@ -759,10 +756,7 @@ namespace ZombieLand
 			driver.destination = building.Position;
 
 			if (ZombieAwarenessCues.ShouldPlayWallAndSabotageSound() && Prefs.VolumeAmbient > 0f)
-			{
-				var info = SoundInfo.InMap(building);
-				CustomDefs.ZombieHit.PlayOneShot(info);
-			}
+				zombie.Map?.GetComponent<TickManager>()?.RequestZombieHitSound(building);
 
 			AttackThing(zombie, building, JobDefOf.AttackStatic);
 			return true;

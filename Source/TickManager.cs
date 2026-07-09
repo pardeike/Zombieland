@@ -382,6 +382,9 @@ namespace ZombieLand
 
 		public readonly HashSet<Zombie> suicideBomberZombies = new();
 
+		readonly List<ZombieHitSoundBucket> zombieHitSoundBuckets = new();
+		float nextGlobalZombieHitSoundRealtime = -1f;
+
 		public Queue<ThingWithComps> colonistsToConvert = new();
 		public Queue<Action<Map>> rimConnectActions = new();
 
@@ -681,6 +684,7 @@ namespace ZombieLand
 		public void Cleanup()
 		{
 			StopAmbientSound();
+			zombieHitSoundBuckets.Clear();
 			if (zombiePathing != null)
 				zombiePathing.running = false;
 			zombiePathing = null;
@@ -1577,6 +1581,36 @@ namespace ZombieLand
 			explosions.Add(pos);
 		}
 
+		public void RequestZombieHitSound(Thing target)
+		{
+			if (target?.Spawned != true || target.Map != map)
+				return;
+
+			var realtime = Time.realtimeSinceStartup;
+			var bucket = FindZombieHitSoundBucket(target.Position);
+			if (bucket == null)
+			{
+				bucket = new ZombieHitSoundBucket { target = target, center = target.Position, nextPlayRealtime = -1f };
+				zombieHitSoundBuckets.Add(bucket);
+			}
+
+			bucket.target = target;
+			bucket.center = target.Position;
+			bucket.pendingRequests++;
+			bucket.lastRequestRealtime = realtime;
+		}
+
+		ZombieHitSoundBucket FindZombieHitSoundBucket(IntVec3 position)
+		{
+			for (var i = 0; i < zombieHitSoundBuckets.Count; i++)
+			{
+				var bucket = zombieHitSoundBuckets[i];
+				if ((bucket.center - position).LengthHorizontalSquared <= ZombieHitSoundClusterRadiusSquared)
+					return bucket;
+			}
+			return null;
+		}
+
 		public void ExecuteExplosions()
 		{
 			foreach (var position in explosions)
@@ -1657,6 +1691,48 @@ namespace ZombieLand
 			tankSustainer.info.volumeFactor = GenMath.LerpDoubleClamped(24f, 64f, 1f, 0f, nearestTankZombieDistance);
 		}
 
+		public void UpdateZombieHitSounds()
+		{
+			if (zombieHitSoundBuckets.Count == 0)
+				return;
+
+			var timeSpeed = Find.TickManager.CurTimeSpeed;
+			if (timeSpeed == TimeSpeed.Paused || CustomDefs.ZombieHit == null || Prefs.VolumeAmbient <= 0f)
+				return;
+
+			var realtime = Time.realtimeSinceStartup;
+			for (var i = zombieHitSoundBuckets.Count - 1; i >= 0; i--)
+			{
+				var bucket = zombieHitSoundBuckets[i];
+				if (bucket.target == null || bucket.target.Spawned == false || bucket.target.Destroyed || bucket.target.Map != map || realtime - bucket.lastRequestRealtime > ZombieHitSoundBucketTtl)
+				{
+					zombieHitSoundBuckets.RemoveAt(i);
+					continue;
+				}
+				if (bucket.pendingRequests <= 0)
+					continue;
+				if (bucket.nextPlayRealtime >= 0f && realtime < bucket.nextPlayRealtime)
+					continue;
+				if (nextGlobalZombieHitSoundRealtime >= 0f && realtime < nextGlobalZombieHitSoundRealtime)
+					continue;
+
+				CustomDefs.ZombieHit.PlayOneShot(SoundInfo.InMap(bucket.target));
+				var requestCount = bucket.pendingRequests;
+				bucket.pendingRequests = 0;
+				bucket.nextPlayRealtime = realtime + ZombieHitSoundInterval(requestCount);
+				nextGlobalZombieHitSoundRealtime = realtime + ZombieHitSoundGlobalMinInterval;
+			}
+		}
+
+		const float ZombieHitSoundBucketTtl = 1f;
+		const float ZombieHitSoundGlobalMinInterval = 0.20f;
+		const int ZombieHitSoundClusterRadiusSquared = 196;
+
+		static float ZombieHitSoundInterval(int requestCount)
+		{
+			return GenMath.LerpDoubleClamped(1f, 8f, 0.75f, 0.48f, Mathf.Clamp(requestCount, 1, 8));
+		}
+
 		public void UpdateSuicideBomberPieps()
 		{
 			suicideBomberZombies.RemoveWhere(zombie => zombie == null || zombie.Spawned == false || zombie.Dead || zombie.Destroyed || zombie.Map != map || zombie.IsSuicideBomber == false);
@@ -1720,6 +1796,15 @@ namespace ZombieLand
 		static float SuicideBomberPiepPeriod(Zombie zombie)
 		{
 			return Mathf.Max(0.1f, zombie.bombTickingInterval / 60f);
+		}
+
+		sealed class ZombieHitSoundBucket
+		{
+			public Thing target;
+			public IntVec3 center;
+			public int pendingRequests;
+			public float lastRequestRealtime;
+			public float nextPlayRealtime;
 		}
 
 		public void StopAmbientSound()

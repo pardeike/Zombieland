@@ -33,7 +33,8 @@
 		<defName>ZombieHit</defName>
 		<context>MapOnly</context>
 		<eventNames />
-		<maxSimultaneous>2</maxSimultaneous>
+		<maxSimultaneous>1</maxSimultaneous>
+		<priorityMode>PrioritizeNearest</priorityMode>
 		<subSounds>
 			<li>
 				<grains>
