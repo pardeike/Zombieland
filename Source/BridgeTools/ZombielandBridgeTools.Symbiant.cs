@@ -3647,7 +3647,8 @@ namespace ZombieLand
 					lastRecessionPulseCells = symbiant.LastRecessionPulseCells,
 					cancelNextBreach = symbiant.CancelNextBreach,
 					roomDisruption,
-					sampleCells = symbiant.AbsoluteCells.Take(24).Select(ZombieRuntimeActions.DescribeCell).ToArray()
+					sampleCells = symbiant.AbsoluteCells.Take(24).Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					growthDiagnostics = DescribeSymbiantGrowthDiagnostics(map, symbiant)
 				},
 				settings = new
 				{
@@ -3655,6 +3656,202 @@ namespace ZombieLand
 					ZombieSettings.Values.symbiantMaxCells
 				}
 			};
+		}
+
+		static object DescribeSymbiantGrowthDiagnostics(Map map, ZombieSymbiant symbiant)
+		{
+			if (map == null || symbiant == null)
+				return null;
+
+			var occupied = symbiant.AbsoluteCells.ToHashSet();
+			var candidates = new List<object>();
+			var openTargets = 0;
+			var wallTargets = 0;
+			foreach (var from in occupied)
+			{
+				for (var i = 0; i < 4; i++)
+				{
+					var direction = GenAdj.CardinalDirections[i];
+					var cell = from + direction;
+					if (cell.InBounds(map) == false || occupied.Contains(cell))
+						continue;
+
+					var validOpenOrDoor = IsValidSymbiantCellForDiagnostics(map, cell);
+					if (validOpenOrDoor)
+						openTargets++;
+
+					var wall = BreakableConstructedWallForDiagnostics(map, cell);
+					var beyond = cell + direction;
+					var beyondValid = beyond.InBounds(map)
+						&& occupied.Contains(beyond) == false
+						&& IsValidSymbiantCellForDiagnostics(map, beyond);
+					var breachDestination = IntVec3.Invalid;
+					var breachWallDepth = 0;
+					var breachLeadsToValidCell = wall != null && TryFindConstructedWallBreachDestinationForDiagnostics(map, symbiant, cell, direction, out breachDestination, out breachWallDepth);
+					if (breachLeadsToValidCell)
+						wallTargets++;
+
+					candidates.Add(new
+					{
+						from = ZombieRuntimeActions.DescribeCell(from),
+						direction = direction.ToString(),
+						cell = ZombieRuntimeActions.DescribeCell(cell),
+						containsCell = symbiant.ContainsCell(cell),
+						walkable = cell.Walkable(map),
+						fogged = cell.Fogged(map),
+						roof = cell.GetRoof(map)?.defName,
+						openCell = CanOccupyOpenCellForDiagnostics(map, cell),
+						doorCell = IsDoorCellForDiagnostics(map, cell),
+						validOpenOrDoor,
+						room = DescribeRoomForSymbiantGrowth(map, cell.GetRoom(map)),
+						edifice = DescribeGrowthEdifice(map, cell),
+						breakableWall = wall != null,
+						beyond = beyond.InBounds(map) ? ZombieRuntimeActions.DescribeCell(beyond) : null,
+						beyondValid,
+						breachLeadsToValidCell,
+						breachDestination = breachDestination.IsValid ? ZombieRuntimeActions.DescribeCell(breachDestination) : null,
+						breachWallDepth,
+						beyondRoom = beyond.InBounds(map) ? DescribeRoomForSymbiantGrowth(map, beyond.GetRoom(map)) : null
+					});
+				}
+			}
+
+			var occupiedRooms = occupied
+				.Select(cell => cell.GetRoom(map))
+				.Where(room => room != null)
+				.Distinct()
+				.Select(room => DescribeRoomForSymbiantGrowth(map, room))
+				.ToArray();
+			var host = symbiant.LinkedHost;
+			return new
+			{
+				rootRoom = DescribeRoomForSymbiantGrowth(map, symbiant.Position.GetRoom(map)),
+				hostRoom = host?.Spawned == true && host.Map == map ? DescribeRoomForSymbiantGrowth(map, host.Position.GetRoom(map)) : null,
+				occupiedRooms,
+				candidateCount = candidates.Count,
+				openTargets,
+				wallTargets,
+				candidates = candidates.Take(80).ToArray()
+			};
+		}
+
+		static object DescribeRoomForSymbiantGrowth(Map map, Room room)
+		{
+			if (room == null)
+				return null;
+			var hasHomeCell = map?.areaManager?.Home != null && room.Cells.Any(cell => map.areaManager.Home[cell]);
+			return new
+			{
+				id = room.ID,
+				role = room.Role?.defName,
+				cellCount = room.CellCount,
+				openRoofCount = room.OpenRoofCount,
+				districtCount = room.DistrictCount,
+				regionCount = room.RegionCount,
+				touchesMapEdge = room.TouchesMapEdge,
+				isDoorway = room.IsDoorway,
+				fogged = room.Fogged,
+				isHuge = room.IsHuge,
+				usesOutdoorTemperature = room.UsesOutdoorTemperature,
+				properRoom = room.ProperRoom,
+				hasHomeCell,
+				eligibleIndoorRoom = IsEligibleIndoorRoomForDiagnostics(room)
+			};
+		}
+
+		static object DescribeGrowthEdifice(Map map, IntVec3 cell)
+		{
+			var edifice = cell.GetEdifice(map);
+			if (edifice == null)
+				return null;
+			return new
+			{
+				def = edifice.def?.defName,
+				label = edifice.LabelCap.ToString(),
+				thingId = ZombieRuntimeActions.StableThingId(edifice),
+				hitPoints = edifice.HitPoints,
+				faction = edifice.Faction?.def?.defName,
+				isDoor = edifice is Building_Door,
+				useHitPoints = edifice.def?.useHitPoints ?? false,
+				isNaturalRock = edifice.def?.building?.isNaturalRock ?? false,
+				mineable = edifice.def?.mineable ?? false
+			};
+		}
+
+		static bool TryFindConstructedWallBreachDestinationForDiagnostics(Map map, ZombieSymbiant symbiant, IntVec3 firstWallCell, IntVec3 direction, out IntVec3 destination, out int wallDepth)
+		{
+			destination = IntVec3.Invalid;
+			wallDepth = 0;
+			var cell = firstWallCell;
+			for (var depth = 0; depth <= 4; depth++)
+			{
+				if (cell.InBounds(map) == false || symbiant.ContainsCell(cell))
+					return false;
+				if (IsValidSymbiantCellForDiagnostics(map, cell))
+				{
+					destination = cell;
+					return true;
+				}
+				if (depth == 4)
+					return false;
+				if (BreakableConstructedWallForDiagnostics(map, cell) == null)
+					return false;
+				wallDepth++;
+				cell += direction;
+			}
+			return false;
+		}
+
+		static bool IsEligibleIndoorRoomForDiagnostics(Room room)
+		{
+			return room != null
+				&& room.IsDoorway == false
+				&& room.Fogged == false
+				&& room.IsHuge == false
+				&& room.UsesOutdoorTemperature == false
+				&& room.ProperRoom;
+		}
+
+		static bool IsValidSymbiantCellForDiagnostics(Map map, IntVec3 cell)
+		{
+			if (map == null || cell.InBounds(map) == false)
+				return false;
+			return CanOccupyOpenCellForDiagnostics(map, cell) || IsDoorCellForDiagnostics(map, cell);
+		}
+
+		static bool CanOccupyOpenCellForDiagnostics(Map map, IntVec3 cell)
+		{
+			if (cell.InBounds(map) == false || cell.Fogged(map))
+				return false;
+			if (cell.Walkable(map) == false)
+				return false;
+			return IsEligibleIndoorRoomForDiagnostics(cell.GetRoom(map));
+		}
+
+		static bool IsDoorCellForDiagnostics(Map map, IntVec3 cell)
+		{
+			var door = cell.GetEdifice(map) as Building_Door;
+			if (door == null)
+				return false;
+			return GenAdj.CardinalDirections
+				.Select(dir => cell + dir)
+				.Where(adjacent => adjacent.InBounds(map))
+				.Select(adjacent => adjacent.GetRoom(map))
+				.Any(IsEligibleIndoorRoomForDiagnostics);
+		}
+
+		static Building BreakableConstructedWallForDiagnostics(Map map, IntVec3 cell)
+		{
+			var edifice = cell.GetEdifice(map);
+			if (edifice == null || edifice is Building_Door)
+				return null;
+			if (edifice.def == null || edifice.def.building == null || edifice.def.useHitPoints == false)
+				return null;
+			if (edifice.def.building.isNaturalRock || edifice.def.mineable)
+				return null;
+			if (edifice.Faction != Faction.OfPlayer)
+				return null;
+			return edifice;
 		}
 
 		static object RunSymbiantContaminationStepProbe(Map map, int x, int z)
