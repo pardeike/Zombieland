@@ -23,7 +23,7 @@ namespace ZombieLand
 		public override void PostTick()
 		{
 			base.PostTick();
-			if (Constants.CONTAMINATION && Severity >= 1)
+			if (Constants.CONTAMINATION && Severity >= 1 && pawn != null && pawn.Destroyed == false && pawn.Dead == false && pawn.health?.isBeingKilled != true)
 				pawn.Kill(null, this);
 		}
 

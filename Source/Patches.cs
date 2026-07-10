@@ -5557,10 +5557,12 @@ namespace ZombieLand
 		static class Pawn_Kill_Patch
 		{
 			[HarmonyPriority(Priority.First)]
-			static void Prefix(Pawn __instance)
+			static bool Prefix(Pawn __instance)
 			{
 				if (__instance == null)
-					return;
+					return true;
+				if (__instance.Destroyed || __instance.Dead || __instance.health?.isBeingKilled == true)
+					return false;
 
 				// remove current job of zombie immediately when killed
 				if (__instance is Zombie zombie)
@@ -5568,14 +5570,14 @@ namespace ZombieLand
 					if (zombie.jobs != null && zombie.CurJob != null)
 						zombie.jobs.EndCurrentJob(JobCondition.InterruptForced, false);
 					Tools.DropLoot(zombie);
-					return;
+					return true;
 				}
 
 				// make spitters drop loot
 				if (__instance is ZombieSpitter)
 				{
 					Tools.DropLoot(__instance);
-					return;
+					return true;
 				}
 
 				var pawn = __instance;
@@ -5583,17 +5585,17 @@ namespace ZombieLand
 				var raceProps = pawn.RaceProps;
 
 				if (raceProps == null || raceProps.Humanlike == false || raceProps.IsFlesh == false)
-					return;
+					return true;
 
 				if (AlienTools.IsFleshPawn(pawn) == false || SoSTools.IsHologram(pawn))
-					return;
+					return true;
 
 				if (Customization.CannotBecomeZombie(pawn))
-					return;
+					return true;
 
 				var hediffSet = pawn.health?.hediffSet;
 				if (hediffSet == null)
-					return;
+					return true;
 
 				// flag zombie bites to be infectious when pawn dies
 				var zombieBites = pawn.GetHediffsList<Hediff_Injury_ZombieBite>();
@@ -5615,7 +5617,7 @@ namespace ZombieLand
 						{
 							var hediff = HediffMaker.MakeHediff(CustomDefs.ZombieInfection, pawn, brain) as Hediff_ZombieInfection;
 							if (hediff == null)
-								return;
+								return true;
 							hediff.InitializeExpiringDate();
 							hediffSet.AddDirect(hediff, null, null);
 						}
@@ -5624,6 +5626,7 @@ namespace ZombieLand
 					{
 					}
 				}
+				return true;
 			}
 		}
 
