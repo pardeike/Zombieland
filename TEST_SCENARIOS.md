@@ -882,7 +882,7 @@ Completion:
 ## S-Symbiant-Symbiosis
 
 Status:
-- The simplified Symbiant surface has current runtime evidence on `SYMBIANT-TEST-MAP`: settings cap behavior, dynamic severance ingredients, door slowdown, map-cache cleanup, create-event spawning, expansion, click-anywhere selection, selected UI semantics, no selected gizmos, inspect text, and repeated load after restart. Older 2026-06-15 contracts remain historical coverage for broader behavior, but the simplified release gate is `RELEASE_CHECKS_SYMBIANT.md`.
+- The simplified Symbiant surface has current runtime evidence on `SYMBIANT-TEST-MAP`: settings cap behavior, dynamic severance ingredients, door slowdown, map-cache cleanup, create-event spawning, expansion, click-anywhere selection, selected UI semantics, no selected gizmos, inspect text, and repeated load after restart. Older 2026-06-15 contracts remain historical coverage for broader behavior; intended behavior and the durable release gate live in `docs/features/symbiant.md`.
 
 Fixture:
 - Start from `SYMBIANT-TEST-MAP`, `EMPTY.rws`, or a small colony room fixture with enclosed used rooms, at least one door, a constructed-wall edge, a no-room/outdoor-only variant, at least one eligible free adult colonist, ineligible host controls, valid feed corpses, zombie extract, and industrial medicine.

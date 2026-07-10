@@ -23,6 +23,7 @@ Rules:
 - you have a tendency to double check or multi-compile things. find a way to have a clear work cycle that is not wasteful
 - keep track of what you are doing but make sure you do not simply pile up work log after work log
 - make sure you read the *important* work documents regularily - they have no purpose if you only creete but never read them
+- use `docs/README.md` as the documentation map; update an existing owner instead of creating another session-specific Markdown file
 
 Commit policy:
 

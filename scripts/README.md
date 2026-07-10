@@ -177,11 +177,11 @@ Without Rosetta, Unity can fail early with `bad CPU type in executable` or crash
 
 The script handles a stale `Originals/Effects/Temp/UnityLockfile` only when no process owns it. If a running Unity process still holds the lock, the script refuses to continue.
 
-After a build, Unity often modifies tracked/generated cache files under `Originals/Effects/Library` and creates intermediate files under `Originals/Effects/Assets/AssetBundles` and `Originals/Effects/Assets/_Zombieland`. Clean those intermediates after final verification unless they are the actual focus of the task. During tight quick-build iteration, keep the cache warm and defer cleanup. A typical cleanup after a completed iteration session is:
+After a build, Unity updates its ignored cache under `Originals/Effects/Library` and creates ignored intermediates under `Originals/Effects/Assets/AssetBundles` and `Originals/Effects/Assets/_Zombieland`. During tight quick-build iteration, keep the cache warm. If a clean-state check or disk cleanup is needed after final verification, preview the ignored files first and then remove only these generated paths:
 
 ```bash
-git restore -- Originals/Effects/Library ':(exclude)Originals/Effects/Library/LibraryFormatVersion.txt'
-git clean -fd -- Originals/Effects/Library Originals/Effects/Assets/AssetBundles Originals/Effects/Assets/_Zombieland Originals/Effects/UserSettings Originals/Effects/ProjectSettings/MemorySettings.asset Originals/Effects/ProjectSettings/VersionControlSettings.asset
+git clean -ndX -- Originals/Effects/Library Originals/Effects/Assets/AssetBundles Originals/Effects/Assets/_Zombieland Originals/Effects/UserSettings Originals/Effects/ProjectSettings/MemorySettings.asset Originals/Effects/ProjectSettings/VersionControlSettings.asset
+git clean -fdX -- Originals/Effects/Library Originals/Effects/Assets/AssetBundles Originals/Effects/Assets/_Zombieland Originals/Effects/UserSettings Originals/Effects/ProjectSettings/MemorySettings.asset Originals/Effects/ProjectSettings/VersionControlSettings.asset
 ```
 
 Do not remove or restore the deployed files under `1.6/Resources/{OS}/zombieland` unless you intentionally want to discard the rebuilt bundles.

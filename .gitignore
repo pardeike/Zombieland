@@ -241,7 +241,13 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
-Source/Graphics/Effects/Library/StateCache
-Source/Graphics/Effects/Library/PackageCache
-Source/Graphics/Effects/Library/ShaderCache
-Source/Graphics/Effects/Library/ScriptAssemblies
+
+# Generated Unity state for the asset-bundle project
+Originals/Effects/Library/
+Originals/Effects/Logs/
+Originals/Effects/Temp/
+Originals/Effects/UserSettings/
+Originals/Effects/Assets/AssetBundles/
+Originals/Effects/Assets/_Zombieland/
+Originals/Effects/ProjectSettings/MemorySettings.asset
+Originals/Effects/ProjectSettings/VersionControlSettings.asset
