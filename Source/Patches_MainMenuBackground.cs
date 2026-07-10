@@ -14,6 +14,7 @@ namespace ZombieLand
 		static readonly Color multiplyColor = ColorFromHex(0xEB, 0xAE, 0xAE);
 		static readonly Color colorBurnColor = ColorFromHex(0xD4, 0xD4, 0xD4);
 		static readonly Color darkerColor = ColorFromHex(0x48, 0xAA, 0x48);
+		static readonly Texture2D titleTexture = Tools.LoadTexture("ZombielandTitle");
 		static Material material;
 		static bool disabledAfterError;
 
@@ -45,11 +46,31 @@ namespace ZombieLand
 				var rect = new Rect(0f, 0f, UI.screenWidth, UI.screenHeight);
 				for (var pass = 0; pass < material.passCount; pass++)
 					Graphics.DrawTexture(rect, BaseContent.WhiteTex, material, pass);
+
+				DrawTitle();
 			}
 			catch (Exception ex)
 			{
 				disabledAfterError = true;
 				Log.Warning($"Zombieland disabled the main menu background post effect after an error: {ex}");
+			}
+		}
+
+		static void DrawTitle()
+		{
+			var width = UI.screenWidth * 0.3375f;
+			var height = width * titleTexture.height / titleTexture.width;
+			var rect = new Rect((UI.screenWidth - width) / 2f, 72f, width, height);
+
+			var previousColor = GUI.color;
+			try
+			{
+				GUI.color = new Color(1f, 1f, 1f, 0.9f);
+				GUI.DrawTexture(rect, titleTexture, ScaleMode.StretchToFill, true);
+			}
+			finally
+			{
+				GUI.color = previousColor;
 			}
 		}
 
