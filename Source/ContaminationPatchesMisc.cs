@@ -225,6 +225,12 @@ namespace ZombieLand
 		static void IngestedCalculateAmounts(Thing self, Pawn ingester, float nutritionWanted, out int numTaken, out float nutritionIngested)
 		{
 			var oldStackCount = self.stackCount;
+			if (oldStackCount <= 0)
+			{
+				numTaken = 0;
+				nutritionIngested = 0f;
+				return;
+			}
 
 			float totalNutrition = 0f;
 			if (self is Plant plant)
@@ -236,6 +242,8 @@ namespace ZombieLand
 
 			self.IngestedCalculateAmounts(ingester, nutritionWanted, out numTaken, out nutritionIngested);
 			var factor = numTaken == 0 ? (totalNutrition == 0 ? 1 : nutritionIngested / totalNutrition) : (oldStackCount == 0 ? 1 : numTaken / (float)oldStackCount);
+			if (factor <= 0f)
+				return;
 			self.TransferContamination(ZombieSettings.Values.contamination.ingestTransfer * factor, ingester);
 		}
 

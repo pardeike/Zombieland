@@ -11275,9 +11275,21 @@ namespace ZombieLand
 				&& Close(eaterAfter.hediffSeverity, expectedEaterAfter)
 				&& CloseFloat(mealAfter, expectedMealAfter);
 
+			var zeroStackMeal = ThingMaker.MakeThing(mealDef);
+			zeroStackMeal.stackCount = 0;
+			zeroStackMeal.SetContamination(mealContamination);
+			eater.ClearContamination();
+			var zeroStackNutritionWanted = zeroStackMeal.GetStatValue(StatDefOf.Nutrition);
+			var zeroStackNutritionIngested = zeroStackMeal.Ingested(eater, zeroStackNutritionWanted);
+			var zeroStackEaterAfter = DescribeContamination(eater);
+			var zeroStackMealContaminationAfter = zeroStackMeal.Destroyed ? 0f : zeroStackMeal.GetContamination();
+			var zeroStackHandled = zeroStackNutritionIngested == 0f
+				&& (zeroStackMeal.stackCount == 0 || zeroStackMeal.Destroyed)
+				&& CloseFloat(zeroStackEaterAfter.stored, 0f);
+
 			return new
 			{
-				success = atePartialStack && contaminationTransferred,
+				success = atePartialStack && contaminationTransferred && zeroStackHandled,
 				eater = DescribePawn(eater),
 				eaterCell = ZombieRuntimeActions.DescribeCell(eaterCell),
 				meal = ZombieRuntimeActions.StableThingId(meal),
@@ -11300,7 +11312,18 @@ namespace ZombieLand
 				mealAfter,
 				expectedMealAfter,
 				atePartialStack,
-				contaminationTransferred
+				contaminationTransferred,
+				zeroStack = new
+				{
+					meal = ZombieRuntimeActions.StableThingId(zeroStackMeal),
+					stackCount = zeroStackMeal.stackCount,
+					destroyed = zeroStackMeal.Destroyed,
+					nutritionWanted = zeroStackNutritionWanted,
+					nutritionIngested = zeroStackNutritionIngested,
+					mealContaminationAfter = zeroStackMealContaminationAfter,
+					eaterAfter = zeroStackEaterAfter,
+					handled = zeroStackHandled
+				}
 			};
 		}
 
