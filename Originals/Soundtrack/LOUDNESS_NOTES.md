@@ -1,6 +1,6 @@
 # Soundtrack Loudness Notes
 
-Last updated: 2026-07-09
+Last updated: 2026-07-10
 
 This folder was loudness-matched so the soundtrack files sit at roughly the
 same perceived volume when played together. The intent was conservative:
@@ -109,6 +109,15 @@ Latest sorted addition:
 | `tense/Zombieland - Shades.wav` | `-12.99 LUFS` | `-1.49 dB` | `-14.47 LUFS` |
 | `tense/Zombieland - Walking.wav` | `-13.87 LUFS` | `-0.60 dB` | `-14.47 LUFS` |
 
+Latest relax addition:
+
+| File | Before | Gain Applied | After |
+| --- | ---: | ---: | ---: |
+| `relax/Zombieland - Ironwood.wav` | `-14.41 LUFS` | `-0.06 dB` | `-14.47 LUFS` |
+| `relax/Zombieland - Last Lullaby.wav` | `-13.52 LUFS` | `-0.95 dB` | `-14.47 LUFS` |
+| `relax/Zombieland - Long Way.wav` | `-14.09 LUFS` | `-0.38 dB` | `-14.47 LUFS` |
+| `relax/Zombieland - The Knot.wav` | `-14.23 LUFS` | `-0.24 dB` | `-14.46 LUFS` |
+
 ## Backups
 
 The original-volume backup of the first batch is:
@@ -132,6 +141,8 @@ No backup was retained for `entry-screen.wav`; the source file was already a
 copy.
 
 No backup was retained for the latest sorted additions, by request.
+
+No backup was retained for the latest relax additions, by request.
 
 The actual filenames on disk use an en dash between `Zombieland` and the title.
 The names above use a plain hyphen for easier reading in this note.
