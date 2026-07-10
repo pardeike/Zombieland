@@ -64,6 +64,7 @@ namespace ZombieLand
 		const int AmbientMovementSourceLimit = 8;
 		const float AmbientMovementMinBenefitFactor = 0.55f;
 		const float AmbientMovementHighBenefitFactor = 0.85f;
+		const int MaxConstructedWallBreachDepth = 4;
 		const float AmbientMovementTargetBestScoreFraction = 0.65f;
 		const float AmbientMovementIntegrationFloorFactor = 0.55f;
 		const float AmbientMovementMaxIntegrationLoss = 1f;
@@ -2594,8 +2595,7 @@ namespace ZombieLand
 					var wall = BreakableConstructedWall(map, candidate);
 					if (wall == null)
 						continue;
-					var beyond = candidate + direction;
-					if (beyond.InBounds(map) && ContainsCell(beyond) == false && IsValidSymbiantCell(map, beyond))
+					if (TryFindConstructedWallBreachDestination(map, candidate, direction, out _))
 						hasWallTarget = true;
 				}
 			}
@@ -2896,9 +2896,8 @@ namespace ZombieLand
 					if (wall == null)
 						continue;
 
-					var beyond = candidate + direction;
-					if (beyond.InBounds(map) && ContainsCell(beyond) == false && IsValidSymbiantCell(map, beyond))
-						targets.Add(new ExpansionTarget(candidate, wall, ScoreExpansionCell(map, beyond) + 150f));
+					if (TryFindConstructedWallBreachDestination(map, candidate, direction, out var destination))
+						targets.Add(new ExpansionTarget(candidate, wall, ScoreExpansionCell(map, destination) + 150f));
 				}
 			}
 			var openTarget = targets
@@ -2919,6 +2918,28 @@ namespace ZombieLand
 				return null;
 			}
 			return wallTarget;
+		}
+
+		bool TryFindConstructedWallBreachDestination(Map map, IntVec3 firstWallCell, IntVec3 direction, out IntVec3 destination)
+		{
+			destination = IntVec3.Invalid;
+			var cell = firstWallCell;
+			for (var depth = 0; depth <= MaxConstructedWallBreachDepth; depth++)
+			{
+				if (cell.InBounds(map) == false || ContainsCell(cell))
+					return false;
+				if (IsValidSymbiantCell(map, cell))
+				{
+					destination = cell;
+					return true;
+				}
+				if (depth == MaxConstructedWallBreachDepth)
+					return false;
+				if (BreakableConstructedWall(map, cell) == null)
+					return false;
+				cell += direction;
+			}
+			return false;
 		}
 
 		static Building BreakableConstructedWall(Map map, IntVec3 cell)
