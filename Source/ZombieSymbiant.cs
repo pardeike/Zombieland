@@ -187,6 +187,8 @@ namespace ZombieLand
 		bool hasCellBounds;
 		List<HostBenefit> hostBenefits = [];
 		int lastCellMotionRenderTick = -1;
+		bool renderGeometryDirty = true;
+		bool metaballTextureDirty = true;
 		bool destroyWhenCellMotionsFinish;
 
 			public int CellCount => cells?.Count ?? 0;
@@ -545,7 +547,6 @@ namespace ZombieLand
 			symbiant.Position = cell;
 			symbiant.AddRelativeCell(IntVec3.Zero);
 			symbiant.ResetExpansionClock();
-			symbiant.EnsureRenderResources();
 			symbiant.UpdateAll();
 
 			symbiant.SetFactionDirect(Find.FactionManager.FirstFactionOfDef(ZombieDefOf.Zombies));
@@ -589,7 +590,6 @@ namespace ZombieLand
 			foreach (var cell in cells)
 				symbiant.AddRelativeCell(cell - root);
 			symbiant.ResetExpansionClock();
-			symbiant.EnsureRenderResources();
 			symbiant.UpdateAll();
 
 			GenSpawn.Spawn(symbiant, root, map, Rot4.Random, WipeMode.Vanish, false);
@@ -1796,6 +1796,7 @@ namespace ZombieLand
 			EnsureSymbiantDefaults();
 			RegisterActiveSymbiant(this, map);
 			EnsureVisibleToPawnSystems(map);
+			UpdateAll();
 		}
 
 		void EnsureVisibleToPawnSystems(Map map = null)
@@ -3203,7 +3204,14 @@ namespace ZombieLand
 
 		void UpdateAll()
 		{
-			EnsureRenderResources();
+			if (destroyWhenCellMotionsFinish)
+			{
+				cells ??= [];
+				cellMotions ??= [];
+				orderedCells ??= [];
+			}
+			else
+				EnsureSymbiantDefaults();
 			if (hasCellBounds == false)
 				return;
 
@@ -3223,13 +3231,8 @@ namespace ZombieLand
 			renderMinZ = min_z;
 			renderWidth = Mathf.Max(1f, dx);
 			renderHeight = Mathf.Max(1f, dz);
-			EnsureMetaballTextureResolution(renderWidth, renderHeight);
-
-			var size2 = new Vector2(renderWidth, renderHeight);
-
-			if (mesh != null)
-				UnityEngine.Object.Destroy(mesh);
-			mesh = MeshMakerPlanes.NewPlaneMesh(size2, false, false, false);
+			renderGeometryDirty = true;
+			metaballTextureDirty = true;
 
 			var allCells = cells.ToArray();
 			var cellCount = Mathf.Min(allCells.Length, MAX_METABALLS);
@@ -3243,7 +3246,6 @@ namespace ZombieLand
 			}
 
 			BuildMetaballRenderElements();
-			UpdateMetaballTexture();
 		}
 
 		CellRect RenderCellBounds()
@@ -3316,7 +3318,7 @@ namespace ZombieLand
 			else
 			{
 				BuildMetaballRenderElements();
-				UpdateMetaballTexture();
+				metaballTextureDirty = true;
 			}
 			if (removed && (cellMotions == null || cellMotions.Count == 0))
 				lastCellMotionRenderTick = -1;
@@ -3479,6 +3481,7 @@ namespace ZombieLand
 				autoGenerateMips = false
 			};
 			metaballTexture.Create();
+			metaballTextureDirty = true;
 			if (metaballMaterial != null)
 				ConfigureMetaballMaterial();
 			renderResourceOwners.Add(this);
@@ -3533,22 +3536,75 @@ namespace ZombieLand
 				nextRelocationPulseTick = GenTicks.TicksGame + RelocationPulseIntervalTicks();
 		}
 
-		void EnsureRenderResources()
+		static bool CanUseMetaballRenderingNow(Map map)
 		{
-			if (destroyWhenCellMotionsFinish)
+			if (DebugDisableRendering)
+				return false;
+			if (Assets.MetaballShader == null)
+				return false;
+			if (SystemInfo.supportsComputeShaders == false)
+				return false;
+			if (Current.Game == null || Current.ProgramState != ProgramState.Playing || Scribe.mode != LoadSaveMode.Inactive)
+				return false;
+			if (LongEventHandler.AnyEventNowOrWaiting || LongEventHandler.ShouldWaitForEvent)
+				return false;
+			return ZombieLand.Tools.MapViewActiveFor(map);
+		}
+
+		bool EnsureRenderResources()
+		{
+			if (CanUseMetaballRenderingNow(MapHeld) == false)
+				return false;
+
+			try
 			{
-				cells ??= [];
-				cellMotions ??= [];
-				orderedCells ??= [];
+				if (destroyWhenCellMotionsFinish)
+				{
+					cells ??= [];
+					cellMotions ??= [];
+					orderedCells ??= [];
+				}
+				else
+					EnsureSymbiantDefaults();
+				if (metaballTexture == null)
+					EnsureMetaballTextureResolution(renderWidth, renderHeight);
+				EnsureMetaballMaskMaterial();
+				EnsureMetaballMaterial();
+				if (metaballTexture != null || metaballMaterial != null || metaballMaskMaterial != null || mesh != null)
+					renderResourceOwners.Add(this);
+				return metaballTexture != null && metaballMaterial != null && metaballMaskMaterial != null;
 			}
-			else
-				EnsureSymbiantDefaults();
-			if (metaballTexture == null)
-				EnsureMetaballTextureResolution(1f, 1f);
-			EnsureMetaballMaskMaterial();
-			EnsureMetaballMaterial();
-			if (metaballTexture != null || metaballMaterial != null || metaballMaskMaterial != null || mesh != null)
-				renderResourceOwners.Add(this);
+			catch (Exception ex)
+			{
+				ReleaseRenderResources();
+				Log.WarningOnce($"Zombieland disabled symbiant metaball rendering after a render-resource error: {ex}", 928376711);
+				return false;
+			}
+		}
+
+		bool TryPrepareMetaballRendering()
+		{
+			if (hasCellBounds == false)
+				UpdateAll();
+			if (hasCellBounds == false)
+				return false;
+			if (EnsureRenderResources() == false)
+				return false;
+
+			EnsureMetaballTextureResolution(renderWidth, renderHeight);
+			if (renderGeometryDirty || mesh == null)
+			{
+				if (mesh != null)
+					UnityEngine.Object.Destroy(mesh);
+				mesh = MeshMakerPlanes.NewPlaneMesh(new Vector2(renderWidth, renderHeight), false, false, false);
+				renderGeometryDirty = false;
+			}
+			if (metaballTextureDirty)
+			{
+				UpdateMetaballTexture();
+				metaballTextureDirty = false;
+			}
+			return mesh != null && metaballMaterial != null;
 		}
 
 		void EnsureMetaballMaskMaterial()
@@ -3649,10 +3705,12 @@ namespace ZombieLand
 		{
 			if (DebugDisableRendering)
 				return;
-			if (mesh == null || metaballMaterial == null)
-				UpdateAll();
-			if (mesh == null || metaballMaterial == null)
+			if (TryPrepareMetaballRendering() == false)
+			{
+				if (ZombieLand.Tools.MapViewActiveFor(MapHeld))
+					base.DrawAt(drawLoc, flip);
 				return;
+			}
 
 			var offset = new Vector3(centerX, 0, centerZ);
 			var position = drawLoc + offset;

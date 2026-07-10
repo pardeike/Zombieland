@@ -600,7 +600,7 @@ namespace ZombieLand
 			suicideBomberZombies.Clear();
 			allZombies.Where(zombie => zombie.IsSuicideBomber).Do(zombie => suicideBomberZombies.Add(zombie));
 
-			taskTicker = TickTasks();
+			taskTicker = TickTasks(skipFirstIncidentPass: true);
 			while (taskTicker.Current as string != "end")
 				_ = taskTicker.MoveNext();
 
@@ -1832,8 +1832,9 @@ namespace ZombieLand
 			zombiesAmbientSound = null;
 		}
 
-		IEnumerator TickTasks()
+		IEnumerator TickTasks(bool skipFirstIncidentPass = false)
 		{
+			var skipIncidents = skipFirstIncidentPass;
 			if (runZombiesForNewIncident && map != null)
 			{
 				runZombiesForNewIncident = false;
@@ -1851,7 +1852,10 @@ namespace ZombieLand
 					contaminationEffects.Tick();
 					yield return null;
 				}
-				HandleIncidents();
+				if (skipIncidents)
+					skipIncidents = false;
+				else
+					HandleIncidents();
 				yield return null;
 				FetchAvoidGrid();
 				yield return null;
