@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageInfo>
+	<friendlyNameNative>繁體中文</friendlyNameNative>
+	<friendlyNameEnglish>Traditional Chinese</friendlyNameEnglish>
+	<canBeTiny>true</canBeTiny>
+	<languageWorkerClass>LanguageWorker_Default</languageWorkerClass>
+	<credits>
+		<li Class="CreditRecord_Role">
+			<roleKey>Credit_SpecialThanks</roleKey>
+			<creditee>Simplified Chinese source: Dango, z47355539@gmail.com</creditee>
+		</li>
+		<li Class="CreditRecord_Role">
+			<roleKey>Credit_SpecialThanks</roleKey>
+			<creditee>Workshop terminology reference: 恰似宛然一笑生花</creditee>
+		</li>
+		<li Class="CreditRecord_Role">
+			<roleKey>Credit_SpecialThanks</roleKey>
+			<creditee>RimWorld terminology reference: leafzxg（落葉飄零）, Zephyr</creditee>
+		</li>
+	</credits>
+</LanguageInfo>

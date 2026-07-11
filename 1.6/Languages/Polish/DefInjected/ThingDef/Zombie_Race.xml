@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<Zombie.label>zombie</Zombie.label>
+	<Zombie.description>Zombie.</Zombie.description>
+	<Zombie.tools.0.label>ugryzienie</Zombie.tools.0.label>
+	<Zombie.tools.1.label>lewa pięść</Zombie.tools.1.label>
+	<Zombie.tools.2.label>prawa pięść</Zombie.tools.2.label>
+
+	<ElectricalField.label>pole elektryczne</ElectricalField.label>
+	<ElectricalField.verbs.0.label>porażenie</ElectricalField.verbs.0.label>
+	<ElectricalField.tools.0.label>porażenie</ElectricalField.tools.0.label>
+
+	<ZombieSpitter.label>plujący zombie</ZombieSpitter.label>
+	<ZombieSpitter.description>Potwór, który wypluwa zombie, aby zaatakowały twoją bazę z powietrza.</ZombieSpitter.description>
+	<ZombieSymbiant.label>Symbiont zombie</ZombieSymbiant.label>
+	<ZombieSymbiant.description>Plaga Symbionta zombie rozprzestrzeniająca się wewnątrz budynku. Pojawia się jako widoczny śluz w często używanych pomieszczeniach, spowalnia przechodzące istoty i łączy się z kolonistą. Gospodarz jest odporny na zakażenie po ugryzieniu przez zombie i wraz ze wzrostem Symbionta zyskuje losowe korzyści. Karmienie zwłokami przyspiesza jego wzrost. Operacja usuwa więź, a pozbawiony jej Symbiont kurczy się i znika.</ZombieSymbiant.description>
+
+</LanguageData>

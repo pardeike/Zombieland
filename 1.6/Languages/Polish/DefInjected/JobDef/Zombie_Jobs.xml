@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<Stumble.reportString>potyka się.</Stumble.reportString>
+	<Sabotage.reportString>sabotuje.</Sabotage.reportString>
+	<ExtractZombieSerum.reportString>pozyskuje ekstrakt zombie z TargetA.</ExtractZombieSerum.reportString>
+	<DoubleTap.reportString>dobija TargetA.</DoubleTap.reportString>
+	<Symbiant.reportString>rozprzestrzenia się.</Symbiant.reportString>
+	<FeedZombieSymbiant.reportString>karmi TargetA, używając TargetB.</FeedZombieSymbiant.reportString>
+	<Spitter.reportString>pluje.</Spitter.reportString>
+	<RopeZombie.reportString>chwyta TargetA na linę.</RopeZombie.reportString>
+	<ZapZombies.reportString>uruchamia ogłuszacz zombie.</ZapZombies.reportString>
+	<FixBrokenChainsaw.reportString>wymienia uszkodzone komponenty — TargetA.</FixBrokenChainsaw.reportString>
+	<ContaminationJobForceRest.reportString>robi krótką przerwę, aby odpocząć.</ContaminationJobForceRest.reportString>
+	<ContaminationJobHallucination.reportString>ucieka przed wyimaginowanym wrogiem.</ContaminationJobHallucination.reportString>
+	<ContaminationJobSleepwalk.reportString>lunatykuje.</ContaminationJobSleepwalk.reportString>
+	<ContaminationJobHoard.reportString>gromadzi przedmioty.</ContaminationJobHoard.reportString>
+	<ContaminationJobMimic.reportString>naśladuje zombie.</ContaminationJobMimic.reportString>
+	<ContaminationJobBreakdown.reportString>przechodzi załamanie psychiczne.</ContaminationJobBreakdown.reportString>
+
+</LanguageData>

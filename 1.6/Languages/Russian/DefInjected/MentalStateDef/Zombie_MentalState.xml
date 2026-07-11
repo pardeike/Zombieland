@@ -2,10 +2,34 @@
 <LanguageData>
 
 	<ContaminationStateForceRest.label>отдыхает</ContaminationStateForceRest.label>
+	<ContaminationStateForceRest.baseInspectLine>Душевное состояние: отдых</ContaminationStateForceRest.baseInspectLine>
+	<ContaminationStateForceRest.beginLetter>{0} нужно немного отдохнуть.</ContaminationStateForceRest.beginLetter>
+	<ContaminationStateForceRest.beginLetterLabel>отдых</ContaminationStateForceRest.beginLetterLabel>
+	<ContaminationStateForceRest.recoveryMessage>{0} больше не нуждается в отдыхе.</ContaminationStateForceRest.recoveryMessage>
 	<ContaminationStateHallucination.label>галлюцинирует</ContaminationStateHallucination.label>
+	<ContaminationStateHallucination.baseInspectLine>Душевное состояние: галлюцинации</ContaminationStateHallucination.baseInspectLine>
+	<ContaminationStateHallucination.beginLetter>{0} начинает галлюцинировать и в замешательстве убегает.</ContaminationStateHallucination.beginLetter>
+	<ContaminationStateHallucination.beginLetterLabel>галлюцинации</ContaminationStateHallucination.beginLetterLabel>
+	<ContaminationStateHallucination.recoveryMessage>{0} больше не галлюцинирует.</ContaminationStateHallucination.recoveryMessage>
 	<ContaminationStateSleepwalking.label>ходит во сне</ContaminationStateSleepwalking.label>
+	<ContaminationStateSleepwalking.baseInspectLine>Душевное состояние: лунатизм</ContaminationStateSleepwalking.baseInspectLine>
+	<ContaminationStateSleepwalking.beginLetter>{0} начинает ходить во сне.</ContaminationStateSleepwalking.beginLetter>
+	<ContaminationStateSleepwalking.beginLetterLabel>лунатизм</ContaminationStateSleepwalking.beginLetterLabel>
+	<ContaminationStateSleepwalking.recoveryMessage>{0} больше не ходит во сне.</ContaminationStateSleepwalking.recoveryMessage>
 	<ContaminationStateHoarding.label>накапливает</ContaminationStateHoarding.label>
+	<ContaminationStateHoarding.baseInspectLine>Душевное состояние: накопительство</ContaminationStateHoarding.baseInspectLine>
+	<ContaminationStateHoarding.beginLetter>{0} начинает накапливать вещи.</ContaminationStateHoarding.beginLetter>
+	<ContaminationStateHoarding.beginLetterLabel>накопительство</ContaminationStateHoarding.beginLetterLabel>
+	<ContaminationStateHoarding.recoveryMessage>{0} больше не занимается накопительством.</ContaminationStateHoarding.recoveryMessage>
 	<ContaminationStateMimicing.label>подражает</ContaminationStateMimicing.label>
+	<ContaminationStateMimicing.baseInspectLine>Душевное состояние: подражание зомби</ContaminationStateMimicing.baseInspectLine>
+	<ContaminationStateMimicing.beginLetter>{0} начинает подражать зомби.</ContaminationStateMimicing.beginLetter>
+	<ContaminationStateMimicing.beginLetterLabel>подражание</ContaminationStateMimicing.beginLetterLabel>
+	<ContaminationStateMimicing.recoveryMessage>{0} больше не подражает зомби.</ContaminationStateMimicing.recoveryMessage>
 	<ContaminationStateBreakdown.label>переживает срыв</ContaminationStateBreakdown.label>
+	<ContaminationStateBreakdown.baseInspectLine>Душевное состояние: нервный срыв</ContaminationStateBreakdown.baseInspectLine>
+	<ContaminationStateBreakdown.beginLetter>{0} переживает нервный срыв.</ContaminationStateBreakdown.beginLetter>
+	<ContaminationStateBreakdown.beginLetterLabel>нервный срыв</ContaminationStateBreakdown.beginLetterLabel>
+	<ContaminationStateBreakdown.recoveryMessage>Нервный срыв у {0} закончился.</ContaminationStateBreakdown.recoveryMessage>
 
 </LanguageData>

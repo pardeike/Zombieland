@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<Decontamination.questDescriptionRules.rulesStrings>
+		<li>questDescription->[asker_nameFull], [asker_faction_leaderTitle] der Fraktion [asker_faction_name], bietet Ihnen Hilfe beim Verringern der Kontamination an. Sie können einen Kolonisten für einige Tage zur Dekontamination fortschicken. Der Kolonist kehrt vollständig dekontaminiert zurück und ist vorübergehend gegen neue Kontamination resistent.</li>
+	</Decontamination.questDescriptionRules.rulesStrings>
+	<Decontamination.questNameRules.rulesStrings>
+		<li>questName->Dekontaminationsangebot</li>
+	</Decontamination.questNameRules.rulesStrings>
+	<Decontamination.root.nodes.Set.value.slateRef>{SUBJECT} ist nach der Dekontaminationsbehandlung zurückgekehrt und bleibt eine Weile gegen neue Kontamination resistent.</Decontamination.root.nodes.Set.value.slateRef>
+	<Decontamination.root.nodes.ShuttleDelay.node.nodes.Letter.label.slateRef>Transport eingetroffen</Decontamination.root.nodes.ShuttleDelay.node.nodes.Letter.label.slateRef>
+	<Decontamination.root.nodes.ShuttleDelay.node.nodes.Letter.text.slateRef>Die Transportkapsel ist eingetroffen, um einen Ihrer Kolonisten abzuholen.</Decontamination.root.nodes.ShuttleDelay.node.nodes.Letter.text.slateRef>
+	<Decontamination.root.nodes.pickupShipThingDestroyed.node.nodes.Letter.label.slateRef>Transport zerstört</Decontamination.root.nodes.pickupShipThingDestroyed.node.nodes.Letter.label.slateRef>
+	<Decontamination.root.nodes.pickupShipThingDestroyed.node.nodes.Letter.text.slateRef>Die zum Abholen von Kolonisten entsandte Transportkapsel wurde zerstört.</Decontamination.root.nodes.pickupShipThingDestroyed.node.nodes.Letter.text.slateRef>
+	<Decontamination.root.nodes.ColonistsReturned.node.nodes.Letter.label.slateRef>Kolonisten zurückgekehrt</Decontamination.root.nodes.ColonistsReturned.node.nodes.Letter.label.slateRef>
+
+</LanguageData>

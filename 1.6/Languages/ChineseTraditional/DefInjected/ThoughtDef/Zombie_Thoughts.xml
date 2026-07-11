@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ZombieScare.stages.scared_by.label>被 {0} 嚇到</ZombieScare.stages.scared_by.label>
+	<ZombieScare.stages.scared_by.description>有人表現得像喪屍，嚇到了我。現在我很不安。</ZombieScare.stages.scared_by.description>
+
+</LanguageData>

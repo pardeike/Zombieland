@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ZombieSymbiant.lifeStages.zombie_symbiant.label>丧尸共生体</ZombieSymbiant.lifeStages.zombie_symbiant.label>
+	<ZombieSymbiant.lifeStages.zombie_symbiant.labelPlural>丧尸共生体</ZombieSymbiant.lifeStages.zombie_symbiant.labelPlural>
+	<ZombieSpitter.lifeStages.zombie_spitter.label>丧尸喷吐者</ZombieSpitter.lifeStages.zombie_spitter.label>
+	<ZombieSpitter.lifeStages.zombie_spitter.labelPlural>丧尸喷吐者</ZombieSpitter.lifeStages.zombie_spitter.labelPlural>
+
+</LanguageData>

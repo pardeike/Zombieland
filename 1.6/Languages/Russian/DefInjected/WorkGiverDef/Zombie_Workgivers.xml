@@ -11,5 +11,7 @@
 	<FeedZombieSymbiant.verb>кормить</FeedZombieSymbiant.verb>
 	<FeedZombieSymbiant.gerund>кормит</FeedZombieSymbiant.gerund>
 	<FixBrokenChainsaw.label>чинить сломанную бензопилу</FixBrokenChainsaw.label>
+	<FixBrokenChainsaw.verb>заменить сломанные детали в</FixBrokenChainsaw.verb>
+	<FixBrokenChainsaw.gerund>заменяет сломанные детали в</FixBrokenChainsaw.gerund>
 
 </LanguageData>

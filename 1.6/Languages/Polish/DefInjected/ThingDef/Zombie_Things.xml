@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<Apparel_BombVest.label>kamizelka bombowa</Apparel_BombVest.label>
+	<Apparel_BombVest.description>Kamizelka wypełniona materiałami wybuchowymi.</Apparel_BombVest.description>
+
+	<TarSlime.label>wyjątkowo lepki śluz</TarSlime.label>
+	<TarSlime.description>Bardzo lepki śluz, który znacznie spowalnia poruszanie.</TarSlime.description>
+
+	<TarSmoke.label>dym</TarSmoke.label>
+	<TarSmoke.description>Ciemny dym utrudniający widzenie.</TarSmoke.description>
+
+	<StickyGoo.label>toksyczna, lepka maź zombie</StickyGoo.label>
+	<StickyGoo.description>Toksyczna i lepka substancja, która prawdopodobnie wywołuje chorobę.</StickyGoo.description>
+
+	<Chainsaw.label>piła łańcuchowa</Chainsaw.label>
+	<Chainsaw.description>Piła łańcuchowa. Wygląda na to, że działa tylko przeciw bezmyślnym wrogom, takim jak zombie, i zepsuje się po użyciu na czymkolwiek innym. Bardzo wysokie ryzyko zranienia sojusznika oraz upuszczenia piły, jeśli użytkownik zostanie zaatakowany jednocześnie zbyt wielu stron. Ostrzegaliśmy.</Chainsaw.description>
+	<Chainsaw.tools.blade.label>ostrze</Chainsaw.tools.blade.label>
+
+	<ZombieExtract.label>ekstrakt zombie</ZombieExtract.label>
+	<ZombieExtract.description>Niewielka ilość ekstraktu z martwego zombie. Połącz maksymalnie 100 jednostek ekstraktu, aby wytworzyć lek zwany serum zombie, używany podczas operacji zakażonych części ciała.</ZombieExtract.description>
+
+	<UnfinishedZombieSerum.label>niedokończone serum zombie</UnfinishedZombieSerum.label>
+
+	<ZombieSerumSimple.label>prowizoryczne serum zombie 100%</ZombieSerumSimple.label>
+	<ZombieSerumSimple.description>Czyste serum z martwych zombie, które gwarantuje wyleczenie zakażenia zombie podczas operacji.</ZombieSerumSimple.description>
+
+	<Zombie10Serum.label>serum zombie 10%</Zombie10Serum.label>
+	<Zombie10Serum.description>Serum z martwych zombie, które leczy zakażenie zombie podczas operacji (10% szans powodzenia).</Zombie10Serum.description>
+	<Zombie20Serum.label>serum zombie 20%</Zombie20Serum.label>
+	<Zombie20Serum.description>Serum z martwych zombie, które leczy zakażenie zombie podczas operacji (20% szans powodzenia).</Zombie20Serum.description>
+	<Zombie30Serum.label>serum zombie 30%</Zombie30Serum.label>
+	<Zombie30Serum.description>Serum z martwych zombie, które leczy zakażenie zombie podczas operacji (30% szans powodzenia).</Zombie30Serum.description>
+	<Zombie40Serum.label>serum zombie 40%</Zombie40Serum.label>
+	<Zombie40Serum.description>Serum z martwych zombie, które leczy zakażenie zombie podczas operacji (40% szans powodzenia).</Zombie40Serum.description>
+	<Zombie50Serum.label>serum zombie 50%</Zombie50Serum.label>
+	<Zombie50Serum.description>Serum z martwych zombie, które leczy zakażenie zombie podczas operacji (50% szans powodzenia).</Zombie50Serum.description>
+	<Zombie60Serum.label>serum zombie 60%</Zombie60Serum.label>
+	<Zombie60Serum.description>Serum z martwych zombie, które leczy zakażenie zombie podczas operacji (60% szans powodzenia).</Zombie60Serum.description>
+	<Zombie70Serum.label>serum zombie 70%</Zombie70Serum.label>
+	<Zombie70Serum.description>Serum z martwych zombie, które leczy zakażenie zombie podczas operacji (70% szans powodzenia).</Zombie70Serum.description>
+	<Zombie80Serum.label>serum zombie 80%</Zombie80Serum.label>
+	<Zombie80Serum.description>Serum z martwych zombie, które leczy zakażenie zombie podczas operacji (80% szans powodzenia).</Zombie80Serum.description>
+	<Zombie90Serum.label>serum zombie 90%</Zombie90Serum.label>
+	<Zombie90Serum.description>Serum z martwych zombie, które leczy zakażenie zombie podczas operacji (90% szans powodzenia).</Zombie90Serum.description>
+	<Zombie100Serum.label>serum zombie 100%</Zombie100Serum.label>
+	<Zombie100Serum.description>Czyste serum z martwych zombie, które gwarantuje wyleczenie zakażenia zombie podczas operacji.</Zombie100Serum.description>
+
+	<ZombieShocker.label>ogłuszacz zombie</ZombieShocker.label>
+	<ZombieShocker.description>Urządzenie do kontrolowania zombie montowane w ścianie pomieszczenia. Można je aktywować z zewnątrz, aby na krótki czas pozbawić przytomności wszystkie zombie w pomieszczeniu.</ZombieShocker.description>
+
+	<Thumper.label>wabik zombie</Thumper.label>
+	<Thumper.description>Wabik przyciągający zombie. Zużywa paliwo i przy każdym uderzeniu uszkadza otoczenie.</Thumper.description>
+
+	<ZombieBall.label>kula zombie</ZombieBall.label>
+
+	<ZombieLand_DecontaminationTransportPod.label>kapsuła transportowa do odkażania</ZombieLand_DecontaminationTransportPod.label>
+	<ZombieLand_DecontaminationTransportPod.description>Jednokierunkowa kapsuła odbiorcza wysłana po kolonistę, który ma przejść zabieg odkażania.</ZombieLand_DecontaminationTransportPod.description>
+
+</LanguageData>

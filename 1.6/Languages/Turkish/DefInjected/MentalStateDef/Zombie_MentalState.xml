@@ -2,10 +2,34 @@
 <LanguageData>
 
 	<ContaminationStateForceRest.label>dinleniyor</ContaminationStateForceRest.label>
+	<ContaminationStateForceRest.baseInspectLine>Ruh hâli: Dinleniyor</ContaminationStateForceRest.baseInspectLine>
+	<ContaminationStateForceRest.beginLetter>{0} biraz dinlenmeye ihtiyaç duyuyor.</ContaminationStateForceRest.beginLetter>
+	<ContaminationStateForceRest.beginLetterLabel>dinlenme</ContaminationStateForceRest.beginLetterLabel>
+	<ContaminationStateForceRest.recoveryMessage>{0} artık dinlenmeye ihtiyaç duymuyor.</ContaminationStateForceRest.recoveryMessage>
 	<ContaminationStateHallucination.label>halüsinasyon görüyor</ContaminationStateHallucination.label>
+	<ContaminationStateHallucination.baseInspectLine>Ruh hâli: Halüsinasyon görüyor</ContaminationStateHallucination.baseInspectLine>
+	<ContaminationStateHallucination.beginLetter>{0} halüsinasyon görmeye başladı ve kafası karışmış hâlde kaçıyor.</ContaminationStateHallucination.beginLetter>
+	<ContaminationStateHallucination.beginLetterLabel>halüsinasyon</ContaminationStateHallucination.beginLetterLabel>
+	<ContaminationStateHallucination.recoveryMessage>{0} artık halüsinasyon görmüyor.</ContaminationStateHallucination.recoveryMessage>
 	<ContaminationStateSleepwalking.label>uykuda yürüyor</ContaminationStateSleepwalking.label>
+	<ContaminationStateSleepwalking.baseInspectLine>Ruh hâli: Uykuda yürüyor</ContaminationStateSleepwalking.baseInspectLine>
+	<ContaminationStateSleepwalking.beginLetter>{0} uykuda yürümeye başladı.</ContaminationStateSleepwalking.beginLetter>
+	<ContaminationStateSleepwalking.beginLetterLabel>uykuda yürüme</ContaminationStateSleepwalking.beginLetterLabel>
+	<ContaminationStateSleepwalking.recoveryMessage>{0} artık uykuda yürümüyor.</ContaminationStateSleepwalking.recoveryMessage>
 	<ContaminationStateHoarding.label>istifliyor</ContaminationStateHoarding.label>
-	<ContaminationStateMimicing.label>taklit ediyor</ContaminationStateMimicing.label>
-	<ContaminationStateBreakdown.label>çöküyor</ContaminationStateBreakdown.label>
+	<ContaminationStateHoarding.baseInspectLine>Ruh hâli: İstifliyor</ContaminationStateHoarding.baseInspectLine>
+	<ContaminationStateHoarding.beginLetter>{0} eşyaları istiflemeye başladı.</ContaminationStateHoarding.beginLetter>
+	<ContaminationStateHoarding.beginLetterLabel>istifleme</ContaminationStateHoarding.beginLetterLabel>
+	<ContaminationStateHoarding.recoveryMessage>{0} artık eşya istiflemiyor.</ContaminationStateHoarding.recoveryMessage>
+	<ContaminationStateMimicing.label>zombileri taklit ediyor</ContaminationStateMimicing.label>
+	<ContaminationStateMimicing.baseInspectLine>Ruh hâli: Zombileri taklit ediyor</ContaminationStateMimicing.baseInspectLine>
+	<ContaminationStateMimicing.beginLetter>{0} zombileri taklit etmeye başladı.</ContaminationStateMimicing.beginLetter>
+	<ContaminationStateMimicing.beginLetterLabel>zombi taklidi</ContaminationStateMimicing.beginLetterLabel>
+	<ContaminationStateMimicing.recoveryMessage>{0} artık zombileri taklit etmiyor.</ContaminationStateMimicing.recoveryMessage>
+	<ContaminationStateBreakdown.label>ruhsal çöküş yaşıyor</ContaminationStateBreakdown.label>
+	<ContaminationStateBreakdown.baseInspectLine>Ruh hâli: Ruhsal çöküş</ContaminationStateBreakdown.baseInspectLine>
+	<ContaminationStateBreakdown.beginLetter>{0} ruhsal çöküş yaşamaya başladı.</ContaminationStateBreakdown.beginLetter>
+	<ContaminationStateBreakdown.beginLetterLabel>ruhsal çöküş</ContaminationStateBreakdown.beginLetterLabel>
+	<ContaminationStateBreakdown.recoveryMessage>{0} artık ruhsal çöküş yaşamıyor.</ContaminationStateBreakdown.recoveryMessage>
 
 </LanguageData>

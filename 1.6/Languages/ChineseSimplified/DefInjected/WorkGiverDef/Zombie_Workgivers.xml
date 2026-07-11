@@ -1,16 +1,18 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
 
-	<ExtractZombieSerum.label>从僵尸尸体中提取血清</ExtractZombieSerum.label>
-	<ExtractZombieSerum.verb>提炼</ExtractZombieSerum.verb>
-	<ExtractZombieSerum.gerund>提取</ExtractZombieSerum.gerund>
+	<ExtractZombieSerum.label>从丧尸尸体中采集提取物</ExtractZombieSerum.label>
+	<ExtractZombieSerum.verb>采集</ExtractZombieSerum.verb>
+	<ExtractZombieSerum.gerund>采集</ExtractZombieSerum.gerund>
 
-	<DoubleTap.label>双重杀死尸体以防止其成为僵尸</DoubleTap.label>
-	<DoubleTap.verb>双杀</DoubleTap.verb>
-	<DoubleTap.gerund>双重杀害</DoubleTap.gerund>
+	<DoubleTap.label>对尸体补刀，防止其变成丧尸</DoubleTap.label>
+	<DoubleTap.verb>补刀</DoubleTap.verb>
+	<DoubleTap.gerund>补刀</DoubleTap.gerund>
 	<FeedZombieSymbiant.label>喂养共生体</FeedZombieSymbiant.label>
 	<FeedZombieSymbiant.verb>喂养</FeedZombieSymbiant.verb>
 	<FeedZombieSymbiant.gerund>喂养</FeedZombieSymbiant.gerund>
-	<FixBrokenChainsaw.label>维修故障的链锯</FixBrokenChainsaw.label>
+	<FixBrokenChainsaw.label>修理损坏的链锯</FixBrokenChainsaw.label>
+	<FixBrokenChainsaw.verb>更换损坏的零部件：</FixBrokenChainsaw.verb>
+	<FixBrokenChainsaw.gerund>更换损坏的零部件：</FixBrokenChainsaw.gerund>
 
 </LanguageData>

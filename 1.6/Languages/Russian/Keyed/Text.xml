@@ -7,7 +7,7 @@
 	<ZombielandPlayerLogRevealFailed>Не удалось показать Player.log. Путь скопирован в буфер обмена.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland не смог найти путь к Player.log.</ZombielandPlayerLogPathUnavailable>
 
-	<Zombieland_Settings>Наведите курсор на любой элемент, чтобы прочитать справку о нем справа. Все настройки могут быть изменены в игре и активны сразу, они сохраняются вместе с игрой.\n\nЧтобы установить настройки по умолчанию для новых игр, измените настройки с главного экрана (Options/Mod Settings/Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Наведите курсор на любой элемент, чтобы прочитать справку о нём справа. Все настройки можно изменить во время игры, и они сразу вступят в силу; настройки сохраняются вместе с игрой.\n\nЧтобы задать значения по умолчанию для новых игр, измените настройки на главном экране (Настройки / Настройки модов / Zombieland).</Zombieland_Settings>
 	<ZombieLandKeyframes>Добавьте ключевые кадры по времени. Проверьте значения с ползунком. Только кадры редактируемы.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- первый ключевой кадр (начало игры) ... будущее время игры -&gt;</ZombieLandKeyframe0>
 
@@ -41,8 +41,8 @@
 	<ZombieSymbiantNoHost>Зомби-симбионт появился в {0}. Он расползается по оживлённым внутренним комнатам. Кормите его трупами, чтобы ускорить рост.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>одна из ваших комнат</ZombieSymbiantUnknownRoom>
 	<ZombieSymbiantInspect>Связанный носитель: {0}, размер: {1} клеток, общее здоровье: {2}, следующее преимущество на {3} клетках</ZombieSymbiantInspect>
-	<SymbiantWeaponInspect>колонисты не могут его повредить</SymbiantWeaponInspect>
-	<SymbiantWeaponRejectedMessage>Симбионт игнорирует урон от колонистов.</SymbiantWeaponRejectedMessage>
+	<SymbiantWeaponInspect>поселенцы не могут его повредить</SymbiantWeaponInspect>
+	<SymbiantWeaponRejectedMessage>Симбионт игнорирует урон от поселенцев.</SymbiantWeaponRejectedMessage>
 	<SymbiantWeaponRejectedMote>нет эффекта</SymbiantWeaponRejectedMote>
 	<SymbiantDamageAbsorbedMote>поглощено {0}%</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>носитель</SymbiantHostUnknown>
@@ -115,12 +115,12 @@
 	<SmartWandering_Simple>Простой</SmartWandering_Simple>
 	<SmartWandering_Smart>Умный</SmartWandering_Smart>
 	<BlacklistedBiomes>Биомы без зомби</BlacklistedBiomes>
-	<Biomes>Biomes</Biomes>
+	<Biomes>Биомы</Biomes>
 
 	<WhatDoZombiesAttack>Кого зомби будут атаковать?</WhatDoZombiesAttack>
-	<AttackMode_Everything>Всех, кто движется</AttackMode_Everything>
+	<AttackMode_Everything>Все существа</AttackMode_Everything>
 	<AttackMode_OnlyHumans>Людей и гуманоидов</AttackMode_OnlyHumans>
-	<AttackMode_OnlyColonists>Только колонистов и их вещи</AttackMode_OnlyColonists>
+	<AttackMode_OnlyColonists>Только поселенцев и их вещи</AttackMode_OnlyColonists>
 	<EnemiesAttackZombies>Враги атакуют зомби</EnemiesAttackZombies>
 	<AnimalsAttackZombies>Животные атакуют зомби</AnimalsAttackZombies>
 	<AnomalyTargetingTitle>Исключения Anomaly</AnomalyTargetingTitle>
@@ -165,7 +165,7 @@
 	<ZombieFreeEventTimeLeft>Осталось времени</ZombieFreeEventTimeLeft>
 
 	<ZombieEventTitle>Зомби-происшествие</ZombieEventTitle>
-	<ZombiesPerColonistInEvent>Кол-во зомби на одного колониста</ZombiesPerColonistInEvent>
+	<ZombiesPerColonistInEvent>Кол-во зомби на одного поселенца</ZombiesPerColonistInEvent>
 	<ExtraDaysBetweenEvents>Дополнительные дни между событиями</ExtraDaysBetweenEvents>
 	<InfectedRaidsChance>Прибывающие группы заражены</InfectedRaidsChance>
 
@@ -283,17 +283,17 @@
 	<RopeZombie>Захват зомби</RopeZombie>
 
 	<Activate>Активировать</Activate>
-	<ActivateDescription>Активирует устройство. Каждый зомби в комнате теряет сознание.</ActivateDescription>
+	<ActivateDescription>Активирует устройство. Все зомби в комнате теряют сознание.</ActivateDescription>
 	<WrongPlacementZombieShocker>Устройство не может быть размещено здесь.</WrongPlacementZombieShocker>
 
-	<ColonistsBittenByZombie>Колонист, укушенный зомби</ColonistsBittenByZombie>
-	<ColonistsBittenByZombieDesc>Эти колонисты были укушены зомби. На данный момент неясно, разовьется ли у них инфекция:\n\n{0}\nВнимательно следите за их ранами, потому что инфекциям нужно время, чтобы проявиться.</ColonistsBittenByZombieDesc>
+	<ColonistsBittenByZombie>Поселенец, укушенный зомби</ColonistsBittenByZombie>
+	<ColonistsBittenByZombieDesc>Эти поселенцы были укушены зомби. На данный момент неясно, разовьется ли у них инфекция:\n\n{0}\nВнимательно следите за их ранами, потому что инфекциям нужно время, чтобы проявиться.</ColonistsBittenByZombieDesc>
 
 	<ImminentZombiInfection>Неминуемая зомби-инфекция</ImminentZombiInfection>
-	<ImminentZombiInfectionDesc>Эти колонисты вот-вот заразятся от укуса зомби:\n\n{0}\nВы можете спасти их, немедленно предоставив им оптимальное лечение в наилучших условиях. Но для этого нужен хороший врач, качественная медицинская кровать и стерильная комната с монитором жизненно важных функций.</ImminentZombiInfectionDesc>
+	<ImminentZombiInfectionDesc>Эти поселенцы вот-вот заразятся от укуса зомби:\n\n{0}\nВы можете спасти их, немедленно предоставив им оптимальное лечение в наилучших условиях. Но для этого нужен хороший врач, качественная медицинская кровать и стерильная комната с монитором жизненно важных функций.</ImminentZombiInfectionDesc>
 
 	<ZombieInfection>Зомби-инфекция</ZombieInfection>
-	<ZombieInfectionDesc>Эти колонисты инфицированы и станут зомби. Спасти их больше нет возможности:\n\n{0}\nВо время заражения им безразличны мысли, чувства, боль и голод. В конце они умирают и становятся зомби.</ZombieInfectionDesc>
+	<ZombieInfectionDesc>Эти поселенцы инфицированы и станут зомби. Спасти их больше нет возможности:\n\n{0}\nВо время заражения им безразличны мысли, чувства, боль и голод. В конце они умирают и становятся зомби.</ZombieInfectionDesc>
 
 	<NoInfectionRisk>Нет риска заражения</NoInfectionRisk>
 	<HoursBeforeBecomingInfected>{0} до заражения</HoursBeforeBecomingInfected>
@@ -302,9 +302,9 @@
 	<DangerousSituation>Опасная ситуация</DangerousSituation>
 	<ZombiesAreBeingPushedOverYourWalls>Зомби перебрасываются через ваши стены! Предотвратите скопление зомби в плотные группы.</ZombiesAreBeingPushedOverYourWalls>
 
-	<ColonistBecameAZombieLabel>Колонист превратился в зомби</ColonistBecameAZombieLabel>
+	<ColonistBecameAZombieLabel>Поселенец превратился в зомби</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>Кто-то превратился в зомби</OtherBecameAZombieLabel>
-	<BecameAZombieDesc>{0} теперь могущественный зомби.</BecameAZombieDesc>
+	<BecameAZombieDesc>Теперь {0} — могущественный зомби.</BecameAZombieDesc>
 
 	<BodyIsInfectedLabel>Это тело заражено вирусом зомби!</BodyIsInfectedLabel>
 	<BodyIsInfectedTooltip>Зараженные тела превратятся в зомби, когда они начнут гнить.</BodyIsInfectedTooltip>
@@ -314,14 +314,14 @@
 	<AutoExtractDisabledDescription>Не может собирать экстракт зомби (не назначен врачом)</AutoExtractDisabledDescription>
 	<AutoExtractAllowedDescription>Автоматически собирать экстракт зомби, когда поблизости нет зомби</AutoExtractAllowedDescription>
 	<AutoExtractForbiddenDescription>Собирать экстракт зомби только по приказу</AutoExtractForbiddenDescription>
-	<AutoDoubleTapDisabledDescription>Добивание невозможно (не назначен охотником)</AutoDoubleTapDisabledDescription>
+	<AutoDoubleTapDisabledDescription>Добивание невозможно (ни один поселенец не назначен на работу «Охота»)</AutoDoubleTapDisabledDescription>
 	<AutoDoubleTapAllowedDescription>Автоматически добивать трупы, чтобы они не превратились в зомби</AutoDoubleTapAllowedDescription>
 	<AutoDoubleTapForbiddenDescription>Добивать только по приказу</AutoDoubleTapForbiddenDescription>
 
-	<AutoAvoidZombiesEnabledDescription>Автоматически избегать зомби, кроме случаев, когда колонист мобилизован</AutoAvoidZombiesEnabledDescription>
+	<AutoAvoidZombiesEnabledDescription>Автоматически избегать зомби, кроме случаев, когда поселенец мобилизован</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Игнорировать зомби. Вам нужно вручную контролировать все действия</AutoAvoidZombiesDisabledDescription>
 
-	<ZapZombies>Запустить зомби-шокер</ZapZombies>
+	<ZapZombies>Запустить зомби-электрошокер</ZapZombies>
 	<ZombieShockerWrongPlacement>Устройство не может быть размещено здесь</ZombieShockerWrongPlacement>
 	<ZombieShockerHasNoBattery>Устройство не содержит батареи</ZombieShockerHasNoBattery>
 	<ZombieShockerHasNoRoom>Устройство не подключено к подходящей комнате</ZombieShockerHasNoRoom>
@@ -334,8 +334,8 @@
 	<ShowZombieRisk>Показать зомби-риск</ShowZombieRisk>
 	<ZombieRiskAreaColumnHintLong>Правила зон Zombieland: нарушения отображаются вверху экрана во время игры</ZombieRiskAreaColumnHintLong>
 	<ZombieRiskAreaColumnHintMedium>Нарушения Zombieland отображаются вверху</ZombieRiskAreaColumnHintMedium>
-	<ColonistInside>Колонист внутри</ColonistInside>
-	<ColonistOutside>Колонист снаружи</ColonistOutside>
+	<ColonistInside>Поселенец внутри</ColonistInside>
+	<ColonistOutside>Поселенец снаружи</ColonistOutside>
 	<ZombieInside>зомби внутри</ZombieInside>
 	<ZombieOutside>зомби снаружи</ZombieOutside>
 	<HighlightDangerousAreas>Подсвечивать опасные зоны</HighlightDangerousAreas>
@@ -359,7 +359,7 @@
 	<ChainsawDescBlockingChance> блокирует {0}% входящих атак</ChainsawDescBlockingChance>
 
 	<ThumperControl>Настройки</ThumperControl>
-	<ThumperControlDesc>Задаёт интенсивность и интервал этой зомби-стучалки.</ThumperControlDesc>
+	<ThumperControlDesc>Задаёт интенсивность и интервал этой зомби-приманки.</ThumperControlDesc>
 	<Intensity>Интенсивность</Intensity>
 	<Interval>Интервал</Interval>
 
@@ -378,7 +378,7 @@
 	<Calm>Спокойный</Calm>
 
 	<ZombieContamination>Загрязнение зомби</ZombieContamination>
-	<ContaminationHelp>Загрязнение, вызванное зомби-апокалипсисом, передается через прикосновение и обработку вещей. Оно распространяется и может привести к странному поведению у колонистов.</ContaminationHelp>
+	<ContaminationHelp>Загрязнение, вызванное зомби-апокалипсисом, передается через прикосновение и обработку вещей. Оно распространяется и может привести к странному поведению у поселенцев.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Переключить оверлей загрязнения зомби.\n\nЭто показывает, насколько загрязнены вещи и земля, что в свою очередь влияет на пешек.</ShowContaminationOverlayToggleButton>
 
 </LanguageData>

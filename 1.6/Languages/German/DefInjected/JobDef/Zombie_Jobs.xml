@@ -1,13 +1,21 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
 
-	<Stumble.reportString>taumelt umher.</Stumble.reportString>
+	<Stumble.reportString>taumelt.</Stumble.reportString>
 	<Sabotage.reportString>sabotiert.</Sabotage.reportString>
-	<ExtractZombieSerum.reportString>Zombieserum von TargetA extrahieren.</ExtractZombieSerum.reportString>
-	<DoubleTap.reportString>tötet TargetA zweimal um sicher zu gehen.</DoubleTap.reportString>
+	<ExtractZombieSerum.reportString>gewinnt Zombieextrakt aus TargetA.</ExtractZombieSerum.reportString>
+	<DoubleTap.reportString>tötet TargetA zur Sicherheit erneut.</DoubleTap.reportString>
 	<Symbiant.reportString>breitet sich aus.</Symbiant.reportString>
 	<FeedZombieSymbiant.reportString>füttert TargetA mit TargetB.</FeedZombieSymbiant.reportString>
-	<RopeZombie.reportString>führt TargetA an der Leine.</RopeZombie.reportString>
-	<ZapZombies.reportString>startet den Zombiezapper.</ZapZombies.reportString>
+	<Spitter.reportString>spuckt.</Spitter.reportString>
+	<RopeZombie.reportString>führt TargetA am Seil.</RopeZombie.reportString>
+	<ZapZombies.reportString>startet den Zombie-Schocker.</ZapZombies.reportString>
+	<FixBrokenChainsaw.reportString>ersetzt defekte Bauteile in TargetA.</FixBrokenChainsaw.reportString>
+	<ContaminationJobForceRest.reportString>hält an, um sich kurz auszuruhen.</ContaminationJobForceRest.reportString>
+	<ContaminationJobHallucination.reportString>halluziniert einen eingebildeten Feind.</ContaminationJobHallucination.reportString>
+	<ContaminationJobSleepwalk.reportString>schlafwandelt.</ContaminationJobSleepwalk.reportString>
+	<ContaminationJobHoard.reportString>hortet.</ContaminationJobHoard.reportString>
+	<ContaminationJobMimic.reportString>ahmt Zombies nach.</ContaminationJobMimic.reportString>
+	<ContaminationJobBreakdown.reportString>erleidet einen Nervenzusammenbruch.</ContaminationJobBreakdown.reportString>
 
 </LanguageData>

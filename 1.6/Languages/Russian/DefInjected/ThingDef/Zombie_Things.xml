@@ -5,44 +5,45 @@
 	<Apparel_BombVest.description>Жилет со взрывчаткой.</Apparel_BombVest.description>
 	<TarSlime.label>сверхлипкая слизь</TarSlime.label>
 	<TarSlime.description>Очень липкая слизь, сильно замедляющая движение.</TarSlime.description>
-	<TarSmoke.label>чёрный дым</TarSmoke.label>
+	<TarSmoke.label>дым</TarSmoke.label>
 	<TarSmoke.description>Тёмный дым, из-за которого трудно что-либо разглядеть.</TarSmoke.description>
-	<StickyGoo.label>токсичная липкая жижа зомби</StickyGoo.label>
-	<StickyGoo.description>Токсичная и липкая субстанция, от которой, скорее всего, становится плохо.</StickyGoo.description>
+	<StickyGoo.label>токсичная липкая зомби-жижа</StickyGoo.label>
+	<StickyGoo.description>Токсичное липкое вещество, которое, вероятно, вызывает болезнь.</StickyGoo.description>
 	<Chainsaw.label>бензопила</Chainsaw.label>
 	<Chainsaw.description>Бензопила. Похоже, она работает только против тупых врагов вроде зомби и сломается, если использовать её против чего-то другого. Очень высокий риск задеть союзников и выронить её, если на вас нападут с нескольких сторон сразу. Вас предупреждали.</Chainsaw.description>
+	<Chainsaw.tools.blade.label>лезвие</Chainsaw.tools.blade.label>
 	<ZombieExtract.label>экстракт зомби</ZombieExtract.label>
-	<ZombieExtract.description>Небольшое количество экстракта из мёртвого зомби. Соберите до 100 единиц экстракта, чтобы изготовить препарат под названием зомби-сыворотка, используемый при операциях на заражённых частях тела.</ZombieExtract.description>
+	<ZombieExtract.description>Небольшое количество экстракта из мёртвого зомби. Используйте до 100 единиц экстракта, чтобы изготовить препарат под названием «зомби-сыворотка» для операций на заражённых частях тела.</ZombieExtract.description>
 	<UnfinishedZombieSerum.label>незавершённая зомби-сыворотка</UnfinishedZombieSerum.label>
 	<ZombieSerumSimple.label>кустарная зомби-сыворотка 100%</ZombieSerumSimple.label>
-	<ZombieSerumSimple.description>Чистая сыворотка из мёртвых зомби, гарантирующая лечение зомби-инфекции во время операции.</ZombieSerumSimple.description>
+	<ZombieSerumSimple.description>Чистая сыворотка из мёртвых зомби, которая гарантированно лечит зомби-инфекцию во время операций.</ZombieSerumSimple.description>
 	<Zombie10Serum.label>зомби-сыворотка 10%</Zombie10Serum.label>
-	<Zombie10Serum.description>Сыворотка из мёртвых зомби, лечащая зомби-инфекции во время операций (10% успеха).</Zombie10Serum.description>
+	<Zombie10Serum.description>Сыворотка из мёртвых зомби, которая лечит зомби-инфекции во время операций (вероятность успеха — 10 %).</Zombie10Serum.description>
 	<Zombie20Serum.label>зомби-сыворотка 20%</Zombie20Serum.label>
-	<Zombie20Serum.description>Сыворотка из мёртвых зомби, лечащая зомби-инфекции во время операций (20% успеха).</Zombie20Serum.description>
+	<Zombie20Serum.description>Сыворотка из мёртвых зомби, которая лечит зомби-инфекции во время операций (вероятность успеха — 20 %).</Zombie20Serum.description>
 	<Zombie30Serum.label>зомби-сыворотка 30%</Zombie30Serum.label>
-	<Zombie30Serum.description>Сыворотка из мёртвых зомби, лечащая зомби-инфекции во время операций (30% успеха).</Zombie30Serum.description>
+	<Zombie30Serum.description>Сыворотка из мёртвых зомби, которая лечит зомби-инфекции во время операций (вероятность успеха — 30 %).</Zombie30Serum.description>
 	<Zombie40Serum.label>зомби-сыворотка 40%</Zombie40Serum.label>
-	<Zombie40Serum.description>Сыворотка из мёртвых зомби, лечащая зомби-инфекции во время операций (40% успеха).</Zombie40Serum.description>
+	<Zombie40Serum.description>Сыворотка из мёртвых зомби, которая лечит зомби-инфекции во время операций (вероятность успеха — 40 %).</Zombie40Serum.description>
 	<Zombie50Serum.label>зомби-сыворотка 50%</Zombie50Serum.label>
-	<Zombie50Serum.description>Сыворотка из мёртвых зомби, лечащая зомби-инфекции во время операций (50% успеха).</Zombie50Serum.description>
+	<Zombie50Serum.description>Сыворотка из мёртвых зомби, которая лечит зомби-инфекции во время операций (вероятность успеха — 50 %).</Zombie50Serum.description>
 	<Zombie60Serum.label>зомби-сыворотка 60%</Zombie60Serum.label>
-	<Zombie60Serum.description>Сыворотка из мёртвых зомби, лечащая зомби-инфекции во время операций (60% успеха).</Zombie60Serum.description>
+	<Zombie60Serum.description>Сыворотка из мёртвых зомби, которая лечит зомби-инфекции во время операций (вероятность успеха — 60 %).</Zombie60Serum.description>
 	<Zombie70Serum.label>зомби-сыворотка 70%</Zombie70Serum.label>
-	<Zombie70Serum.description>Сыворотка из мёртвых зомби, лечащая зомби-инфекции во время операций (70% успеха).</Zombie70Serum.description>
+	<Zombie70Serum.description>Сыворотка из мёртвых зомби, которая лечит зомби-инфекции во время операций (вероятность успеха — 70 %).</Zombie70Serum.description>
 	<Zombie80Serum.label>зомби-сыворотка 80%</Zombie80Serum.label>
-	<Zombie80Serum.description>Сыворотка из мёртвых зомби, лечащая зомби-инфекции во время операций (80% успеха).</Zombie80Serum.description>
+	<Zombie80Serum.description>Сыворотка из мёртвых зомби, которая лечит зомби-инфекции во время операций (вероятность успеха — 80 %).</Zombie80Serum.description>
 	<Zombie90Serum.label>зомби-сыворотка 90%</Zombie90Serum.label>
-	<Zombie90Serum.description>Сыворотка из мёртвых зомби, лечащая зомби-инфекции во время операций (90% успеха).</Zombie90Serum.description>
+	<Zombie90Serum.description>Сыворотка из мёртвых зомби, которая лечит зомби-инфекции во время операций (вероятность успеха — 90 %).</Zombie90Serum.description>
 	<Zombie100Serum.label>зомби-сыворотка 100%</Zombie100Serum.label>
-	<Zombie100Serum.description>Чистая сыворотка из мёртвых зомби, гарантирующая лечение зомби-инфекции во время операции.</Zombie100Serum.description>
-	<ZombieShocker.label>зомби-шокер</ZombieShocker.label>
+	<Zombie100Serum.description>Чистая сыворотка из мёртвых зомби, которая гарантированно лечит зомби-инфекцию во время операций.</Zombie100Serum.description>
+	<ZombieShocker.label>зомби-электрошокер</ZombieShocker.label>
 	<ZombieShocker.description>Устройство контроля зомби, встраиваемое в стену комнаты. Его можно активировать снаружи, и оно ненадолго лишает сознания всех зомби в комнате.</ZombieShocker.description>
 	<Thumper.label>зомби-приманка</Thumper.label>
 	<Thumper.description>Устройство, привлекающее зомби. Использует топливо и повреждает окружение при каждом ударе.</Thumper.description>
 	<ZombieBall.label>зомби-шар</ZombieBall.label>
 
 	<ZombieLand_DecontaminationTransportPod.label>транспортная капсула для дезактивации</ZombieLand_DecontaminationTransportPod.label>
-	<ZombieLand_DecontaminationTransportPod.description>Одноразовая капсула, отправленная забрать колониста для прохождения дезактивации.</ZombieLand_DecontaminationTransportPod.description>
+	<ZombieLand_DecontaminationTransportPod.description>Одноразовая капсула, отправленная забрать поселенца для прохождения дезактивации.</ZombieLand_DecontaminationTransportPod.description>
 
 </LanguageData>

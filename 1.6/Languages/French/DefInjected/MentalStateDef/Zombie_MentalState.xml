@@ -2,10 +2,34 @@
 <LanguageData>
 
 	<ContaminationStateForceRest.label>se repose</ContaminationStateForceRest.label>
+	<ContaminationStateForceRest.baseInspectLine>État mental : repos</ContaminationStateForceRest.baseInspectLine>
+	<ContaminationStateForceRest.beginLetter>{0} a besoin de se reposer.</ContaminationStateForceRest.beginLetter>
+	<ContaminationStateForceRest.beginLetterLabel>repos</ContaminationStateForceRest.beginLetterLabel>
+	<ContaminationStateForceRest.recoveryMessage>{0} n'a plus besoin de se reposer.</ContaminationStateForceRest.recoveryMessage>
 	<ContaminationStateHallucination.label>hallucine</ContaminationStateHallucination.label>
+	<ContaminationStateHallucination.baseInspectLine>État mental : hallucinations</ContaminationStateHallucination.baseInspectLine>
+	<ContaminationStateHallucination.beginLetter>{0} commence à halluciner et prend la fuite dans la confusion.</ContaminationStateHallucination.beginLetter>
+	<ContaminationStateHallucination.beginLetterLabel>hallucinations</ContaminationStateHallucination.beginLetterLabel>
+	<ContaminationStateHallucination.recoveryMessage>{0} n'hallucine plus.</ContaminationStateHallucination.recoveryMessage>
 	<ContaminationStateSleepwalking.label>somnambule</ContaminationStateSleepwalking.label>
+	<ContaminationStateSleepwalking.baseInspectLine>État mental : somnambulisme</ContaminationStateSleepwalking.baseInspectLine>
+	<ContaminationStateSleepwalking.beginLetter>{0} commence à marcher dans son sommeil.</ContaminationStateSleepwalking.beginLetter>
+	<ContaminationStateSleepwalking.beginLetterLabel>somnambulisme</ContaminationStateSleepwalking.beginLetterLabel>
+	<ContaminationStateSleepwalking.recoveryMessage>{0} n'est plus somnambule.</ContaminationStateSleepwalking.recoveryMessage>
 	<ContaminationStateHoarding.label>accumule compulsivement</ContaminationStateHoarding.label>
+	<ContaminationStateHoarding.baseInspectLine>État mental : accumulation compulsive</ContaminationStateHoarding.baseInspectLine>
+	<ContaminationStateHoarding.beginLetter>{0} commence à accumuler compulsivement.</ContaminationStateHoarding.beginLetter>
+	<ContaminationStateHoarding.beginLetterLabel>accumulation compulsive</ContaminationStateHoarding.beginLetterLabel>
+	<ContaminationStateHoarding.recoveryMessage>{0} n'accumule plus compulsivement.</ContaminationStateHoarding.recoveryMessage>
 	<ContaminationStateMimicing.label>imite</ContaminationStateMimicing.label>
+	<ContaminationStateMimicing.baseInspectLine>État mental : imitation de zombies</ContaminationStateMimicing.baseInspectLine>
+	<ContaminationStateMimicing.beginLetter>{0} commence à imiter les zombies.</ContaminationStateMimicing.beginLetter>
+	<ContaminationStateMimicing.beginLetterLabel>imitation</ContaminationStateMimicing.beginLetterLabel>
+	<ContaminationStateMimicing.recoveryMessage>{0} n'imite plus les zombies.</ContaminationStateMimicing.recoveryMessage>
 	<ContaminationStateBreakdown.label>s'effondre</ContaminationStateBreakdown.label>
+	<ContaminationStateBreakdown.baseInspectLine>État mental : effondrement</ContaminationStateBreakdown.baseInspectLine>
+	<ContaminationStateBreakdown.beginLetter>{0} commence à s'effondrer.</ContaminationStateBreakdown.beginLetter>
+	<ContaminationStateBreakdown.beginLetterLabel>effondrement</ContaminationStateBreakdown.beginLetterLabel>
+	<ContaminationStateBreakdown.recoveryMessage>{0} s'est remis de son effondrement.</ContaminationStateBreakdown.recoveryMessage>
 
 </LanguageData>

@@ -3,5 +3,6 @@
 
 	<ZombieSymbiantBody.label>тело</ZombieSymbiantBody.label>
 	<ZombieSpitterBody.label>тело</ZombieSpitterBody.label>
+	<ZombieSpitterBody.corePart.parts.lung.customLabel>лёгкое</ZombieSpitterBody.corePart.parts.lung.customLabel>
 
 </LanguageData>

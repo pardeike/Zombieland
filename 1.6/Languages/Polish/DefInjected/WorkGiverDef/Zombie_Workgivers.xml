@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ExtractZombieSerum.label>pozyskuj ekstrakt zombie ze zwłok zombie</ExtractZombieSerum.label>
+	<ExtractZombieSerum.verb>pozyskuj</ExtractZombieSerum.verb>
+	<ExtractZombieSerum.gerund>pozyskiwanie</ExtractZombieSerum.gerund>
+
+	<DoubleTap.label>dobijaj zwłoki</DoubleTap.label>
+	<DoubleTap.verb>dobijaj</DoubleTap.verb>
+	<DoubleTap.gerund>dobijanie</DoubleTap.gerund>
+	<FeedZombieSymbiant.label>nakarm Symbionta</FeedZombieSymbiant.label>
+	<FeedZombieSymbiant.verb>nakarm</FeedZombieSymbiant.verb>
+	<FeedZombieSymbiant.gerund>karmienie</FeedZombieSymbiant.gerund>
+	<FixBrokenChainsaw.label>napraw zepsutą piłę łańcuchową</FixBrokenChainsaw.label>
+	<FixBrokenChainsaw.verb>wymień uszkodzone komponenty —</FixBrokenChainsaw.verb>
+	<FixBrokenChainsaw.gerund>wymiana uszkodzonych komponentów —</FixBrokenChainsaw.gerund>
+
+</LanguageData>

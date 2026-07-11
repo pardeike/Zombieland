@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ZombieBite.label>mordida de zombi</ZombieBite.label>
+	<ZombieBite.deathMessage>{0} murió por las mordidas de un zombi.</ZombieBite.deathMessage>
+	<SuicideBomb.label>bomba suicida</SuicideBomb.label>
+	<SuicideBomb.deathMessage>{0} ha muerto en un atentado con bomba suicida.</SuicideBomb.deathMessage>
+	<ToxicSplatter.label>salpicadura tóxica</ToxicSplatter.label>
+	<ElectricalShock.label>descarga eléctrica</ElectricalShock.label>
+	<ElectricalShock.deathMessage>{0} ha muerto por una descarga eléctrica.</ElectricalShock.deathMessage>
+	<SeismicWave.label>onda sísmica</SeismicWave.label>
+
+</LanguageData>

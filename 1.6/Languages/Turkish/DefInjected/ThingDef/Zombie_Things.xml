@@ -2,47 +2,48 @@
 <LanguageData>
 
 	<Apparel_BombVest.label>bomba yeleği</Apparel_BombVest.label>
-	<Apparel_BombVest.description>Patlayıcı taşıyan bir yelek.</Apparel_BombVest.description>
+	<Apparel_BombVest.description>Patlayıcılarla donatılmış bir yelek.</Apparel_BombVest.description>
 	<TarSlime.label>aşırı yapışkan balçık</TarSlime.label>
-	<TarSlime.description>Hareketinizi çok yavaşlatan çok yapışkan bir balçık.</TarSlime.description>
+	<TarSlime.description>Üzerinden geçenleri büyük ölçüde yavaşlatan çok yapışkan bir balçık.</TarSlime.description>
 	<TarSmoke.label>siyah duman</TarSmoke.label>
-	<TarSmoke.description>Bir şeyleri görmeyi zorlaştıran koyu bir duman.</TarSmoke.description>
-	<StickyGoo.label>zehirli ve yapışkan zombi çamuru</StickyGoo.label>
-	<StickyGoo.description>Muhtemelen sizi hasta eden zehirli ve yapışkan bir madde.</StickyGoo.description>
-	<Chainsaw.label>zincirli testere</Chainsaw.label>
-	<Chainsaw.description>Bir zincirli testere. Yalnızca zombiler gibi aptal düşmanlara karşı çalışıyor gibi görünüyor ve başka bir şeye karşı kullanılırsa kırılacak. Aynı anda çok fazla açıdan saldırıya uğrarsanız dost ateşi ve düşürme riski çok yüksektir. Uyarıldınız.</Chainsaw.description>
+	<TarSmoke.description>Görüşü zorlaştıran koyu bir duman.</TarSmoke.description>
+	<StickyGoo.label>zehirli ve yapışkan zombi balçığı</StickyGoo.label>
+	<StickyGoo.description>Temas edenleri muhtemelen hasta eden zehirli ve yapışkan bir madde.</StickyGoo.description>
+	<Chainsaw.label>motorlu testere</Chainsaw.label>
+	<Chainsaw.description>Bir motorlu testere. Görünüşe göre yalnızca zombiler gibi akılsız düşmanlara karşı işe yarıyor ve başka bir şeye karşı kullanılırsa bozulacak. Aynı anda çok fazla yönden saldırıya uğrarsan dost ateşine neden olma ve testereyi düşürme riski çok yüksek. Uyarıldın.</Chainsaw.description>
+	<Chainsaw.tools.blade.label>testere zinciri</Chainsaw.tools.blade.label>
 	<ZombieExtract.label>zombi özü</ZombieExtract.label>
-	<ZombieExtract.description>Ölü bir zombiden alınan az miktarda öz. Enfekte vücut parçalarında yapılan operasyonlarda kullanılan zombi serumu adlı ilacı üretmek için en fazla 100 özü birleştirin.</ZombieExtract.description>
+	<ZombieExtract.description>Ölü bir zombiden elde edilen az miktarda öz. Enfekte vücut parçalarında yapılan ameliyatlarda kullanılan zombi serumu adlı ilacı üretmek için 100 birime kadar öz birleştirilebilir.</ZombieExtract.description>
 	<UnfinishedZombieSerum.label>bitmemiş zombi serumu</UnfinishedZombieSerum.label>
-	<ZombieSerumSimple.label>derme çatma zombi serumu 100%</ZombieSerumSimple.label>
-	<ZombieSerumSimple.description>Operasyonlar sırasında zombi enfeksiyonlarını tedavi etmeyi garanti eden ölü zombilerden saf serum.</ZombieSerumSimple.description>
-	<Zombie10Serum.label>zombi serumu 10%</Zombie10Serum.label>
-	<Zombie10Serum.description>Operasyonlar sırasında zombi enfeksiyonlarını tedavi eden ölü zombi serumu (%10 başarı oranı).</Zombie10Serum.description>
-	<Zombie20Serum.label>zombi serumu 20%</Zombie20Serum.label>
-	<Zombie20Serum.description>Operasyonlar sırasında zombi enfeksiyonlarını tedavi eden ölü zombi serumu (%20 başarı oranı).</Zombie20Serum.description>
-	<Zombie30Serum.label>zombi serumu 30%</Zombie30Serum.label>
-	<Zombie30Serum.description>Operasyonlar sırasında zombi enfeksiyonlarını tedavi eden ölü zombi serumu (%30 başarı oranı).</Zombie30Serum.description>
-	<Zombie40Serum.label>zombi serumu 40%</Zombie40Serum.label>
-	<Zombie40Serum.description>Operasyonlar sırasında zombi enfeksiyonlarını tedavi eden ölü zombi serumu (%40 başarı oranı).</Zombie40Serum.description>
-	<Zombie50Serum.label>zombi serumu 50%</Zombie50Serum.label>
-	<Zombie50Serum.description>Operasyonlar sırasında zombi enfeksiyonlarını tedavi eden ölü zombi serumu (%50 başarı oranı).</Zombie50Serum.description>
-	<Zombie60Serum.label>zombi serumu 60%</Zombie60Serum.label>
-	<Zombie60Serum.description>Operasyonlar sırasında zombi enfeksiyonlarını tedavi eden ölü zombi serumu (%60 başarı oranı).</Zombie60Serum.description>
-	<Zombie70Serum.label>zombi serumu 70%</Zombie70Serum.label>
-	<Zombie70Serum.description>Operasyonlar sırasında zombi enfeksiyonlarını tedavi eden ölü zombi serumu (%70 başarı oranı).</Zombie70Serum.description>
-	<Zombie80Serum.label>zombi serumu 80%</Zombie80Serum.label>
-	<Zombie80Serum.description>Operasyonlar sırasında zombi enfeksiyonlarını tedavi eden ölü zombi serumu (%80 başarı oranı).</Zombie80Serum.description>
-	<Zombie90Serum.label>zombi serumu 90%</Zombie90Serum.label>
-	<Zombie90Serum.description>Operasyonlar sırasında zombi enfeksiyonlarını tedavi eden ölü zombi serumu (%90 başarı oranı).</Zombie90Serum.description>
-	<Zombie100Serum.label>zombi serumu 100%</Zombie100Serum.label>
-	<Zombie100Serum.description>Operasyonlar sırasında zombi enfeksiyonlarını tedavi etmeyi garanti eden ölü zombilerden saf serum.</Zombie100Serum.description>
-	<ZombieShocker.label>zombi şoklayıcı</ZombieShocker.label>
-	<ZombieShocker.description>Bir odanın duvarına yerleşen zombi kontrol makinesi. Dışarıdan etkinleştirilebilir ve odadaki her zombiyi kısa süreliğine bilinçsiz bırakır.</ZombieShocker.description>
-	<Thumper.label>zombi çekici</Thumper.label>
-	<Thumper.description>Zombileri çekmek için kullanılan bir vurucu. Yakıt kullanır ve her vuruşta çevreye zarar verir.</Thumper.description>
+	<ZombieSerumSimple.label>derme çatma zombi serumu %100</ZombieSerumSimple.label>
+	<ZombieSerumSimple.description>Ölü zombilerden elde edilen saf serum. Ameliyat sırasında zombi enfeksiyonunu kesin olarak tedavi eder.</ZombieSerumSimple.description>
+	<Zombie10Serum.label>zombi serumu %10</Zombie10Serum.label>
+	<Zombie10Serum.description>Ölü zombilerden elde edilen serum. Ameliyat sırasında zombi enfeksiyonunu %10 başarı oranıyla tedavi eder.</Zombie10Serum.description>
+	<Zombie20Serum.label>zombi serumu %20</Zombie20Serum.label>
+	<Zombie20Serum.description>Ölü zombilerden elde edilen serum. Ameliyat sırasında zombi enfeksiyonunu %20 başarı oranıyla tedavi eder.</Zombie20Serum.description>
+	<Zombie30Serum.label>zombi serumu %30</Zombie30Serum.label>
+	<Zombie30Serum.description>Ölü zombilerden elde edilen serum. Ameliyat sırasında zombi enfeksiyonunu %30 başarı oranıyla tedavi eder.</Zombie30Serum.description>
+	<Zombie40Serum.label>zombi serumu %40</Zombie40Serum.label>
+	<Zombie40Serum.description>Ölü zombilerden elde edilen serum. Ameliyat sırasında zombi enfeksiyonunu %40 başarı oranıyla tedavi eder.</Zombie40Serum.description>
+	<Zombie50Serum.label>zombi serumu %50</Zombie50Serum.label>
+	<Zombie50Serum.description>Ölü zombilerden elde edilen serum. Ameliyat sırasında zombi enfeksiyonunu %50 başarı oranıyla tedavi eder.</Zombie50Serum.description>
+	<Zombie60Serum.label>zombi serumu %60</Zombie60Serum.label>
+	<Zombie60Serum.description>Ölü zombilerden elde edilen serum. Ameliyat sırasında zombi enfeksiyonunu %60 başarı oranıyla tedavi eder.</Zombie60Serum.description>
+	<Zombie70Serum.label>zombi serumu %70</Zombie70Serum.label>
+	<Zombie70Serum.description>Ölü zombilerden elde edilen serum. Ameliyat sırasında zombi enfeksiyonunu %70 başarı oranıyla tedavi eder.</Zombie70Serum.description>
+	<Zombie80Serum.label>zombi serumu %80</Zombie80Serum.label>
+	<Zombie80Serum.description>Ölü zombilerden elde edilen serum. Ameliyat sırasında zombi enfeksiyonunu %80 başarı oranıyla tedavi eder.</Zombie80Serum.description>
+	<Zombie90Serum.label>zombi serumu %90</Zombie90Serum.label>
+	<Zombie90Serum.description>Ölü zombilerden elde edilen serum. Ameliyat sırasında zombi enfeksiyonunu %90 başarı oranıyla tedavi eder.</Zombie90Serum.description>
+	<Zombie100Serum.label>zombi serumu %100</Zombie100Serum.label>
+	<Zombie100Serum.description>Ölü zombilerden elde edilen saf serum. Ameliyat sırasında zombi enfeksiyonunu kesin olarak tedavi eder.</Zombie100Serum.description>
+	<ZombieShocker.label>zombi şok cihazı</ZombieShocker.label>
+	<ZombieShocker.description>Bir odanın duvarına yerleştirilen zombi kontrol cihazı. Dışarıdan etkinleştirildiğinde odadaki tüm zombileri kısa süreliğine bilinçsiz bırakır.</ZombieShocker.description>
+	<Thumper.label>zombi tokmağı</Thumper.label>
+	<Thumper.description>Zombileri çekmek için kullanılan bir tokmak. Yakıt tüketir ve her vuruşta çevreye zarar verir.</Thumper.description>
 	<ZombieBall.label>zombi topu</ZombieBall.label>
 
-	<ZombieLand_DecontaminationTransportPod.label>dekontaminasyon taşıma kapsülü</ZombieLand_DecontaminationTransportPod.label>
-	<ZombieLand_DecontaminationTransportPod.description>Bir kolonisti dekontaminasyon tedavisine götürmek için gönderilen tek yönlü alma kapsülü.</ZombieLand_DecontaminationTransportPod.description>
+	<ZombieLand_DecontaminationTransportPod.label>arındırma taşıma kapsülü</ZombieLand_DecontaminationTransportPod.label>
+	<ZombieLand_DecontaminationTransportPod.description>Bir kolonisti arındırma tedavisine götürmek üzere gönderilen tek yönlü bir taşıma kapsülü.</ZombieLand_DecontaminationTransportPod.description>
 
 </LanguageData>

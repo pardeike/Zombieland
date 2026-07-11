@@ -7,7 +7,15 @@
 	<DoubleTap.reportString>добивает TargetA.</DoubleTap.reportString>
 	<Symbiant.reportString>расползается.</Symbiant.reportString>
 	<FeedZombieSymbiant.reportString>скармливает TargetB TargetA.</FeedZombieSymbiant.reportString>
+	<Spitter.reportString>плюётся.</Spitter.reportString>
 	<RopeZombie.reportString>связывает TargetA.</RopeZombie.reportString>
-	<ZapZombies.reportString>запускает зомби-шокер.</ZapZombies.reportString>
+	<ZapZombies.reportString>запускает зомби-электрошокер.</ZapZombies.reportString>
+	<FixBrokenChainsaw.reportString>заменяет сломанные детали в TargetA.</FixBrokenChainsaw.reportString>
+	<ContaminationJobForceRest.reportString>останавливается ненадолго отдохнуть.</ContaminationJobForceRest.reportString>
+	<ContaminationJobHallucination.reportString>галлюцинирует, видя воображаемого врага.</ContaminationJobHallucination.reportString>
+	<ContaminationJobSleepwalk.reportString>ходит во сне.</ContaminationJobSleepwalk.reportString>
+	<ContaminationJobHoard.reportString>накапливает вещи.</ContaminationJobHoard.reportString>
+	<ContaminationJobMimic.reportString>подражает зомби.</ContaminationJobMimic.reportString>
+	<ContaminationJobBreakdown.reportString>переживает срыв.</ContaminationJobBreakdown.reportString>
 
 </LanguageData>

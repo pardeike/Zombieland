@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+	<ZombieFreeEvent.label>喪屍沉寂</ZombieFreeEvent.label>
+	<ZombieFreeEvent.description>喪屍會在短時間內從世界上消失。普通喪屍將會消亡，而且在此狀態持續期間不會出現新的喪屍。</ZombieFreeEvent.description>
+	<ZombieFreeEvent.endMessage>喪屍沉寂已經結束。新的喪屍會再次出現。</ZombieFreeEvent.endMessage>
+	<ZombieFreeEvent.letterText>短時間內，世界各地的喪屍正在消亡，並且不會出現新的喪屍。這是旅隊旅行的好時機。</ZombieFreeEvent.letterText>
+
+</LanguageData>

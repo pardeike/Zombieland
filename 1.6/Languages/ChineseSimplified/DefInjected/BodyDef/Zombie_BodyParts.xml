@@ -3,5 +3,6 @@
 
 	<ZombieSymbiantBody.label>身体</ZombieSymbiantBody.label>
 	<ZombieSpitterBody.label>身体</ZombieSpitterBody.label>
+	<ZombieSpitterBody.corePart.parts.lung.customLabel>肺</ZombieSpitterBody.corePart.parts.lung.customLabel>
 
 </LanguageData>

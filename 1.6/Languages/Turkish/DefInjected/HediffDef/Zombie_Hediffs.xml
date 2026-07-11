@@ -2,14 +2,24 @@
 <LanguageData>
 
 	<ZombieBite.label>zombi ısırığı</ZombieBite.label>
-	<ZombieBite.injuryProps.destroyedLabel>bir zombi tarafından ısırılıp koparıldı</ZombieBite.injuryProps.destroyedLabel>
-	<ZombieBite.injuryProps.destroyedOutLabel>bir zombi tarafından ısırılıp çıkarıldı</ZombieBite.injuryProps.destroyedOutLabel>
-	<ZombieBite.description>Bir zombiden gelen bulaşıcı ısırık.</ZombieBite.description>
+	<ZombieBite.injuryProps.destroyedLabel>bir zombi tarafından ısırılarak koparıldı</ZombieBite.injuryProps.destroyedLabel>
+	<ZombieBite.injuryProps.destroyedOutLabel>bir zombi tarafından ısırılarak yerinden çıkarıldı</ZombieBite.injuryProps.destroyedOutLabel>
+	<ZombieBite.description>Bir zombinin bulaşıcı ısırığı.</ZombieBite.description>
 	<ZombieInfection.label>zombi enfeksiyonu</ZombieInfection.label>
-	<ZombieInfection.description>Ölümden sonra zombi enfeksiyonu.</ZombieInfection.description>
-	<ContaminationEffect.label>kontaminasyon</ContaminationEffect.label>
-	<ContaminationEffect.description>Beyin ve zihindeki zombi kontaminasyonu. Kontamine nesnelere ve yerlere dokunmak veya maruz kalmak buna neden olur. Genel verimliliği giderek düşürür ve garip yan etkilere yol açar. %100 olduğunda ölüm gerçekleşir.</ContaminationEffect.description>
+	<ZombieInfection.description>Ölümden sonra ortaya çıkan zombi enfeksiyonu.</ZombieInfection.description>
+	<ContaminationEffect.label>kirlilik</ContaminationEffect.label>
+	<ContaminationEffect.description>Beyni ve zihni etkileyen zombi kirliliği. Kirli nesnelere ve yerlere dokunmak ya da bunlara maruz kalmak bu duruma yol açar. Genel verimliliği giderek düşürür ve tuhaf yan etkilere neden olur. %100'e ulaştığında ölüm gerçekleşir.</ContaminationEffect.description>
+	<ContaminationEffect.labelNoun>kirlilik</ContaminationEffect.labelNoun>
+	<ContaminationEffect.descriptionShort>Beyni ve zihni etkileyen zombi kirliliği.</ContaminationEffect.descriptionShort>
+	<ContaminationEffect.stages.none.label>yok</ContaminationEffect.stages.none.label>
+	<ContaminationEffect.stages.light.label>hafif</ContaminationEffect.stages.light.label>
+	<ContaminationEffect.stages.noticeable.label>belirgin</ContaminationEffect.stages.noticeable.label>
+	<ContaminationEffect.stages.moderate.label>orta</ContaminationEffect.stages.moderate.label>
+	<ContaminationEffect.stages.heavy.label>ağır</ContaminationEffect.stages.heavy.label>
+	<ContaminationEffect.stages.extreme.label>aşırı</ContaminationEffect.stages.extreme.label>
+	<ContaminationEffect.stages.deadly-0.label>ölümcül</ContaminationEffect.stages.deadly-0.label>
+	<ContaminationEffect.stages.deadly-1.label>ölümcül</ContaminationEffect.stages.deadly-1.label>
 	<SymbiantSymbiosis.label>simbiyant bağı</SymbiantSymbiosis.label>
-	<SymbiantSymbiosis.description>Bu kolonist bir Zombi Simbiyantı ile bağlı. Konak zombi ısırıklarından gelen enfeksiyona bağışıktır ve Simbiyant büyüdükçe rastgele faydalar kazanır. Simbiyant hücrelerinden geçen piyonlar yavaşlar, konak hariç. Cesetle beslemek Simbiyantı daha hızlı büyütür. Ameliyat bağı kaldırabilir; konaksız Simbiyant sonra geri çekilir.</SymbiantSymbiosis.description>
+	<SymbiantSymbiosis.description>Bu kolonist bir Zombi Simbiyantına bağlıdır. Konak, zombi ısırıklarından kaynaklanan enfeksiyona karşı bağışıktır ve Simbiyant büyüdükçe rastgele faydalar kazanır. Konak dışında, Simbiyant hücrelerinden geçen piyonlar yavaşlar. Simbiyantı cesetlerle beslemek daha hızlı büyümesini sağlar. Bağ ameliyatla kaldırılabilir; konaksız kalan Simbiyant daha sonra küçülerek kaybolur.</SymbiantSymbiosis.description>
 
 </LanguageData>

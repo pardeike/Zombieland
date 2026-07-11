@@ -1,16 +1,18 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
 
-	<ExtractZombieSerum.label>extrahieren von Zombieserum aus toten Zombies</ExtractZombieSerum.label>
-	<ExtractZombieSerum.verb>extrahiert Zombieextrakt</ExtractZombieSerum.verb>
-	<ExtractZombieSerum.gerund>Das extrahieren von Zombieextrakt aus</ExtractZombieSerum.gerund>
+	<ExtractZombieSerum.label>Zombieextrakt aus Zombieleichen gewinnen</ExtractZombieSerum.label>
+	<ExtractZombieSerum.verb>gewinnen</ExtractZombieSerum.verb>
+	<ExtractZombieSerum.gerund>Gewinnen von</ExtractZombieSerum.gerund>
 
-	<DoubleTap.label>sicheres Töten von Leichen</DoubleTap.label>
-	<DoubleTap.verb>tötet sicher</DoubleTap.verb>
-	<DoubleTap.gerund>Das sichere Töten von</DoubleTap.gerund>
-	<FeedZombieSymbiant.label>Symbiant füttern</FeedZombieSymbiant.label>
-	<FeedZombieSymbiant.verb>füttert</FeedZombieSymbiant.verb>
-	<FeedZombieSymbiant.gerund>Das Füttern von</FeedZombieSymbiant.gerund>
+	<DoubleTap.label>Leichen sicher zweimal töten</DoubleTap.label>
+	<DoubleTap.verb>sicher zweimal töten</DoubleTap.verb>
+	<DoubleTap.gerund>Sicheres zweimaliges Töten von</DoubleTap.gerund>
+	<FeedZombieSymbiant.label>Symbionten füttern</FeedZombieSymbiant.label>
+	<FeedZombieSymbiant.verb>füttern</FeedZombieSymbiant.verb>
+	<FeedZombieSymbiant.gerund>Füttern von</FeedZombieSymbiant.gerund>
 	<FixBrokenChainsaw.label>defekte Kettensäge reparieren</FixBrokenChainsaw.label>
+	<FixBrokenChainsaw.verb>mit Ersatzteilen bestücken</FixBrokenChainsaw.verb>
+	<FixBrokenChainsaw.gerund>Austausch defekter Bauteile in</FixBrokenChainsaw.gerund>
 
 </LanguageData>

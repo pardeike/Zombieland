@@ -2,15 +2,15 @@
 <LanguageData>
 
 	<CureZombieInfection.label>soigner l'infection zombie</CureZombieInfection.label>
-	<CureZombieInfection.description>Retire une infection zombie à un stade précoce d'une partie du corps. Nécessite un sérum zombie ; un pourcentage plus élevé réduit le risque d'échec.</CureZombieInfection.description>
+	<CureZombieInfection.description>Retire une infection zombie à un stade précoce d'une partie du corps. Nécessite un sérum de zombie ; un pourcentage plus élevé réduit le risque d'échec.</CureZombieInfection.description>
 	<CureZombieInfection.jobString>Soigne une infection zombie.</CureZombieInfection.jobString>
 
 	<SeverSymbiantSymbiosis.label>retirer le lien du Symbiant</SeverSymbiantSymbiosis.label>
 	<SeverSymbiantSymbiosis.description>Retire le lien entre un colon et le Symbiant. Le Symbiant sans hôte se résorbera après l'opération.</SeverSymbiantSymbiosis.description>
 	<SeverSymbiantSymbiosis.jobString>Retire le lien du Symbiant.</SeverSymbiantSymbiosis.jobString>
 
-	<MakeZombieSerum.label>fabriquer du sérum zombie avec de l'extrait zombie</MakeZombieSerum.label>
-	<MakeZombieSerum.description>Fabrique un sérum zombie avec de l'extrait zombie. Le sérum zombie soigne les infections zombies pendant les opérations.</MakeZombieSerum.description>
-	<MakeZombieSerum.jobString>Fabrication de sérum zombie.</MakeZombieSerum.jobString>
+	<MakeZombieSerum.label>fabriquer du sérum de zombie avec de l'extrait de zombie</MakeZombieSerum.label>
+	<MakeZombieSerum.description>Fabrique du sérum de zombie avec de l'extrait de zombie. Le sérum de zombie soigne les infections zombies pendant les opérations.</MakeZombieSerum.description>
+	<MakeZombieSerum.jobString>Fabrique du sérum de zombie.</MakeZombieSerum.jobString>
 
 </LanguageData>

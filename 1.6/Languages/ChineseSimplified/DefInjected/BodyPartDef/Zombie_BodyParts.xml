@@ -2,6 +2,8 @@
 <LanguageData>
 
 	<ZombieSymbiantBase.label>身体</ZombieSymbiantBase.label>
+	<ZombieSymbiantBase.labelShort>身体</ZombieSymbiantBase.labelShort>
 	<ZombieSpitterBase.label>身体</ZombieSpitterBase.label>
+	<ZombieSpitterBase.labelShort>身体</ZombieSpitterBase.labelShort>
 
 </LanguageData>

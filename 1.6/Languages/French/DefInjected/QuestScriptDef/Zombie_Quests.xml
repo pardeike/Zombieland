@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<Decontamination.questDescriptionRules.rulesStrings>
+		<li>questDescription->[asker_faction_leaderTitle] [asker_nameFull], de [asker_faction_name], propose son aide pour réduire la contamination. Vous pouvez envoyer un colon se faire décontaminer pendant quelques jours. Il reviendra propre et temporairement résistant à toute nouvelle contamination.</li>
+	</Decontamination.questDescriptionRules.rulesStrings>
+	<Decontamination.questNameRules.rulesStrings>
+		<li>questName->offre de décontamination</li>
+	</Decontamination.questNameRules.rulesStrings>
+	<Decontamination.root.nodes.Set.value.slateRef>Après sa décontamination, {SUBJECT} est de retour et résistera quelque temps à toute nouvelle contamination.</Decontamination.root.nodes.Set.value.slateRef>
+	<Decontamination.root.nodes.ShuttleDelay.node.nodes.Letter.label.slateRef>Transport arrivé</Decontamination.root.nodes.ShuttleDelay.node.nodes.Letter.label.slateRef>
+	<Decontamination.root.nodes.ShuttleDelay.node.nodes.Letter.text.slateRef>La capsule de transport est arrivée pour récupérer l'un de vos colons.</Decontamination.root.nodes.ShuttleDelay.node.nodes.Letter.text.slateRef>
+	<Decontamination.root.nodes.pickupShipThingDestroyed.node.nodes.Letter.label.slateRef>Transport détruit</Decontamination.root.nodes.pickupShipThingDestroyed.node.nodes.Letter.label.slateRef>
+	<Decontamination.root.nodes.pickupShipThingDestroyed.node.nodes.Letter.text.slateRef>La capsule de transport envoyée récupérer les colons a été détruite.</Decontamination.root.nodes.pickupShipThingDestroyed.node.nodes.Letter.text.slateRef>
+	<Decontamination.root.nodes.ColonistsReturned.node.nodes.Letter.label.slateRef>Colons de retour</Decontamination.root.nodes.ColonistsReturned.node.nodes.Letter.label.slateRef>
+
+</LanguageData>

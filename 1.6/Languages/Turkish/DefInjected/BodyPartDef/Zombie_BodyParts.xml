@@ -2,6 +2,8 @@
 <LanguageData>
 
 	<ZombieSymbiantBase.label>vücut</ZombieSymbiantBase.label>
+	<ZombieSymbiantBase.labelShort>vücut</ZombieSymbiantBase.labelShort>
 	<ZombieSpitterBase.label>vücut</ZombieSpitterBase.label>
+	<ZombieSpitterBase.labelShort>vücut</ZombieSpitterBase.labelShort>
 
 </LanguageData>

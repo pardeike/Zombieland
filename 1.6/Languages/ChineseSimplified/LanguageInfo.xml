@@ -9,5 +9,13 @@
 			<roleKey>Credit_Translator</roleKey>
 			<creditee>Dango, z47355539@gmail.com</creditee>
 		</li>
+		<li Class="CreditRecord_Role">
+			<roleKey>Credit_SpecialThanks</roleKey>
+			<creditee>Workshop terminology reference: 恰似宛然一笑生花</creditee>
+		</li>
+		<li Class="CreditRecord_Role">
+			<roleKey>Credit_SpecialThanks</roleKey>
+			<creditee>RimWorld terminology reference: leafzxg（落叶飘零）, Zephyr</creditee>
+		</li>
 	</credits>
 </LanguageInfo>

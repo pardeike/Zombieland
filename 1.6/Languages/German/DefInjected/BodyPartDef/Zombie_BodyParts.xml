@@ -2,6 +2,8 @@
 <LanguageData>
 
 	<ZombieSymbiantBase.label>Körper</ZombieSymbiantBase.label>
+	<ZombieSymbiantBase.labelShort>Körper</ZombieSymbiantBase.labelShort>
 	<ZombieSpitterBase.label>Körper</ZombieSpitterBase.label>
+	<ZombieSpitterBase.labelShort>Körper</ZombieSpitterBase.labelShort>
 
 </LanguageData>

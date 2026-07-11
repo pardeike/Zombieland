@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
-	<Stumble.reportString>sendeleyerek yürüyor.</Stumble.reportString>
+	<Stumble.reportString>sendeliyor.</Stumble.reportString>
 	<Sabotage.reportString>sabote ediyor.</Sabotage.reportString>
-	<ExtractZombieSerum.reportString>TargetA üzerinden zombi özü topluyor.</ExtractZombieSerum.reportString>
-	<DoubleTap.reportString>TargetA için güvenli öldürme yapıyor.</DoubleTap.reportString>
+	<ExtractZombieSerum.reportString>zombi özü topluyor: TargetA.</ExtractZombieSerum.reportString>
+	<DoubleTap.reportString>çift vuruş yapıyor: TargetA.</DoubleTap.reportString>
 	<Symbiant.reportString>yayılıyor.</Symbiant.reportString>
-	<FeedZombieSymbiant.reportString>TargetB, TargetA'ya yediriliyor.</FeedZombieSymbiant.reportString>
-	<RopeZombie.reportString>TargetA bağlanıyor.</RopeZombie.reportString>
-	<ZapZombies.reportString>zombi şoklayıcıyı başlatıyor.</ZapZombies.reportString>
+	<FeedZombieSymbiant.reportString>TargetB ile besliyor: TargetA.</FeedZombieSymbiant.reportString>
+	<RopeZombie.reportString>bağlıyor: TargetA.</RopeZombie.reportString>
+	<ZapZombies.reportString>zombi şok cihazını başlatıyor.</ZapZombies.reportString>
+	<Spitter.reportString>tükürüyor.</Spitter.reportString>
+	<FixBrokenChainsaw.reportString>bozuk parçalarını değiştiriyor: TargetA.</FixBrokenChainsaw.reportString>
+	<ContaminationJobForceRest.reportString>bir süre durup dinleniyor.</ContaminationJobForceRest.reportString>
+	<ContaminationJobHallucination.reportString>hayali bir düşman görüp kaçıyor.</ContaminationJobHallucination.reportString>
+	<ContaminationJobSleepwalk.reportString>uykuda yürüyor.</ContaminationJobSleepwalk.reportString>
+	<ContaminationJobHoard.reportString>istifliyor.</ContaminationJobHoard.reportString>
+	<ContaminationJobMimic.reportString>zombileri taklit ediyor.</ContaminationJobMimic.reportString>
+	<ContaminationJobBreakdown.reportString>ruhsal çöküş yaşıyor.</ContaminationJobBreakdown.reportString>
 
 </LanguageData>

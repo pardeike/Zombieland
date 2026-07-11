@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<Stumble.reportString>tropezando.</Stumble.reportString>
+	<Sabotage.reportString>saboteando.</Sabotage.reportString>
+	<ExtractZombieSerum.reportString>recolectando extracto de zombi de TargetA.</ExtractZombieSerum.reportString>
+	<DoubleTap.reportString>rematando a TargetA.</DoubleTap.reportString>
+	<Symbiant.reportString>extendiéndose.</Symbiant.reportString>
+	<FeedZombieSymbiant.reportString>alimentando a TargetA con TargetB.</FeedZombieSymbiant.reportString>
+	<RopeZombie.reportString>atando con cuerda a TargetA.</RopeZombie.reportString>
+	<ZapZombies.reportString>activando el aturdidor de zombis.</ZapZombies.reportString>
+	<Spitter.reportString>escupiendo.</Spitter.reportString>
+	<FixBrokenChainsaw.reportString>reemplazando componentes rotos de TargetA.</FixBrokenChainsaw.reportString>
+	<ContaminationJobForceRest.reportString>deteniéndose un rato para descansar.</ContaminationJobForceRest.reportString>
+	<ContaminationJobHallucination.reportString>alucinando con un enemigo imaginario.</ContaminationJobHallucination.reportString>
+	<ContaminationJobSleepwalk.reportString>deambulando en sueños.</ContaminationJobSleepwalk.reportString>
+	<ContaminationJobHoard.reportString>acumulando objetos.</ContaminationJobHoard.reportString>
+	<ContaminationJobMimic.reportString>imitando.</ContaminationJobMimic.reportString>
+	<ContaminationJobBreakdown.reportString>sufriendo un colapso mental.</ContaminationJobBreakdown.reportString>
+
+</LanguageData>

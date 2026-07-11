@@ -3,13 +3,23 @@
 
 	<ZombieBite.label>укус зомби</ZombieBite.label>
 	<ZombieBite.injuryProps.destroyedLabel>откушено зомби</ZombieBite.injuryProps.destroyedLabel>
-	<ZombieBite.injuryProps.destroyedOutLabel>выкушено зомби</ZombieBite.injuryProps.destroyedOutLabel>
-	<ZombieBite.description>Заразный укус зомби.</ZombieBite.description>
+	<ZombieBite.injuryProps.destroyedOutLabel>выгрызено зомби</ZombieBite.injuryProps.destroyedOutLabel>
+	<ZombieBite.description>Инфекционный укус зомби.</ZombieBite.description>
 	<ZombieInfection.label>зомби-инфекция</ZombieInfection.label>
 	<ZombieInfection.description>Зомби-инфекция после смерти.</ZombieInfection.description>
 	<ContaminationEffect.label>загрязнение</ContaminationEffect.label>
-	<ContaminationEffect.description>Зомби-загрязнение мозга и разума. Возникает при контакте с заражёнными предметами и местами. Постепенно снижает общую эффективность и вызывает странные побочные эффекты. При 100 % наступает смерть.</ContaminationEffect.description>
+	<ContaminationEffect.labelNoun>загрязнение</ContaminationEffect.labelNoun>
+	<ContaminationEffect.description>Зомби-загрязнение мозга и сознания. Возникает при контакте с загрязнёнными предметами и местами. Постепенно снижает общую эффективность и вызывает странные побочные эффекты. При 100 % наступает смерть.</ContaminationEffect.description>
+	<ContaminationEffect.descriptionShort>Зомби-загрязнение мозга и сознания.</ContaminationEffect.descriptionShort>
+	<ContaminationEffect.stages.none.label>нет</ContaminationEffect.stages.none.label>
+	<ContaminationEffect.stages.light.label>лёгкое</ContaminationEffect.stages.light.label>
+	<ContaminationEffect.stages.noticeable.label>заметное</ContaminationEffect.stages.noticeable.label>
+	<ContaminationEffect.stages.moderate.label>умеренное</ContaminationEffect.stages.moderate.label>
+	<ContaminationEffect.stages.heavy.label>тяжёлое</ContaminationEffect.stages.heavy.label>
+	<ContaminationEffect.stages.extreme.label>крайнее</ContaminationEffect.stages.extreme.label>
+	<ContaminationEffect.stages.deadly-0.label>смертельное</ContaminationEffect.stages.deadly-0.label>
+	<ContaminationEffect.stages.deadly-1.label>смертельное</ContaminationEffect.stages.deadly-1.label>
 	<SymbiantSymbiosis.label>связь симбионта</SymbiantSymbiosis.label>
-	<SymbiantSymbiosis.description>Этот колонист связан с зомби-симбионтом. Носитель получает иммунитет к зомби-инфекции от укусов и случайные преимущества по мере роста симбионта. Пешки на клетках симбионта замедляются, кроме носителя. Кормление трупами ускоряет рост симбионта. Операция может удалить связь; симбионт без носителя затем отступит.</SymbiantSymbiosis.description>
+	<SymbiantSymbiosis.description>Этот поселенец связан с зомби-симбионтом. Носитель получает иммунитет к зомби-инфекции от укусов и случайные преимущества по мере роста симбионта. Пешки на клетках симбионта замедляются, кроме носителя. Кормление трупами ускоряет рост симбионта. Операция может удалить связь; симбионт без носителя затем отступит.</SymbiantSymbiosis.description>
 
 </LanguageData>

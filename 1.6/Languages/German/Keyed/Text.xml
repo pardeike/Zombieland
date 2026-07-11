@@ -35,45 +35,45 @@
 
 	<LetterLabelZombiesSpitter>Zombiespucker-Angriff</LetterLabelZombiesSpitter>
 	<ZombiesSpitter>Ein Zombiespucker hat die Karte betreten und wird Sie belagern</ZombiesSpitter>
-	<LetterLabelZombieSymbiant>Zombie-Symbiant mit {0} verbunden</LetterLabelZombieSymbiant>
-	<LetterLabelZombieSymbiantNoHost>Zombie-Symbiant aufgetaucht</LetterLabelZombieSymbiantNoHost>
-	<ZombieSymbiant>Ein Zombie-Symbiant ist in {0} aufgetaucht und hat sich mit {1} verbunden. Er breitet sich durch belebte Innenräume aus. Figuren, die ihn überqueren, werden verlangsamt, außer dem Wirt. Der Wirt ist immun gegen Zombieinfektionen durch Bisse und erhält zufällige Vorteile, wenn der Symbiant wächst. Füttern Sie ihn mit Leichen, damit er schneller wächst.\n\nWirt und Symbiant sollten auf derselben Karte bleiben: Verlässt der Wirt die Karte, wird die Verbindung ruhend und kann erst nach seiner Rückkehr sauber entfernt werden. Wenn die Karte des Symbianten aufgegeben wird, wird er zerstört und die Verbindung gewaltsam getrennt.\n\nOperieren Sie {1} zuerst, um die Verbindung sauber zu entfernen; der wirtslose Symbiant zieht sich danach zurück.</ZombieSymbiant>
-	<ZombieSymbiantNoHost>Ein Zombie-Symbiant ist in {0} aufgetaucht. Er breitet sich durch belebte Innenräume aus. Füttern Sie ihn mit Leichen, damit er schneller wächst.</ZombieSymbiantNoHost>
+	<LetterLabelZombieSymbiant>Zombie-Symbiont mit {0} verbunden</LetterLabelZombieSymbiant>
+	<LetterLabelZombieSymbiantNoHost>Zombie-Symbiont aufgetaucht</LetterLabelZombieSymbiantNoHost>
+	<ZombieSymbiant>Ein Zombie-Symbiont ist in {0} aufgetaucht und hat sich mit {1} verbunden. Er breitet sich durch belebte Innenräume aus. Figuren, die ihn überqueren, werden verlangsamt, außer dem Wirt. Der Wirt ist immun gegen Zombieinfektionen durch Bisse und erhält zufällige Vorteile, wenn der Symbiont wächst. Füttern Sie ihn mit Leichen, damit er schneller wächst.\n\nWirt und Symbiont sollten auf derselben Karte bleiben: Verlässt der Wirt die Karte, wird die Verbindung ruhend und kann erst nach seiner Rückkehr sauber entfernt werden. Wenn die Karte des Symbionten aufgegeben wird, wird er zerstört und die Verbindung gewaltsam getrennt.\n\nOperieren Sie {1} zuerst, um die Verbindung sauber zu entfernen; der wirtslose Symbiont zieht sich danach zurück.</ZombieSymbiant>
+	<ZombieSymbiantNoHost>Ein Zombie-Symbiont ist in {0} aufgetaucht. Er breitet sich durch belebte Innenräume aus. Füttern Sie ihn mit Leichen, damit er schneller wächst.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>einer Ihrer Räume</ZombieSymbiantUnknownRoom>
 	<ZombieSymbiantInspect>Verbundener Wirt: {0}, Größe: {1} Zellen, geteilte Gesundheit: {2}, nächster Vorteil bei {3} Zellen</ZombieSymbiantInspect>
 	<SymbiantWeaponInspect>Kolonisten können ihn nicht beschädigen</SymbiantWeaponInspect>
-	<SymbiantWeaponRejectedMessage>Der Symbiant ignoriert Kolonistenschaden.</SymbiantWeaponRejectedMessage>
+	<SymbiantWeaponRejectedMessage>Der Symbiont ignoriert Kolonistenschaden.</SymbiantWeaponRejectedMessage>
 	<SymbiantWeaponRejectedMote>keine Wirkung</SymbiantWeaponRejectedMote>
 	<SymbiantDamageAbsorbedMote>{0}% absorbiert</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>der Wirt</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} von {1}</SymbiantSharedHealthSummary>
-	<FeedZombieSymbiant>Symbiant füttern</FeedZombieSymbiant>
-	<CancelFeedZombieSymbiant>Symbiant-Fütterung abbrechen</CancelFeedZombieSymbiant>
-	<FeedZombieSymbiantDesc>Füttert den Symbianten mit einer Leiche.</FeedZombieSymbiantDesc>
-	<FeedingZombieSymbiant>füttert den Symbianten</FeedingZombieSymbiant>
+	<FeedZombieSymbiant>Symbionten füttern</FeedZombieSymbiant>
+	<CancelFeedZombieSymbiant>Symbionten-Fütterung abbrechen</CancelFeedZombieSymbiant>
+	<FeedZombieSymbiantDesc>Füttert den Symbionten mit einer Leiche.</FeedZombieSymbiantDesc>
+	<FeedingZombieSymbiant>füttert den Symbionten</FeedingZombieSymbiant>
 	<NoSymbiantFeed>Keine nutzbare Leiche verfügbar</NoSymbiantFeed>
 	<SymbiantFedMote>+{1} Zellen</SymbiantFedMote>
-	<FeedZombieSymbiantFloatMenu>{0} {1} an den Symbianten verfüttern (+{2} Zellen)</FeedZombieSymbiantFloatMenu>
-	<SeverSymbiantSymbiosis>Symbiant-Verbindung entfernen</SeverSymbiantSymbiosis>
-	<SeverSymbiantSymbiosisWithCost>Symbiant-Verbindung entfernen ({0} Zombieextrakt)</SeverSymbiantSymbiosisWithCost>
-	<SymbiantSeveredMessage>{0}s Symbiant-Verbindung wurde entfernt.</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>Symbiant: {0}/{1} Zellen. Nächster Vorteil bei {2} Zellen. Geteilte Gesundheit: {3}. Der Symbiant absorbiert den größten Teil des geteilten Schadens; &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; erreicht den Wirt bei dieser Größe.\n\nKartenregel: Wirt und Symbiant müssen auf derselben Karte sein, damit die Verbindung aktiv ist und sauber entfernt werden kann. Werden sie getrennt, ruht die Verbindung, bis sie wieder vereint sind. Wenn die Karte des Symbianten aufgegeben wird, wird er zerstört und die Verbindung gewaltsam getrennt; eine Operation entfernt die Verbindung vorher sauber.\n\nVorteile:\n{5}</SymbiantHostBondDescription>
-	<SymbiantHostBondMissing>Kein aktiver Symbiant ist mit diesem Wirt verbunden.</SymbiantHostBondMissing>
-		<SymbiantHostRelocatedMessage>{0}s Symbiant-Verbindung wurde ruhend, nachdem der Wirt die Karte verlassen hat.</SymbiantHostRelocatedMessage>
-		<SymbiantMapAbandonWarningTitle>Karte mit Symbiant aufgeben?</SymbiantMapAbandonWarningTitle>
-		<SymbiantMapAbandonWarning>Diese Karte enthält einen aktiven Zombie-Symbianten. Wenn Sie die Karte aufgeben, wird der Symbiant zerstört und jede verbleibende Verbindung gewaltsam getrennt. Entfernen Sie die Symbiant-Verbindung zuerst durch eine Operation, wenn Sie die normale Trennung nutzen möchten.\n\nDiese Karte trotzdem aufgeben?</SymbiantMapAbandonWarning>
-		<SymbiantReseededMessage>{0}s Symbiant ist in einen anderen Innenraum gezogen.</SymbiantReseededMessage>
-		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Aktueller Zustand&lt;/color&gt;: &lt;color=#72d672&gt;{0} Zellen&lt;/color&gt;. Nächster Vorteil bei &lt;color=#72d672&gt;{1} Zellen&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Geteilte Gesundheit&lt;/color&gt;: {4}. Schaden am Wirt oder am Symbianten leert diesen Vorrat. Bei dieser Größe erreichen nur &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; {6}. Wenn dieser Vorrat aufgebraucht ist, stirbt {6}.\n\n&lt;color=#ffb35c&gt;Kartenregel&lt;/color&gt;: Wirt und Symbiant müssen auf derselben Karte sein, damit die Verbindung aktiv ist und sauber entfernt werden kann. Verlässt der Wirt die Karte, ruht die Verbindung bis zur Rückkehr. Wenn diese Karte aufgegeben wird, wird der Symbiant zerstört und die Verbindung gewaltsam getrennt. Eine Operation entfernt die Verbindung vorher sauber.\n\n&lt;color=#ffb35c&gt;Aktuelle Effekte&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Aktuelle Vorteile&lt;/color&gt;:\n{3}\n\nEr &lt;color=#72d672&gt;entfernt außerdem Kontamination&lt;/color&gt; auf subtile Weise.</ZombieSymbiantInfoCardDetails>
-		<SymbiantDetailsInfoCard>Symbiant-Details</SymbiantDetailsInfoCard>
+	<FeedZombieSymbiantFloatMenu>{0} {1} an den Symbionten verfüttern (+{2} Zellen)</FeedZombieSymbiantFloatMenu>
+	<SeverSymbiantSymbiosis>Symbionten-Verbindung entfernen</SeverSymbiantSymbiosis>
+	<SeverSymbiantSymbiosisWithCost>Symbionten-Verbindung entfernen ({0} Zombieextrakt)</SeverSymbiantSymbiosisWithCost>
+	<SymbiantSeveredMessage>{0}s Symbionten-Verbindung wurde entfernt.</SymbiantSeveredMessage>
+	<SymbiantHostBondDescription>Symbiont: {0}/{1} Zellen. Nächster Vorteil bei {2} Zellen. Geteilte Gesundheit: {3}. Der Symbiont absorbiert den größten Teil des geteilten Schadens; &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; erreicht den Wirt bei dieser Größe.\n\nKartenregel: Wirt und Symbiont müssen auf derselben Karte sein, damit die Verbindung aktiv ist und sauber entfernt werden kann. Werden sie getrennt, ruht die Verbindung, bis sie wieder vereint sind. Wenn die Karte des Symbionten aufgegeben wird, wird er zerstört und die Verbindung gewaltsam getrennt; eine Operation entfernt die Verbindung vorher sauber.\n\nVorteile:\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondMissing>Kein aktiver Symbiont ist mit diesem Wirt verbunden.</SymbiantHostBondMissing>
+		<SymbiantHostRelocatedMessage>{0}s Symbionten-Verbindung wurde ruhend, nachdem der Wirt die Karte verlassen hat.</SymbiantHostRelocatedMessage>
+		<SymbiantMapAbandonWarningTitle>Karte mit Symbionten aufgeben?</SymbiantMapAbandonWarningTitle>
+		<SymbiantMapAbandonWarning>Diese Karte enthält einen aktiven Zombie-Symbionten. Wenn Sie die Karte aufgeben, wird der Symbiont zerstört und jede verbleibende Verbindung gewaltsam getrennt. Entfernen Sie die Symbionten-Verbindung zuerst durch eine Operation, wenn Sie die normale Trennung nutzen möchten.\n\nDiese Karte trotzdem aufgeben?</SymbiantMapAbandonWarning>
+		<SymbiantReseededMessage>{0}s Symbiont ist in einen anderen Innenraum gezogen.</SymbiantReseededMessage>
+		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Aktueller Zustand&lt;/color&gt;: &lt;color=#72d672&gt;{0} Zellen&lt;/color&gt;. Nächster Vorteil bei &lt;color=#72d672&gt;{1} Zellen&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Geteilte Gesundheit&lt;/color&gt;: {4}. Schaden am Wirt oder am Symbionten leert diesen Vorrat. Bei dieser Größe erreichen nur &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; {6}. Wenn dieser Vorrat aufgebraucht ist, stirbt {6}.\n\n&lt;color=#ffb35c&gt;Kartenregel&lt;/color&gt;: Wirt und Symbiont müssen auf derselben Karte sein, damit die Verbindung aktiv ist und sauber entfernt werden kann. Verlässt der Wirt die Karte, ruht die Verbindung bis zur Rückkehr. Wenn diese Karte aufgegeben wird, wird der Symbiont zerstört und die Verbindung gewaltsam getrennt. Eine Operation entfernt die Verbindung vorher sauber.\n\n&lt;color=#ffb35c&gt;Aktuelle Effekte&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Aktuelle Vorteile&lt;/color&gt;:\n{3}\n\nEr &lt;color=#72d672&gt;entfernt außerdem Kontamination&lt;/color&gt; auf subtile Weise.</ZombieSymbiantInfoCardDetails>
+		<SymbiantDetailsInfoCard>Symbionten-Details</SymbiantDetailsInfoCard>
 		<SymbiantDetailsInfoCardValue>{0} Zellen</SymbiantDetailsInfoCardValue>
-		<LetterLabelSymbiantBenefitGained>Symbiant-Vorteil erhalten</LetterLabelSymbiantBenefitGained>
-		<SymbiantBenefitGainedLetter>Der mit {0} verbundene Symbiant erhielt einen neuen Vorteil: {1}.\n\nAktuelle Vorteile:\n{2}</SymbiantBenefitGainedLetter>
-		<LetterLabelSymbiantBondRemoved>Symbiant-Verbindung entfernt</LetterLabelSymbiantBondRemoved>
-		<SymbiantBondRemovedLetter>Die Verbindung zwischen {0} und dem Symbianten wurde entfernt. Der wirtslose Symbiant zieht sich zurück und verschwindet.</SymbiantBondRemovedLetter>
+		<LetterLabelSymbiantBenefitGained>Symbionten-Vorteil erhalten</LetterLabelSymbiantBenefitGained>
+		<SymbiantBenefitGainedLetter>Der mit {0} verbundene Symbiont erhielt einen neuen Vorteil: {1}.\n\nAktuelle Vorteile:\n{2}</SymbiantBenefitGainedLetter>
+		<LetterLabelSymbiantBondRemoved>Symbionten-Verbindung entfernt</LetterLabelSymbiantBondRemoved>
+		<SymbiantBondRemovedLetter>Die Verbindung zwischen {0} und dem Symbionten wurde entfernt. Der wirtslose Symbiont zieht sich zurück und verschwindet.</SymbiantBondRemovedLetter>
 		<SymbiantEffectCells>{0}/{1} Zellen aktiv</SymbiantEffectCells>
-	<SymbiantEffectPathCost>Bewegung durch Symbiant-Zellen: {0}% langsamer</SymbiantEffectPathCost>
-	<SymbiantEffectWorkSpeed>Arbeit, Verarzten, Reinigen und Kochen auf Symbiant-Zellen: {0}% langsamer</SymbiantEffectWorkSpeed>
-	<SymbiantBenefitGainedMessage>{0}s Symbiant erhielt: {1}.</SymbiantBenefitGainedMessage>
+	<SymbiantEffectPathCost>Bewegung durch Symbionten-Zellen: {0}% langsamer</SymbiantEffectPathCost>
+	<SymbiantEffectWorkSpeed>Arbeit, Verarzten, Reinigen und Kochen auf Symbionten-Zellen: {0}% langsamer</SymbiantEffectWorkSpeed>
+	<SymbiantBenefitGainedMessage>{0}s Symbiont erhielt: {1}.</SymbiantBenefitGainedMessage>
 	<SymbiantBenefitZombieInfectionImmunity>Immunität gegen Zombieinfektion</SymbiantBenefitZombieInfectionImmunity>
 	<SymbiantBenefitMoodFixed>Stimmung fest bei 50%</SymbiantBenefitMoodFixed>
 	<SymbiantBenefitNoFoodOrRest>kein Nahrungs- oder Schlafbedarf</SymbiantBenefitNoFoodOrRest>
@@ -237,9 +237,9 @@
 	<ChildZombieChance>Zombiekinder</ChildZombieChance>
 	<SpitterThreat>Zombiespucker Schwierigkeit</SpitterThreat>
 	<WallPushing>Anzahl der Zombies, die andere Zombies über Mauern schieben</WallPushing>
-	<ZombieSymbiantTitle>Zombie-Symbiant</ZombieSymbiantTitle>
-	<SymbiantEnabled>Zombie-Symbianten aktivieren</SymbiantEnabled>
-	<SymbiantMaxCells>Maximale Symbiant-Größe</SymbiantMaxCells>
+	<ZombieSymbiantTitle>Zombie-Symbiont</ZombieSymbiantTitle>
+	<SymbiantEnabled>Zombie-Symbionten aktivieren</SymbiantEnabled>
+	<SymbiantMaxCells>Maximale Symbionten-Größe</SymbiantMaxCells>
 
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>
 	<UseCustomTextures>Spezialtexturen verwenden</UseCustomTextures>

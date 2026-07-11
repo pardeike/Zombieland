@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ZombieSymbiant.lifeStages.zombie_symbiant.label>Symbiont zombie</ZombieSymbiant.lifeStages.zombie_symbiant.label>
+	<ZombieSymbiant.lifeStages.zombie_symbiant.labelPlural>Symbionty zombie</ZombieSymbiant.lifeStages.zombie_symbiant.labelPlural>
+	<ZombieSpitter.lifeStages.zombie_spitter.label>plujący zombie</ZombieSpitter.lifeStages.zombie_spitter.label>
+	<ZombieSpitter.lifeStages.zombie_spitter.labelPlural>plujące zombie</ZombieSpitter.lifeStages.zombie_spitter.labelPlural>
+
+</LanguageData>

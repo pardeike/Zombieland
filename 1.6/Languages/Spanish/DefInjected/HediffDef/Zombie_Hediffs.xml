@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ZombieBite.label>mordisco de zombi</ZombieBite.label>
+	<ZombieBite.injuryProps.destroyedLabel>destrucción por mordisco de zombi</ZombieBite.injuryProps.destroyedLabel>
+	<ZombieBite.injuryProps.destroyedOutLabel>destrucción por mordisco de zombi</ZombieBite.injuryProps.destroyedOutLabel>
+	<ZombieBite.description>Un mordisco infeccioso causado por un zombi.</ZombieBite.description>
+	<ZombieInfection.label>infección zombi</ZombieInfection.label>
+	<ZombieInfection.description>Infección zombi después de la muerte.</ZombieInfection.description>
+	<ContaminationEffect.label>contaminación</ContaminationEffect.label>
+	<ContaminationEffect.description>Contaminación zombi del cerebro y la mente. Se produce al tocar objetos y lugares contaminados o exponerse a ellos. Reducirá cada vez más la eficacia general y provocará efectos secundarios extraños. Al alcanzar el 100%, causará la muerte.</ContaminationEffect.description>
+	<ContaminationEffect.descriptionShort>Contaminación zombi del cerebro y la mente.</ContaminationEffect.descriptionShort>
+	<ContaminationEffect.labelNoun>contaminación</ContaminationEffect.labelNoun>
+	<ContaminationEffect.stages.none.label>ninguna</ContaminationEffect.stages.none.label>
+	<ContaminationEffect.stages.light.label>leve</ContaminationEffect.stages.light.label>
+	<ContaminationEffect.stages.noticeable.label>perceptible</ContaminationEffect.stages.noticeable.label>
+	<ContaminationEffect.stages.moderate.label>moderada</ContaminationEffect.stages.moderate.label>
+	<ContaminationEffect.stages.heavy.label>grave</ContaminationEffect.stages.heavy.label>
+	<ContaminationEffect.stages.extreme.label>extrema</ContaminationEffect.stages.extreme.label>
+	<ContaminationEffect.stages.deadly-0.label>mortal</ContaminationEffect.stages.deadly-0.label>
+	<ContaminationEffect.stages.deadly-1.label>mortal</ContaminationEffect.stages.deadly-1.label>
+	<SymbiantSymbiosis.label>vínculo del Simbionte</SymbiantSymbiosis.label>
+	<SymbiantSymbiosis.description>Este colono está vinculado a un Simbionte zombi. El huésped es inmune a la infección zombi causada por mordiscos y obtiene beneficios aleatorios a medida que crece el Simbionte. Los peones que atraviesan las casillas del Simbionte se ralentizan, salvo el huésped. Alimentarlo con cadáveres acelera su crecimiento. Una operación elimina el vínculo y deja que el Simbionte desvinculado se encoja hasta desaparecer.</SymbiantSymbiosis.description>
+
+</LanguageData>

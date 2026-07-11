@@ -2,10 +2,34 @@
 <LanguageData>
 
 	<ContaminationStateForceRest.label>ruhend</ContaminationStateForceRest.label>
+	<ContaminationStateForceRest.baseInspectLine>Übergeschnappt: Ruht sich aus</ContaminationStateForceRest.baseInspectLine>
+	<ContaminationStateForceRest.beginLetter>{0} braucht etwas Ruhe.</ContaminationStateForceRest.beginLetter>
+	<ContaminationStateForceRest.beginLetterLabel>Ruhepause</ContaminationStateForceRest.beginLetterLabel>
+	<ContaminationStateForceRest.recoveryMessage>{0} braucht keine Ruhe mehr.</ContaminationStateForceRest.recoveryMessage>
 	<ContaminationStateHallucination.label>halluzinierend</ContaminationStateHallucination.label>
+	<ContaminationStateHallucination.baseInspectLine>Übergeschnappt: Halluziniert</ContaminationStateHallucination.baseInspectLine>
+	<ContaminationStateHallucination.beginLetter>{0} hat angefangen zu halluzinieren und flieht verwirrt.</ContaminationStateHallucination.beginLetter>
+	<ContaminationStateHallucination.beginLetterLabel>Halluzination</ContaminationStateHallucination.beginLetterLabel>
+	<ContaminationStateHallucination.recoveryMessage>{0} halluziniert nicht mehr.</ContaminationStateHallucination.recoveryMessage>
 	<ContaminationStateSleepwalking.label>schlafwandelnd</ContaminationStateSleepwalking.label>
+	<ContaminationStateSleepwalking.baseInspectLine>Übergeschnappt: Schlafwandelt</ContaminationStateSleepwalking.baseInspectLine>
+	<ContaminationStateSleepwalking.beginLetter>{0} hat angefangen zu schlafwandeln.</ContaminationStateSleepwalking.beginLetter>
+	<ContaminationStateSleepwalking.beginLetterLabel>Schlafwandeln</ContaminationStateSleepwalking.beginLetterLabel>
+	<ContaminationStateSleepwalking.recoveryMessage>{0} schlafwandelt nicht mehr.</ContaminationStateSleepwalking.recoveryMessage>
 	<ContaminationStateHoarding.label>hortend</ContaminationStateHoarding.label>
+	<ContaminationStateHoarding.baseInspectLine>Übergeschnappt: Hortet</ContaminationStateHoarding.baseInspectLine>
+	<ContaminationStateHoarding.beginLetter>{0} hat angefangen, Dinge zu horten.</ContaminationStateHoarding.beginLetter>
+	<ContaminationStateHoarding.beginLetterLabel>Horten</ContaminationStateHoarding.beginLetterLabel>
+	<ContaminationStateHoarding.recoveryMessage>{0} hortet nichts mehr.</ContaminationStateHoarding.recoveryMessage>
 	<ContaminationStateMimicing.label>nachahmend</ContaminationStateMimicing.label>
-	<ContaminationStateBreakdown.label>zusammenbrechend</ContaminationStateBreakdown.label>
+	<ContaminationStateMimicing.baseInspectLine>Übergeschnappt: Ahmt Zombies nach</ContaminationStateMimicing.baseInspectLine>
+	<ContaminationStateMimicing.beginLetter>{0} hat angefangen, Zombies nachzuahmen.</ContaminationStateMimicing.beginLetter>
+	<ContaminationStateMimicing.beginLetterLabel>Nachahmung</ContaminationStateMimicing.beginLetterLabel>
+	<ContaminationStateMimicing.recoveryMessage>{0} ahmt Zombies nicht mehr nach.</ContaminationStateMimicing.recoveryMessage>
+	<ContaminationStateBreakdown.label>Nervenzusammenbruch</ContaminationStateBreakdown.label>
+	<ContaminationStateBreakdown.baseInspectLine>Übergeschnappt: Nervenzusammenbruch</ContaminationStateBreakdown.baseInspectLine>
+	<ContaminationStateBreakdown.beginLetter>{0} hat einen Nervenzusammenbruch erlitten.</ContaminationStateBreakdown.beginLetter>
+	<ContaminationStateBreakdown.beginLetterLabel>Nervenzusammenbruch</ContaminationStateBreakdown.beginLetterLabel>
+	<ContaminationStateBreakdown.recoveryMessage>{0} hat sich vom Nervenzusammenbruch erholt.</ContaminationStateBreakdown.recoveryMessage>
 
 </LanguageData>

@@ -4,56 +4,57 @@
 	<Apparel_BombVest.label>gilet explosif</Apparel_BombVest.label>
 	<Apparel_BombVest.description>Un gilet chargé d'explosifs.</Apparel_BombVest.description>
 
-	<TarSlime.label>vase ultra collante</TarSlime.label>
-	<TarSlime.description>Une vase très collante qui ralentit fortement vos mouvements.</TarSlime.description>
+	<TarSlime.label>gelée ultra-collante</TarSlime.label>
+	<TarSlime.description>Une gelée très collante qui ralentit fortement les mouvements.</TarSlime.description>
 
 	<TarSmoke.label>fumée noire</TarSmoke.label>
-	<TarSmoke.description>Une fumée sombre qui rend difficile de voir les choses.</TarSmoke.description>
+	<TarSmoke.description>Une fumée sombre qui réduit fortement la visibilité.</TarSmoke.description>
 
-	<StickyGoo.label>glu zombie toxique et collante</StickyGoo.label>
+	<StickyGoo.label>glu de zombie toxique et collante</StickyGoo.label>
 	<StickyGoo.description>Une substance toxique et collante qui risque de vous rendre malade.</StickyGoo.description>
 
 	<Chainsaw.label>tronçonneuse</Chainsaw.label>
-	<Chainsaw.description>Une tronçonneuse. Elle semble fonctionner seulement contre des ennemis stupides comme les zombies et se cassera si elle est utilisée contre autre chose. Très grand risque de tir ami et de la laisser tomber si vous êtes attaqué depuis trop d'angles à la fois. Vous êtes prévenu.</Chainsaw.description>
+	<Chainsaw.description>Une tronçonneuse. Elle semble ne fonctionner que contre des ennemis stupides comme les zombies et se cassera si elle est utilisée contre autre chose. Risque très élevé de tirs amis et de lâcher la tronçonneuse si vous êtes attaqué depuis trop de directions à la fois. Vous voilà prévenu.</Chainsaw.description>
+	<Chainsaw.tools.blade.label>lame</Chainsaw.tools.blade.label>
 
 	<ZombieExtract.label>extrait de zombie</ZombieExtract.label>
-	<ZombieExtract.description>Une petite quantité d'extrait prélevée sur un zombie mort. Combinez jusqu'à 100 extraits pour fabriquer un médicament appelé sérum zombie, utilisé lors d'opérations sur des parties du corps infectées.</ZombieExtract.description>
+	<ZombieExtract.description>Une petite quantité d'extrait prélevée sur un zombie mort. Combinez jusqu'à 100 unités d'extrait pour fabriquer un médicament appelé sérum de zombie, utilisé lors d'opérations sur des parties du corps infectées.</ZombieExtract.description>
 
-	<UnfinishedZombieSerum.label>sérum zombie inachevé</UnfinishedZombieSerum.label>
+	<UnfinishedZombieSerum.label>sérum de zombie inachevé</UnfinishedZombieSerum.label>
 
-	<ZombieSerumSimple.label>sérum zombie de fortune 100%</ZombieSerumSimple.label>
-	<ZombieSerumSimple.description>Sérum pur de zombies morts qui garantit de soigner les infections zombies pendant les opérations.</ZombieSerumSimple.description>
+	<ZombieSerumSimple.label>sérum de zombie de fortune 100 %</ZombieSerumSimple.label>
+	<ZombieSerumSimple.description>Sérum pur tiré de zombies morts, qui garantit de soigner les infections zombies pendant les opérations.</ZombieSerumSimple.description>
 
-	<Zombie10Serum.label>sérum zombie 10%</Zombie10Serum.label>
-	<Zombie10Serum.description>Sérum de zombies morts qui soigne les infections zombies pendant les opérations (10% de réussite).</Zombie10Serum.description>
-	<Zombie20Serum.label>sérum zombie 20%</Zombie20Serum.label>
-	<Zombie20Serum.description>Sérum de zombies morts qui soigne les infections zombies pendant les opérations (20% de réussite).</Zombie20Serum.description>
-	<Zombie30Serum.label>sérum zombie 30%</Zombie30Serum.label>
-	<Zombie30Serum.description>Sérum de zombies morts qui soigne les infections zombies pendant les opérations (30% de réussite).</Zombie30Serum.description>
-	<Zombie40Serum.label>sérum zombie 40%</Zombie40Serum.label>
-	<Zombie40Serum.description>Sérum de zombies morts qui soigne les infections zombies pendant les opérations (40% de réussite).</Zombie40Serum.description>
-	<Zombie50Serum.label>sérum zombie 50%</Zombie50Serum.label>
-	<Zombie50Serum.description>Sérum de zombies morts qui soigne les infections zombies pendant les opérations (50% de réussite).</Zombie50Serum.description>
-	<Zombie60Serum.label>sérum zombie 60%</Zombie60Serum.label>
-	<Zombie60Serum.description>Sérum de zombies morts qui soigne les infections zombies pendant les opérations (60% de réussite).</Zombie60Serum.description>
-	<Zombie70Serum.label>sérum zombie 70%</Zombie70Serum.label>
-	<Zombie70Serum.description>Sérum de zombies morts qui soigne les infections zombies pendant les opérations (70% de réussite).</Zombie70Serum.description>
-	<Zombie80Serum.label>sérum zombie 80%</Zombie80Serum.label>
-	<Zombie80Serum.description>Sérum de zombies morts qui soigne les infections zombies pendant les opérations (80% de réussite).</Zombie80Serum.description>
-	<Zombie90Serum.label>sérum zombie 90%</Zombie90Serum.label>
-	<Zombie90Serum.description>Sérum de zombies morts qui soigne les infections zombies pendant les opérations (90% de réussite).</Zombie90Serum.description>
-	<Zombie100Serum.label>sérum zombie 100%</Zombie100Serum.label>
-	<Zombie100Serum.description>Sérum pur de zombies morts qui garantit de soigner les infections zombies pendant les opérations.</Zombie100Serum.description>
+	<Zombie10Serum.label>sérum de zombie 10 %</Zombie10Serum.label>
+	<Zombie10Serum.description>Sérum tiré de zombies morts, qui soigne les infections zombies pendant les opérations (10 % de chances de réussite).</Zombie10Serum.description>
+	<Zombie20Serum.label>sérum de zombie 20 %</Zombie20Serum.label>
+	<Zombie20Serum.description>Sérum tiré de zombies morts, qui soigne les infections zombies pendant les opérations (20 % de chances de réussite).</Zombie20Serum.description>
+	<Zombie30Serum.label>sérum de zombie 30 %</Zombie30Serum.label>
+	<Zombie30Serum.description>Sérum tiré de zombies morts, qui soigne les infections zombies pendant les opérations (30 % de chances de réussite).</Zombie30Serum.description>
+	<Zombie40Serum.label>sérum de zombie 40 %</Zombie40Serum.label>
+	<Zombie40Serum.description>Sérum tiré de zombies morts, qui soigne les infections zombies pendant les opérations (40 % de chances de réussite).</Zombie40Serum.description>
+	<Zombie50Serum.label>sérum de zombie 50 %</Zombie50Serum.label>
+	<Zombie50Serum.description>Sérum tiré de zombies morts, qui soigne les infections zombies pendant les opérations (50 % de chances de réussite).</Zombie50Serum.description>
+	<Zombie60Serum.label>sérum de zombie 60 %</Zombie60Serum.label>
+	<Zombie60Serum.description>Sérum tiré de zombies morts, qui soigne les infections zombies pendant les opérations (60 % de chances de réussite).</Zombie60Serum.description>
+	<Zombie70Serum.label>sérum de zombie 70 %</Zombie70Serum.label>
+	<Zombie70Serum.description>Sérum tiré de zombies morts, qui soigne les infections zombies pendant les opérations (70 % de chances de réussite).</Zombie70Serum.description>
+	<Zombie80Serum.label>sérum de zombie 80 %</Zombie80Serum.label>
+	<Zombie80Serum.description>Sérum tiré de zombies morts, qui soigne les infections zombies pendant les opérations (80 % de chances de réussite).</Zombie80Serum.description>
+	<Zombie90Serum.label>sérum de zombie 90 %</Zombie90Serum.label>
+	<Zombie90Serum.description>Sérum tiré de zombies morts, qui soigne les infections zombies pendant les opérations (90 % de chances de réussite).</Zombie90Serum.description>
+	<Zombie100Serum.label>sérum de zombie 100 %</Zombie100Serum.label>
+	<Zombie100Serum.description>Sérum pur tiré de zombies morts, qui garantit de soigner les infections zombies pendant les opérations.</Zombie100Serum.description>
 
-	<ZombieShocker.label>neutraliseur de zombies</ZombieShocker.label>
+	<ZombieShocker.label>étourdisseur de zombies</ZombieShocker.label>
 	<ZombieShocker.description>Une machine de contrôle des zombies qui s'insère dans le mur d'une pièce. Peut être activée depuis l'extérieur et rend inconscients tous les zombies de la pièce pendant un court moment.</ZombieShocker.description>
 
-	<Thumper.label>batteur à zombies</Thumper.label>
-	<Thumper.description>Un batteur qui attire les zombies. Utilise du carburant et endommage l'environnement à chaque frappe.</Thumper.description>
+	<Thumper.label>attracteur de zombies</Thumper.label>
+	<Thumper.description>Un dispositif qui attire les zombies. Il consomme du carburant et endommage l'environnement à chaque frappe.</Thumper.description>
 
 	<ZombieBall.label>boule de zombie</ZombieBall.label>
 
 	<ZombieLand_DecontaminationTransportPod.label>capsule de transport de décontamination</ZombieLand_DecontaminationTransportPod.label>
-	<ZombieLand_DecontaminationTransportPod.description>Une capsule de ramassage à sens unique envoyée pour récupérer un colon afin qu'il reçoive un traitement de décontamination.</ZombieLand_DecontaminationTransportPod.description>
+	<ZombieLand_DecontaminationTransportPod.description>Une capsule de récupération à usage unique envoyée chercher un colon pour un traitement de décontamination.</ZombieLand_DecontaminationTransportPod.description>
 
 </LanguageData>

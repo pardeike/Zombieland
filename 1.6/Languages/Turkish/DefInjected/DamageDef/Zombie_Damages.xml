@@ -5,7 +5,7 @@
 	<ZombieBite.deathMessage>{0} bir zombi tarafından ısırılarak öldürüldü.</ZombieBite.deathMessage>
 	<SuicideBomb.label>intihar bombası</SuicideBomb.label>
 	<SuicideBomb.deathMessage>{0} bir intihar bombası saldırısında öldü.</SuicideBomb.deathMessage>
-	<ToxicSplatter.label>zehirli sıçrama</ToxicSplatter.label>
+	<ToxicSplatter.label>zehir sıçraması</ToxicSplatter.label>
 	<ElectricalShock.label>elektrik şoku</ElectricalShock.label>
 	<ElectricalShock.deathMessage>{0} elektrik çarpmasıyla öldü.</ElectricalShock.deathMessage>
 	<SeismicWave.label>sismik dalga</SeismicWave.label>

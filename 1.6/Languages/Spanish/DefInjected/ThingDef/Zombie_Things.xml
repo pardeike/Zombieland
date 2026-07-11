@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<Apparel_BombVest.label>chaleco explosivo</Apparel_BombVest.label>
+	<Apparel_BombVest.description>Un chaleco cargado de explosivos.</Apparel_BombVest.description>
+	<TarSlime.label>baba superpegajosa</TarSlime.label>
+	<TarSlime.description>Una baba muy pegajosa que ralentiza mucho el movimiento.</TarSlime.description>
+	<TarSmoke.label>humo oscuro</TarSmoke.label>
+	<TarSmoke.description>Un humo oscuro que dificulta la visión.</TarSmoke.description>
+	<StickyGoo.label>viscosidad zombi tóxica y pegajosa</StickyGoo.label>
+	<StickyGoo.description>Una sustancia tóxica y pegajosa que probablemente te hará enfermar.</StickyGoo.description>
+	<Chainsaw.label>motosierra</Chainsaw.label>
+	<Chainsaw.description>Una motosierra. Parece que solo funciona contra enemigos estúpidos como los zombis y se romperá si se usa contra cualquier otra cosa. Existe un riesgo muy alto de fuego amigo y de soltarla si te atacan desde demasiados ángulos a la vez. Quedas avisado.</Chainsaw.description>
+	<Chainsaw.tools.blade.label>hoja</Chainsaw.tools.blade.label>
+	<ZombieExtract.label>extracto de zombi</ZombieExtract.label>
+	<ZombieExtract.description>Una pequeña cantidad de extracto obtenido de un zombi muerto. Combina hasta 100 unidades de extracto para fabricar una droga llamada suero zombi, que se utiliza en operaciones sobre partes del cuerpo infectadas.</ZombieExtract.description>
+	<UnfinishedZombieSerum.label>suero zombi sin terminar</UnfinishedZombieSerum.label>
+	<ZombieSerumSimple.label>suero zombi improvisado 100%</ZombieSerumSimple.label>
+	<ZombieSerumSimple.description>Suero puro de zombis muertos que garantiza la cura de las infecciones zombis durante las operaciones.</ZombieSerumSimple.description>
+	<Zombie10Serum.label>suero zombi 10%</Zombie10Serum.label>
+	<Zombie10Serum.description>Suero de zombis muertos que cura infecciones zombis durante las operaciones (10% de probabilidad de éxito).</Zombie10Serum.description>
+	<Zombie20Serum.label>suero zombi 20%</Zombie20Serum.label>
+	<Zombie20Serum.description>Suero de zombis muertos que cura infecciones zombis durante las operaciones (20% de probabilidad de éxito).</Zombie20Serum.description>
+	<Zombie30Serum.label>suero zombi 30%</Zombie30Serum.label>
+	<Zombie30Serum.description>Suero de zombis muertos que cura infecciones zombis durante las operaciones (30% de probabilidad de éxito).</Zombie30Serum.description>
+	<Zombie40Serum.label>suero zombi 40%</Zombie40Serum.label>
+	<Zombie40Serum.description>Suero de zombis muertos que cura infecciones zombis durante las operaciones (40% de probabilidad de éxito).</Zombie40Serum.description>
+	<Zombie50Serum.label>suero zombi 50%</Zombie50Serum.label>
+	<Zombie50Serum.description>Suero de zombis muertos que cura infecciones zombis durante las operaciones (50% de probabilidad de éxito).</Zombie50Serum.description>
+	<Zombie60Serum.label>suero zombi 60%</Zombie60Serum.label>
+	<Zombie60Serum.description>Suero de zombis muertos que cura infecciones zombis durante las operaciones (60% de probabilidad de éxito).</Zombie60Serum.description>
+	<Zombie70Serum.label>suero zombi 70%</Zombie70Serum.label>
+	<Zombie70Serum.description>Suero de zombis muertos que cura infecciones zombis durante las operaciones (70% de probabilidad de éxito).</Zombie70Serum.description>
+	<Zombie80Serum.label>suero zombi 80%</Zombie80Serum.label>
+	<Zombie80Serum.description>Suero de zombis muertos que cura infecciones zombis durante las operaciones (80% de probabilidad de éxito).</Zombie80Serum.description>
+	<Zombie90Serum.label>suero zombi 90%</Zombie90Serum.label>
+	<Zombie90Serum.description>Suero de zombis muertos que cura infecciones zombis durante las operaciones (90% de probabilidad de éxito).</Zombie90Serum.description>
+	<Zombie100Serum.label>suero zombi 100%</Zombie100Serum.label>
+	<Zombie100Serum.description>Suero puro de zombis muertos que garantiza la cura de las infecciones zombis durante las operaciones.</Zombie100Serum.description>
+	<ZombieShocker.label>aturdidor de zombis</ZombieShocker.label>
+	<ZombieShocker.description>Una máquina de control de zombis que encaja en el muro de una habitación. Se puede activar desde el exterior y deja inconscientes durante un breve periodo a todos los zombis de la habitación.</ZombieShocker.description>
+	<Thumper.label>martilleador zombi</Thumper.label>
+	<Thumper.description>Un martilleador que atrae a los zombis. Consume combustible y daña el entorno con cada golpe.</Thumper.description>
+	<ZombieBall.label>bola zombi</ZombieBall.label>
+	<ZombieLand_DecontaminationTransportPod.label>cápsula de transporte de descontaminación</ZombieLand_DecontaminationTransportPod.label>
+	<ZombieLand_DecontaminationTransportPod.description>Una cápsula de recogida de un solo trayecto enviada para llevar a un colono a recibir un tratamiento de descontaminación.</ZombieLand_DecontaminationTransportPod.description>
+
+</LanguageData>

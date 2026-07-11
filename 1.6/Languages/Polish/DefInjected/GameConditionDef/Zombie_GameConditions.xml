@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ZombieFreeEvent.label>cisza zombie</ZombieFreeEvent.label>
+	<ZombieFreeEvent.description>Zombie znikają ze świata na krótki czas. Zwykłe zombie wymierają, a nowe nie pojawiają się przez cały czas trwania tego warunku.</ZombieFreeEvent.description>
+	<ZombieFreeEvent.endMessage>Cisza zombie dobiegła końca. Zombie mogą pojawiać się ponownie.</ZombieFreeEvent.endMessage>
+	<ZombieFreeEvent.letterText>Przez krótki czas zombie wymierają na całym świecie i nie pojawią się żadne nowe. To dogodny czas na podróż.</ZombieFreeEvent.letterText>
+
+</LanguageData>

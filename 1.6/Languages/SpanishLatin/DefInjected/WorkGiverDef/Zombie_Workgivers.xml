@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ExtractZombieSerum.label>recolectar extracto de cadáveres de zombis</ExtractZombieSerum.label>
+	<ExtractZombieSerum.verb>recolectar</ExtractZombieSerum.verb>
+	<ExtractZombieSerum.gerund>recolectando</ExtractZombieSerum.gerund>
+	<DoubleTap.label>rematar cadáveres para impedir que se conviertan en zombis</DoubleTap.label>
+	<DoubleTap.verb>rematar</DoubleTap.verb>
+	<DoubleTap.gerund>rematando</DoubleTap.gerund>
+	<FeedZombieSymbiant.label>alimentar al Simbionte</FeedZombieSymbiant.label>
+	<FeedZombieSymbiant.verb>alimentar</FeedZombieSymbiant.verb>
+	<FeedZombieSymbiant.gerund>alimentando</FeedZombieSymbiant.gerund>
+	<FixBrokenChainsaw.label>reparar una motosierra rota</FixBrokenChainsaw.label>
+	<FixBrokenChainsaw.verb>reemplazar los componentes rotos de</FixBrokenChainsaw.verb>
+	<FixBrokenChainsaw.gerund>reemplazando los componentes rotos de</FixBrokenChainsaw.gerund>
+
+</LanguageData>

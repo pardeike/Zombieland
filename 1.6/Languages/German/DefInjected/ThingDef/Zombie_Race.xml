@@ -2,18 +2,18 @@
 <LanguageData>
 
 	<Zombie.label>Zombie</Zombie.label>
-	<Zombie.description>Ein Zombie</Zombie.description>
+	<Zombie.description>Ein Zombie.</Zombie.description>
 	<Zombie.tools.0.label>Biss</Zombie.tools.0.label>
-	<Zombie.tools.1.label>Linke Hand</Zombie.tools.1.label>
-	<Zombie.tools.2.label>Rechte Hand</Zombie.tools.2.label>
+	<Zombie.tools.1.label>Linke Faust</Zombie.tools.1.label>
+	<Zombie.tools.2.label>Rechte Faust</Zombie.tools.2.label>
 
-	<ElectricalField.label>Elektrisches Schutzschild</ElectricalField.label>
-	<ElectricalField.verbs.0.label>Schock</ElectricalField.verbs.0.label>
-	<ElectricalField.tools.0.label>Schock</ElectricalField.tools.0.label>
+	<ElectricalField.label>Elektrisches Feld</ElectricalField.label>
+	<ElectricalField.verbs.0.label>Stromschlag</ElectricalField.verbs.0.label>
+	<ElectricalField.tools.0.label>Stromschlag</ElectricalField.tools.0.label>
 
 	<ZombieSpitter.label>Zombiespucker</ZombieSpitter.label>
-	<ZombieSpitter.description>Ein Unwesen das Zombies spuckt um dich aus der Luft anzugreifen.</ZombieSpitter.description>
-	<ZombieSymbiant.label>Zombie-Symbiant</ZombieSymbiant.label>
-	<ZombieSymbiant.description>Eine Innenraum-Infektion durch einen Zombie-Symbiant. Er breitet sich als sichtbarer Schleim durch belebte Innenräume aus, verlangsamt Figuren, die ihn überqueren, und verbindet sich mit einem Kolonisten. Der Wirt ist immun gegen Zombieinfektionen durch Bisse und erhält zufällige Vorteile, wenn der Symbiant wächst. Das Füttern mit Leichen lässt ihn schneller wachsen. Eine Operation entfernt die Verbindung; der wirtslose Symbiant zieht sich danach zurück.</ZombieSymbiant.description>
+	<ZombieSpitter.description>Ein Monster, das Zombies durch die Luft auf Ihre Basis schleudert.</ZombieSpitter.description>
+	<ZombieSymbiant.label>Zombie-Symbiont</ZombieSymbiant.label>
+	<ZombieSymbiant.description>Ein Befall von Innenräumen durch einen Zombie-Symbionten. Er breitet sich als sichtbarer Schleim durch häufig genutzte Innenräume aus, verlangsamt Figuren beim Überqueren seiner Zellen und verbindet sich mit einem Kolonisten. Der Wirt ist gegen Zombieinfektionen durch Bisse immun und erhält zufällige Vorteile, wenn der Symbiont wächst. Das Füttern mit Leichen lässt ihn schneller wachsen. Eine Operation entfernt die Verbindung; anschließend zieht sich der ungebundene Symbiont zurück.</ZombieSymbiant.description>
 
 </LanguageData>

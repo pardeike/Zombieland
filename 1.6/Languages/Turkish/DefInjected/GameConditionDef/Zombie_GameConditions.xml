@@ -2,8 +2,8 @@
 <LanguageData>
 
 	<ZombieFreeEvent.label>zombi sessizliği</ZombieFreeEvent.label>
-	<ZombieFreeEvent.description>Zombiler kısa bir süre için dünyadan kaybolur. Sıradan zombiler yok olur ve bu koşul sürdüğü sürece yeni zombiler görünmez.</ZombieFreeEvent.description>
-	<ZombieFreeEvent.endMessage>Zombi sessizliği sona erdi. Zombiler tekrar görünebilir.</ZombieFreeEvent.endMessage>
-	<ZombieFreeEvent.letterText>Kısa bir süre için, dünya genelindeki zombiler yok oluyor ve yeni zombi görünmeyecek. Bu, yolculuk için iyi bir aralıktır.</ZombieFreeEvent.letterText>
+	<ZombieFreeEvent.description>Zombiler kısa bir süreliğine dünyadan kaybolur. Sıradan zombiler yok olur ve bu koşul sürdüğü müddetçe yenileri ortaya çıkmaz.</ZombieFreeEvent.description>
+	<ZombieFreeEvent.endMessage>Zombi sessizliği sona erdi. Zombiler yeniden ortaya çıkabilir.</ZombieFreeEvent.endMessage>
+	<ZombieFreeEvent.letterText>Kısa bir süreliğine dünya genelindeki zombiler yok oluyor ve yenileri ortaya çıkmayacak. Bu, yolculuk için iyi bir fırsat.</ZombieFreeEvent.letterText>
 
 </LanguageData>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ZombieBite.label>ugryzienie zombie</ZombieBite.label>
+	<ZombieBite.injuryProps.destroyedLabel>Odgryzione przez zombie</ZombieBite.injuryProps.destroyedLabel>
+	<ZombieBite.injuryProps.destroyedOutLabel>Wygryzione przez zombie</ZombieBite.injuryProps.destroyedOutLabel>
+	<ZombieBite.description>Zakaźne ugryzienie zadane przez zombie.</ZombieBite.description>
+	<ZombieInfection.label>zakażenie zombie</ZombieInfection.label>
+	<ZombieInfection.description>Zakażenie zombie po śmierci.</ZombieInfection.description>
+	<ContaminationEffect.label>zanieczyszczenie</ContaminationEffect.label>
+	<ContaminationEffect.labelNoun>zanieczyszczenie</ContaminationEffect.labelNoun>
+	<ContaminationEffect.description>Zanieczyszczenie mózgu i umysłu substancją zombie. Powstaje przez dotykanie zanieczyszczonych przedmiotów oraz przebywanie w zanieczyszczonych miejscach. Stopniowo zmniejsza ogólną skuteczność i powoduje dziwne skutki uboczne. Przy 100% następuje śmierć.</ContaminationEffect.description>
+	<ContaminationEffect.descriptionShort>Zanieczyszczenie mózgu i umysłu substancją zombie.</ContaminationEffect.descriptionShort>
+	<ContaminationEffect.stages.none.label>brak</ContaminationEffect.stages.none.label>
+	<ContaminationEffect.stages.light.label>lekkie</ContaminationEffect.stages.light.label>
+	<ContaminationEffect.stages.noticeable.label>zauważalne</ContaminationEffect.stages.noticeable.label>
+	<ContaminationEffect.stages.moderate.label>umiarkowane</ContaminationEffect.stages.moderate.label>
+	<ContaminationEffect.stages.heavy.label>silne</ContaminationEffect.stages.heavy.label>
+	<ContaminationEffect.stages.extreme.label>skrajne</ContaminationEffect.stages.extreme.label>
+	<ContaminationEffect.stages.deadly-0.label>śmiertelne</ContaminationEffect.stages.deadly-0.label>
+	<ContaminationEffect.stages.deadly-1.label>śmiertelne</ContaminationEffect.stages.deadly-1.label>
+	<SymbiantSymbiosis.label>więź z Symbiontem</SymbiantSymbiosis.label>
+	<SymbiantSymbiosis.description>Ten kolonista jest połączony z Symbiontem zombie. Gospodarz jest odporny na zakażenie po ugryzieniu przez zombie i wraz ze wzrostem Symbionta zyskuje losowe korzyści. Istoty przechodzące przez pola Symbionta są spowolnione, z wyjątkiem gospodarza. Karmienie zwłokami przyspiesza wzrost Symbionta. Operacja usuwa więź, a pozbawiony jej Symbiont kurczy się i znika.</SymbiantSymbiosis.description>
+
+</LanguageData>

@@ -4,13 +4,13 @@
   <ZombieBite.label>丧尸咬伤</ZombieBite.label>
   <ZombieBite.deathMessage>{0} 死于丧尸撕咬。</ZombieBite.deathMessage>
 
-  <SuicideBomb.label>自杀炸弹</SuicideBomb.label>
-  <SuicideBomb.deathMessage>{0} 死于自杀炸弹攻击。</SuicideBomb.deathMessage>
+  <SuicideBomb.label>自爆炸弹</SuicideBomb.label>
+  <SuicideBomb.deathMessage>{0} 死于自爆袭击。</SuicideBomb.deathMessage>
 
   <ToxicSplatter.label>毒液飞溅</ToxicSplatter.label>
 
   <ElectricalShock.label>电击</ElectricalShock.label>
-  <ElectricalShock.deathMessage>{0}已经被电死了。</ElectricalShock.deathMessage>
+  <ElectricalShock.deathMessage>{0} 被电击致死。</ElectricalShock.deathMessage>
 
   <SeismicWave.label>地震波</SeismicWave.label>
 

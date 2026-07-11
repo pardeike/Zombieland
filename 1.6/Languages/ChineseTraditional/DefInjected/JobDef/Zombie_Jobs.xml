@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <Stumble.reportString>正在蹣跚而行。</Stumble.reportString>
+  <Sabotage.reportString>正在破壞。</Sabotage.reportString>
+  <ExtractZombieSerum.reportString>正在從 TargetA 採集喪屍提取物。</ExtractZombieSerum.reportString>
+  <DoubleTap.reportString>正在對 TargetA 補刀。</DoubleTap.reportString>
+  <Symbiant.reportString>正在蔓延。</Symbiant.reportString>
+  <FeedZombieSymbiant.reportString>正在把 TargetB 餵給 TargetA。</FeedZombieSymbiant.reportString>
+  <Spitter.reportString>正在噴吐。</Spitter.reportString>
+  <RopeZombie.reportString>正在用繩索牽引 TargetA。</RopeZombie.reportString>
+  <ZapZombies.reportString>正在啟動喪屍電擊器。</ZapZombies.reportString>
+  <FixBrokenChainsaw.reportString>正在更換 TargetA 中損壞的零件。</FixBrokenChainsaw.reportString>
+  <ContaminationJobForceRest.reportString>正在停下來休息片刻。</ContaminationJobForceRest.reportString>
+  <ContaminationJobHallucination.reportString>正在幻視一個想像中的敵人。</ContaminationJobHallucination.reportString>
+  <ContaminationJobSleepwalk.reportString>正在夢遊。</ContaminationJobSleepwalk.reportString>
+  <ContaminationJobHoard.reportString>正在囤積。</ContaminationJobHoard.reportString>
+  <ContaminationJobMimic.reportString>正在模仿。</ContaminationJobMimic.reportString>
+  <ContaminationJobBreakdown.reportString>正在精神崩潰。</ContaminationJobBreakdown.reportString>
+
+</LanguageData>

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
 
-	<CureZombieInfection.label>zombi enfeksiyonunu iyileştir</CureZombieInfection.label>
-	<CureZombieInfection.description>Bir vücut parçasındaki erken evre zombi enfeksiyonunu kaldırır. Bir zombi serumu gerektirir; daha yüksek yüzde başarısızlık riskini azaltır.</CureZombieInfection.description>
-	<CureZombieInfection.jobString>Zombi enfeksiyonu iyileştiriliyor.</CureZombieInfection.jobString>
+	<CureZombieInfection.label>zombi enfeksiyonunu tedavi et</CureZombieInfection.label>
+	<CureZombieInfection.description>Bir vücut parçasındaki erken evre zombi enfeksiyonunu tedavi et. Bir doz zombi serumu gerektirir; serum yüzdesi yükseldikçe başarısızlık riski azalır.</CureZombieInfection.description>
+	<CureZombieInfection.jobString>Zombi enfeksiyonunu tedavi ediyor.</CureZombieInfection.jobString>
 
 	<SeverSymbiantSymbiosis.label>Simbiyant bağını kaldır</SeverSymbiantSymbiosis.label>
-	<SeverSymbiantSymbiosis.description>Bir kolonist ile Simbiyant arasındaki bağı kaldırır. Konaksız Simbiyant operasyondan sonra geri çekilir.</SeverSymbiantSymbiosis.description>
+	<SeverSymbiantSymbiosis.description>Bir kolonistle Simbiyant arasındaki bağı kaldır. Konaksız kalan Simbiyant ameliyattan sonra küçülerek kaybolur.</SeverSymbiantSymbiosis.description>
 	<SeverSymbiantSymbiosis.jobString>Simbiyant bağını kaldırıyor.</SeverSymbiantSymbiosis.jobString>
 
 	<MakeZombieSerum.label>zombi özünden zombi serumu yap</MakeZombieSerum.label>
-	<MakeZombieSerum.description>Zombi özünden bir zombi serumu üretir. Zombi serumu ameliyatlarda zombi enfeksiyonlarını iyileştirir.</MakeZombieSerum.description>
-	<MakeZombieSerum.jobString>Zombi serumu yapılıyor.</MakeZombieSerum.jobString>
+	<MakeZombieSerum.description>Zombi özünden bir doz zombi serumu üret. Zombi serumu, ameliyat sırasında zombi enfeksiyonlarını tedavi eder.</MakeZombieSerum.description>
+	<MakeZombieSerum.jobString>Zombi serumu yapıyor.</MakeZombieSerum.jobString>
 
 </LanguageData>

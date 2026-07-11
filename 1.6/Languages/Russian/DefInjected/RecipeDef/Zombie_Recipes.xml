@@ -2,15 +2,15 @@
 <LanguageData>
 
 	<CureZombieInfection.label>вылечить зомби-инфекцию</CureZombieInfection.label>
-	<CureZombieInfection.description>Удаляет раннюю зомби-инфекцию с части тела. Требуется один зомби-серум; более высокий процент снижает риск неудачи.</CureZombieInfection.description>
+	<CureZombieInfection.description>Удаляет раннюю стадию зомби-инфекции из части тела. Требуется одна зомби-сыворотка; более высокая концентрация снижает риск неудачи.</CureZombieInfection.description>
 	<CureZombieInfection.jobString>Лечит зомби-инфекцию.</CureZombieInfection.jobString>
 
 	<SeverSymbiantSymbiosis.label>удалить связь симбионта</SeverSymbiantSymbiosis.label>
-	<SeverSymbiantSymbiosis.description>Удаляет связь между колонистом и симбионтом. Симбионт без носителя отступит после операции.</SeverSymbiantSymbiosis.description>
+	<SeverSymbiantSymbiosis.description>Удаляет связь между поселенцем и симбионтом. Симбионт без носителя отступит после операции.</SeverSymbiantSymbiosis.description>
 	<SeverSymbiantSymbiosis.jobString>Удаляет связь симбионта.</SeverSymbiantSymbiosis.jobString>
 
-	<MakeZombieSerum.label>сделать зомби-серум из зомби-экстракта</MakeZombieSerum.label>
-	<MakeZombieSerum.description>Создаёт один зомби-серум из зомби-экстракта. Зомби-серум лечит зомби-инфекции во время операций.</MakeZombieSerum.description>
-	<MakeZombieSerum.jobString>Создаёт зомби-серум.</MakeZombieSerum.jobString>
+	<MakeZombieSerum.label>изготовить зомби-сыворотку из экстракта зомби</MakeZombieSerum.label>
+	<MakeZombieSerum.description>Изготавливает одну зомби-сыворотку из экстракта зомби. Зомби-сыворотка лечит зомби-инфекции во время операций.</MakeZombieSerum.description>
+	<MakeZombieSerum.jobString>Изготавливает зомби-сыворотку.</MakeZombieSerum.jobString>
 
 </LanguageData>

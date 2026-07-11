@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<Decontamination.questDescriptionRules.rulesStrings>
+		<li>questDescription->[asker_faction_leaderTitle] [asker_nameFull] из [asker_faction_name] предлагает помощь в снижении загрязнения. Вы можете отправить одного поселенца на несколько дней для дезактивации. Поселенец вернётся очищенным и на время получит сопротивление к новому загрязнению.</li>
+	</Decontamination.questDescriptionRules.rulesStrings>
+	<Decontamination.questNameRules.rulesStrings>
+		<li>questName->предложение дезактивации</li>
+	</Decontamination.questNameRules.rulesStrings>
+	<Decontamination.root.nodes.Set.value.slateRef>После дезактивации {SUBJECT} возвращается с временной устойчивостью к новому загрязнению.</Decontamination.root.nodes.Set.value.slateRef>
+	<Decontamination.root.nodes.ShuttleDelay.node.nodes.Letter.label.slateRef>Транспорт прибыл</Decontamination.root.nodes.ShuttleDelay.node.nodes.Letter.label.slateRef>
+	<Decontamination.root.nodes.ShuttleDelay.node.nodes.Letter.text.slateRef>Транспортная капсула прибыла, чтобы забрать одного из ваших поселенцев.</Decontamination.root.nodes.ShuttleDelay.node.nodes.Letter.text.slateRef>
+	<Decontamination.root.nodes.pickupShipThingDestroyed.node.nodes.Letter.label.slateRef>Транспорт уничтожен</Decontamination.root.nodes.pickupShipThingDestroyed.node.nodes.Letter.label.slateRef>
+	<Decontamination.root.nodes.pickupShipThingDestroyed.node.nodes.Letter.text.slateRef>Транспортная капсула, отправленная за поселенцами, была уничтожена.</Decontamination.root.nodes.pickupShipThingDestroyed.node.nodes.Letter.text.slateRef>
+	<Decontamination.root.nodes.ColonistsReturned.node.nodes.Letter.label.slateRef>Поселенцы вернулись</Decontamination.root.nodes.ColonistsReturned.node.nodes.Letter.label.slateRef>
+
+</LanguageData>

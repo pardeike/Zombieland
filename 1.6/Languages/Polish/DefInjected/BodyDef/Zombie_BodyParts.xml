@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ZombieSymbiantBody.label>ciało</ZombieSymbiantBody.label>
+	<ZombieSpitterBody.label>ciało</ZombieSpitterBody.label>
+	<ZombieSpitterBody.corePart.parts.lung.customLabel>płuco</ZombieSpitterBody.corePart.parts.lung.customLabel>
+
+</LanguageData>

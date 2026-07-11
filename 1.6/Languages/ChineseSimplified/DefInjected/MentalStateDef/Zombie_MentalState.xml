@@ -2,10 +2,34 @@
 <LanguageData>
 
 	<ContaminationStateForceRest.label>休息中</ContaminationStateForceRest.label>
+	<ContaminationStateForceRest.baseInspectLine>精神状态：休息中</ContaminationStateForceRest.baseInspectLine>
+	<ContaminationStateForceRest.beginLetter>{0} 需要休息片刻。</ContaminationStateForceRest.beginLetter>
+	<ContaminationStateForceRest.beginLetterLabel>需要休息</ContaminationStateForceRest.beginLetterLabel>
+	<ContaminationStateForceRest.recoveryMessage>{0} 已经不再需要休息。</ContaminationStateForceRest.recoveryMessage>
 	<ContaminationStateHallucination.label>产生幻觉</ContaminationStateHallucination.label>
+	<ContaminationStateHallucination.baseInspectLine>精神状态：产生幻觉</ContaminationStateHallucination.baseInspectLine>
+	<ContaminationStateHallucination.beginLetter>{0} 开始产生幻觉，并因困惑而逃窜。</ContaminationStateHallucination.beginLetter>
+	<ContaminationStateHallucination.beginLetterLabel>幻觉</ContaminationStateHallucination.beginLetterLabel>
+	<ContaminationStateHallucination.recoveryMessage>{0} 已经不再产生幻觉。</ContaminationStateHallucination.recoveryMessage>
 	<ContaminationStateSleepwalking.label>梦游中</ContaminationStateSleepwalking.label>
+	<ContaminationStateSleepwalking.baseInspectLine>精神状态：梦游中</ContaminationStateSleepwalking.baseInspectLine>
+	<ContaminationStateSleepwalking.beginLetter>{0} 开始梦游。</ContaminationStateSleepwalking.beginLetter>
+	<ContaminationStateSleepwalking.beginLetterLabel>梦游</ContaminationStateSleepwalking.beginLetterLabel>
+	<ContaminationStateSleepwalking.recoveryMessage>{0} 已经不再梦游。</ContaminationStateSleepwalking.recoveryMessage>
 	<ContaminationStateHoarding.label>囤积中</ContaminationStateHoarding.label>
+	<ContaminationStateHoarding.baseInspectLine>精神状态：囤积中</ContaminationStateHoarding.baseInspectLine>
+	<ContaminationStateHoarding.beginLetter>{0} 开始囤积物品。</ContaminationStateHoarding.beginLetter>
+	<ContaminationStateHoarding.beginLetterLabel>囤积</ContaminationStateHoarding.beginLetterLabel>
+	<ContaminationStateHoarding.recoveryMessage>{0} 已经不再囤积物品。</ContaminationStateHoarding.recoveryMessage>
 	<ContaminationStateMimicing.label>模仿中</ContaminationStateMimicing.label>
+	<ContaminationStateMimicing.baseInspectLine>精神状态：模仿丧尸</ContaminationStateMimicing.baseInspectLine>
+	<ContaminationStateMimicing.beginLetter>{0} 开始模仿丧尸。</ContaminationStateMimicing.beginLetter>
+	<ContaminationStateMimicing.beginLetterLabel>模仿</ContaminationStateMimicing.beginLetterLabel>
+	<ContaminationStateMimicing.recoveryMessage>{0} 已经不再模仿丧尸。</ContaminationStateMimicing.recoveryMessage>
 	<ContaminationStateBreakdown.label>精神崩溃中</ContaminationStateBreakdown.label>
+	<ContaminationStateBreakdown.baseInspectLine>精神状态：精神崩溃</ContaminationStateBreakdown.baseInspectLine>
+	<ContaminationStateBreakdown.beginLetter>{0} 开始精神崩溃。</ContaminationStateBreakdown.beginLetter>
+	<ContaminationStateBreakdown.beginLetterLabel>精神崩溃</ContaminationStateBreakdown.beginLetterLabel>
+	<ContaminationStateBreakdown.recoveryMessage>{0} 已经摆脱精神崩溃。</ContaminationStateBreakdown.recoveryMessage>
 
 </LanguageData>

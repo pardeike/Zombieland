@@ -1,149 +1,149 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
-	<ZombielandDifficultyTitle_Help>Zombieland 的难度主要由以下几项共同控制：\n\n- 威胁等级\n- 特殊僵尸\n- 僵尸速度\n- 最大僵尸数量\n- 动态威胁等级</ZombielandDifficultyTitle_Help>
-	<ZombielandDifficulty_Help>此设置控制 Zombieland 中几乎所有内容的难度：僵尸的感知、坚韧度、速度和力量等能力。特殊僵尸尤其会受到影响，较高难度下的威胁预测也会明显更危险。\n\n注意：500% 真的非常困难，请慎重。</ZombielandDifficulty_Help>
+	<ZombielandDifficultyTitle_Help>Zombieland 的难度主要由以下几项共同控制：\n\n- 威胁等级\n- 特殊丧尸\n- 丧尸速度\n- 最大丧尸数量\n- 动态威胁等级</ZombielandDifficultyTitle_Help>
+	<ZombielandDifficulty_Help>此设置控制 Zombieland 中几乎所有内容的难度：丧尸的感知、坚韧度、速度和力量等能力。特殊丧尸尤其会受到影响，较高难度下的威胁预测也会明显更危险。\n\n注意：500% 真的非常困难，请慎重。</ZombielandDifficulty_Help>
 
-	<ZombielandContaminationTitle_Help>Zombieland 污染是后期挑战，会给殖民地带来持续扩散的危险。污染来自深钻、交易物品等来源，并会在物品、殖民者和环境之间传播。殖民地越发展，就越需要管理污染来保证殖民者安全。\n\n若要查看当前污染等级，请打开右下角按钮中的覆盖图，或查看检查器、详细信息窗口、鼠标悬停地面信息。其中会显示目标物品、格子或角色的污染百分比。</ZombielandContaminationTitle_Help>
+	<ZombielandContaminationTitle_Help>Zombieland 污染是后期挑战，会给殖民地带来持续扩散的危险。污染来自深钻井、交易物品等来源，并会在物品、殖民者和环境之间传播。殖民地越发展，就越需要管理污染来保证殖民者安全。\n\n若要查看当前污染等级，请打开右下角按钮中的污染显示，或查看检查面板、详细信息窗口和鼠标悬停时的地面信息。其中会显示目标物品、地格或角色的污染百分比。</ZombielandContaminationTitle_Help>
 	<ContaminationEnabled_Help>切换污染会影响 Zombieland 对 RimWorld 的补丁方式，以及其他不随存档保存的设置。需要重启 RimWorld 才能正确应用选择。</ContaminationEnabled_Help>
 	<ZombielandContamination_Help>调整污染强度可设定污染在殖民地中通过各种方式扩散的基础速度。此倍率会影响从建造时转移的污染量到自然资源传播等所有环节。\n\n殖民者的意识会受影响。阶段从 10%、20%、40%、75%、85%、95% 开始，达到或超过 100% 时死亡。\n\n盟友会定期提供净化任务。你也可以焚烧物品来降低污染。</ZombielandContamination_Help>
 
-	<WhenDoZombiesSpawn_Help>在 Zombieland 中，你会面对无休止的僵尸入侵。此设置控制游戏的整体节奏。三种模式差异很大，请按自己的玩法选择，并确认理解其机制。僵尸数量有上限，详见“地图上的丧尸数量”。</WhenDoZombiesSpawn_Help>
-	<SpawnWhenType_AllTheTime_Help>僵尸会不断生成。杀掉一批，新的会立刻出现。这是具有挑战性的模式，僵尸会成为影响游戏各方面的持续压力。</SpawnWhenType_AllTheTime_Help>
-	<SpawnWhenType_WhenDark_Help>僵尸只会在黑暗处生成。这是字面意义的黑暗，也包括白天仍然阴暗的区域。你可以通过布置光源照亮安全区来控制此模式。</SpawnWhenType_WhenDark_Help>
-	<SpawnWhenType_InEventsOnly_Help>这是经典的 Zombieland 玩法，僵尸会成群出现。出现时间和规模取决于当前殖民地的许多因素。Zombieland 事件完全独立于 RimWorld 事件，不会改变其频率。</SpawnWhenType_InEventsOnly_Help>
+	<WhenDoZombiesSpawn_Help>在 Zombieland 中，你会面对无休止的丧尸入侵。此设置控制游戏的整体节奏。三种模式差异很大，请按自己的玩法选择，并确认理解其机制。丧尸数量有上限，详见“地图上的丧尸数量”。</WhenDoZombiesSpawn_Help>
+	<SpawnWhenType_AllTheTime_Help>丧尸会不断生成。杀掉一批，新的会立刻出现。这是具有挑战性的模式，丧尸会成为影响游戏各方面的持续压力。</SpawnWhenType_AllTheTime_Help>
+	<SpawnWhenType_WhenDark_Help>丧尸只会在黑暗处生成。这是字面意义的黑暗，也包括白天仍然阴暗的区域。你可以通过布置光源照亮安全区来控制此模式。</SpawnWhenType_WhenDark_Help>
+	<SpawnWhenType_InEventsOnly_Help>这是经典的 Zombieland 玩法，丧尸会成群出现。出现时间和规模取决于当前殖民地的许多因素。Zombieland 事件完全独立于 RimWorld 事件，不会改变其频率。</SpawnWhenType_InEventsOnly_Help>
 
-	<HowDoZombiesSpawn_Help>Zombieland 中的僵尸总是从地下钻出。它们会从柔软地面挖出来，所以请确保当前地图至少有一些柔软或半柔软地面（例如纯冰地图就不合适）。</HowDoZombiesSpawn_Help>
-	<SpawnHowType_AllOverTheMap_Help>如果你敢，可以让僵尸在整张地图上生成。推荐给有经验的玩家。建造地板或墙壁可以控制安全区域。将此模式与“天黑时”结合，会形成很有挑战性的玩法。还要小心你的种植区！</SpawnHowType_AllOverTheMap_Help>
+	<HowDoZombiesSpawn_Help>Zombieland 中的丧尸总是从地下钻出。它们会从柔软地面挖出来，所以请确保当前地图至少有一些柔软或半柔软地面（例如纯冰地图就不合适）。</HowDoZombiesSpawn_Help>
+	<SpawnHowType_AllOverTheMap_Help>如果你敢，可以让丧尸在整张地图上生成。推荐给有经验的玩家。建造地板或墙壁可以控制安全区域。将此模式与“天黑时”结合，会形成很有挑战性的玩法。还要小心你的种植区！</SpawnHowType_AllOverTheMap_Help>
 	<SpawnHowType_FromTheEdges_Help>如果你更喜欢来自地图边缘的经典威胁方式，就选择此模式。</SpawnHowType_FromTheEdges_Help>
-	<SmartWandering_Help>此设置控制僵尸夜间的移动方式。“随机”使它们像白天一样移动。“简单”会让它们漂向地图上最有吸引力的区域，但可能卡住并聚成群。“聪明”最终会把它们带到你身边。</SmartWandering_Help>
-	<Biomes_Help>若要防止僵尸在特定地图风格中生成，可在这里排除生物群落。</Biomes_Help>
+	<SmartWandering_Help>此设置控制丧尸夜间的移动方式。“随机”使它们像白天一样移动。“简单”会让它们漂向地图上最有吸引力的区域，但可能卡住并聚成群。“智能”最终会把它们带到你身边。</SmartWandering_Help>
+	<Biomes_Help>若要防止丧尸在特定地图风格中生成，可在这里排除生态群落。</Biomes_Help>
 
-	<WhatDoZombiesAttack_Help>僵尸不像袭击者那样行动（狂暴僵尸除外）。它们是无脑游荡者，只有感官被触发时才会兴奋。此设置允许你定义会吸引它们的生物类型。</WhatDoZombiesAttack_Help>
-	<AttackMode_Everything_Help>让僵尸追踪并攻击任何会移动的目标，包括动物。只有炮塔等固定武器永远不会吸引它们的注意。</AttackMode_Everything_Help>
-	<AttackMode_OnlyHumans_Help>这是僵尸“正常”的工作方式。对脑子的渴望会让它们猎杀类人角色，不论其派系。</AttackMode_OnlyHumans_Help>
-	<AttackMode_OnlyColonists_Help>如果你认为僵尸只该攻击你的殖民者，那么此模式适合你。它们被攻击时可能会反击，但绝不会主动攻击其他人。</AttackMode_OnlyColonists_Help>
-	<EnemiesAttackZombies_Help>关闭此项后，敌人会无视并避开僵尸。开启后，袭击者会把它们视为危险并尽力战斗。祝你好运！</EnemiesAttackZombies_Help>
-	<AnimalsAttackZombies_Help>开启后，动物在狩猎或变得攻击性时会攻击僵尸。若想让它们忽略僵尸，请关闭此选项。</AnimalsAttackZombies_Help>
-	<AnomalyTargetingTitle_Help>这些设置是 Anomaly 专用的双向例外。自动会保留普通规则，从不会阻止关系，允许会允许活跃且有效的目标。</AnomalyTargetingTitle_Help>
-	<AnomalyTargetingRelations_Help>控制丧尸可以选择哪些 Anomaly 角色作为目标。自动遵循主要丧尸目标规则。从不阻止该组。允许会允许活跃且有效的目标，即使主规则会忽略它们。死亡、倒地、休眠或停用的角色仍会被忽略。</AnomalyTargetingRelations_Help>
-	<AnomalyTargetGhouls_Help>单独控制丧尸是否可以将尸鬼作为目标，不影响蹒跚者和其他变异人类。玩家控制的尸鬼可能很珍贵，因此可单独设置。</AnomalyTargetGhouls_Help>
-	<AnomalyTargetShamblers_Help>控制蹒跚者和其他 Anomaly 变异人类，不改变尸鬼或普通人类袭击者的反应。</AnomalyTargetShamblers_Help>
-	<AnomalyTargetOtherEntities_Help>控制活跃的非人类 Anomaly 实体，例如 fleshbeast、metalhorror、sightstealer、revenant 和类似生物。</AnomalyTargetOtherEntities_Help>
-	<AnomalyTargetNociosphere_Help>控制丧尸是否会对活跃的 Nociosphere 作出反应。设为从不可以防止 Nociosphere 过于轻松地清理丧尸群。</AnomalyTargetNociosphere_Help>
-	<AnomalyZombieHostilityRelations_Help>控制非玩家 Anomaly 角色是否可以选择丧尸作为目标。自动遵循敌人和动物对丧尸的敌意设置。从不阻止攻击丧尸。允许会允许活跃且有效的 Anomaly 角色攻击丧尸，即使基础设置会阻止它们。</AnomalyZombieHostilityRelations_Help>
+	<WhatDoZombiesAttack_Help>丧尸不像袭击者那样行动（狂暴丧尸除外）。它们是无脑游荡者，只有感官被触发时才会兴奋。此设置允许你定义会吸引它们的生物类型。</WhatDoZombiesAttack_Help>
+	<AttackMode_Everything_Help>让丧尸追踪并攻击任何会移动的目标，包括动物。只有炮塔等固定武器永远不会吸引它们的注意。</AttackMode_Everything_Help>
+	<AttackMode_OnlyHumans_Help>这是丧尸“正常”的工作方式。对脑子的渴望会让它们猎杀类人角色，不论其派系。</AttackMode_OnlyHumans_Help>
+	<AttackMode_OnlyColonists_Help>如果你认为丧尸只该攻击你的殖民者，那么此模式适合你。它们被攻击时可能会反击，但绝不会主动攻击其他人。</AttackMode_OnlyColonists_Help>
+	<EnemiesAttackZombies_Help>关闭此项后，敌人会无视并避开丧尸。开启后，袭击者会把它们视为危险并尽力战斗。祝你好运！</EnemiesAttackZombies_Help>
+	<AnimalsAttackZombies_Help>开启后，动物在狩猎或变得攻击性时会攻击丧尸。若想让它们忽略丧尸，请关闭此选项。</AnimalsAttackZombies_Help>
+	<AnomalyTargetingTitle_Help>这些设置控制丧尸与异象生物之间的双向例外规则。“自动”保留常规规则，“从不”禁止相应关系，“允许”则允许以活跃且有效的目标为对象。</AnomalyTargetingTitle_Help>
+	<AnomalyTargetingRelations_Help>控制丧尸可以选择哪些异象生物作为目标。“自动”遵循主要丧尸目标规则；“从不”禁止攻击该组；“允许”则允许攻击活跃且有效的目标，即使主要规则原本会忽略它们。死亡、倒地、休眠或停用的生物仍会被忽略。</AnomalyTargetingRelations_Help>
+	<AnomalyTargetGhouls_Help>单独控制丧尸是否可以将食尸鬼作为目标，不影响蹒跚怪和其他变异人类。玩家控制的食尸鬼可能很珍贵，因此可以单独设置。</AnomalyTargetGhouls_Help>
+	<AnomalyTargetShamblers_Help>控制蹒跚怪和其他异象变异人类，不改变食尸鬼或普通人类袭击者的反应。</AnomalyTargetShamblers_Help>
+	<AnomalyTargetOtherEntities_Help>控制活跃的非人类异象实体，例如血肉兽、金属怪形、隐形魔、幽魂及类似生物。</AnomalyTargetOtherEntities_Help>
+	<AnomalyTargetNociosphere_Help>控制丧尸是否会对活跃的苦痛之球作出反应。设为“从不”可以防止苦痛之球过于轻松地清理丧尸群。</AnomalyTargetNociosphere_Help>
+	<AnomalyZombieHostilityRelations_Help>控制非玩家异象生物是否可以选择丧尸作为目标。“自动”遵循敌人和动物对丧尸的敌意设置；“从不”禁止攻击丧尸；“允许”则允许活跃且有效的异象生物攻击丧尸，即使基础设置原本会阻止它们。</AnomalyZombieHostilityRelations_Help>
 
-	<WhatDoZombiesSmash_Help>僵尸靠近建筑或物品时，可能会开始砸附近的东西。它们不会策划复杂攻击，但数量大且时间足够长时，可以摧毁你的防御。</WhatDoZombiesSmash_Help>
-	<SmashMode_Nothing_Help>让僵尸只攻击生物。它们会忽略墙、建筑、炮塔和其他物品。</SmashMode_Nothing_Help>
-	<SmashMode_DoorsOnly_Help>使用此设置时，僵尸大致知道门是怎么回事。它们会开始砸门，门附近僵尸越多，伤害越高。狂暴僵尸还会更卖力并造成更多伤害。</SmashMode_DoorsOnly_Help>
-	<SmashMode_AnyBuilding_Help>如果想让僵尸真正憎恨你的一切财产，请使用此设置。它们会攻击附近任何东西，包括远古危险！这会大幅提高游戏难度。</SmashMode_AnyBuilding_Help>
-	<SmashOnlyWhenAgitated_Help>勾选此项可将僵尸与物品的互动限制为仅限兴奋状态的僵尸。普通游荡僵尸会保持非敌对，直到找到踪迹、感知到你或听到噪音（小脑子图标会提示它们何时发现了东西）。</SmashOnlyWhenAgitated_Help>
+	<WhatDoZombiesSmash_Help>丧尸靠近建筑或物品时，可能会开始砸附近的东西。它们不会策划复杂攻击，但数量大且时间足够长时，可以摧毁你的防御。</WhatDoZombiesSmash_Help>
+	<SmashMode_Nothing_Help>让丧尸只攻击生物。它们会忽略墙、建筑、炮塔和其他物品。</SmashMode_Nothing_Help>
+	<SmashMode_DoorsOnly_Help>使用此设置时，丧尸大致知道门是怎么回事。它们会开始砸门，门附近丧尸越多，伤害越高。狂暴丧尸还会更卖力并造成更多伤害。</SmashMode_DoorsOnly_Help>
+	<SmashMode_AnyBuilding_Help>如果想让丧尸真正憎恨你的一切财产，请使用此设置。它们会攻击附近任何东西，包括远古威胁！这会大幅提高游戏难度。</SmashMode_AnyBuilding_Help>
+	<SmashOnlyWhenAgitated_Help>勾选此项可将丧尸与物品的互动限制为仅限兴奋状态的丧尸。普通游荡丧尸会保持非敌对，直到找到踪迹、感知到你或听到噪音（小脑子图标会提示它们何时发现了东西）。</SmashOnlyWhenAgitated_Help>
 
-	<NewGameTitle_Help>开始时，Zombieland 会给你一些时间准备殖民地。不要把这个阶段延得太久，许多新手会犯这个错误：设定很大的天数，然后建设强大殖民地、招募许多殖民者和武器。时间一到，Zombieland 就会按殖民地实力派出大量僵尸，游戏很快结束。更好的做法是较早开始面对僵尸，了解如何游玩。</NewGameTitle_Help>
-	<DaysBeforeZombiesCome_Help>这是僵尸第一次出现前的天数。请注意，即使时间结束，根据你的设置，僵尸也可能要等到下一晚或下一次事件才会出现。</DaysBeforeZombiesCome_Help>
+	<NewGameTitle_Help>开始时，Zombieland 会给你一些时间准备殖民地。不要把这个阶段延得太久，许多新手会犯这个错误：设定很大的天数，然后建设强大殖民地、招募许多殖民者和武器。时间一到，Zombieland 就会按殖民地实力派出大量丧尸，游戏很快结束。更好的做法是较早开始面对丧尸，了解如何游玩。</NewGameTitle_Help>
+	<DaysBeforeZombiesCome_Help>这是丧尸第一次出现前的天数。请注意，即使时间结束，根据你的设置，丧尸也可能要等到下一晚或下一次事件才会出现。</DaysBeforeZombiesCome_Help>
 
-	<ZombiesOnTheMap_Help>Zombieland 有内部算法，用于决定地图上任意时刻应有多少僵尸。这取决于很多因素：殖民者数量、可战斗殖民者、武器护甲、讲述者难度等。这个数字可能任意变大，为避免游戏过度卡顿，你可以定义最大上限。请记住，Zombieland 设计上就是要在地图上放很多僵尸，只玩少量僵尸可能并不是你想要的体验。</ZombiesOnTheMap_Help>
-	<MaximumNumberOfZombies_Help>给定地图格上的僵尸数量上限。实际数量可能因殖民地情况而更低。</MaximumNumberOfZombies_Help>
-	<ColonyMultiplier_Help>有时 Zombieland 会估算出太少僵尸。例如，你想用很少殖民者游玩，但仍希望僵尸数量很高。此倍率可以告诉 Zombieland 你的殖民地防御能力是原来的若干倍。它会增加僵尸数量以满足挑战需求（但始终遵守上限）。</ColonyMultiplier_Help>
+	<ZombiesOnTheMap_Help>Zombieland 有内部算法，用于决定地图上任意时刻应有多少丧尸。这取决于很多因素：殖民者数量、可战斗殖民者、武器护甲、讲述者难度等。这个数字可能任意变大，为避免游戏过度卡顿，你可以定义最大上限。请记住，Zombieland 设计上就是要在地图上放很多丧尸，只玩少量丧尸可能并不是你想要的体验。</ZombiesOnTheMap_Help>
+	<MaximumNumberOfZombies_Help>给定地图格上的丧尸数量上限。实际数量可能因殖民地情况而更低。</MaximumNumberOfZombies_Help>
+	<ColonyMultiplier_Help>有时 Zombieland 会估算出太少丧尸。例如，你想用很少殖民者游玩，但仍希望丧尸数量很高。此倍率可以告诉 Zombieland 你的殖民地防御能力是原来的若干倍。它会增加丧尸数量以满足挑战需求（但始终遵守上限）。</ColonyMultiplier_Help>
 
-	<DynamicThreatLevelTitle_Help>此部分允许你在固定僵尸数量和动态僵尸数量之间切换。</DynamicThreatLevelTitle_Help>
-	<UseDynamicThreatLevel_Help>在这里可以让地图上的僵尸数量变为动态。这意味着屏幕右侧会显示预测，帮助你提前规划行动。</UseDynamicThreatLevel_Help>
+	<DynamicThreatLevelTitle_Help>此部分允许你在固定丧尸数量和动态丧尸数量之间切换。</DynamicThreatLevelTitle_Help>
+	<UseDynamicThreatLevel_Help>在这里可以让地图上的丧尸数量变为动态。这意味着屏幕右侧会显示预测，帮助你提前规划行动。</UseDynamicThreatLevel_Help>
 	<DynamicThreatSmoothness_Help>决定威胁曲线的平滑度。</DynamicThreatSmoothness_Help>
 	<DynamicThreatStretch_Help>此设置可以拉伸曲线，使其不那么动态。</DynamicThreatStretch_Help>
-	<ZombiesDieOnZeroThreat_Help>当威胁等级为 0% 时，地图上的所有僵尸会自行死亡。</ZombiesDieOnZeroThreat_Help>
-	<ZombieFreeEvents_Help>启用后，偶尔会出现全局僵尸沉寂事件，并显示在威胁预测中。在这些窗口期间，所有地图上的僵尸会消亡，且不会生成新僵尸，使商队旅行更安全。关闭后会移除这些特殊旅行窗口，但不会改变普通动态威胁曲线。</ZombieFreeEvents_Help>
+	<ZombiesDieOnZeroThreat_Help>当威胁等级为 0% 时，地图上的所有丧尸会自行死亡。</ZombiesDieOnZeroThreat_Help>
+	<ZombieFreeEvents_Help>启用后，偶尔会出现全局丧尸沉寂事件，并显示在威胁预测中。在这些窗口期间，所有地图上的丧尸会消亡，且不会生成新丧尸，使远行队出行更安全。关闭后会移除这些特殊旅行窗口，但不会改变普通动态威胁曲线。</ZombieFreeEvents_Help>
 
-	<ZombieEventTitle_Help>如果你选择“仅丧尸事件”，有时在其他模式下也是如此，Zombieland 会触发僵尸攻击。这不像袭击者事件，而是大量僵尸一起出现，并可能根据群体规模进入狂暴，开始向你追踪。</ZombieEventTitle_Help>
-	<ZombiesPerColonistInEvent_Help>若要控制事件规模，可以指定每名殖民者对应多少僵尸。请注意，这不会改变地图上的僵尸总上限。如果当前僵尸数量已经接近总上限，或接近 Zombieland 根据当前殖民地规模计算出的数量，事件中的僵尸会更少。在这里填非常大的数字只会移除事件规模上限。较小的数字会降低整体事件规模，尤其是在可战斗殖民者较少时。</ZombiesPerColonistInEvent_Help>
-	<ExtraDaysBetweenEvents_Help>通常僵尸事件会自动拉开间隔，实际间隔取决于一些内部因素。如果你觉得过于频繁，可以用此设置在事件之间增加额外天数。</ExtraDaysBetweenEvents_Help>
-	<InfectedRaidsChance_Help>这是到达地图的敌对或友好队伍已经感染，且它们与僵尸之间不会发生互动的概率。</InfectedRaidsChance_Help>
+	<ZombieEventTitle_Help>如果你选择“仅丧尸事件”，有时在其他模式下也是如此，Zombieland 会触发丧尸攻击。这不像袭击者事件，而是大量丧尸一起出现，并可能根据群体规模进入狂暴，开始向你追踪。</ZombieEventTitle_Help>
+	<ZombiesPerColonistInEvent_Help>若要控制事件规模，可以指定每名殖民者对应多少丧尸。请注意，这不会改变地图上的丧尸总上限。如果当前丧尸数量已经接近总上限，或接近 Zombieland 根据当前殖民地规模计算出的数量，事件中的丧尸会更少。在这里填非常大的数字只会移除事件规模上限。较小的数字会降低整体事件规模，尤其是在可战斗殖民者较少时。</ZombiesPerColonistInEvent_Help>
+	<ExtraDaysBetweenEvents_Help>通常丧尸事件会自动拉开间隔，实际间隔取决于一些内部因素。如果你觉得过于频繁，可以用此设置在事件之间增加额外天数。</ExtraDaysBetweenEvents_Help>
+	<InfectedRaidsChance_Help>这是到达地图的敌对或友好队伍已经感染，且它们与丧尸之间不会发生互动的概率。</InfectedRaidsChance_Help>
 
-	<ZombieSpeedTitle_Help>僵尸速度是最能平衡难度的设置。如果你觉得 Zombieland 太难，请先大幅降低速度。快速僵尸通常非常致命。这里有两种速度：一种用于平静游荡的僵尸，另一种用于已经开始追踪你的僵尸。</ZombieSpeedTitle_Help>
-	<MoveSpeedIdle_Help>僵尸的正常步行速度。不包括狂暴或兴奋的僵尸。</MoveSpeedIdle_Help>
-	<MoveSpeedTracking_Help>僵尸兴奋或被激怒后会使用此速度。通常是在它们接近你的殖民者时发生，所以设置得很高时，你需要留意任何不想错过的突然接触。</MoveSpeedTracking_Help>
+	<ZombieSpeedTitle_Help>丧尸速度是最能平衡难度的设置。如果你觉得 Zombieland 太难，请先大幅降低速度。快速丧尸通常非常致命。这里有两种速度：一种用于平静游荡的丧尸，另一种用于已经开始追踪你的丧尸。</ZombieSpeedTitle_Help>
+	<MoveSpeedIdle_Help>丧尸的正常步行速度。不包括狂暴或兴奋的丧尸。</MoveSpeedIdle_Help>
+	<MoveSpeedTracking_Help>丧尸兴奋或被激怒后会使用此速度。通常是在它们接近你的殖民者时发生，所以设置得很高时，你需要留意任何不想错过的突然接触。</MoveSpeedTracking_Help>
 
-	<ZombieDamageTitle_Help>改变僵尸攻击其他生物时发生的事情。</ZombieDamageTitle_Help>
+	<ZombieDamageTitle_Help>改变丧尸攻击其他生物时发生的事情。</ZombieDamageTitle_Help>
 	<ZombieDamageFactor_Help>较大的倍率会提升它们的力量，使它们更容易压倒其他目标。对机械族很有用，但如果开启了破坏功能，也会更快损坏你的墙和门。</ZombieDamageFactor_Help>
-	<SafeMeleeLimit_Help>近战中可同时对付的僵尸数量，超过后防御者会被压倒并开始被咬。\n\n重装操作员僵尸按两个僵尸计算，防御者 0-20 的近战等级会提供 0-100% 的格挡咬伤概率（僵尸数量低于上限时效果更好）。</SafeMeleeLimit_Help>
-	<ZombiesCauseManhunting_Help>动物被僵尸攻击时是否会变成复仇状态？</ZombiesCauseManhunting_Help>
+	<SafeMeleeLimit_Help>近战中可同时对付的丧尸数量，超过后防御者会被压倒并开始被咬。\n\n重装突破丧尸按两只丧尸计算，防御者 0-20 的近战等级会提供 0-100% 的格挡咬伤概率（丧尸数量低于上限时效果更好）。</SafeMeleeLimit_Help>
+	<ZombiesCauseManhunting_Help>动物被丧尸攻击时是否可能发起反击？</ZombiesCauseManhunting_Help>
 
-	<ZombieGameTweaks_Help>此部分包含一些杂项调整，用来让带僵尸的玩法更平衡。</ZombieGameTweaks_Help>
-	<ReduceTurretConsumption_Help>僵尸的持续压力会让炮塔消耗大量钢铁。此设置允许你降低维持炮塔运作所需的钢铁数量。请注意，这是一个减耗设置，数字越高表示消耗越少。</ReduceTurretConsumption_Help>
+	<ZombieGameTweaks_Help>此部分包含一些杂项调整，用来让带丧尸的玩法更平衡。</ZombieGameTweaks_Help>
+	<ReduceTurretConsumption_Help>丧尸的持续压力会让炮塔消耗大量钢铁。此设置允许你降低维持炮塔运作所需的钢铁数量。请注意，这是一个减耗设置，数字越高表示消耗越少。</ReduceTurretConsumption_Help>
 
-	<ZombieInfection_Help>僵尸抓伤无害，但咬伤可能带来致命感染。\n\nZombieland 有四个感染阶段：\n- 未知（白色）\n- 发展中（橙色）\n- 感染中（红色，像僵尸）\n- 僵尸（完全僵尸化）\n\n你可以截肢，或使用由僵尸提取物制成的僵尸血清进行手术来移除感染。</ZombieInfection_Help>
-	<ZombieBiteInfectionChance_Help>这是僵尸咬伤感染其所在肢体或身体部位的概率。咬伤会传染，抓伤不会。</ZombieBiteInfectionChance_Help>
+	<ZombieInfection_Help>丧尸抓伤无害，但咬伤可能带来致命感染。\n\nZombieland 有四个感染阶段：\n- 未知（白色）\n- 发展中（橙色）\n- 感染中（红色，像丧尸）\n- 丧尸（完全丧尸化）\n\n你可以截肢，或使用由丧尸提取物制成的丧尸血清进行手术来移除感染。</ZombieInfection_Help>
+	<ZombieBiteInfectionChance_Help>这是丧尸咬伤感染其所在肢体或身体部位的概率。咬伤会传染，抓伤不会。</ZombieBiteInfectionChance_Help>
 	<ZombieBiteInfectionUnknown_Help>这是第一阶段（白色）。你可以治疗伤口，但在此阶段结束前，你不知道它是否会感染。</ZombieBiteInfectionUnknown_Help>
 	<ZombieBiteInfectionTreatable_Help>第二阶段（橙色）中，感染仍可治疗。如果可以截肢，你可以阻止感染。治疗必须在最佳条件下进行（需要你自己找出）。而且只有一次治疗机会，一旦伤口被治疗，就不能在更好的条件下重新治疗。</ZombieBiteInfectionTreatable_Help>
-	<ZombieBiteInfectionPersists_Help>第三也是最后阶段（红色）。此时感染已经无法治疗，只有截肢能阻止过程。许多玩家会太早结束感染殖民者的生命。Zombieland 虽然残酷，但也设计了一些惊喜，让此阶段对你有用。去发现殖民者在几乎变成僵尸时发生了什么变化吧！</ZombieBiteInfectionPersists_Help>
+	<ZombieBiteInfectionPersists_Help>第三也是最后阶段（红色）。此时感染已经无法治疗，只有截肢能阻止过程。许多玩家会太早结束感染殖民者的生命。Zombieland 虽然残酷，但也设计了一些惊喜，让此阶段对你有用。去发现殖民者在几乎变成丧尸时发生了什么变化吧！</ZombieBiteInfectionPersists_Help>
 	<AnyTreatmentStopsInfection_Help>如果想让床上的简单治疗也能阻止感染咬伤，请选择此选项。当你还不熟悉游戏机制时，开启它是个好主意。</AnyTreatmentStopsInfection_Help>
-	<HoursAfterDeathToBecomeZombie_Help>死亡类人角色变成僵尸所需的时间。将滑块移到最左侧可关闭此功能。</HoursAfterDeathToBecomeZombie_Help>
-	<DeadBecomesZombieMessage_Help>开启或关闭有人变成僵尸时的提示消息。</DeadBecomesZombieMessage_Help>
-	<DangerousSituationMessage_Help>当发生危险情况（例如僵尸被推过你的墙）时收到通知。</DangerousSituationMessage_Help>
+	<HoursAfterDeathToBecomeZombie_Help>死亡类人角色变成丧尸所需的时间。将滑块移到最左侧可关闭此功能。</HoursAfterDeathToBecomeZombie_Help>
+	<DeadBecomesZombieMessage_Help>开启或关闭有人变成丧尸时的提示消息。</DeadBecomesZombieMessage_Help>
+	<DangerousSituationMessage_Help>当发生危险情况（例如丧尸被推过你的墙）时收到通知。</DangerousSituationMessage_Help>
 
-	<ZombieHarvestingTitle_Help>僵尸死亡后可能掉落部分服装，你也可以在尸体消失前从中收获僵尸提取物。为了避免大量尸体堆满地图，你可以选择僵尸尸体消失的速度。\n\n僵尸血清是治疗感染的最佳替代方案。血清由僵尸提取物制成，品质从 10% 到 100%；一剂血清治疗一次僵尸咬伤。品质决定对感染殖民者进行医疗手术时的失败风险。</ZombieHarvestingTitle_Help>
-	<CorpsesExtractAmount_Help>你可以在僵尸尸体消失前从中收获僵尸提取物，可自动进行，也可右键点击尸体。它可在制药台制成血清，部落玩法也可在手工点制作。只有分配为医生工作的殖民者能收集提取物，并且附近没有危险僵尸时才行（约 10-20 格，取决于环境）。要让制造血清更容易，可提高每只僵尸的提取物数量。</CorpsesExtractAmount_Help>
-	<LootExtractAmount_Help>让僵尸有概率掉落它们穿着的服装。僵尸可以穿你游戏和所有模组中存在的任何服装。此项定义掉落服装的概率和数量（100% = 1 件）。</LootExtractAmount_Help>
-	<CorpsesDaysToDessicated_Help>僵尸尸体通常会很快干枯，以免数量过多。若想更容易收集提取物，可以增加尸体消失前的时间。</CorpsesDaysToDessicated_Help>
-	<ExtractZombieArea_Help>收获僵尸提取物可能很危险。使用此功能可将活动限制在你的某个区域中。如果重命名了区域，需要在这里更新。手动命令的收获始终有效。</ExtractZombieArea_Help>
-	<Apparel_Help>不想让你的僵尸穿某些服装？在此对话框中勾选复选框将其加入黑名单。\n\n如果某些模组服装导致错误，或你只是想更好控制，这很有用。</Apparel_Help>
+	<ZombieHarvestingTitle_Help>丧尸死亡后可能掉落部分服装，你也可以在尸体消失前从中采集丧尸提取物。为了避免大量尸体堆满地图，你可以选择丧尸尸体消失的速度。\n\n丧尸血清是治疗感染的最佳替代方案。血清由丧尸提取物制成，品质从 10% 到 100%；一剂血清治疗一次丧尸咬伤。品质决定对感染殖民者进行医疗手术时的失败风险。</ZombieHarvestingTitle_Help>
+	<CorpsesExtractAmount_Help>你可以在丧尸尸体消失前从中采集丧尸提取物，可自动进行，也可右键点击尸体。提取物可在药物实验台制成血清；部落玩法还可在手工加工点制作。只有被分配医生工作的殖民者能采集提取物，而且附近不能有危险丧尸（约 10-20 格，取决于周围环境）。若想更容易制造血清，可提高每只丧尸的提取物数量。</CorpsesExtractAmount_Help>
+	<LootExtractAmount_Help>让丧尸有概率掉落它们穿着的服装。丧尸可以穿你游戏和所有模组中存在的任何服装。此项定义掉落服装的概率和数量（100% = 1 件）。</LootExtractAmount_Help>
+	<CorpsesDaysToDessicated_Help>丧尸尸体通常会很快干枯，以免数量过多。若想更容易收集提取物，可以增加尸体消失前的时间。</CorpsesDaysToDessicated_Help>
+	<ExtractZombieArea_Help>采集丧尸提取物可能很危险。使用此功能可将活动限制在你的某个区域中。如果重命名了区域，需要在这里更新。手动命令的采集始终有效。</ExtractZombieArea_Help>
+	<Apparel_Help>不想让你的丧尸穿某些服装？在此对话框中勾选复选框将其加入黑名单。\n\n如果某些模组服装导致错误，或你只是想更好控制，这很有用。</Apparel_Help>
 
-	<ZombieInstinctTitle_Help>僵尸通过声音和气味感知猎物。在某些情况下，它们也会像群体一样行动。此设置允许你定义这些感官能达到多远。</ZombieInstinctTitle_Help>
-	<ZombieInstinct_Dull_Help>僵尸感官只限于少数格子。</ZombieInstinct_Dull_Help>
-	<ZombieInstinct_Normal_Help>僵尸感官能延伸得稍远一些。</ZombieInstinct_Normal_Help>
-	<ZombieInstinct_Sensitive_Help>僵尸非常敏感，能在很多格之外感知你和你的踪迹。</ZombieInstinct_Sensitive_Help>
-	<RagingZombies_Help>为模拟群体行为，当紧密的僵尸群过大时，僵尸会变得狂暴。狂暴僵尸有红色眼睛，并开始向你的殖民者移动。它们会比普通僵尸更强更快。尽量防止僵尸群过大或卡在地图某处，以避免狂暴僵尸。</RagingZombies_Help>
-	<RageLevel_Help>此等级控制触发狂暴僵尸的群体规模。较高等级更危险，也会让僵尸更容易触发狂暴。</RageLevel_Help>
+	<ZombieInstinctTitle_Help>丧尸通过声音和气味感知猎物。在某些情况下，它们也会像群体一样行动。此设置允许你定义这些感官能达到多远。</ZombieInstinctTitle_Help>
+	<ZombieInstinct_Dull_Help>丧尸感官只限于少数格子。</ZombieInstinct_Dull_Help>
+	<ZombieInstinct_Normal_Help>丧尸感官能延伸得稍远一些。</ZombieInstinct_Normal_Help>
+	<ZombieInstinct_Sensitive_Help>丧尸非常敏感，能在很多格之外感知你和你的踪迹。</ZombieInstinct_Sensitive_Help>
+	<RagingZombies_Help>为模拟群体行为，当紧密的丧尸群过大时，丧尸会变得狂暴。狂暴丧尸有红色眼睛，并开始向你的殖民者移动。它们会比普通丧尸更强更快。尽量防止丧尸群过大或卡在地图某处，以避免狂暴丧尸。</RagingZombies_Help>
+	<RageLevel_Help>此等级控制触发狂暴丧尸的群体规模。较高等级更危险，也会让丧尸更容易触发狂暴。</RageLevel_Help>
 
-	<ZombieHealthTitle_Help>由于僵尸技术上已经死亡，它们没有“健康”。Zombieland 可以让僵尸更容易或更难被杀死。</ZombieHealthTitle_Help>
-	<ZombieHealthFactor_Help>这会让僵尸更坚韧，需要更多工作和伤害才能放倒它们。</ZombieHealthFactor_Help>
-	<DoubleTapRequired_Help>此选项会让僵尸从伤害中恢复。你需要持续造成伤害，否则它们会继续行动。受伤僵尸可能变成缓慢移动且只攻击腿部的“爬行者”。关闭此项可使用类似普通 RimWorld 的伤害模式。</DoubleTapRequired_Help>
-	<ZombiesDieVeryEasily_Help>另一个适合新手和想要街机式玩法玩家的优秀选项。开启后，僵尸会一击即死，即使最小的伤害也会杀死它们。</ZombiesDieVeryEasily_Help>
+	<ZombieHealthTitle_Help>由于丧尸技术上已经死亡，它们没有“健康”。Zombieland 可以让丧尸更容易或更难被杀死。</ZombieHealthTitle_Help>
+	<ZombieHealthFactor_Help>这会让丧尸更坚韧，需要更多工作和伤害才能放倒它们。</ZombieHealthFactor_Help>
+	<DoubleTapRequired_Help>此选项会让丧尸从伤害中恢复。你需要持续造成伤害，否则它们会继续行动。受伤丧尸可能变成缓慢移动且只攻击腿部的“爬行者”。关闭此项可使用类似普通 RimWorld 的伤害模式。</DoubleTapRequired_Help>
+	<ZombiesDieVeryEasily_Help>另一个适合新手和想要街机式玩法玩家的优秀选项。开启后，丧尸会一击即死，即使最小的伤害也会杀死它们。</ZombiesDieVeryEasily_Help>
 
-	<ZombieEatingTitle_Help>当僵尸发现附近的死尸时，它们会停下来将注意力集中在尸体上。利用这一点来防守。此设置控制僵尸会吃什么，以及是否会进食。</ZombieEatingTitle_Help>
-	<ZombiesEatDowned_Help>僵尸毫不怜悯，会吃掉活着或受伤的生物。</ZombiesEatDowned_Help>
-	<ZombiesEatCorpses_Help>开启此选项后，僵尸会享用尸体。</ZombiesEatCorpses_Help>
+	<ZombieEatingTitle_Help>当丧尸发现附近的死尸时，它们会停下来将注意力集中在尸体上。利用这一点来防守。此设置控制丧尸会吃什么，以及是否会进食。</ZombieEatingTitle_Help>
+	<ZombiesEatDowned_Help>丧尸毫不留情，会啃食仍然活着的倒地生物。</ZombiesEatDowned_Help>
+	<ZombiesEatCorpses_Help>开启此选项后，丧尸会享用尸体。</ZombiesEatCorpses_Help>
 
-	<SpecialZombiesTitle_Help>Zombieland 有多种特殊僵尸。它们都有特殊能力，会让游戏更难。它们的体形和大小也决定整体属性。</SpecialZombiesTitle_Help>
-	<SuicideBomberChance_Help>自爆僵尸死亡时会引爆炸弹。它们到达你建造的任何一段墙时也会触发炸弹。盯紧它们，不要让它们靠近。</SuicideBomberChance_Help>
-	<ToxicSplasherChance_Help>毒液喷溅僵尸会把周围溅满剧毒且黏性的绿色物质。确保殖民者不要走过这些区域。</ToxicSplasherChance_Help>
-	<TankyOperatorChance_Help>重装操作员僵尸重甲但缓慢。它们的盾牌、头盔和护甲散架前会承受大量伤害，然后你才能最终杀死它们。</TankyOperatorChance_Help>
-	<MinerChance_Help>矿工僵尸在前往你基地的路上遇到山体时会开始挖掘。橙色安全帽让它们很容易辨认。</MinerChance_Help>
-	<ElectrifierChance_Help>电击僵尸不会咬人，所以你可以近战攻击它们。事实上，它们的电力护盾会保护它们免受除近战以外的任何伤害。它们会干扰并破坏任何电力、电子或用零部件建造的东西，包括通电设备、护甲和武器。</ElectrifierChance_Help>
-	<AlbinoChance_Help>白化僵尸不会攻击你。它们会破坏你的基地并尖叫，使你眩晕和呕吐。</AlbinoChance_Help>
-	<DarkSlimerChance_Help>黑色黏液僵尸会在身后留下超黏、类似焦油的黏液痕迹。它很难清理（雨会冲掉），只有僵尸能轻松通过。</DarkSlimerChance_Help>
-	<HealerChance_Help>治疗僵尸会把一定距离内所有僵尸治疗到满血。它们可通过青色皮肤辨认，除此之外行为类似普通标准僵尸。</HealerChance_Help>
-	<NormalZombieChance_Help>普通僵尸有不同体型。体型决定它们的力量，也决定速度！它们经常会穿游戏和已安装模组中的任何服装。</NormalZombieChance_Help>
-	<ChildZombieChance_Help>僵尸中儿童的百分比。注意：杀死儿童僵尸会造成轻微负面心情（持续 2 小时）。</ChildZombieChance_Help>
-	<SpitterThreat_Help>僵尸喷吐者是一种攻城怪物，会把僵尸发射进你的基地。此设置同时调整喷吐者行动的强度和频率。设为 0% 会禁用喷吐者。</SpitterThreat_Help>
-	<WallPushing_Help>当一群僵尸过于密集时，此项定义会把其他僵尸推过相邻墙壁的僵尸数量。如果墙的另一侧属于有屋顶房间，该屋顶会被僵尸损坏。</WallPushing_Help>
-	<ZombieSymbiantTitle_Help>僵尸共生体是在繁忙室内房间中蔓延的感染。一个殖民者会成为宿主。宿主免疫僵尸咬伤造成的感染，并会在共生体成长时获得随机收益。穿过共生体格子的角色会变慢，宿主除外。用尸体喂养会让它成长更快。\n\n宿主和共生体应留在同一张地图上：如果宿主离开，连接会进入休眠，直到宿主返回前都无法正常移除。放弃共生体所在的地图会摧毁共生体，并强行切断连接。\n\n手术可以先正常移除连接，失去宿主的共生体之后会逐渐缩回。</ZombieSymbiantTitle_Help>
-	<SymbiantEnabled_Help>启用自然僵尸共生体事件。</SymbiantEnabled_Help>
-	<SymbiantMaxCells_Help>共生体可以占据的地图格数上限。</SymbiantMaxCells_Help>
+	<SpecialZombiesTitle_Help>Zombieland 有多种特殊丧尸。它们都有特殊能力，会让游戏更难。它们的体形和大小也决定整体属性。</SpecialZombiesTitle_Help>
+	<SuicideBomberChance_Help>自爆丧尸死亡时会引爆炸弹。它们到达你建造的任何一段墙时也会触发炸弹。盯紧它们，不要让它们靠近。</SuicideBomberChance_Help>
+	<ToxicSplasherChance_Help>毒液喷溅丧尸会把周围溅满剧毒且黏性的绿色物质。确保殖民者不要走过这些区域。</ToxicSplasherChance_Help>
+	<TankyOperatorChance_Help>重装突破丧尸身披重甲，但行动缓慢。它们的盾牌、头盔和防护服散架前能承受大量伤害，之后你才能真正杀死它们。</TankyOperatorChance_Help>
+	<MinerChance_Help>矿工丧尸在前往你基地的路上遇到山体时会开始挖掘。橙色安全帽让它们很容易辨认。</MinerChance_Help>
+	<ElectrifierChance_Help>电击丧尸不会咬人，所以你可以近战攻击它们。事实上，它们的电力护盾会保护它们免受除近战以外的任何伤害。它们会干扰并破坏任何电力、电子或用零部件建造的东西，包括通电设备、护甲和武器。</ElectrifierChance_Help>
+	<AlbinoChance_Help>白化丧尸不会攻击你。它们会破坏你的基地并尖叫，使你眩晕和呕吐。</AlbinoChance_Help>
+	<DarkSlimerChance_Help>黑色黏液丧尸会在身后留下超黏、类似焦油的黏液痕迹。它很难清理（雨会冲掉），只有丧尸能轻松通过。</DarkSlimerChance_Help>
+	<HealerChance_Help>治疗者丧尸会把一定距离内的所有丧尸恢复到满生命值。它们的青色皮肤很容易辨认，除此之外行为与普通丧尸相同。</HealerChance_Help>
+	<NormalZombieChance_Help>普通丧尸有不同体型。体型决定它们的力量，也决定速度！它们经常会穿游戏和已安装模组中的任何服装。</NormalZombieChance_Help>
+	<ChildZombieChance_Help>丧尸中儿童的百分比。注意：杀死儿童丧尸会造成轻微负面心情（持续 2 小时）。</ChildZombieChance_Help>
+	<SpitterThreat_Help>丧尸喷吐者是一种攻城怪物，会把丧尸发射进你的基地。此设置同时调整喷吐者行动的强度和频率。设为 0% 会禁用喷吐者。</SpitterThreat_Help>
+	<WallPushing_Help>当一群丧尸过于密集时，此项定义会把其他丧尸推过相邻墙壁的丧尸数量。如果墙的另一侧属于有屋顶房间，该屋顶会被丧尸损坏。</WallPushing_Help>
+	<ZombieSymbiantTitle_Help>丧尸共生体会在频繁使用的室内房间中蔓延。一名殖民者会成为宿主。宿主免疫丧尸咬伤造成的感染，并会在共生体成长时获得随机增益。穿过共生体地格的角色会变慢，宿主除外。用尸体喂养会让它成长更快。\n\n宿主和共生体应留在同一张地图上：如果宿主离开，连接会进入休眠，直到宿主返回前都无法正常移除。放弃共生体所在的地图会摧毁共生体，并强行切断连接。\n\n手术可以先正常移除连接，失去宿主的共生体之后会逐渐缩回。</ZombieSymbiantTitle_Help>
+	<SymbiantEnabled_Help>启用自然丧尸共生体事件。</SymbiantEnabled_Help>
+	<SymbiantMaxCells_Help>共生体可以占据的地图地格数上限。</SymbiantMaxCells_Help>
 
 	<ZombieMiscTitle_Help>此部分包含对玩法影响不大的杂项设置。有些是外观设置，有些能在较慢电脑上加快游戏速度。</ZombieMiscTitle_Help>
-	<UseCustomTextures_Help>每个僵尸都会有带伤痕和其他僵尸相关标记的自定义身体纹理。这会让 Zombieland 消耗大量内存，如果遇到问题请关闭（尤其是 32 位版本）。</UseCustomTextures_Help>
-	<ReplaceTwinkie_Help>电影《僵尸之地》里有一个关于 Twinkie 的梗。为致敬电影，此模组会把生存食品的外观改成 Twinkie。</ReplaceTwinkie_Help>
-	<ZombiesTriggerDangerMusic_Help>通常 RimWorld 会在地图上有威胁时播放特定的危险音乐。由于僵尸很可能长期存在于地图上，此选项会关闭该功能。</ZombiesTriggerDangerMusic_Help>
-	<PlayCreepyAmbientSound_Help>没有阴森环境声就不像僵尸主题。夜间，当所有僵尸向你的基地漂移时，会播放一些恐怖声音。</PlayCreepyAmbientSound_Help>
-	<BetterZombieAvoidance_Help>若想让角色更好地绕开僵尸，可以开启此选项。Zombieland 会不断调整殖民者的路径以避开僵尸。它对减少微操和救援其他殖民者很有用。</BetterZombieAvoidance_Help>
-	<ZombiesDropBlood_Help>游戏速度调整：关闭后僵尸不再掉落血迹。</ZombiesDropBlood_Help>
-	<ZombiesBurnLonger_Help>为增加有趣玩法，僵尸会着火并在四处行走时燃烧更久。如果你的电脑处理不了大量火焰，请关闭。</ZombiesBurnLonger_Help>
-	<AwarenessCuesTitle_Help>这些设置控制可能暴露僵尸活动的信件、声音和视觉提示。关闭它们只改变反馈，不改变僵尸行为。</AwarenessCuesTitle_Help>
+	<UseCustomTextures_Help>每只丧尸都会使用带有伤痕和其他丧尸特征的自定义身体纹理。这会让 Zombieland 消耗大量内存；如果遇到内存问题，请关闭此项。</UseCustomTextures_Help>
+	<ReplaceTwinkie_Help>电影《Zombieland》中有一个贯穿全片的 Twinkie 梗。为致敬电影，此模组会把包装生存食物的外观改成 Twinkie。</ReplaceTwinkie_Help>
+	<ZombiesTriggerDangerMusic_Help>通常，地图上存在威胁时 RimWorld 会播放危险音乐。由于丧尸往往长期存在，危险音乐可能会一直播放。关闭此项可让丧尸不再被危险音乐视为威胁。</ZombiesTriggerDangerMusic_Help>
+	<PlayCreepyAmbientSound_Help>没有阴森环境声就不像丧尸主题。夜间，当所有丧尸向你的基地漂移时，会播放一些恐怖声音。</PlayCreepyAmbientSound_Help>
+	<BetterZombieAvoidance_Help>若想让角色更好地绕开丧尸，可以开启此选项。Zombieland 会不断调整殖民者的路径以避开丧尸。它对减少微操和救援其他殖民者很有用。</BetterZombieAvoidance_Help>
+	<ZombiesDropBlood_Help>游戏速度调整：关闭后丧尸不再掉落血迹。</ZombiesDropBlood_Help>
+	<ZombiesBurnLonger_Help>为增加有趣玩法，丧尸会着火并在四处行走时燃烧更久。如果你的电脑处理不了大量火焰，请关闭。</ZombiesBurnLonger_Help>
+	<AwarenessCuesTitle_Help>这些设置控制可能暴露丧尸活动的信件、声音和视觉提示。关闭它们只改变反馈，不改变丧尸行为。</AwarenessCuesTitle_Help>
 	<PlayZombielandMusic_Help>启用 Zombieland 配乐。如果你只想听 RimWorld、DLC 和其他音乐模组的音乐，请关闭此项。</PlayZombielandMusic_Help>
 	<ZombielandMusicShare_Help>控制新地图歌曲从 Zombieland 音乐中选择的频率。其他音乐包括 RimWorld、DLC、P-Music 和已安装的音乐包。这影响歌曲开始次数，而不是精确播放时长。</ZombielandMusicShare_Help>
-	<ShowZombieEventLetters_Help>显示或隐藏 Zombieland 自动事件警报，包括僵尸出现事件和喷吐者事件的 RimWorld 信件。</ShowZombieEventLetters_Help>
-	<PlayZombieEventSiren_Help>大型僵尸事件或喷吐者事件开始时，播放镜头位置的响亮警报声。</PlayZombieEventSiren_Help>
-	<PlaySpecialZombieAmbientSounds_Help>播放特殊僵尸发出的镜头环境音，例如坦克移动声和电流嗡鸣声。</PlaySpecialZombieAmbientSounds_Help>
-	<PlayZombieActionSounds_Help>播放僵尸行动音效，例如进食、追踪、狂暴、钻出地面、喷吐、毒性、重装和电击音效。</PlayZombieActionSounds_Help>
-	<PlayWallAndSabotageSounds_Help>播放僵尸与你基地互动的声音，例如推墙、攻击建筑、黑客破坏、开关和破坏尖叫声。</PlayWallAndSabotageSounds_Help>
-	<ShowZombieThoughtBubbles_Help>显示 Zombieland 的自定义僵尸思维气泡，例如脑子、进食、狂暴和黑客破坏。</ShowZombieThoughtBubbles_Help>
-	<ShowHealthBar_Help>由于僵尸无法被选中，你可以启用鼠标悬停血条。它显示整体健康和意识等级。</ShowHealthBar_Help>
-	<ShowZombieStats_Help>此项控制屏幕右侧僵尸信息的显示。</ShowZombieStats_Help>
+	<ShowZombieEventLetters_Help>显示或隐藏 Zombieland 自动事件警报，包括丧尸出现事件和喷吐者事件的 RimWorld 信件。</ShowZombieEventLetters_Help>
+	<PlayZombieEventSiren_Help>大型丧尸事件或喷吐者事件开始时，播放镜头位置的响亮警报声。</PlayZombieEventSiren_Help>
+	<PlaySpecialZombieAmbientSounds_Help>播放特殊丧尸发出的镜头环境音，例如坦克移动声和电流嗡鸣声。</PlaySpecialZombieAmbientSounds_Help>
+	<PlayZombieActionSounds_Help>播放丧尸行动音效，例如进食、追踪、狂暴、钻出地面、喷吐、毒性、重装和电击音效。</PlayZombieActionSounds_Help>
+	<PlayWallAndSabotageSounds_Help>播放丧尸与你基地互动的声音，例如推墙、攻击建筑、黑客破坏、开关和破坏尖叫声。</PlayWallAndSabotageSounds_Help>
+	<ShowZombieThoughtBubbles_Help>显示 Zombieland 的自定义丧尸思维气泡，例如脑子、进食、狂暴和黑客破坏。</ShowZombieThoughtBubbles_Help>
+	<ShowHealthBar_Help>由于丧尸无法被选中，你可以启用鼠标悬停血条。它显示整体健康和意识等级。</ShowHealthBar_Help>
+	<ShowZombieStats_Help>此项控制屏幕右侧丧尸信息的显示。</ShowZombieStats_Help>
 	<HighlightDangerousAreas_Help>当殖民者处于危险区域或离开安全区域时，此设置会高亮该区域。\n\n你可以使用普通区域管理器来管理危险区域。</HighlightDangerousAreas_Help>
-	<DisableRandomApparel_Help>为了加快僵尸生成并节省内存，可以让僵尸生成时不穿服装。</DisableRandomApparel_Help>
-	<FloatingZombiesInSOS2_Help>在 SOS2 地图中，僵尸会漂浮在太空里。</FloatingZombiesInSOS2_Help>
+	<DisableRandomApparel_Help>为了加快丧尸生成并节省内存，可以让丧尸生成时不穿服装。</DisableRandomApparel_Help>
+	<FloatingZombiesInSOS2_Help>在 SOS2 地图中，丧尸会漂浮在太空里。</FloatingZombiesInSOS2_Help>
 
-	<ZombieActionsTitle_Help>在此部分可以恢复默认设置，或加载并发布你自己的设置。如果你在游戏中，甚至可以一键卸载模组。</ZombieActionsTitle_Help>
+	<ZombieActionsTitle_Help>在此部分可以恢复默认设置，也可以复制并分享自己的设置。如果你正在游戏中，甚至可以一键卸载模组。</ZombieActionsTitle_Help>
 	<UninstallButton_Help>要移除 Zombieland，只需点击卸载。系统会要求你用新名称保存当前游戏，然后返回主菜单。之后你可以卸载模组，并加载该存档继续无 Zombieland 的游戏。</UninstallButton_Help>
 	<ResetButton_Help>这会将设置重置为默认值。</ResetButton_Help>
 	<ClipboardActionTitle_Help>使用简单的文本复制/粘贴与他人分享你的设置。</ClipboardActionTitle_Help>

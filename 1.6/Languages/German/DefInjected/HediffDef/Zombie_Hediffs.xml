@@ -2,14 +2,24 @@
 <LanguageData>
 
 	<ZombieBite.label>Zombiebiss</ZombieBite.label>
-	<ZombieBite.injuryProps.destroyedLabel>Von einem Zombie abgebissen</ZombieBite.injuryProps.destroyedLabel>
-	<ZombieBite.injuryProps.destroyedOutLabel>Von einem Zombie weggebissen</ZombieBite.injuryProps.destroyedOutLabel>
-	<ZombieBite.description>Ein infektiöser Biss von einem Zombie.</ZombieBite.description>
+	<ZombieBite.injuryProps.destroyedLabel>durch Zombiebiss abgetrennt</ZombieBite.injuryProps.destroyedLabel>
+	<ZombieBite.injuryProps.destroyedOutLabel>durch Zombiebiss abgetrennt</ZombieBite.injuryProps.destroyedOutLabel>
+	<ZombieBite.description>Ein infektiöser Zombiebiss.</ZombieBite.description>
 	<ZombieInfection.label>Zombieinfektion</ZombieInfection.label>
 	<ZombieInfection.description>Zombieinfektion nach dem Tod.</ZombieInfection.description>
 	<ContaminationEffect.label>Kontamination</ContaminationEffect.label>
-	<ContaminationEffect.description>Zombie-Kontamination in Gehirn und Geist. Sie entsteht durch Kontakt mit kontaminierten Dingen und Orten. Sie beeinträchtigt zunehmend die allgemeine Leistungsfähigkeit und verursacht seltsame Nebenwirkungen. Bei 100 % tritt der Tod ein.</ContaminationEffect.description>
-	<SymbiantSymbiosis.label>Symbiant-Verbindung</SymbiantSymbiosis.label>
-	<SymbiantSymbiosis.description>Dieser Kolonist ist mit einem Zombie-Symbiant verbunden. Der Wirt ist immun gegen Zombieinfektionen durch Bisse und erhält zufällige Vorteile, wenn der Symbiant wächst. Figuren auf Symbiant-Zellen werden verlangsamt, außer dem Wirt. Das Füttern mit Leichen lässt den Symbiant schneller wachsen. Eine Operation kann die Verbindung entfernen; der wirtslose Symbiant zieht sich danach zurück.</SymbiantSymbiosis.description>
+	<ContaminationEffect.labelNoun>Kontamination</ContaminationEffect.labelNoun>
+	<ContaminationEffect.description>Zombie-Kontamination in Gehirn und Psyche. Sie entsteht durch das Berühren kontaminierter Dinge sowie durch den Aufenthalt an kontaminierten Orten. Sie beeinträchtigt zunehmend die allgemeine Leistungsfähigkeit und verursacht seltsame Nebenwirkungen. Bei 100 % tritt der Tod ein.</ContaminationEffect.description>
+	<ContaminationEffect.descriptionShort>Zombie-Kontamination in Gehirn und Psyche.</ContaminationEffect.descriptionShort>
+	<ContaminationEffect.stages.none.label>keine</ContaminationEffect.stages.none.label>
+	<ContaminationEffect.stages.light.label>leicht</ContaminationEffect.stages.light.label>
+	<ContaminationEffect.stages.noticeable.label>merklich</ContaminationEffect.stages.noticeable.label>
+	<ContaminationEffect.stages.moderate.label>mäßig</ContaminationEffect.stages.moderate.label>
+	<ContaminationEffect.stages.heavy.label>schwer</ContaminationEffect.stages.heavy.label>
+	<ContaminationEffect.stages.extreme.label>extrem</ContaminationEffect.stages.extreme.label>
+	<ContaminationEffect.stages.deadly-0.label>tödlich</ContaminationEffect.stages.deadly-0.label>
+	<ContaminationEffect.stages.deadly-1.label>tödlich</ContaminationEffect.stages.deadly-1.label>
+	<SymbiantSymbiosis.label>Symbionten-Verbindung</SymbiantSymbiosis.label>
+	<SymbiantSymbiosis.description>Dieser Kolonist ist mit einem Zombie-Symbionten verbunden. Der Wirt ist gegen Zombieinfektionen durch Bisse immun und erhält zufällige Vorteile, wenn der Symbiont wächst. Figuren werden beim Überqueren von Symbionten-Zellen verlangsamt, mit Ausnahme des Wirts. Das Füttern mit Leichen lässt den Symbionten schneller wachsen. Eine Operation entfernt die Verbindung; anschließend zieht sich der ungebundene Symbiont zurück.</SymbiantSymbiosis.description>
 
 </LanguageData>

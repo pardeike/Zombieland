@@ -5,7 +5,7 @@
 	<ZombieBite.deathMessage>{0} ist von einem Zombie zu Tode gebissen worden.</ZombieBite.deathMessage>
 
 	<SuicideBomb.label>Selbstmordbombe</SuicideBomb.label>
-	<SuicideBomb.deathMessage>{0} ist bei einem Zombie-Selbstmordanschlag ums Leben gekommen.</SuicideBomb.deathMessage>
+	<SuicideBomb.deathMessage>{0} ist bei einem Selbstmordanschlag ums Leben gekommen.</SuicideBomb.deathMessage>
 
 	<ToxicSplatter.label>Spritzer</ToxicSplatter.label>
 

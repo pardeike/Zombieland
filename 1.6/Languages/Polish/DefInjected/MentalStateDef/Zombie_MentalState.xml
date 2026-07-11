@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ContaminationStateForceRest.label>przymusowy odpoczynek</ContaminationStateForceRest.label>
+	<ContaminationStateForceRest.baseInspectLine>Stan psychiczny: Odpoczynek</ContaminationStateForceRest.baseInspectLine>
+	<ContaminationStateForceRest.beginLetter>{0} potrzebuje odpoczynku.</ContaminationStateForceRest.beginLetter>
+	<ContaminationStateForceRest.beginLetterLabel>odpoczynek</ContaminationStateForceRest.beginLetterLabel>
+	<ContaminationStateForceRest.recoveryMessage>{0} nie potrzebuje już odpoczynku.</ContaminationStateForceRest.recoveryMessage>
+	<ContaminationStateHallucination.label>halucynacje</ContaminationStateHallucination.label>
+	<ContaminationStateHallucination.baseInspectLine>Stan psychiczny: Halucynacje</ContaminationStateHallucination.baseInspectLine>
+	<ContaminationStateHallucination.beginLetter>{0} zaczyna mieć halucynacje i w dezorientacji rzuca się do ucieczki.</ContaminationStateHallucination.beginLetter>
+	<ContaminationStateHallucination.beginLetterLabel>halucynacje</ContaminationStateHallucination.beginLetterLabel>
+	<ContaminationStateHallucination.recoveryMessage>{0} nie ma już halucynacji.</ContaminationStateHallucination.recoveryMessage>
+	<ContaminationStateSleepwalking.label>lunatykowanie</ContaminationStateSleepwalking.label>
+	<ContaminationStateSleepwalking.baseInspectLine>Stan psychiczny: Lunatykowanie</ContaminationStateSleepwalking.baseInspectLine>
+	<ContaminationStateSleepwalking.beginLetter>{0} zaczyna lunatykować.</ContaminationStateSleepwalking.beginLetter>
+	<ContaminationStateSleepwalking.beginLetterLabel>lunatykowanie</ContaminationStateSleepwalking.beginLetterLabel>
+	<ContaminationStateSleepwalking.recoveryMessage>{0} nie lunatykuje już.</ContaminationStateSleepwalking.recoveryMessage>
+	<ContaminationStateHoarding.label>gromadzenie</ContaminationStateHoarding.label>
+	<ContaminationStateHoarding.baseInspectLine>Stan psychiczny: Gromadzenie</ContaminationStateHoarding.baseInspectLine>
+	<ContaminationStateHoarding.beginLetter>{0} zaczyna gromadzić przedmioty.</ContaminationStateHoarding.beginLetter>
+	<ContaminationStateHoarding.beginLetterLabel>gromadzenie</ContaminationStateHoarding.beginLetterLabel>
+	<ContaminationStateHoarding.recoveryMessage>{0} nie gromadzi już przedmiotów.</ContaminationStateHoarding.recoveryMessage>
+	<ContaminationStateMimicing.label>naśladowanie</ContaminationStateMimicing.label>
+	<ContaminationStateMimicing.baseInspectLine>Stan psychiczny: Naśladowanie zombie</ContaminationStateMimicing.baseInspectLine>
+	<ContaminationStateMimicing.beginLetter>{0} zaczyna naśladować zombie.</ContaminationStateMimicing.beginLetter>
+	<ContaminationStateMimicing.beginLetterLabel>naśladowanie</ContaminationStateMimicing.beginLetterLabel>
+	<ContaminationStateMimicing.recoveryMessage>{0} nie naśladuje już zombie.</ContaminationStateMimicing.recoveryMessage>
+	<ContaminationStateBreakdown.label>załamanie psychiczne</ContaminationStateBreakdown.label>
+	<ContaminationStateBreakdown.baseInspectLine>Stan psychiczny: Załamanie psychiczne</ContaminationStateBreakdown.baseInspectLine>
+	<ContaminationStateBreakdown.beginLetter>{0} przechodzi załamanie psychiczne.</ContaminationStateBreakdown.beginLetter>
+	<ContaminationStateBreakdown.beginLetterLabel>załamanie psychiczne</ContaminationStateBreakdown.beginLetterLabel>
+	<ContaminationStateBreakdown.recoveryMessage>{0} nie jest już w stanie załamania psychicznego.</ContaminationStateBreakdown.recoveryMessage>
+
+</LanguageData>

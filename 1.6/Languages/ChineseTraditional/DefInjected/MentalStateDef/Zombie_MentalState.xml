@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ContaminationStateForceRest.label>休息中</ContaminationStateForceRest.label>
+	<ContaminationStateForceRest.baseInspectLine>心理狀態：休息中</ContaminationStateForceRest.baseInspectLine>
+	<ContaminationStateForceRest.beginLetter>{0} 需要休息片刻。</ContaminationStateForceRest.beginLetter>
+	<ContaminationStateForceRest.beginLetterLabel>需要休息</ContaminationStateForceRest.beginLetterLabel>
+	<ContaminationStateForceRest.recoveryMessage>{0} 已經不再需要休息。</ContaminationStateForceRest.recoveryMessage>
+	<ContaminationStateHallucination.label>產生幻覺</ContaminationStateHallucination.label>
+	<ContaminationStateHallucination.baseInspectLine>心理狀態：產生幻覺</ContaminationStateHallucination.baseInspectLine>
+	<ContaminationStateHallucination.beginLetter>{0} 開始產生幻覺，並因困惑而逃竄。</ContaminationStateHallucination.beginLetter>
+	<ContaminationStateHallucination.beginLetterLabel>幻覺</ContaminationStateHallucination.beginLetterLabel>
+	<ContaminationStateHallucination.recoveryMessage>{0} 已經不再產生幻覺。</ContaminationStateHallucination.recoveryMessage>
+	<ContaminationStateSleepwalking.label>夢遊中</ContaminationStateSleepwalking.label>
+	<ContaminationStateSleepwalking.baseInspectLine>心理狀態：夢遊中</ContaminationStateSleepwalking.baseInspectLine>
+	<ContaminationStateSleepwalking.beginLetter>{0} 開始夢遊。</ContaminationStateSleepwalking.beginLetter>
+	<ContaminationStateSleepwalking.beginLetterLabel>夢遊</ContaminationStateSleepwalking.beginLetterLabel>
+	<ContaminationStateSleepwalking.recoveryMessage>{0} 已經不再夢遊。</ContaminationStateSleepwalking.recoveryMessage>
+	<ContaminationStateHoarding.label>囤積中</ContaminationStateHoarding.label>
+	<ContaminationStateHoarding.baseInspectLine>心理狀態：囤積中</ContaminationStateHoarding.baseInspectLine>
+	<ContaminationStateHoarding.beginLetter>{0} 開始囤積物品。</ContaminationStateHoarding.beginLetter>
+	<ContaminationStateHoarding.beginLetterLabel>囤積</ContaminationStateHoarding.beginLetterLabel>
+	<ContaminationStateHoarding.recoveryMessage>{0} 已經不再囤積物品。</ContaminationStateHoarding.recoveryMessage>
+	<ContaminationStateMimicing.label>模仿中</ContaminationStateMimicing.label>
+	<ContaminationStateMimicing.baseInspectLine>心理狀態：模仿喪屍</ContaminationStateMimicing.baseInspectLine>
+	<ContaminationStateMimicing.beginLetter>{0} 開始模仿喪屍。</ContaminationStateMimicing.beginLetter>
+	<ContaminationStateMimicing.beginLetterLabel>模仿</ContaminationStateMimicing.beginLetterLabel>
+	<ContaminationStateMimicing.recoveryMessage>{0} 已經不再模仿喪屍。</ContaminationStateMimicing.recoveryMessage>
+	<ContaminationStateBreakdown.label>精神崩潰中</ContaminationStateBreakdown.label>
+	<ContaminationStateBreakdown.baseInspectLine>心理狀態：精神崩潰</ContaminationStateBreakdown.baseInspectLine>
+	<ContaminationStateBreakdown.beginLetter>{0} 開始精神崩潰。</ContaminationStateBreakdown.beginLetter>
+	<ContaminationStateBreakdown.beginLetterLabel>精神崩潰</ContaminationStateBreakdown.beginLetterLabel>
+	<ContaminationStateBreakdown.recoveryMessage>{0} 已經擺脫精神崩潰。</ContaminationStateBreakdown.recoveryMessage>
+
+</LanguageData>

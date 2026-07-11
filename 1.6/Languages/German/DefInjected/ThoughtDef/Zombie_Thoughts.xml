@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ZombieScare.stages.scared_by.label>erschreckt von {0}</ZombieScare.stages.scared_by.label>
+	<ZombieScare.stages.scared_by.description>Jemand hat sich wie ein Zombie benommen und mir Angst gemacht. Jetzt bin ich beunruhigt.</ZombieScare.stages.scared_by.description>
+
+</LanguageData>

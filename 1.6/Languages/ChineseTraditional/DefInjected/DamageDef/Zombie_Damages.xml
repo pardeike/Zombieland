@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <ZombieBite.label>喪屍咬傷</ZombieBite.label>
+  <ZombieBite.deathMessage>{0} 死於喪屍撕咬。</ZombieBite.deathMessage>
+
+  <SuicideBomb.label>自爆炸彈</SuicideBomb.label>
+  <SuicideBomb.deathMessage>{0} 死於自爆襲擊。</SuicideBomb.deathMessage>
+
+  <ToxicSplatter.label>毒液飛濺</ToxicSplatter.label>
+
+  <ElectricalShock.label>電擊</ElectricalShock.label>
+  <ElectricalShock.deathMessage>{0} 被電擊致死。</ElectricalShock.deathMessage>
+
+  <SeismicWave.label>地震波</SeismicWave.label>
+
+</LanguageData>

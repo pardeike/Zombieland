@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+
+	<ExtractZombieSerum.label>從喪屍屍體中採集提取物</ExtractZombieSerum.label>
+	<ExtractZombieSerum.verb>採集</ExtractZombieSerum.verb>
+	<ExtractZombieSerum.gerund>採集</ExtractZombieSerum.gerund>
+
+	<DoubleTap.label>對屍體補刀，防止其變成喪屍</DoubleTap.label>
+	<DoubleTap.verb>補刀</DoubleTap.verb>
+	<DoubleTap.gerund>補刀</DoubleTap.gerund>
+	<FeedZombieSymbiant.label>餵養共生體</FeedZombieSymbiant.label>
+	<FeedZombieSymbiant.verb>餵養</FeedZombieSymbiant.verb>
+	<FeedZombieSymbiant.gerund>餵養</FeedZombieSymbiant.gerund>
+	<FixBrokenChainsaw.label>修理損壞的鏈鋸</FixBrokenChainsaw.label>
+	<FixBrokenChainsaw.verb>更換損壞的零件：</FixBrokenChainsaw.verb>
+	<FixBrokenChainsaw.gerund>更換損壞的零件：</FixBrokenChainsaw.gerund>
+
+</LanguageData>

@@ -2,67 +2,68 @@
 <LanguageData>
 
 	<Apparel_BombVest.label>Bombenweste</Apparel_BombVest.label>
-	<Apparel_BombVest.description>Eine Weste mit eingebautem Sprengsatz</Apparel_BombVest.description>
+	<Apparel_BombVest.description>Eine Weste mit eingebautem Sprengsatz.</Apparel_BombVest.description>
 
-	<TarSlime.label>Teer-Schleim</TarSlime.label>
-	<TarSlime.description>Ein klebriger Schleim auf dem Boden</TarSlime.description>
+	<TarSlime.label>Extrem klebriger Schleim</TarSlime.label>
+	<TarSlime.description>Ein sehr klebriger Schleim, der die Bewegung stark verlangsamt.</TarSlime.description>
 
-	<TarSmoke.label>Rauch</TarSmoke.label>
-	<TarSmoke.description>Ein dichter schwarzer Rauch</TarSmoke.description>
+	<TarSmoke.label>Dunkler Rauch</TarSmoke.label>
+	<TarSmoke.description>Ein dunkler Rauch, der die Sicht erschwert.</TarSmoke.description>
 
-	<StickyGoo.label>Giftiger und klebriger Schleim</StickyGoo.label>
-	<StickyGoo.description>Giftiger klebriger Schleim der wahrscheinlich bei Berührung krank macht</StickyGoo.description>
+	<StickyGoo.label>Giftiger, klebriger Zombieschleim</StickyGoo.label>
+	<StickyGoo.description>Eine giftige, klebrige Substanz, die wahrscheinlich krank macht.</StickyGoo.description>
 
 	<Chainsaw.label>Kettensäge</Chainsaw.label>
-	<Chainsaw.description>Eine Kettensäge. Sieht so aus, als würde sie nur gegen dumme Feinde wie Zombies funktionieren und bei anderen Dingen kaputt gehen. Sehr hohes Risiko für eigenen Schaden und wird Fallengelassen, wenn man aus zu vielen Winkeln gleichzeitig angegriffen wird. Sie wurden gewarnt.</Chainsaw.description>
+	<Chainsaw.description>Eine Kettensäge. Offenbar funktioniert sie nur gegen dumme Gegner wie Zombies und geht kaputt, wenn sie gegen etwas anderes eingesetzt wird. Es besteht ein sehr hohes Risiko für versehentliche Treffer auf Verbündete; bei Angriffen aus zu vielen Richtungen gleichzeitig kann sie fallengelassen werden. Sie wurden gewarnt.</Chainsaw.description>
+	<Chainsaw.tools.blade.label>Klinge</Chainsaw.tools.blade.label>
 
 	<ZombieExtract.label>Zombieextrakt</ZombieExtract.label>
-	<ZombieExtract.description>Eine kleine Menge an Substanz von einem toten Zombie. Kombiniere bis zu 100 Extrakte um eine Droge namens Zombieserum herzustellen die dann bei Operationen infizierte Körperteile heilt.</ZombieExtract.description>
+	<ZombieExtract.description>Eine kleine Menge Extrakt aus einem toten Zombie. Bis zu 100 Einheiten Extrakt lassen sich zu einer Droge namens Zombieserum kombinieren, die bei Operationen an infizierten Körperteilen verwendet wird.</ZombieExtract.description>
 
-	<UnfinishedZombieSerum.label>Nicht fertiggestelltes Zombieserum</UnfinishedZombieSerum.label>
+	<UnfinishedZombieSerum.label>Unfertiges Zombieserum</UnfinishedZombieSerum.label>
 
 	<ZombieSerumSimple.label>behelfsmäßiges Zombieserum 100%</ZombieSerumSimple.label>
-	<ZombieSerumSimple.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (100% Erfolgsrate)</ZombieSerumSimple.description>
+	<ZombieSerumSimple.description>Reines Serum aus toten Zombies, das bei Operationen die Heilung von Zombieinfektionen garantiert.</ZombieSerumSimple.description>
 
 	<Zombie10Serum.label>Zombieserum 10%</Zombie10Serum.label>
-	<Zombie10Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (10% Erfolgsrate)</Zombie10Serum.description>
+	<Zombie10Serum.description>Serum aus toten Zombies, das Zombieinfektionen bei Operationen heilt (10% Erfolgschance).</Zombie10Serum.description>
 
 	<Zombie20Serum.label>Zombieserum 20%</Zombie20Serum.label>
-	<Zombie20Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (20% Erfolgsrate)</Zombie20Serum.description>
+	<Zombie20Serum.description>Serum aus toten Zombies, das Zombieinfektionen bei Operationen heilt (20% Erfolgschance).</Zombie20Serum.description>
 
 	<Zombie30Serum.label>Zombieserum 30%</Zombie30Serum.label>
-	<Zombie30Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (30% Erfolgsrate)</Zombie30Serum.description>
+	<Zombie30Serum.description>Serum aus toten Zombies, das Zombieinfektionen bei Operationen heilt (30% Erfolgschance).</Zombie30Serum.description>
 
 	<Zombie40Serum.label>Zombieserum 40%</Zombie40Serum.label>
-	<Zombie40Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (40% Erfolgsrate)</Zombie40Serum.description>
+	<Zombie40Serum.description>Serum aus toten Zombies, das Zombieinfektionen bei Operationen heilt (40% Erfolgschance).</Zombie40Serum.description>
 
 	<Zombie50Serum.label>Zombieserum 50%</Zombie50Serum.label>
-	<Zombie50Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (50% Erfolgsrate)</Zombie50Serum.description>
+	<Zombie50Serum.description>Serum aus toten Zombies, das Zombieinfektionen bei Operationen heilt (50% Erfolgschance).</Zombie50Serum.description>
 
 	<Zombie60Serum.label>Zombieserum 60%</Zombie60Serum.label>
-	<Zombie60Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (60% Erfolgsrate)</Zombie60Serum.description>
+	<Zombie60Serum.description>Serum aus toten Zombies, das Zombieinfektionen bei Operationen heilt (60% Erfolgschance).</Zombie60Serum.description>
 
 	<Zombie70Serum.label>Zombieserum 70%</Zombie70Serum.label>
-	<Zombie70Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (70% Erfolgsrate)</Zombie70Serum.description>
+	<Zombie70Serum.description>Serum aus toten Zombies, das Zombieinfektionen bei Operationen heilt (70% Erfolgschance).</Zombie70Serum.description>
 
 	<Zombie80Serum.label>Zombieserum 80%</Zombie80Serum.label>
-	<Zombie80Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (80% Erfolgsrate)</Zombie80Serum.description>
+	<Zombie80Serum.description>Serum aus toten Zombies, das Zombieinfektionen bei Operationen heilt (80% Erfolgschance).</Zombie80Serum.description>
 
 	<Zombie90Serum.label>Zombieserum 90%</Zombie90Serum.label>
-	<Zombie90Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (90% Erfolgsrate)</Zombie90Serum.description>
+	<Zombie90Serum.description>Serum aus toten Zombies, das Zombieinfektionen bei Operationen heilt (90% Erfolgschance).</Zombie90Serum.description>
 
 	<Zombie100Serum.label>Zombieserum 100%</Zombie100Serum.label>
-	<Zombie100Serum.description>Serum von einem toten Zombie welches bei Operationen Zombieinfektionen heilt (100% Erfolgsrate)</Zombie100Serum.description>
+	<Zombie100Serum.description>Reines Serum aus toten Zombies, das bei Operationen die Heilung von Zombieinfektionen garantiert.</Zombie100Serum.description>
 
 	<ZombieShocker.label>Zombie-Schocker</ZombieShocker.label>
-	<ZombieShocker.description>Eine Zombie-Kontrollmaschine, die in die Wand eines Raums passt. Sie kann von außen aktiviert werden und verwirrt jeden Zombie in dem Raum für eine Zeit.</ZombieShocker.description>
+	<ZombieShocker.description>Eine Zombie-Kontrollmaschine, die in die Wand eines Raums eingebaut wird. Sie kann von außen aktiviert werden und macht alle Zombies in diesem Raum für kurze Zeit bewusstlos.</ZombieShocker.description>
 
 	<Thumper.label>Zombiestampfer</Thumper.label>
-	<Thumper.description>Ein Stampfer um Zombies anzulocken. Braucht Sprit und macht pro Schlag Schäden in der Umgebung.</Thumper.description>
+	<Thumper.description>Ein Stampfer, der Zombies anlockt. Verbraucht Treibstoff und beschädigt mit jedem Schlag die Umgebung.</Thumper.description>
 
 	<ZombieBall.label>Zombieball</ZombieBall.label>
 
 	<ZombieLand_DecontaminationTransportPod.label>Dekontaminations-Transportkapsel</ZombieLand_DecontaminationTransportPod.label>
-	<ZombieLand_DecontaminationTransportPod.description>Eine Einweg-Abholkapsel, die einen Kolonisten zur Dekontaminationsbehandlung abholt.</ZombieLand_DecontaminationTransportPod.description>
+	<ZombieLand_DecontaminationTransportPod.description>Eine Einweg-Transportkapsel, die geschickt wird, um einen Kolonisten zur Dekontaminationsbehandlung abzuholen.</ZombieLand_DecontaminationTransportPod.description>
 
 </LanguageData>

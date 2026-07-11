@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
-	<Stumble.reportString>titube.</Stumble.reportString>
+	<Stumble.reportString>trébuche.</Stumble.reportString>
 	<Sabotage.reportString>sabote.</Sabotage.reportString>
-	<ExtractZombieSerum.reportString>récolte de l'extrait de zombie sur TargetA.</ExtractZombieSerum.reportString>
+	<ExtractZombieSerum.reportString>prélève de l'extrait de zombie sur TargetA.</ExtractZombieSerum.reportString>
 	<DoubleTap.reportString>achève TargetA.</DoubleTap.reportString>
 	<Symbiant.reportString>se répand.</Symbiant.reportString>
 	<FeedZombieSymbiant.reportString>nourrit TargetA avec TargetB.</FeedZombieSymbiant.reportString>
+	<Spitter.reportString>crache.</Spitter.reportString>
 	<RopeZombie.reportString>attache TargetA.</RopeZombie.reportString>
-	<ZapZombies.reportString>active le neutraliseur de zombies.</ZapZombies.reportString>
+	<ZapZombies.reportString>active l'étourdisseur de zombies.</ZapZombies.reportString>
+	<FixBrokenChainsaw.reportString>remplace les composants cassés de TargetA.</FixBrokenChainsaw.reportString>
+	<ContaminationJobForceRest.reportString>s'arrête un moment pour se reposer.</ContaminationJobForceRest.reportString>
+	<ContaminationJobHallucination.reportString>hallucine un ennemi imaginaire.</ContaminationJobHallucination.reportString>
+	<ContaminationJobSleepwalk.reportString>marche en dormant.</ContaminationJobSleepwalk.reportString>
+	<ContaminationJobHoard.reportString>accumule compulsivement.</ContaminationJobHoard.reportString>
+	<ContaminationJobMimic.reportString>imite les zombies.</ContaminationJobMimic.reportString>
+	<ContaminationJobBreakdown.reportString>s'effondre.</ContaminationJobBreakdown.reportString>
 
 </LanguageData>

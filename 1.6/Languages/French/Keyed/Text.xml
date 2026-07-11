@@ -7,7 +7,7 @@
 	<ZombielandPlayerLogRevealFailed>Impossible d'afficher Player.log. Le chemin a été copié dans le presse-papiers.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland n'a pas trouvé le chemin de Player.log.</ZombielandPlayerLogPathUnavailable>
 
-	<Zombieland_Settings>Survolez un élément pour lire un texte d'aide à son sujet à droite. Tous les paramètres peuvent être modifiés dans le jeu et sont actifs immédiatement, ils sont sauvegardés avec le jeu.\n\nPour définir les paramètres par défaut pour les nouvelles parties, modifiez les paramètres à partir de l'écran principal (Options/Mod Settings/Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Survolez un élément pour lire un texte d'aide à son sujet à droite. Tous les paramètres peuvent être modifiés dans le jeu et sont actifs immédiatement, ils sont sauvegardés avec le jeu.\n\nPour définir les paramètres par défaut des nouvelles parties, modifiez-les depuis l'écran principal (Options / Paramètres des mods / Zombieland).</Zombieland_Settings>
 	<ZombieLandKeyframes>Ajoutez des images clés qui définissent les paramètres dans le temps. Utilisez le curseur pour vérifier les valeurs intermédiaires. Seuls les réglages des images clés sont modifiables.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- première image clé (début du jeu) . . . temps de jeu futur -&gt;</ZombieLandKeyframe0>
 
@@ -55,7 +55,7 @@
 	<SymbiantFedMote>cases +{1}</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>Nourrir le Symbiant avec {0} {1} (+{2} cases)</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>retirer le lien du Symbiant</SeverSymbiantSymbiosis>
-	<SeverSymbiantSymbiosisWithCost>retirer le lien du Symbiant ({0} extrait zombie)</SeverSymbiantSymbiosisWithCost>
+	<SeverSymbiantSymbiosisWithCost>retirer le lien du Symbiant ({0} extrait de zombie)</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>Le lien de Symbiant de {0} a été retiré.</SymbiantSeveredMessage>
 	<SymbiantHostBondDescription>Symbiant : {0}/{1} cases. Prochain avantage à {2} cases. Santé partagée : {3}. Le Symbiant absorbe la majeure partie des dégâts partagés ; &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; atteint l'hôte à cette taille.\n\nRègle de carte : l'hôte et le Symbiant doivent être sur la même carte pour que le lien soit actif et puisse être retiré proprement. S'ils sont séparés, le lien devient dormant jusqu'à leur réunion. Abandonner la carte du Symbiant le détruit et rompt le lien de force ; une opération retire d'abord le lien proprement.\n\nAvantages :\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Aucun Symbiant actif n'est lié à cet hôte.</SymbiantHostBondMissing>
@@ -194,7 +194,7 @@
 
 	<ZombieHarvestingTitle>Butin de zombies</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>Quantité d'extrait de zombie par zombie</CorpsesExtractAmount>
-	<CorpsesExtractChance>Chance</CorpsesExtractChance>
+	<CorpsesExtractChance>Probabilité</CorpsesExtractChance>
 	<LootExtractAmount>Quantité de butin après que les zombies meurent</LootExtractAmount>
 	<CorpsesDaysToDessicated>Heures avant la disparition des cadavres de zombies</CorpsesDaysToDessicated>
 	<ExtractZombieArea>Limiter l'extraction à la zone</ExtractZombieArea>
@@ -321,7 +321,7 @@
 	<AutoAvoidZombiesEnabledDescription>Évite automatiquement les zombies, sauf lorsque le pion est enrôlé</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Ignorer les zombies. Vous devez contrôler manuellement toutes les actions</AutoAvoidZombiesDisabledDescription>
 
-	<ZapZombies>Démarrer l'électrocuteur à zombies</ZapZombies>
+	<ZapZombies>Activer l'étourdisseur de zombies</ZapZombies>
 	<ZombieShockerWrongPlacement>L'appareil ne peut pas être placé ici</ZombieShockerWrongPlacement>
 	<ZombieShockerHasNoBattery>L'appareil n'a pas de batterie fixée</ZombieShockerHasNoBattery>
 	<ZombieShockerHasNoRoom>L'appareil n'a aucune pièce valide attachée</ZombieShockerHasNoRoom>
@@ -359,7 +359,7 @@
 	<ChainsawDescBlockingChance> bloquant {0}% des attaques entrantes</ChainsawDescBlockingChance>
 
 	<ThumperControl>Paramètres</ThumperControl>
-	<ThumperControlDesc>Définir l'intensité et l'intervalle pour ce Zombie Thumper</ThumperControlDesc>
+	<ThumperControlDesc>Définir l'intensité et l'intervalle de cet attracteur de zombies</ThumperControlDesc>
 	<Intensity>Intensité</Intensity>
 	<Interval>Intervalle</Interval>
 

@@ -9,5 +9,9 @@
 			<roleKey>Credit_Writer</roleKey>
 			<creditee>Ted Yann</creditee>
 		</li>
+		<li Class="CreditRecord_Role">
+			<roleKey>Credit_SpecialThanks</roleKey>
+			<creditee>Workshop terminology reference: Joedox</creditee>
+		</li>
 	</credits>
 </LanguageInfo>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-	<ZombieFreeEvent.label>僵尸沉寂</ZombieFreeEvent.label>
-	<ZombieFreeEvent.description>僵尸会在短时间内从世界上消失。普通僵尸会消亡，并且在此状态持续期间不会出现新的僵尸。</ZombieFreeEvent.description>
-	<ZombieFreeEvent.endMessage>僵尸沉寂已经结束。僵尸可以再次出现。</ZombieFreeEvent.endMessage>
-	<ZombieFreeEvent.letterText>短时间内，世界各地的僵尸正在消亡，并且不会出现新的僵尸。这是旅行的好时机。</ZombieFreeEvent.letterText>
+	<ZombieFreeEvent.label>丧尸沉寂</ZombieFreeEvent.label>
+	<ZombieFreeEvent.description>丧尸会在短时间内从世界上消失。普通丧尸将会消亡，而且在此状态持续期间不会出现新的丧尸。</ZombieFreeEvent.description>
+	<ZombieFreeEvent.endMessage>丧尸沉寂已经结束。新的丧尸会再次出现。</ZombieFreeEvent.endMessage>
+	<ZombieFreeEvent.letterText>短时间内，世界各地的丧尸正在消亡，并且不会出现新的丧尸。这是远行队出行的好时机。</ZombieFreeEvent.letterText>
 
 </LanguageData>

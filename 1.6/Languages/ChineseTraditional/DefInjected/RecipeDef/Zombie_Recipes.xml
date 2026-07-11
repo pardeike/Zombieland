@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+
+	<CureZombieInfection.label>治癒喪屍感染</CureZombieInfection.label>
+	<CureZombieInfection.description>移除身體部位上的早期喪屍感染。需要一劑喪屍血清；純度越高，失敗風險越低。</CureZombieInfection.description>
+	<CureZombieInfection.jobString>正在治癒喪屍感染。</CureZombieInfection.jobString>
+
+	<SeverSymbiantSymbiosis.label>移除共生體連結</SeverSymbiantSymbiosis.label>
+	<SeverSymbiantSymbiosis.description>移除殖民者與共生體之間的連結。手術後，失去宿主的共生體會逐漸縮回。</SeverSymbiantSymbiosis.description>
+	<SeverSymbiantSymbiosis.jobString>正在移除共生體連結。</SeverSymbiantSymbiosis.jobString>
+
+	<MakeZombieSerum.label>用喪屍提取物製作喪屍血清</MakeZombieSerum.label>
+	<MakeZombieSerum.description>用喪屍提取物製作一劑喪屍血清。喪屍血清可在手術中治癒喪屍感染。</MakeZombieSerum.description>
+	<MakeZombieSerum.jobString>正在製作喪屍血清。</MakeZombieSerum.jobString>
+
+</LanguageData>

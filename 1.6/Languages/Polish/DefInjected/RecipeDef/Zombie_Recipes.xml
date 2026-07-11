@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<CureZombieInfection.label>wylecz zakażenie zombie</CureZombieInfection.label>
+	<CureZombieInfection.description>Usuwa zakażenie zombie we wczesnym stadium z części ciała. Wymaga jednej dawki serum zombie (wyższy procent oznacza mniejsze ryzyko niepowodzenia).</CureZombieInfection.description>
+	<CureZombieInfection.jobString>Leczy zakażenie zombie.</CureZombieInfection.jobString>
+
+	<SeverSymbiantSymbiosis.label>usuń więź z Symbiontem</SeverSymbiantSymbiosis.label>
+	<SeverSymbiantSymbiosis.description>Usuwa więź między kolonistą a Symbiontem. Po operacji pozbawiony więzi Symbiont skurczy się i zniknie.</SeverSymbiantSymbiosis.description>
+	<SeverSymbiantSymbiosis.jobString>Usuwa więź z Symbiontem.</SeverSymbiantSymbiosis.jobString>
+
+	<MakeZombieSerum.label>wytwórz serum zombie z ekstraktu zombie</MakeZombieSerum.label>
+	<MakeZombieSerum.description>Wytwarza jedną dawkę serum zombie z ekstraktu zombie. Serum zombie leczy zakażenia zombie podczas operacji.</MakeZombieSerum.description>
+	<MakeZombieSerum.jobString>Wytwarza serum zombie.</MakeZombieSerum.jobString>
+
+</LanguageData>

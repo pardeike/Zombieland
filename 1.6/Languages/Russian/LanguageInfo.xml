@@ -9,5 +9,9 @@
 			<roleKey>Credit_Translator</roleKey>
 			<creditee>COZ RED GOEZ F🅰🅰ST🅰!!!!</creditee>
 		</li>
+		<li Class="CreditRecord_Role">
+			<roleKey>Credit_SpecialThanks</roleKey>
+			<creditee>Workshop terminology reference: Хави</creditee>
+		</li>
 	</credits>
 </LanguageInfo>

@@ -3,5 +3,6 @@
 
 	<ZombieSymbiantBody.label>vücut</ZombieSymbiantBody.label>
 	<ZombieSpitterBody.label>vücut</ZombieSpitterBody.label>
+	<ZombieSpitterBody.corePart.parts.lung.customLabel>akciğer</ZombieSpitterBody.corePart.parts.lung.customLabel>
 
 </LanguageData>

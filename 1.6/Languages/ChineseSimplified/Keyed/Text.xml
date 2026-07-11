@@ -2,30 +2,30 @@
 <LanguageData>
 
 	<LetterLabelZombielandMapSetupFailed>Zombieland 未能在此地图启动</LetterLabelZombielandMapSetupFailed>
-	<ZombielandMapSetupFailed>RimWorld 已加载此地图，但 Zombieland 未能完成地图设置。Zombieland 已尝试修复这个问题，但没有成功。\n\n这意味着：此地图上不会生成僵尸，僵尸也不会移动。僵尸事件、僵尸回避、僵尸尸体和特殊僵尸行为可能无法正常工作。\n\n这通常是 RimWorld 或其他 Mod 加载地图时发生错误造成的。请先查看日志中更早出现的第一个红色错误，然后尝试禁用最近添加或更新的 Mod。也请确认 RimWorld 和 Zombieland 的版本互相兼容。</ZombielandMapSetupFailed>
+	<ZombielandMapSetupFailed>RimWorld 已加载此地图，但 Zombieland 未能完成地图设置。Zombieland 已尝试修复这个问题，但没有成功。\n\n这意味着：此地图上不会生成丧尸，丧尸也不会移动。丧尸事件、丧尸回避、丧尸尸体和特殊丧尸行为可能无法正常工作。\n\n这通常是 RimWorld 或其他模组加载地图时发生错误造成的。请先查看日志中更早出现的第一个红色错误，然后尝试禁用最近添加或更新的模组。也请确认 RimWorld 和 Zombieland 的版本互相兼容。</ZombielandMapSetupFailed>
 	<ZombielandRevealPlayerLog>显示 Player.log</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>无法显示 Player.log。路径已复制到剪贴板。</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland 找不到 Player.log 的路径。</ZombielandPlayerLogPathUnavailable>
 
-	<Zombieland_Settings>将鼠标悬停在任何元素上，可以阅读右边关于它的帮助文字。所有的设置都可以在游戏中改变，并立即生效，它们与游戏一起被保存。要为新游戏设置默认值，请在主屏幕上改变设置（设置/模组设置/Zombieland）。</Zombieland_Settings>
-	<ZombieLandKeyframes>你可以添加关键帧，在时间上定义设置。使用滑块来检查中间的数值。只有关键帧的设置可以被编辑。</ZombieLandKeyframes>
+	<Zombieland_Settings>将鼠标悬停在任意设置上，即可在右侧查看帮助文字。所有设置都可以在游戏中更改并立即生效，也会随游戏一同保存。\n\n若要为新游戏设置默认值，请在主菜单中更改设置（选项 / 模组 / Zombieland）。</Zombieland_Settings>
+	<ZombieLandKeyframes>你可以添加关键帧，定义设置如何随游戏时间变化。使用滑块可预览关键帧之间的数值。设置只能在关键帧上编辑。</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- 第一个关键帧（游戏开始） ...... 未来游戏时间 -&gt;</ZombieLandKeyframe0>
 
-	<Difficulty_ZombielandThreatScale_Info>控制僵尸乐园中几乎所有事物的难度，如僵尸能力、威胁预测等等。</Difficulty_ZombielandThreatScale_Info>
-	<Difficulty_ZombielandThreatScale_Label>僵尸之地的威胁等级</Difficulty_ZombielandThreatScale_Label>
+	<Difficulty_ZombielandThreatScale_Info>控制 Zombieland 中几乎所有内容的难度，包括丧尸能力、威胁预测等。</Difficulty_ZombielandThreatScale_Info>
+	<Difficulty_ZombielandThreatScale_Label>Zombieland 威胁倍率</Difficulty_ZombielandThreatScale_Label>
 
-	<ZombieSuicideBomber>自爆僵尸</ZombieSuicideBomber>
-	<ZombieToxicSplasher>毒液喷溅僵尸</ZombieToxicSplasher>
-	<ZombieTanky>重装操作员僵尸</ZombieTanky>
-	<ZombieMiner>矿工僵尸</ZombieMiner>
-	<ZombieElectrifier>电击僵尸</ZombieElectrifier>
-	<ZombieAlbino>白化僵尸</ZombieAlbino>
-	<ZombieDarkSlimer>黑色黏液僵尸</ZombieDarkSlimer>
-	<ZombieHealer>治疗僵尸</ZombieHealer>
-	<ZombieChild>儿童僵尸</ZombieChild>
-	<ZombieWeak>弱小僵尸</ZombieWeak>
-	<ZombieStrong>强壮僵尸</ZombieStrong>
-	<ZombieSimple>普通僵尸</ZombieSimple>
+	<ZombieSuicideBomber>自爆丧尸</ZombieSuicideBomber>
+	<ZombieToxicSplasher>毒液喷溅丧尸</ZombieToxicSplasher>
+	<ZombieTanky>重装突破丧尸</ZombieTanky>
+	<ZombieMiner>矿工丧尸</ZombieMiner>
+	<ZombieElectrifier>电击丧尸</ZombieElectrifier>
+	<ZombieAlbino>白化丧尸</ZombieAlbino>
+	<ZombieDarkSlimer>黑色黏液丧尸</ZombieDarkSlimer>
+	<ZombieHealer>治疗者丧尸</ZombieHealer>
+	<ZombieChild>儿童丧尸</ZombieChild>
+	<ZombieWeak>弱小丧尸</ZombieWeak>
+	<ZombieStrong>强壮丧尸</ZombieStrong>
+	<ZombieSimple>普通丧尸</ZombieSimple>
 
 	<LetterLabelZombiesRising>丧尸袭击</LetterLabelZombiesRising>
 	<ZombiesRising>一群丧尸出现。</ZombiesRising>
@@ -33,12 +33,12 @@
 	<LetterLabelZombiesRisingNearYourBase>丧尸袭击（立即进攻）</LetterLabelZombiesRisingNearYourBase>
 	<ZombiesRisingNearYourBase>一群丧尸出现在你的基地附近。</ZombiesRisingNearYourBase>
 
-	<LetterLabelZombiesSpitter>僵尸喷吐者攻击</LetterLabelZombiesSpitter>
-	<ZombiesSpitter>僵尸喷吐者进入地图并将围攻你</ZombiesSpitter>
-	<LetterLabelZombieSymbiant>僵尸共生体连接到 {0}</LetterLabelZombieSymbiant>
-	<LetterLabelZombieSymbiantNoHost>僵尸共生体出现</LetterLabelZombieSymbiantNoHost>
-	<ZombieSymbiant>一个僵尸共生体出现在 {0}，并与 {1} 建立了连接。它会在繁忙的室内房间中蔓延。穿过它的角色会变慢，宿主除外。宿主免疫僵尸咬伤造成的感染，并会在共生体成长时获得随机收益。用尸体喂养它可以加快成长。\n\n请让宿主和共生体留在同一张地图上：如果宿主离开，连接会进入休眠，直到宿主返回前都无法正常移除。放弃共生体所在的地图会摧毁共生体，并强行切断连接。\n\n请先对 {1} 做手术来正常移除连接；失去宿主的共生体之后会逐渐缩回。</ZombieSymbiant>
-	<ZombieSymbiantNoHost>一个僵尸共生体出现在 {0}。它会在繁忙的室内房间中蔓延。用尸体喂养它可以加快成长。</ZombieSymbiantNoHost>
+	<LetterLabelZombiesSpitter>丧尸喷吐者攻击</LetterLabelZombiesSpitter>
+	<ZombiesSpitter>一只丧尸喷吐者已进入地图，并将对你发动围攻</ZombiesSpitter>
+	<LetterLabelZombieSymbiant>丧尸共生体连接到 {0}</LetterLabelZombieSymbiant>
+	<LetterLabelZombieSymbiantNoHost>丧尸共生体出现</LetterLabelZombieSymbiantNoHost>
+	<ZombieSymbiant>丧尸共生体已在 {0} 出现，并与 {1} 建立了连接。它会在频繁使用的室内房间中蔓延。穿过它的角色会变慢，宿主除外。宿主免疫丧尸咬伤造成的感染，并会在共生体成长时获得随机增益。用尸体喂养它可以加快成长。\n\n请让宿主和共生体留在同一张地图上：如果宿主离开，连接会进入休眠，直到宿主返回前都无法正常移除。放弃共生体所在的地图会摧毁共生体，并强行切断连接。\n\n请先对 {1} 做手术来正常移除连接；失去宿主的共生体之后会逐渐缩回。</ZombieSymbiant>
+	<ZombieSymbiantNoHost>丧尸共生体已在 {0} 出现。它会在频繁使用的室内房间中蔓延。用尸体喂养它可以加快成长。</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>你的一个房间</ZombieSymbiantUnknownRoom>
 	<ZombieSymbiantInspect>连接宿主：{0}，大小：{1} 格，共享生命值：{2}，下一项收益在 {3} 格</ZombieSymbiantInspect>
 	<SymbiantWeaponInspect>殖民者无法伤害它</SymbiantWeaponInspect>
@@ -55,13 +55,13 @@
 	<SymbiantFedMote>格子 +{1}</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>把 {0} {1} 喂给共生体（+{2} 格）</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>移除共生体连接</SeverSymbiantSymbiosis>
-	<SeverSymbiantSymbiosisWithCost>移除共生体连接（{0} 僵尸提取物）</SeverSymbiantSymbiosisWithCost>
+	<SeverSymbiantSymbiosisWithCost>移除共生体连接（{0} 丧尸提取物）</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>{0} 的共生体连接已被移除。</SymbiantSeveredMessage>
 	<SymbiantHostBondDescription>共生体：{0}/{1} 格。下一项收益在 {2} 格。共享生命值：{3}。共生体会吸收大部分共享伤害；当前大小下只有 &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; 会传到宿主。\n\n地图规则：宿主和共生体必须在同一张地图上，连接才会生效并能正常移除。如果两者分离，连接会休眠，直到再次相聚。放弃共生体所在的地图会摧毁共生体，并强行切断连接；手术可以先正常移除连接。\n\n收益：\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>没有活跃共生体连接到此宿主。</SymbiantHostBondMissing>
 		<SymbiantHostRelocatedMessage>{0} 离开地图后，共生体连接进入休眠。</SymbiantHostRelocatedMessage>
 		<SymbiantMapAbandonWarningTitle>放弃有共生体的地图？</SymbiantMapAbandonWarningTitle>
-		<SymbiantMapAbandonWarning>这张地图上有一个活跃的僵尸共生体。放弃地图会摧毁共生体，并强行切断任何仍存在的连接。如果你想按正常流程分离，请先通过手术移除共生体连接。\n\n仍要放弃这张地图吗？</SymbiantMapAbandonWarning>
+		<SymbiantMapAbandonWarning>这张地图上有一个活跃的丧尸共生体。放弃地图会摧毁共生体，并强行切断任何仍存在的连接。如果你想按正常流程分离，请先通过手术移除共生体连接。\n\n仍要放弃这张地图吗？</SymbiantMapAbandonWarning>
 		<SymbiantReseededMessage>{0} 的共生体移动到了另一个室内房间。</SymbiantReseededMessage>
 		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;当前状态&lt;/color&gt;：&lt;color=#72d672&gt;{0} 格&lt;/color&gt;。下一项收益在 &lt;color=#72d672&gt;{1} 格&lt;/color&gt;。\n\n&lt;color=#72d672&gt;共享生命值&lt;/color&gt;：{4}。击中宿主或共生体的伤害会消耗这个储备。当前大小下只有 &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; 会传到 {6}。如果这个储备用尽，{6} 会死亡。\n\n&lt;color=#ffb35c&gt;地图规则&lt;/color&gt;：宿主和共生体必须在同一张地图上，连接才会生效并能正常移除。如果宿主离开，连接会休眠，直到宿主返回。放弃这张地图会摧毁共生体，并强行切断连接。手术可以先正常移除连接。\n\n&lt;color=#ffb35c&gt;当前效果&lt;/color&gt;：\n{2}\n\n&lt;color=#72d672&gt;当前收益&lt;/color&gt;：\n{3}\n\n它还会以微妙方式&lt;color=#72d672&gt;移除污染&lt;/color&gt;。</ZombieSymbiantInfoCardDetails>
 		<SymbiantDetailsInfoCard>共生体详情</SymbiantDetailsInfoCard>
@@ -71,51 +71,51 @@
 		<LetterLabelSymbiantBondRemoved>共生体连接已移除</LetterLabelSymbiantBondRemoved>
 		<SymbiantBondRemovedLetter>{0} 与共生体之间的连接已被移除。失去宿主的共生体会缩回并消失。</SymbiantBondRemovedLetter>
 		<SymbiantEffectCells>{0}/{1} 格活跃</SymbiantEffectCells>
-	<SymbiantEffectPathCost>穿过共生体格子：移动速度降低 {0}%</SymbiantEffectPathCost>
-	<SymbiantEffectWorkSpeed>在共生体格子上工作、照料、清洁和烹饪：速度降低 {0}%</SymbiantEffectWorkSpeed>
+	<SymbiantEffectPathCost>穿过共生体地格：移动速度降低 {0}%</SymbiantEffectPathCost>
+	<SymbiantEffectWorkSpeed>在共生体地格上工作、照料、清洁和烹饪：速度降低 {0}%</SymbiantEffectWorkSpeed>
 	<SymbiantBenefitGainedMessage>{0} 的共生体获得：{1}。</SymbiantBenefitGainedMessage>
-	<SymbiantBenefitZombieInfectionImmunity>僵尸感染免疫</SymbiantBenefitZombieInfectionImmunity>
+	<SymbiantBenefitZombieInfectionImmunity>丧尸感染免疫</SymbiantBenefitZombieInfectionImmunity>
 	<SymbiantBenefitMoodFixed>心情固定为 50%</SymbiantBenefitMoodFixed>
 	<SymbiantBenefitNoFoodOrRest>不需要食物或休息</SymbiantBenefitNoFoodOrRest>
 	<SymbiantBenefitSkillBonus>所有技能 +1</SymbiantBenefitSkillBonus>
 	<SymbiantBenefitMoveSpeed>移动 +25%</SymbiantBenefitMoveSpeed>
-	<SymbiantBenefitZombieIgnore>僵尸忽略宿主</SymbiantBenefitZombieIgnore>
+	<SymbiantBenefitZombieIgnore>丧尸忽略宿主</SymbiantBenefitZombieIgnore>
 	<SymbiantBenefitAutoHeal>自动治疗</SymbiantBenefitAutoHeal>
 
 	<LetterLabelXDaysUntilZombies>{0} 后丧尸出现</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>丧尸会出现在有土地、泥地、沙地、沙砾的地方，建造地板可以防止丧尸从这些地方出现。</XDaysUntilZombies>
 
-	<ZombielandDefaultSettings>Zombieland 丧尸之地</ZombielandDefaultSettings>
-	<ZombielandGameSettings>丧尸之地设置</ZombielandGameSettings>
+	<ZombielandDefaultSettings>Zombieland 默认设置</ZombielandDefaultSettings>
+	<ZombielandGameSettings>Zombieland 设置</ZombielandGameSettings>
 	<JumpToNow>跳到现在</JumpToNow>
 	<AdvancedSettings>高级设置</AdvancedSettings>
 	<Seasons>季节</Seasons>
 	<Years>年</Years>
 
 	<ZombielandDifficultyTitle>总体难度</ZombielandDifficultyTitle>
-	<ZombielandDifficulty>威胁等级</ZombielandDifficulty>
+	<ZombielandDifficulty>威胁倍率</ZombielandDifficulty>
 
 	<ZombielandContaminationTitle>污染</ZombielandContaminationTitle>
-	<ContaminationEnabled>全球启用</ContaminationEnabled>
-	<ZombielandRestartRequired>更改此设置需要重新启动</ZombielandRestartRequired>
+	<ContaminationEnabled>全局启用</ContaminationEnabled>
+	<ZombielandRestartRequired>更改此设置需要重新启动 RimWorld</ZombielandRestartRequired>
 	<ZombielandContamination>强度</ZombielandContamination>
 	<ContaminationEffectiveness>总效果 {0}%</ContaminationEffectiveness>
 	<ZombielandStorageContaminationRange>{0} 污染</ZombielandStorageContaminationRange>
 
 	<WhenDoZombiesSpawn>丧尸出现的时间段？</WhenDoZombiesSpawn>
-	<SpawnWhenType_AllTheTime>所有时间</SpawnWhenType_AllTheTime>
+	<SpawnWhenType_AllTheTime>始终</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>天黑时</SpawnWhenType_WhenDark>
-	<SpawnWhenType_InEventsOnly>仅丧尸事件</SpawnWhenType_InEventsOnly>
+	<SpawnWhenType_InEventsOnly>仅在事件中</SpawnWhenType_InEventsOnly>
 
 	<HowDoZombiesSpawn>丧尸从什么地方出现？</HowDoZombiesSpawn>
-	<SpawnHowType_AllOverTheMap>所有的软地面</SpawnHowType_AllOverTheMap>
+	<SpawnHowType_AllOverTheMap>所有松软地面</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>从地图边缘</SpawnHowType_FromTheEdges>
 	<SmartWandering>移动风格</SmartWandering>
-	<SmartWandering_Random>随机的</SmartWandering_Random>
-	<SmartWandering_Simple>简单的</SmartWandering_Simple>
-	<SmartWandering_Smart>聪明的</SmartWandering_Smart>
-	<BlacklistedBiomes>没有僵尸的生物群落</BlacklistedBiomes>
-	<Biomes>生物群落</Biomes>
+	<SmartWandering_Random>随机</SmartWandering_Random>
+	<SmartWandering_Simple>简单</SmartWandering_Simple>
+	<SmartWandering_Smart>智能</SmartWandering_Smart>
+	<BlacklistedBiomes>没有丧尸的生态群落</BlacklistedBiomes>
+	<Biomes>生态群落</Biomes>
 
 	<WhatDoZombiesAttack>丧尸攻击什么？</WhatDoZombiesAttack>
 	<AttackMode_Everything>所有生物</AttackMode_Everything>
@@ -123,61 +123,61 @@
 	<AttackMode_OnlyColonists>只攻击殖民者</AttackMode_OnlyColonists>
 	<EnemiesAttackZombies>敌人攻击丧尸</EnemiesAttackZombies>
 	<AnimalsAttackZombies>动物攻击丧尸</AnimalsAttackZombies>
-	<AnomalyTargetingTitle>Anomaly 例外</AnomalyTargetingTitle>
+	<AnomalyTargetingTitle>异象例外规则</AnomalyTargetingTitle>
 	<AnomalyTargetingRelations>丧尸可以攻击：</AnomalyTargetingRelations>
-	<AnomalyTargetGhouls>尸鬼</AnomalyTargetGhouls>
-	<AnomalyTargetShamblers>蹒跚者和变异人类</AnomalyTargetShamblers>
-	<AnomalyTargetOtherEntities>其他 Anomaly 实体</AnomalyTargetOtherEntities>
-	<AnomalyTargetNociosphere>Nociosphere</AnomalyTargetNociosphere>
-	<AnomalyZombieHostilityRelations>Anomaly 角色可以攻击丧尸：</AnomalyZombieHostilityRelations>
+	<AnomalyTargetGhouls>食尸鬼</AnomalyTargetGhouls>
+	<AnomalyTargetShamblers>蹒跚怪和变异人类</AnomalyTargetShamblers>
+	<AnomalyTargetOtherEntities>其他异象实体</AnomalyTargetOtherEntities>
+	<AnomalyTargetNociosphere>苦痛之球</AnomalyTargetNociosphere>
+	<AnomalyZombieHostilityRelations>异象生物可以攻击丧尸：</AnomalyZombieHostilityRelations>
 	<AnomalyTargetingOverride_Automatic>自动</AnomalyTargetingOverride_Automatic>
 	<AnomalyTargetingOverride_Never>从不</AnomalyTargetingOverride_Never>
 	<AnomalyTargetingOverride_Allow>允许</AnomalyTargetingOverride_Allow>
 	<AnomalyTargetingOverride_Mixed>混合</AnomalyTargetingOverride_Mixed>
 
-	<WhatDoZombiesSmash>丧尸会摧毁什么建筑？</WhatDoZombiesSmash>
+	<WhatDoZombiesSmash>丧尸会摧毁什么？</WhatDoZombiesSmash>
 	<SmashMode_Nothing>无</SmashMode_Nothing>
-	<SmashMode_DoorsOnly>仅攻击门</SmashMode_DoorsOnly>
-	<SmashMode_AnyBuilding>所有建筑</SmashMode_AnyBuilding>
-	<SmashOnlyWhenAgitated>仅在它们愤怒时。</SmashOnlyWhenAgitated>
+	<SmashMode_DoorsOnly>仅门</SmashMode_DoorsOnly>
+	<SmashMode_AnyBuilding>所有人造建筑</SmashMode_AnyBuilding>
+	<SmashOnlyWhenAgitated>仅在躁动时</SmashOnlyWhenAgitated>
 
 	<NewGameTitle>新游戏</NewGameTitle>
-	<DaysBeforeZombiesCome>丧尸出现的时间</DaysBeforeZombiesCome>
+	<DaysBeforeZombiesCome>距丧尸出现的天数</DaysBeforeZombiesCome>
 
 	<ZombiesOnTheMap>地图上的丧尸数量</ZombiesOnTheMap>
 	<MaximumNumberOfZombies>最多</MaximumNumberOfZombies>
 	<Zombies>个丧尸</Zombies>
-	<ColonyMultiplier>殖民地倍乘数</ColonyMultiplier>
+	<ColonyMultiplier>殖民地倍率</ColonyMultiplier>
 	<DoubleTapping>安全补刀</DoubleTapping>
 
-	<DynamicThreatLevelTitle>动态威胁水平</DynamicThreatLevelTitle>
+	<DynamicThreatLevelTitle>动态威胁等级</DynamicThreatLevelTitle>
 	<UseDynamicThreatLevel>使用动态威胁级别</UseDynamicThreatLevel>
 	<DynamicThreatSmoothness>威胁曲线平滑度</DynamicThreatSmoothness>
 	<DynamicThreatStretch>威胁曲线拉伸</DynamicThreatStretch>
-	<ZombiesDieOnZeroThreat>僵尸在 0% 威胁时死亡</ZombiesDieOnZeroThreat>
-	<ZombieFreeEvents>无僵尸旅行事件</ZombieFreeEvents>
+	<ZombiesDieOnZeroThreat>丧尸在 0% 威胁时死亡</ZombiesDieOnZeroThreat>
+	<ZombieFreeEvents>无丧尸旅行事件</ZombieFreeEvents>
 	<ThreatLevel>威胁级别</ThreatLevel>
 	<ThreatForecast>威胁预测</ThreatForecast>
 	<Next14Days>未来 14 天</Next14Days>
-	<Next4Quadrums>未来 4 个季度</Next4Quadrums>
-	<LetterLabelZombieFreeEvent>僵尸沉寂</LetterLabelZombieFreeEvent>
-	<ZombieFreeEventLetter>在 {0} 内，世界各地的僵尸正在消亡，并且不会出现新的僵尸。这是商队旅行的好时机。</ZombieFreeEventLetter>
+	<Next4Quadrums>未来 4 象</Next4Quadrums>
+	<LetterLabelZombieFreeEvent>丧尸沉寂</LetterLabelZombieFreeEvent>
+	<ZombieFreeEventLetter>在 {0} 内，世界各地的丧尸正在消亡，并且不会出现新的丧尸。这是远行队出行的好时机。</ZombieFreeEventLetter>
 	<ZombieFreeEventTimeLeft>剩余时间</ZombieFreeEventTimeLeft>
 
 	<ZombieEventTitle>丧尸事件</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>丧尸/每个殖民者</ZombiesPerColonistInEvent>
-	<ExtraDaysBetweenEvents>事件的间隔天数</ExtraDaysBetweenEvents>
+	<ExtraDaysBetweenEvents>事件间额外天数</ExtraDaysBetweenEvents>
 	<InfectedRaidsChance>抵达的队伍已被感染</InfectedRaidsChance>
 
 	<ZombieSpeedTitle>丧尸的速度</ZombieSpeedTitle>
 	<MoveSpeedIdle>平静时</MoveSpeedIdle>
 	<MoveSpeedTracking>兴奋时</MoveSpeedTracking>
 
-	<ZombieDamageTitle>僵尸伤害</ZombieDamageTitle>
-	<ZombieDamageFactor>伤害倍乘数</ZombieDamageFactor>
+	<ZombieDamageTitle>丧尸伤害</ZombieDamageTitle>
+	<ZombieDamageFactor>伤害倍率</ZombieDamageFactor>
 	<SafeMeleeLimit>安全近战极限</SafeMeleeLimit>
-	<SafeMeleeExample>示例：[_]{0}[_] 近战等级，[_]{1}[_] 僵尸 => {2}% 几率</SafeMeleeExample>
-	<ZombiesCauseManhunting>僵尸会激怒动物（狂暴）</ZombiesCauseManhunting>
+	<SafeMeleeExample>示例：[_]{0}[_] 近战等级，[_]{1}[_] 只丧尸：有 {2}% 几率格挡咬伤</SafeMeleeExample>
+	<ZombiesCauseManhunting>丧尸攻击可能使动物反击</ZombiesCauseManhunting>
 
 	<ZombieGameTweaks>游戏调整</ZombieGameTweaks>
 	<ReduceTurretConsumption>降低炮塔钢铁消耗</ReduceTurretConsumption>
@@ -187,28 +187,28 @@
 	<ZombieBiteInfectionTreatable>可治疗的感染时间</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>感染持续时间</ZombieBiteInfectionPersists>
 	<AnyTreatmentStopsInfection>躺在床上治疗可阻止感染</AnyTreatmentStopsInfection>
-	<HoursAfterDeathToBecomeZombie>死后成为僵尸的时间</HoursAfterDeathToBecomeZombie>
+	<HoursAfterDeathToBecomeZombie>死后成为丧尸的时间</HoursAfterDeathToBecomeZombie>
 	<Immediately>立即</Immediately>
-	<DeadBecomesZombieMessage>当有人变成僵尸时，展示一条消息</DeadBecomesZombieMessage>
+	<DeadBecomesZombieMessage>当有人变成丧尸时，展示一条消息</DeadBecomesZombieMessage>
 	<DangerousSituationMessage>遇到危险时显示消息</DangerousSituationMessage>
 
-	<ZombieHarvestingTitle>从僵尸收获</ZombieHarvestingTitle>
-	<CorpsesExtractAmount>每个僵尸的僵尸提取物量</CorpsesExtractAmount>
-	<CorpsesExtractChance>机会</CorpsesExtractChance>
-	<LootExtractAmount>僵尸死后的战利品数量</LootExtractAmount>
-	<CorpsesDaysToDessicated>直到僵尸尸体消失的小时数</CorpsesDaysToDessicated>
+	<ZombieHarvestingTitle>丧尸战利品</ZombieHarvestingTitle>
+	<CorpsesExtractAmount>每具尸体的丧尸提取物数量</CorpsesExtractAmount>
+	<CorpsesExtractChance>概率</CorpsesExtractChance>
+	<LootExtractAmount>丧尸掉落的战利品数量</LootExtractAmount>
+	<CorpsesDaysToDessicated>丧尸尸体消失前的小时数</CorpsesDaysToDessicated>
 	<ExtractZombieArea>限制提取区域</ExtractZombieArea>
-	<Everywhere>到处</Everywhere>
+	<Everywhere>任意区域</Everywhere>
 	<BlacklistedApparel>被列入黑名单的服装</BlacklistedApparel>
-	<SelectAll>全部选择</SelectAll>
-	<DeselectAll>取消选择所有</DeselectAll>
+	<SelectAll>全选</SelectAll>
+	<DeselectAll>全不选</DeselectAll>
 
 	<ZombieInstinctTitle>丧尸的感知</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>受限</ZombieInstinct_Dull>
 	<ZombieInstinct_Normal>正常</ZombieInstinct_Normal>
 	<ZombieInstinct_Sensitive>较高</ZombieInstinct_Sensitive>
-	<RagingZombies>群体过于庞大时丧尸会变得愤怒。</RagingZombies>
-	<RageLevel>愤怒程度</RageLevel>
+	<RagingZombies>群体过于庞大时丧尸会变得狂暴。</RagingZombies>
+	<RageLevel>狂暴程度</RageLevel>
 	<RageLevelVeryLow>很低</RageLevelVeryLow>
 	<RageLevelLow>低</RageLevelLow>
 	<RageLevelNormal>正常</RageLevelNormal>
@@ -221,36 +221,36 @@
 	<ZombiesDieVeryEasily>丧尸很容易被杀死</ZombiesDieVeryEasily>
 
 	<ZombieEatingTitle>丧尸会吃</ZombieEatingTitle>
-	<ZombiesEatDowned>受伤的生物</ZombiesEatDowned>
+	<ZombiesEatDowned>倒地的生物</ZombiesEatDowned>
 	<ZombiesEatCorpses>尸体</ZombiesEatCorpses>
 
 	<SpecialZombiesTitle>特殊丧尸</SpecialZombiesTitle>
-	<SuicideBomberChance>自爆僵尸</SuicideBomberChance>
-	<ToxicSplasherChance>毒液喷溅僵尸</ToxicSplasherChance>
-	<TankyOperatorChance>重装操作员僵尸</TankyOperatorChance>
-	<MinerChance>矿工僵尸</MinerChance>
-	<ElectrifierChance>电击僵尸</ElectrifierChance>
-	<AlbinoChance>白化僵尸</AlbinoChance>
-	<DarkSlimerChance>黑色黏液僵尸</DarkSlimerChance>
-	<HealerChance>治疗僵尸</HealerChance>
-	<NormalZombieChance>普通丧尸: {0}</NormalZombieChance>
-	<ChildZombieChance>儿童僵尸</ChildZombieChance>
-	<SpitterThreat>僵尸喷吐者难度</SpitterThreat>
-	<WallPushing>会将其他僵尸推过墙的僵尸数量</WallPushing>
-	<ZombieSymbiantTitle>僵尸共生体</ZombieSymbiantTitle>
-	<SymbiantEnabled>启用僵尸共生体</SymbiantEnabled>
-	<SymbiantMaxCells>共生体最大大小</SymbiantMaxCells>
+	<SuicideBomberChance>自爆丧尸</SuicideBomberChance>
+	<ToxicSplasherChance>毒液喷溅丧尸</ToxicSplasherChance>
+	<TankyOperatorChance>重装突破丧尸</TankyOperatorChance>
+	<MinerChance>矿工丧尸</MinerChance>
+	<ElectrifierChance>电击丧尸</ElectrifierChance>
+	<AlbinoChance>白化丧尸</AlbinoChance>
+	<DarkSlimerChance>黑色黏液丧尸</DarkSlimerChance>
+	<HealerChance>治疗者丧尸</HealerChance>
+	<NormalZombieChance>普通丧尸：{0}</NormalZombieChance>
+	<ChildZombieChance>儿童丧尸</ChildZombieChance>
+	<SpitterThreat>丧尸喷吐者难度</SpitterThreat>
+	<WallPushing>会将其他丧尸推过墙的丧尸数量</WallPushing>
+	<ZombieSymbiantTitle>丧尸共生体</ZombieSymbiantTitle>
+	<SymbiantEnabled>启用丧尸共生体</SymbiantEnabled>
+	<SymbiantMaxCells>共生体最大地格数</SymbiantMaxCells>
 
 	<ZombieMiscTitle>其他</ZombieMiscTitle>
 	<UseCustomTextures>使用自定义纹理</UseCustomTextures>
-	<ReplaceTwinkie>将包装生存食品改为Twinkies</ReplaceTwinkie>
+	<ReplaceTwinkie>将包装生存食物改为 Twinkie</ReplaceTwinkie>
 	<Zombieland_Twinkie_Label>Twinkie</Zombieland_Twinkie_Label>
 	<Zombieland_Twinkie_Description>Twinkie 是一种美式点心蛋糕，宣传语为“带奶油夹心的金色海绵蛋糕”。</Zombieland_Twinkie_Description>
 	<ZombiesTriggerDangerMusic>丧尸会触发危险音乐效果</ZombiesTriggerDangerMusic>
 	<PlayCreepyAmbientSound>在夜晚播放令人毛骨悚然的环境声效</PlayCreepyAmbientSound>
 	<BetterZombieAvoidance>自动回避丧尸</BetterZombieAvoidance>
-	<ZombiesDropBlood>丧尸流血</ZombiesDropBlood>
-	<ZombiesBurnLonger>僵尸燃烧时间更长</ZombiesBurnLonger>
+	<ZombiesDropBlood>丧尸留下血迹</ZombiesDropBlood>
+	<ZombiesBurnLonger>丧尸燃烧时间更长</ZombiesBurnLonger>
 
 	<AwarenessCuesTitle>感知提示</AwarenessCuesTitle>
 	<PlayZombielandMusic>播放 Zombieland 音乐</PlayZombielandMusic>
@@ -259,19 +259,19 @@
 	<ZombielandMusicShare_OnlyOther>仅播放非 Zombieland 音乐</ZombielandMusicShare_OnlyOther>
 	<ZombielandMusicShare_Percent>{0}% Zombieland 音乐</ZombielandMusicShare_Percent>
 	<ZombielandMusicShare_OnlyZombieland>仅播放 Zombieland 音乐</ZombielandMusicShare_OnlyZombieland>
-	<ShowZombieEventLetters>显示僵尸事件警报</ShowZombieEventLetters>
-	<PlayZombieEventSiren>播放僵尸事件警报声</PlayZombieEventSiren>
-	<PlaySpecialZombieAmbientSounds>播放特殊僵尸环境音</PlaySpecialZombieAmbientSounds>
-	<PlayZombieActionSounds>播放僵尸行动音效</PlayZombieActionSounds>
+	<ShowZombieEventLetters>显示丧尸事件信件</ShowZombieEventLetters>
+	<PlayZombieEventSiren>播放丧尸事件警报声</PlayZombieEventSiren>
+	<PlaySpecialZombieAmbientSounds>播放特殊丧尸环境音</PlaySpecialZombieAmbientSounds>
+	<PlayZombieActionSounds>播放丧尸行动音效</PlayZombieActionSounds>
 	<PlayWallAndSabotageSounds>播放撞墙和破坏音效</PlayWallAndSabotageSounds>
-	<ShowZombieThoughtBubbles>显示僵尸思维气泡</ShowZombieThoughtBubbles>
+	<ShowZombieThoughtBubbles>显示丧尸思维气泡</ShowZombieThoughtBubbles>
 
 	<ZombieActionsTitle>操作</ZombieActionsTitle>
 	<ZombieSettingsReset>恢复默认设置</ZombieSettingsReset>
-	<FactoryResetButton>工厂重置</FactoryResetButton>
+	<FactoryResetButton>恢复出厂设置</FactoryResetButton>
 	<ResetButton>重置</ResetButton>
-	<UninstallZombieland>从当前游戏中移除丧尸之地</UninstallZombieland>
-	<ConfirmUninstallZombieland>如果继续，你可以选择一个新的文件名进行存档，并在保存游戏后返回主菜单。新存档可以在没有丧尸之地的情况下加载。\n\n你真的想要移除所有丧尸之地的内容吗？</ConfirmUninstallZombieland>
+	<UninstallZombieland>从当前游戏中移除 Zombieland</UninstallZombieland>
+	<ConfirmUninstallZombieland>如果继续，你可以选择一个新的文件名进行存档，并在保存游戏后返回主菜单。新存档可以在没有 Zombieland 的情况下加载。\n\n你真的想要移除当前游戏中的所有 Zombieland 内容吗？</ConfirmUninstallZombieland>
 	<UninstallButton>移除</UninstallButton>
 
 	<ClipboardActionTitle>剪贴板</ClipboardActionTitle>
@@ -280,86 +280,86 @@
 	<DuplicateButton>创建副本</DuplicateButton>
 	<PasteSettings>从剪贴板替换设置</PasteSettings>
 	<PasteButton>粘贴</PasteButton>
-	<RopeZombie>捕捉这个僵尸</RopeZombie>
+	<RopeZombie>捕捉这个丧尸</RopeZombie>
 
 	<Activate>激活</Activate>
-	<ActivateDescription>激活设备，使房间内的僵尸失去意识。</ActivateDescription>
+	<ActivateDescription>激活设备，使房间内的丧尸失去意识。</ActivateDescription>
 	<WrongPlacementZombieShocker>设备不能放在这里。</WrongPlacementZombieShocker>
 
 	<ColonistsBittenByZombie>殖民者被丧尸咬伤</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>殖民者被丧尸咬伤了，目前尚不清楚他们是否被感染：\n\n{0}\n密切关注他们的伤口，因为感染需要一段时间后才能被发现。</ColonistsBittenByZombieDesc>
 
-	<ImminentZombiInfection>发生丧尸感染</ImminentZombiInfection>
+	<ImminentZombiInfection>丧尸感染迫近</ImminentZombiInfection>
 	<ImminentZombiInfectionDesc>这些殖民者即将因丧尸咬伤而被感染：\n\n{0}\n你可以挽救他们，立即给予他们最佳的医疗环境进行治疗。但这需要一名优秀的医生，一张带有生命体征检测仪的优质医疗床和一个无菌室。</ImminentZombiInfectionDesc>
 
 	<ZombieInfection>丧尸感染</ZombieInfection>
-	<ZombieInfectionDesc>殖民者被感染并且会变成一个丧尸。再也没有任何办法可以挽救他们了：\n\n{0}\n在感染期间，他们对思想、情感、疼痛和饥饿都漠不关心。最终，他们会死亡并变成僵尸。</ZombieInfectionDesc>
+	<ZombieInfectionDesc>这些殖民者已被感染，并会变成丧尸。现在已经无法挽救他们：\n\n{0}\n在感染期间，他们不再受心情、疼痛或饥饿影响。最终，他们会死亡并变成丧尸。</ZombieInfectionDesc>
 
 	<NoInfectionRisk>无感染风险</NoInfectionRisk>
 	<HoursBeforeBecomingInfected>{0} 后感染</HoursBeforeBecomingInfected>
-	<HoursBeforeBecomingAZombie>{0} 后变成僵尸</HoursBeforeBecomingAZombie>
+	<HoursBeforeBecomingAZombie>{0} 后变成丧尸</HoursBeforeBecomingAZombie>
 
 	<DangerousSituation>危险情况</DangerousSituation>
-	<ZombiesAreBeingPushedOverYourWalls>有僵尸被推过你的墙！防止僵尸聚集成密集的群体。</ZombiesAreBeingPushedOverYourWalls>
+	<ZombiesAreBeingPushedOverYourWalls>有丧尸被推过你的墙！防止丧尸聚集成密集的群体。</ZombiesAreBeingPushedOverYourWalls>
 
-	<ColonistBecameAZombieLabel>一个殖民者变成了僵尸</ColonistBecameAZombieLabel>
-	<OtherBecameAZombieLabel>有人变成了僵尸</OtherBecameAZombieLabel>
-	<BecameAZombieDesc>{0} 变成了一个强大的丧尸。</BecameAZombieDesc>
+	<ColonistBecameAZombieLabel>一名殖民者变成了丧尸</ColonistBecameAZombieLabel>
+	<OtherBecameAZombieLabel>有人变成了丧尸</OtherBecameAZombieLabel>
+	<BecameAZombieDesc>{0} 变成了强大的丧尸。</BecameAZombieDesc>
 
 	<BodyIsInfectedLabel>这具尸体感染了丧尸病毒！</BodyIsInfectedLabel>
 	<BodyIsInfectedTooltip>被感染的尸体在开始腐烂时会变成丧尸。</BodyIsInfectedTooltip>
 
-	<CureZombieInfection>治愈僵尸感染</CureZombieInfection>
-	<ExtractingZombieSerum>提取僵尸血清</ExtractingZombieSerum>
-	<AutoExtractDisabledDescription>无法提取僵尸提取物（没有医生）</AutoExtractDisabledDescription>
-	<AutoExtractAllowedDescription>当没有僵尸在附近时自动提取僵尸提取物</AutoExtractAllowedDescription>
-	<AutoExtractForbiddenDescription>仅在下达指令时提取僵尸提取物</AutoExtractForbiddenDescription>
+	<CureZombieInfection>治愈丧尸感染</CureZombieInfection>
+	<ExtractingZombieSerum>采集丧尸提取物</ExtractingZombieSerum>
+	<AutoExtractDisabledDescription>无法采集丧尸提取物（没有殖民者被分配医生工作）</AutoExtractDisabledDescription>
+	<AutoExtractAllowedDescription>附近没有丧尸时自动采集丧尸提取物</AutoExtractAllowedDescription>
+	<AutoExtractForbiddenDescription>仅在下达指令时采集丧尸提取物</AutoExtractForbiddenDescription>
 	<AutoDoubleTapDisabledDescription>无法进行补刀（未分配狩猎工作）</AutoDoubleTapDisabledDescription>
-	<AutoDoubleTapAllowedDescription>自动对尸体补刀，防止其变成僵尸</AutoDoubleTapAllowedDescription>
+	<AutoDoubleTapAllowedDescription>自动对尸体补刀，防止其变成丧尸</AutoDoubleTapAllowedDescription>
 	<AutoDoubleTapForbiddenDescription>仅在下达指令时补刀</AutoDoubleTapForbiddenDescription>
 
-	<AutoAvoidZombiesEnabledDescription>自动回避僵尸（殖民者被征召时除外）</AutoAvoidZombiesEnabledDescription>
-	<AutoAvoidZombiesDisabledDescription>忽略僵尸。 您需要手动控制所有操作</AutoAvoidZombiesDisabledDescription>
+	<AutoAvoidZombiesEnabledDescription>自动回避丧尸（殖民者被征召时除外）</AutoAvoidZombiesEnabledDescription>
+	<AutoAvoidZombiesDisabledDescription>忽略丧尸。你需要手动控制所有行动</AutoAvoidZombiesDisabledDescription>
 
-	<ZapZombies>启动僵尸电击器</ZapZombies>
+	<ZapZombies>启动丧尸电击器</ZapZombies>
 	<ZombieShockerWrongPlacement>设备不能放在这里</ZombieShockerWrongPlacement>
 	<ZombieShockerHasNoBattery>该装置没有连接电池</ZombieShockerHasNoBattery>
-	<ZombieShockerHasNoRoom>该设备没有附带有效的房间</ZombieShockerHasNoRoom>
-	<ZombieShockerLowBatteryState>该设备耗尽了附加的电池</ZombieShockerLowBatteryState>
+	<ZombieShockerHasNoRoom>设备未连接有效房间</ZombieShockerHasNoRoom>
+	<ZombieShockerLowBatteryState>设备已耗尽相连电池的电量</ZombieShockerLowBatteryState>
 
-	<ShowHealthBar>僵尸血条</ShowHealthBar>
-	<ShowZombieStats>显示僵尸统计信息</ShowZombieStats>
+	<ShowHealthBar>丧尸血条</ShowHealthBar>
+	<ShowZombieStats>显示丧尸统计信息</ShowZombieStats>
 
-	<SnowAndSandClear>清除雪和沙</SnowAndSandClear>
-	<ShowZombieRisk>显示僵尸风险</ShowZombieRisk>
+	<SnowAndSandClear>清除积雪和沙土</SnowAndSandClear>
+	<ShowZombieRisk>显示丧尸风险</ShowZombieRisk>
 	<ZombieRiskAreaColumnHintLong>Zombieland 区域规则：违规会在游玩时显示在屏幕顶部</ZombieRiskAreaColumnHintLong>
 	<ZombieRiskAreaColumnHintMedium>Zombieland 违规会显示在顶部</ZombieRiskAreaColumnHintMedium>
 	<ColonistInside>里面的殖民者</ColonistInside>
 	<ColonistOutside>外面的殖民者</ColonistOutside>
-	<ZombieInside>里面的僵尸</ZombieInside>
-	<ZombieOutside>外面的僵尸</ZombieOutside>
+	<ZombieInside>里面的丧尸</ZombieInside>
+	<ZombieOutside>外面的丧尸</ZombieOutside>
 	<HighlightDangerousAreas>高亮危险区域</HighlightDangerousAreas>
-	<DisableRandomApparel>关闭僵尸随机服装</DisableRandomApparel>
-	<FloatingZombiesInSOS2>太空中漂浮的僵尸</FloatingZombiesInSOS2>
+	<DisableRandomApparel>关闭丧尸随机服装</DisableRandomApparel>
+	<FloatingZombiesInSOS2>太空中漂浮的丧尸</FloatingZombiesInSOS2>
 
-	<Broken>损坏</Broken>
-	<StatsFuel>{0}%燃料</StatsFuel>
+	<Broken>已损坏</Broken>
+	<StatsFuel>燃料 {0}%</StatsFuel>
 
 	<ChainsawBroken>链锯坏了</ChainsawBroken>
 	<ChainsawDisabled>链锯现在无法使用</ChainsawDisabled>
 	<ChainsawNoFuel>链锯需要加油</ChainsawNoFuel>
-	<ChainsawTurnOn>打开链锯，攻击附近的僵尸</ChainsawTurnOn>
+	<ChainsawTurnOn>打开链锯，攻击附近的丧尸</ChainsawTurnOn>
 	<ChainsawTurnOff>关闭链锯以节省燃料</ChainsawTurnOff>
 	<ChainsawStalling>（熄火）</ChainsawStalling>
 	<ChainsawDesc>链锯</ChainsawDesc>
 	<ChainsawDescBroken>损坏的链锯</ChainsawDescBroken>
 	<ChainsawDescStalling>熄火的链锯</ChainsawDescStalling>
-	<ChainsawDescFuel> 有{0}%的燃料</ChainsawDescFuel>
-	<ChainsawDescNoFuel> 没有燃料</ChainsawDescNoFuel>
-	<ChainsawDescBlockingChance> 阻挡{0}%的来袭攻击</ChainsawDescBlockingChance>
+	<ChainsawDescFuel>，燃料 {0}%</ChainsawDescFuel>
+	<ChainsawDescNoFuel>，没有燃料</ChainsawDescNoFuel>
+	<ChainsawDescBlockingChance>，可格挡 {0}% 的来袭攻击</ChainsawDescBlockingChance>
 
 	<ThumperControl>设置</ThumperControl>
-	<ThumperControlDesc>设置这台僵尸震动器的强度和间隔</ThumperControlDesc>
+	<ThumperControlDesc>设置这台丧尸震地器的强度和间隔</ThumperControlDesc>
 	<Intensity>强度</Intensity>
 	<Interval>间隔</Interval>
 
@@ -374,11 +374,11 @@
 	<SpitterStateLeaving>离开</SpitterStateLeaving>
 	<Mode>模式</Mode>
 	<Waves>波</Waves>
-	<Aggressive>咄咄逼人</Aggressive>
-	<Calm>冷静型</Calm>
+	<Aggressive>进攻型</Aggressive>
+	<Calm>平静型</Calm>
 
-	<ZombieContamination>僵尸污染</ZombieContamination>
-	<ContaminationHelp>僵尸启示录引发的污染是通过触摸和处理物体传播的。它会传播并可能导致殖民者出现奇怪的行为。</ContaminationHelp>
-	<ShowContaminationOverlayToggleButton>切换僵尸污染图层。\n\n显示物品和地面的污染程度，污染会进而影响角色。</ShowContaminationOverlayToggleButton>
+	<ZombieContamination>丧尸污染</ZombieContamination>
+	<ContaminationHelp>丧尸污染会通过触碰和接触受污染物品传播。它会向周围扩散，并可能使殖民者出现奇怪的行为。</ContaminationHelp>
+	<ShowContaminationOverlayToggleButton>切换丧尸污染显示。\n\n这会显示物品和地面的污染程度；污染会进一步影响角色。</ShowContaminationOverlayToggleButton>
 
 </LanguageData>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ZombieBite.label>ugryzienie zombie</ZombieBite.label>
+	<ZombieBite.deathMessage>{0} {PAWN_gender ? został : została} {PAWN_gender ? zagryziony : zagryziona} na śmierć przez zombie.</ZombieBite.deathMessage>
+
+	<SuicideBomb.label>bomba samobójcza</SuicideBomb.label>
+	<SuicideBomb.deathMessage>{0} {PAWN_gender ? zginął : zginęła} w samobójczym zamachu bombowym.</SuicideBomb.deathMessage>
+
+	<ToxicSplatter.label>toksyczny rozbryzg</ToxicSplatter.label>
+
+	<ElectricalShock.label>porażenie prądem</ElectricalShock.label>
+	<ElectricalShock.deathMessage>{0} {PAWN_gender ? zginął : zginęła} w wyniku porażenia prądem.</ElectricalShock.deathMessage>
+
+	<SeismicWave.label>fala sejsmiczna</SeismicWave.label>
+
+</LanguageData>

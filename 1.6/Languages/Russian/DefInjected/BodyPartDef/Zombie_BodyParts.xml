@@ -2,6 +2,8 @@
 <LanguageData>
 
 	<ZombieSymbiantBase.label>тело</ZombieSymbiantBase.label>
+	<ZombieSymbiantBase.labelShort>тело</ZombieSymbiantBase.labelShort>
 	<ZombieSpitterBase.label>тело</ZombieSpitterBase.label>
+	<ZombieSpitterBase.labelShort>тело</ZombieSpitterBase.labelShort>
 
 </LanguageData>

@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<LetterLabelZombielandMapSetupFailed>Zombieland nie uruchomił się na tej mapie</LetterLabelZombielandMapSetupFailed>
+	<ZombielandMapSetupFailed>RimWorld wczytał tę mapę, ale Zombieland nie zdołał ukończyć jej konfiguracji. Zombieland próbował naprawić problem, lecz mu się nie udało.\n\nCo to oznacza: zombie nie będą pojawiać się ani poruszać na tej mapie. Wydarzenia z zombie, unikanie zombie, zwłoki zombie i zachowanie specjalnych zombie mogą tu nie działać.\n\nZwykle powoduje to błąd podczas wczytywania mapy przez RimWorld lub inny mod. Sprawdź pierwszy czerwony błąd występujący wcześniej w dzienniku, a następnie spróbuj wyłączyć ostatnio dodane lub zaktualizowane mody. Upewnij się też, że wersje RimWorld i Zombieland są ze sobą zgodne.</ZombielandMapSetupFailed>
+	<ZombielandRevealPlayerLog>Pokaż plik Player.log</ZombielandRevealPlayerLog>
+	<ZombielandPlayerLogRevealFailed>Nie udało się pokazać pliku Player.log. Ścieżkę skopiowano do schowka.</ZombielandPlayerLogRevealFailed>
+	<ZombielandPlayerLogPathUnavailable>Zombieland nie mógł znaleźć ścieżki do pliku Player.log.</ZombielandPlayerLogPathUnavailable>
+
+	<Zombieland_Settings>Najedź na dowolny element, aby po prawej przeczytać tekst pomocy. Wszystkie ustawienia można zmieniać podczas gry; zaczynają obowiązywać natychmiast i są zapisywane wraz z grą.\n\nAby ustawić wartości domyślne dla nowych gier, zmień ustawienia w menu głównym (Opcje / Mody / Zombieland).</Zombieland_Settings>
+	<ZombieLandKeyframes>Możesz dodawać klatki kluczowe określające, jak ustawienia zmieniają się z upływem czasu gry. Użyj suwaka, aby podejrzeć wartości pośrednie. Ustawienia można edytować tylko w klatce kluczowej.</ZombieLandKeyframes>
+	<ZombieLandKeyframe0>&lt;- pierwsza klatka kluczowa (początek gry) . . . przyszły czas gry -&gt;</ZombieLandKeyframe0>
+
+	<Difficulty_ZombielandThreatScale_Info>Określa trudność niemal wszystkich elementów Zombieland, między innymi zdolności zombie, prognozę zagrożenia i wiele więcej.</Difficulty_ZombielandThreatScale_Info>
+	<Difficulty_ZombielandThreatScale_Label>Skala zagrożenia Zombieland</Difficulty_ZombielandThreatScale_Label>
+
+	<ZombieSuicideBomber>zombie samobójca</ZombieSuicideBomber>
+	<ZombieToxicSplasher>toksyczny rozbryzgiwacz zombie</ZombieToxicSplasher>
+	<ZombieTanky>opancerzony operator zombie</ZombieTanky>
+	<ZombieMiner>górnik zombie</ZombieMiner>
+	<ZombieElectrifier>elektryzujący zombie</ZombieElectrifier>
+	<ZombieAlbino>zombie albinos</ZombieAlbino>
+	<ZombieDarkSlimer>ciemny śluzowiec zombie</ZombieDarkSlimer>
+	<ZombieHealer>uzdrowiciel zombie</ZombieHealer>
+	<ZombieChild>dziecko zombie</ZombieChild>
+	<ZombieWeak>słaby zombie</ZombieWeak>
+	<ZombieStrong>silny zombie</ZombieStrong>
+	<ZombieSimple>zwykły zombie</ZombieSimple>
+
+	<LetterLabelZombiesRising>Atak zombie</LetterLabelZombiesRising>
+	<ZombiesRising>Pojawia się grupa zombie</ZombiesRising>
+
+	<LetterLabelZombiesRisingNearYourBase>Bezpośredni atak zombie</LetterLabelZombiesRisingNearYourBase>
+	<ZombiesRisingNearYourBase>W pobliżu twojej bazy pojawia się grupa zombie</ZombiesRisingNearYourBase>
+
+	<LetterLabelZombiesSpitter>Atak plującego zombie</LetterLabelZombiesSpitter>
+	<ZombiesSpitter>Plujący zombie wkroczył na mapę i rozpocznie oblężenie</ZombiesSpitter>
+
+	<LetterLabelZombieSymbiant>Symbiont zombie połączył się z: {0}</LetterLabelZombieSymbiant>
+	<LetterLabelZombieSymbiantNoHost>Ujawnił się Symbiont zombie</LetterLabelZombieSymbiantNoHost>
+	<ZombieSymbiant>W pomieszczeniu {0} ujawnił się Symbiont zombie i połączył się z: {1}. Rozprzestrzenia się po często używanych pomieszczeniach. Istoty przechodzące przez niego są spowolnione, z wyjątkiem gospodarza. Gospodarz jest odporny na zakażenie po ugryzieniu przez zombie i wraz ze wzrostem Symbionta zyskuje losowe korzyści. Karm go zwłokami, aby przyspieszyć jego wzrost.\n\nGospodarz i Symbiont powinni pozostawać na tej samej mapie: jeśli gospodarz ją opuści, więź przejdzie w stan uśpienia i nie będzie można jej bezpiecznie usunąć do czasu jego powrotu. Porzucenie mapy Symbionta niszczy go i siłą zrywa więź.\n\nNajpierw przeprowadź operację na {1}, aby bezpiecznie usunąć więź; pozbawiony więzi Symbiont skurczy się i zniknie.</ZombieSymbiant>
+	<ZombieSymbiantNoHost>W pomieszczeniu {0} ujawnił się Symbiont zombie. Rozprzestrzenia się po często używanych pomieszczeniach. Karm go zwłokami, aby przyspieszyć jego wzrost.</ZombieSymbiantNoHost>
+	<ZombieSymbiantUnknownRoom>jedno z twoich pomieszczeń</ZombieSymbiantUnknownRoom>
+	<ZombieSymbiantInspect>Połączony gospodarz: {0}, rozmiar: {1} pól, wspólna pula zdrowia: {2}, następna korzyść przy {3} polach</ZombieSymbiantInspect>
+	<SymbiantWeaponInspect>koloniści nie mogą go zranić</SymbiantWeaponInspect>
+	<SymbiantWeaponRejectedMessage>Symbiont ignoruje obrażenia zadawane przez kolonistów.</SymbiantWeaponRejectedMessage>
+	<SymbiantWeaponRejectedMote>brak efektu</SymbiantWeaponRejectedMote>
+	<SymbiantDamageAbsorbedMote>wchłonięto {0}%</SymbiantDamageAbsorbedMote>
+	<SymbiantHostUnknown>gospodarz</SymbiantHostUnknown>
+	<SymbiantSharedHealthSummary>{0} z {1}</SymbiantSharedHealthSummary>
+	<FeedZombieSymbiant>Nakarm Symbionta</FeedZombieSymbiant>
+	<CancelFeedZombieSymbiant>Anuluj karmienie Symbionta</CancelFeedZombieSymbiant>
+	<FeedZombieSymbiantDesc>Nakarm Symbionta zwłokami.</FeedZombieSymbiantDesc>
+	<FeedingZombieSymbiant>karmi Symbionta</FeedingZombieSymbiant>
+	<NoSymbiantFeed>Brak odpowiednich zwłok</NoSymbiantFeed>
+	<SymbiantFedMote>+{1} pól</SymbiantFedMote>
+	<FeedZombieSymbiantFloatMenu>Nakarm Symbionta: {0} {1} (+{2} pól)</FeedZombieSymbiantFloatMenu>
+	<SeverSymbiantSymbiosis>Usuń więź z Symbiontem</SeverSymbiantSymbiosis>
+	<SeverSymbiantSymbiosisWithCost>Usuń więź z Symbiontem ({0} ekstraktu zombie)</SeverSymbiantSymbiosisWithCost>
+	<SymbiantSeveredMessage>Więź z Symbiontem należąca do {0} została usunięta.</SymbiantSeveredMessage>
+	<SymbiantHostBondDescription>Symbiont: {0}/{1} pól. Następna korzyść przy {2} polach. Wspólna pula zdrowia: {3}. Symbiont pochłania większość wspólnych obrażeń; przy obecnym rozmiarze do gospodarza dociera &lt;color=#ffb35c&gt;{4}%&lt;/color&gt;.\n\nZasada mapy: gospodarz i Symbiont muszą znajdować się na tej samej mapie, aby więź była aktywna i można ją było bezpiecznie usunąć. Po rozdzieleniu więź przechodzi w stan uśpienia do czasu ich ponownego spotkania. Porzucenie mapy Symbionta niszczy go i siłą zrywa więź; operacja pozwala najpierw bezpiecznie usunąć więź.\n\nKorzyści:\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondMissing>Z tym gospodarzem nie jest połączony żaden aktywny Symbiont.</SymbiantHostBondMissing>
+	<SymbiantHostRelocatedMessage>Więź {0} z Symbiontem przeszła w stan uśpienia po opuszczeniu mapy przez gospodarza.</SymbiantHostRelocatedMessage>
+	<SymbiantMapAbandonWarningTitle>Porzucić mapę z Symbiontem?</SymbiantMapAbandonWarningTitle>
+	<SymbiantMapAbandonWarning>Na tej mapie znajduje się aktywny Symbiont zombie. Porzucenie mapy zniszczy Symbionta i siłą zerwie każdą pozostałą więź. Jeśli chcesz przeprowadzić zwykłe rozdzielenie, najpierw usuń więź z Symbiontem chirurgicznie.\n\nMimo to porzucić tę mapę?</SymbiantMapAbandonWarning>
+	<SymbiantReseededMessage>Symbiont należący do {0} przeniósł się do innego pomieszczenia.</SymbiantReseededMessage>
+	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Obecny stan&lt;/color&gt;: &lt;color=#72d672&gt;{0} pól&lt;/color&gt;. Następna korzyść przy &lt;color=#72d672&gt;{1} polach&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Wspólna pula zdrowia&lt;/color&gt;: {4}. Obrażenia trafiające gospodarza lub Symbionta uszczuplają tę pulę. Przy tym rozmiarze do {6} dociera tylko &lt;color=#ffb35c&gt;{5}%&lt;/color&gt;. Jeśli pula się wyczerpie, {6} umrze.\n\n&lt;color=#ffb35c&gt;Zasada mapy&lt;/color&gt;: gospodarz i Symbiont muszą znajdować się na tej samej mapie, aby więź była aktywna i można ją było bezpiecznie usunąć. Jeśli gospodarz odejdzie, więź przejdzie w stan uśpienia do czasu jego powrotu. Porzucenie tej mapy niszczy Symbionta i siłą zrywa więź. Operacja pozwala najpierw bezpiecznie usunąć więź.\n\n&lt;color=#ffb35c&gt;Obecne efekty&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Obecne korzyści&lt;/color&gt;:\n{3}\n\nPonadto w subtelny sposób &lt;color=#72d672&gt;usuwa zanieczyszczenie&lt;/color&gt;.</ZombieSymbiantInfoCardDetails>
+	<SymbiantDetailsInfoCard>Szczegóły Symbionta</SymbiantDetailsInfoCard>
+	<SymbiantDetailsInfoCardValue>{0} pól</SymbiantDetailsInfoCardValue>
+	<LetterLabelSymbiantBenefitGained>Nowa korzyść Symbionta</LetterLabelSymbiantBenefitGained>
+	<SymbiantBenefitGainedLetter>Symbiont połączony z {0} zyskał nową korzyść: {1}.\n\nObecne korzyści:\n{2}</SymbiantBenefitGainedLetter>
+	<LetterLabelSymbiantBondRemoved>Usunięto więź z Symbiontem</LetterLabelSymbiantBondRemoved>
+	<SymbiantBondRemovedLetter>Więź między {0} a Symbiontem została usunięta. Pozbawiony więzi Symbiont wycofa się i zniknie.</SymbiantBondRemovedLetter>
+	<SymbiantEffectCells>aktywne pola: {0}/{1}</SymbiantEffectCells>
+	<SymbiantEffectPathCost>ruch przez pola Symbionta: o {0}% wolniejszy</SymbiantEffectPathCost>
+	<SymbiantEffectWorkSpeed>praca, leczenie, sprzątanie i gotowanie na polach Symbionta: o {0}% wolniejsze</SymbiantEffectWorkSpeed>
+	<SymbiantBenefitGainedMessage>Symbiont należący do {0} zyskał: {1}.</SymbiantBenefitGainedMessage>
+	<SymbiantBenefitZombieInfectionImmunity>odporność na zakażenie zombie</SymbiantBenefitZombieInfectionImmunity>
+	<SymbiantBenefitMoodFixed>nastrój ustalony na 50%</SymbiantBenefitMoodFixed>
+	<SymbiantBenefitNoFoodOrRest>brak potrzeby jedzenia i odpoczynku</SymbiantBenefitNoFoodOrRest>
+	<SymbiantBenefitSkillBonus>wszystkie umiejętności +1</SymbiantBenefitSkillBonus>
+	<SymbiantBenefitMoveSpeed>ruch +25%</SymbiantBenefitMoveSpeed>
+	<SymbiantBenefitZombieIgnore>zombie ignorują gospodarza</SymbiantBenefitZombieIgnore>
+	<SymbiantBenefitAutoHeal>automatyczne leczenie</SymbiantBenefitAutoHeal>
+
+	<LetterLabelXDaysUntilZombies>{0} do przybycia zombie</LetterLabelXDaysUntilZombies>
+	<XDaysUntilZombies>Zombie pojawią się na miękkiej glebie, ziemi, piasku lub żwirze. Wybudowanie podłóg zapobiega wychodzeniu zombie z tych pól.</XDaysUntilZombies>
+
+	<ZombielandDefaultSettings>Domyślne ustawienia Zombieland</ZombielandDefaultSettings>
+	<ZombielandGameSettings>Ustawienia Zombieland</ZombielandGameSettings>
+	<JumpToNow>Przejdź do teraz</JumpToNow>
+	<AdvancedSettings>Ustawienia zaawansowane</AdvancedSettings>
+	<Seasons>pory roku</Seasons>
+	<Years>lata</Years>
+
+	<ZombielandDifficultyTitle>Ogólna trudność</ZombielandDifficultyTitle>
+	<ZombielandDifficulty>Skala zagrożenia</ZombielandDifficulty>
+
+	<ZombielandContaminationTitle>Zanieczyszczenie</ZombielandContaminationTitle>
+	<ContaminationEnabled>Włączone globalnie</ContaminationEnabled>
+	<ZombielandRestartRequired>Zmiana tego ustawienia wymaga ponownego uruchomienia RimWorld</ZombielandRestartRequired>
+	<ZombielandContamination>Intensywność</ZombielandContamination>
+	<ContaminationEffectiveness>Łączna skuteczność: {0}%</ContaminationEffectiveness>
+	<ZombielandStorageContaminationRange>Zanieczyszczenie: {0}</ZombielandStorageContaminationRange>
+
+	<WhenDoZombiesSpawn>Kiedy pojawiają się zombie?</WhenDoZombiesSpawn>
+	<SpawnWhenType_AllTheTime>Przez cały czas</SpawnWhenType_AllTheTime>
+	<SpawnWhenType_WhenDark>Gdy jest ciemno</SpawnWhenType_WhenDark>
+	<SpawnWhenType_InEventsOnly>Tylko podczas wydarzeń</SpawnWhenType_InEventsOnly>
+
+	<HowDoZombiesSpawn>Skąd przychodzą zombie?</HowDoZombiesSpawn>
+	<SpawnHowType_AllOverTheMap>Z miejsc o miękkim podłożu</SpawnHowType_AllOverTheMap>
+	<SpawnHowType_FromTheEdges>Z krawędzi mapy</SpawnHowType_FromTheEdges>
+	<SmartWandering>Styl poruszania</SmartWandering>
+	<SmartWandering_Random>Losowy</SmartWandering_Random>
+	<SmartWandering_Simple>Prosty</SmartWandering_Simple>
+	<SmartWandering_Smart>Inteligentny</SmartWandering_Smart>
+	<BlacklistedBiomes>Biomy bez zombie</BlacklistedBiomes>
+	<Biomes>Biomy</Biomes>
+
+	<WhatDoZombiesAttack>Co będą atakować zombie?</WhatDoZombiesAttack>
+	<AttackMode_Everything>Wszystkie stworzenia</AttackMode_Everything>
+	<AttackMode_OnlyHumans>Istoty człekokształtne</AttackMode_OnlyHumans>
+	<AttackMode_OnlyColonists>Tylko koloniści</AttackMode_OnlyColonists>
+	<EnemiesAttackZombies>Wrogowie atakują zombie</EnemiesAttackZombies>
+	<AnimalsAttackZombies>Zwierzęta atakują zombie</AnimalsAttackZombies>
+	<AnomalyTargetingTitle>Wyjątki Anomalii</AnomalyTargetingTitle>
+	<AnomalyTargetingRelations>Zombie mogą atakować:</AnomalyTargetingRelations>
+	<AnomalyTargetGhouls>Ghule</AnomalyTargetGhouls>
+	<AnomalyTargetShamblers>Powłóczyciele i zmutowani ludzie</AnomalyTargetShamblers>
+	<AnomalyTargetOtherEntities>Inne istoty Anomalii</AnomalyTargetOtherEntities>
+	<AnomalyTargetNociosphere>Nociosfera</AnomalyTargetNociosphere>
+	<AnomalyZombieHostilityRelations>Istoty Anomalii mogą atakować zombie:</AnomalyZombieHostilityRelations>
+	<AnomalyTargetingOverride_Automatic>Automatycznie</AnomalyTargetingOverride_Automatic>
+	<AnomalyTargetingOverride_Never>Nigdy</AnomalyTargetingOverride_Never>
+	<AnomalyTargetingOverride_Allow>Zezwól</AnomalyTargetingOverride_Allow>
+	<AnomalyTargetingOverride_Mixed>Mieszane</AnomalyTargetingOverride_Mixed>
+
+	<WhatDoZombiesSmash>Co będą niszczyć zombie?</WhatDoZombiesSmash>
+	<SmashMode_Nothing>Nic</SmashMode_Nothing>
+	<SmashMode_DoorsOnly>Tylko drzwi</SmashMode_DoorsOnly>
+	<SmashMode_AnyBuilding>Wszystko, co zbudowano</SmashMode_AnyBuilding>
+	<SmashOnlyWhenAgitated>Tylko gdy są pobudzone</SmashOnlyWhenAgitated>
+
+	<NewGameTitle>Nowa gra</NewGameTitle>
+	<DaysBeforeZombiesCome>Dni do przybycia zombie</DaysBeforeZombiesCome>
+
+	<ZombiesOnTheMap>Zombie na mapie</ZombiesOnTheMap>
+	<MaximumNumberOfZombies>Nigdy więcej niż</MaximumNumberOfZombies>
+	<Zombies>Zombie</Zombies>
+	<ColonyMultiplier>Mnożnik kolonii</ColonyMultiplier>
+	<DoubleTapping>Dobijanie</DoubleTapping>
+
+	<DynamicThreatLevelTitle>Dynamiczny poziom zagrożenia</DynamicThreatLevelTitle>
+	<UseDynamicThreatLevel>Używaj dynamicznego poziomu zagrożenia</UseDynamicThreatLevel>
+	<DynamicThreatSmoothness>Płynność krzywej zagrożenia</DynamicThreatSmoothness>
+	<DynamicThreatStretch>Rozciągnięcie krzywej zagrożenia</DynamicThreatStretch>
+	<ZombiesDieOnZeroThreat>Zombie umierają przy zagrożeniu 0%</ZombiesDieOnZeroThreat>
+	<ZombieFreeEvents>Okresy podróży bez zombie</ZombieFreeEvents>
+	<ThreatLevel>poziom zagrożenia</ThreatLevel>
+	<ThreatForecast>Prognoza zagrożenia</ThreatForecast>
+	<Next14Days>Następne 14 dni</Next14Days>
+	<Next4Quadrums>Następne 4 kwadry</Next4Quadrums>
+	<LetterLabelZombieFreeEvent>Cisza zombie</LetterLabelZombieFreeEvent>
+	<ZombieFreeEventLetter>Przez {0} zombie wymierają na całym świecie i nie pojawią się żadne nowe. To dogodny czas na podróż karawaną.</ZombieFreeEventLetter>
+	<ZombieFreeEventTimeLeft>Pozostały czas</ZombieFreeEventTimeLeft>
+
+	<ZombieEventTitle>Wydarzenie zombie</ZombieEventTitle>
+	<ZombiesPerColonistInEvent>Zombie na kolonistę</ZombiesPerColonistInEvent>
+	<ExtraDaysBetweenEvents>Dodatkowe dni między wydarzeniami</ExtraDaysBetweenEvents>
+	<InfectedRaidsChance>Przybywające grupy są zakażone</InfectedRaidsChance>
+
+	<ZombieSpeedTitle>Prędkość zombie</ZombieSpeedTitle>
+	<MoveSpeedIdle>Gdy są spokojne</MoveSpeedIdle>
+	<MoveSpeedTracking>Gdy są pobudzone</MoveSpeedTracking>
+
+	<ZombieDamageTitle>Obrażenia zombie</ZombieDamageTitle>
+	<ZombieDamageFactor>Mnożnik obrażeń</ZombieDamageFactor>
+	<SafeMeleeLimit>Bezpieczny limit walki wręcz</SafeMeleeLimit>
+	<SafeMeleeExample>Przykład: poziom walki wręcz [_]{0}[_], zombie: [_]{1}[_] — {2}% szans na zablokowanie ugryzienia</SafeMeleeExample>
+	<ZombiesCauseManhunting>Ataki zombie mogą zmienić zwierzęta w łowców ludzi</ZombiesCauseManhunting>
+
+	<ZombieGameTweaks>Modyfikacje gry</ZombieGameTweaks>
+	<ReduceTurretConsumption>Zmniejsz zużycie stali przez wieżyczki</ReduceTurretConsumption>
+
+	<ZombieBiteInfectionChance>Ryzyko zakażenia po ugryzieniu zombie</ZombieBiteInfectionChance>
+	<ZombieBiteInfectionUnknown>Czas do wykrycia zakażenia</ZombieBiteInfectionUnknown>
+	<ZombieBiteInfectionTreatable>Czas, przez który zakażenie można leczyć</ZombieBiteInfectionTreatable>
+	<ZombieBiteInfectionPersists>Czas trwania zakażenia</ZombieBiteInfectionPersists>
+	<AnyTreatmentStopsInfection>Leczenie w łóżku zatrzymuje zakażenia</AnyTreatmentStopsInfection>
+	<HoursAfterDeathToBecomeZombie>Godziny do przemiany w zombie po śmierci</HoursAfterDeathToBecomeZombie>
+	<Immediately>Natychmiast</Immediately>
+	<DeadBecomesZombieMessage>Pokazuj wiadomość, gdy ktoś zmieni się w zombie</DeadBecomesZombieMessage>
+	<DangerousSituationMessage>Pokazuj wiadomość w razie zagrożenia</DangerousSituationMessage>
+
+	<ZombieHarvestingTitle>Łupy z zombie</ZombieHarvestingTitle>
+	<CorpsesExtractAmount>Ekstrakt zombie ze zwłok</CorpsesExtractAmount>
+	<CorpsesExtractChance>Szansa</CorpsesExtractChance>
+	<LootExtractAmount>Ilość łupów upuszczanych przez zombie</LootExtractAmount>
+	<CorpsesDaysToDessicated>Godziny do zniknięcia zwłok zombie</CorpsesDaysToDessicated>
+	<ExtractZombieArea>Ogranicz pozyskiwanie do obszaru</ExtractZombieArea>
+	<Everywhere>Wszędzie</Everywhere>
+	<BlacklistedApparel>Niedozwolona odzież</BlacklistedApparel>
+	<SelectAll>Zaznacz wszystko</SelectAll>
+	<DeselectAll>Odznacz wszystko</DeselectAll>
+
+	<ZombieInstinctTitle>Zmysły zombie</ZombieInstinctTitle>
+	<ZombieInstinct_Dull>Ograniczone</ZombieInstinct_Dull>
+	<ZombieInstinct_Normal>Normalne</ZombieInstinct_Normal>
+	<ZombieInstinct_Sensitive>Wyostrzone</ZombieInstinct_Sensitive>
+	<RagingZombies>Zombie wpadają w szał, gdy grupa staje się zbyt duża</RagingZombies>
+	<RageLevel>Poziom szału</RageLevel>
+	<RageLevelVeryLow>Bardzo niski</RageLevelVeryLow>
+	<RageLevelLow>Niski</RageLevelLow>
+	<RageLevelNormal>Normalny</RageLevelNormal>
+	<RageLevelHigh>Wysoki</RageLevelHigh>
+	<RageLevelVeryHigh>Bardzo wysoki</RageLevelVeryHigh>
+
+	<ZombieHealthTitle>Wytrzymałość zombie</ZombieHealthTitle>
+	<ZombieHealthFactor>Wytrzymałość</ZombieHealthFactor>
+	<DoubleTapRequired>Zombie dochodzą do siebie po obrażeniach</DoubleTapRequired>
+	<ZombiesDieVeryEasily>Zombie łatwo zabić</ZombiesDieVeryEasily>
+
+	<ZombieEatingTitle>Zombie będą jeść</ZombieEatingTitle>
+	<ZombiesEatDowned>Powalone istoty</ZombiesEatDowned>
+	<ZombiesEatCorpses>Zwłoki</ZombiesEatCorpses>
+
+	<SpecialZombiesTitle>Specjalne zombie</SpecialZombiesTitle>
+	<SuicideBomberChance>Zombie samobójcy</SuicideBomberChance>
+	<ToxicSplasherChance>Toksyczne rozbryzgiwacze zombie</ToxicSplasherChance>
+	<TankyOperatorChance>Opancerzeni operatorzy zombie</TankyOperatorChance>
+	<MinerChance>Górnicy zombie</MinerChance>
+	<ElectrifierChance>Elektryzujące zombie</ElectrifierChance>
+	<AlbinoChance>Zombie albinosy</AlbinoChance>
+	<DarkSlimerChance>Ciemne śluzowce zombie</DarkSlimerChance>
+	<HealerChance>Uzdrowiciele zombie</HealerChance>
+	<NormalZombieChance>Zwykłe zombie: {0}</NormalZombieChance>
+	<ChildZombieChance>Dzieci zombie</ChildZombieChance>
+	<SpitterThreat>Trudność plującego zombie</SpitterThreat>
+	<WallPushing>Liczba zombie przepychających inne zombie przez mury</WallPushing>
+
+	<ZombieSymbiantTitle>Symbiont zombie</ZombieSymbiantTitle>
+	<SymbiantEnabled>Włącz Symbionty zombie</SymbiantEnabled>
+	<SymbiantMaxCells>Maksymalny rozmiar Symbionta</SymbiantMaxCells>
+
+	<ZombieMiscTitle>Różne</ZombieMiscTitle>
+	<UseCustomTextures>Używaj niestandardowych tekstur</UseCustomTextures>
+	<ReplaceTwinkie>Zmień spakowane posiłki surwiwalowe w Twinkie</ReplaceTwinkie>
+	<Zombieland_Twinkie_Label>Twinkie</Zombieland_Twinkie_Label>
+	<Zombieland_Twinkie_Description>Twinkie to amerykańskie ciastko reklamowane jako „złoty biszkopt z kremowym nadzieniem”.</Zombieland_Twinkie_Description>
+	<ZombiesTriggerDangerMusic>Zombie wpływają na muzykę zagrożenia</ZombiesTriggerDangerMusic>
+	<PlayCreepyAmbientSound>Odtwarzaj nocą upiorne dźwięki otoczenia</PlayCreepyAmbientSound>
+	<BetterZombieAvoidance>Automatyczne unikanie zombie</BetterZombieAvoidance>
+	<ZombiesDropBlood>Zombie pozostawiają krew</ZombiesDropBlood>
+	<ZombiesBurnLonger>Zombie palą się dłużej</ZombiesBurnLonger>
+
+	<AwarenessCuesTitle>Sygnały ostrzegawcze</AwarenessCuesTitle>
+	<PlayZombielandMusic>Odtwarzaj muzykę Zombieland</PlayZombielandMusic>
+	<ZombielandMusicShare_OtherEnd>RimWorld/mody</ZombielandMusicShare_OtherEnd>
+	<ZombielandMusicShare_ZombielandEnd>Zombieland</ZombielandMusicShare_ZombielandEnd>
+	<ZombielandMusicShare_OnlyOther>Tylko muzyka spoza Zombieland</ZombielandMusicShare_OnlyOther>
+	<ZombielandMusicShare_Percent>{0}% muzyki Zombieland</ZombielandMusicShare_Percent>
+	<ZombielandMusicShare_OnlyZombieland>Tylko muzyka Zombieland</ZombielandMusicShare_OnlyZombieland>
+	<ShowZombieEventLetters>Pokazuj listy o wydarzeniach zombie</ShowZombieEventLetters>
+	<PlayZombieEventSiren>Odtwarzaj syrenę wydarzeń zombie</PlayZombieEventSiren>
+	<PlaySpecialZombieAmbientSounds>Odtwarzaj dźwięki otoczenia specjalnych zombie</PlaySpecialZombieAmbientSounds>
+	<PlayZombieActionSounds>Odtwarzaj odgłosy działań zombie</PlayZombieActionSounds>
+	<PlayWallAndSabotageSounds>Odtwarzaj odgłosy murów i sabotażu</PlayWallAndSabotageSounds>
+	<ShowZombieThoughtBubbles>Pokazuj dymki myśli zombie</ShowZombieThoughtBubbles>
+
+	<ZombieActionsTitle>Działania</ZombieActionsTitle>
+	<ZombieSettingsReset>Przywróć ustawienia domyślne</ZombieSettingsReset>
+	<FactoryResetButton>Przywróć ustawienia fabryczne</FactoryResetButton>
+	<ResetButton>Resetuj</ResetButton>
+	<UninstallZombieland>Usuń Zombieland z bieżącej gry</UninstallZombieland>
+	<ConfirmUninstallZombieland>Jeśli będziesz kontynuować, możesz wybrać nową nazwę pliku zapisu, a po zapisaniu gry wrócisz do menu głównego. Nowy zapis można wczytać bez Zombieland.\n\nCzy na pewno chcesz usunąć całą zawartość Zombieland z bieżącej gry?</ConfirmUninstallZombieland>
+	<UninstallButton>Odinstaluj</UninstallButton>
+
+	<ClipboardActionTitle>Schowek</ClipboardActionTitle>
+	<CopySettings>Kopiuj ustawienia do schowka</CopySettings>
+	<CopyButton>Kopiuj</CopyButton>
+	<DuplicateButton>Duplikuj</DuplicateButton>
+	<PasteSettings>Zastąp ustawienia zawartością schowka</PasteSettings>
+	<PasteButton>Wklej</PasteButton>
+	<RopeZombie>Schwytaj tego zombie</RopeZombie>
+
+	<Activate>Aktywuj</Activate>
+	<ActivateDescription>Aktywuje urządzenie. Zombie w pomieszczeniu tracą przytomność.</ActivateDescription>
+	<WrongPlacementZombieShocker>Nie można umieścić tutaj tego urządzenia.</WrongPlacementZombieShocker>
+
+	<ColonistsBittenByZombie>Koloniści ugryzieni przez zombie</ColonistsBittenByZombie>
+	<ColonistsBittenByZombieDesc>Ci koloniści zostali ugryzieni przez zombie. Na razie nie wiadomo, czy rozwinie się u nich zakażenie:\n\n{0}\nUważnie obserwuj ich rany, ponieważ rozwój zakażenia zajmuje trochę czasu.</ColonistsBittenByZombieDesc>
+
+	<ImminentZombiInfection>Nadchodzące zakażenie zombie</ImminentZombiInfection>
+	<ImminentZombiInfectionDesc>Ci koloniści wkrótce zostaną zakażeni wskutek ugryzienia przez zombie:\n\n{0}\nMożesz ich uratować, natychmiast zapewniając im optymalne leczenie w najlepszych warunkach. Potrzebny jest dobry lekarz, wysokiej jakości łóżko szpitalne, sterylne pomieszczenie i monitor funkcji życiowych.</ImminentZombiInfectionDesc>
+
+	<ZombieInfection>Zakażenie zombie</ZombieInfection>
+	<ZombieInfectionDesc>Ci koloniści zostali zakażeni i zmienią się w zombie. Nie można ich już uratować:\n\n{0}\nPodczas zakażenia przestają reagować na nastrój, ból i głód. Na końcu umierają i zmieniają się w zombie.</ZombieInfectionDesc>
+
+	<NoInfectionRisk>Brak ryzyka zakażenia</NoInfectionRisk>
+	<HoursBeforeBecomingInfected>{0} do zakażenia</HoursBeforeBecomingInfected>
+	<HoursBeforeBecomingAZombie>{0} do przemiany w zombie</HoursBeforeBecomingAZombie>
+
+	<DangerousSituation>Niebezpieczna sytuacja</DangerousSituation>
+	<ZombiesAreBeingPushedOverYourWalls>Zombie są przepychane przez twoje mury! Nie dopuszczaj do tworzenia przez zombie zwartych grup.</ZombiesAreBeingPushedOverYourWalls>
+
+	<ColonistBecameAZombieLabel>Przemiana kolonisty w zombie</ColonistBecameAZombieLabel>
+	<OtherBecameAZombieLabel>Ktoś zmienił się w zombie</OtherBecameAZombieLabel>
+	<BecameAZombieDesc>Nastąpiła przemiana w potężnego zombie: {0}.</BecameAZombieDesc>
+
+	<BodyIsInfectedLabel>Te zwłoki są zakażone wirusem zombie!</BodyIsInfectedLabel>
+	<BodyIsInfectedTooltip>Zakażone zwłoki zmienią się w zombie, gdy zaczną gnić.</BodyIsInfectedTooltip>
+
+	<CureZombieInfection>Wylecz zakażenie zombie</CureZombieInfection>
+	<ExtractingZombieSerum>Pozyskiwanie ekstraktu zombie</ExtractingZombieSerum>
+	<AutoExtractDisabledDescription>Nie można pozyskiwać ekstraktu zombie (żaden kolonista nie ma przydzielonej pracy Lekarz)</AutoExtractDisabledDescription>
+	<AutoExtractAllowedDescription>Automatycznie pozyskuj ekstrakt zombie, gdy w pobliżu nie ma zombie</AutoExtractAllowedDescription>
+	<AutoExtractForbiddenDescription>Pozyskuj ekstrakt zombie tylko na rozkaz</AutoExtractForbiddenDescription>
+	<AutoDoubleTapDisabledDescription>Nie można dobijać (żaden kolonista nie ma przydzielonej pracy Polowanie)</AutoDoubleTapDisabledDescription>
+	<AutoDoubleTapAllowedDescription>Automatycznie dobijaj zwłoki, aby zapobiec ich przemianie w zombie</AutoDoubleTapAllowedDescription>
+	<AutoDoubleTapForbiddenDescription>Dobijaj tylko na rozkaz</AutoDoubleTapForbiddenDescription>
+
+	<AutoAvoidZombiesEnabledDescription>Automatycznie unikaj zombie, z wyjątkiem trybu mobilizacji</AutoAvoidZombiesEnabledDescription>
+	<AutoAvoidZombiesDisabledDescription>Ignoruj zombie. Wszystkimi działaniami musisz sterować ręcznie</AutoAvoidZombiesDisabledDescription>
+
+	<ZapZombies>Uruchom ogłuszacz zombie</ZapZombies>
+	<ZombieShockerWrongPlacement>Nie można umieścić tutaj tego urządzenia</ZombieShockerWrongPlacement>
+	<ZombieShockerHasNoBattery>Do urządzenia nie podłączono akumulatora</ZombieShockerHasNoBattery>
+	<ZombieShockerHasNoRoom>Urządzenie nie jest połączone z odpowiednim pomieszczeniem</ZombieShockerHasNoRoom>
+	<ZombieShockerLowBatteryState>Urządzenie wyczerpało podłączone akumulatory</ZombieShockerLowBatteryState>
+
+	<ShowHealthBar>Paski zdrowia zombie</ShowHealthBar>
+	<ShowZombieStats>Pokazuj statystyki zombie</ShowZombieStats>
+
+	<SnowAndSandClear>Odśnieżanie i usuwanie piasku</SnowAndSandClear>
+	<ShowZombieRisk>Pokazuj ryzyko związane z zombie</ShowZombieRisk>
+	<ZombieRiskAreaColumnHintLong>Zasady obszarów Zombieland: naruszenia pojawiają się podczas gry u góry ekranu</ZombieRiskAreaColumnHintLong>
+	<ZombieRiskAreaColumnHintMedium>Naruszenia zasad Zombieland pojawiają się u góry</ZombieRiskAreaColumnHintMedium>
+	<ColonistInside>Kolonista wewnątrz</ColonistInside>
+	<ColonistOutside>Kolonista na zewnątrz</ColonistOutside>
+	<ZombieInside>Zombie wewnątrz</ZombieInside>
+	<ZombieOutside>Zombie na zewnątrz</ZombieOutside>
+	<HighlightDangerousAreas>Podświetlaj niebezpieczne obszary</HighlightDangerousAreas>
+	<DisableRandomApparel>Wyłącz losową odzież zombie</DisableRandomApparel>
+	<FloatingZombiesInSOS2>Zombie unoszą się w przestrzeni kosmicznej</FloatingZombiesInSOS2>
+
+	<Broken>Zepsute</Broken>
+	<StatsFuel>Paliwo: {0}%</StatsFuel>
+
+	<ChainsawBroken>Piła łańcuchowa jest zepsuta</ChainsawBroken>
+	<ChainsawDisabled>Nie można teraz użyć piły łańcuchowej</ChainsawDisabled>
+	<ChainsawNoFuel>Piła łańcuchowa wymaga uzupełnienia paliwa</ChainsawNoFuel>
+	<ChainsawTurnOn>Włącz piłę łańcuchową, aby atakować pobliskie zombie</ChainsawTurnOn>
+	<ChainsawTurnOff>Wyłącz piłę łańcuchową, aby oszczędzać paliwo</ChainsawTurnOff>
+	<ChainsawStalling>(zacina się)</ChainsawStalling>
+	<ChainsawDesc>Piła łańcuchowa</ChainsawDesc>
+	<ChainsawDescBroken>Zepsuta piła łańcuchowa</ChainsawDescBroken>
+	<ChainsawDescStalling>Zacinająca się piła łańcuchowa</ChainsawDescStalling>
+	<ChainsawDescFuel> z paliwem: {0}%</ChainsawDescFuel>
+	<ChainsawDescNoFuel> bez paliwa</ChainsawDescNoFuel>
+	<ChainsawDescBlockingChance> blokuje {0}% nadchodzących ataków</ChainsawDescBlockingChance>
+
+	<ThumperControl>Ustawienia</ThumperControl>
+	<ThumperControlDesc>Określ intensywność i odstęp dla tego wabika zombie</ThumperControlDesc>
+	<Intensity>Intensywność</Intensity>
+	<Interval>Odstęp</Interval>
+
+	<ToggleStateLabel>Wł. / wył.</ToggleStateLabel>
+	<ToggleStateDesc>Włącza lub wyłącza urządzenie.</ToggleStateDesc>
+
+	<SpitterStateIdle>Bezczynny</SpitterStateIdle>
+	<SpitterStateSearching>Szuka</SpitterStateSearching>
+	<SpitterStateMoving>Przemieszcza się</SpitterStateMoving>
+	<SpitterStatePreparing>Przygotowuje się</SpitterStatePreparing>
+	<SpitterStateSpitting>Pluje</SpitterStateSpitting>
+	<SpitterStateLeaving>Odchodzi</SpitterStateLeaving>
+	<Mode>Tryb</Mode>
+	<Waves>Fale</Waves>
+	<Aggressive>Agresywny</Aggressive>
+	<Calm>Spokojny</Calm>
+
+	<ZombieContamination>Zanieczyszczenie zombie</ZombieContamination>
+	<ContaminationHelp>Zanieczyszczenie zombie przenosi się przez dotyk i obchodzenie się z zanieczyszczonymi przedmiotami. Rozprzestrzenia się i może powodować dziwne zachowanie kolonistów.</ContaminationHelp>
+	<ShowContaminationOverlayToggleButton>Przełącz nakładkę zanieczyszczenia zombie.\n\nPokazuje ona stopień zanieczyszczenia przedmiotów i podłoża, który z kolei wpływa na istoty.</ShowContaminationOverlayToggleButton>
+
+</LanguageData>

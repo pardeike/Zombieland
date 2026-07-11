@@ -10,8 +10,8 @@
 	<ElectricalField.verbs.0.label>şok</ElectricalField.verbs.0.label>
 	<ElectricalField.tools.0.label>şok</ElectricalField.tools.0.label>
 	<ZombieSpitter.label>zombi tükürücü</ZombieSpitter.label>
-	<ZombieSpitter.description>Üssünüze havadan saldırmak için zombi tüküren bir canavar.</ZombieSpitter.description>
+	<ZombieSpitter.description>Üssünüze havadan saldırmak üzere zombi tüküren bir canavar.</ZombieSpitter.description>
 	<ZombieSymbiant.label>zombi simbiyantı</ZombieSymbiant.label>
-	<ZombieSymbiant.description>Bir iç mekan Zombi Simbiyantı istilası. Yoğun kullanılan iç odalara görünür balçık olarak yayılır, üzerinden geçen piyonları yavaşlatır ve bir kolonistle bağ kurar. Konak zombi ısırıklarından gelen enfeksiyona bağışıktır ve Simbiyant büyüdükçe rastgele faydalar kazanır. Cesetle beslemek Simbiyantı daha hızlı büyütür. Ameliyat bağı kaldırır ve konaksız Simbiyant sonra geri çekilir.</ZombieSymbiant.description>
+	<ZombieSymbiant.description>İç mekânda ortaya çıkan bir Zombi Simbiyantı istilası. Yoğun kullanılan odalara görünür balçık hâlinde yayılır, üzerinden geçen piyonları yavaşlatır ve bir kolonistle bağ kurar. Konak, zombi ısırıklarından kaynaklanan enfeksiyona karşı bağışıktır ve Simbiyant büyüdükçe rastgele faydalar kazanır. Simbiyantı cesetlerle beslemek daha hızlı büyümesini sağlar. Bağ ameliyatla kaldırılır; konaksız kalan Simbiyant daha sonra küçülerek kaybolur.</ZombieSymbiant.description>
 
 </LanguageData>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<CureZombieInfection.label>curar la infección zombi</CureZombieInfection.label>
+	<CureZombieInfection.description>Elimina una infección zombi en fase temprana de una parte del cuerpo. Requiere un suero zombi; un porcentaje mayor reduce el riesgo de fracaso.</CureZombieInfection.description>
+	<CureZombieInfection.jobString>Curando la infección zombi.</CureZombieInfection.jobString>
+	<SeverSymbiantSymbiosis.label>eliminar el vínculo del Simbionte</SeverSymbiantSymbiosis.label>
+	<SeverSymbiantSymbiosis.description>Elimina el vínculo entre un colono y el Simbionte. El Simbionte desvinculado se encogerá hasta desaparecer después de la operación.</SeverSymbiantSymbiosis.description>
+	<SeverSymbiantSymbiosis.jobString>Eliminando el vínculo del Simbionte.</SeverSymbiantSymbiosis.jobString>
+	<MakeZombieSerum.label>fabricar suero zombi con extracto de zombi</MakeZombieSerum.label>
+	<MakeZombieSerum.description>Fabrica una unidad de suero zombi con extracto de zombi. El suero zombi cura infecciones zombis durante las operaciones.</MakeZombieSerum.description>
+	<MakeZombieSerum.jobString>Fabricando suero zombi.</MakeZombieSerum.jobString>
+
+</LanguageData>

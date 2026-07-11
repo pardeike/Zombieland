@@ -4,6 +4,7 @@
 	<Zombies.label>zombies</Zombies.label>
 	<Zombies.description>Créatures mortes-vivantes.</Zombies.description>
 	<Zombies.fixedName>Zombies</Zombies.fixedName>
+	<Zombies.pawnSingular>zombie</Zombies.pawnSingular>
 	<Zombies.pawnsPlural>zombies</Zombies.pawnsPlural>
 
 </LanguageData>

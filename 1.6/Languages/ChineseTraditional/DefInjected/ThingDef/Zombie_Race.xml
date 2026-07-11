@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <Zombie.label>喪屍</Zombie.label>
+  <Zombie.description>一隻喪屍。</Zombie.description>
+  <Zombie.tools.0.label>咬</Zombie.tools.0.label>
+  <Zombie.tools.1.label>左拳</Zombie.tools.1.label>
+  <Zombie.tools.2.label>右拳</Zombie.tools.2.label>
+
+  <ElectricalField.label>電場</ElectricalField.label>
+  <ElectricalField.verbs.0.label>衝擊</ElectricalField.verbs.0.label>
+  <ElectricalField.tools.0.label>衝擊</ElectricalField.tools.0.label>
+
+  <ZombieSpitter.label>喪屍噴吐者</ZombieSpitter.label>
+  <ZombieSpitter.description>一種會把喪屍從空中噴射進你的基地發動攻擊的怪物。</ZombieSpitter.description>
+  <ZombieSymbiant.label>喪屍共生體</ZombieSymbiant.label>
+  <ZombieSymbiant.description>一種會在室內蔓延的喪屍共生體。它會以可見黏液的形態擴散到頻繁使用的室內房間，減慢穿過它的角色，並與一名殖民者建立連結。宿主免疫喪屍咬傷造成的感染，並會在共生體成長時獲得隨機增益。用屍體餵養它可以加快成長。手術會移除連結，失去宿主的共生體之後會逐漸縮回。</ZombieSymbiant.description>
+
+</LanguageData>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <ZombieBite.label>喪屍咬傷</ZombieBite.label>
+  <ZombieBite.injuryProps.destroyedLabel>被喪屍咬掉</ZombieBite.injuryProps.destroyedLabel>
+  <ZombieBite.injuryProps.destroyedOutLabel>被喪屍咬掉</ZombieBite.injuryProps.destroyedOutLabel>
+  <ZombieBite.description>喪屍造成的傳染性咬傷。</ZombieBite.description>
+  <ZombieInfection.label>喪屍感染</ZombieInfection.label>
+  <ZombieInfection.description>死後發作的喪屍感染。</ZombieInfection.description>
+  <ContaminationEffect.label>污染</ContaminationEffect.label>
+  <ContaminationEffect.labelNoun>污染</ContaminationEffect.labelNoun>
+  <ContaminationEffect.description>侵入大腦和心智的喪屍污染。接觸受污染的物品和地點會增加污染。污染會逐漸降低整體效率並引發奇怪的副作用。達到 100% 時便會死亡。</ContaminationEffect.description>
+  <ContaminationEffect.descriptionShort>侵入大腦和心智的喪屍污染。</ContaminationEffect.descriptionShort>
+  <ContaminationEffect.stages.none.label>無</ContaminationEffect.stages.none.label>
+  <ContaminationEffect.stages.light.label>輕微</ContaminationEffect.stages.light.label>
+  <ContaminationEffect.stages.noticeable.label>明顯</ContaminationEffect.stages.noticeable.label>
+  <ContaminationEffect.stages.moderate.label>中度</ContaminationEffect.stages.moderate.label>
+  <ContaminationEffect.stages.heavy.label>嚴重</ContaminationEffect.stages.heavy.label>
+  <ContaminationEffect.stages.extreme.label>極重度</ContaminationEffect.stages.extreme.label>
+  <ContaminationEffect.stages.deadly-0.label>致命</ContaminationEffect.stages.deadly-0.label>
+  <ContaminationEffect.stages.deadly-1.label>致命</ContaminationEffect.stages.deadly-1.label>
+  <SymbiantSymbiosis.label>共生體連結</SymbiantSymbiosis.label>
+  <SymbiantSymbiosis.description>此殖民者與一個喪屍共生體相連。宿主免疫喪屍咬傷造成的感染，並會在共生體成長時獲得隨機增益。穿過共生體方格的角色會變慢，宿主除外。用屍體餵養會讓共生體成長更快。手術可以移除連結；失去宿主的共生體之後會逐漸縮回。</SymbiantSymbiosis.description>
+
+</LanguageData>

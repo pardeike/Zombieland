@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 
-	<ExtractZombieSerum.label>récolter de l'extrait de zombie sur les cadavres de zombies</ExtractZombieSerum.label>
-	<ExtractZombieSerum.verb>récolter</ExtractZombieSerum.verb>
-	<ExtractZombieSerum.gerund>récolte</ExtractZombieSerum.gerund>
+	<ExtractZombieSerum.label>prélever de l'extrait de zombie sur les cadavres de zombies</ExtractZombieSerum.label>
+	<ExtractZombieSerum.verb>prélever</ExtractZombieSerum.verb>
+	<ExtractZombieSerum.gerund>prélève</ExtractZombieSerum.gerund>
 
 	<DoubleTap.label>achever les cadavres pour les empêcher de devenir zombies</DoubleTap.label>
 	<DoubleTap.verb>achever</DoubleTap.verb>
@@ -12,5 +12,7 @@
 	<FeedZombieSymbiant.verb>nourrir</FeedZombieSymbiant.verb>
 	<FeedZombieSymbiant.gerund>nourrit</FeedZombieSymbiant.gerund>
 	<FixBrokenChainsaw.label>réparer une tronçonneuse en panne</FixBrokenChainsaw.label>
+	<FixBrokenChainsaw.verb>remplacer les composants cassés de</FixBrokenChainsaw.verb>
+	<FixBrokenChainsaw.gerund>remplace les composants cassés de</FixBrokenChainsaw.gerund>
 
 </LanguageData>

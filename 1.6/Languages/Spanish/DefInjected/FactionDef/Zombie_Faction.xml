@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<Zombies.label>zombis</Zombies.label>
+	<Zombies.description>Criaturas no muertas.</Zombies.description>
+	<Zombies.fixedName>Zombis</Zombies.fixedName>
+	<Zombies.pawnsPlural>zombis</Zombies.pawnsPlural>
+	<Zombies.pawnSingular>zombi</Zombies.pawnSingular>
+
+</LanguageData>

@@ -10,7 +10,7 @@
 	<ToxicSplatter.label>éclaboussure toxique</ToxicSplatter.label>
 
 	<ElectricalShock.label>décharge électrique</ElectricalShock.label>
-	<ElectricalShock.deathMessage>{0} a été électrocuté.</ElectricalShock.deathMessage>
+	<ElectricalShock.deathMessage>{0} est mort par électrocution.</ElectricalShock.deathMessage>
 
 	<SeismicWave.label>onde sismique</SeismicWave.label>
 

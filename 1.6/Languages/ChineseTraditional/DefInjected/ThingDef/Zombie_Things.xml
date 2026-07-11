@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <Apparel_BombVest.label>炸彈背心</Apparel_BombVest.label>
+  <Apparel_BombVest.description>帶有爆炸物的背心。</Apparel_BombVest.description>
+
+  <TarSlime.label>超黏黏液</TarSlime.label>
+  <TarSlime.description>一種極其黏稠的黏液，會大幅減慢移動速度。</TarSlime.description>
+
+  <TarSmoke.label>煙霧</TarSmoke.label>
+  <TarSmoke.description>一種令人難以看清周圍事物的黑煙。</TarSmoke.description>
+
+  <StickyGoo.label>劇毒黏性喪屍黏液</StickyGoo.label>
+  <StickyGoo.description>一種劇毒而黏稠的物質，很可能使接觸者生病。</StickyGoo.description>
+
+  <Chainsaw.label>鏈鋸</Chainsaw.label>
+  <Chainsaw.description>一把鏈鋸。它似乎只適合對付喪屍這類頭腦簡單的敵人，用來攻擊其他目標會導致損壞。如果同時遭到來自過多方向的攻擊，極易誤傷友軍或脫手掉落。後果自負。</Chainsaw.description>
+  <Chainsaw.tools.blade.label>鋸刃</Chainsaw.tools.blade.label>
+
+  <ZombieExtract.label>喪屍提取物</ZombieExtract.label>
+  <ZombieExtract.description>從喪屍屍體採集的少量提取物。最多可將 100 份提取物合成名為「喪屍血清」的藥物，用於對受感染的身體部位進行手術。</ZombieExtract.description>
+
+  <UnfinishedZombieSerum.label>未完成的喪屍血清</UnfinishedZombieSerum.label>
+
+  <ZombieSerumSimple.label>簡易喪屍血清 100%</ZombieSerumSimple.label>
+  <ZombieSerumSimple.description>從死亡喪屍中提煉的純血清，可保證在手術中治癒喪屍感染。</ZombieSerumSimple.description>
+
+  <Zombie10Serum.label>喪屍血清 10%</Zombie10Serum.label>
+  <Zombie10Serum.description>從死亡喪屍中提煉的血清，可在手術中治癒喪屍感染（成功率為 10%）。</Zombie10Serum.description>
+
+  <Zombie20Serum.label>喪屍血清 20%</Zombie20Serum.label>
+  <Zombie20Serum.description>從死亡喪屍中提煉的血清，可在手術中治癒喪屍感染（成功率為 20%）。</Zombie20Serum.description>
+
+  <Zombie30Serum.label>喪屍血清 30%</Zombie30Serum.label>
+  <Zombie30Serum.description>從死亡喪屍中提煉的血清，可在手術中治癒喪屍感染（成功率為 30%）。</Zombie30Serum.description>
+
+  <Zombie40Serum.label>喪屍血清 40%</Zombie40Serum.label>
+  <Zombie40Serum.description>從死亡喪屍中提煉的血清，可在手術中治癒喪屍感染（成功率為 40%）。</Zombie40Serum.description>
+
+  <Zombie50Serum.label>喪屍血清 50%</Zombie50Serum.label>
+  <Zombie50Serum.description>從死亡喪屍中提煉的血清，可在手術中治癒喪屍感染（成功率為 50%）。</Zombie50Serum.description>
+
+  <Zombie60Serum.label>喪屍血清 60%</Zombie60Serum.label>
+  <Zombie60Serum.description>從死亡喪屍中提煉的血清，可在手術中治癒喪屍感染（成功率為 60%）。</Zombie60Serum.description>
+
+  <Zombie70Serum.label>喪屍血清 70%</Zombie70Serum.label>
+  <Zombie70Serum.description>從死亡喪屍中提煉的血清，可在手術中治癒喪屍感染（成功率為 70%）。</Zombie70Serum.description>
+
+  <Zombie80Serum.label>喪屍血清 80%</Zombie80Serum.label>
+  <Zombie80Serum.description>從死亡喪屍中提煉的血清，可在手術中治癒喪屍感染（成功率為 80%）。</Zombie80Serum.description>
+
+  <Zombie90Serum.label>喪屍血清 90%</Zombie90Serum.label>
+  <Zombie90Serum.description>從死亡喪屍中提煉的血清，可在手術中治癒喪屍感染（成功率為 90%）。</Zombie90Serum.description>
+
+  <Zombie100Serum.label>喪屍血清 100%</Zombie100Serum.label>
+  <Zombie100Serum.description>從死亡喪屍中提煉的純血清，可保證在手術中治癒喪屍感染。</Zombie100Serum.description>
+
+  <ZombieShocker.label>喪屍電擊器</ZombieShocker.label>
+  <ZombieShocker.description>一種安裝在房間牆壁上的喪屍控制裝置。可以從房間外啟動，使室內所有喪屍短時間失去意識。</ZombieShocker.description>
+
+  <Thumper.label>喪屍震地器</Thumper.label>
+  <Thumper.description>一種透過震動吸引喪屍的裝置。它會消耗燃料，每次敲擊都會破壞周圍環境。</Thumper.description>
+
+  <ZombieBall.label>喪屍球</ZombieBall.label>
+
+  <ZombieLand_DecontaminationTransportPod.label>去污運輸艙</ZombieLand_DecontaminationTransportPod.label>
+  <ZombieLand_DecontaminationTransportPod.description>用於接走殖民者接受去污治療的單程運輸艙。</ZombieLand_DecontaminationTransportPod.description>
+
+</LanguageData>

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
 
-	<CureZombieInfection.label>治愈僵尸感染</CureZombieInfection.label>
-	<CureZombieInfection.description>移除身体部位上的早期僵尸感染。需要一个僵尸血清，浓度越高失败风险越低。</CureZombieInfection.description>
-	<CureZombieInfection.jobString>正在治愈僵尸感染。</CureZombieInfection.jobString>
+	<CureZombieInfection.label>治愈丧尸感染</CureZombieInfection.label>
+	<CureZombieInfection.description>移除身体部位上的早期丧尸感染。需要一剂丧尸血清；纯度越高，失败风险越低。</CureZombieInfection.description>
+	<CureZombieInfection.jobString>正在治愈丧尸感染。</CureZombieInfection.jobString>
 
 	<SeverSymbiantSymbiosis.label>移除共生体连接</SeverSymbiantSymbiosis.label>
 	<SeverSymbiantSymbiosis.description>移除殖民者与共生体之间的连接。手术后，失去宿主的共生体会逐渐缩回。</SeverSymbiantSymbiosis.description>
 	<SeverSymbiantSymbiosis.jobString>正在移除共生体连接。</SeverSymbiantSymbiosis.jobString>
 
-	<MakeZombieSerum.label>用僵尸提取物制作僵尸血清</MakeZombieSerum.label>
-	<MakeZombieSerum.description>用僵尸提取物制作一个僵尸血清。僵尸血清可在手术中治愈僵尸感染。</MakeZombieSerum.description>
-	<MakeZombieSerum.jobString>正在制作僵尸血清。</MakeZombieSerum.jobString>
+	<MakeZombieSerum.label>用丧尸提取物制作丧尸血清</MakeZombieSerum.label>
+	<MakeZombieSerum.description>用丧尸提取物制作一剂丧尸血清。丧尸血清可在手术中治愈丧尸感染。</MakeZombieSerum.description>
+	<MakeZombieSerum.jobString>正在制作丧尸血清。</MakeZombieSerum.jobString>
 
 </LanguageData>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<Zombie.label>zombi</Zombie.label>
+	<Zombie.description>Un zombi.</Zombie.description>
+	<Zombie.tools.0.label>mordisco</Zombie.tools.0.label>
+	<Zombie.tools.1.label>puño izquierdo</Zombie.tools.1.label>
+	<Zombie.tools.2.label>puño derecho</Zombie.tools.2.label>
+	<ElectricalField.label>campo eléctrico</ElectricalField.label>
+	<ElectricalField.verbs.0.label>descarga eléctrica</ElectricalField.verbs.0.label>
+	<ElectricalField.tools.0.label>descarga eléctrica</ElectricalField.tools.0.label>
+	<ZombieSpitter.label>escupidor zombi</ZombieSpitter.label>
+	<ZombieSpitter.description>Un monstruo que escupe zombis por el aire para atacar tu base.</ZombieSpitter.description>
+	<ZombieSymbiant.label>Simbionte zombi</ZombieSymbiant.label>
+	<ZombieSymbiant.description>Una infestación interior de Simbionte zombi. Se extiende como baba visible por las habitaciones interiores transitadas, ralentiza a los peones que la atraviesan y se vincula a un colono. El huésped es inmune a la infección zombi causada por mordiscos y obtiene beneficios aleatorios a medida que crece el Simbionte. Alimentarlo con cadáveres acelera su crecimiento. Una operación elimina el vínculo y deja que el Simbionte desvinculado se encoja hasta desaparecer.</ZombieSymbiant.description>
+
+</LanguageData>

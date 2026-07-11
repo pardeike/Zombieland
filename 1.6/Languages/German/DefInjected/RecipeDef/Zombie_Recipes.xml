@@ -2,15 +2,15 @@
 <LanguageData>
 
 	<CureZombieInfection.label>Zombieinfektion heilen</CureZombieInfection.label>
-	<CureZombieInfection.description>Entfernt eine frühe Zombieinfektion von einem Körperteil. Benötigt ein Zombieserum; ein höherer Prozentsatz senkt das Fehlschlagrisiko.</CureZombieInfection.description>
-	<CureZombieInfection.jobString>Heilt Zombieinfektion.</CureZombieInfection.jobString>
+	<CureZombieInfection.description>Entfernt eine Zombieinfektion im Frühstadium aus einem Körperteil. Benötigt ein Zombieserum; ein höherer Prozentsatz senkt das Fehlschlagrisiko.</CureZombieInfection.description>
+	<CureZombieInfection.jobString>Heilt eine Zombieinfektion.</CureZombieInfection.jobString>
 
-	<SeverSymbiantSymbiosis.label>Symbiant-Verbindung entfernen</SeverSymbiantSymbiosis.label>
-	<SeverSymbiantSymbiosis.description>Entfernt die Verbindung zwischen einem Kolonisten und dem Symbiant. Der wirtslose Symbiant zieht sich nach der Operation zurück.</SeverSymbiantSymbiosis.description>
-	<SeverSymbiantSymbiosis.jobString>Entfernt die Symbiant-Verbindung.</SeverSymbiantSymbiosis.jobString>
+	<SeverSymbiantSymbiosis.label>Symbionten-Verbindung entfernen</SeverSymbiantSymbiosis.label>
+	<SeverSymbiantSymbiosis.description>Entfernt die Verbindung zwischen einem Kolonisten und dem Symbionten. Der ungebundene Symbiont zieht sich nach der Operation zurück.</SeverSymbiantSymbiosis.description>
+	<SeverSymbiantSymbiosis.jobString>Entfernt die Symbionten-Verbindung.</SeverSymbiantSymbiosis.jobString>
 
 	<MakeZombieSerum.label>Zombieserum aus Zombieextrakt herstellen</MakeZombieSerum.label>
-	<MakeZombieSerum.description>Stellt ein Zombieserum aus Zombieextrakt her. Zombieserum heilt Zombieinfektionen während Operationen.</MakeZombieSerum.description>
+	<MakeZombieSerum.description>Stellt ein Zombieserum aus Zombieextrakt her. Zombieserum heilt Zombieinfektionen bei Operationen.</MakeZombieSerum.description>
 	<MakeZombieSerum.jobString>Stellt Zombieserum her.</MakeZombieSerum.jobString>
 
 </LanguageData>
