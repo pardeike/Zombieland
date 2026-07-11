@@ -267,7 +267,7 @@ namespace ZombieLand
 				return FindExpansionTarget(false) == null ? "contained" : "growing";
 			}
 		}
-		public bool CanSafelySever => LinkedHost != null && symbiosisSevered == false;
+		public bool CanSafelySever => symbiosisSevered == false && IsSpawnedHostOnCurrentMap(LinkedHost);
 		public static float HostHediffSeverity(float benefitFactor) => Mathf.Max(0.001f, Mathf.Clamp01(benefitFactor));
 		public int NextBenefitCellSize
 		{
@@ -1657,11 +1657,6 @@ namespace ZombieLand
 				CollapseFromHostDeath();
 				return;
 			}
-			if (linkedHost.Spawned && linkedHost.Map != null && Spawned && linkedHost.Map != Map)
-			{
-				ReleaseHostLink(linkedHost, "SymbiantHostRelocatedMessage");
-				return;
-			}
 			EnsureHostHediff();
 		}
 
@@ -2228,12 +2223,13 @@ namespace ZombieLand
 			try
 			{
 				var pawn = ResolveHost();
+				var killHost = IsSpawnedHostOnCurrentMap(pawn);
 				PlayDisconnectedSound();
 				RemoveHostHediff(pawn);
 				host = null;
 				hostThingId = null;
 				symbiosisSevered = true;
-				if (pawn != null && pawn.Destroyed == false && pawn.Dead == false)
+				if (killHost && pawn.Destroyed == false && pawn.Dead == false)
 					pawn.Kill(null);
 				Destroy(DestroyMode.Vanish);
 			}
@@ -2241,16 +2237,6 @@ namespace ZombieLand
 			{
 				sharedHealthFailureInProgress = false;
 			}
-		}
-
-		void ReleaseHostLink(Pawn pawn, string messageKey = null)
-		{
-			PlayDisconnectedSound();
-			RemoveHostHediff(pawn);
-			host = null;
-			hostThingId = null;
-			if (messageKey.NullOrEmpty() == false && pawn != null)
-				Messages.Message(messageKey.Translate(pawn.LabelShortCap), pawn, MessageTypeDefOf.NeutralEvent, false);
 		}
 
 			void CollapseFromHostDeath()
@@ -2355,7 +2341,7 @@ namespace ZombieLand
 
 			var linkedHost = LinkedHost;
 			var hostAmount = 0f;
-			if (linkedHost != null && linkedHost.Destroyed == false && linkedHost.Dead == false)
+			if (IsSpawnedHostOnCurrentMap(linkedHost) && linkedHost.Destroyed == false && linkedHost.Dead == false)
 			{
 				hostAmount = SharedDamageLeakAmount(drained);
 				if (hostAmount > 0.01f)
@@ -2393,7 +2379,7 @@ namespace ZombieLand
 
 		public bool TrySeverSymbiosis(Pawn pawn, Pawn doctor)
 		{
-			if (pawn == null || pawn != LinkedHost || CanSafelySever == false)
+			if (pawn == null || pawn != LinkedHost || IsSpawnedHostOnCurrentMap(pawn) == false || CanSafelySever == false)
 				return false;
 
 			safeSeveranceInProgress = true;

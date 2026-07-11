@@ -20,7 +20,8 @@ The feature should be legible and annoying in a RimWorld way. It disrupts moveme
 
 - One active Symbiant per map.
 - The authoritative host link lives on `ZombieSymbiant`; `SymbiantSymbiosis` is display/sync state and is recreated when missing.
-- Host benefits, zombie infection immunity, zombie targeting protection, and surgery are same-map effects only.
+- The exact host identity persists while that pawn is travelling, contained, or spawned on another map; the bond becomes active again only when that same pawn returns to the Symbiant's map.
+- Host benefits, zombie infection immunity, zombie targeting protection, automatic healing, shared damage, and surgery are same-map effects only.
 - Host selection is independent from spawn room selection.
 - Natural spawn requires an eligible host and a used indoor room plan.
 - Hostless slime is for debug/test or fallback cleanup. It has no host benefits and no host trauma.
@@ -49,7 +50,11 @@ The maximum-size slider allows up to `ZombieSymbiant.MAX_METABALLS = 4000`. Even
 
 Eligible hosts are spawned, living, free player colonists that are humanlike flesh pawns, adult/non-child by RimWorld category, and suitable for normal colony surgery. The selection rejects prisoners, slaves, guests, temporary joiners, quest lodgers, caravan pawns, shuttle occupants, Save Our Ship holograms, non-flesh optional-mod pawns, existing Symbiant hosts, Zombieland pawns, and late/active zombie infection cases.
 
-If the host is temporarily unavailable through despawn-like containment, the bond can persist but active benefits and surgery turn off. If the host is spawned on another map, the bond is released, the host hediff is removed, and the remaining hostless slime can be fed or allowed to retreat.
+If the host is unavailable through travel or containment, including being spawned on another map, the authoritative link and display hediff persist but all same-map effects turn off. Returning the same pawn to the Symbiant's map reactivates the existing bond; another host is never chosen as a travel fallback. Host death anywhere ends the bond and starts retreat. Destroying the Symbiant or abandoning its map while the host is away removes the remote hediff without harming that host.
+
+The Symbiant itself never boards an Odyssey gravship. Its def sets `bringAlongOnGravship=false`, so a departure that preserves the origin map leaves the Symbiant there and the travelling host dormant. If the gravship launch abandons the origin map, Zombieland destroys and discards the map-bound Symbiant before vanilla snapshots and transfers spawned pawns to `WorldPawns`; that clears the remote host link safely instead of creating an orphaned world-pawn Symbiant.
+
+Automatic and direct map removal uses the same safety rule. Before `Game.DeinitAndRemoveMap` can enter `MapDeiniter` and pass remaining map pawns to `WorldPawns`, Zombieland destroys and discards the active map-bound Symbiant and safely clears any remote host link. This covers temporary sites, camps, settlements, ordinary pocket maps, space maps, and other vanilla callers that close a map without invoking `MapParent.Abandon`.
 
 ## Spread, Relocation, And Retreat
 
@@ -95,6 +100,8 @@ The host starts with zombie infection immunity from the bond. Additional random 
 - automatic healing, stackable.
 
 The acquired benefit list should be visible on the host hediff tooltip and on the Symbiant info/inspect surface.
+
+The shared-health pool remains on the Symbiant while the bond is dormant, but damage never crosses maps. Damage to the separated host does not drain the pool; damage to the Symbiant does not leak to or kill the separated host. If the pool fails while the host is away, the Symbiant is removed and the remote host survives.
 
 Pawn disruption remains non-lethal:
 
@@ -164,6 +171,7 @@ For a release candidate touching Symbiant behavior:
 - translation placeholder/key parity if language files changed
 - stale-key scan for removed Symbiant settings and old benefit names
 - one loaded-game smoke that spawns or observes a Symbiant
+- cross-map host-link, shared-damage, and return checks when host lifecycle behavior changed
 - clean warning-or-higher logs except documented old-save missing-def compatibility errors
 - asset bundle rebuild only if shader/material assets changed
 - tracked DLLs restored before a normal source-only commit

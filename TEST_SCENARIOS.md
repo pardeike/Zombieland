@@ -933,7 +933,7 @@ Release candidate checks:
 - Host death or severance causes retreat/disappear behavior without reward drops.
 - Symbiant shrink clears contamination on each removed cell once.
 - Selecting any covered blob cell selects the Symbiant; selected Symbiant exposes useful inspect/info text and does not expose normal pawn tabs or a custom status gizmo.
-- Temporary host map-leave/despawn/cryptosleep containment preserves the link and display hediff while disabling benefits, surgery, and zombie targeting protection until the same host returns. Host death by ordinary damage and host deletion/real-caravan/gravship edges still need conservative collapse/preservation proof without recursive host-kill behavior, reward drops, or random splash damage.
+- The exact host identity and single display hediff persist through despawn, containment, caravans, shuttles, gravship travel that preserves the origin map, and spawning on a second loaded map. All active benefits, immunity, protection, healing, shared damage, and surgery remain same-map-only; returning the same pawn reactivates the existing bond without reassignment or duplicate hediffs. The Symbiant never boards a gravship. A gravship launch that abandons its origin map destroys and discards it before vanilla's pawn-transfer snapshot, clears the remote link without harming the host, and leaves no Symbiant in `WorldPawns`. Automatic or direct removal of a temporary site, camp, settlement, ordinary pocket map, or space map performs equivalent cleanup before `MapDeiniter` can transfer pawns. Remote host death starts retreat, while remote-host Symbiant destruction or shared-pool failure also clears the bond safely.
 - Pawns on goo have difficulty-scaled movement, work, and tend penalties without damage, hediffs, disease, filth, or item destruction. The linked host is exempt from its own Symbiant's penalties, and the current values are visible in the Symbiant info text.
 - Focused save/load keeps ordered cells, host link/id, recreated hediff, acquired benefits, relocation/uprooted state, and renderer state. Same-process no-symbiant save switching proves stale static-cache prevention. Broader save/load still needs feed request, active motions, retreat state, and true multi-map coverage.
 - Disabling symbiant events while a symbiant already exists stops future spawns without silently deleting the active symbiant.
@@ -943,8 +943,8 @@ Release candidate checks:
 - Bridge-only 4000-cell stress reaches the source/render ceiling without changing saved gameplay settings and without shader buffer or save/load errors.
 
 Follow-up coverage:
-- Full save/load matrix: feed request, host links, acquired benefits, active motions, retreat state, and renderer resources across real map switches.
-- Host edge matrix: children, prisoners, slaves, guests, temporary joiners, quest lodgers, real caravan/gravship/unavailable pawns, host deletion, optional-mod holograms, non-flesh pawns, existing hosts, and late/active zombie infection.
+- Full save/load matrix: feed request, active motions, retreat state, and renderer resources, plus exact-host link preservation while separated across real map switches and while held by a shuttle or world object.
+- Host edge matrix: children, prisoners, slaves, guests, temporary joiners, quest lodgers, host deletion, optional-mod holograms, non-flesh pawns, existing hosts, and late/active zombie infection. Cross-map travel variants must prove dormant effects, remote damage safety, same-host return, remote death, and origin-map abandonment.
 - Natural-base disruption: work-stat, tend-speed, path-cost, item-reach behavior, and multi-room relocation in a more organic colony layout.
 - Feeding variants: humanlike/non-humanlike corpse freshness and body-size pulse strengths.
 - Endurance/performance: bridge-only 4000-cell render ceiling, many-pawn pathing stress, and normal-play log cleanliness over longer runtime.

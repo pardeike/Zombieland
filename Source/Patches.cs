@@ -135,21 +135,70 @@ namespace ZombieLand
 			soundDef.PlayOneShot(SoundInfo.InMap(new TargetInfo(position, map)));
 		}
 
-		[HarmonyPatch(typeof(MapParent))]
-		[HarmonyPatch(nameof(MapParent.Abandon))]
+		[HarmonyPatch(typeof(Game))]
+		[HarmonyPatch(nameof(Game.DeinitAndRemoveMap), typeof(Map), typeof(bool))]
+		static class Game_DeinitAndRemoveMap_Patch
+		{
+			static void Prefix(Game __instance, Map map)
+			{
+				if (map == null || __instance?.Maps?.Contains(map) != true)
+					return;
+				DestroyMapBoundSymbiant(ZombieSymbiant.ActiveSymbiant(map));
+			}
+		}
+
+		[HarmonyPatch(typeof(GravshipUtility))]
+		[HarmonyPatch(nameof(GravshipUtility.AbandonMap), typeof(Map))]
+		static class GravshipUtility_AbandonMap_Patch
+		{
+			static void Prefix(Map map)
+			{
+				if (ModLister.OdysseyInstalled == false)
+					return;
+				DestroyMapBoundSymbiant(ZombieSymbiant.ActiveSymbiant(map));
+			}
+		}
+
+		static void DestroyMapBoundSymbiant(ZombieSymbiant symbiant)
+		{
+			if (symbiant == null)
+				return;
+			if (symbiant.Destroyed == false)
+				symbiant.Destroy(DestroyMode.Vanish);
+			if (Find.WorldPawns?.Contains(symbiant) == true)
+				Find.WorldPawns.RemovePawn(symbiant);
+			if (symbiant.Discarded == false)
+				symbiant.Discard(true);
+		}
+
+		[HarmonyPatch]
 		static class MapParent_Abandon_Patch
 		{
 			static readonly HashSet<MapParent> confirmedSymbiantAbandons = [];
 
+			static IEnumerable<MethodBase> TargetMethods()
+			{
+				var baseMethod = typeof(MapParent).GetMethod(nameof(MapParent.Abandon), AccessTools.all | BindingFlags.DeclaredOnly, null, [typeof(bool)], null);
+				return GenTypes.AllSubclasses(typeof(MapParent))
+					.Prepend(typeof(MapParent))
+					.Select(type => type.GetMethod(nameof(MapParent.Abandon), AccessTools.all | BindingFlags.DeclaredOnly, null, [typeof(bool)], null))
+					.Where(method => IsConcretePatchTarget(method) && method.GetBaseDefinition() == baseMethod)
+					.Cast<MethodBase>();
+			}
+
 			static bool Prefix(MapParent __instance, bool wasGravshipLaunch)
 			{
-				if (__instance?.HasMap != true || Find.WindowStack == null)
-					return true;
-				if (confirmedSymbiantAbandons.Remove(__instance))
+				if (__instance?.HasMap != true)
 					return true;
 				var map = __instance.Map;
-				if (ZombieSymbiant.ActiveSymbiant(map) == null)
+				var symbiant = ZombieSymbiant.ActiveSymbiant(map);
+				if (symbiant == null)
 					return true;
+				if (confirmedSymbiantAbandons.Remove(__instance) || Find.WindowStack == null)
+				{
+					DestroyMapBoundSymbiant(symbiant);
+					return true;
+				}
 
 				Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
 					"SymbiantMapAbandonWarning".Translate(),

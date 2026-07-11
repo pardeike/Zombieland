@@ -477,6 +477,8 @@ namespace ZombieLand
 			"ZombieLand.Patches+WealthWatcher_CalculateWealthItems_Patch",
 			"ZombieLand.Patches+WealthWatcher_WealthItemsFilter_Patch",
 			"ZombieLand.Patches+DangerWatcher_CalculateDangerRating_Patch",
+			"ZombieLand.Patches+Game_DeinitAndRemoveMap_Patch",
+			"ZombieLand.Patches+GravshipUtility_AbandonMap_Patch",
 			"ZombieLand.Patches+MapParent_Abandon_Patch"
 		};
 
