@@ -831,30 +831,62 @@ namespace ZombieLand
 		public static object ZombieExtractFilterVisibility()
 		{
 			var serumDef = DefDatabase<ThingDef>.GetNamed("ZombieSerumSimple", false);
-			if (serumDef == null)
+			var labSerumDef = DefDatabase<ThingDef>.GetNamed("Zombie100Serum", false);
+			var simpleSerumRecipe = DefDatabase<RecipeDef>.GetNamed("MakeZombieSerum", false);
+			if (serumDef == null || labSerumDef == null || simpleSerumRecipe == null)
 			{
 				return new
 				{
 					success = false,
-					error = "ZombieSerumSimple def was not loaded."
+					error = "ZombieSerumSimple, Zombie100Serum, or MakeZombieSerum def was not loaded."
 				};
 			}
+			var playerRecipePrerequisiteTags = Faction.OfPlayer?.def?.recipePrerequisiteTags ?? new List<string>();
+			var recipeFactionPrerequisites = simpleSerumRecipe.factionPrerequisiteTags ?? new List<string>();
+			var playerMeetsRecipeFactionPrerequisites = recipeFactionPrerequisites.All(playerRecipePrerequisiteTags.Contains);
+			var simpleSerumRecipeAvailabilityMatchesFaction = simpleSerumRecipe.AvailableNow == playerMeetsRecipeFactionPrerequisites;
+			var makeshiftSerumShouldBeVisible = simpleSerumRecipe.AvailableNow;
+			var extractCategoryDefNames = CustomDefs.ZombieExtract.thingCategories.Select(category => category.defName).ToArray();
+			var extractCategorizedAsRawResourceOnly = extractCategoryDefNames.Contains("ResourcesRaw")
+				&& extractCategoryDefNames.Contains("ZombieSerum") == false;
+			var simpleSerumRecipeAllowsExtract = simpleSerumRecipe.fixedIngredientFilter.Allows(CustomDefs.ZombieExtract);
 
 			var filter = new ThingFilter();
 			filter.SetAllow(CustomDefs.ZombieExtract, true);
 			filter.SetAllow(serumDef, true);
+			filter.SetAllow(labSerumDef, true);
 			filter.SetAllow(CustomDefs.Corpse_Zombie, true);
 			filter.SetAllow(CustomDefs.Zombie, true);
 			var allowedDefs = filter.AllowedThingDefs.ToHashSet();
 			var extractAllowed = allowedDefs.Contains(CustomDefs.ZombieExtract);
 			var serumAllowed = allowedDefs.Contains(serumDef);
+			var labSerumAllowed = allowedDefs.Contains(labSerumDef);
 			var zombieCorpseAllowed = allowedDefs.Contains(CustomDefs.Corpse_Zombie);
 			var zombiePawnAllowed = allowedDefs.Contains(CustomDefs.Zombie);
+			var serumLabelsDistinct = string.Equals(serumDef.label, labSerumDef.label, StringComparison.OrdinalIgnoreCase) == false;
+			var makeshiftSerumPurity = Tools.ZombieSerumPurity(serumDef);
+			var labSerumPurity = Tools.ZombieSerumPurity(labSerumDef);
+			var simpleSerumSurgeryFactor = serumDef.GetStatValueAbstract(StatDefOf.SurgerySuccessChanceFactor);
+			var labSerumSurgeryFactor = labSerumDef.GetStatValueAbstract(StatDefOf.SurgerySuccessChanceFactor);
+			var serumsMedicallyEquivalent = makeshiftSerumPurity == 100
+				&& labSerumPurity == 100
+				&& Math.Abs(simpleSerumSurgeryFactor - 1f) < 0.0001f
+				&& Math.Abs(labSerumSurgeryFactor - 1f) < 0.0001f;
+			var expectedSpitterSerumDef = Tools.SpitterSerumDefForPlayer();
+			var spitterSerumMatchesAvailability = expectedSpitterSerumDef == (makeshiftSerumShouldBeVisible ? serumDef : labSerumDef);
+			var attemptedMakeshiftThing = ThingMaker.MakeThing(serumDef);
+			var expectedCreatedSerumDef = makeshiftSerumShouldBeVisible ? serumDef : labSerumDef;
+			var makeshiftCreationResolvesForFaction = attemptedMakeshiftThing?.def == expectedCreatedSerumDef;
+			var makeshiftExcludedFromGenericAcquisition = serumDef.tradeability == Tradeability.None
+				&& serumDef.generateCommonality <= 0f
+				&& serumDef.generateAllowChance <= 0f
+				&& serumDef.scatterableOnMapGen == false
+				&& serumDef.forceDebugSpawnable == false;
 
 			var extractThing = ThingMaker.MakeThing(CustomDefs.ZombieExtract);
 			var serumFilterWorker = new ZombieSerumFilterWorker();
 			var extractExcludedBySerumFilter = serumFilterWorker.Matches(extractThing);
-			if (TryProbeTreeThingFilterVisibility(serumDef, out var treeVisibilitySuccess, out var treeVisibility, out var treeVisibilityError) == false)
+			if (TryProbeTreeThingFilterVisibility(serumDef, labSerumDef, makeshiftSerumShouldBeVisible, out var treeVisibilitySuccess, out var treeVisibility, out var treeVisibilityError) == false)
 			{
 				return new
 				{
@@ -868,7 +900,49 @@ namespace ZombieLand
 					serum = new
 					{
 						defName = serumDef.defName,
+						label = serumDef.label,
 						allowed = serumAllowed
+					},
+					labSerum = new
+					{
+						defName = labSerumDef.defName,
+						label = labSerumDef.label,
+						allowed = labSerumAllowed
+					},
+					serumLabelsDistinct,
+					serumFunction = new
+					{
+						medicallyEquivalent = serumsMedicallyEquivalent,
+						makeshiftPurity = makeshiftSerumPurity,
+						labPurity = labSerumPurity,
+						makeshiftSurgerySuccessFactor = simpleSerumSurgeryFactor,
+						labSurgerySuccessFactor = labSerumSurgeryFactor,
+						expectedSpitterSerumDef = expectedSpitterSerumDef?.defName,
+						spitterSerumMatchesAvailability,
+						attemptedMakeshiftResolvedTo = attemptedMakeshiftThing?.def?.defName,
+						makeshiftCreationResolvesForFaction,
+						makeshiftExcludedFromGenericAcquisition,
+						tradeability = serumDef.tradeability.ToString(),
+						serumDef.generateCommonality,
+						serumDef.generateAllowChance,
+						serumDef.scatterableOnMapGen,
+						serumDef.forceDebugSpawnable
+					},
+					simpleSerumRecipe = new
+					{
+						defName = simpleSerumRecipe.defName,
+						availableNow = simpleSerumRecipe.AvailableNow,
+						factionPrerequisiteTags = recipeFactionPrerequisites,
+						playerFactionDef = Faction.OfPlayer?.def?.defName,
+						playerRecipePrerequisiteTags,
+						playerMeetsRecipeFactionPrerequisites,
+						availabilityMatchesFaction = simpleSerumRecipeAvailabilityMatchesFaction
+					},
+					extractCategories = new
+					{
+						defNames = extractCategoryDefNames,
+						rawResourceOnly = extractCategorizedAsRawResourceOnly,
+						simpleSerumRecipeAllowsExtract
 					},
 					blockedZombieDefs = new
 					{
@@ -891,6 +965,15 @@ namespace ZombieLand
 			{
 				success = extractAllowed
 					&& serumAllowed
+					&& labSerumAllowed
+					&& serumLabelsDistinct
+					&& serumsMedicallyEquivalent
+					&& spitterSerumMatchesAvailability
+					&& makeshiftCreationResolvesForFaction
+					&& makeshiftExcludedFromGenericAcquisition
+					&& simpleSerumRecipeAvailabilityMatchesFaction
+					&& extractCategorizedAsRawResourceOnly
+					&& simpleSerumRecipeAllowsExtract
 					&& zombieCorpseAllowed == false
 					&& zombiePawnAllowed == false
 					&& extractExcludedBySerumFilter == false
@@ -904,7 +987,49 @@ namespace ZombieLand
 				serum = new
 				{
 					defName = serumDef.defName,
+					label = serumDef.label,
 					allowed = serumAllowed
+				},
+				labSerum = new
+				{
+					defName = labSerumDef.defName,
+					label = labSerumDef.label,
+					allowed = labSerumAllowed
+				},
+				serumLabelsDistinct,
+				serumFunction = new
+				{
+					medicallyEquivalent = serumsMedicallyEquivalent,
+					makeshiftPurity = makeshiftSerumPurity,
+					labPurity = labSerumPurity,
+					makeshiftSurgerySuccessFactor = simpleSerumSurgeryFactor,
+					labSurgerySuccessFactor = labSerumSurgeryFactor,
+					expectedSpitterSerumDef = expectedSpitterSerumDef?.defName,
+					spitterSerumMatchesAvailability,
+					attemptedMakeshiftResolvedTo = attemptedMakeshiftThing?.def?.defName,
+					makeshiftCreationResolvesForFaction,
+					makeshiftExcludedFromGenericAcquisition,
+					tradeability = serumDef.tradeability.ToString(),
+					serumDef.generateCommonality,
+					serumDef.generateAllowChance,
+					serumDef.scatterableOnMapGen,
+					serumDef.forceDebugSpawnable
+				},
+				simpleSerumRecipe = new
+				{
+					defName = simpleSerumRecipe.defName,
+					availableNow = simpleSerumRecipe.AvailableNow,
+					factionPrerequisiteTags = recipeFactionPrerequisites,
+					playerFactionDef = Faction.OfPlayer?.def?.defName,
+					playerRecipePrerequisiteTags,
+					playerMeetsRecipeFactionPrerequisites,
+					availabilityMatchesFaction = simpleSerumRecipeAvailabilityMatchesFaction
+				},
+				extractCategories = new
+				{
+					defNames = extractCategoryDefNames,
+					rawResourceOnly = extractCategorizedAsRawResourceOnly,
+					simpleSerumRecipeAllowsExtract
 				},
 				blockedZombieDefs = new
 				{
@@ -930,7 +1055,7 @@ namespace ZombieLand
 			new[] { typeof(ThingDef) },
 			null);
 
-		static bool TryProbeTreeThingFilterVisibility(ThingDef serumDef, out bool success, out object evidence, out string error)
+		static bool TryProbeTreeThingFilterVisibility(ThingDef serumDef, ThingDef labSerumDef, bool makeshiftSerumShouldBeVisible, out bool success, out object evidence, out string error)
 		{
 			success = false;
 			evidence = null;
@@ -950,10 +1075,12 @@ namespace ZombieLand
 				new QuickSearchFilter());
 			var extractVisible = (bool)listingTreeThingFilterVisibleMethod.Invoke(listing, new object[] { CustomDefs.ZombieExtract });
 			var serumVisible = (bool)listingTreeThingFilterVisibleMethod.Invoke(listing, new object[] { serumDef });
+			var labSerumVisible = (bool)listingTreeThingFilterVisibleMethod.Invoke(listing, new object[] { labSerumDef });
 			var zombieCorpseVisible = (bool)listingTreeThingFilterVisibleMethod.Invoke(listing, new object[] { CustomDefs.Corpse_Zombie });
 			var zombiePawnVisible = (bool)listingTreeThingFilterVisibleMethod.Invoke(listing, new object[] { CustomDefs.Zombie });
 			success = extractVisible
-				&& serumVisible
+				&& serumVisible == makeshiftSerumShouldBeVisible
+				&& labSerumVisible
 				&& zombieCorpseVisible == false
 				&& zombiePawnVisible == false;
 			evidence = new
@@ -961,6 +1088,8 @@ namespace ZombieLand
 				success,
 				extractVisible,
 				serumVisible,
+				makeshiftSerumShouldBeVisible,
+				labSerumVisible,
 				zombieCorpseVisible,
 				zombiePawnVisible
 			};

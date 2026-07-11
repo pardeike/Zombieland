@@ -526,7 +526,7 @@ namespace ZombieLand
 
 		static bool IsZombieSerumThing(Thing thing)
 		{
-			return string.Equals(thing?.def?.defName, "ZombieSerumSimple", StringComparison.Ordinal);
+			return thing?.def?.thingClass != null && typeof(ZombieSerum).IsAssignableFrom(thing.def.thingClass);
 		}
 
 		static int CountZombieHediffs(Pawn pawn)

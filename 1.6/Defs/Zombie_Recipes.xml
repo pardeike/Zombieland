@@ -132,6 +132,9 @@
 				<li>Medicine</li>
 				<li>ZombieSerum</li>
 			</categories>
+			<thingDefs>
+				<li>ZombieExtract</li>
+			</thingDefs>
 			<disallowedCategories>
 				<li>CorpsesMechanoid</li>
 				<li>CorpsesHumanlike</li>

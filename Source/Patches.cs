@@ -6070,6 +6070,11 @@ namespace ZombieLand
 		{
 			static bool Prefix(ThingDef td, ref bool __result)
 			{
+				if (td?.defName == "ZombieSerumSimple" && Tools.MakeshiftSerumAvailableForPlayer() == false)
+				{
+					__result = false;
+					return false;
+				}
 				if (ThingFilter_SetAllow_Patch.IsZombieDef(td))
 				{
 					__result = false;
@@ -6325,8 +6330,14 @@ namespace ZombieLand
 				def.stackLimit = 1;
 			}
 
-			static void Prefix(ThingDef def)
+			static void Prefix(ref ThingDef def)
 			{
+				if (def?.defName == "ZombieSerumSimple"
+					&& Current.Game != null
+					&& Faction.OfPlayer != null
+					&& Tools.MakeshiftSerumAvailableForPlayer() == false)
+					def = DefDatabase<ThingDef>.GetNamedSilentFail("Zombie100Serum") ?? def;
+
 				if (def == null || def.IsCorpse == false)
 					return;
 

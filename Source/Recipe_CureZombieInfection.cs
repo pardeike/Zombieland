@@ -40,8 +40,8 @@ namespace ZombieLand
 			if (serum == null)
 				return;
 
-			var extract = serum.CostListAdjusted().FirstOrDefault(d => d.thingDef.defName == "ZombieExtract");
-			if (extract == null && serum.def.defName != "ZombieSerumSimple")
+			var purity = Tools.ZombieSerumPurity(serum.def);
+			if (purity <= 0)
 				return;
 
 			var bite = GetInfectingBites(pawn).FirstOrDefault(b => b.Part == part);
@@ -49,7 +49,6 @@ namespace ZombieLand
 				return;
 
 			var chance = Rand.RangeInclusive(0, 100);
-			var purity = serum.def.defName == "ZombieSerumSimple" ? 100 : extract.count;
 			var failure = chance > purity;
 			if (failure)
 			{

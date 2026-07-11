@@ -195,7 +195,6 @@
 		</tradeTags>
 		<thingCategories>
 			<li>ResourcesRaw</li>
-			<li>ZombieSerum</li>
 		</thingCategories>
 		<tickerType>Rare</tickerType>
 		<resourceReadoutPriority>First</resourceReadoutPriority>
@@ -266,7 +265,7 @@
 
 	<ThingDef name="ZombieSerumSimple" ParentName="ZombieSerumBase">
 		<defName>ZombieSerumSimple</defName>
-		<label>zombie serum 100%</label>
+		<label>makeshift zombie serum 100%</label>
 		<description>Pure serum from dead zombies that guarantees a cure for zombie infections during operations.</description>
 		<graphicData>
 			<texPath>ZombieSerum/ZombieSerum100</texPath>
@@ -277,6 +276,10 @@
 			<SurgerySuccessChanceFactor>1</SurgerySuccessChanceFactor>
 		</statBases>
 		<tradeability>None</tradeability>
+		<generateCommonality>0</generateCommonality>
+		<generateAllowChance>0</generateAllowChance>
+		<scatterableOnMapGen>false</scatterableOnMapGen>
+		<forceDebugSpawnable>false</forceDebugSpawnable>
 	</ThingDef>
 
 	<ThingDef name="Zombie10Serum" ParentName="ZombieSerumCore">

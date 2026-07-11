@@ -1949,7 +1949,7 @@ namespace ZombieLand
 
 			if (pawn is ZombieSpitter spitter && spitter.aggressive)
 			{
-				var def = DefDatabase<ThingDef>.GetNamed("ZombieSerumSimple", false);
+				var def = SpitterSerumDefForPlayer();
 				if (def != null)
 					for (var i = 0; i < amount; i++)
 					{
@@ -1968,6 +1968,34 @@ namespace ZombieLand
 				var apparel = apparels.RandomElementByWeight(apparel => apparel.MarketValue);
 				_ = pawn.apparel.TryDrop(apparel);
 			}
+		}
+
+		public static bool MakeshiftSerumAvailableForPlayer()
+		{
+			if (Faction.OfPlayer == null)
+				return false;
+			return DefDatabase<RecipeDef>.GetNamedSilentFail("MakeZombieSerum")?.AvailableNow == true;
+		}
+
+		public static ThingDef SpitterSerumDefForPlayer()
+		{
+			var defName = MakeshiftSerumAvailableForPlayer() ? "ZombieSerumSimple" : "Zombie100Serum";
+			return DefDatabase<ThingDef>.GetNamedSilentFail(defName);
+		}
+
+		public static int ZombieSerumPurity(ThingDef serumDef)
+		{
+			if (serumDef?.thingClass == null || typeof(ZombieSerum).IsAssignableFrom(serumDef.thingClass) == false)
+				return 0;
+			if (serumDef.defName == "ZombieSerumSimple")
+				return 100;
+			return serumDef.costList?
+				.FirstOrDefault(cost => cost.thingDef == CustomDefs.ZombieExtract)?.count ?? 0;
+		}
+
+		public static bool IsFullStrengthZombieSerum(ThingDef serumDef)
+		{
+			return ZombieSerumPurity(serumDef) == 100;
 		}
 
 		public static void UpdateBiomeBlacklist(HashSet<string> defNames)

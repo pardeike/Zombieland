@@ -545,14 +545,14 @@ namespace ZombieLand
 
 		static object VerifyPawnKillSpitterLoot(Map map, ZombieSpitter spitter)
 		{
-			var serumDef = DefDatabase<ThingDef>.GetNamed("ZombieSerumSimple", false);
+			var serumDef = Tools.SpitterSerumDefForPlayer();
 			if (serumDef == null)
 			{
 				return new
 				{
 					success = false,
 					spitter = DescribePawn(spitter),
-					error = "ThingDef ZombieSerumSimple was not found."
+					error = "The expected player-faction spitter serum def was not found."
 				};
 			}
 
@@ -580,6 +580,7 @@ namespace ZombieLand
 				success = spitter.Dead && newSerums.Length == 1,
 				spitter = DescribePawn(spitter),
 				serumDef = serumDef.defName,
+				makeshiftSerumAvailable = Tools.MakeshiftSerumAvailableForPlayer(),
 				newSerumCount = newSerums.Length,
 				newSerums = newSerums.Select(thing => new
 				{
@@ -1800,7 +1801,7 @@ namespace ZombieLand
 		}
 
 		[Tool("zombieland/cure_zombie_infection_recipe", Description = "Apply the real cure-infection recipe worker with 100% serum and verify the cured corpse no longer queues conversion.")]
-		public static object CureZombieInfectionRecipe()
+		public static object CureZombieInfectionRecipe(string serumDefName = "ZombieSerumSimple")
 		{
 			var map = CurrentMap;
 			if (map == null)
@@ -1838,7 +1839,7 @@ namespace ZombieLand
 			var recipe = CustomDefs.CureZombieInfection;
 			var worker = recipe?.Worker;
 			var partsBefore = worker?.GetPartsToApplyOn(patient, recipe).ToArray() ?? Array.Empty<BodyPartRecord>();
-			var serumDef = DefDatabase<ThingDef>.GetNamed("ZombieSerumSimple", false);
+			var serumDef = DefDatabase<ThingDef>.GetNamed(serumDefName, false);
 			if (recipe == null || worker == null || serumDef == null || partsBefore.Length == 0)
 			{
 				return new
@@ -1905,6 +1906,7 @@ namespace ZombieLand
 				curablePartCountBefore = partsBefore.Length,
 				curablePartCountAfter = partsAfter.Length,
 				serumDef = serum.def.defName,
+				serumPurity = Tools.ZombieSerumPurity(serum.def),
 				rotTriggered,
 				rotStageBefore = rotStageBefore.ToString(),
 				rotStageAfter = rotStageAfter.ToString(),
