@@ -61,7 +61,7 @@
 	<DynamicThreatSmoothness_Help>Określa płynność krzywej zagrożenia.</DynamicThreatSmoothness_Help>
 	<DynamicThreatStretch_Help>To ustawienie pozwala rozciągnąć krzywą i zmniejszyć jej dynamikę.</DynamicThreatStretch_Help>
 	<ZombiesDieOnZeroThreat_Help>Wszystkie zombie na mapie umierają samoistnie, gdy poziom zagrożenia wynosi 0%.</ZombiesDieOnZeroThreat_Help>
-	<ZombieFreeEvents_Help>Po włączeniu tej opcji w prognozie zagrożenia od czasu do czasu pojawią się globalne wydarzenia ciszy zombie. W takich okresach zombie wymierają na wszystkich mapach i nie pojawiają się nowe, dzięki czemu podróże karawanami są bezpieczniejsze. Wyłączenie tej opcji usuwa te szczególne okresy podróży, ale nie zmienia zwykłej dynamicznej krzywej zagrożenia.</ZombieFreeEvents_Help>
+	<ZombieFreeEvents_Help>Ustawiona liczba dni na początku gry zawsze pozostaje wolna od zombie, niezależnie od tego, czy ta opcja jest włączona. Po jej włączeniu okres początkowy jest przedstawiany jako cisza zombie, a później w trakcie rozgrywki okresowo powracają globalne cisze zombie. Podczas ciszy zombie wymierają na wszystkich mapach i nie pojawiają się nowe. Cisze działają zarówno przy stałym, jak i dynamicznym poziomie zagrożenia. Przy dynamicznym zagrożeniu są widoczne w prognozie zagrożenia; bez niego prognoza nie jest wyświetlana, więc późniejsze cisze są sygnalizowane aktywnym warunkiem gry oraz listem, jeśli listy są włączone.</ZombieFreeEvents_Help>
 
 	<!-- -->
 

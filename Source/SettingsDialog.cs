@@ -220,10 +220,11 @@ namespace ZombieLand
 				}
 
 				// Days
-				if (DialogExtensions.Section<string>(":NewGameTitle", ":DaysBeforeZombiesCome"))
+				if (DialogExtensions.Section<string>(":NewGameTitle", ":DaysBeforeZombiesCome", ":ZombieFreeEvents"))
 				{
 					list.Dialog_Label("NewGameTitle", headerColor);
 					list.Dialog_Integer("DaysBeforeZombiesCome", null, 0, 100, ref settings.daysBeforeZombiesCome);
+					list.Dialog_Checkbox("ZombieFreeEvents", ref settings.zombieFreeEvents);
 					list.Gap(34f);
 				}
 
@@ -238,7 +239,7 @@ namespace ZombieLand
 					list.Gap(24f);
 				}
 
-				if (DialogExtensions.Section<string>(":DynamicThreatLevelTitle", ":UseDynamicThreatLevel", ":DynamicThreatSmoothness", ":DynamicThreatStretch", ":ZombiesDieOnZeroThreat", ":ZombieFreeEvents"))
+				if (DialogExtensions.Section<string>(":DynamicThreatLevelTitle", ":UseDynamicThreatLevel", ":DynamicThreatSmoothness", ":DynamicThreatStretch", ":ZombiesDieOnZeroThreat"))
 				{
 					list.Dialog_Label("DynamicThreatLevelTitle", headerColor);
 					list.Gap(8f);
@@ -251,7 +252,6 @@ namespace ZombieLand
 						list.Dialog_FloatSlider("DynamicThreatStretch", _ => "{0:0%}", false, ref settings.dynamicThreatStretch, 10f, 30f, f => (f - 10f) / 20f);
 						list.Gap(-6f);
 						list.Dialog_Checkbox("ZombiesDieOnZeroThreat", ref settings.zombiesDieOnZeroThreat);
-						list.Dialog_Checkbox("ZombieFreeEvents", ref settings.zombieFreeEvents);
 					}
 					list.Gap(28f);
 				}

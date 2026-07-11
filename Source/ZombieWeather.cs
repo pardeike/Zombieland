@@ -62,6 +62,9 @@ namespace ZombieLand
 
 		public static float GetThreatLevelIgnoringZombieFreeEvent(Map map)
 		{
+			if (ZombieFreeEventManager.IsInitialGraceActiveNow())
+				return 0f;
+
 			return ZombieSettings.Values.useDynamicThreatLevel
 				? map?.GetComponent<ZombieWeather>()?.GetBaseFactorForTicks(GenTicks.TicksAbs) ?? 1f
 				: 1f;
@@ -77,14 +80,14 @@ namespace ZombieLand
 		public float GetBaseFactorForTicks(int t)
 		{
 			var ticks = t - GenTicks.TicksAbs + GenTicks.TicksGame;
-			var settings = ZombieSettings.ThreatSettingsAtGameTick(ticks);
-			if (ticks / (float)GenDate.TicksPerDay <= settings.daysBeforeZombiesCome)
+			if (ZombieFreeEventManager.IsInitialGraceActiveAtGameTick(ticks))
 				return 0f;
 
 			var tm = map?.GetComponent<TickManager>();
 			if (tm == null || tm.NewMapZombieDelay(ticks))
 				return 0f;
 
+			var settings = ZombieSettings.ThreatSettingsAtGameTick(ticks);
 			var currentDay = t / (float)GenDate.TicksPerDay;
 			var x = currentDay;
 			var m = settings.dynamicThreatSmoothness;

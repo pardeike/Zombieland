@@ -149,10 +149,10 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/incident_threat_state", Description = "Set up or read a reusable incident/threat fixture, and run scenario-level incident wave, spawn mix, infection, forecast, spawn-mode, raid-cadence, and pathing-region checks.")]
+		[Tool("zombieland/incident_threat_state", Description = "Set up or read a reusable incident/threat fixture, and run scenario-level incident wave, spawn mix, infection, forecast, spawn-mode, raid-cadence, zombie-silence, and pathing-region checks.")]
 		public static object IncidentThreatState(
 			[ToolParameter(Description = "Create a reusable capable-colony incident fixture before reading state.", Required = false, DefaultValue = false)] bool setupFixture = false,
-			[ToolParameter(Description = "Optional action to run before readback: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, raidCadence, eventDelivery, zeroThreat, zombieFreeEvent, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeReview, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, or all.", Required = false, DefaultValue = "read")] string actionMode = "read",
+			[ToolParameter(Description = "Optional action to run before readback: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, raidCadence, eventDelivery, zeroThreat, zombieFreeEvent, zombieFreeModeMatrix, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeReview, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, or all.", Required = false, DefaultValue = "read")] string actionMode = "read",
 			[ToolParameter(Description = "Ticks to advance before reading final state; clamped to 0..5000.", Required = false, DefaultValue = 0)] int advanceTicks = 0,
 			[ToolParameter(Description = "Difficulty percentage used by the zombieFreeForecast and zombieFreeHover actions. Clamped to 50..500.", Required = false, DefaultValue = 100)] int zombieFreePreviewDifficultyPercent = 100)
 		{
@@ -247,6 +247,9 @@ namespace ZombieLand
 				case "zombiefreeevent":
 					result = RunZombieFreeEventContract(map);
 					return true;
+				case "zombiefreemodematrix":
+					result = RunZombieFreeModeMatrixContract(map);
+					return true;
 				case "zombiefreeambientsound":
 					result = RunZombieFreeAmbientSoundContract(map);
 					return true;
@@ -272,7 +275,7 @@ namespace ZombieLand
 					result = RunIncidentThreatAll(map);
 					return true;
 				default:
-					error = "actionMode must be one of: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, raidCadence, eventDelivery, zeroThreat, zombieFreeEvent, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeReview, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, all.";
+					error = "actionMode must be one of: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, raidCadence, eventDelivery, zeroThreat, zombieFreeEvent, zombieFreeModeMatrix, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeReview, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, all.";
 					return false;
 			}
 		}
@@ -876,6 +879,263 @@ namespace ZombieLand
 				RestoreZombieSettings(settingsSnapshot);
 				RestoreZombieFreeSchedule(manager, scheduleSnapshot);
 			}
+		}
+
+		static object RunZombieFreeModeMatrixContract(Map map)
+		{
+			var manager = ZombieFreeEventManager.Current;
+			var weather = map.GetComponent<ZombieWeather>();
+			if (manager == null || weather == null)
+			{
+				return new
+				{
+					success = false,
+					error = "The current game has no ZombieFreeEventManager or ZombieWeather.",
+					managerPresent = manager != null,
+					weatherPresent = weather != null
+				};
+			}
+
+			var settingsSnapshot = SnapshotZombieSettings();
+			if (TrySnapshotZombieFreeSchedule(manager, out var scheduleSnapshot, out var scheduleSnapshotError) == false)
+			{
+				return new
+				{
+					success = false,
+					error = scheduleSnapshotError
+				};
+			}
+
+			string SettingsFingerprint()
+			{
+				static string GroupFingerprint(SettingsGroup values)
+				{
+					return values == null
+						? "null"
+						: $"dynamic={values.useDynamicThreatLevel};silence={values.zombieFreeEvents};grace={values.daysBeforeZombiesCome};scale={values.threatScale:R}";
+				}
+
+				var keyframes = ZombieSettings.ValuesOverTime == null
+					? "null"
+					: string.Join("|", ZombieSettings.ValuesOverTime.Select(keyFrame => keyFrame == null
+						? "null"
+						: $"{keyFrame.Ticks}:{GroupFingerprint(keyFrame.values)}"));
+				return $"current[{GroupFingerprint(ZombieSettings.Values)}];timeline[{keyframes}]";
+			}
+
+			string ScheduleFingerprint()
+			{
+				var windows = ((List<ZombieFreeEventWindow>)scheduleSnapshot.windowsField.GetValue(manager))
+					?? new List<ZombieFreeEventWindow>();
+				var encodedWindows = string.Join("|", windows
+					.Where(window => window != null)
+					.Select(window => $"{window.startTick}:{window.endTick}:{window.startHandled}:{window.letterSent}"));
+				return $"next={scheduleSnapshot.nextClusterStartField.GetValue(manager)};windows[{encodedWindows}]";
+			}
+
+			void SetRawSchedule(IEnumerable<ZombieFreeEventWindow> windows, int nextClusterStartTick)
+			{
+				scheduleSnapshot.windowsField.SetValue(manager, windows
+					.Select(CopyZombieFreeWindow)
+					.Where(window => window != null)
+					.ToList());
+				scheduleSnapshot.nextClusterStartField.SetValue(manager, nextClusterStartTick);
+			}
+
+			void Configure(bool dynamicThreat, bool silenceEvents, int graceDays)
+			{
+				ApplyZombieSettingsOverride(settings =>
+				{
+					settings.useDynamicThreatLevel = dynamicThreat;
+					settings.zombieFreeEvents = silenceEvents;
+					settings.daysBeforeZombiesCome = graceDays;
+					settings.threatScale = Math.Max(settings.threatScale, 1f);
+				});
+			}
+
+			var settingsBefore = SettingsFingerprint();
+			var scheduleBefore = ScheduleFingerprint();
+			var gameConditionManager = Find.World?.gameConditionManager;
+			var conditionBefore = gameConditionManager?.GetActiveCondition(CustomDefs.ZombieFreeEvent);
+			var conditionTicksBefore = conditionBefore?.TicksLeft;
+			var currentTick = GenTicks.TicksGame;
+			var graceDays = Mathf.Max(1, Mathf.CeilToInt(currentTick / (float)GenDate.TicksPerDay) + 2);
+			var graceEndTick = graceDays * GenDate.TicksPerDay;
+			var recurringEndTick = currentTick + GenDate.TicksPerDay;
+			var scheduleSentinelTick = currentTick <= int.MaxValue - GenDate.TicksPerDay * 1000
+				? currentTick + GenDate.TicksPerDay * 1000
+				: int.MaxValue;
+			var behaviorSuccess = false;
+			object[] cases = null;
+			string executionError = null;
+
+			try
+			{
+				object RunCase(bool dynamicThreat, bool silenceEvents)
+				{
+					Configure(dynamicThreat, silenceEvents, graceDays);
+					SetRawSchedule(Array.Empty<ZombieFreeEventWindow>(), scheduleSentinelTick);
+					var initialDisplayWindows = manager.WindowsForGameRange(0, graceEndTick);
+					var initialGraceActive = ZombieFreeEventManager.IsInitialGraceActiveAtGameTick(currentTick);
+					var initialEnabledSilenceActive = manager.IsEnabledSilenceActiveAtGameTick(currentTick);
+					var initialSuppressionActive = manager.IsActiveAtGameTick(currentTick);
+					var initialEffectiveThreat = ZombieWeather.GetThreatLevel(map);
+					var initialBaseThreat = ZombieWeather.GetThreatLevelIgnoringZombieFreeEvent(map);
+					var initialStyledAsSilence = initialDisplayWindows.Any(window => window.startTick == 0 && window.endTick == graceEndTick);
+					var initialSuccess = initialGraceActive
+						&& initialSuppressionActive
+						&& initialEffectiveThreat == 0f
+						&& initialBaseThreat == 0f
+						&& initialEnabledSilenceActive == silenceEvents
+						&& initialStyledAsSilence == silenceEvents;
+
+					Configure(dynamicThreat, silenceEvents, 0);
+					SetRawSchedule(new[]
+					{
+						new ZombieFreeEventWindow(Mathf.Max(0, currentTick - 1), recurringEndTick)
+					}, scheduleSentinelTick);
+					var recurringDisplayWindows = manager.WindowsForGameRange(currentTick, recurringEndTick);
+					var recurringInitialGraceActive = ZombieFreeEventManager.IsInitialGraceActiveAtGameTick(currentTick);
+					var recurringSilenceActive = manager.IsEnabledSilenceActiveAtGameTick(currentTick);
+					var recurringSuppressionActive = manager.IsActiveAtGameTick(currentTick);
+					var recurringEffectiveThreat = ZombieWeather.GetThreatLevel(map);
+					var recurringBaseThreat = ZombieWeather.GetThreatLevelIgnoringZombieFreeEvent(map);
+					var recurringDisplayedAsSilence = recurringDisplayWindows.Any(window => window.ActiveAt(currentTick));
+					var recurringSuccess = recurringInitialGraceActive == false
+						&& recurringSilenceActive == silenceEvents
+						&& recurringSuppressionActive == silenceEvents
+						&& recurringDisplayedAsSilence == silenceEvents
+						&& (silenceEvents == false || recurringEffectiveThreat == 0f)
+						&& (dynamicThreat || recurringBaseThreat == 1f)
+						&& (dynamicThreat || silenceEvents || recurringEffectiveThreat == 1f);
+
+					object outsideRecurring = null;
+					var outsideSuccess = true;
+					if (dynamicThreat == false)
+					{
+						var futureStartTick = currentTick + GenDate.TicksPerDay;
+						var futureEndTick = futureStartTick + GenDate.TicksPerDay;
+						SetRawSchedule(new[] { new ZombieFreeEventWindow(futureStartTick, futureEndTick) }, scheduleSentinelTick);
+						var outsideInitialGraceActive = ZombieFreeEventManager.IsInitialGraceActiveAtGameTick(currentTick);
+						var outsideEnabledSilenceActive = manager.IsEnabledSilenceActiveAtGameTick(currentTick);
+						var outsideSuppressionActive = manager.IsActiveAtGameTick(currentTick);
+						var outsideEffectiveThreat = ZombieWeather.GetThreatLevel(map);
+						var outsideBaseThreat = ZombieWeather.GetThreatLevelIgnoringZombieFreeEvent(map);
+						outsideSuccess = outsideInitialGraceActive == false
+							&& outsideEnabledSilenceActive == false
+							&& outsideSuppressionActive == false
+							&& outsideEffectiveThreat == 1f
+							&& outsideBaseThreat == 1f;
+						outsideRecurring = new
+						{
+							success = outsideSuccess,
+							initialGraceActive = outsideInitialGraceActive,
+							enabledSilenceActive = outsideEnabledSilenceActive,
+							suppressionActive = outsideSuppressionActive,
+							effectiveThreat = outsideEffectiveThreat,
+							baseThreatIgnoringEnabledSilence = outsideBaseThreat,
+							futureWindow = new
+							{
+								offsetStartTicks = futureStartTick - currentTick,
+								offsetEndTicks = futureEndTick - currentTick
+							}
+						};
+					}
+
+					return new
+					{
+						success = initialSuccess && recurringSuccess && outsideSuccess,
+						useDynamicThreatLevel = dynamicThreat,
+						zombieFreeEvents = silenceEvents,
+						forecast = new
+						{
+							expectedAvailable = dynamicThreat,
+							runtimeUiObserved = false,
+							note = "Forecast visibility is drawn by GlobalControlsUtility.DoDate and requires a separate GUI-frame observation; this synchronous state contract does not manufacture an OnGUI pass."
+						},
+						initialGrace = new
+						{
+							success = initialSuccess,
+							initialGraceActive,
+							enabledSilenceActive = initialEnabledSilenceActive,
+							suppressionActive = initialSuppressionActive,
+							effectiveThreat = initialEffectiveThreat,
+							baseThreatIgnoringEnabledSilence = initialBaseThreat,
+							styledAsSilence = initialStyledAsSilence,
+							displayWindows = DescribeZombieFreePreviewWindows(initialDisplayWindows)
+						},
+						recurringWindow = new
+						{
+							success = recurringSuccess,
+							initialGraceActive = recurringInitialGraceActive,
+							enabledSilenceActive = recurringSilenceActive,
+							suppressionActive = recurringSuppressionActive,
+							effectiveThreat = recurringEffectiveThreat,
+							baseThreatIgnoringEnabledSilence = recurringBaseThreat,
+							displayedAsSilence = recurringDisplayedAsSilence,
+							displayWindows = DescribeZombieFreePreviewWindows(recurringDisplayWindows)
+						},
+						outsideRecurring
+					};
+				}
+
+				cases = new[]
+				{
+					RunCase(false, false),
+					RunCase(false, true),
+					RunCase(true, false),
+					RunCase(true, true)
+				};
+				behaviorSuccess = cases.All(ObjectSuccess);
+			}
+			catch (Exception ex)
+			{
+				executionError = ex.ToString();
+			}
+			finally
+			{
+				RestoreZombieSettings(settingsSnapshot);
+				RestoreZombieFreeSchedule(manager, scheduleSnapshot, false);
+				if (conditionBefore != null && conditionTicksBefore.HasValue)
+					conditionBefore.TicksLeft = conditionTicksBefore.Value;
+			}
+
+			var settingsAfter = SettingsFingerprint();
+			var scheduleAfter = ScheduleFingerprint();
+			var conditionAfter = gameConditionManager?.GetActiveCondition(CustomDefs.ZombieFreeEvent);
+			var conditionTicksAfter = conditionAfter?.TicksLeft;
+			var settingsRestored = settingsAfter == settingsBefore;
+			var scheduleRestored = scheduleAfter == scheduleBefore;
+			var gameConditionRestored = ReferenceEquals(conditionBefore, conditionAfter)
+				&& conditionTicksBefore == conditionTicksAfter;
+			return new
+			{
+				success = executionError == null
+					&& behaviorSuccess
+					&& settingsRestored
+					&& scheduleRestored
+					&& gameConditionRestored,
+				sourcePath = "ZombieFreeEventManager initial-grace/enabled-silence split -> ZombieWeather effective/base threat -> forecast display windows",
+				expectation = "Initial grace suppresses threat in all four dynamic/silence combinations; the silence option controls recurring windows and green styling but not grace gameplay; constant mode is 100% outside grace/silence and has no forecast readout.",
+				currentTick,
+				graceDays,
+				graceEndTick,
+				behaviorSuccess,
+				executionError,
+				cases,
+				restore = new
+				{
+					settingsRestored,
+					scheduleRestored,
+					gameConditionRestored,
+					conditionBefore = conditionBefore == null ? null : new { type = conditionBefore.GetType().FullName, ticksLeft = conditionTicksBefore },
+					conditionAfter = conditionAfter == null ? null : new { type = conditionAfter.GetType().FullName, ticksLeft = conditionTicksAfter },
+					settingsBefore,
+					settingsAfter,
+					scheduleBefore,
+					scheduleAfter
+				}
+			};
 		}
 
 			static object RunZombieFreeAmbientSoundContract(Map map)

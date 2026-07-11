@@ -78,6 +78,22 @@ namespace ZombieLand
 			return ZombieSettings.ZombieFreeEventsAtGameTick(gameTick);
 		}
 
+		public static int InitialGraceEndTick()
+		{
+			var days = Mathf.Max(0, ZombieSettings.ThreatSettingsAtGameTick(0).daysBeforeZombiesCome);
+			return Mathf.CeilToInt(days * GenDate.TicksPerDay);
+		}
+
+		public static bool IsInitialGraceActiveNow()
+		{
+			return IsInitialGraceActiveAtGameTick(GenTicks.TicksGame);
+		}
+
+		public static bool IsInitialGraceActiveAtGameTick(int gameTick)
+		{
+			return gameTick >= 0 && gameTick < InitialGraceEndTick();
+		}
+
 		public static int GameTickForAbsTick(int absTick)
 		{
 			return absTick - GenTicks.TicksAbs + GenTicks.TicksGame;
@@ -90,17 +106,26 @@ namespace ZombieLand
 
 		public static bool IsActiveNow()
 		{
-			if (IsEnabledAtGameTick(GenTicks.TicksGame) == false)
-				return false;
-			return Current?.IsActiveAtGameTick(GenTicks.TicksGame) == true;
+			var gameTick = GenTicks.TicksGame;
+			return IsInitialGraceActiveAtGameTick(gameTick)
+				|| Current?.IsEnabledSilenceActiveAtGameTick(gameTick) == true;
 		}
 
 		public static bool IsActiveAtAbsTick(int absTick)
 		{
 			var gameTick = GameTickForAbsTick(absTick);
-			if (IsEnabledAtGameTick(gameTick) == false)
-				return false;
-			return Current?.IsActiveAtGameTick(gameTick) == true;
+			return IsInitialGraceActiveAtGameTick(gameTick)
+				|| Current?.IsEnabledSilenceActiveAtGameTick(gameTick) == true;
+		}
+
+		public static bool IsEnabledSilenceActiveNow()
+		{
+			return Current?.IsEnabledSilenceActiveAtGameTick(GenTicks.TicksGame) == true;
+		}
+
+		public static bool IsEnabledSilenceActiveAtAbsTick(int absTick)
+		{
+			return Current?.IsEnabledSilenceActiveAtGameTick(GameTickForAbsTick(absTick)) == true;
 		}
 
 		public static List<ZombieFreeEventWindow> WindowsForAbsRange(int absStartTick, int absEndTick)
@@ -114,6 +139,11 @@ namespace ZombieLand
 		}
 
 		public bool IsActiveAtGameTick(int gameTick)
+		{
+			return IsInitialGraceActiveAtGameTick(gameTick) || IsEnabledSilenceActiveAtGameTick(gameTick);
+		}
+
+		public bool IsEnabledSilenceActiveAtGameTick(int gameTick)
 		{
 			if (IsEnabledAtGameTick(gameTick) == false)
 				return false;
@@ -394,7 +424,7 @@ namespace ZombieLand
 		void EnsureScheduleThrough(int gameTick)
 		{
 			windows ??= new List<ZombieFreeEventWindow>();
-			EnsureInitialSilenceWindow();
+			EnsureInitialGraceDisplayWindow();
 			if (nextClusterStartTick <= 0)
 				nextClusterStartTick = InitialClusterStartTick();
 
@@ -408,9 +438,9 @@ namespace ZombieLand
 			}
 		}
 
-		void EnsureInitialSilenceWindow()
+		void EnsureInitialGraceDisplayWindow()
 		{
-			var graceEnd = InitialSilenceEndTick();
+			var graceEnd = InitialGraceEndTick();
 			if (graceEnd <= GenTicks.TicksGame)
 				return;
 			if (windows.Any(window => window.startTick == 0 && window.endTick == graceEnd))
@@ -423,15 +453,10 @@ namespace ZombieLand
 			SanitizeWindows(windows);
 		}
 
-		static int InitialSilenceEndTick()
-		{
-			return Mathf.CeilToInt(ZombieSettings.ThreatSettingsAtGameTick(0).daysBeforeZombiesCome * GenDate.TicksPerDay);
-		}
-
 		int InitialClusterStartTick()
 		{
 			var ticks = GenTicks.TicksGame;
-			var graceEnd = InitialSilenceEndTick();
+			var graceEnd = InitialGraceEndTick();
 			var startFloor = Mathf.Max(ticks, graceEnd);
 			var period = ClusterPeriodTicksFor(DifficultyAtGameTick(startFloor));
 			return startFloor + Mathf.RoundToInt(period * Rand.Range(0.25f, 0.75f));

@@ -51,7 +51,7 @@
 	<DynamicThreatSmoothness_Help>决定威胁曲线的平滑度。</DynamicThreatSmoothness_Help>
 	<DynamicThreatStretch_Help>此设置可以拉伸曲线，使其不那么动态。</DynamicThreatStretch_Help>
 	<ZombiesDieOnZeroThreat_Help>当威胁等级为 0% 时，地图上的所有丧尸会自行死亡。</ZombiesDieOnZeroThreat_Help>
-	<ZombieFreeEvents_Help>启用后，偶尔会出现全局丧尸沉寂事件，并显示在威胁预测中。在这些窗口期间，所有地图上的丧尸会消亡，且不会生成新丧尸，使远行队出行更安全。关闭后会移除这些特殊旅行窗口，但不会改变普通动态威胁曲线。</ZombieFreeEvents_Help>
+	<ZombieFreeEvents_Help>无论此选项是否开启，设定的开局天数始终不会出现丧尸。开启后，这段开局时期会显示为丧尸沉寂，游戏后期也会周期性发生全局丧尸沉寂。沉寂期间，所有地图上的丧尸都会消亡，也不会生成新的丧尸。丧尸沉寂同时适用于恒定威胁和动态威胁。启用动态威胁时，沉寂会显示在威胁预测中；关闭动态威胁时不会显示预测，后续沉寂将通过生效的游戏状态以及（若未关闭）信件进行通知。</ZombieFreeEvents_Help>
 
 	<ZombieEventTitle_Help>如果你选择“仅丧尸事件”，有时在其他模式下也是如此，Zombieland 会触发丧尸攻击。这不像袭击者事件，而是大量丧尸一起出现，并可能根据群体规模进入狂暴，开始向你追踪。</ZombieEventTitle_Help>
 	<ZombiesPerColonistInEvent_Help>若要控制事件规模，可以指定每名殖民者对应多少丧尸。请注意，这不会改变地图上的丧尸总上限。如果当前丧尸数量已经接近总上限，或接近 Zombieland 根据当前殖民地规模计算出的数量，事件中的丧尸会更少。在这里填非常大的数字只会移除事件规模上限。较小的数字会降低整体事件规模，尤其是在可战斗殖民者较少时。</ZombiesPerColonistInEvent_Help>
