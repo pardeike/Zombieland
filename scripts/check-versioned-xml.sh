@@ -3,7 +3,8 @@ set -euo pipefail
 
 python3 - <<'PY'
 from pathlib import Path
-from collections import defaultdict
+from collections import Counter, defaultdict
+import re
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
@@ -122,12 +123,20 @@ for xml_path in project_xml:
         for child in list(root):
             if not list(child) and not (child.text or "").strip():
                 errors.append(f"{xml_path}: empty translation element <{child.tag}>")
+            for nested in child.iter():
+                if nested is child or list(nested):
+                    continue
+                if not (nested.text or "").strip():
+                    errors.append(
+                        f"{xml_path}: empty nested translation element "
+                        f"<{child.tag}>/<{nested.tag}>"
+                    )
             translation_sources[
                 (language_version, language, scope, child.tag)
             ].append(xml_path)
             translation_values[
                 (language_version, language, scope, child.tag)
-            ] = (child.text or "").strip()
+            ] = "".join(child.itertext()).strip()
             if section == "DefInjected" and len(parts) > language_index + 3:
                 def_injection_entries.append(
                     (language_version, language, def_type, child.tag, xml_path)
@@ -170,20 +179,105 @@ for (version, def_type, name_kind, name), sources in sorted(def_sources.items())
             f"{version}/{def_type}: duplicate {name_kind} {name}: {source_list}"
         )
 
-def english_def_path_exists(def_node, field_path):
+def normalized_translation_handle(value):
+    value = value.strip().replace(" ", "_").replace("\n", "_")
+    value = value.replace("\r", "").replace("\t", "_").replace(".", "")
+    value = value.replace("-", "")
+    value = re.sub(r"\{[^{}]*\}", "", value)
+    value = "".join(
+        char
+        for char in value
+        if char in "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890-_"
+    )
+    value = re.sub(r"_+", "_", value).strip("_")
+    if value.isdigit():
+        value = "_" + value
+    return value
+
+
+def named_list_children(node):
+    children = list(node)
+    if not children:
+        return []
+
+    class_handles = []
+    for child in children:
+        class_name = child.get("Class", "").rsplit(".", 1)[-1]
+        for prefix in ("QuestNode_", "QuestPart_"):
+            if class_name.startswith(prefix):
+                class_name = class_name[len(prefix):]
+        class_handles.append(normalized_translation_handle(class_name))
+    class_counts = Counter(handle.casefold() for handle in class_handles if handle)
+
+    base_handles = []
+    for child, class_handle in zip(children, class_handles):
+        if class_handle and class_counts[class_handle.casefold()] == 1:
+            handle = class_handle
+        else:
+            handle = ""
+            for field_name in ("inSignal", "label", "def", "name", "storeAs"):
+                field_value = child.findtext(field_name)
+                if field_value:
+                    handle = normalized_translation_handle(field_value)
+                    break
+            if not handle:
+                handle = class_handle
+        base_handles.append(handle)
+
+    handle_counts = Counter(handle.casefold() for handle in base_handles if handle)
+    handle_indices = defaultdict(int)
+    result = []
+    for child, handle in zip(children, base_handles):
+        if not handle:
+            result.append(("", child))
+            continue
+        folded = handle.casefold()
+        if handle_counts[folded] > 1:
+            indexed_handle = f"{handle}-{handle_indices[folded]}"
+            handle_indices[folded] += 1
+            result.append((indexed_handle, child))
+        else:
+            result.append((handle, child))
+    return result
+
+
+def english_def_node_at_path(def_node, field_path):
     current = def_node
     for segment in field_path.split("."):
+        if segment == "slateRef" and current.get("TKey") is not None:
+            # SlateRef<T> is represented by the TKey-bearing XML node itself.
+            continue
         if segment.isdigit():
             children = list(current)
             index = int(segment)
             if index >= len(children):
-                return False
+                return None
             current = children[index]
         else:
-            current = current.find(segment)
-            if current is None:
-                return False
-    return True
+            direct_child = current.find(segment)
+            if direct_child is not None:
+                current = direct_child
+                continue
+            named_child = next(
+                (
+                    child
+                    for handle, child in named_list_children(current)
+                    if handle.casefold() == segment.casefold()
+                ),
+                None,
+            )
+            if named_child is None:
+                return None
+            current = named_child
+    return current
+
+
+def english_def_value_at_path(def_node, field_path):
+    node = english_def_node_at_path(def_node, field_path)
+    if node is None:
+        return None
+    value = "".join(node.itertext()).strip()
+    return value or None
 
 
 for version, language, def_type, key, source in sorted(def_injection_entries):
@@ -196,7 +290,7 @@ for version, language, def_type, key, source in sorted(def_injection_entries):
         continue
     field_path = key.split(".", 1)[1] if "." in key else ""
     def_node = defined_def_nodes[(version, def_type, def_name)]
-    if not field_path or not english_def_path_exists(def_node, field_path):
+    if not field_path or english_def_value_at_path(def_node, field_path) is None:
         errors.append(
             f"{source}: DefInjected key {key} does not target an English "
             f"field path in {version}/Defs"
@@ -220,6 +314,38 @@ for (version, def_type), expected_keys in sorted(direct_english_def_keys.items()
             )
 
 for version in sorted(languages_by_version):
+    translated_languages = sorted(languages_by_version[version] - {"English"})
+    def_scopes = sorted(
+        {
+            scope
+            for candidate_version, _, scope, _ in translation_sources
+            if candidate_version == version and scope.startswith("DefInjected/")
+        }
+    )
+    for scope in def_scopes:
+        expected_keys = {
+            key
+            for candidate_version, candidate_language, candidate_scope, key in translation_sources
+            if candidate_version == version
+            and candidate_language != "English"
+            and candidate_scope == scope
+        }
+        for language in translated_languages:
+            translated_keys = {
+                key
+                for candidate_version, candidate_language, candidate_scope, key in translation_sources
+                if candidate_version == version
+                and candidate_language == language
+                and candidate_scope == scope
+            }
+            missing = sorted(expected_keys - translated_keys)
+            if missing:
+                errors.append(
+                    f"{version}/{language}/{scope}: missing active DefInjected keys "
+                    + ", ".join(missing)
+                )
+
+for version in sorted(languages_by_version):
     scope = "DefInjected/ThingDef"
     for language in sorted(languages_by_version[version]):
         labels = defaultdict(list)
@@ -239,6 +365,22 @@ for version in sorted(languages_by_version):
                     f"{version}/{language}/{scope}: duplicate active ThingDef label "
                     f"{label!r}: " + ", ".join(sorted(def_names))
                 )
+        if language != "English":
+            makeshift_description = translation_values.get(
+                (version, language, scope, "ZombieSerumSimple.description")
+            )
+            full_description = translation_values.get(
+                (version, language, scope, "Zombie100Serum.description")
+            )
+            if (
+                makeshift_description is not None
+                and full_description is not None
+                and makeshift_description != full_description
+            ):
+                errors.append(
+                    f"{version}/{language}/{scope}: makeshift and regular 100% "
+                    "zombie serum descriptions must remain functionally identical"
+                )
 
 for (version, file_name, language), keys in sorted(keyed_keys.items()):
     if language != "English":
@@ -256,6 +398,67 @@ for (version, file_name, language), keys in sorted(keyed_keys.items()):
             errors.append(
                 f"{version}/{other_language}/Keyed/{file_name}: " + "; ".join(details)
             )
+
+
+def required_runtime_tokens(value):
+    tokens = []
+    token_patterns = (
+        ("brace", r"\{[^{}]+\}"),
+        ("bracket", r"\[[^\[\]]+\]"),
+        ("target", r"Target[A-Z]"),
+        ("newline", r"\\n"),
+        ("tag", r"</?[A-Za-z][^>]*>"),
+        ("rule", r"[A-Za-z][A-Za-z0-9_]*->"),
+        ("percent", r"%"),
+    )
+    for token_kind, pattern in token_patterns:
+        tokens.extend((token_kind, match) for match in re.findall(pattern, value))
+    return Counter(tokens)
+
+
+for (version, language, scope, key), translated_value in sorted(translation_values.items()):
+    if language == "English":
+        continue
+    english_value = None
+    if scope == "Keyed":
+        english_value = translation_values.get((version, "English", scope, key))
+    elif scope.startswith("DefInjected/"):
+        def_type = scope.split("/", 1)[1]
+        def_name, _, field_path = key.partition(".")
+        def_node = defined_def_nodes.get((version, def_type, def_name))
+        if def_node is not None and field_path:
+            english_value = english_def_value_at_path(def_node, field_path)
+    if english_value is None:
+        continue
+    required_tokens = required_runtime_tokens(english_value)
+    translated_tokens = required_runtime_tokens(translated_value)
+    missing_tokens = required_tokens - translated_tokens
+    if missing_tokens:
+        details = ", ".join(
+            f"{kind}:{token!r} x{count}"
+            for (kind, token), count in sorted(missing_tokens.items())
+        )
+        errors.append(
+            f"{version}/{language}/{scope}: translation key {key} is missing "
+            f"English runtime tokens: {details}"
+        )
+    unexpected_tokens = translated_tokens - required_tokens
+    unexpected_tokens = Counter(
+        {
+            token_key: count
+            for token_key, count in unexpected_tokens.items()
+            if not (token_key[0] == "brace" and "?" in token_key[1])
+        }
+    )
+    if unexpected_tokens:
+        details = ", ".join(
+            f"{kind}:{token!r} x{count}"
+            for (kind, token), count in sorted(unexpected_tokens.items())
+        )
+        errors.append(
+            f"{version}/{language}/{scope}: translation key {key} has unexpected "
+            f"runtime tokens not present in English: {details}"
+        )
 
 for folder in runtime_roots:
     if (repo / folder).exists():

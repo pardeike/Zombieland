@@ -24,6 +24,7 @@ Rules:
 - keep track of what you are doing but make sure you do not simply pile up work log after work log
 - make sure you read the *important* work documents regularily - they have no purpose if you only creete but never read them
 - use `docs/README.md` as the documentation map; update an existing owner instead of creating another session-specific Markdown file
+- read `scripts/README.md` before changing or running project automation; it is the documentation owner for supported validation, diagnostics, asset-bundle, soundtrack, and benchmark workflows
 
 Commit policy:
 

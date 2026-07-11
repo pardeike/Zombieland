@@ -2,9 +2,15 @@
 
 ## XML Validation
 
-Run `./scripts/check-versioned-xml.sh` after changing defs, patches, language data, `LoadFolders.xml`, or mod metadata. The check parses every tracked or non-ignored project XML file, verifies the versioned runtime layout, rejects unexpected direct text in active container documents, detects empty or duplicate active translation entries, detects duplicate active def names, requires active non-English keyed files to have the same key set as English, verifies every DefInjected key targets a real English def and full field path, requires every direct English def label and description to be translated in every active non-English language, and rejects duplicate effective labels among active non-abstract ThingDefs after each language's injections are applied.
+Run `./scripts/check-versioned-xml.sh` after changing defs, patches, language data, `LoadFolders.xml`, or mod metadata. The check parses every tracked or non-ignored project XML file, verifies the versioned runtime layout, rejects unexpected direct text in active container documents, detects empty or duplicate active translation entries, detects duplicate active def names, requires active non-English keyed files to have the same key set as English, requires every active language to have the same DefInjected key set, verifies every DefInjected key targets a real English def and full field path (including RimWorld's stable named-list and quest-node paths), preserves runtime placeholders and formatting tokens, requires every direct English def label and description to be translated in every active non-English language, and rejects duplicate effective labels among active non-abstract ThingDefs after each language's injections are applied.
+
+RimWorld's live translation report also lists inherited defaults that are not present in Zombieland's English XML. Do not add language-only keys for those false positives. The intentional exclusions are the inherited generic death messages for `ToxicSplatter` and `SeismicWave`, `Zombies.leaderTitle`, `ZombieBite.labelNounPretty`, and the default `Mote` labels on Zombieland's internal visual-only ThingDefs. Translation entries must continue to correspond to explicit English source fields.
 
 The preserved `1.4/` payload is still checked for XML parse failures and layout isolation, but its known legacy translation structure is frozen and is not subjected to the newer active-language anomaly and parity rules.
+
+## RimWorld Log Summary
+
+Run `./scripts/summarize-rimworld-log.sh /path/to/Player.log` to collapse repeated error blocks before inspecting a runtime test. The summary includes exceptions plus early play-data failures such as `Config error in`, grammar-rule failures, and failed resolution messages; those can be emitted before RimBridge initializes and therefore must not be checked only through the live bridge journal.
 
 ## Zombie Ticking Runtime Benchmark
 

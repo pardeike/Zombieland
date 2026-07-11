@@ -22,7 +22,7 @@ awk '
     if (!(key in sample)) sample[key] = block
     block = ""
   }
-  /^[A-Z][A-Za-z]+Exception:/ || /^Exception / || /^Error / || /^Could not / || /^XML error:/ {
+  /^[A-Z][A-Za-z]+Exception:/ || /^Exception / || /^Exception printing / || /^Error / || /^Critical error / || /^Config error in / || /^Failed to / || /^Bad string pass / || /^Could not / || /^XML error:/ {
     flush()
     block = $0
     next

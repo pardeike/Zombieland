@@ -66,6 +66,7 @@ Already evidenced:
 
 Required tests:
 - Cold mod load: start RimWorld 1.6 with Zombieland enabled, verify no load errors, custom defs resolve, Harmony patches apply, main menu settings category opens.
+- Active-language matrix after localization changes: use one fresh process per supported language, prove the intended language is active, require an empty complete-Player.log error summary at the main menu, load a visual-ready dev map, and require the complete log to remain clean. Hot language reloads and bridge-journal-only checks are not valid acceptance evidence because they can miss errors emitted before the bridge initializes.
 - Load existing 1.6 scenario save: verify zombies on map have render trees, no pawn render async errors, no missing texture/material errors.
 - Patch target audit: for each `[HarmonyPatch]` group, confirm RimWorld 1.6 target signatures with the decompiler before relying on runtime smoke.
 

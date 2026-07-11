@@ -29,7 +29,7 @@ Keep operation IDs and historical runtime results in the evidence ledgers, not i
 | Document | Role | Update when |
 | --- | --- | --- |
 | [`docs/features/symbiant.md`](features/symbiant.md) | Current Symbiant design invariants and release contract. | The intended feature behavior or release gate changes. |
-| [`scripts/README.md`](../scripts/README.md) | Supported soundtrack, asset-bundle, and repeatable runtime-benchmark workflows. | Script behavior, prerequisites, or benchmark evidence shape changes. |
+| [`scripts/README.md`](../scripts/README.md) | Supported project validation and diagnostics, including XML/localization checks, Player.log summarization, soundtrack, asset-bundle, and repeatable runtime-benchmark workflows. | Script behavior, prerequisites, validation criteria, or diagnostic and benchmark evidence shape changes. |
 | [`Originals/Soundtrack/README.md`](../Originals/Soundtrack/README.md) | Source soundtrack layout and sync entry point. | Source-folder conventions change. |
 | [`Originals/Soundtrack/LOUDNESS_NOTES.md`](../Originals/Soundtrack/LOUDNESS_NOTES.md) | Durable loudness policy and its deliberate exception. | The target, exception, format, or normalization procedure changes. |
 | [`1.6/Sounds/music/README.md`](../1.6/Sounds/music/README.md) | Generated runtime music-folder contract. | Runtime loader or folder hints change. |
