@@ -147,6 +147,11 @@ namespace ZombieLand
 				}
 			});
 
+			_ = RefreshTwinkieGraphic();
+		}
+
+		public static Graphic RefreshTwinkieGraphic()
+		{
 			var graphicData = new GraphicData()
 			{
 				shaderType = ShaderTypeDefOf.Cutout,
@@ -154,6 +159,7 @@ namespace ZombieLand
 				graphicClass = typeof(Graphic_Single)
 			};
 			twinkieGraphic = graphicData.Graphic;
+			return twinkieGraphic;
 		}
 
 		static ColorData GetColoredData(Color[] data, Color color, int width, int height)

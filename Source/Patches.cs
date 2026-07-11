@@ -6020,8 +6020,8 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to exclude anything zombie from listings
-		// TODO: prevents zombie extract from showing up https://discord.com/channels/900081000942567454/900149546787680256/1137350430263885834
+		// patch to exclude runtime-only zombie defs from listings while keeping
+		// player resources such as zombie extract and serum language-independent
 		//
 		[HarmonyPatch(typeof(ThingFilter))]
 		[HarmonyPatch(nameof(ThingFilter.SetAllow))]
@@ -6041,6 +6041,12 @@ namespace ZombieLand
 			public static bool IsZombieDef(ThingDef thingDef)
 			{
 				if (thingDef == null)
+					return false;
+
+				var thingClass = thingDef.thingClass;
+				if (thingClass != null
+					&& (typeof(ZombieExtract).IsAssignableFrom(thingClass)
+						|| typeof(ZombieSerum).IsAssignableFrom(thingClass)))
 					return false;
 
 				if (ContainsBlockedZombieText(thingDef.defName))
@@ -6417,6 +6423,19 @@ namespace ZombieLand
 
 		// patch to update twinkie graphics
 		//
+		// Refresh the custom meal graphic on RimWorld's main thread for every
+		// play-data load. Static constructors only run once, while language changes
+		// rebuild mod content and static atlases in the same process.
+		[HarmonyPatch(typeof(GlobalTextureAtlasManager))]
+		[HarmonyPatch(nameof(GlobalTextureAtlasManager.BakeStaticAtlases))]
+		static class GlobalTextureAtlasManager_BakeStaticAtlases_Patch
+		{
+			static void Prefix()
+			{
+				_ = GraphicsDatabase.RefreshTwinkieGraphic();
+			}
+		}
+
 		[HarmonyPatch(typeof(Game))]
 		[HarmonyPatch(nameof(Game.FinalizeInit))]
 		static class Game_FinalizeInit_Patch

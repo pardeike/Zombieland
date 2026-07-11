@@ -72,13 +72,18 @@ namespace ZombieLand
 		static string mealLabel;
 		static string mealDescription;
 		static Graphic mealGraphic;
+		static ThingDef mealDef;
 		public static void EnableTwinkie(bool enable)
 		{
 			var def = ThingDefOf.MealSurvivalPack;
 
-			mealLabel ??= def.label;
-			mealDescription ??= def.description;
-			mealGraphic ??= def.graphicData.cachedGraphic;
+			if (ReferenceEquals(mealDef, def) == false)
+			{
+				mealDef = def;
+				mealLabel = def.label;
+				mealDescription = def.description;
+				mealGraphic = def.graphicData.Graphic;
+			}
 
 			if (enable)
 			{

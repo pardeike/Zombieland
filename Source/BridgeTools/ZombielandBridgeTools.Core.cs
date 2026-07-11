@@ -32,6 +32,10 @@ namespace ZombieLand
 			var ideology = DescribeIdeologyLoadState(map, zombies);
 			var isSosOuterSpaceMap = map != null && map.Biome == SoSTools.sosOuterSpaceBiomeDef;
 			var ambientSound = map == null ? null : DescribeAmbientSoundState(map, tickManager, settings, zombies.Length);
+			var activeLanguage = LanguageDatabase.activeLanguage;
+			var defInjectionLoadErrors = activeLanguage?.defInjections?
+				.SelectMany(package => package.loadErrors.Select(error => $"{package.defType?.FullName}: {error}"))
+				.ToArray() ?? Array.Empty<string>();
 
 			return new
 			{
@@ -94,6 +98,16 @@ namespace ZombieLand
 				},
 				ideology,
 				ambientSound,
+				language = new
+				{
+					folderName = activeLanguage?.folderName,
+					friendlyNameEnglish = activeLanguage?.FriendlyNameEnglish,
+					anyError = activeLanguage?.anyError ?? false,
+					anyKeyedXmlParseError = activeLanguage?.anyKeyedReplacementsXmlParseError ?? false,
+					anyDefInjectedXmlParseError = activeLanguage?.anyDefInjectionsXmlParseError ?? false,
+					generalLoadErrors = activeLanguage?.loadErrors?.ToArray() ?? Array.Empty<string>(),
+					defInjectionLoadErrors
+				},
 				zombieGrid,
 				spawnedZombieCount = zombies.Length,
 				ordinaryZombies = zombies.OfType<Zombie>().Count(),
@@ -107,6 +121,8 @@ namespace ZombieLand
 					survivalMealGraphicType = survivalMeal?.graphic?.GetType().FullName,
 					survivalMealCachedGraphicType = survivalMeal?.graphicData?.cachedGraphic?.GetType().FullName,
 					twinkieCachedGraphicApplied = survivalMeal?.graphicData?.cachedGraphic == GraphicsDatabase.twinkieGraphic,
+					survivalMealTexturePresent = survivalMeal?.graphic?.MatSingle?.mainTexture != null,
+					twinkieTexturePresent = GraphicsDatabase.twinkieGraphic?.MatSingle?.mainTexture != null,
 					healthFactorSetting = settings?.healthFactor,
 					zombieBaseHealthScale = zombieRace?.baseHealthScale,
 					zombieHealthScaleApplied = settings != null
