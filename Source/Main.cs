@@ -122,6 +122,7 @@ namespace ZombieLand
 			Identifier = content.PackageId;
 			LongEventHandler.ExecuteWhenFinished(() =>
 			{
+				RepairKnownRussianOdysseyGrammarRule();
 				_ = GetSettings<ZombieSettingsDefaults>();
 				if (ZombieSettingsDefaults.group == null)
 					Tools.ResetSettings();
@@ -130,6 +131,41 @@ namespace ZombieLand
 			});
 
 			ApplyEarlyPatches();
+		}
+
+		static void RepairKnownRussianOdysseyGrammarRule()
+		{
+			if (LanguageDatabase.activeLanguage?.LegacyFolderName != "Russian")
+				return;
+
+			// RimWorld 1.6 Odyssey's Russian translation omits the rule keyword on this one alternative.
+			const string malformedRule = "[tradeAdj_fem] [tradeNoun_fem]";
+			const string correctedRule = "r_name->[tradeAdj_fem] [tradeNoun_fem]";
+			var def = DefDatabase<RulePackDef>.GetNamedSilentFail("NamerFactionTradersGuild");
+			if (def == null)
+				return;
+			var rulePack = AccessTools.Field(typeof(RulePackDef), "rulePack")?.GetValue(def);
+			var rules = rulePack == null
+				? null
+				: AccessTools.Field(rulePack.GetType(), "rulesStrings")?.GetValue(rulePack) as List<string>;
+			if (rules == null)
+				return;
+
+			var changed = false;
+			for (var i = 0; i < rules.Count; i++)
+			{
+				if (rules[i] != malformedRule)
+					continue;
+				rules[i] = correctedRule;
+				changed = true;
+			}
+
+			if (changed == false)
+				return;
+
+			AccessTools.Field(rulePack.GetType(), "rulesResolved")?.SetValue(rulePack, null);
+			AccessTools.Field(typeof(RulePackDef), "cachedRules")?.SetValue(def, null);
+			Log.Message("Zombieland repaired the malformed Russian Odyssey traders-guild grammar rule.");
 		}
 
 		static void DrawJumpToCurrent(Rect rect, float offset)
@@ -189,10 +225,25 @@ namespace ZombieLand
 		{
 			var harmony = new Harmony("net.pardeike.zombieland");
 
+			// Some shipped Polish and Turkish translations end descriptions with spaces,
+			// which RimWorld reports as red config errors before the main menu appears.
+			var configErrors = AccessTools.Method(typeof(Def), nameof(Def.ConfigErrors));
+			var configErrorsPrefix = AccessTools.Method(typeof(ZombielandMod), nameof(Def_ConfigErrors_Prefix));
+			_ = harmony.Patch(configErrors, prefix: new HarmonyMethod(configErrorsPrefix));
+
 			// patch to customize the blueprint of a zombieshocker so it ticks and vanishes if the wall below is destroyed
 			var method = AccessTools.Method(typeof(ThingDefGenerator_Buildings), nameof(ThingDefGenerator_Buildings.NewBlueprintDef_Thing));
 			var postfix = AccessTools.Method(typeof(ZombielandMod), "NewBlueprintDef_Thing_Postfix");
 			_ = harmony.Patch(method, postfix: new HarmonyMethod(postfix));
+		}
+
+		static void Def_ConfigErrors_Prefix(Def __instance)
+		{
+			var language = LanguageDatabase.activeLanguage?.LegacyFolderName;
+			if (language != "Polish" && language != "Turkish")
+				return;
+			if (__instance?.description != null)
+				__instance.description = __instance.description.TrimEnd();
 		}
 		//
 		static void NewBlueprintDef_Thing_Postfix(ThingDef def, ref ThingDef __result)
