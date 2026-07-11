@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ContaminationStateForceRest.label>ruhend</ContaminationStateForceRest.label>
+	<ContaminationStateHallucination.label>halluzinierend</ContaminationStateHallucination.label>
+	<ContaminationStateSleepwalking.label>schlafwandelnd</ContaminationStateSleepwalking.label>
+	<ContaminationStateHoarding.label>hortend</ContaminationStateHoarding.label>
+	<ContaminationStateMimicing.label>nachahmend</ContaminationStateMimicing.label>
+	<ContaminationStateBreakdown.label>zusammenbrechend</ContaminationStateBreakdown.label>
+
+</LanguageData>

@@ -4,6 +4,11 @@
 	<ZombieBite.label>Zombiebiss</ZombieBite.label>
 	<ZombieBite.injuryProps.destroyedLabel>Von einem Zombie abgebissen</ZombieBite.injuryProps.destroyedLabel>
 	<ZombieBite.injuryProps.destroyedOutLabel>Von einem Zombie weggebissen</ZombieBite.injuryProps.destroyedOutLabel>
+	<ZombieBite.description>Ein infektiöser Biss von einem Zombie.</ZombieBite.description>
+	<ZombieInfection.label>Zombieinfektion</ZombieInfection.label>
+	<ZombieInfection.description>Zombieinfektion nach dem Tod.</ZombieInfection.description>
+	<ContaminationEffect.label>Kontamination</ContaminationEffect.label>
+	<ContaminationEffect.description>Zombie-Kontamination in Gehirn und Geist. Sie entsteht durch Kontakt mit kontaminierten Dingen und Orten. Sie beeinträchtigt zunehmend die allgemeine Leistungsfähigkeit und verursacht seltsame Nebenwirkungen. Bei 100 % tritt der Tod ein.</ContaminationEffect.description>
 	<SymbiantSymbiosis.label>Symbiant-Verbindung</SymbiantSymbiosis.label>
 	<SymbiantSymbiosis.description>Dieser Kolonist ist mit einem Zombie-Symbiant verbunden. Der Wirt ist immun gegen Zombieinfektionen durch Bisse und erhält zufällige Vorteile, wenn der Symbiant wächst. Figuren auf Symbiant-Zellen werden verlangsamt, außer dem Wirt. Das Füttern mit Leichen lässt den Symbiant schneller wachsen. Eine Operation kann die Verbindung entfernen; der wirtslose Symbiant zieht sich danach zurück.</SymbiantSymbiosis.description>
 

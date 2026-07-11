@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ContaminationStateForceRest.label>отдыхает</ContaminationStateForceRest.label>
+	<ContaminationStateHallucination.label>галлюцинирует</ContaminationStateHallucination.label>
+	<ContaminationStateSleepwalking.label>ходит во сне</ContaminationStateSleepwalking.label>
+	<ContaminationStateHoarding.label>накапливает</ContaminationStateHoarding.label>
+	<ContaminationStateMimicing.label>подражает</ContaminationStateMimicing.label>
+	<ContaminationStateBreakdown.label>переживает срыв</ContaminationStateBreakdown.label>
+
+</LanguageData>

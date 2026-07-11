@@ -4,6 +4,11 @@
 	<ZombieBite.label>morsure de zombie</ZombieBite.label>
 	<ZombieBite.injuryProps.destroyedLabel>arraché par une morsure de zombie</ZombieBite.injuryProps.destroyedLabel>
 	<ZombieBite.injuryProps.destroyedOutLabel>arraché par une morsure de zombie</ZombieBite.injuryProps.destroyedOutLabel>
+	<ZombieBite.description>Une morsure infectieuse infligée par un zombie.</ZombieBite.description>
+	<ZombieInfection.label>infection zombie</ZombieInfection.label>
+	<ZombieInfection.description>Infection zombie après la mort.</ZombieInfection.description>
+	<ContaminationEffect.label>contamination</ContaminationEffect.label>
+	<ContaminationEffect.description>Contamination zombie du cerveau et de l'esprit. Elle est causée par le contact avec des objets et des lieux contaminés. Elle réduit progressivement l'efficacité générale et provoque des effets secondaires étranges. À 100 %, la mort survient.</ContaminationEffect.description>
 	<SymbiantSymbiosis.label>lien de symbiant</SymbiantSymbiosis.label>
 	<SymbiantSymbiosis.description>Ce colon est lié à un Symbiant zombie. L'hôte est immunisé contre l'infection zombie par morsure et gagne des avantages aléatoires quand le Symbiant grandit. Les pions qui traversent les cases du Symbiant sont ralentis, sauf l'hôte. Le nourrir avec des cadavres accélère sa croissance. Une opération peut retirer le lien ; le Symbiant sans hôte se résorbera ensuite.</SymbiantSymbiosis.description>
 

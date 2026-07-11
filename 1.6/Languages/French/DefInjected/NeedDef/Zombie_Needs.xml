@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<Contamination.label>contamination</Contamination.label>
+	<Contamination.description>La contamination augmente au contact d'objets contaminés.</Contamination.description>
+
+</LanguageData>

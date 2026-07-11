@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ContaminationStateForceRest.label>se repose</ContaminationStateForceRest.label>
+	<ContaminationStateHallucination.label>hallucine</ContaminationStateHallucination.label>
+	<ContaminationStateSleepwalking.label>somnambule</ContaminationStateSleepwalking.label>
+	<ContaminationStateHoarding.label>accumule compulsivement</ContaminationStateHoarding.label>
+	<ContaminationStateMimicing.label>imite</ContaminationStateMimicing.label>
+	<ContaminationStateBreakdown.label>s'effondre</ContaminationStateBreakdown.label>
+
+</LanguageData>

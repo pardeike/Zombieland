@@ -4,6 +4,11 @@
   <ZombieBite.label>丧尸咬伤</ZombieBite.label>
   <ZombieBite.injuryProps.destroyedLabel>被丧尸咬掉</ZombieBite.injuryProps.destroyedLabel>
   <ZombieBite.injuryProps.destroyedOutLabel>被丧尸咬掉</ZombieBite.injuryProps.destroyedOutLabel>
+  <ZombieBite.description>僵尸造成的感染性咬伤。</ZombieBite.description>
+  <ZombieInfection.label>僵尸感染</ZombieInfection.label>
+  <ZombieInfection.description>死亡后的僵尸感染。</ZombieInfection.description>
+  <ContaminationEffect.label>污染</ContaminationEffect.label>
+  <ContaminationEffect.description>大脑和精神中的僵尸污染。接触受污染的物品和地点会造成污染。污染会逐渐降低整体效率，并引发奇怪的副作用。达到 100% 时会死亡。</ContaminationEffect.description>
   <SymbiantSymbiosis.label>共生体连接</SymbiantSymbiosis.label>
   <SymbiantSymbiosis.description>此殖民者与一个僵尸共生体连接。宿主免疫僵尸咬伤造成的感染，并会在共生体成长时获得随机收益。穿过共生体格子的角色会变慢，宿主除外。用尸体喂养会让共生体成长更快。手术可以移除连接；失去宿主的共生体之后会逐渐缩回。</SymbiantSymbiosis.description>
 

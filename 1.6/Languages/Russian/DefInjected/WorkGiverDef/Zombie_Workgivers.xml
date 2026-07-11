@@ -10,5 +10,6 @@
 	<FeedZombieSymbiant.label>кормить симбионта</FeedZombieSymbiant.label>
 	<FeedZombieSymbiant.verb>кормить</FeedZombieSymbiant.verb>
 	<FeedZombieSymbiant.gerund>кормит</FeedZombieSymbiant.gerund>
+	<FixBrokenChainsaw.label>чинить сломанную бензопилу</FixBrokenChainsaw.label>
 
 </LanguageData>

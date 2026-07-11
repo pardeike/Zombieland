@@ -11,5 +11,6 @@
 	<FeedZombieSymbiant.label>nourrir le Symbiant</FeedZombieSymbiant.label>
 	<FeedZombieSymbiant.verb>nourrir</FeedZombieSymbiant.verb>
 	<FeedZombieSymbiant.gerund>nourrit</FeedZombieSymbiant.gerund>
+	<FixBrokenChainsaw.label>réparer une tronçonneuse en panne</FixBrokenChainsaw.label>
 
 </LanguageData>

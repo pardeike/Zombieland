@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<Contamination.label>污染</Contamination.label>
+	<Contamination.description>接触受污染的物品会增加污染。</Contamination.description>
+
+</LanguageData>

@@ -4,6 +4,11 @@
 	<ZombieBite.label>zombi ısırığı</ZombieBite.label>
 	<ZombieBite.injuryProps.destroyedLabel>bir zombi tarafından ısırılıp koparıldı</ZombieBite.injuryProps.destroyedLabel>
 	<ZombieBite.injuryProps.destroyedOutLabel>bir zombi tarafından ısırılıp çıkarıldı</ZombieBite.injuryProps.destroyedOutLabel>
+	<ZombieBite.description>Bir zombiden gelen bulaşıcı ısırık.</ZombieBite.description>
+	<ZombieInfection.label>zombi enfeksiyonu</ZombieInfection.label>
+	<ZombieInfection.description>Ölümden sonra zombi enfeksiyonu.</ZombieInfection.description>
+	<ContaminationEffect.label>kontaminasyon</ContaminationEffect.label>
+	<ContaminationEffect.description>Beyin ve zihindeki zombi kontaminasyonu. Kontamine nesnelere ve yerlere dokunmak veya maruz kalmak buna neden olur. Genel verimliliği giderek düşürür ve garip yan etkilere yol açar. %100 olduğunda ölüm gerçekleşir.</ContaminationEffect.description>
 	<SymbiantSymbiosis.label>simbiyant bağı</SymbiantSymbiosis.label>
 	<SymbiantSymbiosis.description>Bu kolonist bir Zombi Simbiyantı ile bağlı. Konak zombi ısırıklarından gelen enfeksiyona bağışıktır ve Simbiyant büyüdükçe rastgele faydalar kazanır. Simbiyant hücrelerinden geçen piyonlar yavaşlar, konak hariç. Cesetle beslemek Simbiyantı daha hızlı büyütür. Ameliyat bağı kaldırabilir; konaksız Simbiyant sonra geri çekilir.</SymbiantSymbiosis.description>
 

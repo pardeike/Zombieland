@@ -14,6 +14,8 @@
 	<ZombieExtract.label>zombi özü</ZombieExtract.label>
 	<ZombieExtract.description>Ölü bir zombiden alınan az miktarda öz. Enfekte vücut parçalarında yapılan operasyonlarda kullanılan zombi serumu adlı ilacı üretmek için en fazla 100 özü birleştirin.</ZombieExtract.description>
 	<UnfinishedZombieSerum.label>bitmemiş zombi serumu</UnfinishedZombieSerum.label>
+	<ZombieSerumSimple.label>derme çatma zombi serumu 100%</ZombieSerumSimple.label>
+	<ZombieSerumSimple.description>Operasyonlar sırasında zombi enfeksiyonlarını tedavi etmeyi garanti eden ölü zombilerden saf serum.</ZombieSerumSimple.description>
 	<Zombie10Serum.label>zombi serumu 10%</Zombie10Serum.label>
 	<Zombie10Serum.description>Operasyonlar sırasında zombi enfeksiyonlarını tedavi eden ölü zombi serumu (%10 başarı oranı).</Zombie10Serum.description>
 	<Zombie20Serum.label>zombi serumu 20%</Zombie20Serum.label>
@@ -38,10 +40,9 @@
 	<ZombieShocker.description>Bir odanın duvarına yerleşen zombi kontrol makinesi. Dışarıdan etkinleştirilebilir ve odadaki her zombiyi kısa süreliğine bilinçsiz bırakır.</ZombieShocker.description>
 	<Thumper.label>zombi çekici</Thumper.label>
 	<Thumper.description>Zombileri çekmek için kullanılan bir vurucu. Yakıt kullanır ve her vuruşta çevreye zarar verir.</Thumper.description>
-	<ZombieSpitter.label>zombi tükürücü</ZombieSpitter.label>
-	<ZombieSpitter.description>Üssünüze havadan saldırmak için zombi tüküren bir canavar.</ZombieSpitter.description>
 	<ZombieBall.label>zombi topu</ZombieBall.label>
-tPack.label>
->
+
+	<ZombieLand_DecontaminationTransportPod.label>dekontaminasyon taşıma kapsülü</ZombieLand_DecontaminationTransportPod.label>
+	<ZombieLand_DecontaminationTransportPod.description>Bir kolonisti dekontaminasyon tedavisine götürmek için gönderilen tek yönlü alma kapsülü.</ZombieLand_DecontaminationTransportPod.description>
 
 </LanguageData>

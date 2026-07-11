@@ -14,6 +14,8 @@
 	<ZombieExtract.label>экстракт зомби</ZombieExtract.label>
 	<ZombieExtract.description>Небольшое количество экстракта из мёртвого зомби. Соберите до 100 единиц экстракта, чтобы изготовить препарат под названием зомби-сыворотка, используемый при операциях на заражённых частях тела.</ZombieExtract.description>
 	<UnfinishedZombieSerum.label>незавершённая зомби-сыворотка</UnfinishedZombieSerum.label>
+	<ZombieSerumSimple.label>кустарная зомби-сыворотка 100%</ZombieSerumSimple.label>
+	<ZombieSerumSimple.description>Чистая сыворотка из мёртвых зомби, гарантирующая лечение зомби-инфекции во время операции.</ZombieSerumSimple.description>
 	<Zombie10Serum.label>зомби-сыворотка 10%</Zombie10Serum.label>
 	<Zombie10Serum.description>Сыворотка из мёртвых зомби, лечащая зомби-инфекции во время операций (10% успеха).</Zombie10Serum.description>
 	<Zombie20Serum.label>зомби-сыворотка 20%</Zombie20Serum.label>
@@ -38,10 +40,9 @@
 	<ZombieShocker.description>Устройство контроля зомби, встраиваемое в стену комнаты. Его можно активировать снаружи, и оно ненадолго лишает сознания всех зомби в комнате.</ZombieShocker.description>
 	<Thumper.label>зомби-приманка</Thumper.label>
 	<Thumper.description>Устройство, привлекающее зомби. Использует топливо и повреждает окружение при каждом ударе.</Thumper.description>
-	<ZombieSpitter.label>зомби-плевун</ZombieSpitter.label>
-	<ZombieSpitter.description>Монстр, который плюётся зомби, атакуя вашу базу с воздуха.</ZombieSpitter.description>
 	<ZombieBall.label>зомби-шар</ZombieBall.label>
-tPack.label>
->
+
+	<ZombieLand_DecontaminationTransportPod.label>транспортная капсула для дезактивации</ZombieLand_DecontaminationTransportPod.label>
+	<ZombieLand_DecontaminationTransportPod.description>Одноразовая капсула, отправленная забрать колониста для прохождения дезактивации.</ZombieLand_DecontaminationTransportPod.description>
 
 </LanguageData>

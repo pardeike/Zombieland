@@ -4,6 +4,11 @@
 	<ZombieBite.label>укус зомби</ZombieBite.label>
 	<ZombieBite.injuryProps.destroyedLabel>откушено зомби</ZombieBite.injuryProps.destroyedLabel>
 	<ZombieBite.injuryProps.destroyedOutLabel>выкушено зомби</ZombieBite.injuryProps.destroyedOutLabel>
+	<ZombieBite.description>Заразный укус зомби.</ZombieBite.description>
+	<ZombieInfection.label>зомби-инфекция</ZombieInfection.label>
+	<ZombieInfection.description>Зомби-инфекция после смерти.</ZombieInfection.description>
+	<ContaminationEffect.label>загрязнение</ContaminationEffect.label>
+	<ContaminationEffect.description>Зомби-загрязнение мозга и разума. Возникает при контакте с заражёнными предметами и местами. Постепенно снижает общую эффективность и вызывает странные побочные эффекты. При 100 % наступает смерть.</ContaminationEffect.description>
 	<SymbiantSymbiosis.label>связь симбионта</SymbiantSymbiosis.label>
 	<SymbiantSymbiosis.description>Этот колонист связан с зомби-симбионтом. Носитель получает иммунитет к зомби-инфекции от укусов и случайные преимущества по мере роста симбионта. Пешки на клетках симбионта замедляются, кроме носителя. Кормление трупами ускоряет рост симбионта. Операция может удалить связь; симбионт без носителя затем отступит.</SymbiantSymbiosis.description>
 

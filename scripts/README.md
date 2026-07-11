@@ -1,5 +1,11 @@
 # Scripts
 
+## XML Validation
+
+Run `./scripts/check-versioned-xml.sh` after changing defs, patches, language data, `LoadFolders.xml`, or mod metadata. The check parses every tracked or non-ignored project XML file, verifies the versioned runtime layout, rejects unexpected direct text in active container documents, detects empty or duplicate active translation entries, detects duplicate active def names, requires active non-English keyed files to have the same key set as English, verifies every DefInjected key targets a real English def and full field path, requires every direct English def label and description to be translated in every active non-English language, and rejects duplicate effective labels among active non-abstract ThingDefs after each language's injections are applied.
+
+The preserved `1.4/` payload is still checked for XML parse failures and layout isolation, but its known legacy translation structure is frozen and is not subjected to the newer active-language anomaly and parity rules.
+
 ## Zombie Ticking Runtime Benchmark
 
 `zombie-ticking-benchmark.lua` is the reusable real-RimBridge entry point for the adaptive scheduler regression and speed matrix. The lowered-Lua file is intentionally a thin parameter wrapper around `zombieland/zombie_ticking_benchmark`; the companion tool owns the sequence so its C# `finally` restores test mode even when a nested call fails or the operation is cancelled.

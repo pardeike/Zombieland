@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ContaminationStateForceRest.label>dinleniyor</ContaminationStateForceRest.label>
+	<ContaminationStateHallucination.label>halüsinasyon görüyor</ContaminationStateHallucination.label>
+	<ContaminationStateSleepwalking.label>uykuda yürüyor</ContaminationStateSleepwalking.label>
+	<ContaminationStateHoarding.label>istifliyor</ContaminationStateHoarding.label>
+	<ContaminationStateMimicing.label>taklit ediyor</ContaminationStateMimicing.label>
+	<ContaminationStateBreakdown.label>çöküyor</ContaminationStateBreakdown.label>
+
+</LanguageData>

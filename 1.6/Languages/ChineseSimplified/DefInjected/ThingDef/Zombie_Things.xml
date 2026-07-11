@@ -21,6 +21,9 @@
 
   <UnfinishedZombieSerum.label>未完成的僵尸血清</UnfinishedZombieSerum.label>
 
+  <ZombieSerumSimple.label>简易僵尸血清 100%</ZombieSerumSimple.label>
+  <ZombieSerumSimple.description>来自死亡僵尸的血清，可在行动中治愈僵尸感染。 (100%的成功率)</ZombieSerumSimple.description>
+
   <Zombie10Serum.label>僵尸血清 10%</Zombie10Serum.label>
   <Zombie10Serum.description>来自死亡僵尸的血清，可在行动中治愈僵尸感染。 (10%的成功率)</Zombie10Serum.description>
 
@@ -57,10 +60,9 @@
   <Thumper.label>僵尸踩踏器</Thumper.label>
   <Thumper.description>一个吸引僵尸的跺脚器。使用燃料，每次攻击对环境造成破坏。</Thumper.description>
 
-  <ZombieSpitter.label>僵尸喷吐者</ZombieSpitter.label>
-  <ZombieSpitter.description>从空中喷出僵尸攻击你的基地的怪物。</ZombieSpitter.description>
   <ZombieBall.label>僵尸球</ZombieBall.label>
-tPack.label>
->
+
+  <ZombieLand_DecontaminationTransportPod.label>去污运输舱</ZombieLand_DecontaminationTransportPod.label>
+  <ZombieLand_DecontaminationTransportPod.description>用于接走殖民者接受去污治疗的单程运输舱。</ZombieLand_DecontaminationTransportPod.description>
 
 </LanguageData>

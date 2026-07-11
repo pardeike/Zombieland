@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+
+	<ContaminationStateForceRest.label>休息中</ContaminationStateForceRest.label>
+	<ContaminationStateHallucination.label>产生幻觉</ContaminationStateHallucination.label>
+	<ContaminationStateSleepwalking.label>梦游中</ContaminationStateSleepwalking.label>
+	<ContaminationStateHoarding.label>囤积中</ContaminationStateHoarding.label>
+	<ContaminationStateMimicing.label>模仿中</ContaminationStateMimicing.label>
+	<ContaminationStateBreakdown.label>精神崩溃中</ContaminationStateBreakdown.label>
+
+</LanguageData>
