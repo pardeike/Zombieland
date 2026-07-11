@@ -106,6 +106,17 @@ namespace ZombieLand
 		public bool isHealing = false;
 		public float consciousness = 1f;
 		public float simulationTickRate = 1f;
+		[NonSerialized] internal TickManager remoteSchedulerOwner;
+		[NonSerialized] internal int remoteSchedulerGeneration;
+		[NonSerialized] internal int remoteEligibilityGeneration;
+		[NonSerialized] public int lastSimulationTick = -1;
+		[NonSerialized] public int telemetryGeneration = -1;
+		[NonSerialized] public int telemetryCandidateOpportunities;
+		[NonSerialized] public int telemetryVisibleCandidateOpportunities;
+		[NonSerialized] public int telemetrySelections;
+		[NonSerialized] public int telemetryVisibleSelections;
+		[NonSerialized] public int telemetryLastSelectedGameTick;
+		[NonSerialized] public int telemetryMaximumSelectionGap;
 		public bool hasAttackCandidateNeighbor;
 		public int attackCandidateNeighborTick = -1;
 		public int nextAttackScanTick = 0;
@@ -760,6 +771,7 @@ namespace ZombieLand
 			var map = Map;
 			if (map == null)
 				return;
+			lastSimulationTick = GenTicks.TicksGame;
 
 			if (!ThingOwnerUtility.ContentsSuspended(ParentHolder))
 			{

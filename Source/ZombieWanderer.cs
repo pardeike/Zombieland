@@ -333,6 +333,8 @@ namespace ZombieLand
 	public static class ZombieWanderer
 	{
 		public static readonly IEnumerator processor = Process();
+		public static long lastProcessStartTimestamp;
+		public static float lastProcessMilliseconds;
 
 		static readonly Dictionary<Map, MapInfo> grids = new();
 
@@ -344,6 +346,20 @@ namespace ZombieLand
 				grids[map] = result;
 			}
 			return result;
+		}
+
+		public static bool ProcessNext()
+		{
+			var startTimestamp = Stopwatch.GetTimestamp();
+			lastProcessStartTimestamp = startTimestamp;
+			try
+			{
+				return processor.MoveNext();
+			}
+			finally
+			{
+				lastProcessMilliseconds = (float)((Stopwatch.GetTimestamp() - startTimestamp) * 1000d / Stopwatch.Frequency);
+			}
 		}
 
 		public static IEnumerator Process()

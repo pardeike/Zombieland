@@ -14,6 +14,52 @@ namespace ZombieLand
 {
 	public sealed partial class ZombielandBridgeTools
 	{
+		static bool zombieTickingTestModeEnabled;
+		static SettingsGroup zombieTickingTestModeOriginalValues;
+		static List<SettingsKeyFrame> zombieTickingTestModeOriginalValuesOverTime;
+
+		[Tool("zombieland/zombie_ticking_test_mode", Description = "Temporarily suppress ordinary and zombie-free-event zero-threat cleanup for a controlled scheduler benchmark, then restore the exact prior settings timeline.")]
+		public static object ZombieTickingTestMode(
+			[ToolParameter(Description = "True to begin/idempotently maintain the controlled benchmark window; false to restore the setting captured by the first begin call.")] bool enabled)
+		{
+			var settings = ZombieSettings.Values;
+			if (enabled && settings == null)
+				return new { success = false, enabled, error = "Zombieland settings are not initialized." };
+
+			if (enabled)
+			{
+				if (zombieTickingTestModeEnabled == false)
+				{
+					var snapshot = SnapshotZombieSettings();
+					zombieTickingTestModeOriginalValues = snapshot.values;
+					zombieTickingTestModeOriginalValuesOverTime = snapshot.valuesOverTime;
+				}
+				zombieTickingTestModeEnabled = true;
+				ApplyZombieSettingsOverride(values =>
+				{
+					values.zombiesDieOnZeroThreat = false;
+					values.zombieFreeEvents = false;
+				});
+			}
+			else if (zombieTickingTestModeEnabled)
+			{
+				RestoreZombieSettings((zombieTickingTestModeOriginalValues, zombieTickingTestModeOriginalValuesOverTime));
+				zombieTickingTestModeEnabled = false;
+				zombieTickingTestModeOriginalValues = null;
+				zombieTickingTestModeOriginalValuesOverTime = null;
+			}
+			settings = ZombieSettings.Values;
+
+			return new
+			{
+				success = true,
+				requestedEnabled = enabled,
+				testModeEnabled = zombieTickingTestModeEnabled,
+				zombiesDieOnZeroThreat = settings?.zombiesDieOnZeroThreat,
+				zombieFreeEvents = settings?.zombieFreeEvents
+			};
+		}
+
 		[Tool("zombieland/fogged_door_spawns_room_zombies", Description = "Build a fogged sealed room, call RimWorld FogGrid.Notify_PawnEnteringDoor, and verify Zombieland spawns sudden room zombies before vanilla unfogging.")]
 		public static object FoggedDoorSpawnsRoomZombies()
 		{
@@ -2144,7 +2190,7 @@ namespace ZombieLand
 			return map.Center;
 		}
 
-		[Tool("zombieland/zombie_ticking_budget_contract", Description = "Verify reduced zombie ticking counts production ticks and keeps move-speed compensation active.")]
+		[Tool("zombieland/zombie_ticking_budget_contract", Description = "Verify reduced zombie ticking counts production ticks while keeping displayed move speed stable and compensating bounded path payment.")]
 		public static object ZombieTickingBudgetContract()
 		{
 			var map = CurrentMap;
@@ -2178,6 +2224,7 @@ namespace ZombieLand
 			var destroyedExisting = ZombieRuntimeActions.DestroyZombies(map);
 			var spawned = new List<Zombie>();
 			ZombieTicker.ResetSaturation();
+			tickManager.ResetRemoteScheduler(resetDiagnostics: true);
 
 			try
 			{
@@ -2226,6 +2273,7 @@ namespace ZombieLand
 					zombie.simulationTickRate = 1f;
 				var priorityNormalSpeed = prioritySample?.GetStatValue(StatDefOf.MoveSpeed) ?? 0f;
 				var remoteNormalSpeed = remoteSample?.GetStatValue(StatDefOf.MoveSpeed) ?? 0f;
+				var remoteNormalPathPayment = ReadPathPayment(remoteSample);
 				ZombieTicker.zombiesTicked = 0;
 				tickManager.ZombieTicking();
 				var subsetCount = tickManager.currentZombiesTickingCount;
@@ -2237,10 +2285,18 @@ namespace ZombieLand
 				var remoteTickRate = remoteSample?.simulationTickRate ?? 0f;
 				var priorityThrottledSpeed = prioritySample?.GetStatValue(StatDefOf.MoveSpeed) ?? 0f;
 				var remoteThrottledSpeed = remoteSample?.GetStatValue(StatDefOf.MoveSpeed) ?? 0f;
+				var remoteThrottledPathPayment = ReadPathPayment(remoteSample);
 				var prioritySpeedRatio = priorityNormalSpeed == 0f ? 0f : priorityThrottledSpeed / priorityNormalSpeed;
 				var remoteSpeedRatio = remoteNormalSpeed == 0f ? 0f : remoteThrottledSpeed / remoteNormalSpeed;
+				var remotePathPaymentRatio = remoteNormalPathPayment.GetValueOrDefault() == 0f
+					? 0f
+					: remoteThrottledPathPayment.GetValueOrDefault() / remoteNormalPathPayment.Value;
+				var expectedPathPaymentRatio = ZombieTicker.MovementPaymentMultiplier(remoteTickRate);
 				var prioritySpeedStable = priorityTickRate > 0.99f && Mathf.Abs(prioritySpeedRatio - 1f) < 0.05f;
-				var remoteSpeedCompensated = remoteTickRate > 0f && remoteTickRate < 1f && remoteSpeedRatio > 1.5f;
+				var remoteSpeedStable = remoteTickRate > 0f && remoteTickRate < 1f && Mathf.Abs(remoteSpeedRatio - 1f) < 0.05f;
+				var remotePathPaymentCompensated = remoteNormalPathPayment.HasValue
+					&& remoteThrottledPathPayment.HasValue
+					&& Mathf.Abs(remotePathPaymentRatio - expectedPathPaymentRatio) < 0.05f;
 				var awakeCapacity = VerifyZombieAwakeCapacity(map, sample, root + new IntVec3(-8, 0, -8));
 				var makeDowned = VerifyMakeDownedPatch(map, root + new IntVec3(-16, 0, -8));
 				var killedCleanup = VerifyRemoveComponentsOnKilledPatch(map, root + new IntVec3(-24, 0, -8));
@@ -2258,7 +2314,8 @@ namespace ZombieLand
 						&& tickedCount == subsetCount
 						&& allTickedWereLive
 						&& prioritySpeedStable
-						&& remoteSpeedCompensated
+						&& remoteSpeedStable
+						&& remotePathPaymentCompensated
 						&& ObjectSuccess(awakeCapacity)
 						&& ObjectSuccess(makeDowned)
 						&& ObjectSuccess(killedCleanup)
@@ -2284,7 +2341,12 @@ namespace ZombieLand
 					remoteNormalSpeed,
 					remoteThrottledSpeed,
 					remoteSpeedRatio,
-					remoteSpeedCompensated,
+					remoteSpeedStable,
+					remoteNormalPathPayment,
+					remoteThrottledPathPayment,
+					remotePathPaymentRatio,
+					expectedPathPaymentRatio,
+					remotePathPaymentCompensated,
 					awakeCapacity,
 					makeDowned,
 					killedCleanup,
@@ -2307,6 +2369,198 @@ namespace ZombieLand
 				ZombieTicker.currentTicking = originalCurrentTicking;
 				ZombieTicker.RestoreSaturation(originalSaturation);
 				tickManager.ClearZombieTickingBuffers();
+				tickManager.ResetRemoteScheduler(resetDiagnostics: true);
+			}
+		}
+
+		static float? ReadPathPayment(Zombie zombie)
+		{
+			var method = AccessTools.Method(typeof(Pawn_PathFollower), "CostToPayThisTick");
+			if (zombie?.pather == null || method == null)
+				return null;
+			return Convert.ToSingle(method.Invoke(zombie.pather, null));
+		}
+
+		[Tool("zombieland/zombie_ticking_scheduler_contract", Description = "Verify emergency-floor fairness, immediate priority service, queue churn recovery, and RNG isolation for the production zombie scheduler.")]
+		public static object ZombieTickingSchedulerContract(
+			[ToolParameter(Description = "Scheduler preparations to observe; 240 proves two complete 120-tick emergency-floor rounds for 25 zombies.", Required = false, DefaultValue = 240)] int preparations = 240)
+		{
+			var map = CurrentMap;
+			var tickManager = map?.GetComponent<TickManager>();
+			if (map == null || tickManager == null)
+				return new { success = false, error = "No current map with a Zombieland tick manager is loaded." };
+
+			preparations = Mathf.Clamp(preparations, 240, 1200);
+			var originalPercents = (float[])ZombieTicker.percentZombiesTicked.Clone();
+			var originalPercentIndex = ZombieTicker.percentZombiesTickedIndex;
+			var originalSaturation = ZombieTicker.CaptureSaturation();
+			var originalCenterOfInterest = tickManager.centerOfInterest;
+			var originalNextCenterOfInterest = tickManager.nextCenterOfInterest;
+			var destroyedExisting = ZombieRuntimeActions.DestroyZombies(map);
+			var spawned = new List<Zombie>();
+
+			try
+			{
+				const int targetCount = 25;
+				var root = BudgetContractRoot(map);
+				for (var i = 0; i < targetCount; i++)
+				{
+					var candidateRoot = root + new IntVec3((i % 5) * 3, 0, (i / 5) * 3);
+					if (TryFindClearSpawnCell(map, candidateRoot, 16f, out var cell, out var spawnError) == false)
+						return spawnError;
+					var zombie = ZombieRuntimeActions.SpawnZombie(cell, map, ZombieType.Normal, true);
+					if (zombie == null)
+						return new { success = false, destroyedExisting, spawnedCount = spawned.Count, error = "Could not spawn the scheduler fixture." };
+					zombie.state = ZombieState.Wandering;
+					zombie.raging = 0;
+					spawned.Add(zombie);
+				}
+
+				tickManager.allZombiesCached.RemoveWhere(zombie => zombie == null || zombie.Destroyed || zombie.Spawned == false || zombie.Dead);
+				foreach (var zombie in spawned)
+					_ = tickManager.allZombiesCached.Add(zombie);
+				tickManager.centerOfInterest = IntVec3.Invalid;
+				tickManager.nextCenterOfInterest = IntVec3.Invalid;
+				tickManager.ResetRemoteScheduler(resetDiagnostics: true);
+				FillZombieTickPercent(0f);
+				ZombieTicker.ResetSaturation();
+				ZombieTicker.saturationState = ZombieSaturationState.Emergency;
+				ZombieTicker.saturationSeverity = 1f;
+				ZombieTicker.simulationSaturationSeverity = 1f;
+
+				var selectionCounts = spawned.ToDictionary(zombie => ZombieRuntimeActions.StableThingId(zombie), _ => 0);
+				var lastSelection = spawned.ToDictionary(zombie => ZombieRuntimeActions.StableThingId(zombie), _ => 0);
+				var maxSilence = spawned.ToDictionary(zombie => ZombieRuntimeActions.StableThingId(zombie), _ => 0);
+				var remoteClassificationStable = true;
+				for (var preparation = 1; preparation <= preparations; preparation++)
+				{
+					TickManager.PrepareThreadedTicking(tickManager);
+					remoteClassificationStable &= tickManager.lastZombieTickingPriorityCount == 0
+						&& tickManager.lastZombieTickingRemoteCount == targetCount;
+					for (var i = 0; i < tickManager.currentZombiesTickingCount; i++)
+					{
+						var id = ZombieRuntimeActions.StableThingId(tickManager.currentZombiesTicking[i]);
+						if (selectionCounts.ContainsKey(id) == false)
+							continue;
+						maxSilence[id] = Math.Max(maxSilence[id], preparation - lastSelection[id]);
+						lastSelection[id] = preparation;
+						selectionCounts[id]++;
+					}
+				}
+				foreach (var id in selectionCounts.Keys.ToArray())
+					maxSilence[id] = Math.Max(maxSilence[id], preparations - lastSelection[id]);
+
+				var expectedSelections = Mathf.FloorToInt(targetCount * ZombieTicker.EmergencyRemoteTickFloor * preparations + 0.0001f);
+				var minSelections = selectionCounts.Values.Min();
+				var maxSelections = selectionCounts.Values.Max();
+				var maxSilenceTicks = maxSilence.Values.Max();
+				var fairnessSuccess = remoteClassificationStable
+					&& selectionCounts.Values.Sum() == expectedSelections
+					&& minSelections > 0
+					&& maxSelections - minSelections <= 1
+					&& maxSilenceTicks <= 121;
+
+				var priority = spawned[0];
+				priority.state = ZombieState.Tracking;
+				var priorityAlwaysSelected = true;
+				for (var i = 0; i < 20; i++)
+				{
+					TickManager.PrepareThreadedTicking(tickManager);
+					priorityAlwaysSelected &= tickManager.currentZombiesTicking.Take(tickManager.currentZombiesTickingCount).Contains(priority)
+						&& tickManager.lastZombieTickingPriorityCount == 1;
+				}
+
+				const int rngSeed = 19790427;
+				Rand.PushState(rngSeed);
+				var controlFirst = Rand.Value;
+				var controlSecond = Rand.Value;
+				Rand.PopState();
+				Rand.PushState(rngSeed);
+				var observedFirst = Rand.Value;
+				TickManager.PrepareThreadedTicking(tickManager);
+				var observedSecond = Rand.Value;
+				Rand.PopState();
+				var rngIsolated = Mathf.Approximately(controlFirst, observedFirst) && Mathf.Approximately(controlSecond, observedSecond);
+
+				var staleBeforeChurn = tickManager.remoteQueueStaleDiscards;
+				var removed = spawned.Take(5).ToArray();
+				var replacementCells = removed.Select(zombie => zombie.Position).ToArray();
+				foreach (var zombie in removed)
+					if (zombie.Destroyed == false)
+						zombie.Destroy(DestroyMode.Vanish);
+				spawned.RemoveAll(zombie => removed.Contains(zombie));
+				for (var i = 0; i < replacementCells.Length; i++)
+				{
+					var replacement = ZombieRuntimeActions.SpawnZombie(replacementCells[i], map, ZombieType.Normal, true);
+					if (replacement == null)
+						return new { success = false, error = "Could not spawn a churn replacement.", replacementIndex = i };
+					replacement.state = ZombieState.Wandering;
+					replacement.raging = 0;
+					spawned.Add(replacement);
+					_ = tickManager.allZombiesCached.Add(replacement);
+				}
+				foreach (var zombie in spawned)
+				{
+					zombie.state = ZombieState.Wandering;
+					zombie.raging = 0;
+				}
+
+				var churnCounts = spawned.ToDictionary(zombie => ZombieRuntimeActions.StableThingId(zombie), _ => 0);
+				for (var preparation = 0; preparation < 240; preparation++)
+				{
+					TickManager.PrepareThreadedTicking(tickManager);
+					for (var i = 0; i < tickManager.currentZombiesTickingCount; i++)
+					{
+						var id = ZombieRuntimeActions.StableThingId(tickManager.currentZombiesTicking[i]);
+						if (churnCounts.ContainsKey(id))
+							churnCounts[id]++;
+					}
+				}
+				var churnMin = churnCounts.Values.Min();
+				var churnMax = churnCounts.Values.Max();
+				var churnSuccess = churnMin > 0
+					&& churnMax - churnMin <= 1
+					&& tickManager.remoteQueueStaleDiscards >= staleBeforeChurn + removed.Length
+					&& tickManager.RemoteSchedulerQueueCount <= spawned.Count + 32;
+
+				return new
+				{
+					success = fairnessSuccess && priorityAlwaysSelected && rngIsolated && churnSuccess,
+					destroyedExisting,
+					fixtureCount = spawned.Count,
+					preparations,
+					emergencyFloor = ZombieTicker.EmergencyRemoteTickFloor,
+					expectedSelections,
+					actualSelections = selectionCounts.Values.Sum(),
+					minSelections,
+					maxSelections,
+					maxSilenceTicks,
+					remoteClassificationStable,
+					fairnessSuccess,
+					priorityAlwaysSelected,
+					rngIsolated,
+					churn = new
+					{
+						removed = removed.Length,
+						churnMin,
+						churnMax,
+						staleDiscards = tickManager.remoteQueueStaleDiscards - staleBeforeChurn,
+						queueCount = tickManager.RemoteSchedulerQueueCount,
+						queueCompactions = tickManager.remoteQueueCompactions,
+						churnSuccess
+					}
+				};
+			}
+			finally
+			{
+				ZombieRuntimeActions.DestroyZombies(map);
+				ZombieTicker.percentZombiesTicked = originalPercents;
+				ZombieTicker.percentZombiesTickedIndex = originalPercentIndex;
+				ZombieTicker.RestoreSaturation(originalSaturation);
+				tickManager.centerOfInterest = originalCenterOfInterest;
+				tickManager.nextCenterOfInterest = originalNextCenterOfInterest;
+				tickManager.ClearZombieTickingBuffers();
+				tickManager.ResetRemoteScheduler(resetDiagnostics: true);
 			}
 		}
 
@@ -2832,43 +3086,20 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/zombie_ticking_feedback_contract", Description = "Verify the TickManagerUpdate patch resets, sizes, and feeds back the adaptive zombie tick budget.")]
+		[Tool("zombieland/zombie_ticking_feedback_contract", Description = "Verify speed-normalized demand, completion feedback, saturation hysteresis, and the live TickManagerUpdate patch boundary.")]
 		public static object ZombieTickingFeedbackContract()
 		{
 			var map = CurrentMap;
-			if (map == null)
-			{
-				return new
-				{
-					success = false,
-					error = "No current map is loaded."
-				};
-			}
-
-			var tickManager = map.GetComponent<TickManager>();
+			var tickManager = map?.GetComponent<TickManager>();
 			var gameTickManager = Find.TickManager;
-			if (tickManager == null || gameTickManager == null)
-			{
-				return new
-				{
-					success = false,
-					error = "No Zombieland or RimWorld tick manager is available."
-				};
-			}
+			if (map == null || tickManager == null || gameTickManager == null)
+				return new { success = false, error = "No current map with both tick managers is loaded." };
 
 			var patch = typeof(Patches).GetNestedType("Verse_TickManager_TickManagerUpdate_Patch", BindingFlags.NonPublic);
 			var prefix = patch?.GetMethod("Prefix", BindingFlags.Static | BindingFlags.NonPublic);
 			var postfix = patch?.GetMethod("Postfix", BindingFlags.Static | BindingFlags.NonPublic);
 			if (prefix == null || postfix == null)
-			{
-				return new
-				{
-					success = false,
-					error = "Could not find TickManagerUpdate prefix/postfix by reflection.",
-					prefixFound = prefix != null,
-					postfixFound = postfix != null
-				};
-			}
+				return new { success = false, error = "Could not find TickManagerUpdate prefix/postfix by reflection.", prefixFound = prefix != null, postfixFound = postfix != null };
 
 			var originalTimeSpeed = gameTickManager.CurTimeSpeed;
 			var originalRealTimeToTickThrough = gameTickManager.realTimeToTickThrough;
@@ -2878,15 +3109,57 @@ namespace ZombieLand
 			var originalMaxTicking = ZombieTicker.maxTicking;
 			var originalCurrentTicking = ZombieTicker.currentTicking;
 			var originalSaturation = ZombieTicker.CaptureSaturation();
-			var originalManagers = ZombieTicker.managers;
+			var originalManagers = ZombieTicker.managers?.ToList() ?? new List<TickManager>();
 			var originalCenterOfInterest = tickManager.centerOfInterest;
 			var originalNextCenterOfInterest = tickManager.nextCenterOfInterest;
 			var destroyedExisting = ZombieRuntimeActions.DestroyZombies(map);
 			var spawned = new List<Zombie>();
-			ZombieTicker.ResetSaturation();
 
 			try
 			{
+				var normalizationCases = new[]
+				{
+					ZombieTicker.CreateTickUpdateState(Current.Game, 0, 1, 1f, true),
+					ZombieTicker.CreateTickUpdateState(Current.Game, 0, 3, 3f, true),
+					ZombieTicker.CreateTickUpdateState(Current.Game, 0, 6, 6f, true),
+					ZombieTicker.CreateTickUpdateState(Current.Game, 0, 15, 15f, true)
+				};
+				var normalizationSuccess = normalizationCases.All(state => Mathf.Abs(state.normalizedDemand - 1f) < 0.0001f
+					&& state.dueTicks == state.effectiveMultiplier
+					&& state.tickCap == state.effectiveMultiplier * 2
+					&& state.allowedTicks == state.effectiveMultiplier);
+				var burstState = ZombieTicker.CreateTickUpdateState(Current.Game, 0, 15, 45f, true);
+				var capSuccess = burstState.normalizedDemand == 3f && burstState.dueTicks == 45 && burstState.tickCap == 30 && burstState.allowedTicks == 30;
+
+				ZombieTicker.ResetSaturation();
+				for (var i = 0; i < 24; i++)
+					ZombieTicker.ApplySaturationSample(1f, 0f);
+				var globalOnlyState = ZombieTicker.saturationState;
+				var globalPressureThrottlesButNeverEmergencies = globalOnlyState == ZombieSaturationState.Throttled;
+
+				ZombieTicker.ResetSaturation();
+				for (var i = 0; i < 8; i++)
+					ZombieTicker.ApplySaturationSample(0f, 1f);
+				var simulationPressureState = ZombieTicker.saturationState;
+				var simulationPressureEmergencies = simulationPressureState == ZombieSaturationState.Emergency;
+				var recoveryUpdates = 0;
+				while (ZombieTicker.saturationState != ZombieSaturationState.Normal && recoveryUpdates < 240)
+				{
+					ZombieTicker.ApplySaturationSample(0f, 0f);
+					recoveryUpdates++;
+				}
+				var recovered = ZombieTicker.saturationState == ZombieSaturationState.Normal;
+
+				ZombieTicker.ResetSaturation();
+				FillZombieTickPercent(1f);
+				var halfCompletionState = ZombieTicker.CreateTickUpdateState(Current.Game, 0, 6, 6f, true);
+				ZombieTicker.RecordTickUpdate(halfCompletionState, 3, 5f, 0f, controllerValid: true, completionComparable: true);
+				var halfCompletionSlot = ZombieTicker.percentZombiesTicked[0];
+				var halfCompletionAverage = ZombieTicker.PercentTicking;
+				var completionFeedbackSuccess = Mathf.Abs(halfCompletionSlot - 0.5f) < 0.0001f
+					&& Mathf.Abs(halfCompletionAverage - 0.9375f) < 0.0001f
+					&& Mathf.Abs(ZombieTicker.lastCompletionRatio - 0.5f) < 0.0001f;
+
 				const int targetCount = 20;
 				const float prefixPercent = 0.25f;
 				var root = BudgetContractRoot(map);
@@ -2895,111 +3168,111 @@ namespace ZombieLand
 					var candidateRoot = root + new IntVec3((i % 5) * 3, 0, (i / 5) * 3);
 					if (TryFindClearSpawnCell(map, candidateRoot, 16f, out var cell, out var spawnError) == false)
 						return spawnError;
-
 					var zombie = ZombieRuntimeActions.SpawnZombie(cell, map, ZombieType.Normal, true);
 					if (zombie == null)
-					{
-						return new
-						{
-							success = false,
-							destroyedExisting,
-							spawnedCount = spawned.Count,
-							error = "ZombieGenerator.SpawnZombie returned no normal zombie."
-						};
-					}
+						return new { success = false, destroyedExisting, spawnedCount = spawned.Count, error = "Could not spawn the feedback fixture." };
+					zombie.state = ZombieState.Wandering;
 					spawned.Add(zombie);
 				}
-
 				tickManager.allZombiesCached.RemoveWhere(zombie => zombie == null || zombie.Destroyed || zombie.Spawned == false || zombie.Dead);
 				foreach (var zombie in spawned)
 					_ = tickManager.allZombiesCached.Add(zombie);
 
+				ZombieTicker.EnsureAdaptiveGame(Current.Game);
 				FillZombieTickPercent(prefixPercent);
+				ZombieTicker.ResetSaturation();
 				tickManager.centerOfInterest = IntVec3.Invalid;
 				tickManager.nextCenterOfInterest = IntVec3.Invalid;
+				tickManager.ResetRemoteScheduler(resetDiagnostics: true);
 				ZombieTicker.zombiesTicked = 12345;
 				gameTickManager.CurTimeSpeed = TimeSpeed.Normal;
 				gameTickManager.realTimeToTickThrough = gameTickManager.CurTimePerTick * 2f;
-				prefix.Invoke(null, new object[] { gameTickManager });
+				var prefixArguments = new object[] { gameTickManager, null };
+				prefix.Invoke(null, prefixArguments);
+				var prefixState = (ZombieTicker.TickUpdateState)prefixArguments[1];
+				var wandererTimingIncluded = prefixState.startTimestamp > 0
+					&& ZombieWanderer.lastProcessStartTimestamp >= prefixState.startTimestamp
+					&& ZombieWanderer.lastProcessMilliseconds >= 0f;
 
 				var liveCached = tickManager.allZombiesCached.Count(zombie => zombie.Spawned && zombie.Dead == false);
 				var prefixPercentRead = ZombieTicker.PercentTicking;
-				var prefixMaxTicking = ZombieTicker.maxTicking;
-				var prefixCurrentTicking = ZombieTicker.currentTicking;
-				var prefixExpectedCurrent = Mathf.FloorToInt(prefixMaxTicking * prefixPercentRead);
+				var prefixExpectedMax = prefixState.allowedTicks * liveCached;
+				var prefixExpectedCurrent = Mathf.FloorToInt(prefixExpectedMax * prefixPercentRead);
 				var prefixResetCounter = ZombieTicker.zombiesTicked == 0;
-				var prefixSizedBudget = liveCached == targetCount
-					&& prefixMaxTicking >= liveCached
-					&& prefixCurrentTicking == prefixExpectedCurrent
-					&& prefixCurrentTicking > 0
-					&& prefixCurrentTicking < prefixMaxTicking;
+				var prefixSizedBudget = prefixState.eligible
+					&& prefixState.hasLiveZombies
+					&& liveCached == targetCount
+					&& ZombieTicker.maxTicking == prefixExpectedMax
+					&& ZombieTicker.currentTicking == prefixExpectedCurrent
+					&& prefixExpectedCurrent > 0
+					&& prefixExpectedCurrent < prefixExpectedMax;
 
 				ZombieTicker.zombiesTicked = 0;
-				tickManager.ClearZombieTickingBuffers();
 				gameTickManager.DoSingleTick();
 				var singleTickExpected = Mathf.FloorToInt(liveCached * prefixPercentRead);
 				var singleTickTickedCount = ZombieTicker.zombiesTicked;
 				var singleTickSubsetCount = tickManager.currentZombiesTickingCount;
-				var singleTickSubsetCapacity = tickManager.currentZombiesTicking?.Length ?? 0;
 				var singleTickAllLive = CurrentTickingSliceAllLive(tickManager);
 				var singleTickRanBudget = singleTickTickedCount == singleTickExpected
 					&& singleTickSubsetCount == singleTickExpected
 					&& singleTickAllLive;
 
-				FillZombieTickPercent(1f);
-				ZombieTicker.currentTicking = 400;
-				ZombieTicker.zombiesTicked = 100;
-				postfix.Invoke(null, new object[] { gameTickManager });
-
-				var postfixSlot = ZombieTicker.percentZombiesTicked[0];
-				var postfixIndex = ZombieTicker.percentZombiesTickedIndex;
-				var postfixAverage = ZombieTicker.PercentTicking;
-				var expectedPostfixSlot = 0.25f;
-				var expectedPostfixAverage = 0.90625f;
-				var postfixReducedBudget = Mathf.Abs(postfixSlot - expectedPostfixSlot) < 0.0001f
-					&& postfixIndex == 1
-					&& Mathf.Abs(postfixAverage - expectedPostfixAverage) < 0.0001f;
+				var neutralState = ZombieTicker.CreateTickUpdateState(Current.Game, System.Diagnostics.Stopwatch.GetTimestamp(),
+					Math.Max(1, Mathf.RoundToInt(gameTickManager.TickRateMultiplier)), 0f, true);
+				var samplesBeforePostfix = ZombieTicker.saturationSampleCount;
+				postfix.Invoke(null, new object[] { gameTickManager, neutralState });
+				var reflectedPostfixRan = ZombieTicker.saturationSampleCount == samplesBeforePostfix + 1;
 
 				return new
 				{
-					success = prefixResetCounter
+					success = normalizationSuccess
+						&& capSuccess
+						&& globalPressureThrottlesButNeverEmergencies
+						&& simulationPressureEmergencies
+						&& recovered
+						&& completionFeedbackSuccess
+						&& prefixResetCounter
 						&& prefixSizedBudget
+						&& wandererTimingIncluded
 						&& singleTickRanBudget
-						&& postfixReducedBudget,
+						&& reflectedPostfixRan,
 					destroyedExisting,
-					spawnedCount = spawned.Count,
-					liveCached,
+					normalization = new
+					{
+						success = normalizationSuccess,
+						cases = normalizationCases.Select(state => new { state.effectiveMultiplier, state.rawDemandTicks, state.normalizedDemand, state.dueTicks, state.tickCap, state.allowedTicks }).ToArray(),
+						burst = new { burstState.effectiveMultiplier, burstState.rawDemandTicks, burstState.normalizedDemand, burstState.dueTicks, burstState.tickCap, burstState.allowedTicks, success = capSuccess }
+					},
+					saturation = new
+					{
+						globalOnlyState = globalOnlyState.ToString(),
+						globalPressureThrottlesButNeverEmergencies,
+						simulationPressureState = simulationPressureState.ToString(),
+						simulationPressureEmergencies,
+						recoveryUpdates,
+						recovered
+					},
+					completion = new { halfCompletionSlot, halfCompletionAverage, success = completionFeedbackSuccess },
 					prefix = new
 					{
-						prefixPercentRead,
-						prefixMaxTicking,
-						prefixCurrentTicking,
+						prefixState.effectiveMultiplier,
+						prefixState.rawDemandTicks,
+						prefixState.normalizedDemand,
+						prefixState.dueTicks,
+						prefixState.tickCap,
+						prefixState.allowedTicks,
+						prefixExpectedMax,
 						prefixExpectedCurrent,
+						actualMax = ZombieTicker.maxTicking,
+						actualCurrent = ZombieTicker.currentTicking,
+						wandererStartTimestamp = ZombieWanderer.lastProcessStartTimestamp,
+						wandererMilliseconds = ZombieWanderer.lastProcessMilliseconds,
+						wandererTimingIncluded,
 						prefixResetCounter,
-						prefixSizedBudget,
-						timeSpeed = gameTickManager.CurTimeSpeed.ToString()
+						prefixSizedBudget
 					},
-					singleTick = new
-					{
-						expectedTicking = singleTickExpected,
-						updateBudgetTicking = prefixCurrentTicking,
-						singleTickTickedCount,
-						singleTickSubsetCount,
-						singleTickSubsetCapacity,
-						singleTickAllLive,
-						singleTickRanBudget
-					},
-					postfix = new
-					{
-						inputCurrentTicking = 400,
-						inputZombiesTicked = 100,
-						postfixSlot,
-						expectedPostfixSlot,
-						postfixIndex,
-						postfixAverage,
-						expectedPostfixAverage,
-						postfixReducedBudget
-					}
+					singleTick = new { singleTickExpected, singleTickTickedCount, singleTickSubsetCount, singleTickAllLive, singleTickRanBudget },
+					reflectedPostfixRan
 				};
 			}
 			finally
@@ -3017,6 +3290,7 @@ namespace ZombieLand
 				tickManager.centerOfInterest = originalCenterOfInterest;
 				tickManager.nextCenterOfInterest = originalNextCenterOfInterest;
 				tickManager.ClearZombieTickingBuffers();
+				tickManager.ResetRemoteScheduler(resetDiagnostics: true);
 			}
 		}
 

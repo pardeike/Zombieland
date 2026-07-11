@@ -7537,8 +7537,8 @@ namespace ZombieLand
 					MakeStatCase("idleFatMoveSpeed", idleFat, StatDefOf.MoveSpeed, ZombieSettings.Values.moveSpeedIdle * 0.7f * baseMoveSpeed, "idle Fat zombie uses idle setting, Fat body factor, and human base speed"),
 					MakeStatCase("trackingThinMoveSpeed", trackingThin, StatDefOf.MoveSpeed, ZombieSettings.Values.moveSpeedTracking * 0.8f * baseMoveSpeed, "tracking Thin zombie uses tracking setting and Thin body factor"),
 					MakeStatCase("formerHulkMoveSpeed", formerHulk, StatDefOf.MoveSpeed, ZombieSettings.Values.moveSpeedTracking * 0.8f * baseMoveSpeed * 2f, "former-map-pawn Hulk zombie uses tracking speed, Hulk factor, and former-pawn doubling"),
-					MakeStatCase("tankyMoveSpeed", tanky, StatDefOf.MoveSpeed, 0.004f * baseMoveSpeed * tickRate, "tanky movement ignores ordinary speed settings"),
-					MakeStatCase("downedRopedMoveSpeed", downedRoped, StatDefOf.MoveSpeed, 0.4f * tickRate, "roped health-downed zombie uses the roped crawler speed"),
+					MakeStatCase("tankyMoveSpeed", tanky, StatDefOf.MoveSpeed, 0.004f * baseMoveSpeed, "tanky movement ignores ordinary speed settings and game speed"),
+					MakeStatCase("downedRopedMoveSpeed", downedRoped, StatDefOf.MoveSpeed, 0.4f, "roped health-downed zombie uses a game-speed-invariant crawler speed"),
 					MakeStatCase("albinoFarMoveSpeed", albinoFar, StatDefOf.MoveSpeed, ZombieSettings.Values.moveSpeedIdle * baseMoveSpeed, "albino more than 30 cells from a free colonist uses normal idle movement"),
 					MakeStatCase("albinoNearMoveSpeed", albinoNear, StatDefOf.MoveSpeed, ExpectedAlbinoMoveSpeed(albinoNear, human, baseMoveSpeed), "albino near a free colonist uses the proximity speed curve"),
 					MakeStatCase("formerMeleeHit", formerHulk, StatDefOf.MeleeHitChance, 1f, "former-map-pawn melee hit override"),
@@ -7569,6 +7569,11 @@ namespace ZombieLand
 				var humanPrefixContinues = (bool)prefix.Invoke(null, humanPrefixArgs);
 				var humanPrefixResultUnchanged = Mathf.Approximately((float)humanPrefixArgs[2], -12345f);
 				var humanMoveSpeed = human.GetStatValue(StatDefOf.MoveSpeed);
+				var idleMoveSpeedAtFullSimulation = idleFat.GetStatValue(StatDefOf.MoveSpeed);
+				idleFat.simulationTickRate = 0.05f;
+				var idleMoveSpeedAtSampledSimulation = idleFat.GetStatValue(StatDefOf.MoveSpeed);
+				idleFat.simulationTickRate = 1f;
+				var moveSpeedIndependentOfSimulationRate = Mathf.Abs(idleMoveSpeedAtFullSimulation - idleMoveSpeedAtSampledSimulation) < 0.0001f;
 				var damageFactors = VerifyZombieVerbDamageFactors(human, idleFat, trackingThin, formerHulk, tanky);
 
 				return new
@@ -7578,6 +7583,7 @@ namespace ZombieLand
 						&& humanPrefixContinues
 						&& humanPrefixResultUnchanged
 						&& humanMoveSpeed > 0f
+						&& moveSpeedIndependentOfSimulationRate
 						&& cases.All(entry => entry.success)
 						&& ObjectSuccess(damageFactors),
 					patchTargets,
@@ -7611,6 +7617,12 @@ namespace ZombieLand
 						humanPrefixContinues,
 						humanPrefixResultUnchanged,
 						moveSpeed = humanMoveSpeed
+					},
+					moveSpeedSamplingInvariant = new
+					{
+						idleMoveSpeedAtFullSimulation,
+						idleMoveSpeedAtSampledSimulation,
+						moveSpeedIndependentOfSimulationRate
 					},
 					cases = cases.ToArray(),
 					damageFactors,

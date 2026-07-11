@@ -565,20 +565,23 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Verse.TickManager.TickManagerUpdate))]
 		static class Verse_TickManager_TickManagerUpdate_Patch
 		{
-			static void Prefix(Verse.TickManager __instance)
+			static void Prefix(Verse.TickManager __instance, out ZombieTicker.TickUpdateState __state)
 			{
+				__state = default;
 				if (LongEventHandler.AnyEventNowOrWaiting || LongEventHandler.ShouldWaitForEvent)
 					return;
 				if (Current.Game == null || Current.ProgramState != ProgramState.Playing || Scribe.mode != LoadSaveMode.Inactive)
 					return;
 
-				_ = ZombieWanderer.processor.MoveNext();
-				if (Find.TickManager.Paused)
+				var startTimestamp = System.Diagnostics.Stopwatch.GetTimestamp();
+				var game = Current.Game;
+				ZombieTicker.EnsureAdaptiveGame(game);
+				_ = ZombieWanderer.ProcessNext();
+				if (__instance.Paused)
 					return;
 
 				ZombieTicker.zombiesTicked = 0;
-				var managers = Find.Maps.Select(map => map.GetComponent<TickManager>()).OfType<TickManager>().ToArray();
-				ZombieTicker.managers = managers;
+				ZombieTicker.SetManagersFromMaps(Find.Maps);
 
 				var curTimePerTick = __instance.CurTimePerTick;
 				var realTimeToTickThrough = __instance.realTimeToTickThrough;
@@ -587,36 +590,38 @@ namespace ZombieLand
 				else
 					realTimeToTickThrough += Time.deltaTime;
 
-				var n1 = realTimeToTickThrough / curTimePerTick;
-				ZombieTicker.UpdateSaturation(ZombielandMod.frameWatch.ElapsedMilliseconds, n1);
-				var n2 = __instance.TickRateMultiplier * 2f;
-				var loopEstimate = Mathf.FloorToInt(Mathf.Min(n1, n2));
+				var rawDemandTicks = curTimePerTick > 0f ? realTimeToTickThrough / curTimePerTick : 0f;
+				var effectiveMultiplier = Math.Max(1, Mathf.RoundToInt(__instance.TickRateMultiplier));
 
 				var liveZombieCount = 0;
-				for (var i = 0; i < managers.Length; i++)
+				for (var i = 0; i < ZombieTicker.managers.Count; i++)
 				{
-					var manager = managers[i];
+					var manager = ZombieTicker.managers[i];
 					if (manager.TryEnsureRuntimeInitialized("Verse.TickManager.TickManagerUpdate") == false)
 						continue;
 					liveZombieCount += manager.LiveZombieCount();
 				}
 
-				ZombieTicker.maxTicking = Mathf.FloorToInt(loopEstimate * liveZombieCount);
+				__state = ZombieTicker.CreateTickUpdateState(game, startTimestamp, effectiveMultiplier, rawDemandTicks, liveZombieCount > 0);
+				ZombieTicker.maxTicking = __state.allowedTicks * liveZombieCount;
 				ZombieTicker.currentTicking = Mathf.FloorToInt(ZombieTicker.maxTicking * ZombieTicker.PercentTicking);
 			}
 
-			static void Postfix(Verse.TickManager __instance)
+			static void Postfix(Verse.TickManager __instance, ZombieTicker.TickUpdateState __state)
 			{
-				if (__instance.Paused)
+				if (__state.eligible == false)
 					return;
 
-				var ticked = ZombieTicker.zombiesTicked;
-				var current = ZombieTicker.currentTicking;
-				var newPercentZombiesTicked = ticked == 0 || current == 0 ? 1f : ticked / (float)current;
-
-				if (ticked > current - 100)
-					newPercentZombiesTicked = Math.Min(1f, newPercentZombiesTicked + 0.5f);
-				ZombieTicker.PercentTicking = newPercentZombiesTicked;
+				var elapsedMilliseconds = (float)((System.Diagnostics.Stopwatch.GetTimestamp() - __state.startTimestamp) * 1000d / System.Diagnostics.Stopwatch.Frequency);
+				var controllerValid = ReferenceEquals(Current.Game, __state.game)
+					&& Current.ProgramState == ProgramState.Playing
+					&& Scribe.mode == LoadSaveMode.Inactive
+					&& LongEventHandler.AnyEventNowOrWaiting == false
+					&& LongEventHandler.ShouldWaitForEvent == false
+					&& __instance.Paused == false;
+				var completionComparable = controllerValid && Math.Max(1, Mathf.RoundToInt(__instance.TickRateMultiplier)) == __state.effectiveMultiplier;
+				ZombieTicker.RecordTickUpdate(__state, __instance.TicksThisFrame, elapsedMilliseconds, __instance.MeanTickTime, controllerValid, completionComparable);
+				ZombieTickingTelemetry.RecordTickUpdate(__state, __instance.TicksThisFrame, elapsedMilliseconds);
 			}
 		}
 		[HarmonyPatch(typeof(Verse.TickManager))]
@@ -4469,18 +4474,17 @@ namespace ZombieLand
 				{
 					if (stat == StatDefOf.MoveSpeed)
 					{
-						var tm = Find.TickManager;
-						var multiplier = defaultHumanMoveSpeed / Mathf.Clamp(zombie.simulationTickRate, 0.05f, 1f);
+						var multiplier = defaultHumanMoveSpeed;
 
 						if (zombie.health?.Downed == true)
 						{
-							__result = (zombie.ropedBy != null ? 0.4f : 0.004f) * tm.TickRateMultiplier;
+							__result = zombie.ropedBy != null ? 0.4f : 0.004f;
 							return false;
 						}
 
 						if (zombie.IsTanky)
 						{
-							__result = 0.004f * multiplier * tm.TickRateMultiplier;
+							__result = 0.004f * multiplier;
 							return false;
 						}
 
@@ -6421,6 +6425,7 @@ namespace ZombieLand
 
 			static void Prefix()
 			{
+				ZombieTicker.ResetAdaptiveState(Current.Game);
 				ZombieBootstrap.ResetLogDedupers();
 			}
 
@@ -7065,6 +7070,17 @@ namespace ZombieLand
 
 		// patch so zombies get less move cost from tar slime
 		//
+		[HarmonyPatch(typeof(Pawn_PathFollower))]
+		[HarmonyPatch("CostToPayThisTick")]
+		static class Pawn_PathFollower_CostToPayThisTick_Patch
+		{
+			static void Postfix(Pawn ___pawn, ref float __result)
+			{
+				if (___pawn is Zombie zombie)
+					__result *= ZombieTicker.MovementPaymentMultiplier(zombie.simulationTickRate);
+			}
+		}
+
 		[HarmonyPatch(typeof(Pawn_PathFollower))]
 		[HarmonyPatch(nameof(Pawn_PathFollower.CostToMoveIntoCell))]
 		[HarmonyPatch(new[] { typeof(Pawn), typeof(IntVec3) })]

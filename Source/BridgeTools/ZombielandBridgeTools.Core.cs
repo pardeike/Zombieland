@@ -144,6 +144,11 @@ namespace ZombieLand
 			var suicideBombers = 0;
 			var toxicSplashers = 0;
 			var healers = 0;
+			var neverSimulated = 0;
+			var youngestSimulationAge = int.MaxValue;
+			var oldestSimulationAge = 0;
+			var gameTickManager = Find.TickManager;
+			var gameTick = gameTickManager?.TicksGame ?? 0;
 
 			var pawns = map?.mapPawns?.AllPawnsSpawned;
 			if (pawns != null)
@@ -154,6 +159,14 @@ namespace ZombieLand
 					if (pawn is Zombie zombie)
 					{
 						ordinaryZombies++;
+						if (zombie.lastSimulationTick < 0)
+							neverSimulated++;
+						else
+						{
+							var age = Math.Max(0, gameTick - zombie.lastSimulationTick);
+							youngestSimulationAge = Math.Min(youngestSimulationAge, age);
+							oldestSimulationAge = Math.Max(oldestSimulationAge, age);
+						}
 						if (zombie.IsTanky)
 							tanky++;
 						if (zombie.IsActiveElectric)
@@ -203,6 +216,12 @@ namespace ZombieLand
 					liveZombielandPawnCount = ordinaryZombies + symbiants + spitters,
 					pendingSpawns = ZombieGenerator.ZombiesSpawning,
 					liveCountIncludingPendingSpawns = liveCachedZombieCount + symbiants + spitters + ZombieGenerator.ZombiesSpawning,
+					simulationRecency = new
+					{
+						neverSimulated,
+						youngestAgeTicks = youngestSimulationAge == int.MaxValue ? (int?)null : youngestSimulationAge,
+						oldestAgeTicks = ordinaryZombies == neverSimulated ? (int?)null : oldestSimulationAge
+					},
 					special = new
 					{
 						ordinaryZombies,
@@ -225,9 +244,25 @@ namespace ZombieLand
 					currentCapacity = tickManager.currentZombiesTicking?.Length ?? 0,
 					currentIndex = tickManager.currentZombiesTickingIndex,
 					candidateCount = tickManager.CurrentZombiesTickingCandidatesCount,
-					candidateCapacity = tickManager.CurrentZombiesTickingCandidatesCapacity
+					candidateCapacity = tickManager.CurrentZombiesTickingCandidatesCapacity,
+					priorityCandidateCapacity = tickManager.PriorityZombiesTickingCandidatesCapacity,
+					remoteCandidateCapacity = tickManager.RemoteZombiesTickingCandidatesCapacity,
+					remoteQueueCount = tickManager.RemoteSchedulerQueueCount,
+					remoteWorkCarry = tickManager.RemoteWorkCarry,
+					remoteQueueStaleDiscards = tickManager.remoteQueueStaleDiscards,
+					remoteQueueCompactions = tickManager.remoteQueueCompactions
 				},
 				saturation = ZombieTicker.DescribeSaturation(tickManager),
+				controller = gameTickManager == null ? null : new
+				{
+					gameTick,
+					timeSpeed = gameTickManager.CurTimeSpeed.ToString(),
+					tickRateMultiplier = gameTickManager.TickRateMultiplier,
+					percentTicking = ZombieTicker.PercentTicking,
+					maxTicking = ZombieTicker.maxTicking,
+					currentTicking = ZombieTicker.currentTicking,
+					zombiesTicked = ZombieTicker.zombiesTicked
+				},
 				zombieGrid = DescribeZombieGridDensity(map),
 				frameWatch = new
 				{

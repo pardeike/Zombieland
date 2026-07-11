@@ -794,6 +794,9 @@ namespace ZombieLand
 			var zombie = pawn as Zombie;
 			var symbiant = pawn as ZombieSymbiant;
 			var spitter = pawn as ZombieSpitter;
+			int? simulationTickAge = zombie?.lastSimulationTick >= 0
+				? Math.Max(0, GenTicks.TicksGame - zombie.lastSimulationTick)
+				: null;
 
 			return new
 			{
@@ -812,6 +815,9 @@ namespace ZombieLand
 				gridAtLastGotoPosition = zombie?.Spawned == true && zombie.lastGotoPosition.IsValid ? zombie.Map.GetGrid().GetZombieCount(zombie.lastGotoPosition) : 0,
 				state = zombie?.state.ToString() ?? spitter?.state.ToString(),
 				raging = zombie?.raging ?? 0,
+				simulationTickRate = zombie?.simulationTickRate,
+				lastSimulationTick = zombie?.lastSimulationTick,
+				simulationTickAge,
 				kind = DescribeZombieKind(zombie, symbiant, spitter),
 				wasMapPawnBefore = zombie?.wasMapPawnBefore ?? false,
 				isSuicideBomber = zombie?.IsSuicideBomber ?? false,
@@ -1370,7 +1376,7 @@ namespace ZombieLand
 		static void AdvanceGameTicks(int ticks)
 		{
 			var tickManager = Find.TickManager;
-			ZombieTicker.managers = Find.Maps.Select(map => map.GetComponent<TickManager>()).OfType<TickManager>().ToArray();
+			ZombieTicker.managers = Find.Maps.Select(map => map.GetComponent<TickManager>()).OfType<TickManager>().ToList();
 			for (var i = 0; i < ticks; i++)
 				tickManager.DoSingleTick();
 		}

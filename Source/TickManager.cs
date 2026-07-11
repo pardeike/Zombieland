@@ -15,9 +15,11 @@ namespace ZombieLand
 {
 	public enum ZombieSaturationState
 	{
-		Normal,
-		Throttled,
-		RemoteFrozen
+		Normal = 0,
+		Throttled = 1,
+		Emergency = 2,
+		[Obsolete("Remote zombies are no longer frozen; use Emergency instead.")]
+		RemoteFrozen = Emergency
 	}
 
 	[StaticConstructorOnStartup]
@@ -25,15 +27,27 @@ namespace ZombieLand
 	{
 		const float throttleEnterSeverity = 0.35f;
 		const float throttleLeaveSeverity = 0.20f;
-		const float freezeEnterSeverity = 0.70f;
-		const float freezeLeaveSeverity = 0.45f;
+		const float emergencyEnterSeverity = 0.70f;
+		const float emergencyLeaveSeverity = 0.45f;
 		const float saturationSmoothing = 0.25f;
 		const int saturationEnterUpdates = 8;
 		const int throttleLeaveUpdates = 60;
-		const int freezeLeaveUpdates = 45;
+		const int emergencyLeaveUpdates = 45;
+		const float simulationSeverityStartMilliseconds = 12f;
+		const float simulationSeverityLimitMilliseconds = 45.4545f;
+		const float globalSeverityStartMilliseconds = 22f;
+		const float globalSeverityLimitMilliseconds = 62f;
 
-		public static IEnumerable<TickManager> managers;
+		public const float NormalRemoteTickFloor = 0.05f;
+		public const float ThrottledRemoteTickFloor = 0.02f;
+		public const float EmergencyRemoteTickFloor = 1f / 120f;
+		public const float MinimumMovementCompensationRate = 0.05f;
+		public const float MaximumMovementCompensation = 20f;
+
+		public static List<TickManager> managers = new();
 		public static Type RimThreaded = AccessTools.TypeByName("RimThreaded.RimThreaded");
+		static Game adaptiveGame;
+		static bool ignoreNextGlobalSample = true;
 
 		public static float[] percentZombiesTicked = new[] { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
 		public static int percentZombiesTickedIndex = 0;
@@ -43,16 +57,41 @@ namespace ZombieLand
 		public static int currentTicking = 0;
 		public static ZombieSaturationState saturationState = ZombieSaturationState.Normal;
 		public static float saturationSeverity = 0f;
+		public static float simulationSaturationSeverity = 0f;
 		public static float lastSaturationSampleSeverity = 0f;
-		public static float lastSaturationFrameMilliseconds = 0f;
-		public static float lastSaturationDebtTicks = 0f;
-		public static float lastFrameSeverity = 0f;
-		public static float lastDebtSeverity = 0f;
+		public static float lastSimulationSeverity = 0f;
+		public static float lastGlobalSeverity = 0f;
+		public static float lastTickUpdateMilliseconds = 0f;
+		public static float lastGlobalPressureMilliseconds = 0f;
+		public static float lastRawDemandTicks = 0f;
+		public static float lastNormalizedDemand = 0f;
+		public static float lastCompletionRatio = 1f;
+		public static float lastMeanTickTime = 0f;
+		public static int lastEffectiveMultiplier = 0;
+		public static int lastDueTicks = 0;
+		public static int lastTickCap = 0;
+		public static int lastAllowedTicks = 0;
+		public static int lastCompletedTicks = 0;
+		public static bool lastTickShortfall = false;
 		public static int saturationSampleCount = 0;
 		public static int throttleEnterCounter = 0;
 		public static int throttleRecoveryCounter = 0;
-		public static int freezeEnterCounter = 0;
-		public static int freezeRecoveryCounter = 0;
+		public static int emergencyEnterCounter = 0;
+		public static int emergencyRecoveryCounter = 0;
+
+		public struct TickUpdateState
+		{
+			public bool eligible;
+			public Game game;
+			public long startTimestamp;
+			public int effectiveMultiplier;
+			public float rawDemandTicks;
+			public float normalizedDemand;
+			public int dueTicks;
+			public int tickCap;
+			public int allowedTicks;
+			public bool hasLiveZombies;
+		}
 
 		public static string SaturationStateName
 		{
@@ -62,8 +101,8 @@ namespace ZombieLand
 				{
 					case ZombieSaturationState.Throttled:
 						return "throttled";
-					case ZombieSaturationState.RemoteFrozen:
-						return "remoteFrozen";
+					case ZombieSaturationState.Emergency:
+						return "emergency";
 					default:
 						return "normal";
 				}
@@ -76,12 +115,12 @@ namespace ZombieLand
 			{
 				switch (saturationState)
 				{
-					case ZombieSaturationState.RemoteFrozen:
-						return 1f;
+					case ZombieSaturationState.Emergency:
+						return EmergencyRemoteTickFloor;
 					case ZombieSaturationState.Throttled:
-						return 0.02f;
+						return ThrottledRemoteTickFloor;
 					default:
-						return 0.05f;
+						return NormalRemoteTickFloor;
 				}
 			}
 		}
@@ -92,11 +131,11 @@ namespace ZombieLand
 			{
 				switch (saturationState)
 				{
-					case ZombieSaturationState.RemoteFrozen:
+					case ZombieSaturationState.Emergency:
 						return 0f;
 					case ZombieSaturationState.Throttled:
 					{
-						var t = Mathf.InverseLerp(throttleEnterSeverity, freezeEnterSeverity, saturationSeverity);
+						var t = Mathf.InverseLerp(throttleEnterSeverity, emergencyEnterSeverity, saturationSeverity);
 						return Mathf.Lerp(0.5f, 0.1f, t);
 					}
 					default:
@@ -109,16 +148,28 @@ namespace ZombieLand
 		{
 			public ZombieSaturationState state;
 			public float severity;
+			public float simulationSeverity;
 			public float sampleSeverity;
-			public float frameMilliseconds;
-			public float debtTicks;
-			public float frameSeverity;
-			public float debtSeverity;
+			public float lastSimulationSeverity;
+			public float lastGlobalSeverity;
+			public float tickUpdateMilliseconds;
+			public float globalPressureMilliseconds;
+			public float rawDemandTicks;
+			public float normalizedDemand;
+			public float completionRatio;
+			public float meanTickTime;
+			public int effectiveMultiplier;
+			public int dueTicks;
+			public int tickCap;
+			public int allowedTicks;
+			public int completedTicks;
+			public bool tickShortfall;
 			public int sampleCount;
 			public int throttleEnter;
 			public int throttleRecovery;
-			public int freezeEnter;
-			public int freezeRecovery;
+			public int emergencyEnter;
+			public int emergencyRecovery;
+			public bool ignoreGlobalSample;
 		}
 
 		public static SaturationSnapshot CaptureSaturation()
@@ -127,16 +178,28 @@ namespace ZombieLand
 			{
 				state = saturationState,
 				severity = saturationSeverity,
+				simulationSeverity = simulationSaturationSeverity,
 				sampleSeverity = lastSaturationSampleSeverity,
-				frameMilliseconds = lastSaturationFrameMilliseconds,
-				debtTicks = lastSaturationDebtTicks,
-				frameSeverity = lastFrameSeverity,
-				debtSeverity = lastDebtSeverity,
+				lastSimulationSeverity = ZombieTicker.lastSimulationSeverity,
+				lastGlobalSeverity = ZombieTicker.lastGlobalSeverity,
+				tickUpdateMilliseconds = lastTickUpdateMilliseconds,
+				globalPressureMilliseconds = lastGlobalPressureMilliseconds,
+				rawDemandTicks = lastRawDemandTicks,
+				normalizedDemand = lastNormalizedDemand,
+				completionRatio = lastCompletionRatio,
+				meanTickTime = lastMeanTickTime,
+				effectiveMultiplier = lastEffectiveMultiplier,
+				dueTicks = lastDueTicks,
+				tickCap = lastTickCap,
+				allowedTicks = lastAllowedTicks,
+				completedTicks = lastCompletedTicks,
+				tickShortfall = lastTickShortfall,
 				sampleCount = saturationSampleCount,
 				throttleEnter = throttleEnterCounter,
 				throttleRecovery = throttleRecoveryCounter,
-				freezeEnter = freezeEnterCounter,
-				freezeRecovery = freezeRecoveryCounter
+				emergencyEnter = emergencyEnterCounter,
+				emergencyRecovery = emergencyRecoveryCounter,
+				ignoreGlobalSample = ignoreNextGlobalSample
 			};
 		}
 
@@ -144,65 +207,185 @@ namespace ZombieLand
 		{
 			saturationState = snapshot.state;
 			saturationSeverity = snapshot.severity;
+			simulationSaturationSeverity = snapshot.simulationSeverity;
 			lastSaturationSampleSeverity = snapshot.sampleSeverity;
-			lastSaturationFrameMilliseconds = snapshot.frameMilliseconds;
-			lastSaturationDebtTicks = snapshot.debtTicks;
-			lastFrameSeverity = snapshot.frameSeverity;
-			lastDebtSeverity = snapshot.debtSeverity;
+			lastSimulationSeverity = snapshot.lastSimulationSeverity;
+			lastGlobalSeverity = snapshot.lastGlobalSeverity;
+			lastTickUpdateMilliseconds = snapshot.tickUpdateMilliseconds;
+			lastGlobalPressureMilliseconds = snapshot.globalPressureMilliseconds;
+			lastRawDemandTicks = snapshot.rawDemandTicks;
+			lastNormalizedDemand = snapshot.normalizedDemand;
+			lastCompletionRatio = snapshot.completionRatio;
+			lastMeanTickTime = snapshot.meanTickTime;
+			lastEffectiveMultiplier = snapshot.effectiveMultiplier;
+			lastDueTicks = snapshot.dueTicks;
+			lastTickCap = snapshot.tickCap;
+			lastAllowedTicks = snapshot.allowedTicks;
+			lastCompletedTicks = snapshot.completedTicks;
+			lastTickShortfall = snapshot.tickShortfall;
 			saturationSampleCount = snapshot.sampleCount;
 			throttleEnterCounter = snapshot.throttleEnter;
 			throttleRecoveryCounter = snapshot.throttleRecovery;
-			freezeEnterCounter = snapshot.freezeEnter;
-			freezeRecoveryCounter = snapshot.freezeRecovery;
+			emergencyEnterCounter = snapshot.emergencyEnter;
+			emergencyRecoveryCounter = snapshot.emergencyRecovery;
+			ignoreNextGlobalSample = snapshot.ignoreGlobalSample;
 		}
 
 		public static void ResetSaturation()
 		{
-			RestoreSaturation(new SaturationSnapshot { state = ZombieSaturationState.Normal });
+			RestoreSaturation(new SaturationSnapshot
+			{
+				state = ZombieSaturationState.Normal,
+				completionRatio = 1f,
+				ignoreGlobalSample = true
+			});
 		}
 
-		public static void UpdateSaturation(float frameMilliseconds, float debtTicks)
+		public static void ResetAdaptiveState(Game game = null)
 		{
-			lastSaturationFrameMilliseconds = Mathf.Max(0f, frameMilliseconds);
-			lastSaturationDebtTicks = Mathf.Max(0f, debtTicks);
-			lastFrameSeverity = Mathf.Clamp01((lastSaturationFrameMilliseconds - 22f) / 40f);
-			lastDebtSeverity = Mathf.Clamp01((lastSaturationDebtTicks - 1.25f) / 2.75f);
-			lastSaturationSampleSeverity = Mathf.Max(lastFrameSeverity, lastDebtSeverity);
-			saturationSeverity = saturationSampleCount == 0
-				? lastSaturationSampleSeverity
-				: Mathf.Lerp(saturationSeverity, lastSaturationSampleSeverity, saturationSmoothing);
+			adaptiveGame = game;
+			managers ??= new List<TickManager>();
+			managers.Clear();
+			zombiesTicked = 0;
+			maxTicking = 0;
+			currentTicking = 0;
+			percentZombiesTicked = Enumerable.Repeat(1f, 8).ToArray();
+			percentZombiesTickedIndex = 0;
+			ResetSaturation();
+		}
+
+		public static bool EnsureAdaptiveGame(Game game)
+		{
+			if (ReferenceEquals(adaptiveGame, game))
+				return true;
+			ResetAdaptiveState(game);
+			return false;
+		}
+
+		public static void SetManagersFromMaps(List<Map> maps)
+		{
+			managers ??= new List<TickManager>();
+			managers.Clear();
+			if (maps == null)
+				return;
+			for (var i = 0; i < maps.Count; i++)
+			{
+				var manager = maps[i]?.GetComponent<TickManager>();
+				if (manager != null)
+					managers.Add(manager);
+			}
+		}
+
+		public static TickUpdateState CreateTickUpdateState(Game game, long startTimestamp, int effectiveMultiplier, float rawDemandTicks, bool hasLiveZombies)
+		{
+			var multiplier = Math.Max(1, effectiveMultiplier);
+			var demand = float.IsNaN(rawDemandTicks) || float.IsInfinity(rawDemandTicks)
+				? 0f
+				: Mathf.Max(0f, rawDemandTicks);
+			var dueTicks = Mathf.CeilToInt(demand);
+			var tickCap = multiplier * 2;
+			return new TickUpdateState
+			{
+				eligible = true,
+				game = game,
+				startTimestamp = startTimestamp,
+				effectiveMultiplier = multiplier,
+				rawDemandTicks = demand,
+				normalizedDemand = demand / multiplier,
+				dueTicks = dueTicks,
+				tickCap = tickCap,
+				allowedTicks = Math.Min(dueTicks, tickCap),
+				hasLiveZombies = hasLiveZombies
+			};
+		}
+
+		public static void RecordTickUpdate(TickUpdateState state, int completedTicks, float elapsedMilliseconds, float meanTickTime, bool controllerValid, bool completionComparable)
+		{
+			lastEffectiveMultiplier = state.effectiveMultiplier;
+			lastRawDemandTicks = Mathf.Max(0f, state.rawDemandTicks);
+			lastNormalizedDemand = Mathf.Max(0f, state.normalizedDemand);
+			lastDueTicks = Math.Max(0, state.dueTicks);
+			lastTickCap = Math.Max(0, state.tickCap);
+			lastAllowedTicks = Math.Max(0, state.allowedTicks);
+			lastCompletedTicks = Math.Max(0, completedTicks);
+			lastTickUpdateMilliseconds = Mathf.Max(0f, elapsedMilliseconds);
+			lastMeanTickTime = Mathf.Max(0f, meanTickTime);
+			lastTickShortfall = completionComparable && lastCompletedTicks < lastAllowedTicks;
+			lastCompletionRatio = lastAllowedTicks <= 0
+				? 1f
+				: Mathf.Clamp01(lastCompletedTicks / (float)lastAllowedTicks);
+
+			if (state.hasLiveZombies == false)
+			{
+				FillPercentTicking(1f);
+				ResetSaturation();
+				return;
+			}
+			if (controllerValid == false)
+				return;
+
+			if (completionComparable && lastAllowedTicks > 0)
+				PercentTicking = lastCompletionRatio;
+
+			var simulationSeverity = Mathf.InverseLerp(simulationSeverityStartMilliseconds, simulationSeverityLimitMilliseconds, lastTickUpdateMilliseconds);
+			if (lastTickShortfall)
+				simulationSeverity = 1f;
+
+			lastGlobalPressureMilliseconds = lastNormalizedDemand * (1000f / 60f);
+			var globalSeverity = ignoreNextGlobalSample || completionComparable == false
+				? 0f
+				: Mathf.InverseLerp(globalSeverityStartMilliseconds, globalSeverityLimitMilliseconds, lastGlobalPressureMilliseconds);
+			ignoreNextGlobalSample = false;
+			ApplySaturationSample(globalSeverity, simulationSeverity);
+		}
+
+		public static void ApplySaturationSample(float globalSeverity, float simulationSeverity)
+		{
+			lastGlobalSeverity = Mathf.Clamp01(globalSeverity);
+			lastSimulationSeverity = Mathf.Clamp01(simulationSeverity);
+			lastSaturationSampleSeverity = Mathf.Max(lastGlobalSeverity, lastSimulationSeverity);
+			if (saturationSampleCount == 0)
+			{
+				saturationSeverity = lastSaturationSampleSeverity;
+				simulationSaturationSeverity = lastSimulationSeverity;
+			}
+			else
+			{
+				saturationSeverity = Mathf.Lerp(saturationSeverity, lastSaturationSampleSeverity, saturationSmoothing);
+				simulationSaturationSeverity = Mathf.Lerp(simulationSaturationSeverity, lastSimulationSeverity, saturationSmoothing);
+			}
 			saturationSampleCount++;
 			UpdateSaturationState();
 		}
 
 		static void UpdateSaturationState()
 		{
-			if (saturationSeverity >= freezeEnterSeverity)
-				freezeEnterCounter++;
+			if (simulationSaturationSeverity >= emergencyEnterSeverity)
+				emergencyEnterCounter++;
 			else
-				freezeEnterCounter = 0;
+				emergencyEnterCounter = 0;
 
-			if (saturationState != ZombieSaturationState.RemoteFrozen && freezeEnterCounter >= saturationEnterUpdates)
+			if (saturationState != ZombieSaturationState.Emergency && emergencyEnterCounter >= saturationEnterUpdates)
 			{
-				saturationState = ZombieSaturationState.RemoteFrozen;
+				saturationState = ZombieSaturationState.Emergency;
 				throttleEnterCounter = 0;
 				throttleRecoveryCounter = 0;
-				freezeRecoveryCounter = 0;
+				emergencyRecoveryCounter = 0;
 				return;
 			}
 
-			if (saturationState == ZombieSaturationState.RemoteFrozen)
+			if (saturationState == ZombieSaturationState.Emergency)
 			{
-				if (saturationSeverity < freezeLeaveSeverity)
-					freezeRecoveryCounter++;
+				if (simulationSaturationSeverity < emergencyLeaveSeverity)
+					emergencyRecoveryCounter++;
 				else
-					freezeRecoveryCounter = 0;
+					emergencyRecoveryCounter = 0;
 
-				if (freezeRecoveryCounter >= freezeLeaveUpdates)
+				if (emergencyRecoveryCounter >= emergencyLeaveUpdates)
 				{
 					saturationState = ZombieSaturationState.Throttled;
-					freezeEnterCounter = 0;
-					freezeRecoveryCounter = 0;
+					emergencyEnterCounter = 0;
+					emergencyRecoveryCounter = 0;
 					throttleRecoveryCounter = 0;
 				}
 				return;
@@ -234,9 +417,17 @@ namespace ZombieLand
 				saturationState = ZombieSaturationState.Normal;
 				throttleEnterCounter = 0;
 				throttleRecoveryCounter = 0;
-				freezeEnterCounter = 0;
-				freezeRecoveryCounter = 0;
+				emergencyEnterCounter = 0;
+				emergencyRecoveryCounter = 0;
 			}
+		}
+
+		public static float MovementPaymentMultiplier(float simulationTickRate)
+		{
+			if (float.IsNaN(simulationTickRate) || float.IsInfinity(simulationTickRate) || simulationTickRate <= 0f)
+				return MaximumMovementCompensation;
+			var rate = Mathf.Clamp(simulationTickRate, MinimumMovementCompensationRate, 1f);
+			return Mathf.Clamp(1f / rate, 1f, MaximumMovementCompensation);
 		}
 
 		public static object DescribeSaturation(TickManager tickManager)
@@ -245,16 +436,27 @@ namespace ZombieLand
 			{
 				state = SaturationStateName,
 				severity = saturationSeverity,
+				simulationSeverity = simulationSaturationSeverity,
 				sampleSeverity = lastSaturationSampleSeverity,
-				frameMilliseconds = lastSaturationFrameMilliseconds,
-				debtTicks = lastSaturationDebtTicks,
-				frameSeverity = lastFrameSeverity,
-				debtSeverity = lastDebtSeverity,
+				lastGlobalSeverity,
+				lastSimulationSeverity,
+				tickUpdateMilliseconds = lastTickUpdateMilliseconds,
+				globalPressureMilliseconds = lastGlobalPressureMilliseconds,
+				rawDemandTicks = lastRawDemandTicks,
+				normalizedDemand = lastNormalizedDemand,
+				effectiveMultiplier = lastEffectiveMultiplier,
+				dueTicks = lastDueTicks,
+				tickCap = lastTickCap,
+				allowedTicks = lastAllowedTicks,
+				completedTicks = lastCompletedTicks,
+				completionRatio = lastCompletionRatio,
+				tickShortfall = lastTickShortfall,
+				meanTickTime = lastMeanTickTime,
 				sampleCount = saturationSampleCount,
 				throttleEnterCounter,
 				throttleRecoveryCounter,
-				freezeEnterCounter,
-				freezeRecoveryCounter,
+				emergencyEnterCounter,
+				emergencyRecoveryCounter,
 				remoteSelectionScale = RemoteSelectionScale,
 				remoteTickFloor = RemoteTickFloor,
 				selection = tickManager == null ? null : new
@@ -265,7 +467,11 @@ namespace ZombieLand
 					remoteCount = tickManager.lastZombieTickingRemoteCount,
 					selectedRemoteCount = tickManager.lastZombieTickingSelectedRemoteCount,
 					selectedCount = tickManager.currentZombiesTickingCount,
-					remoteTickRate = tickManager.lastZombieTickingRemoteTickRate
+					remoteTickRate = tickManager.lastZombieTickingRemoteTickRate,
+					remoteWorkCarry = tickManager.RemoteWorkCarry,
+					remoteQueueCount = tickManager.RemoteSchedulerQueueCount,
+					remoteQueueStaleDiscards = tickManager.remoteQueueStaleDiscards,
+					remoteQueueCompactions = tickManager.remoteQueueCompactions
 				}
 			};
 		}
@@ -276,16 +482,17 @@ namespace ZombieLand
 				return;
 			if (Current.Game == null || Current.ProgramState != ProgramState.Playing || Scribe.mode != LoadSaveMode.Inactive)
 				return;
-			if (managers == null)
+			if (managers == null || managers.Count == 0)
 				return;
 
 			if (RimThreaded == null)
-				managers.Do(tickManager =>
+				for (var i = 0; i < managers.Count; i++)
 				{
+					var tickManager = managers[i];
 					if (tickManager.TryEnsureRuntimeInitialized("ZombieTicker.DoSingleTick"))
 					{
 						tickManager.ZombieTicking();
-						return;
+						continue;
 					}
 
 					switch (tickManager.isInitialized)
@@ -300,7 +507,7 @@ namespace ZombieLand
 							tickManager.ReportInitializationProblemOnce("Zombieland's TickManager stopped while finalizing its map state.");
 							break;
 					}
-				});
+				}
 		}
 
 		public static float PercentTicking
@@ -311,9 +518,17 @@ namespace ZombieLand
 			}
 			set
 			{
-				percentZombiesTicked[percentZombiesTickedIndex] = value;
+				percentZombiesTicked[percentZombiesTickedIndex] = Mathf.Clamp01(value);
 				percentZombiesTickedIndex = (percentZombiesTickedIndex + 1) % percentZombiesTicked.Length;
 			}
+		}
+
+		public static void FillPercentTicking(float value)
+		{
+			var clamped = Mathf.Clamp01(value);
+			for (var i = 0; i < percentZombiesTicked.Length; i++)
+				percentZombiesTicked[i] = clamped;
+			percentZombiesTickedIndex = 0;
 		}
 	}
 
@@ -357,15 +572,25 @@ namespace ZombieLand
 		int currentZombiesTickingCandidatesCount;
 		Zombie[] priorityZombiesTickingCandidates = Array.Empty<Zombie>();
 		Zombie[] remoteZombiesTickingCandidates = Array.Empty<Zombie>();
+		readonly Queue<Zombie> remoteSchedulerQueue = new();
+		int remoteSchedulerGeneration = 1;
+		int remoteEligibilityGeneration = 0;
+		double remoteWorkCarry = 0d;
 		public bool lastZombieTickingSplit;
 		public int lastZombieTickingTargetCount;
 		public int lastZombieTickingPriorityCount;
 		public int lastZombieTickingRemoteCount;
 		public int lastZombieTickingSelectedRemoteCount;
 		public float lastZombieTickingRemoteTickRate = 1f;
+		public int remoteQueueStaleDiscards;
+		public int remoteQueueCompactions;
 
 		public int CurrentZombiesTickingCandidatesCount => currentZombiesTickingCandidatesCount;
 		public int CurrentZombiesTickingCandidatesCapacity => currentZombiesTickingCandidates?.Length ?? 0;
+		public int PriorityZombiesTickingCandidatesCapacity => priorityZombiesTickingCandidates?.Length ?? 0;
+		public int RemoteZombiesTickingCandidatesCapacity => remoteZombiesTickingCandidates?.Length ?? 0;
+		public int RemoteSchedulerQueueCount => remoteSchedulerQueue.Count;
+		public double RemoteWorkCarry => remoteWorkCarry;
 		public bool RuntimeReady => isInitialized == InitializationReady && taskTicker != null;
 		public List<ZombieCorpse> allZombieCorpses;
 		public AvoidGrid avoidGrid;
@@ -558,6 +783,8 @@ namespace ZombieLand
 		void InitializeRuntimeState(string phase)
 		{
 			isInitialized = 2;
+			ClearZombieTickingBuffers();
+			ResetRemoteScheduler(resetDiagnostics: true);
 
 			Tools.nextPlayerReachableRegionsUpdate = 0;
 
@@ -684,6 +911,8 @@ namespace ZombieLand
 
 		public void Cleanup()
 		{
+			ClearZombieTickingBuffers();
+			ResetRemoteScheduler(resetDiagnostics: true);
 			StopAmbientSound();
 			zombieHitSoundBuckets.Clear();
 			nextSuicideBomberCleanupFrame = 0;
@@ -715,6 +944,7 @@ namespace ZombieLand
 				allZombiesCached ??= new HashSet<Zombie>();
 				allZombiesCached = allZombiesCached.Where(zombie => zombie != null && zombie.Spawned && zombie.Dead == false).ToHashSet();
 				ClearZombieTickingBuffers();
+				ResetRemoteScheduler(resetDiagnostics: true);
 
 				allZombieCorpses ??= new List<ZombieCorpse>();
 				allZombieCorpses = allZombieCorpses.Where(corpse => corpse.DestroyedOrNull() == false && corpse.Spawned).ToList();
@@ -857,6 +1087,7 @@ namespace ZombieLand
 				ticking[i].CustomTick(threatLevel);
 				ZombieTicker.zombiesTicked++;
 			}
+			ZombieTickingTelemetry.RecordActualTicks(map, currentZombiesTickingCount);
 			ZombieSymbiant.ActiveSymbiant(map)?.SymbiantTick();
 		}
 
@@ -878,6 +1109,7 @@ namespace ZombieLand
 			{
 				tickManager.ReportInitializationProblemOnce($"RimThreaded prepare skipped because TickManager is not ready (state {tickManager.isInitialized}).");
 				tickManager.ClearZombieTickingBuffers();
+				tickManager.ResetRemoteScheduler();
 				return;
 			}
 
@@ -894,7 +1126,7 @@ namespace ZombieLand
 
 			ClearZombieBuffer(zombies, zombieCount, previousCandidateCount);
 			tickManager.currentZombiesTickingCandidatesCount = zombieCount;
-			var f = Mathf.Min(ZombieTicker.PercentTicking, CountBasedTickFraction(zombieCount));
+			var tickFraction = Mathf.Min(ZombieTicker.PercentTicking, CountBasedTickFraction(zombieCount));
 			var targetNeighborCells = tickManager.map.GetComponent<ZombieAttackTargetIndex>()?.CurrentCandidateNeighborsByCell();
 			var attackNeighborTick = targetNeighborCells == null ? -1 : GenTicks.TicksAbs;
 			for (var i = 0; i < zombieCount; i++)
@@ -905,91 +1137,139 @@ namespace ZombieLand
 			}
 
 			var previousTickingCount = tickManager.currentZombiesTickingCount;
+			var previousPriorityCount = tickManager.lastZombieTickingPriorityCount;
+			var previousRemoteCount = tickManager.lastZombieTickingRemoteCount;
 			tickManager.lastZombieTickingSplit = false;
 			tickManager.lastZombieTickingTargetCount = zombieCount;
 			tickManager.lastZombieTickingPriorityCount = 0;
 			tickManager.lastZombieTickingRemoteCount = 0;
 			tickManager.lastZombieTickingSelectedRemoteCount = 0;
 			tickManager.lastZombieTickingRemoteTickRate = 1f;
-			if (f >= 1f && ZombieTicker.saturationState == ZombieSaturationState.Normal)
+			var telemetryEnabled = ZombieTickingTelemetry.EnabledFor(tickManager.map);
+			var splitRequired = tickFraction < 1f || ZombieTicker.saturationState != ZombieSaturationState.Normal;
+			var hasViewRect = (telemetryEnabled || splitRequired) && Find.CurrentMap == tickManager.map && Find.CameraDriver != null;
+			var exactViewRect = default(CellRect);
+			var protectedViewRect = default(CellRect);
+			if (hasViewRect)
+			{
+				exactViewRect = Find.CameraDriver.CurrentViewRect;
+				exactViewRect.ClipInsideMap(tickManager.map);
+				protectedViewRect = exactViewRect.ExpandedBy(12);
+				protectedViewRect.ClipInsideMap(tickManager.map);
+			}
+			if (telemetryEnabled)
+				ZombieTickingTelemetry.BeginPreparation(tickManager.map);
+
+			if (splitRequired == false)
 			{
 				EnsureZombieBufferCapacity(ref tickManager.currentZombiesTicking, zombieCount);
 				Array.Copy(zombies, tickManager.currentZombiesTicking, zombieCount);
 				tickManager.currentZombiesTickingCount = zombieCount;
 				for (var i = 0; i < zombieCount; i++)
-					zombies[i].simulationTickRate = 1f;
+				{
+					var zombie = zombies[i];
+					zombie.simulationTickRate = 1f;
+					if (telemetryEnabled)
+					{
+						var exactVisible = hasViewRect && exactViewRect.Contains(zombie.Position);
+						var cameraProtected = hasViewRect && protectedViewRect.Contains(zombie.Position);
+						var priorityForDiagnostics = ShouldPrioritizeZombie(tickManager, zombie, hasViewRect, protectedViewRect);
+						ZombieTickingTelemetry.RecordCandidate(zombie, exactVisible, cameraProtected, priorityForDiagnostics);
+						ZombieTickingTelemetry.RecordSelected(zombie, exactVisible, cameraProtected, priorityForDiagnostics);
+					}
+				}
+				tickManager.ResetRemoteScheduler();
 			}
 			else
 			{
-				var targetTickingCount = Mathf.FloorToInt(zombieCount * f);
+				var targetTickingCount = Mathf.FloorToInt(zombieCount * tickFraction);
 				tickManager.lastZombieTickingTargetCount = targetTickingCount;
-				if (targetTickingCount <= 0)
-					tickManager.currentZombiesTickingCount = 0;
-				else
+				EnsureZombieBufferCapacity(ref tickManager.priorityZombiesTickingCandidates, zombieCount);
+				EnsureZombieBufferCapacity(ref tickManager.remoteZombiesTickingCandidates, zombieCount);
+				var selected = tickManager.currentZombiesTicking;
+				var priority = tickManager.priorityZombiesTickingCandidates;
+				var remote = tickManager.remoteZombiesTickingCandidates;
+				var priorityCount = 0;
+				var remoteCount = 0;
+				var eligibilityGeneration = tickManager.NextRemoteEligibilityGeneration();
+				for (var i = 0; i < zombieCount; i++)
 				{
-					EnsureZombieBufferCapacity(ref tickManager.priorityZombiesTickingCandidates, zombieCount);
-					EnsureZombieBufferCapacity(ref tickManager.remoteZombiesTickingCandidates, zombieCount);
-					var selected = tickManager.currentZombiesTicking;
-					var priority = tickManager.priorityZombiesTickingCandidates;
-					var remote = tickManager.remoteZombiesTickingCandidates;
-					var priorityCount = 0;
-					var remoteCount = 0;
-					var hasViewRect = Find.CurrentMap == tickManager.map && Find.CameraDriver != null;
-					var viewRect = default(CellRect);
-					if (hasViewRect)
+					var zombie = zombies[i];
+					var prioritize = ShouldPrioritizeZombie(tickManager, zombie, hasViewRect, protectedViewRect);
+					if (telemetryEnabled)
 					{
-						viewRect = Find.CameraDriver.CurrentViewRect.ExpandedBy(12);
-						viewRect.ClipInsideMap(tickManager.map);
+						var exactVisible = hasViewRect && exactViewRect.Contains(zombie.Position);
+						var cameraProtected = hasViewRect && protectedViewRect.Contains(zombie.Position);
+						ZombieTickingTelemetry.RecordCandidate(zombie, exactVisible, cameraProtected, prioritize);
 					}
-					for (var i = 0; i < zombieCount; i++)
-					{
-						var zombie = zombies[i];
-						if (ShouldPrioritizeZombie(tickManager, zombie, hasViewRect, viewRect))
-							priority[priorityCount++] = zombie;
-						else
-							remote[remoteCount++] = zombie;
-					}
-
-					tickManager.lastZombieTickingSplit = true;
-					tickManager.lastZombieTickingPriorityCount = priorityCount;
-					tickManager.lastZombieTickingRemoteCount = remoteCount;
-					var selectedCount = 0;
-					if (priorityCount >= targetTickingCount)
-					{
-						EnsureZombieBufferCapacity(ref tickManager.currentZombiesTicking, priorityCount);
-						selected = tickManager.currentZombiesTicking;
-						for (var i = 0; i < priorityCount; i++)
-						{
-							priority[i].simulationTickRate = 1f;
-							selected[selectedCount++] = priority[i];
-						}
-						var remoteTickRate = ZombieTicker.saturationState == ZombieSaturationState.RemoteFrozen ? 1f : ZombieTicker.RemoteTickFloor;
-						for (var i = 0; i < remoteCount; i++)
-							remote[i].simulationTickRate = remoteTickRate;
-						tickManager.lastZombieTickingRemoteTickRate = remoteTickRate;
-					}
+					if (prioritize)
+						priority[priorityCount++] = zombie;
 					else
 					{
-						var remoteBudget = targetTickingCount - priorityCount;
-						var remoteTickingCount = Math.Min(remoteCount, remoteBudget);
-						if (ZombieTicker.saturationState != ZombieSaturationState.Normal)
-							remoteTickingCount = Mathf.FloorToInt(remoteTickingCount * ZombieTicker.RemoteSelectionScale);
-						var totalTickingCount = priorityCount + remoteTickingCount;
-						EnsureZombieBufferCapacity(ref tickManager.currentZombiesTicking, totalTickingCount);
-						selected = tickManager.currentZombiesTicking;
-						for (var i = 0; i < priorityCount; i++)
-						{
-							priority[i].simulationTickRate = 1f;
-							selected[selectedCount++] = priority[i];
-						}
-						var remoteTickRate = ZombieTicker.saturationState == ZombieSaturationState.RemoteFrozen ? 1f : TickRateFor(remoteTickingCount, remoteCount, ZombieTicker.RemoteTickFloor);
-						selectedCount += SelectRandomZombies(remote, remoteCount, selected, selectedCount, remoteTickingCount, remoteTickRate);
-						tickManager.lastZombieTickingSelectedRemoteCount = remoteTickingCount;
-						tickManager.lastZombieTickingRemoteTickRate = remoteTickRate;
+						remote[remoteCount++] = zombie;
+						zombie.remoteEligibilityGeneration = eligibilityGeneration;
+						tickManager.EnsureRemoteQueueMembership(zombie);
 					}
-					tickManager.currentZombiesTickingCount = selectedCount;
 				}
+
+				tickManager.lastZombieTickingSplit = true;
+				tickManager.lastZombieTickingPriorityCount = priorityCount;
+				tickManager.lastZombieTickingRemoteCount = remoteCount;
+				if (remoteCount == 0)
+					tickManager.ResetRemoteScheduler();
+				else if (tickManager.remoteSchedulerQueue.Count > zombieCount + 32)
+					tickManager.CompactRemoteQueue(remote, remoteCount);
+
+				var nominalRemoteRate = remoteCount == 0
+					? 1f
+					: Mathf.Clamp01(Math.Max(0, targetTickingCount - priorityCount) / (float)remoteCount);
+				var remoteTickRate = remoteCount == 0
+					? 1f
+					: Mathf.Clamp(Mathf.Max(nominalRemoteRate * ZombieTicker.RemoteSelectionScale, ZombieTicker.RemoteTickFloor), 0f, 1f);
+				tickManager.lastZombieTickingRemoteTickRate = remoteTickRate;
+				for (var i = 0; i < remoteCount; i++)
+					remote[i].simulationTickRate = remoteTickRate;
+
+				var remoteQuota = 0;
+				if (remoteCount > 0)
+				{
+					tickManager.remoteWorkCarry += remoteCount * (double)remoteTickRate;
+					remoteQuota = Math.Min(remoteCount, (int)Math.Floor(tickManager.remoteWorkCarry + 0.000000001d));
+					tickManager.remoteWorkCarry -= remoteQuota;
+				}
+
+				EnsureZombieBufferCapacity(ref tickManager.currentZombiesTicking, priorityCount + remoteQuota);
+				selected = tickManager.currentZombiesTicking;
+				var selectedCount = 0;
+				for (var i = 0; i < priorityCount; i++)
+				{
+					var zombie = priority[i];
+					zombie.simulationTickRate = 1f;
+					selected[selectedCount++] = zombie;
+					if (telemetryEnabled)
+					{
+						var exactVisible = hasViewRect && exactViewRect.Contains(zombie.Position);
+						var cameraProtected = hasViewRect && protectedViewRect.Contains(zombie.Position);
+						ZombieTickingTelemetry.RecordSelected(zombie, exactVisible, cameraProtected, true);
+					}
+				}
+				var selectedRemoteCount = tickManager.SelectFairRemoteZombies(selected, selectedCount, remoteQuota, eligibilityGeneration);
+				if (selectedRemoteCount < remoteQuota)
+					tickManager.remoteWorkCarry = Math.Min(remoteCount, tickManager.remoteWorkCarry + remoteQuota - selectedRemoteCount);
+				if (telemetryEnabled)
+					for (var i = 0; i < selectedRemoteCount; i++)
+					{
+						var zombie = selected[selectedCount + i];
+						var exactVisible = hasViewRect && exactViewRect.Contains(zombie.Position);
+						var cameraProtected = hasViewRect && protectedViewRect.Contains(zombie.Position);
+						ZombieTickingTelemetry.RecordSelected(zombie, exactVisible, cameraProtected, false);
+					}
+				selectedCount += selectedRemoteCount;
+				tickManager.lastZombieTickingSelectedRemoteCount = selectedRemoteCount;
+				tickManager.currentZombiesTickingCount = selectedCount;
 			}
+			ClearZombieBuffer(tickManager.priorityZombiesTickingCandidates, tickManager.lastZombieTickingPriorityCount, previousPriorityCount);
+			ClearZombieBuffer(tickManager.remoteZombiesTickingCandidates, tickManager.lastZombieTickingRemoteCount, previousRemoteCount);
 			ClearZombieBuffer(tickManager.currentZombiesTicking, tickManager.currentZombiesTickingCount, previousTickingCount);
 			tickManager.currentZombiesTickingIndex = tickManager.currentZombiesTickingCount;
 		}
@@ -1002,26 +1282,74 @@ namespace ZombieLand
 			return Math.Max(fullRateZombieTickBudget / (float)zombieCount, 1f / zombieCount);
 		}
 
-		static float TickRateFor(int tickCount, int candidateCount, float floor)
+		int NextRemoteEligibilityGeneration()
 		{
-			if (candidateCount <= 0)
-				return 1f;
-			return Mathf.Clamp(tickCount / (float)candidateCount, floor, 1f);
+			if (remoteEligibilityGeneration == int.MaxValue)
+				remoteEligibilityGeneration = 1;
+			else
+				remoteEligibilityGeneration++;
+			return remoteEligibilityGeneration;
 		}
 
-		static int SelectRandomZombies(Zombie[] source, int sourceCount, Zombie[] destination, int destinationOffset, int count, float tickRate)
+		void EnsureRemoteQueueMembership(Zombie zombie)
 		{
-			for (var i = 0; i < sourceCount; i++)
-				source[i].simulationTickRate = tickRate;
-			for (var i = 0; i < count; i++)
+			if (zombie.remoteSchedulerOwner == this && zombie.remoteSchedulerGeneration == remoteSchedulerGeneration)
+				return;
+			zombie.remoteSchedulerOwner = this;
+			zombie.remoteSchedulerGeneration = remoteSchedulerGeneration;
+			remoteSchedulerQueue.Enqueue(zombie);
+		}
+
+		int SelectFairRemoteZombies(Zombie[] destination, int destinationOffset, int count, int eligibilityGeneration)
+		{
+			if (count <= 0)
+				return 0;
+			var selected = 0;
+			var inspectCount = remoteSchedulerQueue.Count;
+			for (var i = 0; i < inspectCount; i++)
 			{
-				var idx = Rand.RangeInclusive(i, sourceCount - 1);
-				var selected = source[idx];
-				destination[destinationOffset + i] = selected;
-				source[idx] = source[i];
-				source[i] = selected;
+				var zombie = remoteSchedulerQueue.Dequeue();
+				if (zombie == null || zombie.remoteSchedulerOwner != this || zombie.remoteSchedulerGeneration != remoteSchedulerGeneration
+					|| zombie.Spawned == false || zombie.Dead || zombie.Map != map)
+				{
+					remoteQueueStaleDiscards++;
+					if (zombie != null && zombie.remoteSchedulerOwner == this && zombie.remoteSchedulerGeneration == remoteSchedulerGeneration)
+					{
+						zombie.remoteSchedulerOwner = null;
+						zombie.remoteSchedulerGeneration = 0;
+					}
+					continue;
+				}
+
+				remoteSchedulerQueue.Enqueue(zombie);
+				if (selected >= count || zombie.remoteEligibilityGeneration != eligibilityGeneration)
+					continue;
+				destination[destinationOffset + selected] = zombie;
+				selected++;
+				if (selected >= count)
+					break;
 			}
-			return count;
+			return selected;
+		}
+
+		void CompactRemoteQueue(Zombie[] remote, int remoteCount)
+		{
+			ResetRemoteScheduler();
+			remoteQueueCompactions++;
+			for (var i = 0; i < remoteCount; i++)
+				EnsureRemoteQueueMembership(remote[i]);
+		}
+
+		public void ResetRemoteScheduler(bool resetDiagnostics = false)
+		{
+			remoteSchedulerQueue.Clear();
+			remoteWorkCarry = 0d;
+			remoteSchedulerGeneration = remoteSchedulerGeneration == int.MaxValue ? 1 : remoteSchedulerGeneration + 1;
+			if (resetDiagnostics)
+			{
+				remoteQueueStaleDiscards = 0;
+				remoteQueueCompactions = 0;
+			}
 		}
 
 		static bool HasAttackCandidateNeighbor(Map map, Zombie zombie, bool[] targetNeighborCells)
@@ -1032,7 +1360,7 @@ namespace ZombieLand
 			return index >= 0 && index < targetNeighborCells.Length && targetNeighborCells[index];
 		}
 
-		static bool ShouldPrioritizeZombie(TickManager tickManager, Zombie zombie, bool hasViewRect, CellRect viewRect)
+		internal static bool ShouldPrioritizeZombie(TickManager tickManager, Zombie zombie, bool hasViewRect, CellRect viewRect)
 		{
 			if (zombie.state == ZombieState.Tracking || zombie.raging > 0 || zombie.wasMapPawnBefore || zombie.ropedBy != null || zombie.wallPushProgress >= 0f)
 				return true;
@@ -1073,6 +1401,8 @@ namespace ZombieLand
 			currentZombiesTickingIndex = 0;
 			ClearZombieBuffer(currentZombiesTickingCandidates, 0, currentZombiesTickingCandidatesCount);
 			currentZombiesTickingCandidatesCount = 0;
+			ClearZombieBuffer(priorityZombiesTickingCandidates, 0, lastZombieTickingPriorityCount);
+			ClearZombieBuffer(remoteZombiesTickingCandidates, 0, lastZombieTickingRemoteCount);
 			lastZombieTickingSplit = false;
 			lastZombieTickingTargetCount = 0;
 			lastZombieTickingPriorityCount = 0;

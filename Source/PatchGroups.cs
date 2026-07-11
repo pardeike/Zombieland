@@ -572,6 +572,7 @@ namespace ZombieLand
 		static readonly HashSet<string> PathingPatchTypes = new()
 		{
 			"ZombieLand.Patches+Pawn_PathFollower_SetupMoveIntoNextCell_Patch",
+			"ZombieLand.Patches+Pawn_PathFollower_CostToPayThisTick_Patch",
 			"ZombieLand.Patches+FleeUtility_ShouldFleeFrom_Patch",
 			"ZombieLand.Patches+PathFinder_CreateRequest_Patch",
 			"ZombieLand.Patches+PathFinder_FindPathNow_Patch",

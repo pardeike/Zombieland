@@ -1,5 +1,45 @@
 # Scripts
 
+## Zombie Ticking Runtime Benchmark
+
+`zombie-ticking-benchmark.lua` is the reusable real-RimBridge entry point for the adaptive scheduler regression and speed matrix. The lowered-Lua file is intentionally a thin parameter wrapper around `zombieland/zombie_ticking_benchmark`; the companion tool owns the sequence so its C# `finally` restores test mode even when a nested call fails or the operation is cancelled.
+
+Always compile the file against the live bridge before executing it:
+
+```text
+rimbridge/compile_lua_file
+  scriptPath=/Users/ap/Projects/Zombieland/scripts/zombie-ticking-benchmark.lua
+```
+
+For the disposable 25-zombie matrix, run it against `EMPTY` with `spawnCount=25`, the spawn centered at `(10,10)`, the camera at `(240,240)`, `durationMs=2500`, `forceRequestedSpeed=false`, and `runContracts=true`. This runs the adaptive-feedback, fair-scheduler, and path-payment contracts once, then reloads the save for independent Normal, Fast, Superfast, and Ultrafast samples. The companion uses `zombieland/zombie_ticking_test_mode` to suppress zero-threat cleanup from both the ordinary setting and the scheduled zombie-free event during measurement. Its single-run gate and non-cancelled teardown restore the copied settings timeline on success, failure, or cancellation; `zombieland/zombie_ticking_benchmark_cleanup_contract` injects both failure modes through that same scope helper.
+
+For the dense matrix, use `saveName=ZL_Dense_Performance_1500_base`, `spawnCount=0`, the camera at `(240,240)`, and `runContracts=false`. The save is reloaded before every speed so zombie deaths, controller history, and queue history from one sample cannot contaminate the next.
+
+The result includes each `rimworld/play_for` report, before/after `zombieland/zombie_lightweight_perf_state` snapshots, active-mod configuration, contract output, and warning-or-higher logs. The important scheduler assertions are:
+
+- no state reports the retired `remoteFrozen` behavior;
+- remote work has a nonzero rate and bounded age even in `Emergency`;
+- priority zombies are selected every preparation;
+- the queue remains bounded across zombie destruction/replacement;
+- `MoveSpeed` is independent of game and sampling speed, while `CostToPayThisTick` receives bounded compensation;
+- Normal/Fast/Superfast/Ultrafast demand is compared after division by `TickRateMultiplier`.
+
+Use `forceRequestedSpeed=false` for player-representative evidence. Set it to `true` only for a separate stress ceiling; that option suppresses forced slowdown and enables RimWorld's ultrafast debug boost while still using the normal `TickManagerUpdate` path.
+
+### Predefined player-speed evidence fixtures
+
+Use the async `zombieland/zombie_ticking_create_player_fixture` companion tool to create deterministic, reusable 250×250 player saves with production-random zombie types. Build 100, 500, 1,000, and 2,000 variants from the same clean base save, keep the default 0.25% chances for each special type, and give each population a distinct seed. The tool places 10% of the horde in the exact camera rectangle, the remainder outside the 12-cell camera-protection margin, disables population-changing zero-threat events in the dedicated fixture, spawns in frame-yielding batches, verifies semantic counts, and then saves. Fixture creation is deliberately separate from measurement.
+
+Run `zombieland/zombie_ticking_run_player_evidence` against each predefined save. It fresh-loads the save before Normal, Fast, Superfast, and Ultrafast; disables RimBridge's private `UltraSpeedBoost` debug default; keeps `forceRequestedSpeed=false`; uses only real-time `rimworld/play_for`; returns the camera after warm-up; records actual time-speed, visible/invisible, priority/remote, type/state, fairness, native-tick completion, update cost, TPS, and FPS; and writes raw JSON to `~/Desktop/ZombieTickingEvidence` by default. The normal reference window is 500 ms warm-up plus 10,000 ms measured time. Do not accept a row as a higher-speed result unless `updateLoop.timeSpeedSamples` contains only the requested speed.
+
+The 2026-07-11 player matrix used `ZL_Ticking_Player_100`, `_500`, `_1000`, and `_2000`; the 1,000- and 2,000-zombie matrices were independently repeated. Across the primary 16 rows, exactly visible and production-priority work had zero skips, selected work equaled actual `CustomTick` work, no zombie was never selected, and the worst fair-queue gap was 122 game ticks. Absolute throughput came from an Apple M4 Max and must not be treated as a portable hardware benchmark.
+
+### Calibrated slow-host evidence
+
+Use `zombieland/zombie_ticking_slow_host_evidence` when Zombieland must be tested inside a game whose other mods, pawns, things, and vanilla systems already consume most main-thread tick time. The companion dynamically patches a `Priority.First` prefix onto `Verse.TickManager.DoSingleTick`, before vanilla and Zombieland tick work but inside Zombieland's complete `TickManagerUpdate` measurement. It charges a calibrated constant CPU cost per real native game tick plus a deterministic periodic spike; it does not sleep, step internal ticks, alter the speed multiplier, or serialize state. A `finally` disables the simulator, unpatches the Harmony owner, and restores the bridge's prior ultrafast debug default.
+
+The tool first binary-searches the constant load against a zero-zombie save at requested Fast, then holds the chosen profile fixed while running zero-zombie and predefined-zombie Normal/Fast/Superfast/Ultrafast matrices. Use `targetFastTicksPerSecond=105`, `spikeMilliseconds=8`, `spikeIntervalTicks=60`, five 2.5-second calibration samples, 500 ms warm-up, and 10-second final samples for the current reference. The final 2026-07-11 profile selected 7.8125 ms per native tick, measured 59.9 TPS at host-only Normal and 106.1 TPS at host-only Fast, and therefore represented a game unable to sustain a practical 2× rate before zombie work. Across the four zombie fixtures, visible, production-priority, and special work remained 100%; no zombie starved; and the worst selection gap was 123 game ticks. Raw evidence is written to `~/Desktop/ZombieTickingEvidence/slow-host/ZL_SlowHost_Evidence.json` by default.
+
 ## Zombieland Soundtrack
 
 Use `sync-soundtrack.sh` to convert and mirror original soundtrack WAV files into the runtime music folder consumed by the dynamic song loader.
