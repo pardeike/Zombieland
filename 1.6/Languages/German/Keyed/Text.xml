@@ -56,6 +56,7 @@
 	<SymbiantHostBondDescription>Symbiont: {0}/{1} Zellen. Nächster Vorteil bei {2} Zellen. Geteilte Gesundheit: {3}. Der Symbiont absorbiert den größten Teil des geteilten Schadens; &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; erreicht den Wirt bei dieser Größe.\n\nKartenregel: Wirt und Symbiont müssen auf derselben Karte sein, damit die Verbindung aktiv ist und sauber entfernt werden kann. Werden sie getrennt, ruht die Verbindung. Sie kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen. Wenn die Karte des Symbionten aufgegeben wird, wird er zerstört und die Verbindung gewaltsam getrennt; eine Operation entfernt die Verbindung vorher sauber.\n\nVorteile:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Kein aktiver Symbiont ist mit diesem Wirt verbunden.</SymbiantHostBondMissing>
 		<SymbiantHostRelocatedMessage>{0}s Symbionten-Verbindung ruht, weil Wirt und Symbiont sich nicht auf derselben Karte befinden. Die Verbindung bleibt bestehen. Während der Ruhephase sind alle Vorteile (einschließlich der Immunität gegen Zombieinfektionen), die Übertragung geteilten Schadens und die chirurgische Trennung inaktiv. Die Verbindung kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen.</SymbiantHostRelocatedMessage>
+		<LetterLabelSymbiantBondDormant>Symbionten-Verbindung ruht</LetterLabelSymbiantBondDormant>
 		<SymbiantMapAbandonWarningTitle>Karte mit Symbionten aufgeben?</SymbiantMapAbandonWarningTitle>
 		<SymbiantMapAbandonWarning>Diese Karte enthält einen lebenden, an die Karte gebundenen Zombie-Symbionten. Wenn Sie die Karte aufgeben, wird der Symbiont zerstört und jede verbleibende Verbindung gewaltsam getrennt. Entfernen Sie die Symbionten-Verbindung zuerst durch eine Operation, wenn Sie die normale Trennung nutzen möchten.\n\nDiese Karte trotzdem aufgeben?</SymbiantMapAbandonWarning>
 		<SymbiantReseededMessage>{0}s Symbiont ist in einen anderen Innenraum gezogen.</SymbiantReseededMessage>
@@ -73,8 +74,13 @@
 	<SymbiantBenefitZombieInfectionImmunity>Immunität gegen Zombieinfektion</SymbiantBenefitZombieInfectionImmunity>
 	<SymbiantBenefitMoodFixed>Stimmung fest bei 50%</SymbiantBenefitMoodFixed>
 	<SymbiantBenefitNoFoodOrRest>kein Nahrungs- oder Schlafbedarf</SymbiantBenefitNoFoodOrRest>
-	<SymbiantBenefitSkillBonus>alle Fertigkeiten +1</SymbiantBenefitSkillBonus>
+	<SymbiantBenefitSkillBonus>alle Fertigkeiten +{0}</SymbiantBenefitSkillBonus>
+	<SymbiantSkillBonusTooltipLabel>Symbiontenbonus</SymbiantSkillBonusTooltipLabel>
+	<SymbiantSkillBonusTooltipValue>+{0}</SymbiantSkillBonusTooltipValue>
+	<SymbiantSkillBonusTooltipCappedValue>+{0} wirksam (+{1} vor der Fertigkeitsgrenze)</SymbiantSkillBonusTooltipCappedValue>
+	<SymbiantCombinedCapacityEffects>Kombiniert:</SymbiantCombinedCapacityEffects>
 	<SymbiantBenefitMoveSpeed>Bewegung +25%</SymbiantBenefitMoveSpeed>
+	<SymbiantBenefitManipulation>Manipulation +25%</SymbiantBenefitManipulation>
 	<SymbiantBenefitZombieIgnore>Zombies ignorieren den Wirt</SymbiantBenefitZombieIgnore>
 	<SymbiantBenefitAutoHeal>automatische Heilung</SymbiantBenefitAutoHeal>
 
@@ -250,6 +256,7 @@
 
 	<AwarenessCuesTitle>Hinweise auf Zombieaktivität</AwarenessCuesTitle>
 	<PlayZombielandMusic>Zombieland-Musik abspielen</PlayZombielandMusic>
+	<MixZombielandMusicModes>Normale und Gefahrenmusik mischen</MixZombielandMusicModes>
 	<ZombielandMusicShare_OtherEnd>RimWorld/Mods</ZombielandMusicShare_OtherEnd>
 	<ZombielandMusicShare_ZombielandEnd>Zombieland</ZombielandMusicShare_ZombielandEnd>
 	<ZombielandMusicShare_OnlyOther>Nur Musik ohne Zombieland</ZombielandMusicShare_OnlyOther>

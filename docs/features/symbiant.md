@@ -20,7 +20,7 @@ The feature should be legible and annoying in a RimWorld way. It disrupts moveme
 
 - One active Symbiant per map.
 - The authoritative host link lives on `ZombieSymbiant`; `SymbiantSymbiosis` is display/sync state and is recreated when missing.
-- The exact host identity persists while that pawn is travelling, contained, or spawned on another map. Bond activity uses the host's effective `MapHeld`: carrying, rescue, arrest, pod loading, and containment inside a holder on the Symbiant's map remain active, while a host with no effective map or a different effective map is dormant. The active-to-dormant transition shows a neutral message, and the host health tab explicitly says which effects are inactive and that reactivation is conditional on the same host and Symbiant sharing a map again.
+- The exact host identity persists while that pawn is travelling, contained, or spawned on another map. Bond activity uses the host's effective `MapHeld`: carrying, rescue, arrest, pod loading, and containment inside a holder on the Symbiant's map remain active, while a host with no effective map or a different effective map is dormant. The active-to-dormant transition creates a neutral right-edge letter whose body explains the inactive effects and conditional reactivation rule; the host health tab shows the same warning.
 - Host benefits, zombie infection immunity, zombie targeting protection, automatic healing, shared damage, and surgery are same-map effects only.
 - Host selection is independent from spawn room selection.
 - Natural spawn requires an eligible host and a used indoor room plan.
@@ -53,7 +53,7 @@ The maximum-size slider allows up to `ZombieSymbiant.MAX_METABALLS = 4000`. Even
 
 Eligible hosts are spawned, living, free player colonists that are humanlike flesh pawns, adult/non-child by RimWorld category, and suitable for normal colony surgery. The selection rejects prisoners, slaves, guests, temporary joiners, quest lodgers, caravan pawns, shuttle occupants, Save Our Ship holograms, non-flesh optional-mod pawns, existing Symbiant hosts, Zombieland pawns, and late/active zombie infection cases.
 
-If the host has no effective map or is held or spawned on another map, the authoritative link and display hediff persist but all same-map effects turn off. A neutral message announces the active-to-dormant transition, and the hediff description replaces its active benefit summary with the dormant warning. A same-map holder does not interrupt the bond or generate dormancy feedback. If the same pawn later shares the Symbiant's map again, the existing bond reactivates; another host is never chosen as a travel fallback, and sold or kidnapped hosts are not promised a return. Host death anywhere ends the bond and starts retreat. Destroying the Symbiant or abandoning its map while the host is away removes the remote hediff without harming that host.
+If the host has no effective map or is held or spawned on another map, the authoritative link and display hediff persist but all same-map effects turn off. A neutral right-edge letter announces the active-to-dormant transition and keeps the full warning available in the normal letter body; the hediff description replaces its active benefit summary with the same dormant warning. A same-map holder does not interrupt the bond or generate dormancy feedback. If the same pawn later shares the Symbiant's map again, the existing bond reactivates; another host is never chosen as a travel fallback, and sold or kidnapped hosts are not promised a return. Host death anywhere ends the bond and starts retreat. Destroying the Symbiant or abandoning its map while the host is away removes the remote hediff without harming that host.
 
 The Symbiant itself never boards an Odyssey gravship. Its def sets `bringAlongOnGravship=false`, so a departure that preserves the origin map leaves the Symbiant there and the travelling host dormant. If the gravship launch abandons the origin map, Zombieland destroys and discards the map-bound Symbiant before vanilla snapshots and transfers spawned pawns to `WorldPawns`; that clears the remote host link safely instead of creating an orphaned world-pawn Symbiant.
 
@@ -100,14 +100,16 @@ The host starts with zombie infection immunity from the bond. Additional random 
 
 - mood fixed at 50%,
 - no food or rest need,
-- all skills +1, stackable,
-- move speed +25%, stackable,
+- all skills, stackable. Each stack grants +4 below 200% Zombieland difficulty, +3 from 200% to below 300%, +2 from 300% to below 400%, and +1 at 400% or above. Enabled Bio skill rows show the level without the Symbiant plus the actually applied bonus (for example `10 + 4` or the capped `18 + 2`), while the bar and gameplay use the combined total. The skill tooltip adds one Symbiant-benefit line and identifies any bonus lost to the level-20 cap,
+- Moving capacity +25%, stackable. This is a capacity-layer benefit: the health tab, the colonist info dialog's Move Speed stat, real pathing, and vanilla movement-dependent stats such as melee dodge and hunting stealth all consume the same value,
+- Manipulation capacity +25%, stackable. Health and every vanilla stat or action that consumes Manipulation use the increased value,
 - zombie targeting protection,
 - automatic healing, stackable.
 
-The acquired benefit list should be visible on the host hediff tooltip and on the Symbiant info/inspect surface.
+The acquired benefit list should be visible on the host hediff tooltip and on the Symbiant info/inspect surface. A dormant Symbiant keeps its selection-panel inspect text compact by adding only the dormant-bond status to the normal linked-host summary; the full dormant explanation belongs in the `(i)` info dialog.
+When Moving or Manipulation stacks are active, the host hediff keeps its `Benefits:` list and adds `Combined:` immediately before RimWorld's aggregate capacity rows.
 
-Display-hediff synchronization is idempotent: missing state is recreated and duplicate/corrupt `SymbiantSymbiosis` entries collapse to one entry tied to the authoritative Symbiant ID. Infection immunity is applied when a bite hediff is added, not one tick later. Disabled skills remain at vanilla's disabled value rather than receiving the `+1` patch.
+Display-hediff synchronization is idempotent: missing state is recreated and duplicate/corrupt `SymbiantSymbiosis` entries collapse to one entry tied to the authoritative Symbiant ID. Infection immunity is applied when a bite hediff is added, not one tick later. Disabled skills remain at vanilla's disabled value rather than receiving the difficulty-scaled skill patch. The Bio breakdown treats the result of RimWorld and other mods' skill-level logic as the base, suppressing only Zombieland's Symbiant addition while calculating the displayed components.
 
 The shared-health pool remains on the Symbiant while the bond is dormant, but damage never crosses maps. Damage to the separated host does not drain the pool; damage to the Symbiant does not leak to or kill the separated host. If the pool fails while the host is away, the Symbiant is removed and the remote host survives.
 

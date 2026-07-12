@@ -50,6 +50,7 @@
 	<SymbiantHostBondDescription>Simbionte: {0}/{1} casillas. Próximo beneficio al alcanzar {2} casillas. Salud compartida: {3}. El Simbionte absorbe la mayor parte del daño compartido; con su tamaño actual, un &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; alcanza al huésped.\n\nRegla del mapa: el huésped y el Simbionte deben estar en el mismo mapa para que el vínculo esté activo y se pueda eliminar de forma limpia. Si se separan, el vínculo queda latente. Solo puede reactivarse si el mismo huésped y el Simbionte vuelven a estar en un mismo mapa. Abandonar el mapa del Simbionte lo destruye y rompe el vínculo por la fuerza; una operación elimina primero el vínculo de forma limpia.\n\nBeneficios:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>No hay ningún Simbionte activo vinculado a este huésped.</SymbiantHostBondMissing>
 	<SymbiantHostRelocatedMessage>El vínculo de {0} con el Simbionte está latente porque el huésped y el Simbionte no se encuentran en el mismo mapa. El vínculo permanece. Mientras está latente, todos los beneficios (incluida la inmunidad a la infección zombi), la transferencia de daño compartido y la separación quirúrgica quedan inactivos. El vínculo solo puede reactivarse si el mismo huésped y el Simbionte vuelven a estar en un mismo mapa.</SymbiantHostRelocatedMessage>
+	<LetterLabelSymbiantBondDormant>Vínculo con el Simbionte latente</LetterLabelSymbiantBondDormant>
 	<SymbiantMapAbandonWarningTitle>¿Abandonar un mapa con un Simbionte?</SymbiantMapAbandonWarningTitle>
 		<SymbiantMapAbandonWarning>Este mapa contiene un Simbionte zombi vivo y vinculado al mapa. Si abandonas el mapa, destruirás al Simbionte y romperás por la fuerza cualquier vínculo restante. Si quieres seguir el proceso normal de separación, elimina antes el vínculo del Simbionte mediante una operación.\n\n¿Abandonar el mapa de todos modos?</SymbiantMapAbandonWarning>
 	<SymbiantReseededMessage>El Simbionte de {0} se ha trasladado a otra habitación interior.</SymbiantReseededMessage>
@@ -67,8 +68,13 @@
 	<SymbiantBenefitZombieInfectionImmunity>inmunidad a la infección zombi</SymbiantBenefitZombieInfectionImmunity>
 	<SymbiantBenefitMoodFixed>ánimo fijado al 50%</SymbiantBenefitMoodFixed>
 	<SymbiantBenefitNoFoodOrRest>sin necesidad de comer ni descansar</SymbiantBenefitNoFoodOrRest>
-	<SymbiantBenefitSkillBonus>+1 a todas las habilidades</SymbiantBenefitSkillBonus>
+	<SymbiantBenefitSkillBonus>+{0} a todas las habilidades</SymbiantBenefitSkillBonus>
+	<SymbiantSkillBonusTooltipLabel>bonificación del simbionte</SymbiantSkillBonusTooltipLabel>
+	<SymbiantSkillBonusTooltipValue>+{0}</SymbiantSkillBonusTooltipValue>
+	<SymbiantSkillBonusTooltipCappedValue>+{0} aplicado (+{1} antes del límite de habilidad)</SymbiantSkillBonusTooltipCappedValue>
+	<SymbiantCombinedCapacityEffects>Combinado:</SymbiantCombinedCapacityEffects>
 	<SymbiantBenefitMoveSpeed>+25% de movimiento</SymbiantBenefitMoveSpeed>
+	<SymbiantBenefitManipulation>+25% de manipulación</SymbiantBenefitManipulation>
 	<SymbiantBenefitZombieIgnore>los zombis ignoran al huésped</SymbiantBenefitZombieIgnore>
 	<SymbiantBenefitAutoHeal>curación automática</SymbiantBenefitAutoHeal>
 	<LetterLabelXDaysUntilZombies>{0} hasta que lleguen los zombis</LetterLabelXDaysUntilZombies>
@@ -221,6 +227,7 @@
 	<ZombiesBurnLonger>Los zombis arden más tiempo</ZombiesBurnLonger>
 	<AwarenessCuesTitle>Señales de alerta</AwarenessCuesTitle>
 	<PlayZombielandMusic>Reproducir música de Zombieland</PlayZombielandMusic>
+	<MixZombielandMusicModes>Mezclar música normal y de peligro</MixZombielandMusicModes>
 	<ZombielandMusicShare_OtherEnd>RimWorld/Mods</ZombielandMusicShare_OtherEnd>
 	<ZombielandMusicShare_ZombielandEnd>Zombieland</ZombielandMusicShare_ZombielandEnd>
 	<ZombielandMusicShare_OnlyOther>Solo música ajena a Zombieland</ZombielandMusicShare_OnlyOther>

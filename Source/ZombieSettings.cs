@@ -222,6 +222,7 @@ namespace ZombieLand
 		public ZombieInstinct zombieInstinct = ZombieInstinct.Normal;
 		public bool useCustomTextures = true;
 		public bool playZombielandMusic = true;
+		public bool mixZombielandMusicModes = false;
 		public int zombielandMusicShare = 50;
 		public bool playCreepyAmbientSound = true;
 		public bool showZombieEventLetters = true;

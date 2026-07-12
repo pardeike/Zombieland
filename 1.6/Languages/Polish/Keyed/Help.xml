@@ -159,6 +159,7 @@
 	<PlayCreepyAmbientSound_Help>Motyw zombie nie byłby pełny bez upiornych dźwięków otoczenia. Nocą, gdy wszystkie zombie dryfują ku twojej bazie, usłyszysz kilka niepokojących odgłosów.</PlayCreepyAmbientSound_Help>
 	<AwarenessCuesTitle_Help>Te ustawienia sterują listami, dźwiękami i wskazówkami wizualnymi, które mogą ujawniać aktywność zombie. Wyłączenie ich zmienia wyłącznie informacje zwrotne, a nie zachowanie zombie.</AwarenessCuesTitle_Help>
 	<PlayZombielandMusic_Help>Włącza ścieżkę dźwiękową Zombieland. Wyłącz tę opcję, jeśli wolisz wyłącznie muzykę RimWorld, dodatków i innych modów muzycznych.</PlayZombielandMusic_Help>
+	<MixZombielandMusicModes_Help>Udostępnia wszystkie utwory mapy Zombieland zarówno jako zwykłą muzykę, jak i muzykę zagrożenia, zamiast rozdzielać spokojne i napięte utwory.</MixZombielandMusicModes_Help>
 	<ZombielandMusicShare_Help>Określa, jak często nowy utwór na mapie jest wybierany spośród muzyki Zombieland. Pozostała muzyka obejmuje RimWorld, dodatki, P-Music i wszystkie zainstalowane pakiety muzyczne. Wpływa to na wybór rozpoczynanych utworów, a nie na dokładny czas słuchania.</ZombielandMusicShare_Help>
 	<ShowZombieEventLetters_Help>Pokazuje lub ukrywa listy o wydarzeniach Zombieland, takich jak ataki zombie i wydarzenia z plującym zombie.</ShowZombieEventLetters_Help>
 	<PlayZombieEventSiren_Help>Odtwarza głośną syrenę słyszalną przez kamerę, gdy rozpoczyna się duże wydarzenie zombie lub wydarzenie z plującym zombie.</PlayZombieEventSiren_Help>

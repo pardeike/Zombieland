@@ -108,11 +108,11 @@ namespace ZombieLand
 				while (recentSongs != null && recentSongs.Count > 7)
 					recentSongs.Dequeue();
 
-				var candidates = AppropriateSongs(manager).ToList();
+				var candidates = AppropriateSongs(manager, settings.mixZombielandMusicModes).ToList();
 				if (candidates.Count == 0 && recentSongs != null)
 				{
 					recentSongs.Clear();
-					candidates = AppropriateSongs(manager).ToList();
+					candidates = AppropriateSongs(manager, settings.mixZombielandMusicModes).ToList();
 				}
 				if (candidates.Count == 0)
 					return false;
@@ -130,7 +130,7 @@ namespace ZombieLand
 					if (recentSongs != null && candidates.Any(IsZombielandSong))
 					{
 						recentSongs.Clear();
-						candidates = AppropriateSongs(manager).ToList();
+						candidates = AppropriateSongs(manager, settings.mixZombielandMusicModes).ToList();
 						otherSongs = candidates
 							.Where(candidate => IsZombielandSong(candidate) == false)
 							.Where(candidate => candidate.commonality > 0f)
@@ -148,7 +148,7 @@ namespace ZombieLand
 					if (recentSongs != null && recentSongs.Any(IsZombielandSong))
 					{
 						recentSongs.Clear();
-						candidates = AppropriateSongs(manager).ToList();
+						candidates = AppropriateSongs(manager, settings.mixZombielandMusicModes).ToList();
 						zombielandSongs = candidates.Where(songCandidate => IsZombielandSong(songCandidate) && IsEntryScreenSong(songCandidate) == false).ToList();
 						otherSongs = candidates
 							.Where(candidate => IsZombielandSong(candidate) == false)
@@ -264,23 +264,32 @@ namespace ZombieLand
 			RestoreOriginalEntrySong();
 		}
 
-		static IEnumerable<SongDef> AppropriateSongs(MusicManagerPlay manager)
+		static IEnumerable<SongDef> AppropriateSongs(MusicManagerPlay manager, bool mixZombielandMusicModes)
 		{
 			foreach (var song in DefDatabase<SongDef>.AllDefs)
-				if (song?.clip != null && HasDisplayName(song) && IsAppropriateNow(manager, song))
+				if (song?.clip != null && HasDisplayName(song) && IsAppropriateNow(manager, song, mixZombielandMusicModes))
 					yield return song;
 		}
 
-		static bool IsAppropriateNow(MusicManagerPlay manager, SongDef song)
+		static bool IsAppropriateNow(MusicManagerPlay manager, SongDef song, bool mixZombielandMusicModes)
 		{
+			var ignoreMusicMode = mixZombielandMusicModes && IsZombielandSong(song) && IsEntryScreenSong(song) == false;
+			var originalTense = song.tense;
 			try
 			{
+				if (ignoreMusicMode)
+					song.tense = manager.DangerMusicMode;
 				return (bool)appropriateNowMethod.Invoke(manager, new object[] { song });
 			}
 			catch (Exception ex)
 			{
 				lastRegistrationError = ex.GetBaseException().Message;
 				return false;
+			}
+			finally
+			{
+				if (ignoreMusicMode)
+					song.tense = originalTense;
 			}
 		}
 

@@ -974,6 +974,7 @@ namespace ZombieLand
 					"NoFoodOrRest",
 					"SkillBonus",
 					"MoveSpeed",
+					"Manipulation",
 					"ZombieIgnore",
 					"AutoHeal");
 				var existingAutoHealableInjuries = host.health?.hediffSet?.hediffs?.Count(ZombieSymbiant.IsAutoHealableHediffForDebug) ?? 0;
@@ -1072,6 +1073,26 @@ namespace ZombieLand
 			var newLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
 				.Where(letter => beforeLetters.Contains(letter) == false)
 				.ToArray();
+			var dormancyHost = symbiant?.LinkedHost;
+			var expectedDormancyLabel = "LetterLabelSymbiantBondDormant".Translate().ToString();
+			var expectedDormancyText = dormancyHost == null
+				? null
+				: "SymbiantHostRelocatedMessage".Translate(dormancyHost.LabelShortCap).ToString();
+			var dormancyLetters = newLetters
+				.Where(letter => letter?.def == LetterDefOf.NeutralEvent
+					&& letter.Label.ToString() == expectedDormancyLabel
+					&& (letter as ChoiceLetter)?.Text.ToString() == expectedDormancyText)
+				.ToArray();
+			var dormancyLetterEvidence = new
+			{
+				success = dormancyHost != null
+					&& dormancyLetters.Length == 2
+					&& dormancyLetters.All(letter => (letter.lookTargets?.targets?.Count ?? 0) >= 2),
+				expectedDormancyLabel,
+				expectedDormancyText,
+				matchingLetterCount = dormancyLetters.Length,
+				letters = dormancyLetters.Select(DescribeSymbiantDiscoveryLetter).ToArray()
+			};
 			var cleanupResult = CleanupTemporarySymbiant(map, symbiant, cleanup);
 			var fixtureCleanup = CleanupSymbiantNaturalSpawnFixture(map, fixture, cleanup);
 			var secondMapCleanup = CleanupSymbiantSecondMapFixture(secondMapFixture, cleanup);
@@ -1088,6 +1109,7 @@ namespace ZombieLand
 				&& ScenarioSucceeded(contained)
 				&& ScenarioSucceeded(afterEject)
 				&& ScenarioSucceeded(casketEvidence)
+				&& ScenarioSucceeded(dormancyLetterEvidence)
 				&& ScenarioSucceeded(secondMapCleanup)
 				&& (activeAfterCleanup == null || cleanup == false);
 
@@ -1107,6 +1129,7 @@ namespace ZombieLand
 				contained,
 				afterEject,
 				casketEvidence,
+				dormancyLetterEvidence,
 				cleanup = new
 				{
 					symbiant = cleanupResult,
@@ -1352,6 +1375,7 @@ namespace ZombieLand
 			var moodFixed = ZombieSymbiant.HasMoodFixedBenefit(host);
 			var noFoodOrRest = ZombieSymbiant.HasNoFoodOrRestBenefit(host);
 			var moveSpeedBenefits = ZombieSymbiant.MoveSpeedBenefitCount(host);
+			var manipulationBenefits = ZombieSymbiant.ManipulationBenefitCount(host);
 			var skillBonusBenefits = ZombieSymbiant.SkillBonusBenefitCount(host);
 			var hostAuraActive = ZombieSymbiant.TryGetHostAuraFactor(host, out var hostAuraFactor);
 			var dormant = symbiant?.IsActiveBondWith(host) != true;
@@ -1367,6 +1391,7 @@ namespace ZombieLand
 					&& moodFixed == false
 					&& noFoodOrRest == false
 					&& moveSpeedBenefits == 0
+					&& manipulationBenefits == 0
 					&& skillBonusBenefits == 0
 					&& hostAuraActive == false
 					&& hediffDescription == dormantDescription
@@ -1384,11 +1409,13 @@ namespace ZombieLand
 							&& moodFixed == false
 							&& noFoodOrRest == false
 							&& moveSpeedBenefits == 0
+							&& manipulationBenefits == 0
 							&& skillBonusBenefits == 0
 						: targetingProtection
 							&& moodFixed
 							&& noFoodOrRest
 							&& moveSpeedBenefits > 0
+							&& manipulationBenefits > 0
 							&& skillBonusBenefits > 0));
 			var success = baseSuccess && optionalBenefitsSuccess;
 
@@ -1417,6 +1444,7 @@ namespace ZombieLand
 				moodFixed,
 				noFoodOrRest,
 				moveSpeedBenefits,
+				manipulationBenefits,
 				skillBonusBenefits,
 				hostAuraActive,
 				hostAuraFactor,
@@ -1454,6 +1482,7 @@ namespace ZombieLand
 			while (list.Cast<object>().Count(item => Equals(item, value)) < minimumCount)
 				list.Add(value);
 			RepairHostLink(symbiant);
+			ZombieSymbiant.NotifyHostCapacityBenefitsChanged(symbiant.LinkedHost);
 			var after = list.Cast<object>().Count(item => Equals(item, value));
 			return new
 			{
@@ -2283,7 +2312,7 @@ namespace ZombieLand
 			return map.listerThings.ThingsOfDef(def)?.Where(thing => thing.Destroyed == false).Sum(thing => thing.stackCount) ?? 0;
 		}
 
-		[Tool("zombieland/symbiant_benefit_contract", Description = "Verify host display-hediff repair, low/high benefit scaling, zombie targeting threshold, and skill bonus behavior.")]
+		[Tool("zombieland/symbiant_benefit_contract", Description = "Verify host display-hediff repair, low/high benefit scaling, zombie targeting threshold, stackable Moving/Manipulation capacities, and difficulty-scaled skill bonuses.")]
 		public static object SymbiantBenefitContract(
 			[ToolParameter(Description = "Destroy the temporary symbiant, colonist, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -2304,11 +2333,13 @@ namespace ZombieLand
 				object deduplication = null;
 				object repair = null;
 				object high = null;
+				object capacities = null;
 				object skill = null;
 				object benefitLetter = null;
 				object autoHeal = null;
 				object immediateInfectionImmunity = null;
 				object forcedBenefits = null;
+				object stackedBenefits = null;
 				var addedCells = 0;
 
 			try
@@ -2363,9 +2394,22 @@ namespace ZombieLand
 						colorOk = IsGreenLetterColor(symbiantEventColor),
 						letters = benefitLetters.Select(DescribeSymbiantDiscoveryLetter).ToArray()
 					};
-					forcedBenefits = EnsureSymbiantHostBenefitsForProbe(symbiant, "ZombieIgnore", "SkillBonus", "AutoHeal");
+					forcedBenefits = EnsureSymbiantHostBenefitsForProbe(symbiant, "ZombieIgnore", "SkillBonus", "MoveSpeed", "Manipulation", "AutoHeal");
+					var stackedMoveSpeed = EnsureSymbiantHostBenefitCountForProbe(symbiant, "MoveSpeed", 2);
+					var stackedManipulation = EnsureSymbiantHostBenefitCountForProbe(symbiant, "Manipulation", 2);
+					var stackedSkill = EnsureSymbiantHostBenefitCountForProbe(symbiant, "SkillBonus", 2);
+					stackedBenefits = new
+					{
+						success = ScenarioSucceeded(stackedMoveSpeed)
+							&& ScenarioSucceeded(stackedManipulation)
+							&& ScenarioSucceeded(stackedSkill),
+						moveSpeed = stackedMoveSpeed,
+						manipulation = stackedManipulation,
+						skill = stackedSkill
+					};
 					RepairHostLink(symbiant);
 					high = DescribeSymbiantBenefitCheck(symbiant, host);
+					capacities = VerifySymbiantCapacityBenefits(host);
 					skill = DescribeSymbiantSkillBonus(host);
 					autoHeal = VerifySymbiantAutoHealKeepsContamination(symbiant, host);
 					immediateInfectionImmunity = VerifySymbiantImmediateInfectionImmunity(host);
@@ -2397,6 +2441,8 @@ namespace ZombieLand
 					&& BenefitCheckHasZombieProtection(high)
 					&& ScenarioSucceeded(benefitLetter)
 					&& ScenarioSucceeded(forcedBenefits)
+					&& ScenarioSucceeded(stackedBenefits)
+					&& ScenarioSucceeded(capacities)
 					&& ScenarioSucceeded(skill)
 					&& ScenarioSucceeded(autoHeal)
 					&& ScenarioSucceeded(immediateInfectionImmunity)
@@ -2405,7 +2451,7 @@ namespace ZombieLand
 			return new
 			{
 				success,
-				sourcePath = "ZombieSymbiant.EnsureHostLink/EnsureHostHediff -> BenefitFactor -> HasZombieTargetingProtection -> ApplySymbiantSkillBonus",
+				sourcePath = "ZombieSymbiant.EnsureHostLink/EnsureHostHediff -> Hediff_SymbiantSymbiosis.CurStage -> Moving/Manipulation capacities -> ApplySymbiantSkillBonus",
 				error,
 				fixtureSetup,
 				initial,
@@ -2413,8 +2459,10 @@ namespace ZombieLand
 					repair,
 					addedCells,
 					high,
+					capacities,
 					benefitLetter,
 					forcedBenefits,
+					stackedBenefits,
 					skill,
 					autoHeal,
 					immediateInfectionImmunity,
@@ -2486,41 +2534,237 @@ namespace ZombieLand
 			};
 		}
 
-			static object DescribeSymbiantSkillBonus(Pawn host)
-			{
-				var skill = host?.skills?.GetSkill(SkillDefOf.Construction);
-				if (skill == null)
-					return new { success = false, error = "Linked host has no Construction skill record." };
+		static object VerifySymbiantCapacityBenefits(Pawn host)
+		{
+			if (host?.health?.capacities == null)
+				return new { success = false, error = "Linked host has no capacity tracker." };
+			var movingBenefitCount = ZombieSymbiant.MoveSpeedBenefitCount(host);
+			var manipulationBenefitCount = ZombieSymbiant.ManipulationBenefitCount(host);
+			var hostHediff = host.health.hediffSet.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) as Hediff_SymbiantSymbiosis;
+			var combinedHeading = "SymbiantCombinedCapacityEffects".Translate().Resolve();
 			var previousProfile = ZombieSymbiant.DebugPerfProfile;
-			object restoreAction = null;
 			try
 			{
 				_ = ZombieSymbiant.SetDebugPerfProfile("noTick");
-				skill.Level = 10;
-				var raw = skill.Level;
-				restoreAction = ZombieSymbiant.SetDebugPerfProfile(previousProfile);
-				var patched = skill.Level;
-				var bonus = ZombieSymbiant.SkillBonusBenefitCount(host);
-				var expected = Mathf.Clamp(raw + bonus, 0, SkillRecord.MaxLevel);
+				ZombieSymbiant.NotifyHostCapacityBenefitsChanged(host);
+				var baselineMoving = host.health.capacities.GetLevel(PawnCapacityDefOf.Moving);
+				var baselineManipulation = host.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation);
+				var baselineMoveSpeed = StatDefOf.MoveSpeed.Worker.GetValue(StatRequest.For(host), true);
+				var baselineTicksPerMove = host.TicksPerMoveCardinal;
+				var baselineHostHediffDescription = hostHediff?.Description;
+				var baselineHostHediffTipStringExtra = hostHediff?.TipStringExtra;
+				var baselineHostHediffTooltip = hostHediff?.GetTooltip(host, false);
+
+				_ = ZombieSymbiant.SetDebugPerfProfile(previousProfile);
+				ZombieSymbiant.NotifyHostCapacityBenefitsChanged(host);
+				var moving = host.health.capacities.GetLevel(PawnCapacityDefOf.Moving);
+				var manipulation = host.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation);
+				var statWorkerMoveSpeed = StatDefOf.MoveSpeed.Worker.GetValue(StatRequest.For(host), true);
+				var extensionMoveSpeed = host.GetStatValue(StatDefOf.MoveSpeed);
+				var ticksPerMove = host.TicksPerMoveCardinal;
+				var hostHediffDescription = hostHediff?.Description;
+				var hostHediffTipStringExtra = hostHediff?.TipStringExtra;
+				var hostHediffTooltip = hostHediff?.GetTooltip(host, false);
+				var expectedMovingFactor = 1f + movingBenefitCount * 0.25f;
+				var expectedManipulationFactor = 1f + manipulationBenefitCount * 0.25f;
+				var movingFactor = moving / Mathf.Max(0.001f, baselineMoving);
+				var manipulationFactor = manipulation / Mathf.Max(0.001f, baselineManipulation);
+				var moveSpeedFactor = statWorkerMoveSpeed / Mathf.Max(0.001f, baselineMoveSpeed);
+				var explanation = StatDefOf.MoveSpeed.Worker.GetExplanationFull(
+					StatRequest.For(host),
+					ToStringNumberSense.Absolute,
+					statWorkerMoveSpeed);
 				return new
 				{
-					success = raw == 10 && patched == expected && bonus > 0 && patched > raw,
-					skill = skill.def.defName,
-					raw,
-					patched,
-					bonus,
-					expected,
-					benefitFactor = ZombieSymbiant.SymbiantBenefitFactor(host),
-					previousProfile,
-					restoreAction
+					success = movingBenefitCount >= 2
+						&& manipulationBenefitCount >= 2
+						&& Mathf.Abs(movingFactor - expectedMovingFactor) <= 0.02f
+						&& Mathf.Abs(manipulationFactor - expectedManipulationFactor) <= 0.02f
+						&& Mathf.Approximately(moveSpeedFactor, movingFactor)
+						&& Mathf.Approximately(extensionMoveSpeed, statWorkerMoveSpeed)
+						&& ticksPerMove < baselineTicksPerMove
+						&& baselineHostHediffDescription?.Contains(combinedHeading) == false
+						&& hostHediffDescription?.Contains(combinedHeading) == false
+						&& baselineHostHediffTipStringExtra?.Contains(combinedHeading) == false
+						&& baselineHostHediffTooltip?.Contains(combinedHeading) == false
+						&& hostHediffTipStringExtra?.StartsWith(combinedHeading + "\n  - ", StringComparison.Ordinal) == true
+						&& hostHediffTooltip?.Contains(combinedHeading + "\n  - ") == true
+						&& hostHediffTooltip?.Contains(combinedHeading + "\n\n") == false,
+					movingBenefitCount,
+					manipulationBenefitCount,
+					expectedMovingFactor,
+					expectedManipulationFactor,
+					movingFactor,
+					manipulationFactor,
+					moveSpeedFactor,
+					baselineMoving,
+					moving,
+					baselineManipulation,
+					manipulation,
+					baselineMoveSpeed,
+					statWorkerMoveSpeed,
+					extensionMoveSpeed,
+					baselineTicksPerMove,
+					ticksPerMove,
+					combinedHeading,
+					baselineHostHediffDescription,
+					baselineHostHediffTipStringExtra,
+					baselineHostHediffTooltip,
+					hostHediffDescription,
+					hostHediffTipStringExtra,
+					hostHediffTooltip,
+					explanation
 				};
 			}
 			finally
 			{
-					if (ZombieSymbiant.DebugPerfProfile != previousProfile)
-						_ = ZombieSymbiant.SetDebugPerfProfile(previousProfile);
-					}
-				}
+				if (ZombieSymbiant.DebugPerfProfile != previousProfile)
+					_ = ZombieSymbiant.SetDebugPerfProfile(previousProfile);
+				ZombieSymbiant.NotifyHostCapacityBenefitsChanged(host);
+			}
+		}
+
+		static object DescribeSymbiantSkillBonus(Pawn host)
+		{
+			var skill = host?.skills?.GetSkill(SkillDefOf.Construction);
+			if (skill == null)
+				return new { success = false, error = "Linked host has no Construction skill record." };
+			var drawSkillMethod = AccessTools.Method(
+				typeof(SkillUI),
+				nameof(SkillUI.DrawSkill),
+				new Type[] { typeof(SkillRecord), typeof(Rect), typeof(SkillUI.SkillDrawMode), typeof(string) });
+			var descriptionMethod = AccessTools.Method(typeof(SkillUI), "GetSkillDescription", new Type[] { typeof(SkillRecord) });
+			var drawSkillPatchInfo = drawSkillMethod == null ? null : Harmony.GetPatchInfo(drawSkillMethod);
+			var descriptionPatchInfo = descriptionMethod == null ? null : Harmony.GetPatchInfo(descriptionMethod);
+			var uiPatches = new
+			{
+				success = drawSkillPatchInfo?.Transpilers?.Any(patch => patch.owner == "net.pardeike.zombieland") == true
+					&& descriptionPatchInfo?.Postfixes?.Any(patch => patch.owner == "net.pardeike.zombieland") == true,
+				drawSkillFound = drawSkillMethod != null,
+				descriptionFound = descriptionMethod != null,
+				drawSkillOwners = PatchOwners(drawSkillMethod),
+				descriptionOwners = PatchOwners(descriptionMethod)
+			};
+			var previousProfile = ZombieSymbiant.DebugPerfProfile;
+			var previousDifficulty = ZombieSettings.Values.threatScale;
+			try
+			{
+				_ = ZombieSymbiant.SetDebugPerfProfile("noTick");
+				skill.Level = 5;
+				var raw = skill.Level;
+				var dormantLabel = ZombieSymbiant.FormatSymbiantSkillLevel(skill.GetLevelForUI(), skill);
+				var dormantTooltip = ZombieSymbiant.SymbiantSkillBonusTooltipLine(skill);
+				_ = ZombieSymbiant.SetDebugPerfProfile(previousProfile);
+				var bonusStacks = ZombieSymbiant.SkillBonusBenefitCount(host);
+				var cases = new[]
+				{
+					new { difficulty = 1f, expectedPerStack = 4 },
+					new { difficulty = 1.99f, expectedPerStack = 4 },
+					new { difficulty = 2f, expectedPerStack = 3 },
+					new { difficulty = 2.99f, expectedPerStack = 3 },
+					new { difficulty = 3f, expectedPerStack = 2 },
+					new { difficulty = 3.99f, expectedPerStack = 2 },
+					new { difficulty = 4f, expectedPerStack = 1 },
+					new { difficulty = 5f, expectedPerStack = 1 }
+				};
+				var rows = cases.Select(item =>
+				{
+					ZombieSettings.Values.threatScale = item.difficulty;
+					var reportedPerStack = ZombieSymbiant.SkillBonusPerBenefit();
+					var nominalBonus = bonusStacks * item.expectedPerStack;
+					var expected = Mathf.Clamp(raw + nominalBonus, 0, SkillRecord.MaxLevel);
+					var expectedAppliedBonus = expected - raw;
+					var expectedLabel = expectedAppliedBonus > 0 ? $"{raw} + {expectedAppliedBonus}" : expected.ToString();
+					var patched = skill.Level;
+					var patchedForUi = skill.GetLevelForUI();
+					var label = ZombieSymbiant.FormatSymbiantSkillLevel(patched, skill);
+					var tooltip = ZombieSymbiant.SymbiantSkillBonusTooltipLine(skill);
+					return new
+					{
+						success = reportedPerStack == item.expectedPerStack
+							&& patched == expected
+							&& patchedForUi == expected
+							&& label == expectedLabel
+							&& tooltip.NullOrEmpty() == false
+							&& tooltip.Contains($"+{expectedAppliedBonus}"),
+						item.difficulty,
+						item.expectedPerStack,
+						reportedPerStack,
+						nominalBonus,
+						expectedAppliedBonus,
+						patched,
+						patchedForUi,
+						expected,
+						label,
+						expectedLabel,
+						tooltip
+					};
+				}).ToArray();
+
+				ZombieSettings.Values.threatScale = 1f;
+				var nominalAtLowDifficulty = bonusStacks * 4;
+				skill.Level = 18;
+				var partialCapEffective = skill.GetLevelForUI();
+				var partialCapLabel = ZombieSymbiant.FormatSymbiantSkillLevel(partialCapEffective, skill);
+				var partialCapTooltip = ZombieSymbiant.SymbiantSkillBonusTooltipLine(skill);
+				var partialCap = new
+				{
+					success = partialCapEffective == SkillRecord.MaxLevel
+						&& partialCapLabel == "18 + 2"
+						&& partialCapTooltip?.Contains("+2") == true
+						&& partialCapTooltip.Contains($"+{nominalAtLowDifficulty}"),
+					baseLevel = 18,
+					nominalBonus = nominalAtLowDifficulty,
+					effective = partialCapEffective,
+					label = partialCapLabel,
+					tooltip = partialCapTooltip
+				};
+				skill.Level = SkillRecord.MaxLevel;
+				var fullCapEffective = skill.GetLevelForUI();
+				var fullCapLabel = ZombieSymbiant.FormatSymbiantSkillLevel(fullCapEffective, skill);
+				var fullCapTooltip = ZombieSymbiant.SymbiantSkillBonusTooltipLine(skill);
+				var fullCap = new
+				{
+					success = fullCapEffective == SkillRecord.MaxLevel
+						&& fullCapLabel == SkillRecord.MaxLevel.ToString()
+						&& fullCapTooltip?.Contains("+0") == true
+						&& fullCapTooltip.Contains($"+{nominalAtLowDifficulty}"),
+					baseLevel = SkillRecord.MaxLevel,
+					nominalBonus = nominalAtLowDifficulty,
+					effective = fullCapEffective,
+					label = fullCapLabel,
+					tooltip = fullCapTooltip
+				};
+				skill.Level = raw;
+				return new
+				{
+					success = raw == 5
+						&& dormantLabel == "5"
+						&& dormantTooltip.NullOrEmpty()
+						&& uiPatches.success
+						&& bonusStacks >= 2
+						&& rows.All(row => row.success)
+						&& partialCap.success
+						&& fullCap.success,
+					skill = skill.def.defName,
+					raw,
+					dormantLabel,
+					dormantTooltip,
+					bonusStacks,
+					uiPatches,
+					benefitFactor = ZombieSymbiant.SymbiantBenefitFactor(host),
+					rows,
+					partialCap,
+					fullCap
+				};
+			}
+			finally
+			{
+				ZombieSettings.Values.threatScale = previousDifficulty;
+				if (ZombieSymbiant.DebugPerfProfile != previousProfile)
+					_ = ZombieSymbiant.SetDebugPerfProfile(previousProfile);
+			}
+		}
 
 			static object EnsureSymbiantHostBenefitsForProbe(ZombieSymbiant symbiant, params string[] benefitNames)
 			{
@@ -2540,6 +2784,7 @@ namespace ZombieLand
 					added.Add(benefitName);
 				}
 				RepairHostLink(symbiant);
+				ZombieSymbiant.NotifyHostCapacityBenefitsChanged(symbiant.LinkedHost);
 				var configured = (benefitNames ?? Array.Empty<string>())
 					.Select(benefitName => new
 					{
@@ -5490,7 +5735,13 @@ namespace ZombieLand
 						position = host.Spawned ? ZombieRuntimeActions.DescribeCell(host.Position) : null,
 						infectionState = host.InfectionState().ToString(),
 						hasSymbiosisHediff = hostSymbiosisHediff != null,
-						symbiosisHediffSeverity = hostSymbiosisHediff?.Severity ?? 0f
+						symbiosisHediffSeverity = hostSymbiosisHediff?.Severity ?? 0f,
+						movementBenefitCount = ZombieSymbiant.MoveSpeedBenefitCount(host),
+						manipulationBenefitCount = ZombieSymbiant.ManipulationBenefitCount(host),
+						movingCapacity = host.health?.capacities?.GetLevel(PawnCapacityDefOf.Moving) ?? 0f,
+						manipulationCapacity = host.health?.capacities?.GetLevel(PawnCapacityDefOf.Manipulation) ?? 0f,
+						moveSpeed = host.GetStatValue(StatDefOf.MoveSpeed),
+						ticksPerMoveCardinal = host.TicksPerMoveCardinal
 					},
 					severanceOperation,
 					hostThingId = symbiant.HostThingId,

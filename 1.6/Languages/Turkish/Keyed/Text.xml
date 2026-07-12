@@ -56,6 +56,7 @@
 	<SymbiantHostBondDescription>Simbiyant: {0}/{1} hücre. Sonraki fayda {2} hücrede. Paylaşılan sağlık: {3}. Simbiyant paylaşılan hasarın çoğunu emer; bu boyutta &lt;color=#ffb35c&gt;%{4}&lt;/color&gt; konağa ulaşır.\n\nHarita kuralı: bağın aktif olması ve temiz şekilde kaldırılabilmesi için konak ve Simbiyant aynı haritada olmalıdır. Ayrılırlarsa bağ uykuya geçer. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir. Simbiyantın bulunduğu haritayı terk etmek onu yok eder ve bağı zorla koparır; ameliyat önce bağı temiz şekilde kaldırır.\n\nFaydalar:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Bu konağa bağlı aktif Simbiyant yok.</SymbiantHostBondMissing>
 		<SymbiantHostRelocatedMessage>{0} ile Simbiyant aynı haritada bulunmadığı için bağ uykuya geçti. Bağ korunur. Uyku sırasında zombi enfeksiyonu bağışıklığı dahil tüm faydalar, paylaşılan hasar aktarımı ve cerrahi ayırma devre dışıdır. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir.</SymbiantHostRelocatedMessage>
+		<LetterLabelSymbiantBondDormant>Simbiyant bağı uykuda</LetterLabelSymbiantBondDormant>
 		<SymbiantMapAbandonWarningTitle>Simbiyant olan harita terk edilsin mi?</SymbiantMapAbandonWarningTitle>
 		<SymbiantMapAbandonWarning>Bu haritada yaşayan ve haritaya bağlı bir Zombi Simbiyantı var. Haritayı terk etmek Simbiyantı yok eder ve kalan bağları zorla koparır. Normal ayırma sürecini istiyorsanız önce Simbiyant bağını ameliyatla kaldırın.\n\nBu harita yine de terk edilsin mi?</SymbiantMapAbandonWarning>
 		<SymbiantReseededMessage>{0} üzerindeki Simbiyant başka bir iç odaya taşındı.</SymbiantReseededMessage>
@@ -73,8 +74,13 @@
 	<SymbiantBenefitZombieInfectionImmunity>zombi enfeksiyonu bağışıklığı</SymbiantBenefitZombieInfectionImmunity>
 	<SymbiantBenefitMoodFixed>ruh hali %50'de sabit</SymbiantBenefitMoodFixed>
 	<SymbiantBenefitNoFoodOrRest>yemek veya dinlenme ihtiyacı yok</SymbiantBenefitNoFoodOrRest>
-	<SymbiantBenefitSkillBonus>tüm beceriler +1</SymbiantBenefitSkillBonus>
+	<SymbiantBenefitSkillBonus>tüm beceriler +{0}</SymbiantBenefitSkillBonus>
+	<SymbiantSkillBonusTooltipLabel>Simbiyant bonusu</SymbiantSkillBonusTooltipLabel>
+	<SymbiantSkillBonusTooltipValue>+{0}</SymbiantSkillBonusTooltipValue>
+	<SymbiantSkillBonusTooltipCappedValue>+{0} uygulandı (beceri sınırından önce +{1})</SymbiantSkillBonusTooltipCappedValue>
+	<SymbiantCombinedCapacityEffects>Birleşik:</SymbiantCombinedCapacityEffects>
 	<SymbiantBenefitMoveSpeed>hareket +%25</SymbiantBenefitMoveSpeed>
+	<SymbiantBenefitManipulation>manipülasyon +%25</SymbiantBenefitManipulation>
 	<SymbiantBenefitZombieIgnore>zombiler konağı yok sayar</SymbiantBenefitZombieIgnore>
 	<SymbiantBenefitAutoHeal>otomatik iyileşme</SymbiantBenefitAutoHeal>
 
@@ -250,6 +256,7 @@
 
 	<AwarenessCuesTitle>Zombi etkinliği ipuçları</AwarenessCuesTitle>
 	<PlayZombielandMusic>Zombieland müziğini çal</PlayZombielandMusic>
+	<MixZombielandMusicModes>Normal ve tehlike müziğini karıştır</MixZombielandMusicModes>
 	<ZombielandMusicShare_OtherEnd>RimWorld/Mods</ZombielandMusicShare_OtherEnd>
 	<ZombielandMusicShare_ZombielandEnd>Zombieland</ZombielandMusicShare_ZombielandEnd>
 	<ZombielandMusicShare_OnlyOther>Yalnızca Zombieland dışı müzik</ZombielandMusicShare_OnlyOther>

@@ -504,6 +504,7 @@ namespace ZombieLand
 			return new
 			{
 				success = defaults.playZombielandMusic
+					&& defaults.mixZombielandMusicModes == false
 					&& defaults.zombielandMusicShare == 50
 					&& ZombielandMusic.NormalizeShare(66) == 70
 					&& chooseNextSong != null
@@ -517,11 +518,13 @@ namespace ZombieLand
 				defaults = new
 				{
 					defaults.playZombielandMusic,
+					defaults.mixZombielandMusicModes,
 					defaults.zombielandMusicShare
 				},
 				ui = new
 				{
 					settingSection = "AwarenessCuesTitle",
+					mixModesHiddenWhenToggleOff = true,
 					sliderHiddenWhenToggleOff = true,
 					intervalPercent = 10,
 					defaultPercent = 50,

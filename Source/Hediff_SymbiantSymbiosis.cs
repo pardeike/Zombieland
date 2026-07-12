@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace ZombieLand
@@ -6,8 +7,45 @@ namespace ZombieLand
 	public class Hediff_SymbiantSymbiosis : HediffWithComps
 	{
 		const int SyncInterval = 250;
+		const float CapacityFactorPerBenefit = 0.25f;
+
+		HediffStage capacityBenefitStage;
+		PawnCapacityModifier movingCapacityModifier;
+		PawnCapacityModifier manipulationCapacityModifier;
 
 		public string symbiantThingId;
+
+		public override HediffStage CurStage
+		{
+			get
+			{
+				var movingBenefitCount = ZombieSymbiant.MoveSpeedBenefitCount(pawn);
+				var manipulationBenefitCount = ZombieSymbiant.ManipulationBenefitCount(pawn);
+				if (movingBenefitCount <= 0 && manipulationBenefitCount <= 0)
+					return base.CurStage;
+				capacityBenefitStage ??= new HediffStage();
+				movingCapacityModifier ??= new PawnCapacityModifier
+				{
+					capacity = PawnCapacityDefOf.Moving
+				};
+				manipulationCapacityModifier ??= new PawnCapacityModifier
+				{
+					capacity = PawnCapacityDefOf.Manipulation
+				};
+				capacityBenefitStage.capMods.Clear();
+				if (movingBenefitCount > 0)
+				{
+					movingCapacityModifier.postFactor = 1f + movingBenefitCount * CapacityFactorPerBenefit;
+					capacityBenefitStage.capMods.Add(movingCapacityModifier);
+				}
+				if (manipulationBenefitCount > 0)
+				{
+					manipulationCapacityModifier.postFactor = 1f + manipulationBenefitCount * CapacityFactorPerBenefit;
+					capacityBenefitStage.capMods.Add(manipulationCapacityModifier);
+				}
+				return capacityBenefitStage;
+			}
+		}
 
 		public override string Description
 		{
@@ -29,6 +67,21 @@ namespace ZombieLand
 					symbiant.SharedDamageLeakPercentDisplay,
 					symbiant.BenefitSummary
 				);
+			}
+		}
+
+		public override string TipStringExtra
+		{
+			get
+			{
+				var extra = base.TipStringExtra;
+				if (extra.NullOrEmpty())
+					return extra;
+				if (ZombieSymbiant.MoveSpeedBenefitCount(pawn) <= 0
+					&& ZombieSymbiant.ManipulationBenefitCount(pawn) <= 0)
+					return extra;
+				return "SymbiantCombinedCapacityEffects".Translate().Resolve()
+					+ "\n" + extra.TrimStart('\r', '\n');
 			}
 		}
 

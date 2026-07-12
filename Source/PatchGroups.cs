@@ -620,6 +620,8 @@ namespace ZombieLand
 
 		static readonly HashSet<string> UIPatchTypes = new()
 		{
+			"ZombieLand.Patches+SkillUI_DrawSkill_Patch",
+			"ZombieLand.Patches+SkillUI_GetSkillDescription_Patch",
 			"ZombieLand.Patches+GenUI_ThingsUnderMouse_Patch",
 			"ZombieLand.Patches+SelectionDrawer_DrawSelectionOverlays_Patch",
 			"ZombieLand.Patches+MapInterface_MapInterfaceUpdate_Patch",

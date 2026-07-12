@@ -345,12 +345,13 @@ namespace ZombieLand
 				}
 
 				// Awareness cues
-				if (DialogExtensions.Section<string>(":AwarenessCuesTitle", ":PlayZombielandMusic", ":ShowZombieEventLetters", ":PlayZombieEventSiren", ":PlaySpecialZombieAmbientSounds", ":PlayZombieActionSounds", ":PlayWallAndSabotageSounds", ":ShowZombieThoughtBubbles", ":PlayCreepyAmbientSound", ":ShowHealthBar", ":ShowZombieStats", ":HighlightDangerousAreas", ":DangerousSituationMessage"))
+				if (DialogExtensions.Section<string>(":AwarenessCuesTitle", ":PlayZombielandMusic", ":MixZombielandMusicModes", ":ShowZombieEventLetters", ":PlayZombieEventSiren", ":PlaySpecialZombieAmbientSounds", ":PlayZombieActionSounds", ":PlayWallAndSabotageSounds", ":ShowZombieThoughtBubbles", ":PlayCreepyAmbientSound", ":ShowHealthBar", ":ShowZombieStats", ":HighlightDangerousAreas", ":DangerousSituationMessage"))
 				{
 					list.Dialog_Label("AwarenessCuesTitle", headerColor);
 					list.Dialog_Checkbox("PlayZombielandMusic", ref settings.playZombielandMusic);
 					if (settings.playZombielandMusic)
 					{
+						list.Dialog_Checkbox("MixZombielandMusicModes", ref settings.mixZombielandMusicModes);
 						list.Gap(8f);
 						DrawMusicShareSlider(list, ref settings.zombielandMusicShare);
 						list.Gap(4f);

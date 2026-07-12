@@ -57,6 +57,7 @@
 	<SymbiantHostBondDescription>Symbiont: {0}/{1} pól. Następna korzyść przy {2} polach. Wspólna pula zdrowia: {3}. Symbiont pochłania większość wspólnych obrażeń; przy obecnym rozmiarze do gospodarza dociera &lt;color=#ffb35c&gt;{4}%&lt;/color&gt;.\n\nZasada mapy: gospodarz i Symbiont muszą znajdować się na tej samej mapie, aby więź była aktywna i można ją było bezpiecznie usunąć. Po rozdzieleniu więź przechodzi w stan uśpienia. Więź może się odnowić tylko wtedy, gdy ten sam gospodarz i Symbiont ponownie znajdą się na jednej mapie. Porzucenie mapy Symbionta niszczy go i siłą zrywa więź; operacja pozwala najpierw bezpiecznie usunąć więź.\n\nKorzyści:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Z tym gospodarzem nie jest połączony żaden aktywny Symbiont.</SymbiantHostBondMissing>
 	<SymbiantHostRelocatedMessage>Więź {0} z Symbiontem jest uśpiona, ponieważ gospodarz i Symbiont nie znajdują się na tej samej mapie. Więź pozostaje. Podczas uśpienia wszystkie korzyści (w tym odporność na zakażenie zombie), przekazywanie współdzielonych obrażeń i chirurgiczne rozdzielenie są nieaktywne. Więź może się odnowić tylko wtedy, gdy ten sam gospodarz i Symbiont ponownie znajdą się na jednej mapie.</SymbiantHostRelocatedMessage>
+	<LetterLabelSymbiantBondDormant>Więź z Symbiontem uśpiona</LetterLabelSymbiantBondDormant>
 	<SymbiantMapAbandonWarningTitle>Porzucić mapę z Symbiontem?</SymbiantMapAbandonWarningTitle>
 		<SymbiantMapAbandonWarning>Na tej mapie znajduje się żywy Symbiont zombie związany z mapą. Porzucenie mapy zniszczy Symbionta i siłą zerwie każdą pozostałą więź. Jeśli chcesz przeprowadzić zwykłe rozdzielenie, najpierw usuń więź z Symbiontem chirurgicznie.\n\nMimo to porzucić tę mapę?</SymbiantMapAbandonWarning>
 	<SymbiantReseededMessage>Symbiont należący do {0} przeniósł się do innego pomieszczenia.</SymbiantReseededMessage>
@@ -74,8 +75,13 @@
 	<SymbiantBenefitZombieInfectionImmunity>odporność na zakażenie zombie</SymbiantBenefitZombieInfectionImmunity>
 	<SymbiantBenefitMoodFixed>nastrój ustalony na 50%</SymbiantBenefitMoodFixed>
 	<SymbiantBenefitNoFoodOrRest>brak potrzeby jedzenia i odpoczynku</SymbiantBenefitNoFoodOrRest>
-	<SymbiantBenefitSkillBonus>wszystkie umiejętności +1</SymbiantBenefitSkillBonus>
+	<SymbiantBenefitSkillBonus>wszystkie umiejętności +{0}</SymbiantBenefitSkillBonus>
+	<SymbiantSkillBonusTooltipLabel>premia symbionta</SymbiantSkillBonusTooltipLabel>
+	<SymbiantSkillBonusTooltipValue>+{0}</SymbiantSkillBonusTooltipValue>
+	<SymbiantSkillBonusTooltipCappedValue>zastosowano +{0} (+{1} przed limitem umiejętności)</SymbiantSkillBonusTooltipCappedValue>
+	<SymbiantCombinedCapacityEffects>Łącznie:</SymbiantCombinedCapacityEffects>
 	<SymbiantBenefitMoveSpeed>ruch +25%</SymbiantBenefitMoveSpeed>
+	<SymbiantBenefitManipulation>manipulacja +25%</SymbiantBenefitManipulation>
 	<SymbiantBenefitZombieIgnore>zombie ignorują gospodarza</SymbiantBenefitZombieIgnore>
 	<SymbiantBenefitAutoHeal>automatyczne leczenie</SymbiantBenefitAutoHeal>
 
@@ -252,6 +258,7 @@
 
 	<AwarenessCuesTitle>Sygnały ostrzegawcze</AwarenessCuesTitle>
 	<PlayZombielandMusic>Odtwarzaj muzykę Zombieland</PlayZombielandMusic>
+	<MixZombielandMusicModes>Łącz zwykłą muzykę z muzyką zagrożenia</MixZombielandMusicModes>
 	<ZombielandMusicShare_OtherEnd>RimWorld/mody</ZombielandMusicShare_OtherEnd>
 	<ZombielandMusicShare_ZombielandEnd>Zombieland</ZombielandMusicShare_ZombielandEnd>
 	<ZombielandMusicShare_OnlyOther>Tylko muzyka spoza Zombieland</ZombielandMusicShare_OnlyOther>

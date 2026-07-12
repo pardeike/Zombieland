@@ -4514,6 +4514,70 @@ namespace ZombieLand
 			}
 		}
 
+		[HarmonyPatch(typeof(SkillUI))]
+		[HarmonyPatch(nameof(SkillUI.DrawSkill))]
+		[HarmonyPatch(new Type[] { typeof(SkillRecord), typeof(Rect), typeof(SkillUI.SkillDrawMode), typeof(string) })]
+		static class SkillUI_DrawSkill_Patch
+		{
+			[HarmonyPriority(Priority.Last)]
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				var codes = instructions.ToList();
+				var toStringCached = AccessTools.Method(typeof(GenString), nameof(GenString.ToStringCached), new Type[] { typeof(int) });
+				var formatSkillLevel = SymbolExtensions.GetMethodInfo(() => ZombieSymbiant.FormatSymbiantSkillLevel(0, null));
+				var matches = codes
+					.Select((instruction, index) => new { instruction, index })
+					.Where(item => item.instruction.Calls(toStringCached))
+					.Select(item => item.index)
+					.ToArray();
+				if (matches.Length != 1)
+				{
+					Log.WarningOnce($"Zombieland left the Bio skill-row label unchanged because another mod or RimWorld version exposed {matches.Length} compatible numeric-label anchors instead of one.", 177163421);
+					return codes;
+				}
+
+				var index = matches[0];
+				var loadSkill = new CodeInstruction(OpCodes.Ldarg_0);
+				loadSkill.labels.AddRange(codes[index].labels);
+				codes[index].labels.Clear();
+				loadSkill.blocks.AddRange(codes[index].blocks);
+				codes[index].blocks.Clear();
+				codes.Insert(index, loadSkill);
+				codes[index + 1].opcode = OpCodes.Call;
+				codes[index + 1].operand = formatSkillLevel;
+				return codes;
+			}
+		}
+
+		[HarmonyPatch(typeof(SkillUI), "GetSkillDescription")]
+		static class SkillUI_GetSkillDescription_Patch
+		{
+			static void Postfix(SkillRecord sk, ref string __result)
+			{
+				var line = ZombieSymbiant.SymbiantSkillBonusTooltipLine(sk);
+				if (line.NullOrEmpty())
+					return;
+				if (__result.NullOrEmpty())
+				{
+					__result = line;
+					return;
+				}
+
+				var skillLevelLabel = "SkillLevel".Translate().CapitalizeFirst().Resolve();
+				var marker = __result.IndexOf(skillLevelLabel, StringComparison.Ordinal);
+				if (marker >= 0)
+				{
+					var lineEnd = __result.IndexOf('\n', marker);
+					if (lineEnd >= 0)
+					{
+						__result = __result.Insert(lineEnd + 1, line + "\n");
+						return;
+					}
+				}
+				__result = __result.TrimEnd('\r', '\n') + "\n" + line;
+			}
+		}
+
 		// patch for variable zombie stats (speed, pain, melee, dodge)
 		//
 		[HarmonyPatch(typeof(StatExtension))]
@@ -4713,13 +4777,6 @@ namespace ZombieLand
 			{
 				if (thing is not Pawn pawn)
 					return;
-				if (stat == StatDefOf.MoveSpeed)
-				{
-					var moveBonusCount = ZombieSymbiant.MoveSpeedBenefitCount(pawn);
-					if (moveBonusCount > 0)
-						__result *= 1f + moveBonusCount * 0.25f;
-					return;
-				}
 				if (stat != StatDefOf.MedicalTendSpeed
 					&& stat != StatDefOf.WorkSpeedGlobal
 					&& stat != StatDefOf.GeneralLaborSpeed

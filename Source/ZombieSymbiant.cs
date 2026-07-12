@@ -30,6 +30,8 @@ namespace ZombieLand
 		internal static bool DebugDisableHostHediffSync { get; private set; }
 		internal static bool DebugDisableSymbiosisBenefits { get; private set; }
 		internal static int DebugMaxCellsOverride { get; private set; }
+		[ThreadStatic]
+		static int suppressSymbiantSkillBonusDepth;
 		const int MetaballTextureMinSize = 256;
 		const int MetaballTextureMaxSize = 1024;
 		const float MetaballTexturePixelsPerCell = 6f;
@@ -100,7 +102,8 @@ namespace ZombieLand
 			SkillBonus,
 			MoveSpeed,
 			ZombieIgnore,
-			AutoHeal
+			AutoHeal,
+			Manipulation
 		}
 
 		static readonly HostBenefit[] hostBenefitPool =
@@ -109,6 +112,7 @@ namespace ZombieLand
 			HostBenefit.NoFoodOrRest,
 			HostBenefit.SkillBonus,
 			HostBenefit.MoveSpeed,
+			HostBenefit.Manipulation,
 			HostBenefit.ZombieIgnore,
 			HostBenefit.AutoHeal
 		];
@@ -518,6 +522,8 @@ namespace ZombieLand
 			}
 
 			DebugPerfProfile = normalized;
+			foreach (var symbiant in ActiveSymbiants())
+				NotifyHostCapacityBenefitsChanged(symbiant.LinkedHost);
 			return DebugPerfState();
 		}
 
@@ -1160,11 +1166,30 @@ namespace ZombieLand
 			return TryGetSameMapLinkedSymbiant(pawn, out var symbiant) ? symbiant.BenefitCount(HostBenefit.MoveSpeed) : 0;
 		}
 
+		public static int ManipulationBenefitCount(Pawn pawn)
+		{
+			if (DebugDisableSymbiosisBenefits)
+				return 0;
+			return TryGetSameMapLinkedSymbiant(pawn, out var symbiant) ? symbiant.BenefitCount(HostBenefit.Manipulation) : 0;
+		}
+
 		public static int SkillBonusBenefitCount(Pawn pawn)
 		{
 			if (DebugDisableSymbiosisBenefits)
 				return 0;
 			return TryGetSameMapLinkedSymbiant(pawn, out var symbiant) ? symbiant.BenefitCount(HostBenefit.SkillBonus) : 0;
+		}
+
+		public static int SkillBonusPerBenefit()
+		{
+			var difficulty = ZombieLand.Tools.Difficulty();
+			if (difficulty < 2f)
+				return 4;
+			if (difficulty < 3f)
+				return 3;
+			if (difficulty < 4f)
+				return 2;
+			return 1;
 		}
 
 		public static float SymbiantCellEfficiencyFactor(Pawn pawn)
@@ -1215,13 +1240,68 @@ namespace ZombieLand
 
 		public static void ApplySymbiantSkillBonus(SkillRecord skill, ref int level)
 		{
+			if (suppressSymbiantSkillBonusDepth > 0)
+				return;
 			var pawn = skill?.Pawn;
 			var bonus = 0;
 			if (DebugDisableSymbiosisBenefits == false && TryGetSameMapLinkedSymbiant(pawn, out var symbiant))
-				bonus = symbiant.BenefitCount(HostBenefit.SkillBonus);
+				bonus = symbiant.BenefitCount(HostBenefit.SkillBonus) * SkillBonusPerBenefit();
 			if (bonus <= 0)
 				return;
 			level = Mathf.Clamp(level + bonus, 0, SkillRecord.MaxLevel);
+		}
+
+		public static bool TryGetSymbiantSkillBonusBreakdown(
+			SkillRecord skill,
+			int effectiveLevel,
+			bool forUi,
+			out int baseLevel,
+			out int appliedBonus,
+			out int nominalBonus)
+		{
+			baseLevel = effectiveLevel;
+			appliedBonus = 0;
+			nominalBonus = 0;
+			if (skill?.Pawn == null || skill.TotallyDisabled)
+				return false;
+
+			nominalBonus = SkillBonusBenefitCount(skill.Pawn) * SkillBonusPerBenefit();
+			if (nominalBonus <= 0)
+				return false;
+
+			suppressSymbiantSkillBonusDepth++;
+			try
+			{
+				baseLevel = forUi ? skill.GetLevelForUI() : skill.GetLevel();
+			}
+			finally
+			{
+				suppressSymbiantSkillBonusDepth--;
+			}
+
+			appliedBonus = Mathf.Clamp(effectiveLevel - baseLevel, 0, nominalBonus);
+			return true;
+		}
+
+		public static string FormatSymbiantSkillLevel(int effectiveLevel, SkillRecord skill)
+		{
+			if (TryGetSymbiantSkillBonusBreakdown(skill, effectiveLevel, false, out var baseLevel, out var appliedBonus, out _) == false
+				|| appliedBonus <= 0)
+				return effectiveLevel.ToStringCached();
+			return $"{baseLevel.ToStringCached()} + {appliedBonus.ToStringCached()}";
+		}
+
+		public static string SymbiantSkillBonusTooltipLine(SkillRecord skill)
+		{
+			if (skill == null)
+				return null;
+			var effectiveLevel = skill.GetLevelForUI();
+			if (TryGetSymbiantSkillBonusBreakdown(skill, effectiveLevel, true, out _, out var appliedBonus, out var nominalBonus) == false)
+				return null;
+			var value = appliedBonus == nominalBonus
+				? "SymbiantSkillBonusTooltipValue".Translate(appliedBonus)
+				: "SymbiantSkillBonusTooltipCappedValue".Translate(appliedBonus, nominalBonus);
+			return (("SymbiantSkillBonusTooltipLabel".Translate().CapitalizeFirst() + ": ").AsTipTitle() + value).Resolve();
 		}
 
 		public static bool CanSeverSymbiosis(Pawn pawn)
@@ -1427,7 +1507,10 @@ namespace ZombieLand
 
 		static bool BenefitCanStack(HostBenefit benefit)
 		{
-			return benefit == HostBenefit.SkillBonus || benefit == HostBenefit.MoveSpeed || benefit == HostBenefit.AutoHeal;
+			return benefit == HostBenefit.SkillBonus
+				|| benefit == HostBenefit.MoveSpeed
+				|| benefit == HostBenefit.Manipulation
+				|| benefit == HostBenefit.AutoHeal;
 		}
 
 		void EnsureBenefitDefaults()
@@ -1475,6 +1558,8 @@ namespace ZombieLand
 			var benefit = available.RandomElement();
 			hostBenefits.Add(benefit);
 			EnsureHostHediff();
+			if (benefit == HostBenefit.MoveSpeed || benefit == HostBenefit.Manipulation)
+				NotifyHostCapacityBenefitsChanged(LinkedHost);
 			NotifyBenefitAwarded(benefit);
 		}
 
@@ -1499,8 +1584,9 @@ namespace ZombieLand
 			{
 				HostBenefit.MoodFixed => "SymbiantBenefitMoodFixed".Translate(),
 				HostBenefit.NoFoodOrRest => "SymbiantBenefitNoFoodOrRest".Translate(),
-				HostBenefit.SkillBonus => "SymbiantBenefitSkillBonus".Translate(),
+				HostBenefit.SkillBonus => "SymbiantBenefitSkillBonus".Translate(SkillBonusPerBenefit()),
 				HostBenefit.MoveSpeed => "SymbiantBenefitMoveSpeed".Translate(),
+				HostBenefit.Manipulation => "SymbiantBenefitManipulation".Translate(),
 				HostBenefit.ZombieIgnore => "SymbiantBenefitZombieIgnore".Translate(),
 				HostBenefit.AutoHeal => "SymbiantBenefitAutoHeal".Translate(),
 				_ => benefit.ToString()
@@ -1705,9 +1791,22 @@ namespace ZombieLand
 				RememberHostBondState(pawn);
 				return;
 			}
+			var changed = hostBondWasActive != active;
 			if (hostBondWasActive && active == false)
-				Messages.Message("SymbiantHostRelocatedMessage".Translate(pawn.LabelShortCap), pawn, MessageTypeDefOf.NeutralEvent, false);
+				Find.LetterStack?.ReceiveLetter(
+					"LetterLabelSymbiantBondDormant".Translate(),
+					"SymbiantHostRelocatedMessage".Translate(pawn.LabelShortCap),
+					LetterDefOf.NeutralEvent,
+					new LookTargets(this, pawn)
+				);
 			hostBondWasActive = active;
+			if (changed)
+				NotifyHostCapacityBenefitsChanged(pawn);
+		}
+
+		internal static void NotifyHostCapacityBenefitsChanged(Pawn pawn)
+		{
+			pawn?.health?.capacities?.Notify_CapacityLevelsDirty();
 		}
 
 		void EnsureHostHediff()
@@ -3838,7 +3937,7 @@ namespace ZombieLand
 			if (linkedHost == null)
 				return summary + "\n" + "SymbiantHostBondMissing".Translate();
 			if (IsActiveBondWith(linkedHost) == false)
-				return summary + "\n" + "SymbiantHostRelocatedMessage".Translate(linkedHost.LabelShortCap);
+				return summary + " — " + "LetterLabelSymbiantBondDormant".Translate();
 			return summary;
 		}
 
