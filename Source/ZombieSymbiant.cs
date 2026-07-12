@@ -167,7 +167,6 @@ namespace ZombieLand
 		int nextRelocationPulseTick;
 		int uprootedSinceTick = -1;
 		bool cancelNextBreach;
-		bool feedRequested;
 		Pawn host;
 		string hostThingId;
 		bool safeSeveranceInProgress;
@@ -208,7 +207,6 @@ namespace ZombieLand
 		public int UprootedSinceTick => uprootedSinceTick;
 		public bool CancelNextBreach => cancelNextBreach;
 		public static float CurrentGrowthSpeedFactor => SymbiantGrowthSpeedFactor();
-		public bool FeedRequested => feedRequested;
 		public IEnumerable<IntVec3> AbsoluteCells => orderedCells.Select(cell => Position + cell);
 		CellRect AbsoluteCellBounds => relativeCellBounds.MovedBy(Position);
 		public override Vector2 DrawSize => hasCellBounds ? drawCullSize : base.DrawSize;
@@ -1805,6 +1803,19 @@ namespace ZombieLand
 			ClearActiveSymbiantCaches();
 		}
 
+		internal static int PurgeLegacyWorldPawnSymbiants()
+		{
+			var worldPawns = Find.WorldPawns;
+			if (worldPawns == null)
+				return 0;
+			var legacySymbiants = worldPawns.AllPawnsAliveOrDead
+				.OfType<ZombieSymbiant>()
+				.ToArray();
+			foreach (var symbiant in legacySymbiants)
+				symbiant.DestroyWithoutHostTrauma(true);
+			return legacySymbiants.Length;
+		}
+
 		internal static object DebugCacheState(Map map = null)
 		{
 			return new
@@ -3144,11 +3155,6 @@ namespace ZombieLand
 			return 0f;
 		}
 
-		public void RequestFeed(bool requested)
-		{
-			feedRequested = requested;
-		}
-
 		public bool TryFeed(Thing feed)
 		{
 			if (CanAcceptFeed(feed) == false)
@@ -3916,7 +3922,6 @@ namespace ZombieLand
 			Scribe_Values.Look(ref nextRelocationPulseTick, "nextRelocationPulseTick");
 			Scribe_Values.Look(ref uprootedSinceTick, "uprootedSinceTick", -1);
 			Scribe_Values.Look(ref cancelNextBreach, "cancelNextBreach");
-			Scribe_Values.Look(ref feedRequested, "feedRequested");
 			Scribe_Values.Look(ref sharedHealth, "sharedHealth", -1f);
 			Scribe_Values.Look(ref destroyWhenCellMotionsFinish, "destroyWhenCellMotionsFinish");
 			Scribe_References.Look(ref host, "host");

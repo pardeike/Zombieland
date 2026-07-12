@@ -44,18 +44,4 @@
 		<prioritizeSustains>true</prioritizeSustains>
 		</WorkGiverDef>
 
-		<WorkGiverDef>
-			<defName>FeedZombieSymbiant</defName>
-			<label>feed the Symbiant</label>
-			<giverClass>ZombieLand.WorkGiver_FeedZombieSymbiant</giverClass>
-			<workType>Hauling</workType>
-			<verb>feed</verb>
-			<gerund>feeding</gerund>
-			<priorityInType>80</priorityInType>
-			<requiredCapacities>
-				<li>Manipulation</li>
-			</requiredCapacities>
-			<canBeDoneWhileDrafted>false</canBeDoneWhileDrafted>
-		</WorkGiverDef>
-
 	</Defs>

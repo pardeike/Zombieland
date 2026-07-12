@@ -160,16 +160,19 @@ namespace ZombieLand
 		}
 
 		[HarmonyPatch]
-		static class VoidAwakeningUtility_CloseMetalHell_Patch
+		internal static class VoidAwakeningUtility_CloseMetalHell_Patch
 		{
 			static MethodBase TargetMethod()
 			{
 				return AccessTools.Method("RimWorld.Utility.VoidAwakeningUtility:CloseMetalHell");
 			}
 
-			static void Prefix(Pawn pawn)
+			internal static void Prefix(Pawn pawn)
 			{
-				DestroyMapBoundSymbiants(pawn?.MapHeld);
+				var map = pawn?.MapHeld;
+				if (map?.IsPocketMap != true)
+					return;
+				DestroyMapBoundSymbiants(map);
 			}
 		}
 
@@ -6522,6 +6525,7 @@ namespace ZombieLand
 			static void Postfix()
 			{
 				ApplyFinalizeInitSettings(Phase);
+				ZombieBootstrap.RunSafely(Phase, "legacy world-pawn Symbiant migration", () => _ = ZombieSymbiant.PurgeLegacyWorldPawnSymbiants());
 			}
 
 			[HarmonyFinalizer]

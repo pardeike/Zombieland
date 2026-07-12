@@ -48,11 +48,7 @@
 	<SymbiantDamageAbsorbedMote>absorbed {0}%</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>the host</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} of {1}</SymbiantSharedHealthSummary>
-	<FeedZombieSymbiant>Feed the Symbiant</FeedZombieSymbiant>
-	<CancelFeedZombieSymbiant>Cancel feeding the Symbiant</CancelFeedZombieSymbiant>
-	<FeedZombieSymbiantDesc>Feed the Symbiant a corpse.</FeedZombieSymbiantDesc>
 	<FeedingZombieSymbiant>feeding the Symbiant</FeedingZombieSymbiant>
-	<NoSymbiantFeed>No usable corpse available</NoSymbiantFeed>
 	<SymbiantFedMote>+{1} cells</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>Feed {0} {1} to the Symbiant (+{2} cells)</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>Remove the Symbiant bond</SeverSymbiantSymbiosis>

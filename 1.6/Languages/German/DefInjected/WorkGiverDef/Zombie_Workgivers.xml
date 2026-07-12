@@ -8,9 +8,6 @@
 	<DoubleTap.label>Leichen sicher zweimal töten</DoubleTap.label>
 	<DoubleTap.verb>sicher zweimal töten</DoubleTap.verb>
 	<DoubleTap.gerund>Sicheres zweimaliges Töten von</DoubleTap.gerund>
-	<FeedZombieSymbiant.label>Symbionten füttern</FeedZombieSymbiant.label>
-	<FeedZombieSymbiant.verb>füttern</FeedZombieSymbiant.verb>
-	<FeedZombieSymbiant.gerund>Füttern von</FeedZombieSymbiant.gerund>
 	<FixBrokenChainsaw.label>defekte Kettensäge reparieren</FixBrokenChainsaw.label>
 	<FixBrokenChainsaw.verb>mit Ersatzteilen bestücken</FixBrokenChainsaw.verb>
 	<FixBrokenChainsaw.gerund>Austausch defekter Bauteile in</FixBrokenChainsaw.gerund>

@@ -53,8 +53,6 @@ namespace ZombieLand
 					pawn.jobs.EndCurrentJob(JobCondition.Incompletable, true);
 					return;
 				}
-				if (symbiant.DestroyedOrNull() || symbiant.CellCount == 0)
-					symbiant?.RequestFeed(false);
 				pawn.jobs.EndCurrentJob(JobCondition.Succeeded, true);
 			};
 			yield return finish;

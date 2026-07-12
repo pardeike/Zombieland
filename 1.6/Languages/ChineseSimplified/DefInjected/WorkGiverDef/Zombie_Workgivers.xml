@@ -8,9 +8,6 @@
 	<DoubleTap.label>对尸体补刀，防止其变成丧尸</DoubleTap.label>
 	<DoubleTap.verb>补刀</DoubleTap.verb>
 	<DoubleTap.gerund>补刀</DoubleTap.gerund>
-	<FeedZombieSymbiant.label>喂养共生体</FeedZombieSymbiant.label>
-	<FeedZombieSymbiant.verb>喂养</FeedZombieSymbiant.verb>
-	<FeedZombieSymbiant.gerund>喂养</FeedZombieSymbiant.gerund>
 	<FixBrokenChainsaw.label>修理损坏的链锯</FixBrokenChainsaw.label>
 	<FixBrokenChainsaw.verb>更换损坏的零部件：</FixBrokenChainsaw.verb>
 	<FixBrokenChainsaw.gerund>更换损坏的零部件：</FixBrokenChainsaw.gerund>

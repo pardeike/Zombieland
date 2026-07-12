@@ -7,9 +7,6 @@
 	<DoubleTap.label>добивать трупы, чтобы они не стали зомби</DoubleTap.label>
 	<DoubleTap.verb>добить</DoubleTap.verb>
 	<DoubleTap.gerund>добивает</DoubleTap.gerund>
-	<FeedZombieSymbiant.label>кормить симбионта</FeedZombieSymbiant.label>
-	<FeedZombieSymbiant.verb>кормить</FeedZombieSymbiant.verb>
-	<FeedZombieSymbiant.gerund>кормит</FeedZombieSymbiant.gerund>
 	<FixBrokenChainsaw.label>чинить сломанную бензопилу</FixBrokenChainsaw.label>
 	<FixBrokenChainsaw.verb>заменить сломанные детали в</FixBrokenChainsaw.verb>
 	<FixBrokenChainsaw.gerund>заменяет сломанные детали в</FixBrokenChainsaw.gerund>

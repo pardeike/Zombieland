@@ -47,11 +47,7 @@
 	<SymbiantDamageAbsorbedMote>%{0} emildi</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>konak</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{1} üzerinden {0}</SymbiantSharedHealthSummary>
-	<FeedZombieSymbiant>Simbiyantı besle</FeedZombieSymbiant>
-	<CancelFeedZombieSymbiant>Simbiyant beslemesini iptal et</CancelFeedZombieSymbiant>
-	<FeedZombieSymbiantDesc>Simbiyantı bir cesetle besle.</FeedZombieSymbiantDesc>
 	<FeedingZombieSymbiant>bir Simbiyantı besliyor</FeedingZombieSymbiant>
-	<NoSymbiantFeed>Kullanılabilir ceset yok</NoSymbiantFeed>
 	<SymbiantFedMote>hücre +{1}</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>Simbiyantı {0} {1} ile besle (+{2} hücre)</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>Simbiyant bağını kaldır</SeverSymbiantSymbiosis>

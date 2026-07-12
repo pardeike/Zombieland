@@ -48,11 +48,7 @@
 	<SymbiantDamageAbsorbedMote>wchłonięto {0}%</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>gospodarz</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} z {1}</SymbiantSharedHealthSummary>
-	<FeedZombieSymbiant>Nakarm Symbionta</FeedZombieSymbiant>
-	<CancelFeedZombieSymbiant>Anuluj karmienie Symbionta</CancelFeedZombieSymbiant>
-	<FeedZombieSymbiantDesc>Nakarm Symbionta zwłokami.</FeedZombieSymbiantDesc>
 	<FeedingZombieSymbiant>karmi Symbionta</FeedingZombieSymbiant>
-	<NoSymbiantFeed>Brak odpowiednich zwłok</NoSymbiantFeed>
 	<SymbiantFedMote>+{1} pól</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>Nakarm Symbionta: {0} {1} (+{2} pól)</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>Usuń więź z Symbiontem</SeverSymbiantSymbiosis>

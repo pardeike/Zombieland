@@ -47,11 +47,7 @@
 	<SymbiantDamageAbsorbedMote>吸收 {0}%</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>宿主</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} / {1}</SymbiantSharedHealthSummary>
-	<FeedZombieSymbiant>喂养共生体</FeedZombieSymbiant>
-	<CancelFeedZombieSymbiant>取消共生体喂养</CancelFeedZombieSymbiant>
-	<FeedZombieSymbiantDesc>用一具尸体喂养共生体。</FeedZombieSymbiantDesc>
 	<FeedingZombieSymbiant>正在喂养共生体</FeedingZombieSymbiant>
-	<NoSymbiantFeed>没有可用的尸体</NoSymbiantFeed>
 	<SymbiantFedMote>格子 +{1}</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>把 {0} {1} 喂给共生体（+{2} 格）</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>移除共生体连接</SeverSymbiantSymbiosis>

@@ -47,11 +47,7 @@
 	<SymbiantDamageAbsorbedMote>{0}% absorbé</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>l'hôte</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} sur {1}</SymbiantSharedHealthSummary>
-	<FeedZombieSymbiant>Nourrir le Symbiant</FeedZombieSymbiant>
-	<CancelFeedZombieSymbiant>Annuler le nourrissage du Symbiant</CancelFeedZombieSymbiant>
-	<FeedZombieSymbiantDesc>Nourrir le Symbiant avec un cadavre.</FeedZombieSymbiantDesc>
 	<FeedingZombieSymbiant>nourrit le Symbiant</FeedingZombieSymbiant>
-	<NoSymbiantFeed>Aucun cadavre utilisable disponible</NoSymbiantFeed>
 	<SymbiantFedMote>cases +{1}</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>Nourrir le Symbiant avec {0} {1} (+{2} cases)</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>retirer le lien du Symbiant</SeverSymbiantSymbiosis>

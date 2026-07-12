@@ -429,7 +429,7 @@ namespace ZombieLand
 			SymbiantNaturalSpawnFixture fixture = null;
 			ZombieSymbiant symbiant = null;
 			object fixtureSetup = null;
-			object workGiver = null;
+			object floatMenuRoute = null;
 			object humanCorpseFeed = null;
 			object animalCorpseFeed = null;
 			object cleanupSymbiant = null;
@@ -456,20 +456,33 @@ namespace ZombieLand
 					return humanCellError;
 				if (TryCreateSymbiantFeedCorpse(map, humanCorpseCell, true, "ZL_SymbiantFeed_Human", spawnedThings, out var humanCorpse, out var humanCorpseError) == false)
 					return humanCorpseError;
-				symbiant.RequestFeed(true);
-				var feed = WorkGiver_FeedZombieSymbiant.FindClosestFeed(fixture.host, symbiant);
-				var feedJob = new WorkGiver_FeedZombieSymbiant().JobOnThing(fixture.host, symbiant, true);
-				workGiver = new
+				fixture.host.jobs?.EndCurrentJob(JobCondition.InterruptForced);
+				var expectedFeedLabel = "FeedZombieSymbiantFloatMenu".Translate(
+					"fresh",
+					humanCorpse.InnerPawn.LabelShortCap,
+					ZombieSymbiant.FeedGrowthCellCount(humanCorpse)).ToString();
+				var allOptions = FloatMenuMakerMap.GetOptions(
+					new List<Pawn> { fixture.host },
+					symbiant.Position.ToVector3Shifted(),
+					out var floatMenuContext);
+				var feedOptions = allOptions.Where(option => option.Label == expectedFeedLabel).ToArray();
+				feedOptions.FirstOrDefault()?.action?.Invoke();
+				var feedJob = fixture.host.CurJob;
+				floatMenuRoute = new
 				{
-					success = feed == humanCorpse
+					success = feedOptions.Length == 1
 						&& feedJob?.def == CustomDefs.FeedZombieSymbiant
 						&& feedJob.targetA.Thing == symbiant
 						&& feedJob.targetB.Thing == humanCorpse,
-					feed = ZombieRuntimeActions.StableThingId(feed),
+					expectedFeedLabel,
+					allOptionCount = allOptions.Count,
+					feedOptionCount = feedOptions.Length,
+					contextMapId = floatMenuContext.map?.uniqueID ?? -1,
 					jobDef = feedJob?.def?.defName,
 					jobTargetA = ZombieRuntimeActions.StableThingId(feedJob?.targetA.Thing),
 					jobTargetB = ZombieRuntimeActions.StableThingId(feedJob?.targetB.Thing)
 				};
+				fixture.host.jobs?.EndCurrentJob(JobCondition.InterruptForced);
 				humanCorpseFeed = FeedSymbiantThing(symbiant, humanCorpse, "fresh humanlike corpse", 6);
 
 				if (TryFindClearSpawnCell(map, symbiant.Position + new IntVec3(4, 0, 0), 16f, out var animalCorpseCell, out var animalCellError) == false)
@@ -498,7 +511,7 @@ namespace ZombieLand
 			var letterCleanup = CleanupTemporaryLetters(newLetters, cleanup);
 			var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
 			var success = error == null
-				&& ScenarioSucceeded(workGiver)
+				&& ScenarioSucceeded(floatMenuRoute)
 				&& ScenarioSucceeded(humanCorpseFeed)
 				&& ScenarioSucceeded(animalCorpseFeed)
 				&& (activeAfterCleanup == null || cleanup == false);
@@ -506,11 +519,11 @@ namespace ZombieLand
 			return new
 			{
 				success,
-				sourcePath = "WorkGiver_FeedZombieSymbiant -> ZombieSymbiant.TryFeed -> FeedGrowthCells -> TryExpansionPulse",
+				sourcePath = "FloatMenuMakerMap.GetOptions -> AddSymbiantFeedOptions -> JobDriver_FeedZombieSymbiant -> ZombieSymbiant.TryFeed",
 				growthSpeedFactor = feedingGrowthSpeedFactor,
 				error,
 				fixtureSetup,
-				workGiver,
+				floatMenuRoute,
 				humanCorpseFeed,
 				animalCorpseFeed,
 				cleanup = new
@@ -2750,6 +2763,8 @@ namespace ZombieLand
 			object pawnKillCreatesValidCorpse = null;
 			object deadLinkedCorpseHostDeathCleanup = null;
 			object nonRelocationDespawnSelfDestructs = null;
+			object ordinaryMapCloseMetalHellNoOp = null;
+			object legacyWorldPawnMigration = null;
 			object secondMapSetup = null;
 			object crossMapDamageIsolation = null;
 			object crossMapPoolExhaustionSparesHost = null;
@@ -2781,6 +2796,8 @@ namespace ZombieLand
 				pawnKillCreatesValidCorpse = RunSymbiantPawnKillScenario(map, cleanup);
 				deadLinkedCorpseHostDeathCleanup = RunSymbiantDeadLinkedCorpseScenario(map, cleanup);
 				nonRelocationDespawnSelfDestructs = RunSymbiantNonRelocationDespawnScenario(map, cleanup);
+				ordinaryMapCloseMetalHellNoOp = RunSymbiantOrdinaryMapCloseMetalHellScenario(map, cleanup);
+				legacyWorldPawnMigration = RunSymbiantLegacyWorldPawnMigrationScenario(map, cleanup);
 				if (TryCreateSymbiantSecondMapFixture(map, out secondMapFixture, out var secondMapError) == false)
 				{
 					secondMapSetup = secondMapError;
@@ -2877,6 +2894,8 @@ namespace ZombieLand
 				&& ScenarioSucceeded(pawnKillCreatesValidCorpse)
 				&& ScenarioSucceeded(deadLinkedCorpseHostDeathCleanup)
 				&& ScenarioSucceeded(nonRelocationDespawnSelfDestructs)
+				&& ScenarioSucceeded(ordinaryMapCloseMetalHellNoOp)
+				&& ScenarioSucceeded(legacyWorldPawnMigration)
 				&& ScenarioSucceeded(secondMapSetup)
 				&& ScenarioSucceeded(crossMapDamageIsolation)
 				&& ScenarioSucceeded(crossMapPoolExhaustionSparesHost)
@@ -2909,6 +2928,8 @@ namespace ZombieLand
 				pawnKillCreatesValidCorpse,
 				deadLinkedCorpseHostDeathCleanup,
 				nonRelocationDespawnSelfDestructs,
+				ordinaryMapCloseMetalHellNoOp,
+				legacyWorldPawnMigration,
 				secondMapSetup,
 				crossMapDamageIsolation,
 				crossMapPoolExhaustionSparesHost,
@@ -2925,6 +2946,137 @@ namespace ZombieLand
 					worldSymbiantResidue,
 					activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
 				}
+			};
+		}
+
+		static object RunSymbiantOrdinaryMapCloseMetalHellScenario(Map map, bool cleanup)
+		{
+			SymbiantNaturalSpawnFixture fixture = null;
+			ZombieSymbiant symbiant = null;
+			object action = null;
+			object error = null;
+			try
+			{
+				if (TrySetupSymbiantNaturalSpawnFixture(map, out fixture, out var fixtureError) == false)
+					return fixtureError;
+				symbiant = SpawnAssignedSymbiantForSeveranceContract(map, fixture);
+				var host = fixture.host;
+				var hediffBefore = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
+				Patches.VoidAwakeningUtility_CloseMetalHell_Patch.Prefix(host);
+				var hediffAfter = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
+				action = new
+				{
+					mapId = map.uniqueID,
+					isPocketMap = map.IsPocketMap,
+					hediffBefore,
+					hediffAfter,
+					hostAlive = host.Dead == false,
+					symbiantSpawned = symbiant.Spawned,
+					symbiantDestroyed = symbiant.Destroyed,
+					linkedAfter = ZombieRuntimeActions.StableThingId(ZombieSymbiant.LinkedSymbiantFor(host)),
+					success = map.IsPocketMap == false
+						&& hediffBefore
+						&& hediffAfter
+						&& host.Dead == false
+						&& symbiant.Spawned
+						&& symbiant.Destroyed == false
+						&& ZombieSymbiant.LinkedSymbiantFor(host) == symbiant
+				};
+			}
+			catch (Exception ex)
+			{
+				error = ex.ToString();
+			}
+			finally
+			{
+				if (cleanup)
+				{
+					_ = CleanupTemporarySymbiant(map, symbiant, true);
+					_ = CleanupSymbiantNaturalSpawnFixture(map, fixture, true);
+				}
+			}
+
+			return new
+			{
+				success = error == null && ScenarioSucceeded(action),
+				sourcePath = "VoidAwakeningUtility.CloseMetalHell prefix -> pocket-map guard -> ordinary-map no-op",
+				error,
+				action
+			};
+		}
+
+		static object RunSymbiantLegacyWorldPawnMigrationScenario(Map map, bool cleanup)
+		{
+			SymbiantNaturalSpawnFixture fixture = null;
+			ZombieSymbiant symbiant = null;
+			object action = null;
+			object error = null;
+			var temporaryDespawnField = AccessTools.Field(typeof(ZombieSymbiant), "temporaryDespawnInProgress");
+			try
+			{
+				if (temporaryDespawnField == null)
+					return new { success = false, error = "Could not access the Symbiant temporary-despawn lifecycle flag." };
+				if (TrySetupSymbiantNaturalSpawnFixture(map, out fixture, out var fixtureError) == false)
+					return fixtureError;
+				symbiant = SpawnAssignedSymbiantForSeveranceContract(map, fixture);
+				var host = fixture.host;
+				var hediffBefore = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
+				temporaryDespawnField.SetValue(symbiant, true);
+				try
+				{
+					symbiant.DeSpawn(DestroyMode.Vanish);
+				}
+				finally
+				{
+					temporaryDespawnField.SetValue(symbiant, false);
+				}
+				Find.WorldPawns.PassToWorld(symbiant, PawnDiscardDecideMode.KeepForever);
+				var stagedInWorldPawns = Find.WorldPawns.Contains(symbiant);
+				var migratedCount = ZombieSymbiant.PurgeLegacyWorldPawnSymbiants();
+				var hediffAfter = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
+				action = new
+				{
+					stagedInWorldPawns,
+					migratedCount,
+					hostAlive = host.Dead == false,
+					hediffBefore,
+					hediffAfter,
+					symbiantDestroyed = symbiant.Destroyed,
+					symbiantDiscarded = symbiant.Discarded,
+					symbiantInWorldPawnsAfter = Find.WorldPawns.Contains(symbiant),
+					linkedAfter = ZombieRuntimeActions.StableThingId(ZombieSymbiant.LinkedSymbiantFor(host)),
+					success = stagedInWorldPawns
+						&& migratedCount >= 1
+						&& host.Dead == false
+						&& hediffBefore
+						&& hediffAfter == false
+						&& symbiant.Destroyed
+						&& symbiant.Discarded
+						&& Find.WorldPawns.Contains(symbiant) == false
+						&& ZombieSymbiant.LinkedSymbiantFor(host) == null
+				};
+			}
+			catch (Exception ex)
+			{
+				error = ex.ToString();
+			}
+			finally
+			{
+				if (symbiant != null)
+					temporaryDespawnField?.SetValue(symbiant, false);
+				if (cleanup)
+				{
+					_ = CleanupTemporarySymbiant(map, symbiant, true);
+					_ = CleanupSymbiantNaturalSpawnFixture(map, fixture, true);
+				}
+			}
+
+			return new
+			{
+				success = error == null && ScenarioSucceeded(action),
+				sourcePath = "Game.FinalizeInit postfix -> PurgeLegacyWorldPawnSymbiants -> safe sever/destroy/remove/discard",
+				error,
+				action
 			};
 		}
 
@@ -5350,7 +5502,6 @@ namespace ZombieLand
 					damageAbsorptionBuffer = symbiant.DamageAbsorptionBuffer,
 					damageAbsorptionBufferMax = symbiant.DamageAbsorptionBufferMax,
 					canSafelySever = symbiant.CanSafelySever,
-					feedRequested = symbiant.FeedRequested,
 					nextExpansionTick = symbiant.NextExpansionTick,
 					relocationCellDebt = symbiant.RelocationCellDebt,
 					nextRelocationPulseTick = symbiant.NextRelocationPulseTick,

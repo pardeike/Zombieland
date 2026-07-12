@@ -47,11 +47,7 @@
 	<SymbiantDamageAbsorbedMote>поглощено {0}%</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>носитель</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} из {1}</SymbiantSharedHealthSummary>
-	<FeedZombieSymbiant>Кормить симбионта</FeedZombieSymbiant>
-	<CancelFeedZombieSymbiant>Отменить кормление симбионта</CancelFeedZombieSymbiant>
-	<FeedZombieSymbiantDesc>Скормить симбионту труп.</FeedZombieSymbiantDesc>
 	<FeedingZombieSymbiant>кормит симбионта</FeedingZombieSymbiant>
-	<NoSymbiantFeed>Нет подходящего трупа</NoSymbiantFeed>
 	<SymbiantFedMote>клетки +{1}</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>Скормить {0} {1} симбионту (+{2} клеток)</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>удалить связь симбионта</SeverSymbiantSymbiosis>

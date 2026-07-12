@@ -12,7 +12,7 @@ The feature should be legible and annoying in a RimWorld way. It disrupts moveme
 - The Symbiant spreads through used indoor rooms one cell at a time.
 - Slime slows pawns crossing it and reduces work/tend speed for affected pawns standing on it.
 - The linked host gains benefits as the Symbiant grows: zombie infection immunity from the bond plus random benefits awarded at fixed cell intervals determined when the Symbiant starts.
-- Feeding with corpses grows the Symbiant faster. Humanlike and fresh corpses give larger growth pulses.
+- Feeding with corpses grows the Symbiant faster. A colonist right-clicks the Symbiant and chooses one available corpse for a one-shot hauling job; humanlike and fresh corpses give larger growth pulses.
 - Clean removal is host surgery through `SeverSymbiantSymbiosis`. The operation uses difficulty-scaled zombie extract and industrial medicine through RimWorld's normal bill ingredient path.
 - After severance, or after host death, the Symbiant retreats quickly and then disappears.
 
@@ -28,6 +28,7 @@ The feature should be legible and annoying in a RimWorld way. It disrupts moveme
 - Direct player damage does not remove the Symbiant or make surgery safer.
 - Non-gameplay cleanup paths detach the link without host trauma.
 - Every non-corpse Symbiant destruction removes the pawn from `WorldPawns` and discards it. `Pawn.Kill` remains the corpse-producing exception and applies the same active-host trauma as other uncontrolled destruction.
+- Game finalization removes and safely discards any Symbiant already stranded in `WorldPawns` by an older release, clearing its stale host bond without trauma. This migration is idempotent and also makes the invariant true for upgraded saves.
 - If the exact host object is eventually destroyed/discarded and can no longer be resolved, the bond is irrecoverably severed and the Symbiant starts retreat instead of waiting forever.
 - Old saves may contain removed legacy defs such as `SymbiantCoagulantPack`; load errors for those removed defs are expected to be non-fatal.
 
@@ -58,7 +59,7 @@ The Symbiant itself never boards an Odyssey gravship. Its def sets `bringAlongOn
 
 Automatic and direct map removal uses the same safety rule. Before `Game.DeinitAndRemoveMap` can enter `MapDeiniter` and pass remaining map pawns to `WorldPawns`, Zombieland safely severs, destroys, and discards every map-bound Symbiant, including one held inside another map object. A linked host still spawned on the closing map is not killed; vanilla may transfer that host to `WorldPawns` normally. This covers temporary sites, camps, settlements, ordinary pocket maps, space maps, and other vanilla callers that close a map without invoking `MapParent.Abandon`.
 
-The Symbiant cannot be extracted as a travelling or contained pawn. Any ordinary non-relocation despawn safely severs, destroys, removes from `WorldPawns`, and discards it, while the internal room-reseed path explicitly marks its temporary despawn and respawn. The hook stands down during `Pawn.Kill` so vanilla can create and finalize a valid Symbiant corpse; an uncontrolled kill collapses an active linked host first, while the suppressed in-progress corpse edge is cleaned safely if the host later dies. Anomaly's `CloseMetalHell` is patched before its pawn snapshot so the Symbiant is removed before vanilla can add it to `metalHellPawns`; the despawn hook remains a fallback for other extraction paths.
+The Symbiant cannot be extracted as a travelling or contained pawn. Any ordinary non-relocation despawn safely severs, destroys, removes from `WorldPawns`, and discards it, while the internal room-reseed path explicitly marks its temporary despawn and respawn. The hook stands down during `Pawn.Kill` so vanilla can create and finalize a valid Symbiant corpse; an uncontrolled kill collapses an active linked host first, while the suppressed in-progress corpse edge is cleaned safely if the host later dies. Anomaly's `CloseMetalHell` prefix mirrors vanilla's `MapHeld?.IsPocketMap` boundary before doing cleanup: a real pocket-map close removes the Symbiant before vanilla can add it to `metalHellPawns`, while an ordinary-map or unheld pawn remains a no-op. The despawn hook remains a fallback for other extraction paths.
 
 ## Spread, Relocation, And Retreat
 
@@ -120,6 +121,7 @@ Pawn disruption remains non-lethal:
 ## Feeding And Surgery
 
 - Feeding consumes one valid non-Zombieland corpse and adds growth pulses.
+- Feeding is a one-shot float-menu order tied to the selected corpse category. There is no persisted continuous-feed request and no autonomous Hauling workgiver mode; old `feedRequested` save data is ignored.
 - Humanlike corpses add 2 cells, non-humanlike corpses add 1 cell, and fresh corpses add 1 more cell.
 - The bond permits surgery while the linked host has the same effective map as the Symbiant; RimWorld still requires normal physical access to the pawn before a doctor can perform the operation.
 - Surgery consumes difficulty-scaled zombie extract plus industrial medicine through RimWorld's normal ingredient availability path.

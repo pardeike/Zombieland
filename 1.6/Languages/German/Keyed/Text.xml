@@ -47,11 +47,7 @@
 	<SymbiantDamageAbsorbedMote>{0}% absorbiert</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>der Wirt</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} von {1}</SymbiantSharedHealthSummary>
-	<FeedZombieSymbiant>Symbionten füttern</FeedZombieSymbiant>
-	<CancelFeedZombieSymbiant>Symbionten-Fütterung abbrechen</CancelFeedZombieSymbiant>
-	<FeedZombieSymbiantDesc>Füttert den Symbionten mit einer Leiche.</FeedZombieSymbiantDesc>
 	<FeedingZombieSymbiant>füttert den Symbionten</FeedingZombieSymbiant>
-	<NoSymbiantFeed>Keine nutzbare Leiche verfügbar</NoSymbiantFeed>
 	<SymbiantFedMote>+{1} Zellen</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>{0} {1} an den Symbionten verfüttern (+{2} Zellen)</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>Symbionten-Verbindung entfernen</SeverSymbiantSymbiosis>

@@ -41,11 +41,7 @@
 	<SymbiantDamageAbsorbedMote>{0}% absorbido</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>el huésped</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} de {1}</SymbiantSharedHealthSummary>
-	<FeedZombieSymbiant>Alimentar al Simbionte</FeedZombieSymbiant>
-	<CancelFeedZombieSymbiant>Cancelar la alimentación del Simbionte</CancelFeedZombieSymbiant>
-	<FeedZombieSymbiantDesc>Alimenta al Simbionte con un cadáver.</FeedZombieSymbiantDesc>
 	<FeedingZombieSymbiant>alimentando al Simbionte</FeedingZombieSymbiant>
-	<NoSymbiantFeed>No hay ningún cadáver utilizable</NoSymbiantFeed>
 	<SymbiantFedMote>+{1} celdas</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>Alimentar al Simbionte con {0} {1} (+{2} celdas)</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>Eliminar el vínculo del Simbionte</SeverSymbiantSymbiosis>

@@ -8,9 +8,6 @@
 	<DoubleTap.label>achever les cadavres pour les empêcher de devenir zombies</DoubleTap.label>
 	<DoubleTap.verb>achever</DoubleTap.verb>
 	<DoubleTap.gerund>achève</DoubleTap.gerund>
-	<FeedZombieSymbiant.label>nourrir le Symbiant</FeedZombieSymbiant.label>
-	<FeedZombieSymbiant.verb>nourrir</FeedZombieSymbiant.verb>
-	<FeedZombieSymbiant.gerund>nourrit</FeedZombieSymbiant.gerund>
 	<FixBrokenChainsaw.label>réparer une tronçonneuse en panne</FixBrokenChainsaw.label>
 	<FixBrokenChainsaw.verb>remplacer les composants cassés de</FixBrokenChainsaw.verb>
 	<FixBrokenChainsaw.gerund>remplace les composants cassés de</FixBrokenChainsaw.gerund>

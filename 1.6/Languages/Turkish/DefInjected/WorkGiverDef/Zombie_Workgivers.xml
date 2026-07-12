@@ -7,9 +7,6 @@
 	<DoubleTap.label>cesetlere çift vuruş yap</DoubleTap.label>
 	<DoubleTap.verb>çift vuruş yap</DoubleTap.verb>
 	<DoubleTap.gerund>çift vuruş yapmaya</DoubleTap.gerund>
-	<FeedZombieSymbiant.label>Simbiyantı besle</FeedZombieSymbiant.label>
-	<FeedZombieSymbiant.verb>besle</FeedZombieSymbiant.verb>
-	<FeedZombieSymbiant.gerund>beslemeye</FeedZombieSymbiant.gerund>
 	<FixBrokenChainsaw.label>bozuk motorlu testereyi onar</FixBrokenChainsaw.label>
 	<FixBrokenChainsaw.verb>bozuk bileşenlerini değiştir</FixBrokenChainsaw.verb>
 	<FixBrokenChainsaw.gerund>bozukları değiştirmeye</FixBrokenChainsaw.gerund>
