@@ -130,7 +130,7 @@
 	<ZombiesBurnLonger_Help>Für interessanteres Gameplay fangen Zombies Feuer und brennen länger, während sie herumlaufen. Schalten Sie es aus, wenn Ihr Computer zu langsam für viel Feuer ist.</ZombiesBurnLonger_Help>
 	<AwarenessCuesTitle_Help>Diese Einstellungen steuern Briefe, Geräusche und visuelle Hinweise, die Zombieaktivität verraten können. Das Abschalten ändert nur die Rückmeldung, nicht das Verhalten der Zombies.</AwarenessCuesTitle_Help>
 	<PlayZombielandMusic_Help>Aktiviert den Zombieland-Soundtrack. Schalten Sie dies aus, wenn Sie nur RimWorld-, DLC- und andere Musikmod-Musik hören möchten.</PlayZombielandMusic_Help>
-	<MixZombielandMusicModes_Help>Macht alle Zombieland-Kartenstücke sowohl für normale als auch für Gefahrenmusik verfügbar, anstatt ruhige und angespannte Stücke getrennt zu halten.</MixZombielandMusicModes_Help>
+	<MixZombielandMusicModes_Help>Erlaubt ruhige und spannungsvolle Zombieland-Titel sowohl in normalen als auch in gefährlichen Situationen. Andernfalls bleiben beide Gruppen getrennt.</MixZombielandMusicModes_Help>
 	<ZombielandMusicShare_Help>Legt fest, wie oft ein neues Kartenlied aus der Zombieland-Musik gewählt wird. Andere Musik umfasst RimWorld, DLC, P-Music und installierte Musikpakete. Das betrifft Liedstarts, nicht die exakte Hörzeit.</ZombielandMusicShare_Help>
 	<ShowZombieEventLetters_Help>Zeigt oder verbirgt automatische Zombieland-Ereignismeldungen, einschließlich RimWorld-Briefen für Zombie-Ausbrüche und Spucker-Ereignisse.</ShowZombieEventLetters_Help>
 	<PlayZombieEventSiren_Help>Spielt die laute Sirene an der Kamera ab, wenn ein großes Zombie-Ereignis oder Spucker-Ereignis beginnt.</PlayZombieEventSiren_Help>

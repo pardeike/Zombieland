@@ -256,7 +256,7 @@
 
 	<AwarenessCuesTitle>Подсказки активности зомби</AwarenessCuesTitle>
 	<PlayZombielandMusic>Проигрывать музыку Zombieland</PlayZombielandMusic>
-	<MixZombielandMusicModes>Смешивать обычную музыку и музыку опасности</MixZombielandMusicModes>
+	<MixZombielandMusicModes>Проигрывать всю музыку Zombieland независимо от опасности</MixZombielandMusicModes>
 	<ZombielandMusicShare_OtherEnd>RimWorld/Mods</ZombielandMusicShare_OtherEnd>
 	<ZombielandMusicShare_ZombielandEnd>Zombieland</ZombielandMusicShare_ZombielandEnd>
 	<ZombielandMusicShare_OnlyOther>Только музыка не из Zombieland</ZombielandMusicShare_OnlyOther>

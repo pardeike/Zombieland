@@ -257,7 +257,7 @@
 
 	<AwarenessCuesTitle>Awareness cues</AwarenessCuesTitle>
 	<PlayZombielandMusic>Play Zombieland music</PlayZombielandMusic>
-	<MixZombielandMusicModes>Mix normal and danger music</MixZombielandMusicModes>
+	<MixZombielandMusicModes>Play all Zombieland music regardless of danger</MixZombielandMusicModes>
 	<ZombielandMusicShare_OtherEnd>RimWorld/Mods</ZombielandMusicShare_OtherEnd>
 	<ZombielandMusicShare_ZombielandEnd>Zombieland</ZombielandMusicShare_ZombielandEnd>
 	<ZombielandMusicShare_OnlyOther>Only non-Zombieland music</ZombielandMusicShare_OnlyOther>

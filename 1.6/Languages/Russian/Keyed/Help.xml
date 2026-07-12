@@ -130,7 +130,7 @@
 	<ZombiesBurnLonger_Help>Для более интересной игры зомби загораются и горят дольше, пока ходят вокруг. Выключите, если компьютер слишком медленный для большого количества огня.</ZombiesBurnLonger_Help>
 	<AwarenessCuesTitle_Help>Эти настройки управляют письмами, звуками и визуальными подсказками, которые могут раскрывать активность зомби. Отключение меняет только обратную связь, а не поведение зомби.</AwarenessCuesTitle_Help>
 	<PlayZombielandMusic_Help>Включает саундтрек Zombieland. Отключите это, если хотите слышать только музыку RimWorld, DLC и других музыкальных модов.</PlayZombielandMusic_Help>
-	<MixZombielandMusicModes_Help>Делает все композиции Zombieland для карты доступными и как обычную музыку, и как музыку опасности, не разделяя спокойные и напряжённые композиции.</MixZombielandMusicModes_Help>
+	<MixZombielandMusicModes_Help>Позволяет проигрывать спокойные и напряжённые треки Zombieland как в обычной обстановке, так и при опасности. Иначе обе группы остаются разделёнными.</MixZombielandMusicModes_Help>
 	<ZombielandMusicShare_Help>Определяет, как часто новый трек на карте выбирается из музыки Zombieland. Другая музыка включает RimWorld, DLC, P-Music и установленные музыкальные пакеты. Это влияет на запуск треков, а не на точное время прослушивания.</ZombielandMusicShare_Help>
 	<ShowZombieEventLetters_Help>Показывает или скрывает автоматические оповещения Zombieland, включая письма RimWorld о появлении зомби и событиях плевуна.</ShowZombieEventLetters_Help>
 	<PlayZombieEventSiren_Help>Проигрывает громкую сирену у камеры, когда начинается крупное событие зомби или событие плевуна.</PlayZombieEventSiren_Help>

@@ -227,7 +227,7 @@
 	<ZombiesBurnLonger>Los zombis arden más tiempo</ZombiesBurnLonger>
 	<AwarenessCuesTitle>Señales de alerta</AwarenessCuesTitle>
 	<PlayZombielandMusic>Reproducir música de Zombieland</PlayZombielandMusic>
-	<MixZombielandMusicModes>Mezclar música normal y de peligro</MixZombielandMusicModes>
+	<MixZombielandMusicModes>Reproducir toda la música de Zombieland haya peligro o no</MixZombielandMusicModes>
 	<ZombielandMusicShare_OtherEnd>RimWorld/Mods</ZombielandMusicShare_OtherEnd>
 	<ZombielandMusicShare_ZombielandEnd>Zombieland</ZombielandMusicShare_ZombielandEnd>
 	<ZombielandMusicShare_OnlyOther>Solo música ajena a Zombieland</ZombielandMusicShare_OnlyOther>

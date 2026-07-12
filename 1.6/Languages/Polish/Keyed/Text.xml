@@ -258,7 +258,7 @@
 
 	<AwarenessCuesTitle>Sygnały ostrzegawcze</AwarenessCuesTitle>
 	<PlayZombielandMusic>Odtwarzaj muzykę Zombieland</PlayZombielandMusic>
-	<MixZombielandMusicModes>Łącz zwykłą muzykę z muzyką zagrożenia</MixZombielandMusicModes>
+	<MixZombielandMusicModes>Odtwarzaj całą muzykę Zombieland niezależnie od zagrożenia</MixZombielandMusicModes>
 	<ZombielandMusicShare_OtherEnd>RimWorld/mody</ZombielandMusicShare_OtherEnd>
 	<ZombielandMusicShare_ZombielandEnd>Zombieland</ZombielandMusicShare_ZombielandEnd>
 	<ZombielandMusicShare_OnlyOther>Tylko muzyka spoza Zombieland</ZombielandMusicShare_OnlyOther>

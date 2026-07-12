@@ -130,7 +130,7 @@
 	<ZombiesBurnLonger_Help>Daha ilginç oynanış için zombiler ateş alır ve etrafta yürürken normalden uzun yanar. Bilgisayarınız çok fazla ateşi kaldıramıyorsa kapatın.</ZombiesBurnLonger_Help>
 	<AwarenessCuesTitle_Help>Bu ayarlar zombi etkinliğini açığa çıkarabilecek mektupları, sesleri ve görsel ipuçlarını kontrol eder. Bunları kapatmak yalnızca geri bildirimi değiştirir, zombilerin davranışını değiştirmez.</AwarenessCuesTitle_Help>
 	<PlayZombielandMusic_Help>Zombieland müziğini etkinleştirir. Yalnızca RimWorld, DLC ve diğer müzik modu parçalarını duymak istiyorsanız bunu kapatın.</PlayZombielandMusic_Help>
-	<MixZombielandMusicModes_Help>Rahat ve gergin parçaları ayrı tutmak yerine tüm Zombieland harita parçalarını hem normal hem de tehlike müziği için kullanılabilir yapar.</MixZombielandMusicModes_Help>
+	<MixZombielandMusicModes_Help>Sakin ve gergin Zombieland parçalarının hem normal durumlarda hem de tehlike sırasında çalmasına izin verir. Aksi halde iki grup ayrı tutulur.</MixZombielandMusicModes_Help>
 	<ZombielandMusicShare_Help>Yeni bir harita parçasının ne sıklıkla Zombieland müziğinden seçileceğini belirler. Diğer müzikler RimWorld, DLC, P-Music ve kurulu müzik paketlerini içerir. Bu, tam dinleme süresini değil parça başlangıçlarını etkiler.</ZombielandMusicShare_Help>
 	<ShowZombieEventLetters_Help>Zombilerin ortaya çıkması ve tükürücü olayları için RimWorld mektupları dahil, otomatik Zombieland olay uyarılarını gösterir veya gizler.</ShowZombieEventLetters_Help>
 	<PlayZombieEventSiren_Help>Büyük bir zombi olayı veya tükürücü olayı başladığında kamerada yüksek siren çalar.</PlayZombieEventSiren_Help>

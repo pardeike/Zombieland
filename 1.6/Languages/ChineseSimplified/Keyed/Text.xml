@@ -256,7 +256,7 @@
 
 	<AwarenessCuesTitle>感知提示</AwarenessCuesTitle>
 	<PlayZombielandMusic>播放 Zombieland 音乐</PlayZombielandMusic>
-	<MixZombielandMusicModes>混合普通音乐与危险音乐</MixZombielandMusicModes>
+	<MixZombielandMusicModes>无论是否有危险，都可播放所有 Zombieland 音乐</MixZombielandMusicModes>
 	<ZombielandMusicShare_OtherEnd>RimWorld/Mods</ZombielandMusicShare_OtherEnd>
 	<ZombielandMusicShare_ZombielandEnd>Zombieland</ZombielandMusicShare_ZombielandEnd>
 	<ZombielandMusicShare_OnlyOther>仅播放非 Zombieland 音乐</ZombielandMusicShare_OnlyOther>

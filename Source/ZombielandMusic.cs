@@ -24,6 +24,8 @@ namespace ZombieLand
 		static readonly MethodInfo appropriateNowMethod = AccessTools.Method(typeof(MusicManagerPlay), "AppropriateNow", new[] { typeof(SongDef) });
 		static SongDef originalEntrySong;
 		static bool originalEntrySongCaptured;
+		static SongDef playbackModeOverriddenSong;
+		static bool playbackModeOverriddenSongTense;
 		static bool registered;
 		static string lastRegistrationError;
 		static SongDef lastZombielandSong;
@@ -262,6 +264,34 @@ namespace ZombieLand
 				return;
 			}
 			RestoreOriginalEntrySong();
+		}
+
+		public static void PrepareSongForPlayback(MusicManagerPlay manager, SongDef song)
+		{
+			RestorePlaybackModeOverride();
+			if (manager == null || song == null || IsZombielandSong(song) == false || IsEntryScreenSong(song))
+				return;
+
+			var settings = Current.Game == null
+				? ZombieSettingsDefaults.group ?? new SettingsGroup()
+				: ZombieSettings.ValuesAtGameTick(GenTicks.TicksGame);
+			if (settings.playZombielandMusic == false || settings.mixZombielandMusicModes == false)
+				return;
+
+			var playbackTense = manager.DangerMusicMode;
+			if (song.tense == playbackTense)
+				return;
+
+			playbackModeOverriddenSong = song;
+			playbackModeOverriddenSongTense = song.tense;
+			song.tense = playbackTense;
+		}
+
+		static void RestorePlaybackModeOverride()
+		{
+			if (playbackModeOverriddenSong != null)
+				playbackModeOverriddenSong.tense = playbackModeOverriddenSongTense;
+			playbackModeOverriddenSong = null;
 		}
 
 		static IEnumerable<SongDef> AppropriateSongs(MusicManagerPlay manager, bool mixZombielandMusicModes)

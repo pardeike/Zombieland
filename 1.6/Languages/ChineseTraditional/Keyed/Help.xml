@@ -130,7 +130,7 @@
 	<ZombiesBurnLonger_Help>為增加有趣玩法，喪屍會著火並在四處行走時燃燒更久。如果你的電腦處理不了大量火焰，請關閉。</ZombiesBurnLonger_Help>
 	<AwarenessCuesTitle_Help>這些設定控制可能揭露喪屍活動的信件、聲音和視覺提示。關閉它們只會改變回饋，不會改變喪屍行為。</AwarenessCuesTitle_Help>
 	<PlayZombielandMusic_Help>啟用 Zombieland 配樂。如果你只想聽 RimWorld、DLC 和其他音樂模組的音樂，請關閉此項。</PlayZombielandMusic_Help>
-	<MixZombielandMusicModes_Help>讓所有 Zombieland 地圖曲目都可用於一般音樂和危險音樂，不再區分舒緩與緊張曲目。</MixZombielandMusicModes_Help>
+	<MixZombielandMusicModes_Help>允許舒緩和緊張的 Zombieland 曲目在一般和危險狀態下播放。否則，兩類曲目會分開播放。</MixZombielandMusicModes_Help>
 	<ZombielandMusicShare_Help>控制新地圖歌曲從 Zombieland 音樂中選擇的頻率。其他音樂包括 RimWorld、DLC、P-Music 和已安裝的音樂包。這會影響歌曲被選中的次數，而非精確的播放時長。</ZombielandMusicShare_Help>
 	<ShowZombieEventLetters_Help>顯示或隱藏 Zombieland 自動事件警報，包括喪屍出現事件和噴吐者事件的 RimWorld 信件。</ShowZombieEventLetters_Help>
 	<PlayZombieEventSiren_Help>大型喪屍事件或噴吐者事件開始時，播放鏡頭位置的響亮警報聲。</PlayZombieEventSiren_Help>

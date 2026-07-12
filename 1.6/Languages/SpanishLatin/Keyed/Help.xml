@@ -108,7 +108,7 @@
 	<PlayCreepyAmbientSound_Help>Una ambientación zombi no estaría completa sin sonidos inquietantes. Esta opción los reproduce por la noche, cuando los zombis avanzan hacia tu base.</PlayCreepyAmbientSound_Help>
 	<AwarenessCuesTitle_Help>Estos ajustes controlan las cartas, los sonidos y las indicaciones visuales que pueden revelar actividad zombi. Desactivarlos solo cambia la información que recibes, no lo que hacen los zombis.</AwarenessCuesTitle_Help>
 	<PlayZombielandMusic_Help>Activa la banda sonora de Zombieland. Desactívala si prefieres escuchar únicamente la música de RimWorld, sus DLC y otros mods.</PlayZombielandMusic_Help>
-	<MixZombielandMusicModes_Help>Permite usar todas las canciones de mapa de Zombieland como música normal y de peligro, en vez de separar las pistas relajadas y tensas.</MixZombielandMusicModes_Help>
+	<MixZombielandMusicModes_Help>Permite reproducir las pistas relajadas y tensas de Zombieland tanto en situaciones normales como de peligro. De lo contrario, ambos grupos se mantienen separados.</MixZombielandMusicModes_Help>
 	<ZombielandMusicShare_Help>Controla la frecuencia con la que se elige una nueva canción del mapa entre la música de Zombieland. La otra música incluye RimWorld, sus DLC, P-Music y cualquier paquete musical instalado. Afecta al inicio de las canciones, no al tiempo exacto de escucha.</ZombielandMusicShare_Help>
 	<ShowZombieEventLetters_Help>Muestra u oculta las cartas de eventos de Zombieland, como las de ataques de zombis y eventos de escupidores.</ShowZombieEventLetters_Help>
 	<PlayZombieEventSiren_Help>Reproduce la potente sirena de la cámara cuando comienza un gran evento de zombis o de escupidores.</PlayZombieEventSiren_Help>
