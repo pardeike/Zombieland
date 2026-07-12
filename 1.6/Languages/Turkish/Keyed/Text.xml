@@ -59,7 +59,7 @@
 	<SymbiantSeveredMessage>{0} üzerindeki Simbiyant bağı kaldırıldı.</SymbiantSeveredMessage>
 	<SymbiantHostBondDescription>Simbiyant: {0}/{1} hücre. Sonraki fayda {2} hücrede. Paylaşılan sağlık: {3}. Simbiyant paylaşılan hasarın çoğunu emer; bu boyutta &lt;color=#ffb35c&gt;%{4}&lt;/color&gt; konağa ulaşır.\n\nHarita kuralı: bağın aktif olması ve temiz şekilde kaldırılabilmesi için konak ve Simbiyant aynı haritada olmalıdır. Ayrılırlarsa bağ yeniden birleşene kadar uykuya geçer. Simbiyantın bulunduğu haritayı terk etmek onu yok eder ve bağı zorla koparır; ameliyat önce bağı temiz şekilde kaldırır.\n\nFaydalar:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Bu konağa bağlı aktif Simbiyant yok.</SymbiantHostBondMissing>
-		<SymbiantHostRelocatedMessage>{0} haritadan ayrıldıktan sonra Simbiyant bağı uykuya geçti.</SymbiantHostRelocatedMessage>
+		<SymbiantHostRelocatedMessage>{0} ile Simbiyant aynı haritada bulunmadığı için bağ uykuya geçti. Bağ korunur. Uyku sırasında zombi enfeksiyonu bağışıklığı dahil tüm faydalar, paylaşılan hasar aktarımı ve cerrahi ayırma devre dışıdır. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir.</SymbiantHostRelocatedMessage>
 		<SymbiantMapAbandonWarningTitle>Simbiyant olan harita terk edilsin mi?</SymbiantMapAbandonWarningTitle>
 		<SymbiantMapAbandonWarning>Bu haritada aktif bir Zombi Simbiyantı var. Haritayı terk etmek Simbiyantı yok eder ve kalan bağları zorla koparır. Normal ayırma sürecini istiyorsanız önce Simbiyant bağını ameliyatla kaldırın.\n\nBu harita yine de terk edilsin mi?</SymbiantMapAbandonWarning>
 		<SymbiantReseededMessage>{0} üzerindeki Simbiyant başka bir iç odaya taşındı.</SymbiantReseededMessage>

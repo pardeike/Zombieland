@@ -60,7 +60,7 @@
 	<SymbiantSeveredMessage>{0}'s Symbiant bond has been removed.</SymbiantSeveredMessage>
 	<SymbiantHostBondDescription>Symbiant: {0}/{1} cells. Next benefit at {2} cells. Shared health: {3}. The Symbiant absorbs most shared damage; &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; reaches the host at its current size.\n\nMap rule: host and Symbiant must be on the same map for an active, cleanly removable bond. If separated, the bond goes dormant until they reunite. Abandoning the Symbiant's map destroys it and forcibly breaks the bond; surgery removes the bond cleanly first.\n\nBenefits:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>No active Symbiant is linked to this host.</SymbiantHostBondMissing>
-		<SymbiantHostRelocatedMessage>{0}'s Symbiant bond went dormant after the host left the map.</SymbiantHostRelocatedMessage>
+		<SymbiantHostRelocatedMessage>{0}'s Symbiant bond is dormant because the host and Symbiant are not present on the same map. The link remains. While dormant, every benefit (including zombie infection immunity), shared-damage transfer, and surgical severance are inactive. The bond can reactivate only if the same host and Symbiant are present on one map again.</SymbiantHostRelocatedMessage>
 		<SymbiantMapAbandonWarningTitle>Abandon map with Symbiant?</SymbiantMapAbandonWarningTitle>
 		<SymbiantMapAbandonWarning>This map contains an active Zombie Symbiant. Abandoning the map will destroy the Symbiant and forcibly break any remaining bond. Remove the Symbiant bond by surgery first if you want the normal separation flow.\n\nAbandon this map anyway?</SymbiantMapAbandonWarning>
 		<SymbiantReseededMessage>{0}'s Symbiant moved into another indoor room.</SymbiantReseededMessage>

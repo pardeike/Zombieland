@@ -59,7 +59,7 @@
 	<SymbiantSeveredMessage>{0} 的共生體連結已被移除。</SymbiantSeveredMessage>
 	<SymbiantHostBondDescription>共生體：{0}/{1} 格。下一項增益在 {2} 格。共享生命值：{3}。共生體會吸收大部分共享傷害；目前大小下只有 &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; 會傳到宿主。\n\n地圖規則：宿主和共生體必須在同一張地圖上，連結才會生效並能正常移除。如果兩者分離，連結會休眠，直到再次相聚。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結；手術可以先正常移除連結。\n\n增益：\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>沒有活躍共生體連結到此宿主。</SymbiantHostBondMissing>
-		<SymbiantHostRelocatedMessage>{0} 離開地圖後，共生體連結進入休眠。</SymbiantHostRelocatedMessage>
+		<SymbiantHostRelocatedMessage>{0} 與共生體不在同一地圖，因此連結進入休眠。連結仍然保留。休眠期間，所有增益（包括殭屍感染免疫）、共享傷害傳遞和外科切斷連結均停用。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。</SymbiantHostRelocatedMessage>
 		<SymbiantMapAbandonWarningTitle>放棄有共生體的地圖？</SymbiantMapAbandonWarningTitle>
 		<SymbiantMapAbandonWarning>這張地圖上有一個活躍的喪屍共生體。放棄地圖會摧毀共生體，並強行切斷任何仍存在的連結。如果你想按正常流程分離，請先透過手術移除共生體連結。\n\n仍要放棄這張地圖嗎？</SymbiantMapAbandonWarning>
 		<SymbiantReseededMessage>{0} 的共生體移動到了另一個室內房間。</SymbiantReseededMessage>

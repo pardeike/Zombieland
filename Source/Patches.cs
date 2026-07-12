@@ -143,7 +143,7 @@ namespace ZombieLand
 			{
 				if (map == null || __instance?.Maps?.Contains(map) != true)
 					return;
-				DestroyMapBoundSymbiant(ZombieSymbiant.ActiveSymbiant(map));
+				DestroyMapBoundSymbiants(map);
 			}
 		}
 
@@ -155,20 +155,28 @@ namespace ZombieLand
 			{
 				if (ModLister.OdysseyInstalled == false)
 					return;
-				DestroyMapBoundSymbiant(ZombieSymbiant.ActiveSymbiant(map));
+				DestroyMapBoundSymbiants(map);
 			}
 		}
 
-		static void DestroyMapBoundSymbiant(ZombieSymbiant symbiant)
+		[HarmonyPatch]
+		static class VoidAwakeningUtility_CloseMetalHell_Patch
 		{
-			if (symbiant == null)
-				return;
-			if (symbiant.Destroyed == false)
-				symbiant.Destroy(DestroyMode.Vanish);
-			if (Find.WorldPawns?.Contains(symbiant) == true)
-				Find.WorldPawns.RemovePawn(symbiant);
-			if (symbiant.Discarded == false)
-				symbiant.Discard(true);
+			static MethodBase TargetMethod()
+			{
+				return AccessTools.Method("RimWorld.Utility.VoidAwakeningUtility:CloseMetalHell");
+			}
+
+			static void Prefix(Pawn pawn)
+			{
+				DestroyMapBoundSymbiants(pawn?.MapHeld);
+			}
+		}
+
+		static void DestroyMapBoundSymbiants(Map map)
+		{
+			foreach (var symbiant in ZombieSymbiant.MapBoundSymbiants(map).ToArray())
+				symbiant.DestroyWithoutHostTrauma(true);
 		}
 
 		[HarmonyPatch]
@@ -191,12 +199,11 @@ namespace ZombieLand
 				if (__instance?.HasMap != true)
 					return true;
 				var map = __instance.Map;
-				var symbiant = ZombieSymbiant.ActiveSymbiant(map);
-				if (symbiant == null)
+				if (ZombieSymbiant.MapBoundSymbiants(map).Any(symbiant => symbiant.Dead == false) == false)
 					return true;
 				if (confirmedSymbiantAbandons.Remove(__instance) || Find.WindowStack == null)
 				{
-					DestroyMapBoundSymbiant(symbiant);
+					DestroyMapBoundSymbiants(map);
 					return true;
 				}
 

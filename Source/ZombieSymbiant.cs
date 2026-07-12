@@ -171,11 +171,15 @@ namespace ZombieLand
 		Pawn host;
 		string hostThingId;
 		bool safeSeveranceInProgress;
+		bool destructionInProgress;
+		bool temporaryDespawnInProgress;
 		bool symbiosisSevered;
 		bool hostCollapseInProgress;
 		bool uncontrolledDestroyHandled;
 		bool sharedDamageInProgress;
 		bool sharedHealthFailureInProgress;
+		bool hostBondStateInitialized;
+		bool hostBondWasActive;
 		float sharedHealth = -1f;
 		int lastSymbiosisMetricTick = int.MinValue;
 		int lastRejectedDamageMessageTick = int.MinValue;
@@ -267,7 +271,7 @@ namespace ZombieLand
 				return FindExpansionTarget(false) == null ? "contained" : "growing";
 			}
 		}
-		public bool CanSafelySever => symbiosisSevered == false && IsSpawnedHostOnCurrentMap(LinkedHost);
+		public bool CanSafelySever => symbiosisSevered == false && IsActiveBondWith(LinkedHost);
 		public static float HostHediffSeverity(float benefitFactor) => Mathf.Max(0.001f, Mathf.Clamp01(benefitFactor));
 		public int NextBenefitCellSize
 		{
@@ -952,6 +956,23 @@ namespace ZombieLand
 			return symbiant != null && symbiant.Destroyed == false && symbiant.Spawned && symbiant.Dead == false && symbiant.Map == map;
 		}
 
+		internal static IEnumerable<ZombieSymbiant> MapBoundSymbiants(Map map)
+		{
+			if (map == null)
+				yield break;
+
+			var seen = new HashSet<ZombieSymbiant>();
+			foreach (var pawn in map.mapPawns?.AllPawns ?? Enumerable.Empty<Pawn>())
+				if (pawn is ZombieSymbiant symbiant
+					&& symbiant.Destroyed == false
+					&& symbiant.MapHeld == map
+					&& seen.Add(symbiant))
+					yield return symbiant;
+			foreach (var symbiant in SpawnedSymbiantThings(map))
+				if (symbiant.Destroyed == false && symbiant.MapHeld == map && seen.Add(symbiant))
+					yield return symbiant;
+		}
+
 		static void RegisterActiveSymbiant(ZombieSymbiant symbiant, Map map)
 		{
 			if (symbiant == null || map == null)
@@ -1089,16 +1110,12 @@ namespace ZombieLand
 		static bool TryGetSameMapLinkedSymbiant(Pawn pawn, out ZombieSymbiant symbiant)
 		{
 			symbiant = null;
-			if (pawn?.Spawned != true || pawn.Map == null)
+			if (pawn?.MapHeld == null)
 				return false;
 			if (CanBeLinkedHostIdentityFast(pawn) == false)
 				return false;
 			symbiant = LinkedSymbiantFor(pawn);
-			return symbiant != null
-				&& symbiant.Destroyed == false
-				&& symbiant.Spawned
-				&& symbiant.Map == pawn.Map
-				&& symbiant.IsLinkedTo(pawn);
+			return symbiant?.IsActiveBondWith(pawn) == true;
 		}
 
 		public static bool HasZombieTargetingProtection(Pawn pawn)
@@ -1190,10 +1207,7 @@ namespace ZombieLand
 			factor = 0f;
 			if (DebugDisableSymbiosisBenefits)
 				return false;
-			if (CanBeLinkedHostIdentityFast(pawn) == false || pawn.Spawned == false || pawn.Map == null)
-				return false;
-			var symbiant = ActiveSymbiant(pawn.Map);
-			if (symbiant == null || symbiant.IsLinkedTo(pawn) == false)
+			if (TryGetSameMapLinkedSymbiant(pawn, out var symbiant) == false)
 				return false;
 			factor = Mathf.Max(HostAuraMinimumFactor, symbiant.BenefitFactor);
 			return true;
@@ -1599,10 +1613,15 @@ namespace ZombieLand
 			return host;
 		}
 
-		bool IsSpawnedHostOnCurrentMap(Pawn pawn)
+		internal bool IsActiveBondWith(Pawn pawn)
 		{
-			var map = Spawned ? Map : MapHeld;
-			return pawn?.Spawned == true && map != null && pawn.Map == map;
+			var hostMap = pawn?.MapHeld;
+			return pawn != null
+				&& pawn.Destroyed == false
+				&& pawn.Dead == false
+				&& hostMap != null
+				&& IsActiveSymbiantOnMap(this, hostMap)
+				&& IsLinkedTo(pawn);
 		}
 
 		public bool TryAssignRandomHost()
@@ -1644,6 +1663,7 @@ namespace ZombieLand
 		{
 			host = pawn;
 			hostThingId = pawn?.ThingID;
+			RememberHostBondState(pawn);
 			EnsureHostHediff();
 		}
 
@@ -1657,7 +1677,27 @@ namespace ZombieLand
 				CollapseFromHostDeath();
 				return;
 			}
+			NotifyHostBondStateTransition(linkedHost);
 			EnsureHostHediff();
+		}
+
+		void RememberHostBondState(Pawn pawn)
+		{
+			hostBondStateInitialized = true;
+			hostBondWasActive = IsActiveBondWith(pawn);
+		}
+
+		void NotifyHostBondStateTransition(Pawn pawn)
+		{
+			var active = IsActiveBondWith(pawn);
+			if (hostBondStateInitialized == false)
+			{
+				RememberHostBondState(pawn);
+				return;
+			}
+			if (hostBondWasActive && active == false)
+				Messages.Message("SymbiantHostRelocatedMessage".Translate(pawn.LabelShortCap), pawn, MessageTypeDefOf.NeutralEvent, false);
+			hostBondWasActive = active;
 		}
 
 		void EnsureHostHediff()
@@ -1793,6 +1833,7 @@ namespace ZombieLand
 			RegisterActiveSymbiant(this, map);
 			EnsureVisibleToPawnSystems(map);
 			UpdateAll();
+			RememberHostBondState(ResolveHost());
 		}
 
 		void EnsureVisibleToPawnSystems(Map map = null)
@@ -1806,9 +1847,15 @@ namespace ZombieLand
 
 		public override void DeSpawn(DestroyMode mode = DestroyMode.Vanish)
 		{
+			var destroyAfterDespawn = destructionInProgress == false
+				&& temporaryDespawnInProgress == false
+				&& Dead == false
+				&& health?.isBeingKilled != true;
 			ForgetActiveSymbiant(this);
 			ReleaseRenderResources();
 			base.DeSpawn(mode);
+			if (destroyAfterDespawn && Destroyed == false)
+				DestroyWithoutHostTrauma(true);
 		}
 
 		public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
@@ -1817,13 +1864,30 @@ namespace ZombieLand
 			if (safeSeveranceInProgress == false && hostCollapseInProgress == false && sharedHealthFailureInProgress == false)
 				HandleUncontrolledDestroy();
 			ReleaseRenderResources();
-			base.Destroy(mode);
+			destructionInProgress = true;
+			try
+			{
+				base.Destroy(mode);
+			}
+			finally
+			{
+				destructionInProgress = false;
+			}
 		}
 
 		internal void DebugDestroyWithoutHostTrauma()
 		{
+			DestroyWithoutHostTrauma(false);
+		}
+
+		internal void DestroyWithoutHostTrauma(bool discard)
+		{
 			if (Destroyed)
+			{
+				if (discard)
+					RemoveFromWorldPawnsAndDiscard();
 				return;
+			}
 
 			safeSeveranceInProgress = true;
 			try
@@ -1832,12 +1896,23 @@ namespace ZombieLand
 				RemoveHostHediff(pawn);
 				host = null;
 				hostThingId = null;
+				symbiosisSevered = true;
 				Destroy(DestroyMode.Vanish);
+				if (discard)
+					RemoveFromWorldPawnsAndDiscard();
 			}
 			finally
 			{
 				safeSeveranceInProgress = false;
 			}
+		}
+
+		void RemoveFromWorldPawnsAndDiscard()
+		{
+			if (Find.WorldPawns?.Contains(this) == true)
+				Find.WorldPawns.RemovePawn(this);
+			if (Discarded == false)
+				Discard(true);
 		}
 
 		bool AddRelativeCell(IntVec3 relative)
@@ -2172,7 +2247,15 @@ namespace ZombieLand
 				return;
 
 			var targetCells = reseedCells.Distinct().Take(MaxCells).ToArray();
-			DeSpawn(DestroyMode.Vanish);
+			temporaryDespawnInProgress = true;
+			try
+			{
+				DeSpawn(DestroyMode.Vanish);
+			}
+			finally
+			{
+				temporaryDespawnInProgress = false;
+			}
 			Position = anchor;
 			cells = [];
 			orderedCells = [];
@@ -2203,15 +2286,21 @@ namespace ZombieLand
 				return;
 			uncontrolledDestroyHandled = true;
 
+			CollapseLinkedHostWithTrauma();
+		}
+
+		void CollapseLinkedHostWithTrauma()
+		{
 			var pawn = ResolveHost();
 			if (pawn == null || pawn.Destroyed || pawn.Dead)
 				return;
-			var killHost = IsSpawnedHostOnCurrentMap(pawn);
+			var killHost = IsActiveBondWith(pawn);
 			PlayDisconnectedSound();
 			RemoveHostHediff(pawn);
 			host = null;
 			hostThingId = null;
-			if (killHost)
+			symbiosisSevered = true;
+			if (killHost && pawn.Destroyed == false && pawn.Dead == false)
 				pawn.Kill(null);
 		}
 
@@ -2222,15 +2311,7 @@ namespace ZombieLand
 			sharedHealthFailureInProgress = true;
 			try
 			{
-				var pawn = ResolveHost();
-				var killHost = IsSpawnedHostOnCurrentMap(pawn);
-				PlayDisconnectedSound();
-				RemoveHostHediff(pawn);
-				host = null;
-				hostThingId = null;
-				symbiosisSevered = true;
-				if (killHost && pawn.Destroyed == false && pawn.Dead == false)
-					pawn.Kill(null);
+				CollapseLinkedHostWithTrauma();
 				Destroy(DestroyMode.Vanish);
 			}
 			finally
@@ -2341,7 +2422,7 @@ namespace ZombieLand
 
 			var linkedHost = LinkedHost;
 			var hostAmount = 0f;
-			if (IsSpawnedHostOnCurrentMap(linkedHost) && linkedHost.Destroyed == false && linkedHost.Dead == false)
+			if (IsActiveBondWith(linkedHost))
 			{
 				hostAmount = SharedDamageLeakAmount(drained);
 				if (hostAmount > 0.01f)
@@ -2379,7 +2460,7 @@ namespace ZombieLand
 
 		public bool TrySeverSymbiosis(Pawn pawn, Pawn doctor)
 		{
-			if (pawn == null || pawn != LinkedHost || IsSpawnedHostOnCurrentMap(pawn) == false || CanSafelySever == false)
+			if (pawn == null || pawn != LinkedHost || CanSafelySever == false)
 				return false;
 
 			safeSeveranceInProgress = true;
@@ -2470,12 +2551,7 @@ namespace ZombieLand
 			if (healCount <= 0)
 				return;
 			var linkedHost = LinkedHost;
-			if (linkedHost == null
-				|| Spawned == false
-				|| linkedHost.Spawned == false
-				|| linkedHost.Map != Map
-				|| linkedHost.health?.hediffSet == null
-				|| linkedHost.Dead)
+			if (IsActiveBondWith(linkedHost) == false || linkedHost.health?.hediffSet == null)
 				return;
 			var injuries = linkedHost.health.hediffSet.hediffs
 				.Where(IsAutoHealableHediff)

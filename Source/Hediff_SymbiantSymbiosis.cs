@@ -19,6 +19,8 @@ namespace ZombieLand
 				var symbiant = ZombieSymbiant.LinkedSymbiantFor(pawn);
 				if (symbiant == null)
 					return description + "\n\n" + "SymbiantHostBondMissing".Translate();
+				if (symbiant.IsActiveBondWith(pawn) == false)
+					return "SymbiantHostRelocatedMessage".Translate(pawn.LabelShortCap);
 				return description + "\n\n" + "SymbiantHostBondDescription".Translate(
 					symbiant.CellCount,
 					ZombieSymbiant.MaxCells,

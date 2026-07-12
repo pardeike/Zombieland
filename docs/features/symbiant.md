@@ -20,7 +20,7 @@ The feature should be legible and annoying in a RimWorld way. It disrupts moveme
 
 - One active Symbiant per map.
 - The authoritative host link lives on `ZombieSymbiant`; `SymbiantSymbiosis` is display/sync state and is recreated when missing.
-- The exact host identity persists while that pawn is travelling, contained, or spawned on another map; the bond becomes active again only when that same pawn returns to the Symbiant's map.
+- The exact host identity persists while that pawn is travelling, contained, or spawned on another map. Bond activity uses the host's effective `MapHeld`: carrying, rescue, arrest, pod loading, and containment inside a holder on the Symbiant's map remain active, while a host with no effective map or a different effective map is dormant. The active-to-dormant transition shows a neutral message, and the host health tab explicitly says which effects are inactive and that reactivation is conditional on the same host and Symbiant sharing a map again.
 - Host benefits, zombie infection immunity, zombie targeting protection, automatic healing, shared damage, and surgery are same-map effects only.
 - Host selection is independent from spawn room selection.
 - Natural spawn requires an eligible host and a used indoor room plan.
@@ -50,11 +50,13 @@ The maximum-size slider allows up to `ZombieSymbiant.MAX_METABALLS = 4000`. Even
 
 Eligible hosts are spawned, living, free player colonists that are humanlike flesh pawns, adult/non-child by RimWorld category, and suitable for normal colony surgery. The selection rejects prisoners, slaves, guests, temporary joiners, quest lodgers, caravan pawns, shuttle occupants, Save Our Ship holograms, non-flesh optional-mod pawns, existing Symbiant hosts, Zombieland pawns, and late/active zombie infection cases.
 
-If the host is unavailable through travel or containment, including being spawned on another map, the authoritative link and display hediff persist but all same-map effects turn off. Returning the same pawn to the Symbiant's map reactivates the existing bond; another host is never chosen as a travel fallback. Host death anywhere ends the bond and starts retreat. Destroying the Symbiant or abandoning its map while the host is away removes the remote hediff without harming that host.
+If the host has no effective map or is held or spawned on another map, the authoritative link and display hediff persist but all same-map effects turn off. A neutral message announces the active-to-dormant transition, and the hediff description replaces its active benefit summary with the dormant warning. A same-map holder does not interrupt the bond or generate dormancy feedback. If the same pawn later shares the Symbiant's map again, the existing bond reactivates; another host is never chosen as a travel fallback, and sold or kidnapped hosts are not promised a return. Host death anywhere ends the bond and starts retreat. Destroying the Symbiant or abandoning its map while the host is away removes the remote hediff without harming that host.
 
 The Symbiant itself never boards an Odyssey gravship. Its def sets `bringAlongOnGravship=false`, so a departure that preserves the origin map leaves the Symbiant there and the travelling host dormant. If the gravship launch abandons the origin map, Zombieland destroys and discards the map-bound Symbiant before vanilla snapshots and transfers spawned pawns to `WorldPawns`; that clears the remote host link safely instead of creating an orphaned world-pawn Symbiant.
 
-Automatic and direct map removal uses the same safety rule. Before `Game.DeinitAndRemoveMap` can enter `MapDeiniter` and pass remaining map pawns to `WorldPawns`, Zombieland destroys and discards the active map-bound Symbiant and safely clears any remote host link. This covers temporary sites, camps, settlements, ordinary pocket maps, space maps, and other vanilla callers that close a map without invoking `MapParent.Abandon`.
+Automatic and direct map removal uses the same safety rule. Before `Game.DeinitAndRemoveMap` can enter `MapDeiniter` and pass remaining map pawns to `WorldPawns`, Zombieland safely severs, destroys, and discards every map-bound Symbiant, including one held inside another map object. A linked host still spawned on the closing map is not killed; vanilla may transfer that host to `WorldPawns` normally. This covers temporary sites, camps, settlements, ordinary pocket maps, space maps, and other vanilla callers that close a map without invoking `MapParent.Abandon`.
+
+The Symbiant cannot be extracted as a travelling or contained pawn. Any ordinary non-relocation despawn safely severs, destroys, removes from `WorldPawns`, and discards it, while the internal room-reseed path explicitly marks its temporary despawn and respawn. The hook stands down during `Pawn.Kill` so vanilla can create and finalize a valid Symbiant corpse. Anomaly's `CloseMetalHell` is patched before its pawn snapshot so the Symbiant is removed before vanilla can add it to `metalHellPawns`; the despawn hook remains a fallback for other extraction paths.
 
 ## Spread, Relocation, And Retreat
 
@@ -114,7 +116,7 @@ Pawn disruption remains non-lethal:
 
 - Feeding consumes one valid non-Zombieland corpse and adds growth pulses.
 - Humanlike corpses add 2 cells, non-humanlike corpses add 1 cell, and fresh corpses add 1 more cell.
-- Surgery is always available on the linked host while the host is spawned on the same map.
+- The bond permits surgery while the linked host has the same effective map as the Symbiant; RimWorld still requires normal physical access to the pawn before a doctor can perform the operation.
 - Surgery consumes difficulty-scaled zombie extract plus industrial medicine through RimWorld's normal ingredient availability path.
 - Successful surgery removes the link without host trauma; the unbound Symbiant retreats cell by cell.
 - The recipe worker must not manually consume extra extract outside RimWorld's bill ingredient system.
