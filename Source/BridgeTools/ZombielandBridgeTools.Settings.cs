@@ -17,8 +17,8 @@ namespace ZombieLand
 
 		[Tool("zombieland/settings_state", Description = "Read, prepare, or verify reusable Zombieland settings/new-game/keyframe/colonist-toggle/music persistence fixtures.")]
 		public static object SettingsState(
-			[ToolParameter(Description = "Action mode: read, prepare, verify, modal, behavior, gizmos, music, new-game, apparel-generation, or defaults-write-test.", Required = false, DefaultValue = "read")] string actionMode = "read",
-		[ToolParameter(Description = "Open RimWorld's real Zombieland game-settings page/dialog while reading or preparing.", Required = false, DefaultValue = false)] bool openSettingsDialog = false)
+			[ToolParameter(Description = "Action mode: read, prepare, verify, modal, behavior, gizmos, music, new-game, corrupt-save-prepare, corrupt-save-verify, apparel-generation, or defaults-write-test.", Required = false, DefaultValue = "read")] string actionMode = "read",
+			[ToolParameter(Description = "Open RimWorld's real Zombieland game-settings page/dialog while reading or preparing.", Required = false, DefaultValue = false)] bool openSettingsDialog = false)
 		{
 			var normalizedMode = (actionMode ?? "read").Trim().ToLowerInvariant();
 			if (normalizedMode == "prepare")
@@ -99,6 +99,26 @@ namespace ZombieLand
 					newGameVerification
 				};
 			}
+			if (normalizedMode == "corrupt-save-prepare")
+			{
+				var prepared = PrepareCorruptSaveTimeline();
+				return new
+				{
+					success = ObjectSuccess(prepared),
+					actionMode = normalizedMode,
+					prepared
+				};
+			}
+			if (normalizedMode == "corrupt-save-verify")
+			{
+				var verification = VerifyCorruptSaveTimeline();
+				return new
+				{
+					success = ObjectSuccess(verification),
+					actionMode = normalizedMode,
+					verification
+				};
+			}
 			if (normalizedMode == "apparel-generation")
 			{
 				var apparelGeneration = VerifyApparelGenerationPatch();
@@ -135,7 +155,7 @@ namespace ZombieLand
 			{
 				success = false,
 				actionMode,
-				error = "Unsupported settings actionMode. Use read, prepare, verify, modal, behavior, gizmos, music, new-game, apparel-generation, or defaults-write-test."
+				error = "Unsupported settings actionMode. Use read, prepare, verify, modal, behavior, gizmos, music, new-game, corrupt-save-prepare, corrupt-save-verify, apparel-generation, or defaults-write-test."
 			};
 		}
 
@@ -312,6 +332,77 @@ namespace ZombieLand
 				},
 				colonist = DescribePawn(pawn),
 				colonistConfig = DescribeColonistConfig(config)
+			};
+		}
+
+		static object PrepareCorruptSaveTimeline()
+		{
+			var settings = ZombieSettings.GetGameSettings();
+			if (CurrentMap == null || settings == null)
+			{
+				return new
+				{
+					success = false,
+					hasMap = CurrentMap != null,
+					hasGameSettings = settings != null,
+					error = "Preparing the corrupt settings timeline requires a loaded playable map and game settings world component."
+				};
+			}
+
+			var day0 = CreateSettingsGroup(0.5f, 100, AttackMode.Everything, SpawnWhenType.AllTheTime, SpawnHowType.AllOverTheMap, SmashMode.AnyBuilding, false, true, 0.1f, 0.5f, true, 10);
+			var day2 = CreateSettingsGroup(2.5f, 500, AttackMode.OnlyHumans, SpawnWhenType.InEventsOnly, SpawnHowType.FromTheEdges, SmashMode.Nothing, true, false, 0.9f, 2.5f, false, 90);
+			ZombieSettings.Values = day0.MakeCopy();
+			ZombieSettings.ValuesOverTime = new List<SettingsKeyFrame>
+			{
+				new() { amount = 0, unit = SettingsKeyFrame.Unit.Days, values = day0 },
+				null,
+				new() { amount = 1, unit = SettingsKeyFrame.Unit.Days, values = null },
+				new() { amount = 2, unit = SettingsKeyFrame.Unit.Days, values = day2 }
+			};
+
+			return new
+			{
+				success = ZombieSettings.ValuesOverTime.Count == 4
+					&& ZombieSettings.ValuesOverTime.Count(frame => frame == null) == 1
+					&& ZombieSettings.ValuesOverTime.Count(frame => frame != null && frame.values == null) == 1,
+				slotCount = ZombieSettings.ValuesOverTime.Count,
+				nullFrameCount = ZombieSettings.ValuesOverTime.Count(frame => frame == null),
+				nullValuesCount = ZombieSettings.ValuesOverTime.Count(frame => frame != null && frame.values == null),
+				validTicks = ZombieSettings.ValuesOverTime.Where(frame => frame?.values != null).Select(frame => frame.Ticks).ToArray(),
+				day0 = DescribeSettingsGroup(day0),
+				day2 = DescribeSettingsGroup(day2),
+				message = "Save this paused fixture immediately, then reload it and run corrupt-save-verify."
+			};
+		}
+
+		static object VerifyCorruptSaveTimeline()
+		{
+			var frames = ZombieSettings.ValuesOverTime;
+			var day0 = frames?.ElementAtOrDefault(0)?.values;
+			var day2 = frames?.ElementAtOrDefault(1)?.values;
+			var day1 = ZombieSettings.CalculateInterpolation(frames, GenDate.TicksPerDay);
+			var valid = frames != null
+				&& frames.Count == 2
+				&& frames.All(frame => frame?.values != null)
+				&& frames[0].Ticks == 0
+				&& frames[1].Ticks == 2 * GenDate.TicksPerDay
+				&& Approximately(day0?.threatScale ?? -1f, 0.5f)
+				&& day0?.maximumNumberOfZombies == 100
+				&& Approximately(day2?.threatScale ?? -1f, 2.5f)
+				&& day2?.maximumNumberOfZombies == 500
+				&& Approximately(day1?.threatScale ?? -1f, 1.5f)
+				&& day1?.maximumNumberOfZombies == 300
+				&& ZombieSettings.Values != null;
+
+			return new
+			{
+				success = valid,
+				hasGameSettings = ZombieSettings.GetGameSettings() != null,
+				hasCurrentValues = ZombieSettings.Values != null,
+				keyframes = DescribeSettingsKeyframes(frames),
+				day0 = DescribeSettingsGroup(day0),
+				day1 = DescribeSettingsGroup(day1),
+				day2 = DescribeSettingsGroup(day2)
 			};
 		}
 
@@ -1254,16 +1345,19 @@ namespace ZombieLand
 		static object VerifySettingsNewGameSetupFixtures()
 		{
 			var defaults = VerifyNewGameDefaultsPrefix();
+			var malformedDefaults = VerifyMalformedDefaultTimelines();
 			var stitchedPages = VerifyNewGameStitchedPages();
 			var hostilityResponse = VerifyNewGameHostilityResponse();
 
 			return new
 			{
 				success = ObjectSuccess(defaults)
+					&& ObjectSuccess(malformedDefaults)
 					&& ObjectSuccess(stitchedPages)
 					&& ObjectSuccess(hostilityResponse),
 				sourcePath = "Page_SelectScenario.BeginScenarioConfiguration prefix -> ZombieSettings.ApplyDefaults; PageUtility.StitchedPages prefix -> Dialog_Settings insertion; Game.InitNewGame postfix -> colonist hostility response Attack",
 				defaults,
+				malformedDefaults,
 				stitchedPages,
 				hostilityResponse
 			};
@@ -1322,6 +1416,132 @@ namespace ZombieLand
 				RestoreZombieSettings(settingsSnapshot);
 				SettingsDialog.scrollPosition = scrollSnapshot;
 			}
+		}
+
+		static object VerifyMalformedDefaultTimelines()
+		{
+			var prefix = typeof(Patches)
+				.GetNestedType("Page_SelectScenario_BeginScenarioConfiguration_Patch", BindingFlags.Static | BindingFlags.NonPublic)
+				?.GetMethod("Prefix", BindingFlags.Static | BindingFlags.NonPublic);
+			var originalDefaultGroup = ZombieSettingsDefaults.group;
+			var originalDefaultFrames = ZombieSettingsDefaults.groupOverTime;
+			var originalValues = ZombieSettings.Values;
+			var originalFrames = ZombieSettings.ValuesOverTime;
+			var originalScroll = SettingsDialog.scrollPosition;
+			try
+			{
+				var fallback = CreateSettingsGroup(0.73f, 173, AttackMode.OnlyColonists, SpawnWhenType.WhenDark, SpawnHowType.FromTheEdges, SmashMode.DoorsOnly, true, true, 0.37f, 0.73f, true, 37);
+				var validDay0 = CreateSettingsGroup(0.5f, 100, AttackMode.Everything, SpawnWhenType.AllTheTime, SpawnHowType.AllOverTheMap, SmashMode.AnyBuilding, false, true, 0.1f, 0.5f, true, 10);
+				var validDay2 = CreateSettingsGroup(2.5f, 500, AttackMode.OnlyHumans, SpawnWhenType.InEventsOnly, SpawnHowType.FromTheEdges, SmashMode.Nothing, true, false, 0.9f, 2.5f, false, 90);
+				var duplicateDay2 = CreateSettingsGroup(3.5f, 700, AttackMode.OnlyColonists, SpawnWhenType.WhenDark, SpawnHowType.AllOverTheMap, SmashMode.DoorsOnly, false, true, 0.7f, 3.5f, true, 70);
+				var validDay5 = CreateSettingsGroup(4.5f, 900, AttackMode.OnlyHumans, SpawnWhenType.InEventsOnly, SpawnHowType.FromTheEdges, SmashMode.Nothing, true, true, 0.8f, 4.5f, false, 100);
+
+				var cases = new object[]
+				{
+					RunMalformedDefaultsCase(prefix, "valid-timeline", fallback, new List<SettingsKeyFrame>
+					{
+						new() { amount = 0, unit = SettingsKeyFrame.Unit.Days, values = validDay0 },
+						new() { amount = 2, unit = SettingsKeyFrame.Unit.Days, values = validDay2 },
+						new() { amount = 5, unit = SettingsKeyFrame.Unit.Days, values = validDay5 }
+					}, new[] { 0, 2 * GenDate.TicksPerDay, 5 * GenDate.TicksPerDay }, new[] { validDay0, validDay2, validDay5 }),
+					RunMalformedDefaultsCase(prefix, "null-list", fallback, null,
+						new[] { 0 }, new[] { fallback }),
+					RunMalformedDefaultsCase(prefix, "empty-list", fallback, new List<SettingsKeyFrame>(),
+						new[] { 0 }, new[] { fallback }),
+					RunMalformedDefaultsCase(prefix, "null-frame", fallback, new List<SettingsKeyFrame> { null },
+						new[] { 0 }, new[] { fallback }),
+					RunMalformedDefaultsCase(prefix, "null-values", fallback, new List<SettingsKeyFrame>
+					{
+						new() { amount = 0, unit = SettingsKeyFrame.Unit.Days, values = null }
+					}, new[] { 0 }, new[] { fallback }),
+					RunMalformedDefaultsCase(prefix, "mixed-unsorted", fallback, new List<SettingsKeyFrame>
+					{
+						new() { amount = 2, unit = SettingsKeyFrame.Unit.Days, values = validDay2 },
+						null,
+						new() { amount = 1, unit = SettingsKeyFrame.Unit.Days, values = null },
+						new() { amount = 0, unit = SettingsKeyFrame.Unit.Days, values = validDay0 }
+					}, new[] { 0, 2 * GenDate.TicksPerDay }, new[] { validDay0, validDay2 }),
+					RunMalformedDefaultsCase(prefix, "future-only", fallback, new List<SettingsKeyFrame>
+					{
+						new() { amount = 2, unit = SettingsKeyFrame.Unit.Days, values = validDay2 }
+					}, new[] { 0, 2 * GenDate.TicksPerDay }, new[] { fallback, validDay2 }),
+					RunMalformedDefaultsCase(prefix, "stable-duplicates", fallback, new List<SettingsKeyFrame>
+					{
+						new() { amount = 2, unit = SettingsKeyFrame.Unit.Days, values = validDay2 },
+						new() { amount = 5, unit = SettingsKeyFrame.Unit.Days, values = validDay5 },
+						new() { amount = 0, unit = SettingsKeyFrame.Unit.Days, values = validDay0 },
+						new() { amount = 2, unit = SettingsKeyFrame.Unit.Days, values = duplicateDay2 }
+					}, new[] { 0, 2 * GenDate.TicksPerDay, 2 * GenDate.TicksPerDay, 5 * GenDate.TicksPerDay }, new[] { validDay0, validDay2, duplicateDay2, validDay5 })
+				};
+
+				return new
+				{
+					success = prefix != null && cases.All(ObjectSuccess),
+					prefixFound = prefix != null,
+					cases
+				};
+			}
+			finally
+			{
+				ZombieSettingsDefaults.group = originalDefaultGroup;
+				ZombieSettingsDefaults.groupOverTime = originalDefaultFrames;
+				ZombieSettings.Values = originalValues;
+				ZombieSettings.ValuesOverTime = originalFrames;
+				SettingsDialog.scrollPosition = originalScroll;
+			}
+		}
+
+		static object RunMalformedDefaultsCase(MethodInfo prefix, string name, SettingsGroup fallback, List<SettingsKeyFrame> input, int[] expectedTicks, SettingsGroup[] expectedValues)
+		{
+			ZombieSettingsDefaults.group = fallback.MakeCopy();
+			ZombieSettingsDefaults.groupOverTime = input;
+			SettingsDialog.scrollPosition = new Vector2(17f, 23f);
+			Exception failure = null;
+			try
+			{
+				prefix?.Invoke(null, Array.Empty<object>());
+			}
+			catch (TargetInvocationException ex)
+			{
+				failure = ex.InnerException ?? ex;
+			}
+			catch (Exception ex)
+			{
+				failure = ex;
+			}
+
+			var defaultMatches = SettingsTimelineMatches(ZombieSettingsDefaults.groupOverTime, expectedTicks, expectedValues);
+			var appliedMatches = SettingsTimelineMatches(ZombieSettings.ValuesOverTime, expectedTicks, expectedValues);
+			var currentMatches = expectedValues.Length > 0 && SettingsGroupsCoreMatch(ZombieSettings.Values, expectedValues[0]);
+			return new
+			{
+				success = prefix != null
+					&& failure == null
+					&& defaultMatches
+					&& appliedMatches
+					&& currentMatches
+					&& SettingsDialog.scrollPosition == Vector2.zero,
+				name,
+				error = failure?.ToString(),
+				defaultMatches,
+				appliedMatches,
+				currentMatches,
+				expectedTicks,
+				defaultFrames = DescribeSettingsKeyframes(ZombieSettingsDefaults.groupOverTime),
+				appliedFrames = DescribeSettingsKeyframes(ZombieSettings.ValuesOverTime),
+				currentValues = DescribeSettingsGroup(ZombieSettings.Values),
+				scrollPosition = DescribeVector2(SettingsDialog.scrollPosition)
+			};
+		}
+
+		static bool SettingsTimelineMatches(List<SettingsKeyFrame> frames, int[] expectedTicks, SettingsGroup[] expectedValues)
+		{
+			if (frames == null || expectedTicks == null || expectedValues == null || frames.Count != expectedTicks.Length || frames.Count != expectedValues.Length)
+				return false;
+			for (var i = 0; i < frames.Count; i++)
+				if (frames[i]?.values == null || frames[i].Ticks != expectedTicks[i] || SettingsGroupsCoreMatch(frames[i].values, expectedValues[i]) == false)
+					return false;
+			return true;
 		}
 
 		static object VerifyNewGameStitchedPages()
@@ -1867,14 +2087,16 @@ namespace ZombieLand
 		static object[] DescribeSettingsKeyframes(List<SettingsKeyFrame> keyframes)
 		{
 			return keyframes?
-				.Select(keyframe => new
-				{
-					keyframe.amount,
-					unit = keyframe.unit.ToString(),
-					keyframe.Ticks,
-					values = DescribeSettingsGroup(keyframe.values)
-				})
-				.Cast<object>()
+				.Select(keyframe => keyframe == null
+					? (object)new { isNull = true }
+					: new
+					{
+						isNull = false,
+						keyframe.amount,
+						unit = keyframe.unit.ToString(),
+						keyframe.Ticks,
+						values = DescribeSettingsGroup(keyframe.values)
+					})
 				.ToArray() ?? Array.Empty<object>();
 		}
 

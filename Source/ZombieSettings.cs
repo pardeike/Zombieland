@@ -367,6 +367,52 @@ namespace ZombieLand
 		public static SettingsGroup group;
 		public static List<SettingsKeyFrame> groupOverTime;
 
+		internal static bool NormalizeTimeline(ref List<SettingsKeyFrame> timeline, SettingsGroup fallback)
+		{
+			fallback ??= new SettingsGroup();
+			var repaired = timeline == null;
+			timeline ??= new List<SettingsKeyFrame>();
+
+			var normalized = timeline
+				.Where(frame => frame?.values != null)
+				.OrderBy(frame => frame.Ticks)
+				.ToList();
+			if (normalized.Count != timeline.Count)
+				repaired = true;
+			else
+				for (var i = 0; i < normalized.Count; i++)
+					if (ReferenceEquals(normalized[i], timeline[i]) == false)
+					{
+						repaired = true;
+						break;
+					}
+
+			if (normalized.Count == 0 || normalized[0].Ticks > 0)
+			{
+				normalized.Insert(0, new SettingsKeyFrame
+				{
+					amount = 0,
+					unit = SettingsKeyFrame.Unit.Days,
+					values = fallback.MakeCopy()
+				});
+				repaired = true;
+			}
+
+			if (repaired)
+			{
+				timeline.Clear();
+				timeline.AddRange(normalized);
+			}
+			return repaired;
+		}
+
+		internal static bool EnsureValidTimeline()
+		{
+			var repaired = group == null;
+			group ??= new SettingsGroup();
+			return NormalizeTimeline(ref groupOverTime, group) || repaired;
+		}
+
 		public static void Defaults()
 		{
 			group = (new SettingsGroup()).MakeCopy();
@@ -404,6 +450,9 @@ namespace ZombieLand
 			groupOverTime ??= new() { new SettingsKeyFrame() { values = group.MakeCopy() } };
 			Scribe_Deep.Look(ref group, "defaults", Array.Empty<object>());
 			Scribe_Collections.Look(ref groupOverTime, "defaultsOverTime", LookMode.Deep, Array.Empty<object>());
+
+			if (Scribe.mode == LoadSaveMode.PostLoadInit && EnsureValidTimeline())
+				Log.Warning("Zombieland repaired an invalid default settings timeline.");
 		}
 	}
 
@@ -451,6 +500,7 @@ namespace ZombieLand
 
 		public static void ApplyDefaults()
 		{
+			ZombieSettingsDefaults.EnsureValidTimeline();
 			ValuesOverTime = new(ZombieSettingsDefaults.groupOverTime);
 			Values = CalculateInterpolation(ValuesOverTime, 0);
 			SettingsDialog.scrollPosition = Vector2.zero;
@@ -459,18 +509,31 @@ namespace ZombieLand
 		static readonly Dictionary<string, FieldInfo> fieldInfos = new();
 		public static SettingsGroup CalculateInterpolation(List<SettingsKeyFrame> settingsOverTime, int ticks)
 		{
-			var n = settingsOverTime.Count;
-			if (n == 1)
-				return settingsOverTime[0].values.MakeCopy();
-			var upperIndex = settingsOverTime.FirstIndexOf(key => key.Ticks > ticks);
-			if (upperIndex == -1)
-				return settingsOverTime.Last().values.MakeCopy();
-			var lowerFrame = settingsOverTime[upperIndex - 1];
-			var upperFrame = settingsOverTime[upperIndex];
+			SettingsKeyFrame lowerFrame = null;
+			SettingsKeyFrame upperFrame = null;
+			if (settingsOverTime != null)
+				foreach (var frame in settingsOverTime)
+				{
+					if (frame?.values == null)
+						continue;
+					if (frame.Ticks > ticks)
+					{
+						upperFrame = frame;
+						break;
+					}
+					lowerFrame = frame;
+				}
+
+			if (lowerFrame == null)
+				return upperFrame?.values.MakeCopy() ?? new SettingsGroup();
+			if (upperFrame == null)
+				return lowerFrame.values.MakeCopy();
 			var lowerTicks = lowerFrame.Ticks;
 			var upperTicks = upperFrame.Ticks;
 			var lowerValues = lowerFrame.values;
 			var upperValues = upperFrame.values;
+			if (upperTicks <= lowerTicks)
+				return lowerValues.MakeCopy();
 			var result = new SettingsGroup();
 			AccessTools.GetFieldNames(result).Do(name =>
 			{
@@ -579,8 +642,9 @@ namespace ZombieLand
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
-				if (ValuesOverTime == null || ValuesOverTime.Count == 0)
-					ValuesOverTime = new List<SettingsKeyFrame> { new() { amount = 0, unit = SettingsKeyFrame.Unit.Days, values = Values } };
+				Values ??= ZombieSettingsDefaults.group?.MakeCopy() ?? new SettingsGroup();
+				if (ZombieSettingsDefaults.NormalizeTimeline(ref ValuesOverTime, Values))
+					Log.Warning("Zombieland repaired an invalid saved-game settings timeline.");
 
 				var ticks = Mathf.Clamp(GenTicks.TicksGame, 0, ValuesOverTime.Last().Ticks);
 				var settings = CalculateInterpolation(ValuesOverTime, ticks);
