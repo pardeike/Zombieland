@@ -136,7 +136,7 @@
 		<defName>ZombieSymbiant</defName>
 		<label>zombie symbiant</label>
 		<thingClass>ZombieLand.ZombieSymbiant</thingClass>
-		<description>An indoor Zombie Symbiant infestation. It spreads through busy indoor rooms as visible slime, slows pawns crossing it, and links to a colonist. The host is immune to zombie infection from bites and gains random benefits as the Symbiant grows. Feeding corpses grows it faster. Surgery removes the bond, leaving the unbound Symbiant to shrink away.</description>
+		<description>An indoor Zombie Symbiant infestation. It spreads through busy indoor rooms as visible slime, slows pawns crossing it, and links to a colonist. While host and Symbiant share a map, the host is immune to zombie infection from bites and receives the bond's acquired benefits. Feeding corpses grows it faster. Surgery removes the bond, leaving the unbound Symbiant to shrink away.</description>
 		<bringAlongOnGravship>false</bringAlongOnGravship>
 		<drawHighlight>false</drawHighlight>
 		<hasCustomRectForSelector>true</hasCustomRectForSelector>

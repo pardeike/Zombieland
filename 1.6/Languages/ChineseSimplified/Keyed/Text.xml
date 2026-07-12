@@ -37,7 +37,7 @@
 	<ZombiesSpitter>一只丧尸喷吐者已进入地图，并将对你发动围攻</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>丧尸共生体连接到 {0}</LetterLabelZombieSymbiant>
 	<LetterLabelZombieSymbiantNoHost>丧尸共生体出现</LetterLabelZombieSymbiantNoHost>
-	<ZombieSymbiant>丧尸共生体已在 {0} 出现，并与 {1} 建立了连接。它会在频繁使用的室内房间中蔓延。穿过它的角色会变慢，宿主除外。宿主免疫丧尸咬伤造成的感染，并会在共生体成长时获得随机增益。用尸体喂养它可以加快成长。\n\n请让宿主和共生体留在同一张地图上：如果宿主离开，连接会进入休眠，直到宿主返回前都无法正常移除。放弃共生体所在的地图会摧毁共生体，并强行切断连接。\n\n请先对 {1} 做手术来正常移除连接；失去宿主的共生体之后会逐渐缩回。</ZombieSymbiant>
+	<ZombieSymbiant>丧尸共生体已在 {0} 出现，并与 {1} 建立了连接。它会在频繁使用的室内房间中蔓延。穿过它的角色会变慢，宿主除外。宿主免疫丧尸咬伤造成的感染，并会在共生体成长时获得随机增益。用尸体喂养它可以加快成长。\n\n请让宿主和共生体留在同一张地图上：如果两者分离，连接会进入休眠，休眠期间无法正常移除。只有同一宿主与共生体再次位于同一地图时，连接才可能恢复。放弃共生体所在的地图会摧毁共生体，并强行切断连接。\n\n请先对 {1} 做手术来正常移除连接；失去宿主的共生体之后会逐渐缩回。</ZombieSymbiant>
 	<ZombieSymbiantNoHost>丧尸共生体已在 {0} 出现。它会在频繁使用的室内房间中蔓延。用尸体喂养它可以加快成长。</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>你的一个房间</ZombieSymbiantUnknownRoom>
 	<ZombieSymbiantInspect>连接宿主：{0}，大小：{1} 格，共享生命值：{2}，下一项收益在 {3} 格</ZombieSymbiantInspect>
@@ -57,13 +57,13 @@
 	<SeverSymbiantSymbiosis>移除共生体连接</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>移除共生体连接（{0} 丧尸提取物）</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>{0} 的共生体连接已被移除。</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>共生体：{0}/{1} 格。下一项收益在 {2} 格。共享生命值：{3}。共生体会吸收大部分共享伤害；当前大小下只有 &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; 会传到宿主。\n\n地图规则：宿主和共生体必须在同一张地图上，连接才会生效并能正常移除。如果两者分离，连接会休眠，直到再次相聚。放弃共生体所在的地图会摧毁共生体，并强行切断连接；手术可以先正常移除连接。\n\n收益：\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>共生体：{0}/{1} 格。下一项收益在 {2} 格。共享生命值：{3}。共生体会吸收大部分共享伤害；当前大小下只有 &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; 会传到宿主。\n\n地图规则：宿主和共生体必须在同一张地图上，连接才会生效并能正常移除。如果两者分离，连接会休眠。只有同一宿主与共生体再次位于同一地图时，连接才可能恢复。放弃共生体所在的地图会摧毁共生体，并强行切断连接；手术可以先正常移除连接。\n\n收益：\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>没有活跃共生体连接到此宿主。</SymbiantHostBondMissing>
 		<SymbiantHostRelocatedMessage>{0} 与共生体不在同一地图，因此连接进入休眠。连接仍然保留。休眠期间，所有增益（包括僵尸感染免疫）、共享伤害传递和外科切断连接均停用。只有同一宿主与共生体再次位于同一地图时，连接才可能恢复。</SymbiantHostRelocatedMessage>
 		<SymbiantMapAbandonWarningTitle>放弃有共生体的地图？</SymbiantMapAbandonWarningTitle>
-		<SymbiantMapAbandonWarning>这张地图上有一个活跃的丧尸共生体。放弃地图会摧毁共生体，并强行切断任何仍存在的连接。如果你想按正常流程分离，请先通过手术移除共生体连接。\n\n仍要放弃这张地图吗？</SymbiantMapAbandonWarning>
+		<SymbiantMapAbandonWarning>这张地图上有一个仍存活并受地图约束的丧尸共生体。放弃地图会摧毁共生体，并强行切断任何仍存在的连接。如果你想按正常流程分离，请先通过手术移除共生体连接。\n\n仍要放弃这张地图吗？</SymbiantMapAbandonWarning>
 		<SymbiantReseededMessage>{0} 的共生体移动到了另一个室内房间。</SymbiantReseededMessage>
-		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;当前状态&lt;/color&gt;：&lt;color=#72d672&gt;{0} 格&lt;/color&gt;。下一项收益在 &lt;color=#72d672&gt;{1} 格&lt;/color&gt;。\n\n&lt;color=#72d672&gt;共享生命值&lt;/color&gt;：{4}。击中宿主或共生体的伤害会消耗这个储备。当前大小下只有 &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; 会传到 {6}。如果这个储备用尽，{6} 会死亡。\n\n&lt;color=#ffb35c&gt;地图规则&lt;/color&gt;：宿主和共生体必须在同一张地图上，连接才会生效并能正常移除。如果宿主离开，连接会休眠，直到宿主返回。放弃这张地图会摧毁共生体，并强行切断连接。手术可以先正常移除连接。\n\n&lt;color=#ffb35c&gt;当前效果&lt;/color&gt;：\n{2}\n\n&lt;color=#72d672&gt;当前收益&lt;/color&gt;：\n{3}\n\n它还会以微妙方式&lt;color=#72d672&gt;移除污染&lt;/color&gt;。</ZombieSymbiantInfoCardDetails>
+		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;当前状态&lt;/color&gt;：&lt;color=#72d672&gt;{0} 格&lt;/color&gt;。下一项收益在 &lt;color=#72d672&gt;{1} 格&lt;/color&gt;。\n\n&lt;color=#72d672&gt;共享生命值&lt;/color&gt;：{4}。击中宿主或共生体的伤害会消耗这个储备。当前大小下只有 &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; 会传到 {6}。如果这个储备用尽，{6} 会死亡。\n\n&lt;color=#ffb35c&gt;地图规则&lt;/color&gt;：宿主和共生体必须在同一张地图上，连接才会生效并能正常移除。如果两者分离，连接会休眠。只有同一宿主与共生体再次位于同一地图时，连接才可能恢复。放弃这张地图会摧毁共生体，并强行切断连接。手术可以先正常移除连接。\n\n&lt;color=#ffb35c&gt;当前效果&lt;/color&gt;：\n{2}\n\n&lt;color=#72d672&gt;当前收益&lt;/color&gt;：\n{3}\n\n它还会以微妙方式&lt;color=#72d672&gt;移除污染&lt;/color&gt;。</ZombieSymbiantInfoCardDetails>
 		<SymbiantDetailsInfoCard>共生体详情</SymbiantDetailsInfoCard>
 		<SymbiantDetailsInfoCardValue>{0} 格</SymbiantDetailsInfoCardValue>
 		<LetterLabelSymbiantBenefitGained>共生体获得收益</LetterLabelSymbiantBenefitGained>

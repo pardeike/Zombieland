@@ -412,7 +412,7 @@ namespace ZombieLand
 			return new { removed, restoredCells = fixture.originalHome.Count, skipped = false };
 		}
 
-		[Tool("zombieland/symbiant_feeding_contract", Description = "Verify corpse-only symbiant feeding pulse sizes and growth behavior.")]
+		[Tool("zombieland/symbiant_feeding_contract", Description = "Verify corpse-only feed work discovery, feeding pulse sizes, and growth behavior.")]
 		public static object SymbiantFeedingContract(
 			[ToolParameter(Description = "Destroy temporary symbiant, host, feed corpses, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -429,6 +429,7 @@ namespace ZombieLand
 			SymbiantNaturalSpawnFixture fixture = null;
 			ZombieSymbiant symbiant = null;
 			object fixtureSetup = null;
+			object workGiver = null;
 			object humanCorpseFeed = null;
 			object animalCorpseFeed = null;
 			object cleanupSymbiant = null;
@@ -455,6 +456,20 @@ namespace ZombieLand
 					return humanCellError;
 				if (TryCreateSymbiantFeedCorpse(map, humanCorpseCell, true, "ZL_SymbiantFeed_Human", spawnedThings, out var humanCorpse, out var humanCorpseError) == false)
 					return humanCorpseError;
+				symbiant.RequestFeed(true);
+				var feed = WorkGiver_FeedZombieSymbiant.FindClosestFeed(fixture.host, symbiant);
+				var feedJob = new WorkGiver_FeedZombieSymbiant().JobOnThing(fixture.host, symbiant, true);
+				workGiver = new
+				{
+					success = feed == humanCorpse
+						&& feedJob?.def == CustomDefs.FeedZombieSymbiant
+						&& feedJob.targetA.Thing == symbiant
+						&& feedJob.targetB.Thing == humanCorpse,
+					feed = ZombieRuntimeActions.StableThingId(feed),
+					jobDef = feedJob?.def?.defName,
+					jobTargetA = ZombieRuntimeActions.StableThingId(feedJob?.targetA.Thing),
+					jobTargetB = ZombieRuntimeActions.StableThingId(feedJob?.targetB.Thing)
+				};
 				humanCorpseFeed = FeedSymbiantThing(symbiant, humanCorpse, "fresh humanlike corpse", 6);
 
 				if (TryFindClearSpawnCell(map, symbiant.Position + new IntVec3(4, 0, 0), 16f, out var animalCorpseCell, out var animalCellError) == false)
@@ -483,6 +498,7 @@ namespace ZombieLand
 			var letterCleanup = CleanupTemporaryLetters(newLetters, cleanup);
 			var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
 			var success = error == null
+				&& ScenarioSucceeded(workGiver)
 				&& ScenarioSucceeded(humanCorpseFeed)
 				&& ScenarioSucceeded(animalCorpseFeed)
 				&& (activeAfterCleanup == null || cleanup == false);
@@ -490,10 +506,11 @@ namespace ZombieLand
 			return new
 			{
 				success,
-				sourcePath = "ZombieSymbiant.TryFeed -> FeedGrowthCells -> TryExpansionPulse",
+				sourcePath = "WorkGiver_FeedZombieSymbiant -> ZombieSymbiant.TryFeed -> FeedGrowthCells -> TryExpansionPulse",
 				growthSpeedFactor = feedingGrowthSpeedFactor,
 				error,
 				fixtureSetup,
+				workGiver,
 				humanCorpseFeed,
 				animalCorpseFeed,
 				cleanup = new
@@ -535,6 +552,7 @@ namespace ZombieLand
 					error = new { success = false, error = corpseError, pawn = DescribePawn(pawn) };
 					return false;
 				}
+				corpse.SetForbidden(false, false);
 				spawnedThings?.Add(corpse);
 				return true;
 			}
@@ -835,7 +853,7 @@ namespace ZombieLand
 						&& spawned?.Spawned == true
 						&& spawned.Destroyed == false
 						&& spawned.CellCount == 1
-						&& spawned.RegisteredInMapPawnLists == false
+						&& spawned.RegisteredInMapPawnLists
 				};
 
 				if (cleanup)
@@ -1084,6 +1102,184 @@ namespace ZombieLand
 					letters = letterCleanup,
 					activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
 				}
+			};
+		}
+
+		const string CrossMapSaveHostName = "ZL Symbiant Cross Map Save Host";
+		const string CrossMapSaveMarkerName = "ZL Symbiant Cross Map Save Marker";
+
+		[Tool("zombieland/symbiant_cross_map_save_contract", Description = "Stage, inspect, return, or clean a persistent two-map Symbiant fixture for a real save/load lifecycle check.")]
+		public static object SymbiantCrossMapSaveContract(
+			[ToolParameter(Description = "Mode: stage, read, return, cleanup.", Required = false, DefaultValue = "read")] string mode = "read")
+		{
+			var currentMap = CurrentMap;
+			if (currentMap == null)
+				return new { success = false, error = "No current map is loaded." };
+
+			mode = (mode ?? "read").Trim();
+			var host = Find.Maps
+				.SelectMany(map => map.mapPawns?.AllPawns ?? Enumerable.Empty<Pawn>())
+				.FirstOrDefault(pawn => pawn?.Name?.ToStringFull == CrossMapSaveHostName);
+			var mapMarker = Find.Maps
+				.SelectMany(map => map.mapPawns?.AllPawns ?? Enumerable.Empty<Pawn>())
+				.FirstOrDefault(pawn => pawn?.Name?.ToStringFull == CrossMapSaveMarkerName);
+			var symbiant = Find.Maps
+				.Select(ZombieSymbiant.ActiveSymbiant)
+				.FirstOrDefault(candidate => candidate?.HostThingId == host?.ThingID);
+
+			if (mode.Equals("stage", StringComparison.OrdinalIgnoreCase))
+			{
+				if (host != null || symbiant != null || mapMarker != null)
+					return new { success = false, error = "A cross-map save fixture already exists. Clean it before staging another." };
+				if (ZombieSymbiant.ActiveSymbiant(currentMap) != null)
+					return new { success = false, error = "The current map already has an active Symbiant." };
+				if (TryFindClearSpawnCell(currentMap, currentMap.Center, 24f, out var hostCell, out var hostCellError) == false)
+					return hostCellError;
+				if (TryFindClearSpawnCell(currentMap, hostCell + new IntVec3(4, 0, 0), 24f, out var symbiantCell, out var symbiantCellError) == false)
+					return symbiantCellError;
+
+				SymbiantSecondMapFixture secondMapFixture = null;
+				try
+				{
+					host = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+					host.Name = new NameSingle(CrossMapSaveHostName);
+					GenSpawn.Spawn(host, hostCell, currentMap, Rot4.South, WipeMode.Vanish);
+					symbiant = ZombieSymbiant.DebugSpawnForRendering(currentMap, symbiantCell, [symbiantCell]);
+					AccessTools.Method(typeof(ZombieSymbiant), "AssignHost")?.Invoke(symbiant, [host]);
+					var activeBefore = DescribeHostAvailabilityState("beforeCrossMapSave", currentMap, symbiant, host);
+
+					if (TryCreateSymbiantSecondMapFixture(currentMap, out secondMapFixture, out var secondMapError) == false)
+					{
+						symbiant.DebugDestroyWithoutHostTrauma();
+						DestroyAndDiscardTemporaryPawn(host);
+						if (secondMapFixture?.map != null || secondMapFixture?.parent != null)
+							_ = CleanupSymbiantSecondMapFixture(secondMapFixture, true, true);
+						return new { success = false, error = "Could not create the second-map save fixture.", secondMapError };
+					}
+					mapMarker = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+					mapMarker.Name = new NameSingle(CrossMapSaveMarkerName);
+					var markerCell = secondMapFixture.map.AllCells.First(cell => cell.Standable(secondMapFixture.map) && cell.GetThingList(secondMapFixture.map).Any(thing => thing is Pawn) == false);
+					GenSpawn.Spawn(mapMarker, markerCell, secondMapFixture.map, Rot4.South, WipeMode.Vanish);
+					secondMapFixture.trackedPawns.Add(mapMarker);
+					secondMapFixture.trackedPawns.Add(host);
+					var move = MovePawnToSymbiantContractMap(host, secondMapFixture.map, secondMapFixture.map.Center, symbiant);
+					var dormant = ScenarioSucceeded(move)
+						? DescribeHostAvailabilityState("stagedAcrossMaps", currentMap, symbiant, host)
+						: move;
+					return new
+					{
+						success = ScenarioSucceeded(activeBefore) && ScenarioSucceeded(move) && ScenarioSucceeded(dormant),
+						mode,
+						originMapId = currentMap.uniqueID,
+						secondMapId = secondMapFixture.map.uniqueID,
+						host = ZombieRuntimeActions.StableThingId(host),
+						mapMarker = ZombieRuntimeActions.StableThingId(mapMarker),
+						symbiant = ZombieRuntimeActions.StableThingId(symbiant),
+						activeBefore,
+						move,
+						dormant
+					};
+				}
+				catch (Exception ex)
+				{
+					symbiant?.DebugDestroyWithoutHostTrauma();
+					if (secondMapFixture != null)
+						_ = CleanupSymbiantSecondMapFixture(secondMapFixture, true, true);
+					else if (host != null)
+						DestroyAndDiscardTemporaryPawn(host);
+					return new { success = false, error = ex.Message, exceptionType = ex.GetType().FullName, stackTrace = ex.StackTrace };
+				}
+			}
+
+			if (host == null || symbiant == null || mapMarker == null)
+				return new { success = false, error = "The persistent cross-map save fixture was not found.", hostFound = host != null, symbiantFound = symbiant != null, mapMarkerFound = mapMarker != null };
+			var originMap = symbiant.Map;
+			var secondMap = mapMarker.MapHeld;
+			if (originMap == null || secondMap == null)
+				return new { success = false, error = "The persistent fixture is missing one of its maps." };
+
+			if (mode.Equals("read", StringComparison.OrdinalIgnoreCase))
+			{
+				var dormant = DescribeHostAvailabilityState("crossMapAfterLoad", originMap, symbiant, host);
+				return new
+				{
+					success = originMap != secondMap && ScenarioSucceeded(dormant),
+					mode,
+					originMapId = originMap.uniqueID,
+					secondMapId = secondMap.uniqueID,
+					dormant
+				};
+			}
+
+			if (mode.Equals("return", StringComparison.OrdinalIgnoreCase))
+			{
+				var move = MovePawnToSymbiantContractMap(host, originMap, symbiant.Position + new IntVec3(3, 0, 0), symbiant);
+				var active = ScenarioSucceeded(move)
+					? DescribeHostAvailabilityState("returnedAfterCrossMapLoad", originMap, symbiant, host)
+					: move;
+				return new { success = ScenarioSucceeded(move) && ScenarioSucceeded(active), mode, move, active };
+			}
+
+			if (mode.Equals("cleanup", StringComparison.OrdinalIgnoreCase))
+			{
+				symbiant.DebugDestroyWithoutHostTrauma();
+				var fixtureMap = mapMarker.MapHeld;
+				var fixture = fixtureMap == originMap ? null : new SymbiantSecondMapFixture
+				{
+					originMap = originMap,
+					previousCurrentMap = originMap,
+					map = fixtureMap,
+					parent = fixtureMap?.Parent,
+					tile = fixtureMap?.Tile ?? PlanetTile.Invalid
+				};
+				if (fixture != null)
+				{
+					fixture.trackedPawns.Add(host);
+					fixture.trackedPawns.Add(mapMarker);
+				}
+				var hostCleanup = fixture == null
+					? DestroyAndDiscardTemporaryPawn(host)
+					: CleanupSymbiantSecondMapFixture(fixture, true, true);
+				return new
+				{
+					success = ScenarioSucceeded(hostCleanup)
+						&& symbiant.Destroyed
+						&& symbiant.Discarded
+						&& Find.WorldPawns?.Contains(symbiant) != true,
+					mode,
+					symbiantDestroyed = symbiant.Destroyed,
+					symbiantDiscarded = symbiant.Discarded,
+					symbiantWorldPawn = Find.WorldPawns?.Contains(symbiant) == true,
+					hostCleanup
+				};
+			}
+
+			return new { success = false, error = $"Unknown mode '{mode}'. Expected stage, read, return, or cleanup." };
+		}
+
+		static object DestroyAndDiscardTemporaryPawn(Pawn pawn)
+		{
+			if (pawn == null)
+				return new { success = true, skipped = true };
+			var id = ZombieRuntimeActions.StableThingId(pawn);
+			var corpse = pawn.Corpse;
+			if (corpse != null && corpse.Destroyed == false)
+				corpse.Destroy(DestroyMode.Vanish);
+			if (Find.WorldPawns?.Contains(pawn) == true)
+				Find.WorldPawns.RemovePawn(pawn);
+			if (pawn.Destroyed == false)
+				pawn.Destroy(DestroyMode.Vanish);
+			if (Find.WorldPawns?.Contains(pawn) == true)
+				Find.WorldPawns.RemovePawn(pawn);
+			if (pawn.Discarded == false)
+				pawn.Discard(true);
+			return new
+			{
+				success = pawn.Destroyed && pawn.Discarded && Find.WorldPawns?.Contains(pawn) != true,
+				id,
+				destroyed = pawn.Destroyed,
+				discarded = pawn.Discarded,
+				worldPawn = Find.WorldPawns?.Contains(pawn) == true
 			};
 		}
 
@@ -1613,7 +1809,6 @@ namespace ZombieLand
 			var beforeLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>()).ToHashSet();
 			var spawnedThings = new List<Thing>();
 			ZombieSymbiant symbiant = null;
-			Corpse feedCorpse = null;
 			object result;
 
 			try
@@ -1638,11 +1833,15 @@ namespace ZombieLand
 				symbiant = ZombieSymbiant.ActiveSymbiant(map);
 				if (symbiant != null)
 					symbiant.Name = new NameSingle("ZL_SymbiantCombat_Goo");
-				if (TryCreateSymbiantFeedCorpse(map, cells[5], true, "ZL_SymbiantCombat_FeedCorpse", spawnedThings, out feedCorpse, out var feedCorpseError) == false)
-					return feedCorpseError;
-
+				var enemyTargetCell = symbiant == null
+					? IntVec3.Invalid
+					: GenAdj.CellsAdjacentCardinal(symbiant)
+						.FirstOrDefault(cell => cell.InBounds(map) && cell.Standable(map) && cell.GetEdifice(map) == null && cell.GetFirstPawn(map) == null);
+				if (enemyTargetCell.IsValid == false)
+					return new { success = false, error = "Could not place the hostile target-search pawn adjacent to the Symbiant." };
+				_ = enemy.DeSpawnOrDeselect(DestroyMode.Vanish);
+				GenSpawn.Spawn(enemy, enemyTargetCell, map, Rot4.South, WipeMode.Vanish);
 				RefreshZombieTargetCache(map);
-				symbiant?.RequestFeed(true);
 
 				var pawnSystems = DescribeSymbiantCombatPawnSystems(map, symbiant, player, enemy);
 				var targetFinding = new
@@ -1664,24 +1863,6 @@ namespace ZombieLand
 					manhunterChance = animal == null || symbiant == null ? null : (float?)PawnUtility.GetManhunterOnDamageChance(animal, symbiant, animal.Position.DistanceTo(symbiant.Position)),
 					preyScore = predator == null || symbiant == null ? null : (float?)FoodUtility.GetPreyScoreFor(predator, symbiant)
 				};
-				var feed = WorkGiver_FeedZombieSymbiant.FindClosestFeed(player, symbiant);
-				var feedJob = new WorkGiver_FeedZombieSymbiant().JobOnThing(player, symbiant, true);
-				var feedDiscovery = new
-				{
-					feedRequested = symbiant?.FeedRequested ?? false,
-					closestFeed = feed == null ? null : ZombieRuntimeActions.StableThingId(feed),
-					closestFeedDef = feed?.def?.defName,
-					closestFeedIsValid = feed != null && ZombieSymbiant.IsValidFeed(feed),
-					foundSpawnedFeedCorpse = feed == feedCorpse,
-					jobDef = feedJob?.def?.defName,
-					jobTargetA = ZombieRuntimeActions.StableThingId(feedJob?.targetA.Thing),
-					jobTargetB = ZombieRuntimeActions.StableThingId(feedJob?.targetB.Thing),
-					success = feed != null
-						&& ZombieSymbiant.IsValidFeed(feed)
-						&& feedJob?.def == CustomDefs.FeedZombieSymbiant
-						&& feedJob.targetA.Thing == symbiant
-						&& feedJob.targetB.Thing == feed
-				};
 				var patchTargets = new
 				{
 					availableShootingTargets = PatchedMethodsForPatchClass("AttackTargetFinder_GetAvailableShootingTargetsByScore_Patch"),
@@ -1689,6 +1870,7 @@ namespace ZombieLand
 					hostileThingThing = PatchedMethodsForPatchClass("GenHostility_HostileTo_Thing_Thing_Patch"),
 					hostileThingFaction = PatchedMethodsForPatchClass("GenHostility_HostileTo_Thing_Faction_Patch"),
 					activeThreat = PatchedMethodsForPatchClass("GenHostility_IsActiveThreat_Patch"),
+					threatDisabled = PatchedMethodsForPatchClass("Pawn_ThreatDisabled_Symbiant_Patch"),
 					registerTarget = PatchedMethodsForPatchClass("AttackTargetsCache_RegisterTarget_Patch"),
 					startJob = PatchedMethodsForPatchClass("Pawn_JobTracker_StartJob_Patch"),
 					dangerRating = PatchedMethodsForPatchClass("DangerWatcher_CalculateDangerRating_Patch"),
@@ -1709,16 +1891,16 @@ namespace ZombieLand
 					&& ScenarioSucceeded(forcedJobs.symbiantMelee)
 					&& animalResponse.manhunterChance == 0f
 					&& animalResponse.preyScore <= -9999f
-					&& feedDiscovery.success
 					&& patchTargets.bestAttackTarget.Length > 0
 					&& patchTargets.hostileThingThing.Length > 0
 					&& patchTargets.activeThreat.Length > 0
+					&& patchTargets.threatDisabled.Length > 0
 					&& patchTargets.startJob.Length > 0;
 
 				result = new
 				{
 					success,
-					sourcePath = "Patches_Hostility + AttackTargetsCache + Pawn_JobTracker_StartJob_Patch + WorkGiver_FeedZombieSymbiant",
+					sourcePath = "Patches_Hostility + AttackTargetsCache + Pawn_JobTracker_StartJob_Patch",
 					fixtureCells = cells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 					pawns = new
 					{
@@ -1732,7 +1914,6 @@ namespace ZombieLand
 					targetFinding,
 					forcedJobs,
 					animalResponse,
-					feedDiscovery,
 					patchTargets
 				};
 			}
@@ -1758,15 +1939,22 @@ namespace ZombieLand
 
 		static bool TryFindSymbiantCombatFixtureCells(Map map, IntVec3 root, int count, out IntVec3[] cells, out object error)
 		{
-			cells = GenRadial.RadialCellsAround(root, 24f, true)
+			var candidates = GenRadial.RadialCellsAround(root, 24f, true)
 				.Where(cell => cell.InBounds(map))
 				.Where(cell => cell.Standable(map))
 				.Where(cell => cell.Fogged(map) == false)
 				.Where(cell => cell.GetFirstPawn(map) == null)
 				.Where(cell => cell.GetEdifice(map) == null)
-				.Distinct()
-				.Take(count)
-				.ToArray();
+				.Distinct();
+			var spaced = new List<IntVec3>();
+			foreach (var candidate in candidates)
+			{
+				if (spaced.All(existing => existing.DistanceToSquared(candidate) >= 36))
+					spaced.Add(candidate);
+				if (spaced.Count >= count)
+					break;
+			}
+			cells = spaced.ToArray();
 			error = cells.Length >= count
 				? null
 				: new { success = false, error = "Could not find enough clear cells for the symbiant combat fixture.", requested = count, found = cells.Length };
@@ -2100,11 +2288,13 @@ namespace ZombieLand
 			object fixtureSetup = null;
 			object error = null;
 			object initial = null;
+				object deduplication = null;
 				object repair = null;
 				object high = null;
 				object skill = null;
 				object benefitLetter = null;
 				object autoHeal = null;
+				object immediateInfectionImmunity = null;
 				object forcedBenefits = null;
 				var addedCells = 0;
 
@@ -2122,6 +2312,7 @@ namespace ZombieLand
 				var host = fixture.host;
 				RepairHostLink(symbiant);
 				initial = DescribeSymbiantBenefitCheck(symbiant, host);
+				deduplication = VerifySymbiantHediffDeduplication(symbiant, host);
 
 				var removedHediffs = RemoveSymbiantHediffs(host);
 				var afterRemoval = DescribeSymbiantBenefitCheck(symbiant, host);
@@ -2164,6 +2355,7 @@ namespace ZombieLand
 					high = DescribeSymbiantBenefitCheck(symbiant, host);
 					skill = DescribeSymbiantSkillBonus(host);
 					autoHeal = VerifySymbiantAutoHealKeepsContamination(symbiant, host);
+					immediateInfectionImmunity = VerifySymbiantImmediateInfectionImmunity(host);
 				}
 			catch (Exception ex)
 			{
@@ -2185,6 +2377,7 @@ namespace ZombieLand
 				&& BenefitCheckHasHediff(initial)
 				&& BenefitCheckFactor(initial) < 0.5f
 				&& BenefitCheckHasZombieProtection(initial) == false
+				&& ScenarioSucceeded(deduplication)
 				&& ScenarioSucceeded(repair)
 					&& addedCells > 0
 					&& BenefitCheckFactor(high) >= 0.5f
@@ -2193,6 +2386,7 @@ namespace ZombieLand
 					&& ScenarioSucceeded(forcedBenefits)
 					&& ScenarioSucceeded(skill)
 					&& ScenarioSucceeded(autoHeal)
+					&& ScenarioSucceeded(immediateInfectionImmunity)
 					&& (activeAfterCleanup == null || cleanup == false);
 
 			return new
@@ -2202,6 +2396,7 @@ namespace ZombieLand
 				error,
 				fixtureSetup,
 				initial,
+					deduplication,
 					repair,
 					addedCells,
 					high,
@@ -2209,6 +2404,7 @@ namespace ZombieLand
 					forcedBenefits,
 					skill,
 					autoHeal,
+					immediateInfectionImmunity,
 					cleanup = new
 				{
 					symbiant = cleanupResult,
@@ -2232,6 +2428,32 @@ namespace ZombieLand
 			foreach (var hediff in hediffs)
 				host.health.RemoveHediff(hediff);
 			return hediffs.Length;
+		}
+
+		static object VerifySymbiantHediffDeduplication(ZombieSymbiant symbiant, Pawn host)
+		{
+			if (symbiant == null || host?.health?.hediffSet == null || CustomDefs.SymbiantSymbiosis == null)
+				return new { success = false, error = "Symbiant host display state is unavailable." };
+			var duplicate = HediffMaker.MakeHediff(CustomDefs.SymbiantSymbiosis, host) as Hediff_SymbiantSymbiosis;
+			if (duplicate == null)
+				return new { success = false, error = "Could not create a duplicate Symbiant display hediff." };
+			duplicate.symbiantThingId = "stale-test-link";
+			host.health.hediffSet.hediffs.Add(duplicate);
+			var countBefore = host.health.hediffSet.hediffs.Count(hediff => hediff.def == CustomDefs.SymbiantSymbiosis);
+			RepairHostLink(symbiant);
+			var remaining = host.health.hediffSet.hediffs
+				.Where(hediff => hediff.def == CustomDefs.SymbiantSymbiosis)
+				.OfType<Hediff_SymbiantSymbiosis>()
+				.ToArray();
+			return new
+			{
+				success = countBefore == 2
+					&& remaining.Length == 1
+					&& remaining[0].symbiantThingId == symbiant.ThingID,
+				countBefore,
+				countAfter = remaining.Length,
+				remainingThingIds = remaining.Select(hediff => hediff.symbiantThingId).ToArray()
+			};
 		}
 
 		static object DescribeSymbiantBenefitCheck(ZombieSymbiant symbiant, Pawn host)
@@ -2382,6 +2604,49 @@ namespace ZombieLand
 				}
 			}
 
+			static object VerifySymbiantImmediateInfectionImmunity(Pawn host)
+			{
+				var biteDef = HediffDef.Named("ZombieBite");
+				if (host?.health?.hediffSet == null || biteDef == null || CustomDefs.ZombieBite == null)
+					return new { success = false, error = "Host health or ZombieBite def is unavailable." };
+				var part = host.health.hediffSet
+					.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Outside)
+					.FirstOrDefault(candidate => candidate.def.IsSolid(candidate, host.health.hediffSet.hediffs) == false);
+				if (part == null)
+					return new { success = false, error = "Host has no non-solid part for the infection-immunity probe." };
+
+				var previousChance = ZombieSettings.Values.zombieBiteInfectionChance;
+				Hediff_Injury_ZombieBite bite = null;
+				try
+				{
+					ZombieSettings.Values.zombieBiteInfectionChance = 1f;
+					bite = HediffMaker.MakeHediff(biteDef, host, part) as Hediff_Injury_ZombieBite;
+					if (bite?.TendDuration?.ZombieInfector == null)
+						return new { success = false, error = "Could not create a fully configured ZombieBite." };
+					host.health.AddHediff(bite, part, new DamageInfo(CustomDefs.ZombieBite, 2f));
+					var infector = bite.TendDuration.ZombieInfector;
+					var stateImmediatelyAfterAdd = bite.TendDuration.GetInfectionState();
+					return new
+					{
+						success = ZombieSymbiant.HasZombieInfectionImmunity(host)
+							&& stateImmediatelyAfterAdd == InfectionState.BittenHarmless
+							&& infector.infectionKnownDelay == 0
+							&& infector.infectionStartTime == 0
+							&& infector.infectionEndTime == 0,
+						stateImmediatelyAfterAdd = stateImmediatelyAfterAdd.ToString(),
+						infector.infectionKnownDelay,
+						infector.infectionStartTime,
+						infector.infectionEndTime
+					};
+				}
+				finally
+				{
+					ZombieSettings.Values.zombieBiteInfectionChance = previousChance;
+					if (bite != null && host.health?.hediffSet?.hediffs?.Contains(bite) == true)
+						host.health.RemoveHediff(bite);
+				}
+			}
+
 			static bool BenefitCheckHasHediff(object check)
 		{
 			return (bool?)check?.GetType().GetProperty("hasHediff")?.GetValue(check) == true;
@@ -2470,6 +2735,9 @@ namespace ZombieLand
 
 			var settingsSnapshot = SnapshotZombieSettings();
 			var beforeLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>()).ToHashSet();
+			var worldSymbiantsBefore = (Find.WorldPawns?.AllPawnsAliveOrDead ?? new List<Pawn>())
+				.OfType<ZombieSymbiant>()
+				.ToHashSet();
 			object symbiantDamageLeaksToHost = null;
 			object hostDamageSharesToSymbiant = null;
 			object symbiantDestructionKillsHost = null;
@@ -2478,7 +2746,9 @@ namespace ZombieLand
 			object inspectTabsHidden = null;
 			object uncontrolledDestroyKillsHost = null;
 			object hostDeathStartsRetreat = null;
+			object destroyedHostStartsRetreat = null;
 			object pawnKillCreatesValidCorpse = null;
+			object deadLinkedCorpseHostDeathCleanup = null;
 			object nonRelocationDespawnSelfDestructs = null;
 			object secondMapSetup = null;
 			object crossMapDamageIsolation = null;
@@ -2507,7 +2777,9 @@ namespace ZombieLand
 				inspectTabsHidden = RunSymbiantUnsafeDamageScenario(map, "inspectTabsHidden", cleanup);
 				uncontrolledDestroyKillsHost = RunSymbiantUnsafeDamageScenario(map, "uncontrolledDestroyKillsHost", cleanup);
 				hostDeathStartsRetreat = RunSymbiantUnsafeDamageScenario(map, "hostDeathStartsRetreat", cleanup);
+				destroyedHostStartsRetreat = RunSymbiantUnsafeDamageScenario(map, "destroyedHostStartsRetreat", cleanup);
 				pawnKillCreatesValidCorpse = RunSymbiantPawnKillScenario(map, cleanup);
+				deadLinkedCorpseHostDeathCleanup = RunSymbiantDeadLinkedCorpseScenario(map, cleanup);
 				nonRelocationDespawnSelfDestructs = RunSymbiantNonRelocationDespawnScenario(map, cleanup);
 				if (TryCreateSymbiantSecondMapFixture(map, out secondMapFixture, out var secondMapError) == false)
 				{
@@ -2548,6 +2820,23 @@ namespace ZombieLand
 			var secondMapCleanup = CleanupSymbiantSecondMapFixture(secondMapFixture, cleanup);
 			var directDeinitMapCleanup = CleanupSymbiantSecondMapFixture(directDeinitMapFixture, true, true);
 			var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
+			var newWorldSymbiants = (Find.WorldPawns?.AllPawnsAliveOrDead ?? new List<Pawn>())
+				.OfType<ZombieSymbiant>()
+				.Where(symbiant => worldSymbiantsBefore.Contains(symbiant) == false)
+				.ToArray();
+			var newWorldSymbiantIds = newWorldSymbiants.Select(ZombieRuntimeActions.StableThingId).ToArray();
+			if (cleanup)
+				foreach (var residue in newWorldSymbiants)
+					_ = CleanupTemporarySymbiant(map, residue, true);
+			var worldSymbiantResidue = new
+			{
+				success = cleanup == false || newWorldSymbiants.Length == 0,
+				count = newWorldSymbiants.Length,
+				ids = newWorldSymbiantIds,
+				remainingAfterFallbackCleanup = cleanup
+					? newWorldSymbiants.Count(symbiant => Find.WorldPawns?.Contains(symbiant) == true || symbiant.Discarded == false)
+					: newWorldSymbiants.Length
+			};
 			var patchTargets = new
 			{
 				pawnPreApplyDamage = PatchedMethodsForPatchClass("Pawn_PreApplyDamage_Patch"),
@@ -2584,7 +2873,9 @@ namespace ZombieLand
 				&& ScenarioSucceeded(inspectTabsHidden)
 				&& ScenarioSucceeded(uncontrolledDestroyKillsHost)
 				&& ScenarioSucceeded(hostDeathStartsRetreat)
+				&& ScenarioSucceeded(destroyedHostStartsRetreat)
 				&& ScenarioSucceeded(pawnKillCreatesValidCorpse)
+				&& ScenarioSucceeded(deadLinkedCorpseHostDeathCleanup)
 				&& ScenarioSucceeded(nonRelocationDespawnSelfDestructs)
 				&& ScenarioSucceeded(secondMapSetup)
 				&& ScenarioSucceeded(crossMapDamageIsolation)
@@ -2596,6 +2887,7 @@ namespace ZombieLand
 				&& ScenarioSucceeded(directDeinitMap)
 				&& ScenarioSucceeded(secondMapCleanup)
 				&& ScenarioSucceeded(directDeinitMapCleanup)
+				&& ScenarioSucceeded(worldSymbiantResidue)
 				&& (activeAfterCleanup == null || cleanup == false);
 
 			return new
@@ -2613,7 +2905,9 @@ namespace ZombieLand
 				inspectTabsHidden,
 				uncontrolledDestroyKillsHost,
 				hostDeathStartsRetreat,
+				destroyedHostStartsRetreat,
 				pawnKillCreatesValidCorpse,
+				deadLinkedCorpseHostDeathCleanup,
 				nonRelocationDespawnSelfDestructs,
 				secondMapSetup,
 				crossMapDamageIsolation,
@@ -2628,6 +2922,7 @@ namespace ZombieLand
 					letters = letterCleanup,
 					secondMap = secondMapCleanup,
 					directDeinitMap = directDeinitMapCleanup,
+					worldSymbiantResidue,
 					activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
 				}
 			};
@@ -2692,38 +2987,131 @@ namespace ZombieLand
 			};
 		}
 
+		static object RunSymbiantDeadLinkedCorpseScenario(Map map, bool cleanup)
+		{
+			SymbiantNaturalSpawnFixture fixture = null;
+			ZombieSymbiant symbiant = null;
+			Corpse symbiantCorpse = null;
+			object action = null;
+			object error = null;
+			var safeSeveranceField = AccessTools.Field(typeof(ZombieSymbiant), "safeSeveranceInProgress");
+			try
+			{
+				if (safeSeveranceField == null)
+					return new { success = false, error = "Could not access the Symbiant safe-severance lifecycle flag." };
+				if (TrySetupSymbiantNaturalSpawnFixture(map, out fixture, out var fixtureError) == false)
+					return fixtureError;
+				symbiant = SpawnAssignedSymbiantForSeveranceContract(map, fixture);
+				var host = fixture.host;
+				var hediffBefore = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
+				safeSeveranceField.SetValue(symbiant, true);
+				try
+				{
+					symbiant.Kill(null);
+				}
+				finally
+				{
+					safeSeveranceField.SetValue(symbiant, false);
+				}
+				symbiantCorpse = symbiant.Corpse;
+				var staleLinkBeforeHostDeath = symbiantCorpse?.InnerPawn == symbiant
+					&& symbiant.Dead
+					&& symbiant.Destroyed
+					&& symbiant.Discarded == false
+					&& symbiant.HostThingId == host.ThingID
+					&& hediffBefore;
+				host.Kill(null);
+				var hediffAfter = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
+				action = new
+				{
+					staleLinkBeforeHostDeath,
+					hostDead = host.Dead,
+					hediffAfter,
+					symbiantCorpseDestroyed = symbiantCorpse == null || symbiantCorpse.Destroyed,
+					symbiantDiscarded = symbiant.Discarded,
+					symbiantWorldPawnAfter = Find.WorldPawns?.Contains(symbiant) == true,
+					linkedAfter = ZombieRuntimeActions.StableThingId(ZombieSymbiant.LinkedSymbiantFor(host)),
+					success = staleLinkBeforeHostDeath
+						&& host.Dead
+						&& hediffAfter == false
+						&& (symbiantCorpse == null || symbiantCorpse.Destroyed)
+						&& symbiant.Discarded
+						&& Find.WorldPawns?.Contains(symbiant) != true
+						&& ZombieSymbiant.LinkedSymbiantFor(host) == null
+				};
+			}
+			catch (Exception ex)
+			{
+				error = ex.ToString();
+			}
+			finally
+			{
+				if (symbiant != null)
+					safeSeveranceField?.SetValue(symbiant, false);
+				if (cleanup)
+				{
+					if (symbiantCorpse?.Destroyed == false)
+						symbiantCorpse.Destroy(DestroyMode.Vanish);
+					_ = CleanupTemporarySymbiant(map, symbiant, true);
+					_ = CleanupSymbiantNaturalSpawnFixture(map, fixture, true);
+				}
+			}
+
+			return new
+			{
+				success = error == null && ScenarioSucceeded(action),
+				sourcePath = "Pawn.Kill suppressed-destroy window -> Symbiant corpse -> linked host Pawn.Kill -> safe corpse/bond cleanup",
+				error,
+				action
+			};
+		}
+
 		static object RunSymbiantPawnKillScenario(Map map, bool cleanup)
 		{
+			SymbiantNaturalSpawnFixture fixture = null;
 			ZombieSymbiant symbiant = null;
 			Corpse corpse = null;
+			Corpse hostCorpse = null;
 			object error = null;
 			object action = null;
 			try
 			{
-				if (TryFindClearSpawnCell(map, map.Center, 40f, out var cell, out var cellError) == false)
-					return cellError;
-				symbiant = ZombieSymbiant.DebugSpawnForRendering(map, cell, [cell]);
-				if (symbiant == null)
-					return new { success = false, error = "Could not spawn a hostless Symbiant for the Pawn.Kill lifecycle probe." };
+				if (TrySetupSymbiantNaturalSpawnFixture(map, out fixture, out var fixtureError) == false)
+					return fixtureError;
+				symbiant = SpawnAssignedSymbiantForSeveranceContract(map, fixture);
+				var host = fixture.host;
+				var hediffBefore = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
 
 				var worldPawnBefore = Find.WorldPawns?.Contains(symbiant) == true;
 				symbiant.Kill(null);
 				corpse = symbiant.Corpse;
+				hostCorpse = host.Corpse;
 				var worldPawnAfter = Find.WorldPawns?.Contains(symbiant) == true;
+				var hediffAfter = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
 				action = new
 				{
-					cell = ZombieRuntimeActions.DescribeCell(cell),
+					cell = ZombieRuntimeActions.DescribeCell(symbiant.PositionHeld),
 					worldPawnBefore,
 					worldPawnAfter,
+					hediffBefore,
+					hediffAfter,
+					hostDead = host.Dead,
+					hostCorpse = ZombieRuntimeActions.StableThingId(hostCorpse),
 					dead = symbiant.Dead,
 					destroyed = symbiant.Destroyed,
 					discarded = symbiant.Discarded,
+					symbiosisSevered = symbiant.SymbiosisSevered,
 					isBeingKilled = symbiant.health?.isBeingKilled ?? false,
 					corpse = ZombieRuntimeActions.StableThingId(corpse),
 					corpseSpawned = corpse?.Spawned ?? false,
 					corpseDestroyed = corpse?.Destroyed ?? true,
 					corpseInnerPawnMatches = ReferenceEquals(corpse?.InnerPawn, symbiant),
 					success = worldPawnBefore == false
+						&& hediffBefore
+						&& hediffAfter == false
+						&& host.Dead
+						&& hostCorpse != null
+						&& symbiant.SymbiosisSevered
 						&& symbiant.Dead
 						&& symbiant.Destroyed
 						&& symbiant.Discarded == false
@@ -2744,17 +3132,20 @@ namespace ZombieLand
 				{
 					if (corpse?.Destroyed == false)
 						corpse.Destroy(DestroyMode.Vanish);
+					if (hostCorpse?.Destroyed == false)
+						hostCorpse.Destroy(DestroyMode.Vanish);
 					if (symbiant != null && Find.WorldPawns?.Contains(symbiant) == true)
 						Find.WorldPawns.RemovePawn(symbiant);
 					if (symbiant?.Discarded == false)
 						symbiant.Discard(true);
+					_ = CleanupSymbiantNaturalSpawnFixture(map, fixture, true);
 				}
 			}
 
 			return new
 			{
 				success = error == null && ScenarioSucceeded(action),
-				sourcePath = "Pawn.Kill -> health.SetDead -> DeSpawnOrDeselect -> MakeCorpse -> Thing.Kill/Pawn.Destroy",
+				sourcePath = "ZombieSymbiant.Kill -> lethal host collapse -> Pawn.Kill -> DeSpawnOrDeselect -> MakeCorpse",
 				error,
 				action
 			};
@@ -2873,7 +3264,6 @@ namespace ZombieLand
 							&& linkedAfter == null
 							&& activeAfter == null
 					};
-					symbiant = null;
 				}
 				else if (scenario == "crossMapUncontrolledDestroySparesHost")
 				{
@@ -2885,6 +3275,7 @@ namespace ZombieLand
 						: moveToSecondMap;
 					var hediffBefore = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
 					symbiant.Destroy(DestroyMode.Vanish);
+					var worldPawnAfterDestroy = Find.WorldPawns?.Contains(symbiant) == true;
 					var linkedAfter = ZombieSymbiant.LinkedSymbiantFor(host);
 					var hediffAfter = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
 					var hostInjuryAfter = TotalInjurySeverity(host);
@@ -2898,6 +3289,8 @@ namespace ZombieLand
 						hostInjuryAfter,
 						hostDead = host.Dead,
 						symbiantDestroyed = symbiant.Destroyed,
+						symbiantDiscarded = symbiant.Discarded,
+						worldPawnAfterDestroy,
 						linkedAfter = ZombieRuntimeActions.StableThingId(linkedAfter),
 						success = ScenarioSucceeded(dormant)
 							&& hediffBefore
@@ -2905,9 +3298,10 @@ namespace ZombieLand
 							&& host.Dead == false
 							&& Mathf.Approximately(hostInjuryAfter, hostInjuryBefore)
 							&& symbiant.Destroyed
+							&& symbiant.Discarded
+							&& worldPawnAfterDestroy == false
 							&& linkedAfter == null
 					};
-					symbiant = null;
 				}
 				else if (scenario == "crossMapHostDeathStartsRetreat")
 				{
@@ -3051,7 +3445,6 @@ namespace ZombieLand
 							&& linkedAfter == null
 							&& activeAfter == null
 					};
-					symbiant = null;
 				}
 				else if (scenario == "sizeHealthScaling")
 				{
@@ -3138,6 +3531,7 @@ namespace ZombieLand
 				{
 					var hediffBefore = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
 					symbiant.Destroy(DestroyMode.Vanish);
+					var worldPawnAfterDestroy = Find.WorldPawns?.Contains(symbiant) == true;
 					var linkedAfter = ZombieSymbiant.LinkedSymbiantFor(host);
 					var hediffAfter = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
 					var hostInjuryAfter = TotalInjurySeverity(host);
@@ -3149,14 +3543,17 @@ namespace ZombieLand
 						hostInjuryAfter,
 						hostDead = host.Dead,
 						symbiantDestroyed = symbiant.Destroyed,
+						symbiantDiscarded = symbiant.Discarded,
+						worldPawnAfterDestroy,
 						linkedAfter = ZombieRuntimeActions.StableThingId(linkedAfter),
 						success = hediffBefore
 							&& hediffAfter == false
 							&& host.Dead
 							&& symbiant.Destroyed
+							&& symbiant.Discarded
+							&& worldPawnAfterDestroy == false
 							&& linkedAfter == null
 					};
-					symbiant = null;
 				}
 				else if (scenario == "hostDeathStartsRetreat")
 				{
@@ -3178,6 +3575,32 @@ namespace ZombieLand
 							&& symbiant.Destroyed == false
 							&& symbiant.SymbiosisSevered
 							&& activeAfter == symbiant
+					};
+				}
+				else if (scenario == "destroyedHostStartsRetreat")
+				{
+					var hostId = host.ThingID;
+					var hediffBefore = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
+					host.Destroy(DestroyMode.Vanish);
+					AccessTools.Method(typeof(ZombieSymbiant), "EnsureHostLink")?.Invoke(symbiant, null);
+					var hediffAfter = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
+					action = new
+					{
+						hostId,
+						hediffBefore,
+						hediffAfter,
+						hostDestroyed = host.Destroyed,
+						symbiantDestroyed = symbiant.Destroyed,
+						symbiosisSevered = symbiant.SymbiosisSevered,
+						linkedHost = ZombieRuntimeActions.StableThingId(symbiant.LinkedHost),
+						linkedForHost = ZombieRuntimeActions.StableThingId(ZombieSymbiant.LinkedSymbiantFor(host)),
+						success = hediffBefore
+							&& hediffAfter == false
+							&& host.Destroyed
+							&& symbiant.Destroyed == false
+							&& symbiant.SymbiosisSevered
+							&& symbiant.LinkedHost == null
+							&& ZombieSymbiant.LinkedSymbiantFor(host) == null
 					};
 				}
 				else
@@ -3521,8 +3944,8 @@ namespace ZombieLand
 				if (Find.WorldPawns?.Contains(pawn) == true)
 					Find.WorldPawns.RemovePawn(pawn);
 			}
-			if (symbiant != null && symbiant.Destroyed == false)
-				symbiant.Destroy(DestroyMode.Vanish);
+			if (symbiant != null)
+				symbiant.DebugDestroyWithoutHostTrauma();
 			if (symbiant != null && Find.WorldPawns?.Contains(symbiant) == true)
 				Find.WorldPawns.RemovePawn(symbiant);
 			if (symbiant != null && symbiant.Discarded == false)
@@ -4133,7 +4556,21 @@ namespace ZombieLand
 
 		static void ExpireSymbiantUprootedGrace(ZombieSymbiant symbiant)
 		{
-			AccessTools.Field(typeof(ZombieSymbiant), "uprootedSinceTick")?.SetValue(symbiant, GenTicks.TicksGame - GenDate.TicksPerHour * 4 - 1);
+			var graceTicks = GenDate.TicksPerHour * 4;
+			if (GenTicks.TicksGame <= graceTicks)
+			{
+				var previousProfile = ZombieSymbiant.DebugPerfProfile;
+				try
+				{
+					_ = ZombieSymbiant.SetDebugPerfProfile("noTick");
+					AdvanceGameTicks(graceTicks + 1 - GenTicks.TicksGame);
+				}
+				finally
+				{
+					_ = ZombieSymbiant.SetDebugPerfProfile(previousProfile);
+				}
+			}
+			AccessTools.Field(typeof(ZombieSymbiant), "uprootedSinceTick")?.SetValue(symbiant, GenTicks.TicksGame - graceTicks - 1);
 		}
 
 		static void ForceSymbiantRelocationPulseReady(ZombieSymbiant symbiant)
@@ -4566,9 +5003,9 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_infestation_state", Description = "Inspect or exercise the zombie symbiant state with spawn, createEvent, expand, shrink, feedCorpse, removeHostHediff, killHost, contaminationStep, stress, and cleanup modes.")]
+		[Tool("zombieland/symbiant_infestation_state", Description = "Inspect or exercise the zombie symbiant state with spawn, createEvent, expand, shrink, feedCorpse, removeHostHediff, killHost, stageRetreatSave, contaminationStep, stress, and cleanup modes.")]
 		public static object SymbiantInfestationState(
-			[ToolParameter(Description = "Mode: read, spawn, createEvent, expand, shrink, feedCorpse, removeHostHediff, killHost, contaminationStep, stress, cleanup.", Required = false, DefaultValue = "read")] string mode = "read",
+			[ToolParameter(Description = "Mode: read, spawn, createEvent, expand, shrink, feedCorpse, removeHostHediff, killHost, stageRetreatSave, contaminationStep, stress, cleanup.", Required = false, DefaultValue = "read")] string mode = "read",
 			[ToolParameter(Description = "Target x coordinate for spawn/stress. Use -1 with z -1 for automatic placement.", Required = false, DefaultValue = -1)] int x = -1,
 			[ToolParameter(Description = "Target z coordinate for spawn/stress. Use -1 with x -1 for automatic placement.", Required = false, DefaultValue = -1)] int z = -1,
 			[ToolParameter(Description = "Number of expansion pulses or stress cells.", Required = false, DefaultValue = 1)] int count = 1,
@@ -4720,6 +5157,30 @@ namespace ZombieLand
 					}
 				};
 			}
+			else if (mode.Equals("stageRetreatSave", StringComparison.OrdinalIgnoreCase))
+			{
+				if (symbiant != null)
+					return new { success = false, error = "stageRetreatSave requires a map without an active Symbiant." };
+				var root = x >= 0 && z >= 0 ? new IntVec3(x, 0, z) : map.Center;
+				if (TryFindClearSpawnCell(map, root, 16f, out var cell, out var error) == false)
+					return error;
+				symbiant = ZombieSymbiant.DebugSpawnForRendering(map, cell, [cell]);
+				var id = ZombieRuntimeActions.StableThingId(symbiant);
+				var removed = symbiant?.ShrinkCells(int.MaxValue) ?? 0;
+				action = new
+				{
+					id,
+					removed,
+					cellCount = symbiant?.CellCount ?? -1,
+					activeCellMotions = symbiant?.ActiveCellMotionCount ?? -1,
+					destroyed = symbiant?.Destroyed ?? true,
+					staged = symbiant != null
+						&& removed == 1
+						&& symbiant.CellCount == 0
+						&& symbiant.ActiveCellMotionCount > 0
+						&& symbiant.Destroyed == false
+				};
+			}
 			else if (mode.Equals("contaminationStep", StringComparison.OrdinalIgnoreCase))
 				action = RunSymbiantContaminationStepProbe(map, x, z);
 			else if (mode.Equals("cleanup", StringComparison.OrdinalIgnoreCase))
@@ -4804,11 +5265,16 @@ namespace ZombieLand
 			var playerFaction = Find.FactionManager?.AllFactionsListForReading?.FirstOrDefault(faction => faction?.def?.isPlayer == true);
 			var symbiantHostileToPlayer = symbiant != null && playerFaction != null && symbiant.HostileTo(playerFaction);
 			var symbiantActiveThreatToPlayer = symbiant != null && playerFaction != null && GenHostility.IsActiveThreatTo(symbiant, playerFaction, false, false);
+			var worldSymbiants = (Find.WorldPawns?.AllPawnsAliveOrDead ?? new List<Pawn>())
+				.OfType<ZombieSymbiant>()
+				.Select(ZombieRuntimeActions.StableThingId)
+				.ToArray();
 			return new
 			{
 				success = true,
 				mode,
 				action,
+				worldSymbiants,
 				perf = ZombieSymbiant.DebugPerfState(),
 				perfAction,
 				maxCellsOverrideAction,
@@ -5322,13 +5788,30 @@ namespace ZombieLand
 				return new { requested = cleanup, cleaned = false, reason = "No temporary symbiant was spawned." };
 			if (cleanup == false)
 				return new { requested = false, cleaned = false, reason = "Cleanup disabled.", symbiant = ZombieRuntimeActions.StableThingId(symbiant) };
-			if (symbiant.Destroyed)
-				return new { requested = true, cleaned = false, reason = "Temporary symbiant was already destroyed.", symbiant = ZombieRuntimeActions.StableThingId(symbiant) };
 
 			var id = ZombieRuntimeActions.StableThingId(symbiant);
-			symbiant.DebugDestroyWithoutHostTrauma();
+			var destroyedBefore = symbiant.Destroyed;
+			if (destroyedBefore == false)
+				symbiant.DebugDestroyWithoutHostTrauma();
+			else
+			{
+				if (Find.WorldPawns?.Contains(symbiant) == true)
+					Find.WorldPawns.RemovePawn(symbiant);
+				if (symbiant.Discarded == false)
+					symbiant.Discard(true);
+			}
 			_ = ZombieSymbiant.ActiveSymbiant(map);
-			return new { requested = true, cleaned = symbiant.Destroyed, symbiant = id };
+			var worldPawnAfter = Find.WorldPawns?.Contains(symbiant) == true;
+			return new
+			{
+				requested = true,
+				cleaned = symbiant.Destroyed && symbiant.Discarded && worldPawnAfter == false,
+				destroyedBefore,
+				destroyedAfter = symbiant.Destroyed,
+				discardedAfter = symbiant.Discarded,
+				worldPawnAfter,
+				symbiant = id
+			};
 		}
 
 		static object CleanupTemporaryLetters(Letter[] letters, bool cleanup)

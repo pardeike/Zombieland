@@ -116,7 +116,7 @@
 	<ChildZombieChance_Help>丧尸中儿童的百分比。注意：杀死儿童丧尸会造成轻微负面心情（持续 2 小时）。</ChildZombieChance_Help>
 	<SpitterThreat_Help>丧尸喷吐者是一种攻城怪物，会把丧尸发射进你的基地。此设置同时调整喷吐者行动的强度和频率。设为 0% 会禁用喷吐者。</SpitterThreat_Help>
 	<WallPushing_Help>当一群丧尸过于密集时，此项定义会把其他丧尸推过相邻墙壁的丧尸数量。如果墙的另一侧属于有屋顶房间，该屋顶会被丧尸损坏。</WallPushing_Help>
-	<ZombieSymbiantTitle_Help>丧尸共生体会在频繁使用的室内房间中蔓延。一名殖民者会成为宿主。宿主免疫丧尸咬伤造成的感染，并会在共生体成长时获得随机增益。穿过共生体地格的角色会变慢，宿主除外。用尸体喂养会让它成长更快。\n\n宿主和共生体应留在同一张地图上：如果宿主离开，连接会进入休眠，直到宿主返回前都无法正常移除。放弃共生体所在的地图会摧毁共生体，并强行切断连接。\n\n手术可以先正常移除连接，失去宿主的共生体之后会逐渐缩回。</ZombieSymbiantTitle_Help>
+	<ZombieSymbiantTitle_Help>丧尸共生体会在频繁使用的室内房间中蔓延。一名殖民者会成为宿主。宿主免疫丧尸咬伤造成的感染，并会在共生体成长时获得随机增益。穿过共生体地格的角色会变慢，宿主除外。用尸体喂养会让它成长更快。\n\n宿主和共生体应留在同一张地图上：如果两者分离，连接会进入休眠，休眠期间无法正常移除。只有同一宿主与共生体再次位于同一地图时，连接才可能恢复。放弃共生体所在的地图会摧毁共生体，并强行切断连接。\n\n手术可以先正常移除连接，失去宿主的共生体之后会逐渐缩回。</ZombieSymbiantTitle_Help>
 	<SymbiantEnabled_Help>启用自然丧尸共生体事件。</SymbiantEnabled_Help>
 	<SymbiantMaxCells_Help>共生体可以占据的地图地格数上限。</SymbiantMaxCells_Help>
 

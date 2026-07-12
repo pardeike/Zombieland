@@ -12,6 +12,6 @@
 	<ZombieSpitter.label>escupidor zombi</ZombieSpitter.label>
 	<ZombieSpitter.description>Un monstruo que escupe zombis por el aire para atacar tu base.</ZombieSpitter.description>
 	<ZombieSymbiant.label>Simbionte zombi</ZombieSymbiant.label>
-	<ZombieSymbiant.description>Una infestación interior de Simbionte zombi. Se extiende como baba visible por las habitaciones interiores transitadas, ralentiza a los peones que la atraviesan y se vincula a un colono. El huésped es inmune a la infección zombi causada por mordiscos y obtiene beneficios aleatorios a medida que crece el Simbionte. Alimentarlo con cadáveres acelera su crecimiento. Una operación elimina el vínculo y deja que el Simbionte desvinculado se encoja hasta desaparecer.</ZombieSymbiant.description>
+	<ZombieSymbiant.description>Una infestación interior de Simbionte zombi. Se extiende como baba visible por las habitaciones interiores transitadas, ralentiza a los peones que la atraviesan y se vincula a un colono. Mientras el huésped y el Simbionte compartan mapa, el huésped es inmune a la infección zombi causada por mordiscos y recibe los beneficios adquiridos por el vínculo. Alimentarlo con cadáveres acelera su crecimiento. Una operación elimina el vínculo y deja que el Simbionte desvinculado se encoja hasta desaparecer.</ZombieSymbiant.description>
 
 </LanguageData>

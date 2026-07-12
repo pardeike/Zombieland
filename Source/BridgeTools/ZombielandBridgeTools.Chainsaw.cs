@@ -1432,7 +1432,7 @@ namespace ZombieLand
 				var spitterHasMeleeVerbs = spitter.meleeVerbs != null;
 				var symbiantHasMeleeVerbs = symbiant.meleeVerbs != null;
 				spitter.Destroy(DestroyMode.Vanish);
-				symbiant.Destroy(DestroyMode.Vanish);
+				symbiant.DebugDestroyWithoutHostTrauma();
 				return new
 				{
 					success = false,
@@ -1449,7 +1449,7 @@ namespace ZombieLand
 			var spitterEvidence = DescribePawn(spitter);
 			var symbiantEvidence = DescribePawn(symbiant);
 			spitter.Destroy(DestroyMode.Vanish);
-			symbiant.Destroy(DestroyMode.Vanish);
+			symbiant.DebugDestroyWithoutHostTrauma();
 
 			return new
 			{

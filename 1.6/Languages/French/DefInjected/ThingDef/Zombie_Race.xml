@@ -14,6 +14,6 @@
 	<ZombieSpitter.label>zombie cracheur</ZombieSpitter.label>
 	<ZombieSpitter.description>Un monstre qui crache des zombies pour attaquer votre base depuis les airs.</ZombieSpitter.description>
 	<ZombieSymbiant.label>symbiant zombie</ZombieSymbiant.label>
-	<ZombieSymbiant.description>Une infestation intérieure de Symbiant zombie. Elle se répand sous forme de vase visible dans les pièces intérieures fréquentées, ralentit les pions qui la traversent et se lie à un colon. L'hôte est immunisé contre l'infection zombie par morsure et gagne des avantages aléatoires quand le Symbiant grandit. Le nourrir avec des cadavres accélère sa croissance. Une opération retire le lien, puis le Symbiant sans hôte se résorbe.</ZombieSymbiant.description>
+	<ZombieSymbiant.description>Une infestation intérieure de Symbiant zombie. Elle se répand sous forme de vase visible dans les pièces intérieures fréquentées, ralentit les pions qui la traversent et se lie à un colon. Tant que l'hôte et le Symbiant partagent une carte, l'hôte est immunisé contre l'infection zombie par morsure et reçoit les avantages acquis par le lien. Le nourrir avec des cadavres accélère sa croissance. Une opération retire le lien, puis le Symbiant sans hôte se résorbe.</ZombieSymbiant.description>
 
 </LanguageData>

@@ -91,7 +91,20 @@ namespace ZombieLand
 				.Where(thing => thing is Zombie || thing is ZombieSymbiant || thing is ZombieSpitter)
 				.ToArray();
 			foreach (var thing in things)
+			{
+				if (thing is ZombieSymbiant symbiant)
+				{
+					symbiant.DebugDestroyWithoutHostTrauma();
+					continue;
+				}
 				thing.Destroy(DestroyMode.Vanish);
+				if (thing is not Pawn pawn)
+					continue;
+				if (Find.WorldPawns?.Contains(pawn) == true)
+					Find.WorldPawns.RemovePawn(pawn);
+				if (pawn.Discarded == false)
+					pawn.Discard(true);
+			}
 
 			var tickManager = map.GetComponent<TickManager>();
 			tickManager?.allZombiesCached?.Clear();

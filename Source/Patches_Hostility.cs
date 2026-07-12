@@ -666,6 +666,17 @@ namespace ZombieLand
 		}
 	}
 
+	[HarmonyPatch(typeof(Pawn))]
+	[HarmonyPatch(nameof(Pawn.ThreatDisabled))]
+	static class Pawn_ThreatDisabled_Symbiant_Patch
+	{
+		static void Postfix(Pawn __instance, ref bool __result)
+		{
+			if (__instance is ZombieSymbiant symbiant && symbiant.Spawned && symbiant.Dead == false && symbiant.Destroyed == false)
+				__result = false;
+		}
+	}
+
 	//
 	// but let drafted pawns attack zombies
 	//

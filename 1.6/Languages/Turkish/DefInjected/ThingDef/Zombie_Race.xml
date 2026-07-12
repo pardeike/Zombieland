@@ -12,6 +12,6 @@
 	<ZombieSpitter.label>zombi tükürücü</ZombieSpitter.label>
 	<ZombieSpitter.description>Üssünüze havadan saldırmak üzere zombi tüküren bir canavar.</ZombieSpitter.description>
 	<ZombieSymbiant.label>zombi simbiyantı</ZombieSymbiant.label>
-	<ZombieSymbiant.description>İç mekânda ortaya çıkan bir Zombi Simbiyantı istilası. Yoğun kullanılan odalara görünür balçık hâlinde yayılır, üzerinden geçen piyonları yavaşlatır ve bir kolonistle bağ kurar. Konak, zombi ısırıklarından kaynaklanan enfeksiyona karşı bağışıktır ve Simbiyant büyüdükçe rastgele faydalar kazanır. Simbiyantı cesetlerle beslemek daha hızlı büyümesini sağlar. Bağ ameliyatla kaldırılır; konaksız kalan Simbiyant daha sonra küçülerek kaybolur.</ZombieSymbiant.description>
+	<ZombieSymbiant.description>İç mekânda ortaya çıkan bir Zombi Simbiyantı istilası. Yoğun kullanılan odalara görünür balçık hâlinde yayılır, üzerinden geçen piyonları yavaşlatır ve bir kolonistle bağ kurar. Konak ve Simbiyant aynı haritadayken konak zombi ısırıklarından kaynaklanan enfeksiyona karşı bağışıktır ve bağın kazandığı faydaları alır. Simbiyantı cesetlerle beslemek daha hızlı büyümesini sağlar. Bağ ameliyatla kaldırılır; konaksız kalan Simbiyant daha sonra küçülerek kaybolur.</ZombieSymbiant.description>
 
 </LanguageData>

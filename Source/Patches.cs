@@ -4493,6 +4493,8 @@ namespace ZombieLand
 		{
 			static void Postfix(SkillRecord __instance, ref int __result)
 			{
+				if (__instance?.TotallyDisabled == true)
+					return;
 				ZombieSymbiant.ApplySymbiantSkillBonus(__instance, ref __result);
 			}
 		}
@@ -4503,6 +4505,8 @@ namespace ZombieLand
 		{
 			static void Postfix(SkillRecord __instance, ref int __result)
 			{
+				if (__instance?.PermanentlyDisabled == true)
+					return;
 				ZombieSymbiant.ApplySymbiantSkillBonus(__instance, ref __result);
 			}
 		}

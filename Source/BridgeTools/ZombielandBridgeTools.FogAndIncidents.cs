@@ -3540,6 +3540,11 @@ namespace ZombieLand
 				}
 				foreach (var pawn in new[] { generatedNormal, generatedSpitter, generatedSymbiant }.Where(pawn => pawn != null).Distinct())
 				{
+					if (pawn is ZombieSymbiant symbiant)
+					{
+						symbiant.DebugDestroyWithoutHostTrauma();
+						continue;
+					}
 					if (pawn.Spawned && pawn.Destroyed == false)
 						pawn.Destroy(DestroyMode.Vanish);
 				}

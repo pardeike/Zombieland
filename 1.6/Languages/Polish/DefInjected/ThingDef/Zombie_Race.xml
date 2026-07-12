@@ -14,6 +14,6 @@
 	<ZombieSpitter.label>plujący zombie</ZombieSpitter.label>
 	<ZombieSpitter.description>Potwór, który wypluwa zombie, aby zaatakowały twoją bazę z powietrza.</ZombieSpitter.description>
 	<ZombieSymbiant.label>Symbiont zombie</ZombieSymbiant.label>
-	<ZombieSymbiant.description>Plaga Symbionta zombie rozprzestrzeniająca się wewnątrz budynku. Pojawia się jako widoczny śluz w często używanych pomieszczeniach, spowalnia przechodzące istoty i łączy się z kolonistą. Gospodarz jest odporny na zakażenie po ugryzieniu przez zombie i wraz ze wzrostem Symbionta zyskuje losowe korzyści. Karmienie zwłokami przyspiesza jego wzrost. Operacja usuwa więź, a pozbawiony jej Symbiont kurczy się i znika.</ZombieSymbiant.description>
+	<ZombieSymbiant.description>Plaga Symbionta zombie rozprzestrzeniająca się wewnątrz budynku. Pojawia się jako widoczny śluz w często używanych pomieszczeniach, spowalnia przechodzące istoty i łączy się z kolonistą. Gdy gospodarz i Symbiont znajdują się na tej samej mapie, gospodarz jest odporny na zakażenie po ugryzieniu przez zombie i otrzymuje korzyści zdobyte przez więź. Karmienie zwłokami przyspiesza jego wzrost. Operacja usuwa więź, a pozbawiony jej Symbiont kurczy się i znika.</ZombieSymbiant.description>
 
 </LanguageData>

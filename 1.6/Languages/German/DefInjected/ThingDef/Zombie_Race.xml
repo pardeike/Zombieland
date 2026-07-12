@@ -14,6 +14,6 @@
 	<ZombieSpitter.label>Zombiespucker</ZombieSpitter.label>
 	<ZombieSpitter.description>Ein Monster, das Zombies durch die Luft auf Ihre Basis schleudert.</ZombieSpitter.description>
 	<ZombieSymbiant.label>Zombie-Symbiont</ZombieSymbiant.label>
-	<ZombieSymbiant.description>Ein Befall von Innenräumen durch einen Zombie-Symbionten. Er breitet sich als sichtbarer Schleim durch häufig genutzte Innenräume aus, verlangsamt Figuren beim Überqueren seiner Zellen und verbindet sich mit einem Kolonisten. Der Wirt ist gegen Zombieinfektionen durch Bisse immun und erhält zufällige Vorteile, wenn der Symbiont wächst. Das Füttern mit Leichen lässt ihn schneller wachsen. Eine Operation entfernt die Verbindung; anschließend zieht sich der ungebundene Symbiont zurück.</ZombieSymbiant.description>
+	<ZombieSymbiant.description>Ein Befall von Innenräumen durch einen Zombie-Symbionten. Er breitet sich als sichtbarer Schleim durch häufig genutzte Innenräume aus, verlangsamt Figuren beim Überqueren seiner Zellen und verbindet sich mit einem Kolonisten. Solange Wirt und Symbiont eine Karte teilen, ist der Wirt gegen Zombieinfektionen durch Bisse immun und erhält die erworbenen Vorteile der Verbindung. Das Füttern mit Leichen lässt ihn schneller wachsen. Eine Operation entfernt die Verbindung; anschließend zieht sich der ungebundene Symbiont zurück.</ZombieSymbiant.description>
 
 </LanguageData>

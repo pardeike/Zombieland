@@ -94,6 +94,9 @@ namespace ZombieLand
 				ticks = ZombieSettings.Values.hoursInfectionPersists * h;
 				infectionEndTime = infectionStartTime + ticks;
 			}
+
+			if (ZombieSymbiant.HasZombieInfectionImmunity(pawn))
+				MakeHarmless();
 		}
 
 		public override void CompTended(float quality, float maxQuality, int batchPosition = 0)

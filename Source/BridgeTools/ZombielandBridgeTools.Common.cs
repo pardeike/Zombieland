@@ -675,6 +675,12 @@ namespace ZombieLand
 					fire.Destroy(DestroyMode.Vanish);
 			}
 
+			if (pawn is ZombieSymbiant symbiant)
+			{
+				symbiant.DebugDestroyWithoutHostTrauma();
+				return;
+			}
+
 			if (pawn.Destroyed == false)
 				pawn.Destroy(DestroyMode.Vanish);
 		}

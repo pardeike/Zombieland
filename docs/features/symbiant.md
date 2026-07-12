@@ -27,6 +27,8 @@ The feature should be legible and annoying in a RimWorld way. It disrupts moveme
 - Hostless slime is for debug/test or fallback cleanup. It has no host benefits and no host trauma.
 - Direct player damage does not remove the Symbiant or make surgery safer.
 - Non-gameplay cleanup paths detach the link without host trauma.
+- Every non-corpse Symbiant destruction removes the pawn from `WorldPawns` and discards it. `Pawn.Kill` remains the corpse-producing exception and applies the same active-host trauma as other uncontrolled destruction.
+- If the exact host object is eventually destroyed/discarded and can no longer be resolved, the bond is irrecoverably severed and the Symbiant starts retreat instead of waiting forever.
 - Old saves may contain removed legacy defs such as `SymbiantCoagulantPack`; load errors for those removed defs are expected to be non-fatal.
 
 ## Settings
@@ -56,7 +58,7 @@ The Symbiant itself never boards an Odyssey gravship. Its def sets `bringAlongOn
 
 Automatic and direct map removal uses the same safety rule. Before `Game.DeinitAndRemoveMap` can enter `MapDeiniter` and pass remaining map pawns to `WorldPawns`, Zombieland safely severs, destroys, and discards every map-bound Symbiant, including one held inside another map object. A linked host still spawned on the closing map is not killed; vanilla may transfer that host to `WorldPawns` normally. This covers temporary sites, camps, settlements, ordinary pocket maps, space maps, and other vanilla callers that close a map without invoking `MapParent.Abandon`.
 
-The Symbiant cannot be extracted as a travelling or contained pawn. Any ordinary non-relocation despawn safely severs, destroys, removes from `WorldPawns`, and discards it, while the internal room-reseed path explicitly marks its temporary despawn and respawn. The hook stands down during `Pawn.Kill` so vanilla can create and finalize a valid Symbiant corpse. Anomaly's `CloseMetalHell` is patched before its pawn snapshot so the Symbiant is removed before vanilla can add it to `metalHellPawns`; the despawn hook remains a fallback for other extraction paths.
+The Symbiant cannot be extracted as a travelling or contained pawn. Any ordinary non-relocation despawn safely severs, destroys, removes from `WorldPawns`, and discards it, while the internal room-reseed path explicitly marks its temporary despawn and respawn. The hook stands down during `Pawn.Kill` so vanilla can create and finalize a valid Symbiant corpse; an uncontrolled kill collapses an active linked host first, while the suppressed in-progress corpse edge is cleaned safely if the host later dies. Anomaly's `CloseMetalHell` is patched before its pawn snapshot so the Symbiant is removed before vanilla can add it to `metalHellPawns`; the despawn hook remains a fallback for other extraction paths.
 
 ## Spread, Relocation, And Retreat
 
@@ -79,6 +81,7 @@ Relocation handles deconstruction, battle damage, and messy rebuilding:
 - If no used indoor rooms exist, the Symbiant remains dormant and does not grow outdoors.
 - If all valid indoor targets are exhausted or blocked, inspect text reports the contained state.
 - Severed, dead-host, or hostless cleanup retreat removes one cell per hour until the Symbiant disappears.
+- A save made after the final cell starts its outgoing animation preserves the pending-retirement state. A paused reload may display the zero-cell shell until game time resumes; the first lifecycle tick destroys and discards it outside the draw pass.
 
 ## Benefits And Disruption
 
@@ -102,6 +105,8 @@ The host starts with zombie infection immunity from the bond. Additional random 
 - automatic healing, stackable.
 
 The acquired benefit list should be visible on the host hediff tooltip and on the Symbiant info/inspect surface.
+
+Display-hediff synchronization is idempotent: missing state is recreated and duplicate/corrupt `SymbiantSymbiosis` entries collapse to one entry tied to the authoritative Symbiant ID. Infection immunity is applied when a bite hediff is added, not one tick later. Disabled skills remain at vanilla's disabled value rather than receiving the `+1` patch.
 
 The shared-health pool remains on the Symbiant while the bond is dormant, but damage never crosses maps. Damage to the separated host does not drain the pool; damage to the Symbiant does not leak to or kill the separated host. If the pool fails while the host is away, the Symbiant is removed and the remote host survives.
 

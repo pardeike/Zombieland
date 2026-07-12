@@ -548,6 +548,8 @@ namespace ZombieLand
 
 		public static void Spawn(Map map, IntVec3 cell)
 		{
+			if (map == null || cell.InBounds(map) == false || ActiveSymbiant(map) != null)
+				return;
 			var symbiant = PawnGenerator.GeneratePawn(ZombieDefOf.ZombieSymbiant, null) as ZombieSymbiant;
 			symbiant.Position = cell;
 			symbiant.AddRelativeCell(IntVec3.Zero);
@@ -579,7 +581,7 @@ namespace ZombieLand
 
 		internal static ZombieSymbiant DebugSpawnForRendering(Map map, IntVec3 root, IEnumerable<IntVec3> absoluteCells)
 		{
-			if (map == null || root.InBounds(map) == false)
+			if (map == null || root.InBounds(map) == false || ActiveSymbiant(map) != null)
 				return null;
 			var cells = absoluteCells?
 				.Where(cell => cell.InBounds(map))
@@ -1060,7 +1062,7 @@ namespace ZombieLand
 
 		bool IsLinkedTo(Pawn pawn)
 		{
-			if (pawn == null)
+			if (pawn == null || symbiosisSevered)
 				return false;
 			if (ReferenceEquals(host, pawn))
 			{
@@ -1075,37 +1077,37 @@ namespace ZombieLand
 			return LinkedSymbiantFor(pawn, false);
 		}
 
-			static ZombieSymbiant LinkedSymbiantFor(Pawn pawn, bool allowDead)
+		static ZombieSymbiant LinkedSymbiantFor(Pawn pawn, bool allowDead)
+		{
+			if (CanBeLinkedHostIdentityFast(pawn, allowDead) == false)
+				return null;
+			if (pawn.Spawned && pawn.Map != null)
 			{
-				if (CanBeLinkedHostIdentityFast(pawn, allowDead) == false)
-					return null;
-				if (pawn.Spawned && pawn.Map != null)
+				if (allowDead)
 				{
-					if (allowDead)
-					{
-						var mapSymbiant = SpawnedSymbiantThings(pawn.Map).FirstOrDefault(symbiant => symbiant.IsLinkedTo(pawn));
-						if (mapSymbiant != null)
-							return mapSymbiant;
-					}
-					else
-					{
-						var mapSymbiant = ActiveSymbiant(pawn.Map);
-						if (mapSymbiant != null && mapSymbiant.IsLinkedTo(pawn))
-							return mapSymbiant;
-					}
+					var mapSymbiant = SpawnedSymbiantThings(pawn.Map).FirstOrDefault(symbiant => symbiant.IsLinkedTo(pawn));
+					if (mapSymbiant != null)
+						return mapSymbiant;
 				}
-				if (allowDead && Find.Maps != null)
+				else
 				{
-					foreach (var map in Find.Maps)
-					{
-						var symbiant = SpawnedSymbiantThings(map).FirstOrDefault(candidate => candidate.IsLinkedTo(pawn) || candidate.ResolveHost() == pawn);
-						if (symbiant != null)
-							return symbiant;
-					}
-					return null;
+					var mapSymbiant = ActiveSymbiant(pawn.Map);
+					if (mapSymbiant != null && mapSymbiant.IsLinkedTo(pawn))
+						return mapSymbiant;
 				}
-				return ActiveSymbiants().FirstOrDefault(symbiant => symbiant.IsLinkedTo(pawn) || symbiant.ResolveHost() == pawn);
 			}
+			if (allowDead && Find.Maps != null)
+			{
+				foreach (var map in Find.Maps)
+				{
+					var symbiant = SpawnedSymbiantThings(map).FirstOrDefault(candidate => candidate.IsLinkedTo(pawn));
+					if (symbiant != null)
+						return symbiant;
+				}
+				return null;
+			}
+			return ActiveSymbiants().FirstOrDefault(symbiant => symbiant.IsLinkedTo(pawn));
+		}
 
 		static bool TryGetSameMapLinkedSymbiant(Pawn pawn, out ZombieSymbiant symbiant)
 		{
@@ -1229,45 +1231,47 @@ namespace ZombieLand
 			return TryGetSameMapLinkedSymbiant(pawn, out var symbiant) && symbiant.CanSafelySever;
 		}
 
-			public static void NotifyHostKilled(Pawn pawn)
+		public static void NotifyHostKilled(Pawn pawn)
+		{
+			if (CanBeLinkedHostIdentityFast(pawn, true) == false)
+				return;
+			var symbiant = LinkedSymbiantFor(pawn, true);
+			if (symbiant == null)
 			{
-				if (CanBeLinkedHostIdentityFast(pawn, true) == false)
-					return;
-				var symbiant = LinkedSymbiantFor(pawn, true);
-				if (symbiant == null)
-				{
-					_ = TryDestroyDeadLinkedSymbiantCorpse(pawn);
-					return;
-				}
-				if (symbiant.Dead)
-				{
-					_ = TryDestroyDeadLinkedSymbiantCorpse(pawn);
-					symbiant.Destroy(DestroyMode.Vanish);
-					return;
-				}
-				symbiant.CollapseFromHostDeath();
+				_ = TryDestroyDeadLinkedSymbiantCorpse(pawn);
+				return;
 			}
-
-			static bool TryDestroyDeadLinkedSymbiantCorpse(Pawn pawn)
+			if (symbiant.Dead)
 			{
-				if (pawn == null || Find.Maps == null)
-					return false;
-				foreach (var map in Find.Maps)
+				if (TryDestroyDeadLinkedSymbiantCorpse(pawn) == false)
+					symbiant.DestroyWithoutHostTrauma(true);
+				return;
+			}
+			symbiant.CollapseFromHostDeath();
+		}
+
+		static bool TryDestroyDeadLinkedSymbiantCorpse(Pawn pawn)
+		{
+			if (pawn == null || Find.Maps == null)
+				return false;
+			foreach (var map in Find.Maps)
+			{
+				var corpses = map?.listerThings?.ThingsInGroup(ThingRequestGroup.Corpse);
+				if (corpses == null)
+					continue;
+				for (var i = 0; i < corpses.Count; i++)
 				{
-					var corpses = map?.listerThings?.ThingsInGroup(ThingRequestGroup.Corpse);
-					if (corpses == null)
-						continue;
-					for (var i = 0; i < corpses.Count; i++)
+					if (corpses[i] is Corpse corpse && corpse.InnerPawn is ZombieSymbiant symbiant && symbiant.IsLinkedTo(pawn))
 					{
-						if (corpses[i] is Corpse corpse && corpse.InnerPawn is ZombieSymbiant symbiant && symbiant.IsLinkedTo(pawn))
-						{
+						symbiant.DestroyWithoutHostTrauma(true);
+						if (corpse.Destroyed == false)
 							corpse.Destroy(DestroyMode.Vanish);
-							return true;
-						}
+						return true;
 					}
 				}
-				return false;
 			}
+			return false;
+		}
 
 			public static void PreApplyHostLinkedDamage(Pawn pawn, ref DamageInfo dinfo, ref bool absorbed)
 		{
@@ -1607,6 +1611,8 @@ namespace ZombieLand
 				hostThingId ??= host.ThingID;
 				return host;
 			}
+			if (host != null)
+				RemoveHostHediff(host);
 			host = ResolvePawnByThingId(hostThingId);
 			if (host != null)
 				hostThingId = host.ThingID;
@@ -1626,6 +1632,8 @@ namespace ZombieLand
 
 		public bool TryAssignRandomHost()
 		{
+			if (symbiosisSevered)
+				return false;
 			if (ResolveHost() != null)
 				return true;
 			var map = SymbiantMap;
@@ -1671,7 +1679,11 @@ namespace ZombieLand
 		{
 			var linkedHost = ResolveHost();
 			if (linkedHost == null)
+			{
+				if (hostThingId.NullOrEmpty() == false && symbiosisSevered == false)
+					CollapseFromHostDeath();
 				return;
+			}
 			if (linkedHost.Dead || linkedHost.Destroyed)
 			{
 				CollapseFromHostDeath();
@@ -1707,7 +1719,19 @@ namespace ZombieLand
 			var pawn = ResolveHost();
 			if (pawn?.health?.hediffSet == null || CustomDefs.SymbiantSymbiosis == null)
 				return;
-			var hediff = pawn.health.hediffSet.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) as Hediff_SymbiantSymbiosis;
+			if (symbiosisSevered || pawn.Destroyed || pawn.Dead)
+			{
+				RemoveHostHediff(pawn);
+				return;
+			}
+			var hediffs = pawn.health.hediffSet.hediffs
+				.Where(candidate => candidate.def == CustomDefs.SymbiantSymbiosis)
+				.OfType<Hediff_SymbiantSymbiosis>()
+				.ToArray();
+			var hediff = hediffs.FirstOrDefault(candidate => candidate.symbiantThingId == ThingID)
+				?? hediffs.FirstOrDefault();
+			foreach (var duplicate in hediffs.Where(candidate => candidate != hediff))
+				pawn.health.RemoveHediff(duplicate);
 			var severity = HostHediffSeverity(SymbiantBenefitFactor(pawn));
 			if (hediff == null)
 			{
@@ -1858,6 +1882,13 @@ namespace ZombieLand
 				DestroyWithoutHostTrauma(true);
 		}
 
+		public override void Kill(DamageInfo? dinfo, Hediff exactCulprit = null)
+		{
+			if (safeSeveranceInProgress == false && hostCollapseInProgress == false && sharedHealthFailureInProgress == false)
+				CollapseLinkedHostWithTrauma();
+			base.Kill(dinfo, exactCulprit);
+		}
+
 		public override void Destroy(DestroyMode mode = DestroyMode.Vanish)
 		{
 			ForgetActiveSymbiant(this);
@@ -1873,22 +1904,17 @@ namespace ZombieLand
 			{
 				destructionInProgress = false;
 			}
+			if (health?.isBeingKilled != true)
+				RemoveFromWorldPawnsAndDiscard();
 		}
 
 		internal void DebugDestroyWithoutHostTrauma()
 		{
-			DestroyWithoutHostTrauma(false);
+			DestroyWithoutHostTrauma(true);
 		}
 
 		internal void DestroyWithoutHostTrauma(bool discard)
 		{
-			if (Destroyed)
-			{
-				if (discard)
-					RemoveFromWorldPawnsAndDiscard();
-				return;
-			}
-
 			safeSeveranceInProgress = true;
 			try
 			{
@@ -1897,7 +1923,8 @@ namespace ZombieLand
 				host = null;
 				hostThingId = null;
 				symbiosisSevered = true;
-				Destroy(DestroyMode.Vanish);
+				if (Destroyed == false)
+					Destroy(DestroyMode.Vanish);
 				if (discard)
 					RemoveFromWorldPawnsAndDiscard();
 			}
@@ -3380,11 +3407,7 @@ namespace ZombieLand
 		void UpdateAnimatedMetaballs()
 		{
 			if (cellMotions == null || cellMotions.Count == 0)
-			{
-				if (destroyWhenCellMotionsFinish)
-					Destroy(DestroyMode.Vanish);
 				return;
-			}
 			var ticks = GenTicks.TicksGame;
 			if (lastCellMotionRenderTick == ticks)
 				return;
@@ -3392,7 +3415,6 @@ namespace ZombieLand
 			var removed = PruneFinishedCellMotions();
 			if (removed && destroyWhenCellMotionsFinish && HasActiveCellMotions() == false)
 			{
-				Destroy(DestroyMode.Vanish);
 				lastCellMotionRenderTick = -1;
 				return;
 			}
@@ -3580,7 +3602,7 @@ namespace ZombieLand
 		{
 			cells ??= [];
 			cellMotions ??= [];
-			if (cells.Count == 0)
+			if (cells.Count == 0 && destroyWhenCellMotionsFinish == false)
 				cells.Add(IntVec3.Zero);
 			orderedCells ??= [];
 			if (orderedCells.Count == 0)
@@ -3805,8 +3827,13 @@ namespace ZombieLand
 		public override string GetInspectString()
 		{
 			var linkedHost = LinkedHost;
-			var hostLabel = linkedHost == null ? "none" : linkedHost.LabelShortCap;
-			return "ZombieSymbiantInspect".Translate(hostLabel, CellCount, SharedHealthSummary, NextBenefitCellSize);
+			var hostLabel = linkedHost == null ? "None".Translate().ToString() : linkedHost.LabelShortCap;
+			var summary = "ZombieSymbiantInspect".Translate(hostLabel, CellCount, SharedHealthSummary, NextBenefitCellSize).ToString();
+			if (linkedHost == null)
+				return summary + "\n" + "SymbiantHostBondMissing".Translate();
+			if (IsActiveBondWith(linkedHost) == false)
+				return summary + "\n" + "SymbiantHostRelocatedMessage".Translate(linkedHost.LabelShortCap);
+			return summary;
 		}
 
 			public override string DescriptionDetailed
@@ -3830,7 +3857,14 @@ namespace ZombieLand
 				get
 				{
 					var linkedHost = LinkedHost;
-					var hostLabel = linkedHost == null ? "SymbiantHostUnknown".Translate().ToString() : linkedHost.LabelShortCap;
+					if (linkedHost == null)
+						return "SymbiantEffectCells".Translate(CellCount, MaxCells)
+							+ "\n" + SharedHealthSummary
+							+ "\n\n" + "SymbiantHostBondMissing".Translate();
+					if (IsActiveBondWith(linkedHost) == false)
+						return "ZombieSymbiantInspect".Translate(linkedHost.LabelShortCap, CellCount, SharedHealthSummary, NextBenefitCellSize)
+							+ "\n\n" + "SymbiantHostRelocatedMessage".Translate(linkedHost.LabelShortCap);
+					var hostLabel = linkedHost.LabelShortCap;
 					return "ZombieSymbiantInfoCardDetails".Translate(CellCount, NextBenefitCellSize, DownsideSummary, BenefitSummary, SharedHealthSummary, SharedDamageLeakPercentDisplay, hostLabel);
 				}
 			}
@@ -3884,12 +3918,15 @@ namespace ZombieLand
 			Scribe_Values.Look(ref cancelNextBreach, "cancelNextBreach");
 			Scribe_Values.Look(ref feedRequested, "feedRequested");
 			Scribe_Values.Look(ref sharedHealth, "sharedHealth", -1f);
+			Scribe_Values.Look(ref destroyWhenCellMotionsFinish, "destroyWhenCellMotionsFinish");
 			Scribe_References.Look(ref host, "host");
 			Scribe_Values.Look(ref hostThingId, "hostThingId");
 			Scribe_Values.Look(ref symbiosisSevered, "symbiosisSevered");
 			Scribe_Collections.Look(ref hostBenefits, "hostBenefits", LookMode.Value);
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
+				if (CellCount == 0)
+					destroyWhenCellMotionsFinish = true;
 				EnsureSymbiantDefaults();
 				if (PruneDisconnectedCells() > 0)
 					RebuildCellBounds();

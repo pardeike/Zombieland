@@ -37,7 +37,7 @@
 	<ZombiesSpitter>一隻喪屍噴吐者已進入地圖，並將對你發動圍攻</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>喪屍共生體連結到 {0}</LetterLabelZombieSymbiant>
 	<LetterLabelZombieSymbiantNoHost>喪屍共生體出現</LetterLabelZombieSymbiantNoHost>
-	<ZombieSymbiant>喪屍共生體已在 {0} 出現，並與 {1} 建立連結。它會在頻繁使用的室內房間中蔓延。穿過它的角色會變慢，宿主除外。宿主免疫喪屍咬傷所造成的感染，並會在共生體成長時獲得隨機增益。用屍體餵養它可以加快成長。\n\n請讓宿主和共生體留在同一張地圖上：如果宿主離開，連結會進入休眠，直到宿主返回前都無法正常移除。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結。\n\n請先替 {1} 動手術以正常移除連結；失去宿主的共生體之後會逐漸縮回。</ZombieSymbiant>
+	<ZombieSymbiant>喪屍共生體已在 {0} 出現，並與 {1} 建立連結。它會在頻繁使用的室內房間中蔓延。穿過它的角色會變慢，宿主除外。宿主免疫喪屍咬傷所造成的感染，並會在共生體成長時獲得隨機增益。用屍體餵養它可以加快成長。\n\n請讓宿主和共生體留在同一張地圖上：如果兩者分離，連結會進入休眠，休眠期間無法正常移除。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結。\n\n請先替 {1} 動手術以正常移除連結；失去宿主的共生體之後會逐漸縮回。</ZombieSymbiant>
 	<ZombieSymbiantNoHost>喪屍共生體已在 {0} 出現。它會在頻繁使用的室內房間中蔓延。用屍體餵養它可以加快成長。</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>你的某個房間</ZombieSymbiantUnknownRoom>
 	<ZombieSymbiantInspect>連結宿主：{0}，大小：{1} 格，共享生命值：{2}，下一項增益在 {3} 格</ZombieSymbiantInspect>
@@ -57,13 +57,13 @@
 	<SeverSymbiantSymbiosis>移除共生體連結</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>移除共生體連結（{0} 喪屍提取物）</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>{0} 的共生體連結已被移除。</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>共生體：{0}/{1} 格。下一項增益在 {2} 格。共享生命值：{3}。共生體會吸收大部分共享傷害；目前大小下只有 &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; 會傳到宿主。\n\n地圖規則：宿主和共生體必須在同一張地圖上，連結才會生效並能正常移除。如果兩者分離，連結會休眠，直到再次相聚。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結；手術可以先正常移除連結。\n\n增益：\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>共生體：{0}/{1} 格。下一項增益在 {2} 格。共享生命值：{3}。共生體會吸收大部分共享傷害；目前大小下只有 &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; 會傳到宿主。\n\n地圖規則：宿主和共生體必須在同一張地圖上，連結才會生效並能正常移除。如果兩者分離，連結會休眠。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結；手術可以先正常移除連結。\n\n增益：\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>沒有活躍共生體連結到此宿主。</SymbiantHostBondMissing>
 		<SymbiantHostRelocatedMessage>{0} 與共生體不在同一地圖，因此連結進入休眠。連結仍然保留。休眠期間，所有增益（包括殭屍感染免疫）、共享傷害傳遞和外科切斷連結均停用。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。</SymbiantHostRelocatedMessage>
 		<SymbiantMapAbandonWarningTitle>放棄有共生體的地圖？</SymbiantMapAbandonWarningTitle>
-		<SymbiantMapAbandonWarning>這張地圖上有一個活躍的喪屍共生體。放棄地圖會摧毀共生體，並強行切斷任何仍存在的連結。如果你想按正常流程分離，請先透過手術移除共生體連結。\n\n仍要放棄這張地圖嗎？</SymbiantMapAbandonWarning>
+		<SymbiantMapAbandonWarning>這張地圖上有一個仍存活並受地圖約束的喪屍共生體。放棄地圖會摧毀共生體，並強行切斷任何仍存在的連結。如果你想按正常流程分離，請先透過手術移除共生體連結。\n\n仍要放棄這張地圖嗎？</SymbiantMapAbandonWarning>
 		<SymbiantReseededMessage>{0} 的共生體移動到了另一個室內房間。</SymbiantReseededMessage>
-		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;目前狀態&lt;/color&gt;：&lt;color=#72d672&gt;{0} 格&lt;/color&gt;。下一項增益在 &lt;color=#72d672&gt;{1} 格&lt;/color&gt;。\n\n&lt;color=#72d672&gt;共享生命值&lt;/color&gt;：{4}。擊中宿主或共生體的傷害會消耗這個儲備。目前大小下只有 &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; 會傳到 {6}。如果這個儲備用盡，{6} 會死亡。\n\n&lt;color=#ffb35c&gt;地圖規則&lt;/color&gt;：宿主和共生體必須在同一張地圖上，連結才會生效並能正常移除。如果宿主離開，連結會休眠，直到宿主返回。放棄這張地圖會摧毀共生體，並強行切斷連結。手術可以先正常移除連結。\n\n&lt;color=#ffb35c&gt;目前效果&lt;/color&gt;：\n{2}\n\n&lt;color=#72d672&gt;目前增益&lt;/color&gt;：\n{3}\n\n它還會以微妙方式&lt;color=#72d672&gt;移除污染&lt;/color&gt;。</ZombieSymbiantInfoCardDetails>
+		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;目前狀態&lt;/color&gt;：&lt;color=#72d672&gt;{0} 格&lt;/color&gt;。下一項增益在 &lt;color=#72d672&gt;{1} 格&lt;/color&gt;。\n\n&lt;color=#72d672&gt;共享生命值&lt;/color&gt;：{4}。擊中宿主或共生體的傷害會消耗這個儲備。目前大小下只有 &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; 會傳到 {6}。如果這個儲備用盡，{6} 會死亡。\n\n&lt;color=#ffb35c&gt;地圖規則&lt;/color&gt;：宿主和共生體必須在同一張地圖上，連結才會生效並能正常移除。如果兩者分離，連結會休眠。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄這張地圖會摧毀共生體，並強行切斷連結。手術可以先正常移除連結。\n\n&lt;color=#ffb35c&gt;目前效果&lt;/color&gt;：\n{2}\n\n&lt;color=#72d672&gt;目前增益&lt;/color&gt;：\n{3}\n\n它還會以微妙方式&lt;color=#72d672&gt;移除污染&lt;/color&gt;。</ZombieSymbiantInfoCardDetails>
 		<SymbiantDetailsInfoCard>共生體詳細資訊</SymbiantDetailsInfoCard>
 		<SymbiantDetailsInfoCardValue>{0} 格</SymbiantDetailsInfoCardValue>
 		<LetterLabelSymbiantBenefitGained>共生體獲得增益</LetterLabelSymbiantBenefitGained>

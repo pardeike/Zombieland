@@ -14,6 +14,6 @@
   <ZombieSpitter.label>喪屍噴吐者</ZombieSpitter.label>
   <ZombieSpitter.description>一種會把喪屍從空中噴射進你的基地發動攻擊的怪物。</ZombieSpitter.description>
   <ZombieSymbiant.label>喪屍共生體</ZombieSymbiant.label>
-  <ZombieSymbiant.description>一種會在室內蔓延的喪屍共生體。它會以可見黏液的形態擴散到頻繁使用的室內房間，減慢穿過它的角色，並與一名殖民者建立連結。宿主免疫喪屍咬傷造成的感染，並會在共生體成長時獲得隨機增益。用屍體餵養它可以加快成長。手術會移除連結，失去宿主的共生體之後會逐漸縮回。</ZombieSymbiant.description>
+  <ZombieSymbiant.description>一種會在室內蔓延的喪屍共生體。它會以可見黏液的形態擴散到頻繁使用的室內房間，減慢穿過它的角色，並與一名殖民者建立連結。當宿主與共生體位於同一地圖時，宿主免疫喪屍咬傷造成的感染，並獲得連結已取得的增益。用屍體餵養它可以加快成長。手術會移除連結，失去宿主的共生體之後會逐漸縮回。</ZombieSymbiant.description>
 
 </LanguageData>
