@@ -148,9 +148,6 @@
 			<Flammability>0.05</Flammability>
 			<ComfyTemperatureMin>-100</ComfyTemperatureMin>
 			<ComfyTemperatureMax>250</ComfyTemperatureMax>
-			<ArmorRating_Sharp>0.80</ArmorRating_Sharp>
-			<ArmorRating_Blunt>0.30</ArmorRating_Blunt>
-			<ArmorRating_Heat>0.90</ArmorRating_Heat>
 			<FilthRate>48</FilthRate>
 			<MeatAmount>0</MeatAmount>
 			<ToxicResistance>1</ToxicResistance>

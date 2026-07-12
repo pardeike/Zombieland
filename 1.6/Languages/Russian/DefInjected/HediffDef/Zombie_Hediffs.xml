@@ -22,4 +22,7 @@
 	<SymbiantSymbiosis.label>связь симбионта</SymbiantSymbiosis.label>
 	<SymbiantSymbiosis.description>Этот поселенец связан с зомби-симбионтом. Носитель получает иммунитет к зомби-инфекции от укусов и случайные преимущества по мере роста симбионта. Пешки на клетках симбионта замедляются, кроме носителя. Кормление трупами ускоряет рост симбионта. Операция может удалить связь; симбионт без носителя затем отступит.</SymbiantSymbiosis.description>
 
+	<SymbiantDamageEcho.label>эхо урона симбионта</SymbiantDamageEcho.label>
+	<SymbiantDamageEcho.description>Безвредная запись урона, поглощённого связанным зомби-симбионтом.</SymbiantDamageEcho.description>
+
 </LanguageData>

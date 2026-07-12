@@ -47,13 +47,17 @@
 	<SymbiantDamageAbsorbedMote>吸收 {0}%</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>宿主</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} / {1}</SymbiantSharedHealthSummary>
+	<SymbiantDamageEchoLabel>{0}：{1} 点伤害</SymbiantDamageEchoLabel>
+	<SymbiantDamageEchoOther>其他</SymbiantDamageEchoOther>
+	<SymbiantDamageEchoDescription>当前联结期间由相连共生体吸收的累计伤害：{0}。这只是一条记录；不会使宿主受伤、失能、流血、倒地或死亡。</SymbiantDamageEchoDescription>
+	<SymbiantSharedHealthRecoveryDescription>一小时未承受共享伤害后，共生体每个平静小时恢复其缺失共享生命值的5%。</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>正在喂养共生体</FeedingZombieSymbiant>
 	<SymbiantFedMote>格子 +{1}</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>把 {0} {1} 喂给共生体（+{2} 格）</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>移除共生体连接</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>移除共生体连接（{0} 丧尸提取物）</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>{0} 的共生体连接已被移除。</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>共生体：{0}/{1} 格。下一项收益在 {2} 格。共享生命值：{3}。共生体会吸收大部分共享伤害；当前大小下只有 &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; 会传到宿主。\n\n地图规则：宿主和共生体必须在同一张地图上，连接才会生效并能正常移除。如果两者分离，连接会休眠。只有同一宿主与共生体再次位于同一地图时，连接才可能恢复。放弃共生体所在的地图会摧毁共生体，并强行切断连接；手术可以先正常移除连接。\n\n收益：\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>共生体：{0}/{1} 格。下一项收益在 {2} 格。共享生命值：{3}。宿主受击时，完整伤害会先扣除共享生命；当前大小下只有 &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; 会成为宿主的真实伤口。对共生体的攻击只会生成无害的灰色伤害记录，不会使宿主受伤。\n\n地图规则：宿主和共生体必须在同一张地图上，连接才会生效并能正常移除。如果两者分离，连接会休眠。只有同一宿主与共生体再次位于同一地图时，连接才可能恢复。放弃共生体所在的地图会摧毁共生体，并强行切断连接；手术可以先正常移除连接。\n\n收益：\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>没有活跃共生体连接到此宿主。</SymbiantHostBondMissing>
 		<SymbiantHostRelocatedMessage>{0} 与共生体不在同一地图，因此连接进入休眠。连接仍然保留。休眠期间，所有增益（包括僵尸感染免疫）、共享伤害传递和外科切断连接均停用。只有同一宿主与共生体再次位于同一地图时，连接才可能恢复。</SymbiantHostRelocatedMessage>
 		<LetterLabelSymbiantBondDormant>共生体连接休眠</LetterLabelSymbiantBondDormant>

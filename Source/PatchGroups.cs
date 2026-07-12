@@ -523,8 +523,10 @@ namespace ZombieLand
 		static readonly HashSet<string> HostilityPatchTypes = new()
 		{
 			"ZombieLand.AttackTargetFinder_BestAttackTarget_Patch",
+			"ZombieLand.AttackTargetFinder_BestAttackTarget_SymbiantContext_Patch",
 			"ZombieLand.AttackTargetFinder_FriendlyFire_Patch",
 			"ZombieLand.AttackTargetFinder_GetAvailableShootingTargetsByScore_Patch",
+			"ZombieLand.AttackTargetFinder_GetRandomShootingTargetByScore_Symbiant_Patch",
 			"ZombieLand.AttackTargetFinder_GetShootingTargetScore_Patch",
 			"ZombieLand.GenHostility_HostileTo_Thing_Faction_Patch",
 			"ZombieLand.GenHostility_HostileTo_Thing_Thing_Patch",
@@ -537,6 +539,21 @@ namespace ZombieLand
 
 		static readonly HashSet<string> CombatPatchTypes = new()
 		{
+			"ZombieLand.Patches+Thing_TakeDamage_Symbiant_Patch",
+			"ZombieLand.Patches+HediffSet_GetPartHealth_Symbiant_Patch",
+			"ZombieLand.Patches+Pawn_HealthTracker_ShouldBeDead_Symbiant_Patch",
+			"ZombieLand.Patches+Pawn_HealthTracker_ShouldBeDowned_Symbiant_Patch",
+			"ZombieLand.Patches+SummaryHealthHandler_SummaryHealthPercent_Symbiant_Patch",
+			"ZombieLand.ShootLeanUtility_CalcShootableCellsOf_Symbiant_Patch",
+			"ZombieLand.Verb_TryFindShootLineFromTo_Symbiant_Patch",
+			"ZombieLand.ShotReport_HitReportFor_SymbiantCell_Patch",
+			"ZombieLand.ReachabilityUtility_CanReach_Symbiant_Patch",
+			"ZombieLand.ReachabilityImmediate_CanReachImmediate_Symbiant_Patch",
+			"ZombieLand.JobGiver_AIFightEnemy_MeleeAttackJob_Symbiant_Patch",
+			"ZombieLand.Verb_LaunchProjectile_TryCastShot_SymbiantContext_Patch",
+			"ZombieLand.Projectile_Launch_SymbiantCell_Patch",
+			"ZombieLand.Projectile_ImpactSomething_SymbiantCell_Patch",
+			"ZombieLand.Pawn_DrawTracker_Notify_MeleeAttackOn_Symbiant_Patch",
 			"ZombieLand.Patches+Pawn_MeleeVerbs_TryMeleeAttack_Patch",
 			"ZombieLand.Patches+FloatMenuUtility_GetMeleeAttackAction_Patch",
 			"ZombieLand.Patches+Projectile_ImpactSomething_Patch",

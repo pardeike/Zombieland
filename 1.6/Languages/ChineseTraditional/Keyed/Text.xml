@@ -47,13 +47,17 @@
 	<SymbiantDamageAbsorbedMote>吸收 {0}%</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>宿主</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} / {1}</SymbiantSharedHealthSummary>
+	<SymbiantDamageEchoLabel>{0}：{1} 點傷害</SymbiantDamageEchoLabel>
+	<SymbiantDamageEchoOther>其他</SymbiantDamageEchoOther>
+	<SymbiantDamageEchoDescription>目前連結期間由相連共生體吸收的累積傷害：{0}。這只是一筆記錄；不會使宿主受傷、失能、流血、倒地或死亡。</SymbiantDamageEchoDescription>
+	<SymbiantSharedHealthRecoveryDescription>一小時未承受共享傷害後，共生體每個平靜小時恢復其缺失共享生命值的5%。</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>正在餵養共生體</FeedingZombieSymbiant>
 	<SymbiantFedMote>+{1} 格</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>把 {0} {1} 餵給共生體（+{2} 格）</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>移除共生體連結</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>移除共生體連結（{0} 喪屍提取物）</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>{0} 的共生體連結已被移除。</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>共生體：{0}/{1} 格。下一項增益在 {2} 格。共享生命值：{3}。共生體會吸收大部分共享傷害；目前大小下只有 &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; 會傳到宿主。\n\n地圖規則：宿主和共生體必須在同一張地圖上，連結才會生效並能正常移除。如果兩者分離，連結會休眠。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結；手術可以先正常移除連結。\n\n增益：\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>共生體：{0}/{1} 格。下一項增益在 {2} 格。共享生命值：{3}。宿主受擊時，完整傷害會先扣除共享生命；目前大小下只有 &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; 會成為宿主的真實傷口。對共生體的攻擊只會產生無害的灰色傷害記錄，不會使宿主受傷。\n\n地圖規則：宿主和共生體必須在同一張地圖上，連結才會生效並能正常移除。如果兩者分離，連結會休眠。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結；手術可以先正常移除連結。\n\n增益：\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>沒有活躍共生體連結到此宿主。</SymbiantHostBondMissing>
 		<SymbiantHostRelocatedMessage>{0} 與共生體不在同一地圖，因此連結進入休眠。連結仍然保留。休眠期間，所有增益（包括殭屍感染免疫）、共享傷害傳遞和外科切斷連結均停用。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。</SymbiantHostRelocatedMessage>
 		<LetterLabelSymbiantBondDormant>共生體連結休眠</LetterLabelSymbiantBondDormant>

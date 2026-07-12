@@ -47,13 +47,17 @@
 	<SymbiantDamageAbsorbedMote>{0}% absorbé</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>l'hôte</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} sur {1}</SymbiantSharedHealthSummary>
+	<SymbiantDamageEchoLabel>{0} : {1} dégâts</SymbiantDamageEchoLabel>
+	<SymbiantDamageEchoOther>autres</SymbiantDamageEchoOther>
+	<SymbiantDamageEchoDescription>Dégâts cumulés absorbés par le symbiote lié pendant le lien actuel : {0}. Ceci n'est qu'un relevé : il ne blesse pas l'hôte, ne l'affaiblit pas, ne le fait pas saigner, ne le met pas à terre et ne le tue pas.</SymbiantDamageEchoDescription>
+	<SymbiantSharedHealthRecoveryDescription>Après une heure sans dégâts partagés, le symbiote récupère 5 % de sa santé partagée manquante par heure calme.</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>nourrit le Symbiant</FeedingZombieSymbiant>
 	<SymbiantFedMote>cases +{1}</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>Nourrir le Symbiant avec {0} {1} (+{2} cases)</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>retirer le lien du Symbiant</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>retirer le lien du Symbiant ({0} extrait de zombie)</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>Le lien de Symbiant de {0} a été retiré.</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>Symbiant : {0}/{1} cases. Prochain avantage à {2} cases. Santé partagée : {3}. Le Symbiant absorbe la majeure partie des dégâts partagés ; &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; atteint l'hôte à cette taille.\n\nRègle de carte : l'hôte et le Symbiant doivent être sur la même carte pour que le lien soit actif et puisse être retiré proprement. S'ils sont séparés, le lien devient dormant. Il ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte. Abandonner la carte du Symbiant le détruit et rompt le lien de force ; une opération retire d'abord le lien proprement.\n\nAvantages :\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>Symbiant : {0}/{1} cases. Prochain avantage à {2} cases. Santé partagée : {3}. Lorsque l'hôte est touché, l'attaque complète draine d'abord la santé partagée ; à cette taille, &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; reste sous forme de véritable blessure de l'hôte. Les attaques contre le Symbiant créent des relevés gris inoffensifs au lieu de blessures de l'hôte.\n\nRègle de carte : l'hôte et le Symbiant doivent être sur la même carte pour que le lien soit actif et puisse être retiré proprement. S'ils sont séparés, le lien devient dormant. Il ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte. Abandonner la carte du Symbiant le détruit et rompt le lien de force ; une opération retire d'abord le lien proprement.\n\nAvantages :\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Aucun Symbiant actif n'est lié à cet hôte.</SymbiantHostBondMissing>
 		<SymbiantHostRelocatedMessage>Le lien de Symbiant de {0} est en dormance, car l'hôte et le Symbiant ne se trouvent pas sur la même carte. Le lien subsiste. Pendant la dormance, tous les avantages (y compris l'immunité aux infections zombies), le transfert des dégâts et l'ablation chirurgicale sont inactifs. Le lien ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte.</SymbiantHostRelocatedMessage>
 		<LetterLabelSymbiantBondDormant>Lien de Symbiant en dormance</LetterLabelSymbiantBondDormant>

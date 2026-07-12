@@ -9,6 +9,7 @@ using System.Linq;
 using UnityEngine;
 using Verse;
 using Verse.AI;
+using Verse.AI.Group;
 
 namespace ZombieLand
 {
@@ -1829,13 +1830,41 @@ namespace ZombieLand
 			}
 		}
 
-		[Tool("zombieland/symbiant_combat_isolation_contract", Description = "Verify the symbiant Pawn shell stays minimal while hostile enemies can target it and feed jobs can still discover it.")]
+		[Tool("zombieland/symbiant_combat_isolation_contract", Description = "Verify Symbiant combat-cell targeting, or stage/read/clean a real assault-colony AI scenario.")]
 		public static object SymbiantCombatIsolationContract(
+			[ToolParameter(Description = "contract, setup-assault, read-assault, or cleanup.", Required = false, DefaultValue = "contract")] string mode = "contract",
 			[ToolParameter(Description = "Destroy temporary pawns, feed corpse, letter, and symbiant after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
 			var map = CurrentMap;
 			if (map == null)
 				return new { success = false, error = "No current map is loaded." };
+			mode = (mode ?? "contract").Trim().ToLowerInvariant();
+			if (mode == "read-assault")
+				return DescribeSymbiantAssaultState(map);
+			if (mode == "cleanup")
+			{
+				var fixtureCaskets = map.listerThings.AllThings
+					.OfType<Building_CryptosleepCasket>()
+					.Where(casket => casket.GetDirectlyHeldThings().OfType<Pawn>()
+						.Any(pawn => pawn?.Name?.ToStringShort?.StartsWith("ZL_SymbiantCombat_", StringComparison.Ordinal) == true))
+					.ToArray();
+				foreach (var casket in fixtureCaskets)
+					casket.EjectContents();
+				var fixturePawns = map.mapPawns.AllPawns
+					.Where(pawn => pawn?.Name?.ToStringShort?.StartsWith("ZL_SymbiantCombat_", StringComparison.Ordinal) == true)
+					.ToArray();
+				foreach (var pawn in fixturePawns)
+					if (pawn.Destroyed == false)
+						pawn.Destroy(DestroyMode.Vanish);
+				foreach (var casket in fixtureCaskets)
+					if (casket.Destroyed == false)
+						casket.Destroy(DestroyMode.Vanish);
+				var fixtureSymbiant = ZombieSymbiant.ActiveSymbiant(map);
+				var symbiantCleanup = CleanupTemporarySymbiant(map, fixtureSymbiant, true);
+				return new { success = fixturePawns.All(pawn => pawn.Destroyed) && fixtureCaskets.All(casket => casket.Destroyed) && ZombieSymbiant.ActiveSymbiant(map) == null, removedPawns = fixturePawns.Length, removedCaskets = fixtureCaskets.Length, symbiantCleanup };
+			}
+			if (mode != "contract" && mode != "setup-assault")
+				return new { success = false, error = "Unsupported mode.", mode, supported = new[] { "contract", "setup-assault", "read-assault", "cleanup" } };
 			var activeBefore = ZombieSymbiant.ActiveSymbiant(map);
 			if (activeBefore != null)
 				return new { success = false, error = "An active symbiant already exists on the current map.", activeSymbiant = ZombieRuntimeActions.StableThingId(activeBefore) };
@@ -1851,6 +1880,8 @@ namespace ZombieLand
 			var beforeLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>()).ToHashSet();
 			var spawnedThings = new List<Thing>();
 			ZombieSymbiant symbiant = null;
+			Pawn dedicatedHost = null;
+			Building_CryptosleepCasket hostCasket = null;
 			object result;
 
 			try
@@ -1869,27 +1900,181 @@ namespace ZombieLand
 
 				var player = SpawnArmedAreaWorkflowPawn(map, "ZL_SymbiantCombat_Player", cells[0], Faction.OfPlayer, spawnedThings);
 				var enemy = SpawnArmedAreaWorkflowPawn(map, "ZL_SymbiantCombat_Enemy", cells[1], hostileFaction, spawnedThings);
+				var enemySecond = SpawnArmedAreaWorkflowPawn(map, "ZL_SymbiantCombat_EnemySecond", cells[5], hostileFaction, spawnedThings);
 				var animal = SpawnAreaWorkflowAnimal(map, "ZL_SymbiantCombat_Animal", cells[2], Faction.OfPlayer, spawnedThings, def => def.combatPower > 0f);
 				var predator = SpawnAreaWorkflowAnimal(map, "ZL_SymbiantCombat_Predator", cells[3], Faction.OfPlayer, spawnedThings, def => def.RaceProps?.predator == true || def.combatPower >= 1f);
-				ZombieSymbiant.Spawn(map, cells[4]);
-				symbiant = ZombieSymbiant.ActiveSymbiant(map);
+				var symbiantShape = new[] { cells[4] }
+					.Concat(GenAdj.CardinalDirections.Select(direction => cells[4] + direction))
+					.Where(cell => cell.InBounds(map) && cell.GetEdifice(map) == null)
+					.ToArray();
+				symbiant = ZombieSymbiant.DebugSpawnForRendering(map, cells[4], symbiantShape);
 				if (symbiant != null)
 					symbiant.Name = new NameSingle("ZL_SymbiantCombat_Goo");
-				var enemyTargetCell = symbiant == null
-					? IntVec3.Invalid
-					: GenAdj.CellsAdjacentCardinal(symbiant)
-						.FirstOrDefault(cell => cell.InBounds(map) && cell.Standable(map) && cell.GetEdifice(map) == null && cell.GetFirstPawn(map) == null);
-				if (enemyTargetCell.IsValid == false)
-					return new { success = false, error = "Could not place the hostile target-search pawn adjacent to the Symbiant." };
-				_ = enemy.DeSpawnOrDeselect(DestroyMode.Vanish);
-				GenSpawn.Spawn(enemy, enemyTargetCell, map, Rot4.South, WipeMode.Vanish);
+				if (TryFindClearBuildingCell(map, cells[4] + new IntVec3(8, 0, 8), 20f, out var hostCasketCell, out var hostCasketCellError) == false)
+					return hostCasketCellError;
+				var casketDef = DefDatabase<ThingDef>.GetNamedSilentFail("CryptosleepCasket");
+				hostCasket = casketDef == null
+					? null
+					: GenSpawn.Spawn(ThingMaker.MakeThing(casketDef), hostCasketCell, map, Rot4.North, WipeMode.Vanish) as Building_CryptosleepCasket;
+				if (hostCasket == null)
+					return new { success = false, error = "Could not spawn the same-map host casket for the Symbiant combat fixture." };
+				spawnedThings.Add(hostCasket);
+				if (TryFindClearSpawnCell(map, hostCasketCell + IntVec3.East, 6f, out var hostSpawnCell, out var hostSpawnCellError) == false)
+					return hostSpawnCellError;
+				dedicatedHost = SpawnAreaWorkflowPawn(map, "ZL_SymbiantCombat_Host", hostSpawnCell, Faction.OfPlayer, spawnedThings);
+				AccessTools.Method(typeof(ZombieSymbiant), "AssignHost")?.Invoke(symbiant, new object[] { dedicatedHost });
+				dedicatedHost.DeSpawn();
+				var hostAccepted = hostCasket.TryAcceptThing(dedicatedHost, false);
+				var hostHeldByCasket = hostCasket.GetDirectlyHeldThings().Contains(dedicatedHost);
+				var hostCasketSetup = new
+				{
+					success = hostAccepted
+						&& hostHeldByCasket
+						&& dedicatedHost.Spawned == false
+						&& dedicatedHost.MapHeld == map
+						&& symbiant?.LinkedHost == dedicatedHost
+						&& symbiant.IsActiveBondWith(dedicatedHost),
+					hostAccepted,
+					hostHeldByCasket,
+					host = DescribePawn(dedicatedHost),
+					casket = ZombieRuntimeActions.StableThingId(hostCasket),
+					cell = ZombieRuntimeActions.DescribeCell(hostCasketCell),
+					bondActive = symbiant?.IsActiveBondWith(dedicatedHost) == true
+				};
 				RefreshZombieTargetCache(map);
+				var enemyVerb = enemy?.CurrentEffectiveVerb;
+				var enemySecondVerb = enemySecond?.CurrentEffectiveVerb;
+				object ceAmmoSetup = null;
+				object ceAmmoSetupSecond = null;
+				var ceAmmoType = AccessTools.TypeByName("CombatExtended.CompAmmoUser");
+				if (ceAmmoType != null)
+				{
+					var ceAmmo = FindCompAssignableTo(enemy?.equipment?.Primary as ThingWithComps, ceAmmoType);
+					ceAmmoSetup = SetupCeAmmoForShot(ceAmmo, ceAmmoType);
+					var ceAmmoSecond = FindCompAssignableTo(enemySecond?.equipment?.Primary as ThingWithComps, ceAmmoType);
+					ceAmmoSetupSecond = SetupCeAmmoForShot(ceAmmoSecond, ceAmmoType);
+				}
+				var rangedCell = IntVec3.Invalid;
+				var rangedLine = default(ShootLine);
+				var selectedRanged = enemyVerb != null
+					&& ZombieSymbiantCombat.TrySelectRangedCell(enemyVerb, enemy.Position, symbiant, out rangedCell, out rangedLine);
+				var rangedCellSecond = IntVec3.Invalid;
+				var rangedLineSecond = default(ShootLine);
+				var selectedRangedSecond = enemySecondVerb != null
+					&& ZombieSymbiantCombat.TrySelectRangedCell(enemySecondVerb, enemySecond.Position, symbiant, out rangedCellSecond, out rangedLineSecond);
+				var meleeStand = IntVec3.Invalid;
+				var meleeTarget = IntVec3.Invalid;
+				var selectedMelee = ZombieSymbiantCombat.TrySelectMeleeCells(enemy, symbiant, out meleeStand, out meleeTarget);
+				var logicalCells = ZombieSymbiantCombat.Cells(symbiant).ToArray();
+				var thingGridRegistrations = logicalCells.Count(cell => cell.GetThingList(map).Contains(symbiant));
+				var combatGeometry = new
+				{
+					success = logicalCells.Length == symbiant.CellCount
+						&& map.mapPawns.AllPawnsSpawned.Count(pawn => pawn is ZombieSymbiant) == 1
+						&& thingGridRegistrations == 1
+						&& selectedRanged
+						&& symbiant.ContainsCell(rangedCell)
+						&& selectedRangedSecond
+						&& symbiant.ContainsCell(rangedCellSecond)
+						&& selectedMelee
+						&& symbiant.ContainsCell(meleeTarget)
+						&& meleeStand.AdjacentTo8WayOrInside(meleeTarget),
+					root = ZombieRuntimeActions.DescribeCell(symbiant.Position),
+					logicalCellCount = logicalCells.Length,
+					boundaryCellCount = ZombieSymbiantCombat.BoundaryCells(symbiant).Count,
+					pawnIdentityCount = map.mapPawns.AllPawnsSpawned.Count(pawn => pawn is ZombieSymbiant),
+					thingGridRegistrations,
+					selectedRanged,
+					rangedCell = rangedCell.IsValid ? ZombieRuntimeActions.DescribeCell(rangedCell) : null,
+					rangedLine = selectedRanged ? new { source = ZombieRuntimeActions.DescribeCell(rangedLine.Source), dest = ZombieRuntimeActions.DescribeCell(rangedLine.Dest) } : null,
+					selectedRangedSecond,
+					rangedCellSecond = rangedCellSecond.IsValid ? ZombieRuntimeActions.DescribeCell(rangedCellSecond) : null,
+					rangedLineSecond = selectedRangedSecond ? new { source = ZombieRuntimeActions.DescribeCell(rangedLineSecond.Source), dest = ZombieRuntimeActions.DescribeCell(rangedLineSecond.Dest) } : null,
+					selectedMelee,
+					meleeStand = meleeStand.IsValid ? ZombieRuntimeActions.DescribeCell(meleeStand) : null,
+					meleeTarget = meleeTarget.IsValid ? ZombieRuntimeActions.DescribeCell(meleeTarget) : null
+				};
+				var nearestLogicalDistance = logicalCells.Min(cell => cell.DistanceTo(enemy.Position));
+				var rootDistance = symbiant.Position.DistanceTo(enemy.Position);
+				var logicalRangeLimit = (nearestLogicalDistance + rootDistance) / 2f;
+				var logicalRangeTarget = rootDistance > nearestLogicalDistance
+					? AttackTargetFinder.BestAttackTarget(enemy, TargetScanFlags.NeedThreat, thing => thing == symbiant, 0f, logicalRangeLimit)
+					: null;
+				var validatorRejectedTarget = AttackTargetFinder.BestAttackTarget(enemy, TargetScanFlags.NeedThreat, _ => false, 0f, 999f);
+				var originalRoofs = logicalCells.ToDictionary(cell => cell, cell => map.roofGrid.RoofAt(cell));
+				IAttackTarget thickRoofRejectedTarget = null;
+				try
+				{
+					foreach (var cell in logicalCells)
+						map.roofGrid.SetRoof(cell, RoofDefOf.RoofRockThick);
+					thickRoofRejectedTarget = AttackTargetFinder.BestAttackTarget(
+						enemy,
+						TargetScanFlags.NeedThreat | TargetScanFlags.NeedNotUnderThickRoof,
+						thing => thing == symbiant,
+						0f,
+						999f);
+				}
+				finally
+				{
+					foreach (var pair in originalRoofs)
+						map.roofGrid.SetRoof(pair.Key, pair.Value);
+				}
+				var targetScanGates = new
+				{
+					success = rootDistance > logicalRangeLimit
+						&& nearestLogicalDistance <= logicalRangeLimit
+						&& logicalRangeTarget?.Thing == symbiant
+						&& validatorRejectedTarget == null
+						&& thickRoofRejectedTarget == null,
+					rootDistance,
+					nearestLogicalDistance,
+					logicalRangeLimit,
+					logicalRangeTarget = DescribeTarget(logicalRangeTarget),
+					validatorRejectedTarget = DescribeTarget(validatorRejectedTarget),
+					thickRoofRejectedTarget = DescribeTarget(thickRoofRejectedTarget)
+				};
+				var blastCell = logicalCells.FirstOrDefault(cell => cell != symbiant.Position);
+				var sharedHealthBeforeBlast = symbiant.DamageAbsorptionBuffer;
+				var explosionMatchedBefore = ZombieSymbiantCombat.ExplosionMatchedCellCount;
+				var explosionAppliedBefore = ZombieSymbiantCombat.ExplosionAppliedDamageCount;
+				var explosionAlreadyDamagedBefore = ZombieSymbiantCombat.ExplosionAlreadyDamagedCount;
+				if (blastCell.IsValid)
+					GenExplosion.DoExplosion(
+						blastCell,
+						map,
+						0.49f,
+						DamageDefOf.Bomb,
+						enemy,
+						5,
+						0f,
+						doVisualEffects: false,
+						doSoundEffects: false);
+				if (blastCell.IsValid)
+					AdvanceGameTicks(3);
+				var sharedHealthAfterBlast = symbiant.DamageAbsorptionBuffer;
+				var explosionDamage = new
+				{
+					success = blastCell.IsValid
+						&& symbiant.ContainsCell(blastCell)
+						&& blastCell.GetThingList(map).Contains(symbiant) == false
+						&& sharedHealthBeforeBlast - sharedHealthAfterBlast == 5,
+					blastCell = blastCell.IsValid ? ZombieRuntimeActions.DescribeCell(blastCell) : null,
+					ownerRegisteredAtBlastCell = blastCell.IsValid && blastCell.GetThingList(map).Contains(symbiant),
+					sharedHealthBeforeBlast,
+					sharedHealthAfterBlast,
+					delta = sharedHealthBeforeBlast - sharedHealthAfterBlast,
+					matchedCells = ZombieSymbiantCombat.ExplosionMatchedCellCount - explosionMatchedBefore,
+					appliedDamageCalls = ZombieSymbiantCombat.ExplosionAppliedDamageCount - explosionAppliedBefore,
+					alreadyDamagedMatches = ZombieSymbiantCombat.ExplosionAlreadyDamagedCount - explosionAlreadyDamagedBefore,
+					lastMatchedCell = ZombieSymbiantCombat.LastExplosionMatchedCell.IsValid ? ZombieRuntimeActions.DescribeCell(ZombieSymbiantCombat.LastExplosionMatchedCell) : null
+				};
 
 				var pawnSystems = DescribeSymbiantCombatPawnSystems(map, symbiant, player, enemy);
 				var targetFinding = new
 				{
 					player = DescribeBestSymbiantTarget(player, symbiant, false),
 					enemy = DescribeBestSymbiantTarget(enemy, symbiant, true),
+					enemySecond = DescribeBestSymbiantTarget(enemySecond, symbiant, true),
 					animal = DescribeBestSymbiantTarget(animal, symbiant, false),
 					predator = DescribeBestSymbiantTarget(predator, symbiant, false)
 				};
@@ -1898,13 +2083,30 @@ namespace ZombieLand
 					playerMelee = VerifySymbiantAttackJob(player, symbiant, JobDefOf.AttackMelee, false),
 					playerStatic = VerifySymbiantAttackJob(player, symbiant, JobDefOf.AttackStatic, false),
 					enemyMelee = VerifySymbiantAttackJob(enemy, symbiant, JobDefOf.AttackMelee, true),
+					enemySecondMelee = VerifySymbiantAttackJob(enemySecond, symbiant, JobDefOf.AttackMelee, true),
 					symbiantMelee = VerifySymbiantAttackJob(symbiant, player, JobDefOf.AttackMelee, false)
 				};
+				object meleeRebinding = mode == "setup-assault"
+					? new { success = true, skipped = true, reason = "Preserve the full logical shape for the real ranged-impact scenario." }
+					: VerifySymbiantMeleeRebinding(enemy, symbiant);
 				var animalResponse = new
 				{
 					manhunterChance = animal == null || symbiant == null ? null : (float?)PawnUtility.GetManhunterOnDamageChance(animal, symbiant, animal.Position.DistanceTo(symbiant.Position)),
 					preyScore = predator == null || symbiant == null ? null : (float?)FoodUtility.GetPreyScoreFor(predator, symbiant)
 				};
+				if (mode == "setup-assault")
+				{
+					foreach (var bystander in new[] { player, animal, predator })
+						if (bystander?.Destroyed == false)
+							bystander.Destroy(DestroyMode.Vanish);
+					enemy.jobs?.StopAll(false, true);
+					enemySecond.jobs?.StopAll(false, true);
+					_ = LordMaker.MakeNewLord(
+						hostileFaction,
+						new LordJob_AssaultColony(hostileFaction, true, true, false, false, true, false, true),
+						map,
+						new[] { enemy, enemySecond });
+				}
 				var patchTargets = new
 				{
 					availableShootingTargets = PatchedMethodsForPatchClass("AttackTargetFinder_GetAvailableShootingTargetsByScore_Patch"),
@@ -1919,18 +2121,30 @@ namespace ZombieLand
 					flee = PatchedMethodsForPatchClass("FleeUtility_ShouldFleeFrom_Patch"),
 					manhunter = PatchedMethodsForPatchClass("PawnUtility_GetManhunterOnDamageChance_Patch"),
 					prey = PatchedMethodsForPatchClass("FoodUtility_GetPreyScoreFor_Patch")
+					,shootableCells = PatchedMethodsForPatchClass("ShootLeanUtility_CalcShootableCellsOf_Symbiant_Patch")
+					,shootLine = PatchedMethodsForPatchClass("Verb_TryFindShootLineFromTo_Symbiant_Patch")
+					,projectileLaunch = PatchedMethodsForPatchClass("Projectile_Launch_SymbiantCell_Patch")
+					,projectileImpact = PatchedMethodsForPatchClass("Projectile_ImpactSomething_SymbiantCell_Patch")
+					,explosion = PatchedMethodsForPatchClass("Explosion_AffectCell_Patch")
 				};
 
 				var success = symbiant?.Spawned == true
+					&& ScenarioSucceeded(hostCasketSetup)
+					&& ScenarioSucceeded(combatGeometry)
+					&& ScenarioSucceeded(targetScanGates)
+					&& ScenarioSucceeded(explosionDamage)
 					&& ScenarioSucceeded(pawnSystems)
 					&& ScenarioSucceeded(targetFinding.player)
 					&& ScenarioSucceeded(targetFinding.enemy)
+					&& ScenarioSucceeded(targetFinding.enemySecond)
 					&& ScenarioSucceeded(targetFinding.animal)
 					&& ScenarioSucceeded(targetFinding.predator)
 					&& ScenarioSucceeded(forcedJobs.playerMelee)
 					&& ScenarioSucceeded(forcedJobs.playerStatic)
 					&& ScenarioSucceeded(forcedJobs.enemyMelee)
+					&& ScenarioSucceeded(forcedJobs.enemySecondMelee)
 					&& ScenarioSucceeded(forcedJobs.symbiantMelee)
+					&& ScenarioSucceeded(meleeRebinding)
 					&& animalResponse.manhunterChance == 0f
 					&& animalResponse.preyScore <= -9999f
 					&& patchTargets.bestAttackTarget.Length > 0
@@ -1942,21 +2156,31 @@ namespace ZombieLand
 				result = new
 				{
 					success,
-					sourcePath = "Patches_Hostility + AttackTargetsCache + Pawn_JobTracker_StartJob_Patch",
+					sourcePath = "ZombieSymbiantCombat + Patches_Hostility + projectile/melee/explosion adapters",
 					fixtureCells = cells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 					pawns = new
 					{
+						host = DescribePawn(dedicatedHost),
 						player = DescribePawn(player),
 						enemy = DescribePawn(enemy),
+						enemySecond = DescribePawn(enemySecond),
 						animal = DescribePawn(animal),
 						predator = DescribePawn(predator),
 						symbiant = DescribePawn(symbiant)
 					},
+					hostCasketSetup,
 					pawnSystems,
+					combatGeometry,
+					targetScanGates,
+					ceAmmoSetup,
+					ceAmmoSetupSecond,
+					explosionDamage,
 					targetFinding,
 					forcedJobs,
+					meleeRebinding,
 					animalResponse,
 					patchTargets
+					,assault = mode == "setup-assault" ? DescribeSymbiantAssaultState(map) : null
 				};
 			}
 			catch (Exception ex)
@@ -1965,18 +2189,70 @@ namespace ZombieLand
 			}
 			finally
 			{
-				_ = CleanupTemporarySymbiant(map, symbiant, cleanup);
-				if (cleanup)
+				var shouldCleanup = cleanup && mode != "setup-assault";
+				_ = CleanupTemporarySymbiant(map, symbiant, shouldCleanup);
+				if (shouldCleanup)
+				{
+					if (hostCasket?.Destroyed == false)
+						hostCasket.EjectContents();
 					foreach (var thing in spawnedThings.Where(thing => thing != null && thing.Destroyed == false).Distinct().ToArray())
 						thing.Destroy(DestroyMode.Vanish);
+				}
 				var newLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
 					.Where(letter => beforeLetters.Contains(letter) == false)
 					.ToArray();
-				_ = CleanupTemporaryLetters(newLetters, cleanup);
+				_ = CleanupTemporaryLetters(newLetters, shouldCleanup);
 				RestoreZombieSettings(settingsSnapshot);
 			}
 
 			return result;
+		}
+
+		static object DescribeSymbiantAssaultState(Map map)
+		{
+			var symbiant = ZombieSymbiant.ActiveSymbiant(map);
+			var host = map.mapPawns.AllPawns
+				.FirstOrDefault(pawn => pawn?.Name?.ToStringShort == "ZL_SymbiantCombat_Host");
+			var attackers = map.mapPawns.AllPawnsSpawned
+				.Where(pawn => pawn?.Name?.ToStringShort?.StartsWith("ZL_SymbiantCombat_Enemy", StringComparison.Ordinal) == true)
+				.Select(pawn => new
+				{
+					pawn = DescribePawn(pawn),
+					lordJob = pawn.GetLord()?.LordJob?.GetType().FullName,
+					duty = pawn.mindState?.duty?.def?.defName,
+					stance = pawn.stances?.curStance?.GetType().FullName,
+					stanceFocus = pawn.stances?.curStance is Stance_Busy busy ? ZombieRuntimeActions.StableThingId(busy.focusTarg.Thing) : null,
+					lastAttackedTarget = ZombieRuntimeActions.StableThingId(pawn.mindState?.lastAttackedTarget.Thing),
+					targetAThing = ZombieRuntimeActions.StableThingId(pawn.CurJob?.targetA.Thing),
+					targetACell = pawn.CurJob?.targetA.IsValid == true ? ZombieRuntimeActions.DescribeCell(pawn.CurJob.targetA.Cell) : null,
+					targetB = pawn.CurJob?.targetB.IsValid == true ? ZombieRuntimeActions.DescribeCell(pawn.CurJob.targetB.Cell) : null,
+					targetC = pawn.CurJob?.targetC.IsValid == true ? ZombieRuntimeActions.DescribeCell(pawn.CurJob.targetC.Cell) : null,
+					distanceToNearestSymbiantCell = symbiant == null ? (float?)null : ZombieSymbiantCombat.Cells(symbiant).Min(cell => cell.DistanceTo(pawn.Position))
+				})
+				.ToArray();
+			return new
+			{
+				success = symbiant?.Spawned == true
+					&& host != null
+					&& symbiant.IsActiveBondWith(host)
+					&& attackers.Length > 0
+					&& attackers.All(attacker => attacker.lordJob == typeof(LordJob_AssaultColony).FullName),
+				symbiant = DescribePawn(symbiant),
+				host = DescribePawn(host),
+				damageFacade = DescribeSymbiantDamageFacade(host, symbiant),
+				logicalCells = symbiant == null ? Array.Empty<object>() : ZombieSymbiantCombat.Cells(symbiant).Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+				combatExtendedLogicalCollisions = new
+				{
+					count = ZombieSymbiantCombat.CombatExtendedLogicalCollisionCount,
+					lastCell = ZombieSymbiantCombat.LastCombatExtendedLogicalCollisionCell.IsValid
+						? ZombieRuntimeActions.DescribeCell(ZombieSymbiantCombat.LastCombatExtendedLogicalCollisionCell)
+						: null,
+					lastCellIsNonRoot = symbiant != null
+						&& ZombieSymbiantCombat.LastCombatExtendedLogicalCollisionCell.IsValid
+						&& ZombieSymbiantCombat.LastCombatExtendedLogicalCollisionCell != symbiant.Position
+				},
+				attackers
+			};
 		}
 
 		static bool TryFindSymbiantCombatFixtureCells(Map map, IntVec3 root, int count, out IntVec3[] cells, out object error)
@@ -2076,6 +2352,8 @@ namespace ZombieLand
 			actor.jobs.StartJob(job, JobCondition.InterruptForced, null, false, true);
 			var afterJob = actor.CurJob;
 			var accepted = afterJob != null && afterJob.def == jobDef && afterJob.targetA.Thing == target;
+			var targetB = afterJob?.targetB ?? LocalTargetInfo.Invalid;
+			var targetC = afterJob?.targetC ?? LocalTargetInfo.Invalid;
 			actor.jobs.StopAll(false, true);
 			return new
 			{
@@ -2088,7 +2366,55 @@ namespace ZombieLand
 				beforeTarget,
 				afterJobDef = afterJob?.def?.defName,
 				afterTarget = ZombieRuntimeActions.StableThingId(afterJob?.targetA.Thing),
+				targetB = targetB.IsValid ? ZombieRuntimeActions.DescribeCell(targetB.Cell) : null,
+				targetC = targetC.IsValid ? ZombieRuntimeActions.DescribeCell(targetC.Cell) : null,
+				meleeCellBinding = jobDef != JobDefOf.AttackMelee || expectAccepted == false || (targetB.IsValid && targetC.IsValid),
 				accepted
+			};
+		}
+
+		static object VerifySymbiantMeleeRebinding(Pawn actor, ZombieSymbiant symbiant)
+		{
+			if (actor == null || symbiant == null)
+				return new { success = false, error = "Missing melee actor or Symbiant." };
+			if (ZombieSymbiantCombat.TrySelectMeleeCells(actor, symbiant, out var originalStand, out var originalTarget, Danger.Deadly, cell => cell != symbiant.Position) == false)
+				return new { success = false, error = "Could not select a removable non-root melee target cell." };
+
+			var job = JobMaker.MakeJob(JobDefOf.AttackMelee, symbiant);
+			job.targetB = originalStand;
+			job.targetC = originalTarget;
+			actor.jobs.StartJob(job, JobCondition.InterruptForced, null, false, true);
+			if (actor.CurJob != job)
+				return new { success = false, error = "The melee rebind fixture job was rejected." };
+			job.targetB = originalStand;
+			job.targetC = originalTarget;
+
+			var removeCell = AccessTools.Method(typeof(ZombieSymbiant), "RemoveRelativeCell");
+			var removed = removeCell != null
+				&& (bool)removeCell.Invoke(symbiant, new object[] { originalTarget - symbiant.Position, false });
+			var rebound = ZombieSymbiantCombat.TryGetMeleeJobCells(actor, symbiant, out var reboundStand, out var reboundTarget);
+			var targetB = actor.CurJob?.targetB ?? LocalTargetInfo.Invalid;
+			var targetC = actor.CurJob?.targetC ?? LocalTargetInfo.Invalid;
+			actor.jobs.StopAll(false, true);
+			return new
+			{
+				success = removed
+					&& rebound
+					&& reboundTarget != originalTarget
+					&& symbiant.ContainsCell(originalTarget) == false
+					&& symbiant.ContainsCell(reboundTarget)
+					&& symbiant.ContainsCell(reboundStand) == false
+					&& reboundStand.AdjacentTo8WayOrInside(reboundTarget)
+					&& targetB.Cell == reboundStand
+					&& targetC.Cell == reboundTarget,
+				removed,
+				rebound,
+				originalStand = ZombieRuntimeActions.DescribeCell(originalStand),
+				originalTarget = ZombieRuntimeActions.DescribeCell(originalTarget),
+				reboundStand = reboundStand.IsValid ? ZombieRuntimeActions.DescribeCell(reboundStand) : null,
+				reboundTarget = reboundTarget.IsValid ? ZombieRuntimeActions.DescribeCell(reboundTarget) : null,
+				jobTargetB = targetB.IsValid ? ZombieRuntimeActions.DescribeCell(targetB.Cell) : null,
+				jobTargetC = targetC.IsValid ? ZombieRuntimeActions.DescribeCell(targetC.Cell) : null
 			};
 		}
 
@@ -2996,8 +3322,11 @@ namespace ZombieLand
 			var worldSymbiantsBefore = (Find.WorldPawns?.AllPawnsAliveOrDead ?? new List<Pawn>())
 				.OfType<ZombieSymbiant>()
 				.ToHashSet();
-			object symbiantDamageLeaksToHost = null;
+			object symbiantDamageCreatesEcho = null;
 			object hostDamageSharesToSymbiant = null;
+			object symbiantEffectPipeline = null;
+			object sharedHealthRecovery = null;
+			object damageEchoCap = null;
 			object symbiantDestructionKillsHost = null;
 			object sizeHealthScaling = null;
 			object thumperDamageNoEffect = null;
@@ -3029,8 +3358,11 @@ namespace ZombieLand
 					settings.showZombieEventLetters = false;
 					settings.symbiantMaxCells = Math.Max(settings.symbiantMaxCells, 400);
 				});
-				symbiantDamageLeaksToHost = RunSymbiantUnsafeDamageScenario(map, "symbiantDamageLeaksToHost", cleanup);
+				symbiantDamageCreatesEcho = RunSymbiantUnsafeDamageScenario(map, "symbiantDamageCreatesEcho", cleanup);
 				hostDamageSharesToSymbiant = RunSymbiantUnsafeDamageScenario(map, "hostDamageSharesToSymbiant", cleanup);
+				symbiantEffectPipeline = RunSymbiantUnsafeDamageScenario(map, "symbiantEffectPipeline", cleanup);
+				sharedHealthRecovery = RunSymbiantUnsafeDamageScenario(map, "sharedHealthRecovery", cleanup);
+				damageEchoCap = RunSymbiantUnsafeDamageScenario(map, "damageEchoCap", cleanup);
 				symbiantDestructionKillsHost = RunSymbiantUnsafeDamageScenario(map, "symbiantDestructionKillsHost", cleanup);
 				sizeHealthScaling = RunSymbiantUnsafeDamageScenario(map, "sizeHealthScaling", cleanup);
 				thumperDamageNoEffect = RunSymbiantUnsafeDamageScenario(map, "thumperDamageNoEffect", cleanup);
@@ -3101,6 +3433,11 @@ namespace ZombieLand
 			};
 			var patchTargets = new
 			{
+				thingTakeDamage = PatchedMethodsForPatchClass("Thing_TakeDamage_Symbiant_Patch"),
+				partHealth = PatchedMethodsForPatchClass("HediffSet_GetPartHealth_Symbiant_Patch"),
+				shouldBeDead = PatchedMethodsForPatchClass("Pawn_HealthTracker_ShouldBeDead_Symbiant_Patch"),
+				shouldBeDowned = PatchedMethodsForPatchClass("Pawn_HealthTracker_ShouldBeDowned_Symbiant_Patch"),
+				summaryHealth = PatchedMethodsForPatchClass("SummaryHealthHandler_SummaryHealthPercent_Symbiant_Patch"),
 				pawnPreApplyDamage = PatchedMethodsForPatchClass("Pawn_PreApplyDamage_Patch"),
 				pawnKill = PatchedMethodsForPatchClass("Pawn_Kill_Patch"),
 				gameDeinitAndRemoveMap = PatchedMethodsForPatchClass("Game_DeinitAndRemoveMap_Patch"),
@@ -3127,8 +3464,16 @@ namespace ZombieLand
 				&& patchTargets.pawnPreApplyDamage.Length > 0
 				&& patchTargets.pawnKill.Length > 0
 				&& ScenarioSucceeded(patchTargetChecks)
-				&& ScenarioSucceeded(symbiantDamageLeaksToHost)
+				&& patchTargets.thingTakeDamage.Length > 0
+				&& patchTargets.partHealth.Length > 0
+				&& patchTargets.shouldBeDead.Length > 0
+				&& patchTargets.shouldBeDowned.Length > 0
+				&& patchTargets.summaryHealth.Length > 0
+				&& ScenarioSucceeded(symbiantDamageCreatesEcho)
 				&& ScenarioSucceeded(hostDamageSharesToSymbiant)
+				&& ScenarioSucceeded(symbiantEffectPipeline)
+				&& ScenarioSucceeded(sharedHealthRecovery)
+				&& ScenarioSucceeded(damageEchoCap)
 				&& ScenarioSucceeded(symbiantDestructionKillsHost)
 				&& ScenarioSucceeded(sizeHealthScaling)
 				&& ScenarioSucceeded(thumperDamageNoEffect)
@@ -3157,12 +3502,15 @@ namespace ZombieLand
 			return new
 			{
 				success,
-				sourcePath = "Pawn.TakeDamage -> Pawn.PreApplyDamage -> ZombieSymbiant.PreApplyLinkedDamage/PreApplyHostLinkedDamage; Pawn.HealthScale -> cell-count health scaling; ZombieSymbiant.Destroy; Pawn.Kill -> ZombieSymbiant.NotifyHostKilled",
+				sourcePath = "Thing.TakeDamage -> real DamageWorker pipeline -> post-worker shared-pool accounting -> inert host echo; Pawn.PreApplyDamage -> direct-host sharing; ZombieSymbiant.Destroy/Pawn.Kill lifecycle",
 				error,
 				patchTargets,
 				patchTargetChecks,
-				symbiantDamageLeaksToHost,
+				symbiantDamageCreatesEcho,
 				hostDamageSharesToSymbiant,
+				symbiantEffectPipeline,
+				sharedHealthRecovery,
+				damageEchoCap,
 				symbiantDestructionKillsHost,
 				sizeHealthScaling,
 				thumperDamageNoEffect,
@@ -3548,6 +3896,87 @@ namespace ZombieLand
 			};
 		}
 
+		static Hediff_SymbiantDamageEcho[] SymbiantDamageEchoes(Pawn host)
+		{
+			return host?.health?.hediffSet?.hediffs?.OfType<Hediff_SymbiantDamageEcho>().ToArray()
+				?? Array.Empty<Hediff_SymbiantDamageEcho>();
+		}
+
+		static object DescribeSymbiantDamageFacade(Pawn host, ZombieSymbiant symbiant)
+		{
+			var echoes = SymbiantDamageEchoes(host);
+			var sourceHediffs = symbiant?.health?.hediffSet?.hediffs ?? new List<Hediff>();
+			var corePart = symbiant?.RaceProps?.body?.corePart;
+			return new
+			{
+				pool = symbiant == null ? null : new
+				{
+					current = symbiant.SharedHealthCurrentDisplay,
+					maximum = symbiant.SharedHealthMaxDisplay,
+					fraction = symbiant.SharedHealthFraction,
+					lastDamageTick = symbiant.LastSharedHealthDamageTick,
+					nextRecoveryTick = symbiant.NextSharedHealthRecoveryTick,
+					echoHistoryTotal = symbiant.DamageEchoHistoryTotal,
+					echoHistory = symbiant.DamageEchoHistory.Select(record => new
+					{
+						record.categoryKey,
+						record.cachedLabel,
+						record.amount
+					}).ToArray()
+				},
+				symbiant = symbiant == null ? null : new
+				{
+					partHealth = corePart == null ? 0f : symbiant.health.hediffSet.GetPartHealth(corePart),
+					partMaxHealth = corePart?.def?.GetMaxHealth(symbiant) ?? 0f,
+					summaryHealth = symbiant.health.summaryHealth.SummaryHealthPercent,
+					pain = symbiant.health.hediffSet.PainTotal,
+					moving = symbiant.health.capacities.GetLevel(PawnCapacityDefOf.Moving),
+					manipulation = symbiant.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation),
+					consciousness = symbiant.health.capacities.GetLevel(PawnCapacityDefOf.Consciousness),
+					downed = symbiant.Downed,
+					dead = symbiant.Dead,
+					stunned = symbiant.stances?.stunner?.Stunned == true,
+					fireAttachmentCount = FireAttachmentCount(symbiant),
+					anatomyInjuryCount = sourceHediffs.Count(hediff => hediff?.GetType() == typeof(Hediff_Injury)),
+					effectHediffs = sourceHediffs.Select(hediff => new
+					{
+						def = hediff.def?.defName,
+						className = hediff.GetType().FullName,
+						severity = hediff.Severity,
+						part = hediff.Part?.def?.defName
+					}).ToArray()
+				},
+				host = host == null ? null : new
+				{
+					realInjuryCount = host.health.hediffSet.hediffs.OfType<Hediff_Injury>().Count(),
+					realInjurySeverity = TotalInjurySeverity(host),
+					summaryHealth = host.health.summaryHealth.SummaryHealthPercent,
+					pain = host.health.hediffSet.PainTotal,
+					moving = host.health.capacities.GetLevel(PawnCapacityDefOf.Moving),
+					manipulation = host.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation),
+					consciousness = host.health.capacities.GetLevel(PawnCapacityDefOf.Consciousness),
+					downed = host.Downed,
+					dead = host.Dead,
+					echoes = echoes.Select(echo => new
+					{
+						echo.categoryKey,
+						echo.displayAmount,
+						label = echo.Label,
+						className = echo.GetType().FullName,
+						def = echo.def?.defName,
+						part = echo.Part?.def?.defName,
+						visible = echo.Visible,
+						shouldRemove = echo.ShouldRemove,
+						tendable = echo.TendableNow(false),
+						autoHealable = ZombieSymbiant.IsAutoHealableHediffForDebug(echo),
+						summaryHealthImpact = echo.SummaryHealthPercentImpact,
+						labelColor = new { echo.LabelColor.r, echo.LabelColor.g, echo.LabelColor.b, echo.LabelColor.a },
+						tooltip = echo.GetTooltip(host, false)
+					}).ToArray()
+				}
+			};
+		}
+
 		static object RunSymbiantUnsafeDamageScenario(Map map, string scenario, bool cleanup, Map secondMap = null)
 		{
 			SymbiantNaturalSpawnFixture fixture = null;
@@ -3574,19 +4003,22 @@ namespace ZombieLand
 					var dormant = ScenarioSucceeded(moveToSecondMap)
 						? DescribeHostAvailabilityState("crossMapDamageIsolation", map, symbiant, host)
 						: moveToSecondMap;
+					var echoesWhileDormantBeforeDamage = SymbiantDamageEchoes(host).Length;
 					var sharedHealthBefore = symbiant.SharedHealthCurrentDisplay;
 					var remoteHostDamage = 5f;
 					var hostDamageResult = host.TakeDamage(new DamageInfo(DamageDefOf.Cut, remoteHostDamage, 999f, -1f, null));
 					var sharedHealthAfterHostDamage = symbiant.SharedHealthCurrentDisplay;
 					var hostInjuryAfterHostDamage = TotalInjurySeverity(host);
 					var remoteSymbiantDamage = 40f;
-					var symbiantDamageResult = symbiant.TakeDamage(new DamageInfo(DamageDefOf.Cut, remoteSymbiantDamage, 1f, -1f, null));
+					var symbiantDamageResult = symbiant.TakeDamage(new DamageInfo(DamageDefOf.Cut, remoteSymbiantDamage, 999f, -1f, null));
 					var sharedHealthAfterSymbiantDamage = symbiant.SharedHealthCurrentDisplay;
 					var hostInjuryAfterSymbiantDamage = TotalInjurySeverity(host);
+					var echoesWhileDormantAfterDamage = SymbiantDamageEchoes(host).Length;
 					var moveBack = MovePawnToSymbiantContractMap(host, map, originCell, symbiant);
 					var reactivated = ScenarioSucceeded(moveBack)
 						? DescribeHostAvailabilityState("crossMapDamageIsolationReturn", map, symbiant, host)
 						: moveBack;
+					var echoesAfterReturn = SymbiantDamageEchoes(host);
 					action = new
 					{
 						addedCells,
@@ -3602,6 +4034,10 @@ namespace ZombieLand
 						symbiantDamageDealt = symbiantDamageResult.totalDamageDealt,
 						sharedHealthAfterSymbiantDamage,
 						hostInjuryAfterSymbiantDamage,
+						echoesWhileDormantBeforeDamage,
+						echoesWhileDormantAfterDamage,
+						echoesAfterReturn = echoesAfterReturn.Length,
+						echoHistoryTotal = symbiant.DamageEchoHistoryTotal,
 						moveBack,
 						reactivated,
 						success = addedCells > 0
@@ -3609,14 +4045,17 @@ namespace ZombieLand
 							&& hostDamageResult.totalDamageDealt > 0f
 							&& hostInjuryAfterHostDamage > hostInjuryBefore
 							&& Mathf.Approximately(sharedHealthAfterHostDamage, sharedHealthBefore)
-							&& Mathf.Approximately(symbiantDamageResult.totalDamageDealt, 0f)
+							&& symbiantDamageResult.totalDamageDealt > 0f
 							&& sharedHealthAfterSymbiantDamage < sharedHealthAfterHostDamage
-							&& sharedHealthAfterHostDamage - sharedHealthAfterSymbiantDamage >= remoteSymbiantDamage - 1f
-							&& sharedHealthAfterHostDamage - sharedHealthAfterSymbiantDamage <= remoteSymbiantDamage + 1f
+							&& Mathf.Abs((sharedHealthAfterHostDamage - sharedHealthAfterSymbiantDamage) - symbiantDamageResult.totalDamageDealt) <= 1f
 							&& Mathf.Approximately(hostInjuryAfterSymbiantDamage, hostInjuryAfterHostDamage)
+							&& echoesWhileDormantBeforeDamage == 0
+							&& echoesWhileDormantAfterDamage == 0
 							&& host.Dead == false
 							&& symbiant.Destroyed == false
 							&& ScenarioSucceeded(reactivated)
+							&& echoesAfterReturn.Length == 1
+							&& echoesAfterReturn[0].Visible
 					};
 				}
 				else if (scenario == "crossMapPoolExhaustionSparesHost")
@@ -3651,7 +4090,7 @@ namespace ZombieLand
 						linkedAfter = ZombieRuntimeActions.StableThingId(linkedAfter),
 						activeAfter = ZombieRuntimeActions.StableThingId(activeAfter),
 						success = ScenarioSucceeded(dormant)
-							&& Mathf.Approximately(damageResult.totalDamageDealt, 0f)
+							&& damageResult.totalDamageDealt > 0f
 							&& sharedHealthBefore > 0
 							&& hediffBefore
 							&& hediffAfter == false
@@ -3731,42 +4170,77 @@ namespace ZombieLand
 							&& activeAfter == symbiant
 					};
 				}
-				else if (scenario == "symbiantDamageLeaksToHost")
+				else if (scenario == "symbiantDamageCreatesEcho")
 				{
 					var addedCells = GrowSymbiantForDamageProbe(map, symbiant, 40);
 					var damage = 40f;
 					var symbiantInjuryBefore = TotalInjurySeverity(symbiant);
-					var hostSharedHealthBefore = symbiant.SharedHealthCurrentDisplay;
-					var damageResult = symbiant.TakeDamage(new DamageInfo(DamageDefOf.Cut, damage, 0f, -1f, null));
+					var sharedHealthBefore = symbiant.SharedHealthCurrentDisplay;
+					var hostSummaryBefore = host.health.summaryHealth.SummaryHealthPercent;
+					var hostPainBefore = host.health.hediffSet.PainTotal;
+					var hostMovingBefore = host.health.capacities.GetLevel(PawnCapacityDefOf.Moving);
+					var hostManipulationBefore = host.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation);
+					var facadeBefore = DescribeSymbiantDamageFacade(host, symbiant);
+					var damageResult = symbiant.TakeDamage(new DamageInfo(DamageDefOf.Cut, damage, 999f, -1f, null));
 					var hostInjuryAfter = TotalInjurySeverity(host);
 					var symbiantInjuryAfter = TotalInjurySeverity(symbiant);
 					var hostInjuryDelta = hostInjuryAfter - hostInjuryBefore;
 					var symbiantInjuryDelta = symbiantInjuryAfter - symbiantInjuryBefore;
 					var sharedHealthAfter = symbiant.SharedHealthCurrentDisplay;
+					var sharedHealthDelta = sharedHealthBefore - sharedHealthAfter;
+					var echoes = SymbiantDamageEchoes(host);
+					var echo = echoes.SingleOrDefault();
+					var corePart = symbiant.RaceProps.body.corePart;
+					var facadeAfter = DescribeSymbiantDamageFacade(host, symbiant);
 					action = new
 					{
 						damage,
 						cellCount = symbiant.CellCount,
 						addedCells,
 						damageDealt = damageResult.totalDamageDealt,
-						sharedHealthBefore = hostSharedHealthBefore,
+						sharedHealthBefore,
 						sharedHealthAfter,
-						sharedHealthDelta = hostSharedHealthBefore - sharedHealthAfter,
-						leakPercent = symbiant.SharedDamageLeakPercentDisplay,
+						sharedHealthDelta,
 						hostInjuryBefore,
 						hostInjuryAfter,
 						hostInjuryDelta,
 						symbiantInjuryBefore,
 						symbiantInjuryAfter,
 						symbiantInjuryDelta,
+						echoCount = echoes.Length,
+						echoAmount = echo?.displayAmount ?? 0f,
+						echoLabel = echo?.Label,
+						echoPart = echo?.Part?.def?.defName,
+						echoVisible = echo?.Visible,
+						echoTendable = echo?.TendableNow(false),
+						echoAutoHealable = echo == null ? null : (bool?)ZombieSymbiant.IsAutoHealableHediffForDebug(echo),
+						echoSummaryHealthImpact = echo?.SummaryHealthPercentImpact,
+						echoHistoryTotal = symbiant.DamageEchoHistoryTotal,
+						facadeBefore,
+						facadeAfter,
 						success = symbiant.CellCount >= 40
-							&& Mathf.Approximately(damageResult.totalDamageDealt, 0f)
-							&& hostInjuryDelta > 0f
-							&& hostInjuryDelta < damage
+							&& damageResult.totalDamageDealt > 0f
+							&& Mathf.Approximately(hostInjuryDelta, 0f)
 							&& Mathf.Approximately(symbiantInjuryDelta, 0f)
-							&& sharedHealthAfter < hostSharedHealthBefore
-							&& hostSharedHealthBefore - sharedHealthAfter >= damage - 1f
-							&& hostSharedHealthBefore - sharedHealthAfter <= damage + 1f
+							&& sharedHealthAfter < sharedHealthBefore
+							&& Mathf.Abs(sharedHealthDelta - damageResult.totalDamageDealt) <= 1f
+							&& echoes.Length == 1
+							&& echo != null
+							&& Mathf.Abs(echo.displayAmount - sharedHealthDelta) <= 1f
+							&& echo.Part == null
+							&& echo.Visible
+							&& echo.ShouldRemove == false
+							&& echo.TendableNow(false) == false
+							&& ZombieSymbiant.IsAutoHealableHediffForDebug(echo) == false
+							&& Mathf.Approximately(echo.SummaryHealthPercentImpact, 0f)
+							&& Mathf.Abs(symbiant.DamageEchoHistoryTotal - sharedHealthDelta) <= 1f
+							&& Mathf.Approximately(symbiant.health.hediffSet.GetPartHealth(corePart), corePart.def.GetMaxHealth(symbiant))
+							&& Mathf.Approximately(symbiant.health.summaryHealth.SummaryHealthPercent, symbiant.SharedHealthFraction)
+							&& Mathf.Approximately(host.health.summaryHealth.SummaryHealthPercent, hostSummaryBefore)
+							&& Mathf.Approximately(host.health.hediffSet.PainTotal, hostPainBefore)
+							&& Mathf.Approximately(host.health.capacities.GetLevel(PawnCapacityDefOf.Moving), hostMovingBefore)
+							&& Mathf.Approximately(host.health.capacities.GetLevel(PawnCapacityDefOf.Manipulation), hostManipulationBefore)
+							&& host.Downed == false
 							&& symbiant.Destroyed == false
 							&& host.Dead == false
 					};
@@ -3812,6 +4286,177 @@ namespace ZombieLand
 							&& symbiant.Destroyed == false
 					};
 				}
+				else if (scenario == "symbiantEffectPipeline")
+				{
+					var addedCells = GrowSymbiantForDamageProbe(map, symbiant, 40);
+					var hostInjuryBeforeEffects = TotalInjurySeverity(host);
+					var sharedHealthBefore = symbiant.SharedHealthCurrentDisplay;
+					var stunResult = symbiant.TakeDamage(new DamageInfo(DamageDefOf.Stun, 5f, 999f, -1f, null));
+					var sharedHealthAfterStun = symbiant.SharedHealthCurrentDisplay;
+					var stunnedAfterStun = symbiant.stances?.stunner?.Stunned == true;
+					var flameResult = symbiant.TakeDamage(new DamageInfo(DamageDefOf.Flame, 12f, 999f, -1f, null));
+					var sharedHealthAfterFlame = symbiant.SharedHealthCurrentDisplay;
+					var echoes = SymbiantDamageEchoes(host);
+					var facade = DescribeSymbiantDamageFacade(host, symbiant);
+					action = new
+					{
+						addedCells,
+						stunDamageDealt = stunResult.totalDamageDealt,
+						stunnedAfterStun,
+						flameDamageDealt = flameResult.totalDamageDealt,
+						sharedHealthBefore,
+						sharedHealthAfterStun,
+						sharedHealthAfterFlame,
+						hostInjuryBeforeEffects,
+						hostInjuryAfterEffects = TotalInjurySeverity(host),
+						symbiantAnatomyInjuryCount = symbiant.health.hediffSet.hediffs.Count(hediff => hediff?.GetType() == typeof(Hediff_Injury)),
+						echoCount = echoes.Length,
+						facade,
+						success = addedCells > 0
+							&& Mathf.Approximately(stunResult.totalDamageDealt, 0f)
+							&& sharedHealthAfterStun == sharedHealthBefore
+							&& stunnedAfterStun
+							&& flameResult.totalDamageDealt > 0f
+							&& Mathf.Abs((sharedHealthAfterStun - sharedHealthAfterFlame) - flameResult.totalDamageDealt) <= 1f
+							&& Mathf.Approximately(TotalInjurySeverity(host), hostInjuryBeforeEffects)
+							&& symbiant.health.hediffSet.hediffs.Any(hediff => hediff?.GetType() == typeof(Hediff_Injury)) == false
+							&& echoes.Length == 1
+							&& echoes[0].TendableNow(false) == false
+							&& host.Downed == false
+							&& host.Dead == false
+							&& symbiant.Downed == false
+							&& symbiant.Dead == false
+					};
+				}
+				else if (scenario == "sharedHealthRecovery")
+				{
+					var addedCells = GrowSymbiantForDamageProbe(map, symbiant, 40);
+					if (host.playerSettings != null)
+						host.playerSettings.hostilityResponse = HostilityResponseMode.Ignore;
+					host.jobs?.StopAll(false);
+					host.stances?.stunner?.StunFor(ZombieSymbiant.SharedHealthRecoveryDelayTicks + 500, symbiant, false);
+					var hostIsolatedOnSameMap = host.Spawned
+						&& symbiant.IsActiveBondWith(host)
+						&& host.playerSettings?.hostilityResponse == HostilityResponseMode.Ignore;
+					var enemiesAttackZombies = ZombieSettings.Values.enemiesAttackZombies;
+					var animalsAttackZombies = ZombieSettings.Values.animalsAttackZombies;
+					const int settleTicks = 120;
+					DamageWorker.DamageResult damageResult = null;
+					var sharedHealthBefore = 0;
+					var sharedHealthAfterDamage = 0;
+					var sharedHealthBeforeRecoveryTick = 0;
+					var historyBeforeDamage = 0f;
+					var historyAfterDamage = 0f;
+					var recoveryTick = 0;
+					try
+					{
+						ApplyZombieSettingsOverride(settings =>
+						{
+							settings.enemiesAttackZombies = false;
+							settings.animalsAttackZombies = false;
+						});
+						foreach (var pawn in map.mapPawns.AllPawnsSpawned.Where(pawn => pawn?.CurJob?.targetA.Thing == symbiant).ToArray())
+							pawn.jobs?.StopAll(false);
+						RefreshZombieTargetCache(map);
+						AdvanceGameTicks(settleTicks);
+						foreach (var pawn in map.mapPawns.AllPawnsSpawned.Where(pawn => pawn?.CurJob?.targetA.Thing == symbiant).ToArray())
+							pawn.jobs?.StopAll(false);
+						sharedHealthBefore = symbiant.SharedHealthCurrentDisplay;
+						historyBeforeDamage = symbiant.DamageEchoHistoryTotal;
+						damageResult = symbiant.TakeDamage(new DamageInfo(DamageDefOf.Cut, 100f, 999f, -1f, null));
+						sharedHealthAfterDamage = symbiant.SharedHealthCurrentDisplay;
+						historyAfterDamage = symbiant.DamageEchoHistoryTotal;
+						recoveryTick = symbiant.NextSharedHealthRecoveryTick;
+						AdvanceGameTicks(Math.Max(0, ZombieSymbiant.SharedHealthRecoveryDelayTicks - 1));
+						sharedHealthBeforeRecoveryTick = symbiant.SharedHealthCurrentDisplay;
+						AdvanceGameTicks(1);
+					}
+					finally
+					{
+						ApplyZombieSettingsOverride(settings =>
+						{
+							settings.enemiesAttackZombies = enemiesAttackZombies;
+							settings.animalsAttackZombies = animalsAttackZombies;
+						});
+						RefreshZombieTargetCache(map);
+					}
+					var sharedHealthAfterRecovery = symbiant.SharedHealthCurrentDisplay;
+					var missingBeforeRecovery = symbiant.SharedHealthMaxDisplay - sharedHealthBeforeRecoveryTick;
+					var expectedRecovery = Mathf.Min(missingBeforeRecovery, Mathf.Max(1f, missingBeforeRecovery * ZombieSymbiant.SharedHealthRecoveryMissingFraction));
+					action = new
+					{
+						addedCells,
+						hostIsolatedOnSameMap,
+						settleTicks,
+						damageDealt = damageResult?.totalDamageDealt ?? 0f,
+						sharedHealthBefore,
+						sharedHealthAfterDamage,
+						sharedHealthBeforeRecoveryTick,
+						sharedHealthAfterRecovery,
+						expectedRecovery,
+						actualRecovery = sharedHealthAfterRecovery - sharedHealthBeforeRecoveryTick,
+						historyBeforeDamage,
+						historyAfterDamage,
+						historyAfterRecovery = symbiant.DamageEchoHistoryTotal,
+						recoveryTick,
+						nextRecoveryTick = symbiant.NextSharedHealthRecoveryTick,
+						facade = DescribeSymbiantDamageFacade(host, symbiant),
+						success = addedCells > 0
+							&& hostIsolatedOnSameMap
+							&& damageResult != null
+							&& damageResult.totalDamageDealt > 0f
+							&& sharedHealthAfterDamage < sharedHealthBefore
+							&& Mathf.Abs((historyAfterDamage - historyBeforeDamage) - damageResult.totalDamageDealt) <= 1f
+							&& sharedHealthBeforeRecoveryTick == sharedHealthAfterDamage
+							&& Mathf.Abs((sharedHealthAfterRecovery - sharedHealthBeforeRecoveryTick) - expectedRecovery) <= 1f
+							&& Mathf.Approximately(symbiant.DamageEchoHistoryTotal, historyAfterDamage)
+							&& SymbiantDamageEchoes(host).Length == 1
+							&& host.Dead == false
+							&& symbiant.Destroyed == false
+					};
+				}
+				else if (scenario == "damageEchoCap")
+				{
+					var recordMethod = AccessTools.Method(typeof(ZombieSymbiant), "RecordDamageEcho");
+					var syncMethod = AccessTools.Method(typeof(ZombieSymbiant), "SyncHostDamageEchoes", new[] { typeof(Pawn) });
+					for (var i = 0; i < 10; i++)
+						recordMethod?.Invoke(symbiant, new object[] { "damage:ZLTest" + i, "test damage " + i, (float)(i + 1) });
+					syncMethod?.Invoke(symbiant, new object[] { host });
+					var records = symbiant.DamageEchoHistory.ToArray();
+					var echoes = SymbiantDamageEchoes(host);
+					var other = records.SingleOrDefault(record => record.categoryKey == "other");
+					action = new
+					{
+						recordMethod = recordMethod?.ToString(),
+						syncMethod = syncMethod?.ToString(),
+						recordCount = records.Length,
+						namedCount = records.Count(record => record.categoryKey != "other"),
+						otherAmount = other?.amount ?? 0f,
+						historyTotal = symbiant.DamageEchoHistoryTotal,
+						echoCount = echoes.Length,
+						echoes = echoes.Select(echo => new
+						{
+							echo.categoryKey,
+							echo.displayAmount,
+							echoPart = echo.Part?.def?.defName,
+							tendable = echo.TendableNow(false),
+							autoHealable = ZombieSymbiant.IsAutoHealableHediffForDebug(echo)
+						}).ToArray(),
+						success = recordMethod != null
+							&& syncMethod != null
+							&& records.Length == 8
+							&& records.Count(record => record.categoryKey != "other") == 7
+							&& other != null
+							&& Mathf.Approximately(other.amount, 27f)
+							&& Mathf.Approximately(symbiant.DamageEchoHistoryTotal, 55f)
+							&& echoes.Length == 8
+							&& echoes.All(echo => echo.Part == null
+								&& echo.TendableNow(false) == false
+								&& ZombieSymbiant.IsAutoHealableHediffForDebug(echo) == false)
+							&& host.Dead == false
+							&& symbiant.Destroyed == false
+					};
+				}
 				else if (scenario == "symbiantDestructionKillsHost")
 				{
 					var hediffBefore = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
@@ -3833,7 +4478,7 @@ namespace ZombieLand
 						symbiantDestroyed = symbiant.Destroyed,
 						linkedAfter = ZombieRuntimeActions.StableThingId(linkedAfter),
 						activeAfter = ZombieRuntimeActions.StableThingId(activeAfter),
-						success = Mathf.Approximately(damageResult.totalDamageDealt, 0f)
+						success = damageResult.totalDamageDealt > 0f
 							&& sharedHealthBefore > 0
 							&& hediffBefore
 							&& hediffAfter == false

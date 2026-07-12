@@ -47,13 +47,17 @@
 	<SymbiantDamageAbsorbedMote>%{0} emildi</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>konak</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{1} üzerinden {0}</SymbiantSharedHealthSummary>
+	<SymbiantDamageEchoLabel>{0}: {1} hasar</SymbiantDamageEchoLabel>
+	<SymbiantDamageEchoOther>diğer</SymbiantDamageEchoOther>
+	<SymbiantDamageEchoDescription>Mevcut bağ sırasında bağlı Simbiyant tarafından emilen toplam hasar: {0}. Bu yalnızca bir kayıttır; konağı yaralamaz, zayıflatmaz, kanatmaz, yere düşürmez veya öldürmez.</SymbiantDamageEchoDescription>
+	<SymbiantSharedHealthRecoveryDescription>Bir saat boyunca paylaşılan hasar alınmazsa Simbiyant, her sakin saatte eksik paylaşılan sağlığının %5'ini yeniler.</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>bir Simbiyantı besliyor</FeedingZombieSymbiant>
 	<SymbiantFedMote>hücre +{1}</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>Simbiyantı {0} {1} ile besle (+{2} hücre)</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>Simbiyant bağını kaldır</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>Simbiyant bağını kaldır ({0} zombi özü)</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>{0} üzerindeki Simbiyant bağı kaldırıldı.</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>Simbiyant: {0}/{1} hücre. Sonraki fayda {2} hücrede. Paylaşılan sağlık: {3}. Simbiyant paylaşılan hasarın çoğunu emer; bu boyutta &lt;color=#ffb35c&gt;%{4}&lt;/color&gt; konağa ulaşır.\n\nHarita kuralı: bağın aktif olması ve temiz şekilde kaldırılabilmesi için konak ve Simbiyant aynı haritada olmalıdır. Ayrılırlarsa bağ uykuya geçer. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir. Simbiyantın bulunduğu haritayı terk etmek onu yok eder ve bağı zorla koparır; ameliyat önce bağı temiz şekilde kaldırır.\n\nFaydalar:\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>Simbiyant: {0}/{1} hücre. Sonraki fayda {2} hücrede. Paylaşılan sağlık: {3}. Konak vurulduğunda saldırının tamamı önce paylaşılan sağlıktan düşer; bu boyutta &lt;color=#ffb35c&gt;%{4}&lt;/color&gt; gerçek bir konak yarası olarak kalır. Simbiyanta yapılan saldırılar konak yaraları yerine zararsız gri kayıtlar oluşturur.\n\nHarita kuralı: bağın aktif olması ve temiz şekilde kaldırılabilmesi için konak ve Simbiyant aynı haritada olmalıdır. Ayrılırlarsa bağ uykuya geçer. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir. Simbiyantın bulunduğu haritayı terk etmek onu yok eder ve bağı zorla koparır; ameliyat önce bağı temiz şekilde kaldırır.\n\nFaydalar:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Bu konağa bağlı aktif Simbiyant yok.</SymbiantHostBondMissing>
 		<SymbiantHostRelocatedMessage>{0} ile Simbiyant aynı haritada bulunmadığı için bağ uykuya geçti. Bağ korunur. Uyku sırasında zombi enfeksiyonu bağışıklığı dahil tüm faydalar, paylaşılan hasar aktarımı ve cerrahi ayırma devre dışıdır. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir.</SymbiantHostRelocatedMessage>
 		<LetterLabelSymbiantBondDormant>Simbiyant bağı uykuda</LetterLabelSymbiantBondDormant>

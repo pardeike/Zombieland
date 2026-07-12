@@ -1522,6 +1522,8 @@ namespace ZombieLand
 			{
 				if (newJob == null || ___pawn == null)
 					return true;
+				if (newJob.def == JobDefOf.AttackMelee && newJob.targetA.Thing is ZombieSymbiant)
+					ZombieSymbiantCombat.PrepareMeleeJob(___pawn, newJob);
 				if (___pawn is Zombie { isAlbino: true }
 					&& (newJob.def == JobDefOf.AttackMelee || newJob.def == JobDefOf.AttackStatic))
 				{
@@ -3274,7 +3276,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to make infected colonists feel no pain
+		// patch to make infected colonists and Symbiants feel no pain
 		//
 		[HarmonyPatch(typeof(HediffSet))]
 		[HarmonyPatch(nameof(HediffSet.PainTotal), MethodType.Getter)]
@@ -3283,7 +3285,7 @@ namespace ZombieLand
 			static bool Prefix(HediffSet __instance, ref float __result)
 			{
 				var pawn = __instance?.pawn;
-				if (pawn != null && Need_CurLevel_Patch.infectedColonists.Contains(pawn))
+				if (pawn is ZombieSymbiant || pawn != null && Need_CurLevel_Patch.infectedColonists.Contains(pawn))
 				{
 					__result = 0f;
 					return false;
@@ -3292,7 +3294,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to make infected colonists have full capacity
+		// patch to make infected colonists and Symbiants have full capacity
 		//
 		[HarmonyPatch(typeof(PawnCapacitiesHandler))]
 		[HarmonyPatch(nameof(PawnCapacitiesHandler.GetLevel))]
@@ -3300,7 +3302,8 @@ namespace ZombieLand
 		{
 			static bool FullLevel(Pawn pawn)
 			{
-				return pawn?.health?.Dead == false && Need_CurLevel_Patch.infectedColonists.Contains(pawn);
+				return pawn?.health?.Dead == false
+					&& (pawn is ZombieSymbiant || Need_CurLevel_Patch.infectedColonists.Contains(pawn));
 			}
 
 			[HarmonyPriority(Priority.Last)]
@@ -5122,13 +5125,31 @@ namespace ZombieLand
 					}
 			}
 
-			static void Postfix(List<FireSurvivalExplosionDamageSnapshot> __state)
+			static void Postfix(
+				Verse.Explosion __instance,
+				IntVec3 c,
+				List<Thing> ___damagedThings,
+				List<Thing> ___ignoredThings,
+				List<FireSurvivalExplosionDamageSnapshot> __state)
 			{
-				if (__state == null)
-					return;
+				if (__state != null)
+					foreach (var snapshot in __state)
+						snapshot.RestoreIfBoostWasGranted();
 
-				foreach (var snapshot in __state)
-					snapshot.RestoreIfBoostWasGranted();
+				var map = __instance?.Map;
+				if (map == null || c.InBounds(map) == false)
+					return;
+				var symbiant = ZombieSymbiant.ActiveSymbiant(map);
+				if (symbiant?.Spawned != true || symbiant.Destroyed || symbiant.Dead || symbiant.ContainsCell(c) == false)
+					return;
+				var alreadyDamaged = ___damagedThings?.Contains(symbiant) == true;
+				if (alreadyDamaged)
+				{
+					ZombieSymbiantCombat.RecordExplosionCell(c, true, false);
+					return;
+				}
+				__instance.damType.Worker.ExplosionDamageThing(__instance, symbiant, ___damagedThings, ___ignoredThings, c);
+				ZombieSymbiantCombat.RecordExplosionCell(c, false, true);
 			}
 
 			static bool CanGrantFireSurvivalBoost(Verse.Explosion explosion)
@@ -6485,7 +6506,7 @@ namespace ZombieLand
 		{
 			static void Postfix(Pawn ___pawn, ref bool __result)
 			{
-				if (___pawn is Zombie)
+				if (___pawn is Zombie || ___pawn is ZombieSymbiant)
 					__result = true;
 			}
 		}
@@ -7061,7 +7082,7 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(Pawn pawn, ref Vector3 __result)
 			{
-				if (pawn is not Zombie)
+				if (pawn is not Zombie && pawn is not ZombieSymbiant)
 					return true;
 				__result = Vector3.zero;
 				return false;

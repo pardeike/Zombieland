@@ -47,13 +47,17 @@
 	<SymbiantDamageAbsorbedMote>{0}% absorbiert</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>der Wirt</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} von {1}</SymbiantSharedHealthSummary>
+	<SymbiantDamageEchoLabel>{0}: {1} Schaden</SymbiantDamageEchoLabel>
+	<SymbiantDamageEchoOther>Sonstiges</SymbiantDamageEchoOther>
+	<SymbiantDamageEchoDescription>Während der aktuellen Bindung vom verbundenen Symbionten absorbierter Gesamtschaden: {0}. Dies ist nur eine Aufzeichnung; sie verletzt oder beeinträchtigt den Wirt nicht, verursacht keine Blutung, macht ihn nicht kampfunfähig und tötet ihn nicht.</SymbiantDamageEchoDescription>
+	<SymbiantSharedHealthRecoveryDescription>Nach einer Stunde ohne geteilten Schaden stellt der Symbiont in jeder ruhigen Stunde 5 % seiner fehlenden geteilten Gesundheit wieder her.</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>füttert den Symbionten</FeedingZombieSymbiant>
 	<SymbiantFedMote>+{1} Zellen</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>{0} {1} an den Symbionten verfüttern (+{2} Zellen)</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>Symbionten-Verbindung entfernen</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>Symbionten-Verbindung entfernen ({0} Zombieextrakt)</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>{0}s Symbionten-Verbindung wurde entfernt.</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>Symbiont: {0}/{1} Zellen. Nächster Vorteil bei {2} Zellen. Geteilte Gesundheit: {3}. Der Symbiont absorbiert den größten Teil des geteilten Schadens; &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; erreicht den Wirt bei dieser Größe.\n\nKartenregel: Wirt und Symbiont müssen auf derselben Karte sein, damit die Verbindung aktiv ist und sauber entfernt werden kann. Werden sie getrennt, ruht die Verbindung. Sie kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen. Wenn die Karte des Symbionten aufgegeben wird, wird er zerstört und die Verbindung gewaltsam getrennt; eine Operation entfernt die Verbindung vorher sauber.\n\nVorteile:\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>Symbiont: {0}/{1} Zellen. Nächster Vorteil bei {2} Zellen. Geteilte Gesundheit: {3}. Wird der Wirt getroffen, wird zuerst der volle Angriff von der geteilten Gesundheit abgezogen; bei dieser Größe verbleiben &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; als echte Verletzung des Wirts. Angriffe auf den Symbionten erzeugen harmlose graue Schadensaufzeichnungen statt Wirtsverletzungen.\n\nKartenregel: Wirt und Symbiont müssen auf derselben Karte sein, damit die Verbindung aktiv ist und sauber entfernt werden kann. Werden sie getrennt, ruht die Verbindung. Sie kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen. Wenn die Karte des Symbionten aufgegeben wird, wird er zerstört und die Verbindung gewaltsam getrennt; eine Operation entfernt die Verbindung vorher sauber.\n\nVorteile:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Kein aktiver Symbiont ist mit diesem Wirt verbunden.</SymbiantHostBondMissing>
 		<SymbiantHostRelocatedMessage>{0}s Symbionten-Verbindung ruht, weil Wirt und Symbiont sich nicht auf derselben Karte befinden. Die Verbindung bleibt bestehen. Während der Ruhephase sind alle Vorteile (einschließlich der Immunität gegen Zombieinfektionen), die Übertragung geteilten Schadens und die chirurgische Trennung inaktiv. Die Verbindung kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen.</SymbiantHostRelocatedMessage>
 		<LetterLabelSymbiantBondDormant>Symbionten-Verbindung ruht</LetterLabelSymbiantBondDormant>

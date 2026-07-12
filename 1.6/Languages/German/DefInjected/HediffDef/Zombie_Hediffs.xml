@@ -22,4 +22,7 @@
 	<SymbiantSymbiosis.label>Symbionten-Verbindung</SymbiantSymbiosis.label>
 	<SymbiantSymbiosis.description>Dieser Kolonist ist mit einem Zombie-Symbionten verbunden. Der Wirt ist gegen Zombieinfektionen durch Bisse immun und erhält zufällige Vorteile, wenn der Symbiont wächst. Figuren werden beim Überqueren von Symbionten-Zellen verlangsamt, mit Ausnahme des Wirts. Das Füttern mit Leichen lässt den Symbionten schneller wachsen. Eine Operation entfernt die Verbindung; anschließend zieht sich der ungebundene Symbiont zurück.</SymbiantSymbiosis.description>
 
+	<SymbiantDamageEcho.label>Symbionten-Schadensecho</SymbiantDamageEcho.label>
+	<SymbiantDamageEcho.description>Eine harmlose Aufzeichnung des Schadens, den der verbundene Zombie-Symbiont absorbiert hat.</SymbiantDamageEcho.description>
+
 </LanguageData>

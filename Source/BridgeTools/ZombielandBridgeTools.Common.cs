@@ -111,6 +111,10 @@ namespace ZombieLand
 			public float injuryBefore;
 			public float injuryAfter;
 			public float injuryDelta;
+			public float poolBefore;
+			public float poolAfter;
+			public float poolDelta;
+			public float damageDelta;
 			public bool deadAfter;
 			public object pawn;
 			public string error;
@@ -719,6 +723,7 @@ namespace ZombieLand
 
 				NormalizeFireDamagePawn(pawn);
 				var before = TotalInjurySeverity(pawn);
+				var poolBefore = (pawn as ZombieSymbiant)?.SharedHealthCurrentDisplay ?? 0f;
 				ZombieSettings.Values.zombiesBurnLonger = burnLonger;
 				Rand.PushState(seed);
 				try
@@ -733,6 +738,8 @@ namespace ZombieLand
 							injuryBefore = before,
 							injuryAfter = TotalInjurySeverity(pawn),
 							injuryDelta = TotalInjurySeverity(pawn) - before,
+							poolBefore = poolBefore,
+							poolAfter = (pawn as ZombieSymbiant)?.SharedHealthCurrentDisplay ?? 0f,
 							deadAfter = pawn.Dead,
 							pawn = DescribePawn(pawn),
 							error = error
@@ -745,6 +752,9 @@ namespace ZombieLand
 				}
 
 				var after = TotalInjurySeverity(pawn);
+				var poolAfter = (pawn as ZombieSymbiant)?.SharedHealthCurrentDisplay ?? 0f;
+				var poolDelta = Mathf.Max(0f, poolBefore - poolAfter);
+				var injuryDelta = after - before;
 				return new FireDamageSample
 				{
 					kind = kind,
@@ -752,7 +762,11 @@ namespace ZombieLand
 					burnLonger = burnLonger,
 					injuryBefore = before,
 					injuryAfter = after,
-					injuryDelta = after - before,
+					injuryDelta = injuryDelta,
+					poolBefore = poolBefore,
+					poolAfter = poolAfter,
+					poolDelta = poolDelta,
+					damageDelta = pawn is ZombieSymbiant ? poolDelta : injuryDelta,
 					deadAfter = pawn.Dead,
 					pawn = DescribePawn(pawn)
 				};
@@ -776,16 +790,16 @@ namespace ZombieLand
 				enabled[i] = SampleFireDamage(map, fire, cell, kind, true, sampleSeed);
 			}
 
-			var disabledTotal = disabled.Sum(sample => sample.injuryDelta);
-			var enabledTotal = enabled.Sum(sample => sample.injuryDelta);
+			var disabledTotal = disabled.Sum(sample => sample.damageDelta);
+			var enabledTotal = enabled.Sum(sample => sample.damageDelta);
 			return new FireDamageComparison
 			{
 				kind = kind,
 				disabledTotal = disabledTotal,
 				enabledTotal = enabledTotal,
 				delta = disabledTotal - enabledTotal,
-				disabledDeltas = disabled.Select(sample => sample.injuryDelta).ToArray(),
-				enabledDeltas = enabled.Select(sample => sample.injuryDelta).ToArray(),
+				disabledDeltas = disabled.Select(sample => sample.damageDelta).ToArray(),
+				enabledDeltas = enabled.Select(sample => sample.damageDelta).ToArray(),
 				disabledDeadCount = disabled.Count(sample => sample.deadAfter),
 				enabledDeadCount = enabled.Count(sample => sample.deadAfter),
 				errors = disabled.Concat(enabled)

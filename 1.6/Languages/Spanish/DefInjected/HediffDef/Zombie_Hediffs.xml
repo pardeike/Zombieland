@@ -22,4 +22,7 @@
 	<SymbiantSymbiosis.label>vínculo del Simbionte</SymbiantSymbiosis.label>
 	<SymbiantSymbiosis.description>Este colono está vinculado a un Simbionte zombi. El huésped es inmune a la infección zombi causada por mordiscos y obtiene beneficios aleatorios a medida que crece el Simbionte. Los peones que atraviesan las casillas del Simbionte se ralentizan, salvo el huésped. Alimentarlo con cadáveres acelera su crecimiento. Una operación elimina el vínculo y deja que el Simbionte desvinculado se encoja hasta desaparecer.</SymbiantSymbiosis.description>
 
+	<SymbiantDamageEcho.label>eco de daño del simbionte</SymbiantDamageEcho.label>
+	<SymbiantDamageEcho.description>Un registro inofensivo del daño absorbido por el simbionte zombi vinculado.</SymbiantDamageEcho.description>
+
 </LanguageData>

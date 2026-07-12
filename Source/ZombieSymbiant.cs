@@ -83,6 +83,11 @@ namespace ZombieLand
 			const int CellMotionDurationTicks = 60;
 			const int SymbiantRetreatSpeedFactor = 4;
 			const float SymbiantSharedDamageLeakMin = 0.08f;
+			const int SymbiantSharedHealthRecoveryDelayTicks = GenDate.TicksPerHour;
+			const int SymbiantSharedHealthRecoveryIntervalTicks = GenDate.TicksPerHour;
+			const float SymbiantSharedHealthRecoveryMissingFraction = 0.05f;
+			const int SymbiantNamedDamageEchoLimit = 7;
+			const string SymbiantOtherDamageEchoKey = "other";
 		static readonly int SymbiantOpacityMinId = Shader.PropertyToID("_SymbiantOpacityMin");
 		static readonly int SymbiantOpacityMaxId = Shader.PropertyToID("_SymbiantOpacityMax");
 		static readonly int SymbiantNoiseScaleId = Shader.PropertyToID("_SymbiantNoiseScale");
@@ -179,11 +184,12 @@ namespace ZombieLand
 		bool symbiosisSevered;
 		bool hostCollapseInProgress;
 		bool uncontrolledDestroyHandled;
-		bool sharedDamageInProgress;
 		bool sharedHealthFailureInProgress;
 		bool hostBondStateInitialized;
 		bool hostBondWasActive;
 		float sharedHealth = -1f;
+		int lastSharedHealthDamageTick = int.MinValue;
+		int nextSharedHealthRecoveryTick;
 		int lastSymbiosisMetricTick = int.MinValue;
 		int lastRejectedDamageMessageTick = int.MinValue;
 		int lastSharedDamageAbsorbMoteTick = int.MinValue;
@@ -194,12 +200,15 @@ namespace ZombieLand
 		CellRect relativeCellBounds;
 		bool hasCellBounds;
 		List<HostBenefit> hostBenefits = [];
+		List<SymbiantDamageEchoRecord> damageEchoHistory = [];
 		int lastCellMotionRenderTick = -1;
 		bool renderGeometryDirty = true;
 		bool metaballTextureDirty = true;
 		bool destroyWhenCellMotionsFinish;
+		int combatShapeVersion;
 
-			public int CellCount => cells?.Count ?? 0;
+		public int CellCount => cells?.Count ?? 0;
+		internal int CombatShapeVersion => combatShapeVersion;
 			public int NextExpansionTick => nextExpansionTick;
 			public int CurrentExpansionIntervalTicks => AutomaticExpansionIntervalTicks();
 			public int CurrentRetreatIntervalTicks => RetreatIntervalTicks();
@@ -237,6 +246,14 @@ namespace ZombieLand
 		public string HostThingId => hostThingId;
 		public int DamageAbsorptionBuffer => Mathf.RoundToInt(SharedHealthCurrent);
 		public int DamageAbsorptionBufferMax => Mathf.RoundToInt(SharedHealthMax);
+		public float SharedHealthFraction => SharedHealthPercent;
+		public int LastSharedHealthDamageTick => lastSharedHealthDamageTick;
+		public int NextSharedHealthRecoveryTick => nextSharedHealthRecoveryTick;
+		public static int SharedHealthRecoveryDelayTicks => SymbiantSharedHealthRecoveryDelayTicks;
+		public static int SharedHealthRecoveryIntervalTicks => SymbiantSharedHealthRecoveryIntervalTicks;
+		public static float SharedHealthRecoveryMissingFraction => SymbiantSharedHealthRecoveryMissingFraction;
+		public IReadOnlyList<SymbiantDamageEchoRecord> DamageEchoHistory => damageEchoHistory;
+		public float DamageEchoHistoryTotal => damageEchoHistory?.Sum(record => Mathf.Max(0f, record?.amount ?? 0f)) ?? 0f;
 		public float HealthScaleCellMultiplier => HealthScaleMultiplierForCells(CellCount);
 		public int SharedHealthCurrentDisplay => DamageAbsorptionBuffer;
 		public int SharedHealthMaxDisplay => DamageAbsorptionBufferMax;
@@ -406,9 +423,38 @@ namespace ZombieLand
 				return 0f;
 			var drained = Mathf.Min(sharedHealth, amount);
 			sharedHealth = Mathf.Max(0f, sharedHealth - drained);
+			lastSharedHealthDamageTick = GenTicks.TicksGame;
+			nextSharedHealthRecoveryTick = lastSharedHealthDamageTick + SymbiantSharedHealthRecoveryDelayTicks;
 			if (sharedHealth <= 0.01f)
 				CollapseFromSharedHealthFailure();
 			return drained;
+		}
+
+		void TryRecoverSharedHealth(int ticks)
+		{
+			if (symbiosisSevered || Destroyed || Dead || ResolveHost() == null)
+				return;
+			EnsureSharedHealth();
+			var max = SharedHealthMax;
+			var missing = max - sharedHealth;
+			if (missing <= 0.01f)
+			{
+				sharedHealth = max;
+				nextSharedHealthRecoveryTick = 0;
+				return;
+			}
+			if (nextSharedHealthRecoveryTick <= 0)
+			{
+				nextSharedHealthRecoveryTick = ticks + SymbiantSharedHealthRecoveryDelayTicks;
+				return;
+			}
+			if (ticks < nextSharedHealthRecoveryTick)
+				return;
+			var recovered = Mathf.Min(missing, Mathf.Max(1f, missing * SymbiantSharedHealthRecoveryMissingFraction));
+			sharedHealth = Mathf.Min(max, sharedHealth + recovered);
+			nextSharedHealthRecoveryTick = sharedHealth >= max - 0.01f
+				? 0
+				: ticks + SymbiantSharedHealthRecoveryIntervalTicks;
 		}
 
 		public static float HealthScaleMultiplierForCells(int cellCount)
@@ -1362,8 +1408,6 @@ namespace ZombieLand
 
 		void PreApplyLinkedHostDamage(Pawn pawn, ref DamageInfo dinfo, ref bool absorbed)
 		{
-			if (sharedDamageInProgress)
-				return;
 			if (safeSeveranceInProgress || hostCollapseInProgress)
 				return;
 			if (pawn == null || pawn.Dead || pawn.Destroyed || dinfo.Amount <= 0f)
@@ -1845,14 +1889,15 @@ namespace ZombieLand
 				hediff.symbiantThingId = ThingID;
 				hediff.Severity = severity;
 			}
+			SyncHostDamageEchoes(pawn);
 		}
 
 		static void RemoveHostHediff(Pawn pawn)
 		{
-			if (pawn?.health?.hediffSet == null || CustomDefs.SymbiantSymbiosis == null)
+			if (pawn?.health?.hediffSet == null)
 				return;
 			foreach (var hediff in pawn.health.hediffSet.hediffs
-				.Where(hediff => hediff.def == CustomDefs.SymbiantSymbiosis)
+				.Where(hediff => hediff.def == CustomDefs.SymbiantSymbiosis || hediff is Hediff_SymbiantDamageEcho)
 				.ToArray())
 				pawn.health.RemoveHediff(hediff);
 		}
@@ -2030,6 +2075,7 @@ namespace ZombieLand
 			{
 				var pawn = ResolveHost();
 				RemoveHostHediff(pawn);
+				ClearDamageEchoHistory(pawn);
 				host = null;
 				hostThingId = null;
 				symbiosisSevered = true;
@@ -2061,6 +2107,7 @@ namespace ZombieLand
 			destroyWhenCellMotionsFinish = false;
 			StartIncomingCellMotion(relative);
 			orderedCells.Add(relative);
+			combatShapeVersion++;
 			ExpandCellBounds(relative);
 			if (wasFullHealth)
 				sharedHealth = SharedHealthMax;
@@ -2076,7 +2123,10 @@ namespace ZombieLand
 			orderedCells.Remove(relative);
 			var removed = cells.Remove(relative);
 			if (removed)
+			{
+				combatShapeVersion++;
 				EnsureSharedHealth();
+			}
 			return removed;
 		}
 
@@ -2144,6 +2194,7 @@ namespace ZombieLand
 				cells.Remove(cell);
 			orderedCells?.RemoveAll(cell => connected.Contains(cell) == false);
 			cellMotions?.RemoveAll(motion => connected.Contains(motion.cell) == false);
+			combatShapeVersion++;
 			return removed.Length;
 		}
 
@@ -2396,6 +2447,7 @@ namespace ZombieLand
 			Position = anchor;
 			cells = [];
 			orderedCells = [];
+			combatShapeVersion++;
 			hasCellBounds = false;
 			AddRelativeCells(targetCells.Select(cell => cell - anchor));
 			RebuildCellBounds();
@@ -2434,6 +2486,7 @@ namespace ZombieLand
 			var killHost = IsActiveBondWith(pawn);
 			PlayDisconnectedSound();
 			RemoveHostHediff(pawn);
+			ClearDamageEchoHistory(pawn);
 			host = null;
 			hostThingId = null;
 			symbiosisSevered = true;
@@ -2468,6 +2521,7 @@ namespace ZombieLand
 					if (uncontrolledDestroyHandled == false)
 						PlayDisconnectedSound();
 						RemoveHostHediff(pawn);
+						ClearDamageEchoHistory(pawn);
 						host = null;
 						hostThingId = null;
 						symbiosisSevered = true;
@@ -2529,8 +2583,6 @@ namespace ZombieLand
 
 		public void PreApplyLinkedDamage(ref DamageInfo dinfo, ref bool absorbed)
 		{
-			if (sharedDamageInProgress)
-				return;
 			if (safeSeveranceInProgress || hostCollapseInProgress)
 				return;
 			if (dinfo.Amount <= 0f)
@@ -2548,39 +2600,254 @@ namespace ZombieLand
 				NotifyDamageAbsorbed();
 				return;
 			}
+		}
 
-			var drained = DrainSharedHealth(dinfo.Amount);
-			if (Destroyed || Dead)
+		internal void CompleteDamageApplication(
+			DamageInfo dinfo,
+			DamageWorker.DamageResult result,
+			IReadOnlyDictionary<Hediff, float> hediffSeveritiesBefore)
+		{
+			if (result == null)
+				return;
+			ResolveDamageEchoCategory(dinfo, result, hediffSeveritiesBefore, out var categoryKey, out var categoryLabel);
+			_ = PruneAnatomyOnlyDamageHediffs();
+			var actualDamage = Mathf.Max(0f, result.totalDamageDealt);
+			if (actualDamage <= 0f || Destroyed || Dead || safeSeveranceInProgress || hostCollapseInProgress)
+				return;
+			var drained = DrainSharedHealth(actualDamage);
+			if (drained <= 0f || Destroyed || Dead)
+				return;
+			RecordDamageEcho(categoryKey, categoryLabel, drained);
+			NotifySharedDamageAbsorbed(drained, 0f, this);
+			SyncHostDamageEchoes();
+		}
+
+		void ResolveDamageEchoCategory(
+			DamageInfo dinfo,
+			DamageWorker.DamageResult result,
+			IReadOnlyDictionary<Hediff, float> hediffSeveritiesBefore,
+			out string categoryKey,
+			out string categoryLabel)
+		{
+			var source = result.hediffs?.FirstOrDefault(hediff => hediff is Hediff_Injury)
+				?? result.hediffs?.FirstOrDefault();
+			if (source == null && health?.hediffSet?.hediffs != null && hediffSeveritiesBefore != null)
+				source = health.hediffSet.hediffs.FirstOrDefault(hediff =>
+					hediffSeveritiesBefore.TryGetValue(hediff, out var before) == false
+					|| Mathf.Approximately(before, hediff.Severity) == false);
+			if (source?.def != null)
 			{
-				dinfo.SetAmount(0f);
-				absorbed = true;
+				categoryKey = "hediff:" + source.def.defName;
+				categoryLabel = source.def.LabelCap.ToString();
+				return;
+			}
+			if (dinfo.Def != null)
+			{
+				categoryKey = "damage:" + dinfo.Def.defName;
+				categoryLabel = dinfo.Def.LabelCap.ToString();
+				return;
+			}
+			categoryKey = SymbiantOtherDamageEchoKey;
+			categoryLabel = null;
+		}
+
+		internal int PruneAnatomyOnlyDamageHediffs()
+		{
+			var hediffSet = health?.hediffSet;
+			if (hediffSet?.hediffs == null)
+				return 0;
+			var removable = hediffSet.hediffs.Where(IsAnatomyOnlyDamageHediff).ToArray();
+			foreach (var hediff in removable)
+				health.RemoveHediff(hediff);
+			return removable.Length;
+		}
+
+		static bool IsAnatomyOnlyDamageHediff(Hediff hediff)
+		{
+			if (hediff?.GetType() != typeof(Hediff_Injury) || hediff is not Hediff_Injury injury)
+				return false;
+			if (injury.comps.NullOrEmpty())
+				return true;
+			return injury.comps.All(comp => comp is HediffComp_TendDuration
+				|| comp is HediffComp_GetsPermanent
+				|| comp is HediffComp_Infecter);
+		}
+
+		void RecordDamageEcho(string categoryKey, string categoryLabel, float amount)
+		{
+			if (amount <= 0f)
+				return;
+			NormalizeDamageEchoHistory();
+			categoryKey = categoryKey.NullOrEmpty() ? SymbiantOtherDamageEchoKey : categoryKey;
+			var record = damageEchoHistory.FirstOrDefault(candidate => candidate.categoryKey == categoryKey);
+			if (record == null && categoryKey != SymbiantOtherDamageEchoKey
+				&& damageEchoHistory.Count(candidate => candidate.categoryKey != SymbiantOtherDamageEchoKey) >= SymbiantNamedDamageEchoLimit)
+			{
+				categoryKey = SymbiantOtherDamageEchoKey;
+				categoryLabel = null;
+				record = damageEchoHistory.FirstOrDefault(candidate => candidate.categoryKey == categoryKey);
+			}
+			if (record == null)
+			{
+				record = new SymbiantDamageEchoRecord
+				{
+					categoryKey = categoryKey,
+					cachedLabel = categoryLabel,
+					amount = 0f
+				};
+				damageEchoHistory.Add(record);
+			}
+			if (record.cachedLabel.NullOrEmpty() && categoryLabel.NullOrEmpty() == false)
+				record.cachedLabel = categoryLabel;
+			record.amount += amount;
+		}
+
+		void NormalizeDamageEchoHistory()
+		{
+			damageEchoHistory ??= [];
+			var normalized = new List<SymbiantDamageEchoRecord>();
+			var byKey = new Dictionary<string, SymbiantDamageEchoRecord>();
+			var otherAmount = 0f;
+			foreach (var source in damageEchoHistory)
+			{
+				if (source == null || source.amount <= 0f)
+					continue;
+				var key = source.categoryKey.NullOrEmpty() ? SymbiantOtherDamageEchoKey : source.categoryKey;
+				if (key == SymbiantOtherDamageEchoKey)
+				{
+					otherAmount += source.amount;
+					continue;
+				}
+				if (byKey.TryGetValue(key, out var existing))
+				{
+					existing.amount += source.amount;
+					if (existing.cachedLabel.NullOrEmpty())
+						existing.cachedLabel = source.cachedLabel;
+					continue;
+				}
+				if (normalized.Count >= SymbiantNamedDamageEchoLimit)
+				{
+					otherAmount += source.amount;
+					continue;
+				}
+				var copy = new SymbiantDamageEchoRecord
+				{
+					categoryKey = key,
+					cachedLabel = source.cachedLabel,
+					amount = source.amount
+				};
+				normalized.Add(copy);
+				byKey.Add(key, copy);
+			}
+			if (otherAmount > 0f)
+				normalized.Add(new SymbiantDamageEchoRecord
+				{
+					categoryKey = SymbiantOtherDamageEchoKey,
+					amount = otherAmount
+				});
+			damageEchoHistory = normalized;
+		}
+
+		public bool HasDamageEchoCategory(string categoryKey)
+		{
+			return categoryKey.NullOrEmpty() == false
+				&& damageEchoHistory?.Any(record => record?.categoryKey == categoryKey && record.amount > 0f) == true;
+		}
+
+		string DamageEchoCategoryLabel(SymbiantDamageEchoRecord record)
+		{
+			if (record == null || record.categoryKey == SymbiantOtherDamageEchoKey)
+				return "SymbiantDamageEchoOther".Translate();
+			var separator = record.categoryKey.IndexOf(':');
+			if (separator > 0 && separator < record.categoryKey.Length - 1)
+			{
+				var kind = record.categoryKey.Substring(0, separator);
+				var defName = record.categoryKey.Substring(separator + 1);
+				if (kind == "hediff")
+				{
+					var hediffDef = DefDatabase<HediffDef>.GetNamedSilentFail(defName);
+					if (hediffDef != null)
+						return hediffDef.LabelCap.ToString();
+				}
+				else if (kind == "damage")
+				{
+					var damageDef = DefDatabase<DamageDef>.GetNamedSilentFail(defName);
+					if (damageDef != null)
+						return damageDef.LabelCap.ToString();
+				}
+			}
+			return record.cachedLabel.NullOrEmpty() ? "SymbiantDamageEchoOther".Translate() : record.cachedLabel;
+		}
+
+		public static string FormatDamageEchoAmount(float amount)
+		{
+			return Mathf.Max(0f, amount).ToString("0.#");
+		}
+
+		internal void SyncHostDamageEchoes(Pawn pawn = null)
+		{
+			if (DebugDisableHostHediffSync)
+				return;
+			pawn ??= ResolveHost();
+			if (pawn?.health?.hediffSet == null)
+				return;
+			NormalizeDamageEchoHistory();
+			var echoes = pawn.health.hediffSet.hediffs.OfType<Hediff_SymbiantDamageEcho>().ToArray();
+			if (symbiosisSevered || CustomDefs.SymbiantDamageEcho == null || IsActiveBondWith(pawn) == false)
+			{
+				foreach (var echo in echoes)
+					pawn.health.RemoveHediff(echo);
 				return;
 			}
 
-			var linkedHost = LinkedHost;
-			var hostAmount = 0f;
-			if (IsActiveBondWith(linkedHost))
-			{
-				hostAmount = SharedDamageLeakAmount(drained);
-				if (hostAmount > 0.01f)
-				{
-					var hostDamage = dinfo;
-					hostDamage.SetAmount(hostAmount);
-					sharedDamageInProgress = true;
-					try
-					{
-						_ = linkedHost.TakeDamage(hostDamage);
-					}
-					finally
-					{
-						sharedDamageInProgress = false;
-					}
-				}
-			}
-			NotifySharedDamageAbsorbed(drained, hostAmount, this);
-			dinfo.SetAmount(0f);
-			absorbed = true;
+			var expectedKeys = damageEchoHistory
+				.Where(record => record?.amount > 0f)
+				.Select(record => record.categoryKey)
+				.ToHashSet();
+			foreach (var stale in echoes.Where(echo => echo.symbiantThingId != ThingID || expectedKeys.Contains(echo.categoryKey) == false).ToArray())
+				pawn.health.RemoveHediff(stale);
 
+			foreach (var record in damageEchoHistory.Where(record => record?.amount > 0f))
+			{
+				var matches = pawn.health.hediffSet.hediffs
+					.OfType<Hediff_SymbiantDamageEcho>()
+					.Where(echo => echo.symbiantThingId == ThingID && echo.categoryKey == record.categoryKey)
+					.ToArray();
+				var echo = matches.FirstOrDefault();
+				foreach (var duplicate in matches.Skip(1))
+					pawn.health.RemoveHediff(duplicate);
+				if (echo == null)
+				{
+					echo = HediffMaker.MakeHediff(CustomDefs.SymbiantDamageEcho, pawn) as Hediff_SymbiantDamageEcho;
+					if (echo == null)
+						continue;
+					echo.symbiantThingId = ThingID;
+					echo.categoryKey = record.categoryKey;
+					echo.cachedCategoryLabel = DamageEchoCategoryLabel(record);
+					echo.displayAmount = record.amount;
+					echo.Severity = 0.001f;
+					pawn.health.AddHediff(echo);
+				}
+				echo.symbiantThingId = ThingID;
+				echo.categoryKey = record.categoryKey;
+				echo.cachedCategoryLabel = DamageEchoCategoryLabel(record);
+				echo.displayAmount = record.amount;
+				echo.Severity = 0.001f;
+			}
+		}
+
+		void ClearDamageEchoHistory(Pawn pawn)
+		{
+			damageEchoHistory?.Clear();
+			RemoveHostDamageEchoes(pawn);
+		}
+
+		static void RemoveHostDamageEchoes(Pawn pawn)
+		{
+			if (pawn?.health?.hediffSet == null)
+				return;
+			foreach (var echo in pawn.health.hediffSet.hediffs.OfType<Hediff_SymbiantDamageEcho>().ToArray())
+				pawn.health.RemoveHediff(echo);
 		}
 
 		static bool IsPlayerCausedDamage(DamageInfo dinfo)
@@ -2612,6 +2879,7 @@ namespace ZombieLand
 						targets
 					);
 					RemoveHostHediff(pawn);
+					ClearDamageEchoHistory(pawn);
 					host = null;
 					hostThingId = null;
 					symbiosisSevered = true;
@@ -2637,8 +2905,10 @@ namespace ZombieLand
 				Destroy(DestroyMode.Vanish);
 				return;
 			}
+			TryRecoverSharedHealth(ticks);
 			if (ticks % SymbiosisMetricRefreshInterval == Mathf.Abs(thingIDNumber % SymbiosisMetricRefreshInterval))
 			{
+				_ = PruneAnatomyOnlyDamageHediffs();
 				EnsureHostLink();
 				if (TryReseedIfUprooted())
 					return;
@@ -2708,7 +2978,7 @@ namespace ZombieLand
 				&& injury.Part != null;
 		}
 
-		internal static bool IsAutoHealableHediffForDebug(Hediff hediff) => IsAutoHealableHediff(hediff);
+		public static bool IsAutoHealableHediffForDebug(Hediff hediff) => IsAutoHealableHediff(hediff);
 
 		void ResetExpansionClock()
 		{
@@ -3705,6 +3975,8 @@ namespace ZombieLand
 
 		void EnsureSymbiantDefaults()
 		{
+			var previousCellCount = cells?.Count ?? -1;
+			var previousOrderedCount = orderedCells?.Count ?? -1;
 			cells ??= [];
 			cellMotions ??= [];
 			if (cells.Count == 0 && destroyWhenCellMotionsFinish == false)
@@ -3727,6 +3999,8 @@ namespace ZombieLand
 				orderedCells.RemoveAt(orderedCells.Count - 1);
 				cells.Remove(cell);
 			}
+			if (previousCellCount != cells.Count || previousOrderedCount != orderedCells.Count)
+				combatShapeVersion++;
 			RebuildCellBounds();
 			if (radius <= 0f)
 				radius = elementRadius * 9f;
@@ -4022,11 +4296,14 @@ namespace ZombieLand
 			Scribe_Values.Look(ref uprootedSinceTick, "uprootedSinceTick", -1);
 			Scribe_Values.Look(ref cancelNextBreach, "cancelNextBreach");
 			Scribe_Values.Look(ref sharedHealth, "sharedHealth", -1f);
+			Scribe_Values.Look(ref lastSharedHealthDamageTick, "lastSharedHealthDamageTick", int.MinValue);
+			Scribe_Values.Look(ref nextSharedHealthRecoveryTick, "nextSharedHealthRecoveryTick");
 			Scribe_Values.Look(ref destroyWhenCellMotionsFinish, "destroyWhenCellMotionsFinish");
 			Scribe_References.Look(ref host, "host");
 			Scribe_Values.Look(ref hostThingId, "hostThingId");
 			Scribe_Values.Look(ref symbiosisSevered, "symbiosisSevered");
 			Scribe_Collections.Look(ref hostBenefits, "hostBenefits", LookMode.Value);
+			Scribe_Collections.Look(ref damageEchoHistory, "damageEchoHistory", LookMode.Deep);
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{
 				if (CellCount == 0)
@@ -4040,6 +4317,11 @@ namespace ZombieLand
 				EnsureBenefitDefaults();
 				EnsureHostHediff();
 				EnsureSharedHealth();
+				NormalizeDamageEchoHistory();
+				_ = PruneAnatomyOnlyDamageHediffs();
+				if (sharedHealth < SharedHealthMax - 0.01f && nextSharedHealthRecoveryTick <= 0)
+					nextSharedHealthRecoveryTick = GenTicks.TicksGame + SymbiantSharedHealthRecoveryDelayTicks;
+				SyncHostDamageEchoes();
 			}
 		}
 

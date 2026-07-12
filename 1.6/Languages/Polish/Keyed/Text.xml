@@ -48,13 +48,17 @@
 	<SymbiantDamageAbsorbedMote>wchłonięto {0}%</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>gospodarz</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} z {1}</SymbiantSharedHealthSummary>
+	<SymbiantDamageEchoLabel>{0}: {1} obrażeń</SymbiantDamageEchoLabel>
+	<SymbiantDamageEchoOther>inne</SymbiantDamageEchoOther>
+	<SymbiantDamageEchoDescription>Łączne obrażenia pochłonięte przez połączonego symbionta podczas obecnej więzi: {0}. To tylko zapis; nie rani, nie osłabia, nie wywołuje krwawienia, nie powala ani nie zabija gospodarza.</SymbiantDamageEchoDescription>
+	<SymbiantSharedHealthRecoveryDescription>Po godzinie bez współdzielonych obrażeń symbiont odzyskuje 5% brakującego współdzielonego zdrowia w każdej spokojnej godzinie.</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>karmi Symbionta</FeedingZombieSymbiant>
 	<SymbiantFedMote>+{1} pól</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>Nakarm Symbionta: {0} {1} (+{2} pól)</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>Usuń więź z Symbiontem</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>Usuń więź z Symbiontem ({0} ekstraktu zombie)</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>Więź z Symbiontem należąca do {0} została usunięta.</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>Symbiont: {0}/{1} pól. Następna korzyść przy {2} polach. Wspólna pula zdrowia: {3}. Symbiont pochłania większość wspólnych obrażeń; przy obecnym rozmiarze do gospodarza dociera &lt;color=#ffb35c&gt;{4}%&lt;/color&gt;.\n\nZasada mapy: gospodarz i Symbiont muszą znajdować się na tej samej mapie, aby więź była aktywna i można ją było bezpiecznie usunąć. Po rozdzieleniu więź przechodzi w stan uśpienia. Więź może się odnowić tylko wtedy, gdy ten sam gospodarz i Symbiont ponownie znajdą się na jednej mapie. Porzucenie mapy Symbionta niszczy go i siłą zrywa więź; operacja pozwala najpierw bezpiecznie usunąć więź.\n\nKorzyści:\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>Symbiont: {0}/{1} pól. Następna korzyść przy {2} polach. Wspólna pula zdrowia: {3}. Gdy trafiony zostaje gospodarz, pełny atak najpierw zmniejsza wspólne zdrowie; przy obecnym rozmiarze &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; pozostaje prawdziwą raną gospodarza. Ataki na Symbionta tworzą nieszkodliwe szare zapisy zamiast ran gospodarza.\n\nZasada mapy: gospodarz i Symbiont muszą znajdować się na tej samej mapie, aby więź była aktywna i można ją było bezpiecznie usunąć. Po rozdzieleniu więź przechodzi w stan uśpienia. Więź może się odnowić tylko wtedy, gdy ten sam gospodarz i Symbiont ponownie znajdą się na jednej mapie. Porzucenie mapy Symbionta niszczy go i siłą zrywa więź; operacja pozwala najpierw bezpiecznie usunąć więź.\n\nKorzyści:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Z tym gospodarzem nie jest połączony żaden aktywny Symbiont.</SymbiantHostBondMissing>
 	<SymbiantHostRelocatedMessage>Więź {0} z Symbiontem jest uśpiona, ponieważ gospodarz i Symbiont nie znajdują się na tej samej mapie. Więź pozostaje. Podczas uśpienia wszystkie korzyści (w tym odporność na zakażenie zombie), przekazywanie współdzielonych obrażeń i chirurgiczne rozdzielenie są nieaktywne. Więź może się odnowić tylko wtedy, gdy ten sam gospodarz i Symbiont ponownie znajdą się na jednej mapie.</SymbiantHostRelocatedMessage>
 	<LetterLabelSymbiantBondDormant>Więź z Symbiontem uśpiona</LetterLabelSymbiantBondDormant>

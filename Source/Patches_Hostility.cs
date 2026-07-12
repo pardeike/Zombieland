@@ -204,9 +204,11 @@ namespace ZombieLand
 			{
 				if (target.Thing is not Pawn pawn)
 					return false;
+				if (pawn is ZombieSymbiant)
+					return ZombieSymbiantCombat.IsPermittedHostileAttacker(attacker) == false;
 				if (removeAllZombies && StorytellerEventFilters.IsZombielandPawn(pawn))
 					return true;
-				if (removeSpitter && (pawn is ZombieSpitter || pawn is ZombieSymbiant))
+				if (removeSpitter && pawn is ZombieSpitter)
 					return true;
 				if (pawn is not Zombie zombie)
 					return false;
@@ -360,7 +362,7 @@ namespace ZombieLand
 			validator = (Thing t) =>
 			{
 				if (t is ZombieSymbiant)
-					return oldValidator(t);
+					return ZombieSymbiantCombat.IsPermittedHostileAttacker(attacker) && oldValidator(t);
 				if (t is ZombieSpitter)
 					return false;
 
@@ -401,9 +403,26 @@ namespace ZombieLand
 			};
 		}
 
-		static void Postfix(ref IAttackTarget __result, TargetScanFlags flags, Predicate<Thing> validator, IAttackTargetSearcher searcher)
+		static void Postfix(
+			ref IAttackTarget __result,
+			TargetScanFlags flags,
+			Predicate<Thing> validator,
+			IAttackTargetSearcher searcher,
+			float minDist,
+			float maxDist,
+			IntVec3 locus,
+			float maxTravelRadiusFromLocus,
+			bool onlyRanged)
 		{
 			var thing = __result as Thing;
+			var logicalContext = ZombieSymbiantCombat.CurrentTargetScan(searcher);
+			if (logicalContext != null
+				&& ZombieSymbiantCombat.TryGetLogicalAttackTarget(logicalContext, out var symbiant)
+				&& (thing == null || (searcher.CurrentEffectiveVerb?.IsMeleeAttack == false && logicalContext.logicalCandidateEnteredShootingPool == false)))
+			{
+				__result = symbiant;
+				thing = symbiant;
+			}
 
 			if (thing == null)
 			{
@@ -506,6 +525,58 @@ namespace ZombieLand
 			if (zombie.story.bodyType == BodyTypeDefOf.Thin)
 				__result += 3f;
 			return false;
+		}
+
+		static void Postfix(IAttackTargetSearcher searcher, IAttackTarget target, Verb verb, ref float __result)
+		{
+			if (target?.Thing is not ZombieSymbiant symbiant || searcher?.Thing == null || verb == null || verb.IsMeleeAttack)
+				return;
+			if (ZombieSymbiantCombat.TryGetBoundRangedCell(verb, symbiant, out var cell) == false
+				&& ZombieSymbiantCombat.TrySelectRangedCell(verb, searcher.Thing.Position, symbiant, out cell, out _) == false)
+				return;
+
+			var rootDistance = Math.Min(symbiant.Position.DistanceTo(searcher.Thing.Position), 40f);
+			var cellDistance = Math.Min(cell.DistanceTo(searcher.Thing.Position), 40f);
+			var rootCover = CoverUtility.CalculateOverallBlockChance(symbiant.Position, searcher.Thing.Position, searcher.Thing.Map);
+			var cellCover = CoverUtility.CalculateOverallBlockChance(cell, searcher.Thing.Position, searcher.Thing.Map);
+			var rootBlastFriendlyFire = LogicalBlastFriendlyFireScore(target, searcher, verb, symbiant.Position);
+			var cellBlastFriendlyFire = LogicalBlastFriendlyFireScore(target, searcher, verb, cell);
+			var priority = target.TargetPriorityFactor;
+			__result += (rootDistance - cellDistance) * priority;
+			__result += (rootCover - cellCover) * 10f * priority;
+			__result += (cellBlastFriendlyFire - rootBlastFriendlyFire) * priority;
+		}
+
+		static float LogicalBlastFriendlyFireScore(IAttackTarget target, IAttackTargetSearcher searcher, Verb verb, IntVec3 center)
+		{
+			if (verb.verbProps.ai_AvoidFriendlyFireRadius <= 0f)
+				return 0f;
+			var map = target.Thing.Map;
+			var cellCount = GenRadial.NumCellsInRadius(verb.verbProps.ai_AvoidFriendlyFireRadius);
+			var score = 0f;
+			for (var i = 0; i < cellCount; i++)
+			{
+				var cell = center + GenRadial.RadialPattern[i];
+				if (cell.InBounds(map) == false)
+					continue;
+				var firstTarget = true;
+				var things = cell.GetThingList(map);
+				for (var j = 0; j < things.Count; j++)
+				{
+					var thing = things[j];
+					if (thing is not IAttackTarget || thing == target.Thing || thing is Zombie || thing is ZombieSymbiant)
+						continue;
+					if (firstTarget)
+					{
+						if (GenSight.LineOfSight(center, cell, map, true) == false)
+							break;
+						firstTarget = false;
+					}
+					var value = thing == searcher.Thing ? 40f : thing is not Pawn ? 10f : thing.def.race.Animal ? 7f : 18f;
+					score = searcher.Thing.HostileTo(thing) ? score + value * 0.6f : score - value;
+				}
+			}
+			return score;
 		}
 	}
 

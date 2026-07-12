@@ -89,6 +89,7 @@ namespace ZombieLand
 		public static ThingDef Ghost;
 		public static HediffDef ZombieInfection;
 		public static HediffDef SymbiantSymbiosis;
+		public static HediffDef SymbiantDamageEcho;
 		public static GameConditionDef ZombieFreeEvent;
 		public static LetterDef ColonistTurnedZombie;
 			public static LetterDef OtherTurnedZombie;

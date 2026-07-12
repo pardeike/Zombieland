@@ -66,7 +66,7 @@ namespace ZombieLand
 					symbiant.SharedHealthSummary,
 					symbiant.SharedDamageLeakPercentDisplay,
 					symbiant.BenefitSummary
-				);
+				) + "\n\n" + "SymbiantSharedHealthRecoveryDescription".Translate();
 			}
 		}
 
@@ -110,6 +110,7 @@ namespace ZombieLand
 			}
 			symbiantThingId = symbiant.ThingID;
 			Severity = ZombieSymbiant.HostHediffSeverity(ZombieSymbiant.SymbiantBenefitFactor(pawn));
+			symbiant.SyncHostDamageEchoes(pawn);
 		}
 
 		public override void ExposeData()

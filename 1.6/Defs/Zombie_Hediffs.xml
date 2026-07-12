@@ -52,6 +52,18 @@
 		<everCurableByItem>false</everCurableByItem>
 	</HediffDef>
 
+	<HediffDef>
+		<defName>SymbiantDamageEcho</defName>
+		<label>symbiant damage echo</label>
+		<description>A harmless record of damage absorbed by the linked Zombie Symbiant.</description>
+		<hediffClass>ZombieLand.Hediff_SymbiantDamageEcho</hediffClass>
+		<defaultLabelColor>(0.5,0.5,0.5)</defaultLabelColor>
+		<isBad>false</isBad>
+		<tendable>false</tendable>
+		<scenarioCanAdd>false</scenarioCanAdd>
+		<everCurableByItem>false</everCurableByItem>
+	</HediffDef>
+
 	<HediffDef ParentName="DiseaseBase">
 		<defName>ContaminationEffect</defName>
 		<label>contamination</label>

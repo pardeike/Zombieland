@@ -22,4 +22,7 @@
 	<SymbiantSymbiosis.label>więź z Symbiontem</SymbiantSymbiosis.label>
 	<SymbiantSymbiosis.description>Ten kolonista jest połączony z Symbiontem zombie. Gospodarz jest odporny na zakażenie po ugryzieniu przez zombie i wraz ze wzrostem Symbionta zyskuje losowe korzyści. Istoty przechodzące przez pola Symbionta są spowolnione, z wyjątkiem gospodarza. Karmienie zwłokami przyspiesza wzrost Symbionta. Operacja usuwa więź, a pozbawiony jej Symbiont kurczy się i znika.</SymbiantSymbiosis.description>
 
+	<SymbiantDamageEcho.label>echo obrażeń symbionta</SymbiantDamageEcho.label>
+	<SymbiantDamageEcho.description>Nieszkodliwy zapis obrażeń pochłoniętych przez połączonego zombie-symbionta.</SymbiantDamageEcho.description>
+
 </LanguageData>

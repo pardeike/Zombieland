@@ -41,13 +41,17 @@
 	<SymbiantDamageAbsorbedMote>{0}% absorbido</SymbiantDamageAbsorbedMote>
 	<SymbiantHostUnknown>el huésped</SymbiantHostUnknown>
 	<SymbiantSharedHealthSummary>{0} de {1}</SymbiantSharedHealthSummary>
+	<SymbiantDamageEchoLabel>{0}: {1} de daño</SymbiantDamageEchoLabel>
+	<SymbiantDamageEchoOther>otro</SymbiantDamageEchoOther>
+	<SymbiantDamageEchoDescription>Daño acumulado absorbido por el simbionte vinculado durante el vínculo actual: {0}. Esto es solo un registro; no hiere, incapacita, hace sangrar, derriba ni mata al huésped.</SymbiantDamageEchoDescription>
+	<SymbiantSharedHealthRecoveryDescription>Tras una hora sin daño compartido, el simbionte recupera un 5 % de la salud compartida que le falta por cada hora tranquila.</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>alimentando al Simbionte</FeedingZombieSymbiant>
 	<SymbiantFedMote>+{1} celdas</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>Alimentar al Simbionte con {0} {1} (+{2} celdas)</FeedZombieSymbiantFloatMenu>
 	<SeverSymbiantSymbiosis>Eliminar el vínculo del Simbionte</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>Eliminar el vínculo del Simbionte ({0} de extracto de zombi)</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>Se ha eliminado el vínculo de {0} con el Simbionte.</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>Simbionte: {0}/{1} celdas. Próximo beneficio al alcanzar {2} celdas. Salud compartida: {3}. El Simbionte absorbe la mayor parte del daño compartido; con su tamaño actual, un &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; alcanza al huésped.\n\nRegla del mapa: el huésped y el Simbionte deben estar en el mismo mapa para que el vínculo esté activo y se pueda eliminar de forma limpia. Si se separan, el vínculo queda latente. Solo puede reactivarse si el mismo huésped y el Simbionte vuelven a estar en un mismo mapa. Abandonar el mapa del Simbionte lo destruye y rompe el vínculo por la fuerza; una operación elimina primero el vínculo de forma limpia.\n\nBeneficios:\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>Simbionte: {0}/{1} celdas. Próximo beneficio al alcanzar {2} celdas. Salud compartida: {3}. Cuando el huésped recibe un golpe, el ataque completo reduce primero la salud compartida; con el tamaño actual, un &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; queda como una herida real del huésped. Los ataques al Simbionte crean registros grises inofensivos en lugar de heridas del huésped.\n\nRegla del mapa: el huésped y el Simbionte deben estar en el mismo mapa para que el vínculo esté activo y se pueda eliminar de forma limpia. Si se separan, el vínculo queda latente. Solo puede reactivarse si el mismo huésped y el Simbionte vuelven a estar en un mismo mapa. Abandonar el mapa del Simbionte lo destruye y rompe el vínculo por la fuerza; una operación elimina primero el vínculo de forma limpia.\n\nBeneficios:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>No hay ningún Simbionte activo vinculado a este huésped.</SymbiantHostBondMissing>
 	<SymbiantHostRelocatedMessage>El vínculo de {0} con el Simbionte está latente porque el huésped y el Simbionte no se encuentran en el mismo mapa. El vínculo permanece. Mientras está latente, todos los beneficios (incluida la inmunidad a la infección zombi), la transferencia de daño compartido y la separación quirúrgica quedan inactivos. El vínculo solo puede reactivarse si el mismo huésped y el Simbionte vuelven a estar en un mismo mapa.</SymbiantHostRelocatedMessage>
 	<LetterLabelSymbiantBondDormant>Vínculo con el Simbionte latente</LetterLabelSymbiantBondDormant>

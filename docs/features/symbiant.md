@@ -26,6 +26,10 @@ The feature should be legible and annoying in a RimWorld way. It disrupts moveme
 - Natural spawn requires an eligible host and a used indoor room plan.
 - Hostless slime is for debug/test or fallback cleanup. It has no host benefits and no host trauma.
 - Direct player damage does not remove the Symbiant or make surgery safer.
+- Ordinary hostile humanlike and mechanoid pawns may choose the Symbiant as a colony target. The Symbiant receives no artificial target-priority bonus; selection uses the same distance, line-of-sight, range, cover, and friendly-fire considerations as an ordinary target, evaluated against its exposed slime cells.
+- Damage aimed at the Symbiant runs through the real vanilla or modded damage worker, then drains only the custom shared-health pool by the worker's actual post-armor damage. It never creates a real injury on the host.
+- Plain anatomical wounds are removed from the Symbiant after their damage worker has completed. Fire, stun, additional hediffs, custom injury subclasses, and unknown modded condition comps remain free to run, while part health, pain, capacities, downing, death, and summary health remain owned by the shared pool.
+- While the bond is active, the host Health tab shows at most seven named grey damage-history rows such as `Crack: 40 damage`, plus one compact `Other` row. The surrounding `Symbiant bond` group and detailed tooltip carry the echo explanation without repeating it in every row. These whole-body rows are inert and cumulative for the life of the bond. Dormancy physically removes them; reunion reconstructs them from the Symbiant's persisted ledger.
 - Non-gameplay cleanup paths detach the link without host trauma.
 - Every non-corpse Symbiant destruction removes the pawn from `WorldPawns` and discards it. `Pawn.Kill` remains the corpse-producing exception and applies the same active-host trauma as other uncontrolled destruction.
 - Game finalization removes and safely discards any Symbiant already stranded in `WorldPawns` by an older release, clearing its stale host bond without trauma. This migration is idempotent and also makes the invariant true for upgraded saves.
@@ -111,7 +115,11 @@ When Moving or Manipulation stacks are active, the host hediff keeps its `Benefi
 
 Display-hediff synchronization is idempotent: missing state is recreated and duplicate/corrupt `SymbiantSymbiosis` entries collapse to one entry tied to the authoritative Symbiant ID. Infection immunity is applied when a bite hediff is added, not one tick later. Disabled skills remain at vanilla's disabled value rather than receiving the difficulty-scaled skill patch. The Bio breakdown treats the result of RimWorld and other mods' skill-level logic as the base, suppressing only Zombieland's Symbiant addition while calculating the displayed components.
 
-The shared-health pool remains on the Symbiant while the bond is dormant, but damage never crosses maps. Damage to the separated host does not drain the pool; damage to the Symbiant does not leak to or kill the separated host. If the pool fails while the host is away, the Symbiant is removed and the remote host survives.
+The shared-health pool remains on the Symbiant while the bond is dormant, but damage never crosses maps. Damage to the separated host does not drain the pool; damage to the Symbiant does not injure or kill the separated host. Its damage ledger stays on the Symbiant, while the dormant host contains zero echo objects. If the pool fails while the host is away, the Symbiant is removed and the remote host survives.
+
+Damage aimed directly at the same-map host retains the existing sharing direction: the full incoming amount drains the shared pool first, then only the size-scaled leak proceeds through the host's normal armor and injury path. That genuine host injury remains an ordinary white injury. Damage aimed at the Symbiant is different: vanilla/CE armor and workers run on the Symbiant first, actual dealt damage drains the pool once, and the host receives only an inert grey history echo. Zero-health-damage stun or EMP may affect the Symbiant's stunner but drains no pool and creates no echo. Explicit administrative `Pawn.Kill` remains outside this health facade so the established corpse and uncontrolled-destruction contract remains valid.
+
+Shared health recovers without colony work. Any successful pool drain resets the clock. After one full quiet hour, the Symbiant recovers 5% of its currently missing shared health per in-game hour, with at least one point restored per pulse and a final clamp to full. This works while the exact host is dormant on another map, but stops after severance or host loss. Recovery is independent of growth, feeding, relocation, and maximum cell count, so movement cannot become a healing exploit and a fully grown Symbiant can still recover.
 
 Pawn disruption remains non-lethal:
 
@@ -134,19 +142,22 @@ Pawn disruption remains non-lethal:
 
 `ZombieSymbiant : Pawn` is an implementation shell. Semantically it is room-scale slime with a custom renderer, cell set, host link, feed interaction, positional disruption, and path cost.
 
-The pawn shell is deliberately isolated from normal pawn/combat systems:
+The pawn shell is deliberately narrow in normal pawn/combat systems:
 
 - not a fighter,
 - zero combat power,
-- hidden from `map.mapPawns`,
+- registered once in normal map pawn and attack-target systems,
 - discovered through `ZombieSymbiant.ActiveSymbiant(map)` and `listerThings`,
 - selectable by clicking anywhere inside its custom selector rect,
-- skipped by ordinary attack targeting, story danger, fleeing, predation, auto-attack, and explicit attack jobs,
+- targetable by ordinary hostile humanlike and mechanoid attackers, while player/friendly pawns, animals, turrets, zombies, and Anomaly-specific hostility overrides retain their prior exclusions,
+- skipped by story danger, fleeing, predation, and unrelated explicit attack jobs,
 - no normal pawn inspect tabs while selected, so Mood, Gear, Health, Combat Log, and similar pawn-tab surfaces do not treat it as an ordinary pawn,
 - no selected status/dashboard gizmo in the simplified design,
 - restricted to the Symbiant job plus inert fallback jobs.
 
 The long-term cleaner type would be a custom `Thing`/`ThingWithComps`, but that migration is separate from the v1 gameplay surface.
+
+Combat keeps one real `ZombieSymbiant` Pawn and never moves its canonical `Position` to impersonate another slime cell. Only the root cell is registered in `ThingGrid`; logical cells are supplied through a transient geometry cache with shape-version invalidation. Ranged attacks bind each `Verb` to one deterministic exposed cell, and the same cell is reused for vanilla target-scan gates, weighted target selection, distance/cover/blast-friendly-fire scoring, LOS/range, projectile destination, and impact. Vanilla roof interception/collapse runs before a logical owner impact. Melee jobs keep the real Symbiant in target A, store the reachable stand cell in B, and store the attacked slime cell in C; B/C are rebound if the blob changes shape. Damage always goes to the real Pawn, through the real damage worker, and then into its shared-health pool; attacking a cell never deletes that cell. An explosion overlapping several slime cells damages the organism at most once, using the first affected logical cell for falloff. Combat Extended support is late-bound and fail-open: because CE projectiles derive from `ThingWithComps` independently of vanilla `Projectile`, the adapter reflects CE target/position state and supplies the logical owner to CE's ordinary ballistic, final-impact, and instant-ray collision enumerations/bounds without mutating `ThingGrid` or hard-referencing CE.
 
 ## Rendering And Performance
 

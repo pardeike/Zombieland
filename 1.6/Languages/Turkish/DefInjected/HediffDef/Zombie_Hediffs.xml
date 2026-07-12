@@ -22,4 +22,7 @@
 	<SymbiantSymbiosis.label>simbiyant bağı</SymbiantSymbiosis.label>
 	<SymbiantSymbiosis.description>Bu kolonist bir Zombi Simbiyantına bağlıdır. Konak, zombi ısırıklarından kaynaklanan enfeksiyona karşı bağışıktır ve Simbiyant büyüdükçe rastgele faydalar kazanır. Konak dışında, Simbiyant hücrelerinden geçen piyonlar yavaşlar. Simbiyantı cesetlerle beslemek daha hızlı büyümesini sağlar. Bağ ameliyatla kaldırılabilir; konaksız kalan Simbiyant daha sonra küçülerek kaybolur.</SymbiantSymbiosis.description>
 
+	<SymbiantDamageEcho.label>Simbiyant hasar yankısı</SymbiantDamageEcho.label>
+	<SymbiantDamageEcho.description>Bağlı zombi Simbiyantının emdiği hasarın zararsız kaydı.</SymbiantDamageEcho.description>
+
 </LanguageData>

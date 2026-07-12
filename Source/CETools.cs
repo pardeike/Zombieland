@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using static ZombieLand.Patches;
@@ -31,7 +32,13 @@ namespace ZombieLand
 					typeof(CETools_Patch1),
 					typeof(CETools_Patch2),
 					typeof(CETools_Patch3),
-					typeof(CETools_Patch4)
+					typeof(CETools_Patch4),
+					typeof(CETools_Patch5_SymbiantCanHit),
+					typeof(CETools_Patch6_SymbiantCanHitWithReport),
+					typeof(CETools_Patch7_SymbiantShootLine),
+					typeof(CETools_Patch8_SymbiantProjectileImpact),
+					typeof(CETools_Patch9_SymbiantCollisionBounds),
+					typeof(CETools_Patch10_SymbiantRayCast)
 				});
 			}
 			finally
@@ -212,6 +219,357 @@ namespace ZombieLand
 				return false;
 			}
 			return true;
+		}
+	}
+
+	static class CESymbiantCombat
+	{
+		[ThreadStatic] internal static ZombieSymbiant collisionSymbiant;
+		[ThreadStatic] internal static IntVec3 collisionCell;
+		[ThreadStatic] internal static ZombieSymbiant raySymbiant;
+		[ThreadStatic] internal static IntVec3 rayCell;
+		static Type projectileType;
+		static Type explosiveProjectileType;
+		static FieldInfo intendedTargetField;
+		static MethodInfo exactPositionGetter;
+
+		internal static bool TryGetProjectileState(object instance, out Thing projectile, out LocalTargetInfo intendedTarget, out IntVec3 exactCell)
+		{
+			projectile = instance as Thing;
+			intendedTarget = LocalTargetInfo.Invalid;
+			exactCell = IntVec3.Invalid;
+			try
+			{
+				projectileType ??= AccessTools.TypeByName("CombatExtended.ProjectileCE");
+				if (projectile == null || projectileType?.IsInstanceOfType(instance) != true)
+					return false;
+				intendedTargetField ??= AccessTools.Field(projectileType, "intendedTarget");
+				exactPositionGetter ??= AccessTools.PropertyGetter(projectileType, "ExactPosition");
+				if (intendedTargetField == null || exactPositionGetter == null)
+					return false;
+				intendedTarget = (LocalTargetInfo)intendedTargetField.GetValue(instance);
+				exactCell = ((Vector3)exactPositionGetter.Invoke(instance, null)).ToIntVec3();
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Warn(nameof(TryGetProjectileState), ex);
+				return false;
+			}
+		}
+
+		internal static bool IsExplosiveProjectile(object instance)
+		{
+			explosiveProjectileType ??= AccessTools.TypeByName("CombatExtended.ProjectileCE_Explosive");
+			return explosiveProjectileType?.IsInstanceOfType(instance) == true;
+		}
+
+		internal static IEnumerable<MethodBase> DeclaredMethods(string name, params Type[] parameters)
+		{
+			var baseType = AccessTools.TypeByName("CombatExtended.Verb_LaunchProjectileCE");
+			if (baseType == null)
+				yield break;
+			foreach (var type in baseType.Assembly.GetTypes().Where(type => baseType.IsAssignableFrom(type)))
+			{
+				var method = AccessTools.DeclaredMethod(type, name, parameters);
+				if (method != null && method.ReturnType == typeof(bool))
+					yield return method;
+			}
+		}
+
+		internal static IEnumerable<IntVec3> CandidateCells(ZombieSymbiant symbiant, IntVec3 root)
+		{
+			return ZombieSymbiantCombat.BoundaryCells(symbiant)
+				.OrderBy(cell => cell.DistanceToSquared(root))
+				.ThenBy(cell => cell.x)
+				.ThenBy(cell => cell.z);
+		}
+
+		internal static void Warn(string adapter, Exception ex)
+		{
+			Log.WarningOnce($"[Zombieland] Combat Extended Symbiant adapter '{adapter}' failed open: {ex.GetBaseException().Message}", ("Zombieland.CESymbiant." + adapter).GetHashCode());
+		}
+	}
+
+	[HarmonyPatch]
+	static class CETools_Patch5_SymbiantCanHit
+	{
+		static bool Prepare() => CETools.latePatching && TargetMethods().Any();
+		static IEnumerable<MethodBase> TargetMethods() => CESymbiantCombat.DeclaredMethods(
+			"CanHitTargetFrom", typeof(IntVec3), typeof(LocalTargetInfo));
+
+		[HarmonyPriority(Priority.First)]
+		static bool Prefix(object __instance, MethodBase __originalMethod, IntVec3 root, LocalTargetInfo targ, ref bool __result)
+		{
+			if (targ.Thing is not ZombieSymbiant symbiant)
+				return true;
+			try
+			{
+				foreach (var cell in CESymbiantCombat.CandidateCells(symbiant, root))
+					if ((bool)__originalMethod.Invoke(__instance, new object[] { root, new LocalTargetInfo(cell) }))
+					{
+						ZombieSymbiantCombat.BindRangedCell((Verb)__instance, symbiant, root, cell, new ShootLine(root, cell));
+						__result = true;
+						return false;
+					}
+				__result = false;
+				return false;
+			}
+			catch (Exception ex)
+			{
+				CESymbiantCombat.Warn(nameof(CETools_Patch5_SymbiantCanHit), ex);
+				return true;
+			}
+		}
+	}
+
+	[HarmonyPatch]
+	static class CETools_Patch6_SymbiantCanHitWithReport
+	{
+		static bool Prepare() => CETools.latePatching && TargetMethods().Any();
+		static IEnumerable<MethodBase> TargetMethods() => CESymbiantCombat.DeclaredMethods(
+			"CanHitTargetFrom", typeof(IntVec3), typeof(LocalTargetInfo), typeof(string).MakeByRefType());
+
+		[HarmonyPriority(Priority.First)]
+		static bool Prefix(object __instance, MethodBase __originalMethod, IntVec3 root, LocalTargetInfo targ, ref string report, ref bool __result)
+		{
+			if (targ.Thing is not ZombieSymbiant symbiant)
+				return true;
+			try
+			{
+				string lastReport = null;
+				foreach (var cell in CESymbiantCombat.CandidateCells(symbiant, root))
+				{
+					var args = new object[] { root, new LocalTargetInfo(cell), null };
+					var canHit = (bool)__originalMethod.Invoke(__instance, args);
+					lastReport = args[2] as string;
+					if (canHit == false)
+						continue;
+					ZombieSymbiantCombat.BindRangedCell((Verb)__instance, symbiant, root, cell, new ShootLine(root, cell));
+					report = lastReport;
+					__result = true;
+					return false;
+				}
+				report = lastReport;
+				__result = false;
+				return false;
+			}
+			catch (Exception ex)
+			{
+				CESymbiantCombat.Warn(nameof(CETools_Patch6_SymbiantCanHitWithReport), ex);
+				return true;
+			}
+		}
+	}
+
+	[HarmonyPatch]
+	static class CETools_Patch7_SymbiantShootLine
+	{
+		static MethodBase targetMethod;
+		static bool Prepare()
+		{
+			if (CETools.latePatching == false)
+				return false;
+			var type = AccessTools.TypeByName("CombatExtended.Verb_LaunchProjectileCE");
+			targetMethod = AccessTools.Method(type, "TryFindCEShootLineFromTo", new[]
+			{
+				typeof(IntVec3), typeof(LocalTargetInfo), typeof(ShootLine).MakeByRefType(), typeof(Vector3).MakeByRefType()
+			});
+			return targetMethod != null;
+		}
+		static MethodBase TargetMethod() => targetMethod;
+
+		[HarmonyPriority(Priority.First)]
+		static bool Prefix(object __instance, IntVec3 root, LocalTargetInfo targ, ref ShootLine resultingLine, ref Vector3 targetPos, ref bool __result)
+		{
+			if (targ.Thing is not ZombieSymbiant symbiant)
+				return true;
+			try
+			{
+				foreach (var cell in CESymbiantCombat.CandidateCells(symbiant, root))
+				{
+					var args = new object[] { root, new LocalTargetInfo(cell), default(ShootLine), default(Vector3) };
+					if ((bool)targetMethod.Invoke(__instance, args) == false)
+						continue;
+					resultingLine = (ShootLine)args[2];
+					targetPos = (Vector3)args[3];
+					ZombieSymbiantCombat.BindRangedCell((Verb)__instance, symbiant, root, cell, resultingLine);
+					__result = true;
+					return false;
+				}
+				__result = false;
+				return false;
+			}
+			catch (Exception ex)
+			{
+				CESymbiantCombat.Warn(nameof(CETools_Patch7_SymbiantShootLine), ex);
+				return true;
+			}
+		}
+	}
+
+	[HarmonyPatch]
+	static class CETools_Patch8_SymbiantProjectileImpact
+	{
+		static MethodBase targetMethod;
+		static bool Prepare()
+		{
+			if (CETools.latePatching == false)
+				return false;
+			var type = AccessTools.TypeByName("CombatExtended.ProjectileCE");
+			targetMethod = AccessTools.DeclaredMethod(type, "ImpactSomething");
+			return targetMethod != null;
+		}
+		static MethodBase TargetMethod() => targetMethod;
+
+		[HarmonyPriority(Priority.First)]
+		static void Prefix(object __instance)
+		{
+			if (CESymbiantCombat.TryGetProjectileState(__instance, out var projectile, out var intendedTarget, out var exactCell) == false
+				|| intendedTarget.Thing is not ZombieSymbiant symbiant
+				|| symbiant.Spawned == false
+				|| symbiant.Map != projectile.Map
+				|| symbiant.ContainsCell(exactCell) == false
+				|| CESymbiantCombat.IsExplosiveProjectile(__instance))
+				return;
+			CESymbiantCombat.collisionSymbiant = symbiant;
+			CESymbiantCombat.collisionCell = exactCell;
+		}
+
+		static Exception Finalizer(Exception __exception)
+		{
+			CESymbiantCombat.collisionSymbiant = null;
+			CESymbiantCombat.collisionCell = IntVec3.Invalid;
+			return __exception;
+		}
+
+		static List<Thing> ThingsAtLogicalSymbiantCell(ThingGrid grid, IntVec3 cell)
+		{
+			var things = grid.ThingsListAt(cell);
+			var symbiant = CESymbiantCombat.collisionSymbiant;
+			if (symbiant?.Spawned != true || symbiant.ContainsCell(cell) == false || things.Contains(symbiant))
+				return things;
+			var result = new List<Thing>(things.Count + 1);
+			result.AddRange(things);
+			result.Add(symbiant);
+			return result;
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		{
+			var source = AccessTools.Method(typeof(ThingGrid), nameof(ThingGrid.ThingsListAt), new[] { typeof(IntVec3) });
+			var replacement = AccessTools.Method(typeof(CETools_Patch8_SymbiantProjectileImpact), nameof(ThingsAtLogicalSymbiantCell));
+			var replaced = false;
+			foreach (var instruction in instructions)
+			{
+				if (instruction.Calls(source))
+				{
+					instruction.opcode = OpCodes.Call;
+					instruction.operand = replacement;
+					replaced = true;
+				}
+				yield return instruction;
+			}
+			if (replaced == false)
+				Log.WarningOnce("[Zombieland] Combat Extended Symbiant ImpactSomething adapter found no ThingsListAt(IntVec3) anchor; projectiles will use CE's root-cell behavior.", "Zombieland.CESymbiant.ImpactAnchor".GetHashCode());
+		}
+	}
+
+	[HarmonyPatch]
+	static class CETools_Patch9_SymbiantCollisionBounds
+	{
+		static MethodBase TargetMethod()
+		{
+			if (CETools.latePatching == false)
+				return null;
+			var type = AccessTools.TypeByName("CombatExtended.CE_Utility");
+			return AccessTools.Method(type, "GetBoundsFor", new[] { typeof(Thing) });
+		}
+		static bool Prepare() => TargetMethod() != null;
+
+		static void Postfix(Thing thing, ref Bounds __result)
+		{
+			var cell = IntVec3.Invalid;
+			if (thing == CESymbiantCombat.collisionSymbiant && CESymbiantCombat.collisionCell.IsValid)
+				cell = CESymbiantCombat.collisionCell;
+			else if (thing == CESymbiantCombat.raySymbiant && CESymbiantCombat.rayCell.IsValid)
+				cell = CESymbiantCombat.rayCell;
+			if (cell.IsValid == false)
+				return;
+			var center = __result.center;
+			var cellCenter = cell.ToVector3Shifted();
+			center.x = cellCenter.x;
+			center.z = cellCenter.z;
+			__result.center = center;
+			ZombieSymbiantCombat.RecordCombatExtendedLogicalCollision(cell);
+		}
+	}
+
+	[HarmonyPatch]
+	static class CETools_Patch10_SymbiantRayCast
+	{
+		static MethodBase[] targetMethods;
+		static bool Prepare()
+		{
+			if (CETools.latePatching == false)
+				return false;
+			var type = AccessTools.TypeByName("CombatExtended.ProjectileCE");
+			targetMethods = new[]
+			{
+				AccessTools.DeclaredMethod(type, "RayCast"),
+				AccessTools.DeclaredMethod(type, "CheckCellForCollision")
+			}.Where(method => method != null).Cast<MethodBase>().ToArray();
+			return targetMethods.Length > 0;
+		}
+		static IEnumerable<MethodBase> TargetMethods() => targetMethods;
+
+		static void Prefix(object __instance)
+		{
+			CESymbiantCombat.raySymbiant = CESymbiantCombat.TryGetProjectileState(__instance, out _, out var intendedTarget, out _)
+				? intendedTarget.Thing as ZombieSymbiant
+				: null;
+			CESymbiantCombat.rayCell = IntVec3.Invalid;
+		}
+
+		static Exception Finalizer(Exception __exception)
+		{
+			CESymbiantCombat.raySymbiant = null;
+			CESymbiantCombat.rayCell = IntVec3.Invalid;
+			return __exception;
+		}
+
+		static List<Thing> ThingsAtLogicalSymbiantCell(ThingGrid grid, IntVec3 cell)
+		{
+			var things = grid.ThingsListAtFast(cell);
+			var symbiant = CESymbiantCombat.raySymbiant;
+			if (symbiant?.Spawned != true || symbiant.ContainsCell(cell) == false)
+				return things;
+			CESymbiantCombat.rayCell = cell;
+			if (things.Contains(symbiant))
+				return things;
+			var result = new List<Thing>(things.Count + 1);
+			result.AddRange(things);
+			result.Add(symbiant);
+			return result;
+		}
+
+		static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase __originalMethod)
+		{
+			var source = AccessTools.Method(typeof(ThingGrid), nameof(ThingGrid.ThingsListAtFast), new[] { typeof(IntVec3) });
+			var replacement = AccessTools.Method(typeof(CETools_Patch10_SymbiantRayCast), nameof(ThingsAtLogicalSymbiantCell));
+			var replaced = false;
+			foreach (var instruction in instructions)
+			{
+				if (instruction.Calls(source))
+				{
+					instruction.opcode = OpCodes.Call;
+					instruction.operand = replacement;
+					replaced = true;
+				}
+				yield return instruction;
+			}
+			if (replaced == false)
+				Log.WarningOnce($"[Zombieland] Combat Extended Symbiant collision adapter found no ThingsListAtFast(IntVec3) anchor in {__originalMethod?.DeclaringType?.FullName}.{__originalMethod?.Name}; this CE projectile path will use root-cell behavior.", ("Zombieland.CESymbiant.CollisionAnchor." + __originalMethod?.DeclaringType?.FullName + "." + __originalMethod?.Name).GetHashCode());
 		}
 	}
 }

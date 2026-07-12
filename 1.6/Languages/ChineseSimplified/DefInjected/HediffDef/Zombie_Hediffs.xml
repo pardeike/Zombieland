@@ -22,4 +22,7 @@
   <SymbiantSymbiosis.label>共生体连接</SymbiantSymbiosis.label>
   <SymbiantSymbiosis.description>此殖民者与一个丧尸共生体相连。宿主免疫丧尸咬伤造成的感染，并会在共生体成长时获得随机增益。穿过共生体地格的角色会变慢，宿主除外。用尸体喂养会让共生体成长更快。手术可以移除连接；失去宿主的共生体之后会逐渐缩回。</SymbiantSymbiosis.description>
 
+  <SymbiantDamageEcho.label>共生体伤害回响</SymbiantDamageEcho.label>
+  <SymbiantDamageEcho.description>相连丧尸共生体所吸收伤害的无害记录。</SymbiantDamageEcho.description>
+
 </LanguageData>

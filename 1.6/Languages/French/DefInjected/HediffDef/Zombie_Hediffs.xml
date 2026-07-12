@@ -22,4 +22,7 @@
 	<SymbiantSymbiosis.label>lien de symbiant</SymbiantSymbiosis.label>
 	<SymbiantSymbiosis.description>Ce colon est lié à un Symbiant zombie. L'hôte est immunisé contre l'infection zombie par morsure et gagne des avantages aléatoires quand le Symbiant grandit. Les pions qui traversent les cases du Symbiant sont ralentis, sauf l'hôte. Le nourrir avec des cadavres accélère sa croissance. Une opération peut retirer le lien ; le Symbiant sans hôte se résorbera ensuite.</SymbiantSymbiosis.description>
 
+	<SymbiantDamageEcho.label>écho de dégâts du symbiote</SymbiantDamageEcho.label>
+	<SymbiantDamageEcho.description>Un relevé inoffensif des dégâts absorbés par le symbiote zombie lié.</SymbiantDamageEcho.description>
+
 </LanguageData>
