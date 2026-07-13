@@ -1,3 +1,4 @@
+using HarmonyLib;
 using RimBridgeServer.Sdk;
 using RimWorld;
 using System;
@@ -3857,31 +3858,42 @@ namespace ZombieLand
 			}
 
 			var oldBetterAvoidance = ZombieSettings.Values.betterZombieAvoidance;
+			Pawn actor = null;
+			Zombie zombie = null;
 			ZombieSettings.Values.betterZombieAvoidance = false;
 			try
 			{
 				var destroyedZombies = ZombieRuntimeActions.DestroyZombies(map);
 				map.GetComponent<TickManager>().avoidGrid = new AvoidGrid(map);
 				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
-				if (TryFindClearSpawnCell(map, root, 16f, out var actorCell, out var actorSpawnError) == false)
-					return actorSpawnError;
+				var actorCell = map.AllCells
+					.Where(cell => cell.Standable(map)
+						&& cell.Fogged(map) == false
+						&& cell.GetFirstPawn(map) == null
+						&& cell.GetRoom(map)?.IsHuge == true)
+					.OrderBy(cell => cell.DistanceToSquared(root))
+					.DefaultIfEmpty(IntVec3.Invalid)
+					.First();
+				if (actorCell.IsValid == false)
+					return new { success = false, error = "No clear cell in a large reachable region was found for the avoid-grid route fixture." };
 
-				var actor = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+				actor = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
 				GenSpawn.Spawn(actor, actorCell, map, Rot4.South);
 				DisablePawnWork(actor);
 				var config = ColonistSettings.Values.ConfigFor(actor);
 				if (config != null)
 					config.autoAvoidZombies = false;
 
-				var destination = GenRadial.RadialCellsAround(actor.Position, 22f, false)
+				var destination = GenRadial.RadialCellsAround(actor.Position, 45f, false)
 					.Where(cell => cell.InBounds(map))
 					.Where(cell => cell.Standable(map))
 					.Where(cell => cell.Fogged(map) == false)
 					.Where(cell => cell.GetFirstPawn(map) == null)
-					.Where(cell => cell.DistanceTo(actor.Position) >= 16f)
+					.Where(cell => cell.DistanceTo(actor.Position) >= 12f)
 					.Where(cell => actor.CanReach(cell, PathEndMode.OnCell, Danger.Deadly))
 					.OrderByDescending(cell => cell.DistanceToSquared(actor.Position))
-					.FirstOrDefault();
+					.DefaultIfEmpty(IntVec3.Invalid)
+					.First();
 				if (destination.IsValid == false)
 				{
 					return new
@@ -3917,7 +3929,8 @@ namespace ZombieLand
 					.Where(cell => cell.GetFirstPawn(map) == null)
 					.Where(cell => cell.DistanceTo(actor.Position) >= 6f)
 					.Where(cell => cell.DistanceTo(destination) >= 6f)
-					.FirstOrDefault();
+					.DefaultIfEmpty(IntVec3.Invalid)
+					.First();
 				if (zombieCell.IsValid == false)
 				{
 					baselinePath.ReleaseToPool();
@@ -3931,7 +3944,7 @@ namespace ZombieLand
 					};
 				}
 
-				var zombie = ZombieRuntimeActions.SpawnZombie(zombieCell, map, ZombieType.Normal, true);
+				zombie = ZombieRuntimeActions.SpawnZombie(zombieCell, map, ZombieType.Normal, true);
 				if (zombie == null)
 				{
 					baselinePath.ReleaseToPool();
@@ -3947,6 +3960,9 @@ namespace ZombieLand
 				var avoidGrid = BuildAvoidGridForZombie(map, zombie);
 				var baselineAvoidCells = baselineCells.Count(cell => avoidGrid.ShouldAvoid(map, cell));
 				var baselineAvoidCost = baselineCells.Sum(cell => AvoidCost(avoidGrid, map, cell));
+				var nativeAllocationsBefore = AvoidGrid.NativeSnapshotAllocationCount;
+				var nativeCopiedCellsBefore = AvoidGrid.NativeSnapshotCopiedCellCount;
+				var customizersBefore = AvoidGrid.PathCustomizerCreationCount;
 
 				ZombieSettings.Values.betterZombieAvoidance = true;
 				if (config != null)
@@ -3958,6 +3974,22 @@ namespace ZombieLand
 				var avoidedAvoidCost = avoidedCells.Sum(cell => AvoidCost(avoidGrid, map, cell));
 				var avoidedPathFound = avoidedPath?.Found == true;
 				var asyncPathRequest = VerifyAsyncAvoidGridPathRequest(map, actor, destination);
+				var nativeAllocationsAfter = AvoidGrid.NativeSnapshotAllocationCount;
+				var nativeCopiedCellsAfter = AvoidGrid.NativeSnapshotCopiedCellCount;
+				var customizersAfter = AvoidGrid.PathCustomizerCreationCount;
+				var nativeAllocationDelta = nativeAllocationsAfter - nativeAllocationsBefore;
+				var nativeCopiedCellDelta = nativeCopiedCellsAfter - nativeCopiedCellsBefore;
+				var customizerDelta = customizersAfter - customizersBefore;
+				var snapshotActiveBeforeDisable = HasActiveAvoidGridSnapshot(map.pathFinder);
+				ZombieSettings.Values.betterZombieAvoidance = false;
+				if (config != null)
+					config.autoAvoidZombies = false;
+				var disabledPath = map.pathFinder.FindPathNow(actor.Position, destination, actor, null, PathEndMode.OnCell);
+				disabledPath?.ReleaseToPool();
+				var snapshotActiveAfterDisable = HasActiveAvoidGridSnapshot(map.pathFinder);
+				ZombieSettings.Values.betterZombieAvoidance = true;
+				if (config != null)
+					config.autoAvoidZombies = true;
 				var startPath = VerifyPawnPathFollowerStartPathPatch(map, actorCell + new IntVec3(7, 0, 7));
 				baselinePath.ReleaseToPool();
 				avoidedPath?.ReleaseToPool();
@@ -3968,6 +4000,11 @@ namespace ZombieLand
 						&& baselineAvoidCells > 0
 						&& avoidedAvoidCells < baselineAvoidCells
 						&& avoidedAvoidCost < baselineAvoidCost
+						&& nativeAllocationDelta == 1
+						&& nativeCopiedCellDelta == map.cellIndices.NumGridCells
+						&& customizerDelta == 4
+						&& snapshotActiveBeforeDisable == true
+						&& snapshotActiveAfterDisable == false
 						&& ObjectSuccess(asyncPathRequest)
 						&& ObjectSuccess(startPath),
 					destroyedZombies,
@@ -3989,14 +4026,40 @@ namespace ZombieLand
 						avoidCells = avoidedAvoidCells,
 						avoidCost = avoidedAvoidCost
 					},
+					nativeSnapshot = new
+					{
+						allocationsBefore = nativeAllocationsBefore,
+						allocationsAfter = nativeAllocationsAfter,
+						allocationDelta = nativeAllocationDelta,
+						copiedCellsBefore = nativeCopiedCellsBefore,
+						copiedCellsAfter = nativeCopiedCellsAfter,
+						copiedCellDelta = nativeCopiedCellDelta,
+						expectedCopiedCells = map.cellIndices.NumGridCells,
+						customizersBefore,
+						customizersAfter,
+						customizerDelta,
+						snapshotActiveBeforeDisable,
+						snapshotActiveAfterDisable
+					},
 					asyncPathRequest,
 					startPath
 				};
 			}
 			finally
 			{
+				if (zombie?.Destroyed == false)
+					zombie.Destroy(DestroyMode.Vanish);
+				if (actor?.Destroyed == false)
+					actor.Destroy(DestroyMode.Vanish);
 				ZombieSettings.Values.betterZombieAvoidance = oldBetterAvoidance;
 			}
+		}
+
+		static bool? HasActiveAvoidGridSnapshot(PathFinder pathFinder)
+		{
+			var registry = AccessTools.TypeByName("ZombieLand.Patches+ZombieAvoidGridPathCustomizerRegistry");
+			var snapshots = registry == null ? null : AccessTools.Field(registry, "activeSnapshots")?.GetValue(null) as System.Collections.IDictionary;
+			return snapshots == null ? null : (bool?)snapshots.Contains(pathFinder);
 		}
 
 		class ProbePathGridCustomizer : PathRequest.IPathGridCustomizer, IDisposable
@@ -4034,6 +4097,7 @@ namespace ZombieLand
 
 			PathRequest injectedResolveRequest = null;
 			PathRequest injectedDisposeRequest = null;
+			PathRequest scheduledCancelledRequest = null;
 			PathRequest existingRequest = null;
 			ProbePathGridCustomizer probeCustomizer = null;
 			try
@@ -4042,18 +4106,40 @@ namespace ZombieLand
 				injectedResolveRequest = map.pathFinder.CreateRequest(actor.Position, destination, null, traverseParms, null, PathEndMode.OnCell, actor, null);
 				var injectedResolveCustomizer = customizerField.GetValue(injectedResolveRequest);
 				var injectedResolveType = injectedResolveCustomizer?.GetType().Name;
+				var injectedResolveGeneration = CustomizerGenerationId(injectedResolveCustomizer);
 				var injectedResolveBefore = IsCustomizerGridCreated(injectedResolveCustomizer);
 				injectedResolveRequest.Resolve(null);
 				var injectedResolveAfter = IsCustomizerGridCreated(injectedResolveCustomizer);
+				var injectedResolveReleaseState = CustomizerReleaseState(injectedResolveCustomizer);
 				injectedResolveRequest = null;
 
 				injectedDisposeRequest = map.pathFinder.CreateRequest(actor.Position, destination, null, traverseParms, null, PathEndMode.OnCell, actor, null);
 				var injectedDisposeCustomizer = customizerField.GetValue(injectedDisposeRequest);
 				var injectedDisposeType = injectedDisposeCustomizer?.GetType().Name;
+				var injectedDisposeGeneration = CustomizerGenerationId(injectedDisposeCustomizer);
 				var injectedDisposeBefore = IsCustomizerGridCreated(injectedDisposeCustomizer);
 				injectedDisposeRequest.Dispose();
 				var injectedDisposeAfter = IsCustomizerGridCreated(injectedDisposeCustomizer);
+				var injectedDisposeDeferredState = CustomizerReleaseState(injectedDisposeCustomizer);
 				injectedDisposeRequest = null;
+
+				var scheduledPathsField = typeof(PathFinder).GetField("scheduledPathJobs", BindingFlags.Instance | BindingFlags.NonPublic);
+				scheduledCancelledRequest = map.pathFinder.CreateRequest(actor.Position, destination, null, traverseParms, null, PathEndMode.OnCell, actor, null);
+				var scheduledCustomizer = customizerField.GetValue(scheduledCancelledRequest);
+				var scheduledGeneration = CustomizerGenerationId(scheduledCustomizer);
+				map.pathFinder.PushRequest(scheduledCancelledRequest);
+				map.pathFinder.PathFinderTick();
+				var scheduledPathCount = (scheduledPathsField?.GetValue(map.pathFinder) as System.Collections.ICollection)?.Count ?? -1;
+				var scheduledGridCreatedBeforeDispose = IsCustomizerGridCreated(scheduledCustomizer);
+				scheduledCancelledRequest.Dispose();
+				var scheduledCancelled = scheduledCancelledRequest.Cancelled;
+				var scheduledReleaseStateAfterDispose = CustomizerReleaseState(scheduledCustomizer);
+				var scheduledGridCreatedAfterDispose = IsCustomizerGridCreated(scheduledCustomizer);
+				map.pathFinder.PathFinderTick();
+				var scheduledReleaseStateAfterCompletion = CustomizerReleaseState(scheduledCustomizer);
+				var scheduledGridCreatedAfterCompletion = IsCustomizerGridCreated(scheduledCustomizer);
+				var disposeReleaseStateAfterCompletion = CustomizerReleaseState(injectedDisposeCustomizer);
+				scheduledCancelledRequest = null;
 
 				probeCustomizer = new ProbePathGridCustomizer(map);
 				existingRequest = map.pathFinder.CreateRequest(actor.Position, destination, null, traverseParms, null, PathEndMode.OnCell, actor, probeCustomizer);
@@ -4072,10 +4158,23 @@ namespace ZombieLand
 				{
 					success = resolveInjected
 						&& injectedResolveBefore
-						&& injectedResolveAfter == false
+						&& injectedResolveAfter
+						&& injectedResolveReleaseState == 2
 						&& disposeInjected
 						&& injectedDisposeBefore
-						&& injectedDisposeAfter == false
+						&& injectedDisposeAfter
+						&& injectedDisposeDeferredState == 1
+						&& disposeReleaseStateAfterCompletion == 2
+						&& injectedResolveGeneration > 0
+						&& injectedResolveGeneration == injectedDisposeGeneration
+						&& injectedResolveGeneration == scheduledGeneration
+						&& scheduledPathCount > 0
+						&& scheduledGridCreatedBeforeDispose
+						&& scheduledCancelled
+						&& scheduledReleaseStateAfterDispose == 1
+						&& scheduledGridCreatedAfterDispose
+						&& scheduledReleaseStateAfterCompletion == 2
+						&& scheduledGridCreatedAfterCompletion
 						&& existingPreserved
 						&& probeStillCreated
 						&& probeDisposedManually,
@@ -4083,15 +4182,31 @@ namespace ZombieLand
 					{
 						injected = resolveInjected,
 						customizerType = injectedResolveType,
+						generation = injectedResolveGeneration,
 						offsetGridCreatedBefore = injectedResolveBefore,
-						offsetGridCreatedAfterResolve = injectedResolveAfter
+						offsetGridCreatedAfterResolve = injectedResolveAfter,
+						releaseStateAfterResolve = injectedResolveReleaseState
 					},
 					dispose = new
 					{
 						injected = disposeInjected,
 						customizerType = injectedDisposeType,
+						generation = injectedDisposeGeneration,
 						offsetGridCreatedBefore = injectedDisposeBefore,
-						offsetGridCreatedAfterDispose = injectedDisposeAfter
+						offsetGridCreatedAfterDispose = injectedDisposeAfter,
+						releaseStateAfterDispose = injectedDisposeDeferredState,
+						releaseStateAfterNextJobCompletion = disposeReleaseStateAfterCompletion
+					},
+					cancelledScheduled = new
+					{
+						generation = scheduledGeneration,
+						scheduledPathCount,
+						gridCreatedBeforeDispose = scheduledGridCreatedBeforeDispose,
+						scheduledCancelled,
+						releaseStateAfterDispose = scheduledReleaseStateAfterDispose,
+						gridCreatedAfterDispose = scheduledGridCreatedAfterDispose,
+						releaseStateAfterCompletion = scheduledReleaseStateAfterCompletion,
+						gridCreatedAfterCompletion = scheduledGridCreatedAfterCompletion
 					},
 					existing = new
 					{
@@ -4105,6 +4220,7 @@ namespace ZombieLand
 			{
 				injectedResolveRequest?.Dispose();
 				injectedDisposeRequest?.Dispose();
+				scheduledCancelledRequest?.Dispose();
 				existingRequest?.Dispose();
 				probeCustomizer?.Dispose();
 			}
@@ -4256,10 +4372,20 @@ namespace ZombieLand
 		{
 			if (customizer == null)
 				return false;
-			var offsetsField = customizer.GetType().GetField("offsets", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-			if (offsetsField?.GetValue(customizer) is NativeArray<ushort> offsets)
+			var getter = customizer.GetType().GetMethod("GetOffsetGrid", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+			if (getter?.Invoke(customizer, Array.Empty<object>()) is NativeArray<ushort> offsets)
 				return offsets.IsCreated;
 			return false;
+		}
+
+		static long CustomizerGenerationId(object customizer)
+		{
+			return (long)(customizer?.GetType().GetProperty("GenerationId", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(customizer) ?? -1L);
+		}
+
+		static int CustomizerReleaseState(object customizer)
+		{
+			return (int)(customizer?.GetType().GetField("releaseState", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.GetValue(customizer) ?? -1);
 		}
 
 		[Tool("zombieland/zombie_manual_door_close_ignored", Description = "Verify a zombie cannot manually schedule a door to close while a normal colonist still can.")]

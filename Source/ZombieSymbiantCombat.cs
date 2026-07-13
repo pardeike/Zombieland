@@ -50,6 +50,13 @@ namespace ZombieLand
 			internal bool canTakeTargetsCloserThanEffectiveMinRange;
 			internal bool canBashFences;
 			internal bool onlyRanged;
+			internal bool logicalCandidateEvaluated;
+			internal ZombieSymbiant logicalCandidate;
+			internal bool logicalCandidateShootable;
+			internal IntVec3 logicalCandidateCell = IntVec3.Invalid;
+			internal IntVec3 logicalStandCell = IntVec3.Invalid;
+			internal bool logicalUsesMeleeRanking;
+			internal bool logicalShootingPoolEvaluated;
 			internal bool logicalCandidateEnteredShootingPool;
 		}
 
@@ -57,6 +64,7 @@ namespace ZombieLand
 		static readonly ConditionalWeakTable<Verb, AimBinding> aimBindings = new();
 		[ThreadStatic] static Verb castingVerb;
 		[ThreadStatic] static int castingDepth;
+		[ThreadStatic] static int suppressLogicalLeanDepth;
 		[ThreadStatic] static Stack<TargetScanContext> targetScanContexts;
 		public static int ExplosionMatchedCellCount { get; private set; }
 		public static int ExplosionAppliedDamageCount { get; private set; }
@@ -129,7 +137,7 @@ namespace ZombieLand
 			return geometry;
 		}
 
-		static IEnumerable<IntVec3> OrderedBoundaryCells(ZombieSymbiant symbiant, IntVec3 source)
+		internal static IEnumerable<IntVec3> OrderedBoundaryCells(ZombieSymbiant symbiant, IntVec3 source)
 		{
 			return GetGeometry(symbiant).boundaryCells
 				.OrderBy(cell => cell.DistanceToSquared(source))
@@ -137,11 +145,50 @@ namespace ZombieLand
 				.ThenBy(cell => cell.z);
 		}
 
+		internal static bool SupportsLogicalRangedCells(Verb verb)
+		{
+			// RimWorld 1.6's beam and spray verbs build persistent paths from currentTarget and
+			// damage things registered in those path cells. A shoot-line-only binding cannot safely
+			// redirect either family to an unregistered logical cell.
+			return verb is not Verb_ShootBeam && verb is not Verb_Spray;
+		}
+
+		internal static bool SuppressLogicalShootLean => suppressLogicalLeanDepth > 0;
+
+		internal static void BeginSuppressLogicalShootLean() => suppressLogicalLeanDepth++;
+
+		internal static void EndSuppressLogicalShootLean()
+		{
+			if (suppressLogicalLeanDepth > 0)
+				suppressLogicalLeanDepth--;
+		}
+
+		static bool IsUsableRangedCell(ZombieSymbiant symbiant, IntVec3 candidate, Predicate<IntVec3> cellValidator)
+		{
+			var map = symbiant.Map;
+			return candidate.InBounds(map)
+				&& candidate.GetEdifice(map)?.def.Fillage != FillCategory.Full
+				&& candidate.GetGas(map)?.def != CustomDefs.TarSmoke
+				&& (cellValidator == null || cellValidator(candidate));
+		}
+
+		static bool TrySelectRangedAcquisitionCell(ZombieSymbiant symbiant, IntVec3 source, Predicate<IntVec3> cellValidator, out IntVec3 cell)
+		{
+			cell = IntVec3.Invalid;
+			foreach (var candidate in OrderedBoundaryCells(symbiant, source))
+				if (IsUsableRangedCell(symbiant, candidate, cellValidator))
+				{
+					cell = candidate;
+					return true;
+				}
+			return false;
+		}
+
 		public static bool TrySelectRangedCell(Verb verb, IntVec3 source, ZombieSymbiant symbiant, out IntVec3 cell, out ShootLine line, bool ignoreRange = false, Predicate<IntVec3> cellValidator = null)
 		{
 			cell = IntVec3.Invalid;
 			line = default;
-			if (verb == null || symbiant?.Spawned != true || symbiant.Destroyed || symbiant.Dead || symbiant.Map != verb.caster?.Map)
+			if (verb == null || SupportsLogicalRangedCells(verb) == false || symbiant?.Spawned != true || symbiant.Destroyed || symbiant.Dead || symbiant.Map != verb.caster?.Map)
 				return false;
 
 			if (aimBindings.TryGetValue(verb, out var existing)
@@ -149,22 +196,22 @@ namespace ZombieLand
 				&& existing.shapeVersion == symbiant.CombatShapeVersion
 				&& existing.source == source
 				&& symbiant.ContainsCell(existing.cell)
-				&& (cellValidator == null || cellValidator(existing.cell))
-				&& GenTicks.TicksGame - existing.tick <= 60)
+				&& GenTicks.TicksGame - existing.tick <= 60
+				&& IsUsableRangedCell(symbiant, existing.cell, cellValidator)
+				&& verb.TryFindShootLineFromTo(source, new LocalTargetInfo(existing.cell), out var refreshedLine, ignoreRange))
 			{
 				cell = existing.cell;
-				line = existing.line;
+				line = refreshedLine;
+				existing.line = refreshedLine;
+				existing.tick = GenTicks.TicksGame;
 				return true;
 			}
+			if (existing?.symbiant == symbiant)
+				aimBindings.Remove(verb);
 
-			var map = symbiant.Map;
 			foreach (var candidate in OrderedBoundaryCells(symbiant, source))
 			{
-				if (candidate.InBounds(map) == false || candidate.GetEdifice(map)?.def.Fillage == FillCategory.Full)
-					continue;
-				if (candidate.GetGas(map)?.def == CustomDefs.TarSmoke)
-					continue;
-				if (cellValidator != null && cellValidator(candidate) == false)
+				if (IsUsableRangedCell(symbiant, candidate, cellValidator) == false)
 					continue;
 				if (verb.TryFindShootLineFromTo(source, new LocalTargetInfo(candidate), out var candidateLine, ignoreRange) == false)
 					continue;
@@ -257,18 +304,8 @@ namespace ZombieLand
 			stand = job.targetB.Cell;
 			target = job.targetC.Cell;
 			if (stand.IsValid && target.IsValid && symbiant.ContainsCell(target) && symbiant.ContainsCell(stand) == false && stand.AdjacentTo8WayOrInside(target)
-				&& (stand == pawn.Position || (stand.Standable(pawn.Map) && stand.GetFirstPawn(pawn.Map) == null)))
+				&& stand.InBounds(pawn.Map) && (stand == pawn.Position || stand.Standable(pawn.Map)))
 				return true;
-
-			if (TrySelectMeleeCells(pawn, symbiant, out stand, out target))
-			{
-				job.targetB = stand;
-				job.targetC = target;
-				return true;
-			}
-
-			job.targetB = LocalTargetInfo.Invalid;
-			job.targetC = LocalTargetInfo.Invalid;
 			stand = IntVec3.Invalid;
 			target = IntVec3.Invalid;
 			return false;
@@ -288,7 +325,17 @@ namespace ZombieLand
 			bool onlyRanged)
 		{
 			targetScanContexts ??= new Stack<TargetScanContext>();
-			targetScanContexts.Push(new TargetScanContext
+			TargetScanContext context = null;
+			var map = searcher?.Thing?.Map;
+			var activeSymbiant = map == null ? null : ZombieSymbiant.ActiveSymbiant(map);
+			if (activeSymbiant?.Spawned == true
+				&& activeSymbiant.Destroyed == false
+				&& activeSymbiant.Dead == false
+				&& searcher.Thing is Pawn hostile
+				&& IsPermittedHostileAttacker(hostile)
+				&& searcher.CurrentEffectiveVerb is Verb verb
+				&& (verb.IsMeleeAttack || SupportsLogicalRangedCells(verb)))
+				context = new TargetScanContext
 			{
 				searcher = searcher,
 				flags = flags,
@@ -301,7 +348,8 @@ namespace ZombieLand
 				canTakeTargetsCloserThanEffectiveMinRange = canTakeTargetsCloserThanEffectiveMinRange,
 				canBashFences = canBashFences,
 				onlyRanged = onlyRanged
-			});
+			};
+			targetScanContexts.Push(context);
 		}
 
 		internal static void EndTargetScan()
@@ -312,13 +360,22 @@ namespace ZombieLand
 
 		internal static TargetScanContext CurrentTargetScan(IAttackTargetSearcher searcher)
 		{
-			if (targetScanContexts?.Count > 0 && targetScanContexts.Peek().searcher == searcher)
-				return targetScanContexts.Peek();
+			if (targetScanContexts?.Count > 0)
+			{
+				var context = targetScanContexts.Peek();
+				if (context?.searcher == searcher)
+					return context;
+			}
 			return null;
 		}
 
 		internal static bool TryGetLogicalAttackTarget(TargetScanContext context, out ZombieSymbiant symbiant)
 		{
+			symbiant = context?.logicalCandidate;
+			if (context?.logicalCandidateEvaluated == true)
+				return symbiant != null;
+			if (context != null)
+				context.logicalCandidateEvaluated = true;
 			symbiant = null;
 			if (context?.searcher?.Thing is not Pawn hostile
 				|| IsPermittedHostileAttacker(hostile) == false
@@ -328,6 +385,8 @@ namespace ZombieLand
 			var candidate = ZombieSymbiant.ActiveSymbiant(hostile.Map);
 			var verb = context.searcher.CurrentEffectiveVerb;
 			if (candidate?.Spawned != true || candidate.Destroyed || candidate.Dead || verb == null || candidate == hostile)
+				return false;
+			if (context.onlyRanged && verb.IsMeleeAttack)
 				return false;
 			if (hostile.HostileTo(candidate) == false || (context.validator != null && context.validator(candidate) == false))
 				return false;
@@ -351,6 +410,9 @@ namespace ZombieLand
 				if (explosive?.wickStarted == true)
 					return false;
 			}
+			// Source-pinned to the non-geometric gates in RimWorld 1.6
+			// AttackTargetFinder.BestAttackTarget (installed MVID 967ddb80559449f0a776dafa26a855d1).
+			// Position, roof, fog, LOS and distance checks are applied per logical cell below.
 			if (candidate.IsCombatant() == false && (context.flags & TargetScanFlags.IgnoreNonCombatants) != 0)
 				return false;
 
@@ -388,33 +450,55 @@ namespace ZombieLand
 				return true;
 			}
 
-			if (verb.IsMeleeAttack == false || context.onlyRanged)
+			var useRangedSelection = verb.IsMeleeAttack == false && hostile.InAggroMentalState == false;
+			if (useRangedSelection)
 			{
-				if (context.onlyRanged && verb.IsMeleeAttack)
+				if (SupportsLogicalRangedCells(verb) == false
+					|| TrySelectRangedAcquisitionCell(candidate, source, ValidTargetCell, out var acquisitionCell) == false)
 					return false;
-				if (TrySelectRangedCell(verb, source, candidate, out _, out _, false, ValidTargetCell) == false)
+				var shootable = TrySelectRangedCell(verb, source, candidate, out var shootCell, out _, false, ValidTargetCell);
+				var mustReach = (context.flags & TargetScanFlags.NeedReachable) != 0
+					|| (shootable == false && (context.flags & TargetScanFlags.NeedReachableIfCantHitFromMyPos) != 0);
+				var standCell = IntVec3.Invalid;
+				var reachableTargetCell = IntVec3.Invalid;
+				if (mustReach
+					&& TrySelectMeleeCells(hostile, candidate, out standCell, out reachableTargetCell, Danger.Some, ValidTargetCell, context.canBashDoors, context.canBashFences) == false)
 					return false;
-				if ((context.flags & TargetScanFlags.NeedReachable) != 0
-					&& TrySelectMeleeCells(hostile, candidate, out _, out _, Danger.Some, ValidTargetCell, context.canBashDoors, context.canBashFences) == false)
-					return false;
+				if (mustReach)
+				{
+					context.logicalStandCell = standCell;
+					if (shootable == false)
+						acquisitionCell = reachableTargetCell;
+				}
+				context.logicalCandidateShootable = shootable;
+				context.logicalCandidateCell = shootable ? shootCell : acquisitionCell;
+				context.logicalCandidate = candidate;
 				symbiant = candidate;
 				return true;
 			}
 
-			if (context.onlyRanged)
-				return false;
 			if (hostile.mindState?.duty != null && hostile.mindState.duty.radius > 0f && hostile.InMentalState == false)
 			{
+				context.logicalUsesMeleeRanking = true;
 				var focus = hostile.mindState.duty.focus.Cell;
 				var radius = hostile.mindState.duty.radius;
 				var previous = (Predicate<IntVec3>)ValidTargetCell;
 				bool ValidDutyCell(IntVec3 cell) => previous(cell) && cell.InHorDistOf(focus, radius);
-				if (TrySelectMeleeCells(hostile, candidate, out _, out _, Danger.Deadly, ValidDutyCell, context.canBashDoors, context.canBashFences) == false)
+				if (TrySelectMeleeCells(hostile, candidate, out var dutyStand, out var dutyTarget, Danger.Deadly, ValidDutyCell, context.canBashDoors, context.canBashFences) == false)
 					return false;
+				context.logicalStandCell = dutyStand;
+				context.logicalCandidateCell = dutyTarget;
 			}
-			else if (TrySelectMeleeCells(hostile, candidate, out _, out _, Danger.Deadly, ValidTargetCell, context.canBashDoors, context.canBashFences) == false)
-				return false;
+			else
+			{
+				context.logicalUsesMeleeRanking = true;
+				if (TrySelectMeleeCells(hostile, candidate, out var standCell, out var targetCell, Danger.Deadly, ValidTargetCell, context.canBashDoors, context.canBashFences) == false)
+					return false;
+				context.logicalStandCell = standCell;
+				context.logicalCandidateCell = targetCell;
+			}
 
+			context.logicalCandidate = candidate;
 			symbiant = candidate;
 			return true;
 		}
@@ -445,13 +529,10 @@ namespace ZombieLand
 	{
 		static bool Prefix(List<IntVec3> outCells, Thing target, IntVec3 shooterPos)
 		{
-			if (target is not ZombieSymbiant symbiant)
+			if (target is not ZombieSymbiant symbiant || ZombieSymbiantCombat.SuppressLogicalShootLean)
 				return true;
 			outCells.Clear();
-			outCells.AddRange(ZombieSymbiantCombat.BoundaryCells(symbiant)
-				.OrderBy(cell => cell.DistanceToSquared(shooterPos))
-				.ThenBy(cell => cell.x)
-				.ThenBy(cell => cell.z));
+			outCells.AddRange(ZombieSymbiantCombat.OrderedBoundaryCells(symbiant, shooterPos));
 			return false;
 		}
 	}
@@ -460,10 +541,17 @@ namespace ZombieLand
 	static class Verb_TryFindShootLineFromTo_Symbiant_Patch
 	{
 		[HarmonyPriority(Priority.First)]
-		static bool Prefix(Verb __instance, IntVec3 root, LocalTargetInfo targ, bool ignoreRange, ref bool __result, ref ShootLine resultingLine)
+		static bool Prefix(Verb __instance, IntVec3 root, LocalTargetInfo targ, bool ignoreRange, ref bool __result, ref ShootLine resultingLine, out bool __state)
 		{
+			__state = false;
 			if (targ.Thing is not ZombieSymbiant symbiant)
 				return true;
+			if (__instance.IsMeleeAttack == false && ZombieSymbiantCombat.SupportsLogicalRangedCells(__instance) == false)
+			{
+				ZombieSymbiantCombat.BeginSuppressLogicalShootLean();
+				__state = true;
+				return true;
+			}
 
 			if (__instance.IsMeleeAttack)
 			{
@@ -475,11 +563,14 @@ namespace ZombieLand
 					__result = true;
 					return false;
 				}
-				var adjacent = ZombieSymbiantCombat.BoundaryCells(symbiant)
+				if (symbiant.ContainsCell(root))
+				{
+					resultingLine = new ShootLine(root, root);
+					__result = true;
+					return false;
+				}
+				var adjacent = ZombieSymbiantCombat.OrderedBoundaryCells(symbiant, root)
 					.Where(cell => root.AdjacentTo8WayOrInside(cell))
-					.OrderBy(cell => cell.DistanceToSquared(root))
-					.ThenBy(cell => cell.x)
-					.ThenBy(cell => cell.z)
 					.DefaultIfEmpty(IntVec3.Invalid)
 					.First();
 				resultingLine = new ShootLine(root, adjacent.IsValid ? adjacent : symbiant.Position);
@@ -490,19 +581,64 @@ namespace ZombieLand
 			__result = ZombieSymbiantCombat.TrySelectRangedCell(__instance, root, symbiant, out _, out resultingLine, ignoreRange);
 			return false;
 		}
+
+		static Exception Finalizer(Exception __exception, bool __state)
+		{
+			if (__state)
+				ZombieSymbiantCombat.EndSuppressLogicalShootLean();
+			return __exception;
+		}
 	}
 
 	[HarmonyPatch(typeof(ShotReport), nameof(ShotReport.HitReportFor))]
 	static class ShotReport_HitReportFor_SymbiantCell_Patch
 	{
-		[HarmonyPriority(Priority.First)]
-		static void Prefix(Thing caster, Verb verb, ref LocalTargetInfo target)
+		static float DarknessOffsetAtCell(Thing caster, Map map, IntVec3 cell)
+		{
+			if (ModsConfig.IdeologyActive == false)
+				return 0f;
+			// Cell form of RimWorld 1.6 DarknessCombatUtility's Thing-based predicates.
+			var roof = cell.GetRoof(map);
+			var outdoors = (roof == null || (roof.isNatural == false && roof.isThickRoof == false))
+				&& (cell.GetRoom(map)?.PsychologicallyOutdoors ?? false);
+			if (outdoors)
+				return caster.GetStatValue(map.skyManager.CurSkyGlow > 0.35f
+					? StatDefOf.ShootingAccuracyOutdoorsLitOffset
+					: StatDefOf.ShootingAccuracyOutdoorsDarkOffset);
+			var glow = map.glowGrid.PsychGlowAt(cell);
+			var darklight = DarklightUtility.IsDarklightAt(cell, map);
+			if (glow == PsychGlow.Dark || (glow != PsychGlow.Dark && darklight))
+				return caster.GetStatValue(StatDefOf.ShootingAccuracyIndoorsDarkOffset);
+			if (glow == PsychGlow.Lit && darklight == false)
+				return caster.GetStatValue(StatDefOf.ShootingAccuracyIndoorsLitOffset);
+			return 0f;
+		}
+
+		[HarmonyPriority(Priority.Last)]
+		static void Postfix(Thing caster, Verb verb, LocalTargetInfo target, ref ShotReport __result)
 		{
 			if (target.Thing is not ZombieSymbiant symbiant)
 				return;
-			if (ZombieSymbiantCombat.TryGetBoundRangedCell(verb, symbiant, out var cell)
-				|| ZombieSymbiantCombat.TrySelectRangedCell(verb, caster.Position, symbiant, out cell, out _))
-				target = new LocalTargetInfo(cell);
+			if (ZombieSymbiantCombat.TryGetBoundRangedCell(verb, symbiant, out var cell) == false)
+				return;
+
+			var cellTarget = new LocalTargetInfo(cell);
+			__result.distance = (cell - caster.Position).LengthHorizontal;
+			__result.factorFromShooterAndDist = verb.verbProps.canGoWild
+				? ShotReport.HitFactorFromShooter(caster, __result.distance)
+				: 1f;
+			__result.factorFromEquipment = verb.verbProps.GetHitChanceFactor(verb.EquipmentSource, __result.distance);
+			__result.covers = CoverUtility.CalculateCoverGiverSet(cellTarget, caster.Position, caster.Map);
+			__result.coversOverallBlockChance = CoverUtility.CalculateOverallBlockChance(cellTarget, caster.Position, caster.Map);
+			var ignoresAccuracyMaluses = verb.EquipmentSource != null
+				&& verb.EquipmentSource.TryGetComp<CompUniqueWeapon>() is CompUniqueWeapon unique
+				&& unique.IgnoreAccuracyMaluses;
+			__result.factorFromWeather = ignoresAccuracyMaluses == false
+				&& (caster.Position.Roofed(caster.Map) == false || cell.Roofed(caster.Map) == false)
+				? caster.Map.weatherManager.CurWeatherAccuracyMultiplier
+				: 1f;
+			__result.offsetFromDarkness = DarknessOffsetAtCell(caster, caster.Map, cell);
+			// Keep the Thing-bearing target and target-size field from vanilla's report.
 		}
 	}
 
@@ -535,6 +671,26 @@ namespace ZombieLand
 				target = new LocalTargetInfo(targetCell);
 				peMode = PathEndMode.Touch;
 			}
+		}
+	}
+
+	[HarmonyPatch(typeof(Pawn_PathFollower), nameof(Pawn_PathFollower.StartPath), new[] { typeof(LocalTargetInfo), typeof(PathEndMode) })]
+	static class Pawn_PathFollower_StartPath_SymbiantMelee_Patch
+	{
+		[HarmonyPriority(Priority.First)]
+		static void Prefix(Pawn ___pawn, ref LocalTargetInfo dest, PathEndMode peMode)
+		{
+			var job = ___pawn?.CurJob;
+			if (peMode != PathEndMode.OnCell
+				|| job?.def != JobDefOf.AttackMelee
+				|| job.targetA.Thing is not ZombieSymbiant symbiant
+				|| dest.HasThing
+				|| job.targetB.HasThing
+				|| dest.Cell != job.targetB.Cell
+				|| ZombieSymbiantCombat.TryGetMeleeJobCells(___pawn, symbiant, out _, out _))
+				return;
+			if (ZombieSymbiantCombat.PrepareMeleeJob(___pawn, job))
+				dest = job.targetB;
 		}
 	}
 
@@ -594,8 +750,11 @@ namespace ZombieLand
 		static void Prefix(List<IAttackTarget> targets, IAttackTargetSearcher searcher, Verb verb)
 		{
 			var context = ZombieSymbiantCombat.CurrentTargetScan(searcher);
-			if (context == null || context.searcher.CurrentEffectiveVerb != verb
-				|| ZombieSymbiantCombat.TryGetLogicalAttackTarget(context, out var symbiant) == false)
+			if (context == null || context.searcher.CurrentEffectiveVerb != verb)
+				return;
+			context.logicalShootingPoolEvaluated = true;
+			if (ZombieSymbiantCombat.TryGetLogicalAttackTarget(context, out var symbiant) == false
+				|| context.logicalCandidateShootable == false)
 				return;
 			if (targets.Contains(symbiant) == false)
 				targets.Add(symbiant);

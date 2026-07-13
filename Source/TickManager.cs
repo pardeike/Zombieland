@@ -786,7 +786,7 @@ namespace ZombieLand
 			ClearZombieTickingBuffers();
 			ResetRemoteScheduler(resetDiagnostics: true);
 
-			Tools.nextPlayerReachableRegionsUpdate = 0;
+			Tools.InvalidatePlayerReachableRegions(map);
 
 			ZombieBootstrap.ResetZombieGrid(phase, map, rebuildLiveZombieCounts: true);
 
@@ -905,6 +905,7 @@ namespace ZombieLand
 		{
 			base.MapRemoved();
 			Cleanup();
+			Tools.InvalidatePlayerReachableRegions(map);
 			ZombieSymbiant.ReleaseRenderResourcesForMap(map);
 			ZombieSymbiant.ForgetMap(map);
 		}
@@ -1624,10 +1625,12 @@ namespace ZombieLand
 					{
 						var pos = pawn.Position;
 
-						var zombiesNearby = Tools.GetCircle(radius).Select(vec => pos + vec)
+						var zombiePositionsNearby = Tools.GetCircle(radius).Select(vec => pos + vec)
 							.Where(vec => vec.InBounds(map) && avoidGrid.GetCosts()[vec.x + vec.z * map.Size.x] >= 3000)
 							.SelectMany(vec => map.thingGrid.ThingsListAtFast(vec).OfType<Zombie>())
-							.Where(zombie => zombie.health.Downed == false);
+							.Where(zombie => zombie.health.Downed == false)
+							.Select(zombie => zombie.Position)
+							.ToArray();
 
 						var maxDistance = 0;
 						var safeDestination = IntVec3.Invalid;
@@ -1645,7 +1648,7 @@ namespace ZombieLand
 
 						}, delegate (IntVec3 vec)
 						{
-							var distance = zombiesNearby.Select(zombie => (vec - zombie.Position).LengthHorizontalSquared).Sum();
+							var distance = zombiePositionsNearby.Sum(zombiePosition => (vec - zombiePosition).LengthHorizontalSquared);
 							if (distance > maxDistance)
 							{
 								maxDistance = distance;

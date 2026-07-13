@@ -190,6 +190,9 @@ namespace ZombieLand
 		float sharedHealth = -1f;
 		int lastSharedHealthDamageTick = int.MinValue;
 		int nextSharedHealthRecoveryTick;
+		// Transient cadence guards; the serialized recovery deadline remains authoritative.
+		int nextSharedHealthIdleCheckTick;
+		int nextHostResolveAttemptTick;
 		int lastSymbiosisMetricTick = int.MinValue;
 		int lastRejectedDamageMessageTick = int.MinValue;
 		int lastSharedDamageAbsorbMoteTick = int.MinValue;
@@ -432,8 +435,13 @@ namespace ZombieLand
 
 		void TryRecoverSharedHealth(int ticks)
 		{
-			if (symbiosisSevered || Destroyed || Dead || ResolveHost() == null)
+			if (symbiosisSevered || Destroyed || Dead)
 				return;
+			if (nextSharedHealthRecoveryTick > 0 && ticks < nextSharedHealthRecoveryTick)
+				return;
+			if (nextSharedHealthRecoveryTick <= 0 && sharedHealth >= 0f && ticks < nextSharedHealthIdleCheckTick)
+				return;
+
 			EnsureSharedHealth();
 			var max = SharedHealthMax;
 			var missing = max - sharedHealth;
@@ -441,6 +449,7 @@ namespace ZombieLand
 			{
 				sharedHealth = max;
 				nextSharedHealthRecoveryTick = 0;
+				nextSharedHealthIdleCheckTick = ticks + SymbiantSharedHealthRecoveryIntervalTicks;
 				return;
 			}
 			if (nextSharedHealthRecoveryTick <= 0)
@@ -448,13 +457,21 @@ namespace ZombieLand
 				nextSharedHealthRecoveryTick = ticks + SymbiantSharedHealthRecoveryDelayTicks;
 				return;
 			}
-			if (ticks < nextSharedHealthRecoveryTick)
+			if (host == null && ticks < nextHostResolveAttemptTick)
 				return;
+			if (ResolveHost() == null)
+			{
+				nextHostResolveAttemptTick = ticks + SymbiosisMetricRefreshInterval;
+				return;
+			}
+			nextHostResolveAttemptTick = 0;
 			var recovered = Mathf.Min(missing, Mathf.Max(1f, missing * SymbiantSharedHealthRecoveryMissingFraction));
 			sharedHealth = Mathf.Min(max, sharedHealth + recovered);
 			nextSharedHealthRecoveryTick = sharedHealth >= max - 0.01f
 				? 0
 				: ticks + SymbiantSharedHealthRecoveryIntervalTicks;
+			if (nextSharedHealthRecoveryTick == 0)
+				nextSharedHealthIdleCheckTick = ticks + SymbiantSharedHealthRecoveryIntervalTicks;
 		}
 
 		public static float HealthScaleMultiplierForCells(int cellCount)
@@ -899,7 +916,7 @@ namespace ZombieLand
 
 		static bool IsConstructedBoundaryWall(Building edifice)
 			=> edifice is Building_Door
-				|| (edifice?.def?.building != null && edifice.def.useHitPoints && IsNaturalBoundaryWall(edifice) == false);
+				|| (edifice?.def?.IsWall == true && edifice.def.useHitPoints && IsNaturalBoundaryWall(edifice) == false);
 
 		static object DescribeRoomWallProfile(RoomWallProfile profile)
 		{
@@ -2075,7 +2092,7 @@ namespace ZombieLand
 			{
 				var pawn = ResolveHost();
 				RemoveHostHediff(pawn);
-				ClearDamageEchoHistory(pawn);
+				ClearDamageEchoHistory();
 				host = null;
 				hostThingId = null;
 				symbiosisSevered = true;
@@ -2486,7 +2503,7 @@ namespace ZombieLand
 			var killHost = IsActiveBondWith(pawn);
 			PlayDisconnectedSound();
 			RemoveHostHediff(pawn);
-			ClearDamageEchoHistory(pawn);
+			ClearDamageEchoHistory();
 			host = null;
 			hostThingId = null;
 			symbiosisSevered = true;
@@ -2521,7 +2538,7 @@ namespace ZombieLand
 					if (uncontrolledDestroyHandled == false)
 						PlayDisconnectedSound();
 						RemoveHostHediff(pawn);
-						ClearDamageEchoHistory(pawn);
+						ClearDamageEchoHistory();
 						host = null;
 						hostThingId = null;
 						symbiosisSevered = true;
@@ -2664,13 +2681,23 @@ namespace ZombieLand
 
 		static bool IsAnatomyOnlyDamageHediff(Hediff hediff)
 		{
-			if (hediff?.GetType() != typeof(Hediff_Injury) || hediff is not Hediff_Injury injury)
+			if (hediff?.GetType() != typeof(Hediff_Injury))
 				return false;
+			var injury = (Hediff_Injury)hediff;
 			if (injury.comps.NullOrEmpty())
 				return true;
-			return injury.comps.All(comp => comp is HediffComp_TendDuration
-				|| comp is HediffComp_GetsPermanent
-				|| comp is HediffComp_Infecter);
+			return injury.comps.All(IsAnatomyOnlyDamageComp);
+		}
+
+		static bool IsAnatomyOnlyDamageComp(HediffComp comp)
+		{
+			var type = comp?.GetType();
+			if (type == typeof(HediffComp_TendDuration)
+				|| type == typeof(HediffComp_GetsPermanent)
+				|| type == typeof(HediffComp_Infecter))
+				return true;
+			return type?.FullName == "CombatExtended.HediffComp_Stabilize"
+				|| type?.FullName == "CombatExtended.HediffComp_InfecterCE";
 		}
 
 		void RecordDamageEcho(string categoryKey, string categoryLabel, float amount)
@@ -2816,38 +2843,26 @@ namespace ZombieLand
 				var echo = matches.FirstOrDefault();
 				foreach (var duplicate in matches.Skip(1))
 					pawn.health.RemoveHediff(duplicate);
-				if (echo == null)
+				var isNew = echo == null;
+				if (isNew)
 				{
 					echo = HediffMaker.MakeHediff(CustomDefs.SymbiantDamageEcho, pawn) as Hediff_SymbiantDamageEcho;
 					if (echo == null)
 						continue;
-					echo.symbiantThingId = ThingID;
-					echo.categoryKey = record.categoryKey;
-					echo.cachedCategoryLabel = DamageEchoCategoryLabel(record);
-					echo.displayAmount = record.amount;
-					echo.Severity = 0.001f;
-					pawn.health.AddHediff(echo);
 				}
 				echo.symbiantThingId = ThingID;
 				echo.categoryKey = record.categoryKey;
 				echo.cachedCategoryLabel = DamageEchoCategoryLabel(record);
 				echo.displayAmount = record.amount;
 				echo.Severity = 0.001f;
+				if (isNew)
+					pawn.health.AddHediff(echo);
 			}
 		}
 
-		void ClearDamageEchoHistory(Pawn pawn)
+		void ClearDamageEchoHistory()
 		{
 			damageEchoHistory?.Clear();
-			RemoveHostDamageEchoes(pawn);
-		}
-
-		static void RemoveHostDamageEchoes(Pawn pawn)
-		{
-			if (pawn?.health?.hediffSet == null)
-				return;
-			foreach (var echo in pawn.health.hediffSet.hediffs.OfType<Hediff_SymbiantDamageEcho>().ToArray())
-				pawn.health.RemoveHediff(echo);
 		}
 
 		static bool IsPlayerCausedDamage(DamageInfo dinfo)
@@ -2879,7 +2894,7 @@ namespace ZombieLand
 						targets
 					);
 					RemoveHostHediff(pawn);
-					ClearDamageEchoHistory(pawn);
+					ClearDamageEchoHistory();
 					host = null;
 					hostThingId = null;
 					symbiosisSevered = true;
@@ -3411,12 +3426,12 @@ namespace ZombieLand
 			return false;
 		}
 
-		static Building BreakableConstructedWall(Map map, IntVec3 cell)
+		internal static Building BreakableConstructedWall(Map map, IntVec3 cell)
 		{
 			var edifice = cell.GetEdifice(map);
 			if (edifice == null || edifice is Building_Door)
 				return null;
-			if (edifice.def == null || edifice.def.building == null || edifice.def.useHitPoints == false)
+			if (edifice.def == null || edifice.def.IsWall == false || edifice.def.useHitPoints == false)
 				return null;
 			if (edifice.def.building.isNaturalRock || edifice.def.mineable)
 				return null;

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Verse;
 using Verse.AI;
+using Verse.AI.Group;
 
 namespace ZombieLand
 {
@@ -260,6 +261,214 @@ namespace ZombieLand
 	{
 		const float EnemyZombieEngagementDistanceSquared = 81f;
 
+		static bool CanReachFallbackTarget(Thing searcher, Thing target, bool canBashDoors, bool canBashFences)
+		{
+			if (searcher is Pawn pawn)
+				return pawn.CanReach(target, PathEndMode.Touch, Danger.Some, canBashDoors, canBashFences);
+			var mode = canBashDoors ? TraverseMode.PassDoors : TraverseMode.NoPassClosedDoors;
+			return searcher.Map.reachability.CanReach(searcher.Position, target, PathEndMode.Touch, TraverseParms.For(mode));
+		}
+
+		static bool IsValidFallbackZombie(
+			Zombie zombie,
+			Thing attacker,
+			IAttackTargetSearcher searcher,
+			Verb verb,
+			TargetScanFlags flags,
+			Predicate<Thing> validator,
+			float minDist,
+			float maxDist,
+			IntVec3 locus,
+			float maxTravelRadiusFromLocus,
+			bool canBashDoors,
+			bool canTakeTargetsCloserThanEffectiveMinRange,
+			bool canBashFences,
+			bool canHarmElectricZombies,
+			int maxDownedRangeSquared,
+			int maxRangeSquared)
+		{
+			if (zombie?.Spawned != true || zombie.Destroyed || zombie.Dead || zombie == attacker
+				|| zombie.state == ZombieState.Emerging || zombie.IsRopedOrConfused)
+				return false;
+			if (canHarmElectricZombies == false && zombie.IsActiveElectric && zombie.Downed == false)
+				return false;
+
+			var distanceSquared = attacker.Position.DistanceToSquared(zombie.Position);
+			if (distanceSquared < minDist * minDist || zombie.Position.InHorDistOf(attacker.Position, maxDist) == false)
+				return false;
+			if (canTakeTargetsCloserThanEffectiveMinRange == false)
+			{
+				var effectiveMinRange = verb.verbProps.EffectiveMinRange(zombie, attacker);
+				if (effectiveMinRange > 0f && distanceSquared < effectiveMinRange * effectiveMinRange)
+					return false;
+			}
+			var maxLocusDistance = maxTravelRadiusFromLocus + verb.EffectiveRange;
+			if (maxTravelRadiusFromLocus < 9999f && zombie.Position.DistanceToSquared(locus) > maxLocusDistance * maxLocusDistance)
+				return false;
+			if (attacker.HostileTo(zombie) == false || (validator != null && validator(zombie) == false))
+				return false;
+			if (attacker is Pawn pawn)
+			{
+				var lord = pawn.GetLord();
+				if (lord != null && lord.LordJob.ValidateAttackTarget(pawn, zombie) == false)
+					return false;
+			}
+			if ((flags & TargetScanFlags.NeedNotUnderThickRoof) != 0 && zombie.Position.GetRoof(zombie.Map)?.isThickRoof == true)
+				return false;
+
+			Func<IntVec3, bool> losValidator = null;
+			if ((flags & TargetScanFlags.LOSBlockableByGas) != 0
+				&& (verb.EquipmentSource == null
+					|| verb.EquipmentSource.TryGetComp<CompUniqueWeapon>() is not CompUniqueWeapon unique
+					|| unique.IgnoreAccuracyMaluses == false))
+				losValidator = cell => cell.AnyGas(attacker.Map, GasType.BlindSmoke) == false;
+			if ((flags & TargetScanFlags.NeedLOSToAll) != 0)
+			{
+				if (losValidator != null && (losValidator(attacker.Position) == false || losValidator(zombie.Position) == false))
+					return false;
+				if (attacker.CanSee(zombie, losValidator) == false && (flags & TargetScanFlags.NeedLOSToPawns) != 0)
+					return false;
+			}
+			if (((flags & TargetScanFlags.NeedThreat) != 0 || (flags & TargetScanFlags.NeedAutoTargetable) != 0)
+				&& zombie.ThreatDisabled(searcher))
+				return false;
+			if ((flags & TargetScanFlags.NeedAutoTargetable) != 0 && AttackTargetFinder.IsAutoTargetable(zombie) == false)
+				return false;
+			if ((flags & TargetScanFlags.NeedActiveThreat) != 0 && GenHostility.IsActiveThreatTo(zombie, attacker.Faction) == false)
+				return false;
+			if (verb.IsEMP() && zombie.RaceProps?.IsFlesh == true)
+				return false;
+			if ((flags & TargetScanFlags.NeedNonBurning) != 0 && zombie.IsBurning())
+				return false;
+			if (attacker.def.race != null && (int)attacker.def.race.intelligence >= 2
+				&& zombie.TryGetComp<CompExplosive>()?.wickStarted == true)
+				return false;
+			if ((attacker is Pawn attackerPawn && attackerPawn.IsColonist) || attacker.Faction == Faction.OfPlayer)
+				if (zombie.Position.Fogged(zombie.Map))
+					return false;
+			if (zombie.IsCombatant() == false
+				&& ((flags & TargetScanFlags.IgnoreNonCombatants) != 0
+					|| GenSight.LineOfSightToThing(attacker.Position, zombie, attacker.Map) == false))
+				return false;
+			if ((flags & TargetScanFlags.NeedReachable) != 0
+				&& CanReachFallbackTarget(attacker, zombie, canBashDoors, canBashFences) == false)
+				return false;
+
+			var downed = zombie.health.Downed;
+			if (downed && (distanceSquared > maxDownedRangeSquared || ZombieSettings.Values.doubleTapRequired == false))
+				return false;
+			if (downed == false && distanceSquared > maxRangeSquared)
+				return false;
+			if (verb.CanHitTargetFrom(attacker.Position, zombie) == false)
+				return false;
+			return true;
+		}
+
+		static int FallbackZombieScore(Zombie zombie, IntVec3 attackerPosition, int maxRangeSquared)
+		{
+			var score = maxRangeSquared - attackerPosition.DistanceToSquared(zombie.Position);
+			if (zombie.IsSuicideBomber)
+				score += 30;
+			if (zombie.IsTanky)
+				score += 20;
+			if (zombie.isDarkSlimer)
+				score += 15;
+			if (zombie.isToxicSplasher)
+				score += 10;
+			if (zombie.story.bodyType == BodyTypeDefOf.Thin)
+				score += 5;
+			if (zombie.state == ZombieState.Tracking)
+				score += 5;
+			return score;
+		}
+
+		static bool TryGetNearestReachableMeleeStandCell(
+			ZombieSymbiantCombat.TargetScanContext context,
+			Thing target,
+			out IntVec3 standCell)
+		{
+			standCell = IntVec3.Invalid;
+			if (context?.searcher?.Thing is not Pawn pawn
+				|| target?.Spawned != true
+				|| pawn.Map == null
+				|| target.Map != pawn.Map
+				|| pawn.Map.pathing == null)
+				return false;
+
+			// Installed RimWorld 1.6 BestAttackTarget (MVID
+			// 967ddb80559449f0a776dafa26a855d1, token 0600655F) selects its
+			// melee result through ClosestThingReachable with PathEndMode.Touch,
+			// Danger.Deadly and the caller's door/fence permissions. The returned
+			// Thing.Position is not a fair distance counterpart for the Symbiant's
+			// explicitly selected B stand cell, especially for multi-cell targets.
+			var map = pawn.Map;
+			var targetInfo = new LocalTargetInfo(target);
+			var traverseParms = TraverseParms.For(
+				pawn,
+				Danger.Deadly,
+				TraverseMode.ByPawn,
+				context.canBashDoors,
+				alwaysUseAvoidGrid: false,
+				canBashFences: context.canBashFences);
+			var pathingContext = map.pathing.For(traverseParms);
+			foreach (var candidate in GenAdj.CellsAdjacent8Way(target)
+				.Where(cell => cell.InBounds(map))
+				.OrderBy(cell => cell.DistanceToSquared(pawn.Position))
+				.ThenBy(cell => cell.x)
+				.ThenBy(cell => cell.z))
+			{
+				if (TouchPathEndModeUtility.IsAdjacentOrInsideAndAllowedToTouch(candidate, targetInfo, pathingContext) == false)
+					continue;
+				if (candidate != pawn.Position
+					&& (candidate.Standable(map) == false || candidate.GetFirstPawn(map) != null))
+					continue;
+				if (pawn.CanReach(new LocalTargetInfo(candidate), PathEndMode.OnCell, Danger.Deadly, context.canBashDoors, context.canBashFences) == false)
+					continue;
+				standCell = candidate;
+				return true;
+			}
+			return false;
+		}
+
+		static bool LogicalCandidateBeatsVanillaMeleeResult(ZombieSymbiantCombat.TargetScanContext context, Thing vanillaTarget)
+		{
+			if (context?.logicalUsesMeleeRanking != true
+				|| context.searcher?.Thing == null
+				|| context.logicalStandCell.IsValid == false
+				|| TryGetNearestReachableMeleeStandCell(context, vanillaTarget, out var vanillaStandCell) == false)
+				return false;
+
+			var origin = context.searcher.Thing.Position;
+			var logicalDistanceSquared = context.logicalStandCell.DistanceToSquared(origin);
+			var vanillaDistanceSquared = vanillaStandCell.DistanceToSquared(origin);
+			// A tie, or the inability to establish equivalent reachable stand cells,
+			// deliberately preserves the non-null result already chosen by vanilla.
+			return logicalDistanceSquared < vanillaDistanceSquared;
+		}
+
+		static bool LogicalCandidateMayReplaceVanillaResult(ZombieSymbiantCombat.TargetScanContext context, Thing vanillaTarget, ZombieSymbiant symbiant)
+		{
+			if (vanillaTarget == null)
+				return context.logicalShootingPoolEvaluated == false;
+			if (vanillaTarget == symbiant
+				|| context.logicalCandidateEnteredShootingPool
+				|| context.logicalShootingPoolEvaluated)
+				return false;
+
+			var verb = context.searcher?.CurrentEffectiveVerb;
+			var pawn = context.searcher?.Thing as Pawn;
+			// RimWorld 1.6 skips GetRandomShootingTargetByScore for aggro mental
+			// states and continues through its reachable-target branch. The logical
+			// Symbiant is not in that vanilla candidate set, so it has not competed
+			// under the applicable ordering and must not displace a non-null result.
+			if (verb?.IsMeleeAttack == false && pawn?.InAggroMentalState == true)
+				return false;
+			// A non-shootable ranged candidate did not compete in vanilla's shooting
+			// pool. Preserve a non-null ranged fallback rather than comparing its
+			// root against an unrelated logical acquisition cell.
+			return LogicalCandidateBeatsVanillaMeleeResult(context, vanillaTarget);
+		}
+
 		static void Prefix(ref Predicate<Thing> validator, IAttackTargetSearcher searcher)
 		{
 			if (validator == null || searcher == null)
@@ -412,13 +621,16 @@ namespace ZombieLand
 			float maxDist,
 			IntVec3 locus,
 			float maxTravelRadiusFromLocus,
+			bool canBashDoors,
+			bool canTakeTargetsCloserThanEffectiveMinRange,
+			bool canBashFences,
 			bool onlyRanged)
 		{
 			var thing = __result as Thing;
 			var logicalContext = ZombieSymbiantCombat.CurrentTargetScan(searcher);
 			if (logicalContext != null
 				&& ZombieSymbiantCombat.TryGetLogicalAttackTarget(logicalContext, out var symbiant)
-				&& (thing == null || (searcher.CurrentEffectiveVerb?.IsMeleeAttack == false && logicalContext.logicalCandidateEnteredShootingPool == false)))
+				&& LogicalCandidateMayReplaceVanillaResult(logicalContext, thing, symbiant))
 			{
 				__result = symbiant;
 				thing = symbiant;
@@ -452,44 +664,24 @@ namespace ZombieLand
 							if (cachedZombies == null)
 								return;
 							var pos = attacker.Position;
-							int zombiePrioritySorter(Zombie zombie)
+							Zombie bestZombie = null;
+							var bestScore = int.MinValue;
+							foreach (var zombie in cachedZombies)
 							{
-								var score = maxRangeSquared - pos.DistanceToSquared(zombie.Position);
-								if (zombie.IsSuicideBomber)
-									score += 30;
-								if (zombie.IsTanky)
-									score += 20;
-								if (zombie.isDarkSlimer)
-									score += 15;
-								if (zombie.isToxicSplasher)
-									score += 10;
-								if (zombie.story.bodyType == BodyTypeDefOf.Thin)
-									score += 5;
-								if (zombie.state == ZombieState.Tracking)
-									score += 5;
-								return -score;
-							}
-							var losFlags = TargetScanFlags.NeedLOSToPawns | TargetScanFlags.NeedLOSToAll;
-							__result = cachedZombies
-								.Where(zombie =>
+								// Source-pinned to RimWorld 1.6 AttackTargetFinder.BestAttackTarget's
+								// per-candidate predicate before applying Zombieland's custom priority.
+								if (IsValidFallbackZombie(zombie, attacker, searcher, verb, flags, validator, minDist, maxDist, locus,
+									maxTravelRadiusFromLocus, canBashDoors, canTakeTargetsCloserThanEffectiveMinRange, canBashFences,
+									canHarmElectricZombies, maxDownedRangeSquared, maxRangeSquared) == false)
+									continue;
+								var score = FallbackZombieScore(zombie, pos, maxRangeSquared);
+								if (bestZombie == null || score > bestScore)
 								{
-									if (zombie.state == ZombieState.Emerging || zombie.IsRopedOrConfused)
-										return false;
-									if (canHarmElectricZombies == false && zombie.IsActiveElectric && zombie.Downed == false)
-										return false;
-									var d = pos.DistanceToSquared(zombie.Position);
-									var dn = zombie.health.Downed;
-									if (dn && (d > maxDownedRangeSquared || ZombieSettings.Values.doubleTapRequired == false))
-										return false;
-									if (dn == false && d > maxRangeSquared)
-										return false;
-									if (verb.CanHitTargetFrom(pos, zombie) == false)
-										return false;
-									if ((flags & losFlags) != 0 && attacker.CanSee(zombie, null) == false)
-										return false;
-									return true;
-								})
-								.OrderBy(zombiePrioritySorter).FirstOrDefault();
+									bestZombie = zombie;
+									bestScore = score;
+								}
+							}
+							__result = bestZombie;
 							thing = __result as Thing;
 						}
 					}
@@ -549,6 +741,9 @@ namespace ZombieLand
 
 		static float LogicalBlastFriendlyFireScore(IAttackTarget target, IAttackTargetSearcher searcher, Verb verb, IntVec3 center)
 		{
+			// Mirrors RimWorld 1.6 AttackTargetFinder.FriendlyFireBlastRadiusTargetScoreOffset
+			// (installed MVID 967ddb80559449f0a776dafa26a855d1), with an explicit center and
+			// Zombieland targets omitted. Keep its 40/10/7/18 weights and 0.6 hostile factor pinned.
 			if (verb.verbProps.ai_AvoidFriendlyFireRadius <= 0f)
 				return 0f;
 			var map = target.Thing.Map;
@@ -781,6 +976,11 @@ namespace ZombieLand
 		// both in map exist and for danger music
 		//
 		static readonly Dictionary<Map, HashSet<IAttackTarget>> playerHostilesWithoutZombies = new();
+
+		internal static void ResetMapOwnedState()
+		{
+			playerHostilesWithoutZombies.Clear();
+		}
 
 		static bool IsZombielandTarget(IAttackTarget target)
 		{

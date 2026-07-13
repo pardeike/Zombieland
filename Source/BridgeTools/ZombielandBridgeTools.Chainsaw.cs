@@ -390,7 +390,7 @@ namespace ZombieLand
 			}
 
 			var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
-			if (TryFindThumperWaveFixture(map, root, 30f, out var thumperCell, out var nearCell, out var midCell, out var farCell, out var fixtureError) == false)
+			if (TryFindThumperWaveFixture(map, root, 30f, out var thumperCell, out var nearCell, out var midCell, out var farCell, out var multiCell, out var fixtureError) == false)
 				return fixtureError;
 
 			Find.TickManager.CurTimeSpeed = TimeSpeed.Normal;
@@ -442,20 +442,38 @@ namespace ZombieLand
 			var nearWall = SpawnWoodWall(map, nearCell);
 			var midWall = SpawnWoodWall(map, midCell);
 			var farWall = SpawnWoodWall(map, farCell);
-			if (nearWall == null || midWall == null || farWall == null)
+			var multiCellDef = DefDatabase<ThingDef>.GetNamedSilentFail("HiTechResearchBench");
+			var multiCellTarget = multiCellDef == null
+				? null
+				: ThingMaker.MakeThing(multiCellDef, GenStuff.DefaultStuffFor(multiCellDef)) as Building;
+			if (multiCellTarget != null)
+			{
+				multiCellTarget.SetFactionDirect(Faction.OfPlayer);
+				GenSpawn.Spawn(multiCellTarget, multiCell, map, Rot4.North, WipeMode.Vanish, false);
+			}
+			if (nearWall == null || midWall == null || farWall == null || multiCellTarget == null)
 			{
 				return new
 				{
 					success = false,
-					error = "Could not create thumper wave target walls."
+					error = "Could not create the thumper wave target buildings."
 				};
 			}
+			var multiCellRadii = GenAdj.OccupiedRect(multiCellTarget.Position, multiCellTarget.Rotation, multiCellTarget.def.size)
+				.Select(cell => ZombieThumper.DebugSeismicWaveRadius(cell - thumper.Position))
+				.Where(value => value >= 0)
+				.Distinct()
+				.OrderBy(value => value)
+				.ToArray();
+			var multiCellFirstRadius = multiCellRadii.FirstOrDefault();
+			var multiCellMaximumSingleHitDelta = Mathf.CeilToInt(ZombieThumper.DebugSeismicWaveDamage(multiCellFirstRadius, radius));
 
 			var fuelBefore = refuelable.Fuel;
 			var lastImpactBefore = (int)(lastImpactTicksField?.GetValue(thumper) ?? 0);
 			var nearBefore = nearWall.HitPoints;
 			var midBefore = midWall.HitPoints;
 			var farBefore = farWall.HitPoints;
+			var multiCellBefore = multiCellTarget.HitPoints;
 			var samples = new List<object>();
 			var dustSamples = new List<object>();
 			var maxUpPole = 0f;
@@ -512,9 +530,11 @@ namespace ZombieLand
 			var nearAfter = nearWall.Destroyed ? 0 : nearWall.HitPoints;
 			var midAfter = midWall.Destroyed ? 0 : midWall.HitPoints;
 			var farAfter = farWall.Destroyed ? 0 : farWall.HitPoints;
+			var multiCellAfter = multiCellTarget.Destroyed ? 0 : multiCellTarget.HitPoints;
 			var nearDelta = nearBefore - nearAfter;
 			var midDelta = midBefore - midAfter;
 			var farDelta = farBefore - farAfter;
+			var multiCellDelta = multiCellBefore - multiCellAfter;
 			var finalDusts = DescribeThumperDusts(dustsField, dustObjField, dustRadiusField, thumper);
 			var dustVisualsMatched = dustAtImpact.Any(DustVisualMatchesThumperContract);
 			var radii = dustSamples
@@ -544,6 +564,9 @@ namespace ZombieLand
 					&& midDelta > 0
 					&& nearDelta > farDelta
 					&& nearDelta >= midDelta
+					&& multiCellRadii.Length >= 3
+					&& multiCellDelta > 0
+					&& multiCellDelta <= multiCellMaximumSingleHitDelta
 					&& ZombieThumper.DebugSeismicWaveDamage(3, radius) > ZombieThumper.DebugSeismicWaveDamage(12, radius)
 					&& ZombieThumper.DebugSeismicWaveDamage(12, radius) > ZombieThumper.DebugSeismicWaveDamage(22, radius),
 				thumper = new
@@ -578,7 +601,21 @@ namespace ZombieLand
 				{
 					near = DescribeWaveTarget(nearWall, nearCell, 3, radius, nearBefore, nearAfter),
 					mid = DescribeWaveTarget(midWall, midCell, 12, radius, midBefore, midAfter),
-					far = DescribeWaveTarget(farWall, farCell, 22, radius, farBefore, farAfter)
+					far = DescribeWaveTarget(farWall, farCell, 22, radius, farBefore, farAfter),
+					multiCell = new
+					{
+						id = ZombieRuntimeActions.StableThingId(multiCellTarget),
+						cell = ZombieRuntimeActions.DescribeCell(multiCell),
+						def = multiCellTarget.def.defName,
+						size = multiCellTarget.def.size.ToString(),
+						radii = multiCellRadii,
+						firstRadius = multiCellFirstRadius,
+						maximumSingleHitDelta = multiCellMaximumSingleHitDelta,
+						hitPointsBefore = multiCellBefore,
+						hitPointsAfter = multiCellAfter,
+						hitPointDelta = multiCellDelta,
+						multiCellTarget.Destroyed
+					}
 				},
 				fuelBefore,
 				fuelAfter,
@@ -589,12 +626,13 @@ namespace ZombieLand
 			};
 		}
 
-		static bool TryFindThumperWaveFixture(Map map, IntVec3 root, float radius, out IntVec3 thumperCell, out IntVec3 nearCell, out IntVec3 midCell, out IntVec3 farCell, out object error)
+		static bool TryFindThumperWaveFixture(Map map, IntVec3 root, float radius, out IntVec3 thumperCell, out IntVec3 nearCell, out IntVec3 midCell, out IntVec3 farCell, out IntVec3 multiCell, out object error)
 		{
 			thumperCell = IntVec3.Invalid;
 			nearCell = IntVec3.Invalid;
 			midCell = IntVec3.Invalid;
 			farCell = IntVec3.Invalid;
+			multiCell = IntVec3.Invalid;
 			error = null;
 			if (map == null)
 			{
@@ -626,15 +664,21 @@ namespace ZombieLand
 				var near = candidate + new IntVec3(3, 0, 0);
 				var mid = candidate + new IntVec3(12, 0, 0);
 				var far = candidate + new IntVec3(22, 0, 0);
+				var multi = candidate + new IntVec3(7, 0, 4);
 				if (IsClearFixtureCell(map, near, true) == false
 					|| IsClearFixtureCell(map, mid, true) == false
 					|| IsClearFixtureCell(map, far, true) == false)
+					continue;
+				var multiCellDef = DefDatabase<ThingDef>.GetNamedSilentFail("HiTechResearchBench");
+				if (multiCellDef == null
+					|| GenAdj.OccupiedRect(multi, Rot4.North, multiCellDef.size).Any(cell => IsClearFixtureCell(map, cell, true) == false))
 					continue;
 
 				thumperCell = candidate;
 				nearCell = near;
 				midCell = mid;
 				farCell = far;
+				multiCell = multi;
 				return true;
 			}
 

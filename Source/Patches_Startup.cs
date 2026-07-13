@@ -7,6 +7,12 @@ namespace ZombieLand
 {
 	static partial class Patches
 	{
+		static void ResetMapOwnedStaticState(bool recreateAvoider)
+		{
+			Tools.ResetMapOwnedState(recreateAvoider);
+			TargetCachePatches.ResetMapOwnedState();
+		}
+
 		// settings backwards compatibility
 		//
 		[HarmonyPatch(typeof(ParseHelper))]
@@ -80,10 +86,10 @@ namespace ZombieLand
 		{
 			static void Prefix()
 			{
+				ResetMapOwnedStaticState(false);
 				ZombieTicker.ResetAdaptiveState();
 				AlbinoScreamVomit.ClearPendingMultipliers();
 				ZombieSymbiant.ResetTransientStaticState();
-				Tools.avoider.running = false;
 
 				// var maps = Find.Maps;
 				// if (maps != null)
@@ -100,6 +106,7 @@ namespace ZombieLand
 		{
 			static void Prefix()
 			{
+				ResetMapOwnedStaticState(true);
 				ZombieTicker.ResetAdaptiveState();
 				AlbinoScreamVomit.ClearPendingMultipliers();
 				ZombieBootstrap.ResetLogDedupers();
@@ -115,6 +122,7 @@ namespace ZombieLand
 			{
 				if (GenScene.InEntryScene)
 				{
+					ResetMapOwnedStaticState(true);
 					ZombieTicker.ResetAdaptiveState();
 					AlbinoScreamVomit.ClearPendingMultipliers();
 					ZombieSymbiant.ResetTransientStaticState();

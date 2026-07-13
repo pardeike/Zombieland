@@ -150,10 +150,8 @@
 						<offset>0.2</offset>
 					</li>
 				</capMods>
-				<statFactors>
-					<ToxicEnvironmentResistance MayRequire="Ludeon.RimWorld.Biotech">0.25</ToxicEnvironmentResistance>
-				</statFactors>
 				<statOffsets>
+					<ToxicEnvironmentResistance MayRequire="Ludeon.RimWorld.Biotech">0.25</ToxicEnvironmentResistance>
 					<PsychicSensitivity>-0.25</PsychicSensitivity>
 				</statOffsets>
 			</li>
@@ -181,10 +179,8 @@
 						<offset>0.25</offset>
 					</li>
 				</capMods>
-				<statFactors>
-					<ToxicEnvironmentResistance MayRequire="Ludeon.RimWorld.Biotech">0.75</ToxicEnvironmentResistance>
-				</statFactors>
 				<statOffsets>
+					<ToxicEnvironmentResistance MayRequire="Ludeon.RimWorld.Biotech">0.75</ToxicEnvironmentResistance>
 					<PsychicSensitivity>-0.5</PsychicSensitivity>
 					<PainShockThreshold>-0.5</PainShockThreshold>
 				</statOffsets>
@@ -215,10 +211,8 @@
 						<offset>0.5</offset>
 					</li>
 				</capMods>
-				<statFactors>
-					<ToxicEnvironmentResistance MayRequire="Ludeon.RimWorld.Biotech">0.5</ToxicEnvironmentResistance>
-				</statFactors>
 				<statOffsets>
+					<ToxicEnvironmentResistance MayRequire="Ludeon.RimWorld.Biotech">0.5</ToxicEnvironmentResistance>
 					<PsychicSensitivity>-0.75</PsychicSensitivity>
 					<PainShockThreshold>-0.75</PainShockThreshold>
 				</statOffsets>
@@ -248,10 +242,8 @@
 						<offset>0.75</offset>
 					</li>
 				</capMods>
-				<statFactors>
-					<ToxicEnvironmentResistance MayRequire="Ludeon.RimWorld.Biotech">1</ToxicEnvironmentResistance>
-				</statFactors>
 				<statOffsets>
+					<ToxicEnvironmentResistance MayRequire="Ludeon.RimWorld.Biotech">1</ToxicEnvironmentResistance>
 					<PsychicSensitivity>-1</PsychicSensitivity>
 					<PainShockThreshold>-1</PainShockThreshold>
 				</statOffsets>

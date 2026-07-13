@@ -50,7 +50,7 @@
 	<SymbiantDamageEchoLabel>{0}：{1} 點傷害</SymbiantDamageEchoLabel>
 	<SymbiantDamageEchoOther>其他</SymbiantDamageEchoOther>
 	<SymbiantDamageEchoDescription>目前連結期間由相連共生體吸收的累積傷害：{0}。這只是一筆記錄；不會使宿主受傷、失能、流血、倒地或死亡。</SymbiantDamageEchoDescription>
-	<SymbiantSharedHealthRecoveryDescription>一小時未承受共享傷害後，共生體每個平靜小時恢復其缺失共享生命值的5%。</SymbiantSharedHealthRecoveryDescription>
+	<SymbiantSharedHealthRecoveryDescription>停止承受共享傷害 {0} 後，共生體每隔 {2} 恢復 {1} 的缺失共享生命值。</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>正在餵養共生體</FeedingZombieSymbiant>
 	<SymbiantFedMote>+{1} 格</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>把 {0} {1} 餵給共生體（+{2} 格）</FeedZombieSymbiantFloatMenu>
@@ -64,7 +64,7 @@
 		<SymbiantMapAbandonWarningTitle>放棄有共生體的地圖？</SymbiantMapAbandonWarningTitle>
 		<SymbiantMapAbandonWarning>這張地圖上有一個仍存活並受地圖約束的喪屍共生體。放棄地圖會摧毀共生體，並強行切斷任何仍存在的連結。如果你想按正常流程分離，請先透過手術移除共生體連結。\n\n仍要放棄這張地圖嗎？</SymbiantMapAbandonWarning>
 		<SymbiantReseededMessage>{0} 的共生體移動到了另一個室內房間。</SymbiantReseededMessage>
-		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;目前狀態&lt;/color&gt;：&lt;color=#72d672&gt;{0} 格&lt;/color&gt;。下一項增益在 &lt;color=#72d672&gt;{1} 格&lt;/color&gt;。\n\n&lt;color=#72d672&gt;共享生命值&lt;/color&gt;：{4}。擊中宿主或共生體的傷害會消耗這個儲備。目前大小下只有 &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; 會傳到 {6}。如果這個儲備用盡，{6} 會死亡。\n\n&lt;color=#ffb35c&gt;地圖規則&lt;/color&gt;：宿主和共生體必須在同一張地圖上，連結才會生效並能正常移除。如果兩者分離，連結會休眠。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄這張地圖會摧毀共生體，並強行切斷連結。手術可以先正常移除連結。\n\n&lt;color=#ffb35c&gt;目前效果&lt;/color&gt;：\n{2}\n\n&lt;color=#72d672&gt;目前增益&lt;/color&gt;：\n{3}\n\n它還會以微妙方式&lt;color=#72d672&gt;移除污染&lt;/color&gt;。</ZombieSymbiantInfoCardDetails>
+		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;目前狀態&lt;/color&gt;：&lt;color=#72d672&gt;{0} 格&lt;/color&gt;。下一項增益在 &lt;color=#72d672&gt;{1} 格&lt;/color&gt;。\n\n&lt;color=#72d672&gt;共享生命值&lt;/color&gt;：{4}。針對宿主的傷害會先消耗這個儲備；目前大小下，只有 &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; 會在 {6} 身上留下真實傷口。直接傷害共生體時，傷害先由共生體自身處理，隨後才會消耗儲備；這只會為 {6} 產生無害的灰色傷害記錄，不會造成真實傷口。如果這個儲備用盡，{6} 會死亡。\n\n&lt;color=#ffb35c&gt;地圖規則&lt;/color&gt;：宿主和共生體必須在同一張地圖上，連結才會生效並能正常移除。如果兩者分離，連結會休眠。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄這張地圖會摧毀共生體，並強行切斷連結。手術可以先正常移除連結。\n\n&lt;color=#ffb35c&gt;目前效果&lt;/color&gt;：\n{2}\n\n&lt;color=#72d672&gt;目前增益&lt;/color&gt;：\n{3}\n\n它還會以微妙方式&lt;color=#72d672&gt;移除污染&lt;/color&gt;。</ZombieSymbiantInfoCardDetails>
 		<SymbiantDetailsInfoCard>共生體詳細資訊</SymbiantDetailsInfoCard>
 		<SymbiantDetailsInfoCardValue>{0} 格</SymbiantDetailsInfoCardValue>
 		<LetterLabelSymbiantBenefitGained>共生體獲得增益</LetterLabelSymbiantBenefitGained>

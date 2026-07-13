@@ -224,6 +224,8 @@ namespace ZombieLand
 
 	static class CESymbiantCombat
 	{
+		internal delegate bool CandidateProbe(IntVec3 cell, out ShootLine line);
+
 		[ThreadStatic] internal static ZombieSymbiant collisionSymbiant;
 		[ThreadStatic] internal static IntVec3 collisionCell;
 		[ThreadStatic] internal static ZombieSymbiant raySymbiant;
@@ -279,10 +281,21 @@ namespace ZombieLand
 
 		internal static IEnumerable<IntVec3> CandidateCells(ZombieSymbiant symbiant, IntVec3 root)
 		{
-			return ZombieSymbiantCombat.BoundaryCells(symbiant)
-				.OrderBy(cell => cell.DistanceToSquared(root))
-				.ThenBy(cell => cell.x)
-				.ThenBy(cell => cell.z);
+			return ZombieSymbiantCombat.OrderedBoundaryCells(symbiant, root);
+		}
+
+		internal static bool TryBindFirstCandidate(Verb verb, ZombieSymbiant symbiant, IntVec3 root, CandidateProbe probe, out ShootLine line)
+		{
+			line = default;
+			foreach (var cell in CandidateCells(symbiant, root))
+			{
+				if (probe(cell, out var candidateLine) == false)
+					continue;
+				line = candidateLine;
+				ZombieSymbiantCombat.BindRangedCell(verb, symbiant, root, cell, candidateLine);
+				return true;
+			}
+			return false;
 		}
 
 		internal static void Warn(string adapter, Exception ex)
@@ -305,14 +318,12 @@ namespace ZombieLand
 				return true;
 			try
 			{
-				foreach (var cell in CESymbiantCombat.CandidateCells(symbiant, root))
-					if ((bool)__originalMethod.Invoke(__instance, new object[] { root, new LocalTargetInfo(cell) }))
-					{
-						ZombieSymbiantCombat.BindRangedCell((Verb)__instance, symbiant, root, cell, new ShootLine(root, cell));
-						__result = true;
-						return false;
-					}
-				__result = false;
+				bool Probe(IntVec3 cell, out ShootLine line)
+				{
+					line = new ShootLine(root, cell);
+					return (bool)__originalMethod.Invoke(__instance, new object[] { root, new LocalTargetInfo(cell) });
+				}
+				__result = CESymbiantCombat.TryBindFirstCandidate((Verb)__instance, symbiant, root, Probe, out _);
 				return false;
 			}
 			catch (Exception ex)
@@ -338,20 +349,16 @@ namespace ZombieLand
 			try
 			{
 				string lastReport = null;
-				foreach (var cell in CESymbiantCombat.CandidateCells(symbiant, root))
+				bool Probe(IntVec3 cell, out ShootLine line)
 				{
 					var args = new object[] { root, new LocalTargetInfo(cell), null };
 					var canHit = (bool)__originalMethod.Invoke(__instance, args);
 					lastReport = args[2] as string;
-					if (canHit == false)
-						continue;
-					ZombieSymbiantCombat.BindRangedCell((Verb)__instance, symbiant, root, cell, new ShootLine(root, cell));
-					report = lastReport;
-					__result = true;
-					return false;
+					line = new ShootLine(root, cell);
+					return canHit;
 				}
+				__result = CESymbiantCombat.TryBindFirstCandidate((Verb)__instance, symbiant, root, Probe, out _);
 				report = lastReport;
-				__result = false;
 				return false;
 			}
 			catch (Exception ex)
@@ -386,18 +393,22 @@ namespace ZombieLand
 				return true;
 			try
 			{
-				foreach (var cell in CESymbiantCombat.CandidateCells(symbiant, root))
+				var selectedTargetPos = default(Vector3);
+				bool Probe(IntVec3 cell, out ShootLine line)
 				{
 					var args = new object[] { root, new LocalTargetInfo(cell), default(ShootLine), default(Vector3) };
-					if ((bool)targetMethod.Invoke(__instance, args) == false)
-						continue;
-					resultingLine = (ShootLine)args[2];
-					targetPos = (Vector3)args[3];
-					ZombieSymbiantCombat.BindRangedCell((Verb)__instance, symbiant, root, cell, resultingLine);
-					__result = true;
-					return false;
+					var canHit = (bool)targetMethod.Invoke(__instance, args);
+					line = (ShootLine)args[2];
+					if (canHit)
+						selectedTargetPos = (Vector3)args[3];
+					return canHit;
 				}
-				__result = false;
+				__result = CESymbiantCombat.TryBindFirstCandidate((Verb)__instance, symbiant, root, Probe, out var selectedLine);
+				if (__result)
+				{
+					resultingLine = selectedLine;
+					targetPos = selectedTargetPos;
+				}
 				return false;
 			}
 			catch (Exception ex)

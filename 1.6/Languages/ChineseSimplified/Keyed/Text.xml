@@ -50,7 +50,7 @@
 	<SymbiantDamageEchoLabel>{0}：{1} 点伤害</SymbiantDamageEchoLabel>
 	<SymbiantDamageEchoOther>其他</SymbiantDamageEchoOther>
 	<SymbiantDamageEchoDescription>当前联结期间由相连共生体吸收的累计伤害：{0}。这只是一条记录；不会使宿主受伤、失能、流血、倒地或死亡。</SymbiantDamageEchoDescription>
-	<SymbiantSharedHealthRecoveryDescription>一小时未承受共享伤害后，共生体每个平静小时恢复其缺失共享生命值的5%。</SymbiantSharedHealthRecoveryDescription>
+	<SymbiantSharedHealthRecoveryDescription>停止承受共享伤害 {0} 后，共生体每隔 {2} 恢复 {1} 的缺失共享生命值。</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>正在喂养共生体</FeedingZombieSymbiant>
 	<SymbiantFedMote>格子 +{1}</SymbiantFedMote>
 	<FeedZombieSymbiantFloatMenu>把 {0} {1} 喂给共生体（+{2} 格）</FeedZombieSymbiantFloatMenu>
@@ -64,7 +64,7 @@
 		<SymbiantMapAbandonWarningTitle>放弃有共生体的地图？</SymbiantMapAbandonWarningTitle>
 		<SymbiantMapAbandonWarning>这张地图上有一个仍存活并受地图约束的丧尸共生体。放弃地图会摧毁共生体，并强行切断任何仍存在的连接。如果你想按正常流程分离，请先通过手术移除共生体连接。\n\n仍要放弃这张地图吗？</SymbiantMapAbandonWarning>
 		<SymbiantReseededMessage>{0} 的共生体移动到了另一个室内房间。</SymbiantReseededMessage>
-		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;当前状态&lt;/color&gt;：&lt;color=#72d672&gt;{0} 格&lt;/color&gt;。下一项收益在 &lt;color=#72d672&gt;{1} 格&lt;/color&gt;。\n\n&lt;color=#72d672&gt;共享生命值&lt;/color&gt;：{4}。击中宿主或共生体的伤害会消耗这个储备。当前大小下只有 &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; 会传到 {6}。如果这个储备用尽，{6} 会死亡。\n\n&lt;color=#ffb35c&gt;地图规则&lt;/color&gt;：宿主和共生体必须在同一张地图上，连接才会生效并能正常移除。如果两者分离，连接会休眠。只有同一宿主与共生体再次位于同一地图时，连接才可能恢复。放弃这张地图会摧毁共生体，并强行切断连接。手术可以先正常移除连接。\n\n&lt;color=#ffb35c&gt;当前效果&lt;/color&gt;：\n{2}\n\n&lt;color=#72d672&gt;当前收益&lt;/color&gt;：\n{3}\n\n它还会以微妙方式&lt;color=#72d672&gt;移除污染&lt;/color&gt;。</ZombieSymbiantInfoCardDetails>
+		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;当前状态&lt;/color&gt;：&lt;color=#72d672&gt;{0} 格&lt;/color&gt;。下一项收益在 &lt;color=#72d672&gt;{1} 格&lt;/color&gt;。\n\n&lt;color=#72d672&gt;共享生命值&lt;/color&gt;：{4}。针对宿主的伤害会先消耗这个储备；当前大小下，只有 &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; 会在 {6} 身上留下真实伤口。直接伤害共生体时，伤害先由共生体自身处理，随后才会消耗储备；这只会为 {6} 生成无害的灰色伤害记录，不会造成真实伤口。如果这个储备用尽，{6} 会死亡。\n\n&lt;color=#ffb35c&gt;地图规则&lt;/color&gt;：宿主和共生体必须在同一张地图上，连接才会生效并能正常移除。如果两者分离，连接会休眠。只有同一宿主与共生体再次位于同一地图时，连接才可能恢复。放弃这张地图会摧毁共生体，并强行切断连接。手术可以先正常移除连接。\n\n&lt;color=#ffb35c&gt;当前效果&lt;/color&gt;：\n{2}\n\n&lt;color=#72d672&gt;当前收益&lt;/color&gt;：\n{3}\n\n它还会以微妙方式&lt;color=#72d672&gt;移除污染&lt;/color&gt;。</ZombieSymbiantInfoCardDetails>
 		<SymbiantDetailsInfoCard>共生体详情</SymbiantDetailsInfoCard>
 		<SymbiantDetailsInfoCardValue>{0} 格</SymbiantDetailsInfoCardValue>
 		<LetterLabelSymbiantBenefitGained>共生体获得收益</LetterLabelSymbiantBenefitGained>

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Unity.Collections;
 using Verse;
 
 namespace ZombieLand
@@ -14,11 +15,108 @@ namespace ZombieLand
 		public float maxCosts;
 	}
 
+	sealed class ZombieAvoidGridNativeSnapshot
+	{
+		static long nextGenerationId;
+		readonly object sync = new();
+		NativeArray<ushort> offsets;
+		int activeOwners;
+		int requestReferences;
+		bool disposed;
+
+		public readonly long generationId;
+
+		public ZombieAvoidGridNativeSnapshot(int[] costs)
+		{
+			generationId = Interlocked.Increment(ref nextGenerationId);
+			offsets = new NativeArray<ushort>(costs.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
+			for (var i = 0; i < costs.Length; i++)
+			{
+				var cost = costs[i];
+				offsets[i] = cost <= 0 ? (ushort)0 : cost >= ushort.MaxValue ? ushort.MaxValue : (ushort)cost;
+			}
+			AvoidGrid.RecordNativeSnapshotAllocation(costs.Length);
+		}
+
+		public bool IsDisposed
+		{
+			get
+			{
+				lock (sync)
+					return disposed;
+			}
+		}
+
+		public NativeArray<ushort> Offsets
+		{
+			get
+			{
+				lock (sync)
+					return offsets;
+			}
+		}
+
+		public void Activate()
+		{
+			lock (sync)
+			{
+				if (disposed)
+					throw new ObjectDisposedException(nameof(ZombieAvoidGridNativeSnapshot));
+				activeOwners++;
+			}
+		}
+
+		public void Deactivate()
+		{
+			lock (sync)
+			{
+				if (activeOwners > 0)
+					activeOwners--;
+				DisposeIfUnused();
+			}
+		}
+
+		public void AcquireRequest()
+		{
+			lock (sync)
+			{
+				if (disposed)
+					throw new ObjectDisposedException(nameof(ZombieAvoidGridNativeSnapshot));
+				requestReferences++;
+			}
+		}
+
+		public void ReleaseRequest()
+		{
+			lock (sync)
+			{
+				if (requestReferences > 0)
+					requestReferences--;
+				DisposeIfUnused();
+			}
+		}
+
+		void DisposeIfUnused()
+		{
+			if (disposed || activeOwners != 0 || requestReferences != 0)
+				return;
+			if (offsets.IsCreated)
+				offsets.Dispose();
+			disposed = true;
+		}
+	}
+
 	public class AvoidGrid
 	{
 		readonly int[] costs;
 		int[] newCosts;
 		readonly int mapSize;
+		readonly object nativeSnapshotLock = new();
+		ZombieAvoidGridNativeSnapshot nativeSnapshot;
+		bool hasCosts;
+		static long nativeSnapshotAllocationCount;
+		static long nativeSnapshotCopiedCellCount;
+		static long pathCustomizerCreationCount;
 		public long requestId;
 		public FloodFiller filler;
 
@@ -33,6 +131,35 @@ namespace ZombieLand
 		public int[] GetCosts()
 		{
 			return costs;
+		}
+
+		public bool HasCosts => hasCosts;
+
+		public static long NativeSnapshotAllocationCount => Interlocked.Read(ref nativeSnapshotAllocationCount);
+
+		public static long NativeSnapshotCopiedCellCount => Interlocked.Read(ref nativeSnapshotCopiedCellCount);
+
+		public static long PathCustomizerCreationCount => Interlocked.Read(ref pathCustomizerCreationCount);
+
+		internal static void RecordNativeSnapshotAllocation(int copiedCells)
+		{
+			_ = Interlocked.Increment(ref nativeSnapshotAllocationCount);
+			_ = Interlocked.Add(ref nativeSnapshotCopiedCellCount, copiedCells);
+		}
+
+		internal static void RecordPathCustomizerCreation()
+		{
+			_ = Interlocked.Increment(ref pathCustomizerCreationCount);
+		}
+
+		internal ZombieAvoidGridNativeSnapshot GetOrCreateNativeSnapshot()
+		{
+			lock (nativeSnapshotLock)
+			{
+				if (nativeSnapshot == null || nativeSnapshot.IsDisposed)
+					nativeSnapshot = new ZombieAvoidGridNativeSnapshot(costs);
+				return nativeSnapshot;
+			}
 		}
 
 		public bool InAvoidDanger(Pawn pawn)
@@ -61,8 +188,20 @@ namespace ZombieLand
 		{
 			if (newCosts == null)
 				return;
-			Array.Copy(newCosts, costs, mapSize);
+			hasCosts = false;
+			for (var i = 0; i < mapSize; i++)
+			{
+				var cost = newCosts[i];
+				costs[i] = cost;
+				if (cost > 0)
+					hasCosts = true;
+			}
 			newCosts = null;
+			// A finalized grid is a new immutable generation. If a diagnostic or future
+			// caller reuses the AvoidGrid instance, the registry will retire the previous
+			// native snapshot after its outstanding path-job leases complete.
+			lock (nativeSnapshotLock)
+				nativeSnapshot = null;
 		}
 	}
 
@@ -85,7 +224,7 @@ namespace ZombieLand
 		long lastWarningTicks;
 		long lastRescueTicks;
 		long nextRequestId;
-		public bool running;
+		public volatile bool running;
 
 		ConcurrentQueue<AvoidGrid> QueueForMap(Map map)
 		{
@@ -113,31 +252,48 @@ namespace ZombieLand
 
 		public long UpdateZombiePositions(Map map, List<ZombieCostSpecs> specs)
 		{
-			if (map == null || running == false)
+			if (map == null)
 				return 0;
-			EnsureWorkerRunning();
-			var request = new AvoidRequest() { map = map, specs = CopySpecs(specs), requestId = Interlocked.Increment(ref nextRequestId) };
-			requestQueue.Enqueue(request, req => req.map == map);
-			return request.requestId;
+			var copiedSpecs = CopySpecs(specs);
+			lock (workerLock)
+			{
+				if (running == false)
+					return 0;
+				EnsureWorkerRunning();
+				var request = new AvoidRequest() { map = map, specs = copiedSpecs, requestId = Interlocked.Increment(ref nextRequestId) };
+				requestQueue.Enqueue(request, req => req.map == map);
+				return request.requestId;
+			}
 		}
 
 		public AvoidGrid UpdateZombiePositionsImmediately(Map map, List<ZombieCostSpecs> specs)
 		{
 			if (map == null)
 				return null;
-			var request = new AvoidRequest() { map = map, specs = CopySpecs(specs), requestId = Interlocked.Increment(ref nextRequestId) };
-			var result = ProcessRequest(request, out var error);
-			if (error != null)
-				WarnProcessingFailure("synchronous avoid-grid rebuild", error, request);
-			return result;
+			var copiedSpecs = CopySpecs(specs);
+			lock (workerLock)
+			{
+				if (running == false)
+					return null;
+				var request = new AvoidRequest() { map = map, specs = copiedSpecs, requestId = Interlocked.Increment(ref nextRequestId) };
+				var result = ProcessRequest(request, out var error);
+				if (error != null)
+					WarnProcessingFailure("synchronous avoid-grid rebuild", error, request);
+				return result;
+			}
 		}
 
 		public AvoidGrid GetCostsGrid(Map map)
 		{
 			if (map == null)
 				return null;
-			var queue = QueueForMap(map);
-			return queue.DequeueLatest();
+			lock (workerLock)
+			{
+				if (running == false)
+					return null;
+				var queue = QueueForMap(map);
+				return queue.DequeueLatest();
+			}
 		}
 
 		static TraverseParms traverseParms = TraverseParms.For(TraverseMode.PassDoors, Danger.None, false, true, false);
@@ -315,6 +471,8 @@ namespace ZombieLand
 
 			lock (workerLock)
 			{
+				if (running == false)
+					return false;
 				if (workerThread?.IsAlive == true)
 					return false;
 
@@ -337,6 +495,8 @@ namespace ZombieLand
 
 			lock (workerLock)
 			{
+				if (running == false)
+					return;
 				if (completedRequestIds.TryGetValue(map, out var completedRequestId) && completedRequestId >= requestId)
 					return;
 				if (rescueWorkerThread?.IsAlive == true)
@@ -354,6 +514,45 @@ namespace ZombieLand
 				};
 				rescueWorkerThread.Start();
 			}
+		}
+
+		public void StopAndDrain()
+		{
+			Thread primary;
+			Thread rescue;
+			lock (workerLock)
+			{
+				running = false;
+				primary = workerThread;
+				rescue = rescueWorkerThread;
+			}
+
+			// Wake the blocking worker. Two sentinels cover the primary and rescue
+			// workers racing to consume the queue while shutdown begins.
+			requestQueue.Enqueue(new AvoidRequest());
+			requestQueue.Enqueue(new AvoidRequest());
+
+			JoinWorker(primary);
+			JoinWorker(rescue);
+
+			while (requestQueue.TryDequeue(out _))
+			{
+			}
+			lock (requestQueue)
+				resultQueues.Clear();
+			lock (workerLock)
+			{
+				completedRequestIds.Clear();
+				workerThread = null;
+				rescueWorkerThread = null;
+			}
+		}
+
+		static void JoinWorker(Thread thread)
+		{
+			if (thread == null || thread == Thread.CurrentThread)
+				return;
+			thread.Join();
 		}
 
 		void WarnProcessingFailure(string context, Exception error, AvoidRequest request)

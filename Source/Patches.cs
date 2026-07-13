@@ -329,15 +329,14 @@ namespace ZombieLand
 						map.ContaminationGridUpdate();
 					else
 					{
-						map.listerThings.AllThings
-							.DoIf(thing =>
-							{
-								if (thing is Mineable)
-									return false;
-								var cell = thing.Position;
-								return currentViewRect.Contains(cell) && cell.Fogged(map) == false;
-							},
-							thing => GraphicToolbox.DrawContamination(thing.DrawPos, thing.GetContamination(), true));
+						var visibleThings = new HashSet<Thing>();
+						foreach (var cell in currentViewRect)
+							foreach (var thing in map.thingGrid.ThingsListAtFast(cell))
+								if (visibleThings.Add(thing)
+									&& thing is not Mineable
+									&& currentViewRect.Contains(thing.Position)
+									&& thing.Position.Fogged(map) == false)
+									GraphicToolbox.DrawContamination(thing.DrawPos, thing.GetContamination(), true);
 						var grid = map.GetContamination();
 						currentViewRect.DoIf(cell => cell.Fogged(map) == false, cell => GraphicToolbox.DrawContamination(cell.ToVector3Shifted(), grid[cell], false));
 					}
@@ -631,13 +630,13 @@ namespace ZombieLand
 					return;
 				if (Current.Game == null || Current.ProgramState != ProgramState.Playing || Scribe.mode != LoadSaveMode.Inactive)
 					return;
+				if (__instance.Paused)
+					return;
 
 				var startTimestamp = System.Diagnostics.Stopwatch.GetTimestamp();
 				var game = Current.Game;
 				ZombieTicker.EnsureAdaptiveGame(game);
 				_ = ZombieWanderer.ProcessNext();
-				if (__instance.Paused)
-					return;
 
 				ZombieTicker.zombiesTicked = 0;
 				ZombieTicker.SetManagersFromMaps(Find.Maps);
@@ -1777,33 +1776,164 @@ namespace ZombieLand
 			}
 		}
 
-		class ZombieAvoidGridPathCustomizer : PathRequest.IPathGridCustomizer, IDisposable
+		class ZombieAvoidGridPathCustomizer : PathRequest.IPathGridCustomizer, IDisposable, IEquatable<ZombieAvoidGridPathCustomizer>
 		{
-			NativeArray<ushort> offsets;
+			internal readonly PathFinder owner;
+			internal readonly ZombieAvoidGridNativeSnapshot snapshot;
+			internal int releaseState;
 
-			public ZombieAvoidGridPathCustomizer(int[] costs)
+			internal ZombieAvoidGridPathCustomizer(PathFinder owner, ZombieAvoidGridNativeSnapshot snapshot)
 			{
-				offsets = new NativeArray<ushort>(costs.Length, Allocator.Persistent, NativeArrayOptions.UninitializedMemory);
-				for (var i = 0; i < costs.Length; i++)
-					offsets[i] = (ushort)Mathf.Clamp(costs[i], 0, ushort.MaxValue);
+				this.owner = owner;
+				this.snapshot = snapshot;
+				AvoidGrid.RecordPathCustomizerCreation();
 			}
 
-			public NativeArray<ushort> GetOffsetGrid()
-			{
-				return offsets;
-			}
+			public NativeArray<ushort> GetOffsetGrid() => snapshot.Offsets;
+
+			public long GenerationId => snapshot.generationId;
+
+			public bool Equals(ZombieAvoidGridPathCustomizer other) => other != null && ReferenceEquals(snapshot, other.snapshot);
+
+			public override bool Equals(object obj) => Equals(obj as ZombieAvoidGridPathCustomizer);
+
+			public override int GetHashCode() => snapshot.generationId.GetHashCode();
 
 			public void Dispose()
 			{
-				if (offsets.IsCreated)
-					offsets.Dispose();
+				ZombieAvoidGridPathCustomizerRegistry.DeferRelease(this);
+			}
+
+			internal void ReleaseCompletedUse() => ZombieAvoidGridPathCustomizerRegistry.ReleaseCompleted(this);
+		}
+
+		static class ZombieAvoidGridPathCustomizerRegistry
+		{
+			static readonly object sync = new();
+			static readonly Dictionary<PathFinder, ZombieAvoidGridNativeSnapshot> activeSnapshots = new();
+			static readonly Dictionary<PathFinder, List<ZombieAvoidGridPathCustomizer>> activeCustomizers = new();
+			static readonly List<ZombieAvoidGridPathCustomizer> deferredReleases = new();
+
+			public static ZombieAvoidGridPathCustomizer Acquire(PathFinder owner, AvoidGrid grid)
+			{
+				var snapshot = grid.GetOrCreateNativeSnapshot();
+				lock (sync)
+				{
+					if (activeSnapshots.TryGetValue(owner, out var activeSnapshot) == false || ReferenceEquals(activeSnapshot, snapshot) == false)
+					{
+						snapshot.Activate();
+						activeSnapshots[owner] = snapshot;
+						activeSnapshot?.Deactivate();
+					}
+
+					snapshot.AcquireRequest();
+					var customizer = new ZombieAvoidGridPathCustomizer(owner, snapshot);
+					if (activeCustomizers.TryGetValue(owner, out var customizers) == false)
+					{
+						customizers = new List<ZombieAvoidGridPathCustomizer>();
+						activeCustomizers.Add(owner, customizers);
+					}
+					customizers.Add(customizer);
+					return customizer;
+				}
+			}
+
+			public static void DeferRelease(ZombieAvoidGridPathCustomizer customizer)
+			{
+				if (customizer == null)
+					return;
+				lock (sync)
+				{
+					if (customizer.releaseState != 0)
+						return;
+					customizer.releaseState = 1;
+					deferredReleases.Add(customizer);
+				}
+			}
+
+			public static void ReleaseCompleted(ZombieAvoidGridPathCustomizer customizer)
+			{
+				if (customizer == null)
+					return;
+				var releaseSnapshot = false;
+				lock (sync)
+				{
+					if (customizer.releaseState == 2)
+						return;
+					customizer.releaseState = 2;
+					_ = deferredReleases.RemoveAll(candidate => ReferenceEquals(candidate, customizer));
+					if (activeCustomizers.TryGetValue(customizer.owner, out var customizers))
+					{
+						var index = customizers.FindIndex(candidate => ReferenceEquals(candidate, customizer));
+						if (index >= 0)
+							customizers.RemoveAt(index);
+						if (customizers.Count == 0)
+							_ = activeCustomizers.Remove(customizer.owner);
+					}
+					releaseSnapshot = true;
+				}
+				if (releaseSnapshot)
+					customizer.snapshot.ReleaseRequest();
+			}
+
+			public static void FlushCompletedJobs(PathFinder owner)
+			{
+				ZombieAvoidGridPathCustomizer[] completed;
+				lock (sync)
+					completed = deferredReleases.Where(customizer => ReferenceEquals(customizer.owner, owner)).ToArray();
+				foreach (var customizer in completed)
+					ReleaseCompleted(customizer);
+			}
+
+			public static void DeactivateSnapshot(PathFinder owner)
+			{
+				ZombieAvoidGridNativeSnapshot activeSnapshot;
+				lock (sync)
+				{
+					activeSnapshot = activeSnapshots.TryGetValue(owner, out var snapshot) ? snapshot : null;
+					_ = activeSnapshots.Remove(owner);
+				}
+				// Outstanding path-request references keep the native array alive until
+				// their proven completion boundary; only the generation cache lease ends.
+				activeSnapshot?.Deactivate();
+			}
+
+			public static void DisposeOwner(PathFinder owner)
+			{
+				ZombieAvoidGridPathCustomizer[] customizers;
+				ZombieAvoidGridNativeSnapshot activeSnapshot;
+				lock (sync)
+				{
+					customizers = activeCustomizers.TryGetValue(owner, out var active)
+						? active.ToArray()
+						: Array.Empty<ZombieAvoidGridPathCustomizer>();
+					_ = activeCustomizers.Remove(owner);
+					foreach (var customizer in customizers)
+					{
+						customizer.releaseState = 2;
+						_ = deferredReleases.RemoveAll(candidate => ReferenceEquals(candidate, customizer));
+					}
+					activeSnapshot = activeSnapshots.TryGetValue(owner, out var snapshot) ? snapshot : null;
+					_ = activeSnapshots.Remove(owner);
+				}
+
+				foreach (var customizer in customizers)
+					customizer.snapshot.ReleaseRequest();
+				activeSnapshot?.Deactivate();
 			}
 		}
 
-		static bool TryCreateZombieAvoidGridCustomizer(Pawn pawn, out ZombieAvoidGridPathCustomizer customizer)
+		static bool TryCreateZombieAvoidGridCustomizer(PathFinder pathFinder, Pawn pawn, out ZombieAvoidGridPathCustomizer customizer)
 		{
 			customizer = null;
-			if (pawn == null || Tools.ShouldAvoidZombies(pawn) == false)
+			if (pathFinder == null || pawn == null)
+				return false;
+			if (Tools.ShouldAvoidZombies() == false)
+			{
+				ZombieAvoidGridPathCustomizerRegistry.DeactivateSnapshot(pathFinder);
+				return false;
+			}
+			if (Tools.ShouldAvoidZombies(pawn) == false)
 				return false;
 
 			var map = pawn.Map;
@@ -1815,26 +1945,21 @@ namespace ZombieLand
 				return false;
 			var avoidGrid = tickManager.avoidGrid;
 
-			var costs = avoidGrid.GetCosts();
-			var hasCosts = false;
-			for (var i = 0; i < costs.Length; i++)
-				if (costs[i] > 0)
-				{
-					hasCosts = true;
-					break;
-				}
-			if (hasCosts == false)
+			if (avoidGrid.HasCosts == false)
+			{
+				ZombieAvoidGridPathCustomizerRegistry.DeactivateSnapshot(pathFinder);
 				return false;
+			}
 
-			customizer = new ZombieAvoidGridPathCustomizer(costs);
+			customizer = ZombieAvoidGridPathCustomizerRegistry.Acquire(pathFinder, avoidGrid);
 			return true;
 		}
 
-		static void AddZombieAvoidGridCustomizer(Pawn pawn, ref PathRequest.IPathGridCustomizer customizer)
+		static void AddZombieAvoidGridCustomizer(PathFinder pathFinder, Pawn pawn, ref PathRequest.IPathGridCustomizer customizer)
 		{
 			if (customizer != null)
 				return;
-			if (TryCreateZombieAvoidGridCustomizer(pawn, out var zombieCustomizer))
+			if (TryCreateZombieAvoidGridCustomizer(pathFinder, pawn, out var zombieCustomizer))
 				customizer = zombieCustomizer;
 		}
 
@@ -1843,9 +1968,9 @@ namespace ZombieLand
 		[HarmonyPatch(new[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(IntVec3?), typeof(TraverseParms), typeof(Nullable<PathFinderCostTuning>), typeof(PathEndMode), typeof(Pawn), typeof(PathRequest.IPathGridCustomizer) })]
 		static class PathFinder_CreateRequest_Patch
 		{
-			static void Prefix(TraverseParms traverseParms, Pawn pawn, ref PathRequest.IPathGridCustomizer customizer)
+			static void Prefix(PathFinder __instance, TraverseParms traverseParms, Pawn pawn, ref PathRequest.IPathGridCustomizer customizer)
 			{
-				AddZombieAvoidGridCustomizer(pawn ?? traverseParms.pawn, ref customizer);
+				AddZombieAvoidGridCustomizer(__instance, pawn ?? traverseParms.pawn, ref customizer);
 			}
 		}
 
@@ -1854,21 +1979,22 @@ namespace ZombieLand
 		[HarmonyPatch(new[] { typeof(IntVec3), typeof(LocalTargetInfo), typeof(TraverseParms), typeof(Nullable<PathFinderCostTuning>), typeof(PathEndMode), typeof(PathRequest.IPathGridCustomizer) })]
 		static class PathFinder_FindPathNow_Patch
 		{
-			static void Prefix(TraverseParms traverseParms, ref PathRequest.IPathGridCustomizer customizer, out ZombieAvoidGridPathCustomizer __state)
+			static void Prefix(PathFinder __instance, TraverseParms traverseParms, ref PathRequest.IPathGridCustomizer customizer, out ZombieAvoidGridPathCustomizer __state)
 			{
 				__state = null;
 				if (customizer != null)
 					return;
-				if (TryCreateZombieAvoidGridCustomizer(traverseParms.pawn, out var zombieCustomizer))
+				if (TryCreateZombieAvoidGridCustomizer(__instance, traverseParms.pawn, out var zombieCustomizer))
 				{
 					customizer = zombieCustomizer;
 					__state = zombieCustomizer;
 				}
 			}
 
-			static void Postfix(ZombieAvoidGridPathCustomizer __state)
+			static Exception Finalizer(Exception __exception, ZombieAvoidGridPathCustomizer __state)
 			{
-				__state?.Dispose();
+				__state?.ReleaseCompletedUse();
+				return __exception;
 			}
 		}
 
@@ -1876,9 +2002,10 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(PathRequest.Resolve))]
 		static class PathRequest_Resolve_Patch
 		{
-			static void Postfix(PathRequest __instance)
+			static Exception Finalizer(Exception __exception, PathRequest __instance)
 			{
-				(__instance.customizer as ZombieAvoidGridPathCustomizer)?.Dispose();
+				(__instance.customizer as ZombieAvoidGridPathCustomizer)?.ReleaseCompletedUse();
+				return __exception;
 			}
 		}
 
@@ -1886,9 +2013,34 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(PathRequest.Dispose))]
 		static class PathRequest_Dispose_Patch
 		{
-			static void Postfix(PathRequest __instance)
+			static Exception Finalizer(Exception __exception, PathRequest __instance)
 			{
 				(__instance.customizer as ZombieAvoidGridPathCustomizer)?.Dispose();
+				return __exception;
+			}
+		}
+
+		// RimWorld 1.6 Assembly-CSharp MVID 967ddb80559449f0a776dafa26a855d1:
+		// PathFinderTick completes scheduled grid/path handles here before it resolves
+		// requests. A cancelled request may skip Resolve, so its snapshot lease is
+		// released only after this proven job-completion boundary.
+		[HarmonyPatch(typeof(PathFinder), "ForceCompleteScheduledJobs")]
+		static class PathFinder_ForceCompleteScheduledJobs_ZombieAvoidGrid_Patch
+		{
+			static void Postfix(PathFinder __instance)
+			{
+				ZombieAvoidGridPathCustomizerRegistry.FlushCompletedJobs(__instance);
+			}
+		}
+
+		[HarmonyPatch(typeof(PathFinder))]
+		[HarmonyPatch(nameof(PathFinder.Dispose))]
+		static class PathFinder_Dispose_ZombieAvoidGrid_Patch
+		{
+			static void Postfix(PathFinder __instance)
+			{
+				// Vanilla Dispose completes every outstanding grid/path handle first.
+				ZombieAvoidGridPathCustomizerRegistry.DisposeOwner(__instance);
 			}
 		}
 
@@ -5128,6 +5280,7 @@ namespace ZombieLand
 			static void Postfix(
 				Verse.Explosion __instance,
 				IntVec3 c,
+				float ___excludeRadius,
 				List<Thing> ___damagedThings,
 				List<Thing> ___ignoredThings,
 				List<FireSurvivalExplosionDamageSnapshot> __state)
@@ -5138,6 +5291,8 @@ namespace ZombieLand
 
 				var map = __instance?.Map;
 				if (map == null || c.InBounds(map) == false)
+					return;
+				if (___excludeRadius > 0f && c.DistanceToSquared(__instance.Position) < ___excludeRadius * ___excludeRadius)
 					return;
 				var symbiant = ZombieSymbiant.ActiveSymbiant(map);
 				if (symbiant?.Spawned != true || symbiant.Destroyed || symbiant.Dead || symbiant.ContainsCell(c) == false)

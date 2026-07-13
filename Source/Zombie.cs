@@ -811,26 +811,23 @@ namespace ZombieLand
 
 				if (isHealer)
 				{
-					var radius = 4 + ZombieLand.Tools.Difficulty() * 2;
-
-					var n = GenRadial.RadialDistinctThingsAround(Position, map, radius, false)
-						.OfType<Zombie>()
-						.Where(zombie => zombie.health.hediffSet.hediffs.Any()).Count();
-
-					GenRadial.RadialDistinctThingsAround(Position, map, radius, false)
-						.OfType<Zombie>()
-						.Select(zombie => (zombie, zombie.health.hediffSet.hediffs))
-						.Where(pair => pair.hediffs.Any())
-						.OrderByDescending(pair => pair.hediffs.Count)
-						.Do(pair =>
-						{
-							if (healInfo.Count < 8)
+					var remaining = 8 - healInfo.Count;
+					if (remaining > 0)
+					{
+						var radius = 4 + ZombieLand.Tools.Difficulty() * 2;
+						GenRadial.RadialDistinctThingsAround(Position, map, radius, false)
+							.OfType<Zombie>()
+							.Select(zombie => (zombie, zombie.health.hediffSet.hediffs))
+							.Where(pair => pair.hediffs.Any())
+							.OrderByDescending(pair => pair.hediffs.Count)
+							.Take(remaining)
+							.Do(pair =>
 							{
 								var zombie = pair.zombie;
 								zombie.health.hediffSet.Clear();
 								healInfo.Add(new HealerInfo(zombie));
-							}
-						});
+							});
+					}
 				}
 			}
 		}

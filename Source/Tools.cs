@@ -59,13 +59,20 @@ namespace ZombieLand
 	[StaticConstructorOnStartup]
 	static class Tools
 	{
+		sealed class PlayerReachableRegionsCache
+		{
+			public int nextUpdate;
+			public List<Region> regions = new();
+		}
+
 		public static ZombieAvoider avoider = new();
 		public static Texture2D MenuIcon;
 		public static Texture2D ZombieButtonBackground;
 		public static string zlNamespace = typeof(Tools).Namespace;
 
-		public static List<Region> cachedPlayerReachableRegions = new();
-		public static int nextPlayerReachableRegionsUpdate = 0;
+		static readonly Dictionary<Map, PlayerReachableRegionsCache> playerReachableRegions = new();
+		// Retained for existing diagnostic callers that set this to zero to force a refresh.
+		public static int nextPlayerReachableRegionsUpdate = int.MaxValue;
 
 		public static HashSet<BiomeDef> biomeBlacklist = new();
 
@@ -313,6 +320,18 @@ namespace ZombieLand
 		}
 
 		static readonly Dictionary<Map, PheromoneGrid> gridCache = new();
+
+		public static void ResetMapOwnedState(bool recreateAvoider)
+		{
+			var previousAvoider = avoider;
+			previousAvoider?.StopAndDrain();
+			gridCache.Clear();
+			InvalidatePlayerReachableRegions();
+			nextPlayerReachableRegionsUpdate = int.MaxValue;
+			if (recreateAvoider)
+				avoider = new ZombieAvoider();
+		}
+
 		public static PheromoneGrid GetGrid(this Map map)
 		{
 			if (gridCache.TryGetValue(map, out var grid))
@@ -635,12 +654,28 @@ namespace ZombieLand
 			}
 		}
 
+		public static void InvalidatePlayerReachableRegions(Map map = null)
+		{
+			if (map == null)
+				playerReachableRegions.Clear();
+			else
+				_ = playerReachableRegions.Remove(map);
+		}
+
 		public static List<Region> PlayerReachableRegions(Map map)
 		{
-			var ticks = GenTicks.TicksGame;
-			if (ticks > nextPlayerReachableRegionsUpdate)
+			if (map == null)
+				return new List<Region>();
+
+			if (nextPlayerReachableRegionsUpdate == 0)
 			{
-				nextPlayerReachableRegionsUpdate = ticks + GenTicks.TickLongInterval;
+				InvalidatePlayerReachableRegions();
+				nextPlayerReachableRegionsUpdate = int.MaxValue;
+			}
+
+			var ticks = GenTicks.TicksGame;
+			if (playerReachableRegions.TryGetValue(map, out var cache) == false || ticks >= cache.nextUpdate)
+			{
 				var f = Faction.OfPlayer;
 				var totalRegions = map.regionGrid.allRooms
 					.Where(room => room.IsHuge == false && room.Fogged == false)
@@ -673,9 +708,14 @@ namespace ZombieLand
 				}
 				var neighbours = totalRegions.SelectMany(region => region.Neighbors).ToList();
 				PlayerReachableRegions_Iterator(totalRegions, neighbours);
-				cachedPlayerReachableRegions = totalRegions.ToList();
+				cache = new PlayerReachableRegionsCache
+				{
+					nextUpdate = ticks + GenTicks.TickLongInterval,
+					regions = totalRegions.ToList()
+				};
+				playerReachableRegions[map] = cache;
 			}
-			return cachedPlayerReachableRegions;
+			return cache.regions;
 		}
 
 		public static T RandomElement<T>(this T[] array) => array == null || array.Length == 0 ? default : array[Constants.random.Next() % array.Length];

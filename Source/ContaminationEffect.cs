@@ -99,7 +99,11 @@ namespace ZombieLand
 
 		static bool ApplyJob(Pawn pawn, int expiryInterval, MentalStateDef mentalDef, JobDef jobDef, Func<bool> check)
 		{
-			if (pawn?.Map == null || pawn.health.healthState != PawnHealthState.Mobile)
+			if (pawn?.Map == null
+				|| pawn.health?.healthState != PawnHealthState.Mobile
+				|| pawn.drafter == null
+				|| pawn.jobs == null
+				|| pawn.mindState?.mentalStateHandler == null)
 				return false;
 
 			if (check() == false)
@@ -160,7 +164,7 @@ namespace ZombieLand
 				pawn, expiryInterval,
 				EffectDefs.ContaminationStateSleepwalking,
 				EffectDefs.ContaminationJobSleepwalk,
-				() => pawn.jobs.curDriver.asleep
+				() => pawn.jobs.curDriver?.asleep == true
 			);
 		}
 

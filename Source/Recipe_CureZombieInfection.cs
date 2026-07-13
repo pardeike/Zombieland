@@ -48,8 +48,7 @@ namespace ZombieLand
 			if (bite == null)
 				return;
 
-			var chance = Rand.RangeInclusive(0, 100);
-			var failure = chance > purity;
+			var failure = Rand.Chance(purity / 100f) == false;
 			if (failure)
 			{
 				HealthUtility.GiveRandomSurgeryInjuries(pawn, 65, part);

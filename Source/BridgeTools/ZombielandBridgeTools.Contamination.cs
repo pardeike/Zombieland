@@ -10103,6 +10103,19 @@ namespace ZombieLand
 			var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
 			if (TryFindClearSpawnCell(map, root, 16f, out var humanCell, out var humanSpawnError) == false)
 				return humanSpawnError;
+			if (TryFindClearSpawnCell(map, humanCell + new IntVec3(4, 0, 0), 12f, out var animalCell, out var animalSpawnError) == false)
+				return animalSpawnError;
+			var animalKind = DefDatabase<PawnKindDef>.GetNamedSilentFail("Muffalo");
+			if (animalKind == null)
+				return new { success = false, error = "The contamination effect fixture could not resolve Muffalo." };
+			var animal = PawnGenerator.GeneratePawn(animalKind, Faction.OfPlayer);
+			GenSpawn.Spawn(animal, animalCell, map, Rot4.South);
+			animal.ClearContamination();
+			effects.Remove(animal);
+			animal.AddContamination(0.24f);
+			var animalTracked = effects.pawns.TryGetValue(animal, out var animalEffect);
+			if (animalEffect != null)
+				animalEffect.nextEffectTick = Find.TickManager.TicksGame;
 
 			var human = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
 			GenSpawn.Spawn(human, humanCell, map, Rot4.South);
@@ -10127,9 +10140,15 @@ namespace ZombieLand
 			var forceRecoverAfterTicks = human.mindState?.mentalStateHandler?.CurState?.forceRecoverAfterTicks ?? -1;
 			var trackedAfterTick = effects.pawns.ContainsKey(human);
 			var contaminationAfterTick = DescribeContamination(human);
+			var nonDraftableAnimalSafe = animal.drafter == null
+				&& animal.CurJobDef != EffectDefs.ContaminationJobForceRest
+				&& animal.mindState?.mentalStateHandler?.CurStateDef != EffectDefs.ContaminationStateForceRest
+				&& animalEffect?.nextEffectTick > Find.TickManager.TicksGame;
 
 			human.ClearContamination();
+			animal.ClearContamination();
 			var trackedAfterClear = effects.pawns.ContainsKey(human);
+			var animalTrackedAfterClear = effects.pawns.ContainsKey(animal);
 			var contaminationAfterClear = DescribeContamination(human);
 
 			const float forceRestMin = 0.15f;
@@ -10146,7 +10165,19 @@ namespace ZombieLand
 
 			return new
 			{
-				success = registered && forceRestStarted && trackedAfterTick && unregistered,
+				success = animalTracked && nonDraftableAnimalSafe && registered && forceRestStarted && trackedAfterTick && unregistered && animalTrackedAfterClear == false,
+				animal = new
+				{
+					pawn = DescribePawn(animal),
+					cell = ZombieRuntimeActions.DescribeCell(animalCell),
+					animalTracked,
+					drafterIsNull = animal.drafter == null,
+					jobAfterTick = animal.CurJobDef?.defName,
+					mentalStateAfterTick = animal.mindState?.mentalStateHandler?.CurStateDef?.defName,
+					nextEffectTickAfterTick = animalEffect?.nextEffectTick ?? -1,
+					nonDraftableAnimalSafe,
+					trackedAfterClear = animalTrackedAfterClear
+				},
 				human = DescribePawn(human),
 				humanCell = ZombieRuntimeActions.DescribeCell(humanCell),
 				contamination = forceRestContamination,

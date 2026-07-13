@@ -8,6 +8,7 @@ Use this page to find the current owner of a decision or piece of evidence. Each
 | --- | --- | --- |
 | [`AGENTS.md`](../AGENTS.md) | Repository-wide working rules and invariants. | A durable development rule changes. |
 | [`TODO.md`](../TODO.md) | Small, temporary queue of unresolved work. | Work is deferred or completed; remove finished items. |
+| [`PENDING_RELEASE_NOTES.md`](../PENDING_RELEASE_NOTES.md) | Short player-facing changes queued for the next release. | A player-visible or player-relevant change is ready to commit, or a release consumes the queue. |
 | [`README.md`](../README.md) | Player-facing overview copied into the built mod. | Player-facing behavior or support information changes. |
 | [`ModDescription.md`](../ModDescription.md) | Short shared publishing description. | The public feature summary changes. |
 

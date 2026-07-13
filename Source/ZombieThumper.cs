@@ -28,6 +28,7 @@ namespace ZombieLand
 			public int impactTick;
 			public GameObject obj;
 			public int currentRadius;
+			public readonly HashSet<Thing> damagedThings = new();
 		}
 
 		public const int upwardsTicks = 180;
@@ -173,7 +174,6 @@ namespace ZombieLand
 				var radius = CurrentImpactRadius(dust.impactTick, maxRadius);
 				if (radius != dust.currentRadius)
 				{
-					var seenThings = new HashSet<Thing>() { this };
 					for (var r = dust.currentRadius + 1; r <= radius; r++)
 					{
 						var timestamp = dust.impactStart - Mathf.FloorToInt(r * r / 2.5f);
@@ -183,13 +183,9 @@ namespace ZombieLand
 						{
 							cell += center;
 							pheromoneGrid.BumpTimestamp(cell, timestamp);
-							thingGrid.ThingsAt(cell)
-								.Except(seenThings)
-								.Do(thing =>
-								{
-									seenThings.Add(thing);
+							foreach (var thing in thingGrid.ThingsAt(cell))
+								if (dust.damagedThings.Add(thing))
 									_ = thing.TakeDamage(dinfo);
-								});
 						});
 					}
 					dust.currentRadius = radius;
@@ -230,6 +226,14 @@ namespace ZombieLand
 		public static int DebugImpactRadius(int impactTick, int maxRadius) => CurrentImpactRadius(impactTick, maxRadius);
 
 		public static float DebugSeismicWaveDamage(int radius, int maxRadius) => SeismicWaveDamage(radius, maxRadius);
+
+		public static int DebugSeismicWaveRadius(IntVec3 offset)
+		{
+			for (var radius = 0; radius < radialCells.Length; radius++)
+				if (radialCells[radius].Contains(offset))
+					return radius;
+			return -1;
+		}
 
 		public static float DebugShockwaveStartSpeed(int maxRadius) => ShockwaveStartSpeed(maxRadius);
 
@@ -331,6 +335,7 @@ namespace ZombieLand
 		{
 			lastImpactTicks = GenTicks.TicksGame;
 			var dust = new Dust() { impactStart = Tools.Ticks(), impactTick = GenTicks.TicksGame, obj = Assets.NewDust(), currentRadius = -1 };
+			_ = dust.damagedThings.Add(this);
 			dust.obj.transform.position = Position.ToVector3ShiftedWithAltitude(0.5f) + dustOffset;
 			ConfigureDustParticleSystem(dust.obj.GetComponent<ParticleSystem>(), Radius);
 			dusts.Add(dust);

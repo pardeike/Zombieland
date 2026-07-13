@@ -45,10 +45,10 @@ Current `scripts/coverage-inventory.sh --dynamic-patches` summary:
 
 | Owner | Rows | Lookup classes |
 | --- | ---: | --- |
-| Core | 20 | 7 multi-target, 4 closure-search, 7 typed-reflection, 2 dynamic-other |
+| Core | 21 | 7 multi-target, 4 closure-search, 7 typed-reflection, 2 dynamic-other, 1 external-string |
 | Specialized | 4 | 2 typed-reflection, 1 multi-target, 1 dynamic-other |
 | Contamination | 18 | 12 closure-search, 6 multi-target |
-| Optional integrations | 7 | 4 external type-name, 3 external string |
+| Optional integrations | 13 | 9 external type-name, 3 external string, 1 multi-target |
 
 ## Core And Specialized Dynamic Targets
 
@@ -123,22 +123,67 @@ No dynamic Harmony patch rows remain pending. The remaining dynamic risks are ru
 | `Source/ZombieAreaManager.cs:256` | `AreaManager_Patches` | `base/context` | Container for `AreaManager.CanMakeNewAllowed` and `AreaManager.SortAreas`; both concrete rows are covered by the area workflow scenario. |
 | `Source/ZombieAreaManager.cs:272` | `Dialog_ManageAreas_Patches` | `base/context` | Container for `Dialog_ManageAreas` constructor and `DoWindowContents`; both concrete rows are covered by the area workflow dialog evidence. |
 
+## 2026-07-13 Release-Delta Exact-Class Reconciliation
+
+This table expands the release delta's aggregate/range descriptions into exact current patch class names. It is an inventory and ownership reconciliation, not a claim of runtime evidence beyond the detailed rows elsewhere in this audit. `scripts/coverage-inventory.sh --patch-row-gaps` and `--consistency-checks` use these exact names together with the semantic owners in `coverage/ZL_COVERAGE_INDEX.tsv`.
+
+| Location | Exact patch class | Semantic owner | Evidence disposition |
+| --- | --- | --- | --- |
+| `Source/AlbinoScreamVomit.cs:59` | `JobDriver_Vomit_AlbinoScreamDuration_Patch` | `C.SPECIAL.ZOMBIES` | Dynamic generated-delegate adapter for extending the albino scream-vomit init duration; source ownership is explicit, while runtime behavior remains with the special-zombie scenario. |
+| `Source/CETools.cs:308` | `CETools_Patch5_SymbiantCanHit` | `INT.CombatExtended`; `C.SPECIAL.SYMBIANT_INFESTATION` | Dynamic CE `CanHitTargetFrom(IntVec3, LocalTargetInfo)` adapter; detailed active-CE evidence remains in the aggregate Symbiant CE row below. |
+| `Source/CETools.cs:338` | `CETools_Patch6_SymbiantCanHitWithReport` | `INT.CombatExtended`; `C.SPECIAL.SYMBIANT_INFESTATION` | Dynamic CE `CanHitTargetFrom` report-overload adapter; detailed active-CE evidence remains in the aggregate Symbiant CE row below. |
+| `Source/CETools.cs:373` | `CETools_Patch7_SymbiantShootLine` | `INT.CombatExtended`; `C.SPECIAL.SYMBIANT_INFESTATION` | Dynamic CE `TryFindCEShootLineFromTo` adapter; detailed active-CE evidence remains in the aggregate Symbiant CE row below. |
+| `Source/CETools.cs:423` | `CETools_Patch8_SymbiantProjectileImpact` | `INT.CombatExtended`; `C.SPECIAL.SYMBIANT_INFESTATION` | Dynamic CE `ProjectileCE.ImpactSomething` logical-cell adapter; detailed active-CE evidence remains in the aggregate Symbiant CE row below. |
+| `Source/CETools.cs:490` | `CETools_Patch9_SymbiantCollisionBounds` | `INT.CombatExtended`; `C.SPECIAL.SYMBIANT_INFESTATION` | Dynamic CE `CE_Utility.GetBoundsFor(Thing)` recentering adapter; detailed active-CE evidence remains in the aggregate Symbiant CE row below. |
+| `Source/CETools.cs:520` | `CETools_Patch10_SymbiantRayCast` | `INT.CombatExtended`; `C.SPECIAL.SYMBIANT_INFESTATION` | Dynamic CE `ProjectileCE.RayCast`/`CheckCellForCollision` adapter; detailed active-CE evidence remains in the aggregate Symbiant CE row below. |
+| `Source/ContaminationStorageRange.cs:151` | `ContaminationStorageSettings_DefaultConstructor_Patch` | `G.CONTAMINATION.C0_STATE` | Static registration hook for default storage settings; source-owned by contamination range persistence. |
+| `Source/ContaminationStorageRange.cs:161` | `ContaminationStorageSettings_OwnerConstructor_Patch` | `G.CONTAMINATION.C0_STATE` | Static registration hook for owner-backed storage settings; source-owned by contamination range persistence. |
+| `Source/ContaminationStorageRange.cs:170` | `ContaminationStorageSettings_ExposeData_Patch` | `G.CONTAMINATION.C0_STATE` | Static save/load hook for the storage contamination range. |
+| `Source/ContaminationStorageRange.cs:179` | `ContaminationStorageSettings_CopyFrom_Patch` | `G.CONTAMINATION.C0_STATE` | Static copy hook preserving the custom range across `StorageSettings.CopyFrom`. |
+| `Source/ContaminationStorageRange.cs:188` | `ContaminationStorageSettings_AllowedToAccept_Patch` | `G.CONTAMINATION.C1_STACKS` | Static acceptance gate applying the configured range after vanilla accepts a thing. |
+| `Source/ContaminationStorageRange.cs:200` | `ContaminationThingFilterUI_DoThingFilterConfigWindow_Patch` | `G.CONTAMINATION.C6_UI_QUEST` | Static UI transpiler inserting the contamination range control into the thing-filter window. |
+| `Source/ContaminationStorageRange.cs:252` | `ContaminationITabStorage_Constructor_Patch` | `G.CONTAMINATION.C6_UI_QUEST` | Static storage-tab sizing hook for the added range control. |
+| `Source/Patches.cs:2005` | `PathFinder_ForceCompleteScheduledJobs_ZombieAvoidGrid_Patch` | `D.PATHING.DOOR_AVOIDANCE` | Static lease-flush hook at the documented scheduled-job completion boundary; focused avoidance evidence owns behavior. |
+| `Source/Patches.cs:2015` | `PathFinder_Dispose_ZombieAvoidGrid_Patch` | `D.PATHING.DOOR_AVOIDANCE` | Static owner-disposal hook after vanilla completes outstanding path jobs; focused avoidance evidence owns behavior. |
+| `Source/Patches.cs:7379` | `Pawn_PathFollower_CostToPayThisTick_Patch` | `C.CORE.ZOMBIE_LOOP` | Static adaptive-ticking movement-payment adapter; detailed runtime evidence is recorded in the adaptive ticking re-audit below. |
+| `Source/Patches_MainMenuBackground.cs:84` | `UIRoot_Entry_DoMainMenu_Patch` | `A.STARTUP.LOAD` | Static main-menu transpiler that inserts the Zombieland background/title post-effect after vanilla background drawing. |
+| `Source/ZombieSymbiantCombat.cs:527` | `ShootLeanUtility_CalcShootableCellsOf_Symbiant_Patch` | `C.SPECIAL.SYMBIANT_INFESTATION` | Static logical-cell shootable-cell adapter; detailed normal-profile evidence remains in the aggregate Symbiant combat row below. |
+| `Source/ZombieSymbiantCombat.cs:540` | `Verb_TryFindShootLineFromTo_Symbiant_Patch` | `C.SPECIAL.SYMBIANT_INFESTATION` | Static logical-cell ranged/melee shoot-line adapter; detailed normal-profile evidence remains in the aggregate Symbiant combat row below. |
+| `Source/ZombieSymbiantCombat.cs:593` | `ShotReport_HitReportFor_SymbiantCell_Patch` | `C.SPECIAL.SYMBIANT_INFESTATION` | Static bound-cell shot-report adapter preserving owner-dependent report fields. |
+| `Source/ZombieSymbiantCombat.cs:645` | `ReachabilityUtility_CanReach_Symbiant_Patch` | `C.SPECIAL.SYMBIANT_INFESTATION` | Static logical melee reachability adapter. |
+| `Source/ZombieSymbiantCombat.cs:661` | `ReachabilityImmediate_CanReachImmediate_Symbiant_Patch` | `C.SPECIAL.SYMBIANT_INFESTATION` | Static immediate-reachability adapter for stored melee target cells. |
+| `Source/ZombieSymbiantCombat.cs:677` | `Pawn_PathFollower_StartPath_SymbiantMelee_Patch` | `C.SPECIAL.SYMBIANT_INFESTATION` | Static melee path-start repair for invalidated stored stand/target pairs; this is the post-review addition not present in the earlier aggregate count. |
+| `Source/ZombieSymbiantCombat.cs:697` | `JobGiver_AIFightEnemy_MeleeAttackJob_Symbiant_Patch` | `C.SPECIAL.SYMBIANT_INFESTATION` | Static melee-job B/C preparation adapter. |
+| `Source/ZombieSymbiantCombat.cs:707` | `AttackTargetFinder_BestAttackTarget_SymbiantContext_Patch` | `C.SPECIAL.SYMBIANT_INFESTATION` | Static target-scan context lifecycle adapter. |
+| `Source/ZombieSymbiantCombat.cs:746` | `AttackTargetFinder_GetRandomShootingTargetByScore_Symbiant_Patch` | `C.SPECIAL.SYMBIANT_INFESTATION` | Static weighted-shooting-pool injection adapter. |
+| `Source/ZombieSymbiantCombat.cs:763` | `Verb_LaunchProjectile_TryCastShot_SymbiantContext_Patch` | `C.SPECIAL.SYMBIANT_INFESTATION` | Static projectile-cast binding context adapter. |
+| `Source/ZombieSymbiantCombat.cs:777` | `Projectile_Launch_SymbiantCell_Patch` | `C.SPECIAL.SYMBIANT_INFESTATION` | Static logical used-target launch adapter. |
+| `Source/ZombieSymbiantCombat.cs:790` | `Projectile_ImpactSomething_SymbiantCell_Patch` | `C.SPECIAL.SYMBIANT_INFESTATION` | Static owner restoration at logical-cell projectile impact. |
+| `Source/ZombieSymbiantCombat.cs:805` | `Pawn_DrawTracker_Notify_MeleeAttackOn_Symbiant_Patch` | `C.SPECIAL.SYMBIANT_INFESTATION` | Static logical-cell melee draw/jitter adapter. |
+
 ## Static Patch Audit Slices
 
-Use `scripts/coverage-inventory.sh --static-summary` to regenerate this grouping. The static inventory currently has 256 rows. Audit these by slice and scenario evidence, not as one giant file pass. The scanner ignores commented-out Harmony blocks and the deleted obsolete patch classes do not become test obligations.
+Use `scripts/coverage-inventory.sh --static-summary` to regenerate this grouping. The static inventory currently has 323 rows. Audit these by slice and scenario evidence, not as one giant file pass. The scanner ignores commented-out Harmony blocks and the deleted obsolete patch classes do not become test obligations.
 
 | Static slice | Rows | Primary scenario ownership |
 | --- | ---: | --- |
+| `Source/ContaminationStorageRange.cs` | 7 | `S-Source-Patch-Audit`; `C0-state-serializer`; `C1-stack-container`; `C6-ui-quest` |
+| `Source/Patches_MainMenuBackground.cs` | 1 | `S-Source-Patch-Audit`; `S-Startup-ColdLoad` |
+| `Source/Patches_Music.cs` | 3 | `S-Source-Patch-Audit`; settings music contract |
+| `Source/Patches_Startup.cs` | 7 | `S-Source-Patch-Audit`; `S-Startup-ColdLoad` |
+| `Source/Patches_SymbiantHealth.cs` | 5 | `S-Source-Patch-Audit`; `S-Symbiant-Symbiosis` |
+| `Source/ThingIngestionPatches.cs` | 1 | `S-Source-Patch-Audit`; contamination ingestion |
+| `Source/ZombieSymbiantCombat.cs` | 13 | `S-Source-Patch-Audit`; `S-Symbiant-Symbiosis` |
 | `contamination-static` | 68 | `S-Contamination-Persistence` |
-| `patches-records-clamor-misc` | 57 | `S-Core-Horde-Loop`, `S-Incident-Threat` |
-| `patches-damage-infection-hostility` | 29 | `S-Core-Horde-Loop`, `S-Special-Gauntlet` |
-| `patches-chainsaw-equipment-jobs` | 18 | `S-Defense-Room` |
-| `patches-zombie-lifecycle-combat` | 19 | `S-Core-Horde-Loop`, `S-Special-Gauntlet` |
-| `patches-render-specials-apparel` | 15 | `S-Special-Gauntlet`, `S-Settings-Persistence` |
+| `patches-records-clamor-misc` | 101 | `S-Core-Horde-Loop`, `S-Incident-Threat` |
+| `patches-damage-infection-hostility` | 16 | `S-Core-Horde-Loop`, `S-Special-Gauntlet` |
+| `patches-chainsaw-equipment-jobs` | 21 | `S-Defense-Room` |
+| `patches-zombie-lifecycle-combat` | 9 | `S-Core-Horde-Loop`, `S-Special-Gauntlet` |
+| `patches-render-specials-apparel` | 24 | `S-Special-Gauntlet`, `S-Settings-Persistence` |
 | `patches-avoidance-doors-workgivers` | 15 | `S-Settings-Persistence`, `S-Core-Horde-Loop`, `S-Defense-Room` |
-| `patches-startup-ui-tick` | 13 | `S-Source-Patch-Audit`, `S-Settings-Persistence`, `S-Core-Horde-Loop` |
-| `hostility-static` | 10 | `S-Special-Gauntlet`, `S-Defense-Room` |
-| `area-manager-static` | 4 | `S-Settings-Persistence`, `S-Defense-Room` |
+| `patches-startup-ui-tick` | 7 | `S-Source-Patch-Audit`, `S-Settings-Persistence`, `S-Core-Horde-Loop` |
+| `hostility-static` | 11 | `S-Special-Gauntlet`, `S-Defense-Room` |
+| `area-manager-static` | 6 | `S-Settings-Persistence`, `S-Defense-Room` |
 | `damage-flasher-static` | 3 | `S-Special-Gauntlet` |
 | `service-static` | 2 | `S-Source-Patch-Audit` |
 | `zombie-leaner-static` | 2 | `S-Core-Horde-Loop`, `S-Special-Gauntlet` |
@@ -150,7 +195,7 @@ Next static audit priority:
 - `patches-avoidance-doors-workgivers` is source-audited below because it has high player-visible risk and overlaps multiple scenarios.
 - `patches-zombie-lifecycle-combat` is source-audited below because it ties world/faction setup, movement side effects, infection gates, incidents, and interaction suppression into the horde loop.
 - `patches-damage-infection-hostility` is source-audited below because it covers damage scaling, infection persistence, tar/fire behavior, targeting, death cleanup, and fire attachment state.
-- `patches-records-clamor-misc` is source-audited below. It has 62 live static rows after excluding disabled block-commented Harmony code from the inventory.
+- `patches-records-clamor-misc` is source-audited below. It has 101 live static rows after excluding disabled block-commented Harmony code from the inventory.
 - `patches-chainsaw-equipment-jobs` is source-audited below because it covers chainsaw equipment state, smart melee/ranged combat, faction goodwill, flee/danger behavior, animal response, and zombie job gating.
 - `patches-render-specials-apparel` is source-audited below because it covers name labels, downed zombie visuals/state, special zombie render overlays, generated apparel/graphics, SoS floating zombies, warmup scaling, and zombie stats.
 - `hostility-static` is source-audited below because it covers attack-target choice, hostility predicates, active-threat filtering, drafted auto-attacks, and target-cache cleanup.
@@ -168,7 +213,7 @@ Next static audit priority:
 
 ## Startup, UI, Tick, Asset, And Service Static Targets
 
-This slice covers `assets-static`, `patches-startup-ui-tick`, and `service-static`: 16 static rows. The `Resources/MacOS/zombieland`, `Resources/Linux/zombieland`, and `Resources/Win64/zombieland` bundles exist in the local workspace.
+This slice covers the generated `assets-static`, `patches-startup-ui-tick`, `Source/Patches_Startup.cs`, `Source/Patches_MainMenuBackground.cs`, and `service-static` rows. The `Resources/MacOS/zombieland`, `Resources/Linux/zombieland`, and `Resources/Win64/zombieland` bundles exist in the local workspace.
 
 | Location | Patch class | Status | RimWorld 1.6 evidence | Coverage disposition |
 | --- | --- | --- | --- | --- |
@@ -197,7 +242,7 @@ This slice covers `assets-static`, `patches-startup-ui-tick`, and `service-stati
 
 ## Avoidance, Doors, And Workgiver Static Targets
 
-This slice covers the 16 static rows in `patches-avoidance-doors-workgivers`. The dynamic door/workgiver fanout rows are already recorded in the core dynamic table above; this section records the remaining source-level static targets that drive the same runtime scenarios. Relevant post-baseline commit evidence includes `3981f82 Fix zombie movement with async path requests`, `f43506a Add path avoidance recalculation smoke`, `36915af Restore avoid-grid path costs`, `2bce190 Add zombie door close smoke`, `0114625 Add albino door hold-open smoke`, `0c6dacb Add avoid grid door and danger smoke`, `0416696 Add workgiver avoidance smoke`, `f651efa Add colonist avoidance interrupt smoke`, and `391c041 Document avoidance contract recheck`.
+This slice covers the 15 static rows in `patches-avoidance-doors-workgivers`. The dynamic door/workgiver fanout rows are already recorded in the core dynamic table above; this section records the remaining source-level static targets that drive the same runtime scenarios. Relevant post-baseline commit evidence includes `3981f82 Fix zombie movement with async path requests`, `f43506a Add path avoidance recalculation smoke`, `36915af Restore avoid-grid path costs`, `2bce190 Add zombie door close smoke`, `0114625 Add albino door hold-open smoke`, `0c6dacb Add avoid grid door and danger smoke`, `0416696 Add workgiver avoidance smoke`, `f651efa Add colonist avoidance interrupt smoke`, and `391c041 Document avoidance contract recheck`.
 
 | Location | Patch class | Status | RimWorld 1.6 evidence | Coverage disposition |
 | --- | --- | --- | --- | --- |
@@ -217,7 +262,7 @@ This slice covers the 16 static rows in `patches-avoidance-doors-workgivers`. Th
 
 ## Zombie Lifecycle, Combat, And Incident Static Targets
 
-This slice covers the 15 static rows in `patches-zombie-lifecycle-combat`. It spans world/faction setup, zombie movement side effects, infection/mental-state gates, incident/debug spawning, and player interaction suppression. Relevant post-baseline and historical commit evidence includes `787156f Fix zombie render tree initialization on load`, `3981f82 Fix zombie movement with async path requests`, `623822f Add corpse conversion bridge smoke`, `9c46bc0 Add zombie corpse management smoke`, `fd1c12f Fix double tap corpse job for RimWorld 1.6`, `b7d560e Cover incident infection and ticking budget`, `d7f1a04 Cover zombie hostility rules`, `6beb859 Cover zombie target cache filtering`, `bac414e Cover zombie corpse eating`, and older downed/eating/targeting fixes such as `239a4bc`, `72c8af5`, `100f809`, `a2adea9`, and `fe80efa`.
+This slice covers the 9 static rows in `patches-zombie-lifecycle-combat`. It spans world/faction setup, zombie movement side effects, infection/mental-state gates, incident/debug spawning, and player interaction suppression. Relevant post-baseline and historical commit evidence includes `787156f Fix zombie render tree initialization on load`, `3981f82 Fix zombie movement with async path requests`, `623822f Add corpse conversion bridge smoke`, `9c46bc0 Add zombie corpse management smoke`, `fd1c12f Fix double tap corpse job for RimWorld 1.6`, `b7d560e Cover incident infection and ticking budget`, `d7f1a04 Cover zombie hostility rules`, `6beb859 Cover zombie target cache filtering`, `bac414e Cover zombie corpse eating`, and older downed/eating/targeting fixes such as `239a4bc`, `72c8af5`, `100f809`, `a2adea9`, and `fe80efa`.
 
 | Location | Patch class | Status | RimWorld 1.6 evidence | Coverage disposition |
 | --- | --- | --- | --- | --- |
@@ -243,7 +288,7 @@ This slice covers the 15 static rows in `patches-zombie-lifecycle-combat`. It sp
 
 ## Damage, Infection, Hostility, Fire, And Death Static Targets
 
-This slice covers the 27 static rows in `patches-damage-infection-hostility`. It overlaps `S-Core-Horde-Loop`, `S-Special-Gauntlet`, `S-Contamination-Persistence`, and `S-Incident-Threat` because damage, infection, fire, tar smoke, and death state cross several systems. Relevant post-baseline and historical commit evidence includes `b7d560e Cover incident infection and ticking budget`, `22b45b3 Cover zombie death contamination`, `2bee432 Cover contamination ground and fire hooks`, `d7f1a04 Cover zombie hostility rules`, `6beb859 Cover zombie target cache filtering`, `62343fa Cover albino melee bite filtering`, `d093385 Cover tar smoke human targeting`, `665ed0c Cover special zombie fire danger`, `1233bb1 Extend burn-longer fire hooks`, `7ccd5e4 Verify zombie fire rain vulnerability`, `8d4e084 Cover zombie fire attachment state`, `5da3f96 Restore tar fire smoke contracts`, `2524c39 Add tar slime fire spread smoke`, `b9dd918 Add zombie damage memory smoke`, and `6c84b92 Add zombie death thought smoke`.
+This slice covers the 16 static rows in `patches-damage-infection-hostility`. It overlaps `S-Core-Horde-Loop`, `S-Special-Gauntlet`, `S-Contamination-Persistence`, and `S-Incident-Threat` because damage, infection, fire, tar smoke, and death state cross several systems. Relevant post-baseline and historical commit evidence includes `b7d560e Cover incident infection and ticking budget`, `22b45b3 Cover zombie death contamination`, `2bee432 Cover contamination ground and fire hooks`, `d7f1a04 Cover zombie hostility rules`, `6beb859 Cover zombie target cache filtering`, `62343fa Cover albino melee bite filtering`, `d093385 Cover tar smoke human targeting`, `665ed0c Cover special zombie fire danger`, `1233bb1 Extend burn-longer fire hooks`, `7ccd5e4 Verify zombie fire rain vulnerability`, `8d4e084 Cover zombie fire attachment state`, `5da3f96 Restore tar fire smoke contracts`, `2524c39 Add tar slime fire spread smoke`, `b9dd918 Add zombie damage memory smoke`, and `6c84b92 Add zombie death thought smoke`.
 
 | Location | Patch class | Status | RimWorld 1.6 evidence | Coverage disposition |
 | --- | --- | --- | --- | --- |
@@ -279,7 +324,7 @@ This slice covers the 27 static rows in `patches-damage-infection-hostility`. It
 
 ## Records, Clamor, Social, UI, Corpse, And Misc Static Targets
 
-This slice covers the 62 live static rows in `patches-records-clamor-misc`. The scanner excludes disabled block-commented Harmony code so it does not create false test obligations. This section includes social/thought suppression, former-colonist selection, corpse conversion, needs/records/clamor suppression, gunshot pheromones, tar slime movement, startup/menu hooks, fog-room zombie spawning, float-menu actions, area warnings, and Ideology load cleanup. Relevant commit evidence includes `6d2afda Restore zombie social suppression`, `2ca0e7b Add former-colonist selection smoke`, `38f4943 Suppress all zombie clamors`, `5c15373 Restore zombie record suppression`, `3eb246c Restore zombie health needs suppression`, `635be71 Restore zombie blood filth contract`, `9c46bc0 Add zombie corpse management smoke`, `623822f Add corpse conversion bridge smoke`, `3045b9d Add fogged door room spawn smoke`, `ce0d6a5 Add fog blocker room spawn smoke`, `81a2198 Add fog blocker replacement smoke`, `13f3b89 Restore Zombieland menu texture`, and `24e55cc Harden corpse bridge diagnostics`.
+This slice covers the 101 live static rows in `patches-records-clamor-misc`. The scanner excludes disabled block-commented Harmony code so it does not create false test obligations. This section includes social/thought suppression, former-colonist selection, corpse conversion, needs/records/clamor suppression, gunshot pheromones, tar slime movement, startup/menu hooks, fog-room zombie spawning, float-menu actions, area warnings, and Ideology load cleanup. Relevant commit evidence includes `6d2afda Restore zombie social suppression`, `2ca0e7b Add former-colonist selection smoke`, `38f4943 Suppress all zombie clamors`, `5c15373 Restore zombie record suppression`, `3eb246c Restore zombie health needs suppression`, `635be71 Restore zombie blood filth contract`, `9c46bc0 Add zombie corpse management smoke`, `623822f Add corpse conversion bridge smoke`, `3045b9d Add fogged door room spawn smoke`, `ce0d6a5 Add fog blocker room spawn smoke`, `81a2198 Add fog blocker replacement smoke`, `13f3b89 Restore Zombieland menu texture`, and `24e55cc Harden corpse bridge diagnostics`.
 
 | Location | Patch class | Status | RimWorld 1.6 evidence | Coverage disposition |
 | --- | --- | --- | --- | --- |
@@ -345,7 +390,7 @@ This slice covers the 62 live static rows in `patches-records-clamor-misc`. The 
 
 ## Chainsaw, Equipment, Combat Jobs, And Defense Static Targets
 
-This slice covers the 18 static rows in `patches-chainsaw-equipment-jobs`. It owns chainsaw tick/draft/gizmo/render behavior, smart melee bite blocking, ranged hit adjustment against zombies, active electrifier melee effects, zombie job whitelisting, faction goodwill suppression, story-danger/flee filtering, animal manhunter/prey response, and a disabled historical pathfinder hook. Relevant commit evidence includes `add9e67 Add chainsaw equip toggle bridge smoke`, `3533ac7 Add chainsaw slaughter bridge smoke`, `09cf58c Fix chainsaw repair workgiver`, `18aa8dc Cover chainsaw pressure drop`, `394e740 Optimize chainsaw ticking`, `4f4a288 Recheck chainsaw contracts`, `846e5cf Document chainsaw building impact`, `dd90b2f Cover active electrifier attack verbs`, `f3a44b2 Cover electrifier melee shock`, `62343fa Cover albino melee bite filtering`, `74f6efd Restore harmless zombie flee filtering`, `0c6dacb Add avoid grid door and danger smoke`, and `3981f82 Fix zombie movement with async path requests`.
+This slice covers the 21 static rows in `patches-chainsaw-equipment-jobs`. It owns chainsaw tick/draft/gizmo/render behavior, smart melee bite blocking, ranged hit adjustment against zombies, active electrifier melee effects, zombie job whitelisting, faction goodwill suppression, story-danger/flee filtering, animal manhunter/prey response, and a disabled historical pathfinder hook. Relevant commit evidence includes `add9e67 Add chainsaw equip toggle bridge smoke`, `3533ac7 Add chainsaw slaughter bridge smoke`, `09cf58c Fix chainsaw repair workgiver`, `18aa8dc Cover chainsaw pressure drop`, `394e740 Optimize chainsaw ticking`, `4f4a288 Recheck chainsaw contracts`, `846e5cf Document chainsaw building impact`, `dd90b2f Cover active electrifier attack verbs`, `f3a44b2 Cover electrifier melee shock`, `62343fa Cover albino melee bite filtering`, `74f6efd Restore harmless zombie flee filtering`, `0c6dacb Add avoid grid door and danger smoke`, and `3981f82 Fix zombie movement with async path requests`.
 
 | Location | Patch class | Status | RimWorld 1.6 evidence | Coverage disposition |
 | --- | --- | --- | --- | --- |
@@ -373,7 +418,7 @@ This slice covers the 18 static rows in `patches-chainsaw-equipment-jobs`. It ow
 
 ## Render, Specials, Apparel, And Stats Static Targets
 
-This slice covers the 15 static rows in `patches-render-specials-apparel`. It includes label suppression, inspect tab hardening, double-tap downed-state presentation, downed crawler visuals, special zombie overlays, 1.6 pawn render node graphic routing, deflect sound suppression, SoS floating zombie drawing, generated zombie apparel texture detection, raging warmup scaling, and zombie stat overrides. Relevant commit evidence includes `787156f Fix zombie render tree initialization on load`, `aeeac24 Fix symbiant save load rendering`, `190ca31 Fix spitter duplicate body rendering`, `efdf9d7 Fix tar smoke rendering and verify zombie ball flight`, `f758d40 Render tar smoke as black gas`, `3daf2d5 Add electrifier bridge smoke`, `9638321 Add albino bridge smoke`, `1ac0117 Add electrifier active bridge smoke`, `1c0e9a4 Add albino scream bridge smoke`, `12cb6a2 Cover electrifier bullet absorption`, `62343fa Cover albino melee bite filtering`, `0146ec7 Cover albino special contracts`, `2770e6c Cover special zombie active threat counts`, `5a22ef0 Recheck special zombie bridge contracts`, and `1cd82e3 Rebuild Unity asset bundles from generated sources`.
+This slice covers the 24 static rows in `patches-render-specials-apparel`. It includes label suppression, inspect tab hardening, double-tap downed-state presentation, downed crawler visuals, special zombie overlays, 1.6 pawn render node graphic routing, deflect sound suppression, SoS floating zombie drawing, generated zombie apparel texture detection, raging warmup scaling, and zombie stat overrides. Relevant commit evidence includes `787156f Fix zombie render tree initialization on load`, `aeeac24 Fix symbiant save load rendering`, `190ca31 Fix spitter duplicate body rendering`, `efdf9d7 Fix tar smoke rendering and verify zombie ball flight`, `f758d40 Render tar smoke as black gas`, `3daf2d5 Add electrifier bridge smoke`, `9638321 Add albino bridge smoke`, `1ac0117 Add electrifier active bridge smoke`, `1c0e9a4 Add albino scream bridge smoke`, `12cb6a2 Cover electrifier bullet absorption`, `62343fa Cover albino melee bite filtering`, `0146ec7 Cover albino special contracts`, `2770e6c Cover special zombie active threat counts`, `5a22ef0 Recheck special zombie bridge contracts`, and `1cd82e3 Rebuild Unity asset bundles from generated sources`.
 
 | Location | Patch class | Status | RimWorld 1.6 evidence | Coverage disposition |
 | --- | --- | --- | --- | --- |
@@ -397,7 +442,7 @@ This slice covers the 15 static rows in `patches-render-specials-apparel`. It in
 
 ## Hostility, Targeting, And Target Cache Static Targets
 
-This slice covers the 10 static rows in `hostility-static`. It excludes `AttackTargetFinder_FriendlyFire_Patch`, which is already tracked in the dynamic section because it patches two methods through `TargetMethods()`. The static rows define who chooses zombies as targets, how active-threat checks treat Zombieland pawns, how drafted wait jobs auto-attack adjacent zombies, and how colony-hostile target caches avoid permanent danger/music pressure from zombies. Relevant commit evidence includes `d7f1a04 Cover zombie hostility rules`, `2770e6c Cover special zombie active threat counts`, `6beb859 Cover zombie target cache filtering`, and `74f6efd Restore harmless zombie flee filtering`.
+This slice covers the 11 static rows in `hostility-static`. It excludes `AttackTargetFinder_FriendlyFire_Patch`, which is already tracked in the dynamic section because it patches two methods through `TargetMethods()`. The static rows define who chooses zombies as targets, how active-threat checks treat Zombieland pawns, how drafted wait jobs auto-attack adjacent zombies, and how colony-hostile target caches avoid permanent danger/music pressure from zombies. Relevant commit evidence includes `d7f1a04 Cover zombie hostility rules`, `2770e6c Cover special zombie active threat counts`, `6beb859 Cover zombie target cache filtering`, and `74f6efd Restore harmless zombie flee filtering`.
 
 | Location | Patch class | Status | RimWorld 1.6 evidence | Coverage disposition |
 | --- | --- | --- | --- | --- |
@@ -418,7 +463,7 @@ This slice covers the 10 static rows in `hostility-static`. It excludes `AttackT
 
 ## Area Manager, Damage Flasher, And Leaner Static Targets
 
-This slice covers the small specialized static groups outside `Source/Patches.cs`: 4 rows in `area-manager-static`, 3 rows in `damage-flasher-static`, and 2 rows in `zombie-leaner-static`. These rows are support behavior rather than core horde logic, but they are player-visible: dangerous-area management, warning UI semantics, green zombie-bite damage flashes, and zombie draw jitter. Relevant commit evidence includes `e4f9d64 Cover zombie area risk classifications`; damage flasher and leaner rows have no newer targeted commit names after the 1.6 baseline, so their scenario obligation is source-derived.
+This slice covers the small specialized static groups outside `Source/Patches.cs`: 6 rows in `area-manager-static`, 3 rows in `damage-flasher-static`, and 2 rows in `zombie-leaner-static`. These rows are support behavior rather than core horde logic, but they are player-visible: dangerous-area management, warning UI semantics, green zombie-bite damage flashes, and zombie draw jitter. Relevant commit evidence includes `e4f9d64 Cover zombie area risk classifications`; damage flasher and leaner rows have no newer targeted commit names after the 1.6 baseline, so their scenario obligation is source-derived.
 
 | Location | Patch class | Status | RimWorld 1.6 evidence | Coverage disposition |
 | --- | --- | --- | --- | --- |

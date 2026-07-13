@@ -66,7 +66,11 @@ namespace ZombieLand
 					symbiant.SharedHealthSummary,
 					symbiant.SharedDamageLeakPercentDisplay,
 					symbiant.BenefitSummary
-				) + "\n\n" + "SymbiantSharedHealthRecoveryDescription".Translate();
+				) + "\n\n" + "SymbiantSharedHealthRecoveryDescription".Translate(
+					ZombieSymbiant.SharedHealthRecoveryDelayTicks.ToStringTicksToPeriod(),
+					ZombieSymbiant.SharedHealthRecoveryMissingFraction.ToStringPercent(),
+					ZombieSymbiant.SharedHealthRecoveryIntervalTicks.ToStringTicksToPeriod()
+				);
 			}
 		}
 
