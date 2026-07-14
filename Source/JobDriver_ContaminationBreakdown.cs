@@ -21,11 +21,6 @@ namespace ZombieLand
 			};
 		}
 
-		public override void ExposeData()
-		{
-			base.ExposeData();
-		}
-
 		void Flee()
 		{
 			if (RCellFinder.TryFindDirectFleeDestination(pawn.Position, 16f, pawn, out var destination))

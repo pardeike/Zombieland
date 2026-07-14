@@ -104,7 +104,6 @@ namespace ZombieLand
 
 		public static IReadOnlyList<IntVec3> Cells(ZombieSymbiant symbiant) => GetGeometry(symbiant).cells;
 		public static IReadOnlyList<IntVec3> BoundaryCells(ZombieSymbiant symbiant) => GetGeometry(symbiant).boundaryCells;
-		public static float MaxRootRadius(ZombieSymbiant symbiant) => GetGeometry(symbiant).maxRootRadius;
 
 		static Geometry GetGeometry(ZombieSymbiant symbiant)
 		{

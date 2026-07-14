@@ -11,7 +11,6 @@ namespace ZombieLand
 {
 	public class ContaminationManager : WorldComponent, ICellBoolGiver
 	{
-		public const bool LOGGING = false;
 		public const float DecontaminationImmunityDaysAtDifficulty100 = 15f;
 		public const float DecontaminationImmunityDaysAtDifficulty500 = 12f;
 
@@ -218,13 +217,6 @@ namespace ZombieLand
 			contaminations[thing.thingIDNumber] = contamination;
 			UpdatePawnHediff(thing, contamination, contextMap);
 			currentMapDirty = true;
-			if (LOGGING)
-			{
-#pragma warning disable CS0162 // Unreachable code detected
-				Log.ResetMessageCount();
-				Log.Message($"THING {thing} at {thing.SimplePos()} => {(contamination * 100):F1}");
-#pragma warning restore CS0162 // Unreachable code detected
-			}
 		}
 
 		public void UpdatePawnHediff(Thing thing, float contamination, Map contextMap = null)
@@ -306,28 +298,12 @@ namespace ZombieLand
 			if (contamination <= 0)
 			{
 				if (useThingBacking == false)
-				{
 					grid[cell] = 0;
-					if (LOGGING)
-					{
-#pragma warning disable CS0162 // Unreachable code detected
-						Log.ResetMessageCount();
-						Log.Message($"CELL {cell.SimplePos()} cleared");
-#pragma warning restore CS0162 // Unreachable code detected
-					}
-				}
 				else
 				{
 					contaminations.Remove(id);
 					UpdatePawnHediff(thing, 0, map);
 					currentMapDirty = true;
-					if (LOGGING)
-					{
-#pragma warning disable CS0162 // Unreachable code detected
-						Log.ResetMessageCount();
-						Log.Message($"THING {thing} at {thing.SimplePos()} cleared");
-#pragma warning restore CS0162 // Unreachable code detected
-					}
 				}
 			}
 			else if (contamination > 0)
@@ -336,28 +312,12 @@ namespace ZombieLand
 					contamination = 1;
 
 				if (useThingBacking == false)
-				{
 					grid[cell] = contamination;
-					if (LOGGING)
-					{
-#pragma warning disable CS0162 // Unreachable code detected
-						Log.ResetMessageCount();
-						Log.Message($"CELL {cell.SimplePos()} => {(contamination * 100):F1}");
-#pragma warning restore CS0162 // Unreachable code detected
-					}
-				}
 				else
 				{
 					contaminations[id] = contamination;
 					UpdatePawnHediff(thing, contamination, map);
 					currentMapDirty = true;
-					if (LOGGING)
-					{
-#pragma warning disable CS0162 // Unreachable code detected
-						Log.ResetMessageCount();
-						Log.Message($"THING {thing} at {thing.SimplePos()} => {(contamination * 100):F1}");
-#pragma warning restore CS0162 // Unreachable code detected
-					}
 				}
 			}
 
@@ -686,18 +646,8 @@ namespace ZombieLand
 		}
 	}
 
-	[StaticConstructorOnStartup]
 	public static class ContaminationExtension
 	{
-		static readonly Material[] contaminationMaterials;
-
-		static ContaminationExtension()
-		{
-			contaminationMaterials = new Material[100];
-			for (var i = 0; i < 100; i++)
-				contaminationMaterials[i] = SolidColorMaterials.NewSolidColorMaterial(Color.green.ToTransparent(i / 99f), ShaderDatabase.MoteGlow);
-		}
-
 		public static float GetContamination(this Thing thing, bool includeHoldings = false)
 			=> ContaminationManager.Instance.Get(thing, includeHoldings);
 

@@ -19,7 +19,6 @@ namespace ZombieLand
 		{
 			yield return new Toil()
 			{
-				initAction = new Action(InitAction),
 				tickAction = new Action(TickAction),
 				defaultCompleteMode = ToilCompleteMode.Never
 			};
@@ -43,10 +42,6 @@ namespace ZombieLand
 				EndJobWith(JobCondition.Succeeded);
 			else if (pawn.pather.Moving == false || pawn.IsHashIntervalTick(30) && pawn.pather.Destination.Cell != victim.Position)
 				pawn.pather.StartPath(victim.Position, PathEndMode.ClosestTouch);
-		}
-
-		void InitAction()
-		{
 		}
 
 		void TickAction()

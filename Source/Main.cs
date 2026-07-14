@@ -3,8 +3,6 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
-using System.Reflection.Emit;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -54,7 +52,6 @@ namespace ZombieLand
 		public static SoundDef ThumperClang;
 		public static SoundDef ThumperImpact;
 		public static SoundDef BallSpit;
-		public static SoundDef BallImpact;
 		public static SoundDef SpitterMove;
 		public static SoundDef SymbiantSplash;
 		public static SoundDef SymbiantConnected;
@@ -84,7 +81,6 @@ namespace ZombieLand
 		public static ThingDef ZombieZapC;
 		public static ThingDef ZombieZapD;
 		public static ThingDef ElectricalField;
-		public static ThingDef Apparel_BombVest;
 		public static ThingDef Mote_Block;
 		public static ThingDef Ghost;
 		public static HediffDef ZombieInfection;
@@ -255,51 +251,5 @@ namespace ZombieLand
 			__result.tickerType = TickerType.Normal;
 		}
 
-		// for debugging
-
-		static IEnumerable<CodeInstruction> MethodCallsTranspiler(IEnumerable<CodeInstruction> instructions, MethodBase method)
-		{
-			yield return new CodeInstruction(OpCodes.Ldstr, method.DeclaringType.FullName + "." + method.Name);
-			yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Log), "Warning"));
-			foreach (var instruction in instructions)
-				yield return instruction;
-		}
-		public static void DebugRimworldMethodCalls(Func<Type, bool> typeFilter)
-		{
-			var harmony = new Harmony("net.pardeike.zombieland.debug");
-			var transpiler = new HarmonyMethod(AccessTools.Method(typeof(ZombielandMod), "MethodCallsTranspiler"));
-			var patches = new HashSet<MethodBase>();
-
-			var asm = Assembly.GetAssembly(typeof(Job));
-			var types = asm.GetTypes();
-			Array.Sort(types, (a, b) => { return string.Compare(a.FullName, b.FullName, StringComparison.Ordinal); });
-			for (var i = 0; i < types.Length; i++)
-			{
-				var type = types[i];
-				if (typeFilter(type) == false)
-					continue;
-				var methods = type.GetMethods(AccessTools.all);
-				Array.Sort(methods, (a, b) => { return string.Compare(a.Name, b.Name, StringComparison.Ordinal); });
-				for (var j = 0; j < methods.Length; j++)
-				{
-					var method = methods[j];
-					if (method.IsAbstract)
-						continue;
-					if (method.DeclaringType != type)
-						continue;
-					if (patches.Contains(method))
-						continue;
-					_ = patches.Add(method);
-					try
-					{
-						_ = harmony.Patch(method, null, null, transpiler);
-					}
-					catch (Exception ex)
-					{
-						Log.Error("Exception patching " + method + ": " + ex);
-					}
-				}
-			}
-		}
 	}
 }

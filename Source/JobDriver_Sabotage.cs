@@ -1316,13 +1316,6 @@ namespace ZombieLand
 			return maxPressure;
 		}
 
-		static bool HasCurrentAlbinoPressure(Zombie zombie)
-		{
-			if (zombie?.Spawned != true)
-				return false;
-			return AlbinoPressureAtCell(zombie, zombie.Position, AlbinoPressureSourcesFor(zombie)) >= albinoDefensiveScreamSoftPressure;
-		}
-
 		static bool TryStartAlbinoSafetyMove(this JobDriver_Sabotage driver, Zombie zombie, AlbinoPressureSources sources, bool forceUnsafeRouteMove = false)
 		{
 			var map = zombie?.Map;

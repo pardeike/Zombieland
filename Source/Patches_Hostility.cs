@@ -91,11 +91,6 @@ namespace ZombieLand
 					if (zombiesAttackOnlyHumans)
 						removeAllZombies = true;
 				}
-				else if (isAnimal)
-				{
-					if (animalsDoNotAttackZombies || zombiesAttackEverything == false)
-						removeAllZombies = true;
-				}
 				else // isThing
 				{
 					removeHarmlessZombies = true;
@@ -124,19 +119,6 @@ namespace ZombieLand
 					removeRopedZombies = true;
 					removeConfusedZombies = true;
 					removeDistantZombies = true;
-				}
-				else if (isAnimal)
-				{
-					if (animalsDoNotAttackZombies)
-						removeAllZombies = true;
-					else
-					{
-						if (zombiesAttackEverything == false)
-							removeAllZombies = true;
-						else
-							removeHarmlessZombies = true;
-						removeDistantZombies = true;
-					}
 				}
 				else // isThing
 				{
@@ -175,20 +157,6 @@ namespace ZombieLand
 						else
 							removeHarmlessZombies = true;
 						removeConfusedZombies = true;
-					}
-				}
-				else if (isAnimal)
-				{
-					if (enemiesDoNotAttackZombies || animalsDoNotAttackZombies)
-						removeAllZombies = true;
-					else
-					{
-						if (zombiesAttackEverything == false)
-							removeAllZombies = true;
-						removeHarmlessZombies = true;
-						removeRopedZombies = true;
-						removeConfusedZombies = true;
-						removeDistantZombies = true;
 					}
 				}
 				else // isThing

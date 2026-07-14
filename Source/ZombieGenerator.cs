@@ -317,46 +317,25 @@ namespace ZombieLand
 				var renderPrecedence = 0;
 				var bodyPath = "Zombie/Naked_" + zombie.story.bodyType.ToString();
 				var color = GraphicToolbox.RandomSkinColorString();
-				Color? specialColor = null;
 				if (zombie.isToxicSplasher)
-				{
 					color = "toxic";
-					specialColor = Color.green;
-				}
 				if (zombie.isMiner)
-				{
 					color = "miner";
-					specialColor = new Color(46 / 255f, 35 / 255f, 15 / 255f);
-				}
 				if (zombie.isElectrifier)
-				{
 					color = "electric";
-					specialColor = new Color(0.196078431f, 0.470588235f, 0.470588235f);
-				}
 				if (zombie.isAlbino)
-				{
 					color = "albino";
-					specialColor = Color.white;
-				}
 				if (zombie.isDarkSlimer)
-				{
 					color = "dark";
-					specialColor = new Color(27 / 255f, 26 / 255f, 25 / 255f);
-				}
 				if (zombie.isHealer)
-				{
 					color = "healer";
-					specialColor = Color.cyan;
-				}
 				var bodyRequest = new GraphicRequest(typeof(VariableGraphic), bodyPath, ShaderDatabase.Cutout, Vector2.one, Color.white, Color.white, null, renderPrecedence, new List<ShaderParameter>(), null);
 
 				var maxStainPoints = ZombieStains.maxStainPoints;
 				if (zombie.isMiner)
-					maxStainPoints *= 2;
+					maxStainPoints *= 8;
 				if (zombie.isAlbino)
 					maxStainPoints = 0;
-				if (zombie.isMiner)
-					maxStainPoints *= 4;
 				if (zombie.isHealer)
 					maxStainPoints = 0;
 
@@ -364,13 +343,9 @@ namespace ZombieLand
 				customBodyGraphic.Init(VariableGraphic.minimal);
 				for (var i = 0; i < 4; i++)
 				{
-					var j = 0;
 					var it = customBodyGraphic.InitIterativ(bodyRequest, i, maxStainPoints);
 					while (it.MoveNext())
-					{
 						yield return it.Current;
-						j++;
-					}
 				}
 				ZombieRenderCompat.SetBodyGraphic(zombie, customBodyGraphic);
 
@@ -379,16 +354,11 @@ namespace ZombieLand
 				customHeadGraphic.Init(VariableGraphic.minimal);
 				for (var i = 0; i < 4; i++)
 				{
-					var j = 0;
 					var it = customHeadGraphic.InitIterativ(headRequest, i, maxStainPoints);
 					while (it.MoveNext())
-					{
 						yield return it.Current;
-						j++;
-					}
 				}
 				ZombieRenderCompat.SetHeadGraphic(zombie, customHeadGraphic);
-				// zombie.Drawer.renderer.graphics.headGraphic = zombie.story.headType.GetGraphic(specialColor ?? color.HexColor(), false, true);
 			}
 
 			ZombieRenderCompat.ResolveAllGraphics(zombie);

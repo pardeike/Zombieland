@@ -985,13 +985,6 @@ namespace ZombieLand
 				&& pawn.IsColonistPlayerControlled;
 		}
 
-		internal static bool CanBeAffectedBySymbiantCellFast(Pawn pawn)
-		{
-			if (CanBeAffectedBySymbiantCellCandidateFast(pawn) == false)
-				return false;
-			return IsLinkedHostOnCurrentMapFast(pawn) == false;
-		}
-
 		static bool CanBeSlowedBySymbiantCellCandidateFast(Pawn pawn)
 		{
 			return pawn != null
@@ -1004,13 +997,6 @@ namespace ZombieLand
 				&& pawn is not Zombie
 				&& pawn is not ZombieSymbiant
 				&& pawn is not ZombieSpitter;
-		}
-
-		internal static bool CanBeSlowedBySymbiantCellFast(Pawn pawn)
-		{
-			if (CanBeSlowedBySymbiantCellCandidateFast(pawn) == false)
-				return false;
-			return IsLinkedHostOnCurrentMapFast(pawn) == false;
 		}
 
 		static bool IsLinkedHostOnCurrentMapFast(Pawn pawn)
@@ -3593,17 +3579,6 @@ namespace ZombieLand
 			return IsValidFeed(feed) ? FeedGrowthCells(feed) : 0;
 		}
 
-		int RecessionSizeBonus()
-		{
-			if (CellCount >= 300)
-				return 3;
-			if (CellCount >= 200)
-				return 2;
-			if (CellCount >= 100)
-				return 1;
-			return 0;
-		}
-
 		public static bool IsValidFeed(Thing feed)
 		{
 			if (feed == null || feed.Destroyed)
@@ -3616,11 +3591,6 @@ namespace ZombieLand
 				return pawn is not Zombie && pawn is not ZombieSymbiant && pawn is not ZombieSpitter;
 			}
 			return false;
-		}
-
-		public bool ShrinkOneCell()
-		{
-			return ShrinkCells(1, 0) > 0;
 		}
 
 		bool TrySelectShrinkCell(int minRemainingCells, out IntVec3 relative)
@@ -3980,12 +3950,6 @@ namespace ZombieLand
 			if (metaballMaterial != null)
 				ConfigureMetaballMaterial();
 			renderResourceOwners.Add(this);
-		}
-
-		static float SmoothStep(float edge0, float edge1, float x)
-		{
-			var t = Mathf.Clamp01((x - edge0) / Mathf.Max(0.0001f, edge1 - edge0));
-			return t * t * (3f - 2f * t);
 		}
 
 		void EnsureSymbiantDefaults()

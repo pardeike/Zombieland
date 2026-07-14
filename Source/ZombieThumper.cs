@@ -223,8 +223,6 @@ namespace ZombieLand
 			};
 		}
 
-		public static int DebugImpactRadius(int impactTick, int maxRadius) => CurrentImpactRadius(impactTick, maxRadius);
-
 		public static float DebugSeismicWaveDamage(int radius, int maxRadius) => SeismicWaveDamage(radius, maxRadius);
 
 		public static int DebugSeismicWaveRadius(IntVec3 offset)

@@ -15,20 +15,8 @@ namespace ZombieLand
 
 	public class AtlasMeta
 	{
-		public float fill_rate;
-		public int grid_height;
-		public int grid_width;
 		public int height;
-		public string image;
-		public string name;
-		public int padding_x;
-		public int padding_y;
-		public bool pot;
 		public AtlasItem[] regions;
-		public int regions_count;
-		public bool rotations;
-		public bool using_grid;
-		public int width;
 	}
 
 	public class AtlasItem

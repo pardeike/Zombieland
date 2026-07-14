@@ -4,9 +4,6 @@ namespace ZombieLand
 {
 	public class CompProperties_Activatable : CompProperties
 	{
-		[NoTranslate]
-		public string commandTexture = "UI/Commands/DesirePower";
-
 		public CompProperties_Activatable()
 		{
 			compClass = typeof(CompActivatable);

@@ -45,13 +45,9 @@ namespace ZombieLand
 
 	internal sealed class PatchGroupFailureException : Exception
 	{
-		public readonly string GroupId;
-		public readonly Type PatchType;
-
-		public PatchGroupFailureException(string groupId, Type patchType, string message) : base(message)
+		public PatchGroupFailureException(string groupId, Type patchType, string message)
+			: base($"Patch group '{groupId}' failed while applying {patchType?.FullName ?? "an unknown patch"}: {message}")
 		{
-			GroupId = groupId;
-			PatchType = patchType;
 		}
 	}
 
@@ -100,10 +96,7 @@ namespace ZombieLand
 		static bool failureDialogShown;
 
 		public static IReadOnlyList<PatchGroupResult> Current => results.AsReadOnly();
-		public static IReadOnlyList<PatchGroupResult> Failures => results.Where(result => result.IsFailure).OrderBy(result => result.Order).ToArray();
 		public static bool HasFailures => results.Any(result => result.IsFailure);
-
-		internal static bool IsApplyingPatchGroup => activeGroup != null;
 
 		internal static void ThrowActiveFailure(string error)
 		{

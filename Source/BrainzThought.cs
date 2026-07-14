@@ -6,11 +6,6 @@ namespace ZombieLand
 	{
 		public override int CurStageIndex => 0;
 
-		public override void ExposeData()
-		{
-			base.ExposeData();
-		}
-
 		public override float MoodOffset()
 		{
 			return 1f;

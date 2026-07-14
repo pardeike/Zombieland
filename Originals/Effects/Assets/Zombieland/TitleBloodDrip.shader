@@ -220,13 +220,6 @@ Shader "Custom/ZombielandTitleBloodDrip"
 			return geometry;
 		}
 
-		float CircleSdf(float2 samplePoint, float2 center, float radius, out float2 outwardGradient)
-		{
-			float2 delta = samplePoint - center;
-			outwardGradient = SafeNormalize(delta);
-			return length(delta) - max(radius, 0.00001);
-		}
-
 		float EllipseSdf(float2 samplePoint, float2 center, float2 longAxis, float2 radii, out float2 outwardGradient)
 		{
 			radii = max(radii, float2(0.00001, 0.00001));

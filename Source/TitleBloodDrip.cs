@@ -71,9 +71,9 @@ namespace ZombieLand
 			RecreateRenderTextures();
 		}
 
-		static RenderTexture CreateRenderTexture(string name, int height)
+		static RenderTexture CreateStateTexture(string name)
 		{
-			var texture = new RenderTexture(MaximumPendantSites, height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
+			var texture = new RenderTexture(MaximumPendantSites, 1, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
 			{
 				name = name,
 				filterMode = FilterMode.Point,
@@ -99,8 +99,8 @@ namespace ZombieLand
 		{
 			ReleaseRenderTexture(ref state);
 			ReleaseRenderTexture(ref nextState);
-			state = CreateRenderTexture("Zombieland title blood pendant state", 1);
-			nextState = CreateRenderTexture("Zombieland title blood next pendant state", 1);
+			state = CreateStateTexture("Zombieland title blood pendant state");
+			nextState = CreateStateTexture("Zombieland title blood next pendant state");
 			Clear(state);
 			Clear(nextState);
 			simulationTime = 0f;

@@ -68,11 +68,6 @@ namespace ZombieLand
 
 		public static ZombieFreeEventManager Current => Find.World?.GetComponent<ZombieFreeEventManager>();
 
-		public static bool IsEnabled()
-		{
-			return IsEnabledAtGameTick(GenTicks.TicksGame);
-		}
-
 		public static bool IsEnabledAtGameTick(int gameTick)
 		{
 			return ZombieSettings.ZombieFreeEventsAtGameTick(gameTick);
@@ -116,16 +111,6 @@ namespace ZombieLand
 			var gameTick = GameTickForAbsTick(absTick);
 			return IsInitialGraceActiveAtGameTick(gameTick)
 				|| Current?.IsEnabledSilenceActiveAtGameTick(gameTick) == true;
-		}
-
-		public static bool IsEnabledSilenceActiveNow()
-		{
-			return Current?.IsEnabledSilenceActiveAtGameTick(GenTicks.TicksGame) == true;
-		}
-
-		public static bool IsEnabledSilenceActiveAtAbsTick(int absTick)
-		{
-			return Current?.IsEnabledSilenceActiveAtGameTick(GameTickForAbsTick(absTick)) == true;
 		}
 
 		public static List<ZombieFreeEventWindow> WindowsForAbsRange(int absStartTick, int absEndTick)
@@ -432,7 +417,7 @@ namespace ZombieLand
 			while (lastEndTick < gameTick || nextClusterStartTick < gameTick)
 			{
 				var clusterStartTick = nextClusterStartTick;
-				AddCluster(clusterStartTick);
+				AddCluster(windows, DifficultyAtGameTick, clusterStartTick);
 				lastEndTick = windows.Max(window => window.endTick);
 				nextClusterStartTick += Mathf.RoundToInt(ClusterPeriodTicksFor(DifficultyAtGameTick(clusterStartTick)) * Rand.Range(0.9f, 1.1f));
 			}
@@ -462,27 +447,22 @@ namespace ZombieLand
 			return startFloor + Mathf.RoundToInt(period * Rand.Range(0.25f, 0.75f));
 		}
 
-		void AddCluster(int clusterStartTick)
+		static void AddCluster(List<ZombieFreeEventWindow> list, Func<int, float> difficultyAtGameTick, int clusterStartTick)
 		{
-			var clusterDifficulty = DifficultyAtGameTick(clusterStartTick);
+			var clusterDifficulty = difficultyAtGameTick(clusterStartTick);
 			var period = ClusterPeriodTicksFor(clusterDifficulty);
 			var startA = Mathf.Max(0, clusterStartTick + EventOffsetTicksFor(clusterDifficulty, period));
-			var durationA = EventDurationTicksFor(DifficultyAtGameTick(startA));
-			var windowA = AddWindow(startA, durationA);
+			var durationA = EventDurationTicksFor(difficultyAtGameTick(startA));
+			var windowA = AddWindowAvoidingOverlap(list, startA, durationA);
 
 			var preferredB = clusterStartTick
 				+ Mathf.RoundToInt(period * Rand.Range(0.38f, 0.45f))
 				+ EventOffsetTicksFor(clusterDifficulty, period);
-			var durationB = EventDurationTicksFor(DifficultyAtGameTick(preferredB));
+			var durationB = EventDurationTicksFor(difficultyAtGameTick(preferredB));
 			var earliestB = windowA.endTick + MinEventGapTicks;
 			var latestB = clusterStartTick + period - durationB - GenDate.TicksPerDay;
 			var startB = Mathf.Clamp(Mathf.Max(preferredB, earliestB), earliestB, Mathf.Max(earliestB, latestB));
-			AddWindow(startB, durationB);
-		}
-
-		ZombieFreeEventWindow AddWindow(int startTick, int durationTicks)
-		{
-			return AddWindowAvoidingOverlap(windows, startTick, durationTicks);
+			AddWindowAvoidingOverlap(list, startB, durationB);
 		}
 
 		ZombieFreeEventWindow AddWindowStartingAt(int startTick, int durationTicks)
@@ -627,7 +607,7 @@ namespace ZombieLand
 				{
 					var clusterDifficulty = difficultyAtGameTick(nextClusterStartTick);
 					var period = ClusterPeriodTicksFor(clusterDifficulty);
-					AddPreviewCluster(result, difficultyAtGameTick, nextClusterStartTick);
+					AddCluster(result, difficultyAtGameTick, nextClusterStartTick);
 					nextClusterStartTick += Mathf.RoundToInt(period * Rand.Range(0.9f, 1.1f));
 				}
 			}
@@ -643,27 +623,5 @@ namespace ZombieLand
 				.ToList();
 		}
 
-		static void AddPreviewCluster(List<ZombieFreeEventWindow> result, Func<int, float> difficultyAtGameTick, int clusterStartTick)
-		{
-			var clusterDifficulty = difficultyAtGameTick(clusterStartTick);
-			var period = ClusterPeriodTicksFor(clusterDifficulty);
-			var startA = Mathf.Max(0, clusterStartTick + EventOffsetTicksFor(clusterDifficulty, period));
-			var durationA = EventDurationTicksFor(difficultyAtGameTick(startA));
-			var windowA = AddPreviewWindow(result, startA, durationA);
-
-			var preferredB = clusterStartTick
-				+ Mathf.RoundToInt(period * Rand.Range(0.38f, 0.45f))
-				+ EventOffsetTicksFor(clusterDifficulty, period);
-			var durationB = EventDurationTicksFor(difficultyAtGameTick(preferredB));
-			var earliestB = windowA.endTick + MinEventGapTicks;
-			var latestB = clusterStartTick + period - durationB - GenDate.TicksPerDay;
-			var startB = Mathf.Clamp(Mathf.Max(preferredB, earliestB), earliestB, Mathf.Max(earliestB, latestB));
-			AddPreviewWindow(result, startB, durationB);
-		}
-
-		static ZombieFreeEventWindow AddPreviewWindow(List<ZombieFreeEventWindow> result, int startTick, int durationTicks)
-		{
-			return AddWindowAvoidingOverlap(result, startTick, durationTicks);
-		}
 	}
 }

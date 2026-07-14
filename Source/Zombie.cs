@@ -832,22 +832,6 @@ namespace ZombieLand
 			}
 		}
 
-		public static Quaternion ZombieAngleAxis(float angle, Vector3 axis, Pawn pawn)
-		{
-			var result = Quaternion.AngleAxis(angle, axis);
-
-			if (pawn is not Zombie zombie)
-				return result;
-
-			var progress = zombie.rubbleCounter / (float)Constants.RUBBLE_AMOUNT;
-			if (progress >= Constants.RUBBLE_EMERGE_DELAY)
-			{
-				var bodyRot = GenMath.LerpDouble(Constants.RUBBLE_EMERGE_DELAY, 1, 90, 0, progress);
-				result *= Quaternion.Euler(Vector3.right * bodyRot);
-			}
-			return result;
-		}
-
 		public void Render(PawnRenderer renderer, Vector3 drawLoc)
 		{
 			drawLoc.x = (int)(drawLoc.x) + 0.5f;

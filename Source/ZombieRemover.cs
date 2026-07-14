@@ -324,8 +324,7 @@ namespace ZombieLand
 			foreach (var fieldName in fieldNames)
 			{
 				var pawnSet = trvWorldPawns.Field(fieldName).GetValue<HashSet<Pawn>>();
-				_ = pawnSet.RemoveWhere(pawn => pawn is Zombie || pawn is ZombieSymbiant);
-				_ = pawnSet.RemoveWhere(pawn => pawn is Zombie || pawn is ZombieSpitter);
+				_ = pawnSet.RemoveWhere(pawn => pawn is Zombie || pawn is ZombieSymbiant || pawn is ZombieSpitter);
 				foreach (var pawn in pawnSet)
 					RemovePawnRelatedStuff(pawn);
 			}

@@ -18,16 +18,6 @@ namespace ZombieLand
 			symbiant?.SymbiantTick();
 		}
 
-		public override void Notify_PatherArrived()
-		{
-			base.Notify_PatherArrived();
-		}
-
-		public override void Notify_PatherFailed()
-		{
-			base.Notify_PatherFailed();
-		}
-
 		public override string GetReport()
 		{
 			return "zombie symbiant";

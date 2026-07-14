@@ -21,7 +21,6 @@ namespace ZombieLand
 			cell = RandomStandingCell();
 		}
 
-		public static readonly TraverseParms traverseParams = TraverseParms.For(TraverseMode.NoPassClosedDoors, Danger.Deadly, true, false, true);
 		IntVec3 RandomStandingCell()
 		{
 			if (region.Cells.Any() == false)

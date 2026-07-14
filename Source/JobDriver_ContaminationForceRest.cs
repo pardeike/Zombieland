@@ -25,18 +25,5 @@ namespace ZombieLand
 			pawn.Rotation = Rot4.South;
 		}
 
-		public override void ExposeData()
-		{
-			base.ExposeData();
-		}
-
-		void InitAction()
-		{
-		}
-
-		void TickAction()
-		{
-
-		}
 	}
 }

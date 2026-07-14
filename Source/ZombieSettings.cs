@@ -217,7 +217,6 @@ namespace ZombieLand
 		public float healerChance = 0.0025f;
 		public float moveSpeedIdle = 0.1f;
 		public float moveSpeedTracking = 0.5f;
-		public bool moveSpeedUpgraded = false;
 		public float damageFactor = 1.0f;
 		public ZombieInstinct zombieInstinct = ZombieInstinct.Normal;
 		public bool useCustomTextures = true;
@@ -271,14 +270,6 @@ namespace ZombieLand
 		public List<string> blacklistedApparel = new();
 		public float contaminationBaseFactor = 1f;
 		public ContaminationFactors contamination = new();
-
-		// unused
-		public int suicideBomberIntChance = 1;
-		public int toxicSplasherIntChance = 1;
-		public int tankyOperatorIntChance = 1;
-		public int minerIntChance = 1;
-		public int electrifierIntChance = 1;
-
 		public object Clone() => MemberwiseClone();
 		public SettingsGroup MakeCopy() => Clone() as SettingsGroup;
 

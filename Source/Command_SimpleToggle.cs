@@ -12,8 +12,6 @@ namespace ZombieLand
 		public SoundDef turnOnSound = SoundDefOf.Checkbox_TurnedOn;
 		public SoundDef turnOffSound = SoundDefOf.Checkbox_TurnedOff;
 
-		public bool activateIfAmbiguous = true;
-
 		public override SoundDef CurActivateSound => isActive() ? turnOffSound : turnOnSound;
 
 		public override void ProcessInput(Event ev)

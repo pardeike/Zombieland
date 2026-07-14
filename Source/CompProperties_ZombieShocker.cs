@@ -12,8 +12,6 @@ namespace ZombieLand
 
 	public class CompZombieShocker : ThingComp
 	{
-		public CompProperties_ZombieShocker Props => (CompProperties_ZombieShocker)props;
-
 		public override void CompTick()
 		{
 			base.CompTick();

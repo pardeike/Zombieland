@@ -6,8 +6,6 @@ namespace ZombieLand
 {
 	public class ZombieAttackTargetIndex : MapComponent
 	{
-		static readonly List<Thing> emptyCandidates = new(0);
-
 		List<Thing>[] candidatesByCell;
 		bool[] touchedCell;
 		bool[] candidateNeighborCell;
@@ -51,16 +49,6 @@ namespace ZombieLand
 		{
 			EnsureCurrent();
 			return candidateNeighborCell;
-		}
-
-		public List<Thing> CandidatesAt(IntVec3 cell)
-		{
-			if (cell.InBounds(map) == false)
-				return emptyCandidates;
-
-			var candidates = CurrentCandidatesByCell();
-			var idx = map.cellIndices.CellToIndex(cell);
-			return candidates[idx] ?? emptyCandidates;
 		}
 
 		void EnsureCurrent()

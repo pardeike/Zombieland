@@ -59,16 +59,6 @@ namespace ZombieLand
 				PatchGroups.TryShowFailureDialogAtStartScreen();
 			});
 
-			// for debugging
-			//
-			//DebugRimworldMethodCalls((Type type) =>
-			//{
-			//	if (type.Name.Contains("AttackTarget")) return true;
-			//	if (type.Name.Contains("_AI")) return true;
-			//	if (type.Name.Contains("Reachability")) return true;
-			//	return false;
-			//});
-
 			CrossPromotion.Install(76561197973010050);
 		}
 
@@ -2048,8 +2038,6 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(Pawn_PathFollower.NeedNewPath))]
 		static class Pawn_PathFollower_NeedNewPath_Patch
 		{
-			static readonly MethodInfo m_ShouldCollideWithPawns = SymbolExtensions.GetMethodInfo(() => PawnUtility.ShouldCollideWithPawns(null));
-
 			static bool ZombieInPath(Pawn_PathFollower __instance, Pawn pawn)
 			{
 				var path = __instance.curPath;
@@ -2862,7 +2850,6 @@ namespace ZombieLand
 				_ = builder.AppendLine($"Colonists: {capableColonists} + {incapableColonists}");
 				_ = builder.AppendLine($"Colony points: {tickManager.currentColonyPoints}");
 				_ = builder.AppendLine($"Center of Interest: {tickManager.centerOfInterest.x}/{tickManager.centerOfInterest.z}");
-				_ = builder.AppendLine($"Colony points: {tickManager.currentColonyPoints}");
 				_ = builder.AppendLine($"Colonist points: {colonyPoints[0]}");
 				_ = builder.AppendLine($"Weapon points: {colonyPoints[1]}");
 				_ = builder.AppendLine($"Defense points: {colonyPoints[2]}");

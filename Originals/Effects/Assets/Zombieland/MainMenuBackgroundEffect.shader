@@ -2,7 +2,6 @@ Shader "Custom/ZombielandMainMenuBackgroundEffect"
 {
 	Properties
 	{
-		_MainTex ("Texture", 2D) = "white" {}
 		_MultiplyColor ("Multiply Color", Color) = (0.922, 0.682, 0.682, 1)
 		_ColorBurnColor ("Color Burn Color", Color) = (0.831, 0.831, 0.831, 1)
 		_DarkerColor ("Darker Color", Color) = (0.282, 0.667, 0.282, 1)

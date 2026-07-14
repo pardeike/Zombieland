@@ -98,11 +98,6 @@ namespace ZombieLand
 			return vecGrids[publicIndex][pos.x + pos.z * mapSizeX];
 		}
 
-		public int GetDirect(IntVec3 pos, bool ignoreBuildings)
-		{
-			return GetDirectInternal(pos, ignoreBuildings, true);
-		}
-
 		int GetDirectInternal(IntVec3 pos, bool ignoreBuildings, bool publicAccess)
 		{
 			int b = vecGrids[publicAccess ? publicIndex : privateIndex][pos.x + pos.z * mapSizeX];

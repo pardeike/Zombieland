@@ -953,18 +953,6 @@ namespace ZombieLand
 			return def.defName.StartsWith("ZL_REPELL", StringComparison.Ordinal);
 		}
 
-		// implement
-		public static bool DoesAttractZombies(this Def def)
-		{
-			return def.defName.StartsWith("ZL_ATTRACT", StringComparison.Ordinal);
-		}
-
-		// implement
-		public static bool DoesKillZombies(this Def def)
-		{
-			return def.defName.StartsWith("ZL_KILL", StringComparison.Ordinal);
-		}
-
 		public static bool IsValidSpawnLocation(IntVec3 cell, Map map)
 		{
 			if (cell.Standable(map) == false || cell.Fogged(map))
@@ -1369,29 +1357,6 @@ namespace ZombieLand
 			return serializer.Deserialize<T>(reader);
 		}
 
-		public static object Check(this Stopwatch sw, string name)
-		{
-			sw.Stop();
-			var tick = sw.ElapsedTicks * (double)60 / 10000000;
-			if (tick > 0.2)
-				Log.Warning(name + " " + string.Format("{0:0.00}", tick));
-			sw.Reset();
-			sw.Start();
-			return null;
-		}
-
-		public static void Continue(this Stopwatch sw)
-		{
-			sw.Reset();
-			sw.Start();
-		}
-
-		public static void LogSelected(this Zombie zombie, string text)
-		{
-			if (UI.MouseCell() == zombie.Position)
-				Log.Warning($"{zombie.Position.SimplePos()}: {text}");
-		}
-
 		public static string ToHourString(this int ticks, bool relativeToAbsoluteGameTime = true)
 		{
 			var t = relativeToAbsoluteGameTime ? ticks - GenTicks.TicksAbs : ticks;
@@ -1461,31 +1426,6 @@ namespace ZombieLand
 			ColonyEvaluation.GetColonistArmouryPoints(colonists, map, out var colonistPoints, out var armouryPoints);
 			var turretPoints = map.listerBuildings.allBuildingsColonist.Sum(dangerPoints);
 			return new int[] { (int)colonistPoints, (int)armouryPoints, (int)turretPoints };
-		}
-
-		public static void ReApplyThingToListerThings(IntVec3 cell, Thing thing)
-		{
-			if ((((cell != IntVec3.Invalid) && (thing != null)) && (thing.Map != null)) && thing.Spawned)
-			{
-				var map = thing.Map;
-				var regionGrid = map.regionGrid;
-				Region validRegionAt = null;
-				if (cell.InBounds(map))
-				{
-					validRegionAt = regionGrid.GetValidRegionAt(cell);
-				}
-				if ((validRegionAt != null) && !validRegionAt.ListerThings.Contains(thing))
-				{
-					validRegionAt.ListerThings.Add(thing);
-				}
-			}
-		}
-
-		public static void DoWithAllZombies(Map map, Action<Zombie> action)
-		{
-			var tickManager = map?.GetComponent<TickManager>();
-			if (tickManager?.RuntimeReady == true)
-				tickManager.AllZombies().Do(action);
 		}
 
 		public static Texture2D GetMenuIcon()
@@ -1850,13 +1790,6 @@ namespace ZombieLand
 			*/
 		}
 
-		public static IEnumerable<Type> Subclasses(Type baseType)
-		{
-			return AppDomain.CurrentDomain.GetAssemblies()
-				 .SelectMany(assembly => assembly.GetTypes())
-				 .Where(type => type != baseType && type.IsAbstract == false && type.IsSubclassOf(baseType));
-		}
-
 		public static IEnumerable<MethodBase> MethodsImplementing(LambdaExpression expression)
 		{
 			var baseMethod = SymbolExtensions.GetMethodInfo(expression);
@@ -2032,11 +1965,6 @@ namespace ZombieLand
 				return 100;
 			return serumDef.costList?
 				.FirstOrDefault(cost => cost.thingDef == CustomDefs.ZombieExtract)?.count ?? 0;
-		}
-
-		public static bool IsFullStrengthZombieSerum(ThingDef serumDef)
-		{
-			return ZombieSerumPurity(serumDef) == 100;
 		}
 
 		public static void UpdateBiomeBlacklist(HashSet<string> defNames)
