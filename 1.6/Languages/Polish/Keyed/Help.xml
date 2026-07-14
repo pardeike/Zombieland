@@ -149,6 +149,7 @@
 	<ZombieSymbiantTitle_Help>Symbionty zombie to plagi rozprzestrzeniające się wewnątrz budynków po często używanych pomieszczeniach. Jeden kolonista staje się gospodarzem. Gospodarz jest odporny na zakażenie po ugryzieniu zombie i wraz ze wzrostem Symbionta zyskuje losowe korzyści. Istoty przechodzące przez pola Symbionta są spowolnione, z wyjątkiem gospodarza. Karmienie zwłokami przyspiesza wzrost Symbionta.\n\nGospodarz i Symbiont powinni pozostawać na tej samej mapie: po rozdzieleniu więź przechodzi w stan uśpienia i nie można jej wtedy bezpiecznie usunąć. Więź może się odnowić tylko wtedy, gdy ten sam gospodarz i Symbiont ponownie znajdą się na jednej mapie. Porzucenie mapy Symbionta niszczy go i siłą zrywa więź.\n\nOperacja pozwala najpierw bezpiecznie usunąć więź, a pozbawiony jej Symbiont następnie się kurczy.</ZombieSymbiantTitle_Help>
 	<SymbiantEnabled_Help>Włącza naturalne wydarzenia z Symbiontem zombie.</SymbiantEnabled_Help>
 	<SymbiantMaxCells_Help>Maksymalna liczba pól mapy, które może zajmować Symbiont.</SymbiantMaxCells_Help>
+	<MuteSymbiantSplashSounds_Help>Wycisza odgłosy chlupotania, gdy pionki inne niż gospodarz przechodzą przez pola Symbionta.</MuteSymbiantSplashSounds_Help>
 
 	<!-- -->
 

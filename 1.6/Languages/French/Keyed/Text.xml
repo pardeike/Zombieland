@@ -246,6 +246,7 @@
 	<ZombieSymbiantTitle>Symbiant zombie</ZombieSymbiantTitle>
 	<SymbiantEnabled>Activer les Symbiants zombies</SymbiantEnabled>
 	<SymbiantMaxCells>Taille maximale du Symbiant</SymbiantMaxCells>
+	<MuteSymbiantSplashSounds>Couper les sons d'éclaboussure du Symbiant</MuteSymbiantSplashSounds>
 
 	<ZombieMiscTitle>Divers</ZombieMiscTitle>
 	<UseCustomTextures>Utiliser des textures personnalisées </UseCustomTextures>

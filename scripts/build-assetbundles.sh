@@ -155,6 +155,16 @@ ZOMBIELAND_RESOURCES_DIR="$ROOT/1.6/Resources" "$UNITY" \
 	-executeMethod "$METHOD" \
 	-logFile "$LOG"
 
+if command -v rg >/dev/null 2>&1; then
+	if rg -n "Shader error in" "$LOG"; then
+		printf 'Unity reported shader compiler errors; refusing to accept the generated bundle.\n' >&2
+		exit 1
+	fi
+elif grep -n "Shader error in" "$LOG"; then
+	printf 'Unity reported shader compiler errors; refusing to accept the generated bundle.\n' >&2
+	exit 1
+fi
+
 for arch in "${expected_arches[@]}"; do
 	bundle="$ROOT/1.6/Resources/$arch/zombieland"
 	if [[ ! -f "$bundle" ]]; then

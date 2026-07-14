@@ -246,6 +246,7 @@
 	<ZombieSymbiantTitle>Zombie-Symbiont</ZombieSymbiantTitle>
 	<SymbiantEnabled>Zombie-Symbionten aktivieren</SymbiantEnabled>
 	<SymbiantMaxCells>Maximale Symbionten-Größe</SymbiantMaxCells>
+	<MuteSymbiantSplashSounds>Symbionten-Plätschern stummschalten</MuteSymbiantSplashSounds>
 
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>
 	<UseCustomTextures>Spezialtexturen verwenden</UseCustomTextures>

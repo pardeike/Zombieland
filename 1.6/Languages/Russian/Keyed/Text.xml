@@ -246,6 +246,7 @@
 	<ZombieSymbiantTitle>Зомби-симбионт</ZombieSymbiantTitle>
 	<SymbiantEnabled>Включить зомби-симбионтов</SymbiantEnabled>
 	<SymbiantMaxCells>Максимальный размер симбионта</SymbiantMaxCells>
+	<MuteSymbiantSplashSounds>Отключить звуки хлюпанья симбионта</MuteSymbiantSplashSounds>
 
 	<ZombieMiscTitle>Разное</ZombieMiscTitle>
 	<UseCustomTextures>Использовать текстуры дополнения для зомби</UseCustomTextures>

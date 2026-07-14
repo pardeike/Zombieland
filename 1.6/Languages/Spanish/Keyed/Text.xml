@@ -219,6 +219,7 @@
 	<ZombieSymbiantTitle>Simbionte zombi</ZombieSymbiantTitle>
 	<SymbiantEnabled>Activar Simbiontes zombis</SymbiantEnabled>
 	<SymbiantMaxCells>Tamaño máximo del Simbionte</SymbiantMaxCells>
+	<MuteSymbiantSplashSounds>Silenciar sonidos de salpicaduras del Simbionte</MuteSymbiantSplashSounds>
 	<ZombieMiscTitle>Varios</ZombieMiscTitle>
 	<UseCustomTextures>Usar texturas personalizadas</UseCustomTextures>
 	<ReplaceTwinkie>Cambiar las comidas de supervivencia por Twinkies</ReplaceTwinkie>

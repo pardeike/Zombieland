@@ -248,6 +248,7 @@
 	<ZombieSymbiantTitle>Symbiont zombie</ZombieSymbiantTitle>
 	<SymbiantEnabled>Włącz Symbionty zombie</SymbiantEnabled>
 	<SymbiantMaxCells>Maksymalny rozmiar Symbionta</SymbiantMaxCells>
+	<MuteSymbiantSplashSounds>Wycisz odgłosy chlupotania Symbionta</MuteSymbiantSplashSounds>
 
 	<ZombieMiscTitle>Różne</ZombieMiscTitle>
 	<UseCustomTextures>Używaj niestandardowych tekstur</UseCustomTextures>

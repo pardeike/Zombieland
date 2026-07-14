@@ -119,6 +119,7 @@
 	<ZombieSymbiantTitle_Help>喪屍共生體會在頻繁使用的室內房間中蔓延。一名殖民者會成為宿主。宿主免疫喪屍咬傷所造成的感染，並會在共生體成長時獲得隨機增益。穿過共生體方格的角色會變慢，宿主除外。用屍體餵養可以讓它成長得更快。\n\n宿主和共生體應留在同一張地圖上：如果兩者分離，連結會進入休眠，休眠期間無法正常移除。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結。\n\n手術可先正常移除連結，失去宿主的共生體之後會逐漸縮回。</ZombieSymbiantTitle_Help>
 	<SymbiantEnabled_Help>啟用自然喪屍共生體事件。</SymbiantEnabled_Help>
 	<SymbiantMaxCells_Help>共生體可以佔據的地圖方格數上限。</SymbiantMaxCells_Help>
+	<MuteSymbiantSplashSounds_Help>當宿主以外的角色走過共生體方格時，不播放飛濺聲。</MuteSymbiantSplashSounds_Help>
 
 	<ZombieMiscTitle_Help>此部分包含對玩法影響不大的雜項設定。有些是外觀設定，有些能在較慢電腦上加快遊戲速度。</ZombieMiscTitle_Help>
 	<UseCustomTextures_Help>每隻喪屍都會使用帶有傷痕和其他喪屍特徵的自訂身體紋理。這會讓 Zombieland 消耗大量記憶體；如果遇到記憶體問題，請關閉此項。</UseCustomTextures_Help>

@@ -246,6 +246,7 @@
 	<ZombieSymbiantTitle>Zombi Simbiyantı</ZombieSymbiantTitle>
 	<SymbiantEnabled>Zombi Simbiyantlarını etkinleştir</SymbiantEnabled>
 	<SymbiantMaxCells>En fazla Simbiyant boyutu</SymbiantMaxCells>
+	<MuteSymbiantSplashSounds>Simbiyant sıçrama seslerini sustur</MuteSymbiantSplashSounds>
 
 	<ZombieMiscTitle>Çeşitli</ZombieMiscTitle>
 	<UseCustomTextures>Özel dokular kullanın</UseCustomTextures>

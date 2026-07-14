@@ -14,7 +14,7 @@ namespace ZombieLand
 		static readonly Color multiplyColor = ColorFromHex(0xEB, 0xAE, 0xAE);
 		static readonly Color colorBurnColor = ColorFromHex(0xD4, 0xD4, 0xD4);
 		static readonly Color darkerColor = ColorFromHex(0x48, 0xAA, 0x48);
-		static readonly Texture2D titleTexture = Tools.LoadTexture("ZombielandTitle");
+		static readonly Texture2D titleTexture = Tools.LoadTexture("ZombielandTitle", true, false);
 		static Material material;
 		static bool disabledAfterError;
 
@@ -42,6 +42,7 @@ namespace ZombieLand
 					material.SetColor("_ColorBurnColor", colorBurnColor);
 					material.SetColor("_DarkerColor", darkerColor);
 				}
+				material.SetFloat("_GlitchEnabled", Constants.DISABLE_START_SCREEN_COLOR_FLICKER ? 0f : 1f);
 
 				var rect = new Rect(0f, 0f, UI.screenWidth, UI.screenHeight);
 				for (var pass = 0; pass < material.passCount; pass++)
@@ -72,6 +73,8 @@ namespace ZombieLand
 			{
 				GUI.color = previousColor;
 			}
+
+			TitleBloodDrip.Draw(rect);
 		}
 
 		static Color ColorFromHex(int r, int g, int b)

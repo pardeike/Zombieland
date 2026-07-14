@@ -246,6 +246,7 @@
 	<ZombieSymbiantTitle>丧尸共生体</ZombieSymbiantTitle>
 	<SymbiantEnabled>启用丧尸共生体</SymbiantEnabled>
 	<SymbiantMaxCells>共生体最大地格数</SymbiantMaxCells>
+	<MuteSymbiantSplashSounds>静音共生体飞溅声</MuteSymbiantSplashSounds>
 
 	<ZombieMiscTitle>其他</ZombieMiscTitle>
 	<UseCustomTextures>使用自定义纹理</UseCustomTextures>

@@ -18,6 +18,7 @@ public class CreateAssetBundles
 		"assets/_zombieland/smoke_thin.mat",
 		"assets/_zombieland/smoke_thin.png",
 		"assets/_zombieland/mainmenubackgroundeffect.shader",
+		"assets/_zombieland/titleblooddrip.shader",
 		"assets/_zombieland/zombiesymbiant.mat",
 		"assets/_zombieland/zombiesymbiant.shader"
 	};
@@ -151,10 +152,13 @@ public class CreateAssetBundles
 		_ = RequireAsset<Material>(bundle, arch, ExpectedAssetNames[3]);
 		_ = RequireAsset<Texture2D>(bundle, arch, ExpectedAssetNames[4]);
 		var mainMenuBackgroundEffect = RequireAsset<Shader>(bundle, arch, ExpectedAssetNames[5]);
-		_ = RequireAsset<Material>(bundle, arch, ExpectedAssetNames[6]);
-		var zombieSymbiant = RequireAsset<Shader>(bundle, arch, ExpectedAssetNames[7]);
+		var titleBloodDrip = RequireAsset<Shader>(bundle, arch, ExpectedAssetNames[6]);
+		_ = RequireAsset<Material>(bundle, arch, ExpectedAssetNames[7]);
+		var zombieSymbiant = RequireAsset<Shader>(bundle, arch, ExpectedAssetNames[8]);
+		if (titleBloodDrip.passCount < 2)
+			throw new Exception($"Zombieland bundle {arch} loaded the title blood-drip shader without both its update and display passes.");
 
-		Debug.Log($"Zombieland bundle validated {arch}: Dust={dust.name}, Metaballs={metaballs.name}, MainMenuBackgroundEffect={mainMenuBackgroundEffect.name}, ZombieSymbiant={zombieSymbiant.name}, assets={actualNames.Count}, Unity={Application.unityVersion}, path={path}");
+		Debug.Log($"Zombieland bundle validated {arch}: Dust={dust.name}, Metaballs={metaballs.name}, MainMenuBackgroundEffect={mainMenuBackgroundEffect.name}, TitleBloodDrip={titleBloodDrip.name}, TitleBloodDripPasses={titleBloodDrip.passCount}, ZombieSymbiant={zombieSymbiant.name}, assets={actualNames.Count}, Unity={Application.unityVersion}, path={path}");
 	}
 
 	static T RequireAsset<T>(AssetBundle bundle, string arch, string assetName) where T : UnityEngine.Object
@@ -272,6 +276,9 @@ public class CreateAssetBundles
 		var mainMenuBackgroundEffectShaderPath = $"{GeneratedAssetDir}/MainMenuBackgroundEffect.shader";
 		File.Copy("Assets/Zombieland/MainMenuBackgroundEffect.shader", mainMenuBackgroundEffectShaderPath, true);
 
+		var titleBloodDripShaderPath = $"{GeneratedAssetDir}/TitleBloodDrip.shader";
+		File.Copy("Assets/Zombieland/TitleBloodDrip.shader", titleBloodDripShaderPath, true);
+
 		var metaballsShaderPath = $"{GeneratedAssetDir}/Metaballs.shader";
 		File.WriteAllText(metaballsShaderPath, MetaballsShaderSource);
 
@@ -282,6 +289,10 @@ public class CreateAssetBundles
 		WriteFlatNormalTexture(smokeNormalPath);
 
 		AssetDatabase.Refresh();
+		ThrowOnShaderErrors(mainMenuBackgroundEffectShaderPath);
+		ThrowOnShaderErrors(titleBloodDripShaderPath);
+		ThrowOnShaderErrors(zombieSymbiantShaderPath);
+		ThrowOnShaderErrors(metaballsShaderPath);
 		SetTextureImporter(smokeTexturePath, TextureImporterType.Default);
 		SetTextureImporter(smokeNormalPath, TextureImporterType.NormalMap);
 
@@ -339,6 +350,7 @@ public class CreateAssetBundles
 			$"{GeneratedAssetDir}/Smoke_thin.mat",
 			$"{GeneratedAssetDir}/smoke_thin.png",
 			$"{GeneratedAssetDir}/MainMenuBackgroundEffect.shader",
+			$"{GeneratedAssetDir}/TitleBloodDrip.shader",
 			$"{GeneratedAssetDir}/ZombieSymbiant.mat",
 			$"{GeneratedAssetDir}/ZombieSymbiant.shader"
 		})
@@ -349,6 +361,20 @@ public class CreateAssetBundles
 			importer.assetBundleName = "zombieland";
 			importer.SaveAndReimport();
 		}
+	}
+
+	static void ThrowOnShaderErrors(string shaderPath)
+	{
+		var shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderPath);
+		if (shader == null)
+			throw new Exception($"Could not import generated shader {shaderPath}");
+
+		var errors = ShaderUtil.GetShaderMessages(shader)
+			.Where(message => string.Equals(message.severity.ToString(), "Error", StringComparison.OrdinalIgnoreCase))
+			.Select(message => message.message)
+			.ToArray();
+		if (errors.Length > 0)
+			throw new Exception($"Shader compiler errors in {shaderPath}: {string.Join(" | ", errors)}");
 	}
 
 	static void SetTextureImporter(string path, TextureImporterType type)

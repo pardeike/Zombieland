@@ -86,6 +86,7 @@ namespace ZombieLand
 		{
 			static void Prefix()
 			{
+				TitleBloodDrip.Release();
 				ResetMapOwnedStaticState(false);
 				ZombieTicker.ResetAdaptiveState();
 				AlbinoScreamVomit.ClearPendingMultipliers();

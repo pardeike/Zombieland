@@ -1226,17 +1226,60 @@ namespace ZombieLand
 					UnityEngine.Object.Destroy(dust);
 			}
 
+			var titleBloodDripShader = Assets.TitleBloodDripShader;
+			var titleBloodDripType = AccessTools.TypeByName("ZombieLand.TitleBloodDrip");
+			var titleBloodDripMaterial = titleBloodDripType == null
+				? null
+				: AccessTools.Field(titleBloodDripType, "material")?.GetValue(null) as Material;
+			var titleBloodDripMask = titleBloodDripType == null
+				? null
+				: AccessTools.Field(titleBloodDripType, "mask")?.GetValue(null) as Texture2D;
+			var titleBloodDripState = titleBloodDripType == null
+				? null
+				: AccessTools.Field(titleBloodDripType, "state")?.GetValue(null) as RenderTexture;
+			var titleBloodDripNextState = titleBloodDripType == null
+				? null
+				: AccessTools.Field(titleBloodDripType, "nextState")?.GetValue(null) as RenderTexture;
+			var supportsHalfState = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf);
+
 			return new
 			{
 				success = Assets.initialized
 					&& Assets.MetaballShader != null
 					&& Assets.ZombieSymbiantShader != null
+					&& titleBloodDripShader != null
+					&& titleBloodDripShader.isSupported
+					&& titleBloodDripShader.passCount >= 2
+					&& supportsHalfState
+					&& titleBloodDripType != null
 					&& dustInstantiated
 					&& dustHasParticleSystem
 					&& dustHasRenderer,
 				Assets.initialized,
 				metaballShader = Assets.MetaballShader?.name,
 				zombieSymbiantShader = Assets.ZombieSymbiantShader?.name,
+				titleBloodDrip = new
+				{
+					name = titleBloodDripShader?.name,
+					supported = titleBloodDripShader?.isSupported ?? false,
+					passCount = titleBloodDripShader?.passCount ?? 0,
+					supportsHalfState,
+					graphicsDeviceType = SystemInfo.graphicsDeviceType.ToString(),
+					graphicsDeviceName = SystemInfo.graphicsDeviceName,
+					graphicsDeviceVersion = SystemInfo.graphicsDeviceVersion,
+					runtime = new
+					{
+						typeFound = titleBloodDripType != null,
+						resourcesAllocated = titleBloodDripMaterial != null
+							|| titleBloodDripMask != null
+							|| titleBloodDripState != null
+							|| titleBloodDripNextState != null,
+						stateCreated = titleBloodDripState?.IsCreated() ?? false,
+						nextStateCreated = titleBloodDripNextState?.IsCreated() ?? false,
+						stateWidth = titleBloodDripState?.width ?? 0,
+						nextStateWidth = titleBloodDripNextState?.width ?? 0
+					}
+				},
 				dust = new
 				{
 					instantiated = dustInstantiated,

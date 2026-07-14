@@ -247,7 +247,7 @@ namespace ZombieLand
 			return true;
 		}
 
-		public static Texture2D LoadTexture(string path, bool makeReadonly = true)
+		public static Texture2D LoadTexture(string path, bool makeReadonly = true, bool compress = true)
 		{
 			var fullPath = Path.Combine(GetModContentDirectory("Textures"), $"{path}.png");
 			var data = File.ReadAllBytes(fullPath);
@@ -256,7 +256,8 @@ namespace ZombieLand
 			var tex = new Texture2D(2, 2, TextureFormat.RGBA32, false, true) { name = path };
 			if (tex.LoadImage(data) == false)
 				throw new Exception($"Cannot create texture {fullPath}");
-			tex.Compress(true);
+			if (compress)
+				tex.Compress(true);
 			tex.wrapMode = TextureWrapMode.Clamp;
 			tex.filterMode = FilterMode.Trilinear;
 			tex.Apply(true, makeReadonly);

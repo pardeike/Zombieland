@@ -1839,7 +1839,7 @@ namespace ZombieLand
 
 			return new
 			{
-				success = opened
+					success = opened
 					&& dialog.allBiomes.Count > 0
 					&& settings.biomesWithoutZombies.Contains(candidate.defName),
 				candidate = candidate.defName,
@@ -2127,6 +2127,7 @@ namespace ZombieLand
 				group.spitterThreat,
 				group.symbiantEnabled,
 				group.symbiantMaxCells,
+				group.muteSymbiantSplashSounds,
 				group.minimumZombiesForWallPushing,
 				anomalyShamblerTargeting = group.anomalyShamblerTargeting.ToString(),
 				anomalyEntityTargeting = group.anomalyEntityTargeting.ToString(),

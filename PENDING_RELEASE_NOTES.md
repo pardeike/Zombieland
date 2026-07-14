@@ -1,0 +1,3 @@
+- Added fluid blood-drip animation to the Zombieland start-screen title.
+- Added an advanced option to disable start-screen color flicker.
+- Added an option to mute Symbiant splash sounds.

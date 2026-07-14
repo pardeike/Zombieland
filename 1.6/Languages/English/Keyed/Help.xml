@@ -149,6 +149,7 @@
 	<ZombieSymbiantTitle_Help>Zombie Symbiants are indoor infestations that spread through busy indoor rooms. One colonist becomes the host. The host is immune to zombie infection from bites and gains random benefits as the Symbiant grows. Pawns crossing Symbiant cells are slowed, except the host. Feeding corpses grows the Symbiant faster.\n\nHost and Symbiant should stay on the same map: if they are separated, the bond goes dormant and cannot be cleanly removed while dormant. It can reactivate only if the same host and Symbiant are present on one map again. Abandoning the Symbiant's map destroys it and forcibly breaks the bond.\n\nSurgery removes the bond cleanly first, and the unbound Symbiant then shrinks away.</ZombieSymbiantTitle_Help>
 	<SymbiantEnabled_Help>Enables natural Zombie Symbiant events.</SymbiantEnabled_Help>
 	<SymbiantMaxCells_Help>Maximum map cells a Symbiant can occupy.</SymbiantMaxCells_Help>
+	<MuteSymbiantSplashSounds_Help>Stops splash sounds when pawns other than the host walk through Symbiant cells.</MuteSymbiantSplashSounds_Help>
 
 	<!-- -->
 

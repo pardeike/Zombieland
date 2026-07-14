@@ -184,11 +184,12 @@ assets/_zombieland/smoke_n.png
 assets/_zombieland/smoke_thin.mat
 assets/_zombieland/smoke_thin.png
 assets/_zombieland/mainmenubackgroundeffect.shader
+assets/_zombieland/titleblooddrip.shader
 assets/_zombieland/zombiesymbiant.mat
 assets/_zombieland/zombiesymbiant.shader
 ```
 
-The script then checks the Unity log for a matching validation line for every requested OS, prints the SHA-256 of each deployed bundle, and confirms that Unity exited batch mode successfully.
+The script rejects shader compiler errors, then checks the Unity log for a matching validation line for every requested OS, verifies that the title blood-drip shader contains its update and display passes, prints the SHA-256 of each deployed bundle, and confirms that Unity exited batch mode successfully. Because the supported workflow runs Unity with `-nographics`, this proves shader import, compiler diagnostics, and bundle structure, but it does not claim support on a player's graphics device. Use the live `zombieland/startup_support_state` RimBridge probe to verify the shader, render-texture format, and graphics device in a real game process.
 
 ### Expected Output
 
@@ -196,12 +197,12 @@ A successful quick macOS build prints lines similar to:
 
 ```text
 Building Zombieland asset bundle(s): MacOS
-Zombieland bundle validated MacOS: Dust=Dust, Metaballs=Custom/Metaballs, MainMenuBackgroundEffect=Custom/ZombielandMainMenuBackgroundEffect, ZombieSymbiant=Custom/ZombieSymbiant, assets=8, Unity=2022.3.62f3, path=/Users/ap/Projects/ZombieLand/1.6/Resources/MacOS/zombieland
+Zombieland bundle validated MacOS: Dust=Dust, Metaballs=Custom/Metaballs, MainMenuBackgroundEffect=Custom/ZombielandMainMenuBackgroundEffect, TitleBloodDrip=Custom/ZombielandTitleBloodDrip, TitleBloodDripPasses=2, ZombieSymbiant=Custom/ZombieSymbiant, assets=9, Unity=2022.3.62f3, path=/Users/ap/Projects/ZombieLand/1.6/Resources/MacOS/zombieland
 <sha256>  /Users/ap/Projects/ZombieLand/1.6/Resources/MacOS/zombieland
 Exiting batchmode successfully now!
 ```
 
-The exact SHA-256 changes whenever Unity output changes. The important checks are the correct `1.6/Resources/{OS}/zombieland` path, `assets=8`, and `Exiting batchmode successfully now!`.
+The exact SHA-256 changes whenever Unity output changes. The important checks are the correct `1.6/Resources/{OS}/zombieland` path, `assets=9`, and `Exiting batchmode successfully now!`.
 
 ### Iteration Speed
 

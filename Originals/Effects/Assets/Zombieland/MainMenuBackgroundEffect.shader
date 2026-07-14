@@ -13,6 +13,7 @@ Shader "Custom/ZombielandMainMenuBackgroundEffect"
 		_GlitchIntervalJitter ("Glitch Interval Jitter", Range(0, 2)) = 1.5
 		_GlitchRepeatChance ("Glitch Repeat Chance", Range(0, 1)) = 0.2
 		_GlitchAmount ("Glitch Amount", Range(0, 1)) = 0.92
+		_GlitchEnabled ("Glitch Enabled", Range(0, 1)) = 1
 		_GlitchLayerSpread ("Glitch Layer Spread", Range(0, 0.16)) = 0.055
 		_GlitchLayerJitter ("Glitch Layer Jitter", Range(0, 0.12)) = 0.045
 		_VignetteColor ("Vignette Color", Color) = (0.06, 0.08, 0.06, 1)
@@ -39,6 +40,7 @@ Shader "Custom/ZombielandMainMenuBackgroundEffect"
 		float _GlitchIntervalJitter;
 		float _GlitchRepeatChance;
 		float _GlitchAmount;
+		float _GlitchEnabled;
 		float _GlitchLayerSpread;
 		float _GlitchLayerJitter;
 		float _VignetteStrength;
@@ -100,6 +102,8 @@ Shader "Custom/ZombielandMainMenuBackgroundEffect"
 
 		float CoordinatedGlitch(float passSeed)
 		{
+			if (_GlitchEnabled < 0.5)
+				return 0.0;
 			float eventIndex = floor(_Time.y / max(_GlitchInterval, 0.1));
 			return max(GlitchPulse(eventIndex - 1.0, passSeed), max(GlitchPulse(eventIndex, passSeed), GlitchPulse(eventIndex + 1.0, passSeed)));
 		}

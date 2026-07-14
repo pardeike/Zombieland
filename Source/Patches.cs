@@ -2747,6 +2747,8 @@ namespace ZombieLand
 			static void Postfix(Pawn_FilthTracker __instance)
 			{
 				// Called after pathing enters a cell; keep exits before symbiant lookup.
+				if (ZombieSettings.Values == null || ZombieSettings.Values.muteSymbiantSplashSounds)
+					return;
 				if (CustomDefs.SymbiantSplash == null)
 					return;
 				var pawn = __instance?.pawn;
@@ -6751,6 +6753,7 @@ namespace ZombieLand
 
 			static void Prefix()
 			{
+				LongEventHandler.ExecuteWhenFinished(TitleBloodDrip.Release);
 				ZombieTicker.ResetAdaptiveState(Current.Game);
 				ZombieBootstrap.ResetLogDedupers();
 			}

@@ -15,6 +15,7 @@ namespace ZombieLand
 		private static Shader metaballShader;
 		private static Shader zombieSymbiantShader;
 		private static Shader mainMenuBackgroundEffectShader;
+		private static Shader titleBloodDripShader;
 
 		[HarmonyPatch(typeof(UIRoot_Entry), nameof(UIRoot_Entry.Init))]
 		[HarmonyPostfix]
@@ -37,6 +38,7 @@ namespace ZombieLand
 			metaballShader = assets.LoadAsset<Shader>("Metaballs");
 			zombieSymbiantShader = assets.LoadAsset<Shader>("ZombieSymbiant");
 			mainMenuBackgroundEffectShader = assets.LoadAsset<Shader>("MainMenuBackgroundEffect");
+			titleBloodDripShader = assets.LoadAsset<Shader>("TitleBloodDrip");
 
 			initialized = true;
 		}
@@ -45,5 +47,6 @@ namespace ZombieLand
 		public static Shader MetaballShader => metaballShader;
 		public static Shader ZombieSymbiantShader => zombieSymbiantShader;
 		public static Shader MainMenuBackgroundEffectShader => mainMenuBackgroundEffectShader;
+		public static Shader TitleBloodDripShader => titleBloodDripShader;
 	}
 }

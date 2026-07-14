@@ -119,6 +119,7 @@
 	<ZombieSymbiantTitle_Help>Zombi Simbiyantları, yoğun kullanılan iç odalara yayılan istilalardır. Bir kolonist konak olur. Konak zombi ısırıklarından gelen enfeksiyona bağışıktır ve Simbiyant büyüdükçe rastgele faydalar kazanır. Simbiyant hücrelerinden geçen piyonlar yavaşlar, konak hariç. Cesetle beslemek Simbiyantı daha hızlı büyütür.\n\nKonak ve Simbiyant aynı haritada kalmalıdır: ayrılırlarsa bağ uykuya geçer ve bu sırada temiz şekilde kaldırılamaz. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir. Simbiyantın bulunduğu haritayı terk etmek onu yok eder ve bağı zorla koparır.\n\nAmeliyat önce bağı temiz şekilde kaldırır ve konaksız Simbiyant sonra geri çekilir.</ZombieSymbiantTitle_Help>
 	<SymbiantEnabled_Help>Doğal Zombi Simbiyantı olaylarını etkinleştirir.</SymbiantEnabled_Help>
 	<SymbiantMaxCells_Help>Bir Simbiyantın kaplayabileceği en fazla harita hücresi.</SymbiantMaxCells_Help>
+	<MuteSymbiantSplashSounds_Help>Konak dışındaki piyonlar Simbiyant hücrelerinden geçerken çıkan sıçrama seslerini susturur.</MuteSymbiantSplashSounds_Help>
 
 	<ZombieMiscTitle_Help>Bu bölüm oynanışı çok fazla etkilemeyen çeşitli ayarlar içerir. Bazıları kozmetiktir, bazıları ise daha yavaş bilgisayarlarda oyunu hızlandırabilir.</ZombieMiscTitle_Help>
 	<UseCustomTextures_Help>Her zombinin yaralar ve zombiyle ilgili diğer izler içeren özel vücut dokuları olur. Bu, Zombieland'in çok bellek kullanmasına neden olur; sorun yaşıyorsanız kapatın, özellikle 32 bit sürümde.</UseCustomTextures_Help>

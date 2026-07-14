@@ -207,7 +207,7 @@ namespace ZombieLand
 					list.Gap(24f);
 				}
 
-				if (DialogExtensions.Section<string>(":ZombieSymbiantTitle", ":SymbiantEnabled", ":SymbiantMaxCells"))
+				if (DialogExtensions.Section<string>(":ZombieSymbiantTitle", ":SymbiantEnabled", ":SymbiantMaxCells", ":MuteSymbiantSplashSounds"))
 				{
 					list.Dialog_Label("ZombieSymbiantTitle", headerColor);
 					list.Dialog_Checkbox("SymbiantEnabled", ref settings.symbiantEnabled);
@@ -215,6 +215,7 @@ namespace ZombieLand
 					{
 						list.Gap(8f);
 						list.Dialog_IntSlider("SymbiantMaxCells", value => value.ToString(), ref settings.symbiantMaxCells, 10, ZombieSymbiant.MAX_METABALLS);
+						list.Dialog_Checkbox("MuteSymbiantSplashSounds", ref settings.muteSymbiantSplashSounds);
 					}
 					list.Gap(24f);
 				}
