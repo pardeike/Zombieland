@@ -63,16 +63,14 @@ def is_runtime_xml(path: Path) -> bool:
 
 
 def changed_paths(base: str) -> list[Path]:
+	# Keep old paths for moves out of the active tree so they still select runtime validation.
+	diff_arguments = ("diff", "--name-only", "--no-renames", "--diff-filter=ACMRD", "-z")
 	if base == "HEAD":
-		committed_or_modified = nul_paths(
-			run_git("diff", "--name-only", "--diff-filter=ACMR", "-z", "HEAD", "--")
-		)
+		committed_or_modified = nul_paths(run_git(*diff_arguments, "HEAD", "--"))
 	else:
-		committed_or_modified = nul_paths(
-			run_git("diff", "--name-only", "--diff-filter=ACMR", "-z", base, "HEAD", "--")
-		)
+		committed_or_modified = nul_paths(run_git(*diff_arguments, base, "HEAD", "--"))
 		committed_or_modified.extend(
-			nul_paths(run_git("diff", "--name-only", "--diff-filter=ACMR", "-z", "HEAD", "--"))
+			nul_paths(run_git(*diff_arguments, "HEAD", "--"))
 		)
 
 	untracked = nul_paths(run_git("ls-files", "--others", "--exclude-standard", "-z", "--"))
@@ -80,7 +78,7 @@ def changed_paths(base: str) -> list[Path]:
 	return [
 		path
 		for _, path in sorted(unique.items())
-		if is_format_target(path) and (ROOT / path).is_file()
+		if is_format_target(path)
 	]
 
 
@@ -177,10 +175,12 @@ def main() -> int:
 	arguments = parse_arguments()
 	paths = changed_paths(arguments.base) if arguments.changed else arguments.paths
 	paths = [path if path.is_absolute() else ROOT / path for path in paths]
+	runtime_selected = any(is_runtime_xml(path.relative_to(ROOT)) for path in paths if path.is_relative_to(ROOT))
+	if arguments.changed:
+		paths = [path for path in paths if path.is_file()]
 	if paths and shutil.which("xmllint") is None:
 		print("XML formatting requires xmllint on PATH.", file=sys.stderr)
 		return 2
-	runtime_selected = any(is_runtime_xml(path.relative_to(ROOT)) for path in paths if path.is_relative_to(ROOT))
 	needs_formatting: list[Path] = []
 
 	for path in paths:
