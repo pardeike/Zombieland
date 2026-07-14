@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+"$ROOT/scripts/format-project.sh"
+
 stop_rimworld=true
 restart_rimworld=false
 dotnet_args=()

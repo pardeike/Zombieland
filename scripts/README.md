@@ -1,5 +1,21 @@
 # Scripts
 
+## Project Formatting and Build
+
+Use `./scripts/build-quiet.sh` for the normal compile cycle. Before it builds the main project, it runs `./scripts/format-project.sh`, which applies the repository `.editorconfig` to all C# in both `Source/ZombieLand.csproj` and `Source/BridgeTools/Zombieland.BridgeTools.csproj`. It also formats only changed active XML-like files: runtime XML under `1.6/`, metadata under `About/`, `LoadFolders.xml`, `Directory.Build.props`, and hand-maintained `.csproj` files under `Source/`. The preserved `1.4/` payload and Unity sources under `Originals/` are intentionally excluded.
+
+The XML formatter requires `python3` and `xmllint`. It uses tab indentation, preserves each file's UTF-8 BOM and LF/CRLF style, adds a final newline, and compares canonical XML before replacing a file. Changed runtime XML also goes through `./scripts/check-versioned-xml.sh`. The formatter refuses the rewrite if parsing fails or the canonical document changes.
+
+Run a read-only formatting check with:
+
+```bash
+./scripts/format-project.sh --check
+```
+
+Pass `--base GIT_REVISION` with `--check` to validate active XML changed since a committed revision; the release workflow uses this to check the release commit from a clean checkout.
+
+The repository pins .NET SDK 10.0.301 through `global.json`; the local build and release workflow deliberately use that exact Roslyn formatter. A normal non-deploy build now compiles both the main mod and its BridgeTools companion. Pass `-p:BuildBridgeTools=false` only for a workflow that intentionally excludes the companion, such as the public mod-only release package.
+
 ## XML Validation
 
 Run `./scripts/check-versioned-xml.sh` after changing defs, patches, language data, `LoadFolders.xml`, or mod metadata. The check parses every tracked or non-ignored project XML file, verifies the versioned runtime layout, rejects unexpected direct text in active container documents, detects empty or duplicate active translation entries, detects duplicate active def names, requires active non-English keyed files to have the same key set as English, requires every active language to have the same DefInjected key set, verifies every DefInjected key targets a real English def and full field path (including RimWorld's stable named-list and quest-node paths), preserves runtime placeholders and formatting tokens, requires every direct English def label and description to be translated in every active non-English language, and rejects duplicate effective labels among active non-abstract ThingDefs after each language's injections are applied.

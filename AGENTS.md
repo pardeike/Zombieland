@@ -14,7 +14,7 @@ So go ahead and create a work cycle that keeps track of the overall progress, th
 
 Rules:
 
-- do not waste time formatting the code too much (a bit is ok, but it is not top priority)
+- Do not spend agent time hand-formatting code. `scripts/build-quiet.sh` automatically formats all C# from `.editorconfig` and changed active XML-like files before compiling; use `scripts/format-project.sh --check` for a read-only check. Keep `1.4/` and `Originals/` out of this automated formatting.
 - automate repeated tasks with scripts (either bash or lua inside GABS)
 - working small iterations is good but has the problem that the overall ceremony is slow and uses a lot of tokens. find a balance
 - find a way to analyse the rimworld log in a token efficient way (with a script that de-dups errors/stacktraces)

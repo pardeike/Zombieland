@@ -5,6 +5,7 @@ indent_style = tab
 indent_size = 3
 tab_width = 3
 trim_trailing_whitespace = true
+insert_final_newline = true
 
 dotnet_sort_system_directives_first = false
 
@@ -27,3 +28,10 @@ csharp_space_between_parentheses = false
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
 dotnet_style_allow_statement_immediately_after_block_experimental = true:silent
+
+[*.{xml,csproj,props}]
+indent_style = tab
+indent_size = 3
+tab_width = 3
+trim_trailing_whitespace = true
+insert_final_newline = true
