@@ -701,20 +701,20 @@ namespace ZombieLand
 			var routeSamples = hasActiveRoute == false
 				? Array.Empty<IntVec3>()
 				: AlbinoRealtimeRouteSamples(albino, target).Distinct().ToArray();
-				var routePressureMax = routeSamples.Length == 0
-					? (int?)null
-					: routeSamples.Max(cell => AlbinoRealtimePressureAtCell(albino, cell, sources));
-				var screamTargets = sources.pawns.Where(pawn => AlbinoRealtimeCanScreamAffect(pawn, albino)).ToList();
-				var screamTargetsInRange = screamTargets.Count(pawn => pawn.Position.DistanceToSquared(albino.Position) <= maxRadius * maxRadius);
-				var screamTargetsInEarlyRange = screamTargets.Count(pawn => pawn.Position.DistanceToSquared(albino.Position) <= 64);
-				var localPressure = localPawnPressure + localTurretPressure;
-				var maximumPressure = Math.Max(localPressure, routePressureMax ?? 0);
-				var immediateThreat = HasImmediateAlbinoRealtimeScreamThreat(albino, sources);
-				var urgentRangedThreatsInEarlyReach = AlbinoRealtimeUrgentRangedThreatsAreInEarlyScreamReach(albino, sources);
-				var pressureThresholdMet = urgentRangedThreatsInEarlyReach && ((screamTargetsInEarlyRange >= 2 && maximumPressure >= softPressure)
-					|| (immediateThreat && maximumPressure >= softPressure)
-					|| (maximumPressure >= minPressure && immediateThreat));
-				var defensivePayoffReady = AlbinoRealtimeDefensiveScreamPayoff(albino, sources);
+			var routePressureMax = routeSamples.Length == 0
+				? (int?)null
+				: routeSamples.Max(cell => AlbinoRealtimePressureAtCell(albino, cell, sources));
+			var screamTargets = sources.pawns.Where(pawn => AlbinoRealtimeCanScreamAffect(pawn, albino)).ToList();
+			var screamTargetsInRange = screamTargets.Count(pawn => pawn.Position.DistanceToSquared(albino.Position) <= maxRadius * maxRadius);
+			var screamTargetsInEarlyRange = screamTargets.Count(pawn => pawn.Position.DistanceToSquared(albino.Position) <= 64);
+			var localPressure = localPawnPressure + localTurretPressure;
+			var maximumPressure = Math.Max(localPressure, routePressureMax ?? 0);
+			var immediateThreat = HasImmediateAlbinoRealtimeScreamThreat(albino, sources);
+			var urgentRangedThreatsInEarlyReach = AlbinoRealtimeUrgentRangedThreatsAreInEarlyScreamReach(albino, sources);
+			var pressureThresholdMet = urgentRangedThreatsInEarlyReach && ((screamTargetsInEarlyRange >= 2 && maximumPressure >= softPressure)
+				|| (immediateThreat && maximumPressure >= softPressure)
+				|| (maximumPressure >= minPressure && immediateThreat));
+			var defensivePayoffReady = AlbinoRealtimeDefensiveScreamPayoff(albino, sources);
 			var routeUnsafe = maximumPressure >= softPressure || driver?.noSafeHackRoute == true;
 			var emergencyScreamReady = AlbinoRealtimeDefensiveEmergencyScreamReady(albino, sources, ticks);
 			var screamReady = interruptibleQueuedPlannedScream || albino.albinoNextScreamTick >= 0 && ticks >= albino.albinoNextScreamTick || emergencyScreamReady;
@@ -729,18 +729,18 @@ namespace ZombieLand
 				screamIdle = albino.scream == -1,
 				screamReady = screamReady,
 				emergencyScreamReady = emergencyScreamReady,
-					ticksUntilScreamReady = albino.albinoNextScreamTick < 0 ? null : Math.Max(0, albino.albinoNextScreamTick - ticks),
-					screamTargetsInRange = screamTargetsInRange,
-					screamTargetsInEarlyRange = screamTargetsInEarlyRange,
-					vomitingColonistsIgnored = albino.Map.mapPawns.FreeColonistsSpawned.Count(IsAlbinoRealtimeVomiting),
+				ticksUntilScreamReady = albino.albinoNextScreamTick < 0 ? null : Math.Max(0, albino.albinoNextScreamTick - ticks),
+				screamTargetsInRange = screamTargetsInRange,
+				screamTargetsInEarlyRange = screamTargetsInEarlyRange,
+				vomitingColonistsIgnored = albino.Map.mapPawns.FreeColonistsSpawned.Count(IsAlbinoRealtimeVomiting),
 				localPawnPressure = localPawnPressure,
 				localTurretPressure = localTurretPressure,
 				localPressure = localPressure,
 				immediateMovementPressure = immediateMovementPressure,
-					routePressureMax = routePressureMax,
-					routeUnsafe = routeUnsafe,
-					urgentRangedThreatsInEarlyReach = urgentRangedThreatsInEarlyReach,
-					pressureThresholdMet = pressureThresholdMet,
+				routePressureMax = routePressureMax,
+				routeUnsafe = routeUnsafe,
+				urgentRangedThreatsInEarlyReach = urgentRangedThreatsInEarlyReach,
+				pressureThresholdMet = pressureThresholdMet,
 				defensivePayoffReady = defensivePayoffReady,
 				wouldSwitchIfCheckedNow = routeConsidered && canSwitchScreamState && screamReady && (pressureThresholdMet || (driver?.noSafeHackRoute == true && defensivePayoffReady)),
 				wouldRedirectUnsafeRoute = safetyMoveConsidered && canSwitchScreamState && routeUnsafe && immediateMovementPressure >= softPressure && (screamReady == false || defensivePayoffReady == false),

@@ -88,12 +88,12 @@ namespace ZombieLand
 		public static HediffDef SymbiantDamageEcho;
 		public static GameConditionDef ZombieFreeEvent;
 		public static LetterDef ColonistTurnedZombie;
-			public static LetterDef OtherTurnedZombie;
-			public static LetterDef DangerousSituation;
-			public static LetterDef SymbiantConnection;
-			public static LetterDef SymbiantEvent;
-			public static LetterDef ZombieFreeEventLetter;
-			public static EffecterDef ZombieShockerRoom;
+		public static LetterDef OtherTurnedZombie;
+		public static LetterDef DangerousSituation;
+		public static LetterDef SymbiantConnection;
+		public static LetterDef SymbiantEvent;
+		public static LetterDef ZombieFreeEventLetter;
+		public static EffecterDef ZombieShockerRoom;
 		public static ThingDef BumpLarge;
 		public static ThingDef BumpMedium;
 		public static ThingDef BumpSmall;

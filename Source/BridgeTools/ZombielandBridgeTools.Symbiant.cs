@@ -2158,11 +2158,16 @@ namespace ZombieLand
 					flee = PatchedMethodsForPatchClass("FleeUtility_ShouldFleeFrom_Patch"),
 					manhunter = PatchedMethodsForPatchClass("PawnUtility_GetManhunterOnDamageChance_Patch"),
 					prey = PatchedMethodsForPatchClass("FoodUtility_GetPreyScoreFor_Patch")
-					,shootableCells = PatchedMethodsForPatchClass("ShootLeanUtility_CalcShootableCellsOf_Symbiant_Patch")
-					,shootLine = PatchedMethodsForPatchClass("Verb_TryFindShootLineFromTo_Symbiant_Patch")
-					,projectileLaunch = PatchedMethodsForPatchClass("Projectile_Launch_SymbiantCell_Patch")
-					,projectileImpact = PatchedMethodsForPatchClass("Projectile_ImpactSomething_SymbiantCell_Patch")
-					,explosion = PatchedMethodsForPatchClass("Explosion_AffectCell_Patch")
+					,
+					shootableCells = PatchedMethodsForPatchClass("ShootLeanUtility_CalcShootableCellsOf_Symbiant_Patch")
+					,
+					shootLine = PatchedMethodsForPatchClass("Verb_TryFindShootLineFromTo_Symbiant_Patch")
+					,
+					projectileLaunch = PatchedMethodsForPatchClass("Projectile_Launch_SymbiantCell_Patch")
+					,
+					projectileImpact = PatchedMethodsForPatchClass("Projectile_ImpactSomething_SymbiantCell_Patch")
+					,
+					explosion = PatchedMethodsForPatchClass("Explosion_AffectCell_Patch")
 				};
 
 				var success = symbiant?.Spawned == true
@@ -2225,7 +2230,8 @@ namespace ZombieLand
 					meleeRebinding,
 					animalResponse,
 					patchTargets
-					,assault = mode == "setup-assault" ? DescribeSymbiantAssaultState(map) : null
+					,
+					assault = mode == "setup-assault" ? DescribeSymbiantAssaultState(map) : null
 				};
 			}
 			catch (Exception ex)
@@ -2866,41 +2872,41 @@ namespace ZombieLand
 					&& Mathf.Approximately(worker.GetIngredientCount(extractIngredientDef, null), requiredExtract)
 			};
 
-				var extractIngredient = ThingMaker.MakeThing(CustomDefs.ZombieExtract);
-				extractIngredient.stackCount = requiredExtract;
-				var extractBeforeSuccess = CountSpawnedThingsOfDef(map, CustomDefs.ZombieExtract);
-				var beforeSeveranceLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
-					.ToHashSet();
-				var originalShowLetters = ZombieSettings.Values.showZombieEventLetters;
-				try
-				{
-					ZombieSettings.Values.showZombieEventLetters = true;
-					worker.ApplyOnPawn(host, torso, doctor, new List<Thing> { extractIngredient }, null);
-				}
-				finally
-				{
-					ZombieSettings.Values.showZombieEventLetters = originalShowLetters;
-				}
-				var severanceLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
-					.Where(letter => beforeSeveranceLetters.Contains(letter) == false)
-					.ToArray();
-				var activeAfter = ZombieSymbiant.ActiveSymbiant(map);
-				var linkedAfter = ZombieSymbiant.LinkedSymbiantFor(host);
-				var hediffAfter = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
-				var extractAfterSuccess = CountSpawnedThingsOfDef(map, CustomDefs.ZombieExtract);
-				var consumedMapExtract = extractBeforeSuccess - extractAfterSuccess;
-				var expectedRetreatIntervalTicks = Mathf.Max(GenDate.TicksPerHour, symbiant.CurrentExpansionIntervalTicks / ZombieSymbiant.RetreatSpeedFactor);
-				var success = hediffBefore
-					&& ingredientPathCheck.success
-					&& symbiant.SymbiosisSevered
-				&& symbiant.Destroyed == false
-				&& activeAfter == symbiant
-					&& linkedAfter == null
-					&& hediffAfter == false
-					&& host.Dead == false
-					&& consumedMapExtract == 0
-					&& severanceLetters.Any(letter => letter?.def == CustomDefs.SymbiantEvent && IsGreenLetterColor(letter.def.color))
-					&& symbiant.CurrentRetreatIntervalTicks == expectedRetreatIntervalTicks;
+			var extractIngredient = ThingMaker.MakeThing(CustomDefs.ZombieExtract);
+			extractIngredient.stackCount = requiredExtract;
+			var extractBeforeSuccess = CountSpawnedThingsOfDef(map, CustomDefs.ZombieExtract);
+			var beforeSeveranceLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
+				.ToHashSet();
+			var originalShowLetters = ZombieSettings.Values.showZombieEventLetters;
+			try
+			{
+				ZombieSettings.Values.showZombieEventLetters = true;
+				worker.ApplyOnPawn(host, torso, doctor, new List<Thing> { extractIngredient }, null);
+			}
+			finally
+			{
+				ZombieSettings.Values.showZombieEventLetters = originalShowLetters;
+			}
+			var severanceLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
+				.Where(letter => beforeSeveranceLetters.Contains(letter) == false)
+				.ToArray();
+			var activeAfter = ZombieSymbiant.ActiveSymbiant(map);
+			var linkedAfter = ZombieSymbiant.LinkedSymbiantFor(host);
+			var hediffAfter = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
+			var extractAfterSuccess = CountSpawnedThingsOfDef(map, CustomDefs.ZombieExtract);
+			var consumedMapExtract = extractBeforeSuccess - extractAfterSuccess;
+			var expectedRetreatIntervalTicks = Mathf.Max(GenDate.TicksPerHour, symbiant.CurrentExpansionIntervalTicks / ZombieSymbiant.RetreatSpeedFactor);
+			var success = hediffBefore
+				&& ingredientPathCheck.success
+				&& symbiant.SymbiosisSevered
+			&& symbiant.Destroyed == false
+			&& activeAfter == symbiant
+				&& linkedAfter == null
+				&& hediffAfter == false
+				&& host.Dead == false
+				&& consumedMapExtract == 0
+				&& severanceLetters.Any(letter => letter?.def == CustomDefs.SymbiantEvent && IsGreenLetterColor(letter.def.color))
+				&& symbiant.CurrentRetreatIntervalTicks == expectedRetreatIntervalTicks;
 
 			return new
 			{
@@ -2909,17 +2915,17 @@ namespace ZombieLand
 				requiredExtract,
 				ingredientPathCheck,
 				extractBeforeSuccess,
-					extractAfterSuccess,
-					consumedMapExtract,
-					providedIngredientExtract = extractIngredient.stackCount,
-					symbiantDestroyed = symbiant.Destroyed,
-					symbiosisSevered = symbiant.SymbiosisSevered,
-					expansionIntervalTicks = symbiant.CurrentExpansionIntervalTicks,
-					retreatIntervalTicks = symbiant.CurrentRetreatIntervalTicks,
-					expectedRetreatIntervalTicks,
-					retreatSpeedFactor = ZombieSymbiant.RetreatSpeedFactor,
-					severanceLetters = severanceLetters.Select(DescribeSymbiantDiscoveryLetter).ToArray(),
-					activeAfter = ZombieRuntimeActions.StableThingId(activeAfter),
+				extractAfterSuccess,
+				consumedMapExtract,
+				providedIngredientExtract = extractIngredient.stackCount,
+				symbiantDestroyed = symbiant.Destroyed,
+				symbiosisSevered = symbiant.SymbiosisSevered,
+				expansionIntervalTicks = symbiant.CurrentExpansionIntervalTicks,
+				retreatIntervalTicks = symbiant.CurrentRetreatIntervalTicks,
+				expectedRetreatIntervalTicks,
+				retreatSpeedFactor = ZombieSymbiant.RetreatSpeedFactor,
+				severanceLetters = severanceLetters.Select(DescribeSymbiantDiscoveryLetter).ToArray(),
+				activeAfter = ZombieRuntimeActions.StableThingId(activeAfter),
 				linkedAfter = ZombieRuntimeActions.StableThingId(linkedAfter),
 				hediffBefore,
 				hediffAfter,
@@ -2952,17 +2958,17 @@ namespace ZombieLand
 			object fixtureSetup = null;
 			object error = null;
 			object initial = null;
-				object deduplication = null;
-				object repair = null;
-				object high = null;
-				object capacities = null;
-				object skill = null;
-				object benefitLetter = null;
-				object autoHeal = null;
-				object immediateInfectionImmunity = null;
-				object forcedBenefits = null;
-				object stackedBenefits = null;
-				var addedCells = 0;
+			object deduplication = null;
+			object repair = null;
+			object high = null;
+			object capacities = null;
+			object skill = null;
+			object benefitLetter = null;
+			object autoHeal = null;
+			object immediateInfectionImmunity = null;
+			object forcedBenefits = null;
+			object stackedBenefits = null;
+			var addedCells = 0;
 
 			try
 			{
@@ -2997,45 +3003,45 @@ namespace ZombieLand
 						&& ZombieSymbiant.HostHediffSeverity(0f) >= 0.001f
 				};
 
-					var roomCells = fixture.room.interiorRect.Cells
-						.Where(cell => cell.InBounds(map) && cell.Standable(map))
-						.ToArray();
-					var beforeBenefitLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
-						.ToHashSet();
-					ZombieSettings.Values.showZombieEventLetters = true;
-					addedCells = ZombieSymbiant.AddCells(map, roomCells);
-					var benefitLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
-						.Where(letter => beforeBenefitLetters.Contains(letter) == false)
-						.ToArray();
-					var symbiantEventColor = CustomDefs.SymbiantEvent?.color ?? CustomDefs.SymbiantConnection?.color ?? Color.clear;
-					benefitLetter = new
-					{
-						success = benefitLetters.Any(letter => letter?.def == CustomDefs.SymbiantEvent && IsGreenLetterColor(letter.def.color)),
-						eventLetterDef = CustomDefs.SymbiantEvent?.defName,
-						eventLetterColor = DescribeColor(symbiantEventColor),
-						colorOk = IsGreenLetterColor(symbiantEventColor),
-						letters = benefitLetters.Select(DescribeSymbiantDiscoveryLetter).ToArray()
-					};
-					forcedBenefits = EnsureSymbiantHostBenefitsForProbe(symbiant, "ZombieIgnore", "SkillBonus", "MoveSpeed", "Manipulation", "AutoHeal");
-					var stackedMoveSpeed = EnsureSymbiantHostBenefitCountForProbe(symbiant, "MoveSpeed", 2);
-					var stackedManipulation = EnsureSymbiantHostBenefitCountForProbe(symbiant, "Manipulation", 2);
-					var stackedSkill = EnsureSymbiantHostBenefitCountForProbe(symbiant, "SkillBonus", 2);
-					stackedBenefits = new
-					{
-						success = ScenarioSucceeded(stackedMoveSpeed)
-							&& ScenarioSucceeded(stackedManipulation)
-							&& ScenarioSucceeded(stackedSkill),
-						moveSpeed = stackedMoveSpeed,
-						manipulation = stackedManipulation,
-						skill = stackedSkill
-					};
-					RepairHostLink(symbiant);
-					high = DescribeSymbiantBenefitCheck(symbiant, host);
-					capacities = VerifySymbiantCapacityBenefits(host);
-					skill = DescribeSymbiantSkillBonus(host);
-					autoHeal = VerifySymbiantAutoHealKeepsContamination(symbiant, host);
-					immediateInfectionImmunity = VerifySymbiantImmediateInfectionImmunity(host);
-				}
+				var roomCells = fixture.room.interiorRect.Cells
+					.Where(cell => cell.InBounds(map) && cell.Standable(map))
+					.ToArray();
+				var beforeBenefitLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
+					.ToHashSet();
+				ZombieSettings.Values.showZombieEventLetters = true;
+				addedCells = ZombieSymbiant.AddCells(map, roomCells);
+				var benefitLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
+					.Where(letter => beforeBenefitLetters.Contains(letter) == false)
+					.ToArray();
+				var symbiantEventColor = CustomDefs.SymbiantEvent?.color ?? CustomDefs.SymbiantConnection?.color ?? Color.clear;
+				benefitLetter = new
+				{
+					success = benefitLetters.Any(letter => letter?.def == CustomDefs.SymbiantEvent && IsGreenLetterColor(letter.def.color)),
+					eventLetterDef = CustomDefs.SymbiantEvent?.defName,
+					eventLetterColor = DescribeColor(symbiantEventColor),
+					colorOk = IsGreenLetterColor(symbiantEventColor),
+					letters = benefitLetters.Select(DescribeSymbiantDiscoveryLetter).ToArray()
+				};
+				forcedBenefits = EnsureSymbiantHostBenefitsForProbe(symbiant, "ZombieIgnore", "SkillBonus", "MoveSpeed", "Manipulation", "AutoHeal");
+				var stackedMoveSpeed = EnsureSymbiantHostBenefitCountForProbe(symbiant, "MoveSpeed", 2);
+				var stackedManipulation = EnsureSymbiantHostBenefitCountForProbe(symbiant, "Manipulation", 2);
+				var stackedSkill = EnsureSymbiantHostBenefitCountForProbe(symbiant, "SkillBonus", 2);
+				stackedBenefits = new
+				{
+					success = ScenarioSucceeded(stackedMoveSpeed)
+						&& ScenarioSucceeded(stackedManipulation)
+						&& ScenarioSucceeded(stackedSkill),
+					moveSpeed = stackedMoveSpeed,
+					manipulation = stackedManipulation,
+					skill = stackedSkill
+				};
+				RepairHostLink(symbiant);
+				high = DescribeSymbiantBenefitCheck(symbiant, host);
+				capacities = VerifySymbiantCapacityBenefits(host);
+				skill = DescribeSymbiantSkillBonus(host);
+				autoHeal = VerifySymbiantAutoHealKeepsContamination(symbiant, host);
+				immediateInfectionImmunity = VerifySymbiantImmediateInfectionImmunity(host);
+			}
 			catch (Exception ex)
 			{
 				error = ex.ToString();
@@ -3077,18 +3083,18 @@ namespace ZombieLand
 				error,
 				fixtureSetup,
 				initial,
-					deduplication,
-					repair,
-					addedCells,
-					high,
-					capacities,
-					benefitLetter,
-					forcedBenefits,
-					stackedBenefits,
-					skill,
-					autoHeal,
-					immediateInfectionImmunity,
-					cleanup = new
+				deduplication,
+				repair,
+				addedCells,
+				high,
+				capacities,
+				benefitLetter,
+				forcedBenefits,
+				stackedBenefits,
+				skill,
+				autoHeal,
+				immediateInfectionImmunity,
+				cleanup = new
 				{
 					symbiant = cleanupResult,
 					fixture = fixtureCleanup,
@@ -3388,146 +3394,146 @@ namespace ZombieLand
 			}
 		}
 
-			static object EnsureSymbiantHostBenefitsForProbe(ZombieSymbiant symbiant, params string[] benefitNames)
+		static object EnsureSymbiantHostBenefitsForProbe(ZombieSymbiant symbiant, params string[] benefitNames)
+		{
+			var enumType = typeof(ZombieSymbiant).GetNestedType("HostBenefit", System.Reflection.BindingFlags.NonPublic);
+			var hostBenefitsField = AccessTools.Field(typeof(ZombieSymbiant), "hostBenefits");
+			var list = hostBenefitsField?.GetValue(symbiant) as IList;
+			if (symbiant == null || enumType == null || list == null)
+				return new { success = false, error = "Could not access Symbiant host benefit list." };
+
+			var added = new List<string>();
+			foreach (var benefitName in benefitNames ?? Array.Empty<string>())
 			{
+				var value = Enum.Parse(enumType, benefitName);
+				if (list.Contains(value))
+					continue;
+				list.Add(value);
+				added.Add(benefitName);
+			}
+			RepairHostLink(symbiant);
+			ZombieSymbiant.NotifyHostCapacityBenefitsChanged(symbiant.LinkedHost);
+			var configured = (benefitNames ?? Array.Empty<string>())
+				.Select(benefitName => new
+				{
+					name = benefitName,
+					count = SymbiantHostBenefitCountForProbe(symbiant, benefitName)
+				})
+				.ToArray();
+			return new
+			{
+				success = configured.All(item => item.count > 0),
+				requested = benefitNames ?? Array.Empty<string>(),
+				added = added.ToArray(),
+				configured
+			};
+		}
+
+		static object VerifySymbiantAutoHealKeepsContamination(ZombieSymbiant symbiant, Pawn host)
+		{
+			if (symbiant == null || host?.health?.hediffSet == null)
+				return new { success = false, error = "Symbiant or host health is missing." };
+			if (Constants.CONTAMINATION == false)
+				return new { success = true, skipped = true, reason = "Contamination is disabled." };
+
+			var originalContamination = host.GetContamination(false);
+			var torso = host.RaceProps?.body?.AllParts?.FirstOrDefault(part => part.def == BodyPartDefOf.Torso);
+			if (torso == null)
+				return new { success = false, error = "Host has no torso body part for the injury probe." };
+
+			Hediff_Injury injury = null;
+			try
+			{
+				host.SetContamination(0.8f);
+				var contaminationHediff = host.health.hediffSet.GetFirstHediffOfDef(CustomDefs.ContaminationEffect);
+				injury = HediffMaker.MakeHediff(HediffDefOf.Cut, host, torso) as Hediff_Injury;
+				if (injury == null)
+					return new { success = false, error = "Could not create a cut injury." };
+				injury.Severity = 7f;
+				host.health.AddHediff(injury, torso);
+
 				var enumType = typeof(ZombieSymbiant).GetNestedType("HostBenefit", System.Reflection.BindingFlags.NonPublic);
 				var hostBenefitsField = AccessTools.Field(typeof(ZombieSymbiant), "hostBenefits");
 				var list = hostBenefitsField?.GetValue(symbiant) as IList;
-				if (symbiant == null || enumType == null || list == null)
+				if (enumType == null || list == null)
 					return new { success = false, error = "Could not access Symbiant host benefit list." };
+				list.Add(Enum.Parse(enumType, "AutoHeal"));
+				AccessTools.Method(typeof(ZombieSymbiant), "TryAutoHealHost")?.Invoke(symbiant, null);
 
-				var added = new List<string>();
-				foreach (var benefitName in benefitNames ?? Array.Empty<string>())
-				{
-					var value = Enum.Parse(enumType, benefitName);
-					if (list.Contains(value))
-						continue;
-					list.Add(value);
-					added.Add(benefitName);
-				}
-				RepairHostLink(symbiant);
-				ZombieSymbiant.NotifyHostCapacityBenefitsChanged(symbiant.LinkedHost);
-				var configured = (benefitNames ?? Array.Empty<string>())
-					.Select(benefitName => new
-					{
-						name = benefitName,
-						count = SymbiantHostBenefitCountForProbe(symbiant, benefitName)
-					})
-					.ToArray();
+				var contaminationAfter = host.GetContamination(false);
+				var contaminationHediffAfter = host.health.hediffSet.GetFirstHediffOfDef(CustomDefs.ContaminationEffect);
+				var injuryStillPresent = host.health.hediffSet.hediffs.Contains(injury);
+				var injuryHealed = injury.Severity <= 0.001f;
+				var contaminationHediffAutoHealable = ZombieSymbiant.IsAutoHealableHediffForDebug(contaminationHediff);
 				return new
 				{
-					success = configured.All(item => item.count > 0),
-					requested = benefitNames ?? Array.Empty<string>(),
-					added = added.ToArray(),
-					configured
+					success = contaminationHediff != null
+						&& contaminationHediffAfter != null
+						&& contaminationAfter > 0.75f
+						&& injuryHealed
+						&& contaminationHediffAutoHealable == false,
+					contaminationBefore = 0.8f,
+					contaminationAfter,
+					contaminationHediffBefore = contaminationHediff?.def?.defName,
+					contaminationHediffAfter = contaminationHediffAfter?.def?.defName,
+					contaminationHediffAutoHealable,
+					injuryHealed,
+					injuryStillPresent,
+					injurySeverityAfter = injury.Severity
 				};
 			}
-
-			static object VerifySymbiantAutoHealKeepsContamination(ZombieSymbiant symbiant, Pawn host)
+			finally
 			{
-				if (symbiant == null || host?.health?.hediffSet == null)
-					return new { success = false, error = "Symbiant or host health is missing." };
-				if (Constants.CONTAMINATION == false)
-					return new { success = true, skipped = true, reason = "Contamination is disabled." };
-
-				var originalContamination = host.GetContamination(false);
-				var torso = host.RaceProps?.body?.AllParts?.FirstOrDefault(part => part.def == BodyPartDefOf.Torso);
-				if (torso == null)
-					return new { success = false, error = "Host has no torso body part for the injury probe." };
-
-				Hediff_Injury injury = null;
-				try
-				{
-					host.SetContamination(0.8f);
-					var contaminationHediff = host.health.hediffSet.GetFirstHediffOfDef(CustomDefs.ContaminationEffect);
-					injury = HediffMaker.MakeHediff(HediffDefOf.Cut, host, torso) as Hediff_Injury;
-					if (injury == null)
-						return new { success = false, error = "Could not create a cut injury." };
-					injury.Severity = 7f;
-					host.health.AddHediff(injury, torso);
-
-					var enumType = typeof(ZombieSymbiant).GetNestedType("HostBenefit", System.Reflection.BindingFlags.NonPublic);
-					var hostBenefitsField = AccessTools.Field(typeof(ZombieSymbiant), "hostBenefits");
-					var list = hostBenefitsField?.GetValue(symbiant) as IList;
-					if (enumType == null || list == null)
-						return new { success = false, error = "Could not access Symbiant host benefit list." };
-					list.Add(Enum.Parse(enumType, "AutoHeal"));
-					AccessTools.Method(typeof(ZombieSymbiant), "TryAutoHealHost")?.Invoke(symbiant, null);
-
-					var contaminationAfter = host.GetContamination(false);
-					var contaminationHediffAfter = host.health.hediffSet.GetFirstHediffOfDef(CustomDefs.ContaminationEffect);
-					var injuryStillPresent = host.health.hediffSet.hediffs.Contains(injury);
-					var injuryHealed = injury.Severity <= 0.001f;
-					var contaminationHediffAutoHealable = ZombieSymbiant.IsAutoHealableHediffForDebug(contaminationHediff);
-					return new
-					{
-						success = contaminationHediff != null
-							&& contaminationHediffAfter != null
-							&& contaminationAfter > 0.75f
-							&& injuryHealed
-							&& contaminationHediffAutoHealable == false,
-						contaminationBefore = 0.8f,
-						contaminationAfter,
-						contaminationHediffBefore = contaminationHediff?.def?.defName,
-						contaminationHediffAfter = contaminationHediffAfter?.def?.defName,
-						contaminationHediffAutoHealable,
-						injuryHealed,
-						injuryStillPresent,
-						injurySeverityAfter = injury.Severity
-					};
-				}
-				finally
-				{
-					if (injury != null && host.health?.hediffSet?.hediffs?.Contains(injury) == true)
-						host.health.RemoveHediff(injury);
-					host.SetContamination(originalContamination);
-				}
+				if (injury != null && host.health?.hediffSet?.hediffs?.Contains(injury) == true)
+					host.health.RemoveHediff(injury);
+				host.SetContamination(originalContamination);
 			}
+		}
 
-			static object VerifySymbiantImmediateInfectionImmunity(Pawn host)
+		static object VerifySymbiantImmediateInfectionImmunity(Pawn host)
+		{
+			var biteDef = HediffDef.Named("ZombieBite");
+			if (host?.health?.hediffSet == null || biteDef == null || CustomDefs.ZombieBite == null)
+				return new { success = false, error = "Host health or ZombieBite def is unavailable." };
+			var part = host.health.hediffSet
+				.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Outside)
+				.FirstOrDefault(candidate => candidate.def.IsSolid(candidate, host.health.hediffSet.hediffs) == false);
+			if (part == null)
+				return new { success = false, error = "Host has no non-solid part for the infection-immunity probe." };
+
+			var previousChance = ZombieSettings.Values.zombieBiteInfectionChance;
+			Hediff_Injury_ZombieBite bite = null;
+			try
 			{
-				var biteDef = HediffDef.Named("ZombieBite");
-				if (host?.health?.hediffSet == null || biteDef == null || CustomDefs.ZombieBite == null)
-					return new { success = false, error = "Host health or ZombieBite def is unavailable." };
-				var part = host.health.hediffSet
-					.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Outside)
-					.FirstOrDefault(candidate => candidate.def.IsSolid(candidate, host.health.hediffSet.hediffs) == false);
-				if (part == null)
-					return new { success = false, error = "Host has no non-solid part for the infection-immunity probe." };
-
-				var previousChance = ZombieSettings.Values.zombieBiteInfectionChance;
-				Hediff_Injury_ZombieBite bite = null;
-				try
+				ZombieSettings.Values.zombieBiteInfectionChance = 1f;
+				bite = HediffMaker.MakeHediff(biteDef, host, part) as Hediff_Injury_ZombieBite;
+				if (bite?.TendDuration?.ZombieInfector == null)
+					return new { success = false, error = "Could not create a fully configured ZombieBite." };
+				host.health.AddHediff(bite, part, new DamageInfo(CustomDefs.ZombieBite, 2f));
+				var infector = bite.TendDuration.ZombieInfector;
+				var stateImmediatelyAfterAdd = bite.TendDuration.GetInfectionState();
+				return new
 				{
-					ZombieSettings.Values.zombieBiteInfectionChance = 1f;
-					bite = HediffMaker.MakeHediff(biteDef, host, part) as Hediff_Injury_ZombieBite;
-					if (bite?.TendDuration?.ZombieInfector == null)
-						return new { success = false, error = "Could not create a fully configured ZombieBite." };
-					host.health.AddHediff(bite, part, new DamageInfo(CustomDefs.ZombieBite, 2f));
-					var infector = bite.TendDuration.ZombieInfector;
-					var stateImmediatelyAfterAdd = bite.TendDuration.GetInfectionState();
-					return new
-					{
-						success = ZombieSymbiant.HasZombieInfectionImmunity(host)
-							&& stateImmediatelyAfterAdd == InfectionState.BittenHarmless
-							&& infector.infectionKnownDelay == 0
-							&& infector.infectionStartTime == 0
-							&& infector.infectionEndTime == 0,
-						stateImmediatelyAfterAdd = stateImmediatelyAfterAdd.ToString(),
-						infector.infectionKnownDelay,
-						infector.infectionStartTime,
-						infector.infectionEndTime
-					};
-				}
-				finally
-				{
-					ZombieSettings.Values.zombieBiteInfectionChance = previousChance;
-					if (bite != null && host.health?.hediffSet?.hediffs?.Contains(bite) == true)
-						host.health.RemoveHediff(bite);
-				}
+					success = ZombieSymbiant.HasZombieInfectionImmunity(host)
+						&& stateImmediatelyAfterAdd == InfectionState.BittenHarmless
+						&& infector.infectionKnownDelay == 0
+						&& infector.infectionStartTime == 0
+						&& infector.infectionEndTime == 0,
+					stateImmediatelyAfterAdd = stateImmediatelyAfterAdd.ToString(),
+					infector.infectionKnownDelay,
+					infector.infectionStartTime,
+					infector.infectionEndTime
+				};
 			}
+			finally
+			{
+				ZombieSettings.Values.zombieBiteInfectionChance = previousChance;
+				if (bite != null && host.health?.hediffSet?.hediffs?.Contains(bite) == true)
+					host.health.RemoveHediff(bite);
+			}
+		}
 
-			static bool BenefitCheckHasHediff(object check)
+		static bool BenefitCheckHasHediff(object check)
 		{
 			return (bool?)check?.GetType().GetProperty("hasHediff")?.GetValue(check) == true;
 		}
@@ -5481,153 +5487,153 @@ namespace ZombieLand
 				letterCleanup,
 				fixtureCleanup,
 				activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
-				};
-			}
+			};
+		}
 
-			[Tool("zombieland/symbiant_door_path_cost_contract", Description = "Build a reversible door fixture and verify a Symbiant-covered door cell applies the difficulty-scaled slowdown to the actual path follower door-entry cost.")]
-			public static object SymbiantDoorPathCostContract(
-				[ToolParameter(Description = "Destroy the temporary pawn, symbiant, and door fixture after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
+		[Tool("zombieland/symbiant_door_path_cost_contract", Description = "Build a reversible door fixture and verify a Symbiant-covered door cell applies the difficulty-scaled slowdown to the actual path follower door-entry cost.")]
+		public static object SymbiantDoorPathCostContract(
+			[ToolParameter(Description = "Destroy the temporary pawn, symbiant, and door fixture after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
+		{
+			var map = CurrentMap;
+			if (map == null)
+				return new { success = false, error = "No current map is loaded." };
+
+			var activeBefore = ZombieSymbiant.ActiveSymbiant(map);
+			if (activeBefore != null)
+				return new { success = false, error = "An active symbiant already exists on the current map.", activeSymbiant = ZombieRuntimeActions.StableThingId(activeBefore) };
+
+			if (TrySetupSymbiantExpansionFixture(map, out var fixture, out var fixtureError) == false)
+				return fixtureError;
+
+			ZombieSymbiant symbiant = null;
+			Pawn actor = null;
+			try
 			{
-				var map = CurrentMap;
-				if (map == null)
-					return new { success = false, error = "No current map is loaded." };
-
-				var activeBefore = ZombieSymbiant.ActiveSymbiant(map);
-				if (activeBefore != null)
-					return new { success = false, error = "An active symbiant already exists on the current map.", activeSymbiant = ZombieRuntimeActions.StableThingId(activeBefore) };
-
-				if (TrySetupSymbiantExpansionFixture(map, out var fixture, out var fixtureError) == false)
-					return fixtureError;
-
-				ZombieSymbiant symbiant = null;
-				Pawn actor = null;
-				try
+				var insideCell = fixture.doorCell + IntVec3.South;
+				var outsideCell = fixture.doorCell + IntVec3.North;
+				if (insideCell.InBounds(map) == false || outsideCell.InBounds(map) == false || insideCell.Standable(map) == false || outsideCell.Standable(map) == false)
 				{
-					var insideCell = fixture.doorCell + IntVec3.South;
-					var outsideCell = fixture.doorCell + IntVec3.North;
-					if (insideCell.InBounds(map) == false || outsideCell.InBounds(map) == false || insideCell.Standable(map) == false || outsideCell.Standable(map) == false)
+					return new
 					{
-						return new
-						{
-							success = false,
-							fixture = DescribeSymbiantExpansionFixture(fixture),
-							insideCell = ZombieRuntimeActions.DescribeCell(insideCell),
-							outsideCell = ZombieRuntimeActions.DescribeCell(outsideCell),
-							error = "Door path-cost fixture did not have standable cells on both sides of the door."
-						};
-					}
+						success = false,
+						fixture = DescribeSymbiantExpansionFixture(fixture),
+						insideCell = ZombieRuntimeActions.DescribeCell(insideCell),
+						outsideCell = ZombieRuntimeActions.DescribeCell(outsideCell),
+						error = "Door path-cost fixture did not have standable cells on both sides of the door."
+					};
+				}
 
-					symbiant = ZombieSymbiant.DebugSpawnForRendering(map, fixture.spawnCell, new[] { fixture.spawnCell, fixture.doorCell });
-					if (symbiant == null)
-						return new { success = false, fixture = DescribeSymbiantExpansionFixture(fixture), error = "Could not spawn temporary Symbiant for door path-cost contract." };
+				symbiant = ZombieSymbiant.DebugSpawnForRendering(map, fixture.spawnCell, new[] { fixture.spawnCell, fixture.doorCell });
+				if (symbiant == null)
+					return new { success = false, fixture = DescribeSymbiantExpansionFixture(fixture), error = "Could not spawn temporary Symbiant for door path-cost contract." };
 
-					actor = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
-					GenSpawn.Spawn(actor, insideCell, map, Rot4.North, WipeMode.Vanish);
-					actor.jobs?.EndCurrentJob(JobCondition.InterruptForced);
+				actor = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+				GenSpawn.Spawn(actor, insideCell, map, Rot4.North, WipeMode.Vanish);
+				actor.jobs?.EndCurrentJob(JobCondition.InterruptForced);
 				if (actor.CanReach(outsideCell, PathEndMode.OnCell, Danger.Deadly) == false)
 					return new
 					{
 						success = false,
 						fixture = DescribeSymbiantExpansionFixture(fixture),
-							actor = DescribePawn(actor),
-							outsideCell = ZombieRuntimeActions.DescribeCell(outsideCell),
-							error = "Temporary colonist could not path through the fixture door."
+						actor = DescribePawn(actor),
+						outsideCell = ZombieRuntimeActions.DescribeCell(outsideCell),
+						error = "Temporary colonist could not path through the fixture door."
 					};
 
-					var previousProfile = ZombieSymbiant.DebugPerfProfile;
-					float baseDoorCellCost = 0f;
-					string baseCostError = null;
-					var baseCostSuccess = false;
-					try
-					{
-						_ = ZombieSymbiant.SetDebugPerfProfile("noPath");
-						baseCostSuccess = TryCostToMoveIntoCell(actor, fixture.doorCell, out baseDoorCellCost, out baseCostError);
-					}
-					finally
-					{
-						_ = ZombieSymbiant.SetDebugPerfProfile(previousProfile);
-					}
-					var expectedCost = baseCostSuccess ? ZombieSymbiant.SymbiantMoveCost(actor, baseDoorCellCost) : 0;
-					var fixtureDescription = DescribeSymbiantExpansionFixture(fixture);
-					var actorDescription = DescribePawn(actor);
-					var symbiantId = ZombieRuntimeActions.StableThingId(symbiant);
-					var symbiantContainsDoor = symbiant.ContainsCell(fixture.doorCell);
-					var staticCostSuccess = TryCostToMoveIntoCell(actor, fixture.doorCell, out var doorCellCost, out var costError);
-					var staticCost = new
-					{
-						success = baseCostSuccess && staticCostSuccess && expectedCost > baseDoorCellCost && doorCellCost >= expectedCost,
-						baseCost = baseDoorCellCost,
-						cost = doorCellCost,
-						expectedCost,
-						slowPercent = ZombieSymbiant.SymbiantCellSlowPercent(),
-						error = baseCostError ?? costError
-						};
-
-					actor.pather.StartPath(outsideCell, PathEndMode.OnCell);
-					object inflatedSample = null;
-					var samples = new List<object>();
-					for (var tick = 0; tick <= 30; tick++)
-					{
-						if (tick > 0)
-							AdvanceGameTicks(1);
-
-						var nextCell = actor.pather.nextCell;
-						var sample = new
-						{
-							tick,
-							position = ZombieRuntimeActions.DescribeCell(actor.Position),
-							nextCell = nextCell.IsValid ? ZombieRuntimeActions.DescribeCell(nextCell) : null,
-							actor.pather.Moving,
-							actor.pather.MovingNow,
-							actor.pather.nextCellCostTotal,
-							actor.pather.nextCellCostLeft,
-							doorOpen = fixture.door?.Open,
-							doorTicksUntilClose = fixture.door?.ticksUntilClose
-						};
-						samples.Add(sample);
-						if (nextCell == fixture.doorCell && actor.pather.nextCellCostTotal >= expectedCost)
-						{
-							inflatedSample = sample;
-							break;
-						}
-					}
-
-					var cleanupResult = CleanupTemporarySymbiant(map, symbiant, cleanup);
-					var actorCleanup = CleanupTemporaryPawn(actor, cleanup);
-					var fixtureCleanup = CleanupSymbiantExpansionFixture(map, fixture, cleanup);
-					var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
-					return new
-					{
-						success = symbiantContainsDoor
-							&& ScenarioSucceeded(staticCost)
-							&& inflatedSample != null
-							&& activeAfterCleanup == null,
-						expectedCost,
-						fixture = fixtureDescription,
-						symbiant = symbiantId,
-						actor = actorDescription,
-						doorCell = ZombieRuntimeActions.DescribeCell(fixture.doorCell),
-						symbiantContainsDoor,
-						staticCost,
-						inflatedSample,
-						samples = samples.ToArray(),
-						cleanup = cleanupResult,
-						actorCleanup,
-						fixtureCleanup,
-						activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
-					};
+				var previousProfile = ZombieSymbiant.DebugPerfProfile;
+				float baseDoorCellCost = 0f;
+				string baseCostError = null;
+				var baseCostSuccess = false;
+				try
+				{
+					_ = ZombieSymbiant.SetDebugPerfProfile("noPath");
+					baseCostSuccess = TryCostToMoveIntoCell(actor, fixture.doorCell, out baseDoorCellCost, out baseCostError);
 				}
 				finally
 				{
-					_ = CleanupTemporarySymbiant(map, symbiant, cleanup);
-					_ = CleanupTemporaryPawn(actor, cleanup);
-					_ = CleanupSymbiantExpansionFixture(map, fixture, cleanup);
+					_ = ZombieSymbiant.SetDebugPerfProfile(previousProfile);
 				}
-			}
+				var expectedCost = baseCostSuccess ? ZombieSymbiant.SymbiantMoveCost(actor, baseDoorCellCost) : 0;
+				var fixtureDescription = DescribeSymbiantExpansionFixture(fixture);
+				var actorDescription = DescribePawn(actor);
+				var symbiantId = ZombieRuntimeActions.StableThingId(symbiant);
+				var symbiantContainsDoor = symbiant.ContainsCell(fixture.doorCell);
+				var staticCostSuccess = TryCostToMoveIntoCell(actor, fixture.doorCell, out var doorCellCost, out var costError);
+				var staticCost = new
+				{
+					success = baseCostSuccess && staticCostSuccess && expectedCost > baseDoorCellCost && doorCellCost >= expectedCost,
+					baseCost = baseDoorCellCost,
+					cost = doorCellCost,
+					expectedCost,
+					slowPercent = ZombieSymbiant.SymbiantCellSlowPercent(),
+					error = baseCostError ?? costError
+				};
 
-			[Tool("zombieland/symbiant_relocation_contract", Description = "Verify uprooted relocation, relocation grace, movable outdoor-cell reuse, and no-room dormancy.")]
-			public static object SymbiantRelocationContract(
-				[ToolParameter(Description = "Destroy temporary symbiants, colonists, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
+				actor.pather.StartPath(outsideCell, PathEndMode.OnCell);
+				object inflatedSample = null;
+				var samples = new List<object>();
+				for (var tick = 0; tick <= 30; tick++)
+				{
+					if (tick > 0)
+						AdvanceGameTicks(1);
+
+					var nextCell = actor.pather.nextCell;
+					var sample = new
+					{
+						tick,
+						position = ZombieRuntimeActions.DescribeCell(actor.Position),
+						nextCell = nextCell.IsValid ? ZombieRuntimeActions.DescribeCell(nextCell) : null,
+						actor.pather.Moving,
+						actor.pather.MovingNow,
+						actor.pather.nextCellCostTotal,
+						actor.pather.nextCellCostLeft,
+						doorOpen = fixture.door?.Open,
+						doorTicksUntilClose = fixture.door?.ticksUntilClose
+					};
+					samples.Add(sample);
+					if (nextCell == fixture.doorCell && actor.pather.nextCellCostTotal >= expectedCost)
+					{
+						inflatedSample = sample;
+						break;
+					}
+				}
+
+				var cleanupResult = CleanupTemporarySymbiant(map, symbiant, cleanup);
+				var actorCleanup = CleanupTemporaryPawn(actor, cleanup);
+				var fixtureCleanup = CleanupSymbiantExpansionFixture(map, fixture, cleanup);
+				var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
+				return new
+				{
+					success = symbiantContainsDoor
+						&& ScenarioSucceeded(staticCost)
+						&& inflatedSample != null
+						&& activeAfterCleanup == null,
+					expectedCost,
+					fixture = fixtureDescription,
+					symbiant = symbiantId,
+					actor = actorDescription,
+					doorCell = ZombieRuntimeActions.DescribeCell(fixture.doorCell),
+					symbiantContainsDoor,
+					staticCost,
+					inflatedSample,
+					samples = samples.ToArray(),
+					cleanup = cleanupResult,
+					actorCleanup,
+					fixtureCleanup,
+					activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
+				};
+			}
+			finally
+			{
+				_ = CleanupTemporarySymbiant(map, symbiant, cleanup);
+				_ = CleanupTemporaryPawn(actor, cleanup);
+				_ = CleanupSymbiantExpansionFixture(map, fixture, cleanup);
+			}
+		}
+
+		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify uprooted relocation, relocation grace, movable outdoor-cell reuse, and no-room dormancy.")]
+		public static object SymbiantRelocationContract(
+			[ToolParameter(Description = "Destroy temporary symbiants, colonists, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
 			var map = CurrentMap;
 			if (map == null)
@@ -6667,13 +6673,13 @@ namespace ZombieLand
 					drawSize = new { x = symbiant.DrawSize.x, z = symbiant.DrawSize.y },
 					occupiedDrawRect = ZombieRuntimeActions.DescribeCellRect(symbiant.OccupiedDrawRect()),
 					renderWorldSize = new { x = symbiant.RenderWorldSize.x, z = symbiant.RenderWorldSize.y },
-						renderTextureSize = new { x = symbiant.RenderTextureWidth, y = symbiant.RenderTextureHeight },
-						renderShader = symbiant.RenderShaderName,
-						renderUsesSymbiantShader = symbiant.RenderUsesSymbiantShader,
-						renderUsesGpuMetaballMask = symbiant.RenderUsesGpuMetaballMask,
-						renderMetaballElements = symbiant.RenderMetaballElementCount,
-						activeCellMotions = symbiant.ActiveCellMotionCount,
-						renderOpacity = new
+					renderTextureSize = new { x = symbiant.RenderTextureWidth, y = symbiant.RenderTextureHeight },
+					renderShader = symbiant.RenderShaderName,
+					renderUsesSymbiantShader = symbiant.RenderUsesSymbiantShader,
+					renderUsesGpuMetaballMask = symbiant.RenderUsesGpuMetaballMask,
+					renderMetaballElements = symbiant.RenderMetaballElementCount,
+					activeCellMotions = symbiant.ActiveCellMotionCount,
+					renderOpacity = new
 					{
 						min = ZombieSymbiant.RenderOpacityMin,
 						max = ZombieSymbiant.RenderOpacityMax,
@@ -6699,17 +6705,17 @@ namespace ZombieLand
 					capped = symbiant.CellCount >= ZombieSymbiant.MaxCells,
 					growthState = symbiant.GrowthState,
 					nextBenefitCellSize = symbiant.NextBenefitCellSize,
-						hostBenefitCount = symbiant.HostBenefitCount,
-						benefitSummary = symbiant.BenefitSummary,
-						effectSummary = symbiant.EffectSummary,
-						inspectString = symbiant.GetInspectString(),
-						descriptionFlavor = symbiant.DescriptionFlavor,
-						descriptionDetailed = symbiant.DescriptionDetailed,
-						specialDisplayStats = symbiant.SpecialDisplayStats().Select(DescribeStatDrawEntry).ToArray(),
-						sharedHealthPercent = symbiant.SharedHealthPercentDisplay,
-						sharedHealthSummary = symbiant.SharedHealthSummary,
-						sharedDamageLeakPercent = symbiant.SharedDamageLeakPercentDisplay,
-						sharedDamageAbsorbPercent = symbiant.SharedDamageAbsorbPercentDisplay,
+					hostBenefitCount = symbiant.HostBenefitCount,
+					benefitSummary = symbiant.BenefitSummary,
+					effectSummary = symbiant.EffectSummary,
+					inspectString = symbiant.GetInspectString(),
+					descriptionFlavor = symbiant.DescriptionFlavor,
+					descriptionDetailed = symbiant.DescriptionDetailed,
+					specialDisplayStats = symbiant.SpecialDisplayStats().Select(DescribeStatDrawEntry).ToArray(),
+					sharedHealthPercent = symbiant.SharedHealthPercentDisplay,
+					sharedHealthSummary = symbiant.SharedHealthSummary,
+					sharedDamageLeakPercent = symbiant.SharedDamageLeakPercentDisplay,
+					sharedDamageAbsorbPercent = symbiant.SharedDamageAbsorbPercentDisplay,
 					symbiosisSevered = symbiant.SymbiosisSevered,
 					host = host == null ? null : new
 					{
@@ -7217,10 +7223,10 @@ namespace ZombieLand
 			return new { removed, skipped = false };
 		}
 
-			static object DescribeSymbiantDiscoveryLetter(Letter letter)
-			{
-				if (letter == null)
-					return null;
+		static object DescribeSymbiantDiscoveryLetter(Letter letter)
+		{
+			if (letter == null)
+				return null;
 
 			var choice = letter as ChoiceLetter;
 			return new
@@ -7243,14 +7249,14 @@ namespace ZombieLand
 						mapId = target.Map?.uniqueID
 					})
 						.ToArray()
-				};
-			}
+			};
+		}
 
-			static bool IsGreenLetterColor(Color color)
-			{
-				return color.g > color.r
-					&& color.g > color.b
-					&& color.g >= 0.4f;
-			}
+		static bool IsGreenLetterColor(Color color)
+		{
+			return color.g > color.r
+				&& color.g > color.b
+				&& color.g >= 0.4f;
 		}
 	}
+}

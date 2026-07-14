@@ -437,19 +437,19 @@ namespace ZombieLand
 				hostileAnimals,
 				zombielandPawns = zombies,
 				symbiant = symbiant == null ? null : new
+				{
+					id = ZombieRuntimeActions.StableThingId(symbiant),
+					cellCount = symbiant.CellCount,
+					maxCells = ZombieSymbiant.MaxCells,
+					debugMaxCellsOverride = ZombieSymbiant.DebugMaxCellsOverride,
+					occupancy = new
 					{
-						id = ZombieRuntimeActions.StableThingId(symbiant),
-						cellCount = symbiant.CellCount,
-						maxCells = ZombieSymbiant.MaxCells,
-						debugMaxCellsOverride = ZombieSymbiant.DebugMaxCellsOverride,
-						occupancy = new
-						{
-							playerColonistsOnSymbiant,
-							playerAnimalsOnSymbiant,
-							hostileHumanlikesOnSymbiant,
-							allSpawnedPawnsOnSymbiant
-						}
-					},
+						playerColonistsOnSymbiant,
+						playerAnimalsOnSymbiant,
+						hostileHumanlikesOnSymbiant,
+						allSpawnedPawnsOnSymbiant
+					}
+				},
 				downedOrDeadPlayerPawns = pawns.Count(pawn => pawn?.Faction == playerFaction && (pawn.Dead || pawn.Downed)),
 				downedOrDeadHostiles = pawns.Count(pawn => pawn?.Faction != null && pawn.Faction.HostileTo(playerFaction) && (pawn.Dead || pawn.Downed))
 			};

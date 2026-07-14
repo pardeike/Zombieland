@@ -55,10 +55,10 @@ namespace ZombieLand
 
 		internal void ResetActionState(bool resetScream)
 		{
-				destination = IntVec3.Invalid;
-				door = null;
-				doorExitCell = IntVec3.Invalid;
-				hackTarget = null;
+			destination = IntVec3.Invalid;
+			door = null;
+			doorExitCell = IntVec3.Invalid;
+			hackTarget = null;
 			hackApproachCell = IntVec3.Invalid;
 			queuedScreamCell = IntVec3.Invalid;
 			queuedMoveCell = IntVec3.Invalid;
@@ -94,10 +94,10 @@ namespace ZombieLand
 		public override void ExposeData()
 		{
 			base.ExposeData();
-				Scribe_Values.Look(ref destination, "destination", IntVec3.Invalid);
-				Scribe_References.Look(ref door, "door");
-				Scribe_Values.Look(ref doorExitCell, "doorExitCell", IntVec3.Invalid);
-				Scribe_References.Look(ref hackTarget, "hackTarget");
+			Scribe_Values.Look(ref destination, "destination", IntVec3.Invalid);
+			Scribe_References.Look(ref door, "door");
+			Scribe_Values.Look(ref doorExitCell, "doorExitCell", IntVec3.Invalid);
+			Scribe_References.Look(ref hackTarget, "hackTarget");
 			Scribe_Values.Look(ref hackApproachCell, "hackApproachCell", IntVec3.Invalid);
 			Scribe_Values.Look(ref queuedScreamCell, "queuedScreamCell", IntVec3.Invalid);
 			Scribe_Values.Look(ref queuedMoveCell, "queuedMoveCell", IntVec3.Invalid);
@@ -229,17 +229,17 @@ namespace ZombieLand
 		const int albinoScreamInitialMaxCooldown = 1800;
 		const int albinoScreamWastedMinCooldown = 1800;
 		const int albinoScreamWastedMaxCooldown = 3000;
-			const int albinoScreamSuccessMinCooldown = 2500;
-			const int albinoScreamSuccessMaxCooldown = 4500;
-			const int albinoScreamSuccessAffectedCooldownTicks = 300;
-			const int albinoScreamSuccessAffectedCooldownMax = 1500;
-			const int albinoScreamMaxCooldown = 6000;
-			const int albinoDefensiveScreamEarlyRadiusSquared = 64;
-			const int albinoUrgentScreamRadiusSquared = 36;
-			const int albinoDefensiveEmergencyScreamMaxRemainingTicks = 2400;
-			const int albinoDefensiveEmergencyScreamThreatRadiusSquared = 16;
-			const int albinoDefensiveScreamMinPressure = 6;
-			const int albinoDefensiveScreamSoftPressure = 4;
+		const int albinoScreamSuccessMinCooldown = 2500;
+		const int albinoScreamSuccessMaxCooldown = 4500;
+		const int albinoScreamSuccessAffectedCooldownTicks = 300;
+		const int albinoScreamSuccessAffectedCooldownMax = 1500;
+		const int albinoScreamMaxCooldown = 6000;
+		const int albinoDefensiveScreamEarlyRadiusSquared = 64;
+		const int albinoUrgentScreamRadiusSquared = 36;
+		const int albinoDefensiveEmergencyScreamMaxRemainingTicks = 2400;
+		const int albinoDefensiveEmergencyScreamThreatRadiusSquared = 16;
+		const int albinoDefensiveScreamMinPressure = 6;
+		const int albinoDefensiveScreamSoftPressure = 4;
 		const int albinoDefensiveScreamCheckIntervalTicks = 30;
 		const int albinoDefensiveScreamCellChangeCooldownTicks = 10;
 		const int albinoDefensiveScreamPathSamples = 12;
@@ -319,7 +319,7 @@ namespace ZombieLand
 				if (candidateExitCell.IsValid == false)
 					continue;
 
-					var candidatePressure = AlbinoDoorOpenPressureAtCell(zombie, candidateDoor, candidateExitCell, sources);
+				var candidatePressure = AlbinoDoorOpenPressureAtCell(zombie, candidateDoor, candidateExitCell, sources);
 				if (candidatePressure >= albinoNoSafeHackRoutePressure)
 				{
 					door = candidateDoor;
@@ -353,13 +353,13 @@ namespace ZombieLand
 					summedPressure += pressure * 2;
 				}
 
-					var exitCell = num > 0 ? nodesReversed[num - 1] : IntVec3.Invalid;
-					if (exitCell.IsValid)
-					{
-						var pressure = AlbinoDoorOpenPressureAtCell(zombie, door, exitCell, sources);
-						maxPressure = Math.Max(maxPressure, pressure);
-						summedPressure += pressure * 3;
-					}
+				var exitCell = num > 0 ? nodesReversed[num - 1] : IntVec3.Invalid;
+				if (exitCell.IsValid)
+				{
+					var pressure = AlbinoDoorOpenPressureAtCell(zombie, door, exitCell, sources);
+					maxPressure = Math.Max(maxPressure, pressure);
+					summedPressure += pressure * 3;
+				}
 			}
 		}
 
@@ -383,12 +383,12 @@ namespace ZombieLand
 			driver.noSafeHackRoute = false;
 		}
 
-			static void ClearStrategicDestination(this JobDriver_Sabotage driver)
-			{
-				driver.destination = IntVec3.Invalid;
-				driver.door = null;
-				driver.doorExitCell = IntVec3.Invalid;
-				driver.queuedScreamCell = IntVec3.Invalid;
+		static void ClearStrategicDestination(this JobDriver_Sabotage driver)
+		{
+			driver.destination = IntVec3.Invalid;
+			driver.door = null;
+			driver.doorExitCell = IntVec3.Invalid;
+			driver.queuedScreamCell = IntVec3.Invalid;
 			driver.queuedMoveCell = IntVec3.Invalid;
 			driver.interruptibleDestination = false;
 			driver.safetyDestination = false;
@@ -1254,25 +1254,25 @@ namespace ZombieLand
 			}
 		}
 
-			static bool HackRouteIsContested(Zombie zombie, Thing target, AlbinoPressureSources sources)
-			{
-				if (UrgentRangedThreatsAreInEarlyScreamReach(zombie, sources) == false)
-					return false;
+		static bool HackRouteIsContested(Zombie zombie, Thing target, AlbinoPressureSources sources)
+		{
+			if (UrgentRangedThreatsAreInEarlyScreamReach(zombie, sources) == false)
+				return false;
 
-				var screamTargets = AlbinoScreamAffectablePressurePawns(zombie, sources.pawns).ToList();
-				var screamTargetsInRange = screamTargets.Count(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoScreamMaxRadius * albinoScreamMaxRadius);
-				if (screamTargetsInRange == 0)
-					return false;
-				var screamTargetsInEarlyRange = screamTargets.Count(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoDefensiveScreamEarlyRadiusSquared);
+			var screamTargets = AlbinoScreamAffectablePressurePawns(zombie, sources.pawns).ToList();
+			var screamTargetsInRange = screamTargets.Count(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoScreamMaxRadius * albinoScreamMaxRadius);
+			if (screamTargetsInRange == 0)
+				return false;
+			var screamTargetsInEarlyRange = screamTargets.Count(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoDefensiveScreamEarlyRadiusSquared);
 
-				var localPressure = AlbinoPressureAtCell(zombie, zombie.Position, sources);
-				var maxPressure = 0;
+			var localPressure = AlbinoPressureAtCell(zombie, zombie.Position, sources);
+			var maxPressure = 0;
 			foreach (var cell in DefensiveHackRouteSamples(zombie, target))
 				maxPressure = Math.Max(maxPressure, AlbinoPressureAtCell(zombie, cell, sources));
 
-				var pressure = Math.Max(localPressure, maxPressure);
-				if (screamTargetsInEarlyRange >= 2 && pressure >= albinoDefensiveScreamSoftPressure)
-					return true;
+			var pressure = Math.Max(localPressure, maxPressure);
+			if (screamTargetsInEarlyRange >= 2 && pressure >= albinoDefensiveScreamSoftPressure)
+				return true;
 
 			var immediateThreat = HasImmediateAlbinoScreamThreat(zombie, sources);
 			if (immediateThreat && pressure >= albinoDefensiveScreamSoftPressure)
@@ -1441,110 +1441,110 @@ namespace ZombieLand
 
 			if (driver.safetyDestination)
 			{
-					if (driver.CanResumeHackTarget())
+				if (driver.CanResumeHackTarget())
+				{
+					var hackTarget = driver.hackTarget;
+					if (TryScoreAlbinoHackTarget(driver, hackTarget, sources, out _, out var targetPressure, out _) && targetPressure < albinoNoSafeHackRoutePressure)
 					{
-						var hackTarget = driver.hackTarget;
-						if (TryScoreAlbinoHackTarget(driver, hackTarget, sources, out _, out var targetPressure, out _) && targetPressure < albinoNoSafeHackRoutePressure)
-						{
-							zombie.pather?.StopDead();
-							driver.ClearStrategicDestination();
-							driver.waitCounter = 0;
-							return driver.Goto(hackTarget);
-						}
+						zombie.pather?.StopDead();
+						driver.ClearStrategicDestination();
+						driver.waitCounter = 0;
+						return driver.Goto(hackTarget);
 					}
-
-					if (zombie.pather?.Moving == true && zombie.Position != driver.destination)
-						return false;
-
-					if (immediatePressure >= albinoNoSafeHackRoutePressure)
-						return false;
-
-					zombie.pather?.StopDead();
-					driver.ClearStrategicDestination();
-					driver.waitCounter = 12;
-					if (driver.TryChoosePrimarySabotageTarget())
-						return true;
-					if (driver.TryChooseDesperationSabotageTarget())
-						return true;
-					return true;
 				}
+
+				if (zombie.pather?.Moving == true && zombie.Position != driver.destination)
+					return false;
+
+				if (immediatePressure >= albinoNoSafeHackRoutePressure)
+					return false;
+
+				zombie.pather?.StopDead();
+				driver.ClearStrategicDestination();
+				driver.waitCounter = 12;
+				if (driver.TryChoosePrimarySabotageTarget())
+					return true;
+				if (driver.TryChooseDesperationSabotageTarget())
+					return true;
+				return true;
+			}
 
 			return driver.TryChoosePrimarySabotageTarget();
 		}
 
-			static bool HasImmediateAlbinoScreamThreat(Zombie zombie, AlbinoPressureSources sources)
+		static bool HasImmediateAlbinoScreamThreat(Zombie zombie, AlbinoPressureSources sources)
+		{
+			foreach (var pawn in AlbinoScreamAffectablePressurePawns(zombie, sources.pawns))
 			{
-				foreach (var pawn in AlbinoScreamAffectablePressurePawns(zombie, sources.pawns))
-				{
-					var distance = pawn.Position.DistanceToSquared(zombie.Position);
+				var distance = pawn.Position.DistanceToSquared(zombie.Position);
 				if (distance <= 9)
 					return true;
 				if (distance <= 25 && IsAttackingOrApproaching(pawn, zombie))
 					return true;
-				}
-				return false;
 			}
+			return false;
+		}
 
-			static bool IsAimingAtZombie(Pawn pawn, Zombie zombie)
-			{
-				return pawn?.Spawned == true
-					&& zombie?.Spawned == true
-					&& LocalTargetPointsAtZombie(pawn.TargetCurrentlyAimingAt, zombie);
-			}
+		static bool IsAimingAtZombie(Pawn pawn, Zombie zombie)
+		{
+			return pawn?.Spawned == true
+				&& zombie?.Spawned == true
+				&& LocalTargetPointsAtZombie(pawn.TargetCurrentlyAimingAt, zombie);
+		}
 
-			static bool IsUrgentRangedAlbinoThreat(Pawn pawn, Zombie zombie)
-			{
-				return IsAimingAtZombie(pawn, zombie)
-					&& HasUsableRangedVerb(pawn, out _)
-					&& CanShootThing(pawn, zombie);
-			}
+		static bool IsUrgentRangedAlbinoThreat(Pawn pawn, Zombie zombie)
+		{
+			return IsAimingAtZombie(pawn, zombie)
+				&& HasUsableRangedVerb(pawn, out _)
+				&& CanShootThing(pawn, zombie);
+		}
 
-			static bool UrgentRangedThreatsAreInEarlyScreamReach(Zombie zombie, AlbinoPressureSources sources)
-			{
-				if (zombie?.Spawned != true || sources == null)
-					return true;
-
-				foreach (var pawn in AlbinoScreamAffectablePressurePawns(zombie, sources.pawns))
-					if (IsUrgentRangedAlbinoThreat(pawn, zombie)
-						&& pawn.Position.DistanceToSquared(zombie.Position) > albinoUrgentScreamRadiusSquared)
-						return false;
+		static bool UrgentRangedThreatsAreInEarlyScreamReach(Zombie zombie, AlbinoPressureSources sources)
+		{
+			if (zombie?.Spawned != true || sources == null)
 				return true;
-			}
 
-			static bool HasAlbinoDefensiveScreamPayoff(Zombie zombie, AlbinoPressureSources sources)
-			{
-				if (UrgentRangedThreatsAreInEarlyScreamReach(zombie, sources) == false)
+			foreach (var pawn in AlbinoScreamAffectablePressurePawns(zombie, sources.pawns))
+				if (IsUrgentRangedAlbinoThreat(pawn, zombie)
+					&& pawn.Position.DistanceToSquared(zombie.Position) > albinoUrgentScreamRadiusSquared)
 					return false;
+			return true;
+		}
 
-				var inRange = AlbinoScreamAffectablePressurePawns(zombie, sources.pawns)
-					.Where(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoScreamMaxRadius * albinoScreamMaxRadius)
-					.ToList();
-				var earlyRange = inRange.Count(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoDefensiveScreamEarlyRadiusSquared);
-				return earlyRange >= 2 || HasImmediateAlbinoScreamThreat(zombie, sources);
-			}
-
-			static bool AlbinoDefensiveEmergencyScreamReady(Zombie zombie, AlbinoPressureSources sources)
-			{
-				if (zombie?.Spawned != true || sources == null || zombie.albinoNextScreamTick < 0)
-					return false;
-				var ticksUntilReady = AlbinoScreamTicksUntilReady(zombie);
-				if (ticksUntilReady <= 0 || ticksUntilReady > albinoDefensiveEmergencyScreamMaxRemainingTicks)
-					return false;
-				return HasAlbinoDefensiveScreamPayoff(zombie, sources)
-					&& HasAlbinoDefensiveEmergencyThreat(zombie, sources);
-			}
-
-			static bool HasAlbinoDefensiveEmergencyThreat(Zombie zombie, AlbinoPressureSources sources)
-			{
-				foreach (var pawn in AlbinoScreamAffectablePressurePawns(zombie, sources.pawns))
-				{
-					if (pawn.Position.DistanceToSquared(zombie.Position) > albinoDefensiveEmergencyScreamThreatRadiusSquared)
-						continue;
-					if (IsUrgentRangedAlbinoThreat(pawn, zombie) || IsAttackingOrApproaching(pawn, zombie) || CanShootThing(pawn, zombie))
-						return true;
-				}
+		static bool HasAlbinoDefensiveScreamPayoff(Zombie zombie, AlbinoPressureSources sources)
+		{
+			if (UrgentRangedThreatsAreInEarlyScreamReach(zombie, sources) == false)
 				return false;
+
+			var inRange = AlbinoScreamAffectablePressurePawns(zombie, sources.pawns)
+				.Where(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoScreamMaxRadius * albinoScreamMaxRadius)
+				.ToList();
+			var earlyRange = inRange.Count(pawn => pawn.Position.DistanceToSquared(zombie.Position) <= albinoDefensiveScreamEarlyRadiusSquared);
+			return earlyRange >= 2 || HasImmediateAlbinoScreamThreat(zombie, sources);
+		}
+
+		static bool AlbinoDefensiveEmergencyScreamReady(Zombie zombie, AlbinoPressureSources sources)
+		{
+			if (zombie?.Spawned != true || sources == null || zombie.albinoNextScreamTick < 0)
+				return false;
+			var ticksUntilReady = AlbinoScreamTicksUntilReady(zombie);
+			if (ticksUntilReady <= 0 || ticksUntilReady > albinoDefensiveEmergencyScreamMaxRemainingTicks)
+				return false;
+			return HasAlbinoDefensiveScreamPayoff(zombie, sources)
+				&& HasAlbinoDefensiveEmergencyThreat(zombie, sources);
+		}
+
+		static bool HasAlbinoDefensiveEmergencyThreat(Zombie zombie, AlbinoPressureSources sources)
+		{
+			foreach (var pawn in AlbinoScreamAffectablePressurePawns(zombie, sources.pawns))
+			{
+				if (pawn.Position.DistanceToSquared(zombie.Position) > albinoDefensiveEmergencyScreamThreatRadiusSquared)
+					continue;
+				if (IsUrgentRangedAlbinoThreat(pawn, zombie) || IsAttackingOrApproaching(pawn, zombie) || CanShootThing(pawn, zombie))
+					return true;
 			}
+			return false;
+		}
 
 		public static bool TrySwitchContestedHackToScream(this JobDriver_Sabotage driver)
 		{
@@ -1655,14 +1655,14 @@ namespace ZombieLand
 				else
 					driver.noSafeHackRoute = false;
 
-					if (path.TryFindLastCellBeforeBlockingDoor(zombie, out var doorCell, out var door, out var doorExitCell) && doorCell.IsValid)
-					{
-						driver.door = door;
-						driver.doorExitCell = doorExitCell;
-						driver.destination = doorCell == zombie.Position ? IntVec3.Invalid : doorCell;
-						driver.SetHackTarget(thing);
-						path.ReleaseToPool();
-						if (doorCell == zombie.Position)
+				if (path.TryFindLastCellBeforeBlockingDoor(zombie, out var doorCell, out var door, out var doorExitCell) && doorCell.IsValid)
+				{
+					driver.door = door;
+					driver.doorExitCell = doorExitCell;
+					driver.destination = doorCell == zombie.Position ? IntVec3.Invalid : doorCell;
+					driver.SetHackTarget(thing);
+					path.ReleaseToPool();
+					if (doorCell == zombie.Position)
 					{
 						zombie.pather?.StopDead();
 						return true;
@@ -1716,17 +1716,17 @@ namespace ZombieLand
 			var path = driver.FindPressureAwareCellPath(cell, arrivalAction != null);
 			if (path == null)
 				return false;
-				if (path.Found)
+			if (path.Found)
+			{
+				driver.MarkStrategicDestination(arrivalAction == null, false);
+				if (path.TryFindLastCellBeforeBlockingDoor(zombie, out var doorCell, out var door, out var doorExitCell) && doorCell.IsValid)
 				{
-					driver.MarkStrategicDestination(arrivalAction == null, false);
-					if (path.TryFindLastCellBeforeBlockingDoor(zombie, out var doorCell, out var door, out var doorExitCell) && doorCell.IsValid)
-					{
-						driver.door = door;
-						driver.doorExitCell = doorExitCell;
-						driver.destination = doorCell == zombie.Position ? IntVec3.Invalid : doorCell;
-						if (arrivalAction != null)
-							driver.queuedScreamCell = cell;
-						else
+					driver.door = door;
+					driver.doorExitCell = doorExitCell;
+					driver.destination = doorCell == zombie.Position ? IntVec3.Invalid : doorCell;
+					if (arrivalAction != null)
+						driver.queuedScreamCell = cell;
+					else
 						driver.queuedMoveCell = cell;
 					path.ReleaseToPool();
 					if (doorCell == zombie.Position)
@@ -1816,10 +1816,10 @@ namespace ZombieLand
 			driver.nextDefensiveScreamCellCheckTick = 0;
 			driver.lastDefensiveScreamCheckCell = IntVec3.Invalid;
 
-				if ((AlbinoScreamReady(zombie) || AlbinoDefensiveEmergencyScreamReady(zombie, sources)) && HasAlbinoDefensiveScreamPayoff(zombie, sources))
-				{
-					zombie.pather?.StopDead();
-					driver.ClearStrategicDestination();
+			if ((AlbinoScreamReady(zombie) || AlbinoDefensiveEmergencyScreamReady(zombie, sources)) && HasAlbinoDefensiveScreamPayoff(zombie, sources))
+			{
+				zombie.pather?.StopDead();
+				driver.ClearStrategicDestination();
 				driver.InterruptHackProgress(true);
 				zombie.scream = -2;
 				driver.defensiveScreamQueued = true;
@@ -2002,8 +2002,8 @@ namespace ZombieLand
 			if (zombie.scream == -1)
 				return false;
 
-				if (zombie.scream == -2)
-				{
+			if (zombie.scream == -2)
+			{
 				if (driver.destination.IsValid == false)
 				{
 					var sources = AlbinoPressureSourcesFor(zombie);
@@ -2013,18 +2013,18 @@ namespace ZombieLand
 
 					if (UrgentRangedThreatsAreInEarlyScreamReach(zombie, sources) == false
 						|| driver.defensiveScreamQueued && HasAlbinoDefensiveScreamPayoff(zombie, sources) == false)
-						{
-							zombie.scream = -1;
-							driver.queuedScreamCell = IntVec3.Invalid;
-							driver.queuedMoveCell = IntVec3.Invalid;
-							driver.defensiveScreamQueued = false;
-							driver.waitCounter = albinoLostScreamTargetRecheckWaitTicks;
-							return false;
-						}
+					{
+						zombie.scream = -1;
+						driver.queuedScreamCell = IntVec3.Invalid;
+						driver.queuedMoveCell = IntVec3.Invalid;
+						driver.defensiveScreamQueued = false;
+						driver.waitCounter = albinoLostScreamTargetRecheckWaitTicks;
+						return false;
+					}
 
-						if (zombie.HasAlbinoScreamTargetInRange(albinoScreamMaxRadius) == false)
-						{
-							zombie.scream = -1;
+					if (zombie.HasAlbinoScreamTargetInRange(albinoScreamMaxRadius) == false)
+					{
+						zombie.scream = -1;
 						driver.queuedScreamCell = IntVec3.Invalid;
 						driver.queuedMoveCell = IntVec3.Invalid;
 						driver.defensiveScreamQueued = false;
@@ -2064,7 +2064,7 @@ namespace ZombieLand
 					{
 						if (RestUtility.Awake(pawn) == false)
 							RestUtility.WakeUp(pawn);
-							AlbinoScreamVomit.Start(pawn);
+						AlbinoScreamVomit.Start(pawn);
 						pawn.stances.stunner.StunFor(stunTicks, zombie, true);
 						zombie.albinoScreamAffectedCount++;
 					}
@@ -2520,22 +2520,22 @@ namespace ZombieLand
 			if (AlbinoScreamTicksUntilReady(zombie) > albinoDesperationScreamMaxWaitTicks)
 				return false;
 
-				var sources = AlbinoPressureSourcesFor(zombie);
-				var rangedPawns = sources.pawns
-					.Where(pawn => CanAlbinoScreamAffect(pawn, zombie))
-					.Where(pawn => HasUsableRangedVerb(pawn, out _))
-					.Where(pawn => IsUrgentRangedAlbinoThreat(pawn, zombie) || IsAttackingOrApproaching(pawn, zombie) || CanShootCell(pawn, zombie.Position) || pawn.Position.DistanceToSquared(zombie.Position) <= 400)
-					.ToList();
+			var sources = AlbinoPressureSourcesFor(zombie);
+			var rangedPawns = sources.pawns
+				.Where(pawn => CanAlbinoScreamAffect(pawn, zombie))
+				.Where(pawn => HasUsableRangedVerb(pawn, out _))
+				.Where(pawn => IsUrgentRangedAlbinoThreat(pawn, zombie) || IsAttackingOrApproaching(pawn, zombie) || CanShootCell(pawn, zombie.Position) || pawn.Position.DistanceToSquared(zombie.Position) <= 400)
+				.ToList();
 
-				return TryFindScreamCellForBestPawn(
-					zombie,
-					rangedPawns,
-					pawn => 1600
-						+ (IsUrgentRangedAlbinoThreat(pawn, zombie) ? 700 : 0)
-						+ (IsAttackingOrApproaching(pawn, zombie) ? 300 : 0)
-						+ (CanShootCell(pawn, zombie.Position) ? 250 : 0)
-						- pawn.Position.DistanceToSquared(zombie.Position) / 4,
-				out cell);
+			return TryFindScreamCellForBestPawn(
+				zombie,
+				rangedPawns,
+				pawn => 1600
+					+ (IsUrgentRangedAlbinoThreat(pawn, zombie) ? 700 : 0)
+					+ (IsAttackingOrApproaching(pawn, zombie) ? 300 : 0)
+					+ (CanShootCell(pawn, zombie.Position) ? 250 : 0)
+					- pawn.Position.DistanceToSquared(zombie.Position) / 4,
+			out cell);
 		}
 
 		static bool CanDesperationRushTurret(Zombie zombie, Building_TurretGun turret)
@@ -2624,7 +2624,7 @@ namespace ZombieLand
 						if (driver.TryGotoNearestFallbackCell(map.areaManager.Home.ActiveCells))
 							return true;
 						break;
-					}
+				}
 
 			if (driver.TryChooseDesperationSabotageTarget())
 				return true;

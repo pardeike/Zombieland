@@ -78,16 +78,16 @@ namespace ZombieLand
 		const float SymbiantLowDifficultyGrowthSpeedFactor = 2f;
 		const float SymbiantHighDifficultyGrowthSpeedFactor = 1.5f;
 		internal const float SymbiantContaminationStepReduction = 0.05f;
-			const int SeveranceExtractCostMin = 10;
-			const int SeveranceExtractCostMax = 50;
-			const int CellMotionDurationTicks = 60;
-			const int SymbiantRetreatSpeedFactor = 4;
-			const float SymbiantSharedDamageLeakMin = 0.08f;
-			const int SymbiantSharedHealthRecoveryDelayTicks = GenDate.TicksPerHour;
-			const int SymbiantSharedHealthRecoveryIntervalTicks = GenDate.TicksPerHour;
-			const float SymbiantSharedHealthRecoveryMissingFraction = 0.05f;
-			const int SymbiantNamedDamageEchoLimit = 7;
-			const string SymbiantOtherDamageEchoKey = "other";
+		const int SeveranceExtractCostMin = 10;
+		const int SeveranceExtractCostMax = 50;
+		const int CellMotionDurationTicks = 60;
+		const int SymbiantRetreatSpeedFactor = 4;
+		const float SymbiantSharedDamageLeakMin = 0.08f;
+		const int SymbiantSharedHealthRecoveryDelayTicks = GenDate.TicksPerHour;
+		const int SymbiantSharedHealthRecoveryIntervalTicks = GenDate.TicksPerHour;
+		const float SymbiantSharedHealthRecoveryMissingFraction = 0.05f;
+		const int SymbiantNamedDamageEchoLimit = 7;
+		const string SymbiantOtherDamageEchoKey = "other";
 		static readonly int SymbiantOpacityMinId = Shader.PropertyToID("_SymbiantOpacityMin");
 		static readonly int SymbiantOpacityMaxId = Shader.PropertyToID("_SymbiantOpacityMax");
 		static readonly int SymbiantNoiseScaleId = Shader.PropertyToID("_SymbiantNoiseScale");
@@ -212,11 +212,11 @@ namespace ZombieLand
 
 		public int CellCount => cells?.Count ?? 0;
 		internal int CombatShapeVersion => combatShapeVersion;
-			public int NextExpansionTick => nextExpansionTick;
-			public int CurrentExpansionIntervalTicks => AutomaticExpansionIntervalTicks();
-			public int CurrentRetreatIntervalTicks => RetreatIntervalTicks();
-			public static int RetreatSpeedFactor => SymbiantRetreatSpeedFactor;
-			public int FeedPausedUntilTick => feedPausedUntilTick;
+		public int NextExpansionTick => nextExpansionTick;
+		public int CurrentExpansionIntervalTicks => AutomaticExpansionIntervalTicks();
+		public int CurrentRetreatIntervalTicks => RetreatIntervalTicks();
+		public static int RetreatSpeedFactor => SymbiantRetreatSpeedFactor;
+		public int FeedPausedUntilTick => feedPausedUntilTick;
 		public int LastRecessionPulseCells => lastRecessionPulseCells;
 		public int RelocationCellDebt => relocationCellDebt;
 		public int NextRelocationPulseTick => nextRelocationPulseTick;
@@ -1400,7 +1400,7 @@ namespace ZombieLand
 			return false;
 		}
 
-			public static void PreApplyHostLinkedDamage(Pawn pawn, ref DamageInfo dinfo, ref bool absorbed)
+		public static void PreApplyHostLinkedDamage(Pawn pawn, ref DamageInfo dinfo, ref bool absorbed)
 		{
 			if (dinfo.Amount <= 0f)
 				return;
@@ -1610,20 +1610,20 @@ namespace ZombieLand
 			NotifyBenefitAwarded(benefit);
 		}
 
-			void NotifyBenefitAwarded(HostBenefit benefit)
-			{
-				var linkedHost = LinkedHost;
-				if (Spawned == false || linkedHost == null)
-					return;
-				var label = BenefitLabel(benefit);
-				var targets = new LookTargets(this, linkedHost);
-				Messages.Message("SymbiantBenefitGainedMessage".Translate(linkedHost.LabelShortCap, label), targets, MessageTypeDefOf.PositiveEvent, false);
-				SendSymbiantEventLetter(
-					"LetterLabelSymbiantBenefitGained".Translate(),
-					"SymbiantBenefitGainedLetter".Translate(linkedHost.LabelShortCap, label, BenefitSummary),
-					targets
-				);
-			}
+		void NotifyBenefitAwarded(HostBenefit benefit)
+		{
+			var linkedHost = LinkedHost;
+			if (Spawned == false || linkedHost == null)
+				return;
+			var label = BenefitLabel(benefit);
+			var targets = new LookTargets(this, linkedHost);
+			Messages.Message("SymbiantBenefitGainedMessage".Translate(linkedHost.LabelShortCap, label), targets, MessageTypeDefOf.PositiveEvent, false);
+			SendSymbiantEventLetter(
+				"LetterLabelSymbiantBenefitGained".Translate(),
+				"SymbiantBenefitGainedLetter".Translate(linkedHost.LabelShortCap, label, BenefitSummary),
+				targets
+			);
+		}
 
 		static TaggedString BenefitLabel(HostBenefit benefit)
 		{
@@ -2513,29 +2513,29 @@ namespace ZombieLand
 			}
 		}
 
-			void CollapseFromHostDeath()
+		void CollapseFromHostDeath()
+		{
+			if (Destroyed || hostCollapseInProgress || safeSeveranceInProgress)
+				return;
+			hostCollapseInProgress = true;
+			try
 			{
-				if (Destroyed || hostCollapseInProgress || safeSeveranceInProgress)
-					return;
-				hostCollapseInProgress = true;
-				try
-				{
-					var pawn = ResolveHost();
-					if (uncontrolledDestroyHandled == false)
-						PlayDisconnectedSound();
-						RemoveHostHediff(pawn);
-						ClearDamageEchoHistory();
-						host = null;
-						hostThingId = null;
-						symbiosisSevered = true;
-						nextExpansionTick = GenTicks.TicksGame + RetreatIntervalTicks();
-						UpdateSymbiosisState();
-					}
-					finally
-				{
-					hostCollapseInProgress = false;
-				}
+				var pawn = ResolveHost();
+				if (uncontrolledDestroyHandled == false)
+					PlayDisconnectedSound();
+				RemoveHostHediff(pawn);
+				ClearDamageEchoHistory();
+				host = null;
+				hostThingId = null;
+				symbiosisSevered = true;
+				nextExpansionTick = GenTicks.TicksGame + RetreatIntervalTicks();
+				UpdateSymbiosisState();
 			}
+			finally
+			{
+				hostCollapseInProgress = false;
+			}
+		}
 
 		void PlayConnectedSound()
 		{
@@ -2543,20 +2543,20 @@ namespace ZombieLand
 				CustomDefs.SymbiantConnected?.PlayOneShotOnCamera(null);
 		}
 
-			void PlayDisconnectedSound()
-			{
-				if (ZombieAwarenessCues.ShouldPlaySpecialZombieAmbientSound())
-					CustomDefs.SymbiantDisconnected?.PlayOneShotOnCamera(null);
-			}
+		void PlayDisconnectedSound()
+		{
+			if (ZombieAwarenessCues.ShouldPlaySpecialZombieAmbientSound())
+				CustomDefs.SymbiantDisconnected?.PlayOneShotOnCamera(null);
+		}
 
-			static LetterDef SymbiantEventLetterDef => CustomDefs.SymbiantEvent ?? CustomDefs.SymbiantConnection ?? LetterDefOf.PositiveEvent;
+		static LetterDef SymbiantEventLetterDef => CustomDefs.SymbiantEvent ?? CustomDefs.SymbiantConnection ?? LetterDefOf.PositiveEvent;
 
-			void SendSymbiantEventLetter(TaggedString headline, TaggedString text, LookTargets targets)
-			{
-				if (Spawned == false || ZombieAwarenessCues.ShouldShowZombieEventLetter() == false)
-					return;
-				Find.LetterStack?.ReceiveLetter(headline, text, SymbiantEventLetterDef, targets);
-			}
+		void SendSymbiantEventLetter(TaggedString headline, TaggedString text, LookTargets targets)
+		{
+			if (Spawned == false || ZombieAwarenessCues.ShouldShowZombieEventLetter() == false)
+				return;
+			Find.LetterStack?.ReceiveLetter(headline, text, SymbiantEventLetterDef, targets);
+		}
 
 		void NotifyDamageAbsorbed()
 		{
@@ -2869,24 +2869,24 @@ namespace ZombieLand
 				return false;
 
 			safeSeveranceInProgress = true;
-				try
-				{
-					PlayDisconnectedSound();
-					var targets = new LookTargets(this, pawn);
-					Messages.Message("SymbiantSeveredMessage".Translate(pawn.LabelShortCap), pawn, MessageTypeDefOf.PositiveEvent, false);
-					SendSymbiantEventLetter(
-						"LetterLabelSymbiantBondRemoved".Translate(),
-						"SymbiantBondRemovedLetter".Translate(pawn.LabelShortCap),
-						targets
-					);
-					RemoveHostHediff(pawn);
-					ClearDamageEchoHistory();
-					host = null;
-					hostThingId = null;
-					symbiosisSevered = true;
-					nextExpansionTick = GenTicks.TicksGame + RetreatIntervalTicks();
-					return true;
-				}
+			try
+			{
+				PlayDisconnectedSound();
+				var targets = new LookTargets(this, pawn);
+				Messages.Message("SymbiantSeveredMessage".Translate(pawn.LabelShortCap), pawn, MessageTypeDefOf.PositiveEvent, false);
+				SendSymbiantEventLetter(
+					"LetterLabelSymbiantBondRemoved".Translate(),
+					"SymbiantBondRemovedLetter".Translate(pawn.LabelShortCap),
+					targets
+				);
+				RemoveHostHediff(pawn);
+				ClearDamageEchoHistory();
+				host = null;
+				hostThingId = null;
+				symbiosisSevered = true;
+				nextExpansionTick = GenTicks.TicksGame + RetreatIntervalTicks();
+				return true;
+			}
 			finally
 			{
 				safeSeveranceInProgress = false;
@@ -2929,13 +2929,13 @@ namespace ZombieLand
 			}
 			if (symbiosisSevered || LinkedHost == null)
 			{
-						if (ticks >= nextExpansionTick)
-						{
-							_ = ShrinkCells(1, 0);
-							nextExpansionTick = ticks + RetreatIntervalTicks();
-						}
-						return;
-					}
+				if (ticks >= nextExpansionTick)
+				{
+					_ = ShrinkCells(1, 0);
+					nextExpansionTick = ticks + RetreatIntervalTicks();
+				}
+				return;
+			}
 			if (relocationCellDebt > 0 || (nextRelocationPulseTick > 0 && ticks >= nextRelocationPulseTick))
 			{
 				_ = TryRelocationPulse();
@@ -2991,17 +2991,17 @@ namespace ZombieLand
 			nextMovementTick = GenTicks.TicksGame + MovementIntervalTicks();
 		}
 
-			int AutomaticExpansionIntervalTicks()
-			{
-				var days = DifficultyScaled(0.5f, 2f);
-				var ticks = Mathf.RoundToInt(days * GenDate.TicksPerDay / SymbiantGrowthSpeedFactor());
-				return Mathf.Max(GenDate.TicksPerHour, ticks);
-			}
+		int AutomaticExpansionIntervalTicks()
+		{
+			var days = DifficultyScaled(0.5f, 2f);
+			var ticks = Mathf.RoundToInt(days * GenDate.TicksPerDay / SymbiantGrowthSpeedFactor());
+			return Mathf.Max(GenDate.TicksPerHour, ticks);
+		}
 
-			int RetreatIntervalTicks()
-			{
-				return Mathf.Max(GenDate.TicksPerHour, AutomaticExpansionIntervalTicks() / SymbiantRetreatSpeedFactor);
-			}
+		int RetreatIntervalTicks()
+		{
+			return Mathf.Max(GenDate.TicksPerHour, AutomaticExpansionIntervalTicks() / SymbiantRetreatSpeedFactor);
+		}
 
 		int MovementIntervalTicks()
 		{
@@ -4139,9 +4139,9 @@ namespace ZombieLand
 				{
 					if (dx == 0 && dy == 0)
 						continue;
-				if (cells.Contains(new IntVec3(x + dx, 0, y + dy)))
-					count++;
-			}
+					if (cells.Contains(new IntVec3(x + dx, 0, y + dy)))
+						count++;
+				}
 			return ElementSizeForNeighborWeight(count);
 		}
 
@@ -4194,58 +4194,58 @@ namespace ZombieLand
 			return summary;
 		}
 
-			public override string DescriptionDetailed
+		public override string DescriptionDetailed
+		{
+			get
 			{
-				get
-				{
-					return DescriptionFlavor;
-				}
+				return DescriptionFlavor;
 			}
+		}
 
-			public override string DescriptionFlavor
+		public override string DescriptionFlavor
+		{
+			get
 			{
-				get
-				{
-					return AppendInfoCardDetails(base.DescriptionFlavor);
-				}
+				return AppendInfoCardDetails(base.DescriptionFlavor);
 			}
+		}
 
-			string InfoCardDetails
+		string InfoCardDetails
+		{
+			get
 			{
-				get
-				{
-					var linkedHost = LinkedHost;
-					if (linkedHost == null)
-						return "SymbiantEffectCells".Translate(CellCount, MaxCells)
-							+ "\n" + SharedHealthSummary
-							+ "\n\n" + "SymbiantHostBondMissing".Translate();
-					if (IsActiveBondWith(linkedHost) == false)
-						return "ZombieSymbiantInspect".Translate(linkedHost.LabelShortCap, CellCount, SharedHealthSummary, NextBenefitCellSize)
-							+ "\n\n" + "SymbiantHostRelocatedMessage".Translate(linkedHost.LabelShortCap);
-					var hostLabel = linkedHost.LabelShortCap;
-					return "ZombieSymbiantInfoCardDetails".Translate(CellCount, NextBenefitCellSize, DownsideSummary, BenefitSummary, SharedHealthSummary, SharedDamageLeakPercentDisplay, hostLabel);
-				}
+				var linkedHost = LinkedHost;
+				if (linkedHost == null)
+					return "SymbiantEffectCells".Translate(CellCount, MaxCells)
+						+ "\n" + SharedHealthSummary
+						+ "\n\n" + "SymbiantHostBondMissing".Translate();
+				if (IsActiveBondWith(linkedHost) == false)
+					return "ZombieSymbiantInspect".Translate(linkedHost.LabelShortCap, CellCount, SharedHealthSummary, NextBenefitCellSize)
+						+ "\n\n" + "SymbiantHostRelocatedMessage".Translate(linkedHost.LabelShortCap);
+				var hostLabel = linkedHost.LabelShortCap;
+				return "ZombieSymbiantInfoCardDetails".Translate(CellCount, NextBenefitCellSize, DownsideSummary, BenefitSummary, SharedHealthSummary, SharedDamageLeakPercentDisplay, hostLabel);
 			}
+		}
 
-			string AppendInfoCardDetails(string baseDescription)
-			{
-				return (baseDescription ?? def?.description ?? "") + "\n\n" + InfoCardDetails;
-			}
+		string AppendInfoCardDetails(string baseDescription)
+		{
+			return (baseDescription ?? def?.description ?? "") + "\n\n" + InfoCardDetails;
+		}
 
-			public override IEnumerable<StatDrawEntry> SpecialDisplayStats()
-			{
-				foreach (var entry in base.SpecialDisplayStats())
-					yield return entry;
-				yield return new StatDrawEntry(
-					StatCategoryDefOf.BasicsImportant,
-					"SymbiantDetailsInfoCard".Translate(),
-					"SymbiantDetailsInfoCardValue".Translate(CellCount),
-					InfoCardDetails,
-					99998
-				);
-			}
+		public override IEnumerable<StatDrawEntry> SpecialDisplayStats()
+		{
+			foreach (var entry in base.SpecialDisplayStats())
+				yield return entry;
+			yield return new StatDrawEntry(
+				StatCategoryDefOf.BasicsImportant,
+				"SymbiantDetailsInfoCard".Translate(),
+				"SymbiantDetailsInfoCardValue".Translate(CellCount),
+				InfoCardDetails,
+				99998
+			);
+		}
 
-			public override IEnumerable<InspectTabBase> GetInspectTabs()
+		public override IEnumerable<InspectTabBase> GetInspectTabs()
 		{
 			return Enumerable.Empty<InspectTabBase>();
 		}

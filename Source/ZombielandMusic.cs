@@ -209,8 +209,8 @@ namespace ZombieLand
 						label = song.label
 					})
 					.ToArray()
-				};
-			}
+			};
+		}
 
 		static bool TryRegisterSong(string soundsRoot, string file)
 		{

@@ -1839,7 +1839,7 @@ namespace ZombieLand
 
 			return new
 			{
-					success = opened
+				success = opened
 					&& dialog.allBiomes.Count > 0
 					&& settings.biomesWithoutZombies.Contains(candidate.defName),
 				candidate = candidate.defName,

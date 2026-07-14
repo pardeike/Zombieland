@@ -4362,38 +4362,38 @@ namespace ZombieLand
 					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.RAGE_AURAS[Find.CameraDriver.CurrentZoom], quickHeadCenter, Quaternion.identity, 1f, 1f);
 			}
 
-				static void DrawSymbiantHostAura(Pawn pawn, PawnRenderer renderer, Vector3 drawLoc)
-				{
-					if (pawn == null || renderer == null || pawn.GetPosture() != PawnPosture.Standing)
-						return;
-					if (ZombieSymbiant.TryGetHostAuraFactor(pawn, out var factor) == false)
-						return;
-					if (TryMarkSymbiantAuraDrawn(pawn) == false)
-						return;
+			static void DrawSymbiantHostAura(Pawn pawn, PawnRenderer renderer, Vector3 drawLoc)
+			{
+				if (pawn == null || renderer == null || pawn.GetPosture() != PawnPosture.Standing)
+					return;
+				if (ZombieSymbiant.TryGetHostAuraFactor(pawn, out var factor) == false)
+					return;
+				if (TryMarkSymbiantAuraDrawn(pawn) == false)
+					return;
 
-					var angle = renderer.BodyAngle(PawnRenderFlags.None);
-					if (pawn.Rotation == Rot4.West)
+				var angle = renderer.BodyAngle(PawnRenderFlags.None);
+				if (pawn.Rotation == Rot4.West)
 					angle -= leanAngle;
 				if (pawn.Rotation == Rot4.East)
 					angle += leanAngle;
 
-					var loc = drawLoc + toxicAuraOffset;
-					loc.y = moteAltitute;
-					var scale = Mathf.Lerp(0.95f, 1.25f, Mathf.Clamp01(factor));
-					GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.SYMBIANT_HOST_AURAS[Find.CameraDriver.CurrentZoom], loc, Quaternion.AngleAxis(angle, Vector3.up), scale, scale);
-				}
+				var loc = drawLoc + toxicAuraOffset;
+				loc.y = moteAltitute;
+				var scale = Mathf.Lerp(0.95f, 1.25f, Mathf.Clamp01(factor));
+				GraphicToolbox.DrawScaledMesh(MeshPool.plane20, Constants.SYMBIANT_HOST_AURAS[Find.CameraDriver.CurrentZoom], loc, Quaternion.AngleAxis(angle, Vector3.up), scale, scale);
+			}
 
-				static bool TryMarkSymbiantAuraDrawn(Pawn pawn)
+			static bool TryMarkSymbiantAuraDrawn(Pawn pawn)
+			{
+				if (Time.frameCount != symbiantAuraDrawnFrame)
 				{
-					if (Time.frameCount != symbiantAuraDrawnFrame)
-					{
-						symbiantAuraDrawnFrame = Time.frameCount;
-						symbiantAuraDrawnPawns.Clear();
-					}
-					return symbiantAuraDrawnPawns.Add(pawn.thingIDNumber);
+					symbiantAuraDrawnFrame = Time.frameCount;
+					symbiantAuraDrawnPawns.Clear();
 				}
+				return symbiantAuraDrawnPawns.Add(pawn.thingIDNumber);
+			}
 
-				static void DrawToxicAura(Zombie zombie, Vector3 drawLoc, bool behindBody)
+			static void DrawToxicAura(Zombie zombie, Vector3 drawLoc, bool behindBody)
 			{
 				float angle = zombie.drawer.renderer.BodyAngle(PawnRenderFlags.None);
 				if (zombie.Rotation == Rot4.West)

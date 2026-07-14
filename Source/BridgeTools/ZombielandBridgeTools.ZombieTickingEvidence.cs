@@ -277,7 +277,7 @@ namespace ZombieLand
 				saveName,
 				readiness = "visual",
 				pauseIfNeeded = true,
-				 timeoutMs = 120000
+				timeoutMs = 120000
 			});
 			// RimBridge enables RimWorld's private ultrafast debug boost at startup.
 			// Disable it explicitly so these rows match the speeds available to a player.
@@ -369,7 +369,7 @@ namespace ZombieLand
 				saveName = saveName,
 				warmupMilliseconds = warmupMilliseconds,
 				measurementMilliseconds = measurementMilliseconds,
-					execution = new
+				execution = new
 				{
 					mode = "real-time rimworld/play_for",
 					forceRequestedSpeed = false,

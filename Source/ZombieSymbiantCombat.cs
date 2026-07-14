@@ -335,19 +335,19 @@ namespace ZombieLand
 				&& searcher.CurrentEffectiveVerb is Verb verb
 				&& (verb.IsMeleeAttack || SupportsLogicalRangedCells(verb)))
 				context = new TargetScanContext
-			{
-				searcher = searcher,
-				flags = flags,
-				validator = validator,
-				minDist = minDist,
-				maxDist = maxDist,
-				locus = locus,
-				maxTravelRadiusFromLocus = maxTravelRadiusFromLocus,
-				canBashDoors = canBashDoors,
-				canTakeTargetsCloserThanEffectiveMinRange = canTakeTargetsCloserThanEffectiveMinRange,
-				canBashFences = canBashFences,
-				onlyRanged = onlyRanged
-			};
+				{
+					searcher = searcher,
+					flags = flags,
+					validator = validator,
+					minDist = minDist,
+					maxDist = maxDist,
+					locus = locus,
+					maxTravelRadiusFromLocus = maxTravelRadiusFromLocus,
+					canBashDoors = canBashDoors,
+					canTakeTargetsCloserThanEffectiveMinRange = canTakeTargetsCloserThanEffectiveMinRange,
+					canBashFences = canBashFences,
+					onlyRanged = onlyRanged
+				};
 			targetScanContexts.Push(context);
 		}
 

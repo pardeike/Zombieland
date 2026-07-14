@@ -575,12 +575,12 @@ namespace ZombieLand
 			if (map != null && pos.IsValid)
 			{
 				foreach (var inventoryThing in pawn.inventory?.innerContainer?.ToArray() ?? Array.Empty<Thing>())
-					{
-						_ = gearToForbid.Add(inventoryThing);
-						if (pawn.inventory.innerContainer.TryDrop(inventoryThing, pos, map, ThingPlaceMode.Near, out Thing droppedInventory, (thing, _) => thing.SetForbidden(true, false)) && droppedInventory != null)
-							_ = gearToForbid.Add(droppedInventory);
-					}
+				{
+					_ = gearToForbid.Add(inventoryThing);
+					if (pawn.inventory.innerContainer.TryDrop(inventoryThing, pos, map, ThingPlaceMode.Near, out Thing droppedInventory, (thing, _) => thing.SetForbidden(true, false)) && droppedInventory != null)
+						_ = gearToForbid.Add(droppedInventory);
 				}
+			}
 
 			ForbidOrPlaceReleasedGearFromZombieEating(gearToForbid, pos, map);
 
