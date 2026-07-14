@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
-
 	<LetterLabelZombielandMapSetupFailed>Zombieland bu haritada başlamadı</LetterLabelZombielandMapSetupFailed>
 	<ZombielandMapSetupFailed>RimWorld bu haritayı yükledi, ancak Zombieland harita kurulumunu bitiremedi. Zombieland sorunu onarmayı denedi ama başaramadı.\n\nBunun anlamı: zombiler bu haritada ortaya çıkmayacak veya hareket etmeyecek. Zombi olayları, zombilerden kaçınma, zombi cesetleri ve özel zombi davranışları burada çalışmayabilir.\n\nBu genellikle RimWorld veya başka bir mod haritayı yüklerken oluşan bir hatadan kaynaklanır. Logda daha yukarıdaki ilk kırmızı hatayı kontrol edin, sonra yakın zamanda eklenen veya güncellenen modları devre dışı bırakmayı deneyin. RimWorld ve Zombieland sürümlerinin uyumlu olduğundan da emin olun.</ZombielandMapSetupFailed>
 	<ZombielandRevealPlayerLog>Player.log dosyasını göster</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Player.log gösterilemedi. Yol panoya kopyalandı.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland Player.log yolunu bulamadı.</ZombielandPlayerLogPathUnavailable>
-
 	<Zombieland_Settings>Sağ taraftaki yardım metnini okumak için herhangi bir öğenin üzerine gelin. Tüm ayarlar oyun içinde değiştirilebilir ve hemen aktif olur, oyunla birlikte kaydedilir.\n\nYeni oyunlar için varsayılanları ayarlamak için, ayarları ana ekrandan değiştirin (Seçenekler/Mod Ayarları/Zombieland).</Zombieland_Settings>
 	<ZombieLandKeyframes>Zamana bağlı anahtar kareler ekleyin. Aradaki değerleri kaydırıcıyla kontrol edin. Yalnızca anahtar karelerin ayarları düzenlenebilir.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- ilk anahtar kare (oyunun başlangıcı) . . . gelecekteki oyun zamanı -&gt;</ZombieLandKeyframe0>
-
 	<Difficulty_ZombielandThreatScale_Info>Zombieland'deki zombi yetenekleri, tehdit tahmini ve çok daha fazlası gibi neredeyse her şeyin zorluğunu kontrol eder.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Zombieland tehdit ölçeği</Difficulty_ZombielandThreatScale_Label>
-
 	<ZombieSuicideBomber>İntihar bombacısı zombi</ZombieSuicideBomber>
 	<ZombieToxicSplasher>Zehir saçan zombi</ZombieToxicSplasher>
 	<ZombieTanky>Zırhlı operatör zombi</ZombieTanky>
@@ -26,13 +22,10 @@
 	<ZombieWeak>Zayıf zombi</ZombieWeak>
 	<ZombieStrong>Güçlü zombi</ZombieStrong>
 	<ZombieSimple>Basit zombi</ZombieSimple>
-
 	<LetterLabelZombiesRising>Zombi Saldırısı</LetterLabelZombiesRising>
 	<ZombiesRising>Bir grup zombi ortaya çıkar.</ZombiesRising>
-
 	<LetterLabelZombiesRisingNearYourBase>Doğrudan zombi saldırısı</LetterLabelZombiesRisingNearYourBase>
 	<ZombiesRisingNearYourBase>Bir grup zombi üssünüzün yakınlarında ortaya çıkar.</ZombiesRisingNearYourBase>
-
 	<LetterLabelZombiesSpitter>Zombi tükürücü saldırısı</LetterLabelZombiesSpitter>
 	<ZombiesSpitter>Bir zombi tükürücü haritaya girdi ve sizi kuşatacak</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>Zombi Simbiyantı {0} ile bağ kurdu</LetterLabelZombieSymbiant>
@@ -59,19 +52,19 @@
 	<SymbiantSeveredMessage>{0} üzerindeki Simbiyant bağı kaldırıldı.</SymbiantSeveredMessage>
 	<SymbiantHostBondDescription>Simbiyant: {0}/{1} hücre. Sonraki fayda {2} hücrede. Paylaşılan sağlık: {3}. Konak vurulduğunda saldırının tamamı önce paylaşılan sağlıktan düşer; bu boyutta &lt;color=#ffb35c&gt;%{4}&lt;/color&gt; gerçek bir konak yarası olarak kalır. Simbiyanta yapılan saldırılar konak yaraları yerine zararsız gri kayıtlar oluşturur.\n\nHarita kuralı: bağın aktif olması ve temiz şekilde kaldırılabilmesi için konak ve Simbiyant aynı haritada olmalıdır. Ayrılırlarsa bağ uykuya geçer. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir. Simbiyantın bulunduğu haritayı terk etmek onu yok eder ve bağı zorla koparır; ameliyat önce bağı temiz şekilde kaldırır.\n\nFaydalar:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Bu konağa bağlı aktif Simbiyant yok.</SymbiantHostBondMissing>
-		<SymbiantHostRelocatedMessage>{0} ile Simbiyant aynı haritada bulunmadığı için bağ uykuya geçti. Bağ korunur. Uyku sırasında zombi enfeksiyonu bağışıklığı dahil tüm faydalar, paylaşılan hasar aktarımı ve cerrahi ayırma devre dışıdır. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir.</SymbiantHostRelocatedMessage>
-		<LetterLabelSymbiantBondDormant>Simbiyant bağı uykuda</LetterLabelSymbiantBondDormant>
-		<SymbiantMapAbandonWarningTitle>Simbiyant olan harita terk edilsin mi?</SymbiantMapAbandonWarningTitle>
-		<SymbiantMapAbandonWarning>Bu haritada yaşayan ve haritaya bağlı bir Zombi Simbiyantı var. Haritayı terk etmek Simbiyantı yok eder ve kalan bağları zorla koparır. Normal ayırma sürecini istiyorsanız önce Simbiyant bağını ameliyatla kaldırın.\n\nBu harita yine de terk edilsin mi?</SymbiantMapAbandonWarning>
-		<SymbiantReseededMessage>{0} üzerindeki Simbiyant başka bir iç odaya taşındı.</SymbiantReseededMessage>
-		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Geçerli durum&lt;/color&gt;: &lt;color=#72d672&gt;{0} hücre&lt;/color&gt;. Sonraki fayda &lt;color=#72d672&gt;{1} hücrede&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Paylaşılan sağlık&lt;/color&gt;: {4}. Konağı hedef alan hasar önce bu havuzu azaltır; bu boyutta yalnızca &lt;color=#ffb35c&gt;%{5}&lt;/color&gt; kadarı {6} üzerinde gerçek bir yara olarak kalır. Simbiyanta doğrudan verilen hasar, darbe Simbiyant tarafından işlendikten sonra havuzu azaltır; ancak {6} üzerinde yalnızca zararsız gri hasar geçmişi kayıtları oluşturur ve gerçek yara bırakmaz. Bu havuz biterse {6} ölür.\n\n&lt;color=#ffb35c&gt;Harita kuralı&lt;/color&gt;: bağın aktif olması ve temiz şekilde kaldırılabilmesi için konak ve Simbiyant aynı haritada olmalıdır. Ayrılırlarsa bağ uykuya geçer. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir. Bu haritayı terk etmek Simbiyantı yok eder ve bağı zorla koparır. Ameliyat önce bağı temiz şekilde kaldırır.\n\n&lt;color=#ffb35c&gt;Geçerli etkiler&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Geçerli faydalar&lt;/color&gt;:\n{3}\n\nAyrıca &lt;color=#72d672&gt;kirliliği giderir&lt;/color&gt;, bunu ince yollarla yapar.</ZombieSymbiantInfoCardDetails>
-		<SymbiantDetailsInfoCard>Simbiyant ayrıntıları</SymbiantDetailsInfoCard>
-		<SymbiantDetailsInfoCardValue>{0} hücre</SymbiantDetailsInfoCardValue>
-		<LetterLabelSymbiantBenefitGained>Simbiyant faydası kazanıldı</LetterLabelSymbiantBenefitGained>
-		<SymbiantBenefitGainedLetter>{0} ile bağlı Simbiyant yeni bir fayda kazandı: {1}.\n\nGeçerli faydalar:\n{2}</SymbiantBenefitGainedLetter>
-		<LetterLabelSymbiantBondRemoved>Simbiyant bağı kaldırıldı</LetterLabelSymbiantBondRemoved>
-		<SymbiantBondRemovedLetter>{0} ile Simbiyant arasındaki bağ kaldırıldı. Konaksız Simbiyant geri çekilip kaybolacak.</SymbiantBondRemovedLetter>
-		<SymbiantEffectCells>{0}/{1} hücre aktif</SymbiantEffectCells>
+	<SymbiantHostRelocatedMessage>{0} ile Simbiyant aynı haritada bulunmadığı için bağ uykuya geçti. Bağ korunur. Uyku sırasında zombi enfeksiyonu bağışıklığı dahil tüm faydalar, paylaşılan hasar aktarımı ve cerrahi ayırma devre dışıdır. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir.</SymbiantHostRelocatedMessage>
+	<LetterLabelSymbiantBondDormant>Simbiyant bağı uykuda</LetterLabelSymbiantBondDormant>
+	<SymbiantMapAbandonWarningTitle>Simbiyant olan harita terk edilsin mi?</SymbiantMapAbandonWarningTitle>
+	<SymbiantMapAbandonWarning>Bu haritada yaşayan ve haritaya bağlı bir Zombi Simbiyantı var. Haritayı terk etmek Simbiyantı yok eder ve kalan bağları zorla koparır. Normal ayırma sürecini istiyorsanız önce Simbiyant bağını ameliyatla kaldırın.\n\nBu harita yine de terk edilsin mi?</SymbiantMapAbandonWarning>
+	<SymbiantReseededMessage>{0} üzerindeki Simbiyant başka bir iç odaya taşındı.</SymbiantReseededMessage>
+	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Geçerli durum&lt;/color&gt;: &lt;color=#72d672&gt;{0} hücre&lt;/color&gt;. Sonraki fayda &lt;color=#72d672&gt;{1} hücrede&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Paylaşılan sağlık&lt;/color&gt;: {4}. Konağı hedef alan hasar önce bu havuzu azaltır; bu boyutta yalnızca &lt;color=#ffb35c&gt;%{5}&lt;/color&gt; kadarı {6} üzerinde gerçek bir yara olarak kalır. Simbiyanta doğrudan verilen hasar, darbe Simbiyant tarafından işlendikten sonra havuzu azaltır; ancak {6} üzerinde yalnızca zararsız gri hasar geçmişi kayıtları oluşturur ve gerçek yara bırakmaz. Bu havuz biterse {6} ölür.\n\n&lt;color=#ffb35c&gt;Harita kuralı&lt;/color&gt;: bağın aktif olması ve temiz şekilde kaldırılabilmesi için konak ve Simbiyant aynı haritada olmalıdır. Ayrılırlarsa bağ uykuya geçer. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir. Bu haritayı terk etmek Simbiyantı yok eder ve bağı zorla koparır. Ameliyat önce bağı temiz şekilde kaldırır.\n\n&lt;color=#ffb35c&gt;Geçerli etkiler&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Geçerli faydalar&lt;/color&gt;:\n{3}\n\nAyrıca &lt;color=#72d672&gt;kirliliği giderir&lt;/color&gt;, bunu ince yollarla yapar.</ZombieSymbiantInfoCardDetails>
+	<SymbiantDetailsInfoCard>Simbiyant ayrıntıları</SymbiantDetailsInfoCard>
+	<SymbiantDetailsInfoCardValue>{0} hücre</SymbiantDetailsInfoCardValue>
+	<LetterLabelSymbiantBenefitGained>Simbiyant faydası kazanıldı</LetterLabelSymbiantBenefitGained>
+	<SymbiantBenefitGainedLetter>{0} ile bağlı Simbiyant yeni bir fayda kazandı: {1}.\n\nGeçerli faydalar:\n{2}</SymbiantBenefitGainedLetter>
+	<LetterLabelSymbiantBondRemoved>Simbiyant bağı kaldırıldı</LetterLabelSymbiantBondRemoved>
+	<SymbiantBondRemovedLetter>{0} ile Simbiyant arasındaki bağ kaldırıldı. Konaksız Simbiyant geri çekilip kaybolacak.</SymbiantBondRemovedLetter>
+	<SymbiantEffectCells>{0}/{1} hücre aktif</SymbiantEffectCells>
 	<SymbiantEffectPathCost>Simbiyant hücrelerinden geçiş: %{0} daha yavaş</SymbiantEffectPathCost>
 	<SymbiantEffectWorkSpeed>Simbiyant hücrelerinde iş, tedavi, temizlik ve yemek: %{0} daha yavaş</SymbiantEffectWorkSpeed>
 	<SymbiantBenefitGainedMessage>{0} üzerindeki Simbiyant kazandı: {1}.</SymbiantBenefitGainedMessage>
@@ -87,32 +80,26 @@
 	<SymbiantBenefitManipulation>manipülasyon +%25</SymbiantBenefitManipulation>
 	<SymbiantBenefitZombieIgnore>zombiler konağı yok sayar</SymbiantBenefitZombieIgnore>
 	<SymbiantBenefitAutoHeal>otomatik iyileşme</SymbiantBenefitAutoHeal>
-
 	<LetterLabelXDaysUntilZombies>Zombiler gelene kadar {0} kaldı.</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>Zombiler yumuşak toprağın, toprağın, kumun ve de çakılın olduğu yerlerde ortaya çıkar. Bunların bulunduğu yerlere zemin döşemek zombilerin oradan çıkmasını engeller.</XDaysUntilZombies>
-
 	<ZombielandDefaultSettings>Zombieland modunun orijinal ayarları.</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Zombieland ayarları.</ZombielandGameSettings>
 	<JumpToNow>Mevcut saate atla</JumpToNow>
 	<AdvancedSettings>Gelişmiş Ayarlar</AdvancedSettings>
 	<Seasons>mevsimler</Seasons>
 	<Years>yıllar</Years>
-
 	<ZombielandDifficultyTitle>Genel Zorluk</ZombielandDifficultyTitle>
 	<ContaminationEnabled>Global olarak etkin</ContaminationEnabled>
 	<ZombielandRestartRequired>Bu ayarın değiştirilmesi RimWorld'ün yeniden başlatılmasını gerektirir</ZombielandRestartRequired>
 	<ZombielandDifficulty>Tehdit ölçeği</ZombielandDifficulty>
-
 	<ZombielandContaminationTitle>Kirlilik</ZombielandContaminationTitle>
 	<ZombielandContamination>Yoğunluk</ZombielandContamination>
 	<ContaminationEffectiveness>Toplam etkinlik {0}%</ContaminationEffectiveness>
 	<ZombielandStorageContaminationRange>{0} kirlilik</ZombielandStorageContaminationRange>
-
 	<WhenDoZombiesSpawn>Zombiler ne zaman ortaya çıksın?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Her zaman</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>Karanlık olduğunda</SpawnWhenType_WhenDark>
 	<SpawnWhenType_InEventsOnly>Sadece olaylar olarak</SpawnWhenType_InEventsOnly>
-
 	<HowDoZombiesSpawn>Zombiler nereden geliyor?</HowDoZombiesSpawn>
 	<SpawnHowType_AllOverTheMap>Yumuşak zemin olan yerlerde</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>Harita kenarlarından</SpawnHowType_FromTheEdges>
@@ -122,7 +109,6 @@
 	<SmartWandering_Smart>Akıllı</SmartWandering_Smart>
 	<BlacklistedBiomes>Zombisiz biyomlar</BlacklistedBiomes>
 	<Biomes>Biyomlar</Biomes>
-
 	<WhatDoZombiesAttack>Zombiler neye saldıracak?</WhatDoZombiesAttack>
 	<AttackMode_Everything>Bütün yaratıklar</AttackMode_Everything>
 	<AttackMode_OnlyHumans>İnsan benzeri yaratıklar</AttackMode_OnlyHumans>
@@ -140,22 +126,18 @@
 	<AnomalyTargetingOverride_Never>Asla</AnomalyTargetingOverride_Never>
 	<AnomalyTargetingOverride_Allow>İzin ver</AnomalyTargetingOverride_Allow>
 	<AnomalyTargetingOverride_Mixed>Karışık</AnomalyTargetingOverride_Mixed>
-
 	<WhatDoZombiesSmash>Zombiler neyi mahvedecek?</WhatDoZombiesSmash>
 	<SmashMode_Nothing>Hiçbir şey</SmashMode_Nothing>
 	<SmashMode_DoorsOnly>Sadece kapılar</SmashMode_DoorsOnly>
 	<SmashMode_AnyBuilding>İnşa edilmiş her şey</SmashMode_AnyBuilding>
 	<SmashOnlyWhenAgitated>Sadece kışkırtıldıklarında</SmashOnlyWhenAgitated>
-
 	<NewGameTitle>Yeni oyun</NewGameTitle>
 	<DaysBeforeZombiesCome>Zombiler gelene kadar geçen gün sayısı</DaysBeforeZombiesCome>
-
 	<ZombiesOnTheMap>Haritadaki Zombiler</ZombiesOnTheMap>
 	<MaximumNumberOfZombies>En fazla</MaximumNumberOfZombies>
 	<Zombies>Zombiler</Zombies>
 	<ColonyMultiplier>Koloni çarpanı</ColonyMultiplier>
 	<DoubleTapping>Çift vuruş</DoubleTapping>
-
 	<DynamicThreatLevelTitle>Dinamik tehdit düzeyi</DynamicThreatLevelTitle>
 	<UseDynamicThreatLevel>Dinamik tehdit düzeyini kullan</UseDynamicThreatLevel>
 	<DynamicThreatSmoothness>Tehdit eğrisi düzgünlüğü</DynamicThreatSmoothness>
@@ -169,25 +151,20 @@
 	<LetterLabelZombieFreeEvent>Zombi sessizliği</LetterLabelZombieFreeEvent>
 	<ZombieFreeEventLetter>{0} boyunca, dünya genelindeki zombiler yok oluyor ve yeni zombi görünmeyecek. Bu, kervan yolculuğu için iyi bir aralıktır.</ZombieFreeEventLetter>
 	<ZombieFreeEventTimeLeft>Kalan süre</ZombieFreeEventTimeLeft>
-
 	<ZombieEventTitle>Zombi olayı</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Kolonist başına zombiler</ZombiesPerColonistInEvent>
 	<ExtraDaysBetweenEvents>Olaylar arasında ekstra günler</ExtraDaysBetweenEvents>
 	<InfectedRaidsChance>Gelen gruplar enfekte olmuş</InfectedRaidsChance>
-
 	<ZombieSpeedTitle>Zombi hızı</ZombieSpeedTitle>
 	<MoveSpeedIdle>Sakin olduklarında</MoveSpeedIdle>
 	<MoveSpeedTracking>Heyecanlı hissediyorlarsa</MoveSpeedTracking>
-
 	<ZombieDamageTitle>Zombi hasarı</ZombieDamageTitle>
 	<ZombieDamageFactor>Hasar çarpanı</ZombieDamageFactor>
 	<SafeMeleeLimit>Güvenli yakın dövüş limiti</SafeMeleeLimit>
-	<SafeMeleeExample>Örnek: [_]{0}[_] yakın dövüş seviyesi, [_]{1}[_] zombiler => %{2} şans</SafeMeleeExample>
+	<SafeMeleeExample>Örnek: [_]{0}[_] yakın dövüş seviyesi, [_]{1}[_] zombiler =&gt; %{2} şans</SafeMeleeExample>
 	<ZombiesCauseManhunting>Zombiler hayvanları kızdırıyor</ZombiesCauseManhunting>
-
 	<ZombieGameTweaks>Oyun ince ayarlar</ZombieGameTweaks>
 	<ReduceTurretConsumption>Taret silah tüketimini azaltın</ReduceTurretConsumption>
-
 	<ZombieBiteInfectionChance>Bir zombi ısırığının bulaşıcı olma riski</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Enfeksiyon bilinene kadar geçen süre</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Zaman enfeksiyonu tedavi edilebilir</ZombieBiteInfectionTreatable>
@@ -197,7 +174,6 @@
 	<Immediately>Hemen</Immediately>
 	<DeadBecomesZombieMessage>Birisi bir zombiye döndüğünde bir mesaj göster</DeadBecomesZombieMessage>
 	<DangerousSituationMessage>Tehlikedeyken bir mesaj göster</DangerousSituationMessage>
-
 	<ZombieHarvestingTitle>Zombilerden Hasat</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>Zombi başına zombi özü miktarı</CorpsesExtractAmount>
 	<CorpsesExtractChance>Şans</CorpsesExtractChance>
@@ -208,7 +184,6 @@
 	<BlacklistedApparel>Kara listeye alınmış giysiler</BlacklistedApparel>
 	<SelectAll>Tümünü Seçin</SelectAll>
 	<DeselectAll>Tümünün Seçimini Kaldır</DeselectAll>
-
 	<ZombieInstinctTitle>Zombi duyuları</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Sınırlı</ZombieInstinct_Dull>
 	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>
@@ -220,16 +195,13 @@
 	<RageLevelNormal>Normal</RageLevelNormal>
 	<RageLevelHigh>Yüksek</RageLevelHigh>
 	<RageLevelVeryHigh>Çok yüksek</RageLevelVeryHigh>
-
 	<ZombieHealthTitle>Zombi sağlığı</ZombieHealthTitle>
 	<ZombieHealthFactor>Sağlık</ZombieHealthFactor>
 	<DoubleTapRequired>Zombiler yaralardan iyileşir</DoubleTapRequired>
 	<ZombiesDieVeryEasily>Zombileri öldürmek kolaydır</ZombiesDieVeryEasily>
-
 	<ZombieEatingTitle>Zombilerin yiyecekleri</ZombieEatingTitle>
 	<ZombiesEatDowned>Yaralı yaratıklar</ZombiesEatDowned>
 	<ZombiesEatCorpses>Cesetler</ZombiesEatCorpses>
-
 	<SpecialZombiesTitle>Özel zombiler</SpecialZombiesTitle>
 	<SuicideBomberChance>İntihar bombacısı zombiler</SuicideBomberChance>
 	<ToxicSplasherChance>Zehir saçan zombiler</ToxicSplasherChance>
@@ -247,7 +219,6 @@
 	<SymbiantEnabled>Zombi Simbiyantlarını etkinleştir</SymbiantEnabled>
 	<SymbiantMaxCells>En fazla Simbiyant boyutu</SymbiantMaxCells>
 	<MuteSymbiantSplashSounds>Simbiyant sıçrama seslerini sustur</MuteSymbiantSplashSounds>
-
 	<ZombieMiscTitle>Çeşitli</ZombieMiscTitle>
 	<UseCustomTextures>Özel dokular kullanın</UseCustomTextures>
 	<ReplaceTwinkie>Hayatta kalma öğünlerini Twinkies olarak değiştir</ReplaceTwinkie>
@@ -258,7 +229,6 @@
 	<BetterZombieAvoidance>Zombilerden otomatik olarak kaçınma</BetterZombieAvoidance>
 	<ZombiesDropBlood>Zombiler kan damlar</ZombiesDropBlood>
 	<ZombiesBurnLonger>Zombiler uzun süre yanacak</ZombiesBurnLonger>
-
 	<AwarenessCuesTitle>Zombi etkinliği ipuçları</AwarenessCuesTitle>
 	<PlayZombielandMusic>Zombieland müziğini çal</PlayZombielandMusic>
 	<MixZombielandMusicModes>Tehlike olsun olmasın tüm Zombieland müziğini çal</MixZombielandMusicModes>
@@ -273,7 +243,6 @@
 	<PlayZombieActionSounds>Zombi eylem seslerini çal</PlayZombieActionSounds>
 	<PlayWallAndSabotageSounds>Duvar ve sabotaj seslerini çal</PlayWallAndSabotageSounds>
 	<ShowZombieThoughtBubbles>Zombi düşünce balonlarını göster</ShowZombieThoughtBubbles>
-
 	<ZombieActionsTitle>Eylemler</ZombieActionsTitle>
 	<ZombieSettingsReset>Ayarları varsayılana döndür</ZombieSettingsReset>
 	<FactoryResetButton>Fabrika Ayarlarına Sıfırla</FactoryResetButton>
@@ -281,7 +250,6 @@
 	<UninstallZombieland>Mevcut oyundan Zombieland'ı kaldır</UninstallZombieland>
 	<ConfirmUninstallZombieland>Devam ederseniz, yeni bir kayıt dosyası adı seçebilir ve oyun kaydedildikten sonra ana menüye dönersiniz. Yeni kayıt Zombieland olmadan yüklenebilir.\n\nTüm Zombieland içeriğini mevcut oyundan gerçekten kaldırmak istiyor musunuz?</ConfirmUninstallZombieland>
 	<UninstallButton>Kaldır</UninstallButton>
-
 	<ClipboardActionTitle>Pano</ClipboardActionTitle>
 	<CopySettings>Ayarları panoya kopyala</CopySettings>
 	<CopyButton>Kopyala</CopyButton>
@@ -289,34 +257,25 @@
 	<PasteSettings>Ayarları panodakilerle değiştir</PasteSettings>
 	<PasteButton>Yapıştır</PasteButton>
 	<RopeZombie>Bu zombiyi yakala</RopeZombie>
-
 	<Activate>Etkinleştir</Activate>
 	<ActivateDescription>Cihazı etkinleştirir. Odadaki zombiler bilincini kaybeder.</ActivateDescription>
 	<WrongPlacementZombieShocker>Cihaz buraya yerleştirilemez.</WrongPlacementZombieShocker>
-
 	<ColonistsBittenByZombie>Kolonist zombi tarafından ısırıldı</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Bu kolonistler bir zombi tarafından ısırıldı. Bu noktada enfeksiyon kapıp kapmayacakları henüz belli değil:\n\n{0}\nYaralarını yakından izleyin çünkü enfeksiyonların gelişmesi biraz zaman alır.</ColonistsBittenByZombieDesc>
-
 	<ImminentZombiInfection>Yakın zombi enfeksiyonu</ImminentZombiInfection>
 	<ImminentZombiInfectionDesc>Bu kolonistler bir zombi ısırığından enfekte olmak üzereler:\n\n{0}\nOnları en iyi koşullarda en iyi şekilde tedavi ederek hemen kurtarabilirsiniz. Ancak iyi bir doktor, kaliteli bir tıbbi yatak, steril bir oda ve bir yaşam belirtileri monitörü gerektirir.</ImminentZombiInfectionDesc>
-
 	<ZombieInfection>Zombi enfeksiyonu</ZombieInfection>
 	<ZombieInfectionDesc>Bu kolonistler enfekte olmuş ve bir zombi haline gelecektir. Onları kurtarmanın artık yolu yok:\n\n{0}\nEnfeksiyonları sırasında düşüncelere, hislere, acıya ve açlığa kayıtsız kalıyorlar. Sonunda ölür ve bir zombi olurlar.</ZombieInfectionDesc>
-
 	<NoInfectionRisk>Enfeksiyon riski yok</NoInfectionRisk>
 	<HoursBeforeBecomingInfected>Enfeksiyona {0} kaldı</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>Zombi olmasına {0} kaldı</HoursBeforeBecomingAZombie>
-
 	<DangerousSituation>Tehlikeli durum</DangerousSituation>
 	<ZombiesAreBeingPushedOverYourWalls>Duvarlarınızın üzerinden itilen zombiler var! Zombilerin yoğun gruplar halinde birikmesini önleyin.</ZombiesAreBeingPushedOverYourWalls>
-
 	<ColonistBecameAZombieLabel>Bir kolonist zombiye dönüştü</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>Birisi zombiye dönüştü</OtherBecameAZombieLabel>
 	<BecameAZombieDesc>{0} güçlü bir zombiye dönüştü.</BecameAZombieDesc>
-
 	<BodyIsInfectedLabel>Bu vücut zombi virüsü ile enfekte!</BodyIsInfectedLabel>
 	<BodyIsInfectedTooltip>Enfekte olmuş bedenler çürümeye başladıklarında zombiye dönüşeceklerdir.</BodyIsInfectedTooltip>
-
 	<CureZombieInfection>Zombi enfeksiyonunu tedavi et</CureZombieInfection>
 	<ExtractingZombieSerum>Zombi özü toplanıyor</ExtractingZombieSerum>
 	<AutoExtractDisabledDescription>Zombi özü toplanamıyor (doktor yok)</AutoExtractDisabledDescription>
@@ -325,19 +284,15 @@
 	<AutoDoubleTapDisabledDescription>Çift vuruş yapılamıyor (avcı yok)</AutoDoubleTapDisabledDescription>
 	<AutoDoubleTapAllowedDescription>Zombiye dönüşmelerini önlemek için cesetlere otomatik olarak çift vuruş yap</AutoDoubleTapAllowedDescription>
 	<AutoDoubleTapForbiddenDescription>Yalnızca emir verildiğinde çift vuruş yap</AutoDoubleTapForbiddenDescription>
-
 	<AutoAvoidZombiesEnabledDescription>Askere alınmış olmadıkları sürece zombilerden otomatik olarak kaçın</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Zombileri yoksay. Tüm eylemleri manuel olarak kontrol etmeniz gerekir</AutoAvoidZombiesDisabledDescription>
-
 	<ZapZombies>Zombi şok cihazını başlat</ZapZombies>
 	<ZombieShockerWrongPlacement>Cihaz buraya yerleştirilemez</ZombieShockerWrongPlacement>
 	<ZombieShockerHasNoBattery>Cihazın bataryası yok</ZombieShockerHasNoBattery>
 	<ZombieShockerHasNoRoom>Cihaza bağlı geçerli bir oda yok</ZombieShockerHasNoRoom>
 	<ZombieShockerLowBatteryState>Cihaz bağlı bataryaları tüketti</ZombieShockerLowBatteryState>
-
 	<ShowHealthBar>Zombi sağlık çubukları</ShowHealthBar>
 	<ShowZombieStats>Zombi istatistiklerini göster</ShowZombieStats>
-
 	<SnowAndSandClear>Kar ve kum temizleme</SnowAndSandClear>
 	<ShowZombieRisk>Zombi riskini göster</ShowZombieRisk>
 	<ZombieRiskAreaColumnHintLong>Zombieland alan kuralları: ihlaller oyun sırasında ekranın üst kısmında görünür</ZombieRiskAreaColumnHintLong>
@@ -349,10 +304,8 @@
 	<HighlightDangerousAreas>Risk alanlarını vurgulayın</HighlightDangerousAreas>
 	<DisableRandomApparel>Zombiler için rastgele giyimleri kapat</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Uzayda yüzen zombiler</FloatingZombiesInSOS2>
-
 	<Broken>Kırık</Broken>
 	<StatsFuel>%{0} yakıt</StatsFuel>
-
 	<ChainsawBroken>Motorlu testere bozuldu</ChainsawBroken>
 	<ChainsawDisabled>Motorlu testere şu anda kullanılamıyor</ChainsawDisabled>
 	<ChainsawNoFuel>Motorlu testerenin yakıt ikmaline ihtiyacı var</ChainsawNoFuel>
@@ -365,15 +318,12 @@
 	<ChainsawDescFuel> %{0} yakıt ile</ChainsawDescFuel>
 	<ChainsawDescNoFuel> yakıtsız</ChainsawDescNoFuel>
 	<ChainsawDescBlockingChance> gelen saldırıların %{0} kadarını engelliyor</ChainsawDescBlockingChance>
-
 	<ThumperControl>Ayarlar</ThumperControl>
 	<ThumperControlDesc>Bu zombi tokmağı için yoğunluğu ve aralığı tanımlayın</ThumperControlDesc>
 	<Intensity>Yoğunluk</Intensity>
 	<Interval>Aralık</Interval>
-
 	<ToggleStateLabel>Açık / Kapalı</ToggleStateLabel>
 	<ToggleStateDesc>Cihazı açar veya kapatır.</ToggleStateDesc>
-
 	<SpitterStateIdle>Boşta</SpitterStateIdle>
 	<SpitterStateSearching>Arıyor</SpitterStateSearching>
 	<SpitterStateMoving>İlerliyor</SpitterStateMoving>
@@ -384,9 +334,7 @@
 	<Waves>Dalgalar</Waves>
 	<Aggressive>Agresif</Aggressive>
 	<Calm>Sakin</Calm>
-
 	<ZombieContamination>Zombi Kirliliği</ZombieContamination>
 	<ContaminationHelp>Zombi kıyameti tarafından oluşturulan kirlilik, dokunma ve şeylerle uğraşma yoluyla geçer. Yayılır ve kolonistlerde tuhaf davranışlara yol açabilir.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Zombi kirliliği kaplamasını değiştir.\n\nBu, şeylerin ve zeminin ne kadar kirli olduğunu gösterir, bu da piyonları etkiler.</ShowContaminationOverlayToggleButton>
-
 </LanguageData>

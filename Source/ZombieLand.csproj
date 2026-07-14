@@ -96,7 +96,7 @@
 	<Target Name="RestoreBridgeTools" BeforeTargets="Build" Condition="'$(BuildBridgeTools)' != 'false' And ('$(RIMWORLD_MOD_DIR)' == '' Or '$(RimworldDeployGuardInner)' == 'true')">
 		<Exec Command="&quot;$(DOTNET_HOST_PATH)&quot; restore &quot;$(MSBuildProjectDirectory)\BridgeTools\Zombieland.BridgeTools.csproj&quot; --nologo --verbosity quiet"/>
 	</Target>
-	<Target Name="BuildBridgeTools" AfterTargets="Build" BeforeTargets="_CopyToRimworldUnlocked" Condition="'$(BuildBridgeTools)' != 'false' And ('$(RIMWORLD_MOD_DIR)' == '' Or '$(RimworldDeployGuardInner)' == 'true')">
+	<Target Name="BuildBridgeTools" DependsOnTargets="RestoreBridgeTools" AfterTargets="Build" BeforeTargets="_CopyToRimworldUnlocked" Condition="'$(BuildBridgeTools)' != 'false' And ('$(RIMWORLD_MOD_DIR)' == '' Or '$(RimworldDeployGuardInner)' == 'true')">
 		<MSBuild Projects="$(MSBuildProjectDirectory)\BridgeTools\Zombieland.BridgeTools.csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform);ZombielandAssemblyPath=$(TargetPath)"/>
 	</Target>
 	<Target Name="ValidateRimworldDeployRoot" BeforeTargets="Build;CopyToRimworld" Condition="'$(RIMWORLD_MOD_DIR)' != '' And '$(RimworldDeployGuardInner)' != 'true'">

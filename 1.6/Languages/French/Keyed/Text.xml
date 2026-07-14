@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
-
 	<LetterLabelZombielandMapSetupFailed>Zombieland n'a pas démarré sur cette carte</LetterLabelZombielandMapSetupFailed>
 	<ZombielandMapSetupFailed>RimWorld a chargé cette carte, mais Zombieland n'a pas pu terminer sa préparation de carte. Zombieland a essayé de réparer le problème, sans succès.\n\nConséquence : les zombies n'apparaîtront pas et ne se déplaceront pas sur cette carte. Les événements zombies, l'évitement des zombies, les cadavres de zombies et les comportements spéciaux peuvent ne pas fonctionner ici.\n\nCela vient généralement d'une erreur pendant le chargement de la carte par RimWorld ou par un autre mod. Vérifiez la première erreur rouge plus haut dans le log, puis essayez de désactiver les mods ajoutés ou mis à jour récemment. Vérifiez aussi que vos versions de RimWorld et Zombieland sont compatibles.</ZombielandMapSetupFailed>
 	<ZombielandRevealPlayerLog>Afficher Player.log</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Impossible d'afficher Player.log. Le chemin a été copié dans le presse-papiers.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland n'a pas trouvé le chemin de Player.log.</ZombielandPlayerLogPathUnavailable>
-
 	<Zombieland_Settings>Survolez un élément pour lire un texte d'aide à son sujet à droite. Tous les paramètres peuvent être modifiés dans le jeu et sont actifs immédiatement, ils sont sauvegardés avec le jeu.\n\nPour définir les paramètres par défaut des nouvelles parties, modifiez-les depuis l'écran principal (Options / Paramètres des mods / Zombieland).</Zombieland_Settings>
 	<ZombieLandKeyframes>Ajoutez des images clés qui définissent les paramètres dans le temps. Utilisez le curseur pour vérifier les valeurs intermédiaires. Seuls les réglages des images clés sont modifiables.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- première image clé (début du jeu) . . . temps de jeu futur -&gt;</ZombieLandKeyframe0>
-
 	<Difficulty_ZombielandThreatScale_Info>Contrôle la difficulté de presque tout dans Zombieland, comme les capacités des zombies, la prévision des menaces et bien plus encore.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>L'échelle de menace de Zombieland</Difficulty_ZombielandThreatScale_Label>
-
 	<ZombieSuicideBomber>Zombie kamikaze</ZombieSuicideBomber>
 	<ZombieToxicSplasher>Zombie cracheur toxique</ZombieToxicSplasher>
 	<ZombieTanky>Zombie opérateur blindé</ZombieTanky>
@@ -26,13 +22,10 @@
 	<ZombieWeak>Zombie faible</ZombieWeak>
 	<ZombieStrong>Zombie puissant</ZombieStrong>
 	<ZombieSimple>Zombie simple</ZombieSimple>
-
 	<LetterLabelZombiesRising>Attaque de zombies</LetterLabelZombiesRising>
 	<ZombiesRising>Un groupe de zombies est apparu</ZombiesRising>
-
 	<LetterLabelZombiesRisingNearYourBase>Attaque directe de zombies</LetterLabelZombiesRisingNearYourBase>
 	<ZombiesRisingNearYourBase>Un groupe de zombies est apparu près de votre base</ZombiesRisingNearYourBase>
-
 	<LetterLabelZombiesSpitter>Attaque d'un cracheur de zombies</LetterLabelZombiesSpitter>
 	<ZombiesSpitter>Un cracheur de zombies est entré sur la carte et va vous assiéger</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>Symbiant zombie lié à {0}</LetterLabelZombieSymbiant>
@@ -59,19 +52,19 @@
 	<SymbiantSeveredMessage>Le lien de Symbiant de {0} a été retiré.</SymbiantSeveredMessage>
 	<SymbiantHostBondDescription>Symbiant : {0}/{1} cases. Prochain avantage à {2} cases. Santé partagée : {3}. Lorsque l'hôte est touché, l'attaque complète draine d'abord la santé partagée ; à cette taille, &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; reste sous forme de véritable blessure de l'hôte. Les attaques contre le Symbiant créent des relevés gris inoffensifs au lieu de blessures de l'hôte.\n\nRègle de carte : l'hôte et le Symbiant doivent être sur la même carte pour que le lien soit actif et puisse être retiré proprement. S'ils sont séparés, le lien devient dormant. Il ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte. Abandonner la carte du Symbiant le détruit et rompt le lien de force ; une opération retire d'abord le lien proprement.\n\nAvantages :\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Aucun Symbiant actif n'est lié à cet hôte.</SymbiantHostBondMissing>
-		<SymbiantHostRelocatedMessage>Le lien de Symbiant de {0} est en dormance, car l'hôte et le Symbiant ne se trouvent pas sur la même carte. Le lien subsiste. Pendant la dormance, tous les avantages (y compris l'immunité aux infections zombies), le transfert des dégâts et l'ablation chirurgicale sont inactifs. Le lien ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte.</SymbiantHostRelocatedMessage>
-		<LetterLabelSymbiantBondDormant>Lien de Symbiant en dormance</LetterLabelSymbiantBondDormant>
-		<SymbiantMapAbandonWarningTitle>Abandonner la carte avec un Symbiant ?</SymbiantMapAbandonWarningTitle>
-		<SymbiantMapAbandonWarning>Cette carte contient un Symbiant zombie vivant et lié à la carte. Si vous l'abandonnez, le Symbiant sera détruit et tout lien restant sera rompu de force. Retirez d'abord le lien du Symbiant par une opération si vous voulez suivre la séparation normale.\n\nAbandonner cette carte quand même ?</SymbiantMapAbandonWarning>
-		<SymbiantReseededMessage>Le Symbiant de {0} s'est déplacé dans une autre pièce intérieure.</SymbiantReseededMessage>
-		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;État actuel&lt;/color&gt; : &lt;color=#72d672&gt;{0} cases&lt;/color&gt;. Prochain avantage à &lt;color=#72d672&gt;{1} cases&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Santé partagée&lt;/color&gt; : {4}. Les dégâts visant l'hôte vident d'abord cette réserve ; à cette taille, seulement &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; subsiste sous forme de véritable blessure sur {6}. Les dégâts directs sur le Symbiant vident la réserve après le traitement du coup par le Symbiant, mais ne créent que des relevés historiques gris et inoffensifs, sans véritable blessure sur {6}. Si cette réserve est épuisée, {6} meurt.\n\n&lt;color=#ffb35c&gt;Règle de carte&lt;/color&gt; : l'hôte et le Symbiant doivent être sur la même carte pour que le lien soit actif et puisse être retiré proprement. S'ils sont séparés, le lien devient dormant. Il ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte. Abandonner cette carte détruit le Symbiant et rompt le lien de force. Une opération retire d'abord le lien proprement.\n\n&lt;color=#ffb35c&gt;Effets actuels&lt;/color&gt; :\n{2}\n\n&lt;color=#72d672&gt;Avantages actuels&lt;/color&gt; :\n{3}\n\nIl &lt;color=#72d672&gt;retire aussi la contamination&lt;/color&gt; de manière subtile.</ZombieSymbiantInfoCardDetails>
-		<SymbiantDetailsInfoCard>Détails du Symbiant</SymbiantDetailsInfoCard>
-		<SymbiantDetailsInfoCardValue>{0} cases</SymbiantDetailsInfoCardValue>
-		<LetterLabelSymbiantBenefitGained>Avantage du Symbiant obtenu</LetterLabelSymbiantBenefitGained>
-		<SymbiantBenefitGainedLetter>Le Symbiant lié à {0} a gagné un nouvel avantage : {1}.\n\nAvantages actuels :\n{2}</SymbiantBenefitGainedLetter>
-		<LetterLabelSymbiantBondRemoved>Lien du Symbiant retiré</LetterLabelSymbiantBondRemoved>
-		<SymbiantBondRemovedLetter>Le lien entre {0} et le Symbiant a été retiré. Le Symbiant sans hôte va se retirer et disparaître.</SymbiantBondRemovedLetter>
-		<SymbiantEffectCells>{0}/{1} cases actives</SymbiantEffectCells>
+	<SymbiantHostRelocatedMessage>Le lien de Symbiant de {0} est en dormance, car l'hôte et le Symbiant ne se trouvent pas sur la même carte. Le lien subsiste. Pendant la dormance, tous les avantages (y compris l'immunité aux infections zombies), le transfert des dégâts et l'ablation chirurgicale sont inactifs. Le lien ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte.</SymbiantHostRelocatedMessage>
+	<LetterLabelSymbiantBondDormant>Lien de Symbiant en dormance</LetterLabelSymbiantBondDormant>
+	<SymbiantMapAbandonWarningTitle>Abandonner la carte avec un Symbiant ?</SymbiantMapAbandonWarningTitle>
+	<SymbiantMapAbandonWarning>Cette carte contient un Symbiant zombie vivant et lié à la carte. Si vous l'abandonnez, le Symbiant sera détruit et tout lien restant sera rompu de force. Retirez d'abord le lien du Symbiant par une opération si vous voulez suivre la séparation normale.\n\nAbandonner cette carte quand même ?</SymbiantMapAbandonWarning>
+	<SymbiantReseededMessage>Le Symbiant de {0} s'est déplacé dans une autre pièce intérieure.</SymbiantReseededMessage>
+	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;État actuel&lt;/color&gt; : &lt;color=#72d672&gt;{0} cases&lt;/color&gt;. Prochain avantage à &lt;color=#72d672&gt;{1} cases&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Santé partagée&lt;/color&gt; : {4}. Les dégâts visant l'hôte vident d'abord cette réserve ; à cette taille, seulement &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; subsiste sous forme de véritable blessure sur {6}. Les dégâts directs sur le Symbiant vident la réserve après le traitement du coup par le Symbiant, mais ne créent que des relevés historiques gris et inoffensifs, sans véritable blessure sur {6}. Si cette réserve est épuisée, {6} meurt.\n\n&lt;color=#ffb35c&gt;Règle de carte&lt;/color&gt; : l'hôte et le Symbiant doivent être sur la même carte pour que le lien soit actif et puisse être retiré proprement. S'ils sont séparés, le lien devient dormant. Il ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte. Abandonner cette carte détruit le Symbiant et rompt le lien de force. Une opération retire d'abord le lien proprement.\n\n&lt;color=#ffb35c&gt;Effets actuels&lt;/color&gt; :\n{2}\n\n&lt;color=#72d672&gt;Avantages actuels&lt;/color&gt; :\n{3}\n\nIl &lt;color=#72d672&gt;retire aussi la contamination&lt;/color&gt; de manière subtile.</ZombieSymbiantInfoCardDetails>
+	<SymbiantDetailsInfoCard>Détails du Symbiant</SymbiantDetailsInfoCard>
+	<SymbiantDetailsInfoCardValue>{0} cases</SymbiantDetailsInfoCardValue>
+	<LetterLabelSymbiantBenefitGained>Avantage du Symbiant obtenu</LetterLabelSymbiantBenefitGained>
+	<SymbiantBenefitGainedLetter>Le Symbiant lié à {0} a gagné un nouvel avantage : {1}.\n\nAvantages actuels :\n{2}</SymbiantBenefitGainedLetter>
+	<LetterLabelSymbiantBondRemoved>Lien du Symbiant retiré</LetterLabelSymbiantBondRemoved>
+	<SymbiantBondRemovedLetter>Le lien entre {0} et le Symbiant a été retiré. Le Symbiant sans hôte va se retirer et disparaître.</SymbiantBondRemovedLetter>
+	<SymbiantEffectCells>{0}/{1} cases actives</SymbiantEffectCells>
 	<SymbiantEffectPathCost>déplacement sur les cases du Symbiant : {0}% plus lent</SymbiantEffectPathCost>
 	<SymbiantEffectWorkSpeed>travail, soins, nettoyage et cuisine sur les cases du Symbiant : {0}% plus lents</SymbiantEffectWorkSpeed>
 	<SymbiantBenefitGainedMessage>Le Symbiant de {0} a gagné : {1}.</SymbiantBenefitGainedMessage>
@@ -87,32 +80,26 @@
 	<SymbiantBenefitManipulation>manipulation +25 %</SymbiantBenefitManipulation>
 	<SymbiantBenefitZombieIgnore>les zombies ignorent l'hôte</SymbiantBenefitZombieIgnore>
 	<SymbiantBenefitAutoHeal>guérison automatique</SymbiantBenefitAutoHeal>
-
 	<LetterLabelXDaysUntilZombies>{0} avant que les zombies arrivent</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>Les zombies vont apparaître là où il y a du sol meuble, de la terre, du sable ou du gravier. Construire des sols empêche les zombies d'apparaître sur ces cases</XDaysUntilZombies>
-
 	<ZombielandDefaultSettings>Paramètres par défaut de zombieland</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Options de zombieland</ZombielandGameSettings>
 	<JumpToNow>Sauter au présent</JumpToNow>
 	<AdvancedSettings>Réglages avancés</AdvancedSettings>
 	<Seasons>saisons</Seasons>
 	<Years>années</Years>
-
 	<ZombielandDifficultyTitle>Difficulté globale</ZombielandDifficultyTitle>
 	<ZombielandDifficulty>Échelle des menaces</ZombielandDifficulty>
-
 	<ZombielandContaminationTitle>Contamination</ZombielandContaminationTitle>
 	<ContaminationEnabled>Globalement activée</ContaminationEnabled>
 	<ZombielandRestartRequired>La modification de ce paramètre nécessite un redémarrage de RimWorld</ZombielandRestartRequired>
 	<ZombielandContamination>Intensité</ZombielandContamination>
 	<ContaminationEffectiveness>Efficacité totale {0} %</ContaminationEffectiveness>
 	<ZombielandStorageContaminationRange>{0} contamination</ZombielandStorageContaminationRange>
-
 	<WhenDoZombiesSpawn>Quand les Zombies arrivent-ils ? </WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Tout le temps</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>Quand il fait nuit</SpawnWhenType_WhenDark>
 	<SpawnWhenType_InEventsOnly>Seulement lors d'événements</SpawnWhenType_InEventsOnly>
-
 	<HowDoZombiesSpawn>D'où viennent les zombies ?</HowDoZombiesSpawn>
 	<SpawnHowType_AllOverTheMap>Là où il y a du sol meuble</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>Des bords de la carte</SpawnHowType_FromTheEdges>
@@ -122,7 +109,6 @@
 	<SmartWandering_Smart>Intelligente</SmartWandering_Smart>
 	<BlacklistedBiomes>Biomes sans zombies</BlacklistedBiomes>
 	<Biomes>Biomes</Biomes>
-
 	<WhatDoZombiesAttack>Que vont attaquer les Zombies ?</WhatDoZombiesAttack>
 	<AttackMode_Everything>Toutes les créatures</AttackMode_Everything>
 	<AttackMode_OnlyHumans>Les créatures humanoïdes</AttackMode_OnlyHumans>
@@ -140,22 +126,18 @@
 	<AnomalyTargetingOverride_Never>Jamais</AnomalyTargetingOverride_Never>
 	<AnomalyTargetingOverride_Allow>Autoriser</AnomalyTargetingOverride_Allow>
 	<AnomalyTargetingOverride_Mixed>Mixte</AnomalyTargetingOverride_Mixed>
-
 	<WhatDoZombiesSmash>Que vont détruire les Zombies ?</WhatDoZombiesSmash>
 	<SmashMode_Nothing>Rien</SmashMode_Nothing>
 	<SmashMode_DoorsOnly>Seulement les portes</SmashMode_DoorsOnly>
 	<SmashMode_AnyBuilding>Tout ce qui est construit</SmashMode_AnyBuilding>
 	<SmashOnlyWhenAgitated>Seulement quand ils sont agités</SmashOnlyWhenAgitated>
-
 	<NewGameTitle>Nouvelle partie</NewGameTitle>
 	<DaysBeforeZombiesCome>Jours avant que les Zombies arrivent</DaysBeforeZombiesCome>
-
 	<ZombiesOnTheMap>Zombies sur la carte</ZombiesOnTheMap>
 	<MaximumNumberOfZombies>Jamais plus de</MaximumNumberOfZombies>
 	<Zombies>Zombies</Zombies>
 	<ColonyMultiplier>Multiplicateur de colonies</ColonyMultiplier>
 	<DoubleTapping>Coup de grâce</DoubleTapping>
-
 	<DynamicThreatLevelTitle>Niveau de menace dynamique</DynamicThreatLevelTitle>
 	<UseDynamicThreatLevel>Utiliser le niveau de menace dynamique</UseDynamicThreatLevel>
 	<DynamicThreatSmoothness>Lissage de la courbe de menace</DynamicThreatSmoothness>
@@ -169,25 +151,20 @@
 	<LetterLabelZombieFreeEvent>Silence des zombies</LetterLabelZombieFreeEvent>
 	<ZombieFreeEventLetter>Pendant {0}, les zombies disparaissent dans le monde entier et aucun nouveau zombie n'apparaîtra. C'est une bonne fenêtre pour voyager en caravane.</ZombieFreeEventLetter>
 	<ZombieFreeEventTimeLeft>Temps restant</ZombieFreeEventTimeLeft>
-
 	<ZombieEventTitle>Apparition de Zombie</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Zombies par colon</ZombiesPerColonistInEvent>
 	<ExtraDaysBetweenEvents>Jours supplémentaires entre les événements</ExtraDaysBetweenEvents>
 	<InfectedRaidsChance>Les groupes d'arrivée sont infectés</InfectedRaidsChance>
-
 	<ZombieSpeedTitle>Vitesse des Zombies</ZombieSpeedTitle>
 	<MoveSpeedIdle>S'ils sont calmes</MoveSpeedIdle>
 	<MoveSpeedTracking>S'ils sont énervés</MoveSpeedTracking>
-
 	<ZombieDamageTitle>Dommages causés par les zombies</ZombieDamageTitle>
 	<ZombieDamageFactor>Multiplicateur de dégâts</ZombieDamageFactor>
 	<SafeMeleeLimit>Limite de mêlée sûre</SafeMeleeLimit>
-	<SafeMeleeExample>Exemple : [_]{0}[_] niveau de mêlée, [_]{1}[_] zombies => {2} % de chances</SafeMeleeExample>
+	<SafeMeleeExample>Exemple : [_]{0}[_] niveau de mêlée, [_]{1}[_] zombies =&gt; {2} % de chances</SafeMeleeExample>
 	<ZombiesCauseManhunting>Les zombies peuvent rendre les animaux chasseurs d'hommes</ZombiesCauseManhunting>
-
 	<ZombieGameTweaks>Ajustements du jeu</ZombieGameTweaks>
 	<ReduceTurretConsumption>Réduire la consommation d'acier des tourelles</ReduceTurretConsumption>
-
 	<ZombieBiteInfectionChance>Risque qu’une morsure de Zombie soit infectieuse</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Temps avant que l'infection soit connue</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Temps où l'infection est traitable</ZombieBiteInfectionTreatable>
@@ -197,7 +174,6 @@
 	<Immediately>Aussitôt</Immediately>
 	<DeadBecomesZombieMessage>Montrer un message quand quelqu'un se transforme en zombie</DeadBecomesZombieMessage>
 	<DangerousSituationMessage>Afficher un message en cas de danger</DangerousSituationMessage>
-
 	<ZombieHarvestingTitle>Butin de zombies</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>Quantité d'extrait de zombie par zombie</CorpsesExtractAmount>
 	<CorpsesExtractChance>Probabilité</CorpsesExtractChance>
@@ -208,7 +184,6 @@
 	<BlacklistedApparel>Vêtements sur liste noire</BlacklistedApparel>
 	<SelectAll>Sélectionner tout</SelectAll>
 	<DeselectAll>Désélectionner tout</DeselectAll>
-
 	<ZombieInstinctTitle>Sens des zombies</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Limité</ZombieInstinct_Dull>
 	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>
@@ -220,16 +195,13 @@
 	<RageLevelNormal>Normal</RageLevelNormal>
 	<RageLevelHigh>Haut</RageLevelHigh>
 	<RageLevelVeryHigh>Très haut</RageLevelVeryHigh>
-
 	<ZombieHealthTitle>Santé des zombies</ZombieHealthTitle>
 	<ZombieHealthFactor>Santé</ZombieHealthFactor>
 	<DoubleTapRequired>Les zombies se remettent de leurs blessures</DoubleTapRequired>
 	<ZombiesDieVeryEasily>Les Zombies sont faciles à tuer</ZombiesDieVeryEasily>
-
 	<ZombieEatingTitle>Les Zombies vont manger</ZombieEatingTitle>
 	<ZombiesEatDowned>Les créatures blessées</ZombiesEatDowned>
 	<ZombiesEatCorpses>Les corps</ZombiesEatCorpses>
-
 	<SpecialZombiesTitle>Zombies spéciaux</SpecialZombiesTitle>
 	<SuicideBomberChance>Zombies kamikazes</SuicideBomberChance>
 	<ToxicSplasherChance>Zombies cracheurs toxiques</ToxicSplasherChance>
@@ -247,7 +219,6 @@
 	<SymbiantEnabled>Activer les Symbiants zombies</SymbiantEnabled>
 	<SymbiantMaxCells>Taille maximale du Symbiant</SymbiantMaxCells>
 	<MuteSymbiantSplashSounds>Couper les sons d'éclaboussure du Symbiant</MuteSymbiantSplashSounds>
-
 	<ZombieMiscTitle>Divers</ZombieMiscTitle>
 	<UseCustomTextures>Utiliser des textures personnalisées </UseCustomTextures>
 	<ReplaceTwinkie>Change les repas de survie en Twinkies (miam!)</ReplaceTwinkie>
@@ -258,7 +229,6 @@
 	<BetterZombieAvoidance>Evitement automatique des Zombies</BetterZombieAvoidance>
 	<ZombiesDropBlood>Les zombies laissent du sang</ZombiesDropBlood>
 	<ZombiesBurnLonger>Les zombies brûlent plus longtemps</ZombiesBurnLonger>
-
 	<AwarenessCuesTitle>Indices d'activité</AwarenessCuesTitle>
 	<PlayZombielandMusic>Jouer la musique de Zombieland</PlayZombielandMusic>
 	<MixZombielandMusicModes>Jouer toute la musique Zombieland avec ou sans danger</MixZombielandMusicModes>
@@ -273,7 +243,6 @@
 	<PlayZombieActionSounds>Jouer les sons d'action des zombies</PlayZombieActionSounds>
 	<PlayWallAndSabotageSounds>Jouer les sons de murs et de sabotage</PlayWallAndSabotageSounds>
 	<ShowZombieThoughtBubbles>Afficher les bulles de pensée des zombies</ShowZombieThoughtBubbles>
-
 	<ZombieActionsTitle>Actions</ZombieActionsTitle>
 	<ZombieSettingsReset>Restaurer les paramètres par défaut</ZombieSettingsReset>
 	<FactoryResetButton>Réinitialisation d'usine</FactoryResetButton>
@@ -281,7 +250,6 @@
 	<UninstallZombieland>Effacer Zombieland du jeu</UninstallZombieland>
 	<ConfirmUninstallZombieland>Si vous continuez, vous pourrez choisir un nouveau nom de sauvegarde et vous reviendrez au menu principal après la sauvegarde. La nouvelle sauvegarde peut être chargée sans Zombieland. \n\nVoulez-vous vraiment supprimer tout le contenu de Zombieland du jeu en cours ?</ConfirmUninstallZombieland>
 	<UninstallButton>Désinstaller</UninstallButton>
-
 	<ClipboardActionTitle>Presse-papiers</ClipboardActionTitle>
 	<CopySettings>Copier les paramètres dans le presse-papiers</CopySettings>
 	<CopyButton>Copier</CopyButton>
@@ -289,34 +257,25 @@
 	<PasteSettings>Remplacer les paramètres depuis le presse-papiers</PasteSettings>
 	<PasteButton>Coller</PasteButton>
 	<RopeZombie>Capturer ce zombie</RopeZombie>
-
 	<Activate>Activer</Activate>
 	<ActivateDescription>Active l'appareil. Les zombies dans la pièce perdent conscience.</ActivateDescription>
 	<WrongPlacementZombieShocker>L'appareil ne peut pas être placé ici.</WrongPlacementZombieShocker>
-
 	<ColonistsBittenByZombie>Colon mordu par un zombie</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Ces colons ont été mordus par un zombie. A ce stade, on ne sait pas s’ils vont développer l’infection:\n\n{0}\nSurveillez les blessures car les infections prennent du temps à se développer.</ColonistsBittenByZombieDesc>
-
 	<ImminentZombiInfection>Zombification imminente</ImminentZombiInfection>
 	<ImminentZombiInfectionDesc>Ces colons sont sur le point d'être infectés par une morsure de zombie :\n\n{0}\nVous pouvez encore les sauver en leur donnant immédiatement un traitement optimal dans les meilleures conditions. Mais il est nécessaire d'avoir un bon docteur, un lit médical et une salle stérile avec un moniteur vital.</ImminentZombiInfectionDesc>
-
 	<ZombieInfection>Zombification</ZombieInfection>
 	<ZombieInfectionDesc>Ces colons sont infectés et vont devenir des zombies. Il n’y a plus moyen de les sauver:\n\n{0}\nPendant l’infection ils sont indifférents aux pensées, aux sentiments, à la douleur et à la faim. A la fin, ils meurent et deviennent des zombies.</ZombieInfectionDesc>
-
 	<NoInfectionRisk>Pas de risque d’infection</NoInfectionRisk>
 	<HoursBeforeBecomingInfected>{0} avant l’infection</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} avant de devenir un Zombie</HoursBeforeBecomingAZombie>
-
 	<DangerousSituation>Situation dangereuse</DangerousSituation>
 	<ZombiesAreBeingPushedOverYourWalls>Des zombies sont poussés par-dessus vos murs ! Empêchez les zombies de s'accumuler en groupes denses.</ZombiesAreBeingPushedOverYourWalls>
-
 	<ColonistBecameAZombieLabel>Un colon transformé en zombie</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>Quelqu'un s'est transformé en zombie</OtherBecameAZombieLabel>
 	<BecameAZombieDesc>{0} s'est transformé en un puissant zombie.</BecameAZombieDesc>
-
 	<BodyIsInfectedLabel>Ce corps est infecté par le virus zombie!</BodyIsInfectedLabel>
 	<BodyIsInfectedTooltip>Les corps infectés se transforment en zombies quand ils commencent à pourrir.</BodyIsInfectedTooltip>
-
 	<CureZombieInfection>Guérir l'infection zombie</CureZombieInfection>
 	<ExtractingZombieSerum>Extraction d'extrait de zombie</ExtractingZombieSerum>
 	<AutoExtractDisabledDescription>Impossible d'extraire l'extrait de zombie (pas de médecin)</AutoExtractDisabledDescription>
@@ -325,19 +284,15 @@
 	<AutoDoubleTapDisabledDescription>Impossible d'achever les cadavres (chasse non assignée)</AutoDoubleTapDisabledDescription>
 	<AutoDoubleTapAllowedDescription>Achever automatiquement les cadavres pour les empêcher de devenir des zombies</AutoDoubleTapAllowedDescription>
 	<AutoDoubleTapForbiddenDescription>N'achever les cadavres que sur ordre</AutoDoubleTapForbiddenDescription>
-
 	<AutoAvoidZombiesEnabledDescription>Évite automatiquement les zombies, sauf lorsque le pion est enrôlé</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Ignorer les zombies. Vous devez contrôler manuellement toutes les actions</AutoAvoidZombiesDisabledDescription>
-
 	<ZapZombies>Activer l'étourdisseur de zombies</ZapZombies>
 	<ZombieShockerWrongPlacement>L'appareil ne peut pas être placé ici</ZombieShockerWrongPlacement>
 	<ZombieShockerHasNoBattery>L'appareil n'a pas de batterie fixée</ZombieShockerHasNoBattery>
 	<ZombieShockerHasNoRoom>L'appareil n'a aucune pièce valide attachée</ZombieShockerHasNoRoom>
 	<ZombieShockerLowBatteryState>L'appareil a épuisé les batteries connectées</ZombieShockerLowBatteryState>
-
 	<ShowHealthBar>Barre de santé de zombies</ShowHealthBar>
 	<ShowZombieStats>Afficher les statistiques des zombies</ShowZombieStats>
-
 	<SnowAndSandClear>Déneigement et désensablement</SnowAndSandClear>
 	<ShowZombieRisk>Afficher le risque zombie</ShowZombieRisk>
 	<ZombieRiskAreaColumnHintLong>Règles de zone Zombieland : les infractions s'affichent en haut de l'écran pendant la partie</ZombieRiskAreaColumnHintLong>
@@ -349,10 +304,8 @@
 	<HighlightDangerousAreas>Mettre en lumière les zones à risque</HighlightDangerousAreas>
 	<DisableRandomApparel>Désactiver les vêtements aléatoires pour les zombies</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Les zombies flottent dans l'espace</FloatingZombiesInSOS2>
-
 	<Broken>Cassé</Broken>
 	<StatsFuel>{0}% de carburant</StatsFuel>
-
 	<ChainsawBroken>La tronçonneuse est cassée</ChainsawBroken>
 	<ChainsawDisabled>La tronçonneuse ne peut pas être utilisée pour le moment</ChainsawDisabled>
 	<ChainsawNoFuel>La tronçonneuse a besoin de carburant</ChainsawNoFuel>
@@ -365,15 +318,12 @@
 	<ChainsawDescFuel> avec {0}% de carburant</ChainsawDescFuel>
 	<ChainsawDescNoFuel> sans carburant</ChainsawDescNoFuel>
 	<ChainsawDescBlockingChance> bloquant {0}% des attaques entrantes</ChainsawDescBlockingChance>
-
 	<ThumperControl>Paramètres</ThumperControl>
 	<ThumperControlDesc>Définir l'intensité et l'intervalle de cet attracteur de zombies</ThumperControlDesc>
 	<Intensity>Intensité</Intensity>
 	<Interval>Intervalle</Interval>
-
 	<ToggleStateLabel>Marche / Arrêt</ToggleStateLabel>
 	<ToggleStateDesc>Permet d'allumer ou d'éteindre l'appareil.</ToggleStateDesc>
-
 	<SpitterStateIdle>Inactif</SpitterStateIdle>
 	<SpitterStateSearching>Recherche</SpitterStateSearching>
 	<SpitterStateMoving>En mouvement</SpitterStateMoving>
@@ -384,9 +334,7 @@
 	<Waves>Ondes</Waves>
 	<Aggressive>Agressif</Aggressive>
 	<Calm>Calme</Calm>
-
 	<ZombieContamination>Contamination Zombie</ZombieContamination>
 	<ContaminationHelp>La contamination causée par l'apocalypse zombie est transmise par le toucher et la manipulation d'objets. Elle se propage et peut entraîner des comportements étranges chez les colons.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Afficher/masquer la surcouche de contamination zombie.\n\nCela montre à quel point les choses et le sol sont contaminés, ce qui affecte à son tour les pions.</ShowContaminationOverlayToggleButton>
-
 </LanguageData>

@@ -1,19 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
-
 	<LetterLabelZombielandMapSetupFailed>Zombieland не запустился на этой карте</LetterLabelZombielandMapSetupFailed>
 	<ZombielandMapSetupFailed>RimWorld загрузил эту карту, но Zombieland не смог завершить настройку карты. Zombieland попытался исправить проблему, но не смог.\n\nЧто это значит: зомби не будут появляться или двигаться на этой карте. События зомби, избегание зомби, трупы зомби и особое поведение зомби здесь могут не работать.\n\nОбычно это вызвано ошибкой во время загрузки карты RimWorld или другим модом. Проверьте первую красную ошибку выше в логе, затем попробуйте отключить недавно добавленные или обновленные моды. Также убедитесь, что версии RimWorld и Zombieland совместимы.</ZombielandMapSetupFailed>
 	<ZombielandRevealPlayerLog>Показать Player.log</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Не удалось показать Player.log. Путь скопирован в буфер обмена.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland не смог найти путь к Player.log.</ZombielandPlayerLogPathUnavailable>
-
 	<Zombieland_Settings>Наведите курсор на любой элемент, чтобы прочитать справку о нём справа. Все настройки можно изменить во время игры, и они сразу вступят в силу; настройки сохраняются вместе с игрой.\n\nЧтобы задать значения по умолчанию для новых игр, измените настройки на главном экране (Настройки / Настройки модов / Zombieland).</Zombieland_Settings>
 	<ZombieLandKeyframes>Добавьте ключевые кадры по времени. Проверьте значения с ползунком. Только кадры редактируемы.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- первый ключевой кадр (начало игры) ... будущее время игры -&gt;</ZombieLandKeyframe0>
-
 	<Difficulty_ZombielandThreatScale_Info>Регулирует сложность почти всех вещей в Zombieland, таких как способности зомби, прогноз угрозы и многое другое.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Шкала угроз Zombieland</Difficulty_ZombielandThreatScale_Label>
-
 	<ZombieSuicideBomber>Зомби-смертник</ZombieSuicideBomber>
 	<ZombieToxicSplasher>Токсичный зомби-брызгун</ZombieToxicSplasher>
 	<ZombieTanky>Бронированный зомби-оператор</ZombieTanky>
@@ -26,13 +22,10 @@
 	<ZombieWeak>Слабый зомби</ZombieWeak>
 	<ZombieStrong>Сильный зомби</ZombieStrong>
 	<ZombieSimple>Обычный зомби</ZombieSimple>
-
 	<LetterLabelZombiesRising>Атака зомби</LetterLabelZombiesRising>
 	<ZombiesRising>Группа зомби появилась</ZombiesRising>
-
 	<LetterLabelZombiesRisingNearYourBase>Прямая атака зомби</LetterLabelZombiesRisingNearYourBase>
 	<ZombiesRisingNearYourBase>Группа зомби появилась рядом с вашей базой</ZombiesRisingNearYourBase>
-
 	<LetterLabelZombiesSpitter>Атака зомби-плевуна</LetterLabelZombiesSpitter>
 	<ZombiesSpitter>На карту проник зомби-плевун, и он будет осаждать вас</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>Зомби-симбионт связан с {0}</LetterLabelZombieSymbiant>
@@ -59,19 +52,19 @@
 	<SymbiantSeveredMessage>Связь симбионта у {0} удалена.</SymbiantSeveredMessage>
 	<SymbiantHostBondDescription>Симбионт: {0}/{1} клеток. Следующее преимущество на {2} клетках. Общее здоровье: {3}. Когда удар приходится по носителю, полный урон сначала вычитается из общего здоровья; при текущем размере &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; остаётся настоящей раной носителя. Атаки на симбионта создают безвредные серые записи вместо ран носителя.\n\nПравило карты: носитель и симбионт должны быть на одной карте, чтобы связь была активной и могла быть чисто удалена. Если они разделены, связь засыпает. Связь может восстановиться только в том случае, если тот же носитель и симбионт снова окажутся на одной карте. Если бросить карту симбионта, он будет уничтожен, а связь принудительно разорвана; операция сначала чисто удаляет связь.\n\nПреимущества:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>К этому носителю не привязан активный симбионт.</SymbiantHostBondMissing>
-		<SymbiantHostRelocatedMessage>Связь симбионта у {0} перешла в спящий режим, потому что носитель и симбионт находятся на разных картах. Связь сохраняется. В спящем режиме не действуют все преимущества (включая иммунитет к зомби-инфекции), передача общего урона и хирургическое разъединение. Связь может восстановиться только в том случае, если тот же носитель и симбионт снова окажутся на одной карте.</SymbiantHostRelocatedMessage>
-		<LetterLabelSymbiantBondDormant>Связь с симбионтом спит</LetterLabelSymbiantBondDormant>
-		<SymbiantMapAbandonWarningTitle>Бросить карту с симбионтом?</SymbiantMapAbandonWarningTitle>
-		<SymbiantMapAbandonWarning>На этой карте есть живой, привязанный к карте зомби-симбионт. Если бросить карту, симбионт будет уничтожен, а любая оставшаяся связь будет принудительно разорвана. Сначала удалите связь с симбионтом операцией, если хотите обычное разделение.\n\nВсё равно бросить эту карту?</SymbiantMapAbandonWarning>
-		<SymbiantReseededMessage>Симбионт у {0} перешёл в другую внутреннюю комнату.</SymbiantReseededMessage>
-		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Текущее состояние&lt;/color&gt;: &lt;color=#72d672&gt;{0} клеток&lt;/color&gt;. Следующее преимущество на &lt;color=#72d672&gt;{1} клетках&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Общее здоровье&lt;/color&gt;: {4}. Урон, направленный в носителя, сначала расходует этот запас; при таком размере только &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; остаётся настоящей раной у {6}. Прямой урон симбионту расходует запас после обработки попадания самим симбионтом, но создаёт у {6} только безвредные серые записи истории и не наносит настоящей раны. Если этот запас закончится, {6} умрёт.\n\n&lt;color=#ffb35c&gt;Правило карты&lt;/color&gt;: носитель и симбионт должны быть на одной карте, чтобы связь была активной и могла быть чисто удалена. Если они разделены, связь засыпает. Связь может восстановиться только в том случае, если тот же носитель и симбионт снова окажутся на одной карте. Если бросить эту карту, симбионт будет уничтожен, а связь принудительно разорвана. Операция сначала чисто удаляет связь.\n\n&lt;color=#ffb35c&gt;Текущие эффекты&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Текущие преимущества&lt;/color&gt;:\n{3}\n\nОн также &lt;color=#72d672&gt;удаляет загрязнение&lt;/color&gt; незаметными способами.</ZombieSymbiantInfoCardDetails>
-		<SymbiantDetailsInfoCard>Сведения о симбионте</SymbiantDetailsInfoCard>
-		<SymbiantDetailsInfoCardValue>{0} клеток</SymbiantDetailsInfoCardValue>
-		<LetterLabelSymbiantBenefitGained>Получено преимущество симбионта</LetterLabelSymbiantBenefitGained>
-		<SymbiantBenefitGainedLetter>Симбионт, связанный с {0}, получил новое преимущество: {1}.\n\nТекущие преимущества:\n{2}</SymbiantBenefitGainedLetter>
-		<LetterLabelSymbiantBondRemoved>Связь симбионта удалена</LetterLabelSymbiantBondRemoved>
-		<SymbiantBondRemovedLetter>Связь между {0} и симбионтом удалена. Симбионт без носителя отступит и исчезнет.</SymbiantBondRemovedLetter>
-		<SymbiantEffectCells>{0}/{1} активных клеток</SymbiantEffectCells>
+	<SymbiantHostRelocatedMessage>Связь симбионта у {0} перешла в спящий режим, потому что носитель и симбионт находятся на разных картах. Связь сохраняется. В спящем режиме не действуют все преимущества (включая иммунитет к зомби-инфекции), передача общего урона и хирургическое разъединение. Связь может восстановиться только в том случае, если тот же носитель и симбионт снова окажутся на одной карте.</SymbiantHostRelocatedMessage>
+	<LetterLabelSymbiantBondDormant>Связь с симбионтом спит</LetterLabelSymbiantBondDormant>
+	<SymbiantMapAbandonWarningTitle>Бросить карту с симбионтом?</SymbiantMapAbandonWarningTitle>
+	<SymbiantMapAbandonWarning>На этой карте есть живой, привязанный к карте зомби-симбионт. Если бросить карту, симбионт будет уничтожен, а любая оставшаяся связь будет принудительно разорвана. Сначала удалите связь с симбионтом операцией, если хотите обычное разделение.\n\nВсё равно бросить эту карту?</SymbiantMapAbandonWarning>
+	<SymbiantReseededMessage>Симбионт у {0} перешёл в другую внутреннюю комнату.</SymbiantReseededMessage>
+	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Текущее состояние&lt;/color&gt;: &lt;color=#72d672&gt;{0} клеток&lt;/color&gt;. Следующее преимущество на &lt;color=#72d672&gt;{1} клетках&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Общее здоровье&lt;/color&gt;: {4}. Урон, направленный в носителя, сначала расходует этот запас; при таком размере только &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; остаётся настоящей раной у {6}. Прямой урон симбионту расходует запас после обработки попадания самим симбионтом, но создаёт у {6} только безвредные серые записи истории и не наносит настоящей раны. Если этот запас закончится, {6} умрёт.\n\n&lt;color=#ffb35c&gt;Правило карты&lt;/color&gt;: носитель и симбионт должны быть на одной карте, чтобы связь была активной и могла быть чисто удалена. Если они разделены, связь засыпает. Связь может восстановиться только в том случае, если тот же носитель и симбионт снова окажутся на одной карте. Если бросить эту карту, симбионт будет уничтожен, а связь принудительно разорвана. Операция сначала чисто удаляет связь.\n\n&lt;color=#ffb35c&gt;Текущие эффекты&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Текущие преимущества&lt;/color&gt;:\n{3}\n\nОн также &lt;color=#72d672&gt;удаляет загрязнение&lt;/color&gt; незаметными способами.</ZombieSymbiantInfoCardDetails>
+	<SymbiantDetailsInfoCard>Сведения о симбионте</SymbiantDetailsInfoCard>
+	<SymbiantDetailsInfoCardValue>{0} клеток</SymbiantDetailsInfoCardValue>
+	<LetterLabelSymbiantBenefitGained>Получено преимущество симбионта</LetterLabelSymbiantBenefitGained>
+	<SymbiantBenefitGainedLetter>Симбионт, связанный с {0}, получил новое преимущество: {1}.\n\nТекущие преимущества:\n{2}</SymbiantBenefitGainedLetter>
+	<LetterLabelSymbiantBondRemoved>Связь симбионта удалена</LetterLabelSymbiantBondRemoved>
+	<SymbiantBondRemovedLetter>Связь между {0} и симбионтом удалена. Симбионт без носителя отступит и исчезнет.</SymbiantBondRemovedLetter>
+	<SymbiantEffectCells>{0}/{1} активных клеток</SymbiantEffectCells>
 	<SymbiantEffectPathCost>движение по клеткам симбионта: на {0}% медленнее</SymbiantEffectPathCost>
 	<SymbiantEffectWorkSpeed>работа, лечение, уборка и готовка на клетках симбионта: на {0}% медленнее</SymbiantEffectWorkSpeed>
 	<SymbiantBenefitGainedMessage>Симбионт у {0} получил: {1}.</SymbiantBenefitGainedMessage>
@@ -87,32 +80,26 @@
 	<SymbiantBenefitManipulation>манипуляция +25%</SymbiantBenefitManipulation>
 	<SymbiantBenefitZombieIgnore>зомби игнорируют носителя</SymbiantBenefitZombieIgnore>
 	<SymbiantBenefitAutoHeal>автоматическое лечение</SymbiantBenefitAutoHeal>
-
 	<LetterLabelXDaysUntilZombies>{0} до прихода зомби</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>Зомби появятся там, где есть мягкая почва, грязь, песок и гравий. Застройте всё напольными покрытиями, чтобы зомби не могли подкопаться.</XDaysUntilZombies>
-
 	<ZombielandDefaultSettings>Настройки Zombieland по умолчанию</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Настройки Zombieland</ZombielandGameSettings>
 	<JumpToNow>Прыгнуть к настоящему</JumpToNow>
 	<AdvancedSettings>Расширенные настройки</AdvancedSettings>
 	<Seasons>сезоны</Seasons>
 	<Years>годы</Years>
-
 	<ZombielandDifficultyTitle>Общая сложность</ZombielandDifficultyTitle>
 	<ContaminationEnabled>Глобально включено</ContaminationEnabled>
 	<ZombielandRestartRequired>Изменение этой настройки требует перезапуска RimWorld</ZombielandRestartRequired>
 	<ZombielandDifficulty>Шкала угроз</ZombielandDifficulty>
-
 	<ZombielandContaminationTitle>Загрязнение</ZombielandContaminationTitle>
 	<ZombielandContamination>Интенсивность</ZombielandContamination>
 	<ContaminationEffectiveness>Общая эффективность: {0}%</ContaminationEffectiveness>
 	<ZombielandStorageContaminationRange>{0} загрязнения</ZombielandStorageContaminationRange>
-
 	<WhenDoZombiesSpawn>Когда зомби будут появляться?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Всё время</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>Только ночью</SpawnWhenType_WhenDark>
 	<SpawnWhenType_InEventsOnly>Только как события</SpawnWhenType_InEventsOnly>
-
 	<HowDoZombiesSpawn>Как зомби будут появляться?</HowDoZombiesSpawn>
 	<SpawnHowType_AllOverTheMap>Из земли</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>От краёв карты</SpawnHowType_FromTheEdges>
@@ -122,7 +109,6 @@
 	<SmartWandering_Smart>Умный</SmartWandering_Smart>
 	<BlacklistedBiomes>Биомы без зомби</BlacklistedBiomes>
 	<Biomes>Биомы</Biomes>
-
 	<WhatDoZombiesAttack>Кого зомби будут атаковать?</WhatDoZombiesAttack>
 	<AttackMode_Everything>Все существа</AttackMode_Everything>
 	<AttackMode_OnlyHumans>Людей и гуманоидов</AttackMode_OnlyHumans>
@@ -140,22 +126,18 @@
 	<AnomalyTargetingOverride_Never>Никогда</AnomalyTargetingOverride_Never>
 	<AnomalyTargetingOverride_Allow>Разрешить</AnomalyTargetingOverride_Allow>
 	<AnomalyTargetingOverride_Mixed>Смешано</AnomalyTargetingOverride_Mixed>
-
 	<WhatDoZombiesSmash>Что именно зомби будут ломать?</WhatDoZombiesSmash>
 	<SmashMode_Nothing>Ничего</SmashMode_Nothing>
 	<SmashMode_DoorsOnly>Двери</SmashMode_DoorsOnly>
 	<SmashMode_AnyBuilding>Любые конструкции</SmashMode_AnyBuilding>
 	<SmashOnlyWhenAgitated>Ломают, только когда спровоцированы кем-либо или чем-либо</SmashOnlyWhenAgitated>
-
 	<NewGameTitle>Новая игра</NewGameTitle>
 	<DaysBeforeZombiesCome>Дней до прихода зомби</DaysBeforeZombiesCome>
-
 	<ZombiesOnTheMap>Зомби на карте</ZombiesOnTheMap>
 	<MaximumNumberOfZombies>Не больше чем</MaximumNumberOfZombies>
 	<Zombies>Зомби</Zombies>
 	<ColonyMultiplier>Множитель колоний</ColonyMultiplier>
 	<DoubleTapping>Добивание трупов</DoubleTapping>
-
 	<DynamicThreatLevelTitle>Уровень динамической угрозы</DynamicThreatLevelTitle>
 	<UseDynamicThreatLevel>Использовать динамический уровень угрозы</UseDynamicThreatLevel>
 	<DynamicThreatSmoothness>Плавность кривой угрозы</DynamicThreatSmoothness>
@@ -169,25 +151,20 @@
 	<LetterLabelZombieFreeEvent>Тишина зомби</LetterLabelZombieFreeEvent>
 	<ZombieFreeEventLetter>В течение {0} зомби по всему миру вымирают, и новые зомби не появятся. Это хорошее окно для путешествия караваном.</ZombieFreeEventLetter>
 	<ZombieFreeEventTimeLeft>Осталось времени</ZombieFreeEventTimeLeft>
-
 	<ZombieEventTitle>Зомби-происшествие</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Кол-во зомби на одного поселенца</ZombiesPerColonistInEvent>
 	<ExtraDaysBetweenEvents>Дополнительные дни между событиями</ExtraDaysBetweenEvents>
 	<InfectedRaidsChance>Прибывающие группы заражены</InfectedRaidsChance>
-
 	<ZombieSpeedTitle>Скорость зомби</ZombieSpeedTitle>
 	<MoveSpeedIdle>В спокойном состоянии</MoveSpeedIdle>
 	<MoveSpeedTracking>Когда возбуждены (преследуют цель)</MoveSpeedTracking>
-
 	<ZombieDamageTitle>Урон зомби</ZombieDamageTitle>
 	<ZombieDamageFactor>Множитель урона</ZombieDamageFactor>
 	<SafeMeleeLimit>Предел безопасного ближнего боя</SafeMeleeLimit>
-	<SafeMeleeExample>Пример: [_]{0}[_] уровень ближнего боя, [_]{1}[_] зомби => шанс {2}%</SafeMeleeExample>
+	<SafeMeleeExample>Пример: [_]{0}[_] уровень ближнего боя, [_]{1}[_] зомби =&gt; шанс {2}%</SafeMeleeExample>
 	<ZombiesCauseManhunting>Зомби могут разъярить животных</ZombiesCauseManhunting>
-
 	<ZombieGameTweaks>Игровые твики</ZombieGameTweaks>
 	<ReduceTurretConsumption>Уменьшить расход стали турелями</ReduceTurretConsumption>
-
 	<ZombieBiteInfectionChance>Вероятность заражения укусом зомби</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Время, пока инфекция не известна</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Время, пока инфекция поддаётся лечению</ZombieBiteInfectionTreatable>
@@ -197,7 +174,6 @@
 	<Immediately>Немедленно</Immediately>
 	<DeadBecomesZombieMessage>Показать сообщение, когда кто-то превращается в зомби</DeadBecomesZombieMessage>
 	<DangerousSituationMessage>Показать сообщение, когда в опасности</DangerousSituationMessage>
-
 	<ZombieHarvestingTitle>Добыча с зомби</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>Экстракт зомби с одного трупа</CorpsesExtractAmount>
 	<CorpsesExtractChance>Шанс</CorpsesExtractChance>
@@ -208,7 +184,6 @@
 	<BlacklistedApparel>Одежда из черного списка</BlacklistedApparel>
 	<SelectAll>Выбрать все</SelectAll>
 	<DeselectAll>Отменить выбор всех</DeselectAll>
-
 	<ZombieInstinctTitle>Уровень чувств зомби</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Тупые</ZombieInstinct_Dull>
 	<ZombieInstinct_Normal>Нормальные</ZombieInstinct_Normal>
@@ -220,16 +195,13 @@
 	<RageLevelNormal>Нормальный</RageLevelNormal>
 	<RageLevelHigh>Высокий</RageLevelHigh>
 	<RageLevelVeryHigh>Очень высокий</RageLevelVeryHigh>
-
 	<ZombieHealthTitle>Стойкость зомби</ZombieHealthTitle>
 	<ZombieHealthFactor>Здоровье</ZombieHealthFactor>
 	<DoubleTapRequired>Зомби восстанавливаются после травм</DoubleTapRequired>
 	<ZombiesDieVeryEasily>Зомби легко убить</ZombiesDieVeryEasily>
-
 	<ZombieEatingTitle>Зомби едят</ZombieEatingTitle>
 	<ZombiesEatDowned>Обездвиженных существ</ZombiesEatDowned>
 	<ZombiesEatCorpses>Зомби едят трупы</ZombiesEatCorpses>
-
 	<SpecialZombiesTitle>Уникальные зомби</SpecialZombiesTitle>
 	<SuicideBomberChance>Зомби-смертники</SuicideBomberChance>
 	<ToxicSplasherChance>Токсичные зомби-брызгуны</ToxicSplasherChance>
@@ -247,7 +219,6 @@
 	<SymbiantEnabled>Включить зомби-симбионтов</SymbiantEnabled>
 	<SymbiantMaxCells>Максимальный размер симбионта</SymbiantMaxCells>
 	<MuteSymbiantSplashSounds>Отключить звуки хлюпанья симбионта</MuteSymbiantSplashSounds>
-
 	<ZombieMiscTitle>Разное</ZombieMiscTitle>
 	<UseCustomTextures>Использовать текстуры дополнения для зомби</UseCustomTextures>
 	<ReplaceTwinkie>Изменить сухой паёк на Twinkies</ReplaceTwinkie>
@@ -258,7 +229,6 @@
 	<BetterZombieAvoidance>Автоматическое избегание зомби</BetterZombieAvoidance>
 	<ZombiesDropBlood>Зомби оставляют кровь</ZombiesDropBlood>
 	<ZombiesBurnLonger>Зомби горят дольше</ZombiesBurnLonger>
-
 	<AwarenessCuesTitle>Подсказки активности зомби</AwarenessCuesTitle>
 	<PlayZombielandMusic>Проигрывать музыку Zombieland</PlayZombielandMusic>
 	<MixZombielandMusicModes>Проигрывать всю музыку Zombieland независимо от опасности</MixZombielandMusicModes>
@@ -273,7 +243,6 @@
 	<PlayZombieActionSounds>Проигрывать звуки действий зомби</PlayZombieActionSounds>
 	<PlayWallAndSabotageSounds>Проигрывать звуки стен и саботажа</PlayWallAndSabotageSounds>
 	<ShowZombieThoughtBubbles>Показывать облачка мыслей зомби</ShowZombieThoughtBubbles>
-
 	<ZombieActionsTitle>команды</ZombieActionsTitle>
 	<ZombieSettingsReset>Восстановить настройки по умолчанию</ZombieSettingsReset>
 	<FactoryResetButton>Заводской сброс</FactoryResetButton>
@@ -281,7 +250,6 @@
 	<UninstallZombieland>Удалить Zombieland из текущей игры</UninstallZombieland>
 	<ConfirmUninstallZombieland>Если вы продолжите, вы сможете выбрать новое имя файла сохранения и вернётесь в главное меню после сохранения игры. Новое сохранение может быть загружено без Zombieland.\n\nВы действительно хотите удалить весь контент Zombieland из текущей игры?</ConfirmUninstallZombieland>
 	<UninstallButton>Удалить</UninstallButton>
-
 	<ClipboardActionTitle>Буфер обмена</ClipboardActionTitle>
 	<CopySettings>Настройки копирования</CopySettings>
 	<CopyButton>Копировать</CopyButton>
@@ -289,34 +257,25 @@
 	<PasteSettings>Настройки вставки</PasteSettings>
 	<PasteButton>Вставить</PasteButton>
 	<RopeZombie>Захват зомби</RopeZombie>
-
 	<Activate>Активировать</Activate>
 	<ActivateDescription>Активирует устройство. Все зомби в комнате теряют сознание.</ActivateDescription>
 	<WrongPlacementZombieShocker>Устройство не может быть размещено здесь.</WrongPlacementZombieShocker>
-
 	<ColonistsBittenByZombie>Поселенец, укушенный зомби</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Эти поселенцы были укушены зомби. На данный момент неясно, разовьется ли у них инфекция:\n\n{0}\nВнимательно следите за их ранами, потому что инфекциям нужно время, чтобы проявиться.</ColonistsBittenByZombieDesc>
-
 	<ImminentZombiInfection>Неминуемая зомби-инфекция</ImminentZombiInfection>
 	<ImminentZombiInfectionDesc>Эти поселенцы вот-вот заразятся от укуса зомби:\n\n{0}\nВы можете спасти их, немедленно предоставив им оптимальное лечение в наилучших условиях. Но для этого нужен хороший врач, качественная медицинская кровать и стерильная комната с монитором жизненно важных функций.</ImminentZombiInfectionDesc>
-
 	<ZombieInfection>Зомби-инфекция</ZombieInfection>
 	<ZombieInfectionDesc>Эти поселенцы инфицированы и станут зомби. Спасти их больше нет возможности:\n\n{0}\nВо время заражения им безразличны мысли, чувства, боль и голод. В конце они умирают и становятся зомби.</ZombieInfectionDesc>
-
 	<NoInfectionRisk>Нет риска заражения</NoInfectionRisk>
 	<HoursBeforeBecomingInfected>{0} до заражения</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} до превращения в зомби</HoursBeforeBecomingAZombie>
-
 	<DangerousSituation>Опасная ситуация</DangerousSituation>
 	<ZombiesAreBeingPushedOverYourWalls>Зомби перебрасываются через ваши стены! Предотвратите скопление зомби в плотные группы.</ZombiesAreBeingPushedOverYourWalls>
-
 	<ColonistBecameAZombieLabel>Поселенец превратился в зомби</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>Кто-то превратился в зомби</OtherBecameAZombieLabel>
 	<BecameAZombieDesc>Теперь {0} — могущественный зомби.</BecameAZombieDesc>
-
 	<BodyIsInfectedLabel>Это тело заражено вирусом зомби!</BodyIsInfectedLabel>
 	<BodyIsInfectedTooltip>Зараженные тела превратятся в зомби, когда они начнут гнить.</BodyIsInfectedTooltip>
-
 	<CureZombieInfection>Вылечить зомби-инфекцию</CureZombieInfection>
 	<ExtractingZombieSerum>Сбор экстракта зомби</ExtractingZombieSerum>
 	<AutoExtractDisabledDescription>Не может собирать экстракт зомби (не назначен врачом)</AutoExtractDisabledDescription>
@@ -325,19 +284,15 @@
 	<AutoDoubleTapDisabledDescription>Добивание невозможно (ни один поселенец не назначен на работу «Охота»)</AutoDoubleTapDisabledDescription>
 	<AutoDoubleTapAllowedDescription>Автоматически добивать трупы, чтобы они не превратились в зомби</AutoDoubleTapAllowedDescription>
 	<AutoDoubleTapForbiddenDescription>Добивать только по приказу</AutoDoubleTapForbiddenDescription>
-
 	<AutoAvoidZombiesEnabledDescription>Автоматически избегать зомби, кроме случаев, когда поселенец мобилизован</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Игнорировать зомби. Вам нужно вручную контролировать все действия</AutoAvoidZombiesDisabledDescription>
-
 	<ZapZombies>Запустить зомби-электрошокер</ZapZombies>
 	<ZombieShockerWrongPlacement>Устройство не может быть размещено здесь</ZombieShockerWrongPlacement>
 	<ZombieShockerHasNoBattery>Устройство не содержит батареи</ZombieShockerHasNoBattery>
 	<ZombieShockerHasNoRoom>Устройство не подключено к подходящей комнате</ZombieShockerHasNoRoom>
 	<ZombieShockerLowBatteryState>Устройство разрядило подключённые батареи</ZombieShockerLowBatteryState>
-
 	<ShowHealthBar>Полоски здоровья зомби</ShowHealthBar>
 	<ShowZombieStats>Показать статистику зомби</ShowZombieStats>
-
 	<SnowAndSandClear>Очистка снега и песка</SnowAndSandClear>
 	<ShowZombieRisk>Показать зомби-риск</ShowZombieRisk>
 	<ZombieRiskAreaColumnHintLong>Правила зон Zombieland: нарушения отображаются вверху экрана во время игры</ZombieRiskAreaColumnHintLong>
@@ -349,10 +304,8 @@
 	<HighlightDangerousAreas>Подсвечивать опасные зоны</HighlightDangerousAreas>
 	<DisableRandomApparel>Выключить случайную одежду для зомби</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Парящие зомби в космосе</FloatingZombiesInSOS2>
-
 	<Broken>Сломан</Broken>
 	<StatsFuel>{0}% топлива</StatsFuel>
-
 	<ChainsawBroken>Бензопила сломана</ChainsawBroken>
 	<ChainsawDisabled>Бензопила не может быть использована прямо сейчас</ChainsawDisabled>
 	<ChainsawNoFuel>Бензопила нуждается в дозаправке</ChainsawNoFuel>
@@ -365,15 +318,12 @@
 	<ChainsawDescFuel> с {0}% топлива</ChainsawDescFuel>
 	<ChainsawDescNoFuel> без топлива</ChainsawDescNoFuel>
 	<ChainsawDescBlockingChance> блокирует {0}% входящих атак</ChainsawDescBlockingChance>
-
 	<ThumperControl>Настройки</ThumperControl>
 	<ThumperControlDesc>Задаёт интенсивность и интервал этой зомби-приманки.</ThumperControlDesc>
 	<Intensity>Интенсивность</Intensity>
 	<Interval>Интервал</Interval>
-
 	<ToggleStateLabel>Вкл / Выкл</ToggleStateLabel>
 	<ToggleStateDesc>Включает или выключает устройство.</ToggleStateDesc>
-
 	<SpitterStateIdle>Ожидание</SpitterStateIdle>
 	<SpitterStateSearching>Поиск</SpitterStateSearching>
 	<SpitterStateMoving>Перемещение</SpitterStateMoving>
@@ -384,9 +334,7 @@
 	<Waves>Волны</Waves>
 	<Aggressive>Агрессивный</Aggressive>
 	<Calm>Спокойный</Calm>
-
 	<ZombieContamination>Загрязнение зомби</ZombieContamination>
 	<ContaminationHelp>Загрязнение, вызванное зомби-апокалипсисом, передается через прикосновение и обработку вещей. Оно распространяется и может привести к странному поведению у поселенцев.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Переключить оверлей загрязнения зомби.\n\nЭто показывает, насколько загрязнены вещи и земля, что в свою очередь влияет на пешек.</ShowContaminationOverlayToggleButton>
-
 </LanguageData>

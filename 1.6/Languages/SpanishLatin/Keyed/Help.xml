@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
-
 	<ZombielandDifficultyTitle_Help>La dificultad de Zombieland se controla principalmente mediante una combinación de:\n\n- Escala de amenaza\n- Zombis especiales\n- Velocidad de los zombis\n- Número máximo de zombis\n- Nivel dinámico de amenaza</ZombielandDifficultyTitle_Help>
 	<ZombielandDifficulty_Help>Este ajuste controla la dificultad de casi todo en Zombieland: capacidades de los zombis como los sentidos, la resistencia, la velocidad y la potencia. Afecta especialmente a los zombis especiales, y el pronóstico de amenazas será mucho peor en las dificultades más altas.\n\nNota: un 500% es realmente muy difícil. Estás advertido.</ZombielandDifficulty_Help>
 	<ZombielandContaminationTitle_Help>La contaminación de Zombieland es un desafío para las etapas avanzadas de la partida que introduce un peligro persistente y en expansión para tu colonia. Procede de diversas fuentes, como la perforación profunda y los objetos comerciados, y se transfiere entre objetos, colonos y el entorno. Cuanto más crezca tu colonia, más tendrás que controlar la contaminación para mantener a salvo a tus colonos.\n\nPara vigilar los niveles actuales de contaminación, activa la superposición con los botones de la esquina inferior derecha o consulta el inspector, el cuadro de detalles o la información del terreno al pasar el cursor. Allí encontrarás un porcentaje que indica el nivel de contaminación del objeto, la celda o el peón en cuestión.</ZombielandContaminationTitle_Help>
@@ -131,5 +130,4 @@
 	<ClipboardActionTitle_Help>Comparte tu configuración con otras personas copiando y pegando texto.</ClipboardActionTitle_Help>
 	<CopyButton_Help>Copia los ajustes actuales al portapapeles de tu computadora. Después puedes pegarlos donde quieras para compartirlos con otras personas.</CopyButton_Help>
 	<PasteButton_Help>Sustituye tus ajustes actuales por el texto del portapapeles de tu computadora. Copia primero el texto compartido por otra persona para igualar tus ajustes a los suyos.</PasteButton_Help>
-
 </LanguageData>

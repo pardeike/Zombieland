@@ -12,7 +12,7 @@ Run a read-only formatting check with:
 ./scripts/format-project.sh --check
 ```
 
-Pass `--base GIT_REVISION` with `--check` to validate active XML changed since a committed revision; the release workflow uses this to check the release commit from a clean checkout.
+Pass `--base GIT_REVISION` with `--check` to validate active XML changed since a committed revision. The release workflow uses the previous version tag so it checks every XML change in the full release candidate, including feature commits before a separate version-bump commit.
 
 The repository pins .NET SDK 10.0.301 through `global.json`; the local build and release workflow deliberately use that exact Roslyn formatter. A normal non-deploy build now compiles both the main mod and its BridgeTools companion. Pass `-p:BuildBridgeTools=false` only for a workflow that intentionally excludes the companion, such as the public mod-only release package.
 

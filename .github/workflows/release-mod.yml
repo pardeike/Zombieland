@@ -31,7 +31,12 @@ jobs:
         run: command -v xmllint >/dev/null || (sudo apt-get update && sudo apt-get install -y libxml2-utils)
 
       - name: Check project formatting
-        run: scripts/format-project.sh --check --base HEAD^
+        run: |
+          set -euo pipefail
+
+          FORMAT_BASE="$(git describe --tags --abbrev=0 --match 'v[0-9]*' HEAD^)"
+          echo "Checking formatting for all changes since $FORMAT_BASE."
+          scripts/format-project.sh --check --base "$FORMAT_BASE"
 
       - name: Check versioned XML layout
         run: scripts/check-versioned-xml.sh

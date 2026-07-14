@@ -1,19 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
-
 	<LetterLabelZombielandMapSetupFailed>Zombieland ist auf dieser Karte nicht gestartet</LetterLabelZombielandMapSetupFailed>
 	<ZombielandMapSetupFailed>RimWorld hat diese Karte geladen, aber Zombieland konnte seine Karteneinrichtung nicht abschließen. Zombieland hat versucht, das Problem zu reparieren, konnte es aber nicht.\n\nDas bedeutet: Zombies werden auf dieser Karte nicht erscheinen oder sich bewegen. Zombie-Ereignisse, Zombie-Vermeidung, Zombie-Leichen und besonderes Zombie-Verhalten funktionieren hier möglicherweise nicht.\n\nMeistens wird das durch einen Fehler verursacht, während RimWorld oder ein anderer Mod die Karte geladen hat. Prüfen Sie den ersten roten Fehler weiter oben im Log und deaktivieren Sie testweise kürzlich hinzugefügte oder aktualisierte Mods. Stellen Sie außerdem sicher, dass RimWorld und Zombieland zueinander passen.</ZombielandMapSetupFailed>
 	<ZombielandRevealPlayerLog>Player.log anzeigen</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Player.log konnte nicht angezeigt werden. Der Pfad wurde in die Zwischenablage kopiert.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland konnte den Pfad zur Player.log nicht finden.</ZombielandPlayerLogPathUnavailable>
-
 	<Zombieland_Settings>Bewegen Sie den Mauszeiger über ein beliebiges Element, um rechts einen Hilfetext dazu zu lesen. Alle Einstellungen können im Spiel geändert werden und sind sofort aktiv, sie werden mit dem Spiel gespeichert.\n\nUm die Standardeinstellungen für neue Spiele festzulegen, ändern Sie die Einstellungen im Hauptbildschirm (Optionen/Mod-Einstellungen/Zombieland).</Zombieland_Settings>
 	<ZombieLandKeyframes>Sie können Keyframes hinzufügen, die Einstellungen über die Zeit festlegen. Prüfen Sie die Zwischenwerte mit dem Schieberegler. Nur Einstellungen an Keyframes sind änderbar.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- erster Keyframe (Spielbeginn) ... zukünftige Spielzeit -&gt;</ZombieLandKeyframe0>
-
 	<Difficulty_ZombielandThreatScale_Info>Steuert den Schwierigkeitsgrad fast aller Dinge in Zombieland wie z.B. Zombiefähigkeiten, Bedrohungsprognosen und vieles mehr.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Zombieland Bedrohungsskala</Difficulty_ZombielandThreatScale_Label>
-
 	<ZombieSuicideBomber>Selbstmordbomber-Zombie</ZombieSuicideBomber>
 	<ZombieToxicSplasher>Giftspucker-Zombie</ZombieToxicSplasher>
 	<ZombieTanky>Gepanzerter Operator-Zombie</ZombieTanky>
@@ -26,13 +22,10 @@
 	<ZombieWeak>Schwacher Zombie</ZombieWeak>
 	<ZombieStrong>Starker Zombie</ZombieStrong>
 	<ZombieSimple>Einfacher Zombie</ZombieSimple>
-
 	<LetterLabelZombiesRising>Zombieangriff</LetterLabelZombiesRising>
 	<ZombiesRising>Eine Gruppe von Zombies greift an</ZombiesRising>
-
 	<LetterLabelZombiesRisingNearYourBase>Direkter Zombieangriff</LetterLabelZombiesRisingNearYourBase>
 	<ZombiesRisingNearYourBase>Eine Gruppe von Zombies greift in der Nähe der Basis an</ZombiesRisingNearYourBase>
-
 	<LetterLabelZombiesSpitter>Zombiespucker-Angriff</LetterLabelZombiesSpitter>
 	<ZombiesSpitter>Ein Zombiespucker hat die Karte betreten und wird Sie belagern</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>Zombie-Symbiont mit {0} verbunden</LetterLabelZombieSymbiant>
@@ -59,19 +52,19 @@
 	<SymbiantSeveredMessage>{0}s Symbionten-Verbindung wurde entfernt.</SymbiantSeveredMessage>
 	<SymbiantHostBondDescription>Symbiont: {0}/{1} Zellen. Nächster Vorteil bei {2} Zellen. Geteilte Gesundheit: {3}. Wird der Wirt getroffen, wird zuerst der volle Angriff von der geteilten Gesundheit abgezogen; bei dieser Größe verbleiben &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; als echte Verletzung des Wirts. Angriffe auf den Symbionten erzeugen harmlose graue Schadensaufzeichnungen statt Wirtsverletzungen.\n\nKartenregel: Wirt und Symbiont müssen auf derselben Karte sein, damit die Verbindung aktiv ist und sauber entfernt werden kann. Werden sie getrennt, ruht die Verbindung. Sie kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen. Wenn die Karte des Symbionten aufgegeben wird, wird er zerstört und die Verbindung gewaltsam getrennt; eine Operation entfernt die Verbindung vorher sauber.\n\nVorteile:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Kein aktiver Symbiont ist mit diesem Wirt verbunden.</SymbiantHostBondMissing>
-		<SymbiantHostRelocatedMessage>{0}s Symbionten-Verbindung ruht, weil Wirt und Symbiont sich nicht auf derselben Karte befinden. Die Verbindung bleibt bestehen. Während der Ruhephase sind alle Vorteile (einschließlich der Immunität gegen Zombieinfektionen), die Übertragung geteilten Schadens und die chirurgische Trennung inaktiv. Die Verbindung kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen.</SymbiantHostRelocatedMessage>
-		<LetterLabelSymbiantBondDormant>Symbionten-Verbindung ruht</LetterLabelSymbiantBondDormant>
-		<SymbiantMapAbandonWarningTitle>Karte mit Symbionten aufgeben?</SymbiantMapAbandonWarningTitle>
-		<SymbiantMapAbandonWarning>Diese Karte enthält einen lebenden, an die Karte gebundenen Zombie-Symbionten. Wenn Sie die Karte aufgeben, wird der Symbiont zerstört und jede verbleibende Verbindung gewaltsam getrennt. Entfernen Sie die Symbionten-Verbindung zuerst durch eine Operation, wenn Sie die normale Trennung nutzen möchten.\n\nDiese Karte trotzdem aufgeben?</SymbiantMapAbandonWarning>
-		<SymbiantReseededMessage>{0}s Symbiont ist in einen anderen Innenraum gezogen.</SymbiantReseededMessage>
-		<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Aktueller Zustand&lt;/color&gt;: &lt;color=#72d672&gt;{0} Zellen&lt;/color&gt;. Nächster Vorteil bei &lt;color=#72d672&gt;{1} Zellen&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Geteilte Gesundheit&lt;/color&gt;: {4}. Schaden, der auf den Wirt zielt, leert zuerst diesen Vorrat; bei dieser Größe bleiben nur &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; als echte Verletzung bei {6} zurück. Direkter Schaden am Symbionten leert den Vorrat erst, nachdem der Symbiont den Treffer verarbeitet hat, erzeugt bei {6} aber nur harmlose graue Schadensaufzeichnungen und keine echte Verletzung. Wenn dieser Vorrat aufgebraucht ist, stirbt {6}.\n\n&lt;color=#ffb35c&gt;Kartenregel&lt;/color&gt;: Wirt und Symbiont müssen auf derselben Karte sein, damit die Verbindung aktiv ist und sauber entfernt werden kann. Werden sie getrennt, ruht die Verbindung. Sie kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen. Wenn diese Karte aufgegeben wird, wird der Symbiont zerstört und die Verbindung gewaltsam getrennt. Eine Operation entfernt die Verbindung vorher sauber.\n\n&lt;color=#ffb35c&gt;Aktuelle Effekte&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Aktuelle Vorteile&lt;/color&gt;:\n{3}\n\nEr &lt;color=#72d672&gt;entfernt außerdem Kontamination&lt;/color&gt; auf subtile Weise.</ZombieSymbiantInfoCardDetails>
-		<SymbiantDetailsInfoCard>Symbionten-Details</SymbiantDetailsInfoCard>
-		<SymbiantDetailsInfoCardValue>{0} Zellen</SymbiantDetailsInfoCardValue>
-		<LetterLabelSymbiantBenefitGained>Symbionten-Vorteil erhalten</LetterLabelSymbiantBenefitGained>
-		<SymbiantBenefitGainedLetter>Der mit {0} verbundene Symbiont erhielt einen neuen Vorteil: {1}.\n\nAktuelle Vorteile:\n{2}</SymbiantBenefitGainedLetter>
-		<LetterLabelSymbiantBondRemoved>Symbionten-Verbindung entfernt</LetterLabelSymbiantBondRemoved>
-		<SymbiantBondRemovedLetter>Die Verbindung zwischen {0} und dem Symbionten wurde entfernt. Der wirtslose Symbiont zieht sich zurück und verschwindet.</SymbiantBondRemovedLetter>
-		<SymbiantEffectCells>{0}/{1} Zellen aktiv</SymbiantEffectCells>
+	<SymbiantHostRelocatedMessage>{0}s Symbionten-Verbindung ruht, weil Wirt und Symbiont sich nicht auf derselben Karte befinden. Die Verbindung bleibt bestehen. Während der Ruhephase sind alle Vorteile (einschließlich der Immunität gegen Zombieinfektionen), die Übertragung geteilten Schadens und die chirurgische Trennung inaktiv. Die Verbindung kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen.</SymbiantHostRelocatedMessage>
+	<LetterLabelSymbiantBondDormant>Symbionten-Verbindung ruht</LetterLabelSymbiantBondDormant>
+	<SymbiantMapAbandonWarningTitle>Karte mit Symbionten aufgeben?</SymbiantMapAbandonWarningTitle>
+	<SymbiantMapAbandonWarning>Diese Karte enthält einen lebenden, an die Karte gebundenen Zombie-Symbionten. Wenn Sie die Karte aufgeben, wird der Symbiont zerstört und jede verbleibende Verbindung gewaltsam getrennt. Entfernen Sie die Symbionten-Verbindung zuerst durch eine Operation, wenn Sie die normale Trennung nutzen möchten.\n\nDiese Karte trotzdem aufgeben?</SymbiantMapAbandonWarning>
+	<SymbiantReseededMessage>{0}s Symbiont ist in einen anderen Innenraum gezogen.</SymbiantReseededMessage>
+	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Aktueller Zustand&lt;/color&gt;: &lt;color=#72d672&gt;{0} Zellen&lt;/color&gt;. Nächster Vorteil bei &lt;color=#72d672&gt;{1} Zellen&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Geteilte Gesundheit&lt;/color&gt;: {4}. Schaden, der auf den Wirt zielt, leert zuerst diesen Vorrat; bei dieser Größe bleiben nur &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; als echte Verletzung bei {6} zurück. Direkter Schaden am Symbionten leert den Vorrat erst, nachdem der Symbiont den Treffer verarbeitet hat, erzeugt bei {6} aber nur harmlose graue Schadensaufzeichnungen und keine echte Verletzung. Wenn dieser Vorrat aufgebraucht ist, stirbt {6}.\n\n&lt;color=#ffb35c&gt;Kartenregel&lt;/color&gt;: Wirt und Symbiont müssen auf derselben Karte sein, damit die Verbindung aktiv ist und sauber entfernt werden kann. Werden sie getrennt, ruht die Verbindung. Sie kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen. Wenn diese Karte aufgegeben wird, wird der Symbiont zerstört und die Verbindung gewaltsam getrennt. Eine Operation entfernt die Verbindung vorher sauber.\n\n&lt;color=#ffb35c&gt;Aktuelle Effekte&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Aktuelle Vorteile&lt;/color&gt;:\n{3}\n\nEr &lt;color=#72d672&gt;entfernt außerdem Kontamination&lt;/color&gt; auf subtile Weise.</ZombieSymbiantInfoCardDetails>
+	<SymbiantDetailsInfoCard>Symbionten-Details</SymbiantDetailsInfoCard>
+	<SymbiantDetailsInfoCardValue>{0} Zellen</SymbiantDetailsInfoCardValue>
+	<LetterLabelSymbiantBenefitGained>Symbionten-Vorteil erhalten</LetterLabelSymbiantBenefitGained>
+	<SymbiantBenefitGainedLetter>Der mit {0} verbundene Symbiont erhielt einen neuen Vorteil: {1}.\n\nAktuelle Vorteile:\n{2}</SymbiantBenefitGainedLetter>
+	<LetterLabelSymbiantBondRemoved>Symbionten-Verbindung entfernt</LetterLabelSymbiantBondRemoved>
+	<SymbiantBondRemovedLetter>Die Verbindung zwischen {0} und dem Symbionten wurde entfernt. Der wirtslose Symbiont zieht sich zurück und verschwindet.</SymbiantBondRemovedLetter>
+	<SymbiantEffectCells>{0}/{1} Zellen aktiv</SymbiantEffectCells>
 	<SymbiantEffectPathCost>Bewegung durch Symbionten-Zellen: {0}% langsamer</SymbiantEffectPathCost>
 	<SymbiantEffectWorkSpeed>Arbeit, Verarzten, Reinigen und Kochen auf Symbionten-Zellen: {0}% langsamer</SymbiantEffectWorkSpeed>
 	<SymbiantBenefitGainedMessage>{0}s Symbiont erhielt: {1}.</SymbiantBenefitGainedMessage>
@@ -87,32 +80,26 @@
 	<SymbiantBenefitManipulation>Manipulation +25%</SymbiantBenefitManipulation>
 	<SymbiantBenefitZombieIgnore>Zombies ignorieren den Wirt</SymbiantBenefitZombieIgnore>
 	<SymbiantBenefitAutoHeal>automatische Heilung</SymbiantBenefitAutoHeal>
-
 	<LetterLabelXDaysUntilZombies>{0} bis Zombies kommen</LetterLabelXDaysUntilZombies>
 	<XDaysUntilZombies>Zombies erscheinen dort, wo es weiche Erde, Dreck, Sand oder Kies gibt. Der Bau von Fußböden verhindert, dass Zombies an diesen Stellen rauskommen.</XDaysUntilZombies>
-
 	<ZombielandDefaultSettings>Zombieland Standardeinstellungen</ZombielandDefaultSettings>
 	<ZombielandGameSettings>Zombieland Spieleinstellungen</ZombielandGameSettings>
 	<JumpToNow>Zum Jetzt springen</JumpToNow>
 	<AdvancedSettings>Erweiterte Einstellungen</AdvancedSettings>
 	<Seasons>Quadrums</Seasons>
 	<Years>Jahre</Years>
-
 	<ZombielandDifficultyTitle>Zombieland Schwierigkeit</ZombielandDifficultyTitle>
 	<ContaminationEnabled>Global aktiviert</ContaminationEnabled>
 	<ZombielandRestartRequired>Die Änderung dieser Einstellung erfordert einen Neustart von RimWorld</ZombielandRestartRequired>
 	<ZombielandDifficulty>Bedrohungsskala</ZombielandDifficulty>
-
 	<ZombielandContaminationTitle>Kontamination</ZombielandContaminationTitle>
 	<ZombielandContamination>Intensität</ZombielandContamination>
 	<ContaminationEffectiveness>Gesamteffektivität {0}%</ContaminationEffectiveness>
 	<ZombielandStorageContaminationRange>{0} Kontamination</ZombielandStorageContaminationRange>
-
 	<WhenDoZombiesSpawn>Wann erscheinen Zombies?</WhenDoZombiesSpawn>
 	<SpawnWhenType_AllTheTime>Jederzeit</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>Wo es dunkel ist</SpawnWhenType_WhenDark>
 	<SpawnWhenType_InEventsOnly>Nur als Angriff</SpawnWhenType_InEventsOnly>
-
 	<HowDoZombiesSpawn>Woher kommen Zombies?</HowDoZombiesSpawn>
 	<SpawnHowType_AllOverTheMap>An Stellen mit weichem Boden</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>Vom Kartenrand</SpawnHowType_FromTheEdges>
@@ -122,7 +109,6 @@
 	<SmartWandering_Smart>Smart</SmartWandering_Smart>
 	<BlacklistedBiomes>Biome ohne Zombies</BlacklistedBiomes>
 	<Biomes>Biome</Biomes>
-
 	<WhatDoZombiesAttack>Was greifen Zombies an?</WhatDoZombiesAttack>
 	<AttackMode_Everything>Alle Kreaturen</AttackMode_Everything>
 	<AttackMode_OnlyHumans>Menschenähnliche Kreaturen</AttackMode_OnlyHumans>
@@ -140,22 +126,18 @@
 	<AnomalyTargetingOverride_Never>Nie</AnomalyTargetingOverride_Never>
 	<AnomalyTargetingOverride_Allow>Erlauben</AnomalyTargetingOverride_Allow>
 	<AnomalyTargetingOverride_Mixed>Gemischt</AnomalyTargetingOverride_Mixed>
-
 	<WhatDoZombiesSmash>Was machen Zombies kaputt?</WhatDoZombiesSmash>
 	<SmashMode_Nothing>Nichts</SmashMode_Nothing>
 	<SmashMode_DoorsOnly>Nur Türen</SmashMode_DoorsOnly>
 	<SmashMode_AnyBuilding>Alles Gebaute</SmashMode_AnyBuilding>
 	<SmashOnlyWhenAgitated>Nur wenn sie aufgeregt sind</SmashOnlyWhenAgitated>
-
 	<NewGameTitle>Neues Spiel</NewGameTitle>
 	<DaysBeforeZombiesCome>Tage, bevor Zombies auftauchen</DaysBeforeZombiesCome>
-
 	<ZombiesOnTheMap>Zombies auf der Karte</ZombiesOnTheMap>
 	<MaximumNumberOfZombies>Nie mehr als</MaximumNumberOfZombies>
 	<Zombies>Zombies</Zombies>
 	<ColonyMultiplier>Koloniemultiplikator</ColonyMultiplier>
 	<DoubleTapping>Sicheres 2x Töten</DoubleTapping>
-
 	<DynamicThreatLevelTitle>Dynamisches Bedrohungsniveau</DynamicThreatLevelTitle>
 	<UseDynamicThreatLevel>Dynamisches Bedrohungsniveau verwenden</UseDynamicThreatLevel>
 	<DynamicThreatSmoothness>Glattheit der Kurve</DynamicThreatSmoothness>
@@ -169,25 +151,20 @@
 	<LetterLabelZombieFreeEvent>Zombie-Stille</LetterLabelZombieFreeEvent>
 	<ZombieFreeEventLetter>Für {0} sterben Zombies weltweit aus und es erscheinen keine neuen Zombies. Das ist ein gutes Zeitfenster für Karawanenreisen.</ZombieFreeEventLetter>
 	<ZombieFreeEventTimeLeft>Verbleibende Zeit</ZombieFreeEventTimeLeft>
-
 	<ZombieEventTitle>Zombieangriff</ZombieEventTitle>
 	<ZombiesPerColonistInEvent>Zombies pro Kolonist</ZombiesPerColonistInEvent>
 	<ExtraDaysBetweenEvents>Extra Tage zwischen Angriffen</ExtraDaysBetweenEvents>
 	<InfectedRaidsChance>Ankommende Gruppen sind infiziert</InfectedRaidsChance>
-
 	<ZombieSpeedTitle>Zombiegeschwindigkeit</ZombieSpeedTitle>
 	<MoveSpeedIdle>Wenn sie wandern</MoveSpeedIdle>
 	<MoveSpeedTracking>Wenn aufgeregt</MoveSpeedTracking>
-
 	<ZombieDamageTitle>Zombieschaden</ZombieDamageTitle>
 	<ZombieDamageFactor>Schadenmultiplikator</ZombieDamageFactor>
 	<SafeMeleeLimit>Sichere Anzahl für einen Nahkampf</SafeMeleeLimit>
-	<SafeMeleeExample>Beispiel: [_]{0}[_] Nahkampflevel, [_]{1}[_] Zombies => {2}% Chance</SafeMeleeExample>
+	<SafeMeleeExample>Beispiel: [_]{0}[_] Nahkampflevel, [_]{1}[_] Zombies =&gt; {2}% Chance</SafeMeleeExample>
 	<ZombiesCauseManhunting>Zombies verärgern Tiere</ZombiesCauseManhunting>
-
 	<ZombieGameTweaks>Spielveränderungen</ZombieGameTweaks>
 	<ReduceTurretConsumption>Reduzierter Geschützverbrauch</ReduceTurretConsumption>
-
 	<ZombieBiteInfectionChance>Risiko das ein Biss infiziert</ZombieBiteInfectionChance>
 	<ZombieBiteInfectionUnknown>Zeit bis Infektion bekannt wird</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Infektion behandelbar</ZombieBiteInfectionTreatable>
@@ -197,7 +174,6 @@
 	<Immediately>Unmittelbar</Immediately>
 	<DeadBecomesZombieMessage>Nachricht, wenn jemand ein Zombie wird</DeadBecomesZombieMessage>
 	<DangerousSituationMessage>Bei Gefahr eine Nachricht anzeigen</DangerousSituationMessage>
-
 	<ZombieHarvestingTitle>Beute von Zombies</ZombieHarvestingTitle>
 	<CorpsesExtractAmount>Menge an Zombieextrakt pro Zombie</CorpsesExtractAmount>
 	<CorpsesExtractChance>Chance</CorpsesExtractChance>
@@ -208,7 +184,6 @@
 	<BlacklistedApparel>Gebannte Kleidung</BlacklistedApparel>
 	<SelectAll>Alles auswählen</SelectAll>
 	<DeselectAll>Alle abwählen</DeselectAll>
-
 	<ZombieInstinctTitle>Zombiegespür</ZombieInstinctTitle>
 	<ZombieInstinct_Dull>Begrenzt</ZombieInstinct_Dull>
 	<ZombieInstinct_Normal>Normal</ZombieInstinct_Normal>
@@ -220,16 +195,13 @@
 	<RageLevelNormal>Normal</RageLevelNormal>
 	<RageLevelHigh>Hoch</RageLevelHigh>
 	<RageLevelVeryHigh>Sehr hoch</RageLevelVeryHigh>
-
 	<ZombieHealthTitle>Zombiegesundheit</ZombieHealthTitle>
 	<ZombieHealthFactor>Gesundheit</ZombieHealthFactor>
 	<DoubleTapRequired>Zombies erholen sich von Verletzungen</DoubleTapRequired>
 	<ZombiesDieVeryEasily>Zombies sind einfach zu töten</ZombiesDieVeryEasily>
-
 	<ZombieEatingTitle>Zombies fressen</ZombieEatingTitle>
 	<ZombiesEatDowned>Verletzte</ZombiesEatDowned>
 	<ZombiesEatCorpses>Leichen</ZombiesEatCorpses>
-
 	<SpecialZombiesTitle>Spezielle Zombies</SpecialZombiesTitle>
 	<SuicideBomberChance>Zombies mit Selbstmordattacke</SuicideBomberChance>
 	<ToxicSplasherChance>Giftige Zombies</ToxicSplasherChance>
@@ -247,7 +219,6 @@
 	<SymbiantEnabled>Zombie-Symbionten aktivieren</SymbiantEnabled>
 	<SymbiantMaxCells>Maximale Symbionten-Größe</SymbiantMaxCells>
 	<MuteSymbiantSplashSounds>Symbionten-Plätschern stummschalten</MuteSymbiantSplashSounds>
-
 	<ZombieMiscTitle>Verschiedenes</ZombieMiscTitle>
 	<UseCustomTextures>Spezialtexturen verwenden</UseCustomTextures>
 	<ReplaceTwinkie>Überlebensrationen mit Twinkies ersetzen</ReplaceTwinkie>
@@ -258,7 +229,6 @@
 	<BetterZombieAvoidance>Automatische Vermeidung von Zombies</BetterZombieAvoidance>
 	<ZombiesDropBlood>Zombies hinterlassen Blut</ZombiesDropBlood>
 	<ZombiesBurnLonger>Zombies brennen länger</ZombiesBurnLonger>
-
 	<AwarenessCuesTitle>Hinweise auf Zombieaktivität</AwarenessCuesTitle>
 	<PlayZombielandMusic>Zombieland-Musik abspielen</PlayZombielandMusic>
 	<MixZombielandMusicModes>Zombieland-Musik unabhängig von Gefahr abspielen</MixZombielandMusicModes>
@@ -273,7 +243,6 @@
 	<PlayZombieActionSounds>Zombie-Aktionsgeräusche abspielen</PlayZombieActionSounds>
 	<PlayWallAndSabotageSounds>Mauer- und Sabotagegeräusche abspielen</PlayWallAndSabotageSounds>
 	<ShowZombieThoughtBubbles>Gedankenblasen von Zombies anzeigen</ShowZombieThoughtBubbles>
-
 	<ZombieActionsTitle>Aktionen</ZombieActionsTitle>
 	<ZombieSettingsReset>Einstellungen zurücksetzen</ZombieSettingsReset>
 	<FactoryResetButton>Werkseinstellung</FactoryResetButton>
@@ -281,7 +250,6 @@
 	<UninstallZombieland>Zombieland aus aktuellem Spiel entfernen</UninstallZombieland>
 	<ConfirmUninstallZombieland>In den folgenden Schritten können Sie einen neuen Dateinamen auswählen. Nach dem Speichern gelangen Sie wieder in das Hauptmenü. Die neue Datei kann ohne Zombieland geladen werden.\n\nWollen Sie wirklich alle Zombieland-Inhalte aus dem aktuellen Spiel entfernen?</ConfirmUninstallZombieland>
 	<UninstallButton>Entfernen</UninstallButton>
-
 	<ClipboardActionTitle>Zwischenablage</ClipboardActionTitle>
 	<CopySettings>Einstellungen in die Zwischenablage kopieren</CopySettings>
 	<CopyButton>Kopieren</CopyButton>
@@ -289,34 +257,25 @@
 	<PasteSettings>Einstellungen aus der Zwischenablage laden</PasteSettings>
 	<PasteButton>Einsetzen</PasteButton>
 	<RopeZombie>Diesen Zombie einfangen</RopeZombie>
-
 	<Activate>Aktivieren</Activate>
 	<ActivateDescription>Aktiviert das Gerät. Zombies im Raum verlieren das Bewusstsein.</ActivateDescription>
 	<WrongPlacementZombieShocker>Das Gerät kann hier nicht platziert werden.</WrongPlacementZombieShocker>
-
 	<ColonistsBittenByZombie>Kolonist wurde von einem Zombie gebissen</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Folgende Kolonisten wurden von einem Zombie gebissen. Noch ist unklar, ob sich daraus eine Infektion entwickelt:\n\n{0}\nBeobachten Sie die Wunden genau, denn Infektionen brauchen einige Zeit, um sich zu entwickeln.</ColonistsBittenByZombieDesc>
-
 	<ImminentZombiInfection>Bevorstehende Zombieinfektion</ImminentZombiInfection>
 	<ImminentZombiInfectionDesc>Folgende Kolonisten sind dabei eine Infektion aus einem Zombiebiss zu entwickeln:\n\n{0}\nMan kann sie noch retten, indem man sie sofort unter besten Bedingungen optimal behandelt. Das erfordert einen guten Arzt, ein hochwertiges Krankenbett und einen sterilen Raum mit Vitalmonitor.</ImminentZombiInfectionDesc>
-
 	<ZombieInfection>Zombieinfektion</ZombieInfection>
 	<ZombieInfectionDesc>Folgende Kolonisten wurden infiziert und werden zu Zombies. Es gibt keine Rettung mehr:\n\n{0}\nWährend die Infektion fortschreitet, sind ihnen Gedanken, Gefühle, Schmerz und Hunger gleichgültig. Am Ende sterben sie und werden zu Zombies.</ZombieInfectionDesc>
-
 	<NoInfectionRisk>Kein Infektionsrisiko</NoInfectionRisk>
 	<HoursBeforeBecomingInfected>{0} bis zum Beginn der Infektion</HoursBeforeBecomingInfected>
 	<HoursBeforeBecomingAZombie>{0} bis zur Verwandlung in einen Zombie</HoursBeforeBecomingAZombie>
-
 	<DangerousSituation>Gefährliche Situation</DangerousSituation>
 	<ZombiesAreBeingPushedOverYourWalls>Zombies werden über Ihre Mauern geschoben! Verhindern Sie, dass sich Zombies zu dichten Gruppen ansammeln.</ZombiesAreBeingPushedOverYourWalls>
-
 	<ColonistBecameAZombieLabel>Ein Kolonist wurde zum Zombie</ColonistBecameAZombieLabel>
 	<OtherBecameAZombieLabel>Jemand wurde zum Zombie</OtherBecameAZombieLabel>
 	<BecameAZombieDesc>{0} wurde zu einem mächtigen Zombie.</BecameAZombieDesc>
-
 	<BodyIsInfectedLabel>Dieser Körper ist mit dem Zombievirus infiziert!</BodyIsInfectedLabel>
 	<BodyIsInfectedTooltip>Infizierte Körper werden als Zombies auferstehen wenn sie anfangen zu verrotten.</BodyIsInfectedTooltip>
-
 	<CureZombieInfection>Zombieinfektion heilen</CureZombieInfection>
 	<ExtractingZombieSerum>Zombieextrakt gewinnen</ExtractingZombieSerum>
 	<AutoExtractDisabledDescription>Zombieextrakt kann nicht gewonnen werden (kein Arzt)</AutoExtractDisabledDescription>
@@ -325,19 +284,15 @@
 	<AutoDoubleTapDisabledDescription>Kein sicheres 2x Töten (kein Jäger)</AutoDoubleTapDisabledDescription>
 	<AutoDoubleTapAllowedDescription>Leichen automatisch 2x töten damit daraus keine Zombies werden</AutoDoubleTapAllowedDescription>
 	<AutoDoubleTapForbiddenDescription>Sicheres 2x Töten nur auf Befehl</AutoDoubleTapForbiddenDescription>
-
 	<AutoAvoidZombiesEnabledDescription>Automatisches Vermeiden von Zombies, außer wenn einberufen</AutoAvoidZombiesEnabledDescription>
 	<AutoAvoidZombiesDisabledDescription>Ignoriere Zombies. Alle Aktionen müssen manuell kontrolliert werden</AutoAvoidZombiesDisabledDescription>
-
 	<ZapZombies>Zombie-Schocker starten</ZapZombies>
 	<ZombieShockerWrongPlacement>Das Gerät kann hier nicht platziert werden</ZombieShockerWrongPlacement>
 	<ZombieShockerHasNoBattery>Das Gerät hat keine angeschlossene Batterie</ZombieShockerHasNoBattery>
 	<ZombieShockerHasNoRoom>Das Gerät verfügt über keinen gültigen Raum</ZombieShockerHasNoRoom>
 	<ZombieShockerLowBatteryState>Das Gerät hat die angeschlossenen Batterien erschöpft</ZombieShockerLowBatteryState>
-
 	<ShowHealthBar>Zombie-Gesundheitsleiste anzeigen</ShowHealthBar>
 	<ShowZombieStats>Zombiestatistik anzeigen</ShowZombieStats>
-
 	<SnowAndSandClear>Schnee- und Sandräumung</SnowAndSandClear>
 	<ShowZombieRisk>Zombie-Risiko anzeigen</ShowZombieRisk>
 	<ZombieRiskAreaColumnHintLong>Zombieland-Bereichsregeln: Verstöße erscheinen während des Spiels oben auf dem Bildschirm</ZombieRiskAreaColumnHintLong>
@@ -349,10 +304,8 @@
 	<HighlightDangerousAreas>Risikobereiche hervorheben</HighlightDangerousAreas>
 	<DisableRandomApparel>Zufällige Kleidung für Zombies ausschalten</DisableRandomApparel>
 	<FloatingZombiesInSOS2>Schwebende Zombies im All</FloatingZombiesInSOS2>
-
 	<Broken>Kaputt</Broken>
 	<StatsFuel>{0}% Kraftstoff</StatsFuel>
-
 	<ChainsawBroken>Kettensäge ist kaputt</ChainsawBroken>
 	<ChainsawDisabled>Kettensäge kann im Moment nicht verwendet werden</ChainsawDisabled>
 	<ChainsawNoFuel>Kettensäge muss aufgetankt werden</ChainsawNoFuel>
@@ -365,15 +318,12 @@
 	<ChainsawDescFuel> mit {0}% Kraftstoff</ChainsawDescFuel>
 	<ChainsawDescNoFuel> ohne Kraftstoff</ChainsawDescNoFuel>
 	<ChainsawDescBlockingChance> blockiert {0}% der eingehenden Angriffe</ChainsawDescBlockingChance>
-
 	<ThumperControl>Einstellungen</ThumperControl>
 	<ThumperControlDesc>Zum Einstellen von Intensität und Intervall für diesen Zombiestampfer</ThumperControlDesc>
 	<Intensity>Intensität</Intensity>
 	<Interval>Intervall</Interval>
-
 	<ToggleStateLabel>An / Aus</ToggleStateLabel>
 	<ToggleStateDesc>Macht das Gerät an und aus.</ToggleStateDesc>
-
 	<SpitterStateIdle>Abwartend</SpitterStateIdle>
 	<SpitterStateSearching>Suchend</SpitterStateSearching>
 	<SpitterStateMoving>Bewegend</SpitterStateMoving>
@@ -384,9 +334,7 @@
 	<Waves>Wellen</Waves>
 	<Aggressive>Aggressiv</Aggressive>
 	<Calm>Ruhig</Calm>
-
 	<ZombieContamination>Zombie-Kontamination</ZombieContamination>
 	<ContaminationHelp>Die durch die Zombie-Apokalypse verursachte Kontamination wird durch Berührung und Handhabung von Dingen übertragen. Sie breitet sich aus und kann zu seltsamem Verhalten bei Kolonisten führen.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Kontaminations-Overlay für Zombies umschalten.\n\nDies zeigt, wie kontaminiert Dinge und der Boden sind, was wiederum die Spielfiguren beeinflusst.</ShowContaminationOverlayToggleButton>
-
 </LanguageData>

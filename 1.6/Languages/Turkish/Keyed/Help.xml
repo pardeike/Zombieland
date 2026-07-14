@@ -1,24 +1,19 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
-
 	<ZombielandDifficultyTitle_Help>Zombieland'deki zorluk temel olarak şu öğelerin birleşimiyle kontrol edilir:\n\n- Tehdit ölçeği\n- Özel zombiler\n- Zombi hızı\n- En yüksek zombi sayısı\n- Dinamik tehdit seviyesi</ZombielandDifficultyTitle_Help>
 	<ZombielandDifficulty_Help>Bu ayar, Zombieland'deki neredeyse her şeyin zorluğunu kontrol eder: zombilerin duyuları, dayanıklılığı, hızı ve gücü gibi yetenekleri. Özellikle özel zombiler etkilenir ve yüksek zorluklarda tehdit tahmini çok daha kötü olur.\n\nNot: %500 gerçekten çok zordur, dikkatli olun.</ZombielandDifficulty_Help>
-
 	<ZombielandContaminationTitle_Help>Zombieland kirliliği, koloniniz için kalıcı ve yayılan bir tehlike ekleyen geç oyun mücadelesidir. Derin sondaj ve ticaret eşyaları gibi çeşitli kaynaklardan ortaya çıkar; nesneler, kolonistler ve çevre arasında aktarılır. Koloniniz büyüdükçe, kolonistlerinizi güvende tutmak için kirliliği daha dikkatli yönetmeniz gerekir.\n\nMevcut kirlilik seviyelerini izlemek için sağ alttaki düğmelerden kaplamayı açın ya da denetçiyi, ayrıntılar penceresini veya zeminin üzerine gelince çıkan bilgiyi kullanın. Burada ilgili nesne, hücre veya piyonun kirlilik yüzdesini görürsünüz.</ZombielandContaminationTitle_Help>
 	<ContaminationEnabled_Help>Kirliliği açıp kapatmak, Zombieland'in RimWorld'e uyguladığı yamaları ve kayıtla ilgili olmayan bazı ayarları etkiler. Seçiminizin doğru uygulanması için RimWorld'ü yeniden başlatmanız gerekir.</ContaminationEnabled_Help>
 	<ZombielandContamination_Help>Koloninizde Zombieland kirliliğinin çeşitli yollarla yayılacağı temel hızı belirlemek için kirlilik yoğunluğunu ayarlayın. Bu çarpan, inşa ederken aktarılan miktardan doğal kaynaklar yoluyla yayılmaya kadar her şeyi etkiler.\n\nKolonistlerin bilinci etkilenir. Aşamalar %10, %20, %40, %75, %85 ve %95'te başlar; %100 veya üzerinde ölüm gerçekleşir.\n\nMüttefikler düzenli aralıklarla size arındırma görevleri sunar. Kirliliği azaltmak için eşyaları yakabilirsiniz.</ZombielandContamination_Help>
-
 	<WhenDoZombiesSpawn_Help>Zombieland'de hiç bitmeyen bir zombi istilasıyla karşılaşırsınız. Bu ayar oyunun genel temposunu ve ritmini kontrol eder. Üç mod oldukça farklıdır, bu yüzden oyun tarzınıza uygun olanı seçtiğinizden ve nasıl çalıştıklarını anladığınızdan emin olun. Zombi sayısında bir üst sınır vardır; ayrıntılar için "Haritadaki zombiler" bölümüne bakın.</WhenDoZombiesSpawn_Help>
 	<SpawnWhenType_AllTheTime_Help>Zombiler durmadan ortaya çıkar. Onları öldürürsünüz, yenileri hemen gelir. Bu, zombileri oyunun her yönünü etkileyen sürekli bir güç haline getiren zorlu bir moddur.</SpawnWhenType_AllTheTime_Help>
 	<SpawnWhenType_WhenDark_Help>Zombiler yalnızca karanlık yerlerde ortaya çıkar. Bu kelimenin tam anlamıyla karanlık demektir ve gündüz de karanlık kalan alanları kapsar. Güvenli alanlarınızı aydınlatmak için ışık kurarak bu modu kontrol edebilirsiniz.</SpawnWhenType_WhenDark_Help>
 	<SpawnWhenType_InEventsOnly_Help>Zombieland'i oynamanın klasik yolu budur: zombiler gruplar halinde ortaya çıkar. Grubun zamanı ve büyüklüğü mevcut koloninin birçok yönüne bağlıdır. Zombieland olayları RimWorld olaylarından tamamen bağımsızdır ve onların sıklığını değiştirmez.</SpawnWhenType_InEventsOnly_Help>
-
 	<HowDoZombiesSpawn_Help>Zombieland'de zombiler her zaman yerin altından çıkar. Yumuşak noktalardan kazıp çıkarlar; bu yüzden haritanızda en azından biraz yumuşak veya yarı yumuşak zemin olduğundan emin olun. Örneğin yalnızca buzdan oluşan bir harita uygun değildir.</HowDoZombiesSpawn_Help>
 	<SpawnHowType_AllOverTheMap_Help>Cesaretiniz varsa zombilerin haritanın her yerinde ortaya çıktığı şekilde oynayabilirsiniz. Deneyimli oyuncular için önerilir. Güvenli alanları kontrol etmek için zemin veya duvar inşa edebilirsiniz. Zorlu bir Zombieland deneyimi için bu modu "karanlık olduğunda" ile birleştirin. Ekim bölgelerinize de dikkat edin!</SpawnHowType_AllOverTheMap_Help>
 	<SpawnHowType_FromTheEdges_Help>Haritanın kenarlarından gelen daha klasik bir tehdit şeklini tercih ediyorsanız bu mod sizin içindir.</SpawnHowType_FromTheEdges_Help>
 	<SmartWandering_Help>Bu ayar zombilerin geceleri nasıl hareket edeceğini kontrol eder. "Rastgele", gündüz gibi hareket etmelerini sağlar. "Basit", onları haritanın en ilginç kısmına doğru sürükler, ancak takılıp gruplar oluşturabilirler. "Akıllı" ise sonunda onları size getirir.</SmartWandering_Help>
 	<Biomes_Help>Zombilerin belirli harita türlerinde ortaya çıkmasını önlemek için biyomları burada hariç tutabilirsiniz.</Biomes_Help>
-
 	<WhatDoZombiesAttack_Help>Zombiler, öfkeli zombiler hariç, baskıncılar gibi davranmaz. Yalnızca duyuları tetiklendiğinde heyecanlanan akılsız gezginlerdir. Bu ayar, onları harekete geçirecek yaratık türünü tanımlamanızı sağlar.</WhatDoZombiesAttack_Help>
 	<AttackMode_Everything_Help>Zombilerin hareket eden her şeyi, hayvanları bile, izlemesini ve saldırmasını sağlar. Taret gibi sabit silahlar asla dikkatlerini çekmez.</AttackMode_Everything_Help>
 	<AttackMode_OnlyHumans_Help>Bu, zombilerin "normal" çalışma şeklidir. Beyin açlıkları, onları fraksiyondan bağımsız olarak insansı piyonları avlamaya iter.</AttackMode_OnlyHumans_Help>
@@ -32,44 +27,35 @@
 	<AnomalyTargetOtherEntities_Help>Fleshbeast, metalhorror, sightstealer, revenant ve benzeri etkin insan olmayan Anomaly varlıklarını kontrol eder.</AnomalyTargetOtherEntities_Help>
 	<AnomalyTargetNociosphere_Help>Zombilerin etkin bir Nociosphere'e tepki verip vermeyeceğini kontrol eder. Asla seçeneği, Nociosphere'in zombi alanlarını çok kolay temizlemesini engelleyebilir.</AnomalyTargetNociosphere_Help>
 	<AnomalyZombieHostilityRelations_Help>Oyuncu olmayan Anomaly piyonlarının zombileri hedef seçip seçemeyeceğini kontrol eder. Otomatik, düşman ve hayvan zombi düşmanlığı ayarlarını izler. Asla zombilere saldırıları engeller. İzin ver, temel ayar engellese bile etkin ve geçerli Anomaly piyonlarının zombilere saldırmasına izin verir.</AnomalyZombieHostilityRelations_Help>
-
 	<WhatDoZombiesSmash_Help>Zombiler binalara veya eşyalara yaklaştıklarında yakındaki şeyleri dövmeye başlayabilirler. Karmaşık saldırılar planlamazlar, ancak büyük sayılarda ve zamanla savunmalarınızı yıkabilirler.</WhatDoZombiesSmash_Help>
 	<SmashMode_Nothing_Help>Zombilerin yalnızca yaratıklara saldırmasını sağlar. Duvarları, binaları, taretleri ve diğer şeyleri görmezden gelirler.</SmashMode_Nothing_Help>
 	<SmashMode_DoorsOnly_Help>Bu ayarla zombiler kapıların nasıl çalıştığına dair kaba bir fikre sahip olur. Kapıları dövmeye başlarlar ve kapıya yakın zombi sayısı arttıkça hasar da artar. Öfkeli zombiler ekstra çaba gösterir ve daha fazla hasar verir.</SmashMode_DoorsOnly_Help>
 	<SmashMode_AnyBuilding_Help>Zombilerin gerçekten tüm eşyalarınızdan nefret etmesini istiyorsanız bu ayarı kullanın. Yakınlarındaki her şeye, hatta antik tehlikelere bile saldırırlar. Bu, oyunun zorluğunu ciddi ölçüde artırır.</SmashMode_AnyBuilding_Help>
 	<SmashOnlyWhenAgitated_Help>Zombilerin eşyalarla etkileşimini yalnızca kışkırtılmış zombilerle sınırlamak için bu seçeneği işaretleyin. Normal gezen zombiler bir iz bulana, sizi ya da gürültünüzü hissedene kadar düşmanca olmaz. Küçük beyin simgesi bir şey bulduklarında bunu gösterir.</SmashOnlyWhenAgitated_Help>
-
 	<NewGameTitle_Help>Başlangıçta Zombieland koloninizi hazırlamanız için biraz zaman verir. Bu süreyi çok uzatmamaya çalışın. Birçok yeni oyuncu bu hatayı yapar, büyük bir sayı seçer, sonra güçlü ve çok silahlı bir koloni kurar. Zaman geldiğinde Zombieland, koloninin gücüne göre çok büyük sayıda zombiyle başlar ve oyun hızla biter. Bunun yerine, nasıl oynanacağını anlamak için zombilerle erken karşılaşarak oynayın.</NewGameTitle_Help>
 	<DaysBeforeZombiesCome_Help>Zombilerin ilk kez ortaya çıkmasına kadar geçen gün sayısıdır. Süre bitse bile ayarlarınıza bağlı olarak bir sonraki geceye veya olaya kadar bekleyebileceklerini unutmayın.</DaysBeforeZombiesCome_Help>
-
 	<ZombiesOnTheMap_Help>Zombieland'in haritada herhangi bir anda kaç zombi olması gerektiğini belirleyen dahili bir algoritması vardır. Bu; kolonist sayısı, savaşabilen kolonistler, silahlar, zırhlar, anlatıcı zorluğu ve başka şeylere bağlıdır. Bu sayı çok büyüyebilir; oyununuzun aşırı yavaşlamasını önlemek için en yüksek sınır belirleyebilirsiniz. Zombieland haritada çok sayıda zombi olacak şekilde tasarlanmıştır; bir avuç zombiyle oynamak muhtemelen istediğiniz şey değildir.</ZombiesOnTheMap_Help>
 	<MaximumNumberOfZombies_Help>Belirli bir harita karesindeki zombi üst sınırı. Gerçek sayılar koloniye bağlı olarak daha düşük olabilir.</MaximumNumberOfZombies_Help>
 	<ColonyMultiplier_Help>Bazen Zombieland çok az zombi tahmin eder. Örneğin az sayıda kolonistle oynamak isteyip yine de zombi sayısının yüksek olmasını istiyorsanız. Bu çarpanla Zombieland'e koloninizin kendini savunmada x kat daha yetenekli olduğunu söyleyebilirsiniz. Bu, gerçekten istediğiniz meydan okuma için zombi sayısını artırır, ancak üst sınır her zaman korunur.</ColonyMultiplier_Help>
-
 	<DynamicThreatLevelTitle_Help>Bu bölüm sabit ve dinamik zombi sayısı arasında geçiş yapmanızı sağlar.</DynamicThreatLevelTitle_Help>
 	<UseDynamicThreatLevel_Help>Burada haritadaki zombi sayısını dinamik hale getirebilirsiniz. Bu, ekranın sağ tarafında ileriyi planlamanız için bir tahmin alacağınız anlamına gelir.</UseDynamicThreatLevel_Help>
 	<DynamicThreatSmoothness_Help>Tehdit eğrisinin düzgünlüğünü belirler.</DynamicThreatSmoothness_Help>
 	<DynamicThreatStretch_Help>Bu ayarla eğriyi uzatabilir ve daha az dinamik hale getirebilirsiniz.</DynamicThreatStretch_Help>
 	<ZombiesDieOnZeroThreat_Help>Tehdit seviyesi %0 ise haritadaki tüm zombiler kendiliğinden ölür.</ZombiesDieOnZeroThreat_Help>
 	<ZombieFreeEvents_Help>Ayarlanan başlangıç günleri, bu seçenek açık veya kapalı olsun, her zaman zombisiz kalır. Etkinleştirildiğinde bu başlangıç dönemi zombi sessizliği olarak gösterilir ve oyunun ilerleyen dönemlerinde küresel zombi sessizlikleri tekrarlar. Sessizlik sırasında tüm haritalardaki zombiler yok olur ve yenileri doğmaz. Zombi sessizlikleri hem sabit hem de dinamik tehdit düzeyinde işler. Dinamik tehdit açıkken tehdit tahmininde görünürler; kapalıyken tahmin gösterilmez ve sonraki sessizlikler etkin oyun koşuluyla ve olay mektupları açıksa bir mektupla duyurulur.</ZombieFreeEvents_Help>
-
 	<ZombieEventTitle_Help>"Sadece olaylar olarak" oynarsanız ve bazen diğer modlarda da, Zombieland bir zombi saldırısı tetikler. Bu baskın olayı gibi değildir; daha büyük sayıda zombi birlikte ortaya çıkar ve grup büyüklüğüne bağlı olarak öfkelenip size doğru ilerleyebilir.</ZombieEventTitle_Help>
 	<ZombiesPerColonistInEvent_Help>Olayın büyüklüğünü kontrol etmek için kolonist başına kaç zombi ortaya çıkacağını belirtebilirsiniz. Bunun haritadaki toplam zombi sınırını değiştirmediğini unutmayın. Mevcut zombi sayısı toplam sınıra ya da Zombieland'in koloni büyüklüğünüz için belirlediği sayıya zaten yakınsa olayda daha az zombi olur. Buraya çok büyük bir sayı koymak yalnızca olay boyutu üst sınırını kaldırır. Küçük sayı genel olay boyutunu azaltır; özellikle savaşabilen kolonist azsa.</ZombiesPerColonistInEvent_Help>
 	<ExtraDaysBetweenEvents_Help>Normalde zombi olayları otomatik olarak aralıklı gerçekleşir. Gerçek aralık bazı dahili faktörlere bağlıdır. Çok sık olduğunu düşünüyorsanız olaylar arasına ekstra günler eklemek için bu ayarı kullanabilirsiniz.</ExtraDaysBetweenEvents_Help>
 	<InfectedRaidsChance_Help>Haritaya gelen düşman veya dost bir grubun zaten enfekte olması ve onlarla zombiler arasında hiçbir etkileşim olmaması ihtimalidir.</InfectedRaidsChance_Help>
-
 	<ZombieSpeedTitle_Help>Zombi hızı, zorluğu en çok dengelemenize izin veren ayardır. Zombieland çok zor geliyorsa, önce hızı çok düşürmeyi deneyin. Hızlı zombiler genellikle çok ölümcüldür. Ayarlanacak iki hız vardır: sakince gezen zombiler için bir hız, sizi izlemeye başlayanlar için başka bir hız.</ZombieSpeedTitle_Help>
 	<MoveSpeedIdle_Help>Zombilerin normal yürüme hızı. Öfkeli veya kışkırtılmış zombiler buna dahil değildir.</MoveSpeedIdle_Help>
 	<MoveSpeedTracking_Help>Zombiler heyecanlandığında veya kışkırtıldığında bu hızı kullanır. Bu genellikle kolonistlerinize yakın olduklarında olur; bu yüzden yüksek ayar, kaçırmak istemediğiniz ani zombi temaslarına dikkat etmenizi gerektirir.</MoveSpeedTracking_Help>
-
 	<ZombieDamageTitle_Help>Zombiler diğer yaratıklara saldırdığında ne olacağını değiştirir.</ZombieDamageTitle_Help>
 	<ZombieDamageFactor_Help>Büyük bir çarpan onların gücünü artırır ve başkalarını kolayca alt etmelerini sağlar. Mekanoidlere karşı çok yararlıdır, ancak bu açıksa duvarlarınız ve kapılarınız daha hızlı yıpranır.</ZombieDamageFactor_Help>
 	<SafeMeleeLimit_Help>Savunmacı bunalıp ısırılmaya başlamadan önce yakın dövüşte aynı anda karşı konabilecek zombi sayısıdır.\n\nZırhlı operatör zombiler iki zombi sayılır ve savunmacının 0-20 yakın dövüş seviyesi ısırığı engellemek için %0-100 şans verir; sınırdan az zombi varsa daha iyidir.</SafeMeleeLimit_Help>
 	<ZombiesCauseManhunting_Help>Hayvanlar zombiler tarafından saldırıya uğradığında insan avcısı olur mu?</ZombiesCauseManhunting_Help>
-
 	<ZombieGameTweaks_Help>Bu bölüm, zombilerle oynanışı biraz daha dengelemek için çeşitli küçük ayarlar içerir.</ZombieGameTweaks_Help>
 	<ReduceTurretConsumption_Help>Zombilerin sürekli baskısı taretlerin çok çelik kullanmasına neden olur. Bu ayar, taretleri çalışır durumda tutmak için gereken çelik miktarını azaltmanızı sağlar. Bunun bir azaltma ayarı olduğunu unutmayın: yüksek sayılar daha az tüketim demektir.</ReduceTurretConsumption_Help>
-
 	<ZombieInfection_Help>Zombi çizikleri zararsızdır, ancak ısırıklar ölümcül enfeksiyonlara yol açabilir.\n\nZombieland'de dört enfeksiyon aşaması vardır:\n- bilinmeyen (beyaz)\n- gelişen (turuncu)\n- enfekte eden (kırmızı, zombi gibi)\n- zombi (tam zombi)\n\nEnfekte parçayı kesebilir ya da zombi özünden yapılan zombi serumu ile ameliyat yaparak enfeksiyonu kaldırabilirsiniz.</ZombieInfection_Help>
 	<ZombieBiteInfectionChance_Help>Bir zombi ısırığının ait olduğu uzvu veya vücut parçasını enfekte etme ihtimalidir. Isırıklar bulaşıcıdır, çizikler değildir.</ZombieBiteInfectionChance_Help>
 	<ZombieBiteInfectionUnknown_Help>İlk aşamadır (beyaz). Yarayı tedavi edebilirsiniz, ancak bu aşama bitene kadar enfekte olup olmayacağını bilmezsiniz.</ZombieBiteInfectionUnknown_Help>
@@ -79,30 +65,25 @@
 	<HoursAfterDeathToBecomeZombie_Help>Ölü bir insansı piyonun zombi olması için geçen süre. Bu özelliği kapatmak için kaydırıcıyı en sola götürün.</HoursAfterDeathToBecomeZombie_Help>
 	<DeadBecomesZombieMessage_Help>Birinin zombiye dönüştüğünü belirten mesajı açar veya kapatır.</DeadBecomesZombieMessage_Help>
 	<DangerousSituationMessage_Help>Zombilerin duvarlarınızın üzerinden itilmesi gibi tehlikeli bir şey olduğunda bildirim almanızı sağlar.</DangerousSituationMessage_Help>
-
 	<ZombieHarvestingTitle_Help>Zombiler öldüğünde giysilerinin bir kısmını düşürebilir ve cesetleri kaybolmadan önce zombi özü toplayabilirsiniz. Çok fazla cesetle boğulmamak için zombi cesetlerinin ne kadar hızlı kaybolacağını seçebilirsiniz.\n\nZombi serumu enfeksiyonları iyileştirmenin en iyi yoludur. Serum zombi özünden yapılır ve %10 ile %100 arasında kaliteye sahiptir; bir doz serum bir zombi ısırığını iyileştirir. Kalite, enfekte koloniste yapılan tıbbi operasyondaki başarısızlık riskini belirler.</ZombieHarvestingTitle_Help>
 	<CorpsesExtractAmount_Help>Zombi özü, ölü zombiler kaybolmadan önce otomatik olarak veya zombi cesedine sağ tıklayarak toplanır. Bunu ilaç laboratuvarında seruma çevirebilirsiniz; kabilelerle oynuyorsanız üretim noktasında da yapabilirsiniz. Yalnızca doktorluk görevi verilen kolonistler özü toplayabilir ve yalnızca yakınlarda tehlikeli zombi yoksa; yaklaşık 10-20 hücre, çevreye bağlıdır. Serum yapmayı kolaylaştırmak için zombi başına öz miktarını artırın.</CorpsesExtractAmount_Help>
 	<LootExtractAmount_Help>Zombilerin giydikleri kıyafetleri şansa bağlı olarak düşürmesini sağlar. Zombiler oyununuzda ve tüm modlarınızda bulunan herhangi bir kıyafeti giyebilir. Bu, düşen kıyafetlerin şansını ve miktarını belirler (%100 = 1 eşya).</LootExtractAmount_Help>
 	<CorpsesDaysToDessicated_Help>Zombi cesetleri genellikle çok fazla birikmemesi için hızlıca kurur. Öz toplamayı kolaylaştırmak için kaybolmadan önceki süreyi artırabilirsiniz.</CorpsesDaysToDessicated_Help>
 	<ExtractZombieArea_Help>Zombi özü toplamak tehlikeli olabilir. Bu özelliği kullanarak etkinliği alanlarınızdan biriyle sınırlayın. Alanı yeniden adlandırırsanız burada da güncellemeniz gerekir. Elle verilen toplama emirleri her zaman çalışır.</ExtractZombieArea_Help>
 	<Apparel_Help>Zombilerinizin bazı kıyafetleri giymesini istemiyor musunuz? Penceredeki kutuyu işaretleyerek burada kara listeye alın.\n\nModlu bir kıyafet hata çıkarıyorsa veya sadece daha fazla kontrol istiyorsanız yararlıdır.</Apparel_Help>
-
 	<ZombieInstinctTitle_Help>Zombiler avlarını ses ve koku ile hisseder. Bazı durumlarda sürü gibi de davranırlar. Bu ayar bu duyuların ne kadar uzağa ulaşacağını belirler.</ZombieInstinctTitle_Help>
 	<ZombieInstinct_Dull_Help>Zombi duyuları birkaç hücreyle sınırlıdır.</ZombieInstinct_Dull_Help>
 	<ZombieInstinct_Normal_Help>Zombi duyuları biraz daha uzağa ulaşır.</ZombieInstinct_Normal_Help>
 	<ZombieInstinct_Sensitive_Help>Zombiler çok hassastır ve sizi ve izlerinizi birçok hücre öteden hisseder.</ZombieInstinct_Sensitive_Help>
 	<RagingZombies_Help>Grup davranışını taklit etmek için sıkışık bir zombi grubu çok büyüdüğünde zombiler öfkelenebilir. Öfkeli zombilerin gözleri kırmızıdır ve kolonistlerinize doğru yürümeye başlar. Normalden daha güçlü ve hızlı olurlar. Zombi sürülerinin çok büyümesini veya haritanın bazı yerlerinde takılı kalmasını önlemeye çalışın.</RagingZombies_Help>
 	<RageLevel_Help>Bu seviye, öfkeli zombileri tetikleyen grup büyüklüğünü kontrol eder. Yüksek seviyeler daha tehlikelidir ve zombilerin daha kolay tetiklenmesine neden olur.</RageLevel_Help>
-
 	<ZombieHealthTitle_Help>Zombiler teknik olarak ölü oldukları için "sağlıkları" yoktur. Zombieland zombileri öldürmeyi daha kolay veya daha zor yapabilir.</ZombieHealthTitle_Help>
 	<ZombieHealthFactor_Help>Zombileri daha dayanıklı yapar, bu yüzden onları indirmek için daha fazla emek ve hasar gerekir.</ZombieHealthFactor_Help>
 	<DoubleTapRequired_Help>Bu seçenek zombilerin yaralardan toparlanmasını sağlar. Sürekli hasar vermeniz gerekir, yoksa devam ederler. Yaralı zombiler yavaş hareket eden ve yalnızca bacaklara saldıran "sürünenlere" dönüşebilir. Normal RimWorld benzeri hasar için bunu kapatın.</DoubleTapRequired_Help>
 	<ZombiesDieVeryEasily_Help>Yeni başlayanlar ve daha arcade tarzı oynanış isteyenler için başka harika bir seçenek. Açıldığında zombiler tek vuruşta öldürülebilir ve en küçük yara bile onları öldürür.</ZombiesDieVeryEasily_Help>
-
 	<ZombieEatingTitle_Help>Zombiler yakınlarında ölü cesetler algıladığında durur ve dikkatlerini cesetlere verir. Bunu savunmada lehinize kullanın. Bu ayar zombilerin neyi yiyeceğini ve yiyip yemeyeceğini kontrol eder.</ZombieEatingTitle_Help>
 	<ZombiesEatDowned_Help>Zombilerin merhameti yoktur ve canlı ya da yaralı yaratıkları yerler.</ZombiesEatDowned_Help>
 	<ZombiesEatCorpses_Help>Bu seçeneği açarsanız zombiler cesetlerle ziyafet çeker.</ZombiesEatCorpses_Help>
-
 	<SpecialZombiesTitle_Help>Zombieland'de birkaç özel zombi türü vardır. Hepsinin özel yetenekleri bulunur ve oyunu zorlaştırırlar. Vücut şekilleri ve boyutları da genel özelliklerini belirler.</SpecialZombiesTitle_Help>
 	<SuicideBomberChance_Help>İntihar bombacısı zombiler öldüklerinde bombalarını patlatır. İnşa ettiğiniz herhangi bir duvara ulaştıklarında da tetiklerler. Onlara göz kulak olun ve yaklaşmalarına izin vermeyin.</SuicideBomberChance_Help>
 	<ToxicSplasherChance_Help>Zehir saçan zombiler çevrelerine çok zehirli ve yapışkan yeşil madde saçar. Kolonistlerinizin bu lekelerin üzerinden yürümediğinden emin olun.</ToxicSplasherChance_Help>
@@ -120,7 +101,6 @@
 	<SymbiantEnabled_Help>Doğal Zombi Simbiyantı olaylarını etkinleştirir.</SymbiantEnabled_Help>
 	<SymbiantMaxCells_Help>Bir Simbiyantın kaplayabileceği en fazla harita hücresi.</SymbiantMaxCells_Help>
 	<MuteSymbiantSplashSounds_Help>Konak dışındaki piyonlar Simbiyant hücrelerinden geçerken çıkan sıçrama seslerini susturur.</MuteSymbiantSplashSounds_Help>
-
 	<ZombieMiscTitle_Help>Bu bölüm oynanışı çok fazla etkilemeyen çeşitli ayarlar içerir. Bazıları kozmetiktir, bazıları ise daha yavaş bilgisayarlarda oyunu hızlandırabilir.</ZombieMiscTitle_Help>
 	<UseCustomTextures_Help>Her zombinin yaralar ve zombiyle ilgili diğer izler içeren özel vücut dokuları olur. Bu, Zombieland'in çok bellek kullanmasına neden olur; sorun yaşıyorsanız kapatın, özellikle 32 bit sürümde.</UseCustomTextures_Help>
 	<ReplaceTwinkie_Help>Zombieland filminde Twinkie ile ilgili bir mizah vardır. Filme saygı olarak mod, hayatta kalma öğünlerinin görsel görünümünü Twinkie olarak değiştirir.</ReplaceTwinkie_Help>
@@ -144,12 +124,10 @@
 	<HighlightDangerousAreas_Help>Bir kolonist tehlikeli bir alandaysa veya güvenli alandan çıkarsa bu ayar o alanı vurgular.\n\nTehlikeli alanları yönetmek için normal alan yöneticisini kullanabilirsiniz.</HighlightDangerousAreas_Help>
 	<DisableRandomApparel_Help>Zombi doğuşunu hızlandırmak ve bellek tasarrufu yapmak için zombilerin kıyafetsiz doğmasını sağlayabilirsiniz.</DisableRandomApparel_Help>
 	<FloatingZombiesInSOS2_Help>Zombiler SOS2 haritalarında uzayda süzülür.</FloatingZombiesInSOS2_Help>
-
 	<ZombieActionsTitle_Help>Bu bölümde varsayılan ayarları geri yükleyebilir veya kendi ayarlarınızı yükleyip yayımlayabilirsiniz. Oyundaysanız, modu tek düğmeyle bile kaldırabilirsiniz.</ZombieActionsTitle_Help>
 	<UninstallButton_Help>Zombieland'i kaldırmak için Kaldır'a tıklayın. Mevcut oyunu yeni bir adla kaydetmeniz istenir ve ana menüye dönersiniz. Oradan modu kaldırıp kayıtlı oyunu yükleyerek Zombieland olmadan devam edebilirsiniz.</UninstallButton_Help>
 	<ResetButton_Help>Ayarları varsayılana sıfırlar.</ResetButton_Help>
 	<ClipboardActionTitle_Help>Ayarlarınızı basit metin kopyalama ve yapıştırma ile başkalarıyla paylaşın.</ClipboardActionTitle_Help>
 	<CopyButton_Help>Mevcut ayarları bilgisayarınızın panosuna kopyalar. Sonra ayarlarınızı başkalarıyla paylaşmak için bir yere yapıştırabilirsiniz.</CopyButton_Help>
 	<PasteButton_Help>Bilgisayarınızın panosundaki metni kullanarak mevcut ayarlarınızı değiştirir. Önce birinin paylaştığı metni kopyalayın, sonra ayarlarınızı onunkiyle aynı yapın.</PasteButton_Help>
-
 </LanguageData>
