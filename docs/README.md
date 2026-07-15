@@ -30,11 +30,7 @@ Keep operation IDs and historical runtime results in the evidence ledgers, not i
 | Document | Role | Update when |
 | --- | --- | --- |
 | [`docs/features/symbiant.md`](features/symbiant.md) | Current Symbiant design invariants and release contract. | The intended feature behavior or release gate changes. |
-| [`docs/features/fleshbeast/FLESHBEAST-v5.md`](features/fleshbeast/FLESHBEAST-v5.md) | Current design contract for the proposed Anomaly fleshmass-collision feature. | The intended mechanics, safety boundaries, settings contract, or acceptance criteria change. |
-| [`docs/features/fleshbeast/FLESHBEAST-v4.md`](features/fleshbeast/FLESHBEAST-v4.md) | Superseded V4 rage-obstruction snapshot retained for design comparison. | Only when deliberately correcting the historical snapshot or its references. |
-| [`docs/features/fleshbeast/FLESHBEAST-v3.md`](features/fleshbeast/FLESHBEAST-v3.md) | Superseded V3 queue-and-reservation snapshot retained for design comparison. | Only when deliberately correcting the historical snapshot or its references. |
-| [`docs/features/fleshbeast/FLESHBEAST-v2.md`](features/fleshbeast/FLESHBEAST-v2.md) | Superseded V2 snapshot retained for displacement-design comparison. | Only when deliberately correcting the historical snapshot or its references. |
-| [`docs/features/fleshbeast/FLESHBEAST-v1.md`](features/fleshbeast/FLESHBEAST-v1.md) | Immutable pre-review snapshot retained for the displacement-design rationale. | Only when deliberately correcting the baseline snapshot or its references. |
+| [`docs/features/fleshbeast.md`](features/fleshbeast.md) | Current design contract for the proposed Anomaly fleshmass-collision feature. | The intended attack categories, settings contract, response accounting, or release criteria change. |
 | [`scripts/README.md`](../scripts/README.md) | Supported project validation and diagnostics, including XML/localization checks, Player.log summarization, soundtrack, asset-bundle, and repeatable runtime-benchmark workflows. | Script behavior, prerequisites, validation criteria, or diagnostic and benchmark evidence shape changes. |
 | [`Originals/Soundtrack/README.md`](../Originals/Soundtrack/README.md) | Source soundtrack layout and sync entry point. | Source-folder conventions change. |
 | [`Originals/Soundtrack/LOUDNESS_NOTES.md`](../Originals/Soundtrack/LOUDNESS_NOTES.md) | Durable loudness policy and its deliberate exception. | The target, exception, format, or normalization procedure changes. |
