@@ -1,4 +1,4 @@
-# Fleshmass Collision Design: V7
+# Fleshmass Collision Design
 
 ## Status And Purpose
 
@@ -49,8 +49,8 @@ Every building candidate receives one complete classification:
 - A flesh-family building is unavailable for deliberate target selection and
   flesh-triggered suicide arming when the attacking zombie's category checkbox
   is off.
-- A sourced active-flesh target may use the V7 candidacy when the category
-  checkbox is on.
+- A sourced active-flesh target gains this additional candidacy when the
+  category checkbox is on.
 - Another flesh-family building follows the current branch's existing ordinary
   building rules when the category checkbox is on. The generic `AnyBuilding`,
   tank, and suicide branches may therefore accept it, while the ordinary
@@ -131,11 +131,12 @@ settings.
 
 ## Pacing
 
-V7 deliberately adopts the cadence produced by the existing zombie attack
-flows, Anomaly cascade, 125-200 destruction threshold, response, and heart
-growth. The combined runtime scenario records root deaths, destroyed cells, and
-responses over time as gameplay evidence. Release acceptance uses correct
-accounting, stable control flow, acceptable performance, and clean logs.
+This design deliberately adopts the cadence produced by the existing zombie
+attack flows, Anomaly cascade, 125-200 destruction threshold, response, and
+heart growth. The combined runtime scenario records root deaths, destroyed
+cells, and responses over time as gameplay evidence. Release acceptance uses
+correct accounting, stable control flow, acceptable performance, and clean
+logs.
 
 ## Fleshbeast Settings
 
@@ -175,7 +176,7 @@ A single helper provides a result for every building candidate:
 
 1. A non-flesh-family building continues through the current building rules.
 2. A flesh-family building requires the attacking zombie's category checkbox.
-3. A sourced active-flesh target may use the V7 candidacy.
+3. A sourced active-flesh target may use the candidacy defined by this design.
 4. Another flesh-family building may use the current branch's existing
    ordinary-building candidacy.
 
@@ -310,7 +311,7 @@ settings persistence, and warning-and-error-clean logs.
 
 ## Release Contract
 
-V7 is ready for implementation release when:
+This design is ready for implementation release when:
 
 - the three settings follow the UI, defaults, category, persistence,
   and help-text contracts;
