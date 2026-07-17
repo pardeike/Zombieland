@@ -98,7 +98,7 @@ namespace ZombieLand
 				}
 
 				// Attack?
-				if (DialogExtensions.Section<AttackMode>(":WhatDoZombiesAttack", ":EnemiesAttackZombies", ":AnimalsAttackZombies", ModsConfig.AnomalyActive ? ":AnomalyTargetingTitle" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetingRelations" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetGhouls" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetShamblers" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetOtherEntities" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetNociosphere" : "", ModsConfig.AnomalyActive ? ":AnomalyZombieHostilityRelations" : "", ":WallPushing"))
+				if (DialogExtensions.Section<AttackMode>(":WhatDoZombiesAttack", ":EnemiesAttackZombies", ":AnimalsAttackZombies", ModsConfig.AnomalyActive ? ":AnomalyTargetingTitle" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetingRelations" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetGhouls" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetShamblers" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetOtherEntities" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetNociosphere" : "", ModsConfig.AnomalyActive ? ":AnomalyZombieHostilityRelations" : "", ModsConfig.AnomalyActive ? ":FleshmassCollisionTitle" : "", ModsConfig.AnomalyActive ? ":OrdinaryZombiesAttackFleshmass" : "", ModsConfig.AnomalyActive ? ":TankyAndSuicideZombiesAttackFleshmass" : "", ModsConfig.AnomalyActive ? ":FormerColonistAndSpecialZombiesAttackFleshmass" : "", ":WallPushing"))
 				{
 					list.Dialog_Enum("WhatDoZombiesAttack", ref settings.attackMode);
 					list.Dialog_Checkbox("EnemiesAttackZombies", ref settings.enemiesAttackZombies);
@@ -117,6 +117,17 @@ namespace ZombieLand
 						list.Gap(16f);
 						list.Dialog_Text(GameFont.Small, "AnomalyZombieHostilityRelations");
 						list.Dialog_AnomalyTargetingOverride(null, ref settings.anomalyAttacksZombies, AnomalyAutomaticZombieHostilityDetail(settings), "AnomalyZombieHostilityRelations");
+						list.Gap(16f);
+						list.Dialog_Label("FleshmassCollisionTitle", headerColor);
+						list.Dialog_Text(GameFont.Small, "FleshmassCollisionDescription");
+						list.Dialog_Checkbox("OrdinaryZombiesAttackFleshmass", ref settings.ordinaryZombiesAttackFleshmass);
+						list.Dialog_Checkbox("TankyAndSuicideZombiesAttackFleshmass", ref settings.tankyAndSuicideZombiesAttackFleshmass);
+						list.Dialog_Checkbox("FormerColonistAndSpecialZombiesAttackFleshmass", ref settings.formerColonistAndSpecialZombiesAttackFleshmass);
+						if (settings.attackMode == AttackMode.OnlyColonists)
+						{
+							list.Gap(4f);
+							list.Dialog_Text(GameFont.Small, "FleshmassOnlyColonistsNote");
+						}
 					}
 					list.Gap(30f);
 				}

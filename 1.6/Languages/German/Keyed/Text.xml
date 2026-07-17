@@ -5,7 +5,7 @@
 	<ZombielandRevealPlayerLog>Player.log anzeigen</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Player.log konnte nicht angezeigt werden. Der Pfad wurde in die Zwischenablage kopiert.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland konnte den Pfad zur Player.log nicht finden.</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>Bewegen Sie den Mauszeiger über ein beliebiges Element, um rechts einen Hilfetext dazu zu lesen. Alle Einstellungen können im Spiel geändert werden und sind sofort aktiv, sie werden mit dem Spiel gespeichert.\n\nUm die Standardeinstellungen für neue Spiele festzulegen, ändern Sie die Einstellungen im Hauptbildschirm (Optionen/Mod-Einstellungen/Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Bewegen Sie den Mauszeiger über eine beliebige Einstellung, um rechts den zugehörigen Hilfetext zu sehen. Alle Einstellungen können im Spiel geändert werden und sind sofort aktiv, sie werden mit dem Spiel gespeichert.\n\nUm die Standardeinstellungen für neue Spiele festzulegen, ändern Sie die Einstellungen im Hauptbildschirm (Optionen/Mod-Einstellungen/Zombieland).</Zombieland_Settings>
 	<ZombieLandKeyframes>Sie können Keyframes hinzufügen, die Einstellungen über die Zeit festlegen. Prüfen Sie die Zwischenwerte mit dem Schieberegler. Nur Einstellungen an Keyframes sind änderbar.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- erster Keyframe (Spielbeginn) ... zukünftige Spielzeit -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>Steuert den Schwierigkeitsgrad fast aller Dinge in Zombieland wie z.B. Zombiefähigkeiten, Bedrohungsprognosen und vieles mehr.</Difficulty_ZombielandThreatScale_Info>
@@ -30,7 +30,7 @@
 	<ZombiesSpitter>Ein Zombiespucker hat die Karte betreten und wird Sie belagern</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>Zombie-Symbiont mit {0} verbunden</LetterLabelZombieSymbiant>
 	<LetterLabelZombieSymbiantNoHost>Zombie-Symbiont aufgetaucht</LetterLabelZombieSymbiantNoHost>
-	<ZombieSymbiant>Ein Zombie-Symbiont ist in {0} aufgetaucht und hat sich mit {1} verbunden. Er breitet sich durch belebte Innenräume aus. Figuren, die ihn überqueren, werden verlangsamt, außer dem Wirt. Der Wirt ist immun gegen Zombieinfektionen durch Bisse und erhält zufällige Vorteile, wenn der Symbiont wächst. Füttern Sie ihn mit Leichen, damit er schneller wächst.\n\nWirt und Symbiont sollten auf derselben Karte bleiben: Werden sie getrennt, ruht die Verbindung und kann währenddessen nicht sauber entfernt werden. Sie kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen. Wenn die Karte des Symbionten aufgegeben wird, wird er zerstört und die Verbindung gewaltsam getrennt.\n\nOperieren Sie {1} zuerst, um die Verbindung sauber zu entfernen; der wirtslose Symbiont zieht sich danach zurück.</ZombieSymbiant>
+	<ZombieSymbiant>Ein Zombie-Symbiont ist in {0} aufgetaucht und hat sich mit {1} verbunden. Er breitet sich durch belebte Innenräume aus. Figuren, die ihn überqueren, werden verlangsamt, außer dem Wirt. Der Wirt ist immun gegen Zombieinfektionen durch Bisse und erhält zufällige Vorteile, wenn der Symbiont wächst. Füttern Sie ihn mit Leichen, damit er schneller wächst.\n\nWirt und Symbiont sollten auf derselben Karte bleiben: Werden sie getrennt, ruht die Verbindung und kann währenddessen nicht entfernt werden. Sie erwacht erst wieder, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen. Wenn die Karte des Symbionten aufgegeben wird, wird er zerstört und die Verbindung gewaltsam getrennt.\n\nOperieren Sie {1} zuerst, um die Verbindung sicher zu entfernen; der wirtslose Symbiont zieht sich danach zurück.</ZombieSymbiant>
 	<ZombieSymbiantNoHost>Ein Zombie-Symbiont ist in {0} aufgetaucht. Er breitet sich durch belebte Innenräume aus. Füttern Sie ihn mit Leichen, damit er schneller wächst.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>einer Ihrer Räume</ZombieSymbiantUnknownRoom>
 	<ZombieSymbiantInspect>Verbundener Wirt: {0}, Größe: {1} Zellen, geteilte Gesundheit: {2}, nächster Vorteil bei {3} Zellen</ZombieSymbiantInspect>
@@ -42,7 +42,7 @@
 	<SymbiantSharedHealthSummary>{0} von {1}</SymbiantSharedHealthSummary>
 	<SymbiantDamageEchoLabel>{0}: {1} Schaden</SymbiantDamageEchoLabel>
 	<SymbiantDamageEchoOther>Sonstiges</SymbiantDamageEchoOther>
-	<SymbiantDamageEchoDescription>Während der aktuellen Bindung vom verbundenen Symbionten absorbierter Gesamtschaden: {0}. Dies ist nur eine Aufzeichnung; sie verletzt oder beeinträchtigt den Wirt nicht, verursacht keine Blutung, macht ihn nicht kampfunfähig und tötet ihn nicht.</SymbiantDamageEchoDescription>
+	<SymbiantDamageEchoDescription>Während der aktuellen Bindung vom verbundenen Symbionten absorbierter Gesamtschaden: {0}. Dies ist nur eine Aufzeichnung; sie verursacht keine Verletzungen, keine Blutungen und keinen sonstigen Schaden am Wirt.</SymbiantDamageEchoDescription>
 	<SymbiantSharedHealthRecoveryDescription>Nach {0} ohne geteilten Schaden stellt der Symbiont alle {2} jeweils {1} seiner fehlenden geteilten Gesundheit wieder her.</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>füttert den Symbionten</FeedingZombieSymbiant>
 	<SymbiantFedMote>+{1} Zellen</SymbiantFedMote>
@@ -50,14 +50,14 @@
 	<SeverSymbiantSymbiosis>Symbionten-Verbindung entfernen</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>Symbionten-Verbindung entfernen ({0} Zombieextrakt)</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>{0}s Symbionten-Verbindung wurde entfernt.</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>Symbiont: {0}/{1} Zellen. Nächster Vorteil bei {2} Zellen. Geteilte Gesundheit: {3}. Wird der Wirt getroffen, wird zuerst der volle Angriff von der geteilten Gesundheit abgezogen; bei dieser Größe verbleiben &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; als echte Verletzung des Wirts. Angriffe auf den Symbionten erzeugen harmlose graue Schadensaufzeichnungen statt Wirtsverletzungen.\n\nKartenregel: Wirt und Symbiont müssen auf derselben Karte sein, damit die Verbindung aktiv ist und sauber entfernt werden kann. Werden sie getrennt, ruht die Verbindung. Sie kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen. Wenn die Karte des Symbionten aufgegeben wird, wird er zerstört und die Verbindung gewaltsam getrennt; eine Operation entfernt die Verbindung vorher sauber.\n\nVorteile:\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>Symbiont: {0}/{1} Zellen. Nächster Vorteil bei {2} Zellen. Geteilte Gesundheit: {3}. Wird der Wirt getroffen, wird zuerst der volle Angriff von der geteilten Gesundheit abgezogen; bei dieser Größe verbleiben &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; als echte Verletzung des Wirts. Angriffe auf den Symbionten hinterlassen nur harmlose graue Einträge in der Gesundheitsakte statt echter Verletzungen.\n\nKartenregel: Wirt und Symbiont müssen auf derselben Karte sein. Werden sie getrennt, ruht die Verbindung und kann nicht durch eine Operation entfernt werden. Sie erwacht erst wieder, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen. Wenn die Karte des Symbionten aufgegeben wird, wird er zerstört und die Verbindung gewaltsam getrennt; die Verbindung vorher durch eine Operation zu entfernen ist der sichere Weg.\n\nVorteile:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Kein aktiver Symbiont ist mit diesem Wirt verbunden.</SymbiantHostBondMissing>
-	<SymbiantHostRelocatedMessage>{0}s Symbionten-Verbindung ruht, weil Wirt und Symbiont sich nicht auf derselben Karte befinden. Die Verbindung bleibt bestehen. Während der Ruhephase sind alle Vorteile (einschließlich der Immunität gegen Zombieinfektionen), die Übertragung geteilten Schadens und die chirurgische Trennung inaktiv. Die Verbindung kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen.</SymbiantHostRelocatedMessage>
+	<SymbiantHostRelocatedMessage>{0}s Symbionten-Verbindung ruht, weil Wirt und Symbiont sich nicht auf derselben Karte befinden. Die Verbindung bleibt bestehen, doch während der Ruhephase gehen alle Vorteile (einschließlich der Immunität gegen Zombieinfektionen) verloren, Schaden wird nicht mehr geteilt und die Verbindung kann nicht durch eine Operation entfernt werden. Sie erwacht erst wieder, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen.</SymbiantHostRelocatedMessage>
 	<LetterLabelSymbiantBondDormant>Symbionten-Verbindung ruht</LetterLabelSymbiantBondDormant>
 	<SymbiantMapAbandonWarningTitle>Karte mit Symbionten aufgeben?</SymbiantMapAbandonWarningTitle>
-	<SymbiantMapAbandonWarning>Diese Karte enthält einen lebenden, an die Karte gebundenen Zombie-Symbionten. Wenn Sie die Karte aufgeben, wird der Symbiont zerstört und jede verbleibende Verbindung gewaltsam getrennt. Entfernen Sie die Symbionten-Verbindung zuerst durch eine Operation, wenn Sie die normale Trennung nutzen möchten.\n\nDiese Karte trotzdem aufgeben?</SymbiantMapAbandonWarning>
+	<SymbiantMapAbandonWarning>Diese Karte enthält einen lebenden Zombie-Symbionten. Wenn Sie die Karte aufgeben, wird der Symbiont zerstört und jede verbleibende Verbindung gewaltsam getrennt. Wenn Sie Wirt und Symbiont sicher trennen möchten, entfernen Sie die Verbindung zuerst durch eine Operation.\n\nDiese Karte trotzdem aufgeben?</SymbiantMapAbandonWarning>
 	<SymbiantReseededMessage>{0}s Symbiont ist in einen anderen Innenraum gezogen.</SymbiantReseededMessage>
-	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Aktueller Zustand&lt;/color&gt;: &lt;color=#72d672&gt;{0} Zellen&lt;/color&gt;. Nächster Vorteil bei &lt;color=#72d672&gt;{1} Zellen&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Geteilte Gesundheit&lt;/color&gt;: {4}. Schaden, der auf den Wirt zielt, leert zuerst diesen Vorrat; bei dieser Größe bleiben nur &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; als echte Verletzung bei {6} zurück. Direkter Schaden am Symbionten leert den Vorrat erst, nachdem der Symbiont den Treffer verarbeitet hat, erzeugt bei {6} aber nur harmlose graue Schadensaufzeichnungen und keine echte Verletzung. Wenn dieser Vorrat aufgebraucht ist, stirbt {6}.\n\n&lt;color=#ffb35c&gt;Kartenregel&lt;/color&gt;: Wirt und Symbiont müssen auf derselben Karte sein, damit die Verbindung aktiv ist und sauber entfernt werden kann. Werden sie getrennt, ruht die Verbindung. Sie kann nur reaktiviert werden, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen. Wenn diese Karte aufgegeben wird, wird der Symbiont zerstört und die Verbindung gewaltsam getrennt. Eine Operation entfernt die Verbindung vorher sauber.\n\n&lt;color=#ffb35c&gt;Aktuelle Effekte&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Aktuelle Vorteile&lt;/color&gt;:\n{3}\n\nEr &lt;color=#72d672&gt;entfernt außerdem Kontamination&lt;/color&gt; auf subtile Weise.</ZombieSymbiantInfoCardDetails>
+	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Aktueller Zustand&lt;/color&gt;: &lt;color=#72d672&gt;{0} Zellen&lt;/color&gt;. Nächster Vorteil bei &lt;color=#72d672&gt;{1} Zellen&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Geteilte Gesundheit&lt;/color&gt;: {4}. Schaden, der auf den Wirt zielt, leert zuerst diesen Vorrat; bei dieser Größe bleiben nur &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; als echte Verletzung bei {6} zurück. Direkter Schaden am Symbionten leert diesen Vorrat ebenfalls, hinterlässt aber nur harmlose graue Einträge in der Gesundheitsakte und keine echte Verletzung bei {6}. Wenn dieser Vorrat aufgebraucht ist, stirbt {6}.\n\n&lt;color=#ffb35c&gt;Kartenregel&lt;/color&gt;: Wirt und Symbiont müssen auf derselben Karte sein. Werden sie getrennt, ruht die Verbindung und kann nicht durch eine Operation entfernt werden. Sie erwacht erst wieder, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen. Wenn diese Karte aufgegeben wird, wird der Symbiont zerstört und die Verbindung gewaltsam getrennt. Eine Operation entfernt die Verbindung sicher.\n\n&lt;color=#ffb35c&gt;Aktuelle Effekte&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Aktuelle Vorteile&lt;/color&gt;:\n{3}\n\nEr &lt;color=#72d672&gt;entfernt außerdem Kontamination&lt;/color&gt; auf subtile Weise.</ZombieSymbiantInfoCardDetails>
 	<SymbiantDetailsInfoCard>Symbionten-Details</SymbiantDetailsInfoCard>
 	<SymbiantDetailsInfoCardValue>{0} Zellen</SymbiantDetailsInfoCardValue>
 	<LetterLabelSymbiantBenefitGained>Symbionten-Vorteil erhalten</LetterLabelSymbiantBenefitGained>
@@ -122,6 +122,12 @@
 	<AnomalyTargetOtherEntities>Andere Anomaly-Entitäten</AnomalyTargetOtherEntities>
 	<AnomalyTargetNociosphere>Nociosphere</AnomalyTargetNociosphere>
 	<AnomalyZombieHostilityRelations>Anomaly-Pawns dürfen Zombies angreifen:</AnomalyZombieHostilityRelations>
+	<FleshmassCollisionTitle>Fleshmasse angreifen</FleshmassCollisionTitle>
+	<FleshmassCollisionDescription>Vom Fleshmassenherz gewachsene Fleshmasse darf angegriffen werden von:</FleshmassCollisionDescription>
+	<OrdinaryZombiesAttackFleshmass>Gewöhnlichen Zombies</OrdinaryZombiesAttackFleshmass>
+	<TankyAndSuicideZombiesAttackFleshmass>Gepanzerten Operator- und Selbstmordbomber-Zombies</TankyAndSuicideZombiesAttackFleshmass>
+	<FormerColonistAndSpecialZombiesAttackFleshmass>Ehemaligen Kolonisten und anderen Spezialzombies</FormerColonistAndSpecialZombiesAttackFleshmass>
+	<FleshmassOnlyColonistsNote>Zombies greifen derzeit nur Ihre Kolonisten an, deshalb lassen sie Fleshmasse in Ruhe und diese Optionen haben keine Wirkung.</FleshmassOnlyColonistsNote>
 	<AnomalyTargetingOverride_Automatic>Automatisch</AnomalyTargetingOverride_Automatic>
 	<AnomalyTargetingOverride_Never>Nie</AnomalyTargetingOverride_Never>
 	<AnomalyTargetingOverride_Allow>Erlauben</AnomalyTargetingOverride_Allow>
@@ -143,7 +149,7 @@
 	<DynamicThreatSmoothness>Glattheit der Kurve</DynamicThreatSmoothness>
 	<DynamicThreatStretch>Kurve ausweiten</DynamicThreatStretch>
 	<ZombiesDieOnZeroThreat>Zombies sterben während 0% Bedrohung</ZombiesDieOnZeroThreat>
-	<ZombieFreeEvents>Zombiefreie Reiseereignisse</ZombieFreeEvents>
+	<ZombieFreeEvents>Zombie-Stille-Ereignisse</ZombieFreeEvents>
 	<ThreatLevel>Bedrohungsniveau</ThreatLevel>
 	<ThreatForecast>Bedrohungsvorhersage</ThreatForecast>
 	<Next14Days>Nächste 14 Tage</Next14Days>
@@ -259,7 +265,6 @@
 	<RopeZombie>Diesen Zombie einfangen</RopeZombie>
 	<Activate>Aktivieren</Activate>
 	<ActivateDescription>Aktiviert das Gerät. Zombies im Raum verlieren das Bewusstsein.</ActivateDescription>
-	<WrongPlacementZombieShocker>Das Gerät kann hier nicht platziert werden.</WrongPlacementZombieShocker>
 	<ColonistsBittenByZombie>Kolonist wurde von einem Zombie gebissen</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Folgende Kolonisten wurden von einem Zombie gebissen. Noch ist unklar, ob sich daraus eine Infektion entwickelt:\n\n{0}\nBeobachten Sie die Wunden genau, denn Infektionen brauchen einige Zeit, um sich zu entwickeln.</ColonistsBittenByZombieDesc>
 	<ImminentZombiInfection>Bevorstehende Zombieinfektion</ImminentZombiInfection>
@@ -293,7 +298,6 @@
 	<ZombieShockerLowBatteryState>Das Gerät hat die angeschlossenen Batterien erschöpft</ZombieShockerLowBatteryState>
 	<ShowHealthBar>Zombie-Gesundheitsleiste anzeigen</ShowHealthBar>
 	<ShowZombieStats>Zombiestatistik anzeigen</ShowZombieStats>
-	<SnowAndSandClear>Schnee- und Sandräumung</SnowAndSandClear>
 	<ShowZombieRisk>Zombie-Risiko anzeigen</ShowZombieRisk>
 	<ZombieRiskAreaColumnHintLong>Zombieland-Bereichsregeln: Verstöße erscheinen während des Spiels oben auf dem Bildschirm</ZombieRiskAreaColumnHintLong>
 	<ZombieRiskAreaColumnHintMedium>Zombieland-Verstöße erscheinen oben</ZombieRiskAreaColumnHintMedium>

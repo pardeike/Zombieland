@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
 	<ZombielandDifficultyTitle_Help>Zombieland 的難度主要由以下幾項共同控制：\n\n- 威脅等級\n- 特殊喪屍\n- 喪屍速度\n- 最大喪屍數量\n- 動態威脅等級</ZombielandDifficultyTitle_Help>
-	<ZombielandDifficulty_Help>此設定控制 Zombieland 中幾乎所有內容的難度：喪屍的感知、堅韌度、速度和力量等能力。特殊喪屍尤其會受到影響，較高難度下的威脅預測也會明顯更危險。\n\n注意：500% 真的非常困難，請慎重。</ZombielandDifficulty_Help>
-	<ZombielandContaminationTitle_Help>Zombieland 污染是後期挑戰，會給殖民地帶來持續擴散的危險。污染來自深鑽機、交易物品等來源，並會在物品、殖民者和環境之間傳播。殖民地越發展，就越需要管理污染來確保殖民者安全。\n\n若要查看目前污染等級，請開啟右下角按鈕中的污染顯示，或查看檢視欄、詳細資訊視窗，以及滑鼠游標停留時的地面資訊。其中會顯示目標物品、方格或角色的污染百分比。</ZombielandContaminationTitle_Help>
-	<ContaminationEnabled_Help>切換污染會影響 Zombieland 修補 RimWorld 的方式，以及其他不隨存檔儲存的設定。需要重新啟動 RimWorld 才能正確套用選擇。</ContaminationEnabled_Help>
+	<ZombielandDifficulty_Help>此設定控制 Zombieland 中幾乎所有內容的難度：喪屍的感知、堅韌度、速度和力量等能力。特殊喪屍尤其會受到影響，較高難度下的威脅預測也會明顯更危險。\n\n注意：500% 殘酷至極，請做好心理準備。</ZombielandDifficulty_Help>
+	<ZombielandContaminationTitle_Help>Zombieland 污染是後期挑戰，會給殖民地帶來持續擴散的危險。污染來自深鑽機、交易物品等來源，並會在物品、殖民者和環境之間傳播。殖民地規模越大，就越需要管理污染來確保殖民者安全。\n\n若要查看目前污染等級，請開啟右下角按鈕中的污染顯示，或查看檢視欄、詳細資訊視窗，以及滑鼠游標停留時的地面資訊。其中會顯示目標物品、方格或角色的污染百分比。</ZombielandContaminationTitle_Help>
+	<ContaminationEnabled_Help>開啟或關閉污染會更改遊戲的深層部分，這些部分無法在遊玩途中切換。更改後請重新啟動 RimWorld。</ContaminationEnabled_Help>
 	<ZombielandContamination_Help>調整污染強度可設定污染在殖民地中透過各種方式擴散的基礎速度。此倍率會影響從建造時轉移的污染量到自然資源傳播等所有環節。\n\n殖民者的意識會受影響。階段從 10%、20%、40%、75%、85%、95% 開始，達到或超過 100% 時死亡。\n\n盟友會定期提供去污任務。你也可以焚燒物品來降低污染。</ZombielandContamination_Help>
 	<WhenDoZombiesSpawn_Help>在 Zombieland 中，你會面對無休止的喪屍入侵。此設定控制遊戲的整體節奏。三種模式差異很大，請按自己的玩法選擇，並確認理解其機制。喪屍數量有上限，詳見「地圖上的喪屍數量」。</WhenDoZombiesSpawn_Help>
 	<SpawnWhenType_AllTheTime_Help>喪屍會不斷生成。殺掉一批，新的會立刻出現。這是具有挑戰性的模式，喪屍會成為影響遊戲各方面的持續壓力。</SpawnWhenType_AllTheTime_Help>
@@ -15,18 +15,24 @@
 	<SmartWandering_Help>此設定控制喪屍夜間的移動方式。「隨機」使它們像白天一樣移動。「簡單」會讓它們漂向地圖上最有吸引力的區域，但可能受困並聚成群。「智慧」最終會把它們帶到你身邊。</SmartWandering_Help>
 	<Biomes_Help>若要防止喪屍在特定地圖風格中生成，可在這裡排除生態系統。</Biomes_Help>
 	<WhatDoZombiesAttack_Help>喪屍不像襲擊者那樣行動（狂暴喪屍除外）。它們是無腦遊蕩者，只有感官被觸發時才會興奮。此設定允許你定義會吸引它們的生物類型。</WhatDoZombiesAttack_Help>
-	<AttackMode_Everything_Help>讓喪屍追蹤並攻擊任何會移動的目標，包括動物。只有砲塔等固定武器永遠不會吸引它們的注意。</AttackMode_Everything_Help>
+	<AttackMode_Everything_Help>讓喪屍追蹤並攻擊任何會移動的目標，包括動物。砲塔之類的固定物是它們唯一會無視的東西。</AttackMode_Everything_Help>
 	<AttackMode_OnlyHumans_Help>這是喪屍「正常」的行動方式。對腦子的渴望會讓它們獵殺人形角色，不論其派系。</AttackMode_OnlyHumans_Help>
 	<AttackMode_OnlyColonists_Help>如果你認為喪屍只該攻擊你的殖民者，那麼此模式適合你。它們被攻擊時可能會反擊，但絕不會主動攻擊其他人。</AttackMode_OnlyColonists_Help>
 	<EnemiesAttackZombies_Help>關閉此項後，敵人會無視並避開喪屍。開啟後，襲擊者會把它們視為危險並盡力戰鬥。祝你好運！</EnemiesAttackZombies_Help>
 	<AnimalsAttackZombies_Help>開啟後，動物在狩獵或變得攻擊性時會攻擊喪屍。若想讓它們忽略喪屍，請關閉此選項。</AnimalsAttackZombies_Help>
-	<AnomalyTargetingTitle_Help>這些設定控制喪屍與異邪生物之間的雙向例外規則。「自動」保留常規規則，「從不」禁止相應關係，「允許」則允許以活躍且有效的目標為對象。</AnomalyTargetingTitle_Help>
-	<AnomalyTargetingRelations_Help>控制喪屍可以選擇哪些異邪生物作為目標。「自動」遵循主要喪屍目標規則；「從不」禁止攻擊該組；「允許」則允許攻擊活躍且有效的目標，即使主要規則原本會忽略它們。死亡、倒地、休眠或停用的生物仍會被忽略。</AnomalyTargetingRelations_Help>
+	<AnomalyTargetingTitle_Help>這些設定控制喪屍與異邪生物之間的雙向例外規則。「自動」保留常規規則，「從不」關閉相應行為，「允許」則強制開啟。</AnomalyTargetingTitle_Help>
+	<AnomalyTargetingRelations_Help>控制喪屍可以選擇哪些異邪生物作為目標。「自動」遵循主要喪屍目標規則；「從不」禁止攻擊該組；「允許」會讓喪屍攻擊該組，即使主要規則原本會忽略它。死亡、倒地或休眠的生物一律會被忽略。</AnomalyTargetingRelations_Help>
 	<AnomalyTargetGhouls_Help>單獨控制喪屍是否可以將食屍鬼作為目標，不影響蹣步者和其他變異人類。玩家控制的食屍鬼可能很珍貴，因此可以單獨設定。</AnomalyTargetGhouls_Help>
 	<AnomalyTargetShamblers_Help>控制蹣步者和其他異邪變異人類，不改變食屍鬼或普通人類襲擊者的反應。</AnomalyTargetShamblers_Help>
 	<AnomalyTargetOtherEntities_Help>控制活躍的非人類異邪實體，例如血肉獸、懼金、奪視者、亡魂及類似生物。</AnomalyTargetOtherEntities_Help>
 	<AnomalyTargetNociosphere_Help>控制喪屍是否會對活躍的苦痛球體作出反應。設為「從不」可以防止苦痛球體過於輕鬆地清理喪屍群。</AnomalyTargetNociosphere_Help>
 	<AnomalyZombieHostilityRelations_Help>控制非玩家異邪生物是否可以選擇喪屍作為目標。「自動」遵循敵人和動物對喪屍的敵意設定；「從不」禁止攻擊喪屍；「允許」則允許活躍且有效的異邪生物攻擊喪屍，即使基礎設定原本會阻止它們。</AnomalyZombieHostilityRelations_Help>
+	<FleshmassCollisionTitle_Help>控制哪些喪屍會攻擊由血肉心臟生長出的血肉團塊。此設定只影響血肉建築，不會改變喪屍對待血肉獸等生物的方式。</FleshmassCollisionTitle_Help>
+	<FleshmassCollisionDescription_Help>每個選項只影響對應的喪屍類別。三個選項全部關閉後，喪屍不會主動攻擊血肉團塊，但因其他原因爆炸的自爆喪屍仍會傷及周圍的血肉。</FleshmassCollisionDescription_Help>
+	<OrdinaryZombiesAttackFleshmass_Help>允許普通喪屍攻擊緊鄰自己、且仍與存活心臟相連的血肉團塊。其他血肉建築與普通建築一樣，遵循摧毀設定。</OrdinaryZombiesAttackFleshmass_Help>
+	<TankyAndSuicideZombiesAttackFleshmass_Help>允許重裝突破喪屍砸毀擋路的血肉建築，並允許自爆喪屍在遇到血肉建築時啟動炸彈。心臟本身永遠無法被攻擊，但因其他原因爆炸的炸彈仍會傷及附近的血肉。</TankyAndSuicideZombiesAttackFleshmass_Help>
+	<FormerColonistAndSpecialZombiesAttackFleshmass_Help>允許前殖民者喪屍和其他會摧毀建築的特殊喪屍在遇到血肉建築時一併攻擊。如果摧毀設定為「無」，它們仍不會攻擊任何建築。</FormerColonistAndSpecialZombiesAttackFleshmass_Help>
+	<FleshmassOnlyColonistsNote_Help>血肉團塊屬於實體，而不是你的殖民地，因此只攻擊殖民者的喪屍會無視它。這裡的選擇會被保留，當你更改攻擊設定後會重新生效。</FleshmassOnlyColonistsNote_Help>
 	<WhatDoZombiesSmash_Help>喪屍靠近建築或物品時，可能會開始砸附近的東西。它們不會策劃複雜攻擊，但數量大且時間足夠長時，可以摧毀你的防禦。</WhatDoZombiesSmash_Help>
 	<SmashMode_Nothing_Help>讓喪屍只攻擊生物。它們會忽略牆、建築、砲塔和其他物品。</SmashMode_Nothing_Help>
 	<SmashMode_DoorsOnly_Help>使用此設定時，喪屍大致知道門是怎麼回事。它們會開始砸門，門附近喪屍越多，傷害越高。狂暴喪屍還會更賣力並造成更多傷害。</SmashMode_DoorsOnly_Help>
@@ -42,16 +48,16 @@
 	<DynamicThreatSmoothness_Help>決定威脅曲線的平滑度。</DynamicThreatSmoothness_Help>
 	<DynamicThreatStretch_Help>此設定可以拉伸曲線，使其不那麼動態。</DynamicThreatStretch_Help>
 	<ZombiesDieOnZeroThreat_Help>當威脅等級為 0% 時，地圖上的所有喪屍會自行死亡。</ZombiesDieOnZeroThreat_Help>
-	<ZombieFreeEvents_Help>無論此選項是否啟用，設定的開局天數都會保持沒有喪屍。啟用後，這段開局期間會顯示為喪屍沉寂，遊戲後期也會週期性出現全域喪屍沉寂。沉寂期間，所有地圖上的喪屍都會消亡，且不會生成新的喪屍。喪屍沉寂同時適用於固定威脅與動態威脅。啟用動態威脅時，沉寂會顯示在威脅預測中；停用動態威脅時不會顯示預測，後續沉寂則會透過生效的遊戲條件，以及（若未關閉）信件通知。</ZombieFreeEvents_Help>
+	<ZombieFreeEvents_Help>無論此設定是否啟用，設定的開局天數都會保持沒有喪屍。啟用後，這段開局期間會成為第一次喪屍沉寂，之後整個遊戲過程中還會不斷出現更多沉寂。沉寂期間，所有地圖上的喪屍都會消亡，且不會出現新的喪屍，這是旅隊旅行的好時機。喪屍沉寂在固定威脅與動態威脅下都會發生。啟用動態威脅時，沉寂會顯示在威脅預測中；未啟用時，你會透過生效的遊戲條件得知沉寂，若開啟了事件信件，也會收到信件通知。</ZombieFreeEvents_Help>
 	<ZombieEventTitle_Help>如果你選擇「僅喪屍事件」，有時在其他模式下也是如此，Zombieland 會觸發喪屍攻擊。這不像襲擊者事件，而是大量喪屍一起出現，並可能根據群體規模進入狂暴，開始向你追蹤。</ZombieEventTitle_Help>
 	<ZombiesPerColonistInEvent_Help>若要控制事件規模，可以指定每名殖民者對應多少喪屍。請注意，這不會改變地圖上的喪屍總上限。如果目前喪屍數量已經接近總上限，或接近 Zombieland 根據目前殖民地規模計算出的數量，事件中的喪屍會更少。在這裡填非常大的數字只會移除事件規模上限。較小的數字會降低整體事件規模，尤其是在可戰鬥殖民者較少時。</ZombiesPerColonistInEvent_Help>
 	<ExtraDaysBetweenEvents_Help>通常喪屍事件會自動拉開間隔，實際間隔取決於一些內部因素。如果你覺得過於頻繁，可以用此設定在事件之間增加額外天數。</ExtraDaysBetweenEvents_Help>
 	<InfectedRaidsChance_Help>這是到達地圖的敵對或友好隊伍已經感染，且它們與喪屍之間不會發生互動的機率。</InfectedRaidsChance_Help>
-	<ZombieSpeedTitle_Help>喪屍速度是最能平衡難度的設定。如果你覺得 Zombieland 太難，請先大幅降低速度。快速喪屍通常非常致命。這裡有兩種速度：一種用於平靜遊蕩的喪屍，另一種用於已經開始追蹤你的喪屍。</ZombieSpeedTitle_Help>
+	<ZombieSpeedTitle_Help>喪屍速度是調整難度最有效的方法。如果你覺得 Zombieland 太難，請先大幅降低速度。快速喪屍通常非常致命。這裡有兩種速度：一種用於平靜遊蕩的喪屍，另一種用於已經開始追蹤你的喪屍。</ZombieSpeedTitle_Help>
 	<MoveSpeedIdle_Help>喪屍的正常步行速度。不包括狂暴或興奮的喪屍。</MoveSpeedIdle_Help>
-	<MoveSpeedTracking_Help>喪屍興奮或被激怒後會使用此速度。通常是在它們接近你的殖民者時發生，所以設定得很高時，你需要留意任何不想錯過的突然接觸。</MoveSpeedTracking_Help>
+	<MoveSpeedTracking_Help>喪屍興奮或被激怒後會使用此速度。這通常在它們接近你的殖民者時發生，所以如果設定得很高，請務必小心，喪屍會非常迅速地逼近你的殖民者。</MoveSpeedTracking_Help>
 	<ZombieDamageTitle_Help>改變喪屍攻擊其他生物時發生的事情。</ZombieDamageTitle_Help>
-	<ZombieDamageFactor_Help>較大的倍率會提升它們的力量，使它們更容易壓倒其他目標。對機械族很有用，但如果開啟了破壞功能，也會更快損壞你的牆和門。</ZombieDamageFactor_Help>
+	<ZombieDamageFactor_Help>較大的倍率會提升它們的力量，使它們更容易壓倒其他目標。對機械族很有用，但如果允許喪屍摧毀建築，它們也會更快損壞你的牆和門。</ZombieDamageFactor_Help>
 	<SafeMeleeLimit_Help>近戰中可同時對付的喪屍數量，超過後防禦者會被壓倒並開始被咬。\n\n重裝突破喪屍按兩隻喪屍計算，防禦者的近戰等級（0-20）會提供 0-100% 的格擋咬傷機率（喪屍數量低於上限時效果更好）。</SafeMeleeLimit_Help>
 	<ZombiesCauseManhunting_Help>動物被喪屍攻擊時是否可能發起反擊？</ZombiesCauseManhunting_Help>
 	<ZombieGameTweaks_Help>此部分包含一些雜項調整，用來讓帶喪屍的玩法更平衡。</ZombieGameTweaks_Help>
@@ -63,7 +69,7 @@
 	<ZombieBiteInfectionPersists_Help>第三也是最後階段（紅色）。此時感染已經無法治療，只有截肢能阻止過程。許多玩家會太早結束感染殖民者的生命。Zombieland 雖然殘酷，但也設計了一些驚喜，讓此階段對你有用。去發現殖民者在幾乎變成喪屍時發生了什麼變化吧！</ZombieBiteInfectionPersists_Help>
 	<AnyTreatmentStopsInfection_Help>如果想讓床上的簡單治療也能阻止感染咬傷，請選擇此選項。當你還不熟悉遊戲機制時，開啟它是個好主意。</AnyTreatmentStopsInfection_Help>
 	<HoursAfterDeathToBecomeZombie_Help>死亡人形角色變成喪屍所需的時間。將滑桿移到最左側可關閉此功能。</HoursAfterDeathToBecomeZombie_Help>
-	<DeadBecomesZombieMessage_Help>開啟或關閉有人變成喪屍時的提示訊息。</DeadBecomesZombieMessage_Help>
+	<DeadBecomesZombieMessage_Help>顯示或隱藏有人變成喪屍時的訊息。</DeadBecomesZombieMessage_Help>
 	<DangerousSituationMessage_Help>當發生危險情況（例如喪屍被推過你的牆）時收到通知。</DangerousSituationMessage_Help>
 	<ZombieHarvestingTitle_Help>喪屍死亡後可能掉落部分服裝，你也可以在屍體消失前從中採集喪屍提取物。為了避免大量屍體堆滿地圖，你可以選擇喪屍屍體消失的速度。\n\n喪屍血清是治療感染的最佳替代方案。血清由喪屍提取物製成，品質從 10% 到 100%；一劑血清治療一次喪屍咬傷。品質決定對感染殖民者進行醫療手術時的失敗風險。</ZombieHarvestingTitle_Help>
 	<CorpsesExtractAmount_Help>你可以在喪屍屍體消失前從中採集喪屍提取物，可自動進行，也可在屍體上按滑鼠右鍵。提取物可在藥物合成桌製成血清；部落玩法還可在手工製作點製作。只有被指派醫護工作的殖民者能採集提取物，而且附近不能有危險喪屍（約 10-20 格，取決於周圍環境）。若想更容易製造血清，可提高每隻喪屍的提取物數量。</CorpsesExtractAmount_Help>
@@ -93,11 +99,11 @@
 	<AlbinoChance_Help>白化喪屍不會攻擊你。它們會破壞你的基地並尖叫，使你眩暈和嘔吐。</AlbinoChance_Help>
 	<DarkSlimerChance_Help>黑色黏液喪屍會在身後留下超黏、類似焦油的黏液痕跡。它很難清理（雨會衝掉），只有喪屍能輕鬆透過。</DarkSlimerChance_Help>
 	<HealerChance_Help>治療者喪屍會讓一定距離內的所有喪屍恢復完整生命值。它們的青色皮膚很容易辨認，除此之外行為與普通喪屍相同。</HealerChance_Help>
-	<NormalZombieChance_Help>普通喪屍有不同體型。體型決定它們的力量，也決定速度！它們經常會穿遊戲和已安裝模組中的任何服裝。</NormalZombieChance_Help>
+	<NormalZombieChance_Help>普通喪屍有不同體型。體型決定它們的力量，也決定速度！它們可以穿遊戲或已安裝模組中的任何服裝。</NormalZombieChance_Help>
 	<ChildZombieChance_Help>喪屍中兒童的百分比。注意：殺死兒童喪屍會造成輕微負面心情（持續 2 小時）。</ChildZombieChance_Help>
 	<SpitterThreat_Help>喪屍噴吐者是一種攻城怪物，會把喪屍發射進你的基地。此設定同時調整噴吐者行動的強度和頻率。設為 0% 會停用噴吐者。</SpitterThreat_Help>
 	<WallPushing_Help>當一群喪屍過於密集時，此設定決定需要多少隻喪屍，才會把其他喪屍推過相鄰牆壁。如果牆的另一側屬於有屋頂房間，該屋頂會被喪屍損壞。</WallPushing_Help>
-	<ZombieSymbiantTitle_Help>喪屍共生體會在頻繁使用的室內房間中蔓延。一名殖民者會成為宿主。宿主免疫喪屍咬傷所造成的感染，並會在共生體成長時獲得隨機增益。穿過共生體方格的角色會變慢，宿主除外。用屍體餵養可以讓它成長得更快。\n\n宿主和共生體應留在同一張地圖上：如果兩者分離，連結會進入休眠，休眠期間無法正常移除。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結。\n\n手術可先正常移除連結，失去宿主的共生體之後會逐漸縮回。</ZombieSymbiantTitle_Help>
+	<ZombieSymbiantTitle_Help>喪屍共生體會在頻繁使用的室內房間中蔓延。一名殖民者會成為宿主。宿主免疫喪屍咬傷所造成的感染，並會在共生體成長時獲得隨機增益。穿過共生體方格的角色會變慢，宿主除外。用屍體餵養可以讓它成長得更快。\n\n宿主和共生體應留在同一張地圖上：如果兩者分離，連結會進入休眠，休眠期間無法移除。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結。\n\n手術可以安全移除連結，失去宿主的共生體之後會逐漸縮回。</ZombieSymbiantTitle_Help>
 	<SymbiantEnabled_Help>啟用自然喪屍共生體事件。</SymbiantEnabled_Help>
 	<SymbiantMaxCells_Help>共生體可以佔據的地圖方格數上限。</SymbiantMaxCells_Help>
 	<MuteSymbiantSplashSounds_Help>當宿主以外的角色走過共生體方格時，不播放飛濺聲。</MuteSymbiantSplashSounds_Help>
@@ -106,7 +112,7 @@
 	<ReplaceTwinkie_Help>電影《Zombieland》中有一個貫穿全片的 Twinkie 梗。為致敬電影，此模組會把生存食品包的外觀改成 Twinkie。</ReplaceTwinkie_Help>
 	<ZombiesTriggerDangerMusic_Help>通常，地圖上存在威脅時 RimWorld 會播放危險音樂。由於喪屍往往長期存在，危險音樂可能會一直播放。關閉此項可讓喪屍不再被危險音樂視為威脅。</ZombiesTriggerDangerMusic_Help>
 	<PlayCreepyAmbientSound_Help>沒有陰森環境聲就不像喪屍主題。夜間，當所有喪屍向你的基地漂移時，會播放一些恐怖聲音。</PlayCreepyAmbientSound_Help>
-	<BetterZombieAvoidance_Help>若想讓角色更好地繞開喪屍，可以開啟此選項。Zombieland 會不斷調整殖民者的路徑以避開喪屍。它對減少微操和救援其他殖民者很有用。</BetterZombieAvoidance_Help>
+	<BetterZombieAvoidance_Help>若想讓角色更好地繞開喪屍，可以開啟此選項。Zombieland 會不斷調整殖民者的路徑以避開喪屍。這能減少微操，對救援其他殖民者也非常有用。</BetterZombieAvoidance_Help>
 	<ZombiesDropBlood_Help>遊戲速度調整：關閉後喪屍不再掉落血跡。</ZombiesDropBlood_Help>
 	<ZombiesBurnLonger_Help>為增加有趣玩法，喪屍會著火並在四處行走時燃燒更久。如果你的電腦處理不了大量火焰，請關閉。</ZombiesBurnLonger_Help>
 	<AwarenessCuesTitle_Help>這些設定控制可能揭露喪屍活動的信件、聲音和視覺提示。關閉它們只會改變回饋，不會改變喪屍行為。</AwarenessCuesTitle_Help>
@@ -129,5 +135,5 @@
 	<ResetButton_Help>這會將設定重設為預設值。</ResetButton_Help>
 	<ClipboardActionTitle_Help>透過簡單的文字複製和貼上與他人分享你的設定。</ClipboardActionTitle_Help>
 	<CopyButton_Help>這會把目前設定複製到電腦剪貼板。然後你可以貼上到其他地方，與他人分享設定。</CopyButton_Help>
-	<PasteButton_Help>這會使用電腦剪貼板中的文字替換目前設定。先複製別人分享的文字，然後讓你的設定與他們相同。</PasteButton_Help>
+	<PasteButton_Help>這會使用電腦剪貼板中的文字替換目前設定。先複製別人分享的文字，再點選「貼上」即可採用他們的設定。</PasteButton_Help>
 </LanguageData>

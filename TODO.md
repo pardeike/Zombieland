@@ -1,12 +1,13 @@
 # TODO
 
-## Fleshmass collision
+## Harmony patch consolidation
 
-- [x] Current design contract:
-  [`docs/features/fleshbeast.md`](docs/features/fleshbeast.md).
-- [ ] Implement the shared flesh-family/category gate, sourced-active-flesh
-  candidacy, three default-on settings, and zombie-kill response classification
-  defined by the current design.
-- [ ] Add the focused static audit and reusable runtime scenario for category
-  gating, response accounting, touching fields, concurrency, source loss,
-  save/load, dense-horde behavior, settings persistence, and clean logs.
+- [ ] Consolidate the remaining exact duplicate Harmony targets into one patch
+  class per method while preserving priorities, conditional contamination
+  behavior, transpilers, state, and finalizers. Verified candidates:
+  `Game.FinalizeInit`, `Pawn_FilthTracker.Notify_EnteredNewCell`, `Pawn.Kill`,
+  `Pawn_HealthTracker.DropBloodFilth`, `Thing.TakeDamage`, `Thing.Ingested`,
+  `ThingMaker.MakeThing`, `Pawn_PathFollower.StartPath`,
+  `AttackTargetFinder.BestAttackTarget`,
+  `Verb_LaunchProjectile.TryCastShot`, `Projectile.Launch`, and
+  `Projectile.ImpactSomething`. Same-name overloads are intentionally excluded.

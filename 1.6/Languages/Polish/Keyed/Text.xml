@@ -5,7 +5,7 @@
 	<ZombielandRevealPlayerLog>Pokaż plik Player.log</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Nie udało się pokazać pliku Player.log. Ścieżkę skopiowano do schowka.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland nie mógł znaleźć ścieżki do pliku Player.log.</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>Najedź na dowolny element, aby po prawej przeczytać tekst pomocy. Wszystkie ustawienia można zmieniać podczas gry; zaczynają obowiązywać natychmiast i są zapisywane wraz z grą.\n\nAby ustawić wartości domyślne dla nowych gier, zmień ustawienia w menu głównym (Opcje / Mody / Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Najedź na dowolne ustawienie, aby po prawej zobaczyć jego tekst pomocy. Wszystkie ustawienia można zmieniać podczas gry; zaczynają obowiązywać natychmiast i są zapisywane wraz z grą.\n\nAby ustawić wartości domyślne dla nowych gier, zmień ustawienia w menu głównym (Opcje / Mody / Zombieland).</Zombieland_Settings>
 	<ZombieLandKeyframes>Możesz dodawać klatki kluczowe określające, jak ustawienia zmieniają się z upływem czasu gry. Użyj suwaka, aby podejrzeć wartości pośrednie. Ustawienia można edytować tylko w klatce kluczowej.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- pierwsza klatka kluczowa (początek gry) . . . przyszły czas gry -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>Określa trudność niemal wszystkich elementów Zombieland, między innymi zdolności zombie, prognozę zagrożenia i wiele więcej.</Difficulty_ZombielandThreatScale_Info>
@@ -30,7 +30,7 @@
 	<ZombiesSpitter>Plujący zombie wkroczył na mapę i rozpocznie oblężenie</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>Symbiont zombie połączył się z: {0}</LetterLabelZombieSymbiant>
 	<LetterLabelZombieSymbiantNoHost>Ujawnił się Symbiont zombie</LetterLabelZombieSymbiantNoHost>
-	<ZombieSymbiant>W pomieszczeniu {0} ujawnił się Symbiont zombie i połączył się z: {1}. Rozprzestrzenia się po często używanych pomieszczeniach. Istoty przechodzące przez niego są spowolnione, z wyjątkiem gospodarza. Gospodarz jest odporny na zakażenie po ugryzieniu przez zombie i wraz ze wzrostem Symbionta zyskuje losowe korzyści. Karm go zwłokami, aby przyspieszyć jego wzrost.\n\nGospodarz i Symbiont powinni pozostawać na tej samej mapie: po rozdzieleniu więź przechodzi w stan uśpienia i nie można jej wtedy bezpiecznie usunąć. Więź może się odnowić tylko wtedy, gdy ten sam gospodarz i Symbiont ponownie znajdą się na jednej mapie. Porzucenie mapy Symbionta niszczy go i siłą zrywa więź.\n\nNajpierw przeprowadź operację na {1}, aby bezpiecznie usunąć więź; pozbawiony więzi Symbiont skurczy się i zniknie.</ZombieSymbiant>
+	<ZombieSymbiant>W pomieszczeniu {0} ujawnił się Symbiont zombie i połączył się z: {1}. Rozprzestrzenia się po często używanych pomieszczeniach. Istoty przechodzące przez niego są spowolnione, z wyjątkiem gospodarza. Gospodarz jest odporny na zakażenie po ugryzieniu przez zombie i wraz ze wzrostem Symbionta zyskuje losowe korzyści. Karm go zwłokami, aby przyspieszyć jego wzrost.\n\nGospodarz i Symbiont powinni pozostawać na tej samej mapie: po rozdzieleniu więź przechodzi w stan uśpienia i dopóki śpi, nie można jej usunąć. Budzi się ponownie tylko wtedy, gdy ten sam gospodarz i Symbiont znajdą się z powrotem na jednej mapie. Porzucenie mapy Symbionta niszczy go i siłą zrywa więź.\n\nNajpierw przeprowadź operację na {1}, aby bezpiecznie usunąć więź; pozbawiony więzi Symbiont skurczy się i zniknie.</ZombieSymbiant>
 	<ZombieSymbiantNoHost>W pomieszczeniu {0} ujawnił się Symbiont zombie. Rozprzestrzenia się po często używanych pomieszczeniach. Karm go zwłokami, aby przyspieszyć jego wzrost.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>jedno z twoich pomieszczeń</ZombieSymbiantUnknownRoom>
 	<ZombieSymbiantInspect>Połączony gospodarz: {0}, rozmiar: {1} pól, wspólna pula zdrowia: {2}, następna korzyść przy {3} polach</ZombieSymbiantInspect>
@@ -42,7 +42,7 @@
 	<SymbiantSharedHealthSummary>{0} z {1}</SymbiantSharedHealthSummary>
 	<SymbiantDamageEchoLabel>{0}: {1} obrażeń</SymbiantDamageEchoLabel>
 	<SymbiantDamageEchoOther>inne</SymbiantDamageEchoOther>
-	<SymbiantDamageEchoDescription>Łączne obrażenia pochłonięte przez połączonego symbionta podczas obecnej więzi: {0}. To tylko zapis; nie rani, nie osłabia, nie wywołuje krwawienia, nie powala ani nie zabija gospodarza.</SymbiantDamageEchoDescription>
+	<SymbiantDamageEchoDescription>Łączne obrażenia pochłonięte przez połączonego symbionta podczas obecnej więzi: {0}. To tylko zapis; nie powoduje u gospodarza ran, krwawienia ani żadnej innej szkody.</SymbiantDamageEchoDescription>
 	<SymbiantSharedHealthRecoveryDescription>Po {0} bez współdzielonych obrażeń symbiont odzyskuje {1} brakującego współdzielonego zdrowia co {2}.</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>karmi Symbionta</FeedingZombieSymbiant>
 	<SymbiantFedMote>+{1} pól</SymbiantFedMote>
@@ -50,14 +50,14 @@
 	<SeverSymbiantSymbiosis>Usuń więź z Symbiontem</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>Usuń więź z Symbiontem ({0} ekstraktu zombie)</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>Więź z Symbiontem należąca do {0} została usunięta.</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>Symbiont: {0}/{1} pól. Następna korzyść przy {2} polach. Wspólna pula zdrowia: {3}. Gdy trafiony zostaje gospodarz, pełny atak najpierw zmniejsza wspólne zdrowie; przy obecnym rozmiarze &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; pozostaje prawdziwą raną gospodarza. Ataki na Symbionta tworzą nieszkodliwe szare zapisy zamiast ran gospodarza.\n\nZasada mapy: gospodarz i Symbiont muszą znajdować się na tej samej mapie, aby więź była aktywna i można ją było bezpiecznie usunąć. Po rozdzieleniu więź przechodzi w stan uśpienia. Więź może się odnowić tylko wtedy, gdy ten sam gospodarz i Symbiont ponownie znajdą się na jednej mapie. Porzucenie mapy Symbionta niszczy go i siłą zrywa więź; operacja pozwala najpierw bezpiecznie usunąć więź.\n\nKorzyści:\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>Symbiont: {0}/{1} pól. Następna korzyść przy {2} polach. Wspólna pula zdrowia: {3}. Gdy trafiony zostaje gospodarz, pełny atak najpierw zmniejsza wspólne zdrowie; przy obecnym rozmiarze &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; pozostaje prawdziwą raną gospodarza. Ataki na Symbionta pozostawiają jedynie nieszkodliwe szare wpisy w karcie zdrowia zamiast prawdziwych ran.\n\nZasada mapy: gospodarz i Symbiont muszą znajdować się na tej samej mapie. Po rozdzieleniu więź przechodzi w stan uśpienia i nie można jej usunąć chirurgicznie. Budzi się ponownie tylko wtedy, gdy ten sam gospodarz i Symbiont znajdą się z powrotem na jednej mapie. Porzucenie mapy Symbionta niszczy go i siłą zrywa więź; bezpiecznym sposobem jest wcześniejsze chirurgiczne usunięcie więzi.\n\nKorzyści:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Z tym gospodarzem nie jest połączony żaden aktywny Symbiont.</SymbiantHostBondMissing>
-	<SymbiantHostRelocatedMessage>Więź {0} z Symbiontem jest uśpiona, ponieważ gospodarz i Symbiont nie znajdują się na tej samej mapie. Więź pozostaje. Podczas uśpienia wszystkie korzyści (w tym odporność na zakażenie zombie), przekazywanie współdzielonych obrażeń i chirurgiczne rozdzielenie są nieaktywne. Więź może się odnowić tylko wtedy, gdy ten sam gospodarz i Symbiont ponownie znajdą się na jednej mapie.</SymbiantHostRelocatedMessage>
+	<SymbiantHostRelocatedMessage>Więź {0} z Symbiontem jest uśpiona, ponieważ gospodarz i Symbiont nie znajdują się na tej samej mapie. Więź pozostaje, ale dopóki śpi, wszystkie korzyści (w tym odporność na zakażenie zombie) są utracone, obrażenia nie są już współdzielone, a więzi nie można usunąć chirurgicznie. Budzi się ponownie tylko wtedy, gdy ten sam gospodarz i Symbiont znajdą się z powrotem na jednej mapie.</SymbiantHostRelocatedMessage>
 	<LetterLabelSymbiantBondDormant>Więź z Symbiontem uśpiona</LetterLabelSymbiantBondDormant>
 	<SymbiantMapAbandonWarningTitle>Porzucić mapę z Symbiontem?</SymbiantMapAbandonWarningTitle>
-	<SymbiantMapAbandonWarning>Na tej mapie znajduje się żywy Symbiont zombie związany z mapą. Porzucenie mapy zniszczy Symbionta i siłą zerwie każdą pozostałą więź. Jeśli chcesz przeprowadzić zwykłe rozdzielenie, najpierw usuń więź z Symbiontem chirurgicznie.\n\nMimo to porzucić tę mapę?</SymbiantMapAbandonWarning>
+	<SymbiantMapAbandonWarning>Na tej mapie znajduje się żywy Symbiont zombie. Porzucenie mapy zniszczy go i siłą zerwie każdą pozostałą więź. Jeśli chcesz bezpiecznie rozdzielić gospodarza i Symbionta, najpierw usuń więź chirurgicznie.\n\nMimo to porzucić tę mapę?</SymbiantMapAbandonWarning>
 	<SymbiantReseededMessage>Symbiont należący do {0} przeniósł się do innego pomieszczenia.</SymbiantReseededMessage>
-	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Obecny stan&lt;/color&gt;: &lt;color=#72d672&gt;{0} pól&lt;/color&gt;. Następna korzyść przy &lt;color=#72d672&gt;{1} polach&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Wspólna pula zdrowia&lt;/color&gt;: {4}. Obrażenia wymierzone w gospodarza najpierw zmniejszają tę pulę; przy tym rozmiarze tylko &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; pozostaje prawdziwą raną u {6}. Bezpośrednie obrażenia Symbionta zmniejszają pulę po przetworzeniu trafienia przez Symbionta, lecz u {6} tworzą jedynie nieszkodliwe szare zapisy historii, bez prawdziwej rany. Jeśli pula się wyczerpie, {6} umrze.\n\n&lt;color=#ffb35c&gt;Zasada mapy&lt;/color&gt;: gospodarz i Symbiont muszą znajdować się na tej samej mapie, aby więź była aktywna i można ją było bezpiecznie usunąć. Po rozdzieleniu więź przechodzi w stan uśpienia. Więź może się odnowić tylko wtedy, gdy ten sam gospodarz i Symbiont ponownie znajdą się na jednej mapie. Porzucenie tej mapy niszczy Symbionta i siłą zrywa więź. Operacja pozwala najpierw bezpiecznie usunąć więź.\n\n&lt;color=#ffb35c&gt;Obecne efekty&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Obecne korzyści&lt;/color&gt;:\n{3}\n\nPonadto w subtelny sposób &lt;color=#72d672&gt;usuwa zanieczyszczenie&lt;/color&gt;.</ZombieSymbiantInfoCardDetails>
+	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Obecny stan&lt;/color&gt;: &lt;color=#72d672&gt;{0} pól&lt;/color&gt;. Następna korzyść przy &lt;color=#72d672&gt;{1} polach&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Wspólna pula zdrowia&lt;/color&gt;: {4}. Obrażenia wymierzone w gospodarza najpierw zmniejszają tę pulę; przy tym rozmiarze tylko &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; pozostaje prawdziwą raną u {6}. Bezpośrednie obrażenia Symbionta również zmniejszają tę pulę, lecz pozostawiają jedynie nieszkodliwe szare wpisy w karcie zdrowia, bez prawdziwej rany u {6}. Jeśli pula się wyczerpie, {6} umrze.\n\n&lt;color=#ffb35c&gt;Zasada mapy&lt;/color&gt;: gospodarz i Symbiont muszą znajdować się na tej samej mapie. Po rozdzieleniu więź przechodzi w stan uśpienia i nie można jej usunąć chirurgicznie. Budzi się ponownie tylko wtedy, gdy ten sam gospodarz i Symbiont znajdą się z powrotem na jednej mapie. Porzucenie tej mapy niszczy Symbionta i siłą zrywa więź; operacja usuwa ją bezpiecznie.\n\n&lt;color=#ffb35c&gt;Obecne efekty&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Obecne korzyści&lt;/color&gt;:\n{3}\n\nPonadto w subtelny sposób &lt;color=#72d672&gt;usuwa zanieczyszczenie&lt;/color&gt;.</ZombieSymbiantInfoCardDetails>
 	<SymbiantDetailsInfoCard>Szczegóły Symbionta</SymbiantDetailsInfoCard>
 	<SymbiantDetailsInfoCardValue>{0} pól</SymbiantDetailsInfoCardValue>
 	<LetterLabelSymbiantBenefitGained>Nowa korzyść Symbionta</LetterLabelSymbiantBenefitGained>
@@ -122,6 +122,12 @@
 	<AnomalyTargetOtherEntities>Inne istoty Anomalii</AnomalyTargetOtherEntities>
 	<AnomalyTargetNociosphere>Nociosfera</AnomalyTargetNociosphere>
 	<AnomalyZombieHostilityRelations>Istoty Anomalii mogą atakować zombie:</AnomalyZombieHostilityRelations>
+	<FleshmassCollisionTitle>Atakowanie mięsnej masy</FleshmassCollisionTitle>
+	<FleshmassCollisionDescription>Mięsną masę wyhodowaną przez serce mogą atakować:</FleshmassCollisionDescription>
+	<OrdinaryZombiesAttackFleshmass>Zwykłe zombie</OrdinaryZombiesAttackFleshmass>
+	<TankyAndSuicideZombiesAttackFleshmass>Opancerzeni operatorzy zombie i zombie samobójcy</TankyAndSuicideZombiesAttackFleshmass>
+	<FormerColonistAndSpecialZombiesAttackFleshmass>Byli koloniści i inne specjalne zombie</FormerColonistAndSpecialZombiesAttackFleshmass>
+	<FleshmassOnlyColonistsNote>Zombie atakują teraz tylko kolonistów, więc zostawiają mięsną masę w spokoju, a te opcje nie mają żadnego efektu.</FleshmassOnlyColonistsNote>
 	<AnomalyTargetingOverride_Automatic>Automatycznie</AnomalyTargetingOverride_Automatic>
 	<AnomalyTargetingOverride_Never>Nigdy</AnomalyTargetingOverride_Never>
 	<AnomalyTargetingOverride_Allow>Zezwól</AnomalyTargetingOverride_Allow>
@@ -143,7 +149,7 @@
 	<DynamicThreatSmoothness>Płynność krzywej zagrożenia</DynamicThreatSmoothness>
 	<DynamicThreatStretch>Rozciągnięcie krzywej zagrożenia</DynamicThreatStretch>
 	<ZombiesDieOnZeroThreat>Zombie umierają przy zagrożeniu 0%</ZombiesDieOnZeroThreat>
-	<ZombieFreeEvents>Okresy podróży bez zombie</ZombieFreeEvents>
+	<ZombieFreeEvents>Wydarzenia ciszy zombie</ZombieFreeEvents>
 	<ThreatLevel>poziom zagrożenia</ThreatLevel>
 	<ThreatForecast>Prognoza zagrożenia</ThreatForecast>
 	<Next14Days>Następne 14 dni</Next14Days>
@@ -259,7 +265,6 @@
 	<RopeZombie>Schwytaj tego zombie</RopeZombie>
 	<Activate>Aktywuj</Activate>
 	<ActivateDescription>Aktywuje urządzenie. Zombie w pomieszczeniu tracą przytomność.</ActivateDescription>
-	<WrongPlacementZombieShocker>Nie można umieścić tutaj tego urządzenia.</WrongPlacementZombieShocker>
 	<ColonistsBittenByZombie>Koloniści ugryzieni przez zombie</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Ci koloniści zostali ugryzieni przez zombie. Na razie nie wiadomo, czy rozwinie się u nich zakażenie:\n\n{0}\nUważnie obserwuj ich rany, ponieważ rozwój zakażenia zajmuje trochę czasu.</ColonistsBittenByZombieDesc>
 	<ImminentZombiInfection>Nadchodzące zakażenie zombie</ImminentZombiInfection>
@@ -293,7 +298,6 @@
 	<ZombieShockerLowBatteryState>Urządzenie wyczerpało podłączone akumulatory</ZombieShockerLowBatteryState>
 	<ShowHealthBar>Paski zdrowia zombie</ShowHealthBar>
 	<ShowZombieStats>Pokazuj statystyki zombie</ShowZombieStats>
-	<SnowAndSandClear>Odśnieżanie i usuwanie piasku</SnowAndSandClear>
 	<ShowZombieRisk>Pokazuj ryzyko związane z zombie</ShowZombieRisk>
 	<ZombieRiskAreaColumnHintLong>Zasady obszarów Zombieland: naruszenia pojawiają się podczas gry u góry ekranu</ZombieRiskAreaColumnHintLong>
 	<ZombieRiskAreaColumnHintMedium>Naruszenia zasad Zombieland pojawiają się u góry</ZombieRiskAreaColumnHintMedium>

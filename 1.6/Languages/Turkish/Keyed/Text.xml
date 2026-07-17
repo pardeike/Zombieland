@@ -5,7 +5,7 @@
 	<ZombielandRevealPlayerLog>Player.log dosyasını göster</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Player.log gösterilemedi. Yol panoya kopyalandı.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland Player.log yolunu bulamadı.</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>Sağ taraftaki yardım metnini okumak için herhangi bir öğenin üzerine gelin. Tüm ayarlar oyun içinde değiştirilebilir ve hemen aktif olur, oyunla birlikte kaydedilir.\n\nYeni oyunlar için varsayılanları ayarlamak için, ayarları ana ekrandan değiştirin (Seçenekler/Mod Ayarları/Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Yardım metnini sağ tarafta görmek için herhangi bir ayarın üzerine gelin. Tüm ayarlar oyun içinde değiştirilebilir ve hemen aktif olur, oyunla birlikte kaydedilir.\n\nYeni oyunlar için varsayılanları ayarlamak için, ayarları ana ekrandan değiştirin (Seçenekler/Mod Ayarları/Zombieland).</Zombieland_Settings>
 	<ZombieLandKeyframes>Zamana bağlı anahtar kareler ekleyin. Aradaki değerleri kaydırıcıyla kontrol edin. Yalnızca anahtar karelerin ayarları düzenlenebilir.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- ilk anahtar kare (oyunun başlangıcı) . . . gelecekteki oyun zamanı -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>Zombieland'deki zombi yetenekleri, tehdit tahmini ve çok daha fazlası gibi neredeyse her şeyin zorluğunu kontrol eder.</Difficulty_ZombielandThreatScale_Info>
@@ -30,7 +30,7 @@
 	<ZombiesSpitter>Bir zombi tükürücü haritaya girdi ve sizi kuşatacak</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>Zombi Simbiyantı {0} ile bağ kurdu</LetterLabelZombieSymbiant>
 	<LetterLabelZombieSymbiantNoHost>Zombi Simbiyantı ortaya çıktı</LetterLabelZombieSymbiantNoHost>
-	<ZombieSymbiant>Bir Zombi Simbiyantı {0} içinde ortaya çıktı ve {1} ile bağ kurdu. Yoğun kullanılan iç odalara yayılır. Üzerinden geçen piyonlar yavaşlar, konak hariç. Konak zombi ısırıklarından gelen enfeksiyona bağışıktır ve Simbiyant büyüdükçe rastgele faydalar kazanır. Daha hızlı büyümesi için cesetlerle besleyin.\n\nKonak ve Simbiyant aynı haritada kalmalıdır: ayrılırlarsa bağ uykuya geçer ve bu sırada temiz şekilde kaldırılamaz. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir. Simbiyantın bulunduğu haritayı terk etmek onu yok eder ve bağı zorla koparır.\n\nBağı temiz şekilde kaldırmak için önce {1} üzerinde ameliyat yapın; konaksız Simbiyant sonra geri çekilir.</ZombieSymbiant>
+	<ZombieSymbiant>Bir Zombi Simbiyantı {0} içinde ortaya çıktı ve {1} ile bağ kurdu. Yoğun kullanılan iç odalara yayılır. Üzerinden geçen piyonlar yavaşlar, konak hariç. Konak zombi ısırıklarından gelen enfeksiyona bağışıktır ve Simbiyant büyüdükçe rastgele faydalar kazanır. Daha hızlı büyümesi için cesetlerle besleyin.\n\nKonak ve Simbiyant aynı haritada kalmalıdır: ayrılırlarsa bağ uykuya geçer ve uyuduğu sürece kaldırılamaz. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa yeniden uyanır. Simbiyantın bulunduğu haritayı terk etmek onu yok eder ve bağı zorla koparır.\n\nBağı güvenli şekilde kaldırmak için önce {1} üzerinde ameliyat yapın; konaksız Simbiyant sonra geri çekilir.</ZombieSymbiant>
 	<ZombieSymbiantNoHost>Bir Zombi Simbiyantı {0} içinde ortaya çıktı. Yoğun kullanılan iç odalara yayılır. Daha hızlı büyümesi için cesetlerle besleyin.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>odalarınızdan biri</ZombieSymbiantUnknownRoom>
 	<ZombieSymbiantInspect>Bağlı konak: {0}, boyut: {1} hücre, paylaşılan sağlık: {2}, sonraki fayda {3} hücrede</ZombieSymbiantInspect>
@@ -42,7 +42,7 @@
 	<SymbiantSharedHealthSummary>{1} üzerinden {0}</SymbiantSharedHealthSummary>
 	<SymbiantDamageEchoLabel>{0}: {1} hasar</SymbiantDamageEchoLabel>
 	<SymbiantDamageEchoOther>diğer</SymbiantDamageEchoOther>
-	<SymbiantDamageEchoDescription>Mevcut bağ sırasında bağlı Simbiyant tarafından emilen toplam hasar: {0}. Bu yalnızca bir kayıttır; konağı yaralamaz, zayıflatmaz, kanatmaz, yere düşürmez veya öldürmez.</SymbiantDamageEchoDescription>
+	<SymbiantDamageEchoDescription>Mevcut bağ sırasında bağlı Simbiyant tarafından emilen toplam hasar: {0}. Bu yalnızca bir kayıttır; konakta yara, kanama veya başka herhangi bir zarara yol açmaz.</SymbiantDamageEchoDescription>
 	<SymbiantSharedHealthRecoveryDescription>{0} boyunca paylaşılan hasar alınmazsa Simbiyant, her {2} eksik paylaşılan sağlığının {1} kadarını yeniler.</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>bir Simbiyantı besliyor</FeedingZombieSymbiant>
 	<SymbiantFedMote>hücre +{1}</SymbiantFedMote>
@@ -50,14 +50,14 @@
 	<SeverSymbiantSymbiosis>Simbiyant bağını kaldır</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>Simbiyant bağını kaldır ({0} zombi özü)</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>{0} üzerindeki Simbiyant bağı kaldırıldı.</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>Simbiyant: {0}/{1} hücre. Sonraki fayda {2} hücrede. Paylaşılan sağlık: {3}. Konak vurulduğunda saldırının tamamı önce paylaşılan sağlıktan düşer; bu boyutta &lt;color=#ffb35c&gt;%{4}&lt;/color&gt; gerçek bir konak yarası olarak kalır. Simbiyanta yapılan saldırılar konak yaraları yerine zararsız gri kayıtlar oluşturur.\n\nHarita kuralı: bağın aktif olması ve temiz şekilde kaldırılabilmesi için konak ve Simbiyant aynı haritada olmalıdır. Ayrılırlarsa bağ uykuya geçer. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir. Simbiyantın bulunduğu haritayı terk etmek onu yok eder ve bağı zorla koparır; ameliyat önce bağı temiz şekilde kaldırır.\n\nFaydalar:\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>Simbiyant: {0}/{1} hücre. Sonraki fayda {2} hücrede. Paylaşılan sağlık: {3}. Konak vurulduğunda saldırının tamamı önce paylaşılan sağlıktan düşer; bu boyutta &lt;color=#ffb35c&gt;%{4}&lt;/color&gt; gerçek bir konak yarası olarak kalır. Simbiyanta yapılan saldırılar gerçek yaralar yerine sağlık kaydında yalnızca zararsız gri kayıtlar bırakır.\n\nHarita kuralı: konak ve Simbiyant aynı haritada olmalıdır. Ayrılırlarsa bağ uykuya geçer ve ameliyatla kaldırılamaz. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa yeniden uyanır. Simbiyantın bulunduğu haritayı terk etmek onu yok eder ve bağı zorla koparır; güvenli yol, bağı önce ameliyatla kaldırmaktır.\n\nFaydalar:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Bu konağa bağlı aktif Simbiyant yok.</SymbiantHostBondMissing>
-	<SymbiantHostRelocatedMessage>{0} ile Simbiyant aynı haritada bulunmadığı için bağ uykuya geçti. Bağ korunur. Uyku sırasında zombi enfeksiyonu bağışıklığı dahil tüm faydalar, paylaşılan hasar aktarımı ve cerrahi ayırma devre dışıdır. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir.</SymbiantHostRelocatedMessage>
+	<SymbiantHostRelocatedMessage>{0} ile Simbiyant aynı haritada bulunmadığı için Simbiyant bağı uykuda. Bağ korunur; ancak uyuduğu sürece zombi enfeksiyonu bağışıklığı dahil tüm faydalar kaybolur, hasar artık paylaşılmaz ve bağ ameliyatla kaldırılamaz. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa yeniden uyanır.</SymbiantHostRelocatedMessage>
 	<LetterLabelSymbiantBondDormant>Simbiyant bağı uykuda</LetterLabelSymbiantBondDormant>
 	<SymbiantMapAbandonWarningTitle>Simbiyant olan harita terk edilsin mi?</SymbiantMapAbandonWarningTitle>
-	<SymbiantMapAbandonWarning>Bu haritada yaşayan ve haritaya bağlı bir Zombi Simbiyantı var. Haritayı terk etmek Simbiyantı yok eder ve kalan bağları zorla koparır. Normal ayırma sürecini istiyorsanız önce Simbiyant bağını ameliyatla kaldırın.\n\nBu harita yine de terk edilsin mi?</SymbiantMapAbandonWarning>
+	<SymbiantMapAbandonWarning>Bu haritada yaşayan bir Zombi Simbiyantı var. Haritayı terk etmek Simbiyantı yok eder ve kalan bağları zorla koparır. Konak ile Simbiyantı güvenli şekilde ayırmak istiyorsanız önce Simbiyant bağını ameliyatla kaldırın.\n\nBu harita yine de terk edilsin mi?</SymbiantMapAbandonWarning>
 	<SymbiantReseededMessage>{0} üzerindeki Simbiyant başka bir iç odaya taşındı.</SymbiantReseededMessage>
-	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Geçerli durum&lt;/color&gt;: &lt;color=#72d672&gt;{0} hücre&lt;/color&gt;. Sonraki fayda &lt;color=#72d672&gt;{1} hücrede&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Paylaşılan sağlık&lt;/color&gt;: {4}. Konağı hedef alan hasar önce bu havuzu azaltır; bu boyutta yalnızca &lt;color=#ffb35c&gt;%{5}&lt;/color&gt; kadarı {6} üzerinde gerçek bir yara olarak kalır. Simbiyanta doğrudan verilen hasar, darbe Simbiyant tarafından işlendikten sonra havuzu azaltır; ancak {6} üzerinde yalnızca zararsız gri hasar geçmişi kayıtları oluşturur ve gerçek yara bırakmaz. Bu havuz biterse {6} ölür.\n\n&lt;color=#ffb35c&gt;Harita kuralı&lt;/color&gt;: bağın aktif olması ve temiz şekilde kaldırılabilmesi için konak ve Simbiyant aynı haritada olmalıdır. Ayrılırlarsa bağ uykuya geçer. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa etkinleşebilir. Bu haritayı terk etmek Simbiyantı yok eder ve bağı zorla koparır. Ameliyat önce bağı temiz şekilde kaldırır.\n\n&lt;color=#ffb35c&gt;Geçerli etkiler&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Geçerli faydalar&lt;/color&gt;:\n{3}\n\nAyrıca &lt;color=#72d672&gt;kirliliği giderir&lt;/color&gt;, bunu ince yollarla yapar.</ZombieSymbiantInfoCardDetails>
+	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Geçerli durum&lt;/color&gt;: &lt;color=#72d672&gt;{0} hücre&lt;/color&gt;. Sonraki fayda &lt;color=#72d672&gt;{1} hücrede&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Paylaşılan sağlık&lt;/color&gt;: {4}. Konağı hedef alan hasar önce bu havuzu azaltır; bu boyutta yalnızca &lt;color=#ffb35c&gt;%{5}&lt;/color&gt; kadarı {6} üzerinde gerçek bir yara olarak kalır. Simbiyanta doğrudan verilen hasar da bu havuzu azaltır; ancak sağlık kaydında yalnızca zararsız gri kayıtlar bırakır ve {6} üzerinde gerçek yara oluşturmaz. Bu havuz biterse {6} ölür.\n\n&lt;color=#ffb35c&gt;Harita kuralı&lt;/color&gt;: konak ve Simbiyant aynı haritada olmalıdır. Ayrılırlarsa bağ uykuya geçer ve ameliyatla kaldırılamaz. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa yeniden uyanır. Bu haritayı terk etmek Simbiyantı yok eder ve bağı zorla koparır; ameliyat bağı güvenli şekilde kaldırır.\n\n&lt;color=#ffb35c&gt;Geçerli etkiler&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Geçerli faydalar&lt;/color&gt;:\n{3}\n\nAyrıca &lt;color=#72d672&gt;kirliliği giderir&lt;/color&gt;, bunu ince yollarla yapar.</ZombieSymbiantInfoCardDetails>
 	<SymbiantDetailsInfoCard>Simbiyant ayrıntıları</SymbiantDetailsInfoCard>
 	<SymbiantDetailsInfoCardValue>{0} hücre</SymbiantDetailsInfoCardValue>
 	<LetterLabelSymbiantBenefitGained>Simbiyant faydası kazanıldı</LetterLabelSymbiantBenefitGained>
@@ -122,6 +122,12 @@
 	<AnomalyTargetOtherEntities>Diğer Anomaly varlıkları</AnomalyTargetOtherEntities>
 	<AnomalyTargetNociosphere>Nociosphere</AnomalyTargetNociosphere>
 	<AnomalyZombieHostilityRelations>Anomaly piyonları zombilere saldırabilir:</AnomalyZombieHostilityRelations>
+	<FleshmassCollisionTitle>Et kütlesine saldırı</FleshmassCollisionTitle>
+	<FleshmassCollisionDescription>Et kütlesi kalbinin büyüttüğü et kütlesine şunlar saldırabilir:</FleshmassCollisionDescription>
+	<OrdinaryZombiesAttackFleshmass>Sıradan zombiler</OrdinaryZombiesAttackFleshmass>
+	<TankyAndSuicideZombiesAttackFleshmass>Zırhlı operatör ve intihar bombacısı zombiler</TankyAndSuicideZombiesAttackFleshmass>
+	<FormerColonistAndSpecialZombiesAttackFleshmass>Eski kolonistler ve diğer özel zombiler</FormerColonistAndSpecialZombiesAttackFleshmass>
+	<FleshmassOnlyColonistsNote>Zombiler şu anda sadece kolonistlere saldırıyor; bu yüzden et kütlesine dokunmazlar ve bu seçeneklerin etkisi olmaz.</FleshmassOnlyColonistsNote>
 	<AnomalyTargetingOverride_Automatic>Otomatik</AnomalyTargetingOverride_Automatic>
 	<AnomalyTargetingOverride_Never>Asla</AnomalyTargetingOverride_Never>
 	<AnomalyTargetingOverride_Allow>İzin ver</AnomalyTargetingOverride_Allow>
@@ -143,7 +149,7 @@
 	<DynamicThreatSmoothness>Tehdit eğrisi düzgünlüğü</DynamicThreatSmoothness>
 	<DynamicThreatStretch>Tehdit eğrisi esnemesi</DynamicThreatStretch>
 	<ZombiesDieOnZeroThreat>Zombiler %0 tehdit sırasında ölür</ZombiesDieOnZeroThreat>
-	<ZombieFreeEvents>Zombisiz seyahat olayları</ZombieFreeEvents>
+	<ZombieFreeEvents>Zombi sessizliği olayları</ZombieFreeEvents>
 	<ThreatLevel>tehdit düzeyi</ThreatLevel>
 	<ThreatForecast>Tehdit Tahmini</ThreatForecast>
 	<Next14Days>Önümüzdeki 14 gün</Next14Days>
@@ -162,7 +168,7 @@
 	<ZombieDamageFactor>Hasar çarpanı</ZombieDamageFactor>
 	<SafeMeleeLimit>Güvenli yakın dövüş limiti</SafeMeleeLimit>
 	<SafeMeleeExample>Örnek: [_]{0}[_] yakın dövüş seviyesi, [_]{1}[_] zombiler =&gt; %{2} şans</SafeMeleeExample>
-	<ZombiesCauseManhunting>Zombiler hayvanları kızdırıyor</ZombiesCauseManhunting>
+	<ZombiesCauseManhunting>Zombi saldırıları hayvanları insan avcısına çevirebilir</ZombiesCauseManhunting>
 	<ZombieGameTweaks>Oyun ince ayarlar</ZombieGameTweaks>
 	<ReduceTurretConsumption>Taret silah tüketimini azaltın</ReduceTurretConsumption>
 	<ZombieBiteInfectionChance>Bir zombi ısırığının bulaşıcı olma riski</ZombieBiteInfectionChance>
@@ -259,7 +265,6 @@
 	<RopeZombie>Bu zombiyi yakala</RopeZombie>
 	<Activate>Etkinleştir</Activate>
 	<ActivateDescription>Cihazı etkinleştirir. Odadaki zombiler bilincini kaybeder.</ActivateDescription>
-	<WrongPlacementZombieShocker>Cihaz buraya yerleştirilemez.</WrongPlacementZombieShocker>
 	<ColonistsBittenByZombie>Kolonist zombi tarafından ısırıldı</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Bu kolonistler bir zombi tarafından ısırıldı. Bu noktada enfeksiyon kapıp kapmayacakları henüz belli değil:\n\n{0}\nYaralarını yakından izleyin çünkü enfeksiyonların gelişmesi biraz zaman alır.</ColonistsBittenByZombieDesc>
 	<ImminentZombiInfection>Yakın zombi enfeksiyonu</ImminentZombiInfection>
@@ -293,7 +298,6 @@
 	<ZombieShockerLowBatteryState>Cihaz bağlı bataryaları tüketti</ZombieShockerLowBatteryState>
 	<ShowHealthBar>Zombi sağlık çubukları</ShowHealthBar>
 	<ShowZombieStats>Zombi istatistiklerini göster</ShowZombieStats>
-	<SnowAndSandClear>Kar ve kum temizleme</SnowAndSandClear>
 	<ShowZombieRisk>Zombi riskini göster</ShowZombieRisk>
 	<ZombieRiskAreaColumnHintLong>Zombieland alan kuralları: ihlaller oyun sırasında ekranın üst kısmında görünür</ZombieRiskAreaColumnHintLong>
 	<ZombieRiskAreaColumnHintMedium>Zombieland ihlalleri üstte görünür</ZombieRiskAreaColumnHintMedium>

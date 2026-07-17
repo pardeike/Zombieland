@@ -5238,32 +5238,49 @@ namespace ZombieLand
 			}
 		}
 
+		readonly struct ExplosionAffectCellState
+		{
+			public readonly bool enteredSuicideExplosion;
+			public readonly List<FireSurvivalExplosionDamageSnapshot> fireSurvivalDamageSnapshots;
+
+			public ExplosionAffectCellState(bool enteredSuicideExplosion, List<FireSurvivalExplosionDamageSnapshot> fireSurvivalDamageSnapshots)
+			{
+				this.enteredSuicideExplosion = enteredSuicideExplosion;
+				this.fireSurvivalDamageSnapshots = fireSurvivalDamageSnapshots;
+			}
+		}
+
 		[HarmonyPatch(typeof(Verse.Explosion), "AffectCell")]
 		static class Explosion_AffectCell_Patch
 		{
-			static void Prefix(Verse.Explosion __instance, IntVec3 c, out List<FireSurvivalExplosionDamageSnapshot> __state)
+			static void Prefix(Verse.Explosion __instance, IntVec3 c, out ExplosionAffectCellState __state)
 			{
-				__state = null;
-				if (CanGrantFireSurvivalBoost(__instance) == false)
-					return;
-				var map = __instance.Map;
-				if (c.InBounds(map) == false)
-					return;
-
-				var things = c.GetThingList(map);
-				for (var i = 0; i < things.Count; i++)
-					if (things[i] is Zombie zombie
-						&& zombie.Destroyed == false
-						&& zombie.Dead == false
-						&& IsEligibleZombieFireInstigator(__instance.instigator, zombie))
+				List<FireSurvivalExplosionDamageSnapshot> snapshots = null;
+				if (CanGrantFireSurvivalBoost(__instance))
+				{
+					var map = __instance.Map;
+					if (c.InBounds(map))
 					{
-						var snapshot = FireSurvivalExplosionDamageSnapshot.Make(zombie);
-						if (snapshot != null)
-						{
-							__state ??= [];
-							__state.Add(snapshot);
-						}
+						var things = c.GetThingList(map);
+						for (var i = 0; i < things.Count; i++)
+							if (things[i] is Zombie zombie
+								&& zombie.Destroyed == false
+								&& zombie.Dead == false
+								&& IsEligibleZombieFireInstigator(__instance.instigator, zombie))
+							{
+								var snapshot = FireSurvivalExplosionDamageSnapshot.Make(zombie);
+								if (snapshot != null)
+								{
+									snapshots ??= [];
+									snapshots.Add(snapshot);
+								}
+							}
 					}
+				}
+
+				__state = new ExplosionAffectCellState(
+					FleshmassCollision.BeginSuicideExplosion(__instance),
+					snapshots);
 			}
 
 			static void Postfix(
@@ -5272,10 +5289,10 @@ namespace ZombieLand
 				float ___excludeRadius,
 				List<Thing> ___damagedThings,
 				List<Thing> ___ignoredThings,
-				List<FireSurvivalExplosionDamageSnapshot> __state)
+				ExplosionAffectCellState __state)
 			{
-				if (__state != null)
-					foreach (var snapshot in __state)
+				if (__state.fireSurvivalDamageSnapshots != null)
+					foreach (var snapshot in __state.fireSurvivalDamageSnapshots)
 						snapshot.RestoreIfBoostWasGranted();
 
 				var map = __instance?.Map;
@@ -5294,6 +5311,12 @@ namespace ZombieLand
 				}
 				__instance.damType.Worker.ExplosionDamageThing(__instance, symbiant, ___damagedThings, ___ignoredThings, c);
 				ZombieSymbiantCombat.RecordExplosionCell(c, false, true);
+			}
+
+			static Exception Finalizer(Exception __exception, ExplosionAffectCellState __state)
+			{
+				FleshmassCollision.EndSuicideExplosion(__state.enteredSuicideExplosion);
+				return __exception;
 			}
 
 			static bool CanGrantFireSurvivalBoost(Verse.Explosion explosion)

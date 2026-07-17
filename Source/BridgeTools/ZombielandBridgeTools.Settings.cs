@@ -2133,6 +2133,9 @@ namespace ZombieLand
 				anomalyEntityTargeting = group.anomalyEntityTargeting.ToString(),
 				anomalyNociosphereTargeting = group.anomalyNociosphereTargeting.ToString(),
 				anomalyAttacksZombies = group.anomalyAttacksZombies.ToString(),
+				group.ordinaryZombiesAttackFleshmass,
+				group.tankyAndSuicideZombiesAttackFleshmass,
+				group.formerColonistAndSpecialZombiesAttackFleshmass,
 				blacklistedApparel = group.blacklistedApparel?.ToArray() ?? Array.Empty<string>(),
 				biomesWithoutZombies = group.biomesWithoutZombies?.ToArray() ?? Array.Empty<string>()
 			};

@@ -637,3 +637,45 @@ Required runtime evidence:
 - Default 400-cell stress, then bridge-only override stress to the 4000-cell source/render ceiling without changing saved gameplay settings.
 - Warning-or-higher logs clean after runtime actions except documented old-save missing-def compatibility errors.
 - Hostile-combat evidence covers ordinary humanlike and mech policy, negative player/friendly/animal/turret/zombie/Anomaly policy, non-root ranged cells, two independent verb bindings, melee target A plus B/C, projectile damage, one-hit explosion overlap, and active CE ranged/melee/explosion behavior. Rerun the 400/4000-cell structural stress after geometry-cache changes.
+
+## Fleshmass Collision
+
+Code surface: `Source/FleshmassCollision.cs`,
+`Source/Patches_Fleshmass.cs`, `Source/ZombieStateHandler.cs`,
+`Source/ZombieSettings.cs`, `Source/SettingsDialog.cs`, the ten active
+`1.6/Languages/*/Keyed` translation pairs, and
+`Source/BridgeTools/ZombielandBridgeTools.Fleshmass*.cs`.
+
+Covered:
+- Three independent default-on category settings are saved, copied,
+  interpolated through the settings timeline, imported/exported, localized,
+  shown only with Anomaly active, and exposed with player-facing help for
+  `OnlyColonists`, heart immunity, and suicide collateral.
+- The shared predicate covers ordinary, tank, suicide, former-colonist, every
+  current smashing special, child overlap ordering, sourced active flesh,
+  organs/plain/sourceless flesh, unrelated-building pass-through,
+  `smashMode == Nothing`, and `OnlyColonists`. The heart is never selected
+  or used to arm a suicide zombie.
+- Actual Zombieland-faction root and cascade deaths credit their stored live
+  grower once; nonlethal damage and lost sources credit nothing; player and
+  null-instigator paths remain vanilla once; compatible modded grower sources
+  are preserved; narrow zombie/suicide response attribution suppresses only
+  the completing `ThreatBig` letter.
+- Direct operations `op_d4dfd7ecacfe4136b8efdc6ce5176f36` and
+  `op_b3c165266582463596f697356e37e9cf` each passed 36/36. The second used an
+  active-Biotech save and closed the exact child-body/category matrix.
+- Async operation `op_a42ed6862ad642dda5d70266355eaa84` passed attack,
+  response, source-loss, save/load, and dense stages from clean reload
+  boundaries. It covered real attack jobs and suicide arming, ordinary and
+  suicide response emergence without leaked letters, no ghost credit after
+  heart loss, in-flight job/stance plus settings/timeline persistence, and a
+  120-zombie/two-heart fortress battle with 62 concurrent actions and 118
+  destroyed flesh cells.
+- Static patch evidence is owned by `TEST_PATCH_AUDIT.md`; scenario detail
+  and reusable save names are owned by `TEST_SCENARIOS.md`. Final normal and
+  active-Biotech post-startup warning-or-higher queries were empty.
+
+Current gap:
+- No known release-blocking gap remains for the implemented contract.
+  Longer natural-colony pacing or balance footage is future tuning evidence,
+  not missing correctness coverage.

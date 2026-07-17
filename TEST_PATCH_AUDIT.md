@@ -551,3 +551,22 @@ This slice covers 68 static rows in `contamination-static`. Dynamic contaminatio
 | `Source/ContaminationPatchesPlants.cs:116` | `Plant_TrySpawnStump_Patch` | `semantic/runtime` | `Plant.TrySpawnStump()` exists (`88df42e0e943404ba42043aebd37585c:0600F78C:M`). Runtime C3 spawned an oak stump through the real plant method and reloaded `Thing_ChoppedStump6928` with contamination `0.55`. | Covered in `ZL_Contamination_Persistence_20_world_products.rws`. |
 | `Source/ContaminationPatchesPollutionSnow.cs:11` | `JobDriver_ClearPollution_ClearPollutionAt_Patch` | `resolved/runtime` | `JobDriver_ClearPollution.MakeNewToils()` exists (`88df42e0e943404ba42043aebd37585c:06007270:M`) and still clears after `5600f` work, calls `ClearPollutionAt`, and spawns `ThingDefOf.Wastepack`; `ClearPollutionAt` still unpollutes nearby cells through `Unpollute` before radial fallback. | Covered by `zombieland/contamination_clear_pollution_contract` in the final DLC stretch. A real active-Biotech clear-pollution job reached the `tickIntervalAction` completion path, cleared the polluted cell after `5604` ticks, and the wrapped `Unpollute` subject received worker contamination `0.0765600055`, matching ground `0.66 * pollutionAdd=0.116000004`. |
 | `Source/ContaminationPatchesPollutionSnow.cs:41` | `GridUtility_Unpollute_Patch` | `resolved/runtime` | `GridsUtility.Unpollute(IntVec3, Map)` exists (`88df42e0e943404ba42043aebd37585c:06001B52:M`) and still calls `map.pollutionGrid.SetPolluted(c, false)`, dirties snow meshes, and conditionally dirties Odyssey sand. | Covered by `zombieland/contamination_clear_pollution_contract` in the final DLC stretch. The real clear-pollution job reached `Unpollute`, changed `pollutedBefore=true` to `pollutedAfter=false`, and transferred polluted ground contamination `0.66` into the remembered worker at `0.0765600055`. |
+
+## Fleshmass Collision Static Targets
+
+This slice was audited against the installed Steam RimWorld `1.6.4871 rev597`
+assembly, MVID `967ddb80559449f0a776dafa26a855d1`.
+
+| Location | Patch class | Status | RimWorld 1.6 evidence | Coverage disposition |
+| --- | --- | --- | --- | --- |
+| `Source/Patches_Fleshmass.cs:11` | `CompFleshmass_Notify_Killed_Patch` | `resolved/runtime` | `CompFleshmass.Notify_Killed(Map, DamageInfo?)` exists at `967ddb80559449f0a776dafa26a855d1:06010099:M`. Vanilla still owns player/null-instigator accounting; `CompGrowsFleshmassTendrils.Notify_FleshmassDestroyedByPlayer(Thing)` remains the response increment boundary at `967ddb80559449f0a776dafa26a855d1:06010221:M`. The postfix adds only actual Zombieland-faction kills, uses the destroyed cell's stored spawned grower source, and removes only a newly created attributed `ThreatBig` letter. | Direct contract operations `op_d4dfd7ecacfe4136b8efdc6ce5176f36` and `op_b3c165266582463596f697356e37e9cf` passed zombie root/cascade, player, null-instigator, compatible non-heart grower, touching-field, nonlethal, and lost-source accounting. Async operation `op_a42ed6862ad642dda5d70266355eaa84` proved real ordinary and suicide responses spawned assaulting fleshbeasts while leaking zero response letters. |
+| `Source/Patches_Fleshmass.cs:34` | `Explosion_AffectCell_Fleshmass_Patch` | `resolved/runtime` | Private `Verse.Explosion.AffectCell(IntVec3)` exists at `967ddb80559449f0a776dafa26a855d1:060036FD:M`. A prefix/finalizer pair scopes only `SuicideBombDamage` cell effects, unwinds attribution even on exception, and does not persist attribution across calls or saves. | The direct contract proved the installed owner on the exact private method. The live response stage observed a real armed suicide zombie, collateral wall destruction, 13 destroyed flesh cells, response progress `1 -> 174`, one assault-lord fleshbeast, and zero leaked `ThreatBig` letters. |
+
+The deliberate-target boundary is source-owned rather than a new Harmony
+target. `Source/FleshmassCollision.cs` supplies the single flesh-family and
+category predicate, while `Source/ZombieStateHandler.cs:1414` and
+`Source/ZombieStateHandler.cs:1464` route sourced-active `DoorsOnly` and
+generic building candidates through it. The 36-case direct contract and the
+five-stage live scenario cover the ordinary, tank, suicide, former-colonist,
+special, child, heart-immunity, `OnlyColonists`, and unrelated-building
+branches.

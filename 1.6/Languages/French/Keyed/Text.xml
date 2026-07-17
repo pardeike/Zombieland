@@ -5,7 +5,7 @@
 	<ZombielandRevealPlayerLog>Afficher Player.log</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Impossible d'afficher Player.log. Le chemin a été copié dans le presse-papiers.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland n'a pas trouvé le chemin de Player.log.</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>Survolez un élément pour lire un texte d'aide à son sujet à droite. Tous les paramètres peuvent être modifiés dans le jeu et sont actifs immédiatement, ils sont sauvegardés avec le jeu.\n\nPour définir les paramètres par défaut des nouvelles parties, modifiez-les depuis l'écran principal (Options / Paramètres des mods / Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Survolez un paramètre pour voir son texte d'aide à droite. Tous les paramètres peuvent être modifiés dans le jeu et sont actifs immédiatement, ils sont sauvegardés avec le jeu.\n\nPour définir les paramètres par défaut des nouvelles parties, modifiez-les depuis l'écran principal (Options / Paramètres des mods / Zombieland).</Zombieland_Settings>
 	<ZombieLandKeyframes>Ajoutez des images clés qui définissent les paramètres dans le temps. Utilisez le curseur pour vérifier les valeurs intermédiaires. Seuls les réglages des images clés sont modifiables.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- première image clé (début du jeu) . . . temps de jeu futur -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>Contrôle la difficulté de presque tout dans Zombieland, comme les capacités des zombies, la prévision des menaces et bien plus encore.</Difficulty_ZombielandThreatScale_Info>
@@ -30,7 +30,7 @@
 	<ZombiesSpitter>Un cracheur de zombies est entré sur la carte et va vous assiéger</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>Symbiant zombie lié à {0}</LetterLabelZombieSymbiant>
 	<LetterLabelZombieSymbiantNoHost>Symbiant zombie apparu</LetterLabelZombieSymbiantNoHost>
-	<ZombieSymbiant>Un Symbiant zombie est apparu dans {0} et s'est lié à {1}. Il se répand dans les pièces intérieures fréquentées. Les pions qui le traversent sont ralentis, sauf l'hôte. L'hôte est immunisé contre l'infection zombie par morsure et gagne des avantages aléatoires quand le Symbiant grandit. Nourrissez-le avec des cadavres pour accélérer sa croissance.\n\nGardez l'hôte et le Symbiant sur la même carte : s'ils sont séparés, le lien devient dormant et ne peut pas être retiré proprement pendant cette dormance. Il ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte. Abandonner la carte du Symbiant le détruit et rompt le lien de force.\n\nOpérez {1} d'abord pour retirer le lien proprement ; le Symbiant sans hôte se résorbera ensuite.</ZombieSymbiant>
+	<ZombieSymbiant>Un Symbiant zombie est apparu dans {0} et s'est lié à {1}. Il se répand dans les pièces intérieures fréquentées. Les pions qui le traversent sont ralentis, sauf l'hôte. L'hôte est immunisé contre l'infection zombie par morsure et gagne des avantages aléatoires quand le Symbiant grandit. Nourrissez-le avec des cadavres pour accélérer sa croissance.\n\nGardez l'hôte et le Symbiant sur la même carte : s'ils sont séparés, le lien devient dormant et ne peut pas être retiré tant qu'il est en dormance. Il ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte. Abandonner la carte du Symbiant le détruit et rompt le lien de force.\n\nOpérez {1} d'abord pour retirer le lien en toute sécurité ; le Symbiant sans hôte se résorbera ensuite.</ZombieSymbiant>
 	<ZombieSymbiantNoHost>Un Symbiant zombie est apparu dans {0}. Il se répand dans les pièces intérieures fréquentées. Nourrissez-le avec des cadavres pour accélérer sa croissance.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>une de vos pièces</ZombieSymbiantUnknownRoom>
 	<ZombieSymbiantInspect>Hôte lié : {0}, taille : {1} cases, santé partagée : {2}, prochain avantage à {3} cases</ZombieSymbiantInspect>
@@ -42,7 +42,7 @@
 	<SymbiantSharedHealthSummary>{0} sur {1}</SymbiantSharedHealthSummary>
 	<SymbiantDamageEchoLabel>{0} : {1} dégâts</SymbiantDamageEchoLabel>
 	<SymbiantDamageEchoOther>autres</SymbiantDamageEchoOther>
-	<SymbiantDamageEchoDescription>Dégâts cumulés absorbés par le symbiote lié pendant le lien actuel : {0}. Ceci n'est qu'un relevé : il ne blesse pas l'hôte, ne l'affaiblit pas, ne le fait pas saigner, ne le met pas à terre et ne le tue pas.</SymbiantDamageEchoDescription>
+	<SymbiantDamageEchoDescription>Dégâts cumulés absorbés par le symbiote lié pendant le lien actuel : {0}. Ceci n'est qu'un relevé : il ne cause aucune blessure, aucun saignement ni aucun autre mal à l'hôte.</SymbiantDamageEchoDescription>
 	<SymbiantSharedHealthRecoveryDescription>Après {0} sans dégâts partagés, le Symbiant récupère {1} de sa santé partagée manquante à chaque intervalle de {2}.</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>nourrit le Symbiant</FeedingZombieSymbiant>
 	<SymbiantFedMote>cases +{1}</SymbiantFedMote>
@@ -50,14 +50,14 @@
 	<SeverSymbiantSymbiosis>retirer le lien du Symbiant</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>retirer le lien du Symbiant ({0} extrait de zombie)</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>Le lien de Symbiant de {0} a été retiré.</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>Symbiant : {0}/{1} cases. Prochain avantage à {2} cases. Santé partagée : {3}. Lorsque l'hôte est touché, l'attaque complète draine d'abord la santé partagée ; à cette taille, &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; reste sous forme de véritable blessure de l'hôte. Les attaques contre le Symbiant créent des relevés gris inoffensifs au lieu de blessures de l'hôte.\n\nRègle de carte : l'hôte et le Symbiant doivent être sur la même carte pour que le lien soit actif et puisse être retiré proprement. S'ils sont séparés, le lien devient dormant. Il ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte. Abandonner la carte du Symbiant le détruit et rompt le lien de force ; une opération retire d'abord le lien proprement.\n\nAvantages :\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>Symbiant : {0}/{1} cases. Prochain avantage à {2} cases. Santé partagée : {3}. Lorsque l'hôte est touché, l'attaque complète draine d'abord la santé partagée ; à cette taille, &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; reste sous forme de véritable blessure de l'hôte. Les attaques contre le Symbiant ne laissent que des entrées grises inoffensives dans le dossier de santé au lieu de véritables blessures.\n\nRègle de carte : l'hôte et le Symbiant doivent être sur la même carte. S'ils sont séparés, le lien devient dormant et ne peut pas être retiré par opération. Il ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte. Abandonner la carte du Symbiant le détruit et rompt le lien de force ; retirer d'abord le lien par une opération est la méthode sûre.\n\nAvantages :\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>Aucun Symbiant actif n'est lié à cet hôte.</SymbiantHostBondMissing>
-	<SymbiantHostRelocatedMessage>Le lien de Symbiant de {0} est en dormance, car l'hôte et le Symbiant ne se trouvent pas sur la même carte. Le lien subsiste. Pendant la dormance, tous les avantages (y compris l'immunité aux infections zombies), le transfert des dégâts et l'ablation chirurgicale sont inactifs. Le lien ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte.</SymbiantHostRelocatedMessage>
+	<SymbiantHostRelocatedMessage>Le lien de Symbiant de {0} est en dormance, car l'hôte et le Symbiant ne se trouvent pas sur la même carte. Le lien subsiste, mais pendant sa dormance, tous les avantages (y compris l'immunité aux infections zombies) sont perdus, les dégâts ne sont plus partagés et le lien ne peut pas être retiré par opération. Il ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte.</SymbiantHostRelocatedMessage>
 	<LetterLabelSymbiantBondDormant>Lien de Symbiant en dormance</LetterLabelSymbiantBondDormant>
 	<SymbiantMapAbandonWarningTitle>Abandonner la carte avec un Symbiant ?</SymbiantMapAbandonWarningTitle>
-	<SymbiantMapAbandonWarning>Cette carte contient un Symbiant zombie vivant et lié à la carte. Si vous l'abandonnez, le Symbiant sera détruit et tout lien restant sera rompu de force. Retirez d'abord le lien du Symbiant par une opération si vous voulez suivre la séparation normale.\n\nAbandonner cette carte quand même ?</SymbiantMapAbandonWarning>
+	<SymbiantMapAbandonWarning>Cette carte contient un Symbiant zombie vivant. Si vous l'abandonnez, le Symbiant sera détruit et tout lien restant sera rompu de force. Si vous voulez séparer l'hôte et le Symbiant en toute sécurité, retirez d'abord le lien par une opération.\n\nAbandonner cette carte quand même ?</SymbiantMapAbandonWarning>
 	<SymbiantReseededMessage>Le Symbiant de {0} s'est déplacé dans une autre pièce intérieure.</SymbiantReseededMessage>
-	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;État actuel&lt;/color&gt; : &lt;color=#72d672&gt;{0} cases&lt;/color&gt;. Prochain avantage à &lt;color=#72d672&gt;{1} cases&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Santé partagée&lt;/color&gt; : {4}. Les dégâts visant l'hôte vident d'abord cette réserve ; à cette taille, seulement &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; subsiste sous forme de véritable blessure sur {6}. Les dégâts directs sur le Symbiant vident la réserve après le traitement du coup par le Symbiant, mais ne créent que des relevés historiques gris et inoffensifs, sans véritable blessure sur {6}. Si cette réserve est épuisée, {6} meurt.\n\n&lt;color=#ffb35c&gt;Règle de carte&lt;/color&gt; : l'hôte et le Symbiant doivent être sur la même carte pour que le lien soit actif et puisse être retiré proprement. S'ils sont séparés, le lien devient dormant. Il ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte. Abandonner cette carte détruit le Symbiant et rompt le lien de force. Une opération retire d'abord le lien proprement.\n\n&lt;color=#ffb35c&gt;Effets actuels&lt;/color&gt; :\n{2}\n\n&lt;color=#72d672&gt;Avantages actuels&lt;/color&gt; :\n{3}\n\nIl &lt;color=#72d672&gt;retire aussi la contamination&lt;/color&gt; de manière subtile.</ZombieSymbiantInfoCardDetails>
+	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;État actuel&lt;/color&gt; : &lt;color=#72d672&gt;{0} cases&lt;/color&gt;. Prochain avantage à &lt;color=#72d672&gt;{1} cases&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Santé partagée&lt;/color&gt; : {4}. Les dégâts visant l'hôte vident d'abord cette réserve ; à cette taille, seulement &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; subsiste sous forme de véritable blessure sur {6}. Les dégâts directs sur le Symbiant vident aussi cette réserve, mais ne laissent que des entrées grises inoffensives dans le dossier de santé, sans véritable blessure sur {6}. Si cette réserve est épuisée, {6} meurt.\n\n&lt;color=#ffb35c&gt;Règle de carte&lt;/color&gt; : l'hôte et le Symbiant doivent être sur la même carte. S'ils sont séparés, le lien devient dormant et ne peut pas être retiré par opération. Il ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte. Abandonner cette carte détruit le Symbiant et rompt le lien de force ; une opération le retire en toute sécurité.\n\n&lt;color=#ffb35c&gt;Effets actuels&lt;/color&gt; :\n{2}\n\n&lt;color=#72d672&gt;Avantages actuels&lt;/color&gt; :\n{3}\n\nIl &lt;color=#72d672&gt;retire aussi la contamination&lt;/color&gt; de manière subtile.</ZombieSymbiantInfoCardDetails>
 	<SymbiantDetailsInfoCard>Détails du Symbiant</SymbiantDetailsInfoCard>
 	<SymbiantDetailsInfoCardValue>{0} cases</SymbiantDetailsInfoCardValue>
 	<LetterLabelSymbiantBenefitGained>Avantage du Symbiant obtenu</LetterLabelSymbiantBenefitGained>
@@ -122,6 +122,12 @@
 	<AnomalyTargetOtherEntities>Autres entités Anomaly</AnomalyTargetOtherEntities>
 	<AnomalyTargetNociosphere>Nociosphère</AnomalyTargetNociosphere>
 	<AnomalyZombieHostilityRelations>Les pions Anomaly peuvent attaquer les zombies :</AnomalyZombieHostilityRelations>
+	<FleshmassCollisionTitle>Attaquer la masse charnelle</FleshmassCollisionTitle>
+	<FleshmassCollisionDescription>La masse charnelle issue du cœur peut être attaquée par :</FleshmassCollisionDescription>
+	<OrdinaryZombiesAttackFleshmass>Les zombies ordinaires</OrdinaryZombiesAttackFleshmass>
+	<TankyAndSuicideZombiesAttackFleshmass>Les zombies opérateurs blindés et kamikazes</TankyAndSuicideZombiesAttackFleshmass>
+	<FormerColonistAndSpecialZombiesAttackFleshmass>Les anciens colons et autres zombies spéciaux</FormerColonistAndSpecialZombiesAttackFleshmass>
+	<FleshmassOnlyColonistsNote>Les zombies n'attaquent que les colons pour le moment, donc ils laissent la masse charnelle tranquille et ces options n'ont aucun effet.</FleshmassOnlyColonistsNote>
 	<AnomalyTargetingOverride_Automatic>Automatique</AnomalyTargetingOverride_Automatic>
 	<AnomalyTargetingOverride_Never>Jamais</AnomalyTargetingOverride_Never>
 	<AnomalyTargetingOverride_Allow>Autoriser</AnomalyTargetingOverride_Allow>
@@ -143,7 +149,7 @@
 	<DynamicThreatSmoothness>Lissage de la courbe de menace</DynamicThreatSmoothness>
 	<DynamicThreatStretch>Étirement de la courbe de menace</DynamicThreatStretch>
 	<ZombiesDieOnZeroThreat>Les zombies meurent quand la menace est à 0 %</ZombiesDieOnZeroThreat>
-	<ZombieFreeEvents>Événements de voyage sans zombies</ZombieFreeEvents>
+	<ZombieFreeEvents>Événements de silence des zombies</ZombieFreeEvents>
 	<ThreatLevel>niveau de menace</ThreatLevel>
 	<ThreatForecast>Prévision des menaces</ThreatForecast>
 	<Next14Days>14 prochains jours</Next14Days>
@@ -259,7 +265,6 @@
 	<RopeZombie>Capturer ce zombie</RopeZombie>
 	<Activate>Activer</Activate>
 	<ActivateDescription>Active l'appareil. Les zombies dans la pièce perdent conscience.</ActivateDescription>
-	<WrongPlacementZombieShocker>L'appareil ne peut pas être placé ici.</WrongPlacementZombieShocker>
 	<ColonistsBittenByZombie>Colon mordu par un zombie</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Ces colons ont été mordus par un zombie. A ce stade, on ne sait pas s’ils vont développer l’infection:\n\n{0}\nSurveillez les blessures car les infections prennent du temps à se développer.</ColonistsBittenByZombieDesc>
 	<ImminentZombiInfection>Zombification imminente</ImminentZombiInfection>
@@ -293,7 +298,6 @@
 	<ZombieShockerLowBatteryState>L'appareil a épuisé les batteries connectées</ZombieShockerLowBatteryState>
 	<ShowHealthBar>Barre de santé de zombies</ShowHealthBar>
 	<ShowZombieStats>Afficher les statistiques des zombies</ShowZombieStats>
-	<SnowAndSandClear>Déneigement et désensablement</SnowAndSandClear>
 	<ShowZombieRisk>Afficher le risque zombie</ShowZombieRisk>
 	<ZombieRiskAreaColumnHintLong>Règles de zone Zombieland : les infractions s'affichent en haut de l'écran pendant la partie</ZombieRiskAreaColumnHintLong>
 	<ZombieRiskAreaColumnHintMedium>Infractions Zombieland affichées en haut de l'écran</ZombieRiskAreaColumnHintMedium>

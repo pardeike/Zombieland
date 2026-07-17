@@ -5,7 +5,7 @@
 	<ZombielandRevealPlayerLog>Показать Player.log</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Не удалось показать Player.log. Путь скопирован в буфер обмена.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland не смог найти путь к Player.log.</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>Наведите курсор на любой элемент, чтобы прочитать справку о нём справа. Все настройки можно изменить во время игры, и они сразу вступят в силу; настройки сохраняются вместе с игрой.\n\nЧтобы задать значения по умолчанию для новых игр, измените настройки на главном экране (Настройки / Настройки модов / Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Наведите курсор на любую настройку, чтобы увидеть её справку справа. Все настройки можно изменить во время игры, и они сразу вступят в силу; настройки сохраняются вместе с игрой.\n\nЧтобы задать значения по умолчанию для новых игр, измените настройки на главном экране (Настройки / Настройки модов / Zombieland).</Zombieland_Settings>
 	<ZombieLandKeyframes>Добавьте ключевые кадры по времени. Проверьте значения с ползунком. Только кадры редактируемы.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- первый ключевой кадр (начало игры) ... будущее время игры -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>Регулирует сложность почти всех вещей в Zombieland, таких как способности зомби, прогноз угрозы и многое другое.</Difficulty_ZombielandThreatScale_Info>
@@ -30,7 +30,7 @@
 	<ZombiesSpitter>На карту проник зомби-плевун, и он будет осаждать вас</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>Зомби-симбионт связан с {0}</LetterLabelZombieSymbiant>
 	<LetterLabelZombieSymbiantNoHost>Появился зомби-симбионт</LetterLabelZombieSymbiantNoHost>
-	<ZombieSymbiant>Зомби-симбионт появился в {0} и связался с {1}. Он расползается по оживлённым внутренним комнатам. Пешки, пересекающие его, замедляются, кроме носителя. Носитель получает иммунитет к зомби-инфекции от укусов и случайные преимущества по мере роста симбионта. Кормите его трупами, чтобы ускорить рост.\n\nНоситель и симбионт должны оставаться на одной карте: если они разделены, связь засыпает и не может быть чисто удалена в спящем состоянии. Связь может восстановиться только в том случае, если тот же носитель и симбионт снова окажутся на одной карте. Если бросить карту симбионта, он будет уничтожен, а связь принудительно разорвана.\n\nСначала проведите операцию на {1}, чтобы чисто удалить связь; симбионт без носителя затем отступит.</ZombieSymbiant>
+	<ZombieSymbiant>Зомби-симбионт появился в {0} и связался с {1}. Он расползается по оживлённым внутренним комнатам. Пешки, пересекающие его, замедляются, кроме носителя. Носитель получает иммунитет к зомби-инфекции от укусов и случайные преимущества по мере роста симбионта. Кормите его трупами, чтобы ускорить рост.\n\nНоситель и симбионт должны оставаться на одной карте: если они разделены, связь засыпает и не может быть удалена, пока она спит. Связь просыпается, только когда тот же носитель и симбионт снова окажутся на одной карте. Если бросить карту симбионта, он будет уничтожен, а связь принудительно разорвана.\n\nСначала проведите операцию на {1}, чтобы безопасно удалить связь; симбионт без носителя затем отступит.</ZombieSymbiant>
 	<ZombieSymbiantNoHost>Зомби-симбионт появился в {0}. Он расползается по оживлённым внутренним комнатам. Кормите его трупами, чтобы ускорить рост.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>одна из ваших комнат</ZombieSymbiantUnknownRoom>
 	<ZombieSymbiantInspect>Связанный носитель: {0}, размер: {1} клеток, общее здоровье: {2}, следующее преимущество на {3} клетках</ZombieSymbiantInspect>
@@ -42,7 +42,7 @@
 	<SymbiantSharedHealthSummary>{0} из {1}</SymbiantSharedHealthSummary>
 	<SymbiantDamageEchoLabel>{0}: {1} ед. урона</SymbiantDamageEchoLabel>
 	<SymbiantDamageEchoOther>прочее</SymbiantDamageEchoOther>
-	<SymbiantDamageEchoDescription>Суммарный урон, поглощённый связанным симбионтом за время текущей связи: {0}. Это лишь запись: она не ранит и не ослабляет носителя, не вызывает кровотечение, не сбивает с ног и не убивает.</SymbiantDamageEchoDescription>
+	<SymbiantDamageEchoDescription>Суммарный урон, поглощённый связанным симбионтом за время текущей связи: {0}. Это лишь запись: она не наносит носителю ни ран, ни кровотечений, ни какого-либо иного вреда.</SymbiantDamageEchoDescription>
 	<SymbiantSharedHealthRecoveryDescription>После {0} без общего урона симбионт восстанавливает {1} недостающего общего здоровья каждые {2}.</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>кормит симбионта</FeedingZombieSymbiant>
 	<SymbiantFedMote>клетки +{1}</SymbiantFedMote>
@@ -50,14 +50,14 @@
 	<SeverSymbiantSymbiosis>удалить связь симбионта</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>удалить связь симбионта ({0} зомби-экстракта)</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>Связь симбионта у {0} удалена.</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>Симбионт: {0}/{1} клеток. Следующее преимущество на {2} клетках. Общее здоровье: {3}. Когда удар приходится по носителю, полный урон сначала вычитается из общего здоровья; при текущем размере &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; остаётся настоящей раной носителя. Атаки на симбионта создают безвредные серые записи вместо ран носителя.\n\nПравило карты: носитель и симбионт должны быть на одной карте, чтобы связь была активной и могла быть чисто удалена. Если они разделены, связь засыпает. Связь может восстановиться только в том случае, если тот же носитель и симбионт снова окажутся на одной карте. Если бросить карту симбионта, он будет уничтожен, а связь принудительно разорвана; операция сначала чисто удаляет связь.\n\nПреимущества:\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>Симбионт: {0}/{1} клеток. Следующее преимущество на {2} клетках. Общее здоровье: {3}. Когда удар приходится по носителю, полный урон сначала вычитается из общего здоровья; при текущем размере &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; остаётся настоящей раной носителя. Атаки на симбионта оставляют лишь безвредные серые записи в карте здоровья вместо настоящих ран.\n\nПравило карты: носитель и симбионт должны быть на одной карте. Если они разделены, связь засыпает и не может быть удалена операцией. Связь просыпается, только когда тот же носитель и симбионт снова окажутся на одной карте. Если бросить карту симбионта, он будет уничтожен, а связь принудительно разорвана; безопасный способ — сначала удалить связь операцией.\n\nПреимущества:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>К этому носителю не привязан активный симбионт.</SymbiantHostBondMissing>
-	<SymbiantHostRelocatedMessage>Связь симбионта у {0} перешла в спящий режим, потому что носитель и симбионт находятся на разных картах. Связь сохраняется. В спящем режиме не действуют все преимущества (включая иммунитет к зомби-инфекции), передача общего урона и хирургическое разъединение. Связь может восстановиться только в том случае, если тот же носитель и симбионт снова окажутся на одной карте.</SymbiantHostRelocatedMessage>
+	<SymbiantHostRelocatedMessage>Связь симбионта у {0} перешла в спящий режим, потому что носитель и симбионт находятся на разных картах. Связь сохраняется, но пока она спит, все преимущества (включая иммунитет к зомби-инфекции) теряются, урон больше не делится, а связь нельзя удалить операцией. Связь просыпается, только когда тот же носитель и симбионт снова окажутся на одной карте.</SymbiantHostRelocatedMessage>
 	<LetterLabelSymbiantBondDormant>Связь с симбионтом спит</LetterLabelSymbiantBondDormant>
 	<SymbiantMapAbandonWarningTitle>Бросить карту с симбионтом?</SymbiantMapAbandonWarningTitle>
-	<SymbiantMapAbandonWarning>На этой карте есть живой, привязанный к карте зомби-симбионт. Если бросить карту, симбионт будет уничтожен, а любая оставшаяся связь будет принудительно разорвана. Сначала удалите связь с симбионтом операцией, если хотите обычное разделение.\n\nВсё равно бросить эту карту?</SymbiantMapAbandonWarning>
+	<SymbiantMapAbandonWarning>На этой карте есть живой зомби-симбионт. Если бросить карту, он будет уничтожен, а любая оставшаяся связь будет принудительно разорвана. Если хотите безопасно разделить носителя и симбионта, сначала удалите связь операцией.\n\nВсё равно бросить эту карту?</SymbiantMapAbandonWarning>
 	<SymbiantReseededMessage>Симбионт у {0} перешёл в другую внутреннюю комнату.</SymbiantReseededMessage>
-	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Текущее состояние&lt;/color&gt;: &lt;color=#72d672&gt;{0} клеток&lt;/color&gt;. Следующее преимущество на &lt;color=#72d672&gt;{1} клетках&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Общее здоровье&lt;/color&gt;: {4}. Урон, направленный в носителя, сначала расходует этот запас; при таком размере только &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; остаётся настоящей раной у {6}. Прямой урон симбионту расходует запас после обработки попадания самим симбионтом, но создаёт у {6} только безвредные серые записи истории и не наносит настоящей раны. Если этот запас закончится, {6} умрёт.\n\n&lt;color=#ffb35c&gt;Правило карты&lt;/color&gt;: носитель и симбионт должны быть на одной карте, чтобы связь была активной и могла быть чисто удалена. Если они разделены, связь засыпает. Связь может восстановиться только в том случае, если тот же носитель и симбионт снова окажутся на одной карте. Если бросить эту карту, симбионт будет уничтожен, а связь принудительно разорвана. Операция сначала чисто удаляет связь.\n\n&lt;color=#ffb35c&gt;Текущие эффекты&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Текущие преимущества&lt;/color&gt;:\n{3}\n\nОн также &lt;color=#72d672&gt;удаляет загрязнение&lt;/color&gt; незаметными способами.</ZombieSymbiantInfoCardDetails>
+	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Текущее состояние&lt;/color&gt;: &lt;color=#72d672&gt;{0} клеток&lt;/color&gt;. Следующее преимущество на &lt;color=#72d672&gt;{1} клетках&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Общее здоровье&lt;/color&gt;: {4}. Урон, направленный в носителя, сначала расходует этот запас; при таком размере только &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; остаётся настоящей раной у {6}. Прямой урон симбионту тоже расходует этот запас, но оставляет лишь безвредные серые записи в карте здоровья и не наносит {6} настоящей раны. Если этот запас закончится, {6} умрёт.\n\n&lt;color=#ffb35c&gt;Правило карты&lt;/color&gt;: носитель и симбионт должны быть на одной карте. Если они разделены, связь засыпает и не может быть удалена операцией. Связь просыпается, только когда тот же носитель и симбионт снова окажутся на одной карте. Если бросить эту карту, симбионт будет уничтожен, а связь принудительно разорвана; операция удаляет связь безопасно.\n\n&lt;color=#ffb35c&gt;Текущие эффекты&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Текущие преимущества&lt;/color&gt;:\n{3}\n\nОн также &lt;color=#72d672&gt;удаляет загрязнение&lt;/color&gt; незаметными способами.</ZombieSymbiantInfoCardDetails>
 	<SymbiantDetailsInfoCard>Сведения о симбионте</SymbiantDetailsInfoCard>
 	<SymbiantDetailsInfoCardValue>{0} клеток</SymbiantDetailsInfoCardValue>
 	<LetterLabelSymbiantBenefitGained>Получено преимущество симбионта</LetterLabelSymbiantBenefitGained>
@@ -100,7 +100,7 @@
 	<SpawnWhenType_AllTheTime>Всё время</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>Только ночью</SpawnWhenType_WhenDark>
 	<SpawnWhenType_InEventsOnly>Только как события</SpawnWhenType_InEventsOnly>
-	<HowDoZombiesSpawn>Как зомби будут появляться?</HowDoZombiesSpawn>
+	<HowDoZombiesSpawn>Откуда зомби будут появляться?</HowDoZombiesSpawn>
 	<SpawnHowType_AllOverTheMap>Из земли</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>От краёв карты</SpawnHowType_FromTheEdges>
 	<SmartWandering>Стиль движения</SmartWandering>
@@ -122,6 +122,12 @@
 	<AnomalyTargetOtherEntities>Другие сущности Anomaly</AnomalyTargetOtherEntities>
 	<AnomalyTargetNociosphere>Ноциосфера</AnomalyTargetNociosphere>
 	<AnomalyZombieHostilityRelations>Пешки Anomaly могут атаковать зомби:</AnomalyZombieHostilityRelations>
+	<FleshmassCollisionTitle>Атака на плоть</FleshmassCollisionTitle>
+	<FleshmassCollisionDescription>Плоть, выращенную сердцем плоти, могут атаковать:</FleshmassCollisionDescription>
+	<OrdinaryZombiesAttackFleshmass>Обычные зомби</OrdinaryZombiesAttackFleshmass>
+	<TankyAndSuicideZombiesAttackFleshmass>Бронированные зомби-операторы и зомби-смертники</TankyAndSuicideZombiesAttackFleshmass>
+	<FormerColonistAndSpecialZombiesAttackFleshmass>Бывшие поселенцы и другие особые зомби</FormerColonistAndSpecialZombiesAttackFleshmass>
+	<FleshmassOnlyColonistsNote>Сейчас зомби атакуют только поселенцев, поэтому не трогают плоть, и эти настройки не действуют.</FleshmassOnlyColonistsNote>
 	<AnomalyTargetingOverride_Automatic>Автоматически</AnomalyTargetingOverride_Automatic>
 	<AnomalyTargetingOverride_Never>Никогда</AnomalyTargetingOverride_Never>
 	<AnomalyTargetingOverride_Allow>Разрешить</AnomalyTargetingOverride_Allow>
@@ -143,7 +149,7 @@
 	<DynamicThreatSmoothness>Плавность кривой угрозы</DynamicThreatSmoothness>
 	<DynamicThreatStretch>Растяжение кривой угрозы</DynamicThreatStretch>
 	<ZombiesDieOnZeroThreat>Зомби умирают при 0% угрозе</ZombiesDieOnZeroThreat>
-	<ZombieFreeEvents>События путешествий без зомби</ZombieFreeEvents>
+	<ZombieFreeEvents>События «Тишина зомби»</ZombieFreeEvents>
 	<ThreatLevel>уровень угрозы</ThreatLevel>
 	<ThreatForecast>Прогноз угрозы</ThreatForecast>
 	<Next14Days>Следующие 14 дней</Next14Days>
@@ -259,7 +265,6 @@
 	<RopeZombie>Захват зомби</RopeZombie>
 	<Activate>Активировать</Activate>
 	<ActivateDescription>Активирует устройство. Все зомби в комнате теряют сознание.</ActivateDescription>
-	<WrongPlacementZombieShocker>Устройство не может быть размещено здесь.</WrongPlacementZombieShocker>
 	<ColonistsBittenByZombie>Поселенец, укушенный зомби</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>Эти поселенцы были укушены зомби. На данный момент неясно, разовьется ли у них инфекция:\n\n{0}\nВнимательно следите за их ранами, потому что инфекциям нужно время, чтобы проявиться.</ColonistsBittenByZombieDesc>
 	<ImminentZombiInfection>Неминуемая зомби-инфекция</ImminentZombiInfection>
@@ -293,7 +298,6 @@
 	<ZombieShockerLowBatteryState>Устройство разрядило подключённые батареи</ZombieShockerLowBatteryState>
 	<ShowHealthBar>Полоски здоровья зомби</ShowHealthBar>
 	<ShowZombieStats>Показать статистику зомби</ShowZombieStats>
-	<SnowAndSandClear>Очистка снега и песка</SnowAndSandClear>
 	<ShowZombieRisk>Показать зомби-риск</ShowZombieRisk>
 	<ZombieRiskAreaColumnHintLong>Правила зон Zombieland: нарушения отображаются вверху экрана во время игры</ZombieRiskAreaColumnHintLong>
 	<ZombieRiskAreaColumnHintMedium>Нарушения Zombieland отображаются вверху</ZombieRiskAreaColumnHintMedium>

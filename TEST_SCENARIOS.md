@@ -962,3 +962,81 @@ Follow-up coverage:
 - Natural-base disruption: work-stat, tend-speed, path-cost, item-reach behavior, and multi-room relocation in a more organic colony layout.
 - Feeding variants: humanlike/non-humanlike corpse freshness and body-size pulse strengths.
 - Endurance/performance: bridge-only 4000-cell render ceiling, many-pawn pathing stress, and normal-play log cleanliness over longer runtime.
+
+## S-Fleshmass-Collision
+
+Status:
+- Completed on 2026-07-16 against installed Steam RimWorld `1.6.4871 rev597`
+  and Assembly-CSharp MVID `967ddb80559449f0a776dafa26a855d1`.
+
+Fixtures:
+- Clean immutable base: `ZL_Fleshmass_Base_00.rws`.
+- Reusable save/load fixture: `ZL_Fleshmass_Collision_00.rws`.
+- Active-Biotech category fixture: `ZL_Ticking_Player_100.rws`; its recorded
+  mod identifiers were checked before loading it.
+
+Bridge contracts:
+- `zombieland/fleshmass_collision_contract` is the fast direct 36-case
+  contract for required defs, category ordering, settings defaults/copy/
+  timeline/import, patch registration, shared target gates, heart immunity,
+  `OnlyColonists`, suicide arming, and response accounting.
+- `zombieland/fleshmass_collision_scenario` is the reusable async scenario.
+  Its `all` stage reloads the clean base before each of `attacks`,
+  `response`, `sourceLoss`, `saveLoad`, and `dense` so one stage cannot
+  contaminate the next. The ordinary `response` case uses a connected 7x7
+  sourced field and requires a witnessed live `AttackStatic` to destroy its
+  selected root plus at least four additional cells; isolated one-cell
+  `attacks` cases are only the category and smash-mode matrix.
+
+Runtime evidence:
+- Normal Anomaly/Odyssey profile direct contract
+  `op_d4dfd7ecacfe4136b8efdc6ce5176f36` passed 36/36. The same final DLL pair
+  on the compatible all-official-DLC save passed 36/36 in
+  `op_b3c165266582463596f697356e37e9cf`; with Biotech active it proved an
+  ordinary child maps to `Ordinary`, while child former-colonist and child
+  special zombies map to `FormerColonistAndSpecial`.
+- Consolidated operation `op_a42ed6862ad642dda5d70266355eaa84`
+  passed all five live stages. Attacks passed 12/12. Ordinary response
+  destroyed 8 cells and advanced `1 -> 162`; suicide response observed real
+  arming/explosion, destroyed 13 cells, and advanced `1 -> 174`. Both spawned
+  an assault-lord fleshbeast and leaked zero response letters.
+- The 2026-07-17 review follow-up made the live cascade criterion explicit.
+  Focused response operation `op_806da6193fd54ff598b438b11dd0706b`
+  witnessed an ordinary `AttackStatic`, destroyed its selected root and 5/49
+  connected cells, and reported `liveCascadeObserved=true`; the suicide case
+  destroyed 12/49. Focused attack operation
+  `op_a13fdfced8d94539a89af85a4381ada0` passed 12/12, including valid tank
+  route parents equal to both intended route destinations. Post-cleanup map
+  inspection found zero named scenario things and zero matching tank corpses.
+  Final direct operation `op_f721cb311edf482d987542057780b23b`
+  passed 36/36 and identified the exact consolidated explosion prefix and
+  finalizer. All three operation-scoped warning queries were empty.
+- Source loss was captured during a real `AttackStatic` full-body strike. The
+  stored heart source was destroyed/unspawned before zombie-attributed damage;
+  response stayed at `1000` after the attack and after eight later
+  `KillFinalize` decay cells, with no new letters.
+- Save/load paused during an in-flight full-body `AttackStatic`. The job,
+  stance, three settings, and two-keyframe timeline persisted; normal AI
+  reacquired after load, destroyed the target, and left the observer colonist
+  alive.
+- The dense two-heart fortress used 120 zombies. It reached 62 concurrent
+  actions, resumed 46 after the observation boundary, destroyed 118 flesh
+  cells, preserved all 49 fortress pieces and both colonists, spawned six
+  fleshbeasts including four assault-lord members, and leaked zero response
+  letters.
+- The live settings dialog showed all three default-on category checkboxes and
+  the `Only colonists` faction note. The note was proved after a real
+  temporary UI change to `OnlyColonists`, then `Everything` was restored.
+- Final normal-profile warning query `op_f43f531aa38841fbb6510ffc1d24d423`
+  returned no warning-or-higher entries. The active-Biotech child-contract
+  warning query `op_9621fddbcfcf4a208a6b1c9709cf6939` was also empty after
+  the startup cursor. After restoring the original mod profile,
+  `op_d9bc174aa2bd4de79fa30807b3305071` confirmed `attackMode=Everything`
+  and all three flesh settings enabled; restored-profile warning query
+  `op_11406429912b47618e08527683d76f2e` was empty. The game was left paused
+  on `ZL_Fleshmass_Base_00`.
+
+Completion:
+- Category gating, response accounting, touching fields, concurrent attacks,
+  source loss, save/load, dense-horde behavior, settings persistence/timeline,
+  live UI wording, exact Biotech child ordering, and clean logs are covered.

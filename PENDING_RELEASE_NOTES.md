@@ -2,3 +2,7 @@
 - Added an advanced option to disable start-screen color flicker.
 - Added an option to mute Symbiant splash sounds.
 - Added three new Zombieland music tracks: Floating, Seeker, and Found.
+- Zombies can now attack Anomaly fleshmass, with separate controls for ordinary zombies, tanky operator and suicide bomber zombies, and former colonists and other special zombies.
+- Renamed the "Zombie-free travel events" setting to "Zombie silence events" so it matches the zombie silence event it controls.
+- Reworded many settings, help, and Symbiant texts in all languages to use simpler, clearer, game-style wording instead of technical phrasing.
+- Removed two unused text entries from all languages.

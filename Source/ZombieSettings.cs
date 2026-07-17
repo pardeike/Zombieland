@@ -191,6 +191,9 @@ namespace ZombieLand
 		public AnomalyTargetingOverride anomalyEntityTargeting = AnomalyTargetingOverride.Automatic;
 		public AnomalyTargetingOverride anomalyNociosphereTargeting = AnomalyTargetingOverride.Automatic;
 		public AnomalyTargetingOverride anomalyAttacksZombies = AnomalyTargetingOverride.Automatic;
+		public bool ordinaryZombiesAttackFleshmass = true;
+		public bool tankyAndSuicideZombiesAttackFleshmass = true;
+		public bool formerColonistAndSpecialZombiesAttackFleshmass = true;
 		public SmashMode smashMode = SmashMode.DoorsOnly;
 		public bool smashOnlyWhenAgitated = true;
 		public bool doubleTapRequired = true;

@@ -1382,7 +1382,7 @@ namespace ZombieLand
 				var pos = info.GetParent(basePos, false);
 				if (pos.IsValid == false)
 					pos = info.GetParent(basePos, true);
-				if (pos.IsValid && pos.GetEdifice(zombie.Map) is Building building && CanSmashBuilding(building, attackColonistsOnly, playerFaction))
+				if (pos.IsValid && pos.GetEdifice(zombie.Map) is Building building && CanSmashBuilding(zombie, building, attackColonistsOnly, playerFaction))
 					return building;
 				return null;
 			}
@@ -1407,8 +1407,13 @@ namespace ZombieLand
 					if (pos.InBounds(map) == false)
 						continue;
 
-					if (pos.GetEdifice(map) is Building_Door door && door.Open == false && CanSmashBuilding(door, attackColonistsOnly, playerFaction))
-						return door;
+					if (pos.GetEdifice(map) is not Building building)
+						continue;
+
+					var isClosedDoor = building is Building_Door door && door.Open == false;
+					if ((isClosedDoor || FleshmassCollision.IsSourcedActiveFlesh(building))
+						&& CanSmashBuilding(zombie, building, attackColonistsOnly, playerFaction))
+						return building;
 				}
 			}
 
@@ -1426,7 +1431,7 @@ namespace ZombieLand
 						if (thing is not Building building || (building as Mineable) != null)
 							continue;
 
-						if (CanSmashBuilding(building, attackColonistsOnly, playerFaction))
+						if (CanSmashBuilding(zombie, building, attackColonistsOnly, playerFaction))
 						{
 							if (zombie.IsSuicideBomber)
 							{
@@ -1443,19 +1448,20 @@ namespace ZombieLand
 			return null;
 		}
 
-		static bool CanSmashBuilding(Building building, bool attackColonistsOnly, Faction playerFaction)
+		static bool CanSmashBuilding(Zombie zombie, Building building, bool attackColonistsOnly, Faction playerFaction)
 		{
 			if (building == null || (building as Mineable) != null)
 				return false;
 
 			var buildingDef = building.def;
 			var buildingProperties = buildingDef?.building;
-			return buildingDef?.useHitPoints == true
+			var ordinaryBuildingRulesAllow = buildingDef?.useHitPoints == true
 				&& buildingProperties != null
 				&& buildingProperties.isNaturalRock == false
 				&& buildingProperties.isTargetable
 				&& buildingProperties.canBeDamagedByAttacks
 				&& (attackColonistsOnly == false || building.Faction == playerFaction);
+			return FleshmassCollision.AllowsDeliberateTarget(zombie, building, ordinaryBuildingRulesAllow);
 		}
 
 		// helpers ==================================================================================

@@ -5,7 +5,7 @@
 	<ZombielandRevealPlayerLog>Reveal Player.log</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Could not reveal Player.log. The path was copied to the clipboard.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland could not find the Player.log path.</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>Hover over any element to read help text about it to the right. All settings can be changed in-game and take effect immediately; they are saved with the game.\n\nTo set defaults for new games, change the settings from the main menu (Options / Mods / Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Hover over any setting to see its help text on the right. All settings can be changed in-game and take effect immediately; they are saved with the game.\n\nTo set defaults for new games, change the settings from the main menu (Options / Mods / Zombieland).</Zombieland_Settings>
 	<ZombieLandKeyframes>You can add keyframes that define how settings change over game time. Use the slider to preview the values in between. Settings can only be edited at a keyframe.</ZombieLandKeyframes>
 	<ZombieLandKeyframe0>&lt;- first keyframe (start of the game) . . . future game time -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>Controls the difficulty of almost all things in Zombieland, like zombie abilities, threat forecast, and much more.</Difficulty_ZombielandThreatScale_Info>
@@ -30,7 +30,7 @@
 	<ZombiesSpitter>A zombie spitter has entered the map and will lay siege to you</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>Zombie Symbiant linked to {0}</LetterLabelZombieSymbiant>
 	<LetterLabelZombieSymbiantNoHost>Zombie Symbiant surfaced</LetterLabelZombieSymbiantNoHost>
-	<ZombieSymbiant>A Zombie Symbiant has surfaced in {0} and linked itself to {1}. It spreads through busy indoor rooms. Pawns crossing it are slowed, except the host. The host is immune to zombie infection from bites and gains random benefits as the Symbiant grows. Feed it corpses to make it grow faster.\n\nKeep host and Symbiant on the same map: if they are separated, the bond goes dormant and cannot be cleanly removed while dormant. It can reactivate only if the same host and Symbiant are present on one map again. Abandoning the Symbiant's map destroys it and forcibly breaks the bond.\n\nOperate on {1} first to remove the bond cleanly; the unbound Symbiant will shrink away.</ZombieSymbiant>
+	<ZombieSymbiant>A Zombie Symbiant has surfaced in {0} and linked itself to {1}. It spreads through busy indoor rooms. Pawns crossing it are slowed, except the host. The host is immune to zombie infection from bites and gains random benefits as the Symbiant grows. Feed it corpses to make it grow faster.\n\nKeep host and Symbiant on the same map: if they are separated, the bond goes dormant and cannot be removed while it sleeps. It wakes up again only when the same host and Symbiant are back on one map. Abandoning the Symbiant's map destroys it and forcibly breaks the bond.\n\nOperate on {1} first to remove the bond safely; the unbound Symbiant will shrink away.</ZombieSymbiant>
 	<ZombieSymbiantNoHost>A Zombie Symbiant has surfaced in {0}. It spreads through busy indoor rooms. Feed it corpses to make it grow faster.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>one of your rooms</ZombieSymbiantUnknownRoom>
 	<ZombieSymbiantInspect>Linked host: {0}, size: {1} cells, shared health: {2}, next benefit at {3} cells</ZombieSymbiantInspect>
@@ -42,7 +42,7 @@
 	<SymbiantSharedHealthSummary>{0} of {1}</SymbiantSharedHealthSummary>
 	<SymbiantDamageEchoLabel>{0}: {1} damage</SymbiantDamageEchoLabel>
 	<SymbiantDamageEchoOther>other</SymbiantDamageEchoOther>
-	<SymbiantDamageEchoDescription>Cumulative damage absorbed by the linked Symbiant during the current bond: {0}. This is only a record; it does not injure, impair, bleed, down, or kill the host.</SymbiantDamageEchoDescription>
+	<SymbiantDamageEchoDescription>Cumulative damage absorbed by the linked Symbiant during the current bond: {0}. This is only a record; it causes no injuries, bleeding, or any other harm to the host.</SymbiantDamageEchoDescription>
 	<SymbiantSharedHealthRecoveryDescription>After {0} without shared damage, the Symbiant recovers {1} of its missing shared health every {2}.</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>feeding the Symbiant</FeedingZombieSymbiant>
 	<SymbiantFedMote>+{1} cells</SymbiantFedMote>
@@ -50,14 +50,14 @@
 	<SeverSymbiantSymbiosis>Remove the Symbiant bond</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>Remove the Symbiant bond ({0} zombie extract)</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>{0}'s Symbiant bond has been removed.</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>Symbiant: {0}/{1} cells. Next benefit at {2} cells. Shared health: {3}. When the host is hit, the full attack drains shared health first; &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; remains as a real host injury at the current size. Attacks on the Symbiant create harmless grey history echoes instead of host injuries.\n\nMap rule: host and Symbiant must be on the same map for an active, cleanly removable bond. If separated, the bond goes dormant. It can reactivate only if the same host and Symbiant are present on one map again. Abandoning the Symbiant's map destroys it and forcibly breaks the bond; surgery removes the bond cleanly first.\n\nBenefits:\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>Symbiant: {0}/{1} cells. Next benefit at {2} cells. Shared health: {3}. When the host is hit, the full attack drains shared health first; &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; remains as a real host injury at the current size. Attacks on the Symbiant leave only harmless grey entries in the health record instead of real injuries.\n\nMap rule: host and Symbiant must be on the same map. If separated, the bond goes dormant and cannot be removed by surgery. It wakes up again only when the same host and Symbiant are back on one map. Abandoning the Symbiant's map destroys it and forcibly breaks the bond; removing the bond by surgery first is the safe way.\n\nBenefits:\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>No active Symbiant is linked to this host.</SymbiantHostBondMissing>
-	<SymbiantHostRelocatedMessage>{0}'s Symbiant bond is dormant because the host and Symbiant are not present on the same map. The link remains. While dormant, every benefit (including zombie infection immunity), shared-damage transfer, and surgical severance are inactive. The bond can reactivate only if the same host and Symbiant are present on one map again.</SymbiantHostRelocatedMessage>
+	<SymbiantHostRelocatedMessage>{0}'s Symbiant bond is dormant because host and Symbiant are not on the same map. The link remains, but while it sleeps all benefits (including zombie infection immunity) are lost, damage is no longer shared, and the bond cannot be removed by surgery. It wakes up again only when the same host and Symbiant are back on one map.</SymbiantHostRelocatedMessage>
 	<LetterLabelSymbiantBondDormant>Symbiant bond dormant</LetterLabelSymbiantBondDormant>
 	<SymbiantMapAbandonWarningTitle>Abandon map with Symbiant?</SymbiantMapAbandonWarningTitle>
-	<SymbiantMapAbandonWarning>This map contains a live, map-bound Zombie Symbiant. Abandoning the map will destroy the Symbiant and forcibly break any remaining bond. Remove the Symbiant bond by surgery first if you want the normal separation flow.\n\nAbandon this map anyway?</SymbiantMapAbandonWarning>
+	<SymbiantMapAbandonWarning>This map contains a living Zombie Symbiant. Abandoning the map will destroy it and forcibly break any remaining bond. If you want to separate host and Symbiant safely, remove the bond by surgery first.\n\nAbandon this map anyway?</SymbiantMapAbandonWarning>
 	<SymbiantReseededMessage>{0}'s Symbiant moved into another indoor room.</SymbiantReseededMessage>
-	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Current state&lt;/color&gt;: &lt;color=#72d672&gt;{0} cells&lt;/color&gt;. Next benefit at &lt;color=#72d672&gt;{1} cells&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Shared health&lt;/color&gt;: {4}. Damage aimed at the host drains this pool first; at this size, only &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; remains as a real injury on {6}. Direct damage to the Symbiant drains the pool after the Symbiant processes the hit, but creates only harmless grey history echoes and no real injury on {6}. If this pool runs out, {6} dies.\n\n&lt;color=#ffb35c&gt;Map rule&lt;/color&gt;: host and Symbiant must be on the same map for an active, cleanly removable bond. If separated, the bond goes dormant. It can reactivate only if the same host and Symbiant are present on one map again. Abandoning this map destroys the Symbiant and forcibly breaks the bond. Surgery removes the bond cleanly first.\n\n&lt;color=#ffb35c&gt;Current effects&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Current benefits&lt;/color&gt;:\n{3}\n\nIt also &lt;color=#72d672&gt;removes contamination&lt;/color&gt; in subtle ways.</ZombieSymbiantInfoCardDetails>
+	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;Current state&lt;/color&gt;: &lt;color=#72d672&gt;{0} cells&lt;/color&gt;. Next benefit at &lt;color=#72d672&gt;{1} cells&lt;/color&gt;.\n\n&lt;color=#72d672&gt;Shared health&lt;/color&gt;: {4}. Damage aimed at the host drains this pool first; at this size, only &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; remains as a real injury on {6}. Direct damage to the Symbiant also drains this pool, but leaves only harmless grey entries in the health record and no real injury on {6}. If this pool runs out, {6} dies.\n\n&lt;color=#ffb35c&gt;Map rule&lt;/color&gt;: host and Symbiant must be on the same map. If separated, the bond goes dormant and cannot be removed by surgery. It wakes up again only when the same host and Symbiant are back on one map. Abandoning this map destroys the Symbiant and forcibly breaks the bond; surgery removes it safely.\n\n&lt;color=#ffb35c&gt;Current effects&lt;/color&gt;:\n{2}\n\n&lt;color=#72d672&gt;Current benefits&lt;/color&gt;:\n{3}\n\nIt also &lt;color=#72d672&gt;removes contamination&lt;/color&gt; in subtle ways.</ZombieSymbiantInfoCardDetails>
 	<SymbiantDetailsInfoCard>Symbiant details</SymbiantDetailsInfoCard>
 	<SymbiantDetailsInfoCardValue>{0} cells</SymbiantDetailsInfoCardValue>
 	<LetterLabelSymbiantBenefitGained>Symbiant benefit gained</LetterLabelSymbiantBenefitGained>
@@ -100,7 +100,7 @@
 	<SpawnWhenType_AllTheTime>All the time</SpawnWhenType_AllTheTime>
 	<SpawnWhenType_WhenDark>When it is dark</SpawnWhenType_WhenDark>
 	<SpawnWhenType_InEventsOnly>Only as events</SpawnWhenType_InEventsOnly>
-	<HowDoZombiesSpawn>From where do zombies come?</HowDoZombiesSpawn>
+	<HowDoZombiesSpawn>Where do zombies come from?</HowDoZombiesSpawn>
 	<SpawnHowType_AllOverTheMap>Where there is soft ground</SpawnHowType_AllOverTheMap>
 	<SpawnHowType_FromTheEdges>From the map edges</SpawnHowType_FromTheEdges>
 	<SmartWandering>Movement style</SmartWandering>
@@ -122,6 +122,12 @@
 	<AnomalyTargetOtherEntities>Other Anomaly entities</AnomalyTargetOtherEntities>
 	<AnomalyTargetNociosphere>Nociosphere</AnomalyTargetNociosphere>
 	<AnomalyZombieHostilityRelations>Anomaly pawns may attack zombies:</AnomalyZombieHostilityRelations>
+	<FleshmassCollisionTitle>Attacking fleshmass</FleshmassCollisionTitle>
+	<FleshmassCollisionDescription>Fleshmass grown by a fleshmass heart can be attacked by:</FleshmassCollisionDescription>
+	<OrdinaryZombiesAttackFleshmass>Ordinary zombies</OrdinaryZombiesAttackFleshmass>
+	<TankyAndSuicideZombiesAttackFleshmass>Tanky operator and suicide bomber zombies</TankyAndSuicideZombiesAttackFleshmass>
+	<FormerColonistAndSpecialZombiesAttackFleshmass>Former colonists and other special zombies</FormerColonistAndSpecialZombiesAttackFleshmass>
+	<FleshmassOnlyColonistsNote>Zombies are set to attack only colonists, so they leave fleshmass alone and these options have no effect.</FleshmassOnlyColonistsNote>
 	<AnomalyTargetingOverride_Automatic>Automatic</AnomalyTargetingOverride_Automatic>
 	<AnomalyTargetingOverride_Never>Never</AnomalyTargetingOverride_Never>
 	<AnomalyTargetingOverride_Allow>Allow</AnomalyTargetingOverride_Allow>
@@ -143,7 +149,7 @@
 	<DynamicThreatSmoothness>Threat curve smoothness</DynamicThreatSmoothness>
 	<DynamicThreatStretch>Threat curve stretch</DynamicThreatStretch>
 	<ZombiesDieOnZeroThreat>Zombies die at 0% threat</ZombiesDieOnZeroThreat>
-	<ZombieFreeEvents>Zombie-free travel events</ZombieFreeEvents>
+	<ZombieFreeEvents>Zombie silence events</ZombieFreeEvents>
 	<ThreatLevel>threat level</ThreatLevel>
 	<ThreatForecast>Threat forecast</ThreatForecast>
 	<Next14Days>Next 14 days</Next14Days>
@@ -162,7 +168,7 @@
 	<ZombieDamageFactor>Damage multiplier</ZombieDamageFactor>
 	<SafeMeleeLimit>Safe melee limit</SafeMeleeLimit>
 	<SafeMeleeExample>Example: [_]{0}[_] melee level, [_]{1}[_] zombies: {2}% chance to block a bite</SafeMeleeExample>
-	<ZombiesCauseManhunting>Zombie attacks can turn animals manhunter</ZombiesCauseManhunting>
+	<ZombiesCauseManhunting>Zombie attacks can turn animals into manhunters</ZombiesCauseManhunting>
 	<ZombieGameTweaks>Game tweaks</ZombieGameTweaks>
 	<ReduceTurretConsumption>Reduce turret steel consumption</ReduceTurretConsumption>
 	<ZombieBiteInfectionChance>Risk that a zombie bite is infectious</ZombieBiteInfectionChance>
@@ -259,7 +265,6 @@
 	<RopeZombie>Capture this zombie</RopeZombie>
 	<Activate>Activate</Activate>
 	<ActivateDescription>Activates the device. Zombies in the room lose consciousness.</ActivateDescription>
-	<WrongPlacementZombieShocker>The device cannot be placed here.</WrongPlacementZombieShocker>
 	<ColonistsBittenByZombie>Colonist bitten by zombie</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>These colonists have been bitten by a zombie. At this point, it is unclear whether they will develop an infection:\n\n{0}\nMonitor their wounds closely because infections take some time to develop.</ColonistsBittenByZombieDesc>
 	<ImminentZombiInfection>Imminent zombie infection</ImminentZombiInfection>
@@ -293,7 +298,6 @@
 	<ZombieShockerLowBatteryState>The device has depleted the attached batteries</ZombieShockerLowBatteryState>
 	<ShowHealthBar>Zombie health bars</ShowHealthBar>
 	<ShowZombieStats>Show zombie statistics</ShowZombieStats>
-	<SnowAndSandClear>Snow and sand clear</SnowAndSandClear>
 	<ShowZombieRisk>Show zombie risk</ShowZombieRisk>
 	<ZombieRiskAreaColumnHintLong>Zombieland area rules: violations appear at the top of the screen during play</ZombieRiskAreaColumnHintLong>
 	<ZombieRiskAreaColumnHintMedium>Zombieland violations appear at the top</ZombieRiskAreaColumnHintMedium>

@@ -30,7 +30,7 @@
 	<ZombiesSpitter>一隻喪屍噴吐者已進入地圖，並將對你發動圍攻</ZombiesSpitter>
 	<LetterLabelZombieSymbiant>喪屍共生體連結到 {0}</LetterLabelZombieSymbiant>
 	<LetterLabelZombieSymbiantNoHost>喪屍共生體出現</LetterLabelZombieSymbiantNoHost>
-	<ZombieSymbiant>喪屍共生體已在 {0} 出現，並與 {1} 建立連結。它會在頻繁使用的室內房間中蔓延。穿過它的角色會變慢，宿主除外。宿主免疫喪屍咬傷所造成的感染，並會在共生體成長時獲得隨機增益。用屍體餵養它可以加快成長。\n\n請讓宿主和共生體留在同一張地圖上：如果兩者分離，連結會進入休眠，休眠期間無法正常移除。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結。\n\n請先替 {1} 動手術以正常移除連結；失去宿主的共生體之後會逐漸縮回。</ZombieSymbiant>
+	<ZombieSymbiant>喪屍共生體已在 {0} 出現，並與 {1} 建立連結。它會在頻繁使用的室內房間中蔓延。穿過它的角色會變慢，宿主除外。宿主免疫喪屍咬傷所造成的感染，並會在共生體成長時獲得隨機增益。用屍體餵養它可以加快成長。\n\n請讓宿主和共生體留在同一張地圖上：如果兩者分離，連結會進入休眠，休眠期間無法移除。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結。\n\n請先替 {1} 動手術以安全移除連結；失去宿主的共生體之後會逐漸縮回。</ZombieSymbiant>
 	<ZombieSymbiantNoHost>喪屍共生體已在 {0} 出現。它會在頻繁使用的室內房間中蔓延。用屍體餵養它可以加快成長。</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>你的某個房間</ZombieSymbiantUnknownRoom>
 	<ZombieSymbiantInspect>連結宿主：{0}，大小：{1} 格，共享生命值：{2}，下一項增益在 {3} 格</ZombieSymbiantInspect>
@@ -42,7 +42,7 @@
 	<SymbiantSharedHealthSummary>{0} / {1}</SymbiantSharedHealthSummary>
 	<SymbiantDamageEchoLabel>{0}：{1} 點傷害</SymbiantDamageEchoLabel>
 	<SymbiantDamageEchoOther>其他</SymbiantDamageEchoOther>
-	<SymbiantDamageEchoDescription>目前連結期間由相連共生體吸收的累積傷害：{0}。這只是一筆記錄；不會使宿主受傷、失能、流血、倒地或死亡。</SymbiantDamageEchoDescription>
+	<SymbiantDamageEchoDescription>目前連結期間由相連共生體吸收的累積傷害：{0}。這只是一筆記錄；不會對宿主造成傷口、流血或任何其他傷害。</SymbiantDamageEchoDescription>
 	<SymbiantSharedHealthRecoveryDescription>停止承受共享傷害 {0} 後，共生體每隔 {2} 恢復 {1} 的缺失共享生命值。</SymbiantSharedHealthRecoveryDescription>
 	<FeedingZombieSymbiant>正在餵養共生體</FeedingZombieSymbiant>
 	<SymbiantFedMote>+{1} 格</SymbiantFedMote>
@@ -50,14 +50,14 @@
 	<SeverSymbiantSymbiosis>移除共生體連結</SeverSymbiantSymbiosis>
 	<SeverSymbiantSymbiosisWithCost>移除共生體連結（{0} 喪屍提取物）</SeverSymbiantSymbiosisWithCost>
 	<SymbiantSeveredMessage>{0} 的共生體連結已被移除。</SymbiantSeveredMessage>
-	<SymbiantHostBondDescription>共生體：{0}/{1} 格。下一項增益在 {2} 格。共享生命值：{3}。宿主受擊時，完整傷害會先扣除共享生命；目前大小下只有 &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; 會成為宿主的真實傷口。對共生體的攻擊只會產生無害的灰色傷害記錄，不會使宿主受傷。\n\n地圖規則：宿主和共生體必須在同一張地圖上，連結才會生效並能正常移除。如果兩者分離，連結會休眠。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結；手術可以先正常移除連結。\n\n增益：\n{5}</SymbiantHostBondDescription>
+	<SymbiantHostBondDescription>共生體：{0}/{1} 格。下一項增益在 {2} 格。共享生命值：{3}。宿主受擊時，完整傷害會先扣除共享生命；目前大小下只有 &lt;color=#ffb35c&gt;{4}%&lt;/color&gt; 會成為宿主的真實傷口。對共生體的攻擊只會在健康記錄中留下無害的灰色條目，不會造成真實傷口。\n\n地圖規則：宿主和共生體必須在同一張地圖上。如果兩者分離，連結會休眠，且無法透過手術移除。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結；先透過手術移除連結才是安全的做法。\n\n增益：\n{5}</SymbiantHostBondDescription>
 	<SymbiantHostBondMissing>沒有活躍共生體連結到此宿主。</SymbiantHostBondMissing>
-	<SymbiantHostRelocatedMessage>{0} 與共生體不在同一地圖，因此連結進入休眠。連結仍然保留。休眠期間，所有增益（包括殭屍感染免疫）、共享傷害傳遞和外科切斷連結均停用。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。</SymbiantHostRelocatedMessage>
+	<SymbiantHostRelocatedMessage>{0} 與共生體不在同一地圖，因此共生體連結進入休眠。連結仍然保留，但休眠期間所有增益（包括喪屍感染免疫）都會失效，傷害不再共享，也無法透過手術移除連結。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。</SymbiantHostRelocatedMessage>
 	<LetterLabelSymbiantBondDormant>共生體連結休眠</LetterLabelSymbiantBondDormant>
 	<SymbiantMapAbandonWarningTitle>放棄有共生體的地圖？</SymbiantMapAbandonWarningTitle>
-	<SymbiantMapAbandonWarning>這張地圖上有一個仍存活並受地圖約束的喪屍共生體。放棄地圖會摧毀共生體，並強行切斷任何仍存在的連結。如果你想按正常流程分離，請先透過手術移除共生體連結。\n\n仍要放棄這張地圖嗎？</SymbiantMapAbandonWarning>
+	<SymbiantMapAbandonWarning>這張地圖上有一個存活的喪屍共生體。放棄地圖會摧毀共生體，並強行切斷任何仍存在的連結。如果你想安全地分離宿主和共生體，請先透過手術移除連結。\n\n仍要放棄這張地圖嗎？</SymbiantMapAbandonWarning>
 	<SymbiantReseededMessage>{0} 的共生體移動到了另一個室內房間。</SymbiantReseededMessage>
-	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;目前狀態&lt;/color&gt;：&lt;color=#72d672&gt;{0} 格&lt;/color&gt;。下一項增益在 &lt;color=#72d672&gt;{1} 格&lt;/color&gt;。\n\n&lt;color=#72d672&gt;共享生命值&lt;/color&gt;：{4}。針對宿主的傷害會先消耗這個儲備；目前大小下，只有 &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; 會在 {6} 身上留下真實傷口。直接傷害共生體時，傷害先由共生體自身處理，隨後才會消耗儲備；這只會為 {6} 產生無害的灰色傷害記錄，不會造成真實傷口。如果這個儲備用盡，{6} 會死亡。\n\n&lt;color=#ffb35c&gt;地圖規則&lt;/color&gt;：宿主和共生體必須在同一張地圖上，連結才會生效並能正常移除。如果兩者分離，連結會休眠。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄這張地圖會摧毀共生體，並強行切斷連結。手術可以先正常移除連結。\n\n&lt;color=#ffb35c&gt;目前效果&lt;/color&gt;：\n{2}\n\n&lt;color=#72d672&gt;目前增益&lt;/color&gt;：\n{3}\n\n它還會以微妙方式&lt;color=#72d672&gt;移除污染&lt;/color&gt;。</ZombieSymbiantInfoCardDetails>
+	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;目前狀態&lt;/color&gt;：&lt;color=#72d672&gt;{0} 格&lt;/color&gt;。下一項增益在 &lt;color=#72d672&gt;{1} 格&lt;/color&gt;。\n\n&lt;color=#72d672&gt;共享生命值&lt;/color&gt;：{4}。針對宿主的傷害會先消耗這個儲備；目前大小下，只有 &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; 會在 {6} 身上留下真實傷口。直接傷害共生體也會消耗這個儲備，但只會在健康記錄中留下無害的灰色條目，不會在 {6} 身上造成真實傷口。如果這個儲備用盡，{6} 會死亡。\n\n&lt;color=#ffb35c&gt;地圖規則&lt;/color&gt;：宿主和共生體必須在同一張地圖上。如果兩者分離，連結會休眠，且無法透過手術移除。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄這張地圖會摧毀共生體，並強行切斷連結；手術可以安全移除連結。\n\n&lt;color=#ffb35c&gt;目前效果&lt;/color&gt;：\n{2}\n\n&lt;color=#72d672&gt;目前增益&lt;/color&gt;：\n{3}\n\n它還會以微妙方式&lt;color=#72d672&gt;移除污染&lt;/color&gt;。</ZombieSymbiantInfoCardDetails>
 	<SymbiantDetailsInfoCard>共生體詳細資訊</SymbiantDetailsInfoCard>
 	<SymbiantDetailsInfoCardValue>{0} 格</SymbiantDetailsInfoCardValue>
 	<LetterLabelSymbiantBenefitGained>共生體獲得增益</LetterLabelSymbiantBenefitGained>
@@ -122,6 +122,12 @@
 	<AnomalyTargetOtherEntities>其他異邪實體</AnomalyTargetOtherEntities>
 	<AnomalyTargetNociosphere>苦痛球體</AnomalyTargetNociosphere>
 	<AnomalyZombieHostilityRelations>異邪生物可以攻擊喪屍：</AnomalyZombieHostilityRelations>
+	<FleshmassCollisionTitle>攻擊血肉團塊</FleshmassCollisionTitle>
+	<FleshmassCollisionDescription>由血肉心臟生長出的血肉團塊可被以下喪屍攻擊：</FleshmassCollisionDescription>
+	<OrdinaryZombiesAttackFleshmass>普通喪屍</OrdinaryZombiesAttackFleshmass>
+	<TankyAndSuicideZombiesAttackFleshmass>重裝突破與自爆喪屍</TankyAndSuicideZombiesAttackFleshmass>
+	<FormerColonistAndSpecialZombiesAttackFleshmass>前殖民者與其他特殊喪屍</FormerColonistAndSpecialZombiesAttackFleshmass>
+	<FleshmassOnlyColonistsNote>喪屍目前設為只攻擊殖民者，因此會無視血肉團塊，這些選項不會生效。</FleshmassOnlyColonistsNote>
 	<AnomalyTargetingOverride_Automatic>自動</AnomalyTargetingOverride_Automatic>
 	<AnomalyTargetingOverride_Never>從不</AnomalyTargetingOverride_Never>
 	<AnomalyTargetingOverride_Allow>允許</AnomalyTargetingOverride_Allow>
@@ -143,7 +149,7 @@
 	<DynamicThreatSmoothness>威脅曲線平滑度</DynamicThreatSmoothness>
 	<DynamicThreatStretch>威脅曲線拉伸</DynamicThreatStretch>
 	<ZombiesDieOnZeroThreat>喪屍在 0% 威脅時死亡</ZombiesDieOnZeroThreat>
-	<ZombieFreeEvents>無喪屍旅行事件</ZombieFreeEvents>
+	<ZombieFreeEvents>喪屍沉寂事件</ZombieFreeEvents>
 	<ThreatLevel>威脅等級</ThreatLevel>
 	<ThreatForecast>威脅預測</ThreatForecast>
 	<Next14Days>未來 14 天</Next14Days>
@@ -259,7 +265,6 @@
 	<RopeZombie>捕捉這個喪屍</RopeZombie>
 	<Activate>啟動</Activate>
 	<ActivateDescription>啟動裝置，使房間內的喪屍失去意識。</ActivateDescription>
-	<WrongPlacementZombieShocker>裝置不能放在這裡。</WrongPlacementZombieShocker>
 	<ColonistsBittenByZombie>殖民者被喪屍咬傷</ColonistsBittenByZombie>
 	<ColonistsBittenByZombieDesc>殖民者被喪屍咬傷了，目前尚不清楚他們是否被感染：\n\n{0}\n密切關注他們的傷口，因為感染需要一段時間後才能被發現。</ColonistsBittenByZombieDesc>
 	<ImminentZombiInfection>喪屍感染迫近</ImminentZombiInfection>
@@ -293,7 +298,6 @@
 	<ZombieShockerLowBatteryState>裝置已耗盡相連電池的電量</ZombieShockerLowBatteryState>
 	<ShowHealthBar>喪屍血條</ShowHealthBar>
 	<ShowZombieStats>顯示喪屍統計資訊</ShowZombieStats>
-	<SnowAndSandClear>清除積雪和沙土</SnowAndSandClear>
 	<ShowZombieRisk>顯示喪屍風險</ShowZombieRisk>
 	<ZombieRiskAreaColumnHintLong>Zombieland 區域規則：違規會在遊玩時顯示在畫面頂部</ZombieRiskAreaColumnHintLong>
 	<ZombieRiskAreaColumnHintMedium>Zombieland 違規會顯示在頂部</ZombieRiskAreaColumnHintMedium>

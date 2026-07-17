@@ -402,6 +402,13 @@ and runs a dense horde through the field. A zombie-induced response joins the
 battle normally and, when the narrow suppression hook is practical, does so
 without its `ThreatBig` letter.
 
+The small isolated targets in the attack matrix prove category and smash-mode
+gates without another eligible cell confounding the result. Cascade behavior is
+proved separately: the response stage witnesses an ordinary zombie's real
+`AttackStatic` against a connected 7x7 sourced field and requires the selected
+root plus at least four additional cells to be destroyed. The dense stage then
+exercises many live zombies against two adjoining 14x10 sourced fields.
+
 The completed scenario demonstrates category gating, one-credit-per-death
 response accounting, continued zombie control flow, settings persistence and
 timeline semantics, zombie-versus-flesh battle behavior, and
@@ -436,3 +443,32 @@ This design is ready for implementation release when:
   satisfy the focused verification cases; and
 - the combined runtime scenario completes with stable tank blocking and retry,
   the intended dense battle behavior, and clean warning-and-error logs.
+
+## Implementation And Verification Status
+
+Completed on 2026-07-16 against installed Steam RimWorld
+`1.6.4871 rev597`, Assembly-CSharp MVID
+`967ddb80559449f0a776dafa26a855d1`.
+
+The implementation lives in the shared `FleshmassCollision` helper, the two
+narrow Anomaly Harmony patches, the existing zombie building-selection flow,
+three settings fields/UI controls, all ten active translations, and two
+companion contracts. It retains vanilla player/null-instigator response
+handling, adds actual Zombieland-faction credit only for a stored live grower,
+uses transient suicide attribution, and introduces no response-rate limit.
+
+The release contract above is satisfied by:
+
+- two final 36/36 direct runs, including an active-Biotech child-body/category
+  run;
+- the clean-reload five-stage async run covering attacks, response emergence,
+  touching fields, source loss, in-flight save/load, settings/timeline
+  persistence, and a 120-zombie dense fortress;
+- live settings UI verification for all three default-on controls and the
+  `Only colonists` note; and
+- zero warning-or-higher entries in the final normal and active-Biotech
+  post-startup log gates.
+
+Durable operation identifiers, fixture names, stage measurements, and exact
+patch member IDs are recorded in `TEST_SCENARIOS.md`,
+`TEST_COVERAGE.md`, and `TEST_PATCH_AUDIT.md`.
