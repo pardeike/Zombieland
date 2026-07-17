@@ -70,6 +70,8 @@ namespace ZombieLand
 		const float AmbientMovementTargetBestScoreFraction = 0.80f;
 		const float AmbientMovementTargetRandomMin = 0.85f;
 		const float AmbientMovementTargetRandomMax = 1.15f;
+		const float AmbientMovementSourceRandomMin = 0.85f;
+		const float AmbientMovementSourceRandomMax = 1.15f;
 		const float AmbientMovementIntegrationFloorFactor = 0.55f;
 		const float AmbientMovementMaxIntegrationLoss = 1f;
 		const float AmbientMovementCenterSlack = 2f;
@@ -219,7 +221,7 @@ namespace ZombieLand
 
 		public int CellCount => cells?.Count ?? 0;
 		internal int CombatShapeVersion => combatShapeVersion;
-		internal bool DebugCellsAreConnected => cells == null || cells.Count <= 1 || CellsAreConnectedToRoot(new HashSet<IntVec3>(cells));
+		internal bool DebugCellsAreConnected => cells == null || cells.Count <= 1 || CellsAreConnectedToRoot(cells);
 		public int NextExpansionTick => nextExpansionTick;
 		public int CurrentExpansionIntervalTicks => AutomaticExpansionIntervalTicks();
 		public int CurrentRetreatIntervalTicks => RetreatIntervalTicks();
@@ -1061,6 +1063,12 @@ namespace ZombieLand
 				return;
 			activeSymbiantByMap.Remove(map);
 			mapsWithoutActiveSymbiant.Remove(map);
+			if (ReferenceEquals(cachedColonyCenterMap, map))
+			{
+				cachedColonyCenterMap = null;
+				cachedColonyCenterTick = -1;
+				cachedColonyCenter = IntVec3.Invalid;
+			}
 		}
 
 		public static ZombieSymbiant ActiveSymbiant(Map map)
@@ -1549,7 +1557,7 @@ namespace ZombieLand
 
 		static int BenefitStepCells()
 		{
-			return Mathf.RoundToInt(DifficultyScaled(10f, 50f));
+			return Mathf.RoundToInt(DifficultyScaled(20f, 50f));
 		}
 
 		bool HasBenefit(HostBenefit benefit)
@@ -1958,6 +1966,9 @@ namespace ZombieLand
 		{
 			ReleaseAllRenderResources();
 			ClearActiveSymbiantCaches();
+			cachedColonyCenterMap = null;
+			cachedColonyCenterTick = -1;
+			cachedColonyCenter = IntVec3.Invalid;
 		}
 
 		internal static int PurgeLegacyWorldPawnSymbiants()
@@ -2319,15 +2330,17 @@ namespace ZombieLand
 			return added;
 		}
 
-		void AddCell(IntVec3 newCell)
+		bool AddCell(IntVec3 newCell)
 		{
 			if (CellCount >= MaxCells)
-				return;
+				return false;
 			if (AddRelativeCell(newCell - Position))
 			{
 				UpdateAll();
 				UpdateSymbiosisState();
+				return true;
 			}
+			return false;
 		}
 
 		public bool ContainsCell(IntVec3 absoluteCell)
@@ -3038,9 +3051,7 @@ namespace ZombieLand
 			if (target.wall != null && target.wall.Destroyed == false)
 				target.wall.Destroy(DestroyMode.KillFinalize);
 
-			var before = CellCount;
-			AddCell(target.cell);
-			if (CellCount <= before)
+			if (AddCell(target.cell) == false)
 				return false;
 			RememberMovementCell(target.cell);
 			return true;
@@ -3137,7 +3148,6 @@ namespace ZombieLand
 				return false;
 			var source = MovementSourceCandidates(map, target.cell - Position)
 				.OrderBy(candidate => candidate.score)
-				.ThenBy(candidate => IsRecentMovementCell(candidate.absolute))
 				.FirstOrDefault();
 			return source != null && TryCommitMove(map, source, target);
 		}
@@ -3146,7 +3156,7 @@ namespace ZombieLand
 		{
 			var currentIntegrated = CalculateIntegratedVisibleCells(map);
 			var bestScore = targets.Select(target => target.score).DefaultIfEmpty(0f).Max();
-			var scoreFloor = Mathf.Max(0.01f, bestScore * AmbientMovementTargetBestScoreFraction);
+			var scoreFloor = Mathf.Min(bestScore, Mathf.Max(0.01f, bestScore * AmbientMovementTargetBestScoreFraction));
 			var targetPool = targets
 				.Where(target => target.score >= scoreFloor)
 				.OrderByDescending(target => AmbientTargetWeight(target))
@@ -3230,8 +3240,6 @@ namespace ZombieLand
 		float AmbientTargetWeight(MovementTarget target)
 		{
 			var weight = Mathf.Max(1f, target.score);
-			if (IsRecentMovementCell(target.cell))
-				weight *= 0.25f;
 			return weight * Rand.Range(AmbientMovementTargetRandomMin, AmbientMovementTargetRandomMax);
 		}
 
@@ -3240,9 +3248,7 @@ namespace ZombieLand
 			var weight = 100f / Mathf.Max(1f, source.score + 1f);
 			if (source.integratedWeight <= 0.5f)
 				weight *= 1.5f;
-			if (IsRecentMovementCell(source.absolute))
-				weight *= 0.25f;
-			return weight * Rand.Range(0.65f, 1.35f);
+			return weight * Rand.Range(AmbientMovementSourceRandomMin, AmbientMovementSourceRandomMax);
 		}
 
 		bool TryCommitMove(Map map, MovementSource source, MovementTarget target)
@@ -3321,7 +3327,13 @@ namespace ZombieLand
 				return false;
 			if (AddRelativeCell(target.cell - Position) == false)
 			{
-				_ = AddRelativeCell(relative);
+				if (AddRelativeCell(relative))
+				{
+					cellMotions?.RemoveAll(motion => motion.cell == relative);
+					RebuildCellBounds();
+					UpdateAll();
+					UpdateSymbiosisState();
+				}
 				return false;
 			}
 			RebuildCellBounds();
@@ -3360,9 +3372,7 @@ namespace ZombieLand
 			if (target.wall != null && target.wall.Destroyed == false)
 				target.wall.Destroy(DestroyMode.KillFinalize);
 
-			var before = CellCount;
-			AddCell(target.cell);
-			if (CellCount <= before)
+			if (AddCell(target.cell) == false)
 			{
 				nextRelocationPulseTick = ticks + RelocationPulseIntervalTicks();
 				return false;
@@ -3478,6 +3488,8 @@ namespace ZombieLand
 			var door = cell.GetEdifice(map) as Building_Door;
 			if (door == null)
 				return false;
+			if (cell.Roofed(map) == false)
+				return false;
 			return GenAdj.CardinalDirections
 				.Select(dir => cell + dir)
 				.Where(adjacent => adjacent.InBounds(map))
@@ -3498,14 +3510,14 @@ namespace ZombieLand
 
 		float ScoreMovementSourceCell(Map map, IntVec3 cell)
 		{
+			if (IsValidSymbiantCell(map, cell) == false)
+				return float.MinValue;
 			var score = ScoreSpreadLocationCell(map, cell);
 			return IsRecentMovementCell(cell) ? score + SymbiantRecentCellScoreAdjustment : score;
 		}
 
 		float ScoreSpreadLocationCell(Map map, IntVec3 cell)
 		{
-			if (IsValidSymbiantCell(map, cell) == false)
-				return 0f;
 			var traffic = ScoreTraffic(map, cell);
 			var fallback = ScoreOpenFloorFallback(map, cell);
 			var compactness = ScoreCompactness(cell);
@@ -3529,14 +3541,17 @@ namespace ZombieLand
 
 		internal static bool IsSymbiantFurnitureCellThing(Thing thing)
 		{
-			return thing is Building_WorkTable
+			return thing is Building_Bed
+				|| thing is Building_WorkTable
 				|| thing is Building_Storage
 				|| thing?.def?.surfaceType == SurfaceType.Eat;
 		}
 
-		internal float DebugSpreadLocationScore(Map map, IntVec3 cell) => ScoreSpreadLocationCell(map, cell);
+		internal float DebugSpreadLocationScore(Map map, IntVec3 cell) => IsValidSymbiantCell(map, cell) ? ScoreSpreadLocationCell(map, cell) : 0f;
 
-		internal float DebugMovementTargetScore(Map map, IntVec3 cell) => ScoreMovementTargetCell(map, cell);
+		internal static bool DebugIsValidSymbiantCell(Map map, IntVec3 cell) => IsValidSymbiantCell(map, cell);
+
+		internal float DebugMovementTargetScore(Map map, IntVec3 cell) => IsValidSymbiantCell(map, cell) ? ScoreMovementTargetCell(map, cell) : 0f;
 
 		internal float DebugMovementSourceScore(Map map, IntVec3 cell) => ScoreMovementSourceCell(map, cell);
 
@@ -3594,19 +3609,34 @@ namespace ZombieLand
 			return score;
 		}
 
+		static Map cachedColonyCenterMap;
+		static int cachedColonyCenterTick = -1;
+		static IntVec3 cachedColonyCenter;
+
 		static IntVec3 ColonyCenterFallbackCell(Map map)
 		{
+			var tick = GenTicks.TicksGame;
+			if (map == cachedColonyCenterMap && tick == cachedColonyCenterTick)
+				return cachedColonyCenter;
 			var colonists = map?.mapPawns?.FreeColonistsSpawned;
+			IntVec3 result;
 			if (colonists == null || colonists.Count == 0)
-				return map?.Center ?? IntVec3.Invalid;
-			var x = 0;
-			var z = 0;
-			for (var i = 0; i < colonists.Count; i++)
+				result = map?.Center ?? IntVec3.Invalid;
+			else
 			{
-				x += colonists[i].Position.x;
-				z += colonists[i].Position.z;
+				var x = 0;
+				var z = 0;
+				for (var i = 0; i < colonists.Count; i++)
+				{
+					x += colonists[i].Position.x;
+					z += colonists[i].Position.z;
+				}
+				result = new IntVec3(Mathf.RoundToInt(x / (float)colonists.Count), 0, Mathf.RoundToInt(z / (float)colonists.Count));
 			}
-			return new IntVec3(Mathf.RoundToInt(x / (float)colonists.Count), 0, Mathf.RoundToInt(z / (float)colonists.Count));
+			cachedColonyCenterMap = map;
+			cachedColonyCenterTick = tick;
+			cachedColonyCenter = result;
+			return result;
 		}
 
 		static float ScoreRoomThing(Thing thing)

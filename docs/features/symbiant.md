@@ -70,7 +70,7 @@ The Symbiant cannot be extracted as a travelling or contained pawn. Any ordinary
 - One growth pulse adds one room or door cell, or does nothing if no valid target exists.
 - Spread prefers open cells before wall targets.
 - Spread never continues outdoors.
-- Growth, ambient movement, and relocation use the same soft location preference: recent colony traffic remains strongest, while neighboring slime cells favor compact shapes and dining tables, worktables, and storage cells are avoided when practical.
+- Growth, ambient movement, and relocation use the same soft location preference: recent colony traffic remains strongest, while neighboring slime cells favor compact shapes and beds, dining tables, worktables, and storage cells are avoided when practical.
 - The last 16 changed coordinates receive a temporary soft anti-reversal adjustment. This bounded in-memory history is not saved, carries no correctness state, and cannot block the only valid target.
 - Closed and open doors are valid spread cells and remain door objects.
 - Natural rock and non-constructed blockers are not breached.
@@ -102,7 +102,7 @@ The current bond factor and host aura scale from integrated visible cells:
 
 `benefitFactor = clamp01(integratedVisibleCells / fullBenefitCells)`.
 
-The host starts with zombie infection immunity from the bond. Additional random benefits are awarded in acquisition order at fixed total-cell intervals determined when the Symbiant starts. Current benefit types are:
+The host starts with zombie infection immunity from the bond. Additional random benefits are awarded in acquisition order at fixed total-cell intervals determined when the Symbiant starts. The interval scales from 20 cells at 100% Zombieland difficulty to 50 cells at 500% difficulty. Current benefit types are:
 
 - mood fixed at 50%,
 - no food or rest need,
