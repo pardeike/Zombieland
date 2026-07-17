@@ -67,11 +67,18 @@ namespace ZombieLand
 		const float AmbientMovementMinBenefitFactor = 0.55f;
 		const float AmbientMovementHighBenefitFactor = 0.85f;
 		const int MaxConstructedWallBreachDepth = 4;
-		const float AmbientMovementTargetBestScoreFraction = 0.65f;
+		const float AmbientMovementTargetBestScoreFraction = 0.80f;
+		const float AmbientMovementTargetRandomMin = 0.85f;
+		const float AmbientMovementTargetRandomMax = 1.15f;
 		const float AmbientMovementIntegrationFloorFactor = 0.55f;
 		const float AmbientMovementMaxIntegrationLoss = 1f;
 		const float AmbientMovementCenterSlack = 2f;
 		const float AmbientMovementHighBenefitCenterSlack = 5f;
+		const float SymbiantCompactnessCardinalBonus = 20f;
+		const float SymbiantCompactnessDiagonalBonus = 10f;
+		const float SymbiantCompactnessBonusMax = 100f;
+		const float SymbiantFurnitureCellPenalty = 80f;
+		const float SymbiantRecentCellScoreAdjustment = 40f;
 		const float SymbiantCellSlowMin = 0.10f;
 		const float SymbiantCellSlowMax = 0.50f;
 		const float SymbiantFastGrowthDifficultyLimit = 2.5f;
@@ -212,6 +219,7 @@ namespace ZombieLand
 
 		public int CellCount => cells?.Count ?? 0;
 		internal int CombatShapeVersion => combatShapeVersion;
+		internal bool DebugCellsAreConnected => cells == null || cells.Count <= 1 || CellsAreConnectedToRoot(new HashSet<IntVec3>(cells));
 		public int NextExpansionTick => nextExpansionTick;
 		public int CurrentExpansionIntervalTicks => AutomaticExpansionIntervalTicks();
 		public int CurrentRetreatIntervalTicks => RetreatIntervalTicks();
@@ -221,6 +229,8 @@ namespace ZombieLand
 		public int RelocationCellDebt => relocationCellDebt;
 		public int NextRelocationPulseTick => nextRelocationPulseTick;
 		public int UprootedSinceTick => uprootedSinceTick;
+		internal int RecentMovementCellCount => recentMovementCells.Count;
+		internal static int RecentMovementCellCapacity => AmbientMovementRecentCellCapacity;
 		public bool CancelNextBreach => cancelNextBreach;
 		public static float CurrentGrowthSpeedFactor => SymbiantGrowthSpeedFactor();
 		public IEnumerable<IntVec3> AbsoluteCells => orderedCells.Select(cell => Position + cell);
@@ -2420,7 +2430,7 @@ namespace ZombieLand
 			var cellsInOrder = room.Cells
 				.Where(cell => cell != root && CanOccupyOpenCell(map, cell))
 				.OrderBy(cell => cell.DistanceToSquared(root))
-				.ThenByDescending(cell => ScoreExpansionCell(map, cell));
+				.ThenByDescending(cell => ScoreColonyCenterFallback(map, cell));
 			reseedCells = [anchor];
 			foreach (var cell in cellsInOrder)
 			{
@@ -2450,6 +2460,7 @@ namespace ZombieLand
 			Position = anchor;
 			cells = [];
 			orderedCells = [];
+			recentMovementCells.Clear();
 			combatShapeVersion++;
 			hasCellBounds = false;
 			AddRelativeCells(targetCells.Select(cell => cell - anchor));
@@ -2466,6 +2477,7 @@ namespace ZombieLand
 			ResetExpansionClock();
 			UpdateAll();
 			UpdateSymbiosisState();
+			RememberMovementCell(anchor);
 
 			PlayConnectedSound();
 			if (linkedHost != null)
@@ -3026,7 +3038,11 @@ namespace ZombieLand
 			if (target.wall != null && target.wall.Destroyed == false)
 				target.wall.Destroy(DestroyMode.KillFinalize);
 
+			var before = CellCount;
 			AddCell(target.cell);
+			if (CellCount <= before)
+				return false;
+			RememberMovementCell(target.cell);
 			return true;
 		}
 
@@ -3163,7 +3179,7 @@ namespace ZombieLand
 						continue;
 					if (IsValidSymbiantCell(map, candidate) == false)
 						continue;
-					targets.Add(new MovementTarget(candidate, ScoreMovementCell(map, candidate), IntegratedCellWeight(map, candidate)));
+					targets.Add(new MovementTarget(candidate, ScoreMovementTargetCell(map, candidate), IntegratedCellWeight(map, candidate)));
 				}
 			}
 			return targets;
@@ -3177,7 +3193,7 @@ namespace ZombieLand
 				.Select(relative =>
 				{
 					var absolute = Position + relative;
-					return new MovementSource(relative, absolute, ScoreMovementCell(map, absolute), IntegratedCellWeight(map, absolute));
+					return new MovementSource(relative, absolute, ScoreMovementSourceCell(map, absolute), IntegratedCellWeight(map, absolute));
 				});
 		}
 
@@ -3216,7 +3232,7 @@ namespace ZombieLand
 			var weight = Mathf.Max(1f, target.score);
 			if (IsRecentMovementCell(target.cell))
 				weight *= 0.25f;
-			return weight * Rand.Range(0.65f, 1.35f);
+			return weight * Rand.Range(AmbientMovementTargetRandomMin, AmbientMovementTargetRandomMax);
 		}
 
 		float AmbientSourceWeight(MovementSource source)
@@ -3254,20 +3270,25 @@ namespace ZombieLand
 		{
 			RememberMovementCell(source);
 			RememberMovementCell(target);
-			while (recentMovementCells.Count > AmbientMovementRecentCellCapacity)
-				recentMovementCells.Dequeue();
 		}
 
 		void RememberMovementCell(IntVec3 cell)
 		{
-			if (cell.IsValid)
-				recentMovementCells.Enqueue(cell);
+			if (cell.IsValid == false)
+				return;
+			recentMovementCells.Enqueue(cell);
+			while (recentMovementCells.Count > AmbientMovementRecentCellCapacity)
+				recentMovementCells.Dequeue();
 		}
 
 		bool IsRecentMovementCell(IntVec3 cell)
 		{
 			return cell.IsValid && recentMovementCells.Contains(cell);
 		}
+
+		internal bool DebugIsRecentMovementCell(IntVec3 cell) => IsRecentMovementCell(cell);
+
+		internal void DebugRememberMovementCell(IntVec3 cell) => RememberMovementCell(cell);
 
 		bool HasMovableUnintegratedCells()
 		{
@@ -3295,11 +3316,18 @@ namespace ZombieLand
 			if (target.wall != null && target.wall.Destroyed == false)
 				target.wall.Destroy(DestroyMode.KillFinalize);
 
-			RemoveRelativeCell(relative, true);
-			AddRelativeCell(target.cell - Position);
+			var source = Position + relative;
+			if (RemoveRelativeCell(relative, true) == false)
+				return false;
+			if (AddRelativeCell(target.cell - Position) == false)
+			{
+				_ = AddRelativeCell(relative);
+				return false;
+			}
 			RebuildCellBounds();
 			UpdateAll();
 			UpdateSymbiosisState();
+			RememberMovement(source, target.cell);
 			return true;
 		}
 
@@ -3332,7 +3360,14 @@ namespace ZombieLand
 			if (target.wall != null && target.wall.Destroyed == false)
 				target.wall.Destroy(DestroyMode.KillFinalize);
 
+			var before = CellCount;
 			AddCell(target.cell);
+			if (CellCount <= before)
+			{
+				nextRelocationPulseTick = ticks + RelocationPulseIntervalTicks();
+				return false;
+			}
+			RememberMovementCell(target.cell);
 			relocationCellDebt = Mathf.Max(0, relocationCellDebt - 1);
 			nextRelocationPulseTick = relocationCellDebt > 0 || HasMovableUnintegratedCells() ? ticks + RelocationPulseIntervalTicks() : 0;
 			if (relocationCellDebt == 0)
@@ -3430,6 +3465,8 @@ namespace ZombieLand
 		{
 			if (cell.InBounds(map) == false || cell.Fogged(map))
 				return false;
+			if (cell.Roofed(map) == false)
+				return false;
 			if (cell.Walkable(map) == false)
 				return false;
 			var room = cell.GetRoom(map);
@@ -3448,21 +3485,64 @@ namespace ZombieLand
 				.Any(IsEligibleIndoorRoom);
 		}
 
-		static float ScoreExpansionCell(Map map, IntVec3 cell)
+		float ScoreExpansionCell(Map map, IntVec3 cell)
 		{
-			if (IsValidSymbiantCell(map, cell) == false)
-				return 0f;
-			var traffic = ScoreTraffic(map, cell);
-			return traffic > 0f ? traffic + 1f : ScoreColonyCenterFallback(map, cell) + Rand.Value;
+			return ScoreMovementTargetCell(map, cell) + Rand.Value;
 		}
 
-		static float ScoreMovementCell(Map map, IntVec3 cell)
+		float ScoreMovementTargetCell(Map map, IntVec3 cell)
+		{
+			var score = ScoreSpreadLocationCell(map, cell);
+			return IsRecentMovementCell(cell) ? score - SymbiantRecentCellScoreAdjustment : score;
+		}
+
+		float ScoreMovementSourceCell(Map map, IntVec3 cell)
+		{
+			var score = ScoreSpreadLocationCell(map, cell);
+			return IsRecentMovementCell(cell) ? score + SymbiantRecentCellScoreAdjustment : score;
+		}
+
+		float ScoreSpreadLocationCell(Map map, IntVec3 cell)
 		{
 			if (IsValidSymbiantCell(map, cell) == false)
 				return 0f;
 			var traffic = ScoreTraffic(map, cell);
-			return traffic > 0f ? traffic + 1f : ScoreColonyCenterFallback(map, cell);
+			var fallback = ScoreOpenFloorFallback(map, cell);
+			var compactness = ScoreCompactness(cell);
+			return Mathf.Max(traffic > 0f ? traffic + 1f : 0f, fallback)
+				+ compactness
+				- ScoreFurnitureCellPenalty(map, cell);
 		}
+
+		float ScoreCompactness(IntVec3 cell)
+		{
+			var relative = cell - Position;
+			var cardinal = GenAdj.CardinalDirections.Count(direction => cells.Contains(relative + direction));
+			var diagonal = GenAdj.DiagonalDirections.Count(direction => cells.Contains(relative + direction));
+			return Mathf.Min(SymbiantCompactnessBonusMax, cardinal * SymbiantCompactnessCardinalBonus + diagonal * SymbiantCompactnessDiagonalBonus);
+		}
+
+		static float ScoreFurnitureCellPenalty(Map map, IntVec3 cell)
+		{
+			return cell.GetThingList(map).Any(IsSymbiantFurnitureCellThing) ? SymbiantFurnitureCellPenalty : 0f;
+		}
+
+		internal static bool IsSymbiantFurnitureCellThing(Thing thing)
+		{
+			return thing is Building_WorkTable
+				|| thing is Building_Storage
+				|| thing?.def?.surfaceType == SurfaceType.Eat;
+		}
+
+		internal float DebugSpreadLocationScore(Map map, IntVec3 cell) => ScoreSpreadLocationCell(map, cell);
+
+		internal float DebugMovementTargetScore(Map map, IntVec3 cell) => ScoreMovementTargetCell(map, cell);
+
+		internal float DebugMovementSourceScore(Map map, IntVec3 cell) => ScoreMovementSourceCell(map, cell);
+
+		internal float DebugCompactnessScore(IntVec3 cell) => ScoreCompactness(cell);
+
+		internal static float DebugTrafficScore(Map map, IntVec3 cell) => ScoreTraffic(map, cell);
 
 		static float ScoreTraffic(Map map, IntVec3 cell)
 		{
@@ -3475,10 +3555,15 @@ namespace ZombieLand
 
 		static float ScoreColonyUse(Map map, IntVec3 cell)
 		{
-			var home = map.areaManager.Home;
-			var score = home.TrueCount == 0 || home[cell] ? 40f : 0f;
+			var score = ScoreHomeArea(map, cell);
 			score += cell.GetThingList(map).Sum(ScoreRoomThing);
 			return score;
+		}
+
+		static float ScoreHomeArea(Map map, IntVec3 cell)
+		{
+			var home = map.areaManager.Home;
+			return home.TrueCount == 0 || home[cell] ? 40f : 0f;
 		}
 
 		static float ScoreColonyCenterFallback(Map map, IntVec3 cell)
@@ -3486,13 +3571,27 @@ namespace ZombieLand
 			if (map == null || cell.InBounds(map) == false)
 				return 0f;
 			var score = ScoreColonyUse(map, cell);
+			score += ScoreColonyCenterProximity(map, cell);
+			return score + 0.01f;
+		}
+
+		static float ScoreOpenFloorFallback(Map map, IntVec3 cell)
+		{
+			if (map == null || cell.InBounds(map) == false)
+				return 0f;
+			return ScoreHomeArea(map, cell) + ScoreColonyCenterProximity(map, cell) + 0.01f;
+		}
+
+		static float ScoreColonyCenterProximity(Map map, IntVec3 cell)
+		{
+			var score = 0f;
 			var colonyCenter = ColonyCenterFallbackCell(map);
 			if (colonyCenter.IsValid)
 			{
 				var distance = Mathf.Sqrt(cell.DistanceToSquared(colonyCenter));
 				score += Mathf.Max(0f, 120f - distance * 2f);
 			}
-			return score + 0.01f;
+			return score;
 		}
 
 		static IntVec3 ColonyCenterFallbackCell(Map map)

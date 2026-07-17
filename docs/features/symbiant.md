@@ -70,6 +70,8 @@ The Symbiant cannot be extracted as a travelling or contained pawn. Any ordinary
 - One growth pulse adds one room or door cell, or does nothing if no valid target exists.
 - Spread prefers open cells before wall targets.
 - Spread never continues outdoors.
+- Growth, ambient movement, and relocation use the same soft location preference: recent colony traffic remains strongest, while neighboring slime cells favor compact shapes and dining tables, worktables, and storage cells are avoided when practical.
+- The last 16 changed coordinates receive a temporary soft anti-reversal adjustment. This bounded in-memory history is not saved, carries no correctness state, and cannot block the only valid target.
 - Closed and open doors are valid spread cells and remain door objects.
 - Natural rock and non-constructed blockers are not breached.
 - Constructed-wall breach behavior is intentionally conservative and must only target valid indoor continuation.
