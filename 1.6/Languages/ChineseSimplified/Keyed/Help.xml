@@ -18,7 +18,11 @@
 	<AttackMode_Everything_Help>让丧尸追踪并攻击任何会移动的目标，包括动物。炮塔等固定物是它们唯一会无视的东西。</AttackMode_Everything_Help>
 	<AttackMode_OnlyHumans_Help>这是丧尸“正常”的工作方式。对脑子的渴望会让它们猎杀类人角色，不论其派系。</AttackMode_OnlyHumans_Help>
 	<AttackMode_OnlyColonists_Help>如果你认为丧尸只该攻击你的殖民者，那么此模式适合你。它们被攻击时可能会反击，但绝不会主动攻击其他人。</AttackMode_OnlyColonists_Help>
-	<EnemiesAttackZombies_Help>关闭此项后，敌人会无视并避开丧尸。开启后，袭击者会把它们视为危险并尽力战斗。祝你好运！</EnemiesAttackZombies_Help>
+	<FriendlyZombieResponse_Help>控制非敌对来访团体如何应对丧尸。友方与敌方策略彼此独立。</FriendlyZombieResponse_Help>
+	<EnemyZombieResponse_Help>控制袭击者和其他敌对团体如何应对丧尸。友方与敌方策略彼此独立。</EnemyZombieResponse_Help>
+	<ZombieResponsePolicy_Minimal_Help>不会主动把丧尸作为目标，但近身战斗中的自卫仍可能发生。</ZombieResponsePolicy_Minimal_Help>
+	<ZombieResponsePolicy_Adaptive_Help>当团体成员被丧尸击中后，比较附近可战斗射手与附近丧尸压力。只有团体对自身实力有信心时才允许全力作战。</ZombieResponsePolicy_Adaptive_Help>
+	<ZombieResponsePolicy_Full_Help>持续允许普通战斗 AI 使用远程和近战武器攻击合适的丧尸。个别人员仍可能拒绝不合适的目标。</ZombieResponsePolicy_Full_Help>
 	<AnimalsAttackZombies_Help>开启后，动物在狩猎或变得攻击性时会攻击丧尸。若想让它们忽略丧尸，请关闭此选项。</AnimalsAttackZombies_Help>
 	<AnomalyTargetingTitle_Help>这些设置控制丧尸与异象生物之间的双向例外规则。“自动”保留常规规则，“从不”关闭相应行为，“允许”则强制启用。</AnomalyTargetingTitle_Help>
 	<AnomalyTargetingRelations_Help>控制丧尸可以选择哪些异象生物作为目标。“自动”遵循主要丧尸目标规则；“从不”禁止攻击该组；“允许”会让丧尸攻击该组目标，即使主要规则原本会忽略它们。死亡、倒地或休眠的生物始终会被忽略。</AnomalyTargetingRelations_Help>

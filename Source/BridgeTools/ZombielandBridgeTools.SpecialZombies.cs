@@ -2838,7 +2838,7 @@ namespace ZombieLand
 				ApplyZombieSettingsOverride(values =>
 				{
 					values.attackMode = AttackMode.Everything;
-					values.enemiesAttackZombies = false;
+					values.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 					values.animalsAttackZombies = true;
 				});
 
@@ -2854,7 +2854,7 @@ namespace ZombieLand
 				ApplyZombieSettingsOverride(values =>
 				{
 					values.attackMode = AttackMode.Everything;
-					values.enemiesAttackZombies = true;
+					values.enemyZombieResponse = ZombieResponsePolicy.Full;
 					values.animalsAttackZombies = true;
 				});
 
@@ -2872,7 +2872,7 @@ namespace ZombieLand
 				ApplyZombieSettingsOverride(values =>
 				{
 					values.attackMode = AttackMode.OnlyHumans;
-					values.enemiesAttackZombies = true;
+					values.enemyZombieResponse = ZombieResponsePolicy.Full;
 					values.animalsAttackZombies = true;
 				});
 

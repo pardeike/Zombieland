@@ -113,7 +113,11 @@
 	<AttackMode_Everything>Все существа</AttackMode_Everything>
 	<AttackMode_OnlyHumans>Людей и гуманоидов</AttackMode_OnlyHumans>
 	<AttackMode_OnlyColonists>Только поселенцев и их вещи</AttackMode_OnlyColonists>
-	<EnemiesAttackZombies>Враги атакуют зомби</EnemiesAttackZombies>
+	<FriendlyZombieResponse>Реакция союзников на зомби</FriendlyZombieResponse>
+	<EnemyZombieResponse>Реакция врагов на зомби</EnemyZombieResponse>
+	<ZombieResponsePolicy_Minimal>Минимальная</ZombieResponsePolicy_Minimal>
+	<ZombieResponsePolicy_Adaptive>Адаптивная</ZombieResponsePolicy_Adaptive>
+	<ZombieResponsePolicy_Full>Полная</ZombieResponsePolicy_Full>
 	<AnimalsAttackZombies>Животные атакуют зомби</AnimalsAttackZombies>
 	<AnomalyTargetingTitle>Исключения Anomaly</AnomalyTargetingTitle>
 	<AnomalyTargetingRelations>Зомби могут атаковать:</AnomalyTargetingRelations>

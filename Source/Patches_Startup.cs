@@ -11,6 +11,7 @@ namespace ZombieLand
 		{
 			Tools.ResetMapOwnedState(recreateAvoider);
 			TargetCachePatches.ResetMapOwnedState();
+			GroupZombieResponse.ResetMapOwnedState();
 		}
 
 		// settings backwards compatibility

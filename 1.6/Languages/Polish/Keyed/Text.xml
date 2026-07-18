@@ -113,7 +113,11 @@
 	<AttackMode_Everything>Wszystkie stworzenia</AttackMode_Everything>
 	<AttackMode_OnlyHumans>Istoty człekokształtne</AttackMode_OnlyHumans>
 	<AttackMode_OnlyColonists>Tylko koloniści</AttackMode_OnlyColonists>
-	<EnemiesAttackZombies>Wrogowie atakują zombie</EnemiesAttackZombies>
+	<FriendlyZombieResponse>Reakcja sojuszników na zombie</FriendlyZombieResponse>
+	<EnemyZombieResponse>Reakcja wrogów na zombie</EnemyZombieResponse>
+	<ZombieResponsePolicy_Minimal>Minimalna</ZombieResponsePolicy_Minimal>
+	<ZombieResponsePolicy_Adaptive>Adaptacyjna</ZombieResponsePolicy_Adaptive>
+	<ZombieResponsePolicy_Full>Pełna</ZombieResponsePolicy_Full>
 	<AnimalsAttackZombies>Zwierzęta atakują zombie</AnimalsAttackZombies>
 	<AnomalyTargetingTitle>Wyjątki Anomalii</AnomalyTargetingTitle>
 	<AnomalyTargetingRelations>Zombie mogą atakować:</AnomalyTargetingRelations>

@@ -1754,7 +1754,7 @@ namespace ZombieLand
 		static object RunAreaWorkflowTargeting(Map map)
 		{
 			var oldAttackMode = ZombieSettings.Values.attackMode;
-			var oldEnemiesAttackZombies = ZombieSettings.Values.enemiesAttackZombies;
+			var oldEnemyZombieResponse = ZombieSettings.Values.enemyZombieResponse;
 			var oldAnimalsAttackZombies = ZombieSettings.Values.animalsAttackZombies;
 			var oldDoubleTapRequired = ZombieSettings.Values.doubleTapRequired;
 			var oldBetterAvoidance = ZombieSettings.Values.betterZombieAvoidance;
@@ -1763,7 +1763,7 @@ namespace ZombieLand
 			try
 			{
 				ZombieSettings.Values.attackMode = AttackMode.Everything;
-				ZombieSettings.Values.enemiesAttackZombies = true;
+				ZombieSettings.Values.enemyZombieResponse = ZombieResponsePolicy.Full;
 				ZombieSettings.Values.animalsAttackZombies = true;
 				ZombieSettings.Values.doubleTapRequired = true;
 				ZombieSettings.Values.betterZombieAvoidance = false;
@@ -1863,11 +1863,11 @@ namespace ZombieLand
 				var playerRopedBest = BestSpecificTarget(player, roped);
 				var playerConfusedBest = BestSpecificTarget(player, confused);
 
-				ZombieSettings.Values.enemiesAttackZombies = false;
+				ZombieSettings.Values.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 				var enemyDisabled = InvokeAvailableTargetsPatch(allTargets, enemy, enemyVerb);
 				var enemyDisabledIds = TargetIds(enemyDisabled);
 				var enemyNormalDisabledBest = BestSpecificTarget(enemy, normal);
-				ZombieSettings.Values.enemiesAttackZombies = true;
+				ZombieSettings.Values.enemyZombieResponse = ZombieResponsePolicy.Full;
 				var enemyEnabled = InvokeAvailableTargetsPatch(allTargets, enemy, enemyVerb);
 				var enemyEnabledIds = TargetIds(enemyEnabled);
 				var enemyBest = AttackTargetFinder.BestAttackTarget(enemy, TargetScanFlags.NeedLOSToAll | TargetScanFlags.NeedThreat, thing => thing is Zombie, 0f, 20f);
@@ -2038,7 +2038,7 @@ namespace ZombieLand
 			finally
 			{
 				ZombieSettings.Values.attackMode = oldAttackMode;
-				ZombieSettings.Values.enemiesAttackZombies = oldEnemiesAttackZombies;
+				ZombieSettings.Values.enemyZombieResponse = oldEnemyZombieResponse;
 				ZombieSettings.Values.animalsAttackZombies = oldAnimalsAttackZombies;
 				ZombieSettings.Values.doubleTapRequired = oldDoubleTapRequired;
 				ZombieSettings.Values.betterZombieAvoidance = oldBetterAvoidance;
@@ -2050,14 +2050,14 @@ namespace ZombieLand
 		static object RunAreaWorkflowBugReports(Map map)
 		{
 			var oldAttackMode = ZombieSettings.Values.attackMode;
-			var oldEnemiesAttackZombies = ZombieSettings.Values.enemiesAttackZombies;
+			var oldEnemyZombieResponse = ZombieSettings.Values.enemyZombieResponse;
 			var oldSpitterThreat = ZombieSettings.Values.spitterThreat;
 			var spawnedThings = new List<Thing>();
 
 			try
 			{
 				ZombieSettings.Values.attackMode = AttackMode.Everything;
-				ZombieSettings.Values.enemiesAttackZombies = true;
+				ZombieSettings.Values.enemyZombieResponse = ZombieResponsePolicy.Full;
 				ZombieSettings.Values.spitterThreat = 1f;
 				_ = ZombieRuntimeActions.DestroyZombies(map);
 				DestroyAreaWorkflowPawns(map);
@@ -2134,7 +2134,7 @@ namespace ZombieLand
 					settings = new
 					{
 						ZombieSettings.Values.attackMode,
-						ZombieSettings.Values.enemiesAttackZombies,
+						ZombieSettings.Values.enemyZombieResponse,
 						ZombieSettings.Values.spitterThreat
 					},
 					available = DescribeTargetPairs(available),
@@ -2145,7 +2145,7 @@ namespace ZombieLand
 			finally
 			{
 				ZombieSettings.Values.attackMode = oldAttackMode;
-				ZombieSettings.Values.enemiesAttackZombies = oldEnemiesAttackZombies;
+				ZombieSettings.Values.enemyZombieResponse = oldEnemyZombieResponse;
 				ZombieSettings.Values.spitterThreat = oldSpitterThreat;
 				foreach (var thing in spawnedThings.Where(thing => thing != null && thing.Destroyed == false).ToArray())
 					thing.Destroy(DestroyMode.Vanish);
@@ -2887,7 +2887,7 @@ namespace ZombieLand
 		static object VerifyAreaWorkflowDirectHostility(Map map, Pawn player, Pawn enemy, Zombie normal, ZombieSpitter spitter, ZombieSymbiant symbiant, IntVec3 root, List<Thing> spawnedThings)
 		{
 			var settings = ZombieSettings.Values;
-			var oldEnemiesAttackZombies = settings.enemiesAttackZombies;
+			var oldEnemyZombieResponse = settings.enemyZombieResponse;
 			var oldAnimalsAttackZombies = settings.animalsAttackZombies;
 			var oldAttackMode = settings.attackMode;
 			var oldEnemyInfectionState = enemy.InfectionState();
@@ -2918,7 +2918,7 @@ namespace ZombieLand
 				}
 				wildAnimal.SetFaction(null);
 
-				settings.enemiesAttackZombies = false;
+				settings.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 				settings.animalsAttackZombies = false;
 				settings.attackMode = AttackMode.Everything;
 				var playerThing = TryHostileTo(player, normal);
@@ -2928,7 +2928,7 @@ namespace ZombieLand
 				var normalThreatToNull = GenHostility.IsActiveThreatTo(normal, null, false, false);
 				var normalThreatToEnemyDisabled = GenHostility.IsActiveThreatTo(normal, enemy.Faction, false, false);
 
-				settings.enemiesAttackZombies = true;
+				settings.enemyZombieResponse = ZombieResponsePolicy.Full;
 				settings.animalsAttackZombies = true;
 				var enemyThingEnabled = TryHostileTo(enemy, normal);
 				var animalThingEnabled = TryHostileTo(wildAnimal, normal);
@@ -3001,7 +3001,7 @@ namespace ZombieLand
 			}
 			finally
 			{
-				settings.enemiesAttackZombies = oldEnemiesAttackZombies;
+				settings.enemyZombieResponse = oldEnemyZombieResponse;
 				settings.animalsAttackZombies = oldAnimalsAttackZombies;
 				settings.attackMode = oldAttackMode;
 				enemy.SetInfectionState(oldEnemyInfectionState);
@@ -3134,12 +3134,12 @@ namespace ZombieLand
 			}
 
 			var oldAttackMode = ZombieSettings.Values.attackMode;
-			var oldEnemiesAttackZombies = ZombieSettings.Values.enemiesAttackZombies;
+			var oldEnemyZombieResponse = ZombieSettings.Values.enemyZombieResponse;
 			var oldAnimalsAttackZombies = ZombieSettings.Values.animalsAttackZombies;
 			try
 			{
 				ZombieSettings.Values.attackMode = AttackMode.Everything;
-				ZombieSettings.Values.enemiesAttackZombies = true;
+				ZombieSettings.Values.enemyZombieResponse = ZombieResponsePolicy.Full;
 				ZombieSettings.Values.animalsAttackZombies = true;
 
 				var friendlyHumanIds = TargetIds(InvokeAvailableTargetsPatch(allTargets, friendlyHuman, friendlyHumanVerb));
@@ -3152,10 +3152,10 @@ namespace ZombieLand
 				ZombieSettings.Values.attackMode = AttackMode.Everything;
 				var playerMechEverythingIds = TargetIds(InvokeAvailableTargetsPatch(allTargets, playerMech, playerMechVerb));
 
-				ZombieSettings.Values.enemiesAttackZombies = false;
+				ZombieSettings.Values.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 				var enemyThingDisabledIds = TargetIds(InvokeAvailableTargetsPatch(allTargets, enemyTurret, enemyTurretVerb));
 
-				ZombieSettings.Values.enemiesAttackZombies = true;
+				ZombieSettings.Values.enemyZombieResponse = ZombieResponsePolicy.Full;
 				var enemyThingEnabledIds = TargetIds(InvokeAvailableTargetsPatch(allTargets, enemyTurret, enemyTurretVerb));
 
 				var cases = new[]
@@ -3249,7 +3249,7 @@ namespace ZombieLand
 			finally
 			{
 				ZombieSettings.Values.attackMode = oldAttackMode;
-				ZombieSettings.Values.enemiesAttackZombies = oldEnemiesAttackZombies;
+				ZombieSettings.Values.enemyZombieResponse = oldEnemyZombieResponse;
 				ZombieSettings.Values.animalsAttackZombies = oldAnimalsAttackZombies;
 			}
 		}
@@ -3804,7 +3804,7 @@ namespace ZombieLand
 				{
 					settings.betterZombieAvoidance = true;
 					settings.attackMode = AttackMode.Everything;
-					settings.enemiesAttackZombies = true;
+					settings.enemyZombieResponse = ZombieResponsePolicy.Full;
 					settings.animalsAttackZombies = true;
 					settings.doubleTapRequired = false;
 				});
@@ -3952,7 +3952,7 @@ namespace ZombieLand
 					{
 						ZombieSettings.Values.betterZombieAvoidance,
 						ZombieSettings.Values.attackMode,
-						ZombieSettings.Values.enemiesAttackZombies,
+						ZombieSettings.Values.enemyZombieResponse,
 						ZombieSettings.Values.animalsAttackZombies,
 						ZombieSettings.Values.doubleTapRequired
 					}

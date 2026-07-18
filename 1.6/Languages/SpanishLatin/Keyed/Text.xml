@@ -113,7 +113,11 @@
 	<AttackMode_Everything>Todas las criaturas</AttackMode_Everything>
 	<AttackMode_OnlyHumans>Criaturas humanoides</AttackMode_OnlyHumans>
 	<AttackMode_OnlyColonists>Solo colonos</AttackMode_OnlyColonists>
-	<EnemiesAttackZombies>Los enemigos atacan a los zombis</EnemiesAttackZombies>
+	<FriendlyZombieResponse>Respuesta de aliados a los zombis</FriendlyZombieResponse>
+	<EnemyZombieResponse>Respuesta de enemigos a los zombis</EnemyZombieResponse>
+	<ZombieResponsePolicy_Minimal>Mínima</ZombieResponsePolicy_Minimal>
+	<ZombieResponsePolicy_Adaptive>Adaptativa</ZombieResponsePolicy_Adaptive>
+	<ZombieResponsePolicy_Full>Completa</ZombieResponsePolicy_Full>
 	<AnimalsAttackZombies>Los animales atacan a los zombis</AnimalsAttackZombies>
 	<AnomalyTargetingTitle>Excepciones de Anomaly</AnomalyTargetingTitle>
 	<AnomalyTargetingRelations>Los zombis pueden atacar a:</AnomalyTargetingRelations>

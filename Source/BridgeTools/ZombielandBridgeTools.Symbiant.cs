@@ -1891,7 +1891,7 @@ namespace ZombieLand
 				{
 					settings.showZombieEventLetters = false;
 					settings.attackMode = AttackMode.Everything;
-					settings.enemiesAttackZombies = true;
+					settings.enemyZombieResponse = ZombieResponsePolicy.Full;
 					settings.animalsAttackZombies = true;
 					settings.symbiantMaxCells = Math.Max(settings.symbiantMaxCells, 5);
 				});
@@ -4640,7 +4640,7 @@ namespace ZombieLand
 					var hostIsolatedOnSameMap = host.Spawned
 						&& symbiant.IsActiveBondWith(host)
 						&& host.playerSettings?.hostilityResponse == HostilityResponseMode.Ignore;
-					var enemiesAttackZombies = ZombieSettings.Values.enemiesAttackZombies;
+					var enemyZombieResponse = ZombieSettings.Values.enemyZombieResponse;
 					var animalsAttackZombies = ZombieSettings.Values.animalsAttackZombies;
 					const int settleTicks = 120;
 					DamageWorker.DamageResult damageResult = null;
@@ -4656,7 +4656,7 @@ namespace ZombieLand
 					{
 						ApplyZombieSettingsOverride(settings =>
 						{
-							settings.enemiesAttackZombies = false;
+							settings.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 							settings.animalsAttackZombies = false;
 						});
 						foreach (var pawn in map.mapPawns.AllPawnsSpawned.Where(pawn => pawn?.CurJob?.targetA.Thing == symbiant).ToArray())
@@ -4682,7 +4682,7 @@ namespace ZombieLand
 					{
 						ApplyZombieSettingsOverride(settings =>
 						{
-							settings.enemiesAttackZombies = enemiesAttackZombies;
+							settings.enemyZombieResponse = enemyZombieResponse;
 							settings.animalsAttackZombies = animalsAttackZombies;
 						});
 						RefreshZombieTargetCache(map);

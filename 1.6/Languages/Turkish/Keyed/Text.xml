@@ -113,7 +113,11 @@
 	<AttackMode_Everything>Bütün yaratıklar</AttackMode_Everything>
 	<AttackMode_OnlyHumans>İnsan benzeri yaratıklar</AttackMode_OnlyHumans>
 	<AttackMode_OnlyColonists>Sadece kolonistler</AttackMode_OnlyColonists>
-	<EnemiesAttackZombies>Düşmanlar zombilere saldırır</EnemiesAttackZombies>
+	<FriendlyZombieResponse>Dostların zombilere tepkisi</FriendlyZombieResponse>
+	<EnemyZombieResponse>Düşmanların zombilere tepkisi</EnemyZombieResponse>
+	<ZombieResponsePolicy_Minimal>Asgari</ZombieResponsePolicy_Minimal>
+	<ZombieResponsePolicy_Adaptive>Uyarlanabilir</ZombieResponsePolicy_Adaptive>
+	<ZombieResponsePolicy_Full>Tam</ZombieResponsePolicy_Full>
 	<AnimalsAttackZombies>Hayvanlar zombilere saldırır</AnimalsAttackZombies>
 	<AnomalyTargetingTitle>Anomaly istisnaları</AnomalyTargetingTitle>
 	<AnomalyTargetingRelations>Zombiler saldırabilir:</AnomalyTargetingRelations>

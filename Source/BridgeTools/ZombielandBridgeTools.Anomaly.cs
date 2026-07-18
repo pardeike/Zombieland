@@ -172,7 +172,7 @@ namespace ZombieLand
 
 			var settings = ZombieSettings.Values;
 			var originalAttackMode = settings.attackMode;
-			var originalEnemiesAttackZombies = settings.enemiesAttackZombies;
+			var originalEnemyZombieResponse = settings.enemyZombieResponse;
 			var originalAnimalsAttackZombies = settings.animalsAttackZombies;
 			var spawned = new List<Thing>();
 			var rows = new List<object>();
@@ -245,7 +245,7 @@ namespace ZombieLand
 			finally
 			{
 				settings.attackMode = originalAttackMode;
-				settings.enemiesAttackZombies = originalEnemiesAttackZombies;
+				settings.enemyZombieResponse = originalEnemyZombieResponse;
 				settings.animalsAttackZombies = originalAnimalsAttackZombies;
 				if (cleanup)
 				{
@@ -796,7 +796,7 @@ namespace ZombieLand
 
 					ApplyZombieSettingsOverride(settings =>
 					{
-						settings.enemiesAttackZombies = testCase.enemiesAttackZombies;
+						settings.enemyZombieResponse = testCase.enemiesAttackZombies ? ZombieResponsePolicy.Full : ZombieResponsePolicy.Minimal;
 						settings.animalsAttackZombies = testCase.animalsAttackZombies;
 						settings.anomalyAttacksZombies = testCase.mode;
 					});
@@ -1174,7 +1174,7 @@ namespace ZombieLand
 						ApplyZombieSettingsOverride(values =>
 						{
 							values.attackMode = mode;
-							values.enemiesAttackZombies = enemiesAttackZombies;
+							values.enemyZombieResponse = enemiesAttackZombies ? ZombieResponsePolicy.Full : ZombieResponsePolicy.Minimal;
 							values.animalsAttackZombies = enemiesAttackZombies;
 						});
 
@@ -1411,7 +1411,7 @@ namespace ZombieLand
 			ApplyZombieSettingsOverride(values =>
 			{
 				values.attackMode = AttackMode.OnlyHumans;
-				values.enemiesAttackZombies = false;
+				values.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 				values.animalsAttackZombies = false;
 			});
 			var root = map.Center + new IntVec3(-32, 0, -26);
@@ -1455,7 +1455,7 @@ namespace ZombieLand
 			ApplyZombieSettingsOverride(values =>
 			{
 				values.attackMode = AttackMode.OnlyColonists;
-				values.enemiesAttackZombies = false;
+				values.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 				values.animalsAttackZombies = false;
 			});
 			var onlyColonistsZombies = SpawnScenarioZombies(map, root + new IntVec3(-4, 0, 0), Math.Min(zombieCount, 24), 8, spawned);
@@ -1470,7 +1470,7 @@ namespace ZombieLand
 			ApplyZombieSettingsOverride(values =>
 			{
 				values.attackMode = AttackMode.OnlyHumans;
-				values.enemiesAttackZombies = false;
+				values.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 				values.animalsAttackZombies = false;
 			});
 			var onlyHumansZombies = SpawnScenarioZombies(map, root + new IntVec3(-4, 0, 0), Math.Min(zombieCount, 24), 8, spawned);
@@ -1510,7 +1510,7 @@ namespace ZombieLand
 			ApplyZombieSettingsOverride(values =>
 			{
 				values.attackMode = AttackMode.Everything;
-				values.enemiesAttackZombies = false;
+				values.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 				values.animalsAttackZombies = false;
 			});
 			var root = map.Center + new IntVec3(-30, 0, 20);
@@ -1554,7 +1554,7 @@ namespace ZombieLand
 			ApplyZombieSettingsOverride(values =>
 			{
 				values.attackMode = AttackMode.Everything;
-				values.enemiesAttackZombies = false;
+				values.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 				values.animalsAttackZombies = false;
 			});
 			var root = map.Center + new IntVec3(28, 0, 20);
@@ -1606,7 +1606,7 @@ namespace ZombieLand
 			ApplyZombieSettingsOverride(values =>
 			{
 				values.attackMode = AttackMode.Everything;
-				values.enemiesAttackZombies = true;
+				values.enemyZombieResponse = ZombieResponsePolicy.Full;
 				values.animalsAttackZombies = true;
 			});
 			var root = map.Center + new IntVec3(0, 0, 34);
@@ -1752,7 +1752,7 @@ namespace ZombieLand
 		static object DescribeAnomalyMatrixRow(AnomalyMatrixCase testCase, Pawn pawn, Zombie zombie, Faction zombieFaction, SettingsGroup settings)
 		{
 			var oldAttackMode = settings.attackMode;
-			var oldEnemiesAttackZombies = settings.enemiesAttackZombies;
+			var oldEnemyZombieResponse = settings.enemyZombieResponse;
 			var oldAnimalsAttackZombies = settings.animalsAttackZombies;
 			var oldAnomalyAttacksZombies = settings.anomalyAttacksZombies;
 			try
@@ -1770,7 +1770,7 @@ namespace ZombieLand
 					})
 					.ToArray();
 
-				settings.enemiesAttackZombies = false;
+				settings.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 				settings.animalsAttackZombies = false;
 				settings.anomalyAttacksZombies = AnomalyTargetingOverride.Automatic;
 				var reverseDisabled = new
@@ -1780,7 +1780,7 @@ namespace ZombieLand
 					isHostileToZombies = Tools.IsHostileToZombies(pawn)
 				};
 
-				settings.enemiesAttackZombies = true;
+				settings.enemyZombieResponse = ZombieResponsePolicy.Full;
 				settings.animalsAttackZombies = true;
 				settings.anomalyAttacksZombies = AnomalyTargetingOverride.Automatic;
 				var reverseEnabled = new
@@ -1823,7 +1823,7 @@ namespace ZombieLand
 			finally
 			{
 				settings.attackMode = oldAttackMode;
-				settings.enemiesAttackZombies = oldEnemiesAttackZombies;
+				settings.enemyZombieResponse = oldEnemyZombieResponse;
 				settings.animalsAttackZombies = oldAnimalsAttackZombies;
 				settings.anomalyAttacksZombies = oldAnomalyAttacksZombies;
 			}
@@ -1832,7 +1832,7 @@ namespace ZombieLand
 		static void ConfigureAnomalyTargetingOverride(SettingsGroup settings, AttackMode attackMode, AnomalyTargetingCategory category, AnomalyTargetingOverride mode)
 		{
 			settings.attackMode = attackMode;
-			settings.enemiesAttackZombies = false;
+			settings.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 			settings.animalsAttackZombies = false;
 			settings.anomalyGhoulTargeting = AnomalyTargetingOverride.Automatic;
 			settings.anomalyShamblerTargeting = AnomalyTargetingOverride.Automatic;
@@ -2108,12 +2108,12 @@ namespace ZombieLand
 
 		static object DescribeAnomalyReverseHostility(Pawn pawn, Zombie zombie, Faction zombieFaction, SettingsGroup settings)
 		{
-			var oldEnemiesAttackZombies = settings.enemiesAttackZombies;
+			var oldEnemyZombieResponse = settings.enemyZombieResponse;
 			var oldAnimalsAttackZombies = settings.animalsAttackZombies;
 			var oldAnomalyAttacksZombies = settings.anomalyAttacksZombies;
 			try
 			{
-				settings.enemiesAttackZombies = false;
+				settings.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 				settings.animalsAttackZombies = false;
 				settings.anomalyAttacksZombies = AnomalyTargetingOverride.Automatic;
 				var disabled = new
@@ -2123,7 +2123,7 @@ namespace ZombieLand
 					isHostileToZombies = Tools.IsHostileToZombies(pawn)
 				};
 
-				settings.enemiesAttackZombies = true;
+				settings.enemyZombieResponse = ZombieResponsePolicy.Full;
 				settings.animalsAttackZombies = true;
 				settings.anomalyAttacksZombies = AnomalyTargetingOverride.Automatic;
 				var enabled = new
@@ -2141,7 +2141,7 @@ namespace ZombieLand
 			}
 			finally
 			{
-				settings.enemiesAttackZombies = oldEnemiesAttackZombies;
+				settings.enemyZombieResponse = oldEnemyZombieResponse;
 				settings.animalsAttackZombies = oldAnimalsAttackZombies;
 				settings.anomalyAttacksZombies = oldAnomalyAttacksZombies;
 			}

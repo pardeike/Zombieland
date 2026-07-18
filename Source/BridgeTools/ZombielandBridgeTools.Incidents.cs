@@ -2306,7 +2306,7 @@ namespace ZombieLand
 				ApplyZombieSettingsOverride(settings =>
 				{
 					settings.attackMode = AttackMode.OnlyHumans;
-					settings.enemiesAttackZombies = true;
+					settings.enemyZombieResponse = ZombieResponsePolicy.Full;
 					settings.zombiesDieOnZeroThreat = false;
 				});
 

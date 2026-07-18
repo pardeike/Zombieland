@@ -98,10 +98,11 @@ namespace ZombieLand
 				}
 
 				// Attack?
-				if (DialogExtensions.Section<AttackMode>(":WhatDoZombiesAttack", ":EnemiesAttackZombies", ":AnimalsAttackZombies", ModsConfig.AnomalyActive ? ":AnomalyTargetingTitle" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetingRelations" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetGhouls" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetShamblers" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetOtherEntities" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetNociosphere" : "", ModsConfig.AnomalyActive ? ":AnomalyZombieHostilityRelations" : "", ModsConfig.AnomalyActive ? ":FleshmassCollisionTitle" : "", ModsConfig.AnomalyActive ? ":OrdinaryZombiesAttackFleshmass" : "", ModsConfig.AnomalyActive ? ":TankyAndSuicideZombiesAttackFleshmass" : "", ModsConfig.AnomalyActive ? ":FormerColonistAndSpecialZombiesAttackFleshmass" : "", ":WallPushing"))
+				if (DialogExtensions.Section<AttackMode>(":WhatDoZombiesAttack", ":FriendlyZombieResponse", ":EnemyZombieResponse", ":AnimalsAttackZombies", ModsConfig.AnomalyActive ? ":AnomalyTargetingTitle" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetingRelations" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetGhouls" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetShamblers" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetOtherEntities" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetNociosphere" : "", ModsConfig.AnomalyActive ? ":AnomalyZombieHostilityRelations" : "", ModsConfig.AnomalyActive ? ":FleshmassCollisionTitle" : "", ModsConfig.AnomalyActive ? ":OrdinaryZombiesAttackFleshmass" : "", ModsConfig.AnomalyActive ? ":TankyAndSuicideZombiesAttackFleshmass" : "", ModsConfig.AnomalyActive ? ":FormerColonistAndSpecialZombiesAttackFleshmass" : "", ":WallPushing"))
 				{
 					list.Dialog_Enum("WhatDoZombiesAttack", ref settings.attackMode);
-					list.Dialog_Checkbox("EnemiesAttackZombies", ref settings.enemiesAttackZombies);
+					list.Dialog_Enum("FriendlyZombieResponse", ref settings.friendlyZombieResponse);
+					list.Dialog_Enum("EnemyZombieResponse", ref settings.enemyZombieResponse);
 					list.Dialog_Checkbox("AnimalsAttackZombies", ref settings.animalsAttackZombies);
 					list.Gap(10f);
 					list.Dialog_IntSlider("WallPushing", n => n == 0 ? "Off".TranslateSimple() : n.ToString(), ref settings.minimumZombiesForWallPushing, 0, 48);
@@ -677,9 +678,16 @@ namespace ZombieLand
 
 		static string AnomalyAutomaticZombieHostilityDetail(SettingsGroup settings)
 		{
-			if (settings.enemiesAttackZombies == settings.animalsAttackZombies)
-				return AnomalyAutomaticDetailLabel(settings.enemiesAttackZombies ? AnomalyAutomaticDetail.Allow : AnomalyAutomaticDetail.Never);
-			return AnomalyAutomaticDetailLabel(AnomalyAutomaticDetail.Mixed);
+			var enemyDetail = settings.enemyZombieResponse switch
+			{
+				ZombieResponsePolicy.Minimal => AnomalyAutomaticDetail.Never,
+				ZombieResponsePolicy.Full => AnomalyAutomaticDetail.Allow,
+				_ => AnomalyAutomaticDetail.Mixed
+			};
+			if (enemyDetail == AnomalyAutomaticDetail.Mixed)
+				return AnomalyAutomaticDetailLabel(enemyDetail);
+			var animalDetail = settings.animalsAttackZombies ? AnomalyAutomaticDetail.Allow : AnomalyAutomaticDetail.Never;
+			return AnomalyAutomaticDetailLabel(enemyDetail == animalDetail ? enemyDetail : AnomalyAutomaticDetail.Mixed);
 		}
 
 		static string AnomalyAutomaticDetailLabel(AnomalyAutomaticDetail detail)

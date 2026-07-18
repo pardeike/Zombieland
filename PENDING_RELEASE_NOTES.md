@@ -1,0 +1,2 @@
+- Friendly visitors now use ranged weapons against nearby zombies when their armed group is strong enough.
+- Friendly and enemy zombie responses can now be set independently to Minimal, Adaptive, or Full.

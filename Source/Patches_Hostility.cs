@@ -60,7 +60,7 @@ namespace ZombieLand
 			var zombiesAttackOnlyColonists = settings.attackMode == AttackMode.OnlyColonists;
 			var zombiesAttackOnlyHumans = settings.attackMode == AttackMode.OnlyHumans;
 			var animalsDoNotAttackZombies = settings.animalsAttackZombies == false;
-			var enemiesDoNotAttackZombies = settings.enemiesAttackZombies == false;
+			var groupUsesFullResponse = (isFriendly || isEnemy) && GroupZombieResponse.AllowsFullResponse(attacker);
 			var anomalyAttacksZombies = false;
 			var anomalyHostilityOverride = isPlayer == false && attacker is Pawn attackerPawn && AnomalyTargeting.TryGetZombieHostilityOverride(attackerPawn, out anomalyAttacksZombies);
 
@@ -101,28 +101,26 @@ namespace ZombieLand
 				removeSpitter = true;
 				if (isHuman)
 				{
-					if (zombiesAttackOnlyColonists)
+					if (groupUsesFullResponse == false || zombiesAttackOnlyColonists)
 						removeAllZombies = true;
 					else
 						removeHarmlessZombies = true;
 					removeRopedZombies = true;
 					removeConfusedZombies = true;
-					removeDistantZombies = true;
 					removeLongDistanceMelee = true;
 				}
 				else if (isMech)
 				{
-					if (zombiesAttackEverything == false)
+					if (groupUsesFullResponse == false || zombiesAttackEverything == false)
 						removeAllZombies = true;
 					else
 						removeHarmlessZombies = true;
 					removeRopedZombies = true;
 					removeConfusedZombies = true;
-					removeDistantZombies = true;
 				}
 				else // isThing
 				{
-					if (zombiesAttackEverything == false)
+					if (groupUsesFullResponse == false || zombiesAttackEverything == false)
 						removeAllZombies = true;
 					removeHarmlessZombies = true;
 					removeRopedZombies = true;
@@ -133,7 +131,7 @@ namespace ZombieLand
 				removeSpitter = true;
 				if (isHuman)
 				{
-					if (enemiesDoNotAttackZombies)
+					if (groupUsesFullResponse == false)
 						removeAllZombies = true;
 					else
 					{
@@ -148,7 +146,7 @@ namespace ZombieLand
 				}
 				else if (isMech)
 				{
-					if (enemiesDoNotAttackZombies)
+					if (groupUsesFullResponse == false)
 						removeAllZombies = true;
 					else
 					{
@@ -161,7 +159,7 @@ namespace ZombieLand
 				}
 				else // isThing
 				{
-					if (enemiesDoNotAttackZombies)
+					if (groupUsesFullResponse == false)
 						removeAllZombies = true;
 					if (zombiesAttackEverything == false)
 						removeAllZombies = true;
@@ -477,6 +475,8 @@ namespace ZombieLand
 			var attackerFaction = attacker.Faction;
 			var attackerFactionDef = attackerFaction?.def;
 			var isAnimal = attacker.RaceProps?.Animal ?? false;
+			var isEnemy = isAnimal == false && attackerFactionDef != null && attackerFaction.HostileTo(Faction.OfPlayer);
+			var isFriendly = isAnimal == false && attackerFactionDef != null && attackerFactionDef.isPlayer == false && isEnemy == false;
 
 			// attacker is player
 			if (isAnimal == false && (attackerFactionDef?.isPlayer ?? false))
@@ -533,9 +533,11 @@ namespace ZombieLand
 				return;
 			}
 
-			// attacker is friendly (disabled because the postfix deals with that)
+			var groupUsesFullResponse = (isFriendly || isEnemy) && GroupZombieResponse.ModeFor(attacker) == GroupResponseMode.Full;
 
-			// attacker is enemy
+			// Friendly ranged targeting is completed by the postfix, but its fallback
+			// still passes through this validator. Keep that policy independent from
+			// the enemy setting and allow the postfix to use the weapon's real range.
 			validator = (Thing t) =>
 			{
 				if (t is ZombieSymbiant)
@@ -548,7 +550,17 @@ namespace ZombieLand
 					if (oldValidator(t) == false)
 						return false;
 
-					if (ZombieSettings.Values.enemiesAttackZombies == false)
+					if (groupUsesFullResponse == false)
+						return false;
+
+					var attackMode = ZombieSettings.Values.attackMode;
+					var isHuman = attacker.RaceProps?.IsFlesh ?? false;
+					var isMech = attacker.RaceProps?.IsMechanoid ?? false;
+					if (isHuman && attackMode == AttackMode.OnlyColonists)
+						return false;
+					if (isHuman == false && isMech && attackMode != AttackMode.Everything)
+						return false;
+					if (isHuman == false && isMech == false && attackMode != AttackMode.Everything)
 						return false;
 
 					if (zombie.IsActiveElectric && zombie.Downed == false)
@@ -563,7 +575,10 @@ namespace ZombieLand
 					if (zombie.state != ZombieState.Tracking)
 						return false;
 
-					var attackDistance = verb == null ? 1f : verb.verbProps.range * verb.verbProps.range;
+					if (isFriendly)
+						return true;
+
+					var attackDistance = verb.verbProps.range * verb.verbProps.range;
 					var zombieAvoidRadius = Tools.ZombieAvoidRadius(zombie, true);
 					var maxZombieEngagementDistance = Math.Min(attackDistance, EnemyZombieEngagementDistanceSquared);
 
@@ -882,7 +897,7 @@ namespace ZombieLand
 			}
 
 			if (anomalyFactionOverride == false && faction.HostileTo(Faction.OfPlayer))
-				if (ZombieSettings.Values.enemiesAttackZombies == false)
+				if (ZombieSettings.Values.enemyZombieResponse == ZombieResponsePolicy.Minimal)
 				{
 					__result = false;
 					return false;

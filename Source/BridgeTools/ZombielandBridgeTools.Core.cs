@@ -1843,7 +1843,7 @@ namespace ZombieLand
 			}
 
 			var oldAttackMode = ZombieSettings.Values.attackMode;
-			var oldEnemiesAttackZombies = ZombieSettings.Values.enemiesAttackZombies;
+			var oldEnemyZombieResponse = ZombieSettings.Values.enemyZombieResponse;
 			Zombie zombie = null;
 			try
 			{
@@ -1859,7 +1859,7 @@ namespace ZombieLand
 				}
 
 				ZombieSettings.Values.attackMode = (AttackMode)999;
-				ZombieSettings.Values.enemiesAttackZombies = true;
+				ZombieSettings.Values.enemyZombieResponse = ZombieResponsePolicy.Full;
 				var invalidAttackModeThreat = GenHostility.IsActiveThreatTo(zombie, faction, false, false);
 
 				var success = brainzStage == 0
@@ -1879,7 +1879,7 @@ namespace ZombieLand
 			finally
 			{
 				ZombieSettings.Values.attackMode = oldAttackMode;
-				ZombieSettings.Values.enemiesAttackZombies = oldEnemiesAttackZombies;
+				ZombieSettings.Values.enemyZombieResponse = oldEnemyZombieResponse;
 				if (zombie != null && zombie.Destroyed == false)
 					zombie.Destroy(DestroyMode.Vanish);
 			}

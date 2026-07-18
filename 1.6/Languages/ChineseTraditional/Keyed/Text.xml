@@ -113,7 +113,11 @@
 	<AttackMode_Everything>所有生物</AttackMode_Everything>
 	<AttackMode_OnlyHumans>人形生物</AttackMode_OnlyHumans>
 	<AttackMode_OnlyColonists>只攻擊殖民者</AttackMode_OnlyColonists>
-	<EnemiesAttackZombies>敵人攻擊喪屍</EnemiesAttackZombies>
+	<FriendlyZombieResponse>友方對喪屍的反應</FriendlyZombieResponse>
+	<EnemyZombieResponse>敵方對喪屍的反應</EnemyZombieResponse>
+	<ZombieResponsePolicy_Minimal>最低限度</ZombieResponsePolicy_Minimal>
+	<ZombieResponsePolicy_Adaptive>自適應</ZombieResponsePolicy_Adaptive>
+	<ZombieResponsePolicy_Full>全力</ZombieResponsePolicy_Full>
 	<AnimalsAttackZombies>動物攻擊喪屍</AnimalsAttackZombies>
 	<AnomalyTargetingTitle>異邪例外規則</AnomalyTargetingTitle>
 	<AnomalyTargetingRelations>喪屍可以攻擊：</AnomalyTargetingRelations>

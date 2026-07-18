@@ -17,7 +17,7 @@ namespace ZombieLand
 
 		[Tool("zombieland/settings_state", Description = "Read, prepare, or verify reusable Zombieland settings/new-game/keyframe/colonist-toggle/music persistence fixtures.")]
 		public static object SettingsState(
-			[ToolParameter(Description = "Action mode: read, prepare, verify, modal, behavior, gizmos, music, new-game, corrupt-save-prepare, corrupt-save-verify, apparel-generation, or defaults-write-test.", Required = false, DefaultValue = "read")] string actionMode = "read",
+			[ToolParameter(Description = "Action mode: read, prepare, verify, modal, behavior, gizmos, music, new-game, response-policy, corrupt-save-prepare, corrupt-save-verify, apparel-generation, or defaults-write-test.", Required = false, DefaultValue = "read")] string actionMode = "read",
 			[ToolParameter(Description = "Open RimWorld's real Zombieland game-settings page/dialog while reading or preparing.", Required = false, DefaultValue = false)] bool openSettingsDialog = false)
 		{
 			var normalizedMode = (actionMode ?? "read").Trim().ToLowerInvariant();
@@ -99,6 +99,16 @@ namespace ZombieLand
 					newGameVerification
 				};
 			}
+			if (normalizedMode == "response-policy")
+			{
+				var verification = VerifyZombieResponsePolicySettings();
+				return new
+				{
+					success = ObjectSuccess(verification),
+					actionMode = normalizedMode,
+					verification
+				};
+			}
 			if (normalizedMode == "corrupt-save-prepare")
 			{
 				var prepared = PrepareCorruptSaveTimeline();
@@ -155,7 +165,28 @@ namespace ZombieLand
 			{
 				success = false,
 				actionMode,
-				error = "Unsupported settings actionMode. Use read, prepare, verify, modal, behavior, gizmos, music, new-game, corrupt-save-prepare, corrupt-save-verify, apparel-generation, or defaults-write-test."
+				error = "Unsupported settings actionMode. Use read, prepare, verify, modal, behavior, gizmos, music, new-game, response-policy, corrupt-save-prepare, corrupt-save-verify, apparel-generation, or defaults-write-test."
+			};
+		}
+
+		static object VerifyZombieResponsePolicySettings()
+		{
+			var defaults = new SettingsGroup();
+			var cases = new[]
+			{
+				new { name = "friendly_default_is_adaptive", success = defaults.friendlyZombieResponse == ZombieResponsePolicy.Adaptive, expected = "Adaptive", actual = defaults.friendlyZombieResponse.ToString() },
+				new { name = "enemy_default_is_full", success = defaults.enemyZombieResponse == ZombieResponsePolicy.Full, expected = "Full", actual = defaults.enemyZombieResponse.ToString() },
+				new { name = "legacy_false_migrates_minimal", success = SettingsGroup.MigrateLegacyEnemyZombieResponse(false) == ZombieResponsePolicy.Minimal, expected = "Minimal", actual = SettingsGroup.MigrateLegacyEnemyZombieResponse(false).ToString() },
+				new { name = "legacy_true_migrates_full", success = SettingsGroup.MigrateLegacyEnemyZombieResponse(true) == ZombieResponsePolicy.Full, expected = "Full", actual = SettingsGroup.MigrateLegacyEnemyZombieResponse(true).ToString() },
+				new { name = "serialized_adaptive_round_trips", success = SettingsGroup.ParseZombieResponsePolicy("Adaptive", ZombieResponsePolicy.Minimal) == ZombieResponsePolicy.Adaptive, expected = "Adaptive", actual = SettingsGroup.ParseZombieResponsePolicy("Adaptive", ZombieResponsePolicy.Minimal).ToString() },
+				new { name = "serialized_values_are_case_insensitive", success = SettingsGroup.ParseZombieResponsePolicy("full", ZombieResponsePolicy.Minimal) == ZombieResponsePolicy.Full, expected = "Full", actual = SettingsGroup.ParseZombieResponsePolicy("full", ZombieResponsePolicy.Minimal).ToString() },
+				new { name = "invalid_serialized_value_uses_default", success = SettingsGroup.ParseZombieResponsePolicy("invalid", ZombieResponsePolicy.Adaptive) == ZombieResponsePolicy.Adaptive, expected = "Adaptive", actual = SettingsGroup.ParseZombieResponsePolicy("invalid", ZombieResponsePolicy.Adaptive).ToString() }
+			};
+			return new
+			{
+				success = cases.All(testCase => testCase.success),
+				settingsGroupConsumers = "live/default/keyframe groups all use SettingsGroup.ExposeData",
+				cases
 			};
 		}
 
@@ -1633,6 +1664,8 @@ namespace ZombieLand
 			return Approximately(left.threatScale, right.threatScale)
 				&& left.maximumNumberOfZombies == right.maximumNumberOfZombies
 				&& left.attackMode == right.attackMode
+				&& left.friendlyZombieResponse == right.friendlyZombieResponse
+				&& left.enemyZombieResponse == right.enemyZombieResponse
 				&& left.spawnWhenType == right.spawnWhenType
 				&& left.spawnHowType == right.spawnHowType
 				&& left.smashMode == right.smashMode
@@ -1982,7 +2015,13 @@ namespace ZombieLand
 				zombielandMusicShare = zombielandMusicShare,
 				zombieBiteInfectionChance = infectionChance,
 				contaminationBaseFactor = contaminationBaseFactor,
-				enemiesAttackZombies = attackMode != AttackMode.OnlyColonists,
+				friendlyZombieResponse = attackMode switch
+				{
+					AttackMode.Everything => ZombieResponsePolicy.Adaptive,
+					AttackMode.OnlyHumans => ZombieResponsePolicy.Full,
+					_ => ZombieResponsePolicy.Minimal
+				},
+				enemyZombieResponse = attackMode == AttackMode.OnlyColonists ? ZombieResponsePolicy.Minimal : ZombieResponsePolicy.Full,
 				animalsAttackZombies = attackMode == AttackMode.Everything,
 				zombiesEatDowned = attackMode != AttackMode.OnlyColonists,
 				zombiesEatCorpses = true,
@@ -2109,10 +2148,11 @@ namespace ZombieLand
 				group.threatScale,
 				group.maximumNumberOfZombies,
 				attackMode = group.attackMode.ToString(),
+				friendlyZombieResponse = group.friendlyZombieResponse.ToString(),
+				enemyZombieResponse = group.enemyZombieResponse.ToString(),
 				spawnWhenType = group.spawnWhenType.ToString(),
 				spawnHowType = group.spawnHowType.ToString(),
 				smashMode = group.smashMode.ToString(),
-				group.enemiesAttackZombies,
 				group.animalsAttackZombies,
 				group.doubleTapRequired,
 				group.playZombielandMusic,

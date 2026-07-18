@@ -1300,6 +1300,7 @@ namespace ZombieLand
 		{
 			static bool Prefix(Verb_MeleeAttack __instance, ref bool __result)
 			{
+				GroupZombieResponse.ObserveMeleeAttack(__instance);
 				var limit = ZombieSettings.Values.safeMeleeLimit;
 				if (limit == 0)
 					return true;
@@ -1373,6 +1374,11 @@ namespace ZombieLand
 						}
 					}
 				return true;
+			}
+
+			static void Postfix(Verb_MeleeAttack __instance)
+			{
+				GroupZombieResponse.ObserveMeleeResult(__instance);
 			}
 		}
 
@@ -3545,6 +3551,8 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.First)]
 			static bool Prefix(ref PawnGenerationRequest request, ref Pawn __result)
 			{
+				if (GroupZombieResponse.disablePawnRelationsForEvidence)
+					request.CanGeneratePawnRelations = false;
 				if (request.Faction?.def != ZombieDefOf.Zombies)
 					return true;
 				if (request.KindDef == ZombieDefOf.ZombieSymbiant)
@@ -5869,7 +5877,7 @@ namespace ZombieLand
 		static class Pawn_Kill_Patch
 		{
 			[HarmonyPriority(Priority.First)]
-			static bool Prefix(Pawn __instance)
+			static bool Prefix(Pawn __instance, DamageInfo? dinfo)
 			{
 				if (__instance == null)
 					return true;
@@ -5879,6 +5887,7 @@ namespace ZombieLand
 				// remove current job of zombie immediately when killed
 				if (__instance is Zombie zombie)
 				{
+					GroupZombieResponse.ObserveZombieDeath(zombie, dinfo);
 					if (zombie.jobs != null && zombie.CurJob != null)
 						zombie.jobs.EndCurrentJob(JobCondition.InterruptForced, false);
 					Tools.DropLoot(zombie);
@@ -7207,6 +7216,8 @@ namespace ZombieLand
 			{
 				if (launcher is not Pawn pawn || pawn.Map == null || launcher is ZombieSpitter)
 					return;
+
+				GroupZombieResponse.ObserveRangedShot(pawn, usedTarget.Thing as Pawn);
 
 				var noiseScale = 1f;
 				var verbProps = pawn.equipment?.PrimaryEq?.PrimaryVerb?.verbProps;

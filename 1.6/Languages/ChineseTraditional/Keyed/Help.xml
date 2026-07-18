@@ -18,7 +18,11 @@
 	<AttackMode_Everything_Help>讓喪屍追蹤並攻擊任何會移動的目標，包括動物。砲塔之類的固定物是它們唯一會無視的東西。</AttackMode_Everything_Help>
 	<AttackMode_OnlyHumans_Help>這是喪屍「正常」的行動方式。對腦子的渴望會讓它們獵殺人形角色，不論其派系。</AttackMode_OnlyHumans_Help>
 	<AttackMode_OnlyColonists_Help>如果你認為喪屍只該攻擊你的殖民者，那麼此模式適合你。它們被攻擊時可能會反擊，但絕不會主動攻擊其他人。</AttackMode_OnlyColonists_Help>
-	<EnemiesAttackZombies_Help>關閉此項後，敵人會無視並避開喪屍。開啟後，襲擊者會把它們視為危險並盡力戰鬥。祝你好運！</EnemiesAttackZombies_Help>
+	<FriendlyZombieResponse_Help>控制非敵對來訪團體如何應對喪屍。友方與敵方策略彼此獨立。</FriendlyZombieResponse_Help>
+	<EnemyZombieResponse_Help>控制襲擊者和其他敵對團體如何應對喪屍。友方與敵方策略彼此獨立。</EnemyZombieResponse_Help>
+	<ZombieResponsePolicy_Minimal_Help>不會主動把喪屍作為目標，但近身戰鬥中的自衛仍可能發生。</ZombieResponsePolicy_Minimal_Help>
+	<ZombieResponsePolicy_Adaptive_Help>當團體成員被喪屍擊中後，比較附近可戰鬥射手與附近喪屍壓力。只有團體對自身實力有信心時才允許全力作戰。</ZombieResponsePolicy_Adaptive_Help>
+	<ZombieResponsePolicy_Full_Help>持續允許普通戰鬥 AI 使用遠程和近戰武器攻擊合適的喪屍。個別人員仍可能拒絕不合適的目標。</ZombieResponsePolicy_Full_Help>
 	<AnimalsAttackZombies_Help>開啟後，動物在狩獵或變得攻擊性時會攻擊喪屍。若想讓它們忽略喪屍，請關閉此選項。</AnimalsAttackZombies_Help>
 	<AnomalyTargetingTitle_Help>這些設定控制喪屍與異邪生物之間的雙向例外規則。「自動」保留常規規則，「從不」關閉相應行為，「允許」則強制開啟。</AnomalyTargetingTitle_Help>
 	<AnomalyTargetingRelations_Help>控制喪屍可以選擇哪些異邪生物作為目標。「自動」遵循主要喪屍目標規則；「從不」禁止攻擊該組；「允許」會讓喪屍攻擊該組，即使主要規則原本會忽略它。死亡、倒地或休眠的生物一律會被忽略。</AnomalyTargetingRelations_Help>

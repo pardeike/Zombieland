@@ -1814,7 +1814,7 @@ namespace ZombieLand
 			}
 
 			var settings = ZombieSettings.Values;
-			var originalEnemiesAttackZombies = settings.enemiesAttackZombies;
+			var originalEnemyZombieResponse = settings.enemyZombieResponse;
 			var originalAnimalsAttackZombies = settings.animalsAttackZombies;
 			(bool value, string error) playerThing;
 			(bool value, string error) hostileThingDisabled;
@@ -1825,7 +1825,7 @@ namespace ZombieLand
 			(bool value, string error) factionlessFaction;
 			try
 			{
-				settings.enemiesAttackZombies = false;
+				settings.enemyZombieResponse = ZombieResponsePolicy.Minimal;
 				settings.animalsAttackZombies = false;
 				playerThing = TryHostileTo(player, zombie);
 				hostileThingDisabled = TryHostileTo(hostile, zombie);
@@ -1833,14 +1833,14 @@ namespace ZombieLand
 				factionlessThing = TryHostileTo(factionless, zombie);
 				factionlessFaction = TryHostileTo(factionless, zombieFaction);
 
-				settings.enemiesAttackZombies = true;
+				settings.enemyZombieResponse = ZombieResponsePolicy.Full;
 				settings.animalsAttackZombies = true;
 				hostileThingEnabled = TryHostileTo(hostile, zombie);
 				animalThingEnabled = TryHostileTo(animal, zombie);
 			}
 			finally
 			{
-				settings.enemiesAttackZombies = originalEnemiesAttackZombies;
+				settings.enemyZombieResponse = originalEnemyZombieResponse;
 				settings.animalsAttackZombies = originalAnimalsAttackZombies;
 			}
 

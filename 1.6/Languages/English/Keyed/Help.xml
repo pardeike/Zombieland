@@ -20,7 +20,11 @@
 	<AttackMode_Everything_Help>Make zombies track and attack anything that moves - even animals. Stationary things like turrets are the only things they ignore.</AttackMode_Everything_Help>
 	<AttackMode_OnlyHumans_Help>This is the "normal" way zombies should work. Their lust for brains makes them hunt humanlike pawns regardless of faction.</AttackMode_OnlyHumans_Help>
 	<AttackMode_OnlyColonists_Help>If you think that zombies should never attack anyone else but your colonists, then this is the right mode for you. They might hit back when attacked but will never initiate any aggression.</AttackMode_OnlyColonists_Help>
-	<EnemiesAttackZombies_Help>Turn this off and your enemies will ignore and avoid zombies. When turned on, raiders will see them as dangerous and will try their best to fight them. Good luck!</EnemiesAttackZombies_Help>
+	<FriendlyZombieResponse_Help>Controls how non-hostile visiting groups respond to zombies. Friendly and enemy policies are independent.</FriendlyZombieResponse_Help>
+	<EnemyZombieResponse_Help>Controls how raiders and other enemy groups respond to zombies. Friendly and enemy policies are independent.</EnemyZombieResponse_Help>
+	<ZombieResponsePolicy_Minimal_Help>Do not deliberately target zombies. Close-melee self-defense can still happen.</ZombieResponsePolicy_Minimal_Help>
+	<ZombieResponsePolicy_Adaptive_Help>After a group member is hit by a zombie, compare nearby capable shooters with nearby zombie pressure. Permit full combat only when the group is confident.</ZombieResponsePolicy_Adaptive_Help>
+	<ZombieResponsePolicy_Full_Help>Continuously permit normal combat AI to use ranged and melee weapons against eligible zombies. Individual pawns may still reject unsuitable targets.</ZombieResponsePolicy_Full_Help>
 	<AnimalsAttackZombies_Help>With this on, animals will attack zombies when they hunt or get aggressive. To let them ignore any zombie turn this option off.</AnimalsAttackZombies_Help>
 	<AnomalyTargetingTitle_Help>These settings are Anomaly-specific exceptions in both directions. Automatic keeps the normal rules, Never turns the behavior off, and Allow forces it on.</AnomalyTargetingTitle_Help>
 	<AnomalyTargetingRelations_Help>Controls which Anomaly pawns zombies may choose as targets. Automatic follows the main zombie target rule. Never blocks that group. Allow makes zombies attack that group even when the main rule would ignore it. Dead, downed, or dormant pawns are always ignored.</AnomalyTargetingRelations_Help>

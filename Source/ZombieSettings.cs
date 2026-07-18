@@ -30,6 +30,13 @@ namespace ZombieLand
 		OnlyColonists
 	}
 
+	public enum ZombieResponsePolicy
+	{
+		Minimal,
+		Adaptive,
+		Full
+	}
+
 	public enum AnomalyTargetingOverride
 	{
 		Automatic,
@@ -184,7 +191,8 @@ namespace ZombieLand
 		public SpawnWhenType spawnWhenType = SpawnWhenType.AllTheTime;
 		public SpawnHowType spawnHowType = SpawnHowType.FromTheEdges;
 		public AttackMode attackMode = AttackMode.OnlyHumans;
-		public bool enemiesAttackZombies = true;
+		public ZombieResponsePolicy friendlyZombieResponse = ZombieResponsePolicy.Adaptive;
+		public ZombieResponsePolicy enemyZombieResponse = ZombieResponsePolicy.Full;
 		public bool animalsAttackZombies = false;
 		public AnomalyTargetingOverride anomalyGhoulTargeting = AnomalyTargetingOverride.Automatic;
 		public AnomalyTargetingOverride anomalyShamblerTargeting = AnomalyTargetingOverride.Automatic;
@@ -282,6 +290,24 @@ namespace ZombieLand
 
 			this.AutoExposeDataWithDefaults((settings, name, value, defaultValue) =>
 			{
+				if (value is ZombieResponsePolicy responsePolicy && defaultValue is ZombieResponsePolicy defaultResponsePolicy)
+				{
+					var savedValue = responsePolicy.ToString();
+					if (Scribe.mode == LoadSaveMode.LoadingVars
+						&& name == nameof(enemyZombieResponse)
+						&& Scribe.loader.curXmlParent[name] == null
+						&& Scribe.loader.curXmlParent["enemiesAttackZombies"] is { } legacyNode
+						&& bool.TryParse(legacyNode.InnerText, out var legacyValue))
+					{
+						savedValue = MigrateLegacyEnemyZombieResponse(legacyValue).ToString();
+					}
+					else
+						Scribe_Values.Look(ref savedValue, name, defaultResponsePolicy.ToString());
+					if (Scribe.mode == LoadSaveMode.LoadingVars)
+						AccessTools.Field(typeof(SettingsGroup), name).SetValue(settings, ParseZombieResponsePolicy(savedValue, defaultResponsePolicy));
+					return true;
+				}
+
 				if (value is AnomalyTargetingOverride anomalyTargetingOverride && defaultValue is AnomalyTargetingOverride defaultAnomalyTargetingOverride)
 				{
 					var savedValue = anomalyTargetingOverride.ToString();
@@ -337,6 +363,20 @@ namespace ZombieLand
 				zombielandMusicShare = ZombielandMusic.NormalizeShare(zombielandMusicShare);
 				Tools.UpdateBiomeBlacklist(biomesWithoutZombies);
 			}
+		}
+
+		internal static ZombieResponsePolicy ParseZombieResponsePolicy(string value, ZombieResponsePolicy defaultValue)
+		{
+			if (value.NullOrEmpty())
+				return defaultValue;
+			if (Enum.TryParse<ZombieResponsePolicy>(value, true, out var result))
+				return result;
+			return defaultValue;
+		}
+
+		internal static ZombieResponsePolicy MigrateLegacyEnemyZombieResponse(bool legacyValue)
+		{
+			return legacyValue ? ZombieResponsePolicy.Full : ZombieResponsePolicy.Minimal;
 		}
 
 		static AnomalyTargetingOverride ParseAnomalyTargetingOverride(string value, AnomalyTargetingOverride defaultValue)

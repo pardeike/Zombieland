@@ -748,7 +748,7 @@ namespace ZombieLand
 
 			if (faction != null && faction.HostileTo(Faction.OfPlayer))
 			{
-				if (settings.enemiesAttackZombies == false)
+				if (GroupZombieResponse.ModeFor(pawn) != GroupResponseMode.Full)
 					return false;
 				if (isHuman)
 					return settings.attackMode != AttackMode.OnlyColonists;

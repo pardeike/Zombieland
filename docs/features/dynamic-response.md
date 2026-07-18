@@ -166,7 +166,6 @@ AdaptiveModeFor(pawn):
 
     anchor = most recently harmed eligible member of lord.ownedPawns where:
         member is spawned on pawn.Map
-        member.mindState.meleeThreat is Zombie
         now - member.mindState.lastHarmTick < 600
 
     if no anchor exists:
@@ -208,25 +207,13 @@ Use `Pawn_MindState.lastHarmTick`; do not add Harmony damage or attack hooks.
 
 RimWorld maintains this tick when a pawn receives external violence. A recent tick therefore provides the landed-hit signal that the feature needs and naturally expires without a custom timer. Missed melee swings do not update it.
 
-### Zombie provenance guard
+### Why `meleeThreat` is not a provenance gate
 
-`lastHarmTick` is not zombie-specific: gunfire, another melee attacker, and other external violence can update it. The adaptive check must therefore also require:
+`lastHarmTick` is not zombie-specific: gunfire, another melee attacker, and other external violence can update it. An earlier draft therefore also required `member.mindState.meleeThreat is Zombie`. The reusable live matrix disproved that choice: `meleeThreat` is transient during ordinary Lord combat, and one six-second tanky contact changed `Full → Minimal → Full` seven times even though recent landed harm remained inside the 600-tick window. The mode could disappear only 126 ticks after entering `Full`, far earlier than the intended expiry.
 
-```text
-member.mindState.meleeThreat is Zombie
-```
+V1 therefore uses the most recent positive `lastHarmTick` alone and requires positive relevant-zombie pressure to enter `Full`. A recent non-zombie injury can cause a false-positive zombie response when zombies are also within 16 cells, but that is bounded, self-expiring, and more coherent than visibly forgetting a real ongoing zombie contact. Do not add Harmony damage hooks or explicit provenance state unless this simpler false positive becomes a reproducible gameplay problem.
 
-RimWorld writes `meleeThreat` when the zombie attempts the close-melee attack. Combining the two existing fields cheaply approximates “this member recently suffered a zombie melee hit” without event state.
-
-Do not require `lastMeleeThreatHarmTick` to equal `lastHarmTick`. The melee-threat tick changes on later missed swings; equality would cause a valid 600-tick provocation to disappear after the next miss. Do not call `MeleeThreatStillThreat` either, because its shorter lifetime and current-threat conditions would undermine the intended 600-tick policy window.
-
-This read-only provenance guard has accepted limits:
-
-- A zombie's ranged or unusual damage that does not establish `meleeThreat` may not provoke the group.
-- If a different melee threat overwrites `meleeThreat`, a prior zombie hit may age out early.
-- If unrelated violent damage lands while the pawn's recorded melee threat is still a zombie, it may refresh the apparent provocation.
-
-These cases are preferable to custom damage-event plumbing in v1. Add explicit provenance state only if runtime evidence shows a common player-visible failure.
+Do not exclude a harmed member merely because it is downed. The downed pawn supplies the local anchor while only healthy, mobile, non-downed Lord members contribute to shooter confidence. This lets the rest of a capable group protect a member who was disabled by the provoking hit.
 
 ### Timing
 
@@ -291,7 +278,7 @@ No other special-zombie corrections belong in the policy. Electric compatibility
 
 ### No-zombie case
 
-Use `max(1, pressure)` in the denominator. A recently provoked, armed group may therefore remain `Full` briefly after the immediate zombie dies or leaves the 16-cell area. That lets normal targeting finish the local contact and avoids a special zero-count branch. The provocation window and cache age return the group to `Minimal` automatically.
+Positive pressure is required to enter `Full`; unrelated recent harm alone must not arm a Lord when no relevant zombie is present. A previously `Full`, recently provoked armed group may remain `Full` briefly after the immediate zombie dies or leaves the 16-cell area. That lets normal targeting finish the local contact. The provocation window and cache age return the group to `Minimal` automatically.
 
 ## Confidence And Hysteresis
 
@@ -525,7 +512,7 @@ The friendly policy and the friendly/enemy validator split are the smallest play
 Before runtime testing:
 
 1. Re-audit every touched Harmony target and signature against the current RimWorld 1.6 assembly.
-2. Confirm the semantic roles of `Pawn_MindState.lastHarmTick`, `meleeThreat`, `Pawn.GetLord`, and `Lord.ownedPawns` remain as assumed. Explicitly re-audit Zombieland's `Verb_MeleeAttack_TryCastShot_Patch` prefix in `Patches.cs`: a smart-melee bite block skips vanilla `TryCastShot` and therefore suppresses that swing's `meleeThreat` write. The expected result is still “blocked bite equals miss and does not provoke.”
+2. Confirm the semantic roles of `Pawn_MindState.lastHarmTick`, `meleeThreat`, `Pawn.GetLord`, and `Lord.ownedPawns` remain as assumed. Explicitly re-audit Zombieland's `Verb_MeleeAttack_TryCastShot_Patch` prefix in `Patches.cs`: a smart-melee bite block skips vanilla `TryCastShot`; because the blocked swing lands no damage, it does not advance `lastHarmTick`. The expected result is still “blocked bite equals miss and does not provoke.” `meleeThreat` remains useful targeting context but is deliberately not the policy's 600-tick provenance store.
 3. Confirm all production reads of `enemiesAttackZombies` are removed or intentionally retained only inside the legacy-load branch.
 4. Confirm the new fields participate in cloning, defaults, persistence, and timeline interpolation through the reflection-based settings paths.
 5. Add pure/helper tests where practical for thresholds, boundaries, filtering, and migration parsing.
@@ -576,6 +563,8 @@ Return raw per-trial rows plus aggregate survival statistics. At minimum aggrega
 
 The harness is evidence infrastructure, not an alternative combat AI. It must not directly force pawns to shoot, alter weapon stats, heal participants during a trial, or step private AI methods. Let normal RimWorld at 3x choose jobs and targets after staging. Use deterministic narrow contracts for exact thresholds first, then repeated freer-running trials to observe survival outcomes.
 
+For repeatable outer-band contact, refresh the ordinary Zombieland pheromone attraction surface at the arena center between observation slices and keep each surviving staged zombie's wander destination centered there. This is environmental staging, not a forced combat job: zombies still use normal `Stumble` behavior, while visitors and raiders still choose their own melee or ranged jobs. Record the spawn radius so close-contact and attract-margin matrices remain distinguishable.
+
 ### Required behavior matrix
 
 #### Policy and relationship
@@ -591,7 +580,10 @@ The harness is evidence infrastructure, not an alternative combat AI. It must no
 - An unprovoked Adaptive group remains `Minimal` even when heavily armed.
 - A zombie miss alone does not provoke the group.
 - A landed ordinary zombie melee hit does provoke it.
-- Recent non-zombie violence without a zombie melee threat does not provoke it.
+- Recent harm plus no relevant local zombie does not enter `Full`.
+- Recent non-zombie harm plus relevant local zombie pressure may provoke it; this bounded false positive is the deliberate tradeoff for not tracking damage provenance.
+- Clearing or replacing `meleeThreat` does not erase a still-recent landed-harm signal.
+- A downed harmed member can remain the anchor while only capable standing members contribute shooter confidence.
 - Provocation ages back to `Minimal` after the bounded 600-plus-cache window.
 - A subsequent missed zombie swing does not immediately erase a valid recent landed-hit signal.
 - In a long uninterrupted contact where ranged fire prevents every second melee hit, record whether the group expires from `Full` to `Minimal`, stops firing while relevant zombies still approach, is hit again, and returns to `Full`. The v1 design permits this self-correcting stutter, but the harness must quantify it so the 600-tick provocation window or cache lifetime has a concrete tuning signal.
@@ -632,6 +624,34 @@ The harness is evidence infrastructure, not an alternative combat AI. It must no
 - Repeated 3x friendly and enemy encounter matrices reload the same prepared base between trials and produce raw plus aggregate survival evidence without manual intervention.
 - The sustained ranged-only contact reports response stutters explicitly rather than treating eventual self-correction as an unconditional pass.
 - Build, load, fixture setup, combat observation, save/load, and cleanup produce no new warning-or-higher log signatures.
+
+## Implementation Evidence (2026-07-18)
+
+The feature is implemented in `Source/GroupZombieResponse.cs` and integrated through `Tools.IsHostileToZombies`, the hostility/targeting patches, enemy flee policy, sabotage targeting, settings persistence/UI, all active translations, and map-owned reset. The production evaluator remains a main-thread-only lazy dictionary keyed by Lord. Its only persistent cache fields are mode and evaluation tick; combat callbacks added for the BridgeTools matrix are null by default, collect bounded telemetry only while a trial is active, and do not influence policy decisions.
+
+The reusable test surface lives in `ZombielandBridgeTools.GroupResponse.cs` and `ZombielandBridgeTools.GroupResponseEvidence.cs`:
+
+- `group_response_contract` covers eight deterministic confidence/hysteresis cases.
+- `group_response_map_contract` covers 17 live-map policy, targeting, cache, provocation, pressure, relationship, and active-threat cases.
+- `group_response_performance_contract` times the real evaluator against the current map cache.
+- `group_response_stage_trial`, `group_response_activate_trial`, and `group_response_trial_state` expose reusable interactive staging and inspection.
+- `group_response_survival_matrix` reloads a common base per row, triggers real visitor/raid incidents, runs normal AI at 3x, and writes raw plus aggregate JSON evidence.
+
+The verified all-DLC base is `ZL_Group_Response_Base.rws`. The persistence fixture is `ZL_Group_Response_Settings_Persistence.rws`, and the performance fixture is `ZL_Ticking_Player_2000.rws`. Final evidence:
+
+| Evidence | Result |
+| --- | --- |
+| Deterministic contract `op_60fca6d97b4348078dfa8e4a146f0314` | 8/8 passed. |
+| Live map contract `op_e73453c2b7c74d2fb98e277e4e7f24f1` | 17/17 passed, including friendly ranged fallback beyond nine cells with enemy Minimal. |
+| Settings/migration contract `op_822bf9b732be4dc2bad14fe88a82f27c` | 7/7 passed. |
+| Real settings UI `op_23439ee63c3a4b8b977104e92c817db5` | `Dialog_ModSettings` exposed separate Friendly and Enemy response sections with Minimal, Adaptive, and Full choices in the measured scroll layout. |
+| Live settings save/reload `op_68410809c59a4a76897fe9e5143a4269` then `op_c1d168a081044f268f56f710fa631062` | Current values, defaults, three keyframes, interpolation, and both response enums persisted. |
+| Strong matrix `op_d14019e516bd473b9bd544e2ac5bfe17` | 5 shooters vs. 4 ordinary zombies, 3 visitor + 3 raid trials: ranged response in 6/6, full-group survival in 6/6, mean 3.33 zombie kills. |
+| Weak matrix `op_f30e9b6780d64f57ae2dbbd038d24cc7` | 3 shooters vs. 8 ordinary zombies, 3 visitor + 3 raid trials: ranged response in 0/6, 88.9% member survival. |
+| Tanky/stutter matrix `op_ecb43c0ae7a24c06a5194e053c18b338` | Pressure 4 entered Full; pressure 7 stayed Minimal. The sustained row expired after 657 ticks with a zombie present and recovered after the next hit. |
+| Performance `op_b6bd8a6d41224b48975f88c11feb45db` | 2,000 cached zombies; 200 forced misses averaged 87.5665 µs, max 982.9 µs, amortized 0.7297 µs/game tick; cached calls averaged 0.04266 µs. |
+
+All final survival-matrix rows reported empty warning-or-higher trial logs. The final performance operation's correlated warning/error query was also empty. The only observed mode stutter after the `lastHarmTick` correction was the explicitly permitted 600-tick expiry case; the earlier transient-`meleeThreat` flutter is not present in the final policy.
 
 ## Acceptance Criteria
 

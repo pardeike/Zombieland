@@ -481,7 +481,7 @@ namespace ZombieLand
 			var zombiesAttackOnlyColonists = settings.attackMode == AttackMode.OnlyColonists;
 			var zombiesAttackOnlyHumans = settings.attackMode == AttackMode.OnlyHumans;
 			var animalsDoNotAttackZombies = settings.animalsAttackZombies == false;
-			var enemiesDoNotAttackZombies = settings.enemiesAttackZombies == false;
+			var enemyUsesFullResponse = isEnemy && GroupZombieResponse.ModeFor(attacker) == GroupResponseMode.Full;
 
 			// handle all attacker cases: (player | friendly | enemy) x (human | mech | animal | thing)
 			//
@@ -510,13 +510,13 @@ namespace ZombieLand
 			else if (isEnemy)
 			{
 				if (isHuman)
-					return enemiesDoNotAttackZombies == false;
+					return enemyUsesFullResponse;
 				else if (isMech)
-					return enemiesDoNotAttackZombies == false;
+					return enemyUsesFullResponse;
 				else if (isAnimal)
-					return enemiesDoNotAttackZombies == false && animalsDoNotAttackZombies == false;
+					return enemyUsesFullResponse && animalsDoNotAttackZombies == false;
 				else
-					return enemiesDoNotAttackZombies == false;
+					return enemyUsesFullResponse;
 			}
 			return false;
 		}
@@ -1114,9 +1114,9 @@ namespace ZombieLand
 				return false;
 
 			if (faction.HostileTo(Faction.OfPlayer))
-				return ZombieSettings.Values.enemiesAttackZombies;
+				return GroupZombieResponse.ModeFor(pawn) == GroupResponseMode.Full;
 
-			return false;
+			return GroupZombieResponse.ModeFor(pawn) == GroupResponseMode.Full;
 		}
 
 		public static bool Attackable(Zombie zombie, AttackMode mode, Thing thing)

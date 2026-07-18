@@ -1504,7 +1504,7 @@ namespace ZombieLand
 				attackMode = AttackMode.Everything,
 				smashMode = SmashMode.DoorsOnly,
 				smashOnlyWhenAgitated = false,
-				enemiesAttackZombies = true,
+				enemyZombieResponse = ZombieResponsePolicy.Full,
 				animalsAttackZombies = true,
 				anomalyAttacksZombies = AnomalyTargetingOverride.Allow,
 				ordinaryZombiesAttackFleshmass = true,
