@@ -113,7 +113,7 @@ namespace ZombieLand
 		{
 			if (thing is Pawn pawn)
 				return ModeFor(pawn) == GroupResponseMode.Full;
-			return PolicyFor(thing?.Faction) == ZombieResponsePolicy.Full;
+			return PolicyFor(thing?.Faction) != ZombieResponsePolicy.Minimal;
 		}
 
 		internal static GroupResponseMode ModeFor(Pawn pawn)
@@ -140,10 +140,16 @@ namespace ZombieLand
 				return previous.mode;
 			}
 
-			var previousMode = hasPrevious ? previous.mode : GroupResponseMode.Minimal;
+			var previousMode = hasPrevious ? HysteresisSeedMode(previous.mode, previous.tick, now) : GroupResponseMode.Minimal;
 			var mode = Evaluate(lord, now, previousMode);
 			cache[lord] = new CacheEntry(mode, now);
 			return mode;
+		}
+
+		internal static GroupResponseMode HysteresisSeedMode(GroupResponseMode cachedMode, int evaluatedAtTick, int now)
+		{
+			var age = now - evaluatedAtTick;
+			return age >= 0 && age < ProvocationTicks ? cachedMode : GroupResponseMode.Minimal;
 		}
 
 		static GroupResponseMode Evaluate(Lord lord, int now, GroupResponseMode previousMode)
@@ -216,7 +222,7 @@ namespace ZombieLand
 				return false;
 			if ((pawn.health?.summaryHealth?.SummaryHealthPercent ?? 0f) <= 0.25f)
 				return false;
-			if (PawnCapacityUtility.CalculateCapacityLevel(pawn.health.hediffSet, PawnCapacityDefOf.Moving) < 0.25f)
+			if (pawn.health.capacities.GetLevel(PawnCapacityDefOf.Moving) < 0.25f)
 				return false;
 			var verb = pawn.equipment?.PrimaryEq?.PrimaryVerb;
 			return verb != null && verb.IsMeleeAttack == false && verb.Available();

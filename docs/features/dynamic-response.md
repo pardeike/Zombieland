@@ -2,7 +2,7 @@
 
 ## Status
 
-- **State:** Design ready for implementation; no runtime behavior has changed yet.
+- **State:** Implemented and runtime-verified on the all-DLC RimWorld 1.6 profile.
 - **Scope:** Non-player faction pawns, with separate policies for friendly and enemy groups; Adaptive evaluation requires a RimWorld `Lord`.
 - **Primary goal:** Let a provoked group use ranged weapons against a manageable local zombie threat, while keeping a cautious melee-only response when the group lacks the strength to survive the extra engagement.
 - **Evidence boundary:** This document owns the intended behavior and implementation contract. Static patch evidence belongs in `TEST_PATCH_AUDIT.md`; runtime results belong in `TEST_COVERAGE.md` and `TEST_SCENARIOS.md`.
@@ -66,15 +66,16 @@ The shared evaluator does not merge the two settings. A friendly Lord can be `Ad
 
 ### Interaction with “What do zombies attack?”
 
-The existing `AttackMode` remains a category gate. The new response policy answers whether an otherwise eligible outside group fights zombies; it does not broaden which pawn categories participate.
+The existing `AttackMode` remains the category gate for ranged acquisition. The new response policy answers whether an otherwise eligible outside group fights zombies; it does not broaden which pawn categories enter the shooting pool.
 
 For example:
 
 - A human friendly under `OnlyHumans` can use its friendly response policy.
-- A human enemy under `OnlyColonists` remains excluded by the existing category rules even if the enemy response policy is `Full`.
-- A friendly or enemy mechanoid remains subject to the existing `Everything` requirement.
+- A human enemy under `OnlyColonists` remains excluded from ranged acquisition even if the enemy response policy is `Full`.
+- A friendly mechanoid and a ranged enemy mechanoid remain subject to the existing `Everything` requirement.
+- An enemy melee pawn preserves the legacy `BestAttackTarget` behavior: when its response is `Full`, an adjacent tracking zombie can remain a melee target even when `AttackMode` would exclude that pawn category from ranged acquisition. This covers hostile human melee under `OnlyColonists` and hostile Scythers under the default `OnlyHumans` mode.
 
-This ordering preserves existing attack-category semantics while replacing the coarse friendly/enemy combat-response choice.
+The enemy-melee exception is deliberate compatibility behavior. Before this feature, the ranged shooting pool enforced the category gates but the enemy `BestAttackTarget` validator did not. Applying the ranged gates to the validator would silently remove adjacent-zombie melee engagement from hostile Scythers and some raiders. The close-melee-threat reaction still exists after a bite, but it is not a substitute for preserving the old deliberate melee target path.
 
 ## Current Behavior To Preserve
 
@@ -90,7 +91,9 @@ The feature must not replace that reaction, assign group combat jobs, or mutate 
 
 Zombieland's `AttackTargetFinder.BestAttackTarget` postfix contains a friendly ranged fallback. It is currently ineffective for zombies while `HostileTo` returns false. Once an eligible pawn resolves to `Full`, the existing vanilla target search, Zombieland target filters, and ranged fallback should perform the combat work.
 
-The implementation must verify that this path reaches a zombie beyond the normal nine-cell friendly candidate filter but within weapon range. The initial implementation should not relax the nine-cell filter: the ordinary candidate path covers nearby zombies, and the existing postfix is intended to cover the longer-range fallback. Change the distance filter only if runtime evidence proves that combined path is still capped.
+The verified implementation deliberately removes the nine-cell candidate filter for friendly human and mech searchers while their response resolves to `Full`. Eligible zombies can therefore enter the primary shooting pool out to weapon range, and the existing postfix remains a fallback rather than the only long-range path. Enemy human searchers retain their existing nine-cell candidate filter so a response-policy change does not reintroduce distant-zombie/base-objective oscillation; enemy mechs and non-pawns retain their existing category-specific distance rules. This friendly/enemy asymmetry is intentional and covered by the live map contract.
+
+Before the friendly postfix fallback loops over `allZombiesCached`, it applies the same relationship-specific response gate as the primary shooting pool. For pawn searchers it resolves `Tools.IsHostileToZombies` once and returns unless the result is `Full`; this deliberately uses the canonical helper rather than calling `ModeFor` directly, so Anomaly overrides remain authoritative. For fixed non-pawn searchers, `Minimal` returns before the scan while `Adaptive` and `Full` preserve the existing attack-mode behavior. This prevents either path from reintroducing a zombie that the primary pool removed and prevents an unprovoked or under-confident friendly pawn from repeating the same guaranteed-false hostility decision for every cached zombie.
 
 ### Existing downstream target rules remain authoritative
 
@@ -162,7 +165,8 @@ AdaptiveModeFor(pawn):
     if cache[lord] exists and now - cache.evaluatedAtTick < 120:
         return cache.mode
 
-    previous = cache[lord].mode if present, otherwise Minimal
+    previous = cache[lord].mode only when that entry is less than 600 ticks old,
+               otherwise Minimal
 
     anchor = most recently harmed eligible member of lord.ownedPawns where:
         member is spawned on pawn.Map
@@ -238,6 +242,8 @@ Use a headcount, not DPS simulation. A Lord member contributes one shooter when 
 - Has a primary equipment verb that is ranged and currently usable.
 
 This is a `Tools.ColonistsInfo`-style readiness predicate, not a literal call to `ColonistsInfo`: the existing method supplies the health, movement, containment, mental-state, and life-state pattern, but it does not currently require violent capability or a ranged primary.
+
+Read movement through `pawn.health.capacities.GetLevel(PawnCapacityDefOf.Moving)`. The installed RimWorld 1.6 `PawnCapacitiesHandler.GetLevel` caches the result of the underlying hediff walk; calling `PawnCapacityUtility.CalculateCapacityLevel` directly here would needlessly bypass that cache once per contributing member on every Lord recomputation.
 
 Every qualifying shooter has equal weight in v1. Do not add combat power, accuracy, body-part readiness curves, per-weapon DPS, or ammo assumptions. The feature needs a coarse boundary such as “three rifles versus two zombies” rather than a combat simulator.
 
@@ -338,6 +344,12 @@ Do not add:
 
 `ModeFor` is already called through hostility and targeting gates, so the cache is naturally demand-driven. Settings fixed to `Minimal` or `Full` return before the Lord lookup and scan.
 
+In the installed RimWorld 1.6 assembly (MVID `967ddb80559449f0a776dafa26a855d1`), `LordManager.LordOf(Pawn)` is a nested scan, but it is not the API used here. `Pawn.GetLord()` resolves through `LordUtility.GetLord(Pawn)` (`060068D7`) and directly returns the pawn's cached `lord` field; `Lord.AddPawnInternal` (`060067EC`) and `Lord.RemovePawn` (`060067EF`) maintain that field. Do not add a second per-pawn response memo merely to avoid the unrelated `LordManager.LordOf` implementation: it would duplicate RimWorld's membership cache and could retain a response from the pawn's former Lord for up to another cache interval. Revisit this only if a future RimWorld build changes `LordUtility.GetLord` or profiling identifies a different repeated cost.
+
+An expired entry may remain in the dictionary until the normal map-owned reset, but its mode must not seed hysteresis after 600 ticks. A later contact therefore starts at the `1.25` enter threshold rather than inheriting a stale `Full` mode and the `0.85` stay threshold from an unrelated earlier encounter.
+
+The cache is intentionally not serialized. After save/load, even a group that was `Full` immediately before saving starts with a `Minimal` hysteresis seed and must satisfy the `1.25` entry threshold again. This conservative boundary is harmless and avoids adding saved per-Lord response state.
+
 ### Complexity
 
 For each active Adaptive Lord, at most once per 120 ticks:
@@ -346,6 +358,8 @@ For each active Adaptive Lord, at most once per 120 ticks:
 - Loop over `allZombiesCached` for one squared-distance and state check per zombie.
 
 With 2,000 cached zombies this is about 16.7 zombie checks per game tick per actively queried Lord when amortized across the cache interval. That is simpler and more predictable than cell-circle enumeration, weapon inspection, or a custom event graph. Runtime benchmarking must still cover multiple simultaneous Lords, but profiling evidence—not speculative complexity—should decide whether later optimization is needed.
+
+Do not stagger cache lifetimes in v1. Demand-driven entries naturally start when each Lord is first queried, while adding `lord.loadID` jitter would lengthen some response windows and would not prevent several previously unseen Lords from evaluating together on their first post-load query. The measured recomputation is already well below the 2 ms contract on the 2,000-zombie fixture; add staggering only if a named multi-Lord runtime fixture demonstrates an actual synchronized spike.
 
 Ended Lords may leave a small transient entry until the next map reset. Do not add pruning machinery unless profiling or a long-running-map fixture shows material retention.
 
@@ -385,14 +399,17 @@ In `AttackTargetFinder.GetAvailableShootingTargetsByScore`:
 
 Do not continue reading the legacy enemy boolean in this path. In particular, a friendly `Adaptive` result must not accidentally depend on the enemy setting.
 
+Adaptive confidence evaluation is pawn-and-Lord based, but fixed non-pawn searchers must preserve their old attack-mode behavior. For a friendly or enemy turret-like searcher, `Minimal` removes zombies while both `Adaptive` and `Full` allow the existing category gates to decide. Thus a neutral turret under the friendly default `Adaptive` can still target zombies under `AttackMode.Everything`, while restrictive attack modes continue to exclude it. Non-pawns do not run the group-confidence scan because they have no Lord membership or group strength to evaluate.
+
 ### `AttackTargetFinder.BestAttackTarget` validator
 
 The current prefix contains a comment that friendlies are handled by the postfix, but friendly pawns fall through into the enemy validator. That validator rejects zombies whenever `enemiesAttackZombies` is false. Therefore changing only `Tools.IsHostileToZombies` is insufficient.
 
 Split the validator explicitly:
 
-- Friendly candidates use the friendly policy result and existing friendly restrictions.
-- Enemy candidates use the enemy policy result and existing enemy restrictions.
+- Friendly candidates use the friendly policy result and current friendly category restrictions.
+- Enemy ranged candidates use the enemy policy result and the existing ranged category restrictions.
+- Enemy melee candidates use the enemy policy result but preserve the legacy validator's lack of `AttackMode` category gates; all of its electric, downed, tracking, avoidance-radius, and nine-cell restrictions remain in force.
 - Both continue to call the original validator.
 - Symbiant and spitter special cases remain unchanged.
 
@@ -610,7 +627,10 @@ For repeatable outer-band contact, refresh the ordinary Zombieland pheromone att
 - A Full or confident Adaptive group with usable rifles selects and attacks eligible zombies with normal ranged combat.
 - Friendly Full combat works when enemy response is Minimal, proving the validator split.
 - Enemy Full behavior after old-`true` migration matches current behavior.
-- The friendly ranged fallback reaches an eligible zombie beyond nine cells but within weapon range, or produces evidence justifying a targeted distance-filter change.
+- Under `OnlyColonists`, an enemy human with a ranged verb is excluded while the same pawn with a melee verb can still select an adjacent tracking zombie.
+- Under default `OnlyHumans`, a hostile melee-only mechanoid can still select an adjacent tracking zombie.
+- A friendly non-pawn searcher under `Adaptive` plus `Everything` retains and can select a zombie through real `BestAttackTarget`, while `Minimal` removes it from the primary pool and the postfix fallback does not reintroduce it.
+- A friendly Full human or mech can receive an eligible zombie beyond nine cells but within weapon range through the primary shooting pool, with the postfix retained as a fallback; an enemy human keeps the existing nine-cell filter.
 - An incompatible electric zombie is rejected downstream without changing the policy mode.
 - Existing suicide-bomber/tanky target priority remains intact.
 - `AttackMode`, Anomaly, albino-pressure, flee, and active-threat behavior match the integration table above.
@@ -618,9 +638,12 @@ For repeatable outer-band contact, refresh the ordinary Zombieland pheromone att
 #### Lifecycle and performance
 
 - Cache hits avoid member and zombie rescans for 120 ticks.
+- `Pawn.GetLord()` remains a direct cached-field read on the supported RimWorld build; the hot path must not regress to `LordManager.LordOf` or add a redundant per-pawn response cache without new evidence.
+- A cached `Full` result that is 599 ticks old can seed the stay threshold, while one exactly 600 ticks old cannot seed a new contact.
 - Save/load and return-to-entry clear transient Lord entries.
 - Settings and timeline policies survive save/load.
 - A fixture with roughly 2,000 cached zombies and multiple queried Adaptive Lords shows no meaningful tick-rate regression or unexpected allocations.
+- On the same fixture, an unprovoked friendly fallback performs no more than one response-policy evaluation and returns before iterating `allZombiesCached`.
 - Repeated 3x friendly and enemy encounter matrices reload the same prepared base between trials and produce raw plus aggregate survival evidence without manual intervention.
 - The sustained ranged-only contact reports response stutters explicitly rather than treating eventual self-correction as an unconditional pass.
 - Build, load, fixture setup, combat observation, save/load, and cleanup produce no new warning-or-higher log signatures.
@@ -631,9 +654,9 @@ The feature is implemented in `Source/GroupZombieResponse.cs` and integrated thr
 
 The reusable test surface lives in `ZombielandBridgeTools.GroupResponse.cs` and `ZombielandBridgeTools.GroupResponseEvidence.cs`:
 
-- `group_response_contract` covers eight deterministic confidence/hysteresis cases.
-- `group_response_map_contract` covers 17 live-map policy, targeting, cache, provocation, pressure, relationship, and active-threat cases.
-- `group_response_performance_contract` times the real evaluator against the current map cache.
+- `group_response_contract` covers eight deterministic confidence/hysteresis cases plus the recent/expired cache-seed boundary.
+- `group_response_map_contract` covers 24 live-map policy, targeting, cache, provocation, pressure, relationship, active-threat, legacy enemy-melee, and non-pawn compatibility cases. The non-pawn rows exercise both the shooting-pool prefix and real `BestAttackTarget`, including its postfix fallback.
+- `group_response_performance_contract` times the real evaluator against the current map cache and invokes the real friendly postfix fallback to count response evaluations before an unprovoked search exits.
 - `group_response_stage_trial`, `group_response_activate_trial`, and `group_response_trial_state` expose reusable interactive staging and inspection.
 - `group_response_survival_matrix` reloads a common base per row, triggers real visitor/raid incidents, runs normal AI at 3x, and writes raw plus aggregate JSON evidence.
 
@@ -641,17 +664,19 @@ The verified all-DLC base is `ZL_Group_Response_Base.rws`. The persistence fixtu
 
 | Evidence | Result |
 | --- | --- |
-| Deterministic contract `op_60fca6d97b4348078dfa8e4a146f0314` | 8/8 passed. |
-| Live map contract `op_e73453c2b7c74d2fb98e277e4e7f24f1` | 17/17 passed, including friendly ranged fallback beyond nine cells with enemy Minimal. |
+| Deterministic contract `op_97a7d6f2a37045918fd45a1bcb24c76d` | 8/8 confidence cases and 2/2 cache-seed cases passed; age 599 retained `Full`, while age 600 reset the seed to `Minimal`. Its operation-correlated warning/error query was empty. |
+| Live map contract `op_61b0bf68fad74a139cb1e07fd66871ac` | 24/24 passed. The focused compatibility rows preserved ranged-human exclusion under `OnlyColonists`, restored adjacent melee targeting for the same enemy human and for a hostile Scyther under `OnlyHumans`, retained and selected a neutral turret's zombie under friendly `Adaptive` plus `Everything`, and returned null from real `BestAttackTarget` under `Minimal`. Its operation-correlated warning/error query was empty. |
 | Settings/migration contract `op_822bf9b732be4dc2bad14fe88a82f27c` | 7/7 passed. |
 | Real settings UI `op_23439ee63c3a4b8b977104e92c817db5` | `Dialog_ModSettings` exposed separate Friendly and Enemy response sections with Minimal, Adaptive, and Full choices in the measured scroll layout. |
 | Live settings save/reload `op_68410809c59a4a76897fe9e5143a4269` then `op_c1d168a081044f268f56f710fa631062` | Current values, defaults, three keyframes, interpolation, and both response enums persisted. |
 | Strong matrix `op_d14019e516bd473b9bd544e2ac5bfe17` | 5 shooters vs. 4 ordinary zombies, 3 visitor + 3 raid trials: ranged response in 6/6, full-group survival in 6/6, mean 3.33 zombie kills. |
 | Weak matrix `op_f30e9b6780d64f57ae2dbbd038d24cc7` | 3 shooters vs. 8 ordinary zombies, 3 visitor + 3 raid trials: ranged response in 0/6, 88.9% member survival. |
 | Tanky/stutter matrix `op_ecb43c0ae7a24c06a5194e053c18b338` | Pressure 4 entered Full; pressure 7 stayed Minimal. The sustained row expired after 657 ticks with a zombie present and recovered after the next hit. |
-| Performance `op_b6bd8a6d41224b48975f88c11feb45db` | 2,000 cached zombies; 200 forced misses averaged 87.5665 µs, max 982.9 µs, amortized 0.7297 µs/game tick; cached calls averaged 0.04266 µs. |
+| Performance `op_325f5b77f23c40cca987cda8176f73e2` | 2,000 cached zombies; 200 forced misses averaged 80.7785 µs, max 338.4 µs, amortized 0.673154 µs/game tick; 100,000 cached calls averaged 0.042674 µs. The unprovoked friendly fallback performed one mode check, returned no target, and completed in 107.5 µs including reflective test-harness invocation. |
 
-All final survival-matrix rows reported empty warning-or-higher trial logs. The final performance operation's correlated warning/error query was also empty. The only observed mode stutter after the `lastHarmTick` correction was the explicitly permitted 600-tick expiry case; the earlier transient-`meleeThreat` flutter is not present in the final policy.
+The focused pre-fix fallback baseline `op_2ff1c952194f403db87b3f7f21c922e6` made 1,995 response calls and took 3,117.3 µs on the same fixture. The single semantic guard reduced that measured path to one call; the first post-fix measurement took 367.1 µs and the final review run took 107.5 µs. Reflection overhead and normal runtime variance mean these complete-call timings should not be treated as a stable microbenchmark, but both prove that the 2,000-zombie policy-call multiplier is gone. A temporary 101-member Lord probe still measured the cached `ModeFor` path at 0.040068 µs, consistent with decompiler proof that `Pawn.GetLord()` is a field read rather than a Lord-manager scan.
+
+All final survival-matrix rows reported empty warning-or-higher trial logs. The final deterministic, map, and performance operations' correlated warning/error queries were also empty. The only observed mode stutter after the `lastHarmTick` correction was the explicitly permitted 600-tick expiry case; the earlier transient-`meleeThreat` flutter is not present in the final policy.
 
 ## Acceptance Criteria
 

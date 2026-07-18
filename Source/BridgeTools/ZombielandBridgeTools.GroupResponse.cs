@@ -3,7 +3,9 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Verse;
+using Verse.AI;
 using Verse.AI.Group;
 
 namespace ZombieLand
@@ -29,6 +31,16 @@ namespace ZombieLand
 			public string actual { get; set; }
 		}
 
+		sealed class GroupResponseCacheSeedCase
+		{
+			public bool success { get; set; }
+			public string name { get; set; }
+			public int cacheAge { get; set; }
+			public string cached { get; set; }
+			public string expected { get; set; }
+			public string actual { get; set; }
+		}
+
 		[Tool("zombieland/group_response_contract", Description = "Verify the deterministic confidence boundary and asymmetric hysteresis used by adaptive group response.")]
 		public static object GroupResponseContract()
 		{
@@ -43,10 +55,16 @@ namespace ZombieLand
 				GroupResponseCase("zero_pressure_keeps_existing_full", 1, 0, GroupResponseMode.Full, GroupResponseMode.Full),
 				GroupResponseCase("zero_shooters_never_full", 0, 0, GroupResponseMode.Full, GroupResponseMode.Minimal)
 			};
+			var now = GroupZombieResponse.ProvocationTicks * 2;
+			var cacheSeedCases = new[]
+			{
+				CreateGroupResponseCacheSeedCase("recent_full_seeds_stay_threshold", GroupResponseMode.Full, GroupZombieResponse.ProvocationTicks - 1, now, GroupResponseMode.Full),
+				CreateGroupResponseCacheSeedCase("expired_full_seeds_enter_threshold", GroupResponseMode.Full, GroupZombieResponse.ProvocationTicks, now, GroupResponseMode.Minimal)
+			};
 
 			return new
 			{
-				success = cases.All(testCase => testCase.success),
+				success = cases.All(testCase => testCase.success) && cacheSeedCases.All(testCase => testCase.success),
 				constants = new
 				{
 					cacheTicks = GroupZombieResponse.CacheTicks,
@@ -55,7 +73,22 @@ namespace ZombieLand
 					enterFullRatio = GroupZombieResponse.EnterFullRatio,
 					stayFullRatio = GroupZombieResponse.StayFullRatio
 				},
-				cases
+				cases,
+				cacheSeedCases
+			};
+		}
+
+		static GroupResponseCacheSeedCase CreateGroupResponseCacheSeedCase(string name, GroupResponseMode cached, int cacheAge, int now, GroupResponseMode expected)
+		{
+			var actual = GroupZombieResponse.HysteresisSeedMode(cached, now - cacheAge, now);
+			return new GroupResponseCacheSeedCase
+			{
+				success = actual == expected,
+				name = name,
+				cacheAge = cacheAge,
+				cached = cached.ToString(),
+				expected = expected.ToString(),
+				actual = actual.ToString()
 			};
 		}
 
@@ -76,7 +109,8 @@ namespace ZombieLand
 
 		[Tool("zombieland/group_response_performance_contract", Description = "Measure forced adaptive response recomputations against the current map's real cached zombie population.")]
 		public static object GroupResponsePerformanceContract(
-			[ToolParameter(Description = "Forced cache-miss recomputations to measure, clamped to 10..1000.", Required = false, DefaultValue = 100)] int repetitions = 100)
+			[ToolParameter(Description = "Forced cache-miss recomputations to measure, clamped to 10..1000.", Required = false, DefaultValue = 100)] int repetitions = 100,
+			[ToolParameter(Description = "Cached ModeFor calls to measure, clamped to 1000..100000.", Required = false, DefaultValue = 10000)] int cachedCalls = 10000)
 		{
 			var map = CurrentMap;
 			var tickManager = map?.GetComponent<TickManager>();
@@ -94,6 +128,7 @@ namespace ZombieLand
 				return cellError;
 
 			repetitions = Math.Max(10, Math.Min(1000, repetitions));
+			cachedCalls = Math.Max(1000, Math.Min(100000, cachedCalls));
 			var settings = ZombieSettings.Values;
 			var oldAttackMode = settings.attackMode;
 			var oldFriendlyResponse = settings.friendlyZombieResponse;
@@ -119,11 +154,36 @@ namespace ZombieLand
 					elapsed[i] = watch.ElapsedTicks;
 				}
 
-				const int cachedCalls = 10000;
 				var cachedWatch = System.Diagnostics.Stopwatch.StartNew();
 				for (var i = 0; i < cachedCalls; i++)
 					_ = GroupZombieResponse.ModeFor(shooter);
 				cachedWatch.Stop();
+
+				shooter.mindState.meleeThreat = null;
+				shooter.mindState.lastHarmTick = 0;
+				GroupZombieResponse.ResetMapOwnedState();
+				var fallbackModeCalls = 0;
+				GroupZombieResponse.evaluationObserver = _ => fallbackModeCalls++;
+				var fallbackMethod = typeof(AttackTargetFinder_BestAttackTarget_Patch).GetMethod("Postfix", BindingFlags.Static | BindingFlags.NonPublic);
+				var fallbackArgs = new object[]
+				{
+					null,
+					TargetScanFlags.None,
+					(Predicate<Thing>)(thing => thing is Zombie),
+					shooter,
+					0f,
+					9999f,
+					IntVec3.Invalid,
+					9999f,
+					false,
+					true,
+					false,
+					false
+				};
+				var fallbackWatch = System.Diagnostics.Stopwatch.StartNew();
+				fallbackMethod?.Invoke(null, fallbackArgs);
+				fallbackWatch.Stop();
+				GroupZombieResponse.evaluationObserver = null;
 
 				var tickToMicroseconds = 1000000d / System.Diagnostics.Stopwatch.Frequency;
 				var meanMicroseconds = elapsed.Average(value => value * tickToMicroseconds);
@@ -132,7 +192,7 @@ namespace ZombieLand
 				var cachedZombieCount = tickManager.allZombiesCached.Count;
 				return new
 				{
-					success = cachedZombieCount >= 1000 && meanMicroseconds < 2000d,
+					success = cachedZombieCount >= 1000 && meanMicroseconds < 2000d && fallbackMethod != null && fallbackModeCalls <= 1,
 					cachedZombieCount,
 					repetitions,
 					meanRecomputeMicroseconds = meanMicroseconds,
@@ -140,12 +200,20 @@ namespace ZombieLand
 					amortizedMeanMicrosecondsPerGameTick = meanMicroseconds / GroupZombieResponse.CacheTicks,
 					cachedCalls,
 					meanCachedCallMicroseconds = cachedMeanMicroseconds,
+					minimalFallback = new
+					{
+						methodFound = fallbackMethod != null,
+						modeCalls = fallbackModeCalls,
+						elapsedMicroseconds = fallbackWatch.ElapsedTicks * tickToMicroseconds,
+						returnedTarget = fallbackArgs[0] != null
+					},
 					modeCounts = modes.GroupBy(mode => mode.ToString()).ToDictionary(group => group.Key, group => group.Count()),
-					acceptance = "at least 1000 real cached zombies and under 2 ms per forced recomputation"
+					acceptance = "at least 1000 real cached zombies, under 2 ms per forced recomputation, and at most one mode check before skipping a Minimal friendly fallback"
 				};
 			}
 			finally
 			{
+				GroupZombieResponse.evaluationObserver = null;
 				if (lord != null && map.lordManager.lords.Contains(lord))
 					map.lordManager.RemoveLord(lord);
 				for (var i = 0; i < spawned.Count; i++)
@@ -268,6 +336,42 @@ namespace ZombieLand
 				settings.enemyZombieResponse = ZombieResponsePolicy.Full;
 				AddGroupResponseMapCase(cases, "enemy_full_preserves_attack_mode_threat", true, GenHostility.IsActiveThreatTo(zombie, enemyFaction, false, false));
 
+				settings.attackMode = AttackMode.OnlyColonists;
+				settings.enemyZombieResponse = ZombieResponsePolicy.Full;
+				if (RepositionGroupResponseZombieAdjacent(zombie, enemy) == false)
+					return new { success = false, error = "Could not position the response-contract zombie beside the enemy human." };
+				AddGroupResponseMapCase(cases, "enemy_human_ranged_respects_only_colonists", false, ReferenceEquals(BestSpecificTarget(enemy, zombie, 5f), zombie));
+				enemy.equipment?.DestroyAllEquipment(DestroyMode.Vanish);
+				AddGroupResponseMapCase(cases, "enemy_human_melee_preserves_legacy_only_colonists", true, ReferenceEquals(BestSpecificTarget(enemy, zombie, 5f), zombie));
+
+				if (TryFindClearSpawnCell(map, center + new IntVec3(14, 0, 10), 12f, out var mechCell, out var mechCellError) == false)
+					return mechCellError;
+				var enemyMech = SpawnAreaWorkflowMech(map, "ZL_Response_EnemyScyther", mechCell, Faction.OfMechanoids ?? enemyFaction, spawned);
+				if (enemyMech == null || enemyMech.CurrentEffectiveVerb?.IsMeleeAttack != true)
+					return new { success = false, error = "Could not spawn a melee-only hostile mechanoid for the response contract." };
+				settings.attackMode = AttackMode.OnlyHumans;
+				if (RepositionGroupResponseZombieAdjacent(zombie, enemyMech) == false)
+					return new { success = false, error = "Could not position the response-contract zombie beside the hostile mechanoid." };
+				AddGroupResponseMapCase(cases, "enemy_mech_melee_preserves_legacy_only_humans", true, ReferenceEquals(BestSpecificTarget(enemyMech, zombie, 5f), zombie));
+
+				if (SpawnAreaWorkflowTurretGun(map, center + new IntVec3(-12, 0, 10), friendlyFaction, spawned, out var friendlyTurret, out var turretError) == false)
+					return turretError;
+				var friendlyTurretVerb = friendlyTurret.CurrentEffectiveVerb;
+				if (friendlyTurretVerb == null)
+					return new { success = false, error = "The response-contract friendly turret had no effective verb." };
+				if (RepositionGroupResponseZombieNearSearcher(zombie, friendlyTurret) == false)
+					return new { success = false, error = "Could not position the response-contract zombie within the friendly turret's targeting range." };
+				RefreshZombieTargetCache(map);
+				settings.attackMode = AttackMode.Everything;
+				settings.friendlyZombieResponse = ZombieResponsePolicy.Adaptive;
+				var adaptiveTurretTargets = TargetIds(InvokeAvailableTargetsPatch(new List<IAttackTarget> { zombie }, friendlyTurret, friendlyTurretVerb));
+				AddGroupResponseMapCase(cases, "friendly_nonpawn_adaptive_preserves_everything_target", true, ContainsTarget(adaptiveTurretTargets, zombie));
+				AddGroupResponseMapCase(cases, "friendly_nonpawn_adaptive_best_target", zombie, BestSpecificTarget(friendlyTurret, zombie, 40f));
+				settings.friendlyZombieResponse = ZombieResponsePolicy.Minimal;
+				var minimalTurretTargets = TargetIds(InvokeAvailableTargetsPatch(new List<IAttackTarget> { zombie }, friendlyTurret, friendlyTurretVerb));
+				AddGroupResponseMapCase(cases, "friendly_nonpawn_minimal_excludes_zombie", false, ContainsTarget(minimalTurretTargets, zombie));
+				AddGroupResponseMapCase(cases, "friendly_nonpawn_minimal_best_target_is_null", null, BestSpecificTarget(friendlyTurret, zombie, 40f));
+
 				var distantCell = GenRadial.RadialCellsAround(center, 15f, true)
 					.Where(cell => cell.InBounds(map)
 						&& cell.Standable(map)
@@ -316,6 +420,45 @@ namespace ZombieLand
 				settings.enemyZombieResponse = oldEnemyResponse;
 				GroupZombieResponse.ResetMapOwnedState();
 			}
+		}
+
+		static bool RepositionGroupResponseZombieAdjacent(Zombie zombie, Pawn pawn)
+		{
+			if (zombie == null || pawn?.Spawned != true)
+				return false;
+			var map = pawn.Map;
+			var cell = GenAdj.CardinalDirections
+				.Select(offset => pawn.Position + offset)
+				.FirstOrDefault(candidate => candidate.InBounds(map) && candidate.Standable(map) && candidate.GetFirstPawn(map) == null);
+			if (cell.IsValid == false)
+				return false;
+			if (zombie.Spawned)
+				zombie.DeSpawn(DestroyMode.Vanish);
+			GenSpawn.Spawn(zombie, cell, map, Rot4.South);
+			zombie.state = ZombieState.Tracking;
+			return true;
+		}
+
+		static bool RepositionGroupResponseZombieNearSearcher(Zombie zombie, Thing searcher)
+		{
+			if (zombie == null || searcher?.Spawned != true)
+				return false;
+			var map = searcher.Map;
+			var cell = GenRadial.RadialCellsAround(searcher.Position, 8f, false)
+				.Where(candidate => candidate.InBounds(map)
+					&& candidate.Standable(map)
+					&& candidate.GetFirstPawn(map) == null
+					&& candidate.DistanceToSquared(searcher.Position) >= 16
+					&& GenSight.LineOfSight(searcher.Position, candidate, map, true))
+				.OrderBy(candidate => candidate.DistanceToSquared(searcher.Position))
+				.FirstOrDefault();
+			if (cell.IsValid == false)
+				return false;
+			if (zombie.Spawned)
+				zombie.DeSpawn(DestroyMode.Vanish);
+			GenSpawn.Spawn(zombie, cell, map, Rot4.South);
+			zombie.state = ZombieState.Tracking;
+			return true;
 		}
 
 		static void ResetGroupResponseContractCache(List<object> evaluations)

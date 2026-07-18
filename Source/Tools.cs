@@ -1112,10 +1112,6 @@ namespace ZombieLand
 			var faction = pawn.Faction;
 			if (faction == null)
 				return false;
-
-			if (faction.HostileTo(Faction.OfPlayer))
-				return GroupZombieResponse.ModeFor(pawn) == GroupResponseMode.Full;
-
 			return GroupZombieResponse.ModeFor(pawn) == GroupResponseMode.Full;
 		}
 

@@ -553,15 +553,18 @@ namespace ZombieLand
 					if (groupUsesFullResponse == false)
 						return false;
 
-					var attackMode = ZombieSettings.Values.attackMode;
 					var isHuman = attacker.RaceProps?.IsFlesh ?? false;
 					var isMech = attacker.RaceProps?.IsMechanoid ?? false;
-					if (isHuman && attackMode == AttackMode.OnlyColonists)
-						return false;
-					if (isHuman == false && isMech && attackMode != AttackMode.Everything)
-						return false;
-					if (isHuman == false && isMech == false && attackMode != AttackMode.Everything)
-						return false;
+					if (isFriendly || verb.IsMeleeAttack == false)
+					{
+						var attackMode = ZombieSettings.Values.attackMode;
+						if (isHuman && attackMode == AttackMode.OnlyColonists)
+							return false;
+						if (isHuman == false && isMech && attackMode != AttackMode.Everything)
+							return false;
+						if (isHuman == false && isMech == false && attackMode != AttackMode.Everything)
+							return false;
+					}
 
 					if (zombie.IsActiveElectric && zombie.Downed == false)
 						if (verb.GetDamageDef().isRanged)
@@ -629,6 +632,13 @@ namespace ZombieLand
 				var attackerFaction = attacker?.Faction;
 				if (attackerFaction?.def != null && attackerFaction.HostileTo(Faction.OfPlayer) == false)
 				{
+					if (attacker is Pawn pawn)
+					{
+						if (Tools.IsHostileToZombies(pawn) == false)
+							return;
+					}
+					else if (GroupZombieResponse.AllowsFullResponse(attacker) == false)
+						return;
 					var verb = searcher.CurrentEffectiveVerb;
 					if (verb != null)
 					{

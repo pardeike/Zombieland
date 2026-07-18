@@ -784,7 +784,7 @@ namespace ZombieLand
 				stage = stage,
 				playSamples = playSamples,
 				warnings = warnings,
-				cleanup = new { observersCleared = true, mapResetByNextTrial = true },
+				cleanup = new { observersCleared = true, relationSuppressionCleared = true, mapResetByNextTrial = true },
 				events = state.events.ToArray()
 			};
 			ClearGroupResponseTrialObservers();
@@ -828,6 +828,7 @@ namespace ZombieLand
 		{
 			GroupZombieResponse.evaluationObserver = null;
 			GroupZombieResponse.combatObserver = null;
+			GroupZombieResponse.disablePawnRelationsForEvidence = false;
 		}
 
 		[Tool("zombieland/group_response_survival_matrix", Description = "Reload a reusable base save, trigger real visitor/raid incidents, run repeated normal 3x response encounters asynchronously, and return raw plus aggregate survival evidence.")]
