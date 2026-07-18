@@ -31,6 +31,7 @@ Keep operation IDs and historical runtime results in the evidence ledgers, not i
 | --- | --- | --- |
 | [`docs/features/symbiant.md`](features/symbiant.md) | Current Symbiant design invariants and release contract. | The intended feature behavior or release gate changes. |
 | [`docs/features/fleshbeast.md`](features/fleshbeast.md) | Current design contract for the proposed Anomaly fleshmass-collision feature. | The intended attack categories, settings contract, response accounting, or release criteria change. |
+| [`docs/features/dynamic-response.md`](features/dynamic-response.md) | Current design contract for adaptive friendly and enemy group responses to zombies. | Response policies, confidence inputs, thresholds, integration, migration, or release criteria change. |
 | [`scripts/README.md`](../scripts/README.md) | Supported project validation and diagnostics, including XML/localization checks, Player.log summarization, soundtrack, asset-bundle, and repeatable runtime-benchmark workflows. | Script behavior, prerequisites, validation criteria, or diagnostic and benchmark evidence shape changes. |
 | [`Originals/Soundtrack/README.md`](../Originals/Soundtrack/README.md) | Source soundtrack layout and sync entry point. | Source-folder conventions change. |
 | [`Originals/Soundtrack/LOUDNESS_NOTES.md`](../Originals/Soundtrack/LOUDNESS_NOTES.md) | Durable loudness policy and its deliberate exception. | The target, exception, format, or normalization procedure changes. |
