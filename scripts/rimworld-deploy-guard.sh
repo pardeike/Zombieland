@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+deploy_lock_dir=""
+
+cleanup_deploy_lock() {
+	if [[ -n "$deploy_lock_dir" ]]; then
+		rmdir "$deploy_lock_dir" 2>/dev/null || true
+	fi
+}
+
 usage() {
 	cat >&2 <<'USAGE'
 Usage:
@@ -128,7 +136,8 @@ deploy_with_lock() {
 
 	lock_dir="$lock_file.dir"
 	if mkdir "$lock_dir" 2>/dev/null; then
-		trap 'rm -rf "$lock_dir"' EXIT
+		deploy_lock_dir="$lock_dir"
+		trap cleanup_deploy_lock EXIT
 		run_inner_deploy "$rimworld_mod_dir" "$project_path" "$configuration" "$platform" "$mod_file_name" "$build_bridge_tools"
 		return
 	fi
