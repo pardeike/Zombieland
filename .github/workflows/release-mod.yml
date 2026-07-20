@@ -103,7 +103,7 @@ jobs:
           ARCHIVE_NAME="${MOD_FILE_NAME}.zip"
 
           rm -rf "$PACKAGE_ROOT" dist
-          mkdir -p dist "$STAGE_DIR"
+          mkdir -p "$PACKAGE_ROOT" dist "$STAGE_DIR"
 
           dotnet build "$MOD_PROJECT" -c Release --no-restore -p:RIMWORLD_MOD_DIR="$PACKAGE_ROOT" -p:BuildBridgeTools=false
 
