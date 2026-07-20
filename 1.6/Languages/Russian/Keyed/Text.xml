@@ -5,8 +5,11 @@
 	<ZombielandRevealPlayerLog>Показать Player.log</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Не удалось показать Player.log. Путь скопирован в буфер обмена.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland не смог найти путь к Player.log.</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>Наведите курсор на любую настройку, чтобы увидеть её справку справа. Все настройки можно изменить во время игры, и они сразу вступят в силу; настройки сохраняются вместе с игрой.\n\nЧтобы задать значения по умолчанию для новых игр, измените настройки на главном экране (Настройки / Настройки модов / Zombieland).</Zombieland_Settings>
-	<ZombieLandKeyframes>Добавьте ключевые кадры по времени. Проверьте значения с ползунком. Только кадры редактируемы.</ZombieLandKeyframes>
+	<Zombieland_Settings>Наведите указатель на настройку, чтобы увидеть подсказку справа. Изменения, сделанные во время игры, применяются сразу.</Zombieland_Settings>
+	<Zombieland_SettingsMainMenu>Эти настройки используются в новых играх. При сохранении игры её настройки Zombieland сохраняются вместе с ней.</Zombieland_SettingsMainMenu>
+	<Zombieland_SettingsInGame>Чтобы задать настройки по умолчанию для новых игр, откройте Zombieland из главного меню (Настройки / Моды / Zombieland).</Zombieland_SettingsInGame>
+	<ZombieLandKeyframes>Можно добавить ключевые кадры, которые задают изменение настроек со временем. Ползунок показывает промежуточные значения. Настройки можно менять только в ключевых кадрах.</ZombieLandKeyframes>
+	<ZombieLandKeyframePreview>Настройки нельзя изменять между ключевыми кадрами. Выберите ключевой кадр, чтобы изменить его настройки.</ZombieLandKeyframePreview>
 	<ZombieLandKeyframe0>&lt;- первый ключевой кадр (начало игры) ... будущее время игры -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>Регулирует сложность почти всех вещей в Zombieland, таких как способности зомби, прогноз угрозы и многое другое.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Шкала угроз Zombieland</Difficulty_ZombielandThreatScale_Label>

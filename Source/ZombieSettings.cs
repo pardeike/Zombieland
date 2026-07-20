@@ -276,7 +276,7 @@ namespace ZombieLand
 		public float spitterThreat = 1f;
 		public bool symbiantEnabled = true;
 		public int symbiantMaxCells = 400;
-		public bool muteSymbiantSplashSounds = true;
+		public bool muteSymbiantSplashSounds = false;
 		public int minimumZombiesForWallPushing = 18;
 		public List<string> blacklistedApparel = new();
 		public float contaminationBaseFactor = 1f;

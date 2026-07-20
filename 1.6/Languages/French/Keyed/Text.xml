@@ -5,8 +5,11 @@
 	<ZombielandRevealPlayerLog>Afficher Player.log</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Impossible d'afficher Player.log. Le chemin a été copié dans le presse-papiers.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland n'a pas trouvé le chemin de Player.log.</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>Survolez un paramètre pour voir son texte d'aide à droite. Tous les paramètres peuvent être modifiés dans le jeu et sont actifs immédiatement, ils sont sauvegardés avec le jeu.\n\nPour définir les paramètres par défaut des nouvelles parties, modifiez-les depuis l'écran principal (Options / Paramètres des mods / Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Survolez un paramètre pour afficher son aide à droite. Les modifications effectuées pendant une partie prennent effet immédiatement.</Zombieland_Settings>
+	<Zombieland_SettingsMainMenu>Ces paramètres sont utilisés pour les nouvelles parties. Lorsque vous sauvegardez une partie, ses paramètres Zombieland sont enregistrés avec elle.</Zombieland_SettingsMainMenu>
+	<Zombieland_SettingsInGame>Pour définir les valeurs par défaut des nouvelles parties, ouvrez Zombieland depuis le menu principal (Options / Mods / Zombieland).</Zombieland_SettingsInGame>
 	<ZombieLandKeyframes>Ajoutez des images clés qui définissent les paramètres dans le temps. Utilisez le curseur pour vérifier les valeurs intermédiaires. Seuls les réglages des images clés sont modifiables.</ZombieLandKeyframes>
+	<ZombieLandKeyframePreview>Les paramètres ne peuvent pas être modifiés entre les images clés. Sélectionnez une image clé pour modifier ses paramètres.</ZombieLandKeyframePreview>
 	<ZombieLandKeyframe0>&lt;- première image clé (début du jeu) . . . temps de jeu futur -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>Contrôle la difficulté de presque tout dans Zombieland, comme les capacités des zombies, la prévision des menaces et bien plus encore.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>L'échelle de menace de Zombieland</Difficulty_ZombielandThreatScale_Label>

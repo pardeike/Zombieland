@@ -5,8 +5,11 @@
 	<ZombielandRevealPlayerLog>Player.log dosyasını göster</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Player.log gösterilemedi. Yol panoya kopyalandı.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland Player.log yolunu bulamadı.</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>Yardım metnini sağ tarafta görmek için herhangi bir ayarın üzerine gelin. Tüm ayarlar oyun içinde değiştirilebilir ve hemen aktif olur, oyunla birlikte kaydedilir.\n\nYeni oyunlar için varsayılanları ayarlamak için, ayarları ana ekrandan değiştirin (Seçenekler/Mod Ayarları/Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Yardım metnini sağda görmek için bir ayarın üzerine gelin. Oyun sırasında yapılan değişiklikler hemen uygulanır.</Zombieland_Settings>
+	<Zombieland_SettingsMainMenu>Bu ayarlar yeni oyunlarda kullanılır. Bir oyunu kaydettiğinizde, Zombieland ayarları da oyunla birlikte kaydedilir.</Zombieland_SettingsMainMenu>
+	<Zombieland_SettingsInGame>Yeni oyunların varsayılan ayarlarını belirlemek için Zombieland'i ana menüden açın (Seçenekler / Modlar / Zombieland).</Zombieland_SettingsInGame>
 	<ZombieLandKeyframes>Zamana bağlı anahtar kareler ekleyin. Aradaki değerleri kaydırıcıyla kontrol edin. Yalnızca anahtar karelerin ayarları düzenlenebilir.</ZombieLandKeyframes>
+	<ZombieLandKeyframePreview>Ayarlar anahtar kareler arasında düzenlenemez. Ayarlarını düzenlemek için bir anahtar kare seçin.</ZombieLandKeyframePreview>
 	<ZombieLandKeyframe0>&lt;- ilk anahtar kare (oyunun başlangıcı) . . . gelecekteki oyun zamanı -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>Zombieland'deki zombi yetenekleri, tehdit tahmini ve çok daha fazlası gibi neredeyse her şeyin zorluğunu kontrol eder.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Zombieland tehdit ölçeği</Difficulty_ZombielandThreatScale_Label>

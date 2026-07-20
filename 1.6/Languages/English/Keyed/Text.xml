@@ -5,8 +5,11 @@
 	<ZombielandRevealPlayerLog>Reveal Player.log</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Could not reveal Player.log. The path was copied to the clipboard.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland could not find the Player.log path.</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>Hover over any setting to see its help text on the right. All settings can be changed in-game and take effect immediately; they are saved with the game.\n\nTo set defaults for new games, change the settings from the main menu (Options / Mods / Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Hover over a setting to see its help text on the right. Settings changed during a game take effect immediately.</Zombieland_Settings>
+	<Zombieland_SettingsMainMenu>These settings are used for new games. When you save a game, its Zombieland settings are saved with it.</Zombieland_SettingsMainMenu>
+	<Zombieland_SettingsInGame>To set defaults for new games, open Zombieland from the main menu (Options / Mods / Zombieland).</Zombieland_SettingsInGame>
 	<ZombieLandKeyframes>You can add keyframes that define how settings change over game time. Use the slider to preview the values in between. Settings can only be edited at a keyframe.</ZombieLandKeyframes>
+	<ZombieLandKeyframePreview>Settings cannot be edited between keyframes. Select a keyframe to edit its settings.</ZombieLandKeyframePreview>
 	<ZombieLandKeyframe0>&lt;- first keyframe (start of the game) . . . future game time -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>Controls the difficulty of almost all things in Zombieland, like zombie abilities, threat forecast, and much more.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Zombieland threat scale</Difficulty_ZombielandThreatScale_Label>

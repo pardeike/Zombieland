@@ -5,8 +5,11 @@
 	<ZombielandRevealPlayerLog>Player.log anzeigen</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Player.log konnte nicht angezeigt werden. Der Pfad wurde in die Zwischenablage kopiert.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland konnte den Pfad zur Player.log nicht finden.</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>Bewegen Sie den Mauszeiger über eine beliebige Einstellung, um rechts den zugehörigen Hilfetext zu sehen. Alle Einstellungen können im Spiel geändert werden und sind sofort aktiv, sie werden mit dem Spiel gespeichert.\n\nUm die Standardeinstellungen für neue Spiele festzulegen, ändern Sie die Einstellungen im Hauptbildschirm (Optionen/Mod-Einstellungen/Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Bewegen Sie den Mauszeiger über eine Einstellung, um rechts den Hilfetext zu sehen. Änderungen während eines Spiels werden sofort wirksam.</Zombieland_Settings>
+	<Zombieland_SettingsMainMenu>Diese Einstellungen gelten für neue Spiele. Wenn Sie ein Spiel speichern, werden dessen Zombieland-Einstellungen mitgespeichert.</Zombieland_SettingsMainMenu>
+	<Zombieland_SettingsInGame>Um Standardwerte für neue Spiele festzulegen, öffnen Sie Zombieland im Hauptmenü (Optionen / Mods / Zombieland).</Zombieland_SettingsInGame>
 	<ZombieLandKeyframes>Sie können Keyframes hinzufügen, die Einstellungen über die Zeit festlegen. Prüfen Sie die Zwischenwerte mit dem Schieberegler. Nur Einstellungen an Keyframes sind änderbar.</ZombieLandKeyframes>
+	<ZombieLandKeyframePreview>Einstellungen können zwischen Keyframes nicht bearbeitet werden. Wählen Sie einen Keyframe aus, um dessen Einstellungen zu bearbeiten.</ZombieLandKeyframePreview>
 	<ZombieLandKeyframe0>&lt;- erster Keyframe (Spielbeginn) ... zukünftige Spielzeit -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>Steuert den Schwierigkeitsgrad fast aller Dinge in Zombieland wie z.B. Zombiefähigkeiten, Bedrohungsprognosen und vieles mehr.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Zombieland Bedrohungsskala</Difficulty_ZombielandThreatScale_Label>

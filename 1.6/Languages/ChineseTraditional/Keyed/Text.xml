@@ -5,8 +5,11 @@
 	<ZombielandRevealPlayerLog>顯示 Player.log</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>無法顯示 Player.log。路徑已複製到剪貼板。</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland 找不到 Player.log 的路徑。</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>將滑鼠游標移到任意設定上，即可在右側查看說明文字。所有設定都可以在遊戲中更改並立即生效，也會隨遊戲一同儲存。\n\n若要設定新遊戲的預設值，請從主選單更改設定（選項 / 模組 / Zombieland）。</Zombieland_Settings>
+	<Zombieland_Settings>將滑鼠移到某項設定上，即可在右側查看說明。遊戲中所做的設定變更會立即生效。</Zombieland_Settings>
+	<Zombieland_SettingsMainMenu>這些設定會用於新遊戲。儲存遊戲時，該遊戲的 Zombieland 設定也會一同儲存。</Zombieland_SettingsMainMenu>
+	<Zombieland_SettingsInGame>若要設定新遊戲的預設值，請從主選單開啟 Zombieland（選項 / 模組 / Zombieland）。</Zombieland_SettingsInGame>
 	<ZombieLandKeyframes>你可以新增關鍵影格，定義設定如何隨遊戲時間變化。使用滑桿可預覽關鍵影格之間的數值。設定只能在關鍵影格上編輯。</ZombieLandKeyframes>
+	<ZombieLandKeyframePreview>關鍵影格之間的設定無法編輯。請選取一個關鍵影格來編輯其設定。</ZombieLandKeyframePreview>
 	<ZombieLandKeyframe0>&lt;- 第一個關鍵影格（遊戲開始） ...... 未來遊戲時間 -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>控制 Zombieland 中幾乎所有內容的難度，包括喪屍能力、威脅預測等。</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Zombieland 威脅倍率</Difficulty_ZombielandThreatScale_Label>

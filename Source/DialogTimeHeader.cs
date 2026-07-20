@@ -9,6 +9,11 @@ namespace ZombieLand
 	public static class DialogTimeHeader
 	{
 		public const float timeHeaderHeight = 110f;
+		const float editHeight = 40f;
+		const float singleKeyframeTextWidth = 400f;
+		const float editVerticalPadding = 10f;
+		const float keyframeSelectionDistance = 5f;
+		const float singleKeyframeDragStartDistance = 3f;
 		const float labelWidth = 40;
 		const float labelHeight = 24;
 		public static Color backgroundColor = new(106f / 255f, 81f / 255f, 46f / 255f);
@@ -27,18 +32,25 @@ namespace ZombieLand
 		public static int selectedKeyframe = 0;
 		public static int currentTicks = 0;
 		public static bool dragging = false;
+		static bool selectionFromSlider = false;
+		static bool singleKeyframeDragArmed = false;
+		static float singleKeyframeDragStartX = 0f;
 
 		public static void Reset()
 		{
 			selectedKeyframe = 0;
 			currentTicks = 0;
 			dragging = false;
+			selectionFromSlider = false;
+			singleKeyframeDragArmed = false;
+			singleKeyframeDragStartX = 0f;
 		}
 
 		public static void JumpToCurrent()
 		{
 			currentTicks = Mathf.Clamp(GenTicks.TicksGame, 0, ZombieSettings.ValuesOverTime.Last().Ticks);
 			selectedKeyframe = ZombieSettings.ValuesOverTime.FirstIndexOf(key => key.Ticks == currentTicks);
+			selectionFromSlider = false;
 		}
 
 		public static Rect Draw(ref List<SettingsKeyFrame> settingsOverTime, Rect inRect)
@@ -53,9 +65,11 @@ namespace ZombieLand
 			var spacing = n == 1 ? 0 : availableWidth / (n - 1);
 
 			if (Input.GetMouseButton(0) == false)
+			{
 				dragging = false;
+				singleKeyframeDragArmed = false;
+			}
 
-			var keyFrameXAndTicks = new List<(float x, int ticks)>();
 			for (var i = 0; i < n; i++)
 			{
 				var selected = i == selectedKeyframe;
@@ -67,7 +81,6 @@ namespace ZombieLand
 					pos = n == 1 ? 0 : width - labelWidth;
 				var rect = new Rect((int)pos, vOffset, labelWidth, labelHeight);
 				Widgets.DrawBoxSolidWithOutline(rect, backgroundColor, selected ? selectionColor : frameColor, selected ? 2 : 1);
-				keyFrameXAndTicks.Add((rect.x + labelWidth / 2, info.Ticks));
 
 				if (selected)
 				{
@@ -87,11 +100,17 @@ namespace ZombieLand
 					{
 						selectedKeyframe = i;
 						currentTicks = settingsOverTime[i].Ticks;
+						selectionFromSlider = false;
 						Event.current.Use();
 					}
 				}
 			}
 			Text.Anchor = TextAnchor.UpperLeft;
+			var knobWidth = Constants.timeKnob[0].width;
+			var knobRange = width - knobWidth;
+			var keyFrameXAndTicks = settingsOverTime
+				.Select((info, index) => (x: knobWidth / 2f + knobRange * (n == 1 ? 0f : index / (n - 1f)), ticks: info.Ticks))
+				.ToList();
 
 			if (n == 1)
 			{
@@ -114,10 +133,37 @@ namespace ZombieLand
 			var arrowRect = new Rect(width - Constants.timeArrow.width, vOffset - Constants.timeArrow.height / 2 + 1, Constants.timeArrow.width, Constants.timeArrow.height);
 			Graphics.DrawTexture(arrowRect, Constants.timeArrow);
 
+			if (n == 1 && singleKeyframeDragArmed && Input.GetMouseButton(0)
+				&& Mathf.Abs(Event.current.mousePosition.x - singleKeyframeDragStartX) >= singleKeyframeDragStartDistance)
+			{
+				var newValue = settingsOverTime[0].Copy();
+				newValue.amount = 1;
+				newValue.unit = SettingsKeyFrame.Unit.Years;
+				settingsOverTime.Add(newValue);
+				dragging = true;
+				selectedKeyframe = -1;
+				currentTicks = 0;
+				selectionFromSlider = true;
+				singleKeyframeDragArmed = false;
+				Event.current.Use();
+			}
+
 			if (dragging)
 			{
 				var mousePos = Event.current.mousePosition.x;
-				var mouseX = Mathf.Clamp(mousePos, 0, width);
+				var mouseX = Mathf.Clamp(mousePos, keyFrameXAndTicks[0].x, keyFrameXAndTicks[^1].x);
+				var nearestIndex = 0;
+				var nearestDistance = float.MaxValue;
+				for (var i = 0; i < keyFrameXAndTicks.Count; i++)
+				{
+					var distance = Mathf.Abs(keyFrameXAndTicks[i].x - mouseX);
+					if (distance < nearestDistance)
+					{
+						nearestIndex = i;
+						nearestDistance = distance;
+					}
+				}
+
 				var upperIndex1 = keyFrameXAndTicks.FirstIndexOf(pair => pair.x > mouseX);
 				if (upperIndex1 == -1)
 					upperIndex1 = keyFrameXAndTicks.Count - 1;
@@ -133,14 +179,31 @@ namespace ZombieLand
 						mouseX
 					);
 				}
+
+				selectedKeyframe = nearestDistance <= keyframeSelectionDistance ? nearestIndex : -1;
+				selectionFromSlider = true;
 			}
 
-			var upperIndex2 = settingsOverTime.FirstIndexOf(key => key.Ticks > currentTicks);
-			if (upperIndex2 == -1)
-				upperIndex2 = settingsOverTime.Count - 1;
-			if (upperIndex2 > 0)
+			if (n == 1)
 			{
-				var knobRange = width - Constants.timeKnob[0].width;
+				var knobRect = new Rect(0, vOffset - Constants.timeKnob[0].height / 2, Constants.timeKnob[0].width, Constants.timeKnob[0].height);
+				GUI.DrawTexture(knobRect, Constants.timeKnob[0]);
+				if (Mouse.IsOver(knobRect))
+				{
+					GUI.DrawTexture(knobRect, Constants.timeKnobHighlight);
+					if (Event.current.type == EventType.MouseDown && Event.current.button == 0)
+					{
+						singleKeyframeDragArmed = true;
+						singleKeyframeDragStartX = Event.current.mousePosition.x;
+						Event.current.Use();
+					}
+				}
+			}
+			else
+			{
+				var upperIndex2 = settingsOverTime.FirstIndexOf(key => key.Ticks > currentTicks);
+				if (upperIndex2 == -1)
+					upperIndex2 = settingsOverTime.Count - 1;
 				var knobFraction = GenMath.LerpDoubleClamped(
 					settingsOverTime[upperIndex2 - 1].Ticks,
 					settingsOverTime[upperIndex2].Ticks,
@@ -158,13 +221,23 @@ namespace ZombieLand
 					{
 						dragging = true;
 						selectedKeyframe = -1;
+						selectionFromSlider = true;
 						Event.current.Use();
 					}
 				}
 			}
 
 			vOffset += 12 + 2;
-			var editRect = new Rect(0, vOffset, width, 40);
+			var currentEditHeight = editHeight;
+			if (n == 1)
+			{
+				var font = Text.Font;
+				Text.Font = GameFont.Tiny;
+				var textHeight = Text.CalcHeight("ZombieLandKeyframes".Translate(), singleKeyframeTextWidth);
+				currentEditHeight = Mathf.Max(editHeight, textHeight + editVerticalPadding);
+				Text.Font = font;
+			}
+			var editRect = new Rect(0, vOffset, width, currentEditHeight);
 
 			if (selectedKeyframe > -1)
 			{
@@ -209,7 +282,10 @@ namespace ZombieLand
 						info.unit = backup.unit;
 					}
 
-					currentTicks = settingsOverTime[selectedKeyframe].Ticks;
+					if (info.amount != backup.amount || info.unit != backup.unit)
+						selectionFromSlider = false;
+					if (selectionFromSlider == false)
+						currentTicks = settingsOverTime[selectedKeyframe].Ticks;
 				}
 
 				var deleteLabel = "Delete".Translate();
@@ -227,6 +303,8 @@ namespace ZombieLand
 						settingsOverTime.RemoveAt(selectedKeyframe);
 						if (selectedKeyframe >= settingsOverTime.Count)
 							selectedKeyframe--;
+						selectionFromSlider = false;
+						currentTicks = settingsOverTime[selectedKeyframe].Ticks;
 					}
 					GUI.color = Color.white;
 					rect2.x -= duplicateLabelWidth + 5;
@@ -241,6 +319,8 @@ namespace ZombieLand
 						while (settingsOverTime[i - 1].Ticks >= settingsOverTime[i].Ticks)
 							settingsOverTime[i].amount++;
 					selectedKeyframe++;
+					selectionFromSlider = false;
+					currentTicks = settingsOverTime[selectedKeyframe].Ticks;
 				}
 
 				if (n == 1)
@@ -248,14 +328,25 @@ namespace ZombieLand
 					var font = Text.Font;
 					Text.Font = GameFont.Tiny;
 					Text.Anchor = TextAnchor.MiddleLeft;
-					var rect = editRect.LeftPartPixels(400);
+					var rect = editRect.LeftPartPixels(singleKeyframeTextWidth);
 					Widgets.Label(rect, "ZombieLandKeyframes".Translate());
 					Text.Font = font;
 					Text.Anchor = TextAnchor.UpperLeft;
 				}
 			}
+			else
+			{
+				Widgets.DrawBoxSolid(editRect, yellowBackground);
+				var font = Text.Font;
+				var anchor = Text.Anchor;
+				Text.Font = GameFont.Tiny;
+				Text.Anchor = TextAnchor.MiddleLeft;
+				Widgets.Label(editRect.ContractedBy(5f), "ZombieLandKeyframePreview".Translate());
+				Text.Font = font;
+				Text.Anchor = anchor;
+			}
 
-			return inRect.BottomPartPixels(inRect.height - timeHeaderHeight);
+			return inRect.BottomPartPixels(inRect.height - timeHeaderHeight - currentEditHeight + editHeight);
 		}
 	}
 }

@@ -205,9 +205,11 @@ namespace ZombieLand
 
 			var type = forEnum.GetType();
 			var choices = Enum.GetValues(type);
+			var firstChoice = true;
 			foreach (var choice in choices)
 			{
-				list.Gap(2f);
+				list.Gap(firstChoice ? 8f : 2f);
+				firstChoice = false;
 				var label = type.Name + "_" + choice.ToString();
 				if (list.Dialog_RadioButton(forEnum.Equals(choice), label))
 					forEnum = (T)choice;
@@ -296,12 +298,12 @@ namespace ZombieLand
 			GUI.color = color;
 		}
 
-		public static void Dialog_FloatSlider(this Listing_Standard list, string labelId, Func<float, string> labelFormatFunc, bool logarithmic, ref float value, float min, float max, Func<float, float> formatFunc = null)
+		public static void Dialog_FloatSlider(this Listing_Standard list, string labelId, Func<float, string> labelFormatFunc, bool logarithmic, ref float value, float min, float max, Func<float, float> formatFunc = null, float leadingGap = 12f)
 		{
 			if (labelId != null)
 				list.Help(labelId, 32f);
 
-			list.Gap(12f);
+			list.Gap(leadingGap);
 
 			var format = labelFormatFunc(value);
 			var valstr = string.Format(format, formatFunc != null ? formatFunc(value) : value);
@@ -357,7 +359,6 @@ namespace ZombieLand
 
 		public static void Dialog_TimeSlider(this Listing_Standard list, string labelId, ref int value, int min, int max, Func<int, string> valueStringConverter = null, bool fullDaysOnly = false)
 		{
-			list.Gap(-4f);
 			list.Help(labelId, 32f);
 
 			list.Gap(12f);
@@ -389,7 +390,7 @@ namespace ZombieLand
 				.Select(area => (map, area)))
 				.Select(pair => multiMap ? $"{pair.area.Label}:{pair.map.Index + 1}" : pair.area.Label)
 				.ToList();
-			list.Gap(-2f);
+			list.Gap(4f);
 			list.Dialog_List("ExtractZombieArea", settings.extractZombieArea, area => settings.extractZombieArea = area ?? "", areas, null, "Everywhere".Translate());
 		}
 

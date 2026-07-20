@@ -5,8 +5,11 @@
 	<ZombielandRevealPlayerLog>Pokaż plik Player.log</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>Nie udało się pokazać pliku Player.log. Ścieżkę skopiowano do schowka.</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland nie mógł znaleźć ścieżki do pliku Player.log.</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>Najedź na dowolne ustawienie, aby po prawej zobaczyć jego tekst pomocy. Wszystkie ustawienia można zmieniać podczas gry; zaczynają obowiązywać natychmiast i są zapisywane wraz z grą.\n\nAby ustawić wartości domyślne dla nowych gier, zmień ustawienia w menu głównym (Opcje / Mody / Zombieland).</Zombieland_Settings>
+	<Zombieland_Settings>Najedź kursorem na ustawienie, aby zobaczyć jego opis po prawej stronie. Zmiany wprowadzone podczas gry zaczynają działać od razu.</Zombieland_Settings>
+	<Zombieland_SettingsMainMenu>Te ustawienia są używane w nowych grach. Gdy zapisujesz grę, jej ustawienia Zombieland są zapisywane razem z nią.</Zombieland_SettingsMainMenu>
+	<Zombieland_SettingsInGame>Aby ustawić wartości domyślne dla nowych gier, otwórz Zombieland z menu głównego (Opcje / Mody / Zombieland).</Zombieland_SettingsInGame>
 	<ZombieLandKeyframes>Możesz dodawać klatki kluczowe określające, jak ustawienia zmieniają się z upływem czasu gry. Użyj suwaka, aby podejrzeć wartości pośrednie. Ustawienia można edytować tylko w klatce kluczowej.</ZombieLandKeyframes>
+	<ZombieLandKeyframePreview>Ustawień nie można edytować pomiędzy klatkami kluczowymi. Wybierz klatkę kluczową, aby edytować jej ustawienia.</ZombieLandKeyframePreview>
 	<ZombieLandKeyframe0>&lt;- pierwsza klatka kluczowa (początek gry) . . . przyszły czas gry -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>Określa trudność niemal wszystkich elementów Zombieland, między innymi zdolności zombie, prognozę zagrożenia i wiele więcej.</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Skala zagrożenia Zombieland</Difficulty_ZombielandThreatScale_Label>

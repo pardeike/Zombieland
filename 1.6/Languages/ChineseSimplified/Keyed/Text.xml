@@ -5,8 +5,11 @@
 	<ZombielandRevealPlayerLog>显示 Player.log</ZombielandRevealPlayerLog>
 	<ZombielandPlayerLogRevealFailed>无法显示 Player.log。路径已复制到剪贴板。</ZombielandPlayerLogRevealFailed>
 	<ZombielandPlayerLogPathUnavailable>Zombieland 找不到 Player.log 的路径。</ZombielandPlayerLogPathUnavailable>
-	<Zombieland_Settings>将鼠标悬停在任意设置上，即可在右侧查看帮助文字。所有设置都可以在游戏中更改并立即生效，也会随游戏一同保存。\n\n若要为新游戏设置默认值，请在主菜单中更改设置（选项 / 模组 / Zombieland）。</Zombieland_Settings>
+	<Zombieland_Settings>将鼠标移到某项设置上，即可在右侧查看帮助。游戏中所做的设置更改会立即生效。</Zombieland_Settings>
+	<Zombieland_SettingsMainMenu>这些设置用于新游戏。保存游戏时，该游戏的 Zombieland 设置也会一同保存。</Zombieland_SettingsMainMenu>
+	<Zombieland_SettingsInGame>要设置新游戏的默认值，请从主菜单打开 Zombieland（选项 / 模组 / Zombieland）。</Zombieland_SettingsInGame>
 	<ZombieLandKeyframes>你可以添加关键帧，定义设置如何随游戏时间变化。使用滑块可预览关键帧之间的数值。设置只能在关键帧上编辑。</ZombieLandKeyframes>
+	<ZombieLandKeyframePreview>关键帧之间的设置无法编辑。请选择一个关键帧来编辑其设置。</ZombieLandKeyframePreview>
 	<ZombieLandKeyframe0>&lt;- 第一个关键帧（游戏开始） ...... 未来游戏时间 -&gt;</ZombieLandKeyframe0>
 	<Difficulty_ZombielandThreatScale_Info>控制 Zombieland 中几乎所有内容的难度，包括丧尸能力、威胁预测等。</Difficulty_ZombielandThreatScale_Info>
 	<Difficulty_ZombielandThreatScale_Label>Zombieland 威胁倍率</Difficulty_ZombielandThreatScale_Label>
