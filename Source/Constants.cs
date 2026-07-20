@@ -113,8 +113,14 @@ namespace ZombieLand
 		//
 		[Constant(1, "Turn zombie sounds on/off")]
 		public static bool USE_SOUND = true;
-		[Constant(1, "Keeps the start-screen background colors steady. The title blood drips remain animated.")]
-		public static bool DISABLE_START_SCREEN_COLOR_FLICKER = false;
+		[Constant(1, "Use Zombieland music on the title screen")]
+		public static bool TITLE_SCREEN_MUSIC = true;
+		[Constant(1, "Show the Zombieland title and its blood drips on the title screen")]
+		public static bool TITLE_SCREEN_ZOMBIELAND_TITLE = true;
+		[Constant(1, "Use Zombieland colors on the title screen")]
+		public static bool TITLE_SCREEN_COLORS = true;
+		[Constant(1, "Flicker the Zombieland title-screen colors")]
+		public static bool TITLE_SCREEN_FLICKER = true;
 		[Constant(1, "Set this to greater than -1 to debug the number of zombies on the map")]
 		public static int DEBUG_MAX_ZOMBIE_COUNT = -1;
 

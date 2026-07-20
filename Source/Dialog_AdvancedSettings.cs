@@ -22,6 +22,8 @@ namespace ZombieLand
 		{
 			var dict = Constants.Current();
 			Constants.Save(dict);
+			ZombielandMusic.ApplyEntrySongReplacement(true);
+			MainMenuBackgroundPostEffect.ApplySettings();
 		}
 
 		float TotalHeight()

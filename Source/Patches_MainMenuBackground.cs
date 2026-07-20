@@ -16,45 +16,55 @@ namespace ZombieLand
 		static readonly Color darkerColor = ColorFromHex(0x48, 0xAA, 0x48);
 		static readonly Texture2D titleTexture = Tools.LoadTexture("ZombielandTitle", true, false);
 		static Material material;
-		static bool disabledAfterError;
+		static bool backgroundDisabledAfterError;
 
 		public static void Draw()
 		{
-			if (disabledAfterError || Event.current?.type != EventType.Repaint)
-				return;
-			if (ZombielandMusic.DefaultSettingsAllowZombielandMusic() == false)
+			if (Event.current?.type != EventType.Repaint)
 				return;
 
-			var shader = Assets.MainMenuBackgroundEffectShader;
-			if (shader == null)
-				return;
-
-			try
+			if (Constants.TITLE_SCREEN_COLORS && backgroundDisabledAfterError == false)
 			{
-				if (material == null || material.shader != shader)
+				var shader = Assets.MainMenuBackgroundEffectShader;
+				if (shader != null)
 				{
-					material = new Material(shader)
+					try
 					{
-						name = "Zombieland main menu background effect",
-						hideFlags = HideFlags.HideAndDontSave
-					};
-					material.SetColor("_MultiplyColor", multiplyColor);
-					material.SetColor("_ColorBurnColor", colorBurnColor);
-					material.SetColor("_DarkerColor", darkerColor);
+						if (material == null || material.shader != shader)
+						{
+							material = new Material(shader)
+							{
+								name = "Zombieland main menu background effect",
+								hideFlags = HideFlags.HideAndDontSave
+							};
+							material.SetColor("_MultiplyColor", multiplyColor);
+							material.SetColor("_ColorBurnColor", colorBurnColor);
+							material.SetColor("_DarkerColor", darkerColor);
+						}
+						material.SetFloat("_GlitchEnabled", Constants.TITLE_SCREEN_FLICKER ? 1f : 0f);
+
+						var rect = new Rect(0f, 0f, UI.screenWidth, UI.screenHeight);
+						for (var pass = 0; pass < material.passCount; pass++)
+							Graphics.DrawTexture(rect, BaseContent.WhiteTex, material, pass);
+					}
+					catch (Exception ex)
+					{
+						backgroundDisabledAfterError = true;
+						Log.Warning($"Zombieland disabled the main menu background post effect after an error: {ex}");
+					}
 				}
-				material.SetFloat("_GlitchEnabled", Constants.DISABLE_START_SCREEN_COLOR_FLICKER ? 0f : 1f);
+			}
 
-				var rect = new Rect(0f, 0f, UI.screenWidth, UI.screenHeight);
-				for (var pass = 0; pass < material.passCount; pass++)
-					Graphics.DrawTexture(rect, BaseContent.WhiteTex, material, pass);
-
+			if (Constants.TITLE_SCREEN_ZOMBIELAND_TITLE)
 				DrawTitle();
-			}
-			catch (Exception ex)
-			{
-				disabledAfterError = true;
-				Log.Warning($"Zombieland disabled the main menu background post effect after an error: {ex}");
-			}
+		}
+
+		public static void ApplySettings()
+		{
+			if (material != null)
+				material.SetFloat("_GlitchEnabled", Constants.TITLE_SCREEN_FLICKER ? 1f : 0f);
+			if (Constants.TITLE_SCREEN_ZOMBIELAND_TITLE == false)
+				TitleBloodDrip.Release();
 		}
 
 		static void DrawTitle()

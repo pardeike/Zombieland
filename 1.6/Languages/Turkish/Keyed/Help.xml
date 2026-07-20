@@ -23,6 +23,7 @@
 	<ZombieResponsePolicy_Minimal_Help>Zombileri bilinçli olarak hedef seçmez. Yakın dövüşte öz savunma yine gerçekleşebilir.</ZombieResponsePolicy_Minimal_Help>
 	<ZombieResponsePolicy_Adaptive_Help>Bir grup üyesi zombi tarafından yaralandıktan sonra yakındaki yetenekli atıcıları yakındaki zombi baskısıyla karşılaştırır. Tam savaşa yalnızca grup gücüne güveniyorsa izin verir.</ZombieResponsePolicy_Adaptive_Help>
 	<ZombieResponsePolicy_Full_Help>Normal savaş yapay zekâsının uygun zombilere karşı menzilli ve yakın dövüş silahlarını sürekli kullanmasına izin verir. Tek tek piyonlar uygun olmayan hedefleri yine reddedebilir.</ZombieResponsePolicy_Full_Help>
+	<AnimalsAndZombiesTitle_Help>Hayvanların zombilere saldırıp saldırmayacağını ve zombi saldırılarının onları insan avcısına dönüştürüp dönüştüremeyeceğini belirler.</AnimalsAndZombiesTitle_Help>
 	<AnimalsAttackZombies_Help>Bu açıkken hayvanlar avlanırken veya saldırganlaştıklarında zombilere saldırır. Herhangi bir zombiyi görmezden gelmelerini istiyorsanız bu seçeneği kapatın.</AnimalsAttackZombies_Help>
 	<AnomalyTargetingTitle_Help>Bu ayarlar iki yönde Anomaly özel istisnalarıdır. Otomatik normal kuralları korur, Asla bu davranışı kapatır, İzin ver ise onu zorla açar.</AnomalyTargetingTitle_Help>
 	<AnomalyTargetingRelations_Help>Zombilerin hangi Anomaly piyonlarını hedef seçebileceğini kontrol eder. Otomatik ana zombi hedef kuralını izler. Asla bu grubu engeller. İzin ver, ana kural yok saysa bile zombilerin o gruba saldırmasını sağlar. Ölü, yere düşmüş veya uykuda piyonlar her zaman yok sayılır.</AnomalyTargetingRelations_Help>
@@ -137,6 +138,7 @@
 	<ZombieActionsTitle_Help>Bu bölümde varsayılan ayarları geri yükleyebilir veya kendi ayarlarınızı yükleyip yayımlayabilirsiniz. Oyundaysanız, modu tek düğmeyle bile kaldırabilirsiniz.</ZombieActionsTitle_Help>
 	<UninstallButton_Help>Zombieland'i kaldırmak için Kaldır'a tıklayın. Mevcut oyunu yeni bir adla kaydetmeniz istenir ve ana menüye dönersiniz. Oradan modu kaldırıp kayıtlı oyunu yükleyerek Zombieland olmadan devam edebilirsiniz.</UninstallButton_Help>
 	<ResetButton_Help>Ayarları varsayılana sıfırlar.</ResetButton_Help>
+	<FactoryResetButton_Help>Yeni oyunlar için tüm Zombieland ayarlarını özgün değerlerine döndürür.</FactoryResetButton_Help>
 	<ClipboardActionTitle_Help>Ayarlarınızı basit metin kopyalama ve yapıştırma ile başkalarıyla paylaşın.</ClipboardActionTitle_Help>
 	<CopyButton_Help>Mevcut ayarları bilgisayarınızın panosuna kopyalar. Sonra ayarlarınızı başkalarıyla paylaşmak için bir yere yapıştırabilirsiniz.</CopyButton_Help>
 	<PasteButton_Help>Bilgisayarınızın panosundaki metni kullanarak mevcut ayarlarınızı değiştirir. Birinin paylaştığı metni kopyalayın, sonra onun ayarlarını almak için Yapıştır'a tıklayın.</PasteButton_Help>

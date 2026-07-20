@@ -23,6 +23,7 @@
 	<ZombieResponsePolicy_Minimal_Help>Zombies werden nicht absichtlich als Ziel gewählt. Selbstverteidigung im direkten Nahkampf bleibt möglich.</ZombieResponsePolicy_Minimal_Help>
 	<ZombieResponsePolicy_Adaptive_Help>Nachdem ein Gruppenmitglied von einem Zombie getroffen wurde, werden kampffähige Schützen in der Nähe mit dem Zombie-Druck verglichen. Voller Kampf wird nur bei ausreichender Zuversicht erlaubt.</ZombieResponsePolicy_Adaptive_Help>
 	<ZombieResponsePolicy_Full_Help>Die normale Kampf-KI darf geeignete Zombies ständig mit Fern- und Nahkampfwaffen angreifen. Einzelne Personen können ungeeignete Ziele weiterhin ablehnen.</ZombieResponsePolicy_Full_Help>
+	<AnimalsAndZombiesTitle_Help>Legt fest, ob Tiere Zombies angreifen und ob Zombieangriffe Tiere zu Menschenjägern machen können.</AnimalsAndZombiesTitle_Help>
 	<AnimalsAttackZombies_Help>Wenn dies eingeschaltet ist, greifen Tiere Zombies an, wenn sie jagen oder aggressiv werden. Schalten Sie die Option aus, wenn Tiere Zombies ignorieren sollen.</AnimalsAttackZombies_Help>
 	<AnomalyTargetingTitle_Help>Diese Einstellungen sind Anomaly-spezifische Ausnahmen in beide Richtungen. Automatisch behält die normalen Regeln bei, Nie schaltet das Verhalten ab, und Erlauben erzwingt es.</AnomalyTargetingTitle_Help>
 	<AnomalyTargetingRelations_Help>Steuert, welche Anomaly-Figuren Zombies als Ziele wählen dürfen. Automatisch folgt der Hauptregel für Zombie-Ziele. Nie blockiert diese Gruppe. Erlauben lässt Zombies diese Gruppe angreifen, auch wenn die Hauptregel sie ignorieren würde. Tote, kampfunfähige oder ruhende Figuren werden immer ignoriert.</AnomalyTargetingRelations_Help>
@@ -137,6 +138,7 @@
 	<ZombieActionsTitle_Help>In diesem Abschnitt können Sie Standardeinstellungen wiederherstellen oder eigene Einstellungen laden und veröffentlichen. Wenn Sie in einem Spiel sind, können Sie den Mod sogar per Klick deinstallieren.</ZombieActionsTitle_Help>
 	<UninstallButton_Help>Um Zombieland zu entfernen, klicken Sie einfach auf Deinstallieren. Sie werden aufgefordert, das aktuelle Spiel unter einem neuen Namen zu speichern, und kehren ins Hauptmenü zurück. Von dort aus können Sie den Mod deinstallieren und den gespeicherten Spielstand laden, um ohne Zombieland weiterzuspielen.</UninstallButton_Help>
 	<ResetButton_Help>Setzt die Einstellungen auf Standard zurück.</ResetButton_Help>
+	<FactoryResetButton_Help>Setzt alle Zombieland-Einstellungen für neue Spiele auf ihre ursprünglichen Werte zurück.</FactoryResetButton_Help>
 	<ClipboardActionTitle_Help>Teilen Sie Ihre Einstellungen mit anderen über einfaches Kopieren und Einfügen von Text.</ClipboardActionTitle_Help>
 	<CopyButton_Help>Kopiert die aktuellen Einstellungen in die Zwischenablage Ihres Computers. Danach können Sie sie irgendwo einfügen, um sie mit anderen zu teilen.</CopyButton_Help>
 	<PasteButton_Help>Ersetzt Ihre aktuellen Einstellungen durch den Text aus der Zwischenablage Ihres Computers. Kopieren Sie den geteilten Text und klicken Sie dann auf Einsetzen, um diese Einstellungen zu übernehmen.</PasteButton_Help>

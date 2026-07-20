@@ -400,6 +400,140 @@ for (version, file_name, language), keys in sorted(keyed_keys.items()):
             )
 
 
+def settings_help_targets():
+    settings_path = repo / "Source/SettingsDialog.cs"
+    extensions_path = repo / "Source/DialogExtensions.cs"
+    settings_types_path = repo / "Source/ZombieSettings.cs"
+    source_paths = (settings_path, extensions_path, settings_types_path)
+    missing_sources = [str(path) for path in source_paths if not path.exists()]
+    if missing_sources:
+        errors.append(
+            "Settings help validation is missing source files: "
+            + ", ".join(missing_sources)
+        )
+        return set()
+
+    settings_source = settings_path.read_text(encoding="utf-8-sig")
+    extensions_source = extensions_path.read_text(encoding="utf-8-sig")
+    settings_types_source = settings_types_path.read_text(encoding="utf-8-sig")
+    dialog_source = settings_source + "\n" + extensions_source
+    targets = set()
+
+    # These helpers all register their translation ID with the settings help panel.
+    direct_patterns = (
+        r'\.Dialog_(?:Label|Checkbox|List|Integer|FloatSlider|EnumSlider|IntSlider|TimeSlider|Enum)\(\s*"([^"]+)"',
+        r'\.Dialog_Text\([^,]+,\s*"([^"]+)"',
+        r'\.Dialog_RadioButton\([^,]+,\s*"([^"]+)"',
+        r'\.Help\(\s*"([^"]+)"',
+    )
+    for pattern in direct_patterns:
+        targets.update(re.findall(pattern, dialog_source))
+
+    # A Dialog_Button's visible label, rather than its description, owns the help ID.
+    targets.update(
+        re.findall(
+            r'\.Dialog_Button\(\s*"[^"]+"\s*,\s*"([^"]+)"',
+            dialog_source,
+        )
+    )
+
+    # Anomaly rows may provide the visible label or a separate final help ID.
+    for match in re.finditer(
+        r'\.Dialog_AnomalyTargetingOverride\((.*?)\);',
+        settings_source,
+        re.DOTALL,
+    ):
+        targets.update(re.findall(r'"([^"]+)"', match.group(1)))
+
+    # Resolve local string variables used as help or button-label IDs. This covers
+    # both the main-menu/in-game reset-title choice and the music-share slider.
+    variable_sources = {}
+    for match in re.finditer(
+        r'\b(?:const\s+string|var)\s+(\w+)\s*=\s*([^;]+);',
+        dialog_source,
+    ):
+        variable_sources[match.group(1)] = set(
+            re.findall(r'"([^"]+)"', match.group(2))
+        )
+    for variable, values in variable_sources.items():
+        if not values:
+            continue
+        if re.search(rf'\.Help\(\s*{re.escape(variable)}\b', dialog_source):
+            targets.update(values)
+        if re.search(
+            rf'\.Dialog_Button\(\s*[^,]+,\s*{re.escape(variable)}\b',
+            dialog_source,
+        ):
+            targets.update(values)
+
+    # The special-zombie sliders take their IDs from a local tuple array.
+    targets.update(
+        re.findall(
+            r'new\s+FloatRef\([^\n]*?\),\s*"([^"]+)"\s*\)',
+            settings_source,
+        )
+    )
+
+    # Dialog_Enum creates one help target for every value of the bound enum.
+    settings_fields = dict(
+        (field, field_type)
+        for field_type, field in re.findall(
+            r'\bpublic\s+(\w+)\s+(\w+)\s*(?:=|;)',
+            settings_types_source,
+        )
+    )
+    for field in re.findall(
+        r'\.Dialog_Enum\(\s*"[^"]+"\s*,\s*ref\s+settings\.(\w+)\s*\)',
+        settings_source,
+    ):
+        enum_type = settings_fields.get(field)
+        if enum_type is None:
+            errors.append(
+                f"{settings_path}: cannot resolve enum type for settings field {field}"
+            )
+            continue
+        enum_match = re.search(
+            rf'\benum\s+{re.escape(enum_type)}(?:\s*:\s*\w+)?\s*\{{(.*?)\}}',
+            settings_types_source,
+            re.DOTALL,
+        )
+        if enum_match is None:
+            errors.append(
+                f"{settings_types_path}: cannot find enum declaration {enum_type}"
+            )
+            continue
+        for value in re.findall(
+            r'^\s*(\w+)\s*(?:=[^,]+)?\s*,?\s*$',
+            enum_match.group(1),
+            re.MULTILINE,
+        ):
+            targets.add(f"{enum_type}_{value}")
+
+    return targets
+
+
+required_settings_help_keys = {
+    f"{target}_Help" for target in settings_help_targets()
+}
+for version in sorted(languages_by_version):
+    if version in frozen_versions:
+        continue
+    for language in sorted(languages_by_version[version]):
+        translated_keys = {
+            key
+            for candidate_version, candidate_language, scope, key in translation_sources
+            if candidate_version == version
+            and candidate_language == language
+            and scope == "Keyed"
+        }
+        missing = sorted(required_settings_help_keys - translated_keys)
+        if missing:
+            errors.append(
+                f"{version}/{language}/Keyed: missing settings help keys "
+                + ", ".join(missing)
+            )
+
+
 def required_runtime_tokens(value):
     tokens = []
     token_patterns = (

@@ -25,6 +25,7 @@
 	<ZombieResponsePolicy_Minimal_Help>Do not deliberately target zombies. Close-melee self-defense can still happen.</ZombieResponsePolicy_Minimal_Help>
 	<ZombieResponsePolicy_Adaptive_Help>After a group member is hit by a zombie, compare nearby capable shooters with nearby zombie pressure. Permit full combat only when the group is confident.</ZombieResponsePolicy_Adaptive_Help>
 	<ZombieResponsePolicy_Full_Help>Continuously permit normal combat AI to use ranged and melee weapons against eligible zombies. Individual pawns may still reject unsuitable targets.</ZombieResponsePolicy_Full_Help>
+	<AnimalsAndZombiesTitle_Help>Choose whether animals attack zombies and whether zombie attacks can make animals turn manhunter.</AnimalsAndZombiesTitle_Help>
 	<AnimalsAttackZombies_Help>With this on, animals will attack zombies when they hunt or get aggressive. To let them ignore any zombie turn this option off.</AnimalsAttackZombies_Help>
 	<AnomalyTargetingTitle_Help>These settings are Anomaly-specific exceptions in both directions. Automatic keeps the normal rules, Never turns the behavior off, and Allow forces it on.</AnomalyTargetingTitle_Help>
 	<AnomalyTargetingRelations_Help>Controls which Anomaly pawns zombies may choose as targets. Automatic follows the main zombie target rule. Never blocks that group. Allow makes zombies attack that group even when the main rule would ignore it. Dead, downed, or dormant pawns are always ignored.</AnomalyTargetingRelations_Help>
@@ -154,6 +155,7 @@
 	<ZombieActionsTitle_Help>In this section you can restore the default settings or copy and share your own settings. If you are in a game, you can even uninstall the mod with a click of a button.</ZombieActionsTitle_Help>
 	<UninstallButton_Help>To remove Zombieland, just click Uninstall. You will be asked to save the current game under a new name and will return to the main menu. From there, you can uninstall the mod and load the saved game file to continue your game without Zombieland.</UninstallButton_Help>
 	<ResetButton_Help>This will reset the settings to default.</ResetButton_Help>
+	<FactoryResetButton_Help>Restore all Zombieland settings for new games to their original values.</FactoryResetButton_Help>
 	<ClipboardActionTitle_Help>Share your settings with others using simple text copy/paste.</ClipboardActionTitle_Help>
 	<CopyButton_Help>This copies the current settings to your computer's clipboard. You can then paste it somewhere to share your settings with others.</CopyButton_Help>
 	<PasteButton_Help>This replaces your current settings with the text from your computer's clipboard. Copy the text someone shared, then click Paste to adopt their settings.</PasteButton_Help>

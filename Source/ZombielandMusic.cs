@@ -22,6 +22,7 @@ namespace ZombieLand
 		static readonly List<SongDef> zombielandShuffleBag = new();
 		static readonly object registrationLock = new();
 		static readonly MethodInfo appropriateNowMethod = AccessTools.Method(typeof(MusicManagerPlay), "AppropriateNow", new[] { typeof(SongDef) });
+		static readonly FieldInfo entryAudioSourceField = AccessTools.Field(typeof(MusicManagerEntry), "audioSource");
 		static SongDef originalEntrySong;
 		static bool originalEntrySongCaptured;
 		static SongDef playbackModeOverriddenSong;
@@ -180,6 +181,7 @@ namespace ZombieLand
 		{
 			RegisterDynamicSongDefs();
 			var entrySong = EntryScreenSong();
+			var activeEntryClip = ActiveEntryAudioSource()?.clip;
 			return new
 			{
 				registered,
@@ -194,6 +196,8 @@ namespace ZombieLand
 					clipPath = entrySong?.clipPath,
 					hasClip = entrySong?.clip != null,
 					installed = entrySong != null && SongDefOf.EntrySong == entrySong,
+					activeClip = activeEntryClip?.name,
+					activeClipMatchesSelection = activeEntryClip != null && activeEntryClip == SongDefOf.EntrySong?.clip,
 					defaultSettingsAllow = DefaultSettingsAllowZombielandMusic()
 				},
 				lastRegistrationError,
@@ -255,15 +259,39 @@ namespace ZombieLand
 			return true;
 		}
 
-		public static void ApplyEntrySongReplacement()
+		public static void ApplyEntrySongReplacement(bool updatePlayingSong = false)
 		{
 			CaptureOriginalEntrySong();
-			if (DefaultSettingsAllowZombielandMusic() && EntryScreenSong() is { clip: not null } entrySong)
+			if (Constants.TITLE_SCREEN_MUSIC && EntryScreenSong() is { clip: not null } entrySong)
 			{
 				SongDefOf.EntrySong = entrySong;
-				return;
 			}
-			RestoreOriginalEntrySong();
+			else
+				RestoreOriginalEntrySong();
+
+			if (updatePlayingSong)
+				UpdatePlayingEntrySong();
+		}
+
+		static AudioSource ActiveEntryAudioSource()
+		{
+			if (Current.Root is not Root_Entry root || root.musicManagerEntry == null)
+				return null;
+			return entryAudioSourceField?.GetValue(root.musicManagerEntry) as AudioSource;
+		}
+
+		static void UpdatePlayingEntrySong()
+		{
+			var audioSource = ActiveEntryAudioSource();
+			var clip = SongDefOf.EntrySong?.clip;
+			if (audioSource == null || clip == null || audioSource.clip == clip)
+				return;
+
+			var wasPlaying = audioSource.isPlaying;
+			audioSource.Stop();
+			audioSource.clip = clip;
+			if (wasPlaying)
+				audioSource.Play();
 		}
 
 		public static void PrepareSongForPlayback(MusicManagerPlay manager, SongDef song)

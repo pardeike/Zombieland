@@ -23,6 +23,7 @@
 	<ZombieResponsePolicy_Minimal_Help>No elige zombis deliberadamente como objetivos. La defensa propia en combate cuerpo a cuerpo todavía puede ocurrir.</ZombieResponsePolicy_Minimal_Help>
 	<ZombieResponsePolicy_Adaptive_Help>Cuando un zombi hiere a un miembro del grupo, compara los tiradores capaces cercanos con la presión zombi próxima. Solo permite el combate total si el grupo confía en su fuerza.</ZombieResponsePolicy_Adaptive_Help>
 	<ZombieResponsePolicy_Full_Help>Permite continuamente que la IA de combate normal use armas a distancia y cuerpo a cuerpo contra zombis válidos. Cada peón aún puede rechazar objetivos inadecuados.</ZombieResponsePolicy_Full_Help>
+	<AnimalsAndZombiesTitle_Help>Elige si los animales atacan a los zombis y si los ataques de zombis pueden volverlos cazahombres.</AnimalsAndZombiesTitle_Help>
 	<AnimalsAttackZombies_Help>Con esto activado, los animales atacarán a los zombis cuando cacen o se pongan agresivos. Para que ignoren a cualquier zombi, desactiva esta opción.</AnimalsAttackZombies_Help>
 	<AnomalyTargetingTitle_Help>Estos ajustes son excepciones específicas de Anomaly en ambas direcciones. «Automático» conserva las reglas normales, «Nunca» desactiva el comportamiento y «Permitir» lo fuerza a activarse.</AnomalyTargetingTitle_Help>
 	<AnomalyTargetingRelations_Help>Controla qué peones de Anomaly pueden elegir los zombis como objetivos. «Automático» sigue la regla principal de objetivos de los zombis. «Nunca» bloquea ese grupo. «Permitir» hace que los zombis ataquen a ese grupo aunque la regla principal lo ignorase. Los peones muertos, derribados o latentes siempre se ignoran.</AnomalyTargetingRelations_Help>
@@ -137,6 +138,7 @@
 	<ZombieActionsTitle_Help>En esta sección puedes restaurar los ajustes predeterminados o copiar y compartir tus propios ajustes. Si estás en una partida, incluso puedes desinstalar el mod con un solo clic.</ZombieActionsTitle_Help>
 	<UninstallButton_Help>Para eliminar Zombieland, haz clic en Desinstalar. Se te pedirá que guardes la partida actual con otro nombre y volverás al menú principal. Desde allí podrás desinstalar el mod y cargar la nueva partida guardada para continuar sin Zombieland.</UninstallButton_Help>
 	<ResetButton_Help>Restablece la configuración predeterminada.</ResetButton_Help>
+	<FactoryResetButton_Help>Restaura toda la configuración de Zombieland para partidas nuevas a sus valores originales.</FactoryResetButton_Help>
 	<ClipboardActionTitle_Help>Comparte tu configuración con otras personas copiando y pegando texto.</ClipboardActionTitle_Help>
 	<CopyButton_Help>Copia los ajustes actuales al portapapeles de tu computadora. Después puedes pegarlos donde quieras para compartirlos con otras personas.</CopyButton_Help>
 	<PasteButton_Help>Sustituye tus ajustes actuales por el texto del portapapeles de tu computadora. Copia el texto que alguien haya compartido y luego haz clic en Pegar para adoptar sus ajustes.</PasteButton_Help>

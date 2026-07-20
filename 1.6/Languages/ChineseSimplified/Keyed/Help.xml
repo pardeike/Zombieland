@@ -23,6 +23,7 @@
 	<ZombieResponsePolicy_Minimal_Help>不会主动把丧尸作为目标，但近身战斗中的自卫仍可能发生。</ZombieResponsePolicy_Minimal_Help>
 	<ZombieResponsePolicy_Adaptive_Help>当团体成员被丧尸击中后，比较附近可战斗射手与附近丧尸压力。只有团体对自身实力有信心时才允许全力作战。</ZombieResponsePolicy_Adaptive_Help>
 	<ZombieResponsePolicy_Full_Help>持续允许普通战斗 AI 使用远程和近战武器攻击合适的丧尸。个别人员仍可能拒绝不合适的目标。</ZombieResponsePolicy_Full_Help>
+	<AnimalsAndZombiesTitle_Help>选择动物是否攻击丧尸，以及丧尸的攻击是否会让动物开始猎杀人类。</AnimalsAndZombiesTitle_Help>
 	<AnimalsAttackZombies_Help>开启后，动物在狩猎或变得攻击性时会攻击丧尸。若想让它们忽略丧尸，请关闭此选项。</AnimalsAttackZombies_Help>
 	<AnomalyTargetingTitle_Help>这些设置控制丧尸与异象生物之间的双向例外规则。“自动”保留常规规则，“从不”关闭相应行为，“允许”则强制启用。</AnomalyTargetingTitle_Help>
 	<AnomalyTargetingRelations_Help>控制丧尸可以选择哪些异象生物作为目标。“自动”遵循主要丧尸目标规则；“从不”禁止攻击该组；“允许”会让丧尸攻击该组目标，即使主要规则原本会忽略它们。死亡、倒地或休眠的生物始终会被忽略。</AnomalyTargetingRelations_Help>
@@ -137,6 +138,7 @@
 	<ZombieActionsTitle_Help>在此部分可以恢复默认设置，也可以复制并分享自己的设置。如果你正在游戏中，甚至可以一键卸载模组。</ZombieActionsTitle_Help>
 	<UninstallButton_Help>要移除 Zombieland，只需点击卸载。系统会要求你用新名称保存当前游戏，然后返回主菜单。之后你可以卸载模组，并加载该存档继续无 Zombieland 的游戏。</UninstallButton_Help>
 	<ResetButton_Help>这会将设置重置为默认值。</ResetButton_Help>
+	<FactoryResetButton_Help>将新游戏的所有 Zombieland 设置恢复为初始值。</FactoryResetButton_Help>
 	<ClipboardActionTitle_Help>使用简单的文本复制/粘贴与他人分享你的设置。</ClipboardActionTitle_Help>
 	<CopyButton_Help>这会把当前设置复制到电脑剪贴板。然后你可以粘贴到其他地方，与他人分享设置。</CopyButton_Help>
 	<PasteButton_Help>这会使用电脑剪贴板中的文本替换当前设置。先复制别人分享的文本，然后点击“粘贴”即可采用他们的设置。</PasteButton_Help>

@@ -2,6 +2,7 @@
 - Friendly and enemy zombie responses can now be set independently to Minimal, Adaptive, or Full.
 - Zombieland settings now use more consistent spacing and keep the keyframe explanation fully visible.
 - Related animal and wall-breaking options are now grouped more clearly, and the safe melee example has friendly help text.
+- Main-menu title music, the Zombieland title, colors, and flickering can now be enabled or disabled separately in Advanced settings, with changes applied when the dialog closes.
 - The settings page now explains how new-game defaults and saved-game settings work.
 - The timeline now selects nearby keyframes while dragging and creates a one-year keyframe when you first drag it.
-- Factory reset now leaves Symbiant splash sounds enabled.
+- Factory reset now leaves Symbiant splash sounds enabled, and missing help text for Factory reset and animal settings has been added.

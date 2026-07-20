@@ -23,6 +23,7 @@
 	<ZombieResponsePolicy_Minimal_Help>Ne cible pas volontairement les zombies. La défense au corps à corps immédiat reste possible.</ZombieResponsePolicy_Minimal_Help>
 	<ZombieResponsePolicy_Adaptive_Help>Après qu'un membre du groupe a été touché par un zombie, compare les tireurs capables proches à la pression zombie proche. Le combat total n'est permis que si le groupe est suffisamment confiant.</ZombieResponsePolicy_Adaptive_Help>
 	<ZombieResponsePolicy_Full_Help>Permet en permanence à l'IA de combat normale d'utiliser des armes à distance et de mêlée contre les zombies valides. Chaque pion peut encore refuser une cible inadaptée.</ZombieResponsePolicy_Full_Help>
+	<AnimalsAndZombiesTitle_Help>Détermine si les animaux attaquent les zombies et si les attaques de zombies peuvent les rendre hostiles aux humains.</AnimalsAndZombiesTitle_Help>
 	<AnimalsAttackZombies_Help>Avec cette option, les animaux attaquent les zombies lorsqu'ils chassent ou deviennent agressifs. Désactivez-la pour qu'ils ignorent les zombies.</AnimalsAttackZombies_Help>
 	<AnomalyTargetingTitle_Help>Ces réglages sont des exceptions Anomaly dans les deux sens. Automatique garde les règles normales, Jamais désactive le comportement, et Autoriser le force.</AnomalyTargetingTitle_Help>
 	<AnomalyTargetingRelations_Help>Contrôle quels pions Anomaly les zombies peuvent choisir comme cibles. Automatique suit la règle principale des cibles zombies. Jamais bloque ce groupe. Autoriser pousse les zombies à attaquer ce groupe même si la règle principale l'ignorerait. Les pions morts, à terre ou dormants sont toujours ignorés.</AnomalyTargetingRelations_Help>
@@ -137,6 +138,7 @@
 	<ZombieActionsTitle_Help>Dans cette section, vous pouvez restaurer les paramètres par défaut ou charger et publier vos propres réglages. En partie, vous pouvez même désinstaller le mod d'un simple clic.</ZombieActionsTitle_Help>
 	<UninstallButton_Help>Pour retirer Zombieland, cliquez simplement sur Désinstaller. On vous demandera d'enregistrer la partie sous un nouveau nom, puis vous reviendrez au menu principal. Vous pourrez alors désinstaller le mod et charger la sauvegarde pour continuer sans Zombieland.</UninstallButton_Help>
 	<ResetButton_Help>Réinitialise les réglages par défaut.</ResetButton_Help>
+	<FactoryResetButton_Help>Rétablit les valeurs d’origine de tous les réglages Zombieland pour les nouvelles parties.</FactoryResetButton_Help>
 	<ClipboardActionTitle_Help>Partagez vos réglages avec d'autres personnes par simple copier-coller de texte.</ClipboardActionTitle_Help>
 	<CopyButton_Help>Copie les réglages actuels dans le presse-papiers de votre ordinateur. Vous pouvez ensuite les coller ailleurs pour les partager.</CopyButton_Help>
 	<PasteButton_Help>Remplace vos réglages actuels par le texte du presse-papiers. Copiez le texte partagé par quelqu'un, puis cliquez sur Coller pour adopter ses réglages.</PasteButton_Help>
