@@ -118,6 +118,7 @@
 	<AttackMode_OnlyColonists>Seulement les colons</AttackMode_OnlyColonists>
 	<FriendlyZombieResponse>Réaction des alliés face aux zombies</FriendlyZombieResponse>
 	<EnemyZombieResponse>Réaction des ennemis face aux zombies</EnemyZombieResponse>
+	<AnimalsAndZombiesTitle>Animaux et zombies</AnimalsAndZombiesTitle>
 	<ZombieResponsePolicy_Minimal>Minimale</ZombieResponsePolicy_Minimal>
 	<ZombieResponsePolicy_Adaptive>Adaptative</ZombieResponsePolicy_Adaptive>
 	<ZombieResponsePolicy_Full>Totale</ZombieResponsePolicy_Full>
@@ -175,6 +176,7 @@
 	<ZombieDamageFactor>Multiplicateur de dégâts</ZombieDamageFactor>
 	<SafeMeleeLimit>Limite de mêlée sûre</SafeMeleeLimit>
 	<SafeMeleeExample>Exemple : [_]{0}[_] niveau de mêlée, [_]{1}[_] zombies =&gt; {2} % de chances</SafeMeleeExample>
+	<SafeMeleeExample_Help>Utilisez les boutons moins et plus pour essayer différents niveaux de mêlée et nombres de zombies attaquants. Le résultat indique la probabilité estimée de bloquer une morsure avec la limite de mêlée sûre actuelle. Ce calculateur ne modifie aucun paramètre.</SafeMeleeExample_Help>
 	<ZombiesCauseManhunting>Les zombies peuvent rendre les animaux chasseurs d'hommes</ZombiesCauseManhunting>
 	<ZombieGameTweaks>Ajustements du jeu</ZombieGameTweaks>
 	<ReduceTurretConsumption>Réduire la consommation d'acier des tourelles</ReduceTurretConsumption>
@@ -227,7 +229,7 @@
 	<NormalZombieChance>Zombies ordinaires: {0}</NormalZombieChance>
 	<ChildZombieChance>Enfants zombies</ChildZombieChance>
 	<SpitterThreat>Difficulté du cracheur de zombies</SpitterThreat>
-	<WallPushing>Quantité de zombies qui poussent les zombies par-dessus les murs</WallPushing>
+	<WallPushing>Zombies nécessaires pour en pousser d'autres par-dessus les murs</WallPushing>
 	<ZombieSymbiantTitle>Symbiant zombie</ZombieSymbiantTitle>
 	<SymbiantEnabled>Activer les Symbiants zombies</SymbiantEnabled>
 	<SymbiantMaxCells>Taille maximale du Symbiant</SymbiantMaxCells>

@@ -118,6 +118,7 @@
 	<AttackMode_OnlyColonists>Sadece kolonistler</AttackMode_OnlyColonists>
 	<FriendlyZombieResponse>Dostların zombilere tepkisi</FriendlyZombieResponse>
 	<EnemyZombieResponse>Düşmanların zombilere tepkisi</EnemyZombieResponse>
+	<AnimalsAndZombiesTitle>Hayvanlar ve zombiler</AnimalsAndZombiesTitle>
 	<ZombieResponsePolicy_Minimal>Asgari</ZombieResponsePolicy_Minimal>
 	<ZombieResponsePolicy_Adaptive>Uyarlanabilir</ZombieResponsePolicy_Adaptive>
 	<ZombieResponsePolicy_Full>Tam</ZombieResponsePolicy_Full>
@@ -175,6 +176,7 @@
 	<ZombieDamageFactor>Hasar çarpanı</ZombieDamageFactor>
 	<SafeMeleeLimit>Güvenli yakın dövüş limiti</SafeMeleeLimit>
 	<SafeMeleeExample>Örnek: [_]{0}[_] yakın dövüş seviyesi, [_]{1}[_] zombiler =&gt; %{2} şans</SafeMeleeExample>
+	<SafeMeleeExample_Help>Farklı yakın dövüş seviyelerini ve saldıran zombi sayılarını denemek için eksi ve artı düğmelerini kullanın. Sonuç, geçerli güvenli yakın dövüş limitiyle bir ısırığı engelleme olasılığını gösterir. Bu hesaplayıcı hiçbir ayarı değiştirmez.</SafeMeleeExample_Help>
 	<ZombiesCauseManhunting>Zombi saldırıları hayvanları insan avcısına çevirebilir</ZombiesCauseManhunting>
 	<ZombieGameTweaks>Oyun ince ayarlar</ZombieGameTweaks>
 	<ReduceTurretConsumption>Taret silah tüketimini azaltın</ReduceTurretConsumption>
@@ -227,7 +229,7 @@
 	<NormalZombieChance>Sıradan zombiler: {0}</NormalZombieChance>
 	<ChildZombieChance>Çocuk zombiler</ChildZombieChance>
 	<SpitterThreat>Zombi tükürücü zorluğu</SpitterThreat>
-	<WallPushing>Zombileri duvarların üzerinden itecek zombi miktarı</WallPushing>
+	<WallPushing>Diğerlerini duvarların üzerinden itmek için gereken zombi sayısı</WallPushing>
 	<ZombieSymbiantTitle>Zombi Simbiyantı</ZombieSymbiantTitle>
 	<SymbiantEnabled>Zombi Simbiyantlarını etkinleştir</SymbiantEnabled>
 	<SymbiantMaxCells>En fazla Simbiyant boyutu</SymbiantMaxCells>

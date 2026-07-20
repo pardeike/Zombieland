@@ -12,6 +12,7 @@ namespace ZombieLand
 		const float sectionGap = 28f;
 		const float subgroupGap = 12f;
 		const float headerContentGap = 8f;
+		const float headerSliderGap = 24f;
 		const float attachedContentGap = 4f;
 		const float scrollContentBottomPadding = 24f;
 		public static float measuredContentHeight = totalEstimatedHeight;
@@ -54,7 +55,7 @@ namespace ZombieLand
 				if (DialogExtensions.Section<string>(":ZombielandDifficultyTitle", ":ZombielandDifficulty"))
 				{
 					list.Dialog_Label("ZombielandDifficultyTitle", headerColor);
-					list.Dialog_FloatSlider("ZombielandDifficulty", f => f == 0f ? "Off".TranslateSimple() : "{0:0%}", false, ref settings.threatScale, 0f, 5f, leadingGap: headerContentGap);
+					list.Dialog_FloatSlider("ZombielandDifficulty", f => f == 0f ? "Off".TranslateSimple() : "{0:0%}", false, ref settings.threatScale, 0f, 5f, leadingGap: headerSliderGap);
 					list.Gap(sectionGap);
 				}
 
@@ -102,16 +103,13 @@ namespace ZombieLand
 				}
 
 				// Attack?
-				if (DialogExtensions.Section<AttackMode>(":WhatDoZombiesAttack", ":FriendlyZombieResponse", ":EnemyZombieResponse", ":AnimalsAttackZombies", ModsConfig.AnomalyActive ? ":AnomalyTargetingTitle" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetingRelations" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetGhouls" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetShamblers" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetOtherEntities" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetNociosphere" : "", ModsConfig.AnomalyActive ? ":AnomalyZombieHostilityRelations" : "", ModsConfig.AnomalyActive ? ":FleshmassCollisionTitle" : "", ModsConfig.AnomalyActive ? ":OrdinaryZombiesAttackFleshmass" : "", ModsConfig.AnomalyActive ? ":TankyAndSuicideZombiesAttackFleshmass" : "", ModsConfig.AnomalyActive ? ":FormerColonistAndSpecialZombiesAttackFleshmass" : "", ":WallPushing"))
+				if (DialogExtensions.Section<AttackMode>(":WhatDoZombiesAttack", ":FriendlyZombieResponse", ":EnemyZombieResponse", ModsConfig.AnomalyActive ? ":AnomalyTargetingTitle" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetingRelations" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetGhouls" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetShamblers" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetOtherEntities" : "", ModsConfig.AnomalyActive ? ":AnomalyTargetNociosphere" : "", ModsConfig.AnomalyActive ? ":AnomalyZombieHostilityRelations" : "", ModsConfig.AnomalyActive ? ":FleshmassCollisionTitle" : "", ModsConfig.AnomalyActive ? ":OrdinaryZombiesAttackFleshmass" : "", ModsConfig.AnomalyActive ? ":TankyAndSuicideZombiesAttackFleshmass" : "", ModsConfig.AnomalyActive ? ":FormerColonistAndSpecialZombiesAttackFleshmass" : ""))
 				{
 					list.Dialog_Enum("WhatDoZombiesAttack", ref settings.attackMode);
 					list.Gap(subgroupGap);
 					list.Dialog_Enum("FriendlyZombieResponse", ref settings.friendlyZombieResponse);
 					list.Gap(subgroupGap);
 					list.Dialog_Enum("EnemyZombieResponse", ref settings.enemyZombieResponse);
-					list.Dialog_Checkbox("AnimalsAttackZombies", ref settings.animalsAttackZombies);
-					list.Gap(10f);
-					list.Dialog_IntSlider("WallPushing", n => n == 0 ? "Off".TranslateSimple() : n.ToString(), ref settings.minimumZombiesForWallPushing, 0, 48);
 					if (ModsConfig.AnomalyActive)
 					{
 						list.Gap(subgroupGap);
@@ -141,14 +139,26 @@ namespace ZombieLand
 					list.Gap(sectionGap);
 				}
 
+				// Animals
+				if (DialogExtensions.Section<string>(":AnimalsAndZombiesTitle", ":AnimalsAttackZombies", ":ZombiesCauseManhunting"))
+				{
+					list.Dialog_Label("AnimalsAndZombiesTitle", headerColor);
+					list.Gap(headerContentGap - 2f);
+					list.Dialog_Checkbox("AnimalsAttackZombies", ref settings.animalsAttackZombies);
+					list.Dialog_Checkbox("ZombiesCauseManhunting", ref settings.zombiesCauseManhuntingResponse);
+					list.Gap(sectionGap);
+				}
+
 				// Smash?
-				if (DialogExtensions.Section<SmashMode>(":WhatDoZombiesSmash", ":SmashOnlyWhenAgitated"))
+				if (DialogExtensions.Section<SmashMode>(":WhatDoZombiesSmash", ":SmashOnlyWhenAgitated", ":WallPushing"))
 				{
 					list.Dialog_Enum("WhatDoZombiesSmash", ref settings.smashMode);
 					if (settings.smashMode != SmashMode.Nothing)
 					{
 						list.Dialog_Checkbox("SmashOnlyWhenAgitated", ref settings.smashOnlyWhenAgitated);
 					}
+					list.Gap(subgroupGap);
+					list.Dialog_IntSlider("WallPushing", n => n == 0 ? "Off".TranslateSimple() : n.ToString(), ref settings.minimumZombiesForWallPushing, 0, 48);
 					list.Gap(sectionGap);
 				}
 
@@ -216,7 +226,7 @@ namespace ZombieLand
 						var chance = chances[i].Item1;
 						var value = chance.Value;
 						var remaining = total - value;
-						list.Dialog_FloatSlider(chances[i].Item2, _ => "{0:0.00%}", false, ref value, 0f, Mathf.Min(max, 1f - remaining), leadingGap: i == 0 ? headerContentGap : 12f);
+						list.Dialog_FloatSlider(chances[i].Item2, _ => "{0:0.00%}", false, ref value, 0f, Mathf.Min(max, 1f - remaining), leadingGap: i == 0 ? headerSliderGap : 12f);
 						chance.Value = value;
 					}
 					list.Gap(attachedContentGap);
@@ -294,16 +304,16 @@ namespace ZombieLand
 				if (DialogExtensions.Section<string>(":ZombieSpeedTitle", ":MoveSpeedIdle", ":MoveSpeedTracking"))
 				{
 					list.Dialog_Label("ZombieSpeedTitle", headerColor);
-					list.Dialog_FloatSlider("MoveSpeedIdle", _ => "{0:0.00}x", false, ref settings.moveSpeedIdle, 0.01f, 2f, leadingGap: headerContentGap);
+					list.Dialog_FloatSlider("MoveSpeedIdle", _ => "{0:0.00}x", false, ref settings.moveSpeedIdle, 0.01f, 2f, leadingGap: headerSliderGap);
 					list.Dialog_FloatSlider("MoveSpeedTracking", _ => "{0:0.00}x", false, ref settings.moveSpeedTracking, 0.05f, 3f);
 					list.Gap(sectionGap);
 				}
 
 				// Damage
-				if (DialogExtensions.Section<string>(":ZombieDamageTitle", ":ZombieDamageFactor", ":SafeMeleeLimit", ":ZombiesCauseManhunting"))
+				if (DialogExtensions.Section<string>(":ZombieDamageTitle", ":ZombieDamageFactor", ":SafeMeleeLimit", ":SafeMeleeExample"))
 				{
 					list.Dialog_Label("ZombieDamageTitle", headerColor);
-					list.Dialog_FloatSlider("ZombieDamageFactor", _ => "{0:0.0}x", false, ref settings.damageFactor, 0.1f, 4f, leadingGap: headerContentGap);
+					list.Dialog_FloatSlider("ZombieDamageFactor", _ => "{0:0.0}x", false, ref settings.damageFactor, 0.1f, 4f, leadingGap: headerSliderGap);
 					list.Dialog_IntSlider("SafeMeleeLimit", n => n == 0 ? "Off".TranslateSimple() : n.ToString(), ref settings.safeMeleeLimit, 0, 4);
 					if (settings.safeMeleeLimit > 0)
 					{
@@ -311,8 +321,6 @@ namespace ZombieLand
 						list.ExplainSafeMelee(settings.safeMeleeLimit);
 						list.Gap(12f);
 					}
-					list.Gap(6f);
-					list.Dialog_Checkbox("ZombiesCauseManhunting", ref settings.zombiesCauseManhuntingResponse);
 					list.Gap(sectionGap);
 				}
 
@@ -320,7 +328,7 @@ namespace ZombieLand
 				if (DialogExtensions.Section<string>(":ZombieGameTweaks", ":ReduceTurretConsumption"))
 				{
 					list.Dialog_Label("ZombieGameTweaks", headerColor);
-					list.Dialog_FloatSlider("ReduceTurretConsumption", _ => "{0:0%}", false, ref settings.reducedTurretConsumption, 0f, 1f, leadingGap: headerContentGap);
+					list.Dialog_FloatSlider("ReduceTurretConsumption", _ => "{0:0%}", false, ref settings.reducedTurretConsumption, 0f, 1f, leadingGap: headerSliderGap);
 					list.Gap(sectionGap);
 				}
 
@@ -328,7 +336,7 @@ namespace ZombieLand
 				if (DialogExtensions.Section<string>(":ZombieInfection", ":ZombieBiteInfectionChance", ":ZombieBiteInfectionUnknown", ":ZombieBiteInfectionTreatable", ":ZombieBiteInfectionTreatable", ":ZombieBiteInfectionPersists", ":AnyTreatmentStopsInfection", ":HoursAfterDeathToBecomeZombie", ":DeadBecomesZombieMessage"))
 				{
 					list.Dialog_Label("ZombieInfection", headerColor);
-					list.Dialog_FloatSlider("ZombieBiteInfectionChance", _ => "{0:0%}", false, ref settings.zombieBiteInfectionChance, 0f, 1f, leadingGap: headerContentGap);
+					list.Dialog_FloatSlider("ZombieBiteInfectionChance", _ => "{0:0%}", false, ref settings.zombieBiteInfectionChance, 0f, 1f, leadingGap: headerSliderGap);
 					list.Dialog_TimeSlider("ZombieBiteInfectionUnknown", ref settings.hoursInfectionIsUnknown, 0, 48);
 					list.Dialog_TimeSlider("ZombieBiteInfectionTreatable", ref settings.hoursInfectionIsTreatable, 0, 6 * 24);
 					list.Dialog_TimeSlider("ZombieBiteInfectionPersists", ref settings.hoursInfectionPersists, 0, 30 * 24, null, true);
@@ -350,7 +358,7 @@ namespace ZombieLand
 				{
 					list.Dialog_Label("ZombieHarvestingTitle", headerColor);
 					var f1 = Mathf.Round(settings.corpsesExtractAmount * 100f) / 100f;
-					list.Dialog_FloatSlider("CorpsesExtractAmount", DialogExtensions.ExtractAmount, false, ref f1, 0, 4, leadingGap: headerContentGap);
+					list.Dialog_FloatSlider("CorpsesExtractAmount", DialogExtensions.ExtractAmount, false, ref f1, 0, 4, leadingGap: headerSliderGap);
 					settings.corpsesExtractAmount = Mathf.Round(f1 * 100f) / 100f;
 					var f2 = Mathf.Round(settings.lootExtractAmount * 100f) / 100f;
 					list.Dialog_FloatSlider("LootExtractAmount", DialogExtensions.ExtractAmount, false, ref f2, 0, 4);

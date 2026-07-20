@@ -118,6 +118,7 @@
 	<AttackMode_OnlyColonists>Only colonists</AttackMode_OnlyColonists>
 	<FriendlyZombieResponse>Friendly response to zombies</FriendlyZombieResponse>
 	<EnemyZombieResponse>Enemy response to zombies</EnemyZombieResponse>
+	<AnimalsAndZombiesTitle>Animals and zombies</AnimalsAndZombiesTitle>
 	<ZombieResponsePolicy_Minimal>Minimal</ZombieResponsePolicy_Minimal>
 	<ZombieResponsePolicy_Adaptive>Adaptive</ZombieResponsePolicy_Adaptive>
 	<ZombieResponsePolicy_Full>Full</ZombieResponsePolicy_Full>
@@ -175,6 +176,7 @@
 	<ZombieDamageFactor>Damage multiplier</ZombieDamageFactor>
 	<SafeMeleeLimit>Safe melee limit</SafeMeleeLimit>
 	<SafeMeleeExample>Example: [_]{0}[_] melee level, [_]{1}[_] zombies: {2}% chance to block a bite</SafeMeleeExample>
+	<SafeMeleeExample_Help>Use the minus and plus buttons to try different melee skills and numbers of attacking zombies. The result is the estimated chance to block a bite with the current safe melee limit. This calculator does not change any settings.</SafeMeleeExample_Help>
 	<ZombiesCauseManhunting>Zombie attacks can turn animals into manhunters</ZombiesCauseManhunting>
 	<ZombieGameTweaks>Game tweaks</ZombieGameTweaks>
 	<ReduceTurretConsumption>Reduce turret steel consumption</ReduceTurretConsumption>
@@ -227,7 +229,7 @@
 	<NormalZombieChance>Ordinary zombies: {0}</NormalZombieChance>
 	<ChildZombieChance>Zombie children</ChildZombieChance>
 	<SpitterThreat>Zombie spitter difficulty</SpitterThreat>
-	<WallPushing>Number of zombies that will push other zombies over walls</WallPushing>
+	<WallPushing>Zombies needed to push others over walls</WallPushing>
 	<ZombieSymbiantTitle>Zombie Symbiant</ZombieSymbiantTitle>
 	<SymbiantEnabled>Enable Zombie Symbiants</SymbiantEnabled>
 	<SymbiantMaxCells>Max Symbiant size</SymbiantMaxCells>

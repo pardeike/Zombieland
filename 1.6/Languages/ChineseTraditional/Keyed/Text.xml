@@ -118,6 +118,7 @@
 	<AttackMode_OnlyColonists>只攻擊殖民者</AttackMode_OnlyColonists>
 	<FriendlyZombieResponse>友方對喪屍的反應</FriendlyZombieResponse>
 	<EnemyZombieResponse>敵方對喪屍的反應</EnemyZombieResponse>
+	<AnimalsAndZombiesTitle>動物與喪屍</AnimalsAndZombiesTitle>
 	<ZombieResponsePolicy_Minimal>最低限度</ZombieResponsePolicy_Minimal>
 	<ZombieResponsePolicy_Adaptive>自適應</ZombieResponsePolicy_Adaptive>
 	<ZombieResponsePolicy_Full>全力</ZombieResponsePolicy_Full>
@@ -175,6 +176,7 @@
 	<ZombieDamageFactor>傷害倍率</ZombieDamageFactor>
 	<SafeMeleeLimit>安全近戰極限</SafeMeleeLimit>
 	<SafeMeleeExample>範例：[_]{0}[_] 近戰等級，[_]{1}[_] 隻喪屍：有 {2}% 機率格擋咬傷</SafeMeleeExample>
+	<SafeMeleeExample_Help>使用減號和加號按鈕，嘗試不同的近戰等級和進攻喪屍數量。結果會顯示在目前安全近戰極限下格擋喪屍咬傷的預估機率。此計算器不會變更任何設定。</SafeMeleeExample_Help>
 	<ZombiesCauseManhunting>喪屍攻擊可能使動物反擊</ZombiesCauseManhunting>
 	<ZombieGameTweaks>遊戲調整</ZombieGameTweaks>
 	<ReduceTurretConsumption>降低砲塔鋼鐵消耗</ReduceTurretConsumption>
@@ -227,7 +229,7 @@
 	<NormalZombieChance>普通喪屍：{0}</NormalZombieChance>
 	<ChildZombieChance>兒童喪屍</ChildZombieChance>
 	<SpitterThreat>喪屍噴吐者難度</SpitterThreat>
-	<WallPushing>會將其他喪屍推過牆的喪屍數量</WallPushing>
+	<WallPushing>將其他喪屍推過牆所需的喪屍數量</WallPushing>
 	<ZombieSymbiantTitle>喪屍共生體</ZombieSymbiantTitle>
 	<SymbiantEnabled>啟用喪屍共生體</SymbiantEnabled>
 	<SymbiantMaxCells>共生體最大方格數</SymbiantMaxCells>

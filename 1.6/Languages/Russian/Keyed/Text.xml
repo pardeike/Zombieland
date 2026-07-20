@@ -118,6 +118,7 @@
 	<AttackMode_OnlyColonists>Только поселенцев и их вещи</AttackMode_OnlyColonists>
 	<FriendlyZombieResponse>Реакция союзников на зомби</FriendlyZombieResponse>
 	<EnemyZombieResponse>Реакция врагов на зомби</EnemyZombieResponse>
+	<AnimalsAndZombiesTitle>Животные и зомби</AnimalsAndZombiesTitle>
 	<ZombieResponsePolicy_Minimal>Минимальная</ZombieResponsePolicy_Minimal>
 	<ZombieResponsePolicy_Adaptive>Адаптивная</ZombieResponsePolicy_Adaptive>
 	<ZombieResponsePolicy_Full>Полная</ZombieResponsePolicy_Full>
@@ -175,6 +176,7 @@
 	<ZombieDamageFactor>Множитель урона</ZombieDamageFactor>
 	<SafeMeleeLimit>Предел безопасного ближнего боя</SafeMeleeLimit>
 	<SafeMeleeExample>Пример: [_]{0}[_] уровень ближнего боя, [_]{1}[_] зомби =&gt; шанс {2}%</SafeMeleeExample>
+	<SafeMeleeExample_Help>Используйте кнопки минус и плюс, чтобы проверить разные уровни ближнего боя и количество атакующих зомби. Результат показывает примерный шанс заблокировать укус при текущем пределе безопасного ближнего боя. Этот калькулятор не меняет настройки.</SafeMeleeExample_Help>
 	<ZombiesCauseManhunting>Зомби могут разъярить животных</ZombiesCauseManhunting>
 	<ZombieGameTweaks>Игровые твики</ZombieGameTweaks>
 	<ReduceTurretConsumption>Уменьшить расход стали турелями</ReduceTurretConsumption>
@@ -227,7 +229,7 @@
 	<NormalZombieChance>Обычные зомби: {0}</NormalZombieChance>
 	<ChildZombieChance>Дети-зомби</ChildZombieChance>
 	<SpitterThreat>Сложность зомби-плевуна</SpitterThreat>
-	<WallPushing>Количество зомби, которые будут толкать зомби через стены</WallPushing>
+	<WallPushing>Зомби, нужные для толкания других через стены</WallPushing>
 	<ZombieSymbiantTitle>Зомби-симбионт</ZombieSymbiantTitle>
 	<SymbiantEnabled>Включить зомби-симбионтов</SymbiantEnabled>
 	<SymbiantMaxCells>Максимальный размер симбионта</SymbiantMaxCells>

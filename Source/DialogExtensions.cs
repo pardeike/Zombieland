@@ -424,6 +424,7 @@ namespace ZombieLand
 			Text.Font = GameFont.Tiny;
 			var chance = Mathf.FloorToInt(100f * exampleMeleeSkill * Mathf.Max(0, safeMeleeLimit - exampleZombieCount + 1) / 20f);
 			var text = "SafeMeleeExample".Translate(exampleMeleeSkill, exampleZombieCount, chance).Resolve();
+			list.Help("SafeMeleeExample", 12f, "SafeMeleeLimit".SafeTranslate());
 			var buttonText = "[_]";
 			var buttonWidth = buttonText.GetWidthCached();
 			list.curX = 7f;

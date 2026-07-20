@@ -118,6 +118,7 @@
 	<AttackMode_OnlyColonists>Tylko koloniści</AttackMode_OnlyColonists>
 	<FriendlyZombieResponse>Reakcja sojuszników na zombie</FriendlyZombieResponse>
 	<EnemyZombieResponse>Reakcja wrogów na zombie</EnemyZombieResponse>
+	<AnimalsAndZombiesTitle>Zwierzęta i zombie</AnimalsAndZombiesTitle>
 	<ZombieResponsePolicy_Minimal>Minimalna</ZombieResponsePolicy_Minimal>
 	<ZombieResponsePolicy_Adaptive>Adaptacyjna</ZombieResponsePolicy_Adaptive>
 	<ZombieResponsePolicy_Full>Pełna</ZombieResponsePolicy_Full>
@@ -175,6 +176,7 @@
 	<ZombieDamageFactor>Mnożnik obrażeń</ZombieDamageFactor>
 	<SafeMeleeLimit>Bezpieczny limit walki wręcz</SafeMeleeLimit>
 	<SafeMeleeExample>Przykład: poziom walki wręcz [_]{0}[_], zombie: [_]{1}[_] — {2}% szans na zablokowanie ugryzienia</SafeMeleeExample>
+	<SafeMeleeExample_Help>Użyj przycisków minus i plus, aby wypróbować różne poziomy walki wręcz i liczby atakujących zombie. Wynik pokazuje szacowaną szansę zablokowania ugryzienia przy obecnym bezpiecznym limicie walki wręcz. Ten kalkulator nie zmienia ustawień.</SafeMeleeExample_Help>
 	<ZombiesCauseManhunting>Ataki zombie mogą zmienić zwierzęta w łowców ludzi</ZombiesCauseManhunting>
 	<ZombieGameTweaks>Modyfikacje gry</ZombieGameTweaks>
 	<ReduceTurretConsumption>Zmniejsz zużycie stali przez wieżyczki</ReduceTurretConsumption>
@@ -227,7 +229,7 @@
 	<NormalZombieChance>Zwykłe zombie: {0}</NormalZombieChance>
 	<ChildZombieChance>Dzieci zombie</ChildZombieChance>
 	<SpitterThreat>Trudność plującego zombie</SpitterThreat>
-	<WallPushing>Liczba zombie przepychających inne zombie przez mury</WallPushing>
+	<WallPushing>Zombie potrzebne do przepychania innych przez mury</WallPushing>
 	<ZombieSymbiantTitle>Symbiont zombie</ZombieSymbiantTitle>
 	<SymbiantEnabled>Włącz Symbionty zombie</SymbiantEnabled>
 	<SymbiantMaxCells>Maksymalny rozmiar Symbionta</SymbiantMaxCells>

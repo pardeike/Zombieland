@@ -118,6 +118,7 @@
 	<AttackMode_OnlyColonists>Nur Ihre Kolonisten</AttackMode_OnlyColonists>
 	<FriendlyZombieResponse>Reaktion von Verbündeten auf Zombies</FriendlyZombieResponse>
 	<EnemyZombieResponse>Reaktion von Feinden auf Zombies</EnemyZombieResponse>
+	<AnimalsAndZombiesTitle>Tiere und Zombies</AnimalsAndZombiesTitle>
 	<ZombieResponsePolicy_Minimal>Minimal</ZombieResponsePolicy_Minimal>
 	<ZombieResponsePolicy_Adaptive>Adaptiv</ZombieResponsePolicy_Adaptive>
 	<ZombieResponsePolicy_Full>Voll</ZombieResponsePolicy_Full>
@@ -175,6 +176,7 @@
 	<ZombieDamageFactor>Schadenmultiplikator</ZombieDamageFactor>
 	<SafeMeleeLimit>Sichere Anzahl für einen Nahkampf</SafeMeleeLimit>
 	<SafeMeleeExample>Beispiel: [_]{0}[_] Nahkampflevel, [_]{1}[_] Zombies =&gt; {2}% Chance</SafeMeleeExample>
+	<SafeMeleeExample_Help>Mit den Minus- und Plus-Schaltflächen können Sie verschiedene Nahkampfwerte und Anzahlen angreifender Zombies ausprobieren. Das Ergebnis zeigt die geschätzte Chance, mit dem aktuellen sicheren Nahkampflimit einen Biss zu blocken. Dieser Rechner ändert keine Einstellungen.</SafeMeleeExample_Help>
 	<ZombiesCauseManhunting>Zombies verärgern Tiere</ZombiesCauseManhunting>
 	<ZombieGameTweaks>Spielveränderungen</ZombieGameTweaks>
 	<ReduceTurretConsumption>Reduzierter Geschützverbrauch</ReduceTurretConsumption>
@@ -227,7 +229,7 @@
 	<NormalZombieChance>Normale Zombies: {0}</NormalZombieChance>
 	<ChildZombieChance>Zombiekinder</ChildZombieChance>
 	<SpitterThreat>Zombiespucker Schwierigkeit</SpitterThreat>
-	<WallPushing>Anzahl der Zombies, die andere Zombies über Mauern schieben</WallPushing>
+	<WallPushing>Benötigte Zombies, um andere über Mauern zu schieben</WallPushing>
 	<ZombieSymbiantTitle>Zombie-Symbiont</ZombieSymbiantTitle>
 	<SymbiantEnabled>Zombie-Symbionten aktivieren</SymbiantEnabled>
 	<SymbiantMaxCells>Maximale Symbionten-Größe</SymbiantMaxCells>

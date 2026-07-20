@@ -1,6 +1,7 @@
 - Friendly visitors now use ranged weapons against nearby zombies when their armed group is strong enough.
 - Friendly and enemy zombie responses can now be set independently to Minimal, Adaptive, or Full.
 - Zombieland settings now use more consistent spacing and keep the keyframe explanation fully visible.
+- Related animal and wall-breaking options are now grouped more clearly, and the safe melee example has friendly help text.
 - The settings page now explains how new-game defaults and saved-game settings work.
 - The timeline now selects nearby keyframes while dragging and creates a one-year keyframe when you first drag it.
 - Factory reset now leaves Symbiant splash sounds enabled.

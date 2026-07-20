@@ -118,6 +118,7 @@
 	<AttackMode_OnlyColonists>Solo colonos</AttackMode_OnlyColonists>
 	<FriendlyZombieResponse>Respuesta de aliados a los zombis</FriendlyZombieResponse>
 	<EnemyZombieResponse>Respuesta de enemigos a los zombis</EnemyZombieResponse>
+	<AnimalsAndZombiesTitle>Animales y zombis</AnimalsAndZombiesTitle>
 	<ZombieResponsePolicy_Minimal>Mínima</ZombieResponsePolicy_Minimal>
 	<ZombieResponsePolicy_Adaptive>Adaptativa</ZombieResponsePolicy_Adaptive>
 	<ZombieResponsePolicy_Full>Completa</ZombieResponsePolicy_Full>
@@ -175,6 +176,7 @@
 	<ZombieDamageFactor>Multiplicador de daño</ZombieDamageFactor>
 	<SafeMeleeLimit>Límite seguro de combate cuerpo a cuerpo</SafeMeleeLimit>
 	<SafeMeleeExample>Ejemplo: nivel de Cuerpo a cuerpo [_]{0}[_], [_]{1}[_] zombis: {2}% de probabilidad de bloquear un mordisco</SafeMeleeExample>
+	<SafeMeleeExample_Help>Usa los botones menos y más para probar distintos niveles de Cuerpo a cuerpo y cantidades de zombis atacantes. El resultado muestra la probabilidad estimada de bloquear un mordisco con el límite seguro actual. Esta calculadora no cambia ningún ajuste.</SafeMeleeExample_Help>
 	<ZombiesCauseManhunting>Los ataques de zombis pueden volver cazahombres a los animales</ZombiesCauseManhunting>
 	<ZombieGameTweaks>Ajustes del juego</ZombieGameTweaks>
 	<ReduceTurretConsumption>Reducir el consumo de acero de las torretas</ReduceTurretConsumption>
@@ -227,7 +229,7 @@
 	<NormalZombieChance>Zombis corrientes: {0}</NormalZombieChance>
 	<ChildZombieChance>Niños zombis</ChildZombieChance>
 	<SpitterThreat>Dificultad del escupidor zombi</SpitterThreat>
-	<WallPushing>Número de zombis que empujarán a otros zombis por encima de los muros</WallPushing>
+	<WallPushing>Zombis necesarios para empujar a otros por encima de los muros</WallPushing>
 	<ZombieSymbiantTitle>Simbionte zombi</ZombieSymbiantTitle>
 	<SymbiantEnabled>Activar Simbiontes zombis</SymbiantEnabled>
 	<SymbiantMaxCells>Tamaño máximo del Simbionte</SymbiantMaxCells>
