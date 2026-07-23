@@ -15,6 +15,48 @@ namespace ZombieLand
 {
 	public sealed partial class ZombielandBridgeTools
 	{
+		const string SymbiantHostDamageProbeHarmonyId = "net.pardeike.zombieland.bridge.symbiant-host-damage-probe";
+		static readonly List<SymbiantHostDamagePacket> symbiantHostDamagePackets = new();
+		static Pawn symbiantHostDamageProbePawn;
+
+		sealed class SymbiantHostDamagePacket
+		{
+			public string damageDef { get; set; }
+			public float amount { get; set; }
+			public bool harmsHealth { get; set; }
+		}
+
+		static void RecordSymbiantHostDamagePacket(Pawn __instance, ref DamageInfo dinfo)
+		{
+			if (__instance != symbiantHostDamageProbePawn)
+				return;
+			symbiantHostDamagePackets.Add(new SymbiantHostDamagePacket
+			{
+				damageDef = dinfo.Def?.defName,
+				amount = dinfo.Amount,
+				harmsHealth = dinfo.Def?.harmsHealth == true
+			});
+		}
+
+		static SymbiantHostDamagePacket[] SymbiantHostDamagePacketSnapshot()
+		{
+			return symbiantHostDamagePackets
+				.Select(packet => new SymbiantHostDamagePacket
+				{
+					damageDef = packet.damageDef,
+					amount = packet.amount,
+					harmsHealth = packet.harmsHealth
+				})
+				.ToArray();
+		}
+
+		static float ExpectedSymbiantHostHealthDrain(IEnumerable<SymbiantHostDamagePacket> packets)
+		{
+			return packets
+				.Where(packet => packet.harmsHealth && packet.amount > 0f)
+				.Sum(packet => packet.amount);
+		}
+
 		[Tool("zombieland/symbiant_discovery_letter_contract", Description = "Spawn a temporary symbiant through the runtime spawn path and verify the green discovery letter, sound def, look targets, host link, and cleanup behavior.")]
 		public static object SymbiantDiscoveryLetterContract(
 			[ToolParameter(Description = "Target x coordinate. Use -1 with z -1 for automatic placement.", Required = false, DefaultValue = -1)] int x = -1,
@@ -3608,7 +3650,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_unsafe_damage_contract", Description = "Verify shared-health damage, cross-map isolation, lethal cleanup, Pawn.Kill corpse integrity, non-relocation despawn cleanup, map-removal patch ownership, direct map deinitialization, real gravship abandonment, uncontrolled destruction, and host-death retreat.")]
+		[Tool("zombieland/symbiant_unsafe_damage_contract", Description = "Verify shared-health damage, host effect damage semantics, cross-map isolation, lethal cleanup, Pawn.Kill corpse integrity, non-relocation despawn cleanup, map-removal patch ownership, direct map deinitialization, real gravship abandonment, uncontrolled destruction, and host-death retreat.")]
 		public static object SymbiantUnsafeDamageContract(
 			[ToolParameter(Description = "Destroy temporary symbiants, colonists, fixture buildings, and letters after capturing evidence. The destructive gravship and direct-deinitialization subscenarios always remove their temporary remote hosts, map parents, and launch markers so they cannot contaminate the current map.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -3626,6 +3668,7 @@ namespace ZombieLand
 				.ToHashSet();
 			object symbiantDamageCreatesEcho = null;
 			object hostDamageSharesToSymbiant = null;
+			object hostEffectDamageSemantics = null;
 			object symbiantEffectPipeline = null;
 			object sharedHealthRecovery = null;
 			object damageEchoCap = null;
@@ -3662,6 +3705,7 @@ namespace ZombieLand
 				});
 				symbiantDamageCreatesEcho = RunSymbiantUnsafeDamageScenario(map, "symbiantDamageCreatesEcho", cleanup);
 				hostDamageSharesToSymbiant = RunSymbiantUnsafeDamageScenario(map, "hostDamageSharesToSymbiant", cleanup);
+				hostEffectDamageSemantics = RunSymbiantUnsafeDamageScenario(map, "hostEffectDamageSemantics", cleanup);
 				symbiantEffectPipeline = RunSymbiantUnsafeDamageScenario(map, "symbiantEffectPipeline", cleanup);
 				sharedHealthRecovery = RunSymbiantUnsafeDamageScenario(map, "sharedHealthRecovery", cleanup);
 				damageEchoCap = RunSymbiantUnsafeDamageScenario(map, "damageEchoCap", cleanup);
@@ -3773,6 +3817,7 @@ namespace ZombieLand
 				&& patchTargets.summaryHealth.Length > 0
 				&& ScenarioSucceeded(symbiantDamageCreatesEcho)
 				&& ScenarioSucceeded(hostDamageSharesToSymbiant)
+				&& ScenarioSucceeded(hostEffectDamageSemantics)
 				&& ScenarioSucceeded(symbiantEffectPipeline)
 				&& ScenarioSucceeded(sharedHealthRecovery)
 				&& ScenarioSucceeded(damageEchoCap)
@@ -3810,6 +3855,7 @@ namespace ZombieLand
 				patchTargetChecks,
 				symbiantDamageCreatesEcho,
 				hostDamageSharesToSymbiant,
+				hostEffectDamageSemantics,
 				symbiantEffectPipeline,
 				sharedHealthRecovery,
 				damageEchoCap,
@@ -4587,6 +4633,121 @@ namespace ZombieLand
 							&& host.Dead == false
 							&& symbiant.Destroyed == false
 					};
+				}
+				else if (scenario == "hostEffectDamageSemantics")
+				{
+					var addedCells = GrowSymbiantForDamageProbe(map, symbiant, 40);
+					var cellCountBefore = symbiant.CellCount;
+					var sharedHealthBefore = symbiant.SharedHealthCurrentDisplay;
+					var hostInjuryBeforeEffects = TotalInjurySeverity(host);
+					var pawnPreApplyDamage = AccessTools.Method(typeof(Pawn), nameof(Pawn.PreApplyDamage));
+					var damageProbePrefix = AccessTools.Method(typeof(ZombielandBridgeTools), nameof(RecordSymbiantHostDamagePacket));
+					if (pawnPreApplyDamage == null || damageProbePrefix == null)
+						throw new InvalidOperationException("Could not resolve the Symbiant host damage probe target or prefix.");
+					var damageProbeHarmony = new Harmony(SymbiantHostDamageProbeHarmonyId);
+					damageProbeHarmony.Unpatch(pawnPreApplyDamage, HarmonyPatchType.Prefix, SymbiantHostDamageProbeHarmonyId);
+					symbiantHostDamageProbePawn = host;
+					symbiantHostDamagePackets.Clear();
+					damageProbeHarmony.Patch(
+						pawnPreApplyDamage,
+						prefix: new HarmonyMethod(damageProbePrefix)
+						{
+							priority = Priority.First,
+							before = new[] { "net.pardeike.zombieland" }
+						});
+					try
+					{
+						var extinguishAmount = DamageDefOf.Extinguish.defaultDamage;
+						var extinguishResult = host.TakeDamage(new DamageInfo(DamageDefOf.Extinguish, extinguishAmount, 0f, -1f, null));
+						var extinguishPackets = SymbiantHostDamagePacketSnapshot();
+						var expectedExtinguishDrain = ExpectedSymbiantHostHealthDrain(extinguishPackets);
+						var sharedHealthAfterExtinguish = symbiant.SharedHealthCurrentDisplay;
+						var actualExtinguishDrain = sharedHealthBefore - sharedHealthAfterExtinguish;
+						var hostInjuryAfterExtinguish = TotalInjurySeverity(host);
+						var firefoamHediff = DamageDefOf.Extinguish.hediff;
+						var coveredInFirefoam = firefoamHediff != null && host.health?.hediffSet?.GetFirstHediffOfDef(firefoamHediff) != null;
+
+						symbiantHostDamagePackets.Clear();
+						var stunResult = host.TakeDamage(new DamageInfo(DamageDefOf.Stun, 5f, 999f, -1f, null));
+						var stunPackets = SymbiantHostDamagePacketSnapshot();
+						var expectedStunDrain = ExpectedSymbiantHostHealthDrain(stunPackets);
+						var sharedHealthAfterStun = symbiant.SharedHealthCurrentDisplay;
+						var actualStunDrain = sharedHealthAfterExtinguish - sharedHealthAfterStun;
+						var hostInjuryAfterStun = TotalInjurySeverity(host);
+						var stunnedAfterStun = host.stances?.stunner?.Stunned == true;
+
+						symbiantHostDamagePackets.Clear();
+						var empAmount = DamageDefOf.EMP.defaultDamage;
+						var empResult = host.TakeDamage(new DamageInfo(DamageDefOf.EMP, empAmount, 0f, -1f, null));
+						var empPackets = SymbiantHostDamagePacketSnapshot();
+						var expectedEmpDrain = ExpectedSymbiantHostHealthDrain(empPackets);
+						var sharedHealthAfterEmp = symbiant.SharedHealthCurrentDisplay;
+						var actualEmpDrain = sharedHealthAfterStun - sharedHealthAfterEmp;
+						var hostInjuryAfterEmp = TotalInjurySeverity(host);
+						var linkedAfter = ZombieSymbiant.LinkedSymbiantFor(host);
+
+						action = new
+						{
+							addedCells,
+							cellCountBefore,
+							cellCountAfter = symbiant.CellCount,
+							extinguishAmount,
+							extinguishHarmsHealth = DamageDefOf.Extinguish.harmsHealth,
+							extinguishDamageDealt = extinguishResult.totalDamageDealt,
+							extinguishPackets,
+							expectedExtinguishDrain,
+							actualExtinguishDrain,
+							coveredInFirefoam,
+							stunHarmsHealth = DamageDefOf.Stun.harmsHealth,
+							stunDamageDealt = stunResult.totalDamageDealt,
+							stunPackets,
+							expectedStunDrain,
+							actualStunDrain,
+							stunnedAfterStun,
+							empAmount,
+							empHarmsHealth = DamageDefOf.EMP.harmsHealth,
+							empDamageDealt = empResult.totalDamageDealt,
+							empPackets,
+							expectedEmpDrain,
+							actualEmpDrain,
+							sharedHealthBefore,
+							sharedHealthAfterExtinguish,
+							sharedHealthAfterStun,
+							sharedHealthAfterEmp,
+							hostInjuryBeforeEffects,
+							hostInjuryAfterExtinguish,
+							hostInjuryAfterStun,
+							hostInjuryAfterEmp,
+							hostDead = host.Dead,
+							symbiantDestroyed = symbiant.Destroyed,
+							linkedAfter = ZombieRuntimeActions.StableThingId(linkedAfter),
+							success = addedCells > 0
+								&& DamageDefOf.Extinguish.harmsHealth == false
+								&& Mathf.Approximately(extinguishResult.totalDamageDealt, 0f)
+								&& coveredInFirefoam
+								&& DamageDefOf.Stun.harmsHealth == false
+								&& Mathf.Approximately(stunResult.totalDamageDealt, 0f)
+								&& stunnedAfterStun
+								&& DamageDefOf.EMP.harmsHealth == false
+								&& Mathf.Approximately(empResult.totalDamageDealt, 0f)
+								&& Mathf.Approximately(actualExtinguishDrain, expectedExtinguishDrain)
+								&& Mathf.Approximately(actualStunDrain, expectedStunDrain)
+								&& Mathf.Approximately(actualEmpDrain, expectedEmpDrain)
+								&& Mathf.Approximately(hostInjuryAfterExtinguish, hostInjuryBeforeEffects)
+								&& Mathf.Approximately(hostInjuryAfterStun, hostInjuryBeforeEffects)
+								&& (expectedEmpDrain > 0f || Mathf.Approximately(hostInjuryAfterEmp, hostInjuryBeforeEffects))
+								&& symbiant.CellCount == cellCountBefore
+								&& host.Dead == false
+								&& symbiant.Destroyed == false
+								&& linkedAfter == symbiant
+						};
+					}
+					finally
+					{
+						symbiantHostDamageProbePawn = null;
+						symbiantHostDamagePackets.Clear();
+						damageProbeHarmony.Unpatch(pawnPreApplyDamage, HarmonyPatchType.Prefix, SymbiantHostDamageProbeHarmonyId);
+					}
 				}
 				else if (scenario == "symbiantEffectPipeline")
 				{

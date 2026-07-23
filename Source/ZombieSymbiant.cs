@@ -1420,7 +1420,9 @@ namespace ZombieLand
 
 		public static void PreApplyHostLinkedDamage(Pawn pawn, ref DamageInfo dinfo, ref bool absorbed)
 		{
-			if (dinfo.Amount <= 0f)
+			// Amount is also an effect payload: Extinguish deliberately uses 999999,
+			// while stun, EMP, and modded nonlethal effects can use other positive values.
+			if (dinfo.Def?.harmsHealth != true || dinfo.Amount <= 0f)
 				return;
 			if (TryGetSameMapLinkedSymbiant(pawn, out var symbiant) == false)
 				return;
