@@ -19,7 +19,7 @@ Rules:
 - working small iterations is good but has the problem that the overall ceremony is slow and uses a lot of tokens. find a balance
 - find a way to analyse the rimworld log in a token efficient way (with a script that de-dups errors/stacktraces)
 - I will run in in high-thinking and non-fast mode to prevent hitting the token limit. if you have a particular har problem, find a way to run a sub-agent with xhigh-thinking on a limited problem/time.
-- use regionshot efficiently and use it only if you really need to (saves tokens)
+- use brrainztools efficiently and use it only if you really need to (saves tokens)
 - you have a tendency to double check or multi-compile things. find a way to have a clear work cycle that is not wasteful
 - keep track of what you are doing but make sure you do not simply pile up work log after work log
 - make sure you read the *important* work documents regularily - they have no purpose if you only creete but never read them
