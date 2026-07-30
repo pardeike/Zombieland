@@ -89,6 +89,11 @@ namespace ZombieLand
 			}
 		}
 
+		public override string SeverityLabel => null;
+		public override float SummaryHealthPercentImpact => 0f;
+		public override float BleedRate => 0f;
+		public override float PainOffset => 0f;
+
 		public override bool ShouldRemove
 		{
 			get
@@ -116,6 +121,10 @@ namespace ZombieLand
 			Severity = ZombieSymbiant.HostHediffSeverity(ZombieSymbiant.SymbiantBenefitFactor(pawn));
 			symbiant.SyncHostDamageEchoes(pawn);
 		}
+
+		public override bool TendableNow(bool ignoreTimer = false) => false;
+		public override bool CauseDeathNow() => false;
+		public override bool TryMergeWith(Hediff other) => false;
 
 		public override void ExposeData()
 		{

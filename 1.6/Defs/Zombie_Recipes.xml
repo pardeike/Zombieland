@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Defs>
-
 	<RecipeDef ParentName="SurgeryFlesh">
 		<defName>CureZombieInfection</defName>
 		<label>cure zombie infection</label>
@@ -38,7 +37,6 @@
 			</disallowedThingDefs>
 		</fixedIngredientFilter>
 	</RecipeDef>
-
 	<SpecialThingFilterDef>
 		<defName>ZombieSerumFilter</defName>
 		<label>zombie serum filter</label>
@@ -49,7 +47,6 @@
 		<saveKey>zombieSerumFilter</saveKey>
 		<workerClass>ZombieLand.ZombieSerumFilterWorker</workerClass>
 	</SpecialThingFilterDef>
-
 	<RecipeDef ParentName="SurgeryFlesh">
 		<defName>SeverSymbiantSymbiosis</defName>
 		<label>remove the Symbiant bond</label>
@@ -78,6 +75,7 @@
 				<filter>
 					<thingDefs>
 						<li>MedicineIndustrial</li>
+						<li>MedicineUltratech</li>
 					</thingDefs>
 				</filter>
 				<count>1</count>
@@ -87,10 +85,10 @@
 			<thingDefs>
 				<li>ZombieExtract</li>
 				<li>MedicineIndustrial</li>
+				<li>MedicineUltratech</li>
 			</thingDefs>
 		</fixedIngredientFilter>
 	</RecipeDef>
-
 	<RecipeDef>
 		<defName>MakeZombieSerum</defName>
 		<label>make zombie serum from zombie extract</label>
@@ -150,5 +148,4 @@
 			<ZombieSerumSimple>1</ZombieSerumSimple>
 		</products>
 	</RecipeDef>
-
 </Defs>

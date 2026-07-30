@@ -1,0 +1,3 @@
+- Symbiant bond-removal surgery now accepts glitterworld medicine as well as industrial medicine.
+- Symbiant hosts now die through the bond only when shared health is actually exhausted; harmless effects, ordinary health changes, and unintended Symbiant removal no longer trigger bond deaths.
+- A Symbiant host's death now resolves only once, without duplicate death or funeral notices.

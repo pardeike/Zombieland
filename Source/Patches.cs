@@ -5877,8 +5877,9 @@ namespace ZombieLand
 		static class Pawn_Kill_Patch
 		{
 			[HarmonyPriority(Priority.First)]
-			static bool Prefix(Pawn __instance, DamageInfo? dinfo)
+			static bool Prefix(Pawn __instance, DamageInfo? dinfo, out ZombieSymbiant __state)
 			{
+				__state = null;
 				if (__instance == null)
 					return true;
 				if (__instance.Destroyed || __instance.Dead || __instance.health?.isBeingKilled == true)
@@ -5902,7 +5903,7 @@ namespace ZombieLand
 				}
 
 				var pawn = __instance;
-				ZombieSymbiant.NotifyHostKilled(pawn);
+				__state = ZombieSymbiant.LinkedSymbiantFor(pawn);
 				var raceProps = pawn.RaceProps;
 
 				if (raceProps == null || raceProps.Humanlike == false || raceProps.IsFlesh == false)
@@ -5948,6 +5949,15 @@ namespace ZombieLand
 					}
 				}
 				return true;
+			}
+
+			static void Postfix(Pawn __instance, ZombieSymbiant __state)
+			{
+				// Pawn.Kill sets isBeingKilled only inside the original method. Mutating
+				// the bond in a prefix can therefore make a health-state callback enter
+				// Pawn.Kill recursively before vanilla's guard exists.
+				if (__instance?.Dead == true)
+					ZombieSymbiant.NotifyHostKilled(__instance, __state);
 			}
 		}
 

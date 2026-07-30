@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Defs>
-
 	<HediffDef ParentName="InjuryBase">
 		<defName>ZombieBite</defName>
 		<hediffClass>Zombieland.Hediff_Injury_ZombieBite</hediffClass>
@@ -29,7 +28,6 @@
 			<destroyedOutLabel>Bitten out by a zombie</destroyedOutLabel>
 		</injuryProps>
 	</HediffDef>
-
 	<HediffDef ParentName="InfectionBase">
 		<defName>ZombieInfection</defName>
 		<label>zombie infection</label>
@@ -41,17 +39,19 @@
 			</li>
 		</stages>
 	</HediffDef>
-
 	<HediffDef>
 		<defName>SymbiantSymbiosis</defName>
 		<label>symbiant bond</label>
 		<description>This colonist is linked to a Zombie Symbiant. The host is immune to zombie infection from bites and gains random benefits as the Symbiant grows. Pawns crossing Symbiant cells are slowed, except the host. Feeding corpses grows the Symbiant faster. Surgery removes the bond, leaving the unbound Symbiant to shrink away.</description>
 		<hediffClass>ZombieLand.Hediff_SymbiantSymbiosis</hediffClass>
+		<initialSeverity>0.001</initialSeverity>
+		<maxSeverity>0.001</maxSeverity>
+		<lethalSeverity>-1</lethalSeverity>
 		<isBad>false</isBad>
+		<tendable>false</tendable>
 		<scenarioCanAdd>false</scenarioCanAdd>
 		<everCurableByItem>false</everCurableByItem>
 	</HediffDef>
-
 	<HediffDef>
 		<defName>SymbiantDamageEcho</defName>
 		<label>symbiant damage echo</label>
@@ -63,7 +63,6 @@
 		<scenarioCanAdd>false</scenarioCanAdd>
 		<everCurableByItem>false</everCurableByItem>
 	</HediffDef>
-
 	<HediffDef ParentName="DiseaseBase">
 		<defName>ContaminationEffect</defName>
 		<label>contamination</label>
@@ -265,5 +264,4 @@
 			</li>
 		</stages>
 	</HediffDef>
-
 </Defs>

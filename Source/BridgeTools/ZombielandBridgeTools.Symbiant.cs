@@ -24,6 +24,19 @@ namespace ZombieLand
 			public string damageDef { get; set; }
 			public float amount { get; set; }
 			public bool harmsHealth { get; set; }
+			public string workerClass { get; set; }
+			public bool sharesHealth { get; set; }
+		}
+
+		sealed class SymbiantHostDeathLifecycleEvidence
+		{
+			public bool success { get; set; }
+			public int deathLetterCount { get; set; }
+			public int funeralObligationCount { get; set; }
+			public int funeralLetterCount { get; set; }
+			public string funeralRitual { get; set; }
+			public string[] letterLabels { get; set; }
+			public string[] funeralLetterLabels { get; set; }
 		}
 
 		static void RecordSymbiantHostDamagePacket(Pawn __instance, ref DamageInfo dinfo)
@@ -34,7 +47,9 @@ namespace ZombieLand
 			{
 				damageDef = dinfo.Def?.defName,
 				amount = dinfo.Amount,
-				harmsHealth = dinfo.Def?.harmsHealth == true
+				harmsHealth = dinfo.Def?.harmsHealth == true,
+				workerClass = dinfo.Def?.workerClass?.FullName,
+				sharesHealth = ZombieSymbiant.IsSharedHealthDamage(dinfo)
 			});
 		}
 
@@ -45,7 +60,9 @@ namespace ZombieLand
 				{
 					damageDef = packet.damageDef,
 					amount = packet.amount,
-					harmsHealth = packet.harmsHealth
+					harmsHealth = packet.harmsHealth,
+					workerClass = packet.workerClass,
+					sharesHealth = packet.sharesHealth
 				})
 				.ToArray();
 		}
@@ -53,8 +70,49 @@ namespace ZombieLand
 		static float ExpectedSymbiantHostHealthDrain(IEnumerable<SymbiantHostDamagePacket> packets)
 		{
 			return packets
-				.Where(packet => packet.harmsHealth && packet.amount > 0f)
+				.Where(packet => packet.sharesHealth && packet.amount > 0f)
 				.Sum(packet => packet.amount);
+		}
+
+		static SymbiantHostDeathLifecycleEvidence KillLinkedHostAndCaptureDeathLifecycle(Pawn host)
+		{
+			var lettersBefore = (Find.LetterStack?.LettersListForReading ?? new List<Letter>()).ToHashSet();
+			var funeralRitual = host?.Ideo?.PreceptsListForReading?
+				.OfType<Precept_Ritual>()
+				.FirstOrDefault(precept => precept.def == PreceptDefOf.Funeral);
+			var obligationsBefore = (funeralRitual?.activeObligations ?? new List<RitualObligation>()).ToHashSet();
+
+			host?.Kill(null);
+
+			var newLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
+				.Where(letter => lettersBefore.Contains(letter) == false)
+				.ToArray();
+			var newFuneralObligations = (funeralRitual?.activeObligations ?? new List<RitualObligation>())
+				.Where(obligation => obligationsBefore.Contains(obligation) == false)
+				.ToArray();
+			var funeralLabels = newFuneralObligations
+				.Select(obligation => obligation.LetterLabel.ToString())
+				.ToHashSet();
+			var funeralLetters = newLetters
+				.Where(letter => funeralLabels.Contains(letter.Label.ToString()))
+				.ToArray();
+			foreach (var obligation in newFuneralObligations)
+				funeralRitual.RemoveObligation(obligation, false);
+
+			var deathLetterCount = newLetters.Count(letter => letter.def == LetterDefOf.Death);
+			var expectedFuneralCount = funeralRitual == null ? 0 : 1;
+			return new SymbiantHostDeathLifecycleEvidence
+			{
+				success = deathLetterCount == 1
+						&& newFuneralObligations.Length == expectedFuneralCount
+						&& funeralLetters.Length == expectedFuneralCount,
+				deathLetterCount = deathLetterCount,
+				funeralObligationCount = newFuneralObligations.Length,
+				funeralLetterCount = funeralLetters.Length,
+				funeralRitual = funeralRitual?.Label.ToString(),
+				letterLabels = newLetters.Select(letter => letter.Label.ToString()).ToArray(),
+				funeralLetterLabels = funeralLetters.Select(letter => letter.Label.ToString()).ToArray()
+			};
 		}
 
 		[Tool("zombieland/symbiant_discovery_letter_contract", Description = "Spawn a temporary symbiant through the runtime spawn path and verify the green discovery letter, sound def, look targets, host link, and cleanup behavior.")]
@@ -2762,7 +2820,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_severance_contract", Description = "Verify severance surgery visibility, zombie-extract ingredients, extract consumption, and bond removal.")]
+		[Tool("zombieland/symbiant_severance_contract", Description = "Verify severance surgery visibility, zombie-extract ingredients, industrial-or-better medicine, extract consumption, and bond removal.")]
 		public static object SymbiantSeveranceContract(
 			[ToolParameter(Description = "Destroy temporary symbiants, colonists, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -3620,12 +3678,22 @@ namespace ZombieLand
 			var recipe = CustomDefs.SeverSymbiantSymbiosis;
 			var filter = recipe?.fixedIngredientFilter;
 			var allowsExtract = filter?.Allows(CustomDefs.ZombieExtract) == true;
-			var allowsMedicine = filter?.Allows(ThingDefOf.MedicineIndustrial) == true;
+			var allowsIndustrialMedicine = filter?.Allows(ThingDefOf.MedicineIndustrial) == true;
+			var allowsGlitterworldMedicine = filter?.Allows(ThingDefOf.MedicineUltratech) == true;
+			var rejectsHerbalMedicine = filter?.Allows(ThingDefOf.MedicineHerbal) == false;
 			var ingredientCount = recipe?.ingredients?.Count ?? 0;
 			var hasExtractIngredient = recipe?.ingredients?.Any(ingredient => ingredient.filter.Allows(CustomDefs.ZombieExtract)) == true;
-			var hasMedicineIngredient = recipe?.ingredients?.Any(ingredient => ingredient.filter.Allows(ThingDefOf.MedicineIndustrial) && Mathf.Approximately(ingredient.GetBaseCount(), 1f)) == true;
+			var medicineIngredient = recipe?.ingredients?.FirstOrDefault(ingredient =>
+				ingredient.filter.Allows(ThingDefOf.MedicineIndustrial)
+				&& ingredient.filter.Allows(ThingDefOf.MedicineUltratech)
+				&& ingredient.filter.Allows(ThingDefOf.MedicineHerbal) == false);
+			var hasMedicineIngredient = medicineIngredient != null && Mathf.Approximately(medicineIngredient.GetBaseCount(), 1f);
 			var extractIngredient = recipe?.ingredients?.FirstOrDefault(ingredient => ingredient.filter.Allows(CustomDefs.ZombieExtract));
 			var dynamicExtractCount = extractIngredient == null ? 0f : recipe.Worker.GetIngredientCount(extractIngredient, null);
+			var bill = recipe == null ? null : new Bill_Medical(recipe, null);
+			var billAllowsIndustrialMedicine = bill?.IsFixedOrAllowedIngredient(ThingDefOf.MedicineIndustrial) == true;
+			var billAllowsGlitterworldMedicine = bill?.IsFixedOrAllowedIngredient(ThingDefOf.MedicineUltratech) == true;
+			var billRejectsHerbalMedicine = bill?.IsFixedOrAllowedIngredient(ThingDefOf.MedicineHerbal) == false;
 			return new
 			{
 				success = recipe != null
@@ -3633,24 +3701,436 @@ namespace ZombieLand
 					&& recipe.targetsBodyPart
 					&& ingredientCount == 2
 					&& allowsExtract
-					&& allowsMedicine
+					&& allowsIndustrialMedicine
+					&& allowsGlitterworldMedicine
+					&& rejectsHerbalMedicine
 					&& hasExtractIngredient
 					&& hasMedicineIngredient
+					&& billAllowsIndustrialMedicine
+					&& billAllowsGlitterworldMedicine
+					&& billRejectsHerbalMedicine
 					&& Mathf.Approximately(dynamicExtractCount, ZombieSymbiant.SeveranceExtractCost()),
 				recipe = recipe?.defName,
 				workerClass = recipe?.workerClass?.FullName,
 				targetsBodyPart = recipe?.targetsBodyPart ?? false,
 				ingredientCount,
 				allowsExtract,
-				allowsMedicine,
+				allowsIndustrialMedicine,
+				allowsGlitterworldMedicine,
+				rejectsHerbalMedicine,
 				hasExtractIngredient,
 				hasMedicineIngredient,
+				billAllowsIndustrialMedicine,
+				billAllowsGlitterworldMedicine,
+				billRejectsHerbalMedicine,
 				dynamicExtractCount,
 				currentRequiredExtract = ZombieSymbiant.SeveranceExtractCost()
 			};
 		}
 
-		[Tool("zombieland/symbiant_unsafe_damage_contract", Description = "Verify shared-health damage, host effect damage semantics, cross-map isolation, lethal cleanup, Pawn.Kill corpse integrity, non-relocation despawn cleanup, map-removal patch ownership, direct map deinitialization, real gravship abandonment, uncontrolled destruction, and host-death retreat.")]
+		[Tool("zombieland/symbiant_host_effect_isolation_contract", Description = "Verify the Symbiant bond marker, ordinary host hediff transitions, effect-only damage packets, Symbiant-local effects, and administrative Symbiant removal cannot drain shared health or kill the linked host.")]
+		public static object SymbiantHostEffectIsolationContract(
+			[ToolParameter(Description = "Destroy the temporary Symbiant, host, fixture buildings, and added hediffs after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
+		{
+			var map = CurrentMap;
+			if (map == null)
+				return new { success = false, error = "No current map is loaded." };
+			var activeBefore = ZombieSymbiant.ActiveSymbiant(map);
+			if (activeBefore != null)
+				return new { success = false, error = "An active Symbiant already exists on the current map.", activeSymbiant = ZombieRuntimeActions.StableThingId(activeBefore) };
+
+			var settingsSnapshot = SnapshotZombieSettings();
+			SymbiantNaturalSpawnFixture fixture = null;
+			ZombieSymbiant symbiant = null;
+			Hediff pregnancyHediff = null;
+			Hediff_LaborPushing laborPushingHediff = null;
+			Hediff anestheticHediff = null;
+			Pawn[] childbirthPawns = Array.Empty<Pawn>();
+			Thing[] childbirthFilth = Array.Empty<Thing>();
+			HashSet<Pawn> childbirthPawnsBefore = null;
+			HashSet<Filth> childbirthFilthBefore = null;
+			bool? originalBabiesAreHealthy = null;
+			object fixtureSetup = null;
+			object markerInvariant = null;
+			object pregnancyTransition = null;
+			object childbirthCompletion = null;
+			object anestheticTransition = null;
+			object effectOnlyHostDamage = null;
+			object symbiantLocalEffect = null;
+			object administrativeRemoval = null;
+			object childbirthCleanup = null;
+			object error = null;
+
+			try
+			{
+				ApplyZombieSettingsOverride(settings => settings.showZombieEventLetters = false);
+				if (TrySetupSymbiantNaturalSpawnFixture(map, out fixture, out var fixtureError) == false)
+					throw new InvalidOperationException($"Could not create the Symbiant host-effect fixture: {fixtureError}");
+				fixtureSetup = DescribeSymbiantNaturalSpawnFixture(fixture);
+				symbiant = SpawnAssignedSymbiantForSeveranceContract(map, fixture);
+				var host = fixture.host;
+				var marker = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) as Hediff_SymbiantSymbiosis;
+				if (marker == null)
+					throw new InvalidOperationException("The temporary Symbiant host has no bond marker.");
+
+				var sharedHealthBefore = symbiant.SharedHealthCurrentDisplay;
+				marker.Severity = float.MaxValue;
+				host.health.CheckForStateChange(null, marker);
+				markerInvariant = new
+				{
+					def = marker.def?.defName,
+					initialSeverity = marker.def?.initialSeverity ?? -1f,
+					maxSeverity = marker.def?.maxSeverity ?? -1f,
+					lethalSeverity = marker.def?.lethalSeverity ?? -1f,
+					severityAfterHostileAssignment = marker.Severity,
+					causeDeathNow = marker.CauseDeathNow(),
+					summaryHealthPercentImpact = marker.SummaryHealthPercentImpact,
+					bleedRate = marker.BleedRate,
+					painOffset = marker.PainOffset,
+					tendable = marker.TendableNow(false),
+					hostDead = host.Dead,
+					symbiantDestroyed = symbiant.Destroyed,
+					sharedHealthBefore,
+					sharedHealthAfter = symbiant.SharedHealthCurrentDisplay,
+					success = marker.def != null
+						&& marker.def.initialSeverity > 0f
+						&& marker.def.maxSeverity <= 0.001f
+						&& marker.def.lethalSeverity < 0f
+						&& marker.Severity <= 0.001f
+						&& marker.CauseDeathNow() == false
+						&& Mathf.Approximately(marker.SummaryHealthPercentImpact, 0f)
+						&& Mathf.Approximately(marker.BleedRate, 0f)
+						&& Mathf.Approximately(marker.PainOffset, 0f)
+						&& marker.TendableNow(false) == false
+						&& host.Dead == false
+						&& symbiant.Destroyed == false
+						&& symbiant.SharedHealthCurrentDisplay == sharedHealthBefore
+				};
+
+				if (ModsConfig.BiotechActive == false)
+				{
+					pregnancyTransition = new { success = true, skipped = true, reason = "Biotech is inactive." };
+				}
+				else
+				{
+					pregnancyHediff = HediffMaker.MakeHediff(HediffDefOf.PregnantHuman, host);
+					var pregnancySharedHealthBefore = symbiant.SharedHealthCurrentDisplay;
+					host.health.AddHediff(pregnancyHediff);
+					pregnancyHediff.PostDebugAdd();
+					var pregnancyPresent = host.health.hediffSet.hediffs.Contains(pregnancyHediff);
+					pregnancyTransition = new
+					{
+						def = pregnancyHediff.def?.defName,
+						pregnancyPresent,
+						hostDead = host.Dead,
+						hostDowned = host.Downed,
+						symbiantDestroyed = symbiant.Destroyed,
+						bondActive = symbiant.IsActiveBondWith(host),
+						linkedAfter = ZombieRuntimeActions.StableThingId(ZombieSymbiant.LinkedSymbiantFor(host)),
+						sharedHealthBefore = pregnancySharedHealthBefore,
+						sharedHealthAfter = symbiant.SharedHealthCurrentDisplay,
+						success = pregnancyPresent
+							&& host.Dead == false
+							&& symbiant.Destroyed == false
+							&& symbiant.IsActiveBondWith(host)
+							&& ZombieSymbiant.LinkedSymbiantFor(host) == symbiant
+							&& symbiant.SharedHealthCurrentDisplay == pregnancySharedHealthBefore
+					};
+					if (host.Dead == false && pregnancyPresent)
+						host.health.RemoveHediff(pregnancyHediff);
+					pregnancyHediff = null;
+				}
+
+				if (ModsConfig.BiotechActive == false)
+				{
+					childbirthCompletion = new { success = true, skipped = true, reason = "Biotech is inactive." };
+				}
+				else if (host.Ideo?.GetPrecept(PreceptDefOf.ChildBirth) is not Precept_Ritual childbirthRitual)
+				{
+					childbirthCompletion = new { success = true, skipped = true, reason = "The temporary host has no childbirth ritual precept." };
+				}
+				else
+				{
+					childbirthPawnsBefore = map.mapPawns.AllPawns.ToHashSet();
+					childbirthFilthBefore = fixture.fixtureRect.Cells
+						.SelectMany(cell => cell.GetThingList(map))
+						.OfType<Filth>()
+						.ToHashSet();
+					var childbirthSharedHealthBefore = symbiant.SharedHealthCurrentDisplay;
+					var birthQuality = PregnancyUtility.GetBirthQualityFor(host);
+					var configuredMotherDeathChance = PregnancyUtility.ChanceMomDiesDuringBirth(birthQuality);
+					var configuredBabiesAreHealthy = Find.Storyteller.difficulty.babiesAreHealthy;
+					originalBabiesAreHealthy = configuredBabiesAreHealthy;
+					try
+					{
+						// Exercise the real labor-removal -> ApplyBirthOutcome path while
+						// disabling only RimWorld's intentional random maternal-death roll.
+						Find.Storyteller.difficulty.babiesAreHealthy = true;
+						laborPushingHediff = HediffMaker.MakeHediff(HediffDefOf.PregnancyLaborPushing, host) as Hediff_LaborPushing;
+						if (laborPushingHediff == null)
+							throw new InvalidOperationException("Could not create the labor-pushing hediff.");
+						host.health.AddHediff(laborPushingHediff);
+						var bestOutcome = childbirthRitual.outcomeEffect?.def?.BestOutcome;
+						laborPushingHediff.ForceBirth(bestOutcome?.positivityIndex ?? 1, true);
+						laborPushingHediff = null;
+					}
+					finally
+					{
+						Find.Storyteller.difficulty.babiesAreHealthy = originalBabiesAreHealthy.Value;
+						originalBabiesAreHealthy = null;
+					}
+
+					childbirthPawns = map.mapPawns.AllPawns
+						.Where(pawn => childbirthPawnsBefore.Contains(pawn) == false)
+						.ToArray();
+					childbirthFilth = fixture.fixtureRect.Cells
+						.SelectMany(cell => cell.GetThingList(map))
+						.OfType<Filth>()
+						.Where(filth => childbirthFilthBefore.Contains(filth) == false)
+						.Cast<Thing>()
+						.Distinct()
+						.ToArray();
+					var newborn = childbirthPawns.FirstOrDefault();
+					var laborRemoved = host.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.PregnancyLaborPushing) == null;
+					var postpartumExhaustionPresent = host.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.PostpartumExhaustion) != null;
+					var lactatingPresent = host.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.Lactating) != null;
+					childbirthCompletion = new
+					{
+						birthQuality,
+						configuredBabiesAreHealthy,
+						configuredMotherDeathChance,
+						controlledSafeBirth = true,
+						laborRemoved,
+						postpartumExhaustionPresent,
+						lactatingPresent,
+						newborn = ZombieRuntimeActions.StableThingId(newborn),
+						newbornCount = childbirthPawns.Length,
+						hostDead = host.Dead,
+						hostDowned = host.Downed,
+						symbiantDestroyed = symbiant.Destroyed,
+						bondActive = symbiant.IsActiveBondWith(host),
+						linkedAfter = ZombieRuntimeActions.StableThingId(ZombieSymbiant.LinkedSymbiantFor(host)),
+						sharedHealthBefore = childbirthSharedHealthBefore,
+						sharedHealthAfter = symbiant.SharedHealthCurrentDisplay,
+						success = newborn != null
+							&& laborRemoved
+							&& host.Dead == false
+							&& symbiant.Destroyed == false
+							&& symbiant.IsActiveBondWith(host)
+							&& ZombieSymbiant.LinkedSymbiantFor(host) == symbiant
+							&& symbiant.SharedHealthCurrentDisplay == childbirthSharedHealthBefore
+							&& postpartumExhaustionPresent
+							&& lactatingPresent
+					};
+				}
+
+				var anestheticSharedHealthBefore = symbiant.SharedHealthCurrentDisplay;
+				anestheticHediff = HediffMaker.MakeHediff(HediffDefOf.Anesthetic, host);
+				host.health.AddHediff(anestheticHediff);
+				var anestheticPresent = host.health.hediffSet.hediffs.Contains(anestheticHediff);
+				anestheticTransition = new
+				{
+					def = anestheticHediff.def?.defName,
+					anestheticPresent,
+					hostDead = host.Dead,
+					hostDowned = host.Downed,
+					symbiantDestroyed = symbiant.Destroyed,
+					bondActive = symbiant.IsActiveBondWith(host),
+					linkedAfter = ZombieRuntimeActions.StableThingId(ZombieSymbiant.LinkedSymbiantFor(host)),
+					sharedHealthBefore = anestheticSharedHealthBefore,
+					sharedHealthAfter = symbiant.SharedHealthCurrentDisplay,
+					success = anestheticPresent
+						&& host.Dead == false
+						&& symbiant.Destroyed == false
+						&& symbiant.IsActiveBondWith(host)
+						&& ZombieSymbiant.LinkedSymbiantFor(host) == symbiant
+						&& symbiant.SharedHealthCurrentDisplay == anestheticSharedHealthBefore
+				};
+				if (host.Dead == false && anestheticPresent)
+					host.health.RemoveHediff(anestheticHediff);
+				anestheticHediff = null;
+
+				var originalBluntHarmsHealth = DamageDefOf.Blunt.harmsHealth;
+				bool bluntSharesHealthWithFalseFlag;
+				try
+				{
+					DamageDefOf.Blunt.harmsHealth = false;
+					bluntSharesHealthWithFalseFlag = ZombieSymbiant.IsSharedHealthDamage(new DamageInfo(DamageDefOf.Blunt, 1f));
+				}
+				finally
+				{
+					DamageDefOf.Blunt.harmsHealth = originalBluntHarmsHealth;
+				}
+				var seismicDamage = symbiant.SharedHealthCurrentDisplay + 250f;
+				var seismicInfo = new DamageInfo(CustomDefs.SeismicWave, seismicDamage, 0f, -1f, null);
+				var seismicSharesHealth = ZombieSymbiant.IsSharedHealthDamage(seismicInfo);
+				var seismicSharedHealthBefore = symbiant.SharedHealthCurrentDisplay;
+				var seismicHostInjuryBefore = TotalInjurySeverity(host);
+				var seismicResult = host.TakeDamage(seismicInfo);
+				effectOnlyHostDamage = new
+				{
+					damageDef = CustomDefs.SeismicWave?.defName,
+					harmsHealth = CustomDefs.SeismicWave?.harmsHealth ?? false,
+					workerClass = CustomDefs.SeismicWave?.workerClass?.FullName,
+					bluntWorkerClass = DamageDefOf.Blunt.workerClass?.FullName,
+					bluntSharesHealthWithFalseFlag,
+					seismicDamage,
+					sharesHealth = seismicSharesHealth,
+					damageDealt = seismicResult.totalDamageDealt,
+					hostInjuryBefore = seismicHostInjuryBefore,
+					hostInjuryAfter = TotalInjurySeverity(host),
+					sharedHealthBefore = seismicSharedHealthBefore,
+					sharedHealthAfter = symbiant.SharedHealthCurrentDisplay,
+					hostDead = host.Dead,
+					symbiantDestroyed = symbiant.Destroyed,
+					success = CustomDefs.SeismicWave != null
+						&& CustomDefs.SeismicWave.harmsHealth
+						&& bluntSharesHealthWithFalseFlag
+						&& seismicSharesHealth == false
+						&& Mathf.Approximately(seismicResult.totalDamageDealt, 0f)
+						&& Mathf.Approximately(TotalInjurySeverity(host), seismicHostInjuryBefore)
+						&& symbiant.SharedHealthCurrentDisplay == seismicSharedHealthBefore
+						&& host.Dead == false
+						&& symbiant.Destroyed == false
+				};
+
+				var symbiantEffectSharedHealthBefore = symbiant.SharedHealthCurrentDisplay;
+				var symbiantEffectHostInjuryBefore = TotalInjurySeverity(host);
+				var symbiantEffectResult = symbiant.TakeDamage(new DamageInfo(DamageDefOf.Stun, 5f, 999f, -1f, null));
+				symbiantLocalEffect = new
+				{
+					damageDef = DamageDefOf.Stun.defName,
+					damageDealt = symbiantEffectResult.totalDamageDealt,
+					symbiantStunned = symbiant.stances?.stunner?.Stunned == true,
+					hostInjuryBefore = symbiantEffectHostInjuryBefore,
+					hostInjuryAfter = TotalInjurySeverity(host),
+					sharedHealthBefore = symbiantEffectSharedHealthBefore,
+					sharedHealthAfter = symbiant.SharedHealthCurrentDisplay,
+					hostDead = host.Dead,
+					symbiantDestroyed = symbiant.Destroyed,
+					success = Mathf.Approximately(symbiantEffectResult.totalDamageDealt, 0f)
+						&& symbiant.stances?.stunner?.Stunned == true
+						&& Mathf.Approximately(TotalInjurySeverity(host), symbiantEffectHostInjuryBefore)
+						&& symbiant.SharedHealthCurrentDisplay == symbiantEffectSharedHealthBefore
+						&& host.Dead == false
+						&& symbiant.Destroyed == false
+				};
+
+				var removalHostInjuryBefore = TotalInjurySeverity(host);
+				var removalMarkerBefore = host.health.hediffSet.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
+				symbiant.Destroy(DestroyMode.Vanish);
+				administrativeRemoval = new
+				{
+					markerBefore = removalMarkerBefore,
+					markerAfter = host.health.hediffSet.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null,
+					hostInjuryBefore = removalHostInjuryBefore,
+					hostInjuryAfter = TotalInjurySeverity(host),
+					hostDead = host.Dead,
+					symbiantDestroyed = symbiant.Destroyed,
+					symbiantDiscarded = symbiant.Discarded,
+					linkedAfter = ZombieRuntimeActions.StableThingId(ZombieSymbiant.LinkedSymbiantFor(host)),
+					success = removalMarkerBefore
+						&& host.health.hediffSet.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) == null
+						&& Mathf.Approximately(TotalInjurySeverity(host), removalHostInjuryBefore)
+						&& host.Dead == false
+						&& symbiant.Destroyed
+						&& symbiant.Discarded
+						&& ZombieSymbiant.LinkedSymbiantFor(host) == null
+				};
+			}
+			catch (Exception ex)
+			{
+				error = ex.ToString();
+			}
+			finally
+			{
+				if (originalBabiesAreHealthy.HasValue)
+					Find.Storyteller.difficulty.babiesAreHealthy = originalBabiesAreHealthy.Value;
+				if (fixture?.host?.Dead == false)
+				{
+					if (pregnancyHediff != null && fixture.host.health?.hediffSet?.hediffs?.Contains(pregnancyHediff) == true)
+						fixture.host.health.RemoveHediff(pregnancyHediff);
+					if (anestheticHediff != null && fixture.host.health?.hediffSet?.hediffs?.Contains(anestheticHediff) == true)
+						fixture.host.health.RemoveHediff(anestheticHediff);
+				}
+				RestoreZombieSettings(settingsSnapshot);
+			}
+
+			if (childbirthPawnsBefore != null)
+			{
+				childbirthPawns = map.mapPawns.AllPawns
+					.Where(pawn => childbirthPawnsBefore.Contains(pawn) == false)
+					.ToArray();
+			}
+			if (childbirthFilthBefore != null)
+			{
+				childbirthFilth = fixture.fixtureRect.Cells
+					.SelectMany(cell => cell.GetThingList(map))
+					.OfType<Filth>()
+					.Where(filth => childbirthFilthBefore.Contains(filth) == false)
+					.Cast<Thing>()
+					.Distinct()
+					.ToArray();
+			}
+
+			if (cleanup)
+			{
+				var pawnCleanup = childbirthPawns.Select(DestroyAndDiscardTemporaryPawn).ToArray();
+				var removedFilth = 0;
+				foreach (var filth in childbirthFilth)
+				{
+					if (filth?.Destroyed != false)
+						continue;
+					filth.Destroy(DestroyMode.Vanish);
+					removedFilth++;
+				}
+				childbirthCleanup = new
+				{
+					success = pawnCleanup.All(ScenarioSucceeded) && childbirthFilth.All(filth => filth == null || filth.Destroyed),
+					pawns = pawnCleanup,
+					removedFilth
+				};
+			}
+			else
+			{
+				childbirthCleanup = new { success = true, skipped = true, newbornCount = childbirthPawns.Length, filthCount = childbirthFilth.Length };
+			}
+			var symbiantCleanup = CleanupTemporarySymbiant(map, symbiant, cleanup);
+			var fixtureCleanup = CleanupSymbiantNaturalSpawnFixture(map, fixture, cleanup);
+			return new
+			{
+				success = error == null
+					&& ScenarioSucceeded(fixtureSetup)
+					&& ScenarioSucceeded(markerInvariant)
+					&& ScenarioSucceeded(pregnancyTransition)
+					&& ScenarioSucceeded(childbirthCompletion)
+					&& ScenarioSucceeded(anestheticTransition)
+					&& ScenarioSucceeded(effectOnlyHostDamage)
+					&& ScenarioSucceeded(symbiantLocalEffect)
+					&& ScenarioSucceeded(administrativeRemoval)
+					&& ScenarioSucceeded(childbirthCleanup)
+					&& (ZombieSymbiant.ActiveSymbiant(map) == null || cleanup == false),
+				sourcePath = "Hediff_SymbiantSymbiosis inert marker -> ordinary AddHediff and labor-removal/ApplyBirthOutcome transitions stay host-local -> injury-worker-only host sharing -> post-worker Symbiant accounting -> explicit bond termination",
+				error,
+				fixtureSetup,
+				markerInvariant,
+				pregnancyTransition,
+				childbirthCompletion,
+				anestheticTransition,
+				effectOnlyHostDamage,
+				symbiantLocalEffect,
+				administrativeRemoval,
+				cleanup = new
+				{
+					childbirth = childbirthCleanup,
+					symbiant = symbiantCleanup,
+					fixture = fixtureCleanup,
+					activeSymbiantAfter = ZombieRuntimeActions.StableThingId(ZombieSymbiant.ActiveSymbiant(map))
+				}
+			};
+		}
+
+		[Tool("zombieland/symbiant_unsafe_damage_contract", Description = "Verify shared-health damage, host effect damage semantics, cross-map isolation, explicit pool-exhaustion lethality, safe Symbiant removal, Pawn.Kill corpse integrity, non-relocation despawn cleanup, map-removal patch ownership, direct map deinitialization, real gravship abandonment, and host-death retreat.")]
 		public static object SymbiantUnsafeDamageContract(
 			[ToolParameter(Description = "Destroy temporary symbiants, colonists, fixture buildings, and letters after capturing evidence. The destructive gravship and direct-deinitialization subscenarios always remove their temporary remote hosts, map parents, and launch markers so they cannot contaminate the current map.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -3676,7 +4156,7 @@ namespace ZombieLand
 			object sizeHealthScaling = null;
 			object thumperDamageNoEffect = null;
 			object inspectTabsHidden = null;
-			object uncontrolledDestroyKillsHost = null;
+			object uncontrolledDestroySafelySeversHost = null;
 			object hostDeathStartsRetreat = null;
 			object destroyedHostStartsRetreat = null;
 			object pawnKillCreatesValidCorpse = null;
@@ -3713,7 +4193,7 @@ namespace ZombieLand
 				sizeHealthScaling = RunSymbiantUnsafeDamageScenario(map, "sizeHealthScaling", cleanup);
 				thumperDamageNoEffect = RunSymbiantUnsafeDamageScenario(map, "thumperDamageNoEffect", cleanup);
 				inspectTabsHidden = RunSymbiantUnsafeDamageScenario(map, "inspectTabsHidden", cleanup);
-				uncontrolledDestroyKillsHost = RunSymbiantUnsafeDamageScenario(map, "uncontrolledDestroyKillsHost", cleanup);
+				uncontrolledDestroySafelySeversHost = RunSymbiantUnsafeDamageScenario(map, "uncontrolledDestroySafelySeversHost", cleanup);
 				hostDeathStartsRetreat = RunSymbiantUnsafeDamageScenario(map, "hostDeathStartsRetreat", cleanup);
 				destroyedHostStartsRetreat = RunSymbiantUnsafeDamageScenario(map, "destroyedHostStartsRetreat", cleanup);
 				pawnKillCreatesValidCorpse = RunSymbiantPawnKillScenario(map, cleanup);
@@ -3825,7 +4305,7 @@ namespace ZombieLand
 				&& ScenarioSucceeded(sizeHealthScaling)
 				&& ScenarioSucceeded(thumperDamageNoEffect)
 				&& ScenarioSucceeded(inspectTabsHidden)
-				&& ScenarioSucceeded(uncontrolledDestroyKillsHost)
+				&& ScenarioSucceeded(uncontrolledDestroySafelySeversHost)
 				&& ScenarioSucceeded(hostDeathStartsRetreat)
 				&& ScenarioSucceeded(destroyedHostStartsRetreat)
 				&& ScenarioSucceeded(pawnKillCreatesValidCorpse)
@@ -3849,7 +4329,7 @@ namespace ZombieLand
 			return new
 			{
 				success,
-				sourcePath = "Thing.TakeDamage -> real DamageWorker pipeline -> post-worker shared-pool accounting -> inert host echo; Pawn.PreApplyDamage -> direct-host sharing; ZombieSymbiant.Destroy/Pawn.Kill lifecycle",
+				sourcePath = "Thing.TakeDamage -> real DamageWorker pipeline -> post-worker Symbiant accounting; Pawn.PreApplyDamage -> explicit injury-worker host sharing; inert host records; explicit shared-pool failure versus safe removal lifecycle",
 				error,
 				patchTargets,
 				patchTargetChecks,
@@ -3863,7 +4343,7 @@ namespace ZombieLand
 				sizeHealthScaling,
 				thumperDamageNoEffect,
 				inspectTabsHidden,
-				uncontrolledDestroyKillsHost,
+				uncontrolledDestroySafelySeversHost,
 				hostDeathStartsRetreat,
 				destroyedHostStartsRetreat,
 				pawnKillCreatesValidCorpse,
@@ -4164,7 +4644,6 @@ namespace ZombieLand
 			SymbiantNaturalSpawnFixture fixture = null;
 			ZombieSymbiant symbiant = null;
 			Corpse corpse = null;
-			Corpse hostCorpse = null;
 			object error = null;
 			object action = null;
 			try
@@ -4178,7 +4657,6 @@ namespace ZombieLand
 				var worldPawnBefore = Find.WorldPawns?.Contains(symbiant) == true;
 				symbiant.Kill(null);
 				corpse = symbiant.Corpse;
-				hostCorpse = host.Corpse;
 				var worldPawnAfter = Find.WorldPawns?.Contains(symbiant) == true;
 				var hediffAfter = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
 				action = new
@@ -4189,7 +4667,7 @@ namespace ZombieLand
 					hediffBefore,
 					hediffAfter,
 					hostDead = host.Dead,
-					hostCorpse = ZombieRuntimeActions.StableThingId(hostCorpse),
+					hostCorpse = ZombieRuntimeActions.StableThingId(host.Corpse),
 					dead = symbiant.Dead,
 					destroyed = symbiant.Destroyed,
 					discarded = symbiant.Discarded,
@@ -4202,8 +4680,8 @@ namespace ZombieLand
 					success = worldPawnBefore == false
 						&& hediffBefore
 						&& hediffAfter == false
-						&& host.Dead
-						&& hostCorpse != null
+						&& host.Dead == false
+						&& host.Corpse == null
 						&& symbiant.SymbiosisSevered
 						&& symbiant.Dead
 						&& symbiant.Destroyed
@@ -4225,8 +4703,6 @@ namespace ZombieLand
 				{
 					if (corpse?.Destroyed == false)
 						corpse.Destroy(DestroyMode.Vanish);
-					if (hostCorpse?.Destroyed == false)
-						hostCorpse.Destroy(DestroyMode.Vanish);
 					if (symbiant != null && Find.WorldPawns?.Contains(symbiant) == true)
 						Find.WorldPawns.RemovePawn(symbiant);
 					if (symbiant?.Discarded == false)
@@ -4238,7 +4714,7 @@ namespace ZombieLand
 			return new
 			{
 				success = error == null && ScenarioSucceeded(action),
-				sourcePath = "ZombieSymbiant.Kill -> lethal host collapse -> Pawn.Kill -> DeSpawnOrDeselect -> MakeCorpse",
+				sourcePath = "ZombieSymbiant.Kill -> safe host detach -> DeSpawnOrDeselect -> MakeCorpse",
 				error,
 				action
 			};
@@ -4496,11 +4972,12 @@ namespace ZombieLand
 						? DescribeHostAvailabilityState("crossMapHostDeath", map, symbiant, host)
 						: moveToSecondMap;
 					var hediffBefore = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
-					host.Kill(null);
+					var deathLifecycle = KillLinkedHostAndCaptureDeathLifecycle(host);
 					var activeAfter = ZombieSymbiant.ActiveSymbiant(map);
 					var hediffAfter = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
 					action = new
 					{
+						deathLifecycle,
 						moveToSecondMap,
 						dormant,
 						hediffBefore,
@@ -4510,6 +4987,7 @@ namespace ZombieLand
 						symbiosisSevered = symbiant.SymbiosisSevered,
 						activeAfter = ZombieRuntimeActions.StableThingId(activeAfter),
 						success = ScenarioSucceeded(dormant)
+							&& deathLifecycle.success
 							&& hediffBefore
 							&& hediffAfter == false
 							&& host.Dead
@@ -4684,6 +5162,15 @@ namespace ZombieLand
 						var sharedHealthAfterEmp = symbiant.SharedHealthCurrentDisplay;
 						var actualEmpDrain = sharedHealthAfterStun - sharedHealthAfterEmp;
 						var hostInjuryAfterEmp = TotalInjurySeverity(host);
+
+						symbiantHostDamagePackets.Clear();
+						var seismicAmount = symbiant.SharedHealthCurrentDisplay + 250f;
+						var seismicResult = host.TakeDamage(new DamageInfo(CustomDefs.SeismicWave, seismicAmount, 0f, -1f, null));
+						var seismicPackets = SymbiantHostDamagePacketSnapshot();
+						var expectedSeismicDrain = ExpectedSymbiantHostHealthDrain(seismicPackets);
+						var sharedHealthAfterSeismic = symbiant.SharedHealthCurrentDisplay;
+						var actualSeismicDrain = sharedHealthAfterEmp - sharedHealthAfterSeismic;
+						var hostInjuryAfterSeismic = TotalInjurySeverity(host);
 						var linkedAfter = ZombieSymbiant.LinkedSymbiantFor(host);
 
 						action = new
@@ -4710,14 +5197,23 @@ namespace ZombieLand
 							empPackets,
 							expectedEmpDrain,
 							actualEmpDrain,
+							seismicAmount,
+							seismicHarmsHealth = CustomDefs.SeismicWave?.harmsHealth ?? false,
+							seismicWorkerClass = CustomDefs.SeismicWave?.workerClass?.FullName,
+							seismicDamageDealt = seismicResult.totalDamageDealt,
+							seismicPackets,
+							expectedSeismicDrain,
+							actualSeismicDrain,
 							sharedHealthBefore,
 							sharedHealthAfterExtinguish,
 							sharedHealthAfterStun,
 							sharedHealthAfterEmp,
+							sharedHealthAfterSeismic,
 							hostInjuryBeforeEffects,
 							hostInjuryAfterExtinguish,
 							hostInjuryAfterStun,
 							hostInjuryAfterEmp,
+							hostInjuryAfterSeismic,
 							hostDead = host.Dead,
 							symbiantDestroyed = symbiant.Destroyed,
 							linkedAfter = ZombieRuntimeActions.StableThingId(linkedAfter),
@@ -4730,12 +5226,18 @@ namespace ZombieLand
 								&& stunnedAfterStun
 								&& DamageDefOf.EMP.harmsHealth == false
 								&& Mathf.Approximately(empResult.totalDamageDealt, 0f)
+								&& CustomDefs.SeismicWave != null
+								&& CustomDefs.SeismicWave.harmsHealth
+								&& Mathf.Approximately(seismicResult.totalDamageDealt, 0f)
 								&& Mathf.Approximately(actualExtinguishDrain, expectedExtinguishDrain)
 								&& Mathf.Approximately(actualStunDrain, expectedStunDrain)
 								&& Mathf.Approximately(actualEmpDrain, expectedEmpDrain)
+								&& Mathf.Approximately(expectedSeismicDrain, 0f)
+								&& Mathf.Approximately(actualSeismicDrain, expectedSeismicDrain)
 								&& Mathf.Approximately(hostInjuryAfterExtinguish, hostInjuryBeforeEffects)
 								&& Mathf.Approximately(hostInjuryAfterStun, hostInjuryBeforeEffects)
 								&& (expectedEmpDrain > 0f || Mathf.Approximately(hostInjuryAfterEmp, hostInjuryBeforeEffects))
+								&& Mathf.Approximately(hostInjuryAfterSeismic, hostInjuryAfterEmp)
 								&& symbiant.CellCount == cellCountBefore
 								&& host.Dead == false
 								&& symbiant.Destroyed == false
@@ -5042,7 +5544,7 @@ namespace ZombieLand
 							&& directTabs.Length == 0
 					};
 				}
-				else if (scenario == "uncontrolledDestroyKillsHost")
+				else if (scenario == "uncontrolledDestroySafelySeversHost")
 				{
 					var hediffBefore = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
 					symbiant.Destroy(DestroyMode.Vanish);
@@ -5063,7 +5565,8 @@ namespace ZombieLand
 						linkedAfter = ZombieRuntimeActions.StableThingId(linkedAfter),
 						success = hediffBefore
 							&& hediffAfter == false
-							&& host.Dead
+							&& host.Dead == false
+							&& Mathf.Approximately(hostInjuryAfter, hostInjuryBefore)
 							&& symbiant.Destroyed
 							&& symbiant.Discarded
 							&& worldPawnAfterDestroy == false
@@ -5073,11 +5576,12 @@ namespace ZombieLand
 				else if (scenario == "hostDeathStartsRetreat")
 				{
 					var hediffBefore = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
-					host.Kill(null);
+					var deathLifecycle = KillLinkedHostAndCaptureDeathLifecycle(host);
 					var activeAfter = ZombieSymbiant.ActiveSymbiant(map);
 					var hediffAfter = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
 					action = new
 					{
+						deathLifecycle,
 						hediffBefore,
 						hediffAfter,
 						hostDead = host.Dead,
@@ -5085,6 +5589,7 @@ namespace ZombieLand
 						symbiosisSevered = symbiant.SymbiosisSevered,
 						activeAfter = ZombieRuntimeActions.StableThingId(activeAfter),
 						success = hediffBefore
+							&& deathLifecycle.success
 							&& hediffAfter == false
 							&& host.Dead
 							&& symbiant.Destroyed == false
