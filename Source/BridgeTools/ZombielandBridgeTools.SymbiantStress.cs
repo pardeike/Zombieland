@@ -18,6 +18,7 @@ namespace ZombieLand
 			[ToolParameter(Description = "PawnKindDef defName for spawned player animals.", Required = false, DefaultValue = "Chicken")] string animalKindDefName = "Chicken",
 			[ToolParameter(Description = "Raid points for the edge-walk-in immediate attack raid.", Required = false, DefaultValue = 10000f)] float raidPoints = 10000f,
 			[ToolParameter(Description = "When true, trigger the max-points edge raid during setup.", Required = false, DefaultValue = true)] bool triggerRaid = true,
+			[ToolParameter(Description = "When true, equip every target colonist with the fixture's ranged weapon for ranged-threat stress testing.", Required = false, DefaultValue = false)] bool armColonists = false,
 			[ToolParameter(Description = "When true, relocate/spawn player colonists inside the intended symbiant footprint for worst-case interaction testing.", Required = false, DefaultValue = false)] bool colonistsInsideSymbiant = false,
 			[ToolParameter(Description = "Symbiant-center x coordinate used for colonist clustering. Use -1 with symbiantCenterZ -1 for map center.", Required = false, DefaultValue = -1)] int symbiantCenterX = -1,
 			[ToolParameter(Description = "Symbiant-center z coordinate used for colonist clustering. Use -1 with symbiantCenterX -1 for map center.", Required = false, DefaultValue = -1)] int symbiantCenterZ = -1,
@@ -56,6 +57,7 @@ namespace ZombieLand
 					animalKindDefName,
 					Math.Max(1f, raidPoints),
 					triggerRaid,
+					armColonists,
 					colonistsInsideSymbiant,
 					symbiantCenterX,
 					symbiantCenterZ,
@@ -88,6 +90,7 @@ namespace ZombieLand
 			string animalKindDefName,
 			float raidPoints,
 			bool triggerRaid,
+			bool armColonists,
 			bool colonistsInsideSymbiant,
 			int symbiantCenterX,
 			int symbiantCenterZ,
@@ -186,6 +189,12 @@ namespace ZombieLand
 				spawnedAnimals++;
 			}
 
+			var armedColonists = 0;
+			if (armColonists)
+				foreach (var pawn in map.mapPawns.FreeColonistsSpawned.Take(targetColonists))
+					if (EquipAreaWorkflowRangedWeapon(pawn) != null)
+						armedColonists++;
+
 			var raid = triggerRaid ? TriggerStressRaid(map, raidPoints) : new { success = true, skipped = true };
 			var after = DescribeSymbiantPawnStressState(map);
 			return new
@@ -193,6 +202,7 @@ namespace ZombieLand
 				success = spawnedColonists == colonistsToSpawn
 					&& failedRelocations.Count == 0
 					&& spawnedAnimals == animalsToSpawn
+					&& (armColonists == false || armedColonists == targetColonists)
 					&& (bool)(raid.GetType().GetProperty("success")?.GetValue(raid) ?? false),
 				targetColonists,
 				targetAnimals,
@@ -201,6 +211,8 @@ namespace ZombieLand
 				relocatedColonists,
 				failedRelocations,
 				spawnedAnimals,
+				armColonists,
+				armedColonists,
 				colonistsInsideSymbiant,
 				symbiantCenter = colonistsInsideSymbiant ? ZombieRuntimeActions.DescribeCell(symbiantCenter) : null,
 				colonistClusterRadius = colonistsInsideSymbiant ? colonistClusterRadius : 0f,

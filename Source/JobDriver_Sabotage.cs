@@ -30,6 +30,7 @@ namespace ZombieLand
 		public bool noSafeHackRoute = false;
 		public bool interruptibleDestination = false;
 		public bool safetyDestination = false;
+		public int safetyPathPressureLimit = 0;
 		public bool fallbackDestination = false;
 		public int nextStrategicRecheckTick = 0;
 		public IntVec3 lastStrategicRecheckCell = IntVec3.Invalid;
@@ -71,6 +72,7 @@ namespace ZombieLand
 			noSafeHackRoute = false;
 			interruptibleDestination = false;
 			safetyDestination = false;
+			safetyPathPressureLimit = 0;
 			fallbackDestination = false;
 			nextStrategicRecheckTick = 0;
 			lastStrategicRecheckCell = IntVec3.Invalid;
@@ -110,6 +112,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref noSafeHackRoute, "noSafeHackRoute", false);
 			Scribe_Values.Look(ref interruptibleDestination, "interruptibleDestination", false);
 			Scribe_Values.Look(ref safetyDestination, "safetyDestination", false);
+			Scribe_Values.Look(ref safetyPathPressureLimit, "safetyPathPressureLimit", 0);
 			Scribe_Values.Look(ref fallbackDestination, "fallbackDestination", false);
 			Scribe_Values.Look(ref nextStrategicRecheckTick, "nextStrategicRecheckTick", 0);
 			Scribe_Values.Look(ref lastStrategicRecheckCell, "lastStrategicRecheckCell", IntVec3.Invalid);
@@ -174,6 +177,7 @@ namespace ZombieLand
 			destination = IntVec3.Invalid;
 			interruptibleDestination = false;
 			safetyDestination = false;
+			safetyPathPressureLimit = 0;
 			fallbackDestination = false;
 		}
 
@@ -246,7 +250,9 @@ namespace ZombieLand
 		const int albinoNoSafeHackRoutePressure = 4;
 		const int albinoHackApproachCandidateLimit = 48;
 		const int albinoHackTargetCandidateLimit = 32;
-		const int albinoSafetyMoveCandidateLimit = 96;
+		const float albinoSafetyMoveRadius = 14f;
+		const int albinoSafetyMoveEvaluationCandidateLimit = 192;
+		const int albinoSafetyMovePathCandidateLimit = 16;
 		const int albinoFallbackMoveCandidateLimit = 80;
 		const int albinoNearbyFallbackMoveCandidateLimit = 64;
 		const int albinoStrategicRecheckCooldownTicks = 12;
@@ -392,15 +398,17 @@ namespace ZombieLand
 			driver.queuedMoveCell = IntVec3.Invalid;
 			driver.interruptibleDestination = false;
 			driver.safetyDestination = false;
+			driver.safetyPathPressureLimit = 0;
 			driver.fallbackDestination = false;
 			driver.nextStrategicRecheckTick = 0;
 			driver.lastStrategicRecheckCell = IntVec3.Invalid;
 		}
 
-		static void MarkStrategicDestination(this JobDriver_Sabotage driver, bool interruptible, bool safety, bool fallback = false)
+		static void MarkStrategicDestination(this JobDriver_Sabotage driver, bool interruptible, bool safety, bool fallback = false, int safetyPressureLimit = 0)
 		{
 			driver.interruptibleDestination = interruptible;
 			driver.safetyDestination = safety;
+			driver.safetyPathPressureLimit = safety ? Math.Max(safetyPressureLimit, albinoNoSafeHackRoutePressure) : 0;
 			driver.fallbackDestination = fallback;
 			driver.nextStrategicRecheckTick = 0;
 			driver.lastStrategicRecheckCell = IntVec3.Invalid;
@@ -622,8 +630,47 @@ namespace ZombieLand
 
 		static bool HasUsableRangedVerb(IAttackTargetSearcher searcher, out Verb verb)
 		{
+			if (searcher is Pawn pawn)
+				return TryGetUsablePawnRangedVerb(pawn, out verb);
+
 			verb = searcher?.CurrentEffectiveVerb;
 			return verb != null && verb.IsMeleeAttack == false;
+		}
+
+		static bool TryGetUsablePawnRangedVerb(Pawn pawn, out Verb verb)
+		{
+			verb = null;
+			if (pawn == null)
+				return false;
+
+			if (pawn.mindState != null && pawn.MannedThing() is Building_Turret turret)
+			{
+				verb = turret.AttackVerb;
+				return verb != null && verb.IsMeleeAttack == false;
+			}
+
+			var primaryVerb = pawn.equipment?.PrimaryEq?.PrimaryVerb;
+			if (primaryVerb != null
+				&& primaryVerb.Available()
+				&& (primaryVerb.verbProps.onlyManualCast == false
+					|| pawn.CurJob != null && pawn.CurJob.def != JobDefOf.Wait_Combat
+					|| pawn.IsColonist == false))
+			{
+				verb = primaryVerb;
+				return verb.IsMeleeAttack == false;
+			}
+
+			if (pawn.IsColonist == false)
+			{
+				var apparelVerb = pawn.apparel?.FirstApparelVerb;
+				if (apparelVerb != null && apparelVerb.Available())
+				{
+					verb = apparelVerb;
+					return verb.IsMeleeAttack == false;
+				}
+			}
+
+			return false;
 		}
 
 		static bool CanShootCell(IAttackTargetSearcher searcher, IntVec3 cell)
@@ -631,7 +678,15 @@ namespace ZombieLand
 			if (cell.IsValid == false || searcher?.Thing?.Spawned != true || HasUsableRangedVerb(searcher, out var verb) == false)
 				return false;
 
-			var origin = searcher.Thing.Position;
+			return CanShootCellWithVerb(searcher.Thing, verb, cell);
+		}
+
+		static bool CanShootCellWithVerb(Thing source, Verb verb, IntVec3 cell)
+		{
+			if (cell.IsValid == false || source?.Spawned != true || verb == null || verb.IsMeleeAttack)
+				return false;
+
+			var origin = source.Position;
 			var range = verb.verbProps?.range ?? 0f;
 			if (range > 0f && origin.DistanceToSquared(cell) > range * range)
 				return false;
@@ -701,8 +756,9 @@ namespace ZombieLand
 				&& SoSTools.IsHologram(pawn) == false;
 		}
 
-		static bool CanAlbinoPressurePawn(Pawn pawn, Zombie zombie)
+		static bool TryClassifyAlbinoPressurePawn(Pawn pawn, Zombie zombie, out bool activeResponse)
 		{
+			activeResponse = false;
 			if (pawn == null
 				|| zombie == null
 				|| pawn.Spawned == false
@@ -719,7 +775,8 @@ namespace ZombieLand
 				|| (pawn.RaceProps?.Humanlike == true && pawn.InfectionState() >= InfectionState.Infecting))
 				return false;
 
-			if (IsAttackingOrApproaching(pawn, zombie))
+			activeResponse = IsAttackingOrApproaching(pawn, zombie);
+			if (activeResponse)
 				return true;
 
 			var raceProps = pawn.RaceProps;
@@ -762,10 +819,53 @@ namespace ZombieLand
 			return isAnimal && settings.animalsAttackZombies && settings.attackMode == AttackMode.Everything;
 		}
 
+		static bool CanAlbinoPressurePawn(Pawn pawn, Zombie zombie)
+		{
+			return TryClassifyAlbinoPressurePawn(pawn, zombie, out _);
+		}
+
+		sealed class AlbinoPawnPressureSource
+		{
+			public Pawn pawn;
+			public bool activeResponse;
+			public Verb rangedVerb;
+		}
+
 		sealed class AlbinoPressureSources
 		{
+			public const int pawnBucketSize = 12;
 			public List<Pawn> pawns = new();
+			public List<AlbinoPawnPressureSource> rangedPawns = new();
+			public Dictionary<long, List<AlbinoPawnPressureSource>> pawnBuckets = new();
 			public List<Building_TurretGun> turrets = new();
+
+			public void AddPawn(Pawn pawn, bool activeResponse)
+			{
+				var source = new AlbinoPawnPressureSource
+				{
+					pawn = pawn,
+					activeResponse = activeResponse,
+					rangedVerb = HasUsableRangedVerb(pawn, out var verb) ? verb : null
+				};
+				pawns.Add(pawn);
+				if (source.rangedVerb != null)
+					rangedPawns.Add(source);
+
+				var bucketX = pawn.Position.x / pawnBucketSize;
+				var bucketZ = pawn.Position.z / pawnBucketSize;
+				var key = AlbinoPawnPressureBucketKey(bucketX, bucketZ);
+				if (pawnBuckets.TryGetValue(key, out var bucket) == false)
+				{
+					bucket = new List<AlbinoPawnPressureSource>();
+					pawnBuckets.Add(key, bucket);
+				}
+				bucket.Add(source);
+			}
+		}
+
+		static long AlbinoPawnPressureBucketKey(int bucketX, int bucketZ)
+		{
+			return ((long)bucketX << 32) ^ (uint)bucketZ;
 		}
 
 		static AlbinoPressureSources AlbinoPressureSourcesFor(Zombie zombie)
@@ -774,8 +874,8 @@ namespace ZombieLand
 			var seen = new HashSet<Pawn>();
 			void Add(Pawn pawn)
 			{
-				if (CanAlbinoPressurePawn(pawn, zombie) && seen.Add(pawn))
-					sources.pawns.Add(pawn);
+				if (pawn != null && seen.Add(pawn) && TryClassifyAlbinoPressurePawn(pawn, zombie, out var activeResponse))
+					sources.AddPawn(pawn, activeResponse);
 			}
 
 			foreach (var pawn in zombie.Map.mapPawns.AllPawnsSpawned)
@@ -789,24 +889,40 @@ namespace ZombieLand
 			return sources;
 		}
 
-		static int AlbinoPawnPressureAtCell(Zombie zombie, IntVec3 cell, List<Pawn> pawns)
+		static int AlbinoPawnPressureAtCell(IntVec3 cell, AlbinoPressureSources sources)
 		{
 			var score = 0;
-			foreach (var pawn in pawns)
+			var bucketX = cell.x / AlbinoPressureSources.pawnBucketSize;
+			var bucketZ = cell.z / AlbinoPressureSources.pawnBucketSize;
+			for (var x = bucketX - 1; x <= bucketX + 1; x++)
+				for (var z = bucketZ - 1; z <= bucketZ + 1; z++)
+				{
+					if (sources.pawnBuckets.TryGetValue(AlbinoPawnPressureBucketKey(x, z), out var bucket) == false)
+						continue;
+					foreach (var source in bucket)
+					{
+						var pawn = source.pawn;
+						var distance = pawn.Position.DistanceToSquared(cell);
+						if (distance > 144)
+							continue;
+						if (source.rangedVerb != null && CanShootCellWithVerb(pawn, source.rangedVerb, cell))
+							score += 4;
+						else if (distance <= 4)
+							score += source.activeResponse ? 4 : 2;
+						else if (distance <= 25)
+							score += source.activeResponse ? 3 : 1;
+						else if (source.activeResponse)
+							score += 2;
+					}
+				}
+
+			foreach (var source in sources.rangedPawns)
 			{
-				var distance = pawn.Position.DistanceToSquared(cell);
-				var activeResponse = IsAttackingOrApproaching(pawn, zombie);
-				var rangedShooter = HasUsableRangedVerb(pawn, out _);
-				if (rangedShooter && CanShootCell(pawn, cell))
-					score += 4;
-				else if (distance > 144)
+				var pawn = source.pawn;
+				if (pawn.Position.DistanceToSquared(cell) <= 144)
 					continue;
-				else if (distance <= 4)
-					score += activeResponse ? 4 : 2;
-				else if (distance <= 25)
-					score += activeResponse ? 3 : 1;
-				else if (activeResponse)
-					score += 2;
+				if (CanShootCellWithVerb(pawn, source.rangedVerb, cell))
+					score += 4;
 			}
 			return score;
 		}
@@ -822,7 +938,7 @@ namespace ZombieLand
 
 		static int AlbinoPressureAtCell(Zombie zombie, IntVec3 cell, AlbinoPressureSources sources)
 		{
-			return AlbinoPawnPressureAtCell(zombie, cell, sources.pawns) + AlbinoTurretPressureAtCell(cell, sources.turrets);
+			return AlbinoPawnPressureAtCell(cell, sources) + AlbinoTurretPressureAtCell(cell, sources.turrets);
 		}
 
 		static bool HasAlbinoPressureSources(AlbinoPressureSources sources)
@@ -883,6 +999,60 @@ namespace ZombieLand
 
 			AddAlbinoDoorTransitionPressure(zombie, path, sources, ref summedPressure, ref maxPressure);
 
+			return score + maxPressure * 80 + summedPressure * 10;
+		}
+
+		static int AlbinoSafetyPathPressureScore(
+			Zombie zombie,
+			PawnPath path,
+			IntVec3 destination,
+			AlbinoPressureSources sources,
+			int pressureLimit,
+			out int maxPressure,
+			out bool acceptable)
+		{
+			maxPressure = 0;
+			acceptable = false;
+			if (path?.Found != true || destination.IsValid == false || pressureLimit < albinoNoSafeHackRoutePressure)
+				return int.MaxValue;
+
+			var destinationPressure = AlbinoPressureAtCell(zombie, destination, sources);
+			if (destinationPressure >= pressureLimit)
+				return int.MaxValue;
+
+			var score = path.NodesLeftCount;
+			var summedPressure = 0;
+			var samples = 0;
+			var reachedLowerPressure = false;
+			var remainingNodes = Math.Max(0, path.NodesLeftCount - 1);
+			var step = Math.Max(1, (int)Math.Ceiling(remainingNodes / (double)albinoDefensiveScreamPathSamples));
+			var destinationSampled = false;
+			for (var i = 1; i < path.NodesLeftCount && samples < albinoDefensiveScreamPathSamples; i += step)
+			{
+				var cell = path.Peek(i);
+				if (cell.IsValid == false)
+					continue;
+
+				var pressure = AlbinoPressureAtCell(zombie, cell, sources);
+				maxPressure = Math.Max(maxPressure, pressure);
+				summedPressure += pressure;
+				samples++;
+				destinationSampled |= cell == destination;
+
+				if (pressure < pressureLimit)
+					reachedLowerPressure = true;
+				else if (pressure > pressureLimit || reachedLowerPressure)
+					return int.MaxValue;
+			}
+
+			if (destinationSampled == false)
+			{
+				maxPressure = Math.Max(maxPressure, destinationPressure);
+				summedPressure += destinationPressure;
+			}
+
+			AddAlbinoDoorTransitionPressure(zombie, path, sources, ref summedPressure, ref maxPressure);
+			acceptable = true;
 			return score + maxPressure * 80 + summedPressure * 10;
 		}
 
@@ -1316,17 +1486,60 @@ namespace ZombieLand
 			return maxPressure;
 		}
 
+		static bool HasActiveDestinationPath(this JobDriver_Sabotage driver, Zombie zombie)
+		{
+			return driver.destination.IsValid
+				&& zombie?.pather?.Moving == true
+				&& zombie.pather.Destination.Cell == driver.destination;
+		}
+
+		static bool ActiveAlbinoSafetyPathIsAcceptable(this JobDriver_Sabotage driver, Zombie zombie, AlbinoPressureSources sources)
+		{
+			if (driver.HasActiveDestinationPath(zombie) == false)
+				return false;
+
+			var path = zombie.pather.curPath;
+			if (path?.Found != true
+				|| path.TryFindLastCellBeforeBlockingDoor(zombie, out _, out _)
+				|| TryFindDangerousAlbinoDoorExit(zombie, path, sources, out _, out _, out _))
+				return false;
+
+			var pressureLimit = Math.Max(driver.safetyPathPressureLimit, albinoNoSafeHackRoutePressure);
+			_ = AlbinoSafetyPathPressureScore(zombie, path, driver.destination, sources, pressureLimit, out _, out var acceptable);
+			return acceptable;
+		}
+
+		static void StopInvalidAlbinoSafetyPath(this JobDriver_Sabotage driver, Zombie zombie)
+		{
+			zombie?.pather?.StopDead();
+			driver.ClearStrategicDestination();
+			driver.waitCounter = Math.Max(driver.waitCounter, albinoPressureRetryWaitTicks);
+		}
+
 		static bool TryStartAlbinoSafetyMove(this JobDriver_Sabotage driver, Zombie zombie, AlbinoPressureSources sources, bool forceUnsafeRouteMove = false)
 		{
 			var map = zombie?.Map;
 			if (map == null)
 				return false;
+
+			var invalidatedActivePath = false;
+			if (forceUnsafeRouteMove == false && driver.safetyDestination && driver.HasActiveDestinationPath(zombie))
+			{
+				if (driver.ActiveAlbinoSafetyPathIsAcceptable(zombie, sources))
+					return true;
+				invalidatedActivePath = true;
+			}
+
 			var currentPressure = ImmediateAlbinoMovementPressure(zombie, sources);
 			if (forceUnsafeRouteMove == false && currentPressure < albinoNoSafeHackRoutePressure)
-				return false;
+			{
+				if (invalidatedActivePath)
+					driver.StopInvalidAlbinoSafetyPath(zombie);
+				return invalidatedActivePath;
+			}
 			var pressureLimit = forceUnsafeRouteMove ? Math.Max(currentPressure, albinoNoSafeHackRoutePressure) : currentPressure;
 
-			var traverseParms = TraverseParms.For(zombie, Danger.None, TraverseMode.PassDoors, false);
+			var traverseParms = TraverseParms.For(zombie, Danger.None, TraverseMode.ByPawn, false);
 			var target = driver.hackTarget ?? (Thing)driver.door;
 			var hasTarget = target?.Spawned == true && target.Map == map;
 			var currentTargetDistance = hasTarget ? zombie.Position.DistanceToSquared(target.Position) : 0;
@@ -1335,23 +1548,41 @@ namespace ZombieLand
 			var bestScore = int.MaxValue;
 			var bestMaxPressure = int.MaxValue;
 			var bestCellPressure = int.MaxValue;
+			var bestPathPressureScore = int.MaxValue;
+			var bestMoveDistance = -1;
 			var bestTargetDistance = int.MaxValue;
 			var checkedPaths = 0;
-			foreach (var cell in GenRadial.RadialCellsAround(zombie.Position, 14f, false))
+			var candidateCells = GenRadial.RadialCellsAround(zombie.Position, albinoSafetyMoveRadius, false)
+				.Where(cell => cell.InBounds(map) && cell.Standable(map) && cell.Fogged(map) == false)
+				.Where(cell => cell.GetEdifice(map) == null)
+				.Where(cell => cell.GetThingList(map).Any(thing => thing is Pawn) == false)
+				.Where(cell => map.reachability.CanReach(zombie.Position, cell, PathEndMode.OnCell, traverseParms))
+				.Select(cell => new
+				{
+					cell,
+					moveDistance = cell.DistanceToSquared(zombie.Position),
+					targetDistance = hasTarget ? cell.DistanceToSquared(target.Position) : currentTargetDistance
+				})
+				.OrderByDescending(candidate => candidate.moveDistance)
+				.ThenBy(candidate => candidate.targetDistance)
+				.Take(albinoSafetyMoveEvaluationCandidateLimit);
+			var candidates = candidateCells
+				.Select(candidate => new
+				{
+					candidate.cell,
+					pressure = AlbinoPressureAtCell(zombie, candidate.cell, sources),
+					candidate.moveDistance,
+					candidate.targetDistance
+				})
+				.Where(candidate => candidate.pressure < pressureLimit)
+				.OrderBy(candidate => candidate.pressure)
+				.ThenByDescending(candidate => candidate.moveDistance)
+				.ThenBy(candidate => candidate.targetDistance);
+			foreach (var candidate in candidates)
 			{
-				if (cell.InBounds(map) == false || cell.Standable(map) == false || cell.Fogged(map))
-					continue;
-				if (cell.GetEdifice(map) != null)
-					continue;
-				if (cell.GetThingList(map).Any(thing => thing is Pawn))
-					continue;
-
-				var cellPressure = AlbinoPressureAtCell(zombie, cell, sources);
-				if (cellPressure >= pressureLimit)
-					continue;
-				if (checkedPaths >= albinoSafetyMoveCandidateLimit)
+				var cell = candidate.cell;
+				if (checkedPaths >= albinoSafetyMovePathCandidateLimit)
 					break;
-
 				checkedPaths++;
 				var path = map.pathFinder.FindPathNow(zombie.Position, cell, traverseParms, null, PathEndMode.OnCell, null);
 				if (path.Found == false)
@@ -1365,27 +1596,40 @@ namespace ZombieLand
 					continue;
 				}
 
-				var score = AlbinoPathPressureScore(zombie, path, sources, out var maxPressure);
-				var targetDistance = hasTarget ? cell.DistanceToSquared(target.Position) : currentTargetDistance;
-				if (cellPressure < bestCellPressure
-					|| cellPressure == bestCellPressure && maxPressure < bestMaxPressure
-					|| cellPressure == bestCellPressure && maxPressure == bestMaxPressure && score < bestScore
-					|| cellPressure == bestCellPressure && maxPressure == bestMaxPressure && score == bestScore && targetDistance < bestTargetDistance)
+				var score = AlbinoSafetyPathPressureScore(zombie, path, cell, sources, pressureLimit, out var maxPressure, out var acceptable);
+				if (acceptable == false)
+				{
+					path.ReleaseToPool();
+					continue;
+				}
+				var pathPressureScore = score - path.NodesLeftCount;
+				if (candidate.pressure < bestCellPressure
+					|| candidate.pressure == bestCellPressure && maxPressure < bestMaxPressure
+					|| candidate.pressure == bestCellPressure && maxPressure == bestMaxPressure && candidate.moveDistance > bestMoveDistance
+					|| candidate.pressure == bestCellPressure && maxPressure == bestMaxPressure && candidate.moveDistance == bestMoveDistance && pathPressureScore < bestPathPressureScore
+					|| candidate.pressure == bestCellPressure && maxPressure == bestMaxPressure && candidate.moveDistance == bestMoveDistance && pathPressureScore == bestPathPressureScore && candidate.targetDistance < bestTargetDistance
+					|| candidate.pressure == bestCellPressure && maxPressure == bestMaxPressure && candidate.moveDistance == bestMoveDistance && pathPressureScore == bestPathPressureScore && candidate.targetDistance == bestTargetDistance && score < bestScore)
 				{
 					bestPath?.ReleaseToPool();
 					bestPath = path;
 					bestCell = cell;
 					bestScore = score;
 					bestMaxPressure = maxPressure;
-					bestCellPressure = cellPressure;
-					bestTargetDistance = targetDistance;
+					bestCellPressure = candidate.pressure;
+					bestPathPressureScore = pathPressureScore;
+					bestMoveDistance = candidate.moveDistance;
+					bestTargetDistance = candidate.targetDistance;
 				}
 				else
 					path.ReleaseToPool();
 			}
 
 			if (bestPath == null)
-				return false;
+			{
+				if (invalidatedActivePath)
+					driver.StopInvalidAlbinoSafetyPath(zombie);
+				return invalidatedActivePath;
+			}
 
 			driver.pawn.pather?.StopDead();
 			driver.destination = bestCell;
@@ -1393,7 +1637,7 @@ namespace ZombieLand
 			driver.doorExitCell = IntVec3.Invalid;
 			driver.queuedScreamCell = IntVec3.Invalid;
 			driver.queuedMoveCell = IntVec3.Invalid;
-			driver.MarkStrategicDestination(true, true);
+			driver.MarkStrategicDestination(true, true, false, pressureLimit);
 			driver.waitCounter = 0;
 			if (target != null && target == driver.hackTarget)
 				driver.DeferUnsafeHackTarget(target);
@@ -1453,7 +1697,7 @@ namespace ZombieLand
 					}
 				}
 
-				if (zombie.pather?.Moving == true && zombie.Position != driver.destination)
+				if (driver.HasActiveDestinationPath(zombie))
 					return false;
 
 				if (immediatePressure >= albinoNoSafeHackRoutePressure)

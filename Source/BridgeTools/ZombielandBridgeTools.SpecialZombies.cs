@@ -2044,7 +2044,7 @@ namespace ZombieLand
 			public string error;
 		}
 
-		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for scream vomit job resume/cleanup, scream cooldown, target preference, opportunistic raiders, attack-mode scream filtering, false thing-target proximity, paralysis cancellation, door-resume, externally opened door resume, externally opened door hack-target re-path, stale target clearing, pure power target exclusion, flickable, breakdownable, and weapon hacks.")]
+		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for door-filtered safety selection, safety-path commitment/revalidation, scream vomit job resume/cleanup, scream cooldown, target preference, opportunistic raiders, attack-mode scream filtering, false thing-target proximity, paralysis cancellation, door-resume, externally opened door resume, externally opened door hack-target re-path, stale target clearing, pure power target exclusion, flickable, breakdownable, and weapon hacks.")]
 		public static object AlbinoSabotageContract(
 			[ToolParameter(Description = "Return only case names, pass/fail, and errors to keep routine validation output compact.", Required = false, DefaultValue = false)] bool summaryOnly = false)
 		{
@@ -2082,6 +2082,8 @@ namespace ZombieLand
 			AddCase("pressure_uses_reverse_hostility", () => AlbinoPressureUsesReverseHostilityCase(map));
 			AddCase("raider_attacking_nearby_colonist", () => AlbinoRaiderAttackingNearbyColonistCase(map));
 			AddCase("no_destination_pressure_backoff", () => AlbinoNoDestinationPressureBackoffCase(map));
+			AddCase("safety_path_filters_closed_door_routes", () => AlbinoSafetyPathFiltersClosedDoorRoutesCase(map));
+			AddCase("safety_path_commitment", () => AlbinoSafetyPathCommitmentCase(map));
 			AddCase("scream_vomit_resumes_job", () => AlbinoScreamVomitResumesJobCase(map));
 			AddCase("scream_vomit_failed_start_cleans_pending", () => AlbinoScreamVomitFailedStartCleansPendingCase(map));
 			AddCase("scream_cooldown", () => AlbinoScreamCooldownCase(map));
@@ -2243,6 +2245,7 @@ namespace ZombieLand
 			driver.noSafeHackRoute = false;
 			driver.interruptibleDestination = false;
 			driver.safetyDestination = false;
+			driver.safetyPathPressureLimit = 0;
 			driver.fallbackDestination = false;
 			driver.nextStrategicRecheckTick = 0;
 			driver.lastStrategicRecheckCell = IntVec3.Invalid;
@@ -2290,6 +2293,7 @@ namespace ZombieLand
 			driver.noSafeHackRoute = false;
 			driver.interruptibleDestination = false;
 			driver.safetyDestination = false;
+			driver.safetyPathPressureLimit = 0;
 			driver.fallbackDestination = false;
 			driver.nextStrategicRecheckTick = 0;
 			driver.lastStrategicRecheckCell = IntVec3.Invalid;
@@ -2478,6 +2482,34 @@ namespace ZombieLand
 
 			var sources = sourcesMethod.Invoke(null, new object[] { zombie });
 			pressure = (int)pressureMethod.Invoke(null, new object[] { zombie, sources });
+			return true;
+		}
+
+		static bool TryInvokeAlbinoSafetyMove(JobDriver_Sabotage driver, Zombie zombie, bool forceUnsafeRouteMove, out bool handled, out string error)
+		{
+			handled = false;
+			error = null;
+			var sourcesMethod = SabotageHandlerType?.GetMethod("AlbinoPressureSourcesFor", BindingFlags.Static | BindingFlags.NonPublic);
+			var safetyMoveMethod = SabotageHandlerType?
+				.GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
+				.FirstOrDefault(candidate =>
+				{
+					if (candidate.Name != "TryStartAlbinoSafetyMove")
+						return false;
+					var parameters = candidate.GetParameters();
+					return parameters.Length == 4
+						&& parameters[0].ParameterType == typeof(JobDriver_Sabotage)
+						&& parameters[1].ParameterType == typeof(Zombie)
+						&& parameters[3].ParameterType == typeof(bool);
+				});
+			if (sourcesMethod == null || safetyMoveMethod == null)
+			{
+				error = "Could not find SabotageHandler safety-move methods by reflection.";
+				return false;
+			}
+
+			var sources = sourcesMethod.Invoke(null, new object[] { zombie });
+			handled = (bool)safetyMoveMethod.Invoke(null, new object[] { driver, zombie, sources, forceUnsafeRouteMove });
 			return true;
 		}
 
@@ -3135,6 +3167,324 @@ namespace ZombieLand
 			}
 		}
 
+		static AlbinoSabotageCase AlbinoSafetyPathFiltersClosedDoorRoutesCase(Map map)
+		{
+			const string caseName = "safety_path_filters_closed_door_routes";
+			const int roomRadius = 4;
+			var spawnedThings = new List<Thing>();
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+
+				bool IsClearFixtureCell(IntVec3 cell)
+				{
+					return cell.InBounds(map)
+						&& cell.Standable(map)
+						&& cell.Fogged(map) == false
+						&& cell.GetEdifice(map) == null
+						&& cell.GetFirstThing<Mineable>(map) == null
+						&& cell.GetThingList(map).Any(thing => thing is Pawn) == false;
+				}
+
+				var preferred = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				var searchRadius = Math.Min(Math.Max(map.Size.x, map.Size.z) / 2f, 75f);
+				var root = IntVec3.Invalid;
+				IntVec3[] radialCells = null;
+				foreach (var candidate in GenRadial.RadialCellsAround(preferred, searchRadius, true))
+				{
+					if (candidate.x < 18 || candidate.z < 18 || candidate.x >= map.Size.x - 18 || candidate.z >= map.Size.z - 18)
+						continue;
+
+					var candidateRadialCells = GenRadial.RadialCellsAround(candidate, 14f, true).ToArray();
+					if (candidateRadialCells.Length >= 240 && candidateRadialCells.All(IsClearFixtureCell))
+					{
+						root = candidate;
+						radialCells = candidateRadialCells;
+						break;
+					}
+				}
+				if (root.IsValid == false || radialCells == null)
+					return AlbinoCase(caseName, false, error: "No clear radius-14 area was available for the closed-door safety fixture.");
+
+				var doorCell = root + new IntVec3(roomRadius, 0, 0);
+				var wallCells = new List<IntVec3>();
+				for (var x = -roomRadius; x <= roomRadius; x++)
+					for (var z = -roomRadius; z <= roomRadius; z++)
+					{
+						if (Math.Abs(x) != roomRadius && Math.Abs(z) != roomRadius)
+							continue;
+						var cell = root + new IntVec3(x, 0, z);
+						if (cell != doorCell)
+							wallCells.Add(cell);
+					}
+
+				foreach (var wallCell in wallCells)
+				{
+					var wall = ThingMaker.MakeThing(ThingDefOf.Wall, GenStuff.DefaultStuffFor(ThingDefOf.Wall)) as Building;
+					if (wall == null)
+						return AlbinoCase(caseName, false, error: "Could not create a test wall.");
+					GenSpawn.Spawn(wall, wallCell, map, WipeMode.Vanish);
+					wall.SetFaction(Faction.OfPlayer);
+					spawnedThings.Add(wall);
+				}
+
+				var door = ThingMaker.MakeThing(ThingDefOf.Door, GenStuff.DefaultStuffFor(ThingDefOf.Door)) as Building_Door;
+				if (door == null)
+					return AlbinoCase(caseName, false, error: "Could not create a test door.");
+				GenSpawn.Spawn(door, doorCell, map, WipeMode.Vanish);
+				door.SetFaction(Faction.OfPlayer);
+				spawnedThings.Add(door);
+				AdvanceGameTicks(1);
+
+				var albino = SpawnAlbinoTestZombie(map, root, spawnedThings);
+				albino?.SetFaction(Tools.GetZombieFaction());
+				var driver = StartAlbinoSabotageDriver(albino);
+				if (driver == null)
+					return AlbinoCase(caseName, false, error: "Albino did not enter the sabotage driver.");
+
+				ResetAlbinoPlannerState(driver);
+				var invoked = TryInvokeAlbinoSafetyMove(driver, albino, true, out var handled, out var error);
+				var ticksUntilPath = 0;
+				while (handled && ticksUntilPath < 30 && albino.pather?.curPath?.Found != true)
+				{
+					AdvanceGameTicks(1);
+					ticksUntilPath++;
+				}
+
+				var destination = driver.destination;
+				var pathBeforeRevalidation = albino.pather?.curPath;
+				var nextCellBeforeRevalidation = albino.pather?.nextCell ?? IntVec3.Invalid;
+				var nextCellCostLeftBeforeRevalidation = albino.pather?.nextCellCostLeft ?? -1f;
+				var revalidationInvoked = TryInvokeAlbinoSafetyMove(driver, albino, false, out var revalidationHandled, out var revalidationError);
+				var unchangedPathPreserved = pathBeforeRevalidation != null
+					&& ReferenceEquals(pathBeforeRevalidation, albino.pather?.curPath)
+					&& driver.destination == destination
+					&& albino.pather?.nextCell == nextCellBeforeRevalidation
+					&& Math.Abs((albino.pather?.nextCellCostLeft ?? -1f) - nextCellCostLeftBeforeRevalidation) < 0.001f;
+				var destinationInsideRoom = destination.IsValid
+					&& Math.Abs(destination.x - root.x) < roomRadius
+					&& Math.Abs(destination.z - root.z) < roomRadius;
+				var path = albino.pather?.curPath;
+				var pathCrossesDoor = path?.NodesReversed?.Contains(doorCell) == true;
+				var doorBlocksAlbino = door.CanPhysicallyPass(albino) == false;
+				var outsideCandidateCount = radialCells.Count(cell =>
+					Math.Abs(cell.x - root.x) > roomRadius
+					|| Math.Abs(cell.z - root.z) > roomRadius);
+				var success = invoked
+					&& handled
+					&& doorBlocksAlbino
+					&& outsideCandidateCount >= 192
+					&& driver.safetyDestination
+					&& driver.safetyPathPressureLimit >= 4
+					&& revalidationInvoked
+					&& revalidationHandled
+					&& unchangedPathPreserved
+					&& destinationInsideRoom
+					&& albino.pather?.Moving == true
+					&& albino.pather.Destination.Cell == destination
+					&& path?.Found == true
+					&& pathCrossesDoor == false;
+
+				return AlbinoCase(caseName, success, new
+				{
+					invoked,
+					handled,
+					doorBlocksAlbino,
+					outsideCandidateCount,
+					destinationInsideRoom,
+					pathCrossesDoor,
+					ticksUntilPath,
+					revalidationInvoked,
+					revalidationHandled,
+					unchangedPathPreserved,
+					driver.safetyDestination,
+					driver.safetyPathPressureLimit,
+					root = ZombieRuntimeActions.DescribeCell(root),
+					doorCell = ZombieRuntimeActions.DescribeCell(doorCell),
+					destination = destination.IsValid ? ZombieRuntimeActions.DescribeCell(destination) : null,
+					pathNodesLeft = path?.NodesLeftCount,
+					albino = DescribeZombie(albino)
+				}, error ?? revalidationError);
+			}
+			finally
+			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
+		static AlbinoSabotageCase AlbinoSafetyPathCommitmentCase(Map map)
+		{
+			const string caseName = "safety_path_commitment";
+			var spawnedThings = new List<Thing>();
+			try
+			{
+				_ = ZombieRuntimeActions.DestroyZombies(map);
+				if (TryFindAlbinoIsolatedFixtureRoot(map, out var root, out var rootError) == false)
+					return AlbinoCase(caseName, false, error: rootError?.ToString());
+				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
+					return AlbinoCase(caseName, false, error: albinoError?.ToString());
+
+				var pressureCells = GenRadial.RadialCellsAround(albinoCell, 2f, false)
+					.Where(cell => cell.InBounds(map))
+					.Where(cell => cell.Standable(map))
+					.Where(cell => cell.Fogged(map) == false)
+					.Where(cell => cell.GetEdifice(map) == null)
+					.Where(cell => cell.GetFirstThing<Mineable>(map) == null)
+					.Where(cell => cell.GetThingList(map).Any(thing => thing is Pawn) == false)
+					.Take(2)
+					.ToArray();
+				if (pressureCells.Length < 2)
+					return AlbinoCase(caseName, false, error: "Two nearby pressure-pawn cells were not available for the safety-path fixture.");
+
+				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
+				var pressurePawnA = SpawnAlbinoTestColonist(map, pressureCells[0], spawnedThings, true);
+				var pressurePawnB = SpawnAlbinoTestColonist(map, pressureCells[1], spawnedThings, true);
+				if (albino == null || pressurePawnA == null || pressurePawnB == null)
+					return AlbinoCase(caseName, false, error: "Could not create the albino safety-path fixture pawns.");
+
+				pressurePawnA.equipment?.DestroyAllEquipment(DestroyMode.Vanish);
+				pressurePawnB.equipment?.DestroyAllEquipment(DestroyMode.Vanish);
+				FreezeAlbinoFixturePawn(pressurePawnA);
+				FreezeAlbinoFixturePawn(pressurePawnB);
+				map.attackTargetsCache.UpdateTarget(pressurePawnA);
+				map.attackTargetsCache.UpdateTarget(pressurePawnB);
+
+				var driver = StartAlbinoSabotageDriver(albino);
+				if (driver == null)
+					return AlbinoCase(caseName, false, error: "Albino did not enter the sabotage driver.");
+
+				ResetAlbinoPlannerState(driver);
+				albino.scream = 0;
+				var pressureInvoked = TryInvokeAlbinoImmediateMovementPressure(albino, out var initialPressure, out var pressureError);
+				var firstInvoked = TryInvokeAlbinoSafetyMove(driver, albino, false, out var firstHandled, out var firstError);
+				var firstDestination = driver.destination;
+				var firstDistanceSquared = firstDestination.IsValid ? firstDestination.DistanceToSquared(albinoCell) : -1;
+				var firstPressureLimit = driver.safetyPathPressureLimit;
+				var movingAfterFirst = albino.pather?.Moving == true;
+				var patherDestinationAfterFirst = movingAfterFirst ? albino.pather.Destination.Cell : IntVec3.Invalid;
+
+				var ticksUntilPath = 0;
+				while (ticksUntilPath < 30 && albino.pather?.curPath?.Found != true)
+				{
+					AdvanceGameTicks(1);
+					ticksUntilPath++;
+				}
+
+				var pathBeforeSecond = albino.pather?.curPath;
+				var pathFoundBeforeSecond = pathBeforeSecond?.Found == true;
+				var positionBeforeSecond = albino.Position;
+				var nextCellBeforeSecond = albino.pather?.nextCell ?? IntVec3.Invalid;
+				var nextCellCostLeftBeforeSecond = albino.pather?.nextCellCostLeft ?? -1f;
+				var nextCellCostTotalBeforeSecond = albino.pather?.nextCellCostTotal ?? -1f;
+				var nodesLeftBeforeSecond = pathBeforeSecond?.NodesLeftCount ?? -1;
+				var secondInvoked = TryInvokeAlbinoSafetyMove(driver, albino, false, out var secondHandled, out var secondError);
+				var pathAfterSecond = albino.pather?.curPath;
+				var destinationPreserved = driver.destination == firstDestination
+					&& albino.pather?.Moving == true
+					&& albino.pather.Destination.Cell == firstDestination;
+				var pathPreserved = pathBeforeSecond != null && ReferenceEquals(pathBeforeSecond, pathAfterSecond);
+				var movementProgressPreserved = albino.Position == positionBeforeSecond
+					&& albino.pather?.nextCell == nextCellBeforeSecond
+					&& Math.Abs((albino.pather?.nextCellCostLeft ?? -1f) - nextCellCostLeftBeforeSecond) < 0.001f
+					&& Math.Abs((albino.pather?.nextCellCostTotal ?? -1f) - nextCellCostTotalBeforeSecond) < 0.001f
+					&& pathAfterSecond?.NodesLeftCount == nodesLeftBeforeSecond;
+				var nodesLeftAfterSecond = pathAfterSecond?.NodesLeftCount;
+				var safetyDestinationBeforePressureChange = driver.safetyDestination;
+
+				var changedPressureCells = firstDestination.IsValid
+					? GenRadial.RadialCellsAround(firstDestination, 2f, false)
+						.Where(cell => cell.InBounds(map))
+						.Where(cell => cell.Standable(map))
+						.Where(cell => cell.Fogged(map) == false)
+						.Where(cell => cell != firstDestination)
+						.Where(cell => cell.GetEdifice(map) == null)
+						.Where(cell => cell.GetFirstThing<Mineable>(map) == null)
+						.Where(cell => cell.GetThingList(map).Any(thing => thing is Pawn) == false)
+						.Take(2)
+						.ToArray()
+					: Array.Empty<IntVec3>();
+				if (changedPressureCells.Length < 2)
+					return AlbinoCase(caseName, false, error: "Two destination-pressure cells were not available for safety-path revalidation.");
+
+				var changedPressurePawnA = SpawnAlbinoTestColonist(map, changedPressureCells[0], spawnedThings, true);
+				var changedPressurePawnB = SpawnAlbinoTestColonist(map, changedPressureCells[1], spawnedThings, true);
+				changedPressurePawnA.equipment?.DestroyAllEquipment(DestroyMode.Vanish);
+				changedPressurePawnB.equipment?.DestroyAllEquipment(DestroyMode.Vanish);
+				FreezeAlbinoFixturePawn(changedPressurePawnA);
+				FreezeAlbinoFixturePawn(changedPressurePawnB);
+				map.attackTargetsCache.UpdateTarget(changedPressurePawnA);
+				map.attackTargetsCache.UpdateTarget(changedPressurePawnB);
+
+				var thirdInvoked = TryInvokeAlbinoSafetyMove(driver, albino, false, out var thirdHandled, out var thirdError);
+				var destinationAfterPressureChange = driver.destination;
+				var oldDestinationAbandoned = destinationAfterPressureChange != firstDestination
+					|| albino.pather?.Moving != true
+					|| albino.pather.Destination.Cell != firstDestination;
+				var pathObjectReplaced = ReferenceEquals(albino.pather?.curPath, pathBeforeSecond) == false;
+				var success = pressureInvoked
+					&& initialPressure >= 4
+					&& firstInvoked
+					&& firstHandled
+					&& safetyDestinationBeforePressureChange
+					&& firstDestination.IsValid
+					&& firstDistanceSquared >= 64
+					&& firstPressureLimit >= 4
+					&& movingAfterFirst
+					&& patherDestinationAfterFirst == firstDestination
+					&& pathFoundBeforeSecond
+					&& secondInvoked
+					&& secondHandled
+					&& destinationPreserved
+					&& pathPreserved
+					&& movementProgressPreserved
+					&& thirdInvoked
+					&& thirdHandled
+					&& oldDestinationAbandoned;
+
+				return AlbinoCase(caseName, success, new
+				{
+					pressureInvoked,
+					initialPressure,
+					firstInvoked,
+					firstHandled,
+					firstDestination = firstDestination.IsValid ? ZombieRuntimeActions.DescribeCell(firstDestination) : null,
+					firstDistanceSquared,
+					firstPressureLimit,
+					movingAfterFirst,
+					patherDestinationAfterFirst = patherDestinationAfterFirst.IsValid ? ZombieRuntimeActions.DescribeCell(patherDestinationAfterFirst) : null,
+					ticksUntilPath,
+					positionBeforeSecond = ZombieRuntimeActions.DescribeCell(positionBeforeSecond),
+					nextCellBeforeSecond = nextCellBeforeSecond.IsValid ? ZombieRuntimeActions.DescribeCell(nextCellBeforeSecond) : null,
+					nextCellCostLeftBeforeSecond,
+					nextCellCostTotalBeforeSecond,
+					nodesLeftBeforeSecond,
+					pathFoundBeforeSecond,
+					secondInvoked,
+					secondHandled,
+					destinationPreserved,
+					pathPreserved,
+					movementProgressPreserved,
+					safetyDestinationBeforePressureChange,
+					nodesLeftAfterSecond,
+					changedPressureCells = changedPressureCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					thirdInvoked,
+					thirdHandled,
+					oldDestinationAbandoned,
+					pathObjectReplaced,
+					destinationAfterPressureChange = destinationAfterPressureChange.IsValid ? ZombieRuntimeActions.DescribeCell(destinationAfterPressureChange) : null,
+					albino = DescribeZombie(albino),
+					pressurePawnA = DescribePawn(pressurePawnA),
+					pressurePawnB = DescribePawn(pressurePawnB),
+					changedPressurePawnA = DescribePawn(changedPressurePawnA),
+					changedPressurePawnB = DescribePawn(changedPressurePawnB)
+				}, pressureError ?? firstError ?? secondError ?? thirdError);
+			}
+			finally
+			{
+				DestroyAlbinoCaseThings(spawnedThings);
+			}
+		}
+
 		static AlbinoSabotageCase AlbinoScreamVomitResumesJobCase(Map map)
 		{
 			const string caseName = "scream_vomit_resumes_job";
@@ -3523,6 +3873,7 @@ namespace ZombieLand
 				driver.noSafeHackRoute = true;
 				driver.interruptibleDestination = true;
 				driver.safetyDestination = true;
+				driver.safetyPathPressureLimit = 7;
 				driver.fallbackDestination = true;
 				driver.nextStrategicRecheckTick = GenTicks.TicksGame + 111;
 				driver.lastStrategicRecheckCell = doorCell;
@@ -3544,6 +3895,7 @@ namespace ZombieLand
 					&& driver.noSafeHackRoute
 					&& driver.interruptibleDestination
 					&& driver.safetyDestination
+					&& driver.safetyPathPressureLimit == 7
 					&& driver.fallbackDestination
 					&& driver.nextStrategicRecheckTick > GenTicks.TicksGame
 					&& driver.lastStrategicRecheckCell.IsValid
@@ -3565,6 +3917,7 @@ namespace ZombieLand
 					&& currentDriver.noSafeHackRoute == false
 					&& currentDriver.interruptibleDestination == false
 					&& currentDriver.safetyDestination == false
+					&& currentDriver.safetyPathPressureLimit == 0
 					&& currentDriver.fallbackDestination == false
 					&& currentDriver.nextStrategicRecheckTick == 0
 					&& currentDriver.lastStrategicRecheckCell.IsValid == false
@@ -3624,6 +3977,7 @@ namespace ZombieLand
 					noSafeHackRoute = currentDriver?.noSafeHackRoute,
 					interruptibleDestination = currentDriver?.interruptibleDestination,
 					safetyDestination = currentDriver?.safetyDestination,
+					safetyPathPressureLimit = currentDriver?.safetyPathPressureLimit,
 					fallbackDestination = currentDriver?.fallbackDestination,
 					nextStrategicRecheckTick = currentDriver?.nextStrategicRecheckTick,
 					lastStrategicRecheckCell = currentDriver?.lastStrategicRecheckCell.IsValid == true ? ZombieRuntimeActions.DescribeCell(currentDriver.lastStrategicRecheckCell) : null,

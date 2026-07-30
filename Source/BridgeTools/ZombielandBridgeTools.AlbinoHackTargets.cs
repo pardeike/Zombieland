@@ -8,7 +8,7 @@ namespace ZombieLand
 {
 	public sealed partial class ZombielandBridgeTools
 	{
-		[Tool("zombieland/albino_hack_targets", Description = "List current-map albino sabotage targets using the same target eligibility code as the albino job driver.")]
+		[Tool("zombieland/albino_hack_targets", Description = "List current-map albino sabotage targets and live planner state using the same target eligibility code as the albino job driver.")]
 		public static object AlbinoHackTargets(
 			[ToolParameter(Description = "Maximum direct targets to return per category.", Required = false, DefaultValue = 200)] int maxTargets = 200,
 			[ToolParameter(Description = "Maximum route-only closed doors to return.", Required = false, DefaultValue = 120)] int maxDoors = 120)
@@ -47,6 +47,11 @@ namespace ZombieLand
 				.OrderBy(door => door.Position.x)
 				.ThenBy(door => door.Position.z)
 				.ToArray();
+			var albinos = map.mapPawns.AllPawnsSpawned
+				.OfType<Zombie>()
+				.Where(zombie => zombie.isAlbino)
+				.OrderBy(zombie => zombie.ThingID)
+				.ToArray();
 
 			return new
 			{
@@ -69,12 +74,14 @@ namespace ZombieLand
 				hackDurationTicks = 240,
 				counts = new
 				{
+					albinos = albinos.Length,
 					directBuildings = buildingTargets.Length,
 					directWeapons = weaponTargets.Length,
 					selectableDirectWeapons = selectableWeaponTargets.Length,
 					enoughHackedWeapons = weaponTargets.Length - selectableWeaponTargets.Length,
 					routeOnlyClosedDoors = routeDoors.Length
 				},
+				albinos = albinos.Select(DescribeAlbinoPlannerState).ToArray(),
 				buildings = buildingTargets.Take(cappedTargets).Select(DescribeAlbinoBuildingHackTarget).ToArray(),
 				weapons = weaponTargets.Take(cappedTargets).Select(weapon => DescribeAlbinoWeaponHackTarget(map, weapon)).ToArray(),
 				routeOnlyDoors = routeDoors.Take(cappedDoors).Select(DescribeAlbinoRouteDoorHackTarget).ToArray(),
@@ -83,6 +90,41 @@ namespace ZombieLand
 					buildings = buildingTargets.Length > cappedTargets,
 					weapons = weaponTargets.Length > cappedTargets,
 					routeOnlyDoors = routeDoors.Length > cappedDoors
+				}
+			};
+		}
+
+		static object DescribeAlbinoPlannerState(Zombie zombie)
+		{
+			var driver = zombie.jobs?.curDriver as JobDriver_Sabotage;
+			var pather = zombie.pather;
+			return new
+			{
+				id = ZombieRuntimeActions.StableThingId(zombie),
+				thingId = zombie.ThingID,
+				label = zombie.LabelCap.ToString(),
+				position = ZombieRuntimeActions.DescribeCell(zombie.Position),
+				job = zombie.CurJobDef?.defName,
+				driver = driver == null ? null : new
+				{
+					destination = driver.destination.IsValid ? ZombieRuntimeActions.DescribeCell(driver.destination) : null,
+					driver.interruptibleDestination,
+					driver.safetyDestination,
+					driver.safetyPathPressureLimit,
+					driver.fallbackDestination,
+					driver.waitCounter,
+					driver.nextDefensiveScreamCheckTick,
+					driver.nextStrategicRecheckTick
+				},
+				pather = pather == null ? null : new
+				{
+					pather.Moving,
+					destination = pather.Moving && pather.Destination.Cell.IsValid ? ZombieRuntimeActions.DescribeCell(pather.Destination.Cell) : null,
+					nextCell = pather.nextCell.IsValid ? ZombieRuntimeActions.DescribeCell(pather.nextCell) : null,
+					pather.nextCellCostLeft,
+					pather.nextCellCostTotal,
+					pathFound = pather.curPath?.Found,
+					pathNodesLeft = pather.curPath?.NodesLeftCount
 				}
 			};
 		}
