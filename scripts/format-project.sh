@@ -42,15 +42,10 @@ if [[ "$mode" == "check" ]]; then
 	format_arguments+=(--verify-no-changes)
 fi
 
-dotnet format Source/ZombieLand.csproj "${format_arguments[@]}" >"$temporary_dir/main.log" 2>&1 &
-main_pid=$!
-dotnet format Source/BridgeTools/Zombieland.BridgeTools.csproj "${format_arguments[@]}" >"$temporary_dir/bridge.log" 2>&1 &
-bridge_pid=$!
-
 main_status=0
 bridge_status=0
-wait "$main_pid" || main_status=$?
-wait "$bridge_pid" || bridge_status=$?
+dotnet format Source/ZombieLand.csproj "${format_arguments[@]}" >"$temporary_dir/main.log" 2>&1 || main_status=$?
+dotnet format Source/BridgeTools/Zombieland.BridgeTools.csproj "${format_arguments[@]}" >"$temporary_dir/bridge.log" 2>&1 || bridge_status=$?
 if ((main_status != 0 || bridge_status != 0)); then
 	printf 'C# formatting %s failed.\n' "$mode" >&2
 	if [[ -s "$temporary_dir/main.log" ]]; then
