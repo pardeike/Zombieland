@@ -70,6 +70,23 @@ The tool first binary-searches the constant load against a zero-zombie save at r
 
 ## Zombieland Soundtrack
 
+### Anomaly replacement integration scenario
+
+`anomaly-music-replacement-scenario.lua` is the reusable Steam/RimBridge entry point for the Anomaly sequence integration test. It accepts two controlled loadouts: exactly Harmony, RimBridgeServer, Core, Anomaly, and Zombieland for the smallest focused run, or that tool/mod base plus every official DLC for the repository's current full-DLC scope. Other optional mods remain rejected so their patches cannot contaminate this regression. The scenario starts a fresh built-in debug colony, leaves Zombieland music enabled at 100%, and saves the clean post-test fixture as `ZL_Anomaly_Music_100.rws` by default.
+
+The companion contract provokes RimWorld's real Anomaly predicates independently: a spawned `Noctolith` for `HorrorRelax`, active `UnnaturalDarkness` for `HorrorTension`, and two hostile awake `Metalhorror` pawns for natural `DangerWatcher.High` plus `HorrorCombat`. For each predicate it uses a deterministic seed to compare the track selected at 0% with the exact track handed to Unity at 100%; the latter must be that source track's numbered Zombieland replacement. A scenario-scoped Harmony observer runs before Zombieland's `MusicManagerPlay.PlaySong` prefix and after the original method, recording the sequence's requested source song, the final replacement argument, `CurrentSong`, and the Unity audio clip. The mapping contract also proves that disabling Zombieland music at a retained 50% share neither replaces the song nor consumes shared `Verse.Rand` state.
+
+The tool finalizes `success` only after the observer patch, temporary condition, building, entities, danger state, and requested final music settings have all been verified. The Lua wrapper therefore cannot save a fixture whose cleanup or final-settings postconditions failed.
+
+Always compile the file against the live bridge before executing it:
+
+```text
+rimbridge/compile_lua_file
+  scriptPath=/Users/ap/Projects/Zombieland/scripts/anomaly-music-replacement-scenario.lua
+```
+
+Then run it with no parameters for the default save and seed, or pass `saveName` and `seed` explicitly. The returned result includes the exact active package set, minimal/full-DLC loadout checks, predicate fixtures, disabled RNG-neutrality assertions, 0% control songs, 100% replacement songs, active Unity audio clips, cleanup and final-settings gates, saved fixture, and warning-or-higher journal entries.
+
 Use `sync-soundtrack.sh` to convert and mirror original soundtrack WAV files into the runtime music folder consumed by the dynamic song loader.
 
 Source files live under:
@@ -92,6 +109,8 @@ Originals/Soundtrack/tense/night/track01.wav
 ```
 
 Use `relax` for normal non-tense map music. It is a naming convention, not a special flag; songs are non-tense unless their path contains `tense`, `danger`, or `combat`.
+
+Files directly under `Originals/Soundtrack/anomaly` are dedicated replacements for Anomaly's ten scripted music tracks, not general shuffle-pool songs. Their names must start with `01` through `10`; the number maps to the corresponding entry in Anomaly's `Songs_Sequences.xml`. At each Anomaly sequence track start, the normal **Play Zombieland music** toggle and Zombieland music-share percentage decide whether the numbered replacement or the original track plays. The replacements retain the original `SongDef` and `MusicSequenceDef` playback roles, so the general mixed-music-mode setting does not change their relax, tension, or combat sequence placement.
 
 Run a normal sync after adding, changing, moving, or deleting tracks:
 

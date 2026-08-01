@@ -169,6 +169,34 @@ Current runtime evidence:
 - Added 2026-06-03 localization coverage for the same Awareness Cues section after manual UI showed raw new keys. The active RimWorld 1.6 path was the versioned `1.6/Languages/.../Keyed/*.xml` copy, not only root `Languages/...`; both root and `1.6` files now contain the seven label keys and seven `_Help` keys for English, ChineseSimplified, French, German, Russian, and Turkish, while `1.4/Languages` was not changed. XML parse, source key-coverage, build/deploy, deployed-folder key-coverage, restart, runtime `zombieland/awareness_cues_translation_state`, and warning-log checks passed. Runtime operation `op_4032ac9dfb2d48c88d81e073e87fca59` reported `CanTranslate=true` for all seven labels and all seven help keys in loaded English.
 - The `S-Settings-Persistence` baseline is covered. It proves default settings restart persistence, in-game world settings, keyframe interpolation plus mouse-driven keyframe Duplicate/Delete controls, colonist-toggle serialization, new-game setup patch boundaries, mouse-driven new-colony wizard settings, generated-apparel exclusion of Zombieland apparel defs, `Game.FinalizeInit` def application for Twinkie replacement and non-default zombie health scale, real mod settings dialog construction from both bridge and in-game menu entry, modal construction/backing-state behavior for apparel/biome/advanced/thumper settings, mouse-driven main settings radio and slider edits, source/decompiler-backed text/numeric field disposition, mouse-driven advanced-settings checkbox, biome-list checkbox, apparel-list Select All/Deselect All button edit, the visible `Show zombie statistics` checkbox driving the live `Alert_DaysUntilSpawning` surface, the visible `Zombies health bar` checkbox driving the hovered zombie overlay, Awareness Cues downstream gates for letters/sounds/sustainers/thought bubbles, manual colonist-settings hover visibility, non-destructive save-then-uninstall UI entry, save-load for the modal-backed keyframe values, downstream setting-gate behavior for serum extraction, double-tap, and auto-avoid false, broad `WorkGiver_Scanner` fanout avoidance predicates, and direct `PriorityWork.GetGizmos()` command presence/actions for the three per-colonist toggles. A 2026-06-01 source/decompiler reread confirmed remaining visible controls share the same already-evidenced radio/checkbox/slider/numeric/button helper paths, so future settings work should be named downstream UI-edit/effect pairs or changed settings UI code rather than another broad baseline rerun.
 
+## S-Anomaly-Music-Replacement
+
+Goal: prove that each Anomaly music sequence reaches the ordinary RimWorld playback command and that the Zombieland music-share setting substitutes the exact numbered replacement without changing the Anomaly transition that selected it.
+
+Source checks:
+- RimWorld 1.6 decompiler target `MusicManagerPlay.PlaySong(SongDef, bool, bool)` is `967ddb80559449f0a776dafa26a855d1:0600E63F:M`; Anomaly sequence selection converges on this method through `PlayNextSongInSequence()` and `MusicSequenceWorker.SelectSong()`.
+- Anomaly `Songs_Sequences.xml` defines `HorrorRelax` at priority 100, `HorrorTension` at 150, and `HorrorCombat` at 200. The fixture satisfies their real predicates with a `Noctolith`, `UnnaturalDarkness`, and two hostile awake `Metalhorror` pawns whose combined combat power produces natural `DangerWatcher.High`.
+
+Fixture and automation:
+- Disposable save `ZL_Anomaly_Music_100.rws` under the Steam `rimbridge-test` data root.
+- Run `scripts/anomaly-music-replacement-scenario.lua` with either the exact five-package focused loadout or the exact nine-package Core-plus-all-official-DLC loadout. Both shapes include Harmony, RimBridgeServer, Anomaly, and Zombieland and reject unrelated optional mods. It starts a fresh paused debug colony, runs paired deterministic 0% controls and 100% replacements, cleans up, leaves the Zombieland share at 100%, and saves the fixture only after every postcondition passes.
+- A scenario-scoped Harmony observer prefixes `PlaySong` before Zombieland and postfixes after RimWorld. It records the source request, final `SongDef` argument, `CurrentSong`, and Unity `AudioSource.clip`, then unpatches itself in cleanup.
+
+Runtime evidence, 2026-08-01, all-official-DLC root operation `op_c431cbd690dc4a5e95fad4620ab9cda6`:
+
+| Transition | Real predicate fixture | 0% Anomaly request | 100% song actually played |
+| --- | --- | --- | --- |
+| `HorrorRelax` | spawned `Noctolith`, no danger | `Shamblers_Blues` | `03 Zombieland – Shambler` |
+| `HorrorTension` | active `UnnaturalDarkness`, no danger | `Have_They_Come_For_Us` | `05 Zombieland – Have They` |
+| `HorrorCombat` | two hostile awake `Metalhorror` pawns, `DangerWatcher.High` | `They_See_You` | `07 Zombieland – They See` |
+
+Each pass made exactly one observed `PlaySong` call. All three 100% passes preserved the 0% source request, rewrote its final argument to the expected 1:1 replacement, and matched `CurrentSong` plus the active Unity clip. The same run validated all ten numbered mappings at disabled, 0%, 50% boundary, and 100%. Every disabled 50% mapping also preserved the next shared `Verse.Rand` value, proving the disabled feature consumes no replacement roll. The loadout contract accepted both exact supported shapes and rejected an injected unexpected package.
+
+The result did not become successful until its typed cleanup and final-settings records were both successful: the observer, condition, building, and entities were removed, danger returned to `None`, and music ended enabled at 100%. Its pure finalization-gate contract separately rejected simulated cleanup, final-settings, scenario, and unsupported-loadout failures. Root-correlated warning query `op_f883960316754f0384cd800e86567be3` was empty. Reload operation `op_e7d11f20386c45bfb96a5c53e15673fe` found the save compatible with all nine recorded packages, and settings read `op_9001f6c9692c4cd597616583182beada` confirmed `playZombielandMusic=true` and `zombielandMusicShare=100` after reload.
+
+Completion:
+- Covered for all three Anomaly transition tiers, exact 1:1 substitution at 100%, the complete ten-song percentage contract, disabled RNG neutrality, exact minimal and all-official-DLC loadouts, actual clip playback, post-cleanup/final-settings success gating, and save-load persistence.
+
 ## S-Core-Horde-Loop
 
 Goal: prove the main zombie loop over real time: spawn, wander, sense, track, rage, attack/eat/smash, react to fire, die, leave corpse/filth, and survive save-load.

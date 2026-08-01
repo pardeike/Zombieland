@@ -600,12 +600,16 @@ namespace ZombieLand
 			var defaults = new SettingsGroup();
 			var chooseNextSong = AccessTools.Method(typeof(MusicManagerPlay), "ChooseNextSong");
 			var appropriateNow = AccessTools.Method(typeof(MusicManagerPlay), "AppropriateNow", new[] { typeof(SongDef) });
+			var playSong = AccessTools.Method(typeof(MusicManagerPlay), "PlaySong", new[] { typeof(SongDef), typeof(bool), typeof(bool) });
 			var entryStartPlaying = AccessTools.Method(typeof(MusicManagerEntry), "StartPlaying");
 			var patchTargets = PatchedMethodsForPatchClass("MusicManagerPlay_ChooseNextSong_Patch");
 			var prefix = FindNestedPatchMethod("MusicManagerPlay_ChooseNextSong_Patch", "Prefix");
+			var playbackPatchTargets = PatchedMethodsForPatchClass("MusicManagerPlay_PlaySong_Patch");
+			var playbackPrefix = FindNestedPatchMethod("MusicManagerPlay_PlaySong_Patch", "Prefix");
 			var entryPatchTargets = PatchedMethodsForPatchClass("MusicManagerEntry_StartPlaying_Patch");
 			var entryPrefix = FindNestedPatchMethod("MusicManagerEntry_StartPlaying_Patch", "Prefix");
 			var dynamicState = ZombielandMusic.DebugState();
+			var anomalyReplacements = ZombielandMusic.AnomalyReplacementContractState();
 			var dialogState = MaybeOpenSettingsDialog(openSettingsDialog);
 			var normalizationSamples = new[] { -5, 0, 4, 5, 14, 15, 66, 95, 104 }
 				.Select(value => new
@@ -631,11 +635,15 @@ namespace ZombieLand
 					&& ZombielandMusic.NormalizeShare(66) == 70
 					&& chooseNextSong != null
 					&& appropriateNow != null
+					&& playSong != null
 					&& entryStartPlaying != null
 					&& prefix != null
 					&& patchTargets.Length > 0
+					&& playbackPrefix != null
+					&& playbackPatchTargets.Length > 0
 					&& entryPrefix != null
 					&& entryPatchTargets.Length > 0
+					&& ObjectSuccess(anomalyReplacements)
 					&& ObjectSuccess(disabledRecentExhaustion),
 				defaults = new
 				{
@@ -657,15 +665,19 @@ namespace ZombieLand
 				{
 					chooseNextSong = chooseNextSong?.FullDescription(),
 					appropriateNow = appropriateNow?.FullDescription(),
+					playSong = playSong?.FullDescription(),
 					entryStartPlaying = entryStartPlaying?.FullDescription()
 				},
 				patch = new
 				{
 					targets = patchTargets,
 					hasPrefix = prefix != null,
+					playbackTargets = playbackPatchTargets,
+					hasPlaybackPrefix = playbackPrefix != null,
 					entryTargets = entryPatchTargets,
 					hasEntryPrefix = entryPrefix != null
 				},
+				anomalyReplacements,
 				disabledRecentExhaustion,
 				dynamicState,
 				dialogState

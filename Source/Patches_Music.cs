@@ -23,8 +23,8 @@ namespace ZombieLand
 		[HarmonyPatch(typeof(MusicManagerPlay), "PlaySong", new[] { typeof(SongDef), typeof(bool), typeof(bool) })]
 		static class MusicManagerPlay_PlaySong_Patch
 		{
-			static void Prefix(MusicManagerPlay __instance, SongDef song)
-				=> ZombielandMusic.PrepareSongForPlayback(__instance, song);
+			static void Prefix(MusicManagerPlay __instance, ref SongDef song)
+				=> song = ZombielandMusic.PrepareSongForPlayback(__instance, song);
 		}
 
 		[HarmonyPatch(typeof(MusicManagerEntry), "StartPlaying")]

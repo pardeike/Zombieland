@@ -19,3 +19,5 @@ Folder hints:
 - `music/night/...` restricts songs to nighttime.
 
 Hints can be combined, for example `music/tense/night/track01.ogg`.
+
+Files under `music/anomaly` are generated 1:1 replacements for Anomaly's ten scripted music tracks. Their `01` through `10` prefixes map them to the original Anomaly song order. They are excluded from the general shuffle and are selected only when the mapped Anomaly sequence song starts and the Zombieland music toggle/share roll chooses the replacement.
