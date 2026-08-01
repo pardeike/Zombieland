@@ -1,1 +1,2 @@
 - Added matching Zombieland replacements for Anomaly music.
+- Added a Zombieland mod icon.
