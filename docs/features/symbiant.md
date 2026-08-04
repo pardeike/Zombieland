@@ -158,7 +158,7 @@ The pawn shell is deliberately narrow in normal pawn/combat systems:
 - targetable by ordinary hostile humanlike and mechanoid attackers, while player/friendly pawns, animals, turrets, zombies, and Anomaly-specific hostility overrides retain their prior exclusions,
 - skipped by story danger, fleeing, predation, and unrelated explicit attack jobs,
 - no normal pawn inspect tabs while selected, so Mood, Gear, Health, Combat Log, and similar pawn-tab surfaces do not treat it as an ordinary pawn,
-- no selected status/dashboard gizmo in the simplified design,
+- no player-facing status/dashboard gizmo in the simplified design; when both developer mode and god mode are enabled, the selected Symbiant instead exposes `DEV: Add Cell`, `DEV: Remove Cell`, `DEV: Move Symbiant`, and `DEV: Assign/Unassign` test commands,
 - restricted to the Symbiant job plus inert fallback jobs.
 
 The long-term cleaner type would be a custom `Thing`/`ThingWithComps`, but that migration is separate from the v1 gameplay surface.
@@ -166,6 +166,8 @@ The long-term cleaner type would be a custom `Thing`/`ThingWithComps`, but that 
 Combat keeps one real `ZombieSymbiant` Pawn and never moves its canonical `Position` to impersonate another slime cell. Only the root cell is registered in `ThingGrid`; logical cells are supplied through a transient geometry cache with shape-version invalidation. Ranged attacks bind each `Verb` to one deterministic exposed cell, and the same cell is reused for vanilla target-scan gates, weighted target selection, distance/cover/blast-friendly-fire scoring, LOS/range, projectile destination, and impact. Vanilla roof interception/collapse runs before a logical owner impact. Melee jobs keep the real Symbiant in target A, store the reachable stand cell in B, and store the attacked slime cell in C; B/C are rebound if the blob changes shape. Damage always goes to the real Pawn, through the real damage worker, and then into its shared-health pool; attacking a cell never deletes that cell. An explosion overlapping several slime cells damages the organism at most once, using the first affected logical cell for falloff. Combat Extended support is late-bound and fail-open: because CE projectiles derive from `ThingWithComps` independently of vanilla `Projectile`, the adapter reflects CE target/position state and supplies the logical owner to CE's ordinary ballistic, final-impact, and instant-ray collision enumerations/bounds without mutating `ThingGrid` or hard-referencing CE.
 
 The one-cell inspection surface is deliberately separate from that combat geometry. `GenUI.ThingsUnderMouse` recognizes the Symbiant on every actual logical cell and, during the short movement handoff, on the still-rendered outgoing core cell; it rejects empty gaps in the rectangular draw bounds. The private ordinary `Selector.SelectableObjectsUnderMouse` path then filters that generic result to the current core cell. Enemy AI, verb binding, melee reach, projectile impact, explosions, and modded targeting never consult the inspection core.
+
+The developer widgets call the same one-pulse growth, shrink, and cell-movement paths used by the organism instead of installing map-click debug tools. Assignment lists only currently eligible free colonists; using the same widget on an assigned Symbiant removes the link and its host hediff. These controls are absent unless `DebugSettings.ShowDevGizmos` is true, which in RimWorld 1.6 requires both developer mode and god mode.
 
 ## Rendering And Performance
 

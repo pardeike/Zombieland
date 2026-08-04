@@ -147,24 +147,6 @@ namespace ZombieLand
 			ZombieSymbiant.Spawn(Find.CurrentMap, UI.MouseCell());
 		}
 
-		[DebugAction("Zombieland", "Add Symbiant Cell", actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
-		private static void AddSymbiantCell()
-		{
-			if (TryGetClickedSymbiant(out var symbiant) == false)
-				return;
-			if (symbiant.DebugExpansionPulse() == false)
-				Log.Warning("Could not add a Symbiant cell. The Symbiant may be capped or have no valid expansion target.");
-		}
-
-		[DebugAction("Zombieland", "Remove Symbiant Cell", actionType = DebugActionType.ToolMap, allowedGameStates = AllowedGameStates.PlayingOnMap)]
-		private static void RemoveSymbiantCell()
-		{
-			if (TryGetClickedSymbiant(out var symbiant) == false)
-				return;
-			if (symbiant.DebugShrinkPulse() == false)
-				Log.Warning("Could not remove a Symbiant cell.");
-		}
-
 		[DebugAction("Zombieland", "Spawn: Zombie Spitter", actionType = DebugActionType.ToolMap)]
 		private static void SpawnZombieSpitterOnCell()
 		{
@@ -175,15 +157,6 @@ namespace ZombieLand
 		private static void RemoveAllZombies()
 		{
 			_ = ZombieRuntimeActions.DestroyZombies(Find.CurrentMap);
-		}
-
-		static bool TryGetClickedSymbiant(out ZombieSymbiant symbiant)
-		{
-			var cell = UI.MouseCell();
-			if (ZombieSymbiant.IsSymbiantCell(Find.CurrentMap, cell, out symbiant))
-				return true;
-			Log.Warning("Click an existing Symbiant cell.");
-			return false;
 		}
 
 		[DebugAction("Zombieland", "Convert: Make Zombie", actionType = DebugActionType.ToolMap)]

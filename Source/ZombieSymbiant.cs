@@ -1913,6 +1913,44 @@ namespace ZombieLand
 			return linkedSymbiant == null || linkedSymbiant == symbiant;
 		}
 
+		internal Pawn[] DebugEligibleHosts()
+		{
+			var map = SymbiantMap;
+			if (map == null)
+				return [];
+			return EligibleHosts(map, this)
+				.OrderBy(pawn => pawn.LabelShortCap.ToString(), StringComparer.CurrentCultureIgnoreCase)
+				.ThenBy(pawn => pawn.ThingID)
+				.ToArray();
+		}
+
+		internal bool DebugAssignHost(Pawn pawn)
+		{
+			if (ResolveHost() != null || IsEligibleHost(pawn, this) == false)
+				return false;
+			symbiosisSevered = false;
+			AssignHost(pawn);
+			UpdateSymbiosisState();
+			NotifyHostCapacityBenefitsChanged(pawn);
+			return LinkedHost == pawn;
+		}
+
+		internal bool DebugUnassignHost()
+		{
+			var previousHost = ResolveHost();
+			if (previousHost == null)
+				return false;
+			host = null;
+			hostThingId = null;
+			symbiosisSevered = false;
+			RemoveHostHediff(previousHost);
+			ClearDamageEchoHistory();
+			RememberHostBondState(null);
+			NotifyHostCapacityBenefitsChanged(previousHost);
+			UpdateSymbiosisState();
+			return LinkedHost == null;
+		}
+
 		void AssignHost(Pawn pawn)
 		{
 			host = pawn;
@@ -3531,6 +3569,14 @@ namespace ZombieLand
 			return removed;
 		}
 
+		internal bool DebugMovePulse()
+		{
+			var moved = TryMovePulse(false);
+			if (moved)
+				ResetMovementClock();
+			return moved;
+		}
+
 		public bool TryMovePulse(bool allowWallBreak)
 		{
 			var map = Map;
@@ -5010,6 +5056,78 @@ namespace ZombieLand
 		{
 			foreach (var gizmo in base.GetGizmos())
 				yield return gizmo;
+
+			if (DebugSettings.ShowDevGizmos == false)
+				yield break;
+
+			yield return new Command_Action
+			{
+				defaultLabel = "DEV: Add Cell",
+				defaultDesc = "Trigger one normal Symbiant expansion pulse.",
+				action = () =>
+				{
+					if (DebugExpansionPulse() == false)
+						Log.Warning("Could not add a Symbiant cell. The Symbiant may be capped or have no valid expansion target.");
+				}
+			};
+			yield return new Command_Action
+			{
+				defaultLabel = "DEV: Remove Cell",
+				defaultDesc = "Trigger one normal Symbiant shrink pulse.",
+				action = () =>
+				{
+					if (DebugShrinkPulse() == false)
+						Log.Warning("Could not remove a Symbiant cell.");
+				}
+			};
+			yield return new Command_Action
+			{
+				defaultLabel = "DEV: Move Symbiant",
+				defaultDesc = "Trigger one normal Symbiant cell relocation.",
+				action = () =>
+				{
+					if (DebugMovePulse() == false)
+						Log.Warning("Could not move a Symbiant cell.");
+				}
+			};
+			yield return new Command_Action
+			{
+				defaultLabel = "DEV: Assign/Unassign",
+				defaultDesc = LinkedHost == null
+					? "Choose an eligible colonist to assign to this Symbiant."
+					: $"Unassign {LinkedHost.LabelShortCap} from this Symbiant.",
+				action = () =>
+				{
+					if (LinkedHost != null)
+					{
+						if (DebugUnassignHost() == false)
+							Log.Warning("Could not unassign the Symbiant host.");
+						return;
+					}
+					OpenDebugHostAssignmentMenu();
+				}
+			};
+		}
+
+		void OpenDebugHostAssignmentMenu()
+		{
+			var candidates = DebugEligibleHosts();
+			if (candidates.Length == 0)
+			{
+				Messages.Message("No eligible colonists are available for this Symbiant.", MessageTypeDefOf.RejectInput, false);
+				return;
+			}
+			var options = candidates
+				.Select(pawn => new FloatMenuOption(
+					pawn.LabelShortCap.ToString(),
+					() =>
+					{
+						if (DebugAssignHost(pawn) == false)
+							Log.Warning($"Could not assign {pawn.LabelShortCap} to the Symbiant.");
+					}
+				))
+				.ToList();
+			Find.WindowStack.Add(new FloatMenu(options));
 		}
 
 		public override void ExposeData()
