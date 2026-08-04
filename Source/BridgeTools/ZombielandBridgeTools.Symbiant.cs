@@ -7373,7 +7373,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, all-cell generic targeting, bounded repeated ambient core movement, non-metaball fallback rendering, selector patch installation, and valid core handoff while cells disappear.")]
+		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, all-cell generic targeting, bounded core initialization and repeated movement, non-metaball fallback rendering, selector patch installation, and valid core handoff while cells disappear.")]
 		public static object SymbiantSelectionCoreContract(
 			[ToolParameter(Description = "Destroy the temporary contract Symbiant after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -7559,6 +7559,27 @@ namespace ZombieLand
 					if (removed == 0)
 						break;
 				}
+
+				var initializationProbeAdded = symbiant.DebugReinitializeSelectionCoreForScaleProbe(fixture.leftInterior.Cells);
+				var initializationCandidateCount = symbiant.DebugLastSelectionCoreInitializationCandidateCount;
+				var initializationShortlistCount = symbiant.DebugLastSelectionCoreInitializationShortlistCount;
+				var initializationConnectivityChecks = symbiant.DebugLastSelectionCoreInitializationConnectivityChecks;
+				var initializationWorkBounded = initializationProbeAdded > ZombieSymbiant.SelectionCoreInitializationCandidateLimit
+					&& initializationCandidateCount > ZombieSymbiant.SelectionCoreInitializationCandidateLimit
+					&& initializationShortlistCount == ZombieSymbiant.SelectionCoreInitializationCandidateLimit
+					&& initializationConnectivityChecks == initializationShortlistCount
+					&& symbiant.SelectionCoreValid;
+				var initializationScaleProbe = new
+				{
+					addedCells = initializationProbeAdded,
+					cellCount = symbiant.CellCount,
+					candidateCount = initializationCandidateCount,
+					candidateLimit = ZombieSymbiant.SelectionCoreInitializationCandidateLimit,
+					shortlistCount = initializationShortlistCount,
+					connectivityChecks = initializationConnectivityChecks,
+					workBounded = initializationWorkBounded,
+					core = DescribeSymbiantSelectionCore(symbiant)
+				};
 				result = new
 				{
 					success = selectorRect.HasValue
@@ -7576,7 +7597,8 @@ namespace ZombieLand
 						&& handoffAligned
 						&& fallbackVerified
 						&& shrinkSteps.Count > 0
-						&& shrinkCoresValid,
+						&& shrinkCoresValid
+						&& initializationWorkBounded,
 					sourcePath = "GenUI.ThingsUnderMouse + Selector.SelectableObjectsUnderMouse postfix + ZombieSymbiant selection-core state",
 					shape = shape.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 					selectorRect = ZombieRuntimeActions.DescribeCellRect(selectorRect.Value),
@@ -7608,7 +7630,8 @@ namespace ZombieLand
 						logicalTargeting = fallbackLogicalTargeting
 					},
 					shrinkSteps,
-					shrinkCoresValid
+					shrinkCoresValid,
+					initializationScaleProbe
 				};
 			}
 			catch (Exception ex)

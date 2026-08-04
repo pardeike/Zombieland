@@ -70,6 +70,7 @@ namespace ZombieLand
 		const float SelectionCoreHoverPulseScale = 0.10f;
 		const float SelectionCorePulseSeconds = 1.8f;
 		const float SelectionCoreRotationDegreesPerSecond = 6f;
+		const int SelectionCoreConnectivityCandidateLimit = 12;
 		const int AmbientMovementCandidateLimit = 12;
 		const int AmbientMovementSourceLimit = 8;
 		const float AmbientMovementMinBenefitFactor = 0.55f;
@@ -300,8 +301,12 @@ namespace ZombieLand
 		internal float SelectionCoreDiscoveryBlend => selectionCoreDiscoveryBlend;
 		internal int DebugLastSelectionCoreWanderConnectivityChecks { get; private set; }
 		internal int DebugLastSelectionCoreWanderPreferredTargets { get; private set; }
+		internal int DebugLastSelectionCoreInitializationCandidateCount { get; private set; }
+		internal int DebugLastSelectionCoreInitializationShortlistCount { get; private set; }
+		internal int DebugLastSelectionCoreInitializationConnectivityChecks { get; private set; }
 		internal bool DebugSelectionCoreIsLastOrdered => orderedCells?.LastOrDefault() == selectionCoreRelative;
 		internal static int SelectionCorePreferredTargetLimit => AmbientMovementCandidateLimit;
+		internal static int SelectionCoreInitializationCandidateLimit => SelectionCoreConnectivityCandidateLimit;
 		internal Vector2 SelectionCoreVisualCenterRelative
 		{
 			get
@@ -2495,20 +2500,62 @@ namespace ZombieLand
 		{
 			if (cells == null || cells.Count == 0)
 				return IntVec3.Invalid;
-			var candidates = orderedCells
+			var candidateCells = orderedCells
 				.Where(cell => cells.Contains(cell))
 				.Where(cell => allowRoot || cell != IntVec3.Zero)
 				.ToArray();
-			if (candidates.Length == 0)
-				candidates = orderedCells.Where(cell => cells.Contains(cell)).ToArray();
-			return candidates
-				.OrderBy(SelectionCoreClutterScore)
-				.ThenBy(cell => WouldCellsStayConnectedAfterRemoval(cell) ? 0 : 1)
-				.ThenBy(SelectionCoreCardinalNeighborCount)
-				.ThenBy(cell => near.IsValid ? cell.DistanceToSquared(near) : 0)
-				.ThenBy(cell => cell.x)
-				.ThenBy(cell => cell.z)
+			if (candidateCells.Length == 0)
+				candidateCells = orderedCells.Where(cell => cells.Contains(cell)).ToArray();
+
+			DebugLastSelectionCoreInitializationCandidateCount = candidateCells.Length;
+			var shortlist = candidateCells
+				.Select(cell => new
+				{
+					cell,
+					clutter = SelectionCoreClutterScore(cell),
+					cardinalNeighbors = SelectionCoreCardinalNeighborCount(cell),
+					distance = near.IsValid ? cell.DistanceToSquared(near) : 0
+				})
+				.OrderBy(candidate => candidate.clutter)
+				.ThenBy(candidate => candidate.cardinalNeighbors)
+				.ThenBy(candidate => candidate.distance)
+				.ThenBy(candidate => candidate.cell.x)
+				.ThenBy(candidate => candidate.cell.z)
+				.Take(SelectionCoreConnectivityCandidateLimit)
+				.ToArray();
+			DebugLastSelectionCoreInitializationShortlistCount = shortlist.Length;
+
+			var finalists = shortlist
+				.Select(candidate => new
+				{
+					candidate.cell,
+					candidate.clutter,
+					candidate.cardinalNeighbors,
+					candidate.distance,
+					removable = WouldCellsStayConnectedAfterRemoval(candidate.cell)
+				})
+				.ToArray();
+			DebugLastSelectionCoreInitializationConnectivityChecks = finalists.Length;
+
+			return finalists
+				.OrderBy(candidate => candidate.clutter)
+				.ThenBy(candidate => candidate.removable ? 0 : 1)
+				.ThenBy(candidate => candidate.cardinalNeighbors)
+				.ThenBy(candidate => candidate.distance)
+				.ThenBy(candidate => candidate.cell.x)
+				.ThenBy(candidate => candidate.cell.z)
+				.Select(candidate => candidate.cell)
 				.FirstOrDefault();
+		}
+
+		internal int DebugReinitializeSelectionCoreForScaleProbe(IEnumerable<IntVec3> absoluteCells)
+		{
+			var added = AddCells(absoluteCells);
+			selectionCoreDiscoveryCue = false;
+			selectionCoreRelative = IntVec3.Invalid;
+			ClearSelectionCoreMotion();
+			EnsureSelectionCoreState();
+			return added;
 		}
 
 		int SelectionCoreCardinalNeighborCount(IntVec3 relative)
