@@ -7373,7 +7373,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, all-cell generic targeting, ambient core movement, non-metaball fallback rendering, selector patch installation, and valid core handoff while cells disappear.")]
+		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, all-cell generic targeting, bounded repeated ambient core movement, non-metaball fallback rendering, selector patch installation, and valid core handoff while cells disappear.")]
 		public static object SymbiantSelectionCoreContract(
 			[ToolParameter(Description = "Destroy the temporary contract Symbiant after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -7448,6 +7448,39 @@ namespace ZombieLand
 					targets = wanderTargets.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 					carriedCore = wanderCarriedCore,
 					movingCoreTargetable,
+					core = DescribeSymbiantSelectionCore(symbiant)
+				};
+
+				var repeatedWanderBeforeCells = symbiant.AbsoluteCells.ToHashSet();
+				var repeatedWanderBeforeCore = symbiant.SelectionCoreDestinationCell;
+				var repeatedWanderCoreWasLastOrdered = symbiant.DebugSelectionCoreIsLastOrdered;
+				var repeatedWanderMoved = symbiant.DebugTrySelectionCoreWanderPulse();
+				var repeatedWanderAfterCells = symbiant.AbsoluteCells.ToHashSet();
+				var repeatedWanderSources = repeatedWanderBeforeCells.Where(cell => repeatedWanderAfterCells.Contains(cell) == false).ToArray();
+				var repeatedWanderTargets = repeatedWanderAfterCells.Where(cell => repeatedWanderBeforeCells.Contains(cell) == false).ToArray();
+				var repeatedWanderCarriedCore = repeatedWanderMoved
+					&& repeatedWanderSources.Length == 1
+					&& repeatedWanderTargets.Length == 1
+					&& repeatedWanderSources[0] == repeatedWanderBeforeCore
+					&& symbiant.SelectionCoreDestinationCell == repeatedWanderTargets[0];
+				var repeatedWanderConnectivityChecks = symbiant.DebugLastSelectionCoreWanderConnectivityChecks;
+				var repeatedWanderPreferredTargets = symbiant.DebugLastSelectionCoreWanderPreferredTargets;
+				var repeatedWanderWorkBounded = repeatedWanderCoreWasLastOrdered
+					&& repeatedWanderPreferredTargets > 0
+					&& repeatedWanderPreferredTargets <= ZombieSymbiant.SelectionCorePreferredTargetLimit
+					&& repeatedWanderConnectivityChecks <= repeatedWanderPreferredTargets + 1;
+				var repeatedWander = new
+				{
+					moved = repeatedWanderMoved,
+					beforeCore = ZombieRuntimeActions.DescribeCell(repeatedWanderBeforeCore),
+					coreWasLastOrdered = repeatedWanderCoreWasLastOrdered,
+					sources = repeatedWanderSources.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					targets = repeatedWanderTargets.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					carriedCore = repeatedWanderCarriedCore,
+					preferredTargets = repeatedWanderPreferredTargets,
+					preferredTargetLimit = ZombieSymbiant.SelectionCorePreferredTargetLimit,
+					connectivityChecks = repeatedWanderConnectivityChecks,
+					workBounded = repeatedWanderWorkBounded,
 					core = DescribeSymbiantSelectionCore(symbiant)
 				};
 
@@ -7538,6 +7571,8 @@ namespace ZombieLand
 						&& discoveryCueCleared
 						&& wanderCarriedCore
 						&& movingCoreTargetable
+						&& repeatedWanderCarriedCore
+						&& repeatedWanderWorkBounded
 						&& handoffAligned
 						&& fallbackVerified
 						&& shrinkSteps.Count > 0
@@ -7553,6 +7588,7 @@ namespace ZombieLand
 					afterSelection,
 					discoveryCueCleared,
 					wander,
+					repeatedWander,
 					handoff = new
 					{
 						from = ZombieRuntimeActions.DescribeCell(handoffFrom),

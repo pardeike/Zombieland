@@ -250,6 +250,9 @@ namespace ZombieLand
 		float selectionCoreDiscoveryBlend;
 		float selectionCoreDiscoveryVelocity;
 		float selectionCoreInteractionLastRealtime = -1f;
+		bool debugTrackSelectionCoreWander;
+		int debugSelectionCoreWanderConnectivityChecks;
+		int debugSelectionCoreWanderPreferredTargets;
 		bool debugForceMetaballFallback;
 		bool lastFallbackSelectionCoreDrawSucceeded;
 
@@ -295,6 +298,10 @@ namespace ZombieLand
 		internal float SelectionCoreHoverBlend => selectionCoreHoverBlend;
 		internal float SelectionCoreSelectedBlend => selectionCoreSelectedBlend;
 		internal float SelectionCoreDiscoveryBlend => selectionCoreDiscoveryBlend;
+		internal int DebugLastSelectionCoreWanderConnectivityChecks { get; private set; }
+		internal int DebugLastSelectionCoreWanderPreferredTargets { get; private set; }
+		internal bool DebugSelectionCoreIsLastOrdered => orderedCells?.LastOrDefault() == selectionCoreRelative;
+		internal static int SelectionCorePreferredTargetLimit => AmbientMovementCandidateLimit;
 		internal Vector2 SelectionCoreVisualCenterRelative
 		{
 			get
@@ -2294,6 +2301,8 @@ namespace ZombieLand
 		{
 			if (cells == null || cells.Count <= 1)
 				return true;
+			if (debugTrackSelectionCoreWander)
+				debugSelectionCoreWanderConnectivityChecks++;
 			var testCells = new HashSet<IntVec3>(cells);
 			testCells.Remove(removedRelative);
 			testCells.Add(addedRelative);
@@ -3521,23 +3530,25 @@ namespace ZombieLand
 				&& GenTicks.TicksGame - selectionCoreLastMoveTick >= SelectionCoreWanderDwellTicks;
 			var bestScore = targets.Select(target => target.score).DefaultIfEmpty(0f).Max();
 			var scoreFloor = Mathf.Min(bestScore, Mathf.Max(0.01f, bestScore * AmbientMovementTargetBestScoreFraction));
-			if (preferSelectionCore)
-			{
-				foreach (var target in targets.OrderByDescending(AmbientTargetWeight))
-				{
-					var targetRelative = target.cell - Position;
-					var source = MovementSourceCandidates(map, targetRelative)
-						.Where(candidate => IsAmbientMoveAllowed(map, currentIntegrated, candidate, target))
-						.FirstOrDefault(candidate => candidate.relative == selectionCoreRelative);
-					if (source != null && TryCommitMove(map, source, target))
-						return true;
-				}
-			}
 			var targetPool = targets
 				.Where(target => target.score >= scoreFloor)
 				.OrderByDescending(target => AmbientTargetWeight(target))
 				.Take(AmbientMovementCandidateLimit)
 				.ToArray();
+			if (preferSelectionCore)
+			{
+				foreach (var target in targetPool)
+				{
+					if (debugTrackSelectionCoreWander)
+						debugSelectionCoreWanderPreferredTargets++;
+					var targetRelative = target.cell - Position;
+					var source = MovementSourceCandidate(map, selectionCoreRelative, targetRelative);
+					if (IsAmbientMoveAllowed(map, currentIntegrated, source, target) == false)
+						continue;
+					if (source != null && TryCommitMove(map, source, target))
+						return true;
+				}
+			}
 			foreach (var target in targetPool)
 			{
 				var targetRelative = target.cell - Position;
@@ -3556,15 +3567,29 @@ namespace ZombieLand
 
 		internal bool DebugTrySelectionCoreWanderPulse()
 		{
+			DebugLastSelectionCoreWanderConnectivityChecks = 0;
+			DebugLastSelectionCoreWanderPreferredTargets = 0;
 			var map = Map;
 			if (map == null || CellCount <= 1)
 				return false;
-			EnsureSelectionCoreState();
-			selectionCoreDiscoveryCue = false;
-			selectionCoreLastMoveTick = GenTicks.TicksGame - SelectionCoreWanderDwellTicks;
-			RefreshSymbiosisMetrics(false);
-			var targets = MovementTargetCandidates(map);
-			return targets.Count > 0 && TryAmbientMovePulse(map, targets);
+			debugSelectionCoreWanderConnectivityChecks = 0;
+			debugSelectionCoreWanderPreferredTargets = 0;
+			debugTrackSelectionCoreWander = true;
+			try
+			{
+				EnsureSelectionCoreState();
+				selectionCoreDiscoveryCue = false;
+				selectionCoreLastMoveTick = GenTicks.TicksGame - SelectionCoreWanderDwellTicks;
+				RefreshSymbiosisMetrics(false);
+				var targets = MovementTargetCandidates(map);
+				return targets.Count > 0 && TryAmbientMovePulse(map, targets);
+			}
+			finally
+			{
+				debugTrackSelectionCoreWander = false;
+				DebugLastSelectionCoreWanderConnectivityChecks = debugSelectionCoreWanderConnectivityChecks;
+				DebugLastSelectionCoreWanderPreferredTargets = debugSelectionCoreWanderPreferredTargets;
+			}
 		}
 
 		List<MovementTarget> MovementTargetCandidates(Map map)
@@ -3590,12 +3615,16 @@ namespace ZombieLand
 		{
 			return orderedCells
 				.Where(relative => relative != IntVec3.Zero)
-				.Where(relative => WouldCellsStayConnectedAfterMove(relative, targetRelative))
-				.Select(relative =>
-				{
-					var absolute = Position + relative;
-					return new MovementSource(relative, absolute, ScoreMovementSourceCell(map, absolute), IntegratedCellWeight(map, absolute));
-				});
+				.Select(relative => MovementSourceCandidate(map, relative, targetRelative))
+				.Where(candidate => candidate != null);
+		}
+
+		MovementSource MovementSourceCandidate(Map map, IntVec3 relative, IntVec3 targetRelative)
+		{
+			if (relative == IntVec3.Zero || cells?.Contains(relative) != true || WouldCellsStayConnectedAfterMove(relative, targetRelative) == false)
+				return null;
+			var absolute = Position + relative;
+			return new MovementSource(relative, absolute, ScoreMovementSourceCell(map, absolute), IntegratedCellWeight(map, absolute));
 		}
 
 		bool IsAmbientMoveAllowed(Map map, float currentIntegrated, MovementSource source, MovementTarget target)

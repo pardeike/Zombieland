@@ -1,1 +1,2 @@
 - The Zombie Symbiant now has one visible softly pulsing and rotating selection core, including when GPU blob rendering is unavailable, so its other cells no longer block normal map clicks while enemies can still attack the whole body.
+- Moving the selection core no longer causes repeated full-body connectivity scans on very large Zombie Symbiants.
