@@ -7373,7 +7373,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, all-cell generic targeting, ambient core movement, selector patch installation, and valid core handoff while cells disappear.")]
+		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, all-cell generic targeting, ambient core movement, non-metaball fallback rendering, selector patch installation, and valid core handoff while cells disappear.")]
 		public static object SymbiantSelectionCoreContract(
 			[ToolParameter(Description = "Destroy the temporary contract Symbiant after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -7484,6 +7484,25 @@ namespace ZombieLand
 					&& handoffFrom.DistanceToSquared(handoffTo) > 1
 					&& handoffSamples.All(sample => sample.applied && sample.centerInsideHitCell && sample.selectorTracksHitCell && sample.targetable);
 
+				var fallbackVisualCenter = symbiant.SelectionCoreVisualCenterRelative;
+				var fallbackCoreCell = symbiant.SelectionCoreCell;
+				var fallbackCoreRelative = fallbackCoreCell - symbiant.Position;
+				var fallbackCoreDrawn = symbiant.DebugDrawSelectionCoreMetaballFallback();
+				var fallbackSelector = symbiant.CustomRectForSelector;
+				var fallbackLogicalTargeting = symbiant.AbsoluteCells.Select(cell => new
+				{
+					cell = ZombieRuntimeActions.DescribeCell(cell),
+					targetable = GenUI.ThingsUnderMouse(cell.ToVector3Shifted(), 0f, clickParams).Contains(symbiant)
+				}).ToArray();
+				var fallbackVerified = fallbackCoreDrawn
+					&& fallbackCoreCell != symbiant.Position
+					&& Mathf.Abs(fallbackVisualCenter.x - fallbackCoreRelative.x) <= 0.5001f
+					&& Mathf.Abs(fallbackVisualCenter.y - fallbackCoreRelative.z) <= 0.5001f
+					&& fallbackSelector.HasValue
+					&& fallbackSelector.Value.Area == 1
+					&& fallbackSelector.Value.Contains(fallbackCoreCell)
+					&& fallbackLogicalTargeting.All(probe => probe.targetable);
+
 				var shrinkSteps = new List<object>();
 				var shrinkCoresValid = true;
 				while (symbiant.Destroyed == false && symbiant.CellCount > 1)
@@ -7520,6 +7539,7 @@ namespace ZombieLand
 						&& wanderCarriedCore
 						&& movingCoreTargetable
 						&& handoffAligned
+						&& fallbackVerified
 						&& shrinkSteps.Count > 0
 						&& shrinkCoresValid,
 					sourcePath = "GenUI.ThingsUnderMouse + Selector.SelectableObjectsUnderMouse postfix + ZombieSymbiant selection-core state",
@@ -7540,6 +7560,16 @@ namespace ZombieLand
 						started = handoffStarted,
 						aligned = handoffAligned,
 						samples = handoffSamples
+					},
+					fallbackRendering = new
+					{
+						verified = fallbackVerified,
+						coreDrawn = fallbackCoreDrawn,
+						coreCell = ZombieRuntimeActions.DescribeCell(fallbackCoreCell),
+						coreIsNonRoot = fallbackCoreCell != symbiant.Position,
+						visualCenter = new { x = fallbackVisualCenter.x, z = fallbackVisualCenter.y },
+						selectorRect = fallbackSelector.HasValue ? ZombieRuntimeActions.DescribeCellRect(fallbackSelector.Value) : null,
+						logicalTargeting = fallbackLogicalTargeting
 					},
 					shrinkSteps,
 					shrinkCoresValid

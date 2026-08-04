@@ -250,6 +250,8 @@ namespace ZombieLand
 		float selectionCoreDiscoveryBlend;
 		float selectionCoreDiscoveryVelocity;
 		float selectionCoreInteractionLastRealtime = -1f;
+		bool debugForceMetaballFallback;
+		bool lastFallbackSelectionCoreDrawSucceeded;
 
 		public int CellCount => cells?.Count ?? 0;
 		internal int CombatShapeVersion => combatShapeVersion;
@@ -2561,6 +2563,23 @@ namespace ZombieLand
 			return true;
 		}
 
+		internal bool DebugDrawSelectionCoreMetaballFallback()
+		{
+			var previous = debugForceMetaballFallback;
+			try
+			{
+				ReleaseRenderResources();
+				lastFallbackSelectionCoreDrawSucceeded = false;
+				debugForceMetaballFallback = true;
+				DrawAt(DrawPos);
+				return lastFallbackSelectionCoreDrawSucceeded;
+			}
+			finally
+			{
+				debugForceMetaballFallback = previous;
+			}
+		}
+
 		void CompleteSelectionCoreMotion()
 		{
 			var destination = selectionCoreMotionTo;
@@ -4568,6 +4587,8 @@ namespace ZombieLand
 				UpdateAll();
 			if (hasCellBounds == false)
 				return false;
+			if (debugForceMetaballFallback)
+				return false;
 			if (EnsureRenderResources() == false)
 				return false;
 
@@ -4585,6 +4606,24 @@ namespace ZombieLand
 				metaballTextureDirty = false;
 			}
 			return mesh != null && metaballMaterial != null;
+		}
+
+		bool TryPrepareSelectionCoreRendering()
+		{
+			try
+			{
+				EnsureSelectionCoreState();
+				EnsureSelectionCoreResources();
+				if (selectionCoreMaterial != null || selectionCoreTexture != null || selectionCoreMesh != null)
+					renderResourceOwners.Add(this);
+				return selectionCoreMaterial != null && selectionCoreTexture != null && selectionCoreMesh != null;
+			}
+			catch (Exception ex)
+			{
+				ReleaseRenderResources();
+				Log.WarningOnce($"Zombieland could not prepare the Symbiant selection core for fallback rendering: {ex}", 184463729);
+				return false;
+			}
 		}
 
 		void EnsureMetaballMaskMaterial()
@@ -4734,11 +4773,11 @@ namespace ZombieLand
 			SetMaterialFloatIfPresent(metaballMaterial, SymbiantOpacityMaxId, SymbiantOpacityMax + 0.08f * selectionCoreSelectedBlend);
 		}
 
-		void DrawSelectionCore(Vector3 drawLoc)
+		bool DrawSelectionCore(Vector3 drawLoc)
 		{
 			EnsureSelectionCoreState();
 			if (selectionCoreMesh == null || selectionCoreMaterial == null || selectionCoreRelative.IsValid == false)
-				return;
+				return false;
 			var amplitude = Mathf.Lerp(SelectionCoreSubtlePulseScale, SelectionCoreDiscoveryPulseScale, selectionCoreDiscoveryBlend);
 			amplitude = Mathf.Lerp(amplitude, SelectionCoreHoverPulseScale, selectionCoreHoverBlend);
 			var pulse = 1f + Mathf.Sin(Time.realtimeSinceStartup / SelectionCorePulseSeconds * Mathf.PI * 2f) * amplitude;
@@ -4751,6 +4790,7 @@ namespace ZombieLand
 			var rotation = Quaternion.Euler(0f, -Time.realtimeSinceStartup * SelectionCoreRotationDegreesPerSecond, 0f);
 			var matrix = Matrix4x4.TRS(position, rotation, new Vector3(pulse, 1f, pulse));
 			Graphics.DrawMesh(selectionCoreMesh, matrix, selectionCoreMaterial, 0);
+			return true;
 		}
 
 		float GetSize(IntVec3 cell)
@@ -4791,10 +4831,24 @@ namespace ZombieLand
 		{
 			if (DebugDisableRendering)
 				return;
+			lastFallbackSelectionCoreDrawSucceeded = false;
 			if (TryPrepareMetaballRendering() == false)
 			{
 				if (ZombieLand.Tools.MapViewActiveFor(MapHeld))
-					base.DrawAt(drawLoc, flip);
+				{
+					if (TryPrepareSelectionCoreRendering())
+					{
+						base.DrawAt(drawLoc, flip);
+						UpdateMetaballMaterialTime();
+						UpdateSelectionCoreInteractionState();
+						lastFallbackSelectionCoreDrawSucceeded = DrawSelectionCore(drawLoc);
+					}
+					else
+					{
+						var center = SelectionCoreVisualCenter;
+						base.DrawAt(drawLoc + new Vector3(center.x, 0f, center.y), flip);
+					}
+				}
 				return;
 			}
 
