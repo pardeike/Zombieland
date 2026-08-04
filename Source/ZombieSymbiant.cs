@@ -293,6 +293,14 @@ namespace ZombieLand
 		internal float SelectionCoreHoverBlend => selectionCoreHoverBlend;
 		internal float SelectionCoreSelectedBlend => selectionCoreSelectedBlend;
 		internal float SelectionCoreDiscoveryBlend => selectionCoreDiscoveryBlend;
+		internal Vector2 SelectionCoreVisualCenterRelative
+		{
+			get
+			{
+				EnsureSelectionCoreState();
+				return SelectionCoreVisualCenter;
+			}
+		}
 		public override CellRect? CustomRectForSelector => hasCellBounds ? CellRect.SingleCell(SelectionCoreCell) : base.CustomRectForSelector;
 		public int RenderTextureWidth => metaballTexture?.width ?? 0;
 		public int RenderTextureHeight => metaballTexture?.height ?? 0;
@@ -2390,11 +2398,8 @@ namespace ZombieLand
 		{
 			get
 			{
-				var ticks = GenTicks.TicksGame;
-				if (IsSelectionCoreMotionActive(ticks) == false)
-					return selectionCoreRelative;
-				var progress = SelectionCoreMotionProgress(ticks);
-				return progress < 0.5f ? selectionCoreMotionFrom : selectionCoreMotionTo;
+				var center = SelectionCoreVisualCenter;
+				return new IntVec3(Mathf.RoundToInt(center.x), 0, Mathf.RoundToInt(center.y));
 			}
 		}
 
@@ -2530,6 +2535,30 @@ namespace ZombieLand
 			selectionCoreMotionTo = to;
 			selectionCoreMotionStartTick = GenTicks.TicksGame;
 			selectionCoreMotionEndTick = selectionCoreMotionStartTick + CellMotionDurationTicks;
+		}
+
+		internal bool DebugBeginSelectionCoreHandoff(IntVec3 fromCell, IntVec3 toCell)
+		{
+			if (Spawned == false || fromCell.IsValid == false || toCell.IsValid == false)
+				return false;
+			var from = fromCell - Position;
+			var to = toCell - Position;
+			if (from == to || cells?.Contains(from) != true || cells.Contains(to) == false)
+				return false;
+			BeginSelectionCoreMove(from, to);
+			return SelectionCoreMotionActive;
+		}
+
+		internal bool DebugSetSelectionCoreHandoffProgress(float progress)
+		{
+			var ticks = GenTicks.TicksGame;
+			if (IsSelectionCoreMotionActive(ticks) == false)
+				return false;
+			var duration = Mathf.Max(1, selectionCoreMotionEndTick - selectionCoreMotionStartTick);
+			var elapsed = Mathf.Clamp(Mathf.RoundToInt(Mathf.Clamp01(progress) * duration), 0, duration - 1);
+			selectionCoreMotionStartTick = ticks - elapsed;
+			selectionCoreMotionEndTick = selectionCoreMotionStartTick + duration;
+			return true;
 		}
 
 		void CompleteSelectionCoreMotion()

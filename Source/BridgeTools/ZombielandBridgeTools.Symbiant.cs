@@ -7451,6 +7451,39 @@ namespace ZombieLand
 					core = DescribeSymbiantSelectionCore(symbiant)
 				};
 
+				var handoffFrom = shape[1];
+				var handoffTo = shape[3];
+				var handoffStarted = symbiant.DebugBeginSelectionCoreHandoff(handoffFrom, handoffTo);
+				var handoffSamples = new[] { 0f, 0.1f, 0.25f, 0.5f, 0.75f, 0.9f }
+					.Select(progress =>
+					{
+						var applied = handoffStarted && symbiant.DebugSetSelectionCoreHandoffProgress(progress);
+						var visualCenter = symbiant.SelectionCoreVisualCenterRelative;
+						var hitCell = symbiant.SelectionCoreCell;
+						var hitRelative = hitCell - symbiant.Position;
+						var selector = symbiant.CustomRectForSelector;
+						var centerInsideHitCell = Mathf.Abs(visualCenter.x - hitRelative.x) <= 0.5001f
+							&& Mathf.Abs(visualCenter.y - hitRelative.z) <= 0.5001f;
+						var selectorTracksHitCell = selector.HasValue
+							&& selector.Value.Area == 1
+							&& selector.Value.Contains(hitCell);
+						var targetable = GenUI.ThingsUnderMouse(hitCell.ToVector3Shifted(), 0f, clickParams).Contains(symbiant);
+						return new
+						{
+							progress,
+							applied,
+							visualCenter = new { x = visualCenter.x, z = visualCenter.y },
+							hitCell = ZombieRuntimeActions.DescribeCell(hitCell),
+							centerInsideHitCell,
+							selectorTracksHitCell,
+							targetable
+						};
+					})
+					.ToArray();
+				var handoffAligned = handoffStarted
+					&& handoffFrom.DistanceToSquared(handoffTo) > 1
+					&& handoffSamples.All(sample => sample.applied && sample.centerInsideHitCell && sample.selectorTracksHitCell && sample.targetable);
+
 				var shrinkSteps = new List<object>();
 				var shrinkCoresValid = true;
 				while (symbiant.Destroyed == false && symbiant.CellCount > 1)
@@ -7486,6 +7519,7 @@ namespace ZombieLand
 						&& discoveryCueCleared
 						&& wanderCarriedCore
 						&& movingCoreTargetable
+						&& handoffAligned
 						&& shrinkSteps.Count > 0
 						&& shrinkCoresValid,
 					sourcePath = "GenUI.ThingsUnderMouse + Selector.SelectableObjectsUnderMouse postfix + ZombieSymbiant selection-core state",
@@ -7499,6 +7533,14 @@ namespace ZombieLand
 					afterSelection,
 					discoveryCueCleared,
 					wander,
+					handoff = new
+					{
+						from = ZombieRuntimeActions.DescribeCell(handoffFrom),
+						to = ZombieRuntimeActions.DescribeCell(handoffTo),
+						started = handoffStarted,
+						aligned = handoffAligned,
+						samples = handoffSamples
+					},
 					shrinkSteps,
 					shrinkCoresValid
 				};
