@@ -36,6 +36,8 @@
 	<ZombieSymbiant>喪屍共生體已在 {0} 出現，並與 {1} 建立連結。它會在頻繁使用的室內房間中蔓延。穿過它的角色會變慢，宿主除外。宿主免疫喪屍咬傷所造成的感染，並會在共生體成長時獲得隨機增益。用屍體餵養它可以加快成長。\n\n請讓宿主和共生體留在同一張地圖上：如果兩者分離，連結會進入休眠，休眠期間無法移除。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄共生體所在的地圖會摧毀共生體，並強行切斷連結。\n\n請先替 {1} 動手術以安全移除連結；失去宿主的共生體之後會逐漸縮回。</ZombieSymbiant>
 	<ZombieSymbiantNoHost>喪屍共生體已在 {0} 出現。它會在頻繁使用的室內房間中蔓延。用屍體餵養它可以加快成長。</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>你的某個房間</ZombieSymbiantUnknownRoom>
+	<ZombieSymbiantCoreInstruction>點擊脈動的核心以查看共生體。</ZombieSymbiantCoreInstruction>
+	<SymbiantCoreHover>喪屍共生體——點擊脈動的核心進行查看</SymbiantCoreHover>
 	<ZombieSymbiantInspect>連結宿主：{0}，大小：{1} 格，共享生命值：{2}，下一項增益在 {3} 格</ZombieSymbiantInspect>
 	<SymbiantWeaponInspect>殖民者無法傷害它</SymbiantWeaponInspect>
 	<SymbiantWeaponRejectedMessage>共生體會無視殖民者造成的傷害。</SymbiantWeaponRejectedMessage>

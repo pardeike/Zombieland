@@ -36,6 +36,8 @@
 	<ZombieSymbiant>A Zombie Symbiant has surfaced in {0} and linked itself to {1}. It spreads through busy indoor rooms. Pawns crossing it are slowed, except the host. The host is immune to zombie infection from bites and gains random benefits as the Symbiant grows. Feed it corpses to make it grow faster.\n\nKeep host and Symbiant on the same map: if they are separated, the bond goes dormant and cannot be removed while it sleeps. It wakes up again only when the same host and Symbiant are back on one map. Abandoning the Symbiant's map destroys it and forcibly breaks the bond.\n\nOperate on {1} first to remove the bond safely; the unbound Symbiant will shrink away.</ZombieSymbiant>
 	<ZombieSymbiantNoHost>A Zombie Symbiant has surfaced in {0}. It spreads through busy indoor rooms. Feed it corpses to make it grow faster.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>one of your rooms</ZombieSymbiantUnknownRoom>
+	<ZombieSymbiantCoreInstruction>Click the pulsing core to inspect the Symbiant.</ZombieSymbiantCoreInstruction>
+	<SymbiantCoreHover>Zombie Symbiant — click the pulsing core to inspect</SymbiantCoreHover>
 	<ZombieSymbiantInspect>Linked host: {0}, size: {1} cells, shared health: {2}, next benefit at {3} cells</ZombieSymbiantInspect>
 	<SymbiantWeaponInspect>colonists cannot damage it</SymbiantWeaponInspect>
 	<SymbiantWeaponRejectedMessage>The Symbiant ignores colonist damage.</SymbiantWeaponRejectedMessage>

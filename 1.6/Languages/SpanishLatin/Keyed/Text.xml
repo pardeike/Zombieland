@@ -36,6 +36,8 @@
 	<ZombieSymbiant>Un Simbionte zombi ha surgido en {0} y se ha vinculado a {1}. Se extiende por las habitaciones interiores transitadas. Los peones que lo atraviesan se ralentizan, salvo el huésped. El huésped es inmune a la infección zombi causada por mordidas y obtiene beneficios aleatorios a medida que crece el Simbionte. Aliméntalo con cadáveres para que crezca más deprisa.\n\nMantén al huésped y al Simbionte en el mismo mapa: si se separan, el vínculo queda latente y no se puede eliminar mientras duerme. Solo despierta de nuevo cuando el mismo huésped y el Simbionte vuelven a estar en un mismo mapa. Abandonar el mapa del Simbionte lo destruye y rompe el vínculo por la fuerza.\n\nOpera primero a {1} para eliminar el vínculo de forma segura; el Simbionte desvinculado se encogerá hasta desaparecer.</ZombieSymbiant>
 	<ZombieSymbiantNoHost>Un Simbionte zombi ha surgido en {0}. Se extiende por las habitaciones interiores transitadas. Aliméntalo con cadáveres para que crezca más deprisa.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>una de tus habitaciones</ZombieSymbiantUnknownRoom>
+	<ZombieSymbiantCoreInstruction>Haz clic en el núcleo pulsante para inspeccionar al Simbionte.</ZombieSymbiantCoreInstruction>
+	<SymbiantCoreHover>Simbionte zombi — haz clic en el núcleo pulsante para inspeccionarlo</SymbiantCoreHover>
 	<ZombieSymbiantInspect>Huésped vinculado: {0}, tamaño: {1} celdas, salud compartida: {2}, próximo beneficio al alcanzar {3} celdas</ZombieSymbiantInspect>
 	<SymbiantWeaponInspect>los colonos no pueden dañarlo</SymbiantWeaponInspect>
 	<SymbiantWeaponRejectedMessage>El Simbionte ignora el daño de los colonos.</SymbiantWeaponRejectedMessage>

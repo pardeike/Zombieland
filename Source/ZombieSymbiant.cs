@@ -62,6 +62,14 @@ namespace ZombieLand
 		const float UprootedIntegratedCellThreshold = 0.01f;
 		const int AutoHealIntervalTicks = GenDate.TicksPerDay / 4;
 		const int AmbientMovementRecentCellCapacity = 16;
+		const int SelectionCoreWanderDwellTicks = GenDate.TicksPerHour * 6;
+		const int SelectionCoreTextureSize = 64;
+		const float SelectionCoreVisualSize = 0.93f;
+		const float SelectionCoreSubtlePulseScale = 0.035f;
+		const float SelectionCoreDiscoveryPulseScale = 0.085f;
+		const float SelectionCoreHoverPulseScale = 0.10f;
+		const float SelectionCorePulseSeconds = 1.8f;
+		const float SelectionCoreRotationDegreesPerSecond = 6f;
 		const int AmbientMovementCandidateLimit = 12;
 		const int AmbientMovementSourceLimit = 8;
 		const float AmbientMovementMinBenefitFactor = 0.55f;
@@ -177,6 +185,9 @@ namespace ZombieLand
 
 		Mesh mesh = null;
 		Material metaballMaterial;
+		Mesh selectionCoreMesh;
+		Material selectionCoreMaterial;
+		Texture2D selectionCoreTexture;
 
 		float radius, power, centerX, centerZ, renderMinX, renderMinZ, renderWidth = 1f, renderHeight = 1f;
 		Vector2 drawCullSize = Vector2.one;
@@ -225,6 +236,20 @@ namespace ZombieLand
 		bool metaballTextureDirty = true;
 		bool destroyWhenCellMotionsFinish;
 		int combatShapeVersion;
+		IntVec3 selectionCoreRelative = IntVec3.Invalid;
+		IntVec3 selectionCoreMotionFrom = IntVec3.Invalid;
+		IntVec3 selectionCoreMotionTo = IntVec3.Invalid;
+		int selectionCoreMotionStartTick = -1;
+		int selectionCoreMotionEndTick = -1;
+		int selectionCoreLastMoveTick = -1;
+		bool selectionCoreDiscoveryCue;
+		float selectionCoreHoverBlend;
+		float selectionCoreHoverVelocity;
+		float selectionCoreSelectedBlend;
+		float selectionCoreSelectedVelocity;
+		float selectionCoreDiscoveryBlend;
+		float selectionCoreDiscoveryVelocity;
+		float selectionCoreInteractionLastRealtime = -1f;
 
 		public int CellCount => cells?.Count ?? 0;
 		internal int CombatShapeVersion => combatShapeVersion;
@@ -245,7 +270,30 @@ namespace ZombieLand
 		public IEnumerable<IntVec3> AbsoluteCells => orderedCells.Select(cell => Position + cell);
 		CellRect AbsoluteCellBounds => relativeCellBounds.MovedBy(Position);
 		public override Vector2 DrawSize => hasCellBounds ? drawCullSize : base.DrawSize;
-		public override CellRect? CustomRectForSelector => hasCellBounds ? AbsoluteCellBounds : base.CustomRectForSelector;
+		public IntVec3 SelectionCoreCell
+		{
+			get
+			{
+				EnsureSelectionCoreState();
+				return SelectionCoreClickRelative.IsValid ? Position + SelectionCoreClickRelative : Position;
+			}
+		}
+		public bool SelectionCoreValid
+		{
+			get
+			{
+				EnsureSelectionCoreState();
+				return selectionCoreRelative.IsValid && cells?.Contains(selectionCoreRelative) == true;
+			}
+		}
+		public bool SelectionCoreMotionActive => IsSelectionCoreMotionActive(GenTicks.TicksGame);
+		public int SelectionCoreMotionEndTick => selectionCoreMotionEndTick;
+		public int SelectionCoreLastMoveTick => selectionCoreLastMoveTick;
+		public bool SelectionCoreDiscoveryCue => selectionCoreDiscoveryCue;
+		internal float SelectionCoreHoverBlend => selectionCoreHoverBlend;
+		internal float SelectionCoreSelectedBlend => selectionCoreSelectedBlend;
+		internal float SelectionCoreDiscoveryBlend => selectionCoreDiscoveryBlend;
+		public override CellRect? CustomRectForSelector => hasCellBounds ? CellRect.SingleCell(SelectionCoreCell) : base.CustomRectForSelector;
 		public int RenderTextureWidth => metaballTexture?.width ?? 0;
 		public int RenderTextureHeight => metaballTexture?.height ?? 0;
 		public Vector2 RenderWorldSize => new(renderWidth, renderHeight);
@@ -657,6 +705,8 @@ namespace ZombieLand
 				var roomLabel = SpawnRoomLabel(map, cell);
 				var headline = linkedHost == null ? "LetterLabelZombieSymbiantNoHost".Translate() : "LetterLabelZombieSymbiant".Translate(linkedHost.LabelShortCap);
 				var text = linkedHost == null ? "ZombieSymbiantNoHost".Translate(roomLabel) : "ZombieSymbiant".Translate(roomLabel, linkedHost.LabelShortCap);
+				text += "\n\n" + "ZombieSymbiantCoreInstruction".Translate();
+				symbiant.NotifySelectionCoreDiscoveryCue();
 				Find.LetterStack.ReceiveLetter(headline, text, CustomDefs.SymbiantConnection ?? LetterDefOf.NeutralEvent, SpawnLookTargets(symbiant, linkedHost, map, cell));
 				sentLetter = true;
 			}
@@ -2023,6 +2073,28 @@ namespace ZombieLand
 
 		void ReleaseRenderResources(bool unregister = true)
 		{
+			selectionCoreHoverBlend = 0f;
+			selectionCoreHoverVelocity = 0f;
+			selectionCoreSelectedBlend = 0f;
+			selectionCoreSelectedVelocity = 0f;
+			selectionCoreDiscoveryBlend = 0f;
+			selectionCoreDiscoveryVelocity = 0f;
+			selectionCoreInteractionLastRealtime = -1f;
+			if (selectionCoreMaterial != null)
+			{
+				UnityEngine.Object.Destroy(selectionCoreMaterial);
+				selectionCoreMaterial = null;
+			}
+			if (selectionCoreTexture != null)
+			{
+				UnityEngine.Object.Destroy(selectionCoreTexture);
+				selectionCoreTexture = null;
+			}
+			if (selectionCoreMesh != null)
+			{
+				UnityEngine.Object.Destroy(selectionCoreMesh);
+				selectionCoreMesh = null;
+			}
 			if (metaballMaterial != null)
 			{
 				UnityEngine.Object.Destroy(metaballMaterial);
@@ -2153,6 +2225,13 @@ namespace ZombieLand
 			orderedCells.Add(relative);
 			combatShapeVersion++;
 			ExpandCellBounds(relative);
+			if (selectionCoreRelative.IsValid == false)
+			{
+				selectionCoreRelative = relative;
+				selectionCoreLastMoveTick = GenTicks.TicksGame;
+			}
+			else if (selectionCoreDiscoveryCue == false && selectionCoreRelative == IntVec3.Zero && relative != IntVec3.Zero && cells.Count == 2)
+				BeginSelectionCoreMove(IntVec3.Zero, relative);
 			if (wasFullHealth)
 				sharedHealth = SharedHealthMax;
 			return true;
@@ -2160,8 +2239,24 @@ namespace ZombieLand
 
 		bool RemoveRelativeCell(IntVec3 relative, bool animate)
 		{
+			return RemoveRelativeCellWithCoreDestination(relative, animate, IntVec3.Invalid);
+		}
+
+		bool RemoveRelativeCellWithCoreDestination(IntVec3 relative, bool animate, IntVec3 selectionCoreDestination)
+		{
 			if (cells?.Contains(relative) != true)
 				return false;
+			var removesSelectionCore = selectionCoreRelative == relative;
+			if (removesSelectionCore && selectionCoreDestination.IsValid == false)
+			{
+				var remaining = cells.Where(cell => cell != relative).ToArray();
+				selectionCoreDestination = remaining.Length == 0
+					? IntVec3.Invalid
+					: remaining
+						.OrderBy(SelectionCoreClutterScore)
+						.ThenBy(cell => cell.DistanceToSquared(relative))
+						.First();
+			}
 			if (animate)
 				StartOutgoingCellMotion(relative);
 			orderedCells.Remove(relative);
@@ -2169,6 +2264,8 @@ namespace ZombieLand
 			if (removed)
 			{
 				combatShapeVersion++;
+				if (removesSelectionCore)
+					BeginSelectionCoreMove(relative, selectionCoreDestination);
 				EnsureSharedHealth();
 			}
 			return removed;
@@ -2238,6 +2335,12 @@ namespace ZombieLand
 				cells.Remove(cell);
 			orderedCells?.RemoveAll(cell => connected.Contains(cell) == false);
 			cellMotions?.RemoveAll(motion => connected.Contains(motion.cell) == false);
+			if (cells.Contains(selectionCoreRelative) == false)
+			{
+				selectionCoreRelative = BestSelectionCoreRelative(IntVec3.Zero, selectionCoreDiscoveryCue);
+				selectionCoreLastMoveTick = GenTicks.TicksGame;
+				ClearSelectionCoreMotion();
+			}
 			combatShapeVersion++;
 			return removed.Length;
 		}
@@ -2281,6 +2384,185 @@ namespace ZombieLand
 				.OrderBy(cell => cell.DistanceToSquared(target))
 				.FirstOrDefault();
 			return CellCenter(nearest.IsValid ? nearest : target);
+		}
+
+		IntVec3 SelectionCoreClickRelative
+		{
+			get
+			{
+				var ticks = GenTicks.TicksGame;
+				if (IsSelectionCoreMotionActive(ticks) == false)
+					return selectionCoreRelative;
+				var progress = SelectionCoreMotionProgress(ticks);
+				return progress < 0.5f ? selectionCoreMotionFrom : selectionCoreMotionTo;
+			}
+		}
+
+		Vector2 SelectionCoreVisualCenter
+		{
+			get
+			{
+				var ticks = GenTicks.TicksGame;
+				if (IsSelectionCoreMotionActive(ticks) == false)
+					return CellCenter(selectionCoreRelative.IsValid ? selectionCoreRelative : IntVec3.Zero);
+				return Vector2.Lerp(CellCenter(selectionCoreMotionFrom), CellCenter(selectionCoreMotionTo), SelectionCoreMotionProgress(ticks));
+			}
+		}
+
+		public IntVec3 SelectionCoreDestinationCell
+		{
+			get
+			{
+				EnsureSelectionCoreState();
+				return selectionCoreRelative.IsValid ? Position + selectionCoreRelative : Position;
+			}
+		}
+
+		public IntVec3 SelectionCoreMotionFromCell => selectionCoreMotionFrom.IsValid ? Position + selectionCoreMotionFrom : IntVec3.Invalid;
+		public IntVec3 SelectionCoreMotionToCell => selectionCoreMotionTo.IsValid ? Position + selectionCoreMotionTo : IntVec3.Invalid;
+
+		public bool IsSelectionCoreCell(IntVec3 absoluteCell)
+		{
+			return Spawned && Destroyed == false && absoluteCell == SelectionCoreCell;
+		}
+
+		internal void NotifySelectionCoreDiscoveryCue()
+		{
+			selectionCoreDiscoveryCue = true;
+			selectionCoreRelative = IntVec3.Zero;
+			selectionCoreLastMoveTick = GenTicks.TicksGame;
+			ClearSelectionCoreMotion();
+		}
+
+		public override void Notify_ThingSelected()
+		{
+			base.Notify_ThingSelected();
+			if (selectionCoreDiscoveryCue == false)
+				return;
+			selectionCoreDiscoveryCue = false;
+			PromoteSelectionCoreFromRoot();
+		}
+
+		void PromoteSelectionCoreFromRoot()
+		{
+			EnsureSelectionCoreState();
+			if (selectionCoreRelative != IntVec3.Zero || CellCount <= 1)
+				return;
+			var target = BestSelectionCoreRelative(IntVec3.Zero, false);
+			if (target.IsValid && target != IntVec3.Zero)
+				BeginSelectionCoreMove(IntVec3.Zero, target);
+		}
+
+		void EnsureSelectionCoreState()
+		{
+			if (cells == null || cells.Count == 0)
+			{
+				selectionCoreRelative = IntVec3.Invalid;
+				ClearSelectionCoreMotion();
+				return;
+			}
+
+			var ticks = GenTicks.TicksGame;
+			if (selectionCoreMotionEndTick >= 0 && ticks >= selectionCoreMotionEndTick)
+				CompleteSelectionCoreMotion();
+			if (IsSelectionCoreMotionActive(ticks) && cells.Contains(selectionCoreRelative))
+				return;
+			if (selectionCoreRelative.IsValid && cells.Contains(selectionCoreRelative))
+				return;
+
+			selectionCoreRelative = BestSelectionCoreRelative(IntVec3.Zero, selectionCoreDiscoveryCue);
+			selectionCoreLastMoveTick = ticks;
+			ClearSelectionCoreMotion();
+		}
+
+		IntVec3 BestSelectionCoreRelative(IntVec3 near, bool allowRoot)
+		{
+			if (cells == null || cells.Count == 0)
+				return IntVec3.Invalid;
+			var candidates = orderedCells
+				.Where(cell => cells.Contains(cell))
+				.Where(cell => allowRoot || cell != IntVec3.Zero)
+				.ToArray();
+			if (candidates.Length == 0)
+				candidates = orderedCells.Where(cell => cells.Contains(cell)).ToArray();
+			return candidates
+				.OrderBy(SelectionCoreClutterScore)
+				.ThenBy(cell => WouldCellsStayConnectedAfterRemoval(cell) ? 0 : 1)
+				.ThenBy(SelectionCoreCardinalNeighborCount)
+				.ThenBy(cell => near.IsValid ? cell.DistanceToSquared(near) : 0)
+				.ThenBy(cell => cell.x)
+				.ThenBy(cell => cell.z)
+				.FirstOrDefault();
+		}
+
+		int SelectionCoreCardinalNeighborCount(IntVec3 relative)
+		{
+			return GenAdj.CardinalDirections.Count(direction => cells.Contains(relative + direction));
+		}
+
+		int SelectionCoreClutterScore(IntVec3 relative)
+		{
+			var map = MapHeld;
+			var absolute = Position + relative;
+			if (map == null || absolute.InBounds(map) == false)
+				return 0;
+			return map.thingGrid.ThingsListAtFast(absolute)
+				.Where(thing => thing != this && thing is not Pawn && thing?.def?.selectable == true)
+				.Sum(thing => thing is Building ? 10 : 1);
+		}
+
+		void BeginSelectionCoreMove(IntVec3 from, IntVec3 to)
+		{
+			if (to.IsValid == false)
+			{
+				selectionCoreRelative = IntVec3.Invalid;
+				ClearSelectionCoreMotion();
+				return;
+			}
+			selectionCoreRelative = to;
+			selectionCoreLastMoveTick = GenTicks.TicksGame;
+			if (Spawned == false || from.IsValid == false || from == to)
+			{
+				ClearSelectionCoreMotion();
+				return;
+			}
+			selectionCoreMotionFrom = from;
+			selectionCoreMotionTo = to;
+			selectionCoreMotionStartTick = GenTicks.TicksGame;
+			selectionCoreMotionEndTick = selectionCoreMotionStartTick + CellMotionDurationTicks;
+		}
+
+		void CompleteSelectionCoreMotion()
+		{
+			var destination = selectionCoreMotionTo;
+			ClearSelectionCoreMotion();
+			if (destination.IsValid && cells?.Contains(destination) == true)
+				selectionCoreRelative = destination;
+			else
+				selectionCoreRelative = BestSelectionCoreRelative(selectionCoreRelative, selectionCoreDiscoveryCue);
+		}
+
+		void ClearSelectionCoreMotion()
+		{
+			selectionCoreMotionFrom = IntVec3.Invalid;
+			selectionCoreMotionTo = IntVec3.Invalid;
+			selectionCoreMotionStartTick = -1;
+			selectionCoreMotionEndTick = -1;
+		}
+
+		bool IsSelectionCoreMotionActive(int ticks)
+		{
+			return selectionCoreMotionFrom.IsValid
+				&& selectionCoreMotionTo.IsValid
+				&& selectionCoreMotionStartTick >= 0
+				&& selectionCoreMotionEndTick > selectionCoreMotionStartTick
+				&& ticks < selectionCoreMotionEndTick;
+		}
+
+		float SelectionCoreMotionProgress(int ticks)
+		{
+			var linear = Mathf.Clamp01((ticks - selectionCoreMotionStartTick) / (float)Mathf.Max(1, selectionCoreMotionEndTick - selectionCoreMotionStartTick));
+			return linear * linear * (3f - 2f * linear);
 		}
 
 		void ExpandCellBounds(IntVec3 relative)
@@ -2493,6 +2775,9 @@ namespace ZombieLand
 			Position = anchor;
 			cells = [];
 			orderedCells = [];
+			selectionCoreRelative = IntVec3.Invalid;
+			selectionCoreLastMoveTick = GenTicks.TicksGame;
+			ClearSelectionCoreMotion();
 			recentMovementCells.Clear();
 			combatShapeVersion++;
 			hasCellBounds = false;
@@ -3182,8 +3467,24 @@ namespace ZombieLand
 		bool TryAmbientMovePulse(Map map, List<MovementTarget> targets)
 		{
 			var currentIntegrated = CalculateIntegratedVisibleCells(map);
+			EnsureSelectionCoreState();
+			var preferSelectionCore = selectionCoreDiscoveryCue == false
+				&& selectionCoreRelative != IntVec3.Zero
+				&& GenTicks.TicksGame - selectionCoreLastMoveTick >= SelectionCoreWanderDwellTicks;
 			var bestScore = targets.Select(target => target.score).DefaultIfEmpty(0f).Max();
 			var scoreFloor = Mathf.Min(bestScore, Mathf.Max(0.01f, bestScore * AmbientMovementTargetBestScoreFraction));
+			if (preferSelectionCore)
+			{
+				foreach (var target in targets.OrderByDescending(AmbientTargetWeight))
+				{
+					var targetRelative = target.cell - Position;
+					var source = MovementSourceCandidates(map, targetRelative)
+						.Where(candidate => IsAmbientMoveAllowed(map, currentIntegrated, candidate, target))
+						.FirstOrDefault(candidate => candidate.relative == selectionCoreRelative);
+					if (source != null && TryCommitMove(map, source, target))
+						return true;
+				}
+			}
 			var targetPool = targets
 				.Where(target => target.score >= scoreFloor)
 				.OrderByDescending(target => AmbientTargetWeight(target))
@@ -3192,8 +3493,10 @@ namespace ZombieLand
 			foreach (var target in targetPool)
 			{
 				var targetRelative = target.cell - Position;
-				var source = MovementSourceCandidates(map, targetRelative)
+				var sourceCandidates = MovementSourceCandidates(map, targetRelative)
 					.Where(candidate => IsAmbientMoveAllowed(map, currentIntegrated, candidate, target))
+					.ToArray();
+				var source = sourceCandidates
 					.OrderByDescending(candidate => AmbientSourceWeight(candidate))
 					.Take(AmbientMovementSourceLimit)
 					.FirstOrDefault();
@@ -3201,6 +3504,19 @@ namespace ZombieLand
 					return true;
 			}
 			return false;
+		}
+
+		internal bool DebugTrySelectionCoreWanderPulse()
+		{
+			var map = Map;
+			if (map == null || CellCount <= 1)
+				return false;
+			EnsureSelectionCoreState();
+			selectionCoreDiscoveryCue = false;
+			selectionCoreLastMoveTick = GenTicks.TicksGame - SelectionCoreWanderDwellTicks;
+			RefreshSymbiosisMetrics(false);
+			var targets = MovementTargetCandidates(map);
+			return targets.Count > 0 && TryAmbientMovePulse(map, targets);
 		}
 
 		List<MovementTarget> MovementTargetCandidates(Map map)
@@ -3285,11 +3601,17 @@ namespace ZombieLand
 			var targetRelative = target.cell - Position;
 			if (ContainsCell(target.cell) || WouldCellsStayConnectedAfterMove(source.relative, targetRelative) == false)
 				return false;
-			if (RemoveRelativeCell(source.relative, true) == false)
+			var movingSelectionCore = selectionCoreRelative == source.relative;
+			if (RemoveRelativeCellWithCoreDestination(source.relative, true, movingSelectionCore ? targetRelative : IntVec3.Invalid) == false)
 				return false;
 			if (AddRelativeCell(targetRelative) == false)
 			{
 				_ = AddRelativeCell(source.relative);
+				if (movingSelectionCore)
+				{
+					selectionCoreRelative = source.relative;
+					ClearSelectionCoreMotion();
+				}
 				return false;
 			}
 			RebuildCellBounds();
@@ -3350,12 +3672,18 @@ namespace ZombieLand
 				target.wall.Destroy(DestroyMode.KillFinalize);
 
 			var source = Position + relative;
-			if (RemoveRelativeCell(relative, true) == false)
+			var movingSelectionCore = selectionCoreRelative == relative;
+			if (RemoveRelativeCellWithCoreDestination(relative, true, movingSelectionCore ? targetRelative : IntVec3.Invalid) == false)
 				return false;
 			if (AddRelativeCell(target.cell - Position) == false)
 			{
 				if (AddRelativeCell(relative))
 				{
+					if (movingSelectionCore)
+					{
+						selectionCoreRelative = relative;
+						ClearSelectionCoreMotion();
+					}
 					cellMotions?.RemoveAll(motion => motion.cell == relative);
 					RebuildCellBounds();
 					UpdateAll();
@@ -4147,6 +4475,9 @@ namespace ZombieLand
 				ResetMovementClock();
 			if (nextAutoHealTick <= 0)
 				nextAutoHealTick = GenTicks.TicksGame + AutoHealIntervalTicks;
+			EnsureSelectionCoreState();
+			if (selectionCoreLastMoveTick < 0)
+				selectionCoreLastMoveTick = GenTicks.TicksGame;
 			EnsureBenefitDefaults();
 			if (uprootedSinceTick < -1)
 				uprootedSinceTick = -1;
@@ -4189,7 +4520,8 @@ namespace ZombieLand
 					EnsureMetaballTextureResolution(renderWidth, renderHeight);
 				EnsureMetaballMaskMaterial();
 				EnsureMetaballMaterial();
-				if (metaballTexture != null || metaballMaterial != null || metaballMaskMaterial != null || mesh != null)
+				EnsureSelectionCoreResources();
+				if (metaballTexture != null || metaballMaterial != null || metaballMaskMaterial != null || mesh != null || selectionCoreMaterial != null || selectionCoreTexture != null || selectionCoreMesh != null)
 					renderResourceOwners.Add(this);
 				return metaballTexture != null && metaballMaterial != null && metaballMaskMaterial != null;
 			}
@@ -4259,6 +4591,67 @@ namespace ZombieLand
 			ConfigureMetaballMaterial();
 		}
 
+		void EnsureSelectionCoreResources()
+		{
+			if (selectionCoreTexture == null)
+				selectionCoreTexture = CreateSelectionCoreTexture();
+			if (selectionCoreMesh == null)
+				selectionCoreMesh = MeshMakerPlanes.NewPlaneMesh(new Vector2(SelectionCoreVisualSize, SelectionCoreVisualSize), false, false, false);
+			var shader = ShaderDatabase.Transparent;
+			if (selectionCoreMaterial == null || selectionCoreMaterial.shader != shader)
+			{
+				if (selectionCoreMaterial != null)
+					UnityEngine.Object.Destroy(selectionCoreMaterial);
+				selectionCoreMaterial = new Material(shader)
+				{
+					name = "ZombieSymbiantSelectionCore",
+					mainTexture = selectionCoreTexture
+				};
+			}
+			selectionCoreMaterial.mainTexture = selectionCoreTexture;
+			SetMaterialFloatIfPresent(selectionCoreMaterial, SymbiantOpacityMinId, 0.82f);
+			SetMaterialFloatIfPresent(selectionCoreMaterial, SymbiantOpacityMaxId, 0.98f);
+			SetMaterialFloatIfPresent(selectionCoreMaterial, SymbiantNoiseScaleId, SymbiantNoiseScale * 1.35f);
+			SetMaterialFloatIfPresent(selectionCoreMaterial, SymbiantWavePhaseSpeedId, SymbiantWavePhaseSpeed * 0.65f);
+			SetMaterialFloatIfPresent(selectionCoreMaterial, SymbiantWaveShadeStrengthId, 0.42f);
+			SetMaterialFloatIfPresent(selectionCoreMaterial, SymbiantEdgeContrastId, 1f);
+		}
+
+		static Texture2D CreateSelectionCoreTexture()
+		{
+			var texture = new Texture2D(SelectionCoreTextureSize, SelectionCoreTextureSize, TextureFormat.RGBA32, false, true)
+			{
+				name = "ZombieSymbiantSelectionCore",
+				filterMode = FilterMode.Bilinear,
+				wrapMode = TextureWrapMode.Clamp
+			};
+			var pixels = new Color[SelectionCoreTextureSize * SelectionCoreTextureSize];
+			var dark = new Color(0.02f, 0.36f, 0.025f, 1f);
+			var light = new Color(0.12f, 0.78f, 0.08f, 1f);
+			for (var y = 0; y < SelectionCoreTextureSize; y++)
+			{
+				for (var x = 0; x < SelectionCoreTextureSize; x++)
+				{
+					var px = (x + 0.5f) / SelectionCoreTextureSize * 2f - 1f;
+					var py = (y + 0.5f) / SelectionCoreTextureSize * 2f - 1f;
+					var distance = Mathf.Sqrt(px * px + py * py);
+					var angle = Mathf.Atan2(py, px);
+					var boundary = 0.84f + 0.06f * Mathf.Sin(angle * 3f + 0.4f) + 0.035f * Mathf.Sin(angle * 5f - 1.1f);
+					var alphaMask = Mathf.Clamp01((boundary + 0.16f - distance) / 0.40f);
+					var alpha = alphaMask * alphaMask * alphaMask * (alphaMask * (alphaMask * 6f - 15f) + 10f);
+					var ring = Mathf.Clamp01(1f - Mathf.Abs(distance - 0.52f) / 0.22f);
+					var veins = Mathf.Pow(Mathf.Clamp01(Mathf.Cos(angle * 3f + distance * 10f)), 10f) * Mathf.Clamp01(distance * 1.8f);
+					var highlight = Mathf.Clamp01(ring * 0.55f + veins * 0.35f + (1f - distance) * 0.18f);
+					var pixel = Color.Lerp(dark, light, highlight);
+					pixel.a = alpha;
+					pixels[y * SelectionCoreTextureSize + x] = pixel;
+				}
+			}
+			texture.SetPixels(pixels);
+			texture.Apply(false, true);
+			return texture;
+		}
+
 		void ConfigureMetaballMaterial()
 		{
 			if (metaballMaterial == null)
@@ -4284,6 +4677,51 @@ namespace ZombieLand
 		{
 			if (metaballMaterial != null && metaballMaterial.HasProperty(SymbiantNoiseTimeId))
 				metaballMaterial.SetFloat(SymbiantNoiseTimeId, RenderNoiseTimeSeconds);
+			if (selectionCoreMaterial != null && selectionCoreMaterial.HasProperty(SymbiantNoiseTimeId))
+				selectionCoreMaterial.SetFloat(SymbiantNoiseTimeId, RenderNoiseTimeSeconds);
+		}
+
+		void UpdateSelectionCoreInteractionState()
+		{
+			var map = MapHeld;
+			var hovered = ZombieLand.Tools.MapViewActiveFor(map) && Find.CurrentMap == map && UI.MouseCell() == SelectionCoreCell;
+			var selected = Find.Selector?.IsSelected(this) == true;
+			var now = Time.realtimeSinceStartup;
+			var deltaTime = selectionCoreInteractionLastRealtime < 0f
+				? 1f / 60f
+				: Mathf.Clamp(now - selectionCoreInteractionLastRealtime, 0f, 0.1f);
+			selectionCoreInteractionLastRealtime = now;
+			selectionCoreHoverBlend = Mathf.SmoothDamp(selectionCoreHoverBlend, hovered ? 1f : 0f, ref selectionCoreHoverVelocity, 0.14f, Mathf.Infinity, deltaTime);
+			selectionCoreSelectedBlend = Mathf.SmoothDamp(selectionCoreSelectedBlend, selected ? 1f : 0f, ref selectionCoreSelectedVelocity, 0.16f, Mathf.Infinity, deltaTime);
+			selectionCoreDiscoveryBlend = Mathf.SmoothDamp(selectionCoreDiscoveryBlend, selectionCoreDiscoveryCue ? 1f : 0f, ref selectionCoreDiscoveryVelocity, 0.18f, Mathf.Infinity, deltaTime);
+		}
+
+		void UpdateSelectedAppearance()
+		{
+			if (metaballMaterial == null)
+				return;
+			metaballMaterial.color = Color.Lerp(Color.white, new Color(1.08f, 1.08f, 1.08f, 1f), selectionCoreSelectedBlend);
+			SetMaterialFloatIfPresent(metaballMaterial, SymbiantOpacityMinId, SymbiantOpacityMin + 0.06f * selectionCoreSelectedBlend);
+			SetMaterialFloatIfPresent(metaballMaterial, SymbiantOpacityMaxId, SymbiantOpacityMax + 0.08f * selectionCoreSelectedBlend);
+		}
+
+		void DrawSelectionCore(Vector3 drawLoc)
+		{
+			EnsureSelectionCoreState();
+			if (selectionCoreMesh == null || selectionCoreMaterial == null || selectionCoreRelative.IsValid == false)
+				return;
+			var amplitude = Mathf.Lerp(SelectionCoreSubtlePulseScale, SelectionCoreDiscoveryPulseScale, selectionCoreDiscoveryBlend);
+			amplitude = Mathf.Lerp(amplitude, SelectionCoreHoverPulseScale, selectionCoreHoverBlend);
+			var pulse = 1f + Mathf.Sin(Time.realtimeSinceStartup / SelectionCorePulseSeconds * Mathf.PI * 2f) * amplitude;
+			pulse += 0.04f * selectionCoreSelectedBlend;
+			var center = SelectionCoreVisualCenter;
+			var position = drawLoc + new Vector3(center.x, 0f, center.y);
+			position.y = AltitudeLayer.MoteLow.AltitudeFor(SymbiantRenderAltitudeOffset + 0.05f);
+			var emphasis = Mathf.Max(selectionCoreHoverBlend, selectionCoreSelectedBlend);
+			selectionCoreMaterial.color = Color.Lerp(Color.white, new Color(1.18f, 1.18f, 1.05f, 1f), emphasis);
+			var rotation = Quaternion.Euler(0f, -Time.realtimeSinceStartup * SelectionCoreRotationDegreesPerSecond, 0f);
+			var matrix = Matrix4x4.TRS(position, rotation, new Vector3(pulse, 1f, pulse));
+			Graphics.DrawMesh(selectionCoreMesh, matrix, selectionCoreMaterial, 0);
 		}
 
 		float GetSize(IntVec3 cell)
@@ -4335,7 +4773,10 @@ namespace ZombieLand
 			var position = drawLoc + offset;
 			position.y = AltitudeLayer.MoteLow.AltitudeFor(SymbiantRenderAltitudeOffset);
 			UpdateMetaballMaterialTime();
+			UpdateSelectionCoreInteractionState();
+			UpdateSelectedAppearance();
 			Graphics.DrawMesh(mesh, position, Quaternion.identity, metaballMaterial, 0);
+			DrawSelectionCore(drawLoc);
 		}
 
 		public override string GetInspectString()
@@ -4430,6 +4871,13 @@ namespace ZombieLand
 			Scribe_Values.Look(ref nextRelocationPulseTick, "nextRelocationPulseTick");
 			Scribe_Values.Look(ref uprootedSinceTick, "uprootedSinceTick", -1);
 			Scribe_Values.Look(ref cancelNextBreach, "cancelNextBreach");
+			Scribe_Values.Look(ref selectionCoreRelative, "selectionCoreRelative", IntVec3.Invalid);
+			Scribe_Values.Look(ref selectionCoreMotionFrom, "selectionCoreMotionFrom", IntVec3.Invalid);
+			Scribe_Values.Look(ref selectionCoreMotionTo, "selectionCoreMotionTo", IntVec3.Invalid);
+			Scribe_Values.Look(ref selectionCoreMotionStartTick, "selectionCoreMotionStartTick", -1);
+			Scribe_Values.Look(ref selectionCoreMotionEndTick, "selectionCoreMotionEndTick", -1);
+			Scribe_Values.Look(ref selectionCoreLastMoveTick, "selectionCoreLastMoveTick", -1);
+			Scribe_Values.Look(ref selectionCoreDiscoveryCue, "selectionCoreDiscoveryCue");
 			Scribe_Values.Look(ref sharedHealth, "sharedHealth", -1f);
 			Scribe_Values.Look(ref lastSharedHealthDamageTick, "lastSharedHealthDamageTick", int.MinValue);
 			Scribe_Values.Look(ref nextSharedHealthRecoveryTick, "nextSharedHealthRecoveryTick");

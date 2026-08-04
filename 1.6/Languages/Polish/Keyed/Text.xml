@@ -36,6 +36,8 @@
 	<ZombieSymbiant>W pomieszczeniu {0} ujawnił się Symbiont zombie i połączył się z: {1}. Rozprzestrzenia się po często używanych pomieszczeniach. Istoty przechodzące przez niego są spowolnione, z wyjątkiem gospodarza. Gospodarz jest odporny na zakażenie po ugryzieniu przez zombie i wraz ze wzrostem Symbionta zyskuje losowe korzyści. Karm go zwłokami, aby przyspieszyć jego wzrost.\n\nGospodarz i Symbiont powinni pozostawać na tej samej mapie: po rozdzieleniu więź przechodzi w stan uśpienia i dopóki śpi, nie można jej usunąć. Budzi się ponownie tylko wtedy, gdy ten sam gospodarz i Symbiont znajdą się z powrotem na jednej mapie. Porzucenie mapy Symbionta niszczy go i siłą zrywa więź.\n\nNajpierw przeprowadź operację na {1}, aby bezpiecznie usunąć więź; pozbawiony więzi Symbiont skurczy się i zniknie.</ZombieSymbiant>
 	<ZombieSymbiantNoHost>W pomieszczeniu {0} ujawnił się Symbiont zombie. Rozprzestrzenia się po często używanych pomieszczeniach. Karm go zwłokami, aby przyspieszyć jego wzrost.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>jedno z twoich pomieszczeń</ZombieSymbiantUnknownRoom>
+	<ZombieSymbiantCoreInstruction>Kliknij pulsujący rdzeń, aby obejrzeć Symbionta.</ZombieSymbiantCoreInstruction>
+	<SymbiantCoreHover>Symbiont zombie — kliknij pulsujący rdzeń, aby go obejrzeć</SymbiantCoreHover>
 	<ZombieSymbiantInspect>Połączony gospodarz: {0}, rozmiar: {1} pól, wspólna pula zdrowia: {2}, następna korzyść przy {3} polach</ZombieSymbiantInspect>
 	<SymbiantWeaponInspect>koloniści nie mogą go zranić</SymbiantWeaponInspect>
 	<SymbiantWeaponRejectedMessage>Symbiont ignoruje obrażenia zadawane przez kolonistów.</SymbiantWeaponRejectedMessage>

@@ -36,6 +36,8 @@
 	<ZombieSymbiant>Un Symbiant zombie est apparu dans {0} et s'est lié à {1}. Il se répand dans les pièces intérieures fréquentées. Les pions qui le traversent sont ralentis, sauf l'hôte. L'hôte est immunisé contre l'infection zombie par morsure et gagne des avantages aléatoires quand le Symbiant grandit. Nourrissez-le avec des cadavres pour accélérer sa croissance.\n\nGardez l'hôte et le Symbiant sur la même carte : s'ils sont séparés, le lien devient dormant et ne peut pas être retiré tant qu'il est en dormance. Il ne peut se réactiver que si le même hôte et le Symbiant se retrouvent sur une même carte. Abandonner la carte du Symbiant le détruit et rompt le lien de force.\n\nOpérez {1} d'abord pour retirer le lien en toute sécurité ; le Symbiant sans hôte se résorbera ensuite.</ZombieSymbiant>
 	<ZombieSymbiantNoHost>Un Symbiant zombie est apparu dans {0}. Il se répand dans les pièces intérieures fréquentées. Nourrissez-le avec des cadavres pour accélérer sa croissance.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>une de vos pièces</ZombieSymbiantUnknownRoom>
+	<ZombieSymbiantCoreInstruction>Cliquez sur le noyau pulsant pour inspecter le Symbiant.</ZombieSymbiantCoreInstruction>
+	<SymbiantCoreHover>Symbiant zombie — cliquez sur le noyau pulsant pour l'inspecter</SymbiantCoreHover>
 	<ZombieSymbiantInspect>Hôte lié : {0}, taille : {1} cases, santé partagée : {2}, prochain avantage à {3} cases</ZombieSymbiantInspect>
 	<SymbiantWeaponInspect>les colons ne peuvent pas l'endommager</SymbiantWeaponInspect>
 	<SymbiantWeaponRejectedMessage>Le Symbiant ignore les dégâts des colons.</SymbiantWeaponRejectedMessage>

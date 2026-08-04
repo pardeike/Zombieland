@@ -36,6 +36,8 @@
 	<ZombieSymbiant>Ein Zombie-Symbiont ist in {0} aufgetaucht und hat sich mit {1} verbunden. Er breitet sich durch belebte Innenräume aus. Figuren, die ihn überqueren, werden verlangsamt, außer dem Wirt. Der Wirt ist immun gegen Zombieinfektionen durch Bisse und erhält zufällige Vorteile, wenn der Symbiont wächst. Füttern Sie ihn mit Leichen, damit er schneller wächst.\n\nWirt und Symbiont sollten auf derselben Karte bleiben: Werden sie getrennt, ruht die Verbindung und kann währenddessen nicht entfernt werden. Sie erwacht erst wieder, wenn derselbe Wirt und Symbiont wieder auf einer Karte zusammentreffen. Wenn die Karte des Symbionten aufgegeben wird, wird er zerstört und die Verbindung gewaltsam getrennt.\n\nOperieren Sie {1} zuerst, um die Verbindung sicher zu entfernen; der wirtslose Symbiont zieht sich danach zurück.</ZombieSymbiant>
 	<ZombieSymbiantNoHost>Ein Zombie-Symbiont ist in {0} aufgetaucht. Er breitet sich durch belebte Innenräume aus. Füttern Sie ihn mit Leichen, damit er schneller wächst.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>einer Ihrer Räume</ZombieSymbiantUnknownRoom>
+	<ZombieSymbiantCoreInstruction>Klicken Sie auf den pulsierenden Kern, um den Symbionten zu inspizieren.</ZombieSymbiantCoreInstruction>
+	<SymbiantCoreHover>Zombie-Symbiont — zum Inspizieren auf den pulsierenden Kern klicken</SymbiantCoreHover>
 	<ZombieSymbiantInspect>Verbundener Wirt: {0}, Größe: {1} Zellen, geteilte Gesundheit: {2}, nächster Vorteil bei {3} Zellen</ZombieSymbiantInspect>
 	<SymbiantWeaponInspect>Kolonisten können ihn nicht beschädigen</SymbiantWeaponInspect>
 	<SymbiantWeaponRejectedMessage>Der Symbiont ignoriert Kolonistenschaden.</SymbiantWeaponRejectedMessage>

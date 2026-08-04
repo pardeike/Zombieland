@@ -36,6 +36,8 @@
 	<ZombieSymbiant>丧尸共生体已在 {0} 出现，并与 {1} 建立了连接。它会在频繁使用的室内房间中蔓延。穿过它的角色会变慢，宿主除外。宿主免疫丧尸咬伤造成的感染，并会在共生体成长时获得随机增益。用尸体喂养它可以加快成长。\n\n请让宿主和共生体留在同一张地图上：如果两者分离，连接会进入休眠，休眠期间无法移除。只有同一宿主与共生体再次位于同一地图时，连接才可能恢复。放弃共生体所在的地图会摧毁共生体，并强行切断连接。\n\n请先对 {1} 做手术来安全移除连接；失去宿主的共生体之后会逐渐缩回。</ZombieSymbiant>
 	<ZombieSymbiantNoHost>丧尸共生体已在 {0} 出现。它会在频繁使用的室内房间中蔓延。用尸体喂养它可以加快成长。</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>你的一个房间</ZombieSymbiantUnknownRoom>
+	<ZombieSymbiantCoreInstruction>点击脉动的核心以查看共生体。</ZombieSymbiantCoreInstruction>
+	<SymbiantCoreHover>丧尸共生体——点击脉动的核心进行查看</SymbiantCoreHover>
 	<ZombieSymbiantInspect>连接宿主：{0}，大小：{1} 格，共享生命值：{2}，下一项收益在 {3} 格</ZombieSymbiantInspect>
 	<SymbiantWeaponInspect>殖民者无法伤害它</SymbiantWeaponInspect>
 	<SymbiantWeaponRejectedMessage>共生体会无视殖民者造成的伤害。</SymbiantWeaponRejectedMessage>

@@ -26,6 +26,7 @@ The feature should be legible and annoying in a RimWorld way. It disrupts moveme
 - Natural spawn requires an eligible host and a used indoor room plan.
 - Hostless slime is for debug/test or fallback cleanup. It has no host benefits and no host trauma.
 - Direct player damage does not remove the Symbiant or make surgery safer.
+- Ordinary inspection has one visible pulsing core cell. Clicking other slime cells passes through to the cell's ordinary contents, but generic targeting and hostile combat still treat every occupied slime cell as part of the attackable organism.
 - Ordinary hostile humanlike and mechanoid pawns may choose the Symbiant as a colony target. The Symbiant receives no artificial target-priority bonus; selection uses the same distance, line-of-sight, range, cover, and friendly-fire considerations as an ordinary target, evaluated against its exposed slime cells.
 - Damage aimed at the Symbiant runs through the real vanilla or modded damage worker, then drains only the custom shared-health pool by the worker's actual post-armor damage. It never creates a real injury on the host.
 - Plain anatomical wounds are removed from the Symbiant after their damage worker has completed. Fire, stun, additional hediffs, custom injury subclasses, and unknown modded condition comps remain free to run, while part health, pain, capacities, downing, death, and summary health remain owned by the shared pool.
@@ -77,6 +78,7 @@ The Symbiant cannot be extracted as a travelling or contained pawn. Any ordinary
 - Constructed-wall breach behavior is intentionally conservative and must only target valid indoor continuation.
 - At `symbiantMaxCells`, expansion stops but the Symbiant remains active.
 - When a cell is removed, contamination on that cell is cleared once.
+- The inspection core is persisted as part of the cell state. It follows a cell that is moved, hands off to a surviving low-clutter cell before removal, and after roughly six in-game hours may ride the next eligible ambient cell move so it does not remain fixed forever.
 
 Relocation handles deconstruction, battle damage, and messy rebuilding:
 
@@ -152,7 +154,7 @@ The pawn shell is deliberately narrow in normal pawn/combat systems:
 - zero combat power,
 - registered once in normal map pawn and attack-target systems,
 - discovered through `ZombieSymbiant.ActiveSymbiant(map)` and `listerThings`,
-- selectable by clicking anywhere inside its custom selector rect,
+- inspectable through one visible pulsing core cell; the rest of the slime click-throughs to ordinary cell contents,
 - targetable by ordinary hostile humanlike and mechanoid attackers, while player/friendly pawns, animals, turrets, zombies, and Anomaly-specific hostility overrides retain their prior exclusions,
 - skipped by story danger, fleeing, predation, and unrelated explicit attack jobs,
 - no normal pawn inspect tabs while selected, so Mood, Gear, Health, Combat Log, and similar pawn-tab surfaces do not treat it as an ordinary pawn,
@@ -163,6 +165,8 @@ The long-term cleaner type would be a custom `Thing`/`ThingWithComps`, but that 
 
 Combat keeps one real `ZombieSymbiant` Pawn and never moves its canonical `Position` to impersonate another slime cell. Only the root cell is registered in `ThingGrid`; logical cells are supplied through a transient geometry cache with shape-version invalidation. Ranged attacks bind each `Verb` to one deterministic exposed cell, and the same cell is reused for vanilla target-scan gates, weighted target selection, distance/cover/blast-friendly-fire scoring, LOS/range, projectile destination, and impact. Vanilla roof interception/collapse runs before a logical owner impact. Melee jobs keep the real Symbiant in target A, store the reachable stand cell in B, and store the attacked slime cell in C; B/C are rebound if the blob changes shape. Damage always goes to the real Pawn, through the real damage worker, and then into its shared-health pool; attacking a cell never deletes that cell. An explosion overlapping several slime cells damages the organism at most once, using the first affected logical cell for falloff. Combat Extended support is late-bound and fail-open: because CE projectiles derive from `ThingWithComps` independently of vanilla `Projectile`, the adapter reflects CE target/position state and supplies the logical owner to CE's ordinary ballistic, final-impact, and instant-ray collision enumerations/bounds without mutating `ThingGrid` or hard-referencing CE.
 
+The one-cell inspection surface is deliberately separate from that combat geometry. `GenUI.ThingsUnderMouse` recognizes the Symbiant on every actual logical cell and, during the short movement handoff, on the still-rendered outgoing core cell; it rejects empty gaps in the rectangular draw bounds. The private ordinary `Selector.SelectableObjectsUnderMouse` path then filters that generic result to the current core cell. Enemy AI, verb binding, melee reach, projectile impact, explosions, and modded targeting never consult the inspection core.
+
 ## Rendering And Performance
 
 - Gameplay default cap is 400 cells.
@@ -170,6 +174,7 @@ Combat keeps one real `ZombieSymbiant` Pawn and never moves its canonical `Posit
 - The CPU feeds cell coordinates, centers, radius, and radius-scale data to GPU resources.
 - Metaballs are rendered by the GPU shader path; do not move blob rasterization to CPU code.
 - Cell in/out animation changes center and radius scale over roughly one second at 1x speed.
+- The inspection core is a 0.93-cell organic knot drawn above one occupied cell with RimWorld's alpha-blended transparent shader. Its light-green outer mask uses a broad smooth feather, its swirl rotates slowly counter-clockwise, and its idle pulse eases smoothly into and out of the stronger discovery, hover, and selected states even while the game is paused. A localized hover tooltip teaches the interaction, cell movement uses a smooth handoff, and selection gradually brightens the whole blob. The core remains visibly inside the underlying slime footprint even when the Symbiant has only one cell.
 - Growth radius eases in; shrink radius eases out.
 - Texture/material/buffer resources are transient and must be released on despawn, destroy, map removal, load, shutdown, and main-menu transitions.
 - Hot paths must reject unrelated calls before active-Symbiant lookup. Do not scan `map.mapPawns.AllPawns` from Symbiant hot paths.

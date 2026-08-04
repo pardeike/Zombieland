@@ -225,21 +225,38 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(GenUI.ThingsUnderMouse))]
 		static class GenUI_ThingsUnderMouse_Patch
 		{
-			static void Postfix(ref List<Thing> __result)
+			static void Postfix(Vector3 clickPos, TargetingParameters clickParams, ITargetingSource source, ref List<Thing> __result)
 			{
 				if (__result == null)
 					return;
-				HashSet<ZombieSymbiant> seen = null;
-				for (var i = 0; i < __result.Count; i++)
-				{
-					if (__result[i] is not ZombieSymbiant symbiant)
-						continue;
-					seen ??= [];
-					if (seen.Add(symbiant))
-						continue;
-					__result.RemoveAt(i);
-					i--;
-				}
+				var symbiant = ZombieSymbiant.ActiveSymbiant(Find.CurrentMap);
+				var previousIndex = symbiant == null ? -1 : __result.IndexOf(symbiant);
+				__result.RemoveAll(thing => thing is ZombieSymbiant);
+				if (symbiant?.Spawned != true || symbiant.Destroyed || clickParams == null)
+					return;
+				var clickCell = IntVec3.FromVector3(clickPos);
+				var isLogicalCell = symbiant.ContainsCell(clickCell);
+				var isVisibleCoreDeparture = symbiant.IsSelectionCoreCell(clickCell) && symbiant.SelectionCoreMotionActive;
+				if ((isLogicalCell == false && isVisibleCoreDeparture == false) || clickParams.CanTarget(symbiant, source) == false)
+					return;
+				__result.Insert(Mathf.Clamp(previousIndex, 0, __result.Count), symbiant);
+			}
+		}
+
+		[HarmonyPatch]
+		static class Selector_SelectableObjectsUnderMouse_Symbiant_Patch
+		{
+			static MethodBase TargetMethod()
+			{
+				return AccessTools.DeclaredMethod(typeof(Selector), "SelectableObjectsUnderMouse", Type.EmptyTypes);
+			}
+
+			static IEnumerable<object> Postfix(IEnumerable<object> values)
+			{
+				var mouseCell = UI.MouseCell();
+				foreach (var value in values)
+					if (value is not ZombieSymbiant symbiant || symbiant.IsSelectionCoreCell(mouseCell))
+						yield return value;
 			}
 		}
 
@@ -395,6 +412,7 @@ namespace ZombieLand
 		{
 			static void Postfix()
 			{
+				RegisterSymbiantCoreTooltip();
 				if (Constants.SHOW_NORMAL_PATHING_GRID == false && Constants.SHOW_DIRECT_PATHING_GRID == false)
 					return;
 				if (Event.current.type != EventType.Repaint)
@@ -433,6 +451,21 @@ namespace ZombieLand
 					DrawGrid(false, Color.white, new Vector2(0, -5));
 				if (Constants.SHOW_DIRECT_PATHING_GRID)
 					DrawGrid(true, Color.yellow, new Vector2(0, 5));
+			}
+
+			static void RegisterSymbiantCoreTooltip()
+			{
+				var currentEvent = Event.current;
+				if (currentEvent == null || Find.UIRoot?.screenshotMode?.FiltersCurrentEvent == true)
+					return;
+				var map = Find.CurrentMap;
+				if (Tools.MapViewActiveFor(map) == false)
+					return;
+				var symbiant = ZombieSymbiant.ActiveSymbiant(map);
+				if (symbiant?.IsSelectionCoreCell(UI.MouseCell()) != true)
+					return;
+				var mouse = currentEvent.mousePosition;
+				TooltipHandler.TipRegion(new Rect(mouse.x - 12f, mouse.y - 12f, 24f, 24f), "SymbiantCoreHover".Translate());
 			}
 		}
 

@@ -36,6 +36,8 @@
 	<ZombieSymbiant>Bir Zombi Simbiyantı {0} içinde ortaya çıktı ve {1} ile bağ kurdu. Yoğun kullanılan iç odalara yayılır. Üzerinden geçen piyonlar yavaşlar, konak hariç. Konak zombi ısırıklarından gelen enfeksiyona bağışıktır ve Simbiyant büyüdükçe rastgele faydalar kazanır. Daha hızlı büyümesi için cesetlerle besleyin.\n\nKonak ve Simbiyant aynı haritada kalmalıdır: ayrılırlarsa bağ uykuya geçer ve uyuduğu sürece kaldırılamaz. Bağ ancak aynı konak ile Simbiyant yeniden tek bir haritada bulunursa yeniden uyanır. Simbiyantın bulunduğu haritayı terk etmek onu yok eder ve bağı zorla koparır.\n\nBağı güvenli şekilde kaldırmak için önce {1} üzerinde ameliyat yapın; konaksız Simbiyant sonra geri çekilir.</ZombieSymbiant>
 	<ZombieSymbiantNoHost>Bir Zombi Simbiyantı {0} içinde ortaya çıktı. Yoğun kullanılan iç odalara yayılır. Daha hızlı büyümesi için cesetlerle besleyin.</ZombieSymbiantNoHost>
 	<ZombieSymbiantUnknownRoom>odalarınızdan biri</ZombieSymbiantUnknownRoom>
+	<ZombieSymbiantCoreInstruction>Simbiyantı incelemek için titreşen çekirdeğe tıklayın.</ZombieSymbiantCoreInstruction>
+	<SymbiantCoreHover>Zombi Simbiyantı — incelemek için titreşen çekirdeğe tıklayın</SymbiantCoreHover>
 	<ZombieSymbiantInspect>Bağlı konak: {0}, boyut: {1} hücre, paylaşılan sağlık: {2}, sonraki fayda {3} hücrede</ZombieSymbiantInspect>
 	<SymbiantWeaponInspect>kolonistler ona zarar veremez</SymbiantWeaponInspect>
 	<SymbiantWeaponRejectedMessage>Simbiyant kolonist hasarını yok sayar.</SymbiantWeaponRejectedMessage>

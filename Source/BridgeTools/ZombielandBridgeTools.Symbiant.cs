@@ -7327,8 +7327,11 @@ namespace ZombieLand
 					position = ZombieRuntimeActions.DescribeCell(symbiant.Position),
 					cellCount = symbiant.CellCount,
 					cells = symbiant.AbsoluteCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					selectionCore = DescribeSymbiantSelectionCore(symbiant),
 					selectorRect = selectorRect.HasValue ? ZombieRuntimeActions.DescribeCellRect(selectorRect.Value) : null,
-					selectorCoversAllCells = selectorRect.HasValue && symbiant.AbsoluteCells.All(cell => selectorRect.Value.Contains(cell)),
+					selectorIsSingleCoreCell = selectorRect.HasValue
+						&& selectorRect.Value.Area == 1
+						&& selectorRect.Value.Contains(symbiant.SelectionCoreCell),
 					occupiedDrawRect = ZombieRuntimeActions.DescribeCellRect(symbiant.OccupiedDrawRect()),
 					drawSize = new { x = symbiant.DrawSize.x, z = symbiant.DrawSize.y },
 					renderWorldSize = new { x = symbiant.RenderWorldSize.x, z = symbiant.RenderWorldSize.y },
@@ -7341,6 +7344,176 @@ namespace ZombieLand
 					mapSize = new { x = map.Size.x, z = map.Size.z }
 				}
 			};
+		}
+
+		static object DescribeSymbiantSelectionCore(ZombieSymbiant symbiant)
+		{
+			if (symbiant == null)
+				return null;
+			return new
+			{
+				valid = symbiant.SelectionCoreValid,
+				cell = ZombieRuntimeActions.DescribeCell(symbiant.SelectionCoreCell),
+				destinationCell = ZombieRuntimeActions.DescribeCell(symbiant.SelectionCoreDestinationCell),
+				isLogicalCell = symbiant.ContainsCell(symbiant.SelectionCoreCell),
+				isVisibleDepartureCell = symbiant.SelectionCoreMotionActive
+					&& symbiant.SelectionCoreCell == symbiant.SelectionCoreMotionFromCell,
+				motionActive = symbiant.SelectionCoreMotionActive,
+				motionFromCell = symbiant.SelectionCoreMotionFromCell.IsValid ? ZombieRuntimeActions.DescribeCell(symbiant.SelectionCoreMotionFromCell) : null,
+				motionToCell = symbiant.SelectionCoreMotionToCell.IsValid ? ZombieRuntimeActions.DescribeCell(symbiant.SelectionCoreMotionToCell) : null,
+				motionEndTick = symbiant.SelectionCoreMotionEndTick,
+				lastMoveTick = symbiant.SelectionCoreLastMoveTick,
+				discoveryCue = symbiant.SelectionCoreDiscoveryCue,
+				interactionBlend = new
+				{
+					hover = symbiant.SelectionCoreHoverBlend,
+					selected = symbiant.SelectionCoreSelectedBlend,
+					discovery = symbiant.SelectionCoreDiscoveryBlend
+				}
+			};
+		}
+
+		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, all-cell generic targeting, ambient core movement, selector patch installation, and valid core handoff while cells disappear.")]
+		public static object SymbiantSelectionCoreContract(
+			[ToolParameter(Description = "Destroy the temporary contract Symbiant after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
+		{
+			var map = CurrentMap;
+			if (map == null)
+				return new { success = false, error = "No current map is loaded." };
+			var activeBefore = ZombieSymbiant.ActiveSymbiant(map);
+			if (activeBefore != null)
+				return new { success = false, error = "An active symbiant already exists on the current map.", activeSymbiant = ZombieRuntimeActions.StableThingId(activeBefore) };
+
+			if (TrySetupSymbiantExpansionFixture(map, out var fixture, out var fixtureError) == false)
+				return fixtureError;
+			var clearRoot = fixture.spawnCell;
+			var shape = SymbiantCombatCrossCells(clearRoot);
+
+			ZombieSymbiant symbiant = null;
+			object error = null;
+			object result = null;
+			try
+			{
+				symbiant = ZombieSymbiant.DebugSpawnForRendering(map, clearRoot, shape);
+				if (symbiant == null)
+					return new { success = false, error = "Could not create the selection-core fixture." };
+
+				var clickParams = new TargetingParameters
+				{
+					mustBeSelectable = true,
+					canTargetPawns = true,
+					canTargetBuildings = true,
+					canTargetItems = true,
+					mapObjectTargetsMustBeAutoAttackable = false
+				};
+				var logicalTargeting = shape.Select(cell => new
+				{
+					cell = ZombieRuntimeActions.DescribeCell(cell),
+					targetable = GenUI.ThingsUnderMouse(cell.ToVector3Shifted(), 0f, clickParams).Contains(symbiant)
+				}).ToArray();
+				var bounds = CellRect.FromLimits(shape.Min(cell => cell.x), shape.Min(cell => cell.z), shape.Max(cell => cell.x), shape.Max(cell => cell.z));
+				var gap = bounds.Cells.FirstOrDefault(cell => symbiant.ContainsCell(cell) == false);
+				var gapTargetable = gap.IsValid && GenUI.ThingsUnderMouse(gap.ToVector3Shifted(), 0f, clickParams).Contains(symbiant);
+				var selectorRect = symbiant.CustomRectForSelector;
+				var initialCoreCell = symbiant.SelectionCoreCell;
+				var selectorPatchTarget = AccessTools.DeclaredMethod(typeof(Selector), "SelectableObjectsUnderMouse", Type.EmptyTypes);
+				var selectorPatchInfo = selectorPatchTarget == null ? null : Harmony.GetPatchInfo(selectorPatchTarget);
+				var selectorPatchInstalled = selectorPatchInfo?.Postfixes.Any(patch => patch.owner == "net.pardeike.zombieland") == true;
+
+				symbiant.NotifySelectionCoreDiscoveryCue();
+				var discoveryCore = DescribeSymbiantSelectionCore(symbiant);
+				Find.Selector.ClearSelection();
+				Find.Selector.Select(symbiant, false, false);
+				var afterSelection = DescribeSymbiantSelectionCore(symbiant);
+				var discoveryCueCleared = symbiant.SelectionCoreDiscoveryCue == false;
+
+				var wanderBeforeCells = symbiant.AbsoluteCells.ToHashSet();
+				var wanderBeforeCore = symbiant.SelectionCoreDestinationCell;
+				var wanderMoved = symbiant.DebugTrySelectionCoreWanderPulse();
+				var wanderAfterCells = symbiant.AbsoluteCells.ToHashSet();
+				var wanderSources = wanderBeforeCells.Where(cell => wanderAfterCells.Contains(cell) == false).ToArray();
+				var wanderTargets = wanderAfterCells.Where(cell => wanderBeforeCells.Contains(cell) == false).ToArray();
+				var wanderCarriedCore = wanderMoved
+					&& wanderSources.Length == 1
+					&& wanderTargets.Length == 1
+					&& wanderSources[0] == wanderBeforeCore
+					&& symbiant.SelectionCoreDestinationCell == wanderTargets[0];
+				var movingCoreTargetable = symbiant.SelectionCoreMotionActive
+					&& GenUI.ThingsUnderMouse(symbiant.SelectionCoreCell.ToVector3Shifted(), 0f, clickParams).Contains(symbiant);
+				var wander = new
+				{
+					moved = wanderMoved,
+					beforeCore = ZombieRuntimeActions.DescribeCell(wanderBeforeCore),
+					sources = wanderSources.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					targets = wanderTargets.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					carriedCore = wanderCarriedCore,
+					movingCoreTargetable,
+					core = DescribeSymbiantSelectionCore(symbiant)
+				};
+
+				var shrinkSteps = new List<object>();
+				var shrinkCoresValid = true;
+				while (symbiant.Destroyed == false && symbiant.CellCount > 1)
+				{
+					var beforeCount = symbiant.CellCount;
+					var beforeCore = symbiant.SelectionCoreCell;
+					var removed = symbiant.ShrinkCells(1);
+					var coreValid = symbiant.SelectionCoreValid
+						&& (symbiant.ContainsCell(symbiant.SelectionCoreCell)
+							|| symbiant.SelectionCoreMotionActive && symbiant.SelectionCoreCell == symbiant.SelectionCoreMotionFromCell);
+					shrinkCoresValid &= coreValid;
+					shrinkSteps.Add(new
+					{
+						beforeCount,
+						afterCount = symbiant.CellCount,
+						beforeCore = ZombieRuntimeActions.DescribeCell(beforeCore),
+						removed,
+						coreValid,
+						core = DescribeSymbiantSelectionCore(symbiant)
+					});
+					if (removed == 0)
+						break;
+				}
+				result = new
+				{
+					success = selectorRect.HasValue
+						&& selectorRect.Value.Area == 1
+						&& selectorRect.Value.Contains(initialCoreCell)
+						&& selectorPatchInstalled
+						&& logicalTargeting.All(probe => probe.targetable)
+						&& gap.IsValid
+						&& gapTargetable == false
+						&& discoveryCueCleared
+						&& wanderCarriedCore
+						&& movingCoreTargetable
+						&& shrinkSteps.Count > 0
+						&& shrinkCoresValid,
+					sourcePath = "GenUI.ThingsUnderMouse + Selector.SelectableObjectsUnderMouse postfix + ZombieSymbiant selection-core state",
+					shape = shape.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					selectorRect = ZombieRuntimeActions.DescribeCellRect(selectorRect.Value),
+					selectorPatchInstalled,
+					logicalTargeting,
+					gap = ZombieRuntimeActions.DescribeCell(gap),
+					gapTargetable,
+					discoveryCore,
+					afterSelection,
+					discoveryCueCleared,
+					wander,
+					shrinkSteps,
+					shrinkCoresValid
+				};
+			}
+			catch (Exception ex)
+			{
+				error = ex.ToString();
+			}
+			finally
+			{
+				if (cleanup)
+					symbiant?.DebugDestroyWithoutHostTrauma();
+				_ = CleanupSymbiantExpansionFixture(map, fixture, cleanup);
+			}
+			return error == null ? result : new { success = false, error };
 		}
 
 		[Tool("zombieland/symbiant_infestation_state", Description = "Inspect or exercise the zombie symbiant state with spawn, createEvent, expand, move, shrink, feedCorpse, removeHostHediff, killHost, stageRetreatSave, contaminationStep, stress, and cleanup modes.")]
@@ -7658,8 +7831,11 @@ namespace ZombieLand
 				{
 					id = ZombieRuntimeActions.StableThingId(symbiant),
 					position = ZombieRuntimeActions.DescribeCell(symbiant.Position),
+					selectionCore = DescribeSymbiantSelectionCore(symbiant),
 					selectorRect = selectorRect.HasValue ? ZombieRuntimeActions.DescribeCellRect(selectorRect.Value) : null,
-					selectorCoversAllCells = selectorRect.HasValue && symbiant.AbsoluteCells.All(cell => selectorRect.Value.Contains(cell)),
+					selectorIsSingleCoreCell = selectorRect.HasValue
+						&& selectorRect.Value.Area == 1
+						&& selectorRect.Value.Contains(symbiant.SelectionCoreCell),
 					drawSize = new { x = symbiant.DrawSize.x, z = symbiant.DrawSize.y },
 					occupiedDrawRect = ZombieRuntimeActions.DescribeCellRect(symbiant.OccupiedDrawRect()),
 					renderWorldSize = new { x = symbiant.RenderWorldSize.x, z = symbiant.RenderWorldSize.y },
