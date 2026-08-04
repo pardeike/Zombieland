@@ -7373,7 +7373,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, all-cell generic targeting, bounded core initialization and repeated movement, non-metaball fallback rendering, selector patch installation, and valid core handoff while cells disappear.")]
+		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, unobscured-map tooltip gate, all-cell generic targeting, bounded core initialization and repeated movement, non-metaball fallback rendering, selector patch installation, and valid core handoff while cells disappear.")]
 		public static object SymbiantSelectionCoreContract(
 			[ToolParameter(Description = "Destroy the temporary contract Symbiant after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -7419,6 +7419,39 @@ namespace ZombieLand
 				var selectorPatchTarget = AccessTools.DeclaredMethod(typeof(Selector), "SelectableObjectsUnderMouse", Type.EmptyTypes);
 				var selectorPatchInfo = selectorPatchTarget == null ? null : Harmony.GetPatchInfo(selectorPatchTarget);
 				var selectorPatchInstalled = selectorPatchInfo?.Postfixes.Any(patch => patch.owner == "net.pardeike.zombieland") == true;
+				const float tooltipProbeWidth = 1920f;
+				const float tooltipProbeHeight = 1080f;
+				const float tooltipProbeAlertsHeight = 96f;
+				const float tooltipProbeAlertsBottom = 720f;
+				bool TooltipInput(Vector2 mouse, bool windowObscured = false) => Patches.MapInterface_MapInterfaceOnGUI_AfterMainTabs_Patch.IsUnobscuredMapInput(
+					mouse,
+					tooltipProbeWidth,
+					tooltipProbeHeight,
+					windowObscured,
+					tooltipProbeAlertsHeight,
+					tooltipProbeAlertsBottom);
+				var tooltipOpenMapAllowed = TooltipInput(new Vector2(960f, 540f));
+				var tooltipWindowBlocked = TooltipInput(new Vector2(960f, 540f), true) == false;
+				var tooltipMainButtonsBlocked = TooltipInput(new Vector2(960f, 1060f)) == false;
+				var tooltipAlertBlocked = TooltipInput(new Vector2(1900f, 680f)) == false;
+				var tooltipAdjacentMapAllowed = TooltipInput(new Vector2(1700f, 680f));
+				var tooltipOffscreenBlocked = TooltipInput(new Vector2(-1f, 540f)) == false;
+				var tooltipInputGated = tooltipOpenMapAllowed
+					&& tooltipWindowBlocked
+					&& tooltipMainButtonsBlocked
+					&& tooltipAlertBlocked
+					&& tooltipAdjacentMapAllowed
+					&& tooltipOffscreenBlocked;
+				var tooltipInput = new
+				{
+					gated = tooltipInputGated,
+					openMapAllowed = tooltipOpenMapAllowed,
+					windowBlocked = tooltipWindowBlocked,
+					mainButtonsBlocked = tooltipMainButtonsBlocked,
+					alertBlocked = tooltipAlertBlocked,
+					adjacentMapAllowed = tooltipAdjacentMapAllowed,
+					offscreenBlocked = tooltipOffscreenBlocked
+				};
 
 				symbiant.NotifySelectionCoreDiscoveryCue();
 				var discoveryCore = DescribeSymbiantSelectionCore(symbiant);
@@ -7586,6 +7619,7 @@ namespace ZombieLand
 						&& selectorRect.Value.Area == 1
 						&& selectorRect.Value.Contains(initialCoreCell)
 						&& selectorPatchInstalled
+						&& tooltipInputGated
 						&& logicalTargeting.All(probe => probe.targetable)
 						&& gap.IsValid
 						&& gapTargetable == false
@@ -7603,6 +7637,7 @@ namespace ZombieLand
 					shape = shape.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 					selectorRect = ZombieRuntimeActions.DescribeCellRect(selectorRect.Value),
 					selectorPatchInstalled,
+					tooltipInput,
 					logicalTargeting,
 					gap = ZombieRuntimeActions.DescribeCell(gap),
 					gapTargetable,

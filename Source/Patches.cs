@@ -408,8 +408,12 @@ namespace ZombieLand
 		//
 		[HarmonyPatch(typeof(MapInterface))]
 		[HarmonyPatch(nameof(MapInterface.MapInterfaceOnGUI_AfterMainTabs))]
-		class MapInterface_MapInterfaceOnGUI_AfterMainTabs_Patch
+		internal class MapInterface_MapInterfaceOnGUI_AfterMainTabs_Patch
 		{
+			const float MainButtonsTopOffset = 35f;
+			const float MainButtonsHeight = 36f;
+			const float AlertsWidth = 154f;
+
 			static void Postfix()
 			{
 				RegisterSymbiantCoreTooltip();
@@ -458,14 +462,33 @@ namespace ZombieLand
 				var currentEvent = Event.current;
 				if (currentEvent == null || Find.UIRoot?.screenshotMode?.FiltersCurrentEvent == true)
 					return;
+				var mouse = currentEvent.mousePosition;
+				if (IsUnobscuredMapInput(
+					mouse,
+					UI.screenWidth,
+					UI.screenHeight,
+					Find.WindowStack?.MouseObscuredNow == true,
+					Find.Alerts?.AlertsHeight ?? 0f,
+					Find.LetterStack?.LastTopY ?? 0f) == false)
+					return;
 				var map = Find.CurrentMap;
 				if (Tools.MapViewActiveFor(map) == false)
 					return;
 				var symbiant = ZombieSymbiant.ActiveSymbiant(map);
 				if (symbiant?.IsSelectionCoreCell(UI.MouseCell()) != true)
 					return;
-				var mouse = currentEvent.mousePosition;
 				TooltipHandler.TipRegion(new Rect(mouse.x - 12f, mouse.y - 12f, 24f, 24f), "SymbiantCoreHover".Translate());
+			}
+
+			internal static bool IsUnobscuredMapInput(Vector2 mouse, float screenWidth, float screenHeight, bool windowObscured, float alertsHeight, float alertsBottomY)
+			{
+				if (windowObscured || new Rect(0f, 0f, screenWidth, screenHeight).Contains(mouse) == false)
+					return false;
+				if (new Rect(0f, screenHeight - MainButtonsTopOffset, screenWidth, MainButtonsHeight).Contains(mouse))
+					return false;
+				if (alertsHeight > 0f && new Rect(screenWidth - AlertsWidth, alertsBottomY - alertsHeight, AlertsWidth, alertsHeight).Contains(mouse))
+					return false;
+				return true;
 			}
 		}
 
