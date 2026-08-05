@@ -1,5 +1,0 @@
-- The Zombie Symbiant now has one visible softly pulsing and rotating selection core, including when GPU blob rendering is unavailable, so its other cells no longer block normal map clicks while enemies can still attack the whole body.
-- Moving the selection core no longer causes repeated full-body connectivity scans on very large Zombie Symbiants.
-- Loading older saves no longer stalls while choosing the selection core for a very large Zombie Symbiant.
-- The selection-core hint no longer appears over tabs, alerts, or other obscuring interface panels.
-- Symbiants can establish patches in multiple used rooms after filling a quarter of the current room, prefer adjacent rooms, and redistribute slime when rooms become invalid.
