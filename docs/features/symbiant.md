@@ -69,6 +69,9 @@ The Symbiant cannot be extracted as a travelling or contained pawn. Any ordinary
 ## Spread, Relocation, And Retreat
 
 - One growth pulse adds one room or door cell, or does nothing if no valid target exists.
+- A Symbiant may occupy several room-local patches. The room containing the inspection core is the active room and normally reaches 25% of its currently valid cells before the organism founds another room.
+- After that threshold, an unoccupied used room adjacent to any existing patch is preferred. The Symbiant reaches it through normal door or constructed-wall spread; it only seeds a disconnected patch when no eligible adjacent room remains.
+- Founding a room transfers the inspection core to its first occupied cell. After every eligible room has a patch, normal growth resumes across all occupied rooms and may eventually fill all remaining valid room cells.
 - Spread prefers open cells before wall targets.
 - Spread never continues outdoors.
 - Growth, ambient movement, and relocation use the same soft location preference: recent colony traffic remains strongest, while neighboring slime cells favor compact shapes and beds, dining tables, worktables, and storage cells are avoided when practical.
@@ -83,10 +86,12 @@ The Symbiant cannot be extracted as a travelling or contained pawn. Any ordinary
 Relocation handles deconstruction, battle damage, and messy rebuilding:
 
 - Visible cells that stop counting as integrated indoor slime become relocation material.
+- Invalid cells relocate at the faster relocation cadence without waiting for the 25% establishment rule. Empty valid rooms receive a seed before relocation adds second cells, after which projected room coverage keeps the recovered footprint distributed instead of concentrating it in one room.
+- If the canonical pawn cell becomes invalid while another patch is still valid, the implementation reanchors the pawn identity to that surviving patch so the old root cell can relocate like any other invalid cell.
 - If the linked root loses all integrated indoor cells, a grace window lets temporary room openings settle.
 - While uprooted during the grace window, ordinary growth and relocation pulses are paused.
 - If another used indoor room exists after the grace window, the root reseeds there as one visible cell and carries the old footprint as relocation debt.
-- Relocation debt is repaid one cell at a time at double the current adaptive growth speed.
+- Relocation debt is repaid one cell at a time at double the current adaptive growth speed and uses the same multi-room distribution rule.
 - If no used indoor rooms exist, the Symbiant remains dormant and does not grow outdoors.
 - If all valid indoor targets are exhausted or blocked, inspect text reports the contained state.
 - Severed, dead-host, or hostless cleanup retreat removes one cell per hour until the Symbiant disappears.
@@ -174,7 +179,7 @@ The developer widgets call the same one-pulse growth, shrink, and cell-movement 
 - Gameplay default cap is 400 cells.
 - Technical stress ceiling is `ZombieSymbiant.MAX_METABALLS = 4000`.
 - The CPU feeds cell coordinates, centers, radius, and radius-scale data to GPU resources.
-- Metaballs are rendered by the GPU shader path; do not move blob rasterization to CPU code.
+- Metaballs are rendered by the GPU shader path; do not move blob rasterization to CPU code. Each disconnected room patch owns a tight render mask and mesh so a remote seed does not allocate or draw one map-spanning texture.
 - Cell in/out animation changes center and radius scale over roughly one second at 1x speed.
 - The inspection core is a 0.93-cell organic knot drawn above one occupied cell with RimWorld's alpha-blended transparent shader. Its light-green outer mask uses a broad smooth feather, its swirl rotates slowly counter-clockwise, and its idle pulse eases smoothly into and out of the stronger discovery, hover, and selected states even while the game is paused. A localized hover tooltip teaches the interaction, cell movement uses a smooth handoff whose one-cell hit target follows the rendered knot throughout the move, and selection gradually brightens the whole blob. The core remains visibly inside the underlying slime footprint even when the Symbiant has only one cell, and it is prepared and drawn independently when compute-shader metaballs fall back to the ordinary pawn graphic.
 - The core tooltip is registered only over unobscured map input. RimWorld windows and inspect panes, the bottom main-button strip, and the active alert stack take precedence even when their screen coordinates project onto the core's map cell.
