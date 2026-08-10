@@ -8038,7 +8038,9 @@ namespace ZombieLand
 				var symbiant = ZombieSymbiant.ActiveSymbiant(pawn.Map);
 				if (symbiant?.IsSelectionCoreCell(clickCell) != true)
 					return;
-				if (pawn.CanReach(symbiant, PathEndMode.Touch, pawn.NormalMaxDanger()) == false || pawn.CanReserve(symbiant) == false)
+				// Vanilla providers evaluate ordered reachability while FloatMenuMakerMap.makingFor is set.
+				// This postfix runs after vanilla clears it, so use the same forced-order danger level explicitly.
+				if (pawn.CanReach(symbiant, PathEndMode.Touch, Danger.Deadly) == false || pawn.CanReserve(symbiant) == false)
 					return;
 
 				var feedOptions = SymbiantFeedOptions(pawn, symbiant).ToArray();
@@ -8063,10 +8065,11 @@ namespace ZombieLand
 					return thing is Corpse
 						&& thing.DestroyedOrNull() == false
 						&& thing.Spawned
-						&& thing.IsForbidden(pawn) == false
+						&& thing.IsForbidden(Faction.OfPlayer) == false
+						&& thing.PositionHeld.InAllowedArea(pawn)
 						&& symbiant.CanAcceptFeed(thing)
 						&& pawn.CanReserve(thing)
-						&& pawn.CanReach(thing, PathEndMode.Touch, pawn.NormalMaxDanger());
+						&& pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly);
 				}
 
 				var seenAnimalGroups = new HashSet<(ThingDef race, bool fresh)>();

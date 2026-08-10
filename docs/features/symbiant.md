@@ -12,7 +12,7 @@ The feature should be legible and annoying in a RimWorld way. It disrupts moveme
 - The Symbiant spreads through used indoor rooms one cell at a time.
 - Slime slows pawns crossing it and reduces work/tend speed for affected pawns standing on it.
 - The linked host gains benefits as the Symbiant grows: zombie infection immunity from the bond plus random benefits awarded at fixed cell intervals determined when the Symbiant starts.
-- Feeding with corpses grows the Symbiant faster. A colonist right-clicks the Symbiant and chooses an eligible corpse for a one-shot hauling job; interchangeable animal corpses share one row, while human and other non-animal corpses remain individual choices.
+- Feeding with corpses grows the Symbiant faster. A drafted or undrafted colonist right-clicks the Symbiant and chooses an eligible corpse for a one-shot hauling job; interchangeable animal corpses share one row, while human and other non-animal corpses remain individual choices.
 - Clean removal is host surgery through `SeverSymbiantSymbiosis`. The operation uses difficulty-scaled zombie extract and industrial-or-better medicine through RimWorld's normal bill ingredient path.
 - After severance, or after host death, the Symbiant retreats quickly and then disappears.
 
@@ -145,7 +145,7 @@ Pawn disruption remains non-lethal:
 ## Feeding And Surgery
 
 - Feeding consumes one valid organic non-Zombieland corpse and adds growth pulses. Mechanoid and other non-flesh corpses are not valid feed.
-- The float menu considers every spawned corpse that is unforbidden, reservable, and reachable by the selected colonist. Eligible animals of the same race and freshness share one row that targets the nearest matching corpse; human and other non-animal corpses remain individual rows. Each is a one-shot order; there is no persisted continuous-feed request and no autonomous Hauling workgiver mode, and old `feedRequested` save data is ignored.
+- The float menu is available to both drafted and undrafted selected colonists and considers every spawned corpse that is unforbidden, inside that colonist's allowed area, reservable, and reachable as a player-forced order. Eligible animals of the same race and freshness share one row that targets the nearest matching corpse; human and other non-animal corpses remain individual rows. Each is a one-shot order; there is no persisted continuous-feed request and no autonomous Hauling workgiver mode, and old `feedRequested` save data is ignored.
 - Humanlike corpses add 2 cells, non-humanlike corpses add 1 cell, and fresh corpses add 1 more cell.
 - The bond permits surgery while the linked host has the same effective map as the Symbiant; RimWorld still requires normal physical access to the pawn before a doctor can perform the operation.
 - Surgery consumes difficulty-scaled zombie extract plus industrial-or-better medicine through RimWorld's normal ingredient availability path. Herbal medicine is below the required tier.

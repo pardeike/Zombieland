@@ -6,3 +6,4 @@
 - Symbiants now use all available colony-room space before overflowing outdoors, move exposed cells back inside when space appears, prefer an open doorway, and can break at most one suitable exterior wall when the base is completely full.
 - Symbiant cells covered by new impassable construction now relocate to usable indoor space when possible or are safely crushed while the completed building remains intact.
 - The mod description now explains how to remove RimHUD's leftover contamination row after disabling or removing Zombieland.
+- Symbiant feed choices now respect forbidden corpses and colonist allowed areas consistently while drafted or undrafted.

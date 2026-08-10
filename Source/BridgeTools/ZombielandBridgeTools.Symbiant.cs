@@ -513,6 +513,78 @@ namespace ZombieLand
 			return new { removed, restoredCells = fixture.originalHome.Count, skipped = false };
 		}
 
+		[Tool("zombieland/symbiant_feed_menu_state", Description = "Inspect the live Symbiant feed-menu eligibility gates for a selected or named colonist.")]
+		public static object SymbiantFeedMenuState(
+			[ToolParameter(Description = "Optional colonist name; when empty, use the single selected colonist.", Required = false, DefaultValue = "")] string pawnName = "")
+		{
+			var map = CurrentMap;
+			if (map == null)
+				return new { success = false, error = "No current map is loaded." };
+			var symbiant = ZombieSymbiant.ActiveSymbiant(map);
+			if (symbiant == null)
+				return new { success = false, error = "No active Symbiant exists on the current map." };
+
+			var pawn = pawnName.NullOrEmpty()
+				? Find.Selector.SelectedPawns.SingleOrDefault()
+				: map.mapPawns.FreeColonistsSpawned.FirstOrDefault(candidate => candidate.Name?.ToStringShort == pawnName || candidate.LabelShort == pawnName);
+			if (pawn == null)
+				return new { success = false, error = pawnName.NullOrEmpty() ? "Select exactly one colonist." : $"Could not find colonist '{pawnName}'." };
+
+			var normalDanger = pawn.NormalMaxDanger();
+			var normalTraverse = TraverseParms.For(pawn, normalDanger);
+			var deadlyTraverse = TraverseParms.For(pawn, Danger.Deadly);
+			var options = FloatMenuMakerMap.GetOptions(
+				new List<Pawn> { pawn },
+				symbiant.SelectionCoreCell.ToVector3Shifted(),
+				out _);
+			var corpses = map.listerThings.ThingsInGroup(ThingRequestGroup.Corpse)
+				.OfType<Corpse>()
+				.Select(corpse => new
+				{
+					corpse = ZombieRuntimeActions.StableThingId(corpse),
+					label = corpse.LabelShortCap.ToString(),
+					position = ZombieRuntimeActions.DescribeCell(corpse.Position),
+					forbiddenForPawn = corpse.IsForbidden(pawn),
+					itemForbidden = corpse.IsForbidden(Faction.OfPlayer),
+					insideAllowedArea = corpse.PositionHeld.InAllowedArea(pawn),
+					validFeed = ZombieSymbiant.IsValidFeed(corpse),
+					canAccept = symbiant.CanAcceptFeed(corpse),
+					canReserve = pawn.CanReserve(corpse),
+					canReachNormal = pawn.CanReach(corpse, PathEndMode.Touch, normalDanger),
+					canReachDeadly = pawn.CanReach(corpse, PathEndMode.Touch, Danger.Deadly)
+				})
+				.ToArray();
+
+			return new
+			{
+				success = true,
+				pawn = new
+				{
+					id = ZombieRuntimeActions.StableThingId(pawn),
+					label = pawn.LabelShortCap.ToString(),
+					pawn.Drafted,
+					job = pawn.CurJob?.def?.defName,
+					jobPlayerForced = pawn.CurJob?.playerForced,
+					normalDanger = normalDanger.ToString(),
+					normalAvoidFog = normalTraverse.avoidFog,
+					deadlyAvoidFog = deadlyTraverse.avoidFog
+				},
+				symbiant = new
+				{
+					id = ZombieRuntimeActions.StableThingId(symbiant),
+					position = ZombieRuntimeActions.DescribeCell(symbiant.Position),
+					core = ZombieRuntimeActions.DescribeCell(symbiant.SelectionCoreCell),
+					canReserve = pawn.CanReserve(symbiant),
+					canReachNormal = pawn.CanReach(symbiant, PathEndMode.Touch, normalDanger),
+					canReachDeadly = pawn.CanReach(symbiant, PathEndMode.Touch, Danger.Deadly),
+					canReachCoreNormal = pawn.CanReach(symbiant.SelectionCoreCell, PathEndMode.OnCell, normalDanger),
+					canReachCoreDeadly = pawn.CanReach(symbiant.SelectionCoreCell, PathEndMode.OnCell, Danger.Deadly)
+				},
+				options = options.Select(option => new { option.Label, option.Disabled }).ToArray(),
+				corpses
+			};
+		}
+
 		[Tool("zombieland/symbiant_feeding_contract", Description = "Verify eligible organic corpse grouping, feed work discovery, feeding pulse sizes, and growth behavior.")]
 		public static object SymbiantFeedingContract(
 			[ToolParameter(Description = "Destroy temporary symbiant, host, feed corpses, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
