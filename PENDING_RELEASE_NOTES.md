@@ -1,0 +1,6 @@
+- Symbiant feeding now offers every usable corpse choice, combines interchangeable animal corpses into one row, and excludes mechanoid or other non-organic corpses.
+- The Symbiant interaction-cell popup now stays hidden while any right-click context menu is open.
+- Symbiant slime cells now let normal and Achtung right-click movement pass through; feeding and inspection remain on the visible core.
+- Symbiant blobs now stay connected within each room, and disconnected cells in existing saves gradually rejoin their room's main patch during normal movement.
+- Symbiants now seed neighboring rooms without destroying their divider walls, and never break a wall between two rooms that already contain Symbiant blobs.
+- The mod description now explains how to remove RimHUD's leftover contamination row after disabling or removing Zombieland.

@@ -206,6 +206,9 @@ namespace ZombieLand
 
 		HashSet<IntVec3> cells = [];
 		List<IntVec3> orderedCells = [];
+		List<IntVec3> roomCellMigrationCells = [];
+		bool roomCellMigrationInitialized;
+		bool roomCellMigrationRescanPending;
 		readonly Dictionary<IntVec3, float> metaballRadiusByCell = [];
 		readonly List<MetaballRenderElement> metaballRenderElements = [];
 		readonly Dictionary<IntVec3, CellMotion> incomingCellMotions = [];
@@ -297,10 +300,75 @@ namespace ZombieLand
 		internal int CombatShapeVersion => combatShapeVersion;
 		internal bool DebugCellsAreConnected => cells == null || cells.Count <= 1 || ConnectedCells(cells, cells.First()).Count == cells.Count;
 		internal int DebugComponentCount => ConnectedComponents(cells).Count;
+		internal int DebugRoomCellMigrationCount => roomCellMigrationCells?.Count ?? 0;
+		internal bool DebugRoomCellMigrationInitialized => roomCellMigrationInitialized;
+		internal bool DebugRoomCellMigrationRescanPending => roomCellMigrationRescanPending;
+		internal bool DebugLastMovePulseOrdinaryMoved { get; private set; }
+		internal bool DebugLastMovePulseMigratedRoomCell { get; private set; }
+		internal int DebugLastMovePulseConnectedRoomCellsRetired { get; private set; }
+		internal IntVec3 DebugLastMigratedRoomCellSource { get; private set; } = IntVec3.Invalid;
+		internal IntVec3 DebugLastMigratedRoomCellDestination { get; private set; } = IntVec3.Invalid;
+		internal int DebugMaxRoomComponentCount => OccupiedRoomCounts(Map)
+			.Keys
+			.Select(room => DebugRoomComponentCount(room))
+			.DefaultIfEmpty(0)
+			.Max();
 		internal static float RoomEstablishmentCoverage => SymbiantRoomEstablishmentCoverage;
 		internal int DebugRoomEstablishmentRequirement(Room room) => RoomEstablishmentRequirement(Map, room);
 		internal int DebugCellsInRoom(Room room) => CountCellsInRoomInternal(room);
+		internal int DebugRoomComponentCount(Room room) => RoomCellComponents(Map, room).Count;
+		internal IntVec3[] DebugRoomCellMigrationCells => roomCellMigrationCells
+			.Select(relative => Position + relative)
+			.ToArray();
+		internal int DebugInitializeRoomCellMigration()
+		{
+			EnsureRoomCellMigrationInitialized(Map);
+			return DebugRoomCellMigrationCount;
+		}
+		internal int DebugRetireConnectedRoomCellMigrationComponents()
+		{
+			return RetireConnectedRoomCellMigrationComponents(Map);
+		}
+		internal bool DebugAddDisconnectedRoomCell(IntVec3 absolute)
+		{
+			var map = Map;
+			if (map == null || ContainsCell(absolute) || CanOccupyOpenCell(map, absolute) == false)
+				return false;
+			var room = absolute.GetRoom(map);
+			if (IsEligibleIndoorRoom(room) == false || DebugCellsInRoom(room) == 0)
+				return false;
+			if (GenAdj.CardinalDirections.Any(direction => ContainsCell(absolute + direction)))
+				return false;
+			roomCellMigrationCells.Clear();
+			roomCellMigrationInitialized = false;
+			roomCellMigrationRescanPending = false;
+			if (AddRelativeCell(absolute - Position, false, false) == false)
+				return false;
+			RebuildCellBounds();
+			UpdateAll();
+			UpdateSymbiosisState();
+			return true;
+		}
+
+		internal bool DebugHasActiveCellMotionAt(IntVec3 absolute)
+		{
+			var relative = absolute - Position;
+			var ticks = GenTicks.TicksGame;
+			return cellMotions?.Any(motion => motion.cell == relative && ticks < motion.endTick) == true;
+		}
 		internal static bool DebugRoomsAreAdjacent(Map map, Room source, Room destination) => RoomsAreAdjacentForSymbiant(map, source, destination);
+		internal static void NotifyRoomTopologyChanged(Map map)
+		{
+			if (map == null
+				|| activeSymbiantByMap.TryGetValue(map, out var symbiant) == false
+				|| IsActiveSymbiantOnMap(symbiant, map) == false
+				|| symbiant.roomCellMigrationInitialized == false)
+				return;
+			if (symbiant.roomCellMigrationCells?.Count > 0)
+				symbiant.roomCellMigrationRescanPending = true;
+			else
+				symbiant.roomCellMigrationInitialized = false;
+		}
 		public int NextExpansionTick => nextExpansionTick;
 		public int CurrentExpansionIntervalTicks => AutomaticExpansionIntervalTicks();
 		public int CurrentRetreatIntervalTicks => RetreatIntervalTicks();
@@ -2325,14 +2393,15 @@ namespace ZombieLand
 				Discard(true);
 		}
 
-		bool AddRelativeCell(IntVec3 relative, bool travelFromExistingCell = true)
+		bool AddRelativeCell(IntVec3 relative, bool travelFromExistingCell = true, bool animate = true)
 		{
 			EnsureSharedHealth();
 			var wasFullHealth = sharedHealth >= SharedHealthMax - 0.01f;
 			if (cells.Add(relative) == false)
 				return false;
 			destroyWhenCellMotionsFinish = false;
-			StartIncomingCellMotion(relative, travelFromExistingCell);
+			if (animate)
+				StartIncomingCellMotion(relative, travelFromExistingCell);
 			orderedCells.Add(relative);
 			combatShapeVersion++;
 			ExpandCellBounds(relative);
@@ -2497,6 +2566,168 @@ namespace ZombieLand
 				remaining.ExceptWith(component);
 			}
 			return components;
+		}
+
+		List<HashSet<IntVec3>> RoomCellComponents(Map map, Room room)
+		{
+			if (map == null || room == null || cells == null)
+				return [];
+			var roomCells = orderedCells
+				.Where(relative =>
+				{
+					var absolute = Position + relative;
+					return absolute.InBounds(map) && absolute.GetRoom(map) == room;
+				})
+				.ToHashSet();
+			return ConnectedComponents(roomCells);
+		}
+
+		HashSet<IntVec3> PrimaryRoomComponent(IEnumerable<HashSet<IntVec3>> components)
+		{
+			return components
+				.OrderByDescending(component => component.Contains(IntVec3.Zero))
+				.ThenByDescending(component => component.Count)
+				.ThenByDescending(component => selectionCoreRelative.IsValid && component.Contains(selectionCoreRelative))
+				.FirstOrDefault();
+		}
+
+		void EnsureRoomCellMigrationInitialized(Map map)
+		{
+			if (roomCellMigrationInitialized)
+				return;
+			roomCellMigrationCells ??= [];
+			roomCellMigrationCells.Clear();
+			var roomCells = new Dictionary<Room, HashSet<IntVec3>>();
+			foreach (var relative in orderedCells)
+			{
+				var absolute = Position + relative;
+				var room = absolute.InBounds(map) ? absolute.GetRoom(map) : null;
+				if (IsEligibleIndoorRoom(room) == false)
+					continue;
+				if (roomCells.TryGetValue(room, out var cellsInRoom) == false)
+				{
+					cellsInRoom = [];
+					roomCells.Add(room, cellsInRoom);
+				}
+				cellsInRoom.Add(relative);
+			}
+			foreach (var cellsInRoom in roomCells.Values)
+			{
+				var components = ConnectedComponents(cellsInRoom);
+				if (components.Count <= 1)
+					continue;
+				var primary = PrimaryRoomComponent(components);
+				foreach (var component in components)
+				{
+					if (component != primary)
+						roomCellMigrationCells.AddRange(component);
+				}
+			}
+			roomCellMigrationInitialized = true;
+			roomCellMigrationRescanPending = false;
+		}
+
+		bool PromoteQueuedRoomComponentIfNecessary(Map map, Room room)
+		{
+			if (map == null || room == null || roomCellMigrationCells.Count == 0)
+				return false;
+			var queuedCells = roomCellMigrationCells.ToHashSet();
+			var hasEstablishedCell = orderedCells.Any(relative =>
+				queuedCells.Contains(relative) == false
+				&& (Position + relative).InBounds(map)
+				&& (Position + relative).GetRoom(map) == room);
+			if (hasEstablishedCell)
+				return false;
+
+			var queuedRoomCells = roomCellMigrationCells
+				.Where(relative => cells.Contains(relative)
+					&& (Position + relative).InBounds(map)
+					&& (Position + relative).GetRoom(map) == room)
+				.ToHashSet();
+			var primary = PrimaryRoomComponent(ConnectedComponents(queuedRoomCells));
+			if (primary == null || primary.Count == 0)
+				return false;
+			roomCellMigrationCells.RemoveAll(primary.Contains);
+			return true;
+		}
+
+		int RetireConnectedRoomCellMigrationComponents(Map map)
+		{
+			if (map == null || roomCellMigrationCells == null || roomCellMigrationCells.Count == 0)
+				return 0;
+
+			var queuedCells = roomCellMigrationCells.ToHashSet();
+			var queuedCellsByRoom = new Dictionary<Room, HashSet<IntVec3>>();
+			foreach (var relative in queuedCells)
+			{
+				var absolute = Position + relative;
+				var room = absolute.InBounds(map) ? absolute.GetRoom(map) : null;
+				if (IsEligibleIndoorRoom(room) == false)
+					continue;
+				if (queuedCellsByRoom.TryGetValue(room, out var roomCells) == false)
+				{
+					roomCells = [];
+					queuedCellsByRoom.Add(room, roomCells);
+				}
+				roomCells.Add(relative);
+			}
+
+			var connectedQueuedCells = new HashSet<IntVec3>();
+			foreach (var pair in queuedCellsByRoom)
+			{
+				var room = pair.Key;
+				var queuedRoomCells = pair.Value;
+				var open = new Queue<IntVec3>();
+				foreach (var relative in queuedRoomCells)
+				{
+					var touchesEstablishedPatch = false;
+					foreach (var direction in GenAdj.CardinalDirections)
+					{
+						var neighborRelative = relative + direction;
+						if (cells.Contains(neighborRelative) == false || queuedCells.Contains(neighborRelative))
+							continue;
+						var neighbor = Position + neighborRelative;
+						if (neighbor.InBounds(map) && neighbor.GetRoom(map) == room)
+						{
+							touchesEstablishedPatch = true;
+							break;
+						}
+					}
+					if (touchesEstablishedPatch && connectedQueuedCells.Add(relative))
+						open.Enqueue(relative);
+				}
+
+				while (open.Count > 0)
+				{
+					var relative = open.Dequeue();
+					foreach (var direction in GenAdj.CardinalDirections)
+					{
+						var neighbor = relative + direction;
+						if (queuedRoomCells.Contains(neighbor) && connectedQueuedCells.Add(neighbor))
+							open.Enqueue(neighbor);
+					}
+				}
+			}
+
+			if (connectedQueuedCells.Count > 0)
+				roomCellMigrationCells.RemoveAll(connectedQueuedCells.Contains);
+			return connectedQueuedCells.Count;
+		}
+
+		IntVec3[] RoomMigrationTargetCandidates(Map map, Room room)
+		{
+			var queuedCells = roomCellMigrationCells.ToHashSet();
+			return orderedCells
+				.Where(relative => queuedCells.Contains(relative) == false)
+				.Select(relative => Position + relative)
+				.Where(absolute => absolute.InBounds(map) && absolute.GetRoom(map) == room)
+				.SelectMany(absolute => GenAdj.CardinalDirections.Select(direction => absolute + direction))
+				.Where(candidate => candidate.InBounds(map)
+					&& candidate.GetRoom(map) == room
+					&& ContainsCell(candidate) == false
+					&& CanOccupyOpenCell(map, candidate))
+				.Distinct()
+				.ToArray();
 		}
 
 		void StartIncomingCellMotion(IntVec3 relative, bool travelFromExistingCell)
@@ -2868,7 +3099,7 @@ namespace ZombieLand
 
 		bool AddCell(IntVec3 newCell, bool travelFromExistingCell = true)
 		{
-			if (CellCount >= MaxCells)
+			if (CellCount >= MaxCells || CanPlaceConnectedWithinRoom(Map, newCell) == false)
 				return false;
 			if (AddRelativeCell(newCell - Position, travelFromExistingCell))
 			{
@@ -3009,6 +3240,9 @@ namespace ZombieLand
 			Position = anchor;
 			cells = [];
 			orderedCells = [];
+			roomCellMigrationCells = [];
+			roomCellMigrationInitialized = false;
+			roomCellMigrationRescanPending = false;
 			selectionCoreRelative = IntVec3.Invalid;
 			selectionCoreLastMoveTick = GenTicks.TicksGame;
 			ClearSelectionCoreMotion();
@@ -3652,18 +3886,30 @@ namespace ZombieLand
 
 		public bool TryMovePulse(bool allowWallBreak)
 		{
+			DebugLastMovePulseOrdinaryMoved = false;
+			DebugLastMovePulseMigratedRoomCell = false;
+			DebugLastMovePulseConnectedRoomCellsRetired = 0;
+			DebugLastMigratedRoomCellSource = IntVec3.Invalid;
+			DebugLastMigratedRoomCellDestination = IntVec3.Invalid;
 			var map = Map;
 			if (map == null || CellCount <= 1)
 				return false;
 
+			if (roomCellMigrationRescanPending && roomCellMigrationCells.Count == 0)
+			{
+				roomCellMigrationInitialized = false;
+				roomCellMigrationRescanPending = false;
+			}
+			EnsureRoomCellMigrationInitialized(map);
 			RefreshSymbiosisMetrics(false);
 			var targets = MovementTargetCandidates(map);
-			if (targets.Count == 0)
-				return false;
-
-			if (ShouldUseAmbientMovement() && TryAmbientMovePulse(map, targets))
-				return true;
-			return TryCorrectiveMovePulse(map, targets);
+			if (targets.Count > 0)
+			{
+				DebugLastMovePulseOrdinaryMoved = ShouldUseAmbientMovement() && TryAmbientMovePulse(map, targets)
+					|| TryCorrectiveMovePulse(map, targets);
+			}
+			DebugLastMovePulseMigratedRoomCell = TryMigrateQueuedRoomCell(map);
+			return DebugLastMovePulseOrdinaryMoved || DebugLastMovePulseMigratedRoomCell;
 		}
 
 		bool ShouldUseAmbientMovement()
@@ -3764,15 +4010,24 @@ namespace ZombieLand
 		List<MovementTarget> MovementTargetCandidates(Map map)
 		{
 			var targets = new List<MovementTarget>();
+			var occupiedRooms = OccupiedRoomCounts(map);
 			var seen = new HashSet<IntVec3>();
-			foreach (var cell in orderedCells.Select(relative => Position + relative).ToArray())
+			foreach (var relative in orderedCells.ToArray())
 			{
+				if (roomCellMigrationCells.Count > 0 && roomCellMigrationCells.Contains(relative))
+					continue;
+				var cell = Position + relative;
 				for (var i = 0; i < 4; i++)
 				{
 					var candidate = cell + GenAdj.CardinalDirections[i];
 					if (candidate.InBounds(map) == false || ContainsCell(candidate) || seen.Add(candidate) == false)
 						continue;
 					if (IsValidSymbiantCell(map, candidate) == false)
+						continue;
+					var room = candidate.GetRoom(map);
+					if (IsEligibleIndoorRoom(room)
+						&& occupiedRooms.ContainsKey(room)
+						&& TouchesEstablishedRoomPatch(map, candidate, room) == false)
 						continue;
 					targets.Add(new MovementTarget(candidate, ScoreMovementTargetCell(map, candidate), IntegratedCellWeight(map, candidate)));
 				}
@@ -3798,6 +4053,7 @@ namespace ZombieLand
 		{
 			if (relative == IntVec3.Zero
 				|| cells?.Contains(relative) != true
+				|| roomCellMigrationCells.Count > 0 && roomCellMigrationCells.Contains(relative)
 				|| targetComponents?.Contains(relative) != true
 				|| WouldCellsStayConnectedAfterMove(relative, targetRelative) == false)
 				return null;
@@ -3869,7 +4125,9 @@ namespace ZombieLand
 			if (map == null || source == null || target == null || IsValidSymbiantCell(map, target.cell) == false)
 				return false;
 			var targetRelative = target.cell - Position;
-			if (ContainsCell(target.cell) || WouldCellsStayConnectedAfterMove(source.relative, targetRelative) == false)
+			if (ContainsCell(target.cell)
+				|| CanPlaceConnectedWithinRoom(map, target.cell, source.relative) == false
+				|| WouldCellsStayConnectedAfterMove(source.relative, targetRelative) == false)
 				return false;
 			var movingSelectionCore = selectionCoreRelative == source.relative;
 			if (RemoveRelativeCellWithCoreDestination(source.relative, true, movingSelectionCore ? targetRelative : IntVec3.Invalid) == false)
@@ -3889,6 +4147,82 @@ namespace ZombieLand
 			UpdateSymbiosisState();
 			RememberMovement(source.absolute, target.cell);
 			return true;
+		}
+
+		bool TryMigrateQueuedRoomCell(Map map)
+		{
+			if (map == null || roomCellMigrationCells == null || roomCellMigrationCells.Count == 0)
+				return false;
+			roomCellMigrationCells.RemoveAll(relative =>
+			{
+				if (cells.Contains(relative) == false)
+					return true;
+				var absolute = Position + relative;
+				return absolute.InBounds(map) == false || IsEligibleIndoorRoom(absolute.GetRoom(map)) == false;
+			});
+			if (roomCellMigrationCells.Count == 0)
+				return false;
+			DebugLastMovePulseConnectedRoomCellsRetired += RetireConnectedRoomCellMigrationComponents(map);
+			if (roomCellMigrationCells.Count == 0)
+				return false;
+
+			var sourceCandidates = roomCellMigrationCells
+				.Where(relative => relative != IntVec3.Zero && WouldCellsStayConnectedAfterRemoval(relative))
+				.ToList();
+			var targetCandidatesByRoom = new Dictionary<Room, IntVec3[]>();
+			while (sourceCandidates.Count > 0)
+			{
+				var sourceIndex = Rand.Range(0, sourceCandidates.Count);
+				var sourceRelative = sourceCandidates[sourceIndex];
+				sourceCandidates.RemoveAt(sourceIndex);
+				var source = Position + sourceRelative;
+				var room = source.InBounds(map) ? source.GetRoom(map) : null;
+				if (IsEligibleIndoorRoom(room) == false)
+					continue;
+
+				_ = PromoteQueuedRoomComponentIfNecessary(map, room);
+				if (roomCellMigrationCells.Contains(sourceRelative) == false)
+					continue;
+				if (targetCandidatesByRoom.TryGetValue(room, out var targetCandidates) == false)
+				{
+					targetCandidates = RoomMigrationTargetCandidates(map, room);
+					targetCandidatesByRoom.Add(room, targetCandidates);
+				}
+				if (targetCandidates.Length == 0)
+					continue;
+
+				var target = targetCandidates.RandomElement();
+				var targetRelative = target - Position;
+				var movingSelectionCore = selectionCoreRelative == sourceRelative;
+				if (RemoveRelativeCellWithCoreDestination(sourceRelative, false, movingSelectionCore ? targetRelative : IntVec3.Invalid, false) == false)
+					continue;
+				if (AddRelativeCell(targetRelative, false, false) == false)
+				{
+					_ = AddRelativeCell(sourceRelative, false, false);
+					if (movingSelectionCore)
+					{
+						selectionCoreRelative = sourceRelative;
+						ClearSelectionCoreMotion();
+					}
+					continue;
+				}
+				roomCellMigrationCells.Remove(sourceRelative);
+				DebugLastMovePulseConnectedRoomCellsRetired += RetireConnectedRoomCellMigrationComponents(map);
+				if (movingSelectionCore)
+				{
+					selectionCoreRelative = targetRelative;
+					selectionCoreLastMoveTick = GenTicks.TicksGame;
+					ClearSelectionCoreMotion();
+				}
+				cellMotions?.RemoveAll(motion => motion.cell == sourceRelative || motion.cell == targetRelative);
+				RebuildCellBounds();
+				UpdateAll();
+				UpdateSymbiosisState();
+				DebugLastMigratedRoomCellSource = source;
+				DebugLastMigratedRoomCellDestination = target;
+				return true;
+			}
+			return false;
 		}
 
 		void RememberMovement(IntVec3 source, IntVec3 target)
@@ -3939,6 +4273,8 @@ namespace ZombieLand
 			if (relative.HasValue == false || relative.Value.IsValid == false || cells.Contains(relative.Value) == false)
 				return false;
 			var sourceRelative = relative.Value;
+			if (CanPlaceConnectedWithinRoom(map, target.cell, sourceRelative) == false)
+				return false;
 
 			if (target.wall != null && target.wall.Destroyed == false)
 				target.wall.Destroy(DestroyMode.KillFinalize);
@@ -4052,6 +4388,12 @@ namespace ZombieLand
 			Position = newPosition;
 			cells = absoluteCells.Select(cell => cell - newPosition).ToHashSet();
 			orderedCells = absoluteCells.Select(cell => cell - newPosition).ToList();
+			if (roomCellMigrationInitialized)
+			{
+				roomCellMigrationCells = roomCellMigrationCells
+					.Select(relative => relative - newRootRelative)
+					.ToList();
+			}
 			selectionCoreRelative = coreCell - newPosition;
 			selectionCoreLastMoveTick = GenTicks.TicksGame;
 			ClearSelectionCoreMotion();
@@ -4088,7 +4430,7 @@ namespace ZombieLand
 				if (occupied < required)
 					return inRoomTarget;
 
-				var foundingTarget = FindRoomFoundingTarget(map, activeRoom, consumeCancelNextBreach, respectCancelNextBreach);
+				var foundingTarget = FindRoomFoundingTarget(map, activeRoom);
 				if (foundingTarget != null)
 					return foundingTarget;
 			}
@@ -4130,7 +4472,44 @@ namespace ZombieLand
 			return counts;
 		}
 
-		ExpansionTarget FindRoomFoundingTarget(Map map, Room activeRoom, bool consumeCancelNextBreach, bool respectCancelNextBreach)
+		bool CanPlaceConnectedWithinRoom(Map map, IntVec3 candidate, IntVec3? movingSourceRelative = null)
+		{
+			if (map == null || candidate.InBounds(map) == false)
+				return false;
+			var room = candidate.GetRoom(map);
+			if (IsEligibleIndoorRoom(room) == false)
+				return true;
+
+			var hasOccupiedRoomCell = orderedCells.Any(relative =>
+			{
+				if (movingSourceRelative.HasValue && relative == movingSourceRelative.Value)
+					return false;
+				var absolute = Position + relative;
+				return absolute.InBounds(map) && absolute.GetRoom(map) == room;
+			});
+			return hasOccupiedRoomCell == false || TouchesEstablishedRoomPatch(map, candidate, room, movingSourceRelative);
+		}
+
+		bool TouchesEstablishedRoomPatch(Map map, IntVec3 candidate, Room room, IntVec3? movingSourceRelative = null)
+		{
+			if (map == null || room == null)
+				return false;
+			foreach (var direction in GenAdj.CardinalDirections)
+			{
+				var neighbor = candidate + direction;
+				var relative = neighbor - Position;
+				if (movingSourceRelative.HasValue && relative == movingSourceRelative.Value)
+					continue;
+				if (cells.Contains(relative) == false || neighbor.InBounds(map) == false || neighbor.GetRoom(map) != room)
+					continue;
+				if (roomCellMigrationCells.Count > 0 && roomCellMigrationCells.Contains(relative))
+					continue;
+				return true;
+			}
+			return false;
+		}
+
+		ExpansionTarget FindRoomFoundingTarget(Map map, Room activeRoom)
 		{
 			var occupiedRooms = OccupiedRoomCounts(map);
 			var candidates = CandidateRooms(map)
@@ -4161,87 +4540,15 @@ namespace ZombieLand
 				.OrderByDescending(candidate => candidate.roomScore)
 				.ThenByDescending(candidate => candidate.cellScore)
 				.ToArray();
-			foreach (var adjacent in candidates
-				.Where(candidate => candidate.adjacent)
-				.OrderBy(candidate => candidate.adjacentSourceRoom == activeRoom ? 0 : 1)
+			var nextRoom = candidates
+				.OrderBy(candidate => candidate.adjacent ? 0 : 1)
+				.ThenBy(candidate => candidate.adjacentSourceRoom == activeRoom ? 0 : 1)
 				.ThenByDescending(candidate => candidate.roomScore)
-				.ThenByDescending(candidate => candidate.cellScore))
-			{
-				var target = FindAdjacentRoomExpansionTarget(map, adjacent.adjacentSourceRoom, adjacent.room);
-				if (target == null)
-					continue;
-				if (target.wall != null && respectCancelNextBreach && cancelNextBreach)
-				{
-					if (consumeCancelNextBreach)
-						cancelNextBreach = false;
-					return null;
-				}
-				return target;
-			}
-
-			var remote = candidates.FirstOrDefault(candidate => candidate.adjacent == false);
-			return remote == null
+				.ThenByDescending(candidate => candidate.cellScore)
+				.FirstOrDefault();
+			return nextRoom == null
 				? null
-				: new ExpansionTarget(remote.cell, null, remote.cellScore, remote.room, true, true);
-		}
-
-		ExpansionTarget FindAdjacentRoomExpansionTarget(Map map, Room sourceRoom, Room destinationRoom)
-		{
-			return FindAdjacentRoomExpansionTarget(map, sourceRoom, destinationRoom, false)
-				?? FindAdjacentRoomExpansionTarget(map, sourceRoom, destinationRoom, true);
-		}
-
-		ExpansionTarget FindAdjacentRoomExpansionTarget(Map map, Room sourceRoom, Room destinationRoom, bool allowWallBreak)
-		{
-			if (map == null || sourceRoom == null || destinationRoom == null)
-				return null;
-			var open = new Queue<IntVec3>();
-			var previous = new Dictionary<IntVec3, IntVec3>();
-			foreach (var relative in orderedCells)
-			{
-				var cell = Position + relative;
-				if (cell.InBounds(map) == false || cell.GetRoom(map) != sourceRoom || previous.ContainsKey(cell))
-					continue;
-				previous[cell] = IntVec3.Invalid;
-				open.Enqueue(cell);
-			}
-
-			var destination = IntVec3.Invalid;
-			while (open.Count > 0 && destination.IsValid == false)
-			{
-				var cell = open.Dequeue();
-				for (var directionIndex = 0; directionIndex < GenAdj.CardinalDirections.Length; directionIndex++)
-				{
-					var neighbor = cell + GenAdj.CardinalDirections[directionIndex];
-					if (neighbor.InBounds(map) == false || previous.ContainsKey(neighbor))
-						continue;
-					var room = neighbor.GetRoom(map);
-					var traversable = ContainsCell(neighbor)
-						|| (room == sourceRoom || room == destinationRoom) && CanOccupyOpenCell(map, neighbor)
-						|| IsDoorCell(map, neighbor)
-						|| allowWallBreak && BreakableConstructedWall(map, neighbor) != null;
-					if (traversable == false)
-						continue;
-					previous[neighbor] = cell;
-					if (room == destinationRoom && ContainsCell(neighbor) == false)
-					{
-						destination = neighbor;
-						break;
-					}
-					open.Enqueue(neighbor);
-				}
-			}
-			if (destination.IsValid == false)
-				return null;
-
-			var step = destination;
-			while (previous.TryGetValue(step, out var before) && before.IsValid && ContainsCell(before) == false)
-				step = before;
-			if (ContainsCell(step))
-				return null;
-			var wall = BreakableConstructedWall(map, step);
-			var entersDestination = step.GetRoom(map) == destinationRoom;
-			return new ExpansionTarget(step, wall, ScoreExpansionCell(map, destination), destinationRoom, entersDestination, false);
+				: new ExpansionTarget(nextRoom.cell, null, nextRoom.cellScore, nextRoom.room, true, true);
 		}
 
 		ExpansionTarget FindRelocationTarget(Map map)
@@ -4256,8 +4563,11 @@ namespace ZombieLand
 			var candidates = rooms
 				.Select(room =>
 				{
+					var roomIsOccupied = occupiedRooms.ContainsKey(room);
 					var available = room.Cells
-						.Where(cell => CanOccupyOpenCell(map, cell) && ContainsCell(cell) == false)
+						.Where(cell => CanOccupyOpenCell(map, cell)
+							&& ContainsCell(cell) == false
+							&& (roomIsOccupied == false || TouchesEstablishedRoomPatch(map, cell, room)))
 						.Select(cell => new { cell, score = ScoreMovementTargetCell(map, cell) })
 						.OrderByDescending(entry => entry.score)
 						.FirstOrDefault();
@@ -4316,9 +4626,15 @@ namespace ZombieLand
 		{
 			var targets = new List<ExpansionTarget>();
 			var occupiedRooms = OccupiedRoomCounts(map);
+			var occupiedRoomPatchesAreFull = allowWallBreak && occupiedRooms.Keys.All(room =>
+				room.Cells.All(candidate => CanOccupyOpenCell(map, candidate) == false || ContainsCell(candidate))
+			);
 			var seen = new HashSet<IntVec3>();
-			foreach (var cell in orderedCells.Select(relative => Position + relative).ToArray())
+			foreach (var relative in orderedCells.ToArray())
 			{
+				if (roomCellMigrationCells.Count > 0 && roomCellMigrationCells.Contains(relative))
+					continue;
+				var cell = Position + relative;
 				for (var i = 0; i < 4; i++)
 				{
 					var direction = GenAdj.CardinalDirections[i];
@@ -4331,12 +4647,16 @@ namespace ZombieLand
 						var room = candidate.GetRoom(map);
 						if (requiredRoom != null && room != requiredRoom)
 							continue;
+						if (IsEligibleIndoorRoom(room)
+							&& occupiedRooms.ContainsKey(room)
+							&& TouchesEstablishedRoomPatch(map, candidate, room) == false)
+							continue;
 						var foundsRoom = IsEligibleIndoorRoom(room) && occupiedRooms.ContainsKey(room) == false;
 						targets.Add(new ExpansionTarget(candidate, null, ScoreExpansionCell(map, candidate), room, foundsRoom, false));
 						continue;
 					}
 
-					if (allowWallBreak == false)
+					if (allowWallBreak == false || occupiedRoomPatchesAreFull == false)
 						continue;
 
 					var wall = BreakableConstructedWall(map, candidate);
@@ -4346,7 +4666,7 @@ namespace ZombieLand
 					if (TryFindConstructedWallBreachDestination(map, candidate, direction, out var destination))
 					{
 						var destinationRoom = destination.GetRoom(map);
-						if (requiredRoom == null)
+						if (requiredRoom == null && occupiedRooms.ContainsKey(destinationRoom) == false)
 							targets.Add(new ExpansionTarget(candidate, wall, ScoreExpansionCell(map, destination) + 150f, destinationRoom));
 					}
 				}
@@ -4651,7 +4971,7 @@ namespace ZombieLand
 			if (feed is Corpse corpse)
 			{
 				var pawn = corpse.InnerPawn;
-				if (pawn == null)
+				if (pawn?.RaceProps?.IsFlesh != true || AlienTools.IsFleshPawn(pawn) == false)
 					return false;
 				return pawn is not Zombie && pawn is not ZombieSymbiant && pawn is not ZombieSpitter;
 			}
@@ -5108,6 +5428,7 @@ namespace ZombieLand
 			if (cells.Count == 0 && destroyWhenCellMotionsFinish == false)
 				cells.Add(IntVec3.Zero);
 			orderedCells ??= [];
+			roomCellMigrationCells ??= [];
 			if (orderedCells.Count == 0)
 				orderedCells.AddRange(cells);
 			else
@@ -5125,6 +5446,7 @@ namespace ZombieLand
 				orderedCells.RemoveAt(orderedCells.Count - 1);
 				cells.Remove(cell);
 			}
+			roomCellMigrationCells.RemoveAll(cell => cells.Contains(cell) == false);
 			if (previousCellCount != cells.Count || previousOrderedCount != orderedCells.Count)
 				combatShapeVersion++;
 			RebuildCellBounds();
@@ -5636,6 +5958,9 @@ namespace ZombieLand
 			base.ExposeData();
 			Scribe_Collections.Look(ref cells, "cells", LookMode.Value);
 			Scribe_Collections.Look(ref orderedCells, "orderedCells", LookMode.Value);
+			Scribe_Collections.Look(ref roomCellMigrationCells, "roomCellMigrationCells", LookMode.Value);
+			Scribe_Values.Look(ref roomCellMigrationInitialized, "roomCellMigrationInitialized");
+			Scribe_Values.Look(ref roomCellMigrationRescanPending, "roomCellMigrationRescanPending");
 			Scribe_Values.Look(ref radius, "radius", elementRadius * 9f);
 			Scribe_Values.Look(ref power, "power", elementPower);
 			Scribe_Values.Look(ref nextExpansionTick, "nextExpansionTick");

@@ -13,3 +13,7 @@ What it adds:
 - many settings for how dangerous the apocalypse should be
 
 It is chaotic by design. If you ignore the undead for too long, the map will remind you.
+
+RimHUD after disabling or removing Zombieland:
+
+If RimHUD still shows a red `<Need[Contamination]>` row, select any pawn, hover over RimHUD and click the gear icon, open **Content**, select the red entry, and click **Remove**.

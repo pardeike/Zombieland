@@ -235,9 +235,7 @@ namespace ZombieLand
 				if (symbiant?.Spawned != true || symbiant.Destroyed || clickParams == null)
 					return;
 				var clickCell = IntVec3.FromVector3(clickPos);
-				var isLogicalCell = symbiant.ContainsCell(clickCell);
-				var isVisibleCoreDeparture = symbiant.IsSelectionCoreCell(clickCell) && symbiant.SelectionCoreMotionActive;
-				if ((isLogicalCell == false && isVisibleCoreDeparture == false) || clickParams.CanTarget(symbiant, source) == false)
+				if (symbiant.IsSelectionCoreCell(clickCell) == false || clickParams.CanTarget(symbiant, source) == false)
 					return;
 				__result.Insert(Mathf.Clamp(previousIndex, 0, __result.Count), symbiant);
 			}
@@ -410,6 +408,7 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(MapInterface.MapInterfaceOnGUI_AfterMainTabs))]
 		internal class MapInterface_MapInterfaceOnGUI_AfterMainTabs_Patch
 		{
+			internal const int SymbiantCoreTooltipId = 1514955521;
 			const float MainButtonsTopOffset = 35f;
 			const float MainButtonsHeight = 36f;
 			const float AlertsWidth = 154f;
@@ -468,6 +467,7 @@ namespace ZombieLand
 					UI.screenWidth,
 					UI.screenHeight,
 					Find.WindowStack?.MouseObscuredNow == true,
+					Find.WindowStack?.FloatMenu != null,
 					Find.Alerts?.AlertsHeight ?? 0f,
 					Find.LetterStack?.LastTopY ?? 0f) == false)
 					return;
@@ -477,18 +477,30 @@ namespace ZombieLand
 				var symbiant = ZombieSymbiant.ActiveSymbiant(map);
 				if (symbiant?.IsSelectionCoreCell(UI.MouseCell()) != true)
 					return;
-				TooltipHandler.TipRegion(new Rect(mouse.x - 12f, mouse.y - 12f, 24f, 24f), "SymbiantCoreHover".Translate());
+				TooltipHandler.TipRegion(
+					new Rect(mouse.x - 12f, mouse.y - 12f, 24f, 24f),
+					new TipSignal("SymbiantCoreHover".Translate(), SymbiantCoreTooltipId));
 			}
 
-			internal static bool IsUnobscuredMapInput(Vector2 mouse, float screenWidth, float screenHeight, bool windowObscured, float alertsHeight, float alertsBottomY)
+			internal static bool IsUnobscuredMapInput(Vector2 mouse, float screenWidth, float screenHeight, bool windowObscured, bool contextMenuOpen, float alertsHeight, float alertsBottomY)
 			{
-				if (windowObscured || new Rect(0f, 0f, screenWidth, screenHeight).Contains(mouse) == false)
+				if (windowObscured || contextMenuOpen || new Rect(0f, 0f, screenWidth, screenHeight).Contains(mouse) == false)
 					return false;
 				if (new Rect(0f, screenHeight - MainButtonsTopOffset, screenWidth, MainButtonsHeight).Contains(mouse))
 					return false;
 				if (alertsHeight > 0f && new Rect(screenWidth - AlertsWidth, alertsBottomY - alertsHeight, AlertsWidth, alertsHeight).Contains(mouse))
 					return false;
 				return true;
+			}
+		}
+
+		[HarmonyPatch(typeof(TooltipHandler), nameof(TooltipHandler.DoTooltipGUI))]
+		internal static class TooltipHandler_DoTooltipGUI_Patch
+		{
+			static void Prefix(Dictionary<int, ActiveTip> ___activeTips)
+			{
+				if (Find.WindowStack?.FloatMenu != null)
+					___activeTips.Remove(MapInterface_MapInterfaceOnGUI_AfterMainTabs_Patch.SymbiantCoreTooltipId);
 			}
 		}
 
@@ -7821,6 +7833,7 @@ namespace ZombieLand
 			static void Postfix(Map ___map)
 			{
 				___map?.GetComponent<TickManager>()?.zombiePathing?.UpdateRegions();
+				ZombieSymbiant.NotifyRoomTopologyChanged(___map);
 			}
 		}
 
@@ -7972,7 +7985,8 @@ namespace ZombieLand
 			{
 				if (pawn?.Map == null || clickCell.InBounds(pawn.Map) == false)
 					return;
-				if (ZombieSymbiant.IsSymbiantCell(pawn.Map, clickCell, out var symbiant) == false || symbiant == null)
+				var symbiant = ZombieSymbiant.ActiveSymbiant(pawn.Map);
+				if (symbiant?.IsSelectionCoreCell(clickCell) != true)
 					return;
 				if (pawn.CanReach(symbiant, PathEndMode.Touch, pawn.NormalMaxDanger()) == false || pawn.CanReserve(symbiant) == false)
 					return;
@@ -8005,32 +8019,32 @@ namespace ZombieLand
 						&& pawn.CanReach(thing, PathEndMode.Touch, pawn.NormalMaxDanger());
 				}
 
-				var seen = new HashSet<string>();
+				var seenAnimalGroups = new HashSet<(ThingDef race, bool fresh)>();
 				foreach (var feed in pawn.Map.listerThings.ThingsInGroup(ThingRequestGroup.Corpse)
 					.Where(Valid)
-					.OrderBy(thing => thing.Position.DistanceToSquared(pawn.Position) + thing.Position.DistanceToSquared(symbiant.Position)))
+					.OrderBy(thing => thing.Position.DistanceToSquared(pawn.Position) + thing.Position.DistanceToSquared(symbiant.Position))
+					.ThenBy(thing => thing.thingIDNumber))
 				{
-					var category = SymbiantFeedCategory(feed);
-					if (seen.Add(category))
-						yield return feed;
-					if (seen.Count >= 4)
-						yield break;
+					var corpse = (Corpse)feed;
+					var innerPawn = corpse.InnerPawn;
+					if (innerPawn.RaceProps.Animal)
+					{
+						var group = (innerPawn.def, corpse.GetRotStage() == RotStage.Fresh);
+						if (seenAnimalGroups.Add(group) == false)
+							continue;
+					}
+					yield return feed;
 				}
-			}
-
-			static string SymbiantFeedCategory(Thing feed)
-			{
-				var corpse = feed as Corpse;
-				var humanlike = corpse?.InnerPawn?.RaceProps?.Humanlike == true;
-				var fresh = corpse?.GetRotStage() == RotStage.Fresh;
-				return $"{(humanlike ? "human" : "animal")}_{(fresh ? "fresh" : "old")}";
 			}
 
 			static string SymbiantFeedLabel(Thing feed)
 			{
 				var corpse = feed as Corpse;
 				var freshness = corpse?.GetRotStage() == RotStage.Fresh ? "fresh" : "rotten";
-				var name = corpse?.InnerPawn?.LabelShortCap ?? feed.LabelShortCap;
+				var innerPawn = corpse?.InnerPawn;
+				var name = innerPawn?.RaceProps?.Animal == true
+					? innerPawn.def.LabelCap.ToString()
+					: (innerPawn?.LabelShortCap ?? feed.LabelShortCap).ToString();
 				var cells = ZombieSymbiant.FeedGrowthCellCount(feed);
 				return "FeedZombieSymbiantFloatMenu".Translate(freshness, name, cells);
 			}

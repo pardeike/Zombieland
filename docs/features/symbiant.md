@@ -12,7 +12,7 @@ The feature should be legible and annoying in a RimWorld way. It disrupts moveme
 - The Symbiant spreads through used indoor rooms one cell at a time.
 - Slime slows pawns crossing it and reduces work/tend speed for affected pawns standing on it.
 - The linked host gains benefits as the Symbiant grows: zombie infection immunity from the bond plus random benefits awarded at fixed cell intervals determined when the Symbiant starts.
-- Feeding with corpses grows the Symbiant faster. A colonist right-clicks the Symbiant and chooses one available corpse for a one-shot hauling job; humanlike and fresh corpses give larger growth pulses.
+- Feeding with corpses grows the Symbiant faster. A colonist right-clicks the Symbiant and chooses an eligible corpse for a one-shot hauling job; interchangeable animal corpses share one row, while human and other non-animal corpses remain individual choices.
 - Clean removal is host surgery through `SeverSymbiantSymbiosis`. The operation uses difficulty-scaled zombie extract and industrial-or-better medicine through RimWorld's normal bill ingredient path.
 - After severance, or after host death, the Symbiant retreats quickly and then disappears.
 
@@ -69,16 +69,17 @@ The Symbiant cannot be extracted as a travelling or contained pawn. Any ordinary
 ## Spread, Relocation, And Retreat
 
 - One growth pulse adds one room or door cell, or does nothing if no valid target exists.
-- A Symbiant may occupy several room-local patches. The room containing the inspection core is the active room and normally reaches 25% of its currently valid cells before the organism founds another room.
-- After that threshold, an unoccupied used room adjacent to any existing patch is preferred. The Symbiant reaches it through normal door or constructed-wall spread; it only seeds a disconnected patch when no eligible adjacent room remains.
+- A Symbiant may occupy several patches globally, but every occupied room has at most one cardinally connected patch. The room containing the inspection core is the active room and normally reaches 25% of its currently valid cells before the organism founds another room.
+- After that threshold, an unoccupied used room adjacent to any existing patch is preferred. Its first room-local cell is seeded directly without opening a divider wall; globally disconnected room patches are expected.
 - Founding a room transfers the inspection core to its first occupied cell. After every eligible room has a patch, normal growth resumes across all occupied rooms and may eventually fill all remaining valid room cells.
 - Spread prefers open cells before wall targets.
 - Spread never continues outdoors.
 - Growth, ambient movement, and relocation use the same soft location preference: recent colony traffic remains strongest, while neighboring slime cells favor compact shapes and beds, dining tables, worktables, and storage cells are avoided when practical.
+- The first normal movement pulse performs one room-connectivity scan and saves any cells in secondary same-room components as migration work. Each movement pulse then performs its ordinary move and may silently relocate one random queued cell across its room to a free cell beside the established patch. After either move, any queued component that has become cardinally connected leaves the queue in place instead of being relocated cell by cell. The queue is persisted and is not scanned again while room topology stays unchanged. RimWorld's existing room-rebuild callback only marks discovery stale; the next movement pulse performs one new scan after the current queue drains, which covers rooms joined or split by later construction without polling from a tick, draw, or inspection path.
 - The last 16 changed coordinates receive a temporary soft anti-reversal adjustment. This bounded in-memory history is not saved, carries no correctness state, and cannot block the only valid target.
 - Closed and open doors are valid spread cells and remain door objects.
 - Natural rock and non-constructed blockers are not breached.
-- Constructed-wall breach behavior is intentionally conservative and must only target valid indoor continuation.
+- Constructed-wall breach behavior is intentionally conservative. It is considered only after every occupied room patch has filled its valid floor cells, and only when the wall leads to an indoor room with no Symbiant patch. A divider between two occupied rooms is never breached.
 - At `symbiantMaxCells`, expansion stops but the Symbiant remains active.
 - When a cell is removed, contamination on that cell is cleared once.
 - The inspection core is persisted as part of the cell state. It follows a cell that is moved, hands off to a surviving low-clutter cell before removal, and after roughly six in-game hours may ride the next eligible ambient cell move so it does not remain fixed forever.
@@ -86,7 +87,7 @@ The Symbiant cannot be extracted as a travelling or contained pawn. Any ordinary
 Relocation handles deconstruction, battle damage, and messy rebuilding:
 
 - Visible cells that stop counting as integrated indoor slime become relocation material.
-- Invalid cells relocate at the faster relocation cadence without waiting for the 25% establishment rule. Empty valid rooms receive a seed before relocation adds second cells, after which projected room coverage keeps the recovered footprint distributed instead of concentrating it in one room.
+- Invalid cells relocate at the faster relocation cadence without waiting for the 25% establishment rule. Empty valid rooms receive a seed before relocation adds second cells, after which projected room coverage keeps the recovered footprint distributed instead of concentrating it in one room. A relocation into an already occupied room must join that room's existing patch.
 - If the canonical pawn cell becomes invalid while another patch is still valid, the implementation reanchors the pawn identity to that surviving patch so the old root cell can relocate like any other invalid cell.
 - If the linked root loses all integrated indoor cells, a grace window lets temporary room openings settle.
 - While uprooted during the grace window, ordinary growth and relocation pulses are paused.
@@ -141,8 +142,8 @@ Pawn disruption remains non-lethal:
 
 ## Feeding And Surgery
 
-- Feeding consumes one valid non-Zombieland corpse and adds growth pulses.
-- Feeding is a one-shot float-menu order tied to the selected corpse category. There is no persisted continuous-feed request and no autonomous Hauling workgiver mode; old `feedRequested` save data is ignored.
+- Feeding consumes one valid organic non-Zombieland corpse and adds growth pulses. Mechanoid and other non-flesh corpses are not valid feed.
+- The float menu considers every spawned corpse that is unforbidden, reservable, and reachable by the selected colonist. Eligible animals of the same race and freshness share one row that targets the nearest matching corpse; human and other non-animal corpses remain individual rows. Each is a one-shot order; there is no persisted continuous-feed request and no autonomous Hauling workgiver mode, and old `feedRequested` save data is ignored.
 - Humanlike corpses add 2 cells, non-humanlike corpses add 1 cell, and fresh corpses add 1 more cell.
 - The bond permits surgery while the linked host has the same effective map as the Symbiant; RimWorld still requires normal physical access to the pawn before a doctor can perform the operation.
 - Surgery consumes difficulty-scaled zombie extract plus industrial-or-better medicine through RimWorld's normal ingredient availability path. Herbal medicine is below the required tier.
@@ -170,7 +171,7 @@ The long-term cleaner type would be a custom `Thing`/`ThingWithComps`, but that 
 
 Combat keeps one real `ZombieSymbiant` Pawn and never moves its canonical `Position` to impersonate another slime cell. Only the root cell is registered in `ThingGrid`; logical cells are supplied through a transient geometry cache with shape-version invalidation. Ranged attacks bind each `Verb` to one deterministic exposed cell, and the same cell is reused for vanilla target-scan gates, weighted target selection, distance/cover/blast-friendly-fire scoring, LOS/range, projectile destination, and impact. Vanilla roof interception/collapse runs before a logical owner impact. Melee jobs keep the real Symbiant in target A, store the reachable stand cell in B, and store the attacked slime cell in C; B/C are rebound if the blob changes shape. Damage always goes to the real Pawn, through the real damage worker, and then into its shared-health pool; attacking a cell never deletes that cell. An explosion overlapping several slime cells damages the organism at most once, using the first affected logical cell for falloff. Combat Extended support is late-bound and fail-open: because CE projectiles derive from `ThingWithComps` independently of vanilla `Projectile`, the adapter reflects CE target/position state and supplies the logical owner to CE's ordinary ballistic, final-impact, and instant-ray collision enumerations/bounds without mutating `ThingGrid` or hard-referencing CE.
 
-The one-cell inspection surface is deliberately separate from that combat geometry. `GenUI.ThingsUnderMouse` recognizes the Symbiant on every actual logical cell and, during the short movement handoff, on the still-rendered outgoing core cell; it rejects empty gaps in the rectangular draw bounds. The private ordinary `Selector.SelectableObjectsUnderMouse` path then filters that generic result to the current core cell. Enemy AI, verb binding, melee reach, projectile impact, explosions, and modded targeting never consult the inspection core.
+The one-cell inspection surface is deliberately separate from that combat geometry. `GenUI.ThingsUnderMouse` exposes only the current visible core, including the still-rendered outgoing core cell during its short movement handoff. Every other logical slime cell and every empty gap in the rectangular draw bounds clicks through to the ordinary map cell and its contents. Feeding is likewise offered only from the visible core. Enemy AI, verb binding, melee reach, projectile impact, and explosions never consult the inspection core.
 
 The developer widgets call the same one-pulse growth, shrink, and cell-movement paths used by the organism instead of installing map-click debug tools. Assignment lists only currently eligible free colonists; using the same widget on an assigned Symbiant removes the link and its host hediff. These controls are absent unless `DebugSettings.ShowDevGizmos` is true, which in RimWorld 1.6 requires both developer mode and god mode.
 
@@ -179,7 +180,7 @@ The developer widgets call the same one-pulse growth, shrink, and cell-movement 
 - Gameplay default cap is 400 cells.
 - Technical stress ceiling is `ZombieSymbiant.MAX_METABALLS = 4000`.
 - The CPU feeds cell coordinates, centers, radius, and radius-scale data to GPU resources.
-- Metaballs are rendered by the GPU shader path; do not move blob rasterization to CPU code. Each disconnected room patch owns a tight render mask and mesh so a remote seed does not allocate or draw one map-spanning texture.
+- Metaballs are rendered by the GPU shader path; do not move blob rasterization to CPU code. Each globally disconnected patch owns a tight render mask and mesh so a remote room seed does not allocate or draw one map-spanning texture.
 - Cell in/out animation changes center and radius scale over roughly one second at 1x speed.
 - The inspection core is a 0.93-cell organic knot drawn above one occupied cell with RimWorld's alpha-blended transparent shader. Its light-green outer mask uses a broad smooth feather, its swirl rotates slowly counter-clockwise, and its idle pulse eases smoothly into and out of the stronger discovery, hover, and selected states even while the game is paused. A localized hover tooltip teaches the interaction, cell movement uses a smooth handoff whose one-cell hit target follows the rendered knot throughout the move, and selection gradually brightens the whole blob. The core remains visibly inside the underlying slime footprint even when the Symbiant has only one cell, and it is prepared and drawn independently when compute-shader metaballs fall back to the ordinary pawn graphic.
 - The core tooltip is registered only over unobscured map input. RimWorld windows and inspect panes, the bottom main-button strip, and the active alert stack take precedence even when their screen coordinates project onto the core's map cell.
