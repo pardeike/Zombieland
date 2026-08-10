@@ -3,4 +3,6 @@
 - Symbiant slime cells now let normal and Achtung right-click movement pass through; feeding and inspection remain on the visible core.
 - Symbiant blobs now stay connected within each room, and disconnected cells in existing saves gradually rejoin their room's main patch during normal movement.
 - Symbiants now seed neighboring rooms without destroying their divider walls, and never break a wall between two rooms that already contain Symbiant blobs.
+- Symbiants now use all available colony-room space before overflowing outdoors, move exposed cells back inside when space appears, prefer an open doorway, and can break at most one suitable exterior wall when the base is completely full.
+- Symbiant cells covered by new impassable construction now relocate to usable indoor space when possible or are safely crushed while the completed building remains intact.
 - The mod description now explains how to remove RimHUD's leftover contamination row after disabling or removing Zombieland.

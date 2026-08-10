@@ -7833,7 +7833,57 @@ namespace ZombieLand
 			static void Postfix(Map ___map)
 			{
 				___map?.GetComponent<TickManager>()?.zombiePathing?.UpdateRegions();
-				ZombieSymbiant.NotifyRoomTopologyChanged(___map);
+				ZombieSymbiant.NotifyRoomTopologyInvalidated(___map);
+			}
+		}
+
+		// Room topology is settled only after RimWorld clears dirty regions and emits the map event.
+		//
+		[HarmonyPatch(typeof(MapEvents), nameof(MapEvents.Notify_RegionsRoomsChanged))]
+		static class MapEvents_Notify_RegionsRoomsChanged_SymbiantPatch
+		{
+			static void Postfix(MapEvents __instance)
+			{
+				ZombieSymbiant.NotifyRoomTopologySettled(__instance?.map);
+			}
+		}
+
+		// Roof changes alter indoor/exterior eligibility without necessarily rebuilding regions. Mark
+		// placement classification dirty here and let the normal slow mutation boundary do the scan.
+		//
+		[HarmonyPatch(typeof(MapEvents), nameof(MapEvents.Notify_RoofChanged))]
+		static class MapEvents_Notify_RoofChanged_SymbiantPatch
+		{
+			static void Postfix(MapEvents __instance)
+			{
+				ZombieSymbiant.NotifyCellClassificationChanged(__instance?.map);
+			}
+		}
+
+		// Defer logical-cell repair when any impassable building spawns over a Symbiant footprint.
+		// This covers player construction, loading, hostile/quest spawns, and official-DLC buildings.
+		//
+		[HarmonyPatch(typeof(Building), nameof(Building.SpawnSetup))]
+		static class Building_SpawnSetup_SymbiantPatch
+		{
+			static void Postfix(Building __instance)
+			{
+				ZombieSymbiant.NotifyImpassableBuildingSpawned(__instance);
+			}
+		}
+
+		// Vanilla recovery teleports or destroys a pawn standing under a newly spawned blocker. Either
+		// operation would corrupt a Symbiant's relative footprint, so its repair owns this transition.
+		//
+		[HarmonyPatch(typeof(Pawn_PathFollower), nameof(Pawn_PathFollower.TryRecoverFromUnwalkablePosition))]
+		static class Pawn_PathFollower_TryRecoverFromUnwalkablePosition_SymbiantPatch
+		{
+			static bool Prefix(Pawn ___pawn, ref bool __result)
+			{
+				if (ZombieSymbiant.TryHandleUnwalkableRootRecovery(___pawn, out var recovered) == false)
+					return true;
+				__result = recovered;
+				return false;
 			}
 		}
 

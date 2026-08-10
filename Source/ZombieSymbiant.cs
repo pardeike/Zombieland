@@ -60,6 +60,7 @@ namespace ZombieLand
 		const float NaturalWallRoomScoreFactor = 1.00f;
 		const float ConstructedWallRoomScoreFactor = 2.00f;
 		static int UprootedRelocationGraceTicks => GenDate.TicksPerHour * 4;
+		static int PlacementBlockedRetryTicks => GenDate.TicksPerHour * 6;
 		const float UprootedIntegratedCellThreshold = 0.01f;
 		const int AutoHealIntervalTicks = GenDate.TicksPerDay / 4;
 		const int AmbientMovementRecentCellCapacity = 16;
@@ -76,7 +77,6 @@ namespace ZombieLand
 		const int AmbientMovementSourceLimit = 8;
 		const float AmbientMovementMinBenefitFactor = 0.55f;
 		const float AmbientMovementHighBenefitFactor = 0.85f;
-		const int MaxConstructedWallBreachDepth = 4;
 		const float AmbientMovementTargetBestScoreFraction = 0.80f;
 		const float AmbientMovementTargetRandomMin = 0.85f;
 		const float AmbientMovementTargetRandomMax = 1.15f;
@@ -138,6 +138,45 @@ namespace ZombieLand
 			SharedHealthExhausted
 		}
 
+		internal enum SymbiantCellClass
+		{
+			IndoorFloor,
+			Door,
+			ExteriorOpen,
+			IndoorIneligible,
+			InvalidBlocked
+		}
+
+		internal enum IndoorCapacityState
+		{
+			NoRelevantRooms,
+			PlacementAvailable,
+			NonFullButBlocked,
+			AllFull
+		}
+
+		enum FootprintMutationKind
+		{
+			Expansion,
+			Feeding,
+			Movement,
+			MigrationRepair,
+			Relocation,
+			ConstructionRepair,
+			Reseed,
+			Retreat,
+			Debug
+		}
+
+		enum ExpansionTargetKind
+		{
+			IndoorLocal,
+			Door,
+			RoomFounding,
+			ExteriorOpen,
+			ExteriorWallBreach
+		}
+
 		static readonly HostBenefit[] hostBenefitPool =
 		[
 			HostBenefit.MoodFixed,
@@ -172,18 +211,219 @@ namespace ZombieLand
 				: (float)GenMath.LerpDoubleClamped(0f, 1f, NaturalWallRoomScoreFactor, ConstructedWallRoomScoreFactor, ConstructedRatio);
 		}
 
-		sealed class RoomPlacementCandidate
+		sealed class RoomCapacityRecord
 		{
 			public Room room;
-			public IntVec3 cell;
-			public float cellScore;
+			public int capacity;
+			public int occupied;
+			public bool hasPlacement;
+			public IntVec3 placementCell = IntVec3.Invalid;
+			public float placementScore;
 			public float roomScore;
-			public int validCells;
-			public int occupiedCells;
-			public bool adjacent;
-			public Room adjacentSourceRoom;
 
-			public float ProjectedCoverage => validCells <= 0 ? 1f : (occupiedCells + 1f) / validCells;
+			public bool Empty => occupied == 0;
+			public bool Full => capacity > 0 && occupied >= capacity;
+			public float ProjectedCoverage => capacity <= 0 ? 1f : (occupied + 1f) / capacity;
+		}
+
+		sealed class IndoorCapacityEvaluation
+		{
+			public IndoorCapacityState state;
+			public readonly List<RoomCapacityRecord> rooms = [];
+			public IntVec3 doorTarget = IntVec3.Invalid;
+			public float doorTargetScore;
+			public int roomCellScans;
+			public int TotalCapacity => rooms.Sum(room => room.capacity);
+			public int TotalOccupied => rooms.Sum(room => room.occupied);
+			public bool HasDoorTarget => doorTarget.IsValid;
+		}
+
+		sealed class ConstructionRoomPlacementPlan
+		{
+			public readonly RoomCapacityRecord capacity = new();
+			public readonly HashSet<IntVec3> freeCells = [];
+			public readonly HashSet<IntVec3> frontier = [];
+			public readonly List<IntVec3> foundingCells = [];
+			public HashSet<IntVec3> excludedEstablishedSources;
+		}
+
+		sealed class ConstructionPlacementCandidate
+		{
+			public ConstructionRoomPlacementPlan room;
+			public IntVec3 cell;
+			public float score;
+		}
+
+		sealed class ConstructionPlacementPlanner
+		{
+			readonly ZombieSymbiant owner;
+			readonly Map map;
+			readonly HashSet<IntVec3> planned;
+			readonly HashSet<IntVec3> excluded;
+			readonly List<ConstructionRoomPlacementPlan> rooms = [];
+			readonly HashSet<IntVec3> doorTargets = [];
+
+			public ConstructionPlacementPlanner(
+				ZombieSymbiant owner,
+				Map map,
+				HashSet<IntVec3> planned,
+				HashSet<IntVec3> excluded)
+			{
+				this.owner = owner;
+				this.map = map;
+				this.planned = planned;
+				this.excluded = excluded;
+				BuildRoomPlans();
+				RefreshDoorTargets(planned);
+			}
+
+			void BuildRoomPlans()
+			{
+				var queuedAbsolute = owner.roomCellMigrationLookup
+					.Select(relative => owner.Position + relative)
+					.ToHashSet();
+				var relevantRooms = CandidateRooms(map)
+					.Concat(planned
+						.Where(cell => cell.InBounds(map))
+						.Select(cell => cell.GetRoom(map))
+						.Where(IsEligibleIndoorRoom))
+					.Distinct()
+					.ToArray();
+				foreach (var room in relevantRooms)
+				{
+					var plan = new ConstructionRoomPlacementPlan();
+					plan.capacity.room = room;
+					plan.capacity.roomScore = ScoreSpawnRoom(map, room);
+					var hasEstablishedCell = planned.Any(cell =>
+						cell.InBounds(map)
+						&& cell.GetRoom(map) == room
+						&& queuedAbsolute.Contains(cell) == false);
+					plan.excludedEstablishedSources = hasEstablishedCell ? queuedAbsolute : [];
+					foreach (var cell in room.Cells)
+					{
+						owner.roomCellScanCount++;
+						owner.constructionPlacementCandidateScanCount++;
+						if (ClassifySymbiantCell(map, cell) != SymbiantCellClass.IndoorFloor)
+							continue;
+						plan.capacity.capacity++;
+						if (planned.Contains(cell))
+							plan.capacity.occupied++;
+						else if (excluded.Contains(cell) == false)
+							plan.freeCells.Add(cell);
+					}
+					if (plan.capacity.capacity <= 0)
+						continue;
+					foreach (var cell in plan.freeCells)
+					{
+						if (plan.capacity.occupied > 0)
+						{
+							if (owner.TouchesRoomPatch(map, cell, room, planned, plan.excludedEstablishedSources))
+								plan.frontier.Add(cell);
+						}
+						else if (CanOccupyInitialSpawnCell(map, cell))
+							plan.foundingCells.Add(cell);
+					}
+					rooms.Add(plan);
+				}
+			}
+
+			ConstructionPlacementCandidate CandidateFor(ConstructionRoomPlacementPlan plan)
+			{
+				IEnumerable<IntVec3> candidates = plan.capacity.occupied == 0 ? plan.foundingCells : plan.frontier;
+				var cell = candidates
+					.Where(plan.freeCells.Contains)
+					.OrderByDescending(candidate => owner.ScoreMovementTargetCell(map, candidate))
+					.ThenBy(candidate => candidate.x)
+					.ThenBy(candidate => candidate.z)
+					.FirstOrDefault();
+				if (cell.IsValid == false || plan.freeCells.Contains(cell) == false)
+					return null;
+				return new ConstructionPlacementCandidate
+				{
+					room = plan,
+					cell = cell,
+					score = owner.ScoreMovementTargetCell(map, cell)
+				};
+			}
+
+			public IntVec3 NextTarget(Room preferredRoom = null)
+			{
+				var candidates = rooms
+					.Select(CandidateFor)
+					.Where(candidate => candidate != null)
+					.ToArray();
+				var preferred = preferredRoom == null
+					? null
+					: candidates
+						.Where(candidate => candidate.room.capacity.room == preferredRoom)
+						.OrderByDescending(candidate => candidate.score)
+						.FirstOrDefault();
+				if (preferred != null)
+					return preferred.cell;
+				var selected = candidates
+					.OrderBy(candidate => candidate.room.capacity.Empty ? 0 : 1)
+					.ThenBy(candidate => candidate.room.capacity.ProjectedCoverage)
+					.ThenByDescending(candidate => candidate.room.capacity.roomScore)
+					.ThenByDescending(candidate => candidate.score)
+					.ThenBy(candidate => candidate.cell.x)
+					.ThenBy(candidate => candidate.cell.z)
+					.FirstOrDefault();
+				if (selected != null)
+					return selected.cell;
+				return doorTargets
+					.Where(cell => ClassifySymbiantCell(map, cell) == SymbiantCellClass.Door)
+					.OrderByDescending(cell => owner.ScoreMovementTargetCell(map, cell))
+					.ThenBy(cell => cell.x)
+					.ThenBy(cell => cell.z)
+					.DefaultIfEmpty(IntVec3.Invalid)
+					.First();
+			}
+
+			public bool Commit(IntVec3 target)
+			{
+				if (target.IsValid == false || excluded.Contains(target) || planned.Add(target) == false)
+					return false;
+				doorTargets.Remove(target);
+				var plan = rooms.FirstOrDefault(candidate => candidate.freeCells.Contains(target));
+				if (plan != null)
+				{
+					plan.freeCells.Remove(target);
+					plan.frontier.Remove(target);
+					plan.foundingCells.Remove(target);
+					plan.capacity.occupied++;
+					foreach (var direction in GenAdj.CardinalDirections)
+					{
+						var neighbor = target + direction;
+						if (plan.freeCells.Contains(neighbor) && neighbor.GetRoom(map) == plan.capacity.room)
+							plan.frontier.Add(neighbor);
+					}
+				}
+				RefreshDoorTargets([target]);
+				return true;
+			}
+
+			void RefreshDoorTargets(IEnumerable<IntVec3> sources)
+			{
+				var relevantRooms = rooms.Select(plan => plan.capacity.room).ToHashSet();
+				foreach (var source in sources)
+				{
+					foreach (var direction in GenAdj.CardinalDirections)
+					{
+						var candidate = source + direction;
+						if (planned.Contains(candidate)
+							|| excluded.Contains(candidate)
+							|| ClassifySymbiantCell(map, candidate) != SymbiantCellClass.Door)
+							continue;
+						var belongsToRelevantRoom = GenAdj.CardinalDirections
+							.Select(adjacentDirection => candidate + adjacentDirection)
+							.Where(adjacent => adjacent.InBounds(map))
+							.Select(adjacent => adjacent.GetRoom(map))
+							.Any(relevantRooms.Contains);
+						if (belongsToRelevantRoom)
+							doorTargets.Add(candidate);
+					}
+				}
+			}
 		}
 
 		sealed class MetaballRenderPatch
@@ -207,8 +447,14 @@ namespace ZombieLand
 		HashSet<IntVec3> cells = [];
 		List<IntVec3> orderedCells = [];
 		List<IntVec3> roomCellMigrationCells = [];
+		readonly HashSet<IntVec3> roomCellMigrationLookup = [];
 		bool roomCellMigrationInitialized;
 		bool roomCellMigrationRescanPending;
+		bool roomCellMigrationNormalizationPending;
+		bool roomTopologyInvalidated;
+		readonly HashSet<IntVec3> pendingConstructionCoveredCells = [];
+		readonly HashSet<IntVec3> pendingConstructionFootprintCells = [];
+		bool postLoadConstructionValidationPending;
 		readonly Dictionary<IntVec3, float> metaballRadiusByCell = [];
 		readonly List<MetaballRenderElement> metaballRenderElements = [];
 		readonly Dictionary<IntVec3, CellMotion> incomingCellMotions = [];
@@ -244,7 +490,24 @@ namespace ZombieLand
 		int relocationCellDebt;
 		int nextRelocationPulseTick;
 		int uprootedSinceTick = -1;
-		bool cancelNextBreach;
+		bool exteriorOverflowAuthorized;
+		IntVec3 establishmentAnchorRelative = IntVec3.Invalid;
+		IndoorCapacityState lastIndoorCapacityState = IndoorCapacityState.NoRelevantRooms;
+		string lastPlacementGrowthState = "waiting";
+		int lastPlacementEvaluationTick = -1;
+		int lastFeedAcceptanceEvaluationTick = -1;
+		int lastFeedAcceptanceShapeVersion = -1;
+		bool lastFeedAcceptanceResult;
+		int capacityEvaluationCount;
+		int exactCapacityAuditCount;
+		int roomCellScanCount;
+		int topologyInvalidationCount;
+		int topologySettledCount;
+		int constructionRepairBatchCount;
+		int constructionRelocatedCellCount;
+		int constructionCrushedCellCount;
+		int constructionPlacementPlanCount;
+		int constructionPlacementCandidateScanCount;
 		Pawn host;
 		string hostThingId;
 		bool safeSeveranceInProgress;
@@ -268,6 +531,7 @@ namespace ZombieLand
 		int cachedEligibleColonyRoomCells;
 		int cachedFullBenefitCells = 20;
 		float cachedIntegratedVisibleCells;
+		int cachedHostEffectCells = 1;
 		float cachedBenefitFactor;
 		CellRect relativeCellBounds;
 		bool hasCellBounds;
@@ -301,8 +565,25 @@ namespace ZombieLand
 		internal bool DebugCellsAreConnected => cells == null || cells.Count <= 1 || ConnectedCells(cells, cells.First()).Count == cells.Count;
 		internal int DebugComponentCount => ConnectedComponents(cells).Count;
 		internal int DebugRoomCellMigrationCount => roomCellMigrationCells?.Count ?? 0;
+		internal int DebugRoomCellMigrationLookupCount => roomCellMigrationLookup.Count;
 		internal bool DebugRoomCellMigrationInitialized => roomCellMigrationInitialized;
 		internal bool DebugRoomCellMigrationRescanPending => roomCellMigrationRescanPending;
+		internal bool DebugExteriorOverflowAuthorized => exteriorOverflowAuthorized;
+		internal IndoorCapacityState DebugLastIndoorCapacityState => lastIndoorCapacityState;
+		internal IntVec3 DebugEstablishmentAnchorCell => establishmentAnchorRelative.IsValid ? Position + establishmentAnchorRelative : IntVec3.Invalid;
+		internal bool DebugConstructionRepairPending => HasPendingConstructionRepair;
+		internal int DebugCapacityEvaluationCount => capacityEvaluationCount;
+		internal int DebugExactCapacityAuditCount => exactCapacityAuditCount;
+		internal int DebugRoomCellScanCount => roomCellScanCount;
+		internal int DebugTopologyInvalidationCount => topologyInvalidationCount;
+		internal int DebugTopologySettledCount => topologySettledCount;
+		internal int DebugConstructionRepairBatchCount => constructionRepairBatchCount;
+		internal int DebugConstructionRelocatedCellCount => constructionRelocatedCellCount;
+		internal int DebugConstructionCrushedCellCount => constructionCrushedCellCount;
+		internal int DebugConstructionPlacementPlanCount => constructionPlacementPlanCount;
+		internal int DebugConstructionPlacementCandidateScanCount => constructionPlacementCandidateScanCount;
+		internal bool DebugPlacementTopologySafe => IsPlacementTopologySafe(Map);
+		internal bool DebugRoomTopologyInvalidated => roomTopologyInvalidated;
 		internal bool DebugLastMovePulseOrdinaryMoved { get; private set; }
 		internal bool DebugLastMovePulseMigratedRoomCell { get; private set; }
 		internal int DebugLastMovePulseConnectedRoomCellsRetired { get; private set; }
@@ -329,10 +610,73 @@ namespace ZombieLand
 		{
 			return RetireConnectedRoomCellMigrationComponents(Map);
 		}
+		internal object DebugPlacementDiagnostics()
+		{
+			var map = Map;
+			if (map == null)
+				return new { success = false, error = "Symbiant is not on a map." };
+			var evaluation = IsPlacementTopologySafe(map) ? EvaluateIndoorCapacity(map) : null;
+			var absoluteCells = orderedCells.Select(relative => Position + relative).ToArray();
+			var classified = absoluteCells
+				.GroupBy(cell => ClassifySymbiantCell(map, cell))
+				.ToDictionary(group => group.Key, group => group.Count());
+			return new
+			{
+				success = true,
+				topologySafe = IsPlacementTopologySafe(map),
+				roomTopologyInvalidated,
+				exteriorOverflowAuthorized,
+				establishmentAnchor = DebugEstablishmentAnchorCell.IsValid ? DescribeDebugCell(DebugEstablishmentAnchorCell) : null,
+				cellClasses = Enum.GetValues(typeof(SymbiantCellClass))
+					.Cast<SymbiantCellClass>()
+					.ToDictionary(value => value.ToString(), value => classified.TryGetValue(value, out var count) ? count : 0),
+				indoorCapacityState = evaluation?.state.ToString() ?? lastIndoorCapacityState.ToString(),
+				relevantRooms = evaluation?.rooms.Select(room => new
+				{
+					id = room.room.ID,
+					capacity = room.capacity,
+					occupied = room.occupied,
+					room.Empty,
+					room.Full,
+					hasPlacement = room.hasPlacement,
+					placement = room.placementCell.IsValid ? DescribeDebugCell(room.placementCell) : null
+				}).ToArray(),
+				doorTarget = evaluation?.HasDoorTarget == true ? DescribeDebugCell(evaluation.doorTarget) : null,
+				pendingConstructionRepair = HasPendingConstructionRepair,
+				pendingConstructionCoveredCells = pendingConstructionCoveredCells.Count,
+				pendingConstructionFootprintCells = pendingConstructionFootprintCells.Count,
+				migration = new
+				{
+					initialized = roomCellMigrationInitialized,
+					rescanPending = roomCellMigrationRescanPending,
+					normalizationPending = roomCellMigrationNormalizationPending,
+					queueCount = roomCellMigrationCells.Count,
+					lookupCount = roomCellMigrationLookup.Count
+				},
+				counters = new
+				{
+					capacityEvaluationCount,
+					exactCapacityAuditCount,
+					roomCellScanCount,
+					topologyInvalidationCount,
+					topologySettledCount,
+					constructionRepairBatchCount,
+					constructionRelocatedCellCount,
+					constructionCrushedCellCount,
+					constructionPlacementPlanCount,
+					constructionPlacementCandidateScanCount,
+					lastPlacementEvaluationTick
+				},
+				capacityModel = "freshSlowDecision"
+			};
+		}
 		internal bool DebugAddDisconnectedRoomCell(IntVec3 absolute)
 		{
 			var map = Map;
-			if (map == null || ContainsCell(absolute) || CanOccupyOpenCell(map, absolute) == false)
+			if (map == null
+				|| TryEnterFootprintMutation(FootprintMutationKind.Debug, false, out _) == false
+				|| ContainsCell(absolute)
+				|| CanOccupyOpenCell(map, absolute) == false)
 				return false;
 			var room = absolute.GetRoom(map);
 			if (IsEligibleIndoorRoom(room) == false || DebugCellsInRoom(room) == 0)
@@ -340,8 +684,10 @@ namespace ZombieLand
 			if (GenAdj.CardinalDirections.Any(direction => ContainsCell(absolute + direction)))
 				return false;
 			roomCellMigrationCells.Clear();
+			roomCellMigrationLookup.Clear();
 			roomCellMigrationInitialized = false;
 			roomCellMigrationRescanPending = false;
+			roomCellMigrationNormalizationPending = false;
 			if (AddRelativeCell(absolute - Position, false, false) == false)
 				return false;
 			RebuildCellBounds();
@@ -357,17 +703,49 @@ namespace ZombieLand
 			return cellMotions?.Any(motion => motion.cell == relative && ticks < motion.endTick) == true;
 		}
 		internal static bool DebugRoomsAreAdjacent(Map map, Room source, Room destination) => RoomsAreAdjacentForSymbiant(map, source, destination);
-		internal static void NotifyRoomTopologyChanged(Map map)
+		internal static void NotifyRoomTopologyInvalidated(Map map)
 		{
 			if (map == null
 				|| activeSymbiantByMap.TryGetValue(map, out var symbiant) == false
-				|| IsActiveSymbiantOnMap(symbiant, map) == false
-				|| symbiant.roomCellMigrationInitialized == false)
+				|| IsActiveSymbiantOnMap(symbiant, map) == false)
 				return;
-			if (symbiant.roomCellMigrationCells?.Count > 0)
-				symbiant.roomCellMigrationRescanPending = true;
-			else
-				symbiant.roomCellMigrationInitialized = false;
+			symbiant.roomTopologyInvalidated = true;
+			symbiant.roomCellMigrationRescanPending = true;
+			symbiant.lastSymbiosisMetricTick = int.MinValue;
+			symbiant.lastPlacementEvaluationTick = -1;
+			symbiant.topologyInvalidationCount++;
+			symbiant.lastPlacementGrowthState = "waitingForRoomTopology";
+		}
+
+		internal static void NotifyRoomTopologySettled(Map map)
+		{
+			if (map == null
+				|| map.regionAndRoomUpdater?.AnythingToRebuild == true
+				|| activeSymbiantByMap.TryGetValue(map, out var symbiant) == false
+				|| IsActiveSymbiantOnMap(symbiant, map) == false)
+				return;
+			symbiant.roomTopologyInvalidated = false;
+			symbiant.roomCellMigrationRescanPending = true;
+			symbiant.lastSymbiosisMetricTick = int.MinValue;
+			symbiant.topologySettledCount++;
+			if (symbiant.exteriorOverflowAuthorized
+				|| symbiant.HasPendingConstructionRepair
+				|| symbiant.relocationCellDebt > 0
+				|| symbiant.nextRelocationPulseTick > 0
+				|| symbiant.uprootedSinceTick >= 0)
+				symbiant.nextRelocationPulseTick = GenTicks.TicksGame;
+		}
+
+		internal static void NotifyCellClassificationChanged(Map map)
+		{
+			if (map == null
+				|| activeSymbiantByMap.TryGetValue(map, out var symbiant) == false
+				|| IsActiveSymbiantOnMap(symbiant, map) == false)
+				return;
+			symbiant.roomCellMigrationRescanPending = true;
+			symbiant.lastSymbiosisMetricTick = int.MinValue;
+			symbiant.lastPlacementEvaluationTick = -1;
+			symbiant.nextRelocationPulseTick = GenTicks.TicksGame;
 		}
 		public int NextExpansionTick => nextExpansionTick;
 		public int CurrentExpansionIntervalTicks => AutomaticExpansionIntervalTicks();
@@ -380,7 +758,7 @@ namespace ZombieLand
 		public int UprootedSinceTick => uprootedSinceTick;
 		internal int RecentMovementCellCount => recentMovementCells.Count;
 		internal static int RecentMovementCellCapacity => AmbientMovementRecentCellCapacity;
-		public bool CancelNextBreach => cancelNextBreach;
+		public bool ExteriorOverflowAuthorized => exteriorOverflowAuthorized;
 		public static float CurrentGrowthSpeedFactor => SymbiantGrowthSpeedFactor();
 		public IEnumerable<IntVec3> AbsoluteCells => orderedCells.Select(cell => Position + cell);
 		CellRect AbsoluteCellBounds => relativeCellBounds.MovedBy(Position);
@@ -459,7 +837,8 @@ namespace ZombieLand
 		public static float SharedHealthRecoveryMissingFraction => SymbiantSharedHealthRecoveryMissingFraction;
 		public IReadOnlyList<SymbiantDamageEchoRecord> DamageEchoHistory => damageEchoHistory;
 		public float DamageEchoHistoryTotal => damageEchoHistory?.Sum(record => Mathf.Max(0f, record?.amount ?? 0f)) ?? 0f;
-		public float HealthScaleCellMultiplier => HealthScaleMultiplierForCells(CellCount);
+		public int HostEffectCellCount { get { RefreshSymbiosisMetrics(); return cachedHostEffectCells; } }
+		public float HealthScaleCellMultiplier => HealthScaleMultiplierForCells(HostEffectCellCount);
 		public int SharedHealthCurrentDisplay => DamageAbsorptionBuffer;
 		public int SharedHealthMaxDisplay => DamageAbsorptionBufferMax;
 		public int SharedDamageLeakPercentDisplay => Mathf.RoundToInt(SharedDamageLeakFactor * 100f);
@@ -475,16 +854,12 @@ namespace ZombieLand
 			{
 				if (Spawned == false || Destroyed || Dead)
 					return "inactive";
-				RefreshSymbiosisMetrics();
-				var linkedHost = ResolveHost();
-				if (linkedHost != null && cachedIntegratedVisibleCells <= UprootedIntegratedCellThreshold)
-				{
-					if (TryFindReseedPlan(linkedHost, out _, out _))
-						return "uprooted";
-					return HasReseedCandidateRoom(linkedHost) ? "contained" : "dormantNoRoom";
-				}
-				if (relocationCellDebt > 0 || HasMovableUnintegratedCells())
-					return FindRelocationTarget(Map) == null ? "contained" : "relocating";
+				if (HasPendingConstructionRepair)
+					return "repairingConstruction";
+				if (uprootedSinceTick >= 0)
+					return lastPlacementGrowthState == "dormantNoRoom" ? "dormantNoRoom" : "uprooted";
+				if (relocationCellDebt > 0 || nextRelocationPulseTick > 0)
+					return lastPlacementGrowthState == "contained" ? "contained" : "relocating";
 				if (CellCount >= MaxCells)
 					return "capped";
 				var ticks = GenTicks.TicksGame;
@@ -492,7 +867,7 @@ namespace ZombieLand
 					return "pausedAfterFeeding";
 				if (ticks < nextExpansionTick)
 					return "waiting";
-				return FindExpansionTarget(false) == null ? "contained" : "growing";
+				return lastPlacementGrowthState;
 			}
 		}
 		public bool CanSafelySever => symbiosisSevered == false && IsActiveBondWith(LinkedHost);
@@ -1813,7 +2188,7 @@ namespace ZombieLand
 				return;
 			EnsureBenefitDefaults();
 			var step = Mathf.Max(1, benefitStepCells);
-			while (CellCount >= nextBenefitCellThreshold)
+			while (cachedHostEffectCells >= nextBenefitCellThreshold)
 			{
 				AwardRandomBenefit();
 				nextBenefitCellThreshold += step;
@@ -1905,26 +2280,53 @@ namespace ZombieLand
 				&& room.ProperRoom;
 		}
 
-		static float IntegratedCellWeight(Map map, IntVec3 cell)
+		static bool IsGenuineExteriorRoom(Room room)
+		{
+			return room != null && (room.UsesOutdoorTemperature || room.TouchesMapEdge);
+		}
+
+		internal static SymbiantCellClass ClassifySymbiantCell(Map map, IntVec3 cell)
 		{
 			if (map == null || cell.InBounds(map) == false || cell.Fogged(map))
+				return SymbiantCellClass.InvalidBlocked;
+			if (cell.GetEdifice(map) is Building_Door)
+				return IsDoorCell(map, cell) ? SymbiantCellClass.Door : SymbiantCellClass.InvalidBlocked;
+			if (cell.Walkable(map) == false)
+				return SymbiantCellClass.InvalidBlocked;
+
+			var room = cell.GetRoom(map);
+			if (IsEligibleIndoorRoom(room))
+				return cell.Roofed(map) ? SymbiantCellClass.IndoorFloor : SymbiantCellClass.InvalidBlocked;
+			if (IsGenuineExteriorRoom(room))
+				return SymbiantCellClass.ExteriorOpen;
+			return SymbiantCellClass.IndoorIneligible;
+		}
+
+		static float IntegratedCellWeight(Map map, IntVec3 cell)
+		{
+			var classification = ClassifySymbiantCell(map, cell);
+			if (classification != SymbiantCellClass.IndoorFloor && classification != SymbiantCellClass.Door)
 				return 0f;
-			if (IsDoorCell(map, cell) == false)
-			{
-				if (cell.Roofed(map) == false)
-					return 0f;
-				var room = cell.GetRoom(map);
-				if (IsEligibleIndoorRoom(room) == false)
-					return 0f;
-			}
 			return ScoreTraffic(map, cell) > 0f ? 1f : 0.5f;
 		}
 
 		static bool IsValidSymbiantCell(Map map, IntVec3 cell)
 		{
-			if (map == null || cell.InBounds(map) == false)
-				return false;
-			return CanOccupyOpenCell(map, cell) || IsDoorCell(map, cell);
+			var classification = ClassifySymbiantCell(map, cell);
+			return classification == SymbiantCellClass.IndoorFloor
+				|| classification == SymbiantCellClass.Door
+				|| classification == SymbiantCellClass.ExteriorOpen;
+		}
+
+		int CalculateHostEffectCellCount(Map map)
+		{
+			if (map == null || orderedCells == null)
+				return 0;
+			return orderedCells.Count(relative =>
+			{
+				var classification = ClassifySymbiantCell(map, Position + relative);
+				return classification == SymbiantCellClass.IndoorFloor || classification == SymbiantCellClass.Door;
+			});
 		}
 
 		void RefreshSymbiosisMetrics(bool force = false)
@@ -1933,9 +2335,15 @@ namespace ZombieLand
 			if (force == false && lastSymbiosisMetricTick != int.MinValue && ticks - lastSymbiosisMetricTick < SymbiosisMetricRefreshInterval)
 				return;
 			var map = SymbiantMap;
+			if (map != null && Spawned && IsPlacementTopologySafe(map) == false)
+			{
+				lastSymbiosisMetricTick = int.MinValue;
+				return;
+			}
 			cachedEligibleColonyRoomCells = EligibleColonyRoomCellCount(map);
 			cachedFullBenefitCells = CalculateFullBenefitCells(cachedEligibleColonyRoomCells);
 			cachedIntegratedVisibleCells = CalculateIntegratedVisibleCells(map);
+			cachedHostEffectCells = CalculateHostEffectCellCount(map);
 			cachedBenefitFactor = Mathf.Clamp01(cachedIntegratedVisibleCells / Mathf.Max(1f, cachedFullBenefitCells));
 			lastSymbiosisMetricTick = ticks;
 		}
@@ -1944,6 +2352,12 @@ namespace ZombieLand
 		{
 			if (Destroyed)
 				return;
+			var map = SymbiantMap;
+			if (map != null && Spawned && IsPlacementTopologySafe(map) == false)
+			{
+				lastSymbiosisMetricTick = int.MinValue;
+				return;
+			}
 			RefreshSymbiosisMetrics(forceMetricRefresh);
 			if (cachedIntegratedVisibleCells > UprootedIntegratedCellThreshold)
 				uprootedSinceTick = -1;
@@ -2399,6 +2813,7 @@ namespace ZombieLand
 			var wasFullHealth = sharedHealth >= SharedHealthMax - 0.01f;
 			if (cells.Add(relative) == false)
 				return false;
+			lastSymbiosisMetricTick = int.MinValue;
 			destroyWhenCellMotionsFinish = false;
 			if (animate)
 				StartIncomingCellMotion(relative, travelFromExistingCell);
@@ -2412,6 +2827,8 @@ namespace ZombieLand
 			}
 			else if (selectionCoreDiscoveryCue == false && selectionCoreRelative == IntVec3.Zero && relative != IntVec3.Zero && cells.Count == 2)
 				BeginSelectionCoreMove(IntVec3.Zero, relative);
+			if (establishmentAnchorRelative.IsValid == false)
+				establishmentAnchorRelative = relative;
 			if (wasFullHealth)
 				sharedHealth = SharedHealthMax;
 			return true;
@@ -2446,6 +2863,11 @@ namespace ZombieLand
 			var removed = cells.Remove(relative);
 			if (removed)
 			{
+				roomCellMigrationCells?.Remove(relative);
+				roomCellMigrationLookup.Remove(relative);
+				if (establishmentAnchorRelative == relative)
+					establishmentAnchorRelative = IntVec3.Invalid;
+				lastSymbiosisMetricTick = int.MinValue;
 				combatShapeVersion++;
 				if (removesSelectionCore)
 					BeginSelectionCoreMove(relative, selectionCoreDestination);
@@ -2585,18 +3007,47 @@ namespace ZombieLand
 		HashSet<IntVec3> PrimaryRoomComponent(IEnumerable<HashSet<IntVec3>> components)
 		{
 			return components
-				.OrderByDescending(component => component.Contains(IntVec3.Zero))
-				.ThenByDescending(component => component.Count)
+				.OrderByDescending(component => component.Count)
+				.ThenByDescending(component => component.Contains(IntVec3.Zero))
 				.ThenByDescending(component => selectionCoreRelative.IsValid && component.Contains(selectionCoreRelative))
 				.FirstOrDefault();
 		}
 
+		void RebuildRoomCellMigrationLookup()
+		{
+			roomCellMigrationLookup.Clear();
+			if (roomCellMigrationCells != null)
+				roomCellMigrationLookup.UnionWith(roomCellMigrationCells);
+		}
+
+		void NormalizeRoomCellMigrationQueue(Map map)
+		{
+			roomCellMigrationCells ??= [];
+			roomCellMigrationCells = roomCellMigrationCells
+				.Distinct()
+				.Where(relative =>
+				{
+					if (cells?.Contains(relative) != true)
+						return false;
+					var absolute = Position + relative;
+					return absolute.InBounds(map) && IsEligibleIndoorRoom(absolute.GetRoom(map));
+				})
+				.ToList();
+			RebuildRoomCellMigrationLookup();
+			roomCellMigrationNormalizationPending = false;
+		}
+
 		void EnsureRoomCellMigrationInitialized(Map map)
 		{
-			if (roomCellMigrationInitialized)
+			if (map == null || IsPlacementTopologySafe(map) == false)
+				return;
+			if (roomCellMigrationNormalizationPending)
+				NormalizeRoomCellMigrationQueue(map);
+			if (roomCellMigrationInitialized && roomCellMigrationRescanPending == false)
 				return;
 			roomCellMigrationCells ??= [];
 			roomCellMigrationCells.Clear();
+			roomCellMigrationLookup.Clear();
 			var roomCells = new Dictionary<Room, HashSet<IntVec3>>();
 			foreach (var relative in orderedCells)
 			{
@@ -2623,15 +3074,35 @@ namespace ZombieLand
 						roomCellMigrationCells.AddRange(component);
 				}
 			}
+			RebuildRoomCellMigrationLookup();
 			roomCellMigrationInitialized = true;
 			roomCellMigrationRescanPending = false;
+			if (roomCellMigrationLookup.Contains(IntVec3.Zero))
+			{
+				var replacementRoot = orderedCells
+					.Where(relative => roomCellMigrationLookup.Contains(relative) == false)
+					.Where(relative =>
+					{
+						var classification = ClassifySymbiantCell(map, Position + relative);
+						return classification == SymbiantCellClass.IndoorFloor || classification == SymbiantCellClass.Door;
+					})
+					.OrderBy(relative => relative == selectionCoreRelative ? 0 : 1)
+					.ThenBy(relative => relative.DistanceToSquared(IntVec3.Zero))
+					.FirstOrDefault();
+				if (replacementRoot.IsValid && replacementRoot != IntVec3.Zero && RebaseFootprint(map, replacementRoot))
+				{
+					roomCellMigrationInitialized = false;
+					roomCellMigrationRescanPending = true;
+					EnsureRoomCellMigrationInitialized(map);
+				}
+			}
 		}
 
 		bool PromoteQueuedRoomComponentIfNecessary(Map map, Room room)
 		{
 			if (map == null || room == null || roomCellMigrationCells.Count == 0)
 				return false;
-			var queuedCells = roomCellMigrationCells.ToHashSet();
+			var queuedCells = roomCellMigrationLookup;
 			var hasEstablishedCell = orderedCells.Any(relative =>
 				queuedCells.Contains(relative) == false
 				&& (Position + relative).InBounds(map)
@@ -2648,6 +3119,7 @@ namespace ZombieLand
 			if (primary == null || primary.Count == 0)
 				return false;
 			roomCellMigrationCells.RemoveAll(primary.Contains);
+			RebuildRoomCellMigrationLookup();
 			return true;
 		}
 
@@ -2656,7 +3128,7 @@ namespace ZombieLand
 			if (map == null || roomCellMigrationCells == null || roomCellMigrationCells.Count == 0)
 				return 0;
 
-			var queuedCells = roomCellMigrationCells.ToHashSet();
+			var queuedCells = roomCellMigrationLookup;
 			var queuedCellsByRoom = new Dictionary<Room, HashSet<IntVec3>>();
 			foreach (var relative in queuedCells)
 			{
@@ -2710,13 +3182,16 @@ namespace ZombieLand
 			}
 
 			if (connectedQueuedCells.Count > 0)
+			{
 				roomCellMigrationCells.RemoveAll(connectedQueuedCells.Contains);
+				roomCellMigrationLookup.ExceptWith(connectedQueuedCells);
+			}
 			return connectedQueuedCells.Count;
 		}
 
 		IntVec3[] RoomMigrationTargetCandidates(Map map, Room room)
 		{
-			var queuedCells = roomCellMigrationCells.ToHashSet();
+			var queuedCells = roomCellMigrationLookup;
 			return orderedCells
 				.Where(relative => queuedCells.Contains(relative) == false)
 				.Select(relative => Position + relative)
@@ -2776,7 +3251,22 @@ namespace ZombieLand
 			get
 			{
 				var center = SelectionCoreVisualCenter;
-				return new IntVec3(Mathf.RoundToInt(center.x), 0, Mathf.RoundToInt(center.y));
+				var visualCell = new IntVec3(Mathf.RoundToInt(center.x), 0, Mathf.RoundToInt(center.y));
+				if (cells?.Contains(visualCell) == true)
+					return visualCell;
+				if (IsSelectionCoreMotionActive(GenTicks.TicksGame))
+				{
+					var occupiedEndpoint = new[] { selectionCoreMotionFrom, selectionCoreMotionTo }
+						.Where(cell => cell.IsValid && cells?.Contains(cell) == true)
+						.OrderBy(cell => (CellCenter(cell) - center).sqrMagnitude)
+						.DefaultIfEmpty(IntVec3.Invalid)
+						.First();
+					if (occupiedEndpoint.IsValid)
+						return occupiedEndpoint;
+				}
+				if (selectionCoreRelative.IsValid && cells?.Contains(selectionCoreRelative) == true)
+					return selectionCoreRelative;
+				return BestSelectionCoreRelative(IntVec3.Zero, selectionCoreDiscoveryCue);
 			}
 		}
 
@@ -3088,23 +3578,33 @@ namespace ZombieLand
 
 		int AddCells(IEnumerable<IntVec3> newCells)
 		{
+			if (TryEnterFootprintMutation(FootprintMutationKind.Debug, false, out _) == false)
+				return 0;
 			var added = AddRelativeCells(newCells.Select(cell => cell - Position));
 			if (added > 0)
 			{
+				roomCellMigrationRescanPending = true;
 				UpdateAll();
 				UpdateSymbiosisState();
+				SynchronizeExteriorOverflowAuthorization(Map);
 			}
 			return added;
 		}
 
 		bool AddCell(IntVec3 newCell, bool travelFromExistingCell = true)
 		{
-			if (CellCount >= MaxCells || CanPlaceConnectedWithinRoom(Map, newCell) == false)
+			var map = Map;
+			if (TryEnterFootprintMutation(FootprintMutationKind.Debug, false, out _) == false
+				|| CellCount >= MaxCells
+				|| IsValidSymbiantCell(map, newCell) == false
+				|| CanPlaceConnectedWithinRoom(map, newCell) == false)
 				return false;
 			if (AddRelativeCell(newCell - Position, travelFromExistingCell))
 			{
 				UpdateAll();
 				UpdateSymbiosisState();
+				roomCellMigrationRescanPending = true;
+				SynchronizeExteriorOverflowAuthorization(map);
 				return true;
 			}
 			return false;
@@ -3127,31 +3627,82 @@ namespace ZombieLand
 		{
 			if (Spawned == false || Destroyed || Dead)
 				return false;
+			var map = Map;
+			if (map == null || IsPlacementTopologySafe(map) == false)
+				return false;
 			var linkedHost = ResolveHost();
 			if (linkedHost == null)
 			{
 				uprootedSinceTick = -1;
 				return false;
 			}
-
+			SynchronizeExteriorOverflowAuthorization(map);
 			RefreshSymbiosisMetrics(true);
 			if (cachedIntegratedVisibleCells > UprootedIntegratedCellThreshold)
 			{
 				uprootedSinceTick = -1;
 				return false;
 			}
+			if (exteriorOverflowAuthorized
+				&& orderedCells.Any(relative => ClassifySymbiantCell(map, Position + relative) == SymbiantCellClass.ExteriorOpen))
+			{
+				// Topology/classification events wake relocation directly, while the slow exterior
+				// movement pulse detects relevance-only changes. Avoid a room-capacity scan on every
+				// symbiosis refresh for a legitimately outdoor full-base footprint.
+				uprootedSinceTick = -1;
+				return false;
+			}
 
 			var ticks = GenTicks.TicksGame;
+			var graceExpired = uprootedSinceTick >= 0 && ticks - uprootedSinceTick >= UprootedRelocationGraceTicks;
+			if (uprootedSinceTick >= 0 && graceExpired == false && nextRelocationPulseTick > ticks)
+				return false;
+
+			var capacity = EvaluateIndoorCapacity(map);
+			if (capacity.state != IndoorCapacityState.NoRelevantRooms)
+			{
+				uprootedSinceTick = -1;
+				if (capacity.state == IndoorCapacityState.PlacementAvailable && HasPriorityRelocationCells(map, capacity))
+				{
+					nextRelocationPulseTick = ticks;
+					lastPlacementGrowthState = "relocating";
+				}
+				else if (capacity.state == IndoorCapacityState.NonFullButBlocked)
+				{
+					nextRelocationPulseTick = ticks + PlacementBlockedRetryTicks;
+					lastPlacementGrowthState = "contained";
+				}
+				return false;
+			}
+
 			if (uprootedSinceTick < 0)
 			{
 				uprootedSinceTick = ticks;
+				nextRelocationPulseTick = ticks + RelocationPulseIntervalTicks();
 				return false;
 			}
-			if (ticks - uprootedSinceTick < UprootedRelocationGraceTicks)
+			if (graceExpired == false)
+			{
+				nextRelocationPulseTick = Mathf.Min(
+					uprootedSinceTick + UprootedRelocationGraceTicks,
+					ticks + RelocationPulseIntervalTicks()
+				);
+				return false;
+			}
+			if (HasReseedCandidateRoom(linkedHost) == false)
+			{
+				lastPlacementGrowthState = "dormantNoRoom";
+				nextRelocationPulseTick = ticks + PlacementBlockedRetryTicks;
+				return false;
+			}
+			if (TryEnterFootprintMutation(FootprintMutationKind.Reseed, false, out _) == false)
 				return false;
 
 			if (TryFindReseedPlan(linkedHost, out var anchor, out var reseedCells) == false)
+			{
+				lastPlacementGrowthState = HasReseedCandidateRoom(linkedHost) ? "uprooted" : "dormantNoRoom";
 				return false;
+			}
 
 			ReseedAt(anchor, reseedCells, linkedHost, Mathf.Max(0, CellCount - 1));
 			return true;
@@ -3241,8 +3792,12 @@ namespace ZombieLand
 			cells = [];
 			orderedCells = [];
 			roomCellMigrationCells = [];
+			roomCellMigrationLookup.Clear();
 			roomCellMigrationInitialized = false;
 			roomCellMigrationRescanPending = false;
+			roomCellMigrationNormalizationPending = false;
+			exteriorOverflowAuthorized = false;
+			establishmentAnchorRelative = IntVec3.Invalid;
 			selectionCoreRelative = IntVec3.Invalid;
 			selectionCoreLastMoveTick = GenTicks.TicksGame;
 			ClearSelectionCoreMotion();
@@ -3251,7 +3806,7 @@ namespace ZombieLand
 			hasCellBounds = false;
 			AddRelativeCells(targetCells.Select(cell => cell - anchor));
 			RebuildCellBounds();
-			relocationCellDebt = Mathf.Clamp(relocationCellDebt + relocationDebt, 0, Mathf.Max(0, MaxCells - CellCount));
+			relocationCellDebt = Mathf.Max(0, relocationCellDebt + relocationDebt);
 			nextRelocationPulseTick = GenTicks.TicksGame + RelocationPulseIntervalTicks();
 			uprootedSinceTick = -1;
 			lastSymbiosisMetricTick = int.MinValue;
@@ -3698,6 +4253,274 @@ namespace ZombieLand
 			}
 		}
 
+		bool HasPendingConstructionRepair => postLoadConstructionValidationPending
+			|| pendingConstructionCoveredCells.Count > 0
+			|| pendingConstructionFootprintCells.Count > 0;
+
+		bool IsPlacementTopologySafe(Map map)
+		{
+			return map != null
+				&& roomTopologyInvalidated == false
+				&& map.regionAndRoomUpdater?.AnythingToRebuild != true;
+		}
+
+		bool TryEnterFootprintMutation(FootprintMutationKind kind, bool netGrowth, out string blocker)
+		{
+			blocker = null;
+			var map = Map;
+			if (map == null || Spawned == false || Destroyed || Dead)
+			{
+				blocker = "inactive";
+				return false;
+			}
+			if (IsPlacementTopologySafe(map) == false)
+			{
+				blocker = "roomTopology";
+				lastPlacementGrowthState = "waitingForRoomTopology";
+				return false;
+			}
+			if (postLoadConstructionValidationPending)
+				DiscoverConstructionOverlapAfterLoad(map);
+			if (kind != FootprintMutationKind.ConstructionRepair && HasPendingConstructionRepair)
+			{
+				blocker = "constructionRepair";
+				lastPlacementGrowthState = "repairingConstruction";
+				return false;
+			}
+			EnsureRoomCellMigrationInitialized(map);
+			if (roomCellMigrationInitialized == false)
+			{
+				blocker = "migrationInitialization";
+				return false;
+			}
+			if (netGrowth && roomCellMigrationLookup.Count > 0)
+			{
+				blocker = "roomMigration";
+				lastPlacementGrowthState = "repairingRoomConnectivity";
+				return false;
+			}
+			return true;
+		}
+
+		internal static void NotifyImpassableBuildingSpawned(Building building)
+		{
+			var map = building?.Map;
+			if (map == null || building.def?.passability != Traversability.Impassable)
+				return;
+			var symbiant = ActiveSymbiant(map);
+			if (symbiant == null || symbiant.hasCellBounds == false)
+				return;
+			var footprint = building.OccupiedRect();
+			if (symbiant.AbsoluteCellBounds.Overlaps(footprint) == false)
+				return;
+			var covered = footprint.Where(symbiant.ContainsCell).ToArray();
+			if (covered.Length == 0)
+				return;
+			symbiant.pendingConstructionFootprintCells.UnionWith(footprint);
+			symbiant.pendingConstructionCoveredCells.UnionWith(covered);
+			symbiant.lastSymbiosisMetricTick = int.MinValue;
+			symbiant.lastPlacementGrowthState = "repairingConstruction";
+		}
+
+		internal static bool TryHandleUnwalkableRootRecovery(Pawn pawn, out bool recovered)
+		{
+			recovered = false;
+			if (pawn is not ZombieSymbiant symbiant)
+				return false;
+			var map = symbiant.Map;
+			if (map == null || symbiant.Spawned == false || symbiant.Destroyed)
+				return true;
+			var edifice = symbiant.Position.GetEdifice(map);
+			if (edifice?.def?.passability != Traversability.Impassable)
+			{
+				recovered = symbiant.Position.Walkable(map) || IsDoorCell(map, symbiant.Position);
+				if (recovered == false)
+					symbiant.nextRelocationPulseTick = GenTicks.TicksGame;
+				return true;
+			}
+			NotifyImpassableBuildingSpawned(edifice);
+			// Suppress vanilla teleport/destruction, but report failure to path callers until the next
+			// settled placement boundary has repaired the root. GenSpawn ignores this return value;
+			// Pawn_PathFollower.StartPath correctly aborts while the logical footprint is still blocked.
+			recovered = false;
+			return true;
+		}
+
+		void DiscoverConstructionOverlapAfterLoad(Map map)
+		{
+			postLoadConstructionValidationPending = false;
+			if (map == null || orderedCells == null)
+				return;
+			foreach (var absolute in orderedCells.Select(relative => Position + relative).ToArray())
+			{
+				var building = absolute.InBounds(map) ? absolute.GetEdifice(map) : null;
+				if (building?.def?.passability != Traversability.Impassable)
+					continue;
+				pendingConstructionCoveredCells.Add(absolute);
+				pendingConstructionFootprintCells.UnionWith(building.OccupiedRect());
+			}
+		}
+
+		void RevalidatePendingConstructionRepair(Map map)
+		{
+			pendingConstructionFootprintCells.RemoveWhere(cell =>
+				cell.InBounds(map) == false || cell.GetEdifice(map)?.def?.passability != Traversability.Impassable);
+			pendingConstructionCoveredCells.RemoveWhere(cell =>
+				ContainsCell(cell) == false
+				|| cell.InBounds(map) == false
+				|| cell.GetEdifice(map)?.def?.passability != Traversability.Impassable);
+			foreach (var cell in pendingConstructionCoveredCells.ToArray())
+			{
+				var building = cell.GetEdifice(map);
+				if (building != null)
+					pendingConstructionFootprintCells.UnionWith(building.OccupiedRect());
+			}
+		}
+
+		static bool CanUseAsCanonicalRoot(Map map, IntVec3 cell)
+		{
+			if (map == null || cell.InBounds(map) == false)
+				return false;
+			var classification = ClassifySymbiantCell(map, cell);
+			return classification == SymbiantCellClass.IndoorFloor
+				|| classification == SymbiantCellClass.Door
+				|| classification == SymbiantCellClass.ExteriorOpen;
+		}
+
+		bool ReplaceAbsoluteFootprint(
+			Map map,
+			IReadOnlyList<IntVec3> absoluteCells,
+			IntVec3 newRoot,
+			IntVec3 newCore,
+			IntVec3 newEstablishmentAnchor)
+		{
+			if (map == null || absoluteCells == null || absoluteCells.Count == 0 || absoluteCells.Contains(newRoot) == false)
+				return false;
+			var wasSelected = Find.Selector?.IsSelected(this) == true;
+			temporaryDespawnInProgress = true;
+			try
+			{
+				DeSpawn(DestroyMode.Vanish);
+			}
+			finally
+			{
+				temporaryDespawnInProgress = false;
+			}
+
+			Position = newRoot;
+			orderedCells = absoluteCells.Distinct().Select(cell => cell - newRoot).ToList();
+			cells = orderedCells.ToHashSet();
+			roomCellMigrationCells = [];
+			roomCellMigrationLookup.Clear();
+			roomCellMigrationInitialized = false;
+			roomCellMigrationRescanPending = true;
+			roomCellMigrationNormalizationPending = false;
+			selectionCoreRelative = (absoluteCells.Contains(newCore) ? newCore : newRoot) - newRoot;
+			selectionCoreLastMoveTick = GenTicks.TicksGame;
+			ClearSelectionCoreMotion();
+			establishmentAnchorRelative = (absoluteCells.Contains(newEstablishmentAnchor) ? newEstablishmentAnchor : newRoot) - newRoot;
+			cellMotions?.Clear();
+			recentMovementCells.Clear();
+			hasCellBounds = false;
+			lastSymbiosisMetricTick = int.MinValue;
+			combatShapeVersion++;
+			RebuildCellBounds();
+
+			GenSpawn.Spawn(this, newRoot, map, Rot4.Random, WipeMode.Vanish, false);
+			RegisterActiveSymbiant(this, map);
+			EnsureVisibleToPawnSystems(map);
+			jobs.StartJob(JobMaker.MakeJob(CustomDefs.Symbiant));
+			UpdateAll();
+			UpdateSymbiosisState();
+			if (wasSelected)
+			{
+				Find.Selector.ClearSelection();
+				Find.Selector.Select(this, false, false);
+			}
+			return true;
+		}
+
+		bool TryProcessPendingConstructionRepair()
+		{
+			if (HasPendingConstructionRepair == false)
+				return true;
+			if (TryEnterFootprintMutation(FootprintMutationKind.ConstructionRepair, false, out _) == false)
+				return false;
+			var map = Map;
+			RevalidatePendingConstructionRepair(map);
+			if (pendingConstructionCoveredCells.Count == 0)
+			{
+				pendingConstructionFootprintCells.Clear();
+				lastPlacementGrowthState = "waiting";
+				return true;
+			}
+
+			var oldRoot = Position;
+			EnsureSelectionCoreState();
+			EnsureEstablishmentAnchorState(map);
+			var oldCore = selectionCoreRelative.IsValid ? Position + selectionCoreRelative : oldRoot;
+			var oldAnchor = establishmentAnchorRelative.IsValid ? Position + establishmentAnchorRelative : oldRoot;
+			var covered = pendingConstructionCoveredCells
+				.OrderBy(cell => cell == oldRoot ? 0 : cell == oldCore ? 1 : cell == oldAnchor ? 2 : 3)
+				.ThenBy(cell => orderedCells.FindIndex(relative => Position + relative == cell))
+				.ToArray();
+			var planned = orderedCells
+				.Select(relative => Position + relative)
+				.Where(cell => pendingConstructionCoveredCells.Contains(cell) == false)
+				.ToHashSet();
+			constructionPlacementPlanCount++;
+			var placementPlanner = new ConstructionPlacementPlanner(this, map, planned, pendingConstructionFootprintCells);
+			var replacements = new Dictionary<IntVec3, IntVec3>();
+			foreach (var source in covered)
+			{
+				var preferredRoom = source == oldAnchor && oldAnchor.InBounds(map) ? oldAnchor.GetRoom(map) : null;
+				var target = placementPlanner.NextTarget(IsEligibleIndoorRoom(preferredRoom) ? preferredRoom : null);
+				if (target.IsValid == false || placementPlanner.Commit(target) == false)
+					continue;
+				replacements[source] = target;
+			}
+
+			foreach (var source in covered)
+				ClearContaminationOnRemovedCell(source - Position);
+			if (planned.Count == 0)
+			{
+				constructionRepairBatchCount++;
+				constructionCrushedCellCount += covered.Length;
+				pendingConstructionCoveredCells.Clear();
+				pendingConstructionFootprintCells.Clear();
+				DestroyWithoutHostTrauma(true);
+				return true;
+			}
+
+			var absoluteOrder = orderedCells
+				.Select(relative => Position + relative)
+				.Where(planned.Contains)
+				.Concat(covered.Where(replacements.ContainsKey).Select(source => replacements[source]))
+				.Distinct()
+				.ToList();
+			var relocatedRoot = replacements.TryGetValue(oldRoot, out var rootReplacement) ? rootReplacement : IntVec3.Invalid;
+			var root = new[] { planned.Contains(oldRoot) ? oldRoot : IntVec3.Invalid, relocatedRoot, planned.Contains(oldCore) ? oldCore : IntVec3.Invalid }
+				.Concat(absoluteOrder)
+				.Where(cell => cell.IsValid && planned.Contains(cell))
+				.Distinct()
+				.OrderBy(cell => CanUseAsCanonicalRoot(map, cell) ? 0 : 1)
+				.ThenBy(cell => cell == oldRoot ? 0 : cell == relocatedRoot ? 1 : cell == oldCore ? 2 : 3)
+				.First();
+			var core = planned.Contains(oldCore) ? oldCore : replacements.TryGetValue(oldCore, out var relocatedCore) ? relocatedCore : root;
+			var anchor = planned.Contains(oldAnchor) ? oldAnchor : replacements.TryGetValue(oldAnchor, out var relocatedAnchor) ? relocatedAnchor : root;
+			var repaired = ReplaceAbsoluteFootprint(map, absoluteOrder, root, core, anchor);
+			if (repaired)
+			{
+				constructionRepairBatchCount++;
+				constructionRelocatedCellCount += replacements.Count;
+				constructionCrushedCellCount += covered.Length - replacements.Count;
+				pendingConstructionCoveredCells.Clear();
+				pendingConstructionFootprintCells.Clear();
+				SynchronizeExteriorOverflowAuthorization(map);
+			}
+			return repaired;
+		}
+
 		public void SymbiantTick()
 		{
 			if (DebugDisableSymbiantTick)
@@ -3710,6 +4533,19 @@ namespace ZombieLand
 			{
 				Destroy(DestroyMode.Vanish);
 				return;
+			}
+			if (HasPendingConstructionRepair)
+			{
+				_ = TryProcessPendingConstructionRepair();
+				// Construction repair owns this mutation boundary even when the pending set becomes empty.
+				// Ordinary movement, migration, growth, and reseeding resume on a later tick.
+				return;
+			}
+			if (IsPlacementTopologySafe(Map))
+			{
+				EnsureRoomCellMigrationInitialized(Map);
+				if (roomCellMigrationLookup.Count > 0 && nextMovementTick > ticks)
+					nextMovementTick = ticks;
 			}
 			TryRecoverSharedHealth(ticks);
 			if (ticks % SymbiosisMetricRefreshInterval == Mathf.Abs(thingIDNumber % SymbiosisMetricRefreshInterval))
@@ -3741,7 +4577,9 @@ namespace ZombieLand
 				}
 				return;
 			}
-			if (relocationCellDebt > 0 || (nextRelocationPulseTick > 0 && ticks >= nextRelocationPulseTick))
+			if (roomCellMigrationLookup.Count == 0
+				&& (relocationCellDebt > 0 || nextRelocationPulseTick > 0)
+				&& (nextRelocationPulseTick <= 0 || ticks >= nextRelocationPulseTick))
 			{
 				_ = TryRelocationPulse();
 				return;
@@ -3823,41 +4661,55 @@ namespace ZombieLand
 		{
 			if (CanExpand() == false)
 				return false;
+			if (TryEnterFootprintMutation(FootprintMutationKind.Expansion, true, out _) == false)
+				return false;
 
-			var target = FindExpansionTarget(true, true);
+			var map = Map;
+			SynchronizeExteriorOverflowAuthorization(map);
+			var capacity = EvaluateIndoorCapacity(map);
+			var target = FindExpansionTarget(capacity, true);
 			if (target == null)
 				return false;
-			EnsureSelectionCoreState();
-			var previousCore = selectionCoreRelative;
-
-			if (target.wall != null && target.wall.Destroyed == false)
-				target.wall.Destroy(DestroyMode.KillFinalize);
-
-			if (AddCell(target.cell, target.remote == false) == false)
+			var added = target.kind == ExpansionTargetKind.ExteriorWallBreach
+				? TryCommitExteriorWallBreach(target)
+				: TryCommitExpansionTarget(target);
+			if (added == false)
 				return false;
-			if (target.foundsRoom && previousCore.IsValid)
-				BeginSelectionCoreMove(previousCore, target.cell - Position);
+			if (target.kind == ExpansionTargetKind.RoomFounding)
+			{
+				SetEstablishmentAnchor(target.cell);
+				SetSelectionCoreInstant(target.cell);
+			}
+			if (target.kind == ExpansionTargetKind.ExteriorOpen)
+				exteriorOverflowAuthorized = true;
+			SynchronizeExteriorOverflowAuthorization(map);
 			RememberMovementCell(target.cell);
+			lastPlacementGrowthState = "growing";
 			return true;
 		}
 
 		public bool CanAcceptFeed(Thing feed)
 		{
-			return IsValidFeed(feed) && CanApplyFeedGrowth(FeedGrowthCells(feed));
-		}
-
-		bool CanApplyFeedGrowth(int pulseSize)
-		{
-			if (pulseSize <= 0 || CanExpand() == false)
+			if (IsValidFeed(feed) == false || FeedGrowthCells(feed) <= 0)
 				return false;
-			if (HasExpansionTarget(true, true))
-				return true;
-			return cancelNextBreach && pulseSize > 1 && HasExpansionTarget(true, false);
+			var ticks = GenTicks.TicksGame;
+			if (lastFeedAcceptanceEvaluationTick == ticks && lastFeedAcceptanceShapeVersion == combatShapeVersion)
+				return lastFeedAcceptanceResult;
+			lastFeedAcceptanceEvaluationTick = ticks;
+			lastFeedAcceptanceShapeVersion = combatShapeVersion;
+			lastFeedAcceptanceResult = CanApplyFeedGrowth();
+			return lastFeedAcceptanceResult;
 		}
 
-		bool HasExpansionTarget(bool allowWallBreak, bool respectCancelNextBreach)
+		bool CanApplyFeedGrowth()
 		{
-			return FindExpansionTarget(false, allowWallBreak, respectCancelNextBreach) != null;
+			if (CanExpand() == false)
+				return false;
+			if (TryEnterFootprintMutation(FootprintMutationKind.Feeding, true, out _) == false)
+				return false;
+			var map = Map;
+			SynchronizeExteriorOverflowAuthorization(map);
+			return FindExpansionTarget(EvaluateIndoorCapacity(map), true) != null;
 		}
 
 		internal bool DebugExpansionPulse()
@@ -3894,21 +4746,31 @@ namespace ZombieLand
 			var map = Map;
 			if (map == null || CellCount <= 1)
 				return false;
-
-			if (roomCellMigrationRescanPending && roomCellMigrationCells.Count == 0)
-			{
-				roomCellMigrationInitialized = false;
-				roomCellMigrationRescanPending = false;
-			}
-			EnsureRoomCellMigrationInitialized(map);
+			if (TryEnterFootprintMutation(FootprintMutationKind.Movement, false, out _) == false)
+				return false;
+			SynchronizeExteriorOverflowAuthorization(map);
 			RefreshSymbiosisMetrics(false);
+			if (orderedCells.Any(relative => ClassifySymbiantCell(map, Position + relative) == SymbiantCellClass.ExteriorOpen))
+			{
+				// Exterior movement is already a slow pulse. Refresh capacity here so a newly relevant
+				// room that did not change topology (for example, newly marked home area) still wins
+				// over another outdoor shuffle without adding work to the normal indoor path.
+				var capacity = EvaluateIndoorCapacity(map);
+				if (capacity.state == IndoorCapacityState.PlacementAvailable)
+				{
+					nextRelocationPulseTick = GenTicks.TicksGame;
+					lastPlacementGrowthState = "relocating";
+					return false;
+				}
+			}
 			var targets = MovementTargetCandidates(map);
 			if (targets.Count > 0)
 			{
 				DebugLastMovePulseOrdinaryMoved = ShouldUseAmbientMovement() && TryAmbientMovePulse(map, targets)
 					|| TryCorrectiveMovePulse(map, targets);
 			}
-			DebugLastMovePulseMigratedRoomCell = TryMigrateQueuedRoomCell(map);
+			if (TryEnterFootprintMutation(FootprintMutationKind.MigrationRepair, false, out _))
+				DebugLastMovePulseMigratedRoomCell = TryMigrateQueuedRoomCell(map);
 			return DebugLastMovePulseOrdinaryMoved || DebugLastMovePulseMigratedRoomCell;
 		}
 
@@ -3927,7 +4789,7 @@ namespace ZombieLand
 				.FirstOrDefault();
 			if (target == null)
 				return false;
-			var source = MovementSourceCandidates(map, target.cell - Position)
+			var source = MovementSourceCandidates(map, target)
 				.OrderBy(candidate => candidate.score)
 				.FirstOrDefault();
 			return source != null && TryCommitMove(map, source, target);
@@ -3956,8 +4818,7 @@ namespace ZombieLand
 						debugSelectionCoreWanderPreferredTargets++;
 					if (coreRoom == null || target.cell.GetRoom(map) != coreRoom)
 						continue;
-					var targetRelative = target.cell - Position;
-					var source = MovementSourceCandidate(map, selectionCoreRelative, targetRelative);
+					var source = MovementSourceCandidate(map, selectionCoreRelative, target);
 					if (IsAmbientMoveAllowed(map, currentIntegrated, source, target) == false)
 						continue;
 					if (source != null && TryCommitMove(map, source, target))
@@ -3966,8 +4827,7 @@ namespace ZombieLand
 			}
 			foreach (var target in targetPool)
 			{
-				var targetRelative = target.cell - Position;
-				var sourceCandidates = MovementSourceCandidates(map, targetRelative)
+				var sourceCandidates = MovementSourceCandidates(map, target)
 					.Where(candidate => IsAmbientMoveAllowed(map, currentIntegrated, candidate, target))
 					.ToArray();
 				var source = sourceCandidates
@@ -4014,7 +4874,7 @@ namespace ZombieLand
 			var seen = new HashSet<IntVec3>();
 			foreach (var relative in orderedCells.ToArray())
 			{
-				if (roomCellMigrationCells.Count > 0 && roomCellMigrationCells.Contains(relative))
+				if (roomCellMigrationLookup.Contains(relative))
 					continue;
 				var cell = Position + relative;
 				for (var i = 0; i < 4; i++)
@@ -4022,43 +4882,56 @@ namespace ZombieLand
 					var candidate = cell + GenAdj.CardinalDirections[i];
 					if (candidate.InBounds(map) == false || ContainsCell(candidate) || seen.Add(candidate) == false)
 						continue;
-					if (IsValidSymbiantCell(map, candidate) == false)
+					var classification = ClassifySymbiantCell(map, candidate);
+					if (classification != SymbiantCellClass.IndoorFloor
+						&& classification != SymbiantCellClass.Door
+						&& (classification != SymbiantCellClass.ExteriorOpen
+							|| exteriorOverflowAuthorized == false
+							|| lastIndoorCapacityState == IndoorCapacityState.PlacementAvailable
+							|| lastIndoorCapacityState == IndoorCapacityState.NonFullButBlocked))
 						continue;
 					var room = candidate.GetRoom(map);
 					if (IsEligibleIndoorRoom(room)
 						&& occupiedRooms.ContainsKey(room)
 						&& TouchesEstablishedRoomPatch(map, candidate, room) == false)
 						continue;
-					targets.Add(new MovementTarget(candidate, ScoreMovementTargetCell(map, candidate), IntegratedCellWeight(map, candidate)));
+					targets.Add(new MovementTarget(candidate, ScoreMovementTargetCell(map, candidate), IntegratedCellWeight(map, candidate), classification));
 				}
 			}
 			return targets;
 		}
 
-		IEnumerable<MovementSource> MovementSourceCandidates(Map map, IntVec3 targetRelative)
+		IEnumerable<MovementSource> MovementSourceCandidates(Map map, MovementTarget target)
 		{
+			var targetRelative = target.cell - Position;
 			var targetComponents = ComponentsTouchingTarget(targetRelative);
 			return orderedCells
 				.Where(relative => relative != IntVec3.Zero && relative != selectionCoreRelative && targetComponents.Contains(relative))
-				.Select(relative => MovementSourceCandidate(map, relative, targetRelative, targetComponents))
+				.Select(relative => MovementSourceCandidate(map, relative, target, targetComponents))
 				.Where(candidate => candidate != null);
 		}
 
-		MovementSource MovementSourceCandidate(Map map, IntVec3 relative, IntVec3 targetRelative)
+		MovementSource MovementSourceCandidate(Map map, IntVec3 relative, MovementTarget target)
 		{
-			return MovementSourceCandidate(map, relative, targetRelative, ComponentsTouchingTarget(targetRelative));
+			return MovementSourceCandidate(map, relative, target, ComponentsTouchingTarget(target.cell - Position));
 		}
 
-		MovementSource MovementSourceCandidate(Map map, IntVec3 relative, IntVec3 targetRelative, HashSet<IntVec3> targetComponents)
+		MovementSource MovementSourceCandidate(Map map, IntVec3 relative, MovementTarget target, HashSet<IntVec3> targetComponents)
 		{
+			var targetRelative = target.cell - Position;
 			if (relative == IntVec3.Zero
 				|| cells?.Contains(relative) != true
-				|| roomCellMigrationCells.Count > 0 && roomCellMigrationCells.Contains(relative)
+				|| roomCellMigrationLookup.Contains(relative)
 				|| targetComponents?.Contains(relative) != true
 				|| WouldCellsStayConnectedAfterMove(relative, targetRelative) == false)
 				return null;
 			var absolute = Position + relative;
-			return new MovementSource(relative, absolute, ScoreMovementSourceCell(map, absolute), IntegratedCellWeight(map, absolute));
+			var sourceClassification = ClassifySymbiantCell(map, absolute);
+			var sourceIndoor = sourceClassification == SymbiantCellClass.IndoorFloor || sourceClassification == SymbiantCellClass.Door;
+			var targetIndoor = target.classification == SymbiantCellClass.IndoorFloor || target.classification == SymbiantCellClass.Door;
+			if (sourceIndoor != targetIndoor || sourceIndoor == false && sourceClassification != SymbiantCellClass.ExteriorOpen)
+				return null;
+			return new MovementSource(relative, absolute, ScoreMovementSourceCell(map, absolute), IntegratedCellWeight(map, absolute), sourceClassification);
 		}
 
 		HashSet<IntVec3> ComponentsTouchingTarget(IntVec3 targetRelative)
@@ -4122,7 +4995,11 @@ namespace ZombieLand
 
 		bool TryCommitMove(Map map, MovementSource source, MovementTarget target)
 		{
-			if (map == null || source == null || target == null || IsValidSymbiantCell(map, target.cell) == false)
+			if (map == null
+				|| source == null
+				|| target == null
+				|| TryEnterFootprintMutation(FootprintMutationKind.Movement, false, out _) == false
+				|| ClassifySymbiantCell(map, target.cell) != target.classification)
 				return false;
 			var targetRelative = target.cell - Position;
 			if (ContainsCell(target.cell)
@@ -4130,6 +5007,7 @@ namespace ZombieLand
 				|| WouldCellsStayConnectedAfterMove(source.relative, targetRelative) == false)
 				return false;
 			var movingSelectionCore = selectionCoreRelative == source.relative;
+			var movingEstablishmentAnchor = establishmentAnchorRelative == source.relative;
 			if (RemoveRelativeCellWithCoreDestination(source.relative, true, movingSelectionCore ? targetRelative : IntVec3.Invalid) == false)
 				return false;
 			if (AddRelativeCell(targetRelative) == false)
@@ -4142,9 +5020,13 @@ namespace ZombieLand
 				}
 				return false;
 			}
+			if (movingEstablishmentAnchor)
+				SetEstablishmentAnchor(target.cell);
 			RebuildCellBounds();
 			UpdateAll();
 			UpdateSymbiosisState();
+			_ = RetireConnectedRoomCellMigrationComponents(map);
+			SynchronizeExteriorOverflowAuthorization(map);
 			RememberMovement(source.absolute, target.cell);
 			return true;
 		}
@@ -4160,6 +5042,7 @@ namespace ZombieLand
 				var absolute = Position + relative;
 				return absolute.InBounds(map) == false || IsEligibleIndoorRoom(absolute.GetRoom(map)) == false;
 			});
+			RebuildRoomCellMigrationLookup();
 			if (roomCellMigrationCells.Count == 0)
 				return false;
 			DebugLastMovePulseConnectedRoomCellsRetired += RetireConnectedRoomCellMigrationComponents(map);
@@ -4181,7 +5064,7 @@ namespace ZombieLand
 					continue;
 
 				_ = PromoteQueuedRoomComponentIfNecessary(map, room);
-				if (roomCellMigrationCells.Contains(sourceRelative) == false)
+				if (roomCellMigrationLookup.Contains(sourceRelative) == false)
 					continue;
 				if (targetCandidatesByRoom.TryGetValue(room, out var targetCandidates) == false)
 				{
@@ -4194,11 +5077,16 @@ namespace ZombieLand
 				var target = targetCandidates.RandomElement();
 				var targetRelative = target - Position;
 				var movingSelectionCore = selectionCoreRelative == sourceRelative;
+				var movingEstablishmentAnchor = establishmentAnchorRelative == sourceRelative;
+				if (TryEnterFootprintMutation(FootprintMutationKind.MigrationRepair, false, out _) == false)
+					return false;
 				if (RemoveRelativeCellWithCoreDestination(sourceRelative, false, movingSelectionCore ? targetRelative : IntVec3.Invalid, false) == false)
 					continue;
 				if (AddRelativeCell(targetRelative, false, false) == false)
 				{
 					_ = AddRelativeCell(sourceRelative, false, false);
+					if (roomCellMigrationLookup.Add(sourceRelative))
+						roomCellMigrationCells.Add(sourceRelative);
 					if (movingSelectionCore)
 					{
 						selectionCoreRelative = sourceRelative;
@@ -4207,6 +5095,7 @@ namespace ZombieLand
 					continue;
 				}
 				roomCellMigrationCells.Remove(sourceRelative);
+				roomCellMigrationLookup.Remove(sourceRelative);
 				DebugLastMovePulseConnectedRoomCellsRetired += RetireConnectedRoomCellMigrationComponents(map);
 				if (movingSelectionCore)
 				{
@@ -4214,10 +5103,13 @@ namespace ZombieLand
 					selectionCoreLastMoveTick = GenTicks.TicksGame;
 					ClearSelectionCoreMotion();
 				}
+				if (movingEstablishmentAnchor)
+					SetEstablishmentAnchor(target);
 				cellMotions?.RemoveAll(motion => motion.cell == sourceRelative || motion.cell == targetRelative);
 				RebuildCellBounds();
 				UpdateAll();
 				UpdateSymbiosisState();
+				SynchronizeExteriorOverflowAuthorization(map);
 				DebugLastMigratedRoomCellSource = source;
 				DebugLastMigratedRoomCellDestination = target;
 				return true;
@@ -4252,23 +5144,48 @@ namespace ZombieLand
 		bool HasMovableUnintegratedCells()
 		{
 			var map = Map;
-			return map != null
-				&& CellCount > 1
-				&& orderedCells.Any(relative => IntegratedCellWeight(map, Position + relative) <= UprootedIntegratedCellThreshold);
+			if (map == null || CellCount == 0)
+				return false;
+			return orderedCells.Any(relative =>
+			{
+				var classification = ClassifySymbiantCell(map, Position + relative);
+				if (classification == SymbiantCellClass.IndoorIneligible || classification == SymbiantCellClass.InvalidBlocked)
+					return true;
+				return classification == SymbiantCellClass.ExteriorOpen
+					&& (exteriorOverflowAuthorized == false || lastIndoorCapacityState == IndoorCapacityState.PlacementAvailable);
+			});
+		}
+
+		bool HasPriorityRelocationCells(Map map, IndoorCapacityEvaluation capacity)
+		{
+			if (map == null || orderedCells == null)
+				return false;
+			return orderedCells.Any(relative =>
+			{
+				var classification = ClassifySymbiantCell(map, Position + relative);
+				if (classification == SymbiantCellClass.IndoorIneligible || classification == SymbiantCellClass.InvalidBlocked)
+					return true;
+				return classification == SymbiantCellClass.ExteriorOpen
+					&& (exteriorOverflowAuthorized == false || capacity?.state == IndoorCapacityState.PlacementAvailable);
+			});
 		}
 
 		bool TryMoveUnintegratedCell(Map map, ExpansionTarget target)
 		{
-			if (map == null || target == null || CellCount <= 1)
+			if (map == null || target == null || CellCount == 0)
 				return false;
 
 			var targetRelative = target.cell - Position;
 			var relative = orderedCells
 				.AsEnumerable()
 				.Reverse()
-				.Where(cell => IntegratedCellWeight(map, Position + cell) <= UprootedIntegratedCellThreshold
-					&& WouldCellsStayConnectedAfterMove(cell, targetRelative))
-				.Select(cell => (IntVec3?)cell)
+				.Select(cell => new { cell, classification = ClassifySymbiantCell(map, Position + cell) })
+				.Where(entry => entry.classification == SymbiantCellClass.ExteriorOpen
+					|| entry.classification == SymbiantCellClass.IndoorIneligible
+					|| entry.classification == SymbiantCellClass.InvalidBlocked)
+				.OrderBy(entry => entry.classification == SymbiantCellClass.ExteriorOpen ? 0 : 1)
+				.Where(entry => WouldCellsStayConnectedAfterMove(entry.cell, targetRelative))
+				.Select(entry => (IntVec3?)entry.cell)
 				.FirstOrDefault();
 			if (relative.HasValue == false || relative.Value.IsValid == false || cells.Contains(relative.Value) == false)
 				return false;
@@ -4276,17 +5193,15 @@ namespace ZombieLand
 			if (CanPlaceConnectedWithinRoom(map, target.cell, sourceRelative) == false)
 				return false;
 
-			if (target.wall != null && target.wall.Destroyed == false)
-				target.wall.Destroy(DestroyMode.KillFinalize);
-
 			var source = Position + sourceRelative;
-			var previousCore = selectionCoreRelative;
+			var movingRoot = sourceRelative == IntVec3.Zero;
 			var movingSelectionCore = selectionCoreRelative == sourceRelative;
-			if (RemoveRelativeCellWithCoreDestination(sourceRelative, true, movingSelectionCore ? targetRelative : IntVec3.Invalid, false) == false)
+			var movingEstablishmentAnchor = establishmentAnchorRelative == sourceRelative;
+			if (RemoveRelativeCellWithCoreDestination(sourceRelative, false, movingSelectionCore ? targetRelative : IntVec3.Invalid, false) == false)
 				return false;
-			if (AddRelativeCell(target.cell - Position, false) == false)
+			if (AddRelativeCell(target.cell - Position, false, false) == false)
 			{
-				if (AddRelativeCell(sourceRelative, false))
+				if (AddRelativeCell(sourceRelative, false, false))
 				{
 					if (movingSelectionCore)
 					{
@@ -4300,11 +5215,25 @@ namespace ZombieLand
 				}
 				return false;
 			}
-			if (target.foundsRoom && movingSelectionCore == false && previousCore.IsValid)
-				BeginSelectionCoreMove(previousCore, targetRelative);
+			if (movingSelectionCore || target.kind == ExpansionTargetKind.RoomFounding)
+				SetSelectionCoreInstant(target.cell);
+			if (movingEstablishmentAnchor || target.kind == ExpansionTargetKind.RoomFounding)
+				SetEstablishmentAnchor(target.cell);
+			cellMotions?.RemoveAll(motion => motion.cell == sourceRelative || motion.cell == targetRelative);
+			if (movingRoot)
+			{
+				if (RebaseFootprint(map, targetRelative) == false)
+					return false;
+				DebugLastMovePulseConnectedRoomCellsRetired += RetireConnectedRoomCellMigrationComponents(map);
+				SynchronizeExteriorOverflowAuthorization(map);
+				RememberMovement(source, target.cell);
+				return true;
+			}
 			RebuildCellBounds();
 			UpdateAll();
 			UpdateSymbiosisState();
+			DebugLastMovePulseConnectedRoomCellsRetired += RetireConnectedRoomCellMigrationComponents(map);
+			SynchronizeExteriorOverflowAuthorization(map);
 			RememberMovement(source, target.cell);
 			return true;
 		}
@@ -4318,37 +5247,61 @@ namespace ZombieLand
 			var map = Map;
 			if (map == null)
 				return false;
-			_ = ReanchorFromInvalidRoot(map);
-			var target = FindRelocationTarget(map);
-			if (target == null)
-			{
-				nextRelocationPulseTick = ticks + RelocationPulseIntervalTicks();
+			if (TryEnterFootprintMutation(FootprintMutationKind.Relocation, false, out _) == false)
 				return false;
-			}
+			SynchronizeExteriorOverflowAuthorization(map);
+			_ = ReanchorFromInvalidRoot(map);
+			var capacity = EvaluateIndoorCapacity(map);
+			var target = FindRelocationTarget(map, capacity);
+			var priorityRelocationPending = HasPriorityRelocationCells(map, capacity);
 
-			if (TryMoveUnintegratedCell(map, target))
+			if (target != null && TryMoveUnintegratedCell(map, target))
 			{
 				nextRelocationPulseTick = relocationCellDebt > 0 || HasMovableUnintegratedCells() ? ticks + RelocationPulseIntervalTicks() : 0;
+				lastPlacementGrowthState = "relocating";
 				return true;
 			}
+			if (priorityRelocationPending)
+			{
+				nextRelocationPulseTick = ticks + PlacementBlockedRetryTicks;
+				lastPlacementGrowthState = "contained";
+				return false;
+			}
 
-			if (relocationCellDebt <= 0 || CanExpand() == false)
+			if (relocationCellDebt <= 0)
 			{
 				nextRelocationPulseTick = 0;
+				lastPlacementGrowthState = "contained";
 				return false;
 			}
-
-			EnsureSelectionCoreState();
-			var previousCore = selectionCoreRelative;
-			if (AddCell(target.cell, false) == false)
+			if (CellCount >= MaxCells)
 			{
-				nextRelocationPulseTick = ticks + RelocationPulseIntervalTicks();
+				nextRelocationPulseTick = ticks + PlacementBlockedRetryTicks;
+				lastPlacementGrowthState = "contained";
 				return false;
 			}
-			if (target.foundsRoom && previousCore.IsValid)
-				BeginSelectionCoreMove(previousCore, target.cell - Position);
+			if (target == null && exteriorOverflowAuthorized
+				&& (capacity.state == IndoorCapacityState.AllFull || capacity.state == IndoorCapacityState.NoRelevantRooms))
+				target = FindExteriorOpenTarget(map);
+			if (target == null && exteriorOverflowAuthorized == false && capacity.state == IndoorCapacityState.AllFull)
+			{
+				var exact = EvaluateIndoorCapacity(map, exactAudit: true);
+				if (exact.state == IndoorCapacityState.AllFull)
+					target = FindExteriorOpenTarget(map) ?? FindExteriorWallBreachTarget(map);
+			}
+			var restored = target?.kind == ExpansionTargetKind.ExteriorWallBreach
+				? TryCommitExteriorWallBreach(target)
+				: target != null && TryCommitExpansionTarget(target);
+			if (restored == false)
+			{
+				nextRelocationPulseTick = ticks + PlacementBlockedRetryTicks;
+				lastPlacementGrowthState = "contained";
+				return false;
+			}
 			RememberMovementCell(target.cell);
 			relocationCellDebt = Mathf.Max(0, relocationCellDebt - 1);
+			if (target.kind == ExpansionTargetKind.ExteriorOpen)
+				exteriorOverflowAuthorized = true;
 			nextRelocationPulseTick = relocationCellDebt > 0 || HasMovableUnintegratedCells() ? ticks + RelocationPulseIntervalTicks() : 0;
 			if (relocationCellDebt == 0)
 				ResetExpansionClock();
@@ -4359,21 +5312,37 @@ namespace ZombieLand
 		{
 			if (map == null || Spawned == false || cells?.Contains(IntVec3.Zero) != true)
 				return false;
-			if (IntegratedCellWeight(map, Position) > UprootedIntegratedCellThreshold)
+			var rootClassification = ClassifySymbiantCell(map, Position);
+			if (rootClassification == SymbiantCellClass.IndoorFloor
+				|| rootClassification == SymbiantCellClass.Door
+				|| rootClassification == SymbiantCellClass.ExteriorOpen && exteriorOverflowAuthorized)
 				return false;
 			var newRootRelative = orderedCells
-				.Where(relative => relative != IntVec3.Zero && IntegratedCellWeight(map, Position + relative) > UprootedIntegratedCellThreshold)
-				.OrderBy(relative => relative == selectionCoreRelative ? 0 : 1)
-				.ThenBy(SelectionCoreClutterScore)
-				.ThenBy(relative => relative.DistanceToSquared(selectionCoreRelative.IsValid ? selectionCoreRelative : IntVec3.Zero))
+				.Where(relative => relative != IntVec3.Zero)
+				.Select(relative => new { relative, classification = ClassifySymbiantCell(map, Position + relative) })
+				.Where(entry => entry.classification == SymbiantCellClass.IndoorFloor
+					|| entry.classification == SymbiantCellClass.Door
+					|| entry.classification == SymbiantCellClass.ExteriorOpen && exteriorOverflowAuthorized)
+				.OrderBy(entry => entry.classification == SymbiantCellClass.IndoorFloor || entry.classification == SymbiantCellClass.Door ? 0 : 1)
+				.ThenBy(entry => entry.relative == selectionCoreRelative ? 0 : 1)
+				.ThenBy(entry => SelectionCoreClutterScore(entry.relative))
+				.ThenBy(entry => entry.relative.DistanceToSquared(selectionCoreRelative.IsValid ? selectionCoreRelative : IntVec3.Zero))
+				.Select(entry => entry.relative)
 				.FirstOrDefault();
 			if (newRootRelative == IntVec3.Zero || cells.Contains(newRootRelative) == false)
 				return false;
+			return RebaseFootprint(map, newRootRelative);
+		}
 
+		bool RebaseFootprint(Map map, IntVec3 newRootRelative)
+		{
+			if (map == null || Spawned == false || newRootRelative == IntVec3.Zero || cells?.Contains(newRootRelative) != true)
+				return false;
 			var oldPosition = Position;
 			var newPosition = oldPosition + newRootRelative;
 			var absoluteCells = orderedCells.Select(relative => oldPosition + relative).ToArray();
 			var coreCell = selectionCoreRelative.IsValid ? oldPosition + selectionCoreRelative : newPosition;
+			var establishmentCell = establishmentAnchorRelative.IsValid ? oldPosition + establishmentAnchorRelative : newPosition;
 			var wasSelected = Find.Selector?.IsSelected(this) == true;
 			temporaryDespawnInProgress = true;
 			try
@@ -4388,17 +5357,18 @@ namespace ZombieLand
 			Position = newPosition;
 			cells = absoluteCells.Select(cell => cell - newPosition).ToHashSet();
 			orderedCells = absoluteCells.Select(cell => cell - newPosition).ToList();
-			if (roomCellMigrationInitialized)
-			{
+			if (roomCellMigrationCells != null)
 				roomCellMigrationCells = roomCellMigrationCells
 					.Select(relative => relative - newRootRelative)
 					.ToList();
-			}
+			RebuildRoomCellMigrationLookup();
 			selectionCoreRelative = coreCell - newPosition;
+			establishmentAnchorRelative = establishmentCell - newPosition;
 			selectionCoreLastMoveTick = GenTicks.TicksGame;
 			ClearSelectionCoreMotion();
 			cellMotions?.Clear();
 			hasCellBounds = false;
+			lastSymbiosisMetricTick = int.MinValue;
 			combatShapeVersion++;
 			RebuildCellBounds();
 
@@ -4407,6 +5377,7 @@ namespace ZombieLand
 			EnsureVisibleToPawnSystems(map);
 			jobs.StartJob(JobMaker.MakeJob(CustomDefs.Symbiant));
 			UpdateAll();
+			UpdateSymbiosisState();
 			if (wasSelected)
 			{
 				Find.Selector.ClearSelection();
@@ -4415,27 +5386,123 @@ namespace ZombieLand
 			return true;
 		}
 
-		ExpansionTarget FindExpansionTarget(bool consumeCancelNextBreach, bool allowWallBreak = true, bool respectCancelNextBreach = true)
+		ExpansionTarget FindExpansionTarget(IndoorCapacityEvaluation capacity, bool allowWallBreach)
 		{
 			var map = Map;
-			if (map == null || orderedCells == null || orderedCells.Count == 0)
+			if (map == null || capacity == null || orderedCells == null || orderedCells.Count == 0)
 				return null;
-
-			var activeRoom = SelectionCoreRoom(map);
-			if (activeRoom != null)
+			var classifications = orderedCells
+				.Select(relative => ClassifySymbiantCell(map, Position + relative))
+				.ToArray();
+			var hasExterior = classifications.Contains(SymbiantCellClass.ExteriorOpen);
+			var hasInvalid = classifications.Any(classification =>
+				classification == SymbiantCellClass.IndoorIneligible || classification == SymbiantCellClass.InvalidBlocked);
+			if (hasInvalid || hasExterior && exteriorOverflowAuthorized == false)
 			{
-				var inRoomTarget = FindLocalExpansionTarget(map, activeRoom, false, false, false);
-				var occupied = CountCellsInRoomInternal(activeRoom);
-				var required = RoomEstablishmentRequirement(map, activeRoom);
-				if (occupied < required)
-					return inRoomTarget;
-
-				var foundingTarget = FindRoomFoundingTarget(map, activeRoom);
-				if (foundingTarget != null)
-					return foundingTarget;
+				if (capacity.state == IndoorCapacityState.PlacementAvailable)
+					nextRelocationPulseTick = GenTicks.TicksGame;
+				lastPlacementGrowthState = capacity.state == IndoorCapacityState.NoRelevantRooms
+					? "dormantNoRoom"
+					: "contained";
+				return null;
+			}
+			if (hasExterior)
+			{
+				if (capacity.state == IndoorCapacityState.PlacementAvailable)
+				{
+					nextRelocationPulseTick = GenTicks.TicksGame;
+					lastPlacementGrowthState = "relocating";
+					return null;
+				}
+				if (capacity.state == IndoorCapacityState.NonFullButBlocked)
+				{
+					lastPlacementGrowthState = "contained";
+					return null;
+				}
+				return FindExteriorOpenTarget(map);
 			}
 
-			return FindLocalExpansionTarget(map, null, allowWallBreak, consumeCancelNextBreach, respectCancelNextBreach);
+			if (capacity.state == IndoorCapacityState.PlacementAvailable)
+			{
+				var establishmentRoom = EnsureEstablishmentAnchorState(map);
+				var establishment = capacity.rooms.FirstOrDefault(room => room.room == establishmentRoom);
+				if (establishment != null
+					&& establishment.occupied < Mathf.Max(1, Mathf.CeilToInt(establishment.capacity * SymbiantRoomEstablishmentCoverage)))
+				{
+					if (establishment.hasPlacement)
+						return new ExpansionTarget(ExpansionTargetKind.IndoorLocal, establishment.placementCell, null, establishment.placementScore, establishment.room);
+					lastPlacementGrowthState = "contained";
+					return null;
+				}
+
+				var foundingTarget = FindRoomFoundingTarget(map, capacity, establishmentRoom);
+				if (foundingTarget != null)
+					return foundingTarget;
+				var occupiedRoomTarget = capacity.rooms
+					.Where(room => room.occupied > 0 && room.hasPlacement)
+					.OrderBy(room => room.ProjectedCoverage)
+					.ThenByDescending(room => room.roomScore)
+					.ThenByDescending(room => room.placementScore)
+					.FirstOrDefault();
+				if (occupiedRoomTarget != null)
+					return new ExpansionTarget(ExpansionTargetKind.IndoorLocal, occupiedRoomTarget.placementCell, null, occupiedRoomTarget.placementScore, occupiedRoomTarget.room);
+				if (capacity.HasDoorTarget)
+					return new ExpansionTarget(ExpansionTargetKind.Door, capacity.doorTarget, null, capacity.doorTargetScore);
+				return null;
+			}
+			if (capacity.state != IndoorCapacityState.AllFull)
+			{
+				lastPlacementGrowthState = capacity.state == IndoorCapacityState.NoRelevantRooms ? "dormantNoRoom" : "contained";
+				return null;
+			}
+
+			var exact = EvaluateIndoorCapacity(map, exactAudit: true);
+			if (exact.state != IndoorCapacityState.AllFull)
+			{
+				lastPlacementGrowthState = exact.state == IndoorCapacityState.PlacementAvailable ? "relocating" : "contained";
+				return null;
+			}
+			var openExterior = FindExteriorOpenTarget(map);
+			if (openExterior != null)
+				return openExterior;
+			return allowWallBreach ? FindExteriorWallBreachTarget(map) : null;
+		}
+
+		Room EnsureEstablishmentAnchorState(Map map)
+		{
+			if (map == null)
+				return null;
+			var previousCell = establishmentAnchorRelative.IsValid ? Position + establishmentAnchorRelative : IntVec3.Invalid;
+			var previousRoom = previousCell.InBounds(map) ? previousCell.GetRoom(map) : null;
+			if (establishmentAnchorRelative.IsValid
+				&& cells?.Contains(establishmentAnchorRelative) == true
+				&& ClassifySymbiantCell(map, previousCell) == SymbiantCellClass.IndoorFloor
+				&& IsEligibleIndoorRoom(previousRoom))
+				return previousRoom;
+
+			var candidates = orderedCells
+				.Select(relative => new { relative, absolute = Position + relative })
+				.Where(entry => ClassifySymbiantCell(map, entry.absolute) == SymbiantCellClass.IndoorFloor)
+				.Select(entry => new { entry.relative, entry.absolute, room = entry.absolute.GetRoom(map) })
+				.Where(entry => IsEligibleIndoorRoom(entry.room))
+				.ToArray();
+			var replacement = candidates
+				.Where(entry => entry.room == previousRoom)
+				.OrderBy(entry => entry.absolute.DistanceToSquared(previousCell))
+				.FirstOrDefault();
+			replacement ??= candidates
+				.GroupBy(entry => entry.room)
+				.OrderByDescending(group => group.Count())
+				.ThenByDescending(group => group.Any(entry => entry.relative == IntVec3.Zero))
+				.SelectMany(group => group.OrderBy(entry => entry.relative == IntVec3.Zero ? 0 : 1))
+				.FirstOrDefault();
+			if (replacement == null)
+			{
+				establishmentAnchorRelative = IntVec3.Invalid;
+				return null;
+			}
+			establishmentAnchorRelative = replacement.relative;
+			return replacement.room;
 		}
 
 		Room SelectionCoreRoom(Map map)
@@ -4446,6 +5513,29 @@ namespace ZombieLand
 			var cell = selectionCoreRelative.IsValid ? Position + selectionCoreRelative : Position;
 			var room = cell.InBounds(map) ? cell.GetRoom(map) : null;
 			return IsEligibleIndoorRoom(room) ? room : null;
+		}
+
+		void SetEstablishmentAnchor(IntVec3 absolute)
+		{
+			establishmentAnchorRelative = absolute.IsValid && ContainsCell(absolute) ? absolute - Position : IntVec3.Invalid;
+		}
+
+		void SetSelectionCoreInstant(IntVec3 absolute)
+		{
+			if (absolute.IsValid == false || ContainsCell(absolute) == false)
+				return;
+			selectionCoreRelative = absolute - Position;
+			selectionCoreLastMoveTick = GenTicks.TicksGame;
+			ClearSelectionCoreMotion();
+		}
+
+		void SynchronizeExteriorOverflowAuthorization(Map map)
+		{
+			if (exteriorOverflowAuthorized == false || map == null || IsPlacementTopologySafe(map) == false)
+				return;
+			if (orderedCells.Any(relative => ClassifySymbiantCell(map, Position + relative) == SymbiantCellClass.ExteriorOpen))
+				return;
+			exteriorOverflowAuthorized = false;
 		}
 
 		int RoomEstablishmentRequirement(Map map, Room room)
@@ -4502,99 +5592,62 @@ namespace ZombieLand
 					continue;
 				if (cells.Contains(relative) == false || neighbor.InBounds(map) == false || neighbor.GetRoom(map) != room)
 					continue;
-				if (roomCellMigrationCells.Count > 0 && roomCellMigrationCells.Contains(relative))
+				if (roomCellMigrationLookup.Contains(relative))
 					continue;
 				return true;
 			}
 			return false;
 		}
 
-		ExpansionTarget FindRoomFoundingTarget(Map map, Room activeRoom)
+		ExpansionTarget FindRoomFoundingTarget(Map map, IndoorCapacityEvaluation capacity, Room activeRoom)
 		{
-			var occupiedRooms = OccupiedRoomCounts(map);
-			var candidates = CandidateRooms(map)
-				.Where(room => occupiedRooms.ContainsKey(room) == false)
-				.Select(room =>
+			if (map == null || capacity == null)
+				return null;
+			var occupiedRooms = capacity.rooms.Where(room => room.occupied > 0).ToArray();
+			var nextRoom = capacity.rooms
+				.Where(room => room.Empty && room.hasPlacement)
+				.Select(room => new
 				{
-					var hasCell = TryFindBestSpawnCell(map, room, out var cell, out var cellScore);
-					var adjacentSourceRoom = occupiedRooms.Keys
-						.Where(sourceRoom => RoomsAreAdjacentForSymbiant(map, sourceRoom, room))
-						.OrderBy(sourceRoom => sourceRoom == activeRoom ? 0 : 1)
-						.ThenByDescending(sourceRoom => occupiedRooms[sourceRoom])
-						.FirstOrDefault();
-					return hasCell
-						? new RoomPlacementCandidate
-						{
-							room = room,
-							cell = cell,
-							cellScore = cellScore,
-							roomScore = ScoreSpawnRoom(map, room),
-							validCells = room.Cells.Count(candidate => CanOccupyOpenCell(map, candidate)),
-							occupiedCells = 0,
-							adjacent = adjacentSourceRoom != null,
-							adjacentSourceRoom = adjacentSourceRoom
-						}
-						: null;
+					room,
+					adjacentToActive = activeRoom != null && RoomsAreAdjacentForSymbiant(map, activeRoom, room.room),
+					adjacent = occupiedRooms.Any(source => RoomsAreAdjacentForSymbiant(map, source.room, room.room))
 				})
-				.Where(candidate => candidate != null)
-				.OrderByDescending(candidate => candidate.roomScore)
-				.ThenByDescending(candidate => candidate.cellScore)
-				.ToArray();
-			var nextRoom = candidates
-				.OrderBy(candidate => candidate.adjacent ? 0 : 1)
-				.ThenBy(candidate => candidate.adjacentSourceRoom == activeRoom ? 0 : 1)
-				.ThenByDescending(candidate => candidate.roomScore)
-				.ThenByDescending(candidate => candidate.cellScore)
+				.OrderBy(candidate => candidate.adjacentToActive ? 0 : 1)
+				.ThenBy(candidate => candidate.adjacent ? 0 : 1)
+				.ThenByDescending(candidate => candidate.room.roomScore)
+				.ThenByDescending(candidate => candidate.room.placementScore)
 				.FirstOrDefault();
 			return nextRoom == null
 				? null
-				: new ExpansionTarget(nextRoom.cell, null, nextRoom.cellScore, nextRoom.room, true, true);
+				: new ExpansionTarget(ExpansionTargetKind.RoomFounding, nextRoom.room.placementCell, null, nextRoom.room.placementScore, nextRoom.room.room, true);
 		}
 
-		ExpansionTarget FindRelocationTarget(Map map)
+		ExpansionTarget FindRelocationTarget(Map map, IndoorCapacityEvaluation capacity = null)
 		{
 			if (map == null)
 				return null;
-			var occupiedRooms = OccupiedRoomCounts(map);
-			var rooms = CandidateRooms(map)
-				.Concat(occupiedRooms.Keys)
-				.Distinct()
-				.ToArray();
-			var candidates = rooms
-				.Select(room =>
-				{
-					var roomIsOccupied = occupiedRooms.ContainsKey(room);
-					var available = room.Cells
-						.Where(cell => CanOccupyOpenCell(map, cell)
-							&& ContainsCell(cell) == false
-							&& (roomIsOccupied == false || TouchesEstablishedRoomPatch(map, cell, room)))
-						.Select(cell => new { cell, score = ScoreMovementTargetCell(map, cell) })
-						.OrderByDescending(entry => entry.score)
-						.FirstOrDefault();
-					if (available == null)
-						return null;
-					var occupied = occupiedRooms.TryGetValue(room, out var count) ? count : 0;
-					return new RoomPlacementCandidate
-					{
-						room = room,
-						cell = available.cell,
-						cellScore = available.score,
-						roomScore = ScoreSpawnRoom(map, room),
-						validCells = room.Cells.Count(cell => CanOccupyOpenCell(map, cell)),
-						occupiedCells = occupied,
-						adjacent = occupiedRooms.Keys.Any(other => other != room && RoomsAreAdjacentForSymbiant(map, other, room))
-					};
-				})
-				.Where(candidate => candidate != null)
-				.OrderBy(candidate => candidate.occupiedCells == 0 ? 0 : 1)
-				.ThenBy(candidate => candidate.ProjectedCoverage)
-				.ThenByDescending(candidate => candidate.adjacent)
-				.ThenByDescending(candidate => candidate.roomScore)
-				.ThenByDescending(candidate => candidate.cellScore)
+			capacity ??= EvaluateIndoorCapacity(map);
+			if (capacity.state != IndoorCapacityState.PlacementAvailable)
+				return null;
+			var roomTarget = capacity.rooms
+				.Where(room => room.hasPlacement)
+				.OrderBy(room => room.Empty ? 0 : 1)
+				.ThenBy(room => room.ProjectedCoverage)
+				.ThenByDescending(room => room.roomScore)
+				.ThenByDescending(room => room.placementScore)
 				.FirstOrDefault();
-			return candidates == null
-				? null
-				: new ExpansionTarget(candidates.cell, null, candidates.cellScore, candidates.room, candidates.occupiedCells == 0, true);
+			if (roomTarget != null)
+				return new ExpansionTarget(
+					roomTarget.Empty ? ExpansionTargetKind.RoomFounding : ExpansionTargetKind.IndoorLocal,
+					roomTarget.placementCell,
+					null,
+					roomTarget.placementScore,
+					roomTarget.room,
+					true
+				);
+			return capacity.HasDoorTarget
+				? new ExpansionTarget(ExpansionTargetKind.Door, capacity.doorTarget, null, capacity.doorTargetScore, null, true)
+				: null;
 		}
 
 		static bool RoomsAreAdjacentForSymbiant(Map map, Room source, Room destination)
@@ -4603,114 +5656,214 @@ namespace ZombieLand
 				return false;
 			foreach (var sourceCell in source.Cells)
 			{
-				for (var directionIndex = 0; directionIndex < GenAdj.CardinalDirections.Length; directionIndex++)
+				foreach (var direction in GenAdj.CardinalDirections)
 				{
-					var direction = GenAdj.CardinalDirections[directionIndex];
-					var cell = sourceCell + direction;
-					for (var depth = 0; depth <= MaxConstructedWallBreachDepth; depth++)
-					{
-						if (cell.InBounds(map) == false)
-							break;
-						if (cell.GetRoom(map) == destination)
-							return true;
-						if (IsDoorCell(map, cell) == false && BreakableConstructedWall(map, cell) == null)
-							break;
-						cell += direction;
-					}
+					var boundary = sourceCell + direction;
+					if (boundary.InBounds(map) == false)
+						continue;
+					if (boundary.GetRoom(map) == destination)
+						return true;
+					if (IsDoorCell(map, boundary) == false && BreakableConstructedWall(map, boundary) == null)
+						continue;
+					if ((boundary + direction).InBounds(map) && (boundary + direction).GetRoom(map) == destination)
+						return true;
 				}
 			}
 			return false;
 		}
 
-		ExpansionTarget FindLocalExpansionTarget(Map map, Room requiredRoom, bool allowWallBreak, bool consumeCancelNextBreach, bool respectCancelNextBreach)
+		ExpansionTarget FindExteriorOpenTarget(Map map)
 		{
-			var targets = new List<ExpansionTarget>();
-			var occupiedRooms = OccupiedRoomCounts(map);
-			var occupiedRoomPatchesAreFull = allowWallBreak && occupiedRooms.Keys.All(room =>
-				room.Cells.All(candidate => CanOccupyOpenCell(map, candidate) == false || ContainsCell(candidate))
-			);
+			if (map == null)
+				return null;
 			var seen = new HashSet<IntVec3>();
-			foreach (var relative in orderedCells.ToArray())
+			var targets = new List<ExpansionTarget>();
+			foreach (var relative in orderedCells)
 			{
-				if (roomCellMigrationCells.Count > 0 && roomCellMigrationCells.Contains(relative))
+				if (roomCellMigrationLookup.Contains(relative))
 					continue;
-				var cell = Position + relative;
-				for (var i = 0; i < 4; i++)
+				var source = Position + relative;
+				foreach (var direction in GenAdj.CardinalDirections)
 				{
-					var direction = GenAdj.CardinalDirections[i];
-					var candidate = cell + direction;
+					var candidate = source + direction;
 					if (candidate.InBounds(map) == false || ContainsCell(candidate) || seen.Add(candidate) == false)
 						continue;
-
-					if (IsValidSymbiantCell(map, candidate))
-					{
-						var room = candidate.GetRoom(map);
-						if (requiredRoom != null && room != requiredRoom)
-							continue;
-						if (IsEligibleIndoorRoom(room)
-							&& occupiedRooms.ContainsKey(room)
-							&& TouchesEstablishedRoomPatch(map, candidate, room) == false)
-							continue;
-						var foundsRoom = IsEligibleIndoorRoom(room) && occupiedRooms.ContainsKey(room) == false;
-						targets.Add(new ExpansionTarget(candidate, null, ScoreExpansionCell(map, candidate), room, foundsRoom, false));
-						continue;
-					}
-
-					if (allowWallBreak == false || occupiedRoomPatchesAreFull == false)
-						continue;
-
-					var wall = BreakableConstructedWall(map, candidate);
-					if (wall == null)
-						continue;
-
-					if (TryFindConstructedWallBreachDestination(map, candidate, direction, out var destination))
-					{
-						var destinationRoom = destination.GetRoom(map);
-						if (requiredRoom == null && occupiedRooms.ContainsKey(destinationRoom) == false)
-							targets.Add(new ExpansionTarget(candidate, wall, ScoreExpansionCell(map, destination) + 150f, destinationRoom));
-					}
+					if (ClassifySymbiantCell(map, candidate) == SymbiantCellClass.ExteriorOpen)
+						targets.Add(new ExpansionTarget(ExpansionTargetKind.ExteriorOpen, candidate, null, ScoreExpansionCell(map, candidate), candidate.GetRoom(map)));
 				}
 			}
-			var openTarget = targets
-				.Where(target => target.wall == null)
+			return targets
 				.OrderByDescending(target => target.score)
 				.FirstOrDefault();
-			if (openTarget != null)
-				return openTarget;
-
-			var wallTarget = targets
-				.Where(target => target.wall != null)
-				.OrderByDescending(target => target.score)
-				.FirstOrDefault();
-			if (wallTarget != null && respectCancelNextBreach && cancelNextBreach)
-			{
-				if (consumeCancelNextBreach)
-					cancelNextBreach = false;
-				return null;
-			}
-			return wallTarget;
 		}
 
-		bool TryFindConstructedWallBreachDestination(Map map, IntVec3 firstWallCell, IntVec3 direction, out IntVec3 destination)
+		bool WallRemovalKeepsIndoorRoomsSeparated(Map map, IntVec3 wallCell, Room sourceRoom)
 		{
-			destination = IntVec3.Invalid;
-			var cell = firstWallCell;
-			for (var depth = 0; depth <= MaxConstructedWallBreachDepth; depth++)
+			if (map == null || sourceRoom == null)
+				return false;
+			var adjacentIndoorRooms = GenAdj.CardinalDirections
+				.Select(direction => wallCell + direction)
+				.Where(cell => cell.InBounds(map))
+				.Select(cell => cell.GetRoom(map))
+				.Where(IsEligibleIndoorRoom)
+				.Distinct()
+				.ToArray();
+			return adjacentIndoorRooms.Length == 1 && adjacentIndoorRooms[0] == sourceRoom;
+		}
+
+		ExpansionTarget FindExteriorWallBreachTarget(Map map)
+		{
+			if (map == null || exteriorOverflowAuthorized)
+				return null;
+			var targets = new List<ExpansionTarget>();
+			var seen = new HashSet<IntVec3>();
+			foreach (var relative in orderedCells)
 			{
-				if (cell.InBounds(map) == false || ContainsCell(cell))
-					return false;
-				if (IsValidSymbiantCell(map, cell))
+				if (roomCellMigrationLookup.Contains(relative))
+					continue;
+				var source = Position + relative;
+				if (ClassifySymbiantCell(map, source) != SymbiantCellClass.IndoorFloor)
+					continue;
+				var sourceRoom = source.GetRoom(map);
+				foreach (var direction in GenAdj.CardinalDirections)
 				{
-					destination = cell;
-					return true;
+					var wallCell = source + direction;
+					if (wallCell.InBounds(map) == false || ContainsCell(wallCell) || seen.Add(wallCell) == false)
+						continue;
+					var wall = BreakableConstructedWall(map, wallCell);
+					var beyond = wallCell + direction;
+					if (wall == null
+						|| beyond.InBounds(map) == false
+						|| IsMapEdgeCell(map, beyond)
+						|| ClassifySymbiantCell(map, beyond) != SymbiantCellClass.ExteriorOpen
+						|| WallRemovalKeepsIndoorRoomsSeparated(map, wallCell, sourceRoom) == false)
+						continue;
+					targets.Add(new ExpansionTarget(
+						ExpansionTargetKind.ExteriorWallBreach,
+						wallCell,
+						wall,
+						ScoreExpansionCell(map, beyond),
+						beyond.GetRoom(map),
+						false,
+						beyond
+					));
 				}
-				if (depth == MaxConstructedWallBreachDepth)
-					return false;
-				if (BreakableConstructedWall(map, cell) == null)
-					return false;
-				cell += direction;
 			}
-			return false;
+			return targets.OrderByDescending(target => target.score).FirstOrDefault();
+		}
+
+		bool TryCommitExpansionTarget(ExpansionTarget target)
+		{
+			var map = Map;
+			if (map == null || target == null || target.kind == ExpansionTargetKind.ExteriorWallBreach || ContainsCell(target.cell))
+				return false;
+			var classification = ClassifySymbiantCell(map, target.cell);
+			var valid = target.kind switch
+			{
+				ExpansionTargetKind.IndoorLocal => classification == SymbiantCellClass.IndoorFloor && CanPlaceConnectedWithinRoom(map, target.cell),
+				ExpansionTargetKind.RoomFounding => classification == SymbiantCellClass.IndoorFloor && CanPlaceConnectedWithinRoom(map, target.cell),
+				ExpansionTargetKind.Door => classification == SymbiantCellClass.Door && GenAdj.CardinalDirections.Any(direction => ContainsCell(target.cell + direction)),
+				ExpansionTargetKind.ExteriorOpen => classification == SymbiantCellClass.ExteriorOpen && GenAdj.CardinalDirections.Any(direction => ContainsCell(target.cell + direction)),
+				_ => false
+			};
+			if (valid == false || CellCount >= MaxCells)
+				return false;
+			if (AddRelativeCell(target.cell - Position, target.remote == false) == false)
+				return false;
+			RebuildCellBounds();
+			UpdateAll();
+			UpdateSymbiosisState();
+			return true;
+		}
+
+		bool TryCommitExteriorWallBreach(ExpansionTarget target, bool forceFailureAfterDestroy = false)
+		{
+			var map = Map;
+			if (map == null
+				|| target?.kind != ExpansionTargetKind.ExteriorWallBreach
+				|| exteriorOverflowAuthorized
+				|| CellCount >= MaxCells
+				|| target.wall == null
+				|| target.wall.Destroyed
+				|| ContainsCell(target.cell)
+				|| BreakableConstructedWall(map, target.cell) != target.wall
+				|| IsMapEdgeCell(map, target.exteriorDestination)
+				|| ClassifySymbiantCell(map, target.exteriorDestination) != SymbiantCellClass.ExteriorOpen)
+				return false;
+			var sourceRoom = GenAdj.CardinalDirections
+				.Select(direction => target.cell + direction)
+				.Where(cell => cell.InBounds(map) && ContainsCell(cell))
+				.Select(cell => cell.GetRoom(map))
+				.FirstOrDefault(IsEligibleIndoorRoom);
+			if (sourceRoom == null || WallRemovalKeepsIndoorRoomsSeparated(map, target.cell, sourceRoom) == false)
+				return false;
+			var wallDef = target.wall.def;
+			var wallStuff = target.wall.Stuff;
+			var wallFaction = target.wall.Faction;
+			var wallRotation = target.wall.Rotation;
+			var wallHitPoints = target.wall.HitPoints;
+			EnsureSharedHealth();
+			var added = false;
+			try
+			{
+				target.wall.Destroy(DestroyMode.KillFinalize);
+				added = forceFailureAfterDestroy == false
+					&& Destroyed == false
+					&& Spawned
+					&& AddRelativeCell(target.cell - Position, false, false);
+			}
+			catch (Exception exception)
+			{
+				Log.Error($"Symbiant exterior-wall commit failed at {target.cell}: {exception}");
+			}
+			if (added == false)
+			{
+				var targetRelative = target.cell - Position;
+				if (cells?.Contains(targetRelative) == true)
+					_ = RemoveRelativeCell(targetRelative, false);
+				if (target.cell.InBounds(map) && target.cell.GetEdifice(map) == null)
+				{
+					var replacement = ThingMaker.MakeThing(wallDef, wallStuff) as Building;
+					if (replacement != null)
+					{
+						GenSpawn.Spawn(replacement, target.cell, map, wallRotation, WipeMode.Vanish, false);
+						replacement.SetFaction(wallFaction);
+						replacement.HitPoints = Mathf.Clamp(wallHitPoints, 1, replacement.MaxHitPoints);
+					}
+				}
+				RebuildCellBounds();
+				UpdateAll();
+				UpdateSymbiosisState();
+				return false;
+			}
+			RebuildCellBounds();
+			UpdateAll();
+			UpdateSymbiosisState();
+			exteriorOverflowAuthorized = true;
+			return true;
+		}
+
+		internal IntVec3 DebugForceExteriorWallCommitRollback()
+		{
+			if (CanExpand() == false
+				|| TryEnterFootprintMutation(FootprintMutationKind.Debug, true, out _) == false)
+				return IntVec3.Invalid;
+			var map = Map;
+			SynchronizeExteriorOverflowAuthorization(map);
+			var target = FindExpansionTarget(EvaluateIndoorCapacity(map), true);
+			if (target?.kind != ExpansionTargetKind.ExteriorWallBreach)
+				return IntVec3.Invalid;
+			var wallCell = target.cell;
+			return TryCommitExteriorWallBreach(target, true) ? IntVec3.Invalid : wallCell;
+		}
+
+		static bool IsMapEdgeCell(Map map, IntVec3 cell)
+		{
+			return map == null
+				|| cell.x <= 0
+				|| cell.z <= 0
+				|| cell.x >= map.Size.x - 1
+				|| cell.z >= map.Size.z - 1;
 		}
 
 		internal static Building BreakableConstructedWall(Map map, IntVec3 cell)
@@ -4751,6 +5904,128 @@ namespace ZombieLand
 				.Where(adjacent => adjacent.InBounds(map))
 				.Select(adjacent => adjacent.GetRoom(map))
 				.Any(IsEligibleIndoorRoom);
+		}
+
+		bool TouchesRoomPatch(Map map, IntVec3 candidate, Room room, HashSet<IntVec3> footprint, HashSet<IntVec3> excludedSources = null)
+		{
+			if (map == null || room == null || footprint == null)
+				return false;
+			foreach (var direction in GenAdj.CardinalDirections)
+			{
+				var neighbor = candidate + direction;
+				if (footprint.Contains(neighbor) == false || excludedSources?.Contains(neighbor) == true)
+					continue;
+				if (neighbor.InBounds(map) && neighbor.GetRoom(map) == room)
+					return true;
+			}
+			return false;
+		}
+
+		IndoorCapacityEvaluation EvaluateIndoorCapacity(Map map, bool exactAudit = false)
+		{
+			var evaluation = new IndoorCapacityEvaluation();
+			if (map == null)
+				return evaluation;
+
+			capacityEvaluationCount++;
+			if (exactAudit)
+				exactCapacityAuditCount++;
+			var footprint = orderedCells.Select(relative => Position + relative).ToHashSet();
+			var excludedEstablishedSources = roomCellMigrationLookup
+				.Select(relative => Position + relative)
+				.ToHashSet();
+			var relevantRooms = CandidateRooms(map)
+				.Concat(footprint
+					.Where(cell => cell.InBounds(map))
+					.Select(cell => cell.GetRoom(map))
+					.Where(IsEligibleIndoorRoom))
+				.Distinct()
+				.ToArray();
+
+			foreach (var room in relevantRooms)
+			{
+				var record = new RoomCapacityRecord
+				{
+					room = room,
+					roomScore = ScoreSpawnRoom(map, room)
+				};
+				var usableCells = new List<IntVec3>();
+				var bestScore = float.MinValue;
+				foreach (var cell in room.Cells)
+				{
+					evaluation.roomCellScans++;
+					if (ClassifySymbiantCell(map, cell) != SymbiantCellClass.IndoorFloor)
+						continue;
+					usableCells.Add(cell);
+					record.capacity++;
+					if (footprint.Contains(cell))
+						record.occupied++;
+				}
+				foreach (var cell in usableCells)
+				{
+					if (footprint.Contains(cell))
+						continue;
+					var legal = record.occupied > 0
+						? TouchesRoomPatch(map, cell, room, footprint, excludedEstablishedSources)
+						: CanOccupyInitialSpawnCell(map, cell);
+					if (legal == false)
+						continue;
+					var score = ScoreMovementTargetCell(map, cell);
+					if (record.hasPlacement == false || score > bestScore)
+					{
+						record.hasPlacement = true;
+						record.placementCell = cell;
+						record.placementScore = score;
+						bestScore = score;
+					}
+				}
+				if (record.capacity > 0)
+					evaluation.rooms.Add(record);
+			}
+
+			var roomSet = evaluation.rooms.Select(record => record.room).ToHashSet();
+			var bestDoorScore = float.MinValue;
+			foreach (var source in footprint)
+			{
+				if (roomCellMigrationLookup.Contains(source - Position))
+					continue;
+				foreach (var direction in GenAdj.CardinalDirections)
+				{
+					var candidate = source + direction;
+					if (footprint.Contains(candidate))
+						continue;
+					if (ClassifySymbiantCell(map, candidate) != SymbiantCellClass.Door)
+						continue;
+					var belongsToRelevantRoom = GenAdj.CardinalDirections
+						.Select(adjacentDirection => candidate + adjacentDirection)
+						.Where(adjacent => adjacent.InBounds(map))
+						.Select(adjacent => adjacent.GetRoom(map))
+						.Any(roomSet.Contains);
+					if (belongsToRelevantRoom == false)
+						continue;
+					var score = ScoreMovementTargetCell(map, candidate);
+					if (evaluation.HasDoorTarget == false || score > bestDoorScore)
+					{
+						evaluation.doorTarget = candidate;
+						evaluation.doorTargetScore = score;
+						bestDoorScore = score;
+					}
+				}
+			}
+
+			roomCellScanCount += evaluation.roomCellScans;
+			if (evaluation.rooms.Count == 0)
+				evaluation.state = IndoorCapacityState.NoRelevantRooms;
+			else if (evaluation.HasDoorTarget || evaluation.rooms.Any(room => room.hasPlacement))
+				evaluation.state = IndoorCapacityState.PlacementAvailable;
+			else if (evaluation.rooms.Any(room => room.Full == false))
+				evaluation.state = IndoorCapacityState.NonFullButBlocked;
+			else
+				evaluation.state = IndoorCapacityState.AllFull;
+
+			lastIndoorCapacityState = evaluation.state;
+			lastPlacementEvaluationTick = GenTicks.TicksGame;
+			return evaluation;
 		}
 
 		float ScoreExpansionCell(Map map, IntVec3 cell)
@@ -5024,6 +6299,8 @@ namespace ZombieLand
 		{
 			if (destroyWhenCellMotionsFinish)
 				return 0;
+			if (TryEnterFootprintMutation(FootprintMutationKind.Retreat, false, out _) == false)
+				return 0;
 			EnsureSymbiantDefaults();
 			destroyWhenCellMotionsFinish = false;
 			var removed = 0;
@@ -5053,6 +6330,7 @@ namespace ZombieLand
 			{
 				RebuildCellBounds();
 				UpdateAll();
+				SynchronizeExteriorOverflowAuthorization(Map);
 			}
 			return removed;
 		}
@@ -5446,7 +6724,10 @@ namespace ZombieLand
 				orderedCells.RemoveAt(orderedCells.Count - 1);
 				cells.Remove(cell);
 			}
-			roomCellMigrationCells.RemoveAll(cell => cells.Contains(cell) == false);
+			var removedMigrationCells = roomCellMigrationCells.RemoveAll(cell => cells.Contains(cell) == false);
+			if (removedMigrationCells > 0
+				|| roomCellMigrationNormalizationPending == false && roomCellMigrationLookup.Count != roomCellMigrationCells.Count)
+				RebuildRoomCellMigrationLookup();
 			if (previousCellCount != cells.Count || previousOrderedCount != orderedCells.Count)
 				combatShapeVersion++;
 			RebuildCellBounds();
@@ -5466,7 +6747,7 @@ namespace ZombieLand
 			EnsureBenefitDefaults();
 			if (uprootedSinceTick < -1)
 				uprootedSinceTick = -1;
-			relocationCellDebt = Mathf.Clamp(relocationCellDebt, 0, Mathf.Max(0, MaxCells - CellCount));
+			relocationCellDebt = Mathf.Max(0, relocationCellDebt);
 			if (relocationCellDebt > 0 && nextRelocationPulseTick <= 0)
 				nextRelocationPulseTick = GenTicks.TicksGame + RelocationPulseIntervalTicks();
 		}
@@ -5973,7 +7254,8 @@ namespace ZombieLand
 			Scribe_Values.Look(ref relocationCellDebt, "relocationCellDebt");
 			Scribe_Values.Look(ref nextRelocationPulseTick, "nextRelocationPulseTick");
 			Scribe_Values.Look(ref uprootedSinceTick, "uprootedSinceTick", -1);
-			Scribe_Values.Look(ref cancelNextBreach, "cancelNextBreach");
+			Scribe_Values.Look(ref exteriorOverflowAuthorized, "exteriorOverflowAuthorized");
+			Scribe_Values.Look(ref establishmentAnchorRelative, "establishmentAnchorRelative", IntVec3.Invalid);
 			Scribe_Values.Look(ref selectionCoreRelative, "selectionCoreRelative", IntVec3.Invalid);
 			Scribe_Values.Look(ref selectionCoreMotionFrom, "selectionCoreMotionFrom", IntVec3.Invalid);
 			Scribe_Values.Look(ref selectionCoreMotionTo, "selectionCoreMotionTo", IntVec3.Invalid);
@@ -5995,15 +7277,19 @@ namespace ZombieLand
 				if (CellCount == 0)
 					destroyWhenCellMotionsFinish = true;
 				EnsureSymbiantDefaults();
+				roomCellMigrationNormalizationPending = true;
+				roomCellMigrationRescanPending = true;
+				postLoadConstructionValidationPending = true;
+				pendingConstructionCoveredCells.Clear();
+				pendingConstructionFootprintCells.Clear();
 				if (host != null)
 					hostThingId = host.ThingID;
-				UpdateSymbiosisState();
+				RefreshSymbiosisMetrics(true);
 				EnsureBenefitDefaults();
 				EnsureHostHediff();
-				EnsureSharedHealth();
 				NormalizeDamageEchoHistory();
 				_ = PruneAnatomyOnlyDamageHediffs();
-				if (sharedHealth < SharedHealthMax - 0.01f && nextSharedHealthRecoveryTick <= 0)
+				if (sharedHealth >= 0f && nextSharedHealthRecoveryTick <= 0)
 					nextSharedHealthRecoveryTick = GenTicks.TicksGame + SymbiantSharedHealthRecoveryDelayTicks;
 				SyncHostDamageEchoes();
 			}
@@ -6011,21 +7297,30 @@ namespace ZombieLand
 
 		sealed class ExpansionTarget
 		{
+			public readonly ExpansionTargetKind kind;
 			public readonly IntVec3 cell;
 			public readonly Building wall;
 			public readonly float score;
 			public readonly Room room;
-			public readonly bool foundsRoom;
 			public readonly bool remote;
+			public readonly IntVec3 exteriorDestination;
 
-			public ExpansionTarget(IntVec3 cell, Building wall, float score, Room room = null, bool foundsRoom = false, bool remote = false)
+			public ExpansionTarget(
+				ExpansionTargetKind kind,
+				IntVec3 cell,
+				Building wall,
+				float score,
+				Room room = null,
+				bool remote = false,
+				IntVec3 exteriorDestination = default)
 			{
+				this.kind = kind;
 				this.cell = cell;
 				this.wall = wall;
 				this.score = score;
 				this.room = room;
-				this.foundsRoom = foundsRoom;
 				this.remote = remote;
+				this.exteriorDestination = exteriorDestination;
 			}
 		}
 
@@ -6034,12 +7329,14 @@ namespace ZombieLand
 			public readonly IntVec3 cell;
 			public readonly float score;
 			public readonly float integratedWeight;
+			public readonly SymbiantCellClass classification;
 
-			public MovementTarget(IntVec3 cell, float score, float integratedWeight)
+			public MovementTarget(IntVec3 cell, float score, float integratedWeight, SymbiantCellClass classification)
 			{
 				this.cell = cell;
 				this.score = score;
 				this.integratedWeight = integratedWeight;
+				this.classification = classification;
 			}
 		}
 
@@ -6049,13 +7346,15 @@ namespace ZombieLand
 			public readonly IntVec3 absolute;
 			public readonly float score;
 			public readonly float integratedWeight;
+			public readonly SymbiantCellClass classification;
 
-			public MovementSource(IntVec3 relative, IntVec3 absolute, float score, float integratedWeight)
+			public MovementSource(IntVec3 relative, IntVec3 absolute, float score, float integratedWeight, SymbiantCellClass classification)
 			{
 				this.relative = relative;
 				this.absolute = absolute;
 				this.score = score;
 				this.integratedWeight = integratedWeight;
+				this.classification = classification;
 			}
 		}
 

@@ -533,6 +533,7 @@ namespace ZombieLand
 			object floatMenuRoute = null;
 			object humanCorpseFeed = null;
 			object animalCorpseFeed = null;
+			object placementPerformance = null;
 			object cleanupSymbiant = null;
 			object fixtureCleanup = null;
 			object error = null;
@@ -616,6 +617,41 @@ namespace ZombieLand
 
 				if (TryCreateSymbiantMechCorpse(map, humanCorpseCell, "ZL_SymbiantFeed_Mechanoid", spawnedThings, out var mechCorpse, out var mechCorpseError) == false)
 					return mechCorpseError;
+
+				var growthStateCapacityBefore = symbiant.DebugCapacityEvaluationCount;
+				var growthStateRoomScansBefore = symbiant.DebugRoomCellScanCount;
+				const int growthStateReadCount = 256;
+				for (var i = 0; i < growthStateReadCount; i++)
+					_ = symbiant.GrowthState;
+				var growthStateCapacityAfter = symbiant.DebugCapacityEvaluationCount;
+				var growthStateRoomScansAfter = symbiant.DebugRoomCellScanCount;
+
+				var feedCapacityBefore = symbiant.DebugCapacityEvaluationCount;
+				var feedExactAuditsBefore = symbiant.DebugExactCapacityAuditCount;
+				var feedRoomScansBefore = symbiant.DebugRoomCellScanCount;
+				const int repeatedFeedAcceptanceReads = 64;
+				var feedAcceptanceResults = Enumerable.Range(0, repeatedFeedAcceptanceReads)
+					.Select(_ => symbiant.CanAcceptFeed(freshAnimalCorpses[0]))
+					.ToArray();
+				var feedCapacityAfter = symbiant.DebugCapacityEvaluationCount;
+				var feedExactAuditsAfter = symbiant.DebugExactCapacityAuditCount;
+				var feedRoomScansAfter = symbiant.DebugRoomCellScanCount;
+				placementPerformance = new
+				{
+					success = growthStateCapacityAfter == growthStateCapacityBefore
+						&& growthStateRoomScansAfter == growthStateRoomScansBefore
+						&& feedAcceptanceResults.All(result => result)
+						&& feedCapacityAfter - feedCapacityBefore == 1
+						&& feedExactAuditsAfter == feedExactAuditsBefore
+						&& feedRoomScansAfter > feedRoomScansBefore,
+					growthStateReadCount,
+					growthStateCapacityDelta = growthStateCapacityAfter - growthStateCapacityBefore,
+					growthStateRoomScanDelta = growthStateRoomScansAfter - growthStateRoomScansBefore,
+					repeatedFeedAcceptanceReads,
+					feedCapacityEvaluationDelta = feedCapacityAfter - feedCapacityBefore,
+					feedExactAuditDelta = feedExactAuditsAfter - feedExactAuditsBefore,
+					feedRoomCellScanDelta = feedRoomScansAfter - feedRoomScansBefore
+				};
 				fixture.host.jobs?.EndCurrentJob(JobCondition.InterruptForced);
 				string FeedLabel(Corpse corpse)
 				{
@@ -737,6 +773,7 @@ namespace ZombieLand
 				&& ScenarioSucceeded(floatMenuRoute)
 				&& ScenarioSucceeded(humanCorpseFeed)
 				&& ScenarioSucceeded(animalCorpseFeed)
+				&& ScenarioSucceeded(placementPerformance)
 				&& (activeAfterCleanup == null || cleanup == false);
 
 			return new
@@ -749,6 +786,7 @@ namespace ZombieLand
 				floatMenuRoute,
 				humanCorpseFeed,
 				animalCorpseFeed,
+				placementPerformance,
 				cleanup = new
 				{
 					symbiant = cleanupSymbiant,
@@ -6196,7 +6234,172 @@ namespace ZombieLand
 			return symbiant.CellCount - 1;
 		}
 
-		[Tool("zombieland/symbiant_expansion_contract", Description = "Build a reversible two-room fixture and verify open-cell spread, closed-door occupancy, individual roof gating, direct founding of an eligible neighboring room, and divider-wall preservation after both room patches are full.")]
+		static object RunSymbiantExteriorWallBreachProbe(Map map)
+		{
+			SymbiantExpansionFixture fixture = null;
+			ZombieSymbiant symbiant = null;
+			object action = null;
+			object error = null;
+			object symbiantCleanup = null;
+			object fixtureCleanup = null;
+			try
+			{
+				if (TrySetupSymbiantExpansionFixture(map, out fixture, out var fixtureError) == false)
+					return fixtureError;
+
+				fixture.door.Destroy(DestroyMode.Vanish);
+				var sealedDoorWall = ThingMaker.MakeThing(ThingDefOf.Wall, ThingDefOf.WoodLog) as Building;
+				if (sealedDoorWall == null)
+					return new { success = false, error = "Could not create the exterior-wall breach fixture's sealing wall." };
+				GenSpawn.Spawn(sealedDoorWall, fixture.doorCell, map, WipeMode.Vanish);
+				sealedDoorWall.SetFaction(Faction.OfPlayer);
+				fixture.buildings.Add(sealedDoorWall);
+				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+
+				ZombieSymbiant.Spawn(map, fixture.spawnCell);
+				symbiant = ZombieSymbiant.ActiveSymbiant(map);
+				if (symbiant == null)
+					return new { success = false, error = "Could not spawn the exterior-wall breach probe Symbiant." };
+				var filledCells = ZombieSymbiant.AddCells(map, fixture.leftInterior.Cells.Concat(fixture.rightInterior.Cells));
+				var allIndoorFloorsFilled = fixture.leftInterior.Cells.Concat(fixture.rightInterior.Cells).All(symbiant.ContainsCell);
+				var rollbackWallsBefore = fixture.fixtureRect.Cells
+					.Select(cell => cell.GetEdifice(map) as Building)
+					.Where(building => building?.def?.IsWall == true && building.Destroyed == false)
+					.Distinct()
+					.Select(building => new
+					{
+						building,
+						id = ZombieRuntimeActions.StableThingId(building),
+						cell = building.Position,
+						hitPoints = building.HitPoints,
+						building.def,
+						building.Stuff,
+						building.Faction
+					})
+					.ToArray();
+				var cellCountBeforeRollbackProbe = symbiant.CellCount;
+				var rollbackCell = symbiant.DebugForceExteriorWallCommitRollback();
+				var rolledBackOriginal = rollbackWallsBefore.FirstOrDefault(snapshot => snapshot.cell == rollbackCell);
+				var restoredWall = rollbackCell.IsValid ? rollbackCell.GetEdifice(map) as Building : null;
+				var cellCountAfterRollbackProbe = symbiant.CellCount;
+				var authorizationAfterRollbackProbe = symbiant.ExteriorOverflowAuthorized;
+				if (restoredWall != null && fixture.buildings.Contains(restoredWall) == false)
+					fixture.buildings.Add(restoredWall);
+				var failedCommitRolledBack = rollbackCell.IsValid
+					&& rolledBackOriginal != null
+					&& rolledBackOriginal.building.Destroyed
+					&& restoredWall != null
+					&& restoredWall.Destroyed == false
+					&& restoredWall.def == rolledBackOriginal.def
+					&& restoredWall.Stuff == rolledBackOriginal.Stuff
+					&& restoredWall.Faction == rolledBackOriginal.Faction
+					&& restoredWall.HitPoints == rolledBackOriginal.hitPoints
+					&& symbiant.ContainsCell(rollbackCell) == false
+					&& cellCountAfterRollbackProbe == cellCountBeforeRollbackProbe
+					&& authorizationAfterRollbackProbe == false
+					&& rollbackWallsBefore.Where(snapshot => snapshot.cell != rollbackCell).All(snapshot =>
+						snapshot.building.Destroyed == false && snapshot.building.HitPoints == snapshot.hitPoints);
+				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+
+				var wallSnapshots = fixture.fixtureRect.Cells
+					.Select(cell => cell.GetEdifice(map) as Building)
+					.Where(building => building?.def?.IsWall == true && building.Destroyed == false)
+					.Distinct()
+					.Select(building => new
+					{
+						building,
+						id = ZombieRuntimeActions.StableThingId(building),
+						cell = building.Position,
+						hitPoints = building.HitPoints
+					})
+					.ToArray();
+				var dividerSnapshots = fixture.dividerWalls
+					.Where(wall => wall != null && wall.Destroyed == false)
+					.Select(wall => new { wall, id = ZombieRuntimeActions.StableThingId(wall), hitPoints = wall.HitPoints })
+					.ToArray();
+
+				var beforeFirst = symbiant.AbsoluteCells.ToHashSet();
+				var firstPulse = symbiant.TryExpansionPulse();
+				var firstNewCells = symbiant.AbsoluteCells.Where(cell => beforeFirst.Contains(cell) == false).ToArray();
+				var destroyedAfterFirst = wallSnapshots.Where(snapshot => snapshot.building.Destroyed).ToArray();
+				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+				var firstCellClassAfterRebuild = firstNewCells.Length == 1
+					? ZombieSymbiant.ClassifySymbiantCell(map, firstNewCells[0])
+					: ZombieSymbiant.SymbiantCellClass.InvalidBlocked;
+				var overflowAuthorizedAfterFirst = symbiant.ExteriorOverflowAuthorized;
+
+				var beforeSecond = symbiant.AbsoluteCells.ToHashSet();
+				var secondPulse = symbiant.TryExpansionPulse();
+				var secondNewCells = symbiant.AbsoluteCells.Where(cell => beforeSecond.Contains(cell) == false).ToArray();
+				var destroyedAfterSecond = wallSnapshots.Where(snapshot => snapshot.building.Destroyed).ToArray();
+				var dividerWallsPreserved = dividerSnapshots.All(snapshot =>
+					snapshot.wall.Destroyed == false
+					&& ZombieRuntimeActions.StableThingId(snapshot.wall) == snapshot.id
+					&& snapshot.wall.HitPoints == snapshot.hitPoints);
+				var firstCellMatchesBreach = firstNewCells.Length == 1
+					&& destroyedAfterFirst.Length == 1
+					&& firstNewCells[0] == destroyedAfterFirst[0].cell;
+				var secondCellExteriorAndConnected = secondNewCells.Length == 1
+					&& ZombieSymbiant.ClassifySymbiantCell(map, secondNewCells[0]) == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
+					&& GenAdj.CardinalDirections.Any(direction => beforeSecond.Contains(secondNewCells[0] + direction));
+				action = new
+				{
+					success = filledCells > 0
+						&& allIndoorFloorsFilled
+						&& failedCommitRolledBack
+						&& firstPulse
+						&& firstCellMatchesBreach
+						&& firstCellClassAfterRebuild == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
+						&& overflowAuthorizedAfterFirst
+						&& secondPulse
+						&& secondCellExteriorAndConnected
+						&& destroyedAfterSecond.Length == 1
+						&& destroyedAfterSecond[0].id == destroyedAfterFirst[0].id
+						&& dividerWallsPreserved,
+					filledCells,
+					allIndoorFloorsFilled,
+					failureInjection = new
+					{
+						cell = rollbackCell.IsValid ? ZombieRuntimeActions.DescribeCell(rollbackCell) : null,
+						failedCommitRolledBack,
+						cellCountBefore = cellCountBeforeRollbackProbe,
+						cellCountAfter = cellCountAfterRollbackProbe,
+						authorizationAfter = authorizationAfterRollbackProbe,
+						restoredWall = ZombieRuntimeActions.StableThingId(restoredWall)
+					},
+					firstPulse,
+					firstNewCells = firstNewCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					firstCellClassAfterRebuild = firstCellClassAfterRebuild.ToString(),
+					breachedWallsAfterFirst = destroyedAfterFirst.Select(snapshot => new { snapshot.id, cell = ZombieRuntimeActions.DescribeCell(snapshot.cell) }).ToArray(),
+					overflowAuthorizedAfterFirst,
+					secondPulse,
+					secondNewCells = secondNewCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					breachedWallsAfterSecond = destroyedAfterSecond.Select(snapshot => new { snapshot.id, cell = ZombieRuntimeActions.DescribeCell(snapshot.cell) }).ToArray(),
+					secondCellExteriorAndConnected,
+					dividerWallsPreserved
+				};
+			}
+			catch (Exception ex)
+			{
+				error = ex.ToString();
+			}
+			finally
+			{
+				symbiantCleanup = CleanupTemporarySymbiant(map, symbiant, true);
+				fixtureCleanup = CleanupSymbiantExpansionFixture(map, fixture, true);
+			}
+
+			var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
+			return new
+			{
+				success = error == null && ScenarioSucceeded(action) && activeAfterCleanup == null,
+				error,
+				action,
+				cleanup = new { symbiant = symbiantCleanup, fixture = fixtureCleanup, activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup) }
+			};
+		}
+
+		[Tool("zombieland/symbiant_expansion_contract", Description = "Build reversible room fixtures and verify indoor spread, roof/door gating, direct room founding, divider preservation, open-door overflow, one-wall exterior breaching, rollback after a forced failed commit, and no second breach.")]
 		public static object SymbiantExpansionContract(
 			[ToolParameter(Description = "Destroy the temporary symbiant and two-room fixture after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -6241,6 +6444,10 @@ namespace ZombieLand
 
 				var leftFillAdded = ZombieSymbiant.AddCells(map, fixture.leftInterior.Cells);
 				var doorBeforeDestroyed = fixture.door.Destroyed;
+				var topologyCapacityBefore = symbiant?.DebugCapacityEvaluationCount ?? 0;
+				var topologyRoomScansBefore = symbiant?.DebugRoomCellScanCount ?? 0;
+				var topologyInvalidationsBefore = symbiant?.DebugTopologyInvalidationCount ?? 0;
+				var topologySettledBefore = symbiant?.DebugTopologySettledCount ?? 0;
 				map.roofGrid.SetRoof(fixture.doorCell, null);
 				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
 				var unroofedDoorRoofed = fixture.doorCell.Roofed(map);
@@ -6249,6 +6456,24 @@ namespace ZombieLand
 				map.roofGrid.SetRoof(fixture.doorCell, RoofDefOf.RoofConstructed);
 				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
 				var doorRoofRestored = fixture.doorCell.Roofed(map);
+				var topologyCapacityAfter = symbiant?.DebugCapacityEvaluationCount ?? 0;
+				var topologyRoomScansAfter = symbiant?.DebugRoomCellScanCount ?? 0;
+				var topologyInvalidationsAfter = symbiant?.DebugTopologyInvalidationCount ?? 0;
+				var topologySettledAfter = symbiant?.DebugTopologySettledCount ?? 0;
+				var topologyCallbacksCoalesced = symbiant?.DebugRoomCellMigrationRescanPending == true;
+				var topologyEventPerformance = new
+				{
+					success = topologyCapacityAfter == topologyCapacityBefore
+						&& topologyRoomScansAfter == topologyRoomScansBefore
+						&& topologyInvalidationsAfter > topologyInvalidationsBefore
+						&& topologySettledAfter > topologySettledBefore
+						&& topologyCallbacksCoalesced,
+					capacityEvaluationDelta = topologyCapacityAfter - topologyCapacityBefore,
+					roomCellScanDelta = topologyRoomScansAfter - topologyRoomScansBefore,
+					topologyInvalidationDelta = topologyInvalidationsAfter - topologyInvalidationsBefore,
+					topologySettledDelta = topologySettledAfter - topologySettledBefore,
+					oneLazyMigrationRescanPending = topologyCallbacksCoalesced
+				};
 				var doorAdded = ZombieSymbiant.AddCells(map, new[] { fixture.doorCell });
 				var doorOccupied = symbiant?.ContainsCell(fixture.doorCell) == true;
 				var doorAfterDestroyed = fixture.door.Destroyed;
@@ -6283,7 +6508,62 @@ namespace ZombieLand
 				var dividerWallsPreserved = fixture.dividerWalls.All(wall => wall.Destroyed == false);
 				var nonWallEdificeAfterDestroyed = fixture.nonWallEdifice?.Destroyed ?? true;
 				var rightFillAdded = ZombieSymbiant.AddCells(map, fixture.rightInterior.Cells);
+				var perimeterWalls = fixture.buildings
+					.Where(building => building?.def?.IsWall == true)
+					.Select(building => new
+					{
+						building,
+						id = ZombieRuntimeActions.StableThingId(building),
+						hitPoints = building.HitPoints
+					})
+					.ToArray();
+				var cellsBeforeOverflow = symbiant?.AbsoluteCells.ToHashSet() ?? [];
+				var hostEffectCellsBeforeOverflow = symbiant?.HostEffectCellCount ?? 0;
+				var sharedHealthMaxBeforeOverflow = symbiant?.DamageAbsorptionBufferMax ?? 0;
+				var hostBenefitsBeforeOverflow = symbiant?.HostBenefitCount ?? 0;
 				var postFillPulse = symbiant?.TryExpansionPulse() == true;
+				var postFillNewCells = symbiant?.AbsoluteCells.Where(cell => cellsBeforeOverflow.Contains(cell) == false).ToArray() ?? [];
+				var overflowCell = postFillNewCells.Length == 1 ? postFillNewCells[0] : IntVec3.Invalid;
+				var overflowCellClass = overflowCell.IsValid ? ZombieSymbiant.ClassifySymbiantCell(map, overflowCell) : ZombieSymbiant.SymbiantCellClass.InvalidBlocked;
+				var overflowUsedOpenDoorRoute = overflowCell.IsValid && fixture.fixtureRect.Contains(overflowCell) == false;
+				var perimeterWallsPreservedAfterOverflow = perimeterWalls.All(snapshot =>
+					snapshot.building.Destroyed == false
+					&& snapshot.building.HitPoints == snapshot.hitPoints
+					&& ZombieRuntimeActions.StableThingId(snapshot.building) == snapshot.id);
+				var hostEffectCellsAfterOverflow = symbiant?.HostEffectCellCount ?? 0;
+				var sharedHealthMaxAfterOverflow = symbiant?.DamageAbsorptionBufferMax ?? 0;
+				var hostBenefitsAfterOverflow = symbiant?.HostBenefitCount ?? 0;
+				var overflowAuthorizedAfterAdd = symbiant?.ExteriorOverflowAuthorized == true;
+
+				var returnVacancy = symbiant == null
+					? IntVec3.Invalid
+					: fixture.rightInterior.Cells
+						.Where(cell =>
+							symbiant.ContainsCell(cell)
+							&& cell != symbiant.Position
+							&& cell != symbiant.SelectionCoreCell)
+						.DefaultIfEmpty(IntVec3.Invalid)
+						.First();
+				var removedReturnVacancy = symbiant != null
+					&& returnVacancy.IsValid
+					&& removeRelativeCell != null
+					&& (bool)removeRelativeCell.Invoke(symbiant, new object[] { returnVacancy - symbiant.Position, false });
+				if (removedReturnVacancy)
+				{
+					AccessTools.Method(typeof(ZombieSymbiant), "UpdateAll")?.Invoke(symbiant, Array.Empty<object>());
+					AccessTools.Method(typeof(ZombieSymbiant), "UpdateSymbiosisState")?.Invoke(symbiant, new object[] { true });
+				}
+				var cellCountBeforeContainedGrowthProbe = symbiant?.CellCount ?? 0;
+				var exteriorCellsBeforeReturn = symbiant?.AbsoluteCells.Count(cell =>
+					ZombieSymbiant.ClassifySymbiantCell(map, cell) == ZombieSymbiant.SymbiantCellClass.ExteriorOpen) ?? 0;
+				var containedGrowthPulse = symbiant?.TryExpansionPulse() == true;
+				var cellCountAfterContainedGrowthProbe = symbiant?.CellCount ?? 0;
+				ForceSymbiantRelocationPulseReady(symbiant);
+				var returnRelocationPulse = InvokeSymbiantTryRelocationPulse(symbiant);
+				var exteriorCellsAfterReturn = symbiant?.AbsoluteCells.Count(cell =>
+					ZombieSymbiant.ClassifySymbiantCell(map, cell) == ZombieSymbiant.SymbiantCellClass.ExteriorOpen) ?? 0;
+				var returnVacancyOccupied = symbiant?.ContainsCell(returnVacancy) == true;
+				var overflowAuthorizationCleared = symbiant?.ExteriorOverflowAuthorized == false;
 				var dividerWallsPreservedAfterBothRoomsFilled = fixture.dividerWalls.All(wall => wall.Destroyed == false);
 
 				var newLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
@@ -6294,8 +6574,13 @@ namespace ZombieLand
 				var letterCleanup = CleanupTemporaryLetters(newLetters, cleanup);
 				var fixtureCleanup = CleanupSymbiantExpansionFixture(map, fixture, cleanup);
 				var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
+				var exteriorWallBreach = cleanup && activeAfterCleanup == null
+					? RunSymbiantExteriorWallBreachProbe(map)
+					: new { success = cleanup == false, skipped = true, reason = "The destructive wall-breach probe requires cleanup=true and no active Symbiant." };
 
 				var success = ScenarioSucceeded(spreadScoring)
+					&& ScenarioSucceeded(topologyEventPerformance)
+					&& ScenarioSucceeded(exteriorWallBreach)
 					&& spawnError == null
 					&& symbiant != null
 					&& openPulse
@@ -6326,6 +6611,23 @@ namespace ZombieLand
 					&& nonWallEdificeAcceptedAsWall == false
 					&& nonWallEdificeAfterDestroyed == false
 					&& rightFillAdded > 0
+					&& postFillPulse
+					&& postFillNewCells.Length == 1
+					&& overflowCellClass == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
+					&& overflowUsedOpenDoorRoute
+					&& overflowAuthorizedAfterAdd
+					&& perimeterWallsPreservedAfterOverflow
+					&& hostEffectCellsAfterOverflow == hostEffectCellsBeforeOverflow
+					&& sharedHealthMaxAfterOverflow == sharedHealthMaxBeforeOverflow
+					&& hostBenefitsAfterOverflow == hostBenefitsBeforeOverflow
+					&& removedReturnVacancy
+					&& exteriorCellsBeforeReturn == 1
+					&& containedGrowthPulse == false
+					&& cellCountAfterContainedGrowthProbe == cellCountBeforeContainedGrowthProbe
+					&& returnRelocationPulse
+					&& exteriorCellsAfterReturn == 0
+					&& returnVacancyOccupied
+					&& overflowAuthorizationCleared
 					&& dividerWallsPreservedAfterBothRoomsFilled
 					&& activeAfterCleanup == null;
 
@@ -6335,6 +6637,7 @@ namespace ZombieLand
 					sourcePath = "ZombieSymbiant.TryExpansionPulse -> FindExpansionTarget -> FindRoomFoundingTarget",
 					spawnError,
 					spreadScoring,
+					topologyEventPerformance,
 					fixture = fixtureDescription,
 					spawned = symbiant == null ? null : new
 					{
@@ -6386,12 +6689,41 @@ namespace ZombieLand
 						nonWallEdificeBeforeDestroyed,
 						nonWallEdificeAcceptedAsWall,
 						nonWallEdificeAfterDestroyed,
-						rightFillAdded
+						rightFillAdded,
+						overflow = new
+						{
+							pulse = postFillPulse,
+							newCells = postFillNewCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+							cellClass = overflowCellClass.ToString(),
+							usedOpenDoorRoute = overflowUsedOpenDoorRoute,
+							perimeterWallsPreserved = perimeterWallsPreservedAfterOverflow,
+							authorizedAfterAdd = overflowAuthorizedAfterAdd,
+							hostEffectCellsBefore = hostEffectCellsBeforeOverflow,
+							hostEffectCellsAfter = hostEffectCellsAfterOverflow,
+							sharedHealthMaxBefore = sharedHealthMaxBeforeOverflow,
+							sharedHealthMaxAfter = sharedHealthMaxAfterOverflow,
+							hostBenefitsBefore = hostBenefitsBeforeOverflow,
+							hostBenefitsAfter = hostBenefitsAfterOverflow
+						},
+						returnToIndoor = new
+						{
+							vacancy = returnVacancy.IsValid ? ZombieRuntimeActions.DescribeCell(returnVacancy) : null,
+							removedReturnVacancy,
+							exteriorCellsBeforeReturn,
+							containedGrowthPulse,
+							cellCountBeforeContainedGrowthProbe,
+							cellCountAfterContainedGrowthProbe,
+							returnRelocationPulse,
+							exteriorCellsAfterReturn,
+							returnVacancyOccupied,
+							overflowAuthorizationCleared
+						}
 					},
 					letters,
 					cleanup = cleanupResult,
 					letterCleanup,
 					fixtureCleanup,
+					exteriorWallBreach,
 					activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
 				};
 				completed = true;
@@ -6683,10 +7015,14 @@ namespace ZombieLand
 				foreach (var cell in firstFixture.leftInterior.Cells)
 					map.roofGrid.SetRoof(cell, null);
 				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
-				var migrationDiscoveryRearmedAfterRoomChange = symbiant.DebugRoomCellMigrationInitialized == false
-					&& symbiant.DebugRoomCellMigrationRescanPending == false;
+				var migrationDiscoveryRearmedAfterRoomChange = symbiant.DebugRoomCellMigrationRescanPending;
 				IntVec3[] InvalidCells() => symbiant.AbsoluteCells
-					.Where(cell => ZombieSymbiant.DebugIsValidSymbiantCell(map, cell) == false)
+					.Where(cell =>
+					{
+						var classification = ZombieSymbiant.ClassifySymbiantCell(map, cell);
+						return classification != ZombieSymbiant.SymbiantCellClass.IndoorFloor
+							&& classification != ZombieSymbiant.SymbiantCellClass.Door;
+					})
 					.ToArray();
 				var invalidBefore = InvalidCells();
 				var totalCellsBeforeRelocation = symbiant.CellCount;
@@ -6751,8 +7087,7 @@ namespace ZombieLand
 					mergedRoomFixture,
 					building => building == mergedRoomFixture.roomConnector || mergedRoomFixture.dividerWalls.Contains(building)
 				);
-				var mergedRoomDiscoveryRearmed = symbiant.DebugRoomCellMigrationInitialized == false
-					&& symbiant.DebugRoomCellMigrationRescanPending == false;
+				var mergedRoomDiscoveryRearmed = symbiant.DebugRoomCellMigrationRescanPending;
 				var mergedRoom = mergedRoomFixture.leftInterior.CenterCell.GetRoom(map);
 				var roomsMerged = mergedRoom != null && mergedRoom == mergedRoomFixture.rightInterior.CenterCell.GetRoom(map);
 				var mergedRoomComponentsBeforeBridge = mergedRoom == null ? 0 : symbiant.DebugRoomComponentCount(mergedRoom);
@@ -6814,7 +7149,7 @@ namespace ZombieLand
 					&& componentsAfterRemote >= 2
 					&& renderPatchesAfterRemote >= 2
 					&& maxRoomComponentsAfterRemote == 1
-					&& originalBodyTargetable
+					&& originalBodyTargetable == false
 					&& remoteBodyTargetable
 					&& remoteInCombatGeometry
 					&& remoteInCombatBoundary
@@ -7271,22 +7606,28 @@ namespace ZombieLand
 			}
 		}
 
-		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify uprooted relocation, relocation grace, movable outdoor-cell reuse, and no-room dormancy.")]
+		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify immediate indoor return when capacity exists, no-room grace and dormancy, movable outdoor-cell reuse, and atomic construction repair over root and non-root Symbiant cells.")]
 		public static object SymbiantRelocationContract(
-			[ToolParameter(Description = "Destroy temporary symbiants, colonists, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
+			[ToolParameter(Description = "Destroy temporary symbiants, colonists, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true,
+			[ToolParameter(Description = "Run only the canonical-root construction/recovery subscenario for a focused regression check.", Required = false, DefaultValue = false)] bool constructionRootOnly = false,
+			[ToolParameter(Description = "Run only the exposed one-cell root returning to an available indoor room subscenario.", Required = false, DefaultValue = false)] bool availableRoomRootOnly = false)
 		{
 			var map = CurrentMap;
 			if (map == null)
 				return new { success = false, error = "No current map is loaded." };
+			if (constructionRootOnly && availableRoomRootOnly)
+				return new { success = false, error = "Choose only one focused relocation-contract mode." };
 			var activeBefore = ZombieSymbiant.ActiveSymbiant(map);
 			if (activeBefore != null)
 				return new { success = false, error = "An active symbiant already exists on the current map.", activeSymbiant = ZombieRuntimeActions.StableThingId(activeBefore) };
 
 			var settingsSnapshot = SnapshotZombieSettings();
 			var beforeLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>()).ToHashSet();
-			object graceAndReseed = null;
+			object availableRoomRootRelocation = null;
 			object movableCellReuse = null;
 			object noRoomDormancy = null;
+			object constructionNonRootBatch = null;
+			object constructionRoot = null;
 			object error = null;
 
 			try
@@ -7297,9 +7638,18 @@ namespace ZombieLand
 					settings.symbiantMaxCells = 80;
 				});
 
-				graceAndReseed = RunSymbiantGraceAndReseedScenario(map, cleanup);
-				movableCellReuse = RunSymbiantMovableCellReuseScenario(map, cleanup);
-				noRoomDormancy = RunSymbiantNoRoomDormancyScenario(map, cleanup);
+				if (constructionRootOnly)
+					constructionRoot = RunSymbiantConstructionOverlapScenario(map, cleanup, true);
+				else if (availableRoomRootOnly)
+					availableRoomRootRelocation = RunSymbiantAvailableRoomRootRelocationScenario(map, cleanup);
+				else
+				{
+					availableRoomRootRelocation = RunSymbiantAvailableRoomRootRelocationScenario(map, cleanup);
+					movableCellReuse = RunSymbiantMovableCellReuseScenario(map, cleanup);
+					noRoomDormancy = RunSymbiantNoRoomDormancyScenario(map, cleanup);
+					constructionNonRootBatch = RunSymbiantConstructionOverlapScenario(map, cleanup, false);
+					constructionRoot = RunSymbiantConstructionOverlapScenario(map, cleanup, true);
+				}
 			}
 			catch (Exception ex)
 			{
@@ -7316,9 +7666,15 @@ namespace ZombieLand
 			var letterCleanup = CleanupTemporaryLetters(newLetters, cleanup);
 			var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
 			var success = error == null
-				&& ScenarioSucceeded(graceAndReseed)
-				&& ScenarioSucceeded(movableCellReuse)
-				&& ScenarioSucceeded(noRoomDormancy)
+				&& (constructionRootOnly
+					? ScenarioSucceeded(constructionRoot)
+					: availableRoomRootOnly
+						? ScenarioSucceeded(availableRoomRootRelocation)
+						: ScenarioSucceeded(availableRoomRootRelocation)
+						&& ScenarioSucceeded(movableCellReuse)
+						&& ScenarioSucceeded(noRoomDormancy)
+						&& ScenarioSucceeded(constructionNonRootBatch)
+						&& ScenarioSucceeded(constructionRoot))
 				&& (activeAfterCleanup == null || cleanup == false);
 
 			return new
@@ -7326,9 +7682,13 @@ namespace ZombieLand
 				success,
 				sourcePath = "ZombieSymbiant.TryReseedIfUprooted/TryRelocationPulse/FindExpansionTarget",
 				error,
-				graceAndReseed,
+				availableRoomRootRelocation,
 				movableCellReuse,
 				noRoomDormancy,
+				constructionNonRootBatch,
+				constructionRoot,
+				constructionRootOnly,
+				availableRoomRootOnly,
 				cleanup = new
 				{
 					letters = letterCleanup,
@@ -7337,7 +7697,7 @@ namespace ZombieLand
 			};
 		}
 
-		static object RunSymbiantGraceAndReseedScenario(Map map, bool cleanup)
+		static object RunSymbiantAvailableRoomRootRelocationScenario(Map map, bool cleanup)
 		{
 			SymbiantExpansionFixture fixture = null;
 			ZombieSymbiant symbiant = null;
@@ -7351,51 +7711,47 @@ namespace ZombieLand
 				host = SpawnSymbiantRelocationHost(map, fixture.rightInterior.CenterCell);
 				symbiant = SpawnAssignedSymbiantForRelocationContract(map, fixture.spawnCell, host);
 				var initial = DescribeSymbiantRelocationState(symbiant, host);
-				var addedCells = ZombieSymbiant.AddCells(map, fixture.leftInterior.Cells.Where(cell => cell.InBounds(map) && cell.Standable(map)));
 				var beforeOpen = DescribeSymbiantRelocationState(symbiant, host);
+				var removedLeftRoomRoofCells = ClearSymbiantFixtureRoof(map, fixture.leftInterior);
 				var openedBuildings = DestroyFixtureBuildings(map, fixture, building => IsAdjacentToRect(building.Position, fixture.leftInterior) && fixture.dividerWalls.Contains(building) == false);
 				var afterOpen = DescribeSymbiantRelocationState(symbiant, host);
-				var positionBeforeGrace = symbiant.Position;
-				var beforeGraceReseed = InvokeSymbiantTryReseedIfUprooted(symbiant);
-				var positionAfterGraceProbe = symbiant.Position;
-				var afterGraceProbe = DescribeSymbiantRelocationState(symbiant, host);
-				ExpireSymbiantUprootedGrace(symbiant);
-				var restoredRightRoomRoofCells = RestoreSymbiantFixtureRoof(map, fixture.rightInterior);
-				var rightRoomAfterGrace = fixture.rightInterior.CenterCell.GetRoom(map);
-				var afterGraceReseed = InvokeSymbiantTryReseedIfUprooted(symbiant);
-				var activeAfterReseed = ZombieSymbiant.ActiveSymbiant(map) ?? symbiant;
-				var afterReseed = DescribeSymbiantRelocationState(activeAfterReseed, host);
-				var reseededIntoRightRoom = activeAfterReseed?.Spawned == true && fixture.rightInterior.Contains(activeAfterReseed.Position);
-				var success = addedCells > 0
+				var originalCell = symbiant.Position;
+				var cellCountBefore = symbiant.CellCount;
+				var reseedProbe = InvokeSymbiantTryReseedIfUprooted(symbiant);
+				var afterReseedProbe = DescribeSymbiantRelocationState(symbiant, host);
+				ForceSymbiantRelocationPulseReady(symbiant);
+				var relocationPulse = InvokeSymbiantTryRelocationPulse(symbiant);
+				var afterRelocation = DescribeSymbiantRelocationState(symbiant, host);
+				var relocatedIntoRightRoom = symbiant.Spawned && fixture.rightInterior.Contains(symbiant.Position);
+				var success = removedLeftRoomRoofCells > 0
 					&& openedBuildings > 0
-					&& beforeGraceReseed == false
-					&& positionAfterGraceProbe == positionBeforeGrace
-					&& rightRoomAfterGrace?.ProperRoom == true
-					&& rightRoomAfterGrace.UsesOutdoorTemperature == false
-					&& afterGraceReseed
-					&& reseededIntoRightRoom
-					&& activeAfterReseed.CellCount == 1
-					&& activeAfterReseed.RelocationCellDebt > 0
-					&& activeAfterReseed.LinkedHost == host;
-				symbiant = activeAfterReseed;
+					&& cellCountBefore == 1
+					&& reseedProbe == false
+					&& symbiant.UprootedSinceTick < 0
+					&& relocationPulse
+					&& relocatedIntoRightRoom
+					&& symbiant.Position != originalCell
+					&& symbiant.ContainsCell(originalCell) == false
+					&& symbiant.CellCount == cellCountBefore
+					&& symbiant.RelocationCellDebt == 0
+					&& symbiant.LinkedHost == host;
 				return new
 				{
 					success,
 					fixtureSetup,
 					host = DescribeRelocationHost(host),
 					initial,
-					addedCells,
 					beforeOpen,
+					removedLeftRoomRoofCells,
 					openedBuildings,
 					afterOpen,
-					beforeGraceReseed,
-					graceKeptOriginalPosition = positionAfterGraceProbe == positionBeforeGrace,
-					afterGraceProbe,
-					restoredRightRoomRoofCells,
-					rightRoomAfterGrace = DescribeRoom(rightRoomAfterGrace),
-					afterGraceReseed,
-					afterReseed,
-					reseededIntoRightRoom
+					originalCell = ZombieRuntimeActions.DescribeCell(originalCell),
+					cellCountBefore,
+					reseedProbe,
+					afterReseedProbe,
+					relocationPulse,
+					afterRelocation,
+					relocatedIntoRightRoom
 				};
 			}
 			catch (Exception ex)
@@ -7423,6 +7779,7 @@ namespace ZombieLand
 				fixtureSetup = DescribeSymbiantExpansionFixture(fixture);
 				host = SpawnSymbiantRelocationHost(map, fixture.rightInterior.CenterCell);
 				symbiant = SpawnAssignedSymbiantForRelocationContract(map, fixture.rightInterior.CenterCell, host);
+				var removedLeftRoomRoofCells = ClearSymbiantFixtureRoof(map, fixture.leftInterior);
 				var openedBuildings = DestroyFixtureBuildings(map, fixture, building => IsAdjacentToRect(building.Position, fixture.leftInterior) && fixture.dividerWalls.Contains(building) == false);
 				var outdoorCell = fixture.leftInterior.CenterCell;
 				var rightCellsBefore = CountSymbiantCellsInRect(symbiant, fixture.rightInterior);
@@ -7441,7 +7798,8 @@ namespace ZombieLand
 				var targetRemembered = relocationTarget.IsValid && symbiant.DebugIsRecentMovementCell(relocationTarget);
 				var containedOutdoorAfter = symbiant.ContainsCell(outdoorCell);
 				var rightCellsAfter = CountSymbiantCellsInRect(symbiant, fixture.rightInterior);
-				var success = openedBuildings > 0
+				var success = removedLeftRoomRoofCells > 0
+					&& openedBuildings > 0
 					&& addedOutdoorCells == 1
 					&& containedOutdoorBefore
 					&& pulse
@@ -7456,6 +7814,7 @@ namespace ZombieLand
 					success,
 					fixtureSetup,
 					host = DescribeRelocationHost(host),
+					removedLeftRoomRoofCells,
 					openedBuildings,
 					outdoorCell = ZombieRuntimeActions.DescribeCell(outdoorCell),
 					addedOutdoorCells,
@@ -7499,14 +7858,25 @@ namespace ZombieLand
 				var addedCells = ZombieSymbiant.AddCells(map, fixture.leftInterior.Cells.Where(cell => cell.InBounds(map) && cell.Standable(map)));
 				var beforeOpen = DescribeSymbiantRelocationState(symbiant, host);
 				var cellCountBeforeOpen = symbiant.CellCount;
+				var removedRoofCells = ClearSymbiantFixtureRoof(map, fixture.leftInterior)
+					+ ClearSymbiantFixtureRoof(map, fixture.rightInterior);
 				var removedBuildings = DestroyFixtureBuildings(map, fixture, _ => true);
 				var afterOpen = DescribeSymbiantRelocationState(symbiant, host);
+				var topologyAfterOpen = new
+				{
+					safe = symbiant.DebugPlacementTopologySafe,
+					invalidated = symbiant.DebugRoomTopologyInvalidated,
+					anythingToRebuild = map.regionAndRoomUpdater.AnythingToRebuild,
+					migrationInitialized = symbiant.DebugRoomCellMigrationInitialized,
+					migrationRescanPending = symbiant.DebugRoomCellMigrationRescanPending
+				};
 				_ = InvokeSymbiantTryReseedIfUprooted(symbiant);
 				ExpireSymbiantUprootedGrace(symbiant);
 				var reseedAfterGrace = InvokeSymbiantTryReseedIfUprooted(symbiant);
 				var expansionPulse = symbiant.TryExpansionPulse();
 				var afterPulses = DescribeSymbiantRelocationState(symbiant, host);
 				var success = addedCells > 0
+					&& removedRoofCells > 0
 					&& removedBuildings > 0
 					&& reseedAfterGrace == false
 					&& expansionPulse == false
@@ -7519,8 +7889,10 @@ namespace ZombieLand
 					host = DescribeRelocationHost(host),
 					addedCells,
 					beforeOpen,
+					removedRoofCells,
 					removedBuildings,
 					afterOpen,
+					topologyAfterOpen,
 					reseedAfterGrace,
 					expansionPulse,
 					afterPulses
@@ -7529,6 +7901,205 @@ namespace ZombieLand
 			catch (Exception ex)
 			{
 				return new { success = false, error = ex.ToString(), fixtureSetup };
+			}
+			finally
+			{
+				_ = CleanupTemporarySymbiant(map, symbiant, cleanup);
+				_ = CleanupTemporaryPawn(host, cleanup);
+				_ = CleanupSymbiantExpansionFixture(map, fixture, cleanup);
+			}
+		}
+
+		static object RunSymbiantConstructionOverlapScenario(Map map, bool cleanup, bool coverRoot)
+		{
+			SymbiantExpansionFixture fixture = null;
+			ZombieSymbiant symbiant = null;
+			Pawn host = null;
+			object fixtureSetup = null;
+			var spawnedWalls = new List<Building>();
+			try
+			{
+				var searchRoot = coverRoot && cleanup == false
+					? new IntVec3(map.Size.x * 3 / 4, 0, map.Size.z / 4)
+					: new IntVec3(map.Size.x / 4, 0, map.Size.z * 3 / 4);
+				if (TrySetupSymbiantExpansionFixture(map, searchRoot, 44f, false, null, out fixture, out var fixtureError) == false)
+					return fixtureError;
+				fixtureSetup = DescribeSymbiantExpansionFixture(fixture);
+				host = SpawnSymbiantRelocationHost(map, fixture.rightInterior.CenterCell);
+				symbiant = SpawnAssignedSymbiantForRelocationContract(map, fixture.spawnCell, host);
+				var initialShape = GenAdj.CardinalDirections
+					.Select(direction => symbiant.Position + direction)
+					.Where(cell => fixture.leftInterior.Contains(cell) && cell.GetEdifice(map) == null)
+					.ToArray();
+				var initialCellsAdded = ZombieSymbiant.AddCells(map, initialShape);
+				_ = symbiant.DebugInitializeRoomCellMigration();
+				var rootBefore = symbiant.Position;
+				var coreBefore = symbiant.SelectionCoreCell;
+				var cellsBefore = symbiant.AbsoluteCells.ToHashSet();
+				var targets = coverRoot
+					? new[] { rootBefore }
+					: cellsBefore
+						.Where(cell => cell != rootBefore && cell != coreBefore && fixture.leftInterior.Contains(cell))
+						.OrderBy(cell => cell.x)
+						.ThenBy(cell => cell.z)
+						.Take(2)
+						.ToArray();
+				if (targets.Length != (coverRoot ? 1 : 2))
+					return new { success = false, fixtureSetup, initialCellsAdded, error = "Could not select the required covered-cell construction targets." };
+
+				var cellCountBefore = symbiant.CellCount;
+				var relocationDebtBefore = symbiant.RelocationCellDebt;
+				var repairBatchesBefore = symbiant.DebugConstructionRepairBatchCount;
+				var relocatedBefore = symbiant.DebugConstructionRelocatedCellCount;
+				var crushedBefore = symbiant.DebugConstructionCrushedCellCount;
+				var placementPlansBefore = symbiant.DebugConstructionPlacementPlanCount;
+				var placementScansBefore = symbiant.DebugConstructionPlacementCandidateScanCount;
+				foreach (var target in targets)
+				{
+					var wall = ThingMaker.MakeThing(ThingDefOf.Wall, ThingDefOf.WoodLog) as Building;
+					if (wall == null)
+						return new { success = false, fixtureSetup, error = "Could not create a construction-overlap wall." };
+					GenSpawn.Spawn(wall, target, map, WipeMode.Vanish);
+					wall.SetFaction(Faction.OfPlayer);
+					spawnedWalls.Add(wall);
+					fixture.buildings.Add(wall);
+				}
+
+				var repairPendingAfterSpawn = symbiant.Destroyed == false && symbiant.DebugConstructionRepairPending;
+				var repairCompletedSynchronously = symbiant.Destroyed == false
+					&& symbiant.DebugConstructionRepairBatchCount > repairBatchesBefore;
+				var repairScheduledOrCompletedAfterSpawn = repairPendingAfterSpawn || repairCompletedSynchronously;
+				var rootStillSpawnedAfterSpawn = symbiant.Destroyed == false && symbiant.Spawned;
+				var deferredRootRecoveryResult = coverRoot && rootStillSpawnedAfterSpawn
+					? symbiant.pather.TryRecoverFromUnwalkablePosition(false)
+					: (bool?)null;
+				var rootClassAfterSpawn = rootStillSpawnedAfterSpawn
+					? ZombieSymbiant.ClassifySymbiantCell(map, symbiant.Position)
+					: ZombieSymbiant.SymbiantCellClass.InvalidBlocked;
+				var rootRoomAfterSpawn = rootStillSpawnedAfterSpawn ? DescribeRoom(symbiant.Position.GetRoom(map)) : null;
+				var topologyAfterSpawn = new
+				{
+					safe = symbiant.DebugPlacementTopologySafe,
+					invalidated = symbiant.DebugRoomTopologyInvalidated,
+					anythingToRebuild = map.regionAndRoomUpdater.AnythingToRebuild
+				};
+				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+				var rootClassAfterRebuild = symbiant.Destroyed || symbiant.Spawned == false
+					? ZombieSymbiant.SymbiantCellClass.InvalidBlocked
+					: ZombieSymbiant.ClassifySymbiantCell(map, symbiant.Position);
+				var rootRoomAfterRebuild = symbiant.Destroyed || symbiant.Spawned == false
+					? null
+					: DescribeRoom(symbiant.Position.GetRoom(map));
+				var topologyAfterRebuild = new
+				{
+					safe = symbiant.DebugPlacementTopologySafe,
+					invalidated = symbiant.DebugRoomTopologyInvalidated,
+					anythingToRebuild = map.regionAndRoomUpdater.AnythingToRebuild
+				};
+				AdvanceGameTicks(1);
+				var active = ZombieSymbiant.ActiveSymbiant(map) ?? symbiant;
+				var cellsAfter = active.Destroyed ? new HashSet<IntVec3>() : active.AbsoluteCells.ToHashSet();
+				var addedCells = cellsAfter.Where(cell => cellsBefore.Contains(cell) == false).ToArray();
+				var untouchedCellsPreserved = cellsBefore.Except(targets).All(cellsAfter.Contains);
+				var coveredCellsRemoved = targets.All(cell => active.ContainsCell(cell) == false);
+				var wallsPreserved = spawnedWalls.All(wall => wall.Destroyed == false && wall.Map == map && wall.HitPoints > 0);
+				var repairedRootClass = active.Destroyed || active.Spawned == false
+					? ZombieSymbiant.SymbiantCellClass.InvalidBlocked
+					: ZombieSymbiant.ClassifySymbiantCell(map, active.Position);
+				var canonicalRootValid = active.Destroyed == false
+					&& active.Spawned
+					&& active.ContainsCell(active.Position)
+					&& repairedRootClass != ZombieSymbiant.SymbiantCellClass.InvalidBlocked
+					&& repairedRootClass != ZombieSymbiant.SymbiantCellClass.IndoorIneligible;
+				var noRepairMotion = targets.Concat(addedCells).All(cell => active.DebugHasActiveCellMotionAt(cell) == false);
+				var repairBatchDelta = active.DebugConstructionRepairBatchCount - repairBatchesBefore;
+				var relocatedDelta = active.DebugConstructionRelocatedCellCount - relocatedBefore;
+				var crushedDelta = active.DebugConstructionCrushedCellCount - crushedBefore;
+				var placementPlanDelta = active.DebugConstructionPlacementPlanCount - placementPlansBefore;
+				var placementScanDelta = active.DebugConstructionPlacementCandidateScanCount - placementScansBefore;
+				var fixtureBuildingsDestroyedAfterRepair = fixture.buildings
+					.Where(building => building != null && building.Destroyed)
+					.Select(building => new
+					{
+						def = building.def?.defName,
+						cell = ZombieRuntimeActions.DescribeCell(building.Position)
+					})
+					.ToArray();
+				var rootBehaviorCorrect = coverRoot ? active.Position != rootBefore : active.Position == rootBefore;
+				var success = initialCellsAdded >= 3
+					&& repairScheduledOrCompletedAfterSpawn
+					&& rootStillSpawnedAfterSpawn
+					&& (coverRoot == false || deferredRootRecoveryResult == false)
+					&& active.Destroyed == false
+					&& active.CellCount == cellCountBefore
+					&& active.RelocationCellDebt == relocationDebtBefore
+					&& addedCells.Length == targets.Length
+					&& untouchedCellsPreserved
+					&& coveredCellsRemoved
+					&& wallsPreserved
+					&& canonicalRootValid
+					&& active.SelectionCoreValid
+					&& noRepairMotion
+					&& repairBatchDelta == 1
+					&& relocatedDelta == targets.Length
+					&& crushedDelta == 0
+					&& placementPlanDelta == 1
+					&& placementScanDelta > 0
+					&& active.DebugConstructionRepairPending == false
+					&& active.LinkedHost == host
+					&& host.Dead == false
+					&& rootBehaviorCorrect;
+				symbiant = active;
+				return new
+				{
+					success,
+					coverRoot,
+					fixtureSetup,
+					initialCellsAdded,
+					rootBefore = ZombieRuntimeActions.DescribeCell(rootBefore),
+					rootAfter = ZombieRuntimeActions.DescribeCell(active.Position),
+					coreBefore = ZombieRuntimeActions.DescribeCell(coreBefore),
+					targets = targets.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					addedCells = addedCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					repairPendingAfterSpawn,
+					repairCompletedSynchronously,
+					repairScheduledOrCompletedAfterSpawn,
+					rootStillSpawnedAfterSpawn,
+					deferredRootRecoveryResult,
+					rootClassAfterSpawn = rootClassAfterSpawn.ToString(),
+					rootRoomAfterSpawn,
+					topologyAfterSpawn,
+					rootClassAfterRebuild = rootClassAfterRebuild.ToString(),
+					rootRoomAfterRebuild,
+					topologyAfterRebuild,
+					cellCountBefore,
+					cellCountAfter = active.CellCount,
+					relocationDebtBefore,
+					relocationDebtAfter = active.RelocationCellDebt,
+					untouchedCellsPreserved,
+					coveredCellsRemoved,
+					wallsPreserved,
+					canonicalRootValid,
+					repairedRootClass = repairedRootClass.ToString(),
+					repairedRootRoofed = active.Destroyed == false && active.Spawned && active.Position.Roofed(map),
+					repairedRootRoom = active.Destroyed == false && active.Spawned ? DescribeRoom(active.Position.GetRoom(map)) : null,
+					selectionCoreValid = active.SelectionCoreValid,
+					noRepairMotion,
+					repairBatchDelta,
+					relocatedDelta,
+					crushedDelta,
+					placementPlanDelta,
+					placementScanDelta,
+					fixtureBuildingsDestroyedAfterRepair,
+					repairPendingAfter = active.DebugConstructionRepairPending,
+					rootBehaviorCorrect,
+					hostAlive = host.Dead == false,
+					hostStillLinked = active.LinkedHost == host
+				};
+			}
+			catch (Exception ex)
+			{
+				return new { success = false, coverRoot, error = ex.ToString(), fixtureSetup };
 			}
 			finally
 			{
@@ -7611,6 +8182,18 @@ namespace ZombieLand
 				}
 			map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
 			return restored;
+		}
+
+		static int ClearSymbiantFixtureRoof(Map map, CellRect rect)
+		{
+			var removed = 0;
+			foreach (var cell in rect.Cells)
+				if (cell.Roofed(map))
+				{
+					map.roofGrid.SetRoof(cell, null);
+					removed++;
+				}
+			return removed;
 		}
 
 		static int DestroyFixtureBuildings(Map map, SymbiantExpansionFixture fixture, Func<Building, bool> predicate)
@@ -8856,7 +9439,8 @@ namespace ZombieLand
 					uprootedSinceTick = symbiant.UprootedSinceTick,
 					feedPausedUntilTick = symbiant.FeedPausedUntilTick,
 					lastRecessionPulseCells = symbiant.LastRecessionPulseCells,
-					cancelNextBreach = symbiant.CancelNextBreach,
+					exteriorOverflowAuthorized = symbiant.ExteriorOverflowAuthorized,
+					hostEffectCellCount = symbiant.HostEffectCellCount,
 					roomDisruption,
 					sampleCells = symbiant.AbsoluteCells.Take(24).Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 					shapeDiagnostics = DescribeSymbiantShapeDiagnostics(map, symbiant),
@@ -8947,147 +9531,7 @@ namespace ZombieLand
 
 		static object DescribeSymbiantGrowthDiagnostics(Map map, ZombieSymbiant symbiant)
 		{
-			if (map == null || symbiant == null)
-				return null;
-
-			var occupied = symbiant.AbsoluteCells.ToHashSet();
-			var candidates = new List<object>();
-			var openTargets = 0;
-			var wallTargets = 0;
-			foreach (var from in occupied)
-			{
-				for (var i = 0; i < 4; i++)
-				{
-					var direction = GenAdj.CardinalDirections[i];
-					var cell = from + direction;
-					if (cell.InBounds(map) == false || occupied.Contains(cell))
-						continue;
-
-					var validOpenOrDoor = IsValidSymbiantCellForDiagnostics(map, cell);
-					if (validOpenOrDoor)
-						openTargets++;
-
-					var wall = BreakableConstructedWallForDiagnostics(map, cell);
-					var beyond = cell + direction;
-					var beyondValid = beyond.InBounds(map)
-						&& occupied.Contains(beyond) == false
-						&& IsValidSymbiantCellForDiagnostics(map, beyond);
-					var breachDestination = IntVec3.Invalid;
-					var breachWallDepth = 0;
-					var breachLeadsToValidCell = wall != null && TryFindConstructedWallBreachDestinationForDiagnostics(map, symbiant, cell, direction, out breachDestination, out breachWallDepth);
-					if (breachLeadsToValidCell)
-						wallTargets++;
-
-					candidates.Add(new
-					{
-						from = ZombieRuntimeActions.DescribeCell(from),
-						direction = direction.ToString(),
-						cell = ZombieRuntimeActions.DescribeCell(cell),
-						containsCell = symbiant.ContainsCell(cell),
-						walkable = cell.Walkable(map),
-						fogged = cell.Fogged(map),
-						roof = cell.GetRoof(map)?.defName,
-						openCell = CanOccupyOpenCellForDiagnostics(map, cell),
-						doorCell = IsDoorCellForDiagnostics(map, cell),
-						validOpenOrDoor,
-						room = DescribeRoomForSymbiantGrowth(map, cell.GetRoom(map)),
-						edifice = DescribeGrowthEdifice(map, cell),
-						breakableWall = wall != null,
-						beyond = beyond.InBounds(map) ? ZombieRuntimeActions.DescribeCell(beyond) : null,
-						beyondValid,
-						breachLeadsToValidCell,
-						breachDestination = breachDestination.IsValid ? ZombieRuntimeActions.DescribeCell(breachDestination) : null,
-						breachWallDepth,
-						beyondRoom = beyond.InBounds(map) ? DescribeRoomForSymbiantGrowth(map, beyond.GetRoom(map)) : null
-					});
-				}
-			}
-
-			var occupiedRooms = occupied
-				.Select(cell => cell.GetRoom(map))
-				.Where(room => room != null)
-				.Distinct()
-				.Select(room => DescribeRoomForSymbiantGrowth(map, room))
-				.ToArray();
-			var host = symbiant.LinkedHost;
-			return new
-			{
-				rootRoom = DescribeRoomForSymbiantGrowth(map, symbiant.Position.GetRoom(map)),
-				hostRoom = host?.Spawned == true && host.Map == map ? DescribeRoomForSymbiantGrowth(map, host.Position.GetRoom(map)) : null,
-				occupiedRooms,
-				candidateCount = candidates.Count,
-				openTargets,
-				wallTargets,
-				candidates = candidates.Take(80).ToArray()
-			};
-		}
-
-		static object DescribeRoomForSymbiantGrowth(Map map, Room room)
-		{
-			if (room == null)
-				return null;
-			var hasHomeCell = map?.areaManager?.Home != null && room.Cells.Any(cell => map.areaManager.Home[cell]);
-			return new
-			{
-				id = room.ID,
-				role = room.Role?.defName,
-				cellCount = room.CellCount,
-				openRoofCount = room.OpenRoofCount,
-				districtCount = room.DistrictCount,
-				regionCount = room.RegionCount,
-				touchesMapEdge = room.TouchesMapEdge,
-				isDoorway = room.IsDoorway,
-				fogged = room.Fogged,
-				isHuge = room.IsHuge,
-				usesOutdoorTemperature = room.UsesOutdoorTemperature,
-				properRoom = room.ProperRoom,
-				hasHomeCell,
-				eligibleIndoorRoom = IsEligibleIndoorRoomForDiagnostics(room)
-			};
-		}
-
-		static object DescribeGrowthEdifice(Map map, IntVec3 cell)
-		{
-			var edifice = cell.GetEdifice(map);
-			if (edifice == null)
-				return null;
-			return new
-			{
-				def = edifice.def?.defName,
-				label = edifice.LabelCap.ToString(),
-				thingId = ZombieRuntimeActions.StableThingId(edifice),
-				hitPoints = edifice.HitPoints,
-				faction = edifice.Faction?.def?.defName,
-				isDoor = edifice is Building_Door,
-				isWall = edifice.def?.IsWall ?? false,
-				useHitPoints = edifice.def?.useHitPoints ?? false,
-				isNaturalRock = edifice.def?.building?.isNaturalRock ?? false,
-				mineable = edifice.def?.mineable ?? false
-			};
-		}
-
-		static bool TryFindConstructedWallBreachDestinationForDiagnostics(Map map, ZombieSymbiant symbiant, IntVec3 firstWallCell, IntVec3 direction, out IntVec3 destination, out int wallDepth)
-		{
-			destination = IntVec3.Invalid;
-			wallDepth = 0;
-			var cell = firstWallCell;
-			for (var depth = 0; depth <= 4; depth++)
-			{
-				if (cell.InBounds(map) == false || symbiant.ContainsCell(cell))
-					return false;
-				if (IsValidSymbiantCellForDiagnostics(map, cell))
-				{
-					destination = cell;
-					return true;
-				}
-				if (depth == 4)
-					return false;
-				if (BreakableConstructedWallForDiagnostics(map, cell) == null)
-					return false;
-				wallDepth++;
-				cell += direction;
-			}
-			return false;
+			return map == null || symbiant == null ? null : symbiant.DebugPlacementDiagnostics();
 		}
 
 		static bool IsEligibleIndoorRoomForDiagnostics(Room room)
@@ -9130,20 +9574,6 @@ namespace ZombieLand
 				.Where(adjacent => adjacent.InBounds(map))
 				.Select(adjacent => adjacent.GetRoom(map))
 				.Any(IsEligibleIndoorRoomForDiagnostics);
-		}
-
-		static Building BreakableConstructedWallForDiagnostics(Map map, IntVec3 cell)
-		{
-			var edifice = cell.GetEdifice(map);
-			if (edifice == null || edifice is Building_Door)
-				return null;
-			if (edifice.def == null || edifice.def.IsWall == false || edifice.def.useHitPoints == false)
-				return null;
-			if (edifice.def.building.isNaturalRock || edifice.def.mineable)
-				return null;
-			if (edifice.Faction != Faction.OfPlayer)
-				return null;
-			return edifice;
 		}
 
 		static object RunSymbiantContaminationStepProbe(Map map, int x, int z)
