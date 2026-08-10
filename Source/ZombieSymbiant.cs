@@ -3645,16 +3645,6 @@ namespace ZombieLand
 				uprootedSinceTick = -1;
 				return false;
 			}
-			if (exteriorOverflowAuthorized
-				&& orderedCells.Any(relative => ClassifySymbiantCell(map, Position + relative) == SymbiantCellClass.ExteriorOpen))
-			{
-				// Topology/classification events wake relocation directly, while the slow exterior
-				// movement pulse detects relevance-only changes. Avoid a room-capacity scan on every
-				// symbiosis refresh for a legitimately outdoor full-base footprint.
-				uprootedSinceTick = -1;
-				return false;
-			}
-
 			var ticks = GenTicks.TicksGame;
 			var graceExpired = uprootedSinceTick >= 0 && ticks - uprootedSinceTick >= UprootedRelocationGraceTicks;
 			if (uprootedSinceTick >= 0 && graceExpired == false && nextRelocationPulseTick > ticks)
@@ -5417,6 +5407,11 @@ namespace ZombieLand
 			}
 			if (hasExterior)
 			{
+				if (capacity.state == IndoorCapacityState.NoRelevantRooms)
+				{
+					lastPlacementGrowthState = "dormantNoRoom";
+					return null;
+				}
 				if (capacity.state == IndoorCapacityState.PlacementAvailable)
 				{
 					nextRelocationPulseTick = GenTicks.TicksGame;

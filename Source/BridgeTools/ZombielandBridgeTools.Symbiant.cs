@@ -7761,7 +7761,7 @@ namespace ZombieLand
 			}
 		}
 
-		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify immediate indoor return when capacity exists, no-room grace and dormancy, movable outdoor-cell reuse, and atomic construction repair over root and non-root Symbiant cells.")]
+		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify immediate indoor return when capacity exists, authorized-overflow no-room grace and dormancy, movable outdoor-cell reuse, and atomic construction repair over root and non-root Symbiant cells.")]
 		public static object SymbiantRelocationContract(
 			[ToolParameter(Description = "Destroy temporary symbiants, colonists, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true,
 			[ToolParameter(Description = "Run only the canonical-root construction/recovery subscenario for a focused regression check.", Required = false, DefaultValue = false)] bool constructionRootOnly = false,
@@ -8010,7 +8010,19 @@ namespace ZombieLand
 				fixtureSetup = DescribeSymbiantExpansionFixture(fixture);
 				host = SpawnSymbiantRelocationHost(map, fixture.rightInterior.CenterCell);
 				symbiant = SpawnAssignedSymbiantForRelocationContract(map, fixture.spawnCell, host);
-				var addedCells = ZombieSymbiant.AddCells(map, fixture.leftInterior.Cells.Where(cell => cell.InBounds(map) && cell.Standable(map)));
+				var fillCells = fixture.leftInterior.Cells
+					.Concat(fixture.rightInterior.Cells)
+					.Append(fixture.doorCell)
+					.Where(cell => cell.InBounds(map) && cell.Standable(map));
+				var addedCells = ZombieSymbiant.AddCells(map, fillCells);
+				var cellsBeforeOverflow = symbiant.AbsoluteCells.ToHashSet();
+				var overflowPulse = symbiant.TryExpansionPulse();
+				var overflowCells = symbiant.AbsoluteCells.Where(cell => cellsBeforeOverflow.Contains(cell) == false).ToArray();
+				var overflowCell = overflowCells.Length == 1 ? overflowCells[0] : IntVec3.Invalid;
+				var overflowCellClass = overflowCell.IsValid
+					? ZombieSymbiant.ClassifySymbiantCell(map, overflowCell)
+					: ZombieSymbiant.SymbiantCellClass.InvalidBlocked;
+				var overflowAuthorizedBeforeOpen = symbiant.ExteriorOverflowAuthorized;
 				var beforeOpen = DescribeSymbiantRelocationState(symbiant, host);
 				var cellCountBeforeOpen = symbiant.CellCount;
 				var removedRoofCells = ClearSymbiantFixtureRoof(map, fixture.leftInterior)
@@ -8025,14 +8037,23 @@ namespace ZombieLand
 					migrationInitialized = symbiant.DebugRoomCellMigrationInitialized,
 					migrationRescanPending = symbiant.DebugRoomCellMigrationRescanPending
 				};
-				_ = InvokeSymbiantTryReseedIfUprooted(symbiant);
+				var initialReseed = InvokeSymbiantTryReseedIfUprooted(symbiant);
+				var uprootedSinceTickAfterOpen = symbiant.UprootedSinceTick;
+				var overflowAuthorizedAfterOpen = symbiant.ExteriorOverflowAuthorized;
 				ExpireSymbiantUprootedGrace(symbiant);
 				var reseedAfterGrace = InvokeSymbiantTryReseedIfUprooted(symbiant);
 				var expansionPulse = symbiant.TryExpansionPulse();
 				var afterPulses = DescribeSymbiantRelocationState(symbiant, host);
 				var success = addedCells > 0
+					&& overflowPulse
+					&& overflowCells.Length == 1
+					&& overflowCellClass == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
+					&& overflowAuthorizedBeforeOpen
 					&& removedRoofCells > 0
 					&& removedBuildings > 0
+					&& initialReseed == false
+					&& uprootedSinceTickAfterOpen >= 0
+					&& overflowAuthorizedAfterOpen
 					&& reseedAfterGrace == false
 					&& expansionPulse == false
 					&& symbiant.CellCount == cellCountBeforeOpen
@@ -8043,11 +8064,21 @@ namespace ZombieLand
 					fixtureSetup,
 					host = DescribeRelocationHost(host),
 					addedCells,
+					authorizedOverflow = new
+					{
+						pulse = overflowPulse,
+						cell = overflowCell.IsValid ? ZombieRuntimeActions.DescribeCell(overflowCell) : null,
+						cellClass = overflowCellClass.ToString(),
+						authorizedBeforeOpen = overflowAuthorizedBeforeOpen
+					},
 					beforeOpen,
 					removedRoofCells,
 					removedBuildings,
 					afterOpen,
 					topologyAfterOpen,
+					initialReseed,
+					uprootedSinceTickAfterOpen,
+					overflowAuthorizedAfterOpen,
 					reseedAfterGrace,
 					expansionPulse,
 					afterPulses
