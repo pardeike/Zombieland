@@ -4543,8 +4543,11 @@ namespace ZombieLand
 			}
 			if (IsPlacementTopologySafe(Map))
 			{
+				var migrationQueueRefreshPending = roomCellMigrationInitialized == false
+					|| roomCellMigrationRescanPending
+					|| roomCellMigrationNormalizationPending;
 				EnsureRoomCellMigrationInitialized(Map);
-				if (roomCellMigrationLookup.Count > 0 && nextMovementTick > ticks)
+				if (migrationQueueRefreshPending && roomCellMigrationLookup.Count > 0 && nextMovementTick > ticks)
 					nextMovementTick = ticks;
 			}
 			TryRecoverSharedHealth(ticks);

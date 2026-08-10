@@ -7,3 +7,4 @@
 - Symbiant cells covered by new impassable construction now relocate to usable indoor space when possible or are safely crushed while the completed building remains intact.
 - The mod description now explains how to remove RimHUD's leftover contamination row after disabling or removing Zombieland.
 - Symbiant feed choices now respect forbidden corpses and colonist allowed areas consistently while drafted or undrafted.
+- Symbiants now repair disconnected room patches at the intended movement pace instead of retrying every tick.
