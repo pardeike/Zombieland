@@ -485,6 +485,7 @@ namespace ZombieLand
 		int nextBenefitCellThreshold;
 		int benefitStepCells;
 		int feedPausedUntilTick;
+		int pendingFeedGrowthPulses;
 		int lastSymbiantTick = -1;
 		int lastRecessionPulseCells;
 		int relocationCellDebt;
@@ -568,6 +569,7 @@ namespace ZombieLand
 		internal int DebugRoomCellMigrationLookupCount => roomCellMigrationLookup.Count;
 		internal bool DebugRoomCellMigrationInitialized => roomCellMigrationInitialized;
 		internal bool DebugRoomCellMigrationRescanPending => roomCellMigrationRescanPending;
+		internal int DebugPendingFeedGrowthPulses => pendingFeedGrowthPulses;
 		internal bool DebugExteriorOverflowAuthorized => exteriorOverflowAuthorized;
 		internal IndoorCapacityState DebugLastIndoorCapacityState => lastIndoorCapacityState;
 		internal IntVec3 DebugEstablishmentAnchorCell => establishmentAnchorRelative.IsValid ? Position + establishmentAnchorRelative : IntVec3.Invalid;
@@ -4580,6 +4582,10 @@ namespace ZombieLand
 				}
 				return;
 			}
+			if (pendingFeedGrowthPulses > 0
+				&& IsPlacementTopologySafe(Map)
+				&& ApplyPendingFeedGrowthPulses() > 0)
+				return;
 			if (roomCellMigrationLookup.Count == 0
 				&& (relocationCellDebt > 0 || nextRelocationPulseTick > 0)
 				&& (nextRelocationPulseTick <= 0 || ticks >= nextRelocationPulseTick))
@@ -4592,7 +4598,7 @@ namespace ZombieLand
 				_ = TryMovePulse(false);
 				ResetMovementClock();
 			}
-			if (CanExpand() && ticks >= nextExpansionTick)
+			if (pendingFeedGrowthPulses == 0 && CanExpand() && ticks >= nextExpansionTick)
 			{
 				_ = TryExpansionPulse();
 				ResetExpansionClock();
@@ -4693,7 +4699,7 @@ namespace ZombieLand
 
 		public bool CanAcceptFeed(Thing feed)
 		{
-			if (IsValidFeed(feed) == false || FeedGrowthCells(feed) <= 0)
+			if (pendingFeedGrowthPulses > 0 || IsValidFeed(feed) == false || FeedGrowthCells(feed) <= 0)
 				return false;
 			var ticks = GenTicks.TicksGame;
 			if (lastFeedAcceptanceEvaluationTick == ticks && lastFeedAcceptanceShapeVersion == combatShapeVersion)
@@ -6199,7 +6205,15 @@ namespace ZombieLand
 			for (var i = 0; i < pulseSize; i++)
 			{
 				if (TryExpansionPulse())
+				{
 					added++;
+					var remaining = pulseSize - i - 1;
+					if (remaining > 0 && IsPlacementTopologySafe(Map) == false)
+					{
+						pendingFeedGrowthPulses += remaining;
+						break;
+					}
+				}
 			}
 			if (added <= 0)
 				return false;
@@ -6214,6 +6228,24 @@ namespace ZombieLand
 			}
 			return true;
 		}
+
+		int ApplyPendingFeedGrowthPulses()
+		{
+			var added = 0;
+			while (pendingFeedGrowthPulses > 0 && TryExpansionPulse())
+			{
+				pendingFeedGrowthPulses--;
+				added++;
+			}
+			if (added <= 0)
+				return 0;
+			lastRecessionPulseCells += added;
+			if (Spawned)
+				MoteMaker.ThrowText(DrawPos, Map, "SymbiantFedMote".Translate(added, added), 3.65f);
+			return added;
+		}
+
+		internal int DebugApplyPendingFeedGrowthPulses() => ApplyPendingFeedGrowthPulses();
 
 		static int FeedGrowthCells(Thing feed)
 		{
@@ -6750,6 +6782,7 @@ namespace ZombieLand
 			EnsureBenefitDefaults();
 			if (uprootedSinceTick < -1)
 				uprootedSinceTick = -1;
+			pendingFeedGrowthPulses = Mathf.Max(0, pendingFeedGrowthPulses);
 			relocationCellDebt = Mathf.Max(0, relocationCellDebt);
 			if (relocationCellDebt > 0 && nextRelocationPulseTick <= 0)
 				nextRelocationPulseTick = GenTicks.TicksGame + RelocationPulseIntervalTicks();
@@ -7253,6 +7286,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref nextBenefitCellThreshold, "nextBenefitCellThreshold");
 			Scribe_Values.Look(ref benefitStepCells, "benefitStepCells");
 			Scribe_Values.Look(ref feedPausedUntilTick, "feedPausedUntilTick");
+			Scribe_Values.Look(ref pendingFeedGrowthPulses, "pendingFeedGrowthPulses");
 			Scribe_Values.Look(ref lastRecessionPulseCells, "lastRecessionPulseCells");
 			Scribe_Values.Look(ref relocationCellDebt, "relocationCellDebt");
 			Scribe_Values.Look(ref nextRelocationPulseTick, "nextRelocationPulseTick");

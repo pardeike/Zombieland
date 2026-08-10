@@ -644,7 +644,7 @@ Required runtime evidence:
 - Cell-set continuity after repeated natural growth, feeding growth, debug expansion, shrink, ordinary movement plus queued repair, relocation, construction repair, overflow, save/load, and wall/door/roof edge cases.
 - Path-cost and door slowdown without health/hediff side effects.
 - Standing-on-goo work/tend speed penalties and side-effect text using the current difficulty-scaled value.
-- Feed with ordinary/fresh humanlike and non-humanlike corpses; verify route selection and growth pulse behavior.
+- Feed with ordinary/fresh humanlike and non-humanlike corpses; verify route selection, growth pulse behavior, and persistence of remaining pulses across an exterior-wall topology rebuild.
 - Linked-host benefit evidence: infection immunity is always present while linked, random benefits are awarded at the per-instance thresholds, stackable benefits stack only where intended, and benefit ordering persists in tooltips/inspect text.
 - Safe severance evidence: linked-host surgery is visible before ingredients exist, the operation cost updates through the dynamic extract count, RimWorld ingredient availability blocks execution until ingredients exist, industrial and glitterworld medicine are accepted while herbal medicine is rejected, successful surgery removes the link/hediff, and the unbound symbiant retreats.
 - Host-death and bond-termination evidence: killing the host makes the Symbiant retreat and disappear without recursive host-kill behavior, reward drops, or random splash damage. Direct Symbiant `Kill`/`Destroy`, despawn cleanup, and map lifecycle removal safely detach a living host; shared-pool exhaustion is the sole transition authorized to kill through the bond.

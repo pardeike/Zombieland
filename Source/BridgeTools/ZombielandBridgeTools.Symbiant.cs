@@ -6310,6 +6310,7 @@ namespace ZombieLand
 		{
 			SymbiantExpansionFixture fixture = null;
 			ZombieSymbiant symbiant = null;
+			Corpse feedCorpse = null;
 			object action = null;
 			object error = null;
 			object symbiantCleanup = null;
@@ -6390,43 +6391,64 @@ namespace ZombieLand
 					.Select(wall => new { wall, id = ZombieRuntimeActions.StableThingId(wall), hitPoints = wall.HitPoints })
 					.ToArray();
 
-				var beforeFirst = symbiant.AbsoluteCells.ToHashSet();
-				var firstPulse = symbiant.TryExpansionPulse();
-				var firstNewCells = symbiant.AbsoluteCells.Where(cell => beforeFirst.Contains(cell) == false).ToArray();
-				var destroyedAfterFirst = wallSnapshots.Where(snapshot => snapshot.building.Destroyed).ToArray();
+				var feedCell = fixture.leftInterior.Cells
+					.Where(cell => cell != symbiant.Position && cell.Standable(map) && cell.GetFirstPawn(map) == null)
+					.DefaultIfEmpty(IntVec3.Invalid)
+					.First();
+				object feedError = null;
+				if (feedCell.IsValid == false
+					|| TryCreateSymbiantFeedCorpse(map, feedCell, true, "ZL_SymbiantFeed_WallBreach", null, out feedCorpse, out feedError) == false)
+					return feedError ?? new { success = false, error = "Could not find a feed cell for the exterior-wall breach probe." };
+				var expectedFeedGrowth = ZombieSymbiant.FeedGrowthCellCount(feedCorpse);
+				var beforeFeed = symbiant.AbsoluteCells.ToHashSet();
+				var fed = symbiant.TryFeed(feedCorpse);
+				var immediateNewCells = symbiant.AbsoluteCells.Where(cell => beforeFeed.Contains(cell) == false).ToArray();
+				var pendingAfterFeed = symbiant.DebugPendingFeedGrowthPulses;
+				var topologyUnsafeAfterFeed = symbiant.DebugPlacementTopologySafe == false;
+				var destroyedAfterFeed = wallSnapshots.Where(snapshot => snapshot.building.Destroyed).ToArray();
 				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
-				var firstCellClassAfterRebuild = firstNewCells.Length == 1
-					? ZombieSymbiant.ClassifySymbiantCell(map, firstNewCells[0])
+				var breachCellClassAfterRebuild = immediateNewCells.Length == 1
+					? ZombieSymbiant.ClassifySymbiantCell(map, immediateNewCells[0])
 					: ZombieSymbiant.SymbiantCellClass.InvalidBlocked;
-				var overflowAuthorizedAfterFirst = symbiant.ExteriorOverflowAuthorized;
+				var overflowAuthorizedAfterFeed = symbiant.ExteriorOverflowAuthorized;
 
-				var beforeSecond = symbiant.AbsoluteCells.ToHashSet();
-				var secondPulse = symbiant.TryExpansionPulse();
-				var secondNewCells = symbiant.AbsoluteCells.Where(cell => beforeSecond.Contains(cell) == false).ToArray();
-				var destroyedAfterSecond = wallSnapshots.Where(snapshot => snapshot.building.Destroyed).ToArray();
+				var beforeDeferred = symbiant.AbsoluteCells.ToHashSet();
+				var deferredApplied = symbiant.DebugApplyPendingFeedGrowthPulses();
+				var afterDeferred = symbiant.AbsoluteCells.ToHashSet();
+				var deferredNewCells = afterDeferred.Where(cell => beforeDeferred.Contains(cell) == false).ToArray();
+				var pendingAfterDeferred = symbiant.DebugPendingFeedGrowthPulses;
+				var destroyedAfterDeferred = wallSnapshots.Where(snapshot => snapshot.building.Destroyed).ToArray();
 				var dividerWallsPreserved = dividerSnapshots.All(snapshot =>
 					snapshot.wall.Destroyed == false
 					&& ZombieRuntimeActions.StableThingId(snapshot.wall) == snapshot.id
 					&& snapshot.wall.HitPoints == snapshot.hitPoints);
-				var firstCellMatchesBreach = firstNewCells.Length == 1
-					&& destroyedAfterFirst.Length == 1
-					&& firstNewCells[0] == destroyedAfterFirst[0].cell;
-				var secondCellExteriorAndConnected = secondNewCells.Length == 1
-					&& ZombieSymbiant.ClassifySymbiantCell(map, secondNewCells[0]) == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
-					&& GenAdj.CardinalDirections.Any(direction => beforeSecond.Contains(secondNewCells[0] + direction));
+				var immediateCellMatchesBreach = immediateNewCells.Length == 1
+					&& destroyedAfterFeed.Length == 1
+					&& immediateNewCells[0] == destroyedAfterFeed[0].cell;
+				var deferredCellsExteriorAndConnected = deferredNewCells.Length == deferredApplied
+					&& deferredNewCells.All(cell =>
+						ZombieSymbiant.ClassifySymbiantCell(map, cell) == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
+						&& GenAdj.CardinalDirections.Any(direction => afterDeferred.Contains(cell + direction)));
+				var totalFeedGrowth = symbiant.CellCount - beforeFeed.Count;
 				action = new
 				{
 					success = filledCells > 0
 						&& allIndoorFloorsFilled
 						&& failedCommitRolledBack
-						&& firstPulse
-						&& firstCellMatchesBreach
-						&& firstCellClassAfterRebuild == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
-						&& overflowAuthorizedAfterFirst
-						&& secondPulse
-						&& secondCellExteriorAndConnected
-						&& destroyedAfterSecond.Length == 1
-						&& destroyedAfterSecond[0].id == destroyedAfterFirst[0].id
+						&& fed
+						&& feedCorpse.Destroyed
+						&& expectedFeedGrowth > 1
+						&& immediateCellMatchesBreach
+						&& topologyUnsafeAfterFeed
+						&& pendingAfterFeed == expectedFeedGrowth - 1
+						&& breachCellClassAfterRebuild == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
+						&& overflowAuthorizedAfterFeed
+						&& deferredApplied == expectedFeedGrowth - 1
+						&& pendingAfterDeferred == 0
+						&& totalFeedGrowth == expectedFeedGrowth
+						&& deferredCellsExteriorAndConnected
+						&& destroyedAfterDeferred.Length == 1
+						&& destroyedAfterDeferred[0].id == destroyedAfterFeed[0].id
 						&& dividerWallsPreserved,
 					filledCells,
 					allIndoorFloorsFilled,
@@ -6439,15 +6461,26 @@ namespace ZombieLand
 						authorizationAfter = authorizationAfterRollbackProbe,
 						restoredWall = ZombieRuntimeActions.StableThingId(restoredWall)
 					},
-					firstPulse,
-					firstNewCells = firstNewCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
-					firstCellClassAfterRebuild = firstCellClassAfterRebuild.ToString(),
-					breachedWallsAfterFirst = destroyedAfterFirst.Select(snapshot => new { snapshot.id, cell = ZombieRuntimeActions.DescribeCell(snapshot.cell) }).ToArray(),
-					overflowAuthorizedAfterFirst,
-					secondPulse,
-					secondNewCells = secondNewCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
-					breachedWallsAfterSecond = destroyedAfterSecond.Select(snapshot => new { snapshot.id, cell = ZombieRuntimeActions.DescribeCell(snapshot.cell) }).ToArray(),
-					secondCellExteriorAndConnected,
+					feed = new
+					{
+						fed,
+						feedDestroyed = feedCorpse.Destroyed,
+						expectedGrowth = expectedFeedGrowth,
+						immediateGrowth = immediateNewCells.Length,
+						immediateCells = immediateNewCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+						immediateCellMatchesBreach,
+						topologyUnsafeAfterFeed,
+						pendingAfterFeed,
+						breachCellClassAfterRebuild = breachCellClassAfterRebuild.ToString(),
+						overflowAuthorizedAfterFeed,
+						deferredApplied,
+						deferredCells = deferredNewCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+						pendingAfterDeferred,
+						totalGrowth = totalFeedGrowth,
+						deferredCellsExteriorAndConnected
+					},
+					breachedWallsAfterFeed = destroyedAfterFeed.Select(snapshot => new { snapshot.id, cell = ZombieRuntimeActions.DescribeCell(snapshot.cell) }).ToArray(),
+					breachedWallsAfterDeferred = destroyedAfterDeferred.Select(snapshot => new { snapshot.id, cell = ZombieRuntimeActions.DescribeCell(snapshot.cell) }).ToArray(),
 					dividerWallsPreserved
 				};
 			}
@@ -6457,6 +6490,8 @@ namespace ZombieLand
 			}
 			finally
 			{
+				if (feedCorpse != null && feedCorpse.Destroyed == false)
+					feedCorpse.Destroy(DestroyMode.Vanish);
 				symbiantCleanup = CleanupTemporarySymbiant(map, symbiant, true);
 				fixtureCleanup = CleanupSymbiantExpansionFixture(map, fixture, true);
 			}
@@ -6471,7 +6506,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_expansion_contract", Description = "Build reversible room fixtures and verify indoor spread, roof/door gating, direct room founding, divider preservation, open-door overflow, one-wall exterior breaching, rollback after a forced failed commit, and no second breach.")]
+		[Tool("zombieland/symbiant_expansion_contract", Description = "Build reversible room fixtures and verify indoor spread, roof/door gating, direct room founding, divider preservation, open-door overflow, one-wall exterior breaching, rollback after a forced failed commit, deferred multi-pulse feeding after that breach, and no second breach.")]
 		public static object SymbiantExpansionContract(
 			[ToolParameter(Description = "Destroy the temporary symbiant and two-room fixture after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{

@@ -8,3 +8,4 @@
 - The mod description now explains how to remove RimHUD's leftover contamination row after disabling or removing Zombieland.
 - Symbiant feed choices now respect forbidden corpses and colonist allowed areas consistently while drafted or undrafted.
 - Symbiants now repair disconnected room patches at the intended movement pace instead of retrying every tick.
+- Corpse feeding now preserves every growth pulse when the Symbiant must first breach an exterior wall.

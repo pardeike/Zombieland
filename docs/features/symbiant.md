@@ -147,6 +147,7 @@ Pawn disruption remains non-lethal:
 - Feeding consumes one valid organic non-Zombieland corpse and adds growth pulses. Mechanoid and other non-flesh corpses are not valid feed.
 - The float menu is available to both drafted and undrafted selected colonists and considers every spawned corpse that is unforbidden, inside that colonist's allowed area, reservable, and reachable as a player-forced order. Eligible animals of the same race and freshness share one row that targets the nearest matching corpse; human and other non-animal corpses remain individual rows. Each is a one-shot order; there is no persisted continuous-feed request and no autonomous Hauling workgiver mode, and old `feedRequested` save data is ignored.
 - Humanlike corpses add 2 cells, non-humanlike corpses add 1 cell, and fresh corpses add 1 more cell.
+- If the first pulse of a multi-cell feed breaches an exterior wall, the breach cell is added immediately and the remaining persisted pulses resume after room topology settles.
 - The bond permits surgery while the linked host has the same effective map as the Symbiant; RimWorld still requires normal physical access to the pawn before a doctor can perform the operation.
 - Surgery consumes difficulty-scaled zombie extract plus industrial-or-better medicine through RimWorld's normal ingredient availability path. Herbal medicine is below the required tier.
 - Successful surgery removes the link without host trauma; the unbound Symbiant retreats cell by cell.
