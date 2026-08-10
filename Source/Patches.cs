@@ -8038,12 +8038,13 @@ namespace ZombieLand
 				var symbiant = ZombieSymbiant.ActiveSymbiant(pawn.Map);
 				if (symbiant?.IsSelectionCoreCell(clickCell) != true)
 					return;
+				var interactionCell = clickCell;
 				// Vanilla providers evaluate ordered reachability while FloatMenuMakerMap.makingFor is set.
 				// This postfix runs after vanilla clears it, so use the same forced-order danger level explicitly.
-				if (pawn.CanReach(symbiant, PathEndMode.Touch, Danger.Deadly) == false || pawn.CanReserve(symbiant) == false)
+				if (pawn.CanReach(interactionCell, PathEndMode.OnCell, Danger.Deadly) == false || pawn.CanReserve(symbiant) == false)
 					return;
 
-				var feedOptions = SymbiantFeedOptions(pawn, symbiant).ToArray();
+				var feedOptions = SymbiantFeedOptions(pawn, symbiant, interactionCell).ToArray();
 				if (feedOptions.Length == 0)
 					return;
 				foreach (var feed in feedOptions)
@@ -8051,14 +8052,14 @@ namespace ZombieLand
 					var label = SymbiantFeedLabel(feed);
 					opts.Add(new FloatMenuOption(label, () =>
 					{
-						var job = JobMaker.MakeJob(CustomDefs.FeedZombieSymbiant, symbiant, feed);
+						var job = JobMaker.MakeJob(CustomDefs.FeedZombieSymbiant, symbiant, feed, interactionCell);
 						job.count = 1;
 						_ = pawn.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
 					}));
 				}
 			}
 
-			static IEnumerable<Thing> SymbiantFeedOptions(Pawn pawn, ZombieSymbiant symbiant)
+			static IEnumerable<Thing> SymbiantFeedOptions(Pawn pawn, ZombieSymbiant symbiant, IntVec3 interactionCell)
 			{
 				bool Valid(Thing thing)
 				{
@@ -8075,7 +8076,7 @@ namespace ZombieLand
 				var seenAnimalGroups = new HashSet<(ThingDef race, bool fresh)>();
 				foreach (var feed in pawn.Map.listerThings.ThingsInGroup(ThingRequestGroup.Corpse)
 					.Where(Valid)
-					.OrderBy(thing => thing.Position.DistanceToSquared(pawn.Position) + thing.Position.DistanceToSquared(symbiant.Position))
+					.OrderBy(thing => thing.Position.DistanceToSquared(pawn.Position) + thing.Position.DistanceToSquared(interactionCell))
 					.ThenBy(thing => thing.thingIDNumber))
 				{
 					var corpse = (Corpse)feed;

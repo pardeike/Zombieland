@@ -585,7 +585,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_feeding_contract", Description = "Verify eligible organic corpse grouping, feed work discovery, feeding pulse sizes, and growth behavior.")]
+		[Tool("zombieland/symbiant_feeding_contract", Description = "Verify organic corpse grouping, non-root visible-core job routing, feeding pulse sizes, and growth behavior.")]
 		public static object SymbiantFeedingContract(
 			[ToolParameter(Description = "Destroy temporary symbiant, host, feed corpses, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -625,13 +625,40 @@ namespace ZombieLand
 					return fixtureError;
 				fixtureSetup = DescribeSymbiantNaturalSpawnFixture(fixture);
 				symbiant = SpawnAssignedSymbiantForSeveranceContract(map, fixture);
+				var rootCell = symbiant.Position;
+				var forcedCoreCell = GenAdj.CardinalDirections
+					.Select(direction => rootCell + direction)
+					.Where(cell => fixture.room.interiorRect.Contains(cell)
+						&& cell.InBounds(map)
+						&& cell.Standable(map)
+						&& cell.GetEdifice(map) == null
+						&& cell.GetThingList(map).Any(thing => thing is Pawn) == false)
+					.OrderBy(cell => cell.x)
+					.ThenBy(cell => cell.z)
+					.DefaultIfEmpty(IntVec3.Invalid)
+					.First();
+				var forcedCoreCellCount = forcedCoreCell.IsValid
+					? symbiant.DebugReinitializeSelectionCoreForScaleProbe(new[] { forcedCoreCell })
+					: 0;
+				var interactionCell = symbiant.SelectionCoreCell;
+				if (forcedCoreCellCount != 1 || interactionCell != forcedCoreCell || interactionCell == rootCell)
+					return new
+					{
+						success = false,
+						error = "Could not move the Symbiant feeding fixture's visible core away from its canonical root.",
+						root = ZombieRuntimeActions.DescribeCell(rootCell),
+						forcedCore = ZombieRuntimeActions.DescribeCell(forcedCoreCell),
+						actualCore = ZombieRuntimeActions.DescribeCell(interactionCell),
+						forcedCoreCellCount
+					};
 
 				var feedCells = fixture.room.interiorRect.Cells
 					.Where(cell => cell.InBounds(map)
 						&& cell.Standable(map)
 						&& cell.GetEdifice(map) == null
+						&& symbiant.ContainsCell(cell) == false
 						&& cell.GetThingList(map).Any(thing => thing is Pawn) == false)
-					.OrderBy(cell => cell.DistanceToSquared(symbiant.Position))
+					.OrderBy(cell => cell.DistanceToSquared(interactionCell))
 					.ToArray();
 				if (feedCells.Length < 2)
 					return new { success = false, error = "The Symbiant feeding fixture has fewer than two clear interior feed cells." };
@@ -742,13 +769,13 @@ namespace ZombieLand
 				var inaccessibleFeedLabel = FeedLabel(inaccessibleCorpse);
 				var allOptions = FloatMenuMakerMap.GetOptions(
 					new List<Pawn> { fixture.host },
-					symbiant.Position.ToVector3Shifted(),
+					interactionCell.ToVector3Shifted(),
 					out var floatMenuContext);
 				var humanFeedOptions = allOptions.Where(option => humanFeedLabels.Contains(option.Label)).ToArray();
 				var freshAnimalFeedOptions = allOptions.Where(option => option.Label == freshAnimalFeedLabel).ToArray();
 				var rottenAnimalFeedOptions = allOptions.Where(option => option.Label == rottenAnimalFeedLabel).ToArray();
 				var expectedAnimalRepresentative = freshAnimalCorpses
-					.OrderBy(corpse => corpse.Position.DistanceToSquared(fixture.host.Position) + corpse.Position.DistanceToSquared(symbiant.Position))
+					.OrderBy(corpse => corpse.Position.DistanceToSquared(fixture.host.Position) + corpse.Position.DistanceToSquared(interactionCell))
 					.ThenBy(corpse => corpse.thingIDNumber)
 					.First();
 				var offeredCorpses = eligibleHumanCorpses.Concat(new[] { expectedAnimalRepresentative, rottenAnimalCorpse }).ToArray();
@@ -760,19 +787,31 @@ namespace ZombieLand
 				var forbiddenOptionCount = allOptions.Count(option => option.Label == forbiddenFeedLabel);
 				var inaccessibleOptionCount = allOptions.Count(option => option.Label == inaccessibleFeedLabel);
 				var mechOptionCount = allOptions.Count(option => option.Label.Contains(mechCorpse.InnerPawn.LabelShortCap));
+				var rootOptions = FloatMenuMakerMap.GetOptions(
+					new List<Pawn> { fixture.host },
+					rootCell.ToVector3Shifted(),
+					out _);
+				var rootFeedOptionCount = rootOptions.Count(option => humanFeedLabels.Contains(option.Label)
+					|| option.Label == freshAnimalFeedLabel
+					|| option.Label == rottenAnimalFeedLabel);
 
 				humanFeedOptions.FirstOrDefault()?.action?.Invoke();
 				var humanFeedJob = fixture.host.CurJob;
 				var selectedHumanCorpse = humanFeedJob?.targetB.Thing as Corpse;
+				var humanJobInteractionCell = humanFeedJob == null ? IntVec3.Invalid : humanFeedJob.targetC.Cell;
 				fixture.host.jobs?.EndCurrentJob(JobCondition.InterruptForced);
 				humanCorpseFeed = FeedSymbiantThing(symbiant, selectedHumanCorpse, "fresh humanlike corpse", 6);
 
 				freshAnimalFeedOptions.FirstOrDefault()?.action?.Invoke();
 				var animalFeedJob = fixture.host.CurJob;
 				var selectedAnimalCorpse = animalFeedJob?.targetB.Thing as Corpse;
+				var animalJobInteractionCell = animalFeedJob == null ? IntVec3.Invalid : animalFeedJob.targetC.Cell;
 				floatMenuRoute = new
 				{
-					success = humanFeedOptions.Length == eligibleHumanCorpses.Count
+					success = interactionCell != rootCell
+						&& fixture.host.CanReach(interactionCell, PathEndMode.OnCell, Danger.Deadly)
+						&& rootFeedOptionCount == 0
+						&& humanFeedOptions.Length == eligibleHumanCorpses.Count
 						&& freshAnimalFeedOptions.Length == 1
 						&& rottenAnimalFeedOptions.Length == 1
 						&& allOfferedCorpsesAreEligible
@@ -784,10 +823,17 @@ namespace ZombieLand
 						&& mechOptionCount == 0
 						&& humanFeedJob?.def == CustomDefs.FeedZombieSymbiant
 						&& humanFeedJob.targetA.Thing == symbiant
+						&& humanJobInteractionCell == interactionCell
 						&& eligibleHumanCorpses.Contains(selectedHumanCorpse)
 						&& animalFeedJob?.def == CustomDefs.FeedZombieSymbiant
 						&& animalFeedJob.targetA.Thing == symbiant
+						&& animalJobInteractionCell == interactionCell
 						&& selectedAnimalCorpse == expectedAnimalRepresentative,
+					root = ZombieRuntimeActions.DescribeCell(rootCell),
+					interactionCore = ZombieRuntimeActions.DescribeCell(interactionCell),
+					coreDiffersFromRoot = interactionCell != rootCell,
+					coreReachable = fixture.host.CanReach(interactionCell, PathEndMode.OnCell, Danger.Deadly),
+					rootFeedOptionCount,
 					allOptionCount = allOptions.Count,
 					humanCandidateCount = eligibleHumanCorpses.Count,
 					humanOptionCount = humanFeedOptions.Length,
@@ -816,7 +862,9 @@ namespace ZombieLand
 					},
 					contextMapId = floatMenuContext.map?.uniqueID ?? -1,
 					humanJobTarget = ZombieRuntimeActions.StableThingId(selectedHumanCorpse),
+					humanJobInteractionCell = ZombieRuntimeActions.DescribeCell(humanJobInteractionCell),
 					animalJobTarget = ZombieRuntimeActions.StableThingId(selectedAnimalCorpse),
+					animalJobInteractionCell = ZombieRuntimeActions.DescribeCell(animalJobInteractionCell),
 					expectedAnimalRepresentative = ZombieRuntimeActions.StableThingId(expectedAnimalRepresentative)
 				};
 				fixture.host.jobs?.EndCurrentJob(JobCondition.InterruptForced);
