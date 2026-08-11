@@ -7323,7 +7323,129 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_multi_room_contract", Description = "Build reversible separated-room fixtures and verify the 25-percent room gate, ambient movement's empty-room exclusion, adjacent-room preference, remote patch founding, one connected patch per room, valid-component-first legacy migration, merged-room queue retirement, interaction-core handoff, component rendering, whole-body targeting, and distributed invalid-cell relocation.")]
+		static object RunSymbiantSourceRoomConnectivityProbe(Map map)
+		{
+			SymbiantExpansionFixture fixture = null;
+			ZombieSymbiant symbiant = null;
+			object action = null;
+			object error = null;
+			object symbiantCleanup = null;
+			object fixtureCleanup = null;
+			try
+			{
+				var searchRoot = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (TrySetupSymbiantExpansionFixture(map, searchRoot, 56f, true, null, out fixture, out var fixtureError) == false)
+					return fixtureError;
+
+				var lowerDoor = fixture.roomConnectorCell;
+				var upperDoor = lowerDoor + IntVec3.North * 2;
+				var upperDoorWall = fixture.dividerWalls.FirstOrDefault(wall => wall.Position == upperDoor && wall.Destroyed == false);
+				if (upperDoorWall == null)
+					return new { success = false, error = "Could not find the second-divider wall for the source-room connectivity probe." };
+				upperDoorWall.Destroy(DestroyMode.Vanish);
+				var secondDoor = ThingMaker.MakeThing(ThingDefOf.Door, ThingDefOf.WoodLog) as Building_Door;
+				if (secondDoor == null)
+					return new { success = false, error = "Could not create the second door for the source-room connectivity probe." };
+				GenSpawn.Spawn(secondDoor, upperDoor, map, WipeMode.Vanish);
+				secondDoor.SetFaction(Faction.OfPlayer);
+				fixture.buildings.Add(secondDoor);
+				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+
+				var leftLower = lowerDoor + IntVec3.West;
+				var source = leftLower + IntVec3.North;
+				var leftUpper = upperDoor + IntVec3.West;
+				var rightLower = lowerDoor + IntVec3.East;
+				var rightMiddle = rightLower + IntVec3.North;
+				var rightUpper = upperDoor + IntVec3.East;
+				var target = leftLower + IntVec3.West;
+				var loop = new[]
+				{
+					leftLower,
+					source,
+					leftUpper,
+					upperDoor,
+					rightUpper,
+					rightMiddle,
+					rightLower,
+					lowerDoor
+				};
+				ZombieSymbiant.Spawn(map, leftLower);
+				symbiant = ZombieSymbiant.ActiveSymbiant(map);
+				if (symbiant == null)
+					return new { success = false, error = "Could not spawn the source-room connectivity probe Symbiant." };
+				var addedLoopCells = ZombieSymbiant.AddCells(map, loop.Where(cell => cell != leftLower));
+				var leftRoom = leftLower.GetRoom(map);
+				var rightRoom = rightLower.GetRoom(map);
+				var footprintBefore = symbiant.AbsoluteCells.ToHashSet();
+				var globalMoveWouldStayConnected = symbiant.DebugWouldCellsStayConnectedAfterMove(source, target);
+				var sourceRoomWouldStayConnected = symbiant.DebugWouldSourceRoomStayConnectedAfterRemoval(source);
+				var sourceRoomComponentsBefore = leftRoom == null ? 0 : symbiant.DebugRoomComponentCount(leftRoom);
+				var otherRoomComponentsBefore = rightRoom == null ? 0 : symbiant.DebugRoomComponentCount(rightRoom);
+				var moveCommitted = symbiant.DebugTryMove(source, target);
+				var footprintAfter = symbiant.AbsoluteCells.ToHashSet();
+
+				action = new
+				{
+					success = addedLoopCells == loop.Length - 1
+						&& leftRoom != null
+						&& rightRoom != null
+						&& leftRoom != rightRoom
+						&& source.GetRoom(map) == leftRoom
+						&& target.GetRoom(map) == leftRoom
+						&& globalMoveWouldStayConnected
+						&& sourceRoomWouldStayConnected == false
+						&& sourceRoomComponentsBefore == 1
+						&& otherRoomComponentsBefore == 1
+						&& moveCommitted == false
+						&& footprintAfter.SetEquals(footprintBefore)
+						&& symbiant.ContainsCell(source)
+						&& symbiant.ContainsCell(target) == false
+						&& symbiant.DebugRoomComponentCount(leftRoom) == 1
+						&& symbiant.DebugRoomComponentCount(rightRoom) == 1,
+					fixture = DescribeSymbiantExpansionFixture(fixture),
+					secondDoor = ZombieRuntimeActions.DescribeCell(upperDoor),
+					loop = loop.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					source = ZombieRuntimeActions.DescribeCell(source),
+					target = ZombieRuntimeActions.DescribeCell(target),
+					addedLoopCells,
+					globalMoveWouldStayConnected,
+					sourceRoomWouldStayConnected,
+					sourceRoomComponentsBefore,
+					otherRoomComponentsBefore,
+					moveCommitted,
+					footprintPreserved = footprintAfter.SetEquals(footprintBefore),
+					sourceRetained = symbiant.ContainsCell(source),
+					targetStayedEmpty = symbiant.ContainsCell(target) == false,
+					sourceRoomComponentsAfter = symbiant.DebugRoomComponentCount(leftRoom),
+					otherRoomComponentsAfter = symbiant.DebugRoomComponentCount(rightRoom)
+				};
+			}
+			catch (Exception ex)
+			{
+				error = ex.ToString();
+			}
+			finally
+			{
+				symbiantCleanup = CleanupTemporarySymbiant(map, symbiant, true);
+				fixtureCleanup = CleanupSymbiantExpansionFixture(map, fixture, true);
+			}
+
+			var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
+			return new
+			{
+				success = error == null && ScenarioSucceeded(action) && activeAfterCleanup == null,
+				error,
+				action,
+				cleanup = new
+				{
+					symbiant = symbiantCleanup,
+					fixture = fixtureCleanup,
+					activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
+				}
+			};
+		}
+
+		[Tool("zombieland/symbiant_multi_room_contract", Description = "Build reversible separated-room fixtures and verify the 25-percent room gate, ambient movement's empty-room exclusion, adjacent-room preference, remote patch founding, one connected patch per room, valid-component-first legacy migration, source-room connectivity during movement, merged-room queue retirement, interaction-core handoff, component rendering, whole-body targeting, and distributed invalid-cell relocation.")]
 		public static object SymbiantMultiRoomContract(
 		[ToolParameter(Description = "Destroy the temporary Symbiant and room fixtures after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -7720,6 +7842,9 @@ namespace ZombieLand
 				var validPrimaryComponent = cleanup && activeAfterCleanup == null
 					? RunSymbiantValidPrimaryComponentProbe(map)
 					: new { success = cleanup == false, skipped = true, reason = "The valid-primary-component probe requires cleanup=true and no active Symbiant." };
+				var sourceRoomConnectivity = cleanup && ZombieSymbiant.ActiveSymbiant(map) == null
+					? RunSymbiantSourceRoomConnectivityProbe(map)
+					: new { success = cleanup == false, skipped = true, reason = "The source-room connectivity probe requires cleanup=true and no active Symbiant." };
 				var activeAfterAllProbes = ZombieSymbiant.ActiveSymbiant(map);
 
 				var success = controlledRoomsSeparated
@@ -7788,6 +7913,7 @@ namespace ZombieLand
 						&& queuedCellsStayedInPlace
 						&& mergedRoomComponentsAfterBridge == 1
 						&& ScenarioSucceeded(validPrimaryComponent)
+						&& ScenarioSucceeded(sourceRoomConnectivity)
 						&& (cleanup == false || activeAfterAllProbes == null);
 
 				var result = new
@@ -7856,6 +7982,7 @@ namespace ZombieLand
 					},
 					roomConnectivityRepair = migrationRepair,
 					validPrimaryComponent,
+					sourceRoomConnectivity,
 					mergedRoomQueueRetirement,
 					invalidCellRelocation = new
 					{

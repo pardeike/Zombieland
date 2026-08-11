@@ -22,3 +22,4 @@
 - Drafted attacks and manually aimed abilities can now target every visible Symbiant slime cell, while ordinary clicks still use only its core.
 - Symbiants now keep a usable room patch when repairing disconnected cells from older saves, even when a larger patch has become invalid.
 - Normal Symbiant movement can no longer enter and silently establish an empty room before a growth or relocation pulse founds it.
+- Symbiant movement now keeps each occupied room's slime patch connected even when another room offers a route around it.
