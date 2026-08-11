@@ -1,7 +1,7 @@
 - Symbiant feeding now offers every usable corpse choice, combines interchangeable animal corpses into one row, and excludes mechanoid or other non-organic corpses.
 - The Symbiant interaction-cell popup now stays hidden while any right-click context menu is open.
 - Symbiant slime cells now let normal and Achtung right-click movement pass through; feeding and inspection remain on the visible core.
-- Symbiant blobs now stay connected within each room, and disconnected cells in existing saves gradually rejoin their room's main patch during normal movement.
+- Symbiants now detect and gradually repair disconnected room patches in existing saves at the normal movement cadence.
 - Symbiants now seed neighboring rooms without destroying their divider walls, and never break a wall between two rooms that already contain Symbiant blobs.
 - Symbiants now use all available colony-room space before overflowing outdoors, move exposed cells back inside when space appears, prefer an open doorway, and can break at most one suitable exterior wall when the base is completely full.
 - Symbiant cells covered by new impassable construction now relocate to usable indoor space when possible or are safely crushed while the completed building remains intact.
