@@ -5421,6 +5421,12 @@ namespace ZombieLand
 			SynchronizeExteriorOverflowAuthorization(map);
 			_ = ReanchorFromInvalidRoot(map);
 			var capacity = EvaluateIndoorCapacity(map);
+			if (capacity.state == IndoorCapacityState.NoRelevantRooms)
+			{
+				nextRelocationPulseTick = ticks + RelocationPulseIntervalTicks();
+				lastPlacementGrowthState = "contained";
+				return false;
+			}
 			var target = FindRelocationTarget(map, capacity);
 			var priorityRelocationPending = HasPriorityRelocationCells(map, capacity);
 
@@ -5449,8 +5455,7 @@ namespace ZombieLand
 				lastPlacementGrowthState = "contained";
 				return false;
 			}
-			if (target == null && exteriorOverflowAuthorized
-				&& (capacity.state == IndoorCapacityState.AllFull || capacity.state == IndoorCapacityState.NoRelevantRooms))
+			if (target == null && exteriorOverflowAuthorized && capacity.state == IndoorCapacityState.AllFull)
 				target = FindExteriorOpenTarget(map);
 			if (target == null && exteriorOverflowAuthorized == false && capacity.state == IndoorCapacityState.AllFull)
 			{

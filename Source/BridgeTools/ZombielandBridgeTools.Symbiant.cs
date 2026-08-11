@@ -8339,7 +8339,7 @@ namespace ZombieLand
 			}
 		}
 
-		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify immediate indoor return when capacity exists, founding state during relocation-debt repayment, authorized-overflow no-room grace and dormant retry cadence, movable outdoor-cell reuse, and atomic construction repair over root and non-root Symbiant cells.")]
+		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify immediate indoor return when capacity exists, founding state during relocation-debt repayment, authorized-overflow no-room debt stop, grace, and dormant retry cadence, movable outdoor-cell reuse, and atomic construction repair over root and non-root Symbiant cells.")]
 		public static object SymbiantRelocationContract(
 			[ToolParameter(Description = "Destroy temporary symbiants, colonists, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true,
 			[ToolParameter(Description = "Run only the canonical-root construction/recovery subscenario for a focused regression check.", Required = false, DefaultValue = false)] bool constructionRootOnly = false,
@@ -8674,6 +8674,10 @@ namespace ZombieLand
 					? ZombieSymbiant.ClassifySymbiantCell(map, overflowCell)
 					: ZombieSymbiant.SymbiantCellClass.InvalidBlocked;
 				var overflowAuthorizedBeforeOpen = symbiant.ExteriorOverflowAuthorized;
+				var debtField = AccessTools.Field(typeof(ZombieSymbiant), "relocationCellDebt");
+				if (debtField == null)
+					return new { success = false, fixtureSetup, error = "Could not resolve relocation debt for the no-room scenario." };
+				debtField.SetValue(symbiant, 1);
 				var beforeOpen = DescribeSymbiantRelocationState(symbiant, host);
 				var cellCountBeforeOpen = symbiant.CellCount;
 				var removedRoofCells = ClearSymbiantFixtureRoof(map, fixture.leftInterior)
@@ -8688,9 +8692,19 @@ namespace ZombieLand
 					migrationInitialized = symbiant.DebugRoomCellMigrationInitialized,
 					migrationRescanPending = symbiant.DebugRoomCellMigrationRescanPending
 				};
+				var exteriorTargetsBeforeNoRoomRelocation = symbiant.DebugExteriorOpenTargets();
+				var cellsBeforeNoRoomRelocation = symbiant.AbsoluteCells.ToHashSet();
+				var debtBeforeNoRoomRelocation = symbiant.RelocationCellDebt;
+				ForceSymbiantRelocationPulseReady(symbiant);
+				var noRoomRelocationPulse = InvokeSymbiantTryRelocationPulse(symbiant);
+				var cellsAfterNoRoomRelocation = symbiant.AbsoluteCells.ToHashSet();
+				var debtAfterNoRoomRelocation = symbiant.RelocationCellDebt;
+				var noRoomRelocationCapacityState = symbiant.DebugLastIndoorCapacityState;
+				var nextPulseAfterNoRoomRelocation = symbiant.NextRelocationPulseTick;
+				var noRoomRelocationDeferred = nextPulseAfterNoRoomRelocation > GenTicks.TicksGame;
+				var overflowAuthorizedAfterOpen = symbiant.ExteriorOverflowAuthorized;
 				var initialReseed = InvokeSymbiantTryReseedIfUprooted(symbiant);
 				var uprootedSinceTickAfterOpen = symbiant.UprootedSinceTick;
-				var overflowAuthorizedAfterOpen = symbiant.ExteriorOverflowAuthorized;
 				ExpireSymbiantUprootedGrace(symbiant);
 				ForceSymbiantRelocationPulseReady(symbiant);
 				var capacityEvaluationsBeforeDormancy = symbiant.DebugCapacityEvaluationCount;
@@ -8713,6 +8727,15 @@ namespace ZombieLand
 					&& overflowAuthorizedBeforeOpen
 					&& removedRoofCells > 0
 					&& removedBuildings > 0
+					&& topologyAfterOpen.safe
+					&& topologyAfterOpen.anythingToRebuild == false
+					&& exteriorTargetsBeforeNoRoomRelocation.Length > 0
+					&& debtBeforeNoRoomRelocation == 1
+					&& noRoomRelocationPulse == false
+					&& cellsAfterNoRoomRelocation.SetEquals(cellsBeforeNoRoomRelocation)
+					&& debtAfterNoRoomRelocation == debtBeforeNoRoomRelocation
+					&& noRoomRelocationCapacityState == ZombieSymbiant.IndoorCapacityState.NoRelevantRooms
+					&& noRoomRelocationDeferred
 					&& initialReseed == false
 					&& uprootedSinceTickAfterOpen >= 0
 						&& overflowAuthorizedAfterOpen
@@ -8746,6 +8769,17 @@ namespace ZombieLand
 					removedBuildings,
 					afterOpen,
 					topologyAfterOpen,
+					noRoomRelocationDebtStop = new
+					{
+						exteriorTargets = exteriorTargetsBeforeNoRoomRelocation.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+						debtBefore = debtBeforeNoRoomRelocation,
+						pulse = noRoomRelocationPulse,
+						footprintPreserved = cellsAfterNoRoomRelocation.SetEquals(cellsBeforeNoRoomRelocation),
+						debtAfter = debtAfterNoRoomRelocation,
+						capacityState = noRoomRelocationCapacityState.ToString(),
+						nextPulse = nextPulseAfterNoRoomRelocation,
+						deferred = noRoomRelocationDeferred
+					},
 					initialReseed,
 					uprootedSinceTickAfterOpen,
 					overflowAuthorizedAfterOpen,
