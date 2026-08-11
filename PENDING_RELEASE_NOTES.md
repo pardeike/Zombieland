@@ -39,3 +39,4 @@
 - Temporarily disabled skills no longer display a Symbiant bonus that gameplay does not apply.
 - Symbiant slime now applies its advertised work-speed penalty once instead of compounding it for tending and general labor.
 - Corpse feeding is no longer offered when the Symbiant lacks room for the corpse's full advertised growth.
+- Symbiant bite immunity now protects bites acquired while the bond is active without retroactively curing bites acquired while the host was away.

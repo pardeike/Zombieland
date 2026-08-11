@@ -67,8 +67,6 @@ namespace ZombieLand
 
 		public override void Tick()
 		{
-			if (ZombieSymbiant.HasZombieInfectionImmunity(pawn))
-				TendDuration?.ZombieInfector?.MakeHarmless();
 			var state = TendDuration.GetInfectionState();
 
 			if (state == InfectionState.None)
