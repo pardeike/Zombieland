@@ -7876,7 +7876,7 @@ namespace ZombieLand
 			}
 		}
 
-		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify immediate indoor return when capacity exists, authorized-overflow no-room grace and dormancy, movable outdoor-cell reuse, and atomic construction repair over root and non-root Symbiant cells.")]
+		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify immediate indoor return when capacity exists, founding state during relocation-debt repayment, authorized-overflow no-room grace and dormancy, movable outdoor-cell reuse, and atomic construction repair over root and non-root Symbiant cells.")]
 		public static object SymbiantRelocationContract(
 			[ToolParameter(Description = "Destroy temporary symbiants, colonists, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true,
 			[ToolParameter(Description = "Run only the canonical-root construction/recovery subscenario for a focused regression check.", Required = false, DefaultValue = false)] bool constructionRootOnly = false,
@@ -7895,6 +7895,7 @@ namespace ZombieLand
 			var beforeLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>()).ToHashSet();
 			object availableRoomRootRelocation = null;
 			object movableCellReuse = null;
+			object relocationDebtFounding = null;
 			object noRoomDormancy = null;
 			object constructionNonRootBatch = null;
 			object constructionRoot = null;
@@ -7916,6 +7917,7 @@ namespace ZombieLand
 				{
 					availableRoomRootRelocation = RunSymbiantAvailableRoomRootRelocationScenario(map, cleanup);
 					movableCellReuse = RunSymbiantMovableCellReuseScenario(map, cleanup);
+					relocationDebtFounding = RunSymbiantRelocationDebtFoundingScenario(map, cleanup);
 					noRoomDormancy = RunSymbiantNoRoomDormancyScenario(map, cleanup);
 					constructionNonRootBatch = RunSymbiantConstructionOverlapScenario(map, cleanup, false);
 					constructionRoot = RunSymbiantConstructionOverlapScenario(map, cleanup, true);
@@ -7942,6 +7944,7 @@ namespace ZombieLand
 						? ScenarioSucceeded(availableRoomRootRelocation)
 						: ScenarioSucceeded(availableRoomRootRelocation)
 						&& ScenarioSucceeded(movableCellReuse)
+						&& ScenarioSucceeded(relocationDebtFounding)
 						&& ScenarioSucceeded(noRoomDormancy)
 						&& ScenarioSucceeded(constructionNonRootBatch)
 						&& ScenarioSucceeded(constructionRoot))
@@ -7954,6 +7957,7 @@ namespace ZombieLand
 				error,
 				availableRoomRootRelocation,
 				movableCellReuse,
+				relocationDebtFounding,
 				noRoomDormancy,
 				constructionNonRootBatch,
 				constructionRoot,
@@ -8098,6 +8102,75 @@ namespace ZombieLand
 					targetRememberedAgainstImmediateReversal = targetRemembered,
 					containedOutdoorAfter,
 					rightCellsAfter
+				};
+			}
+			catch (Exception ex)
+			{
+				return new { success = false, error = ex.ToString(), fixtureSetup };
+			}
+			finally
+			{
+				_ = CleanupTemporarySymbiant(map, symbiant, cleanup);
+				_ = CleanupTemporaryPawn(host, cleanup);
+				_ = CleanupSymbiantExpansionFixture(map, fixture, cleanup);
+			}
+		}
+
+		static object RunSymbiantRelocationDebtFoundingScenario(Map map, bool cleanup)
+		{
+			SymbiantExpansionFixture fixture = null;
+			ZombieSymbiant symbiant = null;
+			Pawn host = null;
+			object fixtureSetup = null;
+			try
+			{
+				if (TrySetupSymbiantExpansionFixture(map, out fixture, out var fixtureError) == false)
+					return fixtureError;
+				fixtureSetup = DescribeSymbiantExpansionFixture(fixture);
+				host = SpawnSymbiantRelocationHost(map, fixture.leftInterior.CenterCell);
+				symbiant = SpawnAssignedSymbiantForRelocationContract(map, fixture.spawnCell, host);
+				var debtField = AccessTools.Field(typeof(ZombieSymbiant), "relocationCellDebt");
+				var discoveryCueField = AccessTools.Field(typeof(ZombieSymbiant), "selectionCoreDiscoveryCue");
+				if (debtField == null || discoveryCueField == null)
+					return new { success = false, fixtureSetup, error = "Could not resolve relocation-debt founding state fields." };
+
+				debtField.SetValue(symbiant, 1);
+				discoveryCueField.SetValue(symbiant, false);
+				ForceSymbiantRelocationPulseReady(symbiant);
+				var coreBefore = symbiant.SelectionCoreCell;
+				var anchorBefore = symbiant.DebugEstablishmentAnchorCell;
+				var cellsBefore = symbiant.AbsoluteCells.ToHashSet();
+				var pulse = InvokeSymbiantTryRelocationPulse(symbiant);
+				var foundedCells = symbiant.AbsoluteCells.Where(cell => cellsBefore.Contains(cell) == false).ToArray();
+				var foundedCell = foundedCells.Length == 1 ? foundedCells[0] : IntVec3.Invalid;
+				var coreAfter = symbiant.SelectionCoreCell;
+				var anchorAfter = symbiant.DebugEstablishmentAnchorCell;
+				var success = pulse
+					&& foundedCells.Length == 1
+					&& fixture.rightInterior.Contains(foundedCell)
+					&& coreBefore != foundedCell
+					&& anchorBefore != foundedCell
+					&& coreAfter == foundedCell
+					&& anchorAfter == foundedCell
+					&& symbiant.SelectionCoreMotionActive == false
+					&& symbiant.RelocationCellDebt == 0
+					&& symbiant.LinkedHost == host;
+				return new
+				{
+					success,
+					fixtureSetup,
+					host = DescribeRelocationHost(host),
+					pulse,
+					debtBefore = 1,
+					debtAfter = symbiant.RelocationCellDebt,
+					foundedCells = foundedCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					foundedInEmptyRoom = foundedCell.IsValid && fixture.rightInterior.Contains(foundedCell),
+					coreBefore = ZombieRuntimeActions.DescribeCell(coreBefore),
+					coreAfter = ZombieRuntimeActions.DescribeCell(coreAfter),
+					anchorBefore = ZombieRuntimeActions.DescribeCell(anchorBefore),
+					anchorAfter = ZombieRuntimeActions.DescribeCell(anchorAfter),
+					coreMotionActiveAfter = symbiant.SelectionCoreMotionActive,
+					hostStillLinked = symbiant.LinkedHost == host
 				};
 			}
 			catch (Exception ex)

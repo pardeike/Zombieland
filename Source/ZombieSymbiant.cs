@@ -5336,6 +5336,11 @@ namespace ZombieLand
 				lastPlacementGrowthState = "contained";
 				return false;
 			}
+			if (target.kind == ExpansionTargetKind.RoomFounding)
+			{
+				SetEstablishmentAnchor(target.cell);
+				SetSelectionCoreInstant(target.cell);
+			}
 			RememberMovementCell(target.cell);
 			relocationCellDebt = Mathf.Max(0, relocationCellDebt - 1);
 			if (target.kind == ExpansionTargetKind.ExteriorOpen)
