@@ -8765,7 +8765,7 @@ namespace ZombieLand
 				var staticCostSuccess = TryCostToMoveIntoCell(actor, fixture.doorCell, out var doorCellCost, out var costError);
 				var staticCost = new
 				{
-					success = baseCostSuccess && staticCostSuccess && expectedCost > baseDoorCellCost && doorCellCost >= expectedCost,
+					success = baseCostSuccess && staticCostSuccess && expectedCost > baseDoorCellCost && Mathf.Abs(doorCellCost - expectedCost) < 0.01f,
 					baseCost = baseDoorCellCost,
 					cost = doorCellCost,
 					expectedCost,
@@ -8795,7 +8795,7 @@ namespace ZombieLand
 						doorTicksUntilClose = fixture.door?.ticksUntilClose
 					};
 					samples.Add(sample);
-					if (nextCell == fixture.doorCell && actor.pather.nextCellCostTotal >= expectedCost)
+					if (nextCell == fixture.doorCell && Mathf.Abs(actor.pather.nextCellCostTotal - expectedCost) < 0.01f)
 					{
 						inflatedSample = sample;
 						break;

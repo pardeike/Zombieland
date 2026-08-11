@@ -43,3 +43,4 @@
 - Moving or relocating Symbiant cells no longer restores shared health that was lost to damage.
 - A Symbiant's visible feeding cell now stays put while a colonist is delivering its reserved corpse.
 - Compatible modded humanlike hosts now receive the surgery for safely removing their Symbiant bond.
+- Closed doors now apply the same single advertised Symbiant movement slowdown as every other covered cell.
