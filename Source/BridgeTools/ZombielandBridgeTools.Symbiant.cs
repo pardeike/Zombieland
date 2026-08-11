@@ -10484,6 +10484,7 @@ namespace ZombieLand
 			var shape = SymbiantCombatCrossCells(clearRoot);
 
 			ZombieSymbiant symbiant = null;
+			Pawn manualTargetPawn = null;
 			object error = null;
 			object result = null;
 			try
@@ -10515,10 +10516,22 @@ namespace ZombieLand
 				var targeterStarted = false;
 				var manuallyTargetableCells = Array.Empty<IntVec3>();
 				var manualTargetingGapTargetable = false;
+				var manualTargetPriority = new
+				{
+					success = false,
+					error = "The manual Targeter was not started.",
+					cell = (object)null,
+					things = Array.Empty<string>(),
+					pawnIndex = -1,
+					symbiantIndex = -1
+				};
 				try
 				{
 					if (targeterWasActive == false && Find.Targeter != null)
 					{
+						var priorityCell = shape.First(cell => cell != symbiant.Position);
+						manualTargetPawn = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+						GenSpawn.Spawn(manualTargetPawn, priorityCell, map, Rot4.South);
 						Find.Targeter.BeginTargeting(clickParams, (LocalTargetInfo _) => { }, requiresCastedSelected: false);
 						targeterStarted = Find.Targeter.IsTargeting;
 						manuallyTargetableCells = shape
@@ -10526,6 +10539,18 @@ namespace ZombieLand
 							.ToArray();
 						manualTargetingGapTargetable = gap.IsValid
 							&& GenUI.TargetsAt(gap.ToVector3Shifted(), clickParams, true).Any(target => target.Thing == symbiant);
+						var priorityThings = GenUI.ThingsUnderMouse(priorityCell.ToVector3Shifted(), 0f, clickParams);
+						var pawnIndex = priorityThings.IndexOf(manualTargetPawn);
+						var symbiantIndex = priorityThings.IndexOf(symbiant);
+						manualTargetPriority = new
+						{
+							success = pawnIndex >= 0 && symbiantIndex > pawnIndex,
+							error = (string)null,
+							cell = (object)ZombieRuntimeActions.DescribeCell(priorityCell),
+							things = priorityThings.Select(ZombieRuntimeActions.StableThingId).ToArray(),
+							pawnIndex,
+							symbiantIndex
+						};
 					}
 				}
 				finally
@@ -10536,7 +10561,8 @@ namespace ZombieLand
 				var manualTargetingCoversWholeBody = targeterWasActive == false
 					&& targeterStarted
 					&& manuallyTargetableCells.ToHashSet().SetEquals(shape)
-					&& manualTargetingGapTargetable == false;
+					&& manualTargetingGapTargetable == false
+					&& manualTargetPriority.success;
 				var selectorRect = symbiant.CustomRectForSelector;
 				var selectorPatchTarget = AccessTools.DeclaredMethod(typeof(Selector), "SelectableObjectsUnderMouse", Type.EmptyTypes);
 				var selectorPatchInfo = selectorPatchTarget == null ? null : Harmony.GetPatchInfo(selectorPatchTarget);
@@ -10813,7 +10839,8 @@ namespace ZombieLand
 						targeterStarted,
 						wholeBodyTargetable = manualTargetingCoversWholeBody,
 						targetableCells = manuallyTargetableCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
-						gapTargetable = manualTargetingGapTargetable
+						gapTargetable = manualTargetingGapTargetable,
+						priority = manualTargetPriority
 					},
 					gap = ZombieRuntimeActions.DescribeCell(gap),
 					gapTargetable,
@@ -10867,6 +10894,7 @@ namespace ZombieLand
 			}
 			finally
 			{
+				_ = CleanupTemporaryPawn(manualTargetPawn, cleanup);
 				if (cleanup)
 					symbiant?.DebugDestroyWithoutHostTrauma();
 				_ = CleanupSymbiantExpansionFixture(map, fixture, cleanup);
