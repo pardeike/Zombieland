@@ -6663,6 +6663,24 @@ namespace ZombieLand
 				var dividerWallsPreserved = fixture.dividerWalls.All(wall => wall.Destroyed == false);
 				var nonWallEdificeAfterDestroyed = fixture.nonWallEdifice?.Destroyed ?? true;
 				var rightFillAdded = ZombieSymbiant.AddCells(map, fixture.rightInterior.Cells);
+				var secondDoorCell = new IntVec3(fixture.rightInterior.CenterCell.x, 0, fixture.fixtureRect.minZ);
+				var secondDoorExteriorCell = new IntVec3(secondDoorCell.x, 0, fixture.fixtureRect.minZ - 1);
+				var secondDoorWall = secondDoorCell.GetEdifice(map) as Building;
+				Building_Door secondDoor = null;
+				if (secondDoorWall?.def?.IsWall == true)
+				{
+					secondDoorWall.Destroy(DestroyMode.Vanish);
+					fixture.buildings.Remove(secondDoorWall);
+					secondDoor = ThingMaker.MakeThing(ThingDefOf.Door, ThingDefOf.WoodLog) as Building_Door;
+					if (secondDoor != null)
+					{
+						GenSpawn.Spawn(secondDoor, secondDoorCell, map, WipeMode.Vanish);
+						secondDoor.SetFaction(Faction.OfPlayer);
+						fixture.buildings.Add(secondDoor);
+					}
+				}
+				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+				var secondDoorAdded = secondDoor != null ? ZombieSymbiant.AddCells(map, new[] { secondDoorCell }) : 0;
 				var perimeterWalls = fixture.buildings
 					.Where(building => building?.def?.IsWall == true)
 					.Select(building => new
@@ -6689,6 +6707,33 @@ namespace ZombieLand
 				var sharedHealthMaxAfterOverflow = symbiant?.DamageAbsorptionBufferMax ?? 0;
 				var hostBenefitsAfterOverflow = symbiant?.HostBenefitCount ?? 0;
 				var overflowAuthorizedAfterAdd = symbiant?.ExteriorOverflowAuthorized == true;
+				var firstDoorExteriorCell = new IntVec3(fixture.doorCell.x, 0, fixture.fixtureRect.minZ - 1);
+				var unusedDoorExteriorCell = overflowCell == firstDoorExteriorCell ? secondDoorExteriorCell : firstDoorExteriorCell;
+				var authorizedBeforeContinuation = symbiant?.DebugAuthorizedExteriorCells ?? [];
+				var continuationCandidates = symbiant?.DebugExteriorOpenTargets() ?? [];
+				var continuationCandidatesStayOnPatch = authorizedBeforeContinuation.Length > 0
+					&& continuationCandidates.Length > 0
+					&& continuationCandidates.All(candidate => GenAdj.CardinalDirections.Any(direction =>
+						authorizedBeforeContinuation.Contains(candidate + direction)));
+				var unusedDoorExcluded = unusedDoorExteriorCell.IsValid
+					&& continuationCandidates.Contains(unusedDoorExteriorCell) == false;
+				var cellsBeforeContinuation = symbiant?.AbsoluteCells.ToHashSet() ?? [];
+				var continuationPulse = symbiant?.TryExpansionPulse() == true;
+				var continuationCells = symbiant?.AbsoluteCells
+					.Where(cell => cellsBeforeContinuation.Contains(cell) == false)
+					.ToArray() ?? [];
+				var continuationCell = continuationCells.Length == 1 ? continuationCells[0] : IntVec3.Invalid;
+				var continuationTouchesAuthorizedPatch = continuationCell.IsValid
+					&& GenAdj.CardinalDirections.Any(direction => authorizedBeforeContinuation.Contains(continuationCell + direction));
+				var removedContinuationCell = symbiant != null
+					&& continuationCell.IsValid
+					&& removeRelativeCell != null
+					&& (bool)removeRelativeCell.Invoke(symbiant, new object[] { continuationCell - symbiant.Position, false });
+				if (removedContinuationCell)
+				{
+					AccessTools.Method(typeof(ZombieSymbiant), "UpdateAll")?.Invoke(symbiant, Array.Empty<object>());
+					AccessTools.Method(typeof(ZombieSymbiant), "UpdateSymbiosisState")?.Invoke(symbiant, new object[] { true });
+				}
 				var authorizedExteriorBeforeDamage = symbiant?.DebugAuthorizedExteriorCells ?? [];
 				var damageExposureCells = symbiant?.AbsoluteCells
 					.Where(fixture.rightInterior.Contains)
@@ -6785,6 +6830,11 @@ namespace ZombieLand
 					&& nonWallEdificeAcceptedAsWall == false
 					&& nonWallEdificeAfterDestroyed == false
 					&& rightFillAdded > 0
+					&& secondDoorWall != null
+					&& secondDoorWall.Destroyed
+					&& secondDoor != null
+					&& secondDoor.Destroyed == false
+					&& secondDoorAdded == 1
 					&& postFillPulse
 					&& postFillNewCells.Length == 1
 					&& overflowCellClass == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
@@ -6794,6 +6844,14 @@ namespace ZombieLand
 					&& hostEffectCellsAfterOverflow == hostEffectCellsBeforeOverflow
 					&& sharedHealthMaxAfterOverflow == sharedHealthMaxBeforeOverflow
 					&& hostBenefitsAfterOverflow == hostBenefitsBeforeOverflow
+					&& authorizedBeforeContinuation.Length == 1
+					&& continuationCandidatesStayOnPatch
+					&& unusedDoorExcluded
+					&& continuationPulse
+					&& continuationCells.Length == 1
+					&& continuationTouchesAuthorizedPatch
+					&& continuationCell != unusedDoorExteriorCell
+					&& removedContinuationCell
 					&& authorizedExteriorBeforeDamage.Length == 1
 					&& authorizedExteriorBeforeDamage[0] == overflowCell
 					&& damageCellsBecameExterior
@@ -6871,6 +6929,14 @@ namespace ZombieLand
 						nonWallEdificeAcceptedAsWall,
 						nonWallEdificeAfterDestroyed,
 						rightFillAdded,
+						secondExteriorDoor = new
+						{
+							cell = ZombieRuntimeActions.DescribeCell(secondDoorCell),
+							exteriorCell = ZombieRuntimeActions.DescribeCell(secondDoorExteriorCell),
+							wallReplaced = secondDoorWall?.Destroyed == true,
+							created = secondDoor != null,
+							added = secondDoorAdded
+						},
 						overflow = new
 						{
 							pulse = postFillPulse,
@@ -6885,6 +6951,17 @@ namespace ZombieLand
 							sharedHealthMaxAfter = sharedHealthMaxAfterOverflow,
 							hostBenefitsBefore = hostBenefitsBeforeOverflow,
 							hostBenefitsAfter = hostBenefitsAfterOverflow,
+							continuation = new
+							{
+								candidates = continuationCandidates.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+								candidatesStayOnPatch = continuationCandidatesStayOnPatch,
+								unusedDoorCell = ZombieRuntimeActions.DescribeCell(unusedDoorExteriorCell),
+								unusedDoorExcluded,
+								pulse = continuationPulse,
+								cells = continuationCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+								touchesAuthorizedPatch = continuationTouchesAuthorizedPatch,
+								removedAfterProbe = removedContinuationCell
+							},
 							damageExposure = new
 							{
 								cells = damageExposureCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),

@@ -577,6 +577,11 @@ namespace ZombieLand
 			.Select(relative => Position + relative)
 			.ToArray();
 		internal bool DebugIsAuthorizedExteriorCell(IntVec3 absolute) => authorizedExteriorCells.Contains(absolute - Position);
+		internal IntVec3[] DebugExteriorOpenTargets()
+		{
+			SynchronizeExteriorOverflowAuthorization(Map);
+			return ExteriorOpenTargets(Map).Select(target => target.cell).ToArray();
+		}
 		internal IndoorCapacityState DebugLastIndoorCapacityState => lastIndoorCapacityState;
 		internal IntVec3 DebugEstablishmentAnchorCell => establishmentAnchorRelative.IsValid ? Position + establishmentAnchorRelative : IntVec3.Invalid;
 		internal bool DebugConstructionRepairPending => HasPendingConstructionRepair;
@@ -5756,15 +5761,28 @@ namespace ZombieLand
 
 		ExpansionTarget FindExteriorOpenTarget(Map map)
 		{
-			if (map == null)
-				return null;
-			var seen = new HashSet<IntVec3>();
+			return ExteriorOpenTargets(map)
+				.OrderByDescending(target => target.score)
+				.FirstOrDefault();
+		}
+
+		List<ExpansionTarget> ExteriorOpenTargets(Map map)
+		{
 			var targets = new List<ExpansionTarget>();
-			foreach (var relative in orderedCells)
+			if (map == null)
+				return targets;
+			var seen = new HashSet<IntVec3>();
+			IEnumerable<IntVec3> sourceCells = exteriorOverflowAuthorized
+				? orderedCells.Where(relative => authorizedExteriorCells.Contains(relative))
+				: orderedCells;
+			foreach (var relative in sourceCells)
 			{
 				if (roomCellMigrationLookup.Contains(relative))
 					continue;
 				var source = Position + relative;
+				if (exteriorOverflowAuthorized
+					&& ClassifySymbiantCell(map, source) != SymbiantCellClass.ExteriorOpen)
+					continue;
 				foreach (var direction in GenAdj.CardinalDirections)
 				{
 					var candidate = source + direction;
@@ -5774,9 +5792,13 @@ namespace ZombieLand
 						targets.Add(new ExpansionTarget(ExpansionTargetKind.ExteriorOpen, candidate, null, ScoreExpansionCell(map, candidate), candidate.GetRoom(map)));
 				}
 			}
-			return targets
-				.OrderByDescending(target => target.score)
-				.FirstOrDefault();
+			return targets;
+		}
+
+		bool TouchesAuthorizedExteriorFootprint(IntVec3 candidate)
+		{
+			return GenAdj.CardinalDirections.Any(direction =>
+				authorizedExteriorCells.Contains(candidate + direction - Position));
 		}
 
 		bool WallRemovalKeepsIndoorRoomsSeparated(Map map, IntVec3 wallCell, Room sourceRoom)
@@ -5845,7 +5867,10 @@ namespace ZombieLand
 				ExpansionTargetKind.IndoorLocal => classification == SymbiantCellClass.IndoorFloor && CanPlaceConnectedWithinRoom(map, target.cell),
 				ExpansionTargetKind.RoomFounding => classification == SymbiantCellClass.IndoorFloor && CanPlaceConnectedWithinRoom(map, target.cell),
 				ExpansionTargetKind.Door => classification == SymbiantCellClass.Door && GenAdj.CardinalDirections.Any(direction => ContainsCell(target.cell + direction)),
-				ExpansionTargetKind.ExteriorOpen => classification == SymbiantCellClass.ExteriorOpen && GenAdj.CardinalDirections.Any(direction => ContainsCell(target.cell + direction)),
+				ExpansionTargetKind.ExteriorOpen => classification == SymbiantCellClass.ExteriorOpen
+					&& (exteriorOverflowAuthorized
+						? TouchesAuthorizedExteriorFootprint(target.cell)
+						: GenAdj.CardinalDirections.Any(direction => ContainsCell(target.cell + direction))),
 				_ => false
 			};
 			if (valid == false || CellCount >= MaxCells)

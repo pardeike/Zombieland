@@ -12,3 +12,4 @@
 - Colonists now carry feed corpses to the Symbiant's visible core instead of its hidden root cell.
 - Symbiants now stop outdoor growth and enter no-room recovery when their last integrated indoor cells disappear after a valid overflow.
 - Symbiant overflow permission now stays with the original outdoor patch instead of spreading to rooms exposed by later damage.
+- Symbiants now continue outdoor overflow from their existing outdoor patch instead of starting a second front at another doorway.
