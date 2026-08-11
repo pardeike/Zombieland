@@ -4721,9 +4721,9 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(SkillRecord.GetLevel))]
 		static class SkillRecord_GetLevel_Patch
 		{
-			static void Postfix(SkillRecord __instance, ref int __result)
+			static void Postfix(SkillRecord __instance, bool includeAptitudes, ref int __result)
 			{
-				if (__instance?.TotallyDisabled == true)
+				if (includeAptitudes == false || __instance?.TotallyDisabled == true)
 					return;
 				ZombieSymbiant.ApplySymbiantSkillBonus(__instance, ref __result);
 			}

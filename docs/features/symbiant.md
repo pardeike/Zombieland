@@ -116,7 +116,7 @@ The host starts with zombie infection immunity from the bond. Additional random 
 
 - mood fixed at 50%,
 - no food or rest need,
-- all skills, stackable. Each stack grants +4 below 200% Zombieland difficulty, +3 from 200% to below 300%, +2 from 300% to below 400%, and +1 at 400% or above. Enabled Bio skill rows show the level without the Symbiant plus the actually applied bonus (for example `10 + 4` or the capped `18 + 2`), while the bar and gameplay use the combined total. The skill tooltip adds one Symbiant-benefit line and identifies any bonus lost to the level-20 cap,
+- all skills, stackable. Each stack grants +4 below 200% Zombieland difficulty, +3 from 200% to below 300%, +2 from 300% to below 400%, and +1 at 400% or above. Enabled Bio skill rows show the level without the Symbiant plus the actually applied bonus (for example `10 + 4` or the capped `18 + 2`), while the bar and gameplay use the combined total. The tooltip's learned-level and next-level-progress details continue to use the pawn's unmodified learned level. The skill tooltip adds one Symbiant-benefit line and identifies any bonus lost to the level-20 cap,
 - Moving capacity +25%, stackable. This is a capacity-layer benefit: the health tab, the colonist info dialog's Move Speed stat, real pathing, and vanilla movement-dependent stats such as melee dodge and hunting stealth all consume the same value,
 - Manipulation capacity +25%, stackable. Health and every vanilla stat or action that consumes Manipulation use the increased value,
 - zombie targeting protection,

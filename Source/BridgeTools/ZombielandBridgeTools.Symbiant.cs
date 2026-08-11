@@ -3780,6 +3780,7 @@ namespace ZombieLand
 					var expectedAppliedBonus = expected - raw;
 					var expectedLabel = expectedAppliedBonus > 0 ? $"{raw} + {expectedAppliedBonus}" : expected.ToString();
 					var patched = skill.Level;
+					var learnedWithoutAptitudes = skill.GetLevel(includeAptitudes: false);
 					var patchedForUi = skill.GetLevelForUI();
 					var label = ZombieSymbiant.FormatSymbiantSkillLevel(patched, skill);
 					var tooltip = ZombieSymbiant.SymbiantSkillBonusTooltipLine(skill);
@@ -3787,6 +3788,7 @@ namespace ZombieLand
 					{
 						success = reportedPerStack == item.expectedPerStack
 							&& patched == expected
+							&& learnedWithoutAptitudes == raw
 							&& patchedForUi == expected
 							&& label == expectedLabel
 							&& tooltip.NullOrEmpty() == false
@@ -3797,6 +3799,7 @@ namespace ZombieLand
 						nominalBonus,
 						expectedAppliedBonus,
 						patched,
+						learnedWithoutAptitudes,
 						patchedForUi,
 						expected,
 						label,
@@ -3809,17 +3812,20 @@ namespace ZombieLand
 				var nominalAtLowDifficulty = bonusStacks * 4;
 				skill.Level = 18;
 				var partialCapEffective = skill.GetLevelForUI();
+				var partialCapLearned = skill.GetLevel(includeAptitudes: false);
 				var partialCapLabel = ZombieSymbiant.FormatSymbiantSkillLevel(partialCapEffective, skill);
 				var partialCapTooltip = ZombieSymbiant.SymbiantSkillBonusTooltipLine(skill);
 				var partialCap = new
 				{
 					success = partialCapEffective == SkillRecord.MaxLevel
+						&& partialCapLearned == 18
 						&& partialCapLabel == "18 + 2"
 						&& partialCapTooltip?.Contains("+2") == true
 						&& partialCapTooltip.Contains($"+{nominalAtLowDifficulty}"),
 					baseLevel = 18,
 					nominalBonus = nominalAtLowDifficulty,
 					effective = partialCapEffective,
+					learned = partialCapLearned,
 					label = partialCapLabel,
 					tooltip = partialCapTooltip
 				};
