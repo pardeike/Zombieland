@@ -2930,6 +2930,11 @@ namespace ZombieLand
 			return removed;
 		}
 
+		void RestoreSharedHealthAfterMove(float healthBeforeMove)
+		{
+			sharedHealth = Mathf.Min(healthBeforeMove, SharedHealthMax);
+		}
+
 		bool WouldCellsStayConnectedAfterRemoval(IntVec3 removedRelative)
 		{
 			if (cells == null || cells.Contains(removedRelative) == false || cells.Count <= 1)
@@ -5275,11 +5280,13 @@ namespace ZombieLand
 			var movingSelectionCore = selectionCoreRelative == source.relative;
 			var movingEstablishmentAnchor = establishmentAnchorRelative == source.relative;
 			var movingAuthorizedExteriorCell = authorizedExteriorCells.Contains(source.relative);
+			var healthBeforeMove = SharedHealthCurrent;
 			if (RemoveRelativeCellWithCoreDestination(source.relative, true, movingSelectionCore ? targetRelative : IntVec3.Invalid) == false)
 				return false;
 			if (AddRelativeCell(targetRelative) == false)
 			{
 				_ = AddRelativeCell(source.relative);
+				RestoreSharedHealthAfterMove(healthBeforeMove);
 				if (movingAuthorizedExteriorCell)
 					AuthorizeExteriorCell(source.absolute);
 				if (movingSelectionCore)
@@ -5289,6 +5296,7 @@ namespace ZombieLand
 				}
 				return false;
 			}
+			RestoreSharedHealthAfterMove(healthBeforeMove);
 			if (movingAuthorizedExteriorCell && target.classification == SymbiantCellClass.ExteriorOpen)
 				AuthorizeExteriorCell(target.cell);
 			if (movingEstablishmentAnchor)
@@ -5349,6 +5357,7 @@ namespace ZombieLand
 				var targetRelative = target - Position;
 				var movingSelectionCore = selectionCoreRelative == sourceRelative;
 				var movingEstablishmentAnchor = establishmentAnchorRelative == sourceRelative;
+				var healthBeforeMove = SharedHealthCurrent;
 				if (TryEnterFootprintMutation(FootprintMutationKind.MigrationRepair, false, out _) == false)
 					return false;
 				if (RemoveRelativeCellWithCoreDestination(sourceRelative, false, movingSelectionCore ? targetRelative : IntVec3.Invalid, false) == false)
@@ -5356,6 +5365,7 @@ namespace ZombieLand
 				if (AddRelativeCell(targetRelative, false, false) == false)
 				{
 					_ = AddRelativeCell(sourceRelative, false, false);
+					RestoreSharedHealthAfterMove(healthBeforeMove);
 					if (roomCellMigrationLookup.Add(sourceRelative))
 						roomCellMigrationCells.Add(sourceRelative);
 					if (movingSelectionCore)
@@ -5365,6 +5375,7 @@ namespace ZombieLand
 					}
 					continue;
 				}
+				RestoreSharedHealthAfterMove(healthBeforeMove);
 				roomCellMigrationCells.Remove(sourceRelative);
 				roomCellMigrationLookup.Remove(sourceRelative);
 				DebugLastMovePulseConnectedRoomCellsRetired += RetireConnectedRoomCellMigrationComponents(map);
@@ -5460,12 +5471,14 @@ namespace ZombieLand
 			var movingSelectionCore = selectionCoreRelative == sourceRelative;
 			var movingEstablishmentAnchor = establishmentAnchorRelative == sourceRelative;
 			var movingAuthorizedExteriorCell = authorizedExteriorCells.Contains(sourceRelative);
+			var healthBeforeMove = SharedHealthCurrent;
 			if (RemoveRelativeCellWithCoreDestination(sourceRelative, false, movingSelectionCore ? targetRelative : IntVec3.Invalid, false) == false)
 				return false;
 			if (AddRelativeCell(target.cell - Position, false, false) == false)
 			{
 				if (AddRelativeCell(sourceRelative, false, false))
 				{
+					RestoreSharedHealthAfterMove(healthBeforeMove);
 					if (movingAuthorizedExteriorCell)
 						AuthorizeExteriorCell(source);
 					if (movingSelectionCore)
@@ -5480,6 +5493,7 @@ namespace ZombieLand
 				}
 				return false;
 			}
+			RestoreSharedHealthAfterMove(healthBeforeMove);
 			if (movingSelectionCore || target.kind == ExpansionTargetKind.RoomFounding)
 				SetSelectionCoreInstant(target.cell);
 			if (movingEstablishmentAnchor || target.kind == ExpansionTargetKind.RoomFounding)
