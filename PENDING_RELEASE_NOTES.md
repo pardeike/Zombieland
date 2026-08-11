@@ -14,3 +14,4 @@
 - Symbiant overflow permission now stays with the original outdoor patch instead of spreading to rooms exposed by later damage.
 - Symbiants now continue outdoor overflow from their existing outdoor patch instead of starting a second front at another doorway.
 - Symbiants restoring lost growth now move their visible core and room-establishment focus into a newly founded room.
+- Symbiants can now establish themselves in fully furnished rooms when no bare floor is available, without removing the furniture.

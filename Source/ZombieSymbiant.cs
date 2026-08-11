@@ -323,6 +323,8 @@ namespace ZombieLand
 						else if (CanOccupyInitialSpawnCell(map, cell))
 							plan.foundingCells.Add(cell);
 					}
+					if (plan.capacity.occupied == 0 && plan.foundingCells.Count == 0)
+						plan.foundingCells.AddRange(plan.freeCells.Where(cell => CanOccupyFurnishedFoundingCell(map, cell)));
 					rooms.Add(plan);
 				}
 			}
@@ -1448,6 +1450,12 @@ namespace ZombieLand
 			return CanOccupyOpenCell(map, cell)
 				&& cell.GetEdifice(map) == null
 				&& cell.GetThingList(map).Any(thing => thing is Pawn || thing.def.category == ThingCategory.Building) == false;
+		}
+
+		static bool CanOccupyFurnishedFoundingCell(Map map, IntVec3 cell)
+		{
+			return CanOccupyOpenCell(map, cell)
+				&& cell.GetThingList(map).Any(thing => thing is Pawn) == false;
 		}
 
 		static IEnumerable<Room> CandidateRooms(Map map)
@@ -6085,6 +6093,19 @@ namespace ZombieLand
 					var score = ScoreMovementTargetCell(map, cell);
 					if (record.hasPlacement == false || score > bestScore)
 					{
+						record.hasPlacement = true;
+						record.placementCell = cell;
+						record.placementScore = score;
+						bestScore = score;
+					}
+				}
+				if (record.Empty && record.hasPlacement == false)
+				{
+					foreach (var cell in usableCells.Where(cell => footprint.Contains(cell) == false && CanOccupyFurnishedFoundingCell(map, cell)))
+					{
+						var score = ScoreMovementTargetCell(map, cell);
+						if (record.hasPlacement && score <= bestScore)
+							continue;
 						record.hasPlacement = true;
 						record.placementCell = cell;
 						record.placementScore = score;

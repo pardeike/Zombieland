@@ -6354,6 +6354,110 @@ namespace ZombieLand
 			return symbiant.CellCount - 1;
 		}
 
+		static object RunSymbiantFurnishedFoundingProbe(Map map)
+		{
+			SymbiantExpansionFixture fixture = null;
+			ZombieSymbiant symbiant = null;
+			var furniture = new List<Building>();
+			object action = null;
+			object error = null;
+			object symbiantCleanup = null;
+			object fixtureCleanup = null;
+			try
+			{
+				if (TrySetupSymbiantExpansionFixture(map, out fixture, out var fixtureError) == false)
+					return fixtureError;
+				var furnitureDef = new[] { "ShelfSmall", "Stool", "DiningChair" }
+					.Select(defName => DefDatabase<ThingDef>.GetNamedSilentFail(defName))
+					.FirstOrDefault(def => def?.category == ThingCategory.Building
+						&& def.size.x == 1
+						&& def.size.z == 1
+						&& def.passability != Traversability.Impassable);
+				if (furnitureDef == null)
+					return new { success = false, error = "Could not find a passable one-cell furniture definition for the founding probe." };
+
+				foreach (var cell in fixture.rightInterior.Cells)
+				{
+					var building = ThingMaker.MakeThing(
+						furnitureDef,
+						furnitureDef.MadeFromStuff ? GenStuff.DefaultStuffFor(furnitureDef) : null
+					) as Building;
+					if (building == null)
+						return new { success = false, furnitureDef = furnitureDef.defName, error = "Could not create furnished-room probe furniture." };
+					GenSpawn.Spawn(building, cell, map, Rot4.North, WipeMode.Vanish);
+					building.SetFaction(Faction.OfPlayer);
+					furniture.Add(building);
+					fixture.buildings.Add(building);
+				}
+				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+
+				ZombieSymbiant.Spawn(map, fixture.spawnCell);
+				symbiant = ZombieSymbiant.ActiveSymbiant(map);
+				if (symbiant == null)
+					return new { success = false, error = "Could not spawn the furnished-room founding probe Symbiant." };
+				var leftFillAdded = ZombieSymbiant.AddCells(map, fixture.leftInterior.Cells.Append(fixture.doorCell));
+				var allRightCellsFurnished = fixture.rightInterior.Cells.All(cell =>
+					cell.Walkable(map)
+					&& cell.GetThingList(map).OfType<Building>().Any(furniture.Contains));
+				var bareRightCells = fixture.rightInterior.Cells.Count(cell =>
+					cell.GetThingList(map).Any(thing => thing.def.category == ThingCategory.Building) == false);
+				var before = symbiant.AbsoluteCells.ToHashSet();
+				var pulse = symbiant.TryExpansionPulse();
+				var foundedCells = symbiant.AbsoluteCells.Where(cell => before.Contains(cell) == false).ToArray();
+				var foundedCell = foundedCells.Length == 1 ? foundedCells[0] : IntVec3.Invalid;
+				var furnitureAtFoundedCell = foundedCell.IsValid
+					? furniture.FirstOrDefault(building => building.Destroyed == false && building.OccupiedRect().Contains(foundedCell))
+					: null;
+				action = new
+				{
+					success = leftFillAdded > 0
+						&& allRightCellsFurnished
+						&& bareRightCells == 0
+						&& pulse
+						&& foundedCells.Length == 1
+						&& fixture.rightInterior.Contains(foundedCell)
+						&& furnitureAtFoundedCell != null
+						&& furniture.All(building => building.Destroyed == false)
+						&& symbiant.DebugEstablishmentAnchorCell == foundedCell
+						&& symbiant.SelectionCoreCell == foundedCell,
+					furnitureDef = furnitureDef.defName,
+					furnitureCount = furniture.Count,
+					allRightCellsFurnished,
+					bareRightCells,
+					leftFillAdded,
+					pulse,
+					foundedCells = foundedCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					foundedOnFurniture = ZombieRuntimeActions.StableThingId(furnitureAtFoundedCell),
+					furniturePreserved = furniture.All(building => building.Destroyed == false),
+					anchor = ZombieRuntimeActions.DescribeCell(symbiant.DebugEstablishmentAnchorCell),
+					core = ZombieRuntimeActions.DescribeCell(symbiant.SelectionCoreCell)
+				};
+			}
+			catch (Exception ex)
+			{
+				error = ex.ToString();
+			}
+			finally
+			{
+				symbiantCleanup = CleanupTemporarySymbiant(map, symbiant, true);
+				fixtureCleanup = CleanupSymbiantExpansionFixture(map, fixture, true);
+			}
+
+			var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
+			return new
+			{
+				success = error == null && ScenarioSucceeded(action) && activeAfterCleanup == null,
+				error,
+				action,
+				cleanup = new
+				{
+					symbiant = symbiantCleanup,
+					fixture = fixtureCleanup,
+					activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
+				}
+			};
+		}
+
 		static object RunSymbiantExteriorWallBreachProbe(Map map)
 		{
 			SymbiantExpansionFixture fixture = null;
@@ -6554,7 +6658,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_expansion_contract", Description = "Build reversible room fixtures and verify indoor spread, roof/door gating, direct room founding, divider preservation, component-scoped overflow authorization, one-wall exterior breaching, rollback after a forced failed commit, deferred multi-pulse feeding after that breach, and no second breach.")]
+		[Tool("zombieland/symbiant_expansion_contract", Description = "Build reversible room fixtures and verify indoor spread, roof/door gating, bare-floor preference with furnished-room founding fallback, direct room founding, divider preservation, component-scoped overflow authorization, one-wall exterior breaching, rollback after a forced failed commit, deferred multi-pulse feeding after that breach, and no second breach.")]
 		public static object SymbiantExpansionContract(
 			[ToolParameter(Description = "Destroy the temporary symbiant and two-room fixture after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -6796,10 +6900,14 @@ namespace ZombieLand
 				var exteriorWallBreach = cleanup && activeAfterCleanup == null
 					? RunSymbiantExteriorWallBreachProbe(map)
 					: new { success = cleanup == false, skipped = true, reason = "The destructive wall-breach probe requires cleanup=true and no active Symbiant." };
+				var furnishedFounding = cleanup && ZombieSymbiant.ActiveSymbiant(map) == null
+					? RunSymbiantFurnishedFoundingProbe(map)
+					: new { success = cleanup == false, skipped = true, reason = "The furnished-room founding probe requires cleanup=true and no active Symbiant." };
 
 				var success = ScenarioSucceeded(spreadScoring)
 					&& ScenarioSucceeded(topologyEventPerformance)
 					&& ScenarioSucceeded(exteriorWallBreach)
+					&& ScenarioSucceeded(furnishedFounding)
 					&& spawnError == null
 					&& symbiant != null
 					&& openPulse
@@ -6994,6 +7102,7 @@ namespace ZombieLand
 					letterCleanup,
 					fixtureCleanup,
 					exteriorWallBreach,
+					furnishedFounding,
 					activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
 				};
 				completed = true;

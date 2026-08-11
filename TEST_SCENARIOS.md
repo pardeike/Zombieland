@@ -978,7 +978,7 @@ Release candidate checks:
 - Host selection rejects children, prisoners, slaves, guests, temporary joiners, quest lodgers, caravaning/unavailable pawns, holograms, non-flesh optional-mod pawns, existing symbiant hosts, and late/active zombie infection cases.
 - Host selection is independent from spawn-room steering; moving one colonist into a disposable room must not deterministically choose that pawn.
 - `SymbiantSymbiosis` is fixed-severity display/sync state: it remains at `0.001`, never encodes growth or benefit factor, and is explicitly nonlethal/non-tendable with zero pain, bleeding, and summary-health impact. External removal while the authoritative link remains active causes the Symbiant to recreate it; unrelated host hediff transitions remain local.
-- Expansion pulse adds exactly one legal indoor/door cell, direct-founds one legal empty-room cell, or begins one authorized exterior transition; it never combines mutations in one pulse.
+- Expansion pulse adds exactly one legal indoor/door cell, direct-founds one legal empty-room cell, or begins one authorized exterior transition; it never combines mutations in one pulse. Empty-room founding prefers bare floor but falls back to passable furniture when every otherwise valid floor cell is furnished, preserving the furniture.
 - Door cells can be occupied while the door remains a door.
 - Natural rock blocks expansion.
 - Every eligible occupied room contains at most one cardinal component. Existing disconnected cells are queued once, entries that become connected are pruned, and each movement pulse performs at most one hard repair relocation in addition to normal movement.
