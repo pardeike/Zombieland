@@ -613,6 +613,13 @@ namespace ZombieLand
 		internal int DebugRoomEstablishmentRequirement(Room room) => RoomEstablishmentRequirement(Map, room);
 		internal int DebugCellsInRoom(Room room) => CountCellsInRoomInternal(room);
 		internal int DebugRoomComponentCount(Room room) => RoomCellComponents(Map, room).Count;
+		internal IntVec3 DebugRelocationTargetCell()
+		{
+			var map = Map;
+			if (map == null || IsPlacementTopologySafe(map) == false)
+				return IntVec3.Invalid;
+			return FindRelocationTarget(map, EvaluateIndoorCapacity(map))?.cell ?? IntVec3.Invalid;
+		}
 		internal IntVec3[] DebugRoomCellMigrationCells => roomCellMigrationCells
 			.Select(relative => Position + relative)
 			.ToArray();
@@ -6205,7 +6212,14 @@ namespace ZombieLand
 			if (exactAudit)
 				exactCapacityAuditCount++;
 			var footprint = orderedCells.Select(relative => Position + relative).ToHashSet();
-			var excludedEstablishedSources = roomCellMigrationLookup
+			var excludedEstablishedSources = orderedCells
+				.Where(relative =>
+				{
+					if (roomCellMigrationLookup.Contains(relative))
+						return true;
+					var classification = ClassifySymbiantCell(map, Position + relative);
+					return classification != SymbiantCellClass.IndoorFloor && classification != SymbiantCellClass.Door;
+				})
 				.Select(relative => Position + relative)
 				.ToHashSet();
 			var relevantRooms = CandidateRooms(map)
@@ -6274,7 +6288,7 @@ namespace ZombieLand
 			var bestDoorScore = float.MinValue;
 			foreach (var source in footprint)
 			{
-				if (roomCellMigrationLookup.Contains(source - Position))
+				if (excludedEstablishedSources.Contains(source))
 					continue;
 				foreach (var direction in GenAdj.CardinalDirections)
 				{
