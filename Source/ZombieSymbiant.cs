@@ -3040,13 +3040,18 @@ namespace ZombieLand
 			return ConnectedComponents(roomCells);
 		}
 
-		HashSet<IntVec3> PrimaryRoomComponent(IEnumerable<HashSet<IntVec3>> components)
+		HashSet<IntVec3> PrimaryRoomComponent(Map map, IEnumerable<HashSet<IntVec3>> components)
 		{
 			return components
-				.OrderByDescending(component => component.Count)
+				.OrderByDescending(component => component.Any(relative =>
+				{
+					var classification = ClassifySymbiantCell(map, Position + relative);
+					return classification == SymbiantCellClass.IndoorFloor || classification == SymbiantCellClass.Door;
+				}))
+				.ThenByDescending(component => component.Count)
 				.ThenByDescending(component => component.Contains(IntVec3.Zero))
-				.ThenByDescending(component => selectionCoreRelative.IsValid && component.Contains(selectionCoreRelative))
-				.FirstOrDefault();
+			.ThenByDescending(component => selectionCoreRelative.IsValid && component.Contains(selectionCoreRelative))
+			.FirstOrDefault();
 		}
 
 		void RebuildRoomCellMigrationLookup()
@@ -3103,7 +3108,7 @@ namespace ZombieLand
 				var components = ConnectedComponents(cellsInRoom);
 				if (components.Count <= 1)
 					continue;
-				var primary = PrimaryRoomComponent(components);
+				var primary = PrimaryRoomComponent(map, components);
 				foreach (var component in components)
 				{
 					if (component != primary)
@@ -3151,7 +3156,7 @@ namespace ZombieLand
 					&& (Position + relative).InBounds(map)
 					&& (Position + relative).GetRoom(map) == room)
 				.ToHashSet();
-			var primary = PrimaryRoomComponent(ConnectedComponents(queuedRoomCells));
+			var primary = PrimaryRoomComponent(map, ConnectedComponents(queuedRoomCells));
 			if (primary == null || primary.Count == 0)
 				return false;
 			roomCellMigrationCells.RemoveAll(primary.Contains);

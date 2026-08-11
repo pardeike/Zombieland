@@ -7190,9 +7190,142 @@ namespace ZombieLand
 			}
 		}
 
-		[Tool("zombieland/symbiant_multi_room_contract", Description = "Build reversible separated-room fixtures and verify the 25-percent room gate, adjacent-room preference, remote patch founding, one connected patch per room, gradual legacy-cell migration, merged-room queue retirement, interaction-core handoff, component rendering, whole-body targeting, and distributed invalid-cell relocation.")]
+		static object RunSymbiantValidPrimaryComponentProbe(Map map)
+		{
+			SymbiantExpansionFixture fixture = null;
+			ZombieSymbiant symbiant = null;
+			object action = null;
+			object error = null;
+			object symbiantCleanup = null;
+			object fixtureCleanup = null;
+			try
+			{
+				if (TrySetupSymbiantExpansionFixture(map, out fixture, out var fixtureError) == false)
+					return fixtureError;
+				ZombieSymbiant.Spawn(map, fixture.spawnCell);
+				symbiant = ZombieSymbiant.ActiveSymbiant(map);
+				if (symbiant == null)
+					return new { success = false, error = "Could not spawn the valid-primary-component probe Symbiant." };
+
+				var root = symbiant.Position;
+				bool TouchesRoot(IntVec3 cell) => cell == root || GenAdj.CardinalDirections.Any(direction => root + direction == cell);
+				var invalidComponent = fixture.leftInterior.Cells
+					.Select(cell => new[] { cell, cell + IntVec3.East })
+					.FirstOrDefault(pair => pair.All(fixture.leftInterior.Contains) && pair.All(cell => TouchesRoot(cell) == false));
+				if (invalidComponent == null)
+					return new { success = false, error = "Could not find a disconnected two-cell component for the valid-primary-component probe." };
+				var addedInvalidComponent = ZombieSymbiant.AddCells(map, invalidComponent);
+				var roomBeforeRoofChange = root.GetRoom(map);
+				var componentsBeforeRoofChange = roomBeforeRoofChange == null ? 0 : symbiant.DebugRoomComponentCount(roomBeforeRoofChange);
+
+				foreach (var cell in invalidComponent)
+					map.roofGrid.SetRoof(cell, null);
+				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+				var roomAfterRoofChange = root.GetRoom(map);
+				var roomStayedEligible = roomAfterRoofChange != null
+					&& roomAfterRoofChange == invalidComponent[0].GetRoom(map)
+					&& roomAfterRoofChange.ProperRoom
+					&& roomAfterRoofChange.UsesOutdoorTemperature == false;
+				var rootClassification = ZombieSymbiant.ClassifySymbiantCell(map, root);
+				var invalidClassifications = invalidComponent
+					.Select(cell => ZombieSymbiant.ClassifySymbiantCell(map, cell))
+					.ToArray();
+				var migrationCountBefore = symbiant.DebugInitializeRoomCellMigration();
+				var queuedBefore = symbiant.DebugRoomCellMigrationCells.ToHashSet();
+				var validRootRetained = queuedBefore.Contains(root) == false
+					&& invalidComponent.All(queuedBefore.Contains);
+
+				var repairSteps = new List<object>();
+				var repairsSucceeded = true;
+				for (var attempt = 0; symbiant.DebugRoomCellMigrationCount > 0 && attempt < invalidComponent.Length + 2; attempt++)
+				{
+					bool pulse;
+					Rand.PushState(531901 + attempt);
+					try
+					{
+						pulse = symbiant.DebugMovePulse();
+					}
+					finally
+					{
+						Rand.PopState();
+					}
+					repairsSucceeded &= pulse && symbiant.DebugLastMovePulseMigratedRoomCell;
+					repairSteps.Add(new
+					{
+						pulse,
+						migrationMove = symbiant.DebugLastMovePulseMigratedRoomCell,
+						source = symbiant.DebugLastMigratedRoomCellSource.IsValid
+							? ZombieRuntimeActions.DescribeCell(symbiant.DebugLastMigratedRoomCellSource)
+							: null,
+						destination = symbiant.DebugLastMigratedRoomCellDestination.IsValid
+							? ZombieRuntimeActions.DescribeCell(symbiant.DebugLastMigratedRoomCellDestination)
+							: null,
+						remaining = symbiant.DebugRoomCellMigrationCount
+					});
+				}
+
+				var migrationQueueDrained = symbiant.DebugRoomCellMigrationCount == 0;
+				var invalidSourcesMoved = invalidComponent.All(cell => symbiant.ContainsCell(cell) == false);
+				action = new
+				{
+					success = addedInvalidComponent == invalidComponent.Length
+						&& componentsBeforeRoofChange == 2
+						&& roomStayedEligible
+						&& rootClassification == ZombieSymbiant.SymbiantCellClass.IndoorFloor
+						&& invalidClassifications.All(classification => classification == ZombieSymbiant.SymbiantCellClass.InvalidBlocked)
+						&& migrationCountBefore == invalidComponent.Length
+						&& validRootRetained
+						&& repairSteps.Count == invalidComponent.Length
+						&& repairsSucceeded
+						&& migrationQueueDrained
+						&& invalidSourcesMoved
+						&& symbiant.Position == root
+						&& symbiant.ContainsCell(root)
+						&& symbiant.CellCount == invalidComponent.Length + 1,
+					root = ZombieRuntimeActions.DescribeCell(root),
+					invalidComponent = invalidComponent.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					addedInvalidComponent,
+					componentsBeforeRoofChange,
+					roomStayedEligible,
+					rootClassification = rootClassification.ToString(),
+					invalidClassifications = invalidClassifications.Select(classification => classification.ToString()).ToArray(),
+					migrationCountBefore,
+					queuedBefore = queuedBefore.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					validRootRetained,
+					repairSteps,
+					repairsSucceeded,
+					migrationQueueDrained,
+					invalidSourcesMoved
+				};
+			}
+			catch (Exception ex)
+			{
+				error = ex.ToString();
+			}
+			finally
+			{
+				symbiantCleanup = CleanupTemporarySymbiant(map, symbiant, true);
+				fixtureCleanup = CleanupSymbiantExpansionFixture(map, fixture, true);
+			}
+
+			var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
+			return new
+			{
+				success = error == null && ScenarioSucceeded(action) && activeAfterCleanup == null,
+				error,
+				action,
+				cleanup = new
+				{
+					symbiant = symbiantCleanup,
+					fixture = fixtureCleanup,
+					activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
+				}
+			};
+		}
+
+		[Tool("zombieland/symbiant_multi_room_contract", Description = "Build reversible separated-room fixtures and verify the 25-percent room gate, adjacent-room preference, remote patch founding, one connected patch per room, valid-component-first legacy migration, merged-room queue retirement, interaction-core handoff, component rendering, whole-body targeting, and distributed invalid-cell relocation.")]
 		public static object SymbiantMultiRoomContract(
-			[ToolParameter(Description = "Destroy the temporary Symbiant and room fixtures after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
+		[ToolParameter(Description = "Destroy the temporary Symbiant and room fixtures after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
 			var map = CurrentMap;
 			if (map == null)
@@ -7566,6 +7699,10 @@ namespace ZombieLand
 				var remoteFixtureCleanup = CleanupSymbiantExpansionFixture(map, remoteFixture, cleanup);
 				var firstFixtureCleanup = CleanupSymbiantExpansionFixture(map, firstFixture, cleanup);
 				var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
+				var validPrimaryComponent = cleanup && activeAfterCleanup == null
+					? RunSymbiantValidPrimaryComponentProbe(map)
+					: new { success = cleanup == false, skipped = true, reason = "The valid-primary-component probe requires cleanup=true and no active Symbiant." };
+				var activeAfterAllProbes = ZombieSymbiant.ActiveSymbiant(map);
 
 				var success = controlledRoomsSeparated
 					&& leftRequirement >= 2
@@ -7625,10 +7762,11 @@ namespace ZombieLand
 					&& bridgeWasEmpty
 					&& bridgeCellsAdded == 1
 					&& connectedQueueCellsRetired == 2
-					&& migrationQueueAfterBridge == 0
-					&& queuedCellsStayedInPlace
-					&& mergedRoomComponentsAfterBridge == 1
-					&& (cleanup == false || activeAfterCleanup == null);
+						&& migrationQueueAfterBridge == 0
+						&& queuedCellsStayedInPlace
+						&& mergedRoomComponentsAfterBridge == 1
+						&& ScenarioSucceeded(validPrimaryComponent)
+						&& (cleanup == false || activeAfterAllProbes == null);
 
 				var result = new
 				{
@@ -7685,6 +7823,7 @@ namespace ZombieLand
 						}
 					},
 					roomConnectivityRepair = migrationRepair,
+					validPrimaryComponent,
 					mergedRoomQueueRetirement,
 					invalidCellRelocation = new
 					{
@@ -7706,7 +7845,7 @@ namespace ZombieLand
 						mergedRoomFixture = mergedRoomFixtureCleanup,
 						remoteFixture = remoteFixtureCleanup,
 						firstFixture = firstFixtureCleanup,
-						activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
+						activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterAllProbes)
 					}
 				};
 				completed = true;

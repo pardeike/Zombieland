@@ -20,3 +20,4 @@
 - Outdoor Symbiant cells no longer detach from the main growth when they move.
 - Symbiants now keep spreading after a wall breach opens their occupied room outdoors, including all remaining corpse-feed growth.
 - Drafted attacks and manually aimed abilities can now target every visible Symbiant slime cell, while ordinary clicks still use only its core.
+- Symbiants now keep a usable room patch when repairing disconnected cells from older saves, even when a larger patch has become invalid.
