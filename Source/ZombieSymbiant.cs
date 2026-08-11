@@ -492,6 +492,8 @@ namespace ZombieLand
 		int nextRelocationPulseTick;
 		int uprootedSinceTick = -1;
 		bool exteriorOverflowAuthorized;
+		HashSet<IntVec3> authorizedExteriorCells = [];
+		bool exteriorOverflowScopeInitialized;
 		IntVec3 establishmentAnchorRelative = IntVec3.Invalid;
 		IndoorCapacityState lastIndoorCapacityState = IndoorCapacityState.NoRelevantRooms;
 		string lastPlacementGrowthState = "waiting";
@@ -571,6 +573,10 @@ namespace ZombieLand
 		internal bool DebugRoomCellMigrationRescanPending => roomCellMigrationRescanPending;
 		internal int DebugPendingFeedGrowthPulses => pendingFeedGrowthPulses;
 		internal bool DebugExteriorOverflowAuthorized => exteriorOverflowAuthorized;
+		internal IntVec3[] DebugAuthorizedExteriorCells => authorizedExteriorCells
+			.Select(relative => Position + relative)
+			.ToArray();
+		internal bool DebugIsAuthorizedExteriorCell(IntVec3 absolute) => authorizedExteriorCells.Contains(absolute - Position);
 		internal IndoorCapacityState DebugLastIndoorCapacityState => lastIndoorCapacityState;
 		internal IntVec3 DebugEstablishmentAnchorCell => establishmentAnchorRelative.IsValid ? Position + establishmentAnchorRelative : IntVec3.Invalid;
 		internal bool DebugConstructionRepairPending => HasPendingConstructionRepair;
@@ -628,6 +634,7 @@ namespace ZombieLand
 				topologySafe = IsPlacementTopologySafe(map),
 				roomTopologyInvalidated,
 				exteriorOverflowAuthorized,
+				authorizedExteriorCells = DebugAuthorizedExteriorCells.Select(DescribeDebugCell).ToArray(),
 				establishmentAnchor = DebugEstablishmentAnchorCell.IsValid ? DescribeDebugCell(DebugEstablishmentAnchorCell) : null,
 				cellClasses = Enum.GetValues(typeof(SymbiantCellClass))
 					.Cast<SymbiantCellClass>()
@@ -2865,6 +2872,9 @@ namespace ZombieLand
 			var removed = cells.Remove(relative);
 			if (removed)
 			{
+				authorizedExteriorCells?.Remove(relative);
+				if (exteriorOverflowScopeInitialized && authorizedExteriorCells?.Count == 0)
+					exteriorOverflowAuthorized = false;
 				roomCellMigrationCells?.Remove(relative);
 				roomCellMigrationLookup.Remove(relative);
 				if (establishmentAnchorRelative == relative)
@@ -3789,6 +3799,8 @@ namespace ZombieLand
 			roomCellMigrationRescanPending = false;
 			roomCellMigrationNormalizationPending = false;
 			exteriorOverflowAuthorized = false;
+			authorizedExteriorCells.Clear();
+			exteriorOverflowScopeInitialized = true;
 			establishmentAnchorRelative = IntVec3.Invalid;
 			selectionCoreRelative = IntVec3.Invalid;
 			selectionCoreLastMoveTick = GenTicks.TicksGame;
@@ -4388,7 +4400,12 @@ namespace ZombieLand
 		{
 			if (map == null || absoluteCells == null || absoluteCells.Count == 0 || absoluteCells.Contains(newRoot) == false)
 				return false;
+			SynchronizeExteriorOverflowAuthorization(map);
 			var wasSelected = Find.Selector?.IsSelected(this) == true;
+			var authorizedAbsoluteCells = authorizedExteriorCells
+				.Select(relative => Position + relative)
+				.Where(absoluteCells.Contains)
+				.ToArray();
 			temporaryDespawnInProgress = true;
 			try
 			{
@@ -4402,6 +4419,8 @@ namespace ZombieLand
 			Position = newRoot;
 			orderedCells = absoluteCells.Distinct().Select(cell => cell - newRoot).ToList();
 			cells = orderedCells.ToHashSet();
+			authorizedExteriorCells = authorizedAbsoluteCells.Select(cell => cell - newRoot).ToHashSet();
+			exteriorOverflowAuthorized = authorizedExteriorCells.Count > 0;
 			roomCellMigrationCells = [];
 			roomCellMigrationLookup.Clear();
 			roomCellMigrationInitialized = false;
@@ -4680,7 +4699,7 @@ namespace ZombieLand
 				SetSelectionCoreInstant(target.cell);
 			}
 			if (target.kind == ExpansionTargetKind.ExteriorOpen)
-				exteriorOverflowAuthorized = true;
+				AuthorizeExteriorCell(target.cell);
 			SynchronizeExteriorOverflowAuthorization(map);
 			RememberMovementCell(target.cell);
 			lastPlacementGrowthState = "growing";
@@ -4876,6 +4895,9 @@ namespace ZombieLand
 				if (roomCellMigrationLookup.Contains(relative))
 					continue;
 				var cell = Position + relative;
+				if (ClassifySymbiantCell(map, cell) == SymbiantCellClass.ExteriorOpen
+					&& authorizedExteriorCells.Contains(relative) == false)
+					continue;
 				for (var i = 0; i < 4; i++)
 				{
 					var candidate = cell + GenAdj.CardinalDirections[i];
@@ -4926,6 +4948,8 @@ namespace ZombieLand
 				return null;
 			var absolute = Position + relative;
 			var sourceClassification = ClassifySymbiantCell(map, absolute);
+			if (sourceClassification == SymbiantCellClass.ExteriorOpen && authorizedExteriorCells.Contains(relative) == false)
+				return null;
 			var sourceIndoor = sourceClassification == SymbiantCellClass.IndoorFloor || sourceClassification == SymbiantCellClass.Door;
 			var targetIndoor = target.classification == SymbiantCellClass.IndoorFloor || target.classification == SymbiantCellClass.Door;
 			if (sourceIndoor != targetIndoor || sourceIndoor == false && sourceClassification != SymbiantCellClass.ExteriorOpen)
@@ -5007,11 +5031,14 @@ namespace ZombieLand
 				return false;
 			var movingSelectionCore = selectionCoreRelative == source.relative;
 			var movingEstablishmentAnchor = establishmentAnchorRelative == source.relative;
+			var movingAuthorizedExteriorCell = authorizedExteriorCells.Contains(source.relative);
 			if (RemoveRelativeCellWithCoreDestination(source.relative, true, movingSelectionCore ? targetRelative : IntVec3.Invalid) == false)
 				return false;
 			if (AddRelativeCell(targetRelative) == false)
 			{
 				_ = AddRelativeCell(source.relative);
+				if (movingAuthorizedExteriorCell)
+					AuthorizeExteriorCell(source.absolute);
 				if (movingSelectionCore)
 				{
 					selectionCoreRelative = source.relative;
@@ -5019,6 +5046,8 @@ namespace ZombieLand
 				}
 				return false;
 			}
+			if (movingAuthorizedExteriorCell && target.classification == SymbiantCellClass.ExteriorOpen)
+				AuthorizeExteriorCell(target.cell);
 			if (movingEstablishmentAnchor)
 				SetEstablishmentAnchor(target.cell);
 			RebuildCellBounds();
@@ -5151,7 +5180,8 @@ namespace ZombieLand
 				if (classification == SymbiantCellClass.IndoorIneligible || classification == SymbiantCellClass.InvalidBlocked)
 					return true;
 				return classification == SymbiantCellClass.ExteriorOpen
-					&& (exteriorOverflowAuthorized == false || lastIndoorCapacityState == IndoorCapacityState.PlacementAvailable);
+					&& (authorizedExteriorCells.Contains(relative) == false
+						|| lastIndoorCapacityState == IndoorCapacityState.PlacementAvailable);
 			});
 		}
 
@@ -5165,7 +5195,8 @@ namespace ZombieLand
 				if (classification == SymbiantCellClass.IndoorIneligible || classification == SymbiantCellClass.InvalidBlocked)
 					return true;
 				return classification == SymbiantCellClass.ExteriorOpen
-					&& (exteriorOverflowAuthorized == false || capacity?.state == IndoorCapacityState.PlacementAvailable);
+					&& (authorizedExteriorCells.Contains(relative) == false
+						|| capacity?.state == IndoorCapacityState.PlacementAvailable);
 			});
 		}
 
@@ -5182,7 +5213,7 @@ namespace ZombieLand
 				.Where(entry => entry.classification == SymbiantCellClass.ExteriorOpen
 					|| entry.classification == SymbiantCellClass.IndoorIneligible
 					|| entry.classification == SymbiantCellClass.InvalidBlocked)
-				.OrderBy(entry => entry.classification == SymbiantCellClass.ExteriorOpen ? 0 : 1)
+				.OrderBy(entry => entry.classification == SymbiantCellClass.ExteriorOpen && authorizedExteriorCells.Contains(entry.cell) == false ? 0 : 1)
 				.Where(entry => WouldCellsStayConnectedAfterMove(entry.cell, targetRelative))
 				.Select(entry => (IntVec3?)entry.cell)
 				.FirstOrDefault();
@@ -5196,12 +5227,15 @@ namespace ZombieLand
 			var movingRoot = sourceRelative == IntVec3.Zero;
 			var movingSelectionCore = selectionCoreRelative == sourceRelative;
 			var movingEstablishmentAnchor = establishmentAnchorRelative == sourceRelative;
+			var movingAuthorizedExteriorCell = authorizedExteriorCells.Contains(sourceRelative);
 			if (RemoveRelativeCellWithCoreDestination(sourceRelative, false, movingSelectionCore ? targetRelative : IntVec3.Invalid, false) == false)
 				return false;
 			if (AddRelativeCell(target.cell - Position, false, false) == false)
 			{
 				if (AddRelativeCell(sourceRelative, false, false))
 				{
+					if (movingAuthorizedExteriorCell)
+						AuthorizeExteriorCell(source);
 					if (movingSelectionCore)
 					{
 						selectionCoreRelative = sourceRelative;
@@ -5300,7 +5334,7 @@ namespace ZombieLand
 			RememberMovementCell(target.cell);
 			relocationCellDebt = Mathf.Max(0, relocationCellDebt - 1);
 			if (target.kind == ExpansionTargetKind.ExteriorOpen)
-				exteriorOverflowAuthorized = true;
+				AuthorizeExteriorCell(target.cell);
 			nextRelocationPulseTick = relocationCellDebt > 0 || HasMovableUnintegratedCells() ? ticks + RelocationPulseIntervalTicks() : 0;
 			if (relocationCellDebt == 0)
 				ResetExpansionClock();
@@ -5314,14 +5348,14 @@ namespace ZombieLand
 			var rootClassification = ClassifySymbiantCell(map, Position);
 			if (rootClassification == SymbiantCellClass.IndoorFloor
 				|| rootClassification == SymbiantCellClass.Door
-				|| rootClassification == SymbiantCellClass.ExteriorOpen && exteriorOverflowAuthorized)
+				|| rootClassification == SymbiantCellClass.ExteriorOpen && authorizedExteriorCells.Contains(IntVec3.Zero))
 				return false;
 			var newRootRelative = orderedCells
 				.Where(relative => relative != IntVec3.Zero)
 				.Select(relative => new { relative, classification = ClassifySymbiantCell(map, Position + relative) })
 				.Where(entry => entry.classification == SymbiantCellClass.IndoorFloor
 					|| entry.classification == SymbiantCellClass.Door
-					|| entry.classification == SymbiantCellClass.ExteriorOpen && exteriorOverflowAuthorized)
+					|| entry.classification == SymbiantCellClass.ExteriorOpen && authorizedExteriorCells.Contains(entry.relative))
 				.OrderBy(entry => entry.classification == SymbiantCellClass.IndoorFloor || entry.classification == SymbiantCellClass.Door ? 0 : 1)
 				.ThenBy(entry => entry.relative == selectionCoreRelative ? 0 : 1)
 				.ThenBy(entry => SelectionCoreClutterScore(entry.relative))
@@ -5340,6 +5374,9 @@ namespace ZombieLand
 			var oldPosition = Position;
 			var newPosition = oldPosition + newRootRelative;
 			var absoluteCells = orderedCells.Select(relative => oldPosition + relative).ToArray();
+			var authorizedAbsoluteCells = authorizedExteriorCells
+				.Select(relative => oldPosition + relative)
+				.ToArray();
 			var coreCell = selectionCoreRelative.IsValid ? oldPosition + selectionCoreRelative : newPosition;
 			var establishmentCell = establishmentAnchorRelative.IsValid ? oldPosition + establishmentAnchorRelative : newPosition;
 			var wasSelected = Find.Selector?.IsSelected(this) == true;
@@ -5356,6 +5393,7 @@ namespace ZombieLand
 			Position = newPosition;
 			cells = absoluteCells.Select(cell => cell - newPosition).ToHashSet();
 			orderedCells = absoluteCells.Select(cell => cell - newPosition).ToList();
+			authorizedExteriorCells = authorizedAbsoluteCells.Select(cell => cell - newPosition).ToHashSet();
 			if (roomCellMigrationCells != null)
 				roomCellMigrationCells = roomCellMigrationCells
 					.Select(relative => relative - newRootRelative)
@@ -5391,12 +5429,19 @@ namespace ZombieLand
 			if (map == null || capacity == null || orderedCells == null || orderedCells.Count == 0)
 				return null;
 			var classifications = orderedCells
-				.Select(relative => ClassifySymbiantCell(map, Position + relative))
+				.Select(relative => new
+				{
+					relative,
+					classification = ClassifySymbiantCell(map, Position + relative)
+				})
 				.ToArray();
-			var hasExterior = classifications.Contains(SymbiantCellClass.ExteriorOpen);
-			var hasInvalid = classifications.Any(classification =>
-				classification == SymbiantCellClass.IndoorIneligible || classification == SymbiantCellClass.InvalidBlocked);
-			if (hasInvalid || hasExterior && exteriorOverflowAuthorized == false)
+			var hasAuthorizedExterior = classifications.Any(entry =>
+				entry.classification == SymbiantCellClass.ExteriorOpen && authorizedExteriorCells.Contains(entry.relative));
+			var hasUnauthorizedExterior = classifications.Any(entry =>
+				entry.classification == SymbiantCellClass.ExteriorOpen && authorizedExteriorCells.Contains(entry.relative) == false);
+			var hasInvalid = classifications.Any(entry =>
+				entry.classification == SymbiantCellClass.IndoorIneligible || entry.classification == SymbiantCellClass.InvalidBlocked);
+			if (hasInvalid || hasUnauthorizedExterior)
 			{
 				if (capacity.state == IndoorCapacityState.PlacementAvailable)
 					nextRelocationPulseTick = GenTicks.TicksGame;
@@ -5405,7 +5450,7 @@ namespace ZombieLand
 					: "contained";
 				return null;
 			}
-			if (hasExterior)
+			if (hasAuthorizedExterior)
 			{
 				if (capacity.state == IndoorCapacityState.NoRelevantRooms)
 				{
@@ -5535,11 +5580,44 @@ namespace ZombieLand
 
 		void SynchronizeExteriorOverflowAuthorization(Map map)
 		{
-			if (exteriorOverflowAuthorized == false || map == null || IsPlacementTopologySafe(map) == false)
+			authorizedExteriorCells ??= [];
+			if (map == null || IsPlacementTopologySafe(map) == false)
 				return;
-			if (orderedCells.Any(relative => ClassifySymbiantCell(map, Position + relative) == SymbiantCellClass.ExteriorOpen))
+
+			if (exteriorOverflowScopeInitialized == false)
+			{
+				authorizedExteriorCells.Clear();
+				if (exteriorOverflowAuthorized)
+				{
+					var exteriorCells = orderedCells
+						.Where(relative => ClassifySymbiantCell(map, Position + relative) == SymbiantCellClass.ExteriorOpen)
+						.ToHashSet();
+					var seed = orderedCells
+						.AsEnumerable()
+						.Reverse()
+						.Where(exteriorCells.Contains)
+						.Select(relative => (IntVec3?)relative)
+						.FirstOrDefault();
+					if (seed.HasValue)
+						authorizedExteriorCells.UnionWith(ConnectedCells(exteriorCells, seed.Value));
+				}
+				exteriorOverflowScopeInitialized = true;
+			}
+
+			authorizedExteriorCells.RemoveWhere(relative =>
+				cells?.Contains(relative) != true
+				|| ClassifySymbiantCell(map, Position + relative) != SymbiantCellClass.ExteriorOpen);
+			exteriorOverflowAuthorized = authorizedExteriorCells.Count > 0;
+		}
+
+		void AuthorizeExteriorCell(IntVec3 absolute)
+		{
+			if (absolute.IsValid == false || ContainsCell(absolute) == false)
 				return;
-			exteriorOverflowAuthorized = false;
+			authorizedExteriorCells ??= [];
+			authorizedExteriorCells.Add(absolute - Position);
+			exteriorOverflowScopeInitialized = true;
+			exteriorOverflowAuthorized = true;
 		}
 
 		int RoomEstablishmentRequirement(Map map, Room room)
@@ -5843,7 +5921,7 @@ namespace ZombieLand
 			RebuildCellBounds();
 			UpdateAll();
 			UpdateSymbiosisState();
-			exteriorOverflowAuthorized = true;
+			AuthorizeExteriorCell(target.cell);
 			return true;
 		}
 
@@ -6737,6 +6815,7 @@ namespace ZombieLand
 				cells.Add(IntVec3.Zero);
 			orderedCells ??= [];
 			roomCellMigrationCells ??= [];
+			authorizedExteriorCells ??= [];
 			if (orderedCells.Count == 0)
 				orderedCells.AddRange(cells);
 			else
@@ -7287,6 +7366,8 @@ namespace ZombieLand
 			Scribe_Values.Look(ref nextRelocationPulseTick, "nextRelocationPulseTick");
 			Scribe_Values.Look(ref uprootedSinceTick, "uprootedSinceTick", -1);
 			Scribe_Values.Look(ref exteriorOverflowAuthorized, "exteriorOverflowAuthorized");
+			Scribe_Collections.Look(ref authorizedExteriorCells, "authorizedExteriorCells", LookMode.Value);
+			Scribe_Values.Look(ref exteriorOverflowScopeInitialized, "exteriorOverflowScopeInitialized");
 			Scribe_Values.Look(ref establishmentAnchorRelative, "establishmentAnchorRelative", IntVec3.Invalid);
 			Scribe_Values.Look(ref selectionCoreRelative, "selectionCoreRelative", IntVec3.Invalid);
 			Scribe_Values.Look(ref selectionCoreMotionFrom, "selectionCoreMotionFrom", IntVec3.Invalid);

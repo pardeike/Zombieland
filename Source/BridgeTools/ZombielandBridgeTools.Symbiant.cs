@@ -6554,7 +6554,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_expansion_contract", Description = "Build reversible room fixtures and verify indoor spread, roof/door gating, direct room founding, divider preservation, open-door overflow, one-wall exterior breaching, rollback after a forced failed commit, deferred multi-pulse feeding after that breach, and no second breach.")]
+		[Tool("zombieland/symbiant_expansion_contract", Description = "Build reversible room fixtures and verify indoor spread, roof/door gating, direct room founding, divider preservation, component-scoped overflow authorization, one-wall exterior breaching, rollback after a forced failed commit, deferred multi-pulse feeding after that breach, and no second breach.")]
 		public static object SymbiantExpansionContract(
 			[ToolParameter(Description = "Destroy the temporary symbiant and two-room fixture after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -6689,6 +6689,25 @@ namespace ZombieLand
 				var sharedHealthMaxAfterOverflow = symbiant?.DamageAbsorptionBufferMax ?? 0;
 				var hostBenefitsAfterOverflow = symbiant?.HostBenefitCount ?? 0;
 				var overflowAuthorizedAfterAdd = symbiant?.ExteriorOverflowAuthorized == true;
+				var authorizedExteriorBeforeDamage = symbiant?.DebugAuthorizedExteriorCells ?? [];
+				var damageExposureCells = symbiant?.AbsoluteCells
+					.Where(fixture.rightInterior.Contains)
+					.ToArray() ?? [];
+				var cellCountBeforeDamageExposure = symbiant?.CellCount ?? 0;
+				foreach (var cell in fixture.rightInterior.Cells)
+					map.roofGrid.SetRoof(cell, null);
+				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+				var damageCellsBecameExterior = damageExposureCells.Length > 0
+					&& damageExposureCells.All(cell => ZombieSymbiant.ClassifySymbiantCell(map, cell) == ZombieSymbiant.SymbiantCellClass.ExteriorOpen);
+				var damageExposureGrowthPulse = symbiant?.TryExpansionPulse() == true;
+				var authorizedExteriorAfterDamage = symbiant?.DebugAuthorizedExteriorCells ?? [];
+				var damagedComponentStayedUnauthorized = symbiant != null
+					&& damageExposureCells.All(cell => symbiant.DebugIsAuthorizedExteriorCell(cell) == false);
+				var overflowAuthorizationStayedScoped = authorizedExteriorBeforeDamage.ToHashSet().SetEquals(authorizedExteriorAfterDamage);
+				var cellCountAfterDamageExposure = symbiant?.CellCount ?? 0;
+				foreach (var cell in fixture.rightInterior.Cells)
+					map.roofGrid.SetRoof(cell, RoofDefOf.RoofConstructed);
+				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
 
 				var returnVacancy = symbiant == null
 					? IntVec3.Invalid
@@ -6775,6 +6794,13 @@ namespace ZombieLand
 					&& hostEffectCellsAfterOverflow == hostEffectCellsBeforeOverflow
 					&& sharedHealthMaxAfterOverflow == sharedHealthMaxBeforeOverflow
 					&& hostBenefitsAfterOverflow == hostBenefitsBeforeOverflow
+					&& authorizedExteriorBeforeDamage.Length == 1
+					&& authorizedExteriorBeforeDamage[0] == overflowCell
+					&& damageCellsBecameExterior
+					&& damageExposureGrowthPulse == false
+					&& damagedComponentStayedUnauthorized
+					&& overflowAuthorizationStayedScoped
+					&& cellCountAfterDamageExposure == cellCountBeforeDamageExposure
 					&& removedReturnVacancy
 					&& exteriorCellsBeforeReturn == 1
 					&& containedGrowthPulse == false
@@ -6858,7 +6884,19 @@ namespace ZombieLand
 							sharedHealthMaxBefore = sharedHealthMaxBeforeOverflow,
 							sharedHealthMaxAfter = sharedHealthMaxAfterOverflow,
 							hostBenefitsBefore = hostBenefitsBeforeOverflow,
-							hostBenefitsAfter = hostBenefitsAfterOverflow
+							hostBenefitsAfter = hostBenefitsAfterOverflow,
+							damageExposure = new
+							{
+								cells = damageExposureCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+								damageCellsBecameExterior,
+								growthPulse = damageExposureGrowthPulse,
+								damagedComponentStayedUnauthorized,
+								authorizationStayedScoped = overflowAuthorizationStayedScoped,
+								authorizedBefore = authorizedExteriorBeforeDamage.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+								authorizedAfter = authorizedExteriorAfterDamage.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+								cellCountBefore = cellCountBeforeDamageExposure,
+								cellCountAfter = cellCountAfterDamageExposure
+							}
 						},
 						returnToIndoor = new
 						{
