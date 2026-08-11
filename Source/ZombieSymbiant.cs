@@ -5875,6 +5875,20 @@ namespace ZombieLand
 			return counts;
 		}
 
+		bool IsEstablishedRoomPatchCell(Map map, IntVec3 relative, IntVec3? movingSourceRelative = null)
+		{
+			if (map == null
+				|| cells?.Contains(relative) != true
+				|| movingSourceRelative.HasValue && relative == movingSourceRelative.Value
+				|| roomCellMigrationLookup.Contains(relative))
+				return false;
+			var absolute = Position + relative;
+			if (absolute.InBounds(map) == false)
+				return false;
+			var classification = ClassifySymbiantCell(map, absolute);
+			return classification == SymbiantCellClass.IndoorFloor || classification == SymbiantCellClass.Door;
+		}
+
 		bool CanPlaceConnectedWithinRoom(Map map, IntVec3 candidate, IntVec3? movingSourceRelative = null)
 		{
 			if (map == null || candidate.InBounds(map) == false)
@@ -5883,14 +5897,10 @@ namespace ZombieLand
 			if (IsEligibleIndoorRoom(room) == false)
 				return true;
 
-			var hasOccupiedRoomCell = orderedCells.Any(relative =>
-			{
-				if (movingSourceRelative.HasValue && relative == movingSourceRelative.Value)
-					return false;
-				var absolute = Position + relative;
-				return absolute.InBounds(map) && absolute.GetRoom(map) == room;
-			});
-			return hasOccupiedRoomCell == false || TouchesEstablishedRoomPatch(map, candidate, room, movingSourceRelative);
+			var hasEstablishedRoomCell = orderedCells.Any(relative =>
+				IsEstablishedRoomPatchCell(map, relative, movingSourceRelative)
+				&& (Position + relative).GetRoom(map) == room);
+			return hasEstablishedRoomCell == false || TouchesEstablishedRoomPatch(map, candidate, room, movingSourceRelative);
 		}
 
 		bool TouchesEstablishedRoomPatch(Map map, IntVec3 candidate, Room room, IntVec3? movingSourceRelative = null)
@@ -5901,11 +5911,8 @@ namespace ZombieLand
 			{
 				var neighbor = candidate + direction;
 				var relative = neighbor - Position;
-				if (movingSourceRelative.HasValue && relative == movingSourceRelative.Value)
-					continue;
-				if (cells.Contains(relative) == false || neighbor.InBounds(map) == false || neighbor.GetRoom(map) != room)
-					continue;
-				if (roomCellMigrationLookup.Contains(relative))
+				if (IsEstablishedRoomPatchCell(map, relative, movingSourceRelative) == false
+					|| neighbor.GetRoom(map) != room)
 					continue;
 				return true;
 			}
@@ -6285,13 +6292,7 @@ namespace ZombieLand
 				exactCapacityAuditCount++;
 			var footprint = orderedCells.Select(relative => Position + relative).ToHashSet();
 			var excludedEstablishedSources = orderedCells
-				.Where(relative =>
-				{
-					if (roomCellMigrationLookup.Contains(relative))
-						return true;
-					var classification = ClassifySymbiantCell(map, Position + relative);
-					return classification != SymbiantCellClass.IndoorFloor && classification != SymbiantCellClass.Door;
-				})
+				.Where(relative => IsEstablishedRoomPatchCell(map, relative) == false)
 				.Select(relative => Position + relative)
 				.ToHashSet();
 			var relevantRooms = CandidateRooms(map)
@@ -6318,7 +6319,7 @@ namespace ZombieLand
 						continue;
 					usableCells.Add(cell);
 					record.capacity++;
-					if (footprint.Contains(cell))
+					if (footprint.Contains(cell) && IsEstablishedRoomPatchCell(map, cell - Position))
 						record.occupied++;
 				}
 				foreach (var cell in usableCells)

@@ -8738,7 +8738,7 @@ namespace ZombieLand
 			}
 		}
 
-		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify immediate indoor return when capacity exists, source-excluding relocation target scoring, founding state during relocation-debt repayment, authorized-overflow no-room debt stop, grace, and dormant retry cadence, movable outdoor-cell reuse, and atomic construction repair over root and non-root Symbiant cells.")]
+		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify immediate indoor return when capacity exists, source-excluding relocation target scoring, invalid-only room founding, founding state during relocation-debt repayment, authorized-overflow no-room debt stop, grace, and dormant retry cadence, movable outdoor-cell reuse, and atomic construction repair over root and non-root Symbiant cells.")]
 		public static object SymbiantRelocationContract(
 			[ToolParameter(Description = "Destroy temporary symbiants, colonists, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true,
 			[ToolParameter(Description = "Run only the canonical-root construction/recovery subscenario for a focused regression check.", Required = false, DefaultValue = false)] bool constructionRootOnly = false,
@@ -8759,6 +8759,7 @@ namespace ZombieLand
 			object movableCellReuse = null;
 			object relocationDebtFounding = null;
 			object relocationTargetScoring = null;
+			object emptyRoomInvalidOccupant = null;
 			object noRoomDormancy = null;
 			object constructionNonRootBatch = null;
 			object constructionRoot = null;
@@ -8782,6 +8783,7 @@ namespace ZombieLand
 					movableCellReuse = RunSymbiantMovableCellReuseScenario(map, cleanup);
 					relocationDebtFounding = RunSymbiantRelocationDebtFoundingScenario(map, cleanup);
 					relocationTargetScoring = RunSymbiantRelocationTargetScoringScenario(map, cleanup);
+					emptyRoomInvalidOccupant = RunSymbiantEmptyRoomInvalidOccupantScenario(map, cleanup);
 					noRoomDormancy = RunSymbiantNoRoomDormancyScenario(map, cleanup);
 					constructionNonRootBatch = RunSymbiantConstructionOverlapScenario(map, cleanup, false);
 					constructionRoot = RunSymbiantConstructionOverlapScenario(map, cleanup, true);
@@ -8810,6 +8812,7 @@ namespace ZombieLand
 						&& ScenarioSucceeded(movableCellReuse)
 						&& ScenarioSucceeded(relocationDebtFounding)
 						&& ScenarioSucceeded(relocationTargetScoring)
+						&& ScenarioSucceeded(emptyRoomInvalidOccupant)
 						&& ScenarioSucceeded(noRoomDormancy)
 						&& ScenarioSucceeded(constructionNonRootBatch)
 						&& ScenarioSucceeded(constructionRoot))
@@ -8824,6 +8827,7 @@ namespace ZombieLand
 				movableCellReuse,
 				relocationDebtFounding,
 				relocationTargetScoring,
+				emptyRoomInvalidOccupant,
 				noRoomDormancy,
 				constructionNonRootBatch,
 				constructionRoot,
@@ -9168,6 +9172,134 @@ namespace ZombieLand
 					cellCountBefore,
 					cellCountAfter = symbiant.CellCount,
 					migrationQueueAfter = symbiant.DebugRoomCellMigrationCount,
+					hostStillLinked = symbiant.LinkedHost == host
+				};
+			}
+			catch (Exception ex)
+			{
+				return new { success = false, error = ex.ToString(), fixtureSetup };
+			}
+			finally
+			{
+				if (grid != null)
+					foreach (var pair in originalTimestamps)
+						grid.SetTimestamp(pair.Key, pair.Value);
+				_ = CleanupTemporarySymbiant(map, symbiant, cleanup);
+				_ = CleanupTemporaryPawn(host, cleanup);
+				_ = CleanupSymbiantExpansionFixture(map, fixture, cleanup);
+			}
+		}
+
+		static object RunSymbiantEmptyRoomInvalidOccupantScenario(Map map, bool cleanup)
+		{
+			SymbiantExpansionFixture fixture = null;
+			ZombieSymbiant symbiant = null;
+			Pawn host = null;
+			PheromoneGrid grid = null;
+			var originalTimestamps = new Dictionary<IntVec3, long>();
+			object fixtureSetup = null;
+			try
+			{
+				if (TrySetupSymbiantExpansionFixture(map, out fixture, out var fixtureError) == false)
+					return fixtureError;
+				fixtureSetup = DescribeSymbiantExpansionFixture(fixture);
+				var root = fixture.leftInterior.CenterCell;
+				var movingInvalidSource = root + IntVec3.West;
+				var invalidRoomOccupant = new IntVec3(fixture.rightInterior.minX, 0, fixture.rightInterior.minZ);
+				var preferredFoundingTarget = new IntVec3(fixture.rightInterior.maxX, 0, fixture.rightInterior.maxZ);
+				if (new[] { root, movingInvalidSource }.All(fixture.leftInterior.Contains) == false
+					|| new[] { invalidRoomOccupant, preferredFoundingTarget }.All(fixture.rightInterior.Contains) == false)
+					return new { success = false, fixtureSetup, error = "Could not place the invalid-occupant relocation cells inside the fixture rooms." };
+
+				host = SpawnSymbiantRelocationHost(map, root);
+				symbiant = SpawnAssignedSymbiantForRelocationContract(map, root, host);
+				var invalidOccupantAdded = ZombieSymbiant.AddCells(map, new[] { invalidRoomOccupant });
+				var movingSourceAdded = ZombieSymbiant.AddCells(map, new[] { movingInvalidSource });
+
+				grid = map.GetGrid();
+				if (grid == null)
+					return new { success = false, fixtureSetup, error = "The invalid-occupant relocation probe could not resolve the pheromone grid." };
+				foreach (var cell in fixture.rightInterior.Cells)
+				{
+					originalTimestamps[cell] = grid.GetTimestamp(cell);
+					grid.SetTimestamp(cell, 0);
+				}
+				grid.SetTimestamp(preferredFoundingTarget, Math.Max(2L, ZombieLand.Tools.Ticks()));
+
+				var leftRoomBeforeRoofChange = root.GetRoom(map);
+				var rightRoomBeforeRoofChange = invalidRoomOccupant.GetRoom(map);
+				map.roofGrid.SetRoof(movingInvalidSource, null);
+				map.roofGrid.SetRoof(invalidRoomOccupant, null);
+				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+				var leftRoom = root.GetRoom(map);
+				var rightRoom = preferredFoundingTarget.GetRoom(map);
+				var roomsStayedEligible = leftRoomBeforeRoofChange != null
+					&& rightRoomBeforeRoofChange != null
+					&& leftRoom == leftRoomBeforeRoofChange
+					&& rightRoom == rightRoomBeforeRoofChange
+					&& movingInvalidSource.GetRoom(map) == leftRoom
+					&& invalidRoomOccupant.GetRoom(map) == rightRoom
+					&& leftRoom.ProperRoom
+					&& rightRoom.ProperRoom
+					&& leftRoom.UsesOutdoorTemperature == false
+					&& rightRoom.UsesOutdoorTemperature == false;
+				var movingSourceClass = ZombieSymbiant.ClassifySymbiantCell(map, movingInvalidSource);
+				var invalidOccupantClass = ZombieSymbiant.ClassifySymbiantCell(map, invalidRoomOccupant);
+				var targetClass = ZombieSymbiant.ClassifySymbiantCell(map, preferredFoundingTarget);
+				var targetTouchesInvalidOccupant = GenAdj.CardinalDirections.Any(direction =>
+					preferredFoundingTarget + direction == invalidRoomOccupant);
+				var migrationQueueBefore = symbiant.DebugInitializeRoomCellMigration();
+				var selectedTarget = symbiant.DebugRelocationTargetCell();
+				var footprintBefore = symbiant.AbsoluteCells.ToHashSet();
+				var cellCountBefore = symbiant.CellCount;
+				ForceSymbiantRelocationPulseReady(symbiant);
+				var pulse = InvokeSymbiantTryRelocationPulse(symbiant);
+				var footprintAfter = symbiant.AbsoluteCells.ToHashSet();
+				var removedCells = footprintBefore.Where(cell => footprintAfter.Contains(cell) == false).ToArray();
+				var addedCells = footprintAfter.Where(cell => footprintBefore.Contains(cell) == false).ToArray();
+				var success = invalidOccupantAdded == 1
+					&& movingSourceAdded == 1
+					&& roomsStayedEligible
+					&& movingSourceClass == ZombieSymbiant.SymbiantCellClass.InvalidBlocked
+					&& invalidOccupantClass == ZombieSymbiant.SymbiantCellClass.InvalidBlocked
+					&& targetClass == ZombieSymbiant.SymbiantCellClass.IndoorFloor
+					&& targetTouchesInvalidOccupant == false
+					&& migrationQueueBefore == 0
+					&& selectedTarget == preferredFoundingTarget
+					&& pulse
+					&& removedCells.SequenceEqual(new[] { movingInvalidSource })
+					&& addedCells.SequenceEqual(new[] { preferredFoundingTarget })
+					&& symbiant.ContainsCell(invalidRoomOccupant)
+					&& symbiant.CellCount == cellCountBefore
+					&& symbiant.DebugEstablishmentAnchorCell == preferredFoundingTarget
+					&& symbiant.SelectionCoreCell == preferredFoundingTarget
+					&& symbiant.LinkedHost == host;
+				return new
+				{
+					success,
+					fixtureSetup,
+					host = DescribeRelocationHost(host),
+					root = ZombieRuntimeActions.DescribeCell(root),
+					movingInvalidSource = ZombieRuntimeActions.DescribeCell(movingInvalidSource),
+					invalidRoomOccupant = ZombieRuntimeActions.DescribeCell(invalidRoomOccupant),
+					preferredFoundingTarget = ZombieRuntimeActions.DescribeCell(preferredFoundingTarget),
+					invalidOccupantAdded,
+					movingSourceAdded,
+					roomsStayedEligible,
+					movingSourceClass = movingSourceClass.ToString(),
+					invalidOccupantClass = invalidOccupantClass.ToString(),
+					targetClass = targetClass.ToString(),
+					targetTouchesInvalidOccupant,
+					migrationQueueBefore,
+					selectedTarget = selectedTarget.IsValid ? ZombieRuntimeActions.DescribeCell(selectedTarget) : null,
+					pulse,
+					removedCells = removedCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					addedCells = addedCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					invalidOccupantPreserved = symbiant.ContainsCell(invalidRoomOccupant),
+					cellCountBefore,
+					cellCountAfter = symbiant.CellCount,
+					anchor = ZombieRuntimeActions.DescribeCell(symbiant.DebugEstablishmentAnchorCell),
+					core = ZombieRuntimeActions.DescribeCell(symbiant.SelectionCoreCell),
 					hostStillLinked = symbiant.LinkedHost == host
 				};
 			}
