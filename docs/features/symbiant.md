@@ -13,7 +13,7 @@ The feature should be legible and annoying in a RimWorld way. It disrupts moveme
 - Slime slows pawns crossing it and reduces work/tend speed for affected pawns standing on it.
 - The linked host gains benefits as the Symbiant grows: zombie infection immunity from the bond plus random benefits awarded at fixed cell intervals determined when the Symbiant starts.
 - Feeding with corpses grows the Symbiant faster. A drafted or undrafted colonist right-clicks the Symbiant and chooses an eligible corpse for a one-shot hauling job; interchangeable animal corpses share one row, while human and other non-animal corpses remain individual choices.
-- Clean removal is host surgery through `SeverSymbiantSymbiosis`. The operation uses difficulty-scaled zombie extract and industrial-or-better medicine through RimWorld's normal bill ingredient path.
+- Clean removal is host surgery through `SeverSymbiantSymbiosis`. The operation is registered for every humanlike flesh race that can host the bond, including compatible modded races, and uses difficulty-scaled zombie extract and industrial-or-better medicine through RimWorld's normal bill ingredient path.
 - After severance, or after host death, the Symbiant retreats quickly and then disappears.
 
 ## Core Invariants

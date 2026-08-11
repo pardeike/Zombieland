@@ -3,6 +3,7 @@ using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using UnityEngine;
 using Verse;
 using Verse.AI;
@@ -120,6 +121,7 @@ namespace ZombieLand
 			LongEventHandler.ExecuteWhenFinished(() =>
 			{
 				RepairKnownRussianOdysseyGrammarRule();
+				AddSymbiantSeveranceToHumanlikeFleshRaces();
 				_ = GetSettings<ZombieSettingsDefaults>();
 				if (ZombieSettingsDefaults.group == null)
 					Tools.ResetSettings();
@@ -128,6 +130,16 @@ namespace ZombieLand
 			});
 
 			ApplyEarlyPatches();
+		}
+
+		static void AddSymbiantSeveranceToHumanlikeFleshRaces()
+		{
+			var recipe = CustomDefs.SeverSymbiantSymbiosis;
+			if (recipe == null)
+				return;
+			foreach (var race in DefDatabase<ThingDef>.AllDefsListForReading.Where(def => def.race?.Humanlike == true && def.race.IsFlesh))
+				if (race.AllRecipes.Contains(recipe) == false)
+					race.AllRecipes.Add(recipe);
 		}
 
 		static void RepairKnownRussianOdysseyGrammarRule()
