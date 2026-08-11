@@ -9631,7 +9631,7 @@ namespace ZombieLand
 			var spawnedWalls = new List<Building>();
 			try
 			{
-				var searchRoot = coverRoot && cleanup == false
+				var searchRoot = coverRoot
 					? new IntVec3(map.Size.x * 3 / 4, 0, map.Size.z / 4)
 					: new IntVec3(map.Size.x / 4, 0, map.Size.z * 3 / 4);
 				if (TrySetupSymbiantExpansionFixture(map, searchRoot, 44f, false, null, out fixture, out var fixtureError) == false)
