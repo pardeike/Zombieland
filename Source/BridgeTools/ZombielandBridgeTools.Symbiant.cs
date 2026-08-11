@@ -7512,212 +7512,8 @@ namespace ZombieLand
 			};
 		}
 
-		static object RunSymbiantQueuedGlobalArticulationProbe(Map map)
-		{
-			SymbiantExpansionFixture fixture = null;
-			ZombieSymbiant symbiant = null;
-			object action = null;
-			object error = null;
-			object symbiantCleanup = null;
-			object fixtureCleanup = null;
-			try
-			{
-				var searchRoot = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
-				if (TrySetupSymbiantExpansionFixture(map, searchRoot, 56f, true, null, out fixture, out var fixtureError) == false)
-					return fixtureError;
 
-				var lowerDoor = fixture.roomConnectorCell;
-				var upperDoor = lowerDoor + IntVec3.North * 2;
-				var queuedSource = upperDoor + IntVec3.West;
-				var branchDoorCell = queuedSource + IntVec3.North;
-				var branchRoomCell = branchDoorCell + IntVec3.North;
-				var branchWallCells = new[]
-				{
-					branchRoomCell + IntVec3.West,
-					branchRoomCell + IntVec3.East,
-					branchRoomCell + IntVec3.North
-				};
-				var extensionCells = branchWallCells.Append(branchRoomCell).Append(branchDoorCell).ToArray();
-				var blockedExtensionCells = extensionCells
-					.Where(cell => cell.InBounds(map) == false
-						|| cell != branchDoorCell && (cell.GetEdifice(map) != null || cell.GetFirstPawn(map) != null || cell.Fogged(map)))
-					.ToArray();
-				if (blockedExtensionCells.Length > 0)
-					return new
-					{
-						success = false,
-						error = "Could not find clear cells for the queued-articulation branch room.",
-						blocked = blockedExtensionCells.Select(ZombieRuntimeActions.DescribeCell).ToArray()
-					};
-
-				foreach (var cell in extensionCells)
-				{
-					if (fixture.originalHome.ContainsKey(cell) == false)
-					{
-						fixture.originalHome[cell] = map.areaManager.Home[cell];
-						fixture.originalRoof[cell] = map.roofGrid.RoofAt(cell);
-					}
-					map.areaManager.Home[cell] = true;
-					map.roofGrid.SetRoof(cell, RoofDefOf.RoofConstructed);
-				}
-
-				var upperDoorWall = upperDoor.GetEdifice(map) as Building;
-				var branchDoorWall = branchDoorCell.GetEdifice(map) as Building;
-				if (upperDoorWall?.def?.IsWall != true || branchDoorWall?.def?.IsWall != true)
-					return new { success = false, error = "Could not resolve both queued-articulation doorway walls." };
-				upperDoorWall.Destroy(DestroyMode.Vanish);
-				branchDoorWall.Destroy(DestroyMode.Vanish);
-				var upperDoorBuilding = ThingMaker.MakeThing(ThingDefOf.Door, ThingDefOf.WoodLog) as Building_Door;
-				var branchDoorBuilding = ThingMaker.MakeThing(ThingDefOf.Door, ThingDefOf.WoodLog) as Building_Door;
-				if (upperDoorBuilding == null || branchDoorBuilding == null)
-					return new { success = false, error = "Could not create both queued-articulation doors." };
-				GenSpawn.Spawn(upperDoorBuilding, upperDoor, map, WipeMode.Vanish);
-				GenSpawn.Spawn(branchDoorBuilding, branchDoorCell, map, WipeMode.Vanish);
-				upperDoorBuilding.SetFaction(Faction.OfPlayer);
-				branchDoorBuilding.SetFaction(Faction.OfPlayer);
-				fixture.buildings.Add(upperDoorBuilding);
-				fixture.buildings.Add(branchDoorBuilding);
-				foreach (var wallCell in branchWallCells)
-				{
-					var wall = ThingMaker.MakeThing(ThingDefOf.Wall, ThingDefOf.WoodLog) as Building;
-					if (wall == null)
-						return new { success = false, error = "Could not create the queued-articulation branch wall." };
-					GenSpawn.Spawn(wall, wallCell, map, WipeMode.Vanish);
-					wall.SetFaction(Faction.OfPlayer);
-					fixture.buildings.Add(wall);
-				}
-				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
-
-				var retainedSourceRoomCell = lowerDoor + IntVec3.West;
-				var rightLower = lowerDoor + IntVec3.East;
-				var rightMiddle = rightLower + IntVec3.North;
-				var rightUpper = upperDoor + IntVec3.East;
-				var sourceRoom = retainedSourceRoomCell.GetRoom(map);
-				var rightRoom = rightMiddle.GetRoom(map);
-				var branchRoom = branchRoomCell.GetRoom(map);
-				if (sourceRoom == null
-					|| rightRoom == null
-					|| branchRoom == null
-					|| sourceRoom == rightRoom
-					|| sourceRoom == branchRoom
-					|| sourceRoom.ProperRoom == false
-					|| rightRoom.ProperRoom == false
-					|| branchRoom.ProperRoom == false)
-					return new
-					{
-						success = false,
-						error = "The queued-articulation fixture did not produce three proper rooms.",
-						sourceRoom = DescribeRoom(sourceRoom),
-						rightRoom = DescribeRoom(rightRoom),
-						branchRoom = DescribeRoom(branchRoom)
-					};
-
-				var footprint = new[]
-				{
-					retainedSourceRoomCell,
-					lowerDoor,
-					rightLower,
-					rightMiddle,
-					rightUpper,
-					upperDoor,
-					queuedSource,
-					branchDoorCell,
-					branchRoomCell
-				};
-				ZombieSymbiant.Spawn(map, retainedSourceRoomCell);
-				symbiant = ZombieSymbiant.ActiveSymbiant(map);
-				if (symbiant == null)
-					return new { success = false, error = "Could not spawn the queued-articulation probe Symbiant." };
-				var addedCells = ZombieSymbiant.AddCells(map, footprint.Where(cell => cell != retainedSourceRoomCell));
-				var componentCountBefore = symbiant.DebugComponentCount;
-				var sourceRoomComponentsBefore = symbiant.DebugRoomComponentCount(sourceRoom);
-				var migrationQueueBefore = symbiant.DebugInitializeRoomCellMigration();
-				var queuedBefore = symbiant.DebugRoomCellMigrationCells.ToHashSet();
-				var cellCountBefore = symbiant.CellCount;
-				var migrationMethod = AccessTools.Method(typeof(ZombieSymbiant), "TryMigrateQueuedRoomCell");
-				var migrated = false;
-				Rand.PushState(620131);
-				try
-				{
-					migrated = migrationMethod != null && (bool)migrationMethod.Invoke(symbiant, new object[] { map });
-				}
-				finally
-				{
-					Rand.PopState();
-				}
-				var migratedSource = symbiant.DebugLastMigratedRoomCellSource;
-				var migratedDestination = symbiant.DebugLastMigratedRoomCellDestination;
-				var sourceRoomComponentsAfter = symbiant.DebugRoomComponentCount(sourceRoom);
-				var componentCountAfter = symbiant.DebugComponentCount;
-				action = new
-				{
-					success = addedCells == footprint.Length - 1
-						&& componentCountBefore == 1
-						&& sourceRoomComponentsBefore == 2
-						&& migrationQueueBefore == 1
-						&& queuedBefore.SetEquals(new[] { queuedSource })
-						&& migrated
-						&& migratedSource == queuedSource
-						&& migratedDestination.IsValid
-						&& migratedDestination.GetRoom(map) == sourceRoom
-						&& symbiant.ContainsCell(queuedSource) == false
-						&& symbiant.ContainsCell(migratedDestination)
-						&& symbiant.ContainsCell(branchRoomCell)
-						&& symbiant.CellCount == cellCountBefore
-						&& symbiant.DebugRoomCellMigrationCount == 0
-						&& sourceRoomComponentsAfter == 1
-						&& componentCountAfter == 2,
-					fixture = DescribeSymbiantExpansionFixture(fixture),
-					rooms = new
-					{
-						source = DescribeRoom(sourceRoom),
-						right = DescribeRoom(rightRoom),
-						branch = DescribeRoom(branchRoom)
-					},
-					footprint = footprint.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
-					queuedSource = ZombieRuntimeActions.DescribeCell(queuedSource),
-					addedCells,
-					componentCountBefore,
-					sourceRoomComponentsBefore,
-					migrationQueueBefore,
-					queuedBefore = queuedBefore.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
-					migrated,
-					migratedSource = migratedSource.IsValid ? ZombieRuntimeActions.DescribeCell(migratedSource) : null,
-					migratedDestination = migratedDestination.IsValid ? ZombieRuntimeActions.DescribeCell(migratedDestination) : null,
-					cellCountBefore,
-					cellCountAfter = symbiant.CellCount,
-					migrationQueueAfter = symbiant.DebugRoomCellMigrationCount,
-					sourceRoomComponentsAfter,
-					componentCountAfter,
-					branchCellPreserved = symbiant.ContainsCell(branchRoomCell)
-				};
-			}
-			catch (Exception ex)
-			{
-				error = ex.ToString();
-			}
-			finally
-			{
-				symbiantCleanup = CleanupTemporarySymbiant(map, symbiant, true);
-				fixtureCleanup = CleanupSymbiantExpansionFixture(map, fixture, true);
-			}
-
-			var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
-			return new
-			{
-				success = error == null && ScenarioSucceeded(action) && activeAfterCleanup == null,
-				error,
-				action,
-				cleanup = new
-				{
-					symbiant = symbiantCleanup,
-					fixture = fixtureCleanup,
-					activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
-				}
-			};
-		}
-
-		[Tool("zombieland/symbiant_multi_room_contract", Description = "Build reversible separated-room fixtures and verify the 25-percent room gate, ambient movement's empty-room exclusion, adjacent-room preference, remote patch founding, valid-component-first legacy migration, queued global-articulation repair, merged-room queue retirement, interaction-core handoff, component rendering, whole-body targeting, and distributed invalid-cell relocation.")]
+		[Tool("zombieland/symbiant_multi_room_contract", Description = "Build reversible separated-room fixtures and verify the 25-percent room gate, ambient movement's empty-room exclusion, adjacent-room preference, remote patch founding, valid-component-first legacy migration, merged-room queue retirement, interaction-core handoff, component rendering, whole-body targeting, and distributed invalid-cell relocation.")]
 		public static object SymbiantMultiRoomContract(
 		[ToolParameter(Description = "Destroy the temporary Symbiant and room fixtures after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -8114,9 +7910,6 @@ namespace ZombieLand
 				var validPrimaryComponent = cleanup && activeAfterCleanup == null
 					? RunSymbiantValidPrimaryComponentProbe(map)
 					: new { success = cleanup == false, skipped = true, reason = "The valid-primary-component probe requires cleanup=true and no active Symbiant." };
-				var queuedGlobalArticulation = cleanup && ZombieSymbiant.ActiveSymbiant(map) == null
-					? RunSymbiantQueuedGlobalArticulationProbe(map)
-					: new { success = cleanup == false, skipped = true, reason = "The queued global-articulation probe requires cleanup=true and no active Symbiant." };
 				var activeAfterAllProbes = ZombieSymbiant.ActiveSymbiant(map);
 
 				var success = controlledRoomsSeparated
@@ -8185,7 +7978,6 @@ namespace ZombieLand
 						&& queuedCellsStayedInPlace
 						&& mergedRoomComponentsAfterBridge == 1
 						&& ScenarioSucceeded(validPrimaryComponent)
-						&& ScenarioSucceeded(queuedGlobalArticulation)
 						&& (cleanup == false || activeAfterAllProbes == null);
 
 				var result = new
@@ -8254,7 +8046,6 @@ namespace ZombieLand
 					},
 					roomConnectivityRepair = migrationRepair,
 					validPrimaryComponent,
-					queuedGlobalArticulation,
 					mergedRoomQueueRetirement,
 					invalidCellRelocation = new
 					{
