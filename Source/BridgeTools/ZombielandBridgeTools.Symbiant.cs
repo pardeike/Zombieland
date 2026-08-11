@@ -601,12 +601,15 @@ namespace ZombieLand
 			var spawnedThings = new List<Thing>();
 			SymbiantNaturalSpawnFixture fixture = null;
 			ZombieSymbiant symbiant = null;
+			Pawn competingFeeder = null;
 			object fixtureSetup = null;
 			object floatMenuRoute = null;
+			object exclusiveFeedReservation = null;
 			object humanCorpseFeed = null;
 			object animalCorpseFeed = null;
 			object placementPerformance = null;
 			object cleanupSymbiant = null;
+			object competingFeederCleanup = null;
 			object fixtureCleanup = null;
 			object error = null;
 			float feedingGrowthSpeedFactor = 0f;
@@ -660,10 +663,16 @@ namespace ZombieLand
 						&& cell.GetThingList(map).Any(thing => thing is Pawn) == false)
 					.OrderBy(cell => cell.DistanceToSquared(interactionCell))
 					.ToArray();
-				if (feedCells.Length < 2)
-					return new { success = false, error = "The Symbiant feeding fixture has fewer than two clear interior feed cells." };
+				if (feedCells.Length < 3)
+					return new { success = false, error = "The Symbiant feeding fixture has fewer than three clear interior feed cells." };
 				var humanCorpseCell = feedCells[0];
 				var animalCorpseCell = feedCells[1];
+				var competingFeederCell = feedCells[^1];
+				competingFeeder = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+				GenSpawn.Spawn(competingFeeder, competingFeederCell, map, Rot4.South);
+				DisablePawnWork(competingFeeder);
+				competingFeeder.needs?.AddOrRemoveNeedsAsAppropriate();
+				competingFeeder.mindState?.mentalStateHandler?.Reset();
 				var existingCorpseRaces = map.listerThings.ThingsInGroup(ThingRequestGroup.Corpse)
 					.OfType<Corpse>()
 					.Select(corpse => corpse.InnerPawn?.def)
@@ -794,12 +803,46 @@ namespace ZombieLand
 				var rootFeedOptionCount = rootOptions.Count(option => humanFeedLabels.Contains(option.Label)
 					|| option.Label == freshAnimalFeedLabel
 					|| option.Label == rottenAnimalFeedLabel);
+				var competingOptionsBefore = FloatMenuMakerMap.GetOptions(
+					new List<Pawn> { competingFeeder },
+					interactionCell.ToVector3Shifted(),
+					out _);
+				var competingFeedOptionCountBefore = competingOptionsBefore.Count(option => humanFeedLabels.Contains(option.Label)
+					|| option.Label == freshAnimalFeedLabel
+					|| option.Label == rottenAnimalFeedLabel);
+				var competingCanReserveBefore = competingFeeder.CanReserve(symbiant);
 
 				humanFeedOptions.FirstOrDefault()?.action?.Invoke();
 				var humanFeedJob = fixture.host.CurJob;
 				var selectedHumanCorpse = humanFeedJob?.targetB.Thing as Corpse;
 				var humanJobInteractionCell = humanFeedJob == null ? IntVec3.Invalid : humanFeedJob.targetC.Cell;
+				var competingCanReserveDuring = competingFeeder.CanReserve(symbiant);
+				var competingOptionsDuring = FloatMenuMakerMap.GetOptions(
+					new List<Pawn> { competingFeeder },
+					interactionCell.ToVector3Shifted(),
+					out _);
+				var competingFeedOptionCountDuring = competingOptionsDuring.Count(option => humanFeedLabels.Contains(option.Label)
+					|| option.Label == freshAnimalFeedLabel
+					|| option.Label == rottenAnimalFeedLabel);
 				fixture.host.jobs?.EndCurrentJob(JobCondition.InterruptForced);
+				var competingCanReserveAfter = competingFeeder.CanReserve(symbiant);
+				exclusiveFeedReservation = new
+				{
+					success = competingFeeder.CanReach(interactionCell, PathEndMode.OnCell, Danger.Deadly)
+						&& competingCanReserveBefore
+						&& competingFeedOptionCountBefore > 0
+						&& competingCanReserveDuring == false
+						&& competingFeedOptionCountDuring == 0
+						&& competingCanReserveAfter,
+					competingFeeder = ZombieRuntimeActions.StableThingId(competingFeeder),
+					competingFeederCell = ZombieRuntimeActions.DescribeCell(competingFeederCell),
+					coreReachable = competingFeeder.CanReach(interactionCell, PathEndMode.OnCell, Danger.Deadly),
+					competingCanReserveBefore,
+					competingFeedOptionCountBefore,
+					competingCanReserveDuring,
+					competingFeedOptionCountDuring,
+					competingCanReserveAfter
+				};
 				humanCorpseFeed = FeedSymbiantThing(symbiant, selectedHumanCorpse, "fresh humanlike corpse", 6);
 
 				freshAnimalFeedOptions.FirstOrDefault()?.action?.Invoke();
@@ -876,7 +919,9 @@ namespace ZombieLand
 			}
 			finally
 			{
+				competingFeeder?.jobs?.EndCurrentJob(JobCondition.InterruptForced);
 				cleanupSymbiant = CleanupTemporarySymbiant(map, symbiant, cleanup);
+				competingFeederCleanup = CleanupTemporaryPawn(competingFeeder, cleanup);
 				foreach (var thing in spawnedThings.Where(thing => thing != null && thing.Destroyed == false).ToArray())
 					if (cleanup)
 						thing.Destroy(DestroyMode.Vanish);
@@ -891,6 +936,7 @@ namespace ZombieLand
 			var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
 			var success = error == null
 				&& ScenarioSucceeded(floatMenuRoute)
+				&& ScenarioSucceeded(exclusiveFeedReservation)
 				&& ScenarioSucceeded(humanCorpseFeed)
 				&& ScenarioSucceeded(animalCorpseFeed)
 				&& ScenarioSucceeded(placementPerformance)
@@ -904,12 +950,14 @@ namespace ZombieLand
 				error,
 				fixtureSetup,
 				floatMenuRoute,
+				exclusiveFeedReservation,
 				humanCorpseFeed,
 				animalCorpseFeed,
 				placementPerformance,
 				cleanup = new
 				{
 					symbiant = cleanupSymbiant,
+					competingFeeder = competingFeederCleanup,
 					fixture = fixtureCleanup,
 					letters = letterCleanup,
 					activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)

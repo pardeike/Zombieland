@@ -31,3 +31,4 @@
 - Outdoor Symbiant movement now stays on its authorized growth front instead of leaving a frozen straggler at another doorway.
 - Symbiant room repair no longer stalls when a queued bridge cell links otherwise independent room patches.
 - Symbiant relocation can now found a room whose only existing slime cell became invalid instead of retrying forever.
+- Only one colonist at a time now delivers a corpse to a Symbiant, preventing a second delivery from being dropped at its core.

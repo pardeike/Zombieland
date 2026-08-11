@@ -25,6 +25,7 @@ namespace ZombieLand
 				&& feed != null
 				&& InteractionCellValid
 				&& symbiant.CanAcceptFeed(feed)
+				&& pawn.Reserve(symbiant, job, 1, -1, null, errorOnFailed)
 				&& pawn.Reserve(feed, job, 1, 1, null, errorOnFailed);
 		}
 
