@@ -26,6 +26,15 @@ Rules:
 - use `docs/README.md` as the documentation map; update an existing owner instead of creating another session-specific Markdown file
 - read `scripts/README.md` before changing or running project automation; it is the documentation owner for supported validation, diagnostics, asset-bundle, soundtrack, and benchmark workflows
 
+Review and fix triage:
+
+- Follow the global engineering and review philosophy. A review severity label or a violated design sentence does not by itself require code; verify the scenario and classify it as fix, simplify, accept, or defer.
+- For Zombieland, new placement, lifecycle, serialization, or Harmony machinery is justified when it prevents a reachable player-visible failure such as permanent state corruption, save breakage, a blocked progression or interaction, scarce-resource loss, a broken advertised value, or failure in a supported mod configuration. Rare self-correcting timing, cosmetic handoff, or deliberate order-cancellation edges normally are not.
+- The feature specification is a design owner, not an immutable external standard. If a low-value promise requires disproportionate state or special cases, prefer simplifying the promise and updating the owner coherently.
+- Before implementing a review suggestion, check whether deleting the special case, using an existing general mechanism, or accepting the behavior is safer. Assess the whole player flow and adjacent effects rather than fixing only the reported line.
+- Keep proof proportional. Extend an existing broad contract when the scenario matters; do not add a large BridgeTools probe for a tiny local fix or an accepted compromise.
+- After a cluster of review-driven commits, audit its net production, runtime, persistence, documentation, and test complexity. Remove machinery whose maintenance cost now exceeds the behavior it protects, and stop recursive review rounds when the remaining findings fail the practical-impact threshold.
+
 Commit policy:
 
 - Before committing, add every player-visible or player-relevant change to `PENDING_RELEASE_NOTES.md` as a short, simple item; never add implementation, test, audit, or other internal-only work.
