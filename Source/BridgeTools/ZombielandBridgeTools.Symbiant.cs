@@ -9282,15 +9282,19 @@ namespace ZombieLand
 
 				var leftRoomBeforeRoofChange = root.GetRoom(map);
 				var rightRoomBeforeRoofChange = invalidRoomOccupant.GetRoom(map);
+				var roomsEligibleBeforeRoofChange = leftRoomBeforeRoofChange?.ProperRoom == true
+					&& rightRoomBeforeRoofChange?.ProperRoom == true
+					&& leftRoomBeforeRoofChange.UsesOutdoorTemperature == false
+					&& rightRoomBeforeRoofChange.UsesOutdoorTemperature == false;
 				map.roofGrid.SetRoof(movingInvalidSource, null);
 				map.roofGrid.SetRoof(invalidRoomOccupant, null);
 				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
 				var leftRoom = root.GetRoom(map);
 				var rightRoom = preferredFoundingTarget.GetRoom(map);
-				var roomsStayedEligible = leftRoomBeforeRoofChange != null
-					&& rightRoomBeforeRoofChange != null
-					&& leftRoom == leftRoomBeforeRoofChange
-					&& rightRoom == rightRoomBeforeRoofChange
+				var roomsStayedEligible = roomsEligibleBeforeRoofChange
+					&& leftRoom != null
+					&& rightRoom != null
+					&& leftRoom != rightRoom
 					&& movingInvalidSource.GetRoom(map) == leftRoom
 					&& invalidRoomOccupant.GetRoom(map) == rightRoom
 					&& leftRoom.ProperRoom
