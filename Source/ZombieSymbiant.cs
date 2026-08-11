@@ -4888,7 +4888,11 @@ namespace ZombieLand
 
 		public bool CanAcceptFeed(Thing feed)
 		{
-			if (pendingFeedGrowthPulses > 0 || IsValidFeed(feed) == false || FeedGrowthCells(feed) <= 0)
+			var growthCells = FeedGrowthCells(feed);
+			if (pendingFeedGrowthPulses > 0
+				|| IsValidFeed(feed) == false
+				|| growthCells <= 0
+				|| CellCount + growthCells > MaxCells)
 				return false;
 			var ticks = GenTicks.TicksGame;
 			if (lastFeedAcceptanceEvaluationTick == ticks && lastFeedAcceptanceShapeVersion == combatShapeVersion)
