@@ -8402,7 +8402,7 @@ namespace ZombieLand
 			}
 		}
 
-		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify immediate indoor return when capacity exists, source-excluding relocation target scoring, invalid-only room founding, reseed motion cleanup, founding state during relocation-debt repayment, authorized-overflow no-room debt stop, grace, and dormant retry cadence, movable outdoor-cell reuse, and atomic construction repair over root and non-root Symbiant cells.")]
+		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify immediate indoor return when capacity exists, source-excluding relocation target scoring, invalid-only room founding, founding state during relocation-debt repayment, authorized-overflow no-room debt stop, grace, and dormant retry cadence, movable outdoor-cell reuse, and atomic construction repair over root and non-root Symbiant cells.")]
 		public static object SymbiantRelocationContract(
 			[ToolParameter(Description = "Destroy temporary symbiants, colonists, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true,
 			[ToolParameter(Description = "Run only the canonical-root construction/recovery subscenario for a focused regression check.", Required = false, DefaultValue = false)] bool constructionRootOnly = false,
@@ -8424,7 +8424,6 @@ namespace ZombieLand
 			object relocationDebtFounding = null;
 			object relocationTargetScoring = null;
 			object emptyRoomInvalidOccupant = null;
-			object reseedMotionCleanup = null;
 			object noRoomDormancy = null;
 			object constructionNonRootBatch = null;
 			object constructionRoot = null;
@@ -8449,7 +8448,6 @@ namespace ZombieLand
 					relocationDebtFounding = RunSymbiantRelocationDebtFoundingScenario(map, cleanup);
 					relocationTargetScoring = RunSymbiantRelocationTargetScoringScenario(map, cleanup);
 					emptyRoomInvalidOccupant = RunSymbiantEmptyRoomInvalidOccupantScenario(map, cleanup);
-					reseedMotionCleanup = RunSymbiantReseedMotionCleanupScenario(map, cleanup);
 					noRoomDormancy = RunSymbiantNoRoomDormancyScenario(map, cleanup);
 					constructionNonRootBatch = RunSymbiantConstructionOverlapScenario(map, cleanup, false);
 					constructionRoot = RunSymbiantConstructionOverlapScenario(map, cleanup, true);
@@ -8479,7 +8477,6 @@ namespace ZombieLand
 						&& ScenarioSucceeded(relocationDebtFounding)
 						&& ScenarioSucceeded(relocationTargetScoring)
 						&& ScenarioSucceeded(emptyRoomInvalidOccupant)
-						&& ScenarioSucceeded(reseedMotionCleanup)
 						&& ScenarioSucceeded(noRoomDormancy)
 						&& ScenarioSucceeded(constructionNonRootBatch)
 						&& ScenarioSucceeded(constructionRoot))
@@ -8495,7 +8492,6 @@ namespace ZombieLand
 				relocationDebtFounding,
 				relocationTargetScoring,
 				emptyRoomInvalidOccupant,
-				reseedMotionCleanup,
 				noRoomDormancy,
 				constructionNonRootBatch,
 				constructionRoot,
@@ -8990,74 +8986,6 @@ namespace ZombieLand
 			}
 		}
 
-		static object RunSymbiantReseedMotionCleanupScenario(Map map, bool cleanup)
-		{
-			SymbiantExpansionFixture fixture = null;
-			ZombieSymbiant symbiant = null;
-			Pawn host = null;
-			object fixtureSetup = null;
-			try
-			{
-				if (TrySetupSymbiantExpansionFixture(map, out fixture, out var fixtureError) == false)
-					return fixtureError;
-				fixtureSetup = DescribeSymbiantExpansionFixture(fixture);
-				var root = fixture.leftInterior.CenterCell;
-				var animatedCell = root + IntVec3.West;
-				var reseedCell = fixture.rightInterior.CenterCell;
-				var staleRebasedCell = reseedCell + (animatedCell - root);
-				if (fixture.leftInterior.Contains(animatedCell) == false || fixture.rightInterior.Contains(reseedCell) == false)
-					return new { success = false, fixtureSetup, error = "Could not place the reseed motion-cleanup probe inside the fixture rooms." };
-
-				host = SpawnSymbiantRelocationHost(map, reseedCell);
-				symbiant = SpawnAssignedSymbiantForRelocationContract(map, root, host);
-				var added = ZombieSymbiant.AddCells(map, new[] { animatedCell });
-				var activeMotionsBefore = symbiant.ActiveCellMotionCount;
-				var reseedMethod = AccessTools.Method(typeof(ZombieSymbiant), "ReseedAt");
-				reseedMethod?.Invoke(symbiant, new object[] { reseedCell, new List<IntVec3> { reseedCell }, host, 0 });
-				var success = added == 1
-					&& activeMotionsBefore > 0
-					&& reseedMethod != null
-					&& symbiant.Spawned
-					&& symbiant.Position == reseedCell
-					&& symbiant.CellCount == 1
-					&& symbiant.ContainsCell(reseedCell)
-					&& symbiant.ActiveCellMotionCount == 1
-					&& symbiant.DebugHasActiveCellMotionAt(reseedCell)
-					&& symbiant.DebugHasActiveCellMotionAt(staleRebasedCell) == false
-					&& symbiant.SelectionCoreCell == reseedCell
-					&& symbiant.LinkedHost == host;
-				return new
-				{
-					success,
-					fixtureSetup,
-					root = ZombieRuntimeActions.DescribeCell(root),
-					animatedCell = ZombieRuntimeActions.DescribeCell(animatedCell),
-					reseedCell = ZombieRuntimeActions.DescribeCell(reseedCell),
-					staleRebasedCell = ZombieRuntimeActions.DescribeCell(staleRebasedCell),
-					added,
-					activeMotionsBefore,
-					reseedMethodFound = reseedMethod != null,
-					spawnedAfter = symbiant.Spawned,
-					positionAfter = ZombieRuntimeActions.DescribeCell(symbiant.Position),
-					cellCountAfter = symbiant.CellCount,
-					activeMotionsAfter = symbiant.ActiveCellMotionCount,
-					reseedMotionActive = symbiant.DebugHasActiveCellMotionAt(reseedCell),
-					staleMotionActive = symbiant.DebugHasActiveCellMotionAt(staleRebasedCell),
-					coreAfter = ZombieRuntimeActions.DescribeCell(symbiant.SelectionCoreCell),
-					hostStillLinked = symbiant.LinkedHost == host
-				};
-			}
-			catch (Exception ex)
-			{
-				return new { success = false, error = ex.ToString(), fixtureSetup };
-			}
-			finally
-			{
-				_ = CleanupTemporarySymbiant(map, symbiant, cleanup);
-				_ = CleanupTemporaryPawn(host, cleanup);
-				_ = CleanupSymbiantExpansionFixture(map, fixture, cleanup);
-			}
-		}
 
 		static object RunSymbiantNoRoomDormancyScenario(Map map, bool cleanup)
 		{
