@@ -6553,6 +6553,14 @@ namespace ZombieLand
 					return feedError ?? new { success = false, error = "Could not find a feed cell for the exterior-wall breach probe." };
 				var expectedFeedGrowth = ZombieSymbiant.FeedGrowthCellCount(feedCorpse);
 				var beforeFeed = symbiant.AbsoluteCells.ToHashSet();
+				var indoorCellsBeforeFeed = beforeFeed
+					.Where(cell =>
+					{
+						var classification = ZombieSymbiant.ClassifySymbiantCell(map, cell);
+						return classification == ZombieSymbiant.SymbiantCellClass.IndoorFloor
+							|| classification == ZombieSymbiant.SymbiantCellClass.Door;
+					})
+					.ToHashSet();
 				var fed = symbiant.TryFeed(feedCorpse);
 				var immediateNewCells = symbiant.AbsoluteCells.Where(cell => beforeFeed.Contains(cell) == false).ToArray();
 				var pendingAfterFeed = symbiant.DebugPendingFeedGrowthPulses;
@@ -6563,6 +6571,12 @@ namespace ZombieLand
 					? ZombieSymbiant.ClassifySymbiantCell(map, immediateNewCells[0])
 					: ZombieSymbiant.SymbiantCellClass.InvalidBlocked;
 				var overflowAuthorizedAfterFeed = symbiant.ExteriorOverflowAuthorized;
+				var transitionedSourceCells = indoorCellsBeforeFeed
+					.Where(cell => ZombieSymbiant.ClassifySymbiantCell(map, cell) == ZombieSymbiant.SymbiantCellClass.ExteriorOpen)
+					.ToArray();
+				var authorizedAfterRebuild = symbiant.DebugAuthorizedExteriorCells.ToHashSet();
+				var breachedSourceComponentAuthorized = transitionedSourceCells.Length > 0
+					&& transitionedSourceCells.All(authorizedAfterRebuild.Contains);
 
 				var beforeDeferred = symbiant.AbsoluteCells.ToHashSet();
 				var deferredApplied = symbiant.DebugApplyPendingFeedGrowthPulses();
@@ -6621,9 +6635,10 @@ namespace ZombieLand
 						&& immediateCellMatchesBreach
 						&& topologyUnsafeAfterFeed
 						&& pendingAfterFeed == expectedFeedGrowth - 1
-						&& breachCellClassAfterRebuild == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
-						&& overflowAuthorizedAfterFeed
-						&& deferredApplied == expectedFeedGrowth - 1
+							&& breachCellClassAfterRebuild == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
+							&& overflowAuthorizedAfterFeed
+							&& breachedSourceComponentAuthorized
+							&& deferredApplied == expectedFeedGrowth - 1
 						&& pendingAfterDeferred == 0
 						&& totalFeedGrowth == expectedFeedGrowth
 						&& deferredCellsExteriorAndConnected
@@ -6654,6 +6669,9 @@ namespace ZombieLand
 						pendingAfterFeed,
 						breachCellClassAfterRebuild = breachCellClassAfterRebuild.ToString(),
 						overflowAuthorizedAfterFeed,
+						breachedSourceComponentAuthorized,
+						transitionedSourceCells = transitionedSourceCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+						authorizedAfterRebuild = authorizedAfterRebuild.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 						deferredApplied,
 						deferredCells = deferredNewCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 						pendingAfterDeferred,

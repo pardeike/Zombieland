@@ -18,3 +18,4 @@
 - Dormant Symbiants now wait for their intended retry interval before searching the map for a new room again.
 - A moving Symbiant core now remains clickable on its visible outgoing cell until the handoff reaches the destination.
 - Outdoor Symbiant cells no longer detach from the main growth when they move.
+- Symbiants now keep spreading after a wall breach opens their occupied room outdoors, including all remaining corpse-feed growth.

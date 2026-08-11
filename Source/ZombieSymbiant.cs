@@ -5975,12 +5975,26 @@ namespace ZombieLand
 				|| IsMapEdgeCell(map, target.exteriorDestination)
 				|| ClassifySymbiantCell(map, target.exteriorDestination) != SymbiantCellClass.ExteriorOpen)
 				return false;
-			var sourceRoom = GenAdj.CardinalDirections
+			var sourceCell = GenAdj.CardinalDirections
 				.Select(direction => target.cell + direction)
 				.Where(cell => cell.InBounds(map) && ContainsCell(cell))
-				.Select(cell => cell.GetRoom(map))
-				.FirstOrDefault(IsEligibleIndoorRoom);
+				.Where(cell => IsEligibleIndoorRoom(cell.GetRoom(map)))
+				.Select(cell => (IntVec3?)cell)
+				.FirstOrDefault();
+			var sourceRoom = sourceCell.HasValue ? sourceCell.Value.GetRoom(map) : null;
 			if (sourceRoom == null || WallRemovalKeepsIndoorRoomsSeparated(map, target.cell, sourceRoom) == false)
+				return false;
+			var breachedSourceComponent = ConnectedCells(
+				orderedCells
+					.Where(relative =>
+					{
+						var absolute = Position + relative;
+						return absolute.InBounds(map) && absolute.GetRoom(map) == sourceRoom;
+					})
+					.ToHashSet(),
+				sourceCell.Value - Position
+			);
+			if (breachedSourceComponent.Count == 0)
 				return false;
 			var wallDef = target.wall.def;
 			var wallStuff = target.wall.Stuff;
@@ -6024,6 +6038,8 @@ namespace ZombieLand
 			RebuildCellBounds();
 			UpdateAll();
 			UpdateSymbiosisState();
+			foreach (var relative in breachedSourceComponent)
+				AuthorizeExteriorCell(Position + relative);
 			AuthorizeExteriorCell(target.cell);
 			return true;
 		}
