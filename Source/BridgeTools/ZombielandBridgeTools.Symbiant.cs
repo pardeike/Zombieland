@@ -7096,6 +7096,7 @@ namespace ZombieLand
 					&& distantMoveAccepted == false
 					&& footprintAfterDistantMove.SetEquals(footprintBeforeDistantMove)
 					&& authorizationAfterDistantMove.SetEquals(authorizationBeforeDistantMove);
+				var distantDoorPreserved = distantDoor?.Destroyed == false;
 				var removedContinuationCell = symbiant != null
 					&& continuationCell.IsValid
 					&& removeRelativeCell != null
@@ -7227,7 +7228,7 @@ namespace ZombieLand
 					&& continuationTouchesAuthorizedPatch
 					&& continuationCell != unusedDoorExteriorCell
 					&& distantDoorWall?.Destroyed == true
-					&& distantDoor?.Destroyed == false
+					&& distantDoorPreserved
 					&& distantMoveRejectedAtomically
 					&& removedContinuationCell
 					&& authorizedExteriorBeforeDamage.Length == 1
@@ -7344,6 +7345,7 @@ namespace ZombieLand
 									door = ZombieRuntimeActions.DescribeCell(distantDoorCell),
 									target = ZombieRuntimeActions.DescribeCell(distantDoorExteriorCell),
 									doorAdded = distantDoorAdded,
+									preserved = distantDoorPreserved,
 									targetClass = distantTargetClass.ToString(),
 									sourceAuthorized = authorizationBeforeDistantMove.Contains(continuationCell),
 									authorizedCellCount = authorizationBeforeDistantMove.Count,
