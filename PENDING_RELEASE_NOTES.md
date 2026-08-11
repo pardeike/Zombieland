@@ -17,3 +17,4 @@
 - Symbiants can now establish themselves in fully furnished rooms when no bare floor is available, without removing the furniture.
 - Dormant Symbiants now wait for their intended retry interval before searching the map for a new room again.
 - A moving Symbiant core now remains clickable on its visible outgoing cell until the handoff reaches the destination.
+- Outdoor Symbiant cells no longer detach from the main growth when they move.

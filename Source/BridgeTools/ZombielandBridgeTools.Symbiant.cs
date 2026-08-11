@@ -6581,6 +6581,34 @@ namespace ZombieLand
 					&& deferredNewCells.All(cell =>
 						ZombieSymbiant.ClassifySymbiantCell(map, cell) == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
 						&& GenAdj.CardinalDirections.Any(direction => afterDeferred.Contains(cell + direction)));
+				var detachedMoveSource = afterDeferred
+					.Where(cell => ZombieSymbiant.ClassifySymbiantCell(map, cell) == ZombieSymbiant.SymbiantCellClass.ExteriorOpen)
+					.Where(cell => cell != symbiant.Position && cell != symbiant.SelectionCoreCell)
+					.Where(cell => GenAdj.CardinalDirections.Count(direction => afterDeferred.Contains(cell + direction)) == 1)
+					.DefaultIfEmpty(IntVec3.Invalid)
+					.First();
+				var detachedMoveTarget = detachedMoveSource.IsValid
+					? GenAdj.CardinalDirections
+						.Select(direction => detachedMoveSource + direction)
+						.Where(cell => cell.InBounds(map) && afterDeferred.Contains(cell) == false)
+						.Where(cell => ZombieSymbiant.ClassifySymbiantCell(map, cell) == ZombieSymbiant.SymbiantCellClass.ExteriorOpen)
+						.Where(cell => GenAdj.CardinalDirections.Count(direction => afterDeferred.Contains(cell + direction)) == 1
+							&& GenAdj.CardinalDirections.Any(direction => cell + direction == detachedMoveSource))
+						.DefaultIfEmpty(IntVec3.Invalid)
+						.First()
+					: IntVec3.Invalid;
+				var footprintBeforeDetachedMove = symbiant.AbsoluteCells.ToHashSet();
+				var authorizationBeforeDetachedMove = symbiant.DebugAuthorizedExteriorCells.ToHashSet();
+				var detachedMoveAccepted = detachedMoveSource.IsValid
+					&& detachedMoveTarget.IsValid
+					&& symbiant.DebugTryExteriorMove(detachedMoveSource, detachedMoveTarget);
+				var footprintAfterDetachedMove = symbiant.AbsoluteCells.ToHashSet();
+				var authorizationAfterDetachedMove = symbiant.DebugAuthorizedExteriorCells.ToHashSet();
+				var detachedMoveRejectedAtomically = detachedMoveSource.IsValid
+					&& detachedMoveTarget.IsValid
+					&& detachedMoveAccepted == false
+					&& footprintBeforeDetachedMove.SetEquals(footprintAfterDetachedMove)
+					&& authorizationBeforeDetachedMove.SetEquals(authorizationAfterDetachedMove);
 				var totalFeedGrowth = symbiant.CellCount - beforeFeed.Count;
 				action = new
 				{
@@ -6599,6 +6627,7 @@ namespace ZombieLand
 						&& pendingAfterDeferred == 0
 						&& totalFeedGrowth == expectedFeedGrowth
 						&& deferredCellsExteriorAndConnected
+						&& detachedMoveRejectedAtomically
 						&& destroyedAfterDeferred.Length == 1
 						&& destroyedAfterDeferred[0].id == destroyedAfterFeed[0].id
 						&& dividerWallsPreserved,
@@ -6629,7 +6658,16 @@ namespace ZombieLand
 						deferredCells = deferredNewCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 						pendingAfterDeferred,
 						totalGrowth = totalFeedGrowth,
-						deferredCellsExteriorAndConnected
+						deferredCellsExteriorAndConnected,
+						detachedMove = new
+						{
+							source = detachedMoveSource.IsValid ? ZombieRuntimeActions.DescribeCell(detachedMoveSource) : null,
+							target = detachedMoveTarget.IsValid ? ZombieRuntimeActions.DescribeCell(detachedMoveTarget) : null,
+							accepted = detachedMoveAccepted,
+							rejectedAtomically = detachedMoveRejectedAtomically,
+							footprintUnchanged = footprintBeforeDetachedMove.SetEquals(footprintAfterDetachedMove),
+							authorizationUnchanged = authorizationBeforeDetachedMove.SetEquals(authorizationAfterDetachedMove)
+						}
 					},
 					breachedWallsAfterFeed = destroyedAfterFeed.Select(snapshot => new { snapshot.id, cell = ZombieRuntimeActions.DescribeCell(snapshot.cell) }).ToArray(),
 					breachedWallsAfterDeferred = destroyedAfterDeferred.Select(snapshot => new { snapshot.id, cell = ZombieRuntimeActions.DescribeCell(snapshot.cell) }).ToArray(),
@@ -6658,7 +6696,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_expansion_contract", Description = "Build reversible room fixtures and verify indoor spread, roof/door gating, bare-floor preference with furnished-room founding fallback, direct room founding, divider preservation, component-scoped overflow authorization, one-wall exterior breaching, rollback after a forced failed commit, deferred multi-pulse feeding after that breach, and no second breach.")]
+		[Tool("zombieland/symbiant_expansion_contract", Description = "Build reversible room fixtures and verify indoor spread, roof/door gating, bare-floor preference with furnished-room founding fallback, direct room founding, divider preservation, component-scoped overflow authorization, one-wall exterior breaching, rollback after a forced failed commit, deferred multi-pulse feeding after that breach, attachment-safe exterior movement, and no second breach.")]
 		public static object SymbiantExpansionContract(
 			[ToolParameter(Description = "Destroy the temporary symbiant and two-room fixture after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
