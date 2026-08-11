@@ -2990,6 +2990,8 @@ namespace ZombieLand
 				foreach (var relative in orderedCells)
 				{
 					sourceRoomConnectivityCellScanCount++;
+					if (roomCellMigrationLookup.Contains(relative))
+						continue;
 					var absolute = Position + relative;
 					var room = absolute.InBounds(map) ? absolute.GetRoom(map) : null;
 					if (IsEligibleIndoorRoom(room) == false)
@@ -3165,6 +3167,7 @@ namespace ZombieLand
 			roomCellMigrationLookup.Clear();
 			if (roomCellMigrationCells != null)
 				roomCellMigrationLookup.UnionWith(roomCellMigrationCells);
+			InvalidateSourceRoomConnectivityCache();
 		}
 
 		void NormalizeRoomCellMigrationQueue(Map map)
@@ -3332,6 +3335,7 @@ namespace ZombieLand
 			{
 				roomCellMigrationCells.RemoveAll(connectedQueuedCells.Contains);
 				roomCellMigrationLookup.ExceptWith(connectedQueuedCells);
+				InvalidateSourceRoomConnectivityCache();
 			}
 			return connectedQueuedCells.Count;
 		}
@@ -5302,7 +5306,7 @@ namespace ZombieLand
 				return false;
 
 			var sourceCandidates = roomCellMigrationCells
-				.Where(relative => relative != IntVec3.Zero && WouldCellsStayConnectedAfterRemoval(relative))
+				.Where(relative => relative != IntVec3.Zero && WouldSourceRoomStayConnectedAfterRemoval(map, relative))
 				.ToList();
 			var targetCandidatesByRoom = new Dictionary<Room, IntVec3[]>();
 			while (sourceCandidates.Count > 0)
