@@ -5007,6 +5007,7 @@ namespace ZombieLand
 			var currentIntegrated = CalculateIntegratedVisibleCells(map);
 			EnsureSelectionCoreState();
 			var preferSelectionCore = selectionCoreDiscoveryCue == false
+				&& map.reservationManager.IsReserved(this) == false
 				&& selectionCoreRelative != IntVec3.Zero
 				&& GenTicks.TicksGame - selectionCoreLastMoveTick >= SelectionCoreWanderDwellTicks;
 			var bestScore = targets.Select(target => target.score).DefaultIfEmpty(0f).Max();
