@@ -6649,18 +6649,18 @@ namespace ZombieLand
 					&& footprintBeforeDetachedMove.SetEquals(footprintAfterDetachedMove)
 					&& authorizationBeforeDetachedMove.SetEquals(authorizationAfterDetachedMove);
 				var authorizationBeforeSplit = symbiant.DebugAuthorizedExteriorCells.ToHashSet();
-				var stableAuthorizationSeed = symbiant.AbsoluteCells
+				var authorizationSeedBeforeSplit = symbiant.AbsoluteCells
 					.Where(authorizationBeforeSplit.Contains)
 					.Select(cell => (IntVec3?)cell)
 					.FirstOrDefault();
-				var authorizationWasOneComponent = stableAuthorizationSeed.HasValue
-					&& ConnectedSymbiantProbeCells(authorizationBeforeSplit, stableAuthorizationSeed.Value).Count == authorizationBeforeSplit.Count;
-				var splitCandidate = stableAuthorizationSeed.HasValue
+				var authorizationWasOneComponent = authorizationSeedBeforeSplit.HasValue
+					&& ConnectedSymbiantProbeCells(authorizationBeforeSplit, authorizationSeedBeforeSplit.Value).Count == authorizationBeforeSplit.Count;
+				var splitCandidate = authorizationSeedBeforeSplit.HasValue
 					? deferredNewCells
 						.Select(bridge =>
 						{
 							var remaining = authorizationBeforeSplit.Where(cell => cell != bridge).ToHashSet();
-							var retained = ConnectedSymbiantProbeCells(remaining, stableAuthorizationSeed.Value);
+							var retained = ConnectedSymbiantProbeCells(remaining, authorizationSeedBeforeSplit.Value);
 							return new { bridge, retained, discarded = remaining.Where(cell => retained.Contains(cell) == false).ToHashSet() };
 						})
 						.FirstOrDefault(candidate => candidate.retained.Count > 0 && candidate.discarded.Count > 0)
@@ -6677,6 +6677,22 @@ namespace ZombieLand
 						map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
 					}
 				}
+				var survivingAuthorizationAfterSplit = splitCandidate == null
+					? []
+					: authorizationBeforeSplit
+						.Where(cell => cell != splitCandidate.bridge)
+						.Where(cell => ZombieSymbiant.ClassifySymbiantCell(map, cell) == ZombieSymbiant.SymbiantCellClass.ExteriorOpen)
+						.ToHashSet();
+				var stableAuthorizationSeed = symbiant.AbsoluteCells
+					.Where(survivingAuthorizationAfterSplit.Contains)
+					.Select(cell => (IntVec3?)cell)
+					.FirstOrDefault();
+				var expectedAuthorizationAfterSplit = stableAuthorizationSeed.HasValue
+					? ConnectedSymbiantProbeCells(survivingAuthorizationAfterSplit, stableAuthorizationSeed.Value)
+					: [];
+				var expectedDiscardedAuthorization = survivingAuthorizationAfterSplit
+					.Where(cell => expectedAuthorizationAfterSplit.Contains(cell) == false)
+					.ToHashSet();
 				var continuationTargetsAfterSplit = symbiant.DebugExteriorOpenTargets();
 				var authorizationAfterSplit = symbiant.DebugAuthorizedExteriorCells.ToHashSet();
 				var footprintAfterSplit = symbiant.AbsoluteCells.ToHashSet();
@@ -6684,15 +6700,15 @@ namespace ZombieLand
 					? ZombieSymbiant.SymbiantCellClass.ExteriorOpen
 					: ZombieSymbiant.ClassifySymbiantCell(map, splitCandidate.bridge);
 				var authorizationCollapsedToStableComponent = splitCandidate != null
-					&& authorizationAfterSplit.SetEquals(splitCandidate.retained);
+					&& authorizationAfterSplit.SetEquals(expectedAuthorizationAfterSplit);
 				var authorizationIsOneComponent = stableAuthorizationSeed.HasValue
 					&& authorizationAfterSplit.Contains(stableAuthorizationSeed.Value)
 					&& ConnectedSymbiantProbeCells(authorizationAfterSplit, stableAuthorizationSeed.Value).Count == authorizationAfterSplit.Count;
 				var discardedCellsStayedExterior = splitCandidate != null
-					&& splitCandidate.discarded.All(cell => ZombieSymbiant.ClassifySymbiantCell(map, cell) == ZombieSymbiant.SymbiantCellClass.ExteriorOpen);
+					&& expectedDiscardedAuthorization.All(cell => ZombieSymbiant.ClassifySymbiantCell(map, cell) == ZombieSymbiant.SymbiantCellClass.ExteriorOpen);
 				var discardedFrontExcluded = splitCandidate != null
 					&& continuationTargetsAfterSplit.All(target =>
-						GenAdj.CardinalDirections.All(direction => splitCandidate.discarded.Contains(target + direction) == false));
+						GenAdj.CardinalDirections.Any(direction => expectedAuthorizationAfterSplit.Contains(target + direction)));
 				var totalFeedGrowth = symbiant.CellCount - beforeFeed.Count;
 				action = new
 				{
@@ -6774,14 +6790,15 @@ namespace ZombieLand
 						},
 						splitAuthorization = new
 						{
+							seedBeforeSplit = authorizationSeedBeforeSplit.HasValue ? ZombieRuntimeActions.DescribeCell(authorizationSeedBeforeSplit.Value) : null,
 							stableSeed = stableAuthorizationSeed.HasValue ? ZombieRuntimeActions.DescribeCell(stableAuthorizationSeed.Value) : null,
 							bridge = splitCandidate == null ? null : ZombieRuntimeActions.DescribeCell(splitCandidate.bridge),
 							bridgeClass = splitBridgeClass.ToString(),
 							blocker = ZombieRuntimeActions.StableThingId(authorizationBlocker),
 							authorizedBefore = authorizationBeforeSplit.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 							oneComponentBefore = authorizationWasOneComponent,
-							expectedRetained = splitCandidate?.retained.Select(ZombieRuntimeActions.DescribeCell).ToArray() ?? [],
-							expectedDiscarded = splitCandidate?.discarded.Select(ZombieRuntimeActions.DescribeCell).ToArray() ?? [],
+							expectedRetained = expectedAuthorizationAfterSplit.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+							expectedDiscarded = expectedDiscardedAuthorization.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 							authorizedAfter = authorizationAfterSplit.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 							continuationTargets = continuationTargetsAfterSplit.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 							footprintPreserved = footprintAfterSplit.SetEquals(footprintAfterDetachedMove),
@@ -7048,6 +7065,8 @@ namespace ZombieLand
 				var returnVacancyOccupied = symbiant?.ContainsCell(returnVacancy) == true;
 				var overflowAuthorizationCleared = symbiant?.ExteriorOverflowAuthorized == false;
 				var dividerWallsPreservedAfterBothRoomsFilled = fixture.dividerWalls.All(wall => wall.Destroyed == false);
+				var secondDoorWallReplaced = secondDoorWall?.Destroyed == true;
+				var secondDoorPreserved = secondDoor?.Destroyed == false;
 
 				var newLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
 					.Where(letter => beforeLetters.Contains(letter) == false)
@@ -7098,10 +7117,8 @@ namespace ZombieLand
 					&& nonWallEdificeAcceptedAsWall == false
 					&& nonWallEdificeAfterDestroyed == false
 					&& rightFillAdded > 0
-					&& secondDoorWall != null
-					&& secondDoorWall.Destroyed
-					&& secondDoor != null
-					&& secondDoor.Destroyed == false
+					&& secondDoorWallReplaced
+					&& secondDoorPreserved
 					&& secondDoorAdded == 1
 					&& postFillPulse
 					&& postFillNewCells.Length == 1
@@ -7201,8 +7218,9 @@ namespace ZombieLand
 						{
 							cell = ZombieRuntimeActions.DescribeCell(secondDoorCell),
 							exteriorCell = ZombieRuntimeActions.DescribeCell(secondDoorExteriorCell),
-							wallReplaced = secondDoorWall?.Destroyed == true,
+							wallReplaced = secondDoorWallReplaced,
 							created = secondDoor != null,
+							preserved = secondDoorPreserved,
 							added = secondDoorAdded
 						},
 						overflow = new
