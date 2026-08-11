@@ -3074,16 +3074,21 @@ namespace ZombieLand
 
 		HashSet<IntVec3> PrimaryRoomComponent(Map map, IEnumerable<HashSet<IntVec3>> components)
 		{
-			return components
-				.OrderByDescending(component => component.Any(relative =>
+			bool ContainsValidRoomCell(HashSet<IntVec3> component)
+			{
+				return component.Any(relative =>
 				{
 					var classification = ClassifySymbiantCell(map, Position + relative);
 					return classification == SymbiantCellClass.IndoorFloor || classification == SymbiantCellClass.Door;
-				}))
+				});
+			}
+
+			return components
+				.OrderByDescending(ContainsValidRoomCell)
 				.ThenByDescending(component => component.Count)
 				.ThenByDescending(component => component.Contains(IntVec3.Zero))
-			.ThenByDescending(component => selectionCoreRelative.IsValid && component.Contains(selectionCoreRelative))
-			.FirstOrDefault();
+				.ThenByDescending(component => selectionCoreRelative.IsValid && component.Contains(selectionCoreRelative))
+				.FirstOrDefault();
 		}
 
 		void RebuildRoomCellMigrationLookup()
@@ -5169,12 +5174,13 @@ namespace ZombieLand
 				|| ClassifySymbiantCell(map, target.cell) != target.classification)
 				return false;
 			var targetRelative = target.cell - Position;
+			var exteriorTargetWouldDetach = target.classification == SymbiantCellClass.ExteriorOpen
+				&& MoveTargetKeepsCardinalAttachment(source.relative, targetRelative) == false;
 			if (ContainsCell(target.cell)
 				|| CanPlaceConnectedWithinRoom(map, target.cell, source.relative) == false
 				|| WouldSourceRoomStayConnectedAfterRemoval(map, source.relative) == false
 				|| WouldCellsStayConnectedAfterMove(source.relative, targetRelative) == false
-			|| target.classification == SymbiantCellClass.ExteriorOpen
-				&& MoveTargetKeepsCardinalAttachment(source.relative, targetRelative) == false)
+				|| exteriorTargetWouldDetach)
 				return false;
 			var movingSelectionCore = selectionCoreRelative == source.relative;
 			var movingEstablishmentAnchor = establishmentAnchorRelative == source.relative;
