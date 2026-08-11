@@ -27,3 +27,4 @@
 - Split outdoor Symbiant patches now keep only one authorized growth front after damage or construction interrupts the connection.
 - Symbiant relocation now skips attractive destinations that would disconnect as soon as the source cell moves, allowing a legal fallback instead.
 - Older Symbiant saves now migrate exterior-overflow permission into the same single authorized outdoor patch used by new saves.
+- Large Symbiants now avoid repeatedly rescanning their full room footprint while choosing a movement source.

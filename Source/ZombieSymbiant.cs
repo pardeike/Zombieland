@@ -463,11 +463,16 @@ namespace ZombieLand
 		readonly Dictionary<IntVec3, float> cellMotionWeights = [];
 		readonly Queue<IntVec3> recentMovementCells = new();
 		readonly HashSet<IntVec3> articulationCells = [];
+		readonly HashSet<IntVec3> eligibleSourceRoomCells = [];
+		readonly HashSet<IntVec3> sourceRoomDisconnectingCells = [];
 		readonly List<MetaballRenderPatch> renderPatches = [];
 		readonly Dictionary<IntVec3, MetaballRenderPatch> renderPatchByCell = [];
 		readonly Dictionary<CellMotion, MetaballRenderPatch> renderPatchByMotion = [];
 		List<CellMotion> cellMotions = [];
 		int articulationShapeVersion = -1;
+		Map sourceRoomConnectivityMap;
+		IntVec3 sourceRoomConnectivityPosition = IntVec3.Invalid;
+		int sourceRoomConnectivityShapeVersion = -1;
 		Material metaballMaskMaterial;
 		ComputeBuffer metaballBuffer;
 		MetaballBufferData[] metaballBufferData = [];
@@ -505,6 +510,8 @@ namespace ZombieLand
 		int capacityEvaluationCount;
 		int exactCapacityAuditCount;
 		int roomCellScanCount;
+		int sourceRoomConnectivityBuildCount;
+		int sourceRoomConnectivityCellScanCount;
 		int topologyInvalidationCount;
 		int topologySettledCount;
 		int constructionRepairBatchCount;
@@ -598,6 +605,9 @@ namespace ZombieLand
 		internal int DebugCapacityEvaluationCount => capacityEvaluationCount;
 		internal int DebugExactCapacityAuditCount => exactCapacityAuditCount;
 		internal int DebugRoomCellScanCount => roomCellScanCount;
+		internal int DebugSourceRoomConnectivityBuildCount => sourceRoomConnectivityBuildCount;
+		internal int DebugSourceRoomConnectivityCellScanCount => sourceRoomConnectivityCellScanCount;
+		internal int DebugSourceRoomDisconnectingCellCount => sourceRoomDisconnectingCells.Count;
 		internal int DebugTopologyInvalidationCount => topologyInvalidationCount;
 		internal int DebugTopologySettledCount => topologySettledCount;
 		internal int DebugConstructionRepairBatchCount => constructionRepairBatchCount;
@@ -689,6 +699,9 @@ namespace ZombieLand
 					capacityEvaluationCount,
 					exactCapacityAuditCount,
 					roomCellScanCount,
+					sourceRoomConnectivityBuildCount,
+					sourceRoomConnectivityCellScanCount,
+					sourceRoomDisconnectingCells = sourceRoomDisconnectingCells.Count,
 					topologyInvalidationCount,
 					topologySettledCount,
 					constructionRepairBatchCount,
@@ -741,6 +754,7 @@ namespace ZombieLand
 				|| IsActiveSymbiantOnMap(symbiant, map) == false)
 				return;
 			symbiant.roomTopologyInvalidated = true;
+			symbiant.InvalidateSourceRoomConnectivityCache();
 			symbiant.roomCellMigrationRescanPending = true;
 			symbiant.lastSymbiosisMetricTick = int.MinValue;
 			symbiant.lastPlacementEvaluationTick = -1;
@@ -756,6 +770,7 @@ namespace ZombieLand
 				|| IsActiveSymbiantOnMap(symbiant, map) == false)
 				return;
 			symbiant.roomTopologyInvalidated = false;
+			symbiant.InvalidateSourceRoomConnectivityCache();
 			symbiant.roomCellMigrationRescanPending = true;
 			symbiant.lastSymbiosisMetricTick = int.MinValue;
 			symbiant.topologySettledCount++;
@@ -773,6 +788,7 @@ namespace ZombieLand
 				|| activeSymbiantByMap.TryGetValue(map, out var symbiant) == false
 				|| IsActiveSymbiantOnMap(symbiant, map) == false)
 				return;
+			symbiant.InvalidateSourceRoomConnectivityCache();
 			symbiant.roomCellMigrationRescanPending = true;
 			symbiant.lastSymbiosisMetricTick = int.MinValue;
 			symbiant.lastPlacementEvaluationTick = -1;
@@ -2926,19 +2942,10 @@ namespace ZombieLand
 		{
 			if (map == null || cells?.Contains(removedRelative) != true)
 				return false;
-			var source = Position + removedRelative;
-			var sourceRoom = source.InBounds(map) ? source.GetRoom(map) : null;
-			if (IsEligibleIndoorRoom(sourceRoom) == false)
+			EnsureSourceRoomConnectivityCache(map);
+			if (eligibleSourceRoomCells.Contains(removedRelative) == false)
 				return true;
-			var remainingRoomCells = orderedCells
-				.Where(relative => relative != removedRelative)
-				.Where(relative =>
-				{
-					var absolute = Position + relative;
-					return absolute.InBounds(map) && absolute.GetRoom(map) == sourceRoom;
-				})
-				.ToHashSet();
-			return remainingRoomCells.Count <= 1 || ConnectedComponents(remainingRoomCells).Count == 1;
+			return sourceRoomDisconnectingCells.Contains(removedRelative) == false;
 		}
 
 		bool WouldCellsStayConnectedAfterMove(IntVec3 removedRelative, IntVec3 addedRelative)
@@ -2961,21 +2968,83 @@ namespace ZombieLand
 			});
 		}
 
+		void InvalidateSourceRoomConnectivityCache()
+		{
+			sourceRoomConnectivityMap = null;
+			sourceRoomConnectivityPosition = IntVec3.Invalid;
+			sourceRoomConnectivityShapeVersion = -1;
+		}
+
+		void EnsureSourceRoomConnectivityCache(Map map)
+		{
+			if (sourceRoomConnectivityMap == map
+				&& sourceRoomConnectivityPosition == Position
+				&& sourceRoomConnectivityShapeVersion == combatShapeVersion)
+				return;
+
+			eligibleSourceRoomCells.Clear();
+			sourceRoomDisconnectingCells.Clear();
+			var cellsByRoom = new Dictionary<Room, HashSet<IntVec3>>();
+			if (map != null && orderedCells != null)
+			{
+				foreach (var relative in orderedCells)
+				{
+					sourceRoomConnectivityCellScanCount++;
+					var absolute = Position + relative;
+					var room = absolute.InBounds(map) ? absolute.GetRoom(map) : null;
+					if (IsEligibleIndoorRoom(room) == false)
+						continue;
+					eligibleSourceRoomCells.Add(relative);
+					if (cellsByRoom.TryGetValue(room, out var roomCells) == false)
+					{
+						roomCells = [];
+						cellsByRoom.Add(room, roomCells);
+					}
+					roomCells.Add(relative);
+				}
+			}
+
+			foreach (var roomCells in cellsByRoom.Values)
+			{
+				var components = ConnectedComponents(roomCells);
+				if (components.Count <= 1)
+				{
+					AddArticulationCells(roomCells, sourceRoomDisconnectingCells);
+					continue;
+				}
+
+				sourceRoomDisconnectingCells.UnionWith(roomCells);
+				if (components.Count == 2)
+					foreach (var singleton in components.Where(component => component.Count == 1))
+						sourceRoomDisconnectingCells.Remove(singleton.First());
+			}
+
+			sourceRoomConnectivityMap = map;
+			sourceRoomConnectivityPosition = Position;
+			sourceRoomConnectivityShapeVersion = combatShapeVersion;
+			sourceRoomConnectivityBuildCount++;
+		}
+
 		void EnsureArticulationCells()
 		{
 			if (articulationShapeVersion == combatShapeVersion)
 				return;
 			articulationShapeVersion = combatShapeVersion;
 			articulationCells.Clear();
-			if (cells == null || cells.Count <= 2)
+			AddArticulationCells(cells, articulationCells);
+		}
+
+		static void AddArticulationCells(HashSet<IntVec3> source, HashSet<IntVec3> destination)
+		{
+			if (source == null || source.Count <= 2 || destination == null)
 				return;
 
-			var discovered = new Dictionary<IntVec3, int>(cells.Count);
-			var low = new Dictionary<IntVec3, int>(cells.Count);
-			var parent = new Dictionary<IntVec3, IntVec3>(cells.Count);
-			var childCounts = new Dictionary<IntVec3, int>(cells.Count);
+			var discovered = new Dictionary<IntVec3, int>(source.Count);
+			var low = new Dictionary<IntVec3, int>(source.Count);
+			var parent = new Dictionary<IntVec3, IntVec3>(source.Count);
+			var childCounts = new Dictionary<IntVec3, int>(source.Count);
 			var time = 0;
-			foreach (var root in cells)
+			foreach (var root in source)
 			{
 				if (discovered.ContainsKey(root))
 					continue;
@@ -2992,7 +3061,7 @@ namespace ZombieLand
 					{
 						open.Push((frame.cell, frame.directionIndex + 1));
 						var neighbor = frame.cell + GenAdj.CardinalDirections[frame.directionIndex];
-						if (cells.Contains(neighbor) == false)
+						if (source.Contains(neighbor) == false)
 							continue;
 						if (discovered.ContainsKey(neighbor) == false)
 						{
@@ -3013,10 +3082,10 @@ namespace ZombieLand
 					{
 						low[parentCell] = Mathf.Min(low[parentCell], low[frame.cell]);
 						if (parent[parentCell].IsValid && low[frame.cell] >= discovered[parentCell])
-							articulationCells.Add(parentCell);
+							destination.Add(parentCell);
 					}
 					else if (childCounts[frame.cell] > 1)
-						articulationCells.Add(frame.cell);
+						destination.Add(frame.cell);
 				}
 			}
 		}
