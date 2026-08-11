@@ -7323,7 +7323,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_multi_room_contract", Description = "Build reversible separated-room fixtures and verify the 25-percent room gate, adjacent-room preference, remote patch founding, one connected patch per room, valid-component-first legacy migration, merged-room queue retirement, interaction-core handoff, component rendering, whole-body targeting, and distributed invalid-cell relocation.")]
+		[Tool("zombieland/symbiant_multi_room_contract", Description = "Build reversible separated-room fixtures and verify the 25-percent room gate, ambient movement's empty-room exclusion, adjacent-room preference, remote patch founding, one connected patch per room, valid-component-first legacy migration, merged-room queue retirement, interaction-core handoff, component rendering, whole-body targeting, and distributed invalid-cell relocation.")]
 		public static object SymbiantMultiRoomContract(
 		[ToolParameter(Description = "Destroy the temporary Symbiant and room fixtures after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -7412,6 +7412,24 @@ namespace ZombieLand
 						break;
 				}
 				var leftEstablished = symbiant.DebugCellsInRoom(firstLeftRoom) >= leftRequirement;
+				var rightRoomEmptyBeforeAmbientMove = symbiant.DebugCellsInRoom(firstRightRoom) == 0;
+				var connectorCellAddedForAmbientProbe = symbiant.ContainsCell(firstFixture.roomConnectorCell)
+					? 0
+					: ZombieSymbiant.AddCells(map, new[] { firstFixture.roomConnectorCell });
+				var ambientTargetsBeforeFounding = symbiant.DebugMovementTargetCells();
+				var emptyRightRoomExcludedFromAmbientTargets = ambientTargetsBeforeFounding
+					.All(cell => cell.GetRoom(map) != firstRightRoom);
+				Rand.PushState(914207);
+				bool ambientMoveBeforeFounding;
+				try
+				{
+					ambientMoveBeforeFounding = symbiant.DebugTrySelectionCoreWanderPulse();
+				}
+				finally
+				{
+					Rand.PopState();
+				}
+				var rightRoomStayedEmptyAfterAmbientMove = symbiant.DebugCellsInRoom(firstRightRoom) == 0;
 
 				var adjacentSteps = new List<object>();
 				IntVec3? firstRightCell = null;
@@ -7706,9 +7724,13 @@ namespace ZombieLand
 
 				var success = controlledRoomsSeparated
 					&& leftRequirement >= 2
-					&& belowThresholdStayedInRoom
-					&& leftEstablished
-					&& firstRightCell.HasValue
+						&& belowThresholdStayedInRoom
+						&& leftEstablished
+						&& rightRoomEmptyBeforeAmbientMove
+						&& connectorCellAddedForAmbientProbe == 1
+						&& emptyRightRoomExcludedFromAmbientTargets
+						&& rightRoomStayedEmptyAfterAmbientMove
+						&& firstRightCell.HasValue
 					&& jumpedRemoteBeforeAdjacent == false
 					&& adjacentCoreHandoff
 					&& rightStayedInRoomUntilEstablished
@@ -7786,6 +7808,16 @@ namespace ZombieLand
 						belowThresholdPulses,
 						thresholdPulses,
 						leftEstablished
+					},
+					ambientFoundingGate = new
+					{
+						rightRoomEmptyBeforeAmbientMove,
+						connectorCell = ZombieRuntimeActions.DescribeCell(firstFixture.roomConnectorCell),
+						connectorCellAdded = connectorCellAddedForAmbientProbe,
+						targets = ambientTargetsBeforeFounding.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+						emptyRightRoomExcludedFromTargets = emptyRightRoomExcludedFromAmbientTargets,
+						moveAttempted = ambientMoveBeforeFounding,
+						rightRoomStayedEmptyAfterMove = rightRoomStayedEmptyAfterAmbientMove
 					},
 					adjacentRoom = new
 					{

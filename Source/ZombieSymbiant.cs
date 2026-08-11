@@ -4946,6 +4946,12 @@ namespace ZombieLand
 			}
 		}
 
+		internal IntVec3[] DebugMovementTargetCells()
+		{
+			var map = Map;
+			return map == null ? [] : MovementTargetCandidates(map).Select(target => target.cell).ToArray();
+		}
+
 		List<MovementTarget> MovementTargetCandidates(Map map)
 		{
 			var targets = new List<MovementTarget>();
@@ -4974,8 +4980,8 @@ namespace ZombieLand
 						continue;
 					var room = candidate.GetRoom(map);
 					if (IsEligibleIndoorRoom(room)
-						&& occupiedRooms.ContainsKey(room)
-						&& TouchesEstablishedRoomPatch(map, candidate, room) == false)
+						&& (occupiedRooms.ContainsKey(room) == false
+							|| TouchesEstablishedRoomPatch(map, candidate, room) == false))
 						continue;
 					targets.Add(new MovementTarget(candidate, ScoreMovementTargetCell(map, candidate), IntegratedCellWeight(map, candidate), classification));
 				}
