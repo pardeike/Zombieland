@@ -6510,6 +6510,7 @@ namespace ZombieLand
 
 		int ApplyPendingFeedGrowthPulses()
 		{
+			var pulseSize = pendingFeedGrowthPulses;
 			var added = 0;
 			while (pendingFeedGrowthPulses > 0 && TryExpansionPulse())
 			{
@@ -6520,7 +6521,7 @@ namespace ZombieLand
 				return 0;
 			lastRecessionPulseCells += added;
 			if (Spawned)
-				MoteMaker.ThrowText(DrawPos, Map, "SymbiantFedMote".Translate(added, added), 3.65f);
+				MoteMaker.ThrowText(DrawPos, Map, "SymbiantFedMote".Translate(pulseSize, added), 3.65f);
 			return added;
 		}
 
