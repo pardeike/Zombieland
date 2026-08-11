@@ -3757,7 +3757,7 @@ namespace ZombieLand
 			if (capacity.state != IndoorCapacityState.NoRelevantRooms)
 			{
 				uprootedSinceTick = -1;
-				if (capacity.state == IndoorCapacityState.PlacementAvailable && HasPriorityRelocationCells(map, capacity))
+				if (capacity.state == IndoorCapacityState.PlacementAvailable && HasMovableUnintegratedCells(map, capacity.state))
 				{
 					nextRelocationPulseTick = ticks;
 					lastPlacementGrowthState = "relocating";
@@ -5318,7 +5318,11 @@ namespace ZombieLand
 
 		bool HasMovableUnintegratedCells()
 		{
-			var map = Map;
+			return HasMovableUnintegratedCells(Map, lastIndoorCapacityState);
+		}
+
+		bool HasMovableUnintegratedCells(Map map, IndoorCapacityState capacityState)
+		{
 			if (map == null || CellCount == 0)
 				return false;
 			return orderedCells.Any(relative =>
@@ -5328,22 +5332,7 @@ namespace ZombieLand
 					return true;
 				return classification == SymbiantCellClass.ExteriorOpen
 					&& (authorizedExteriorCells.Contains(relative) == false
-						|| lastIndoorCapacityState == IndoorCapacityState.PlacementAvailable);
-			});
-		}
-
-		bool HasPriorityRelocationCells(Map map, IndoorCapacityEvaluation capacity)
-		{
-			if (map == null || orderedCells == null)
-				return false;
-			return orderedCells.Any(relative =>
-			{
-				var classification = ClassifySymbiantCell(map, Position + relative);
-				if (classification == SymbiantCellClass.IndoorIneligible || classification == SymbiantCellClass.InvalidBlocked)
-					return true;
-				return classification == SymbiantCellClass.ExteriorOpen
-					&& (authorizedExteriorCells.Contains(relative) == false
-						|| capacity?.state == IndoorCapacityState.PlacementAvailable);
+						|| capacityState == IndoorCapacityState.PlacementAvailable);
 			});
 		}
 
@@ -5439,7 +5428,7 @@ namespace ZombieLand
 				return false;
 			}
 			var target = FindRelocationTarget(map, capacity);
-			var priorityRelocationPending = HasPriorityRelocationCells(map, capacity);
+			var priorityRelocationPending = HasMovableUnintegratedCells(map, capacity.state);
 
 			if (target != null && TryMoveUnintegratedCell(map, target))
 			{
