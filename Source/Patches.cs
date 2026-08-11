@@ -235,7 +235,10 @@ namespace ZombieLand
 				if (symbiant?.Spawned != true || symbiant.Destroyed || clickParams == null)
 					return;
 				var clickCell = IntVec3.FromVector3(clickPos);
-				if (symbiant.IsSelectionCoreCell(clickCell) == false || clickParams.CanTarget(symbiant, source) == false)
+				var targetableCell = Find.Targeter?.IsTargeting == true
+					? symbiant.ContainsCell(clickCell)
+					: symbiant.IsSelectionCoreCell(clickCell);
+				if (targetableCell == false || clickParams.CanTarget(symbiant, source) == false)
 					return;
 				__result.Insert(Mathf.Clamp(previousIndex, 0, __result.Count), symbiant);
 			}

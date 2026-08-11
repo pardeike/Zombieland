@@ -19,3 +19,4 @@
 - A moving Symbiant core now remains clickable on its visible outgoing cell until the handoff reaches the destination.
 - Outdoor Symbiant cells no longer detach from the main growth when they move.
 - Symbiants now keep spreading after a wall breach opens their occupied room outdoors, including all remaining corpse-feed growth.
+- Drafted attacks and manually aimed abilities can now target every visible Symbiant slime cell, while ordinary clicks still use only its core.

@@ -9293,7 +9293,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, unobscured-map tooltip gate, click-through logical cells, bounded core initialization and repeated movement, non-metaball fallback rendering, selector patch installation, and outgoing-source hit-testing while the core hands off from a removed cell.")]
+		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, whole-body active manual targeting, unobscured-map tooltip gate, ordinary click-through logical cells, bounded core initialization and repeated movement, non-metaball fallback rendering, selector patch installation, and outgoing-source hit-testing while the core hands off from a removed cell.")]
 		public static object SymbiantSelectionCoreContract(
 			[ToolParameter(Description = "Destroy the temporary contract Symbiant after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -9337,6 +9337,32 @@ namespace ZombieLand
 				var bounds = CellRect.FromLimits(shape.Min(cell => cell.x), shape.Min(cell => cell.z), shape.Max(cell => cell.x), shape.Max(cell => cell.z));
 				var gap = bounds.Cells.FirstOrDefault(cell => symbiant.ContainsCell(cell) == false);
 				var gapTargetable = gap.IsValid && GenUI.ThingsUnderMouse(gap.ToVector3Shifted(), 0f, clickParams).Contains(symbiant);
+				var targeterWasActive = Find.Targeter?.IsTargeting == true;
+				var targeterStarted = false;
+				var manuallyTargetableCells = Array.Empty<IntVec3>();
+				var manualTargetingGapTargetable = false;
+				try
+				{
+					if (targeterWasActive == false && Find.Targeter != null)
+					{
+						Find.Targeter.BeginTargeting(clickParams, (LocalTargetInfo _) => { }, requiresCastedSelected: false);
+						targeterStarted = Find.Targeter.IsTargeting;
+						manuallyTargetableCells = shape
+							.Where(cell => GenUI.TargetsAt(cell.ToVector3Shifted(), clickParams, true).Any(target => target.Thing == symbiant))
+							.ToArray();
+						manualTargetingGapTargetable = gap.IsValid
+							&& GenUI.TargetsAt(gap.ToVector3Shifted(), clickParams, true).Any(target => target.Thing == symbiant);
+					}
+				}
+				finally
+				{
+					if (targeterStarted)
+						Find.Targeter.StopTargeting();
+				}
+				var manualTargetingCoversWholeBody = targeterWasActive == false
+					&& targeterStarted
+					&& manuallyTargetableCells.ToHashSet().SetEquals(shape)
+					&& manualTargetingGapTargetable == false;
 				var selectorRect = symbiant.CustomRectForSelector;
 				var selectorPatchTarget = AccessTools.DeclaredMethod(typeof(Selector), "SelectableObjectsUnderMouse", Type.EmptyTypes);
 				var selectorPatchInfo = selectorPatchTarget == null ? null : Harmony.GetPatchInfo(selectorPatchTarget);
@@ -9583,10 +9609,11 @@ namespace ZombieLand
 					success = selectorRect.HasValue
 						&& selectorRect.Value.Area == 1
 						&& selectorRect.Value.Contains(initialCoreCell)
-						&& selectorPatchInstalled
-						&& tooltipInputGated
-						&& logicalCellsClickThrough
-						&& gap.IsValid
+							&& selectorPatchInstalled
+							&& tooltipInputGated
+							&& logicalCellsClickThrough
+							&& manualTargetingCoversWholeBody
+							&& gap.IsValid
 						&& gapTargetable == false
 						&& discoveryCueCleared
 						&& wanderCarriedCore
@@ -9599,13 +9626,21 @@ namespace ZombieLand
 						&& shrinkSteps.Count > 0
 						&& shrinkCoresValid
 						&& initializationWorkBounded,
-					sourcePath = "GenUI.ThingsUnderMouse core-only filter + Selector.SelectableObjectsUnderMouse postfix + ZombieSymbiant selection-core state",
+					sourcePath = "GenUI.ThingsUnderMouse consumer-specific filter + Selector.SelectableObjectsUnderMouse postfix + ZombieSymbiant selection-core state",
 					shape = shape.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 					selectorRect = ZombieRuntimeActions.DescribeCellRect(selectorRect.Value),
 					selectorPatchInstalled,
 					tooltipInput,
 					logicalCellsClickThrough,
 					logicalTargeting,
+					manualTargeting = new
+					{
+						targeterWasActive,
+						targeterStarted,
+						wholeBodyTargetable = manualTargetingCoversWholeBody,
+						targetableCells = manuallyTargetableCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+						gapTargetable = manualTargetingGapTargetable
+					},
 					gap = ZombieRuntimeActions.DescribeCell(gap),
 					gapTargetable,
 					discoveryCore,
