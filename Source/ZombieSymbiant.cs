@@ -5753,6 +5753,16 @@ namespace ZombieLand
 			authorizedExteriorCells.RemoveWhere(relative =>
 				cells?.Contains(relative) != true
 				|| ClassifySymbiantCell(map, Position + relative) != SymbiantCellClass.ExteriorOpen);
+			var stableSeed = orderedCells == null
+				? (IntVec3?)null
+				: orderedCells
+					.Where(authorizedExteriorCells.Contains)
+					.Select(relative => (IntVec3?)relative)
+					.FirstOrDefault();
+			if (stableSeed.HasValue)
+				authorizedExteriorCells.IntersectWith(ConnectedCells(authorizedExteriorCells, stableSeed.Value));
+			else
+				authorizedExteriorCells.Clear();
 			exteriorOverflowAuthorized = authorizedExteriorCells.Count > 0;
 		}
 

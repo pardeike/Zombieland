@@ -24,3 +24,4 @@
 - Normal Symbiant movement can no longer enter and silently establish an empty room before a growth or relocation pulse founds it.
 - Symbiant movement now keeps each occupied room's slime patch connected even when another room offers a route around it.
 - Symbiants now preserve pending recovery growth when no indoor rooms remain instead of spending it on more outdoor cells.
+- Split outdoor Symbiant patches now keep only one authorized growth front after damage or construction interrupts the connection.
