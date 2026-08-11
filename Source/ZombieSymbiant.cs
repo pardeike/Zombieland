@@ -5118,7 +5118,8 @@ namespace ZombieLand
 				|| WouldSourceRoomStayConnectedAfterRemoval(map, relative) == false
 				|| WouldCellsStayConnectedAfterMove(relative, targetRelative) == false
 				|| target.classification == SymbiantCellClass.ExteriorOpen
-					&& MoveTargetKeepsCardinalAttachment(relative, targetRelative) == false)
+					&& (MoveTargetKeepsCardinalAttachment(relative, targetRelative) == false
+						|| TouchesAuthorizedExteriorFootprint(target.cell, relative) == false))
 				return null;
 			var absolute = Position + relative;
 			var sourceClassification = ClassifySymbiantCell(map, absolute);
@@ -5244,7 +5245,8 @@ namespace ZombieLand
 				return false;
 			var targetRelative = target.cell - Position;
 			var exteriorTargetWouldDetach = target.classification == SymbiantCellClass.ExteriorOpen
-				&& MoveTargetKeepsCardinalAttachment(source.relative, targetRelative) == false;
+				&& (MoveTargetKeepsCardinalAttachment(source.relative, targetRelative) == false
+					|| TouchesAuthorizedExteriorFootprint(target.cell, source.relative) == false);
 			if (ContainsCell(target.cell)
 				|| CanPlaceConnectedWithinRoom(map, target.cell, source.relative) == false
 				|| WouldSourceRoomStayConnectedAfterRemoval(map, source.relative) == false
@@ -6015,10 +6017,14 @@ namespace ZombieLand
 			return targets;
 		}
 
-		bool TouchesAuthorizedExteriorFootprint(IntVec3 candidate)
+		bool TouchesAuthorizedExteriorFootprint(IntVec3 candidate, IntVec3? excludedRelative = null)
 		{
 			return GenAdj.CardinalDirections.Any(direction =>
-				authorizedExteriorCells.Contains(candidate + direction - Position));
+			{
+				var neighbor = candidate + direction - Position;
+				return (excludedRelative.HasValue == false || neighbor != excludedRelative.Value)
+					&& authorizedExteriorCells.Contains(neighbor);
+			});
 		}
 
 		bool WallRemovalKeepsIndoorRoomsSeparated(Map map, IntVec3 wallCell, Room sourceRoom)

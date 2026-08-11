@@ -6835,7 +6835,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_expansion_contract", Description = "Build reversible room fixtures and verify indoor spread, roof/door gating, bare-floor preference with furnished-room founding fallback, direct room founding, divider preservation, component-scoped overflow authorization with legacy-save migration and split pruning, one-wall exterior breaching, rollback after a forced failed commit, deferred multi-pulse feeding after that breach, attachment-safe exterior movement, and no second breach.")]
+		[Tool("zombieland/symbiant_expansion_contract", Description = "Build reversible room fixtures and verify indoor spread, roof/door gating, bare-floor preference with furnished-room founding fallback, direct room founding, divider preservation, component-scoped overflow authorization with legacy-save migration and split pruning, one-wall exterior breaching, rollback after a forced failed commit, deferred multi-pulse feeding after that breach, authorization-front-safe exterior movement, and no second breach.")]
 		public static object SymbiantExpansionContract(
 			[ToolParameter(Description = "Destroy the temporary symbiant and two-room fixture after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -7006,6 +7006,48 @@ namespace ZombieLand
 				var continuationCell = continuationCells.Length == 1 ? continuationCells[0] : IntVec3.Invalid;
 				var continuationTouchesAuthorizedPatch = continuationCell.IsValid
 					&& GenAdj.CardinalDirections.Any(direction => authorizedBeforeContinuation.Contains(continuationCell + direction));
+				var overflowRoomInterior = overflowCell == firstDoorExteriorCell ? fixture.leftInterior : fixture.rightInterior;
+				var distantDoorCell = new IntVec3(overflowRoomInterior.minX, 0, overflowRoomInterior.maxZ + 1);
+				var distantDoorExteriorCell = distantDoorCell + IntVec3.North;
+				var distantDoorWall = distantDoorCell.GetEdifice(map) as Building;
+				Building_Door distantDoor = null;
+				if (distantDoorWall?.def?.IsWall == true)
+				{
+					distantDoorWall.Destroy(DestroyMode.Vanish);
+					fixture.buildings.Remove(distantDoorWall);
+					distantDoor = ThingMaker.MakeThing(ThingDefOf.Door, ThingDefOf.WoodLog) as Building_Door;
+					if (distantDoor != null)
+					{
+						GenSpawn.Spawn(distantDoor, distantDoorCell, map, WipeMode.Vanish);
+						distantDoor.SetFaction(Faction.OfPlayer);
+						fixture.buildings.Add(distantDoor);
+					}
+				}
+				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
+				var distantDoorAdded = distantDoor != null ? ZombieSymbiant.AddCells(map, new[] { distantDoorCell }) : 0;
+				var footprintBeforeDistantMove = symbiant?.AbsoluteCells.ToHashSet() ?? [];
+				var authorizationBeforeDistantMove = symbiant?.DebugAuthorizedExteriorCells.ToHashSet() ?? [];
+				var distantTargetClass = ZombieSymbiant.ClassifySymbiantCell(map, distantDoorExteriorCell);
+				var distantTargetTouchesLogicalBody = GenAdj.CardinalDirections.Any(direction =>
+				{
+					var neighbor = distantDoorExteriorCell + direction;
+					return neighbor != continuationCell && footprintBeforeDistantMove.Contains(neighbor);
+				});
+				var distantTargetTouchesAuthorizedFront = GenAdj.CardinalDirections.Any(direction =>
+					authorizationBeforeDistantMove.Contains(distantDoorExteriorCell + direction));
+				var distantMoveAccepted = symbiant?.DebugTryExteriorMove(continuationCell, distantDoorExteriorCell) == true;
+				var footprintAfterDistantMove = symbiant?.AbsoluteCells.ToHashSet() ?? [];
+				var authorizationAfterDistantMove = symbiant?.DebugAuthorizedExteriorCells.ToHashSet() ?? [];
+				var distantMoveRejectedAtomically = continuationCell.IsValid
+					&& distantDoorAdded == 1
+					&& distantTargetClass == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
+					&& authorizationBeforeDistantMove.Count >= 2
+					&& authorizationBeforeDistantMove.Contains(continuationCell)
+					&& distantTargetTouchesLogicalBody
+					&& distantTargetTouchesAuthorizedFront == false
+					&& distantMoveAccepted == false
+					&& footprintAfterDistantMove.SetEquals(footprintBeforeDistantMove)
+					&& authorizationAfterDistantMove.SetEquals(authorizationBeforeDistantMove);
 				var removedContinuationCell = symbiant != null
 					&& continuationCell.IsValid
 					&& removeRelativeCell != null
@@ -7136,6 +7178,9 @@ namespace ZombieLand
 					&& continuationCells.Length == 1
 					&& continuationTouchesAuthorizedPatch
 					&& continuationCell != unusedDoorExteriorCell
+					&& distantDoorWall?.Destroyed == true
+					&& distantDoor?.Destroyed == false
+					&& distantMoveRejectedAtomically
 					&& removedContinuationCell
 					&& authorizedExteriorBeforeDamage.Length == 1
 					&& authorizedExteriorBeforeDamage[0] == overflowCell
@@ -7246,6 +7291,21 @@ namespace ZombieLand
 								pulse = continuationPulse,
 								cells = continuationCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 								touchesAuthorizedPatch = continuationTouchesAuthorizedPatch,
+								distantMove = new
+								{
+									door = ZombieRuntimeActions.DescribeCell(distantDoorCell),
+									target = ZombieRuntimeActions.DescribeCell(distantDoorExteriorCell),
+									doorAdded = distantDoorAdded,
+									targetClass = distantTargetClass.ToString(),
+									sourceAuthorized = authorizationBeforeDistantMove.Contains(continuationCell),
+									authorizedCellCount = authorizationBeforeDistantMove.Count,
+									touchesLogicalBody = distantTargetTouchesLogicalBody,
+									touchesAuthorizedFront = distantTargetTouchesAuthorizedFront,
+									accepted = distantMoveAccepted,
+									rejectedAtomically = distantMoveRejectedAtomically,
+									footprintUnchanged = footprintAfterDistantMove.SetEquals(footprintBeforeDistantMove),
+									authorizationUnchanged = authorizationAfterDistantMove.SetEquals(authorizationBeforeDistantMove)
+								},
 								removedAfterProbe = removedContinuationCell
 							},
 							damageExposure = new
