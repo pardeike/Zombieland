@@ -2936,17 +2936,6 @@ namespace ZombieLand
 			return WouldCellsStayConnectedAfterRemoval(removedRelative);
 		}
 
-		bool MoveTargetKeepsCardinalAttachment(IntVec3 removedRelative, IntVec3 addedRelative)
-		{
-			if (cells == null || cells.Count <= 1)
-				return true;
-			return GenAdj.CardinalDirections.Any(direction =>
-			{
-				var neighbor = addedRelative + direction;
-				return neighbor != removedRelative && cells.Contains(neighbor);
-			});
-		}
-
 		void EnsureArticulationCells()
 		{
 			if (articulationShapeVersion == combatShapeVersion)
@@ -4983,9 +4972,6 @@ namespace ZombieLand
 				if (roomCellMigrationLookup.Contains(relative))
 					continue;
 				var cell = Position + relative;
-				if (ClassifySymbiantCell(map, cell) == SymbiantCellClass.ExteriorOpen
-					&& authorizedExteriorCells.Contains(relative) == false)
-					continue;
 				for (var i = 0; i < 4; i++)
 				{
 					var candidate = cell + GenAdj.CardinalDirections[i];
@@ -4993,11 +4979,7 @@ namespace ZombieLand
 						continue;
 					var classification = ClassifySymbiantCell(map, candidate);
 					if (classification != SymbiantCellClass.IndoorFloor
-						&& classification != SymbiantCellClass.Door
-						&& (classification != SymbiantCellClass.ExteriorOpen
-							|| ExteriorOverflowAuthorized == false
-							|| lastIndoorCapacityState == IndoorCapacityState.PlacementAvailable
-							|| lastIndoorCapacityState == IndoorCapacityState.NonFullButBlocked))
+						&& classification != SymbiantCellClass.Door)
 						continue;
 					var room = candidate.GetRoom(map);
 					if (IsEligibleIndoorRoom(room)
@@ -5032,38 +5014,13 @@ namespace ZombieLand
 				|| cells?.Contains(relative) != true
 				|| roomCellMigrationLookup.Contains(relative)
 				|| targetComponents?.Contains(relative) != true
-				|| WouldCellsStayConnectedAfterMove(relative, targetRelative) == false
-				|| target.classification == SymbiantCellClass.ExteriorOpen
-					&& (MoveTargetKeepsCardinalAttachment(relative, targetRelative) == false
-						|| TouchesAuthorizedExteriorFootprint(target.cell, relative) == false))
+				|| WouldCellsStayConnectedAfterMove(relative, targetRelative) == false)
 				return null;
 			var absolute = Position + relative;
 			var sourceClassification = ClassifySymbiantCell(map, absolute);
-			if (sourceClassification == SymbiantCellClass.ExteriorOpen && authorizedExteriorCells.Contains(relative) == false)
+			if (sourceClassification != SymbiantCellClass.IndoorFloor && sourceClassification != SymbiantCellClass.Door)
 				return null;
-			var sourceIndoor = sourceClassification == SymbiantCellClass.IndoorFloor || sourceClassification == SymbiantCellClass.Door;
-			var targetIndoor = target.classification == SymbiantCellClass.IndoorFloor || target.classification == SymbiantCellClass.Door;
-			if (sourceIndoor != targetIndoor || sourceIndoor == false && sourceClassification != SymbiantCellClass.ExteriorOpen)
-				return null;
-			return new MovementSource(relative, absolute, ScoreMovementSourceCell(map, absolute), IntegratedCellWeight(map, absolute), sourceClassification);
-		}
-
-		internal bool DebugTryExteriorMove(IntVec3 source, IntVec3 target)
-		{
-			var map = Map;
-			if (map == null
-				|| ClassifySymbiantCell(map, source) != SymbiantCellClass.ExteriorOpen
-				|| ClassifySymbiantCell(map, target) != SymbiantCellClass.ExteriorOpen)
-				return false;
-			SynchronizeExteriorOverflowAuthorization(map);
-			var movementTarget = new MovementTarget(
-				target,
-				ScoreMovementTargetCell(map, target),
-				IntegratedCellWeight(map, target),
-				SymbiantCellClass.ExteriorOpen
-			);
-			var movementSource = MovementSourceCandidate(map, source - Position, movementTarget);
-			return movementSource != null && TryCommitMove(map, movementSource, movementTarget);
+			return new MovementSource(relative, absolute, ScoreMovementSourceCell(map, absolute), IntegratedCellWeight(map, absolute));
 		}
 
 		HashSet<IntVec3> ComponentsTouchingTarget(IntVec3 targetRelative)
@@ -5134,17 +5091,12 @@ namespace ZombieLand
 				|| ClassifySymbiantCell(map, target.cell) != target.classification)
 				return false;
 			var targetRelative = target.cell - Position;
-			var exteriorTargetWouldDetach = target.classification == SymbiantCellClass.ExteriorOpen
-				&& (MoveTargetKeepsCardinalAttachment(source.relative, targetRelative) == false
-					|| TouchesAuthorizedExteriorFootprint(target.cell, source.relative) == false);
 			if (ContainsCell(target.cell)
 				|| CanPlaceConnectedWithinRoom(map, target.cell, source.relative) == false
-				|| WouldCellsStayConnectedAfterMove(source.relative, targetRelative) == false
-				|| exteriorTargetWouldDetach)
+				|| WouldCellsStayConnectedAfterMove(source.relative, targetRelative) == false)
 				return false;
 			var movingSelectionCore = selectionCoreRelative == source.relative;
 			var movingEstablishmentAnchor = establishmentAnchorRelative == source.relative;
-			var movingAuthorizedExteriorCell = authorizedExteriorCells.Contains(source.relative);
 			var healthBeforeMove = SharedHealthCurrent;
 			if (RemoveRelativeCellWithCoreDestination(source.relative, true, movingSelectionCore ? targetRelative : IntVec3.Invalid) == false)
 				return false;
@@ -5152,8 +5104,6 @@ namespace ZombieLand
 			{
 				_ = AddRelativeCell(source.relative);
 				RestoreSharedHealthAfterMove(healthBeforeMove);
-				if (movingAuthorizedExteriorCell)
-					AuthorizeExteriorCell(source.absolute);
 				if (movingSelectionCore)
 				{
 					selectionCoreRelative = source.relative;
@@ -5162,8 +5112,6 @@ namespace ZombieLand
 				return false;
 			}
 			RestoreSharedHealthAfterMove(healthBeforeMove);
-			if (movingAuthorizedExteriorCell && target.classification == SymbiantCellClass.ExteriorOpen)
-				AuthorizeExteriorCell(target.cell);
 			if (movingEstablishmentAnchor)
 				SetEstablishmentAnchor(target.cell);
 			RebuildCellBounds();
@@ -5922,14 +5870,10 @@ namespace ZombieLand
 			return targets;
 		}
 
-		bool TouchesAuthorizedExteriorFootprint(IntVec3 candidate, IntVec3? excludedRelative = null)
+		bool TouchesAuthorizedExteriorFootprint(IntVec3 candidate)
 		{
 			return GenAdj.CardinalDirections.Any(direction =>
-			{
-				var neighbor = candidate + direction - Position;
-				return (excludedRelative.HasValue == false || neighbor != excludedRelative.Value)
-					&& authorizedExteriorCells.Contains(neighbor);
-			});
+				authorizedExteriorCells.Contains(candidate + direction - Position));
 		}
 
 		bool WallRemovalKeepsIndoorRoomsSeparated(Map map, IntVec3 wallCell, Room sourceRoom)
@@ -7653,15 +7597,13 @@ namespace ZombieLand
 			public readonly IntVec3 absolute;
 			public readonly float score;
 			public readonly float integratedWeight;
-			public readonly SymbiantCellClass classification;
 
-			public MovementSource(IntVec3 relative, IntVec3 absolute, float score, float integratedWeight, SymbiantCellClass classification)
+			public MovementSource(IntVec3 relative, IntVec3 absolute, float score, float integratedWeight)
 			{
 				this.relative = relative;
 				this.absolute = absolute;
 				this.score = score;
 				this.integratedWeight = integratedWeight;
-				this.classification = classification;
 			}
 		}
 

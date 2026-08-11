@@ -17,7 +17,7 @@
 - Symbiants can now establish themselves in fully furnished rooms when no bare floor is available, without removing the furniture.
 - Dormant Symbiants now wait for their intended retry interval before searching the map for a new room again.
 - A moving Symbiant core now remains clickable on its visible outgoing cell until the handoff reaches the destination.
-- Outdoor Symbiant cells no longer detach from the main growth when they move.
+- Outdoor Symbiant cells now stay in place between growth and relocation, preventing detached or frozen stragglers.
 - Symbiants now keep spreading after a wall breach opens their occupied room outdoors, including all remaining corpse-feed growth.
 - Drafted attacks and manually aimed abilities can now target every visible Symbiant slime cell, while ordinary clicks still use only its core.
 - Symbiants now keep a usable room patch when repairing disconnected cells from older saves, even when a larger patch has become invalid.
@@ -26,7 +26,6 @@
 - Split outdoor Symbiant patches now keep only one authorized growth front after damage or construction interrupts the connection.
 - Symbiant relocation now skips attractive destinations that would disconnect as soon as the source cell moves, allowing a legal fallback instead.
 - Older Symbiant saves now preserve and migrate exterior-overflow permission into the same single authorized outdoor patch used by new saves.
-- Outdoor Symbiant movement now stays on its authorized growth front instead of leaving a frozen straggler at another doorway.
 - Symbiant room repair no longer stalls when a queued bridge cell links otherwise independent room patches.
 - Symbiant relocation can now found a room whose only existing slime cell became invalid instead of retrying forever.
 - Only one colonist at a time now delivers a corpse to a Symbiant, preventing a second delivery from being dropped at its core.
