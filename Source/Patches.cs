@@ -4812,7 +4812,6 @@ namespace ZombieLand
 		static class StatExtension_GetStatValue_Patch
 		{
 			static readonly float defaultHumanMoveSpeed = ThingDefOf.Human.statBases.First(mod => mod.stat == StatDefOf.MoveSpeed).value;
-			static readonly StatDef cookingSpeed = DefDatabase<StatDef>.GetNamedSilentFail("CookingSpeed");
 			static readonly HashSet<StatDef> ignoredStats = new StatDef[]
 			{
 				DefDatabase<StatDef>.GetNamed("SmokeSensitivity", false),
@@ -5004,11 +5003,7 @@ namespace ZombieLand
 			{
 				if (thing is not Pawn pawn)
 					return;
-				if (stat != StatDefOf.MedicalTendSpeed
-					&& stat != StatDefOf.WorkSpeedGlobal
-					&& stat != StatDefOf.GeneralLaborSpeed
-					&& stat != StatDefOf.CleaningSpeed
-					&& stat != cookingSpeed)
+				if (stat != StatDefOf.WorkSpeedGlobal && stat != StatDefOf.CleaningSpeed)
 					return;
 				var efficiency = ZombieSymbiant.SymbiantCellEfficiencyFactor(pawn);
 				if (efficiency >= 0.999f)
