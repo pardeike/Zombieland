@@ -6598,6 +6598,10 @@ namespace ZombieLand
 				var authorizedAfterRebuild = symbiant.DebugAuthorizedExteriorCells.ToHashSet();
 				var breachedSourceComponentAuthorized = transitionedSourceCells.Length > 0
 					&& transitionedSourceCells.All(authorizedAfterRebuild.Contains);
+				var legacyAuthorizationMigrated = symbiant.DebugSimulateLegacyExteriorOverflowMigration();
+				var authorizedAfterLegacyMigration = symbiant.DebugAuthorizedExteriorCells.ToHashSet();
+				var legacyMigrationPreservedComponent = legacyAuthorizationMigrated
+					&& authorizedAfterLegacyMigration.SetEquals(authorizedAfterRebuild);
 
 				var beforeDeferred = symbiant.AbsoluteCells.ToHashSet();
 				var deferredApplied = symbiant.DebugApplyPendingFeedGrowthPulses();
@@ -6704,6 +6708,7 @@ namespace ZombieLand
 							&& breachCellClassAfterRebuild == ZombieSymbiant.SymbiantCellClass.ExteriorOpen
 							&& overflowAuthorizedAfterFeed
 							&& breachedSourceComponentAuthorized
+							&& legacyMigrationPreservedComponent
 							&& deferredApplied == expectedFeedGrowth - 1
 						&& pendingAfterDeferred == 0
 						&& totalFeedGrowth == expectedFeedGrowth
@@ -6747,6 +6752,12 @@ namespace ZombieLand
 						breachedSourceComponentAuthorized,
 						transitionedSourceCells = transitionedSourceCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 						authorizedAfterRebuild = authorizedAfterRebuild.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+						legacyMigration = new
+						{
+							migrated = legacyAuthorizationMigrated,
+							preservedComponent = legacyMigrationPreservedComponent,
+							authorizedAfter = authorizedAfterLegacyMigration.Select(ZombieRuntimeActions.DescribeCell).ToArray()
+						},
 						deferredApplied,
 						deferredCells = deferredNewCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
 						pendingAfterDeferred,
@@ -6807,7 +6818,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_expansion_contract", Description = "Build reversible room fixtures and verify indoor spread, roof/door gating, bare-floor preference with furnished-room founding fallback, direct room founding, divider preservation, component-scoped overflow authorization with split pruning, one-wall exterior breaching, rollback after a forced failed commit, deferred multi-pulse feeding after that breach, attachment-safe exterior movement, and no second breach.")]
+		[Tool("zombieland/symbiant_expansion_contract", Description = "Build reversible room fixtures and verify indoor spread, roof/door gating, bare-floor preference with furnished-room founding fallback, direct room founding, divider preservation, component-scoped overflow authorization with legacy-save migration and split pruning, one-wall exterior breaching, rollback after a forced failed commit, deferred multi-pulse feeding after that breach, attachment-safe exterior movement, and no second breach.")]
 		public static object SymbiantExpansionContract(
 			[ToolParameter(Description = "Destroy the temporary symbiant and two-room fixture after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{

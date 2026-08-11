@@ -493,9 +493,8 @@ namespace ZombieLand
 		int relocationCellDebt;
 		int nextRelocationPulseTick;
 		int uprootedSinceTick = -1;
-		bool exteriorOverflowAuthorized;
 		HashSet<IntVec3> authorizedExteriorCells = [];
-		bool exteriorOverflowScopeInitialized;
+		bool legacyExteriorOverflowMigrationPending;
 		IntVec3 establishmentAnchorRelative = IntVec3.Invalid;
 		IndoorCapacityState lastIndoorCapacityState = IndoorCapacityState.NoRelevantRooms;
 		string lastPlacementGrowthState = "waiting";
@@ -574,11 +573,20 @@ namespace ZombieLand
 		internal bool DebugRoomCellMigrationInitialized => roomCellMigrationInitialized;
 		internal bool DebugRoomCellMigrationRescanPending => roomCellMigrationRescanPending;
 		internal int DebugPendingFeedGrowthPulses => pendingFeedGrowthPulses;
-		internal bool DebugExteriorOverflowAuthorized => exteriorOverflowAuthorized;
+		internal bool DebugExteriorOverflowAuthorized => ExteriorOverflowAuthorized;
 		internal IntVec3[] DebugAuthorizedExteriorCells => authorizedExteriorCells
 			.Select(relative => Position + relative)
 			.ToArray();
 		internal bool DebugIsAuthorizedExteriorCell(IntVec3 absolute) => authorizedExteriorCells.Contains(absolute - Position);
+		internal bool DebugSimulateLegacyExteriorOverflowMigration()
+		{
+			if (ExteriorOverflowAuthorized == false)
+				return false;
+			authorizedExteriorCells.Clear();
+			legacyExteriorOverflowMigrationPending = true;
+			SynchronizeExteriorOverflowAuthorization(Map);
+			return legacyExteriorOverflowMigrationPending == false && ExteriorOverflowAuthorized;
+		}
 		internal IntVec3[] DebugExteriorOpenTargets()
 		{
 			SynchronizeExteriorOverflowAuthorization(Map);
@@ -647,7 +655,7 @@ namespace ZombieLand
 				success = true,
 				topologySafe = IsPlacementTopologySafe(map),
 				roomTopologyInvalidated,
-				exteriorOverflowAuthorized,
+				exteriorOverflowAuthorized = ExteriorOverflowAuthorized,
 				authorizedExteriorCells = DebugAuthorizedExteriorCells.Select(DescribeDebugCell).ToArray(),
 				establishmentAnchor = DebugEstablishmentAnchorCell.IsValid ? DescribeDebugCell(DebugEstablishmentAnchorCell) : null,
 				cellClasses = Enum.GetValues(typeof(SymbiantCellClass))
@@ -751,7 +759,7 @@ namespace ZombieLand
 			symbiant.roomCellMigrationRescanPending = true;
 			symbiant.lastSymbiosisMetricTick = int.MinValue;
 			symbiant.topologySettledCount++;
-			if (symbiant.exteriorOverflowAuthorized
+			if (symbiant.ExteriorOverflowAuthorized
 				|| symbiant.HasPendingConstructionRepair
 				|| symbiant.relocationCellDebt > 0
 				|| symbiant.nextRelocationPulseTick > 0
@@ -781,7 +789,7 @@ namespace ZombieLand
 		public int UprootedSinceTick => uprootedSinceTick;
 		internal int RecentMovementCellCount => recentMovementCells.Count;
 		internal static int RecentMovementCellCapacity => AmbientMovementRecentCellCapacity;
-		public bool ExteriorOverflowAuthorized => exteriorOverflowAuthorized;
+		public bool ExteriorOverflowAuthorized => authorizedExteriorCells?.Count > 0;
 		public static float CurrentGrowthSpeedFactor => SymbiantGrowthSpeedFactor();
 		public IEnumerable<IntVec3> AbsoluteCells => orderedCells.Select(cell => Position + cell);
 		CellRect AbsoluteCellBounds => relativeCellBounds.MovedBy(Position);
@@ -2893,8 +2901,6 @@ namespace ZombieLand
 			if (removed)
 			{
 				authorizedExteriorCells?.Remove(relative);
-				if (exteriorOverflowScopeInitialized && authorizedExteriorCells?.Count == 0)
-					exteriorOverflowAuthorized = false;
 				roomCellMigrationCells?.Remove(relative);
 				roomCellMigrationLookup.Remove(relative);
 				if (establishmentAnchorRelative == relative)
@@ -3885,9 +3891,8 @@ namespace ZombieLand
 			roomCellMigrationInitialized = false;
 			roomCellMigrationRescanPending = false;
 			roomCellMigrationNormalizationPending = false;
-			exteriorOverflowAuthorized = false;
 			authorizedExteriorCells.Clear();
-			exteriorOverflowScopeInitialized = true;
+			legacyExteriorOverflowMigrationPending = false;
 			establishmentAnchorRelative = IntVec3.Invalid;
 			selectionCoreRelative = IntVec3.Invalid;
 			selectionCoreLastMoveTick = GenTicks.TicksGame;
@@ -4507,7 +4512,6 @@ namespace ZombieLand
 			orderedCells = absoluteCells.Distinct().Select(cell => cell - newRoot).ToList();
 			cells = orderedCells.ToHashSet();
 			authorizedExteriorCells = authorizedAbsoluteCells.Select(cell => cell - newRoot).ToHashSet();
-			exteriorOverflowAuthorized = authorizedExteriorCells.Count > 0;
 			roomCellMigrationCells = [];
 			roomCellMigrationLookup.Clear();
 			roomCellMigrationInitialized = false;
@@ -5000,7 +5004,7 @@ namespace ZombieLand
 					if (classification != SymbiantCellClass.IndoorFloor
 						&& classification != SymbiantCellClass.Door
 						&& (classification != SymbiantCellClass.ExteriorOpen
-							|| exteriorOverflowAuthorized == false
+							|| ExteriorOverflowAuthorized == false
 							|| lastIndoorCapacityState == IndoorCapacityState.PlacementAvailable
 							|| lastIndoorCapacityState == IndoorCapacityState.NonFullButBlocked))
 						continue;
@@ -5462,9 +5466,9 @@ namespace ZombieLand
 				lastPlacementGrowthState = "contained";
 				return false;
 			}
-			if (target == null && exteriorOverflowAuthorized && capacity.state == IndoorCapacityState.AllFull)
+			if (target == null && ExteriorOverflowAuthorized && capacity.state == IndoorCapacityState.AllFull)
 				target = FindExteriorOpenTarget(map);
-			if (target == null && exteriorOverflowAuthorized == false && capacity.state == IndoorCapacityState.AllFull)
+			if (target == null && ExteriorOverflowAuthorized == false && capacity.state == IndoorCapacityState.AllFull)
 			{
 				var exact = EvaluateIndoorCapacity(map, exactAudit: true);
 				if (exact.state == IndoorCapacityState.AllFull)
@@ -5737,24 +5741,21 @@ namespace ZombieLand
 			if (map == null || IsPlacementTopologySafe(map) == false)
 				return;
 
-			if (exteriorOverflowScopeInitialized == false)
+			if (legacyExteriorOverflowMigrationPending)
 			{
 				authorizedExteriorCells.Clear();
-				if (exteriorOverflowAuthorized)
-				{
-					var exteriorCells = orderedCells
-						.Where(relative => ClassifySymbiantCell(map, Position + relative) == SymbiantCellClass.ExteriorOpen)
-						.ToHashSet();
-					var seed = orderedCells
-						.AsEnumerable()
-						.Reverse()
-						.Where(exteriorCells.Contains)
-						.Select(relative => (IntVec3?)relative)
-						.FirstOrDefault();
-					if (seed.HasValue)
-						authorizedExteriorCells.UnionWith(ConnectedCells(exteriorCells, seed.Value));
-				}
-				exteriorOverflowScopeInitialized = true;
+				var exteriorCells = orderedCells
+					.Where(relative => ClassifySymbiantCell(map, Position + relative) == SymbiantCellClass.ExteriorOpen)
+					.ToHashSet();
+				var seed = orderedCells
+					.AsEnumerable()
+					.Reverse()
+					.Where(exteriorCells.Contains)
+					.Select(relative => (IntVec3?)relative)
+					.FirstOrDefault();
+				if (seed.HasValue)
+					authorizedExteriorCells.UnionWith(ConnectedCells(exteriorCells, seed.Value));
+				legacyExteriorOverflowMigrationPending = false;
 			}
 
 			authorizedExteriorCells.RemoveWhere(relative =>
@@ -5770,7 +5771,6 @@ namespace ZombieLand
 				authorizedExteriorCells.IntersectWith(ConnectedCells(authorizedExteriorCells, stableSeed.Value));
 			else
 				authorizedExteriorCells.Clear();
-			exteriorOverflowAuthorized = authorizedExteriorCells.Count > 0;
 		}
 
 		void AuthorizeExteriorCell(IntVec3 absolute)
@@ -5779,8 +5779,6 @@ namespace ZombieLand
 				return;
 			authorizedExteriorCells ??= [];
 			authorizedExteriorCells.Add(absolute - Position);
-			exteriorOverflowScopeInitialized = true;
-			exteriorOverflowAuthorized = true;
 		}
 
 		int RoomEstablishmentRequirement(Map map, Room room)
@@ -5930,7 +5928,7 @@ namespace ZombieLand
 			if (map == null)
 				return targets;
 			var seen = new HashSet<IntVec3>();
-			IEnumerable<IntVec3> sourceCells = exteriorOverflowAuthorized
+			IEnumerable<IntVec3> sourceCells = ExteriorOverflowAuthorized
 				? orderedCells.Where(relative => authorizedExteriorCells.Contains(relative))
 				: orderedCells;
 			foreach (var relative in sourceCells)
@@ -5938,7 +5936,7 @@ namespace ZombieLand
 				if (roomCellMigrationLookup.Contains(relative))
 					continue;
 				var source = Position + relative;
-				if (exteriorOverflowAuthorized
+				if (ExteriorOverflowAuthorized
 					&& ClassifySymbiantCell(map, source) != SymbiantCellClass.ExteriorOpen)
 					continue;
 				foreach (var direction in GenAdj.CardinalDirections)
@@ -5975,7 +5973,7 @@ namespace ZombieLand
 
 		ExpansionTarget FindExteriorWallBreachTarget(Map map)
 		{
-			if (map == null || exteriorOverflowAuthorized)
+			if (map == null || ExteriorOverflowAuthorized)
 				return null;
 			var targets = new List<ExpansionTarget>();
 			var seen = new HashSet<IntVec3>();
@@ -6026,7 +6024,7 @@ namespace ZombieLand
 				ExpansionTargetKind.RoomFounding => classification == SymbiantCellClass.IndoorFloor && CanPlaceConnectedWithinRoom(map, target.cell),
 				ExpansionTargetKind.Door => classification == SymbiantCellClass.Door && GenAdj.CardinalDirections.Any(direction => ContainsCell(target.cell + direction)),
 				ExpansionTargetKind.ExteriorOpen => classification == SymbiantCellClass.ExteriorOpen
-					&& (exteriorOverflowAuthorized
+					&& (ExteriorOverflowAuthorized
 						? TouchesAuthorizedExteriorFootprint(target.cell)
 						: GenAdj.CardinalDirections.Any(direction => ContainsCell(target.cell + direction))),
 				_ => false
@@ -6046,7 +6044,7 @@ namespace ZombieLand
 			var map = Map;
 			if (map == null
 				|| target?.kind != ExpansionTargetKind.ExteriorWallBreach
-				|| exteriorOverflowAuthorized
+				|| ExteriorOverflowAuthorized
 				|| CellCount >= MaxCells
 				|| target.wall == null
 				|| target.wall.Destroyed
@@ -7584,9 +7582,15 @@ namespace ZombieLand
 			Scribe_Values.Look(ref relocationCellDebt, "relocationCellDebt");
 			Scribe_Values.Look(ref nextRelocationPulseTick, "nextRelocationPulseTick");
 			Scribe_Values.Look(ref uprootedSinceTick, "uprootedSinceTick", -1);
-			Scribe_Values.Look(ref exteriorOverflowAuthorized, "exteriorOverflowAuthorized");
+			if (Scribe.mode == LoadSaveMode.LoadingVars)
+			{
+				var legacyExteriorOverflowAuthorized = false;
+				var legacyExteriorOverflowScopeInitialized = false;
+				Scribe_Values.Look(ref legacyExteriorOverflowAuthorized, "exteriorOverflowAuthorized");
+				Scribe_Values.Look(ref legacyExteriorOverflowScopeInitialized, "exteriorOverflowScopeInitialized");
+				legacyExteriorOverflowMigrationPending = legacyExteriorOverflowAuthorized && legacyExteriorOverflowScopeInitialized == false;
+			}
 			Scribe_Collections.Look(ref authorizedExteriorCells, "authorizedExteriorCells", LookMode.Value);
-			Scribe_Values.Look(ref exteriorOverflowScopeInitialized, "exteriorOverflowScopeInitialized");
 			Scribe_Values.Look(ref establishmentAnchorRelative, "establishmentAnchorRelative", IntVec3.Invalid);
 			Scribe_Values.Look(ref selectionCoreRelative, "selectionCoreRelative", IntVec3.Invalid);
 			Scribe_Values.Look(ref selectionCoreMotionFrom, "selectionCoreMotionFrom", IntVec3.Invalid);
