@@ -3277,6 +3277,10 @@ namespace ZombieLand
 			{
 				var center = SelectionCoreVisualCenter;
 				var visualCell = new IntVec3(Mathf.RoundToInt(center.x), 0, Mathf.RoundToInt(center.y));
+				if (IsSelectionCoreMotionActive(GenTicks.TicksGame)
+					&& selectionCoreMotionFrom.IsValid
+					&& visualCell == selectionCoreMotionFrom)
+					return visualCell;
 				if (cells?.Contains(visualCell) == true)
 					return visualCell;
 				if (IsSelectionCoreMotionActive(GenTicks.TicksGame))
@@ -3321,6 +3325,13 @@ namespace ZombieLand
 		public bool IsSelectionCoreCell(IntVec3 absoluteCell)
 		{
 			return Spawned && Destroyed == false && absoluteCell == SelectionCoreCell;
+		}
+
+		internal IntVec3 SelectionCoreJobCellForClick(IntVec3 clickCell)
+		{
+			if (IsSelectionCoreCell(clickCell) == false)
+				return IntVec3.Invalid;
+			return ContainsCell(clickCell) ? clickCell : SelectionCoreDestinationCell;
 		}
 
 		internal void NotifySelectionCoreDiscoveryCue()
@@ -3481,6 +3492,27 @@ namespace ZombieLand
 				return false;
 			BeginSelectionCoreMove(from, to);
 			return SelectionCoreMotionActive;
+		}
+
+		internal bool DebugRemoveSelectionCoreForHandoff(IntVec3 fromCell, IntVec3 toCell)
+		{
+			if (Spawned == false || fromCell.IsValid == false || toCell.IsValid == false)
+				return false;
+			var from = fromCell - Position;
+			var to = toCell - Position;
+			if (from == to
+				|| cells?.Contains(from) != true
+				|| cells.Contains(to) == false
+				|| WouldCellsStayConnectedAfterRemoval(from) == false)
+				return false;
+			selectionCoreDiscoveryCue = false;
+			selectionCoreRelative = from;
+			ClearSelectionCoreMotion();
+			if (RemoveRelativeCellWithCoreDestination(from, true, to) == false)
+				return false;
+			RebuildCellBounds();
+			UpdateAll();
+			return SelectionCoreMotionActive && cells.Contains(from) == false && selectionCoreRelative == to;
 		}
 
 		internal bool DebugSetSelectionCoreHandoffProgress(float progress)

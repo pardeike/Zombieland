@@ -8038,7 +8038,9 @@ namespace ZombieLand
 				var symbiant = ZombieSymbiant.ActiveSymbiant(pawn.Map);
 				if (symbiant?.IsSelectionCoreCell(clickCell) != true)
 					return;
-				var interactionCell = clickCell;
+				var interactionCell = symbiant.SelectionCoreJobCellForClick(clickCell);
+				if (interactionCell.IsValid == false)
+					return;
 				// Vanilla providers evaluate ordered reachability while FloatMenuMakerMap.makingFor is set.
 				// This postfix runs after vanilla clears it, so use the same forced-order danger level explicitly.
 				if (pawn.CanReach(interactionCell, PathEndMode.OnCell, Danger.Deadly) == false || pawn.CanReserve(symbiant) == false)

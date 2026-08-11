@@ -9237,7 +9237,7 @@ namespace ZombieLand
 			};
 		}
 
-		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, unobscured-map tooltip gate, click-through logical cells, bounded core initialization and repeated movement, non-metaball fallback rendering, selector patch installation, and valid core handoff while cells disappear.")]
+		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, unobscured-map tooltip gate, click-through logical cells, bounded core initialization and repeated movement, non-metaball fallback rendering, selector patch installation, and outgoing-source hit-testing while the core hands off from a removed cell.")]
 		public static object SymbiantSelectionCoreContract(
 			[ToolParameter(Description = "Destroy the temporary contract Symbiant after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -9440,6 +9440,44 @@ namespace ZombieLand
 					&& fallbackSelector.Value.Contains(fallbackCoreCell)
 					&& fallbackLogicalTargeting.All(probe => probe.targetable == probe.isCore);
 
+				var outgoingTo = symbiant.SelectionCoreDestinationCell;
+				var outgoingFrom = IntVec3.Invalid;
+				var outgoingStarted = false;
+				foreach (var candidate in symbiant.AbsoluteCells.Where(cell => cell != symbiant.Position && cell != outgoingTo).ToArray())
+					if (symbiant.DebugRemoveSelectionCoreForHandoff(candidate, outgoingTo))
+					{
+						outgoingFrom = candidate;
+						outgoingStarted = true;
+						break;
+					}
+				var outgoingEarlyProgressApplied = outgoingStarted && symbiant.DebugSetSelectionCoreHandoffProgress(0.1f);
+				var outgoingEarlyHitCell = symbiant.SelectionCoreCell;
+				var outgoingSourceStillLogical = outgoingFrom.IsValid && symbiant.ContainsCell(outgoingFrom);
+				var outgoingEarlySelector = symbiant.CustomRectForSelector;
+				var outgoingSourceTargetable = outgoingFrom.IsValid
+					&& GenUI.ThingsUnderMouse(outgoingFrom.ToVector3Shifted(), 0f, clickParams).Contains(symbiant);
+				var outgoingDestinationTargetableEarly = outgoingTo.IsValid
+					&& GenUI.ThingsUnderMouse(outgoingTo.ToVector3Shifted(), 0f, clickParams).Contains(symbiant);
+				var outgoingFeedJobCell = symbiant.SelectionCoreJobCellForClick(outgoingFrom);
+				var outgoingLateProgressApplied = outgoingStarted && symbiant.DebugSetSelectionCoreHandoffProgress(0.9f);
+				var outgoingLateHitCell = symbiant.SelectionCoreCell;
+				var outgoingDestinationTargetableLate = outgoingTo.IsValid
+					&& GenUI.ThingsUnderMouse(outgoingTo.ToVector3Shifted(), 0f, clickParams).Contains(symbiant);
+				var outgoingHandoffAligned = outgoingStarted
+					&& outgoingEarlyProgressApplied
+					&& outgoingFrom.IsValid
+					&& outgoingSourceStillLogical == false
+					&& outgoingEarlyHitCell == outgoingFrom
+					&& outgoingEarlySelector.HasValue
+					&& outgoingEarlySelector.Value.Area == 1
+					&& outgoingEarlySelector.Value.Contains(outgoingFrom)
+					&& outgoingSourceTargetable
+					&& outgoingDestinationTargetableEarly == false
+					&& outgoingFeedJobCell == outgoingTo
+					&& outgoingLateProgressApplied
+					&& outgoingLateHitCell == outgoingTo
+					&& outgoingDestinationTargetableLate;
+
 				var shrinkSteps = new List<object>();
 				var shrinkCoresValid = true;
 				while (symbiant.Destroyed == false && symbiant.CellCount > 1)
@@ -9501,6 +9539,7 @@ namespace ZombieLand
 						&& repeatedWanderWorkBounded
 						&& handoffAligned
 						&& fallbackVerified
+						&& outgoingHandoffAligned
 						&& shrinkSteps.Count > 0
 						&& shrinkCoresValid
 						&& initializationWorkBounded,
@@ -9525,6 +9564,22 @@ namespace ZombieLand
 						started = handoffStarted,
 						aligned = handoffAligned,
 						samples = handoffSamples
+					},
+					outgoingHandoff = new
+					{
+						aligned = outgoingHandoffAligned,
+						started = outgoingStarted,
+						from = outgoingFrom.IsValid ? ZombieRuntimeActions.DescribeCell(outgoingFrom) : null,
+						to = outgoingTo.IsValid ? ZombieRuntimeActions.DescribeCell(outgoingTo) : null,
+						sourceStillLogical = outgoingSourceStillLogical,
+						earlyProgressApplied = outgoingEarlyProgressApplied,
+						earlyHitCell = ZombieRuntimeActions.DescribeCell(outgoingEarlyHitCell),
+						sourceTargetable = outgoingSourceTargetable,
+						destinationTargetableEarly = outgoingDestinationTargetableEarly,
+						feedJobCell = outgoingFeedJobCell.IsValid ? ZombieRuntimeActions.DescribeCell(outgoingFeedJobCell) : null,
+						lateProgressApplied = outgoingLateProgressApplied,
+						lateHitCell = ZombieRuntimeActions.DescribeCell(outgoingLateHitCell),
+						destinationTargetableLate = outgoingDestinationTargetableLate
 					},
 					fallbackRendering = new
 					{
