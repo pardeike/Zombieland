@@ -3846,6 +3846,7 @@ namespace ZombieLand
 					tooltip = fullCapTooltip
 				};
 				skill.Level = raw;
+				var temporarilyDisabled = VerifyTemporarilyDisabledSymbiantSkillBonus(skill, raw);
 				return new
 				{
 					success = raw == 5
@@ -3855,7 +3856,8 @@ namespace ZombieLand
 						&& bonusStacks >= 2
 						&& rows.All(row => row.success)
 						&& partialCap.success
-						&& fullCap.success,
+						&& fullCap.success
+						&& ScenarioSucceeded(temporarilyDisabled),
 					skill = skill.def.defName,
 					raw,
 					dormantLabel,
@@ -3865,7 +3867,8 @@ namespace ZombieLand
 					benefitFactor = ZombieSymbiant.SymbiantBenefitFactor(host),
 					rows,
 					partialCap,
-					fullCap
+					fullCap,
+					temporarilyDisabled
 				};
 			}
 			finally
@@ -3873,6 +3876,44 @@ namespace ZombieLand
 				ZombieSettings.Values.threatScale = previousDifficulty;
 				if (ZombieSymbiant.DebugPerfProfile != previousProfile)
 					_ = ZombieSymbiant.SetDebugPerfProfile(previousProfile);
+			}
+		}
+
+		static object VerifyTemporarilyDisabledSymbiantSkillBonus(SkillRecord skill, int raw)
+		{
+			var totallyDisabledField = AccessTools.Field(typeof(SkillRecord), "cachedTotallyDisabled");
+			var permanentlyDisabledField = AccessTools.Field(typeof(SkillRecord), "cachedPermanentlyDisabled");
+			if (skill == null || totallyDisabledField == null || permanentlyDisabledField == null)
+				return new { success = false, error = "Could not access the SkillRecord disabled-state caches." };
+
+			var previousTotallyDisabled = totallyDisabledField.GetValue(skill);
+			var previousPermanentlyDisabled = permanentlyDisabledField.GetValue(skill);
+			try
+			{
+				totallyDisabledField.SetValue(skill, BoolUnknown.True);
+				permanentlyDisabledField.SetValue(skill, BoolUnknown.False);
+				var gameplayLevel = skill.GetLevel();
+				var uiLevel = skill.GetLevelForUI();
+				var tooltip = ZombieSymbiant.SymbiantSkillBonusTooltipLine(skill);
+				return new
+				{
+					success = skill.TotallyDisabled
+						&& skill.PermanentlyDisabled == false
+						&& gameplayLevel == 0
+						&& uiLevel == raw
+						&& tooltip.NullOrEmpty(),
+					raw,
+					gameplayLevel,
+					uiLevel,
+					tooltip,
+					totallyDisabled = skill.TotallyDisabled,
+					permanentlyDisabled = skill.PermanentlyDisabled
+				};
+			}
+			finally
+			{
+				totallyDisabledField.SetValue(skill, previousTotallyDisabled);
+				permanentlyDisabledField.SetValue(skill, previousPermanentlyDisabled);
 			}
 		}
 

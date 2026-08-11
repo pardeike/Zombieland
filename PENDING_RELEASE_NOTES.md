@@ -36,3 +36,4 @@
 - Symbiant reseeding no longer briefly renders movement remnants from its old location.
 - Busy room and roof changes no longer make contained or dormant Symbiants rescan placement on every damage event.
 - Symbiant skill bonuses no longer inflate learned-skill details or interfere with raw skill-level checks.
+- Temporarily disabled skills no longer display a Symbiant bonus that gameplay does not apply.
