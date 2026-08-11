@@ -7658,13 +7658,14 @@ namespace ZombieLand
 			Scribe_Values.Look(ref relocationCellDebt, "relocationCellDebt");
 			Scribe_Values.Look(ref nextRelocationPulseTick, "nextRelocationPulseTick");
 			Scribe_Values.Look(ref uprootedSinceTick, "uprootedSinceTick", -1);
+			Scribe_Values.Look(ref legacyExteriorOverflowMigrationPending, "legacyExteriorOverflowMigrationPending");
 			if (Scribe.mode == LoadSaveMode.LoadingVars)
 			{
 				var legacyExteriorOverflowAuthorized = false;
 				var legacyExteriorOverflowScopeInitialized = false;
 				Scribe_Values.Look(ref legacyExteriorOverflowAuthorized, "exteriorOverflowAuthorized");
 				Scribe_Values.Look(ref legacyExteriorOverflowScopeInitialized, "exteriorOverflowScopeInitialized");
-				legacyExteriorOverflowMigrationPending = legacyExteriorOverflowAuthorized && legacyExteriorOverflowScopeInitialized == false;
+				legacyExteriorOverflowMigrationPending |= legacyExteriorOverflowAuthorized && legacyExteriorOverflowScopeInitialized == false;
 			}
 			Scribe_Collections.Look(ref authorizedExteriorCells, "authorizedExteriorCells", LookMode.Value);
 			Scribe_Values.Look(ref establishmentAnchorRelative, "establishmentAnchorRelative", IntVec3.Invalid);

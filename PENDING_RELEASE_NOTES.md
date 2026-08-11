@@ -26,7 +26,7 @@
 - Symbiants now preserve pending recovery growth when no indoor rooms remain instead of spending it on more outdoor cells.
 - Split outdoor Symbiant patches now keep only one authorized growth front after damage or construction interrupts the connection.
 - Symbiant relocation now skips attractive destinations that would disconnect as soon as the source cell moves, allowing a legal fallback instead.
-- Older Symbiant saves now migrate exterior-overflow permission into the same single authorized outdoor patch used by new saves.
+- Older Symbiant saves now preserve and migrate exterior-overflow permission into the same single authorized outdoor patch used by new saves.
 - Large Symbiants now avoid repeatedly rescanning their full room footprint while choosing a movement source.
 - Outdoor Symbiant movement now stays on its authorized growth front instead of leaving a frozen straggler at another doorway.
 - Symbiant room repair no longer stalls when a queued bridge cell links otherwise independent room patches.
