@@ -33,3 +33,4 @@
 - Symbiant relocation can now found a room whose only existing slime cell became invalid instead of retrying forever.
 - Only one colonist at a time now delivers a corpse to a Symbiant, preventing a second delivery from being dropped at its core.
 - Manual targeting now keeps pawns ahead of the Symbiant when they stand on slime.
+- Symbiant reseeding no longer briefly renders movement remnants from its old location.

@@ -3975,6 +3975,7 @@ namespace ZombieLand
 			selectionCoreRelative = IntVec3.Invalid;
 			selectionCoreLastMoveTick = GenTicks.TicksGame;
 			ClearSelectionCoreMotion();
+			cellMotions?.Clear();
 			recentMovementCells.Clear();
 			combatShapeVersion++;
 			hasCellBounds = false;
