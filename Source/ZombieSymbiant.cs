@@ -463,16 +463,11 @@ namespace ZombieLand
 		readonly Dictionary<IntVec3, float> cellMotionWeights = [];
 		readonly Queue<IntVec3> recentMovementCells = new();
 		readonly HashSet<IntVec3> articulationCells = [];
-		readonly HashSet<IntVec3> eligibleSourceRoomCells = [];
-		readonly HashSet<IntVec3> sourceRoomDisconnectingCells = [];
 		readonly List<MetaballRenderPatch> renderPatches = [];
 		readonly Dictionary<IntVec3, MetaballRenderPatch> renderPatchByCell = [];
 		readonly Dictionary<CellMotion, MetaballRenderPatch> renderPatchByMotion = [];
 		List<CellMotion> cellMotions = [];
 		int articulationShapeVersion = -1;
-		Map sourceRoomConnectivityMap;
-		IntVec3 sourceRoomConnectivityPosition = IntVec3.Invalid;
-		int sourceRoomConnectivityShapeVersion = -1;
 		Material metaballMaskMaterial;
 		ComputeBuffer metaballBuffer;
 		MetaballBufferData[] metaballBufferData = [];
@@ -510,8 +505,6 @@ namespace ZombieLand
 		int capacityEvaluationCount;
 		int exactCapacityAuditCount;
 		int roomCellScanCount;
-		int sourceRoomConnectivityBuildCount;
-		int sourceRoomConnectivityCellScanCount;
 		int topologyInvalidationCount;
 		int topologySettledCount;
 		int constructionRepairBatchCount;
@@ -605,9 +598,6 @@ namespace ZombieLand
 		internal int DebugCapacityEvaluationCount => capacityEvaluationCount;
 		internal int DebugExactCapacityAuditCount => exactCapacityAuditCount;
 		internal int DebugRoomCellScanCount => roomCellScanCount;
-		internal int DebugSourceRoomConnectivityBuildCount => sourceRoomConnectivityBuildCount;
-		internal int DebugSourceRoomConnectivityCellScanCount => sourceRoomConnectivityCellScanCount;
-		internal int DebugSourceRoomDisconnectingCellCount => sourceRoomDisconnectingCells.Count;
 		internal int DebugTopologyInvalidationCount => topologyInvalidationCount;
 		internal int DebugTopologySettledCount => topologySettledCount;
 		internal int DebugConstructionRepairBatchCount => constructionRepairBatchCount;
@@ -699,9 +689,6 @@ namespace ZombieLand
 					capacityEvaluationCount,
 					exactCapacityAuditCount,
 					roomCellScanCount,
-					sourceRoomConnectivityBuildCount,
-					sourceRoomConnectivityCellScanCount,
-					sourceRoomDisconnectingCells = sourceRoomDisconnectingCells.Count,
 					topologyInvalidationCount,
 					topologySettledCount,
 					constructionRepairBatchCount,
@@ -754,7 +741,6 @@ namespace ZombieLand
 				|| IsActiveSymbiantOnMap(symbiant, map) == false)
 				return;
 			symbiant.roomTopologyInvalidated = true;
-			symbiant.InvalidateSourceRoomConnectivityCache();
 			symbiant.roomCellMigrationRescanPending = true;
 			symbiant.lastSymbiosisMetricTick = int.MinValue;
 			symbiant.lastPlacementEvaluationTick = -1;
@@ -770,7 +756,6 @@ namespace ZombieLand
 				|| IsActiveSymbiantOnMap(symbiant, map) == false)
 				return;
 			symbiant.roomTopologyInvalidated = false;
-			symbiant.InvalidateSourceRoomConnectivityCache();
 			symbiant.roomCellMigrationRescanPending = true;
 			symbiant.lastSymbiosisMetricTick = int.MinValue;
 			symbiant.topologySettledCount++;
@@ -788,7 +773,6 @@ namespace ZombieLand
 				|| activeSymbiantByMap.TryGetValue(map, out var symbiant) == false
 				|| IsActiveSymbiantOnMap(symbiant, map) == false)
 				return;
-			symbiant.InvalidateSourceRoomConnectivityCache();
 			symbiant.roomCellMigrationRescanPending = true;
 			symbiant.lastSymbiosisMetricTick = int.MinValue;
 			symbiant.lastPlacementEvaluationTick = -1;
@@ -2943,16 +2927,6 @@ namespace ZombieLand
 			return articulationCells.Contains(removedRelative) == false;
 		}
 
-		bool WouldSourceRoomStayConnectedAfterRemoval(Map map, IntVec3 removedRelative)
-		{
-			if (map == null || cells?.Contains(removedRelative) != true)
-				return false;
-			EnsureSourceRoomConnectivityCache(map);
-			if (eligibleSourceRoomCells.Contains(removedRelative) == false)
-				return true;
-			return sourceRoomDisconnectingCells.Contains(removedRelative) == false;
-		}
-
 		bool WouldCellsStayConnectedAfterMove(IntVec3 removedRelative, IntVec3 addedRelative)
 		{
 			if (cells == null || cells.Count <= 1)
@@ -2971,65 +2945,6 @@ namespace ZombieLand
 				var neighbor = addedRelative + direction;
 				return neighbor != removedRelative && cells.Contains(neighbor);
 			});
-		}
-
-		void InvalidateSourceRoomConnectivityCache()
-		{
-			sourceRoomConnectivityMap = null;
-			sourceRoomConnectivityPosition = IntVec3.Invalid;
-			sourceRoomConnectivityShapeVersion = -1;
-		}
-
-		void EnsureSourceRoomConnectivityCache(Map map)
-		{
-			if (sourceRoomConnectivityMap == map
-				&& sourceRoomConnectivityPosition == Position
-				&& sourceRoomConnectivityShapeVersion == combatShapeVersion)
-				return;
-
-			eligibleSourceRoomCells.Clear();
-			sourceRoomDisconnectingCells.Clear();
-			var cellsByRoom = new Dictionary<Room, HashSet<IntVec3>>();
-			if (map != null && orderedCells != null)
-			{
-				foreach (var relative in orderedCells)
-				{
-					sourceRoomConnectivityCellScanCount++;
-					if (roomCellMigrationLookup.Contains(relative))
-						continue;
-					var absolute = Position + relative;
-					var room = absolute.InBounds(map) ? absolute.GetRoom(map) : null;
-					if (IsEligibleIndoorRoom(room) == false)
-						continue;
-					eligibleSourceRoomCells.Add(relative);
-					if (cellsByRoom.TryGetValue(room, out var roomCells) == false)
-					{
-						roomCells = [];
-						cellsByRoom.Add(room, roomCells);
-					}
-					roomCells.Add(relative);
-				}
-			}
-
-			foreach (var roomCells in cellsByRoom.Values)
-			{
-				var components = ConnectedComponents(roomCells);
-				if (components.Count <= 1)
-				{
-					AddArticulationCells(roomCells, sourceRoomDisconnectingCells);
-					continue;
-				}
-
-				sourceRoomDisconnectingCells.UnionWith(roomCells);
-				if (components.Count == 2)
-					foreach (var singleton in components.Where(component => component.Count == 1))
-						sourceRoomDisconnectingCells.Remove(singleton.First());
-			}
-
-			sourceRoomConnectivityMap = map;
-			sourceRoomConnectivityPosition = Position;
-			sourceRoomConnectivityShapeVersion = combatShapeVersion;
-			sourceRoomConnectivityBuildCount++;
 		}
 
 		void EnsureArticulationCells()
@@ -3172,7 +3087,6 @@ namespace ZombieLand
 			roomCellMigrationLookup.Clear();
 			if (roomCellMigrationCells != null)
 				roomCellMigrationLookup.UnionWith(roomCellMigrationCells);
-			InvalidateSourceRoomConnectivityCache();
 		}
 
 		void NormalizeRoomCellMigrationQueue(Map map)
@@ -3340,7 +3254,6 @@ namespace ZombieLand
 			{
 				roomCellMigrationCells.RemoveAll(connectedQueuedCells.Contains);
 				roomCellMigrationLookup.ExceptWith(connectedQueuedCells);
-				InvalidateSourceRoomConnectivityCache();
 			}
 			return connectedQueuedCells.Count;
 		}
@@ -5140,7 +5053,6 @@ namespace ZombieLand
 				|| cells?.Contains(relative) != true
 				|| roomCellMigrationLookup.Contains(relative)
 				|| targetComponents?.Contains(relative) != true
-				|| WouldSourceRoomStayConnectedAfterRemoval(map, relative) == false
 				|| WouldCellsStayConnectedAfterMove(relative, targetRelative) == false
 				|| target.classification == SymbiantCellClass.ExteriorOpen
 					&& (MoveTargetKeepsCardinalAttachment(relative, targetRelative) == false
@@ -5170,32 +5082,6 @@ namespace ZombieLand
 				ScoreMovementTargetCell(map, target),
 				IntegratedCellWeight(map, target),
 				SymbiantCellClass.ExteriorOpen
-			);
-			var movementSource = MovementSourceCandidate(map, source - Position, movementTarget);
-			return movementSource != null && TryCommitMove(map, movementSource, movementTarget);
-		}
-
-		internal bool DebugWouldCellsStayConnectedAfterMove(IntVec3 source, IntVec3 target)
-		{
-			return WouldCellsStayConnectedAfterMove(source - Position, target - Position);
-		}
-
-		internal bool DebugWouldSourceRoomStayConnectedAfterRemoval(IntVec3 source)
-		{
-			return WouldSourceRoomStayConnectedAfterRemoval(Map, source - Position);
-		}
-
-		internal bool DebugTryMove(IntVec3 source, IntVec3 target)
-		{
-			var map = Map;
-			if (map == null || source.InBounds(map) == false || target.InBounds(map) == false)
-				return false;
-			var classification = ClassifySymbiantCell(map, target);
-			var movementTarget = new MovementTarget(
-				target,
-				ScoreMovementTargetCell(map, target),
-				IntegratedCellWeight(map, target),
-				classification
 			);
 			var movementSource = MovementSourceCandidate(map, source - Position, movementTarget);
 			return movementSource != null && TryCommitMove(map, movementSource, movementTarget);
@@ -5274,7 +5160,6 @@ namespace ZombieLand
 					|| TouchesAuthorizedExteriorFootprint(target.cell, source.relative) == false);
 			if (ContainsCell(target.cell)
 				|| CanPlaceConnectedWithinRoom(map, target.cell, source.relative) == false
-				|| WouldSourceRoomStayConnectedAfterRemoval(map, source.relative) == false
 				|| WouldCellsStayConnectedAfterMove(source.relative, targetRelative) == false
 				|| exteriorTargetWouldDetach)
 				return false;
@@ -5330,7 +5215,7 @@ namespace ZombieLand
 				return false;
 
 			var sourceCandidates = roomCellMigrationCells
-				.Where(relative => relative != IntVec3.Zero && WouldSourceRoomStayConnectedAfterRemoval(map, relative))
+				.Where(relative => relative != IntVec3.Zero)
 				.ToList();
 			var targetCandidatesByRoom = new Dictionary<Room, IntVec3[]>();
 			while (sourceCandidates.Count > 0)

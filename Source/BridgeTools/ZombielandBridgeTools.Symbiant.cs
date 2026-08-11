@@ -7723,9 +7723,6 @@ namespace ZombieLand
 				var sourceRoomComponentsBefore = symbiant.DebugRoomComponentCount(sourceRoom);
 				var migrationQueueBefore = symbiant.DebugInitializeRoomCellMigration();
 				var queuedBefore = symbiant.DebugRoomCellMigrationCells.ToHashSet();
-				var targetProbe = retainedSourceRoomCell + IntVec3.West;
-				var globalRemovalWouldStayConnected = symbiant.DebugWouldCellsStayConnectedAfterMove(queuedSource, targetProbe);
-				var sourceRoomWouldStayConnected = symbiant.DebugWouldSourceRoomStayConnectedAfterRemoval(queuedSource);
 				var cellCountBefore = symbiant.CellCount;
 				var migrationMethod = AccessTools.Method(typeof(ZombieSymbiant), "TryMigrateQueuedRoomCell");
 				var migrated = false;
@@ -7749,8 +7746,6 @@ namespace ZombieLand
 						&& sourceRoomComponentsBefore == 2
 						&& migrationQueueBefore == 1
 						&& queuedBefore.SetEquals(new[] { queuedSource })
-						&& globalRemovalWouldStayConnected == false
-						&& sourceRoomWouldStayConnected
 						&& migrated
 						&& migratedSource == queuedSource
 						&& migratedDestination.IsValid
@@ -7776,8 +7771,6 @@ namespace ZombieLand
 					sourceRoomComponentsBefore,
 					migrationQueueBefore,
 					queuedBefore = queuedBefore.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
-					globalRemovalWouldStayConnected,
-					sourceRoomWouldStayConnected,
 					migrated,
 					migratedSource = migratedSource.IsValid ? ZombieRuntimeActions.DescribeCell(migratedSource) : null,
 					migratedDestination = migratedDestination.IsValid ? ZombieRuntimeActions.DescribeCell(migratedDestination) : null,
@@ -7814,129 +7807,7 @@ namespace ZombieLand
 			};
 		}
 
-		static object RunSymbiantSourceRoomConnectivityProbe(Map map)
-		{
-			SymbiantExpansionFixture fixture = null;
-			ZombieSymbiant symbiant = null;
-			object action = null;
-			object error = null;
-			object symbiantCleanup = null;
-			object fixtureCleanup = null;
-			try
-			{
-				var searchRoot = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
-				if (TrySetupSymbiantExpansionFixture(map, searchRoot, 56f, true, null, out fixture, out var fixtureError) == false)
-					return fixtureError;
-
-				var lowerDoor = fixture.roomConnectorCell;
-				var upperDoor = lowerDoor + IntVec3.North * 2;
-				var upperDoorWall = fixture.dividerWalls.FirstOrDefault(wall => wall.Position == upperDoor && wall.Destroyed == false);
-				if (upperDoorWall == null)
-					return new { success = false, error = "Could not find the second-divider wall for the source-room connectivity probe." };
-				upperDoorWall.Destroy(DestroyMode.Vanish);
-				var secondDoor = ThingMaker.MakeThing(ThingDefOf.Door, ThingDefOf.WoodLog) as Building_Door;
-				if (secondDoor == null)
-					return new { success = false, error = "Could not create the second door for the source-room connectivity probe." };
-				GenSpawn.Spawn(secondDoor, upperDoor, map, WipeMode.Vanish);
-				secondDoor.SetFaction(Faction.OfPlayer);
-				fixture.buildings.Add(secondDoor);
-				map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
-
-				var leftLower = lowerDoor + IntVec3.West;
-				var source = leftLower + IntVec3.North;
-				var leftUpper = upperDoor + IntVec3.West;
-				var rightLower = lowerDoor + IntVec3.East;
-				var rightMiddle = rightLower + IntVec3.North;
-				var rightUpper = upperDoor + IntVec3.East;
-				var target = leftLower + IntVec3.West;
-				var loop = new[]
-				{
-					leftLower,
-					source,
-					leftUpper,
-					upperDoor,
-					rightUpper,
-					rightMiddle,
-					rightLower,
-					lowerDoor
-				};
-				ZombieSymbiant.Spawn(map, leftLower);
-				symbiant = ZombieSymbiant.ActiveSymbiant(map);
-				if (symbiant == null)
-					return new { success = false, error = "Could not spawn the source-room connectivity probe Symbiant." };
-				var addedLoopCells = ZombieSymbiant.AddCells(map, loop.Where(cell => cell != leftLower));
-				var leftRoom = leftLower.GetRoom(map);
-				var rightRoom = rightLower.GetRoom(map);
-				var footprintBefore = symbiant.AbsoluteCells.ToHashSet();
-				var globalMoveWouldStayConnected = symbiant.DebugWouldCellsStayConnectedAfterMove(source, target);
-				var sourceRoomWouldStayConnected = symbiant.DebugWouldSourceRoomStayConnectedAfterRemoval(source);
-				var sourceRoomComponentsBefore = leftRoom == null ? 0 : symbiant.DebugRoomComponentCount(leftRoom);
-				var otherRoomComponentsBefore = rightRoom == null ? 0 : symbiant.DebugRoomComponentCount(rightRoom);
-				var moveCommitted = symbiant.DebugTryMove(source, target);
-				var footprintAfter = symbiant.AbsoluteCells.ToHashSet();
-
-				action = new
-				{
-					success = addedLoopCells == loop.Length - 1
-						&& leftRoom != null
-						&& rightRoom != null
-						&& leftRoom != rightRoom
-						&& source.GetRoom(map) == leftRoom
-						&& target.GetRoom(map) == leftRoom
-						&& globalMoveWouldStayConnected
-						&& sourceRoomWouldStayConnected == false
-						&& sourceRoomComponentsBefore == 1
-						&& otherRoomComponentsBefore == 1
-						&& moveCommitted == false
-						&& footprintAfter.SetEquals(footprintBefore)
-						&& symbiant.ContainsCell(source)
-						&& symbiant.ContainsCell(target) == false
-						&& symbiant.DebugRoomComponentCount(leftRoom) == 1
-						&& symbiant.DebugRoomComponentCount(rightRoom) == 1,
-					fixture = DescribeSymbiantExpansionFixture(fixture),
-					secondDoor = ZombieRuntimeActions.DescribeCell(upperDoor),
-					loop = loop.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
-					source = ZombieRuntimeActions.DescribeCell(source),
-					target = ZombieRuntimeActions.DescribeCell(target),
-					addedLoopCells,
-					globalMoveWouldStayConnected,
-					sourceRoomWouldStayConnected,
-					sourceRoomComponentsBefore,
-					otherRoomComponentsBefore,
-					moveCommitted,
-					footprintPreserved = footprintAfter.SetEquals(footprintBefore),
-					sourceRetained = symbiant.ContainsCell(source),
-					targetStayedEmpty = symbiant.ContainsCell(target) == false,
-					sourceRoomComponentsAfter = symbiant.DebugRoomComponentCount(leftRoom),
-					otherRoomComponentsAfter = symbiant.DebugRoomComponentCount(rightRoom)
-				};
-			}
-			catch (Exception ex)
-			{
-				error = ex.ToString();
-			}
-			finally
-			{
-				symbiantCleanup = CleanupTemporarySymbiant(map, symbiant, true);
-				fixtureCleanup = CleanupSymbiantExpansionFixture(map, fixture, true);
-			}
-
-			var activeAfterCleanup = ZombieSymbiant.ActiveSymbiant(map);
-			return new
-			{
-				success = error == null && ScenarioSucceeded(action) && activeAfterCleanup == null,
-				error,
-				action,
-				cleanup = new
-				{
-					symbiant = symbiantCleanup,
-					fixture = fixtureCleanup,
-					activeSymbiantAfterCleanup = ZombieRuntimeActions.StableThingId(activeAfterCleanup)
-				}
-			};
-		}
-
-		[Tool("zombieland/symbiant_multi_room_contract", Description = "Build reversible separated-room fixtures and verify the 25-percent room gate, ambient movement's empty-room exclusion, adjacent-room preference, remote patch founding, one connected patch per room, valid-component-first legacy migration, queued global-articulation repair, source-room connectivity during movement, merged-room queue retirement, interaction-core handoff, component rendering, whole-body targeting, and distributed invalid-cell relocation.")]
+		[Tool("zombieland/symbiant_multi_room_contract", Description = "Build reversible separated-room fixtures and verify the 25-percent room gate, ambient movement's empty-room exclusion, adjacent-room preference, remote patch founding, valid-component-first legacy migration, queued global-articulation repair, merged-room queue retirement, interaction-core handoff, component rendering, whole-body targeting, and distributed invalid-cell relocation.")]
 		public static object SymbiantMultiRoomContract(
 		[ToolParameter(Description = "Destroy the temporary Symbiant and room fixtures after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -8336,9 +8207,6 @@ namespace ZombieLand
 				var queuedGlobalArticulation = cleanup && ZombieSymbiant.ActiveSymbiant(map) == null
 					? RunSymbiantQueuedGlobalArticulationProbe(map)
 					: new { success = cleanup == false, skipped = true, reason = "The queued global-articulation probe requires cleanup=true and no active Symbiant." };
-				var sourceRoomConnectivity = cleanup && ZombieSymbiant.ActiveSymbiant(map) == null
-					? RunSymbiantSourceRoomConnectivityProbe(map)
-					: new { success = cleanup == false, skipped = true, reason = "The source-room connectivity probe requires cleanup=true and no active Symbiant." };
 				var activeAfterAllProbes = ZombieSymbiant.ActiveSymbiant(map);
 
 				var success = controlledRoomsSeparated
@@ -8408,7 +8276,6 @@ namespace ZombieLand
 						&& mergedRoomComponentsAfterBridge == 1
 						&& ScenarioSucceeded(validPrimaryComponent)
 						&& ScenarioSucceeded(queuedGlobalArticulation)
-						&& ScenarioSucceeded(sourceRoomConnectivity)
 						&& (cleanup == false || activeAfterAllProbes == null);
 
 				var result = new
@@ -8478,7 +8345,6 @@ namespace ZombieLand
 					roomConnectivityRepair = migrationRepair,
 					validPrimaryComponent,
 					queuedGlobalArticulation,
-					sourceRoomConnectivity,
 					mergedRoomQueueRetirement,
 					invalidCellRelocation = new
 					{
@@ -10038,130 +9904,6 @@ namespace ZombieLand
 			};
 		}
 
-		sealed class SymbiantMovementStressFixture
-		{
-			public CellRect fixtureRect;
-			public CellRect interior;
-			public readonly List<Building> buildings = new();
-			public readonly Dictionary<IntVec3, bool> originalHome = new();
-			public readonly Dictionary<IntVec3, RoofDef> originalRoof = new();
-		}
-
-		static bool TrySetupSymbiantMovementStressFixture(
-			Map map,
-			int cellCount,
-			out SymbiantMovementStressFixture fixture,
-			out object error)
-		{
-			fixture = null;
-			error = null;
-			var interiorWidth = Mathf.CeilToInt(Mathf.Sqrt(cellCount + 64));
-			var interiorHeight = Mathf.CeilToInt((cellCount + 64f) / interiorWidth);
-			var fixtureWidth = interiorWidth + 2;
-			var fixtureHeight = interiorHeight + 2;
-			var searchStep = Math.Max(4, Math.Min(fixtureWidth, fixtureHeight) / 4);
-			var candidates = new List<IntVec3>();
-			for (var z = fixtureHeight / 2 + 1; z < map.Size.z - fixtureHeight / 2 - 1; z += searchStep)
-				for (var x = fixtureWidth / 2 + 1; x < map.Size.x - fixtureWidth / 2 - 1; x += searchStep)
-					candidates.Add(new IntVec3(x, 0, z));
-			foreach (var center in candidates.OrderBy(candidate => candidate.DistanceToSquared(map.Center)))
-			{
-				var minX = center.x - fixtureWidth / 2;
-				var minZ = center.z - fixtureHeight / 2;
-				var candidateRect = CellRect.FromLimits(minX, minZ, minX + fixtureWidth - 1, minZ + fixtureHeight - 1);
-				if (candidateRect.InBounds(map) == false)
-					continue;
-				var clear = candidateRect.Cells.All(cell =>
-				{
-					var edge = cell.x == candidateRect.minX
-						|| cell.x == candidateRect.maxX
-						|| cell.z == candidateRect.minZ
-						|| cell.z == candidateRect.maxZ;
-					return cell.Fogged(map) == false
-						&& cell.Standable(map)
-						&& cell.GetEdifice(map) == null
-						&& cell.GetFirstThing<Mineable>(map) == null
-						&& cell.GetThingList(map).All(thing =>
-							thing is not Pawn
-							&& thing is not Building
-							&& thing.def.category != ThingCategory.Item
-							&& (edge == false || thing.def.category != ThingCategory.Plant));
-				});
-				if (clear == false)
-					continue;
-
-				fixture = new SymbiantMovementStressFixture
-				{
-					fixtureRect = candidateRect,
-					interior = CellRect.FromLimits(candidateRect.minX + 1, candidateRect.minZ + 1, candidateRect.maxX - 1, candidateRect.maxZ - 1)
-				};
-				break;
-			}
-			if (fixture == null)
-			{
-				error = new
-				{
-					success = false,
-					error = $"No clear {fixtureWidth}x{fixtureHeight} area was found for the Symbiant movement stress fixture."
-				};
-				return false;
-			}
-
-			foreach (var cell in fixture.fixtureRect.Cells)
-			{
-				fixture.originalHome[cell] = map.areaManager.Home[cell];
-				fixture.originalRoof[cell] = map.roofGrid.RoofAt(cell);
-				map.areaManager.Home[cell] = true;
-				map.roofGrid.SetRoof(cell, RoofDefOf.RoofConstructed);
-			}
-			foreach (var cell in fixture.fixtureRect.Cells)
-			{
-				var edge = cell.x == fixture.fixtureRect.minX
-					|| cell.x == fixture.fixtureRect.maxX
-					|| cell.z == fixture.fixtureRect.minZ
-					|| cell.z == fixture.fixtureRect.maxZ;
-				if (edge == false)
-					continue;
-				var wall = ThingMaker.MakeThing(ThingDefOf.Wall, ThingDefOf.WoodLog) as Building;
-				if (wall == null)
-					continue;
-				GenSpawn.Spawn(wall, cell, map, WipeMode.Vanish);
-				wall.SetFaction(Faction.OfPlayer);
-				fixture.buildings.Add(wall);
-			}
-			map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
-			var room = fixture.interior.CenterCell.GetRoom(map);
-			if (room == null || room.ProperRoom == false || room.IsHuge || room.UsesOutdoorTemperature)
-			{
-				error = new
-				{
-					success = false,
-					error = "The Symbiant movement stress fixture did not produce an eligible indoor room.",
-					room = DescribeRoom(room)
-				};
-				return false;
-			}
-			return true;
-		}
-
-		static object CleanupSymbiantMovementStressFixture(Map map, SymbiantMovementStressFixture fixture)
-		{
-			if (map == null || fixture == null)
-				return new { removed = 0, restoredCells = 0 };
-			var removed = 0;
-			foreach (var building in fixture.buildings.Where(building => building != null && building.Destroyed == false))
-			{
-				building.Destroy(DestroyMode.Vanish);
-				removed++;
-			}
-			foreach (var pair in fixture.originalHome)
-				map.areaManager.Home[pair.Key] = pair.Value;
-			foreach (var pair in fixture.originalRoof)
-				map.roofGrid.SetRoof(pair.Key, pair.Value);
-			map.regionAndRoomUpdater.RebuildAllRegionsAndRooms();
-			return new { removed, restoredCells = fixture.originalHome.Count };
-		}
-
 		sealed class SymbiantExpansionFixture
 		{
 			public CellRect fixtureRect;
@@ -11039,106 +10781,6 @@ namespace ZombieLand
 				_ = CleanupSymbiantExpansionFixture(map, fixture, cleanup);
 			}
 			return error == null ? result : new { success = false, error };
-		}
-
-		[Tool("zombieland/symbiant_movement_stress_contract", Description = "Build a reversible large indoor room and verify one 400- or 4000-cell Symbiant movement pulse uses one source-room connectivity scan while preserving room and footprint connectivity.")]
-		public static object SymbiantMovementStressContract(
-			[ToolParameter(Description = "Logical Symbiant cells to exercise. Intended release-gate values are 400 and 4000.", Required = false, DefaultValue = 400)] int cellCount = 400)
-		{
-			var map = CurrentMap;
-			if (map == null)
-				return new { success = false, error = "No current map is loaded." };
-			var activeBefore = ZombieSymbiant.ActiveSymbiant(map);
-			if (activeBefore != null)
-				return new { success = false, error = "An active Symbiant already exists on the current map.", activeSymbiant = ZombieRuntimeActions.StableThingId(activeBefore) };
-
-			var requestedCells = Mathf.Clamp(cellCount, 2, ZombieSymbiant.MAX_METABALLS);
-			var previousMaxCellsOverride = ZombieSymbiant.DebugMaxCellsOverride;
-			SymbiantMovementStressFixture fixture = null;
-			ZombieSymbiant symbiant = null;
-			object action = null;
-			object error = null;
-			object fixtureCleanup = null;
-			try
-			{
-				_ = ZombieSymbiant.SetDebugMaxCellsOverride(requestedCells);
-				if (TrySetupSymbiantMovementStressFixture(map, requestedCells, out fixture, out error) == false)
-					return error;
-				var footprint = fixture.interior.Cells.Take(requestedCells).ToArray();
-				var root = footprint.FirstOrDefault();
-				symbiant = ZombieSymbiant.DebugSpawnForRendering(map, root, footprint);
-				if (symbiant == null)
-					return new { success = false, error = "Could not spawn the Symbiant movement stress footprint." };
-
-				var room = root.GetRoom(map);
-				var beforeCells = symbiant.AbsoluteCells.ToHashSet();
-				var buildsBefore = symbiant.DebugSourceRoomConnectivityBuildCount;
-				var scansBefore = symbiant.DebugSourceRoomConnectivityCellScanCount;
-				var timer = System.Diagnostics.Stopwatch.StartNew();
-				var moved = symbiant.DebugMovePulse();
-				timer.Stop();
-				var afterCells = symbiant.AbsoluteCells.ToHashSet();
-				var buildDelta = symbiant.DebugSourceRoomConnectivityBuildCount - buildsBefore;
-				var scanDelta = symbiant.DebugSourceRoomConnectivityCellScanCount - scansBefore;
-				var sourceCells = beforeCells.Where(cell => afterCells.Contains(cell) == false).ToArray();
-				var targetCells = afterCells.Where(cell => beforeCells.Contains(cell) == false).ToArray();
-				var roomComponentCount = room == null ? -1 : symbiant.DebugRoomComponentCount(room);
-				action = new
-				{
-					success = symbiant.CellCount == requestedCells
-						&& moved
-						&& sourceCells.Length == 1
-						&& targetCells.Length == 1
-						&& buildDelta == 1
-						&& scanDelta == requestedCells
-						&& roomComponentCount == 1,
-					requestedCells,
-					before = beforeCells.Count,
-					after = afterCells.Count,
-					moved,
-					source = sourceCells.Length == 1 ? ZombieRuntimeActions.DescribeCell(sourceCells[0]) : null,
-					target = targetCells.Length == 1 ? ZombieRuntimeActions.DescribeCell(targetCells[0]) : null,
-					room = DescribeRoom(room),
-					roomComponentCount,
-					connectivityCache = new
-					{
-						builds = buildDelta,
-						cellScans = scanDelta,
-						expectedCellScans = requestedCells,
-						disconnectingCells = symbiant.DebugSourceRoomDisconnectingCellCount
-					},
-					elapsedMilliseconds = timer.Elapsed.TotalMilliseconds,
-					fixture = new
-					{
-						rect = ZombieRuntimeActions.DescribeCellRect(fixture.fixtureRect),
-						interior = ZombieRuntimeActions.DescribeCellRect(fixture.interior),
-						interiorCells = fixture.interior.Area
-					}
-				};
-			}
-			catch (Exception ex)
-			{
-				error = ex.ToString();
-			}
-			finally
-			{
-				symbiant?.DebugDestroyWithoutHostTrauma();
-				fixtureCleanup = CleanupSymbiantMovementStressFixture(map, fixture);
-				_ = ZombieSymbiant.SetDebugMaxCellsOverride(previousMaxCellsOverride);
-			}
-			var activeAfter = ZombieSymbiant.ActiveSymbiant(map);
-			return new
-			{
-				success = error == null && ScenarioSucceeded(action) && activeAfter == null,
-				error,
-				action,
-				cleanup = new
-				{
-					fixture = fixtureCleanup,
-					activeSymbiantAfter = ZombieRuntimeActions.StableThingId(activeAfter),
-					maxCellsOverrideRestored = ZombieSymbiant.DebugMaxCellsOverride == previousMaxCellsOverride
-				}
-			};
 		}
 
 		[Tool("zombieland/symbiant_infestation_state", Description = "Inspect or exercise the zombie symbiant state with spawn, createEvent, expand, move, shrink, feedCorpse, removeHostHediff, killHost, stageRetreatSave, contaminationStep, stress, and cleanup modes.")]
