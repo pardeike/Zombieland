@@ -34,3 +34,4 @@
 - Only one colonist at a time now delivers a corpse to a Symbiant, preventing a second delivery from being dropped at its core.
 - Manual targeting now keeps pawns ahead of the Symbiant when they stand on slime.
 - Symbiant reseeding no longer briefly renders movement remnants from its old location.
+- Busy room and roof changes no longer make contained or dormant Symbiants rescan placement on every damage event.

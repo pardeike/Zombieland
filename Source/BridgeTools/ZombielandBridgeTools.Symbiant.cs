@@ -9502,6 +9502,12 @@ namespace ZombieLand
 				var reseedAfterGrace = InvokeSymbiantTryReseedIfUprooted(symbiant);
 				var capacityEvaluationsAfterDormancy = symbiant.DebugCapacityEvaluationCount;
 				var dormantRetryDeadline = symbiant.NextRelocationPulseTick;
+				ZombieSymbiant.NotifyCellClassificationChanged(map);
+				var classificationWakeDeadline = symbiant.NextRelocationPulseTick;
+				ZombieSymbiant.NotifyCellClassificationChanged(map);
+				var repeatedClassificationWakeDeadline = symbiant.NextRelocationPulseTick;
+				ZombieSymbiant.NotifyRoomTopologySettled(map);
+				var settledWakeDeadline = symbiant.NextRelocationPulseTick;
 				var immediateDormantRetry = InvokeSymbiantTryReseedIfUprooted(symbiant);
 				var capacityEvaluationsAfterImmediateRetry = symbiant.DebugCapacityEvaluationCount;
 				var deadlineAfterImmediateRetry = symbiant.NextRelocationPulseTick;
@@ -9533,9 +9539,13 @@ namespace ZombieLand
 						&& reseedAfterGrace == false
 						&& capacityEvaluationsAfterDormancy > capacityEvaluationsBeforeDormancy
 						&& dormantRetryDeadline > GenTicks.TicksGame
+						&& classificationWakeDeadline > GenTicks.TicksGame
+						&& classificationWakeDeadline < dormantRetryDeadline
+						&& repeatedClassificationWakeDeadline == classificationWakeDeadline
+						&& settledWakeDeadline == classificationWakeDeadline
 						&& immediateDormantRetry == false
 						&& capacityEvaluationsAfterImmediateRetry == capacityEvaluationsAfterDormancy
-						&& deadlineAfterImmediateRetry == dormantRetryDeadline
+						&& deadlineAfterImmediateRetry == settledWakeDeadline
 						&& dueDormantRetry == false
 						&& capacityEvaluationsAfterDueRetry > capacityEvaluationsAfterImmediateRetry
 						&& deadlineAfterDueRetry > GenTicks.TicksGame
@@ -9580,6 +9590,9 @@ namespace ZombieLand
 						capacityEvaluationsBeforeDormancy,
 						capacityEvaluationsAfterDormancy,
 						dormantRetryDeadline,
+						classificationWakeDeadline,
+						repeatedClassificationWakeDeadline,
+						settledWakeDeadline,
 						immediateRetry = immediateDormantRetry,
 						capacityEvaluationsAfterImmediateRetry,
 						deadlineAfterImmediateRetry,

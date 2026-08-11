@@ -779,7 +779,7 @@ namespace ZombieLand
 				|| symbiant.relocationCellDebt > 0
 				|| symbiant.nextRelocationPulseTick > 0
 				|| symbiant.uprootedSinceTick >= 0)
-				symbiant.nextRelocationPulseTick = GenTicks.TicksGame;
+				symbiant.WakeRelocationAtRepairCadence();
 		}
 
 		internal static void NotifyCellClassificationChanged(Map map)
@@ -792,7 +792,7 @@ namespace ZombieLand
 			symbiant.roomCellMigrationRescanPending = true;
 			symbiant.lastSymbiosisMetricTick = int.MinValue;
 			symbiant.lastPlacementEvaluationTick = -1;
-			symbiant.nextRelocationPulseTick = GenTicks.TicksGame;
+			symbiant.WakeRelocationAtRepairCadence();
 		}
 		public int NextExpansionTick => nextExpansionTick;
 		public int CurrentExpansionIntervalTicks => AutomaticExpansionIntervalTicks();
@@ -4843,6 +4843,16 @@ namespace ZombieLand
 		int RelocationPulseIntervalTicks()
 		{
 			return Mathf.Max(GenDate.TicksPerHour / 2, MovementIntervalTicks() / 2);
+		}
+
+		void WakeRelocationAtRepairCadence()
+		{
+			var ticks = GenTicks.TicksGame;
+			var wakeTick = ticks + RelocationPulseIntervalTicks();
+			if (nextRelocationPulseTick <= 0)
+				nextRelocationPulseTick = wakeTick;
+			else if (nextRelocationPulseTick > ticks)
+				nextRelocationPulseTick = Mathf.Min(nextRelocationPulseTick, wakeTick);
 		}
 
 		public bool TryExpansionPulse()
