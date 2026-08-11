@@ -3538,27 +3538,6 @@ namespace ZombieLand
 			return SelectionCoreMotionActive;
 		}
 
-		internal bool DebugRemoveSelectionCoreForHandoff(IntVec3 fromCell, IntVec3 toCell)
-		{
-			if (Spawned == false || fromCell.IsValid == false || toCell.IsValid == false)
-				return false;
-			var from = fromCell - Position;
-			var to = toCell - Position;
-			if (from == to
-				|| cells?.Contains(from) != true
-				|| cells.Contains(to) == false
-				|| WouldCellsStayConnectedAfterRemoval(from) == false)
-				return false;
-			selectionCoreDiscoveryCue = false;
-			selectionCoreRelative = from;
-			ClearSelectionCoreMotion();
-			if (RemoveRelativeCellWithCoreDestination(from, true, to) == false)
-				return false;
-			RebuildCellBounds();
-			UpdateAll();
-			return SelectionCoreMotionActive && cells.Contains(from) == false && selectionCoreRelative == to;
-		}
-
 		internal bool DebugSetSelectionCoreHandoffProgress(float progress)
 		{
 			var ticks = GenTicks.TicksGame;
