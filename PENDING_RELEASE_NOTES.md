@@ -15,3 +15,4 @@
 - Symbiants now continue outdoor overflow from their existing outdoor patch instead of starting a second front at another doorway.
 - Symbiants restoring lost growth now move their visible core and room-establishment focus into a newly founded room.
 - Symbiants can now establish themselves in fully furnished rooms when no bare floor is available, without removing the furniture.
+- Dormant Symbiants now wait for their intended retry interval before searching the map for a new room again.

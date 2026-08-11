@@ -3661,6 +3661,9 @@ namespace ZombieLand
 				uprootedSinceTick = -1;
 				return false;
 			}
+			var ticks = GenTicks.TicksGame;
+			if (uprootedSinceTick >= 0 && nextRelocationPulseTick > ticks)
+				return false;
 			SynchronizeExteriorOverflowAuthorization(map);
 			RefreshSymbiosisMetrics(true);
 			if (cachedIntegratedVisibleCells > UprootedIntegratedCellThreshold)
@@ -3668,10 +3671,7 @@ namespace ZombieLand
 				uprootedSinceTick = -1;
 				return false;
 			}
-			var ticks = GenTicks.TicksGame;
 			var graceExpired = uprootedSinceTick >= 0 && ticks - uprootedSinceTick >= UprootedRelocationGraceTicks;
-			if (uprootedSinceTick >= 0 && graceExpired == false && nextRelocationPulseTick > ticks)
-				return false;
 
 			var capacity = EvaluateIndoorCapacity(map);
 			if (capacity.state != IndoorCapacityState.NoRelevantRooms)

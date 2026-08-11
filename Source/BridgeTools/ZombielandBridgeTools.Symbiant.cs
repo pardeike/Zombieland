@@ -7985,7 +7985,7 @@ namespace ZombieLand
 			}
 		}
 
-		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify immediate indoor return when capacity exists, founding state during relocation-debt repayment, authorized-overflow no-room grace and dormancy, movable outdoor-cell reuse, and atomic construction repair over root and non-root Symbiant cells.")]
+		[Tool("zombieland/symbiant_relocation_contract", Description = "Verify immediate indoor return when capacity exists, founding state during relocation-debt repayment, authorized-overflow no-room grace and dormant retry cadence, movable outdoor-cell reuse, and atomic construction repair over root and non-root Symbiant cells.")]
 		public static object SymbiantRelocationContract(
 			[ToolParameter(Description = "Destroy temporary symbiants, colonists, fixture buildings, and letters after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true,
 			[ToolParameter(Description = "Run only the canonical-root construction/recovery subscenario for a focused regression check.", Required = false, DefaultValue = false)] bool constructionRootOnly = false,
@@ -8338,7 +8338,18 @@ namespace ZombieLand
 				var uprootedSinceTickAfterOpen = symbiant.UprootedSinceTick;
 				var overflowAuthorizedAfterOpen = symbiant.ExteriorOverflowAuthorized;
 				ExpireSymbiantUprootedGrace(symbiant);
+				ForceSymbiantRelocationPulseReady(symbiant);
+				var capacityEvaluationsBeforeDormancy = symbiant.DebugCapacityEvaluationCount;
 				var reseedAfterGrace = InvokeSymbiantTryReseedIfUprooted(symbiant);
+				var capacityEvaluationsAfterDormancy = symbiant.DebugCapacityEvaluationCount;
+				var dormantRetryDeadline = symbiant.NextRelocationPulseTick;
+				var immediateDormantRetry = InvokeSymbiantTryReseedIfUprooted(symbiant);
+				var capacityEvaluationsAfterImmediateRetry = symbiant.DebugCapacityEvaluationCount;
+				var deadlineAfterImmediateRetry = symbiant.NextRelocationPulseTick;
+				ForceSymbiantRelocationPulseReady(symbiant);
+				var dueDormantRetry = InvokeSymbiantTryReseedIfUprooted(symbiant);
+				var capacityEvaluationsAfterDueRetry = symbiant.DebugCapacityEvaluationCount;
+				var deadlineAfterDueRetry = symbiant.NextRelocationPulseTick;
 				var expansionPulse = symbiant.TryExpansionPulse();
 				var afterPulses = DescribeSymbiantRelocationState(symbiant, host);
 				var success = addedCells > 0
@@ -8350,9 +8361,17 @@ namespace ZombieLand
 					&& removedBuildings > 0
 					&& initialReseed == false
 					&& uprootedSinceTickAfterOpen >= 0
-					&& overflowAuthorizedAfterOpen
-					&& reseedAfterGrace == false
-					&& expansionPulse == false
+						&& overflowAuthorizedAfterOpen
+						&& reseedAfterGrace == false
+						&& capacityEvaluationsAfterDormancy > capacityEvaluationsBeforeDormancy
+						&& dormantRetryDeadline > GenTicks.TicksGame
+						&& immediateDormantRetry == false
+						&& capacityEvaluationsAfterImmediateRetry == capacityEvaluationsAfterDormancy
+						&& deadlineAfterImmediateRetry == dormantRetryDeadline
+						&& dueDormantRetry == false
+						&& capacityEvaluationsAfterDueRetry > capacityEvaluationsAfterImmediateRetry
+						&& deadlineAfterDueRetry > GenTicks.TicksGame
+						&& expansionPulse == false
 					&& symbiant.CellCount == cellCountBeforeOpen
 					&& symbiant.GrowthState == "dormantNoRoom";
 				return new
@@ -8377,6 +8396,18 @@ namespace ZombieLand
 					uprootedSinceTickAfterOpen,
 					overflowAuthorizedAfterOpen,
 					reseedAfterGrace,
+					dormantRetryCadence = new
+					{
+						capacityEvaluationsBeforeDormancy,
+						capacityEvaluationsAfterDormancy,
+						dormantRetryDeadline,
+						immediateRetry = immediateDormantRetry,
+						capacityEvaluationsAfterImmediateRetry,
+						deadlineAfterImmediateRetry,
+						dueRetry = dueDormantRetry,
+						capacityEvaluationsAfterDueRetry,
+						deadlineAfterDueRetry
+					},
 					expansionPulse,
 					afterPulses
 				};
