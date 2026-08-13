@@ -1,0 +1,3 @@
+- Fixed infected colonists and Symbiant hosts staying at the wrong need percentage when a need's maximum changes.
+- Preserved capacity enhancements above 100% for final-stage infected colonists and Symbiants.
+- Kept enhanced zombie consciousness bars inside their frames.

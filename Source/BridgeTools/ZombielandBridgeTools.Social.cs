@@ -1617,6 +1617,16 @@ namespace ZombieLand
 				var infectedNeedAfterLowSet = infectedNeed.CurLevel;
 				infectedNeed.CurLevel = 0.93f;
 				var infectedNeedAfterHighSet = infectedNeed.CurLevel;
+				var infectedNeedMaxLevel = infectedNeed.MaxLevel;
+				var infectedNeedPercentage = infectedNeed.CurLevelPercentage;
+
+				const float variableMaxLevel = 5.13f;
+				var variableMaxNeed = new VariableMaxNeed(infected, variableMaxLevel);
+				variableMaxNeed.CurLevel = requestedNeedLevel;
+				var variableMaxNeedAfterLowSet = variableMaxNeed.CurLevel;
+				variableMaxNeed.CurLevel = 4.7f;
+				var variableMaxNeedAfterHighSet = variableMaxNeed.CurLevel;
+				var variableMaxNeedPercentage = variableMaxNeed.CurLevelPercentage;
 
 				if (TryApplyPainfulCut(control, out error) == false)
 					return false;
@@ -1624,6 +1634,13 @@ namespace ZombieLand
 					return false;
 				var controlPainAfterCut = control.health.hediffSet.PainTotal;
 				var infectedPainAfterCut = infected.health.hediffSet.PainTotal;
+
+				var goJuiceHighDef = DefDatabase<HediffDef>.GetNamed("GoJuiceHigh");
+				infected.health.AddHediff(HediffMaker.MakeHediff(goJuiceHighDef, infected));
+				tracked.Remove(infected);
+				var infectedMovingEnhancedVanilla = infected.health.capacities.GetLevel(PawnCapacityDefOf.Moving);
+				tracked.Add(infected);
+				var infectedMovingEnhancedTracked = infected.health.capacities.GetLevel(PawnCapacityDefOf.Moving);
 
 				ApplyAnestheticCapacitySuppressor(control);
 				ApplyAnestheticCapacitySuppressor(infected);
@@ -1643,11 +1660,18 @@ namespace ZombieLand
 				var infectedMentalStarted = infectedMental.mindState.mentalStateHandler.TryStartMentalState(MentalStateDefOf.Berserk, "Zombieland bridge infected", true, true);
 
 				var controlNeedVanilla = Approximately(controlNeedAfterSet, requestedNeedLevel);
-				var infectedNeedForcedAverage = Approximately(infectedNeedAfterLowSet, 0.5f) && Approximately(infectedNeedAfterHighSet, 0.5f);
+				var infectedNeedForcedHalf = Approximately(infectedNeedAfterLowSet, infectedNeedMaxLevel * 0.5f)
+					&& Approximately(infectedNeedAfterHighSet, infectedNeedMaxLevel * 0.5f)
+					&& Approximately(infectedNeedPercentage, 0.5f);
+				var variableMaxNeedForcedHalf = Approximately(variableMaxNeedAfterLowSet, variableMaxLevel * 0.5f)
+					&& Approximately(variableMaxNeedAfterHighSet, variableMaxLevel * 0.5f)
+					&& Approximately(variableMaxNeedPercentage, 0.5f);
 				var controlPainVanilla = controlPainAfterCut > 0.001f;
 				var infectedPainSuppressed = Approximately(infectedPainAfterCut, 0f);
+				var infectedCapacityEnhancementPreserved = infectedMovingEnhancedVanilla > 1f
+					&& Approximately(infectedMovingEnhancedTracked, infectedMovingEnhancedVanilla);
 				var controlCapacitySuppressed = controlConsciousnessAfterAnesthetic < 0.5f;
-				var infectedCapacityFull = Approximately(infectedConsciousnessAfterAnesthetic, 1f) && Approximately(infectedMovingAfterAnesthetic, 1f);
+				var infectedCapacityProtected = infectedConsciousnessAfterAnesthetic >= 1f && infectedMovingAfterAnesthetic >= 1f;
 				var deadInfectedCapacityVanilla = deadInfectedConsciousness <= 0.001f;
 				var infectedMentalSuppressed = controlMentalStarted && infectedMentalStarted == false;
 
@@ -1670,8 +1694,16 @@ namespace ZombieLand
 					controlNeedAfterSet,
 					infectedNeedAfterLowSet,
 					infectedNeedAfterHighSet,
+					infectedNeedMaxLevel,
+					infectedNeedPercentage,
+					variableMaxLevel,
+					variableMaxNeedAfterLowSet,
+					variableMaxNeedAfterHighSet,
+					variableMaxNeedPercentage,
 					controlPainAfterCut,
 					infectedPainAfterCut,
+					infectedMovingEnhancedVanilla,
+					infectedMovingEnhancedTracked,
 					controlConsciousnessAfterAnesthetic,
 					infectedConsciousnessAfterAnesthetic,
 					infectedMovingAfterAnesthetic,
@@ -1680,20 +1712,24 @@ namespace ZombieLand
 					controlMentalStarted,
 					infectedMentalStarted,
 					controlNeedVanilla,
-					infectedNeedForcedAverage,
+					infectedNeedForcedHalf,
+					variableMaxNeedForcedHalf,
 					controlPainVanilla,
 					infectedPainSuppressed,
+					infectedCapacityEnhancementPreserved,
 					controlCapacitySuppressed,
-					infectedCapacityFull,
+					infectedCapacityProtected,
 					deadInfectedCapacityVanilla,
 					infectedMentalSuppressed
 				};
 				return controlNeedVanilla
-					&& infectedNeedForcedAverage
+					&& infectedNeedForcedHalf
+					&& variableMaxNeedForcedHalf
 					&& controlPainVanilla
 					&& infectedPainSuppressed
+					&& infectedCapacityEnhancementPreserved
 					&& controlCapacitySuppressed
-					&& infectedCapacityFull
+					&& infectedCapacityProtected
 					&& deadInfectedCapacityVanilla
 					&& infectedMentalSuppressed
 					&& chainsawEquippedBeforeMental
@@ -1707,6 +1743,21 @@ namespace ZombieLand
 				RestoreTrackedPawn(tracked, controlMental, controlMentalWasTracked);
 				RestoreTrackedPawn(tracked, infectedMental, infectedMentalWasTracked);
 			}
+		}
+
+		sealed class VariableMaxNeed : Need
+		{
+			readonly float maxLevel;
+
+			public VariableMaxNeed(Pawn pawn, float maxLevel)
+				: base(pawn)
+			{
+				this.maxLevel = maxLevel;
+			}
+
+			public override float MaxLevel => maxLevel;
+
+			public override void NeedInterval() { }
 		}
 
 		static void RestoreTrackedPawn(HashSet<Pawn> tracked, Pawn pawn, bool wasTracked)

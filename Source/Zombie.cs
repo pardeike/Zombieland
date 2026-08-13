@@ -719,7 +719,7 @@ namespace ZombieLand
 			barInnerRect.width *= percentHealth;
 			Widgets.DrawBoxSolid(barInnerRect, new Color(1 - percentHealth, 0, percentHealth));
 			var barInnerLowerRect = barRect;
-			var percentConsciousness = health.capacities.GetLevel(PawnCapacityDefOf.Consciousness);
+			var percentConsciousness = Mathf.Clamp01(health.capacities.GetLevel(PawnCapacityDefOf.Consciousness));
 			barInnerLowerRect.yMin += barInnerLowerRect.height * 4 / 5;
 			barInnerLowerRect.width *= percentConsciousness;
 			Widgets.DrawBoxSolid(barInnerLowerRect, Color.white);

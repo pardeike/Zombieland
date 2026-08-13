@@ -7557,8 +7557,6 @@ namespace ZombieLand
 				mech.ClearContamination();
 				mech.jobs?.StopAll(false, true);
 				mech.pather?.StopDead();
-				if (mech.needs?.energy != null)
-					mech.needs.energy.CurLevel = Mathf.Max(mech.needs.energy.CurLevel, 0.5f);
 
 				wound = CreateMechRepairWound(mech, 1f);
 				if (wound == null)

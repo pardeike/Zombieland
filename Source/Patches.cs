@@ -3336,7 +3336,7 @@ namespace ZombieLand
 			// this is set periodically from Alerts.Alert_ZombieInfection
 			public static HashSet<Pawn> infectedColonists = new();
 
-			static bool ShouldBeAverageNeed(Need need)
+			static bool ShouldStayAtHalf(Need need)
 			{
 				var pawn = need?.pawn;
 				if (pawn == null)
@@ -3353,8 +3353,8 @@ namespace ZombieLand
 			[HarmonyPriority(Priority.Last)]
 			static void Prefix(Need __instance, ref float value)
 			{
-				if (ShouldBeAverageNeed(__instance))
-					value = 0.5f;
+				if (ShouldStayAtHalf(__instance))
+					value = __instance.MaxLevel * 0.5f;
 			}
 		}
 
@@ -3458,21 +3458,17 @@ namespace ZombieLand
 		[HarmonyPatch(nameof(PawnCapacitiesHandler.GetLevel))]
 		static class PawnCapacitiesHandler_GetLevel_Patch
 		{
-			static bool FullLevel(Pawn pawn)
+			static bool ShouldHaveFullCapacity(Pawn pawn)
 			{
 				return pawn?.health?.Dead == false
 					&& (pawn is ZombieSymbiant || Need_CurLevel_Patch.infectedColonists.Contains(pawn));
 			}
 
 			[HarmonyPriority(Priority.Last)]
-			static bool Prefix(Pawn ___pawn, ref float __result)
+			static void Postfix(Pawn ___pawn, ref float __result)
 			{
-				if (FullLevel(___pawn))
-				{
-					__result = 1f;
-					return false;
-				}
-				return true;
+				if (ShouldHaveFullCapacity(___pawn))
+					__result = Mathf.Max(1f, __result);
 			}
 		}
 
