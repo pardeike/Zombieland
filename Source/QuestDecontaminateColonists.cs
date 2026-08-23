@@ -135,8 +135,11 @@ namespace ZombieLand
 				var loadedPawns = transporter.innerContainer.OfType<Pawn>().ToList();
 				foreach (var pawn in loadedPawns)
 				{
+					var faction = pawn.Faction;
 					transporter.innerContainer.Remove(pawn);
 					Find.WorldPawns.PassToWorld(pawn, PawnDiscardDecideMode.KeepForever);
+					if (pawn.Faction != faction)
+						pawn.SetFaction(faction);
 				}
 			}
 			if (pickupTransporter != null && pickupTransporter.Spawned)

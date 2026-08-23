@@ -966,6 +966,9 @@ namespace ZombieLand
 			var pickup = pickupPart.PickupTransporterForTest;
 			var transporter = pickup?.TryGetComp<CompTransporter>();
 			Pawn loadedPawn = null;
+			Faction loadedPawnFactionBeforeSend = null;
+			Faction loadedPawnHomeFactionBeforeSend = null;
+			Faction loadedPawnFactionAfterSend = null;
 			var loadedPawnContaminationBeforeTreatment = (ContaminationSnapshot)null;
 			var loadedByContract = false;
 			var loadError = (string)null;
@@ -1016,6 +1019,8 @@ namespace ZombieLand
 					}
 					else
 					{
+						loadedPawnFactionBeforeSend = loadedPawn.Faction;
+						loadedPawnHomeFactionBeforeSend = loadedPawn.HomeFaction;
 						if (Constants.CONTAMINATION)
 						{
 							loadedPawn.SetContamination(0.35f);
@@ -1032,6 +1037,9 @@ namespace ZombieLand
 			var clampedTicksAfterLoad = Mathf.Clamp(ticksAfterLoad, 0, 2000);
 			if (loadedByContract && clampedTicksAfterLoad > 0)
 				AdvanceGameTicks(clampedTicksAfterLoad);
+			if (loadedByContract)
+				loadedPawnFactionAfterSend = loadedPawn.Faction;
+			var factionPreservedAfterSend = loadedByContract == false || loadedPawnFactionAfterSend == loadedPawnFactionBeforeSend;
 
 			var treatmentParts = quest.PartsListForReading.OfType<QuestPart_DecontaminateColonists>().ToArray();
 			var enabledTreatmentPartCount = treatmentParts.Count(part => part.State == QuestPartState.Enabled);
@@ -1066,6 +1074,10 @@ namespace ZombieLand
 					&& returnContaminationAfterProbe.stored <= 0.001f
 					&& returnContaminationAfterProbe.hasHediff == false;
 			}
+			var loadedPawnFactionAfterReturn = loadedPawn?.Faction;
+			var factionPreservedAfterReturn = shouldForceReturn == false
+				|| loadedByContract == false
+				|| loadedPawnFactionAfterReturn == loadedPawnFactionBeforeSend;
 
 			treatmentParts = quest.PartsListForReading.OfType<QuestPart_DecontaminateColonists>().ToArray();
 			enabledTreatmentPartCount = treatmentParts.Count(part => part.State == QuestPartState.Enabled);
@@ -1079,6 +1091,8 @@ namespace ZombieLand
 					&& (shouldLoadColonist == false || pickupPart.SentSatisfiedForTest)
 					&& (shouldLoadColonist == false || enabledTreatmentPartCount > 0 || quest.State == QuestState.EndedSuccess)
 					&& (shouldForceReturn == false || quest.State == QuestState.EndedSuccess)
+					&& factionPreservedAfterSend
+					&& factionPreservedAfterReturn
 					&& returnImmunitySucceeded
 			};
 			return new
@@ -1104,6 +1118,21 @@ namespace ZombieLand
 				loadedByContract,
 				loadError,
 				loadedPawn = loadedPawn == null ? null : DescribePawn(loadedPawn),
+				factionOwnership = loadedPawn == null ? null : new
+				{
+					playerFaction = Faction.OfPlayer?.Name,
+					playerFactionDef = Faction.OfPlayer?.def?.defName,
+					beforeSend = loadedPawnFactionBeforeSend?.Name,
+					beforeSendDef = loadedPawnFactionBeforeSend?.def?.defName,
+					homeBeforeSend = loadedPawnHomeFactionBeforeSend?.Name,
+					homeBeforeSendDef = loadedPawnHomeFactionBeforeSend?.def?.defName,
+					afterSend = loadedPawnFactionAfterSend?.Name,
+					afterSendDef = loadedPawnFactionAfterSend?.def?.defName,
+					afterReturn = loadedPawnFactionAfterReturn?.Name,
+					afterReturnDef = loadedPawnFactionAfterReturn?.def?.defName,
+					factionPreservedAfterSend,
+					factionPreservedAfterReturn
+				},
 				loadedPawnContaminationBeforeTreatment,
 				decontaminationReturnProbe = loadedPawn == null || shouldForceReturn == false ? null : new
 				{

@@ -1932,7 +1932,8 @@ namespace ZombieLand
 
 			for (var i = 1; i <= amount; i++)
 			{
-				var apparels = pawn.apparel.UnlockedApparel;
+				var apparels = pawn.apparel.UnlockedApparel
+					.Where(apparel => ZombieSettings.Values.blacklistedApparel?.Contains(apparel.def.defName) != true);
 				if (apparels.Any() == false)
 					break;
 				var apparel = apparels.RandomElementByWeight(apparel => apparel.MarketValue);

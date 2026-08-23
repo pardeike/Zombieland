@@ -108,7 +108,7 @@ namespace ZombieLand
 
 		[Tool("zombieland/infection_medical_state", Description = "Run compact medical/death patch contracts for zombie-bite healing, health-card UI, Pawn.Tick state sync, Pawn.Kill infection/loot behavior, ShouldRemove persistence, and remove-body-part surgery targeting.")]
 		public static object InfectionMedicalState(
-			[ToolParameter(Description = "Action mode: all, pawn-kill, health-card-living, or health-card-dead.", Required = false, DefaultValue = "all")] string actionMode = "all")
+			[ToolParameter(Description = "Action mode: all, loot, pawn-kill, health-card-living, or health-card-dead.", Required = false, DefaultValue = "all")] string actionMode = "all")
 		{
 			var map = CurrentMap;
 			if (map == null)
@@ -121,6 +121,8 @@ namespace ZombieLand
 			}
 
 			var normalizedMode = (actionMode ?? "all").Trim().ToLowerInvariant();
+			if (normalizedMode == "loot")
+				return VerifyPawnKillPatch(map, new IntVec3(map.Size.x / 2, 0, map.Size.z / 2), true);
 			if (normalizedMode == "pawn-kill")
 				return VerifyPawnKillPatch(map, new IntVec3(map.Size.x / 2, 0, map.Size.z / 2));
 			if (normalizedMode == "health-card-living" || normalizedMode == "health-card-dead")
@@ -131,7 +133,7 @@ namespace ZombieLand
 				{
 					success = false,
 					actionMode = normalizedMode,
-					error = "Unsupported infection_medical_state actionMode. Use all, pawn-kill, health-card-living, or health-card-dead."
+					error = "Unsupported infection_medical_state actionMode. Use all, loot, pawn-kill, health-card-living, or health-card-dead."
 				};
 			}
 
@@ -356,12 +358,12 @@ namespace ZombieLand
 			}
 		}
 
-		static object VerifyPawnKillPatch(Map map, IntVec3 root)
+		static object VerifyPawnKillPatch(Map map, IntVec3 root, bool lootOnly = false)
 		{
 			var patchTargets = PatchedMethodsForPatchClass("Pawn_Kill_Patch");
 			var cells = new List<IntVec3>();
 			var nextCellRoot = root;
-			for (var i = 0; i < 5; i++)
+			for (var i = 0; i < (lootOnly ? 4 : 7); i++)
 				if (TryFindClearSpawnCell(map, nextCellRoot, 16f, out var cell, out var cellError))
 				{
 					cells.Add(cell);
@@ -378,10 +380,12 @@ namespace ZombieLand
 					};
 				}
 
-			var animalKind = DefDatabase<PawnKindDef>.GetNamed("Muffalo", false)
-				?? DefDatabase<PawnKindDef>.GetNamed("WildBoar", false)
-				?? DefDatabase<PawnKindDef>.GetNamed("Hare", false);
-			if (animalKind == null)
+			PawnKindDef animalKind = null;
+			if (lootOnly == false)
+				animalKind = DefDatabase<PawnKindDef>.GetNamed("Muffalo", false)
+					?? DefDatabase<PawnKindDef>.GetNamed("WildBoar", false)
+					?? DefDatabase<PawnKindDef>.GetNamed("Hare", false);
+			if (lootOnly == false && animalKind == null)
 			{
 				return new
 				{
@@ -393,53 +397,89 @@ namespace ZombieLand
 
 			var oldLootExtractAmount = ZombieSettings.Values.lootExtractAmount;
 			var oldHoursAfterDeath = ZombieSettings.Values.hoursAfterDeathToBecomeZombie;
+			var oldBlacklistedApparel = ZombieSettings.Values.blacklistedApparel;
 			var spawnedThings = new List<Thing>();
 			var spawnedPawns = new List<Pawn>();
 			try
 			{
 				ZombieSettings.Values.lootExtractAmount = 1f;
+				ZombieSettings.Values.blacklistedApparel = new List<string>();
 				ZombieSettings.Values.hoursAfterDeathToBecomeZombie = 2;
 
 				var normalZombie = ZombieRuntimeActions.SpawnZombie(cells[0], map, ZombieType.Normal, true) as Zombie;
-				var spitter = SpawnFireFixturePawn(map, cells[1], "spitter") as ZombieSpitter;
-				var infectedPawn = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
-				var harmlessPawn = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
-				var animalPawn = PawnGenerator.GeneratePawn(animalKind, null);
-				GenSpawn.Spawn(infectedPawn, cells[2], map, WipeMode.Vanish);
-				GenSpawn.Spawn(harmlessPawn, cells[3], map, WipeMode.Vanish);
-				GenSpawn.Spawn(animalPawn, cells[4], map, WipeMode.Vanish);
-				spawnedPawns.AddRange(new[] { normalZombie, spitter, infectedPawn, harmlessPawn, animalPawn }.Where(pawn => pawn != null));
-				DisablePawnWork(infectedPawn);
-				DisablePawnWork(harmlessPawn);
+				var lootOffZombie = ZombieRuntimeActions.SpawnZombie(cells[1], map, ZombieType.Normal, true) as Zombie;
+				var blacklistedLootZombie = ZombieRuntimeActions.SpawnZombie(cells[2], map, ZombieType.Normal, true) as Zombie;
+				var spitter = SpawnFireFixturePawn(map, cells[3], "spitter") as ZombieSpitter;
+				spawnedPawns.AddRange(new Pawn[] { normalZombie, lootOffZombie, blacklistedLootZombie, spitter }.Where(pawn => pawn != null));
 
-				if (normalZombie == null || spitter == null)
+				if (normalZombie == null || lootOffZombie == null || blacklistedLootZombie == null || spitter == null)
 				{
 					return new
 					{
 						success = false,
 						patchTargets,
 						normalZombie = DescribePawn(normalZombie),
+						lootOffZombie = DescribePawn(lootOffZombie),
+						blacklistedLootZombie = DescribePawn(blacklistedLootZombie),
 						spitter = DescribePawn(spitter),
-						error = "Could not spawn both a normal zombie and spitter for Pawn.Kill verification."
+						error = "Could not spawn all normal-zombie and spitter loot fixtures for Pawn.Kill verification."
 					};
 				}
 
-				var normalKill = VerifyPawnKillZombieJobAndLoot(map, normalZombie, spawnedThings);
+				ZombieSettings.Values.lootExtractAmount = 1f;
+				ZombieSettings.Values.blacklistedApparel = new List<string>();
+				var normalKill = VerifyPawnKillZombieJobAndLoot(map, normalZombie, spawnedThings, "enabled", true);
+				ZombieSettings.Values.lootExtractAmount = 0f;
+				var lootOffKill = VerifyPawnKillZombieJobAndLoot(map, lootOffZombie, spawnedThings, "off", false);
+				ZombieSettings.Values.lootExtractAmount = 1f;
+				ZombieSettings.Values.blacklistedApparel = new List<string> { "Apparel_Pants" };
+				var blacklistedLootKill = VerifyPawnKillZombieJobAndLoot(map, blacklistedLootZombie, spawnedThings, "blacklisted", false);
+				ZombieSettings.Values.blacklistedApparel = new List<string>();
 				var spitterKill = VerifyPawnKillSpitterLoot(map, spitter);
+				var lootSucceeded = patchTargets.Length > 0
+					&& ObjectSuccess(normalKill)
+					&& ObjectSuccess(lootOffKill)
+					&& ObjectSuccess(blacklistedLootKill)
+					&& ObjectSuccess(spitterKill);
+
+				if (lootOnly)
+				{
+					return new
+					{
+						success = lootSucceeded,
+						actionMode = "loot",
+						patchTargets,
+						normalKill,
+						lootOffKill,
+						blacklistedLootKill,
+						spitterKill
+					};
+				}
+
+				var infectedPawn = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+				var harmlessPawn = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+				var animalPawn = PawnGenerator.GeneratePawn(animalKind, null);
+				GenSpawn.Spawn(infectedPawn, cells[4], map, WipeMode.Vanish);
+				GenSpawn.Spawn(harmlessPawn, cells[5], map, WipeMode.Vanish);
+				GenSpawn.Spawn(animalPawn, cells[6], map, WipeMode.Vanish);
+				spawnedPawns.AddRange(new[] { infectedPawn, harmlessPawn, animalPawn }.Where(pawn => pawn != null));
+				DisablePawnWork(infectedPawn);
+				DisablePawnWork(harmlessPawn);
+
 				var infectedKill = VerifyPawnKillHumanInfection(infectedPawn, "final");
 				var harmlessKill = VerifyPawnKillHumanInfection(harmlessPawn, "harmless");
 				var animalKill = VerifyPawnKillAnimalNegative(animalPawn);
 
 				return new
 				{
-					success = patchTargets.Length > 0
-						&& ObjectSuccess(normalKill)
-						&& ObjectSuccess(spitterKill)
+					success = lootSucceeded
 						&& ObjectSuccess(infectedKill)
 						&& ObjectSuccess(harmlessKill)
 						&& ObjectSuccess(animalKill),
 					patchTargets,
 					normalKill,
+					lootOffKill,
+					blacklistedLootKill,
 					spitterKill,
 					infectedKill,
 					harmlessKill,
@@ -455,6 +495,7 @@ namespace ZombieLand
 			{
 				ZombieSettings.Values.lootExtractAmount = oldLootExtractAmount;
 				ZombieSettings.Values.hoursAfterDeathToBecomeZombie = oldHoursAfterDeath;
+				ZombieSettings.Values.blacklistedApparel = oldBlacklistedApparel;
 				foreach (var thing in spawnedThings.Where(thing => thing != null && thing.Destroyed == false).ToArray())
 					thing.Destroy(DestroyMode.Vanish);
 				foreach (var pawn in spawnedPawns.Where(pawn => pawn != null && pawn.Destroyed == false).ToArray())
@@ -464,7 +505,7 @@ namespace ZombieLand
 			}
 		}
 
-		static object VerifyPawnKillZombieJobAndLoot(Map map, Zombie zombie, List<Thing> spawnedThings)
+		static object VerifyPawnKillZombieJobAndLoot(Map map, Zombie zombie, List<Thing> spawnedThings, string caseName, bool expectedDrop)
 		{
 			var apparelDef = DefDatabase<ThingDef>.GetNamed("Apparel_Pants", false);
 			if (apparelDef == null)
@@ -491,6 +532,7 @@ namespace ZombieLand
 				};
 			}
 
+			zombie.apparel.DestroyAll();
 			spawnedThings.Add(apparel);
 			zombie.apparel.Wear(apparel, false);
 			EndCurrentPawnJob(zombie);
@@ -513,6 +555,8 @@ namespace ZombieLand
 
 			var apparelCountAfter = map.listerThings.AllThings.Count(thing => thing.def == apparelDef);
 			var apparelDropped = apparel.Spawned && apparel.Map == map;
+			var apparelDestroyed = apparel.Destroyed;
+			var apparelRetained = zombie.apparel.WornApparel.Contains(apparel);
 			var jobCleared = zombie.CurJob == null;
 			var corpse = zombie.Corpse as ZombieCorpse
 				?? map.listerThings.AllThings.OfType<ZombieCorpse>().OrderBy(thing => thing.Position.DistanceToSquared(zombie.PositionHeld)).FirstOrDefault();
@@ -521,11 +565,16 @@ namespace ZombieLand
 			{
 				success = wornBefore
 					&& apparelSpawnedBefore == false
-					&& apparelDropped
-					&& apparelCountAfter > apparelCountBefore
+					&& (expectedDrop
+						? apparelDropped && apparelDestroyed == false && apparelCountAfter > apparelCountBefore
+						: apparelDropped == false && apparelDestroyed && apparelRetained == false && apparelCountAfter == apparelCountBefore)
 					&& jobBefore != null
 					&& jobCleared
 					&& zombie.Dead,
+				caseName,
+				expectedDrop,
+				lootExtractAmount = ZombieSettings.Values.lootExtractAmount,
+				blacklistedApparel = ZombieSettings.Values.blacklistedApparel?.ToArray() ?? Array.Empty<string>(),
 				zombie = DescribeZombie(zombie),
 				corpse = DescribeCorpse(corpse),
 				jobBefore,
@@ -536,6 +585,8 @@ namespace ZombieLand
 				apparelStuff = apparelStuff?.defName,
 				apparelSpawnedBefore,
 				apparelDropped,
+				apparelDestroyed,
+				apparelRetained,
 				apparelCountBefore,
 				apparelCountAfter,
 				jobCleared,
