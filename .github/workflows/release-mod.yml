@@ -1,18 +1,13 @@
-name: Release Mod
+name: Prepare Mod Release
 
 "on":
   workflow_dispatch:
-  push:
-    branches:
-      - "**"
-    paths:
-      - Directory.Build.props
 
 permissions:
   contents: write
 
 jobs:
-  verify-tag-package-and-release:
+  create-tag-and-draft-release:
     if: github.ref_type == 'branch' && github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
 
@@ -33,7 +28,6 @@ jobs:
       - name: Check project formatting
         run: |
           set -euo pipefail
-
           FORMAT_BASE="$(git describe --tags --abbrev=0 --match 'v[0-9]*' HEAD^)"
           echo "Checking formatting for all changes since $FORMAT_BASE."
           scripts/format-project.sh --check --base "$FORMAT_BASE"
@@ -41,130 +35,61 @@ jobs:
       - name: Check versioned XML layout
         run: scripts/check-versioned-xml.sh
 
-      - name: Determine mod metadata
+      - name: Refuse unpublished Workshop sentinel
         run: |
           set -euo pipefail
+          test "$(tr -d '[:space:]' < About/PublishedFileId.txt)" != "0" || {
+            echo "Replace PublishedFileId.txt with the real Workshop item ID before release." >&2
+            exit 1
+          }
 
+      - name: Determine release metadata
+        run: |
+          set -euo pipefail
           python3 - <<'PY' >> "$GITHUB_ENV"
-          import sys
           import xml.etree.ElementTree as ET
-          from pathlib import Path
 
-          props = ET.parse("Directory.Build.props")
-          root = props.getroot()
+          root = ET.parse("Directory.Build.props").getroot()
 
           def read_value(name: str) -> str:
-              node = root.find(f".//{name}")
-              return (node.text or "").strip() if node is not None and node.text else ""
+              value = root.findtext(f".//{name}", "").strip()
+              if not value:
+                  raise SystemExit(f"Directory.Build.props is missing {name}.")
+              return value
 
           mod_name = read_value("ModName")
-          mod_file_name = read_value("ModFileName")
-          if not mod_file_name:
-              raise SystemExit("Directory.Build.props is missing ModFileName.")
-
-          candidates = sorted(
-              path for path in Path(".").rglob(f"{mod_file_name}.csproj")
-              if "bin" not in path.parts and "obj" not in path.parts
-          )
-
-          if len(candidates) != 1:
-              names = ", ".join(str(path) for path in candidates) or "none"
-              raise SystemExit(
-                  f"Expected exactly one project named {mod_file_name}.csproj, found {len(candidates)}: {names}"
-              )
-
-          print(f"MOD_NAME={mod_name or mod_file_name}")
-          print(f"MOD_FILE_NAME={mod_file_name}")
-          print(f"MOD_PROJECT={candidates[0].as_posix()}")
+          mod_version = read_value("ModVersion")
+          print(f"MOD_NAME={mod_name}")
+          print(f"MOD_VERSION={mod_version}")
+          print(f"RELEASE_TAG=v{mod_version}")
           PY
-
-      - name: Determine release version
-        run: |
-          set -euo pipefail
-
-          MOD_VERSION="$(dotnet msbuild "$MOD_PROJECT" -nologo -getProperty:Version)"
-          RELEASE_TAG="v$MOD_VERSION"
-
-          echo "MOD_VERSION=$MOD_VERSION" >> "$GITHUB_ENV"
-          echo "RELEASE_TAG=$RELEASE_TAG" >> "$GITHUB_ENV"
-
-      - name: Build mod
-        env:
-          RIMWORLD_MOD_DIR: ""
-        run: dotnet build "$MOD_PROJECT" -c Release -p:BuildBridgeTools=false
-
-      - name: Package mod zip
-        run: |
-          set -euo pipefail
-
-          PACKAGE_ROOT="$RUNNER_TEMP/mod-package"
-          PACKAGE_DIR="$PACKAGE_ROOT/$MOD_FILE_NAME"
-          STAGE_DIR="dist/$MOD_FILE_NAME"
-          ARCHIVE_NAME="${MOD_FILE_NAME}.zip"
-
-          rm -rf "$PACKAGE_ROOT" dist
-          mkdir -p "$PACKAGE_ROOT" dist "$STAGE_DIR"
-
-          dotnet build "$MOD_PROJECT" -c Release --no-restore -p:RIMWORLD_MOD_DIR="$PACKAGE_ROOT" -p:BuildBridgeTools=false
-
-          test ! -e "$PACKAGE_DIR/BridgeTools"
-
-          cp -R "$PACKAGE_DIR"/. "$STAGE_DIR"/
-
-          (
-            cd dist
-            zip -qr "$ARCHIVE_NAME" "$(basename "$STAGE_DIR")"
-          )
 
       - name: Create or verify release tag
         run: |
           set -euo pipefail
-
           git fetch --tags --force
-
           if git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
-            TAG_COMMIT="$(git rev-list -n 1 "$RELEASE_TAG")"
-            if [ "$TAG_COMMIT" != "$GITHUB_SHA" ]; then
-              echo "Tag $RELEASE_TAG already exists at $TAG_COMMIT but current commit is $GITHUB_SHA." >&2
-              echo "Update ModVersion in Directory.Build.props before creating another release." >&2
+            test "$(git rev-list -n 1 "$RELEASE_TAG")" = "$GITHUB_SHA" || {
+              echo "$RELEASE_TAG already points at another commit." >&2
               exit 1
-            fi
-
-            echo "Tag $RELEASE_TAG already points at this commit."
-            exit 0
+            }
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$RELEASE_TAG" -m "Release $RELEASE_TAG"
+            git push origin "refs/tags/$RELEASE_TAG"
           fi
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "$RELEASE_TAG" -m "Release $RELEASE_TAG"
-          git push origin "refs/tags/$RELEASE_TAG"
-
-      - name: Create GitHub release if needed
+      - name: Create draft GitHub release if needed
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
+          gh release view "$RELEASE_TAG" >/dev/null 2>&1 ||
+            gh release create "$RELEASE_TAG" --title "$MOD_NAME $RELEASE_TAG" --generate-notes --draft
 
-          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release create \
-              "$RELEASE_TAG" \
-              --title "$MOD_NAME $RELEASE_TAG" \
-              --generate-notes
-          fi
-
-      - name: Upload mod zip to GitHub release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish latest manifest ref
         run: |
           set -euo pipefail
-
-          LEGACY_ARCHIVE_NAME="${MOD_FILE_NAME}-${RELEASE_TAG}.zip"
-
-          if gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' | grep -Fxq "$LEGACY_ARCHIVE_NAME"; then
-            gh release delete-asset "$RELEASE_TAG" "$LEGACY_ARCHIVE_NAME" --yes
-          fi
-
-          gh release upload \
-            "$RELEASE_TAG" \
-            "dist/${MOD_FILE_NAME}.zip" \
-            --clobber
+          git tag --force latest "$GITHUB_SHA"
+          git push --force origin refs/tags/latest
