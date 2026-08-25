@@ -39,9 +39,9 @@ Commit policy:
 
 - Before committing, add every player-visible or player-relevant change to `PENDING_RELEASE_NOTES.md` as a short, simple item; never add implementation, test, audit, or other internal-only work.
 - When preparing a release, use the items in `PENDING_RELEASE_NOTES.md` as the release note source.
-- Before committing a version bump, preserve the current release-note contents, then clear `PENDING_RELEASE_NOTES.md`; commit the empty file with the bumped metadata and rebuilt DLLs so released items never carry into the next release.
-- Normal development commits must not include the built mod DLLs `1.4/Assemblies/ZombieLand.dll` or `1.6/Assemblies/ZombieLand.dll`. Builds and validation may update/deploy them locally, but before a normal commit restore them with `git restore -- 1.4/Assemblies/ZombieLand.dll 1.6/Assemblies/ZombieLand.dll`.
-- Release/version-bump commits are the exception: include the rebuilt `ZombieLand.dll` files together with the version files changed by the bump, currently `Directory.Build.props`, `About/About.xml`, and `About/Manifest.xml`.
+- Before committing the release version bump, preserve the current release-note contents, then clear `PENDING_RELEASE_NOTES.md`; commit the empty file with the bumped metadata and rebuilt DLLs so released items never carry into the next release.
+- Normal development commits must not include the built mod DLLs `1.4/Assemblies/ZombieLand.dll` or `1.6/Assemblies/ZombieLand.dll` merely because validation rebuilt them. Restore them with `git restore -- 1.4/Assemblies/ZombieLand.dll 1.6/Assemblies/ZombieLand.dll` unless the same commit changes a dependency consumed by either tracked DLL.
+- The final tested release commit includes both rebuilt `ZombieLand.dll` files together with the version files changed by the bump, currently `Directory.Build.props`, `About/About.xml`, and `About/Manifest.xml`. A non-release dependency-coherence commit also includes the complete affected dependent DLL set from one validated build. A version bump or `Configuration=Release` build alone is not either boundary.
 - Do not use `.gitignore` or `git update-index --skip-worktree` as the shared policy for these DLLs. They are tracked files and release commits must remain able to update them intentionally.
 
 DLL and BridgeTools deployment invariant:
