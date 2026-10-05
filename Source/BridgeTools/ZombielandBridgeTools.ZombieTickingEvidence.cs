@@ -192,11 +192,14 @@ namespace ZombieLand
 					ApplyZombieSettingsOverride(values =>
 					{
 						values.maximumNumberOfZombies = maximumZombies;
-						// Scheduled zombie-free events intentionally change the population and
-						// would make equal-wall-time speed samples incomparable.
+						// Initial grace, scheduled events and ordinary zero-threat cleanup
+						// change the population during equal-wall-time speed samples.
+						values.daysBeforeZombiesCome = 0;
 						values.zombieFreeEvents = false;
 						values.zombiesDieOnZeroThreat = false;
 					});
+					if (ZombieFreeEventManager.IsActiveNow())
+						throw new InvalidOperationException("The fixture still has an active zombie-free grace/event window.");
 					return BuildZombieTickingFixturePlan(zombieCount, seed);
 				}, cancellationToken);
 				if (plan == null || plan.error != null)
@@ -243,6 +246,7 @@ namespace ZombieLand
 					zombieCount,
 					maximumZombies,
 					seed,
+					initialGraceEndTick = ZombieFreeEventManager.InitialGraceEndTick(),
 					mapSize = new { x = plan.map.Size.x, z = plan.map.Size.z, area = plan.map.Size.x * plan.map.Size.z },
 					plan.colonists,
 					plan.visibleTarget,

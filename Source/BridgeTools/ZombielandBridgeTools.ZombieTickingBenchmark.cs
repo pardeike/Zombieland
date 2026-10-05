@@ -242,12 +242,12 @@ namespace ZombieLand
 		static string ZombieTickingTestModeFingerprint()
 		{
 			var values = ZombieSettings.Values;
-			var current = values == null ? "null" : $"{values.zombiesDieOnZeroThreat}:{values.zombieFreeEvents}";
+			var current = values == null ? "null" : $"{values.daysBeforeZombiesCome}:{values.zombiesDieOnZeroThreat}:{values.zombieFreeEvents}";
 			var keyFrames = ZombieSettings.ValuesOverTime == null
 				? "null"
 				: string.Join(";", ZombieSettings.ValuesOverTime.Select(frame => frame?.values == null
 					? "null"
-					: $"{frame.values.zombiesDieOnZeroThreat}:{frame.values.zombieFreeEvents}"));
+					: $"{frame.values.daysBeforeZombiesCome}:{frame.values.zombiesDieOnZeroThreat}:{frame.values.zombieFreeEvents}"));
 			return $"{current}|{keyFrames}";
 		}
 

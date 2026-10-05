@@ -4,6 +4,20 @@ This file defines the test surface for the RimWorld 1.6 port from the mod code o
 
 ## Method
 
+Controlled horde fixtures: paired Total Fog diagnosis found that old tick-3
+fixtures still used three days of initial grace, which removes zombies even with
+ordinary zero-threat cleanup and scheduled zombie-free events disabled. The
+existing fixture creator and temporary benchmark scope now suppress all three
+cleanup routes, with an active-window postcondition for fixture creation. The
+failure/cancellation contract includes grace in settings-timeline fingerprints
+and restores the original three-day value in both native cases. The newly
+created original-fog-authored 1,000-zombie mixed-type fixture retains all zombies
+through 300 native warmup ticks plus eight seconds of native live playback;
+there are zero kills/despawns. Production grace/cleanup behavior is unchanged.
+Evidence is in Total Fog's ignored no-grace fixture/preflight/verification JSON
+and retained Player.log. This establishes the benchmark prerequisite; it does
+not establish paired fog speed or full feature compatibility.
+
 Total Fog Symbiant integration: the paired Steam 1.6/all-DLC fixture reproduces
 hidden slime disclosure with a visible root and missing visible slime with a
 hidden root. The optional cell-sight/draw-registration API now binds once without

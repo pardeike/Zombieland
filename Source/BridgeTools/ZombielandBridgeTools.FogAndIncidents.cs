@@ -18,7 +18,7 @@ namespace ZombieLand
 		static SettingsGroup zombieTickingTestModeOriginalValues;
 		static List<SettingsKeyFrame> zombieTickingTestModeOriginalValuesOverTime;
 
-		[Tool("zombieland/zombie_ticking_test_mode", Description = "Temporarily suppress ordinary and zombie-free-event zero-threat cleanup for a controlled scheduler benchmark, then restore the exact prior settings timeline.")]
+		[Tool("zombieland/zombie_ticking_test_mode", Description = "Temporarily suppress initial-grace, ordinary and scheduled zombie-free cleanup for a controlled scheduler benchmark, then restore the exact prior settings timeline.")]
 		public static object ZombieTickingTestMode(
 			[ToolParameter(Description = "True to begin/idempotently maintain the controlled benchmark window; false to restore the setting captured by the first begin call.")] bool enabled)
 		{
@@ -37,6 +37,7 @@ namespace ZombieLand
 				zombieTickingTestModeEnabled = true;
 				ApplyZombieSettingsOverride(values =>
 				{
+					values.daysBeforeZombiesCome = 0;
 					values.zombiesDieOnZeroThreat = false;
 					values.zombieFreeEvents = false;
 				});
@@ -52,9 +53,12 @@ namespace ZombieLand
 
 			return new
 			{
-				success = true,
+				success = !enabled || (settings.daysBeforeZombiesCome == 0
+					&& !settings.zombiesDieOnZeroThreat && !settings.zombieFreeEvents
+					&& !ZombieFreeEventManager.IsActiveNow()),
 				requestedEnabled = enabled,
 				testModeEnabled = zombieTickingTestModeEnabled,
+				initialGraceEndTick = ZombieFreeEventManager.InitialGraceEndTick(),
 				zombiesDieOnZeroThreat = settings?.zombiesDieOnZeroThreat,
 				zombieFreeEvents = settings?.zombieFreeEvents
 			};
