@@ -484,12 +484,16 @@ namespace ZombieLand
 				if (Tools.MapViewActiveFor(map) == false)
 					return;
 				var symbiant = ZombieSymbiant.ActiveSymbiant(map);
-				if (symbiant?.IsSelectionCoreCell(UI.MouseCell()) != true)
+				var mouseCell = UI.MouseCell();
+				if (CanShowSymbiantCoreTooltip(symbiant, map, mouseCell) == false)
 					return;
 				TooltipHandler.TipRegion(
 					new Rect(mouse.x - 12f, mouse.y - 12f, 24f, 24f),
 					new TipSignal("SymbiantCoreHover".Translate(), SymbiantCoreTooltipId));
 			}
+
+			internal static bool CanShowSymbiantCoreTooltip(ZombieSymbiant symbiant, Map map, IntVec3 mouseCell) =>
+				symbiant?.IsSelectionCoreCell(mouseCell) == true && TotalFogSupport.IsVisible(map, mouseCell);
 
 			internal static bool IsUnobscuredMapInput(Vector2 mouse, float screenWidth, float screenHeight, bool windowObscured, bool contextMenuOpen, float alertsHeight, float alertsBottomY)
 			{

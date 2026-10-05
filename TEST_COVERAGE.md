@@ -33,7 +33,9 @@ dense/sparse 400/4000 cost, absent-API standalone rendering and Windows remain
 separate open gates. The updated pair also passes twelve native/pixel cases with
 visible-core/hidden-root selection, hidden-core/visible-root rejection and a
 staged half-progress core handoff. All 54 manual-target checks match native
-current cell sight. An optional read-only inspection-cell registration supplies
+current cell sight. Native eligibility/anchor checks also cover direct core hover
+and core tooltips, with hidden-root labels rejected. Natural GUI tooltip
+timing/lifetime remains open. An optional read-only inspection-cell registration supplies
 the established core; ordinary rendering and simulation are unchanged. The
 canonical Total Fog verify-rendered command validates preserved screenshot
 pairs against a measured cell-sight grid rather than a fixed pawn sight radius.
