@@ -511,7 +511,7 @@ namespace ZombieLand
 			}
 		}
 
-		// patch to show zombieland version and total number of zombies
+		// patch to show zombieland version and currently disclosed zombies
 		//
 		[HarmonyPatch(typeof(GlobalControlsUtility))]
 		[HarmonyPatch(nameof(GlobalControlsUtility.DoDate))]
@@ -620,7 +620,7 @@ namespace ZombieLand
 					var tickManager = map.GetComponent<TickManager>();
 					if (tickManager == null)
 						return;
-					var count = tickManager.ZombieCount();
+					var count = TotalFogSupport.VisibleZombieCount(tickManager);
 					if (count > 0)
 					{
 						var zombieCountString = count + " Zombies";
@@ -631,7 +631,8 @@ namespace ZombieLand
 						var rect = zlRect.AtZero();
 						rect.xMax -= RightMargin;
 						var percentRect = rect;
-						percentRect.width *= ZombieTicker.PercentTicking;
+						// A map-wide ticking fraction also describes unseen populations.
+						percentRect.width *= TotalFogSupport.HasVisibilityFilter ? 1f : ZombieTicker.PercentTicking;
 						percentRect.xMin -= 2;
 						percentRect.xMax += 2;
 						percentRect.yMax -= 3;
@@ -651,8 +652,10 @@ namespace ZombieLand
 							}, 99799));
 						}
 						var cachedZombies = tickManager.allZombiesCached;
-						if (Mouse.IsOver(zlRect) && cachedZombies != null && cachedZombies.Count <= 100)
-							cachedZombies.Do(zombie => TargetHighlighter.Highlight(new GlobalTargetInfo(zombie), true, false, false));
+						if (Mouse.IsOver(zlRect) && cachedZombies != null && count <= 100)
+							foreach (var zombie in cachedZombies)
+								if (zombie.Spawned && zombie.Dead == false && TotalFogSupport.IsVisible(zombie))
+									TargetHighlighter.Highlight(new GlobalTargetInfo(zombie), true, false, false);
 
 						curBaseY -= zlRect.height;
 					}

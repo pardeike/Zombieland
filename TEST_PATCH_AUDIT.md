@@ -11,6 +11,16 @@ scripts/coverage-inventory.sh --dynamic-patches
 
 Status meanings:
 
+Total Fog readout integration, 2026-10-05: the installed public Steam 1.6
+assembly MVID `967ddb80559449f0a776dafa26a855d1` confirms
+`GlobalControlsUtility.DoDate(float, float, ref float)` at `06012859:M` still
+draws the date and decrements the base Y. `TargetHighlighter.Highlight` at
+`0601302D:M` adds the requested target position to the arrow list without a fog
+query, so the Zombieland caller must filter its targets. Native label/highlight
+observation confirms the counter fix retains visible targets, drops hidden
+targets, and does not alter population control or advance ticks. Current
+evidence belongs to the paired local build, not the published Zombieland DLL.
+
 - `resolved/source`: RimWorld 1.6 target exists and the source-level target expression is stable enough for scenario testing.
 - `fanout/source`: the base target shape exists, but runtime should record the concrete generated target list because the patch expands over subclasses or overloads.
 - `semantic/source`: the target is compiler-generated or instruction-shape based, but the current lookup is semantic and decompiler evidence shows the expected 1.6 call site.

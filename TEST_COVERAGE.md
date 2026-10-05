@@ -14,6 +14,20 @@ effect-on/off images changed 58,049 pixels before the fix and are identical
 afterward. With the simulation-clock fix, drawing preserves record identity,
 count and age, and suppresses expired records without mutating the list.
 
+The same paused fixture now observes the actual zombie counter label and native
+TargetHighlighter calls after real observer movement. Before the counter fix,
+all 13 zombies remain counted/highlighted when all are hidden. Afterward the
+two partial-sight phases each display and highlight exactly seven visible
+living spawned zombies, while the all-hidden phase has no count or highlights.
+The simulation population remains 13 and ticks remain 3 to 3. The readout alone
+excludes queued spawning; population control is unchanged. With Total Fog's
+optional query bound, its background no longer exposes the global ticking
+fraction. The paused 1,000-zombie query-only benchmark measures median 0.2101 ms
+per sight count versus 0.0143 ms per unchanged population query. Evidence is
+in TotalFog artifacts/zombie-readout-{before,after}.json, zombie-readout-pixels.json
+and zombie-readout-cost-1000.json. Whole-game performance and standalone
+acceptance are distinct gates, not proved by that query timing.
+
 `totalfog/zombieland_hidden_healing` confirms the previous frame-aged records
 could fill the eight-record limit while a healer was culled. The updated
 `Zombie.CustomTick` ages at most eight records by elapsed game ticks, including
