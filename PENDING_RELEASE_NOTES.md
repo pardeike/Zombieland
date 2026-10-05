@@ -1,0 +1,1 @@
+- Healing beams and glows no longer reveal unseen zombies when Total Fog is active.

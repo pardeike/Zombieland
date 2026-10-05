@@ -4126,19 +4126,21 @@ namespace ZombieLand
 							continue;
 						}
 
-						var beingHealedIndex = (int)GenMath.LerpDoubleClamped(0, 60, 0, 8, info.step);
-						var mat = Constants.BEING_HEALED[beingHealedIndex];
-
 						var healTarget = info.pawn;
-						float angle = healTarget.drawer.renderer.BodyAngle(PawnRenderFlags.None);
-						if (healTarget.Rotation == Rot4.West)
-							angle -= leanAngle;
-						if (healTarget.Rotation == Rot4.East)
-							angle += leanAngle;
-						var healingPos = healTarget.DrawPos + toxicAuraOffset;
-						var quat = Quaternion.AngleAxis(angle, Vector3.up);
-						GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat, healingPos, quat, 1.5f, 1.5f);
-						GenDraw.DrawLineBetween(zombie.DrawPos, healingPos, GenDraw.LineMatCyan, 0.2f);
+						if (healTarget?.Spawned == true && healTarget.Map == zombie.Map && TotalFogSupport.IsVisible(healTarget))
+						{
+							var beingHealedIndex = (int)GenMath.LerpDoubleClamped(0, 60, 0, 8, info.step);
+							var mat = Constants.BEING_HEALED[beingHealedIndex];
+							float angle = healTarget.drawer.renderer.BodyAngle(PawnRenderFlags.None);
+							if (healTarget.Rotation == Rot4.West)
+								angle -= leanAngle;
+							if (healTarget.Rotation == Rot4.East)
+								angle += leanAngle;
+							var healingPos = healTarget.DrawPos + toxicAuraOffset;
+							var quat = Quaternion.AngleAxis(angle, Vector3.up);
+							GraphicToolbox.DrawScaledMesh(MeshPool.plane20, mat, healingPos, quat, 1.5f, 1.5f);
+							GenDraw.DrawLineBetween(zombie.DrawPos, healingPos, GenDraw.LineMatCyan, 0.2f);
+						}
 
 						if (isNotPaused)
 							info.step++;

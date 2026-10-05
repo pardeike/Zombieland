@@ -4,6 +4,22 @@ This file defines the test surface for the RimWorld 1.6 port from the mod code o
 
 ## Method
 
+Total Fog integration: the local paired Steam 1.6/all-DLC fixture confirms that
+a visible healer previously drew a beam/glow at a hidden wounded zombie in
+explored fog. `totalfog/zombieland_healing_visibility` observes the native
+renderer after real colonist movement, without advancing ticks. The scoped fix
+uses an optional visibility delegate bound once at startup. Both-visible
+effects remain positive; hidden-target and both-hidden effects have zero draw
+calls; expired records are removed while the target is hidden. The hidden-target
+effect-on/off screenshots changed 58,049 pixels before the fix and are identical
+after it. Native logs are clean. Evidence lives in Total Fog's ignored
+`artifacts/zombieland-healing-before.json`, `zombieland-healing-after.json` and
+`zombieland-healing-pixels.json`. This covers that visual boundary only; it does
+not establish all fog-mod compatibility or repeated hidden-healer simulation.
+The unchanged simulation healing path and other special effects still need
+their own checks. Standalone effect rendering and the absent-delegate fallback
+also need fresh native acceptance before a Zombieland release.
+
 Use three axes for every test:
 
 1. Code surface: source files, defs, Harmony targets, components, jobs, and player UI touched by the behavior.
