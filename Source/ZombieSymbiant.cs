@@ -803,6 +803,11 @@ namespace ZombieLand
 				return SelectionCoreClickRelative.IsValid ? Position + SelectionCoreClickRelative : Position;
 			}
 		}
+
+		// Visibility queries must never initialize or advance the simulation core.
+		// Core ownership updates establish this state before it becomes inspectable.
+		internal IntVec3 FogInspectionCell => cells?.Contains(selectionCoreRelative) == true
+			? Position + SelectionCoreClickRelative : IntVec3.Invalid;
 		public bool SelectionCoreValid
 		{
 			get
@@ -3326,11 +3331,11 @@ namespace ZombieLand
 					return visualCell;
 				if (IsSelectionCoreMotionActive(GenTicks.TicksGame))
 				{
-					var occupiedEndpoint = new[] { selectionCoreMotionFrom, selectionCoreMotionTo }
-						.Where(cell => cell.IsValid && cells?.Contains(cell) == true)
-						.OrderBy(cell => (CellCenter(cell) - center).sqrMagnitude)
-						.DefaultIfEmpty(IntVec3.Invalid)
-						.First();
+					var fromValid = selectionCoreMotionFrom.IsValid && cells?.Contains(selectionCoreMotionFrom) == true;
+					var toValid = selectionCoreMotionTo.IsValid && cells?.Contains(selectionCoreMotionTo) == true;
+					var occupiedEndpoint = fromValid && (toValid == false
+						|| (CellCenter(selectionCoreMotionFrom) - center).sqrMagnitude <= (CellCenter(selectionCoreMotionTo) - center).sqrMagnitude)
+						? selectionCoreMotionFrom : toValid ? selectionCoreMotionTo : IntVec3.Invalid;
 					if (occupiedEndpoint.IsValid)
 						return occupiedEndpoint;
 				}

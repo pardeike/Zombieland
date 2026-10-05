@@ -239,7 +239,8 @@ namespace ZombieLand
 				var targetableCell = manualTargeting
 					? symbiant.ContainsCell(clickCell)
 					: symbiant.IsSelectionCoreCell(clickCell);
-				if (targetableCell == false || clickParams.CanTarget(symbiant, source) == false)
+				if (targetableCell == false || TotalFogSupport.IsVisible(symbiant.Map, clickCell) == false
+					|| clickParams.CanTarget(symbiant, source) == false)
 					return;
 				if (manualTargeting && previousIndex < 0)
 					__result.Add(symbiant);
@@ -260,7 +261,8 @@ namespace ZombieLand
 			{
 				var mouseCell = UI.MouseCell();
 				foreach (var value in values)
-					if (value is not ZombieSymbiant symbiant || symbiant.IsSelectionCoreCell(mouseCell))
+					if (value is not ZombieSymbiant symbiant || (symbiant.IsSelectionCoreCell(mouseCell)
+						&& TotalFogSupport.IsVisible(symbiant.Map, mouseCell)))
 						yield return value;
 			}
 		}

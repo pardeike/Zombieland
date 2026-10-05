@@ -25,6 +25,12 @@ namespace ZombieLand
 			}
 			var register = (Action<Type, Func<Thing, bool>>)Delegate.CreateDelegate(typeof(Action<Type, Func<Thing, bool>>), method);
 			register(typeof(ZombieSymbiant), thing => ((ZombieSymbiant)thing).HasVisibleRenderPart());
+			var inspection = AccessTools.DeclaredMethod(type, "RegisterInspectionCell", new[] { typeof(Type), typeof(Func<Thing, IntVec3>) });
+			if (inspection?.IsStatic == true && inspection.ReturnType == typeof(void))
+			{
+				var registerInspection = (Action<Type, Func<Thing, IntVec3>>)Delegate.CreateDelegate(typeof(Action<Type, Func<Thing, IntVec3>>), inspection);
+				registerInspection(typeof(ZombieSymbiant), thing => ((ZombieSymbiant)thing).FogInspectionCell);
+			}
 		}
 
 		internal static bool HasVisibilityFilter => isVisible != null;

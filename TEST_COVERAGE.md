@@ -28,8 +28,17 @@ forced GPU fallback cue, rotating-core clipping and rebuilding released resource
 with the root hidden. Registration stays one; checked hidden body/core interiors
 exactly match body-off pixels while the visible ends produce pixels. The helper
 uses native camera/gravship bounds and reused buffers/meshes. Full fallback body,
-moving core selection/targeting, host/gameplay interactions, dense/sparse 400/4000
-cost, absent-API standalone rendering and Windows remain separate open gates.
+full core travel, automatic targeting/hit behavior, host/gameplay interactions,
+dense/sparse 400/4000 cost, absent-API standalone rendering and Windows remain
+separate open gates. The updated pair also passes twelve native/pixel cases with
+visible-core/hidden-root selection, hidden-core/visible-root rejection and a
+staged half-progress core handoff. All 54 manual-target checks match native
+current cell sight. An optional read-only inspection-cell registration supplies
+the established core; ordinary rendering and simulation are unchanged. The
+canonical Total Fog verify-rendered command validates preserved screenshot
+pairs against a measured cell-sight grid rather than a fixed pawn sight radius.
+Evidence is symbiant-interaction-boundary-final.json and the preserved
+symbiant-interaction-acceptance folder in Total Fog artifacts.
 Evidence is in Total Fog's ignored artifacts/symbiant-boundary-final.json and
 symbiant-boundary-final-pixels.json; its preceding mature artifacts preserve the
 red result. This establishes those paired rendering cases, not full compatibility.
