@@ -12,7 +12,7 @@ using Verse.Sound;
 namespace ZombieLand
 {
 	[StaticConstructorOnStartup]
-	public class ZombieSymbiant : Pawn
+	public partial class ZombieSymbiant : Pawn
 	{
 		public const int MAX_METABALLS = 4000;
 		static readonly Color color = new(0, 0.8f, 0);
@@ -442,6 +442,7 @@ namespace ZombieLand
 			public float renderHeight = 1f;
 			public RenderTexture texture;
 			public Mesh mesh;
+			public SightMesh sightMesh;
 			public bool geometryDirty = true;
 			public bool textureDirty = true;
 		}
@@ -2736,6 +2737,8 @@ namespace ZombieLand
 				metaballBufferCapacity = 0;
 			}
 			metaballBufferData = [];
+			selectionCoreSightMesh?.Dispose();
+			selectionCoreSightMesh = null;
 			ReleaseMetaballPatchResources();
 			metaballPropertyBlock = null;
 			if (unregister)
@@ -2750,6 +2753,7 @@ namespace ZombieLand
 					UnityEngine.Object.Destroy(patch.texture);
 				if (patch.mesh != null)
 					UnityEngine.Object.Destroy(patch.mesh);
+				patch.sightMesh?.Dispose();
 			}
 			renderPatches.Clear();
 			renderPatchByCell.Clear();
@@ -2759,6 +2763,10 @@ namespace ZombieLand
 		public override void SpawnSetup(Map map, bool respawningAfterLoad)
 		{
 			base.SpawnSetup(map, respawningAfterLoad);
+			// The custom renderer checks vanilla fog cell by cell, including when
+			// its root is unexplored. Bind the def only after normal spawn setup.
+			if (TotalFogSupport.HasCellVisibilityFilter)
+				def.seeThroughFog = true;
 			EnsureSymbiantDefaults();
 			RegisterActiveSymbiant(this, map);
 			EnsureVisibleToPawnSystems(map);
@@ -7251,7 +7259,18 @@ namespace ZombieLand
 			selectionCoreMaterial.color = Color.Lerp(Color.white, new Color(1.18f, 1.18f, 1.05f, 1f), emphasis);
 			var rotation = Quaternion.Euler(0f, -Time.realtimeSinceStartup * SelectionCoreRotationDegreesPerSecond, 0f);
 			var matrix = Matrix4x4.TRS(position, rotation, new Vector3(pulse, 1f, pulse));
-			Graphics.DrawMesh(selectionCoreMesh, matrix, selectionCoreMaterial, 0);
+			var mesh = selectionCoreMesh;
+			if (TotalFogSupport.HasCellVisibilityFilter)
+			{
+				selectionCoreSightMesh ??= new SightMesh();
+				mesh = selectionCoreSightMesh.Prepare(MapHeld, mesh, position,
+					Vector2.one * (SelectionCoreVisualSize * pulse), rotation.eulerAngles.y, out var original);
+				if (mesh == null)
+					return false;
+				if (original == false)
+					matrix = Matrix4x4.TRS(position, Quaternion.identity, Vector3.one);
+			}
+			Graphics.DrawMesh(mesh, matrix, selectionCoreMaterial, 0);
 			return true;
 		}
 
@@ -7300,7 +7319,8 @@ namespace ZombieLand
 				{
 					if (TryPrepareSelectionCoreRendering())
 					{
-						base.DrawAt(drawLoc, flip);
+						if (TotalFogSupport.HasCellVisibilityFilter == false)
+							base.DrawAt(drawLoc, flip);
 						UpdateMetaballMaterialTime();
 						UpdateSelectionCoreInteractionState();
 						lastFallbackSelectionCoreDrawSucceeded = DrawSelectionCore(drawLoc);
@@ -7308,7 +7328,8 @@ namespace ZombieLand
 					else
 					{
 						var center = SelectionCoreVisualCenter;
-						base.DrawAt(drawLoc + new Vector3(center.x, 0f, center.y), flip);
+						if (TotalFogSupport.HasCellVisibilityFilter == false)
+							base.DrawAt(drawLoc + new Vector3(center.x, 0f, center.y), flip);
 					}
 				}
 				return;
@@ -7322,9 +7343,18 @@ namespace ZombieLand
 				var offset = new Vector3(patch.centerX, 0f, patch.centerZ);
 				var position = drawLoc + offset;
 				position.y = AltitudeLayer.MoteLow.AltitudeFor(SymbiantRenderAltitudeOffset);
+				var mesh = patch.mesh;
+				if (TotalFogSupport.HasCellVisibilityFilter)
+				{
+					patch.sightMesh ??= new SightMesh();
+					mesh = patch.sightMesh.Prepare(MapHeld, mesh, position,
+						new Vector2(patch.renderWidth, patch.renderHeight), 0f, out _);
+					if (mesh == null)
+						continue;
+				}
 				metaballPropertyBlock.Clear();
 				metaballPropertyBlock.SetTexture(MainTextureId, patch.texture);
-				Graphics.DrawMesh(patch.mesh, position, Quaternion.identity, metaballMaterial, 0, null, 0, metaballPropertyBlock);
+				Graphics.DrawMesh(mesh, position, Quaternion.identity, metaballMaterial, 0, null, 0, metaballPropertyBlock);
 			}
 			DrawSelectionCore(drawLoc);
 		}

@@ -2,3 +2,4 @@
 - Healers keep working outside camera view or fog. Healing cooldowns now follow simulation time instead of rendered frames.
 - Fixed a possible error when loading another save while Zombieland is active.
 - With Total Fog, the zombie counter and its hover highlights show only visible zombies. The counter no longer reports the map-wide ticking fraction.
+- With the updated Total Fog, Symbiant bodies and rotating cores follow the fog boundary. Visible body parts can appear while the root remains hidden.

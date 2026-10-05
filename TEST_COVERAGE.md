@@ -4,6 +4,22 @@ This file defines the test surface for the RimWorld 1.6 port from the mod code o
 
 ## Method
 
+Total Fog Symbiant integration: the paired Steam 1.6/all-DLC fixture reproduces
+hidden slime disclosure with a visible root and missing visible slime with a
+hidden root. The optional cell-sight/draw-registration API now binds once without
+a Total Fog build dependency. Native body/core quads clip to visible cell runs,
+preserving mask UVs; root/host UI and simulation retain their owners. Ten mature
+paused rendering cases pass, including vanilla-fogged root, off-camera rejection,
+forced GPU fallback cue, rotating-core clipping and rebuilding released resources
+with the root hidden. Registration stays one; checked hidden body/core interiors
+exactly match body-off pixels while the visible ends produce pixels. The helper
+uses native camera/gravship bounds and reused buffers/meshes. Full fallback body,
+moving core selection/targeting, host/gameplay interactions, dense/sparse 400/4000
+cost, absent-API standalone rendering and Windows remain separate open gates.
+Evidence is in Total Fog's ignored artifacts/symbiant-boundary-final.json and
+symbiant-boundary-final-pixels.json; its preceding mature artifacts preserve the
+red result. This establishes those paired rendering cases, not full compatibility.
+
 Total Fog integration: the local paired Steam 1.6/all-DLC fixture confirms that
 a visible healer previously drew a beam/glow at a hidden wounded zombie in
 explored fog. `totalfog/zombieland_healing_visibility` observes native drawing

@@ -10,9 +10,27 @@ namespace ZombieLand
 		// Bind once without a Total Fog dependency. Ordinary zombie rendering
 		// uses native culling; cross-pawn effects and live readouts query sight here.
 		static readonly Func<Thing, bool> isVisible = BindVisibility();
+		static readonly Func<Map, IntVec3, bool> isCellVisible = BindCellVisibility();
+
+		static TotalFogSupport()
+		{
+			if (isCellVisible == null)
+				return;
+			var type = AccessTools.TypeByName("TotalFog.Visibility");
+			var method = AccessTools.DeclaredMethod(type, "RegisterRenderer", new[] { typeof(Type), typeof(Func<Thing, bool>) });
+			if (method == null || method.IsStatic == false || method.ReturnType != typeof(void))
+			{
+				isCellVisible = null;
+				return;
+			}
+			var register = (Action<Type, Func<Thing, bool>>)Delegate.CreateDelegate(typeof(Action<Type, Func<Thing, bool>>), method);
+			register(typeof(ZombieSymbiant), thing => ((ZombieSymbiant)thing).HasVisibleRenderPart());
+		}
 
 		internal static bool HasVisibilityFilter => isVisible != null;
+		internal static bool HasCellVisibilityFilter => isCellVisible != null;
 		internal static bool IsVisible(Thing thing) => isVisible == null || isVisible(thing);
+		internal static bool IsVisible(Map map, IntVec3 cell) => isCellVisible == null || isCellVisible(map, cell);
 
 		internal static int VisibleZombieCount(TickManager tickManager)
 		{
@@ -40,6 +58,17 @@ namespace ZombieLand
 				return null;
 			}
 			return (Func<Thing, bool>)Delegate.CreateDelegate(typeof(Func<Thing, bool>), method);
+		}
+
+		static Func<Map, IntVec3, bool> BindCellVisibility()
+		{
+			var type = AccessTools.TypeByName("TotalFog.Visibility");
+			if (type == null)
+				return null;
+			var method = AccessTools.DeclaredMethod(type, "IsVisible", new[] { typeof(Map), typeof(IntVec3) });
+			return method?.IsStatic == true && method.ReturnType == typeof(bool)
+				? (Func<Map, IntVec3, bool>)Delegate.CreateDelegate(typeof(Func<Map, IntVec3, bool>), method)
+				: null;
 		}
 	}
 }
