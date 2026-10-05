@@ -6,19 +6,44 @@ This file defines the test surface for the RimWorld 1.6 port from the mod code o
 
 Total Fog integration: the local paired Steam 1.6/all-DLC fixture confirms that
 a visible healer previously drew a beam/glow at a hidden wounded zombie in
-explored fog. `totalfog/zombieland_healing_visibility` observes the native
-renderer after real colonist movement, without advancing ticks. The scoped fix
-uses an optional visibility delegate bound once at startup. Both-visible
-effects remain positive; hidden-target and both-hidden effects have zero draw
-calls; expired records are removed while the target is hidden. The hidden-target
-effect-on/off screenshots changed 58,049 pixels before the fix and are identical
-after it. Native logs are clean. Evidence lives in Total Fog's ignored
-`artifacts/zombieland-healing-before.json`, `zombieland-healing-after.json` and
-`zombieland-healing-pixels.json`. This covers that visual boundary only; it does
-not establish all fog-mod compatibility or repeated hidden-healer simulation.
-The unchanged simulation healing path and other special effects still need
-their own checks. Standalone effect rendering and the absent-delegate fallback
-also need fresh native acceptance before a Zombieland release.
+explored fog. `totalfog/zombieland_healing_visibility` observes native drawing
+after real colonist movement, without advancing ticks. The optional visibility
+delegate binds once at startup. Both-visible effects remain positive;
+hidden-target and both-hidden effects have zero draw calls. The hidden-target
+effect-on/off images changed 58,049 pixels before the fix and are identical
+afterward. With the simulation-clock fix, drawing preserves record identity,
+count and age, and suppresses expired records without mutating the list.
+
+`totalfog/zombieland_hidden_healing` confirms the previous frame-aged records
+could fill the eight-record limit while a healer was culled. The updated
+`Zombie.CustomTick` ages at most eight records by elapsed game ticks, including
+skipped ticks; rendering no longer advances the clock. All nine controlled
+injury/healing opportunities pass with both zombies outside sight and camera
+view, 615 healer simulation calls and zero healer draw calls. The fixture
+suppresses unrelated zero-threat cleanup with a scoped prefix, observes real
+production-scheduler playback at Normal speed, then removes its diagnostic
+patches, restores settings and reloads its named save. Native boundary cases
+cover no elapsed time, repeated calls, skipped ticks, exact 60-tick expiry and
+preserving a staged age. Healing effect duration now follows simulation speed
+and pause rather than FPS. Existing save keys are unchanged.
+
+A save transition exposed `Root_Play_Update_Patch` reading a cleared map's
+component list during loading. Installed Steam assembly inspection confirms
+`Root_Play.Update` returns when waiting for a load, but its Harmony postfix
+still runs, and `MemoryUtility.ClearAllMapsAndWorld` clears map class fields.
+The audio postfix now skips waiting/cleared maps. Three same-process transitions
+between the healing visual and simulation fixtures finish without warning-or-
+higher logs after the guard. This covers the observed transition; it does not
+establish all map lifecycle or audio behavior.
+
+Evidence lives in Total Fog's ignored `artifacts/zombieland-healing-final-functional.json`,
+`zombieland-healing-render-clock-pixels.json`, `zombieland-healing-final-functional.log`,
+`zombieland-healing-reload-before.log` and installed-assembly source records.
+The exact current paired gameplay/companion hashes are in
+`zombieland-healing-clock-paired-deployment.json`. These checks do not establish
+full fog compatibility, reduced-tick healer combat, invalid/removed-target
+handling or other special effects. Standalone effect rendering and the
+absent-delegate fallback still need native acceptance before a Zombieland release.
 
 Use three axes for every test:
 

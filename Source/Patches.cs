@@ -3902,7 +3902,15 @@ namespace ZombieLand
 		{
 			static void Postfix()
 			{
-				var tickManager = Find.CurrentMap?.GetComponent<TickManager>();
+				// Harmony postfixes still run when Root_Play.Update returns for
+				// a load. Map memory teardown clears components before the old
+				// current map is released.
+				if (LongEventHandler.ShouldWaitForEvent)
+					return;
+				var map = Find.CurrentMap;
+				if (map?.components == null)
+					return;
+				var tickManager = map.GetComponent<TickManager>();
 				if (tickManager == null)
 					return;
 				tickManager.UpdateElectricalHumming();
@@ -4115,21 +4123,16 @@ namespace ZombieLand
 
 				if (zombie.isHealer && zombie.state != ZombieState.Emerging && zombie.healInfo.Count > 0)
 				{
-					var i = 0;
-					var isNotPaused = Find.TickManager.Paused == false;
-					while (i < zombie.healInfo.Count)
+					for (var i = 0; i < zombie.healInfo.Count; i++)
 					{
 						var info = zombie.healInfo[i];
-						if (info.step >= 60)
-						{
-							zombie.healInfo.RemoveAt(i);
+						if (info.step >= HealerInfo.DurationTicks)
 							continue;
-						}
 
 						var healTarget = info.pawn;
 						if (healTarget?.Spawned == true && healTarget.Map == zombie.Map && TotalFogSupport.IsVisible(healTarget))
 						{
-							var beingHealedIndex = (int)GenMath.LerpDoubleClamped(0, 60, 0, 8, info.step);
+							var beingHealedIndex = (int)GenMath.LerpDoubleClamped(0, HealerInfo.DurationTicks, 0, 8, info.step);
 							var mat = Constants.BEING_HEALED[beingHealedIndex];
 							float angle = healTarget.drawer.renderer.BodyAngle(PawnRenderFlags.None);
 							if (healTarget.Rotation == Rot4.West)
@@ -4142,9 +4145,6 @@ namespace ZombieLand
 							GenDraw.DrawLineBetween(zombie.DrawPos, healingPos, GenDraw.LineMatCyan, 0.2f);
 						}
 
-						if (isNotPaused)
-							info.step++;
-						i++;
 					}
 				}
 

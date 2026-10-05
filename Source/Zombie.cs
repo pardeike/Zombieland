@@ -42,13 +42,25 @@ namespace ZombieLand
 
 	public class HealerInfo : IExposable
 	{
+		public const int DurationTicks = 60;
 		public int step;
 		public Pawn pawn;
+		int lastUpdateTick = GenTicks.TicksGame;
+
+		public void Advance(int gameTick)
+		{
+			var elapsed = gameTick - lastUpdateTick;
+			if (elapsed > 0)
+				step = Math.Min(DurationTicks, step + elapsed);
+			lastUpdateTick = gameTick;
+		}
 
 		public void ExposeData()
 		{
 			Scribe_Values.Look(ref step, "step");
 			Scribe_References.Look(ref pawn, "pawn");
+			if (Scribe.mode == LoadSaveMode.PostLoadInit)
+				lastUpdateTick = GenTicks.TicksGame;
 		}
 
 		public HealerInfo(Pawn pawn)
@@ -772,6 +784,18 @@ namespace ZombieLand
 			if (map == null)
 				return;
 			lastSimulationTick = GenTicks.TicksGame;
+			// The effect list limits simultaneous healing. Its age must follow
+			// simulation time, including reduced ticking, never camera frames.
+			if (isHealer && healInfo.Count > 0)
+			{
+				for (var i = healInfo.Count - 1; i >= 0; i--)
+				{
+					var info = healInfo[i];
+					info.Advance(lastSimulationTick);
+					if (info.step >= HealerInfo.DurationTicks || info.pawn?.Spawned != true || info.pawn.Map != map)
+						healInfo.RemoveAt(i);
+				}
+			}
 
 			if (!ThingOwnerUtility.ContentsSuspended(ParentHolder))
 			{
