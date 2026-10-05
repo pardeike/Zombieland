@@ -11,6 +11,17 @@ scripts/coverage-inventory.sh --dynamic-patches
 
 Status meanings:
 
+- `resolved/source`: RimWorld 1.6 target exists and the source-level target expression is stable enough for scenario testing.
+- `fanout/source`: the base target shape exists, but runtime should record the concrete generated target list because the patch expands over subclasses or overloads.
+- `semantic/source`: the target is compiler-generated or instruction-shape based, but the current lookup is semantic and decompiler evidence shows the expected 1.6 call site.
+- `semantic/runtime`: the target exists only through compiler-generated closure names or IL-shape searches; runtime patch-application evidence is required.
+- `obsolete/disposed`: the old target is absent in RimWorld 1.6 and needs an explicit replacement/vanilla-behavior disposition.
+- `deleted/obsolete`: the obsolete source patch class was removed after replacement evidence or negative-space disposition was recorded.
+- `dependency/unavailable`: the target belongs to an optional mod, DLC, inactive configuration surface, or content setup that is not currently exercised; keep the source audit and require content-specific runtime evidence later.
+- `pending`: not audited yet.
+
+## Total Fog readout integration
+
 Total Fog readout integration, 2026-10-05: the installed public Steam 1.6
 assembly MVID `967ddb80559449f0a776dafa26a855d1` confirms
 `GlobalControlsUtility.DoDate(float, float, ref float)` at `06012859:M` still
@@ -20,15 +31,6 @@ query, so the Zombieland caller must filter its targets. Native label/highlight
 observation confirms the counter fix retains visible targets, drops hidden
 targets, and does not alter population control or advance ticks. Current
 evidence belongs to the paired local build, not the published Zombieland DLL.
-
-- `resolved/source`: RimWorld 1.6 target exists and the source-level target expression is stable enough for scenario testing.
-- `fanout/source`: the base target shape exists, but runtime should record the concrete generated target list because the patch expands over subclasses or overloads.
-- `semantic/source`: the target is compiler-generated or instruction-shape based, but the current lookup is semantic and decompiler evidence shows the expected 1.6 call site.
-- `semantic/runtime`: the target exists only through compiler-generated closure names or IL-shape searches; runtime patch-application evidence is required.
-- `obsolete/disposed`: the old target is absent in RimWorld 1.6 and needs an explicit replacement/vanilla-behavior disposition.
-- `deleted/obsolete`: the obsolete source patch class was removed after replacement evidence or negative-space disposition was recorded.
-- `dependency/unavailable`: the target belongs to an optional mod, DLC, inactive configuration surface, or content setup that is not currently exercised; keep the source audit and require content-specific runtime evidence later.
-- `pending`: not audited yet.
 
 ## Symbiant Selection Targets
 
