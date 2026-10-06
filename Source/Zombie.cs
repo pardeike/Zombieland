@@ -574,8 +574,6 @@ namespace ZombieLand
 				{
 					var sqt = wallPushProgress * wallPushProgress;
 					var f = sqt / (2.0f * (sqt - wallPushProgress) + 1.0f);
-					if (GenTicks.TicksGame % 10 == 0 && Find.TickManager.CurTimeSpeed != TimeSpeed.Paused)
-						Rotation = new Rot4() { rotInt = (byte)((Rotation.AsInt + 1) % 4) };
 					var vec = wallPushStart + (wallPushDestination - wallPushStart) * f;
 					vec.y = Altitudes.AltitudeFor(AltitudeLayer.MoteOverhead);
 					return vec;

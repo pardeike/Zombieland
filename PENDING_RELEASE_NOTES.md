@@ -8,3 +8,4 @@
 - Electric and tank ambient loops follow Total Fog's hidden-sound and hearing settings without muting nearby visible zombies.
 - Spitter and rising-wave sirens follow Total Fog's hidden-sound and hearing settings without changing zombie spawning.
 - Electric absorption and discharge sounds play at the actual event, including hearing outside sight. Hidden or rapid hits no longer build a backlog of flashes and repeated sounds.
+- Climbing zombies turn by game ticks, independently of fog, camera visibility or frame rate.

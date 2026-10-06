@@ -109,6 +109,9 @@ namespace ZombieLand
 				return false;
 			}
 
+			// Facing advances with the climb, never with drawing queries.
+			if (GenTicks.TicksGame % 10 == 0)
+				zombie.Rotation = new Rot4() { rotInt = (byte)((zombie.Rotation.AsInt + 1) % 4) };
 			zombie.wallPushProgress += progressDelta;
 			return true;
 		}
