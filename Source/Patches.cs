@@ -7931,7 +7931,7 @@ namespace ZombieLand
 				if (map == null)
 					return;
 				var clickCell = IntVec3.FromVector3(clickPos);
-				if (clickCell.InBounds(map) == false)
+				if (clickCell.InBounds(map) == false || TotalFogSupport.IsVisible(map, clickCell) == false)
 					return;
 
 				var opts = __result;
@@ -8005,6 +8005,7 @@ namespace ZombieLand
 						&& thing.Spawned
 						&& thing.IsForbidden(Faction.OfPlayer) == false
 						&& thing.PositionHeld.InAllowedArea(pawn)
+						&& TotalFogSupport.IsVisible(thing)
 						&& symbiant.CanAcceptFeed(thing)
 						&& pawn.CanReserve(thing)
 						&& pawn.CanReach(thing, PathEndMode.Touch, Danger.Deadly);

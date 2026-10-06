@@ -9,3 +9,4 @@
 - Spitter and rising-wave sirens follow Total Fog's hidden-sound and hearing settings without changing zombie spawning.
 - Electric absorption and discharge sounds play at the actual event, including hearing outside sight. Hidden or rapid hits no longer build a backlog of flashes and repeated sounds.
 - Climbing zombies turn by game ticks, independently of fog, camera visibility or frame rate.
+- With Total Fog, custom right-click options require a visible cell, and Symbiant feeding choices no longer expose unseen corpses.

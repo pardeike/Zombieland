@@ -812,6 +812,21 @@ assertions before ending that job; the repeated native contract and cleanup
 pass. This corrects a test lifetime assumption without changing gameplay.
 Exact records and companion hashes remain in Total Fog's validation owner.
 
+Paired feed-menu privacy, 2026-10-06: native observer movement reproduces three
+feed choices at a hidden core beside a visible root, and hidden rat choices at
+a visible core. The custom-menu postfix now requires current sight of the
+clicked cell, and feeding candidates require current sight of the corpse. Both
+use the existing optional Total Fog queries, leaving the standalone fallback
+unchanged. On gameplay pair Total Fog 9a76ddd3... / Zombieland 2357a5ec..., four
+native hidden/mixed/visible rows pass and a valid menu action completes a human
+feed across 212 Normal playback ticks, with six-cell growth and empty hands.
+The diagnostic base sight range is three, actual two; visibility comes from
+real observer updates. The full initial feeding contract and five global
+creepy-ambience controls also pass. The base is restored and native logs pass.
+This does not establish every sight range, other custom-menu actions, Windows
+or the changed pair's package rendering/performance gates. Exact red/green,
+hash and audio records remain in Total Fog's validation owner.
+
 Paired combat follow-up, 2026-10-06: the combat fixture now searches beyond its
 preferred central radius when needed, preserving all clear-cell/corridor checks.
 The full logical-cell contract passes at (153,185), including non-root ranged
