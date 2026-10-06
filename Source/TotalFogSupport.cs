@@ -38,7 +38,8 @@ namespace ZombieLand
 		internal static bool HasCellVisibilityFilter => isCellVisible != null;
 		internal static bool IsVisible(Thing thing) => isVisible == null || isVisible(thing);
 		internal static bool IsVisible(Map map, IntVec3 cell) => isCellVisible == null || isCellVisible(map, cell);
-		internal static float Audibility(Thing thing) => audibility == null ? 1f : audibility(new TargetInfo(thing));
+		internal static float Audibility(Thing thing) => Audibility(new TargetInfo(thing));
+		internal static float Audibility(TargetInfo source) => audibility == null ? 1f : audibility(source);
 
 		internal static int VisibleZombieCount(TickManager tickManager)
 		{

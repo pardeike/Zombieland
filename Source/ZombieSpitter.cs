@@ -134,8 +134,7 @@ namespace ZombieLand
 				Find.LetterStack.ReceiveLetter(headline, text, LetterDefOf.ThreatSmall, new GlobalTargetInfo(cell, map));
 			}
 
-			if (ZombieAwarenessCues.ShouldPlayZombieEventSiren())
-				CustomDefs.ZombiesRising.PlayOneShotOnCamera(null);
+			ZombieAwarenessCues.PlayZombieEventSiren(new TargetInfo(cell, map));
 		}
 
 		public bool StartLeavingMap()

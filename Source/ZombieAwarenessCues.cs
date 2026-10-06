@@ -1,4 +1,5 @@
 ﻿using Verse;
+using Verse.Sound;
 
 namespace ZombieLand
 {
@@ -14,6 +15,18 @@ namespace ZombieLand
 		public static bool ShouldPlayZombieEventSiren()
 		{
 			return Constants.USE_SOUND && Prefs.VolumeAmbient > 0f && (Settings?.playZombieEventSiren ?? true);
+		}
+
+		public static void PlayZombieEventSiren(TargetInfo source)
+		{
+			if (ShouldPlayZombieEventSiren() == false)
+				return;
+			var factor = TotalFogSupport.Audibility(source);
+			if (factor <= 0f)
+				return;
+			var info = SoundInfo.OnCamera();
+			info.volumeFactor = factor;
+			CustomDefs.ZombiesRising.PlayOneShot(info);
 		}
 
 		public static bool ShouldPlaySpecialZombieAmbientSound()

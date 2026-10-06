@@ -6,3 +6,4 @@
 - With the updated Total Fog, visible Symbiant cores can be selected independently of the root, and hidden core/body cells no longer appear as click targets or core hover tips.
 - Large Symbiant bodies avoid repeated hidden-cell scans with Total Fog. Rendering no longer repeatedly normalizes their logical cell lists.
 - Electric and tank ambient loops follow Total Fog's hidden-sound and hearing settings without muting nearby visible zombies.
+- Spitter and rising-wave sirens follow Total Fog's hidden-sound and hearing settings without changing zombie spawning.

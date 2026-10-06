@@ -4,6 +4,21 @@ This file defines the test surface for the RimWorld 1.6 port from the mod code o
 
 ## Method
 
+Total Fog spawn-siren integration: real spitter and substantial rising-wave
+spawn paths previously created playing camera samples at Unity volume 0.5 even
+with hidden-source mute enabled. Both now query the known event cell through
+the optional audibility delegate before camera playback. Twelve native controls
+pass for hidden mute, disabled filtering, hearing, visible mute, hidden again
+and the existing disabled-siren option. Hidden/disabled states create no sample;
+visible/unfiltered playback retains 0.5, and hearing playback measures 0.413023.
+Each row preserves its expected one-spitter/four-zombie spawn count and paused
+tick 18. Sixteen ambient-loop regressions also pass on this exact pair.
+Evidence is in Total Fog's event-audio red/green and ambient-siren-regression
+JSON, retained native logs and build-pair hashes. The canonical paired build and
+242 independent tests pass; the native log has no recognized errors. This covers
+real spawn entry points/audio settings, not natural scheduling, letters,
+projectile flight/impact, absent-API runtime or Windows.
+
 Total Fog ambient audio integration: native electric/tank camera sustainers
 previously ignored positional fog filtering and played hidden sources at Unity
 volumes 0.1/0.4 with mute enabled. The optional audibility delegate now applies

@@ -256,8 +256,8 @@ namespace ZombieLand
 
 				var (capable, incapable) = Tools.ColonistsInfo(map);
 				var isSubstantialZombieCount = zombiesSpawning > capable * 4;
-				if (isSubstantialZombieCount && ZombieAwarenessCues.ShouldPlayZombieEventSiren())
-					CustomDefs.ZombiesRising.PlayOneShotOnCamera(null);
+				if (isSubstantialZombieCount)
+					ZombieAwarenessCues.PlayZombieEventSiren(new TargetInfo(spot, map));
 			}
 		}
 
