@@ -967,5 +967,21 @@ The base save is unchanged and recognized native logs are clean. Broad drawing
 uses native map sections and the existing fog/data dirtiness without a new
 visibility API. Exact reports and limits are owned by Total Fog's
 `docs/VALIDATION.md` and ignored `artifacts/contamination-overlay` evidence.
-Enabled-overlay performance, hidden mutation/reopen/map switching, standalone
-fallback and actual stat/icon/inspection callers remain open.
+The subsequently delivered pair TF e24d50df... / ZL 56daa1f2... passes fourteen
+native contamination transitions with 28 paired crops, including paused sight
+loss/reveal, hidden mutation, reopening and off-camera return. The six-process
+enabled-overlay 1,000-zombie comparison meets the upstream TPS floor, 226.801
+versus 212.672 TPS. Frame p95 is 5.935% higher; this is not an unconditional FPS
+improvement. Exact current evidence remains in Total Fog's validation owner.
+
+Standalone fallback, 2026-10-06: a fresh Steam/all-DLC profile without Total Fog
+loads this unchanged Zombieland gameplay DLL. The startup diagnostic verifies
+all four optional fog delegates are null. Native contamination UI and close/distant
+drawing smoke pass; 179 Normal-speed ticks and an in-process save/reload retain
+the selected steel's 0.65 contamination. Recognized Player.log errors are absent.
+The companion helper lookup now correctly uses the gameplay assembly after the
+SDK split; this repairs the diagnostic, not gameplay. Evidence is retained under
+Total Fog's `artifacts/native-session-total-fog-zombieland-fallback-16`.
+These are bounded smoke checks with the beauty overlay also enabled, not isolated
+contamination pixel comparisons or standalone performance acceptance. Map
+switching, larger maps and actual stat/icon/inspection callers remain open.

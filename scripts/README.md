@@ -4,6 +4,9 @@
 
 Use `./scripts/build-quiet.sh` for the normal compile cycle. Before it builds the main project, it runs `./scripts/format-project.sh`, which applies the repository `.editorconfig` to all C# in both `Source/ZombieLand.csproj` and `Source/BridgeTools/Zombieland.BridgeTools.csproj`. It also formats only changed active XML-like files: runtime XML under `1.6/`, metadata under `About/`, `LoadFolders.xml`, `Directory.Build.props`, and hand-maintained `.csproj` files under `Source/`. The preserved `1.4/` payload and Unity sources under `Originals/` are intentionally excluded.
 
+The build command prefers the pinned .NET 10.0.301 install under `~/Library/Application Support/dotnet/sdk-10.0.301` when available. This keeps formatting and compilation on the repository's SDK even when Homebrew provides a newer default.
+It saves full output to `artifacts/logs/build-quiet.log` and prints only `ok` after success. Failure names the step and log, returns nonzero, and stops dependent steps. Cancellation terminates the active formatting/build child. Deploy builds also compare the installed gameplay and companion DLLs with their built files.
+
 The XML formatter requires `python3` and `xmllint`. It uses tab indentation, preserves each file's UTF-8 BOM and LF/CRLF style, adds a final newline, and compares canonical XML before replacing a file. Changed runtime XML also goes through `./scripts/check-versioned-xml.sh`. The formatter refuses the rewrite if parsing fails or the canonical document changes.
 
 Run a read-only formatting check with:

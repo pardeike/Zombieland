@@ -492,7 +492,7 @@ namespace ZombieLand
 
 			object InvokePatchHelper(string typeName, string methodName, params object[] args)
 			{
-				var type = typeof(ZombielandBridgeTools).Assembly.GetType(typeName);
+				var type = typeof(Zombie).Assembly.GetType(typeName);
 				var method = type?.GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
 				if (method == null)
 				{

@@ -559,16 +559,29 @@ namespace ZombieLand
 			};
 			var customization = DescribeCustomizationSupport();
 			var cameraMarkers = DescribeCameraPlusMarkerTextures();
+			var fogSupport = AccessTools.TypeByName("ZombieLand.TotalFogSupport");
+			var fogBindings = new[] { "isVisible", "isCellVisible", "audibility", "allowsTarget" }
+				.ToDictionary(name => name, name =>
+					(AccessTools.Field(fogSupport, name) ?? throw new InvalidOperationException("Missing Total Fog support field: " + name)).GetValue(null) != null);
+			var fogActive = activePackageSet.Contains("brrainz.totalfog");
+			var totalFog = new
+			{
+				success = fogBindings.Values.All(bound => bound == fogActive),
+				packageActive = fogActive,
+				bindings = fogBindings
+			};
 
 			return new
 			{
 				success = integrations.All(ObjectSuccess)
 					&& ObjectSuccess(customization)
-					&& ObjectSuccess(cameraMarkers),
+					&& ObjectSuccess(cameraMarkers)
+					&& ObjectSuccess(totalFog),
 				activePackages,
 				integrations,
 				customization,
-				cameraMarkers
+				cameraMarkers,
+				totalFog
 			};
 		}
 

@@ -3,8 +3,45 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
+mkdir -p "$ROOT/artifacts/logs"
+build_log="$ROOT/artifacts/logs/build-quiet.log"
+exec 3>&1 4>&2
+exec >"$build_log" 2>&1
+build_step="format"
+build_pid=""
+finish_build() {
+	local status=$?
+	if ((status == 0)); then
+		printf 'ok\n' >&3
+	else
+		printf '%s failed (exit %s). Full log: %s\n' "$build_step" "$status" "$build_log" >&4
+		tail -n 20 "$build_log" >&4
+	fi
+}
+cancel_build() {
+	if [[ -n "$build_pid" ]]; then
+		kill -TERM "$build_pid" 2>/dev/null || true
+		wait "$build_pid" 2>/dev/null || true
+	fi
+	exit "$1"
+}
+run_build_step() {
+	"$@" &
+	build_pid=$!
+	wait "$build_pid"
+	build_pid=""
+}
+trap finish_build EXIT
+trap 'cancel_build 130' INT
+trap 'cancel_build 143' TERM
 
-"$ROOT/scripts/format-project.sh"
+pinned_dotnet="$HOME/Library/Application Support/dotnet/sdk-10.0.301"
+if [[ -x "$pinned_dotnet/dotnet" ]]; then
+	export PATH="$pinned_dotnet:$PATH"
+fi
+
+run_build_step "$ROOT/scripts/format-project.sh"
+build_step="deployment guard"
 
 stop_rimworld=true
 restart_rimworld=false
@@ -82,12 +119,19 @@ if [[ -n "$effective_rimworld_mod_dir" ]]; then
 	fi
 fi
 
+build_step="build/deploy"
 if ((${#dotnet_args[@]})); then
-	dotnet build Source/ZombieLand.csproj -v:q -clp:ErrorsOnly "${dotnet_args[@]}"
+	run_build_step dotnet build Source/ZombieLand.csproj -v:q -clp:ErrorsOnly "${dotnet_args[@]}"
 else
-	dotnet build Source/ZombieLand.csproj -v:q -clp:ErrorsOnly
+	run_build_step dotnet build Source/ZombieLand.csproj -v:q -clp:ErrorsOnly
+fi
+if [[ -n "$effective_rimworld_mod_dir" ]]; then
+	build_step="paired deployment verification"
+	cmp "$ROOT/1.6/Assemblies/ZombieLand.dll" "$effective_rimworld_mod_dir/ZombieLand/1.6/Assemblies/ZombieLand.dll"
+	cmp "$ROOT/artifacts/BridgeTools/Zombieland/Zombieland.BridgeTools.dll" "$effective_rimworld_mod_dir/../BridgeTools/Zombieland/Zombieland.BridgeTools.dll"
 fi
 
 if [[ "$restart_rimworld" == true ]]; then
+	build_step="restart"
 	open 'steam://run/294100'
 fi
