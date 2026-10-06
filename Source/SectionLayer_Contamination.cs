@@ -57,11 +57,12 @@ namespace ZombieLand
 				if (TotalFogSupport.IsVisible(Map, cell) == false)
 					continue;
 				var index = Map.cellIndices.CellToIndex(cell);
-				if (grid.GetCellBool(index))
-					AddCell(mesh, cell, grid.GetCellExtraColor(index));
-				if (manager.GetCellBool(Map, index))
+				var groundColor = grid.GetCellExtraColor(index);
+				if (groundColor.a > 0)
+					AddCell(mesh, cell, groundColor);
+				var color = manager.GetCellExtraColor(Map, index);
+				if (color.a > 0)
 				{
-					var color = manager.GetCellExtraColor(Map, index);
 					color.a *= 0.8f;
 					AddCell(mesh, cell, color);
 				}

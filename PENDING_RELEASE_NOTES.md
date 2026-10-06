@@ -14,3 +14,4 @@
 - With Total Fog, danger-area warnings follow sight at the warned location, including for Symbiants. Warnings about colonists still work.
 - Albinos no longer restart an active scream or hack when a hit makes them reconsider their job.
 - With Total Fog, contamination markers follow current sight at both close and distant zoom levels.
+- Distant contamination overlays avoid repeated visibility and item checks when refreshing with Total Fog.
