@@ -823,9 +823,13 @@ feed across 212 Normal playback ticks, with six-cell growth and empty hands.
 The diagnostic base sight range is three, actual two; visibility comes from
 real observer updates. The full initial feeding contract and five global
 creepy-ambience controls also pass. The base is restored and native logs pass.
-This does not establish every sight range, other custom-menu actions, Windows
-or the changed pair's package rendering/performance gates. Exact red/green,
-hash and audio records remain in Total Fog's validation owner.
+The exact pair then repeats twelve native pixel cases, 54 manual-target checks,
+forty paused dense/sparse render-cost rows and five global-ambience controls.
+Its matched six-process 1,000-zombie ordinary fourth-speed comparison measures
+313.398 versus 289.930 TPS, 8.095% higher, with clean native logs. Every sight
+range, other custom-menu actions, Windows, broader maps, load spikes and long
+sessions remain open. Exact red/green, hash, audio and package-gate records
+remain in Total Fog's validation owner.
 
 Paired combat follow-up, 2026-10-06: the combat fixture now searches beyond its
 preferred central radius when needed, preserving all clear-cell/corridor checks.
