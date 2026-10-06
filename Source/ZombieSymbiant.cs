@@ -7028,14 +7028,8 @@ namespace ZombieLand
 
 			try
 			{
-				if (destroyWhenCellMotionsFinish)
-				{
-					cells ??= [];
-					cellMotions ??= [];
-					orderedCells ??= [];
-				}
-				else
-					EnsureSymbiantDefaults();
+				// Spawn/load and footprint updates normalize logical state. Rendering
+				// only prepares resources; do not repeat that quadratic repair per frame.
 				EnsureMetaballMaskMaterial();
 				EnsureMetaballMaterial();
 				EnsureSelectionCoreResources();

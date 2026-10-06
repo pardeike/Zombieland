@@ -29,7 +29,7 @@ with the root hidden. Registration stays one; checked hidden body/core interiors
 exactly match body-off pixels while the visible ends produce pixels. The helper
 uses native camera/gravship bounds and reused buffers/meshes. Full fallback body,
 full core travel, automatic targeting/hit behavior, host/gameplay interactions,
-dense/sparse 400/4000 cost, absent-API standalone rendering and Windows remain
+absent-API standalone rendering and Windows remain
 separate open gates. The updated pair also passes twelve native/pixel cases with
 visible-core/hidden-root selection, hidden-core/visible-root rejection and a
 staged half-progress core handoff. All 54 manual-target checks match native
@@ -44,6 +44,22 @@ symbiant-interaction-acceptance folder in Total Fog artifacts.
 Evidence is in Total Fog's ignored artifacts/symbiant-boundary-final.json and
 symbiant-boundary-final-pixels.json; its preceding mature artifacts preserve the
 red result. This establishes those paired rendering cases, not full compatibility.
+
+Large-body paired render cost: forty paused native rows cover dense/sparse
+400/4,000-cell bodies, released/retained hidden resources, partial sight,
+off-camera rejection and three alternating clipped/unclipped cell-API controls.
+Cold hidden envelope rejection and removing repeated render-time logical-list
+normalization reduce the reproduced CPU cost. Native steady-frame normalization
+calls fall from 61 to zero. The existing GPU metaball shader/mask remains active;
+the sparse diagnostic deliberately separates cells by two cells. The exact new
+pair repeats twelve boundary/pixel cases and 54 manual targets successfully.
+The extreme sparse clipped control still costs about 5.74–5.87 ms per frame
+versus 2.73–2.81 without the cell API; no general FPS/TPS claim follows. The
+initial sparse hidden negative with 38 visible cells is excluded; the corrected
+negative verifies zero sight. Evidence lives in Total Fog's ignored
+symbiant-render-cost-*-green/red JSON/logs, comparison/build-pair report and
+symbiant-render-cost-acceptance folder. Active motion, full core travel, full
+fallback, simulation/host interactions and Windows remain separate gates.
 
 Total Fog integration: the local paired Steam 1.6/all-DLC fixture confirms that
 a visible healer previously drew a beam/glow at a hidden wounded zombie in

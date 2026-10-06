@@ -26,19 +26,6 @@ namespace ZombieLand
 				Mathf.FloorToInt(Position.z + 0.5f + center.y + 0.8f));
 			if (HasShown(coreBounds))
 				return true;
-			// Reject an unseen footprint once, before overlapping element probes.
-			// Visible ground elsewhere on screen must not defeat this cheap rejection.
-			// Resource release clears patches; visible logical cells must still let
-			// DrawAt rebuild them when only the far end is in sight.
-			var hasShownPatch = renderPatches.Count == 0;
-			foreach (var patch in renderPatches)
-				if (HasShown(PatchBounds(patch)))
-				{
-					hasShownPatch = true;
-					break;
-				}
-			if (hasShownPatch == false)
-				return false;
 			// A sparse body can enclose a large empty rectangle. Probe only the
 			// visible field around real cells and active motion centers. The shader
 			// sums power * radius^4 / distance^4 and has zero alpha below 0.45.
@@ -48,10 +35,31 @@ namespace ZombieLand
 			// Bilinear sampling can spread an opaque texel beyond the analytic field.
 			// Include a world-space texel even when a large patch hits the size cap.
 			var texelPadding = 0f;
+			var footprint = renderPatches.Count == 0 ? default : PatchBounds(renderPatches[0]);
 			foreach (var patch in renderPatches)
+			{
 				texelPadding = Mathf.Max(texelPadding, Mathf.Max(patch.renderWidth / DesiredMetaballTextureSize(patch.renderWidth),
 					patch.renderHeight / DesiredMetaballTextureSize(patch.renderHeight)));
+				footprint = footprint.Encapsulate(PatchBounds(patch));
+			}
 			var radius = Mathf.CeilToInt(MetaballCellRadiusMax * Mathf.Pow(elements * Mathf.Max(0f, power) / 0.44f, 0.25f) + texelPadding);
+			// Reject the whole envelope once, including after resource release.
+			// RenderCellBounds includes both endpoints of incoming/outgoing motions;
+			// their interpolated centers and the analytic contour stay inside it.
+			if (renderPatches.Count == 0)
+				footprint = RenderCellBounds().MovedBy(Position).ExpandedBy(radius);
+			if (HasShown(footprint) == false)
+				return false;
+			// A visible empty gap inside a sparse envelope is not enough to draw.
+			var hasShownPatch = renderPatches.Count == 0;
+			foreach (var patch in renderPatches)
+				if (HasShown(PatchBounds(patch)))
+				{
+					hasShownPatch = true;
+					break;
+				}
+			if (hasShownPatch == false)
+				return false;
 			foreach (var relative in orderedCells)
 			{
 				renderPatchByCell.TryGetValue(relative, out var patch);
