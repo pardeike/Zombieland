@@ -13,3 +13,4 @@
 - With the updated Total Fog and enemy fog targeting enabled, humanlike enemies cannot acquire or choose melee cells on a completely unseen Symbiant. Visible body cells remain targetable when its root is hidden.
 - With Total Fog, danger-area warnings follow sight at the warned location, including for Symbiants. Warnings about colonists still work.
 - Albinos no longer restart an active scream or hack when a hit makes them reconsider their job.
+- With Total Fog, contamination markers follow current sight at both close and distant zoom levels.

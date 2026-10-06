@@ -452,21 +452,26 @@ namespace ZombieLand
 
 		public Color Color => Color.white;
 
-		public bool GetCellBool(int index)
+		public bool GetCellBool(int index) => GetCellBool(currentDrawerMap, index);
+
+		internal bool GetCellBool(Map map, int index)
 		{
-			if (currentDrawerMap == null || (DebugViewSettings.drawFog && currentDrawerMap.fogGrid.IsFogged(index)))
+			if (map == null || (DebugViewSettings.drawFog && map.fogGrid.IsFogged(index))
+				|| TotalFogSupport.IsVisible(map, map.cellIndices.IndexToCell(index)) == false)
 				return false;
-			var contamination = currentDrawerMap.thingGrid.thingGrid[index]
+			var contamination = map.thingGrid.thingGrid[index]
 				.Where(t => UsesCellBackedContamination(t) == false)
 				.Sum(t => contaminations.TryGetValue(t.thingIDNumber, 0));
 			return ContaminationThresholds.IsVisible(contamination);
 		}
 
-		public Color GetCellExtraColor(int index)
+		public Color GetCellExtraColor(int index) => GetCellExtraColor(currentDrawerMap, index);
+
+		internal Color GetCellExtraColor(Map map, int index)
 		{
-			if (currentDrawerMap == null)
+			if (map == null)
 				return Color.clear;
-			var things = currentDrawerMap.thingGrid.ThingsListAtFast(index);
+			var things = map.thingGrid.ThingsListAtFast(index);
 			var allContamination = things
 				.Where(t => UsesCellBackedContamination(t) == false)
 				.Sum(t => contaminations.TryGetValue(t.thingIDNumber, 0));
@@ -496,8 +501,11 @@ namespace ZombieLand
 			{
 				currentMapDirty = false;
 				currentMapDrawer.SetDirty();
+				SectionLayer_Contamination.SetDirty(map);
 			}
 
+			if (TotalFogSupport.HasCellVisibilityFilter)
+				return;
 			currentMapDrawer.CellBoolDrawerUpdate();
 			currentMapDrawer.MarkForDraw();
 		}
@@ -609,7 +617,9 @@ namespace ZombieLand
 		}
 
 		public Color Color => Color.white;
-		public bool GetCellBool(int index) => ContaminationThresholds.IsVisible(cells[index]) && (map.fogGrid.IsFogged(index) == false || DebugViewSettings.drawFog == false);
+		public bool GetCellBool(int index) => ContaminationThresholds.IsVisible(cells[index])
+			&& (map.fogGrid.IsFogged(index) == false || DebugViewSettings.drawFog == false)
+			&& TotalFogSupport.IsVisible(map, map.cellIndices.IndexToCell(index));
 		public Color GetCellExtraColor(int index)
 		{
 			var contamination = cells[index];
@@ -617,7 +627,12 @@ namespace ZombieLand
 				return Color.clear;
 			return color.ToTransparent(Mathf.Cos(pi_half * Mathf.Pow(contamination - 1, 3))); // https://www.desmos.com/calculator/hnvwykal4v
 		}
-		public void SetDirty() => debouncer.Run(drawer.SetDirty);
+		public void SetDirty() => debouncer.Run(DirtyDrawer);
+		void DirtyDrawer()
+		{
+			drawer.SetDirty();
+			SectionLayer_Contamination.SetDirty(map);
+		}
 
 		public float this[IntVec3 cell]
 		{
@@ -763,6 +778,11 @@ namespace ZombieLand
 			var drawer = map.GetContaminationDrawer();
 			if (drawer == null)
 				return;
+			if (TotalFogSupport.HasCellVisibilityFilter)
+			{
+				manager.DrawerUpdate(map);
+				return;
+			}
 			drawer.CellBoolDrawerUpdate();
 			drawer.MarkForDraw();
 			manager.DrawerUpdate(map);

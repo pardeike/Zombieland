@@ -13,6 +13,7 @@ namespace ZombieLand
 	[DefOf]
 	public static class CustomDefs
 	{
+		public static MapMeshFlagDef ZombieContaminationOverlay;
 		public static DamageDef ZombieBite;
 		public static DamageDef SuicideBomb;
 		public static DamageDef ToxicSplatter;

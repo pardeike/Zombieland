@@ -349,10 +349,11 @@ namespace ZombieLand
 								if (visibleThings.Add(thing)
 									&& thing is not Mineable
 									&& currentViewRect.Contains(thing.Position)
-									&& thing.Position.Fogged(map) == false)
+									&& thing.Position.Fogged(map) == false
+									&& TotalFogSupport.IsVisible(map, thing.Position))
 									GraphicToolbox.DrawContamination(thing.DrawPos, thing.GetContamination(), true);
 						var grid = map.GetContamination();
-						currentViewRect.DoIf(cell => cell.Fogged(map) == false, cell => GraphicToolbox.DrawContamination(cell.ToVector3Shifted(), grid[cell], false));
+						currentViewRect.DoIf(cell => cell.Fogged(map) == false && TotalFogSupport.IsVisible(map, cell), cell => GraphicToolbox.DrawContamination(cell.ToVector3Shifted(), grid[cell], false));
 					}
 				}
 

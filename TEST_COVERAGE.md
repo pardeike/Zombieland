@@ -955,3 +955,17 @@ Current gap:
 - No known release-blocking gap remains for the implemented contract.
   Longer natural-colony pacing or balance footage is future tuning evidence,
   not missing correctness coverage.
+
+## Total Fog contamination overlay compatibility
+
+Paired native evidence, 2026-10-06: TF e24d50df... / ZL ad349aa2... passes eight
+staged sight controls and eight actual security-bell spawn/despawn controls
+while paused. Detailed and broad overlays hide ground/item contamination after
+sight loss; hidden on/off crops are pixel-identical, positive crops retain the
+markers, selection follows sight, values stay 0.65 and no game ticks advance.
+The base save is unchanged and recognized native logs are clean. Broad drawing
+uses native map sections and the existing fog/data dirtiness without a new
+visibility API. Exact reports and limits are owned by Total Fog's
+`docs/VALIDATION.md` and ignored `artifacts/contamination-overlay` evidence.
+Enabled-overlay performance, hidden mutation/reopen/map switching, standalone
+fallback and actual stat/icon/inspection callers remain open.
