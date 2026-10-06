@@ -56,6 +56,15 @@ Use `forceRequestedSpeed=false` for player-representative evidence. Set it to `t
 
 ### Predefined player-speed evidence fixtures
 
+For a separate quiet horde comparison, set `minimumColonistDistance=60` and
+place the camera cluster away from the colony. This uses the actual current
+colonist positions, including before the manager's cached center has refreshed,
+and applies the distance constraint to visible, remote and fallback candidates.
+The default zero preserves existing combat fixture placement. The creation
+result records the closest initial squared distance. Verify actual native
+tick-rate multipliers during playback: selected Ultrafast can still run at
+multiplier 1 when normal combat slowdown is active.
+
 Use the async `zombieland/zombie_ticking_create_player_fixture` companion tool to create deterministic, reusable 250×250 player saves with production-random zombie types. Build 100, 500, 1,000, and 2,000 variants from the same clean base save, keep the default 0.25% chances for each special type, and give each population a distinct seed. The tool places 10% of the horde in the exact camera rectangle, the remainder outside the 12-cell camera-protection margin, sets initial grace to zero and disables ordinary/scheduled population cleanup in the dedicated fixture, verifies that no zombie-free window remains active, spawns in frame-yielding batches, verifies semantic counts, and then saves. Fixture creation is deliberately separate from measurement.
 
 Run `zombieland/zombie_ticking_run_player_evidence` against each predefined save. It fresh-loads the save before Normal, Fast, Superfast, and Ultrafast; disables RimBridge's private `UltraSpeedBoost` debug default; keeps `forceRequestedSpeed=false`; uses only real-time `rimworld/play_for`; returns the camera after warm-up; records actual time-speed, visible/invisible, priority/remote, type/state, fairness, native-tick completion, update cost, TPS, and FPS; and writes raw JSON to `~/Desktop/ZombieTickingEvidence` by default. The normal reference window is 500 ms warm-up plus 10,000 ms measured time. Do not accept a row as a higher-speed result unless `updateLoop.timeSpeedSamples` contains only the requested speed.

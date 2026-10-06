@@ -71,6 +71,19 @@ Evidence is in Total Fog's ignored no-grace fixture/preflight/verification JSON
 and retained Player.log. This establishes the benchmark prerequisite; it does
 not establish paired fog speed or full feature compatibility.
 
+Quiet horde prerequisite: an optional minimum colonist distance in the existing
+fixture creator uses actual pawn positions across visible/remote/fallback
+placement; default zero preserves the combat fixtures. The original-fog-authored
+1,000-zombie fixture with a 60-cell gap retains all zombies during 300 warmup
+ticks and eight seconds of instrumented native playback. All 2,372 measured
+ticks use ordinary Ultrafast multiplier 15 with both debug overrides off;
+there are no kills, despawns or slowdown requests and all selected work becomes
+382,152 actual CustomTicks. The native log is clean. An earlier camera-only
+fixture still put colonists in real melee/flee jobs, as the bounded native
+slowdown trace establishes. Evidence is in Total Fog's ignored upstream-quiet-
+gap fixture/preflight JSON/logs and VALIDATION.md. This validates the timing
+prerequisite, not the paired performance floor or full compatibility.
+
 Total Fog Symbiant integration: the paired Steam 1.6/all-DLC fixture reproduces
 hidden slime disclosure with a visible root and missing visible slime with a
 hidden root. The optional cell-sight/draw-registration API now binds once without

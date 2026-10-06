@@ -22,6 +22,7 @@ namespace ZombieLand
 			public int visibleCells;
 			public int offscreenCells;
 			public int colonists;
+			public int closestColonistDistanceSquared;
 			public CellRect exactView;
 			public CellRect protectedView;
 			public string error;
@@ -62,7 +63,7 @@ namespace ZombieLand
 				&& cell.GetFirstPawn(map) == null;
 		}
 
-		static ZombieTickingFixturePlan BuildZombieTickingFixturePlan(int zombieCount, int seed)
+		static ZombieTickingFixturePlan BuildZombieTickingFixturePlan(int zombieCount, int seed, int minimumColonistDistance)
 		{
 			var map = CurrentMap;
 			if (map == null)
@@ -73,6 +74,9 @@ namespace ZombieLand
 			var colonists = map.mapPawns.FreeColonistsSpawned.Count;
 			if (colonists == 0)
 				return new ZombieTickingFixturePlan { map = map, error = "The base save has no spawned player colonist, so it cannot provide a real non-zero-threat player fixture." };
+			var colonistPositions = map.mapPawns.FreeColonistsSpawned.Select(pawn => pawn.Position).ToArray();
+			bool FarFromColonists(IntVec3 cell) => minimumColonistDistance == 0 ||
+				colonistPositions.All(position => cell.DistanceToSquared(position) >= minimumColonistDistance * minimumColonistDistance);
 
 			var exactView = Find.CameraDriver.CurrentViewRect;
 			exactView.ClipInsideMap(map);
@@ -80,7 +84,7 @@ namespace ZombieLand
 			protectedView.ClipInsideMap(map);
 			var random = new System.Random(seed);
 			var visibleTarget = Math.Min(zombieCount, Math.Min(200, Math.Max(20, zombieCount / 10)));
-			var visible = exactView.Cells.Where(cell => ValidEvidenceSpawnCell(map, cell)).ToList();
+			var visible = exactView.Cells.Where(cell => ValidEvidenceSpawnCell(map, cell) && FarFromColonists(cell)).ToList();
 			Shuffle(visible, random);
 			var selectedVisible = visible.Take(visibleTarget).ToList();
 
@@ -89,6 +93,7 @@ namespace ZombieLand
 			var strictOffscreen = map.AllCells
 				.Where(cell => protectedView.Contains(cell) == false)
 				.Where(cell => ValidEvidenceSpawnCell(map, cell))
+				.Where(FarFromColonists)
 				.Where(cell => map.areaManager.Home[cell] == false)
 				.Where(cell => center.IsValid == false || cell.DistanceToSquared(center) > 2025)
 				.ToList();
@@ -102,6 +107,7 @@ namespace ZombieLand
 					.Where(cell => protectedView.Contains(cell) == false)
 					.Where(cell => selected.Contains(cell) == false)
 					.Where(cell => ValidEvidenceSpawnCell(map, cell))
+					.Where(FarFromColonists)
 					.ToList();
 				Shuffle(relaxed, random);
 				selectedOffscreen.AddRange(relaxed.Take(neededOffscreen - selectedOffscreen.Count));
@@ -123,6 +129,7 @@ namespace ZombieLand
 				visibleCells = selectedVisible.Count,
 				offscreenCells = selectedOffscreen.Count,
 				colonists = colonists,
+				closestColonistDistanceSquared = cells.Min(cell => colonistPositions.Min(position => cell.DistanceToSquared(position))),
 				exactView = exactView,
 				protectedView = protectedView
 			};
@@ -163,12 +170,15 @@ namespace ZombieLand
 			[ToolParameter(Description = "Configured maximum zombie count stored in the fixture.", DefaultValue = 2000)] int maximumZombies = 2000,
 			[ToolParameter(Description = "Deterministic seed for cell order and production type generation.", DefaultValue = 711100)] int seed = 711100,
 			[ToolParameter(Description = "Camera target X for the visible cluster.", DefaultValue = 125)] int cameraX = 125,
-			[ToolParameter(Description = "Camera target Z for the visible cluster.", DefaultValue = 125)] int cameraZ = 125)
+			[ToolParameter(Description = "Camera target Z for the visible cluster.", DefaultValue = 125)] int cameraZ = 125,
+			[ToolParameter(Description = "Minimum initial distance from every colonist for a quiet horde comparison. Zero preserves the existing combat fixture placement.", DefaultValue = 0)] int minimumColonistDistance = 0)
 		{
 			if (zombieCount < 25 || zombieCount > 2500)
 				return new { success = false, stage = "validate", error = "zombieCount must be between 25 and 2500." };
 			if (maximumZombies < zombieCount || maximumZombies > 5000)
 				return new { success = false, stage = "validate", error = "maximumZombies must be at least zombieCount and at most 5000." };
+			if (minimumColonistDistance < 0 || minimumColonistDistance > 100)
+				return new { success = false, stage = "validate", error = "minimumColonistDistance must be between 0 and 100." };
 			if (string.IsNullOrWhiteSpace(saveName))
 				saveName = $"ZL_Ticking_Player_{zombieCount}";
 
@@ -200,7 +210,7 @@ namespace ZombieLand
 					});
 					if (ZombieFreeEventManager.IsActiveNow())
 						throw new InvalidOperationException("The fixture still has an active zombie-free grace/event window.");
-					return BuildZombieTickingFixturePlan(zombieCount, seed);
+					return BuildZombieTickingFixturePlan(zombieCount, seed, minimumColonistDistance);
 				}, cancellationToken);
 				if (plan == null || plan.error != null)
 					return new { success = false, stage = "fixture.plan", error = plan?.error ?? "Fixture planning returned null." };
@@ -246,6 +256,8 @@ namespace ZombieLand
 					zombieCount,
 					maximumZombies,
 					seed,
+					minimumColonistDistance,
+					plan.closestColonistDistanceSquared,
 					initialGraceEndTick = ZombieFreeEventManager.InitialGraceEndTick(),
 					mapSize = new { x = plan.map.Size.x, z = plan.map.Size.z, area = plan.map.Size.x * plan.map.Size.z },
 					plan.colonists,
