@@ -790,6 +790,17 @@ Total Fog's ignored `artifacts/zombieland-symbiant-*-wall-rotation-paired` and
 `zombieland-symbiant-damage-lifecycle-indoor-scaling-paired` records; the owning
 acceptance limits are in Total Fog's `docs/VALIDATION.md`.
 
+The same pair passes the persistent cross-map fixture after saving, reloading
+in process and then reloading in a fresh game process. Host/organism identity,
+one bond marker and dormancy survive; a controlled return restores immunity
+and surgery eligibility. Both preserved native logs pass the recognized-error
+guard, fixture cleanup removes the remote map/parent and destroys/discards the
+Symbiant, and the original base is reloaded paused. This is paused serialization
+and controlled-transfer evidence, not caravan travel, acquired-benefit stacks
+or an active feeding/surgery job. The existing combat contract cannot establish
+its clear firing-corridor prerequisite on this base; it has no paired combat
+acceptance yet. Detailed records remain in Total Fog's validation owner.
+
 Code surface: `Source/ZombieSymbiant.cs`, `Source/ZombieSymbiantCombat.cs`, `Source/SymbiantSharedHealthDamageExtension.cs`, `Source/Hediff_SymbiantSymbiosis.cs`, `Source/Hediff_SymbiantDamageEcho.cs`, `Source/Patches_SymbiantHealth.cs`, `Source/Hediff_Injury_ZombieBite.cs`, `Source/Recipe_SeverSymbiantSymbiosis.cs`, `Source/JobDriver_Symbiant.cs`, `Source/JobDriver_FeedZombieSymbiant.cs`, `Source/WorkGivers.cs`, `Source/TickManager.cs`, `Source/Patches.cs`, `Source/Patches_Hostility.cs`, `Source/CETools.cs`, `Source/Patches_Startup.cs`, `Source/ZombieSettings.cs`, `Source/SettingsDialog.cs`, symbiant/hediff/surgery defs, `zombieland/symbiant_infestation_state`, `zombieland/symbiant_multi_room_contract`, `zombieland/symbiant_selection_core_contract`, `zombieland/symbiant_host_effect_isolation_contract`, and `zombieland/symbiant_combat_isolation_contract`.
 
 Implementation state:
