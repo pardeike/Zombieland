@@ -163,6 +163,8 @@ namespace ZombieLand
 			var highlightDangerousAreas = ZombieSettings.Values.highlightDangerousAreas;
 			foreach (var (pawn, area) in pawnsInDanger)
 			{
+				if (IsZombielandPawn(pawn) && TotalFogSupport.IsVisible(pawn) == false)
+					continue;
 				if (foundArea != null && foundArea != area)
 					break;
 				if (foundArea == null)
