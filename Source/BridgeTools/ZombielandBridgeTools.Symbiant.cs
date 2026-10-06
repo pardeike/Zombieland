@@ -2308,13 +2308,14 @@ namespace ZombieLand
 
 		[Tool("zombieland/symbiant_combat_isolation_contract", Description = "Verify Symbiant combat-cell targeting, or stage/read/clean a real assault-colony AI scenario.")]
 		public static object SymbiantCombatIsolationContract(
-			[ToolParameter(Description = "contract, setup-assault, read-assault, or cleanup.", Required = false, DefaultValue = "contract")] string mode = "contract",
+			[ToolParameter(Description = "contract, setup-assault, setup-melee, read-assault, or cleanup.", Required = false, DefaultValue = "contract")] string mode = "contract",
 			[ToolParameter(Description = "Destroy temporary pawns, feed corpse, letter, and symbiant after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
 			var map = CurrentMap;
 			if (map == null)
 				return new { success = false, error = "No current map is loaded." };
 			mode = (mode ?? "contract").Trim().ToLowerInvariant();
+			var setupAssault = mode == "setup-assault" || mode == "setup-melee";
 			if (mode == "read-assault")
 				return DescribeSymbiantAssaultState(map);
 			if (mode == "cleanup")
@@ -2339,8 +2340,8 @@ namespace ZombieLand
 				var symbiantCleanup = CleanupTemporarySymbiant(map, fixtureSymbiant, true);
 				return new { success = fixturePawns.All(pawn => pawn.Destroyed) && fixtureCaskets.All(casket => casket.Destroyed) && ZombieSymbiant.ActiveSymbiant(map) == null, removedPawns = fixturePawns.Length, removedCaskets = fixtureCaskets.Length, symbiantCleanup };
 			}
-			if (mode != "contract" && mode != "setup-assault")
-				return new { success = false, error = "Unsupported mode.", mode, supported = new[] { "contract", "setup-assault", "read-assault", "cleanup" } };
+			if (mode != "contract" && setupAssault == false)
+				return new { success = false, error = "Unsupported mode.", mode, supported = new[] { "contract", "setup-assault", "setup-melee", "read-assault", "cleanup" } };
 			var activeBefore = ZombieSymbiant.ActiveSymbiant(map);
 			if (activeBefore != null)
 				return new { success = false, error = "An active symbiant already exists on the current map.", activeSymbiant = ZombieRuntimeActions.StableThingId(activeBefore) };
@@ -2599,19 +2600,24 @@ namespace ZombieLand
 					enemySecondMelee = VerifySymbiantAttackJob(enemySecond, symbiant, JobDefOf.AttackMelee, true),
 					symbiantMelee = VerifySymbiantAttackJob(symbiant, player, JobDefOf.AttackMelee, false)
 				};
-				object meleeRebinding = mode == "setup-assault"
-					? new { success = true, skipped = true, reason = "Preserve the full logical shape for the real ranged-impact scenario." }
+				object meleeRebinding = setupAssault
+					? new { success = true, skipped = true, reason = "Preserve the full logical shape for the real assault AI scenario." }
 					: VerifySymbiantMeleeRebinding(enemy, symbiant);
 				var animalResponse = new
 				{
 					manhunterChance = animal == null || symbiant == null ? null : (float?)PawnUtility.GetManhunterOnDamageChance(animal, symbiant, animal.Position.DistanceTo(symbiant.Position)),
 					preyScore = predator == null || symbiant == null ? null : (float?)FoodUtility.GetPreyScoreFor(predator, symbiant)
 				};
-				if (mode == "setup-assault")
+				if (setupAssault)
 				{
 					foreach (var bystander in new[] { player, animal, predator })
 						if (bystander?.Destroyed == false)
 							bystander.Destroy(DestroyMode.Vanish);
+					if (mode == "setup-melee")
+					{
+						enemy.equipment?.DestroyAllEquipment(DestroyMode.Vanish);
+						enemySecond.equipment?.DestroyAllEquipment(DestroyMode.Vanish);
+					}
 					enemy.jobs?.StopAll(false, true);
 					enemySecond.jobs?.StopAll(false, true);
 					_ = LordMaker.MakeNewLord(
@@ -2707,7 +2713,7 @@ namespace ZombieLand
 					animalResponse,
 					patchTargets
 					,
-					assault = mode == "setup-assault" ? DescribeSymbiantAssaultState(map) : null
+					assault = setupAssault ? DescribeSymbiantAssaultState(map) : null
 				};
 			}
 			catch (Exception ex)
@@ -2716,7 +2722,7 @@ namespace ZombieLand
 			}
 			finally
 			{
-				var shouldCleanup = cleanup && mode != "setup-assault";
+				var shouldCleanup = cleanup && setupAssault == false;
 				_ = CleanupTemporarySymbiant(map, symbiant, shouldCleanup);
 				if (shouldCleanup)
 				{
@@ -2809,7 +2815,10 @@ namespace ZombieLand
 
 		static bool TryFindSymbiantCombatFixtureCells(Map map, IntVec3 root, int count, out IntVec3[] cells, out object error)
 		{
-			foreach (var candidate in GenRadial.RadialCellsAround(root, 48f, true))
+			const float preferredRadius = 48f;
+			var candidates = GenRadial.RadialCellsAround(root, preferredRadius, true)
+				.Concat(map.AllCells.Where(cell => cell.DistanceToSquared(root) > preferredRadius * preferredRadius));
+			foreach (var candidate in candidates)
 			{
 				var roleCells = new[]
 				{
