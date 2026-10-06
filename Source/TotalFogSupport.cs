@@ -12,6 +12,7 @@ namespace ZombieLand
 		static readonly Func<Thing, bool> isVisible = BindVisibility();
 		static readonly Func<Map, IntVec3, bool> isCellVisible = BindCellVisibility();
 		static readonly Func<TargetInfo, float> audibility = BindAudibility();
+		static readonly Func<Thing, IntVec3, bool> allowsTarget = BindTargetVisibility();
 
 		static TotalFogSupport()
 		{
@@ -38,6 +39,7 @@ namespace ZombieLand
 		internal static bool HasCellVisibilityFilter => isCellVisible != null;
 		internal static bool IsVisible(Thing thing) => isVisible == null || isVisible(thing);
 		internal static bool IsVisible(Map map, IntVec3 cell) => isCellVisible == null || isCellVisible(map, cell);
+		internal static bool AllowsTarget(Thing observer, IntVec3 cell) => allowsTarget == null || allowsTarget(observer, cell);
 		internal static float Audibility(Thing thing) => Audibility(new TargetInfo(thing));
 		internal static float Audibility(TargetInfo source) => audibility == null ? 1f : audibility(source);
 
@@ -77,6 +79,17 @@ namespace ZombieLand
 			var method = AccessTools.DeclaredMethod(type, "IsVisible", new[] { typeof(Map), typeof(IntVec3) });
 			return method?.IsStatic == true && method.ReturnType == typeof(bool)
 				? (Func<Map, IntVec3, bool>)Delegate.CreateDelegate(typeof(Func<Map, IntVec3, bool>), method)
+				: null;
+		}
+
+		static Func<Thing, IntVec3, bool> BindTargetVisibility()
+		{
+			var type = AccessTools.TypeByName("TotalFog.Visibility");
+			if (type == null)
+				return null;
+			var method = AccessTools.DeclaredMethod(type, "AllowsTarget", new[] { typeof(Thing), typeof(IntVec3) });
+			return method?.IsStatic == true && method.ReturnType == typeof(bool)
+				? (Func<Thing, IntVec3, bool>)Delegate.CreateDelegate(typeof(Func<Thing, IntVec3, bool>), method)
 				: null;
 		}
 

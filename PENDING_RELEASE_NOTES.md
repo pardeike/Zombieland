@@ -10,3 +10,4 @@
 - Electric absorption and discharge sounds play at the actual event, including hearing outside sight. Hidden or rapid hits no longer build a backlog of flashes and repeated sounds.
 - Climbing zombies turn by game ticks, independently of fog, camera visibility or frame rate.
 - With Total Fog, custom right-click options require a visible cell, and Symbiant feeding choices no longer expose unseen corpses.
+- With the updated Total Fog and enemy fog targeting enabled, humanlike enemies cannot acquire or choose melee cells on a completely unseen Symbiant. Visible body cells remain targetable when its root is hidden.

@@ -271,6 +271,8 @@ namespace ZombieLand
 					continue;
 				if (targetValidator != null && targetValidator(pair.target) == false)
 					continue;
+				if (TotalFogSupport.AllowsTarget(pawn, pair.target) == false)
+					continue;
 				if (pair.stand != pawn.Position && (pair.stand.Standable(map) == false || pair.stand.GetFirstPawn(map) != null))
 					continue;
 				if (pawn.CanReach(new LocalTargetInfo(pair.stand), PathEndMode.OnCell, danger, canBashDoors, canBashFences) == false)
@@ -446,7 +448,7 @@ namespace ZombieLand
 					return false;
 				if (requireVisibleCell && cell.Fogged(map))
 					return false;
-				return true;
+				return TotalFogSupport.AllowsTarget(hostile, cell);
 			}
 
 			var useRangedSelection = verb.IsMeleeAttack == false && hostile.InAggroMentalState == false;
