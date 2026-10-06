@@ -4321,7 +4321,6 @@ namespace ZombieLand
 							var center = drawLoc + Quaternion.AngleAxis(facing + 225f, Vector3.up) * new Vector3(-0.4f, 0, 0.4f);
 							var quat = Quaternion.AngleAxis(facing + 225f, Vector3.up);
 							GraphicToolbox.DrawScaledMesh(MeshPool.plane14, Constants.ELECTRIC_ABSORB[idx], center, quat, 1f, 1f);
-							Tools.PlayAbsorb(zombie);
 						}
 						else if (idx == -2)
 						{
@@ -4331,7 +4330,6 @@ namespace ZombieLand
 								var quat = Quaternion.AngleAxis(facing + 225f, Vector3.up);
 								GraphicToolbox.DrawScaledMesh(MeshPool.plane14, Constants.ELECTRIC_ABSORB[Rand.RangeInclusive(0, 3)], center, quat, 1f, 1f);
 							}
-							Tools.PlayAbsorb(zombie);
 						}
 					}
 				}
@@ -5711,15 +5709,7 @@ namespace ZombieLand
 					if (def2 == null || def2.isRanged == false || def2.isExplosive)
 						return true;
 
-					var indices = new List<int>() { 0, 1, 2, 3 };
-					indices.Shuffle();
-					var markerCount = Rand.RangeInclusive(1, indices.Count);
-					for (var i = 0; i < markerCount; i++)
-					{
-						zombie.absorbAttack.Add(new KeyValuePair<float, int>(dinfo.Angle, indices[i]));
-						if (Rand.Chance(0.9f))
-							zombie.absorbAttack.Add(new KeyValuePair<float, int>(0f, -1));
-					}
+					zombie.AbsorbRangedAttack(dinfo.Angle);
 					return false;
 				}
 

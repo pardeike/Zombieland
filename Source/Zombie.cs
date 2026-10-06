@@ -629,13 +629,37 @@ namespace ZombieLand
 			}
 		}
 
+		public void AbsorbRangedAttack(float angle)
+		{
+			// Retain only the latest hit's cosmetic batch, never a hidden backlog.
+			absorbAttack.Clear();
+			if (TotalFogSupport.IsVisible(this))
+			{
+				Rand.PushState();
+				try
+				{
+					var first = Rand.RangeInclusive(0, 3);
+					var count = Rand.RangeInclusive(1, 4);
+					for (var i = 0; i < count; i++)
+					{
+						absorbAttack.Add(new KeyValuePair<float, int>(angle, (first + i) & 3));
+						if (Rand.Chance(0.9f))
+							absorbAttack.Add(new KeyValuePair<float, int>(0f, -1));
+					}
+				}
+				finally { Rand.PopState(); }
+			}
+			ZombieLand.Tools.PlayAbsorb(this);
+		}
+
 		public void ElectrifyAnimation()
 		{
 			electricCounter = 1;
-			absorbAttack.Add(new KeyValuePair<float, int>(0f, -2));
-			absorbAttack.Add(new KeyValuePair<float, int>(0f, -2));
-			absorbAttack.Add(new KeyValuePair<float, int>(0f, -2));
-			absorbAttack.Add(new KeyValuePair<float, int>(0f, -2));
+			absorbAttack.Clear();
+			if (TotalFogSupport.IsVisible(this))
+				for (var i = 0; i < 4; i++)
+					absorbAttack.Add(new KeyValuePair<float, int>(0f, -2));
+			ZombieLand.Tools.PlayAbsorb(this);
 		}
 
 		void HandleRubble()

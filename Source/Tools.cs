@@ -761,8 +761,13 @@ namespace ZombieLand
 		{
 			if (ZombieAwarenessCues.ShouldPlayZombieActionSound())
 			{
-				var info = SoundInfo.InMap(thing);
-				CustomDefs.Bzzt.PlayOneShot(info);
+				Rand.PushState();
+				try
+				{
+					var info = SoundInfo.InMap(thing);
+					CustomDefs.Bzzt.PlayOneShot(info);
+				}
+				finally { Rand.PopState(); }
 			}
 		}
 

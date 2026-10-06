@@ -4,6 +4,30 @@ This file defines the test surface for the RimWorld 1.6 port from the mod code o
 
 ## Method
 
+Total Fog combat action integration: actual native tank armor, electric bullet
+absorption, dark-slimer damage and toxic-splasher death pass 24 audio controls.
+The electric negative retains 591..643 cosmetic markers after 128 real hits and
+cannot play hidden unfiltered/hearing cues. Event-owned sound and latest-batch
+cosmetics fix both: each final electric state absorbs all 128 packets, hidden
+queue maxima stay zero and visible maxima stay at eight, draining within 15
+frames. Both electric helpers preserve the outer random stream. Native sample
+factors/playback match mute, hearing, visible, unfiltered and disabled controls.
+Tank armor still loses durability with zero damage; tar creates 13 TarSmoke;
+actual toxic death produces 8..10 StickyGoo. All twelve spawn-siren and sixteen
+ambient-loop regressions pass on the same exact pair, with clean native logs.
+Creepy night ambience intentionally stays global like weather, unaffected by
+fog; its wandering signal is unchanged. Evidence is in Total Fog's ignored
+action-audio initial/red/green and electric-regression JSON/log/hash records.
+
+The same pair passes existing active-electrifier melee damage-info generation
+and zombie/human tar-smoke targeting contracts. Active melee yields native
+ElectricalShock amount 1, disabled remains Blunt. Native rifle CanHit changes
+true to false and aim chance to zero with actual smoke production. These are
+contracts for damage-info generation and targeting, not natural melee health
+damage, shot flight/hits, effect boundary pixels/lifetimes, complete Multiplayer
+determinism or Windows. Paired gameplay hashes are recorded in Total Fog's
+VALIDATION.md; final-pair rendering/performance acceptance remains separate.
+
 Total Fog spawn-siren integration: real spitter and substantial rising-wave
 spawn paths previously created playing camera samples at Unity volume 0.5 even
 with hidden-source mute enabled. Both now query the known event cell through
