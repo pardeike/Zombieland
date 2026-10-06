@@ -37,7 +37,7 @@ namespace ZombieLand
 		{
 			if (pawn is not Zombie zombie || zombie.isAlbino == false)
 				return null;
-			zombie.jobs.StopAll();
+			// Keep the current scream or hack when RimWorld accepts a continuation.
 			return JobMaker.MakeJob(CustomDefs.Sabotage);
 		}
 
