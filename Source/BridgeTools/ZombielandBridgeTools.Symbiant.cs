@@ -816,6 +816,10 @@ namespace ZombieLand
 				var humanFeedJob = fixture.host.CurJob;
 				var selectedHumanCorpse = humanFeedJob?.targetB.Thing as Corpse;
 				var humanJobInteractionCell = humanFeedJob == null ? IntVec3.Invalid : humanFeedJob.targetC.Cell;
+				var humanJobTargetsValid = humanFeedJob?.def == CustomDefs.FeedZombieSymbiant
+					&& humanFeedJob.targetA.Thing == symbiant
+					&& humanJobInteractionCell == interactionCell
+					&& eligibleHumanCorpses.Contains(selectedHumanCorpse);
 				var competingCanReserveDuring = competingFeeder.CanReserve(symbiant);
 				var competingOptionsDuring = FloatMenuMakerMap.GetOptions(
 					new List<Pawn> { competingFeeder },
@@ -864,10 +868,7 @@ namespace ZombieLand
 						&& inaccessibleOptionCount == 0
 						&& ZombieSymbiant.IsValidFeed(mechCorpse) == false
 						&& mechOptionCount == 0
-						&& humanFeedJob?.def == CustomDefs.FeedZombieSymbiant
-						&& humanFeedJob.targetA.Thing == symbiant
-						&& humanJobInteractionCell == interactionCell
-						&& eligibleHumanCorpses.Contains(selectedHumanCorpse)
+						&& humanJobTargetsValid
 						&& animalFeedJob?.def == CustomDefs.FeedZombieSymbiant
 						&& animalFeedJob.targetA.Thing == symbiant
 						&& animalJobInteractionCell == interactionCell
@@ -904,6 +905,7 @@ namespace ZombieLand
 						optionCount = mechOptionCount
 					},
 					contextMapId = floatMenuContext.map?.uniqueID ?? -1,
+					humanJobTargetsValid,
 					humanJobTarget = ZombieRuntimeActions.StableThingId(selectedHumanCorpse),
 					humanJobInteractionCell = ZombieRuntimeActions.DescribeCell(humanJobInteractionCell),
 					animalJobTarget = ZombieRuntimeActions.StableThingId(selectedAnimalCorpse),

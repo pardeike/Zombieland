@@ -800,6 +800,18 @@ and controlled-transfer evidence, not caravan travel, acquired-benefit stacks
 or an active feeding/surgery job. Detailed records remain in Total Fog's
 validation owner.
 
+Paired feeding save/load, 2026-10-06: a real non-root-core player order advances
+31 Normal ticks until the host carries a human corpse. Saving, loading in process
+and loading after a full game restart preserve the same job, A/B/C targets,
+carried corpse, host/organism and twelve-cell body. Another 179 Normal ticks
+finish the job with empty hands and eighteen cells. Native logs pass the
+recognized-error guard and the unchanged base is restored paused. This proves
+one human feed saved during hauling, not all feed save phases, partial fog or
+surgery. The existing feeding contract now snapshots its human job-target
+assertions before ending that job; the repeated native contract and cleanup
+pass. This corrects a test lifetime assumption without changing gameplay.
+Exact records and companion hashes remain in Total Fog's validation owner.
+
 Paired combat follow-up, 2026-10-06: the combat fixture now searches beyond its
 preferred central radius when needed, preserving all clear-cell/corridor checks.
 The full logical-cell contract passes at (153,185), including non-root ranged
