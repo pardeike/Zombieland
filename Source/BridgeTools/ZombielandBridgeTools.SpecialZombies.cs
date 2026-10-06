@@ -2046,7 +2046,8 @@ namespace ZombieLand
 
 		[Tool("zombieland/albino_sabotage_contract", Description = "Run a combined albino sabotage evidence suite for door-filtered safety selection, safety-path commitment/revalidation, scream vomit job resume/cleanup, scream cooldown, target preference, opportunistic raiders, attack-mode scream filtering, false thing-target proximity, paralysis cancellation, door-resume, externally opened door resume, externally opened door hack-target re-path, stale target clearing, pure power target exclusion, flickable, breakdownable, and weapon hacks.")]
 		public static object AlbinoSabotageContract(
-			[ToolParameter(Description = "Return only case names, pass/fail, and errors to keep routine validation output compact.", Required = false, DefaultValue = false)] bool summaryOnly = false)
+			[ToolParameter(Description = "Return only case names, pass/fail, and errors to keep routine validation output compact.", Required = false, DefaultValue = false)] bool summaryOnly = false,
+			[ToolParameter(Description = "Optional exact case name to run one focused contract; omitted runs the full suite.", Required = false)] string onlyCase = null)
 		{
 			var map = CurrentMap;
 			if (map == null)
@@ -2061,6 +2062,8 @@ namespace ZombieLand
 			var cases = new List<AlbinoSabotageCase>();
 			void AddCase(string name, Func<AlbinoSabotageCase> run)
 			{
+				if (onlyCase != null && onlyCase != name)
+					return;
 				try
 				{
 					cases.Add(run());
@@ -2100,6 +2103,8 @@ namespace ZombieLand
 			AddCase("breakdownable_hack", () => AlbinoBreakdownableHackCase(map));
 			AddCase("weapon_hack", () => AlbinoWeaponHackCase(map));
 
+			if (cases.Count == 0)
+				return new { success = false, error = "Unknown albino sabotage case.", onlyCase };
 			var success = cases.All(item => item.success);
 			if (summaryOnly)
 			{
@@ -2482,6 +2487,23 @@ namespace ZombieLand
 
 			var sources = sourcesMethod.Invoke(null, new object[] { zombie });
 			pressure = (int)pressureMethod.Invoke(null, new object[] { zombie, sources });
+			return true;
+		}
+
+		static bool TryInvokeAlbinoPressureAtCell(Zombie zombie, IntVec3 cell, out int pressure, out string error)
+		{
+			pressure = 0;
+			error = null;
+			var sourcesMethod = SabotageHandlerType?.GetMethod("AlbinoPressureSourcesFor", BindingFlags.Static | BindingFlags.NonPublic);
+			var pressureMethod = SabotageHandlerType?.GetMethod("AlbinoPressureAtCell", BindingFlags.Static | BindingFlags.NonPublic);
+			if (sourcesMethod == null || pressureMethod == null)
+			{
+				error = "Could not find SabotageHandler destination-pressure methods by reflection.";
+				return false;
+			}
+
+			var sources = sourcesMethod.Invoke(null, new object[] { zombie });
+			pressure = (int)pressureMethod.Invoke(null, new object[] { zombie, cell, sources });
 			return true;
 		}
 
@@ -3355,6 +3377,9 @@ namespace ZombieLand
 
 				ResetAlbinoPlannerState(driver);
 				albino.scream = 0;
+				// Make the pressure roles stable before requesting the async path.
+				foreach (var pawn in new[] { pressurePawnA, pressurePawnB })
+					pawn.jobs.StartJob(JobMaker.MakeJob(JobDefOf.AttackMelee, albino), JobCondition.InterruptForced);
 				var pressureInvoked = TryInvokeAlbinoImmediateMovementPressure(albino, out var initialPressure, out var pressureError);
 				var firstInvoked = TryInvokeAlbinoSafetyMove(driver, albino, false, out var firstHandled, out var firstError);
 				var firstDestination = driver.destination;
@@ -3377,6 +3402,7 @@ namespace ZombieLand
 				var nextCellCostLeftBeforeSecond = albino.pather?.nextCellCostLeft ?? -1f;
 				var nextCellCostTotalBeforeSecond = albino.pather?.nextCellCostTotal ?? -1f;
 				var nodesLeftBeforeSecond = pathBeforeSecond?.NodesLeftCount ?? -1;
+				var pressureBeforeSecondMeasured = TryInvokeAlbinoImmediateMovementPressure(albino, out var pressureBeforeSecond, out var pressureBeforeSecondError);
 				var secondInvoked = TryInvokeAlbinoSafetyMove(driver, albino, false, out var secondHandled, out var secondError);
 				var pathAfterSecond = albino.pather?.curPath;
 				var destinationPreserved = driver.destination == firstDestination
@@ -3400,20 +3426,27 @@ namespace ZombieLand
 						.Where(cell => cell.GetEdifice(map) == null)
 						.Where(cell => cell.GetFirstThing<Mineable>(map) == null)
 						.Where(cell => cell.GetThingList(map).Any(thing => thing is Pawn) == false)
-						.Take(2)
 						.ToArray()
 					: Array.Empty<IntVec3>();
 				if (changedPressureCells.Length < 2)
 					return AlbinoCase(caseName, false, error: "Two destination-pressure cells were not available for safety-path revalidation.");
 
-				var changedPressurePawnA = SpawnAlbinoTestColonist(map, changedPressureCells[0], spawnedThings, true);
-				var changedPressurePawnB = SpawnAlbinoTestColonist(map, changedPressureCells[1], spawnedThings, true);
-				changedPressurePawnA.equipment?.DestroyAllEquipment(DestroyMode.Vanish);
-				changedPressurePawnB.equipment?.DestroyAllEquipment(DestroyMode.Vanish);
-				FreezeAlbinoFixturePawn(changedPressurePawnA);
-				FreezeAlbinoFixturePawn(changedPressurePawnB);
-				map.attackTargetsCache.UpdateTarget(changedPressurePawnA);
-				map.attackTargetsCache.UpdateTarget(changedPressurePawnB);
+				var changedPressurePawns = new List<Pawn>();
+				var pressureMeasured = TryInvokeAlbinoPressureAtCell(albino, firstDestination, out var destinationPressureBefore, out var destinationPressureError);
+				var destinationPressureAfter = destinationPressureBefore;
+				foreach (var cell in changedPressureCells)
+				{
+					if (!pressureMeasured || destinationPressureAfter >= firstPressureLimit)
+						break;
+					var pawn = SpawnAlbinoTestColonist(map, cell, spawnedThings, true);
+					if (pawn == null)
+						return AlbinoCase(caseName, false, error: "Could not create a destination-pressure pawn.");
+					pawn.equipment?.DestroyAllEquipment(DestroyMode.Vanish);
+					FreezeAlbinoFixturePawn(pawn);
+					map.attackTargetsCache.UpdateTarget(pawn);
+					changedPressurePawns.Add(pawn);
+					pressureMeasured = TryInvokeAlbinoPressureAtCell(albino, firstDestination, out destinationPressureAfter, out destinationPressureError);
+				}
 
 				var thirdInvoked = TryInvokeAlbinoSafetyMove(driver, albino, false, out var thirdHandled, out var thirdError);
 				var destinationAfterPressureChange = driver.destination;
@@ -3432,11 +3465,16 @@ namespace ZombieLand
 					&& movingAfterFirst
 					&& patherDestinationAfterFirst == firstDestination
 					&& pathFoundBeforeSecond
+					&& pressureBeforeSecondMeasured
+					&& pressureBeforeSecond == initialPressure
 					&& secondInvoked
 					&& secondHandled
 					&& destinationPreserved
 					&& pathPreserved
 					&& movementProgressPreserved
+					&& pressureMeasured
+					&& destinationPressureBefore < firstPressureLimit
+					&& destinationPressureAfter >= firstPressureLimit
 					&& thirdInvoked
 					&& thirdHandled
 					&& oldDestinationAbandoned;
@@ -3459,6 +3497,8 @@ namespace ZombieLand
 					nextCellCostTotalBeforeSecond,
 					nodesLeftBeforeSecond,
 					pathFoundBeforeSecond,
+					pressureBeforeSecondMeasured,
+					pressureBeforeSecond,
 					secondInvoked,
 					secondHandled,
 					destinationPreserved,
@@ -3467,6 +3507,9 @@ namespace ZombieLand
 					safetyDestinationBeforePressureChange,
 					nodesLeftAfterSecond,
 					changedPressureCells = changedPressureCells.Select(ZombieRuntimeActions.DescribeCell).ToArray(),
+					pressureMeasured,
+					destinationPressureBefore,
+					destinationPressureAfter,
 					thirdInvoked,
 					thirdHandled,
 					oldDestinationAbandoned,
@@ -3475,9 +3518,8 @@ namespace ZombieLand
 					albino = DescribeZombie(albino),
 					pressurePawnA = DescribePawn(pressurePawnA),
 					pressurePawnB = DescribePawn(pressurePawnB),
-					changedPressurePawnA = DescribePawn(changedPressurePawnA),
-					changedPressurePawnB = DescribePawn(changedPressurePawnB)
-				}, pressureError ?? firstError ?? secondError ?? thirdError);
+					changedPressurePawns = changedPressurePawns.Select(DescribePawn).ToArray()
+				}, pressureError ?? firstError ?? pressureBeforeSecondError ?? secondError ?? destinationPressureError ?? thirdError);
 			}
 			finally
 			{
