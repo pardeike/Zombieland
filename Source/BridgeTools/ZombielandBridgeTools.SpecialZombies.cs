@@ -3217,8 +3217,12 @@ namespace ZombieLand
 					if (candidate.x < 18 || candidate.z < 18 || candidate.x >= map.Size.x - 18 || candidate.z >= map.Size.z - 18)
 						continue;
 
-					var candidateRadialCells = GenRadial.RadialCellsAround(candidate, 14f, true).ToArray();
-					if (candidateRadialCells.Length >= 240 && candidateRadialCells.All(IsClearFixtureCell))
+					var candidateRadialCells = GenRadial.RadialCellsAround(candidate, 14f, true)
+						.Where(IsClearFixtureCell).ToArray();
+					var roomCells = CellRect.CenteredOn(candidate, roomRadius);
+					var outsideCandidates = candidateRadialCells.Count(cell =>
+						Math.Abs(cell.x - candidate.x) > roomRadius || Math.Abs(cell.z - candidate.z) > roomRadius);
+					if (outsideCandidates >= 192 && roomCells.All(IsClearFixtureCell))
 					{
 						root = candidate;
 						radialCells = candidateRadialCells;
@@ -3226,7 +3230,7 @@ namespace ZombieLand
 					}
 				}
 				if (root.IsValid == false || radialCells == null)
-					return AlbinoCase(caseName, false, error: "No clear radius-14 area was available for the closed-door safety fixture.");
+					return AlbinoCase(caseName, false, error: "No clear nine-by-nine room with 192 valid outside candidates was available for the closed-door safety fixture.");
 
 				var doorCell = root + new IntVec3(roomRadius, 0, 0);
 				var wallCells = new List<IntVec3>();
