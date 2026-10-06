@@ -11,6 +11,7 @@ namespace ZombieLand
 		// uses native culling; cross-pawn effects and live readouts query sight here.
 		static readonly Func<Thing, bool> isVisible = BindVisibility();
 		static readonly Func<Map, IntVec3, bool> isCellVisible = BindCellVisibility();
+		static readonly Func<TargetInfo, float> audibility = BindAudibility();
 
 		static TotalFogSupport()
 		{
@@ -37,6 +38,7 @@ namespace ZombieLand
 		internal static bool HasCellVisibilityFilter => isCellVisible != null;
 		internal static bool IsVisible(Thing thing) => isVisible == null || isVisible(thing);
 		internal static bool IsVisible(Map map, IntVec3 cell) => isCellVisible == null || isCellVisible(map, cell);
+		internal static float Audibility(Thing thing) => audibility == null ? 1f : audibility(new TargetInfo(thing));
 
 		internal static int VisibleZombieCount(TickManager tickManager)
 		{
@@ -74,6 +76,17 @@ namespace ZombieLand
 			var method = AccessTools.DeclaredMethod(type, "IsVisible", new[] { typeof(Map), typeof(IntVec3) });
 			return method?.IsStatic == true && method.ReturnType == typeof(bool)
 				? (Func<Map, IntVec3, bool>)Delegate.CreateDelegate(typeof(Func<Map, IntVec3, bool>), method)
+				: null;
+		}
+
+		static Func<TargetInfo, float> BindAudibility()
+		{
+			var type = AccessTools.TypeByName("TotalFog.SoundAudibility");
+			if (type == null)
+				return null;
+			var method = AccessTools.DeclaredMethod(type, "GetAudibilityFactor", new[] { typeof(TargetInfo) });
+			return method?.IsStatic == true && method.ReturnType == typeof(float)
+				? (Func<TargetInfo, float>)Delegate.CreateDelegate(typeof(Func<TargetInfo, float>), method)
 				: null;
 		}
 	}

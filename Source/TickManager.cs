@@ -1978,17 +1978,18 @@ namespace ZombieLand
 			}
 
 			var cameraPos = Find.CameraDriver.transform.position;
-			var nearestElectricalZombieDistance = float.MaxValue;
+			var volume = 0f;
 			foreach (var zombie in hummingZombies)
 			{
 				if (zombie == null)
 					continue;
 				var distance = (cameraPos - zombie.DrawPos).magnitude;
-				if (distance < nearestElectricalZombieDistance)
-					nearestElectricalZombieDistance = distance;
+				var sourceVolume = GenMath.LerpDoubleClamped(12f, 36f, 1f, 0f, distance);
+				if (sourceVolume > volume)
+					volume = Mathf.Max(volume, sourceVolume * TotalFogSupport.Audibility(zombie));
 			}
 
-			electricSustainer.info.volumeFactor = GenMath.LerpDoubleClamped(12f, 36f, 1f, 0f, nearestElectricalZombieDistance);
+			electricSustainer.info.volumeFactor = volume;
 		}
 
 		public void UpdateTankMovement()
@@ -2013,17 +2014,18 @@ namespace ZombieLand
 			}
 
 			var cameraPos = Find.CameraDriver.transform.position;
-			var nearestTankZombieDistance = float.MaxValue;
+			var volume = 0f;
 			foreach (var zombie in tankZombies)
 			{
 				if (zombie == null)
 					continue;
 				var distance = (cameraPos - zombie.DrawPos).magnitude;
-				if (distance < nearestTankZombieDistance)
-					nearestTankZombieDistance = distance;
+				var sourceVolume = GenMath.LerpDoubleClamped(24f, 64f, 1f, 0f, distance);
+				if (sourceVolume > volume)
+					volume = Mathf.Max(volume, sourceVolume * TotalFogSupport.Audibility(zombie));
 			}
 
-			tankSustainer.info.volumeFactor = GenMath.LerpDoubleClamped(24f, 64f, 1f, 0f, nearestTankZombieDistance);
+			tankSustainer.info.volumeFactor = volume;
 		}
 
 		public void UpdateZombieHitSounds()

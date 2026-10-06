@@ -4,6 +4,20 @@ This file defines the test surface for the RimWorld 1.6 port from the mod code o
 
 ## Method
 
+Total Fog ambient audio integration: native electric/tank camera sustainers
+previously ignored positional fog filtering and played hidden sources at Unity
+volumes 0.1/0.4 with mute enabled. The optional audibility delegate now applies
+the configured Total Fog source policy before each source joins its existing
+maximum-volume mix. Sixteen native rows pass for both loops across mute/hearing
+options on existing loops, sight transitions and unequal near-hidden/far-visible
+sources. Hidden-only volume is zero, unfiltered/visible controls retain 0.1/0.4,
+and mixed controls retain the farther visible source's actual volume. Loops stay
+playing and ticks remain 18; the named fixture and scoped options are restored.
+Evidence lives in Total Fog's ignored ambient-audio red/green JSON, logs and
+build-pair hash records. No Total Fog assembly dependency or simulation change
+is introduced. Other audio routes, natural source lifecycle, standalone absent-
+API runtime and Windows remain separate open checks.
+
 Controlled horde fixtures: paired Total Fog diagnosis found that old tick-3
 fixtures still used three days of initial grace, which removes zombies even with
 ordinary zero-threat cleanup and scheduled zombie-free events disabled. The
