@@ -5889,26 +5889,54 @@ namespace ZombieLand
 				else if (scenario == "sizeHealthScaling")
 				{
 					var oneCellMax = symbiant.SharedHealthMaxDisplay;
-					var targetCells = GenRadial.RadialCellsAround(symbiant.Position, 8f, true)
+					var targetCells = fixture.room.interiorRect.Cells
 						.Where(cell => cell.InBounds(map) && cell.Standable(map))
-						.Take(40)
 						.ToArray();
 					var addedCells = ZombieSymbiant.AddCells(map, targetCells);
 					symbiant = ZombieSymbiant.ActiveSymbiant(map) ?? symbiant;
 					var scaledMax = symbiant.SharedHealthMaxDisplay;
-					var expectedMultiplier = ZombieSymbiant.HealthScaleMultiplierForCells(symbiant.CellCount);
+					var indoorCellCount = symbiant.CellCount;
+					var indoorHostEffectCells = symbiant.HostEffectCellCount;
+					var expectedMultiplier = ZombieSymbiant.HealthScaleMultiplierForCells(targetCells.Length);
+					var indoorMultiplier = symbiant.HealthScaleCellMultiplier;
+					var exteriorCells = GenRadial.RadialCellsAround(symbiant.Position, 8f, true)
+						.Where(cell => cell.InBounds(map) && cell.Standable(map) && cell.Roofed(map) == false)
+						.Where(cell => cell.GetRoom(map)?.UsesOutdoorTemperature == true)
+						.Take(8)
+						.ToArray();
+					var addedExteriorCells = ZombieSymbiant.AddCells(map, exteriorCells);
+					var exteriorCellCount = symbiant.CellCount;
+					var exteriorHostEffectCells = symbiant.HostEffectCellCount;
+					var maxAfterExterior = symbiant.SharedHealthMaxDisplay;
+					var multiplierAfterExterior = symbiant.HealthScaleCellMultiplier;
 					action = new
 					{
 						oneCellMax,
 						cellCount = symbiant.CellCount,
 						addedCells,
+						expectedIndoorCells = targetCells.Length,
+						indoorCellCount,
+						indoorHostEffectCells,
 						scaledMax,
 						expectedMultiplier,
-						healthScaleCellMultiplier = symbiant.HealthScaleCellMultiplier,
-						success = symbiant.CellCount > 1
+						healthScaleCellMultiplier = indoorMultiplier,
+						addedExteriorCells,
+						exteriorCellCount,
+						exteriorHostEffectCells,
+						maxAfterExterior,
+						multiplierAfterExterior,
+						success = indoorCellCount > 1
 							&& addedCells > 0
+							&& indoorCellCount == targetCells.Length
+							&& indoorHostEffectCells == targetCells.Length
 							&& scaledMax > oneCellMax
-							&& Mathf.Approximately(symbiant.HealthScaleCellMultiplier, expectedMultiplier)
+							&& Mathf.Approximately(indoorMultiplier, expectedMultiplier)
+							&& exteriorCells.Length == 8
+							&& addedExteriorCells == exteriorCells.Length
+							&& exteriorCellCount == indoorCellCount + addedExteriorCells
+							&& exteriorHostEffectCells == indoorHostEffectCells
+							&& maxAfterExterior == scaledMax
+							&& Mathf.Approximately(multiplierAfterExterior, indoorMultiplier)
 					};
 				}
 				else if (scenario == "thumperDamageNoEffect")

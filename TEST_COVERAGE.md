@@ -774,6 +774,22 @@ Each scenario definition should include:
 
 ## Zombie Symbiant Symbiosis
 
+Paired Total Fog evidence, 2026-10-06: with all official DLCs and the delivered
+Zombieland ff207b8c... / Total Fog 9a76ddd3... gameplay pair, the existing benefit,
+host-effect isolation and severance contracts pass. These are native helper /
+controlled transition checks, including safe birth completion and direct recipe
+application; full pregnancy and surgery jobs are not inferred. The full unsafe
+damage/lifecycle matrix also passes after correcting its companion-only
+`sizeHealthScaling` oracle to count the fixture's eligible indoor cells rather
+than outdoor logical cells. It measures 23 indoor cells, sqrt(23) scaling and
+maximum health 19,184, then eight additional outdoor cells with no capacity
+increase. All other injury/effect, echo/recovery, host/map and corpse cases pass;
+cleanup leaves no active/world Symbiant and native logs pass the recognized-error
+guard. Gameplay bytes are unchanged. Evidence and exact build pairs live in
+Total Fog's ignored `artifacts/zombieland-symbiant-*-wall-rotation-paired` and
+`zombieland-symbiant-damage-lifecycle-indoor-scaling-paired` records; the owning
+acceptance limits are in Total Fog's `docs/VALIDATION.md`.
+
 Code surface: `Source/ZombieSymbiant.cs`, `Source/ZombieSymbiantCombat.cs`, `Source/SymbiantSharedHealthDamageExtension.cs`, `Source/Hediff_SymbiantSymbiosis.cs`, `Source/Hediff_SymbiantDamageEcho.cs`, `Source/Patches_SymbiantHealth.cs`, `Source/Hediff_Injury_ZombieBite.cs`, `Source/Recipe_SeverSymbiantSymbiosis.cs`, `Source/JobDriver_Symbiant.cs`, `Source/JobDriver_FeedZombieSymbiant.cs`, `Source/WorkGivers.cs`, `Source/TickManager.cs`, `Source/Patches.cs`, `Source/Patches_Hostility.cs`, `Source/CETools.cs`, `Source/Patches_Startup.cs`, `Source/ZombieSettings.cs`, `Source/SettingsDialog.cs`, symbiant/hediff/surgery defs, `zombieland/symbiant_infestation_state`, `zombieland/symbiant_multi_room_contract`, `zombieland/symbiant_selection_core_contract`, `zombieland/symbiant_host_effect_isolation_contract`, and `zombieland/symbiant_combat_isolation_contract`.
 
 Implementation state:
