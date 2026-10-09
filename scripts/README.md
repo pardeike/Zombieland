@@ -295,3 +295,15 @@ Use `--os <OS>` when testing one non-current target or when verifying a specific
 Use `--full` before claiming the asset bundle set is ready for cross-platform use or before preparing a release-like commit.
 
 Do not manually copy files from Unity's intermediate `Assets/AssetBundles` output into the mod. The Unity export method already deploys the correct files to `1.6/Resources/{OS}/zombieland`, and the script verifies those deployed paths.
+
+
+## New-game and drafted Double Tap controls
+
+The existing `zombieland/settings_state` companion action `new-game` checks
+native page-chain reuse and default settings. `wizard-open` opens the native
+scenario selection page from Entry for ordinary wizard interaction; it refuses
+an existing page chain. Neither action completes world generation by itself.
+The existing `zombieland/double_tap_infected_corpse` control now obtains the
+native work-giver option with Hunting unassigned, checks undrafted rejection
+and drafted acceptance, then invokes that option and observes the real job.
+It modifies the loaded fixture; reload the unchanged save afterwards.

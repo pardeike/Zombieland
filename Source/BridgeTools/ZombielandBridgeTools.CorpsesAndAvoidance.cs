@@ -383,7 +383,7 @@ namespace ZombieLand
 			return true;
 		}
 
-		[Tool("zombieland/double_tap_infected_corpse", Description = "Run the real DoubleTap job on an infected corpse and verify the missing brain prevents corpse conversion.")]
+		[Tool("zombieland/double_tap_infected_corpse", Description = "Check native undrafted/drafted DoubleTap menu options with Hunting unassigned, then invoke the drafted option and verify the real job removes the brain and prevents conversion. Mutates the test map; reload the unchanged fixture afterward.")]
 		public static object DoubleTapInfectedCorpse()
 		{
 			var map = CurrentMap;
@@ -440,6 +440,24 @@ namespace ZombieLand
 			{
 				actor.pather?.StopDead();
 				actor.jobs?.EndCurrentJob(JobCondition.InterruptForced);
+				var huntingPriority = actor.workSettings.GetPriority(WorkTypeDefOf.Hunting);
+				var huntingDisabled = actor.WorkTypeIsDisabled(WorkTypeDefOf.Hunting);
+				if (huntingPriority != 0 || huntingDisabled)
+					return new { success = false, huntingPriority, huntingDisabled, error = "Use a capable actor with Hunting unassigned." };
+				var giver = DefDatabase<WorkGiverDef>.GetNamed("DoubleTap");
+				var provider = new FloatMenuOptionProvider_WorkGivers();
+				var optionMethod = AccessTools.Method(typeof(FloatMenuOptionProvider_WorkGivers), "GetWorkGiverOption");
+				FloatMenuOption Option()
+				{
+					var context = new FloatMenuContext(new List<Pawn> { actor }, corpse.Position.ToVector3Shifted(), map);
+					return (FloatMenuOption)optionMethod.Invoke(provider, new object[] { actor, giver, new LocalTargetInfo(corpse), context });
+				}
+				actor.drafter.Drafted = false;
+				var undraftedOption = Option();
+				actor.drafter.Drafted = true;
+				var draftedOption = Option();
+				if (undraftedOption?.Disabled != true || draftedOption?.Disabled != false)
+					return new { success = false, huntingPriority, undraftedLabel = undraftedOption?.Label, undraftedDisabled = undraftedOption?.Disabled, draftedLabel = draftedOption?.Label, draftedDisabled = draftedOption?.Disabled, error = "Native DoubleTap menu controls failed." };
 
 				var workGiver = new WorkGiver_DoubleTap();
 				var hasForcedJob = workGiver.HasJobOnThing(actor, corpse, true);
@@ -464,7 +482,7 @@ namespace ZombieLand
 				var brainBefore = corpse.InnerPawn?.health?.hediffSet?.GetBrain()?.def?.defName;
 				job.playerForced = true;
 				var jobDefName = job.def?.defName;
-				actor.jobs.StartJob(job, JobCondition.InterruptForced, null, true, true);
+				draftedOption.action();
 				var startedJob = actor.CurJobDef?.defName;
 
 				var tickHit = -1;
@@ -502,6 +520,9 @@ namespace ZombieLand
 				return new
 				{
 					success = brainBefore != null
+						&& undraftedOption.Disabled
+						&& !draftedOption.Disabled
+						&& startedJob == "DoubleTap"
 						&& brainMissingAfter
 						&& tickHit > 0
 						&& rotTriggered
@@ -516,6 +537,11 @@ namespace ZombieLand
 					biteLabel = bite.LabelCap,
 					restoredHoursAfterDeathToBecomeZombie = oldHours,
 					hasForcedJob,
+					huntingPriority,
+					undraftedLabel = undraftedOption.Label,
+					undraftedDisabled = undraftedOption.Disabled,
+					draftedLabel = draftedOption.Label,
+					draftedDisabled = draftedOption.Disabled,
 					jobDef = jobDefName,
 					startedJob,
 					meleeDps,

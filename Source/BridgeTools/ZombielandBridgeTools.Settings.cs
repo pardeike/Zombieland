@@ -17,10 +17,17 @@ namespace ZombieLand
 
 		[Tool("zombieland/settings_state", Description = "Read, prepare, or verify reusable Zombieland settings/new-game/keyframe/colonist-toggle/music persistence fixtures.")]
 		public static object SettingsState(
-			[ToolParameter(Description = "Action mode: read, prepare, verify, modal, behavior, gizmos, music, new-game, response-policy, corrupt-save-prepare, corrupt-save-verify, apparel-generation, or defaults-write-test.", Required = false, DefaultValue = "read")] string actionMode = "read",
+			[ToolParameter(Description = "Action mode: read, prepare, verify, modal, behavior, gizmos, music, new-game, wizard-open, response-policy, corrupt-save-prepare, corrupt-save-verify, apparel-generation, or defaults-write-test.", Required = false, DefaultValue = "read")] string actionMode = "read",
 			[ToolParameter(Description = "Open RimWorld's real Zombieland game-settings page/dialog while reading or preparing.", Required = false, DefaultValue = false)] bool openSettingsDialog = false)
 		{
 			var normalizedMode = (actionMode ?? "read").Trim().ToLowerInvariant();
+			if (normalizedMode == "wizard-open")
+			{
+				if (Current.ProgramState != ProgramState.Entry || Find.WindowStack.Windows.Any(window => window is Page))
+					return new { success = false, error = "Start at the main menu without an existing setup page." };
+				Find.WindowStack.Add(new Page_SelectScenario());
+				return new { success = true, actionMode = normalizedMode };
+			}
 			if (normalizedMode == "prepare")
 			{
 				var prepared = PrepareSettingsPersistenceFixture(openSettingsDialog);
@@ -165,7 +172,7 @@ namespace ZombieLand
 			{
 				success = false,
 				actionMode,
-				error = "Unsupported settings actionMode. Use read, prepare, verify, modal, behavior, gizmos, music, new-game, response-policy, corrupt-save-prepare, corrupt-save-verify, apparel-generation, or defaults-write-test."
+				error = "Unsupported settings actionMode. Use read, prepare, verify, modal, behavior, gizmos, music, new-game, wizard-open, response-policy, corrupt-save-prepare, corrupt-save-verify, apparel-generation, or defaults-write-test."
 			};
 		}
 
@@ -1590,11 +1597,19 @@ namespace ZombieLand
 		static object VerifyNewGameStitchedPages()
 		{
 			var patchTargets = PatchedMethodsForPatchClass("PageUtility_StitchedPages_Patch");
-			var firstPage = new Page_SelectScenario();
-			var lastPage = new Page_SelectStoryteller();
-			var pages = new List<Page> { firstPage, lastPage };
+			var firstPage = new Page_SelectStoryteller();
+			var worldPage = new Page_CreateWorldParams();
+			var lastPage = new Page_SelectStartingSite();
+			var pages = new List<Page> { firstPage, worldPage, lastPage };
 			var stitchedFirst = PageUtility.StitchedPages(pages);
-			var inserted = pages.Count > 1 ? pages[1] : null;
+			var inserted = firstPage.next;
+			var stitchedAgain = PageUtility.StitchedPages(pages);
+			var chain = new List<Page>();
+			for (var page = stitchedAgain; page != null && chain.Count < 16; page = page.next)
+				chain.Add(page);
+			var unrelatedFirst = new Page_SelectScenario();
+			var unrelatedLast = new Page_SelectStoryteller();
+			PageUtility.StitchedPages(new Page[] { unrelatedFirst, unrelatedLast });
 
 			return new
 			{
@@ -1602,12 +1617,16 @@ namespace ZombieLand
 					&& ReferenceEquals(stitchedFirst, firstPage)
 					&& pages.Count == 3
 					&& inserted is Dialog_Settings
-					&& ReferenceEquals(firstPage.next, inserted)
-					&& ReferenceEquals(inserted.prev, firstPage)
-					&& ReferenceEquals(inserted.next, lastPage)
-					&& ReferenceEquals(lastPage.prev, inserted),
+					&& chain.Count == 4
+					&& chain.Count(page => page is Dialog_Settings) == 1
+					&& chain.Count(page => page is Page_CreateWorldParams) == 1
+					&& ReferenceEquals(chain[1].prev, firstPage)
+					&& ReferenceEquals(chain[1].next, worldPage)
+					&& ReferenceEquals(worldPage.next, lastPage)
+					&& ReferenceEquals(unrelatedFirst.next, unrelatedLast),
 				patchTargets,
-				pageTypes = pages.Select(page => page.GetType().FullName).ToArray(),
+				pageTypes = chain.Select(page => page.GetType().FullName).ToArray(),
+				inputPageCountAfterTwoCalls = pages.Count,
 				firstType = stitchedFirst?.GetType().FullName,
 				insertedType = inserted?.GetType().FullName,
 				firstNextType = firstPage.next?.GetType().FullName,

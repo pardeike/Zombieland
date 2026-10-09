@@ -2,6 +2,27 @@
 
 This file defines the test surface for the RimWorld 1.6 port from the mod code outward. It is not a work log. Update it only when a test surface is added, removed, merged, or proven covered by durable evidence. Detailed scenario definitions live in `TEST_SCENARIOS.md`.
 
+## Stream feedback controls, 10 October 2026
+
+The paired native Mac check uses Steam RimWorld 1.6.4871, all five DLCs,
+Harmony, RimBridgeServer, Zombieland and Total Fog. Zombieland gameplay SHA-256
+is `a92ec372f7a9df5384659266005d4c004d7be30c6877f73c241e79a6daf0d108`.
+With Hunting priority zero, the actual native drafted Double Tap option is
+enabled, its undrafted control stays disabled, and invoking the menu action
+starts the real job and removes the corpse's brain. Incapacity restrictions
+remain native; this does not change automatic work priorities.
+
+An ordinary zombie has native HighlightAll/Silhouettes presentation at far
+zoom without Camera+. Sight-loss/reveal controls and screenshots check that
+the highlight does not expose an unseen zombie. Infection label color is green.
+PageUtility stitching twice with the same three-page input leaves that input
+unchanged and produces one settings page before world parameters each time.
+Unrelated page chains are unchanged. Native UI entry reaches site selection
+without repeating these pages; the full reported setup loop is not reproduced.
+Ignored evidence is owned by Total Fog's `artifacts/stream-candidate-20261010/`,
+with paired hashes and limits in its `docs/VALIDATION.md`. Earlier checks below
+retain their original pair identities and are not automatically current-byte proof.
+
 ## Method
 
 Total Fog combat action integration: actual native tank armor, electric bullet

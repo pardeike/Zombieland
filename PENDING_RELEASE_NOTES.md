@@ -15,3 +15,7 @@
 - Albinos no longer restart an active scream or hack when a hit makes them reconsider their job.
 - With Total Fog, contamination markers follow current sight at both close and distant zoom levels.
 - Distant contamination overlays avoid repeated visibility and item checks when refreshing with Total Fog.
+- Zombie infection labels are green so they are easier to distinguish from missing body parts.
+- Ordinary zombies use RimWorld's native silhouette highlights at far zoom without requiring Camera+.
+- Drafted colonists can receive a Double Tap order even when Hunting is unassigned. Incapable colonists still cannot do it.
+- New-game settings are inserted once, and unrelated setup pages are left alone.

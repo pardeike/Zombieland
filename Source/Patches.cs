@@ -7552,10 +7552,13 @@ namespace ZombieLand
 			{
 				if (pages == null)
 					return;
-				var list = pages as List<Page> ?? pages.ToList();
-				if (list.Count == 0)
+				var list = pages.ToList();
+				var worldPage = list.FindIndex(page => page is Page_CreateWorldParams);
+				if (worldPage < 0 || list.Any(page => page is Dialog_Settings))
 					return;
-				list.Insert(Math.Min(1, list.Count), new Dialog_Settings());
+				// Stitching must not mutate a caller's page collection. Reusing it
+				// should still create one settings page in the new-game chain only.
+				list.Insert(worldPage, new Dialog_Settings());
 				pages = list;
 			}
 		}

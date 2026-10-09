@@ -16,7 +16,7 @@ namespace ZombieLand
 
 		public override string LabelBase => "ZombieInfection".Translate();
 		public override string LabelInBrackets => null;
-		public override Color LabelColor => Color.gray;
+		public override Color LabelColor => Color.green;
 		public override string SeverityLabel => null;
 		public override float SummaryHealthPercentImpact => 0;
 		public override float PainOffset => 0;

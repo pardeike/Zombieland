@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
-
 	<ThingDef Name="BaseZombie" Abstract="True">
 		<thingClass>ZombieLand.Zombie</thingClass>
 		<category>Pawn</category>
@@ -28,6 +27,7 @@
 			</li>
 		</comps>
 		<drawGUIOverlay>true</drawGUIOverlay>
+		<drawHighlight>true</drawHighlight>
 		<race>
 			<bloodDef>Filth_Blood</bloodDef>
 			<fleshType>Normal</fleshType>
@@ -42,7 +42,6 @@
 			<li>AnimalInsectSpace</li>
 		</tradeTags>
 	</ThingDef>
-
 	<ThingDef Name="Zombie" Class="ZombieLand.ThingDef_Zombie" ParentName="BaseZombie">
 		<defName>Zombie</defName>
 		<label>Zombie</label>
@@ -131,7 +130,6 @@
 			</hediffGiverSets>
 		</race>
 	</ThingDef>
-
 	<ThingDef Name="ZombieSymbiant" Class="ZombieLand.ThingDef_ZombieSymbiant" ParentName="BasePawn">
 		<defName>ZombieSymbiant</defName>
 		<label>zombie symbiant</label>
@@ -186,7 +184,6 @@
 			</lifeStageAges>
 		</race>
 	</ThingDef>
-
 	<ThingDef Name="ZombieSpitter" Class="ZombieLand.ThingDef_ZombieSpitter" ParentName="BasePawn">
 		<defName>ZombieSpitter</defName>
 		<label>zombie spitter</label>
@@ -242,5 +239,4 @@
 			</lifeStageAges>
 		</race>
 	</ThingDef>
-
 </Defs>
