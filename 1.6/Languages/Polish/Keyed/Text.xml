@@ -352,4 +352,5 @@
 	<ZombieContamination>Zanieczyszczenie zombie</ZombieContamination>
 	<ContaminationHelp>Zanieczyszczenie zombie przenosi się przez dotyk i obchodzenie się z zanieczyszczonymi przedmiotami. Rozprzestrzenia się i może powodować dziwne zachowanie kolonistów.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Przełącz nakładkę zanieczyszczenia zombie.\n\nPokazuje ona stopień zanieczyszczenia przedmiotów i podłoża, który z kolei wpływa na istoty.</ShowContaminationOverlayToggleButton>
+	<VanillaFleeWithoutAvoidance>Zwykła ucieczka przy wyłączonym unikaniu</VanillaFleeWithoutAvoidance>
 </LanguageData>

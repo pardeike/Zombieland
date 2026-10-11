@@ -1109,3 +1109,24 @@ Completion:
 - Category gating, response accounting, touching fields, concurrent attacks,
   source loss, save/load, dense-horde behavior, settings persistence/timeline,
   live UI wording, exact Biotech child ordering, and clean logs are covered.
+
+### Optional vanilla flee response without automatic avoidance, 11 October 2026
+
+`zombieland/area_workflow_state` with `setupFixture=true` and
+`actionMode=danger-flee` now extends its existing native danger/flee controls for
+the optional `vanillaFleeWithoutAvoidance` setting. In public RimWorld 1.6 with
+Total Fog and all DLCs loaded, automatic avoidance off and the new option off
+leave an ordinary nearby zombie unrecognized by the Flee predicate. Enabling
+only the new option recognizes that zombie through native distance and sight
+checks. Hostile-human eligibility stays true in both cases; a non-colony pawn's
+response stays unchanged. The native configurable-hostility job giver retains
+Ignore and produces `FleeAndCower` for Flee. The new setting defaults off and is
+retained by the normal settings copy. Enabling it while automatic avoidance is
+on retains existing electrifier and albino exceptions.
+
+The existing normal/roped/confused/electric/albino and hostile-pawn controls pass,
+as do home/outside-home, downed and unspawned danger controls. No native errors
+are captured. This is a scoped native decision/predicate fixture, not a replay
+of Mortal's colony or a long-running autonomous flight test. The fixture removes
+its owned pawns and restores its settings and home-area cells. The containing
+base save is reloaded to remove its allowed-area setup as well.

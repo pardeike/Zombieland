@@ -142,4 +142,5 @@
 	<ClipboardActionTitle_Help>Ayarlarınızı basit metin kopyalama ve yapıştırma ile başkalarıyla paylaşın.</ClipboardActionTitle_Help>
 	<CopyButton_Help>Mevcut ayarları bilgisayarınızın panosuna kopyalar. Sonra ayarlarınızı başkalarıyla paylaşmak için bir yere yapıştırabilirsiniz.</CopyButton_Help>
 	<PasteButton_Help>Bilgisayarınızın panosundaki metni kullanarak mevcut ayarlarınızı değiştirir. Birinin paylaştığı metni kopyalayın, sonra onun ayarlarını almak için Yapıştır'a tıklayın.</PasteButton_Help>
+	<VanillaFleeWithoutAvoidance_Help>Otomatik zombi kaçınması kapalıyken Ata sekmesinde tepkisi Kaç olarak ayarlanan kolonistler, oyunun normal tehdit kurallarına göre yakındaki zombilerden kaçabilir. Bu seçenek otomatik yol kaçınmasını açmaz; Görmezden gel tepkisini, askere alınmayı veya emirlerinizi geçersiz kılmaz. Kapalıyken mevcut davranış korunur.</VanillaFleeWithoutAvoidance_Help>
 </LanguageData>

@@ -3896,10 +3896,12 @@ namespace ZombieLand
 				var electricThreat = FleeUtility.ShouldFleeFrom(electric, actor, true, false);
 				var albinoThreat = FleeUtility.ShouldFleeFrom(albino, actor, true, false);
 				var hostileThreat = FleeUtility.ShouldFleeFrom(hostile, actor, true, false);
+				var vanillaFleeOption = VerifyVanillaFleeWithoutAvoidance(actor, normal, hostile, electric, albino);
 
 				return new
 				{
 					success = dangerRatingPatchTargets.Length > 0
+						&& ObjectSuccess(vanillaFleeOption)
 						&& fleePatchTargets.Length > 0
 						&& dangerHome
 						&& dangerOutside == false
@@ -3948,6 +3950,7 @@ namespace ZombieLand
 							target = DescribePawn(hostile)
 						}
 					},
+					vanillaFleeOption,
 					settings = new
 					{
 						ZombieSettings.Values.betterZombieAvoidance,
@@ -3963,6 +3966,70 @@ namespace ZombieLand
 				foreach (var pair in originalHome)
 					map.areaManager.Home[pair.Key] = pair.Value;
 				RestoreZombieSettings(settingsSnapshot);
+			}
+		}
+
+		static object VerifyVanillaFleeWithoutAvoidance(Pawn actor, Zombie normal, Pawn hostile, Zombie electric, Zombie albino)
+		{
+			var settings = ZombieSettings.Values;
+			var oldAvoidance = settings.betterZombieAvoidance;
+			var oldOption = settings.vanillaFleeWithoutAvoidance;
+			var oldResponse = actor.playerSettings.hostilityResponse;
+			var rows = new List<object>();
+			var giver = new JobGiver_ConfigurableHostilityResponse();
+			var tryGiveJob = AccessTools.Method(typeof(JobGiver_ConfigurableHostilityResponse), "TryGiveJob", new[] { typeof(Pawn) });
+			try
+			{
+				foreach (var enabled in new[] { false, true })
+				{
+					settings.betterZombieAvoidance = false;
+					settings.vanillaFleeWithoutAvoidance = enabled;
+					var normalThreat = FleeUtility.ShouldFleeFrom(normal, actor, true, true);
+					var humanThreat = FleeUtility.ShouldFleeFrom(hostile, actor, true, false);
+					var enemyResponse = FleeUtility.ShouldFleeFrom(normal, hostile, true, false);
+					actor.playerSettings.hostilityResponse = HostilityResponseMode.Ignore;
+					var ignored = (Job)tryGiveJob.Invoke(giver, new object[] { actor });
+					rows.Add(new
+					{
+						success = normalThreat == enabled && humanThreat && enemyResponse == false && ignored == null,
+						avoidance = false,
+						option = enabled,
+						normalThreat,
+						humanThreat,
+						enemyResponse,
+						ignoreJob = ignored?.def.defName
+					});
+				}
+
+				actor.playerSettings.hostilityResponse = HostilityResponseMode.Flee;
+				var flee = (Job)tryGiveJob.Invoke(giver, new object[] { actor });
+				rows.Add(new
+				{
+					success = flee?.def == JobDefOf.FleeAndCower && settings.MakeCopy().vanillaFleeWithoutAvoidance,
+					phase = "native-flee-decision",
+					job = flee?.def.defName,
+					defaultOff = new SettingsGroup().vanillaFleeWithoutAvoidance == false,
+					copyRetainsOption = settings.MakeCopy().vanillaFleeWithoutAvoidance
+				});
+
+				settings.betterZombieAvoidance = true;
+				// Enabling the option must not change existing avoidance policy.
+				var electricIgnored = FleeUtility.ShouldFleeFrom(electric, actor, true, false) == false;
+				var albinoIgnored = FleeUtility.ShouldFleeFrom(albino, actor, true, false) == false;
+				rows.Add(new
+				{
+					success = electricIgnored && albinoIgnored,
+					phase = "avoidance-policy-preserved",
+					electricIgnored,
+					albinoIgnored
+				});
+				return new { success = rows.All(ObjectSuccess), rows };
+			}
+			finally
+			{
+				settings.betterZombieAvoidance = oldAvoidance;
+				settings.vanillaFleeWithoutAvoidance = oldOption;
+				actor.playerSettings.hostilityResponse = oldResponse;
 			}
 		}
 

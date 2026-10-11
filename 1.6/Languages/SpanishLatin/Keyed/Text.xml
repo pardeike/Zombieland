@@ -352,4 +352,5 @@
 	<ZombieContamination>Contaminación zombi</ZombieContamination>
 	<ContaminationHelp>La contaminación zombi se transmite por contacto y al manipular objetos contaminados. Se extiende por el entorno y puede provocar comportamientos extraños en los colonos.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Activa o desactiva la superposición de contaminación zombi.\n\nMuestra el grado de contaminación de los objetos y del terreno, que a su vez afecta a los peones.</ShowContaminationOverlayToggleButton>
+	<VanillaFleeWithoutAvoidance>Huida normal con la evasión desactivada</VanillaFleeWithoutAvoidance>
 </LanguageData>

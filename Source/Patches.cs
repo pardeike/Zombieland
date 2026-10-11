@@ -1370,6 +1370,15 @@ namespace ZombieLand
 		{
 			static void Postfix(Thing t, Pawn pawn, ref bool __result)
 			{
+				if (__result == false)
+					return;
+				// Opt in to native threat eligibility without enabling avoid grids
+				// or changing other factions' response to zombies.
+				if ((t is Zombie || t is ZombieSymbiant)
+					&& ZombieSettings.Values.vanillaFleeWithoutAvoidance
+					&& ZombieSettings.Values.betterZombieAvoidance == false
+					&& pawn.IsColonist && pawn.Faction?.IsPlayer == true)
+					return;
 				if (t is ZombieSymbiant)
 					__result = false;
 				else if (__result && t is Zombie zombie && pawn.SeesZombieAsThreat(zombie) == false)

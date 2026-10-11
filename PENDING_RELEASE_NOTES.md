@@ -19,3 +19,5 @@
 - Ordinary zombies use RimWorld's native silhouette highlights at far zoom without requiring Camera+.
 - Drafted colonists can receive a Double Tap order even when Hunting is unassigned. Incapable colonists still cannot do it.
 - New-game settings are inserted once, and unrelated setup pages are left alone.
+
+- Add an option for the Assign-tab Flee response to recognize zombies when automatic zombie avoidance is off.

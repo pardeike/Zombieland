@@ -1703,6 +1703,7 @@ namespace ZombieLand
 				&& left.doubleTapRequired == right.doubleTapRequired
 				&& left.zombieFreeEvents == right.zombieFreeEvents
 				&& left.betterZombieAvoidance == right.betterZombieAvoidance
+				&& left.vanillaFleeWithoutAvoidance == right.vanillaFleeWithoutAvoidance
 				&& Approximately(left.zombieBiteInfectionChance, right.zombieBiteInfectionChance)
 				&& Approximately(left.contaminationBaseFactor, right.contaminationBaseFactor)
 				&& Approximately(left.healthFactor, right.healthFactor)

@@ -352,4 +352,5 @@
 	<ZombieContamination>Загрязнение зомби</ZombieContamination>
 	<ContaminationHelp>Загрязнение, вызванное зомби-апокалипсисом, передается через прикосновение и обработку вещей. Оно распространяется и может привести к странному поведению у поселенцев.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Переключить оверлей загрязнения зомби.\n\nЭто показывает, насколько загрязнены вещи и земля, что в свою очередь влияет на пешек.</ShowContaminationOverlayToggleButton>
+	<VanillaFleeWithoutAvoidance>Обычное бегство без автоматического избегания</VanillaFleeWithoutAvoidance>
 </LanguageData>

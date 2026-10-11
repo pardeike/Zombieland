@@ -352,4 +352,5 @@
 	<ZombieContamination>丧尸污染</ZombieContamination>
 	<ContaminationHelp>丧尸污染会通过触碰和接触受污染物品传播。它会向周围扩散，并可能使殖民者出现奇怪的行为。</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>切换丧尸污染显示。\n\n这会显示物品和地面的污染程度；污染会进一步影响角色。</ShowContaminationOverlayToggleButton>
+	<VanillaFleeWithoutAvoidance>关闭自动避让时使用正常逃跑反应</VanillaFleeWithoutAvoidance>
 </LanguageData>

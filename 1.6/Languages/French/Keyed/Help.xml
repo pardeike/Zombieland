@@ -142,4 +142,5 @@
 	<ClipboardActionTitle_Help>Partagez vos réglages avec d'autres personnes par simple copier-coller de texte.</ClipboardActionTitle_Help>
 	<CopyButton_Help>Copie les réglages actuels dans le presse-papiers de votre ordinateur. Vous pouvez ensuite les coller ailleurs pour les partager.</CopyButton_Help>
 	<PasteButton_Help>Remplace vos réglages actuels par le texte du presse-papiers. Copiez le texte partagé par quelqu'un, puis cliquez sur Coller pour adopter ses réglages.</PasteButton_Help>
+	<VanillaFleeWithoutAvoidance_Help>Lorsque l’évitement automatique des zombies est désactivé, les colons réglés sur Fuir dans l’onglet Affecter peuvent fuir les zombies proches selon les règles normales du jeu. Cette option n’active pas l’évitement des trajets et ne remplace ni Ignorer, ni la mobilisation, ni vos ordres. Désactivée, elle conserve le comportement actuel.</VanillaFleeWithoutAvoidance_Help>
 </LanguageData>

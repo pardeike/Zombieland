@@ -159,4 +159,5 @@
 	<ClipboardActionTitle_Help>Udostępniaj ustawienia innym za pomocą prostego kopiowania i wklejania tekstu.</ClipboardActionTitle_Help>
 	<CopyButton_Help>Kopiuje bieżące ustawienia do schowka komputera. Następnie możesz wkleić je w dowolnym miejscu i udostępnić innym.</CopyButton_Help>
 	<PasteButton_Help>Zastępuje bieżące ustawienia tekstem ze schowka komputera. Skopiuj tekst udostępniony przez kogoś, a następnie kliknij „Wklej”, aby przejąć jego ustawienia.</PasteButton_Help>
+	<VanillaFleeWithoutAvoidance_Help>Gdy automatyczne unikanie zombie jest wyłączone, koloniści z reakcją Uciekaj w zakładce Przydział mogą uciekać przed pobliskimi zombie zgodnie ze zwykłymi zasadami gry. Opcja nie włącza omijania zombie przy wyznaczaniu drogi ani nie zastępuje reakcji Ignoruj, mobilizacji czy twoich rozkazów. Wyłączona zachowuje dotychczasowe działanie.</VanillaFleeWithoutAvoidance_Help>
 </LanguageData>

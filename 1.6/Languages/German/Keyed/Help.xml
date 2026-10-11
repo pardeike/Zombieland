@@ -142,4 +142,5 @@
 	<ClipboardActionTitle_Help>Teilen Sie Ihre Einstellungen mit anderen über einfaches Kopieren und Einfügen von Text.</ClipboardActionTitle_Help>
 	<CopyButton_Help>Kopiert die aktuellen Einstellungen in die Zwischenablage Ihres Computers. Danach können Sie sie irgendwo einfügen, um sie mit anderen zu teilen.</CopyButton_Help>
 	<PasteButton_Help>Ersetzt Ihre aktuellen Einstellungen durch den Text aus der Zwischenablage Ihres Computers. Kopieren Sie den geteilten Text und klicken Sie dann auf Einsetzen, um diese Einstellungen zu übernehmen.</PasteButton_Help>
+	<VanillaFleeWithoutAvoidance_Help>Wenn die automatische Zombievermeidung ausgeschaltet ist, können Kolonisten mit der Reaktion Fliehen im Zuweisen-Reiter nach den normalen Bedrohungsregeln des Spiels vor nahen Zombies fliehen. Aktiviert keine automatische Wegvermeidung und überschreibt weder Ignorieren noch den Einberufungsstatus oder deine Befehle. Ausgeschaltet bleibt das bisherige Verhalten erhalten.</VanillaFleeWithoutAvoidance_Help>
 </LanguageData>

@@ -352,4 +352,5 @@
 	<ZombieContamination>Zombie-Kontamination</ZombieContamination>
 	<ContaminationHelp>Die durch die Zombie-Apokalypse verursachte Kontamination wird durch Berührung und Handhabung von Dingen übertragen. Sie breitet sich aus und kann zu seltsamem Verhalten bei Kolonisten führen.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Kontaminations-Overlay für Zombies umschalten.\n\nDies zeigt, wie kontaminiert Dinge und der Boden sind, was wiederum die Spielfiguren beeinflusst.</ShowContaminationOverlayToggleButton>
+	<VanillaFleeWithoutAvoidance>Normale Flucht bei deaktivierter Vermeidung</VanillaFleeWithoutAvoidance>
 </LanguageData>

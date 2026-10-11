@@ -256,6 +256,7 @@ namespace ZombieLand
 		public string extractZombieArea = "";
 		public int corpsesHoursToDessicated = 2;
 		public bool betterZombieAvoidance = true;
+		public bool vanillaFleeWithoutAvoidance;
 		public bool ragingZombies = true;
 		public int zombieRageLevel = 3;
 		public bool replaceTwinkie = true;

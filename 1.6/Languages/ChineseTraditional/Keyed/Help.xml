@@ -142,4 +142,5 @@
 	<ClipboardActionTitle_Help>透過簡單的文字複製和貼上與他人分享你的設定。</ClipboardActionTitle_Help>
 	<CopyButton_Help>這會把目前設定複製到電腦剪貼板。然後你可以貼上到其他地方，與他人分享設定。</CopyButton_Help>
 	<PasteButton_Help>這會使用電腦剪貼板中的文字替換目前設定。先複製別人分享的文字，再點選「貼上」即可採用他們的設定。</PasteButton_Help>
+	<VanillaFleeWithoutAvoidance_Help>關閉自動躲避殭屍後，在分配頁中設為逃跑的殖民者可以按遊戲正常的威脅判定逃離附近的殭屍。此選項不會開啟自動繞路，也不會覆蓋忽略、徵召狀態或玩家命令。關閉此選項會保留原有行為。</VanillaFleeWithoutAvoidance_Help>
 </LanguageData>

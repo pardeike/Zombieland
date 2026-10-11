@@ -352,4 +352,5 @@
 	<ZombieContamination>Zombi Kirliliği</ZombieContamination>
 	<ContaminationHelp>Zombi kıyameti tarafından oluşturulan kirlilik, dokunma ve şeylerle uğraşma yoluyla geçer. Yayılır ve kolonistlerde tuhaf davranışlara yol açabilir.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Zombi kirliliği kaplamasını değiştir.\n\nBu, şeylerin ve zeminin ne kadar kirli olduğunu gösterir, bu da piyonları etkiler.</ShowContaminationOverlayToggleButton>
+	<VanillaFleeWithoutAvoidance>Kaçınma kapalıyken normal kaçma tepkisi</VanillaFleeWithoutAvoidance>
 </LanguageData>

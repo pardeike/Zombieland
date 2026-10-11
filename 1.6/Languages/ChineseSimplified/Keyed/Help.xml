@@ -142,4 +142,5 @@
 	<ClipboardActionTitle_Help>使用简单的文本复制/粘贴与他人分享你的设置。</ClipboardActionTitle_Help>
 	<CopyButton_Help>这会把当前设置复制到电脑剪贴板。然后你可以粘贴到其他地方，与他人分享设置。</CopyButton_Help>
 	<PasteButton_Help>这会使用电脑剪贴板中的文本替换当前设置。先复制别人分享的文本，然后点击“粘贴”即可采用他们的设置。</PasteButton_Help>
+	<VanillaFleeWithoutAvoidance_Help>关闭自动躲避僵尸后，在分配页中设为逃跑的殖民者可以按游戏正常的威胁判定逃离附近的僵尸。此选项不会开启自动绕路，也不会覆盖忽略、征召状态或玩家命令。关闭此选项会保留原有行为。</VanillaFleeWithoutAvoidance_Help>
 </LanguageData>

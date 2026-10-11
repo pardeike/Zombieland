@@ -352,4 +352,5 @@
 	<ZombieContamination>Contamination Zombie</ZombieContamination>
 	<ContaminationHelp>La contamination causée par l'apocalypse zombie est transmise par le toucher et la manipulation d'objets. Elle se propage et peut entraîner des comportements étranges chez les colons.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Afficher/masquer la surcouche de contamination zombie.\n\nCela montre à quel point les choses et le sol sont contaminés, ce qui affecte à son tour les pions.</ShowContaminationOverlayToggleButton>
+	<VanillaFleeWithoutAvoidance>Fuite normale sans évitement automatique</VanillaFleeWithoutAvoidance>
 </LanguageData>

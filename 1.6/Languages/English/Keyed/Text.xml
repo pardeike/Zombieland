@@ -244,6 +244,7 @@
 	<ZombiesTriggerDangerMusic>Zombies affect danger music</ZombiesTriggerDangerMusic>
 	<PlayCreepyAmbientSound>Play creepy ambient sound at night</PlayCreepyAmbientSound>
 	<BetterZombieAvoidance>Automatic avoidance of zombies</BetterZombieAvoidance>
+	<VanillaFleeWithoutAvoidance>Use normal flee response when avoidance is off</VanillaFleeWithoutAvoidance>
 	<ZombiesDropBlood>Zombies drop blood</ZombiesDropBlood>
 	<ZombiesBurnLonger>Zombies burn longer</ZombiesBurnLonger>
 	<AwarenessCuesTitle>Awareness cues</AwarenessCuesTitle>

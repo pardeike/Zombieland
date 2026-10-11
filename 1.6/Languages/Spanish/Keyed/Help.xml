@@ -142,4 +142,5 @@
 	<ClipboardActionTitle_Help>Comparte tus ajustes con otras personas copiando y pegando texto.</ClipboardActionTitle_Help>
 	<CopyButton_Help>Copia los ajustes actuales al portapapeles de tu ordenador. Después puedes pegarlos donde quieras para compartirlos con otras personas.</CopyButton_Help>
 	<PasteButton_Help>Sustituye tus ajustes actuales por el texto del portapapeles de tu ordenador. Copia el texto compartido por otra persona y luego pulsa Pegar para adoptar sus ajustes.</PasteButton_Help>
+	<VanillaFleeWithoutAvoidance_Help>Cuando la evasión automática de zombis está desactivada, los colonos con la respuesta Huir en la pestaña Asignar pueden huir de zombis cercanos según las reglas normales del juego. No activa la evasión al buscar caminos ni anula Ignorar, el reclutamiento o tus órdenes. Desactivada, conserva el comportamiento actual.</VanillaFleeWithoutAvoidance_Help>
 </LanguageData>

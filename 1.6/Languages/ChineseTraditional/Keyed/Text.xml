@@ -352,4 +352,5 @@
 	<ZombieContamination>喪屍污染</ZombieContamination>
 	<ContaminationHelp>喪屍污染會透過觸碰和接觸受污染物品傳播。它會向周圍擴散，並可能使殖民者出現奇怪的行為。</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>切換喪屍污染顯示。\n\n這會顯示物品和地面的污染程度；污染會進一步影響角色。</ShowContaminationOverlayToggleButton>
+	<VanillaFleeWithoutAvoidance>關閉自動避讓時使用正常逃跑反應</VanillaFleeWithoutAvoidance>
 </LanguageData>

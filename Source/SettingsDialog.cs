@@ -398,13 +398,14 @@ namespace ZombieLand
 				}
 
 				// Miscellaneous
-				if (DialogExtensions.Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":BetterZombieAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":DisableRandomApparel", SoSTools.isInstalled ? ":FloatingZombiesInSOS2" : ""))
+				if (DialogExtensions.Section<string>(":ZombieMiscTitle", ":UseCustomTextures", ":ReplaceTwinkie", ":BetterZombieAvoidance", ":VanillaFleeWithoutAvoidance", ":ZombiesDropBlood", ":ZombiesBurnLonger", ":DisableRandomApparel", SoSTools.isInstalled ? ":FloatingZombiesInSOS2" : ""))
 				{
 					list.Dialog_Label("ZombieMiscTitle", headerColor);
 					list.Gap(headerContentGap - 2f);
 					list.Dialog_Checkbox("UseCustomTextures", ref settings.useCustomTextures);
 					list.Dialog_Checkbox("ReplaceTwinkie", ref settings.replaceTwinkie);
 					list.Dialog_Checkbox("BetterZombieAvoidance", ref settings.betterZombieAvoidance);
+					list.Dialog_Checkbox("VanillaFleeWithoutAvoidance", ref settings.vanillaFleeWithoutAvoidance);
 					list.Dialog_Checkbox("ZombiesDropBlood", ref settings.zombiesDropBlood);
 					list.Dialog_Checkbox("ZombiesBurnLonger", ref settings.zombiesBurnLonger);
 					list.Dialog_Checkbox("DisableRandomApparel", ref settings.disableRandomApparel);

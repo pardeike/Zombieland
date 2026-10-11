@@ -144,6 +144,7 @@
 	<PlayWallAndSabotageSounds_Help>Plays sounds from zombies interacting with your base, such as wall pushing, building hits, hacking, switches, and sabotage screams.</PlayWallAndSabotageSounds_Help>
 	<ShowZombieThoughtBubbles_Help>Shows Zombieland's custom thought bubbles for zombie actions such as brains, eating, rage, and hacking.</ShowZombieThoughtBubbles_Help>
 	<BetterZombieAvoidance_Help>To assist you with better pathing around any zombies, you can turn this option on. Zombieland will constantly adjust the path of a colonist to avoid zombies. Means less micromanagement, and is very useful for rescuing other colonists.</BetterZombieAvoidance_Help>
+	<VanillaFleeWithoutAvoidance_Help>When automatic zombie avoidance is off, colonists set to Flee in the Assign tab can flee from nearby zombies using the game's normal threat checks. This does not enable automatic path avoidance or override Ignore, drafted pawns or your orders. Off keeps Zombieland's existing behavior.</VanillaFleeWithoutAvoidance_Help>
 	<ZombiesDropBlood_Help>Game speed tweak: turn this off and zombies do not drop blood anymore.</ZombiesDropBlood_Help>
 	<ZombiesBurnLonger_Help>To give you more interesting gameplay, zombies will catch fire and burn longer than usual while walking around. Turn off if your computer is too slow to handle a lot of fire.</ZombiesBurnLonger_Help>
 	<ShowHealthBar_Help>Since zombies cannot be selected you can enable a mouse-over health bar. It shows the overall health and also the consciousness level.</ShowHealthBar_Help>
