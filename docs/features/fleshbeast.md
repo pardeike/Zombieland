@@ -170,8 +170,10 @@ handling.
 
 When the kill that completes a response can be identified synchronously as a
 Zombieland zombie-faction attack or Zombieland suicide explosion, the
-implementation should suppress only that response's `ThreatBig` letter. The
-fleshbeasts, effects, sounds, and assault still occur. This is a best-effort
+implementation suppresses only that response's `ThreatBig` letter before native
+letter delivery and before an optional fog mod can defer it. Its alert sound,
+automatic pause, forced slowdown and archive entry therefore do not run. The
+fleshbeasts, emergence effects, birth sounds, and assault still occur. This is a best-effort
 initial-version refinement: use only narrow transient call-scope attribution.
 If suppression would require persistent attribution, replacing the vanilla
 counter, delaying responses, or reimplementing response logic, leave the letter

@@ -50,6 +50,7 @@ namespace ZombieLand
 
 			var settingsSnapshot = SnapshotZombieSettings();
 			var beforeLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>()).ToHashSet();
+			var beforeFleshbeasts = CurrentFleshbeastIds(map);
 			var spawned = new List<Thing>();
 			var cases = new List<FleshmassContractCase>();
 			var entities = Faction.OfEntities;
@@ -124,6 +125,7 @@ namespace ZombieLand
 				RestoreZombieSettings(settingsSnapshot);
 				if (cleanup)
 				{
+					DestroyNewFleshbeasts(map, beforeFleshbeasts);
 					for (var i = spawned.Count - 1; i >= 0; i--)
 						CleanupFleshmassContractThing(spawned[i]);
 					RemoveNewLetters(beforeLetters);
@@ -211,15 +213,19 @@ namespace ZombieLand
 		{
 			var killMethod = AccessTools.Method(typeof(CompFleshmass), nameof(CompFleshmass.Notify_Killed));
 			var affectCell = AccessTools.Method(typeof(Verse.Explosion), "AffectCell");
+			var receiveLetter = AccessTools.Method(typeof(LetterStack), nameof(LetterStack.ReceiveLetter), new[] { typeof(Letter), typeof(string), typeof(int), typeof(bool) });
 			var killPatches = killMethod == null ? null : Harmony.GetPatchInfo(killMethod);
 			var explosionPatches = affectCell == null ? null : Harmony.GetPatchInfo(affectCell);
+			var letterPatches = receiveLetter == null ? null : Harmony.GetPatchInfo(receiveLetter);
 			var killOwners = killPatches?.Owners?.ToArray() ?? Array.Empty<string>();
 			var explosionOwners = explosionPatches?.Owners?.ToArray() ?? Array.Empty<string>();
-			var killPrefix = FindNestedPatchMethod("CompFleshmass_Notify_Killed_Patch", "Prefix");
+			var letterPrefix = FindNestedPatchMethod("FleshmassResponseLetter_Patch", "Prefix");
 			var killPostfix = FindNestedPatchMethod("CompFleshmass_Notify_Killed_Patch", "Postfix");
 			var explosionPrefix = FindNestedPatchMethod("Explosion_AffectCell_Patch", "Prefix");
 			var explosionFinalizer = FindNestedPatchMethod("Explosion_AffectCell_Patch", "Finalizer");
-			var killPrefixRegistered = killPrefix != null && killPatches?.Prefixes.Any(patch => patch.PatchMethod == killPrefix) == true;
+			var letterPatch = letterPatches?.Prefixes.FirstOrDefault(patch => patch.PatchMethod == letterPrefix);
+			var letterPrefixRegistered = letterPrefix != null && letterPatch != null;
+			var letterOrderedBeforeTotalFog = letterPatch?.priority == Priority.First && letterPatch.before.Contains("brrainz.totalfog");
 			var killPostfixRegistered = killPostfix != null && killPatches?.Postfixes.Any(patch => patch.PatchMethod == killPostfix) == true;
 			var explosionPrefixRegistered = explosionPrefix != null && explosionPatches?.Prefixes.Any(patch => patch.PatchMethod == explosionPrefix) == true;
 			var explosionFinalizerRegistered = explosionFinalizer != null && explosionPatches?.Finalizers.Any(patch => patch.PatchMethod == explosionFinalizer) == true;
@@ -228,7 +234,8 @@ namespace ZombieLand
 				id = "patch-registration",
 				success = killMethod != null
 					&& affectCell != null
-					&& killPrefixRegistered
+					&& letterPrefixRegistered
+					&& letterOrderedBeforeTotalFog
 					&& killPostfixRegistered
 					&& explosionPrefixRegistered
 					&& explosionFinalizerRegistered,
@@ -236,8 +243,10 @@ namespace ZombieLand
 				{
 					killMethod = killMethod?.FullDescription(),
 					killOwners,
-					killPrefix = killPrefix?.FullDescription(),
-					killPrefixRegistered,
+					receiveLetter = receiveLetter?.FullDescription(),
+					letterPrefix = letterPrefix?.FullDescription(),
+					letterPrefixRegistered,
+					letterOrderedBeforeTotalFog,
 					killPostfix = killPostfix?.FullDescription(),
 					killPostfixRegistered,
 					affectCell = affectCell?.FullDescription(),
@@ -552,6 +561,36 @@ namespace ZombieLand
 				details = new { playerPawnPresent = playerPawn != null, playerBefore, playerAfter, playerDeaths, delta = playerBefore - playerAfter }
 			});
 
+			var responseTarget = playerCells.FirstOrDefault(cell => cell.Spawned && cell.Destroyed == false);
+			var responseLabel = "FleshmassResponseLabel".Translate().ToString();
+			var lettersBefore = Find.LetterStack.LettersListForReading.Count(letter => letter.def == LetterDefOf.ThreatBig && letter.Label == responseLabel);
+			var pendingBefore = PendingFleshmassNotifications(map);
+			var previousSpeed = Find.TickManager.CurTimeSpeed;
+			var speedAfterResponse = previousSpeed;
+			SetResponseRemaining(grower, 1);
+			try
+			{
+				Find.TickManager.CurTimeSpeed = TimeSpeed.Superfast;
+				responseTarget?.Kill(new DamageInfo(DamageDefOf.Blunt, 99999f, 0f, -1f, playerPawn));
+				speedAfterResponse = Find.TickManager.CurTimeSpeed;
+			}
+			finally
+			{
+				Find.TickManager.CurTimeSpeed = previousSpeed;
+			}
+			var lettersAfter = Find.LetterStack.LettersListForReading.Count(letter => letter.def == LetterDefOf.ThreatBig && letter.Label == responseLabel);
+			var pendingAfter = PendingFleshmassNotifications(map);
+			var shouldPause = (int)Prefs.AutomaticPauseMode >= (int)LetterDefOf.ThreatBig.pauseMode;
+			cases.Add(new FleshmassContractCase
+			{
+				id = "response-player-letter-after-zombie-scope",
+				success = responseTarget?.Destroyed == true
+					&& ResponseRemaining(grower) > 1
+					&& (lettersAfter > lettersBefore || pendingAfter > pendingBefore)
+					&& (pendingBefore.HasValue || shouldPause == false || speedAfterResponse == TimeSpeed.Paused),
+				details = new { lettersBefore, lettersAfter, pendingBefore, pendingAfter, shouldPause, speedAfterResponse = speedAfterResponse.ToString(), responseAfter = ResponseRemaining(grower) }
+			});
+
 			var nullCells = SpawnFleshmassChain(map, root + new IntVec3(0, 0, 12), 12, heart, entities, spawned);
 			SetResponseRemaining(grower, 1000);
 			var nullBefore = ResponseRemaining(grower);
@@ -659,6 +698,12 @@ namespace ZombieLand
 
 			CleanupFleshmassContractThing(zombie);
 			return cases;
+		}
+
+		static int? PendingFleshmassNotifications(Map map)
+		{
+			var component = map.components.FirstOrDefault(item => item.GetType().FullName == "TotalFog.DeferredNotifications");
+			return component == null ? null : (int)AccessTools.Property(component.GetType(), "PendingCount").GetValue(component);
 		}
 
 		static FleshmassContractCase SelectionCase(string id, Zombie zombie, Building expectedTarget, bool selected)

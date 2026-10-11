@@ -1110,6 +1110,58 @@ Completion:
   source loss, save/load, dense-horde behavior, settings persistence/timeline,
   live UI wording, exact Biotech child ordering, and clean logs are covered.
 
+### Heart response delivery correction, 11 October 2026
+
+Gameplay SHA-256 `5d3fb1f724d1c02167a2c6a1e435363ae106219318a25f52e3fba28b6de7c859`,
+public Steam 1.6.4871 rev597, all official DLCs. A cleared copy of an ordinary
+three-colonist base supplies the same 250x250 map to isolated Zombieland-only
+and Total Fog/Zombieland profiles. It contains no inherited fog-mod state.
+The dense scenario uses 60 typed zombies, two real Hearts, 280 active field
+cells, 49 fortress pieces and two held colonists. Response counters start at
+25 to exercise the response promptly; native growth and Heart defenders remain
+enabled. This is a stress fixture, not natural incident pacing.
+
+The old no-fog gameplay build reaches a native response after seven ticks,
+then stalls paused despite retaining no response letter. Installed engine
+inspection establishes that letter sound, automatic pause, forced slowdown and
+archive insertion occur before the former removal. The new prefix rejects that
+exact zombie/suicide-attributed letter before those effects and before optional
+Total Fog deferral. Native response beasts and player accounting stay intact.
+
+Unprofiled runs with `cleanup=false` pass in both profiles. The Zombieland-only
+operation `op_615cc70c135a46df8bd298ab92c9a37c` advances 66 observation ticks,
+destroys 75 cells, spawns five beasts with two assault-lord members, and resumes
+27 zombies. Paired operation `op_077149e6677c4e579d100863a5b2d370` advances 66
+observation ticks, destroys 76 cells, spawns seven beasts with four assault-lord
+members, and resumes 37 zombies. Both retain Superfast, zero response letters,
+49 fortress pieces and two living fixture colonists. Paired pending alerts
+remain zero. Paused battle boundaries and subsequent unchanged-base reloads
+have no warning-or-higher entries after bridge startup diagnostics.
+
+The direct contract now passes 37/37 in no-fog operation
+`op_16de462642084b39b6410e545c002625` and paired operation
+`op_bb0eb7c3abbd47218f4491fbd3c0abd6`. Its added real player-kill response case
+produces one letter and native automatic pause after zombie scopes have ended.
+Patch registration checks the new first-priority letter prefix and its ordering
+before `brrainz.totalfog`. Owned beasts, objects, letters and settings are cleaned
+up; the clean base is reloaded and games stopped without changing the base save.
+
+DPA diagnostics use the same gameplay bytes. Native response creation costs
+7.9305 ms total for two no-fog responses and 6.1049 ms for one paired response.
+The new letter filter costs 0.0043 and 0.0044 ms total respectively. The rows
+are nested, endpoints differ and samples include cold code and setup, so these
+are source-cost diagnostics, not an FPS/TPS comparison or an upstream speed
+acceptance. DPA is stopped, cleaned up and removed from both isolated profiles.
+
+One separate no-fog `cleanup=true` run completes its battle, then logs
+`Collection was modified` in native `RegenerateNewRegionsFromDirtyCells` and
+`Tried to queue null region`. The matching cleanup-free boundaries above are
+clean. The error is preserved as an unresolved mass-teardown finding; its exact
+cause is not established and no speculative native-region patch is added.
+The private receipt is `heart-response-alert-diagnostics-20261011.json` in Total
+Fog's ignored artifacts. Full player loadout, mature-field CPU cost and long
+natural combat remain open.
+
 ### Optional vanilla flee response without automatic avoidance, 11 October 2026
 
 `zombieland/area_workflow_state` with `setupFixture=true` and

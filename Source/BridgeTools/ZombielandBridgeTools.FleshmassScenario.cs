@@ -1367,6 +1367,7 @@ namespace ZombieLand
 				}
 
 				var sawAttack = new HashSet<string>(StringComparer.Ordinal);
+				var pendingBefore = await ctx.MainThread.InvokeAsync(() => PendingFleshmassNotifications(fixture.map), cancellationToken);
 				var resumedAfterAttack = new HashSet<string>(StringComparer.Ordinal);
 				var maxConcurrentActions = 0;
 				var maxFleshbeasts = 0;
@@ -1407,10 +1408,12 @@ namespace ZombieLand
 						&& maxFleshbeasts > 0)
 						|| Find.TickManager.TicksGame >= deadlineTick;
 				}, new RimBridgeWaitOptions { TimeoutMs = timeoutMs, FailIfBusy = true }, cancellationToken);
+				var speedAfterBattle = await ctx.MainThread.InvokeAsync(() => Find.TickManager.CurTimeSpeed, cancellationToken);
 				await PauseFleshmassScenarioAsync(ctx, CancellationToken.None);
 
 				var result = await ctx.MainThread.InvokeAsync(() =>
 				{
+					var pendingAfter = PendingFleshmassNotifications(fixture.map);
 					var firstDestroyed = fixture.firstField.Count(building => building.Destroyed || building.Spawned == false);
 					var secondDestroyed = fixture.secondField.Count(building => building.Destroyed || building.Spawned == false);
 					var newBeasts = fixture.map.mapPawns.AllPawnsSpawned
@@ -1434,7 +1437,9 @@ namespace ZombieLand
 							&& resumedAfterAttack.Count >= 5
 							&& newBeasts.Length > 0
 							&& newBeasts.Any(IsFleshmassAssaultPawn)
-							&& leakedResponseLetters == 0,
+							&& leakedResponseLetters == 0
+							&& pendingAfter == pendingBefore
+							&& speedAfterBattle == speed,
 						stage = "dense",
 						root = ZombieRuntimeActions.DescribeCell(fixture.root),
 						zombieCount = fixture.zombies.Count,
@@ -1456,6 +1461,9 @@ namespace ZombieLand
 						fleshbeastKinds = newBeasts.GroupBy(pawn => pawn.kindDef?.defName ?? "unknown").ToDictionary(group => group.Key, group => group.Count()),
 						fleshbeastsWithAssaultLord = newBeasts.Count(IsFleshmassAssaultPawn),
 						leakedResponseLetters,
+						pendingBefore,
+						pendingAfter,
+						speedAfterBattle = speedAfterBattle.ToString(),
 						newLetters = newLetters.Select(letter => new { label = letter.Label, def = letter.def?.defName }).ToArray(),
 						fortress = new
 						{

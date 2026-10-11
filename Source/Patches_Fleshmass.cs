@@ -1,6 +1,6 @@
 using HarmonyLib;
 using RimWorld;
-using System.Collections.Generic;
+using System;
 using Verse;
 
 namespace ZombieLand
@@ -12,21 +12,25 @@ namespace ZombieLand
 		{
 			static bool Prepare() => ModsConfig.AnomalyActive;
 
-			static void Prefix(DamageInfo? dinfo, out HashSet<Letter> __state)
-			{
-				__state = FleshmassCollision.CaptureResponseLetters(dinfo);
-			}
-
-			static void Postfix(CompFleshmass __instance, DamageInfo? dinfo, HashSet<Letter> __state)
+			static void Postfix(CompFleshmass __instance, DamageInfo? dinfo)
 			{
 				if (FleshmassCollision.IsZombieFactionKill(dinfo))
-				{
-					var source = __instance?.source;
-					if (source != null && source.Spawned)
-						source.TryGetComp<CompGrowsFleshmassTendrils>()?.Notify_FleshmassDestroyedByPlayer(__instance.parent);
-				}
+					FleshmassCollision.NotifyZombieKill(__instance);
+			}
+		}
 
-				FleshmassCollision.SuppressNewResponseLetters(__state);
+		[HarmonyPatch(typeof(LetterStack), nameof(LetterStack.ReceiveLetter), new Type[] { typeof(Letter), typeof(string), typeof(int), typeof(bool) })]
+		internal static class FleshmassResponseLetter_Patch
+		{
+			static bool Prepare() => ModsConfig.AnomalyActive;
+
+			// Skip the letter before native sound, pause/slowdown and archive effects,
+			// and before Total Fog can retain it for later replay.
+			[HarmonyPriority(Priority.First)]
+			[HarmonyBefore("brrainz.totalfog")]
+			static bool Prefix(Letter let)
+			{
+				return FleshmassCollision.SuppressesResponseLetter(let) == false;
 			}
 		}
 	}

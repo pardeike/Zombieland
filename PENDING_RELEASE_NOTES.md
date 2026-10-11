@@ -21,3 +21,4 @@
 - New-game settings are inserted once, and unrelated setup pages are left alone.
 
 - Add an option for the Assign-tab Flee response to recognize zombies when automatic zombie avoidance is off.
+- Zombie battles with Fleshmass no longer cause a hidden response alert to play sound, pause the game or force normal speed.

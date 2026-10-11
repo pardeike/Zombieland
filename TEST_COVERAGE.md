@@ -957,7 +957,9 @@ Covered:
   grower once; nonlethal damage and lost sources credit nothing; player and
   null-instigator paths remain vanilla once; compatible modded grower sources
   are preserved; narrow zombie/suicide response attribution suppresses only
-  the completing `ThreatBig` letter.
+  the completing `ThreatBig` letter before delivery, including its alert sound,
+  pause, slowdown and archive effects. The former per-death letter snapshots
+  and scans are removed.
 - Direct operations `op_d4dfd7ecacfe4136b8efdc6ce5176f36` and
   `op_b3c165266582463596f697356e37e9cf` each passed 36/36. The second used an
   active-Biotech save and closed the exact child-body/category matrix.
@@ -971,11 +973,23 @@ Covered:
 - Static patch evidence is owned by `TEST_PATCH_AUDIT.md`; scenario detail
   and reusable save names are owned by `TEST_SCENARIOS.md`. Final normal and
   active-Biotech post-startup warning-or-higher queries were empty.
+- On 11 October 2026, the updated native direct contract passes 37/37 with
+  Zombieland alone and with Total Fog. A real player kill after zombie kills
+  still creates its response letter and honors native automatic pause.
+  Unprofiled 60-zombie/two-Heart battles complete at requested Superfast in both
+  profiles without response letters; Total Fog's pending queue stays at zero.
+  Those battle boundaries and clean-base reloads have no captured warnings or
+  errors. A separate mass-object teardown run logs a native region-rebuild
+  error and is retained as a fixture limitation, not a clean result. Details
+  and profiling limits are in `TEST_SCENARIOS.md`.
 
 Current gap:
 - No known release-blocking gap remains for the implemented contract.
   Longer natural-colony pacing or balance footage is future tuning evidence,
   not missing correctness coverage.
+- The reported slowdown in a naturally mature Heart and a full player mod list
+  remains unverified. Preventing a hidden letter's pause/slowdown effects does
+  not establish whole-game CPU performance.
 
 ## Total Fog contamination overlay compatibility
 

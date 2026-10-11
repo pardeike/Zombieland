@@ -1,6 +1,5 @@
 using RimWorld;
 using System;
-using System.Collections.Generic;
 using Verse;
 
 namespace ZombieLand
@@ -15,7 +14,7 @@ namespace ZombieLand
 	internal static class FleshmassCollision
 	{
 		[ThreadStatic]
-		static int suicideExplosionDepth;
+		static int silentResponseDepth;
 
 		internal static bool IsFleshFamily(Building building)
 		{
@@ -73,47 +72,44 @@ namespace ZombieLand
 			return dinfo?.Instigator?.Faction?.def == ZombieDefOf.Zombies;
 		}
 
-		internal static bool IsSuicideExplosionKill(DamageInfo? dinfo)
+		internal static void NotifyZombieKill(CompFleshmass flesh)
 		{
-			return suicideExplosionDepth > 0 && dinfo?.Instigator?.Faction == null;
-		}
-
-		internal static HashSet<Letter> CaptureResponseLetters(DamageInfo? dinfo)
-		{
-			if (IsZombieFactionKill(dinfo) == false && IsSuicideExplosionKill(dinfo) == false)
-				return null;
-			return new HashSet<Letter>(Find.LetterStack?.LettersListForReading ?? new List<Letter>());
-		}
-
-		internal static void SuppressNewResponseLetters(HashSet<Letter> before)
-		{
-			if (before == null || Find.LetterStack == null)
+			var source = flesh?.source;
+			if (source == null || source.Spawned == false)
 				return;
-
-			var expectedLabel = "FleshmassResponseLabel".Translate().ToString();
-			var letters = Find.LetterStack.LettersListForReading;
-			for (var i = letters.Count - 1; i >= 0; i--)
+			var grower = source.TryGetComp<CompGrowsFleshmassTendrils>();
+			if (grower == null)
+				return;
+			silentResponseDepth++;
+			try
 			{
-				var letter = letters[i];
-				if (before.Contains(letter) == false
-					&& letter?.def == LetterDefOf.ThreatBig
-					&& letter.Label == expectedLabel)
-					Find.LetterStack.RemoveLetter(letter);
+				grower.Notify_FleshmassDestroyedByPlayer(flesh.parent);
 			}
+			finally
+			{
+				silentResponseDepth--;
+			}
+		}
+
+		internal static bool SuppressesResponseLetter(Letter letter)
+		{
+			return silentResponseDepth > 0
+				&& letter?.def == LetterDefOf.ThreatBig
+				&& letter.Label == "FleshmassResponseLabel".Translate().ToString();
 		}
 
 		internal static bool BeginSuicideExplosion(Verse.Explosion explosion)
 		{
 			if (explosion?.damType is not SuicideBombDamage)
 				return false;
-			suicideExplosionDepth++;
+			silentResponseDepth++;
 			return true;
 		}
 
 		internal static void EndSuicideExplosion(bool entered)
 		{
 			if (entered)
-				suicideExplosionDepth = Math.Max(0, suicideExplosionDepth - 1);
+				silentResponseDepth = Math.Max(0, silentResponseDepth - 1);
 		}
 
 		static bool IsSpecial(Zombie zombie)
