@@ -29,6 +29,7 @@ namespace ZombieLand
 			{
 				initAction = delegate ()
 				{
+					pawn.rotationTracker.FaceTarget(job.GetTarget(TargetIndex.A));
 					var zombie = job.GetTarget(TargetIndex.A).Thing as Zombie;
 					zombie?.SetRopedBy(pawn);
 				}

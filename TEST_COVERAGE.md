@@ -23,6 +23,20 @@ Ignored evidence is owned by Total Fog's `artifacts/stream-candidate-20261010/`,
 with paired hashes and limits in its `docs/VALIDATION.md`. Earlier checks below
 retain their original pair identities and are not automatically current-byte proof.
 
+## Work-target facing and Spitter lifecycle, 11 October 2026
+
+Existing native extraction, Double Tap and defense-room contracts now report
+work-facing samples and failures. The extraction and Double Tap jobs recover
+from a challenged rotation on every work tick; native chainsaw/shocker waits
+use their scheduled target-facing updates. Extraction, Double Tap and repair
+complete. Shocker facing passes, while its broader paralysis assertion remains
+unproved because another colonist kills its target. The rope job completes.
+
+`area_workflow_state actionMode:spitter-readiness` includes active, forced-down,
+recovered and real-corpse controls, with 60 native ticks in each incapacitated
+state. No post-startup warnings or errors are captured. The exact gameplay DLL,
+scenario details and evidence limits are recorded in `TEST_SCENARIOS.md`.
+
 ## Method
 
 Total Fog combat action integration: actual native tank armor, electric bullet

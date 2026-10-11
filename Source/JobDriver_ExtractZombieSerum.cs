@@ -45,11 +45,13 @@ namespace ZombieLand
 			{
 				activeSkill = (() => SkillDefOf.Medicine),
 				defaultCompleteMode = ToilCompleteMode.Never,
+				handlingFacing = true,
 
 				initAction = pawn.pather.StopDead,
 
 				tickAction = delegate ()
 				{
+					pawn.rotationTracker.FaceTarget(job.GetTarget(TargetIndex.A));
 					var zombieCorpse = (ZombieCorpse)job.GetTarget(TargetIndex.A).Thing;
 					extractProcess += pawn.GetStatValue(StatDefOf.MedicalTendSpeed, true) / 2;
 					if (extractProcess >= extractWork)

@@ -53,11 +53,13 @@ namespace ZombieLand
 			{
 				activeSkill = (() => SkillDefOf.Melee),
 				defaultCompleteMode = ToilCompleteMode.Never,
+				handlingFacing = true,
 
 				initAction = pawn.pather.StopDead,
 
 				tickAction = delegate ()
 				{
+					pawn.rotationTracker.FaceTarget(job.GetTarget(TargetIndex.A));
 					var corpse = (Corpse)job.GetTarget(TargetIndex.A).Thing;
 					var corpseMap = corpse.Map;
 					var deadPawn = corpse.InnerPawn;

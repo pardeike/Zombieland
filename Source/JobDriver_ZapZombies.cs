@@ -38,7 +38,7 @@ namespace ZombieLand
 			});
 
 			yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.InteractionCell);
-			yield return Toils_General.Wait(90, TargetIndex.None)
+			yield return Toils_General.Wait(90, TargetIndex.A)
 				.FailOnDestroyedNullOrForbidden(TargetIndex.A)
 				.FailOnCannotTouch(TargetIndex.A, PathEndMode.InteractionCell)
 				.WithProgressBarToilDelay(TargetIndex.A, false, -0.5f);

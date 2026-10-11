@@ -26,7 +26,7 @@ namespace ZombieLand
 		bool TryResolveSpitter()
 		{
 			spitter ??= pawn as ZombieSpitter;
-			return spitter != null && spitter.Destroyed == false;
+			return spitter != null && spitter.Destroyed == false && spitter.Spawned && spitter.Dead == false && spitter.health.Downed == false;
 		}
 
 		void InitAction()
@@ -125,7 +125,10 @@ namespace ZombieLand
 		void TickAction()
 		{
 			if (TryResolveSpitter() == false)
+			{
+				spitter?.pather?.StopDead();
 				return;
+			}
 
 			switch (spitter.state)
 			{

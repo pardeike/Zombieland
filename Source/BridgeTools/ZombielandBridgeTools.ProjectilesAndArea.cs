@@ -2241,10 +2241,12 @@ namespace ZombieLand
 					weakBulletVsArmed = armedDamage.bulletInjuryDelta <= 0f ? 0f : weakDamage.bulletInjuryDelta / armedDamage.bulletInjuryDelta,
 					weakCutVsArmed = armedDamage.cutInjuryDelta <= 0f ? 0f : weakDamage.cutInjuryDelta / armedDamage.cutInjuryDelta
 				};
+				var lifecycle = VerifySpitterIncapacitation(map, weakSpitter.Position, spawnedThings);
 
 				return new
 				{
-					success = factorCases.All(item => item.success) && damageComparison.success,
+					success = factorCases.All(item => item.success) && damageComparison.success && ObjectSuccess(lifecycle),
+					lifecycle,
 					settings = new
 					{
 						ZombieSettings.Values.spitterThreat,
@@ -2267,6 +2269,97 @@ namespace ZombieLand
 				foreach (var thing in spawnedThings.Where(thing => thing != null && thing.Destroyed == false).ToArray())
 					thing.Destroy(DestroyMode.Vanish);
 			}
+		}
+
+		static object VerifySpitterIncapacitation(Map map, IntVec3 origin, List<Thing> spawnedThings)
+		{
+			if (TryFindClearSpawnCell(map, origin + new IntVec3(8, 0, 0), 8f, out var cell, out var spawnError) == false)
+				return spawnError;
+			var spitter = SpawnTargetSpitter(map, cell, "ZL_Area_SpitterLifecycle", spawnedThings);
+			if (spitter == null || TryFindAdjacentClearCell(spitter, out var destination) == false)
+				return new { success = false, error = "No spitter or clear movement destination was available." };
+
+			var animation = AccessTools.Method(typeof(ZombieSpitter), "AnimationOffset");
+			var tickAction = AccessTools.Method(typeof(JobDriver_Spitter), "TickAction");
+			float Offset(int ticks) => (float)animation.Invoke(spitter, new object[] { ticks });
+			int Balls() => map.listerThings.ThingsOfDef(CustomDefs.ZombieBall).Count;
+			bool ShootControl(int seed)
+			{
+				if (spitter.CurJobDef != CustomDefs.Spitter)
+					spitter.jobs.StartJob(JobMaker.MakeJob(CustomDefs.Spitter));
+				spitter.state = SpitterState.Spitting;
+				spitter.remainingZombies = 1;
+				spitter.spitInterval = 4;
+				spitter.tickCounter = 4;
+				var before = Balls();
+				var home = map.areaManager.Home;
+				var oldHome = home[spitter.Position];
+				var homeCell = spitter.Position;
+				home[homeCell] = true;
+				Rand.PushState(seed);
+				try
+				{
+					tickAction.Invoke(spitter.jobs.curDriver, null);
+				}
+				finally
+				{
+					Rand.PopState();
+					home[homeCell] = oldHome;
+				}
+				return Balls() > before && spitter.remainingZombies == 0;
+			}
+			var aliveAnimated = Mathf.Abs(Offset(15) - Offset(45)) > 0.19f;
+			var aliveSpits = ShootControl(8661);
+			spitter.pather.StartPath(destination, PathEndMode.OnCell);
+			var aliveMoves = spitter.pather.Moving;
+
+			// Spitters normally resist downing. Force the actual health state to test stale jobs defensively.
+			var healthState = AccessTools.Field(typeof(Pawn_HealthTracker), "healthState");
+			var anesthetic = HediffMaker.MakeHediff(HediffDefOf.Anesthetic, spitter);
+			spitter.health.AddHediff(anesthetic);
+			healthState.SetValue(spitter.health, PawnHealthState.Down);
+			spitter.state = SpitterState.Spitting;
+			spitter.remainingZombies = 3;
+			spitter.tickCounter = spitter.spitInterval;
+			var downedCell = spitter.Position;
+			var driver = spitter.jobs.curDriver;
+			tickAction.Invoke(driver, null);
+			var downedPathStopped = spitter.pather.Moving == false;
+			var downedCannotLeave = spitter.StartLeavingMap() == false;
+			AdvanceGameTicks(60);
+			var downedStable = spitter.health.Downed && spitter.Position == downedCell
+				&& spitter.remainingZombies == 3 && spitter.pather.Moving == false
+				&& Offset(15) == 0f && Offset(45) == 0f;
+
+			spitter.health.RemoveHediff(anesthetic);
+			healthState.SetValue(spitter.health, PawnHealthState.Mobile);
+			var recovered = ShootControl(8663) && Mathf.Abs(Offset(15) - Offset(45)) > 0.19f;
+			spitter.Kill(null);
+			var corpse = spitter.Corpse;
+			if (corpse != null)
+				spawnedThings.Add(corpse);
+			var deadCell = corpse?.Position ?? IntVec3.Invalid;
+			var deadCannotLeave = spitter.StartLeavingMap() == false;
+			AdvanceGameTicks(60);
+			var deadStable = spitter.Dead && corpse?.Spawned == true && corpse.Position == deadCell
+				&& Offset(15) == 0f && Offset(45) == 0f;
+			return new
+			{
+				success = aliveAnimated && aliveSpits && aliveMoves && downedPathStopped && downedCannotLeave && downedStable
+					&& recovered && deadCannotLeave && deadStable,
+				aliveAnimated,
+				aliveSpits,
+				aliveMoves,
+				downedPathStopped,
+				downedCannotLeave,
+				downedStable,
+				recovered,
+				deadCannotLeave,
+				deadStable,
+				downedTicks = 60,
+				deadTicks = 60,
+				corpseType = corpse?.GetType().Name
+			};
 		}
 
 		static bool FindLineOfSightTargetCell(Map map, IntVec3 source, float targetDistance, out IntVec3 result)

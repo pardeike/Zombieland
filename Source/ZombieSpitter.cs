@@ -139,7 +139,7 @@ namespace ZombieLand
 
 		public bool StartLeavingMap()
 		{
-			if (Destroyed || Spawned == false)
+			if (Destroyed || Spawned == false || Dead || health.Downed)
 				return false;
 			if (state == SpitterState.Leaving)
 				return true;
@@ -158,10 +158,15 @@ namespace ZombieLand
 			return true;
 		}
 
+		internal float AnimationOffset(int ticks)
+		{
+			return Dead || health.Downed ? 0f : 0.1f * Mathf.Sin(2 * Mathf.PI * (ticks % 60) / 60f);
+		}
+
 		public override void DrawAt(Vector3 drawLoc, bool flip = false)
 		{
 			mesh ??= MeshMakerPlanes.NewPlaneMesh(3f);
-			var v = new Vector3(0.1f, 0f, 0f) * Mathf.Sin(2 * Mathf.PI * (Find.TickManager.TicksGame % 60) / 60f);
+			var v = new Vector3(AnimationOffset(Find.TickManager.TicksGame), 0f, 0f);
 			var h = new Vector3(0f, 0.01f, 0f);
 			var materials = aggressive ? Constants.SpitterAggressive : Constants.Spitter;
 			Graphics.DrawMesh(mesh, drawLoc + v, Quaternion.identity, materials[0], 0);

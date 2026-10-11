@@ -383,6 +383,30 @@ namespace ZombieLand
 			return true;
 		}
 
+		static Rot4 ChallengeWorkFacing(Pawn actor, Thing target)
+		{
+			if (actor.jobs.HandlingFacing == false || target.Spawned == false)
+				return Rot4.Invalid;
+			var previous = actor.Rotation;
+			actor.rotationTracker.FaceTarget(target);
+			var expected = actor.Rotation;
+			actor.Rotation = actor.jobs.curDriver.CurToil.tickAction != null ? expected.Opposite : previous;
+			return expected;
+		}
+
+		static void CheckWorkFacing(Pawn actor, Thing target, Rot4 expected, ref int samples, ref int failures)
+		{
+			if (expected.IsValid == false || actor.jobs.HandlingFacing == false || target.Spawned == false)
+				return;
+			var driver = actor.jobs.curDriver;
+			var toil = driver.CurToil;
+			if (toil.tickAction == null && toil.defaultCompleteMode == ToilCompleteMode.Delay && driver.ticksLeftThisToil > toil.defaultDuration - 3)
+				return;
+			samples++;
+			if (actor.Rotation != expected)
+				failures++;
+		}
+
 		[Tool("zombieland/double_tap_infected_corpse", Description = "Check native undrafted/drafted DoubleTap menu options with Hunting unassigned, then invoke the drafted option and verify the real job removes the brain and prevents conversion. Mutates the test map; reload the unchanged fixture afterward.")]
 		public static object DoubleTapInfectedCorpse()
 		{
@@ -486,9 +510,13 @@ namespace ZombieLand
 				var startedJob = actor.CurJobDef?.defName;
 
 				var tickHit = -1;
+				var facingSamples = 0;
+				var facingFailures = 0;
 				for (var tick = 1; tick <= maxTicks; tick++)
 				{
+					var expectedFacing = ChallengeWorkFacing(actor, corpse);
 					AdvanceGameTicks(1);
+					CheckWorkFacing(actor, corpse, expectedFacing, ref facingSamples, ref facingFailures);
 					var brainMissing = corpse.InnerPawn?.health?.hediffSet?.GetBrain() == null;
 					if (tick == 1 || tick == maxTicks || tick % 80 == 0 || brainMissing)
 					{
@@ -519,7 +547,7 @@ namespace ZombieLand
 
 				return new
 				{
-					success = brainBefore != null
+					success = facingSamples > 0 && facingFailures == 0 && brainBefore != null
 						&& undraftedOption.Disabled
 						&& !draftedOption.Disabled
 						&& startedJob == "DoubleTap"
@@ -548,6 +576,8 @@ namespace ZombieLand
 					maxHitWindows,
 					maxTicks,
 					tickHit,
+					facingSamples,
+					facingFailures,
 					brainBefore,
 					brainMissingAfter,
 					rotTriggered,
@@ -658,10 +688,14 @@ namespace ZombieLand
 				actor.jobs.StartJob(job, JobCondition.InterruptForced, null, true, true);
 				var startedJob = actor.CurJobDef?.defName;
 				var tickHit = -1;
+				var facingSamples = 0;
+				var facingFailures = 0;
 
 				for (var tick = 1; tick <= maxTicks; tick++)
 				{
+					var expectedFacing = ChallengeWorkFacing(actor, corpse);
 					AdvanceGameTicks(1);
+					CheckWorkFacing(actor, corpse, expectedFacing, ref facingSamples, ref facingFailures);
 					var extractNow = map.listerThings.AllThings.Where(thing => thing.def == CustomDefs.ZombieExtract).Sum(thing => thing.stackCount);
 					var corpseGone = corpse.Destroyed || corpse.Spawned == false;
 					if (tick == 1 || tick == maxTicks || tick % 80 == 0 || corpseGone || extractNow > extractBefore)
@@ -692,7 +726,7 @@ namespace ZombieLand
 
 				return new
 				{
-					success = corpseDestroyed && extractAfter > extractBefore && tickHit > 0 && medicineImproved,
+					success = facingSamples > 0 && facingFailures == 0 && corpseDestroyed && extractAfter > extractBefore && tickHit > 0 && medicineImproved,
 					actor = DescribePawn(actor),
 					actorCell = ZombieRuntimeActions.DescribeCell(actorCell),
 					zombieCell = ZombieRuntimeActions.DescribeCell(zombieCell),
@@ -704,6 +738,8 @@ namespace ZombieLand
 					tendSpeed,
 					maxTicks,
 					tickHit,
+					facingSamples,
+					facingFailures,
 					extractBefore,
 					extractAfter,
 					extractDelta = extractAfter - extractBefore,

@@ -1182,3 +1182,41 @@ are captured. This is a scoped native decision/predicate fixture, not a replay
 of Mortal's colony or a long-running autonomous flight test. The fixture removes
 its owned pawns and restores its settings and home-area cells. The containing
 base save is reloaded to remove its allowed-area setup as well.
+
+### Work-target facing and Spitter incapacitation, 11 October 2026
+
+The existing extraction and Double Tap contracts now challenge the working
+pawn's rotation before each native tick and check that the driver faces its
+corpse again. In public Steam RimWorld 1.6.4871 with all DLCs and Total Fog,
+extraction completes with extract and Medicine experience, with 500 facing
+samples and no failures. Drafted Double Tap removes the brain with 555 facing
+samples and no failures. The defense-room chainsaw repair consumes a component
+and repairs the saw after 1,000 ticks, with 997 facing samples and no failures.
+Native wait toils are observed after their initial interval update; their
+rotation is not forcibly changed between scheduled updates.
+
+Shocker activation completes its 90-tick wait with 87 correct facing samples
+and no failures. Its broader zap contract still returns false because a
+colonist kills the fixture zombie before activation, so this run does not prove
+paralysis. There are no warning-or-higher entries after startup. The existing
+rope job completes successfully; its instantaneous facing change is covered
+by source inspection rather than a separate pose assertion. Symbiant feeding
+already uses its selected interaction cell; contamination and zombie movement
+drivers do not perform the same stationary colony work.
+
+The existing `area_workflow_state` action `spitter-readiness` also verifies an
+active Spitter's animation, path request and real projectile creation, then a
+stale custom job in a forced downed health state retained by native anesthetic.
+It stops pathing, refuses departure, does not consume its queued shots and has
+zero animation offset through 60 native ticks. After recovery, spitting and
+animation resume. Killing it leaves a real `ZombieSpitterCorpse`; its position
+and animation stay fixed for another 60 ticks. Shot controls invoke the
+production driver before projectile impacts can remove the projectile. Their
+temporary Home cell and random state are restored. Corpse rendering reaches
+the same custom `DrawAt` through native Corpse/Pawn/Thing dynamic draw phases.
+
+Gameplay SHA-256 is
+`16b8249481712bfaba87ba2cf5ed36cb581860ed2abcb4a6ec37e2df74ac098e`.
+The private receipt is `work-facing-native-20261011.json` in Total Fog's ignored
+artifacts. The unchanged base is reloaded and the game stopped. These are
+bounded functional controls, not full player-loadout or performance evidence.

@@ -26,7 +26,7 @@ namespace ZombieLand
 			yield return Toils_Haul.StartCarryThing(TargetIndex.B);
 			yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.Touch)
 				.FailOnDespawnedOrNull(TargetIndex.A);
-			var toil = Toils_General.Wait(TicksDuration, TargetIndex.None);
+			var toil = Toils_General.Wait(TicksDuration, TargetIndex.A);
 			_ = toil.FailOnDespawnedOrNull(TargetIndex.A);
 			_ = toil.FailOnCannotTouch(TargetIndex.A, PathEndMode.Touch);
 			_ = toil.WithEffect(Chainsaw.def.repairEffect, TargetIndex.A, null);

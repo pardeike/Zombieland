@@ -778,6 +778,8 @@ namespace ZombieLand
 			var started = false;
 			if (shockerPower?.PowerOn == true && batteryCount > 0 && shocker.HasValidRoom())
 			{
+				actor.pather.StopDead();
+				actor.Position = shocker.InteractionCell;
 				var job = JobMaker.MakeJob(CustomDefs.ZapZombies, shocker);
 				job.playerForced = true;
 				started = actor.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
@@ -785,10 +787,14 @@ namespace ZombieLand
 
 			var maxTicks = 420 + roomCellCount;
 			var tickHit = -1;
+			var facingSamples = 0;
+			var facingFailures = 0;
 			var samples = new List<object>();
 			for (var tick = 1; tick <= maxTicks; tick++)
 			{
+				var expectedFacing = ChallengeWorkFacing(actor, shocker);
 				AdvanceGameTicks(1);
+				CheckWorkFacing(actor, shocker, expectedFacing, ref facingSamples, ref facingFailures);
 				var paralyzedNow = zombie.paralyzedUntil > GenTicks.TicksAbs;
 				var zapMotesNow = CountZombieZapMotesNear(map, zombie.Position, 3f);
 				if (tick == 1 || tick == 90 || tick % 30 == 0 || paralyzedNow)
@@ -813,7 +819,7 @@ namespace ZombieLand
 			var paralyzedAfter = zombie.paralyzedUntil > GenTicks.TicksAbs;
 			return new
 			{
-				success = started
+				success = facingSamples > 0 && facingFailures == 0 && started
 					&& shockerPower?.PowerOn == true
 					&& batteryCount > 0
 					&& shocker.HasValidRoom()
@@ -828,6 +834,8 @@ namespace ZombieLand
 				started,
 				maxTicks,
 				tickHit,
+				facingSamples,
+				facingFailures,
 				paralyzedUntilBefore,
 				paralyzedUntilAfter = zombie.paralyzedUntil,
 				zapMotesBefore,
@@ -891,13 +899,17 @@ namespace ZombieLand
 				job.playerForced = true;
 			var started = job != null && actor.jobs.TryTakeOrderedJob(job, new JobTag?(JobTag.Misc), false);
 			var tickHit = -1;
+			var facingSamples = 0;
+			var facingFailures = 0;
 			var samples = new List<object>();
 			Rand.PushState(3);
 			try
 			{
 				for (var tick = 1; tick <= 1250; tick++)
 				{
+					var expectedFacing = ChallengeWorkFacing(actor, chainsaw);
 					AdvanceGameTicks(1);
+					CheckWorkFacing(actor, chainsaw, expectedFacing, ref facingSamples, ref facingFailures);
 					var brokenNow = breakable?.broken ?? false;
 					if (tick == 1 || tick % 200 == 0 || brokenNow == false)
 					{
@@ -925,7 +937,7 @@ namespace ZombieLand
 			var trackedAfter = manager?.brokenThings?.Contains(chainsaw) ?? false;
 			return new
 			{
-				success = hasJob
+				success = facingSamples > 0 && facingFailures == 0 && hasJob
 					&& started
 					&& tickHit > 0
 					&& breakable?.broken == false
@@ -939,6 +951,8 @@ namespace ZombieLand
 				jobDef = job?.def?.defName,
 				started,
 				tickHit,
+				facingSamples,
+				facingFailures,
 				trackedAfter,
 				componentStackBefore,
 				componentStackAfter = component.Destroyed ? 0 : component.stackCount,
