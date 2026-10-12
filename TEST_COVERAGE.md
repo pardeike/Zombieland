@@ -1034,3 +1034,36 @@ Total Fog's `artifacts/native-session-total-fog-zombieland-fallback-16`.
 These are bounded smoke checks with the beauty overlay also enabled, not isolated
 contamination pixel comparisons or standalone performance acceptance. Map
 switching, larger maps and actual stat/icon/inspection callers remain open.
+
+## Occupied Total Fog watchtower and spitter landing, 2026-10-12
+
+Public Steam 1.6.4871 rev597, all five DLCs, Harmony, RimBridgeServer and Total
+Fog. Zombieland SHA-256 is
+`f46305f1b487b50a9c8c8bd8099e3c7da3c829369549318b9ebc4e62d4a5d4ab`;
+Total Fog is `1bbba5160a8f9d0f3dbdce57c1c463092590675562c962425bfd6e17107fab44`.
+The reusable non-shipping `totalfog/watchtower_zombies` companion suite passes
+27 native controls in Total Fog's `artifacts/tower-zombies58-20261012.json`.
+The paired base is restored, native attention/log errors are empty and process
+termination is verified. Neither mod has been released by this checkpoint.
+
+A native zombie cannot target the raised lookout in melee. Native wall pushing
+rejects the tower's solid interior while accepting an ordinary wall in the same
+control. Normal, tanky and bomber native structure eligibility remains valid;
+a supplied-target Zombieland job handoff produces actual AttackStatic damage.
+The native adjacent-building evaluation arms a bomber; ordinary playback runs
+its shortened fuse, death and queued explosion. The tower is destroyed and one
+surviving native lookout is grounded with zero presentation offset.
+
+Actual Spitter Shoot, flight, smoke/impact and zombie placement run for supplied
+tower-center and ladder cell targets. Before the fix, run 55 retains one spawned
+zombie at the impassable tower center, with the tower and lookout still intact.
+The fixed run places exactly one zombie on nearby open ground for that center
+target and preserves the ordinary ladder landing. The general landing change
+uses a bounded nearest-open-cell search only when the impact cell is blocked;
+it has no Total Fog dependency and preserves native impact/smoke coordinates.
+If no open cell exists within six cells, no zombie payload is spawned.
+
+This does not prove autonomous spitter target selection, tanky route planning,
+natural horde breaches or every special-zombie interaction. Run 57's bomber
+single-tick stepping timeout is retained: Zombieland's scheduler/explosion queue
+requires ordinary playback. It is not a production failure or an accepted run.

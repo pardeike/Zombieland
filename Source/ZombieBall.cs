@@ -70,7 +70,25 @@ namespace ZombieLand
 
 			landed = true;
 
-			var zombie = ZombieGenerator.SpawnZombie(Position, map, ZombieType.Random);
+			// Cell-targeted shots can land inside a solid edifice, including a
+			// watchtower. Place the payload on the nearest accessible ground;
+			// leave the native impact, smoke and explosion at their actual cell.
+			var spawnCell = Position;
+			if (spawnCell.Standable(map) == false)
+			{
+				spawnCell = IntVec3.Invalid;
+				foreach (var cell in GenRadial.RadialCellsAround(Position, 6f, true))
+					if (cell.InBounds(map) && cell.Standable(map))
+					{
+						spawnCell = cell;
+						break;
+					}
+				if (spawnCell.IsValid == false)
+					return;
+			}
+			var zombie = ZombieGenerator.SpawnZombie(spawnCell, map, ZombieType.Random);
+			if (zombie?.Spawned != true)
+				return;
 			zombie.rubbleCounter = Constants.RUBBLE_AMOUNT;
 			zombie.SetState(ZombieState.Wandering);
 			zombie.Rotation = Rot4.Random;
