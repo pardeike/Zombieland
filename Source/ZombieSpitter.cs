@@ -165,6 +165,9 @@ namespace ZombieLand
 
 		public override void DrawAt(Vector3 drawLoc, bool flip = false)
 		{
+			// The custom body bypasses PawnRenderer.RenderPawnAt, which normally
+			// supplies the graphic/position used by native character silhouettes.
+			Drawer.renderer.SetSilhouetteData(ageTracker.CurKindLifeStage.bodyGraphicData.Graphic, drawLoc);
 			mesh ??= MeshMakerPlanes.NewPlaneMesh(3f);
 			var v = new Vector3(AnimationOffset(Find.TickManager.TicksGame), 0f, 0f);
 			var h = new Vector3(0f, 0.01f, 0f);

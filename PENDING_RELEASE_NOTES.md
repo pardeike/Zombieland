@@ -25,3 +25,5 @@
 - Colonists face their work target when extracting zombie extract, double tapping, repairing a chainsaw, activating a shocker or attaching a zombie rope.
 - Dead or downed Spitters stop animating and cannot move or spit.
 - Place a spitter ball's zombie on nearby open ground when it lands inside a solid building.
+
+- Zombie Spitters now appear in the game's Character Highlighting, including enemy dots when zoomed out.

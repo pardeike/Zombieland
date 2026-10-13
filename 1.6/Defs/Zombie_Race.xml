@@ -189,7 +189,7 @@
 		<label>zombie spitter</label>
 		<thingClass>ZombieLand.ZombieSpitter</thingClass>
 		<description>A monster that spits zombies to attack your base from the air.</description>
-		<drawHighlight>false</drawHighlight>
+		<drawHighlight>true</drawHighlight>
 		<tools>
 		</tools>
 		<statBases>

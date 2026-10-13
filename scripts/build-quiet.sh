@@ -128,7 +128,7 @@ fi
 if [[ -n "$effective_rimworld_mod_dir" ]]; then
 	build_step="paired deployment verification"
 	cmp "$ROOT/1.6/Assemblies/ZombieLand.dll" "$effective_rimworld_mod_dir/ZombieLand/1.6/Assemblies/ZombieLand.dll"
-	cmp "$ROOT/artifacts/BridgeTools/Zombieland/Zombieland.BridgeTools.dll" "$effective_rimworld_mod_dir/../BridgeTools/Zombieland/Zombieland.BridgeTools.dll"
+	cmp "$ROOT/artifacts/BridgeTools/Zombieland/Zombieland.BridgeTools.dll" "$(dirname "${effective_rimworld_mod_dir%/}")/BridgeTools/Zombieland/Zombieland.BridgeTools.dll"
 fi
 
 if [[ "$restart_rimworld" == true ]]; then
