@@ -2,6 +2,27 @@
 
 This file defines the test surface for the RimWorld 1.6 port from the mod code outward. It is not a work log. Update it only when a test surface is added, removed, merged, or proven covered by durable evidence. Detailed scenario definitions live in `TEST_SCENARIOS.md`.
 
+
+## Release candidate pair, 15 October 2026
+
+Zombieland 5.7.0.0 gameplay SHA-256 is
+`aceaa59be81ea902118554ff2e614dbe3be59081d784af6572bdf40dfb972da6`.
+The final Core-only native 1.6.4871 rev573 pair with Total Fog 1.0.0 renews
+startup/def/graphic/sound checks, hidden warning/audio/explosion presentation,
+Symbiant pixels/interaction and four render-cost matrices, plus fourteen
+contamination visibility/refresh pixel controls. Active/recovered Spitters
+retain motion; downed/dead Spitters remain stable for 60 ticks and cannot leave.
+All three platform bundles rebuild and validate; the Mac Metal shaders work.
+
+The contamination scenario explicitly disables remembered interaction for its
+strict-selection controls, then restores it. An earlier failure expected strict
+selection under the newly enabled remembered-interaction default; it is kept as
+a rejected test setup. Gameplay DLLs stay byte-identical across the companion
+correction. The standalone Steam 1.7 tower pass belongs to Total Fog and does
+not establish Zombieland 1.7 support. The frozen 1.4 payload stays unchanged.
+Exact scopes, failed-attempt distinctions and ignored evidence locations are in
+[Total Fog's release-candidate validation](../TotalFog/docs/VALIDATION.md#release-candidate-pair-2026-10-15).
+
 ## Stream feedback controls, 10 October 2026
 
 The paired native Mac check uses Steam RimWorld 1.6.4871, all five DLCs,
