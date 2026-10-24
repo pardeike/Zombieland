@@ -563,7 +563,6 @@ namespace ZombieLand
 
 		public HashSet<Zombie> allZombiesCached;
 		IEnumerator taskTicker;
-		bool runZombiesForNewIncident = false;
 
 		public Zombie[] currentZombiesTicking = Array.Empty<Zombie>();
 		public int currentZombiesTickingCount;
@@ -930,6 +929,7 @@ namespace ZombieLand
 			Scribe_Collections.Look(ref allZombiesCached, "prioritizedZombies", LookMode.Reference);
 			Scribe_Collections.Look(ref explosions, "explosions", LookMode.Value);
 			Scribe_Deep.Look(ref incidentInfo, "incidentInfo", Array.Empty<object>());
+			Scribe_Values.Look(ref incidentTickCounter, "incidentTickCounter");
 			Scribe_Values.Look(ref mapSpawnedTicks, "mapSpawnedTicks");
 			Scribe_Values.Look(ref lastZombieContact, "lastZombieContact");
 			Scribe_Values.Look(ref lastZombieSpitter, "lastZombieSpitter");
@@ -950,7 +950,6 @@ namespace ZombieLand
 				allZombieCorpses ??= new List<ZombieCorpse>();
 				allZombieCorpses = allZombieCorpses.Where(corpse => corpse.DestroyedOrNull() == false && corpse.Spawned).ToList();
 
-				runZombiesForNewIncident = true;
 				explosions ??= new List<IntVec3>();
 
 				if (zombieSpitterInited == false)
@@ -1589,7 +1588,9 @@ namespace ZombieLand
 			if (ZombiesRising.ZombiesForNewIncident(this))
 			{
 				var success = ZombiesRising.TryExecute(map, incidentInfo.parameters.incidentSize, IntVec3.Invalid, true);
-				if (success == false)
+				if (success)
+					incidentInfo.Update();
+				else
 					Log.Warning("Incident creation failed. Most likely no valid spawn point found.");
 			}
 		}
@@ -2170,12 +2171,6 @@ namespace ZombieLand
 		IEnumerator TickTasks(bool skipFirstIncidentPass = false)
 		{
 			var skipIncidents = skipFirstIncidentPass;
-			if (runZombiesForNewIncident && map != null)
-			{
-				runZombiesForNewIncident = false;
-				_ = ZombiesRising.ZombiesForNewIncident(this);
-			}
-
 			while (true)
 			{
 				UpdateGameSettings();

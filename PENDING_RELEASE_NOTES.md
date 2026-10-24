@@ -1,0 +1,4 @@
+- Fixed loading a save silently skipping a zombie wave and changing the wait between waves.
+- Fixed repeated short play sessions postponing zombie waves indefinitely.
+- Fixed failed zombie-wave placement starting a new cooldown without spawning zombies.
+- Fixed errors when loading another save while a zombie wave was spawning.

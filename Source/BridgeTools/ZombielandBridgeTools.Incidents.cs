@@ -154,7 +154,8 @@ namespace ZombieLand
 			[ToolParameter(Description = "Create a reusable capable-colony incident fixture before reading state.", Required = false, DefaultValue = false)] bool setupFixture = false,
 			[ToolParameter(Description = "Optional action to run before readback: read, scheduledWave, spawnMatrix, threatForecast, forecastUi, spawnModes, raidWorker, raidCadence, eventDelivery, zeroThreat, zombieFreeEvent, zombieFreeModeMatrix, zombieFreeAmbientSound, zombieFreeOverlap, zombieFreeReview, zombieFreeSchedule, zombieFreeForecast, zombieFreeHover, pathingRegions, or all.", Required = false, DefaultValue = "read")] string actionMode = "read",
 			[ToolParameter(Description = "Ticks to advance before reading final state; clamped to 0..5000.", Required = false, DefaultValue = 0)] int advanceTicks = 0,
-			[ToolParameter(Description = "Difficulty percentage used by the zombieFreeForecast and zombieFreeHover actions. Clamped to 50..500.", Required = false, DefaultValue = 100)] int zombieFreePreviewDifficultyPercent = 100)
+			[ToolParameter(Description = "Difficulty percentage used by the zombieFreeForecast and zombieFreeHover actions. Clamped to 50..500.", Required = false, DefaultValue = 100)] int zombieFreePreviewDifficultyPercent = 100,
+			[ToolParameter(Description = "Include the full-map spawn-location diagnostics in state readback.", Required = false, DefaultValue = true)] bool includeSpawnDiagnostics = true)
 		{
 			var map = CurrentMap;
 			if (map == null)
@@ -191,7 +192,7 @@ namespace ZombieLand
 				AdvanceGameTicks(clampedAdvanceTicks);
 
 			var includeState = normalizedActionMode != "zombiefreehover";
-			var state = includeState ? DescribeIncidentThreatState(map) : null;
+			var state = includeState ? DescribeIncidentThreatState(map, includeSpawnDiagnostics) : null;
 			var tickManagerPresent = map.GetComponent<TickManager>() != null;
 			return new
 			{
@@ -645,6 +646,8 @@ namespace ZombieLand
 					.OfType<Zombie>()
 					.Where(zombie => initialIds.Contains(ZombieRuntimeActions.StableThingId(zombie)) == false)
 					.ToArray();
+				if (newZombies.Length > 0)
+					tickManager.incidentInfo.Update();
 				var newLetters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
 					.Where(letter => beforeLetters.Contains(letter) == false)
 					.ToArray();
@@ -3612,7 +3615,7 @@ namespace ZombieLand
 			return string.Format("{0:D0}-{1:D0}%", n1, n2) + " " + "ThreatLevel".Translate();
 		}
 
-		static object DescribeIncidentThreatState(Map map)
+		static object DescribeIncidentThreatState(Map map, bool includeSpawnDiagnostics = true)
 		{
 			var tickManager = map.GetComponent<TickManager>();
 			var lastIncidentField = typeof(IncidentInfo).GetField("lastIncident", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -3655,11 +3658,11 @@ namespace ZombieLand
 						: DescribeIncidentParameters(tickManager.incidentInfo.parameters)
 				},
 				threat = weather == null ? null : DescribeThreatForecast(map),
-				spawnDiagnostics = new
+				spawnDiagnostics = includeSpawnDiagnostics ? new
 				{
 					fromEdges = DescribeSpawnCandidateDiagnostics(map, SpawnHowType.FromTheEdges),
 					allOverTheMap = DescribeSpawnCandidateDiagnostics(map, SpawnHowType.AllOverTheMap)
-				},
+				} : null,
 				letters = (Find.LetterStack?.LettersListForReading ?? new List<Letter>())
 					.Select(DescribeLetter)
 					.ToArray()
@@ -4519,6 +4522,9 @@ namespace ZombieLand
 					var result = ZombiesRising.ZombiesForNewIncident(tickManager);
 					var parameters = tickManager.incidentInfo.parameters;
 					var lastIncident = (int)lastIncidentField.GetValue(tickManager.incidentInfo);
+					var pendingInterval = parameters.daysStretched;
+					tickManager.incidentInfo.Update();
+					var committedLastIncident = (int)lastIncidentField.GetValue(tickManager.incidentInfo);
 					return new
 					{
 						name = "positive_incident_size",
@@ -4528,11 +4534,15 @@ namespace ZombieLand
 							&& parameters.calculatedZombies > 0
 							&& parameters.maxAdditionalZombies > 0
 							&& parameters.deltaDays > 0
-							&& lastIncident == GenTicks.TicksAbs,
+							&& lastIncident == -GenDate.TicksPerDay * 100
+							&& pendingInterval == -10f
+							&& committedLastIncident == GenTicks.TicksAbs,
 						result,
 						expectedResult = true,
 						expectedSkipReason = "-",
 						lastIncident,
+						pendingInterval,
+						committedLastIncident,
 						currentTicks = GenTicks.TicksAbs,
 						parameters = DescribeIncidentParameters(parameters)
 					};

@@ -219,6 +219,13 @@ namespace ZombieLand
 	public static class ZombieGenerator
 	{
 		public static int ZombiesSpawning = 0;
+		static int spawnGeneration;
+
+		internal static void ResetMapOwnedState()
+		{
+			spawnGeneration++;
+			ZombiesSpawning = 0;
+		}
 		public static readonly List<BackstoryDef> childBackstories;
 		public static readonly List<BackstoryDef> adultBackstories;
 		public static readonly Dictionary<bool, Dictionary<string, List<ThingStuffPair>>> AllApparel;
@@ -497,13 +504,30 @@ namespace ZombieLand
 
 		public static IEnumerator SpawnZombieIterativ(IntVec3 cell, Map map, ZombieType zombieType, Action<Zombie> callback)
 		{
+			var game = Current.Game;
+			var generation = spawnGeneration;
+			var iterator = CreateZombieIteratively(cell, map, zombieType, callback);
+			ZombiesSpawning++;
+			try
+			{
+				while (generation == spawnGeneration && Current.Game == game && game != null && game.Maps.Contains(map) && iterator.MoveNext())
+					yield return iterator.Current;
+			}
+			finally
+			{
+				(iterator as IDisposable)?.Dispose();
+				if (generation == spawnGeneration)
+					ZombiesSpawning--;
+			}
+		}
+
+		static IEnumerator CreateZombieIteratively(IntVec3 cell, Map map, ZombieType zombieType, Action<Zombie> callback)
+		{
 			static void Abort(Exception ex)
 			{
 				Log.Error($"Zombieland caught an exception from another mod while creating a zombie: {ex}");
-				ZombiesSpawning--;
 			}
 
-			ZombiesSpawning++;
 			var zombie = (Zombie)ThingMaker.MakeThing(ZombieDefOf.Zombie.race, null);
 
 			if (RunWithFailureCheck(out var bodyType, out var ex1, () =>
@@ -656,8 +680,6 @@ namespace ZombieLand
 			{
 				Log.Warning($"Zombieland caught an exception after creating a zombie: {ex16}");
 			}
-			ZombiesSpawning--;
-
 			switch (Find.TickManager.CurTimeSpeed)
 			{
 				case TimeSpeed.Paused:

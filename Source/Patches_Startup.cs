@@ -9,6 +9,7 @@ namespace ZombieLand
 	{
 		static void ResetMapOwnedStaticState(bool recreateAvoider)
 		{
+			ZombieGenerator.ResetMapOwnedState();
 			Tools.ResetMapOwnedState(recreateAvoider);
 			TargetCachePatches.ResetMapOwnedState();
 			GroupZombieResponse.ResetMapOwnedState();

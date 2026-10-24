@@ -635,6 +635,11 @@ Current runtime evidence:
 
 Goal: prove player-visible incident scheduling, spawn modes, letters, threat forecast, and zombie limit behavior.
 
+Regression cases verified with TDD on 2026-10-24:
+- `scripts/incident-save-load-regression.lua` failed before the changes for short-session starvation and failed-placement consumption. Both modes then passed. Three saved 10,000-tick segments reached the overdue check after persisting `incidentTickCounter`. Failed all-over-map placement preserved `lastIncident=4202628` and `daysStretched=2.5`. Restoring valid soil admitted the pending wave at the next check.
+- The combined test exposed generation continuing into a discarded map. The added `reloadDuringWave` mode first failed with stale-map errors, then passed with an empty error journal and `ZombiesSpawning=0`. Generation now pauses during long events, checks its game/map lifetime, and invalidates old generation counts through the existing map-reset hook.
+- Existing scheduling, edge/all-over attack-letter, and special-type spawn contracts passed. The fixtures use matching Core/Harmony/RimBridgeServer/Zombieland loadouts. The original player save remains unchanged. Maintained fixtures are `ZL_Incident_LoadRegression_20261024_overdue` and `ZL_Incident_Regression_blocked`. Compact red/green results are in ignored `artifacts/incident-tdd-results.json`.
+
 Prior evidence:
 - `2cc1beb Cover event special zombie spawning`
 - `6dd03e1 Cover incident scheduling calculation`
@@ -662,6 +667,8 @@ Runtime:
 - Run `actionMode:zombieFreeModeMatrix` to cover all four `useDynamicThreatLevel`/`zombieFreeEvents` combinations without advancing the fixture clock.
 - Use `actionMode:pathingRegions` for the focused region/room rebuild pathing refresh proof.
 - Save before forecast changes, reload, verify forecast and scheduling state.
+- Load an overdue event-only fixture. Verify loading preserves `lastIncident`, then let normal gameplay deliver the wave.
+- Save after delivery and reload. Verify `lastIncident` and `daysStretched` remain unchanged.
 
 Assertions:
 - Letter text/type and target are correct.
@@ -685,6 +692,7 @@ Completion:
 - Covered when one natural incident plus forced mode checks pass and persist through reload.
 
 Current runtime evidence:
+- Added 2026-10-24 save/load regression from Sylvie's missing-wave report. The original save was inspected as XML and remained unchanged. Disposable `ZL_Incident_LoadRegression_20261024_base`, `_overdue`, `_notdue`, `_interval`, and `_roundtrip` fixtures used matching Core/Harmony/RimBridgeServer/Zombieland loadouts. Before the fix, loading `_overdue` advanced `lastIncident` from `4202628` to `4802628`, calculated 80 zombies, and spawned none despite 10,289 valid edge spots. After the fix, loading preserved `4202628`; normal accelerated gameplay delivered 73 zombies and one `ThreatSmall` attack letter. Saving and reloading preserved `lastIncident=4830132`, `daysStretched=5.09348106`, and all 73 zombies. A future fixture retained its saved `7.060267`-day interval. Existing `incident_scheduling_contract` cases passed for initial grace, empty incidents, and positive incident calculation. Release build and paired deployment passed. Evidence is in ignored `artifacts/incident-save-load-regression.json`. The full-log error summary was empty. Startup retained an unrelated stale TotalFog companion loader issue, and naming-dialog automation emitted one Unity `Event.Use` layout warning. No scheduler or spawn failure was logged.
 - Partial coverage added 2026-05-30 with reusable `zombieland/incident_threat_state`, a scenario-level setup/read/action tool. RimWorld 1.6 decompiler checks confirmed the incident hook targets before relying on runtime behavior: `IncidentWorker.TryExecute`, `IncidentWorker_Raid.TryExecuteWorker`, and `PawnGroupKindWorker.GeneratePawns`.
 - From `EMPTY`, `setupFixture:true actionMode:read` created three capable armed colonists and prepared a deterministic all-over-map spawn field at `(100,124)`. The spawn field is intentional fixture setup: the baseline `EMPTY` map is reachable but all `SterileTile`, and all-over-map validation rejects removable top-layer/floor terrain while edge spawning does not. After the fixture edit, diagnostics reported 2,401 all-over valid spawn cells and 4,365 valid event spots. The fixture was saved as `ZL_Incident_Threat_base.rws`.
 - From a fresh `ZL_Incident_Threat_base.rws` reload, `actionMode:all` returned `success=true`. The alert-wave matrix spawned four normal zombies from edges and produced one `ThreatSmall` `Zombie attack` letter, then spawned four normal zombies in all-over-map mode and produced one `ThreatSmall` `Direct attack of zombies` letter. Explicit event spawning matched all requested types: suicide bomber, toxic splasher, tanky operator, miner, electrifier, albino, dark slimer, healer, and normal.

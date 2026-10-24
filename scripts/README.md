@@ -31,6 +31,18 @@ The preserved `1.4/` payload is still checked for XML parse failures and layout 
 
 Run `./scripts/summarize-rimworld-log.sh /path/to/Player.log` to collapse repeated error blocks before inspecting a runtime test. The summary includes exceptions plus early play-data failures such as `Config error in`, grammar-rule failures, and failed resolution messages; those can be emitted before RimBridge initializes and therefore must not be checked only through the live bridge journal.
 
+## Incident save/load regressions
+
+Use `incident-save-load-regression.lua` with disposable saves whose recorded mods match the active loadout. Compile it with `rimbridge/compile_lua_file`, then run it with `rimbridge/run_lua_file`. Pass `includeStepResults=false` for compact output. Each mode asserts its result and returns the incident state.
+
+| Mode | Fixture requirements | Assertion |
+| --- | --- | --- |
+| `shortSessions` | Overdue incident, capable armed colonists, event-only spawning, constant threat, silence disabled, valid spawn ground. | Three saved 10,000-tick segments reach the incident check. |
+| `failedPlacement` | Same overdue setup, all-over-map spawning, fully tiled ground, saved `daysStretched=2.5`. | A failed placement preserves the timestamp and interval. |
+| `reloadDuringWave` | The valid overdue fixture. Start in a fresh process for a clean error journal. | Loading during generation produces no errors and leaves no active generation count. |
+
+Supply `parameters={mode:..., saveName:...}`. The optional `scratchSave` parameter defaults to `ZL_Incident_Regression_scratch` and is overwritten by `shortSessions`. The maintained local fixtures are `ZL_Incident_LoadRegression_20261024_overdue` and `ZL_Incident_Regression_blocked`. `TEST_SCENARIOS.md` owns their red/green evidence. Fully tiled ground deliberately has no all-over-map spawn spots, so the placement case expects an incident-creation warning.
+
 ## Zombie Ticking Runtime Benchmark
 
 `zombie-ticking-benchmark.lua` is the reusable real-RimBridge entry point for the adaptive scheduler regression and speed matrix. The lowered-Lua file is intentionally a thin parameter wrapper around `zombieland/zombie_ticking_benchmark`; the companion tool owns the sequence so its C# `finally` restores test mode even when a nested call fails or the operation is cancelled.

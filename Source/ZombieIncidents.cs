@@ -50,6 +50,9 @@ namespace ZombieLand
 
 		public void Update()
 		{
+			var stretchFactor = 1f + parameters.incidentSize / 150f;
+			parameters.daysStretched = Rand.Range(1.5f * stretchFactor, 4f * stretchFactor);
+			parameters.deltaDays = parameters.daysStretched + ZombieSettings.Values.extraDaysBetweenEvents;
 			lastIncident = GenTicks.TicksAbs;
 		}
 
@@ -60,6 +63,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref lastIncident, "lastIncident");
 
 			parameters ??= new IncidentParameters();
+			Scribe_Values.Look(ref parameters.daysStretched, "daysStretched");
 		}
 	}
 
@@ -183,11 +187,6 @@ namespace ZombieLand
 			parameters.scaleFactor = Tools.Boxed(parameters.scaleFactor, 0f, 1f);
 			parameters.incidentSize = Math.Max(1, (int)(parameters.incidentSize * parameters.scaleFactor + 0.5f));
 
-			// success
-			var stretchFactor2 = 1f + parameters.incidentSize / 150f;
-			parameters.daysStretched = Rand.Range(1.5f * stretchFactor2, 4f * stretchFactor2);
-			parameters.deltaDays = parameters.daysStretched + ZombieSettings.Values.extraDaysBetweenEvents;
-			tickManager.incidentInfo.Update();
 			return true;
 		}
 
@@ -209,12 +208,13 @@ namespace ZombieLand
 
 		static IEnumerator SpawnEventProcess(Map map, int incidentSize, IntVec3 spot, Predicate<IntVec3> cellValidator, bool useAlert, bool ignoreLimit, ZombieType zombieType = ZombieType.Random)
 		{
+			var game = Current.Game;
 			var zombiesSpawning = 0;
 			var counter = 1;
 			var tickManager = map.GetComponent<TickManager>();
 			if (tickManager?.RuntimeReady != true)
 				yield break;
-			while (incidentSize > 0 && (ignoreLimit || tickManager.CanHaveMoreZombies()) && counter <= 10)
+			while (Current.Game == game && game.Maps.Contains(map) && incidentSize > 0 && (ignoreLimit || tickManager.CanHaveMoreZombies()) && counter <= 10)
 			{
 				var cells = Tools.GetCircle(Constants.SPAWN_INCIDENT_RADIUS)
 					.Select(vec => spot + vec)
@@ -226,9 +226,18 @@ namespace ZombieLand
 
 				foreach (var cell in cells)
 				{
+					while (LongEventHandler.AnyEventNowOrWaiting || LongEventHandler.ShouldWaitForEvent)
+						yield return null;
+					if (Current.Game != game || game.Maps.Contains(map) == false)
+						yield break;
 					var it = ZombieGenerator.SpawnZombieIterativ(cell, map, zombieType, zombie => tickManager.allZombiesCached?.Add(zombie));
-					while (it.MoveNext())
+					using var spawnScope = it as IDisposable;
+					while (true)
 					{
+						while (LongEventHandler.AnyEventNowOrWaiting || LongEventHandler.ShouldWaitForEvent)
+							yield return null;
+						if (Current.Game != game || game.Maps.Contains(map) == false || it.MoveNext() == false)
+							break;
 						if (ZombielandMod.frameWatch.ElapsedMilliseconds >= 10)
 							yield return null;
 					}
@@ -238,7 +247,7 @@ namespace ZombieLand
 				counter++;
 			}
 
-			if (zombiesSpawning > 3)
+			if (Current.Game == game && game.Maps.Contains(map) && zombiesSpawning > 3)
 			{
 				if (useAlert && ZombieAwarenessCues.ShouldShowZombieEventLetter())
 				{
