@@ -562,6 +562,7 @@ namespace ZombieLand
 		public int mapSpawnedTicks = 0;
 
 		public HashSet<Zombie> allZombiesCached;
+		internal string missingExtractAreaWarning;
 		IEnumerator taskTicker;
 
 		public Zombie[] currentZombiesTicking = Array.Empty<Zombie>();

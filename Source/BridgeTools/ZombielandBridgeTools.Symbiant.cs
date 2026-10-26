@@ -10016,8 +10016,60 @@ namespace ZombieLand
 			};
 		}
 
+		static readonly List<Vector3> selectionBracketPositions = new();
+
+		static void CaptureSelectionBracket(Mesh mesh, Matrix4x4 matrix, Material material, int layer)
+		{
+			selectionBracketPositions.Add(matrix.GetColumn(3));
+		}
+
+		static IEnumerable<CodeInstruction> CaptureSelectionBracketCalls(IEnumerable<CodeInstruction> instructions)
+		{
+			return Transpilers.MethodReplacer(instructions,
+				AccessTools.Method(typeof(Graphics), nameof(Graphics.DrawMesh), new[] { typeof(Mesh), typeof(Matrix4x4), typeof(Material), typeof(int) }),
+				AccessTools.Method(typeof(ZombielandBridgeTools), nameof(CaptureSelectionBracket)));
+		}
+
+		static object VerifySymbiantSelectionBrackets(ZombieSymbiant symbiant)
+		{
+			var camera = Find.CameraDriver;
+			var oldSize = camera.ZoomRootSize;
+			var harmony = new Harmony("net.pardeike.zombieland.bridge.selection-bracket-probe");
+			var method = AccessTools.Method(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor));
+			var rows = new List<object>();
+			var success = true;
+			try
+			{
+				harmony.Patch(method, transpiler: new HarmonyMethod(typeof(ZombielandBridgeTools), nameof(CaptureSelectionBracketCalls)));
+				var core = symbiant.AbsoluteCells.First(cell => cell != symbiant.Position);
+				symbiant.DebugBeginSelectionCoreHandoff(symbiant.SelectionCoreCell, core);
+				symbiant.DebugSetSelectionCoreHandoffProgress(1f);
+				foreach (var target in new Thing[] { symbiant, symbiant.Map.mapPawns.FreeColonistsSpawned.First() })
+					foreach (var zoom in new[] { camera.config.sizeRange.min, camera.config.sizeRange.max * 0.90f, camera.config.sizeRange.max })
+					{
+						camera.SetRootSize(zoom);
+						selectionBracketPositions.Clear();
+						SelectionDrawer.DrawSelectionBracketFor(target);
+						var center = selectionBracketPositions.Aggregate(Vector3.zero, (sum, pos) => sum + pos) / Math.Max(1, selectionBracketPositions.Count);
+						var expected = target.CustomRectForSelector?.CenterVector3 ?? target.DrawPos;
+						var offset = (center - expected).MagnitudeHorizontal();
+						var aligned = selectionBracketPositions.Count == 4 && offset < 0.001f;
+						success &= aligned;
+						rows.Add(new { target = target.def.defName, zoom, count = selectionBracketPositions.Count, offset, aligned });
+					}
+				return new { success, rows };
+			}
+			finally
+			{
+				harmony.UnpatchAll(harmony.Id);
+				camera.SetRootSize(oldSize);
+				selectionBracketPositions.Clear();
+			}
+		}
+
 		[Tool("zombieland/symbiant_selection_core_contract", Description = "Verify the Symbiant's single-cell inspection core, whole-body active manual targeting, unobscured-map tooltip gate, ordinary click-through logical cells, bounded core initialization and repeated movement, non-metaball fallback rendering, selector patch installation, and valid core handoff while cells disappear.")]
 		public static object SymbiantSelectionCoreContract(
+			[ToolParameter(Description = "Only verify native selection brackets across zoom levels.", Required = false, DefaultValue = false)] bool bracketsOnly = false,
 			[ToolParameter(Description = "Destroy the temporary contract Symbiant after capturing evidence.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
 			var map = CurrentMap;
@@ -10026,6 +10078,16 @@ namespace ZombieLand
 			var activeBefore = ZombieSymbiant.ActiveSymbiant(map);
 			if (activeBefore != null)
 				return new { success = false, error = "An active symbiant already exists on the current map.", activeSymbiant = ZombieRuntimeActions.StableThingId(activeBefore) };
+
+			if (bracketsOnly)
+			{
+				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
+				if (!TryFindClearSpawnCell(map, root, 56f, out var cell, out var spawnError))
+					return spawnError;
+				var probe = ZombieSymbiant.DebugSpawnForRendering(map, cell, SymbiantCombatCrossCells(cell));
+				try { return VerifySymbiantSelectionBrackets(probe); }
+				finally { probe?.DebugDestroyWithoutHostTrauma(); }
+			}
 
 			if (TrySetupSymbiantExpansionFixture(map, out var fixture, out var fixtureError) == false)
 				return fixtureError;
@@ -10041,6 +10103,7 @@ namespace ZombieLand
 				symbiant = ZombieSymbiant.DebugSpawnForRendering(map, clearRoot, shape);
 				if (symbiant == null)
 					return new { success = false, error = "Could not create the selection-core fixture." };
+
 
 				var clickParams = new TargetingParameters
 				{

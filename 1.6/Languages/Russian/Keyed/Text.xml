@@ -186,7 +186,7 @@
 	<ZombieBiteInfectionUnknown>Время, пока инфекция не известна</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Время, пока инфекция поддаётся лечению</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>Продолжительность заражения</ZombieBiteInfectionPersists>
-	<AnyTreatmentStopsInfection>Лечение в постели останавливает инфекцию</AnyTreatmentStopsInfection>
+	<AnyTreatmentStopsInfection>Любое лечение останавливает заражение</AnyTreatmentStopsInfection>
 	<HoursAfterDeathToBecomeZombie>Время стать зомби после смерти</HoursAfterDeathToBecomeZombie>
 	<Immediately>Немедленно</Immediately>
 	<DeadBecomesZombieMessage>Показать сообщение, когда кто-то превращается в зомби</DeadBecomesZombieMessage>
@@ -353,4 +353,5 @@
 	<ContaminationHelp>Загрязнение, вызванное зомби-апокалипсисом, передается через прикосновение и обработку вещей. Оно распространяется и может привести к странному поведению у поселенцев.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Переключить оверлей загрязнения зомби.\n\nЭто показывает, насколько загрязнены вещи и земля, что в свою очередь влияет на пешек.</ShowContaminationOverlayToggleButton>
 	<VanillaFleeWithoutAvoidance>Обычное бегство без автоматического избегания</VanillaFleeWithoutAvoidance>
+	<ZombieExtractAreaMissing>Автоматический сбор экстракта зомби приостановлен, поскольку область "{0}" больше не существует. Выберите область заново в настройках Zombieland или укажите Везде. Ручной сбор остаётся доступным.</ZombieExtractAreaMissing>
 </LanguageData>

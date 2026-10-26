@@ -267,6 +267,24 @@ namespace ZombieLand
 			}
 		}
 
+		[HarmonyPatch(typeof(SelectionDrawer), nameof(SelectionDrawer.DrawSelectionBracketFor))]
+		static class SelectionDrawer_DrawSelectionBracketFor_Symbiant_Patch
+		{
+			static Vector3 SelectionDrawPos(Thing thing)
+			{
+				// Native zoom scaling must use the same anchor as the custom brackets.
+				return thing is ZombieSymbiant && thing.CustomRectForSelector is CellRect rect
+					? rect.CenterVector3 : thing.DrawPos;
+			}
+
+			static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+			{
+				return Transpilers.MethodReplacer(instructions,
+					AccessTools.PropertyGetter(typeof(Thing), nameof(Thing.DrawPos)),
+					AccessTools.Method(typeof(SelectionDrawer_DrawSelectionBracketFor_Symbiant_Patch), nameof(SelectionDrawPos)));
+			}
+		}
+
 		// patch for debugging: show pheromone grid as overlay
 		//
 		[HarmonyPatch(typeof(SelectionDrawer))]

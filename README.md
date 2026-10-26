@@ -212,8 +212,9 @@ Stage 2) Once a wound is infected, treatment it will stop the infection. So does
 **Duration of the infection**  
 Stage 3) An unstopped infection will start the conversion to a zombie. At this point hope is almost lost, only amputation (if feasible) is still the last option. Don't kill your colonist because he or she might have zombie-like super powers. At the end of this stage, the colonist becomes a powerful zombie
 
-**Treatment in a bed stops infections**  
-Normally, treatment only works if done by a really good doctor, in a really good medical bed with a vitals monitor in a sterile room. This option makes it work in *any* bed. Please note: if the wound has been treated outside of a bed before, it's too late. You have one chance
+**Any treatment stops infection**
+
+With this option enabled, any treatment stops a bite infection. No bed or minimum treatment quality is required.
 
 ### Zombie serum
 

@@ -8,6 +8,35 @@ namespace ZombieLand
 {
 	public class WorkGiver_ExtractZombieSerum : WorkGiver_Scanner
 	{
+		internal static bool TryGetExtractArea(Map map, out Area area)
+		{
+			var name = ZombieSettings.Values.extractZombieArea;
+			area = map.areaManager.AllAreas.FirstOrDefault(candidate => candidate.Label == name
+				|| $"{candidate.Label}:{map.Index + 1}" == name);
+			var manager = map.GetComponent<TickManager>();
+			if (string.IsNullOrEmpty(name) || area != null)
+			{
+				if (manager != null)
+					manager.missingExtractAreaWarning = null;
+				return true;
+			}
+			// A map-qualified selection deliberately excludes other maps.
+			var existsOnAnotherMap = Find.Maps.Any(other => other.areaManager.AllAreas.Any(candidate =>
+				candidate.Label == name || $"{candidate.Label}:{other.Index + 1}" == name));
+			if (existsOnAnotherMap)
+			{
+				if (manager != null)
+					manager.missingExtractAreaWarning = null;
+				return false;
+			}
+			if (manager != null && manager.missingExtractAreaWarning != name)
+			{
+				manager.missingExtractAreaWarning = name;
+				Messages.Message("ZombieExtractAreaMissing".Translate(name), MessageTypeDefOf.CautionInput, true);
+			}
+			return false;
+		}
+
 		public override ThingRequest PotentialWorkThingRequest => ThingRequest.ForDef(CustomDefs.Corpse_Zombie);
 		public override PathEndMode PathEndMode => PathEndMode.ClosestTouch;
 		public override bool Prioritized => true;
@@ -29,7 +58,8 @@ namespace ZombieLand
 
 			var map = pawn.Map;
 			var pos = pawn.Position;
-			var area = map.areaManager.AllAreas.FirstOrDefault(area => area.Label == ZombieSettings.Values.extractZombieArea);
+			if (TryGetExtractArea(map, out var area) == false)
+				return Enumerable.Empty<Thing>();
 
 			var tickManager = map.GetComponent<TickManager>();
 			var corpses = tickManager?.RuntimeReady == true ? tickManager.allZombieCorpses : null;
@@ -57,7 +87,8 @@ namespace ZombieLand
 				if (IsAllowedByPawnArea(pawn, t.Position, forced) == false)
 					return false;
 
-				var area = map.areaManager.AllAreas.FirstOrDefault(area => area.Label == ZombieSettings.Values.extractZombieArea);
+				if (TryGetExtractArea(map, out var area) == false)
+					return false;
 				if (area != null && area[t.Position] == false)
 					return false;
 			}
@@ -95,8 +126,13 @@ namespace ZombieLand
 		{
 			if (t is not ZombieCorpse corpse)
 				return null;
-			if (forced == false && IsAllowedByPawnArea(pawn, t.Position, forced) == false)
-				return null;
+			if (forced == false)
+			{
+				if (IsAllowedByPawnArea(pawn, t.Position, forced) == false
+					|| TryGetExtractArea(pawn.Map, out var area) == false
+					|| (area != null && area[t.Position] == false))
+					return null;
+			}
 			return JobMaker.MakeJob(CustomDefs.ExtractZombieSerum, corpse);
 		}
 	}

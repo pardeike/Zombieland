@@ -186,7 +186,7 @@
 	<ZombieBiteInfectionUnknown>发现感染的时间</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>可治疗的感染时间</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>感染持续时间</ZombieBiteInfectionPersists>
-	<AnyTreatmentStopsInfection>躺在床上治疗可阻止感染</AnyTreatmentStopsInfection>
+	<AnyTreatmentStopsInfection>任何治疗都能阻止感染</AnyTreatmentStopsInfection>
 	<HoursAfterDeathToBecomeZombie>死后成为丧尸的时间</HoursAfterDeathToBecomeZombie>
 	<Immediately>立即</Immediately>
 	<DeadBecomesZombieMessage>当有人变成丧尸时，展示一条消息</DeadBecomesZombieMessage>
@@ -353,4 +353,5 @@
 	<ContaminationHelp>丧尸污染会通过触碰和接触受污染物品传播。它会向周围扩散，并可能使殖民者出现奇怪的行为。</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>切换丧尸污染显示。\n\n这会显示物品和地面的污染程度；污染会进一步影响角色。</ShowContaminationOverlayToggleButton>
 	<VanillaFleeWithoutAvoidance>关闭自动避让时使用正常逃跑反应</VanillaFleeWithoutAvoidance>
+	<ZombieExtractAreaMissing>区域“{0}”已不存在，自动采集僵尸提取物已暂停。请在 Zombieland 设置中重新选择区域或选择“所有地方”。手动采集仍然可用。</ZombieExtractAreaMissing>
 </LanguageData>

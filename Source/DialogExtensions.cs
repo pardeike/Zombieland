@@ -216,10 +216,10 @@ namespace ZombieLand
 			}
 		}
 
-		public static void Dialog_List<T>(this Listing_Standard list, string labelId, T value, Action<T> updateValue, List<T> choices, Func<T, string> translator, T defaultValue)
+		public static void Dialog_List<T>(this Listing_Standard list, string labelId, T value, Action<T> updateValue, List<T> choices, Func<T, string> translator, T defaultValue, string unavailableValue = null)
 		{
 			var labelText = labelId.SafeTranslate();
-			var valueText = choices.Contains(value) ? value.ToString() : defaultValue.ToString();
+			var valueText = choices.Contains(value) ? value.ToString() : unavailableValue ?? defaultValue.ToString();
 
 			var extraSpace = "_".GetWidthCached();
 			var descLength = labelText.GetWidthCached() + extraSpace;
@@ -256,7 +256,7 @@ namespace ZombieLand
 					return new FloatMenuOption($"{translator(choice)}{(choice.Equals(value) ? " ✓" : "")}", () => updateValue(choice));
 				}).ToList();
 				if (choices.Contains(defaultValue) == false)
-					options.Insert(0, new FloatMenuOption($"{translator(defaultValue)}{(found ? "" : " ✓")}", () => updateValue(default)));
+					options.Insert(0, new FloatMenuOption($"{translator(defaultValue)}{(found || unavailableValue != null ? "" : " ✓")}", () => updateValue(default)));
 				Find.WindowStack.Add(new FloatMenu(options));
 			}
 		}
@@ -391,7 +391,7 @@ namespace ZombieLand
 				.Select(pair => multiMap ? $"{pair.area.Label}:{pair.map.Index + 1}" : pair.area.Label)
 				.ToList();
 			list.Gap(4f);
-			list.Dialog_List("ExtractZombieArea", settings.extractZombieArea, area => settings.extractZombieArea = area ?? "", areas, null, "Everywhere".Translate());
+			list.Dialog_List("ExtractZombieArea", settings.extractZombieArea, area => settings.extractZombieArea = area ?? "", areas, null, "Everywhere".Translate(), string.IsNullOrEmpty(settings.extractZombieArea) ? null : settings.extractZombieArea);
 		}
 
 		public static void ChooseWanderingStyle(this Listing_Standard list, SettingsGroup settings)

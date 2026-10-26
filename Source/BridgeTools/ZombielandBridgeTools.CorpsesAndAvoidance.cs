@@ -850,13 +850,43 @@ namespace ZombieLand
 				var hasForcedJob = workGiver.HasJobOnThing(actor, corpse, true);
 				var forcedJob = hasForcedJob ? workGiver.JobOnThing(actor, corpse, true) : null;
 
+				actor.playerSettings.AreaRestrictionInPawnCurrentMap = null;
+				allowedArea[corpse.Position] = true;
+				ZombieSettings.Values.extractZombieArea = allowedArea.Label;
+				var namedAreaListed = workGiver.PotentialWorkThingsGlobal(actor).Contains(corpse);
+				ZombieSettings.Values.extractZombieArea = $"{allowedArea.Label}:{map.Index + 1}";
+				var mapQualifiedAreaListed = workGiver.PotentialWorkThingsGlobal(actor).Contains(corpse);
+				allowedArea[corpse.Position] = false;
+				var mapQualifiedAreaExcludes = !workGiver.PotentialWorkThingsGlobal(actor).Contains(corpse)
+					&& !workGiver.HasJobOnThing(actor, corpse) && workGiver.JobOnThing(actor, corpse) == null;
+				allowedArea[corpse.Position] = true;
+				ZombieSettings.Values.extractZombieArea = allowedArea.Label;
+				allowedArea.labelInt += " renamed";
+				var messages = (System.Collections.ICollection)AccessTools.Field(typeof(Messages), "liveMessages").GetValue(null);
+				var messagesBefore = messages.Count;
+				var missingAreaListed = workGiver.PotentialWorkThingsGlobal(actor).Contains(corpse);
+				var missingAreaHasJob = workGiver.HasJobOnThing(actor, corpse);
+				var missingAreaJob = workGiver.JobOnThing(actor, corpse);
+				var missingAreaForced = workGiver.HasJobOnThing(actor, corpse, true)
+					&& workGiver.JobOnThing(actor, corpse, true) != null;
+				var warningCount = messages.Count - messagesBefore;
+				ZombieSettings.Values.extractZombieArea = allowedArea.Label;
+				var reselectedAreaListed = workGiver.PotentialWorkThingsGlobal(actor).Contains(corpse);
+				ZombieSettings.Values.extractZombieArea = "";
+				var everywhereListed = workGiver.PotentialWorkThingsGlobal(actor).Contains(corpse);
+				var namedAreaVerified = namedAreaListed && mapQualifiedAreaListed && mapQualifiedAreaExcludes
+					&& !missingAreaListed && !missingAreaHasJob && missingAreaJob == null
+					&& missingAreaForced && warningCount == 1 && reselectedAreaListed && everywhereListed;
+
+
 				return new
 				{
-					success = listedOutsideAreaCorpse == false
+					success = namedAreaVerified && listedOutsideAreaCorpse == false
 						&& hasUnforcedJob == false
 						&& unforcedJob == null
 						&& hasForcedJob
 						&& forcedJob?.def == CustomDefs.ExtractZombieSerum,
+					namedArea = new { namedAreaVerified, namedAreaListed, mapQualifiedAreaListed, mapQualifiedAreaExcludes, missingAreaListed, missingAreaHasJob, missingAreaJob = missingAreaJob?.def?.defName, missingAreaForced, warningCount, reselectedAreaListed, everywhereListed },
 					actor = DescribePawn(actor),
 					corpse = DescribeCorpse(corpse),
 					allowedArea = allowedArea.Label,

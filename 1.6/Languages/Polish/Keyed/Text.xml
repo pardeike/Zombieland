@@ -186,7 +186,7 @@
 	<ZombieBiteInfectionUnknown>Czas do wykrycia zakażenia</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Czas, przez który zakażenie można leczyć</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>Czas trwania zakażenia</ZombieBiteInfectionPersists>
-	<AnyTreatmentStopsInfection>Leczenie w łóżku zatrzymuje zakażenia</AnyTreatmentStopsInfection>
+	<AnyTreatmentStopsInfection>Każde leczenie zatrzymuje zakażenie</AnyTreatmentStopsInfection>
 	<HoursAfterDeathToBecomeZombie>Godziny do przemiany w zombie po śmierci</HoursAfterDeathToBecomeZombie>
 	<Immediately>Natychmiast</Immediately>
 	<DeadBecomesZombieMessage>Pokazuj wiadomość, gdy ktoś zmieni się w zombie</DeadBecomesZombieMessage>
@@ -353,4 +353,5 @@
 	<ContaminationHelp>Zanieczyszczenie zombie przenosi się przez dotyk i obchodzenie się z zanieczyszczonymi przedmiotami. Rozprzestrzenia się i może powodować dziwne zachowanie kolonistów.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Przełącz nakładkę zanieczyszczenia zombie.\n\nPokazuje ona stopień zanieczyszczenia przedmiotów i podłoża, który z kolei wpływa na istoty.</ShowContaminationOverlayToggleButton>
 	<VanillaFleeWithoutAvoidance>Zwykła ucieczka przy wyłączonym unikaniu</VanillaFleeWithoutAvoidance>
+	<ZombieExtractAreaMissing>Automatyczne zbieranie ekstraktu z zombie zostało wstrzymane, ponieważ obszar "{0}" już nie istnieje. Wybierz ponownie obszar w ustawieniach Zombieland lub wybierz Wszędzie. Ręczne zbieranie pozostaje dostępne.</ZombieExtractAreaMissing>
 </LanguageData>

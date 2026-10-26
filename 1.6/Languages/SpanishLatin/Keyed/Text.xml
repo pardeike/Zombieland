@@ -186,7 +186,7 @@
 	<ZombieBiteInfectionUnknown>Tiempo hasta que se conoce la infección</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Tiempo en que la infección es tratable</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>Duración de la infección</ZombieBiteInfectionPersists>
-	<AnyTreatmentStopsInfection>El tratamiento en cama detiene la infección</AnyTreatmentStopsInfection>
+	<AnyTreatmentStopsInfection>Cualquier tratamiento detiene la infección</AnyTreatmentStopsInfection>
 	<HoursAfterDeathToBecomeZombie>Horas para convertirse en zombi después de la muerte</HoursAfterDeathToBecomeZombie>
 	<Immediately>Inmediatamente</Immediately>
 	<DeadBecomesZombieMessage>Mostrar un mensaje cuando alguien se convierte en zombi</DeadBecomesZombieMessage>
@@ -353,4 +353,5 @@
 	<ContaminationHelp>La contaminación zombi se transmite por contacto y al manipular objetos contaminados. Se extiende por el entorno y puede provocar comportamientos extraños en los colonos.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Activa o desactiva la superposición de contaminación zombi.\n\nMuestra el grado de contaminación de los objetos y del terreno, que a su vez afecta a los peones.</ShowContaminationOverlayToggleButton>
 	<VanillaFleeWithoutAvoidance>Huida normal con la evasión desactivada</VanillaFleeWithoutAvoidance>
+	<ZombieExtractAreaMissing>La recolección automática de extracto zombi está suspendida porque la zona "{0}" ya no existe. Selecciona otra zona en los ajustes de Zombieland o elige En todas partes. La recolección manual sigue disponible.</ZombieExtractAreaMissing>
 </LanguageData>

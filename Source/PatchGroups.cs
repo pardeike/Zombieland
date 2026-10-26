@@ -636,6 +636,7 @@ namespace ZombieLand
 			"ZombieLand.Patches+GenUI_ThingsUnderMouse_Patch",
 			"ZombieLand.Patches+Selector_SelectableObjectsUnderMouse_Symbiant_Patch",
 			"ZombieLand.Patches+SelectionDrawer_DrawSelectionOverlays_Patch",
+			"ZombieLand.Patches+SelectionDrawer_DrawSelectionBracketFor_Symbiant_Patch",
 			"ZombieLand.Patches+MapInterface_MapInterfaceUpdate_Patch",
 			"ZombieLand.Patches+MapInterface_MapInterfaceOnGUI_AfterMainTabs_Patch",
 			"ZombieLand.Patches+GlobalControlsUtility_DoDate_Patch",

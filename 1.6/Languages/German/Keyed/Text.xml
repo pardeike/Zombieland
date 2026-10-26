@@ -186,7 +186,7 @@
 	<ZombieBiteInfectionUnknown>Zeit bis Infektion bekannt wird</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Infektion behandelbar</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>Dauer der Infektion</ZombieBiteInfectionPersists>
-	<AnyTreatmentStopsInfection>Behandlung in einem Bett stoppt Infektionen</AnyTreatmentStopsInfection>
+	<AnyTreatmentStopsInfection>Jede Behandlung stoppt die Infektion</AnyTreatmentStopsInfection>
 	<HoursAfterDeathToBecomeZombie>Zeit nach dem Tod bis man zum Zombie wird</HoursAfterDeathToBecomeZombie>
 	<Immediately>Unmittelbar</Immediately>
 	<DeadBecomesZombieMessage>Nachricht, wenn jemand ein Zombie wird</DeadBecomesZombieMessage>
@@ -353,4 +353,5 @@
 	<ContaminationHelp>Die durch die Zombie-Apokalypse verursachte Kontamination wird durch Berührung und Handhabung von Dingen übertragen. Sie breitet sich aus und kann zu seltsamem Verhalten bei Kolonisten führen.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Kontaminations-Overlay für Zombies umschalten.\n\nDies zeigt, wie kontaminiert Dinge und der Boden sind, was wiederum die Spielfiguren beeinflusst.</ShowContaminationOverlayToggleButton>
 	<VanillaFleeWithoutAvoidance>Normale Flucht bei deaktivierter Vermeidung</VanillaFleeWithoutAvoidance>
+	<ZombieExtractAreaMissing>Die automatische Gewinnung von Zombie-Extrakt ist pausiert, weil das Gebiet "{0}" nicht mehr existiert. Wählen Sie in den Zombieland-Einstellungen erneut ein Gebiet oder Überall. Manuelle Gewinnung bleibt möglich.</ZombieExtractAreaMissing>
 </LanguageData>

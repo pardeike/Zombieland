@@ -186,7 +186,7 @@
 	<ZombieBiteInfectionUnknown>Temps avant que l'infection soit connue</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Temps où l'infection est traitable</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>Durée de l’infection</ZombieBiteInfectionPersists>
-	<AnyTreatmentStopsInfection>Le traitement au lit arrête l'infection</AnyTreatmentStopsInfection>
+	<AnyTreatmentStopsInfection>Tout traitement arrête l'infection</AnyTreatmentStopsInfection>
 	<HoursAfterDeathToBecomeZombie>Heures avant de devenir un zombie après la mort</HoursAfterDeathToBecomeZombie>
 	<Immediately>Aussitôt</Immediately>
 	<DeadBecomesZombieMessage>Montrer un message quand quelqu'un se transforme en zombie</DeadBecomesZombieMessage>
@@ -353,4 +353,5 @@
 	<ContaminationHelp>La contamination causée par l'apocalypse zombie est transmise par le toucher et la manipulation d'objets. Elle se propage et peut entraîner des comportements étranges chez les colons.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Afficher/masquer la surcouche de contamination zombie.\n\nCela montre à quel point les choses et le sol sont contaminés, ce qui affecte à son tour les pions.</ShowContaminationOverlayToggleButton>
 	<VanillaFleeWithoutAvoidance>Fuite normale sans évitement automatique</VanillaFleeWithoutAvoidance>
+	<ZombieExtractAreaMissing>La récolte automatique d'extrait de zombie est suspendue car la zone "{0}" n'existe plus. Sélectionnez une nouvelle zone dans les paramètres de Zombieland ou choisissez Partout. La récolte manuelle reste possible.</ZombieExtractAreaMissing>
 </LanguageData>

@@ -72,7 +72,7 @@
 	<ZombieBiteInfectionUnknown_Help>这是第一阶段（白色）。你可以治疗伤口，但在此阶段结束前，你不知道它是否会感染。</ZombieBiteInfectionUnknown_Help>
 	<ZombieBiteInfectionTreatable_Help>第二阶段（橙色）中，感染仍可治疗。如果可以截肢，你可以阻止感染。治疗必须在最佳条件下进行（需要你自己找出）。而且只有一次治疗机会，一旦伤口被治疗，就不能在更好的条件下重新治疗。</ZombieBiteInfectionTreatable_Help>
 	<ZombieBiteInfectionPersists_Help>第三也是最后阶段（红色）。此时感染已经无法治疗，只有截肢能阻止过程。许多玩家会太早结束感染殖民者的生命。Zombieland 虽然残酷，但也设计了一些惊喜，让此阶段对你有用。去发现殖民者在几乎变成丧尸时发生了什么变化吧！</ZombieBiteInfectionPersists_Help>
-	<AnyTreatmentStopsInfection_Help>如果想让床上的简单治疗也能阻止感染咬伤，请选择此选项。当你还不熟悉游戏机制时，开启它是个好主意。</AnyTreatmentStopsInfection_Help>
+	<AnyTreatmentStopsInfection_Help>启用此选项后，任何治疗都能阻止咬伤感染。不需要床，也没有最低治疗质量要求。</AnyTreatmentStopsInfection_Help>
 	<HoursAfterDeathToBecomeZombie_Help>死亡类人角色变成丧尸所需的时间。将滑块移到最左侧可关闭此功能。</HoursAfterDeathToBecomeZombie_Help>
 	<DeadBecomesZombieMessage_Help>显示或隐藏有人变成丧尸时的消息。</DeadBecomesZombieMessage_Help>
 	<DangerousSituationMessage_Help>当发生危险情况（例如丧尸被推过你的墙）时收到通知。</DangerousSituationMessage_Help>
@@ -80,7 +80,7 @@
 	<CorpsesExtractAmount_Help>你可以在丧尸尸体消失前从中采集丧尸提取物，可自动进行，也可右键点击尸体。提取物可在药物实验台制成血清；部落玩法还可在手工加工点制作。只有被分配医生工作的殖民者能采集提取物，而且附近不能有危险丧尸（约 10-20 格，取决于周围环境）。若想更容易制造血清，可提高每只丧尸的提取物数量。</CorpsesExtractAmount_Help>
 	<LootExtractAmount_Help>让丧尸有概率掉落它们穿着的服装。丧尸可以穿你游戏和所有模组中存在的任何服装。此项定义掉落服装的概率和数量（100% = 1 件）。</LootExtractAmount_Help>
 	<CorpsesDaysToDessicated_Help>丧尸尸体通常会很快干枯，以免数量过多。若想更容易收集提取物，可以增加尸体消失前的时间。</CorpsesDaysToDessicated_Help>
-	<ExtractZombieArea_Help>采集丧尸提取物可能很危险。使用此功能可将活动限制在你的某个区域中。如果重命名了区域，需要在这里更新。手动命令的采集始终有效。</ExtractZombieArea_Help>
+	<ExtractZombieArea_Help>使用区域限制自动采集僵尸提取物。如果所选区域被重命名或删除，自动采集将停止并显示警告。重新选择区域或选择“所有地方”即可恢复。手动采集仍然可用。</ExtractZombieArea_Help>
 	<Apparel_Help>不想让你的丧尸穿某些服装？在此对话框中勾选复选框将其加入黑名单。\n\n如果某些模组服装导致错误，或你只是想更好控制，这很有用。</Apparel_Help>
 	<ZombieInstinctTitle_Help>丧尸通过声音和气味感知猎物。在某些情况下，它们也会像群体一样行动。此设置允许你定义这些感官能达到多远。</ZombieInstinctTitle_Help>
 	<ZombieInstinct_Dull_Help>丧尸感官只限于少数格子。</ZombieInstinct_Dull_Help>

@@ -186,7 +186,7 @@
 	<ZombieBiteInfectionUnknown>Time until infection is known</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Time infection is treatable</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>Duration of infection</ZombieBiteInfectionPersists>
-	<AnyTreatmentStopsInfection>Treatment in a bed stops infections</AnyTreatmentStopsInfection>
+	<AnyTreatmentStopsInfection>Any treatment stops infection</AnyTreatmentStopsInfection>
 	<HoursAfterDeathToBecomeZombie>Hours to become a zombie after death</HoursAfterDeathToBecomeZombie>
 	<Immediately>Immediately</Immediately>
 	<DeadBecomesZombieMessage>Show a message when someone turns into a zombie</DeadBecomesZombieMessage>
@@ -353,4 +353,5 @@
 	<ZombieContamination>Zombie contamination</ZombieContamination>
 	<ContaminationHelp>Zombie contamination is transferred by touch and by handling contaminated things. It spreads around and can lead to strange behavior in colonists.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Toggle zombie contamination overlay.\n\nThis shows how contaminated things and the ground are, which in turn affects pawns.</ShowContaminationOverlayToggleButton>
+	<ZombieExtractAreaMissing>Automatic zombie extract harvesting is paused because area "{0}" no longer exists. Reselect an area in Zombieland settings, or choose Everywhere. Manual harvesting still works.</ZombieExtractAreaMissing>
 </LanguageData>

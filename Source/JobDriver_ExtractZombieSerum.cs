@@ -33,7 +33,8 @@ namespace ZombieLand
 		{
 			AddEndCondition(delegate
 			{
-				if (ZombieSettings.Values.corpsesExtractAmount == 0)
+				if (ZombieSettings.Values.corpsesExtractAmount == 0
+					|| (job.playerForced == false && WorkGiver_ExtractZombieSerum.TryGetExtractArea(pawn.Map, out _) == false))
 					return JobCondition.Incompletable;
 				return JobCondition.Ongoing;
 			});

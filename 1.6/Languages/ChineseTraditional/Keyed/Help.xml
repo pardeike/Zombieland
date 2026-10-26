@@ -72,7 +72,7 @@
 	<ZombieBiteInfectionUnknown_Help>這是第一階段（白色）。你可以治療傷口，但在此階段結束前，你不知道它是否會感染。</ZombieBiteInfectionUnknown_Help>
 	<ZombieBiteInfectionTreatable_Help>第二階段（橘色）中，感染仍可治療。如果可以截肢，你可以阻止感染。治療必須在最佳條件下進行（需要你自己找出）。而且只有一次治療機會，一旦傷口被治療，就不能在更好的條件下重新治療。</ZombieBiteInfectionTreatable_Help>
 	<ZombieBiteInfectionPersists_Help>第三也是最後階段（紅色）。此時感染已經無法治療，只有截肢能阻止過程。許多玩家會太早結束感染殖民者的生命。Zombieland 雖然殘酷，但也設計了一些驚喜，讓此階段對你有用。去發現殖民者在幾乎變成喪屍時發生了什麼變化吧！</ZombieBiteInfectionPersists_Help>
-	<AnyTreatmentStopsInfection_Help>如果想讓床上的簡單治療也能阻止感染咬傷，請選擇此選項。當你還不熟悉遊戲機制時，開啟它是個好主意。</AnyTreatmentStopsInfection_Help>
+	<AnyTreatmentStopsInfection_Help>啟用此選項後，任何治療都能阻止咬傷感染。不需要床，也沒有最低治療品質要求。</AnyTreatmentStopsInfection_Help>
 	<HoursAfterDeathToBecomeZombie_Help>死亡人形角色變成喪屍所需的時間。將滑桿移到最左側可關閉此功能。</HoursAfterDeathToBecomeZombie_Help>
 	<DeadBecomesZombieMessage_Help>顯示或隱藏有人變成喪屍時的訊息。</DeadBecomesZombieMessage_Help>
 	<DangerousSituationMessage_Help>當發生危險情況（例如喪屍被推過你的牆）時收到通知。</DangerousSituationMessage_Help>
@@ -80,7 +80,7 @@
 	<CorpsesExtractAmount_Help>你可以在喪屍屍體消失前從中採集喪屍提取物，可自動進行，也可在屍體上按滑鼠右鍵。提取物可在藥物合成桌製成血清；部落玩法還可在手工製作點製作。只有被指派醫護工作的殖民者能採集提取物，而且附近不能有危險喪屍（約 10-20 格，取決於周圍環境）。若想更容易製造血清，可提高每隻喪屍的提取物數量。</CorpsesExtractAmount_Help>
 	<LootExtractAmount_Help>讓喪屍有機率掉落它們穿著的服裝。喪屍可以穿你遊戲和所有模組中存在的任何服裝。此項定義掉落服裝的機率和數量（100% = 1 件）。</LootExtractAmount_Help>
 	<CorpsesDaysToDessicated_Help>喪屍屍體通常會很快乾枯，以免數量過多。若想更容易收集提取物，可以增加屍體消失前的時間。</CorpsesDaysToDessicated_Help>
-	<ExtractZombieArea_Help>採集喪屍提取物可能很危險。使用此功能可將活動限制在你的某個區域中。如果重命名了區域，需要在這裡更新。手動命令的採集始終有效。</ExtractZombieArea_Help>
+	<ExtractZombieArea_Help>使用區域限制自動採集殭屍提取物。如果所選區域被重新命名或刪除，自動採集將停止並顯示警告。重新選擇區域或選擇「所有地方」即可恢復。手動採集仍然可用。</ExtractZombieArea_Help>
 	<Apparel_Help>不想讓你的喪屍穿某些服裝？請在此對話框中勾選核取方塊，將其加入禁止清單。\n\n如果某些模組服裝會造成錯誤，或你只是想要更多控制，這項設定便很有用。</Apparel_Help>
 	<ZombieInstinctTitle_Help>喪屍透過聲音和氣味感知獵物。在某些情況下，它們也會像群體一樣行動。此設定允許你定義這些感官能達到多遠。</ZombieInstinctTitle_Help>
 	<ZombieInstinct_Dull_Help>喪屍感官只限於周圍幾個方格。</ZombieInstinct_Dull_Help>

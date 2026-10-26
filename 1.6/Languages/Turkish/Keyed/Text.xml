@@ -186,7 +186,7 @@
 	<ZombieBiteInfectionUnknown>Enfeksiyon bilinene kadar geçen süre</ZombieBiteInfectionUnknown>
 	<ZombieBiteInfectionTreatable>Zaman enfeksiyonu tedavi edilebilir</ZombieBiteInfectionTreatable>
 	<ZombieBiteInfectionPersists>Enfeksiyonun süresi</ZombieBiteInfectionPersists>
-	<AnyTreatmentStopsInfection>Yatakta tedavi enfeksiyonları durdurur</AnyTreatmentStopsInfection>
+	<AnyTreatmentStopsInfection>Her tedavi enfeksiyonu durdurur</AnyTreatmentStopsInfection>
 	<HoursAfterDeathToBecomeZombie>Ölümden sonra zombi olmak için saatler</HoursAfterDeathToBecomeZombie>
 	<Immediately>Hemen</Immediately>
 	<DeadBecomesZombieMessage>Birisi bir zombiye döndüğünde bir mesaj göster</DeadBecomesZombieMessage>
@@ -353,4 +353,5 @@
 	<ContaminationHelp>Zombi kıyameti tarafından oluşturulan kirlilik, dokunma ve şeylerle uğraşma yoluyla geçer. Yayılır ve kolonistlerde tuhaf davranışlara yol açabilir.</ContaminationHelp>
 	<ShowContaminationOverlayToggleButton>Zombi kirliliği kaplamasını değiştir.\n\nBu, şeylerin ve zeminin ne kadar kirli olduğunu gösterir, bu da piyonları etkiler.</ShowContaminationOverlayToggleButton>
 	<VanillaFleeWithoutAvoidance>Kaçınma kapalıyken normal kaçma tepkisi</VanillaFleeWithoutAvoidance>
+	<ZombieExtractAreaMissing>"{0}" alanı artık mevcut olmadığı için otomatik zombi özü toplama duraklatıldı. Zombieland ayarlarından bir alanı yeniden seçin veya Her yer seçeneğini seçin. Elle toplama kullanılabilir durumda kalır.</ZombieExtractAreaMissing>
 </LanguageData>
