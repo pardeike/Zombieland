@@ -3574,6 +3574,34 @@ namespace ZombieLand
 			}
 		}
 
+		public sealed class RenamedDoorFixture : Building_Door
+		{
+			public override bool PawnCanOpen(Pawn pawn) => true;
+		}
+
+		static bool RenamedDoorPostfixBinds(out string error)
+		{
+			var original = AccessTools.DeclaredMethod(typeof(RenamedDoorFixture), nameof(Building_Door.PawnCanOpen));
+			var patchType = typeof(Zombie).Assembly.GetType("ZombieLand.Patches+Building_Door_PawnCanOpen_Patch");
+			var postfix = AccessTools.DeclaredMethod(patchType, "Postfix");
+			var harmony = new Harmony("zombieland.test.renamed-door-argument");
+			error = null;
+			try
+			{
+				harmony.Patch(original, postfix: new HarmonyMethod(postfix));
+				return (bool)original.Invoke(new RenamedDoorFixture(), new object[] { null });
+			}
+			catch (Exception ex)
+			{
+				error = ex.GetBaseException().Message;
+				return false;
+			}
+			finally
+			{
+				harmony.Unpatch(original, HarmonyPatchType.All, harmony.Id);
+			}
+		}
+
 		[Tool("zombieland/avoid_grid_blocks_door_and_danger", Description = "Verify avoid-grid danger affects vanilla door and danger checks for normal colonist behavior but not drafted or player-forced commands.")]
 		public static object AvoidGridBlocksDoorAndDanger()
 		{
@@ -3586,6 +3614,9 @@ namespace ZombieLand
 					error = "No current map is loaded."
 				};
 			}
+
+			if (!RenamedDoorPostfixBinds(out var bindingError))
+				return new { success = false, renamedOverrideBinds = false, error = bindingError };
 
 			var oldBetterAvoidance = ZombieSettings.Values.betterZombieAvoidance;
 			ZombieSettings.Values.betterZombieAvoidance = true;
@@ -3699,6 +3730,7 @@ namespace ZombieLand
 						&& draftedDoorCanOpen
 						&& forcedDoorCanOpen
 						&& forcedDanger != Danger.Deadly,
+					renamedOverrideBinds = true,
 					destroyedZombies,
 					actor = DescribePawn(actor),
 					zombie = DescribeZombie(zombie),

@@ -2207,7 +2207,7 @@ namespace ZombieLand
 		[HarmonyPatch]
 		static class Building_Door_PawnCanOpen_Patch
 		{
-			static void Postfix(Building_Door __instance, Pawn p, ref bool __result)
+			static void Postfix(Building_Door __instance, [HarmonyArgument(0)] Pawn p, ref bool __result)
 			{
 				if (__result == false)
 					return;

@@ -1,0 +1,1 @@
+- Fixed compatibility with custom doors that could disable zombie pathing.
