@@ -1,0 +1,2 @@
+- Revenants no longer choose zombies as hypnosis targets.
+- Buildings switched off by albinos now show the correct switch state and need only one switch-on order to recover.

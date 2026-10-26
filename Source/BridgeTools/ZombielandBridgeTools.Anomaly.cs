@@ -1277,10 +1277,10 @@ namespace ZombieLand
 			}
 		}
 
-		[Tool("zombieland/anomaly_story_smoke", Description = "Run bounded Anomaly fun/perf/exploit scenario smokes: Horaxian moat, player ghoul choke, stealth Everything, Fleshmass field, and Nociosphere field.")]
+		[Tool("zombieland/anomaly_story_smoke", Description = "Run bounded Anomaly fun/perf/exploit scenario smokes: Horaxian moat, player ghoul choke, stealth Everything, Fleshmass field, Nociosphere field, and revenant hypnosis.")]
 		public static object AnomalyStorySmoke(
-			[ToolParameter(Description = "Scenario names: all, horaxianMoat, ghoulChoke, stealthEverything, fleshmassField, or nociosphereField. Comma-separated.", Required = false, DefaultValue = "all")] string scenarios = "all",
-			[ToolParameter(Description = "Ticks to step inside each scenario. Clamped to 60..900.", Required = false, DefaultValue = 360)] int ticks = 360,
+			[ToolParameter(Description = "Scenario names: all, horaxianMoat, ghoulChoke, stealthEverything, fleshmassField, nociosphereField, or revenantHypnosis. Comma-separated.", Required = false, DefaultValue = "all")] string scenarios = "all",
+			[ToolParameter(Description = "Ticks to step inside each scenario. Clamped to 60..900. Revenant hypnosis always runs at least 900 ticks.", Required = false, DefaultValue = 360)] int ticks = 360,
 			[ToolParameter(Description = "Zombie count for field scenarios. Clamped to 6..80.", Required = false, DefaultValue = 36)] int zombieCount = 36,
 			[ToolParameter(Description = "Destroy staged Anomaly pawns, zombies, walls, and buildings at the end of each scenario.", Required = false, DefaultValue = true)] bool cleanup = true)
 		{
@@ -1310,6 +1310,7 @@ namespace ZombieLand
 							"stealthEverything" => RunStealthEverythingSmoke(map, clampedTicks, clampedZombieCount, spawned),
 							"fleshmassField" => RunFleshmassFieldSmoke(map, clampedTicks, clampedZombieCount, spawned),
 							"nociosphereField" => RunNociosphereFieldSmoke(map, clampedTicks, clampedZombieCount, spawned),
+							"revenantHypnosis" => RunRevenantHypnosisSmoke(map, clampedTicks, spawned),
 							_ => new { id = scenario, success = false, classification = "wrong", error = "Unknown scenario." } as object
 						};
 						results.Add(result);
@@ -1376,7 +1377,7 @@ namespace ZombieLand
 
 		static string[] SelectAnomalyStoryScenarios(string scenarios)
 		{
-			var all = new[] { "horaxianMoat", "ghoulChoke", "stealthEverything", "fleshmassField", "nociosphereField" };
+			var all = new[] { "horaxianMoat", "ghoulChoke", "stealthEverything", "fleshmassField", "nociosphereField", "revenantHypnosis" };
 			if (string.IsNullOrWhiteSpace(scenarios) || string.Equals(scenarios.Trim(), "all", StringComparison.OrdinalIgnoreCase))
 				return all;
 			var requested = scenarios.Split(',')
@@ -1404,6 +1405,64 @@ namespace ZombieLand
 				return anomalyMatrixCases.Where(testCase => ids.Contains(testCase.id)).ToArray();
 			}
 			return SelectAnomalyMatrixCases(cases);
+		}
+
+		static object RunRevenantHypnosisSmoke(Map map, int ticks, List<Thing> spawned)
+		{
+			ticks = Math.Max(ticks, 900);
+			if (!ModsConfig.AnomalyActive)
+				return new { id = "revenantHypnosis", classification = "wrong", success = false, error = "Anomaly must be active." };
+			var root = GenRadial.RadialCellsAround(map.Center, 45, true).First(cell =>
+				GenRadial.RadialCellsAround(cell, 8, true).All(c => c.InBounds(map) && c.Standable(map) && !c.Fogged(map) && c.GetFirstPawn(map) == null));
+			if (!TrySpawnAnomalyPawn(map, "Revenant", "entities", root, spawned, out var revenant, out var error))
+				return error;
+			revenant.Position = root;
+			revenant.Notify_Teleported(false, false);
+			var zombies = SpawnScenarioZombies(map, root + new IntVec3(1, 0, 0), 1, 1, spawned).Cast<Pawn>().ToList();
+			zombies.Add(SpawnTargetSpitter(map, root + new IntVec3(2, 0, 0), "Hypnosis spitter", spawned));
+			zombies.Add(SpawnTargetSymbiant(map, root + new IntVec3(3, 0, 0), "Hypnosis symbiant", spawned));
+			var eligibility = zombies.Select(pawn => new
+			{
+				type = pawn?.GetType().Name,
+				validTarget = pawn != null && RevenantUtility.ValidTarget(pawn),
+				spawned = pawn?.Spawned == true
+			}).ToArray();
+			var human = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+			GenSpawn.Spawn(human, root + new IntVec3(5, 0, 0), map);
+			spawned.Add(human);
+			DisablePawnWork(human);
+			var humanEligible = RevenantUtility.ValidTarget(human);
+			var closest = RevenantUtility.GetClosestTargetInRadius(revenant, 10f);
+			var closestIsHuman = closest == human;
+			var scans = Enumerable.Range(0, 32).Select(_ => RevenantUtility.ScanForTarget(revenant, true)).ToArray();
+			var scansExcludeZombies = scans.All(pawn => pawn != null && !StorytellerEventFilters.IsZombielandPawn(pawn));
+			foreach (var zombie in zombies)
+				CleanupAnomalyThing(zombie);
+			// Follow the native selector into the real attack job. Only the staged human
+			// is within the local retarget radius after zombie cleanup.
+			human.Position = root + new IntVec3(1, 0, 0);
+			human.Notify_Teleported(false, false);
+			revenant.mindState.enemyTarget = RevenantUtility.GetClosestTargetInRadius(revenant, 2f);
+			revenant.GetComp<CompRevenant>().revenantState = RevenantState.Attack;
+			revenant.jobs.StartJob(JobMaker.MakeJob(JobDefOf.RevenantAttack, revenant.mindState.enemyTarget), JobCondition.InterruptForced);
+			AdvanceGameTicks(ticks);
+			var humanHypnotized = human.health.hediffSet.HasHediff(HediffDefOf.RevenantHypnosis);
+			var hypnotizedHumanRejected = humanHypnotized && !RevenantUtility.ValidTarget(human);
+			var success = eligibility.Length == 3 && eligibility.All(row => row.spawned && !row.validTarget)
+				&& humanEligible && closestIsHuman && scansExcludeZombies && humanHypnotized && hypnotizedHumanRejected;
+			return new
+			{
+				id = "revenantHypnosis",
+				classification = success ? "nominal" : "wrong",
+				success,
+				eligibility,
+				humanEligible,
+				closestIsHuman,
+				scansExcludeZombies,
+				humanHypnotized,
+				hypnotizedHumanRejected,
+				ticks
+			};
 		}
 
 		static object RunHoraxianMoatSmoke(Map map, int ticks, int zombieCount, List<Thing> spawned)

@@ -2100,6 +2100,7 @@ namespace ZombieLand
 			AddCase("defensive_scream_switch", () => AlbinoDefensiveScreamSwitchCase(map));
 			AddCase("power_trader_only_ignored", () => AlbinoPowerTraderOnlyIgnoredCase(map));
 			AddCase("flickable_hack", () => AlbinoFlickableHackCase(map));
+			AddCase("flickable_hack_queued_off", () => AlbinoFlickableHackCase(map, true));
 			AddCase("breakdownable_hack", () => AlbinoBreakdownableHackCase(map));
 			AddCase("weapon_hack", () => AlbinoWeaponHackCase(map));
 
@@ -4779,37 +4780,59 @@ namespace ZombieLand
 			}
 		}
 
-		static AlbinoSabotageCase AlbinoFlickableHackCase(Map map)
+		static AlbinoSabotageCase AlbinoFlickableHackCase(Map map, bool queuedOff = false)
 		{
+			var caseName = queuedOff ? "flickable_hack_queued_off" : "flickable_hack";
 			var spawnedThings = new List<Thing>();
 			try
 			{
 				_ = ZombieRuntimeActions.DestroyZombies(map);
 				var root = new IntVec3(map.Size.x / 2, 0, map.Size.z / 2);
 				if (TryFindClearSpawnCell(map, root, 16f, out var albinoCell, out var albinoError) == false)
-					return AlbinoCase("flickable_hack", false, error: albinoError?.ToString());
+					return AlbinoCase(caseName, false, error: albinoError?.ToString());
 				if (TryFindClearSpawnCell(map, albinoCell + IntVec3.East, 6f, out var lampCell, out var lampError) == false)
-					return AlbinoCase("flickable_hack", false, error: lampError?.ToString());
+					return AlbinoCase(caseName, false, error: lampError?.ToString());
 
 				var lampDef = DefDatabase<ThingDef>.GetNamed("StandingLamp", false);
 				var lamp = lampDef == null ? null : GenSpawn.Spawn(ThingMaker.MakeThing(lampDef), lampCell, map, WipeMode.Vanish) as Building;
 				lamp?.SetFaction(Faction.OfPlayer);
 				if (lamp == null)
-					return AlbinoCase("flickable_hack", false, error: "Could not create StandingLamp.");
+					return AlbinoCase(caseName, false, error: "Could not create StandingLamp.");
 				spawnedThings.Add(lamp);
 				var flickable = lamp.TryGetComp<CompFlickable>();
 				if (flickable == null)
-					return AlbinoCase("flickable_hack", false, error: "StandingLamp has no CompFlickable.");
+					return AlbinoCase(caseName, false, error: "StandingLamp has no CompFlickable.");
 				flickable.SwitchIsOn = true;
+				var toggle = flickable.CompGetGizmosExtra().OfType<Command_Toggle>().Single();
+				if (queuedOff)
+					toggle.toggleAction();
 
 				var albino = SpawnAlbinoTestZombie(map, albinoCell, spawnedThings);
 				var run = RunForcedAlbinoHack(albino, lamp);
-				var success = run.driverStillCurrent && flickable.SwitchIsOn == false && run.driver?.hackTarget == null;
-				return AlbinoCase("flickable_hack", success, new
+				var switchedOff = !flickable.SwitchIsOn;
+				var toggleShowsOff = !toggle.isActive();
+				var wantsFlickAfterHack = flickable.WantsFlick();
+				var hasFlickDesignationAfterHack = map.designationManager.DesignationOn(lamp, DesignationDefOf.Flick) != null;
+				toggle.toggleAction();
+				var oneClickRequestsOn = toggle.isActive() && flickable.WantsFlick()
+					&& map.designationManager.DesignationOn(lamp, DesignationDefOf.Flick) != null;
+				flickable.DoFlick();
+				FlickUtility.UpdateFlickDesignation(lamp);
+				var recovered = flickable.SwitchIsOn && toggle.isActive() && !flickable.WantsFlick()
+					&& map.designationManager.DesignationOn(lamp, DesignationDefOf.Flick) == null;
+				var success = run.driverStillCurrent && switchedOff && toggleShowsOff && !wantsFlickAfterHack
+					&& !hasFlickDesignationAfterHack && oneClickRequestsOn && recovered && run.driver?.hackTarget == null;
+				return AlbinoCase(caseName, success, new
 				{
 					albino = DescribeZombie(albino),
 					lamp = ZombieRuntimeActions.StableThingId(lamp),
-					switchIsOn = flickable.SwitchIsOn,
+					queuedOff,
+					switchedOff,
+					toggleShowsOff,
+					wantsFlickAfterHack,
+					hasFlickDesignationAfterHack,
+					oneClickRequestsOn,
+					recovered,
 					run.driverStillCurrent,
 					hackCounter = run.driver?.hackCounter,
 					samples = run.samples

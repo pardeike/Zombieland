@@ -515,6 +515,7 @@ namespace ZombieLand
 
 		static readonly HashSet<string> HostilityPatchTypes = new()
 		{
+			"ZombieLand.RevenantUtility_ValidTarget_Patch",
 			"ZombieLand.AttackTargetFinder_BestAttackTarget_Patch",
 			"ZombieLand.AttackTargetFinder_BestAttackTarget_SymbiantContext_Patch",
 			"ZombieLand.AttackTargetFinder_FriendlyFire_Patch",

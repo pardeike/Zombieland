@@ -1228,3 +1228,25 @@ Gameplay SHA-256 is
 The private receipt is `work-facing-native-20261011.json` in Total Fog's ignored
 artifacts. The unchanged base is reloaded and the game stopped. These are
 bounded functional controls, not full player-loadout or performance evidence.
+
+
+## Revenant hypnosis targeting
+
+Run `zombieland/anomaly_story_smoke` with `scenarios=revenantHypnosis` on a disposable quick-test map with Anomaly active. This scenario always advances at least 900 native ticks. It checks ordinary zombie, spitter and Symbiant eligibility, the nearest-target search, 32 forced map searches, and a real revenant attack that completes hypnosis on a staged human. It then checks that the hypnotized human becomes ineligible. The existing scenario cleanup destroys staged pawns and restores zombie settings.
+
+On 2026-10-24, the test failed before the production fix: the ordinary zombie was eligible, the nearest search preferred it to the human, and map searches selected zombies. Spitters and Symbiants were already rejected. The human hypnosis control completed. After the eligibility postfix, the same scenario passed all checks. Operation IDs were `op_ac5e6aed1cc84db5af439fe36bb68622` for red and `op_db0a332e8dcd426792c77b4e3c6048b7` for green.
+
+Native runtime was Steam 1.7.4985 rev1269 with Core, all official DLCs, Workshop Harmony, RimBridgeServer and the locally built Zombieland DLL. Total Fog was disabled in the isolated test profile. The adjacent `stealthEverything` scenario passed for Sightstealer and Revenant with 240 ticks per entity and six zombies per entity, operation `op_466c77b4c13348999aab85ee18ef0700`. Both post-map test windows had no warning-or-higher entries. Startup emitted unrelated Waylith graphics-stub and bridge timing warnings.
+
+The production project still compiles against the 1.6 reference package. Decompiler evidence confirms the same hypnosis eligibility predicate in installed 1.6 and 1.7 assemblies. This is not native 1.6 Anomaly acceptance: the offline 1.6 DLC links are stale, and current Steam DLC content is 1.7. No existing save was loaded or overwritten. The game was stopped after validation. Detailed results remain in ignored `artifacts/revenant-hypnosis/results.json`. The fix is local and pending release.
+
+
+## Albino sabotage switch consistency
+
+MortalSmurph reported buildings that stopped working while their switch toggle still showed on: https://discord.com/channels/@me/1218337918985437384/1564020896065261709 . `CompFlickable.SwitchIsOn` changes the physical switch and broadcasts its signal. Its `wantSwitchOn` field drives the toggle and `WantsFlick()`. The previous sabotage path changed only the physical switch. Decompiler inspection found identical `CompFlickable` source in installed 1.6 and 1.7 assemblies.
+
+Extend the existing `zombieland/albino_sabotage_contract` with `onlyCase=flickable_hack` and `onlyCase=flickable_hack_queued_off`. Both run the production hack action through its 241-call countdown. Check the native toggle, actual switch, pending flick state and designation. Invoke the toggle once to request on, then the native `DoFlick()` and designation refresh to verify recovery. The queued-off variant starts with an outstanding player off order. This is a live production-action and native-command contract, not an autonomous colonist work-scheduling test.
+
+Native RimWorld 1.6 evidence on 2026-10-25 used Core, Harmony, RimBridgeServer and Zombieland on a fresh disposable quick-test map. Both cases failed before the production fix. Normal sabotage left the toggle on and a requested/actual mismatch. Queued-off sabotage left a stale designation. Red operation IDs: `op_e354b96e4bc2404a9810a0778fade5c7`, `op_3c1a88f846d248a787c5968581d3ce2d`. After synchronizing requested state and removing the completed off designation, both passed. Green operation IDs: `op_bb1fad3531a44358b72ba3accf816440`, `op_8131c2bb2cb94253a6f5b35748f77203`.
+
+Adjacent `breakdownable_hack`, `weapon_hack` and `power_trader_only_ignored` controls all passed. Component sabotage still caused a real breakdown. Weapon sabotage reduced 100 HP to 50 and preserved its retarget suppression. Pure power traders remained excluded. No warning-or-higher log entries appeared after the startup timing baseline. No existing save was loaded or overwritten. The game was stopped and its original mod configuration restored. Detailed results and deployed hashes are in ignored `artifacts/sabotage-switch/`. The fix prevents new mismatches; it does not migrate already-inconsistent switches in existing saves.

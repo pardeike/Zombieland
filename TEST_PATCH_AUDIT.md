@@ -20,6 +20,21 @@ Status meanings:
 - `dependency/unavailable`: the target belongs to an optional mod, DLC, inactive configuration surface, or content setup that is not currently exercised; keep the source audit and require content-specific runtime evidence later.
 - `pending`: not audited yet.
 
+## Revenant hypnosis eligibility
+
+`RevenantUtility.ValidTarget(Pawn)` returns `bool` in the installed 1.6 assembly
+MVID `463a5d69086c4f2d991bb1488559b040`, method `0600C72C:M`. Its humanlike,
+non-entity, non-subhuman predicate admits ordinary Zombieland zombies. Both
+`ScanForTarget` and `GetClosestTargetInRadius` use it. The attack driver uses
+the latter when retargeting. The installed 1.7.4985 assembly MVID
+`d368493b52bd4740bc7507c1b0386895` has the same predicate at `060083C6:M`.
+
+`RevenantUtility_ValidTarget_Patch` applies only with Anomaly active. Its
+postfix rejects Zombieland pawns without accepting any native-rejected target.
+The patch belongs to the hostility group. Live red/green evidence is recorded
+under revenant hypnosis in `TEST_SCENARIOS.md`. Native Anomaly testing on 1.6
+remains unavailable because its DLC links point to the former Steam layout.
+
 ## Total Fog readout integration
 
 Total Fog readout integration, 2026-10-05: the installed public Steam 1.6

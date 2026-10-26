@@ -10,6 +10,18 @@ using Verse.AI.Group;
 
 namespace ZombieLand
 {
+	[HarmonyPatch(typeof(RevenantUtility), nameof(RevenantUtility.ValidTarget))]
+	static class RevenantUtility_ValidTarget_Patch
+	{
+		static bool Prepare() => ModsConfig.AnomalyActive;
+
+		static void Postfix(Pawn pawn, ref bool __result)
+		{
+			if (__result && StorytellerEventFilters.IsZombielandPawn(pawn))
+				__result = false;
+		}
+	}
+
 	// patch to make raiders choose zombies less likely as a target
 	// and to prefer non-downed zombies from downed one as targets
 	//

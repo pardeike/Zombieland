@@ -2164,7 +2164,9 @@ namespace ZombieLand
 					var compFlickable = thing.TryGetComp<CompFlickable>();
 					if (compFlickable != null && compFlickable.SwitchIsOn)
 					{
+						compFlickable.wantSwitchOn = false;
 						compFlickable.SwitchIsOn = false;
+						thing.Map.designationManager.DesignationOn(thing, DesignationDefOf.Flick)?.Delete();
 						driver.pawn.rotationTracker.FaceTarget(thing);
 						if (ZombieAwarenessCues.ShouldPlayWallAndSabotageSound())
 							SoundDefOf.FlickSwitch.PlayOneShot(new TargetInfo(thing.Position, thing.Map, false));
