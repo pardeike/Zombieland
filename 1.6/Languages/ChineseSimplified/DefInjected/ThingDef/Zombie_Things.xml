@@ -9,7 +9,7 @@
 	<StickyGoo.label>剧毒黏性丧尸黏液</StickyGoo.label>
 	<StickyGoo.description>一种剧毒而黏稠的物质，很可能使接触者生病。</StickyGoo.description>
 	<Chainsaw.label>链锯</Chainsaw.label>
-	<Chainsaw.description>对丧尸威力巨大，但使用时十分危险。征召使用者并打开马达，即可切割附近敌人。锯刃也会杀死挡在路径上的友军。使用者被包围时可能会丢下链锯。攻击装甲丧尸、机械或建筑可能使链锯损坏。补充化合燃料时，需要先把链锯放在地上。选择一名未被征召的殖民者，右键点击链锯即可下令加油，也可以让负责搬运的殖民者自动补充燃料。</Chainsaw.description>
+	<Chainsaw.description>对丧尸威力巨大，但使用时十分危险。征召使用者并打开马达，即可切割附近敌人。锯刃也会杀死挡在路径上的友军。使用者被包围时可能会丢下链锯。攻击装甲丧尸、机械或建筑可能使链锯损坏。补充化合燃料时，需要先把链锯放在地上。选择一名未被征召的殖民者，右键点击链锯即可下令加油，也可以让负责搬运的殖民者自动补充燃料。 如果链锯被禁用，请在加油前先解除禁用。</Chainsaw.description>
 	<Chainsaw.tools.blade.label>锯刃</Chainsaw.tools.blade.label>
 	<ZombieExtract.label>丧尸提取物</ZombieExtract.label>
 	<ZombieExtract.description>从一只死亡丧尸身上采集的少量提取物。将最多 100 份提取物合成为一种名为丧尸血清的药物，可用于给受感染的身体部位做手术。</ZombieExtract.description>

@@ -903,19 +903,6 @@ namespace ZombieLand
 			}
 		}
 
-		// tick chainsaw when equipped
-		//
-		[HarmonyPatch(typeof(Pawn_EquipmentTracker))]
-		[HarmonyPatch(nameof(Pawn_EquipmentTracker.EquipmentTrackerTick))]
-		static class Pawn_EquipmentTracker_EquipmentTrackerTick_Patch
-		{
-			static void Postfix(Pawn ___pawn)
-			{
-				if (___pawn.equipment?.Primary is Chainsaw chainsaw)
-					chainsaw.Tick();
-			}
-		}
-
 		// rotate chainsaw when moving
 		//
 		[HarmonyPatch(typeof(Pawn_PathFollower))]

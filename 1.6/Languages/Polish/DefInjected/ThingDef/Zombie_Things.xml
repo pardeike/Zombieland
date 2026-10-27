@@ -9,7 +9,7 @@
 	<StickyGoo.label>toksyczna, lepka maź zombie</StickyGoo.label>
 	<StickyGoo.description>Toksyczna i lepka substancja, która prawdopodobnie wywołuje chorobę.</StickyGoo.description>
 	<Chainsaw.label>piła łańcuchowa</Chainsaw.label>
-	<Chainsaw.description>Niszczycielska przeciw zombie, ale niebezpieczna w użyciu. Zmobilizuj użytkownika i włącz silnik, aby ciąć pobliskich wrogów. Ostrze może zabić sojuszników na swojej drodze. Okrążony użytkownik może upuścić piłę. Uderzenie w opancerzone zombie, maszyny lub budynki może ją zepsuć. Aby uzupełnić paliwo chemiczne, połóż ją na ziemi. Wybierz niezmobilizowanego kolonistę i kliknij piłę prawym przyciskiem, aby zlecić tankowanie, lub pozwól tragarzom zrobić to automatycznie.</Chainsaw.description>
+	<Chainsaw.description>Niszczycielska przeciw zombie, ale niebezpieczna w użyciu. Zmobilizuj użytkownika i włącz silnik, aby ciąć pobliskich wrogów. Ostrze może zabić sojuszników na swojej drodze. Okrążony użytkownik może upuścić piłę. Uderzenie w opancerzone zombie, maszyny lub budynki może ją zepsuć. Aby uzupełnić paliwo chemiczne, połóż ją na ziemi. Wybierz niezmobilizowanego kolonistę i kliknij piłę prawym przyciskiem, aby zlecić tankowanie, lub pozwól tragarzom zrobić to automatycznie. Jeśli jej używanie jest zabronione, zezwól na nie przed tankowaniem.</Chainsaw.description>
 	<Chainsaw.tools.blade.label>ostrze</Chainsaw.tools.blade.label>
 	<ZombieExtract.label>ekstrakt zombie</ZombieExtract.label>
 	<ZombieExtract.description>Niewielka ilość ekstraktu z martwego zombie. Połącz maksymalnie 100 jednostek ekstraktu, aby wytworzyć lek zwany serum zombie, używany podczas operacji zakażonych części ciała.</ZombieExtract.description>

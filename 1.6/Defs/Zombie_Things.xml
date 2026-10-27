@@ -107,7 +107,7 @@
 		<defName>Chainsaw</defName>
 		<thingClass>ZombieLand.Chainsaw</thingClass>
 		<label>chainsaw</label>
-		<description>Devastating against zombies, but dangerous to use. Draft the wielder and use the motor toggle to start cutting nearby enemies. The blade can kill allies in its path. Being surrounded can make the wielder drop it. Hitting armored zombies, machines, or buildings can break it. Drop it on the ground for chemfuel refuelling. Select an undrafted colonist and right-click the chainsaw to order refuelling, or let hauling workers refill it automatically.</description>
+		<description>Devastating against zombies, but dangerous to use. Draft the wielder and use the motor toggle to start cutting nearby enemies. The blade can kill allies in its path. Being surrounded can make the wielder drop it. Hitting armored zombies, machines, or buildings can break it. Drop it on the ground for chemfuel refuelling. Select an undrafted colonist and right-click the chainsaw to order refuelling, or let hauling workers refill it automatically. If it is forbidden, allow it before refuelling.</description>
 		<graphicData>
 			<texPath>Chainsaw</texPath>
 			<graphicClass>ZombieLand.Graphic_Breakable</graphicClass>

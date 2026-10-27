@@ -483,7 +483,6 @@ namespace ZombieLand
 			"ZombieLand.Patches+WorldPawns_ShouldMothball_Patch",
 			"ZombieLand.Patches+InfestationCellFinder_CalculateLocationCandidates_Patch",
 			"ZombieLand.Patches+Pawn_Tick_Patch",
-			"ZombieLand.Patches+Pawn_EquipmentTracker_EquipmentTrackerTick_Patch",
 			"ZombieLand.Patches+Pawn_DraftController_setDrafted_Patch",
 			"ZombieLand.Patches+Pawn_JobTracker_StartJob_Patch",
 			"ZombieLand.Patches+Pawn_JobTracker_ShouldStartJobFromThinkTree_Patch",

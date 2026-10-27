@@ -820,6 +820,9 @@ namespace ZombieLand
 				map.fogGrid.Unfog(chainsaw.Position);
 				chainsaw.SetForbidden(false);
 				fuel.SetForbidden(false);
+				Find.Selector.ClearSelection();
+				Find.Selector.Select(chainsaw, false, false);
+				var groundFuelWidgets = chainsaw.GetGizmos().OfType<Gizmo_SetFuelLevel>().Count();
 				var giver = new WorkGiver_Refuel();
 				refuelable.allowAutoRefuel = true;
 				var automatic = giver.HasJobOnThing(actor, chainsaw);
@@ -845,9 +848,24 @@ namespace ZombieLand
 				actor.equipment.AddEquipment(chainsaw);
 				refuelable.ConsumeFuel(refuelable.Fuel);
 				var equippedListed = map.listerThings.ThingsInGroup(ThingRequestGroup.Refuelable).Contains(chainsaw);
+				var equippedFuelWidgets = chainsaw.GetGizmos().OfType<Gizmo_SetFuelLevel>().Count();
+				actor.drafter.Drafted = true;
+				var draftedFuelWidgets = chainsaw.GetGizmos().OfType<Gizmo_SetFuelLevel>().Count();
+				chainsaw.Drop();
+				var droppedForbidden = chainsaw.IsForbidden(actor);
+				Find.Selector.ClearSelection();
+				Find.Selector.Select(chainsaw, false, false);
+				var droppedFuelWidgets = chainsaw.GetGizmos().OfType<Gizmo_SetFuelLevel>().Count();
+				var singleFuelWidget = groundFuelWidgets == 1 && equippedFuelWidgets == 1 && draftedFuelWidgets == 1 && droppedFuelWidgets == 1;
 				return new
 				{
-					success = automatic && automaticDisabled && offered && started && completed && !equippedListed && !chainsaw.Spawned,
+					success = automatic && automaticDisabled && offered && started && completed && !equippedListed && singleFuelWidget,
+					groundFuelWidgets,
+					equippedFuelWidgets,
+					draftedFuelWidgets,
+					droppedFuelWidgets,
+					singleFuelWidget,
+					droppedForbidden,
 					automatic,
 					automaticDisabled,
 					offered,
@@ -945,6 +963,8 @@ namespace ZombieLand
 			var fuelAfterToggle = refuelable.Fuel;
 			var samples = new List<object>();
 
+			var inactiveBefore = chainsaw.inactiveCounter;
+
 			for (var tick = 1; tick <= 20; tick++)
 			{
 				AdvanceGameTicks(1);
@@ -963,12 +983,15 @@ namespace ZombieLand
 			}
 
 			var fuelAfterTicks = refuelable.Fuel;
+			var expectedIdleFuelDelta = 20f * 100f / GenDate.TicksPerDay;
+			var idleTickCount = chainsaw.inactiveCounter - inactiveBefore;
+			var idleConsumptionCorrect = Math.Abs((fuelAfterToggle - fuelAfterTicks) - expectedIdleFuelDelta) < .001f && idleTickCount == 20;
 			actor.drafter.Drafted = false;
 			var runningAfterUndraft = chainsaw.running;
 
 			return new
 			{
-				success = equipped
+				success = equipped && idleConsumptionCorrect
 					&& pawnSet
 					&& ObjectSuccess(movementAngle)
 					&& ObjectSuccess(refuelableStats)
@@ -1007,6 +1030,9 @@ namespace ZombieLand
 				fuelAfterToggle,
 				fuelAfterTicks,
 				fuelDeltaWhileRunning = fuelAfterToggle - fuelAfterTicks,
+				expectedIdleFuelDelta,
+				idleConsumptionCorrect,
+				idleTickCount,
 				hasFuelAfter = refuelable.HasFuel,
 				destroyedZombies,
 				samples

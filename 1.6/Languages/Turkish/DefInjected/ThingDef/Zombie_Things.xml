@@ -9,7 +9,7 @@
 	<StickyGoo.label>zehirli ve yapışkan zombi balçığı</StickyGoo.label>
 	<StickyGoo.description>Temas edenleri muhtemelen hasta eden zehirli ve yapışkan bir madde.</StickyGoo.description>
 	<Chainsaw.label>motorlu testere</Chainsaw.label>
-	<Chainsaw.description>Zombilere karşı yıkıcıdır, ancak kullanımı tehlikelidir. Kullanan kişiyi askere alın ve yakındaki düşmanları kesmek için motoru çalıştırın. Bıçak, yolundaki müttefikleri öldürebilir. Kullanıcı kuşatıldığında testereyi düşürebilir. Zırhlı zombilere, makinelere veya binalara vurmak testereyi bozabilir. Kimyasal yakıt doldurmak için yere bırakın. Askere alınmamış bir kolonisti seçip testereye sağ tıklayarak yakıt doldurma emri verin veya taşıma işçilerinin otomatik doldurmasını bekleyin.</Chainsaw.description>
+	<Chainsaw.description>Zombilere karşı yıkıcıdır, ancak kullanımı tehlikelidir. Kullanan kişiyi askere alın ve yakındaki düşmanları kesmek için motoru çalıştırın. Bıçak, yolundaki müttefikleri öldürebilir. Kullanıcı kuşatıldığında testereyi düşürebilir. Zırhlı zombilere, makinelere veya binalara vurmak testereyi bozabilir. Kimyasal yakıt doldurmak için yere bırakın. Askere alınmamış bir kolonisti seçip testereye sağ tıklayarak yakıt doldurma emri verin veya taşıma işçilerinin otomatik doldurmasını bekleyin. Kullanımı yasaklanmışsa yakıt doldurmadan önce yasağı kaldırın.</Chainsaw.description>
 	<Chainsaw.tools.blade.label>testere zinciri</Chainsaw.tools.blade.label>
 	<ZombieExtract.label>zombi özü</ZombieExtract.label>
 	<ZombieExtract.description>Ölü bir zombiden elde edilen az miktarda öz. Enfekte vücut parçalarında yapılan ameliyatlarda kullanılan zombi serumu adlı ilacı üretmek için 100 birime kadar öz birleştirilebilir.</ZombieExtract.description>

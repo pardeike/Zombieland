@@ -252,7 +252,8 @@ namespace ZombieLand
 				};
 			}
 
-			yield return new Gizmo_SetFuelLevel(refuelable);
+			if (pawn != null)
+				yield return new Gizmo_SetFuelLevel(refuelable);
 		}
 
 		public override string DescriptionDetailed
@@ -376,6 +377,8 @@ namespace ZombieLand
 
 		void Slaughter(Pawn victim)
 		{
+			var map = victim.Map;
+			var position = victim.Position;
 			var head = victim?.health.hediffSet.GetNotMissingParts(BodyPartHeight.Undefined, BodyPartDepth.Undefined, null, null).FirstOrDefault((BodyPartRecord x) => x.def == BodyPartDefOf.Head);
 			if (head != null)
 			{
@@ -383,9 +386,10 @@ namespace ZombieLand
 				_ = Tools.TryAddMissingPart(victim, head, HediffDefOf.ExecutionCut);
 			}
 
-			CustomDefs.Crush.PlayOneShot(SoundInfo.InMap(victim));
-			_ = FilthMaker.TryMakeFilth(victim.Position, victim.Map, ThingDefOf.Human.race.BloodDef, 4, FilthSourceFlags.None, true);
-			victim.Kill(null);
+			CustomDefs.Crush.PlayOneShot(SoundInfo.InMap(new TargetInfo(position, map)));
+			_ = FilthMaker.TryMakeFilth(position, map, ThingDefOf.Human.race.BloodDef, 4, FilthSourceFlags.None, true);
+			if (victim.Dead == false)
+				victim.Kill(null);
 
 			if (Damage(1))
 				return;

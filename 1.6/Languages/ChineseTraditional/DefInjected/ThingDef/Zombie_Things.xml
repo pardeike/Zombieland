@@ -9,7 +9,7 @@
 	<StickyGoo.label>劇毒黏性喪屍黏液</StickyGoo.label>
 	<StickyGoo.description>一種劇毒而黏稠的物質，很可能使接觸者生病。</StickyGoo.description>
 	<Chainsaw.label>鏈鋸</Chainsaw.label>
-	<Chainsaw.description>對喪屍威力巨大，但使用時十分危險。徵召使用者並打開馬達，即可切割附近敵人。鋸刃也會殺死擋在路徑上的友軍。使用者被包圍時可能會丟下鏈鋸。攻擊裝甲喪屍、機械或建築可能使鏈鋸損壞。補充化合燃料時，需要先把鏈鋸放在地上。選擇一名未被徵召的殖民者，右鍵點擊鏈鋸即可下令加油，也可以讓負責搬運的殖民者自動補充燃料。</Chainsaw.description>
+	<Chainsaw.description>對喪屍威力巨大，但使用時十分危險。徵召使用者並打開馬達，即可切割附近敵人。鋸刃也會殺死擋在路徑上的友軍。使用者被包圍時可能會丟下鏈鋸。攻擊裝甲喪屍、機械或建築可能使鏈鋸損壞。補充化合燃料時，需要先把鏈鋸放在地上。選擇一名未被徵召的殖民者，右鍵點擊鏈鋸即可下令加油，也可以讓負責搬運的殖民者自動補充燃料。 如果鏈鋸被禁用，請在加油前先解除禁用。</Chainsaw.description>
 	<Chainsaw.tools.blade.label>鋸刃</Chainsaw.tools.blade.label>
 	<ZombieExtract.label>喪屍提取物</ZombieExtract.label>
 	<ZombieExtract.description>從喪屍屍體採集的少量提取物。最多可將 100 份提取物合成名為「喪屍血清」的藥物，用於對受感染的身體部位進行手術。</ZombieExtract.description>
