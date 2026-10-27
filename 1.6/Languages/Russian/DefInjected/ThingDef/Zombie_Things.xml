@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
-
 	<Apparel_BombVest.label>жилет смертника</Apparel_BombVest.label>
 	<Apparel_BombVest.description>Жилет со взрывчаткой.</Apparel_BombVest.description>
 	<TarSlime.label>сверхлипкая слизь</TarSlime.label>
@@ -10,7 +9,7 @@
 	<StickyGoo.label>токсичная липкая зомби-жижа</StickyGoo.label>
 	<StickyGoo.description>Токсичное липкое вещество, которое, вероятно, вызывает болезнь.</StickyGoo.description>
 	<Chainsaw.label>бензопила</Chainsaw.label>
-	<Chainsaw.description>Бензопила. Похоже, она работает только против тупых врагов вроде зомби и сломается, если использовать её против чего-то другого. Очень высокий риск задеть союзников и выронить её, если на вас нападут с нескольких сторон сразу. Вас предупреждали.</Chainsaw.description>
+	<Chainsaw.description>Сокрушительна против зомби, но опасна в использовании. Призовите владельца и включите двигатель, чтобы рубить ближайших врагов. Пила может убить союзников на своём пути. В окружении владелец может её выронить. Удары по бронированным зомби, машинам или зданиям могут её сломать. Для заправки химтопливом положите пилу на землю. Выберите непризванного колониста и нажмите на пилу правой кнопкой мыши, чтобы приказать заправить её, или дождитесь автоматической заправки переносчиками.</Chainsaw.description>
 	<Chainsaw.tools.blade.label>лезвие</Chainsaw.tools.blade.label>
 	<ZombieExtract.label>экстракт зомби</ZombieExtract.label>
 	<ZombieExtract.description>Небольшое количество экстракта из мёртвого зомби. Используйте до 100 единиц экстракта, чтобы изготовить препарат под названием «зомби-сыворотка» для операций на заражённых частях тела.</ZombieExtract.description>
@@ -42,8 +41,6 @@
 	<Thumper.label>зомби-приманка</Thumper.label>
 	<Thumper.description>Устройство, привлекающее зомби. Использует топливо и повреждает окружение при каждом ударе.</Thumper.description>
 	<ZombieBall.label>зомби-шар</ZombieBall.label>
-
 	<ZombieLand_DecontaminationTransportPod.label>транспортная капсула для дезактивации</ZombieLand_DecontaminationTransportPod.label>
 	<ZombieLand_DecontaminationTransportPod.description>Одноразовая капсула, отправленная забрать поселенца для прохождения дезактивации.</ZombieLand_DecontaminationTransportPod.description>
-
 </LanguageData>

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LanguageData>
-
 	<Apparel_BombVest.label>bomba yeleği</Apparel_BombVest.label>
 	<Apparel_BombVest.description>Patlayıcılarla donatılmış bir yelek.</Apparel_BombVest.description>
 	<TarSlime.label>aşırı yapışkan balçık</TarSlime.label>
@@ -10,7 +9,7 @@
 	<StickyGoo.label>zehirli ve yapışkan zombi balçığı</StickyGoo.label>
 	<StickyGoo.description>Temas edenleri muhtemelen hasta eden zehirli ve yapışkan bir madde.</StickyGoo.description>
 	<Chainsaw.label>motorlu testere</Chainsaw.label>
-	<Chainsaw.description>Bir motorlu testere. Görünüşe göre yalnızca zombiler gibi akılsız düşmanlara karşı işe yarıyor ve başka bir şeye karşı kullanılırsa bozulacak. Aynı anda çok fazla yönden saldırıya uğrarsan dost ateşine neden olma ve testereyi düşürme riski çok yüksek. Uyarıldın.</Chainsaw.description>
+	<Chainsaw.description>Zombilere karşı yıkıcıdır, ancak kullanımı tehlikelidir. Kullanan kişiyi askere alın ve yakındaki düşmanları kesmek için motoru çalıştırın. Bıçak, yolundaki müttefikleri öldürebilir. Kullanıcı kuşatıldığında testereyi düşürebilir. Zırhlı zombilere, makinelere veya binalara vurmak testereyi bozabilir. Kimyasal yakıt doldurmak için yere bırakın. Askere alınmamış bir kolonisti seçip testereye sağ tıklayarak yakıt doldurma emri verin veya taşıma işçilerinin otomatik doldurmasını bekleyin.</Chainsaw.description>
 	<Chainsaw.tools.blade.label>testere zinciri</Chainsaw.tools.blade.label>
 	<ZombieExtract.label>zombi özü</ZombieExtract.label>
 	<ZombieExtract.description>Ölü bir zombiden elde edilen az miktarda öz. Enfekte vücut parçalarında yapılan ameliyatlarda kullanılan zombi serumu adlı ilacı üretmek için 100 birime kadar öz birleştirilebilir.</ZombieExtract.description>
@@ -42,8 +41,6 @@
 	<Thumper.label>zombi tokmağı</Thumper.label>
 	<Thumper.description>Zombileri çekmek için kullanılan bir tokmak. Yakıt tüketir ve her vuruşta çevreye zarar verir.</Thumper.description>
 	<ZombieBall.label>zombi topu</ZombieBall.label>
-
 	<ZombieLand_DecontaminationTransportPod.label>arındırma taşıma kapsülü</ZombieLand_DecontaminationTransportPod.label>
 	<ZombieLand_DecontaminationTransportPod.description>Bir kolonisti arındırma tedavisine götürmek üzere gönderilen tek yönlü bir taşıma kapsülü.</ZombieLand_DecontaminationTransportPod.description>
-
 </LanguageData>

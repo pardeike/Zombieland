@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Defs>
-
 	<ThingDef ParentName="ApparelBase">
 		<defName>Apparel_BombVest</defName>
 		<thingClass>ZombieLand.BombVest</thingClass>
@@ -35,7 +34,6 @@
 			</layers>
 		</apparel>
 	</ThingDef>
-
 	<ThingDef ParentName="BaseFilth">
 		<defName>TarSlime</defName>
 		<thingClass>ZombieLand.TarSlime</thingClass>
@@ -63,7 +61,6 @@
 			<maxThickness>4</maxThickness>
 		</filth>
 	</ThingDef>
-
 	<ThingDef>
 		<defName>TarSmoke</defName>
 		<label>smoke</label>
@@ -86,7 +83,6 @@
 			<rotationSpeed>10</rotationSpeed>
 		</gas>
 	</ThingDef>
-
 	<ThingDef ParentName="BaseFilth">
 		<defName>StickyGoo</defName>
 		<thingClass>ZombieLand.StickyGoo</thingClass>
@@ -107,12 +103,11 @@
 			<canFilthAttach>true</canFilthAttach>
 		</filth>
 	</ThingDef>
-
 	<ThingDef ParentName="BaseGun">
 		<defName>Chainsaw</defName>
 		<thingClass>ZombieLand.Chainsaw</thingClass>
 		<label>chainsaw</label>
-		<description>A chainsaw. Looks like it works only against dumb enemies like zombies and will break if used on anything else. Very high risk for friendly fire and dropping it if attacked from too many angles at once. You've been warned.</description>
+		<description>Devastating against zombies, but dangerous to use. Draft the wielder and use the motor toggle to start cutting nearby enemies. The blade can kill allies in its path. Being surrounded can make the wielder drop it. Hitting armored zombies, machines, or buildings can break it. Drop it on the ground for chemfuel refuelling. Select an undrafted colonist and right-click the chainsaw to order refuelling, or let hauling workers refill it automatically.</description>
 		<graphicData>
 			<texPath>Chainsaw</texPath>
 			<graphicClass>ZombieLand.Graphic_Breakable</graphicClass>
@@ -170,7 +165,6 @@
 			</li>
 		</tools>
 	</ThingDef>
-
 	<ThingDef ParentName="ResourceBase">
 		<defName>ZombieExtract</defName>
 		<thingClass>ZombieLand.ZombieExtract</thingClass>
@@ -199,7 +193,6 @@
 		<tickerType>Rare</tickerType>
 		<resourceReadoutPriority>First</resourceReadoutPriority>
 	</ThingDef>
-
 	<ThingDef ParentName="UnfinishedBase">
 		<defName>UnfinishedZombieSerum</defName>
 		<label>unfinished zombie serum</label>
@@ -210,9 +203,8 @@
 			<graphicClass>Graphic_Single</graphicClass>
 			<texPath>ZombieSerum/Unfinished</texPath>
 		</graphicData>
-		<stuffCategories Inherit="false" />
+		<stuffCategories Inherit="false"/>
 	</ThingDef>
-
 	<ThingDef Name="ZombieSerumBase" ParentName="ResourceBase" Abstract="true">
 		<thingClass>ZombieLand.ZombieSerum</thingClass>
 		<stackLimit>10</stackLimit>
@@ -244,7 +236,6 @@
 		<resourceReadoutPriority>First</resourceReadoutPriority>
 		<orderedTakeGroup>Drug</orderedTakeGroup>
 	</ThingDef>
-
 	<ThingDef Name="ZombieSerumCore" ParentName="ZombieSerumBase" Abstract="true">
 		<techLevel>Industrial</techLevel>
 		<recipeMaker>
@@ -262,7 +253,6 @@
 			</skillRequirements>
 		</recipeMaker>
 	</ThingDef>
-
 	<ThingDef name="ZombieSerumSimple" ParentName="ZombieSerumBase">
 		<defName>ZombieSerumSimple</defName>
 		<label>makeshift zombie serum 100%</label>
@@ -281,7 +271,6 @@
 		<scatterableOnMapGen>false</scatterableOnMapGen>
 		<forceDebugSpawnable>false</forceDebugSpawnable>
 	</ThingDef>
-
 	<ThingDef name="Zombie10Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie10Serum</defName>
 		<label>zombie serum 10%</label>
@@ -302,7 +291,6 @@
 			<workAmount>2400</workAmount>
 		</recipeMaker>
 	</ThingDef>
-
 	<ThingDef name="Zombie20Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie20Serum</defName>
 		<label>zombie serum 20%</label>
@@ -323,7 +311,6 @@
 			<workAmount>2400</workAmount>
 		</recipeMaker>
 	</ThingDef>
-
 	<ThingDef name="Zombie30Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie30Serum</defName>
 		<label>zombie serum 30%</label>
@@ -344,7 +331,6 @@
 			<workAmount>7200</workAmount>
 		</recipeMaker>
 	</ThingDef>
-
 	<ThingDef name="Zombie40Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie40Serum</defName>
 		<label>zombie serum 40%</label>
@@ -365,7 +351,6 @@
 			<workAmount>9600</workAmount>
 		</recipeMaker>
 	</ThingDef>
-
 	<ThingDef name="Zombie50Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie50Serum</defName>
 		<label>zombie serum 50%</label>
@@ -386,7 +371,6 @@
 			<workAmount>12000</workAmount>
 		</recipeMaker>
 	</ThingDef>
-
 	<ThingDef name="Zombie60Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie60Serum</defName>
 		<label>zombie serum 60%</label>
@@ -407,7 +391,6 @@
 			<workAmount>14400</workAmount>
 		</recipeMaker>
 	</ThingDef>
-
 	<ThingDef name="Zombie70Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie70Serum</defName>
 		<label>zombie serum 70%</label>
@@ -428,7 +411,6 @@
 			<workAmount>16800</workAmount>
 		</recipeMaker>
 	</ThingDef>
-
 	<ThingDef name="Zombie80Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie80Serum</defName>
 		<label>zombie serum 80%</label>
@@ -449,7 +431,6 @@
 			<workAmount>19200</workAmount>
 		</recipeMaker>
 	</ThingDef>
-
 	<ThingDef name="Zombie90Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie90Serum</defName>
 		<label>zombie serum 90%</label>
@@ -470,7 +451,6 @@
 			<workAmount>21600</workAmount>
 		</recipeMaker>
 	</ThingDef>
-
 	<ThingDef name="Zombie100Serum" ParentName="ZombieSerumCore">
 		<defName>Zombie100Serum</defName>
 		<label>zombie serum 100%</label>
@@ -491,7 +471,6 @@
 			<workAmount>24000</workAmount>
 		</recipeMaker>
 	</ThingDef>
-
 	<ThingDef ParentName="MoteBase">
 		<defName>ZombieThought</defName>
 		<thingClass>MoteBubble</thingClass>
@@ -506,7 +485,6 @@
 			<attachedDrawOffset>(0.75, 0, 0.75)</attachedDrawOffset>
 		</mote>
 	</ThingDef>
-
 	<ThingDef ParentName="MoteBase">
 		<defName>ZombieZapA</defName>
 		<graphicData>
@@ -519,7 +497,6 @@
 			<fadeOutTime>0.4</fadeOutTime>
 		</mote>
 	</ThingDef>
-
 	<ThingDef ParentName="MoteBase">
 		<defName>ZombieZapB</defName>
 		<graphicData>
@@ -532,7 +509,6 @@
 			<fadeOutTime>0.4</fadeOutTime>
 		</mote>
 	</ThingDef>
-
 	<ThingDef ParentName="MoteBase">
 		<defName>ZombieZapC</defName>
 		<graphicData>
@@ -545,7 +521,6 @@
 			<fadeOutTime>0.4</fadeOutTime>
 		</mote>
 	</ThingDef>
-
 	<ThingDef ParentName="MoteBase">
 		<defName>ZombieZapD</defName>
 		<graphicData>
@@ -558,7 +533,6 @@
 			<fadeOutTime>0.4</fadeOutTime>
 		</mote>
 	</ThingDef>
-
 	<ThingDef ParentName="MoteBase">
 		<defName>Mote_Block</defName>
 		<thingClass>MoteAttached</thingClass>
@@ -574,7 +548,6 @@
 			<attachedDrawOffset>(0,0.5,0)</attachedDrawOffset>
 		</mote>
 	</ThingDef>
-
 	<ThingDef ParentName="BuildingBase" name="ZombieShocker">
 		<defName>ZombieShocker</defName>
 		<label>zombie shocker</label>
@@ -636,7 +609,6 @@
 		</researchPrerequisites>
 		<constructionSkillPrerequisite>2</constructionSkillPrerequisite>
 	</ThingDef>
-
 	<ThingDef ParentName="MoteBase">
 		<defName>BumpLarge</defName>
 		<graphicData>
@@ -649,7 +621,6 @@
 			<fadeOutTime>0.6</fadeOutTime>
 		</mote>
 	</ThingDef>
-
 	<ThingDef ParentName="MoteBase">
 		<defName>BumpMedium</defName>
 		<graphicData>
@@ -662,7 +633,6 @@
 			<fadeOutTime>0.5</fadeOutTime>
 		</mote>
 	</ThingDef>
-
 	<ThingDef ParentName="MoteBase">
 		<defName>BumpSmall</defName>
 		<graphicData>
@@ -675,7 +645,6 @@
 			<fadeOutTime>0.4</fadeOutTime>
 		</mote>
 	</ThingDef>
-
 	<ThingDef>
 		<defName>ElectricalField</defName>
 		<label>electrical field</label>
@@ -720,7 +689,6 @@
 		<useHitPoints>false</useHitPoints>
 		<alwaysHaulable>false</alwaysHaulable>
 	</ThingDef>
-
 	<ThingDef Name="Thumper" ParentName="BuildingBase">
 		<defName>Thumper</defName>
 		<label>zombie thumper</label>
@@ -803,7 +771,6 @@
 			</li>
 		</comps>
 	</ThingDef>
-
 	<ThingDef ParentName="BaseBullet">
 		<defName>ZombieBall</defName>
 		<label>zombie ball</label>
@@ -826,7 +793,6 @@
 			<soundAmbient>MortarRound_Ambient</soundAmbient>
 		</projectile>
 	</ThingDef>
-
 	<ThingDef ParentName="MoteBase">
 		<defName>Ghost</defName>
 		<graphicData>
@@ -843,5 +809,4 @@
 			<fadeOutUnmaintained>True</fadeOutUnmaintained>
 		</mote>
 	</ThingDef>
-
 </Defs>

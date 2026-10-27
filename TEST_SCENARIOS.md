@@ -564,6 +564,11 @@ Completion:
 
 ## S-Defense-Room
 
+Chainsaw refuelling and instructions, 2026-10-27:
+- A fresh debug colony on Steam RimWorld 1.7.4990 rev1069 with all DLCs, Harmony, RimBridgeServer, Zombieland, and Total Fog confirms the existing workflow. No saves were loaded or written. `zombieland/chainsaw_equip_toggle refuelOnly:true` passes (`op_e764957147cb406ca1aab10e2775b2be`): a grounded chainsaw is eligible for automatic refuelling, disabling auto-refuelling removes that eligibility, the native right-click provider offers an enabled "Prioritize refueling chainsaw" option, and invoking it completes a real `Refuel` job in 240 native ticks. This actor adds 75 fuel in one trip toward a 100-fuel target. It does not prove a one-trip full tank or repeated autonomous trips. When equipped, the saw is no longer spawned or listed among automatic refuelling targets.
+- No gameplay button, consumption, hauling, or combat rule changes. The English definition and all nine active translations now explain drafting, the motor toggle, friendly-fire and surrounding risks, breakage, and ground refuelling through hauling or a right-click order. XML/localization validation passes. Initial probe rejection for a generated pawn incapable of hauling was a fixture prerequisite failure. A later incorrect full-tank expectation was corrected to the native one-trip refuelling contract, not treated as a game bug.
+- Tested gameplay DLL SHA-256: `14f4b3714ebee348d0a44a4ab5ff2434c5d1ed6dd6df750a339565077dd425e8`, identical to the paired installed copy. Native journals contain no errors and no warning after startup sequence 16. Existing Waylith title-rendering stub warnings are unrelated. Test actors, items, and scoped probes are removed. The original isolated mod configuration is restored after stopping the owned test process.
+
 Goal: prove the main player defensive tools work together: shocker, thumper, chainsaw, wall push, doors, power, repairs, and colonist combat/work.
 
 Prior evidence:

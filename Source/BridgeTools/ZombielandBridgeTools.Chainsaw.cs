@@ -1,3 +1,4 @@
+using HarmonyLib;
 using RimBridgeServer.Sdk;
 using RimWorld;
 using System;
@@ -794,8 +795,84 @@ namespace ZombieLand
 			};
 		}
 
+		static object VerifyChainsawRefueling(Map map, Pawn actor, Chainsaw chainsaw, CompRefuelable refuelable)
+		{
+			Thing fuel = null;
+			try
+			{
+				actor.drafter.Drafted = false;
+				for (var attempt = 0; actor.WorkTypeIsDisabled(WorkTypeDefOf.Hauling) && attempt < 16; attempt++)
+				{
+					var cell = actor.Position;
+					actor.Destroy(DestroyMode.Vanish);
+					actor = PawnGenerator.GeneratePawn(PawnKindDefOf.Colonist, Faction.OfPlayer);
+					GenSpawn.Spawn(actor, cell, map);
+					DisablePawnWork(actor);
+				}
+				if (actor.WorkTypeIsDisabled(WorkTypeDefOf.Hauling))
+					return new { success = false, error = "Generated actor cannot haul." };
+				actor.workSettings.SetPriority(WorkTypeDefOf.Hauling, 1);
+				refuelable.ConsumeFuel(refuelable.Fuel);
+				fuel = ThingMaker.MakeThing(ThingDefOf.Chemfuel);
+				fuel.stackCount = 100;
+				GenSpawn.Spawn(fuel, actor.Position, map);
+				map.fogGrid.Unfog(actor.Position);
+				map.fogGrid.Unfog(chainsaw.Position);
+				chainsaw.SetForbidden(false);
+				fuel.SetForbidden(false);
+				var giver = new WorkGiver_Refuel();
+				refuelable.allowAutoRefuel = true;
+				var automatic = giver.HasJobOnThing(actor, chainsaw);
+				refuelable.allowAutoRefuel = false;
+				var automaticDisabled = !giver.HasJobOnThing(actor, chainsaw);
+				var giverDef = DefDatabase<WorkGiverDef>.AllDefsListForReading.First(def => def.giverClass == typeof(WorkGiver_Refuel));
+				var context = new FloatMenuContext(new List<Pawn> { actor }, chainsaw.Position.ToVector3Shifted(), map);
+				var option = (FloatMenuOption)AccessTools.Method(typeof(FloatMenuOptionProvider_WorkGivers), "GetWorkGiverOption")
+					.Invoke(new FloatMenuOptionProvider_WorkGivers(), new object[] { actor, giverDef, new LocalTargetInfo(chainsaw), context });
+				var offered = option?.Disabled == false && option.action != null;
+				if (offered) option.action();
+				var started = actor.CurJobDef == JobDefOf.Refuel;
+				var ticks = 0;
+				while (started && actor.CurJobDef == JobDefOf.Refuel && ticks < 1200)
+				{
+					AdvanceGameTicks(1);
+					ticks++;
+				}
+				var completed = refuelable.Fuel > 0 && actor.CurJobDef != JobDefOf.Refuel;
+				var filledFuel = refuelable.Fuel;
+				actor.jobs.EndCurrentJob(JobCondition.InterruptForced);
+				if (chainsaw.Spawned) chainsaw.DeSpawn();
+				actor.equipment.AddEquipment(chainsaw);
+				refuelable.ConsumeFuel(refuelable.Fuel);
+				var equippedListed = map.listerThings.ThingsInGroup(ThingRequestGroup.Refuelable).Contains(chainsaw);
+				return new
+				{
+					success = automatic && automaticDisabled && offered && started && completed && !equippedListed && !chainsaw.Spawned,
+					automatic,
+					automaticDisabled,
+					offered,
+					label = option?.Label,
+					started,
+					completed,
+					ticks,
+					filledFuel,
+					targetFuel = refuelable.TargetFuelLevel,
+					fuelMultiplier = refuelable.Props.FuelMultiplierCurrentDifficulty,
+					equippedListed
+				};
+			}
+			finally
+			{
+				actor.jobs?.EndCurrentJob(JobCondition.InterruptForced);
+				if (!chainsaw.Destroyed) chainsaw.Destroy(DestroyMode.Vanish);
+				if (!actor.Destroyed) actor.Destroy(DestroyMode.Vanish);
+				if (fuel?.Destroyed == false) fuel.Destroy(DestroyMode.Vanish);
+			}
+		}
+
 		[Tool("zombieland/chainsaw_equip_toggle", Description = "Equip a real fueled chainsaw, start it through its gizmo, tick it while equipped, then verify undrafting stops it.")]
-		public static object ChainsawEquipToggle()
+		public static object ChainsawEquipToggle(
+			[ToolParameter(Description = "Only exercise the native ground refuelling workflow and equipped restriction.", Required = false, DefaultValue = false)] bool refuelOnly = false)
 		{
 			var map = CurrentMap;
 			if (map == null)
@@ -842,6 +919,9 @@ namespace ZombieLand
 					error = "The spawned chainsaw did not have refuelable and breakable comps."
 				};
 			}
+
+			if (refuelOnly)
+				return VerifyChainsawRefueling(map, actor, chainsaw, refuelable);
 
 			var fuel = ThingMaker.MakeThing(ThingDefOf.Chemfuel);
 			fuel.stackCount = Math.Min(ThingDefOf.Chemfuel.stackLimit, refuelable.GetFuelCountToFullyRefuel());
