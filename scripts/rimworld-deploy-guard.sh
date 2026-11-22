@@ -12,6 +12,7 @@ cleanup_deploy_lock() {
 usage() {
 	cat >&2 <<'USAGE'
 Usage:
+  rimworld-deploy-guard.sh check-stopped
   rimworld-deploy-guard.sh validate RIMWORLD_MOD_DIR PROJECT_PATH MOD_FILE_NAME
   rimworld-deploy-guard.sh deploy RIMWORLD_MOD_DIR PROJECT_PATH CONFIGURATION PLATFORM MOD_FILE_NAME [BUILD_BRIDGE_TOOLS]
 
@@ -19,6 +20,18 @@ Validates the deploy root and serializes the destructive RimWorld deploy copy
 against the real Mods directory, so symlink aliases cannot race each other.
 USAGE
 	exit 64
+}
+
+# Matches the RimWorld 1.7 (.NET) executable and the 1.6 Unity executable.
+ensure_rimworld_stopped() {
+	local running
+
+	running="$(ps ax -o pid=,comm= | awk '$0 ~ /\/RimWorld( by Ludeon Studios)?$/ { print }' || true)"
+	if [[ -n "$running" ]]; then
+		printf 'Refusing deploy build because RimWorld is still running:\n%s\n' "$running" >&2
+		printf 'Stop the game through GABS, then rerun the build.\n' >&2
+		exit 2
+	fi
 }
 
 logical_dir() {
@@ -42,12 +55,23 @@ physical_dir() {
 validate_mod_dir() {
 	local rimworld_mod_dir="$1"
 	local mod_file_name="$2"
-	local provided_abs resolved_abs parent parent_name app_mods app_resolved
+	local provided_abs resolved_abs parent parent_name app_mods app_resolved dotnet_mods
 
 	provided_abs="$(logical_dir "$rimworld_mod_dir")"
 	resolved_abs="$(physical_dir "$rimworld_mod_dir")"
 	parent="$(dirname "$provided_abs")"
 	parent_name="$(basename "$parent")"
+
+	# RimWorld 1.7 runs from <install>/RimWorld.app and reads <install>/Mods and
+	# <install>/BridgeTools. The .app/Mods alias would pair the companion with the
+	# BridgeTools folder of the 1.6 Unity build.
+	if [[ "$parent_name" == *.app ]]; then
+		dotnet_mods="$(dirname "$parent")/Mods"
+		if [[ -d "$dotnet_mods" && "$(physical_dir "$dotnet_mods")" == "$resolved_abs" ]]; then
+			printf '%s targets RimWorld 1.7. Use its Mods path: %s\n' "$mod_file_name" "$dotnet_mods" >&2
+			exit 2
+		fi
+	fi
 
 	if [[ "$parent_name" == *-UserData ]]; then
 		app_mods="${parent%-UserData}.app/Mods"
@@ -100,6 +124,9 @@ run_inner_deploy() {
 		"/p:Platform=$platform"
 		"/p:RimworldDeployGuardInner=true"
 	)
+
+	# Repeat this check inside the lock, immediately before the destructive targets.
+	ensure_rimworld_stopped
 
 	if [[ -n "$build_bridge_tools" ]]; then
 		args+=("/p:BuildBridgeTools=$build_bridge_tools")
@@ -154,6 +181,10 @@ EOF
 
 mode="${1:-}"
 case "$mode" in
+	check-stopped)
+		(($# == 1)) || usage
+		ensure_rimworld_stopped
+		;;
 	validate)
 		(($# == 4)) || usage
 		validate_mod_dir "$2" "$4"

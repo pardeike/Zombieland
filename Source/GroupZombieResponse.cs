@@ -142,7 +142,9 @@ namespace ZombieLand
 
 			var previousMode = hasPrevious ? HysteresisSeedMode(previous.mode, previous.tick, now) : GroupResponseMode.Minimal;
 			var mode = Evaluate(lord, now, previousMode);
-			cache[lord] = new CacheEntry(mode, now);
+			// Multiplayer: an interface evaluation would give each peer a different cache tick and hysteresis.
+			if (MultiplayerSupport.InInterface == false)
+				cache[lord] = new CacheEntry(mode, now);
 			return mode;
 		}
 

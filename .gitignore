@@ -251,3 +251,6 @@ Originals/Effects/Assets/AssetBundles/
 Originals/Effects/Assets/_Zombieland/
 Originals/Effects/ProjectSettings/MemorySettings.asset
 Originals/Effects/ProjectSettings/VersionControlSettings.asset
+
+# Python bytecode
+__pycache__/

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+	<ZombieFreeEvent.label>zombi sessizliği</ZombieFreeEvent.label>
+	<ZombieFreeEvent.description>Zombiler kısa bir süreliğine dünyadan kaybolur. Sıradan zombiler yok olur ve bu koşul sürdüğü müddetçe yenileri ortaya çıkmaz.</ZombieFreeEvent.description>
+	<ZombieFreeEvent.endMessage>Zombi sessizliği sona erdi. Zombiler yeniden ortaya çıkabilir.</ZombieFreeEvent.endMessage>
+	<ZombieFreeEvent.letterText>Kısa bir süreliğine dünya genelindeki zombiler yok oluyor ve yenileri ortaya çıkmayacak. Bu, yolculuk için iyi bir fırsat.</ZombieFreeEvent.letterText>
+</LanguageData>

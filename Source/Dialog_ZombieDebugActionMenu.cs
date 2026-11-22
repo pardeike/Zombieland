@@ -95,13 +95,7 @@ namespace ZombieLand
 			var tm = map?.GetComponent<TickManager>();
 			if (tm?.RuntimeReady != true || tm.incidentInfo?.parameters == null)
 				return;
-			var size = tm.incidentInfo.parameters.incidentSize;
-			if (size > 0)
-			{
-				var success = ZombiesRising.TryExecute(map, size, IntVec3.Invalid, false, false);
-				if (success == false)
-					Log.Error("Incident creation failed. Most likely no valid spawn point found.");
-			}
+			MultiplayerCommands.TriggerZombieIncident(map, IntVec3.Invalid, tm.incidentInfo.parameters.incidentSize, false);
 		}
 
 		[DebugAction("Zombieland", "Trigger: Spitter Event")]
@@ -120,25 +114,25 @@ namespace ZombieLand
 		[DebugAction("Zombieland", "Spawn: Incident (4)", actionType = DebugActionType.ToolMap)]
 		private static void SpawnZombieIncident_4()
 		{
-			_ = ZombiesRising.TryExecute(Find.CurrentMap, 4, UI.MouseCell(), false, true);
+			MultiplayerCommands.TriggerZombieIncident(Find.CurrentMap, UI.MouseCell(), 4, true);
 		}
 
 		[DebugAction("Zombieland", "Spawn: Incident (25)", actionType = DebugActionType.ToolMap)]
 		private static void SpawnZombieIncident_25()
 		{
-			_ = ZombiesRising.TryExecute(Find.CurrentMap, 25, UI.MouseCell(), false, true);
+			MultiplayerCommands.TriggerZombieIncident(Find.CurrentMap, UI.MouseCell(), 25, true);
 		}
 
 		[DebugAction("Zombieland", "Spawn: Incident (100)", actionType = DebugActionType.ToolMap)]
 		private static void SpawnZombieIncident_100()
 		{
-			_ = ZombiesRising.TryExecute(Find.CurrentMap, 100, UI.MouseCell(), false, true);
+			MultiplayerCommands.TriggerZombieIncident(Find.CurrentMap, UI.MouseCell(), 100, true);
 		}
 
 		[DebugAction("Zombieland", "Spawn: Incident (200)", actionType = DebugActionType.ToolMap)]
 		private static void SpawnZombieIncident_200()
 		{
-			_ = ZombiesRising.TryExecute(Find.CurrentMap, 200, UI.MouseCell(), false, true);
+			MultiplayerCommands.TriggerZombieIncident(Find.CurrentMap, UI.MouseCell(), 200, true);
 		}
 
 		[DebugAction("Zombieland", "Spawn: Zombie Symbiant", actionType = DebugActionType.ToolMap)]
@@ -325,6 +319,9 @@ namespace ZombieLand
 			var map = Find.CurrentMap;
 			var pawn = map.thingGrid.ThingAt<Pawn>(UI.MouseCell());
 			if (pawn == null || pawn is Zombie || pawn is ZombieSymbiant || pawn is ZombieSpitter)
+				return;
+			// Multiplayer replays debug actions on every peer. Only the issuing player gets the window.
+			if (MultiplayerCommands.IsLocalIssuer == false)
 				return;
 			var window = new Dialog_ContaminationDebugSettings(pawn);
 			Find.WindowStack.Add(window);

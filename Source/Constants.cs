@@ -362,7 +362,9 @@ namespace ZombieLand
 		public static readonly Texture2D[] ButtonUp = new[] { ContentFinder<Texture2D>.Get("ButtonUp0", true), ContentFinder<Texture2D>.Get("ButtonUp1", true) };
 		public static readonly Texture2D Danger = ContentFinder<Texture2D>.Get("Danger", true);
 
-		public static readonly System.Random random = new();
+		static readonly System.Random systemRandom = new();
+		// Multiplayer peers must draw simulation randomness from Verse.Rand.
+		public static System.Random random => MultiplayerSupport.IsActive ? MultiplayerSupport.VerseRandom : systemRandom;
 
 		public static readonly Mesh screamMesh = MeshMakerPlanes.NewPlaneMesh(8f);
 		public static readonly Mesh healMesh = MeshMakerPlanes.NewPlaneMesh(4f);

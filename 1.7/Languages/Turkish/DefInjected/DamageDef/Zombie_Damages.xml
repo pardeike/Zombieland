@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+	<ZombieBite.label>zombi ısırığı</ZombieBite.label>
+	<ZombieBite.deathMessage>{0} bir zombi tarafından ısırılarak öldürüldü.</ZombieBite.deathMessage>
+	<SuicideBomb.label>intihar bombası</SuicideBomb.label>
+	<SuicideBomb.deathMessage>{0} bir intihar bombası saldırısında öldü.</SuicideBomb.deathMessage>
+	<ToxicSplatter.label>zehir sıçraması</ToxicSplatter.label>
+	<ElectricalShock.label>elektrik şoku</ElectricalShock.label>
+	<ElectricalShock.deathMessage>{0} elektrik çarpmasıyla öldü.</ElectricalShock.deathMessage>
+	<SeismicWave.label>sismik dalga</SeismicWave.label>
+</LanguageData>

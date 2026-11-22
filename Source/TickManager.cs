@@ -484,6 +484,9 @@ namespace ZombieLand
 				return;
 			if (managers == null || managers.Count == 0)
 				return;
+			// Multiplayer runs this postfix in world context. Zombies tick per map from TickManager.MapComponentTick instead.
+			if (MultiplayerSupport.IsActive)
+				return;
 
 			if (RimThreaded == null)
 				for (var i = 0; i < managers.Count; i++)
@@ -908,6 +911,11 @@ namespace ZombieLand
 			Tools.InvalidatePlayerReachableRegions(map);
 			ZombieSymbiant.ReleaseRenderResourcesForMap(map);
 			ZombieSymbiant.ForgetMap(map);
+			ZombieWanderer.ForgetMap(map);
+			foreach (var coroutine in multiplayerCoroutines)
+				(coroutine as IDisposable)?.Dispose();
+			multiplayerCoroutines.Clear();
+			multiplayerAvoidGridPass = null;
 		}
 
 		public void Cleanup()
@@ -1127,7 +1135,10 @@ namespace ZombieLand
 
 			ClearZombieBuffer(zombies, zombieCount, previousCandidateCount);
 			tickManager.currentZombiesTickingCandidatesCount = zombieCount;
-			var tickFraction = Mathf.Min(ZombieTicker.PercentTicking, CountBasedTickFraction(zombieCount));
+			// Multiplayer: the frame-time controller and the camera differ per peer. Keep only the count-based budget.
+			var multiplayer = MultiplayerSupport.IsActive;
+			var countFraction = CountBasedTickFraction(zombieCount);
+			var tickFraction = multiplayer ? countFraction : Mathf.Min(ZombieTicker.PercentTicking, countFraction);
 			var targetNeighborCells = tickManager.map.GetComponent<ZombieAttackTargetIndex>()?.CurrentCandidateNeighborsByCell();
 			var attackNeighborTick = targetNeighborCells == null ? -1 : GenTicks.TicksAbs;
 			for (var i = 0; i < zombieCount; i++)
@@ -1147,8 +1158,8 @@ namespace ZombieLand
 			tickManager.lastZombieTickingSelectedRemoteCount = 0;
 			tickManager.lastZombieTickingRemoteTickRate = 1f;
 			var telemetryEnabled = ZombieTickingTelemetry.EnabledFor(tickManager.map);
-			var splitRequired = tickFraction < 1f || ZombieTicker.saturationState != ZombieSaturationState.Normal;
-			var hasViewRect = (telemetryEnabled || splitRequired) && Find.CurrentMap == tickManager.map && Find.CameraDriver != null;
+			var splitRequired = tickFraction < 1f || (multiplayer == false && ZombieTicker.saturationState != ZombieSaturationState.Normal);
+			var hasViewRect = multiplayer == false && (telemetryEnabled || splitRequired) && Find.CurrentMap == tickManager.map && Find.CameraDriver != null;
 			var exactViewRect = default(CellRect);
 			var protectedViewRect = default(CellRect);
 			if (hasViewRect)
@@ -1226,7 +1237,9 @@ namespace ZombieLand
 					: Mathf.Clamp01(Math.Max(0, targetTickingCount - priorityCount) / (float)remoteCount);
 				var remoteTickRate = remoteCount == 0
 					? 1f
-					: Mathf.Clamp(Mathf.Max(nominalRemoteRate * ZombieTicker.RemoteSelectionScale, ZombieTicker.RemoteTickFloor), 0f, 1f);
+					: multiplayer
+						? Mathf.Clamp(Mathf.Max(nominalRemoteRate, ZombieTicker.NormalRemoteTickFloor), 0f, 1f)
+						: Mathf.Clamp(Mathf.Max(nominalRemoteRate * ZombieTicker.RemoteSelectionScale, ZombieTicker.RemoteTickFloor), 0f, 1f);
 				tickManager.lastZombieTickingRemoteTickRate = remoteTickRate;
 				for (var i = 0; i < remoteCount; i++)
 					remote[i].simulationTickRate = remoteTickRate;
@@ -1508,6 +1521,12 @@ namespace ZombieLand
 
 		public void UpdateZombieAvoider(bool force = false)
 		{
+			if (MultiplayerSupport.IsActive)
+			{
+				UpdateZombieAvoiderSynchronously(force);
+				return;
+			}
+
 			if (force == false && lastAvoidGridRequestId > lastAvoidGridResultId && AvoidGridIsStale() == false)
 				return;
 
@@ -1536,6 +1555,49 @@ namespace ZombieLand
 			lastAvoidGridRequestTick = GenTicks.TicksGame;
 			if (force)
 				avoidGridCounter = -1;
+		}
+
+		// Multiplayer: the worker thread delivers results at a different tick on each peer.
+		// A pass builds the grid on the map tick instead, with a fixed cell budget per tick.
+		// Unforced passes start at most once per game second. A forced request during a pass starts the next pass when it ends.
+		const int MultiplayerAvoidGridCellsPerTick = 2000;
+		IEnumerator multiplayerAvoidGridPass;
+		bool multiplayerAvoidGridPassPending;
+		int nextMultiplayerAvoidGridTick;
+
+		void UpdateZombieAvoiderSynchronously(bool force)
+		{
+			if (multiplayerAvoidGridPass != null)
+			{
+				if (force)
+					multiplayerAvoidGridPassPending = true;
+				return;
+			}
+			if (force || GenTicks.TicksGame >= nextMultiplayerAvoidGridTick)
+				StartMultiplayerAvoidGridPass();
+		}
+
+		void StartMultiplayerAvoidGridPass()
+		{
+			nextMultiplayerAvoidGridTick = GenTicks.TicksGame + Math.Max(GenTicks.TicksPerRealSecond, Constants.TICKMANAGER_AVOIDGRID_DELAY.SecondsToTicks());
+			multiplayerAvoidGridPassPending = false;
+			var specs = Tools.ShouldAvoidZombies() ? BuildAvoidGridSpecs() : null;
+			if (specs == null || specs.Count == 0)
+			{
+				emptyAvoidGrid ??= new AvoidGrid(map);
+				AcceptAvoidGridSnapshot(emptyAvoidGrid);
+				return;
+			}
+			multiplayerAvoidGridPass = Tools.avoider.BuildGridIteratively(map, specs, MultiplayerAvoidGridCellsPerTick, AcceptAvoidGridSnapshot);
+		}
+
+		void StepMultiplayerAvoidGrid()
+		{
+			if (multiplayerAvoidGridPass == null || multiplayerAvoidGridPass.MoveNext())
+				return;
+			multiplayerAvoidGridPass = null;
+			if (multiplayerAvoidGridPassPending)
+				StartMultiplayerAvoidGridPass();
 		}
 
 		static bool ShouldAffectAvoidGrid(Zombie zombie)
@@ -1671,6 +1733,8 @@ namespace ZombieLand
 
 		void FetchAvoidGrid()
 		{
+			if (MultiplayerSupport.IsActive)
+				return;
 			if (Tools.ShouldAvoidZombies() == false)
 			{
 				emptyAvoidGrid ??= new AvoidGrid(map);
@@ -2233,6 +2297,9 @@ namespace ZombieLand
 					else if (volume > zombiesAmbientSoundVolume)
 						zombiesAmbientSoundVolume += 0.0001f;
 					zombiesAmbientSound.info.volumeFactor = zombiesAmbientSoundVolume;
+					// Multiplayer: USE_SOUND is local, so this branch must yield like the others.
+					if (MultiplayerSupport.IsActive)
+						yield return null;
 				}
 				else
 				{
@@ -2273,6 +2340,37 @@ namespace ZombieLand
 			IncreaseZombiePopulation();
 			SoSTools.GenerateSpaceZombies(this);
 			TickHeads();
+
+			if (MultiplayerSupport.IsActive)
+				MultiplayerTick();
+		}
+
+		// Multiplayer ticks every map in its own context (map Rand state and clock), so per-frame,
+		// threaded and world-context work runs here instead, driven by ticks with fixed budgets.
+		readonly List<IEnumerator> multiplayerCoroutines = new();
+
+		public void StartMultiplayerCoroutine(IEnumerator coroutine) => multiplayerCoroutines.Add(coroutine);
+
+		// Multiplayer: a tick-based throttle. Letter stacks are local, and every peer resets this field at a reload.
+		int nextDangerousSituationLetterTick;
+
+		public bool TryDangerousSituationLetter()
+		{
+			var ticks = GenTicks.TicksGame;
+			if (ticks < nextDangerousSituationLetterTick)
+				return false;
+			nextDangerousSituationLetterTick = ticks + 300;
+			return true;
+		}
+
+		void MultiplayerTick()
+		{
+			ZombieWanderer.ProcessMapStep(map);
+			for (var i = 0; i < multiplayerCoroutines.Count; i++)
+				if (multiplayerCoroutines[i].MoveNext() == false)
+					multiplayerCoroutines.RemoveAt(i--);
+			ZombieTicking();
+			StepMultiplayerAvoidGrid();
 		}
 	}
 }

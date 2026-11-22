@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<ShaderDef>
+		<defName>ZombielandMetaballs</defName>
+		<shaderProgram>
+			<vertexShaderFileName>Transparent.vert.glsl</vertexShaderFileName>
+			<fragmentShaderFileName>ZombielandMetaballs.frag.glsl</fragmentShaderFileName>
+			<useTexture>false</useTexture>
+			<blendMode>Opaque</blendMode>
+			<depthTest>false</depthTest>
+			<depthWrite>false</depthWrite>
+			<cullMode>None</cullMode>
+			<renderQueue>3000</renderQueue>
+		</shaderProgram>
+	</ShaderDef>
+	<ShaderDef>
+		<defName>ZombielandSymbiant</defName>
+		<shaderProgram>
+			<vertexShaderFileName>ZombielandSymbiant.vert.glsl</vertexShaderFileName>
+			<fragmentShaderFileName>ZombielandSymbiant.frag.glsl</fragmentShaderFileName>
+			<transparent>true</transparent>
+			<depthWrite>false</depthWrite>
+			<cullMode>None</cullMode>
+			<renderQueue>3000</renderQueue>
+		</shaderProgram>
+	</ShaderDef>
+</Defs>

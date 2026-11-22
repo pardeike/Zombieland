@@ -12,9 +12,18 @@ You will also need to not get down the rabbit hole of quick decisions on how to 
 
 So go ahead and create a work cycle that keeps track of the overall progress, the problems, the decisions and the pitfalls and make sure it just does not grow endlessly. I think you should build up some meta rules similar to i.e. "we need to clean out outdated and useless information/guidelines from our collection of documents regularily". Or that it is maybe wise to keep a collection of architectural decissions that we also revisit sometimes. And how to improve the code, test, fix cycle. Or how to track token consumption to avoid spending all the weekly allowance in the first two days by working efficient, removing token exploding files/structures and minimizing context polution (no compiler output, just ok or error for example).
 
+Project workflow:
+
+- Routine command: `./scripts/build-quiet.sh --local`. It formats, builds Release, and builds the companion. It prints `ok`, or the failed step and the log path.
+- Add `--package --legacy-root=PATH` to produce and verify `artifacts/ZombieLand.zip` without deployment. `--local` clears any inherited deployment root.
+- To deploy, set `RIMWORLD_MOD_DIR` and pass `--legacy-root=PATH`. For macOS 1.7, use the outer `<RimWorld install>/Mods`, not `RimWorldMac.app/Mods`. The guard refuses the wrong path.
+- Deployment refuses a running game. The workflow never starts or stops RimWorld. Use GABS for that.
+- A deploy mirrors the packaged `1.7/`, replaces the repository-owned root and About files, then verifies the installed payload and the ZIP.
+- `Directory.Build.props` owns the mod version. Every build syncs `About/About.xml` and `About/Manifest.xml` from it.
+
 Rules:
 
-- Do not spend agent time hand-formatting code. `scripts/build-quiet.sh` automatically formats all C# from `.editorconfig` and changed active XML-like files before compiling; use `scripts/format-project.sh --check` for a read-only check. Keep `1.4/` and `Originals/` out of this automated formatting.
+- Do not spend agent time hand-formatting code. `scripts/build-quiet.sh` automatically formats all C# from `.editorconfig` and changed active XML-like files before compiling; use `scripts/format-project.sh --check` for a read-only check. Keep `1.4/`, `1.6/`, and `Originals/` out of this automated formatting.
 - automate repeated tasks with scripts (either bash or lua inside GABS)
 - working small iterations is good but has the problem that the overall ceremony is slow and uses a lot of tokens. find a balance
 - find a way to analyse the rimworld log in a token efficient way (with a script that de-dups errors/stacktraces)
@@ -40,34 +49,44 @@ Commit policy:
 - Before committing, add every player-visible or player-relevant change to `PENDING_RELEASE_NOTES.md` as a short, simple item; never add implementation, test, audit, or other internal-only work.
 - When preparing a release, use the items in `PENDING_RELEASE_NOTES.md` as the release note source.
 - Before committing the release version bump, preserve the current release-note contents, then clear `PENDING_RELEASE_NOTES.md`; commit the empty file with the bumped metadata and rebuilt DLLs so released items never carry into the next release.
-- Normal development commits must not include the built mod DLLs `1.4/Assemblies/ZombieLand.dll` or `1.6/Assemblies/ZombieLand.dll` merely because validation rebuilt them. Restore them with `git restore -- 1.4/Assemblies/ZombieLand.dll 1.6/Assemblies/ZombieLand.dll` unless the same commit changes a dependency consumed by either tracked DLL.
-- The final tested release commit includes both rebuilt `ZombieLand.dll` files together with the version files changed by the bump, currently `Directory.Build.props`, `About/About.xml`, and `About/Manifest.xml`. A non-release dependency-coherence commit also includes the complete affected dependent DLL set from one validated build. A version bump or `Configuration=Release` build alone is not either boundary.
+- The 1.4 and 1.6 DLLs and resources are frozen. Do not rebuild, restore, or replace them during 1.7 work.
+- Normal source commits omit incidental rebuilt `1.7/Assemblies/ZombieLand.dll` changes unless preparing a release or updating a consumed dependency.
+- The final tested 1.7 release commit includes the rebuilt `1.7/Assemblies/ZombieLand.dll` together with the version files changed by the bump, currently `Directory.Build.props`, `About/About.xml`, and `About/Manifest.xml`. A non-release dependency-coherence commit also includes the complete affected dependent DLL set from one validated build. A version bump or `Configuration=Release` build alone is not either boundary.
 - Do not use `.gitignore` or `git update-index --skip-worktree` as the shared policy for these DLLs. They are tracked files and release commits must remain able to update them intentionally.
 
 DLL and BridgeTools deployment invariant:
 
-- The only valid local deploy shape for this repo is a paired deploy rooted at the active RimWorld `Mods` folder: `$(RIMWORLD_MOD_DIR)/ZombieLand/1.6/Assemblies/ZombieLand.dll` and `$(RIMWORLD_MOD_DIR)/../BridgeTools/Zombieland/Zombieland.BridgeTools.dll`.
+- The only valid local deploy shape for this repo is a paired deploy rooted at the active RimWorld `Mods` folder: `$(RIMWORLD_MOD_DIR)/ZombieLand/1.7/Assemblies/ZombieLand.dll` and `$(RIMWORLD_MOD_DIR)/../BridgeTools/Zombieland/Zombieland.BridgeTools.dll`.
 - `RIMWORLD_MOD_DIR` must point at the RimWorld `Mods` folder whose sibling `../BridgeTools` directory is the global BridgeTools directory RimBridge will load for that same game install. Do not deploy the mod DLL to one Mods folder and the companion DLL to an unrelated BridgeTools folder.
 - The `Source/ZombieLand.csproj` `CopyToRimworld` target deliberately derives the companion destination from `$(RIMWORLD_MOD_DIR)\..\BridgeTools`; do not replace this with a separate override unless the deployment model itself changes and this invariant is updated first.
 - If the wrong BridgeTools copy was touched during diagnosis, treat that as a stale side effect, not as an alternate supported deploy path. Rebuild with the correct `RIMWORLD_MOD_DIR` so the mod DLL and companion DLL are in sync.
+- Deployment must reject incomplete or symlinked 1.4/1.6 payloads before writes. Never rewrite or delete installed frozen 1.4/1.6 files, even when their bytes differ from the published baseline. Deployment replaces the repository-owned files (`1.7/`, `About/`, `LoadFolders.xml`, `README.md`, `LICENSE`) and verifies them against the package stage. Public ZIPs still use the pinned published baseline.
 
 Asset bundle workflow:
 
+- Active native shader source belongs in `1.7/Shaders`, with ShaderDefs in `1.7/Defs/ShaderDefs`. Use the normal mod build to package and deploy it.
+- Use `-WatchShaders` only for isolated development sessions. Finish shader changes with the normal paired build, deployment, and fresh runtime validation.
+- The Unity project still supplies the dust prefab and textures. The main-menu colour effect also retains its bundled shader until native GUI rendering supports its blend states. Do not delete this project.
 - Use `./scripts/build-assetbundles.sh` for Unity shader and asset bundle builds from `Originals/Effects`; do not re-invent manual Unity command lines or rely on the GUI for routine bundle work.
-- For quick local shader/material iteration, use `./scripts/build-assetbundles.sh --current` or `--quick`; on this Mac it rebuilds only `1.6/Resources/MacOS/zombieland`.
-- For release-like validation, use `./scripts/build-assetbundles.sh --full`; it rebuilds and validates `1.6/Resources/Win64/zombieland`, `1.6/Resources/Linux/zombieland`, and `1.6/Resources/MacOS/zombieland`.
-- The bundle output path is always `1.6/Resources/{OS}/zombieland`. If Unity generates files under `Originals/Effects/Assets/AssetBundles` or `Originals/Effects/Assets/_Zombieland`, treat them as intermediates; the mod consumes the copied files under `1.6/Resources`.
+- For quick local shader/material iteration, use `./scripts/build-assetbundles.sh --current` or `--quick`; on this Mac it rebuilds only `1.7/Resources/MacOS/zombieland`.
+- For release-like validation, use `./scripts/build-assetbundles.sh --full`; it rebuilds and validates `1.7/Resources/Win64/zombieland`, `1.7/Resources/Linux/zombieland`, and `1.7/Resources/MacOS/zombieland`.
+- The bundle output path is always `1.7/Resources/{OS}/zombieland`. If Unity generates files under `Originals/Effects/Assets/AssetBundles` or `Originals/Effects/Assets/_Zombieland`, treat them as intermediates; the mod consumes the copied files under `1.7/Resources`.
 - Read `scripts/README.md` before changing the Unity asset bundle workflow. It documents the script parameters, Unity methods, Rosetta requirement on Apple Silicon, validation output, and generated cache cleanup expectations.
 
 Runtime folder policy:
 
-- Root runtime folders are forbidden: do not add or edit root `Assemblies`, `Defs`, `Languages`, `Libraries`, `Patches`, `Resources`, `Sounds`, or `Textures`.
+- Root runtime folders are forbidden: do not add or edit root `Assemblies`, `Defs`, `Languages`, `Libraries`, `Patches`, `Resources`, `Shaders`, `Sounds`, or `Textures`.
 - RimWorld 1.4 payload is frozen under `1.4/`; do not change it unless intentionally repairing or releasing the preserved 1.4 payload.
-- RimWorld 1.6 content work belongs under `1.6/`; source work that builds the 1.6 DLL belongs under `Source/`.
+- RimWorld 1.6 payload is frozen under `1.6/`. Never modify its DLLs or resources during 1.7 work.
+- RimWorld 1.7 content work belongs under `1.7/`. Current `Source/` projects build only 1.7, using .NET 10 and AnyCPU.
+- Packaging and deployment require an explicit installed/released legacy root. Its 1.4/1.6 files must match `scripts/published-baseline.json`. Preserve them and the load-folder lookup order.
+- Repository 1.6 resources differ from Steam in 30 files. Never substitute them silently or overwrite either baseline.
+- Read `scripts/README.md` for the 1.7 SDK and dependency prerequisites.
+- The companion restores published RimBridgeServer.Sdk 2.0.0 from NuGet.org. No local SDK package or feed is required. Never ship the SDK DLL.
 
 Operating model:
 
-- Static/decompiler pass first. For every Harmony patch group, prove the target exists, the signature still matches, closure/delegate targets still have the same role, and the patch still makes semantic sense in RimWorld 1.6 before launching the game. This catches stale targets and 1.4-era assumptions early.
+- Static/decompiler pass first. For every Harmony patch group, prove the target exists, the signature still matches, closure/delegate targets still have the same role, and the patch still makes semantic sense in RimWorld 1.7 before launching the game. This catches stale targets and 1.4-era assumptions early.
 - Generic bridge primitives second. Prefer broad reusable tools such as spawn thing, spawn pawn, set contamination, select, hover, run ticks, save, load, list logs, screenshot, and read semantic state. These are the stable automation surface.
 - Custom bridge contracts only when they become reusable evidence. A contract is justified when it covers a named matrix row or scenario cluster. A one-off tool that only proves one hunch should usually be deleted, folded into a generic helper, or promoted into a broader scenario contract afterward.
 - Scenario fixtures over microscopic contract sprawl. Use isolated contracts to find and fix narrow behavior, then escalate to combined save-load fixtures that prove the behaviors coexist in one map/session.
@@ -75,6 +94,6 @@ Operating model:
 - Use hard session boundaries. A good session ends with build status, tests run, save names touched, files changed, temporary diagnostics removed or explicitly marked, docs updated, and next blocker or next slice.
 - Do not add artificial pauses to stretch token usage unless the user explicitly asks again.
 - Use `coverage/ZL_COVERAGE_INDEX.tsv` as a planning index when starting a new coverage slice or when the next target is unclear. It is advisory, not authoritative: verify rows against local source, `TEST_COVERAGE.md`, `TEST_SCENARIOS.md`, `TEST_PATCH_AUDIT.md`, local inventory scripts, decompiler evidence, logs, and live RimBridge results before claiming coverage. Do not pivot away from an active named scenario solely because the index suggests another high-priority row; finish or explicitly park the active scenario first.
-- Final DLC stretch, started 2026-06-01: the active runtime scope is Core plus all official DLCs, Zombieland, and RimBridgeServer; Harmony is expected as the required patching dependency. Official DLCs add XML/content and activate existing RimWorld 1.6 code paths; they do not change the game assembly, so this is not a full retest trigger. Do not spend this pass retesting optional-mod compatibility, broad Core baseline behavior, or every previously covered scenario unless source changes, the current DLC-only loadout exposes a regression, or the user names a player-facing scenario. Start from static/decompiler checks, then use generic bridge primitives to spawn or exercise DLC content only where official DLC defs/content can reach a previously unavailable branch, such as Biotech pollution/mech/gene/child thought behavior and Odyssey sand/environment behavior. Be strict about this: spawning arbitrary DLC items is not useful by itself; it is only evidence when the spawned DLC content activates a named branch, def gate, pawn type, job, thought, terrain, product, or semantic surface that Core-only testing could not reach.
+- Final DLC stretch, started 2026-06-01: the active runtime scope is Core plus all official DLCs, Zombieland, and RimBridgeServer; Harmony is expected as the required patching dependency. Official DLCs add XML/content and activate existing RimWorld 1.7 code paths; they do not change the game assembly, so this is not a full retest trigger. Do not spend this pass retesting optional-mod compatibility, broad Core baseline behavior, or every previously covered scenario unless source changes, the current DLC-only loadout exposes a regression, or the user names a player-facing scenario. Start from static/decompiler checks, then use generic bridge primitives to spawn or exercise DLC content only where official DLC defs/content can reach a previously unavailable branch, such as Biotech pollution/mech/gene/child thought behavior and Odyssey sand/environment behavior. Be strict about this: spawning arbitrary DLC items is not useful by itself; it is only evidence when the spawned DLC content activates a named branch, def gate, pawn type, job, thought, terrain, product, or semantic surface that Core-only testing could not reach.
 
 Anything else should be solved in the same spirit as what I just wrote above.

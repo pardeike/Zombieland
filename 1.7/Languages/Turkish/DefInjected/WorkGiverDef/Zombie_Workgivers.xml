@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+	<ExtractZombieSerum.label>zombi cesetlerinden zombi özü topla</ExtractZombieSerum.label>
+	<ExtractZombieSerum.verb>topla</ExtractZombieSerum.verb>
+	<ExtractZombieSerum.gerund>toplamaya</ExtractZombieSerum.gerund>
+	<DoubleTap.label>cesetlere çift vuruş yap</DoubleTap.label>
+	<DoubleTap.verb>çift vuruş yap</DoubleTap.verb>
+	<DoubleTap.gerund>çift vuruş yapmaya</DoubleTap.gerund>
+	<FixBrokenChainsaw.label>bozuk motorlu testereyi onar</FixBrokenChainsaw.label>
+	<FixBrokenChainsaw.verb>bozuk bileşenlerini değiştir</FixBrokenChainsaw.verb>
+	<FixBrokenChainsaw.gerund>bozukları değiştirmeye</FixBrokenChainsaw.gerund>
+</LanguageData>

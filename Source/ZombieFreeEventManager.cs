@@ -51,6 +51,8 @@ namespace ZombieLand
 		const int MinEventDurationTicks = GenDate.TicksPerDay;
 		const int MinEventGapTicks = GenDate.TicksPerDay * 2;
 		const int ForecastHorizonTicks = GenDate.TicksPerQuadrum * 4 + GenDate.TicksPerDay * 2;
+		// Covers the 5-quadrum forecast tooltip, so that interface reads never extend the saved schedule.
+		const int MultiplayerForecastHorizonTicks = GenDate.TicksPerQuadrum * 5 + GenDate.TicksPerDay * 2;
 		const int ExpiredWindowKeepTicks = GenDate.TicksPerDay;
 		const float MinClusterPeriodDays = 45f;
 		const float MaxClusterPeriodDays = 60f;
@@ -227,14 +229,25 @@ namespace ZombieLand
 				return;
 
 			var ticks = GenTicks.TicksGame;
+			// Multiplayer extends the schedule even while events are off. Otherwise the forecast tooltip
+			// extends the saved schedule with interface Rand, and peers diverge.
+			var multiplayer = MultiplayerSupport.IsActive;
+			if (multiplayer)
+			{
+				EnsureScheduleThrough(ticks + MultiplayerForecastHorizonTicks);
+				CleanupExpiredWindows(ticks);
+			}
 			if (IsEnabledAtGameTick(ticks) == false)
 			{
 				StopGameCondition();
 				return;
 			}
 
-			EnsureScheduleThrough(ticks + ForecastHorizonTicks);
-			CleanupExpiredWindows(ticks);
+			if (multiplayer == false)
+			{
+				EnsureScheduleThrough(ticks + ForecastHorizonTicks);
+				CleanupExpiredWindows(ticks);
+			}
 
 			var activeWindows = ActiveWindowsAt(ticks);
 			if (activeWindows.Count == 0)
@@ -315,7 +328,7 @@ namespace ZombieLand
 			var startTick = activeWindows.Min(window => window.startTick);
 			var endTick = activeWindows.Max(window => window.endTick);
 			var text = "ZombieFreeEventLetter".Translate((endTick - startTick).ToStringTicksToPeriod());
-			var targetMap = Find.CurrentMap ?? Find.AnyPlayerHomeMap;
+			var targetMap = (MultiplayerSupport.IsActive ? null : Find.CurrentMap) ?? Find.AnyPlayerHomeMap;
 			var target = targetMap == null ? LookTargets.Invalid : new LookTargets(targetMap.Center, targetMap);
 			Find.LetterStack.ReceiveLetter(label, text, CustomDefs.ZombieFreeEventLetter ?? LetterDefOf.PositiveEvent, target);
 		}

@@ -117,6 +117,27 @@ namespace ZombieLand
 			}
 		}
 
+		// Multiplayer reloads every peer at join points through this method, without
+		// GameDataSaveLoader.LoadGame or a scene change. Reset process-wide state the same
+		// way so that the host and a joining client continue from identical state.
+		[HarmonyPatch(typeof(SavedGameLoaderNow))]
+		[HarmonyPatch(nameof(SavedGameLoaderNow.LoadGameFromSaveFileNow))]
+		static class SavedGameLoaderNow_LoadGameFromSaveFileNow_Patch
+		{
+			static void Prefix()
+			{
+				if (MultiplayerSupport.IsActive == false)
+					return;
+				ResetMapOwnedStaticState(true);
+				ZombieTicker.ResetAdaptiveState();
+				AlbinoScreamVomit.ClearPendingMultipliers();
+				ZombieBootstrap.ResetLogDedupers();
+				ZombieSymbiant.ResetTransientStaticState();
+				ZombieWanderer.ResetMapState();
+				ZombieStateHandler.ResetTransientState();
+			}
+		}
+
 		[HarmonyPatch(typeof(Current))]
 		[HarmonyPatch(nameof(Current.Notify_LoadedSceneChanged))]
 		static class Current_Notify_LoadedSceneChanged_Patch
@@ -129,6 +150,8 @@ namespace ZombieLand
 					ZombieTicker.ResetAdaptiveState();
 					AlbinoScreamVomit.ClearPendingMultipliers();
 					ZombieSymbiant.ResetTransientStaticState();
+					// A Multiplayer session may have replaced the local advanced settings.
+					MultiplayerConstants.RestoreLocal();
 				}
 			}
 		}

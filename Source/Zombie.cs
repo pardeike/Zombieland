@@ -344,11 +344,8 @@ namespace ZombieLand
 				_ = ageTracker.CurLifeStageIndex; // trigger calculations
 		}
 
-		~Zombie()
-		{
-			Dispose(false);
-		}
-
+		// No finalizer: it ran CleanupZombie on the GC thread, raced main-thread game state and,
+		// under Multiplayer, Verse.Rand. An unreachable zombie has nothing left to clean up.
 		protected virtual void Dispose(bool disposing)
 		{
 			_ = disposing;

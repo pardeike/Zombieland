@@ -1,8 +1,0 @@
-- Fixed compatibility with custom doors that could disable zombie pathing.
-- Automatic extract harvesting now stops with a warning if its selected area is renamed or deleted.
-- Clarified that the easy infection-treatment option works without a bed.
-- Fixed Symbiant selection brackets shifting away from the core when zooming out.
-- Clarified chainsaw controls, risks, and ground refuelling in every supported language.
-- Fixed chainsaws ticking twice while equipped, halving their fuel consumption and restoring the intended cutting speed.
-- Fixed the duplicate fuel widget on dropped chainsaws.
-- Fixed a chainsaw error after decapitation that could interrupt weapon wear and breakage.

@@ -2,12 +2,14 @@
 	<PropertyGroup>
 		<RootNamespace>$(ModFileName)</RootNamespace>
 		<AssemblyName>$(ModFileName)</AssemblyName>
-		<TargetFramework>net472</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
-		<PlatformTarget>x64</PlatformTarget>
-		<OutputPath>..\1.6\Assemblies\</OutputPath>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<OutputPath>..\1.7\Assemblies\</OutputPath>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<GenerateDependencyFile>false</GenerateDependencyFile>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<Version>$(ModVersion)</Version>
 		<AssemblyVersion>$(ModVersion)</AssemblyVersion>
 		<FileVersion>$(ModVersion)</FileVersion>
@@ -39,39 +41,35 @@
 		<Content Include="..\Directory.Build.props">
 			<Link>%(Filename)%(Extension)</Link>
 		</Content>
-		<Content Include="..\1.6\Defs\**\*.xml">
-			<Link>1.6\Defs\%(RecursiveDir)%(Filename)%(Extension)</Link>
+		<Content Include="..\1.7\Defs\**\*.xml">
+			<Link>1.7\Defs\%(RecursiveDir)%(Filename)%(Extension)</Link>
 		</Content>
-		<Content Include="..\1.6\Languages\**\Keyed\*.xml">
-			<Link>1.6\Languages\%(RecursiveDir)%(FileName)%(Extension)</Link>
+		<Content Include="..\1.7\Languages\**\Keyed\*.xml">
+			<Link>1.7\Languages\%(RecursiveDir)%(FileName)%(Extension)</Link>
 		</Content>
-		<Content Include="..\1.6\Languages\**\DefInjected\**\*.xml">
-			<Link>1.6\Languages\%(RecursiveDir)%(FileName)%(Extension)</Link>
+		<Content Include="..\1.7\Languages\**\DefInjected\**\*.xml">
+			<Link>1.7\Languages\%(RecursiveDir)%(FileName)%(Extension)</Link>
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Brrainz.RimWorld.CrossPromotion" Version="1.1.2"/>
-		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4850" GeneratePathProperty="true"/>
-		<PackageReference Include="Lib.Harmony" Version="2.3.3" ExcludeAssets="runtime"/>
-		<PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.4"/>
-		<PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
+		<!-- Upstream only ships net472. Retain the helper pending 1.7 startup verification. -->
+		<PackageReference Include="Brrainz.RimWorld.CrossPromotion" Version="1.1.2" NoWarn="NU1701"/>
+		<PackageReference Include="Krafs.Rimworld.Ref" Version="1.7.5014-unstable" GeneratePathProperty="true"/>
+		<PackageReference Include="Lib.Harmony.Ref" Version="3.0.0-rc.7" ExcludeAssets="runtime"/>
 		<PackageReference Include="TaskPubliciser" Version="1.0.3"/>
-	</ItemGroup>
-	<ItemGroup>
-		<Reference Include="Newtonsoft.Json">
-			<HintPath>..\1.6\Libraries\Newtonsoft.Json.dll</HintPath>
-		</Reference>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4"/>
+		<PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.3"/>
+		<!-- Ships 0MultiplayerAPI.dll. Without Multiplayer, MP.enabled is false and the API stays inert. -->
+		<PackageReference Include="RimWorld.MultiplayerAPI" Version="0.6.0" NoWarn="NU1701"/>
 	</ItemGroup>
 	<Target Name="MyCode" BeforeTargets="UpdateReferences">
 		<PropertyGroup>
-			<AssemblyCSharp>$(PkgKrafs_Rimworld_Ref)\ref\net472\Assembly-CSharp.dll</AssemblyCSharp>
-			<PubliciseOutputPath>$(PkgKrafs_Rimworld_Ref)\ref\net472\</PubliciseOutputPath>
+			<AssemblyCSharp>$(PkgKrafs_Rimworld_Ref)\ref\net10.0\Assembly-CSharp.dll</AssemblyCSharp>
+			<PubliciseOutputPath>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)publicized\</PubliciseOutputPath>
 			<AssemblyCSharp_Publicised>$(PubliciseOutputPath)Assembly-CSharp_publicised.dll</AssemblyCSharp_Publicised>
 		</PropertyGroup>
 		<Message Importance="High" Text="Publicising Rimworld Assembly ..."/>
+		<MakeDir Directories="$(PubliciseOutputPath)"/>
 		<Publicise TargetAssemblyPath="$(AssemblyCSharp)" OutputPath="$(PubliciseOutputPath)" Condition="Exists('$(AssemblyCSharp)')"/>
 		<Message Importance="High" Text="Replacing reference to un-publicised assemblies with publicised equivalents ..."/>
 		<ItemGroup>
@@ -86,12 +84,18 @@
 	<Target Name="UpdateReferences" AfterTargets="ResolveLockFileReferences">
 		<Message Importance="High" Text="Remove References ..."/>
 		<ItemGroup>
-			<Reference Remove="$(PkgKrafs_Rimworld_Ref)\ref\net472\Assembly-CSharp.dll"/>
+			<Reference Remove="$(PkgKrafs_Rimworld_Ref)\ref\net10.0\Assembly-CSharp.dll"/>
 		</ItemGroup>
 	</Target>
 	<Target Name="PostBuildAction" AfterTargets="Build">
-		<XmlPoke XmlInputPath="$(MSBuildProjectDirectory)\..\About\About.xml" Query="//ModMetaData/modVersion" Value="$(ModVersion)"/>
-		<XmlPoke XmlInputPath="$(MSBuildProjectDirectory)\..\About\Manifest.xml" Query="//Manifest/version" Value="$(ModVersion)"/>
+		<XmlPeek XmlInputPath="$(MSBuildProjectDirectory)\..\About\About.xml" Query="//ModMetaData/modVersion/text()">
+			<Output TaskParameter="Result" PropertyName="AboutVersion"/>
+		</XmlPeek>
+		<XmlPeek XmlInputPath="$(MSBuildProjectDirectory)\..\About\Manifest.xml" Query="//Manifest/version/text()">
+			<Output TaskParameter="Result" PropertyName="ManifestVersion"/>
+		</XmlPeek>
+		<XmlPoke XmlInputPath="$(MSBuildProjectDirectory)\..\About\About.xml" Query="//ModMetaData/modVersion" Value="$(ModVersion)" Condition="'$(AboutVersion)' != '$(ModVersion)'"/>
+		<XmlPoke XmlInputPath="$(MSBuildProjectDirectory)\..\About\Manifest.xml" Query="//Manifest/version" Value="$(ModVersion)" Condition="'$(ManifestVersion)' != '$(ModVersion)'"/>
 	</Target>
 	<Target Name="RestoreBridgeTools" BeforeTargets="Build" Condition="'$(BuildBridgeTools)' != 'false' And ('$(RIMWORLD_MOD_DIR)' == '' Or '$(RimworldDeployGuardInner)' == 'true')">
 		<Exec Command="&quot;$(DOTNET_HOST_PATH)&quot; restore &quot;$(MSBuildProjectDirectory)\BridgeTools\Zombieland.BridgeTools.csproj&quot; --nologo --verbosity quiet"/>
@@ -99,7 +103,7 @@
 	<Target Name="BuildBridgeTools" DependsOnTargets="RestoreBridgeTools" AfterTargets="Build" BeforeTargets="_CopyToRimworldUnlocked" Condition="'$(BuildBridgeTools)' != 'false' And ('$(RIMWORLD_MOD_DIR)' == '' Or '$(RimworldDeployGuardInner)' == 'true')">
 		<MSBuild Projects="$(MSBuildProjectDirectory)\BridgeTools\Zombieland.BridgeTools.csproj" Targets="Build" Properties="Configuration=$(Configuration);Platform=$(Platform);ZombielandAssemblyPath=$(TargetPath)"/>
 	</Target>
-	<Target Name="ValidateRimworldDeployRoot" BeforeTargets="Build;CopyToRimworld" Condition="'$(RIMWORLD_MOD_DIR)' != '' And '$(RimworldDeployGuardInner)' != 'true'">
+	<Target Name="ValidateRimworldDeployRoot" DependsOnTargets="ValidateLegacyPayload" BeforeTargets="Build;CopyToRimworld" Condition="'$(RIMWORLD_MOD_DIR)' != '' And '$(RimworldDeployGuardInner)' != 'true'">
 		<PropertyGroup>
 			<DeployGuardScript>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\scripts\rimworld-deploy-guard.sh'))</DeployGuardScript>
 		</PropertyGroup>
@@ -111,32 +115,48 @@
 		</PropertyGroup>
 		<Exec Command="&quot;$(DeployGuardScript)&quot; deploy &quot;$(RIMWORLD_MOD_DIR)&quot; &quot;$(MSBuildProjectFullPath)&quot; &quot;$(Configuration)&quot; &quot;$(Platform)&quot; &quot;$(ModFileName)&quot; &quot;$(BuildBridgeTools)&quot;"/>
 	</Target>
-	<Target Name="_CopyToRimworldUnlocked" Condition="'$(RIMWORLD_MOD_DIR)' != '' And '$(RimworldDeployGuardInner)' == 'true'">
-		<Delete Files="..\1.6\Assemblies\0Harmony.dll"/>
-		<RemoveDir Directories="$(RIMWORLD_MOD_DIR)\$(ModFileName)"/>
+	<Target Name="_CopyToRimworldUnlocked" DependsOnTargets="CreateLocalPackage" Condition="'$(RIMWORLD_MOD_DIR)' != '' And '$(RimworldDeployGuardInner)' == 'true'">
+		<!-- Installs the package stage: validates frozen 1.4/1.6 before writes, then mirrors 1.7 and the metadata. -->
+		<Exec Command="python3 &quot;$(MSBuildProjectDirectory)\..\scripts\install-package.py&quot; &quot;$(LocalPackageRoot)&quot; &quot;$(RIMWORLD_MOD_DIR)\$(ModFileName)&quot;"/>
 		<PropertyGroup>
 			<!-- Keep the companion DLL paired with the deployed mod DLL: Mods/ZombieLand and sibling Mods/../BridgeTools/Zombieland are one deployment unit. -->
 			<GlobalBridgeToolsDir>$(RIMWORLD_MOD_DIR)\..\BridgeTools</GlobalBridgeToolsDir>
 		</PropertyGroup>
 		<ItemGroup>
-			<Copy_14 Include="..\1.4\**" Exclude="..\1.4\**\.DS_Store;..\1.4\**\._*"/>
-			<Copy_16 Include="..\1.6\**" Exclude="..\1.6\BridgeTools\**;..\1.6\**\.DS_Store;..\1.6\**\._*"/>
-			<CopyAbout Include="..\About\**" Exclude="..\About\**\.DS_Store;..\About\**\._*"/>
-			<CopyLicense Include="..\LICENSE"/>
-			<CopyLoadFolders Include="..\LoadFolders.xml"/>
-			<CopyReadme Include="..\README.md"/>
 			<CopyBridgeTools Include="..\artifacts\BridgeTools\Zombieland\Zombieland.BridgeTools.dll" Condition="'$(BuildBridgeTools)' != 'false'"/>
 		</ItemGroup>
-		<Copy SourceFiles="@(Copy_14)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\1.4\%(RecursiveDir)"/>
-		<Copy SourceFiles="@(Copy_16)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\1.6\%(RecursiveDir)"/>
-		<Copy SourceFiles="@(CopyAbout)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)\About\%(RecursiveDir)"/>
-		<Copy SourceFiles="@(CopyLicense)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)"/>
-		<Copy SourceFiles="@(CopyLoadFolders)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)"/>
-		<Copy SourceFiles="@(CopyReadme)" DestinationFolder="$(RIMWORLD_MOD_DIR)\$(ModFileName)"/>
 		<Copy SourceFiles="@(CopyBridgeTools)" DestinationFolder="$(GlobalBridgeToolsDir)\Zombieland" SkipUnchangedFiles="true" Condition="'@(CopyBridgeTools)' != ''"/>
 	</Target>
-	<Target Name="_ZipModUnlocked" Condition="'$(RIMWORLD_MOD_DIR)' != '' And '$(RimworldDeployGuardInner)' == 'true'">
-		<ZipDirectory SourceDirectory="$(RIMWORLD_MOD_DIR)\$(ModFileName)" DestinationFile="$(RIMWORLD_MOD_DIR)\$(ModFileName).zip" Overwrite="true"/>
+	<Target Name="_ZipModUnlocked" DependsOnTargets="CreateLocalPackage" Condition="'$(RIMWORLD_MOD_DIR)' != '' And '$(RimworldDeployGuardInner)' == 'true'">
+		<Copy SourceFiles="$(MSBuildProjectDirectory)\..\artifacts\$(ModFileName).zip" DestinationFiles="$(RIMWORLD_MOD_DIR)\$(ModFileName).zip"/>
 	</Target>
 	<Target Name="ZipMod" DependsOnTargets="CopyToRimworld" Condition="'$(RIMWORLD_MOD_DIR)' != '' And '$(RimworldDeployGuardInner)' != 'true'"/>
+	<Target Name="ValidateLegacyPayload">
+		<Error Condition="'$(ZOMBIELAND_LEGACY_MOD_ROOT)' == ''" Text="Select the preserved 1.4/1.6 baseline with --legacy-root=PATH or ZOMBIELAND_LEGACY_MOD_ROOT. The repository and Steam 1.6 resources differ."/>
+		<Error Condition="!Exists('$(ZOMBIELAND_LEGACY_MOD_ROOT)\1.4\Assemblies\ZombieLand.dll') Or !Exists('$(ZOMBIELAND_LEGACY_MOD_ROOT)\1.6\Assemblies\ZombieLand.dll')" Text="The legacy baseline must contain the preserved 1.4 and 1.6 payloads."/>
+	</Target>
+	<Target Name="PackageMod" DependsOnTargets="ValidateLegacyPayload;Build;CreateLocalPackage"/>
+	<Target Name="CreateLocalPackage" DependsOnTargets="ValidateLegacyPayload">
+		<PropertyGroup>
+			<LocalPackageRoot>$(MSBuildProjectDirectory)\..\artifacts\package\$(ModFileName)</LocalPackageRoot>
+			<LocalPackageZip>$(MSBuildProjectDirectory)\..\artifacts\$(ModFileName).zip</LocalPackageZip>
+			<PackageExclusions>**\.DS_Store;**\._*;**\*.pdb;**\*.mdb;**\*.deps.json;**\0Harmony.dll;**\BridgeTools\**;**\RimBridgeServer*.dll</PackageExclusions>
+		</PropertyGroup>
+		<ItemGroup>
+			<Package14 Include="$(ZOMBIELAND_LEGACY_MOD_ROOT)\1.4\**" Exclude="$(PackageExclusions)"/>
+			<Package16 Include="$(ZOMBIELAND_LEGACY_MOD_ROOT)\1.6\**" Exclude="$(PackageExclusions)"/>
+			<Package17 Include="..\1.7\**" Exclude="$(PackageExclusions)"/>
+			<!-- Only the frozen 1.4/1.6 payloads come from the legacy root. About, README and LICENSE come from the checkout. -->
+			<PackageAbout Include="..\About\**" Exclude="$(PackageExclusions)"/>
+			<PackageRoot Include="..\LoadFolders.xml;..\LICENSE;..\README.md"/>
+		</ItemGroup>
+		<RemoveDir Directories="$(LocalPackageRoot)"/>
+		<MakeDir Directories="$(LocalPackageRoot)"/>
+		<Copy SourceFiles="@(Package14)" DestinationFolder="$(LocalPackageRoot)\1.4\%(RecursiveDir)"/>
+		<Copy SourceFiles="@(Package16)" DestinationFolder="$(LocalPackageRoot)\1.6\%(RecursiveDir)"/>
+		<Copy SourceFiles="@(Package17)" DestinationFolder="$(LocalPackageRoot)\1.7\%(RecursiveDir)"/>
+		<Copy SourceFiles="@(PackageAbout)" DestinationFolder="$(LocalPackageRoot)\About\%(RecursiveDir)"/>
+		<Copy SourceFiles="@(PackageRoot)" DestinationFolder="$(LocalPackageRoot)"/>
+		<ZipDirectory SourceDirectory="$(LocalPackageRoot)" DestinationFile="$(LocalPackageZip)" Overwrite="true"/>
+	</Target>
 </Project>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+	<ShaderDef>
+		<defName>ZombielandThumperDust</defName>
+		<shaderProgram>
+			<vertexShaderFileName>Transparent.vert.glsl</vertexShaderFileName>
+			<fragmentShaderFileName>ZombielandThumperDust.frag.glsl</fragmentShaderFileName>
+			<transparent>true</transparent>
+			<depthWrite>false</depthWrite>
+			<renderQueue>3000</renderQueue>
+			<textureWrapOverrides>
+				<li>
+					<key>_MainTex</key>
+					<value>Clamp</value>
+				</li>
+			</textureWrapOverrides>
+		</shaderProgram>
+	</ShaderDef>
+</Defs>

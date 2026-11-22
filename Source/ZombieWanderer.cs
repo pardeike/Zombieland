@@ -27,6 +27,7 @@ namespace ZombieLand
 		readonly Queue<IntVec3> highPrioSet;
 		readonly Queue<IntVec3> lowPrioSet;
 		bool dirtyCells = true;
+		int passSeed;
 
 		static readonly int[][] randomOrders = {
 			new int[] { 0, 1, 2, 3 },
@@ -74,7 +75,8 @@ namespace ZombieLand
 
 		public bool IsInValidState()
 		{
-			if (LongEventHandler.AnyEventNowOrWaiting || LongEventHandler.ShouldWaitForEvent)
+			// Long events are local to one peer: a joining client runs its first tick with one queued.
+			if (MultiplayerSupport.IsActive == false && (LongEventHandler.AnyEventNowOrWaiting || LongEventHandler.ShouldWaitForEvent))
 				return false;
 			if (Current.Game == null || Current.ProgramState != ProgramState.Playing || Scribe.mode != LoadSaveMode.Inactive)
 				return false;
@@ -154,10 +156,13 @@ namespace ZombieLand
 		{
 			int[] rndices;
 			int i;
-			var t = (int)(DateTime.Now.Ticks % 1000);
-			var random = new Random(basePos.x + basePos.z * 1000 + t * 1000000);
+			// Deterministic per pass and cell so that Multiplayer peers build identical grids.
+			var hash = unchecked((uint)(basePos.x * 73856093 ^ basePos.z * 19349663 ^ passSeed * 83492791));
+			hash ^= hash >> 13;
+			hash *= 0x5bd1e995;
+			hash ^= hash >> 15;
 
-			rndices = randomOrders[random.Next(0, 24)];
+			rndices = randomOrders[hash % 24];
 			for (i = 0; i < 4; i++)
 			{
 				var cell = basePos + GenAdj.CardinalDirections[rndices[i]];
@@ -165,7 +170,7 @@ namespace ZombieLand
 					yield return cell;
 			}
 
-			rndices = randomOrders[random.Next(0, 24)];
+			rndices = randomOrders[(hash / 24) % 24];
 			for (i = 0; i < 4; i++)
 			{
 				var cell = basePos + GenAdj.DiagonalDirections[rndices[i]];
@@ -222,11 +227,14 @@ namespace ZombieLand
 		}
 
 		static readonly Stopwatch watch = new();
+		const int MultiplayerCellsPerStep = 1000;
 
 		IEnumerator Recalculate(IntVec3[] positions, bool ignoreBuildings)
 		{
 			if (IsInValidState() == false)
 				yield break;
+			var multiplayer = MultiplayerSupport.IsActive;
+			var cellsSinceYield = 0;
 
 			positions
 				.Where(cell => GetDirectInternal(cell, ignoreBuildings, false) == 0)
@@ -268,6 +276,17 @@ namespace ZombieLand
 					}
 				});
 
+				// Multiplayer: a fixed cell budget per map tick instead of a real-time slice.
+				if (multiplayer)
+				{
+					if (++cellsSinceYield >= MultiplayerCellsPerStep)
+					{
+						cellsSinceYield = 0;
+						yield return null;
+					}
+					continue;
+				}
+
 				var tick = watch.ElapsedTicks * (double)60 / 10000000;
 				var speed = (int)Find.TickManager.CurTimeSpeed;
 				var maxTick = speed == 0 ? 0.1f : (ZombieGenerator.ZombiesSpawning > 0 ? 0.07f : 0.12f) - speed * 0.0025f;
@@ -284,6 +303,7 @@ namespace ZombieLand
 		{
 			if (IsInValidState() == false)
 				yield break;
+			passSeed = GenTicks.TicksGame;
 
 			if (dirtyCells)
 			{
@@ -323,6 +343,40 @@ namespace ZombieLand
 			publicIndex = privateIndex;
 			privateIndex = 1 - privateIndex;
 		}
+
+		// Multiplayer: one persistent pass per map, advanced once per map tick by TickManager.
+		IEnumerator multiplayerPass;
+
+		public void MultiplayerStep()
+		{
+			multiplayerPass ??= MultiplayerPasses();
+			_ = multiplayerPass.MoveNext();
+		}
+
+		IEnumerator MultiplayerPasses()
+		{
+			while (true)
+			{
+				if (IsInValidState())
+				{
+					var mapPawns = map.mapPawns.AllPawnsSpawned.ToArray();
+					var colonistPositions = mapPawns
+						.Where(pawn => Customization.DoesAttractsZombies(pawn) && pawn is not ZombieSymbiant && pawn is not ZombieSpitter)
+						.Select(pawn => pawn.Position).ToArray();
+					if (colonistPositions.Length > 0)
+					{
+						var it = RecalculateAll(colonistPositions, mapPawns.OfType<Zombie>());
+						while (it.MoveNext())
+						{
+							if (IsInValidState() == false)
+								break;
+							yield return null;
+						}
+					}
+				}
+				yield return null;
+			}
+		}
 	}
 
 	public static class ZombieWanderer
@@ -332,6 +386,12 @@ namespace ZombieLand
 		public static float lastProcessMilliseconds;
 
 		static readonly Dictionary<Map, MapInfo> grids = new();
+
+		public static void ProcessMapStep(Map map) => GetMapInfo(map).MultiplayerStep();
+
+		public static void ForgetMap(Map map) => grids.Remove(map);
+
+		public static void ResetMapState() => grids.Clear();
 
 		public static MapInfo GetMapInfo(Map map)
 		{

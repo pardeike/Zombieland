@@ -450,7 +450,8 @@ namespace ZombieLand
 			"Root_Update_Patch",
 			"Root_Shutdown_Patch",
 			"Root_Play_SetupForQuickTestPlay_Patch",
-			"GameDataSaveLoader_LoadGame_Patch"
+			"GameDataSaveLoader_LoadGame_Patch",
+			"SavedGameLoaderNow_LoadGameFromSaveFileNow_Patch"
 		};
 
 		static readonly HashSet<string> CorePatchTypes = new()

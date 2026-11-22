@@ -206,11 +206,15 @@ namespace ZombieLand
 			};
 		}
 
+		const int MultiplayerSpawnStepsPerTick = 50;
+
 		static IEnumerator SpawnEventProcess(Map map, int incidentSize, IntVec3 spot, Predicate<IntVec3> cellValidator, bool useAlert, bool ignoreLimit, ZombieType zombieType = ZombieType.Random)
 		{
 			var game = Current.Game;
+			var multiplayer = MultiplayerSupport.IsActive;
 			var zombiesSpawning = 0;
 			var counter = 1;
+			var steps = 0;
 			var tickManager = map.GetComponent<TickManager>();
 			if (tickManager?.RuntimeReady != true)
 				yield break;
@@ -226,7 +230,7 @@ namespace ZombieLand
 
 				foreach (var cell in cells)
 				{
-					while (LongEventHandler.AnyEventNowOrWaiting || LongEventHandler.ShouldWaitForEvent)
+					while (multiplayer == false && (LongEventHandler.AnyEventNowOrWaiting || LongEventHandler.ShouldWaitForEvent))
 						yield return null;
 					if (Current.Game != game || game.Maps.Contains(map) == false)
 						yield break;
@@ -234,11 +238,20 @@ namespace ZombieLand
 					using var spawnScope = it as IDisposable;
 					while (true)
 					{
-						while (LongEventHandler.AnyEventNowOrWaiting || LongEventHandler.ShouldWaitForEvent)
+						while (multiplayer == false && (LongEventHandler.AnyEventNowOrWaiting || LongEventHandler.ShouldWaitForEvent))
 							yield return null;
 						if (Current.Game != game || game.Maps.Contains(map) == false || it.MoveNext() == false)
 							break;
-						if (ZombielandMod.frameWatch.ElapsedMilliseconds >= 10)
+						// Multiplayer: a fixed budget of creation steps per map tick instead of a frame-time budget.
+						if (multiplayer)
+						{
+							if (++steps >= MultiplayerSpawnStepsPerTick)
+							{
+								steps = 0;
+								yield return null;
+							}
+						}
+						else if (ZombielandMod.frameWatch.ElapsedMilliseconds >= 10)
 							yield return null;
 					}
 					incidentSize--;
@@ -327,7 +340,11 @@ namespace ZombieLand
 			spot = GetValidSpot(map, spot, cellValidator);
 			if (spot.IsValid == false)
 				return false;
-			_ = Find.CameraDriver.StartCoroutine(SpawnEventProcess(map, incidentSize, spot, cellValidator, useAlert, ignoreLimit, zombieType));
+			var process = SpawnEventProcess(map, incidentSize, spot, cellValidator, useAlert, ignoreLimit, zombieType);
+			if (MultiplayerSupport.IsActive)
+				tickManager.StartMultiplayerCoroutine(process);
+			else
+				_ = Find.CameraDriver.StartCoroutine(process);
 			return true;
 		}
 	}

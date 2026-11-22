@@ -2,10 +2,23 @@
 
 ## Project Formatting and Build
 
-Use `./scripts/build-quiet.sh` for the normal compile cycle. Before it builds the main project, it runs `./scripts/format-project.sh`, which applies the repository `.editorconfig` to all C# in both `Source/ZombieLand.csproj` and `Source/BridgeTools/Zombieland.BridgeTools.csproj`. It also formats only changed active XML-like files: runtime XML under `1.6/`, metadata under `About/`, `LoadFolders.xml`, `Directory.Build.props`, and hand-maintained `.csproj` files under `Source/`. The preserved `1.4/` payload and Unity sources under `Originals/` are intentionally excluded.
+Use `./scripts/build-quiet.sh --local` for the normal local compile cycle. The wrapper builds Release unless the arguments name a configuration. Add `--package --legacy-root=/path/to/published/Zombieland` to create and verify `artifacts/ZombieLand.zip`. The command builds the main mod and its companion. The `--local` option clears inherited deployment settings.
 
-The build command prefers the pinned .NET 10.0.301 install under `~/Library/Application Support/dotnet/sdk-10.0.301` when available. This keeps formatting and compilation on the repository's SDK even when Homebrew provides a newer default.
-It saves full output to `artifacts/logs/build-quiet.log` and prints only `ok` after success. Failure names the step and log, returns nonzero, and stops dependent steps. Cancellation terminates the active formatting/build child. Deploy builds also compare the installed gameplay and companion DLLs with their built files.
+The current projects target RimWorld 1.7 with .NET 10 and AnyCPU. They use `Krafs.Rimworld.Ref` 1.7.5014-unstable (game build 1.7.5014), `Lib.Harmony.Ref` 3.0.0-rc.7 (the `Lib.Harmony` build in the Harmony mod 3.0.4.0), `Newtonsoft.Json` 13.0.4, `Newtonsoft.Json.Bson` 1.0.3, and development-only `RimBridgeServer.Sdk` 2.0.0. `TaskPubliciser` 1.0.3 and CrossPromotion 1.1.2 are the latest stable upstream packages. CrossPromotion 1.1.2 only provides a .NET Framework assembly. Its scoped NU1701 suppression retains that helper until runtime compatibility is verified.
+
+The companion restores published `RimBridgeServer.Sdk` 2.0.0 from NuGet.org. The root `NuGet.Config` restricts restore to NuGet.org, so no local SDK feed or package build is used. The companion excludes the SDK from runtime output and the public mod package.
+
+Current gameplay output is `1.7/Assemblies/ZombieLand.dll`. Companion output is `artifacts/BridgeTools/Zombieland/Zombieland.BridgeTools.dll`. Local packages contain isolated 1.4, 1.6, and 1.7 payloads. The explicit legacy root supplies only the frozen 1.4 and 1.6 files. The working checkout supplies `1.7/`, `About/`, `LoadFolders.xml`, `README.md`, and `LICENSE`. The repository and installed Steam 1.6 resources differ in 30 files. Packaging must use the published baseline rather than silently substitute repository resources. Packages exclude companions, SDK DLLs, private Harmony, debug symbols, dependency manifests, and Finder metadata. Packaging does not deploy or publish.
+
+`published-baseline.json` pins the published baseline. It holds the SHA-256 of every 1.4 and 1.6 file of Workshop item 928376710 at version 5.7.2.0. The Workshop folder `steamapps/workshop/content/294100/928376710` holds that payload. Before compiling, the wrapper requires the legacy root's 1.4 and 1.6 files to match the pin exactly. It refuses the working checkout and `artifacts/` as the legacy root. It also checks that the legacy load-folder lookup order is unchanged. Package verification checks every legacy entry against the pin and every other entry against the checkout. Replace the pin only when a new published release changes the frozen payload.
+
+For deployment, omit `--local` and set `RIMWORLD_MOD_DIR` to the Mods folder of a RimWorld 1.7 installation. On macOS, use the outer `<RimWorld install>/Mods`, even when it is a symlink into `RimWorldMac.app`. The guard rejects the `RimWorldMac.app/Mods` alias because the companion would go to the BridgeTools folder of the 1.6 Unity build. Supply the same `--legacy-root=PATH`. A baseline inside the deployment destination is rejected. Deployment refuses a running RimWorld 1.6 or 1.7 process, once before the build and again inside the deploy lock. The wrapper never starts or stops RimWorld. Use GABS for that.
+
+A deploy builds the package stage `artifacts/package/ZombieLand` and the ZIP. Then `install-package.py` installs the stage. It first checks that both installed frozen folders are complete. Missing frozen files or symlinks stop deployment before any installed file changes. Complete frozen 1.4 and 1.6 folders are never copied, removed, or rewritten, even if their bytes differ from the published baseline. A fresh installation copies the whole stage. The installer replaces the installed `1.7/` with the staged one, so stale 1.7 files disappear. It also replaces the repository-owned files: everything under `About/`, `LoadFolders.xml`, `README.md`, and `LICENSE`. It then verifies that the installed `1.7/` and these files equal the stage. Other installed files outside `1.7/` stay in place. The wrapper then verifies the ZIP and compares the installed ZIP, gameplay DLL, and companion with the build. With `-p:BuildBridgeTools=false`, it skips the companion comparison and fails if the installed companion changed.
+
+Before compiling, the command runs `./scripts/format-project.sh`, which applies the repository `.editorconfig` to all C# in both `Source/ZombieLand.csproj` and `Source/BridgeTools/Zombieland.BridgeTools.csproj`. It also formats only changed active XML-like files: runtime XML under `1.7/`, metadata under `About/`, `LoadFolders.xml`, `Directory.Build.props`, and hand-maintained `.csproj` files under `Source/`. The preserved `1.4/` and `1.6/` payloads and Unity sources under `Originals/` are intentionally excluded.
+
+The build command saves full output to `artifacts/logs/build-quiet.log` and prints only `ok` after success. Failure names the step and log, returns nonzero, and stops dependent steps. Cancellation terminates the active formatting/build child.
 
 The XML formatter requires `python3` and `xmllint`. It uses tab indentation, preserves each file's UTF-8 BOM and LF/CRLF style, adds a final newline, and compares canonical XML before replacing a file. Changed runtime XML also goes through `./scripts/check-versioned-xml.sh`. The formatter refuses the rewrite if parsing fails or the canonical document changes.
 
@@ -15,9 +28,27 @@ Run a read-only formatting check with:
 ./scripts/format-project.sh --check
 ```
 
-Pass `--base GIT_REVISION` with `--check` to validate active XML changed since a committed revision. The release workflow uses the previous version tag so it checks every XML change in the full release candidate, including feature commits before a separate version-bump commit.
+Pass `--base GIT_REVISION` with `--check` to validate active XML changed since a committed revision. Before a release, run it locally with the previous version tag, then run `./scripts/check-versioned-xml.sh`. The tag base covers every XML change in the release candidate, including feature commits before a separate version-bump commit. CI does not build, format, or check XML. The release workflow only prepares the GitHub release.
 
-The repository pins .NET SDK 10.0.301 through `global.json`; the local build and release workflow deliberately use that exact Roslyn formatter. A normal non-deploy build now compiles both the main mod and its BridgeTools companion. Pass `-p:BuildBridgeTools=false` only for a workflow that intentionally excludes the companion, such as the public mod-only release package.
+The repository pins .NET SDK 10.0.400 through `global.json` with `rollForward: latestPatch`. The formatter accepts any 10.0.4xx SDK, the same range `global.json` allows. A normal non-deploy build compiles both the main mod and its BridgeTools companion. Pass `-p:BuildBridgeTools=false` only for a workflow that intentionally excludes the companion, such as the public mod-only release package.
+
+## Deploy checks
+
+Run `python3 scripts/test-deploy-guard.py` after changing the deploy guard. It needs no build and no game. It checks that the guard accepts an outer Mods symlink and a plain Mods folder, rejects the `RimWorldMac.app/Mods` alias, and refuses a stand-in process named like the 1.7 executable. It fails if RimWorld is already running.
+
+Run `python3 scripts/test-deploy-preservation.py LEGACY_ROOT` after a local Release build, with the published legacy root. It deploys into disposable Mods folders under `artifacts/`. It proves that frozen files keep their inodes, modification times, and bytes, that stale 1.7 files disappear, that stale or missing repository-owned files are replaced, and that an incomplete frozen payload stops deployment before any write. It also checks that the ZIP uses the published baseline and the repository README. The run rebuilds `artifacts/package` and the ZIP. Full output goes to `artifacts/logs/deploy-preservation.log`.
+
+## Drafted Double Tap compatibility regression
+
+Run `python3 scripts/test-drafted-double-tap.py GAME_MACOS_DIR HARMONY_DLL ACHTUNG_DLL` with current RimWorld 1.7, Harmony, and Achtung assemblies. Build Zombieland locally first if `1.7/Assemblies/ZombieLand.dll` is absent. The check compiles the production transpiler source and runs the real Achtung transpiler over the game's menu IL. It verifies both installation orders, forced-menu decoration, anchor validation, instruction metadata, and a 32-row priority matrix. It loads assemblies without starting RimWorld or installing mods. This is a local .NET check. Combined-game validation remains necessary. Full output goes to `artifacts/logs/drafted-double-tap-test.log`.
+
+## Thumper dust rendering
+
+Use `zombieland/thumper_dust_render_sample` through RimBridgeServer on a disposable debug map. It pauses the game and freezes the production dust prefab at the requested particle age. Use `seconds: -1` to remove the sample and capture an empty baseline. Compare `seconds: 0.3, opacity: 0` against that baseline, then capture normal opacity at ages `0.05`, `0.3`, `0.6`, `0.85`, and `1.1`. The tool uses the same particle seed each time. These ages are particle simulation seconds, independent of gameplay speed. No terrain or pawns are changed.
+
+For consistent framing, call `rimworld/screenshot_cell_rect` with `x: 17, z: 17, width: 76, height: 76, rootSize: 50, paddingCells: 0, doNotResetCamera: true`. Clear and tile cells `(15,15)` through `(95,95)` on a disposable map. Load with visual readiness and discard a warm-up capture before recording the empty baseline. Zero alpha must preserve the background. Normal opacity must remain visibly comparable to the 1.6 reference, expand, and fade. Nonzero pixel differences alone do not establish a visual match. The 1.1-second capture must return to the empty baseline. Finish with `seconds: -1`. Run the existing `zombieland/thumper_visual_wave_damage_contract` separately for fuel, timing, and radial damage. `TEST_SCENARIOS.md` records the evidence and engine limitations.
+
+The 1.7 dust shader uses `Defs/ShaderDefs/ThumperDust.xml` and `Shaders/ZombielandThumperDust.frag.glsl`. Its prefab and texture still come from the bundle. Launch the isolated game with `-WatchShaders` to iterate on the deployed GLSL file. The engine reloads shader source in the same process. A ShaderDef or C# change still requires the normal build and restart. Copy accepted source changes back to the repository, then finish with a paired build, deployment, and fresh runtime check.
 
 ## XML Validation
 
@@ -25,7 +56,7 @@ Run `./scripts/check-versioned-xml.sh` after changing defs, patches, language da
 
 RimWorld's live translation report also lists inherited defaults that are not present in Zombieland's English XML. Do not add language-only keys for those false positives. The intentional exclusions are the inherited generic death messages for `ToxicSplatter` and `SeismicWave`, `Zombies.leaderTitle`, `ZombieBite.labelNounPretty`, and the default `Mote` labels on Zombieland's internal visual-only ThingDefs. Translation entries must continue to correspond to explicit English source fields.
 
-The preserved `1.4/` payload is still checked for XML parse failures and layout isolation, but its known legacy translation structure is frozen and is not subjected to the newer active-language anomaly and parity rules.
+The preserved `1.4/` and `1.6/` payloads are still checked for XML parse failures and layout isolation, but its known legacy translation structure is frozen and is not subjected to the newer active-language anomaly and parity rules.
 
 ## RimWorld Log Summary
 
@@ -161,9 +192,9 @@ Use `build-assetbundles.sh` to compile the Unity project in `Originals/Effects` 
 The mod consumes these files:
 
 ```text
-1.6/Resources/Win64/zombieland
-1.6/Resources/Linux/zombieland
-1.6/Resources/MacOS/zombieland
+1.7/Resources/Win64/zombieland
+1.7/Resources/Linux/zombieland
+1.7/Resources/MacOS/zombieland
 ```
 
 Unity may also create intermediates under:
@@ -196,7 +227,7 @@ Quick local iteration, for shader/material changes where only the current machin
 On macOS, `--current` and `--quick` rebuild only:
 
 ```text
-1.6/Resources/MacOS/zombieland
+1.7/Resources/MacOS/zombieland
 ```
 
 Single explicit target rebuild:
@@ -224,7 +255,7 @@ The default editor path is:
 
 ### What The Script Does
 
-The script runs Unity batch mode against `Originals/Effects`, sets `ZOMBIELAND_RESOURCES_DIR` to the repo's `1.6/Resources` directory, and calls one of these Unity static methods:
+The script runs Unity batch mode against `Originals/Effects`, sets `ZOMBIELAND_RESOURCES_DIR` to the repo's `1.7/Resources` directory, and calls one of these Unity static methods:
 
 ```text
 CreateAssetBundles.BuildStandaloneAssetBundles
@@ -234,7 +265,7 @@ CreateAssetBundles.BuildLinuxAssetBundle
 CreateAssetBundles.BuildMacOSAssetBundle
 ```
 
-`BuildStandaloneAssetBundles` builds all three platforms. The other methods build one platform only. All methods generate the source assets, run Unity's asset bundle build, copy the produced `zombieland` bundle to `1.6/Resources/{OS}/zombieland`, then validate that the deployed bundle loads the expected assets:
+`BuildStandaloneAssetBundles` builds all three platforms. The other methods build one platform only. All methods generate the source assets, run Unity's asset bundle build, copy the produced `zombieland` bundle to `1.7/Resources/{OS}/zombieland`, then validate that the deployed bundle loads the expected assets:
 
 ```text
 assets/_zombieland/dust.prefab
@@ -256,12 +287,12 @@ A successful quick macOS build prints lines similar to:
 
 ```text
 Building Zombieland asset bundle(s): MacOS
-Zombieland bundle validated MacOS: Dust=Dust, Metaballs=Custom/Metaballs, MainMenuBackgroundEffect=Custom/ZombielandMainMenuBackgroundEffect, TitleBloodDrip=Custom/ZombielandTitleBloodDrip, TitleBloodDripPasses=2, ZombieSymbiant=Custom/ZombieSymbiant, assets=9, Unity=2022.3.62f3, path=/Users/ap/Projects/ZombieLand/1.6/Resources/MacOS/zombieland
-<sha256>  /Users/ap/Projects/ZombieLand/1.6/Resources/MacOS/zombieland
+Zombieland bundle validated MacOS: Dust=Dust, Metaballs=Custom/Metaballs, MainMenuBackgroundEffect=Custom/ZombielandMainMenuBackgroundEffect, TitleBloodDrip=Custom/ZombielandTitleBloodDrip, TitleBloodDripPasses=2, ZombieSymbiant=Custom/ZombieSymbiant, assets=9, Unity=2022.3.62f3, path=/Users/ap/Projects/ZombieLand/1.7/Resources/MacOS/zombieland
+<sha256>  /Users/ap/Projects/ZombieLand/1.7/Resources/MacOS/zombieland
 Exiting batchmode successfully now!
 ```
 
-The exact SHA-256 changes whenever Unity output changes. The important checks are the correct `1.6/Resources/{OS}/zombieland` path, `assets=9`, and `Exiting batchmode successfully now!`.
+The exact SHA-256 changes whenever Unity output changes. The important checks are the correct `1.7/Resources/{OS}/zombieland` path, `assets=9`, and `Exiting batchmode successfully now!`.
 
 ### Iteration Speed
 
@@ -296,7 +327,7 @@ git clean -ndX -- Originals/Effects/Library Originals/Effects/Assets/AssetBundle
 git clean -fdX -- Originals/Effects/Library Originals/Effects/Assets/AssetBundles Originals/Effects/Assets/_Zombieland Originals/Effects/UserSettings Originals/Effects/ProjectSettings/MemorySettings.asset Originals/Effects/ProjectSettings/VersionControlSettings.asset
 ```
 
-Do not remove or restore the deployed files under `1.6/Resources/{OS}/zombieland` unless you intentionally want to discard the rebuilt bundles.
+Do not remove or restore the deployed files under `1.7/Resources/{OS}/zombieland` unless you intentionally want to discard the rebuilt bundles.
 
 ### Choosing A Mode
 
@@ -306,7 +337,7 @@ Use `--os <OS>` when testing one non-current target or when verifying a specific
 
 Use `--full` before claiming the asset bundle set is ready for cross-platform use or before preparing a release-like commit.
 
-Do not manually copy files from Unity's intermediate `Assets/AssetBundles` output into the mod. The Unity export method already deploys the correct files to `1.6/Resources/{OS}/zombieland`, and the script verifies those deployed paths.
+Do not manually copy files from Unity's intermediate `Assets/AssetBundles` output into the mod. The Unity export method already deploys the correct files to `1.7/Resources/{OS}/zombieland`, and the script verifies those deployed paths.
 
 
 ## New-game and drafted Double Tap controls
@@ -319,3 +350,22 @@ The existing `zombieland/double_tap_infected_corpse` control now obtains the
 native work-giver option with Hunting unassigned, checks undrafted rejection
 and drafted acceptance, then invokes that option and observes the real job.
 It modifies the loaded fixture; reload the unchanged save afterwards.
+
+## Multiplayer session harness
+
+`python3 -I scripts/mp-session.py MODE` drives a host and a client of the isolated Multiplayer test copy in `artifacts/mp17/Game`. It launches both processes directly over GABP, with the profiles `artifacts/mp17-host-profile` and `artifacts/mp17-client-profile`. It needs a paired deploy into `artifacts/mp17/Game/Mods` first. While it runs, it holds `artifacts/mp17/GAME_IN_USE`. It stops both processes at the end and on failure.
+
+- `fixture --variant base|features|natural` builds a single-player save:
+  - `base` (`ZL_MP_Fixture`): a walled colony, armed colonists and every special zombie type.
+  - `features` (`ZL_MP_Features`): special zombies only, plus a fueled Thumper, a chainsaw colonist, miners next to granite, zombie corpses, a stockpile, contamination, a Symbiant and a permanent Death Pall (`zombieland/mp_fixture_features`).
+  - `natural` (`ZL_MP_Natural`): no zombies, saved at a threat level of at least 50% so that population spawning runs.
+- `run --save NAME --ticks N --speed Normal|Fast|Superfast|Ultrafast` loads the save, hosts, joins the client, and advances time only through `multiplayer/set_time_speed`. At a paused boundary it compares clocks, the `desynced` flags, a zombie `(id, cell, state)` hash and the 12 sections of `zombieland/mp_sync_state` (map things, pawn health, colonist flags, switches, Thumpers, chainsaws, areas, storage ranges, settings, advanced constants, contamination, game conditions). It prints `mp-session PASS` or `FAIL` with a compact summary and exits nonzero on failure. Options:
+  - `--incident 4|25|100|200` triggers a synchronized Zombieland incident after joining.
+  - `--ui` sends Zombieland UI input from both peers through the real UI code (`rimworld/execute_gizmo`, `zombieland/mp_ui_action`) and checks each effect on both peers.
+  - `--rejoin-after N` makes the client leave and rejoin after N ticks, which creates a new join point.
+  - `--client-constant NAME=VALUE` gives the client a different local advanced setting for the session and checks that the client's settings file stays unchanged.
+  - `--async-time` hosts with Multiplayer's per-map clocks.
+- `--desync-traces` enables Multiplayer's host traces. Set `desyncTracingMode` to `Slow` in both profiles' `Config/Mod_Multiplayer17_Multiplayer.xml` for stack traces. Slow traces hash stack frames, and JIT inlining differs between processes, so their "first desynced trace" can be a false positive.
+- `hold both|host|client --minutes M` keeps peers up for manual steps. `call host|client TOOL 'JSON'` calls one bridge tool on the newest held session.
+
+Full output goes to `artifacts/logs/mp/<stamp>-<mode>/`. Multiplayer writes desync reports to `<profile>/MpDesyncs/Desync-NN.zip`. Never change gameplay state on one peer. `rimworld/execute_debug_action` runs locally and is not synchronized by Multiplayer.

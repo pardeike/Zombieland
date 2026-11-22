@@ -1,5 +1,6 @@
 ﻿using RimWorld;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -346,46 +347,88 @@ namespace ZombieLand
 
 		static void GenerateCells(Map map, List<ZombieCostSpecs> specs, int[] costCells, FloodFiller filler)
 		{
-			var mapSizeX = map.Size.x;
 			var pathGrid = map.pathing.For(traverseParms).pathGrid;
-			var cardinals = GenAdj.CardinalDirections;
-
 			foreach (var spec in specs)
-			{
-				if (ValidSpec(map, spec) == false)
-					continue;
+				_ = FloodSpec(map, pathGrid, spec, costCells, filler);
+		}
 
-				var loc = spec.position;
-				var costBase = spec.maxCosts;
-				var radiusSquared = spec.radius * spec.radius;
+		// Returns the number of flooded cells.
+		static int FloodSpec(Map map, Verse.AI.PathGrid pathGrid, ZombieCostSpecs spec, int[] costCells, FloodFiller filler)
+		{
+			if (ValidSpec(map, spec) == false)
+				return 0;
 
-				var floodedCells = new Dictionary<IntVec3, int>();
-				filler.FloodFill(loc,
-					cell =>
-						(loc - cell).LengthHorizontalSquared <= radiusSquared
-						&& pathGrid.Walkable(cell)
-						&& (cell.GetEdifice(map) is Building_Door) == false,
-					cell =>
+			var mapSizeX = map.Size.x;
+			var cardinals = GenAdj.CardinalDirections;
+			var loc = spec.position;
+			var costBase = spec.maxCosts;
+			var radiusSquared = spec.radius * spec.radius;
+
+			var floodedCells = new Dictionary<IntVec3, int>();
+			filler.FloodFill(loc,
+				cell =>
+					(loc - cell).LengthHorizontalSquared <= radiusSquared
+					&& pathGrid.Walkable(cell)
+					&& (cell.GetEdifice(map) is Building_Door) == false,
+				cell =>
+				{
+					var f = 1f - (loc - cell).LengthHorizontalSquared / radiusSquared;
+					var cost = (int)(costBase * f);
+					var idx = cell.x + cell.z * mapSizeX;
+					costCells[idx] = Math.Max(costCells[idx], cost);
+					floodedCells[cell] = costCells[idx];
+				});
+
+			foreach (var cell in floodedCells.Keys)
+				for (var i = 0; i <= 3; i++)
+				{
+					var pos = cell + cardinals[i];
+					if (floodedCells.ContainsKey(pos) == false
+						&& (loc - cell).LengthHorizontalSquared <= radiusSquared
+						&& pos.InBounds(map) && pos.GetEdifice(map) is Building_Door)
 					{
-						var f = 1f - (loc - cell).LengthHorizontalSquared / radiusSquared;
-						var cost = (int)(costBase * f);
-						var idx = cell.x + cell.z * mapSizeX;
-						costCells[idx] = Math.Max(costCells[idx], cost);
-						floodedCells[cell] = costCells[idx];
-					});
-
-				foreach (var cell in floodedCells.Keys)
-					for (var i = 0; i <= 3; i++)
-					{
-						var pos = cell + cardinals[i];
-						if (floodedCells.ContainsKey(pos) == false
-							&& (loc - cell).LengthHorizontalSquared <= radiusSquared
-							&& pos.InBounds(map) && pos.GetEdifice(map) is Building_Door)
-						{
-							costCells[pos.x + pos.z * mapSizeX] = floodedCells[cell];
-						}
+						costCells[pos.x + pos.z * mapSizeX] = floodedCells[cell];
 					}
+				}
+			return floodedCells.Count;
+		}
+
+		// Multiplayer: builds a grid on the map tick and yields after each cellsPerStep flooded cells.
+		// The step boundaries depend only on synchronized map state, so every peer accepts the grid on the same tick.
+		public IEnumerator BuildGridIteratively(Map map, List<ZombieCostSpecs> specs, int cellsPerStep, Action<AvoidGrid> accept)
+		{
+			var request = new AvoidRequest() { map = map, specs = CopySpecs(specs), requestId = Interlocked.Increment(ref nextRequestId) };
+			var avoidGrid = new AvoidGrid(map);
+			var costCells = avoidGrid.GetNewCosts();
+			Exception error = null;
+			if (CanProcessMap(map))
+			{
+				var cells = 0;
+				for (var i = 0; i < request.specs.Count && error == null; i++)
+				{
+					try
+					{
+						cells += FloodSpec(map, map.pathing.For(traverseParms).pathGrid, request.specs[i], costCells, avoidGrid.filler);
+					}
+					catch (Exception e)
+					{
+						error = e;
+					}
+					if (cells >= cellsPerStep)
+					{
+						cells = 0;
+						yield return null;
+					}
+				}
 			}
+			if (error != null)
+			{
+				WarnProcessingFailure("multiplayer avoid-grid rebuild", error, request);
+				avoidGrid.ClearNewCosts();
+			}
+			avoidGrid.requestId = request.requestId;
+			avoidGrid.FinalizeCosts();
+			accept(avoidGrid);
 		}
 
 		AvoidGrid ProcessRequest(AvoidRequest request, out Exception error)

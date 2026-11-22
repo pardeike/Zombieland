@@ -1239,11 +1239,20 @@ namespace ZombieLand
 					UnityEngine.Object.Destroy(dust);
 			}
 
-			var titleBloodDripShader = Assets.TitleBloodDripShader;
+			var titleBloodDripShader = DefDatabase<ShaderDef>.GetNamedSilentFail("ZombielandTitleBloodDisplay")?.Shader;
+			var titleBloodUpdateShader = DefDatabase<ShaderDef>.GetNamedSilentFail("ZombielandTitleBloodUpdate")?.Shader;
+			var nativeTitleShadersReady = titleBloodDripShader != null && titleBloodUpdateShader != null
+				&& titleBloodDripShader.isSupported && titleBloodUpdateShader.isSupported
+				&& titleBloodDripShader.passCount == 1 && titleBloodUpdateShader.passCount == 1
+				&& titleBloodDripShader.HasProperty(Shader.PropertyToID("_BloodColor"))
+				&& titleBloodUpdateShader.HasProperty(Shader.PropertyToID("_DeltaTime"));
 			var titleBloodDripType = AccessTools.TypeByName("ZombieLand.TitleBloodDrip");
 			var titleBloodDripMaterial = titleBloodDripType == null
 				? null
-				: AccessTools.Field(titleBloodDripType, "material")?.GetValue(null) as Material;
+				: AccessTools.Field(titleBloodDripType, "displayMaterial")?.GetValue(null) as Material;
+			var titleBloodUpdateMaterial = titleBloodDripType == null
+				? null
+				: AccessTools.Field(titleBloodDripType, "simulationMaterial")?.GetValue(null) as Material;
 			var titleBloodDripMask = titleBloodDripType == null
 				? null
 				: AccessTools.Field(titleBloodDripType, "mask")?.GetValue(null) as Texture2D;
@@ -1260,9 +1269,7 @@ namespace ZombieLand
 				success = Assets.initialized
 					&& Assets.MetaballShader != null
 					&& Assets.ZombieSymbiantShader != null
-					&& titleBloodDripShader != null
-					&& titleBloodDripShader.isSupported
-					&& titleBloodDripShader.passCount >= 2
+					&& nativeTitleShadersReady
 					&& supportsHalfState
 					&& titleBloodDripType != null
 					&& dustInstantiated
@@ -1274,8 +1281,10 @@ namespace ZombieLand
 				titleBloodDrip = new
 				{
 					name = titleBloodDripShader?.name,
-					supported = titleBloodDripShader?.isSupported ?? false,
+					supported = nativeTitleShadersReady,
 					passCount = titleBloodDripShader?.passCount ?? 0,
+					updateName = titleBloodUpdateShader?.name,
+					updatePassCount = titleBloodUpdateShader?.passCount ?? 0,
 					supportsHalfState,
 					graphicsDeviceType = SystemInfo.graphicsDeviceType.ToString(),
 					graphicsDeviceName = SystemInfo.graphicsDeviceName,
@@ -1284,6 +1293,7 @@ namespace ZombieLand
 					{
 						typeFound = titleBloodDripType != null,
 						resourcesAllocated = titleBloodDripMaterial != null
+							|| titleBloodUpdateMaterial != null
 							|| titleBloodDripMask != null
 							|| titleBloodDripState != null
 							|| titleBloodDripNextState != null,

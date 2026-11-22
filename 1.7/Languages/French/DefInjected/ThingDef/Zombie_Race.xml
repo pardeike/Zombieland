@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+	<Zombie.label>zombie</Zombie.label>
+	<Zombie.description>Un zombie.</Zombie.description>
+	<Zombie.tools.0.label>morsure</Zombie.tools.0.label>
+	<Zombie.tools.1.label>poing gauche</Zombie.tools.1.label>
+	<Zombie.tools.2.label>poing droit</Zombie.tools.2.label>
+	<ElectricalField.label>champ électrique</ElectricalField.label>
+	<ElectricalField.verbs.0.label>décharge</ElectricalField.verbs.0.label>
+	<ElectricalField.tools.0.label>décharge</ElectricalField.tools.0.label>
+	<ZombieSpitter.label>zombie cracheur</ZombieSpitter.label>
+	<ZombieSpitter.description>Un monstre qui crache des zombies pour attaquer votre base depuis les airs.</ZombieSpitter.description>
+	<ZombieSymbiant.label>symbiant zombie</ZombieSymbiant.label>
+	<ZombieSymbiant.description>Une infestation intérieure de Symbiant zombie. Elle se répand sous forme de vase visible dans les pièces intérieures fréquentées, ralentit les pions qui la traversent et se lie à un colon. Tant que l'hôte et le Symbiant partagent une carte, l'hôte est immunisé contre l'infection zombie par morsure et reçoit les avantages acquis par le lien. Le nourrir avec des cadavres accélère sa croissance. Une opération retire le lien, puis le Symbiant sans hôte se résorbe.</ZombieSymbiant.description>
+</LanguageData>

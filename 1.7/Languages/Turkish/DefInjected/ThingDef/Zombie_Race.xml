@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+	<Zombie.label>zombi</Zombie.label>
+	<Zombie.description>Bir zombi.</Zombie.description>
+	<Zombie.tools.0.label>ısırık</Zombie.tools.0.label>
+	<Zombie.tools.1.label>sol yumruk</Zombie.tools.1.label>
+	<Zombie.tools.2.label>sağ yumruk</Zombie.tools.2.label>
+	<ElectricalField.label>elektrik alanı</ElectricalField.label>
+	<ElectricalField.verbs.0.label>şok</ElectricalField.verbs.0.label>
+	<ElectricalField.tools.0.label>şok</ElectricalField.tools.0.label>
+	<ZombieSpitter.label>zombi tükürücü</ZombieSpitter.label>
+	<ZombieSpitter.description>Üssünüze havadan saldırmak üzere zombi tüküren bir canavar.</ZombieSpitter.description>
+	<ZombieSymbiant.label>zombi simbiyantı</ZombieSymbiant.label>
+	<ZombieSymbiant.description>İç mekânda ortaya çıkan bir Zombi Simbiyantı istilası. Yoğun kullanılan odalara görünür balçık hâlinde yayılır, üzerinden geçen piyonları yavaşlatır ve bir kolonistle bağ kurar. Konak ve Simbiyant aynı haritadayken konak zombi ısırıklarından kaynaklanan enfeksiyona karşı bağışıktır ve bağın kazandığı faydaları alır. Simbiyantı cesetlerle beslemek daha hızlı büyümesini sağlar. Bağ ameliyatla kaldırılır; konaksız kalan Simbiyant daha sonra küçülerek kaybolur.</ZombieSymbiant.description>
+</LanguageData>

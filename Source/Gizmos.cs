@@ -26,7 +26,7 @@ namespace ZombieLand
 				defaultDesc = description.Translate(),
 				icon = autoAvoidZombies && doesAttract ? AvoidingEnabled : AvoidingDisabled,
 				activateSound = autoAvoidZombies ? SoundDefOf.Designate_ZoneAdd : SoundDefOf.Designate_ZoneDelete,
-				action = doesAttract ? config.ToggleAutoAvoidZombies : null
+				action = doesAttract ? () => MultiplayerCommands.SetColonistFlag(pawn, ColonistFlag.AutoAvoidZombies, autoAvoidZombies == false) : null
 			};
 		}
 
@@ -50,7 +50,7 @@ namespace ZombieLand
 					description = autoExtractZombieSerum ? "AutoExtractAllowedDescription" : "AutoExtractForbiddenDescription";
 					icon = autoExtractZombieSerum ? ExtractingAllowed : ExtractingForbidden;
 					activateSound = autoExtractZombieSerum ? SoundDefOf.Designate_ZoneAdd : SoundDefOf.Designate_ZoneDelete;
-					action = config.ToggleAutoExtractZombieSerum;
+					action = () => MultiplayerCommands.SetColonistFlag(pawn, ColonistFlag.AutoExtractZombieSerum, autoExtractZombieSerum == false);
 				}
 			}
 
@@ -84,7 +84,7 @@ namespace ZombieLand
 					description = autoDoubleTap ? "AutoDoubleTapAllowedDescription" : "AutoDoubleTapForbiddenDescription";
 					icon = autoDoubleTap ? DoubleTapAllowed : DoubleTapForbidden;
 					activateSound = autoDoubleTap ? SoundDefOf.Designate_ZoneAdd : SoundDefOf.Designate_ZoneDelete;
-					action = config.ToggleAutoDoubleTap;
+					action = () => MultiplayerCommands.SetColonistFlag(pawn, ColonistFlag.AutoDoubleTap, autoDoubleTap == false);
 				}
 			}
 

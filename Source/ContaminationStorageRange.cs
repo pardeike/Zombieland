@@ -86,13 +86,27 @@ namespace ZombieLand
 			return range.IncludesEpsilon(contamination);
 		}
 
+		// During a Multiplayer session a drag edits this local range and sends it when the mouse is released.
+		static StorageSettings pendingSettings;
+		static FloatRange pendingRange;
+
+		static void SubmitPendingRange()
+		{
+			if (pendingSettings == null || Input.GetMouseButton(0))
+				return;
+			var settings = pendingSettings;
+			pendingSettings = null;
+			MultiplayerCommands.SetStorageContaminationRange(settings, pendingRange.min, pendingRange.max);
+		}
+
 		public static bool DrawRangeForFilter(ref float y, float width, ThingFilter filter)
 		{
 			if (TryGetFilterOwner(filter, out var settings) == false)
 				return false;
 
+			SubmitPendingRange();
 			var sliderRect = new Rect(20f, y, width - 20f, SliderHeight);
-			var range = GetRange(settings);
+			var range = pendingSettings == settings ? pendingRange : GetRange(settings);
 			var previous = range;
 			Widgets.FloatRange(
 				sliderRect,
@@ -107,7 +121,15 @@ namespace ZombieLand
 				null,
 				0.01f);
 			if (range != previous)
-				SetRange(settings, range);
+			{
+				if (MultiplayerSupport.IsActive)
+				{
+					pendingSettings = settings;
+					pendingRange = range;
+				}
+				else
+					MultiplayerCommands.SetStorageContaminationRange(settings, range.min, range.max);
+			}
 			y += SliderRowHeight;
 			Text.Font = GameFont.Small;
 			return true;

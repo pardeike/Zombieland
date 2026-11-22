@@ -63,7 +63,8 @@ namespace ZombieLand
 
 			if (list.ButtonText("Apply"))
 			{
-				selected?.Invoke(null, new object[] { pawn, factor });
+				if (selected != null)
+					MultiplayerCommands.ApplyContaminationEffect(pawn, selected.Name, factor);
 				Close(true);
 			}
 			list.Gap();

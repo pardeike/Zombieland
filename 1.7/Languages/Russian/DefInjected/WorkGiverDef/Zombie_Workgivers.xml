@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+	<ExtractZombieSerum.label>собирать экстракт зомби из трупов зомби</ExtractZombieSerum.label>
+	<ExtractZombieSerum.verb>собрать</ExtractZombieSerum.verb>
+	<ExtractZombieSerum.gerund>собирает</ExtractZombieSerum.gerund>
+	<DoubleTap.label>добивать трупы, чтобы они не стали зомби</DoubleTap.label>
+	<DoubleTap.verb>добить</DoubleTap.verb>
+	<DoubleTap.gerund>добивает</DoubleTap.gerund>
+	<FixBrokenChainsaw.label>чинить сломанную бензопилу</FixBrokenChainsaw.label>
+	<FixBrokenChainsaw.verb>заменить сломанные детали в</FixBrokenChainsaw.verb>
+	<FixBrokenChainsaw.gerund>заменяет сломанные детали в</FixBrokenChainsaw.gerund>
+</LanguageData>

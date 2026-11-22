@@ -35,10 +35,14 @@ namespace ZombieLand
 			var assets = AssetBundle.LoadFromFile(path);
 
 			dust = assets.LoadAsset<GameObject>("Dust");
-			metaballShader = assets.LoadAsset<Shader>("Metaballs");
-			zombieSymbiantShader = assets.LoadAsset<Shader>("ZombieSymbiant");
+			// Keep the bundled prefab and material properties, but use an explicit
+			// native alpha-blend shader instead of Unity's imported Standard Surface.
+			var dustMaterial = dust.GetComponent<ParticleSystemRenderer>().sharedMaterial;
+			dustMaterial.shader = DefDatabase<ShaderDef>.GetNamed("ZombielandThumperDust").Shader;
+			metaballShader = DefDatabase<ShaderDef>.GetNamed("ZombielandMetaballs").Shader;
+			zombieSymbiantShader = DefDatabase<ShaderDef>.GetNamed("ZombielandSymbiant").Shader;
 			mainMenuBackgroundEffectShader = assets.LoadAsset<Shader>("MainMenuBackgroundEffect");
-			titleBloodDripShader = assets.LoadAsset<Shader>("TitleBloodDrip");
+			titleBloodDripShader = DefDatabase<ShaderDef>.GetNamed("ZombielandTitleBloodDisplay").Shader;
 
 			initialized = true;
 		}

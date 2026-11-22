@@ -1,18 +1,18 @@
 <loadFolders>
-  <!--
+	<!--
     RimWorld reverses each list before content lookup and keeps the first file
     it sees for each relative path. Keep active versions isolated: runtime
     content belongs in explicit version folders, and root runtime folders are
     intentionally forbidden.
 
-    When starting the 1.7 port, add an explicit v1.7 entry and create matching
-    1.7 content. Without an explicit v1.7 entry, RimWorld will fall back to the
-    highest older key.
   -->
-  <v1.4>
-    <li>1.4</li>
-  </v1.4>
-  <v1.6>
-    <li>1.6</li>
-  </v1.6>
+	<v1.4>
+		<li>1.4</li>
+	</v1.4>
+	<v1.6>
+		<li>1.6</li>
+	</v1.6>
+	<v1.7>
+		<li>1.7</li>
+	</v1.7>
 </loadFolders>

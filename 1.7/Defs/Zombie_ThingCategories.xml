@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+	<ThingCategoryDef>
+		<defName>Zombies</defName>
+		<label>zombies</label>
+		<parent>Items</parent>
+	</ThingCategoryDef>
+	<ThingCategoryDef>
+		<defName>ZombieSerum</defName>
+		<label>serum</label>
+		<parent>Manufactured</parent>
+		<resourceReadoutRoot>true</resourceReadoutRoot>
+		<iconPath>ZombieSerumIcon</iconPath>
+	</ThingCategoryDef>
+</Defs>

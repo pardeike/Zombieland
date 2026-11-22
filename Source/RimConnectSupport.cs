@@ -158,7 +158,7 @@ namespace ZombieLand
 			var fValueTuple_Item2 = AccessTools.Field(typeof(ValueTuple<System.String, Verse.IntVec3>), "Item2");
 
 			var assemblyName = new AssemblyName("RimConnectSupport");
-			var assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
+			var assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.Run);
 			var moduleBuilder = assemblyBuilder.DefineDynamicModule("DefaultModule");
 			var attr1 = TypeAttributes.Public | TypeAttributes.Class | TypeAttributes.AutoClass | TypeAttributes.AnsiClass | TypeAttributes.ExplicitLayout;
 			var typeBuilder = moduleBuilder.DefineType(className, attr1, tAction);
@@ -202,6 +202,12 @@ namespace ZombieLand
 
 		public static (string, IntVec3) Execute(string name, int amount, string boughtBy)
 		{
+			// RimConnect delivers purchases to one peer outside the synchronized command stream.
+			if (MultiplayerSupport.IsActive)
+			{
+				Log.WarningOnce($"Zombieland: RimConnect purchases are disabled during a Multiplayer session ({name} by {boughtBy} ignored).", name.GetHashCode() ^ 0x5A17C0);
+				return (null, IntVec3.Invalid);
+			}
 			if (actions.TryGetValue(name, out var action))
 				return action(amount, boughtBy);
 			return (null, IntVec3.Invalid);

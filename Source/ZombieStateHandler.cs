@@ -17,6 +17,15 @@ namespace ZombieLand
 		static readonly int[] adjIndex4 = { 0, 1, 2, 3 };
 		static int prevIndex4;
 
+		// Process-wide smash order. Multiplayer resets it at reloads so that every peer continues identically.
+		internal static void ResetTransientState()
+		{
+			for (var i = 0; i < adjIndex4.Length; i++)
+				adjIndex4[i] = i;
+			prevIndex4 = 0;
+			fadeOff = -1;
+		}
+
 		public static Dictionary<int, float> creepyAmbientSoundVolumes = new();
 
 		// make zombies die if necessary ============================================================
@@ -194,7 +203,7 @@ namespace ZombieLand
 			if (ZombieAwarenessCues.ShouldPlayWallAndSabotageSound())
 				CustomDefs.WallPushing.PlayOneShot(SoundInfo.InMap(new TargetInfo(pos, map)));
 			if (ZombieSettings.Values.dangerousSituationMessage && map.areaManager.Home[wallCell])
-				if ("DangerousSituation".RunThrottled(5f))
+				if (MultiplayerSupport.IsActive ? map.GetComponent<TickManager>()?.TryDangerousSituationLetter() == true : "DangerousSituation".RunThrottled(5f))
 				{
 					var text = "ZombiesAreBeingPushedOverYourWalls".Translate();
 					Find.LetterStack.ReceiveLetter("DangerousSituation".Translate(), text, CustomDefs.DangerousSituation, zombie);

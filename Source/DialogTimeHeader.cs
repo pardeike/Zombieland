@@ -46,10 +46,10 @@ namespace ZombieLand
 			singleKeyframeDragStartX = 0f;
 		}
 
-		public static void JumpToCurrent()
+		public static void JumpToCurrent(List<SettingsKeyFrame> timeline)
 		{
-			currentTicks = Mathf.Clamp(GenTicks.TicksGame, 0, ZombieSettings.ValuesOverTime.Last().Ticks);
-			selectedKeyframe = ZombieSettings.ValuesOverTime.FirstIndexOf(key => key.Ticks == currentTicks);
+			currentTicks = Mathf.Clamp(GenTicks.TicksGame, 0, timeline.Last().Ticks);
+			selectedKeyframe = timeline.FirstIndexOf(key => key.Ticks == currentTicks);
 			selectionFromSlider = false;
 		}
 

@@ -27,10 +27,10 @@ while (($#)); do
 	esac
 done
 
-expected_sdk="10.0.301"
+# global.json pins 10.0.400 with rollForward latestPatch, so any 10.0.4xx SDK is valid.
 actual_sdk="$(dotnet --version 2>/dev/null || true)"
-if [[ "$actual_sdk" != "$expected_sdk" ]]; then
-	printf 'Zombieland requires .NET SDK %s; dotnet resolved to %s.\n' "$expected_sdk" "${actual_sdk:-unavailable}" >&2
+if [[ ! "$actual_sdk" =~ ^10\.0\.4[0-9][0-9]$ ]]; then
+	printf 'Zombieland requires a .NET SDK 10.0.4xx (global.json); dotnet resolved to %s.\n' "${actual_sdk:-unavailable}" >&2
 	exit 2
 fi
 

@@ -21,7 +21,7 @@ runtime_roots = (
     "Sounds",
     "Textures",
 )
-frozen_versions = {"1.4"}
+frozen_versions = {"1.4", "1.6"}
 
 errors = []
 checked_versions = []

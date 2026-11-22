@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+	<CureZombieInfection.label>zombi enfeksiyonunu tedavi et</CureZombieInfection.label>
+	<CureZombieInfection.description>Bir vücut parçasındaki erken evre zombi enfeksiyonunu tedavi et. Bir doz zombi serumu gerektirir; serum yüzdesi yükseldikçe başarısızlık riski azalır.</CureZombieInfection.description>
+	<CureZombieInfection.jobString>Zombi enfeksiyonunu tedavi ediyor.</CureZombieInfection.jobString>
+	<SeverSymbiantSymbiosis.label>Simbiyant bağını kaldır</SeverSymbiantSymbiosis.label>
+	<SeverSymbiantSymbiosis.description>Bir kolonistle Simbiyant arasındaki bağı kaldır. Konaksız kalan Simbiyant ameliyattan sonra küçülerek kaybolur.</SeverSymbiantSymbiosis.description>
+	<SeverSymbiantSymbiosis.jobString>Simbiyant bağını kaldırıyor.</SeverSymbiantSymbiosis.jobString>
+	<MakeZombieSerum.label>zombi özünden zombi serumu yap</MakeZombieSerum.label>
+	<MakeZombieSerum.description>Zombi özünden bir doz zombi serumu üret. Zombi serumu, ameliyat sırasında zombi enfeksiyonlarını tedavi eder.</MakeZombieSerum.description>
+	<MakeZombieSerum.jobString>Zombi serumu yapıyor.</MakeZombieSerum.jobString>
+</LanguageData>

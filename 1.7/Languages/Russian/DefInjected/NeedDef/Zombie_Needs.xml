@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+	<Contamination.label>загрязнение</Contamination.label>
+	<Contamination.description>Загрязнение увеличивается при контакте с загрязнёнными предметами.</Contamination.description>
+</LanguageData>

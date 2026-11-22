@@ -18,8 +18,14 @@ namespace ZombieLand
 			closeOnCancel = true;
 		}
 
+		// During a Multiplayer session the host's values apply. The window only shows them
+		// and never writes them into the local settings file.
+		static bool ReadOnly => MultiplayerSupport.IsActive;
+
 		public override void PreClose()
 		{
+			if (ReadOnly)
+				return;
 			var dict = Constants.Current();
 			Constants.Save(dict);
 			ZombielandMusic.ApplyEntrySongReplacement(true);
@@ -104,6 +110,9 @@ namespace ZombieLand
 			inRect.yMax -= 60;
 
 			var header = "AdvancedSettings".SafeTranslate();
+			var readOnly = ReadOnly;
+			if (readOnly)
+				header += "\n" + "ZombielandMultiplayerAdvancedReadOnly".SafeTranslate();
 			var num = Text.CalcHeight(header, inRect.width);
 			Widgets.Label(new Rect(inRect.xMin, inRect.yMin, inRect.width, num), header);
 			inRect.yMin += num + 8;
@@ -125,23 +134,26 @@ namespace ZombieLand
 					var boolValue = (bool)value;
 					list.CheckboxLabeled(name, ref boolValue, attr.Description);
 					list.curY -= list.verticalSpacing;
-					field.SetValue(null, boolValue);
+					if (readOnly == false)
+						field.SetValue(null, boolValue);
 				}
 				if (type == typeof(int))
 				{
 					var intValue = (int)value;
 					NumericField(list, name, ref intValue, attr.Description);
-					field.SetValue(null, intValue);
+					if (readOnly == false)
+						field.SetValue(null, intValue);
 				}
 				if (type == typeof(float))
 				{
 					var floatValue = (float)value;
 					NumericField(list, name, ref floatValue, attr.Description);
-					field.SetValue(null, floatValue);
+					if (readOnly == false)
+						field.SetValue(null, floatValue);
 				}
 				if (type == typeof(int[]))
 				{
-					var intArray = (int[])value;
+					var intArray = readOnly ? (int[])((int[])value).Clone() : (int[])value;
 					var rect = new Rect(list.curX, list.curY, list.ColumnWidth, 24f * intArray.Length);
 					if (Mouse.IsOver(rect))
 						Widgets.DrawHighlight(rect);
@@ -151,11 +163,12 @@ namespace ZombieLand
 					list.curY = savedY;
 					for (var i = 0; i < intArray.Length; i++)
 						NumericField(list, $"{i + 1}:", ref intArray[i], null, true);
-					field.SetValue(null, intArray);
+					if (readOnly == false)
+						field.SetValue(null, intArray);
 				}
 				if (type == typeof(float[]))
 				{
-					var floatArray = (float[])value;
+					var floatArray = readOnly ? (float[])((float[])value).Clone() : (float[])value;
 					var rect = new Rect(list.curX, list.curY, list.ColumnWidth, 24f * floatArray.Length);
 					if (Mouse.IsOver(rect))
 						Widgets.DrawHighlight(rect);
@@ -165,12 +178,13 @@ namespace ZombieLand
 					list.curY = savedY;
 					for (var i = 0; i < floatArray.Length; i++)
 						NumericField(list, $"{i + 1}:", ref floatArray[i], null, true);
-					field.SetValue(null, floatArray);
+					if (readOnly == false)
+						field.SetValue(null, floatArray);
 				}
 				list.Gap();
 			}
 
-			if (list.ButtonText("Reset".SafeTranslate()))
+			if (readOnly == false && list.ButtonText("Reset".SafeTranslate()))
 			{
 				_ = Constants.Apply(Constants.defaultValues);
 				scrollPosition = Vector2.zero;

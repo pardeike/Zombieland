@@ -65,7 +65,9 @@ namespace ZombieLand
 					list.Dialog_Label("ZombielandContaminationTitle", headerColor);
 					list.Gap(headerContentGap - 2f);
 					var contaminationEnabled = Constants.CONTAMINATION;
-					list.Dialog_Checkbox("ContaminationEnabled", ref contaminationEnabled);
+					// Contamination selects patches at startup, so a session cannot change it.
+					var multiplayer = MultiplayerSupport.IsActive;
+					list.Dialog_Checkbox("ContaminationEnabled", ref contaminationEnabled, disabled: multiplayer, tooltip: multiplayer ? "ZombielandMultiplayerUnavailable".Translate().ToString() : null);
 					if (contaminationEnabled != Constants.CONTAMINATION)
 					{
 						Constants.CONTAMINATION = contaminationEnabled;
@@ -422,9 +424,20 @@ namespace ZombieLand
 					list.Dialog_Label("ZombieActionsTitle", headerColor);
 					list.Gap(headerContentGap - 6f);
 					var resetTitle = Tools.OnMainScreen() ? "FactoryResetButton" : "ResetButton";
-					list.Dialog_Button("ZombieSettingsReset", resetTitle, false, Tools.ResetSettings);
+					if (MultiplayerSupport.IsActive)
+					{
+						var timeline = settingsOverTime;
+						list.Dialog_Button("ZombieSettingsReset", resetTitle, false, () => ResetWorkingCopy(timeline));
+					}
+					else
+						list.Dialog_Button("ZombieSettingsReset", resetTitle, false, Tools.ResetSettings);
 					if (Current.ProgramState == ProgramState.Playing)
-						list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Dialog_SaveThenUninstall.Run);
+					{
+						if (MultiplayerSupport.IsActive)
+							list.Dialog_Button("UninstallZombieland", "UninstallButton", true, () => Messages.Message("ZombielandMultiplayerUnavailable".Translate(), MessageTypeDefOf.RejectInput, false));
+						else
+							list.Dialog_Button("UninstallZombieland", "UninstallButton", true, Dialog_SaveThenUninstall.Run);
+					}
 				}
 			}
 
@@ -496,11 +509,23 @@ namespace ZombieLand
 				DialogExtensions.shouldFocusNow = null;
 			}
 
-			if (Tools.OnMainScreen() == false)
+			// During a Multiplayer session the window edits a working copy and live values change only by command.
+			if (Tools.OnMainScreen() == false && MultiplayerSupport.IsActive == false)
 			{
 				var ticks = GenTicks.TicksGame;
 				ZombieSettings.Values = ZombieSettings.CalculateInterpolation(ZombieSettings.ValuesOverTime, ticks);
 			}
+		}
+
+		// Multiplayer variant of Tools.ResetSettings for the in-game window: it resets the working copy only.
+		static void ResetWorkingCopy(List<SettingsKeyFrame> timeline)
+		{
+			timeline.Clear();
+			timeline.AddRange(ZombieSettingsDefaults.groupOverTime.Select(frame => frame.DeepCopy()));
+			scrollPosition = Vector2.zero;
+			DialogTimeHeader.Reset();
+			DialogExtensions.shouldFocusNow = DialogExtensions.searchWidget.controlName;
+			DialogExtensions.searchWidget.Reset();
 		}
 
 		static void UpdateMeasuredContentHeight(float drawnContentHeight)

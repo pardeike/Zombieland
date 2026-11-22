@@ -61,6 +61,26 @@ namespace ZombieLand
 
 		public void UpdateRegions()
 		{
+			if (MultiplayerSupport.IsActive == false)
+			{
+				UpdateRegionsInternal();
+				return;
+			}
+			// Multiplayer: a region rebuild can run between ticks on one peer only. A fixed seed keeps the
+			// shuffle off the map's Rand and gives every peer the same result for the same regions.
+			Rand.PushState(map?.uniqueID ?? 0);
+			try
+			{
+				UpdateRegionsInternal();
+			}
+			finally
+			{
+				Rand.PopState();
+			}
+		}
+
+		void UpdateRegionsInternal()
+		{
 			if (map?.regionGrid?.allRooms == null || map.fogGrid == null || map.listerThings == null || pathGrid == null)
 				return;
 

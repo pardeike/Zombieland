@@ -219,6 +219,7 @@ namespace ZombieLand
 	public static class ZombieGenerator
 	{
 		public static int ZombiesSpawning = 0;
+		static FloatRange? defaultGearHealthRange;
 		static int spawnGeneration;
 
 		internal static void ResetMapOwnedState()
@@ -423,7 +424,7 @@ namespace ZombieLand
 				for (var i = 0; i < tries; i++)
 				{
 					var pair = possibleApparel.Where(a => a.thing.BaseMaxHitPoints >= filterStart && a.thing.BaseMaxHitPoints <= filterEnd).SafeRandomElement();
-					if (pair == null)
+					if (pair.thing == null)
 						continue;
 					var apparel = (Apparel)ThingMaker.MakeThing(pair.thing, pair.stuff);
 					apparel.wornByCorpseInt = difficulty >= 2f;
@@ -534,11 +535,15 @@ namespace ZombieLand
 			{
 				var _bodyType = PrepareZombieType(zombie, zombieType);
 				zombie.kindDef = ZombieDefOf.Zombie;
+				// Always assign, so that a value from an earlier game in this process never carries over.
+				defaultGearHealthRange ??= zombie.kindDef.gearHealthRange;
 				if (Tools.Difficulty() > 1f)
 				{
 					var maxHealthRange = GenMath.LerpDoubleClamped(0f, 5f, 1f, 0.02f, Tools.Difficulty());
 					zombie.kindDef.gearHealthRange = new FloatRange(0.02f, maxHealthRange);
 				}
+				else
+					zombie.kindDef.gearHealthRange = defaultGearHealthRange.Value;
 				zombie.SetFactionDirect(FactionUtility.DefaultFactionFrom(ZombieDefOf.Zombies));
 				zombie.ideo = null;
 				return _bodyType;
@@ -680,7 +685,8 @@ namespace ZombieLand
 			{
 				Log.Warning($"Zombieland caught an exception after creating a zombie: {ex16}");
 			}
-			switch (Find.TickManager.CurTimeSpeed)
+			// Multiplayer counts creation steps, so their number must not depend on the time speed.
+			switch (MultiplayerSupport.IsActive ? TimeSpeed.Paused : Find.TickManager.CurTimeSpeed)
 			{
 				case TimeSpeed.Paused:
 					break;
@@ -717,7 +723,7 @@ namespace ZombieLand
 		{
 			if (m_PawnBeardChooser_GenerateBeard != null)
 			{
-				GenerateBeard ??= MethodInvoker.GetHandler(m_PawnBeardChooser_GenerateBeard);
+				GenerateBeard ??= HarmonyLib.MethodInvoker.GetHandler(m_PawnBeardChooser_GenerateBeard);
 				_ = GenerateBeard(null, new object[] { pawn, faction });
 			}
 		}

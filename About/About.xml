@@ -5,6 +5,7 @@
 	<supportedVersions>
 		<li>1.4</li>
 		<li>1.6</li>
+		<li>1.7</li>
 	</supportedVersions>
 	<modDependencies>
 		<li>
@@ -21,13 +22,12 @@
 		<li>ceteam.combatextended</li>
 		<li>kentington.saveourship2</li>
 		<li>petetimessix.simplesidearms</li>
+		<li>rwmt.multiplayer</li>
 	</loadAfter>
-	<incompatibleWith>
-		<li>Multiplayer</li>
-	</incompatibleWith>
 	<packageId>brrainz.zombieland</packageId>
-	<modVersion>5.7.2.0</modVersion>
+	<modVersion>6.0.0.0</modVersion>
 	<steamAppId>928376710</steamAppId>
+	<url>https://github.com/pardeike/Zombieland</url>
 	<description>Do you like The Walking Dead? Are you afraid of the undead? Good. Because this mod will give you the heebie-jeebies!
 
 This is not your average zombie mod. In Zombieland, zombies are everywhere! They crawl out of the ground in masses, hunt you down, bash your doors and eat you alive! At night, their blood lust will steer them towards your base. So better be prepared!

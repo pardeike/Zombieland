@@ -16,7 +16,7 @@ Options:
   --os OS            Rebuild one explicit bundle: Win64, Linux, or MacOS.
   --unity PATH       Use a specific Unity editor executable.
 
-The output bundle path is always 1.6/Resources/{OS}/zombieland.
+The output bundle path is always 1.7/Resources/{OS}/zombieland.
 USAGE
 }
 
@@ -146,7 +146,7 @@ mkdir -p "$PROJECT/Logs"
 
 printf 'Building Zombieland asset bundle(s): %s\n' "${expected_arches[*]}"
 
-ZOMBIELAND_RESOURCES_DIR="$ROOT/1.6/Resources" "$UNITY" \
+ZOMBIELAND_RESOURCES_DIR="$ROOT/1.7/Resources" "$UNITY" \
 	-batchmode \
 	-quit \
 	-nographics \
@@ -166,7 +166,7 @@ elif grep -n "Shader error in" "$LOG"; then
 fi
 
 for arch in "${expected_arches[@]}"; do
-	bundle="$ROOT/1.6/Resources/$arch/zombieland"
+	bundle="$ROOT/1.7/Resources/$arch/zombieland"
 	if [[ ! -f "$bundle" ]]; then
 		printf 'Missing expected bundle: %s\n' "$bundle" >&2
 		exit 1

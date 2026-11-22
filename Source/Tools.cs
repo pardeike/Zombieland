@@ -218,9 +218,9 @@ namespace ZombieLand
 			}
 
 			var root = GetModRootDirectory();
-			var rimworld16Root = Path.Combine(root, "1.6");
-			if (Directory.Exists(rimworld16Root))
-				return rimworld16Root;
+			var runtimeRoot = Path.Combine(root, "1.7");
+			if (Directory.Exists(runtimeRoot))
+				return runtimeRoot;
 			return root;
 		}
 
@@ -1341,7 +1341,7 @@ namespace ZombieLand
 		public static string SerializeToHex<T>(T obj)
 		{
 			var ms = new MemoryStream();
-			using (var writer = new BsonWriter(ms))
+			using (var writer = new BsonDataWriter(ms))
 			{
 				var serializer = new JsonSerializer();
 				serializer.Serialize(writer, obj);
@@ -1353,7 +1353,7 @@ namespace ZombieLand
 		{
 			var data = GetBytesFromHex(hex);
 			var ms = new MemoryStream(data);
-			using var reader = new BsonReader(ms);
+			using var reader = new BsonDataReader(ms);
 			var serializer = new JsonSerializer();
 			return serializer.Deserialize<T>(reader);
 		}
@@ -1518,7 +1518,7 @@ namespace ZombieLand
 
 		public static void OnGUISimple(this QuickSearchWidget self, Rect rect, Action onFilterChange = null)
 		{
-			if (OriginalEventUtility.EventType == EventType.MouseDown && !rect.Contains(Event.current.mousePosition))
+			if (OriginalEventUtility.EventType == EventType.MouseDown && !rect.Contains(UnityEngine.Event.current.mousePosition))
 				self.Unfocus();
 
 			var color = GUI.color;
@@ -1594,14 +1594,26 @@ namespace ZombieLand
 			var now = Time.time;
 			if (now < nextBumps[idx])
 				return;
-			nextBumps[idx] = now + Rand.Range(0.25f, 0.5f);
-			var mote = (Mote)ThingMaker.MakeThing(bumps[idx], null);
-			mote.exactPosition = pos + Rand.UnitVector3 * 0.25f;
-			mote.exactRotation = UnityEngine.Random.Range(-30f, 30f);
-			mote.linearScale = Vector3.one + Vector3.one * (idx) / 2f;
-			mote.rotationRate = 25f * UnityEngine.Random.Range(1, 3) * Rand.Sign;
-			mote.instanceColor = new(1, 1, 1, 0.5f + idx * 0.1f);
-			_ = GenSpawn.Spawn(mote, pos.ToIntVec3(), map, WipeMode.Vanish);
+			// Multiplayer: cosmetic randomness gated by real time must not advance the simulation's Rand state.
+			var isolate = MultiplayerSupport.IsActive;
+			if (isolate)
+				Rand.PushState();
+			try
+			{
+				nextBumps[idx] = now + Rand.Range(0.25f, 0.5f);
+				var mote = (Mote)ThingMaker.MakeThing(bumps[idx], null);
+				mote.exactPosition = pos + Rand.UnitVector3 * 0.25f;
+				mote.exactRotation = UnityEngine.Random.Range(-30f, 30f);
+				mote.linearScale = Vector3.one + Vector3.one * (idx) / 2f;
+				mote.rotationRate = 25f * UnityEngine.Random.Range(1, 3) * Rand.Sign;
+				mote.instanceColor = new(1, 1, 1, 0.5f + idx * 0.1f);
+				_ = GenSpawn.Spawn(mote, pos.ToIntVec3(), map, WipeMode.Vanish);
+			}
+			finally
+			{
+				if (isolate)
+					Rand.PopState();
+			}
 		}
 
 		static readonly float[] halfToDouble = { 0.5f, 1.0f, 2.0f };

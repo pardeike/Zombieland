@@ -2923,9 +2923,11 @@ namespace ZombieLand
 				};
 			}
 
-			var staleRequestId = currentRequestId - 1;
+			// FetchAvoidGrid accepts any result newer than the last accepted one, so a stale result
+			// is one that is not newer. currentRequestId - 1 can belong to an uninstalled grid.
 			var beforeGrid = tickManager.avoidGrid;
 			var resultIdBefore = tickManager.lastAvoidGridResultId;
+			var staleRequestId = resultIdBefore;
 			var costBefore = beforeGrid == null ? -1 : AvoidCost(beforeGrid, map, poisonCell);
 			var staleGrid = new AvoidGrid(map);
 			var costs = staleGrid.GetNewCosts();
@@ -2940,7 +2942,7 @@ namespace ZombieLand
 
 			var costAfter = tickManager.avoidGrid == null ? -1 : AvoidCost(tickManager.avoidGrid, map, poisonCell);
 			var resultIdAfter = tickManager.lastAvoidGridResultId;
-			var staleResultAccepted = resultIdAfter == staleRequestId || costAfter == 4321;
+			var staleResultAccepted = costAfter == 4321 || resultIdAfter != resultIdBefore;
 			return new
 			{
 				success = staleResultAccepted == false,

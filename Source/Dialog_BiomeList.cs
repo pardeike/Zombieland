@@ -33,7 +33,9 @@ namespace ZombieLand
 
 		public override void PreClose()
 		{
-			Tools.UpdateBiomeBlacklist(settings.biomesWithoutZombies);
+			// During a Multiplayer session the settings command updates the blacklist on every peer.
+			if (MultiplayerSupport.IsActive == false)
+				Tools.UpdateBiomeBlacklist(settings.biomesWithoutZombies);
 		}
 
 		public override void DoWindowContents(Rect inRect)

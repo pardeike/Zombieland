@@ -6,11 +6,11 @@ Run this after adding, moving, changing, or deleting tracks:
 ./scripts/sync-soundtrack.sh
 ```
 
-The script mirrors this folder into `1.6/Sounds/music` as OGG files. For example:
+The script mirrors this folder into `1.7/Sounds/music` as OGG files. For example:
 
 ```text
 Originals/Soundtrack/tense/night/track01.wav
-1.6/Sounds/music/tense/night/track01.ogg
+1.7/Sounds/music/tense/night/track01.ogg
 ```
 
 Folder hints are preserved for the runtime dynamic `SongDef` loader:

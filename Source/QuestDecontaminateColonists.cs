@@ -325,8 +325,14 @@ namespace ZombieLand
 
 			var rect = new Rect(innerRect.x, curY, 500f, 25f);
 			if (Widgets.ButtonText(rect, "End " + ToString()))
-				Complete();
+				MultiplayerCommands.EndDecontaminationQuestPart(this);
 			curY += rect.height + 4f;
+		}
+
+		internal void DebugEnd()
+		{
+			if (State == QuestPartState.Enabled)
+				Complete();
 		}
 
 		public override void ExposeData()

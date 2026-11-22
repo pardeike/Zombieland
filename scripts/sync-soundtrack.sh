@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 SOURCE_DIR="$ROOT/Originals/Soundtrack"
-DEST_DIR="$ROOT/1.6/Sounds/music"
+DEST_DIR="$ROOT/1.7/Sounds/music"
 FFMPEG_BIN="${FFMPEG:-ffmpeg}"
 QUALITY=5
 FORCE=false
@@ -15,12 +15,12 @@ usage() {
 	cat <<'EOF'
 Usage: ./scripts/sync-soundtrack.sh [options]
 
-Converts Originals/Soundtrack/**/*.wav to 1.6/Sounds/music/**/*.ogg and keeps
+Converts Originals/Soundtrack/**/*.wav to 1.7/Sounds/music/**/*.ogg and keeps
 the generated OGG tree in sync with the WAV source tree.
 
 Defaults:
   source: ./Originals/Soundtrack
-  dest:   ./1.6/Sounds/music
+  dest:   ./1.7/Sounds/music
 
 Options:
   --source DIR       Source folder containing WAV files.
@@ -34,7 +34,7 @@ Options:
 
 Folder structure is mirrored. For example:
   Originals/Soundtrack/tense/night/track01.wav
-  -> 1.6/Sounds/music/tense/night/track01.ogg
+  -> 1.7/Sounds/music/tense/night/track01.ogg
 EOF
 }
 

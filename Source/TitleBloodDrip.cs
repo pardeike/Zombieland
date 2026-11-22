@@ -9,12 +9,12 @@ namespace ZombieLand
 	{
 		const int MaximumPendantSites = 16;
 		const float MaximumDeltaTime = 0.25f;
-		const int SimulationPass = 0;
-		const int DisplayPass = 1;
 		static readonly int deltaTimeId = Shader.PropertyToID("_DeltaTime");
 		static readonly int simulationTimeId = Shader.PropertyToID("_SimulationTime");
+		static readonly int titleTimeId = Shader.PropertyToID("_TitleTime");
 		static Texture2D mask;
-		static Material material;
+		static Material simulationMaterial;
+		static Material displayMaterial;
 		static RenderTexture state;
 		static RenderTexture nextState;
 		static float simulationTime;
@@ -29,21 +29,22 @@ namespace ZombieLand
 
 			try
 			{
-				var shader = Assets.TitleBloodDripShader;
-				if (shader == null || shader.isSupported == false || shader.passCount < 2)
+				var simulationShader = DefDatabase<ShaderDef>.GetNamed("ZombielandTitleBloodUpdate").Shader;
+				var displayShader = DefDatabase<ShaderDef>.GetNamed("ZombielandTitleBloodDisplay").Shader;
+				if (simulationShader == null || displayShader == null || simulationShader.isSupported == false || displayShader.isSupported == false)
 				{
 					disabledAfterError = true;
 					Log.Warning("Zombieland title blood drips are unavailable because their fluid shader is missing or unsupported. The static title will still be shown.");
 					return;
 				}
 
-				if (material == null || material.shader != shader)
-					Initialize(shader);
+				if (simulationMaterial == null || displayMaterial == null || simulationMaterial.shader != simulationShader || displayMaterial.shader != displayShader)
+					Initialize(simulationShader, displayShader);
 				EnsureRenderTextures();
 
 				AdvanceOncePerFrame();
 				var effectRect = new Rect(rect.x, rect.y, rect.width, rect.height * 2f);
-				Graphics.DrawTexture(effectRect, state, material, DisplayPass);
+				Graphics.DrawTexture(effectRect, state, displayMaterial, 0);
 			}
 			catch (Exception ex)
 			{
@@ -53,7 +54,7 @@ namespace ZombieLand
 			}
 		}
 
-		static void Initialize(Shader shader)
+		static void Initialize(Shader simulationShader, Shader displayShader)
 		{
 			ReleaseSimulation();
 			if (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.ARGBHalf) == false)
@@ -61,12 +62,18 @@ namespace ZombieLand
 
 			mask = Tools.LoadTexture("ZombielandTitle-DripArea", true, false);
 			mask.filterMode = FilterMode.Point;
-			material = new Material(shader)
+			simulationMaterial = new Material(simulationShader)
 			{
 				name = "Zombieland title blood fluid simulation",
 				hideFlags = HideFlags.HideAndDontSave
 			};
-			material.SetTexture("_MaskTex", mask);
+			displayMaterial = new Material(displayShader)
+			{
+				name = "Zombieland title blood display",
+				hideFlags = HideFlags.HideAndDontSave
+			};
+			simulationMaterial.SetTexture("_MaskTex", mask);
+			displayMaterial.SetTexture("_MaskTex", mask);
 
 			RecreateRenderTextures();
 		}
@@ -121,26 +128,25 @@ namespace ZombieLand
 				return;
 
 			var previous = RenderTexture.active;
-			var previousSrgbWrite = GL.sRGBWrite;
 			try
 			{
-				GL.sRGBWrite = false;
 				SimulateStep(deltaTime);
 			}
 			finally
 			{
-				GL.sRGBWrite = previousSrgbWrite;
 				RenderTexture.active = previous;
 			}
 		}
 
 		static void SimulateStep(float deltaTime)
 		{
-			material.SetFloat(deltaTimeId, deltaTime);
-			material.SetFloat(simulationTimeId, simulationTime);
+			simulationMaterial.SetFloat(deltaTimeId, deltaTime);
+			simulationMaterial.SetFloat(simulationTimeId, simulationTime);
+			simulationMaterial.SetFloat(titleTimeId, Time.time);
 
-			Graphics.Blit(state, nextState, material, SimulationPass);
+			Graphics.Blit(state, nextState, simulationMaterial, 0);
 			(state, nextState) = (nextState, state);
+			displayMaterial.SetFloat(simulationTimeId, simulationTime);
 			simulationTime += deltaTime;
 		}
 
@@ -167,9 +173,11 @@ namespace ZombieLand
 		{
 			ReleaseRenderTexture(ref state);
 			ReleaseRenderTexture(ref nextState);
-			Destroy(material);
+			Destroy(simulationMaterial);
+			Destroy(displayMaterial);
 			Destroy(mask);
-			material = null;
+			simulationMaterial = null;
+			displayMaterial = null;
 			mask = null;
 			lastFrame = -1;
 		}

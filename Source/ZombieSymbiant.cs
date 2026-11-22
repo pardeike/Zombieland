@@ -799,8 +799,8 @@ namespace ZombieLand
 		{
 			get
 			{
-				EnsureSelectionCoreState();
-				return SelectionCoreClickRelative.IsValid ? Position + SelectionCoreClickRelative : Position;
+				var relative = SelectionCoreClickRelative;
+				return relative.IsValid ? Position + relative : Position;
 			}
 		}
 
@@ -812,8 +812,8 @@ namespace ZombieLand
 		{
 			get
 			{
-				EnsureSelectionCoreState();
-				return selectionCoreRelative.IsValid && cells?.Contains(selectionCoreRelative) == true;
+				var relative = PendingSelectionCoreRelative(out _);
+				return relative.IsValid && cells?.Contains(relative) == true;
 			}
 		}
 		public bool SelectionCoreMotionActive => IsSelectionCoreMotionActive(GenTicks.TicksGame);
@@ -831,14 +831,7 @@ namespace ZombieLand
 		internal bool DebugSelectionCoreIsLastOrdered => orderedCells?.LastOrDefault() == selectionCoreRelative;
 		internal static int SelectionCorePreferredTargetLimit => AmbientMovementCandidateLimit;
 		internal static int SelectionCoreInitializationCandidateLimit => SelectionCoreConnectivityCandidateLimit;
-		internal Vector2 SelectionCoreVisualCenterRelative
-		{
-			get
-			{
-				EnsureSelectionCoreState();
-				return SelectionCoreVisualCenter;
-			}
-		}
+		internal Vector2 SelectionCoreVisualCenterRelative => SelectionCoreVisualCenter;
 		public override CellRect? CustomRectForSelector => hasCellBounds ? CellRect.SingleCell(SelectionCoreCell) : base.CustomRectForSelector;
 		public int RenderTextureWidth => renderPatches.Select(patch => patch.texture?.width ?? 0).DefaultIfEmpty(0).Max();
 		public int RenderTextureHeight => renderPatches.Select(patch => patch.texture?.height ?? 0).DefaultIfEmpty(0).Max();
@@ -3321,15 +3314,16 @@ namespace ZombieLand
 		{
 			get
 			{
+				var relative = PendingSelectionCoreRelative(out var motionActive);
 				var center = SelectionCoreVisualCenter;
 				var visualCell = new IntVec3(Mathf.RoundToInt(center.x), 0, Mathf.RoundToInt(center.y));
-				if (IsSelectionCoreMotionActive(GenTicks.TicksGame)
+				if (motionActive
 					&& selectionCoreMotionFrom.IsValid
 					&& visualCell == selectionCoreMotionFrom)
 					return visualCell;
 				if (cells?.Contains(visualCell) == true)
 					return visualCell;
-				if (IsSelectionCoreMotionActive(GenTicks.TicksGame))
+				if (motionActive)
 				{
 					var fromValid = selectionCoreMotionFrom.IsValid && cells?.Contains(selectionCoreMotionFrom) == true;
 					var toValid = selectionCoreMotionTo.IsValid && cells?.Contains(selectionCoreMotionTo) == true;
@@ -3339,9 +3333,7 @@ namespace ZombieLand
 					if (occupiedEndpoint.IsValid)
 						return occupiedEndpoint;
 				}
-				if (selectionCoreRelative.IsValid && cells?.Contains(selectionCoreRelative) == true)
-					return selectionCoreRelative;
-				return BestSelectionCoreRelative(IntVec3.Zero, selectionCoreDiscoveryCue);
+				return relative;
 			}
 		}
 
@@ -3349,19 +3341,45 @@ namespace ZombieLand
 		{
 			get
 			{
-				var ticks = GenTicks.TicksGame;
-				if (IsSelectionCoreMotionActive(ticks) == false)
-					return CellCenter(selectionCoreRelative.IsValid ? selectionCoreRelative : IntVec3.Zero);
-				return Vector2.Lerp(CellCenter(selectionCoreMotionFrom), CellCenter(selectionCoreMotionTo), SelectionCoreMotionProgress(ticks));
+				var relative = PendingSelectionCoreRelative(out var motionActive);
+				if (motionActive == false)
+					return CellCenter(relative.IsValid ? relative : IntVec3.Zero);
+				return Vector2.Lerp(CellCenter(selectionCoreMotionFrom), CellCenter(selectionCoreMotionTo), SelectionCoreMotionProgress(GenTicks.TicksGame));
 			}
+		}
+
+		// Returns the core cell that EnsureSelectionCoreState would establish now, without writing state.
+		// Hover, selection and render paths use it, so viewing a Symbiant never changes the simulation.
+		IntVec3 PendingSelectionCoreRelative(out bool motionActive)
+		{
+			motionActive = false;
+			if (cells == null || cells.Count == 0)
+				return IntVec3.Invalid;
+			var ticks = GenTicks.TicksGame;
+			var relative = selectionCoreRelative;
+			if (selectionCoreMotionEndTick >= 0 && ticks >= selectionCoreMotionEndTick)
+			{
+				var destination = selectionCoreMotionTo;
+				relative = destination.IsValid && cells.Contains(destination)
+					? destination
+					: BestSelectionCoreRelative(relative, selectionCoreDiscoveryCue);
+			}
+			else if (IsSelectionCoreMotionActive(ticks) && cells.Contains(relative))
+			{
+				motionActive = true;
+				return relative;
+			}
+			if (relative.IsValid && cells.Contains(relative))
+				return relative;
+			return BestSelectionCoreRelative(IntVec3.Zero, selectionCoreDiscoveryCue);
 		}
 
 		public IntVec3 SelectionCoreDestinationCell
 		{
 			get
 			{
-				EnsureSelectionCoreState();
-				return selectionCoreRelative.IsValid ? Position + selectionCoreRelative : Position;
+				var relative = PendingSelectionCoreRelative(out _);
+				return relative.IsValid ? Position + relative : Position;
 			}
 		}
 
@@ -3391,6 +3409,13 @@ namespace ZombieLand
 		public override void Notify_ThingSelected()
 		{
 			base.Notify_ThingSelected();
+			if (selectionCoreDiscoveryCue == false || MultiplayerCommands.CanIssue == false)
+				return;
+			MultiplayerCommands.AcknowledgeSymbiantDiscovery(this);
+		}
+
+		internal void AcknowledgeDiscovery()
+		{
 			if (selectionCoreDiscoveryCue == false)
 				return;
 			selectionCoreDiscoveryCue = false;
@@ -4614,6 +4639,8 @@ namespace ZombieLand
 				Destroy(DestroyMode.Vanish);
 				return;
 			}
+			// The core state advances here, not in the render or hover readers.
+			EnsureSelectionCoreState();
 			if (HasPendingConstructionRepair)
 			{
 				_ = TryProcessPendingConstructionRepair();
@@ -7083,7 +7110,6 @@ namespace ZombieLand
 		{
 			try
 			{
-				EnsureSelectionCoreState();
 				EnsureSelectionCoreResources();
 				if (selectionCoreMaterial != null || selectionCoreTexture != null || selectionCoreMesh != null)
 					renderResourceOwners.Add(this);
@@ -7244,8 +7270,7 @@ namespace ZombieLand
 
 		bool DrawSelectionCore(Vector3 drawLoc)
 		{
-			EnsureSelectionCoreState();
-			if (selectionCoreMesh == null || selectionCoreMaterial == null || selectionCoreRelative.IsValid == false)
+			if (selectionCoreMesh == null || selectionCoreMaterial == null || PendingSelectionCoreRelative(out _).IsValid == false)
 				return false;
 			var amplitude = Mathf.Lerp(SelectionCoreSubtlePulseScale, SelectionCoreDiscoveryPulseScale, selectionCoreDiscoveryBlend);
 			amplitude = Mathf.Lerp(amplitude, SelectionCoreHoverPulseScale, selectionCoreHoverBlend);
@@ -7438,31 +7463,19 @@ namespace ZombieLand
 			{
 				defaultLabel = "DEV: Add Cell",
 				defaultDesc = "Trigger one normal Symbiant expansion pulse.",
-				action = () =>
-				{
-					if (DebugExpansionPulse() == false)
-						Log.Warning("Could not add a Symbiant cell. The Symbiant may be capped or have no valid expansion target.");
-				}
+				action = () => MultiplayerCommands.RunSymbiantDebugCommand(this, SymbiantDebugCommand.AddCell)
 			};
 			yield return new Command_Action
 			{
 				defaultLabel = "DEV: Remove Cell",
 				defaultDesc = "Trigger one normal Symbiant shrink pulse.",
-				action = () =>
-				{
-					if (DebugShrinkPulse() == false)
-						Log.Warning("Could not remove a Symbiant cell.");
-				}
+				action = () => MultiplayerCommands.RunSymbiantDebugCommand(this, SymbiantDebugCommand.RemoveCell)
 			};
 			yield return new Command_Action
 			{
 				defaultLabel = "DEV: Move Symbiant",
 				defaultDesc = "Trigger one normal Symbiant cell relocation.",
-				action = () =>
-				{
-					if (DebugMovePulse() == false)
-						Log.Warning("Could not move a Symbiant cell.");
-				}
+				action = () => MultiplayerCommands.RunSymbiantDebugCommand(this, SymbiantDebugCommand.Move)
 			};
 			yield return new Command_Action
 			{
@@ -7474,8 +7487,7 @@ namespace ZombieLand
 				{
 					if (LinkedHost != null)
 					{
-						if (DebugUnassignHost() == false)
-							Log.Warning("Could not unassign the Symbiant host.");
+						MultiplayerCommands.RunSymbiantDebugCommand(this, SymbiantDebugCommand.UnassignHost);
 						return;
 					}
 					OpenDebugHostAssignmentMenu();
@@ -7494,11 +7506,7 @@ namespace ZombieLand
 			var options = candidates
 				.Select(pawn => new FloatMenuOption(
 					pawn.LabelShortCap.ToString(),
-					() =>
-					{
-						if (DebugAssignHost(pawn) == false)
-							Log.Warning($"Could not assign {pawn.LabelShortCap} to the Symbiant.");
-					}
+					() => MultiplayerCommands.AssignSymbiantHost(this, pawn)
 				))
 				.ToList();
 			Find.WindowStack.Add(new FloatMenu(options));

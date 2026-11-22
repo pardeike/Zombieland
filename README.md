@@ -298,7 +298,7 @@ You can add Zombieland to existing games but be careful: if your colony already 
 
 **Multiplayer**
 
-Zombieland is currently not compatible with multiplayer. It is not very likely that it will be made compatible because of the randomness and optimizations that would prevent running predicably on different computers.
+On RimWorld 1.7, Zombieland works with the Multiplayer mod. While a Multiplayer session runs, Zombieland switches to a deterministic mode so that every player simulates the same zombies. That mode is slower than single player. Some of the optimizations that keep large hordes running depend on your own computer's frame rate or run in background threads, so Multiplayer turns them off. Single-player games are not affected. The RimWorld 1.4 and 1.6 versions of Zombieland are still not compatible with Multiplayer.
 
 **Combat Extended**
 

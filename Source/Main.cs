@@ -178,13 +178,13 @@ namespace ZombieLand
 			Log.Message("Zombieland repaired the malformed Russian Odyssey traders-guild grammar rule.");
 		}
 
-		static void DrawJumpToCurrent(Rect rect, float offset)
+		static void DrawJumpToCurrent(Rect rect, float offset, List<SettingsKeyFrame> timeline)
 		{
 			var txt = "JumpToNow".Translate();
 			var size = Text.CalcSize(txt);
 			var r = new Rect(rect.width - 20f - size.x - offset, 0f, size.x + 12, size.y + 8);
 			if (Widgets.ButtonText(r, txt))
-				DialogTimeHeader.JumpToCurrent();
+				DialogTimeHeader.JumpToCurrent(timeline);
 		}
 
 		static float DrawAdvancedSettings(Rect rect)
@@ -203,7 +203,7 @@ namespace ZombieLand
 			if (settings != null)
 			{
 				var offset = DrawAdvancedSettings(inRect);
-				DrawJumpToCurrent(inRect, offset + 20f);
+				DrawJumpToCurrent(inRect, offset + 20f, settings.EditedTimeline);
 				settings.DoWindowContents(inRect);
 			}
 			else

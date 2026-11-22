@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+	<ExtractZombieSerum.label>从丧尸尸体中采集提取物</ExtractZombieSerum.label>
+	<ExtractZombieSerum.verb>采集</ExtractZombieSerum.verb>
+	<ExtractZombieSerum.gerund>采集</ExtractZombieSerum.gerund>
+	<DoubleTap.label>对尸体补刀，防止其变成丧尸</DoubleTap.label>
+	<DoubleTap.verb>补刀</DoubleTap.verb>
+	<DoubleTap.gerund>补刀</DoubleTap.gerund>
+	<FixBrokenChainsaw.label>修理损坏的链锯</FixBrokenChainsaw.label>
+	<FixBrokenChainsaw.verb>更换损坏的零部件：</FixBrokenChainsaw.verb>
+	<FixBrokenChainsaw.gerund>更换损坏的零部件：</FixBrokenChainsaw.gerund>
+</LanguageData>

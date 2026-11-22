@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageInfo>
+	<friendlyNameNative>Русский</friendlyNameNative>
+	<friendlyNameEnglish>Russian / Русский</friendlyNameEnglish>
+	<canBeTiny>true</canBeTiny>
+	<languageWorkerClass>LanguageWorker_Russian</languageWorkerClass>
+	<credits>
+		<li Class="CreditRecord_Role">
+			<roleKey>Credit_Translator</roleKey>
+			<creditee>COZ RED GOEZ F🅰🅰ST🅰!!!!</creditee>
+		</li>
+		<li Class="CreditRecord_Role">
+			<roleKey>Credit_SpecialThanks</roleKey>
+			<creditee>Workshop terminology reference: Хави</creditee>
+		</li>
+	</credits>
+</LanguageInfo>

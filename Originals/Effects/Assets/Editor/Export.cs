@@ -29,7 +29,7 @@ public class CreateAssetBundles
 		if (string.IsNullOrEmpty(env) == false)
 			return env;
 
-		return Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", "1.6", "Resources"));
+		return Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", "1.7", "Resources"));
 	}
 
 	[MenuItem("Assets/Export Zombieland")]

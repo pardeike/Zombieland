@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+	<Apparel_BombVest.label>炸弹背心</Apparel_BombVest.label>
+	<Apparel_BombVest.description>带有爆炸物的背心。</Apparel_BombVest.description>
+	<TarSlime.label>超黏黏液</TarSlime.label>
+	<TarSlime.description>一种极其黏稠的黏液，会大幅减慢移动速度。</TarSlime.description>
+	<TarSmoke.label>烟雾</TarSmoke.label>
+	<TarSmoke.description>一种令人难以看清周围事物的黑烟。</TarSmoke.description>
+	<StickyGoo.label>剧毒黏性丧尸黏液</StickyGoo.label>
+	<StickyGoo.description>一种剧毒而黏稠的物质，很可能使接触者生病。</StickyGoo.description>
+	<Chainsaw.label>链锯</Chainsaw.label>
+	<Chainsaw.description>对丧尸威力巨大，但使用时十分危险。征召使用者并打开马达，即可切割附近敌人。锯刃也会杀死挡在路径上的友军。使用者被包围时可能会丢下链锯。攻击装甲丧尸、机械或建筑可能使链锯损坏。补充化合燃料时，需要先把链锯放在地上。选择一名未被征召的殖民者，右键点击链锯即可下令加油，也可以让负责搬运的殖民者自动补充燃料。 如果链锯被禁用，请在加油前先解除禁用。</Chainsaw.description>
+	<Chainsaw.tools.blade.label>锯刃</Chainsaw.tools.blade.label>
+	<ZombieExtract.label>丧尸提取物</ZombieExtract.label>
+	<ZombieExtract.description>从一只死亡丧尸身上采集的少量提取物。将最多 100 份提取物合成为一种名为丧尸血清的药物，可用于给受感染的身体部位做手术。</ZombieExtract.description>
+	<UnfinishedZombieSerum.label>未完成的丧尸血清</UnfinishedZombieSerum.label>
+	<ZombieSerumSimple.label>简易丧尸血清 100%</ZombieSerumSimple.label>
+	<ZombieSerumSimple.description>从死亡丧尸中提炼的纯血清，可保证在手术中治愈丧尸感染。</ZombieSerumSimple.description>
+	<Zombie10Serum.label>丧尸血清 10%</Zombie10Serum.label>
+	<Zombie10Serum.description>从死亡丧尸中提炼的血清，可在手术中治愈丧尸感染（成功率为 10%）。</Zombie10Serum.description>
+	<Zombie20Serum.label>丧尸血清 20%</Zombie20Serum.label>
+	<Zombie20Serum.description>从死亡丧尸中提炼的血清，可在手术中治愈丧尸感染（成功率为 20%）。</Zombie20Serum.description>
+	<Zombie30Serum.label>丧尸血清 30%</Zombie30Serum.label>
+	<Zombie30Serum.description>从死亡丧尸中提炼的血清，可在手术中治愈丧尸感染（成功率为 30%）。</Zombie30Serum.description>
+	<Zombie40Serum.label>丧尸血清 40%</Zombie40Serum.label>
+	<Zombie40Serum.description>从死亡丧尸中提炼的血清，可在手术中治愈丧尸感染（成功率为 40%）。</Zombie40Serum.description>
+	<Zombie50Serum.label>丧尸血清 50%</Zombie50Serum.label>
+	<Zombie50Serum.description>从死亡丧尸中提炼的血清，可在手术中治愈丧尸感染（成功率为 50%）。</Zombie50Serum.description>
+	<Zombie60Serum.label>丧尸血清 60%</Zombie60Serum.label>
+	<Zombie60Serum.description>从死亡丧尸中提炼的血清，可在手术中治愈丧尸感染（成功率为 60%）。</Zombie60Serum.description>
+	<Zombie70Serum.label>丧尸血清 70%</Zombie70Serum.label>
+	<Zombie70Serum.description>从死亡丧尸中提炼的血清，可在手术中治愈丧尸感染（成功率为 70%）。</Zombie70Serum.description>
+	<Zombie80Serum.label>丧尸血清 80%</Zombie80Serum.label>
+	<Zombie80Serum.description>从死亡丧尸中提炼的血清，可在手术中治愈丧尸感染（成功率为 80%）。</Zombie80Serum.description>
+	<Zombie90Serum.label>丧尸血清 90%</Zombie90Serum.label>
+	<Zombie90Serum.description>从死亡丧尸中提炼的血清，可在手术中治愈丧尸感染（成功率为 90%）。</Zombie90Serum.description>
+	<Zombie100Serum.label>丧尸血清 100%</Zombie100Serum.label>
+	<Zombie100Serum.description>从死亡丧尸中提炼的纯血清，可保证在手术中治愈丧尸感染。</Zombie100Serum.description>
+	<ZombieShocker.label>丧尸电击器</ZombieShocker.label>
+	<ZombieShocker.description>一种安装在房间墙壁上的丧尸控制装置。可以从房间外启动，使室内所有丧尸短时间失去意识。</ZombieShocker.description>
+	<Thumper.label>丧尸震地器</Thumper.label>
+	<Thumper.description>一种通过震动吸引丧尸的装置。它会消耗燃料，每次敲击都会破坏周围环境。</Thumper.description>
+	<ZombieBall.label>丧尸球</ZombieBall.label>
+	<ZombieLand_DecontaminationTransportPod.label>去污运输舱</ZombieLand_DecontaminationTransportPod.label>
+	<ZombieLand_DecontaminationTransportPod.description>用于接走殖民者接受去污治疗的单程运输舱。</ZombieLand_DecontaminationTransportPod.description>
+</LanguageData>

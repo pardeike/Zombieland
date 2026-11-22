@@ -38,13 +38,13 @@ def nul_paths(data: bytes) -> list[Path]:
 
 def is_format_target(path: Path) -> bool:
 	name = path.as_posix()
-	if name.startswith(("1.4/", "Originals/")):
+	if name.startswith(("1.4/", "1.6/", "Originals/")):
 		return False
 	if name == "LoadFolders.xml" or name == "Directory.Build.props":
 		return True
 	if name.startswith("About/") and path.suffix.lower() == ".xml":
 		return True
-	if name.startswith("1.6/") and path.suffix.lower() == ".xml":
+	if name.startswith("1.7/") and path.suffix.lower() == ".xml":
 		return True
 	return (
 		name.startswith("Source/")
@@ -58,7 +58,7 @@ def is_runtime_xml(path: Path) -> bool:
 	return (
 		name == "LoadFolders.xml"
 		or (name.startswith("About/") and path.suffix.lower() == ".xml")
-		or (name.startswith("1.6/") and path.suffix.lower() == ".xml")
+		or (name.startswith("1.7/") and path.suffix.lower() == ".xml")
 	)
 
 

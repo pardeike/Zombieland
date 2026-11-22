@@ -1,0 +1,158 @@
+{
+  "sourceHost": "mba.home.arpa",
+  "sourceRepository": "/Users/ap/Projects/Zombieland",
+  "captured": "2026-10-31",
+  "activeBuildInput": false,
+  "files": [
+    {
+      "snapshot": "UnityPackageFiles/manifest.json",
+      "source": "Originals/Effects/Packages/manifest.json",
+      "sha256": "98b0f74110da34cfa5439cd6a99790f943be64fa378c8fcf9132720c0b2e5991"
+    },
+    {
+      "snapshot": "UnityPackageFiles/packages-lock.json",
+      "source": "Originals/Effects/Packages/packages-lock.json",
+      "sha256": "2c321ca87cdd23a716bf445f64a92c9bd9dd66aadd984092faf34b41aee811af"
+    },
+    {
+      "snapshot": "_Zombieland/Dust.prefab",
+      "source": "Originals/Effects/Assets/_Zombieland/Dust.prefab",
+      "sha256": "1f6378f36b83755bc3519603bc934f4f19b6a95fc89caca1af42dbdd3fc83910"
+    },
+    {
+      "snapshot": "_Zombieland/Dust.prefab.meta",
+      "source": "Originals/Effects/Assets/_Zombieland/Dust.prefab.meta",
+      "sha256": "4a074ce56c177c12f9542764a92c3821de9ff66c084a0c0ce4efe47ce51ffc3c"
+    },
+    {
+      "snapshot": "_Zombieland/MainMenuBackgroundEffect.shader",
+      "source": "Originals/Effects/Assets/_Zombieland/MainMenuBackgroundEffect.shader",
+      "sha256": "c584a314618cad1f55a40f731ee077c61aec52e38200fa41ce19131e300128f8"
+    },
+    {
+      "snapshot": "_Zombieland/MainMenuBackgroundEffect.shader.meta",
+      "source": "Originals/Effects/Assets/_Zombieland/MainMenuBackgroundEffect.shader.meta",
+      "sha256": "5b1a7c40c119b5bdd96e1d5ceb13636563bc9f2e56db821f591890fbe5e0a1a7"
+    },
+    {
+      "snapshot": "_Zombieland/Metaballs.shader",
+      "source": "Originals/Effects/Assets/_Zombieland/Metaballs.shader",
+      "sha256": "5bd84256c21bc826bee0d3806dec80a7ea2d7b11396c306b6a5e11c4475af4c3"
+    },
+    {
+      "snapshot": "_Zombieland/Metaballs.shader.meta",
+      "source": "Originals/Effects/Assets/_Zombieland/Metaballs.shader.meta",
+      "sha256": "8f0b560a3474b9b1c6881b6f3fda127ab14d7fc28fba22eb976458248a142de2"
+    },
+    {
+      "snapshot": "_Zombieland/Smoke_thin.mat",
+      "source": "Originals/Effects/Assets/_Zombieland/Smoke_thin.mat",
+      "sha256": "8ffaf0f0060cee79ae954692ebf297156c768c0bdc66fa6587bc04b8d41c09e8"
+    },
+    {
+      "snapshot": "_Zombieland/Smoke_thin.mat.meta",
+      "source": "Originals/Effects/Assets/_Zombieland/Smoke_thin.mat.meta",
+      "sha256": "fd4ff03c6ad3a8094a032392359e6c9e145f4d068a7f270ba731e7c5f73565dd"
+    },
+    {
+      "snapshot": "_Zombieland/TitleBloodDrip.shader",
+      "source": "Originals/Effects/Assets/_Zombieland/TitleBloodDrip.shader",
+      "sha256": "4bf360deea940cc8eeaf46b4205a96b5e275383c3e4ac434679e44bfc4c6a63b"
+    },
+    {
+      "snapshot": "_Zombieland/TitleBloodDrip.shader.meta",
+      "source": "Originals/Effects/Assets/_Zombieland/TitleBloodDrip.shader.meta",
+      "sha256": "dac35300e949565b0520019f14c7cbc06859a9ad9ab0532fe3742905efc69733"
+    },
+    {
+      "snapshot": "_Zombieland/ZombieSymbiant.mat",
+      "source": "Originals/Effects/Assets/_Zombieland/ZombieSymbiant.mat",
+      "sha256": "4fe1e421434e17d3b37047ed76da4cc3075725e4a7fbdb09e9fcbccfce767e82"
+    },
+    {
+      "snapshot": "_Zombieland/ZombieSymbiant.mat.meta",
+      "source": "Originals/Effects/Assets/_Zombieland/ZombieSymbiant.mat.meta",
+      "sha256": "6721b2c0dcdd1d2bf9e24b25ec67d728d349c7de2dc3352b1b71f72403cc5c58"
+    },
+    {
+      "snapshot": "_Zombieland/ZombieSymbiant.shader",
+      "source": "Originals/Effects/Assets/_Zombieland/ZombieSymbiant.shader",
+      "sha256": "6c68ff533617e56c0a0b0c0a5b66743acd94393ed602d09dbcf37c241b3c7170"
+    },
+    {
+      "snapshot": "_Zombieland/ZombieSymbiant.shader.meta",
+      "source": "Originals/Effects/Assets/_Zombieland/ZombieSymbiant.shader.meta",
+      "sha256": "98f7e99127b17c848b261904d85ac5779c6677392417217049c24707073c2e1f"
+    },
+    {
+      "snapshot": "_Zombieland/smoke_n.png",
+      "source": "Originals/Effects/Assets/_Zombieland/smoke_n.png",
+      "sha256": "2026b22629f7ecd58e8137578394c1f0e99683638119149123618754f7b0a1ea"
+    },
+    {
+      "snapshot": "_Zombieland/smoke_n.png.meta",
+      "source": "Originals/Effects/Assets/_Zombieland/smoke_n.png.meta",
+      "sha256": "797c341a961123c10f020364c67b5943d583c29ca8daf2c9483756f1426bd662"
+    },
+    {
+      "snapshot": "_Zombieland/smoke_thin.png",
+      "source": "Originals/Effects/Assets/_Zombieland/smoke_thin.png",
+      "sha256": "ea49d552045073e199b02d223c5e32227ddf64ac88557bbb1848ef1f15f8dd63"
+    },
+    {
+      "snapshot": "_Zombieland/smoke_thin.png.meta",
+      "source": "Originals/Effects/Assets/_Zombieland/smoke_thin.png.meta",
+      "sha256": "915e3da4c6922f32dc09e0caa855e71dd67d9d258db58b7531d572dff678d7fa"
+    },
+    {
+      "snapshot": "_Zombieland.meta",
+      "source": "Originals/Effects/Assets/_Zombieland.meta",
+      "sha256": "7f0e0f0f4fa76c202a35db72775c9f9622417a79bac5d1a6db387975a8fc76ec"
+    },
+    {
+      "snapshot": "UnityMetadata/Originals/Effects/Assets/Zombieland.meta",
+      "source": "Originals/Effects/Assets/Zombieland.meta",
+      "sha256": "aa9beb0673184c63f39e921a5fe376dd5548eb1c6b4b403a4524110e0ee137fa"
+    },
+    {
+      "snapshot": "UnityMetadata/Originals/Effects/Assets/Editor.meta",
+      "source": "Originals/Effects/Assets/Editor.meta",
+      "sha256": "8dc63fa660dffd91d345a8a2c3cf9fa9cd6c8540d49bc39cc9f691a230d919db"
+    },
+    {
+      "snapshot": "UnityMetadata/Originals/Effects/Assets/Resources.meta",
+      "source": "Originals/Effects/Assets/Resources.meta",
+      "sha256": "6abfab740e678ed73aa44c00eef22031bc3ce71c1a6221178286f72a5bfc0e9a"
+    },
+    {
+      "snapshot": "UnityMetadata/Originals/Effects/Assets/Resources/BillingMode.json.meta",
+      "source": "Originals/Effects/Assets/Resources/BillingMode.json.meta",
+      "sha256": "97359137dbbcdd46bbfcdbc1d8add5f81afbc519cb118524b9e6ef532ac3bef4"
+    },
+    {
+      "snapshot": "UnityMetadata/Originals/Effects/Assets/Editor/Export.cs.meta",
+      "source": "Originals/Effects/Assets/Editor/Export.cs.meta",
+      "sha256": "229a54985e312658def1d3990ae61a46a953d30b08f81895b08c5f6b4cb3808e"
+    },
+    {
+      "snapshot": "UnityMetadata/Originals/Effects/Assets/Zombieland/MainMenuBackgroundEffect.shader.meta",
+      "source": "Originals/Effects/Assets/Zombieland/MainMenuBackgroundEffect.shader.meta",
+      "sha256": "bc793e1a02146832c5d93f81afb17b25f55faccd73a7170c4388171b61e9caa2"
+    },
+    {
+      "snapshot": "UnityMetadata/Originals/Effects/Assets/Zombieland/TitleBloodDrip.shader.meta",
+      "source": "Originals/Effects/Assets/Zombieland/TitleBloodDrip.shader.meta",
+      "sha256": "7ffeb8527cd8458f02026ca9a5f0c0c4d36841532f0edd5bf544769ff267b24d"
+    },
+    {
+      "snapshot": "UnityMetadata/Originals/Effects/Assets/Zombieland/Effects.unity.meta",
+      "source": "Originals/Effects/Assets/Zombieland/Effects.unity.meta",
+      "sha256": "de8250377b7031931dd700e26e0d33cb1b30bbc7cd4643654866d028ec726ceb"
+    },
+    {
+      "snapshot": "UnityMetadata/Originals/Effects/Assets/Zombieland/Rimworld.mat.meta",
+      "source": "Originals/Effects/Assets/Zombieland/Rimworld.mat.meta",
+      "sha256": "1c9ac1601419b79457649f74b572eb49b94febae4f866870c23d3f8c3e56a0ef"
+    }
+  ]
+}

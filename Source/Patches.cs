@@ -33,7 +33,8 @@ namespace ZombieLand
 			errors = new List<string>();
 			try
 			{
-				PatchGroups.ApplyAll(harmony, Assembly.GetExecutingAssembly());
+				PatchGroups.ApplyAll(harmony, typeof(Patches).Assembly);
+				MultiplayerSupport.Install();
 			}
 			catch (Exception ex)
 			{
@@ -194,7 +195,8 @@ namespace ZombieLand
 				var map = __instance.Map;
 				if (ZombieSymbiant.MapBoundSymbiants(map).Any(symbiant => symbiant.Dead == false) == false)
 					return true;
-				if (confirmedSymbiantAbandons.Remove(__instance) || Find.WindowStack == null)
+				// During a Multiplayer session the issuing player confirms before the synchronized abandon command.
+				if (MultiplayerSupport.IsActive || confirmedSymbiantAbandons.Remove(__instance) || Find.WindowStack == null)
 				{
 					DestroyMapBoundSymbiants(map);
 					return true;
@@ -212,6 +214,40 @@ namespace ZombieLand
 						finally
 						{
 							confirmedSymbiantAbandons.Remove(__instance);
+						}
+					},
+					true,
+					"SymbiantMapAbandonWarningTitle".Translate()
+				));
+				return false;
+			}
+		}
+
+		// Multiplayer synchronizes SettlementAbandonUtility.Abandon, so the Symbiant warning must come before it.
+		[HarmonyPatch(typeof(SettlementAbandonUtility), nameof(SettlementAbandonUtility.TryAbandonViaInterface))]
+		static class SettlementAbandonUtility_TryAbandonViaInterface_Patch
+		{
+			static bool confirmed;
+
+			static bool Prefix(MapParent settlement)
+			{
+				if (MultiplayerSupport.IsActive == false || confirmed || settlement?.HasMap != true)
+					return true;
+				if (ZombieSymbiant.MapBoundSymbiants(settlement.Map).Any(symbiant => symbiant.Dead == false) == false)
+					return true;
+
+				Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+					"SymbiantMapAbandonWarning".Translate(),
+					() =>
+					{
+						confirmed = true;
+						try
+						{
+							SettlementAbandonUtility.TryAbandonViaInterface(settlement);
+						}
+						finally
+						{
+							confirmed = false;
 						}
 					},
 					true,
@@ -375,7 +411,8 @@ namespace ZombieLand
 					}
 				}
 
-				if (Constants.SHOW_PLAYER_REACHABLE_REGIONS)
+				// Multiplayer: drawing must not refresh the reachable-region cache that spawning reads.
+				if (Constants.SHOW_PLAYER_REACHABLE_REGIONS && MultiplayerSupport.IsActive == false)
 				{
 					var m = DebugSolidColorMats.MaterialOf(Color.magenta);
 					Tools.PlayerReachableRegions(map).SelectMany(r => r.Cells).Do(c => CellRenderer.RenderSpot(c.ToVector3Shifted(), m, 0.25f));
@@ -725,6 +762,9 @@ namespace ZombieLand
 					return;
 				if (__instance.Paused)
 					return;
+				// Multiplayer skips the vanilla body and ticks maps itself. This per-frame work would differ per peer.
+				if (MultiplayerSupport.IsActive)
+					return;
 
 				var startTimestamp = System.Diagnostics.Stopwatch.GetTimestamp();
 				var game = Current.Game;
@@ -1058,7 +1098,8 @@ namespace ZombieLand
 				vector += drawPos + new Vector3(0f, 0f, 0.4f + CustomDefs.Chainsaw.equippedDistanceOffset).RotatedBy(angle) * equipmentDrawDistanceFactor;
 
 				PawnRenderUtility.DrawEquipmentAiming(chainsaw, vector, angle);
-				if (Find.TickManager.Paused)
+				// Rotation is simulation state. Drawing must not change it during a Multiplayer session.
+				if (Find.TickManager.Paused && MultiplayerSupport.IsActive == false)
 					pawn.rotationTracker.Face(vector);
 
 				return false;
@@ -3360,12 +3401,20 @@ namespace ZombieLand
 			// this is set periodically from Alerts.Alert_ZombieInfection
 			public static HashSet<Pawn> infectedColonists = new();
 
+			// The alert refreshes the set from UI code on each peer. Multiplayer checks the pawn directly.
+			internal static bool IsInfectedColonist(Pawn pawn)
+			{
+				if (MultiplayerSupport.IsActive)
+					return pawn.IsFreeColonist && pawn.Spawned && pawn.InfectionState() == InfectionState.Infecting;
+				return infectedColonists.Contains(pawn);
+			}
+
 			static bool ShouldStayAtHalf(Need need)
 			{
 				var pawn = need?.pawn;
 				if (pawn == null)
 					return false;
-				if (infectedColonists.Contains(pawn))
+				if (IsInfectedColonist(pawn))
 					return true;
 				if (need is Need_Mood && ZombieSymbiant.HasMoodFixedBenefit(pawn))
 					return true;
@@ -3437,7 +3486,7 @@ namespace ZombieLand
 		{
 			static bool NoMentalState(Pawn pawn)
 			{
-				return pawn != null && Need_CurLevel_Patch.infectedColonists.Contains(pawn);
+				return pawn != null && Need_CurLevel_Patch.IsInfectedColonist(pawn);
 			}
 
 			[HarmonyPriority(Priority.Last)]
@@ -3467,7 +3516,7 @@ namespace ZombieLand
 			static bool Prefix(HediffSet __instance, ref float __result)
 			{
 				var pawn = __instance?.pawn;
-				if (pawn is ZombieSymbiant || pawn != null && Need_CurLevel_Patch.infectedColonists.Contains(pawn))
+				if (pawn is ZombieSymbiant || pawn != null && Need_CurLevel_Patch.IsInfectedColonist(pawn))
 				{
 					__result = 0f;
 					return false;
@@ -3485,7 +3534,7 @@ namespace ZombieLand
 			static bool ShouldHaveFullCapacity(Pawn pawn)
 			{
 				return pawn?.health?.Dead == false
-					&& (pawn is ZombieSymbiant || Need_CurLevel_Patch.infectedColonists.Contains(pawn));
+					&& (pawn is ZombieSymbiant || Need_CurLevel_Patch.IsInfectedColonist(pawn));
 			}
 
 			[HarmonyPriority(Priority.Last)]
@@ -3534,7 +3583,7 @@ namespace ZombieLand
 				try
 				{
 					ZombieSettings.Values.spawnHowType = parms.raidArrivalMode?.walkIn == true ? SpawnHowType.FromTheEdges : SpawnHowType.AllOverTheMap;
-					_ = ZombiesRising.TryExecute(Find.CurrentMap, Mathf.FloorToInt(parms.points), parms.spawnCenter, false, false);
+					_ = ZombiesRising.TryExecute(parms.target as Map ?? Find.CurrentMap, Mathf.FloorToInt(parms.points), parms.spawnCenter, false, false);
 				}
 				finally
 				{
@@ -3592,7 +3641,8 @@ namespace ZombieLand
 					return true;
 
 				Zombie zombie = null;
-				var map = Find.CurrentMap;
+				// Multiplayer: the viewed map differs per peer during simulation.
+				var map = MultiplayerSupport.IsActive ? Find.AnyPlayerHomeMap ?? Find.Maps.FirstOrDefault() : Find.CurrentMap;
 				if (map == null)
 					return true;
 				var it = ZombieGenerator.SpawnZombieIterativ(map.Center, map, ZombieType.Random, z => zombie = z);

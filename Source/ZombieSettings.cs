@@ -147,6 +147,13 @@ namespace ZombieLand
 			unit = unit,
 			values = values.MakeCopy()
 		};
+
+		public SettingsKeyFrame DeepCopy() => new()
+		{
+			amount = amount,
+			unit = unit,
+			values = values?.MakeDeepCopy()
+		};
 	}
 
 	public static class CopyPasteSettings
@@ -284,6 +291,22 @@ namespace ZombieLand
 		public ContaminationFactors contamination = new();
 		public object Clone() => MemberwiseClone();
 		public SettingsGroup MakeCopy() => Clone() as SettingsGroup;
+
+		// Also copies the collections the settings window edits, so a working copy cannot change live state.
+		// The settings window does not edit dangerousAreas, so the copy shares it.
+		public SettingsGroup MakeDeepCopy()
+		{
+			var copy = MakeCopy();
+			copy.biomesWithoutZombies = new HashSet<string>(biomesWithoutZombies ?? new HashSet<string>());
+			copy.blacklistedApparel = new List<string>(blacklistedApparel ?? new List<string>());
+			if (contamination != null)
+			{
+				copy.contamination = new ContaminationFactors();
+				foreach (var field in AccessTools.GetDeclaredFields(typeof(ContaminationFactors)).Where(field => field.IsStatic == false))
+					field.SetValue(copy.contamination, field.GetValue(contamination));
+			}
+			return copy;
+		}
 
 		public void ExposeData()
 		{
@@ -536,6 +559,7 @@ namespace ZombieLand
 
 		public static void ApplyDefaults()
 		{
+			MultiplayerConstants.RestoreLocal();
 			ZombieSettingsDefaults.EnsureValidTimeline();
 			ValuesOverTime = new(ZombieSettingsDefaults.groupOverTime);
 			Values = CalculateInterpolation(ValuesOverTime, 0);
@@ -652,10 +676,39 @@ namespace ZombieLand
 			return settings;
 		}
 
+		// During a Multiplayer session the in-game window edits this copy. Closing the window applies it
+		// to every peer through one synchronized command.
+		List<SettingsKeyFrame> multiplayerWorkingCopy;
+		string multiplayerWorkingCopyFingerprint;
+
+		// The timeline the settings window shows: the working copy during a session, else the live one.
+		public List<SettingsKeyFrame> EditedTimeline => multiplayerWorkingCopy ?? ValuesOverTime;
+
 		public void DoWindowContents(Rect inRect)
 		{
 			var idx = DialogTimeHeader.selectedKeyframe;
 			var ticks = DialogTimeHeader.currentTicks;
+			if (MultiplayerSupport.IsActive)
+			{
+				if (multiplayerWorkingCopy == null)
+				{
+					multiplayerWorkingCopy = ValuesOverTime.Select(frame => frame.DeepCopy()).ToList();
+					multiplayerWorkingCopyFingerprint = MultiplayerCommands.SettingsFingerprint(multiplayerWorkingCopy);
+				}
+				if (idx >= multiplayerWorkingCopy.Count)
+				{
+					DialogTimeHeader.selectedKeyframe = 0;
+					idx = 0;
+				}
+				if (idx != -1)
+					SettingsDialog.DoWindowContentsInternal(ref multiplayerWorkingCopy[idx].values, ref multiplayerWorkingCopy, inRect);
+				else
+				{
+					var preview = CalculateInterpolation(multiplayerWorkingCopy, ticks);
+					SettingsDialog.DoWindowContentsInternal(ref preview, ref multiplayerWorkingCopy, inRect);
+				}
+				return;
+			}
 			if (idx != -1)
 				SettingsDialog.DoWindowContentsInternal(ref ValuesOverTime[idx].values, ref ValuesOverTime, inRect);
 			else
@@ -667,6 +720,10 @@ namespace ZombieLand
 
 		public void WriteSettings()
 		{
+			var workingCopy = multiplayerWorkingCopy;
+			multiplayerWorkingCopy = null;
+			if (workingCopy != null)
+				MultiplayerCommands.SubmitGameSettings(workingCopy, multiplayerWorkingCopyFingerprint);
 			Tools.EnableTwinkie(Values.replaceTwinkie);
 		}
 
@@ -675,6 +732,7 @@ namespace ZombieLand
 			base.ExposeData();
 			Scribe_Deep.Look(ref Values, "values", Array.Empty<object>());
 			Scribe_Collections.Look(ref ValuesOverTime, "valuesOverTime", LookMode.Deep);
+			MultiplayerConstants.ExposeData();
 
 			if (Scribe.mode == LoadSaveMode.PostLoadInit)
 			{

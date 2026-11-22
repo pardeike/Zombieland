@@ -37,7 +37,7 @@ namespace ZombieLand
 				defaultLabel = "ToggleStateLabel".Translate(),
 				defaultDesc = "ToggleStateDesc".Translate(),
 				isActive = () => isActive,
-				toggleAction = () => { isActive = !isActive; }
+				toggleAction = () => MultiplayerCommands.SetSwitchState(parent, isActive == false)
 			};
 		}
 	}

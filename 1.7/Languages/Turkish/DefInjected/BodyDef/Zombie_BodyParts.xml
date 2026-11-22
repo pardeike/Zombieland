@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+	<ZombieSymbiantBody.label>vücut</ZombieSymbiantBody.label>
+	<ZombieSpitterBody.label>vücut</ZombieSpitterBody.label>
+	<ZombieSpitterBody.corePart.parts.lung.customLabel>akciğer</ZombieSpitterBody.corePart.parts.lung.customLabel>
+</LanguageData>

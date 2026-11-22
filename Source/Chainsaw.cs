@@ -242,13 +242,7 @@ namespace ZombieLand
 					disabled = Disabled,
 					icon = Constants.Chainsaw[running ? 1 : 0],
 					hotKey = KeyBindingDefOf.Misc6,
-					action = delegate ()
-					{
-						if (running)
-							StopMotor();
-						else
-							StartMotor(false);
-					}
+					action = () => MultiplayerCommands.SetChainsawMotor(pawn, running == false)
 				};
 			}
 

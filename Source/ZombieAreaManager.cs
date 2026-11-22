@@ -446,7 +446,7 @@ namespace ZombieLand
 					options.Add(new FloatMenuOption(newMode.ToStringHuman(), delegate ()
 					{
 						if (newMode != currentMode)
-							SetMode(area, newMode);
+							MultiplayerCommands.SetAreaRiskMode(area, newMode);
 					},
 					MenuOptionPriority.Default, null, null, 0f, null, null, true, 0));
 				}

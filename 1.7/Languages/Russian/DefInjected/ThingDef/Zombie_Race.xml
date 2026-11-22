@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LanguageData>
+	<Zombie.label>зомби</Zombie.label>
+	<Zombie.description>Зомби.</Zombie.description>
+	<Zombie.tools.0.label>укус</Zombie.tools.0.label>
+	<Zombie.tools.1.label>левая рука</Zombie.tools.1.label>
+	<Zombie.tools.2.label>правая рука</Zombie.tools.2.label>
+	<ElectricalField.label>электрическое поле</ElectricalField.label>
+	<ElectricalField.verbs.0.label>разряд</ElectricalField.verbs.0.label>
+	<ElectricalField.tools.0.label>разряд</ElectricalField.tools.0.label>
+	<ZombieSpitter.label>зомби-плевун</ZombieSpitter.label>
+	<ZombieSpitter.description>Монстр, который плюётся зомби, атакуя вашу базу с воздуха.</ZombieSpitter.description>
+	<ZombieSymbiant.label>зомби-симбионт</ZombieSymbiant.label>
+	<ZombieSymbiant.description>Внутреннее заражение зомби-симбионтом. Он расползается видимой слизью по оживлённым внутренним комнатам, замедляет пешек, которые проходят по нему, и связывается с поселенцем. Пока носитель и симбионт находятся на одной карте, носитель получает иммунитет к зомби-инфекции от укусов и накопленные связью преимущества. Кормление трупами ускоряет рост. Операция удаляет связь, и симбионт без носителя затем отступает.</ZombieSymbiant.description>
+</LanguageData>
