@@ -146,8 +146,26 @@ namespace ZombieLand
 			{
 				if (ModLister.OdysseyInstalled == false)
 					return;
+				var leftBehind = ZombieSymbiant.MapBoundSymbiants(map).ToArray();
 				DestroyMapBoundSymbiants(map);
+				ZombieSymbiant.NotifyLeftBehindByGravship(leftBehind);
 			}
+		}
+
+		[HarmonyPatch(typeof(GravshipUtility))]
+		[HarmonyPatch(nameof(GravshipUtility.GenerateGravship), typeof(Building_GravEngine))]
+		static class GravshipUtility_GenerateGravship_Patch
+		{
+			static void Prefix(Building_GravEngine engine) => ZombieSymbiant.PrepareGravshipLaunch(engine);
+			static void Finalizer(Gravship __result) => ZombieSymbiant.ConfirmGravshipLaunch(__result);
+		}
+
+		[HarmonyPatch(typeof(GravshipPlacementUtility))]
+		[HarmonyPatch(nameof(GravshipPlacementUtility.PlaceGravshipInMap))]
+		static class GravshipPlacementUtility_PlaceGravshipInMap_Patch
+		{
+			static void Prefix(Gravship gravship, Map map) => ZombieSymbiant.PrepareGravshipLanding(gravship, map);
+			static void Finalizer() => ZombieSymbiant.FinishGravshipLanding();
 		}
 
 		[HarmonyPatch]

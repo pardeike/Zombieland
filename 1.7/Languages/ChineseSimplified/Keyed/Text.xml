@@ -61,6 +61,10 @@
 	<LetterLabelSymbiantBondDormant>共生体连接休眠</LetterLabelSymbiantBondDormant>
 	<SymbiantMapAbandonWarningTitle>放弃有共生体的地图？</SymbiantMapAbandonWarningTitle>
 	<SymbiantMapAbandonWarning>这张地图上有一个存活的丧尸共生体。放弃地图会摧毁共生体，并强行切断任何仍存在的连接。如果你想安全地分离宿主和共生体，请先通过手术移除共生体连接。\n\n仍要放弃这张地图吗？</SymbiantMapAbandonWarning>
+	<LetterLabelSymbiantLeftBehind>共生体被留下</LetterLabelSymbiantLeftBehind>
+	<SymbiantLeftBehind>丧尸共生体不在飞船上。飞船离开它所在的地图时，它死去了。共生体连接已结束，宿主未受伤害。</SymbiantLeftBehind>
+	<LetterLabelSymbiantLostOnLanding>共生体在着陆时丢失</LetterLabelSymbiantLostOnLanding>
+	<SymbiantLostOnLanding>飞船上的丧尸共生体无法在此定居，因为这张地图上已经有一个共生体。它在着陆时死去了。共生体连接已结束，宿主未受伤害。</SymbiantLostOnLanding>
 	<SymbiantReseededMessage>{0} 的共生体移动到了另一个室内房间。</SymbiantReseededMessage>
 	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;当前状态&lt;/color&gt;：&lt;color=#72d672&gt;{0} 格&lt;/color&gt;。下一项收益在 &lt;color=#72d672&gt;{1} 格&lt;/color&gt;。\n\n&lt;color=#72d672&gt;共享生命值&lt;/color&gt;：{4}。针对宿主的伤害会先消耗这个储备；当前大小下，只有 &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; 会在 {6} 身上留下真实伤口。直接伤害共生体同样会消耗这个储备，但只会在健康记录中留下无害的灰色条目，不会在 {6} 身上造成真实伤口。如果这个储备用尽，{6} 会死亡。\n\n&lt;color=#ffb35c&gt;地图规则&lt;/color&gt;：宿主和共生体必须在同一张地图上。如果两者分离，连接会休眠，且无法通过手术移除。只有同一宿主与共生体再次位于同一地图时，连接才可能恢复。放弃这张地图会摧毁共生体，并强行切断连接；手术可以安全移除连接。\n\n&lt;color=#ffb35c&gt;当前效果&lt;/color&gt;：\n{2}\n\n&lt;color=#72d672&gt;当前收益&lt;/color&gt;：\n{3}\n\n它还会以微妙方式&lt;color=#72d672&gt;移除污染&lt;/color&gt;。</ZombieSymbiantInfoCardDetails>
 	<SymbiantDetailsInfoCard>共生体详情</SymbiantDetailsInfoCard>

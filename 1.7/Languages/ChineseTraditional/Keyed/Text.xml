@@ -61,6 +61,10 @@
 	<LetterLabelSymbiantBondDormant>共生體連結休眠</LetterLabelSymbiantBondDormant>
 	<SymbiantMapAbandonWarningTitle>放棄有共生體的地圖？</SymbiantMapAbandonWarningTitle>
 	<SymbiantMapAbandonWarning>這張地圖上有一個存活的喪屍共生體。放棄地圖會摧毀共生體，並強行切斷任何仍存在的連結。如果你想安全地分離宿主和共生體，請先透過手術移除連結。\n\n仍要放棄這張地圖嗎？</SymbiantMapAbandonWarning>
+	<LetterLabelSymbiantLeftBehind>共生體被留下</LetterLabelSymbiantLeftBehind>
+	<SymbiantLeftBehind>喪屍共生體不在飛船上。飛船離開它所在的地圖時，它死去了。連結已結束，宿主未受傷害。</SymbiantLeftBehind>
+	<LetterLabelSymbiantLostOnLanding>共生體在著陸時遺失</LetterLabelSymbiantLostOnLanding>
+	<SymbiantLostOnLanding>飛船上的喪屍共生體無法在此定居，因為這張地圖上已經有一個共生體。它在著陸時死去了。連結已結束，宿主未受傷害。</SymbiantLostOnLanding>
 	<SymbiantReseededMessage>{0} 的共生體移動到了另一個室內房間。</SymbiantReseededMessage>
 	<ZombieSymbiantInfoCardDetails>&lt;color=#72d672&gt;目前狀態&lt;/color&gt;：&lt;color=#72d672&gt;{0} 格&lt;/color&gt;。下一項增益在 &lt;color=#72d672&gt;{1} 格&lt;/color&gt;。\n\n&lt;color=#72d672&gt;共享生命值&lt;/color&gt;：{4}。針對宿主的傷害會先消耗這個儲備；目前大小下，只有 &lt;color=#ffb35c&gt;{5}%&lt;/color&gt; 會在 {6} 身上留下真實傷口。直接傷害共生體也會消耗這個儲備，但只會在健康記錄中留下無害的灰色條目，不會在 {6} 身上造成真實傷口。如果這個儲備用盡，{6} 會死亡。\n\n&lt;color=#ffb35c&gt;地圖規則&lt;/color&gt;：宿主和共生體必須在同一張地圖上。如果兩者分離，連結會休眠，且無法透過手術移除。只有同一宿主與共生體再次位於同一地圖時，連結才可能恢復。放棄這張地圖會摧毀共生體，並強行切斷連結；手術可以安全移除連結。\n\n&lt;color=#ffb35c&gt;目前效果&lt;/color&gt;：\n{2}\n\n&lt;color=#72d672&gt;目前增益&lt;/color&gt;：\n{3}\n\n它還會以微妙方式&lt;color=#72d672&gt;移除污染&lt;/color&gt;。</ZombieSymbiantInfoCardDetails>
 	<SymbiantDetailsInfoCard>共生體詳細資訊</SymbiantDetailsInfoCard>

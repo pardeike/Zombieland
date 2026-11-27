@@ -6148,9 +6148,7 @@ namespace ZombieLand
 						.ToArray();
 					var hediffBefore = host.health?.hediffSet?.GetFirstHediffOfDef(CustomDefs.SymbiantSymbiosis) != null;
 					var hostInjuryBefore = TotalInjurySeverity(host);
-					var bringAlongOnGravship = symbiant.def?.bringAlongOnGravship ?? true;
-					var shouldBringMethod = AccessTools.Method(typeof(Gravship), "ShouldBringOnGravship");
-					var shouldBringOnGravship = shouldBringMethod?.Invoke(null, new object[] { symbiant, symbiant.Position }) as bool?;
+					var lettersBeforeRoute = Find.LetterStack.LettersListForReading.ToHashSet();
 					var routeMapPawnIdsBeforeRoute = SymbiantSecondMapPawns(symbiantMap)
 						.Select(ZombieRuntimeActions.StableThingId)
 						.ToArray();
@@ -6159,6 +6157,9 @@ namespace ZombieLand
 					var currentMapBeforeRoute = Current.Game.CurrentMap;
 					var hostMapParentBeforeRoute = hostMap.Parent;
 					GravshipUtility.AbandonMap(symbiantMap);
+					var leftBehindLabel = "LetterLabelSymbiantLeftBehind".Translate().ToString();
+					var leftBehindLetters = Find.LetterStack.LettersListForReading
+						.Count(letter => lettersBeforeRoute.Contains(letter) == false && letter.Label.ToString() == leftBehindLabel);
 
 					var mapRemoved = Find.Maps.Contains(symbiantMap) == false;
 					var linkedAfter = ZombieSymbiant.LinkedSymbiantFor(host);
@@ -6192,8 +6193,7 @@ namespace ZombieLand
 						symbiantInWorldPawns,
 						hediffBefore,
 						hediffAfter,
-						bringAlongOnGravship,
-						shouldBringOnGravship,
+						leftBehindLetters,
 						routeMapPawnIdsBeforeRoute,
 						hostInRouteMapPawnsBeforeRoute,
 						hostInWorldPawnsBeforeRoute,
@@ -6215,8 +6215,7 @@ namespace ZombieLand
 						success = ScenarioSucceeded(dormant)
 							&& hediffBefore
 							&& hediffAfter == false
-							&& bringAlongOnGravship == false
-							&& shouldBringOnGravship == false
+							&& leftBehindLetters == 1
 							&& routeMapPawnIdsBeforeRoute.Length == 1
 							&& routeMapPawnIdsBeforeRoute[0] == ZombieRuntimeActions.StableThingId(symbiant)
 							&& hostInRouteMapPawnsBeforeRoute == false

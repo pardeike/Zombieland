@@ -473,6 +473,8 @@ namespace ZombieLand
 			"ZombieLand.Patches+DangerWatcher_CalculateDangerRating_Patch",
 			"ZombieLand.Patches+Game_DeinitAndRemoveMap_Patch",
 			"ZombieLand.Patches+GravshipUtility_AbandonMap_Patch",
+			"ZombieLand.Patches+GravshipUtility_GenerateGravship_Patch",
+			"ZombieLand.Patches+GravshipPlacementUtility_PlaceGravshipInMap_Patch",
 			"ZombieLand.Patches+MapParent_Abandon_Patch"
 		};
 

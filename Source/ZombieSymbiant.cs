@@ -2760,6 +2760,10 @@ namespace ZombieLand
 
 		public override void SpawnSetup(Map map, bool respawningAfterLoad)
 		{
+			var gravshipLanding = gravshipTransit && respawningAfterLoad == false;
+			gravshipTransit &= gravshipLanding;
+			if (gravshipLanding)
+				RotateFootprintForGravshipLanding(landingRotation ?? Rot4.North);
 			base.SpawnSetup(map, respawningAfterLoad);
 			// The custom renderer checks vanilla fog cell by cell, including when
 			// its root is unexplored. Bind the def only after normal spawn setup.
@@ -2770,6 +2774,8 @@ namespace ZombieLand
 			EnsureVisibleToPawnSystems(map);
 			UpdateAll();
 			RememberHostBondState(ResolveHost());
+			if (gravshipLanding)
+				FinishGravshipArrival();
 		}
 
 		void EnsureVisibleToPawnSystems(Map map = null)
@@ -2785,6 +2791,7 @@ namespace ZombieLand
 		{
 			var destroyAfterDespawn = destructionInProgress == false
 				&& temporaryDespawnInProgress == false
+				&& gravshipTransit == false
 				&& Dead == false
 				&& health?.isBeingKilled != true;
 			ForgetActiveSymbiant(this);
@@ -6115,6 +6122,9 @@ namespace ZombieLand
 				return null;
 			if (edifice.Faction != Faction.OfPlayer)
 				return null;
+			// A gravship hull wall is never breached. In space that would vent the ship.
+			if (map.terrainGrid?.FoundationAt(cell)?.IsSubstructure == true)
+				return null;
 			return edifice;
 		}
 
@@ -7555,6 +7565,7 @@ namespace ZombieLand
 			Scribe_Values.Look(ref lastSharedHealthDamageTick, "lastSharedHealthDamageTick", int.MinValue);
 			Scribe_Values.Look(ref nextSharedHealthRecoveryTick, "nextSharedHealthRecoveryTick");
 			Scribe_Values.Look(ref destroyWhenCellMotionsFinish, "destroyWhenCellMotionsFinish");
+			Scribe_Values.Look(ref gravshipTransit, "gravshipTransit");
 			Scribe_References.Look(ref host, "host");
 			Scribe_Values.Look(ref hostThingId, "hostThingId");
 			Scribe_Values.Look(ref symbiosisSevered, "symbiosisSevered");
